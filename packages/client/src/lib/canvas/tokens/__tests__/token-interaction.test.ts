@@ -49,6 +49,22 @@ function makeToken(overrides: Partial<TokenDocument> = {}): TokenDocument {
     bar1: { attribute: null },
     bar2: { attribute: null },
     flags: {},
+    vision: {
+      enabled: false,
+      range: null,
+      angle: 360,
+      visionMode: "basic",
+      detectionModes: [{ id: "sight", range: null, enabled: true }],
+    },
+    light: {
+      brightRadius: 0,
+      dimRadius: 0,
+      angle: 360,
+      color: "#ffffff",
+      intensity: 0.5,
+      gradual: true,
+      enabled: false,
+    },
     ...overrides,
   };
 }

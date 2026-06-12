@@ -25,7 +25,7 @@
  */
 
 import { z } from "zod";
-import { BaseDocumentSchema } from "@fusion/shared";
+import { BaseDocumentSchema, WallDocumentSchema, AmbientLightDocumentSchema } from "@fusion/shared";
 import type { DocumentTable } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
@@ -88,6 +88,9 @@ export const ItemSchema = BaseDocumentSchema.extend({
 
 /**
  * Scene — spatial document with embedded collections.
+ * M2-A: walls and lights are now typed using shared WallDocumentSchema and
+ * AmbientLightDocumentSchema. Perception fields (darkness, globalLight, etc.)
+ * added per spec 07.
  */
 export const SceneSchema = BaseDocumentSchema.extend({
   name: z.string().min(1),
@@ -101,11 +104,22 @@ export const SceneSchema = BaseDocumentSchema.extend({
   padding: z.number().nonnegative().default(0.25),
   background: z.string().nullable().optional(),
   backgroundColor: z.string().default("#999999"),
+  /** Token vision enabled (spec 07 REQ-VIS-085). */
   tokenVision: z.boolean().default(false),
+  /** Fog of war enabled (spec 07 REQ-VIS-085). */
+  fogEnabled: z.boolean().default(false),
+  /** Darkness level 0–1 (spec 07 REQ-VIS-044). */
+  darkness: z.number().min(0).max(1).default(0),
+  /** Global illumination flag (spec 07 REQ-VIS-044). */
+  globalLight: z.boolean().default(true),
+  /** Darkness threshold above which GI is suppressed (spec 07 REQ-VIS-044). */
+  globalLightThreshold: z.number().min(0).max(1).default(0.5),
   // Embedded collections stored as JSON arrays
   tokens: z.array(z.record(z.string(), z.unknown())).default(() => []),
-  walls: z.array(z.record(z.string(), z.unknown())).default(() => []),
-  lights: z.array(z.record(z.string(), z.unknown())).default(() => []),
+  /** Walls with typed schema (spec 07 M2-A). */
+  walls: z.array(WallDocumentSchema).default(() => []),
+  /** Ambient lights with typed schema (spec 07 M2-A). */
+  lights: z.array(AmbientLightDocumentSchema).default(() => []),
   sounds: z.array(z.record(z.string(), z.unknown())).default(() => []),
   tiles: z.array(z.record(z.string(), z.unknown())).default(() => []),
   drawings: z.array(z.record(z.string(), z.unknown())).default(() => []),

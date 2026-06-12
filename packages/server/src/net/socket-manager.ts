@@ -28,6 +28,16 @@ import {
   buildDocDeleteHandler,
 } from "./handlers/doc-handlers.js";
 import {
+  buildWallCreateHandler,
+  buildWallUpdateHandler,
+  buildWallDeleteHandler,
+  buildLightCreateHandler,
+  buildLightUpdateHandler,
+  buildLightDeleteHandler,
+  buildDoorStateHandler,
+  buildTokenMoveHandler,
+} from "./handlers/vision-handlers.js";
+import {
   buildResyncRequestHandler,
   buildActiveSceneHandler,
   sendJoinSnapshot,
@@ -179,6 +189,18 @@ export class SocketManager {
     const chatDeps = { db, ns, seqStore, worldId };
     registry.register("chat:send", buildChatSendHandler(chatDeps));
     registry.register("chat:history", buildChatHistoryHandler(chatDeps));
+
+    // Register M2-A vision handlers (walls, lights, door state, move collision)
+    const visionDeps = { store, seqStore, opBuffer, ns };
+    registry.register("wall:create", buildWallCreateHandler(visionDeps));
+    registry.register("wall:update", buildWallUpdateHandler(visionDeps));
+    registry.register("wall:delete", buildWallDeleteHandler(visionDeps));
+    registry.register("light:create", buildLightCreateHandler(visionDeps));
+    registry.register("light:update", buildLightUpdateHandler(visionDeps));
+    registry.register("light:delete", buildLightDeleteHandler(visionDeps));
+    registry.register("scene:doorState", buildDoorStateHandler(visionDeps));
+    // Override token:move with collision-aware handler
+    registry.register("token:move", buildTokenMoveHandler(visionDeps));
 
     // REQ-NET-003/014: auth middleware runs before connection is accepted
     ns.use((socket, next) => {

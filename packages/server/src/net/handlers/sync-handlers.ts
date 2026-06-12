@@ -17,7 +17,7 @@ import type { SeqStore } from "../seq-store.js";
 import type { OpBuffer } from "../op-buffer.js";
 import type { DocumentStore } from "../../documents/store.js";
 import { OwnershipLevel, resolveOwnership, isRolePrivileged } from "../../documents/ownership.js";
-import { stripHiddenTokens } from "../redaction.js";
+import { stripHiddenTokens, redactSecretDoors } from "../redaction.js";
 
 import { WorldResyncRequestPayloadSchema, WorldActiveScenePayloadSchema } from "@fusion/shared";
 import type {
@@ -136,9 +136,13 @@ function filterOpsForRole(ops: Envelope[]): Envelope[] {
     const documents = payload["documents"];
     if (!Array.isArray(documents)) return op;
 
-    const stripped = (documents as Record<string, unknown>[]).map(stripHiddenTokens);
-    // stripHiddenTokens returns the same reference when nothing was removed,
-    // so referential inequality tells us a hidden token was actually redacted.
+    // Apply both hidden-token and secret-door redaction.
+    const stripped = (documents as Record<string, unknown>[]).map((doc) => {
+      let redacted = stripHiddenTokens(doc);
+      redacted = redactSecretDoors(redacted);
+      return redacted;
+    });
+    // If nothing changed (all same references), return the original op.
     const changed = stripped.some((doc, i) => doc !== documents[i]);
     if (!changed) return op;
 
@@ -169,10 +173,14 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
           return level >= OwnershipLevel.LIMITED;
         });
 
-        // Strip hidden tokens from Scene documents for non-GM players (FIX-4).
-        // Per-actor ownership visibility is deferred to M1-C.
+        // Strip hidden tokens and redact secret doors from Scene documents
+        // for non-GM players (M1-C hidden tokens, M2-A secret doors).
         if (docType === "Scene") {
-          visible = visible.map(stripHiddenTokens);
+          visible = visible.map((scene) => {
+            let redacted = stripHiddenTokens(scene);
+            redacted = redactSecretDoors(redacted);
+            return redacted;
+          });
         }
       }
 

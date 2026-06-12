@@ -17,8 +17,8 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M1-C  | Tokens no canvas (drag, animação, barras), ownership no servidor                | concluído    | 97              |
 | M1-D  | Motor de rolagens (RNG servidor, roll modes, inline), chat + cards              | concluído    | 96              |
 | M1-E  | Assets (upload/serving), presença (cursores, ping, ruler), DoD M1               | concluído    | 97              |
-| M2-A  | Walls + portas, visibility polygon, luzes                                       | em andamento | —               |
-| M2-B  | Fog of war (3 estados, persistência, Clipper2), broadcast de delta              | pendente     | —               |
+| M2-A  | Walls + portas, visibility polygon, luzes                                       | concluído    | 96              |
+| M2-B  | Fog of war (3 estados, persistência, Clipper2), broadcast de delta              | em andamento | —               |
 | M2-C  | Combat/Combatant, tracker, InitiativeFormula, hooks de turno                    | pendente     | —               |
 | M3-A  | System API completa (derivação topológica, motor de effects MVP)                | pendente     | —               |
 | M3-B  | engine-2e (DoS, stacking, TEML, MAP, IWR, dying/wounded)                        | pendente     | —               |
@@ -27,7 +27,20 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M3-E  | Importer pf2e + compendiums + i18n pt-BR                                        | pendente     | —               |
 | M3-F  | DoD M3 / primeira sessão jogável — verificação integrada                        | pendente     | —               |
 
+## ⏸️ PAUSA SOLICITADA PELO USUÁRIO (2026-06-12) — RETOMADO no mesmo dia via resumeFromRunId
+
+- Build pausado a pedido do usuário durante o batch M2-A. Estado: fase de geometria (visibility polygon em `packages/shared/src/vision/` + testes) CONCLUÍDA pelos agentes; fases schemas/server e client-vision estavam em execução quando a pausa foi pedida.
+- **Working tree contém trabalho parcial NÃO commitado e NÃO auditado do M2-A** — não tratar como pronto.
+- **Para retomar o M2-A com cache** (agentes já concluídos não re-executam): `Workflow({scriptPath: "C:\Users\xansd\.claude\projects\C--Users-xansd-pessoal-fusion\477c65a9-566c-4c09-9ba1-752ee88a14fd\workflows\scripts\fusion-batch-m2a-wf_daeea573-1cb.js", resumeFromRunId: "wf_daeea573-1cb"})` — ou simplesmente pedir "retome o build do Fusion" que o processo segue do BUILD-LOG.
+- Próximos batches após M2-A: M2-B (fog), M2-C (combate), depois M3 (A–F) → primeira sessão jogável.
+
 ## Registro por batch
+
+### M2-A — Walls, visibility polygon e iluminação (2026-06-12) — score 96 ✅ (retomado pós-pausa via cache)
+
+- Auditorias 88 → 96; 1.225 testes verdes. Matemática verificada à mão pelo auditor (sombras de parede com vértices numéricos, terrain limited com contagem de camadas, cone com wrap-around 0/2π, directionality por cross-product).
+- Invariantes confirmadas: geometria SOMENTE em `packages/shared/src/vision` (client e servidor usam a mesma — grep por implementações duplicadas vazio); secret doors redigidas nos 4 caminhos (snapshot, broadcast, delta, ack) integradas ao `redaction.ts` canônico.
+- Entregue: visibility polygon por angular sweep (118 testes incl. property-based com 300 pontos), walls com restrições independentes move/sight/light/sound + terrain limited, portas (estados, players abrem destrancadas, secret GM-only), validação de movimento server-side com MOVE_BLOCKED (+force GM), walls layer com ferramenta de desenho, luzes bright/dim com darkness e máscara de visão do player.
 
 ### M1-E — Assets + presença (2026-06-12) — score 97 ✅ — **MILESTONE M1 FECHADO (DoD 7/7)**
 

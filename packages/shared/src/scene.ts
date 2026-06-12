@@ -22,6 +22,12 @@ import {
   defaultStats,
 } from "./document.js";
 import { type GridConfig } from "./grid/types.js";
+import {
+  WallDocumentSchema,
+  AmbientLightDocumentSchema,
+  TokenVisionSchema,
+  TokenLightSchema,
+} from "./vision/scene-schemas.js";
 
 // ---------------------------------------------------------------------------
 // GridConfig Zod schema
@@ -218,6 +224,20 @@ export const TokenDocumentSchema = z.object({
    * REQ-DOC-009.
    */
   flags: FlagsSchema.default(() => ({})),
+
+  /**
+   * Vision configuration for this token.
+   * REQ-VIS-060: enabled, range, angle, visionMode, detectionModes.
+   * Render on client only; server uses enabled/range for movement validation context.
+   */
+  vision: TokenVisionSchema.default(() => TokenVisionSchema.parse({})),
+
+  /**
+   * Light emission configuration for this token.
+   * REQ-VIS-041: token emits light with same parameters as AmbientLight.
+   * Position comes from token x/y; render on client only.
+   */
+  light: TokenLightSchema.default(() => TokenLightSchema.parse({})),
 });
 
 export type TokenDocument = z.infer<typeof TokenDocumentSchema>;
@@ -347,6 +367,34 @@ export const SceneDocumentSchema = BaseDocumentSchema.omit({
    */
   tokenVision: z.boolean().default(false),
 
+  /**
+   * Whether fog of war is enabled for this scene.
+   * REQ-VIS-085: when false, all players see the entire map.
+   */
+  fogEnabled: z.boolean().default(false),
+
+  /**
+   * Scene darkness level (0–1).
+   * 0 = fully lit, 1 = pitch dark. Controls GI threshold and visual atmosphere.
+   * REQ-VIS-044.
+   */
+  darkness: z.number().min(0).max(1).default(0),
+
+  /**
+   * Global illumination flag.
+   * When true and darkness < globalLightThreshold, the whole explored area
+   * counts as at least dim/bright (no light sources needed).
+   * REQ-VIS-044, REQ-VIS-045.
+   */
+  globalLight: z.boolean().default(true),
+
+  /**
+   * Darkness level above which global illumination is suppressed (0–1).
+   * When scene.darkness >= this value, globalLight is effectively off.
+   * REQ-VIS-044.
+   */
+  globalLightThreshold: z.number().min(0).max(1).default(0.5),
+
   // --- Navigation ---
 
   /** Whether this scene appears in the navigation bar. */
@@ -378,16 +426,19 @@ export const SceneDocumentSchema = BaseDocumentSchema.omit({
   tokens: z.array(TokenDocumentSchema).default(() => []),
 
   /**
-   * Embedded walls (blocking geometry for vision/movement).
-   * Full WallData schema is defined in spec 07 (M2); placeholder here.
+   * Embedded walls.
+   * REQ-VIS-001: walls with independent move/sight/light/sound restrictions.
+   * REQ-VIS-004: door type and state.
+   * Spec 07 §Modelo de dados, M2-A.
    */
-  walls: z.array(z.unknown()).default(() => []),
+  walls: z.array(WallDocumentSchema).default(() => []),
 
   /**
-   * Embedded ambient lights.
-   * Full LightData schema is defined in spec 07 (M2); placeholder here.
+   * Embedded ambient light sources.
+   * REQ-VIS-040: position, radii, color, angle, enabled.
+   * Spec 07 §REQ-VIS-040, M2-A.
    */
-  lights: z.array(z.unknown()).default(() => []),
+  lights: z.array(AmbientLightDocumentSchema).default(() => []),
 
   /**
    * Embedded ambient sounds.

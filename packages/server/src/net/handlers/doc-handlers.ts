@@ -66,7 +66,12 @@ import {
 } from "@fusion/shared";
 import type { DocUpdatePayload, Ack, Ownership, Envelope, ErrorCode } from "@fusion/shared";
 import { createDocumentId } from "@fusion/shared";
-import { stripHiddenTokens, scenePayloadHasHiddenTokens } from "../redaction.js";
+import {
+  stripHiddenTokens,
+  scenePayloadHasHiddenTokens,
+  redactSecretDoors,
+  scenePayloadHasSecretDoors,
+} from "../redaction.js";
 
 // ---------------------------------------------------------------------------
 // Ack builder helpers
@@ -758,19 +763,20 @@ function socketIsPrivileged(socket: Socket): boolean {
 /**
  * Broadcast a doc op envelope to all sockets in the world namespace.
  *
- * For Scene updates (doc:create / doc:update) that involve hidden tokens we
- * iterate connected sockets and send a per-socket payload:
+ * For Scene updates (doc:create / doc:update) that may contain sensitive data
+ * (hidden tokens or secret doors), we iterate sockets and send per-socket payloads:
  *   - privileged sockets (GM / ASSISTANT) → full payload
- *   - player sockets → payload with hidden tokens stripped from every Scene doc
+ *   - player sockets → payload with:
+ *       • hidden tokens stripped
+ *       • secret doors redacted as plain walls
  *
- * For all other document types, or for Scene updates that contain no hidden
- * tokens, we use the cheap namespace-wide emit (no per-socket iteration cost).
+ * For all other document types or Scene updates without sensitive data,
+ * we use the cheap namespace-wide emit (no per-socket iteration cost).
  *
- * doc:delete envelopes are always namespace-wide: deletes carry only IDs, not
- * the document body, so there is nothing to strip.
+ * doc:delete envelopes are always namespace-wide: deletes carry only IDs.
  */
 function broadcastToWorld(ns: Namespace, envelope: Envelope, documentType?: string): void {
-  // Only Scene doc:create / doc:update need hidden-token filtering.
+  // Only Scene doc:create / doc:update need redaction filtering.
   if (
     documentType === "Scene" &&
     (envelope.type === "doc:create" || envelope.type === "doc:update")
@@ -780,9 +786,21 @@ function broadcastToWorld(ns: Namespace, envelope: Envelope, documentType?: stri
       documents: Record<string, unknown>[];
     };
 
-    if (scenePayloadHasHiddenTokens(payload.documents)) {
+    const hasHiddenTokens = scenePayloadHasHiddenTokens(payload.documents);
+    const hasSecretDoors = scenePayloadHasSecretDoors(payload.documents);
+
+    if (hasHiddenTokens || hasSecretDoors) {
       // Build the player-visible payload once (shared across all player sockets).
-      const filteredDocs = payload.documents.map(stripHiddenTokens);
+      const filteredDocs = payload.documents.map((d) => {
+        let redacted = d;
+        if (hasHiddenTokens && Array.isArray(d["tokens"])) {
+          redacted = stripHiddenTokens(redacted);
+        }
+        if (hasSecretDoors && Array.isArray(redacted["walls"])) {
+          redacted = redactSecretDoors(redacted);
+        }
+        return redacted;
+      });
       const playerEnvelope: Envelope = {
         ...envelope,
         payload: { ...payload, documents: filteredDocs },
@@ -800,7 +818,7 @@ function broadcastToWorld(ns: Namespace, envelope: Envelope, documentType?: stri
     }
   }
 
-  // Fast path: no hidden-token concern — namespace-wide emit.
+  // Fast path: no redaction concern — namespace-wide emit.
   ns.emit("op", envelope);
 }
 

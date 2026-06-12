@@ -55,6 +55,14 @@ export const EnvelopeTypeSchema = z.union([
   // M1-D chat handlers
   z.literal("chat:send"),
   z.literal("chat:history"),
+  // M2-A: vision — walls, lights, door state
+  z.literal("wall:create"),
+  z.literal("wall:update"),
+  z.literal("wall:delete"),
+  z.literal("light:create"),
+  z.literal("light:update"),
+  z.literal("light:delete"),
+  z.literal("scene:doorState"),
 ]);
 
 export type EnvelopeType = z.infer<typeof EnvelopeTypeSchema>;
@@ -98,6 +106,8 @@ export const ErrorCodeSchema = z.union([
   z.literal("QUERY_TIMEOUT"),
   z.literal("SLOW_CONSUMER"),
   z.literal("INTERNAL_ERROR"),
+  /** M2-A: returned when a token:move is blocked by a wall. */
+  z.literal("MOVE_BLOCKED"),
 ]);
 
 export type ErrorCode = z.infer<typeof ErrorCodeSchema>;
@@ -186,9 +196,51 @@ export const TokenMovePayloadSchema = z.object({
       y: z.number(),
     })
     .optional(),
+  /**
+   * GM-only flag to bypass wall collision check.
+   * When true and the requester is GM/ASSISTANT, movement is allowed even
+   * if it would cross a blocking wall (spec 07 §REQ-VIS-091).
+   */
+  force: z.boolean().optional(),
 });
 
 export type TokenMovePayload = z.infer<typeof TokenMovePayloadSchema>;
+
+// ---------------------------------------------------------------------------
+// Door state payloads
+// M2-A: REQ-VIS-004, REQ-VIS-007 — any user can open/close an unlocked door;
+// only GM/ASSISTANT can lock/unlock or toggle secret doors.
+// ---------------------------------------------------------------------------
+
+/**
+ * scene:doorState — toggle the state of a door wall inside a scene.
+ *
+ * Permission rules (spec 07 REQ-VIS-005, REQ-VIS-007):
+ *   - "door" type, closed→open or open→closed: any authenticated user can do this,
+ *     provided the door is not locked.
+ *   - "door" type, lock/unlock: GM/ASSISTANT only.
+ *   - "secret" type: GM/ASSISTANT only (see and operate secret doors).
+ */
+export const DoorStatePayloadSchema = z.object({
+  /** Scene containing the wall. */
+  sceneId: z.string(),
+  /** Wall _id (must be a door-type wall). */
+  wallId: z.string(),
+  /**
+   * Desired new door state.
+   * "closed" | "open" | "locked"
+   */
+  state: z.enum(["closed", "open", "locked"]),
+});
+
+export type DoorStatePayload = z.infer<typeof DoorStatePayloadSchema>;
+
+/**
+ * Error code for blocked movement (wall collision).
+ * Returned in the ack when a token:move is rejected due to wall collision.
+ */
+export const MOVE_BLOCKED_CODE = "MOVE_BLOCKED" as const;
+export type MoveBlockedCode = typeof MOVE_BLOCKED_CODE;
 
 // ---------------------------------------------------------------------------
 // Handshake
