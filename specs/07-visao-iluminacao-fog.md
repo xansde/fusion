@@ -42,28 +42,28 @@ Esta spec define **como se calcula o que cada cliente pode ver e como o canvas r
 
 ## Conceitos e terminologia
 
-| Termo | Definição no Fusion |
-|---|---|
-| **Wall (parede)** | Segmento de linha `(a, b)` numa cena que restringe percepção. Cada wall tem quatro restrições independentes: `move`, `sight`, `light`, `sound`. É um Document embutido na `Scene`. |
-| **Restrição** | O modo como uma wall afeta uma dimensão: `none` (passa livre), `normal` (bloqueia), `limited` (passa uma camada — terrain), `proximity` (passa se a fonte está perto), `reverse_proximity` (passa se a fonte está longe). Para `move` só `none`/`normal`. |
-| **Threshold** | Distância (em pixels de cena) usada por `proximity`/`reverse_proximity` para decidir se a percepção penetra; com atenuação, a penetração é gradual em vez de binária. |
-| **Direcionalidade (`dir`)** | Lado pelo qual a wall restringe: `both` (padrão), `left` ou `right`, relativo à orientação `a→b` do segmento. Permite efeitos one-way. |
-| **Door (porta)** | Wall com `doorType` (`none`/`door`/`secret`) e `doorState` (`closed`/`open`/`locked`). Quando `open`, a wall não restringe nenhuma dimensão. |
-| **Vision source (fonte de visão)** | Origem de percepção atrelada a um token controlável: posição, range, ângulo, modo de visão e modos de detecção. Produz um **vision polygon**. |
-| **Light source (fonte de luz)** | Origem de iluminação (ambient ou de token): posição, raios bright/dim, cor, ângulo, animação, luminosidade. Produz um **light polygon** (área iluminada limitada por walls de `light`). |
-| **Visibility polygon (polígono de visibilidade)** | Polígono calculado por angular sweep a partir de uma origem, recortado pelas walls relevantes; representa a área "alcançável" por raios retos a partir da origem antes de aplicar range/ângulo. |
-| **Vision polygon** | Visibility polygon de uma fonte de visão, recortado por walls de `sight`, range e ângulo. |
-| **Light polygon** | Visibility polygon de uma fonte de luz, recortado por walls de `light`, raio e ângulo. |
-| **LOS (line of sight)** | Linha de visão: um ponto-alvo está em LOS de uma fonte se está contido no vision polygon (sem wall de `sight` `normal` no caminho, respeitando `limited`). |
-| **Illumination level (nível de iluminação)** | Estado de iluminação de uma área: `bright` (2), `dim` (1), `unlit` (0), `darkness` (-2). Determina o que uma dada combinação de vision mode percebe. |
-| **Vision mode (modo de visão)** | Define a **aparência** do que o token vê (cor/dessaturação) conforme o nível de iluminação. Ex.: `basic`, `darkvision`, [V2] `monochromatic`. Ortogonal ao detection mode. |
-| **Detection mode (modo de detecção)** | Define a **mecânica** do que pode ser detectado e sob quais condições (requer LOS? penetra walls?). Ex.: `sight`, `see-invisibility`, `sense-invisibility`, `feel-tremor`. |
-| **Darkness source** | Fonte de iluminação com luminosidade negativa: emite escuridão, suprimindo luz de outras fontes na sua área. |
-| **Darkness level** | Parâmetro de cena (0–1) que escurece visualmente a cena (hora do dia) e, via threshold, controla global illumination. |
-| **Global illumination (GI)** | Modo de cena onde toda a área (explorada) conta como iluminada, dispensando fontes de luz. Suprimido quando o darkness level cruza o `globalLightThreshold`. |
-| **Fog of war (névoa de guerra)** | Camada de exploração por (usuário, cena). Três estados: **não-explorado** (opaco total), **explorado-fora-de-visão** (translúcido), **atualmente-visível** (claro). |
-| **Exploration texture (textura de exploração)** | Máscara monocromática persistente que acumula tudo que o usuário já explorou na cena; só cresce (exceto reset). |
-| **Vision mask (máscara de visão)** | Máscara efêmera, recalculada por frame, que representa o que os tokens do usuário enxergam **agora** (união dos vision polygons + light polygons aplicáveis). |
+| Termo                                             | Definição no Fusion                                                                                                                                                                                                                                       |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Wall (parede)**                                 | Segmento de linha `(a, b)` numa cena que restringe percepção. Cada wall tem quatro restrições independentes: `move`, `sight`, `light`, `sound`. É um Document embutido na `Scene`.                                                                        |
+| **Restrição**                                     | O modo como uma wall afeta uma dimensão: `none` (passa livre), `normal` (bloqueia), `limited` (passa uma camada — terrain), `proximity` (passa se a fonte está perto), `reverse_proximity` (passa se a fonte está longe). Para `move` só `none`/`normal`. |
+| **Threshold**                                     | Distância (em pixels de cena) usada por `proximity`/`reverse_proximity` para decidir se a percepção penetra; com atenuação, a penetração é gradual em vez de binária.                                                                                     |
+| **Direcionalidade (`dir`)**                       | Lado pelo qual a wall restringe: `both` (padrão), `left` ou `right`, relativo à orientação `a→b` do segmento. Permite efeitos one-way.                                                                                                                    |
+| **Door (porta)**                                  | Wall com `doorType` (`none`/`door`/`secret`) e `doorState` (`closed`/`open`/`locked`). Quando `open`, a wall não restringe nenhuma dimensão.                                                                                                              |
+| **Vision source (fonte de visão)**                | Origem de percepção atrelada a um token controlável: posição, range, ângulo, modo de visão e modos de detecção. Produz um **vision polygon**.                                                                                                             |
+| **Light source (fonte de luz)**                   | Origem de iluminação (ambient ou de token): posição, raios bright/dim, cor, ângulo, animação, luminosidade. Produz um **light polygon** (área iluminada limitada por walls de `light`).                                                                   |
+| **Visibility polygon (polígono de visibilidade)** | Polígono calculado por angular sweep a partir de uma origem, recortado pelas walls relevantes; representa a área "alcançável" por raios retos a partir da origem antes de aplicar range/ângulo.                                                           |
+| **Vision polygon**                                | Visibility polygon de uma fonte de visão, recortado por walls de `sight`, range e ângulo.                                                                                                                                                                 |
+| **Light polygon**                                 | Visibility polygon de uma fonte de luz, recortado por walls de `light`, raio e ângulo.                                                                                                                                                                    |
+| **LOS (line of sight)**                           | Linha de visão: um ponto-alvo está em LOS de uma fonte se está contido no vision polygon (sem wall de `sight` `normal` no caminho, respeitando `limited`).                                                                                                |
+| **Illumination level (nível de iluminação)**      | Estado de iluminação de uma área: `bright` (2), `dim` (1), `unlit` (0), `darkness` (-2). Determina o que uma dada combinação de vision mode percebe.                                                                                                      |
+| **Vision mode (modo de visão)**                   | Define a **aparência** do que o token vê (cor/dessaturação) conforme o nível de iluminação. Ex.: `basic`, `darkvision`, [V2] `monochromatic`. Ortogonal ao detection mode.                                                                                |
+| **Detection mode (modo de detecção)**             | Define a **mecânica** do que pode ser detectado e sob quais condições (requer LOS? penetra walls?). Ex.: `sight`, `see-invisibility`, `sense-invisibility`, `feel-tremor`.                                                                                |
+| **Darkness source**                               | Fonte de iluminação com luminosidade negativa: emite escuridão, suprimindo luz de outras fontes na sua área.                                                                                                                                              |
+| **Darkness level**                                | Parâmetro de cena (0–1) que escurece visualmente a cena (hora do dia) e, via threshold, controla global illumination.                                                                                                                                     |
+| **Global illumination (GI)**                      | Modo de cena onde toda a área (explorada) conta como iluminada, dispensando fontes de luz. Suprimido quando o darkness level cruza o `globalLightThreshold`.                                                                                              |
+| **Fog of war (névoa de guerra)**                  | Camada de exploração por (usuário, cena). Três estados: **não-explorado** (opaco total), **explorado-fora-de-visão** (translúcido), **atualmente-visível** (claro).                                                                                       |
+| **Exploration texture (textura de exploração)**   | Máscara monocromática persistente que acumula tudo que o usuário já explorou na cena; só cresce (exceto reset).                                                                                                                                           |
+| **Vision mask (máscara de visão)**                | Máscara efêmera, recalculada por frame, que representa o que os tokens do usuário enxergam **agora** (união dos vision polygons + light polygons aplicáveis).                                                                                             |
 
 ## Decisões
 
@@ -74,8 +74,8 @@ Cada decisão lista alternativas rejeitadas e o racional.
 Uma wall é um segmento `(a, b)` com restrições **independentes** por dimensão: `move`, `sight`, `light`, `sound`. Esta é a abstração mais importante do subsistema: um mesmo segmento pode bloquear visão sem bloquear movimento, bloquear luz sem bloquear som, etc.
 
 - **Alternativas rejeitadas:**
-  - *Um booleano único "bloqueia tudo"*: insuficiente para vidro (bloqueia movimento e som, mas não visão/luz), barreiras etéreas (bloqueiam visão, permitem passagem), terrenos translúcidos. Rejeitado.
-  - *Restrições só para sight e light*: deixaria movimento e som sem modelo, exigindo um segundo sistema de colisão paralelo. Unificar as quatro dimensões no mesmo Document de wall simplifica edição e cálculo.
+  - _Um booleano único "bloqueia tudo"_: insuficiente para vidro (bloqueia movimento e som, mas não visão/luz), barreiras etéreas (bloqueiam visão, permitem passagem), terrenos translúcidos. Rejeitado.
+  - _Restrições só para sight e light_: deixaria movimento e som sem modelo, exigindo um segundo sistema de colisão paralelo. Unificar as quatro dimensões no mesmo Document de wall simplifica edição e cálculo.
 - **Racional:** Modela diretamente os casos do research (research 04 §1.1–1.3): a separação por dimensão é "o ponto arquitetural mais importante" das walls. Presets (D4) são apenas combinações pré-definidas dessas quatro restrições.
 
 ### D2 — Visibilidade calculada no cliente; servidor valida colisão de movimento
@@ -83,8 +83,8 @@ Uma wall é um segmento `(a, b)` com restrições **independentes** por dimensã
 Os **vision polygons** e **light polygons** (e portanto a máscara de visão e o fog) são calculados **no cliente** que controla os tokens. O servidor é autoritativo sobre **posições e walls** (o que constitui a "verdade" geométrica) e valida **colisão de movimento** (se um `token:move` atravessa uma wall de `move` `normal`), mas NÃO recalcula a visão de cada cliente.
 
 - **Alternativas rejeitadas:**
-  - *Calcular visão no servidor e enviar o polígono pronto a cada cliente*: o servidor é single-thread (ver `01-arquitetura-geral.md` D1/D9); recalcular o polígono de N tokens por frame para M clientes no event loop principal congelaria a sincronização de todos. Além disso, geraria tráfego de polígonos por frame. Rejeitado para o caminho quente; o servidor só valida colisão (operação pontual e barata).
-  - *Confiar no cliente para "o que pode ver" sem nenhuma checagem servidor*: cliente é não-confiável. Mitigado porque (a) o servidor não envia ao cliente Documents que o usuário não pode possuir/ver (ver `04` REQ-NET-024 e `05`), reduzindo o que um cliente trapaceiro poderia revelar; (b) o fog é por-usuário e local — revelar o próprio fog não dá vantagem mecânica sobre outros jogadores. O risco residual (um jogador "ver" geometria de parede que poderia inferir) é aceitável no MVP e tratado em `21-seguranca.md`.
+  - _Calcular visão no servidor e enviar o polígono pronto a cada cliente_: o servidor é single-thread (ver `01-arquitetura-geral.md` D1/D9); recalcular o polígono de N tokens por frame para M clientes no event loop principal congelaria a sincronização de todos. Além disso, geraria tráfego de polígonos por frame. Rejeitado para o caminho quente; o servidor só valida colisão (operação pontual e barata).
+  - _Confiar no cliente para "o que pode ver" sem nenhuma checagem servidor_: cliente é não-confiável. Mitigado porque (a) o servidor não envia ao cliente Documents que o usuário não pode possuir/ver (ver `04` REQ-NET-024 e `05`), reduzindo o que um cliente trapaceiro poderia revelar; (b) o fog é por-usuário e local — revelar o próprio fog não dá vantagem mecânica sobre outros jogadores. O risco residual (um jogador "ver" geometria de parede que poderia inferir) é aceitável no MVP e tratado em `21-seguranca.md`.
 - **Racional:** Alinha com o research 15 §6.4 ("visibility polygon calculado no servidor **ou** no cliente a cada movimento") e com a diretriz arquitetural de não bloquear o event loop (research 01-spec D9). O cálculo de visão é inerentemente per-viewer e gráfico — pertence ao cliente, junto do PIXI. O servidor mantém a autoridade onde importa para anti-cheat: posição final do token e colisão de movimento.
 
 ### D3 — Algoritmo de visibilidade: visibility polygon por angular sweep, implementação própria
@@ -92,9 +92,9 @@ Os **vision polygons** e **light polygons** (e portanto a máscara de visão e o
 A visibilidade usa **visibility polygon por varredura angular** (angular sweep), implementação independente baseada nas fontes públicas Red Blob Games e Nicky Case. Complexidade alvo O(n log n) para n arestas relevantes.
 
 - **Alternativas rejeitadas:**
-  - *Ray casting bruto (disparar K raios fixos em todas as direções)*: O(K·n), impreciso (artefatos em cantos) e custoso para muitos tokens. Rejeitado.
-  - *Shadow casting em grid (recursive shadowcasting de roguelikes)*: amarrado a grid quadrado; o Fusion suporta grid quadrado, hexagonal e gridless (ver `06`). Walls do Fusion são geometria contínua, não células. Rejeitado.
-  - *Biblioteca `visibility-polygon-js` direta*: arquivada/legada (research 15 §6.2); usada apenas como referência conceitual, não como dependência.
+  - _Ray casting bruto (disparar K raios fixos em todas as direções)_: O(K·n), impreciso (artefatos em cantos) e custoso para muitos tokens. Rejeitado.
+  - _Shadow casting em grid (recursive shadowcasting de roguelikes)_: amarrado a grid quadrado; o Fusion suporta grid quadrado, hexagonal e gridless (ver `06`). Walls do Fusion são geometria contínua, não células. Rejeitado.
+  - _Biblioteca `visibility-polygon-js` direta_: arquivada/legada (research 15 §6.2); usada apenas como referência conceitual, não como dependência.
 - **Racional:** Angular sweep é o padrão para visibility polygon com geometria de segmentos arbitrários (research 04 §5.1–5.2, research 15 §6.1). Dispara raios para cada endpoint de wall (mais dois raios com offset ε para "dobrar a esquina"), ordena interseções por ângulo e conecta os pontos. É o mesmo padrão do `ClockwiseSweepPolygon` do Foundry, mas escrito do zero. Uma **quadtree** (ou bucket grid) de walls limita o conjunto de arestas testadas por origem.
 
 ### D4 — Presets de wall como combinações nomeadas das quatro restrições
@@ -102,7 +102,7 @@ A visibilidade usa **visibility polygon por varredura angular** (angular sweep),
 A UI oferece **presets** (`normal`, `terrain`, `invisible`, `ethereal`, `door`, `window`) que apenas pré-preenchem as quatro restrições. O dado persistido é sempre as quatro restrições; o preset é conveniência de edição.
 
 - **Alternativas rejeitadas:**
-  - *Persistir o tipo de preset e derivar restrições em runtime*: acopla a semântica ao enum de preset, dificultando walls "híbridas" customizadas e migrações quando um preset muda. Rejeitado — persistir o estado expandido é mais robusto.
+  - _Persistir o tipo de preset e derivar restrições em runtime_: acopla a semântica ao enum de preset, dificultando walls "híbridas" customizadas e migrações quando um preset muda. Rejeitado — persistir o estado expandido é mais robusto.
 - **Racional:** Reproduz a ergonomia do research 04 §1.2 (presets) sem amarrar o modelo de dados. Um `window` é só `{sight: proximity, light: proximity, sound: proximity, move: normal}` com threshold default.
 
 ### D5 — Modo `limited` (terrain) implementado por contagem no sweep
@@ -110,7 +110,7 @@ A UI oferece **presets** (`normal`, `terrain`, `invisible`, `ethereal`, `door`, 
 Walls com restrição `limited` (terrain) deixam a percepção passar por **uma** camada: o sweep conta quantas arestas `limited` o raio cruzou; 0 ou 1 → passa; 2+ → bloqueia. A contagem é por dimensão (sight/light têm contadores separados).
 
 - **Alternativas rejeitadas:**
-  - *Tratar terrain como semitransparência sem contagem*: não modela o caso clássico de "ver a rocha mas não o que está atrás" (research 04 §1.7). Rejeitado.
+  - _Tratar terrain como semitransparência sem contagem_: não modela o caso clássico de "ver a rocha mas não o que está atrás" (research 04 §1.7). Rejeitado.
 - **Racional:** É a semântica observada (research 04 §1.7). Atenção ao bug conhecido de vértices compartilhados em terrain walls complexas (research 04 §1.7, issue #5935): a contagem deve ser por aresta cruzada, com cuidado em vértices coincidentes — tratado como caso de teste e questão de robustez.
 
 ### D6 — Fog de três estados, persistido por (usuário, cena) como textura comprimida + union clipper2
@@ -118,10 +118,10 @@ Walls com restrição `limited` (terrain) deixam a percepção passar por **uma*
 O fog tem três estados: **não-explorado** (opaco total), **explorado-fora-de-visão** (translúcido), **atualmente-visível** (claro). A exploração acumulada é persistida por par (usuário, cena) como **textura comprimida** (PNG/WebP) e, geometricamente, como **union de polígonos** mantido com `@countertype/clipper2-ts`. A máscara de "atualmente visível" é efêmera (recalculada por frame, nunca persistida).
 
 - **Alternativas rejeitadas:**
-  - *Fog em dois estados (visível / não-visível, sem memória)*: perde o valor de "já explorei este corredor". O estado intermediário translúcido é esperado pelos jogadores (research 04 §4.1). Rejeitado.
-  - *Fog global compartilhado entre todos os jogadores*: a exploração é individual por design (research 04 §4.1: "cada jogador mantém seu próprio estado"). Rejeitado; o GM tem visão total separada (D8).
-  - *Persistir só a textura, sem geometria*: a textura é boa para render e save, mas operações de "revelar" e o cálculo de "ponto X já explorado?" se beneficiam de geometria. Mantemos **ambos**: a textura é a representação serializável/renderizável; o union de polígonos (clipper2) é a representação geométrica para revelar incrementalmente e testar pontos (research 15 §6.3–6.4).
-  - *Persistir como base64 dentro do `world.db`*: a textura de fog pode ser grande; guardá-la inline incha o banco. Decisão de **onde** salvar (blob no banco vs arquivo no diretório do world) fica para `03-persistencia-e-mundos.md`; esta spec só especifica o formato (imagem comprimida) e a chave (usuário+cena).
+  - _Fog em dois estados (visível / não-visível, sem memória)_: perde o valor de "já explorei este corredor". O estado intermediário translúcido é esperado pelos jogadores (research 04 §4.1). Rejeitado.
+  - _Fog global compartilhado entre todos os jogadores_: a exploração é individual por design (research 04 §4.1: "cada jogador mantém seu próprio estado"). Rejeitado; o GM tem visão total separada (D8).
+  - _Persistir só a textura, sem geometria_: a textura é boa para render e save, mas operações de "revelar" e o cálculo de "ponto X já explorado?" se beneficiam de geometria. Mantemos **ambos**: a textura é a representação serializável/renderizável; o union de polígonos (clipper2) é a representação geométrica para revelar incrementalmente e testar pontos (research 15 §6.3–6.4).
+  - _Persistir como base64 dentro do `world.db`_: a textura de fog pode ser grande; guardá-la inline incha o banco. Decisão de **onde** salvar (blob no banco vs arquivo no diretório do world) fica para `03-persistencia-e-mundos.md`; esta spec só especifica o formato (imagem comprimida) e a chave (usuário+cena).
 - **Racional:** Combina o research 04 §4 (FogManager, textura WebP por usuário/cena, commit com threshold para evitar writes excessivos) com a estratégia recomendada no research 15 §6.4 (RenderTexture do PIXI + clipper2 para union progressivo). O `commit` é throttled (D7).
 
 ### D7 — Persistência de fog throttled e off-loop
@@ -129,7 +129,7 @@ O fog tem três estados: **não-explorado** (opaco total), **explorado-fora-de-v
 O fog explorado é acumulado em GPU (RenderTexture) e em geometria (clipper2) continuamente, mas a **persistência** (serializar a textura e salvar) só ocorre periodicamente (após N atualizações ou T segundos de inatividade), nunca por frame. A serialização/compressão da textura roda fora do caminho quente de render.
 
 - **Alternativas rejeitadas:**
-  - *Salvar o fog a cada frame de movimento*: I/O e CPU excessivos; o research 04 §4.3 nota o `COMMIT_THRESHOLD = 70` justamente para evitar writes a cada refresh. Rejeitado.
+  - _Salvar o fog a cada frame de movimento_: I/O e CPU excessivos; o research 04 §4.3 nota o `COMMIT_THRESHOLD = 70` justamente para evitar writes a cada refresh. Rejeitado.
 - **Racional:** Espelha o `COMMIT_THRESHOLD`/`commit()` do research 04 §4.3–4.4. O delta de fog para o servidor (para persistir o estado daquele usuário) é enviado de forma esparsa e tratado como op de baixa prioridade (ver `04-rede-e-sincronizacao.md`, que transporta o delta de fog).
 
 ### D8 — GM vê tudo; jogador vê a união dos seus tokens
@@ -137,8 +137,8 @@ O fog explorado é acumulado em GPU (RenderTexture) e em geometria (clipper2) co
 O **GM** (e assistentes) enxerga a cena inteira sem fog ativo (vê todos os tokens e geometria). Um **jogador** vê a **união** dos vision polygons de todos os tokens que controla, mais a área iluminada que essas fontes de visão percebem, mais o fog já explorado por ele.
 
 - **Alternativas rejeitadas:**
-  - *GM também sujeito a fog*: atrapalha a preparação e narração; o GM precisa de visão onisciente da cena. O GM pode opcionalmente ativar uma pré-visualização do fog de um jogador ([V2]). Rejeitado como default.
-  - *Jogador vê apenas o token "ativo"*: jogadores frequentemente controlam familiares, invocações ou múltiplos personagens; a união é o comportamento esperado. Rejeitado.
+  - _GM também sujeito a fog_: atrapalha a preparação e narração; o GM precisa de visão onisciente da cena. O GM pode opcionalmente ativar uma pré-visualização do fog de um jogador ([V2]). Rejeitado como default.
+  - _Jogador vê apenas o token "ativo"_: jogadores frequentemente controlam familiares, invocações ou múltiplos personagens; a união é o comportamento esperado. Rejeitado.
 - **Racional:** Comportamento padrão de VTTs (research 04 §3, §4.1). Quem controla qual token vem de `05-usuarios-e-permissoes.md`; esta spec consome esse conjunto.
 
 ### D9 — Cálculo pesado de visão pode migrar para Web Worker no cliente
@@ -146,8 +146,8 @@ O **GM** (e assistentes) enxerga a cena inteira sem fog ativo (vê todos os toke
 Quando o número de walls/fontes torna o sweep custoso o bastante para causar queda de frame, o cálculo do visibility polygon roda em um **Web Worker** no cliente (OffscreenCanvas/transferência de buffers), mantendo a thread de UI fluida. No MVP, começa na thread principal com orçamento de tempo; o worker é o caminho de escala.
 
 - **Alternativas rejeitadas:**
-  - *Sempre na thread principal*: cenas grandes (muitas walls) travariam o pan/zoom e a animação de tokens. Rejeitado como única estratégia.
-  - *Cálculo no servidor* (já rejeitado em D2).
+  - _Sempre na thread principal_: cenas grandes (muitas walls) travariam o pan/zoom e a animação de tokens. Rejeitado como única estratégia.
+  - _Cálculo no servidor_ (já rejeitado em D2).
 - **Racional:** Alinha com a diretriz de não bloquear (research 01-spec D9, que cita explicitamente "visibility polygon pesado" como candidato a worker). O limiar exato (nº de walls) é questão em aberto, a medir.
 
 ### D10 — Iluminação composta em RenderTextures e meshes/shaders PIXI
@@ -155,8 +155,8 @@ Quando o número de walls/fontes torna o sweep custoso o bastante para causar qu
 A iluminação é composta no canvas via PIXI v8: cada fonte de luz renderiza seu light polygon em uma RenderTexture de iluminação (com gradiente bright→dim e cor); a darkness da cena é um tint/overlay; a máscara de visão recorta o que o jogador efetivamente vê. Animações de luz são shaders/parâmetros por frame.
 
 - **Alternativas rejeitadas:**
-  - *Iluminação puramente geométrica sem shaders (polígonos sólidos)*: bordas duras, sem gradiente dim, sem cor suave, sem animação. Insuficiente para a qualidade visual esperada. Rejeitado.
-  - *Canvas 2D*: performance inferior para iluminação dinâmica com muitos polígonos (research 15 §3.4). Rejeitado.
+  - _Iluminação puramente geométrica sem shaders (polígonos sólidos)_: bordas duras, sem gradiente dim, sem cor suave, sem animação. Insuficiente para a qualidade visual esperada. Rejeitado.
+  - _Canvas 2D_: performance inferior para iluminação dinâmica com muitos polígonos (research 15 §3.4). Rejeitado.
 - **Racional:** Espelha a arquitetura de render do research 04 §5.3, §7 (visibilidade como máscara sobre camadas de luz/fog; meshes background/coloration/illumination por fonte) com PIXI v8 (research 15 §3.1). O framework de camadas concreto vem de `06-canvas-e-renderizacao.md`.
 
 ### D11 — Grid-agnóstico: visão opera em coordenadas de pixel, não em células
@@ -164,7 +164,7 @@ A iluminação é composta no canvas via PIXI v8: cada fonte de luz renderiza se
 O cálculo de visão, luz e walls opera em **coordenadas contínuas de pixel** da cena, independente do tipo de grid (square/hex/gridless). Range de visão e raios de luz são convertidos de unidades de grid para pixels via a métrica da cena.
 
 - **Alternativas rejeitadas:**
-  - *Visão por células (FOV de roguelike)*: amarra ao grid quadrado e quantiza a geometria. O Fusion suporta hex e gridless. Rejeitado.
+  - _Visão por células (FOV de roguelike)_: amarra ao grid quadrado e quantiza a geometria. O Fusion suporta hex e gridless. Rejeitado.
 - **Racional:** Walls são segmentos contínuos; tokens movem-se livremente (snap ao grid é só UX, ver `06`). Manter a percepção em pixels desacopla do grid. A conversão unidade→pixel usa a configuração de grid da cena (ver `06-canvas-e-renderizacao.md`).
 
 ## Requisitos funcionais
@@ -223,7 +223,7 @@ O cálculo de visão, luz e walls opera em **coordenadas contínuas de pixel** d
 - **REQ-VIS-064** [MVP] Um **jogador** DEVE ver a **união** dos vision polygons de todos os tokens que controla (mais a iluminação que essas fontes percebem). Um **GM/assistente** DEVE ver a cena inteira (sem fog ativo por default).
 - **REQ-VIS-065** [MVP] A **visibilidade de um token-alvo** para um observador DEVE depender de: (a) o alvo estar dentro do range de algum detection mode do observador; (b) se o modo requer LOS, o alvo estar contido no vision polygon do observador; (c) o alvo estar suficientemente iluminado/perceptível conforme o vision mode (ex.: `basic` não vê em `unlit`).
 - **REQ-VIS-066** [MVP] O detection mode `sight` DEVE requerer LOS (bloqueado por walls de `sight`) e respeitar iluminação. É o modo base de todo token com visão.
-- **REQ-VIS-067** [V2] DEVEM existir detection modes adicionais: `see-invisibility` (requer LOS; detecta tokens com condição "invisível"), `sense-invisibility` (ignora walls; detecta invisíveis através de paredes), `feel-tremor`/tremorsense (ignora walls; detecta tokens na mesma elevação, exceto voadores). Convenção semântica: nomes "see-*" requerem LOS; "sense-*"/"feel-*" ignoram walls.
+- **REQ-VIS-067** [V2] DEVEM existir detection modes adicionais: `see-invisibility` (requer LOS; detecta tokens com condição "invisível"), `sense-invisibility` (ignora walls; detecta invisíveis através de paredes), `feel-tremor`/tremorsense (ignora walls; detecta tokens na mesma elevação, exceto voadores). Convenção semântica: nomes "see-_" requerem LOS; "sense-_"/"feel-\*" ignoram walls.
 - **REQ-VIS-068** [V2] DEVE existir o vision mode `tremorsense` com aparência de "radar sweep" (revela geometria/fog sem revelar o background da cena).
 - **REQ-VIS-069** [MVP] Quando o usuário não controla nenhum token com visão em uma cena com fog ativo, o cliente DEVE exibir apenas o fog já explorado por ele (sem revelar novas áreas), conforme política da cena (ver REQ-VIS-085).
 - **REQ-VIS-070** [MVP] Mudanças nos parâmetros de visão de um token (range, ângulo, modo) DEVEM invalidar e recalcular a máscara de visão do(s) usuário(s) que o controla(m).
@@ -269,10 +269,10 @@ export type WallSense = "move" | "sight" | "light" | "sound";
 
 /** Modos de restrição. `move` só usa "none" | "normal". */
 export type RestrictionMode =
-  | "none"            // passa livremente
-  | "normal"          // bloqueia
-  | "limited"         // passa uma camada (terrain)
-  | "proximity"       // [V2] passa se a fonte está dentro do threshold
+  | "none" // passa livremente
+  | "normal" // bloqueia
+  | "limited" // passa uma camada (terrain)
+  | "proximity" // [V2] passa se a fonte está dentro do threshold
   | "reverse_proximity"; // [V2] passa se a fonte está além do threshold
 
 /** Direcionalidade da wall, relativa à orientação a→b. */
@@ -303,8 +303,7 @@ export interface Wall {
 }
 
 /** Preset apenas para a UI; expande para as quatro restrições ao persistir. */
-export type WallPreset =
-  | "normal" | "terrain" | "invisible" | "ethereal" | "door" | "window"; // window = [V2]
+export type WallPreset = "normal" | "terrain" | "invisible" | "ethereal" | "door" | "window"; // window = [V2]
 
 /** Fonte de luz de ambiente (Document embutido na Scene). */
 export interface AmbientLight {
@@ -336,23 +335,24 @@ export interface AmbientLight {
 
 /** [V2] Configuração de animação de luz. */
 export interface LightAnimation {
-  type: string;        // ex.: "torch" | "pulse" | "chroma"
-  speed: number;       // 0–10
-  intensity: number;   // 0–10
+  type: string; // ex.: "torch" | "pulse" | "chroma"
+  speed: number; // 0–10
+  intensity: number; // 0–10
   reverse?: boolean;
 }
 
 /** Vision modes (aparência) e detection modes (mecânica). */
 export type VisionModeId =
-  | "basic" | "darkvision"
+  | "basic"
+  | "darkvision"
   | "monochromatic" // [V2] sempre dessaturado independente de iluminação
-  | "tremorsense";  // [V2]
+  | "tremorsense"; // [V2]
 
 export type DetectionModeId =
   | "sight"
-  | "see-invisibility"    // [V2] requer LOS
-  | "sense-invisibility"  // [V2] ignora walls
-  | "feel-tremor";        // [V2] ignora walls
+  | "see-invisibility" // [V2] requer LOS
+  | "sense-invisibility" // [V2] ignora walls
+  | "feel-tremor"; // [V2] ignora walls
 
 export interface DetectionModeEntry {
   id: DetectionModeId;
@@ -440,23 +440,23 @@ Esta spec define **o que** trafega e **quais cálculos** ocorrem; o envelope/tra
 
 ### Cálculos no cliente (não trafegam pela rede)
 
-| Cálculo | Disparado por | Entrada | Saída |
-|---|---|---|---|
-| `computeVisibilityPolygon` | movimento, mudança de wall/porta/luz/visão | origem, walls relevantes (poda espacial), dimensão (sight/light) | `VisibilityResult.polygon` |
-| `applyRangeAndCone` | após o sweep | polígono, range (px), ângulo, rotação | polígono recortado |
-| `composeVisionMask` | mudança de visão de qualquer token do usuário | união dos vision/light polygons | máscara efêmera (RenderTexture) |
-| `accumulateExploration` | nova área visível | máscara atual, union acumulado (clipper2) | exploração atualizada (textura + geometria) |
-| `composeLighting` | mudança de luz/darkness/GI | light polygons, darkness, GI | RenderTexture de iluminação |
+| Cálculo                    | Disparado por                                 | Entrada                                                          | Saída                                       |
+| -------------------------- | --------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------- |
+| `computeVisibilityPolygon` | movimento, mudança de wall/porta/luz/visão    | origem, walls relevantes (poda espacial), dimensão (sight/light) | `VisibilityResult.polygon`                  |
+| `applyRangeAndCone`        | após o sweep                                  | polígono, range (px), ângulo, rotação                            | polígono recortado                          |
+| `composeVisionMask`        | mudança de visão de qualquer token do usuário | união dos vision/light polygons                                  | máscara efêmera (RenderTexture)             |
+| `accumulateExploration`    | nova área visível                             | máscara atual, union acumulado (clipper2)                        | exploração atualizada (textura + geometria) |
+| `composeLighting`          | mudança de luz/darkness/GI                    | light polygons, darkness, GI                                     | RenderTexture de iluminação                 |
 
 ### Mensagens que trafegam pela rede (via `04`)
 
-| Direção | Conteúdo | Persistência |
-|---|---|---|
-| cliente → servidor | `doc:update`/`doc:create`/`doc:delete` de `Wall`, `AmbientLight`, mudança de `doorState`, params de visão/luz do token | sim (autoritativo, broadcast) |
-| cliente → servidor | `FogUpdateDelta` (op de baixa prioridade, throttled) | sim (estado de fog do usuário) |
-| GM → servidor | `FogResetCommand` | apaga exploração persistida |
-| servidor → clientes | broadcast de mudanças de wall/luz/porta/token | clientes invalidam e recalculam |
-| servidor (na abertura da cena) | `FogExploration` do usuário | carregado como estado inicial |
+| Direção                        | Conteúdo                                                                                                               | Persistência                    |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| cliente → servidor             | `doc:update`/`doc:create`/`doc:delete` de `Wall`, `AmbientLight`, mudança de `doorState`, params de visão/luz do token | sim (autoritativo, broadcast)   |
+| cliente → servidor             | `FogUpdateDelta` (op de baixa prioridade, throttled)                                                                   | sim (estado de fog do usuário)  |
+| GM → servidor                  | `FogResetCommand`                                                                                                      | apaga exploração persistida     |
+| servidor → clientes            | broadcast de mudanças de wall/luz/porta/token                                                                          | clientes invalidam e recalculam |
+| servidor (na abertura da cena) | `FogExploration` do usuário                                                                                            | carregado como estado inicial   |
 
 ### Pipeline de visibilidade (resumo)
 

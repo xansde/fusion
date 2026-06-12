@@ -72,19 +72,19 @@ explicitamente **[V2]**.
 ### O que NÃO inclui
 
 - A **superfície da system API** (como sistemas registram models/sheets/hooks) —
-  `ver 15-api-de-sistemas.md` (esta spec é um *consumidor* dela).
+  `ver 15-api-de-sistemas.md` (esta spec é um _consumidor_ dela).
 - O **contrato de dados dos Documents** (campos comuns, UUID, ownership, CRUD) —
   `ver 02-modelo-de-dados.md`.
 - O **motor de rolagens** (parsing de fórmulas, RNG autoritativo, `RollResult`) —
-  `ver 08-motor-de-rolagens.md` (esta spec *registra fórmulas e interpreta
-  resultados*, não executa RNG).
+  `ver 08-motor-de-rolagens.md` (esta spec _registra fórmulas e interpreta
+  resultados_, não executa RNG).
 - O **subsistema de combate/iniciativa** (documento `Combat`, tracker, ciclo de
   turno) — `ver 10-combate-e-iniciativa.md` (esta spec fornece a `InitiativeFormula`
   e os handlers de ciclo de vida).
 - O **framework de UI e o contrato de sheets** (window manager, autosave, tabs) —
-  `ver 11-ui-framework-e-fichas.md` (esta spec fornece os *componentes* de sheet).
+  `ver 11-ui-framework-e-fichas.md` (esta spec fornece os _componentes_ de sheet).
 - O **pipeline de importação/conversão** dos JSON do `foundryvtt/pf2e` —
-  `ver 16-compendiums-e-importacao.md` (esta spec define o *formato-alvo* que o
+  `ver 16-compendiums-e-importacao.md` (esta spec define o _formato-alvo_ que o
   importer deve produzir).
 - **SF2e** (classes, armas tech, gravidade, naves) — `ver 18-sistema-sf2e.md`.
 - **Motor completo de rule-elements-like** (GrantItem/ChoiceSet/Aura/BattleForm
@@ -94,24 +94,24 @@ explicitamente **[V2]**.
 
 ## Conceitos e terminologia
 
-| Termo | Definição |
-|---|---|
-| **engine 2e core** | Pacote `systems/engine-2e` com a lógica de regras compartilhada entre PF2e e SF2e (não depende de nenhum dos dois). |
-| **system pf2e** | Pacote `systems/pf2e` que registra schemas, fichas e automação específicos do PF2e Remaster, consumindo o engine 2e core. |
-| **TEML** | Ranks de proficiência: **T**rained, **E**xpert, **M**aster, **L**egendary (mais Untrained). Codificados como `ProficiencyRank = 0..4`. |
-| **Proficiência (bônus)** | `rank > 0 ? rank*2 + level : 0`. Untrained não soma nível (variante "no level" é [V2]). |
-| **Modifier** | Bônus/penalidade tipado (`circumstance`/`item`/`status`/`untyped`/`ability`/`proficiency`/`potency`) aplicado a uma estatística por um seletor. |
-| **Seletor (selector)** | String que identifica a estatística que um modifier afeta: `"ac"`, `"reflex"`, `"attack"`, `"skill:athletics"`, `"damage"`, `"fortitude-dc"` etc. |
-| **Statistic** | Estatística rolável agregada: base + stack de modifiers resolvido → `total`, com `dc` derivada quando aplicável. |
-| **DegreeOfSuccess** | Conjunto qualitativo de 4 graus (`CriticalSuccess`/`Success`/`Failure`/`CriticalFailure`) calculado a partir de `(total - dc)` com ajustes nat20/nat1. O tipo na system-api é genérico (`ver 08-motor-de-rolagens.md`); o conjunto de 4 graus e seu helper de cálculo (±10, nat 1/20) vivem em `systems/engine-2e` e são reutilizados por PF2e e SF2e. |
-| **Strike** | Ação de ataque derivada de uma arma equipada (ou ataque de NPC/`melee`); produz attack roll + damage roll com MAP. |
-| **MAP** | Multiple Attack Penalty: 0 / −5 / −10 (ou 0 / −4 / −8 com trait `agile`), por turno. |
-| **Condition** | Estado mecânico aplicado a um ator (item embedded de subtype `condition`), com `slug` canônico e `value` opcional para condições numeradas. |
-| **Effect** | Item embedded de subtype `effect` que carrega `modifiers` declarativos e/ou aplica condições, com duração opcional. |
-| **IWR** | Immunities / Weaknesses / Resistances: regras de imunidade, fraqueza e resistência a tipos de dano (e a condições), aplicadas no pipeline de dano. |
-| **Spellcasting entry** | Item embedded de subtype `spellcastingEntry`: container de magia com tradição, atributo, proficiência e slots. |
-| **Slug** | Identificador kebab-case canônico de uma condição, trait, skill ou efeito (ex.: `off-guard`, `frightened`). |
-| **Roll option** | Flag booleana (string) no conjunto de opções de um roll, usada por predicados de modifiers (ex.: `target:condition:off-guard`). [V2 para predicados complexos] |
+| Termo                    | Definição                                                                                                                                                                                                                                                                                                                                              |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **engine 2e core**       | Pacote `systems/engine-2e` com a lógica de regras compartilhada entre PF2e e SF2e (não depende de nenhum dos dois).                                                                                                                                                                                                                                    |
+| **system pf2e**          | Pacote `systems/pf2e` que registra schemas, fichas e automação específicos do PF2e Remaster, consumindo o engine 2e core.                                                                                                                                                                                                                              |
+| **TEML**                 | Ranks de proficiência: **T**rained, **E**xpert, **M**aster, **L**egendary (mais Untrained). Codificados como `ProficiencyRank = 0..4`.                                                                                                                                                                                                                 |
+| **Proficiência (bônus)** | `rank > 0 ? rank*2 + level : 0`. Untrained não soma nível (variante "no level" é [V2]).                                                                                                                                                                                                                                                                |
+| **Modifier**             | Bônus/penalidade tipado (`circumstance`/`item`/`status`/`untyped`/`ability`/`proficiency`/`potency`) aplicado a uma estatística por um seletor.                                                                                                                                                                                                        |
+| **Seletor (selector)**   | String que identifica a estatística que um modifier afeta: `"ac"`, `"reflex"`, `"attack"`, `"skill:athletics"`, `"damage"`, `"fortitude-dc"` etc.                                                                                                                                                                                                      |
+| **Statistic**            | Estatística rolável agregada: base + stack de modifiers resolvido → `total`, com `dc` derivada quando aplicável.                                                                                                                                                                                                                                       |
+| **DegreeOfSuccess**      | Conjunto qualitativo de 4 graus (`CriticalSuccess`/`Success`/`Failure`/`CriticalFailure`) calculado a partir de `(total - dc)` com ajustes nat20/nat1. O tipo na system-api é genérico (`ver 08-motor-de-rolagens.md`); o conjunto de 4 graus e seu helper de cálculo (±10, nat 1/20) vivem em `systems/engine-2e` e são reutilizados por PF2e e SF2e. |
+| **Strike**               | Ação de ataque derivada de uma arma equipada (ou ataque de NPC/`melee`); produz attack roll + damage roll com MAP.                                                                                                                                                                                                                                     |
+| **MAP**                  | Multiple Attack Penalty: 0 / −5 / −10 (ou 0 / −4 / −8 com trait `agile`), por turno.                                                                                                                                                                                                                                                                   |
+| **Condition**            | Estado mecânico aplicado a um ator (item embedded de subtype `condition`), com `slug` canônico e `value` opcional para condições numeradas.                                                                                                                                                                                                            |
+| **Effect**               | Item embedded de subtype `effect` que carrega `modifiers` declarativos e/ou aplica condições, com duração opcional.                                                                                                                                                                                                                                    |
+| **IWR**                  | Immunities / Weaknesses / Resistances: regras de imunidade, fraqueza e resistência a tipos de dano (e a condições), aplicadas no pipeline de dano.                                                                                                                                                                                                     |
+| **Spellcasting entry**   | Item embedded de subtype `spellcastingEntry`: container de magia com tradição, atributo, proficiência e slots.                                                                                                                                                                                                                                         |
+| **Slug**                 | Identificador kebab-case canônico de uma condição, trait, skill ou efeito (ex.: `off-guard`, `frightened`).                                                                                                                                                                                                                                            |
+| **Roll option**          | Flag booleana (string) no conjunto de opções de um roll, usada por predicados de modifiers (ex.: `target:condition:off-guard`). [V2 para predicados complexos]                                                                                                                                                                                         |
 
 ---
 
@@ -134,10 +134,11 @@ de skills (16) e suas associações de atributo, lista de condições PF2e, runa
 traditions de magia, traits de arma, fichas Svelte, registro na system API.
 
 **Alternativas rejeitadas:**
-- *Tudo dentro de `systems/pf2e` e SF2e importa de lá*: cria dependência
+
+- _Tudo dentro de `systems/pf2e` e SF2e importa de lá_: cria dependência
   `sf2e → pf2e`, acopla a evolução dos dois e mistura conteúdo PF2e-específico
   (skills, runas) com mecânica genérica.
-- *Duplicar a mecânica em cada sistema*: viola DRY; degree of success e modifier
+- _Duplicar a mecânica em cada sistema_: viola DRY; degree of success e modifier
   stacking são idênticos e mudanças teriam de ser feitas em dois lugares.
 
 **Racional:** A pesquisa 13 §15.1 confirma que SF2e "usa o mesmo motor do PF2e
@@ -155,7 +156,8 @@ Os dados vêm de importação externa (JSON do `pf2e`) e precisam de validação
 autoritativa no servidor.
 
 **Alternativas rejeitadas:**
-- *Espelhar o sistema `DataModel`/`DataField` do Foundry*: a spec 02 já rejeitou
+
+- _Espelhar o sistema `DataModel`/`DataField` do Foundry_: a spec 02 já rejeitou
   isso para a engine; manter coerência.
 
 ### DEC-PF2-03 — Dados derivados via `prepareData`, nunca persistidos
@@ -166,6 +168,7 @@ DC) ocorre numa função de preparação `prepareDerived(actor)` executada sobre
 nunca é mutado por dados derivados (consistente com spec 02).
 
 **Pipeline de preparação (espelha o ciclo do pf2e, pesquisa 10 §6):**
+
 1. `prepareBaseData` — abilities (scores → mods), proficiency ranks declarados,
    HP base por classe/ancestry, traits.
 2. `prepareItems` — agrega contribuições de ancestry/background/class (ABC),
@@ -192,6 +195,7 @@ ItemAlteration, predicados ricos) é **[V2]**.
 
 **Subconjunto de "rule-element-like" no MVP** (mapeado dos REs do pf2e, pesquisa
 10 §5.3):
+
 - `FlatModifier` → `Modifier { selector, type, value }`.
 - `DamageDice` (apenas estático, não condicional) → entrada em `extraDamage`.
 - `IWR` → entradas em `system.attributes.iwr`.
@@ -204,11 +208,12 @@ ItemAlteration, predicados ricos) é **[V2]**.
 dinâmica, `TokenLight`/`TokenImage` condicionais.
 
 **Alternativas rejeitadas:**
-- *Implementar o motor de REs completo já no MVP*: a pesquisa 10 §5.3 lista 40+
+
+- _Implementar o motor de REs completo já no MVP_: a pesquisa 10 §5.3 lista 40+
   tipos de RE; reimplementá-los todos com predicação rica antes de uma sessão
   jogável é desproporcional. A maioria das fichas de MVP funciona com modifiers
   estáticos + condições.
-- *Hardcode por feat/magia sem motor declarativo*: inviabiliza importar centenas
+- _Hardcode por feat/magia sem motor declarativo_: inviabiliza importar centenas
   de feats/effects dos packs; o formato de dados do pf2e é data-driven e o
   importer produz `rules[]` que mapeamos para `modifiers[]`.
 
@@ -225,6 +230,7 @@ do engine 2e core. A detecção de nat20/nat1 usa o resultado do **primeiro d20*
 do roll (campo `dieResults` do termo de d20 no `RollResult`).
 
 **Algoritmo (pesquisa 13 §2):**
+
 ```
 margin = total - dc
 degree = margin >= 10 ? Crit : margin >= 0 ? Success : margin > -10 ? Failure : CritFailure
@@ -245,10 +251,12 @@ botão de dano. O attack roll e o damage roll são **rolagens separadas** (o dan
 só é rolado após o ataque acertar/critar), seguindo a UX do PF2e.
 
 **Cálculo (pesquisa 13 §3.2, §6):**
+
 ```
 attackBonus = abilityMod(strike) + proficiencyBonus(weaponCategory) + itemBonus(potency rune) + Σ otherModifiers
 damage      = weaponDice(die,faces) + strikingDice + abilityMod(damage) + Σ damageModifiers
 ```
+
 - `abilityMod(strike)`: STR para melee; DEX com trait `finesse`; DEX para ranged.
 - `abilityMod(damage)`: STR para melee; ranged sem STR salvo `propulsive` (½ STR
   positivo) ou `thrown` (STR completo).
@@ -257,10 +265,11 @@ damage      = weaponDice(die,faces) + strikingDice + abilityMod(damage) + Σ dam
   no MVP; `fatal` substitui o die e adiciona um die, [MVP] básico).
 
 **Alternativas rejeitadas:**
-- *Dano e ataque numa única rolagem*: não permite aplicar o degree of success para
+
+- _Dano e ataque numa única rolagem_: não permite aplicar o degree of success para
   decidir crítico/dobra antes de rolar dano; quebra a UX e a regra de "dobra no
   crit".
-- *Strikes manuais digitados no statblock*: aceitável só para NPCs importados sem
+- _Strikes manuais digitados no statblock_: aceitável só para NPCs importados sem
   arma estruturada; o character usa strikes derivados.
 
 ### DEC-PF2-07 — Condições como itens embedded com efeito mecânico no core
@@ -351,7 +360,7 @@ isso sem alterar o núcleo de combate.
 - **REQ-PF2-013** [MVP] O sistema DEVE suportar perícias **Lore** customizadas
   (subtype `lore`), cada uma com rank próprio e atributo INT.
 - **REQ-PF2-014** [MVP] O sistema DEVE derivar **Perception** = `d20 + WIS mod +
-  proficiencyBonus(perception rank) + Σ modifiers`.
+proficiencyBonus(perception rank) + Σ modifiers`.
 - **REQ-PF2-015** [MVP] O sistema DEVE derivar os três **saves** (Fortitude=CON,
   Reflex=DEX, Will=WIS) como `Statistic`, e suas DCs quando exigidas como defesa
   passiva (`fortitude-dc` = 10 + save total − d20, i.e. 10 + bônus do save).
@@ -364,8 +373,8 @@ isso sem alterar o núcleo de combate.
 ### AC, HP e defesas
 
 - **REQ-PF2-020** [MVP] O sistema DEVE derivar a **AC** = `10 + dexMod (limitado
-  pelo dex cap da armadura) + proficiencyBonus(armor category) + itemBonus(armor
-  potency rune) + Σ modifiers`, aplicando a penalidade de armadura `broken` quando
+pelo dex cap da armadura) + proficiencyBonus(armor category) + itemBonus(armor
+potency rune) + Σ modifiers`, aplicando a penalidade de armadura `broken` quando
   presente.
 - **REQ-PF2-021** [MVP] O sistema DEVE calcular o **HP máximo** do character como
   `ancestryHP + (classHP + conMod) * level + Σ bônus`, e o do NPC a partir do
@@ -389,7 +398,7 @@ isso sem alterar o núcleo de combate.
   DEX (melee com `finesse`), DEX (ranged); mais proficiência por categoria de arma
   e bônus de runa de potência.
 - **REQ-PF2-033** [MVP] O damage roll DEVE compor `weaponDice + strikingDice +
-  abilityMod(damage) + Σ damageModifiers`, com `abilityMod(damage)` = STR (melee),
+abilityMod(damage) + Σ damageModifiers`, com `abilityMod(damage)` = STR (melee),
   nenhum (ranged), ½ STR positivo (`propulsive`), STR completo (`thrown`).
 - **REQ-PF2-034** [MVP] Num **critical hit** (degree CriticalSuccess no attack), o
   sistema DEVE dobrar o total do dano; traits `deadly d#` DEVEM adicionar `d#` ao
@@ -512,8 +521,8 @@ isso sem alterar o núcleo de combate.
   spell attack DEVE rolar `spell-attack-roll`.
 - **REQ-PF2-085** [V2] Heightening manual completo (prepared em rank superior /
   spontaneous signature spells) e fórmulas de heightened `(+X)` aplicadas
-  automaticamente. *(No MVP, heightening é parcial: cantrips e focus automáticos;
-  slots de rank superior consumidos manualmente sem recálculo automático de dano.)*
+  automaticamente. _(No MVP, heightening é parcial: cantrips e focus automáticos;
+  slots de rank superior consumidos manualmente sem recálculo automático de dano.)_
 - **REQ-PF2-086** [V2] Counteract/Counterspell automatizado (comparação de ranks,
   pesquisa 13 §9.6).
 - **REQ-PF2-087** [V2] Spellcasting `focus`, `items` (scroll/wand), `staff` e
@@ -617,47 +626,47 @@ isso sem alterar o núcleo de combate.
 
 ### Tipos de Actor
 
-| Subtype | MVP? | Descrição |
-|---|---|---|
+| Subtype     | MVP?   | Descrição                                                                 |
+| ----------- | ------ | ------------------------------------------------------------------------- |
 | `character` | ✅ MVP | Personagem jogador (PC) com ABC, feats, skills, spellcasting, inventário. |
-| `npc` | ✅ MVP | Criatura/NPC com statblock completo (AC, saves, HP, strikes, skills). |
-| `hazard` | ✅ MVP | Armadilha/perigo: subset do NPC, geralmente sem ações ativas. |
-| `loot` | ✅ MVP | Container de itens sem statblock. |
-| `familiar` | ⏳ V2 | Familiar; habilidades derivadas do PC mestre. |
-| `party` | ⏳ V2 | Agregador de PCs (exploração, speed coletivo). |
-| `vehicle` | ⏳ V2 | Veículo (HP, broken threshold, piloting). |
+| `npc`       | ✅ MVP | Criatura/NPC com statblock completo (AC, saves, HP, strikes, skills).     |
+| `hazard`    | ✅ MVP | Armadilha/perigo: subset do NPC, geralmente sem ações ativas.             |
+| `loot`      | ✅ MVP | Container de itens sem statblock.                                         |
+| `familiar`  | ⏳ V2  | Familiar; habilidades derivadas do PC mestre.                             |
+| `party`     | ⏳ V2  | Agregador de PCs (exploração, speed coletivo).                            |
+| `vehicle`   | ⏳ V2  | Veículo (HP, broken threshold, piloting).                                 |
 
 ### Tipos de Item
 
 > Lista da pesquisa 10 §4.1. Coluna MVP indica o que o MVP precisa entender
 > mecanicamente; itens [V2] podem existir como dados importados mas sem automação.
 
-| Subtype | MVP? | Categoria | Campos centrais |
-|---|---|---|---|
-| `weapon` | ✅ | Equipamento | `damage{dice,die,damageType,modifier,persistent?}`, `category`, `group`, `runes{potency,striking,property[]}`, `range`, `reload`, `traits`, `usage` |
-| `armor` | ✅ | Equipamento | `category`, `group`, `acBonus`, `dexCap`, `checkPenalty`, `speedPenalty`, `strength`, `runes{potency,resilient,property[]}` |
-| `shield` | ✅ | Equipamento | `acBonus`, `hardness`, `hp`, `brokenThreshold` |
-| `equipment` | ✅ | Equipamento | `bulk`, `price`, `usage`, `traits` |
-| `consumable` | ✅ | Equipamento | `category` (scroll/wand/potion…), `charges`, `spell?` |
-| `treasure` | ✅ | Equipamento | `value` (gp/sp/cp) |
-| `container` | ✅ | Equipamento | `capacity`, `bulkReduction` |
-| `condition` | ✅ | Estado | `slug`, `value?`, `modifiers[]`, `overrides[]` |
-| `effect` | ✅ | Estado | `duration`, `badge?`, `modifiers[]`, `grantedConditions[]`, `iwr?` |
-| `spell` | ✅ | Magia | `level`, `traits{value[],traditions[]}`, `area?`, `range`, `time`, `duration`, `defense?{save{statistic,basic}}`, `damage`, `rules?` |
-| `spellcastingEntry` | ✅ | Magia | `tradition`, `ability`, `proficiency{value}`, `slots{slot0..10{value,max,prepared[]}}`, `prepared{value}` (prepared/spontaneous/innate) |
-| `feat` | ✅ | Mecânica | `level`, `category`, `actionType`, `actions`, `frequency?`, `modifiers[]`, `grantedConditions[]` |
-| `action` / `ability` | ✅ | Mecânica | ação/atividade rolável (NPC abilities, basic actions) |
-| `lore` | ✅ | Perícia | `rank`, atributo INT |
-| `melee` | ✅ | NPC-only | ataque de NPC: `bonus`, `damage[]`, `traits` |
-| `ancestry` | ⚙️ parcial | Construção | `hp`, `speed`, `size`, `boosts`, `flaws`, `languages`, `vision` |
-| `heritage` | ⚙️ parcial | Construção | herda de ancestry; `modifiers[]` |
-| `background` | ⚙️ parcial | Construção | `boosts`, skill proficiency |
-| `class` | ⚙️ parcial | Construção | `hp`/nível, proficiências iniciais, key ability, save progressions |
-| `affliction` | ⏳ V2 | Estado | venenos/doenças com `stages[]` |
-| `book` | ⏳ V2 | Equipamento | habilidades contidas |
-| `kit` | ⏳ V2 | Equipamento | bundle de itens |
-| `deity` | ⏳ V2 | Referência | domains, edicts, anathemas, spell list |
-| `campaignFeature` | ⏳ V2 | Campanha | feature de AP (kingmaker etc.) |
+| Subtype              | MVP?       | Categoria   | Campos centrais                                                                                                                                     |
+| -------------------- | ---------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `weapon`             | ✅         | Equipamento | `damage{dice,die,damageType,modifier,persistent?}`, `category`, `group`, `runes{potency,striking,property[]}`, `range`, `reload`, `traits`, `usage` |
+| `armor`              | ✅         | Equipamento | `category`, `group`, `acBonus`, `dexCap`, `checkPenalty`, `speedPenalty`, `strength`, `runes{potency,resilient,property[]}`                         |
+| `shield`             | ✅         | Equipamento | `acBonus`, `hardness`, `hp`, `brokenThreshold`                                                                                                      |
+| `equipment`          | ✅         | Equipamento | `bulk`, `price`, `usage`, `traits`                                                                                                                  |
+| `consumable`         | ✅         | Equipamento | `category` (scroll/wand/potion…), `charges`, `spell?`                                                                                               |
+| `treasure`           | ✅         | Equipamento | `value` (gp/sp/cp)                                                                                                                                  |
+| `container`          | ✅         | Equipamento | `capacity`, `bulkReduction`                                                                                                                         |
+| `condition`          | ✅         | Estado      | `slug`, `value?`, `modifiers[]`, `overrides[]`                                                                                                      |
+| `effect`             | ✅         | Estado      | `duration`, `badge?`, `modifiers[]`, `grantedConditions[]`, `iwr?`                                                                                  |
+| `spell`              | ✅         | Magia       | `level`, `traits{value[],traditions[]}`, `area?`, `range`, `time`, `duration`, `defense?{save{statistic,basic}}`, `damage`, `rules?`                |
+| `spellcastingEntry`  | ✅         | Magia       | `tradition`, `ability`, `proficiency{value}`, `slots{slot0..10{value,max,prepared[]}}`, `prepared{value}` (prepared/spontaneous/innate)             |
+| `feat`               | ✅         | Mecânica    | `level`, `category`, `actionType`, `actions`, `frequency?`, `modifiers[]`, `grantedConditions[]`                                                    |
+| `action` / `ability` | ✅         | Mecânica    | ação/atividade rolável (NPC abilities, basic actions)                                                                                               |
+| `lore`               | ✅         | Perícia     | `rank`, atributo INT                                                                                                                                |
+| `melee`              | ✅         | NPC-only    | ataque de NPC: `bonus`, `damage[]`, `traits`                                                                                                        |
+| `ancestry`           | ⚙️ parcial | Construção  | `hp`, `speed`, `size`, `boosts`, `flaws`, `languages`, `vision`                                                                                     |
+| `heritage`           | ⚙️ parcial | Construção  | herda de ancestry; `modifiers[]`                                                                                                                    |
+| `background`         | ⚙️ parcial | Construção  | `boosts`, skill proficiency                                                                                                                         |
+| `class`              | ⚙️ parcial | Construção  | `hp`/nível, proficiências iniciais, key ability, save progressions                                                                                  |
+| `affliction`         | ⏳ V2      | Estado      | venenos/doenças com `stages[]`                                                                                                                      |
+| `book`               | ⏳ V2      | Equipamento | habilidades contidas                                                                                                                                |
+| `kit`                | ⏳ V2      | Equipamento | bundle de itens                                                                                                                                     |
+| `deity`              | ⏳ V2      | Referência  | domains, edicts, anathemas, spell list                                                                                                              |
+| `campaignFeature`    | ⏳ V2      | Campanha    | feature de AP (kingmaker etc.)                                                                                                                      |
 
 > **⚙️ parcial (MVP)**: ancestry/heritage/background/class são importáveis e
 > contribuem com HP, proficiências e modifiers **estáticos** declarados; a
@@ -672,41 +681,51 @@ isso sem alterar o núcleo de combate.
 type ProficiencyRank = 0 | 1 | 2 | 3 | 4; // Untrained..Legendary
 
 type ModifierType =
-  | "circumstance" | "item" | "status"
-  | "untyped" | "ability" | "proficiency" | "potency";
+  | "circumstance"
+  | "item"
+  | "status"
+  | "untyped"
+  | "ability"
+  | "proficiency"
+  | "potency";
 
 interface Modifier {
   slug: string;
   label: string;
   type: ModifierType;
   value: number;
-  selector: string;          // "ac" | "reflex" | "attack" | "skill:athletics" | "damage" | "fortitude-dc" | ...
+  selector: string; // "ac" | "reflex" | "attack" | "skill:athletics" | "damage" | "fortitude-dc" | ...
   enabled: boolean;
-  predicate?: Predicate;     // MVP: subconjunto simples; predicados ricos são [V2]
+  predicate?: Predicate; // MVP: subconjunto simples; predicados ricos são [V2]
 }
 
 interface Statistic {
   slug: string;
-  base: number;              // d20-independent base (ability + proficiency)
-  modifiers: Modifier[];     // pós-stacking aplicado em `total`
-  total: number;             // bônus total para o roll (sem o d20)
-  dc?: number;               // 10 + total, quando a estatística é também uma DC
-  rollSelector: string;      // domínio de roll para hooks (ver 08)
+  base: number; // d20-independent base (ability + proficiency)
+  modifiers: Modifier[]; // pós-stacking aplicado em `total`
+  total: number; // bônus total para o roll (sem o d20)
+  dc?: number; // 10 + total, quando a estatística é também uma DC
+  rollSelector: string; // domínio de roll para hooks (ver 08)
 }
 
-enum DegreeOfSuccess { CriticalFailure = 0, Failure = 1, Success = 2, CriticalSuccess = 3 }
+enum DegreeOfSuccess {
+  CriticalFailure = 0,
+  Failure = 1,
+  Success = 2,
+  CriticalSuccess = 3,
+}
 
 interface DamagePacket {
   amount: number;
-  types: DamageType[];       // bludgeoning, piercing, fire, force, void, vitality, ...
-  traits: string[];          // para IWR exceptions (ex.: "magical", "ghost-touch")
-  isCritical: boolean;       // dano já dobrado quando true
+  types: DamageType[]; // bludgeoning, piercing, fire, force, void, vitality, ...
+  traits: string[]; // para IWR exceptions (ex.: "magical", "ghost-touch")
+  isCritical: boolean; // dano já dobrado quando true
 }
 
 interface IWREntry {
   kind: "immunity" | "weakness" | "resistance";
-  target: string;            // damage type ou condition slug
-  value?: number;            // weakness/resistance
+  target: string; // damage type ou condition slug
+  value?: number; // weakness/resistance
   exceptions?: string[];
   doubleVs?: string[];
 }
@@ -723,11 +742,11 @@ interface ApplyDamageResult {
 // systems/pf2e — schema resumido do character (system)
 
 interface CharacterSystem {
-  level: { value: number };          // 1..20 (20+ é [V2])
+  level: { value: number }; // 1..20 (20+ é [V2])
   abilities: Record<AbilitySlug, { value: number; mod: number }>; // str..cha
   attributes: {
     hp: { value: number; max: number; temp: number };
-    ac: { value: number };           // derivado
+    ac: { value: number }; // derivado
     speed: { value: number; otherSpeeds: { type: string; value: number }[] };
     dying: { value: number; max: number };
     wounded: { value: number };
@@ -754,7 +773,7 @@ interface CharacterSystem {
 // systems/pf2e — schema resumido do NPC (system)
 
 interface NpcSystem {
-  level: { value: number };          // pode ser negativo (−1..)
+  level: { value: number }; // pode ser negativo (−1..)
   attributes: {
     hp: { value: number; max: number; temp: number; details?: string };
     ac: { value: number; details?: string };
@@ -779,7 +798,7 @@ interface NpcSystem {
 interface EffectSystem {
   duration?: { value: number; unit: "round" | "minute" | "hour" | "day"; sustained: boolean };
   badge?: { type: "counter" | "value"; value: number };
-  modifiers: Modifier[];               // FlatModifier-like estático
+  modifiers: Modifier[]; // FlatModifier-like estático
   grantedConditions?: { slug: string; value?: number }[];
   iwr?: IWREntry[];
   // extraDamage para DamageDice estático
@@ -798,55 +817,55 @@ interface EffectSystem {
 
 ### Registro (na inicialização do sistema)
 
-| Ponto | Descrição |
-|---|---|
-| `registerActorModel(subtype, zodSchema)` | Schemas de `character`/`npc`/`hazard`/`loot`. |
-| `registerItemModel(subtype, zodSchema)` | Schemas dos Item subtypes do MVP. |
-| `registerSheet(documentType, subtype, SvelteComponent, { modes })` | Fichas character/NPC/hazard/loot. |
-| `registerInitiativeFormula(combatType, fn)` | `1d20 + perception.mod` + tiebreaker (REQ-PF2-090). |
-| `registerPrepareData(documentType, prepareFn)` | `prepareDerived` por ator. |
-| `registerRollHook(domain, fn)` | Hooks de MAP, condição (frightened/off-guard), bônus de circunstância (`ver 08-motor-de-rolagens.md`). |
-| `registerDegreeOfSuccess(fn)` | Cálculo de grau a partir de `RollResult` + DC (REQ-PF2-040). |
-| `registerActionMacros(list)` | Strike, Seek, Recall Knowledge, Demoralize, Trip, etc. (REQ-PF2-100). |
-| `registerInlineEnrichers(handlers)` | `@Check`, `@Damage`, `@Template`, `@UUID` (REQ-PF2-102). |
+| Ponto                                                              | Descrição                                                                                              |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `registerActorModel(subtype, zodSchema)`                           | Schemas de `character`/`npc`/`hazard`/`loot`.                                                          |
+| `registerItemModel(subtype, zodSchema)`                            | Schemas dos Item subtypes do MVP.                                                                      |
+| `registerSheet(documentType, subtype, SvelteComponent, { modes })` | Fichas character/NPC/hazard/loot.                                                                      |
+| `registerInitiativeFormula(combatType, fn)`                        | `1d20 + perception.mod` + tiebreaker (REQ-PF2-090).                                                    |
+| `registerPrepareData(documentType, prepareFn)`                     | `prepareDerived` por ator.                                                                             |
+| `registerRollHook(domain, fn)`                                     | Hooks de MAP, condição (frightened/off-guard), bônus de circunstância (`ver 08-motor-de-rolagens.md`). |
+| `registerDegreeOfSuccess(fn)`                                      | Cálculo de grau a partir de `RollResult` + DC (REQ-PF2-040).                                           |
+| `registerActionMacros(list)`                                       | Strike, Seek, Recall Knowledge, Demoralize, Trip, etc. (REQ-PF2-100).                                  |
+| `registerInlineEnrichers(handlers)`                                | `@Check`, `@Damage`, `@Template`, `@UUID` (REQ-PF2-102).                                               |
 
 ### Eventos de ciclo de vida consumidos (`ver 10-combate-e-iniciativa.md`)
 
-| Evento | Ação do PF2e |
-|---|---|
-| `onTurnStart(combatant)` | Resetar MAP; processar `slowed`/`stunned` na contagem de ações; oferecer recovery check de Dying; aplicar persistent damage pendente. |
-| `onTurnEnd(combatant)` | Decrementar `frightened` (e outras que reduzem ao fim do turno); resolver persistent damage do tipo "fim de turno". |
-| `onRoundStart` / `onRoundEnd` | Reservado para efeitos de duração em rodadas. |
-| `onCombatEnd` | Limpar efeitos com duração "encounter". |
+| Evento                        | Ação do PF2e                                                                                                                          |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `onTurnStart(combatant)`      | Resetar MAP; processar `slowed`/`stunned` na contagem de ações; oferecer recovery check de Dying; aplicar persistent damage pendente. |
+| `onTurnEnd(combatant)`        | Decrementar `frightened` (e outras que reduzem ao fim do turno); resolver persistent damage do tipo "fim de turno".                   |
+| `onRoundStart` / `onRoundEnd` | Reservado para efeitos de duração em rodadas.                                                                                         |
+| `onCombatEnd`                 | Limpar efeitos com duração "encounter".                                                                                               |
 
 ### Métodos do ator (expostos pela system API ao runtime/macros)
 
-| Método | Descrição |
-|---|---|
-| `actor.rollСheck(selector, { dc, options })` | Rola um check (skill/save/attack/perception) e calcula degree. |
-| `actor.rollStrike(strikeId, { mapStep })` | Rola attack do strike no passo de MAP indicado. |
-| `actor.rollDamage(strikeId, { critical })` | Rola o dano (dobrando no crit). |
-| `actor.applyDamage(DamagePacket)` | Pipeline IWR → `ApplyDamageResult` (REQ-PF2-060). |
-| `actor.increaseCondition(slug)` / `decreaseCondition` / `toggleCondition` / `setCondition(slug, value)` | Gestão de condições (REQ-PF2-050). |
-| `actor.castSpell(entryId, spellId, { rank })` | Consome slot/focus e produz o card (REQ-PF2-081/084). |
-| `actor.spendHeroPoint({ reroll? \| heroicRecovery? })` | Hero Points (REQ-PF2-044). |
+| Método                                                                                                  | Descrição                                                      |
+| ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `actor.rollСheck(selector, { dc, options })`                                                            | Rola um check (skill/save/attack/perception) e calcula degree. |
+| `actor.rollStrike(strikeId, { mapStep })`                                                               | Rola attack do strike no passo de MAP indicado.                |
+| `actor.rollDamage(strikeId, { critical })`                                                              | Rola o dano (dobrando no crit).                                |
+| `actor.applyDamage(DamagePacket)`                                                                       | Pipeline IWR → `ApplyDamageResult` (REQ-PF2-060).              |
+| `actor.increaseCondition(slug)` / `decreaseCondition` / `toggleCondition` / `setCondition(slug, value)` | Gestão de condições (REQ-PF2-050).                             |
+| `actor.castSpell(entryId, spellId, { rank })`                                                           | Consome slot/focus e produz o card (REQ-PF2-081/084).          |
+| `actor.spendHeroPoint({ reroll? \| heroicRecovery? })`                                                  | Hero Points (REQ-PF2-044).                                     |
 
 ---
 
 ## Dependências (specs irmãs)
 
-| Spec | Relação |
-|---|---|
-| `02-modelo-de-dados.md` | Contrato de Documents, campos comuns, UUID, ownership, CRUD, migrações; esta spec preenche `system` por subtype. |
-| `08-motor-de-rolagens.md` | Execução autoritativa de rolagens, `RollResult`, `RollHook`, definição-base de `DegreeOfSuccess`. |
-| `10-combate-e-iniciativa.md` | `Combat`/`Combatant`, `InitiativeFormula`, eventos de ciclo de vida que o PF2e consome. |
-| `11-ui-framework-e-fichas.md` | Window manager, contrato de sheets, autosave, tabs, TipTap, i18n; esta spec fornece os componentes Svelte das fichas. |
-| `15-api-de-sistemas.md` | Superfície de registro (models, sheets, hooks, prepareData, action macros, enrichers) que esta spec consome. |
+| Spec                             | Relação                                                                                                                   |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `02-modelo-de-dados.md`          | Contrato de Documents, campos comuns, UUID, ownership, CRUD, migrações; esta spec preenche `system` por subtype.          |
+| `08-motor-de-rolagens.md`        | Execução autoritativa de rolagens, `RollResult`, `RollHook`, definição-base de `DegreeOfSuccess`.                         |
+| `10-combate-e-iniciativa.md`     | `Combat`/`Combatant`, `InitiativeFormula`, eventos de ciclo de vida que o PF2e consome.                                   |
+| `11-ui-framework-e-fichas.md`    | Window manager, contrato de sheets, autosave, tabs, TipTap, i18n; esta spec fornece os componentes Svelte das fichas.     |
+| `15-api-de-sistemas.md`          | Superfície de registro (models, sheets, hooks, prepareData, action macros, enrichers) que esta spec consome.              |
 | `16-compendiums-e-importacao.md` | Pipeline que converte JSON do `foundryvtt/pf2e` no formato-alvo desta spec (incl. tradução de `rules[]` → `modifiers[]`). |
-| `07-visao-iluminacao-fog.md` | Condições de detecção (blinded/concealed/hidden/undetected) que afetam visão; automação parcial no MVP. |
-| `18-sistema-sf2e.md` | Consome o mesmo `systems/engine-2e` que esta spec define. |
-| `09-chat-e-mensagens.md` | Renderização dos chat cards de check/strike/damage e dos inline enrichers. |
-| `21-seguranca.md` | Determinação autoritativa no servidor (anti-cheat). |
+| `07-visao-iluminacao-fog.md`     | Condições de detecção (blinded/concealed/hidden/undetected) que afetam visão; automação parcial no MVP.                   |
+| `18-sistema-sf2e.md`             | Consome o mesmo `systems/engine-2e` que esta spec define.                                                                 |
+| `09-chat-e-mensagens.md`         | Renderização dos chat cards de check/strike/damage e dos inline enrichers.                                                |
+| `21-seguranca.md`                | Determinação autoritativa no servidor (anti-cheat).                                                                       |
 
 ---
 
@@ -899,52 +918,52 @@ interface EffectSystem {
 > parcial (automação + input manual) · **M** = manual/assistido (sem automação,
 > ferramenta de apoio). Baseado na pesquisa 13 §16.
 
-| Mecânica | MVP | Notas |
-|---|---|---|
-| Modificador de ability (`floor((score−10)/2)`) | A | REQ-PF2-010 |
-| Proficiência TEML (rank*2+nível) | A | REQ-PF2-011 |
-| Skills/Perception/Saves/Class DC derivados | A | REQ-PF2-012..016 |
-| AC (com dex cap, runa, broken) | A | REQ-PF2-020 |
-| HP máximo (char e NPC) | A | REQ-PF2-021 |
-| Degree of success (±10, nat20/nat1) | A | REQ-PF2-040 |
-| MAP acumulado por turno | A | REQ-PF2-031, 035 |
-| Strike attack + damage (melee/ranged) | A | contexto de flanking/cobertura é M |
-| Crítico: dobra de dano; deadly; fatal | A | crit specialization é A(V2) |
-| Basic saving throw (dano por grau) | A | REQ-PF2-041 |
-| Condições numeradas (efeito mecânico) | A | conjunto priorizado, REQ-PF2-051 |
-| Decremento de `frightened` por turno | A | REQ-PF2-092 |
-| `slowed`/`stunned` na contagem de ações | A | REQ-PF2-092 |
-| Persistent damage (aplicação + flat check) | A/P | dano automático; flat check rolável |
-| IWR no apply damage | A | REQ-PF2-060 |
-| Dying/Recovery/Wounded/Doomed | A | REQ-PF2-070..074 |
-| Hero Points (reroll, heroic recovery) | A | REQ-PF2-044 |
-| Spell slot tracking (prepared/spontaneous) | A | REQ-PF2-081 |
-| Cantrip ilimitado + heighten automático | A | REQ-PF2-082 |
-| Focus points + refocus | A | REQ-PF2-083 |
-| Heightening manual (rank superior) | A(V2) | parcial no MVP, REQ-PF2-085 |
-| Counteract/Counterspell | A(V2) | REQ-PF2-086 |
-| Bulk/encumbrance | A | REQ-PF2-120 |
-| Runas fundamentais (potency/striking/resilient) | A | REQ-PF2-130 |
-| Runas de propriedade (flaming etc.) | A(V2) | REQ-PF2-131 |
-| Iniciativa por skill | A | REQ-PF2-090 |
-| Recall Knowledge (secret check + DC) | P | rola e apresenta; GM escolhe info, REQ-PF2-101 |
-| Inline enrichers (@Check/@Damage/@Template) | A | REQ-PF2-102 |
-| Condições de detecção (efeito de visão) | P/M | flat check A; posição/visão parcial, REQ-PF2-052 |
-| Motor de rule-elements-like completo | A(V2) | GrantItem/ChoiceSet/Aura/BattleForm, DEC-PF2-04 |
-| Character builder (ABC + ChoiceSet) | M / A(V2) | montagem manual ou import no MVP |
-| Exploration/Downtime/Crafting | M / A(V2) | REQ-PF2-103 |
-| Range increments / cover | M | A(V2); cobertura depende do mapa |
-| Flanking (posição exata) | M | requer grid/julgamento do GM |
-| Party/Kingmaker | A(V2) | fora do MVP |
+| Mecânica                                        | MVP       | Notas                                            |
+| ----------------------------------------------- | --------- | ------------------------------------------------ |
+| Modificador de ability (`floor((score−10)/2)`)  | A         | REQ-PF2-010                                      |
+| Proficiência TEML (rank\*2+nível)               | A         | REQ-PF2-011                                      |
+| Skills/Perception/Saves/Class DC derivados      | A         | REQ-PF2-012..016                                 |
+| AC (com dex cap, runa, broken)                  | A         | REQ-PF2-020                                      |
+| HP máximo (char e NPC)                          | A         | REQ-PF2-021                                      |
+| Degree of success (±10, nat20/nat1)             | A         | REQ-PF2-040                                      |
+| MAP acumulado por turno                         | A         | REQ-PF2-031, 035                                 |
+| Strike attack + damage (melee/ranged)           | A         | contexto de flanking/cobertura é M               |
+| Crítico: dobra de dano; deadly; fatal           | A         | crit specialization é A(V2)                      |
+| Basic saving throw (dano por grau)              | A         | REQ-PF2-041                                      |
+| Condições numeradas (efeito mecânico)           | A         | conjunto priorizado, REQ-PF2-051                 |
+| Decremento de `frightened` por turno            | A         | REQ-PF2-092                                      |
+| `slowed`/`stunned` na contagem de ações         | A         | REQ-PF2-092                                      |
+| Persistent damage (aplicação + flat check)      | A/P       | dano automático; flat check rolável              |
+| IWR no apply damage                             | A         | REQ-PF2-060                                      |
+| Dying/Recovery/Wounded/Doomed                   | A         | REQ-PF2-070..074                                 |
+| Hero Points (reroll, heroic recovery)           | A         | REQ-PF2-044                                      |
+| Spell slot tracking (prepared/spontaneous)      | A         | REQ-PF2-081                                      |
+| Cantrip ilimitado + heighten automático         | A         | REQ-PF2-082                                      |
+| Focus points + refocus                          | A         | REQ-PF2-083                                      |
+| Heightening manual (rank superior)              | A(V2)     | parcial no MVP, REQ-PF2-085                      |
+| Counteract/Counterspell                         | A(V2)     | REQ-PF2-086                                      |
+| Bulk/encumbrance                                | A         | REQ-PF2-120                                      |
+| Runas fundamentais (potency/striking/resilient) | A         | REQ-PF2-130                                      |
+| Runas de propriedade (flaming etc.)             | A(V2)     | REQ-PF2-131                                      |
+| Iniciativa por skill                            | A         | REQ-PF2-090                                      |
+| Recall Knowledge (secret check + DC)            | P         | rola e apresenta; GM escolhe info, REQ-PF2-101   |
+| Inline enrichers (@Check/@Damage/@Template)     | A         | REQ-PF2-102                                      |
+| Condições de detecção (efeito de visão)         | P/M       | flat check A; posição/visão parcial, REQ-PF2-052 |
+| Motor de rule-elements-like completo            | A(V2)     | GrantItem/ChoiceSet/Aura/BattleForm, DEC-PF2-04  |
+| Character builder (ABC + ChoiceSet)             | M / A(V2) | montagem manual ou import no MVP                 |
+| Exploration/Downtime/Crafting                   | M / A(V2) | REQ-PF2-103                                      |
+| Range increments / cover                        | M         | A(V2); cobertura depende do mapa                 |
+| Flanking (posição exata)                        | M         | requer grid/julgamento do GM                     |
+| Party/Kingmaker                                 | A(V2)     | fora do MVP                                      |
 
 ### Fontes de dados
 
-| Fonte | Conteúdo | Como entra |
-|---|---|---|
+| Fonte                                         | Conteúdo                                                                                                                                        | Como entra                                                                                                                     |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | Importer `tools/importer-pf2e` (`ver 16-...`) | Compendiums de regras mecânicas (feats, spells, equipment, conditions, ancestries, classes, bestiários) — JSON sob ORC/OGL do `foundryvtt/pf2e` | Conversão JSON pf2e → schemas desta spec; `system.rules` → `modifiers[]`; REs não suportados → `flags.fusion.unsupportedRules` |
-| Definido por nós (`systems/pf2e`) | Lista canônica de 16 skills + atributos, slugs de condições e efeitos mecânicos, traits de arma, traditions, fórmulas de derivação | Código TypeScript do pacote |
-| Definido por nós (`systems/engine-2e`) | Algoritmo de degree of success, modifier stacking, TEML, dying/wounded, apply damage/IWR | Código TypeScript do pacote |
-| Arte/imagens da Paizo | Tokens, ícones proprietários | **NÃO redistribuídos** (pesquisa 10 §2.2); usar placeholders/arte aberta (`ver 26-licencas-e-legal.md`) |
+| Definido por nós (`systems/pf2e`)             | Lista canônica de 16 skills + atributos, slugs de condições e efeitos mecânicos, traits de arma, traditions, fórmulas de derivação              | Código TypeScript do pacote                                                                                                    |
+| Definido por nós (`systems/engine-2e`)        | Algoritmo de degree of success, modifier stacking, TEML, dying/wounded, apply damage/IWR                                                        | Código TypeScript do pacote                                                                                                    |
+| Arte/imagens da Paizo                         | Tokens, ícones proprietários                                                                                                                    | **NÃO redistribuídos** (pesquisa 10 §2.2); usar placeholders/arte aberta (`ver 26-licencas-e-legal.md`)                        |
 
 ---
 

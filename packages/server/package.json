@@ -1,0 +1,30 @@
+{
+  "name": "@fusion/server",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:unit": "vitest run --config vitest.config.ts"
+  },
+  "dependencies": {
+    "@fusion/shared": "workspace:*",
+    "@fusion/system-api": "workspace:*",
+    "fastify": "^5.3.2",
+    "pino": "^9.6.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.29",
+    "vitest": "^3.2.2"
+  }
+}

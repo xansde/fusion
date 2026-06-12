@@ -3,6 +3,7 @@
 **Status:** draft v0.1
 **Data:** 2026-06-11
 **Baseada em:**
+
 - `docs/research/09-foundry-funcionalidades-mesa.md` — seções 6 (Macros), 7 (Game Time), 8 (Scene Regions)
 - `docs/research/91-fusion-security-threat-model.md` — seção 6 (Sandbox de Macros), seção 4 (XSS/Enrichers)
 
@@ -68,10 +69,11 @@ Especificar o sistema de macros, hotbar do usuário, ações rápidas data-drive
 **Decisão:** Script macros não executam no browser do usuário. Elas são enviadas ao servidor, executadas em `isolated-vm` (V8 Isolates reais) com whitelist de APIs, timeout de 10 s e log obrigatório.
 
 **Alternativas rejeitadas:**
-- *Execução no browser (Web Worker):* isola o DOM mas permite `fetch()` livre; um GM desonesto poderia exfiltrar dados de jogadores; além disso a execução no cliente viola o princípio de servidor autoritativo.
-- *`node:vm`:* trivialmente escapável, documentação da própria Node.js recomenda não usar para código não confiável.
-- *`vm2`:* histórico de 20+ escapes conhecidos, foi abandonado pelo mantenedor em 2023 e ressuscitado com reputação comprometida; descartado conforme `91-fusion-security-threat-model.md` seção 6.2.
-- *QuickJS WASM:* isolamento forte mas suporte parcial a ES moderno e overhead de inicialização por execução; pode ser considerado como alternativa futura se `isolated-vm` causar problemas de build.
+
+- _Execução no browser (Web Worker):_ isola o DOM mas permite `fetch()` livre; um GM desonesto poderia exfiltrar dados de jogadores; além disso a execução no cliente viola o princípio de servidor autoritativo.
+- _`node:vm`:_ trivialmente escapável, documentação da própria Node.js recomenda não usar para código não confiável.
+- _`vm2`:_ histórico de 20+ escapes conhecidos, foi abandonado pelo mantenedor em 2023 e ressuscitado com reputação comprometida; descartado conforme `91-fusion-security-threat-model.md` seção 6.2.
+- _QuickJS WASM:_ isolamento forte mas suporte parcial a ES moderno e overhead de inicialização por execução; pode ser considerado como alternativa futura se `isolated-vm` causar problemas de build.
 
 **Racional:** O servidor Fusion roda na máquina do GM; RCE no servidor é RCE no computador pessoal. O impacto é máximo. A decisão de restringir script macros ao GM e sandboxá-las server-side minimiza a superfície de ataque sem privar o GM de poder de automação.
 
@@ -82,8 +84,9 @@ Especificar o sistema de macros, hotbar do usuário, ações rápidas data-drive
 **Decisão:** A System API expõe um registry de QuickActions tipadas. Jogadores podem adicionar essas ações à hotbar e executá-las. Elas são declarativas (não contêm código JS) e são validadas pelo servidor com Zod antes de executar.
 
 **Alternativas rejeitadas:**
-- *Macros de script para todos:* inaceitável por segurança (ver DEC-MAC-01).
-- *Sem automação para jogadores:* regride a experiência para nível de VTT primitivo; jogadores não conseguem criar botões de "rolar Atletismo" sem o GM.
+
+- _Macros de script para todos:_ inaceitável por segurança (ver DEC-MAC-01).
+- _Sem automação para jogadores:_ regride a experiência para nível de VTT primitivo; jogadores não conseguem criar botões de "rolar Atletismo" sem o GM.
 
 **Racional:** QuickActions cobrem 90% dos casos de uso de automação de jogadores (rolar perícias, aplicar dano, toggle de condições) sem abrir execução de código arbitrário. Sistemas registram as ações disponíveis; o motor as executa de forma controlada.
 
@@ -94,8 +97,9 @@ Especificar o sistema de macros, hotbar do usuário, ações rápidas data-drive
 **Decisão:** `world.time` é um único `bigint` de segundos desde a época do mundo. O calendário (nomes de meses, semanas, dias intercalares) é configuração de display sem afetar o contador base.
 
 **Alternativas rejeitadas:**
-- *Armazenar diretamente "Dia 3 de Arodus, 4723 AR":* acoplaria o motor ao sistema Golarion/PF2e; impossível para Etmos e SF2e sem forks.
-- *Não implementar game time no MVP:* duração de efeitos (ex.: "febre por 1 dia") é funcionalidade esperada mesmo em sessões básicas; sistemas precisam do contador para implementar timers.
+
+- _Armazenar diretamente "Dia 3 de Arodus, 4723 AR":_ acoplaria o motor ao sistema Golarion/PF2e; impossível para Etmos e SF2e sem forks.
+- _Não implementar game time no MVP:_ duração de efeitos (ex.: "febre por 1 dia") é funcionalidade esperada mesmo em sessões básicas; sistemas precisam do contador para implementar timers.
 
 **Racional:** O padrão do Foundry (`game.time.worldTime` em segundos) provou ser correto — sistemas e módulos da comunidade o adotaram universalmente. Replicar a mesma semântica facilita portabilidade de lógica de sistemas.
 
@@ -106,8 +110,9 @@ Especificar o sistema de macros, hotbar do usuário, ações rápidas data-drive
 **Decisão:** No MVP, regiões de cena não têm behaviors automáticos. A estrutura de dados `SceneRegion` é especificada e persistida mas behaviors (teleport, macro trigger, darkness adjust) são implementação [V2]. O modelo de events/behaviors é preferido a tiles com lógica hardcoded.
 
 **Alternativas rejeitadas:**
-- *Tiles com propriedades de teleport hardcoded:* menos extensível; o design do Foundry v12+ evoluiu exatamente para sair desse modelo.
-- *Adiar completamente a especificação:* a estrutura de dados precisa ser definida agora para não criar migrações custosas.
+
+- _Tiles com propriedades de teleport hardcoded:_ menos extensível; o design do Foundry v12+ evoluiu exatamente para sair desse modelo.
+- _Adiar completamente a especificação:_ a estrutura de dados precisa ser definida agora para não criar migrações custosas.
 
 ---
 
@@ -116,7 +121,8 @@ Especificar o sistema de macros, hotbar do usuário, ações rápidas data-drive
 **Decisão:** O servidor expõe um conjunto fixo de operações registradas que podem ser solicitadas por clientes com menor privilégio (análogo ao socketlib). Cada operação tem schema Zod, revalidação de permissão do requester, e rate limit. Nunca há uma operação genérica "executar qualquer função como GM".
 
 **Alternativas rejeitadas:**
-- *Proxy genérico de mensagens:* o vetor de privilege escalation documentado no `91-fusion-security-threat-model.md` seção 6.4 tornaria isso inaceitável.
+
+- _Proxy genérico de mensagens:_ o vetor de privilege escalation documentado no `91-fusion-security-threat-model.md` seção 6.4 tornaria isso inaceitável.
 
 ---
 
@@ -125,7 +131,8 @@ Especificar o sistema de macros, hotbar do usuário, ações rápidas data-drive
 **Decisão:** Replicar ergonomia do Foundry (10 slots visíveis, teclas 1–9 e 0, 5 páginas) como MVP. Persistido por usuário no servidor.
 
 **Alternativas rejeitadas:**
-- *Hotbar configurável em número de slots:* complexidade de UI desnecessária para MVP; pode ser adicionado em V2.
+
+- _Hotbar configurável em número de slots:_ complexidade de UI desnecessária para MVP; pode ser adicionado em V2.
 
 ---
 
@@ -150,6 +157,7 @@ Especificar o sistema de macros, hotbar do usuário, ações rápidas data-drive
 **REQ-MAC-007** [V2] O sistema deve suportar macros do tipo `script` executáveis apenas por usuários com papel `GM`.
 
 **REQ-MAC-008** [V2] A execução de uma macro de script deve ocorrer no servidor, dentro de um isolate `isolated-vm` com as seguintes restrições:
+
 - Sem acesso a `fs`, `net`, `child_process`, `process` ou qualquer módulo Node nativo.
 - API disponível: subconjunto da Fusion API (Document CRUD com as permissões do GM, roll, chat.send, ui.notification).
 - Timeout de 10 segundos; exceções e timeouts encerram o isolate e reportam erro no chat do GM.
@@ -274,45 +282,45 @@ Especificar o sistema de macros, hotbar do usuário, ações rápidas data-drive
 ```typescript
 // ── Macro ──────────────────────────────────────────────────────────────────
 
-type MacroType = 'chat' | 'script';
+type MacroType = "chat" | "script";
 
 interface MacroDocument {
-  id: string;                           // UUID v4
-  name: string;                         // max 256 chars
+  id: string; // UUID v4
+  name: string; // max 256 chars
   type: MacroType;
-  content: string;                      // conteúdo da macro; max 65536 chars
-  img: string;                          // path do ícone (relativo a assets/)
-  ownerId: string;                      // userId do criador
+  content: string; // conteúdo da macro; max 65536 chars
+  img: string; // path do ícone (relativo a assets/)
+  ownerId: string; // userId do criador
   permissions: Record<string, PermissionLevel>; // userId → nivel
-  folder?: string;                      // id da pasta no Macro Directory
-  sort: number;                         // ordenação dentro da pasta
-  flags: Record<string, unknown>;       // extensível por sistemas
+  folder?: string; // id da pasta no Macro Directory
+  sort: number; // ordenação dentro da pasta
+  flags: Record<string, unknown>; // extensível por sistemas
 }
 
 // ── Hotbar ─────────────────────────────────────────────────────────────────
 
 type HotbarSlotContent =
-  | { type: 'macro';       macroId: string }
-  | { type: 'quick-action'; actionId: string; params?: Record<string, unknown> }
-  | { type: 'item';        actorId: string; itemId: string }
+  | { type: "macro"; macroId: string }
+  | { type: "quick-action"; actionId: string; params?: Record<string, unknown> }
+  | { type: "item"; actorId: string; itemId: string }
   | null;
 
 interface HotbarState {
   userId: string;
-  activePage: number;                   // 0–4
-  slots: HotbarSlotContent[];           // 50 elementos (índices 0–49); [page*10 + slot]
+  activePage: number; // 0–4
+  slots: HotbarSlotContent[]; // 50 elementos (índices 0–49); [page*10 + slot]
 }
 
 // ── QuickAction ────────────────────────────────────────────────────────────
 
-import type { ZodSchema } from 'zod';
+import type { ZodSchema } from "zod";
 
 interface QuickActionDef<TParams = unknown> {
-  id: string;                           // ex.: "pf2e:roll-check"
-  systemId: string;                     // ex.: "pf2e"
-  name: string;                         // chave i18n
-  icon: string;                         // path do ícone
-  description: string;                  // chave i18n
+  id: string; // ex.: "pf2e:roll-check"
+  systemId: string; // ex.: "pf2e"
+  name: string; // chave i18n
+  icon: string; // path do ícone
+  description: string; // chave i18n
   schema: ZodSchema<TParams>;
   /**
    * Handler executado no servidor.
@@ -331,25 +339,26 @@ interface QuickActionContext {
 }
 
 type DocumentOperation =
-  | { op: 'update'; collection: string; id: string; data: Record<string, unknown> }
-  | { op: 'create'; collection: string; data: Record<string, unknown> }
-  | { op: 'delete'; collection: string; id: string }
-  | { op: 'chat-message'; data: ChatMessageData };
+  | { op: "update"; collection: string; id: string; data: Record<string, unknown> }
+  | { op: "create"; collection: string; data: Record<string, unknown> }
+  | { op: "delete"; collection: string; id: string }
+  | { op: "chat-message"; data: ChatMessageData };
 
 // ── WorldTime e Calendar ───────────────────────────────────────────────────
 
 interface WorldTimeConfig {
-  value: bigint;                        // segundos desde época; persiste em world.db
-  dayLengthSeconds: number;             // padrão: 86400
+  value: bigint; // segundos desde época; persiste em world.db
+  dayLengthSeconds: number; // padrão: 86400
 }
 
-interface CalendarConfig {             // [V2]
+interface CalendarConfig {
+  // [V2]
   id: string;
   name: string;
   dayLengthSeconds: number;
   months: CalendarMonth[];
   weekdays: string[];
-  yearOffset: number;                   // ano do tick 0 no calendário
+  yearOffset: number; // ano do tick 0 no calendário
 }
 
 interface CalendarMonth {
@@ -360,38 +369,46 @@ interface CalendarMonth {
 
 // ── SceneRegion ────────────────────────────────────────────────────────────
 
-type RegionShapeType = 'rectangle' | 'ellipse' | 'polygon';
+type RegionShapeType = "rectangle" | "ellipse" | "polygon";
 
 interface RegionShape {
   type: RegionShapeType;
   // rectangle
-  x?: number; y?: number; width?: number; height?: number;
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
   // ellipse
-  radiusX?: number; radiusY?: number;
+  radiusX?: number;
+  radiusY?: number;
   // polygon
   points?: [number, number][];
   hole: boolean;
 }
 
 type RegionEventType =
-  | 'token-enter' | 'token-exit' | 'token-move-within'
-  | 'token-start-turn' | 'token-end-turn'
-  | 'round-start' | 'round-end';
+  | "token-enter"
+  | "token-exit"
+  | "token-move-within"
+  | "token-start-turn"
+  | "token-end-turn"
+  | "round-start"
+  | "round-end";
 
 type RegionBehaviorType =
-  | 'teleport-token'
-  | 'execute-macro'
-  | 'toggle-darkness'
-  | 'modify-movement-cost'
-  | 'pause-game'
-  | 'display-text';
+  | "teleport-token"
+  | "execute-macro"
+  | "toggle-darkness"
+  | "modify-movement-cost"
+  | "pause-game"
+  | "display-text";
 
 interface RegionBehavior {
   id: string;
   type: RegionBehaviorType;
   events: RegionEventType[];
   enabled: boolean;
-  config: Record<string, unknown>;      // específico por tipo (validado por Zod)
+  config: Record<string, unknown>; // específico por tipo (validado por Zod)
 }
 
 interface SceneRegion {
@@ -400,7 +417,7 @@ interface SceneRegion {
   shapes: RegionShape[];
   behaviors: RegionBehavior[];
   elevation: { min: number; max: number };
-  visibility: 'gm' | 'all';
+  visibility: "gm" | "all";
   flags: Record<string, unknown>;
 }
 ```
@@ -411,32 +428,32 @@ interface SceneRegion {
 
 ### Endpoints REST
 
-| Método | Path | Descrição |
-|--------|------|-----------|
-| `GET` | `/api/macros` | Lista macros acessíveis ao usuário autenticado |
-| `POST` | `/api/macros` | Cria macro (GM ou usuário com permissão) |
-| `PATCH` | `/api/macros/:id` | Edita macro (Owner ou GM) |
-| `DELETE` | `/api/macros/:id` | Remove macro (Owner ou GM) |
-| `POST` | `/api/macros/:id/execute` | Executa macro (verifica tipo e permissão server-side) |
-| `GET` | `/api/hotbar` | Retorna hotbar do usuário autenticado |
-| `PUT` | `/api/hotbar` | Persiste estado completo da hotbar |
-| `POST` | `/api/quick-actions/:actionId/execute` | Executa QuickAction com payload |
-| `GET` | `/api/world/time` | Retorna `worldTime` atual |
-| `PATCH` | `/api/world/time` | Altera `worldTime` (apenas GM) |
-| `GET` | `/api/world/calendar` | Retorna configuração de calendário (V2) |
-| `PUT` | `/api/world/calendar` | Atualiza calendário (apenas GM) (V2) |
+| Método   | Path                                   | Descrição                                             |
+| -------- | -------------------------------------- | ----------------------------------------------------- |
+| `GET`    | `/api/macros`                          | Lista macros acessíveis ao usuário autenticado        |
+| `POST`   | `/api/macros`                          | Cria macro (GM ou usuário com permissão)              |
+| `PATCH`  | `/api/macros/:id`                      | Edita macro (Owner ou GM)                             |
+| `DELETE` | `/api/macros/:id`                      | Remove macro (Owner ou GM)                            |
+| `POST`   | `/api/macros/:id/execute`              | Executa macro (verifica tipo e permissão server-side) |
+| `GET`    | `/api/hotbar`                          | Retorna hotbar do usuário autenticado                 |
+| `PUT`    | `/api/hotbar`                          | Persiste estado completo da hotbar                    |
+| `POST`   | `/api/quick-actions/:actionId/execute` | Executa QuickAction com payload                       |
+| `GET`    | `/api/world/time`                      | Retorna `worldTime` atual                             |
+| `PATCH`  | `/api/world/time`                      | Altera `worldTime` (apenas GM)                        |
+| `GET`    | `/api/world/calendar`                  | Retorna configuração de calendário (V2)               |
+| `PUT`    | `/api/world/calendar`                  | Atualiza calendário (apenas GM) (V2)                  |
 
 ### Eventos Socket.io
 
-| Evento | Direção | Payload | Descrição |
-|--------|---------|---------|-----------|
-| `macro:execute` | cliente → servidor | `{ macroId, context? }` | Solicita execução de macro |
-| `macro:result` | servidor → cliente | `{ macroId, output, error? }` | Resultado da execução (para o executor) |
-| `quick-action:execute` | cliente → servidor | `{ actionId, params, actorId?, tokenId?, targetIds? }` | Executa QuickAction |
-| `world:time-update` | servidor → todos | `{ worldTime: string, delta: string }` | Broadcast de alteração de tempo (bigint serializado como string) |
-| `execute-as-gm:request` | cliente → servidor | `{ handlerId, payload, requesterId }` | Solicita delegação de privilégio |
-| `execute-as-gm:result` | servidor → cliente | `{ handlerId, result?, error? }` | Resultado da operação delegada |
-| `region:behavior-triggered` | servidor → todos | `{ regionId, behaviorId, event, tokenId }` | Behavior de região disparado (V2) |
+| Evento                      | Direção            | Payload                                                | Descrição                                                        |
+| --------------------------- | ------------------ | ------------------------------------------------------ | ---------------------------------------------------------------- |
+| `macro:execute`             | cliente → servidor | `{ macroId, context? }`                                | Solicita execução de macro                                       |
+| `macro:result`              | servidor → cliente | `{ macroId, output, error? }`                          | Resultado da execução (para o executor)                          |
+| `quick-action:execute`      | cliente → servidor | `{ actionId, params, actorId?, tokenId?, targetIds? }` | Executa QuickAction                                              |
+| `world:time-update`         | servidor → todos   | `{ worldTime: string, delta: string }`                 | Broadcast de alteração de tempo (bigint serializado como string) |
+| `execute-as-gm:request`     | cliente → servidor | `{ handlerId, payload, requesterId }`                  | Solicita delegação de privilégio                                 |
+| `execute-as-gm:result`      | servidor → cliente | `{ handlerId, result?, error? }`                       | Resultado da operação delegada                                   |
+| `region:behavior-triggered` | servidor → todos   | `{ regionId, behaviorId, event, tokenId }`             | Behavior de região disparado (V2)                                |
 
 ### System API — Registro de QuickActions e Listeners de Tempo
 
@@ -457,7 +474,7 @@ interface SystemAPI {
   registerExecuteAsGM<TPayload>(
     handlerId: string,
     schema: ZodSchema<TPayload>,
-    handler: (payload: TPayload, requesterId: string) => Promise<unknown>
+    handler: (payload: TPayload, requesterId: string) => Promise<unknown>,
   ): void;
 }
 ```

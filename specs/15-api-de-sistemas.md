@@ -65,43 +65,43 @@ MVP — `ver 01-arquitetura-geral.md`).
 
 - O **catálogo e o contrato de dados dos Documents** (campos comuns, embedding,
   UUID, ownership, ciclo CRUD físico) — `ver 02-modelo-de-dados.md`. Esta spec
-  define apenas *como o sistema registra* schemas `system` e *consome* o ciclo.
+  define apenas _como o sistema registra_ schemas `system` e _consome_ o ciclo.
 - O **conteúdo concreto** dos schemas de cada jogo — `ver 17-sistema-pf2e.md`,
   `18-sistema-sf2e.md`, `19-sistema-etmos.md`. Aqui só damos exemplos ilustrativos.
 - O **motor de parsing/avaliação de fórmulas de dados** (sintaxe `NdX`, inline
   rolls, RNG autoritativo) — `ver 08-motor-de-rolagens.md`. Esta spec apenas
   declara como o sistema **registra hooks de roll** e **fórmulas nomeadas**.
 - O **framework de UI e o ciclo de vida de janelas/aplicações** — `ver
-  11-ui-framework-e-fichas.md`. Aqui só definimos o **contrato de registro** de
+11-ui-framework-e-fichas.md`. Aqui só definimos o **contrato de registro** de
   uma sheet e o **shape do contexto** passado ao componente.
 - A **persistência física** de settings e migrações — `ver
-  03-persistencia-e-mundos.md`.
+03-persistencia-e-mundos.md`.
 - O **pipeline de importação** de packs do `foundryvtt/pf2e` — `ver
-  16-compendiums-e-importacao.md`. Aqui só declaramos como o sistema **anuncia**
+16-compendiums-e-importacao.md`. Aqui só declaramos como o sistema **anuncia**
   seus packs.
 - Carregamento dinâmico de **plugins/módulos de terceiros** — é [V2] explícito.
 
 ## Conceitos e terminologia
 
-| Termo | Definição no Fusion |
-|---|---|
-| **System (game system)** | Pacote TS/Svelte que implementa as regras de um RPG: schemas de `system`, dados derivados, sheets, condições, fórmulas e automações. Identificado por um `id` único (ex.: `"pf2e"`). |
-| **Engine** | O app Fusion (server + client + shared + system-api), versionado com um único semver. Expõe a system API a sistemas. |
-| **`SystemManifest`** | Objeto declarativo (validado por Zod) que descreve um sistema: id, versão, compat, subtypes, packs, idiomas, etc. Análogo ao `system.json` do Foundry, porém TypeScript tipado e não um arquivo JSON cego. |
-| **`SystemModule`** | O artefato de runtime de um sistema: manifest + tabelas de registro (models, sheets, hooks, effects, settings...). O que `defineSystem()` produz. |
-| **Subtype** (`type`) | Discriminador do conteúdo de `system` de um Document (`Actor` subtype `"character"`). Cada par `(documentType, subtype)` mapeia para um `SystemDataModel`. |
-| **`SystemDataModel`** | Definição de schema `system` de um subtype: um schema Zod + (opcional) hooks de migração + (opcional) funções de derivação. Equivalente tipado ao `TypeDataModel` do Foundry (research 07 §2.2). |
-| **Dado derivado** | Valor calculado em memória durante `prepareData`, sobre uma cópia do `_source`, nunca persistido (`ver 02-modelo-de-dados.md`). |
-| **`DeriveStep`** | Unidade nomeada de derivação registrada por um sistema, com dependências declaradas; a engine as ordena topologicamente. |
-| **Effect (effect data-driven)** | Regra declarativa, anexada a um Item/efeito, que altera atributos ou rolagens de um Actor via seletores e predicados. Generalização clean-room dos Rule Elements do PF2e. |
-| **`EffectRule`** | Uma entrada de effect: `{ type, ...campos }` discriminada por `type` (ex.: `"flatModifier"`, `"setProperty"`). |
-| **Selector (seletor)** | String que identifica o domínio que um effect/modifier afeta: um caminho de atributo (`"system.attributes.ac"`) ou um domínio de roll (`"attack-roll"`, `"fortitude"`, `"skill:acrobatics"`). |
-| **Predicate (predicado)** | Expressão lógica booleana avaliada contra um conjunto de **roll options** (flags string). Operadores `and`/`or`/`not` e comparações. |
-| **Roll option** | Flag string num `Set<string>` que descreve o estado de um actor/item/alvo/contexto, consumida por predicados. |
-| **Synthetics** | Estrutura acumuladora, populada pelos effects durante `prepareData`, que carrega modificadores deferidos, notas, ajustes etc. por seletor. |
-| **Hook** | Ponto de extensão nomeado e tipado disparado pela engine em momentos do ciclo (lifecycle, combate, roll, render). Sistemas registram listeners. |
-| **`SystemSheet`** | Componente Svelte registrado para renderizar a ficha de um `(documentType, subtype)`, recebendo um contexto tipado. |
-| **Contrato (contract test)** | Teste automatizado que verifica que um `SystemModule` satisfaz a API (schemas válidos, derivação sem ciclos, sheets registradas, migrações monotônicas). |
+| Termo                           | Definição no Fusion                                                                                                                                                                                        |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **System (game system)**        | Pacote TS/Svelte que implementa as regras de um RPG: schemas de `system`, dados derivados, sheets, condições, fórmulas e automações. Identificado por um `id` único (ex.: `"pf2e"`).                       |
+| **Engine**                      | O app Fusion (server + client + shared + system-api), versionado com um único semver. Expõe a system API a sistemas.                                                                                       |
+| **`SystemManifest`**            | Objeto declarativo (validado por Zod) que descreve um sistema: id, versão, compat, subtypes, packs, idiomas, etc. Análogo ao `system.json` do Foundry, porém TypeScript tipado e não um arquivo JSON cego. |
+| **`SystemModule`**              | O artefato de runtime de um sistema: manifest + tabelas de registro (models, sheets, hooks, effects, settings...). O que `defineSystem()` produz.                                                          |
+| **Subtype** (`type`)            | Discriminador do conteúdo de `system` de um Document (`Actor` subtype `"character"`). Cada par `(documentType, subtype)` mapeia para um `SystemDataModel`.                                                 |
+| **`SystemDataModel`**           | Definição de schema `system` de um subtype: um schema Zod + (opcional) hooks de migração + (opcional) funções de derivação. Equivalente tipado ao `TypeDataModel` do Foundry (research 07 §2.2).           |
+| **Dado derivado**               | Valor calculado em memória durante `prepareData`, sobre uma cópia do `_source`, nunca persistido (`ver 02-modelo-de-dados.md`).                                                                            |
+| **`DeriveStep`**                | Unidade nomeada de derivação registrada por um sistema, com dependências declaradas; a engine as ordena topologicamente.                                                                                   |
+| **Effect (effect data-driven)** | Regra declarativa, anexada a um Item/efeito, que altera atributos ou rolagens de um Actor via seletores e predicados. Generalização clean-room dos Rule Elements do PF2e.                                  |
+| **`EffectRule`**                | Uma entrada de effect: `{ type, ...campos }` discriminada por `type` (ex.: `"flatModifier"`, `"setProperty"`).                                                                                             |
+| **Selector (seletor)**          | String que identifica o domínio que um effect/modifier afeta: um caminho de atributo (`"system.attributes.ac"`) ou um domínio de roll (`"attack-roll"`, `"fortitude"`, `"skill:acrobatics"`).              |
+| **Predicate (predicado)**       | Expressão lógica booleana avaliada contra um conjunto de **roll options** (flags string). Operadores `and`/`or`/`not` e comparações.                                                                       |
+| **Roll option**                 | Flag string num `Set<string>` que descreve o estado de um actor/item/alvo/contexto, consumida por predicados.                                                                                              |
+| **Synthetics**                  | Estrutura acumuladora, populada pelos effects durante `prepareData`, que carrega modificadores deferidos, notas, ajustes etc. por seletor.                                                                 |
+| **Hook**                        | Ponto de extensão nomeado e tipado disparado pela engine em momentos do ciclo (lifecycle, combate, roll, render). Sistemas registram listeners.                                                            |
+| **`SystemSheet`**               | Componente Svelte registrado para renderizar a ficha de um `(documentType, subtype)`, recebendo um contexto tipado.                                                                                        |
+| **Contrato (contract test)**    | Teste automatizado que verifica que um `SystemModule` satisfaz a API (schemas válidos, derivação sem ciclos, sheets registradas, migrações monotônicas).                                                   |
 
 ---
 
@@ -126,7 +126,7 @@ não um arquivo JSON lido às cegas. Como os sistemas são compilados junto
 - **Racional:** um `SystemModule` é um valor puro e testável; a engine o consome
   num ponto único do boot. Tipagem forte de ponta a ponta (research 07 §14.2.5:
   Foundry é JS puro, comunidade depende de types não-oficiais). Mantemos a
-  *forma* declarativa do manifest do Foundry (campos de research 07 §1.2), mas
+  _forma_ declarativa do manifest do Foundry (campos de research 07 §1.2), mas
   como interface TS.
 
 ### D2 — Schemas `system` em Zod, registrados por `(documentType, subtype)`
@@ -160,7 +160,9 @@ registrar.derive({
   reads: ["system.abilities.con.mod", "system.classhp", "system.level"],
   writes: ["system.attributes.hp.max"],
   phase: "derived",
-  run(actor, ctx) { /* ... */ },
+  run(actor, ctx) {
+    /* ... */
+  },
 });
 ```
 
@@ -225,7 +227,7 @@ Svelte; não há `render()` manual.
   declara qual `(documentType, subtype)` atende.
 - **Racional:** Svelte Runes dá reatividade nativa sobre os dados derivados;
   uma única arquitetura de UI. O sistema registra `{ component, types,
-  makeDefault, label }` (forma de research 07 §4.1, modernizada).
+makeDefault, label }` (forma de research 07 §4.1, modernizada).
 
 ### D7 — Hooks tipados, síncronos para cancelar, com payload nomeado
 
@@ -290,7 +292,7 @@ definição de MVP global (sessão PF2e jogável).
 ### Manifest e definição do sistema
 
 - **REQ-SYS-001** [MVP] A engine DEVE expor `defineSystem(manifest: SystemManifest,
-  build: (r: SystemRegistrar) => void): SystemModule`. O sistema chama-a uma vez
+build: (r: SystemRegistrar) => void): SystemModule`. O sistema chama-a uma vez
   e exporta o `SystemModule` resultante.
 - **REQ-SYS-002** [MVP] O `SystemManifest` DEVE ser validado por um schema Zod no
   carregamento; manifest inválido DEVE abortar o boot do sistema com erro
@@ -300,12 +302,12 @@ definição de MVP global (sessão PF2e jogável).
   `authors[]`, `documentTypes` (subtypes declarados por documentType),
   `languages[]`.
 - **REQ-SYS-004** [MVP] O manifest DEVE poder declarar `grid` (`{ distance:
-  number, units: string }`), `initiative` (id de uma `InitiativeFormula`
+number, units: string }`), `initiative` (id de uma `InitiativeFormula`
   registrada) e `primaryBarAttribute`/`secondaryBarAttribute` (caminhos de
   atributo para as barras do token). Campos opcionais, default ausente.
   (`ver 02-`, `ver 06-`, `ver 10-`.)
 - **REQ-SYS-005** [MVP] O manifest DEVE declarar `packs[]`, cada um com `{ name,
-  label, documentType, system, path }` (o sistema apenas **anuncia** seus packs;
+label, documentType, system, path }` (o sistema apenas **anuncia** seus packs;
   carregamento e importação em `ver 16-compendiums-e-importacao.md`).
 - **REQ-SYS-006** [MVP] A engine DEVE expor `game.system` em runtime com o
   `SystemModule` do mundo atual e DEVE garantir que **exatamente um** sistema
@@ -321,7 +323,7 @@ definição de MVP global (sessão PF2e jogável).
 ### Registro de document subtypes e schemas `system`
 
 - **REQ-SYS-010** [MVP] O `SystemRegistrar` DEVE expor `defineModel(spec:
-  SystemDataModelSpec)` que registra um `SystemDataModel` para um
+SystemDataModelSpec)` que registra um `SystemDataModel` para um
   `(documentType, subtype)`, contendo: `schema` (Zod), `migrations?`,
   `defaults?`.
 - **REQ-SYS-011** [MVP] Todo subtype declarado em `manifest.documentTypes` DEVE
@@ -387,7 +389,7 @@ definição de MVP global (sessão PF2e jogável).
   ordena a fila usando esse desempate (`ver 10-` REQ-CBT-013).
 - **REQ-SYS-043** [MVP] `registrar.condition(def: ConditionDefinition)` DEVE
   registrar uma condição `{ slug, label, img, valued?: boolean, effects?:
-  EffectRule[], overrides?: string[] }`. A engine DEVE fornecer aplicação/remoção
+EffectRule[], overrides?: string[] }`. A engine DEVE fornecer aplicação/remoção
   e exibição de badge no token (`ver 06-`, `ver 10-`).
 - **REQ-SYS-044** [MVP] A engine DEVE expor à API do sistema operações de
   condição em um Actor: `increaseCondition(slug)`, `decreaseCondition(slug)`,
@@ -395,7 +397,7 @@ definição de MVP global (sessão PF2e jogável).
   §8.1), respeitando `valued` e imunidades declaradas por effect `iwr`.
 - **REQ-SYS-045** [MVP] `registrar.action(def: ActionDefinition)` DEVE registrar
   uma **ação declarativa** `{ slug, label, img?, run(ctx): Promise<void> | void,
-  rollOptions?: string[] }` invocável a partir de sheets, macros e chat (ex.:
+rollOptions?: string[] }` invocável a partir de sheets, macros e chat (ex.:
   PF2e "Trip", "Demoralize"; Etmos "Conjurar"). A `run` PODE solicitar rolls via
   o motor (`ver 08-`) e postar chat cards.
 - **REQ-SYS-046** [MVP] `registrar.chatCard(def: ChatCardDefinition)` DEVE
@@ -405,7 +407,7 @@ definição de MVP global (sessão PF2e jogável).
   resolvidas via REQ-SYS-045 (`ver 09-`).
 - **REQ-SYS-047** [MVP] `registrar.setting(def: SettingDefinition)` DEVE registrar
   uma setting `{ key, scope: "world"|"user"|"client", schema: ZodType, default,
-  label, hint?, requiresReload?, onChange? }`. A engine DEVE validar o valor pelo
+label, hint?, requiresReload?, onChange? }`. A engine DEVE validar o valor pelo
   `schema` em get/set e expor `game.settings.get/set(systemId, key)` tipado
   (`ver 03-`).
 - **REQ-SYS-048** [MVP] `manifest.languages[]` DEVE listar `{ lang, name, path }`
@@ -482,6 +484,7 @@ definição de MVP global (sessão PF2e jogável).
     (research 10 §5.3, §7.3); equivalente a Evasion/Juggernaut no PF2e.
   - **[V2]** `grantItem` — concede outro Item via UUID (research 10 §5.3
     GrantItem); materialização de itens concedidos coordenada com spec 02 (Q4).
+
 - **REQ-SYS-083** [MVP] `flatModifier` e demais modificadores DEVEM ser
   armazenados como **factory functions deferidas** nos `synthetics`, avaliadas no
   momento do roll (não na preparação) — viabilizando predicados que dependem do
@@ -520,8 +523,8 @@ definição de MVP global (sessão PF2e jogável).
 ### Versionamento e migrações
 
 - **REQ-SYS-100** [MVP] Um `SystemDataModel` PODE declarar `migrations:
-  MigrationDefinition[]`, cada uma `{ from: semver, to: semver, migrate(source):
-  source }`, aplicadas em cadeia da versão de origem dos dados até a `version`
+MigrationDefinition[]`, cada uma `{ from: semver, to: semver, migrate(source):
+source }`, aplicadas em cadeia da versão de origem dos dados até a `version`
   atual do sistema (research 02 §7.3).
 - **REQ-SYS-101** [MVP] As migrações DEVEM rodar **antes** da validação Zod do
   `system` (na leitura e na importação), por `(documentType, subtype)`, e DEVEM
@@ -581,20 +584,23 @@ contrato normativo são os REQ). Tipos de Document e campos comuns em `ver 02-`.
 ```ts
 // ─── Manifest ────────────────────────────────────────────────────────────────
 interface SystemManifest {
-  id: string;                       // "pf2e" | "sf2e" | "etmos"
+  id: string; // "pf2e" | "sf2e" | "etmos"
   title: string;
-  version: string;                  // semver do sistema
-  engineCompat: string;             // range semver da engine (ex.: ">=0.1 <0.2")
+  version: string; // semver do sistema
+  engineCompat: string; // range semver da engine (ex.: ">=0.1 <0.2")
   authors: Array<{ name: string; url?: string }>;
   documentTypes: Partial<Record<DocumentType, string[]>>; // subtypes por doc
   languages: Array<{ lang: string; name: string; path: string }>;
   packs?: Array<{
-    name: string; label: string;
-    documentType: DocumentType; system: string; path: string;
+    name: string;
+    label: string;
+    documentType: DocumentType;
+    system: string;
+    path: string;
   }>;
   grid?: { distance: number; units: string };
-  initiative?: string;              // id de InitiativeFormula registrada
-  primaryBarAttribute?: string;     // caminho (ex.: "attributes.hp")
+  initiative?: string; // id de InitiativeFormula registrada
+  primaryBarAttribute?: string; // caminho (ex.: "attributes.hp")
   secondaryBarAttribute?: string;
 }
 
@@ -613,49 +619,56 @@ interface SystemRegistrar {
 
 // ─── Schemas system ──────────────────────────────────────────────────────────
 interface SystemDataModelSpec<S extends ZodType = ZodType> {
-  documentType: DocumentType;       // "Actor" | "Item" | ...
-  subtype: string;                  // "character" | "npc" | "weapon" | ...
-  schema: S;                        // valida APENAS o campo `system`
+  documentType: DocumentType; // "Actor" | "Item" | ...
+  subtype: string; // "character" | "npc" | "weapon" | ...
+  schema: S; // valida APENAS o campo `system`
   defaults?: Partial<z.infer<S>>;
   migrations?: MigrationDefinition[];
 }
 
 interface MigrationDefinition {
-  from: string; to: string;         // semver; cadeia contígua e monotônica
+  from: string;
+  to: string; // semver; cadeia contígua e monotônica
   migrate(source: Record<string, unknown>): Record<string, unknown>;
 }
 
 // ─── Derivação ───────────────────────────────────────────────────────────────
 interface DeriveStep<D = AnyDocument> {
-  id: string;                       // único; usado em logs e no grafo
+  id: string; // único; usado em logs e no grafo
   documentType: DocumentType;
-  subtypes: string[];               // a quais subtypes se aplica
+  subtypes: string[]; // a quais subtypes se aplica
   phase: "base" | "derived";
-  reads: string[];                  // caminhos lidos  → arestas do grafo
-  writes: string[];                 // caminhos escritos
+  reads: string[]; // caminhos lidos  → arestas do grafo
+  writes: string[]; // caminhos escritos
   run(doc: D, ctx: DeriveContext): void; // síncrono, puro de I/O
 }
 
 interface DeriveContext {
   system: SystemModule;
-  synthetics: Synthetics;           // populado pela fase de effects
+  synthetics: Synthetics; // populado pela fase de effects
   rollOptions: Set<string>;
-  modifiers: ModifierAggregator;    // stacking conforme regras do sistema
+  modifiers: ModifierAggregator; // stacking conforme regras do sistema
 }
 
 // ─── Effects data-driven (Rule-Element clean-room generalizado) ──────────────
 // MVP: FlatModifierRule | SetPropertyRule | DamageDiceRule (estático) | NoteRule | IwrRule
 // [V2]: RollOptionRule | AdjustDegreeOfSuccessRule | GrantItemRule | DamageDiceRule (condicional)
 type EffectRule =
-  | FlatModifierRule | SetPropertyRule | DamageDiceRule | RollOptionRule
-  | NoteRule | AdjustDegreeOfSuccessRule | IwrRule | GrantItemRule;
+  | FlatModifierRule
+  | SetPropertyRule
+  | DamageDiceRule
+  | RollOptionRule
+  | NoteRule
+  | AdjustDegreeOfSuccessRule
+  | IwrRule
+  | GrantItemRule;
 
 interface EffectRuleBase {
   type: string;
   slug?: string;
   label?: string;
   predicate?: Predicate;
-  priority?: number;                // desempate dentro do mesmo seletor
+  priority?: number; // desempate dentro do mesmo seletor
   ignored?: boolean;
   requiresEquipped?: boolean;
   requiresInvested?: boolean;
@@ -663,8 +676,8 @@ interface EffectRuleBase {
 interface FlatModifierRule extends EffectRuleBase {
   type: "flatModifier";
   selector: string | string[];
-  value: number | string;           // string = expressão de valor (@actor.level)
-  modifierType?: string;            // tipo de stacking (circumstance/item/...)
+  value: number | string; // string = expressão de valor (@actor.level)
+  modifierType?: string; // tipo de stacking (circumstance/item/...)
 }
 interface SetPropertyRule extends EffectRuleBase {
   type: "setProperty";
@@ -673,52 +686,68 @@ interface SetPropertyRule extends EffectRuleBase {
   value: number | string | boolean;
 }
 interface RollOptionRule extends EffectRuleBase {
-  type: "rollOption"; domain: string; option: string; toggleable?: boolean;
+  type: "rollOption";
+  domain: string;
+  option: string;
+  toggleable?: boolean;
 }
 interface IwrRule extends EffectRuleBase {
-  type: "iwr"; category: "immunity" | "weakness" | "resistance";
-  target: string;                   // damage type ou condition slug
-  value?: number; exceptions?: string[]; doubleVs?: string[];
+  type: "iwr";
+  category: "immunity" | "weakness" | "resistance";
+  target: string; // damage type ou condition slug
+  value?: number;
+  exceptions?: string[];
+  doubleVs?: string[];
 }
 // DamageDiceRule e NoteRule: análogos a FlatModifierRule (MVP).
 // AdjustDegreeOfSuccessRule e GrantItemRule: análogos, implementados em [V2].
 
 type Predicate = Array<string | PredicateCompound | PredicateComparison>;
-type PredicateCompound =
-  | { and: Predicate } | { or: Predicate } | { not: Predicate };
+type PredicateCompound = { and: Predicate } | { or: Predicate } | { not: Predicate };
 type PredicateComparison =
-  | { gte: [string, number] } | { lte: [string, number] }
-  | { gt:  [string, number] } | { lt:  [string, number] }
-  | { eq:  [string, number | string] };
+  | { gte: [string, number] }
+  | { lte: [string, number] }
+  | { gt: [string, number] }
+  | { lt: [string, number] }
+  | { eq: [string, number | string] };
 
 // ─── Synthetics (acumulador da fase de effects) ──────────────────────────────
 interface Synthetics {
-  modifiers: Record<string, DeferredModifier[]>;        // por selector
+  modifiers: Record<string, DeferredModifier[]>; // por selector
   damageDice: Record<string, DamageDiceSynthetic[]>;
   rollNotes: Record<string, RollNote[]>;
   degreeOfSuccessAdjustments: Record<string, DegreeAdjustment[]>;
-  rollOptions: Record<string, Set<string>>;             // por domínio
+  rollOptions: Record<string, Set<string>>; // por domínio
   iwr: { immunities: Iwr[]; weaknesses: Iwr[]; resistances: Iwr[] };
 }
 type DeferredModifier = (options: Set<string>) => ResolvedModifier | null;
 
 // ─── Sheets, condições, ações, chat, settings ────────────────────────────────
 interface SystemSheetSpec {
-  documentType: DocumentType; subtypes: string[];
-  component: SvelteComponent;       // Svelte 5 (Runes)
-  makeDefault?: boolean; label: string;
+  documentType: DocumentType;
+  subtypes: string[];
+  component: SvelteComponent; // Svelte 5 (Runes)
+  makeDefault?: boolean;
+  label: string;
 }
 interface SystemSheetContext<S = unknown> {
-  document: AnyDocument; system: S;  // `system` derivado (pós-prepareData)
-  ownership: OwnershipLevel;         // ver 05-
+  document: AnyDocument;
+  system: S; // `system` derivado (pós-prepareData)
+  ownership: OwnershipLevel; // ver 05-
   update(changes: Record<string, unknown>): Promise<void>;
 }
 interface ConditionDefinition {
-  slug: string; label: string; img: string;
-  valued?: boolean; effects?: EffectRule[]; overrides?: string[];
+  slug: string;
+  label: string;
+  img: string;
+  valued?: boolean;
+  effects?: EffectRule[];
+  overrides?: string[];
 }
 interface ActionDefinition {
-  slug: string; label: string; img?: string;
+  slug: string;
+  label: string;
+  img?: string;
   rollOptions?: string[];
   run(ctx: ActionContext): Promise<void> | void;
 }
@@ -727,14 +756,19 @@ interface ChatCardDefinition {
   render(payload: unknown): SvelteComponent | string; // HTML sanitizado
 }
 interface SettingDefinition<S extends ZodType = ZodType> {
-  key: string; scope: "world" | "user" | "client";
-  schema: S; default: z.infer<S>;
-  label: string; hint?: string; requiresReload?: boolean;
+  key: string;
+  scope: "world" | "user" | "client";
+  schema: S;
+  default: z.infer<S>;
+  label: string;
+  hint?: string;
+  requiresReload?: boolean;
   onChange?(value: z.infer<S>): void;
 }
 
 interface InitiativeFormula {
-  id: string; label: string;
+  id: string;
+  label: string;
   build(combatant: Combatant, ctx: DeriveContext): string; // fórmula de dados
   // Desempate fornecido pelo sistema. Opcional:
   //  - `tiebreaker`: valor numérico secundário (ex.: PF2e → mod. de Perception).
@@ -748,8 +782,8 @@ interface InitiativeFormula {
 
 interface InitiativeEntry {
   combatant: Combatant;
-  initiative: number;     // total rolado da fórmula
-  tiebreaker?: number;    // valor de `tiebreaker()` se fornecido
+  initiative: number; // total rolado da fórmula
+  tiebreaker?: number; // valor de `tiebreaker()` se fornecido
 }
 ```
 
@@ -757,39 +791,39 @@ interface InitiativeEntry {
 
 ### Superfície pública (resumo)
 
-| Símbolo | Tipo | Descrição |
-|---|---|---|
-| `defineSystem(manifest, build)` | função | Constrói e retorna o `SystemModule`. |
-| `game.system` | objeto | `SystemModule` ativo do mundo. |
-| `game.settings.get/set(sysId, key)` | função | Get/set tipado de setting. |
-| `hooks.on/once/off(name, listener)` | função | Barramento de hooks tipado. |
-| `i18n.localize/format(key, data?)` | função | Localização namespaced. |
-| `actor.increase/decrease/toggle/setCondition(slug, v?)` | método | Condições. |
-| `validateSystemModule(module)` | função | Harness de contract test. |
+| Símbolo                                                 | Tipo   | Descrição                            |
+| ------------------------------------------------------- | ------ | ------------------------------------ |
+| `defineSystem(manifest, build)`                         | função | Constrói e retorna o `SystemModule`. |
+| `game.system`                                           | objeto | `SystemModule` ativo do mundo.       |
+| `game.settings.get/set(sysId, key)`                     | função | Get/set tipado de setting.           |
+| `hooks.on/once/off(name, listener)`                     | função | Barramento de hooks tipado.          |
+| `i18n.localize/format(key, data?)`                      | função | Localização namespaced.              |
+| `actor.increase/decrease/toggle/setCondition(slug, v?)` | método | Condições.                           |
+| `validateSystemModule(module)`                          | função | Harness de contract test.            |
 
 ### Lista canônica de hooks (MVP)
 
 Nomes alinhados a `02-modelo-de-dados.md`. `<Type>` ∈ tipos de Document.
 
-| Hook | Fase | Cancelável | Onde dispara | Payload |
-|---|---|---|---|---|
-| `preCreate<Type>` | pré | sim (`false`) | servidor (autor) | `(doc, data, op, userId)` |
-| `create<Type>` | pós | não | todos os clientes | `(doc, op, userId)` |
-| `preUpdate<Type>` | pré | sim | servidor (autor) | `(doc, changes, op, userId)` |
-| `update<Type>` | pós | não | todos os clientes | `(doc, changes, op, userId)` |
-| `preDelete<Type>` | pré | sim | servidor (autor) | `(doc, op, userId)` |
-| `delete<Type>` | pós | não | todos os clientes | `(doc, op, userId)` |
-| `combatStart` | pós | não | todos | `(combat)` |
-| `roundStart` | pós | não | todos | `(combat, round)` |
-| `roundEnd` | pós | não | todos | `(combat, round)` |
-| `turnStart` | pós | não | todos | `(combat, combatant, previous)` |
-| `turnEnd` | pós | não | todos | `(combat, combatant)` |
-| `combatEnd` | pós | não | todos | `(combat)` |
-| `preRoll` | pré | sim | servidor | `(context: RollContext)` |
-| `postRoll` | pós | não | autor + destinatários | `(result, context)` |
-| `applyEffect` | derivação | não | local (prepareData) | `(actor, rule, change)` |
-| `renderSheet` | pós-render | não | local (cliente) | `(app, element, ctx)` |
-| `renderChatMessage` | pós-render | não | local (cliente) | `(message, element)` |
+| Hook                | Fase       | Cancelável    | Onde dispara          | Payload                         |
+| ------------------- | ---------- | ------------- | --------------------- | ------------------------------- |
+| `preCreate<Type>`   | pré        | sim (`false`) | servidor (autor)      | `(doc, data, op, userId)`       |
+| `create<Type>`      | pós        | não           | todos os clientes     | `(doc, op, userId)`             |
+| `preUpdate<Type>`   | pré        | sim           | servidor (autor)      | `(doc, changes, op, userId)`    |
+| `update<Type>`      | pós        | não           | todos os clientes     | `(doc, changes, op, userId)`    |
+| `preDelete<Type>`   | pré        | sim           | servidor (autor)      | `(doc, op, userId)`             |
+| `delete<Type>`      | pós        | não           | todos os clientes     | `(doc, op, userId)`             |
+| `combatStart`       | pós        | não           | todos                 | `(combat)`                      |
+| `roundStart`        | pós        | não           | todos                 | `(combat, round)`               |
+| `roundEnd`          | pós        | não           | todos                 | `(combat, round)`               |
+| `turnStart`         | pós        | não           | todos                 | `(combat, combatant, previous)` |
+| `turnEnd`           | pós        | não           | todos                 | `(combat, combatant)`           |
+| `combatEnd`         | pós        | não           | todos                 | `(combat)`                      |
+| `preRoll`           | pré        | sim           | servidor              | `(context: RollContext)`        |
+| `postRoll`          | pós        | não           | autor + destinatários | `(result, context)`             |
+| `applyEffect`       | derivação  | não           | local (prepareData)   | `(actor, rule, change)`         |
+| `renderSheet`       | pós-render | não           | local (cliente)       | `(app, element, ctx)`           |
+| `renderChatMessage` | pós-render | não           | local (cliente)       | `(message, element)`            |
 
 Hooks `pre*` de ciclo de vida são síncronos no servidor (autoridade/anti-cheat —
 `ver 04-`, `ver 21-`); `preRoll`/`postRoll` definidos por `08-motor-de-rolagens.md`.
@@ -910,4 +944,4 @@ Hooks `pre*` de ciclo de vida são síncronos no servidor (autoridade/anti-cheat
   acoplamento ao Foundry (§10), relação SF2e (§11).
 - `docs/research/12b-etmos-fontes-locais.md` — data model do Etmos (§6), Grimório/
   partículas (§9), fadiga/estresse (§12), o que precisa de automação (§19).
-- Specs irmãs citadas na seção *Dependências*.
+- Specs irmãs citadas na seção _Dependências_.

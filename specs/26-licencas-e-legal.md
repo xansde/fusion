@@ -45,7 +45,7 @@ cobrindo quatro eixos:
    da engine, inventário de licenças das dependências, arquivo `NOTICE`,
    riscos legais residuais com mitigação, e um **checklist legal por release**.
 
-Esta spec **não** redefine *como* os compendiums são importados nem *como* os
+Esta spec **não** redefine _como_ os compendiums são importados nem _como_ os
 assets são gerenciados — ela define apenas as **regras legais** que aqueles
 subsistemas (`16-`, `20-`) devem obedecer.
 
@@ -72,7 +72,7 @@ subsistemas (`16-`, `20-`) devem obedecer.
   gatilho que torna a distribuição ilegal sem autorização, plano de contato com a
   Balde Galáctico, e tratamento dos símbolos rúnicos das Partículas.
 - A **recomendação de licença do Fusion** (privado inicialmente; MIT para a engine
-  *sem* os packs de dados, se aberto) com racional e alternativas rejeitadas.
+  _sem_ os packs de dados, se aberto) com racional e alternativas rejeitadas.
 - O **inventário de licenças de dependências** (predominância MIT; verificação de
   exceções) e a especificação do arquivo `NOTICE` / atribuições embutidas.
 - A **matriz de risco residual** com mitigações e o **checklist legal por release**.
@@ -81,12 +81,12 @@ subsistemas (`16-`, `20-`) devem obedecer.
 
 - O **pipeline técnico** de extração/transformação de compendiums (como rodar o
   `foundryvtt-cli`, mapear rule elements, gerar packs) — `ver 16-compendiums-e-importacao.md`.
-  Esta spec define apenas *o que é permitido* importar e *quais notices* anexar.
+  Esta spec define apenas _o que é permitido_ importar e _quais notices_ anexar.
 - A **mecânica de assets** (placeholders, otimização de imagem, paths) —
-  `ver 20-assets-e-midia.md`. Esta spec define apenas a *política de licença* de
+  `ver 20-assets-e-midia.md`. Esta spec define apenas a _política de licença_ de
   cada asset.
 - O **conteúdo mecânico** dos sistemas (regras de PF2e/SF2e/Etmos) — `ver 17-`,
-  `18-`, `19-`. Esta spec governa a *legalidade* de implementá-los, não as regras.
+  `18-`, `19-`. Esta spec governa a _legalidade_ de implementá-los, não as regras.
 - **Privacidade / proteção de dados pessoais** (LGPD/GDPR) e termos de uso para
   jogadores — `ver 21-seguranca.md` e `ver 24-operacao-backups-telemetria.md`
   (a telemetria, se houver, é regida lá). Aqui só se referencia o cruzamento.
@@ -97,7 +97,7 @@ subsistemas (`16-`, `20-`) devem obedecer.
 
 - **Clean-room (limpa de quarto / Chinese wall):** prática de implementar
   funcionalidade equivalente a um produto sem copiar seu código proprietário,
-  separando quem *observa/especifica* de quem *implementa*. Legalmente robusta
+  separando quem _observa/especifica_ de quem _implementa_. Legalmente robusta
   quando a equipe de implementação trabalha só a partir de especificações.
 - **EULA / ToS do Foundry:** licença proprietária do software Foundry VTT
   (Foundry Gaming LLC). Proíbe engenharia reversa e redistribuição **do software
@@ -144,9 +144,9 @@ sistema `pf2e`**, mas **jamais** descompila, desassembla ou copia o código
 proprietário do **Foundry core** (a plataforma vendida pela Foundry Gaming LLC).
 
 - **Alternativas rejeitadas:**
-  - *Fork/adaptação do Foundry core* — impossível: software proprietário,
+  - _Fork/adaptação do Foundry core_ — impossível: software proprietário,
     redistribuição e engenharia reversa proibidas pela EULA.
-  - *Clean-room "frouxa" (qualquer membro lê o core e implementa)* — rejeitada
+  - _Clean-room "frouxa" (qualquer membro lê o core e implementa)_ — rejeitada
     porque um membro que adquiriu licença do Foundry está vinculado à EULA; deixá-lo
     implementar a partir do código observado contamina o produto.
 - **Racional:** o desenvolvimento clean-room é prática legal estabelecida; ideias,
@@ -163,9 +163,9 @@ instalador e materiais de marketing **não** referenciam "Pathfinder", "Starfind
 desenvolvimento, o Foundry pode ser citado como inspiração.
 
 - **Alternativas rejeitadas:**
-  - *"Fusion VTT for Pathfinder" como nome oficial* — rejeitada: pode conotar
+  - _"Fusion VTT for Pathfinder" como nome oficial_ — rejeitada: pode conotar
     endorsement/parceria inexistente com a Paizo.
-  - *Usar "Foundry" descritivamente no produto* — evitado por confusão de marca,
+  - _Usar "Foundry" descritivamente no produto_ — evitado por confusão de marca,
     embora a referência textual ("alternativa ao Foundry VTT") seja tecnicamente
     permitida; mantemos a barra alta por segurança.
 - **Racional:** marcas são Reserved Material sob todas as licenças Paizo, e a
@@ -182,13 +182,13 @@ inclua esse conteúdo embute o **ORC Notice + Attribution Notice + Reserved Mate
 Notice** (textos em `## Modelo de dados` / `## API e eventos`).
 
 - **Alternativas rejeitadas:**
-  - *Misturar conteúdo OGL legado e ORC* — rejeitada: a OGL é tecnicamente
+  - _Misturar conteúdo OGL legado e ORC_ — rejeitada: a OGL é tecnicamente
     revogável (controverso) e exige rastrear material legado em separado
     (`pf2e-legacy-content`); o remaster já é 100% ORC e irrevogável.
-  - *Operar sob Community Use Policy* — rejeitada: CUP **não cobre apps/VTTs** e
+  - _Operar sob Community Use Policy_ — rejeitada: CUP **não cobre apps/VTTs** e
     proíbe paywall; risco jurídico pela ambiguidade. A FAQ da Paizo recomenda
     contato direto para casos não cobertos.
-  - *Operar sob Fan Content Policy* — rejeitada e **expressamente vedada**: a Fan
+  - _Operar sob Fan Content Policy_ — rejeitada e **expressamente vedada**: a Fan
     Content Policy exclui explicitamente "rules compendiums" e "character
     generators" — exatamente o que o Fusion implementa
     (`docs/research/14-licencas-legal.md` §4.2). O Fusion **não opera** sob Fan
@@ -203,18 +203,18 @@ Notice** (textos em `## Modelo de dados` / `## API e eventos`).
 
 O repositório é tratado em três camadas legais independentes:
 
-| Camada | Licença | Tratamento no Fusion |
-|---|---|---|
-| Código TS/JS/HTML/CSS | Apache-2.0 | **Referência conceitual + atribuição**; reimplementar (clean-room PF2e), nunca copiar palavra-por-palavra |
-| JSON de mecânicas (stat blocks, valores, traits) | ORC (remaster) / OGL (legado) | **Importável** com filtragem (só campos mecânicos) + notices ORC |
-| Arte, ícones, tokens, mapas | Paizo (exclusiva ao Foundry Gaming LLC) | **PROIBIDO** — substituir por placeholders livres |
-| Lore / texto de setting | Reserved Material Paizo | **Descartar** na importação |
+| Camada                                           | Licença                                 | Tratamento no Fusion                                                                                      |
+| ------------------------------------------------ | --------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Código TS/JS/HTML/CSS                            | Apache-2.0                              | **Referência conceitual + atribuição**; reimplementar (clean-room PF2e), nunca copiar palavra-por-palavra |
+| JSON de mecânicas (stat blocks, valores, traits) | ORC (remaster) / OGL (legado)           | **Importável** com filtragem (só campos mecânicos) + notices ORC                                          |
+| Arte, ícones, tokens, mapas                      | Paizo (exclusiva ao Foundry Gaming LLC) | **PROIBIDO** — substituir por placeholders livres                                                         |
+| Lore / texto de setting                          | Reserved Material Paizo                 | **Descartar** na importação                                                                               |
 
 - **Alternativas rejeitadas:**
-  - *Importar arte da Paizo "só para uso privado"* — rejeitada: a arte foi cedida
+  - _Importar arte da Paizo "só para uso privado"_ — rejeitada: a arte foi cedida
     **exclusivamente** ao ecossistema Foundry Gaming LLC; o Fusion não tem esse
     direito nem em uso privado de distribuição de packs.
-  - *Importar o JSON inteiro (mecânica + lore)* — rejeitada: lore é Reserved
+  - _Importar o JSON inteiro (mecânica + lore)_ — rejeitada: lore é Reserved
     Material; importar tudo cria risco médio. Filtra-se para campos mecânicos.
 - **Racional:** `docs/research/14-licencas-legal.md` §5 e
   `docs/research/10-pf2e-sistema-internals.md` §2; o metadado `publication.license`
@@ -229,9 +229,9 @@ por item, ou arte comissionada/CC0 própria). A licença de cada asset de
 substituição é registrada por arquivo.
 
 - **Alternativas rejeitadas:**
-  - *Deixar paths quebrados (sem arte)* — rejeitada por UX; mas é o **fallback
+  - _Deixar paths quebrados (sem arte)_ — rejeitada por UX; mas é o **fallback
     seguro** se não houver placeholder.
-  - *Arte gerada por IA* — não adotada como padrão por ambiguidade legal em 2026
+  - _Arte gerada por IA_ — não adotada como padrão por ambiguidade legal em 2026
     (verificar licença da ferramenta caso a caso) — ver Questões em aberto.
 - **Racional:** a arte Paizo é a "linha vermelha" mais crítica
   (`docs/research/14-licencas-legal.md` §5.4, §8.3). Game-icons.net exige
@@ -254,9 +254,9 @@ O SRD do ETMOS (Balde Galáctico, autoria Rafa Reis) **não declara licença abe
   (Rafa Reis; direção, edição, arte — `docs/research/12b-etmos-fontes-locais.md` §1).
 
 - **Alternativas rejeitadas:**
-  - *Tratar o SRD como aberto por ser "SRD"* — rejeitada: "SRD" no nome não implica
+  - _Tratar o SRD como aberto por ser "SRD"_ — rejeitada: "SRD" no nome não implica
     licença aberta; sem texto de licença, a presunção é direitos reservados.
-  - *Distribuir Etmos publicamente "creditando a editora"* — rejeitada: crédito não
+  - _Distribuir Etmos publicamente "creditando a editora"_ — rejeitada: crédito não
     substitui autorização para redistribuir obra protegida.
 - **Racional:** `docs/research/12b-etmos-fontes-locais.md` §0 recomenda
   explicitamente negociar permissão ou verificar licença em repositório público
@@ -269,7 +269,7 @@ autorização de distribuição do `systems/etmos`. Até resposta favorável por
 o pacote Etmos permanece marcado como **não-distribuível** (privado). A spec mantém
 o item de contato como **tarefa rastreável**, não como bloqueio do uso privado.
 
-- **Alternativa rejeitada:** *adiar indefinidamente o contato e só usar em privado* —
+- **Alternativa rejeitada:** _adiar indefinidamente o contato e só usar em privado_ —
   aceitável tecnicamente, mas registramos o plano para destravar distribuição futura.
 - **Racional:** abrir o canal cedo maximiza a chance de uma licença explícita
   (até CC ou permissão escrita), que removeria o gate.
@@ -284,10 +284,10 @@ licenças: ORC/OGL para PF2e/SF2e; direitos reservados para Etmos). Os packs **n
 são redistribuídos sob MIT.
 
 - **Alternativas rejeitadas:**
-  - *GPL/AGPL para a engine* — rejeitada: copyleft forte atritaria com a intenção
+  - _GPL/AGPL para a engine_ — rejeitada: copyleft forte atritaria com a intenção
     de manter flexibilidade e com a separação engine/dados; sem benefício claro
     para um projeto majoritariamente self-hosted de um grupo.
-  - *Abrir já no MVP* — rejeitada: distribuição pública eleva risco antes de termos
+  - _Abrir já no MVP_ — rejeitada: distribuição pública eleva risco antes de termos
     a separação de conteúdo e os notices totalmente maduros.
 - **Racional:** MIT é permissiva, compatível com o ecossistema (dependências
   majoritariamente MIT), e a **separação física engine/dados** (decisão
@@ -302,7 +302,7 @@ Os **dados** licenciados (ORC/OGL) e os de direitos reservados (Etmos) residem e
 carrega **metadados de licença** próprios. Isso torna evidente que o código
 proprietário do Fusion não está sob ORC e que cada corpo de conteúdo tem seu regime.
 
-- **Alternativa rejeitada:** *embutir dados no código (hardcode de stat blocks)* —
+- **Alternativa rejeitada:** _embutir dados no código (hardcode de stat blocks)_ —
   rejeitada: borra a fronteira legal código/conteúdo e dificulta o gate de
   distribuição do Etmos.
 - **Racional:** decisão arquitetural com implicação legal direta
@@ -317,7 +317,7 @@ de dependências que os exigem (Apache-2.0), atribuições de assets CC-BY
 (Game-icons.net), e os notices ORC. O `NOTICE` é gerado/validado no pipeline de
 release.
 
-- **Alternativa rejeitada:** *confiar que "tudo é MIT"* — rejeitada: exceções
+- **Alternativa rejeitada:** _confiar que "tudo é MIT"_ — rejeitada: exceções
   (Apache-2.0, CC-BY) têm obrigações de atribuição que, se omitidas, criam não
   conformidade.
 - **Racional:** `docs/research/14-licencas-legal.md` §7 e §10 listam as
@@ -483,8 +483,8 @@ type LicenseId =
   | "CC0-1.0"
   | "CC-BY-3.0"
   | "CC-BY-4.0"
-  | "ORC"          // Open RPG Creative License (conteúdo, não SPDX oficial)
-  | "OGL-1.0a"     // Open Game License (conteúdo)
+  | "ORC" // Open RPG Creative License (conteúdo, não SPDX oficial)
+  | "OGL-1.0a" // Open Game License (conteúdo)
   | "all-rights-reserved"; // ex.: Etmos / Balde Galáctico
 
 /** Tipo de build — controla os gates legais. */
@@ -510,9 +510,9 @@ interface PackLicenseMeta {
 interface AssetLicenseMeta {
   path: string;
   license: LicenseId;
-  source: string;            // "game-icons.net", "kenney.nl", "commissioned", ...
+  source: string; // "game-icons.net", "kenney.nl", "commissioned", ...
   requiresAttribution: boolean;
-  attributionText?: string;  // exigido se requiresAttribution
+  attributionText?: string; // exigido se requiresAttribution
   /** Marca arte que NUNCA pode entrar (Paizo/Foundry) — usado pela auditoria. */
   forbiddenOrigin?: "paizo" | "foundry" | "etmos-runes";
 }
@@ -522,19 +522,19 @@ interface DependencyLicense {
   name: string;
   version: string;
   license: LicenseId;
-  permissive: boolean;       // false → revisão humana (RNF-LEG-001)
-  noticeRequired: boolean;   // Apache-2.0/CC-BY → true
+  permissive: boolean; // false → revisão humana (RNF-LEG-001)
+  noticeRequired: boolean; // Apache-2.0/CC-BY → true
 }
 
 /** Resultado do checklist legal de um release. */
 interface ReleaseLegalAudit {
   buildKind: BuildKind;
-  brandScanPassed: boolean;      // REQ-LEG-003
-  orcNoticePresent: boolean;     // REQ-LEG-005
-  artAuditPassed: boolean;       // REQ-LEG-014
-  etmosGateRespected: boolean;   // REQ-LEG-016
-  noticeFileComplete: boolean;   // REQ-LEG-023
-  depInventoryClean: boolean;    // REQ-LEG-022
+  brandScanPassed: boolean; // REQ-LEG-003
+  orcNoticePresent: boolean; // REQ-LEG-005
+  artAuditPassed: boolean; // REQ-LEG-014
+  etmosGateRespected: boolean; // REQ-LEG-016
+  noticeFileComplete: boolean; // REQ-LEG-023
+  depInventoryClean: boolean; // REQ-LEG-022
   timestamp: string;
   signedOffBy: string;
 }
@@ -684,6 +684,6 @@ Specs irmãs com relação direta:
 - Open Game License 1.0a — Wizards of the Coast.
 - Paizo Licenses (Fan Content, Community Use, Compatibility, Commercial) — paizo.com/licenses.
 - Apache License 2.0 — apache.org/licenses/LICENSE-2.0.
-- Foundry VTT — Software License, Terms of Service, Brand Guidelines (foundryvtt.com/article/*).
+- Foundry VTT — Software License, Terms of Service, Brand Guidelines (foundryvtt.com/article/\*).
 - Game-icons.net (CC-BY-3.0), Kenney.nl (CC0), OpenGameArt.org — fontes de assets livres.
 - Etmos RPG — Editora Balde Galáctico (baldegalactico.com.br/jogo/etmos).

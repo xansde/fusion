@@ -34,15 +34,15 @@ Além disso existe o **HeadsUpDisplay** (`canvas.hud`), que é uma `<div>` HTML 
 
 ### Detalhamento dos grupos
 
-| Grupo | Descrição |
-|---|---|
-| `HiddenCanvasGroup` | Container transformado mas nunca renderizado; usado para cálculos de posição/oclusão |
-| `RenderedCanvasGroup` | Raiz de tudo que aparece na tela; agrega Environment + Interface |
-| `PrimaryCanvasGroup` | Objetos físicos da cena (fundo, tiles, tokens, drawings). É renderizado como um `SpriteMesh` via `CachedContainer` para otimização |
-| `EffectsCanvasGroup` | Modifica a aparência do Primary: iluminação, vision, animações de escuridão |
-| `VisibilityCanvasGroup` | Consolida múltiplas render textures para o fog of war |
-| `InterfaceCanvasGroup` | Elementos de UI interativos que existem no espaço do canvas mas não são objetos físicos da cena |
-| `OverlayCanvasGroup` | Elementos que permanecem fixos e não seguem o transform do stage (ex.: ruler, marcadores de combate) |
+| Grupo                   | Descrição                                                                                                                          |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `HiddenCanvasGroup`     | Container transformado mas nunca renderizado; usado para cálculos de posição/oclusão                                               |
+| `RenderedCanvasGroup`   | Raiz de tudo que aparece na tela; agrega Environment + Interface                                                                   |
+| `PrimaryCanvasGroup`    | Objetos físicos da cena (fundo, tiles, tokens, drawings). É renderizado como um `SpriteMesh` via `CachedContainer` para otimização |
+| `EffectsCanvasGroup`    | Modifica a aparência do Primary: iluminação, vision, animações de escuridão                                                        |
+| `VisibilityCanvasGroup` | Consolida múltiplas render textures para o fog of war                                                                              |
+| `InterfaceCanvasGroup`  | Elementos de UI interativos que existem no espaço do canvas mas não são objetos físicos da cena                                    |
+| `OverlayCanvasGroup`    | Elementos que permanecem fixos e não seguem o transform do stage (ex.: ruler, marcadores de combate)                               |
 
 ---
 
@@ -56,23 +56,23 @@ Dentro de cada grupo existem **camadas** (`CanvasLayer`). As classes base são:
 
 ### Lista completa de camadas (v12/v13)
 
-| Camada | Classe | Grupo | Descrição |
-|---|---|---|---|
-| `background` | BackgroundLayer (implícito no Primary) | Primary | Imagem de fundo da cena |
-| `tiles` | `TilesLayer` | Primary | Tiles de underfoot e overhead |
-| `drawings` | `DrawingsLayer` | Primary | Formas, texto e freehand desenhados pelo GM |
-| `tokens` | `TokenLayer` | Primary | Tokens de atores, personagens e monstros |
-| `notes` | `NotesLayer` | Interface | Pinos de mapa linkados a Journal Entries |
-| `lighting` | `LightingLayer` | Effects | Fontes de luz e escuridão |
-| `sounds` | `SoundsLayer` | Interface (GM only) | Emissores de som ambiente |
-| `templates` | `TemplateLayer` (MeasuredTemplate) | Interface | Templates de área de efeito |
-| `walls` | `WallsLayer` | Interface (GM only) | Paredes que bloqueiam visão/movimento/som |
-| `regions` | `RegionLayer` | Interface | Regiões de cena com behaviors (v12+) |
-| `grid` | `GridLayer` | Interface | Renderização visual da grade |
-| `controls` | `ControlsLayer` | Overlay | Controles de seleção, ruler, cursor tools |
-| `weather` | `WeatherEffects` | Effects | Partículas e shaders de clima |
-| Occlusion masks | `CanvasOcclusionMask`, `CanvasVisionMask` | Effects/Visibility | Máscaras de oclusão e visão (render textures) |
-| Coloration/Illumination | `CanvasColorationEffects`, `CanvasIlluminationEffects`, `CanvasDarknessEffects` | Effects | Layers de efeitos de cor/luz/trevas |
+| Camada                  | Classe                                                                          | Grupo               | Descrição                                     |
+| ----------------------- | ------------------------------------------------------------------------------- | ------------------- | --------------------------------------------- |
+| `background`            | BackgroundLayer (implícito no Primary)                                          | Primary             | Imagem de fundo da cena                       |
+| `tiles`                 | `TilesLayer`                                                                    | Primary             | Tiles de underfoot e overhead                 |
+| `drawings`              | `DrawingsLayer`                                                                 | Primary             | Formas, texto e freehand desenhados pelo GM   |
+| `tokens`                | `TokenLayer`                                                                    | Primary             | Tokens de atores, personagens e monstros      |
+| `notes`                 | `NotesLayer`                                                                    | Interface           | Pinos de mapa linkados a Journal Entries      |
+| `lighting`              | `LightingLayer`                                                                 | Effects             | Fontes de luz e escuridão                     |
+| `sounds`                | `SoundsLayer`                                                                   | Interface (GM only) | Emissores de som ambiente                     |
+| `templates`             | `TemplateLayer` (MeasuredTemplate)                                              | Interface           | Templates de área de efeito                   |
+| `walls`                 | `WallsLayer`                                                                    | Interface (GM only) | Paredes que bloqueiam visão/movimento/som     |
+| `regions`               | `RegionLayer`                                                                   | Interface           | Regiões de cena com behaviors (v12+)          |
+| `grid`                  | `GridLayer`                                                                     | Interface           | Renderização visual da grade                  |
+| `controls`              | `ControlsLayer`                                                                 | Overlay             | Controles de seleção, ruler, cursor tools     |
+| `weather`               | `WeatherEffects`                                                                | Effects             | Partículas e shaders de clima                 |
+| Occlusion masks         | `CanvasOcclusionMask`, `CanvasVisionMask`                                       | Effects/Visibility  | Máscaras de oclusão e visão (render textures) |
+| Coloration/Illumination | `CanvasColorationEffects`, `CanvasIlluminationEffects`, `CanvasDarknessEffects` | Effects             | Layers de efeitos de cor/luz/trevas           |
 
 ### Ordem de renderização visual (bottom → top, perspectiva de profundidade)
 
@@ -117,17 +117,17 @@ A classe `PerceptionManager` (acessível via `canvas.perception`) gerencia o pip
 
 Flags principais e seus efeitos em cascata:
 
-| Flag | Efeito |
-|---|---|
-| `initializeLighting` | Reinicializa todo o sistema de luz |
-| `initializeLightSources` | Reconfigura fontes de luz individuais |
-| `refreshLighting` | Recalcula iluminação no frame atual |
-| `initializeVision` | Reinicializa o estado de visão |
-| `refreshVision` / `refreshVisionSources` | Recalcula polígonos de visão |
-| `refreshEdges` | Recalcula arestas de colisão |
-| `refreshOcclusion` | Atualiza estado de oclusão de tiles overhead |
-| `initializeSounds` / `refreshSounds` | Recalcula zonas de som ambiente |
-| `refreshPrimary` | Força re-render do Primary group |
+| Flag                                     | Efeito                                       |
+| ---------------------------------------- | -------------------------------------------- |
+| `initializeLighting`                     | Reinicializa todo o sistema de luz           |
+| `initializeLightSources`                 | Reconfigura fontes de luz individuais        |
+| `refreshLighting`                        | Recalcula iluminação no frame atual          |
+| `initializeVision`                       | Reinicializa o estado de visão               |
+| `refreshVision` / `refreshVisionSources` | Recalcula polígonos de visão                 |
+| `refreshEdges`                           | Recalcula arestas de colisão                 |
+| `refreshOcclusion`                       | Atualiza estado de oclusão de tiles overhead |
+| `initializeSounds` / `refreshSounds`     | Recalcula zonas de som ambiente              |
+| `refreshPrimary`                         | Força re-render do Primary group             |
 
 Cada flag pode ter um array `propagate` que aciona outras flags automaticamente.
 
@@ -142,30 +142,31 @@ O Foundry VTT suporta três tipos de grade, todos herdando da classe `BaseGrid`:
 - Coordenadas em offset `(i, j)`.
 - Distância de diagonal configurável via `CONST.GRID_DIAGONALS`:
 
-| Constante | Valor | Regra |
-|---|---|---|
-| `EQUIDISTANT` | 0 | Diagonal = 1 (igual a cardinal; regra D&D 5e) |
-| `EXACT` | 1 | Diagonal = √2 (~1.414; geometria pura) |
-| `APPROXIMATE` | 2 | Diagonal = 1.5 |
-| `RECTILINEAR` | 3 | Diagonal = 2 (só movimentos cardinais) |
-| `ALTERNATING_1` | 4 | Alterna 1-2-1-2 (começa em 1; PF2e 5-10-5) |
-| `ALTERNATING_2` | 5 | Alterna 2-1-2-1 (começa em 2) |
-| `ILLEGAL` | 6 | Movimento diagonal proibido |
+| Constante       | Valor | Regra                                         |
+| --------------- | ----- | --------------------------------------------- |
+| `EQUIDISTANT`   | 0     | Diagonal = 1 (igual a cardinal; regra D&D 5e) |
+| `EXACT`         | 1     | Diagonal = √2 (~1.414; geometria pura)        |
+| `APPROXIMATE`   | 2     | Diagonal = 1.5                                |
+| `RECTILINEAR`   | 3     | Diagonal = 2 (só movimentos cardinais)        |
+| `ALTERNATING_1` | 4     | Alterna 1-2-1-2 (começa em 1; PF2e 5-10-5)    |
+| `ALTERNATING_2` | 5     | Alterna 2-1-2-1 (começa em 2)                 |
+| `ILLEGAL`       | 6     | Movimento diagonal proibido                   |
 
 ### 5.2 Grade Hexagonal (HexagonalGrid)
 
 Quatro variantes suportadas, combinando orientação e offset:
 
-| Tipo | Forma do hexágono | Offset |
-|---|---|---|
-| Hexagonal Columns Odd | Flat-top | Colunas ímpares deslocadas |
-| Hexagonal Columns Even | Flat-top | Colunas pares deslocadas |
-| Hexagonal Rows Odd | Pointy-top | Linhas ímpares deslocadas |
-| Hexagonal Rows Even | Pointy-top | Linhas pares deslocadas |
+| Tipo                   | Forma do hexágono | Offset                     |
+| ---------------------- | ----------------- | -------------------------- |
+| Hexagonal Columns Odd  | Flat-top          | Colunas ímpares deslocadas |
+| Hexagonal Columns Even | Flat-top          | Colunas pares deslocadas   |
+| Hexagonal Rows Odd     | Pointy-top        | Linhas ímpares deslocadas  |
+| Hexagonal Rows Even    | Pointy-top        | Linhas pares deslocadas    |
 
 **Tamanho do hexágono:** o raio de centro a vértice é igual a `gridSize / √3`.
 
 **Sistemas de coordenadas** da `HexagonalGrid`:
+
 - **Cube coordinates** `(q, r, s)` — convenção padrão de hexágonos; `q + r + s = 0`.
 - **Offset coordinates** `(i, j)` — linha/coluna da grade; mais intuitivo para armazenamento.
 - **Point coordinates** `(x, y)` — pixels no canvas.
@@ -173,6 +174,7 @@ Quatro variantes suportadas, combinando orientação e offset:
 Métodos de conversão: `cubeToOffset()`, `offsetToCube()`, `cubeToPoint()`, `pointToCube()`.
 
 Distância entre dois hexágonos em cube coordinates:
+
 ```
 distance = max(|Δq|, |Δr|, |Δs|)
 ```
@@ -204,6 +206,7 @@ O Foundry oferece três mecanismos de medição:
 ### 6.2 Token Drag Measurement (v13+)
 
 Introduzido como feature principal da v13 (votada pela comunidade). Difere do ruler simples porque:
+
 - Mede **custo de movimento** (não apenas distância), respeitando multiplicadores de Scene Regions com o behavior "Modify Movement Cost".
 - Ao arrastar, o ruler aparece automaticamente mostrando o custo acumulado.
 - Waypoints com `CTRL + Click` (ou tecla `F`); elevação com `E`/`Q` ou `Numpad+`/`Numpad-`.
@@ -214,12 +217,12 @@ Introduzido como feature principal da v13 (votada pela comunidade). Difere do ru
 
 Quatro formas de template:
 
-| Forma | Comportamento |
-|---|---|
-| Circle | Raio a partir da origem; highlight de todas as células na área |
-| Cone | Setor angular (1°–360°; padrão ~53°); configurável como ponta arredondada ou plana |
-| Rectangle | Canto superior esquerdo na origem |
-| Ray | Linha com largura configurável |
+| Forma     | Comportamento                                                                      |
+| --------- | ---------------------------------------------------------------------------------- |
+| Circle    | Raio a partir da origem; highlight de todas as células na área                     |
+| Cone      | Setor angular (1°–360°; padrão ~53°); configurável como ponta arredondada ou plana |
+| Rectangle | Canto superior esquerdo na origem                                                  |
+| Ray       | Linha com largura configurável                                                     |
 
 Configuração via duplo-clique: posição, direção, ângulo, largura, distância, cor, textura.
 Rotação com `Shift + Scroll`.
@@ -232,23 +235,23 @@ Templates fazem snap automático a células e interseções de grade.
 
 ### 7.1 Atributos Principais
 
-| Atributo | Tipo | Descrição |
-|---|---|---|
-| `x`, `y` | pixels | Posição do canto superior esquerdo no canvas |
-| `width`, `height` | grid squares | Espaço ocupado (1 = 1 célula; >1 para Large/Huge/Gargantuan) |
-| `scale` | float | Escala visual da artwork (independente do footprint) |
-| `rotation` | degrees | 0° = sul (convenção Foundry) |
-| `elevation` | grid units | Altitude; negativo = subterrâneo/burrowing |
-| `disposition` | enum | Friendly (teal), Neutral (yellow), Hostile (red), Secret |
-| `alpha` | 0–1 | Opacidade |
-| `mirrorX`, `mirrorY` | bool | Espelhamento horizontal/vertical da artwork |
-| `tint` | hex | Cor multiplicativa aplicada à textura |
-| `displayBars` | enum | Visibilidade das resource bars (nunca/owner/hover/sempre) |
-| `bar1`, `bar2` | attribute path | Resource bars vinculadas a atributos do ator |
-| `sight` | config object | Configuração de visão (modo, range, angle, attenuation…) |
-| `detectionModes` | array | Modos de detecção adicionais (tremorsense, see invisible…) |
-| `movementAction` | enum | Tipo de movimento atual (walk/fly/swim/etc.) |
-| `actorLink` | bool | Se true, mudanças no token refletem no Actor; se false, instância independente |
+| Atributo             | Tipo           | Descrição                                                                      |
+| -------------------- | -------------- | ------------------------------------------------------------------------------ |
+| `x`, `y`             | pixels         | Posição do canto superior esquerdo no canvas                                   |
+| `width`, `height`    | grid squares   | Espaço ocupado (1 = 1 célula; >1 para Large/Huge/Gargantuan)                   |
+| `scale`              | float          | Escala visual da artwork (independente do footprint)                           |
+| `rotation`           | degrees        | 0° = sul (convenção Foundry)                                                   |
+| `elevation`          | grid units     | Altitude; negativo = subterrâneo/burrowing                                     |
+| `disposition`        | enum           | Friendly (teal), Neutral (yellow), Hostile (red), Secret                       |
+| `alpha`              | 0–1            | Opacidade                                                                      |
+| `mirrorX`, `mirrorY` | bool           | Espelhamento horizontal/vertical da artwork                                    |
+| `tint`               | hex            | Cor multiplicativa aplicada à textura                                          |
+| `displayBars`        | enum           | Visibilidade das resource bars (nunca/owner/hover/sempre)                      |
+| `bar1`, `bar2`       | attribute path | Resource bars vinculadas a atributos do ator                                   |
+| `sight`              | config object  | Configuração de visão (modo, range, angle, attenuation…)                       |
+| `detectionModes`     | array          | Modos de detecção adicionais (tremorsense, see invisible…)                     |
+| `movementAction`     | enum           | Tipo de movimento atual (walk/fly/swim/etc.)                                   |
+| `actorLink`          | bool           | Se true, mudanças no token refletem no Actor; se false, instância independente |
 
 ### 7.2 Tamanhos e Multi-Grid
 
@@ -257,6 +260,7 @@ O `width`/`height` do token define quantas células ele ocupa. A `scale` ajusta 
 ### 7.3 Visão e Detecção
 
 O token usa um sistema de **Vision Modes** (modos de visão):
+
 - **Basic Vision** — requer iluminação para ver.
 - **Darkvision** — vê em escuridão, imagem monocromática.
 - **Monochromatic** — visão sem cor.
@@ -277,6 +281,7 @@ Parâmetros de visão por token: `visionRange` (distância), `visionAngle` (camp
 ### 7.5 Dynamic Token Rings
 
 Framework opcional (v11+) que separa o token em três camadas renderizadas independentemente:
+
 1. **Subject** — artwork do personagem (⅔ central da textura).
 2. **Ring** — moldura circular (spritesheet com 4 tamanhos: 256, 512, 1024, 2048 px).
 3. **Background** — cor/textura de fundo sob o subject.
@@ -288,6 +293,7 @@ Recomendação de resolução para subject texture: 512 px (1×1), 1024 px (2×2
 ### 7.6 Movimento e Animação
 
 A classe `TokenAnimationOptions` controla:
+
 - `duration` — ms; automático por default baseado na distância.
 - `movementSpeed` — grid squares/segundo.
 - `easing` — função de easing (linear por default).
@@ -310,34 +316,35 @@ No v13, o drag measurement é o mecanismo principal: o token segue o caminho med
 ### 8.1 Underfoot vs. Overhead
 
 Tiles alternam entre dois layers lógicos pelo toggle "Is Overhead?":
+
 - **Underfoot (standard):** abaixo dos tokens; para chão, móveis, decoração.
 - **Overhead:** acima dos tokens; para telhados, copas de árvores.
 
 ### 8.2 Propriedades Configuráveis
 
-| Propriedade | Descrição |
-|---|---|
-| `x`, `y` | Posição (canto superior esquerdo) em pixels |
-| `width`, `height` | Dimensões em pixels no canvas |
-| `z` | Z-Index de ordenação entre tiles |
-| `rotation` | Rotação em graus |
-| `alpha` | Opacidade (0–1) |
-| `tint` | Cor multiplicativa (hex) |
-| `overhead` | Bool: é overhead? |
-| `roof` | Bool: é roof? (renderiza acima de fontes de luz; bloqueia clima) |
-| `occlusion.mode` | Modo de oclusão (ver abaixo) |
-| `occlusion.alpha` | Opacidade residual ao ser ocluído (0–1) |
-| `video.autoplay` | Auto-play para tiles de vídeo |
-| `video.loop` | Loop de vídeo |
-| `video.volume` | Volume do vídeo |
+| Propriedade       | Descrição                                                        |
+| ----------------- | ---------------------------------------------------------------- |
+| `x`, `y`          | Posição (canto superior esquerdo) em pixels                      |
+| `width`, `height` | Dimensões em pixels no canvas                                    |
+| `z`               | Z-Index de ordenação entre tiles                                 |
+| `rotation`        | Rotação em graus                                                 |
+| `alpha`           | Opacidade (0–1)                                                  |
+| `tint`            | Cor multiplicativa (hex)                                         |
+| `overhead`        | Bool: é overhead?                                                |
+| `roof`            | Bool: é roof? (renderiza acima de fontes de luz; bloqueia clima) |
+| `occlusion.mode`  | Modo de oclusão (ver abaixo)                                     |
+| `occlusion.alpha` | Opacidade residual ao ser ocluído (0–1)                          |
+| `video.autoplay`  | Auto-play para tiles de vídeo                                    |
+| `video.loop`      | Loop de vídeo                                                    |
+| `video.volume`    | Volume do vídeo                                                  |
 
 ### 8.3 Modos de Oclusão
 
-| Modo | Comportamento |
-|---|---|
-| `None` | Sem oclusão; tile sempre visível |
-| `Fade` | Todo o tile faz fade quando um token passa por baixo |
-| `Radial` | Revela a área ao redor do token (raio = tamanho do token) |
+| Modo     | Comportamento                                                                 |
+| -------- | ----------------------------------------------------------------------------- |
+| `None`   | Sem oclusão; tile sempre visível                                              |
+| `Fade`   | Todo o tile faz fade quando um token passa por baixo                          |
+| `Radial` | Revela a área ao redor do token (raio = tamanho do token)                     |
 | `Vision` | Revela baseado no polígono de visão do token (útil para telhados com janelas) |
 
 O algoritmo de detecção testa **9 pontos** do token: centro, 4 cantos e 4 direções cardeais. Tiles com áreas transparentes na artwork também são considerados na detecção (baseado na opacidade da textura, não no bounding box).
@@ -348,15 +355,16 @@ O algoritmo de detecção testa **9 pontos** do token: centro, 4 cantos e 4 dire
 
 A `DrawingsLayer` gerencia objetos de desenho vetorial no canvas. Tipos suportados:
 
-| Tipo | Descrição |
-|---|---|
-| Rectangle | Retângulo/quadrado |
-| Circle | Elipse/círculo |
-| Polygon | Polígono de linhas retas (click para vértices) |
-| Freehand | Linha livre com suavização configurável |
-| Text | Texto direto no canvas |
+| Tipo      | Descrição                                      |
+| --------- | ---------------------------------------------- |
+| Rectangle | Retângulo/quadrado                             |
+| Circle    | Elipse/círculo                                 |
+| Polygon   | Polígono de linhas retas (click para vértices) |
+| Freehand  | Linha livre com suavização configurável        |
+| Text      | Texto direto no canvas                         |
 
 **Propriedades principais:**
+
 - Posição `(x, y)`, dimensões, rotação.
 - Linha: largura (px), cor (hex), opacidade.
 - Preenchimento: None / Solid (cor + opacidade) / Pattern (textura).
@@ -375,6 +383,7 @@ A `NotesLayer` gerencia pinos de mapa linkados a **Journal Entries** ou páginas
 **Criação:** ferramentas da Notes Layer ou arrastar Journal Entries da barra lateral para o canvas.
 
 **Configuração:**
+
 - Link para Journal Entry ou página específica.
 - Label customizado (padrão: nome da Entry).
 - Posição `(x, y)` — editável via drag.
@@ -384,6 +393,7 @@ A `NotesLayer` gerencia pinos de mapa linkados a **Journal Entries** ou páginas
 - Âncora do texto relativa ao ícone.
 
 **Visibilidade:**
+
 - Por padrão, notas ficam visíveis apenas na Notes Layer; toggle "Exibir Notas" as mostra em todas as layers.
 - Respeitam Fog of War e visão de tokens, exceto se marcadas como "Globally Visible".
 - Permissões: Limited = vê posição e label mas não o conteúdo; None = invisível.
@@ -395,6 +405,7 @@ A `NotesLayer` gerencia pinos de mapa linkados a **Journal Entries** ou páginas
 ### 11.1 Fontes de Luz
 
 Configuração por fonte de luz:
+
 - Posição `(x, y)`.
 - Raio dim e raio bright (em grid units).
 - Ângulo de emissão (0°–360°) e rotação.
@@ -412,6 +423,7 @@ Configuração por fonte de luz:
 ### 11.2 Algoritmo de Visão (Radial Sweep)
 
 O engine de visão usa **Radial Sweep** (varredura radial) para calcular polígonos de linha de visão (LOS):
+
 - Emite raios a partir da posição do token/fonte de luz.
 - Elimina raios desnecessários com base nos endpoints de segmentos de parede.
 - Armazena o bounding box do polígono para detecção de colisão eficiente.
@@ -422,6 +434,7 @@ O engine de visão usa **Radial Sweep** (varredura radial) para calcular polígo
 ### 11.3 Detection Modes (v12+)
 
 O sistema foi redesenhado para separar diferentes tipos de detecção:
+
 - **Light Perception** (novo modo v12): Basic Sight deixou de incluir percepção de luz — agora é um modo separado.
 - Tokens têm no mínimo Basic Sight + Light Perception por padrão.
 - Cada detection mode produz um polígono próprio; a visão final é a união de todos.
@@ -436,19 +449,20 @@ Todas as atualizações de iluminação, visão, som e oclusão são batched pel
 
 ### 12.1 Tipos de Parede
 
-| Tipo | Cor | Bloqueia Movimento | Bloqueia Visão/Luz | Bloqueia Som |
-|---|---|---|---|---|
-| Normal | Amarela | Sim | Sim | Sim |
-| Terrain | Verde | Sim | Limitado (1 segmento) | Não |
-| Invisible | Ciano | Sim | Não | Não |
-| Ethereal | Magenta | Não | Sim | Não |
-| Window | Azul | Configurável | Proximity-based | Configurável |
-| Door | Variada | Quando fechada | Quando fechada | Quando fechada |
-| Secret Door | Variada | Quando fechada | Quando fechada | Quando fechada |
+| Tipo        | Cor     | Bloqueia Movimento | Bloqueia Visão/Luz    | Bloqueia Som   |
+| ----------- | ------- | ------------------ | --------------------- | -------------- |
+| Normal      | Amarela | Sim                | Sim                   | Sim            |
+| Terrain     | Verde   | Sim                | Limitado (1 segmento) | Não            |
+| Invisible   | Ciano   | Sim                | Não                   | Não            |
+| Ethereal    | Magenta | Não                | Sim                   | Não            |
+| Window      | Azul    | Configurável       | Proximity-based       | Configurável   |
+| Door        | Variada | Quando fechada     | Quando fechada        | Quando fechada |
+| Secret Door | Variada | Quando fechada     | Quando fechada        | Quando fechada |
 
 ### 12.2 Modos de Restrição (por tipo: Movement, Vision/Light, Sound)
 
 Cada parede tem configurações independentes para Movement, Vision, Light e Sound, com os modos:
+
 - **None** — não bloqueia.
 - **Normal** — bloqueia completamente.
 - **Limited** — bloqueia, mas permite visão/luz/som "limitados" (passa por um segmento Limited, não dois).
@@ -478,16 +492,19 @@ Shapes suportadas: retangular, elíptica, poligonal. Múltiplos shapes por regi�
 ### 13.2 Behaviors
 
 **Contínuos:**
+
 - Adjust Darkness Level — altera nível de darkness regional.
 - Suppress Weather — impede clima na área.
 - Modify Movement Cost — multiplica o custo de movimento (fator 0–5, incrementos de 0.25; crucial para terreno difícil no v13 Token Drag Measurement).
 
 **Por evento:**
+
 - Display Scrolling Text, Execute Macro, Execute Script, Pause Game, Teleport Token, Toggle Behavior.
 
 ### 13.3 Eventos de Token
 
 O sistema diferencia:
+
 - **Token Enters / Exits** — ao cruzar o limite da região.
 - **Token Moves In / Out / Within** — durante arrastar/teclas de movimento.
 - **Token Animates In / Out** — durante a animação de movimento.
@@ -544,26 +561,28 @@ PIXI não realiza culling automático por padrão (todos os objetos no container
 ### 15.2 Batching de Draw Calls
 
 Situação problemática sem otimização em uma cena com muitos tokens:
+
 - Aproximadamente 85 draw calls e 1000+ WebGL commands por frame.
 - Com otimização (caching de resource bars e status effects como texturas via `cacheAsBitmap`):
   - Reduz para ~36 draw calls e ~440 WebGL commands.
   - Ganho de ~8 ms por frame; melhora de ~55 FPS para 100+ FPS.
 
 **Técnicas:**
+
 - **`cacheAsBitmap`** no container de status effects do token: renderiza todos os ícones uma vez em textura, depois usa como sprite único.
 - **Paredes como sprites texturizados** em vez de `PIXI.Graphics`: permite batching de todos os segmentos de parede em 1 draw call.
 - **Resource bars cacheadas**: de 1 draw call por token para 1 a cada 8–16 tokens.
 
 ### 15.3 Texturas e Formatos
 
-| Formato | Uso recomendado |
-|---|---|
-| WebP | Melhor qualidade/tamanho; suporta transparência; padrão recomendado |
-| AVIF | Qualidade superior ao WebP; suporte em expansão |
-| PNG | Tiles pequenos; impraticável para mapas grandes |
-| JPEG | Fundos sem transparência; artefatos de compressão |
-| SVG | Ícones e gráficos vetoriais; requer width/height explícitos |
-| WebM / MP4 | Tiles de vídeo; ~30 fps; ~50 MB max para distribuição |
+| Formato    | Uso recomendado                                                     |
+| ---------- | ------------------------------------------------------------------- |
+| WebP       | Melhor qualidade/tamanho; suporta transparência; padrão recomendado |
+| AVIF       | Qualidade superior ao WebP; suporte em expansão                     |
+| PNG        | Tiles pequenos; impraticável para mapas grandes                     |
+| JPEG       | Fundos sem transparência; artefatos de compressão                   |
+| SVG        | Ícones e gráficos vetoriais; requer width/height explícitos         |
+| WebM / MP4 | Tiles de vídeo; ~30 fps; ~50 MB max para distribuição               |
 
 ### 15.4 Limites Práticos
 

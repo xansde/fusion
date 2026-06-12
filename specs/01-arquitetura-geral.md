@@ -50,17 +50,17 @@ Esta spec é o mapa que conecta todas as demais specs. Ela NÃO detalha o conte�
 
 ## Conceitos e terminologia
 
-| Termo | Definição no Fusion |
-|---|---|
-| **Engine** | O conjunto de pacotes que compõem o app Fusion em si (server + client + shared + system-api), versionado com um único semver. NÃO inclui os sistemas de jogo nem os mundos. |
-| **System (sistema de jogo)** | Pacote TypeScript/Svelte que define schemas de dados, fórmulas, automações e componentes de ficha para um RPG (PF2e, SF2e, Etmos). No MVP, sistemas são **compilados junto** com o app (sem carregamento dinâmico de terceiros). |
-| **World (mundo)** | Uma campanha: um arquivo `world.db` (SQLite) + uma pasta `assets/`, vinculado a exatamente um system e a uma versão de engine. É a unidade de dados do usuário. |
-| **Document** | Entidade persistida com schema tipado (Actor, Item, Scene, JournalEntry, ChatMessage, etc.). Definido em `02-modelo-de-dados.md`. |
-| **Servidor autoritativo** | O processo Node.js é o árbitro final: valida, persiste e só então faz broadcast. Não há autoridade no cliente; rolagens e mutações de Document passam pelo servidor. |
-| **GM host** | A máquina onde o servidor roda (geralmente a do GM). Os jogadores conectam pelo navegador via LAN/internet. |
-| **Boot sequence** | Sequência ordenada de fases de inicialização (do servidor ou do cliente) com pontos de extensão bem definidos. |
-| **`fusion.json`** | Arquivo de configuração do servidor, no diretório de dados do usuário (não dentro do world). |
-| **Diretório de dados (data dir)** | Raiz que contém config, worlds e assets globais. Separado do diretório de instalação do app. |
+| Termo                             | Definição no Fusion                                                                                                                                                                                                              |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Engine**                        | O conjunto de pacotes que compõem o app Fusion em si (server + client + shared + system-api), versionado com um único semver. NÃO inclui os sistemas de jogo nem os mundos.                                                      |
+| **System (sistema de jogo)**      | Pacote TypeScript/Svelte que define schemas de dados, fórmulas, automações e componentes de ficha para um RPG (PF2e, SF2e, Etmos). No MVP, sistemas são **compilados junto** com o app (sem carregamento dinâmico de terceiros). |
+| **World (mundo)**                 | Uma campanha: um arquivo `world.db` (SQLite) + uma pasta `assets/`, vinculado a exatamente um system e a uma versão de engine. É a unidade de dados do usuário.                                                                  |
+| **Document**                      | Entidade persistida com schema tipado (Actor, Item, Scene, JournalEntry, ChatMessage, etc.). Definido em `02-modelo-de-dados.md`.                                                                                                |
+| **Servidor autoritativo**         | O processo Node.js é o árbitro final: valida, persiste e só então faz broadcast. Não há autoridade no cliente; rolagens e mutações de Document passam pelo servidor.                                                             |
+| **GM host**                       | A máquina onde o servidor roda (geralmente a do GM). Os jogadores conectam pelo navegador via LAN/internet.                                                                                                                      |
+| **Boot sequence**                 | Sequência ordenada de fases de inicialização (do servidor ou do cliente) com pontos de extensão bem definidos.                                                                                                                   |
+| **`fusion.json`**                 | Arquivo de configuração do servidor, no diretório de dados do usuário (não dentro do world).                                                                                                                                     |
+| **Diretório de dados (data dir)** | Raiz que contém config, worlds e assets globais. Separado do diretório de instalação do app.                                                                                                                                     |
 
 ---
 
@@ -73,8 +73,8 @@ Cada decisão lista alternativas rejeitadas e o racional.
 O servidor Fusion é um **único processo Node.js** que instancia um `http.Server`, monta o Fastify para HTTP (estático, REST, auth) e anexa o `socket.io` ao mesmo servidor para tempo real.
 
 - **Alternativas rejeitadas:**
-  - *Dois processos separados (HTTP e WS)*: complica deploy local, exige IPC e duplica estado em memória. O caso de uso é single-GM local — não há ganho de escala que justifique.
-  - *Worker threads para o servidor de jogo*: adia o problema de event loop blocking sem resolver a fonte (ver D9 e Riscos). Mantém-se single-thread no MVP, com offload pontual para workers só onde medido como necessário (ex.: visibility polygon pesado — ver `07-visao-iluminacao-fog.md`).
+  - _Dois processos separados (HTTP e WS)_: complica deploy local, exige IPC e duplica estado em memória. O caso de uso é single-GM local — não há ganho de escala que justifique.
+  - _Worker threads para o servidor de jogo_: adia o problema de event loop blocking sem resolver a fonte (ver D9 e Riscos). Mantém-se single-thread no MVP, com offload pontual para workers só onde medido como necessário (ex.: visibility polygon pesado — ver `07-visao-iluminacao-fog.md`).
 - **Racional:** A pesquisa confirma que o Foundry roda como processo único Node.js servindo HTTP + WS simultaneamente (research 01 §2.1, research 06 §1). Um processo único compartilha o estado do world em memória sem serialização entre componentes, simplifica o boot e o lifecycle, e é suficiente para o público-alvo. Montar `socket.io` no mesmo `http.Server` do Fastify é o padrão suportado pela lib (research 15 §13.1: "socket.io é montado no mesmo server instance").
 
 ### D2 — Fastify para HTTP, socket.io v4 para tempo real
@@ -82,9 +82,9 @@ O servidor Fusion é um **único processo Node.js** que instancia um `http.Serve
 HTTP (assets estáticos, REST, auth) usa **Fastify**; o tempo real (sync de Documents, eventos de canvas, chat) usa **socket.io v4**.
 
 - **Alternativas rejeitadas:**
-  - *Express 5* (escolha do Foundry v14, research 01 §3.1): Fastify entrega ~2x throughput e validação de schema/serialização pré-compilada built-in (research 15 §13.1), útil para validar payloads de Document e REST.
-  - *WebSocket nativo do browser* (caminho do Foundry v12+, research 06 §2): o Foundry migrou para reduzir overhead, mas o ganho é irrelevante em LAN (research 15 §4.1). socket.io entrega rooms/namespaces, reconexão e fallback "de graça", o que reduz código de protocolo no MVP. A stack está fixada em socket.io v4.
-  - *Colyseus*: orientado a jogos de estado altamente dinâmico; o VTT é document-oriented com updates esparsos e semânticos (research 15 §4.2). Over-engineering para o caso.
+  - _Express 5_ (escolha do Foundry v14, research 01 §3.1): Fastify entrega ~2x throughput e validação de schema/serialização pré-compilada built-in (research 15 §13.1), útil para validar payloads de Document e REST.
+  - _WebSocket nativo do browser_ (caminho do Foundry v12+, research 06 §2): o Foundry migrou para reduzir overhead, mas o ganho é irrelevante em LAN (research 15 §4.1). socket.io entrega rooms/namespaces, reconexão e fallback "de graça", o que reduz código de protocolo no MVP. A stack está fixada em socket.io v4.
+  - _Colyseus_: orientado a jogos de estado altamente dinâmico; o VTT é document-oriented com updates esparsos e semânticos (research 15 §4.2). Over-engineering para o caso.
 - **Racional:** Decisão de stack já fixada pelo projeto; a pesquisa a valida. As **rooms** do socket.io isolam um world por room e permitem broadcast seletivo (por cena, por GM, por usuário). O protocolo concreto vive em `04-rede-e-sincronizacao.md`.
 
 ### D3 — Persistência: um `world.db` (better-sqlite3, WAL) por mundo + `assets/` estático
@@ -92,8 +92,8 @@ HTTP (assets estáticos, REST, auth) usa **Fastify**; o tempo real (sync de Docu
 Cada world é um arquivo SQLite autocontido (`world.db`) acessado via **better-sqlite3** em **WAL mode**, mais uma pasta `assets/` servida estaticamente.
 
 - **Alternativas rejeitadas:**
-  - *LevelDB/ClassicLevel* (escolha do Foundry v11+, research 01 §3.1, research 06 §10): key-value binário não-queryable, exige índices manuais, arquivos não diff-áveis e impõe locks exclusivos que complicam multi-mundo (research 06 §10). SQLite é relacional, queryable e um único arquivo portátil.
-  - *node:sqlite nativo (Node 22+)*: viável e sem dependência (research 15 §11.1), mas better-sqlite3 é mais maduro e ergonômico hoje; ver risco de empacotamento de addon nativo em `22-instalacao-e-distribuicao.md`.
+  - _LevelDB/ClassicLevel_ (escolha do Foundry v11+, research 01 §3.1, research 06 §10): key-value binário não-queryable, exige índices manuais, arquivos não diff-áveis e impõe locks exclusivos que complicam multi-mundo (research 06 §10). SQLite é relacional, queryable e um único arquivo portátil.
+  - _node:sqlite nativo (Node 22+)_: viável e sem dependência (research 15 §11.1), mas better-sqlite3 é mais maduro e ergonômico hoje; ver risco de empacotamento de addon nativo em `22-instalacao-e-distribuicao.md`.
 - **Racional:** better-sqlite3 tem API síncrona (sem overhead de event loop para queries locais), ACID e WAL para leitura concorrente durante escrita (research 15 §11.1). Um arquivo por world = backup e portabilidade triviais. Detalhes de schema e migrations em `03-persistencia-e-mundos.md`.
 
 ### D4 — Cliente: Svelte 5 (Runes) + Vite para UI; PIXI.js v8 para o canvas
@@ -101,8 +101,8 @@ Cada world é um arquivo SQLite autocontido (`world.db`) acessado via **better-s
 Toda a UI (HUD, sidebar, fichas, diálogos) é **Svelte 5 (Runes)** buildado por **Vite**; o canvas do mapa é **PIXI.js v8** (WebGPU com fallback WebGL).
 
 - **Alternativas rejeitadas:**
-  - *React*: bundle maior e Contexts ruins para estado de canvas — o Owlbear Rodeo 1.x relatou exatamente isso como erro (research 15 §1.2, §12.2). Svelte tem reatividade fine-grained e bundle menor (research 15 §12.1).
-  - *PIXI v7 / WebGL-only* (alvo atual do Foundry, research 01 §6.4): PIXI v8 já é WebGPU-ready com fallback WebGL automático e Render Groups para câmera 2D hardware-accelerated (research 15 §3.1), essenciais para pan/zoom em mapas grandes.
+  - _React_: bundle maior e Contexts ruins para estado de canvas — o Owlbear Rodeo 1.x relatou exatamente isso como erro (research 15 §1.2, §12.2). Svelte tem reatividade fine-grained e bundle menor (research 15 §12.1).
+  - _PIXI v7 / WebGL-only_ (alvo atual do Foundry, research 01 §6.4): PIXI v8 já é WebGPU-ready com fallback WebGL automático e Render Groups para câmera 2D hardware-accelerated (research 15 §3.1), essenciais para pan/zoom em mapas grandes.
 - **Racional:** Stack fixada e validada. PIXI ocupa um `<canvas>` dedicado e Svelte gerencia o overlay de UI — coexistem sem conflito (research 15 §12.1). Detalhes em `06-canvas-e-renderizacao.md` e `11-ui-framework-e-fichas.md`.
 
 ### D5 — Monorepo pnpm com fronteira `shared` no centro
@@ -110,8 +110,8 @@ Toda a UI (HUD, sidebar, fichas, diálogos) é **Svelte 5 (Runes)** buildado por
 Layout: `packages/server`, `packages/client`, `packages/shared`, `packages/system-api`, `systems/*`, `tools/*`. O pacote `shared` contém schemas, tipos e o protocolo, e é a **única** dependência comum entre server e client.
 
 - **Alternativas rejeitadas:**
-  - *Repos separados*: dificulta manter tipos do protocolo e dos Documents em sincronia entre server e client; cria drift de versão.
-  - *Tudo em um pacote*: impede impor fronteiras de dependência (ex.: impedir o client de importar código de servidor).
+  - _Repos separados_: dificulta manter tipos do protocolo e dos Documents em sincronia entre server e client; cria drift de versão.
+  - _Tudo em um pacote_: impede impor fronteiras de dependência (ex.: impedir o client de importar código de servidor).
 - **Racional:** O contrato (schemas Zod/TypeScript dos Documents, envelopes de socket, enums de role) precisa ser idêntico nos dois lados. Centralizá-lo em `shared` garante uma única fonte de verdade e habilita validação isomórfica (mesmo schema valida no client antes de enviar e no server ao receber). A direção de dependências é estrita (ver Requisitos).
 
 ### D6 — Sistemas compilados junto no MVP (sem plugins dinâmicos de terceiros)
@@ -119,7 +119,7 @@ Layout: `packages/server`, `packages/client`, `packages/shared`, `packages/syste
 Os sistemas (`systems/pf2e`, `systems/sf2e`, `systems/etmos`) são pacotes do monorepo **compilados junto** com o app. O núcleo de regras 2e compartilhado entre PF2e e SF2e vive no pacote `systems/engine-2e`, do qual `systems/pf2e` e `systems/sf2e` dependem. Não há carregamento dinâmico de plugins de terceiros no MVP.
 
 - **Alternativas rejeitadas:**
-  - *Carregamento dinâmico de plugins arbitrários no MVP* (modelo de packages do Foundry, research 01 §5.1, research 15 §2.4): superfície de segurança grande (execução de código de terceiros), complexidade de sandbox e de versionamento. Marcado como **[V2]**.
+  - _Carregamento dinâmico de plugins arbitrários no MVP_ (modelo de packages do Foundry, research 01 §5.1, research 15 §2.4): superfície de segurança grande (execução de código de terceiros), complexidade de sandbox e de versionamento. Marcado como **[V2]**.
 - **Racional:** Reduz risco e escopo do MVP. Os sistemas registram suas fichas e schemas pela system API (`15-api-de-sistemas.md`) durante o boot. O carregamento dinâmico fica como evolução [V2].
 
 ### D7 — Porta default própria 33000 (não 30000)
@@ -127,8 +127,8 @@ Os sistemas (`systems/pf2e`, `systems/sf2e`, `systems/etmos`) são pacotes do mo
 A porta TCP default do servidor Fusion é **33000**.
 
 - **Alternativas rejeitadas:**
-  - *30000*: é a porta default do Foundry VTT (research 01 §2.2, research 06 §1). Reusá-la causaria conflito de porta para quem roda os dois apps na mesma máquina e confundiria diagnósticos de rede.
-  - *Portas "bonitas" comuns (8080, 3000)*: alta chance de colisão com outros serviços de dev.
+  - _30000_: é a porta default do Foundry VTT (research 01 §2.2, research 06 §1). Reusá-la causaria conflito de porta para quem roda os dois apps na mesma máquina e confundiria diagnósticos de rede.
+  - _Portas "bonitas" comuns (8080, 3000)_: alta chance de colisão com outros serviços de dev.
 - **Racional:** 33000 é alto o bastante para não exigir privilégio, distinto do Foundry e mnemônico ("33" ≈ Fusion). Configurável via `fusion.json` → `port` ou flag `--port` (ver Configuração).
 
 ### D8 — Validação isomórfica com fonte de verdade no servidor
@@ -136,8 +136,8 @@ A porta TCP default do servidor Fusion é **33000**.
 Os mesmos schemas (em `shared`) validam no cliente (UX rápida, feedback imediato) e no servidor (autoridade). A validação do cliente é conveniência; a do servidor é lei.
 
 - **Alternativas rejeitadas:**
-  - *Validar só no servidor*: round-trip para todo erro trivial de formulário, UX pior.
-  - *Validar só no cliente*: inseguro — cliente é não-confiável (anti-cheat, ver `08-motor-de-rolagens.md` e `21-seguranca.md`).
+  - _Validar só no servidor_: round-trip para todo erro trivial de formulário, UX pior.
+  - _Validar só no cliente_: inseguro — cliente é não-confiável (anti-cheat, ver `08-motor-de-rolagens.md` e `21-seguranca.md`).
 - **Racional:** O servidor é autoritativo (research 06 §3). Reusar o schema dos dois lados elimina divergência sem abrir mão da autoridade. As rolagens em particular executam **no servidor** (RNG autoritativo) por anti-cheat — decisão da stack, detalhada em `08-motor-de-rolagens.md`.
 
 ### D9 — Operações pesadas fora do caminho síncrono do socket
@@ -145,7 +145,7 @@ Os mesmos schemas (em `shared`) validam no cliente (UX rápida, feedback imediat
 Operações potencialmente longas (visibility polygon, importação de compendium, migração de world) NÃO bloqueiam o handler de socket: são feitas de forma assíncrona, em chunks, ou (quando medido necessário) em worker threads.
 
 - **Alternativas rejeitadas:**
-  - *Executar tudo no event loop principal de forma síncrona*: trava a sincronização de todos os jogadores durante a operação (risco de event loop blocking — ver Riscos).
+  - _Executar tudo no event loop principal de forma síncrona_: trava a sincronização de todos os jogadores durante a operação (risco de event loop blocking — ver Riscos).
 - **Racional:** O servidor é single-thread; uma operação O(n) longa congela o broadcast para todos. Estratégia detalhada por subsistema (`07`, `16`, `03`). Esta spec apenas estabelece o princípio.
 
 ---

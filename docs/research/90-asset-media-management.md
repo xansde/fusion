@@ -12,11 +12,11 @@
 
 O Foundry VTT organiza todos os dados do usuário dentro de uma pasta chamada **User Data**, cujo caminho varia por plataforma:
 
-| Plataforma | Caminho padrão |
-|------------|---------------|
-| Windows    | `%localappdata%/FoundryVTT` |
+| Plataforma | Caminho padrão                             |
+| ---------- | ------------------------------------------ |
+| Windows    | `%localappdata%/FoundryVTT`                |
 | macOS      | `~/Library/Application Support/FoundryVTT` |
-| Linux      | `~/.local/share/FoundryVTT` |
+| Linux      | `~/.local/share/FoundryVTT`                |
 
 Dentro de User Data, três subdiretórios principais:
 
@@ -79,11 +79,11 @@ O `FilePicker` é a aplicação de UI que expõe o subsistema de arquivos ao usu
 
 O FilePicker suporta três fontes configuráveis:
 
-| Source | Descrição |
-|--------|-----------|
-| `"data"` | Diretório interno `Data/` (User Data) |
+| Source     | Descrição                                               |
+| ---------- | ------------------------------------------------------- |
+| `"data"`   | Diretório interno `Data/` (User Data)                   |
 | `"public"` | Pasta pública do servidor (raramente usada diretamente) |
-| `"s3"` | Buckets Amazon S3 ou compatíveis (quando configurado) |
+| `"s3"`     | Buckets Amazon S3 ou compatíveis (quando configurado)   |
 
 A fonte ativa é controlada por `activeSource`. Ao navegar pelo FilePicker, o usuário pode trocar de tab entre as fontes disponíveis.
 
@@ -127,10 +127,10 @@ O `upload()` envia o arquivo via `POST` multipart/form-data para o servidor. A r
 
 As permissões de arquivo são configuradas por mundo, no painel de Game Settings. Os valores relevantes no objeto `CONST.USER_PERMISSIONS` são:
 
-| Constante | Role padrão | Descrição |
-|-----------|-------------|-----------|
-| `FILES_BROWSE` | 2 (Trusted Player) | Permite navegar no FilePicker |
-| `FILES_UPLOAD` | 3 (Assistant GM) | Permite fazer upload de arquivos |
+| Constante      | Role padrão        | Descrição                        |
+| -------------- | ------------------ | -------------------------------- |
+| `FILES_BROWSE` | 2 (Trusted Player) | Permite navegar no FilePicker    |
+| `FILES_UPLOAD` | 3 (Assistant GM)   | Permite fazer upload de arquivos |
 
 Roles: 1 = Player, 2 = Trusted Player, 3 = Assistant GM, 4 = Gamemaster.
 
@@ -144,15 +144,15 @@ As permissões são verificadas no servidor a cada requisição de upload/browse
 
 ### 3.1 Imagens
 
-| Formato | Suporte | Recomendação |
-|---------|---------|--------------|
-| WebP    | Sim | **Recomendado** — melhor relação qualidade/tamanho, suporta transparência |
-| AVIF    | Sim | Qualidade superior ao WebP, suporte mais limitado em navegadores antigos |
-| PNG     | Sim | Para imagens pequenas ou quando transparência é crítica |
-| JPEG    | Sim | Para fundos de cenas grandes onde transparência não é necessária |
-| SVG     | Sim | Para gráficos vetoriais simples (ícones, UI) |
-| GIF     | Sim | Obsoleto — desaconselhado, usar WebM para animações |
-| BMP, TIFF, APNG | Sim | Suportados mas não recomendados para produção |
+| Formato         | Suporte | Recomendação                                                              |
+| --------------- | ------- | ------------------------------------------------------------------------- |
+| WebP            | Sim     | **Recomendado** — melhor relação qualidade/tamanho, suporta transparência |
+| AVIF            | Sim     | Qualidade superior ao WebP, suporte mais limitado em navegadores antigos  |
+| PNG             | Sim     | Para imagens pequenas ou quando transparência é crítica                   |
+| JPEG            | Sim     | Para fundos de cenas grandes onde transparência não é necessária          |
+| SVG             | Sim     | Para gráficos vetoriais simples (ícones, UI)                              |
+| GIF             | Sim     | Obsoleto — desaconselhado, usar WebM para animações                       |
+| BMP, TIFF, APNG | Sim     | Suportados mas não recomendados para produção                             |
 
 **Dimensões para tokens:** 400×400px para criaturas médias/grandes (range 200–400px). Tokens devem ser orientados para o sul (frente voltada para baixo) e precisam suportar transparência (WebP ou PNG).
 
@@ -160,26 +160,26 @@ As permissões são verificadas no servidor a cada requisição de upload/browse
 
 ### 3.2 Vídeo
 
-| Formato | Suporte | Recomendação |
-|---------|---------|--------------|
-| WebM    | Sim | **Recomendado** — suporta transparência (canal alpha), menor tamanho |
-| MP4/M4V | Sim | Amplamente compatível, codec h264 com VBR |
-| OGV     | Sim | Compatibilidade legada |
+| Formato | Suporte | Recomendação                                                         |
+| ------- | ------- | -------------------------------------------------------------------- |
+| WebM    | Sim     | **Recomendado** — suporta transparência (canal alpha), menor tamanho |
+| MP4/M4V | Sim     | Amplamente compatível, codec h264 com VBR                            |
+| OGV     | Sim     | Compatibilidade legada                                               |
 
 **Diretrizes:** máximo 30fps; ~50MB por arquivo para distribuição; bitrate constante 2–5Mbps ou VBR; qualidade 60–80%. Vídeos com áudio devem separar a trilha de áudio em arquivo dedicado.
 
 ### 3.3 Áudio
 
-| Formato | Suporte | Recomendação |
-|---------|---------|--------------|
-| OGG     | Sim | **Recomendado** — loop limpo, menor tamanho (exceto Safari) |
-| MP3     | Sim | Compatibilidade universal, não faz loop limpo |
-| FLAC    | Sim | Lossless para masters; arquivos grandes |
-| WEBM    | Sim | Otimizado para web, sem suporte Safari |
-| OPUS    | Sim | Alta qualidade em bitrates baixos |
-| WAV     | Sim | Não recomendado para produção (arquivos enormes) |
-| AAC/M4A | Sim | Suportados |
-| MIDI    | Sim | Suportado |
+| Formato | Suporte | Recomendação                                                |
+| ------- | ------- | ----------------------------------------------------------- |
+| OGG     | Sim     | **Recomendado** — loop limpo, menor tamanho (exceto Safari) |
+| MP3     | Sim     | Compatibilidade universal, não faz loop limpo               |
+| FLAC    | Sim     | Lossless para masters; arquivos grandes                     |
+| WEBM    | Sim     | Otimizado para web, sem suporte Safari                      |
+| OPUS    | Sim     | Alta qualidade em bitrates baixos                           |
+| WAV     | Sim     | Não recomendado para produção (arquivos enormes)            |
+| AAC/M4A | Sim     | Suportados                                                  |
+| MIDI    | Sim     | Suportado                                                   |
 
 **Bitrate recomendado:** 128kbps mínimo, 192kbps ideal. A conversão deve ser feita apenas uma vez a partir de source lossless (WAV/FLAC), pois recomprimir formatos já comprimidos degrada a qualidade.
 
@@ -217,11 +217,13 @@ Quando configurado corretamente, os buckets aparecem como uma nova tab/source no
 O bucket S3 deve ter uma CORS policy configurada para aceitar requisições do domínio do Foundry:
 
 ```json
-[{
-  "AllowedOrigins": ["*"],
-  "AllowedMethods": ["GET", "POST", "HEAD"],
-  "MaxAgeSeconds": 3000
-}]
+[
+  {
+    "AllowedOrigins": ["*"],
+    "AllowedMethods": ["GET", "POST", "HEAD"],
+    "MaxAgeSeconds": 3000
+  }
+]
 ```
 
 **Limitação importante:** o Foundry atualmente exige que os buckets sejam públicos (`public-read` ACL). Não há suporte nativo a signed URLs ou presigned URLs para acesso privado. Arquivos confidenciais não devem ser armazenados em buckets configurados para o Foundry.
@@ -231,11 +233,13 @@ O bucket S3 deve ter uma CORS policy configurada para aceitar requisições do d
 Com S3 configurado, o fluxo de entrega muda drasticamente:
 
 **Sem S3 (local):**
+
 ```
 Jogador → [internet] → Servidor GM (upload residencial) → assets servidos pelo Express
 ```
 
 **Com S3:**
+
 ```
 Upload: GM → [internet] → S3 bucket
 Entrega: Jogador → [CDN/S3 endpoint] → assets (não passa pelo GM)
@@ -247,11 +251,11 @@ Isso resolve o gargalo de bandwidth de upload residencial documentado no doc 06.
 
 A comunidade usa buckets S3-compatíveis como alternativas mais baratas ou com CDN embutida:
 
-| Serviço | Vantagem | Configuração extra |
-|---------|----------|-------------------|
-| Cloudflare R2 | Sem egress fees, CDN embutida | Precisa de access key R2 |
-| Backblaze B2 | Muito barato | Precisa de Cloudflare como proxy CDN |
-| MinIO (self-hosted) | Controle total, on-premise | Servidor adicional necessário |
+| Serviço             | Vantagem                      | Configuração extra                   |
+| ------------------- | ----------------------------- | ------------------------------------ |
+| Cloudflare R2       | Sem egress fees, CDN embutida | Precisa de access key R2             |
+| Backblaze B2        | Muito barato                  | Precisa de Cloudflare como proxy CDN |
+| MinIO (self-hosted) | Controle total, on-premise    | Servidor adicional necessário        |
 
 ### 4.5 The Forge (plataforma de hosting)
 
@@ -327,6 +331,7 @@ O maior ponto de dor documentado na comunidade é o **path remapping** durante i
 - Assets em `worlds/<nome>/` são relativos ao mundo — se o nome do mundo mudar, os paths quebram
 
 **Módulo Adventure Bundler** (comunidade) resolve isso ao exportar:
+
 1. Scan de todos os Documents para extrair URLs de assets
 2. Exclusão de assets do core, sistemas instalados e URLs externas
 3. Compressão dos assets restantes em ZIP junto com os dados do mundo
@@ -382,32 +387,32 @@ O Foundry usa `Cache-Control: no-cache` para assets estáticos, o que resulta em
 
 ### 8.1 Modelo de Storage
 
-| Aspecto | Foundry VTT | Owlbear Rodeo | MapTool |
-|---------|------------|--------------|---------|
-| Storage primário | Filesystem local (User Data) | Cloud (backend SaaS) | Filesystem local (Java) |
-| S3 nativo | Sim (opcional) | Não necessário (SaaS) | Não |
-| CDN | Via S3 externo | Automática (SaaS) | Não |
-| Deduplicação | Não | Não documentado | Sim (MD5 hash) |
-| Assets portáteis | Parcialmente (paths relativos) | Sim (cloud) | Problema histórico |
+| Aspecto          | Foundry VTT                    | Owlbear Rodeo         | MapTool                 |
+| ---------------- | ------------------------------ | --------------------- | ----------------------- |
+| Storage primário | Filesystem local (User Data)   | Cloud (backend SaaS)  | Filesystem local (Java) |
+| S3 nativo        | Sim (opcional)                 | Não necessário (SaaS) | Não                     |
+| CDN              | Via S3 externo                 | Automática (SaaS)     | Não                     |
+| Deduplicação     | Não                            | Não documentado       | Sim (MD5 hash)          |
+| Assets portáteis | Parcialmente (paths relativos) | Sim (cloud)           | Problema histórico      |
 
 ### 8.2 Upload e Organização
 
-| Aspecto | Foundry VTT | Owlbear Rodeo | MapTool |
-|---------|------------|--------------|---------|
-| Upload via UI | Sim (FilePicker) | Sim (UI nativa) | Sim (Resource Library) |
-| Organização | Pastas no filesystem | Pastas + tags | Resource Library |
-| API de upload | `FilePicker.upload()` | `OBR.assets.uploadImages()` | Não exposta publicamente |
-| Permissões granulares | Por role de usuário | Owner only (SaaS) | Host controla |
-| Conversão automática | Via módulo (browser-side) | Não documentado | Não |
+| Aspecto               | Foundry VTT               | Owlbear Rodeo               | MapTool                  |
+| --------------------- | ------------------------- | --------------------------- | ------------------------ |
+| Upload via UI         | Sim (FilePicker)          | Sim (UI nativa)             | Sim (Resource Library)   |
+| Organização           | Pastas no filesystem      | Pastas + tags               | Resource Library         |
+| API de upload         | `FilePicker.upload()`     | `OBR.assets.uploadImages()` | Não exposta publicamente |
+| Permissões granulares | Por role de usuário       | Owner only (SaaS)           | Host controla            |
+| Conversão automática  | Via módulo (browser-side) | Não documentado             | Não                      |
 
 ### 8.3 Referenciamento e Portabilidade
 
-| Aspecto | Foundry VTT | Owlbear Rodeo | MapTool |
-|---------|------------|--------------|---------|
-| Formato do path | Relativo ao Data/ | ID interno (cloud) | MD5 hash ID |
-| Portabilidade entre instâncias | Média (rebind manual) | Automática (cloud) | Baixa (hash lookup) |
-| Exportação com assets | Via módulo externo | Formato .ob2 | Archive Campaign (feature request) |
-| Assets faltantes | Fallback mínimo (cor sólida) | Não documentado | Ícone quebrado |
+| Aspecto                        | Foundry VTT                  | Owlbear Rodeo      | MapTool                            |
+| ------------------------------ | ---------------------------- | ------------------ | ---------------------------------- |
+| Formato do path                | Relativo ao Data/            | ID interno (cloud) | MD5 hash ID                        |
+| Portabilidade entre instâncias | Média (rebind manual)        | Automática (cloud) | Baixa (hash lookup)                |
+| Exportação com assets          | Via módulo externo           | Formato .ob2       | Archive Campaign (feature request) |
+| Assets faltantes               | Fallback mínimo (cor sólida) | Não documentado    | Ícone quebrado                     |
 
 ---
 
@@ -458,22 +463,22 @@ O Fusion deve expor uma API de storage análoga ao FilePicker, mas com melhorias
 ```typescript
 interface StorageAPI {
   // Listar conteúdo de diretório
-  browse(source: 'local' | 's3', path: string): Promise<BrowseResult>
-  
+  browse(source: "local" | "s3", path: string): Promise<BrowseResult>;
+
   // Upload com hash e deduplicação
-  upload(source: 'local' | 's3', path: string, file: File): Promise<UploadResult>
-  
+  upload(source: "local" | "s3", path: string, file: File): Promise<UploadResult>;
+
   // Criar diretório
-  mkdir(source: string, path: string): Promise<void>
-  
+  mkdir(source: string, path: string): Promise<void>;
+
   // Deletar asset (com verificação de referências)
-  delete(source: string, path: string): Promise<DeleteResult>
-  
+  delete(source: string, path: string): Promise<DeleteResult>;
+
   // Buscar por nome/tag (funcionalidade não existente no Foundry nativo)
-  search(query: string, options?: SearchOptions): Promise<SearchResult>
-  
+  search(query: string, options?: SearchOptions): Promise<SearchResult>;
+
   // Verificar integridade (checar se assets referenciados existem)
-  audit(): Promise<AuditResult>
+  audit(): Promise<AuditResult>;
 }
 ```
 

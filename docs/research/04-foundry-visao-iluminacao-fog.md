@@ -28,15 +28,15 @@ Walls (paredes) são segmentos de linha colocados no canvas que restringem movem
 
 ### 1.2 Tipos de Parede (Presets)
 
-| Tipo | Cor padrão | Movement | Sight | Light | Sound | Uso típico |
-|---|---|---|---|---|---|---|
-| Normal | Amarelo | Bloqueado | Bloqueado | Bloqueado | Bloqueado | Paredes sólidas |
-| Terrain | Verde | Bloqueado | Limitado (1 camada) | Limitado | Bloqueado | Rochas, telhados, moitas |
-| Invisible | Ciano | Bloqueado | Livre | Livre | Livre | Vidro, campos de força |
-| Ethereal | Magenta claro | Livre | Bloqueado | Bloqueado | Livre | Barreiras que bloqueam visão mas permitem passagem |
-| Door (porta) | — | Bloqueado (fechado) | Bloqueado (fechado) | Bloqueado (fechado) | Bloqueado (fechado) | Portas interativas |
-| Secret Door | — | Bloqueado (fechado) | Bloqueado (fechado) | Bloqueado (fechado) | Bloqueado (fechado) | Portas secretas (ícone oculto a players) |
-| Window (proximity wall) | — | Bloqueado | Proximity-based | Proximity-based | Proximity-based | Janelas, seteiras |
+| Tipo                    | Cor padrão    | Movement            | Sight               | Light               | Sound               | Uso típico                                         |
+| ----------------------- | ------------- | ------------------- | ------------------- | ------------------- | ------------------- | -------------------------------------------------- |
+| Normal                  | Amarelo       | Bloqueado           | Bloqueado           | Bloqueado           | Bloqueado           | Paredes sólidas                                    |
+| Terrain                 | Verde         | Bloqueado           | Limitado (1 camada) | Limitado            | Bloqueado           | Rochas, telhados, moitas                           |
+| Invisible               | Ciano         | Bloqueado           | Livre               | Livre               | Livre               | Vidro, campos de força                             |
+| Ethereal                | Magenta claro | Livre               | Bloqueado           | Bloqueado           | Livre               | Barreiras que bloqueam visão mas permitem passagem |
+| Door (porta)            | —             | Bloqueado (fechado) | Bloqueado (fechado) | Bloqueado (fechado) | Bloqueado (fechado) | Portas interativas                                 |
+| Secret Door             | —             | Bloqueado (fechado) | Bloqueado (fechado) | Bloqueado (fechado) | Bloqueado (fechado) | Portas secretas (ícone oculto a players)           |
+| Window (proximity wall) | —             | Bloqueado           | Proximity-based     | Proximity-based     | Proximity-based     | Janelas, seteiras                                  |
 
 ### 1.3 Opções de Restrição por Dimensão
 
@@ -87,29 +87,31 @@ Terrain walls implementam o modo "Limited" em sight e light. O engine verifica q
 Foundry implementa iluminação dinâmica 2D usando WebGL/PIXI.js. Cada fonte de luz — seja colocada diretamente na cena (ambient light) ou carregada por um token (token light) — é um `PointLightSource` que emite um polígono de luz calculado em tempo real usando o mesmo algoritmo de sweep polygon das walls.
 
 O canvas distingue três estados visuais de iluminação:
+
 - **Bright Light**: Área totalmente iluminada.
 - **Dim Light**: Área de penumbra — visível, mas com intensidade reduzida.
 - **Unlit (Darkness)**: Área não iluminada. Tokens sem darkvision ou outra fonte de iluminação não enxergam nessa área.
 
 ### 2.2 Propriedades de uma Fonte de Luz
 
-| Propriedade | Descrição |
-|---|---|
-| Posição (X, Y) | Coordenadas em pixels no canvas da cena |
-| Bright Radius | Raio de luz plena, em unidades de grid |
-| Dim Radius | Raio de luz fraca (pode ser maior ou menor que bright) |
-| Emission Angle | Ângulo de emissão (padrão: 360° — círculo completo) |
-| Rotation | Orientação direcional da fonte em graus |
-| Color | Cor hexadecimal com intensidade configurável (padrão: 0.5) |
-| Luminosity | Brilho da fonte. Valor negativo cria **darkness source** |
-| Constrained by Walls | Se falso, a luz ignora paredes e ilumina através de tudo |
-| Provides Vision | Tokens controlados pelo jogador podem ver dentro do raio desta luz |
-| Gradual Illumination | Transição suave entre bright e dim; se desativado, borda abrupta |
+| Propriedade               | Descrição                                                                    |
+| ------------------------- | ---------------------------------------------------------------------------- |
+| Posição (X, Y)            | Coordenadas em pixels no canvas da cena                                      |
+| Bright Radius             | Raio de luz plena, em unidades de grid                                       |
+| Dim Radius                | Raio de luz fraca (pode ser maior ou menor que bright)                       |
+| Emission Angle            | Ângulo de emissão (padrão: 360° — círculo completo)                          |
+| Rotation                  | Orientação direcional da fonte em graus                                      |
+| Color                     | Cor hexadecimal com intensidade configurável (padrão: 0.5)                   |
+| Luminosity                | Brilho da fonte. Valor negativo cria **darkness source**                     |
+| Constrained by Walls      | Se falso, a luz ignora paredes e ilumina através de tudo                     |
+| Provides Vision           | Tokens controlados pelo jogador podem ver dentro do raio desta luz           |
+| Gradual Illumination      | Transição suave entre bright e dim; se desativado, borda abrupta             |
 | Darkness Activation Range | Faixa de darkness level da cena na qual a luz ativa/desativa automaticamente |
 
 ### 2.3 Darkness Sources (Luz Negativa)
 
 Definindo `luminosity` negativo, a fonte passa a **emitir escuridão** em vez de luz. Dentro do raio da darkness source:
+
 - A luz de outras fontes é suprimida (ou reduzida, dependendo da intensidade).
 - Tokens sem detection modes especiais não conseguem ver nessa área.
 - O efeito é aditivo com outras fontes — uma darkness source poderosa sobrepõe fontes de luz comuns.
@@ -119,6 +121,7 @@ Esse mecanismo é usado para modelar zonas de escuridão mágica, por exemplo.
 ### 2.4 Darkness Level da Cena
 
 O Darkness Level é um parâmetro de cena (slider de 0 a 1) que:
+
 - Aplica um filtro visual (tint) sobre toda a cena, simulando hora do dia.
 - Controla quais fontes de luz estão ativas (via Darkness Activation Range de cada luz).
 - Interage com o Global Illumination Threshold.
@@ -130,6 +133,7 @@ O Darkness Level é um parâmetro de cena (slider de 0 a 1) que:
 **Global Illumination (GI)** é um modo de cena onde toda a área explorada é considerada iluminada, independente de fontes de luz. Útil para cenas de dia em exteriores.
 
 **Global Illumination Threshold**: Define em qual valor de Darkness Level o GI é automaticamente desabilitado. Quando o Darkness Level atinge esse threshold:
+
 - A GI é suprimida.
 - Tokens sem fonte de luz ou darkvision ficam cegos em áreas não iluminadas.
 - Scene Regions com "Adjust Darkness" que ultrapassam o threshold também se tornam mecanicamente escuras.
@@ -168,36 +172,37 @@ Tokens podem ter fontes de luz próprias configuradas diretamente no documento d
 
 O Foundry distingue dois sistemas ortogonais:
 
-- **Vision Mode**: Controla a *aparência* — como o canvas é renderizado do ponto de vista daquele token. Exemplos: visão colorida normal, visão monocromática (darkvision), visão de radar (tremorsense).
-- **Detection Mode**: Controla a *mecânica* — o que e quem pode ser detectado, sob quais condições. Exemplos: Basic Sight (darkvision em áreas não iluminadas), See Invisibility, Feel Tremor.
+- **Vision Mode**: Controla a _aparência_ — como o canvas é renderizado do ponto de vista daquele token. Exemplos: visão colorida normal, visão monocromática (darkvision), visão de radar (tremorsense).
+- **Detection Mode**: Controla a _mecânica_ — o que e quem pode ser detectado, sob quais condições. Exemplos: Basic Sight (darkvision em áreas não iluminadas), See Invisibility, Feel Tremor.
 
 Um token pode ter um Vision Mode ativo e múltiplos Detection Modes configurados simultaneamente.
 
 ### 3.2 Vision Modes Nativos
 
-| Vision Mode | Descrição |
-|---|---|
-| Basic Vision | Visão padrão colorida. Depende de fontes de luz para enxergar. |
-| Darkvision | Em áreas sem luz, a visão é dessaturada (monocromática). Em áreas com luz, visão normal colorida. |
-| Monochromatic | Similar ao darkvision, mas sempre monocromático, independente de iluminação. |
-| Tremorsense | Efeito visual de "radar sweep" — pulsa e revela detalhes (paredes, fog exploration) mas não o background da cena. |
+| Vision Mode   | Descrição                                                                                                         |
+| ------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Basic Vision  | Visão padrão colorida. Depende de fontes de luz para enxergar.                                                    |
+| Darkvision    | Em áreas sem luz, a visão é dessaturada (monocromática). Em áreas com luz, visão normal colorida.                 |
+| Monochromatic | Similar ao darkvision, mas sempre monocromático, independente de iluminação.                                      |
+| Tremorsense   | Efeito visual de "radar sweep" — pulsa e revela detalhes (paredes, fog exploration) mas não o background da cena. |
 
 Vision Modes são classes extendíveis via API pública — sistemas e módulos podem registrar novos modos.
 
 ### 3.3 Detection Modes Nativos
 
-| Detection Mode | Tipo | Requer LOS | Penetra Walls | Descrição |
-|---|---|---|---|---|
-| Darkvision (ex-Basic Sight) | SIGHT | Sim | Não | Controla quanto um token enxerga em áreas não iluminadas. Renomeado em v12. |
-| See Invisibility | SIGHT | Sim | Não | Detecta tokens com condição "Invisible". Requer linha de visão. |
-| Sense Invisibility | OTHER | Não | Sim | Detecta tokens invisíveis mesmo através de paredes. |
-| Feel Tremor | OTHER | Não | Sim | Detecta todos os tokens na mesma elevação. Tokens voando (elevação > altura da cena) não são detectados. |
+| Detection Mode              | Tipo  | Requer LOS | Penetra Walls | Descrição                                                                                                |
+| --------------------------- | ----- | ---------- | ------------- | -------------------------------------------------------------------------------------------------------- |
+| Darkvision (ex-Basic Sight) | SIGHT | Sim        | Não           | Controla quanto um token enxerga em áreas não iluminadas. Renomeado em v12.                              |
+| See Invisibility            | SIGHT | Sim        | Não           | Detecta tokens com condição "Invisible". Requer linha de visão.                                          |
+| Sense Invisibility          | OTHER | Não        | Sim           | Detecta tokens invisíveis mesmo através de paredes.                                                      |
+| Feel Tremor                 | OTHER | Não        | Sim           | Detecta todos os tokens na mesma elevação. Tokens voando (elevação > altura da cena) não são detectados. |
 
 **Regra semântica importante**: Detection Modes cujo nome começa com "See" requerem linha de visão e são bloqueados por paredes. Modos cujo nome começa com "Sense" ignoram paredes.
 
 ### 3.4 Parâmetros de Visão por Token
 
 Cada token tem:
+
 - **Vision Range**: Raio máximo de visão (em unidades de grid). Pode ser `null` para ilimitado.
 - **Vision Angle**: Ângulo do cone de visão (padrão: 360°). Reduzir cria cone direcional.
 - **Vision Mode**: Qual Vision Mode está ativo.
@@ -217,6 +222,7 @@ A classe `CanvasVisibility` coordena esse pipeline para todos os placeables da c
 ### 3.6 VisionMode: Lighting Levels
 
 A classe `VisionMode` define constantes de nível de iluminação relevantes para a percepção:
+
 - `BRIGHT = 2`
 - `DIM = 1`
 - `UNLIT = 0`
@@ -255,17 +261,17 @@ FogExploration {
 
 O `FogManager` (`canvas.fog`) é um singleton que gerencia o ciclo de vida do FoW:
 
-| Método/Propriedade | Descrição |
-|---|---|
-| `COMMIT_THRESHOLD = 70` | Número de cycles de refresh antes de salvar no banco. Evita writes excessivos. |
-| `_updated` | Flag booleana: indica se há mudanças pendentes não salvas. |
-| `exploration` | Referência ao FogExploration document ativo. |
-| `load()` | Carrega dados existentes do banco e popula o sprite inicial. |
-| `commit()` | Compõe containers explorados no staging sprite; dispara save se threshold atingido. |
-| `save()` | Solicita extração da textura e persistência no banco. |
-| `reset()` | Envia requisição ao servidor para deletar FogExploration documents da cena e reinicializar. |
-| `sync()` | Funcionalidade experimental: sincroniza exploração entre usuários. |
-| `isPointExplored(x, y)` | Testa se coordenadas específicas já foram exploradas. |
+| Método/Propriedade      | Descrição                                                                                   |
+| ----------------------- | ------------------------------------------------------------------------------------------- |
+| `COMMIT_THRESHOLD = 70` | Número de cycles de refresh antes de salvar no banco. Evita writes excessivos.              |
+| `_updated`              | Flag booleana: indica se há mudanças pendentes não salvas.                                  |
+| `exploration`           | Referência ao FogExploration document ativo.                                                |
+| `load()`                | Carrega dados existentes do banco e popula o sprite inicial.                                |
+| `commit()`              | Compõe containers explorados no staging sprite; dispara save se threshold atingido.         |
+| `save()`                | Solicita extração da textura e persistência no banco.                                       |
+| `reset()`               | Envia requisição ao servidor para deletar FogExploration documents da cena e reinicializar. |
+| `sync()`                | Funcionalidade experimental: sincroniza exploração entre usuários.                          |
+| `isPointExplored(x, y)` | Testa se coordenadas específicas já foram exploradas.                                       |
 
 ### 4.4 Pipeline de Atualização
 
@@ -293,6 +299,7 @@ O `FogManager` (`canvas.fog`) é um singleton que gerencia o ciclo de vida do Fo
 Foundry usa um algoritmo chamado `ClockwiseSweepPolygon` para calcular polígonos de visibilidade (linha de visão, iluminação). Trata-se de uma implementação de **angular sweep** (varredura angular) com geometria CCW (counter-clockwise), executada para cada fonte de luz e visão a cada frame relevante.
 
 **Estruturas de dados principais:**
+
 - `vertices`: Mapa de vértices candidatos a colisão (endpoints das walls, interseções).
 - `edges`: Conjunto de arestas que definem as barreiras (walls ativas).
 - `rays`: Array de raios disparados de `origin` para cada vértice relevante.
@@ -342,12 +349,12 @@ A exploração persistente é acumulada em outra render texture — a textura do
 
 ### 5.4 Diferença entre LOS Polygon e Fog Exploration
 
-| Aspecto | LOS Polygon | Fog Exploration |
-|---|---|---|
-| Cálculo | Real-time, a cada frame | Acumulativo, atualizado ao mover |
-| Armazenamento | Apenas na memória (GPU) | Persistido no banco como imagem |
-| Conteúdo | O que o token AGORA enxerga | Tudo que o token JÁ explorou |
-| Por usuário? | Sim (POV por token controlado) | Sim (por usuário e cena) |
+| Aspecto       | LOS Polygon                    | Fog Exploration                  |
+| ------------- | ------------------------------ | -------------------------------- |
+| Cálculo       | Real-time, a cada frame        | Acumulativo, atualizado ao mover |
+| Armazenamento | Apenas na memória (GPU)        | Persistido no banco como imagem  |
+| Conteúdo      | O que o token AGORA enxerga    | Tudo que o token JÁ explorou     |
+| Por usuário?  | Sim (POV por token controlado) | Sim (por usuário e cena)         |
 
 ---
 
@@ -374,7 +381,9 @@ A partir do v12, o range de elevação é definido no nível da Region (não dos
 ### 6.4 Behaviors Relevantes para Iluminação e Visão
 
 #### Adjust Darkness Level
+
 Modifica o darkness level dentro da região, independente do darkness level global da cena. A partir do v12.320:
+
 - Se o darkness level da região ultrapassar o **Global Illumination Threshold** da cena, a área é tratada mecanicamente como não iluminada.
 - Tokens sem darkvision, detect invisibility ou outra fonte de luz não enxergam dentro da região.
 - Isso permite criar, por exemplo, uma masmorra escura dentro de uma cena de exterior claro.
@@ -382,23 +391,25 @@ Modifica o darkness level dentro da região, independente do darkness level glob
 **Bug histórico (issue #11048)**: O Vision Mode "Darkvision" não interagia corretamente com o GI threshold de Scene Regions em versões iniciais do v12. Corrigido posteriormente.
 
 #### Suppress Weather
+
 Impede que efeitos de clima (weather) sejam renderizados dentro da região. Útil para áreas cobertas sem precisar de tiles de telhado.
 
 #### Modify Movement Cost
+
 Aplica multiplicador (0–5 em incrementos de 0.25) ao custo de movimento de tokens dentro da região. Modela terreno difícil ou bônus de movimento.
 
 ### 6.5 Behaviors Baseados em Eventos
 
 Behaviors de evento são disparados por eventos específicos:
 
-| Evento | Descrição |
-|---|---|
-| Token Enters | Disparado quando token entra na região |
-| Token Exits | Disparado quando token sai da região |
+| Evento                    | Descrição                                                 |
+| ------------------------- | --------------------------------------------------------- |
+| Token Enters              | Disparado quando token entra na região                    |
+| Token Exits               | Disparado quando token sai da região                      |
 | Token Moves In/Out/Within | Disparado durante movimento dentro/fora/através da região |
-| Token Animates In/Out | Disparado durante animações de entrada/saída |
-| Combat Turn/Round | Disparado em mudanças de turno ou round de combate |
-| Region Boundary Change | Disparado quando a geometria da região muda |
+| Token Animates In/Out     | Disparado durante animações de entrada/saída              |
+| Combat Turn/Round         | Disparado em mudanças de turno ou round de combate        |
+| Region Boundary Change    | Disparado quando a geometria da região muda               |
 
 Behaviors de evento incluem: Teleport Token, Execute Macro/Script, Pause Game, Display Scrolling Text, Toggle Behavior.
 
@@ -436,6 +447,7 @@ ControlsLayer
 ### 7.2 Grupos de Canvas (v12+)
 
 A partir do v12, o canvas é organizado em grupos além de layers:
+
 - **PrimaryCanvasGroup**: conteúdo da cena (background, tokens, tiles).
 - **EffectsCanvasGroup**: iluminação, visão, clima — modifica visualmente o PrimaryCanvasGroup.
 - **InterfaceCanvasGroup**: UI, controles, cursor.
@@ -452,6 +464,7 @@ PointSource
 ```
 
 `RenderedPointSource` renderiza até três layers (camadas de mesh):
+
 - **background**: efeito no background da cena.
 - **coloration**: coloração aplicada sobre a área iluminada.
 - **illumination**: a iluminação propriamente dita.
@@ -459,6 +472,7 @@ PointSource
 ### 7.4 VisionMode e seu papel no pipeline
 
 Quando um Vision Mode é ativado em um `PointVisionSource`:
+
 - `VisionMode.activate(source)` é chamado, podendo modificar shaders ou parâmetros do source.
 - A cada frame enquanto ativo, `VisionMode.animate(dt)` permite animações frame-a-frame.
 - Quando desativado (token muda de modo ou é desselecionado), `VisionMode.deactivate(source)` limpa as modificações.
@@ -480,15 +494,15 @@ O artigo público "2D Visibility" de Amit Patel (Red Blob Games) descreve o algo
 
 Esses módulos, com código aberto, oferecem insights sobre como estender ou replicar funcionalidades:
 
-| Repositório | Licença | Relevância |
-|---|---|---|
-| `caewok/fvtt-elevated-vision` | MIT | Visão baseada em elevação de token/terrain, modifica ClockwiseSweepPolygon |
-| `caewok/fvtt-token-visibility` | MIT | Regras avançadas de visibilidade de token (tamanho do token, cover) |
-| `dev7355608/perfect-vision` | MIT | Visão e iluminação avançadas, desenhos como fontes de luz/escuridão |
-| `dev7355608/vision-5e` | MIT | Detection modes para D&D 5e (blindsight, truesight, devil's sight) |
-| `dev7355608/limits` | MIT | Limita range de sight/light/darkness/sound dentro de regions |
-| `trdischat/lessfog` | MIT | Modificações no fog of war para visibilidade do GM |
-| `caewok/fvtt-light-mask` | MIT | Máscara de luz usando walls temporárias |
+| Repositório                    | Licença | Relevância                                                                 |
+| ------------------------------ | ------- | -------------------------------------------------------------------------- |
+| `caewok/fvtt-elevated-vision`  | MIT     | Visão baseada em elevação de token/terrain, modifica ClockwiseSweepPolygon |
+| `caewok/fvtt-token-visibility` | MIT     | Regras avançadas de visibilidade de token (tamanho do token, cover)        |
+| `dev7355608/perfect-vision`    | MIT     | Visão e iluminação avançadas, desenhos como fontes de luz/escuridão        |
+| `dev7355608/vision-5e`         | MIT     | Detection modes para D&D 5e (blindsight, truesight, devil's sight)         |
+| `dev7355608/limits`            | MIT     | Limita range de sight/light/darkness/sound dentro de regions               |
+| `trdischat/lessfog`            | MIT     | Modificações no fog of war para visibilidade do GM                         |
+| `caewok/fvtt-light-mask`       | MIT     | Máscara de luz usando walls temporárias                                    |
 
 ### 8.3 Alternativas Open-Source para Implementação em Fusion
 
@@ -504,6 +518,7 @@ Para uma implementação própria, as opções open-source mais relevantes:
 ## 9. Fontes
 
 ### Documentação Oficial Foundry VTT
+
 - [Walls — Knowledge Base](https://foundryvtt.com/article/walls/)
 - [Lighting — Knowledge Base](https://foundryvtt.com/article/lighting/)
 - [Scene Regions — Knowledge Base](https://foundryvtt.com/article/scene-regions/)
@@ -512,6 +527,7 @@ Para uma implementação própria, as opções open-source mais relevantes:
 - [Release 14.360 — Notas de versão](https://foundryvtt.com/releases/14.360)
 
 ### Documentação da API Foundry VTT
+
 - [ClockwiseSweepPolygon — API v12](https://foundryvtt.com/api/v12/classes/client.ClockwiseSweepPolygon.html)
 - [ClockwiseSweepPolygon — API v13](https://foundryvtt.com/api/v13/classes/foundry.canvas.geometry.ClockwiseSweepPolygon.html)
 - [FogManager — API v13](https://foundryvtt.com/api/v13/classes/foundry.canvas.perception.FogManager.html)
@@ -521,6 +537,7 @@ Para uma implementação própria, as opções open-source mais relevantes:
 - [CanvasVisibility — API v14](https://foundryvtt.com/api/classes/foundry.canvas.groups.CanvasVisibility.html)
 
 ### Issues Públicas do GitHub (foundryvtt/foundryvtt)
+
 - [Issue #7324 — Proximity threshold walls (Windows)](https://github.com/foundryvtt/foundryvtt/issues/7324)
 - [Issue #7801 — Detection Modes (proposta original)](https://github.com/foundryvtt/foundryvtt/issues/7801)
 - [Issue #8122 — Fog reset com exploração local não salva](https://github.com/foundryvtt/foundryvtt/issues/8122)
@@ -532,11 +549,13 @@ Para uma implementação própria, as opções open-source mais relevantes:
 - [Issue #11048 — Darkvision + GI threshold em Scene Regions](https://github.com/foundryvtt/foundryvtt/issues/11048)
 
 ### Recursos de Algoritmo
+
 - [Red Blob Games: 2D Visibility](https://www.redblobgames.com/articles/visibility/)
 - [Sight & Light — ncase.me (CC0)](https://ncase.me/sight-and-light/)
 - [Silverwolf90/2d-visibility (MIT)](https://github.com/Silverwolf90/2d-visibility)
 
 ### Módulos Open-Source
+
 - [caewok/fvtt-elevated-vision](https://github.com/caewok/fvtt-elevated-vision)
 - [caewok/fvtt-token-visibility](https://github.com/caewok/fvtt-token-visibility)
 - [dev7355608/perfect-vision](https://github.com/dev7355608/perfect-vision)
@@ -544,6 +563,7 @@ Para uma implementação própria, as opções open-source mais relevantes:
 - [dev7355608/limits](https://github.com/dev7355608/limits)
 
 ### Comunidade
+
 - [Walls — Foundry VTT Community Wiki](https://foundryvtt.wiki/en/basics/Walls)
 - [DeepWiki: Walls and Tiles](https://deepwiki.com/foundryvtt/foundryvtt/3.4-walls-and-tiles)
 - [Token Vision in Foundry VTT — joshua.law](https://writing.joshua.law/token-vision-in-foundry-vtt)

@@ -50,16 +50,16 @@ RollTerm (abstrata)
 
 Cada face rolada gera um objeto `DiceTermResult` com os seguintes campos:
 
-| Campo       | Tipo    | Descrição                                                    |
-|-------------|---------|--------------------------------------------------------------|
-| `result`    | number  | Valor numérico rolado                                        |
-| `active`    | boolean | Se este resultado contribui para o total                     |
-| `count`     | number  | Valor contável (para cs/cf — substitui `result` na soma)     |
-| `success`   | boolean | Marcado como sucesso (cs)                                    |
-| `failure`   | boolean | Marcado como falha (cf)                                      |
-| `discarded` | boolean | Descartado por keep/drop                                     |
-| `rerolled`  | boolean | Rerrolado (r/rr)                                             |
-| `exploded`  | boolean | Veio de uma explosão (x/xo)                                  |
+| Campo       | Tipo    | Descrição                                                |
+| ----------- | ------- | -------------------------------------------------------- |
+| `result`    | number  | Valor numérico rolado                                    |
+| `active`    | boolean | Se este resultado contribui para o total                 |
+| `count`     | number  | Valor contável (para cs/cf — substitui `result` na soma) |
+| `success`   | boolean | Marcado como sucesso (cs)                                |
+| `failure`   | boolean | Marcado como falha (cf)                                  |
+| `discarded` | boolean | Descartado por keep/drop                                 |
+| `rerolled`  | boolean | Rerrolado (r/rr)                                         |
+| `exploded`  | boolean | Veio de uma explosão (x/xo)                              |
 
 ### 2.3 Die — Classe Principal
 
@@ -87,12 +87,12 @@ Exemplos: `1d20`, `4d6`, `1d100`, `3d12`
 
 Operadores combinam termos em expressões aritméticas:
 
-| Operador | Semântica         |
-|----------|-------------------|
-| `+`      | Adição            |
-| `-`      | Subtração         |
-| `*`      | Multiplicação     |
-| `/`      | Divisão           |
+| Operador | Semântica     |
+| -------- | ------------- |
+| `+`      | Adição        |
+| `-`      | Subtração     |
+| `*`      | Multiplicação |
+| `/`      | Divisão       |
 
 Exemplo: `/roll 1d20 / 2 + 10` — divide o resultado do d20 por 2 e adiciona 10.
 
@@ -150,21 +150,21 @@ extrair e aplicar modificadores em sequência após o sorteio básico.
 
 ### 4.1 Keep / Drop
 
-| Modificador | Alias | Comportamento                                          | Exemplo         |
-|-------------|-------|--------------------------------------------------------|-----------------|
-| `kh[N]`     | `k`   | Mantém os N maiores (padrão: 1)                        | `4d6k3`         |
-| `kl[N]`     |       | Mantém os N menores (padrão: 1)                        | `4d6kl1`        |
-| `dl[N]`     | `d`   | Descarta os N menores (padrão: 1)                      | `4d6d1`         |
-| `dh[N]`     |       | Descarta os N maiores (padrão: 1)                      | `4d6dh1`        |
+| Modificador | Alias | Comportamento                     | Exemplo  |
+| ----------- | ----- | --------------------------------- | -------- |
+| `kh[N]`     | `k`   | Mantém os N maiores (padrão: 1)   | `4d6k3`  |
+| `kl[N]`     |       | Mantém os N menores (padrão: 1)   | `4d6kl1` |
+| `dl[N]`     | `d`   | Descarta os N menores (padrão: 1) | `4d6d1`  |
+| `dh[N]`     |       | Descarta os N maiores (padrão: 1) | `4d6dh1` |
 
 Os resultados descartados ficam com `active: false` e `discarded: true` no array `results`.
 
 ### 4.2 Reroll
 
-| Modificador    | Comportamento                                                          | Exemplo        |
-|----------------|------------------------------------------------------------------------|----------------|
-| `r[comp][N]`   | Rerola uma vez se o resultado atender à condição                       | `1d20r1`       |
-| `rr[comp][N]`  | Rerola recursivamente enquanto a condição for satisfeita               | `1d20rr<3`     |
+| Modificador   | Comportamento                                            | Exemplo    |
+| ------------- | -------------------------------------------------------- | ---------- |
+| `r[comp][N]`  | Rerola uma vez se o resultado atender à condição         | `1d20r1`   |
+| `rr[comp][N]` | Rerola recursivamente enquanto a condição for satisfeita | `1d20rr<3` |
 
 Comparadores válidos: `=`, `>`, `>=`, `<`, `<=`. Sem comparador, assume `=` com o valor mínimo
 de 1.
@@ -175,45 +175,46 @@ O resultado rerrolado fica marcado com `rerolled: true`.
 
 ### 4.3 Exploding (Explode)
 
-| Modificador   | Comportamento                                                             | Exemplo       |
-|---------------|---------------------------------------------------------------------------|---------------|
-| `x[comp][N]`  | Explode — sorteio adicional ilimitado quando condição é satisfeita        | `3d6x`        |
-| `xo[comp][N]` | Explode Once — sorteio adicional uma única vez                            | `6d10xo10`    |
-| `x[N]=val`    | Explode com cap numérico (máximo de N explosões por dado)                 | `6d10x5=10`   |
-| `xp[comp]`    | Penetrating — explode com -1 aplicado a cada dado adicional (HackMaster)  | `5d6xp`       |
+| Modificador   | Comportamento                                                            | Exemplo     |
+| ------------- | ------------------------------------------------------------------------ | ----------- |
+| `x[comp][N]`  | Explode — sorteio adicional ilimitado quando condição é satisfeita       | `3d6x`      |
+| `xo[comp][N]` | Explode Once — sorteio adicional uma única vez                           | `6d10xo10`  |
+| `x[N]=val`    | Explode com cap numérico (máximo de N explosões por dado)                | `6d10x5=10` |
+| `xp[comp]`    | Penetrating — explode com -1 aplicado a cada dado adicional (HackMaster) | `5d6xp`     |
 
 Sem comparador, a explosão ocorre no valor máximo do dado. Os dados adicionais ficam marcados
 com `exploded: true`.
 
 ### 4.4 Mínimo / Máximo de Resultado
 
-| Modificador | Comportamento                                                       | Exemplo       |
-|-------------|---------------------------------------------------------------------|---------------|
-| `min[N]`    | Substitui qualquer resultado abaixo de N por N                      | `4d10min2`    |
-| `max[N]`    | Substitui qualquer resultado acima de N por N                       | `4d10max8`    |
+| Modificador | Comportamento                                  | Exemplo    |
+| ----------- | ---------------------------------------------- | ---------- |
+| `min[N]`    | Substitui qualquer resultado abaixo de N por N | `4d10min2` |
+| `max[N]`    | Substitui qualquer resultado acima de N por N  | `4d10max8` |
 
 ### 4.5 Contagem de Sucessos e Falhas
 
-| Modificador    | Comportamento                                                         | Exemplo              |
-|----------------|-----------------------------------------------------------------------|----------------------|
-| `cs[comp][N]`  | Conta dados que atendem à condição como sucessos; total = contagem   | `10d20cs>10`         |
-| `cf[comp][N]`  | Conta dados que falham na condição; total = contagem de falhas        | `10d20cf=1`          |
-| `even`         | Conta resultados pares como sucessos                                  | `3d6even`            |
-| `odd`          | Conta resultados ímpares como sucessos                                | `3d6odd`             |
-| `df[comp][N]`  | Deduct Failures — subtrai 1 por falha do total de sucessos            | `5d10cs>=6df=1`      |
-| `sf[comp][N]`  | Subtract Failures — subtrai o valor do dado do total por falha        | `3d6sf<3`            |
-| `ms[comp][N]`  | Margin of Success — retorna total − threshold (ou threshold − total)  | `3d6ms10`            |
+| Modificador   | Comportamento                                                        | Exemplo         |
+| ------------- | -------------------------------------------------------------------- | --------------- |
+| `cs[comp][N]` | Conta dados que atendem à condição como sucessos; total = contagem   | `10d20cs>10`    |
+| `cf[comp][N]` | Conta dados que falham na condição; total = contagem de falhas       | `10d20cf=1`     |
+| `even`        | Conta resultados pares como sucessos                                 | `3d6even`       |
+| `odd`         | Conta resultados ímpares como sucessos                               | `3d6odd`        |
+| `df[comp][N]` | Deduct Failures — subtrai 1 por falha do total de sucessos           | `5d10cs>=6df=1` |
+| `sf[comp][N]` | Subtract Failures — subtrai o valor do dado do total por falha       | `3d6sf<3`       |
+| `ms[comp][N]` | Margin of Success — retorna total − threshold (ou threshold − total) | `3d6ms10`       |
 
 Observações sobre `ms`:
+
 - Com `>` ou `>=`: margem = soma − threshold
 - Com `<` ou `<=`: margem = threshold − soma
 
 ### 4.6 Dados Especiais
 
-| Sintaxe | Tipo         | Comportamento                                                       |
-|---------|--------------|---------------------------------------------------------------------|
-| `Ndc`   | Coin (moeda) | Cara (1) ou coroa (0); por padrão conta caras como sucessos         |
-| `Ndf`   | Fate Die     | Faces: +1, 0, -1 (dados Fate/Fudge)                                |
+| Sintaxe | Tipo         | Comportamento                                               |
+| ------- | ------------ | ----------------------------------------------------------- |
+| `Ndc`   | Coin (moeda) | Cara (1) ou coroa (0); por padrão conta caras como sucessos |
+| `Ndf`   | Fate Die     | Faces: +1, 0, -1 (dados Fate/Fudge)                         |
 
 Modificadores de coin: `cc[N]` conta cara (1) ou coroa (0) como sucesso conforme especificado.
 
@@ -229,6 +230,7 @@ completo. A sintaxe usa chaves `{}` com expressões separadas por vírgulas:
 ```
 
 Exemplos:
+
 - `{4d6, 3d8, 2d10}kh` — mantém o maior resultado entre os três grupos
 - `{1d20, 10}kh + 5` — implementa "Reliable Talent" do D&D 5e (maior entre d20 e 10, +5)
 - `{6d6, 5d8, 4d10, 3d12}cs>15` — conta quantos grupos ultrapassam 15
@@ -247,12 +249,12 @@ dos valores dos rolls "ativos" (kept) dentro do pool.
 As fórmulas suportam funções via `FunctionTerm`. O Foundry expõe o objeto `Math` padrão do
 JavaScript em um ambiente seguro (Math Proxy). Funções documentadas para uso em fórmulas:
 
-| Função     | Comportamento                               | Exemplo              |
-|------------|---------------------------------------------|----------------------|
-| `floor(x)` | Arredonda para baixo                        | `floor(3d6 / 2)`     |
-| `ceil(x)`  | Arredonda para cima                         | `ceil(1d8 / 3)`      |
-| `round(x)` | Arredonda para o inteiro mais próximo       | `round(2d10 / 4)`    |
-| `abs(x)`   | Valor absoluto                              | `abs(5d6 - 20)`      |
+| Função     | Comportamento                         | Exemplo           |
+| ---------- | ------------------------------------- | ----------------- |
+| `floor(x)` | Arredonda para baixo                  | `floor(3d6 / 2)`  |
+| `ceil(x)`  | Arredonda para cima                   | `ceil(1d8 / 3)`   |
+| `round(x)` | Arredonda para o inteiro mais próximo | `round(2d10 / 4)` |
+| `abs(x)`   | Valor absoluto                        | `abs(5d6 - 20)`   |
 
 O Math Proxy do Foundry acrescenta funções extras (`clamp`, `mix`, `normalizeDegrees`, etc.)
 principalmente para uso interno de geometria de canvas, mas as quatro acima são as relevantes
@@ -292,6 +294,7 @@ itens de compendium (ex.: pf2e usa extensivamente para strike damage e spell sav
 ### 7.3 Sintaxe Alternativa no Chat
 
 No chat, um roll pode ser prefixado diretamente sem os colchetes duplos:
+
 - `/r 1d20` ou `/roll 1d20` — roll público
 - `/gmr 1d20` ou `/gmroll 1d20` — roll privado para o GM
 - `/br 1d20` ou `/blindroll 1d20` — roll cego (GM vê, jogador não vê)
@@ -304,12 +307,12 @@ No chat, um roll pode ser prefixado diretamente sem os colchetes duplos:
 
 O Foundry define quatro modos de rolagem em `CONST.DICE_ROLL_MODES`:
 
-| Constante | Valor string   | Comportamento no ChatMessage                          |
-|-----------|----------------|-------------------------------------------------------|
-| `PUBLIC`  | `"publicroll"` | `whisper: []`, `blind: false` — visível a todos       |
-| `PRIVATE` | `"gmroll"`     | `whisper: [gm_ids]`, `blind: false` — jogador + GMs  |
-| `BLIND`   | `"blindroll"`  | `whisper: [gm_ids]`, `blind: true` — só GMs veem      |
-| `SELF`    | `"selfroll"`   | `whisper: [author_id]`, `blind: false` — só o autor   |
+| Constante | Valor string   | Comportamento no ChatMessage                        |
+| --------- | -------------- | --------------------------------------------------- |
+| `PUBLIC`  | `"publicroll"` | `whisper: []`, `blind: false` — visível a todos     |
+| `PRIVATE` | `"gmroll"`     | `whisper: [gm_ids]`, `blind: false` — jogador + GMs |
+| `BLIND`   | `"blindroll"`  | `whisper: [gm_ids]`, `blind: true` — só GMs veem    |
+| `SELF`    | `"selfroll"`   | `whisper: [author_id]`, `blind: false` — só o autor |
 
 O dropdown no chat configura o modo padrão para **rolls automatizados** (por sistemas, módulos e
 macros). Comandos `/roll` digitados manualmente sempre produzem roll público, independente do
@@ -332,39 +335,39 @@ new Roll(formula: string, data?: object, options?: RollOptions)
 
 ### 9.2 Propriedades Principais
 
-| Propriedade       | Tipo              | Descrição                                         |
-|-------------------|-------------------|---------------------------------------------------|
-| `formula`         | string            | Expressão compilada a partir dos termos           |
-| `terms`           | RollTerm[]        | Array de termos parseados                         |
-| `data`            | object            | Dados originais para substituição de variáveis    |
-| `total`           | number            | Total numérico após avaliação                     |
-| `result`          | string            | Expressão aritmética com os valores rolados       |
-| `isDeterministic` | boolean           | True se não há termos aleatórios                  |
+| Propriedade       | Tipo       | Descrição                                      |
+| ----------------- | ---------- | ---------------------------------------------- |
+| `formula`         | string     | Expressão compilada a partir dos termos        |
+| `terms`           | RollTerm[] | Array de termos parseados                      |
+| `data`            | object     | Dados originais para substituição de variáveis |
+| `total`           | number     | Total numérico após avaliação                  |
+| `result`          | string     | Expressão aritmética com os valores rolados    |
+| `isDeterministic` | boolean    | True se não há termos aleatórios               |
 
 ### 9.3 Métodos de Avaliação
 
-| Método                         | Tipo         | Descrição                                              |
-|--------------------------------|--------------|--------------------------------------------------------|
-| `evaluate(options?)`           | Async        | Avalia o roll; suporta `maximize`, `minimize`          |
-| `evaluateSync(options?)`       | Sync         | Avaliação síncrona; `strict: true` lança erro se não-determinístico |
-| `clone()`                      | —            | Cópia não-avaliada com mesma fórmula e dados           |
-| `alter(multiply, add)`         | —            | Modifica contagem de dados (`alter(2, 0)` dobra dados) |
-| `reroll(options?)`             | —            | Nova instância com mesma fórmula/dados                 |
-| `toMessage(messageData, opts)` | —            | Cria e salva um `ChatMessage` com este roll            |
-| `toAnchor(options?)`           | —            | Cria elemento `<a>` de inline roll para HTML           |
-| `toJSON()`                     | —            | Serializa para JSON                                    |
+| Método                         | Tipo  | Descrição                                                           |
+| ------------------------------ | ----- | ------------------------------------------------------------------- |
+| `evaluate(options?)`           | Async | Avalia o roll; suporta `maximize`, `minimize`                       |
+| `evaluateSync(options?)`       | Sync  | Avaliação síncrona; `strict: true` lança erro se não-determinístico |
+| `clone()`                      | —     | Cópia não-avaliada com mesma fórmula e dados                        |
+| `alter(multiply, add)`         | —     | Modifica contagem de dados (`alter(2, 0)` dobra dados)              |
+| `reroll(options?)`             | —     | Nova instância com mesma fórmula/dados                              |
+| `toMessage(messageData, opts)` | —     | Cria e salva um `ChatMessage` com este roll                         |
+| `toAnchor(options?)`           | —     | Cria elemento `<a>` de inline roll para HTML                        |
+| `toJSON()`                     | —     | Serializa para JSON                                                 |
 
 ### 9.4 Métodos Estáticos
 
-| Método                              | Descrição                                                  |
-|-------------------------------------|------------------------------------------------------------|
-| `Roll.create(formula, data, opts)`  | Factory que usa a classe de Roll configurada               |
-| `Roll.fromJSON(json)`               | Reconstrói Roll a partir de string JSON                    |
-| `Roll.fromData(data)`               | Reconstrói Roll a partir de objeto de dados                |
-| `Roll.fromTerms(terms, opts)`       | Constrói Roll a partir de array de RollTerms               |
-| `Roll.parse(formula, data)`         | Retorna array de RollTerms sem avaliar                     |
-| `Roll.replaceFormulaData(f, d, o)`  | Substitui `@attr` com valores de `d` na fórmula `f`       |
-| `Roll.registerResult(method, d, r)` | Registra resultado externo no RollResolver ativo           |
+| Método                              | Descrição                                           |
+| ----------------------------------- | --------------------------------------------------- |
+| `Roll.create(formula, data, opts)`  | Factory que usa a classe de Roll configurada        |
+| `Roll.fromJSON(json)`               | Reconstrói Roll a partir de string JSON             |
+| `Roll.fromData(data)`               | Reconstrói Roll a partir de objeto de dados         |
+| `Roll.fromTerms(terms, opts)`       | Constrói Roll a partir de array de RollTerms        |
+| `Roll.parse(formula, data)`         | Retorna array de RollTerms sem avaliar              |
+| `Roll.replaceFormulaData(f, d, o)`  | Substitui `@attr` com valores de `d` na fórmula `f` |
+| `Roll.registerResult(method, d, r)` | Registra resultado externo no RollResolver ativo    |
 
 ### 9.5 Parser Peggy (v12+)
 
@@ -408,28 +411,28 @@ entropia externo (lava lamp, radiação cósmica de fundo).
 
 O `ChatMessage` é um Document do Foundry com o seguinte schema (v14):
 
-| Campo       | Tipo         | Descrição                                                      |
-|-------------|--------------|----------------------------------------------------------------|
-| `_id`       | DocumentId   | Identificador único                                            |
-| `author`    | ForeignDoc   | Referência ao User autor                                       |
-| `blind`     | Boolean      | Se o conteúdo está oculto para não-destinatários               |
-| `content`   | HTML         | Conteúdo HTML principal da mensagem                            |
-| `emote`     | Boolean      | Se é uma mensagem de emote                                     |
-| `flavor`    | HTML         | Texto de sabor (flavor text) — exibido acima do roll           |
-| `rolls`     | Array(JSON)  | Rolls serializados em JSON                                     |
-| `sound`     | FilePath     | Som reproduzido com a mensagem                                 |
-| `speaker`   | SchemaField  | Objeto com `scene`, `actor`, `token`, `alias`                  |
-| `style`     | Number       | Estilo de exibição (veja CHAT_MESSAGE_STYLES)                  |
-| `timestamp` | Number       | Unix timestamp de criação                                      |
-| `title`     | String       | Título opcional                                                |
-| `type`      | DocumentType | Tipo de documento (substitui uso antigo de type como estilo)   |
-| `whisper`   | Array(Ref)   | Array de User IDs destinatários                                |
-| `flags`     | Object       | Namespace de dados arbitrários por sistema/módulo              |
+| Campo       | Tipo         | Descrição                                                    |
+| ----------- | ------------ | ------------------------------------------------------------ |
+| `_id`       | DocumentId   | Identificador único                                          |
+| `author`    | ForeignDoc   | Referência ao User autor                                     |
+| `blind`     | Boolean      | Se o conteúdo está oculto para não-destinatários             |
+| `content`   | HTML         | Conteúdo HTML principal da mensagem                          |
+| `emote`     | Boolean      | Se é uma mensagem de emote                                   |
+| `flavor`    | HTML         | Texto de sabor (flavor text) — exibido acima do roll         |
+| `rolls`     | Array(JSON)  | Rolls serializados em JSON                                   |
+| `sound`     | FilePath     | Som reproduzido com a mensagem                               |
+| `speaker`   | SchemaField  | Objeto com `scene`, `actor`, `token`, `alias`                |
+| `style`     | Number       | Estilo de exibição (veja CHAT_MESSAGE_STYLES)                |
+| `timestamp` | Number       | Unix timestamp de criação                                    |
+| `title`     | String       | Título opcional                                              |
+| `type`      | DocumentType | Tipo de documento (substitui uso antigo de type como estilo) |
+| `whisper`   | Array(Ref)   | Array de User IDs destinatários                              |
+| `flags`     | Object       | Namespace de dados arbitrários por sistema/módulo            |
 
 ### 11.2 Chat Message Styles (CHAT_MESSAGE_STYLES)
 
 | Constante | Comportamento                                                         |
-|-----------|-----------------------------------------------------------------------|
+| --------- | --------------------------------------------------------------------- |
 | `OTHER`   | Mensagem sem categoria especial (padrão para rolls e system messages) |
 | `OOC`     | Out-of-Character — contornada na cor do jogador                       |
 | `IC`      | In-Character — falada pelo personagem associado                       |
@@ -443,16 +446,16 @@ foi eliminado.
 
 ### 11.3 Comandos de Chat
 
-| Comando(s)                          | Modo       | Descrição                                    |
-|-------------------------------------|------------|----------------------------------------------|
-| `/roll`, `/r`, `/publicroll`, `/pr` | PUBLIC     | Roll visível a todos                         |
-| `/gmroll`, `/gmr`                   | PRIVATE    | Roll visível ao GM e ao jogador               |
-| `/blindroll`, `/broll`, `/br`       | BLIND      | Roll visível apenas ao GM                    |
-| `/selfroll`, `/sr`                  | SELF       | Roll visível apenas ao autor                 |
-| `/ic`                               | —          | Mensagem in-character (requer token)         |
-| `/ooc`                              | —          | Mensagem out-of-character                    |
-| `/emote`, `/em`, `/me`              | —          | Emote do personagem selecionado              |
-| `/whisper [alvo], /w [alvo]`        | —          | Mensagem privada para usuário(s) específico(s)|
+| Comando(s)                          | Modo    | Descrição                                      |
+| ----------------------------------- | ------- | ---------------------------------------------- |
+| `/roll`, `/r`, `/publicroll`, `/pr` | PUBLIC  | Roll visível a todos                           |
+| `/gmroll`, `/gmr`                   | PRIVATE | Roll visível ao GM e ao jogador                |
+| `/blindroll`, `/broll`, `/br`       | BLIND   | Roll visível apenas ao GM                      |
+| `/selfroll`, `/sr`                  | SELF    | Roll visível apenas ao autor                   |
+| `/ic`                               | —       | Mensagem in-character (requer token)           |
+| `/ooc`                              | —       | Mensagem out-of-character                      |
+| `/emote`, `/em`, `/me`              | —       | Emote do personagem selecionado                |
+| `/whisper [alvo], /w [alvo]`        | —       | Mensagem privada para usuário(s) específico(s) |
 
 Para `/whisper`, os alvos são especificados como `[NomeUsuario]` ou múltiplos separados por
 vírgula: `/w [João, Maria] mensagem`. Palavras-chave especiais: `gm` (todos os GMs), `players`
@@ -473,6 +476,7 @@ static getSpeaker(options?: {
 ```
 
 **Ordem de resolução (prioridade decrescente):**
+
 1. Token controlado no momento (primeiro token controlado)
 2. Actor associado ao usuário (se nenhum token estiver controlado)
 3. Opções explicitamente passadas (`actor`, `token`, `scene`, `alias`)
@@ -505,7 +509,7 @@ O padrão estabelecido pelo ecossistema Foundry segue estes passos:
    ```javascript
    // Padrão de event delegation em sistemas
    Hooks.on("renderChatMessage", (message, html) => {
-     html.on("click", "[data-action]", event => {
+     html.on("click", "[data-action]", (event) => {
        const action = event.currentTarget.dataset.action;
        // dispatch por action type
      });
@@ -517,13 +521,13 @@ O padrão estabelecido pelo ecossistema Foundry segue estes passos:
 
 ### 12.2 Tipos de Botões Comuns (Ecossistema pf2e/dnd5e)
 
-| Botão               | Função                                                        |
-|---------------------|---------------------------------------------------------------|
-| Aplicar Dano        | Aplica resultado de dano ao token selecionado                 |
-| Metade do Dano      | Aplica dano reduzido (save bem-sucedido)                      |
-| Rolar Save          | Cria novo roll de saving throw a partir do card do ataque     |
-| Aplicar Efeito      | Adiciona efeito (status effect, condição) ao ator             |
-| Critico / Falha     | Indicadores visuais de critical hit/fumble com ações extras   |
+| Botão           | Função                                                      |
+| --------------- | ----------------------------------------------------------- |
+| Aplicar Dano    | Aplica resultado de dano ao token selecionado               |
+| Metade do Dano  | Aplica dano reduzido (save bem-sucedido)                    |
+| Rolar Save      | Cria novo roll de saving throw a partir do card do ataque   |
+| Aplicar Efeito  | Adiciona efeito (status effect, condição) ao ator           |
+| Critico / Falha | Indicadores visuais de critical hit/fumble com ações extras |
 
 O sistema `dnd5e` implementa os botões como **custom HTML elements** (Web Components) ao invés de
 buttons tradicionais, encapsulando lógica complexa de application de dano, efeitos e targets AC.
@@ -540,9 +544,9 @@ ChatMessage.create({
     minhasistema: {
       itemId: item.id,
       attackTotal: rollTotal,
-      targets: targetIds
-    }
-  }
+      targets: targetIds,
+    },
+  },
 });
 ```
 
@@ -567,6 +571,7 @@ Mensagens in-character (`/ic`) e emotes (`/emote`) de tokens posicionados em cen
 
 **Dice So Nice** é o módulo padrão de facto do ecossistema Foundry para dados 3D animados.
 Tecnologia:
+
 - **Three.js** — renderização 3D
 - **cannon-es** — física de corpos rígidos
 - **Proton** — sistema de partículas
@@ -592,12 +597,12 @@ próprio). Tem módulo oficial para Foundry.
 
 Para o projeto Fusion, opções viáveis de dados 3D open-source:
 
-| Biblioteca      | Licença    | Notas                                                          |
-|-----------------|------------|----------------------------------------------------------------|
-| **Three.js**    | MIT        | Mesma usada pelo DSN; grande ecossistema                       |
-| **Babylon.js**  | Apache 2.0 | Mais performático; usado pelo D&D Beyond; física nativa melhor |
-| **cannon-es**   | MIT        | Fork mantido do cannon.js; física de rígidos                   |
-| **rapier.js**   | Apache 2.0 | Motor de física em Rust/WASM; muito mais performático          |
+| Biblioteca     | Licença    | Notas                                                          |
+| -------------- | ---------- | -------------------------------------------------------------- |
+| **Three.js**   | MIT        | Mesma usada pelo DSN; grande ecossistema                       |
+| **Babylon.js** | Apache 2.0 | Mais performático; usado pelo D&D Beyond; física nativa melhor |
+| **cannon-es**  | MIT        | Fork mantido do cannon.js; física de rígidos                   |
+| **rapier.js**  | Apache 2.0 | Motor de física em Rust/WASM; muito mais performático          |
 
 A D&D Beyond migrou de Three.js para Babylon.js para os dados digitais. Para um VTT novo,
 Babylon.js + rapier.js seria a combinação com melhor custo/benefício.
@@ -610,6 +615,7 @@ Babylon.js + rapier.js seria a combinação com melhor custo/benefício.
 
 Replicar a abordagem Peggy (PEG parser) para a sintaxe de fórmula é a escolha mais robusta.
 Alternatives:
+
 - **nearley.js** — grammar mais expressiva, licença MIT
 - **PEG.js / Peggy** — mesma biblioteca usada pelo Foundry, MIT license
 - **Parser manual recursivo** — mais simples, suficiente para o subset básico
@@ -617,6 +623,7 @@ Alternatives:
 ### 15.2 Design da Sintaxe Própria
 
 O Fusion pode adotar a mesma sintaxe do Foundry (exceto código) como baseline, dado que:
+
 - A sintaxe é baseada em notação de dados padrão do hobby (NdX, kh, dl, x, r)
 - Não é IP proprietário do Foundry — é convenção da comunidade
 - Isso garante familiaridade para GMs e jogadores
@@ -634,6 +641,7 @@ cálculo de degree of success inline).
 ### 15.4 Dados 3D
 
 Não é requisito MVP, mas é expectativa do ecossistema. Estratégia sugerida:
+
 - MVP: notação de resultado apenas (texto)
 - v1.1: integração com Dice So Nice via iFrame ou módulo isolado
 - v2.0: implementação própria com Three.js/Babylon.js

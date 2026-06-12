@@ -29,26 +29,26 @@
 
 O Foundry VTT (Foundry Gaming LLC) oferece quatro modalidades de instalação:
 
-| Modalidade | Plataforma | Descrição |
-|---|---|---|
-| **Electron App** | Windows, macOS, Linux | Pacote pré-compilado com servidor Node.js + Chromium embutido |
-| **Node.js Package** | Multiplataforma | Arquivo `.zip` rodado com `node main.js`; headless (sem GUI) |
-| **Windows Portable Build** | Windows (V13+) | `.zip` autocontido; não requer instalador tradicional |
-| **Partner Hosting** | Qualquer | Provedores como The Forge, Molten, Sqyre |
+| Modalidade                 | Plataforma            | Descrição                                                     |
+| -------------------------- | --------------------- | ------------------------------------------------------------- |
+| **Electron App**           | Windows, macOS, Linux | Pacote pré-compilado com servidor Node.js + Chromium embutido |
+| **Node.js Package**        | Multiplataforma       | Arquivo `.zip` rodado com `node main.js`; headless (sem GUI)  |
+| **Windows Portable Build** | Windows (V13+)        | `.zip` autocontido; não requer instalador tradicional         |
+| **Partner Hosting**        | Qualquer              | Provedores como The Forge, Molten, Sqyre                      |
 
 ### Estatísticas de adoção (Year in Review 2025)
 
 Dados oficiais publicados pelo próprio Foundry:
 
-| Método | % de usuários |
-|---|---|
-| Windows + Electron | 68,35% |
-| Hosting providers | 17,10% |
-| Linux + Node.js | 9,66% |
-| macOS + Electron | 2,85% |
-| Linux + Electron | 1,19% |
-| Windows + Node.js | 0,76% |
-| macOS + Node.js | 0,06% |
+| Método             | % de usuários |
+| ------------------ | ------------- |
+| Windows + Electron | 68,35%        |
+| Hosting providers  | 17,10%        |
+| Linux + Node.js    | 9,66%         |
+| macOS + Electron   | 2,85%         |
+| Linux + Electron   | 1,19%         |
+| Windows + Node.js  | 0,76%         |
+| macOS + Node.js    | 0,06%         |
 
 **Conclusão para o Fusion:** o empacotamento Electron (ou equivalente Tauri) é a forma majoritária de entrega — **72% dos usuários usam o app de desktop**. Node.js headless representa ~10% e fica restrito a power users. O Fusion deve priorizar o app de desktop e oferecer o servidor headless como modo avançado.
 
@@ -59,6 +59,7 @@ O Foundry usa **links de download temporários** (expiram em 5 minutos) gerados 
 ### Estrutura de versões e canais de update
 
 O Foundry mantém três canais:
+
 - **Stable** — produção, recomendado para jogos ativos
 - **Testing** — testes de novas features com a comunidade ampla
 - **Development** — fase de design e API; maior instabilidade
@@ -73,15 +74,15 @@ No V13, a estrutura de arquivos mudou: o ponto de entrada passou de `resources/a
 
 O Tauri v2 foi escolhido nos documentos anteriores do Fusion como wrapper de desktop. A tabela abaixo justifica:
 
-| Critério | Electron 30.x | Tauri v2.x |
-|---|---|---|
-| Tamanho do instalador | ~180 MB | ~12 MB |
-| RAM idle | ~450 MB | ~85 MB |
-| Cold start (Windows 11) | ~12 s | ~1,8 s |
-| Bundling Chromium | Sim (sempre) | Não (usa WebView do OS) |
-| Runtime incluído | Node.js 22 | Rust core (sem Node por padrão) |
+| Critério                  | Electron 30.x    | Tauri v2.x                          |
+| ------------------------- | ---------------- | ----------------------------------- |
+| Tamanho do instalador     | ~180 MB          | ~12 MB                              |
+| RAM idle                  | ~450 MB          | ~85 MB                              |
+| Cold start (Windows 11)   | ~12 s            | ~1,8 s                              |
+| Bundling Chromium         | Sim (sempre)     | Não (usa WebView do OS)             |
+| Runtime incluído          | Node.js 22       | Rust core (sem Node por padrão)     |
 | Suporte a sidecar Node.js | Via main process | Via plugin sidecar + `@yao-pkg/pkg` |
-| Auto-updater nativo | electron-updater | tauri-plugin-updater |
+| Auto-updater nativo       | electron-updater | tauri-plugin-updater                |
 
 O Tauri v2 atingiu estabilidade em outubro de 2024; a linha atual é **2.9.x** (última: 2.9.6, dezembro 2025).
 
@@ -138,12 +139,12 @@ O Tauri v2 gera dois formatos distintos, não mutuamente exclusivos:
 
 O WebView2 é obrigatório para o Tauri no Windows. Quatro estratégias de provisioning:
 
-| Estratégia | Tamanho extra | Requer internet | Quando usar |
-|---|---|---|---|
-| `downloadBootstrapper` | 0 MB | Sim | Instalador menor; Windows 10+ |
-| `embedBootstrapper` | +1,8 MB | Sim | Windows 7+ compat |
-| `offlineInstaller` | +127 MB | Não | Ambientes offline |
-| `fixedVersion` | +180 MB | Não | Controle total de versão |
+| Estratégia             | Tamanho extra | Requer internet | Quando usar                   |
+| ---------------------- | ------------- | --------------- | ----------------------------- |
+| `downloadBootstrapper` | 0 MB          | Sim             | Instalador menor; Windows 10+ |
+| `embedBootstrapper`    | +1,8 MB       | Sim             | Windows 7+ compat             |
+| `offlineInstaller`     | +127 MB       | Não             | Ambientes offline             |
+| `fixedVersion`         | +180 MB       | Não             | Controle total de versão      |
 
 Para o Fusion, `downloadBootstrapper` é suficiente (Windows 10+ como baseline).
 
@@ -156,14 +157,14 @@ Para o Fusion, `downloadBootstrapper` é suficiente (Windows 10+ como baseline).
 
 ### Linux
 
-| Formato | Descrição |
-|---|---|
+| Formato      | Descrição                     |
+| ------------ | ----------------------------- |
 | **AppImage** | Portátil; roda sem instalação |
-| **DEB** | Debian/Ubuntu |
-| **RPM** | Fedora/RHEL |
-| **Snap** | Snapcraft |
-| **Flatpak** | Sandbox universal |
-| **AUR** | Arch User Repository |
+| **DEB**      | Debian/Ubuntu                 |
+| **RPM**      | Fedora/RHEL                   |
+| **Snap**     | Snapcraft                     |
+| **Flatpak**  | Sandbox universal             |
+| **AUR**      | Arch User Repository          |
 
 Para o Fusion, **AppImage + DEB** são suficientes para MVP.
 
@@ -213,12 +214,12 @@ Para o Fusion, **AppImage + DEB** são suficientes para MVP.
 
 ### Resumo de custos anuais de signing
 
-| Plataforma | Serviço | Custo/ano |
-|---|---|---|
-| Windows | Azure Artifact Signing ($9,99/mês) | ~$120 |
-| macOS | Apple Developer Program | $99 |
-| Linux | Não obrigatório | $0 |
-| **Total mínimo** | | **~$220/ano** |
+| Plataforma       | Serviço                            | Custo/ano     |
+| ---------------- | ---------------------------------- | ------------- |
+| Windows          | Azure Artifact Signing ($9,99/mês) | ~$120         |
+| macOS            | Apple Developer Program            | $99           |
+| Linux            | Não obrigatório                    | $0            |
+| **Total mínimo** |                                    | **~$220/ano** |
 
 ---
 
@@ -275,6 +276,7 @@ Dois formatos suportados:
 O endpoint recebe variáveis na URL: `{{target}}`, `{{arch}}`, `{{current_version}}`. O servidor responde 200 com JSON `{url, version, signature}` se há update, ou 204 se não há.
 
 Exemplo de endpoint parametrizado:
+
 ```
 https://updates.fusion.app/{{target}}/{{arch}}/{{current_version}}
 ```
@@ -286,9 +288,7 @@ https://updates.fusion.app/{{target}}/{{arch}}/{{current_version}}
   "plugins": {
     "updater": {
       "pubkey": "CONTEÚDO_DA_CHAVE_PUBLICA",
-      "endpoints": [
-        "https://releases.fusion.app/latest.json"
-      ]
+      "endpoints": ["https://releases.fusion.app/latest.json"]
     }
   }
 }
@@ -296,11 +296,11 @@ https://updates.fusion.app/{{target}}/{{arch}}/{{current_version}}
 
 #### Comportamento por plataforma
 
-| Plataforma | Comportamento |
-|---|---|
-| Windows | App encerra automaticamente durante instalação; hook `on_before_exit` disponível |
-| macOS | Instalação padrão; relaunch após update |
-| Linux | `.tar.gz` gerado para updates; AppImage substituído |
+| Plataforma | Comportamento                                                                    |
+| ---------- | -------------------------------------------------------------------------------- |
+| Windows    | App encerra automaticamente durante instalação; hook `on_before_exit` disponível |
+| macOS      | Instalação padrão; relaunch após update                                          |
+| Linux      | `.tar.gz` gerado para updates; AppImage substituído                              |
 
 #### Controle de versão e rollout
 
@@ -323,16 +323,17 @@ Parceria oficial Tauri: CDN gerenciado com suporte nativo ao `tauri-plugin-updat
 
 O Fusion tem dois componentes versionados independentemente:
 
-| Componente | O que é | Estratégia |
-|---|---|---|
-| **Shell Tauri** (cliente GM) | Wrapper Tauri + UI de gerenciamento | Versionado como app desktop; updates via tauri-plugin-updater |
-| **fusion-server** (sidecar Node.js) | Motor do VTT: HTTP, WebSocket, banco de dados | Versionado junto com o shell (mesmo artefato) |
+| Componente                          | O que é                                       | Estratégia                                                    |
+| ----------------------------------- | --------------------------------------------- | ------------------------------------------------------------- |
+| **Shell Tauri** (cliente GM)        | Wrapper Tauri + UI de gerenciamento           | Versionado como app desktop; updates via tauri-plugin-updater |
+| **fusion-server** (sidecar Node.js) | Motor do VTT: HTTP, WebSocket, banco de dados | Versionado junto com o shell (mesmo artefato)                 |
 
 ### Recomendação: versionar juntos no MVP
 
 No MVP, o servidor Node.js (sidecar) é empacotado **dentro** do instalador Tauri. Uma única versão (ex.: `1.2.0`) cobre ambos. Isso simplifica updates e elimina problemas de compatibilidade client/server.
 
 Para versões futuras, se o servidor puder rodar headless (sem Tauri), pode-se desacoplar:
+
 - O shell Tauri atualiza pelo `tauri-plugin-updater`
 - O servidor headless distribui via npm, Docker ou pacote separado
 
@@ -366,14 +367,15 @@ O Foundry suporta **UPnP** (habilitado por padrão) para configurar automaticame
 
 Sem infraestrutura própria, as opções são:
 
-| Opção | Complexidade GM | Custo | Latência |
-|---|---|---|---|
-| **Port forwarding manual** | Alta (requer acesso ao roteador) | $0 | Mínima |
-| **UPnP automático** | Baixa (automático, se suportado) | $0 | Mínima |
-| **Túnel integrado** (ex.: Cloudflare Tunnel, ngrok) | Muito baixa | $0–$20/mês | Moderada |
-| **Relay TURN** | Nenhuma para o GM | Infra necessária | Moderada |
+| Opção                                               | Complexidade GM                  | Custo            | Latência |
+| --------------------------------------------------- | -------------------------------- | ---------------- | -------- |
+| **Port forwarding manual**                          | Alta (requer acesso ao roteador) | $0               | Mínima   |
+| **UPnP automático**                                 | Baixa (automático, se suportado) | $0               | Mínima   |
+| **Túnel integrado** (ex.: Cloudflare Tunnel, ngrok) | Muito baixa                      | $0–$20/mês       | Moderada |
+| **Relay TURN**                                      | Nenhuma para o GM                | Infra necessária | Moderada |
 
 **Recomendação para o Fusion:**
+
 - Implementar UPnP opcional (como o Foundry)
 - Integrar um **túnel Cloudflare** (gratuito, zero config) como fallback quando UPnP falha ou o GM quer compartilhar com jogadores externos
 - A URL gerada pelo túnel é exibida ao lado da URL LAN
@@ -407,24 +409,29 @@ http://192.168.1.42:30000/join?token=abc123
 O Fusion não tem licença a verificar (distribuição aberta), simplificando o fluxo:
 
 **Passo 1 — Seleção de diretório de dados**
+
 - Wizard pergunta onde salvar os dados do Fusion (Worlds, Systems, Assets)
 - Default inteligente: `%USERPROFILE%\Documents\FusionVTT` (Windows), `~/Documents/FusionVTT` (macOS/Linux)
 - Permitir instalação portátil (pasta ao lado do executável)
 
 **Passo 2 — Configuração de rede**
+
 - Porta do servidor (default: 30000; verificar se está livre)
 - UPnP: habilitar/desabilitar
 - Configuração SSL opcional (certificado próprio ou Let's Encrypt para domínio customizado)
 
 **Passo 3 — Senha de administrador**
+
 - Protege a tela de configuração do GM contra acesso não autorizado por jogadores
 
 **Passo 4 — Verificação de conectividade**
+
 - O app testa se a porta está acessível
 - Exibe as URLs de convite (LAN + externa)
 - Opção "Testar agora" que abre a URL de join em uma aba do navegador
 
 **Passo 5 — Importar dados (opcional)**
+
 - Importar backup de sessão anterior
 - Instalar sistema de jogo (PF2e, SF2e, Etmos)
 
@@ -459,6 +466,7 @@ pkg index.js \
 ```
 
 Saída:
+
 - `fusion-server-x64-pc-windows-msvc.exe`
 - `fusion-server-x86_64-apple-darwin`
 - `fusion-server-aarch64-apple-darwin`
@@ -481,6 +489,7 @@ O `pkg` tem suporte parcial a addons nativos. O arquivo `.node` **não pode ser 
 Node.js 21.7.3+ inclui suporte nativo a SEA sem ferramentas externas. Node 25.5 (janeiro 2026) simplificou o build com `node --build-sea sea-config.json`.
 
 **Limitações para o Fusion:**
+
 - **Não suporta native addons embutidos no binário** — addons `.node` precisam existir como arquivo externo (mesmo problema do pkg)
 - Não tem VFS: dependências que fazem `fs.readFile` de `node_modules` não funcionam dentro do SEA
 - O Node.js não é incluído no SEA de forma transparente para cross-compilation (precisa do binário de cada plataforma)
@@ -507,6 +516,7 @@ O Tauri também suporta embutir o runtime Node.js (via `externalBin` apontando p
 ```
 
 Isso resulta em:
+
 - Addon nativo zero no sidecar Node.js
 - SQLite gerenciado pelo Rust (mais performático, sem problemas de rebuild)
 - Sidecar é JavaScript puro, empacotável com `pkg` sem problemas
@@ -520,25 +530,26 @@ Isso resulta em:
 O `tauri-apps/tauri-action` é a action oficial que constrói e assina o app para todas as plataformas em paralelo:
 
 **Plataformas necessárias:**
+
 - `windows-latest` → `x86_64-pc-windows-msvc`
 - `macos-latest` → `x86_64-apple-darwin` + `aarch64-apple-darwin`
 - `ubuntu-22.04` → `x86_64-unknown-linux-gnu`
 
 **Secrets necessários (11 total):**
 
-| Categoria | Secret | Descrição |
-|---|---|---|
-| macOS signing | `APPLE_CERTIFICATE` | .p12 em base64 |
-| macOS signing | `APPLE_CERTIFICATE_PASSWORD` | senha do .p12 |
-| macOS signing | `APPLE_SIGNING_IDENTITY` | Developer ID: Nome (TEAMID) |
-| macOS signing | `APPLE_TEAM_ID` | 10 caracteres |
-| macOS notarize | `APPLE_ID` | e-mail Apple |
-| macOS notarize | `APPLE_PASSWORD` | app-specific password |
-| Windows signing | `AZURE_CLIENT_ID` | App registration |
-| Windows signing | `AZURE_TENANT_ID` | Tenant ID |
-| Windows signing | `AZURE_CLIENT_SECRET` | Secret (exibido apenas uma vez) |
-| Updater | `TAURI_SIGNING_PRIVATE_KEY` | chave privada do updater |
-| Updater | `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | senha da chave |
+| Categoria       | Secret                               | Descrição                       |
+| --------------- | ------------------------------------ | ------------------------------- |
+| macOS signing   | `APPLE_CERTIFICATE`                  | .p12 em base64                  |
+| macOS signing   | `APPLE_CERTIFICATE_PASSWORD`         | senha do .p12                   |
+| macOS signing   | `APPLE_SIGNING_IDENTITY`             | Developer ID: Nome (TEAMID)     |
+| macOS signing   | `APPLE_TEAM_ID`                      | 10 caracteres                   |
+| macOS notarize  | `APPLE_ID`                           | e-mail Apple                    |
+| macOS notarize  | `APPLE_PASSWORD`                     | app-specific password           |
+| Windows signing | `AZURE_CLIENT_ID`                    | App registration                |
+| Windows signing | `AZURE_TENANT_ID`                    | Tenant ID                       |
+| Windows signing | `AZURE_CLIENT_SECRET`                | Secret (exibido apenas uma vez) |
+| Updater         | `TAURI_SIGNING_PRIVATE_KEY`          | chave privada do updater        |
+| Updater         | `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | senha da chave                  |
 
 **Trigger:** tag semver (`v*.*.*`) faz o workflow gerar artefatos assinados e criar GitHub Release automaticamente.
 
@@ -558,29 +569,29 @@ Para o MVP do Fusion, **GitHub Releases** é suficiente. O `tauri-action` cria a
 
 ### Decisões arquiteturais confirmadas
 
-| Decisão | Escolha | Justificativa |
-|---|---|---|
-| Wrapper de desktop | Tauri v2 | Bundle menor, sem Chromium embutido, updater nativo |
-| Installer Windows | NSIS | Cross-compile em CI, per-user sem UAC |
-| Code signing Windows | Azure Artifact Signing | $9,99/mês vs $300+/ano; sem hardware token |
-| Code signing macOS | Apple Developer ($99/ano) | Obrigatório; notarização automática via Tauri |
-| Auto-updater | tauri-plugin-updater | Nativo, criptografado, obrigatório |
-| Update manifest hosting | GitHub Releases (MVP) | Gratuito, simples |
-| Node.js bundling | `@yao-pkg/pkg` | Binário autocontido; sem deps para o usuário |
-| Addon nativo SQLite | Mover para Rust (`tauri-plugin-sql`) | Elimina addon nativo cross-platform |
-| Player discovery (LAN) | URL de convite + QR code | Padrão UX; o Foundry valida |
-| Player discovery (WAN) | UPnP + Cloudflare Tunnel opcional | Zero config para maioria dos GMs |
+| Decisão                 | Escolha                              | Justificativa                                       |
+| ----------------------- | ------------------------------------ | --------------------------------------------------- |
+| Wrapper de desktop      | Tauri v2                             | Bundle menor, sem Chromium embutido, updater nativo |
+| Installer Windows       | NSIS                                 | Cross-compile em CI, per-user sem UAC               |
+| Code signing Windows    | Azure Artifact Signing               | $9,99/mês vs $300+/ano; sem hardware token          |
+| Code signing macOS      | Apple Developer ($99/ano)            | Obrigatório; notarização automática via Tauri       |
+| Auto-updater            | tauri-plugin-updater                 | Nativo, criptografado, obrigatório                  |
+| Update manifest hosting | GitHub Releases (MVP)                | Gratuito, simples                                   |
+| Node.js bundling        | `@yao-pkg/pkg`                       | Binário autocontido; sem deps para o usuário        |
+| Addon nativo SQLite     | Mover para Rust (`tauri-plugin-sql`) | Elimina addon nativo cross-platform                 |
+| Player discovery (LAN)  | URL de convite + QR code             | Padrão UX; o Foundry valida                         |
+| Player discovery (WAN)  | UPnP + Cloudflare Tunnel opcional    | Zero config para maioria dos GMs                    |
 
 ### Riscos e mitigações
 
-| Risco | Probabilidade | Mitigação |
-|---|---|---|
-| WebView2 ausente em Windows | Baixa (Windows 10+ tem; Windows 11 sempre tem) | `downloadBootstrapper` no NSIS |
-| `pkg` não embutir addon `.node` | Alta se mantiver `better-sqlite3` | Mover SQLite para Rust |
-| Reputação SmartScreen (Windows) | Alta (primeiros meses) | Azure Artifact Signing constrói reputação gradual |
-| macOS Gatekeeper bloqueando | Certa sem notarização | Apple Developer + notarização automática Tauri |
-| UPnP falhar no roteador | Moderada | Cloudflare Tunnel como fallback; documentar port forwarding |
-| Node.js target triple no sidecar | Moderada (ARM64 Windows) | Compilar para todos os targets no CI |
+| Risco                            | Probabilidade                                  | Mitigação                                                   |
+| -------------------------------- | ---------------------------------------------- | ----------------------------------------------------------- |
+| WebView2 ausente em Windows      | Baixa (Windows 10+ tem; Windows 11 sempre tem) | `downloadBootstrapper` no NSIS                              |
+| `pkg` não embutir addon `.node`  | Alta se mantiver `better-sqlite3`              | Mover SQLite para Rust                                      |
+| Reputação SmartScreen (Windows)  | Alta (primeiros meses)                         | Azure Artifact Signing constrói reputação gradual           |
+| macOS Gatekeeper bloqueando      | Certa sem notarização                          | Apple Developer + notarização automática Tauri              |
+| UPnP falhar no roteador          | Moderada                                       | Cloudflare Tunnel como fallback; documentar port forwarding |
+| Node.js target triple no sidecar | Moderada (ARM64 Windows)                       | Compilar para todos os targets no CI                        |
 
 ---
 

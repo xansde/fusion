@@ -37,18 +37,18 @@ O Foundry VTT é executado como uma aplicação **Node.js** que serve ao mesmo t
 
 O arquivo `options.json` (na pasta de dados do usuário) controla o comportamento de rede. Os campos relevantes:
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `port` | integer | Porta TCP de escuta (padrão 30000) |
-| `hostname` | string | Hostname customizado para links de convite |
-| `routePrefix` | string | Sub-caminho (ex: `demo` → `http://host:30000/demo/`) |
-| `proxySSL` | boolean | Indica que roda atrás de reverse proxy com SSL |
-| `proxyPort` | integer | Porta exposta pelo proxy (para links corretos) |
-| `upnp` | boolean | Configura port-forwarding automático via UPnP |
-| `sslKey` | string | Caminho para chave SSL (HTTPS direto) |
-| `sslCert` | string | Caminho para certificado SSL |
-| `dataPath` | string | Diretório de dados customizado |
-| `awsConfig` | string | Caminho para config de S3/AWS |
+| Campo         | Tipo    | Descrição                                            |
+| ------------- | ------- | ---------------------------------------------------- |
+| `port`        | integer | Porta TCP de escuta (padrão 30000)                   |
+| `hostname`    | string  | Hostname customizado para links de convite           |
+| `routePrefix` | string  | Sub-caminho (ex: `demo` → `http://host:30000/demo/`) |
+| `proxySSL`    | boolean | Indica que roda atrás de reverse proxy com SSL       |
+| `proxyPort`   | integer | Porta exposta pelo proxy (para links corretos)       |
+| `upnp`        | boolean | Configura port-forwarding automático via UPnP        |
+| `sslKey`      | string  | Caminho para chave SSL (HTTPS direto)                |
+| `sslCert`     | string  | Caminho para certificado SSL                         |
+| `dataPath`    | string  | Diretório de dados customizado                       |
+| `awsConfig`   | string  | Caminho para config de S3/AWS                        |
 
 A partir do **v14**, foi adicionado suporte para o servidor escutar em um **Unix domain socket** em vez de porta TCP, via variável de ambiente `FOUNDRY_UNIX_SOCKET`. Quando definido, o Foundry faz bind no socket em vez da porta TCP — útil para reverse proxy local (nginx/caddy via socket), com menor overhead e isolamento de rede. Se ambos estiverem configurados, o socket tem precedência.
 
@@ -72,7 +72,7 @@ A partir do planejamento da v12 (issue #9776), a equipe do Foundry documentou co
 - Migração para a API `WebSocket` nativa do browser;
 - Exploração de envio de dados em formato binário em vez de JSON comprimido.
 
-**Importante**: a migração foi identificada como objetivo de longo prazo, não entregue integralmente na v12 estável. A v12 entregou o *buffering de atualizações de socket* (ver seção 8), enquanto a migração completa para WebSocket nativo permanece em andamento nas versões subsequentes.
+**Importante**: a migração foi identificada como objetivo de longo prazo, não entregue integralmente na v12 estável. A v12 entregou o _buffering de atualizações de socket_ (ver seção 8), enquanto a migração completa para WebSocket nativo permanece em andamento nas versões subsequentes.
 
 Na prática, `game.socket` ainda é referenciado na documentação v14 como do tipo `Socket<DefaultEventsMap, DefaultEventsMap>`, indicando que a interface socket.io ainda está presente em alguma forma na API pública.
 
@@ -90,7 +90,7 @@ Para funcionar corretamente atrás de um reverse proxy, o WebSocket requer heade
 
 ### Modelo Document
 
-Toda entidade de jogo (Actor, Item, Scene, JournalEntry, ChatMessage, Token etc.) é uma subclasse de `Document`. O sistema usa uma hierarquia de documentos com suporte a documentos embutidos (*embedded documents*), como `Item` dentro de `Actor`.
+Toda entidade de jogo (Actor, Item, Scene, JournalEntry, ChatMessage, Token etc.) é uma subclasse de `Document`. O sistema usa uma hierarquia de documentos com suporte a documentos embutidos (_embedded documents_), como `Item` dentro de `Actor`.
 
 ### Fluxo de uma operação de update
 
@@ -106,11 +106,11 @@ O ciclo de um `Document.update()` segue estas etapas (comportamento observado na
 
 ### Operações disponíveis
 
-| Método estático | Descrição |
-|---|---|
-| `Document.create(data)` | Cria um ou múltiplos documentos |
+| Método estático                     | Descrição                              |
+| ----------------------------------- | -------------------------------------- |
+| `Document.create(data)`             | Cria um ou múltiplos documentos        |
 | `Document.updateDocuments(updates)` | Atualiza múltiplos documentos por diff |
-| `Document.deleteDocuments(ids)` | Remove documentos por array de IDs |
+| `Document.deleteDocuments(ids)`     | Remove documentos por array de IDs     |
 
 ### Hooks disparados em todos os clientes
 
@@ -139,9 +139,10 @@ A classe `SocketInterface` (no namespace `foundry.helpers`) é a abstração de 
 SocketInterface.dispatch(eventName: string, request: object | DocumentSocketRequest): Promise<SocketResponse>
 ```
 
-O padrão distingue o cliente originador (recebe um *acknowledgement*) de todos os demais (recebem *broadcast*). Isso permite encapsular a transação completa em uma única `Promise` no lado do originador.
+O padrão distingue o cliente originador (recebe um _acknowledgement_) de todos os demais (recebem _broadcast_). Isso permite encapsular a transação completa em uma única `Promise` no lado do originador.
 
 A interface `SocketRequest` contém dois campos opcionais:
+
 - `broadcast?: boolean` — se a mensagem deve ser distribuída para múltiplos receptores
 - `options?: object` — configurações adicionais da comunicação
 
@@ -197,18 +198,18 @@ Queries não são eventos de broadcast — são do tipo request/response com um 
 
 A biblioteca `socketlib` (disponível em https://foundryvtt.com/packages/socketlib) é um wrapper open-source que abstrai os sockets nativos do Foundry e fornece:
 
-| Função | Comportamento |
-|---|---|
-| `socket.executeAsGM(fn, ...args)` | Executa a função em exatamente um GM conectado; retorna o valor via `Promise` |
-| `socket.executeForEveryone(fn, ...args)` | Executa em todos os clientes; resolve após envio, sem aguardar retorno |
-| `socket.executeForOthers(fn, ...args)` | Igual, excluindo o cliente local |
-| `socket.executeAsUser(userId, fn, ...args)` | Executa em um usuário específico; falha se não conectado |
-| `socket.executeForUsers(userIds, fn, ...args)` | Executa em uma lista de usuários por ID |
-| `socket.executeForAllGMs(fn, ...args)` | Executa em todos os GMs conectados |
+| Função                                         | Comportamento                                                                 |
+| ---------------------------------------------- | ----------------------------------------------------------------------------- |
+| `socket.executeAsGM(fn, ...args)`              | Executa a função em exatamente um GM conectado; retorna o valor via `Promise` |
+| `socket.executeForEveryone(fn, ...args)`       | Executa em todos os clientes; resolve após envio, sem aguardar retorno        |
+| `socket.executeForOthers(fn, ...args)`         | Igual, excluindo o cliente local                                              |
+| `socket.executeAsUser(userId, fn, ...args)`    | Executa em um usuário específico; falha se não conectado                      |
+| `socket.executeForUsers(userIds, fn, ...args)` | Executa em uma lista de usuários por ID                                       |
+| `socket.executeForAllGMs(fn, ...args)`         | Executa em todos os GMs conectados                                            |
 
 **Pré-requisito**: funções devem ser registradas via `socket.register(nome, fn)` em **todos** os clientes antes de poder ser chamadas remotamente. O módulo inicializa no hook `socketlib.ready`.
 
-O padrão `executeAsGM` é a solução padrão da comunidade para o problema de *privilege escalation* legítima: quando um jogador precisa que uma operação seja executada com permissão de GM (ex: deduzir HP de um inimigo após ataque), o cliente do jogador solicita ao cliente do GM que execute a operação, sem expor a operação diretamente ao servidor sem validação.
+O padrão `executeAsGM` é a solução padrão da comunidade para o problema de _privilege escalation_ legítima: quando um jogador precisa que uma operação seja executada com permissão de GM (ex: deduzir HP de um inimigo após ataque), o cliente do jogador solicita ao cliente do GM que execute a operação, sem expor a operação diretamente ao servidor sem validação.
 
 ---
 
@@ -218,13 +219,13 @@ O padrão `executeAsGM` é a solução padrão da comunidade para o problema de 
 
 O Foundry define cinco roles, com valores numéricos em ordem crescente de permissão:
 
-| Role | Valor | Descrição |
-|---|---|---|
-| `NONE` | 0 | Usuário bloqueado — não pode entrar no jogo |
-| `PLAYER` | 1 | Jogador padrão com funcionalidades básicas |
-| `TRUSTED` | 2 | Jogador com permissões avançadas opcionais |
-| `ASSISTANT` | 3 | Mestre assistente — controle de jogo mas sem administração |
-| `GAMEMASTER` | 4 | Controle administrativo total sobre o Mundo |
+| Role         | Valor | Descrição                                                  |
+| ------------ | ----- | ---------------------------------------------------------- |
+| `NONE`       | 0     | Usuário bloqueado — não pode entrar no jogo                |
+| `PLAYER`     | 1     | Jogador padrão com funcionalidades básicas                 |
+| `TRUSTED`    | 2     | Jogador com permissões avançadas opcionais                 |
+| `ASSISTANT`  | 3     | Mestre assistente — controle de jogo mas sem administração |
+| `GAMEMASTER` | 4     | Controle administrativo total sobre o Mundo                |
 
 A distinção entre `ASSISTANT` e `GAMEMASTER` é que o ASSISTANT não pode alterar roles de usuário nem configurações globais do Mundo.
 
@@ -234,45 +235,45 @@ Além das capacidades fixas por role, existe uma **matriz de permissões configu
 
 Lista completa de permissões (Foundry VTT v14):
 
-| Permissão | defaultRole | Descrição |
-|---|---|---|
-| `ACTOR_CREATE` | 3 (ASSISTANT) | Criar novos Atores |
-| `BROADCAST_AUDIO` | 2 (TRUSTED) | Transmitir áudio via A/V |
-| `BROADCAST_VIDEO` | 2 (TRUSTED) | Transmitir vídeo via A/V |
-| `CARDS_CREATE` | 3 (ASSISTANT) | Criar novos Baralhos de cartas |
-| `DRAWING_CREATE` | 2 (TRUSTED) | Criar desenhos no canvas |
-| `FILES_BROWSE` | 2 (TRUSTED) | Navegar no navegador de arquivos |
-| `FILES_UPLOAD` | 3 (ASSISTANT) | Fazer upload de arquivos para o servidor |
-| `ITEM_CREATE` | 3 (ASSISTANT) | Criar novos Itens |
-| `JOURNAL_CREATE` | 2 (TRUSTED) | Criar entradas de diário |
-| `MACRO_SCRIPT` | 1 (PLAYER) | Executar macros de script |
-| `MANUAL_ROLLS` | 2 (TRUSTED) | Inserir resultados de dados manualmente |
-| `MESSAGE_WHISPER` | 1 (PLAYER) | Enviar mensagens privadas (whisper) |
-| `NOTE_CREATE` | 2 (TRUSTED) | Criar notas no canvas |
-| `PING_CANVAS` | 1 (PLAYER) | Pingar localização no mapa |
-| `PLAYLIST_CREATE` | 3 (ASSISTANT) | Criar playlists de áudio |
-| `QUERY_USER` | 1 (PLAYER) | Usar o sistema de queries de socket |
-| `REGION_CREATE` | 1 (PLAYER) | Criar regiões de cena |
-| `SETTINGS_MODIFY` | 3 (ASSISTANT) | Modificar configurações do cliente |
-| `SHOW_CURSOR` | 1 (PLAYER) | Exibir cursor ao vivo para outros usuários |
-| `SHOW_RULER` | 1 (PLAYER) | Exibir régua de medição para outros usuários |
-| `TOKEN_CONFIGURE` | 2 (TRUSTED) | Configurar tokens |
-| `TOKEN_CREATE` | 3 (ASSISTANT) | Criar tokens no canvas |
-| `TOKEN_DELETE` | 3 (ASSISTANT) | Deletar tokens do canvas |
-| `WALL_DOORS` | 1 (PLAYER) | Interagir com portas |
+| Permissão         | defaultRole   | Descrição                                    |
+| ----------------- | ------------- | -------------------------------------------- |
+| `ACTOR_CREATE`    | 3 (ASSISTANT) | Criar novos Atores                           |
+| `BROADCAST_AUDIO` | 2 (TRUSTED)   | Transmitir áudio via A/V                     |
+| `BROADCAST_VIDEO` | 2 (TRUSTED)   | Transmitir vídeo via A/V                     |
+| `CARDS_CREATE`    | 3 (ASSISTANT) | Criar novos Baralhos de cartas               |
+| `DRAWING_CREATE`  | 2 (TRUSTED)   | Criar desenhos no canvas                     |
+| `FILES_BROWSE`    | 2 (TRUSTED)   | Navegar no navegador de arquivos             |
+| `FILES_UPLOAD`    | 3 (ASSISTANT) | Fazer upload de arquivos para o servidor     |
+| `ITEM_CREATE`     | 3 (ASSISTANT) | Criar novos Itens                            |
+| `JOURNAL_CREATE`  | 2 (TRUSTED)   | Criar entradas de diário                     |
+| `MACRO_SCRIPT`    | 1 (PLAYER)    | Executar macros de script                    |
+| `MANUAL_ROLLS`    | 2 (TRUSTED)   | Inserir resultados de dados manualmente      |
+| `MESSAGE_WHISPER` | 1 (PLAYER)    | Enviar mensagens privadas (whisper)          |
+| `NOTE_CREATE`     | 2 (TRUSTED)   | Criar notas no canvas                        |
+| `PING_CANVAS`     | 1 (PLAYER)    | Pingar localização no mapa                   |
+| `PLAYLIST_CREATE` | 3 (ASSISTANT) | Criar playlists de áudio                     |
+| `QUERY_USER`      | 1 (PLAYER)    | Usar o sistema de queries de socket          |
+| `REGION_CREATE`   | 1 (PLAYER)    | Criar regiões de cena                        |
+| `SETTINGS_MODIFY` | 3 (ASSISTANT) | Modificar configurações do cliente           |
+| `SHOW_CURSOR`     | 1 (PLAYER)    | Exibir cursor ao vivo para outros usuários   |
+| `SHOW_RULER`      | 1 (PLAYER)    | Exibir régua de medição para outros usuários |
+| `TOKEN_CONFIGURE` | 2 (TRUSTED)   | Configurar tokens                            |
+| `TOKEN_CREATE`    | 3 (ASSISTANT) | Criar tokens no canvas                       |
+| `TOKEN_DELETE`    | 3 (ASSISTANT) | Deletar tokens do canvas                     |
+| `WALL_DOORS`      | 1 (PLAYER)    | Interagir com portas                         |
 
 O GM pode modificar o `defaultRole` de qualquer permissão para tornar o ambiente mais restrito ou mais permissivo.
 
 ### Permissões de ownership de documentos
 
-Além das permissões de role, cada documento individual tem um nível de *ownership* por usuário:
+Além das permissões de role, cada documento individual tem um nível de _ownership_ por usuário:
 
-| Nível | Valor | Descrição |
-|---|---|---|
-| `NONE` | 0 | Normalmente impede visibilidade |
-| `LIMITED` | 1 | Acesso básico com conteúdo limitado |
-| `OBSERVER` | 2 | Acesso de leitura completo |
-| `OWNER` | 3 | Leitura e modificação completas |
+| Nível      | Valor | Descrição                           |
+| ---------- | ----- | ----------------------------------- |
+| `NONE`     | 0     | Normalmente impede visibilidade     |
+| `LIMITED`  | 1     | Acesso básico com conteúdo limitado |
+| `OBSERVER` | 2     | Acesso de leitura completo          |
+| `OWNER`    | 3     | Leitura e modificação completas     |
 
 GMs sempre têm `OWNER` implícito sobre todos os documentos. O objeto de permissão de um documento usa `userId` como chave e valor numérico como nível; a chave `"default"` define o nível padrão para todos os usuários não listados explicitamente.
 
@@ -314,11 +315,11 @@ O GM pode pausar e despauzar o jogo via `game.togglePause()`. O método aceita `
 
 O Foundry implementa três tipos nativos de ping no canvas:
 
-| Tipo | Ativação | Comportamento |
-|---|---|---|
-| **Basic Ping** | Click prolongado | Círculo pulsante na cor do usuário |
-| **Warning Ping** | Alt + Click | Triângulo vermelho pulsante |
-| **Drag Ping** | Shift + Click (GM/ASSISTANT only) | Círculo com seta; força pan de câmera de todos |
+| Tipo             | Ativação                          | Comportamento                                  |
+| ---------------- | --------------------------------- | ---------------------------------------------- |
+| **Basic Ping**   | Click prolongado                  | Círculo pulsante na cor do usuário             |
+| **Warning Ping** | Alt + Click                       | Triângulo vermelho pulsante                    |
+| **Drag Ping**    | Shift + Click (GM/ASSISTANT only) | Círculo com seta; força pan de câmera de todos |
 
 Usuários que estão na mesma cena mas vendo outra área veem uma **seta pulsante na borda da UI** indicando a direção do ping.
 
@@ -355,7 +356,7 @@ A issue #4770 (aberta em 2020, ainda não totalmente resolvida) documenta a nece
 
 ### Latência
 
-A partir da v13 (milestone v13 Prototype 1, issue #11132), o Foundry implementou um indicador nativo de latência por usuário. A medição usa o endpoint WebSocket já estabelecido (não HTTP/fetch separado), medindo o tempo de ida e volta (*round-trip time*) para o servidor. Isso permite ao GM identificar jogadores com conexão lenta ou instável diretamente na interface.
+A partir da v13 (milestone v13 Prototype 1, issue #11132), o Foundry implementou um indicador nativo de latência por usuário. A medição usa o endpoint WebSocket já estabelecido (não HTTP/fetch separado), medindo o tempo de ida e volta (_round-trip time_) para o servidor. Isso permite ao GM identificar jogadores com conexão lenta ou instável diretamente na interface.
 
 ---
 
@@ -372,11 +373,11 @@ O mecanismo nativo de A/V do Foundry usa **WebRTC peer-to-peer** em topologia me
 
 ### Componentes de arquitetura A/V
 
-| Componente | Função |
-|---|---|
-| `AVMaster` | Controller principal; gerencia lifecycle das conexões WebRTC e coordena com o servidor |
-| `AVConfig` | FormApplication para seleção de dispositivos e configuração de relay |
-| `CameraViews` | UI sidebar que renderiza o dock de câmeras |
+| Componente    | Função                                                                                 |
+| ------------- | -------------------------------------------------------------------------------------- |
+| `AVMaster`    | Controller principal; gerencia lifecycle das conexões WebRTC e coordena com o servidor |
+| `AVConfig`    | FormApplication para seleção de dispositivos e configuração de relay                   |
+| `CameraViews` | UI sidebar que renderiza o dock de câmeras                                             |
 
 ### Requisitos obrigatórios
 
@@ -406,20 +407,22 @@ LiveKit usa arquitetura **SFU (Selective Forwarding Unit)**:
 - Requer um servidor LiveKit separado (self-hosted ou cloud).
 
 Configuração do cliente:
+
 - LiveKit Server: URL do servidor (ex: `rtc.example.com`)
 - API Key + Secret Key para autenticação
 
 Portas necessárias no servidor LiveKit:
 
-| Porta/Protocolo | Uso |
-|---|---|
-| 7880/TCP | Signaling HTTP |
-| 7881/TCP | Signaling TLS |
-| 3478/UDP | TURN (STUN) |
-| 443/UDP | TURN sobre TLS |
+| Porta/Protocolo | Uso                         |
+| --------------- | --------------------------- |
+| 7880/TCP        | Signaling HTTP              |
+| 7881/TCP        | Signaling TLS               |
+| 3478/UDP        | TURN (STUN)                 |
+| 443/UDP         | TURN sobre TLS              |
 | 50000-60000/UDP | Tráfego de mídia (RTP/RTCP) |
 
 Funcionalidades extras do LiveKit AVClient:
+
 - Breakout Rooms (dividir o grupo);
 - Adaptive Streaming (reduz qualidade dinamicamente conforme bandwidth);
 - Opus DTX (reduz bandwidth de áudio em silêncio);
@@ -432,12 +435,12 @@ O módulo oficial Jitsi (`jitsirtc`) foi marcado como depreciado. Jitsi também 
 
 ### Opções de hospedagem do LiveKit
 
-| Opção | Custo | Observações |
-|---|---|---|
-| Self-hosted (VPS) | ~$5-10/mês | Requer portas UDP abertas; Docker recomendado |
-| LiveKit Cloud | Gratuito limitado | Minutos/bandwidth mensais limitados |
-| At the Tavern | $5+/mês (Patreon) | Cluster multi-região |
-| The Forge | Incluído | Sem configuração necessária |
+| Opção             | Custo             | Observações                                   |
+| ----------------- | ----------------- | --------------------------------------------- |
+| Self-hosted (VPS) | ~$5-10/mês        | Requer portas UDP abertas; Docker recomendado |
+| LiveKit Cloud     | Gratuito limitado | Minutos/bandwidth mensais limitados           |
+| At the Tavern     | $5+/mês (Patreon) | Cluster multi-região                          |
+| The Forge         | Incluído          | Sem configuração necessária                   |
 
 ---
 
@@ -451,13 +454,13 @@ Até a v10, o Foundry usava **NeDB** para persistência de documentos — um ban
 
 Na v11, o Foundry migrou para **ClassicLevel**, uma implementação de **LevelDB** do Google. Diferenças fundamentais:
 
-| Aspecto | NeDB | LevelDB |
-|---|---|---|
-| Formato em disco | Arquivos de texto JSON legíveis | Arquivos binários (SSTables) |
-| Edição manual | Possível com editor de texto | Requer ferramentas específicas |
-| Performance | Limitada | Alta (I/O otimizado) |
-| Documentos embutidos | Update completo do pai | Update parcial via sublevels |
-| Manutenção | Abandonado | Ativo (Google) |
+| Aspecto              | NeDB                            | LevelDB                        |
+| -------------------- | ------------------------------- | ------------------------------ |
+| Formato em disco     | Arquivos de texto JSON legíveis | Arquivos binários (SSTables)   |
+| Edição manual        | Possível com editor de texto    | Requer ferramentas específicas |
+| Performance          | Limitada                        | Alta (I/O otimizado)           |
+| Documentos embutidos | Update completo do pai          | Update parcial via sublevels   |
+| Manutenção           | Abandonado                      | Ativo (Google)                 |
 
 ### Implicações para a arquitetura de multiplayer
 
@@ -477,11 +480,11 @@ Compêndios de sistemas como o PF2e são distribuídos em formato LevelDB. O CLI
 
 ### Modelo de hosting
 
-| Opção | Prós | Contras |
-|---|---|---|
-| **Self-hosted (residencial)** | Gratuito; controle total | Requer port-forwarding; ISP com IP dinâmico; upload limitado; disponível apenas quando o app está rodando |
-| **Self-hosted (VPS/cloud)** | Sempre online; IP fixo | Custo mensal; setup técnico |
-| **Partner hosted** (The Forge, Molten etc.) | Setup simples; suporte; HA | Custo; customização limitada |
+| Opção                                       | Prós                       | Contras                                                                                                   |
+| ------------------------------------------- | -------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **Self-hosted (residencial)**               | Gratuito; controle total   | Requer port-forwarding; ISP com IP dinâmico; upload limitado; disponível apenas quando o app está rodando |
+| **Self-hosted (VPS/cloud)**                 | Sempre online; IP fixo     | Custo mensal; setup técnico                                                                               |
+| **Partner hosted** (The Forge, Molten etc.) | Setup simples; suporte; HA | Custo; customização limitada                                                                              |
 
 ### Requisitos mínimos de servidor (Node.js dedicado)
 
@@ -514,6 +517,7 @@ O servidor Foundry atua como distribuidor de todos os assets (imagens, áudio, v
 Todos os três principais reverse proxies são documentados na wiki oficial. Caddy é o recomendado modernamente por provisionar SSL automático via Let's Encrypt.
 
 Requisitos comuns para WebSocket:
+
 - Nginx: headers `Upgrade: websocket` e `Connection: Upgrade` devem ser repassados
 - Apache: módulo `mod_proxy_wstunnel` obrigatório
 
@@ -536,6 +540,7 @@ Para acesso temporário, ferramentas como Pinggy criam túneis SSH reversos que 
 ### Unix socket + reverse proxy local (v14)
 
 A partir da v14, para hosting em VPS com reverse proxy na mesma máquina, usar `FOUNDRY_UNIX_SOCKET` oferece:
+
 - Menor overhead que TCP loopback
 - Maior segurança (Foundry não exposto diretamente na rede)
 - Compatível com Nginx, Caddy, Traefik
@@ -543,6 +548,7 @@ A partir da v14, para hosting em VPS com reverse proxy na mesma máquina, usar `
 ### S3 para assets
 
 Com `awsConfig` configurado no `options.json`, todos os assets são servidos diretamente do S3 para os clientes:
+
 - Elimina gargalo de upload residencial
 - Funciona com qualquer provedor S3-compatible (MinIO, DigitalOcean Spaces, Backblaze B2)
 - Requer configuração de CORS no bucket S3
@@ -566,6 +572,7 @@ Não existe limite técnico documentado de jogadores concorrentes. Os limites pr
 ### Observações da comunidade (Forge forums)
 
 Para uma sessão com 1 GM + 7 jogadores (8 total) com vídeo ativo no modelo mesh:
+
 - 42 conexões WebRTC bidirecionais entre os participantes
 - Instabilidades frequentes (telas pretas, streams congelando)
 - Recomendação: usar LiveKit para grupos acima de 4-5 pessoas

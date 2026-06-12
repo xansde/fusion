@@ -10,8 +10,8 @@
   - `docs/research/90-asset-media-management.md` — referência de paths em Documents, placeholders de assets faltantes, otimização de imagem
 
 > Esta spec é clean-room: descreve o subsistema de compendiums e o pipeline de
-> importação do Fusion inspirado no *comportamento* observável do Foundry VTT e na
-> estrutura *pública* (Apache-2.0) do repositório `foundryvtt/pf2e`, sem copiar
+> importação do Fusion inspirado no _comportamento_ observável do Foundry VTT e na
+> estrutura _pública_ (Apache-2.0) do repositório `foundryvtt/pf2e`, sem copiar
 > código proprietário do Foundry core. Onde divergimos, a decisão é marcada como
 > decisão de design nossa.
 
@@ -40,9 +40,9 @@ e os sistemas de jogo (`ver 17-`, `18-`, `19-`).
 ### O que inclui
 
 - **Formato de pack**: um arquivo SQLite `pack.db` por pack (schema idêntico ao
-  `world.db`), índice leve para *lazy browse*, e **metadados de licença por pack**
+  `world.db`), índice leve para _lazy browse_, e **metadados de licença por pack**
   (`pack.json`).
-- **Resolução e serving de packs**: UUIDs de compendium, leitura *lazy* (índice
+- **Resolução e serving de packs**: UUIDs de compendium, leitura _lazy_ (índice
   primeiro, documento completo sob demanda), e como packs do sistema ativo são
   descobertos e carregados.
 - **Compendium browser (UI)**: busca textual, filtros por tipo/traits/level (PF2e),
@@ -69,13 +69,13 @@ e os sistemas de jogo (`ver 17-`, `18-`, `19-`).
   `ver 02-modelo-de-dados.md`.
 - O **conteúdo dos schemas `system`** de cada jogo (forma final dos campos de um
   weapon/spell PF2e, etc.) — `ver 17-sistema-pf2e.md`, `18-sistema-sf2e.md`,
-  `19-sistema-etmos.md`. Esta spec define *como* o importer popula esses schemas, não
+  `19-sistema-etmos.md`. Esta spec define _como_ o importer popula esses schemas, não
   os schemas em si.
 - O **motor de modifiers / rule elements** em runtime (como um modifier é avaliado
   num roll) — `ver 08-motor-de-rolagens.md` e `ver 15-api-de-sistemas.md`. Esta spec
   define apenas o **formato-alvo** do mapeamento e a **tabela de cobertura**.
 - O **subsistema de arquivos/assets** (upload, dedup, thumbnails, serving) —
-  `ver 20-assets-e-midia.md`. Esta spec define apenas a *política* de quais assets
+  `ver 20-assets-e-midia.md`. Esta spec define apenas a _política_ de quais assets
   importar e o catálogo de placeholders.
 - O **texto legal completo** de notices ORC/OGL e CUP — `ver 26-licencas-e-legal.md`
   (esta spec referencia e exige os campos, mas não transcreve a licença).
@@ -86,13 +86,13 @@ e os sistemas de jogo (`ver 17-`, `18-`, `19-`).
 
 - **Compendium pack** (ou simplesmente **pack**): coleção nomeada de Documents
   pré-fabricados de um mesmo tipo (Actor, Item, JournalEntry, RollTable, Macro,
-  Scene, Playlist), armazenada fora do mundo ativo, em estado de *lazy loading*.
+  Scene, Playlist), armazenada fora do mundo ativo, em estado de _lazy loading_.
 - **`pack.db`**: arquivo SQLite de um pack, com o **mesmo schema** do `world.db`
   (`ver 03-persistencia-e-mundos.md`). Um pack contém só um tipo de Document
   primário por pack (espelhando o Foundry).
 - **`pack.json`**: manifesto de um pack — id, label, tipo de document, sistema-alvo,
   e **bloco de licença** (origem, licença, atribuição, versão de origem).
-- **Índice do pack** (*pack index*): projeção leve de cada documento
+- **Índice do pack** (_pack index_): projeção leve de cada documento
   (`_id`, `name`, `img`, `type` + campos extras declarados) usada para listar/buscar
   sem carregar o documento completo.
 - **UUID de compendium**: identificador resolvível no formato
@@ -108,15 +108,15 @@ e os sistemas de jogo (`ver 17-`, `18-`, `19-`).
   array `system.rules` (`docs/research/10-...md` §5). No Fusion, o RE é traduzido
   para um **modifier descriptor** do nosso motor (formato-alvo definido nesta spec).
 - **Modifier descriptor (Fusion)**: representação data-driven de um efeito de regra
-  no Fusion — o destino do mapeamento de REs. Sua *avaliação* pertence ao
+  no Fusion — o destino do mapeamento de REs. Sua _avaliação_ pertence ao
   `ver 15-api-de-sistemas.md`; aqui ele é apenas um formato de dados.
-- **Tabela de cobertura** (*coverage table*): mapeamento declarativo
+- **Tabela de cobertura** (_coverage table_): mapeamento declarativo
   `RE.key → conversor Fusion`, com estado por RE
   (`supported` / `partial` / `unsupported`).
 - **Fallback "não suportado ainda"**: quando um RE não tem conversor, o importer
   preserva o RE original em `flags.fusion.unconvertedRules` e marca o documento, em
   vez de descartá-lo silenciosamente.
-- **Diff report** (*relatório de diferenças*): saída do importer comparando a
+- **Diff report** (_relatório de diferenças_): saída do importer comparando a
   geração atual com a anterior — documentos adicionados, removidos, alterados, e
   cobertura de REs.
 - **Idempotência de import**: re-rodar o importer sobre a mesma versão de origem
@@ -141,13 +141,13 @@ Um pack contém só **um tipo** de Document primário (ex.: pack de Actors, pack
   arquivo único. Packs do sistema são globais, não por mundo.
 - **Rejeitado: um único `packs.db` com uma tabela por pack.** Atualizar um pack
   (re-import) exigiria reescrever o arquivo compartilhado e travá-lo para todos;
-  um arquivo por pack permite *swap* atômico no re-import.
+  um arquivo por pack permite _swap_ atômico no re-import.
 - **Racional:** reuso total da camada de persistência; pack = arquivo portátil;
   re-import = gerar `pack.db` novo e trocar atomicamente; inspeção via qualquer
   cliente SQLite. Packs de mundo (criados pelo GM) ficam em
   `worlds/<slug>/compendiums/<packSlug>/` com o mesmo formato.
 
-### D2 — Índice leve materializado para *lazy browse*
+### D2 — Índice leve materializado para _lazy browse_
 
 O browse e a busca operam sobre um **índice** projetado de cada documento
 (`_id`, `name`, `img`, `type` + campos declarados no `pack.json`), nunca carregando
@@ -161,7 +161,7 @@ uma tabela `pack_index` no `pack.db`).
 - **Rejeitado: full table scan com `json_extract` a cada busca.** Lento para packs
   grandes e buscas interativas; preferimos materializar o índice uma vez por sessão
   e filtrar em memória.
-- **Racional:** paridade com o *lazy loading* do Foundry (`docs/research/02-...md`
+- **Racional:** paridade com o _lazy loading_ do Foundry (`docs/research/02-...md`
   §12.3): índice primeiro, documento completo sob demanda via UUID. Campos de filtro
   específicos do sistema (ex.: `system.level.value` no PF2e) são declarados em
   `pack.json.indexFields` para entrarem no índice.
@@ -187,7 +187,7 @@ default do pack.
 
 A conversão pf2e→Fusion roda **fora do servidor de jogo**, como CLI em
 `tools/importer-pf2e`, produzindo `pack.db` + `pack.json` versionados e
-*commitados/distribuídos* com o sistema. O servidor em runtime apenas **lê** packs
+_commitados/distribuídos_ com o sistema. O servidor em runtime apenas **lê** packs
 prontos.
 
 - **Rejeitado: converter JSON do pf2e em runtime, ao abrir o mundo.** Acopla o
@@ -278,13 +278,13 @@ report acompanha o que mudou entre gerações.
 
 Os packs do Etmos (`docs/research/10-...md` §11; SRD da Editora Balde Galáctico) são
 criados **manualmente** a partir do material-fonte (ex.: 81 Partículas como Items),
-em arquivos-fonte JSON/YAML versionados, e empacotados pelo **mesmo** *packer* de
+em arquivos-fonte JSON/YAML versionados, e empacotados pelo **mesmo** _packer_ de
 `tools/importer-pf2e` (estágio de "build de pack"), sem etapa de extração/conversão
 de Foundry.
 
 - **Rejeitado: importador automático do Etmos.** Não há sistema Foundry de Etmos de
   onde importar (`docs/research/10-...md` §11); a fonte é texto/SRD.
-- **Racional:** reusar o *packer* (JSON-fonte → `pack.db` + índice + licença) evita
+- **Racional:** reusar o _packer_ (JSON-fonte → `pack.db` + índice + licença) evita
   duplicar pipeline; o trabalho editorial humano produz os JSON-fonte.
 
 ## Requisitos funcionais
@@ -496,12 +496,12 @@ de Foundry.
 
 - **REQ-CMP-046** [MVP] O Fusion DEVE suportar **packs Etmos** construídos a partir
   de **arquivos-fonte** JSON/YAML versionados (não importados de Foundry),
-  empacotados pelo mesmo *packer* que gera `pack.db` + `pack.json` + índice (D10).
+  empacotados pelo mesmo _packer_ que gera `pack.db` + `pack.json` + índice (D10).
 - **REQ-CMP-047** [MVP] O pack `etmos.particles` DEVE conter as **81 Partículas**
   como Documents `Item` do subtype apropriado do sistema Etmos
   (`ver 19-sistema-etmos.md`), cada uma com sua mecânica e `pack.json.license`
   apontando para o SRD da Editora Balde Galáctico (`ver 26-licencas-e-legal.md`).
-- **REQ-CMP-048** [MVP] O *packer* DEVE validar os arquivos-fonte do Etmos contra os
+- **REQ-CMP-048** [MVP] O _packer_ DEVE validar os arquivos-fonte do Etmos contra os
   schemas `system` do Etmos antes de empacotar, com as mesmas garantias de
   idempotência e índice dos packs importados.
 
@@ -522,7 +522,7 @@ de Foundry.
   documentos e de chaves no JSON serializado, de modo que o diff report reflita
   apenas mudanças de conteúdo reais (não ruído de ordenação) — pré-condição de
   REQ-CMP-041/042.
-- **REQ-CMP-053** [MVP] O importer e o *packer* DEVEM rodar em CI (Node.js 22+) sem
+- **REQ-CMP-053** [MVP] O importer e o _packer_ DEVEM rodar em CI (Node.js 22+) sem
   acesso a serviços externos além do código-fonte do pf2e fornecido; nenhum segredo
   ou rede é necessário para gerar packs.
 - **REQ-CMP-054** [MVP] Todos os tipos, schemas de `pack.json` e contratos de leitura
@@ -538,36 +538,34 @@ de Foundry.
 ### Manifesto de pack (`pack.json`)
 
 ```ts
-export type LicenseKind =
-  | "ORC" | "OGL-1.0a" | "CC-BY-3.0" | "CC0" | "proprietary" | "custom";
+export type LicenseKind = "ORC" | "OGL-1.0a" | "CC-BY-3.0" | "CC0" | "proprietary" | "custom";
 
 export interface PackLicense {
   license: LicenseKind;
-  attribution: string;        // texto de atribuição (autores upstream)
-  reservedNotice: string;     // Reserved Material notice (Paizo etc.)
-  sourceRepo?: string;        // ex.: "github.com/foundryvtt/pf2e"
-  sourceVersion?: string;     // ex.: "v8.2.0"
+  attribution: string; // texto de atribuição (autores upstream)
+  reservedNotice: string; // Reserved Material notice (Paizo etc.)
+  sourceRepo?: string; // ex.: "github.com/foundryvtt/pf2e"
+  sourceVersion?: string; // ex.: "v8.2.0"
 }
 
 export interface PackSource {
-  repo: string | null;        // null para packs editoriais (Etmos)
-  version: string | null;     // release de origem
-  importerVersion: string;    // versão de tools/importer-pf2e
+  repo: string | null; // null para packs editoriais (Etmos)
+  version: string | null; // release de origem
+  importerVersion: string; // versão de tools/importer-pf2e
 }
 
 export interface PackManifest {
-  id: string;                 // "<systemId>.<packSlug>", ex.: "pf2e.bestiary-1"
-  label: string;              // rótulo exibido
-  documentType:               // tipo primário contido (um por pack)
-    | "Actor" | "Item" | "JournalEntry" | "RollTable" | "Macro"
-    | "Scene" | "Playlist";
-  systemId: string;           // "pf2e" | "sf2e" | "etmos"
-  indexFields: string[];      // caminhos extras p/ o índice (ex.: "system.level.value")
+  id: string; // "<systemId>.<packSlug>", ex.: "pf2e.bestiary-1"
+  label: string; // rótulo exibido
+  documentType: // tipo primário contido (um por pack)
+    "Actor" | "Item" | "JournalEntry" | "RollTable" | "Macro" | "Scene" | "Playlist";
+  systemId: string; // "pf2e" | "sf2e" | "etmos"
+  indexFields: string[]; // caminhos extras p/ o índice (ex.: "system.level.value")
   license: PackLicense;
   source: PackSource;
   documentCount: number;
-  generatedAt: string;        // ISO 8601
-  schemaVersion: number;      // versão do schema de pack (engine)
+  generatedAt: string; // ISO 8601
+  schemaVersion: number; // versão do schema de pack (engine)
 }
 ```
 
@@ -576,10 +574,10 @@ export interface PackManifest {
 ```ts
 export interface PackIndexEntry {
   _id: DocumentId;
-  uuid: Uuid;                 // "Compendium.<packId>.<DocType>.<docId>"
+  uuid: Uuid; // "Compendium.<packId>.<DocType>.<docId>"
   name: string;
-  img: string | null;        // já mapeado para placeholder livre
-  type: string | null;       // subtype do document (ex.: "weapon")
+  img: string | null; // já mapeado para placeholder livre
+  type: string | null; // subtype do document (ex.: "weapon")
   // campos declarados em PackManifest.indexFields, achatados:
   index: Record<string, Json>; // ex.: { "system.level.value": 3, "system.traits.value": ["fire"] }
 }
@@ -595,10 +593,10 @@ export interface PackIndex {
 ```ts
 /** Anexado em flags.fusion ao importar de pf2e. */
 export interface FusionConversionFlags {
-  conversion: "full" | "partial";   // "partial" se houve RE não convertido
+  conversion: "full" | "partial"; // "partial" se houve RE não convertido
   importerVersion: string;
   sourceVersion: string;
-  unconvertedRules: Json[];         // REs originais preservados (D6)
+  unconvertedRules: Json[]; // REs originais preservados (D6)
   assetSubstitutions: Array<{ field: string; original: string; placeholder: string }>;
 }
 ```
@@ -609,11 +607,11 @@ export interface FusionConversionFlags {
 export type RuleCoverageState = "supported" | "partial" | "unsupported";
 
 export interface RuleCoverageEntry {
-  key: string;                 // RE.key do pf2e, ex.: "FlatModifier"
+  key: string; // RE.key do pf2e, ex.: "FlatModifier"
   state: RuleCoverageState;
   /** nome do conversor no importer; null se unsupported */
   converter: string | null;
-  notes?: string;              // limitações conhecidas (para "partial")
+  notes?: string; // limitações conhecidas (para "partial")
 }
 
 /** A tabela completa vive em tools/importer-pf2e; este é o contrato. */
@@ -625,24 +623,24 @@ export type RuleCoverageTable = Record<string /*RE.key*/, RuleCoverageEntry>;
 ```ts
 /** Destino do mapeamento de Rule Elements. Avaliação: ver 08-/15-. */
 export interface ModifierDescriptor {
-  kind:                         // categoria do efeito convertido
-    | "flat-modifier"           // ← FlatModifier
-    | "set-property"            // ← AELike (add/subtract/multiply/upgrade/downgrade/override)
-    | "roll-option"             // ← RollOption
-    | "grant-item"              // ← GrantItem
-    | "roll-note"               // ← RollNote
-    | "sense"                   // ← Sense
-    | "base-speed"              // ← BaseSpeed
-    | "temp-hp"                 // ← TempHP
-    | "proficiency";            // ← MartialProficiency
+  kind: // categoria do efeito convertido
+    | "flat-modifier" // ← FlatModifier
+    | "set-property" // ← AELike (add/subtract/multiply/upgrade/downgrade/override)
+    | "roll-option" // ← RollOption
+    | "grant-item" // ← GrantItem
+    | "roll-note" // ← RollNote
+    | "sense" // ← Sense
+    | "base-speed" // ← BaseSpeed
+    | "temp-hp" // ← TempHP
+    | "proficiency"; // ← MartialProficiency
   slug: string | null;
   label: string | null;
   selector?: string | string[]; // domínio/seletor de roll (ex.: "ac", "attack-roll")
-  value?: string | number;      // valor ou expressão (@atributos) — ver 08-
+  value?: string | number; // valor ou expressão (@atributos) — ver 08-
   mode?: "add" | "subtract" | "multiply" | "upgrade" | "downgrade" | "override" | "custom";
-  predicate?: Json;             // condição (traduzida do predicate pf2e)
+  predicate?: Json; // condição (traduzida do predicate pf2e)
   priority?: number;
-  raw?: Json;                   // RE de origem (auditoria)
+  raw?: Json; // RE de origem (auditoria)
 }
 ```
 
@@ -663,7 +661,7 @@ export interface PackDiff {
     coverageDelta: number;
   };
   assetSubstitutions: number;
-  droppedFieldKinds: string[];  // ex.: ["lore-text", "paizo-art"]
+  droppedFieldKinds: string[]; // ex.: ["lore-text", "paizo-art"]
 }
 
 export interface ImportReport {
@@ -717,11 +715,11 @@ packer build                 # empacota arquivos-fonte (Etmos) → pack.db (REQ-
 
 ### Eventos
 
-| Evento (servidor) | Quando | Consumidor |
-|---|---|---|
-| `pack:loaded` | índice de um pack construído na abertura | telemetria, browser |
-| `pack:load-failed` | pack ausente/corrompido (tolerado) | log, browser |
-| `compendium:imported` | documentos importados para o mundo | sync (`ver 04-`), provenance |
+| Evento (servidor)     | Quando                                   | Consumidor                   |
+| --------------------- | ---------------------------------------- | ---------------------------- |
+| `pack:loaded`         | índice de um pack construído na abertura | telemetria, browser          |
+| `pack:load-failed`    | pack ausente/corrompido (tolerado)       | log, browser                 |
+| `compendium:imported` | documentos importados para o mundo       | sync (`ver 04-`), provenance |
 
 > Eventos de UI do browser (abrir, filtrar, drag) são locais ao cliente
 > (`ver 11-ui-framework-e-fichas.md`). A criação de Documents resultante da

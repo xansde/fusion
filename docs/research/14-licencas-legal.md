@@ -24,13 +24,13 @@ O Foundry VTT é um produto comercial desenvolvido pela **Foundry Gaming LLC**. 
 
 Os termos do Foundry VTT estabelecem as seguintes proibições relevantes para um projeto clone:
 
-| Proibição | Texto relevante |
-|---|---|
-| Engenharia reversa | "I will not attempt to reverse-engineer or distribute the Software without explicit written permission from Foundry Gaming LLC." |
-| Redistribuição | Vender, arrendar, sublicenciar ou distribuir o software ou a chave de licença é expressamente proibido |
-| Publicação de código | "Publication of packages which reference or include software code and function in the absence of the base software is not permitted" |
-| Múltiplas instâncias | Cada instância hospedada requer uma licença separada |
-| Uso para atividades ilegais | Redistribuição de materiais protegidos por copyright usando o software é proibida |
+| Proibição                   | Texto relevante                                                                                                                      |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Engenharia reversa          | "I will not attempt to reverse-engineer or distribute the Software without explicit written permission from Foundry Gaming LLC."     |
+| Redistribuição              | Vender, arrendar, sublicenciar ou distribuir o software ou a chave de licença é expressamente proibido                               |
+| Publicação de código        | "Publication of packages which reference or include software code and function in the absence of the base software is not permitted" |
+| Múltiplas instâncias        | Cada instância hospedada requer uma licença separada                                                                                 |
+| Uso para atividades ilegais | Redistribuição de materiais protegidos por copyright usando o software é proibida                                                    |
 
 **Nota importante para o Fusion:** A proibição de engenharia reversa se aplica **ao software do Foundry VTT adquirido como produto**. Um desenvolvedor que nunca comprou o Foundry não está vinculado por essa EULA. Contudo, qualquer pessoa da equipe que possua uma licença do Foundry e que participou de análise do código está sujeita a esses termos.
 
@@ -43,6 +43,7 @@ O desenvolvimento clean-room é uma prática legal estabelecida no direito de so
 3. Não haja cópia de expressões de código concretas
 
 Para o Fusion, a abordagem correta é:
+
 - **Permitido:** Estudar a Knowledge Base pública do Foundry, a API documentation pública, o comportamento observável da interface, e documentação de sistemas de terceiros
 - **Proibido:** Descompilar, desassemblar ou copiar o código JavaScript/Electron do Foundry VTT
 - **Zona cinzenta:** Membros da equipe que adquiriram licença do Foundry e estudaram seu código fonte internamente
@@ -75,7 +76,7 @@ Aspectos que o EULA do Foundry VTT **não restringe** para terceiros:
 
 A **Open RPG Creative (ORC) License** foi criada pela Paizo Inc. em 2023 com o apoio do escritório jurídico Azora Law, que registrou o texto na Biblioteca do Congresso dos EUA (TX 9-307-067). Ela é propositalmente irrevogável e controlada por uma entidade neutra — não pela Paizo nem por qualquer editora comercial.
 
-**Característica fundamental:** Uma vez que uma publicação é lançada sob ORC, essa permissão não pode ser revogada. O texto da licença afirma expressamente: *"Licensor may not thereafter withdraw, modify, or revoke such offer to license the Licensed Material hereunder as to any existing licensee or any prospective licensee."*
+**Característica fundamental:** Uma vez que uma publicação é lançada sob ORC, essa permissão não pode ser revogada. O texto da licença afirma expressamente: _"Licensor may not thereafter withdraw, modify, or revoke such offer to license the Licensed Material hereunder as to any existing licensee or any prospective licensee."_
 
 ### 2.2 O que a ORC cobre (Licensed Material)
 
@@ -99,6 +100,7 @@ O **Reserved Material** permanece exclusivo dos criadores e inclui:
 - Substantivos próprios derivados de conteúdo protegido por marca
 
 Para a **Paizo especificamente**, o Reserved Material inclui:
+
 - As marcas "Pathfinder", "Starfinder", "Paizo" e o logotipo do golem Paizo
 - Personagens específicos (Seoni, Valeros, etc.)
 - Localizações do universo Golarion (Absalom, Varisia, etc.)
@@ -106,11 +108,11 @@ Para a **Paizo especificamente**, o Reserved Material inclui:
 - Organizações (Guardiões da Chama, etc.)
 - Arte e ilustrações de todos os produtos
 
-**Nota crítica:** O d20pfsrd.com publicou explicitamente que *"Este produto não contém Expressly Designated Licensed Material"* — ou seja, a Paizo não abriu voluntariamente nenhum de seu Reserved Material além das mecânicas.
+**Nota crítica:** O d20pfsrd.com publicou explicitamente que _"Este produto não contém Expressly Designated Licensed Material"_ — ou seja, a Paizo não abriu voluntariamente nenhum de seu Reserved Material além das mecânicas.
 
 ### 2.4 Implicações para VTTs (ORC e software)
 
-A ORC **não contém** restrições específicas para VTTs. A Seção II.a. autoriza uso *"em todos os meios e formatos, sejam eles conhecidos agora ou criados futuramente"*, o que inclui explicitamente aplicações digitais.
+A ORC **não contém** restrições específicas para VTTs. A Seção II.a. autoriza uso _"em todos os meios e formatos, sejam eles conhecidos agora ou criados futuramente"_, o que inclui explicitamente aplicações digitais.
 
 Discussões na comunidade (EN World, 2024) estabeleceram os seguintes pontos:
 
@@ -144,15 +146,15 @@ A **Open Game License versão 1.0a** foi criada pela Wizards of the Coast em 200
 
 ### 3.2 Diferenças Práticas OGL vs ORC
 
-| Aspecto | OGL 1.0a | ORC |
-|---|---|---|
-| Controlado por | WotC (privada) | Azora Law (neutra) |
-| Revogabilidade | Tecnicamente revogável (controverso) | Explicitamente irrevogável |
-| Escopo | Centrado em D&D/d20 | System-agnostic |
-| Mecânicas | Não podem ser designadas Product Identity | Não podem ser reservadas |
-| Arte | Não coberta | Não coberta |
-| Propagação para software | Ambígua | Não impõe copyleft em código |
-| Uso futuro (PF2e) | Depreciado para conteúdo novo | Padrão para remaster |
+| Aspecto                  | OGL 1.0a                                  | ORC                          |
+| ------------------------ | ----------------------------------------- | ---------------------------- |
+| Controlado por           | WotC (privada)                            | Azora Law (neutra)           |
+| Revogabilidade           | Tecnicamente revogável (controverso)      | Explicitamente irrevogável   |
+| Escopo                   | Centrado em D&D/d20                       | System-agnostic              |
+| Mecânicas                | Não podem ser designadas Product Identity | Não podem ser reservadas     |
+| Arte                     | Não coberta                               | Não coberta                  |
+| Propagação para software | Ambígua                                   | Não impõe copyleft em código |
+| Uso futuro (PF2e)        | Depreciado para conteúdo novo             | Padrão para remaster         |
 
 ### 3.3 Conteúdo legado OGL no pf2e
 
@@ -182,16 +184,19 @@ Paizo IP Usage
 A Fan Content Policy substituiu parcialmente a Community Use Policy. Pontos relevantes:
 
 **O que NÃO está coberto pela Fan Content Policy:**
+
 - "Game modules, board games, video games, roleplaying simulators, character generators, rules compendiums" são **expressamente proibidos**
 - VTTs e ferramentas digitais que funcionam como produtos de jogo caem nessa categoria proibida
 
 **O que está coberto:**
+
 - Streams e gravações de actual play
 - Merchandise artesanal (pins, camisetas, dados) vendido diretamente
 - Podcasts, vídeos instrucionais
 - Cosplay e props
 
 **Monetização permitida:**
+
 - Doações via Patreon/Ko-fi e receita de anúncios
 - Venda direta de merchandise (não via print-on-demand)
 
@@ -209,6 +214,7 @@ A Community Use Policy continua em vigor. Permite uso não-comercial de materiai
 **Nota histórica:** A Paizo chegou a ter uma política de Community Use específica que listava ferramentas digitais como permitidas, mas as revisões de 2024 criaram ambiguidade. O FAQ recomenda contato direto com a Paizo para casos não cobertos.
 
 **Implicação para o Fusion:**
+
 - Versão **gratuita e sem paywall**: poderia tentar operar sob Community Use Policy, mas há risco jurídico pela ambiguidade sobre apps
 - Versão **comercial ou com qualquer forma de monetização**: precisa de commercial license ou usar apenas ORC/OGL sem usar marcas Paizo
 
@@ -217,14 +223,17 @@ A Community Use Policy continua em vigor. Permite uso não-comercial de materiai
 Em julho de 2024, a Paizo consolidou três licenças de compatibilidade em uma única.
 
 **O que permite:**
+
 - Usar os logos de compatibilidade ("Compatible with Pathfinder" etc.) em livros e websites
 - Não requer registro prévio — basta concordar com os termos ao publicar
 
 **O que proíbe:**
+
 - **Aplicativos e apps estão explicitamente excluídos:** "The Paizo Compatibility License applies only to printed books, electronic books, and freely available websites, and is not available for use with apps."
 - Criar cenários de aventuras ou usar conteúdo específico de campanhas
 
 **Alternativa para apps:**
+
 > "You may use game content released as Licensed Material under the ORC or as Open Game Content under the OGL in apps so long as you comply with those licenses, but you can't use the 'Pathfinder,' 'Starfinder,' or 'Paizo' trademarks, nor the associated logos."
 
 **Conclusão para o Fusion:** O Fusion **não pode** usar o logo "Compatible with Pathfinder" ou qualquer marca da Paizo. Pode implementar as mecânicas sob ORC/OGL sem usar as marcas registradas.
@@ -239,6 +248,7 @@ Para uso comercial de marcas e IPs da Paizo em apps e vídeo games, existe um pr
 - É assim que o Foundry Gaming LLC opera com a Paizo
 
 **Exemplos de operações sob commercial license:**
+
 - **Archives of Nethys**: Opera sob commercial license específica com a Paizo. O conteúdo do AoN **não** está disponível para reuso sob nenhuma das licenças comunitárias. A Paizo declarou o AoN como referência oficial.
 - **Foundry VTT (sistema pf2e)**: Opera sob "partnership agreement between Foundry Gaming LLC and Paizo Inc." — acordo exclusivo que permite uso de arte, marcas e conteúdo não-OGL/ORC
 
@@ -250,17 +260,18 @@ Para uso comercial de marcas e IPs da Paizo em apps e vídeo games, existe um pr
 
 O repositório GitHub `foundryvtt/pf2e` (Apache-2.0 para código) possui **três camadas de licenciamento**:
 
-| Componente | Licença | Usável pelo Fusion? |
-|---|---|---|
-| Código TypeScript/JavaScript (HTML, CSS) | Apache License 2.0 | **SIM** — com atribuição |
-| Mecânicas do jogo (stat blocks, regras) | OGL 1.0a (legado) / ORC (remaster) | **SIM** — com compliance |
-| Arte, ícones, ilustrações | Paizo: só para Foundry Gaming LLC | **NÃO** |
-| Marcas (Pathfinder, etc.) | Paizo: todas as licenças | **NÃO** |
-| Conteúdo de parceria exclusiva | Partnership Agreement Paizo/Foundry | **NÃO** |
+| Componente                               | Licença                             | Usável pelo Fusion?      |
+| ---------------------------------------- | ----------------------------------- | ------------------------ |
+| Código TypeScript/JavaScript (HTML, CSS) | Apache License 2.0                  | **SIM** — com atribuição |
+| Mecânicas do jogo (stat blocks, regras)  | OGL 1.0a (legado) / ORC (remaster)  | **SIM** — com compliance |
+| Arte, ícones, ilustrações                | Paizo: só para Foundry Gaming LLC   | **NÃO**                  |
+| Marcas (Pathfinder, etc.)                | Paizo: todas as licenças            | **NÃO**                  |
+| Conteúdo de parceria exclusiva           | Partnership Agreement Paizo/Foundry | **NÃO**                  |
 
 ### 5.2 Código Apache 2.0 — Implicações
 
 O Apache License 2.0 é uma licença permissiva que:
+
 - Permite uso comercial e redistribuição
 - Requer preservação de avisos de copyright e licença
 - Inclui concessão explícita de patentes
@@ -271,6 +282,7 @@ O **código** do sistema pf2e (lógica de jogo, estruturas de dados, regras impl
 ### 5.3 Dados dos Packs — O que pode ser extraído
 
 Os JSONs dos compendiums do pf2e contêm:
+
 - **Mecânicas abertas (OGL/ORC):** Stat blocks, valores de atributos, descrições de habilidades mecânicas — **pode ser importado**
 - **Texto de setting:** Lore de personagens, descrições de localizações, histórias — **Reserved Material, não pode**
 - **Arte referenciada:** Caminhos para arquivos de imagem com licenças específicas da Paizo — **não pode usar as imagens**
@@ -344,15 +356,15 @@ O Fusion precisará de arte própria, licenciada separadamente, ou usar recursos
 
 ### 7.4 Outras bibliotecas relevantes para VTTs
 
-| Biblioteca | Licença | Adequação |
-|---|---|---|
-| Three.js | MIT | OK |
-| Tone.js (audio) | MIT | OK |
-| Howler.js (audio) | MIT | OK |
-| Yjs (CRDT collaboration) | MIT | OK |
-| ProseMirror (rich text) | MIT | OK |
-| Konva.js (canvas 2D) | MIT | OK |
-| matter.js (physics) | MIT | OK |
+| Biblioteca               | Licença | Adequação |
+| ------------------------ | ------- | --------- |
+| Three.js                 | MIT     | OK        |
+| Tone.js (audio)          | MIT     | OK        |
+| Howler.js (audio)        | MIT     | OK        |
+| Yjs (CRDT collaboration) | MIT     | OK        |
+| ProseMirror (rich text)  | MIT     | OK        |
+| Konva.js (canvas 2D)     | MIT     | OK        |
+| matter.js (physics)      | MIT     | OK        |
 
 ---
 
@@ -360,30 +372,32 @@ O Fusion precisará de arte própria, licenciada separadamente, ou usar recursos
 
 ### 8.1 Matriz de Risco
 
-| Ação | Risco Legal | Mitigação |
-|---|---|---|
-| Usar código Apache 2.0 do pf2e | Baixo | Manter atribuições no código |
-| Implementar mecânicas ORC | Baixo | Incluir ORC Notice, Attribution Notice |
-| Importar JSON de mecânicas (sem arte) | Baixo-Médio | Filtrar apenas campos mecânicos, descartar lore |
-| Usar arte do pf2e/Foundry | **ALTO** | Não fazer — criar ou licenciar arte própria |
-| Usar marcas "Pathfinder"/"Starfinder" no nome | **ALTO** | Não fazer — descrever como "compatível com PF2e" no máximo |
-| Usar nome "Foundry" no produto | Médio | Não fazer — nome "Fusion" é seguro |
-| Engenharia reversa do Foundry VTT | **ALTO** | Não fazer — usar apenas documentação pública |
-| Distribuição pública gratuita sem marcas Paizo | Baixo | Incluir disclaimers adequados |
-| Distribuição comercial sem commercial license | Médio-Alto | Negociar commercial license ou evitar marcas Paizo |
-| Uso privado/grupo fechado | Muito Baixo | Minimalismo de risco |
+| Ação                                           | Risco Legal | Mitigação                                                  |
+| ---------------------------------------------- | ----------- | ---------------------------------------------------------- |
+| Usar código Apache 2.0 do pf2e                 | Baixo       | Manter atribuições no código                               |
+| Implementar mecânicas ORC                      | Baixo       | Incluir ORC Notice, Attribution Notice                     |
+| Importar JSON de mecânicas (sem arte)          | Baixo-Médio | Filtrar apenas campos mecânicos, descartar lore            |
+| Usar arte do pf2e/Foundry                      | **ALTO**    | Não fazer — criar ou licenciar arte própria                |
+| Usar marcas "Pathfinder"/"Starfinder" no nome  | **ALTO**    | Não fazer — descrever como "compatível com PF2e" no máximo |
+| Usar nome "Foundry" no produto                 | Médio       | Não fazer — nome "Fusion" é seguro                         |
+| Engenharia reversa do Foundry VTT              | **ALTO**    | Não fazer — usar apenas documentação pública               |
+| Distribuição pública gratuita sem marcas Paizo | Baixo       | Incluir disclaimers adequados                              |
+| Distribuição comercial sem commercial license  | Médio-Alto  | Negociar commercial license ou evitar marcas Paizo         |
+| Uso privado/grupo fechado                      | Muito Baixo | Minimalismo de risco                                       |
 
 ### 8.2 Distribuição vs. Uso Privado
 
 **Uso privado (grupo fechado do GM):** O risco é mínimo. A Paizo não persegue grupos privados usando conteúdo para jogar. O Foundry VTT opera em modelo self-hosted — o próprio Foundry permite que usuários criem sistemas e modules para uso privado.
 
 **Distribuição pública gratuita:** Viável com as seguintes condições:
+
 - Usar apenas mecânicas ORC/OGL, sem marcas Paizo
 - Não incluir arte proprietária
 - Incluir avisos de licença adequados
 - Não chamar o produto de "Pathfinder VTT" ou usar branding Paizo
 
 **Distribuição comercial (qualquer forma de monetização):** Requer:
+
 - Commercial license com a Paizo para usar marcas (se desejar)
 - Sem commercial license: pode operar com mecânicas ORC sem marcas
 - Consideração de Commercial License com Foundry Gaming LLC não é necessária — o Fusion é software independente
@@ -391,10 +405,12 @@ O Fusion precisará de arte própria, licenciada separadamente, ou usar recursos
 ### 8.3 O Problema da Arte
 
 Esta é a questão mais crítica para o Fusion. Sem arte:
+
 - O jogo funciona mecanicamente, mas é visualmente vazio
 - Tokens, ícones de condições, ilustrações de itens precisam de substitutos
 
 **Alternativas legais:**
+
 - **Game-icons.net:** Milhares de ícones RPG sob CC BY 3.0 (atribuição necessária)
 - **Kenney.nl:** Assets de jogo sob CC0 (domínio público)
 - **OpenGameArt.org:** Assets variados, verificar licença por item
@@ -408,6 +424,7 @@ Esta é a questão mais crítica para o Fusion. Sem arte:
 ### 9.1 O Que é Permitido Dizer
 
 Sem commercial license com a Paizo, o Fusion pode:
+
 - Descrever funcionalidade: "suporta as regras do Pathfinder Second Edition"
 - Referenciar o ORC: "implementa conteúdo Licensed Material sob a ORC License"
 - Ser descritivo: "VTT para jogar Pathfinder 2e Remaster"
@@ -422,6 +439,7 @@ Sem commercial license com a Paizo, o Fusion pode:
 ### 9.3 Nomenclatura do Produto Fusion
 
 O nome "Fusion" não colide com nenhuma marca registrada identificada. Para segurança adicional:
+
 - Verificar USPTO para "Fusion" + software/games
 - Evitar "Fusion VTT for Pathfinder" como nome oficial (poderia conotar endorsement)
 - Preferível: "Fusion VTT" como nome autônomo, com sistemas PF2e/SF2e como funcionalidades descritas
@@ -443,24 +461,24 @@ O nome "Fusion" não colide com nenhuma marca registrada identificada. Para segu
 Incluir em documentação e/ou UI do produto:
 
 ```
-This product is licensed under the ORC License, held at the Library of Congress 
-at TX 9-307-067, and available online at various locations including 
+This product is licensed under the ORC License, held at the Library of Congress
+at TX 9-307-067, and available online at various locations including
 paizo.com/orclicense and others.
 
 Attribution Notice: [lista de autores dos produtos Paizo usados]
 
-Reserved Material: All trademarks, registered trademarks, proper nouns (characters, 
-deities, locations, etc., as well as all adjectives, names, titles, and descriptive 
-terms derived from proper nouns), artworks, characters, dialogue, locations, 
+Reserved Material: All trademarks, registered trademarks, proper nouns (characters,
+deities, locations, etc., as well as all adjectives, names, titles, and descriptive
+terms derived from proper nouns), artworks, characters, dialogue, locations,
 organizations, plots, storylines, and trade dress. ©Paizo Inc.
 ```
 
 ### 10.3 Ao usar Community Use Policy (se aplicável)
 
 ```
-[Nome do produto] uses trademarks and/or copyrights owned by Paizo Inc., which are 
-used under Paizo's Community Use Policy. We are expressly prohibited from charging 
-you to use or access this content. [Nome do produto] is not published, endorsed, or 
+[Nome do produto] uses trademarks and/or copyrights owned by Paizo Inc., which are
+used under Paizo's Community Use Policy. We are expressly prohibited from charging
+you to use or access this content. [Nome do produto] is not published, endorsed, or
 specifically approved by Paizo Inc.
 ```
 

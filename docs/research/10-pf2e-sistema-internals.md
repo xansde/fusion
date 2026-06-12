@@ -50,22 +50,22 @@ foundryvtt/pf2e/
 
 ### 2.1 Código-Fonte
 
-| Componente | Licença |
-|---|---|
-| HTML, CSS, JavaScript/TypeScript | **Apache License v2.0** |
-| Art/assets individuais | Documentado em `./static/licenses/` e `./packs/` |
-| Foundry VTT platform layer | Limited License Agreement for module development |
+| Componente                       | Licença                                          |
+| -------------------------------- | ------------------------------------------------ |
+| HTML, CSS, JavaScript/TypeScript | **Apache License v2.0**                          |
+| Art/assets individuais           | Documentado em `./static/licenses/` e `./packs/` |
+| Foundry VTT platform layer       | Limited License Agreement for module development |
 
 **Implicação para Fusion:** O código TypeScript do repositório `foundryvtt/pf2e` pode ser estudado, referenciado e adaptado conceitualmente. A licença Apache-2.0 permite reuso com atribuição, mas um clean-room genuíno exige reimplementação sem copiar código palavra por palavra.
 
 ### 2.2 Dados de Jogo (Compendiums)
 
-| Conteúdo | Licença |
-|---|---|
-| Regras mecânicas (remaster) | **ORC (Open RPG Creative License)** |
-| Regras pré-remaster | **OGL v1.0a** |
-| Conteúdo de ambientação/lore Paizo | Community Use Policy (CUP) |
-| Arte Paizo (tokens, scene maps) | Não redistribuível sem licença específica |
+| Conteúdo                           | Licença                                   |
+| ---------------------------------- | ----------------------------------------- |
+| Regras mecânicas (remaster)        | **ORC (Open RPG Creative License)**       |
+| Regras pré-remaster                | **OGL v1.0a**                             |
+| Conteúdo de ambientação/lore Paizo | Community Use Policy (CUP)                |
+| Arte Paizo (tokens, scene maps)    | Não redistribuível sem licença específica |
 
 Cada entrada de compendium carrega metadados de publicação:
 
@@ -85,17 +85,17 @@ Cada entrada de compendium carrega metadados de publicação:
 
 O sistema define **9 tipos de ator** (diretórios em `src/module/actor/`):
 
-| Tipo | Uso | Campos notáveis |
-|---|---|---|
-| `character` | Personagem jogador (PC) | abilities, saves, skills, proficiencies, feats, resources (hero/focus/mythic), classDC, ancestryhp, classhp |
-| `npc` | Criatura/NPC com statblock completo | AC (valor + details), saves com base + saveDetail, skills com mod + special, perception, actions (NPCStrike[]) |
-| `hazard` | Armadilhas e perigos | Subset de NPC; sem ações ativas por padrão |
-| `loot` | Container de itens / baú | Sem statblock; apenas inventário |
-| `familiar` | Familiar de personagem | Subset de creature; habilidades derivadas do PC |
-| `vehicle` | Veículo | HP, BT (broken threshold), piloting |
-| `party` | Grupo de PCs | Agregador; speed coletivo, exploração |
-| `army` | Unidade de guerra em massa | Mecanismo de Kingdom/War |
-| `creature` | Base abstrata para character/npc/familiar | Classe TypeScript não instanciada diretamente |
+| Tipo        | Uso                                       | Campos notáveis                                                                                                |
+| ----------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `character` | Personagem jogador (PC)                   | abilities, saves, skills, proficiencies, feats, resources (hero/focus/mythic), classDC, ancestryhp, classhp    |
+| `npc`       | Criatura/NPC com statblock completo       | AC (valor + details), saves com base + saveDetail, skills com mod + special, perception, actions (NPCStrike[]) |
+| `hazard`    | Armadilhas e perigos                      | Subset de NPC; sem ações ativas por padrão                                                                     |
+| `loot`      | Container de itens / baú                  | Sem statblock; apenas inventário                                                                               |
+| `familiar`  | Familiar de personagem                    | Subset de creature; habilidades derivadas do PC                                                                |
+| `vehicle`   | Veículo                                   | HP, BT (broken threshold), piloting                                                                            |
+| `party`     | Grupo de PCs                              | Agregador; speed coletivo, exploração                                                                          |
+| `army`      | Unidade de guerra em massa                | Mecanismo de Kingdom/War                                                                                       |
+| `creature`  | Base abstrata para character/npc/familiar | Classe TypeScript não instanciada diretamente                                                                  |
 
 ### 3.1 Hierarquia de Classes TypeScript
 
@@ -141,32 +141,32 @@ O sistema define **22+ tipos de item** (diretórios em `src/module/item/`):
 
 ### 4.1 Tabela Completa de Tipos
 
-| Tipo | Categoria | Descrição |
-|---|---|---|
-| `ancestry` | Construção de personagem | Raça/linhagem — hp, speed, size, reach, boosts, flaws, languages, vision |
-| `heritage` | Construção de personagem | Sub-raça; herda dados da ancestry |
-| `background` | Construção de personagem | Antecedente; boosts + proficiências de skill |
-| `class` | Construção de personagem | Classe; define hp/nível, proficiências, saving throws, attack progressions |
-| `feat` | Mecânica | Feitos/poderes; level, category, prerequisites, frequency, actionType, subfeatures |
-| `ability` | Mecânica | Abilidades de classe/ancestria (subtype de feat) |
-| `spell` | Magia | level, traditions, area, range, duration, damage, defense/save, sustained |
-| `spellcastingEntry` | Magia | Container de magia; tradition, ability, slots, proficiency, collection type |
-| `weapon` | Equipamento físico | category, group, damage (dice/die/type), runes (potency/striking/property), range, reload, material, traits |
-| `armor` | Equipamento físico | category, group, AC bonus, dex cap, check penalty, speed penalty, strength, material, runes |
-| `shield` | Equipamento físico | AC bonus, hardness, HP, BT (broken threshold) |
-| `equipment` | Equipamento físico | Item genérico; bulk, price, usage, traits |
-| `consumable` | Equipamento físico | category (scroll/wand/potion…), charges, spell link |
-| `container` | Equipamento físico | bulk reduction, capacity (sealed/collapsed) |
-| `treasure` | Equipamento físico | Ouro/gemas; value em gp/sp |
-| `book` | Equipamento físico | Habilidades contidas; skill outcomes |
-| `kit` | Equipamento físico | Bundle com lista de itens incluídos |
-| `condition` | Estado | Slug canônico (frightened, prone…); value para condições numeradas |
-| `effect` | Estado | Duração e badge; encapsula regras temporárias |
-| `affliction` | Estado | Venenos/doenças; stages com duração e efeitos por estágio |
-| `lore` | Habilidade | Perícia de lore customizada; rank 0-4 |
-| `melee` | NPC-only | Ataque corpo-a-corpo/ranged de NPC |
-| `deity` | Referência | Divindade; domains, edicts, anathemas, spell list |
-| `campaignFeature` | Campanha | Feature específica de AP (Adventure Path) |
+| Tipo                | Categoria                | Descrição                                                                                                   |
+| ------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| `ancestry`          | Construção de personagem | Raça/linhagem — hp, speed, size, reach, boosts, flaws, languages, vision                                    |
+| `heritage`          | Construção de personagem | Sub-raça; herda dados da ancestry                                                                           |
+| `background`        | Construção de personagem | Antecedente; boosts + proficiências de skill                                                                |
+| `class`             | Construção de personagem | Classe; define hp/nível, proficiências, saving throws, attack progressions                                  |
+| `feat`              | Mecânica                 | Feitos/poderes; level, category, prerequisites, frequency, actionType, subfeatures                          |
+| `ability`           | Mecânica                 | Abilidades de classe/ancestria (subtype de feat)                                                            |
+| `spell`             | Magia                    | level, traditions, area, range, duration, damage, defense/save, sustained                                   |
+| `spellcastingEntry` | Magia                    | Container de magia; tradition, ability, slots, proficiency, collection type                                 |
+| `weapon`            | Equipamento físico       | category, group, damage (dice/die/type), runes (potency/striking/property), range, reload, material, traits |
+| `armor`             | Equipamento físico       | category, group, AC bonus, dex cap, check penalty, speed penalty, strength, material, runes                 |
+| `shield`            | Equipamento físico       | AC bonus, hardness, HP, BT (broken threshold)                                                               |
+| `equipment`         | Equipamento físico       | Item genérico; bulk, price, usage, traits                                                                   |
+| `consumable`        | Equipamento físico       | category (scroll/wand/potion…), charges, spell link                                                         |
+| `container`         | Equipamento físico       | bulk reduction, capacity (sealed/collapsed)                                                                 |
+| `treasure`          | Equipamento físico       | Ouro/gemas; value em gp/sp                                                                                  |
+| `book`              | Equipamento físico       | Habilidades contidas; skill outcomes                                                                        |
+| `kit`               | Equipamento físico       | Bundle com lista de itens incluídos                                                                         |
+| `condition`         | Estado                   | Slug canônico (frightened, prone…); value para condições numeradas                                          |
+| `effect`            | Estado                   | Duração e badge; encapsula regras temporárias                                                               |
+| `affliction`        | Estado                   | Venenos/doenças; stages com duração e efeitos por estágio                                                   |
+| `lore`              | Habilidade               | Perícia de lore customizada; rank 0-4                                                                       |
+| `melee`             | NPC-only                 | Ataque corpo-a-corpo/ranged de NPC                                                                          |
+| `deity`             | Referência               | Divindade; domains, edicts, anathemas, spell list                                                           |
+| `campaignFeature`   | Campanha                 | Feature específica de AP (Adventure Path)                                                                   |
 
 ### 4.2 Estrutura JSON Universal de Compendium
 
@@ -178,7 +178,9 @@ Toda entrada de compendium segue este formato de nível superior:
   "name": "Nome do Item",
   "type": "feat",
   "img": "icons/path/icon.webp",
-  "system": { /* dados específicos do tipo */ },
+  "system": {
+    /* dados específicos do tipo */
+  },
   "folder": null
 }
 ```
@@ -246,69 +248,70 @@ Rule Elements (REs) são a peça central de automação do sistema pf2e. São ar
 
 ### 5.2 Campos Universais (Base)
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `key` | string | Tipo do RE (ex: `"FlatModifier"`) |
-| `slug` | string? | Identificador kebab-case para referência cruzada |
-| `label` | string? | Texto legível para tooltips |
-| `priority` | number | Ordem de execução (padrão 100, menor executa antes) |
-| `ignored` | boolean | Desabilita o RE |
-| `predicate` | array | Lógica condicional — operadores `or`, `and`, `not`, comparações `gte/lte/gt/lt/eq` |
-| `requiresEquipped` | boolean | Só ativa se o item está equipado |
-| `requiresInvestment` | boolean | Só ativa se o item está investido |
+| Campo                | Tipo    | Descrição                                                                          |
+| -------------------- | ------- | ---------------------------------------------------------------------------------- |
+| `key`                | string  | Tipo do RE (ex: `"FlatModifier"`)                                                  |
+| `slug`               | string? | Identificador kebab-case para referência cruzada                                   |
+| `label`              | string? | Texto legível para tooltips                                                        |
+| `priority`           | number  | Ordem de execução (padrão 100, menor executa antes)                                |
+| `ignored`            | boolean | Desabilita o RE                                                                    |
+| `predicate`          | array   | Lógica condicional — operadores `or`, `and`, `not`, comparações `gte/lte/gt/lt/eq` |
+| `requiresEquipped`   | boolean | Só ativa se o item está equipado                                                   |
+| `requiresInvestment` | boolean | Só ativa se o item está investido                                                  |
 
 ### 5.3 Listagem Completa de Rule Elements
 
 Extraído de `src/module/rules/rule-element/`:
 
-| Arquivo/Subpasta | RE Key | Função |
-|---|---|---|
-| `flat-modifier.ts` | **FlatModifier** | Bônus/penalidade numérica tipada a seletores de roll |
-| `ae-like.ts` | **AELike** | Modifica propriedades do ator via path (multiply/add/subtract/downgrade/upgrade/override) |
-| `adjust-modifier.ts` | **AdjustModifier** | Altera modificadores existentes por slug |
-| `damage-dice.ts` | **DamageDice** | Adiciona/modifica dados de dano (size, type, category) |
-| `roll-option.ts` / subpasta | **RollOption** | Cria flags booleanas nos domínios de roll para predicados |
-| `grant-item.ts` / subpasta | **GrantItem** | Concede outro item automaticamente via UUID |
-| `choice-set.ts` / subpasta | **ChoiceSet** | Prompts de seleção; armazena em `flags.pf2e.rulesSelections` |
-| `strike.ts` | **Strike** | Cria nova ação de ataque em um ator |
-| `adjust-strike.ts` | **AdjustStrike** | Modifica strikes existentes |
-| `base-speed.ts` | **BaseSpeed** | Define velocidade base (land/fly/climb/swim/burrow) |
-| `base.ts` | — | Classe base abstrata |
-| `aura.ts` | **Aura** | Cria emanação com efeitos em aliados/inimigos no raio |
-| `battle-form/` | **BattleForm** | Transformação polimórfica complexa (wild shape, formas) |
-| `damage-alteration/` | **DamageAlteration** | Modifica propriedades de dados de dano |
-| `effect-spinoff.ts` | **EffectSpinoff** | Cria efeito derivado a partir de outro |
-| `ephemeral-effect.ts` | **EphemeralEffect** | Efeito temporário apenas durante cálculo (não persiste) |
-| `fast-healing.ts` | **FastHealing** | Cura rápida com condição de desativação |
-| `iwr/` | **IWR** | Imunidades, Fraquezas e Resistências (a dano ou condições) |
-| `item-alteration/` | **ItemAlteration** | Modifica propriedades de itens possuídos |
-| `lose-hit-points.ts` | **LoseHitPoints** | Dano automático durante preparação de dados |
-| `martial-proficiency.ts` | **MartialProficiency** | Concede proficiência em arma/grupo |
-| `multiple-attack-penalty.ts` | **MultipleAttackPenalty** | Define penalidade de ataque múltiplo customizada |
-| `roll-note.ts` | **RollNote** | Adiciona texto explicativo ao resultado de roll |
-| `roll-twice.ts` | **RollTwice** | Fortune (toma maior) / Misfortune (toma menor) |
-| `substitute-roll.ts` | **SubstituteRoll** | Substitui resultado do dado por valor fixo/estatística |
-| `sense.ts` | **Sense** | Concede sentido (darkvision, tremorsense, scent…) |
-| `special-resource.ts` | **SpecialResource** | Recurso limitado customizado |
-| `special-statistic.ts` | **SpecialStatistic** | Estatística customizada não padrão |
-| `striking.ts` | **Striking** | Equivalente de runa striking |
-| `temp-hp.ts` | **TempHP** | Pontos de vida temporários |
-| `token-effect-icon.ts` | **TokenEffectIcon** | Ícone de estado no token (sem efeito permanente) |
-| `token-image.ts` | **TokenImage** | Altera imagem do token condicionalmente |
-| `token-light.ts` | **TokenLight** | Configura emissão de luz do token |
-| `token-mark.ts` / subpasta | **TokenMark** | Marcador visual no token |
-| `token-name.ts` | **TokenName** | Altera nome exibido do token |
-| `weapon-potency.ts` | **WeaponPotency** | Equivalente de runa de potência |
-| `actor-traits.ts` | **ActorTraits** | Adiciona/remove traits do ator dinamicamente |
-| `adjust-degree-of-success.ts` | **AdjustDegreeOfSuccess** | Altera degree of success condicional (ex: Evasion) |
-| `crafting-ability.ts` | **CraftingAbility** | Define habilidade de crafting customizada |
-| `creature-size.ts` | **CreatureSize** | Modifica categoria de tamanho do ator |
-| `crit-spec.ts` | **CriticalSpecialization** | Define efeito de especialização crítica |
-| `dexterity-modifier-cap.ts` | **DexterityModifierCap** | Limita CAP de DEX para AC |
+| Arquivo/Subpasta              | RE Key                     | Função                                                                                    |
+| ----------------------------- | -------------------------- | ----------------------------------------------------------------------------------------- |
+| `flat-modifier.ts`            | **FlatModifier**           | Bônus/penalidade numérica tipada a seletores de roll                                      |
+| `ae-like.ts`                  | **AELike**                 | Modifica propriedades do ator via path (multiply/add/subtract/downgrade/upgrade/override) |
+| `adjust-modifier.ts`          | **AdjustModifier**         | Altera modificadores existentes por slug                                                  |
+| `damage-dice.ts`              | **DamageDice**             | Adiciona/modifica dados de dano (size, type, category)                                    |
+| `roll-option.ts` / subpasta   | **RollOption**             | Cria flags booleanas nos domínios de roll para predicados                                 |
+| `grant-item.ts` / subpasta    | **GrantItem**              | Concede outro item automaticamente via UUID                                               |
+| `choice-set.ts` / subpasta    | **ChoiceSet**              | Prompts de seleção; armazena em `flags.pf2e.rulesSelections`                              |
+| `strike.ts`                   | **Strike**                 | Cria nova ação de ataque em um ator                                                       |
+| `adjust-strike.ts`            | **AdjustStrike**           | Modifica strikes existentes                                                               |
+| `base-speed.ts`               | **BaseSpeed**              | Define velocidade base (land/fly/climb/swim/burrow)                                       |
+| `base.ts`                     | —                          | Classe base abstrata                                                                      |
+| `aura.ts`                     | **Aura**                   | Cria emanação com efeitos em aliados/inimigos no raio                                     |
+| `battle-form/`                | **BattleForm**             | Transformação polimórfica complexa (wild shape, formas)                                   |
+| `damage-alteration/`          | **DamageAlteration**       | Modifica propriedades de dados de dano                                                    |
+| `effect-spinoff.ts`           | **EffectSpinoff**          | Cria efeito derivado a partir de outro                                                    |
+| `ephemeral-effect.ts`         | **EphemeralEffect**        | Efeito temporário apenas durante cálculo (não persiste)                                   |
+| `fast-healing.ts`             | **FastHealing**            | Cura rápida com condição de desativação                                                   |
+| `iwr/`                        | **IWR**                    | Imunidades, Fraquezas e Resistências (a dano ou condições)                                |
+| `item-alteration/`            | **ItemAlteration**         | Modifica propriedades de itens possuídos                                                  |
+| `lose-hit-points.ts`          | **LoseHitPoints**          | Dano automático durante preparação de dados                                               |
+| `martial-proficiency.ts`      | **MartialProficiency**     | Concede proficiência em arma/grupo                                                        |
+| `multiple-attack-penalty.ts`  | **MultipleAttackPenalty**  | Define penalidade de ataque múltiplo customizada                                          |
+| `roll-note.ts`                | **RollNote**               | Adiciona texto explicativo ao resultado de roll                                           |
+| `roll-twice.ts`               | **RollTwice**              | Fortune (toma maior) / Misfortune (toma menor)                                            |
+| `substitute-roll.ts`          | **SubstituteRoll**         | Substitui resultado do dado por valor fixo/estatística                                    |
+| `sense.ts`                    | **Sense**                  | Concede sentido (darkvision, tremorsense, scent…)                                         |
+| `special-resource.ts`         | **SpecialResource**        | Recurso limitado customizado                                                              |
+| `special-statistic.ts`        | **SpecialStatistic**       | Estatística customizada não padrão                                                        |
+| `striking.ts`                 | **Striking**               | Equivalente de runa striking                                                              |
+| `temp-hp.ts`                  | **TempHP**                 | Pontos de vida temporários                                                                |
+| `token-effect-icon.ts`        | **TokenEffectIcon**        | Ícone de estado no token (sem efeito permanente)                                          |
+| `token-image.ts`              | **TokenImage**             | Altera imagem do token condicionalmente                                                   |
+| `token-light.ts`              | **TokenLight**             | Configura emissão de luz do token                                                         |
+| `token-mark.ts` / subpasta    | **TokenMark**              | Marcador visual no token                                                                  |
+| `token-name.ts`               | **TokenName**              | Altera nome exibido do token                                                              |
+| `weapon-potency.ts`           | **WeaponPotency**          | Equivalente de runa de potência                                                           |
+| `actor-traits.ts`             | **ActorTraits**            | Adiciona/remove traits do ator dinamicamente                                              |
+| `adjust-degree-of-success.ts` | **AdjustDegreeOfSuccess**  | Altera degree of success condicional (ex: Evasion)                                        |
+| `crafting-ability.ts`         | **CraftingAbility**        | Define habilidade de crafting customizada                                                 |
+| `creature-size.ts`            | **CreatureSize**           | Modifica categoria de tamanho do ator                                                     |
+| `crit-spec.ts`                | **CriticalSpecialization** | Define efeito de especialização crítica                                                   |
+| `dexterity-modifier-cap.ts`   | **DexterityModifierCap**   | Limita CAP de DEX para AC                                                                 |
 
 ### 5.4 Seletores e Domínios
 
 Seletores determinam quais rolls/estatísticas o RE afeta. Exemplos canônicos:
+
 - `"perception"`, `"ac"`, `"fortitude"`, `"reflex"`, `"will"`
 - `"attack-roll"`, `"damage"`, `"spell-attack-roll"`, `"spell-damage"`
 - `"skill:acrobatics"`, `"saving-throw"`
@@ -338,39 +341,39 @@ O objeto `RuleElementSynthetics` centraliza todos os dados computados pelos REs 
 ```typescript
 interface RuleElementSynthetics<TActor> {
   // Modificadores e ajustes
-  modifiers: Record<string, DeferredModifier[]>      // por seletor
-  modifierAdjustments: Record<string, ModifierAdjustment[]>
-  degreeOfSuccessAdjustments: Record<string, DegreeOfSuccessAdjustment[]>
+  modifiers: Record<string, DeferredModifier[]>; // por seletor
+  modifierAdjustments: Record<string, ModifierAdjustment[]>;
+  degreeOfSuccessAdjustments: Record<string, DegreeOfSuccessAdjustment[]>;
 
   // Combate
-  damageDice: Record<string, DamageDicePF2e[]>
-  damageAlterations: Record<string, DamageAlteration[]>
-  strikeAdjustments: StrikeAdjustment[]
-  multipleAttackPenalties: Record<string, MultipleAttackPenalty[]>
-  striking: Record<string, StrikingSynthetic[]>
-  weaponPotency: Record<string, WeaponPotencySynthetic[]>
-  criticalSpecializations: { standard: CritSpecEffect[]; alternate: CritSpecEffect[] }
+  damageDice: Record<string, DamageDicePF2e[]>;
+  damageAlterations: Record<string, DamageAlteration[]>;
+  strikeAdjustments: StrikeAdjustment[];
+  multipleAttackPenalties: Record<string, MultipleAttackPenalty[]>;
+  striking: Record<string, StrikingSynthetic[]>;
+  weaponPotency: Record<string, WeaponPotencySynthetic[]>;
+  criticalSpecializations: { standard: CritSpecEffect[]; alternate: CritSpecEffect[] };
 
   // Estatísticas e recursos
-  statistics: Map<string, Statistic>
-  resources: Map<string, SpecialResourceRuleElement>
-  senses: { sense: SenseData; predicate: Predicate; force: boolean }[]
-  movementTypes: MovementTypeSynthetic[]
+  statistics: Map<string, Statistic>;
+  resources: Map<string, SpecialResourceRuleElement>;
+  senses: { sense: SenseData; predicate: Predicate; force: boolean }[];
+  movementTypes: MovementTypeSynthetic[];
 
   // Rolls
-  rollNotes: Record<string, RollNotePF2e[]>
-  rollSubstitutions: Record<string, RollSubstitution[]>
-  rollTwice: Record<string, RollTwice[]>
-  toggles: Record<string, RollOptionToggle>
+  rollNotes: Record<string, RollNotePF2e[]>;
+  rollSubstitutions: Record<string, RollSubstitution[]>;
+  rollTwice: Record<string, RollTwice[]>;
+  toggles: Record<string, RollOptionToggle>;
 
   // Tokens e visual
-  tokenEffectIcons: TokenEffectIconRuleElement[]
-  tokenMarks: Map<string, TokenMarkData>
-  tokenOverrides: DeepPartial<TokenDocumentPF2e["_source"]>
+  tokenEffectIcons: TokenEffectIconRuleElement[];
+  tokenMarks: Map<string, TokenMarkData>;
+  tokenOverrides: DeepPartial<TokenDocumentPF2e["_source"]>;
 
   // Itens e efeitos
-  itemAlterations: Record<string, ItemAlteration[]>
-  ephemeralEffects: Record<string, { origin: ItemPF2e[]; target: ItemPF2e[] }>
+  itemAlterations: Record<string, ItemAlteration[]>;
+  ephemeralEffects: Record<string, { origin: ItemPF2e[]; target: ItemPF2e[] }>;
 }
 ```
 
@@ -395,15 +398,15 @@ interface RuleElementSynthetics<TActor> {
 
 ### 7.2 Tipos de Modificador (7 tipos com stacking rules)
 
-| Tipo | Regra de empilhamento |
-|---|---|
+| Tipo           | Regra de empilhamento                 |
+| -------------- | ------------------------------------- |
 | `circumstance` | Apenas maior bônus + menor penalidade |
-| `item` | Apenas maior bônus + menor penalidade |
-| `status` | Apenas maior bônus + menor penalidade |
-| `untyped` | Todos empilham |
-| `ability` | Um por estatística |
-| `proficiency` | Um por estatística |
-| `potency` | Maior aplica |
+| `item`         | Apenas maior bônus + menor penalidade |
+| `status`       | Apenas maior bônus + menor penalidade |
+| `untyped`      | Todos empilham                        |
+| `ability`      | Um por estatística                    |
+| `proficiency`  | Um por estatística                    |
+| `potency`      | Maior aplica                          |
 
 ### 7.3 Degree of Success
 
@@ -421,10 +424,11 @@ Implementado em `src/module/system/degree-of-success.ts` como classe `DegreeOfSu
 ### 7.4 Roll Options
 
 Roll options são `Set<string>` de flags booleanas que fluem pelo pipeline de roll. Fontes:
+
 - Estado do ator (condições ativas, itens equipados)
 - Domínios do check (attack-roll, damage, saving-throw…)
 - Itens (traits, rarity, category)
-- Alvos (target:trait:*, target:level:*)
+- Alvos (target:trait:_, target:level:_)
 - Valores dinâmicos
 
 ### 7.5 Inline Enrichers
@@ -448,6 +452,7 @@ Conteúdo de texto (ações de NPC, descrições de feitiços) pode conter botõ
 **Condições binárias (não-valued):** prone, invisible, unconscious, paralyzed, fleeing, frightened-0, etc.
 
 **Condições numeradas (valued):**
+
 - frightened, clumsy, drained, enfeebled, stupefied, sickened — impõem penalidade de status igual ao valor
 - slowed — perde N ações por turno
 - stunned — consome o valor imediatamente
@@ -460,6 +465,7 @@ Imunidade configurada via ActiveEffect ou RE-IWR impede a aplicação automatica
 ### 8.2 IWR (Immunity, Weakness, Resistance)
 
 Configurados via Rule Element `IWR` com campos:
+
 - `type`: damage type ou condition slug
 - `value`: número (para weakness/resistance)
 - `exceptions`: `["force", "ghost-touch"]` — tipos que ignoram a resistência
@@ -471,17 +477,18 @@ Definidos automaticamente via `setImmunitiesFromTraits()` baseado nos traits do 
 
 **Tipos de SpellcastingEntry:**
 
-| Categoria | Exemplo de Classe |
-|---|---|
-| `prepared` | Wizard, Cleric, Druid |
-| `spontaneous` | Sorcerer, Bard |
-| `innate` | Habilidades raciais |
-| `focus` | Classe Features (ki spells, etc.) |
-| `items` | Scrolls e wands |
-| `staff` | Staves mágicas |
-| `ritual` | Rituais (sem slots) |
+| Categoria     | Exemplo de Classe                 |
+| ------------- | --------------------------------- |
+| `prepared`    | Wizard, Cleric, Druid             |
+| `spontaneous` | Sorcerer, Bard                    |
+| `innate`      | Habilidades raciais               |
+| `focus`       | Classe Features (ki spells, etc.) |
+| `items`       | Scrolls e wands                   |
+| `staff`       | Staves mágicas                    |
+| `ritual`      | Rituais (sem slots)               |
 
 **Campos de SpellcastingEntry:**
+
 ```
 system.tradition: MagicTradition ("arcane"|"divine"|"occult"|"primal")
 system.ability: AttributeString ("int"|"wis"|"cha")
@@ -507,20 +514,20 @@ system.autoHeightenLevel: OneToTen | null
 
 O repositório contém **137 pastas de packs** no total.
 
-| Categoria | Qtd aproximada de packs | Escala de documentos |
-|---|---|---|
-| Bestiários (por livro/AP) | ~60 packs | +1.200 criaturas ao total |
-| Equipment | 1 pack | **~5.200+ itens** (GitHub truncou em 1.000) |
-| Feats | 1 pack principal | Milhares de feitos |
-| Spells | 1 pack | Centenas de feitiços |
-| Conditions | 1 pack | ~40 condições |
-| Ancestries/Heritages/Backgrounds | 3 packs | Centenas |
-| Classes/Class Features | 2 packs | Dezenas/centenas |
-| Effects (feat/spell/equipment/campaign) | 5 packs | Centenas |
-| Macros/Action Macros | 2 packs | Dezenas |
-| Rollable Tables, Journals | 2-3 packs | Dezenas |
-| Hazards, Vehicles | 2 packs | Centenas de hazards |
-| Deities, Boons | 2 packs | Centenas |
+| Categoria                               | Qtd aproximada de packs | Escala de documentos                        |
+| --------------------------------------- | ----------------------- | ------------------------------------------- |
+| Bestiários (por livro/AP)               | ~60 packs               | +1.200 criaturas ao total                   |
+| Equipment                               | 1 pack                  | **~5.200+ itens** (GitHub truncou em 1.000) |
+| Feats                                   | 1 pack principal        | Milhares de feitos                          |
+| Spells                                  | 1 pack                  | Centenas de feitiços                        |
+| Conditions                              | 1 pack                  | ~40 condições                               |
+| Ancestries/Heritages/Backgrounds        | 3 packs                 | Centenas                                    |
+| Classes/Class Features                  | 2 packs                 | Dezenas/centenas                            |
+| Effects (feat/spell/equipment/campaign) | 5 packs                 | Centenas                                    |
+| Macros/Action Macros                    | 2 packs                 | Dezenas                                     |
+| Rollable Tables, Journals               | 2-3 packs               | Dezenas                                     |
+| Hazards, Vehicles                       | 2 packs                 | Centenas de hazards                         |
+| Deities, Boons                          | 2 packs                 | Centenas                                    |
 
 ### 9.2 Processo de Build dos Packs
 
@@ -534,6 +541,7 @@ O repositório contém **137 pastas de packs** no total.
 ### 9.3 Links por UUID
 
 Referências internas: `@UUID[Compendium.pf2e.conditionitems.Item.Blinded]`
+
 - Resolvem pelo **nome**, não pelo `_id` → resilientes a rebuilds
 - `_id` deve ser tratado como imutável em contribuições
 
@@ -545,31 +553,31 @@ Referências internas: `@UUID[Compendium.pf2e.conditionitems.Item.Blinded]`
 
 Estes conceitos implementam lógica pf2e que pode ser reimplementada em qualquer engine:
 
-| Subsistema | Localização no pf2e | Natureza |
-|---|---|---|
-| Degree of Success | `src/module/system/degree-of-success.ts` | Algoritmo puro (d20 + margin + nat20/1) |
-| Modifier stacking | `src/module/actor/modifiers.ts` | Algoritmo puro (7 tipos, regras de empilhamento) |
-| Predication engine | `src/module/system/predication.ts` | Avaliador de expressões lógicas |
-| StatisticModifier | `src/module/actor/modifiers.ts` | Agregador de modificadores por domínio |
-| Roll Options Set | Parte do pipeline de check | Conjunto de flags para avaliação condicional |
-| RuleElement base + subclasses | `src/module/rules/rule-element/` | Motor de automação data-driven |
-| IWR application | `src/module/system/damage/` | Lógica de imunidade/fraqueza/resistência |
-| Condition value mechanics | `src/module/system/conditions/` | Mecânicas de condições numeradas |
+| Subsistema                    | Localização no pf2e                      | Natureza                                         |
+| ----------------------------- | ---------------------------------------- | ------------------------------------------------ |
+| Degree of Success             | `src/module/system/degree-of-success.ts` | Algoritmo puro (d20 + margin + nat20/1)          |
+| Modifier stacking             | `src/module/actor/modifiers.ts`          | Algoritmo puro (7 tipos, regras de empilhamento) |
+| Predication engine            | `src/module/system/predication.ts`       | Avaliador de expressões lógicas                  |
+| StatisticModifier             | `src/module/actor/modifiers.ts`          | Agregador de modificadores por domínio           |
+| Roll Options Set              | Parte do pipeline de check               | Conjunto de flags para avaliação condicional     |
+| RuleElement base + subclasses | `src/module/rules/rule-element/`         | Motor de automação data-driven                   |
+| IWR application               | `src/module/system/damage/`              | Lógica de imunidade/fraqueza/resistência         |
+| Condition value mechanics     | `src/module/system/conditions/`          | Mecânicas de condições numeradas                 |
 
 ### 10.2 O Que É Fortemente Acoplado ao Foundry Core
 
 Estas partes dependem de APIs do Foundry VTT que NÃO existem no Fusion:
 
-| Componente | Dependência do Foundry |
-|---|---|
-| `Actor.prepareData()` e ciclo | `foundry.abstract.Document`, hooks do Foundry |
-| Renderização de sheets | Handlebars + `Application` base do Foundry |
-| Canvas e tokens | `CanvasLayer`, `Token`, `PlaceableObject` |
-| LevelDB compendiums | `CompendiumCollection`, `WorldCollection` |
-| Socket/users | `SocketInterface` do Foundry |
-| Active Effects | `ActiveEffect` do Foundry core |
-| Roll class base | `Roll` do Foundry (estendida para `CheckRoll`) |
-| Chat messages | `ChatMessage` do Foundry |
+| Componente                    | Dependência do Foundry                         |
+| ----------------------------- | ---------------------------------------------- |
+| `Actor.prepareData()` e ciclo | `foundry.abstract.Document`, hooks do Foundry  |
+| Renderização de sheets        | Handlebars + `Application` base do Foundry     |
+| Canvas e tokens               | `CanvasLayer`, `Token`, `PlaceableObject`      |
+| LevelDB compendiums           | `CompendiumCollection`, `WorldCollection`      |
+| Socket/users                  | `SocketInterface` do Foundry                   |
+| Active Effects                | `ActiveEffect` do Foundry core                 |
+| Roll class base               | `Roll` do Foundry (estendida para `CheckRoll`) |
+| Chat messages                 | `ChatMessage` do Foundry                       |
 
 **Conclusão para Fusion:** O Fusion precisará de implementações próprias para todos os equivalentes das APIs do Foundry. A lógica de regras (algoritmos de cálculo, estruturas de dados de items/actors, motor de Rule Elements) pode ser inspirada no pf2e sem copiar código, pois representa conhecimento de domínio das regras pf2e, não código proprietário do Foundry.
 
@@ -596,21 +604,21 @@ Estas partes dependem de APIs do Foundry VTT que NÃO existem no Fusion:
 
 ## 12. Subsistemas Técnicos Relevantes (`src/module/system/`)
 
-| Subdiretório/Arquivo | Função |
-|---|---|
-| `check/` | Entry point único `Check.roll()`, `CheckRoll` class |
-| `damage/` | Cálculo e aplicação de dano, IWR processing |
-| `statistic/` | `StatisticPF2e` — wrapper para qualquer estatística rolável |
-| `conditions/` | `ConditionManager`, aplicação e remoção de condições |
-| `degree-of-success.ts` | `DegreeOfSuccess` class com lógica de margem+nat20/1 |
-| `predication.ts` | Motor de predicados (`and`, `or`, `not`, comparações) |
-| `effect-tracker.ts` | Rastreamento de efeitos ativos com duração |
-| `rolls.ts` | Utilitários de dice rolling |
+| Subdiretório/Arquivo    | Função                                                       |
+| ----------------------- | ------------------------------------------------------------ |
+| `check/`                | Entry point único `Check.roll()`, `CheckRoll` class          |
+| `damage/`               | Cálculo e aplicação de dano, IWR processing                  |
+| `statistic/`            | `StatisticPF2e` — wrapper para qualquer estatística rolável  |
+| `conditions/`           | `ConditionManager`, aplicação e remoção de condições         |
+| `degree-of-success.ts`  | `DegreeOfSuccess` class com lógica de margem+nat20/1         |
+| `predication.ts`        | Motor de predicados (`and`, `or`, `not`, comparações)        |
+| `effect-tracker.ts`     | Rastreamento de efeitos ativos com duração                   |
+| `rolls.ts`              | Utilitários de dice rolling                                  |
 | `schema-data-fields.ts` | Campos customizados do schema (Foundry DataField extensions) |
-| `text-editor.ts` | Enrichers inline (@Check, @Damage, @Template, @UUID) |
-| `action-macros/` | Macros de ações básicas (Aid, Grapple, Trip, etc.) |
-| `settings/` | Configurações do sistema (variantes, opções) |
-| `html-elements/` | Componentes HTML customizados (Svelte) |
+| `text-editor.ts`        | Enrichers inline (@Check, @Damage, @Template, @UUID)         |
+| `action-macros/`        | Macros de ações básicas (Aid, Grapple, Trip, etc.)           |
+| `settings/`             | Configurações do sistema (variantes, opções)                 |
+| `html-elements/`        | Componentes HTML customizados (Svelte)                       |
 
 ---
 
@@ -641,7 +649,7 @@ Estas partes dependem de APIs do Foundry VTT que NÃO existem no Fusion:
 - [src/module/system - GitHub](https://github.com/foundryvtt/pf2e/tree/master/src/module/system)
 - [packs/ directory - GitHub](https://github.com/foundryvtt/pf2e/tree/master/packs)
 - [README.md - GitHub](https://github.com/foundryvtt/pf2e/blob/master/README.md)
-- [CHANGELOG (SF2E).md - GitHub](https://github.com/foundryvtt/pf2e/blob/v14-dev/CHANGELOG%20(SF2E).md)
+- [CHANGELOG (SF2E).md - GitHub](<https://github.com/foundryvtt/pf2e/blob/v14-dev/CHANGELOG%20(SF2E).md>)
 - [synthetics.ts — GitHub](https://github.com/foundryvtt/pf2e/blob/master/src/module/rules/synthetics.ts)
 - [character/data.ts — GitHub](https://github.com/foundryvtt/pf2e/blob/master/src/module/actor/character/data.ts)
 - [npc/data.ts — GitHub](https://github.com/foundryvtt/pf2e/blob/master/src/module/actor/npc/data.ts)

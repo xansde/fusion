@@ -8,7 +8,7 @@
   - `docs/research/06-foundry-rede-multiplayer.md` — Admin Access Key separado, autoridade do servidor, modelo de sessão por mundo, `executeAsGM`/socketlib como vetor de privilege escalation, `options.json` (proxySSL, upnp)
 
 > Esta spec é clean-room: descreve o **modelo de ameaça** do Fusion e as defesas
-> derivadas, inspirada no *comportamento* e nas *vulnerabilidades públicas* do Foundry
+> derivadas, inspirada no _comportamento_ e nas _vulnerabilidades públicas_ do Foundry
 > VTT (sem copiar código proprietário). Tudo que não vem da pesquisa está marcado como
 > decisão de design nossa.
 
@@ -58,11 +58,11 @@ incorporadas.
 ### O que NÃO inclui (delegado a specs irmãs)
 
 - **Fluxo concreto de login/logout/kick, modelo de `User`/`Session`, matriz de Permissions e
-  ownership de Documents** — `ver 05-usuarios-e-permissoes.md`. Esta spec define a *postura* (hashing,
+  ownership de Documents** — `ver 05-usuarios-e-permissoes.md`. Esta spec define a _postura_ (hashing,
   revogação, lockout); a 05 define os endpoints e o schema.
 - **Envelope de mensagens, rate limiting por evento socket, tamanho máximo de mensagem, validação de
-  Origin no upgrade, resync** — `ver 04-rede-e-sincronizacao.md`. Esta spec define *por que* e *com
-  que limites de segurança*; a 04 define o protocolo.
+  Origin no upgrade, resync** — `ver 04-rede-e-sincronizacao.md`. Esta spec define _por que_ e _com
+  que limites de segurança_; a 04 define o protocolo.
 - **Persistência SQLite (PRAGMAs, WAL, transações, backups)** — `ver 03-persistencia-e-mundos.md` e
   `ver 24-operacao-backups-telemetria.md`.
 - **Sandbox de execução de script macros em detalhe (API whitelist, timeout, contexto serializado)**
@@ -77,30 +77,30 @@ incorporadas.
 - **Admin Key, first-run wizard, `fusion.json`, instruções de túnel/port-forwarding** —
   `ver 22-instalacao-e-distribuicao.md`. Esta spec exige os controles; a 22 implementa o setup.
 - **Logs estruturados, métricas e telemetria operacional** — `ver 24-operacao-backups-telemetria.md`.
-  Esta spec define *o que* logar por segurança; a 24 define *como* armazenar e expor.
+  Esta spec define _o que_ logar por segurança; a 24 define _como_ armazenar e expor.
 
 ---
 
 ## Conceitos e terminologia
 
-| Termo | Definição |
-|---|---|
-| **Threat model** | Enumeração estruturada de atores de ameaça, superfícies de ataque, ativos protegidos e vetores, com as defesas correspondentes. |
-| **Ator de ameaça** | Entidade que pode tentar comprometer o sistema: jogador malicioso/curioso, atacante de rede, conteúdo importado malicioso, site de terceiros (cross-site). |
-| **Superfície de ataque** | Ponto de entrada exposto: endpoint HTTP/REST, conexão WebSocket, upload de arquivo, pack importado, macro de script, enricher de texto. |
-| **Defesa em profundidade** | Aplicar controles redundantes em camadas (ex.: sanitizar no servidor *e* no cliente) para que a falha de um não comprometa o sistema. |
-| **Servidor autoritativo** | O processo Node.js do GM é o único árbitro de mutações canônicas; clientes nunca são confiados. Princípio herdado de `04-rede-e-sincronizacao.md` (D3). |
-| **AuthZ por operação** | Toda operação privilegiada revalida permissão no servidor, no momento da execução — nunca se confia em verificação prévia do cliente nem em "o cliente não mostra o botão". |
-| **Argon2id** | Função de hashing de senha memory-hard, recomendação OWASP/NIST 2026. Parâmetros mínimos: `memory=65536 KiB`, `iterations=3`, `parallelism=4`. |
-| **CSWSH** | *Cross-Site WebSocket Hijacking* — um site malicioso abre WS para o Fusion usando cookies da vítima; mitigado por validação de `Origin` + token explícito + `SameSite=Strict`. |
-| **CSP** | *Content-Security-Policy* — header que restringe origens de scripts/estilos/conexões no cliente, com `nonce` por request. |
-| **Magic bytes** | Assinatura binária inicial de um arquivo que revela seu tipo real, independentemente da extensão ou do MIME declarado pelo cliente. |
-| **Path traversal** | Ataque que usa `../`, paths absolutos ou symlinks para escapar do diretório permitido e ler/escrever arquivos arbitrários. |
-| **Sandbox** | Ambiente de execução isolado para código não confiável. No Fusion: `isolated-vm` (V8 Isolates) no servidor para macros de GM **[V2]**. |
-| **Rule Element** | Objeto JSON declarativo (do sistema PF2e) que dispara lógica na preparação de dados. Tratado como **dado validado por schema**, nunca como código a avaliar. |
-| **SSRF** | *Server-Side Request Forgery* — induzir o servidor a fazer requisições a destinos arbitrários (incl. rede interna). |
-| **Túnel** | Conexão de saída (Tailscale/cloudflared) que expõe o servidor sem port-forwarding nem abrir porta no roteador. Recomendação primária do Fusion para acesso via internet. |
-| **Redaction (broadcast)** | Suprimir ou redigir campos sensíveis de um Document antes de fazer broadcast a um cliente sem ownership suficiente. |
+| Termo                      | Definição                                                                                                                                                                      |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Threat model**           | Enumeração estruturada de atores de ameaça, superfícies de ataque, ativos protegidos e vetores, com as defesas correspondentes.                                                |
+| **Ator de ameaça**         | Entidade que pode tentar comprometer o sistema: jogador malicioso/curioso, atacante de rede, conteúdo importado malicioso, site de terceiros (cross-site).                     |
+| **Superfície de ataque**   | Ponto de entrada exposto: endpoint HTTP/REST, conexão WebSocket, upload de arquivo, pack importado, macro de script, enricher de texto.                                        |
+| **Defesa em profundidade** | Aplicar controles redundantes em camadas (ex.: sanitizar no servidor _e_ no cliente) para que a falha de um não comprometa o sistema.                                          |
+| **Servidor autoritativo**  | O processo Node.js do GM é o único árbitro de mutações canônicas; clientes nunca são confiados. Princípio herdado de `04-rede-e-sincronizacao.md` (D3).                        |
+| **AuthZ por operação**     | Toda operação privilegiada revalida permissão no servidor, no momento da execução — nunca se confia em verificação prévia do cliente nem em "o cliente não mostra o botão".    |
+| **Argon2id**               | Função de hashing de senha memory-hard, recomendação OWASP/NIST 2026. Parâmetros mínimos: `memory=65536 KiB`, `iterations=3`, `parallelism=4`.                                 |
+| **CSWSH**                  | _Cross-Site WebSocket Hijacking_ — um site malicioso abre WS para o Fusion usando cookies da vítima; mitigado por validação de `Origin` + token explícito + `SameSite=Strict`. |
+| **CSP**                    | _Content-Security-Policy_ — header que restringe origens de scripts/estilos/conexões no cliente, com `nonce` por request.                                                      |
+| **Magic bytes**            | Assinatura binária inicial de um arquivo que revela seu tipo real, independentemente da extensão ou do MIME declarado pelo cliente.                                            |
+| **Path traversal**         | Ataque que usa `../`, paths absolutos ou symlinks para escapar do diretório permitido e ler/escrever arquivos arbitrários.                                                     |
+| **Sandbox**                | Ambiente de execução isolado para código não confiável. No Fusion: `isolated-vm` (V8 Isolates) no servidor para macros de GM **[V2]**.                                         |
+| **Rule Element**           | Objeto JSON declarativo (do sistema PF2e) que dispara lógica na preparação de dados. Tratado como **dado validado por schema**, nunca como código a avaliar.                   |
+| **SSRF**                   | _Server-Side Request Forgery_ — induzir o servidor a fazer requisições a destinos arbitrários (incl. rede interna).                                                            |
+| **Túnel**                  | Conexão de saída (Tailscale/cloudflared) que expõe o servidor sem port-forwarding nem abrir porta no roteador. Recomendação primária do Fusion para acesso via internet.       |
+| **Redaction (broadcast)**  | Suprimir ou redigir campos sensíveis de um Document antes de fazer broadcast a um cliente sem ownership suficiente.                                                            |
 
 ---
 
@@ -113,16 +113,17 @@ cliente nunca é fonte de verdade de autorização. O Fusion **não** adota o pa
 socketlib como proxy genérico cliente→cliente-GM (research §4, §6.4): nosso servidor já é o processo
 do GM e é autoritativo, eliminando a classe de bugs "o GM precisa estar online para o jogador
 descontar HP" e o vetor de privilege escalation. Quando um jogador precisa de uma operação
-privilegiada, ele a solicita ao servidor, que revalida a permissão do *requester* contra a operação
+privilegiada, ele a solicita ao servidor, que revalida a permissão do _requester_ contra a operação
 específica antes de executar (ver `14-macros-e-automacao.md` DEC-MAC-05 — operações registradas com
 schema Zod e revalidação).
 
 **Alternativas rejeitadas:**
-- *`executeAsGM` como proxy genérico* (estilo socketlib): a função executa no contexto do GM com
+
+- _`executeAsGM` como proxy genérico_ (estilo socketlib): a função executa no contexto do GM com
   permissão total; se não revalidar o payload e a permissão de origem, um jogador malicioso escala
   privilégio (research §6.4). Rejeitado como modelo geral — só admitimos operações **fixas,
   registradas e revalidadas**.
-- *Confiar na UI do cliente* ("o botão não aparece para PLAYER"): segurança por obscuridade; um
+- _Confiar na UI do cliente_ ("o botão não aparece para PLAYER"): segurança por obscuridade; um
   cliente modificado emite a op diretamente. Rejeitado.
 
 **Racional:** Concentra toda a lógica de segurança em um único lugar testável (o servidor) e alinha
@@ -140,11 +141,12 @@ mensagens usam markdown leve + cards declarativos (schema JSON, sem HTML livre �
 fichas/UI (11); aqui fixa-se a **estratégia obrigatória**.
 
 **Alternativas rejeitadas:**
-- *Sanitizar só no cliente:* um cliente comprometido ou um caminho de injeção fora da UI principal
+
+- _Sanitizar só no cliente:_ um cliente comprometido ou um caminho de injeção fora da UI principal
   (ex.: tooltip, export) reintroduz o XSS. O conteúdo persistido ficaria envenenado. Rejeitado.
-- *Sanitizar só no servidor:* enrichers e composição no cliente podem reintroduzir HTML perigoso
+- _Sanitizar só no servidor:_ enrichers e composição no cliente podem reintroduzir HTML perigoso
   pós-fetch; defesa de borda única é frágil. Rejeitado.
-- *Permitir HTML arbitrário no chat (estilo Foundry clássico):* superfície de XSS alta para conteúdo
+- _Permitir HTML arbitrário no chat (estilo Foundry clássico):_ superfície de XSS alta para conteúdo
   vindo de qualquer jogador autenticado (research §4.1). Rejeitado em favor de cards declarativos.
 
 **Racional:** `DOMPurify` (cure53) é DOM-based e evita falsos negativos de regex; combinado com
@@ -165,15 +167,16 @@ profundidade máxima de acesso a propriedades (research §4.3, §7.2). O motor d
 `@dice-roller/rpg-dice-roller` como núcleo de parsing (ver `08-motor-de-rolagens.md`), não de `eval`.
 
 **Alternativas rejeitadas:**
-- *Avaliar `value` de Rule Element com `eval`/`new Function`:* permite RCE no servidor via pack
+
+- _Avaliar `value` de Rule Element com `eval`/`new Function`:_ permite RCE no servidor via pack
   malicioso (research §7.1). Inaceitável.
-- *Confiar no schema do pack oficial e pular validação:* packs de terceiros (não os OGL oficiais)
+- _Confiar no schema do pack oficial e pular validação:_ packs de terceiros (não os OGL oficiais)
   podem conter chaves inválidas, referências circulares e expressões hostis. Rejeitado — todo pack
   passa por validação (ver `16-compendiums-e-importacao.md`).
 
 **Racional:** A maioria dos RCEs históricos de VTT vem de tratar dados como código. A separação
-estrita elimina a classe inteira. O Fastify/Ajv usa `new Function` internamente para *compilar
-schemas* — schemas são código de aplicação, **nunca** entrada de usuário (research §7.3).
+estrita elimina a classe inteira. O Fastify/Ajv usa `new Function` internamente para _compilar
+schemas_ — schemas são código de aplicação, **nunca** entrada de usuário (research §7.3).
 
 ---
 
@@ -188,12 +191,13 @@ ciente** — o cliente exibe aviso quando detecta acesso externo sem TLS. UPnP �
 padrão** (opt-in explícito).
 
 **Alternativas rejeitadas:**
-- *Port-forwarding manual como recomendação primária:* expõe a porta diretamente à internet (os
+
+- _Port-forwarding manual como recomendação primária:_ expõe a porta diretamente à internet (os
   ~120k servidores Foundry expostos — research §1.1), requer abrir o roteador e não funciona sob
   CG-NAT. Mantido como opção avançada documentada, não como caminho recomendado.
-- *TLS obrigatório sempre (inclusive LAN):* fricção alta para o caso de uso dominante (grupo em LAN
+- _TLS obrigatório sempre (inclusive LAN):_ fricção alta para o caso de uso dominante (grupo em LAN
   doméstica); a decisão de segurança é do GM, com aviso claro. Rejeitado como imposição.
-- *Embutir um proxy TLS no Fusion:* aumenta superfície e responsabilidade de manutenção de certificado;
+- _Embutir um proxy TLS no Fusion:_ aumenta superfície e responsabilidade de manutenção de certificado;
   delegamos a túnel/proxy externo. Rejeitado para o MVP.
 
 **Racional:** O túnel resolve simultaneamente NAT/CG-NAT (research 06 §11–12), criptografia e
@@ -214,9 +218,10 @@ segurança (HSTS quando sob TLS, `X-Content-Type-Options: nosniff`, `X-Frame-Opt
 em CI.
 
 **Alternativas rejeitadas:**
-- *`'unsafe-inline'`/`'unsafe-eval'` em produção:* anula grande parte do valor da CSP contra XSS.
+
+- _`'unsafe-inline'`/`'unsafe-eval'` em produção:_ anula grande parte do valor da CSP contra XSS.
   Permitido apenas em modo de desenvolvimento. Rejeitado para produção.
-- *Sem CSP (confiar só na sanitização):* CSP é a última linha quando a sanitização falha; é defesa
+- _Sem CSP (confiar só na sanitização):_ CSP é a última linha quando a sanitização falha; é defesa
   em profundidade barata. Rejeitado abrir mão dela.
 
 **Racional:** Como os sistemas de jogo são compilados junto ao app (não há plugins de terceiros
@@ -237,11 +242,12 @@ tabela em Requisitos); (5) respeita **limites de tamanho** por categoria (imagem
 vídeo 200 MB) e **quota por usuário** configurável.
 
 **Alternativas rejeitadas:**
-- *Confiar no `Content-Type`/extensão do cliente:* trivialmente falsificável; permite contrabando de
+
+- _Confiar no `Content-Type`/extensão do cliente:_ trivialmente falsificável; permite contrabando de
   arquivo executável ou SVG com script. Rejeitado (research §5.2 Regra 2).
-- *Usar o nome original do arquivo no path:* raiz dos path traversals do Foundry (research §5.1).
+- _Usar o nome original do arquivo no path:_ raiz dos path traversals do Foundry (research §5.1).
   Rejeitado.
-- *SVG tratado como imagem comum sem sanitização:* SVG é XML que pode embutir `<script>`/`onload`.
+- _SVG tratado como imagem comum sem sanitização:_ SVG é XML que pode embutir `<script>`/`onload`.
   SVGs são **sanitizados** (DOMPurify/`sanitize-html` em modo SVG) ou servidos com `Content-Type`
   que impede execução. Rejeitado servir SVG cru.
 
@@ -261,11 +267,12 @@ Zod no servidor (ver `14-macros-e-automacao.md` DEC-MAC-01/02). `node:vm` e `vm2
 para código não confiável.
 
 **Alternativas rejeitadas:**
-- *Execução no browser (Web Worker), estilo Foundry:* isola o DOM mas permite `fetch()` livre — um GM
+
+- _Execução no browser (Web Worker), estilo Foundry:_ isola o DOM mas permite `fetch()` livre — um GM
   desonesto exfiltra dados; e viola o servidor autoritativo. Rejeitado (research §6.3; 14 DEC-MAC-01).
-- *`vm2`:* 20+ escapes conhecidos, abandonado/ressuscitado com reputação comprometida (research §6.2).
+- _`vm2`:_ 20+ escapes conhecidos, abandonado/ressuscitado com reputação comprometida (research §6.2).
   Proibido.
-- *`node:vm`:* não é sandbox, trivialmente escapável (research §6.2). Proibido para código não
+- _`node:vm`:_ não é sandbox, trivialmente escapável (research §6.2). Proibido para código não
   confiável.
 
 **Racional:** RCE no servidor = RCE no PC do GM. Restringir, sandboxar server-side e desabilitar por
@@ -286,9 +293,10 @@ como crash. A implementação concreta dos limites de WS vive em `04-rede-e-sinc
 de login em `05-usuarios-e-permissoes.md`.
 
 **Alternativas rejeitadas:**
-- *Sem lockout (só hashing forte):* permite brute-force online de senhas fracas e enumeration de
+
+- _Sem lockout (só hashing forte):_ permite brute-force online de senhas fracas e enumeration de
   usuários por timing/resposta. Rejeitado (research §2.2.3).
-- *Validar payload "quando der erro":* deixa caminhos não validados como vetor de injeção e crash.
+- _Validar payload "quando der erro":_ deixa caminhos não validados como vetor de injeção e crash.
   Rejeitado — validação na borda é obrigatória e exaustiva.
 
 **Racional:** Auth failures e injection são A07/A03 do OWASP Top 10:2025 (research §8). A validação Zod
@@ -304,7 +312,7 @@ concreta vive em uma spec irmã, o requisito aqui fixa a **obrigação de segura
 ### Threat model e princípios transversais
 
 - **REQ-SEC-001** [MVP] O Fusion DEVE manter, nesta spec, um threat model explícito com atores,
-  superfícies e ativos (ver seção *Threat model* abaixo). Toda nova superfície de ataque introduzida
+  superfícies e ativos (ver seção _Threat model_ abaixo). Toda nova superfície de ataque introduzida
   por outra spec DEVE mapear-se a um ator e a um conjunto de defesas aqui referenciado.
 - **REQ-SEC-002** [MVP] Toda operação privilegiada (mutação de Document, query, upload, ação
   administrativa) DEVE ter sua permissão **revalidada no servidor** no momento da execução, contra o
@@ -369,7 +377,7 @@ concreta vive em uma spec irmã, o requisito aqui fixa a **obrigação de segura
   antes de ir ao DOM (research §4.3; `ver 09-chat-e-mensagens.md`).
 - **REQ-SEC-034** [MVP] Inline rolls (`[[fórmula]]`) e expressões `@atributos` DEVEM ser avaliadas por
   parser dedicado (`@dice-roller/rpg-dice-roller` + camada de roll data), **nunca** por `eval()`/`new
-  Function()` (`ver 08-motor-de-rolagens.md`; DEC-SEC-03).
+Function()` (`ver 08-motor-de-rolagens.md`; DEC-SEC-03).
 - **REQ-SEC-035** [MVP] Uploads de **SVG** DEVEM ser sanitizados (remoção de `<script>`, `<foreignObject>`,
   handlers de evento, referências externas) antes de servidos, OU servidos com cabeçalho que impeça
   execução; SVG cru não sanitizado NÃO DEVE ser servido inline.
@@ -393,12 +401,12 @@ concreta vive em uma spec irmã, o requisito aqui fixa a **obrigação de segura
 - **REQ-SEC-043** [MVP] Os diretórios DEVEM ser **segregados por papel**, com permissão de escrita
   conforme a tabela abaixo (research §5.2 Regra 4):
 
-  | Diretório | Quem pode escrever | Notas |
-  |---|---|---|
-  | `assets/public/` | GM e `TRUSTED` (se `FILES_UPLOAD` permitir) | Servido estaticamente |
-  | `assets/system/` | Apenas o processo de instalação do sistema | Não editável por usuários |
-  | `worlds/<id>/world.db` e `data/` | Apenas o servidor (nunca upload direto) | Dados estruturados |
-  | `config/` | Apenas CLI/processo local | Nunca exposto via HTTP |
+  | Diretório                        | Quem pode escrever                          | Notas                     |
+  | -------------------------------- | ------------------------------------------- | ------------------------- |
+  | `assets/public/`                 | GM e `TRUSTED` (se `FILES_UPLOAD` permitir) | Servido estaticamente     |
+  | `assets/system/`                 | Apenas o processo de instalação do sistema  | Não editável por usuários |
+  | `worlds/<id>/world.db` e `data/` | Apenas o servidor (nunca upload direto)     | Dados estruturados        |
+  | `config/`                        | Apenas CLI/processo local                   | Nunca exposto via HTTP    |
 
 - **REQ-SEC-044** [MVP] O upload DEVE respeitar **limites de tamanho por categoria** (imagem 10 MB,
   áudio 50 MB, vídeo 200 MB) e **quota por usuário** configurável; exceder retorna erro sem gravar
@@ -424,13 +432,13 @@ concreta vive em uma spec irmã, o requisito aqui fixa a **obrigação de segura
 - **REQ-SEC-054** [MVP] O cliente DEVE ser servido com **CSP estrita** incluindo no mínimo
   `default-src 'self'`, `object-src 'none'`, `frame-ancestors 'none'`, `base-uri 'self'`,
   `connect-src 'self' wss:`, `img-src 'self' data: blob:`, `media-src 'self' blob:`, e `script-src
-  'self' 'nonce-<por-request>'`; `'unsafe-inline'`/`'unsafe-eval'` NÃO DEVEM aparecer em produção
+'self' 'nonce-<por-request>'`; `'unsafe-inline'`/`'unsafe-eval'` NÃO DEVEM aparecer em produção
   (DEC-SEC-05).
 - **REQ-SEC-055** [MVP] O `nonce` da CSP DEVE ser gerado criptograficamente **por request** e injetado
   nos `<script>` servidos; nonces estáticos/hardcoded são proibidos (research §3.2).
 - **REQ-SEC-056** [MVP] CORS para endpoints REST autenticados DEVE restringir `Access-Control-Allow-Origin`
   à própria origem (ou às `allowedOrigins` configuradas), nunca `*`; `Access-Control-Allow-Credentials:
-  true` só combinado com origem explícita (research §3.3).
+true` só combinado com origem explícita (research §3.3).
 - **REQ-SEC-057** [MVP] O upgrade WebSocket DEVE **validar o header `Origin`** contra `allowedOrigins`
   e exigir token explícito de sessão (não enviado automaticamente pelo browser), mitigando CSWSH;
   origens não permitidas recebem HTTP 403 (research §3.4; `ver 04-rede-e-sincronizacao.md` REQ-NET-003,
@@ -520,26 +528,26 @@ concreta vive em uma spec irmã, o requisito aqui fixa a **obrigação de segura
 
 ### Atores de ameaça
 
-| Ator | Descrição | Motivação típica |
-|---|---|---|
-| **Jogador malicioso** | Usuário autenticado com role baixo (PLAYER/TRUSTED) que tenta exceder seus privilégios. | Trapacear em rolagens, ver dados ocultos do GM, escalar privilégio, derrubar a sessão. |
-| **Jogador curioso** | Usuário legítimo que tropeça em informação que não deveria ver (ex.: stats de inimigo, blind roll). | Vazamento acidental por falha de redaction/visibilidade. |
-| **Atacante de rede** | Entidade na rede entre cliente e servidor (LAN hostil, internet). | Interceptar credenciais (sem TLS), replay, downgrade, varrer porta exposta. |
-| **Conteúdo importado malicioso** | Pack/compendium de terceiros com Rule Elements ou expressões hostis. | RCE no servidor (= PC do GM), loop infinito/DoS na preparação de dados. |
-| **Site de terceiros (cross-site)** | Página web maliciosa que a vítima (GM/jogador logado) visita. | CSWSH, CSRF, roubo de sessão. |
+| Ator                               | Descrição                                                                                           | Motivação típica                                                                       |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| **Jogador malicioso**              | Usuário autenticado com role baixo (PLAYER/TRUSTED) que tenta exceder seus privilégios.             | Trapacear em rolagens, ver dados ocultos do GM, escalar privilégio, derrubar a sessão. |
+| **Jogador curioso**                | Usuário legítimo que tropeça em informação que não deveria ver (ex.: stats de inimigo, blind roll). | Vazamento acidental por falha de redaction/visibilidade.                               |
+| **Atacante de rede**               | Entidade na rede entre cliente e servidor (LAN hostil, internet).                                   | Interceptar credenciais (sem TLS), replay, downgrade, varrer porta exposta.            |
+| **Conteúdo importado malicioso**   | Pack/compendium de terceiros com Rule Elements ou expressões hostis.                                | RCE no servidor (= PC do GM), loop infinito/DoS na preparação de dados.                |
+| **Site de terceiros (cross-site)** | Página web maliciosa que a vítima (GM/jogador logado) visita.                                       | CSWSH, CSRF, roubo de sessão.                                                          |
 
 ### Superfícies de ataque e defesas
 
-| Superfície | Vetores principais | Defesas (requisitos) |
-|---|---|---|
-| **HTTP/REST** | Injeção, CSRF, CORS aberto, endpoint não autenticado, headers ausentes | REQ-SEC-036, 053–056, 058; AuthZ REQ-SEC-002 |
-| **WebSocket** | CSWSH, auth ausente no upgrade, flood, mensagem gigante, payload malformado | REQ-SEC-057, 060–063; REQ-SEC-004/036 |
-| **Uploads** | Path traversal, symlink, tipo falsificado, executável contrabandeado, SVG com script, DoS por tamanho | REQ-SEC-040–045, 035 |
-| **Packs importados** | RCE via expressão avaliada, schema inválido, referência circular, arte proprietária | REQ-SEC-073–075; DEC-SEC-03 |
-| **Macros** | RCE no servidor, exfiltração via `fetch`, escape de sandbox | REQ-SEC-070–072, 091 |
-| **Enrichers / inline rolls** | XSS via `@UUID`/`[[ ]]`, `eval` de expressão | REQ-SEC-033, 034 |
-| **Rich text / chat** | XSS persistido, HTML arbitrário | REQ-SEC-030–032 |
-| **Autenticação** | Brute force, enumeration, sessão não revogável, token roubado | REQ-SEC-010–014, 011/012 |
+| Superfície                   | Vetores principais                                                                                    | Defesas (requisitos)                         |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **HTTP/REST**                | Injeção, CSRF, CORS aberto, endpoint não autenticado, headers ausentes                                | REQ-SEC-036, 053–056, 058; AuthZ REQ-SEC-002 |
+| **WebSocket**                | CSWSH, auth ausente no upgrade, flood, mensagem gigante, payload malformado                           | REQ-SEC-057, 060–063; REQ-SEC-004/036        |
+| **Uploads**                  | Path traversal, symlink, tipo falsificado, executável contrabandeado, SVG com script, DoS por tamanho | REQ-SEC-040–045, 035                         |
+| **Packs importados**         | RCE via expressão avaliada, schema inválido, referência circular, arte proprietária                   | REQ-SEC-073–075; DEC-SEC-03                  |
+| **Macros**                   | RCE no servidor, exfiltração via `fetch`, escape de sandbox                                           | REQ-SEC-070–072, 091                         |
+| **Enrichers / inline rolls** | XSS via `@UUID`/`[[ ]]`, `eval` de expressão                                                          | REQ-SEC-033, 034                             |
+| **Rich text / chat**         | XSS persistido, HTML arbitrário                                                                       | REQ-SEC-030–032                              |
+| **Autenticação**             | Brute force, enumeration, sessão não revogável, token roubado                                         | REQ-SEC-010–014, 011/012                     |
 
 ### Ativos a proteger (em ordem de impacto)
 
@@ -550,17 +558,17 @@ concreta vive em uma spec irmã, o requisito aqui fixa a **obrigação de segura
 
 ### Matriz OWASP Top 10:2025 → Fusion (research §8)
 
-| OWASP | Manifestação no Fusion | Requisito |
-|---|---|---|
-| A01 Broken Access Control | Delegação sem revalidação; CSWSH; endpoint sem auth | REQ-SEC-002, 022, 057, 003 |
-| A02/A05 Misconfiguration | Admin Key ausente, `ws://` sem TLS, CORS aberto, UPnP | REQ-SEC-010, 050–056, 052 |
-| A03 Injection | XSS, path traversal, `eval`, Rule Element hostil | REQ-SEC-030–036, 040–042, 074 |
-| A04 Insecure Design | Macros irrestritas, proxy genérico GM | REQ-SEC-070–072, 022 |
-| A06 Vulnerable Components | vm2, DOMPurify desatualizado | REQ-SEC-071, NF-002 |
-| A07 Auth Failures | Brute force, sessão não expira, token sem rotação | REQ-SEC-010–014 |
-| A08 Software Integrity | Pack/Rule Element malicioso | REQ-SEC-073–075 |
-| A09 Logging Failures | Auth falha não logada, macro sem rastro | REQ-SEC-090–092 |
-| A10 SSRF | Fetch de manifest a URL arbitrária | REQ-SEC-080 |
+| OWASP                     | Manifestação no Fusion                                | Requisito                     |
+| ------------------------- | ----------------------------------------------------- | ----------------------------- |
+| A01 Broken Access Control | Delegação sem revalidação; CSWSH; endpoint sem auth   | REQ-SEC-002, 022, 057, 003    |
+| A02/A05 Misconfiguration  | Admin Key ausente, `ws://` sem TLS, CORS aberto, UPnP | REQ-SEC-010, 050–056, 052     |
+| A03 Injection             | XSS, path traversal, `eval`, Rule Element hostil      | REQ-SEC-030–036, 040–042, 074 |
+| A04 Insecure Design       | Macros irrestritas, proxy genérico GM                 | REQ-SEC-070–072, 022          |
+| A06 Vulnerable Components | vm2, DOMPurify desatualizado                          | REQ-SEC-071, NF-002           |
+| A07 Auth Failures         | Brute force, sessão não expira, token sem rotação     | REQ-SEC-010–014               |
+| A08 Software Integrity    | Pack/Rule Element malicioso                           | REQ-SEC-073–075               |
+| A09 Logging Failures      | Auth falha não logada, macro sem rastro               | REQ-SEC-090–092               |
+| A10 SSRF                  | Fetch de manifest a URL arbitrária                    | REQ-SEC-080                   |
 
 ---
 
@@ -594,18 +602,18 @@ export interface NetworkSecurityPolicy {
   proxyPort?: number;
   /** Limites de segurança de rede (espelham 04-rede). */
   rateLimit: {
-    loginMaxAttempts: number;        // 5
-    loginWindowSeconds: number;      // 900
-    wsMessagesPerSecond: number;     // 50
+    loginMaxAttempts: number; // 5
+    loginWindowSeconds: number; // 900
+    wsMessagesPerSecond: number; // 50
     wsConnectionsPerMinutePerIP: number; // 10
-    authTimeoutMs: number;           // 5000
+    authTimeoutMs: number; // 5000
   };
 }
 
 /** Configuração de CSP gerada por request (nonce dinâmico). */
 export interface CspContext {
-  nonce: string;        // base64 aleatório, 16+ bytes, por request
-  underTls: boolean;    // injeta HSTS quando true
+  nonce: string; // base64 aleatório, 16+ bytes, por request
+  underTls: boolean; // injeta HSTS quando true
 }
 
 /** Evento de segurança para o log estruturado (REQ-SEC-090). */
@@ -622,7 +630,7 @@ export type SecurityEventType =
 
 export interface SecurityEvent {
   type: SecurityEventType;
-  ts: string;                 // ISO 8601
+  ts: string; // ISO 8601
   worldId: string | null;
   userId: string | null;
   ip: string | null;
@@ -632,10 +640,10 @@ export interface SecurityEvent {
 
 /** Postura de sandbox de macro (V2). */
 export interface MacroSandboxPolicy {
-  enabled: boolean;           // default: false (REQ-SEC-070)
-  gmOnly: true;               // sempre verdadeiro no MVP/V2
-  timeoutMs: number;          // default: 10000
-  apiAllowlist: string[];     // métodos de Document permitidos
+  enabled: boolean; // default: false (REQ-SEC-070)
+  gmOnly: true; // sempre verdadeiro no MVP/V2
+  timeoutMs: number; // default: 10000
+  apiAllowlist: string[]; // métodos de Document permitidos
 }
 ```
 
@@ -644,28 +652,28 @@ export interface MacroSandboxPolicy {
 ## API e eventos
 
 Esta spec não define endpoints próprios — os controles de segurança são **propriedades transversais**
-aplicadas aos endpoints e eventos definidos nas specs irmãs. As tabelas abaixo mapeiam *onde* cada
+aplicadas aos endpoints e eventos definidos nas specs irmãs. As tabelas abaixo mapeiam _onde_ cada
 controle incide.
 
 ### Controles por endpoint REST (definidos em 05/20/16)
 
-| Endpoint (origem) | Controles de segurança aplicados |
-|---|---|
-| `POST /auth/login` (05) | Argon2id, lockout (REQ-SEC-011), resposta uniforme (012), cookie httpOnly (014) |
-| `POST /auth/refresh` (05) | Rotação + reuse detection (013), `SameSite=Strict` (058) |
-| `POST /api/assets/upload` (20) | Renome (040), magic bytes (041), confinamento de path (042), quota/tamanho (044), SVG sanitizado (035) |
-| `POST /api/compendium/import` (16) | Validação Zod `.strict()` (073), parser de expressão (074), quarentena (075) |
-| Qualquer mutação `/api/*` | AuthZ server-side (002), Zod (036), CORS restrito (056), CSRF via Bearer (058) |
-| Toda resposta de cliente | Headers de segurança (053), CSP com nonce (054/055) |
+| Endpoint (origem)                  | Controles de segurança aplicados                                                                       |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `POST /auth/login` (05)            | Argon2id, lockout (REQ-SEC-011), resposta uniforme (012), cookie httpOnly (014)                        |
+| `POST /auth/refresh` (05)          | Rotação + reuse detection (013), `SameSite=Strict` (058)                                               |
+| `POST /api/assets/upload` (20)     | Renome (040), magic bytes (041), confinamento de path (042), quota/tamanho (044), SVG sanitizado (035) |
+| `POST /api/compendium/import` (16) | Validação Zod `.strict()` (073), parser de expressão (074), quarentena (075)                           |
+| Qualquer mutação `/api/*`          | AuthZ server-side (002), Zod (036), CORS restrito (056), CSRF via Bearer (058)                         |
+| Toda resposta de cliente           | Headers de segurança (053), CSP com nonce (054/055)                                                    |
 
 ### Controles no upgrade e nas mensagens WebSocket (definidos em 04/05)
 
-| Ponto | Controle |
-|---|---|
+| Ponto             | Controle                                                                                     |
+| ----------------- | -------------------------------------------------------------------------------------------- |
 | Handshake/upgrade | Validar `Origin` (057), exigir token de sessão (057/062), recusar namespace de mundo inativo |
-| Por mensagem | Zod do envelope/payload (036), tamanho máximo (061), rate limit por tipo (060) |
-| Broadcast | Redaction/supressão por ownership (020/021) |
-| Fail-safe | Erro de parsing nunca derruba o processo (004) |
+| Por mensagem      | Zod do envelope/payload (036), tamanho máximo (061), rate limit por tipo (060)               |
+| Broadcast         | Redaction/supressão por ownership (020/021)                                                  |
+| Fail-safe         | Erro de parsing nunca derruba o processo (004)                                               |
 
 ### Eventos de segurança emitidos ao log (REQ-SEC-090)
 
@@ -681,6 +689,7 @@ Esta checklist DEVE ser verificada antes de cada release (gate em CI onde automa
 `ver 25-testes-e-qualidade.md`). Derivada do checklist de implementação do research §10.
 
 ### Autenticação e sessão
+
 - [ ] Argon2id em todas as senhas (usuários + Admin Key); parâmetros ≥ mínimos.
 - [ ] Lockout de login (5/15 min por IP+username) ativo; resposta uniforme (anti-enumeration).
 - [ ] Refresh token rotacionado com reuse detection; revogação imediata em kick/reset.
@@ -688,6 +697,7 @@ Esta checklist DEVE ser verificada antes de cada release (gate em CI onde automa
 - [ ] Timeout de auth pós-connect (5 s) no WebSocket.
 
 ### Rede e exposição
+
 - [ ] Validação de `Origin` no upgrade WS (CSWSH) com `allowedOrigins`.
 - [ ] CORS restrito (sem `*` em endpoints autenticados); CSRF coberto por Bearer + SameSite.
 - [ ] Headers de segurança presentes (nosniff, frame-options, referrer-policy; HSTS sob TLS).
@@ -696,6 +706,7 @@ Esta checklist DEVE ser verificada antes de cada release (gate em CI onde automa
 - [ ] Documentação de túnel (Tailscale/cloudflared) como recomendação primária.
 
 ### Entrada e sanitização
+
 - [ ] `sanitize-html` (servidor) + `DOMPurify` (cliente) em todo HTML rico; deps atualizadas.
 - [ ] Chat sem HTML arbitrário (markdown + cards declarativos).
 - [ ] `@UUID`/enrichers com formato validado por regex; output sanitizado.
@@ -704,6 +715,7 @@ Esta checklist DEVE ser verificada antes de cada release (gate em CI onde automa
 - [ ] Zod em todo payload de borda (REST, WS, pack); `.strict()` em schemas fechados.
 
 ### Filesystem e uploads
+
 - [ ] Renome aleatório + extensão derivada do tipo detectado.
 - [ ] Magic bytes (`file-type`) casados com allowlist; MIME do cliente ignorado.
 - [ ] `path.resolve` + verificação de prefixo; symlinks de escape rejeitados.
@@ -711,12 +723,14 @@ Esta checklist DEVE ser verificada antes de cada release (gate em CI onde automa
 - [ ] Limites de tamanho e quota aplicados.
 
 ### Sandbox e dados importados
+
 - [ ] `node:vm`/`vm2` ausentes para código não confiável.
 - [ ] Script macros (V2) só GM, `isolated-vm`, desabilitadas por padrão, com log e timeout.
 - [ ] Rule Elements validados por schema; inválidos rejeitados e logados (não silenciados).
 - [ ] Expressões de modifier via AST com blacklist de `__proto__`/`constructor`/`prototype`.
 
 ### Logging e dependências
+
 - [ ] Eventos de segurança logados (auth falha, traversal, rate limit, reuse) sem segredos em claro.
 - [ ] Dependências de segurança pinadas; alertas GHSA/Dependabot monitorados.
 - [ ] Testes de CI cobrem headers, CSP, Origin e sanitização (falham se removidos).
@@ -725,23 +739,23 @@ Esta checklist DEVE ser verificada antes de cada release (gate em CI onde automa
 
 ## Dependências (specs irmãs)
 
-| Spec | Relação |
-|---|---|
-| `01-arquitetura-geral.md` | Estrutura de pacotes; `packages/shared` como home dos tipos de segurança; sistemas compilados junto (não há plugins de terceiros em runtime no MVP — base da CSP estrita). |
-| `03-persistencia-e-mundos.md` | Localização de `world.db`/`config/` fora do alcance HTTP; integridade de escrita autoritativa. |
-| `04-rede-e-sincronizacao.md` | Implementa rate limit por evento, tamanho máximo, validação de Origin, fail-safe, redaction de broadcast. |
-| `05-usuarios-e-permissoes.md` | Implementa Argon2id, sessão JWT/refresh, lockout, kick/revogação, `user.can` server-side, ownership. |
-| `08-motor-de-rolagens.md` | Parser de fórmulas sem `eval`; RNG autoritativo no servidor (anti-cheat). |
-| `09-chat-e-mensagens.md` | Chat sem HTML arbitrário; cards declarativos; sanitização de markdown e enrichers. |
-| `11-ui-framework-e-fichas.md` | Allowlist de rich text (TipTap/ProseMirror); sanitização no cliente. |
-| `12-journal-tabelas-cartas.md` | Sanitização de conteúdo rico de journal. |
-| `14-macros-e-automacao.md` | Sandbox `isolated-vm` de script macros; QuickActions declarativas; delegação registrada. |
-| `16-compendiums-e-importacao.md` | Validação de schema de packs; modo quarentena; mapeamento de Rule Elements como dados. |
-| `20-assets-e-midia.md` | Pipeline de upload (renome, magic bytes, quota, diretórios por papel, sanitização de SVG). |
-| `22-instalacao-e-distribuicao.md` | Admin Key; first-run wizard; `fusion.json` (proxySSL, upnp); instruções de túnel/port-forwarding. |
-| `24-operacao-backups-telemetria.md` | Armazenamento e exposição dos logs de segurança e métricas de rate limiting. |
-| `25-testes-e-qualidade.md` | Testes de CI que validam os controles transversais de segurança. |
-| `26-licencas-e-legal.md` | Não importar arte proprietária; obrigações de notice (toca a importação de packs). |
+| Spec                                | Relação                                                                                                                                                                    |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `01-arquitetura-geral.md`           | Estrutura de pacotes; `packages/shared` como home dos tipos de segurança; sistemas compilados junto (não há plugins de terceiros em runtime no MVP — base da CSP estrita). |
+| `03-persistencia-e-mundos.md`       | Localização de `world.db`/`config/` fora do alcance HTTP; integridade de escrita autoritativa.                                                                             |
+| `04-rede-e-sincronizacao.md`        | Implementa rate limit por evento, tamanho máximo, validação de Origin, fail-safe, redaction de broadcast.                                                                  |
+| `05-usuarios-e-permissoes.md`       | Implementa Argon2id, sessão JWT/refresh, lockout, kick/revogação, `user.can` server-side, ownership.                                                                       |
+| `08-motor-de-rolagens.md`           | Parser de fórmulas sem `eval`; RNG autoritativo no servidor (anti-cheat).                                                                                                  |
+| `09-chat-e-mensagens.md`            | Chat sem HTML arbitrário; cards declarativos; sanitização de markdown e enrichers.                                                                                         |
+| `11-ui-framework-e-fichas.md`       | Allowlist de rich text (TipTap/ProseMirror); sanitização no cliente.                                                                                                       |
+| `12-journal-tabelas-cartas.md`      | Sanitização de conteúdo rico de journal.                                                                                                                                   |
+| `14-macros-e-automacao.md`          | Sandbox `isolated-vm` de script macros; QuickActions declarativas; delegação registrada.                                                                                   |
+| `16-compendiums-e-importacao.md`    | Validação de schema de packs; modo quarentena; mapeamento de Rule Elements como dados.                                                                                     |
+| `20-assets-e-midia.md`              | Pipeline de upload (renome, magic bytes, quota, diretórios por papel, sanitização de SVG).                                                                                 |
+| `22-instalacao-e-distribuicao.md`   | Admin Key; first-run wizard; `fusion.json` (proxySSL, upnp); instruções de túnel/port-forwarding.                                                                          |
+| `24-operacao-backups-telemetria.md` | Armazenamento e exposição dos logs de segurança e métricas de rate limiting.                                                                                               |
+| `25-testes-e-qualidade.md`          | Testes de CI que validam os controles transversais de segurança.                                                                                                           |
+| `26-licencas-e-legal.md`            | Não importar arte proprietária; obrigações de notice (toca a importação de packs).                                                                                         |
 
 ---
 

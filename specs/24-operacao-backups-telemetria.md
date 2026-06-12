@@ -3,6 +3,7 @@
 **Status:** draft v0.1
 **Data:** 2026-06-11
 **Baseada em:**
+
 - `docs/research/95-ops-backup-telemetry-testing.md` — estratégia de backup SQLite, logging Pino, telemetria local, crash reporting, testes de carga
 - `docs/research/92-install-distribution-autoupdate.md` — estrutura de diretórios, onboarding, procedimentos de migração de instalação
 
@@ -47,23 +48,23 @@ Definir como o Fusion opera de forma contínua e confiável: backups automático
 
 ## Conceitos e Terminologia
 
-| Termo | Definição |
-|---|---|
-| **SQLite Online Backup API** | API nativa do SQLite (exposta via `db.backup()` do better-sqlite3) que copia o banco página a página enquanto o servidor está ativo, sem bloquear leitores nem escritores. |
-| **WAL** | Write-Ahead Log — modo de journaling do SQLite que permite backup online. Ver `03-persistencia-e-mundos.md`. |
-| **Backup automático** | Cópia periódica do `world.db` disparada por cron interno enquanto o servidor está ativo. |
-| **Snapshot de mundo** | Backup manual completo de um mundo: `world.db` + exportação opcional dos assets referenciados. |
-| **Pre-event backup** | Backup gerado automaticamente antes de eventos destrutivos: update do app, migração de schema, importação de mundo. |
-| **Export JSON** | Dump legível por humanos de todos os Documents do mundo em arquivos `.json` individuais organizados por tipo; destinado a versionamento em git e inspeção off-line. |
-| **integrity_check** | Execução de `PRAGMA integrity_check` no banco ao abrir o mundo; detecta corrupção de arquivo. |
-| **Pino** | Biblioteca de logging estruturado para Node.js; formato JSON nativo, 2,4× mais rápido que Winston. |
-| **pino-roll** | Transport do Pino para rotação automática de arquivos de log (diária ou por tamanho). |
-| **Log de auditoria** | Arquivo separado que registra ações sensíveis (alterar permissão de usuário, deletar mundo, restaurar backup, executar macro com impacto de dados). Legível apenas pelo GM no painel de administração. |
-| **diagnostics.json** | Arquivo local gerado pelo servidor com contexto do ambiente (versão do app, sistemas instalados, plataforma, tempo de jogo por mundo). Nunca transmitido automaticamente. |
-| **Bundle de diagnóstico** | Arquivo `.zip` exportado pelo GM para enviar ao suporte: logs recentes + diagnostics.json + resultado do integrity_check do(s) mundo(s). Sem dados de personagens nem assets de mídia. |
-| **Litestream** | Ferramenta externa (processo separado) de replicação contínua de SQLite para destino local ou cloud. Zero mudança de código; opção avançada documentada. |
-| **perf_report** | Mensagem de socket enviada pelo cliente ao servidor a cada 5 segundos com FPS, draw calls e entidades Pixi do frame atual. |
-| **RSS** | Resident Set Size — memória física consumida pelo processo Node.js, monitorada para detectar vazamentos. |
+| Termo                        | Definição                                                                                                                                                                                              |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **SQLite Online Backup API** | API nativa do SQLite (exposta via `db.backup()` do better-sqlite3) que copia o banco página a página enquanto o servidor está ativo, sem bloquear leitores nem escritores.                             |
+| **WAL**                      | Write-Ahead Log — modo de journaling do SQLite que permite backup online. Ver `03-persistencia-e-mundos.md`.                                                                                           |
+| **Backup automático**        | Cópia periódica do `world.db` disparada por cron interno enquanto o servidor está ativo.                                                                                                               |
+| **Snapshot de mundo**        | Backup manual completo de um mundo: `world.db` + exportação opcional dos assets referenciados.                                                                                                         |
+| **Pre-event backup**         | Backup gerado automaticamente antes de eventos destrutivos: update do app, migração de schema, importação de mundo.                                                                                    |
+| **Export JSON**              | Dump legível por humanos de todos os Documents do mundo em arquivos `.json` individuais organizados por tipo; destinado a versionamento em git e inspeção off-line.                                    |
+| **integrity_check**          | Execução de `PRAGMA integrity_check` no banco ao abrir o mundo; detecta corrupção de arquivo.                                                                                                          |
+| **Pino**                     | Biblioteca de logging estruturado para Node.js; formato JSON nativo, 2,4× mais rápido que Winston.                                                                                                     |
+| **pino-roll**                | Transport do Pino para rotação automática de arquivos de log (diária ou por tamanho).                                                                                                                  |
+| **Log de auditoria**         | Arquivo separado que registra ações sensíveis (alterar permissão de usuário, deletar mundo, restaurar backup, executar macro com impacto de dados). Legível apenas pelo GM no painel de administração. |
+| **diagnostics.json**         | Arquivo local gerado pelo servidor com contexto do ambiente (versão do app, sistemas instalados, plataforma, tempo de jogo por mundo). Nunca transmitido automaticamente.                              |
+| **Bundle de diagnóstico**    | Arquivo `.zip` exportado pelo GM para enviar ao suporte: logs recentes + diagnostics.json + resultado do integrity_check do(s) mundo(s). Sem dados de personagens nem assets de mídia.                 |
+| **Litestream**               | Ferramenta externa (processo separado) de replicação contínua de SQLite para destino local ou cloud. Zero mudança de código; opção avançada documentada.                                               |
+| **perf_report**              | Mensagem de socket enviada pelo cliente ao servidor a cada 5 segundos com FPS, draw calls e entidades Pixi do frame atual.                                                                             |
+| **RSS**                      | Resident Set Size — memória física consumida pelo processo Node.js, monitorada para detectar vazamentos.                                                                                               |
 
 ---
 
@@ -74,6 +75,7 @@ Definir como o Fusion opera de forma contínua e confiável: backups automático
 **Escolha:** usar `Database.backup(destination, options)` do `better-sqlite3` (SQLite Online Backup API nativa) como mecanismo de backup principal.
 
 **Alternativas rejeitadas:**
+
 - `VACUUM INTO`: cria cópia compacta, mas bloqueia escritas durante toda a operação — inaceitável em servidor ativo.
 - Cópia direta do arquivo `world.db`: corre risco de capturar estado inconsistente se houver escrita simultânea com WAL parcialmente aplicado.
 - Litestream como mecanismo primário: exige processo externo e setup adicional pelo GM; adequado apenas como complemento opcional.
@@ -85,6 +87,7 @@ Definir como o Fusion opera de forma contínua e confiável: backups automático
 **Escolha:** nenhum dado sai da máquina do GM por padrão. O `diagnostics.json` é gerado localmente. Qualquer transmissão para servidor externo é 100% opt-in, iniciada manualmente pelo GM (ex.: ao enviar bundle de diagnóstico para suporte via e-mail/Discord).
 
 **Alternativas rejeitadas:**
+
 - Sentry SaaS ativo por padrão: viola privacidade; dados de sessão de RPG são pessoais.
 - Sentry self-hosted obrigatório: exige Docker 8 GB+ com 20+ containers — impraticável para o GM doméstico.
 - GlitchTip obrigatório: mais leve, mas ainda exige infraestrutura extra.
@@ -96,6 +99,7 @@ Definir como o Fusion opera de forma contínua e confiável: backups automático
 **Escolha:** Pino com `pino-roll` para rotação de logs.
 
 **Alternativas rejeitadas:**
+
 - Winston: 2,4× mais lento em benchmarks (270ms vs 115ms para 10k ops); logging nunca deve competir com o event loop de um servidor de jogo em tempo real.
 - `logrotate` (SO): não portátil entre Windows/macOS/Linux sem configuração extra por plataforma.
 
@@ -106,6 +110,7 @@ Definir como o Fusion opera de forma contínua e confiável: backups automático
 **Escolha:** ações sensíveis são gravadas em `Logs/audit.log` separado do log geral, com acesso restrito ao GM via painel de administração (nunca exibido a jogadores).
 
 **Alternativas rejeitadas:**
+
 - Misturar auditoria no log geral com nível `warn`/`info`: dificulta filtragem e aumenta risco de exposição a jogadores se o painel de logs for compartilhado.
 
 **Racional:** segurança e clareza. O log de auditoria deve ser consultável sem navegar por gigabytes de log de debug do servidor.
@@ -115,6 +120,7 @@ Definir como o Fusion opera de forma contínua e confiável: backups automático
 **Escolha:** além dos backups binários `.db`, oferecer export JSON estruturado por tipo de Document (um arquivo `.json` por Document, organizados em subpastas por tipo).
 
 **Alternativas rejeitadas:**
+
 - Apenas backup binário: não versionável em git; não inspecionável sem SQLite client.
 - Export JSON como substituto do backup binário: restauração via JSON exige reimport completo, muito mais lento e sujeito a erros de schema.
 
@@ -125,6 +131,7 @@ Definir como o Fusion opera de forma contínua e confiável: backups automático
 **Escolha:** Litestream (replicação contínua do WAL para destino local ou S3) é documentado no guia de deployment como opção opt-in para power users, sem mudança de código no servidor.
 
 **Alternativas rejeitadas:**
+
 - Incluir Litestream no bundle padrão: exige binário Go extra por plataforma; adiciona 20–30 MB ao instalador; aumenta superfície de suporte.
 
 **Racional:** o custo de manutenção não justifica para um público que, em sua maioria, não exige RPO < 30 minutos. GMs com necessidade de replicação contínua conseguem rodar Litestream como processo separado sem tocar no código do Fusion.
@@ -253,16 +260,16 @@ Definir como o Fusion opera de forma contínua e confiável: backups automático
 
 ```typescript
 interface BackupEntry {
-  id: string;               // UUID gerado na criação
+  id: string; // UUID gerado na criação
   worldSlug: string;
-  type: 'auto' | 'manual' | 'pre-event';
-  preEventReason?: 'update' | 'migration' | 'import'; // apenas quando type === 'pre-event'
-  filePath: string;         // caminho absoluto do arquivo .db
+  type: "auto" | "manual" | "pre-event";
+  preEventReason?: "update" | "migration" | "import"; // apenas quando type === 'pre-event'
+  filePath: string; // caminho absoluto do arquivo .db
   sizeBytes: number;
-  createdAt: string;        // ISO 8601
+  createdAt: string; // ISO 8601
   integrityOk: boolean | null; // null = não verificado ainda
-  appVersion: string;       // versão do Fusion ao criar o backup
-  schemaVersion: number;    // versão do schema do banco ao criar o backup
+  appVersion: string; // versão do Fusion ao criar o backup
+  schemaVersion: number; // versão do schema do banco ao criar o backup
 }
 ```
 
@@ -294,7 +301,7 @@ interface PlayerConnectionMetrics {
   userId: string;
   socketId: string;
   latencyMs: number;
-  qualityLevel: 'good' | 'fair' | 'poor'; // < 100ms | 100-300ms | > 300ms
+  qualityLevel: "good" | "fair" | "poor"; // < 100ms | 100-300ms | > 300ms
   lastHeartbeat: string; // ISO 8601
   eventsSent: number;
   eventsReceived: number;
@@ -313,27 +320,27 @@ interface PlayerConnectionMetrics {
 // import { Role } from '@fusion/shared';
 
 interface AuditLogEntry {
-  time: string;        // ISO 8601
+  time: string; // ISO 8601
   userId: string;
-  userRole: 'PLAYER' | 'TRUSTED' | 'ASSISTANT' | 'GAMEMASTER'; // alinhado ao enum Role de 05-usuarios-e-permissoes.md
+  userRole: "PLAYER" | "TRUSTED" | "ASSISTANT" | "GAMEMASTER"; // alinhado ao enum Role de 05-usuarios-e-permissoes.md
   action: AuditAction;
   targetType?: string; // ex.: 'world', 'user', 'macro'
   targetId?: string;
-  summary: string;     // descrição legível da ação
+  summary: string; // descrição legível da ação
   worldSlug?: string;
 }
 
 type AuditAction =
-  | 'user.permission_changed'
-  | 'world.deleted'
-  | 'world.restored'
-  | 'world.imported'
-  | 'world.exported'
-  | 'combat.started'
-  | 'combat.ended'
-  | 'macro.executed_privileged'
-  | 'server.config_changed'
-  | 'backup.restored';
+  | "user.permission_changed"
+  | "world.deleted"
+  | "world.restored"
+  | "world.imported"
+  | "world.exported"
+  | "combat.started"
+  | "combat.ended"
+  | "macro.executed_privileged"
+  | "server.config_changed"
+  | "backup.restored";
 ```
 
 ### Schema do `diagnostics.json`
@@ -342,7 +349,7 @@ type AuditAction =
 interface DiagnosticsFile {
   fusionVersion: string;
   nodeVersion: string;
-  platform: string;       // ex.: "win32 x64"
+  platform: string; // ex.: "win32 x64"
   installedSystems: Array<{ id: string; version: string }>;
   worlds: Array<{
     slug: string;
@@ -352,7 +359,7 @@ interface DiagnosticsFile {
     lastBackupAt: string | null; // ISO 8601
     lastOpenedAt: string | null;
   }>;
-  generatedAt: string;    // ISO 8601
+  generatedAt: string; // ISO 8601
   schemaVersion: 1;
 }
 ```
@@ -363,41 +370,41 @@ interface DiagnosticsFile {
 
 ### Endpoints REST (autenticação obrigatória)
 
-| Método | Path | Autenticação | Descrição |
-|--------|------|--------------|-----------|
-| `GET` | `/api/admin/status` | GM | Snapshot de status do servidor (ver REQ-OPS-060) |
-| `GET` | `/api/admin/backups/:worldSlug` | GM | Lista backups de um mundo (retorna `BackupEntry[]`) |
-| `POST` | `/api/admin/backups/:worldSlug/snapshot` | GM | Dispara backup manual imediato (REQ-OPS-004) |
-| `POST` | `/api/admin/backups/:worldSlug/:backupId/restore` | GM | Restaura backup específico (REQ-OPS-009) |
-| `DELETE` | `/api/admin/backups/:worldSlug/:backupId` | GM | Deleta um backup listado (manual ou auto) |
-| `GET` | `/api/admin/diagnostics` | GM | Retorna conteúdo do `diagnostics.json` |
-| `POST` | `/api/admin/diagnostics/bundle` | GM | Gera e retorna bundle de diagnóstico como `.zip` |
-| `GET` | `/api/admin/audit-log` | GM | Lista entradas recentes do audit.log (paginado, max 500) |
-| `POST` | `/api/client-error` | Qualquer autenticado | Recebe erro JS do cliente (REQ-OPS-028) |
+| Método   | Path                                              | Autenticação         | Descrição                                                |
+| -------- | ------------------------------------------------- | -------------------- | -------------------------------------------------------- |
+| `GET`    | `/api/admin/status`                               | GM                   | Snapshot de status do servidor (ver REQ-OPS-060)         |
+| `GET`    | `/api/admin/backups/:worldSlug`                   | GM                   | Lista backups de um mundo (retorna `BackupEntry[]`)      |
+| `POST`   | `/api/admin/backups/:worldSlug/snapshot`          | GM                   | Dispara backup manual imediato (REQ-OPS-004)             |
+| `POST`   | `/api/admin/backups/:worldSlug/:backupId/restore` | GM                   | Restaura backup específico (REQ-OPS-009)                 |
+| `DELETE` | `/api/admin/backups/:worldSlug/:backupId`         | GM                   | Deleta um backup listado (manual ou auto)                |
+| `GET`    | `/api/admin/diagnostics`                          | GM                   | Retorna conteúdo do `diagnostics.json`                   |
+| `POST`   | `/api/admin/diagnostics/bundle`                   | GM                   | Gera e retorna bundle de diagnóstico como `.zip`         |
+| `GET`    | `/api/admin/audit-log`                            | GM                   | Lista entradas recentes do audit.log (paginado, max 500) |
+| `POST`   | `/api/client-error`                               | Qualquer autenticado | Recebe erro JS do cliente (REQ-OPS-028)                  |
 
 ### Eventos de Socket
 
-| Evento | Direção | Payload | Descrição |
-|--------|---------|---------|-----------|
-| `server:perf_snapshot` | servidor → GM | `ServerStatusSnapshot` | Status do servidor a cada 30s (REQ-OPS-052) |
-| `server:player_metrics` | servidor → GM | `PlayerConnectionMetrics[]` | Métricas de todos os jogadores conectados, a cada 30s |
-| `client:perf_report` | cliente → servidor | `{ fps, drawCalls, pixiEntities }` | FPS e métricas do canvas a cada 5s (REQ-OPS-053) |
-| `server:backup_progress` | servidor → GM | `{ worldSlug, percent, type }` | Progresso do backup em andamento |
-| `server:backup_complete` | servidor → GM | `BackupEntry` | Backup concluído com metadados do arquivo gerado |
-| `server:backup_error` | servidor → GM | `{ worldSlug, error: string }` | Falha em backup automático ou manual |
-| `server:disk_warning` | servidor → GM | `{ usedPercent, usedMb }` | Alerta de disco ao ultrapassar 80% do limite |
+| Evento                   | Direção            | Payload                            | Descrição                                             |
+| ------------------------ | ------------------ | ---------------------------------- | ----------------------------------------------------- |
+| `server:perf_snapshot`   | servidor → GM      | `ServerStatusSnapshot`             | Status do servidor a cada 30s (REQ-OPS-052)           |
+| `server:player_metrics`  | servidor → GM      | `PlayerConnectionMetrics[]`        | Métricas de todos os jogadores conectados, a cada 30s |
+| `client:perf_report`     | cliente → servidor | `{ fps, drawCalls, pixiEntities }` | FPS e métricas do canvas a cada 5s (REQ-OPS-053)      |
+| `server:backup_progress` | servidor → GM      | `{ worldSlug, percent, type }`     | Progresso do backup em andamento                      |
+| `server:backup_complete` | servidor → GM      | `BackupEntry`                      | Backup concluído com metadados do arquivo gerado      |
+| `server:backup_error`    | servidor → GM      | `{ worldSlug, error: string }`     | Falha em backup automático ou manual                  |
+| `server:disk_warning`    | servidor → GM      | `{ usedPercent, usedMb }`          | Alerta de disco ao ultrapassar 80% do limite          |
 
 ---
 
 ## Dependências (specs irmãs)
 
-| Spec | Dependência |
-|------|-------------|
-| `03-persistencia-e-mundos.md` | PRAGMAs do SQLite, inicialização do banco, single-writer pattern, formato do `world.db` |
-| `04-rede-e-sincronizacao.md` | Socket.io v4, protocolo de mensagens, autenticação de socket |
-| `05-usuarios-e-permissoes.md` | Papéis de usuário (GM vs. jogador), autenticação de endpoints admin |
-| `22-instalacao-e-distribuicao.md` | Estrutura de diretórios `fusion-data/`, procedimento de update e pre-event backup |
-| `25-testes-e-qualidade.md` | Testes da Backup API, testes de integridade, smoke tests de logging |
+| Spec                              | Dependência                                                                             |
+| --------------------------------- | --------------------------------------------------------------------------------------- |
+| `03-persistencia-e-mundos.md`     | PRAGMAs do SQLite, inicialização do banco, single-writer pattern, formato do `world.db` |
+| `04-rede-e-sincronizacao.md`      | Socket.io v4, protocolo de mensagens, autenticação de socket                            |
+| `05-usuarios-e-permissoes.md`     | Papéis de usuário (GM vs. jogador), autenticação de endpoints admin                     |
+| `22-instalacao-e-distribuicao.md` | Estrutura de diretórios `fusion-data/`, procedimento de update e pre-event backup       |
+| `25-testes-e-qualidade.md`        | Testes da Backup API, testes de integridade, smoke tests de logging                     |
 
 ---
 

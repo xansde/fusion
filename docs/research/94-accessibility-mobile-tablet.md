@@ -21,12 +21,12 @@ O Foundry VTT **não possui uma estratégia de acessibilidade nativa abrangente*
 
 A ausência de suporte nativo gerou um ecossistema de módulos comunitários:
 
-| Módulo | Funcionalidades principais | Sistema-alvo | Status (2026) |
-|--------|---------------------------|--------------|---------------|
+| Módulo                         | Funcionalidades principais                                                                                                                                                                                   | Sistema-alvo               | Status (2026)                                        |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------- | ---------------------------------------------------- |
 | **Accessibility Enhancements** | Alternativas a drag-and-drop para adicionar itens; audio feedback (pop ao abrir janela, som de criação de item); high-contrast character sheets (dark/light PF2e); preview enlargement no compendium browser | PF2e (parcial) + agnóstico | Última atualização: 2 anos atrás; verificado até v12 |
-| **Accessibility: Chatfinder** | Navegação no chat via teclado/screen reader | Agnóstico | Ativo |
-| **Minimal UI** | Simplificação da interface, ocultação de elementos não essenciais | Agnóstico | Ativo |
-| **Gaming Table Player** | Oculta toda a UI do Foundry para a tela de mesa compartilhada | Agnóstico | Ativo |
+| **Accessibility: Chatfinder**  | Navegação no chat via teclado/screen reader                                                                                                                                                                  | Agnóstico                  | Ativo                                                |
+| **Minimal UI**                 | Simplificação da interface, ocultação de elementos não essenciais                                                                                                                                            | Agnóstico                  | Ativo                                                |
+| **Gaming Table Player**        | Oculta toda a UI do Foundry para a tela de mesa compartilhada                                                                                                                                                | Agnóstico                  | Ativo                                                |
 
 **Conclusão crítica:** O Foundry nunca declarou uma meta de conformidade WCAG. Acessibilidade é tratada como responsabilidade de módulos, não do core. Para o Fusion, essa é uma oportunidade de diferenciação.
 
@@ -42,11 +42,11 @@ O canvas do Foundry é renderizado pelo PixiJS em um elemento `<canvas>`. Por de
 
 O W3C mantém três níveis de conformidade:
 
-| Nível | Critérios (WCAG 2.2) | Descrição |
-|-------|---------------------|-----------|
-| **A** | 30 critérios | Mínimo absoluto; não conformar torna conteúdo inacessível para muitos |
-| **AA** | 50 critérios adicionais | Padrão legal amplamente adotado; requisito ADA, EAA, Section 508 |
-| **AAA** | Restantes | Aspiracional; não exigido globalmente |
+| Nível   | Critérios (WCAG 2.2)    | Descrição                                                             |
+| ------- | ----------------------- | --------------------------------------------------------------------- |
+| **A**   | 30 critérios            | Mínimo absoluto; não conformar torna conteúdo inacessível para muitos |
+| **AA**  | 50 critérios adicionais | Padrão legal amplamente adotado; requisito ADA, EAA, Section 508      |
+| **AAA** | Restantes               | Aspiracional; não exigido globalmente                                 |
 
 **WCAG 2.2 AA** (outubro de 2023) é o padrão atual recomendado — é totalmente retrocompatível com 2.1 AA. Os 9 critérios novos do 2.2 incluem: `Focus Not Obscured` (2.4.11), `Focus Appearance` (2.4.12), `Target Size` (2.5.8, mínimo 24×24 px para alvos de clique), e `Accessible Authentication` (3.3.8).
 
@@ -67,6 +67,7 @@ Modais / diálogos:                             WCAG 2.2 AA (focus trap, Esc, ro
 ```
 
 **Estratégia prática:**
+
 1. Todo texto de UI deve ter contraste ≥ 4,5:1 (AA) ou 3:1 para texto grande (≥18pt ou ≥14pt bold).
 2. Nenhuma informação crítica deve ser transmitida **apenas** por cor.
 3. Todos os controles interativos da UI (não canvas) devem ser alcançáveis por teclado com indicador de foco visível.
@@ -85,23 +86,25 @@ O Foundry não oferece suporte touch nativo completo. A versão 13.341 corrigiu 
 
 **TouchVTT** é o módulo de referência para touch no Foundry:
 
-| Gesto | Ação mapeada |
-|-------|-------------|
-| Arrastar 1 dedo (sobre token) | Mover token |
-| Pinch 2 dedos | Zoom do canvas |
-| Pan 2 dedos | Navegar o canvas (configurável) |
-| Pan 3 dedos | Modo alternativo de navegação |
-| Long-press (0,5s) | Right-click / menu de contexto |
-| Tap em token hostil | Target |
-| Ruler + waypoints | Navegação com régua |
+| Gesto                         | Ação mapeada                    |
+| ----------------------------- | ------------------------------- |
+| Arrastar 1 dedo (sobre token) | Mover token                     |
+| Pinch 2 dedos                 | Zoom do canvas                  |
+| Pan 2 dedos                   | Navegar o canvas (configurável) |
+| Pan 3 dedos                   | Modo alternativo de navegação   |
+| Long-press (0,5s)             | Right-click / menu de contexto  |
+| Tap em token hostil           | Target                          |
+| Ruler + waypoints             | Navegação com régua             |
 
 **Implementação técnica do TouchVTT:**
+
 - Versão 2.0.0 foi reescrita completamente usando **Pointer Events API** (migração de Touch Events).
 - Usa a biblioteca `libWrapper` para interceptar métodos do Foundry sem quebrar outros módulos.
 - Dois modos de câmera: combinado (zoom+pan no mesmo gesto) e separado (zoom=2 dedos, pan=3 dedos) para mitigar jitter em sensores de toque menos precisos.
 - Botões de token enlargement configuravelmente para facilitar toque em áreas pequenas.
 
 **Mobile Improvements** (v2.0.0, Foundry 13+):
+
 - Overhaul completo da UI core para mobile/tablet.
 - Character sheets "flexíveis" que adaptam ao tamanho de tela.
 - Janelas em full-screen em telas pequenas.
@@ -126,6 +129,7 @@ caneta    ──┘
 ```
 
 **Vantagens:**
+
 - Um único conjunto de handlers (`pointerdown`, `pointermove`, `pointerup`, `pointercancel`) funciona para mouse, touch e caneta.
 - `event.pointerType` informa o tipo de dispositivo: `'mouse'`, `'touch'`, ou `'pen'`.
 - Suporte a multi-touch via `event.pointerId` (cada dedo tem um ID único).
@@ -138,15 +142,16 @@ Este é um problema arquitetural crítico para VTTs em touch:
 
 **Padrões hover-only que precisam de alternativa em touch:**
 
-| Padrão problemático | Alternativa para touch |
-|--------------------|----------------------|
-| Tooltip ao hover sobre token | Long-press (0,5s) ou tap para abrir sheet |
-| Botões de ação que aparecem ao hover | Menu de contexto via long-press |
-| Roll de dados ao hover para ver fórmulas | Texto permanentemente visível em mobile |
-| Preview de spell/item ao hover | Tap para expandir |
-| Cursor custom indicando ferramenta ativa | Ícone de UI permanente indicando modo |
+| Padrão problemático                      | Alternativa para touch                    |
+| ---------------------------------------- | ----------------------------------------- |
+| Tooltip ao hover sobre token             | Long-press (0,5s) ou tap para abrir sheet |
+| Botões de ação que aparecem ao hover     | Menu de contexto via long-press           |
+| Roll de dados ao hover para ver fórmulas | Texto permanentemente visível em mobile   |
+| Preview de spell/item ao hover           | Tap para expandir                         |
+| Cursor custom indicando ferramenta ativa | Ícone de UI permanente indicando modo     |
 
 **Detecção de capacidade hover:**
+
 ```css
 /* CSS Media Query para detectar dispositivos sem hover fino */
 @media (hover: none) and (pointer: coarse) {
@@ -173,6 +178,7 @@ canvas#game-canvas {
 **Problema com iOS Safari:** Safari tem suporte limitado a `touch-action` — apenas `auto` e `manipulation` funcionam de forma confiável. O valor `none` pode não funcionar como esperado.
 
 **Solução recomendada para iOS:**
+
 1. Usar `touch-action: manipulation` no canvas (desabilita double-tap zoom, mantém scroll nativo).
 2. Registrar event listeners com `{ passive: false }` para chamar `preventDefault()` em gestos que o app gerencia.
 3. Listeners passivos (padrão em browsers modernos) **não podem** chamar `preventDefault()`.
@@ -184,27 +190,28 @@ canvas#game-canvas {
 ### 5.1 Breakpoints Relevantes para um VTT
 
 Um VTT tem dois modos principais de uso:
+
 - **GM em desktop** (1280px+): UI completa, todas as ferramentas visíveis.
 - **Jogador em tablet** (768–1200px): UI simplificada, canvas maximizado.
 
 **Breakpoints recomendados:**
 
-| Nome | min-width | Descrição |
-|------|-----------|-----------|
-| `mobile` | 0px | Telas < 640px (não suportado como modo de jogo completo) |
-| `tablet` | 640px | iPad mini, tablets Android médios |
-| `tablet-lg` | 1024px | iPad Pro 11", iPad Air |
-| `desktop` | 1280px | Laptops, desktops |
-| `desktop-xl` | 1536px | Monitores wide, 4K |
+| Nome         | min-width | Descrição                                                |
+| ------------ | --------- | -------------------------------------------------------- |
+| `mobile`     | 0px       | Telas < 640px (não suportado como modo de jogo completo) |
+| `tablet`     | 640px     | iPad mini, tablets Android médios                        |
+| `tablet-lg`  | 1024px    | iPad Pro 11", iPad Air                                   |
+| `desktop`    | 1280px    | Laptops, desktops                                        |
+| `desktop-xl` | 1536px    | Monitores wide, 4K                                       |
 
 **Viewports reais de iPads (CSS pixels, landscape):**
 
-| Modelo | Viewport (landscape) | DPR |
-|--------|---------------------|-----|
-| iPad mini 6 | 1024 × 768 | 2× |
-| iPad Air M3 | 1180 × 820 | 2× |
-| iPad Pro 11" M4 | 1194 × 834 | 2× |
-| iPad Pro 13" M4 | 1366 × 1024 | 2× |
+| Modelo          | Viewport (landscape) | DPR |
+| --------------- | -------------------- | --- |
+| iPad mini 6     | 1024 × 768           | 2×  |
+| iPad Air M3     | 1180 × 820           | 2×  |
+| iPad Pro 11" M4 | 1194 × 834           | 2×  |
+| iPad Pro 13" M4 | 1366 × 1024          | 2×  |
 
 ### 5.2 Container Queries vs. Media Queries
 
@@ -245,6 +252,7 @@ Container Queries têm **93,92% de suporte global** em dezembro de 2025 e são p
 ```
 
 O modo jogador-tablet deve:
+
 - Ocultar Scene Controls (ferramenta de GM).
 - Sidebar colapsada por padrão, acessível via swipe from edge ou FAB.
 - Hotbar de macros como bottom bar compacta (touch targets ≥ 44×44 px — Apple HIG).
@@ -275,6 +283,7 @@ Requer `<meta name="viewport" content="..., viewport-fit=cover">` para ativar.
 Quando o jogador toca num campo de texto (chat, sheet) em tablet, o teclado virtual aparece e pode cobrir parte da UI. Estratégias:
 
 **VirtualKeyboard API (Chrome 94+):**
+
 ```js
 navigator.virtualKeyboard.overlaysContent = true;
 // CSS expõe:
@@ -282,9 +291,13 @@ navigator.virtualKeyboard.overlaysContent = true;
 ```
 
 **Meta viewport `interactive-widget`** (Chrome 108+, Firefox 132+):
+
 ```html
-<meta name="viewport" content="width=device-width, initial-scale=1,
-  interactive-widget=resizes-visual">
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1,
+  interactive-widget=resizes-visual"
+/>
 ```
 
 - `resizes-visual`: apenas o viewport visual encolhe (melhor para canvas-based apps — o canvas não recalcula, só o UI overlay).
@@ -294,6 +307,7 @@ navigator.virtualKeyboard.overlaysContent = true;
 **Para o Fusion:** `resizes-visual` é a opção mais adequada — o canvas permanece estável enquanto campos de texto sobem para acima do teclado.
 
 **Unidade CSS `dvh` (dynamic viewport height):**
+
 ```css
 .game-container {
   height: 100dvh; /* atualiza quando teclado aparece/desaparece */
@@ -327,6 +341,7 @@ O Fusion roda como servidor local do GM que jogadores acessam pelo browser. Ofer
 ```
 
 **Benefícios:**
+
 - Modo `standalone` remove a barra de URL do browser (mais imersivo).
 - Ícone na home screen.
 - Splash screen durante carregamento.
@@ -334,18 +349,19 @@ O Fusion roda como servidor local do GM que jogadores acessam pelo browser. Ofer
 
 ### 7.2 Limitações PWA em iOS/iPadOS (Crítico)
 
-| Limitação | Impacto para Fusion |
-|-----------|-------------------|
-| **EU (iOS 17.4+):** PWAs não rodam em standalone; abrem no Safari | Jogadores europeus não têm vantagem de fullscreen |
-| Sem install prompt automático | Usuário precisa: Share → "Adicionar à Tela de Início" — não intuitivo |
-| Service worker com cache de 7 dias e 50MB | Limitado para assets de VTT, mas caching de assets fixos (tokens, maps) é viável |
-| Sem Background Sync/Periodic Background Sync | Não relevante para uso em sessão ativa |
-| `100vh` inclui a barra do Safari | Usar `100dvh` + `viewport-fit=cover` |
-| Sem File System Access API | Jogadores não importam assets locais no iOS |
-| Sem WebGL2 garantido (raro, mas antigos iPads) | Fallback para WebGL1 necessário |
+| Limitação                                                         | Impacto para Fusion                                                              |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| **EU (iOS 17.4+):** PWAs não rodam em standalone; abrem no Safari | Jogadores europeus não têm vantagem de fullscreen                                |
+| Sem install prompt automático                                     | Usuário precisa: Share → "Adicionar à Tela de Início" — não intuitivo            |
+| Service worker com cache de 7 dias e 50MB                         | Limitado para assets de VTT, mas caching de assets fixos (tokens, maps) é viável |
+| Sem Background Sync/Periodic Background Sync                      | Não relevante para uso em sessão ativa                                           |
+| `100vh` inclui a barra do Safari                                  | Usar `100dvh` + `viewport-fit=cover`                                             |
+| Sem File System Access API                                        | Jogadores não importam assets locais no iOS                                      |
+| Sem WebGL2 garantido (raro, mas antigos iPads)                    | Fallback para WebGL1 necessário                                                  |
 
 **Service Worker para caching de assets estáticos:**
 Mesmo com as limitações, um service worker é útil para cachear:
+
 - O app shell (HTML, JS, CSS).
 - Tokens e icons do sistema PF2e/SF2e (assets estáticos).
 - Rulebook images do compendium.
@@ -355,6 +371,7 @@ O servidor de jogo ativo (WebSocket) não usa service worker — é uma conexão
 ### 7.3 Offline e Conectividade
 
 Um VTT é fundamentalmente online (jogadores conectam ao servidor do GM). O service worker deve:
+
 - Servir o app shell em cache quando o servidor não está acessível (mostrando erro amigável, não tela em branco).
 - **Não** tentar cachear dados de jogo ao vivo (scene state, tokens, etc.) — isso é responsabilidade do WebSocket.
 
@@ -364,25 +381,26 @@ Um VTT é fundamentalmente online (jogadores conectam ao servidor do GM). O serv
 
 ### 8.1 Limitações de Memória de Textura em iOS
 
-| Limite | Impacto |
-|--------|---------|
-| `MAX_TEXTURE_SIZE` em iOS: geralmente 4096×4096 | Texturas de mapa acima de 4096px em qualquer dimensão quebram em iOS |
-| Crash documentado com texturas 4096×4096 no iOS 15 | Reduzir para 3840×3840 ou usar tiles para mapas grandes |
-| `gl.MAX_TEXTURE_IMAGE_UNITS` (concurrent textures em shader): tipicamente 8–16 | Batching limitado a 16 texturas diferentes por draw call |
-| Memória GPU total (iPad vs desktop): ~2–4 GB vs ~8–24 GB | Budget de textura muito menor em mobile |
+| Limite                                                                         | Impacto                                                              |
+| ------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
+| `MAX_TEXTURE_SIZE` em iOS: geralmente 4096×4096                                | Texturas de mapa acima de 4096px em qualquer dimensão quebram em iOS |
+| Crash documentado com texturas 4096×4096 no iOS 15                             | Reduzir para 3840×3840 ou usar tiles para mapas grandes              |
+| `gl.MAX_TEXTURE_IMAGE_UNITS` (concurrent textures em shader): tipicamente 8–16 | Batching limitado a 16 texturas diferentes por draw call             |
+| Memória GPU total (iPad vs desktop): ~2–4 GB vs ~8–24 GB                       | Budget de textura muito menor em mobile                              |
 
 ### 8.2 Compressão de Texturas com PixiJS v8
 
 PixiJS v8 suporta **KTX2 com Basis Universal** — transcoding automático para o melhor formato suportado pelo dispositivo:
 
-| Formato GPU | Plataforma principal | Compressão |
-|-------------|---------------------|------------|
-| ASTC 4×4 | iOS (A8+), Android moderno | Alta |
-| ETC2 | Android (OpenGL ES 3.0) | Boa |
-| BC7 | Desktop (DX11+) | Alta |
-| DXT/BC1 | Desktop legacy | Moderada |
+| Formato GPU | Plataforma principal       | Compressão |
+| ----------- | -------------------------- | ---------- |
+| ASTC 4×4    | iOS (A8+), Android moderno | Alta       |
+| ETC2        | Android (OpenGL ES 3.0)    | Boa        |
+| BC7         | Desktop (DX11+)            | Alta       |
+| DXT/BC1     | Desktop legacy             | Moderada   |
 
 **Workflow recomendado:**
+
 1. Buildar assets com **AssetPack** (CLI oficial do PixiJS).
 2. Gerar variantes KTX2/Basis de cada textura.
 3. Manifesto de assets com múltiplos formatos; PixiJS seleciona automaticamente.
@@ -395,8 +413,8 @@ PixiJS v8 suporta **KTX2 com Basis Universal** — transcoding automático para 
 ```js
 // Inicialização do Renderer para mobile
 const app = new PIXI.Application({
-  antialias: false,          // desabilitar MSAA em GPUs mobile (custo alto)
-  useContextAlpha: false,    // sem alpha channel no framebuffer principal
+  antialias: false, // desabilitar MSAA em GPUs mobile (custo alto)
+  useContextAlpha: false, // sem alpha channel no framebuffer principal
   resolution: window.devicePixelRatio > 2 ? 2 : window.devicePixelRatio,
   // não usar devicePixelRatio puro em iPads com DPR=2+ — muito custoso
 });
@@ -404,6 +422,7 @@ const app = new PIXI.Application({
 
 **Limites de contextos WebGL em iOS:**
 iOS limita o número de contextos WebGL ativos para ~16. Criar contextos sem destruir os antigos causa refresh ou crash da página. O Fusion deve:
+
 - Usar **um único contexto WebGL** para toda a aplicação.
 - Destruir texturas não utilizadas explicitamente (`.destroy()`).
 - Usar destruição com delay aleatório para evitar freezes ao destruir múltiplas texturas simultâneas.
@@ -412,6 +431,7 @@ iOS limita o número de contextos WebGL ativos para ~16. Criar contextos sem des
 ### 8.4 Text e `PIXI.Text` em Mobile
 
 Cada instância de `PIXI.Text` cria um canvas 2D separado. Múltiplos textos (nomes de tokens, HP labels) aumentam o número de contextos 2D consumindo memória. Em mobile:
+
 - Preferir `PIXI.BitmapText` (usa textura única pré-gerada).
 - Limitar `PIXI.Text` dinâmico a elementos de alta prioridade.
 - Reusar instâncias de `PIXI.Text` em vez de criar/destruir por frame.
@@ -447,19 +467,20 @@ O PixiJS v8 possui um sistema de acessibilidade embutido que cria uma **camada D
 ```js
 // Habilitar acessibilidade em um DisplayObject
 token.accessible = true;
-token.accessibleTitle = 'Goblin Warrior';  // aria-label
-token.accessibleHint = 'HP: 12/30. Clique para selecionar.';  // aria-description
-token.accessibleType = 'button';  // tipo do elemento DOM criado
-token.tabIndex = 0;  // ordem de foco no teclado
+token.accessibleTitle = "Goblin Warrior"; // aria-label
+token.accessibleHint = "HP: 12/30. Clique para selecionar."; // aria-description
+token.accessibleType = "button"; // tipo do elemento DOM criado
+token.tabIndex = 0; // ordem de foco no teclado
 ```
 
 O sistema é **opt-in por padrão** (não ativa automaticamente para todos os objetos) para minimizar o bundle. Para o Fusion, tokens de jogador e controles de UI no canvas devem ser explicitamente marcados como acessíveis.
 
 **Ativação:**
+
 ```js
-import { AccessibilitySystem } from 'pixi.js';
+import { AccessibilitySystem } from "pixi.js";
 app.renderer.accessibility.enabledByDefault = true;
-app.renderer.accessibility.activateOnTab = true;  // ativa ao pressionar Tab
+app.renderer.accessibility.activateOnTab = true; // ativa ao pressionar Tab
 ```
 
 ---
@@ -469,13 +490,14 @@ app.renderer.accessibility.activateOnTab = true;  // ativa ao pressionar Tab
 ### 10.1 Recursos do Svelte 5 / SvelteKit
 
 O Svelte 5 tem acessibilidade integrada no compilador:
+
 - **Compiler warnings:** O compilador alerta sobre imagens sem `alt`, elementos interativos sem labels, uso incorreto de ARIA roles.
 - **SvelteKit focus management:** Após navegação client-side, o SvelteKit recoloca o foco no `<body>` (simulando comportamento de MPA). Customizável via `afterNavigate`.
 - **Live regions automáticas:** SvelteKit injeta um live region para anunciar mudanças de página para screen readers.
 - **`MediaQuery` reativa:**
   ```js
-  import { MediaQuery } from 'svelte/reactivity';
-  const isTablet = new MediaQuery('(max-width: 1024px) and (pointer: coarse)');
+  import { MediaQuery } from "svelte/reactivity";
+  const isTablet = new MediaQuery("(max-width: 1024px) and (pointer: coarse)");
   // isTablet.current → boolean reativo
   ```
 
@@ -483,6 +505,7 @@ O Svelte 5 tem acessibilidade integrada no compilador:
 
 **Focus Trap em modais:**
 O padrão nativo `<dialog>` com `.showModal()` fornece:
+
 - Focus trap automático.
 - Fechamento com `Escape`.
 - `role="dialog"` implícito.
@@ -491,12 +514,15 @@ O padrão nativo `<dialog>` com `.showModal()` fornece:
 Para o Fusion, todos os modais (character sheets como janelas flutuantes, confirm dialogs, compendium browser) devem usar `<dialog>` nativo.
 
 **Skip link:**
+
 ```html
 <a href="#main-content" class="skip-link">Ir para o conteúdo principal</a>
 ```
+
 O skip link deve ser o primeiro elemento focável da página (visível apenas ao receber foco).
 
 **Indicador de foco:**
+
 ```css
 :focus-visible {
   outline: 2px solid var(--color-focus);
@@ -508,6 +534,7 @@ O skip link deve ser o primeiro elemento focável da página (visível apenas ao
 ```
 
 **Hover + focus em parallel:**
+
 ```css
 /* Elemento que aparece só em hover DEVE também aparecer em focus */
 .token-action-buttons {
@@ -521,20 +548,20 @@ O skip link deve ser o primeiro elemento focável da página (visível apenas ao
 
 ### 10.3 Checklist WCAG 2.2 AA Aplicado ao Fusion
 
-| Critério | Requisito | Aplicação no Fusion |
-|----------|-----------|-------------------|
-| 1.1.1 Non-text Content | Alternativa textual para imagens | `alt` em tokens, portraits, map images |
-| 1.3.1 Info and Relationships | Semântica HTML adequada | `<nav>`, `<main>`, `<section>`, `<dialog>` corretos |
-| 1.4.1 Use of Color | Não usar cor como único meio | Condições de status: ícone + cor, não só cor |
-| 1.4.3 Contrast | 4,5:1 para texto normal | Testar todos os temas (dark/light) |
-| 1.4.4 Resize Text | Texto redimensionável até 200% | Usar `rem`/`em`, evitar `px` fixo para texto |
-| 1.4.11 Non-text Contrast | 3:1 para ícones de UI | Tokens de HP, botões de ação |
-| 2.1.1 Keyboard | Toda funcionalidade por teclado | Canvas: tab entre tokens; UI: tab completo |
-| 2.4.3 Focus Order | Ordem lógica de foco | Sheets abertas recebem foco antes de background |
-| 2.4.7 Focus Visible | Foco sempre visível | `:focus-visible` em todos os elementos |
-| 2.4.11 Focus Not Obscured | Foco não totalmente coberto | Sticky bottom bar não pode cobrir elemento focado |
-| 2.5.8 Target Size | Mínimo 24×24 px | Todos os botões; preferencialmente 44×44 px |
-| 4.1.2 Name, Role, Value | ARIA correto | `role`, `aria-label`, `aria-expanded`, `aria-live` |
+| Critério                     | Requisito                        | Aplicação no Fusion                                 |
+| ---------------------------- | -------------------------------- | --------------------------------------------------- |
+| 1.1.1 Non-text Content       | Alternativa textual para imagens | `alt` em tokens, portraits, map images              |
+| 1.3.1 Info and Relationships | Semântica HTML adequada          | `<nav>`, `<main>`, `<section>`, `<dialog>` corretos |
+| 1.4.1 Use of Color           | Não usar cor como único meio     | Condições de status: ícone + cor, não só cor        |
+| 1.4.3 Contrast               | 4,5:1 para texto normal          | Testar todos os temas (dark/light)                  |
+| 1.4.4 Resize Text            | Texto redimensionável até 200%   | Usar `rem`/`em`, evitar `px` fixo para texto        |
+| 1.4.11 Non-text Contrast     | 3:1 para ícones de UI            | Tokens de HP, botões de ação                        |
+| 2.1.1 Keyboard               | Toda funcionalidade por teclado  | Canvas: tab entre tokens; UI: tab completo          |
+| 2.4.3 Focus Order            | Ordem lógica de foco             | Sheets abertas recebem foco antes de background     |
+| 2.4.7 Focus Visible          | Foco sempre visível              | `:focus-visible` em todos os elementos              |
+| 2.4.11 Focus Not Obscured    | Foco não totalmente coberto      | Sticky bottom bar não pode cobrir elemento focado   |
+| 2.5.8 Target Size            | Mínimo 24×24 px                  | Todos os botões; preferencialmente 44×44 px         |
+| 4.1.2 Name, Role, Value      | ARIA correto                     | `role`, `aria-label`, `aria-expanded`, `aria-live`  |
 
 ---
 

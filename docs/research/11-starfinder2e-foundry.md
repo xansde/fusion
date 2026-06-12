@@ -10,11 +10,11 @@
 
 ### 1.1 Linha do Tempo
 
-| Fase | Período | Descrição |
-|---|---|---|
-| Playtest (Field Test) | 2023–2024 | Módulo `starfinder-field-test-for-pf2e` — extensão sobre o sistema PF2e no Foundry |
-| Módulo de transição | 2024–2025 | `sf2e-anachronism` — módulo sobre PF2e com conteúdo exclusivo de SF2e; repositório temporário em `TikaelSol/sf2e-anachronism` |
-| Sistema próprio (GA) | 2025–presente | `sf2e` — sistema independente no Foundry, hospedado no repositório `foundryvtt/pf2e` |
+| Fase                  | Período       | Descrição                                                                                                                     |
+| --------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Playtest (Field Test) | 2023–2024     | Módulo `starfinder-field-test-for-pf2e` — extensão sobre o sistema PF2e no Foundry                                            |
+| Módulo de transição   | 2024–2025     | `sf2e-anachronism` — módulo sobre PF2e com conteúdo exclusivo de SF2e; repositório temporário em `TikaelSol/sf2e-anachronism` |
+| Sistema próprio (GA)  | 2025–presente | `sf2e` — sistema independente no Foundry, hospedado no repositório `foundryvtt/pf2e`                                          |
 
 ### 1.2 Estado Atual (2026)
 
@@ -77,17 +77,17 @@ A Paizo declarou explicitamente que SF2e é "fully compatible with Pathfinder 2n
 
 ### 2.2 O Que é Compartilhado
 
-| Elemento | Compartilhado PF2e ↔ SF2e |
-|---|---|
-| Economy de ações (3 ações/reação) | Sim |
-| Sistema de proficiências | Sim |
-| Estrutura de feats | Sim (mesma terminologia) |
-| Condições base (off-guard, flat-footed, etc.) | Sim |
-| Estrutura de ancestralidade + heritage | Sim (chamadas "species" no SF2e mas mecânica igual) |
-| Skill list base | Quase igual (SF2e adiciona habilidades sci-fi) |
-| Sistema de magias/spells | Sim (Mystic e Witchwarper usam o mesmo framework) |
-| Regra de variante: Proficiency Without Level | Sim |
-| Regra de variante: Free Archetype | Sim |
+| Elemento                                      | Compartilhado PF2e ↔ SF2e                           |
+| --------------------------------------------- | --------------------------------------------------- |
+| Economy de ações (3 ações/reação)             | Sim                                                 |
+| Sistema de proficiências                      | Sim                                                 |
+| Estrutura de feats                            | Sim (mesma terminologia)                            |
+| Condições base (off-guard, flat-footed, etc.) | Sim                                                 |
+| Estrutura de ancestralidade + heritage        | Sim (chamadas "species" no SF2e mas mecânica igual) |
+| Skill list base                               | Quase igual (SF2e adiciona habilidades sci-fi)      |
+| Sistema de magias/spells                      | Sim (Mystic e Witchwarper usam o mesmo framework)   |
+| Regra de variante: Proficiency Without Level  | Sim                                                 |
+| Regra de variante: Free Archetype             | Sim                                                 |
 
 ### 2.3 O Que Difere — Mecânicas Exclusivas do SF2e
 
@@ -111,7 +111,7 @@ Regras exclusivas para ambientes zero-g:
 - Capacidade de carga aumenta 10×; alcance de armas arremessadas aumenta 10×
 - Movimento: personagens **não se movem** sem propulsão (jetpack, magia, ação "Push Off")
 - Criaturas com fly Speed natural **não podem** usar esse speed em zero-g (exceto com o trait "cosmic")
-- Propulsão disponível: jetpacks, thrusters, feitiços (*fly*, *void vessel*), Push Off (objetos próximos)
+- Propulsão disponível: jetpacks, thrusters, feitiços (_fly_, _void vessel_), Push Off (objetos próximos)
 
 Implica novos estados de mapa/ambiente e condições no engine.
 
@@ -120,12 +120,14 @@ Implica novos estados de mapa/ambiente e condições no engine.
 SF2e possui dois sistemas de combate naval:
 
 **Cinematic Starship Combat** (GM Core, disponível agora):
+
 - Naves tratadas como **hazards complexas** (complex hazards)
 - Personagens assumem papéis na nave (piloto, atirador, engenheiro, etc.) com ações específicas
 - Combate resolve por condições de vitória (victory conditions)
 - Power Core trait determina limite de ações poderosas por turno
 
 **Tactical Starship Combat** (Tech Core, lançamento outubro 2026):
+
 - Sistema tático completo com grid
 - Regras de construção, tripulação e upgrades de naves
 - Naves inimigas de exemplo e hazards espaciais
@@ -144,13 +146,13 @@ Regras para veículos como o enercopter e outros. Estrutura ainda em desenvolvim
 
 Mecânicas de ambiente únicas no SF2e:
 
-| Condição/Ambiente | Regra |
-|---|---|
-| Vácuo | 1d6 bludgeoning/round + sufocação imediata |
-| Descompressão | 3d6 bludgeoning extra ao transitar de pressurizado para vácuo |
-| Radiação | Poison effect com 4 níveis (low/medium/high/severe); afeta CON, pode causar radiation sickness |
-| Atmosfera espessa | Fortitude DC 15+1/check por hora; falha = sickened |
-| Proteção ambiental | Armor concede proteção em atmosferas thin/thick, vácuo e líquido não-hazardoso |
+| Condição/Ambiente  | Regra                                                                                          |
+| ------------------ | ---------------------------------------------------------------------------------------------- |
+| Vácuo              | 1d6 bludgeoning/round + sufocação imediata                                                     |
+| Descompressão      | 3d6 bludgeoning extra ao transitar de pressurizado para vácuo                                  |
+| Radiação           | Poison effect com 4 níveis (low/medium/high/severe); afeta CON, pode causar radiation sickness |
+| Atmosfera espessa  | Fortitude DC 15+1/check por hora; falha = sickened                                             |
+| Proteção ambiental | Armor concede proteção em atmosferas thin/thick, vácuo e líquido não-hazardoso                 |
 
 #### O Drift (Plano de Hyperspace)
 
@@ -175,13 +177,13 @@ Armas de energy (laser rifles, plasma weapons, etc.) têm perfis mecânicos dist
 
 O Player Core lançado em julho de 2025 inclui 6 classes, nenhuma delas existente no PF2e:
 
-| Classe | Descrição |
-|---|---|
-| **Envoy** | Líder de suporte; bônus para aliados via "directives" |
-| **Mystic** | Spellcaster com conexão divina/ocult/primal do universo |
-| **Operative** | Combatente preciso; usa Aim action para dano por precisão |
-| **Solarian** | Guerreiro que canaliza ciclos cósmicos (stellar energy) |
-| **Soldier** | Especialista em armas e HP alto |
+| Classe          | Descrição                                                  |
+| --------------- | ---------------------------------------------------------- |
+| **Envoy**       | Líder de suporte; bônus para aliados via "directives"      |
+| **Mystic**      | Spellcaster com conexão divina/ocult/primal do universo    |
+| **Operative**   | Combatente preciso; usa Aim action para dano por precisão  |
+| **Solarian**    | Guerreiro que canaliza ciclos cósmicos (stellar energy)    |
+| **Soldier**     | Especialista em armas e HP alto                            |
 | **Witchwarper** | Altera realidade via possibilidades de universos paralelos |
 
 O Tech Core (outubro 2026) adicionará duas novas classes:
@@ -197,7 +199,7 @@ Android, Barathu, Human, Kasatha, Lashunta, Pahtra, Shirren, Skittermander, Vesk
 
 Mais 2 versatile heritages: Borai e Prismeni (tocados pela energia do Drift).
 
-O suplemento *Galactic Ancestries* (2026) adiciona 21 novas species. O mecanismo de "standardized ancestry feats" permite que features fisiológicas compartilhadas entre species sejam expressas com o mesmo feat — reduzindo duplicação de dados.
+O suplemento _Galactic Ancestries_ (2026) adiciona 21 novas species. O mecanismo de "standardized ancestry feats" permite que features fisiológicas compartilhadas entre species sejam expressas com o mesmo feat — reduzindo duplicação de dados.
 
 ---
 
@@ -246,6 +248,7 @@ Estes dados são **open source sob Apache-2.0** e podem ser usados no Fusion com
 O sistema PF2e/SF2e no Foundry usa **Rule Elements (REs)** como mecanismo central de automação de regras. Cada RE é uma entrada JSON no campo `system.rules` de um item, processada pelo engine no momento de preparação do actor.
 
 Fluxo de processamento:
+
 1. Actor data é preparada
 2. O sistema itera todos os items do actor
 3. Para cada item: instancia subclasses de `RuleElement` a partir de `system.rules`
@@ -253,6 +256,7 @@ Fluxo de processamento:
 5. Resultado: actor stats finais, com todos os modificadores aplicados
 
 Propriedades base de todo RE:
+
 - `key` — tipo do RE (ex: `"FlatModifier"`, `"AELike"`, `"RollOption"`)
 - `priority` — ordem de execução
 - `predicate` — lógica condicional (quando o RE se aplica)
@@ -260,15 +264,15 @@ Propriedades base de todo RE:
 
 ### 4.2 Categorias de Rule Elements
 
-| Categoria | Exemplos de uso |
-|---|---|
-| Modifiers & Statistics | bônus de attack, dano, speeds, caps de atributo |
-| Strikes & Combat | novas ações de ataque, grants de proficiência, efeitos críticos |
-| Grants & Effects | itens concedidos automaticamente, efeitos temporários, cura |
-| IWR | immunities, weaknesses, resistances |
-| Senses & Token | tipos de visão, mudanças de token appearance |
-| Actor Properties | traits, size, auras, battle forms |
-| Special Resources | focus points, hero points, recursos limitados |
+| Categoria              | Exemplos de uso                                                 |
+| ---------------------- | --------------------------------------------------------------- |
+| Modifiers & Statistics | bônus de attack, dano, speeds, caps de atributo                 |
+| Strikes & Combat       | novas ações de ataque, grants de proficiência, efeitos críticos |
+| Grants & Effects       | itens concedidos automaticamente, efeitos temporários, cura     |
+| IWR                    | immunities, weaknesses, resistances                             |
+| Senses & Token         | tipos de visão, mudanças de token appearance                    |
+| Actor Properties       | traits, size, auras, battle forms                               |
+| Special Resources      | focus points, hero points, recursos limitados                   |
 
 ### 4.3 Extensibilidade
 
@@ -281,6 +285,7 @@ JSON files (fonte) → build tool → LevelDB packs (runtime Foundry)
 ```
 
 O processo inverso para edição:
+
 ```
 Edição no Foundry (UI) → extractPacks → JSON files (diff para PR)
 ```
@@ -310,16 +315,16 @@ Para o Fusion, a estratégia análoga seria:
 
 As seguintes mecânicas do SF2e **não existem no PF2e** e precisarão de implementação específica no Fusion:
 
-| Mecânica | Impacto no Engine |
-|---|---|
-| Augmentações (4 slots, body-coded) | Novo tipo de item; lógica de slot/limite |
-| Zero-gravidade (condições automáticas de mapa) | Ambiente/zona no canvas que aplica condições |
-| Combate de naves (cinematic/tático) | Subsistema de combate alternativo |
-| Hacking como hazard | Subsistema de hazard estendido |
-| Radiação (poison por zona) | Tipo de hazard ambiental persistente |
-| Vácuo e descompressão | Dano automático por ambiente |
-| Drift travel (viagem interestelar) | Sistema de viagem macro (fora do canvas tático) |
-| Itens tech (tracking, area, energy types) | Propriedades adicionais em weapon items |
+| Mecânica                                       | Impacto no Engine                               |
+| ---------------------------------------------- | ----------------------------------------------- |
+| Augmentações (4 slots, body-coded)             | Novo tipo de item; lógica de slot/limite        |
+| Zero-gravidade (condições automáticas de mapa) | Ambiente/zona no canvas que aplica condições    |
+| Combate de naves (cinematic/tático)            | Subsistema de combate alternativo               |
+| Hacking como hazard                            | Subsistema de hazard estendido                  |
+| Radiação (poison por zona)                     | Tipo de hazard ambiental persistente            |
+| Vácuo e descompressão                          | Dano automático por ambiente                    |
+| Drift travel (viagem interestelar)             | Sistema de viagem macro (fora do canvas tático) |
+| Itens tech (tracking, area, energy types)      | Propriedades adicionais em weapon items         |
 
 ### 5.3 Dados Disponíveis para Importação
 
@@ -331,14 +336,14 @@ Para o Fusion, os dados SF2e são acessíveis via:
 
 ### 5.4 Estado de Maturidade do SF2e em 2026
 
-| Componente | Status |
-|---|---|
-| Player Core (classes, ancestries, spells, items) | Publicado (julho 2025) |
-| GM Core (hazards, cinematic starship combat, ambientes) | Publicado (2025) |
-| Galactic Ancestries | Publicado (2026) |
-| Tech Core (Mechanic, Technomancer, tactical starship combat) | Lançamento outubro 2026 |
-| Foundry SF2e system v1.x | Ativo (versão 1.2.0 em junho 2026) |
-| Compendium completo no Foundry | Em progresso (voluntários atualizam conforme livros saem) |
+| Componente                                                   | Status                                                    |
+| ------------------------------------------------------------ | --------------------------------------------------------- |
+| Player Core (classes, ancestries, spells, items)             | Publicado (julho 2025)                                    |
+| GM Core (hazards, cinematic starship combat, ambientes)      | Publicado (2025)                                          |
+| Galactic Ancestries                                          | Publicado (2026)                                          |
+| Tech Core (Mechanic, Technomancer, tactical starship combat) | Lançamento outubro 2026                                   |
+| Foundry SF2e system v1.x                                     | Ativo (versão 1.2.0 em junho 2026)                        |
+| Compendium completo no Foundry                               | Em progresso (voluntários atualizam conforme livros saem) |
 
 O sistema no Foundry ainda está em maturação — a versão 1.x indica que recursos e compendium ainda estão sendo adicionados. O Tech Core (outubro 2026) trará mecânicas centrais (starship combat tático, Mechanic, Technomancer) que provavelmente precisarão de suporte adicional no Foundry system após o lançamento.
 

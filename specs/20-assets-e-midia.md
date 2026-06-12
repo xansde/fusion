@@ -3,6 +3,7 @@
 **Status:** draft v0.1
 **Data:** 2026-06-11
 **Baseada em:**
+
 - `docs/research/90-asset-media-management.md` — estrutura de diretórios, FilePicker API, formatos, S3, TextureLoader, referência de paths, otimização, comparativo VTTs
 
 ---
@@ -47,22 +48,22 @@ Definir o subsistema de gerenciamento de arquivos de mídia do Fusion: onde os a
 
 ## Conceitos e Terminologia
 
-| Termo | Definição |
-|---|---|
-| **Asset** | Qualquer arquivo de mídia gerenciado pelo subsistema: imagem, vídeo ou áudio. |
-| **fusion-data/** | Pasta raiz de dados do Fusion na máquina do GM (ver `03-persistencia-e-mundos.md`). |
-| **assets/** | Biblioteca compartilhada de assets acessível a todos os worlds na instalação (em `fusion-data/assets/`). |
-| **worlds/\<slug\>/assets/** | Pasta de assets privada de um world específico (em `fusion-data/worlds/<slug>/assets/`). |
-| **AssetRef** | String que identifica um asset nos Documents: path relativo a `fusion-data/` (ex.: `assets/tokens/goblin.webp` ou `worlds/the-lost-mine/assets/dungeon.webp`) ou URL absoluta (para assets externos). |
-| **Asset slug** | Nome do arquivo sanitizado: ASCII, lowercase, sem espaços, sem caracteres especiais, max 200 chars. |
-| **SHA-256 digest** | Hash de conteúdo de 64 caracteres hex calculado no servidor após receber o upload. Usado para deduplicação. |
-| **Deduplicação** | Se um arquivo com o mesmo SHA-256 digest já existe, o upload retorna a referência existente sem criar novo arquivo. |
-| **Thumbnail** | Imagem WebP de 256×256px (fit: contain, background transparente) gerada pelo servidor com `sharp` no momento do upload. Armazenada em `fusion-data/assets/.thumbs/<digest>.webp`. |
-| **asset_meta** | Tabela SQLite no banco `assets.db` (não em `world.db`) que indexa metadados de todos os assets: path, digest, mime-type, dimensões, tamanho, tags. |
-| **Magic bytes** | Bytes iniciais de um arquivo que identificam seu tipo real, independente da extensão declarada. |
-| **Path traversal** | Ataque onde um path como `../../etc/passwd` tenta acessar arquivos fora da raiz autorizada. |
-| **Asset Browser** | Componente de UI Svelte que expõe o subsistema de assets ao usuário: navegação, upload, busca, preview. |
-| **Range request** | Requisição HTTP com header `Range` que solicita apenas um trecho do arquivo, essencial para streaming de áudio/vídeo. |
+| Termo                       | Definição                                                                                                                                                                                             |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Asset**                   | Qualquer arquivo de mídia gerenciado pelo subsistema: imagem, vídeo ou áudio.                                                                                                                         |
+| **fusion-data/**            | Pasta raiz de dados do Fusion na máquina do GM (ver `03-persistencia-e-mundos.md`).                                                                                                                   |
+| **assets/**                 | Biblioteca compartilhada de assets acessível a todos os worlds na instalação (em `fusion-data/assets/`).                                                                                              |
+| **worlds/\<slug\>/assets/** | Pasta de assets privada de um world específico (em `fusion-data/worlds/<slug>/assets/`).                                                                                                              |
+| **AssetRef**                | String que identifica um asset nos Documents: path relativo a `fusion-data/` (ex.: `assets/tokens/goblin.webp` ou `worlds/the-lost-mine/assets/dungeon.webp`) ou URL absoluta (para assets externos). |
+| **Asset slug**              | Nome do arquivo sanitizado: ASCII, lowercase, sem espaços, sem caracteres especiais, max 200 chars.                                                                                                   |
+| **SHA-256 digest**          | Hash de conteúdo de 64 caracteres hex calculado no servidor após receber o upload. Usado para deduplicação.                                                                                           |
+| **Deduplicação**            | Se um arquivo com o mesmo SHA-256 digest já existe, o upload retorna a referência existente sem criar novo arquivo.                                                                                   |
+| **Thumbnail**               | Imagem WebP de 256×256px (fit: contain, background transparente) gerada pelo servidor com `sharp` no momento do upload. Armazenada em `fusion-data/assets/.thumbs/<digest>.webp`.                     |
+| **asset_meta**              | Tabela SQLite no banco `assets.db` (não em `world.db`) que indexa metadados de todos os assets: path, digest, mime-type, dimensões, tamanho, tags.                                                    |
+| **Magic bytes**             | Bytes iniciais de um arquivo que identificam seu tipo real, independente da extensão declarada.                                                                                                       |
+| **Path traversal**          | Ataque onde um path como `../../etc/passwd` tenta acessar arquivos fora da raiz autorizada.                                                                                                           |
+| **Asset Browser**           | Componente de UI Svelte que expõe o subsistema de assets ao usuário: navegação, upload, busca, preview.                                                                                               |
+| **Range request**           | Requisição HTTP com header `Range` que solicita apenas um trecho do arquivo, essencial para streaming de áudio/vídeo.                                                                                 |
 
 ---
 
@@ -71,12 +72,14 @@ Definir o subsistema de gerenciamento de arquivos de mídia do Fusion: onde os a
 ### DEC-AST-01: Dois escopos de storage — compartilhado e por world
 
 **Decisão:** O storage de assets é dividido em dois escopos, alinhados ao layout canônico de `fusion-data/` definido em `03-persistencia-e-mundos.md` REQ-PER-001:
+
 1. `fusion-data/assets/` — biblioteca compartilhada da instalação, acessível de qualquer world. Servida em `/assets/` via `@fastify/static`.
 2. `fusion-data/worlds/<slug>/assets/` — pasta privada de cada world, inclusa no export `.fwzip`.
 
 **Alternativas rejeitadas:**
-- *Storage único global*: assets de worlds diferentes ficariam misturados; ao deletar um world, não haveria como distinguir quais assets são exclusivos dele.
-- *Storage exclusivamente por world*: impossibilita reutilização de tokens/mapas entre campaigns; o GM teria que re-fazer upload do mesmo arquivo para cada world.
+
+- _Storage único global_: assets de worlds diferentes ficariam misturados; ao deletar um world, não haveria como distinguir quais assets são exclusivos dele.
+- _Storage exclusivamente por world_: impossibilita reutilização de tokens/mapas entre campaigns; o GM teria que re-fazer upload do mesmo arquivo para cada world.
 
 **Racional:** O modelo dual espelha a distinção do Foundry entre `Data/assets/` (global) e `worlds/<nome>/` (mundo), mas com separação explícita no filesystem e na UI. A tabela `asset_meta` unifica a busca nos dois escopos. O layout sem nível extra de `storage/` é coerente com `03-persistencia-e-mundos.md` REQ-PER-001, que é a especificação canônica do data dir.
 
@@ -87,9 +90,10 @@ Definir o subsistema de gerenciamento de arquivos de mídia do Fusion: onde os a
 **Decisão:** No upload, o servidor calcula o SHA-256 do conteúdo. Se já existir um arquivo com esse digest no mesmo escopo (compartilhado ou world), o upload retorna a referência existente sem criar novo arquivo. O arquivo físico mantém o nome slug original do primeiro upload; o digest fica indexado na `asset_meta`. Não é usado CAS puro (arquivo nomeado pelo hash).
 
 **Alternativas rejeitadas:**
-- *CAS puro (arquivo = hash)*: deduplicação perfeita, mas o Asset Browser exibiria `a3f8bc...webp` em vez de `goblin-warrior.webp` — UX inaceitável.
-- *Sem deduplicação*: modelo do Foundry nativo. Rejeitado por desperdiçar espaço com tokens reutilizados em múltiplas scenes.
-- *MD5*: usado pelo MapTool. Rejeitado por colisões conhecidas; SHA-256 é padrão atual sem custo de CPU significativo.
+
+- _CAS puro (arquivo = hash)_: deduplicação perfeita, mas o Asset Browser exibiria `a3f8bc...webp` em vez de `goblin-warrior.webp` — UX inaceitável.
+- _Sem deduplicação_: modelo do Foundry nativo. Rejeitado por desperdiçar espaço com tokens reutilizados em múltiplas scenes.
+- _MD5_: usado pelo MapTool. Rejeitado por colisões conhecidas; SHA-256 é padrão atual sem custo de CPU significativo.
 
 **Racional:** Preservar nome amigável é essencial para UX; o digest como índice invisível fornece deduplicação sem impactar a navegação.
 
@@ -100,9 +104,10 @@ Definir o subsistema de gerenciamento de arquivos de mídia do Fusion: onde os a
 **Decisão:** Thumbnails são gerados no servidor com `sharp` (binding Node.js para libvips) para imagens estáticas. Para vídeos, a geração de thumbnail via `ffmpeg` é **[V2]** — no MVP, arquivos de vídeo não possuem thumbnail gerado automaticamente; o Asset Browser exibe um ícone genérico por tipo (ver REQ-AST-033). Thumbnails de imagens ficam em `fusion-data/assets/.thumbs/<digest>.webp`, 256×256px, WebP com qualidade 80.
 
 **Alternativas rejeitadas:**
-- *Conversão client-side via WebCodecs API*: zero custo de CPU no servidor, mas limita compatibilidade a Chromium/Edge e exige lógica adicional no frontend.
-- *`Jimp` (JS puro)*: sem dependência nativa, mas 5-10x mais lento que `sharp` e sem suporte a formatos avançados.
-- *Geração sob demanda (lazy)*: adiciona latência na primeira exibição do Asset Browser; thumbnails no upload amortizam o custo.
+
+- _Conversão client-side via WebCodecs API_: zero custo de CPU no servidor, mas limita compatibilidade a Chromium/Edge e exige lógica adicional no frontend.
+- _`Jimp` (JS puro)_: sem dependência nativa, mas 5-10x mais lento que `sharp` e sem suporte a formatos avançados.
+- _Geração sob demanda (lazy)_: adiciona latência na primeira exibição do Asset Browser; thumbnails no upload amortizam o custo.
 
 **Racional:** `sharp` é o padrão de mercado para processamento de imagem em Node.js; roda em todas as plataformas do GM (Windows, macOS, Linux) via binários pré-compilados. O custo de CPU no upload é aceitável para sessões com centenas de tokens pois ocorre apenas uma vez por arquivo único.
 
@@ -113,9 +118,10 @@ Definir o subsistema de gerenciamento de arquivos de mídia do Fusion: onde os a
 **Decisão:** Documents armazenam assets como paths relativos a `fusion-data/` (ex.: `assets/tokens/goblin.webp` ou `worlds/the-lost-mine/assets/maps/dungeon01.webp`). Essa raiz de resolução é a mesma raiz do data dir definida em `03-persistencia-e-mundos.md` REQ-PER-001, garantindo consistência de paths entre as specs. URLs absolutas são armazenadas como string completa e passadas diretamente ao cliente (sem proxy).
 
 **Alternativas rejeitadas:**
-- *IDs numéricos de asset_meta*: portabilidade zero — o ID não tem significado fora da instalação.
-- *Paths absolutos do filesystem*: quebram em qualquer migração de máquina.
-- *URLs absolutas para assets locais*: hardcodado ao IP/domínio do servidor; quebra em LAN vs. internet.
+
+- _IDs numéricos de asset_meta_: portabilidade zero — o ID não tem significado fora da instalação.
+- _Paths absolutos do filesystem_: quebram em qualquer migração de máquina.
+- _URLs absolutas para assets locais_: hardcodado ao IP/domínio do servidor; quebra em LAN vs. internet.
 
 **Racional:** Paths relativos garantem portabilidade no export `.fwzip` e em migrações de máquina. O servidor constrói a URL pública apenas na hora de servir.
 
@@ -126,8 +132,9 @@ Definir o subsistema de gerenciamento de arquivos de mídia do Fusion: onde os a
 **Decisão:** O servidor NÃO converte automaticamente imagens para WebP por padrão. A conversão pode ser habilitada por configuração (`autoConvertWebp: true` em `fusion.json`). Quando habilitada, PNG e JPEG enviados no upload são convertidos para WebP com qualidade 85 usando `sharp`, e o arquivo original é descartado. SVG nunca é convertido.
 
 **Alternativas rejeitadas:**
-- *Conversão obrigatória sempre*: GMs podem ter assets em PNG com transparência crítica ou fluxos de trabalho que dependem dos originais.
-- *Conversão apenas para thumbnails*: não aproveita a economia de tamanho para os assets servidos ao cliente.
+
+- _Conversão obrigatória sempre_: GMs podem ter assets em PNG com transparência crítica ou fluxos de trabalho que dependem dos originais.
+- _Conversão apenas para thumbnails_: não aproveita a economia de tamanho para os assets servidos ao cliente.
 
 **Racional:** O opt-in respeita a autonomia do GM. A documentação deve deixar claro que WebP reduz 30-50% o tamanho versus JPEG/PNG em casos típicos.
 
@@ -138,8 +145,9 @@ Definir o subsistema de gerenciamento de arquivos de mídia do Fusion: onde os a
 **Decisão:** Assets são servidos com URL que inclui o digest SHA-256 como prefixo de path (ex.: `/assets/a3f8bc.../goblin.webp`) e header `Cache-Control: public, max-age=31536000, immutable`. Quando um asset é substituído (mesmo nome, conteúdo diferente), recebe novo digest e nova URL, invalidando o cache automaticamente.
 
 **Alternativas rejeitadas:**
-- *`Cache-Control: no-cache` (modelo Foundry)*: correto mas resulta em round-trips 304 para cada asset em cada cena — inaceitável em LAN residencial de 100 Mbps.
-- *Cache agressivo sem hash no path*: assets atualizados não invalidariam o cache do browser.
+
+- _`Cache-Control: no-cache` (modelo Foundry)_: correto mas resulta em round-trips 304 para cada asset em cada cena — inaceitável em LAN residencial de 100 Mbps.
+- _Cache agressivo sem hash no path_: assets atualizados não invalidariam o cache do browser.
 
 **Racional:** Content-addressed URLs com `immutable` eliminam praticamente todos os round-trips de revalidação após o primeiro carregamento. O overhead de incluir o digest na URL é negligenciável.
 
@@ -152,8 +160,9 @@ Definir o subsistema de gerenciamento de arquivos de mídia do Fusion: onde os a
 > **Alinhamento com spec 03:** o layout de serving reflete diretamente o layout de `fusion-data/` de REQ-PER-001 — não há nível extra `storage/` no path de URL nem no filesystem.
 
 **Alternativas rejeitadas:**
-- *Proxy via endpoint da API*: adiciona overhead desnecessário para arquivos estáticos grandes.
-- *Servir diretamente sem validação de path*: risco de path traversal.
+
+- _Proxy via endpoint da API_: adiciona overhead desnecessário para arquivos estáticos grandes.
+- _Servir diretamente sem validação de path_: risco de path traversal.
 
 **Racional:** `@fastify/static` já implementa verificação de path confinado à raiz e suporte a range requests; não há razão para reinventar o wheel.
 
@@ -166,8 +175,9 @@ Definir o subsistema de gerenciamento de arquivos de mídia do Fusion: onde os a
 > **Escopo do `assets.db`:** este banco contém **apenas metadados de assets e pastas** (`asset_meta`, `asset_folder_meta`). Ele NÃO armazena usuários — usuários são por-world e pertencem ao `world.db`, conforme definido em `05-usuarios-e-permissoes.md` e `03-persistencia-e-mundos.md`. É reconstruível a partir do filesystem de `assets/`.
 
 **Alternativas rejeitadas:**
-- *Metadados em arquivos sidecar JSON*: impossibilita busca full-text eficiente; fragmentação de dados.
-- *Metadados em world.db*: assets compartilhados não pertencem a nenhum world específico; geraria duplicação ou necessidade de um world "global".
+
+- _Metadados em arquivos sidecar JSON_: impossibilita busca full-text eficiente; fragmentação de dados.
+- _Metadados em world.db_: assets compartilhados não pertencem a nenhum world específico; geraria duplicação ou necessidade de um world "global".
 
 **Racional:** Um banco de instalação é a abstração correta para dados que sobrevivem à criação/deleção de worlds individuais. O escopo estreito (apenas assets + config de instalação) evita conflito com o modelo de usuários por-world da spec 05.
 
@@ -202,6 +212,7 @@ fusion-data/                 → raiz do data dir (ver 03-persistencia-e-mundos.
 > **Nota:** Este layout é derivado diretamente de `03-persistencia-e-mundos.md` REQ-PER-001, que é a autoridade canônica do data dir. A spec 20 não altera esse layout — apenas define o comportamento do subsistema de assets dentro dele.
 
 **Regras de nomenclatura:**
+
 - Nomes de arquivo são sanitizados no upload: lowercase, espaços → `_`, caracteres não-ASCII removidos, caracteres especiais (exceto `-`, `_`, `.`) removidos, extensão preservada em lowercase.
 - Comprimento máximo do nome: 200 caracteres (antes da extensão).
 - Nomes de pasta seguem as mesmas regras.
@@ -280,6 +291,7 @@ fusion-data/                 → raiz do data dir (ver 03-persistencia-e-mundos.
 ### Permissões de Storage
 
 **REQ-AST-029** [MVP] O servidor DEVE implementar três permissões de storage configuráveis pelo GM, com roles padrão:
+
 - `STORAGE_BROWSE`: navegar no Asset Browser — padrão `TRUSTED` (role ≥ 2)
 - `STORAGE_UPLOAD`: fazer upload de arquivos — padrão `ASSISTANT` (role ≥ 3)
 - `STORAGE_DELETE`: deletar arquivos — padrão `GAMEMASTER` (role = 4)
@@ -340,18 +352,18 @@ fusion-data/                 → raiz do data dir (ver 03-persistencia-e-mundos.
 ```typescript
 // packages/shared/src/assets/placeholders.map.json (schema)
 interface PlaceholdersMap {
-  version: string;                              // semver do catálogo
+  version: string; // semver do catálogo
   entries: PlaceholderEntry[];
-  fallbacks: Record<string, string>;            // documentType → path genérico
+  fallbacks: Record<string, string>; // documentType → path genérico
 }
 
 interface PlaceholderEntry {
-  documentType: string;                         // 'Actor' | 'Item' | 'JournalEntry' | ...
-  subtype?: string;                             // ex.: 'weapon', 'spell', 'npc'
-  trait?: string;                               // ex.: 'fire', 'arcane', 'humanoid'
-  placeholder: string;                          // path relativo ao bundle, ex.: 'placeholders/icons/sword.svg'
-  license: 'CC BY 3.0' | 'CC0';
-  attribution?: string;                         // obrigatório para CC BY 3.0
+  documentType: string; // 'Actor' | 'Item' | 'JournalEntry' | ...
+  subtype?: string; // ex.: 'weapon', 'spell', 'npc'
+  trait?: string; // ex.: 'fire', 'arcane', 'humanoid'
+  placeholder: string; // path relativo ao bundle, ex.: 'placeholders/icons/sword.svg'
+  license: "CC BY 3.0" | "CC0";
+  attribution?: string; // obrigatório para CC BY 3.0
 }
 ```
 
@@ -381,19 +393,19 @@ interface PlaceholderEntry {
 
 ```typescript
 interface AssetMetaRow {
-  id: number;                          // INTEGER PRIMARY KEY AUTOINCREMENT
-  scope: string;                       // 'shared' | 'world:<slug>'
-  path: string;                        // AssetRef relativo a fusion-data/ — UNIQUE por scope
-  digest: string;                      // SHA-256 hex (64 chars)
-  mime_type: string;                   // 'image/webp', 'video/webm', etc.
-  file_size: number;                   // bytes
-  width: number | null;                // pixels (imagens)
-  height: number | null;               // pixels (imagens)
-  duration_ms: number | null;          // milissegundos (áudio/vídeo)
-  has_thumbnail: boolean;              // true se .thumbs/<digest>.webp existe
-  tags: string;                        // JSON array serializado: '["token","goblin"]'
-  uploaded_by: string | null;          // user id do uploader
-  created_at: string;                  // ISO 8601 UTC
+  id: number; // INTEGER PRIMARY KEY AUTOINCREMENT
+  scope: string; // 'shared' | 'world:<slug>'
+  path: string; // AssetRef relativo a fusion-data/ — UNIQUE por scope
+  digest: string; // SHA-256 hex (64 chars)
+  mime_type: string; // 'image/webp', 'video/webm', etc.
+  file_size: number; // bytes
+  width: number | null; // pixels (imagens)
+  height: number | null; // pixels (imagens)
+  duration_ms: number | null; // milissegundos (áudio/vídeo)
+  has_thumbnail: boolean; // true se .thumbs/<digest>.webp existe
+  tags: string; // JSON array serializado: '["token","goblin"]'
+  uploaded_by: string | null; // user id do uploader
+  created_at: string; // ISO 8601 UTC
 }
 ```
 
@@ -402,9 +414,9 @@ interface AssetMetaRow {
 ```typescript
 interface AssetFolderMetaRow {
   id: number;
-  scope: string;                       // 'shared' | 'world:<slug>'
-  path: string;                        // path da pasta relativo a fusion-data/ (AssetRef de pasta)
-  upload_allowed: boolean;             // se TRUSTED pode fazer upload aqui
+  scope: string; // 'shared' | 'world:<slug>'
+  path: string; // path da pasta relativo a fusion-data/ (AssetRef de pasta)
+  upload_allowed: boolean; // se TRUSTED pode fazer upload aqui
   created_at: string;
 }
 ```
@@ -419,11 +431,11 @@ type AssetRef = string;
 //   "worlds/the-lost-mine/assets/dungeon.webp" → asset do world
 //   "https://example.com/image.webp"          → asset externo (passthrough)
 
-type AssetScope = 'shared' | `world:${string}`;
+type AssetScope = "shared" | `world:${string}`;
 
 interface UploadResult {
-  path: string;         // AssetRef final
-  digest: string;       // SHA-256 hex
+  path: string; // AssetRef final
+  digest: string; // SHA-256 hex
   deduplicated: boolean;
   mime_type: string;
   file_size: number;
@@ -442,13 +454,13 @@ interface BrowseResult {
 
 interface FolderEntry {
   name: string;
-  path: string;           // AssetRef relativo a fusion-data/
+  path: string; // AssetRef relativo a fusion-data/
   upload_allowed: boolean;
 }
 
 interface FileEntry {
   name: string;
-  path: string;           // AssetRef
+  path: string; // AssetRef
   digest: string;
   mime_type: string;
   file_size: number;
@@ -467,10 +479,10 @@ interface AssetUsageResult {
 }
 
 interface AssetReference {
-  document_type: string;  // 'Actor', 'Scene', etc.
+  document_type: string; // 'Actor', 'Scene', etc.
   document_id: string;
   document_name: string;
-  field_path: string;     // ex.: 'texture.src'
+  field_path: string; // ex.: 'texture.src'
 }
 
 interface AssetSearchOptions {
@@ -489,41 +501,41 @@ interface AssetSearchOptions {
 
 ### Endpoints HTTP
 
-| Método | Rota | Permissão | Descrição |
-|---|---|---|---|
-| `GET` | `/assets/<path...>` | `STORAGE_BROWSE` | Serving estático de assets compartilhados |
-| `GET` | `/worlds/<slug>/assets/<path...>` | `STORAGE_BROWSE` | Serving estático de assets de world |
-| `GET` | `/assets-thumb/<digest>.webp` | `STORAGE_BROWSE` | Serving de thumbnails |
-| `GET` | `/api/storage/browse` | `STORAGE_BROWSE` | Lista pasta: `?scope=&path=` |
-| `POST` | `/api/storage/upload` | `STORAGE_UPLOAD` | Upload multipart |
-| `POST` | `/api/storage/mkdir` | `STORAGE_UPLOAD` | Criar pasta: `{ scope, path }` |
-| `DELETE` | `/api/storage/file` | `STORAGE_DELETE` | Deletar arquivo: `{ scope, path }` |
-| `GET` | `/api/storage/meta` | `STORAGE_BROWSE` | Metadados de um asset: `?path=` |
-| `GET` | `/api/storage/usage` | `STORAGE_BROWSE` | Referências de um asset: `?path=&scope=` |
-| `GET` | `/api/storage/search` | `STORAGE_BROWSE` | Busca: `?q=&scope=&mime=&tag=` |
-| `PATCH` | `/api/storage/folder` | `GAMEMASTER` | Configurar pasta: `{ scope, path, upload_allowed }` |
-| `POST` | `/api/storage/remap` | `GAMEMASTER` | Remap em batch: `{ world_slug, old_prefix, new_prefix }` |
+| Método   | Rota                              | Permissão        | Descrição                                                |
+| -------- | --------------------------------- | ---------------- | -------------------------------------------------------- |
+| `GET`    | `/assets/<path...>`               | `STORAGE_BROWSE` | Serving estático de assets compartilhados                |
+| `GET`    | `/worlds/<slug>/assets/<path...>` | `STORAGE_BROWSE` | Serving estático de assets de world                      |
+| `GET`    | `/assets-thumb/<digest>.webp`     | `STORAGE_BROWSE` | Serving de thumbnails                                    |
+| `GET`    | `/api/storage/browse`             | `STORAGE_BROWSE` | Lista pasta: `?scope=&path=`                             |
+| `POST`   | `/api/storage/upload`             | `STORAGE_UPLOAD` | Upload multipart                                         |
+| `POST`   | `/api/storage/mkdir`              | `STORAGE_UPLOAD` | Criar pasta: `{ scope, path }`                           |
+| `DELETE` | `/api/storage/file`               | `STORAGE_DELETE` | Deletar arquivo: `{ scope, path }`                       |
+| `GET`    | `/api/storage/meta`               | `STORAGE_BROWSE` | Metadados de um asset: `?path=`                          |
+| `GET`    | `/api/storage/usage`              | `STORAGE_BROWSE` | Referências de um asset: `?path=&scope=`                 |
+| `GET`    | `/api/storage/search`             | `STORAGE_BROWSE` | Busca: `?q=&scope=&mime=&tag=`                           |
+| `PATCH`  | `/api/storage/folder`             | `GAMEMASTER`     | Configurar pasta: `{ scope, path, upload_allowed }`      |
+| `POST`   | `/api/storage/remap`              | `GAMEMASTER`     | Remap em batch: `{ world_slug, old_prefix, new_prefix }` |
 
 ### Eventos Socket.io (servidor → cliente)
 
-| Evento | Payload | Descrição |
-|---|---|---|
-| `storage:upload_complete` | `UploadResult` | Broadcast ao GM quando upload concluído |
-| `scene:asset_warnings` | `{ scene_id: string, missing: string[] }` | Lista de paths faltantes ao ativar scene |
+| Evento                    | Payload                                   | Descrição                                |
+| ------------------------- | ----------------------------------------- | ---------------------------------------- |
+| `storage:upload_complete` | `UploadResult`                            | Broadcast ao GM quando upload concluído  |
+| `scene:asset_warnings`    | `{ scene_id: string, missing: string[] }` | Lista de paths faltantes ao ativar scene |
 
 ---
 
 ## Dependências
 
-| Spec | Relação |
-|---|---|
-| `03-persistencia-e-mundos.md` | Define `fusion-data/`, `world slug`, `assets.db` (índice de assets de instalação), export `.fwzip` |
-| `05-usuarios-e-permissoes.md` | Roles (`PLAYER`, `TRUSTED`, `ASSISTANT`, `GAMEMASTER`), JWT, verificação de permissão |
-| `04-rede-e-sincronizacao.md` | Canal socket.io usado pelo evento `storage:upload_complete` |
-| `06-canvas-e-renderizacao.md` | Consome `AssetRef` para texturas PIXI; define limites de dimensão de textura |
-| `07-visao-iluminacao-fog.md` | Consome `AssetRef` para texturas de tiles/tokens |
-| `13-audio-e-playlists.md` | Consome `AssetRef` para faixas de áudio; define formatos de áudio suportados |
-| `21-seguranca.md` | Rate limiting de upload, headers de segurança, proteção de path traversal em profundidade |
+| Spec                                | Relação                                                                                                                                  |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `03-persistencia-e-mundos.md`       | Define `fusion-data/`, `world slug`, `assets.db` (índice de assets de instalação), export `.fwzip`                                       |
+| `05-usuarios-e-permissoes.md`       | Roles (`PLAYER`, `TRUSTED`, `ASSISTANT`, `GAMEMASTER`), JWT, verificação de permissão                                                    |
+| `04-rede-e-sincronizacao.md`        | Canal socket.io usado pelo evento `storage:upload_complete`                                                                              |
+| `06-canvas-e-renderizacao.md`       | Consome `AssetRef` para texturas PIXI; define limites de dimensão de textura                                                             |
+| `07-visao-iluminacao-fog.md`        | Consome `AssetRef` para texturas de tiles/tokens                                                                                         |
+| `13-audio-e-playlists.md`           | Consome `AssetRef` para faixas de áudio; define formatos de áudio suportados                                                             |
+| `21-seguranca.md`                   | Rate limiting de upload, headers de segurança, proteção de path traversal em profundidade                                                |
 | `24-operacao-backups-telemetria.md` | Backup dos diretórios de assets (`fusion-data/assets/`, `fusion-data/worlds/<slug>/assets/`) como parte do backup completo da instalação |
 
 ---

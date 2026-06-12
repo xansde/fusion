@@ -5,6 +5,16 @@ docs/etmos-fontes/
 node_modules/
 dist/
 build/
+coverage/
+
+# Defensive: never commit compiled artefacts that land in src/ by mistake
+# (happens when tsc is run without -p pointing to the package tsconfig)
+packages/*/src/**/*.js
+packages/*/src/**/*.d.ts
+packages/*/src/**/*.map
+systems/*/src/**/*.js
+systems/*/src/**/*.d.ts
+systems/*/src/**/*.map
 
 # Ambiente e segredos
 .env

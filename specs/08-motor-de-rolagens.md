@@ -65,6 +65,7 @@ Especificar o motor de rolagens do Fusion: a sintaxe de fórmulas suportada, a a
 **Racional:** colocar o parser em `shared` permite que o cliente valide e formate a fórmula antes de enviá-la (feedback de erro imediato, preview de `[[...]]` inline), sem expor o RNG. O servidor revalida a AST recebida e a executa; o cliente jamais executa dados aleatórios localmente para fins de resultado canônico. Isso elimina a superfície de cheat onde um cliente modificaria o resultado.
 
 **Alternativas rejeitadas:**
+
 - **Execução no cliente:** rejeitada por ser inauditável e trivialmente exploitável.
 - **Execução no servidor com fórmula string bruta:** possível, mas exigiria parsear duas vezes (uma no cliente para validação, uma no servidor para execução). A AST serializada é mais eficiente e previne injeção de fórmulas malformadas que passariam pela validação de string mas falhariam no parse.
 
@@ -75,6 +76,7 @@ Especificar o motor de rolagens do Fusion: a sintaxe de fórmulas suportada, a a
 **Racional:** `@dice-roller/rpg-dice-roller` cobre robustamente as notações-base do hobby (`NdX`, `kh`, `dl`, `x`, `r`, `cs`, `cf`, `min`, `max`, pools, `dF`, funções `floor`/`ceil`/`round`/`abs`) e exporta AST, eliminando a necessidade de escrever um parser do zero. A camada `FusionRoller` isola o projeto da API da biblioteca e adiciona as extensões necessárias sem forkar o upstream.
 
 **Alternativas rejeitadas:**
+
 - **Parser próprio com Peggy (gramática PEG):** máximo controle, mas custo de implementação e manutenção alto. Candidato a [V2] se a biblioteca mostrar limitações graves.
 - **Nearley.js:** alternativa a Peggy, mesma lógica de rejeição.
 - **Substituir completamente pela biblioteca sem camada própria:** a API da biblioteca não suporta `@attr` nem hooks de sistema; acoplamento direto dificultaria extensões.
@@ -86,6 +88,7 @@ Especificar o motor de rolagens do Fusion: a sintaxe de fórmulas suportada, a a
 **Racional:** `crypto.getRandomValues` é CSPRNG, aprovado para uso em jogos onde a previsibilidade seria exploitável. Registrar o seed permite que o GM audite rolagens suspeitas sem expor o mecanismo ao jogador. Usar Mersenne Twister (como o Foundry) seria mais rápido mas criptograficamente fraco.
 
 **Alternativas rejeitadas:**
+
 - **`Math.random()`:** não-criptográfico e seedable externamente; rejeitado.
 - **Serviço externo de entropia (random.org, dddice):** introduz dependência de rede e latência; reservado para [V2] como opção opt-in.
 
@@ -99,12 +102,12 @@ Especificar o motor de rolagens do Fusion: a sintaxe de fórmulas suportada, a a
 
 **Decisão:** os quatro modos de rolagem são implementados como restrições no campo `whisper[]` e flag `blind` do `ChatMessage` (ver `09-chat-e-mensagens.md`), seguindo a mesma lógica do Foundry. O `RollResult` em si não tem informação de visibilidade — ela está no envelope da mensagem.
 
-| Modo | `whisper` | `blind` |
-|------|-----------|---------|
-| `public` | `[]` | `false` |
-| `gmroll` | `[gm_ids...]` | `false` |
-| `blindroll` | `[gm_ids...]` | `true` |
-| `selfroll` | `[author_id]` | `false` |
+| Modo        | `whisper`     | `blind` |
+| ----------- | ------------- | ------- |
+| `public`    | `[]`          | `false` |
+| `gmroll`    | `[gm_ids...]` | `false` |
+| `blindroll` | `[gm_ids...]` | `true`  |
+| `selfroll`  | `[author_id]` | `false` |
 
 ### D6 — Dados 3D via `@3d-dice/dice-box`, client-side, sincronizados
 
@@ -113,6 +116,7 @@ Especificar o motor de rolagens do Fusion: a sintaxe de fórmulas suportada, a a
 **Racional:** `@3d-dice/dice-box` roda em Web Worker + OffscreenCanvas — não bloqueia o thread principal do canvas PIXI.js. É integrável com `@dice-roller/rpg-dice-roller` via `@3d-dice/dice-parser-interface`. O cliente nunca usa o resultado da animação como canônico — apenas como visualização.
 
 **Alternativas rejeitadas:**
+
 - **Three.js + cannon-es (estilo Dice So Nice):** mais código a manter; `@3d-dice/dice-box` já encapsula esse stack.
 - **Babylon.js direto:** `@3d-dice/dice-box` já usa Babylon internamente; duplicar a dependência seria ineficiente.
 
@@ -174,12 +178,12 @@ Especificar o motor de rolagens do Fusion: a sintaxe de fórmulas suportada, a a
 
 **REQ-ROL-020** [MVP] O servidor DEVE reconhecer os seguintes prefixos no conteúdo de uma mensagem de chat para disparar rolagens:
 
-| Prefixo(s) | Roll Mode |
-|---|---|
-| `/roll`, `/r`, `/publicroll`, `/pr` | `public` |
-| `/gmroll`, `/gmr` | `gmroll` |
-| `/blindroll`, `/broll`, `/br` | `blindroll` |
-| `/selfroll`, `/sr` | `selfroll` |
+| Prefixo(s)                          | Roll Mode   |
+| ----------------------------------- | ----------- |
+| `/roll`, `/r`, `/publicroll`, `/pr` | `public`    |
+| `/gmroll`, `/gmr`                   | `gmroll`    |
+| `/blindroll`, `/broll`, `/br`       | `blindroll` |
+| `/selfroll`, `/sr`                  | `selfroll`  |
 
 ### Parsing e AST
 
@@ -224,6 +228,7 @@ Especificar o motor de rolagens do Fusion: a sintaxe de fórmulas suportada, a a
 ### API de sistemas
 
 **REQ-ROL-036** [MVP] A `packages/system-api` DEVE expor a interface `RollHook` com dois pontos de interceptação:
+
 - `preRoll(context: RollContext): RollContext | Promise<RollContext>` — modifica fórmula, rollData ou mode antes da avaliação.
 - `postRoll(result: RollResult, context: RollContext): RollResult | Promise<RollResult>` — modifica ou anota o resultado após avaliação (ex.: calcular `degreeOfSuccess`, adicionar penalidades de MAP).
 
@@ -283,20 +288,20 @@ Especificar o motor de rolagens do Fusion: a sintaxe de fórmulas suportada, a a
 /** Resultado de um dado individual */
 export interface DiceResult {
   result: number;
-  active: boolean;       // contribui para o total
+  active: boolean; // contribui para o total
   discarded?: boolean;
   rerolled?: boolean;
   exploded?: boolean;
-  success?: boolean;     // cs modifier
-  failure?: boolean;     // cf modifier
+  success?: boolean; // cs modifier
+  failure?: boolean; // cf modifier
 }
 
 /** Resultado de um termo da AST após avaliação */
 export interface RollTermResult {
-  type: 'dice' | 'numeric' | 'operator' | 'parenthetical' | 'pool' | 'function';
-  expression: string;    // representação string do termo
+  type: "dice" | "numeric" | "operator" | "parenthetical" | "pool" | "function";
+  expression: string; // representação string do termo
   total: number;
-  flavor?: string;       // label [...]
+  flavor?: string; // label [...]
   // presentes apenas para type === 'dice'
   number?: number;
   faces?: number;
@@ -309,20 +314,20 @@ export interface RollTermResult {
 /** Resultado completo de uma rolagem avaliada */
 export interface RollResult {
   rollId: string;
-  formula: string;          // fórmula original com @attr
-  expandedFormula: string;  // fórmula após substituição de @attr
+  formula: string; // fórmula original com @attr
+  expandedFormula: string; // fórmula após substituição de @attr
   total: number;
   terms: RollTermResult[];
-  flavor?: string;          // texto após #
+  flavor?: string; // texto após #
   rollMode: RollMode;
   timestamp: number;
-  warnings: string[];       // @attr não resolvidos, etc.
-  rerollOf?: string;        // rollId do roll original se este for um reroll
+  warnings: string[]; // @attr não resolvidos, etc.
+  rerollOf?: string; // rollId do roll original se este for um reroll
   degreeOfSuccess?: DegreeOfSuccess; // preenchido por RollHook do sistema
 }
 
 /** Modos de visibilidade de rolagem — definido uma única vez em packages/shared e importado onde necessário */
-export type RollMode = 'public' | 'gmroll' | 'blindroll' | 'selfroll';
+export type RollMode = "public" | "gmroll" | "blindroll" | "selfroll";
 
 /** Contexto passado para RollHooks */
 export interface RollContext {
@@ -373,7 +378,7 @@ export interface RollAuditEntry {
   formula: string;
   expanded_formula: string;
   total: number;
-  seed: number;      // NUNCA enviado ao cliente via socket
+  seed: number; // NUNCA enviado ao cliente via socket
   created_at: number;
 }
 ```
@@ -384,19 +389,19 @@ export interface RollAuditEntry {
 
 ### Eventos socket.io (namespace `/world/:worldId`)
 
-| Evento | Direção | Payload | Descrição |
-|--------|---------|---------|-----------|
-| `roll:request` | Cliente → Servidor | `{ formula, rollData?, mode, flavor?, speaker }` | Solicita avaliação de uma rolagem |
-| `roll:result` | Servidor → Cliente(s) | `RollResult` (sem `seed`) | Broadcast via `ChatMessage`; visibilidade por roll mode |
-| `roll:error` | Servidor → Cliente | `{ code, message, formula }` | Fórmula inválida ou limite excedido |
-| `roll:reroll` | Cliente → Servidor | `{ originalRollId, keepOriginal? }` | Solicita reroll de uma rolagem existente |
+| Evento         | Direção               | Payload                                          | Descrição                                               |
+| -------------- | --------------------- | ------------------------------------------------ | ------------------------------------------------------- |
+| `roll:request` | Cliente → Servidor    | `{ formula, rollData?, mode, flavor?, speaker }` | Solicita avaliação de uma rolagem                       |
+| `roll:result`  | Servidor → Cliente(s) | `RollResult` (sem `seed`)                        | Broadcast via `ChatMessage`; visibilidade por roll mode |
+| `roll:error`   | Servidor → Cliente    | `{ code, message, formula }`                     | Fórmula inválida ou limite excedido                     |
+| `roll:reroll`  | Cliente → Servidor    | `{ originalRollId, keepOriginal? }`              | Solicita reroll de uma rolagem existente                |
 
 ### Endpoints REST (auditoria — apenas GMs)
 
-| Método | Path | Descrição |
-|--------|------|-----------|
-| `GET` | `/api/world/:id/roll-audit` | Lista entradas do audit log; filtros: `userId`, `from`, `to`, `limit` (max 500) |
-| `DELETE` | `/api/world/:id/roll-audit` | Purga entradas com `created_at < cutoffDate`; body: `{ days: number }` |
+| Método   | Path                        | Descrição                                                                       |
+| -------- | --------------------------- | ------------------------------------------------------------------------------- |
+| `GET`    | `/api/world/:id/roll-audit` | Lista entradas do audit log; filtros: `userId`, `from`, `to`, `limit` (max 500) |
+| `DELETE` | `/api/world/:id/roll-audit` | Purga entradas com `created_at < cutoffDate`; body: `{ days: number }`          |
 
 ### FusionRoller — API pública (packages/shared)
 
@@ -447,7 +452,7 @@ FusionRoller.evaluate(ast: FusionRollAST, context: RollContext): Promise<RollRes
 
 ## Questões em aberto
 
-1. **Seed de auditoria vs. reprodutibilidade:** o CSPRNG com `seed` de 32 bits é rastreável mas não determinístico a partir do seed (sem implementar o RNG manualmente). Para "rolagem verificável" ([V2]), precisaremos de um RNG seedable — provavelmente xoshiro256** ou Mulberry32 com seed gerado por `crypto.randomBytes`. Definir antes de implementar [V2].
+1. **Seed de auditoria vs. reprodutibilidade:** o CSPRNG com `seed` de 32 bits é rastreável mas não determinístico a partir do seed (sem implementar o RNG manualmente). Para "rolagem verificável" ([V2]), precisaremos de um RNG seedable — provavelmente xoshiro256\*\* ou Mulberry32 com seed gerado por `crypto.randomBytes`. Definir antes de implementar [V2].
 
 2. **RollData snapshots:** quando o Roll Data é capturado do `Actor` no banco, o snapshot é do momento do request. Se o GM editar um atributo do ator durante a resolução de um hook async, o snapshot pode estar desatualizado. Precisamos definir a semântica exata: o snapshot é tirado no início do `preRoll` e imutável durante toda a pipeline?
 

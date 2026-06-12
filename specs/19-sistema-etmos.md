@@ -61,7 +61,7 @@ para o Etmos.
   trilhas.
 - **Catálogo de Partículas** (81 canônicas: 18 Funções, 19 Objetos, 34
   Características, 10 Complementos) como compendium do sistema (`ver
-  16-compendiums-e-importacao.md`).
+16-compendiums-e-importacao.md`).
 - **Fórmulas de rolagem**: testes de Atributo, Habilidade, Conjuração e
   Contestado em `2d6+mod`; mapeamento da margem de sucesso aos parâmetros de
   dificuldade do SRD; iniciativa `2d6+Corpo` com desempate pró-jogador.
@@ -82,21 +82,21 @@ para o Etmos.
 ### O que esta spec NÃO inclui
 
 - A **mecânica genérica de Documents/schema/ownership** → `ver
-  02-modelo-de-dados.md` (esta spec só define o conteúdo de `system`).
+02-modelo-de-dados.md` (esta spec só define o conteúdo de `system`).
 - A **superfície da system API** (como registrar models, sheets, fórmulas,
   hooks) → `ver 15-api-de-sistemas.md`.
 - O **motor de parsing/execução de rolagens** e o RNG autoritativo → `ver
-  08-motor-de-rolagens.md` (esta spec só registra fórmulas e `DegreeOfSuccess`).
+08-motor-de-rolagens.md` (esta spec só registra fórmulas e `DegreeOfSuccess`).
 - O **framework de UI/janelas/sheets** Svelte → `ver 11-ui-framework-e-fichas.md`
   (esta spec só descreve as sheets concretas do Etmos).
 - O **modelo `Combat`/`Combatant`** e o tracker → `ver
-  10-combate-e-iniciativa.md` (esta spec só fornece a fórmula de iniciativa e o
+10-combate-e-iniciativa.md` (esta spec só fornece a fórmula de iniciativa e o
   desempate).
 - O **chat e os chat cards** genéricos → `ver 09-chat-e-mensagens.md` (o
   Compositor de Magias usa ChatMessages, mas o transporte e o render base vivem
   lá).
 - O **pipeline de importação/conversão** de compendiums → `ver
-  16-compendiums-e-importacao.md` (esta spec lista os packs do Etmos; eles são
+16-compendiums-e-importacao.md` (esta spec lista os packs do Etmos; eles são
   **criados à mão**, não convertidos do `foundryvtt/pf2e`).
 - **Permissões de runtime** → `ver 05-usuarios-e-permissoes.md`.
 - Os sistemas **PF2e** e **SF2e** → `ver 17-sistema-pf2e.md`, `18-sistema-sf2e.md`.
@@ -176,7 +176,7 @@ consta no SRD nem na ficha oficial, e é provável erro/restrição não canôni
   "Mat"; ver Questão Q1.)
 - **Racional:** SRD/ficha oficial são fonte prioritária.
 
-### D4 — Estresse, Fadiga, Ferimentos e custo de Complexidade automatizados; Complexidade *arbitrada* manualmente
+### D4 — Estresse, Fadiga, Ferimentos e custo de Complexidade automatizados; Complexidade _arbitrada_ manualmente
 
 O Fusion automatiza tudo que tem regra determinística no SRD: cálculo de limites,
 transição de estados de Fadiga (faixas 1–5 / 6–8 / 9+), penalidades de Fadiga,
@@ -202,7 +202,7 @@ uma máquina de estados (`proposta → arbitrada → rolada → resolvida`, com 
 
 - **Rejeitado: resolver tudo numa única rolagem imediata.** Quebra a natureza
   negociada do sistema; o jogador propõe, o Narrador arbitra custo/Complexidade
-  *antes* de rolar.
+  _antes_ de rolar.
 - **Rejeitado: estado efêmero só em memória do cliente.** Perderia o histórico e
   não sincronizaria GM↔jogador de forma autoritativa. O servidor é autoritativo
   (`ver 04-rede-e-sincronizacao.md`).
@@ -259,14 +259,14 @@ assistidas) mas nunca trava a decisão humana.
 
 > Tags: **[MVP]** = necessário para "jogar uma sessão de Etmos com ficha,
 > rolagens, chat e combate"; **[V2]** = pós-MVP. A definição de MVP global é
-> centrada em PF2e; para o Etmos, o MVP do *sistema* cobre ficha funcional,
+> centrada em PF2e; para o Etmos, o MVP do _sistema_ cobre ficha funcional,
 > rolagens 2d6, Compositor de Magias básico e trackers — pois é o diferencial que
 > justifica o sistema. Ferramentas de Narrador complexas (Encantamento) são [V2].
 
 ### Actors e Items
 
 - **REQ-ETM-001** [MVP] O sistema DEVE registrar o Actor subtype `orador` com o
-  schema definido em *Modelo de dados* §Actor Orador, validado por Zod via a
+  schema definido em _Modelo de dados_ §Actor Orador, validado por Zod via a
   system API (`ver 15-api-de-sistemas.md`).
 - **REQ-ETM-002** [MVP] O sistema DEVE registrar o Actor subtype `antagonista`
   com Ficha Base (`simples`/`intermediaria`/`avancada`) e lista livre de Aptidões
@@ -280,8 +280,8 @@ assistidas) mas nunca trava a decisão humana.
 - **REQ-ETM-005** [MVP] Na criação, o sistema DEVE oferecer um assistente que
   monte um Orador Nível 1 válido: 2 Origens, 6 Pontos de Atributo (nenhum > 4), 2
   Habilidades Práticas + 2 Teóricas, e Grimório inicial de 2 Funções + 3 Objetos
-  + 4 Características (Complementos de nível 1 disponíveis por padrão). O assistente
-  DEVE permitir desvio manual (campos editáveis) — não trava a composição.
+  - 4 Características (Complementos de nível 1 disponíveis por padrão). O assistente
+    DEVE permitir desvio manual (campos editáveis) — não trava a composição.
 
 ### Atributos e derivados
 
@@ -325,7 +325,7 @@ assistidas) mas nunca trava a decisão humana.
 - **REQ-ETM-017** [MVP] Cada Item `habilidade` DEVE oferecer um botão de **Teste
   de Habilidade** (`2d6 + bonus`).
 - **REQ-ETM-018** [MVP] O sistema DEVE oferecer **Teste de Conjuração** (`2d6 +
-  Alma`).
+Alma`).
 - **REQ-ETM-019** [MVP] Toda rolagem de teste DEVE aceitar uma **dificuldade-alvo
   opcional** e, quando informada, classificar o resultado em sucesso/falha (resultado
   ≥ dificuldade) via `computeDegreeOfSuccess(total, dc, context)` (REQ-ROL-038),
@@ -368,7 +368,7 @@ assistidas) mas nunca trava a decisão humana.
   DEVE acumular mesmo que a magia falhe ou não surta efeito.
 - **REQ-ETM-025** [MVP] Se o conjurador estiver **Exausto/Esgotado** e a magia
   for não Trivial, o sistema DEVE rolar `2d6` de controle: Exausto → se `>
-  Corpo+4` a magia falha (Estresse ainda acumula); Esgotado → se `> Corpo+3` o
+Corpo+4` a magia falha (Estresse ainda acumula); Esgotado → se `> Corpo+3` o
   personagem morre após conjurar (o efeito ocorre). O resultado é apresentado ao
   Narrador para confirmação narrativa.
 - **REQ-ETM-026** [MVP] O sistema DEVE impedir (com aviso) a seleção de
@@ -381,9 +381,9 @@ assistidas) mas nunca trava a decisão humana.
   (texto livre). A UI DEVE gerar a **frase falada** (fundindo Função+Objeto em uma
   palavra; demais como palavras separadas; Complementos ao final).
 - **REQ-ETM-028** [MVP] O Compositor DEVE validar a sintaxe: rejeitar 0 Funções,
-  >1 Função, 0 Objetos; DEVE permitir Complementos Criadores como prefixos a
-  Características (`Ada-`, `No-`, `Mut-`) e como conectores (`Ag`), e Modificadores
-  como palavras finais (`Mor`, `Min`, `Sin`, `San`, `Sar`, `Itam`).
+  > 1 Função, 0 Objetos; DEVE permitir Complementos Criadores como prefixos a
+  > Características (`Ada-`, `No-`, `Mut-`) e como conectores (`Ag`), e Modificadores
+  > como palavras finais (`Mor`, `Min`, `Sin`, `San`, `Sar`, `Itam`).
 - **REQ-ETM-029** [MVP] Ao enviar uma Frase, o sistema DEVE criar um **card de
   conjuração** (ChatMessage com flag de estado) no estado **`proposta`**, visível
   ao Narrador e ao jogador.
@@ -456,7 +456,7 @@ assistidas) mas nunca trava a decisão humana.
 ### Compendiums e assets
 
 - **REQ-ETM-046** [MVP] O sistema DEVE prover compendiums criados à mão (`ver
-  16-compendiums-e-importacao.md`): **Partículas** (81: 18 Funções, 19 Objetos,
+16-compendiums-e-importacao.md`): **Partículas** (81: 18 Funções, 19 Objetos,
   34 Características, 10 Complementos), **Origens** canônicas, **Habilidades**
   (Práticas e Teóricas) e **Antagonistas** (Fichas Base + exemplos).
 - **REQ-ETM-047** [MVP] No MVP, cada Partícula DEVE renderizar com **placeholder
@@ -490,7 +490,7 @@ assistidas) mas nunca trava a decisão humana.
 - **REQ-ETM-NFR-001** Todo cálculo derivado (limites, Fadiga, Complexidade,
   custos) DEVE ser **puro e determinístico**, implementado em
   `systems/etmos/src` de forma testável isoladamente (`ver
-  25-testes-e-qualidade.md`).
+25-testes-e-qualidade.md`).
 - **REQ-ETM-NFR-002** Toda rolagem DEVE executar **no servidor** (RNG
   autoritativo, `ver 08-...md`); o cliente nunca computa o resultado de dados.
 - **REQ-ETM-NFR-003** O Compositor DEVE manter o estado do card **autoritativo no
@@ -546,10 +546,10 @@ interface Trilha {
 ```ts
 interface OradorSystem {
   player_name: string;
-  ano_escolar: string;       // "1°", "2°", "3°", graduação...
+  ano_escolar: string; // "1°", "2°", "3°", graduação...
   idade: number;
-  nivel: number;             // 1..6
-  especie: string;           // narrativo
+  nivel: number; // 1..6
+  especie: string; // narrativo
   mundo_origem: Mundo;
 
   atributos: {
@@ -559,28 +559,28 @@ interface OradorSystem {
   };
 
   // --- derivados (calculados em prepareData; persistidos como cache opcional) ---
-  ferimentos: Recurso;       // limite = 4 + floor(corpo/2)
-  estresse: Recurso;         // limite = 4 + alma
-  fadiga: { estado: EstadoFadiga };          // derivado de (estresse.atual - estresse.limite)
-  complexidade_maxima: Complexidade;          // derivado de mente
+  ferimentos: Recurso; // limite = 4 + floor(corpo/2)
+  estresse: Recurso; // limite = 4 + alma
+  fadiga: { estado: EstadoFadiga }; // derivado de (estresse.atual - estresse.limite)
+  complexidade_maxima: Complexidade; // derivado de mente
 
-  dados_empenho: { atual: number };           // expiram no dia fictício seguinte
+  dados_empenho: { atual: number }; // expiram no dia fictício seguinte
 
   // --- Totem / magia no Mundano (D-/REQ-ETM-042/043) ---
-  totem: { possui: boolean; rank: number };   // rank 0..5
+  totem: { possui: boolean; rank: number }; // rank 0..5
 
   // --- Marcos de Crescimento (trilhas 5×3) ---
   marcos_crescimento: {
-    fisicos: Trilha;     // max 5
-    mentais: Trilha;     // max 5
-    emocionais: Trilha;  // max 5
+    fisicos: Trilha; // max 5
+    mentais: Trilha; // max 5
+    emocionais: Trilha; // max 5
   };
 
   // --- Conceito (narrativo; sem mecânica — controles manuais) ---
   conceito: {
     basico: string;
     aparencia: string;
-    pontos_importancia: string;   // campo livre (Q-D4 do research: sem efeito mecânico)
+    pontos_importancia: string; // campo livre (Q-D4 do research: sem efeito mecânico)
     futuro: string;
     valores: Array<{ polo_a: string; polo_b: string }>; // 2 eixos
   };
@@ -594,18 +594,18 @@ interface OradorSystem {
 ```ts
 interface AntagonistaSystem {
   ficha_base: "simples" | "intermediaria" | "avancada";
-  ferimentos: Recurso;       // limite editável (criaturas têm valor fixo)
+  ferimentos: Recurso; // limite editável (criaturas têm valor fixo)
   estresse: Recurso;
   complexidade_maxima: Complexidade;
-  movimentacao: number;      // metros
+  movimentacao: number; // metros
   comunicacao: boolean;
   atributos: { corpo: number; alma: number; mente: number };
   aptidoes: Array<{ nome: string; descricao: string }>;
   ataques: Array<{
     nome: string;
-    ferimentos: number | null;  // dano EXATO permitido (REQ-ETM-050)
+    ferimentos: number | null; // dano EXATO permitido (REQ-ETM-050)
     defesa: "completa" | "parcial" | "ineficaz" | "contestada" | null;
-    alcance: string;            // ex.: "1m", "30m", "área 5m"
+    alcance: string; // ex.: "1m", "30m", "área 5m"
     descricao: string;
   }>;
 }
@@ -615,13 +615,13 @@ interface AntagonistaSystem {
 
 ```ts
 interface ParticulaSystem {
-  palavra_etmos: string;       // ex.: "Et", "Imu", "Mor"
+  palavra_etmos: string; // ex.: "Et", "Imu", "Mor"
   categoria: CategoriaParticula;
   /** apenas para complementos: nível mínimo de Grimório 1..4 */
   nivel_grimorio: number | null;
   /** apenas para complementos */
   subtipo_complemento: SubtipoComplemento | null;
-  significado: string;         // ex.: "Controlar"
+  significado: string; // ex.: "Controlar"
   descricao: string;
   /** placeholder no MVP; path de asset vetorial quando disponível (D7) */
   icone_runico: string | null;
@@ -632,14 +632,14 @@ interface ParticulaSystem {
 
 ```ts
 interface FraseMagicaSystem {
-  funcao_id: string;                 // _id da Partícula Função (exatamente 1)
-  objeto_ids: string[];              // ≥1 Objeto
-  caracteristica_ids: string[];      // 0+
-  complemento_ids: string[];         // 0+
-  frase_completa: string;            // gerada: Função+Objeto fundidos + palavras
-  intencao: string;                  // texto livre declarado
+  funcao_id: string; // _id da Partícula Função (exatamente 1)
+  objeto_ids: string[]; // ≥1 Objeto
+  caracteristica_ids: string[]; // 0+
+  complemento_ids: string[]; // 0+
+  frase_completa: string; // gerada: Função+Objeto fundidos + palavras
+  intencao: string; // texto livre declarado
   complexidade: Complexidade | null; // null até arbitrada pelo Narrador
-  estresse_gerado: number;           // custo aplicado (Tabela A + rank Totem)
+  estresse_gerado: number; // custo aplicado (Tabela A + rank Totem)
 }
 ```
 
@@ -649,7 +649,7 @@ interface FraseMagicaSystem {
 interface HabilidadeSystem {
   categoria: "pratica" | "teorica";
   descricao: string;
-  bonus: number;                     // somado em 2d6 + bonus
+  bonus: number; // somado em 2d6 + bonus
   usos_por_dia: number | null;
   requer_acao: boolean;
   escolhivel_multiplas_vezes: boolean; // ex.: Conhecimento, Treinamento Mágico
@@ -661,9 +661,9 @@ interface HabilidadeSystem {
 ```ts
 interface OrigemSystem {
   mundo_associado: "mundano" | "fantastico" | "ambos";
-  exclusiva: boolean;                // só do tipo correspondente
+  exclusiva: boolean; // só do tipo correspondente
   descricao: string;
-  efeito_mecanico: string;           // texto; aplicação manual/arbitrada
+  efeito_mecanico: string; // texto; aplicação manual/arbitrada
 }
 ```
 
@@ -671,19 +671,19 @@ interface OrigemSystem {
 
 ```ts
 interface TotemSystem {
-  rank: number;                      // 0..5
-  sintonia_com: string | null;       // nome do Orador sintonizado
+  rank: number; // 0..5
+  sintonia_com: string | null; // nome do Orador sintonizado
   materia_prima: string;
-  is_santuario: boolean;             // Santuário = Totem de área
-  area_metros: number | null;        // quando Santuário
+  is_santuario: boolean; // Santuário = Totem de área
+  area_metros: number | null; // quando Santuário
 }
 
 interface ItemEncantadoSystem {
-  frase: FraseMagicaSystem;          // a magia gravada (com Intenção fixa)
+  frase: FraseMagicaSystem; // a magia gravada (com Intenção fixa)
   grau_sofisticacao: "simples" | "sofisticado" | "primoroso";
   veiculo: "consumivel" | "persistente";
-  pp_necessarios: number;            // 5 / 10 / 15 base
-  pp_acumulados: number;             // progresso do encantamento
+  pp_necessarios: number; // 5 / 10 / 15 base
+  pp_acumulados: number; // progresso do encantamento
   concluido: boolean;
 }
 ```
@@ -695,8 +695,12 @@ Armazenado em `flags.etmos.conjuracao` de uma `ChatMessage` (`ver
 
 ```ts
 type EstadoConjuracao =
-  | "proposta" | "arbitrada" | "rolada" | "resolvida"
-  | "recusada" | "cancelada";
+  | "proposta"
+  | "arbitrada"
+  | "rolada"
+  | "resolvida"
+  | "recusada"
+  | "cancelada";
 
 interface ConjuracaoCard {
   estado: EstadoConjuracao;
@@ -707,11 +711,16 @@ interface ConjuracaoCard {
   custo_estresse: number | null;
   notas_narrador: string;
   // resultado:
-  roll_message_id: string | null;   // vínculo à rolagem (ver 08-...md)
+  roll_message_id: string | null; // vínculo à rolagem (ver 08-...md)
   dificuldade_alvo: number | null;
   sucesso: boolean | null;
   // controle (Exausto/Esgotado):
-  controle_fadiga: { rolou: boolean; valor: number | null; falhou: boolean; morreu: boolean } | null;
+  controle_fadiga: {
+    rolou: boolean;
+    valor: number | null;
+    falhou: boolean;
+    morreu: boolean;
+  } | null;
 }
 ```
 
@@ -726,7 +735,7 @@ interface ConjuracaoCard {
 
 - **Models:** `registerActorModel("orador" | "antagonista", schema)`,
   `registerItemModel("particula" | "habilidade" | "origem" | "totem" |
-  "item_encantado" | "frase_magica", schema)`.
+"item_encantado" | "frase_magica", schema)`.
 - **Sheets:** `registerSheet({ documentType, subtype, component })` apontando para
   os componentes Svelte (`ver 11-ui-framework-e-fichas.md`).
 - **Roll data:** `registerRollData(actor → { atributos, habilidades, ... })`
@@ -735,7 +744,7 @@ interface ConjuracaoCard {
   (REQ-ROL-038) via `RollHook.postRoll`, retornando `"success"` ou `"failure"` do conjunto
   binário próprio do Etmos, mais a margem (`total − dc`) como metadado (D6).
 - **Iniciativa:** `registrar.initiativeFormula({ id: "etmos-corpo", label: "Corpo",
-  build(combatant, ctx): string, compare(a, b): number })` — `build` retorna a fórmula
+build(combatant, ctx): string, compare(a, b): number })` — `build` retorna a fórmula
   `"2d6 + @atributos.corpo.value"`; o desempate "jogadores vencem NPCs" é implementado em
   `compare(a, b)` (maior `initiative` → `hasPlayerOwner` → maior Corpo) conforme o contrato
   de `ver 10-combate-e-iniciativa.md` (REQ-SYS-042, REQ-CBT-013, REQ-ETM-022).
@@ -864,7 +873,7 @@ function opcoesProgressao(nivelAtual: number): { fisica; mental; emocional }; //
   (12b §21 D2/D10). O compendium do MVP cobre os exemplos do SRD + os dos
   pré-gerados; lacunas viram Origens/Habilidades custom criadas pelo GM.
 - **Q6 — Defesa Mágica como automação.** O SRD define Defesa Completa/Parcial/
-  Ineficaz por Teste Contestado, mas a *aplicação* (quanto reduz, o que dura) é
+  Ineficaz por Teste Contestado, mas a _aplicação_ (quanto reduz, o que dura) é
   arbitrada. Manter como controle manual no MVP ou tentar semiautomatizar a
   redução de Ferimentos? (Inclinação: manual, conforme D8.)
 - **Q7 — Expiração diária dos Dados de Empenho.** O SRD diz que expiram no início

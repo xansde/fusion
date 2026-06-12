@@ -1,0 +1,130 @@
+/**
+ * Fusion VTT — base CSS
+ *
+ * Dark theme with custom properties (--fusion-*), system font stack, and a
+ * minimal reset. No framework dependencies.
+ *
+ * Color palette follows a dark-first approach with accessible contrast ratios.
+ */
+
+/* ---------------------------------------------------------------------------
+   Custom properties
+--------------------------------------------------------------------------- */
+:root {
+  /* Surface colors */
+  --fusion-bg:           #0e0e12;
+  --fusion-surface:      #18181f;
+  --fusion-surface-alt:  #1f1f2a;
+  --fusion-border:       #2e2e3d;
+
+  /* Text */
+  --fusion-text:         #e8e8f0;
+  --fusion-text-muted:   #8888a0;
+  --fusion-text-subtle:  #55556a;
+
+  /* Accent — primary interactive elements */
+  --fusion-accent:       #7c5cfc;
+  --fusion-accent-hover: #9b7ffe;
+  --fusion-accent-dim:   rgba(124, 92, 252, 0.15);
+
+  /* Semantic */
+  --fusion-success:      #3ddc84;
+  --fusion-warning:      #ffc857;
+  --fusion-danger:       #ff5c5c;
+
+  /* Layout */
+  --fusion-sidebar-width: 280px;
+  --fusion-header-height:  48px;
+  --fusion-radius-sm:      4px;
+  --fusion-radius:         8px;
+  --fusion-radius-lg:      12px;
+
+  /* Typography */
+  --fusion-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                 Roboto, Helvetica, Arial, sans-serif;
+  --fusion-font-mono: ui-monospace, "Cascadia Code", "Source Code Pro",
+                      Menlo, Consolas, monospace;
+
+  /* Motion */
+  --fusion-transition: 150ms ease;
+}
+
+/* ---------------------------------------------------------------------------
+   Reset (minimal — scoped to the app shell)
+--------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden; /* VTT fills the viewport; individual panels scroll */
+}
+
+body {
+  background-color: var(--fusion-bg);
+  color: var(--fusion-text);
+  font-family: var(--fusion-font);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#fusion-app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------------------------------------------------------------------------
+   Typography helpers
+--------------------------------------------------------------------------- */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--fusion-text);
+}
+
+a {
+  color: var(--fusion-accent);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--fusion-accent-hover);
+  text-decoration: underline;
+}
+
+code,
+pre {
+  font-family: var(--fusion-font-mono);
+  font-size: 0.875em;
+}
+
+/* ---------------------------------------------------------------------------
+   Scrollbar styling (Webkit/Blink — non-standard but widely supported in VTT
+   desktop use cases)
+--------------------------------------------------------------------------- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--fusion-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--fusion-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--fusion-text-subtle);
+}

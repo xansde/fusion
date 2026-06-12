@@ -4,6 +4,7 @@
 **Data:** 2026-06-11
 
 **Baseada em:**
+
 - `docs/research/95-ops-backup-telemetry-testing.md` — Estratégia de testes/QA, pipelines CI, E2E, carga multiplayer
 - `docs/research/13-pf2e-sf2e-mecanicas-nucleo.md` — Mecânicas PF2e/SF2e para golden tests do motor de regras
 
@@ -41,18 +42,18 @@ Definir a estratégia completa de testes e qualidade do Fusion VTT: pirâmide de
 
 ## Conceitos e Terminologia
 
-| Termo | Definição |
-|---|---|
-| **Golden test** | Teste cujo output esperado é fixado como fixture verificada contra uma fonte de verdade (ex.: as mecânicas PF2e do research doc). Falha se o motor produzir resultado diferente do esperado. |
-| **Suíte de conformidade** | Conjunto de testes que todo pacote `systems/*` deve passar para ser considerado um sistema válido na system API. Análogo a um contrato de interface verificado em runtime. |
-| **Test mode** | Modo especial do servidor ativado por flag `--test-mode`; usa banco SQLite in-memory, pré-popula fixtures, desabilita autenticação de licença e expõe `window.__fusion_test_api__` no cliente. |
-| **`__fusion_test_api__`** | Objeto global exposto no `window` do cliente em modo de teste; permite que o Playwright acesse estado interno do canvas de forma serializável sem depender de screenshots como asserção primária. |
-| **Pirâmide de testes** | Estratégia de distribuição: muitos unit tests (base), menos integration tests, poucos E2E tests (topo). Reflete custo de execução e grau de isolamento. |
-| **pixelmatch** | Biblioteca de comparação pixel-a-pixel embutida no Playwright (`toHaveScreenshot()`). Usada para regressão visual do canvas WebGL. |
-| **Artillery** | Ferramenta de load testing com suporte nativo a Socket.IO v4 (via `artillery-engine-socketio-v3`). Usada para testes de carga multiplayer. |
-| **Snapshot de mapeamento** | Saída serializada do importer pf2e para um documento específico, fixada como arquivo de referência. Qualquer alteração no mapeamento produz diff visível no CI. |
-| **Relatório de campos não mapeados** | Arquivo gerado pelo importer listando campos presentes no JSON-fonte pf2e que não foram mapeados para o modelo interno. Permite rastrear cobertura da importação ao longo do tempo. |
-| **Performance budget** | Limite máximo aceitável para uma métrica de performance (ex.: boot do servidor < 3 s, FPS no canvas com cena padrão > 55 fps). Violações bloqueiam merge no CI. |
+| Termo                                | Definição                                                                                                                                                                                         |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Golden test**                      | Teste cujo output esperado é fixado como fixture verificada contra uma fonte de verdade (ex.: as mecânicas PF2e do research doc). Falha se o motor produzir resultado diferente do esperado.      |
+| **Suíte de conformidade**            | Conjunto de testes que todo pacote `systems/*` deve passar para ser considerado um sistema válido na system API. Análogo a um contrato de interface verificado em runtime.                        |
+| **Test mode**                        | Modo especial do servidor ativado por flag `--test-mode`; usa banco SQLite in-memory, pré-popula fixtures, desabilita autenticação de licença e expõe `window.__fusion_test_api__` no cliente.    |
+| **`__fusion_test_api__`**            | Objeto global exposto no `window` do cliente em modo de teste; permite que o Playwright acesse estado interno do canvas de forma serializável sem depender de screenshots como asserção primária. |
+| **Pirâmide de testes**               | Estratégia de distribuição: muitos unit tests (base), menos integration tests, poucos E2E tests (topo). Reflete custo de execução e grau de isolamento.                                           |
+| **pixelmatch**                       | Biblioteca de comparação pixel-a-pixel embutida no Playwright (`toHaveScreenshot()`). Usada para regressão visual do canvas WebGL.                                                                |
+| **Artillery**                        | Ferramenta de load testing com suporte nativo a Socket.IO v4 (via `artillery-engine-socketio-v3`). Usada para testes de carga multiplayer.                                                        |
+| **Snapshot de mapeamento**           | Saída serializada do importer pf2e para um documento específico, fixada como arquivo de referência. Qualquer alteração no mapeamento produz diff visível no CI.                                   |
+| **Relatório de campos não mapeados** | Arquivo gerado pelo importer listando campos presentes no JSON-fonte pf2e que não foram mapeados para o modelo interno. Permite rastrear cobertura da importação ao longo do tempo.               |
+| **Performance budget**               | Limite máximo aceitável para uma métrica de performance (ex.: boot do servidor < 3 s, FPS no canvas com cena padrão > 55 fps). Violações bloqueiam merge no CI.                                   |
 
 ---
 
@@ -63,6 +64,7 @@ Definir a estratégia completa de testes e qualidade do Fusion VTT: pirâmide de
 **Escolhido:** Vitest
 
 **Alternativas rejeitadas:**
+
 - Jest: requer configuração extra para ESM nativo; mais lento em projetos ESM/TypeScript puro.
 
 **Racional:** Vitest é 100% compatível com a API Jest (mesmos matchers, mocks, `describe`/`it`/`expect`), tem suporte nativo a ESM sem transpilação, integra com Vite (já em uso no cliente) e é 2–5× mais rápido em projetos TypeScript. O repositório pf2e usa Jest; a migração para Vitest é trivial e o ganho de velocidade justifica. Referência: research doc 95, seção 3.2.4.
@@ -74,6 +76,7 @@ Definir a estratégia completa de testes e qualidade do Fusion VTT: pirâmide de
 **Escolhido:** Playwright
 
 **Alternativas rejeitadas:**
+
 - Cypress: mais fraco em testes headless com canvas; sem suporte nativo a múltiplas abas (necessário para simular GM + múltiplos jogadores em paralelo); não suporta testes de canvas WebGL de forma madura.
 
 **Racional:** Playwright suporta múltiplos contextos de browser em um único teste (necessário para simular GM + N jogadores), tem `page.evaluate()` para acesso a `window.__fusion_test_api__`, e o `toHaveScreenshot()` com pixelmatch é suficiente para regressão visual sem infra externa. Referência: research doc 95, seção 3.4.
@@ -85,6 +88,7 @@ Definir a estratégia completa de testes e qualidade do Fusion VTT: pirâmide de
 **Escolhido:** Artillery com `artillery-engine-socketio-v3`
 
 **Alternativas rejeitadas:**
+
 - k6: não suporta o handshake do protocolo Socket.IO nativamente; wrappers disponíveis são incompletos para Socket.IO v4.
 - JMeter: excesso de complexidade de configuração; pouca integração com CI GitHub Actions.
 
@@ -97,6 +101,7 @@ Definir a estratégia completa de testes e qualidade do Fusion VTT: pirâmide de
 **Escolhido:** Fixtures TypeScript imutáveis checadas no repositório
 
 **Alternativas rejeitadas:**
+
 - Testes property-based (fast-check): úteis como complemento, mas não substituem a verificação de casos canônicos específicos do PF2e.
 - Apenas testes ad hoc sem fonte de verdade citada: não auditáveis.
 
@@ -117,6 +122,7 @@ Definir a estratégia completa de testes e qualidade do Fusion VTT: pirâmide de
 **Escolhido:** Eliminado por tree-shaking via `import.meta.env.MODE !== 'test'` com dead-code elimination do Vite
 
 **Alternativas rejeitadas:**
+
 - Flag de runtime: cria superficie de ataque se acidentalmente habilitado em produção.
 - Sem proteção: vaza detalhes de implementação interna.
 
@@ -137,6 +143,7 @@ Definir a estratégia completa de testes e qualidade do Fusion VTT: pirâmide de
 **Escolhido:** 80% de cobertura de statements para `packages/shared/**` e `systems/*/src/rules/**`
 
 **Alternativas rejeitadas:**
+
 - 80% global (incluindo UI): impossível de atingir de forma significativa sem testes de componente Svelte completos, que são lentos e frágeis.
 - 100% para regras: excessivo; torna refactoring doloroso.
 
@@ -187,95 +194,95 @@ interface FusionTestAPI {
 
 **REQ-TST-010** [MVP] O pacote `systems/pf2e` DEVE ter um arquivo de testes `src/rules/__tests__/degree-of-success.test.ts` com golden tests para todos os casos canônicos de grau de sucesso, incluindo:
 
-| Caso | Fonte no research doc 13 |
-|---|---|
-| Critical Success (resultado ≥ DC + 10) | Seção 2.1 |
-| Success (resultado ≥ DC, < DC + 10) | Seção 2.1 |
-| Failure (resultado < DC, ≥ DC − 10) | Seção 2.1 |
-| Critical Failure (resultado < DC − 10) | Seção 2.1 |
-| Natural 20 eleva um grau (incluindo Failure → Success) | Seção 2.2 |
-| Natural 1 rebaixa um grau (incluindo Success → Failure) | Seção 2.2 |
-| Natural 20 em Critical Failure → Failure (não Critical Success) | Seção 2.2 |
-| Natural 1 em Critical Success → Success (não Critical Failure) | Seção 2.2 |
-| Basic saving throw Critical Success → 0 dano | Seção 2.3 |
-| Basic saving throw Success → metade do dano | Seção 2.3 |
-| Basic saving throw Failure → dano completo | Seção 2.3 |
-| Basic saving throw Critical Failure → dano dobrado | Seção 2.3 |
+| Caso                                                            | Fonte no research doc 13 |
+| --------------------------------------------------------------- | ------------------------ |
+| Critical Success (resultado ≥ DC + 10)                          | Seção 2.1                |
+| Success (resultado ≥ DC, < DC + 10)                             | Seção 2.1                |
+| Failure (resultado < DC, ≥ DC − 10)                             | Seção 2.1                |
+| Critical Failure (resultado < DC − 10)                          | Seção 2.1                |
+| Natural 20 eleva um grau (incluindo Failure → Success)          | Seção 2.2                |
+| Natural 1 rebaixa um grau (incluindo Success → Failure)         | Seção 2.2                |
+| Natural 20 em Critical Failure → Failure (não Critical Success) | Seção 2.2                |
+| Natural 1 em Critical Success → Success (não Critical Failure)  | Seção 2.2                |
+| Basic saving throw Critical Success → 0 dano                    | Seção 2.3                |
+| Basic saving throw Success → metade do dano                     | Seção 2.3                |
+| Basic saving throw Failure → dano completo                      | Seção 2.3                |
+| Basic saving throw Critical Failure → dano dobrado              | Seção 2.3                |
 
 **REQ-TST-011** [MVP] O pacote `systems/pf2e` DEVE ter um arquivo `src/rules/__tests__/modifier-stacking.test.ts` com golden tests para a política de acumulação de modificadores, incluindo:
 
-| Caso | Fonte no research doc 13 |
-|---|---|
-| Dois bônus de item: apenas o maior se aplica | Seção 3.2 |
-| Bônus de item + bônus de status: ambos somam | Seção 3.2 |
-| Bônus de circumstance + status + item: todos somam | Seção 3.2 |
-| Penalidades de mesmo tipo: cumulativas | Seção 3.2 |
-| Penalidades de tipos diferentes: cumulativas | Seção 3.2 |
-| Predicado condicional falso: modificador não aplicado | Seção 16.1 (Rule Elements) |
-| Frightened X: penalidade de status −X em todas as jogadas | Seção 7.4 |
-| Sickened X: penalidade de status −X em todas as jogadas | Seção 7.4 |
+| Caso                                                      | Fonte no research doc 13   |
+| --------------------------------------------------------- | -------------------------- |
+| Dois bônus de item: apenas o maior se aplica              | Seção 3.2                  |
+| Bônus de item + bônus de status: ambos somam              | Seção 3.2                  |
+| Bônus de circumstance + status + item: todos somam        | Seção 3.2                  |
+| Penalidades de mesmo tipo: cumulativas                    | Seção 3.2                  |
+| Penalidades de tipos diferentes: cumulativas              | Seção 3.2                  |
+| Predicado condicional falso: modificador não aplicado     | Seção 16.1 (Rule Elements) |
+| Frightened X: penalidade de status −X em todas as jogadas | Seção 7.4                  |
+| Sickened X: penalidade de status −X em todas as jogadas   | Seção 7.4                  |
 
 **REQ-TST-012** [MVP] O pacote `systems/pf2e` DEVE ter um arquivo `src/rules/__tests__/map.test.ts` com golden tests para Multiple Attack Penalty:
 
-| Caso | Fonte no research doc 13 |
-|---|---|
-| 1º ataque: MAP = 0 | Seção 1.4 |
-| 2º ataque (arma padrão): MAP = −5 | Seção 1.4 |
-| 3º ataque (arma padrão): MAP = −10 | Seção 1.4 |
-| 2º ataque (arma Agile): MAP = −4 | Seção 1.4 e 6.3 |
-| 3º ataque (arma Agile): MAP = −8 | Seção 1.4 e 6.3 |
-| MAP reseta no início do turno do personagem | Seção 1.4 |
+| Caso                                        | Fonte no research doc 13 |
+| ------------------------------------------- | ------------------------ |
+| 1º ataque: MAP = 0                          | Seção 1.4                |
+| 2º ataque (arma padrão): MAP = −5           | Seção 1.4                |
+| 3º ataque (arma padrão): MAP = −10          | Seção 1.4                |
+| 2º ataque (arma Agile): MAP = −4            | Seção 1.4 e 6.3          |
+| 3º ataque (arma Agile): MAP = −8            | Seção 1.4 e 6.3          |
+| MAP reseta no início do turno do personagem | Seção 1.4                |
 
 **REQ-TST-013** [MVP] O pacote `systems/pf2e` DEVE ter um arquivo `src/rules/__tests__/iwr.test.ts` com golden tests para Immunities, Weaknesses e Resistances:
 
-| Caso | Fonte no research doc 13 |
-|---|---|
-| Imunidade: dano reduzido a 0 independentemente do valor | Seção 6.4 |
-| Fraqueza: adiciona X ao dano total (após multiplicação de crit) | Seção 6.4 |
-| Resistência: reduz dano em X, mínimo 0 | Seção 6.4 |
-| Ordem de aplicação: Imunidade → Fraqueza → Resistência | Seção 6.4 |
-| Fraqueza em critical hit: aplicada sobre dano já dobrado | Seção 6.4 |
-| Resistência não pode reduzir dano abaixo de 0 | Seção 6.4 |
+| Caso                                                            | Fonte no research doc 13 |
+| --------------------------------------------------------------- | ------------------------ |
+| Imunidade: dano reduzido a 0 independentemente do valor         | Seção 6.4                |
+| Fraqueza: adiciona X ao dano total (após multiplicação de crit) | Seção 6.4                |
+| Resistência: reduz dano em X, mínimo 0                          | Seção 6.4                |
+| Ordem de aplicação: Imunidade → Fraqueza → Resistência          | Seção 6.4                |
+| Fraqueza em critical hit: aplicada sobre dano já dobrado        | Seção 6.4                |
+| Resistência não pode reduzir dano abaixo de 0                   | Seção 6.4                |
 
 **REQ-TST-014** [MVP] O pacote `systems/pf2e` DEVE ter um arquivo `src/rules/__tests__/conditions.test.ts` com golden tests para condições numéricas e seu comportamento de tick:
 
-| Caso | Fonte no research doc 13 |
-|---|---|
-| Frightened X decrementa em 1 no fim de cada turno | Seção 7.4 |
-| Frightened 0 é removido automaticamente | Seção 7.4 |
-| Clumsy X aplica −X em jogadas/DCs de DEX | Seção 7.1 |
-| Enfeebled X aplica −X em jogadas/DCs de STR | Seção 7.1 |
-| Stupefied X aplica −X em jogadas/DCs de INT/WIS/CHA | Seção 7.1 |
-| Stunned X: consome X ações no início do turno | Seção 7.3 |
-| Slowed X: reduz ações recuperadas por X | Seção 7.3 |
-| Off-Guard: −2 de circumstance na AC | Seção 7.5 |
-| Prone: −2 em ataques e Off-Guard | Seção 7.3 |
+| Caso                                                | Fonte no research doc 13 |
+| --------------------------------------------------- | ------------------------ |
+| Frightened X decrementa em 1 no fim de cada turno   | Seção 7.4                |
+| Frightened 0 é removido automaticamente             | Seção 7.4                |
+| Clumsy X aplica −X em jogadas/DCs de DEX            | Seção 7.1                |
+| Enfeebled X aplica −X em jogadas/DCs de STR         | Seção 7.1                |
+| Stupefied X aplica −X em jogadas/DCs de INT/WIS/CHA | Seção 7.1                |
+| Stunned X: consome X ações no início do turno       | Seção 7.3                |
+| Slowed X: reduz ações recuperadas por X             | Seção 7.3                |
+| Off-Guard: −2 de circumstance na AC                 | Seção 7.5                |
+| Prone: −2 em ataques e Off-Guard                    | Seção 7.3                |
 
 **REQ-TST-015** [MVP] O pacote `systems/pf2e` DEVE ter um arquivo `src/rules/__tests__/dying-recovery.test.ts` com golden tests para o ciclo Dying/Recovery/Wounded:
 
-| Caso | Fonte no research doc 13 |
-|---|---|
-| 0 HP → Dying 1 (causa normal) | Seção 8.1 |
-| 0 HP por crit → Dying 2 | Seção 8.1 |
-| Recovery check Critical Success: Dying −2 | Seção 8.2 |
-| Recovery check Success: Dying −1 | Seção 8.2 |
-| Recovery check Failure: Dying +1 | Seção 8.2 |
-| Recovery check Critical Failure: Dying +2 | Seção 8.2 |
-| Dying 4 → morte | Seção 8.2 |
-| Sair de Dying → ganha Wounded 1 (ou incrementa) | Seção 8.3 |
-| Wounded X: ao ganhar Dying, Dying inicial = 1 + X | Seção 8.3 |
-| Doomed X: Dying máximo antes da morte = 4 − X | Seção 8.3 |
-| Hero Point: gasto de todos → Heroic Recovery (perde Dying) | Seção 8.4 |
-| HP negativos ≥ max HP → morte imediata (sem Dying) | Seção 8.1 |
+| Caso                                                       | Fonte no research doc 13 |
+| ---------------------------------------------------------- | ------------------------ |
+| 0 HP → Dying 1 (causa normal)                              | Seção 8.1                |
+| 0 HP por crit → Dying 2                                    | Seção 8.1                |
+| Recovery check Critical Success: Dying −2                  | Seção 8.2                |
+| Recovery check Success: Dying −1                           | Seção 8.2                |
+| Recovery check Failure: Dying +1                           | Seção 8.2                |
+| Recovery check Critical Failure: Dying +2                  | Seção 8.2                |
+| Dying 4 → morte                                            | Seção 8.2                |
+| Sair de Dying → ganha Wounded 1 (ou incrementa)            | Seção 8.3                |
+| Wounded X: ao ganhar Dying, Dying inicial = 1 + X          | Seção 8.3                |
+| Doomed X: Dying máximo antes da morte = 4 − X              | Seção 8.3                |
+| Hero Point: gasto de todos → Heroic Recovery (perde Dying) | Seção 8.4                |
+| HP negativos ≥ max HP → morte imediata (sem Dying)         | Seção 8.1                |
 
 **REQ-TST-016** [MVP] O pacote `systems/pf2e` DEVE ter um arquivo `src/rules/__tests__/persistent-damage.test.ts` com golden tests para dano persistente:
 
-| Caso | Fonte no research doc 13 |
-|---|---|
-| Dano persistente aplicado no fim do turno | Seção 6.5 |
-| DC 15 flat check para encerrar | Seção 6.5 |
-| Assistência reduz DC para 10 | Seção 6.5 |
-| Fora de combate por ~1 minuto: encerra automaticamente | Seção 6.5 |
+| Caso                                                   | Fonte no research doc 13 |
+| ------------------------------------------------------ | ------------------------ |
+| Dano persistente aplicado no fim do turno              | Seção 6.5                |
+| DC 15 flat check para encerrar                         | Seção 6.5                |
+| Assistência reduz DC para 10                           | Seção 6.5                |
+| Fora de combate por ~1 minuto: encerra automaticamente | Seção 6.5                |
 
 **REQ-TST-017** [MVP] O motor de regras em `systems/pf2e/src/rules/` DEVE ser uma biblioteca TypeScript pura sem dependências de browser, socket ou banco de dados, verificado por lint rule (`no-restricted-imports`) que proíbe imports de `socket.io`, `better-sqlite3` e APIs de DOM.
 
@@ -285,13 +292,13 @@ interface FusionTestAPI {
 
 **REQ-TST-018** [V2] O pacote `systems/sf2e` DEVE ter golden tests para os casos mecânicos exclusivos do SF2e:
 
-| Caso | Fonte no research doc 13 |
-|---|---|
-| Zero Gravity: Clumsy 1 + Off-Guard + Untethered | Seção 15.5 |
-| Weapon tier upgrade: bônus ao ataque conforme tier | Seção 15.3 |
-| Cover: Lesser (+1 AC), Standard (+2 AC/Reflex/Stealth), Greater (+4) | Seção 15.6 |
-| MAP com arma Unwieldy: apenas 1 ataque por turno | Seção 15.3 |
-| Condição Untethered: exclusiva SF2e | Seção 15.5 |
+| Caso                                                                 | Fonte no research doc 13 |
+| -------------------------------------------------------------------- | ------------------------ |
+| Zero Gravity: Clumsy 1 + Off-Guard + Untethered                      | Seção 15.5               |
+| Weapon tier upgrade: bônus ao ataque conforme tier                   | Seção 15.3               |
+| Cover: Lesser (+1 AC), Standard (+2 AC/Reflex/Stealth), Greater (+4) | Seção 15.6               |
+| MAP com arma Unwieldy: apenas 1 ataque por turno                     | Seção 15.3               |
+| Condição Untethered: exclusiva SF2e                                  | Seção 15.5               |
 
 ---
 
@@ -303,12 +310,12 @@ interface FusionTestAPI {
 // Contrato mínimo verificado pela suíte
 interface ConformanceContract {
   // Sistema exporta metadados obrigatórios
-  id: string;            // ex.: "pf2e", "sf2e", "etmos"
-  version: string;       // semver
-  label: string;         // nome legível em pt-BR
+  id: string; // ex.: "pf2e", "sf2e", "etmos"
+  version: string; // semver
+  label: string; // nome legível em pt-BR
   // Sistema registra tipos de entidade
-  actorTypes: string[];  // ao menos ["character", "npc"]
-  itemTypes: string[];   // ao menos ["weapon", "armor", "feat"]
+  actorTypes: string[]; // ao menos ["character", "npc"]
+  itemTypes: string[]; // ao menos ["weapon", "armor", "feat"]
   // Sistema responde ao ciclo de vida
   onActorPrepare(actor: BaseActor): PreparedActor;
   onRollCheck(context: CheckContext): RollResult;
@@ -318,16 +325,16 @@ interface ConformanceContract {
 
 **REQ-TST-020** [MVP] A suíte de conformidade DEVE incluir os seguintes testes de contrato executáveis para qualquer sistema:
 
-| Teste de contrato | Critério |
-|---|---|
-| Metadados presentes | `id`, `version`, `label` são strings não-vazias |
-| Actor types registrados | `actorTypes` inclui `"character"` e `"npc"` |
-| Item types registrados | `itemTypes` inclui ao menos 3 tipos |
-| `onActorPrepare` é função | Retorna objeto com campo `system` não-nulo |
-| `onRollCheck` é função | Retorna `RollResult` com `total`, `degreeOfSuccess`, `dice` |
-| `onApplyDamage` é função | Retorna `AppliedDamageResult` com `finalDamage >= 0` |
-| Sistema não lança em `onActorPrepare` com actor vazio | Trata input mínimo sem crash |
-| Sistema não lança em `onRollCheck` com contexto mínimo | Trata input mínimo sem crash |
+| Teste de contrato                                      | Critério                                                    |
+| ------------------------------------------------------ | ----------------------------------------------------------- |
+| Metadados presentes                                    | `id`, `version`, `label` são strings não-vazias             |
+| Actor types registrados                                | `actorTypes` inclui `"character"` e `"npc"`                 |
+| Item types registrados                                 | `itemTypes` inclui ao menos 3 tipos                         |
+| `onActorPrepare` é função                              | Retorna objeto com campo `system` não-nulo                  |
+| `onRollCheck` é função                                 | Retorna `RollResult` com `total`, `degreeOfSuccess`, `dice` |
+| `onApplyDamage` é função                               | Retorna `AppliedDamageResult` com `finalDamage >= 0`        |
+| Sistema não lança em `onActorPrepare` com actor vazio  | Trata input mínimo sem crash                                |
+| Sistema não lança em `onRollCheck` com contexto mínimo | Trata input mínimo sem crash                                |
 
 **REQ-TST-021** [MVP] Os pacotes `systems/pf2e` e `systems/sf2e` DEVEM cada um importar e executar `runConformanceSuite(system)` em seu próprio arquivo de testes `src/__tests__/conformance.test.ts`. A suíte de conformidade DEVE passar para que o CI aprove esses sistemas. O pacote `systems/etmos` DEVE ter o arquivo de testes criado, mas o job de conformidade correspondente DEVE ser marcado com `skipIf: process.env.ETMOS_SPEC_CLOSED !== 'true'` (flag não ativada por padrão no CI até que a spec 19 seja fechada).
 
@@ -337,13 +344,13 @@ interface ConformanceContract {
 
 **REQ-TST-022** [MVP] O pacote `tools/importer-pf2e` DEVE ter um diretório `src/__tests__/` com testes de snapshot para o mapeamento de documentos pf2e → modelo interno Fusion, cobrindo ao menos:
 
-| Tipo de documento | Arquivo de fixture de entrada |
-|---|---|
-| Criatura (NPC) — 1 exemplo simples | `tests/fixtures/pf2e/npc-goblin.json` |
-| Arma — 1 exemplo com runas | `tests/fixtures/pf2e/weapon-longsword-striking.json` |
-| Magia — 1 cantrip e 1 rank 3 | `tests/fixtures/pf2e/spell-produce-flame.json`, `tests/fixtures/pf2e/spell-fireball.json` |
-| Feat — 1 com rule elements | `tests/fixtures/pf2e/feat-power-attack.json` |
-| Ancestralidade — 1 exemplo | `tests/fixtures/pf2e/ancestry-human.json` |
+| Tipo de documento                  | Arquivo de fixture de entrada                                                             |
+| ---------------------------------- | ----------------------------------------------------------------------------------------- |
+| Criatura (NPC) — 1 exemplo simples | `tests/fixtures/pf2e/npc-goblin.json`                                                     |
+| Arma — 1 exemplo com runas         | `tests/fixtures/pf2e/weapon-longsword-striking.json`                                      |
+| Magia — 1 cantrip e 1 rank 3       | `tests/fixtures/pf2e/spell-produce-flame.json`, `tests/fixtures/pf2e/spell-fireball.json` |
+| Feat — 1 com rule elements         | `tests/fixtures/pf2e/feat-power-attack.json`                                              |
+| Ancestralidade — 1 exemplo         | `tests/fixtures/pf2e/ancestry-human.json`                                                 |
 
 **REQ-TST-023** [MVP] Para cada tipo de documento listado em REQ-TST-022, DEVE existir um arquivo de snapshot de saída em `tests/fixtures/pf2e/__snapshots__/` que captura o resultado completo do mapeamento. O teste falha se o mapeamento produzir output diferente do snapshot sem atualização explícita via `--update-snapshots`.
 
@@ -396,13 +403,13 @@ interface ConformanceContract {
 
 **REQ-TST-033** [MVP] Os seguintes limites de cobertura DEVEM ser configurados no `vitest.config.ts` como thresholds que falham o CI se violados:
 
-| Pacote / Caminho | Cobertura mínima (statements) |
-|---|---|
-| `packages/shared/src/**` | 80% |
-| `systems/pf2e/src/rules/**` | 80% |
-| `systems/sf2e/src/rules/**` | 80% |
-| `systems/etmos/src/rules/**` | 0% até spec 19 fechar (pacote excluído do gate via `exclude` no vitest.config enquanto `ETMOS_SPEC_CLOSED !== 'true'`) |
-| `packages/server/src/**` (exceto `main.ts`) | 60% |
+| Pacote / Caminho                            | Cobertura mínima (statements)                                                                                          |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `packages/shared/src/**`                    | 80%                                                                                                                    |
+| `systems/pf2e/src/rules/**`                 | 80%                                                                                                                    |
+| `systems/sf2e/src/rules/**`                 | 80%                                                                                                                    |
+| `systems/etmos/src/rules/**`                | 0% até spec 19 fechar (pacote excluído do gate via `exclude` no vitest.config enquanto `ETMOS_SPEC_CLOSED !== 'true'`) |
+| `packages/server/src/**` (exceto `main.ts`) | 60%                                                                                                                    |
 
 **REQ-TST-034** [MVP] O relatório de cobertura HTML DEVE ser gerado em `coverage/` e publicado como artefato do GitHub Actions no workflow `ci.yml`. O relatório DEVE incluir visualização por arquivo e por linha.
 
@@ -411,16 +418,19 @@ interface ConformanceContract {
 ### RF — Performance Budgets
 
 **REQ-TST-035** [MVP] DEVE existir um teste de performance de boot do servidor em `packages/server/src/__tests__/boot.perf.test.ts` que:
+
 - Inicia o servidor em modo de teste
 - Mede o tempo até o evento `ready` (socket.io pronto para aceitar conexões)
 - Falha se o tempo ultrapassar **3 000 ms** em hardware de CI (GitHub Actions runner padrão)
 
 **REQ-TST-036** [MVP] DEVE existir um teste de performance de carregamento de mundo em `packages/server/src/__tests__/world-load.perf.test.ts` que:
+
 - Abre um arquivo `world.db` de fixture com 500 documentos (50 actors, 200 items, 10 scenes, 240 outros)
 - Mede o tempo até o servidor estar pronto para receber conexões com esse mundo carregado
 - Falha se o tempo ultrapassar **5 000 ms**
 
 **REQ-TST-037** [V2] DEVE existir um teste de performance de FPS do canvas que:
+
 - Abre uma cena com 20 tokens, grid square, 5 fontes de luz e fog of war ativo
 - Mede o FPS médio por 10 segundos via `window.__fusion_test_api__.getCanvasState()`
 - Falha se o FPS médio for inferior a **55 fps** em headless Chrome no CI
@@ -445,13 +455,13 @@ interface ConformanceContract {
 
 **REQ-TST-043** [V2] Os testes de regressão visual DEVEM usar `expect(page).toHaveScreenshot()` do Playwright com as seguintes cenas de baseline:
 
-| Cena | Arquivo de snapshot |
-|---|---|
+| Cena                                                     | Arquivo de snapshot             |
+| -------------------------------------------------------- | ------------------------------- |
 | Tile de fundo + grid square + 3 tokens em posições fixas | `canvas-tokens-square-grid.png` |
-| Fog of war: área revelada vs. não revelada | `canvas-fog-of-war.png` |
-| Token HUD: barra de HP, condições visuais, nome | `canvas-token-hud.png` |
-| Iluminação: 2 fontes de luz com raio e cor configurados | `canvas-lighting.png` |
-| Template de medição: cone 60°, 30 pés | `canvas-measurement-cone.png` |
+| Fog of war: área revelada vs. não revelada               | `canvas-fog-of-war.png`         |
+| Token HUD: barra de HP, condições visuais, nome          | `canvas-token-hud.png`          |
+| Iluminação: 2 fontes de luz com raio e cor configurados  | `canvas-lighting.png`           |
+| Template de medição: cone 60°, 30 pés                    | `canvas-measurement-cone.png`   |
 
 **REQ-TST-044** [V2] O contexto WebGL/Pixi.js DEVE ser inicializado com `preserveDrawingBuffer: true` em modo de teste para permitir captura de screenshots do canvas via `page.screenshot()`.
 
@@ -465,15 +475,15 @@ interface ConformanceContract {
 
 **REQ-TST-047** [V2] O workflow `load-test.yml` DEVE falhar se qualquer uma das seguintes métricas for violada:
 
-| Métrica | Limite máximo |
-|---|---|
-| Socket connection time p99 | 500 ms |
-| Round-trip latency p99 (cenário smoke) | 100 ms |
-| Round-trip latency p99 (cenário estresse) | 200 ms |
-| Throughput mínimo | 1 000 pps sem degradação |
-| SQLITE_BUSY rate (cenário concurrent-writes) | < 1% |
-| WAL file size após 30 min (cenário smoke) | < 50 MB |
-| Node.js RSS — crescimento após warmup | < 10% |
+| Métrica                                      | Limite máximo            |
+| -------------------------------------------- | ------------------------ |
+| Socket connection time p99                   | 500 ms                   |
+| Round-trip latency p99 (cenário smoke)       | 100 ms                   |
+| Round-trip latency p99 (cenário estresse)    | 200 ms                   |
+| Throughput mínimo                            | 1 000 pps sem degradação |
+| SQLITE_BUSY rate (cenário concurrent-writes) | < 1%                     |
+| WAL file size após 30 min (cenário smoke)    | < 50 MB                  |
+| Node.js RSS — crescimento após warmup        | < 10%                    |
 
 ---
 
@@ -528,17 +538,17 @@ export interface SerializedLight {
 
 /** Resultado de uma verificação de grau de sucesso */
 export interface DegreeOfSuccessResult {
-  degree: 'criticalSuccess' | 'success' | 'failure' | 'criticalFailure';
-  roll: number;          // total do d20 + modificadores (antes de ajuste por nat20/nat1)
+  degree: "criticalSuccess" | "success" | "failure" | "criticalFailure";
+  roll: number; // total do d20 + modificadores (antes de ajuste por nat20/nat1)
   dc: number;
-  naturalRoll: number;   // resultado bruto do dado (1–20)
+  naturalRoll: number; // resultado bruto do dado (1–20)
   adjustedByNatural: boolean; // true se nat20 ou nat1 alterou o grau
 }
 
 /** Fixture para golden tests — inclui fonte de verdade */
 export interface GoldenTestCase<TInput, TExpected> {
   description: string;
-  source: string;         // ex.: "research/13-pf2e-sf2e-mecanicas-nucleo.md §2.2"
+  source: string; // ex.: "research/13-pf2e-sf2e-mecanicas-nucleo.md §2.2"
   input: TInput;
   expected: TExpected;
 }
@@ -554,7 +564,7 @@ export interface CheckContext {
 
 export interface Modifier {
   value: number;
-  type: 'item' | 'status' | 'circumstance' | 'untyped';
+  type: "item" | "status" | "circumstance" | "untyped";
   label: string;
   predicate?: Predicate;
 }
@@ -568,16 +578,16 @@ export interface Predicate {
 
 export interface RollResult {
   total: number;
-  degreeOfSuccess: DegreeOfSuccessResult['degree'];
+  degreeOfSuccess: DegreeOfSuccessResult["degree"];
   dice: number[]; // resultados individuais dos dados
   modifiersApplied: Modifier[];
 }
 
 export interface AppliedDamageResult {
-  finalDamage: number;        // dano após IWR
+  finalDamage: number; // dano após IWR
   immune: boolean;
-  weaknessApplied: number;    // valor de fraqueza adicionado (0 se nenhuma)
-  resistanceApplied: number;  // valor de resistência subtraído (0 se nenhuma)
+  weaknessApplied: number; // valor de fraqueza adicionado (0 se nenhuma)
+  resistanceApplied: number; // valor de resistência subtraído (0 se nenhuma)
 }
 ```
 
@@ -621,36 +631,36 @@ export interface AppliedDamageResult {
 
 ```typescript
 // vitest.unit.config.ts (para pacotes de regras puras)
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    pool: 'threads',       // sem SQLite; threads são suficientes
-    environment: 'node',
+    pool: "threads", // sem SQLite; threads são suficientes
+    environment: "node",
     coverage: {
-      provider: 'v8',
+      provider: "v8",
       thresholds: {
         statements: 80,
         branches: 75,
         functions: 80,
         lines: 80,
       },
-      include: ['src/rules/**'],
-      exclude: ['src/**/__tests__/**'],
+      include: ["src/rules/**"],
+      exclude: ["src/**/__tests__/**"],
     },
   },
 });
 
 // vitest.integration.config.ts (para pacotes com SQLite ou socket)
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    pool: 'forks',        // isolamento de processo para SQLite
-    environment: 'node',
+    pool: "forks", // isolamento de processo para SQLite
+    environment: "node",
     testTimeout: 30_000,
     hookTimeout: 15_000,
-    setupFiles: ['tests/integration-setup.ts'],
+    setupFiles: ["tests/integration-setup.ts"],
   },
 });
 ```
@@ -659,36 +669,36 @@ export default defineConfig({
 
 ```typescript
 // playwright.config.ts
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
-  testDir: './tests/e2e',
+  testDir: "./tests/e2e",
   timeout: 60_000,
-  fullyParallel: false,  // testes multiplayer precisam de servidor compartilhado
+  fullyParallel: false, // testes multiplayer precisam de servidor compartilhado
   reporter: [
-    ['html', { outputFolder: 'playwright-report' }],
-    ['github'],           // anotações inline no PR
+    ["html", { outputFolder: "playwright-report" }],
+    ["github"], // anotações inline no PR
   ],
   use: {
-    baseURL: 'http://localhost:33000',
-    trace: 'on-first-retry',
-    video: 'on-first-retry',
-    screenshot: 'only-on-failure',
+    baseURL: "http://localhost:33000",
+    trace: "on-first-retry",
+    video: "on-first-retry",
+    screenshot: "only-on-failure",
   },
   projects: [
     {
-      name: 'e2e',
-      use: { ...devices['Desktop Chrome'] },
-      testMatch: '**/*.spec.ts',
+      name: "e2e",
+      use: { ...devices["Desktop Chrome"] },
+      testMatch: "**/*.spec.ts",
     },
     {
-      name: 'visual-regression',  // [V2] — roda apenas no CI com flag
-      use: { ...devices['Desktop Chrome'] },
-      testMatch: '**/*.visual.ts',
+      name: "visual-regression", // [V2] — roda apenas no CI com flag
+      use: { ...devices["Desktop Chrome"] },
+      testMatch: "**/*.visual.ts",
     },
   ],
   webServer: {
-    command: 'node dist/server/main.js --test-mode',
+    command: "node dist/server/main.js --test-mode",
     port: 33000,
     reuseExistingServer: !process.env.CI,
     timeout: 10_000,
@@ -700,38 +710,38 @@ export default defineConfig({
 
 ## Dependências
 
-| Spec | Relevância |
-|---|---|
-| `01-arquitetura-geral.md` | Estrutura de monorepo e pacotes testados |
-| `02-modelo-de-dados.md` | Schemas Zod testados em `packages/shared` |
-| `03-persistencia-e-mundos.md` | SQLite in-memory setup para integration tests |
-| `04-rede-e-sincronizacao.md` | Protocolo Socket.IO testado em integration e E2E |
-| `05-usuarios-e-permissoes.md` | Testes de permissão (REQ-TST-004) |
-| `08-motor-de-rolagens.md` | Motor de dice testado em unit; seed injetável |
-| `10-combate-e-iniciativa.md` | Fluxo de combate testado em E2E (REQ-TST-008) |
-| `15-api-de-sistemas.md` | Contrato da system API (suíte de conformidade) |
-| `17-sistema-pf2e.md` | Implementação das regras PF2e que os golden tests verificam |
-| `18-sistema-sf2e.md` | Regras SF2e dos golden tests [V2] |
-| `24-operacao-backups-telemetria.md` | Performance budgets e métricas de FPS (fonte: research 95) |
+| Spec                                | Relevância                                                  |
+| ----------------------------------- | ----------------------------------------------------------- |
+| `01-arquitetura-geral.md`           | Estrutura de monorepo e pacotes testados                    |
+| `02-modelo-de-dados.md`             | Schemas Zod testados em `packages/shared`                   |
+| `03-persistencia-e-mundos.md`       | SQLite in-memory setup para integration tests               |
+| `04-rede-e-sincronizacao.md`        | Protocolo Socket.IO testado em integration e E2E            |
+| `05-usuarios-e-permissoes.md`       | Testes de permissão (REQ-TST-004)                           |
+| `08-motor-de-rolagens.md`           | Motor de dice testado em unit; seed injetável               |
+| `10-combate-e-iniciativa.md`        | Fluxo de combate testado em E2E (REQ-TST-008)               |
+| `15-api-de-sistemas.md`             | Contrato da system API (suíte de conformidade)              |
+| `17-sistema-pf2e.md`                | Implementação das regras PF2e que os golden tests verificam |
+| `18-sistema-sf2e.md`                | Regras SF2e dos golden tests [V2]                           |
+| `24-operacao-backups-telemetria.md` | Performance budgets e métricas de FPS (fonte: research 95)  |
 
 ---
 
 ## Critérios de Aceitação
 
-| ID | Critério | Tier |
-|---|---|---|
-| AC-TST-001 | `pnpm test` passa em um checkout limpo do repositório, sem configuração além de Node.js 22 + pnpm | MVP |
-| AC-TST-002 | O CI (`ci.yml`) conclui em menos de 5 minutos para PRs normais | MVP |
-| AC-TST-003 | Todos os golden tests PF2e (REQ-TST-010 a REQ-TST-016) passam | MVP |
-| AC-TST-004 | A suíte de conformidade passa para `pf2e` e `sf2e`; conformidade do `etmos` é gate condicional (ativa somente quando `ETMOS_SPEC_CLOSED=true`) | MVP |
-| AC-TST-005 | Os snapshots do importer pf2e estão presentes e passam | MVP |
-| AC-TST-006 | O relatório de campos não mapeados é gerado como artefato no CI | MVP |
-| AC-TST-007 | Cobertura de `packages/shared`, `systems/pf2e/src/rules/` e `systems/sf2e/src/rules/` ≥ 80% (etmos excluído do gate até `ETMOS_SPEC_CLOSED=true`) | MVP |
-| AC-TST-008 | O teste E2E de fluxo completo (GM + 2 jogadores) passa em headless Chrome | MVP |
-| AC-TST-009 | Boot do servidor em modo de teste ocorre em < 3 000 ms | MVP |
-| AC-TST-010 | O bundle de produção do cliente não contém `__fusion_test_api__` | MVP |
-| AC-TST-011 | Testes de carga smoke (1 GM + 5 jogadores) passam com p99 < 100 ms | V2 |
-| AC-TST-012 | Testes de regressão visual do canvas passam em CI após atualização de baselines | V2 |
+| ID         | Critério                                                                                                                                          | Tier |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
+| AC-TST-001 | `pnpm test` passa em um checkout limpo do repositório, sem configuração além de Node.js 22 + pnpm                                                 | MVP  |
+| AC-TST-002 | O CI (`ci.yml`) conclui em menos de 5 minutos para PRs normais                                                                                    | MVP  |
+| AC-TST-003 | Todos os golden tests PF2e (REQ-TST-010 a REQ-TST-016) passam                                                                                     | MVP  |
+| AC-TST-004 | A suíte de conformidade passa para `pf2e` e `sf2e`; conformidade do `etmos` é gate condicional (ativa somente quando `ETMOS_SPEC_CLOSED=true`)    | MVP  |
+| AC-TST-005 | Os snapshots do importer pf2e estão presentes e passam                                                                                            | MVP  |
+| AC-TST-006 | O relatório de campos não mapeados é gerado como artefato no CI                                                                                   | MVP  |
+| AC-TST-007 | Cobertura de `packages/shared`, `systems/pf2e/src/rules/` e `systems/sf2e/src/rules/` ≥ 80% (etmos excluído do gate até `ETMOS_SPEC_CLOSED=true`) | MVP  |
+| AC-TST-008 | O teste E2E de fluxo completo (GM + 2 jogadores) passa em headless Chrome                                                                         | MVP  |
+| AC-TST-009 | Boot do servidor em modo de teste ocorre em < 3 000 ms                                                                                            | MVP  |
+| AC-TST-010 | O bundle de produção do cliente não contém `__fusion_test_api__`                                                                                  | MVP  |
+| AC-TST-011 | Testes de carga smoke (1 GM + 5 jogadores) passam com p99 < 100 ms                                                                                | V2   |
+| AC-TST-012 | Testes de regressão visual do canvas passam em CI após atualização de baselines                                                                   | V2   |
 
 ---
 

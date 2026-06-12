@@ -3,6 +3,7 @@
 **Status:** draft v0.1
 **Data:** 2026-06-11
 **Baseada em:**
+
 - `docs/research/02-foundry-documentos-persistencia.md` — modelo de documentos, estrutura LevelDB, ciclo CRUD, UUIDs
 - `docs/research/95-ops-backup-telemetry-testing.md` — estratégia de backup SQLite, PRAGMAs, retenção, Litestream
 - `docs/research/90-asset-media-management.md` — referência de paths em documents, portabilidade, export com assets
@@ -44,20 +45,20 @@ Definir como o Fusion persiste dados de forma confiável, organiza mundos no dis
 
 ## Conceitos e Terminologia
 
-| Termo | Definição |
-|---|---|
-| **World** | Uma campanha/mundo de jogo — unidade isolada de dados com banco SQLite próprio, pasta de assets e metadados. Analogia: um "jogo salvo" completo. |
-| **world.db** | Arquivo SQLite que contém todos os Documents primários de um World. |
-| **Document** | Unidade atômica de dado do Fusion — Actor, Scene, Item, JournalEntry etc. (detalhado em `02-modelo-de-dados.md`). |
-| **Document primário** | Document que reside em tabela própria no banco (ex.: `actors`, `scenes`). |
-| **Document embedded** | Document que vive como JSON aninhado dentro do campo `data` do Document pai (ex.: Token dentro de Scene). Não tem tabela própria. |
-| **world slug** | Identificador de URL do world — snake_case, único globalmente na instalação, derivado do nome ao criar. Ex.: `the_lost_mine`. |
-| **fusion-data/** | Pasta raiz de dados do Fusion na máquina do GM. Analogia ao `UserData/` do Foundry. |
-| **WAL** | Write-Ahead Log — modo de journaling do SQLite que permite leituras simultâneas a escritas e backup online. |
-| **Backup online** | Backup feito sem parar o servidor usando `Database.backup()` do better-sqlite3 (SQLite Online Backup API). |
-| **ZIP portátil** | Arquivo `.fwzip` exportado de um world contendo `world.db` + assets referenciados + manifesto. |
-| **Process lock** | Arquivo `world.lock` que garante que apenas um processo acessa o banco de cada world simultaneamente. |
-| **Compendium pack** | Coleção de Documents pré-fabricados fora do world ativo, pertencente a um sistema ou ao world. Detalhes em `16-compendiums-e-importacao.md`. |
+| Termo                 | Definição                                                                                                                                        |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **World**             | Uma campanha/mundo de jogo — unidade isolada de dados com banco SQLite próprio, pasta de assets e metadados. Analogia: um "jogo salvo" completo. |
+| **world.db**          | Arquivo SQLite que contém todos os Documents primários de um World.                                                                              |
+| **Document**          | Unidade atômica de dado do Fusion — Actor, Scene, Item, JournalEntry etc. (detalhado em `02-modelo-de-dados.md`).                                |
+| **Document primário** | Document que reside em tabela própria no banco (ex.: `actors`, `scenes`).                                                                        |
+| **Document embedded** | Document que vive como JSON aninhado dentro do campo `data` do Document pai (ex.: Token dentro de Scene). Não tem tabela própria.                |
+| **world slug**        | Identificador de URL do world — snake_case, único globalmente na instalação, derivado do nome ao criar. Ex.: `the_lost_mine`.                    |
+| **fusion-data/**      | Pasta raiz de dados do Fusion na máquina do GM. Analogia ao `UserData/` do Foundry.                                                              |
+| **WAL**               | Write-Ahead Log — modo de journaling do SQLite que permite leituras simultâneas a escritas e backup online.                                      |
+| **Backup online**     | Backup feito sem parar o servidor usando `Database.backup()` do better-sqlite3 (SQLite Online Backup API).                                       |
+| **ZIP portátil**      | Arquivo `.fwzip` exportado de um world contendo `world.db` + assets referenciados + manifesto.                                                   |
+| **Process lock**      | Arquivo `world.lock` que garante que apenas um processo acessa o banco de cada world simultaneamente.                                            |
+| **Compendium pack**   | Coleção de Documents pré-fabricados fora do world ativo, pertencente a um sistema ou ao world. Detalhes em `16-compendiums-e-importacao.md`.     |
 
 ---
 
@@ -68,9 +69,10 @@ Definir como o Fusion persiste dados de forma confiável, organiza mundos no dis
 **Decisão:** Cada world usa um arquivo `world.db` SQLite com better-sqlite3 (Node.js) em modo WAL.
 
 **Alternativas rejeitadas:**
-- *LevelDB (ClassicLevel)* — mesmo backend do Foundry V11+. Rejeitado porque: (a) formato binário ilegível sem ferramentas, (b) exige ferramenta CLI (`foundryvtt-cli`) para dump/inspeção, (c) não há query ad-hoc, (d) o Foundry usou LevelDB com sublevels para contornar limitações de update granular que SQLite resolve nativamente com UPDATE.
-- *MongoDB/PostgreSQL* — dependência externa pesada incompatível com o modelo "servidor local sem infra" do Fusion.
-- *NeDB / lowDB (JSON file)* — performance degradante com volumes grandes; sem transações atômicas reais.
+
+- _LevelDB (ClassicLevel)_ — mesmo backend do Foundry V11+. Rejeitado porque: (a) formato binário ilegível sem ferramentas, (b) exige ferramenta CLI (`foundryvtt-cli`) para dump/inspeção, (c) não há query ad-hoc, (d) o Foundry usou LevelDB com sublevels para contornar limitações de update granular que SQLite resolve nativamente com UPDATE.
+- _MongoDB/PostgreSQL_ — dependência externa pesada incompatível com o modelo "servidor local sem infra" do Fusion.
+- _NeDB / lowDB (JSON file)_ — performance degradante com volumes grandes; sem transações atômicas reais.
 
 **Racional:** SQLite em WAL oferece: arquivo único portátil, backup online sem downtime via API nativa, queries ad-hoc para debug, transações ACID, integridade referencial via `FOREIGN KEY`, e índices em colunas extraídas do JSON. O better-sqlite3 é síncrono por design — adequado ao modelo de single-writer autoritativo do servidor Fusion.
 
@@ -81,8 +83,9 @@ Definir como o Fusion persiste dados de forma confiável, organiza mundos no dis
 **Decisão:** Documents embedded (Tokens, Walls, Lights, Items de Actor, etc.) são persistidos como JSON no campo `data` do Document pai — não têm tabela própria.
 
 **Alternativas rejeitadas:**
-- *Tabelas separadas para cada tipo embedded* — explosão de JOINs para montar um Scene completo; overhead de schema sem ganho real, pois embedded documents são sempre carregados com o pai.
-- *EmbeddedCollection em sublevels (modelo LevelDB do Foundry)* — benefício granular real em LevelDB; em SQLite a coluna JSON é atualizada atomicamente no UPDATE do pai, o que é igualmente correto e muito mais simples.
+
+- _Tabelas separadas para cada tipo embedded_ — explosão de JOINs para montar um Scene completo; overhead de schema sem ganho real, pois embedded documents são sempre carregados com o pai.
+- _EmbeddedCollection em sublevels (modelo LevelDB do Foundry)_ — benefício granular real em LevelDB; em SQLite a coluna JSON é atualizada atomicamente no UPDATE do pai, o que é igualmente correto e muito mais simples.
 
 **Racional:** Um Scene completo com 200 tokens, 500 walls e 100 lights ainda cabe em poucos MB de JSON — SQLite suporta strings até 1 GB. O carregamento é sempre do Document completo (o cliente precisa de tudo para renderizar). Updates de embedded documents traduzem-se em UPDATE do pai com diff do JSON (ver `04-rede-e-sincronizacao.md`).
 
@@ -93,7 +96,8 @@ Definir como o Fusion persiste dados de forma confiável, organiza mundos no dis
 **Decisão:** Cada world tem seu próprio arquivo `world.db` isolado em `fusion-data/worlds/<slug>/world.db`.
 
 **Alternativas rejeitadas:**
-- *Banco único com coluna `world_id`* — backup de um world requer dump de tabela inteira; delete de world requer DELETE com WHERE; corrupção afeta todos os worlds; crescimento de um world afeta performance global.
+
+- _Banco único com coluna `world_id`_ — backup de um world requer dump de tabela inteira; delete de world requer DELETE com WHERE; corrupção afeta todos os worlds; crescimento de um world afeta performance global.
 
 **Racional:** Isolamento completo entre worlds. Backup, export, delete e restore são operações de arquivo (copiar/deletar `world.db`). Corrupção contém-se ao world afetado. Escalonamento independente. Abre caminho para WAL checkpoint por world de forma independente.
 
@@ -122,8 +126,9 @@ PRAGMA temp_store = MEMORY;
 **Decisão:** Cada tipo de Document primário tem uma tabela com estrutura mínima comum (`id`, `data`, `created_at`, `updated_at`) e colunas adicionais extraídas do JSON para indexação e filtragem eficiente.
 
 **Alternativas rejeitadas:**
-- *Coluna JSON pura sem colunas extraídas* — impossibilita índices em `name`, `folder_id`, `sort` sem full table scan com `json_extract`.
-- *Schema totalmente relacional com uma coluna por campo* — impossível para o campo `system` dos Documents, que varia radicalmente por tipo de sistema; exigiria migrations a cada nova versão de sistema de jogo.
+
+- _Coluna JSON pura sem colunas extraídas_ — impossibilita índices em `name`, `folder_id`, `sort` sem full table scan com `json_extract`.
+- _Schema totalmente relacional com uma coluna por campo_ — impossível para o campo `system` dos Documents, que varia radicalmente por tipo de sistema; exigiria migrations a cada nova versão de sistema de jogo.
 
 **Racional:** A abordagem híbrida (JSON como source of truth + colunas indexadas para campos estáveis e frequentemente filtrados) é o padrão documentado para SQLite com dados semi-estruturados. O campo `data` contém o Document completo (incluindo o campo `system` específico do sistema de jogo). Colunas extraídas cobrem apenas campos que o servidor Fusion precisa filtrar/ordenar internamente.
 
@@ -142,8 +147,9 @@ PRAGMA temp_store = MEMORY;
 **Decisão:** O export de world produz um arquivo ZIP renomeado como `.fwzip` contendo: `manifest.json` (metadados), `world.db` (cópia do banco via backup online), e todos os assets referenciados nos Documents do world copiados em estrutura de pasta preservada.
 
 **Alternativas rejeitadas:**
-- *Export sem assets (só o banco)* — cria o mesmo problema documentado no Foundry: paths quebrados ao importar em outra máquina.
-- *Export apenas como dump JSON* — perda de binários (imagens, áudio); arquivo maior que ZIP com compressão.
+
+- _Export sem assets (só o banco)_ — cria o mesmo problema documentado no Foundry: paths quebrados ao importar em outra máquina.
+- _Export apenas como dump JSON_ — perda de binários (imagens, áudio); arquivo maior que ZIP com compressão.
 
 **Racional:** O principal ponto de dor do Foundry (documentado na pesquisa) é que backups não incluem assets, causando paths quebrados em imports. O `.fwzip` resolve isso sendo um bundle self-contained. O manifesto inclui hash SHA-256 do `world.db` para verificação de integridade.
 
@@ -156,6 +162,7 @@ PRAGMA temp_store = MEMORY;
 **Abordagem provável para V2:** O Foundry usa LevelDB desde V11. A ferramenta `foundryvtt-cli` (open-source, MIT) provê os comandos `unpack` (LevelDB → arquivos JSON por documento) e `pack` (arquivos JSON → LevelDB). O importer V2 do Fusion usará `foundryvtt-cli` para fazer dump do world Foundry em JSON e então converter para o schema SQLite do Fusion via mapeamento de campos (ver `02-modelo-de-dados.md` para correspondência de campos).
 
 **Riscos identificados:**
+
 1. Campos `system` são específicos de cada sistema de jogo — um world PF2e do Foundry só pode ser importado se o sistema PF2e do Fusion tiver conversor implementado.
 2. Paths de assets no Foundry são relativos ao `Data/` do Foundry; precisam de remapping para o storage do Fusion.
 3. Mundos Foundry V10 ou anteriores usam NeDB (formato diferente) — requerem migração adicional.
@@ -201,6 +208,7 @@ fusion-data/
 ```
 
 **REQ-PER-002** [MVP] O caminho de `fusion-data/` deve ser configurável via variável de ambiente `FUSION_DATA_DIR` e via parâmetro de linha de comando `--data-dir`. O padrão por plataforma é definido em `22-instalacao-e-distribuicao.md` REQ-DST-008 (fonte única de verdade):
+
 - Windows: `%USERPROFILE%\Documents\FusionVTT`
 - macOS: `~/Documents/FusionVTT`
 - Linux: `~/FusionVTT`
@@ -214,6 +222,7 @@ fusion-data/
 **REQ-PER-004** [MVP] Ao abrir um world, o servidor deve aplicar os PRAGMAs definidos em DEC-PER-04 antes de qualquer outra operação no banco.
 
 **REQ-PER-005** [MVP] O servidor deve executar `PRAGMA integrity_check` na abertura de cada world. Se o resultado não for `ok`, o servidor deve:
+
 1. Logar erro fatal com o resultado completo do integrity check.
 2. Renomear `world.db` para `world.db.corrupted.<timestamp>`.
 3. Tentar restaurar o backup mais recente disponível em `worlds/<slug>/backups/`.
@@ -392,6 +401,7 @@ CREATE INDEX IF NOT EXISTS idx_combats_active    ON combats(active);
 ### Process Lock
 
 **REQ-PER-009** [MVP] Ao abrir um world, o servidor deve:
+
 1. Verificar se `worlds/<slug>/world.lock` existe.
 2. Se existir, ler o PID contido no arquivo. Checar se o processo com aquele PID está ativo.
 3. Se o processo está ativo, logar erro e recusar abertura do world com mensagem: `"World '<slug>' já está sendo usado pelo processo <PID>. Feche a outra instância antes de continuar."`.
@@ -408,19 +418,19 @@ Ao fechar o world (shutdown gracioso ou `SIGTERM`/`SIGINT`), remover `world.lock
 
 ```typescript
 interface WorldManifest {
-  id: string;             // slug único (ex.: "the_lost_mine")
-  title: string;          // nome exibido ao usuário
-  system: string;         // id do sistema de jogo (ex.: "pf2e")
-  systemVersion: string;  // versão do sistema no momento da última sessão
-  fusionVersion: string;  // versão do Fusion na criação/última abertura
-  schemaVersion: number;  // versão do schema do banco (sincronizado com schema_migrations)
-  description: string;    // descrição em texto plano ou Markdown (max 2000 chars)
-  coverImage?: string;    // path relativo à pasta do world para imagem de capa
-  createdAt: string;      // ISO 8601
-  lastOpenedAt: string;   // ISO 8601
-  playTime: number;       // tempo total de sessão em segundos
+  id: string; // slug único (ex.: "the_lost_mine")
+  title: string; // nome exibido ao usuário
+  system: string; // id do sistema de jogo (ex.: "pf2e")
+  systemVersion: string; // versão do sistema no momento da última sessão
+  fusionVersion: string; // versão do Fusion na criação/última abertura
+  schemaVersion: number; // versão do schema do banco (sincronizado com schema_migrations)
+  description: string; // descrição em texto plano ou Markdown (max 2000 chars)
+  coverImage?: string; // path relativo à pasta do world para imagem de capa
+  createdAt: string; // ISO 8601
+  lastOpenedAt: string; // ISO 8601
+  playTime: number; // tempo total de sessão em segundos
   compatibility: {
-    minimumFusion: string;  // versão mínima do Fusion para abrir este world
+    minimumFusion: string; // versão mínima do Fusion para abrir este world
   };
 }
 ```
@@ -433,18 +443,19 @@ interface WorldManifest {
 
 **REQ-PER-012** [MVP] O servidor deve expor as seguintes operações de gerenciamento de worlds via API REST (`/api/worlds`):
 
-| Método | Endpoint | Descrição |
-|---|---|---|
-| `GET` | `/api/worlds` | Listar todos os worlds disponíveis com metadados do `world.json` |
-| `POST` | `/api/worlds` | Criar novo world |
-| `GET` | `/api/worlds/:slug` | Obter metadados de um world específico |
-| `PATCH` | `/api/worlds/:slug` | Atualizar metadados (título, descrição, capa) |
-| `DELETE` | `/api/worlds/:slug` | Excluir world (com confirmação) |
-| `POST` | `/api/worlds/:slug/duplicate` | Duplicar world |
-| `POST` | `/api/worlds/:slug/export` | Iniciar export como `.fwzip` |
-| `POST` | `/api/worlds/import` | Importar `.fwzip` (multipart upload) |
+| Método   | Endpoint                      | Descrição                                                        |
+| -------- | ----------------------------- | ---------------------------------------------------------------- |
+| `GET`    | `/api/worlds`                 | Listar todos os worlds disponíveis com metadados do `world.json` |
+| `POST`   | `/api/worlds`                 | Criar novo world                                                 |
+| `GET`    | `/api/worlds/:slug`           | Obter metadados de um world específico                           |
+| `PATCH`  | `/api/worlds/:slug`           | Atualizar metadados (título, descrição, capa)                    |
+| `DELETE` | `/api/worlds/:slug`           | Excluir world (com confirmação)                                  |
+| `POST`   | `/api/worlds/:slug/duplicate` | Duplicar world                                                   |
+| `POST`   | `/api/worlds/:slug/export`    | Iniciar export como `.fwzip`                                     |
+| `POST`   | `/api/worlds/import`          | Importar `.fwzip` (multipart upload)                             |
 
 **REQ-PER-013** [MVP] A criação de world deve:
+
 1. Validar que o `slug` é único, composto apenas de letras minúsculas, dígitos e underscores (`[a-z0-9_]+`), com máximo de 64 caracteres.
 2. Se `slug` não for fornecido, derivá-lo do `title` via slugify (lowercase, substituir espaços e caracteres especiais por underscore, remover caracteres não permitidos).
 3. Criar a estrutura de diretórios completa.
@@ -454,6 +465,7 @@ interface WorldManifest {
 7. Retornar o `WorldManifest` completo.
 
 **REQ-PER-014** [MVP] A exclusão de world deve:
+
 1. Verificar que o world não está atualmente aberto (sem `world.lock` ativo).
 2. Criar um backup automático antes da exclusão em `worlds/<slug>/backups/pre-delete-<timestamp>.db`.
 3. Remover recursivamente o diretório `worlds/<slug>/`.
@@ -462,6 +474,7 @@ interface WorldManifest {
 Nunca excluir um world que esteja com `world.lock` ativo — retornar erro `409 Conflict`.
 
 **REQ-PER-015** [MVP] A duplicação de world deve:
+
 1. Verificar que o world original não está aberto.
 2. Fazer backup online do banco original via `db.backup()`.
 3. Copiar a estrutura de diretórios completa, incluindo assets.
@@ -478,6 +491,7 @@ Nunca excluir um world que esteja com `world.lock` ativo — retornar erro `409 
 **REQ-PER-017** [MVP] Todas as operações de escrita no banco (CREATE, UPDATE, DELETE) devem ser executadas dentro de transações SQLite explícitas (`BEGIN IMMEDIATE` / `COMMIT` / `ROLLBACK`). Nunca executar múltiplas operações de escrita fora de uma transação.
 
 **REQ-PER-018** [MVP] A criação de Document deve:
+
 1. Validar que o `id` é um DocumentId de 16 caracteres no alfabeto [A-Za-z0-9] (nanoid, conforme 02-modelo-de-dados.md REQ-DOC-001) e único na tabela correspondente.
 2. Serializar o Document completo como JSON no campo `data`.
 3. Extrair colunas indexadas do Document.
@@ -485,6 +499,7 @@ Nunca excluir um world que esteja com `world.lock` ativo — retornar erro `409 
 5. Retornar o Document criado com todos os campos.
 
 **REQ-PER-019** [MVP] A atualização de Document deve:
+
 1. Receber um diff parcial (não o Document completo).
 2. Ler o `data` atual do banco.
 3. Aplicar o diff sobre o Document atual seguindo a semântica canônica de `02-modelo-de-dados.md` REQ-DOC-037: merge profundo para objetos, **substituição integral para arrays** (arrays no diff substituem, não são mesclados), e chaves com valor `null` em sub-objetos de `flags`/`system` **removem a chave** (operação `deleteKey`). Preferencialmente reusar a mesma função de merge da camada de modelo (`packages/shared`) para garantir consistência com `04-rede-e-sincronizacao.md`.
@@ -496,6 +511,7 @@ Nunca excluir um world que esteja com `world.lock` ativo — retornar erro `409 
 **REQ-PER-020** [MVP] A atualização em batch (múltiplos Documents de mesmo tipo em uma operação) deve executar todos os updates em uma única transação. Falha em qualquer item reverte toda a transação.
 
 **REQ-PER-021** [MVP] A exclusão de Document deve:
+
 1. Verificar que o Document existe.
 2. Excluir o registro da tabela.
 3. Retornar o id do Document excluído.
@@ -503,6 +519,7 @@ Nunca excluir um world que esteja com `world.lock` ativo — retornar erro `409 
 **REQ-PER-022** [MVP] A exclusão em batch deve executar todos os deletes em uma única transação.
 
 **REQ-PER-023** [MVP] A leitura de Document deve suportar:
+
 - Busca por id: `SELECT * FROM <table> WHERE id = ?`
 - Listagem de coleção com filtros opcionais por `folder_id`, `type`, `name` (LIKE) e ordenação por `sort`, `name`, `updated_at`.
 - Nenhuma leitura requer transação explícita (SQLite garante leitura consistente em WAL).
@@ -520,6 +537,7 @@ Nunca excluir um world que esteja com `world.lock` ativo — retornar erro `409 
 **REQ-PER-027** [MVP] A API `GET /api/worlds/:slug/backups` deve listar todos os backups disponíveis com: nome do arquivo, timestamp, tamanho em bytes, tipo (auto/manual).
 
 **REQ-PER-028** [MVP] A API `POST /api/worlds/:slug/restore` deve permitir restaurar um backup específico pelo nome do arquivo. A restauração deve:
+
 1. Verificar que o world não está aberto (`world.lock` ausente ou stale).
 2. Fazer backup do banco atual como `pre-restore-<timestamp>.db` antes de substituir.
 3. Copiar o arquivo de backup para `world.db`.
@@ -548,16 +566,17 @@ assets/                    ← assets referenciados nos Documents
 ```typescript
 interface ExportManifest {
   fusionVersion: string;
-  exportedAt: string;           // ISO 8601
+  exportedAt: string; // ISO 8601
   world: WorldManifest;
-  dbHash: string;               // SHA-256 do world.db incluído no ZIP
+  dbHash: string; // SHA-256 do world.db incluído no ZIP
   assetCount: number;
   totalSizeBytes: number;
-  assetPaths: string[];         // lista de todos os paths de assets incluídos
+  assetPaths: string[]; // lista de todos os paths de assets incluídos
 }
 ```
 
 **REQ-PER-032** [MVP] O processo de export deve:
+
 1. Iniciar backup online do `world.db` para arquivo temporário em `temp/`.
 2. Varrer todos os Documents do banco para extrair referências de assets (campos `img`, `src`, `path` e qualquer campo de arquivo nos dados `system`).
 3. Para cada asset referenciado, verificar existência no filesystem e incluí-lo no ZIP preservando o path relativo.
@@ -569,6 +588,7 @@ interface ExportManifest {
 9. Limpar arquivos temporários.
 
 **REQ-PER-033** [MVP] O import de `.fwzip` deve:
+
 1. Validar que o arquivo é um ZIP válido com `manifest.json` na raiz.
 2. Validar o schema do `manifest.json` e verificar compatibilidade de versão (`world.compatibility.minimumFusion`).
 3. Verificar SHA-256 do `world.db` interno contra o valor no manifesto.
@@ -607,6 +627,7 @@ Os campos voláteis (`created_at`, `updated_at`, `_stats.modifiedTime`, `_stats.
 ### Import de Mundos do Foundry VTT [V2]
 
 **REQ-PER-036** [V2] O servidor deve suportar import de mundos do Foundry VTT V11+ (formato LevelDB) via ferramenta CLI auxiliar `tools/importer-fvtt`. A ferramenta deve:
+
 1. Receber o caminho do diretório do world Foundry como argumento.
 2. Usar `foundryvtt-cli unpack` para extrair todos os Documents como arquivos JSON.
 3. Executar conversor de schema mapeando campos Foundry → campos Fusion (ver `02-modelo-de-dados.md`).
@@ -669,24 +690,24 @@ export interface WorldManifest {
 
 // fog_explorations e cards_collections são [V2] — ver 02-modelo-de-dados.md D4, REQ-DOC-022
 export type DocumentTable =
-  | 'actors'
-  | 'items'
-  | 'scenes'
-  | 'journal_entries'
-  | 'macros'
-  | 'roll_tables'
-  | 'playlists'
-  | 'chat_messages'
-  | 'combats'
-  | 'users'
-  | 'folders'
-  | 'settings';
+  | "actors"
+  | "items"
+  | "scenes"
+  | "journal_entries"
+  | "macros"
+  | "roll_tables"
+  | "playlists"
+  | "chat_messages"
+  | "combats"
+  | "users"
+  | "folders"
+  | "settings";
 
 export interface DocumentRow {
   id: string;
-  data: string;           // JSON serializado do Document completo
-  created_at: number;     // timestamp Unix ms
-  updated_at: number;     // timestamp Unix ms
+  data: string; // JSON serializado do Document completo
+  created_at: number; // timestamp Unix ms
+  updated_at: number; // timestamp Unix ms
   // Colunas adicionais variam por tabela (extraídas do JSON)
 }
 
@@ -698,7 +719,7 @@ export interface SchemaMigration {
 
 export interface BackupEntry {
   filename: string;
-  type: 'auto' | 'manual' | 'pre-delete' | 'pre-restore';
+  type: "auto" | "manual" | "pre-delete" | "pre-restore";
   timestamp: number;
   sizeBytes: number;
   path: string;
@@ -706,14 +727,14 @@ export interface BackupEntry {
 
 export interface WorldLock {
   pid: number;
-  started_at: string;     // ISO 8601
+  started_at: string; // ISO 8601
 }
 
 export interface ExportManifest {
   fusionVersion: string;
   exportedAt: string;
   world: WorldManifest;
-  dbHash: string;         // SHA-256 hex
+  dbHash: string; // SHA-256 hex
   assetCount: number;
   totalSizeBytes: number;
   assetPaths: string[];
@@ -725,11 +746,11 @@ export interface CreateWorldOptions {
   system: string;
   description?: string;
   coverImage?: string;
-  slug?: string;          // gerado automaticamente se omitido
+  slug?: string; // gerado automaticamente se omitido
 }
 
 export interface DbBackupOptions {
-  type: 'auto' | 'manual';
+  type: "auto" | "manual";
   worldSlug: string;
 }
 
@@ -743,7 +764,7 @@ export interface CreateDocumentOp extends CrudOperation {
 }
 
 export interface UpdateDocumentOp extends CrudOperation {
-  diff: Record<string, unknown>;  // apenas as mudanças (deep merge)
+  diff: Record<string, unknown>; // apenas as mudanças (deep merge)
 }
 
 export interface DeleteDocumentOp extends CrudOperation {}
@@ -761,20 +782,20 @@ export interface BatchOperation {
 
 ### Endpoints REST
 
-| Método | Rota | Body | Resposta | Descrição |
-|---|---|---|---|---|
-| `GET` | `/api/worlds` | — | `WorldManifest[]` | Listar worlds |
-| `POST` | `/api/worlds` | `CreateWorldOptions` | `WorldManifest` | Criar world |
-| `GET` | `/api/worlds/:slug` | — | `WorldManifest` | Obter metadados |
-| `PATCH` | `/api/worlds/:slug` | `Partial<WorldManifest>` | `WorldManifest` | Atualizar metadados |
-| `DELETE` | `/api/worlds/:slug` | — | `{ deleted: true }` | Excluir world |
-| `POST` | `/api/worlds/:slug/duplicate` | `{ newTitle?: string }` | `WorldManifest` | Duplicar world |
-| `POST` | `/api/worlds/:slug/backup` | — | `BackupEntry` | Backup manual |
-| `GET` | `/api/worlds/:slug/backups` | — | `BackupEntry[]` | Listar backups |
-| `POST` | `/api/worlds/:slug/restore` | `{ filename: string }` | `{ restored: true }` | Restaurar backup |
-| `POST` | `/api/worlds/:slug/export` | `{ includeAssets?: boolean }` | `{ jobId: string }` | Iniciar export async |
-| `GET` | `/api/worlds/:slug/export/:jobId` | — | `ExportStatus` | Status do export |
-| `POST` | `/api/worlds/import` | multipart `.fwzip` | `WorldManifest` | Importar world |
+| Método   | Rota                              | Body                          | Resposta             | Descrição            |
+| -------- | --------------------------------- | ----------------------------- | -------------------- | -------------------- |
+| `GET`    | `/api/worlds`                     | —                             | `WorldManifest[]`    | Listar worlds        |
+| `POST`   | `/api/worlds`                     | `CreateWorldOptions`          | `WorldManifest`      | Criar world          |
+| `GET`    | `/api/worlds/:slug`               | —                             | `WorldManifest`      | Obter metadados      |
+| `PATCH`  | `/api/worlds/:slug`               | `Partial<WorldManifest>`      | `WorldManifest`      | Atualizar metadados  |
+| `DELETE` | `/api/worlds/:slug`               | —                             | `{ deleted: true }`  | Excluir world        |
+| `POST`   | `/api/worlds/:slug/duplicate`     | `{ newTitle?: string }`       | `WorldManifest`      | Duplicar world       |
+| `POST`   | `/api/worlds/:slug/backup`        | —                             | `BackupEntry`        | Backup manual        |
+| `GET`    | `/api/worlds/:slug/backups`       | —                             | `BackupEntry[]`      | Listar backups       |
+| `POST`   | `/api/worlds/:slug/restore`       | `{ filename: string }`        | `{ restored: true }` | Restaurar backup     |
+| `POST`   | `/api/worlds/:slug/export`        | `{ includeAssets?: boolean }` | `{ jobId: string }`  | Iniciar export async |
+| `GET`    | `/api/worlds/:slug/export/:jobId` | —                             | `ExportStatus`       | Status do export     |
+| `POST`   | `/api/worlds/import`              | multipart `.fwzip`            | `WorldManifest`      | Importar world       |
 
 ### Eventos Socket.IO
 
@@ -783,30 +804,36 @@ Os eventos de Document são gerenciados pela camada de sincronização (ver `04-
 ```typescript
 // Emitidos pelo DatabaseService para o SocketService consumir
 type PersistenceEvent =
-  | { type: 'document:created'; table: DocumentTable; document: Record<string, unknown> }
-  | { type: 'document:updated'; table: DocumentTable; id: string; diff: Record<string, unknown>; full: Record<string, unknown> }
-  | { type: 'document:deleted'; table: DocumentTable; id: string }
-  | { type: 'world:opened'; slug: string }
-  | { type: 'world:closed'; slug: string }
-  | { type: 'backup:completed'; slug: string; entry: BackupEntry }
-  | { type: 'integrity:ok'; slug: string }
-  | { type: 'integrity:failed'; slug: string; result: string };
+  | { type: "document:created"; table: DocumentTable; document: Record<string, unknown> }
+  | {
+      type: "document:updated";
+      table: DocumentTable;
+      id: string;
+      diff: Record<string, unknown>;
+      full: Record<string, unknown>;
+    }
+  | { type: "document:deleted"; table: DocumentTable; id: string }
+  | { type: "world:opened"; slug: string }
+  | { type: "world:closed"; slug: string }
+  | { type: "backup:completed"; slug: string; entry: BackupEntry }
+  | { type: "integrity:ok"; slug: string }
+  | { type: "integrity:failed"; slug: string; result: string };
 ```
 
 ---
 
 ## Dependências entre Specs
 
-| Spec | Tipo de dependência |
-|---|---|
-| `02-modelo-de-dados.md` | Define os tipos de Document e campos que esta spec persiste; o schema SQL de colunas extraídas deriva dos campos definidos lá |
-| `04-rede-e-sincronizacao.md` | Consome eventos do `DatabaseService`; implementa broadcast dos Documents via socket |
-| `05-usuarios-e-permissoes.md` | A tabela `users` é gerida por esta spec; permissões de acesso às operações de world são verificadas pela spec de permissões |
-| `16-compendiums-e-importacao.md` | Compendium packs usam schema idêntico ao `world.db` com banco `pack.db` separado; o importer usa o DatabaseService desta spec |
-| `20-assets-e-midia.md` | O processo de export (REQ-PER-030/032) depende do subsistema de assets para localizar e copiar arquivos; referência de paths em Documents é convenção definida lá |
-| `22-instalacao-e-distribuicao.md` | Documenta o caminho padrão de `fusion-data/` por plataforma e configuração via variável de ambiente |
-| `24-operacao-backups-telemetria.md` | Detalha política de retenção, logging de backup, alertas de WAL e integração opcional com Litestream |
-| `25-testes-e-qualidade.md` | Define testes de integração para CRUD, transações e backup usando SQLite in-memory |
+| Spec                                | Tipo de dependência                                                                                                                                               |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `02-modelo-de-dados.md`             | Define os tipos de Document e campos que esta spec persiste; o schema SQL de colunas extraídas deriva dos campos definidos lá                                     |
+| `04-rede-e-sincronizacao.md`        | Consome eventos do `DatabaseService`; implementa broadcast dos Documents via socket                                                                               |
+| `05-usuarios-e-permissoes.md`       | A tabela `users` é gerida por esta spec; permissões de acesso às operações de world são verificadas pela spec de permissões                                       |
+| `16-compendiums-e-importacao.md`    | Compendium packs usam schema idêntico ao `world.db` com banco `pack.db` separado; o importer usa o DatabaseService desta spec                                     |
+| `20-assets-e-midia.md`              | O processo de export (REQ-PER-030/032) depende do subsistema de assets para localizar e copiar arquivos; referência de paths em Documents é convenção definida lá |
+| `22-instalacao-e-distribuicao.md`   | Documenta o caminho padrão de `fusion-data/` por plataforma e configuração via variável de ambiente                                                               |
+| `24-operacao-backups-telemetria.md` | Detalha política de retenção, logging de backup, alertas de WAL e integração opcional com Litestream                                                              |
+| `25-testes-e-qualidade.md`          | Define testes de integração para CRUD, transações e backup usando SQLite in-memory                                                                                |
 
 ---
 

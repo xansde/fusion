@@ -45,23 +45,23 @@ O Fusion tem uma oportunidade clara de diferenciação: o Foundry VTT não possu
 
 ## Conceitos e terminologia
 
-| Termo | Definição no Fusion |
-|---|---|
-| **WCAG 2.2 AA** | Web Content Accessibility Guidelines versão 2.2, nível AA — padrão legal amplamente adotado (ADA, EAA, Section 508). Meta de conformidade do Fusion para toda a UI HTML. |
-| **Pointer Events API** | Standard W3C que unifica eventos de mouse, touch e caneta em um único modelo (`pointerdown`, `pointermove`, `pointerup`). Input layer obrigatório do canvas no Fusion. |
+| Termo                           | Definição no Fusion                                                                                                                                                                                                 |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **WCAG 2.2 AA**                 | Web Content Accessibility Guidelines versão 2.2, nível AA — padrão legal amplamente adotado (ADA, EAA, Section 508). Meta de conformidade do Fusion para toda a UI HTML.                                            |
+| **Pointer Events API**          | Standard W3C que unifica eventos de mouse, touch e caneta em um único modelo (`pointerdown`, `pointermove`, `pointerup`). Input layer obrigatório do canvas no Fusion.                                              |
 | **PixiJS Accessibility System** | Sistema opt-in do PixiJS v8 que cria uma div overlay com elementos DOM acessíveis (`role`, `aria-label`, `tabindex`) posicionados sobre os objetos no canvas, tornando-os alcançáveis por teclado e screen readers. |
-| **touch-action** | Propriedade CSS que controla o comportamento de gestos nativo do browser sobre um elemento. O canvas deve usar `touch-action: none` (com tratamento especial para iOS Safari). |
-| **safe-area-inset** | Variáveis CSS (`env(safe-area-inset-*)`) que expõem as margens seguras de dispositivos com notch/home bar (iPad com Face ID). Requer `viewport-fit=cover`. |
-| **dvh** | Dynamic Viewport Height — unidade CSS que recalcula ao aparecer/ocultar o teclado virtual. Preferida sobre `vh` em Safari/iOS. |
-| **Bottom drawer** | Painel deslizante a partir da borda inferior da tela — padrão mobile para conteúdo secundário (sheet do personagem, sidebar) sem cobrir o canvas. |
-| **FAB** | Floating Action Button — botão circular flutuante para ações primárias em layout touch (abrir chat, sheet, rolls). |
-| **Companion view** | Modo de visualização reduzido para telefones (telas < 640px): acesso à ficha do personagem e rolagem de dados sem canvas completo. Meta [V2]. |
-| **Container Query** | CSS feature que permite que um componente responda ao tamanho do seu próprio container (não da viewport). Superior a media queries para componentes reutilizáveis como sheets. |
-| **VirtualKeyboard API** | API web (Chrome 94+) que permite controlar a sobreposição do teclado virtual e acessar sua altura via `env(keyboard-inset-height)`. |
-| **KTX2/Basis Universal** | Formato de textura comprimida que o PixiJS v8 transcreve automaticamente para ASTC (iOS), ETC2 (Android) ou BC7 (desktop), reduzindo uso de memória GPU em até 70%. |
-| **BitmapText** | Alternativa ao `PIXI.Text` que usa uma textura de fonte pré-gerada em vez de criar um canvas 2D por instância. Preferido para labels de tokens em mobile. |
-| **reduced-motion** | Preferência do SO (`prefers-reduced-motion`) que o Fusion respeita desativando animações não essenciais (zoom springs, transições de cena, partículas). |
-| **focus-visible** | Pseudo-classe CSS que mostra o indicador de foco apenas para navegação por teclado, não para cliques com mouse. |
+| **touch-action**                | Propriedade CSS que controla o comportamento de gestos nativo do browser sobre um elemento. O canvas deve usar `touch-action: none` (com tratamento especial para iOS Safari).                                      |
+| **safe-area-inset**             | Variáveis CSS (`env(safe-area-inset-*)`) que expõem as margens seguras de dispositivos com notch/home bar (iPad com Face ID). Requer `viewport-fit=cover`.                                                          |
+| **dvh**                         | Dynamic Viewport Height — unidade CSS que recalcula ao aparecer/ocultar o teclado virtual. Preferida sobre `vh` em Safari/iOS.                                                                                      |
+| **Bottom drawer**               | Painel deslizante a partir da borda inferior da tela — padrão mobile para conteúdo secundário (sheet do personagem, sidebar) sem cobrir o canvas.                                                                   |
+| **FAB**                         | Floating Action Button — botão circular flutuante para ações primárias em layout touch (abrir chat, sheet, rolls).                                                                                                  |
+| **Companion view**              | Modo de visualização reduzido para telefones (telas < 640px): acesso à ficha do personagem e rolagem de dados sem canvas completo. Meta [V2].                                                                       |
+| **Container Query**             | CSS feature que permite que um componente responda ao tamanho do seu próprio container (não da viewport). Superior a media queries para componentes reutilizáveis como sheets.                                      |
+| **VirtualKeyboard API**         | API web (Chrome 94+) que permite controlar a sobreposição do teclado virtual e acessar sua altura via `env(keyboard-inset-height)`.                                                                                 |
+| **KTX2/Basis Universal**        | Formato de textura comprimida que o PixiJS v8 transcreve automaticamente para ASTC (iOS), ETC2 (Android) ou BC7 (desktop), reduzindo uso de memória GPU em até 70%.                                                 |
+| **BitmapText**                  | Alternativa ao `PIXI.Text` que usa uma textura de fonte pré-gerada em vez de criar um canvas 2D por instância. Preferido para labels de tokens em mobile.                                                           |
+| **reduced-motion**              | Preferência do SO (`prefers-reduced-motion`) que o Fusion respeita desativando animações não essenciais (zoom springs, transições de cena, partículas).                                                             |
+| **focus-visible**               | Pseudo-classe CSS que mostra o indicador de foco apenas para navegação por teclado, não para cliques com mouse.                                                                                                     |
 
 ---
 
@@ -72,9 +72,10 @@ O Fusion tem uma oportunidade clara de diferenciação: o Foundry VTT não possu
 **Decisão:** Toda a UI HTML (Svelte) do Fusion deve atingir conformidade WCAG 2.2 AA. O canvas PixiJS adota estratégia de "acessibilidade via alternativas": overlay DOM do PixiJS accessibility system para tokens e controles principais; opções textuais equivalentes (lista de tokens, combat tracker, sheets) para usuários que não podem interagir com o canvas.
 
 **Alternativas rejeitadas:**
-- *WCAG AAA completo:* aspiracional e não exigido legalmente; critérios de nível AAA impõem restrições incompatíveis com VTTs (ex.: nenhum limite de tempo).
-- *Ignorar a11y no canvas:* o PixiJS v8 possui sistema de acessibilidade embutido de baixo custo; não usar seria desperdício e excluiria usuários com necessidades de teclado.
-- *Conformidade apenas nível A:* insuficiente; não cobriria contraste (1.4.3), resize de texto (1.4.4), target size (2.5.8) ou focus visible (2.4.7).
+
+- _WCAG AAA completo:_ aspiracional e não exigido legalmente; critérios de nível AAA impõem restrições incompatíveis com VTTs (ex.: nenhum limite de tempo).
+- _Ignorar a11y no canvas:_ o PixiJS v8 possui sistema de acessibilidade embutido de baixo custo; não usar seria desperdício e excluiria usuários com necessidades de teclado.
+- _Conformidade apenas nível A:_ insuficiente; não cobriria contraste (1.4.3), resize de texto (1.4.4), target size (2.5.8) ou focus visible (2.4.7).
 
 **Racional:** Um `<canvas>` é opaco a screen readers por definição (critério 4.1.2 falha nativamente). Pesquisa acadêmica confirma que "web-based games can only be optimised to follow WCAG within limits of game rules" — gap documentado. A solução aceita pela indústria é prover alternativas acessíveis, não tentar tornar o canvas em si totalmente conforme. O Fusion opta por atingir o padrão legal AA na UI e usar as ferramentas disponíveis no canvas.
 
@@ -85,8 +86,9 @@ O Fusion tem uma oportunidade clara de diferenciação: o Foundry VTT não possu
 **Decisão:** Toda a interação com o canvas usa exclusivamente a **Pointer Events API** (`pointerdown`, `pointermove`, `pointerup`, `pointercancel`). Não haverá código que use `MouseEvent` ou `TouchEvent` diretamente no canvas.
 
 **Alternativas rejeitadas:**
-- *MouseEvent + TouchEvent separados:* duplicação de código, bugs de sincronização, não cobre canetas stylus.
-- *Biblioteca de gesture de alto nível (Hammer.js):* abandonada; sem suporte ativo em 2026.
+
+- _MouseEvent + TouchEvent separados:_ duplicação de código, bugs de sincronização, não cobre canetas stylus.
+- _Biblioteca de gesture de alto nível (Hammer.js):_ abandonada; sem suporte ativo em 2026.
 
 **Racional:** A Pointer Events API é o standard W3C com suporte universal em todos os browsers modernos. Fornece `event.pointerType` ('mouse'/'touch'/'pen'), suporte a multi-touch via `pointerId`, e propriedades de hardware para canetas. O módulo TouchVTT (referência do ecossistema Foundry) migrou completamente para Pointer Events em sua versão 2.0. A unificação elimina branching de código e garante comportamento consistente independentemente do dispositivo de entrada.
 
@@ -95,15 +97,17 @@ O Fusion tem uma oportunidade clara de diferenciação: o Foundry VTT não possu
 ### DECISÃO-A11-03: Layout responsivo em dois modos — GM desktop e Jogador tablet
 
 **Decisão:** O Fusion define dois modos de layout baseados em media query composta `(max-width: 1024px) and (pointer: coarse)`:
+
 - **Modo GM (desktop):** layout completo — sidebar, scene controls, hotbar, player list, todas as ferramentas visíveis.
 - **Modo Jogador Tablet:** canvas ocupa 100% da viewport; scene controls de GM ocultos; sidebar colapsada por padrão, acessível via FAB ou swipe from edge; sheets como bottom drawers; notificações no topo.
 
 A detecção é feita via `MediaQuery` reativa do Svelte 5 (`import { MediaQuery } from 'svelte/reactivity'`), exposta como store global `$deviceMode: 'desktop' | 'tablet' | 'mobile'`. O modo `mobile` usa a media query `(hover: none) and (pointer: coarse) and (max-width: 639px)` — combinação de tipo de ponteiro e largura — em vez de `window.innerWidth` imperativo, garantindo reatividade a resize sem listener adicional.
 
 **Alternativas rejeitadas:**
-- *Apenas media queries em CSS:* não permite lógica condicional em componentes Svelte (ex.: renderizar drawer em vez de janela flutuante).
-- *Breakpoint só por largura:* tablets com mouse externo (iPad + Magic Keyboard) usariam layout touch erroneamente; `pointer: coarse` discrimina melhor o tipo de input.
-- *`window.innerWidth` imperativo no derived:* não reage a resize sem listener registrado manualmente; MediaQuery reativa do Svelte 5 resolve o mesmo problema de forma idiomática e sem efeitos colaterais.
+
+- _Apenas media queries em CSS:_ não permite lógica condicional em componentes Svelte (ex.: renderizar drawer em vez de janela flutuante).
+- _Breakpoint só por largura:_ tablets com mouse externo (iPad + Magic Keyboard) usariam layout touch erroneamente; `pointer: coarse` discrimina melhor o tipo de input.
+- _`window.innerWidth` imperativo no derived:_ não reage a resize sem listener registrado manualmente; MediaQuery reativa do Svelte 5 resolve o mesmo problema de forma idiomática e sem efeitos colaterais.
 
 **Racional:** O Foundry nunca projetou sua UI para touch; toda adaptação é via módulos (Mobile Improvements). O Fusion faz a distinção no core, sem camada de compatibilidade. O critério `pointer: coarse` identifica a presença de tela touch como input principal, não o tamanho de tela.
 
@@ -117,9 +121,10 @@ A detecção é feita via `MediaQuery` reativa do Svelte 5 (`import { MediaQuery
 - **Window manager próprio em Svelte:** usado para janelas flutuantes não-modais — character sheets, browsers de Document e qualquer Application que possa coexistir empilhada com outras. O window manager controla posição, z-index e foco (ver `11-ui-framework-e-fichas.md`, REQ-UIF-009..016). A acessibilidade dessas janelas (ordem de foco ao abrir, devolução de foco ao fechar, Escape para fechar) é responsabilidade do próprio window manager, não do `.showModal()`.
 
 **Alternativas rejeitadas:**
-- *Tudo em `<dialog>.showModal()`:* `.showModal()` trava o foco e impede múltiplas janelas não-modais sobrepostas — o caso de uso central do VTT (várias sheets abertas ao mesmo tempo). Um modal bloqueia interação com o resto da UI, que é incompatível com o fluxo de jogo.
-- *`<dialog>` não-modal para janelas flutuantes:* não dá z-index/foco coordenado entre instâncias; não tem focus trap automático; não é suportado como solução robusta para window managers.
-- *Biblioteca externa de modal (ex.: Radix, Headless UI):* overhead desnecessário dado que Svelte 5 compila componentes sem virtual DOM; `<dialog>` nativo cobre os modais bloqueantes com custo zero.
+
+- _Tudo em `<dialog>.showModal()`:_ `.showModal()` trava o foco e impede múltiplas janelas não-modais sobrepostas — o caso de uso central do VTT (várias sheets abertas ao mesmo tempo). Um modal bloqueia interação com o resto da UI, que é incompatível com o fluxo de jogo.
+- _`<dialog>` não-modal para janelas flutuantes:_ não dá z-index/foco coordenado entre instâncias; não tem focus trap automático; não é suportado como solução robusta para window managers.
+- _Biblioteca externa de modal (ex.: Radix, Headless UI):_ overhead desnecessário dado que Svelte 5 compila componentes sem virtual DOM; `<dialog>` nativo cobre os modais bloqueantes com custo zero.
 
 **Racional:** Separar as duas necessidades — janelas persistentes empilháveis (manager próprio) vs. modais bloqueantes acessíveis (`<dialog>` nativo) — dá o melhor de cada mecanismo. Isso atende critérios WCAG 2.4.3 (Focus Order) e 2.1.1 (Keyboard) sem código adicional nos modais, e dá controle total de UX nas janelas flutuantes.
 
@@ -130,8 +135,9 @@ A detecção é feita via `MediaQuery` reativa do Svelte 5 (`import { MediaQuery
 **Decisão:** O canvas recebe `touch-action: none` via CSS. Para iOS Safari (onde `none` pode não funcionar de forma confiável), event listeners são registrados com `{ passive: false }` para chamar `preventDefault()` nos gestos gerenciados pelo app.
 
 **Alternativas rejeitadas:**
-- *Apenas `touch-action: manipulation`:* desabilita double-tap zoom mas permite scroll nativo, que interfere com pan do canvas.
-- *Confiar apenas em `touch-action: none`:* documentado como não confiável no iOS Safari; causaria scroll/zoom indesejado do browser.
+
+- _Apenas `touch-action: manipulation`:_ desabilita double-tap zoom mas permite scroll nativo, que interfere com pan do canvas.
+- _Confiar apenas em `touch-action: none`:_ documentado como não confiável no iOS Safari; causaria scroll/zoom indesejado do browser.
 
 **Racional:** A Pointer Events API não controla automaticamente o comportamento de gestos nativo do browser. `touch-action: none` é necessário para suprimir pan/zoom do browser durante interações com o canvas. O iOS Safari exige a abordagem de `preventDefault()` como fallback. A combinação das duas estratégias cobre todos os browsers suportados.
 
@@ -142,13 +148,17 @@ A detecção é feita via `MediaQuery` reativa do Svelte 5 (`import { MediaQuery
 **Decisão:** A altura do container principal da aplicação usa `100dvh` (Dynamic Viewport Height). O viewport meta inclui `viewport-fit=cover` e o layout respeita `env(safe-area-inset-*)`.
 
 ```html
-<meta name="viewport" content="width=device-width, initial-scale=1,
-  viewport-fit=cover, interactive-widget=resizes-visual">
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1,
+  viewport-fit=cover, interactive-widget=resizes-visual"
+/>
 ```
 
 **Alternativas rejeitadas:**
-- *`100vh`:* No Safari/iOS inclui a barra de endereço e causa overflow visual; incompatível com Full Screen Mode.
-- *`interactive-widget=resizes-content`:* Faz o canvas recalcular quando o teclado virtual aparece, causando reflow custoso.
+
+- _`100vh`:_ No Safari/iOS inclui a barra de endereço e causa overflow visual; incompatível com Full Screen Mode.
+- _`interactive-widget=resizes-content`:_ Faz o canvas recalcular quando o teclado virtual aparece, causando reflow custoso.
 
 **Racional:** `dvh` foi criado exatamente para o problema de `vh` em mobile browsers. `resizes-visual` permite que o canvas permaneça estável enquanto apenas a região visual encolhe quando o teclado virtual aparece — comportamento ideal para aplicações canvas.
 
@@ -159,9 +169,10 @@ A detecção é feita via `MediaQuery` reativa do Svelte 5 (`import { MediaQuery
 **Decisão:** Um registro central de keybindings (`KeybindingRegistry`) mapeia `action` → `(key, modifiers)`. No MVP, cada ação tem um default fixo não-remapeável pelo usuário. Em [V2], o usuário poderá sobrescrever via painel de configurações, com persistência por usuário no banco (REQ-A11-021..022).
 
 **Alternativas rejeitadas:**
-- *Atalhos completamente hardcoded (sem registro central):* não permite adicionar o remapeamento em [V2] sem refatoração; impossibilita suspensão contextual de atalhos (REQ-A11-023).
-- *Remapeamento completo no MVP:* o painel de UI de remapeamento com detecção de conflitos não é necessário para jogar uma sessão de PF2e; a complexidade é desproporcionada ao valor para o MVP.
-- *Apenas documentar os atalhos:* não resolve o problema de acessibilidade; a remapagem deve ser nativa — mas pode aguardar [V2].
+
+- _Atalhos completamente hardcoded (sem registro central):_ não permite adicionar o remapeamento em [V2] sem refatoração; impossibilita suspensão contextual de atalhos (REQ-A11-023).
+- _Remapeamento completo no MVP:_ o painel de UI de remapeamento com detecção de conflitos não é necessário para jogar uma sessão de PF2e; a complexidade é desproporcionada ao valor para o MVP.
+- _Apenas documentar os atalhos:_ não resolve o problema de acessibilidade; a remapagem deve ser nativa — mas pode aguardar [V2].
 
 **Racional:** Centralizar os bindings no `KeybindingRegistry` desde o MVP garante que a suspensão contextual de atalhos (REQ-A11-023) e a futura UI de remapeamento [V2] sejam implementadas sobre a mesma infraestrutura. Game Accessibility Guidelines listam remapeamento como diretriz "Basic" — o MVP cumpre o requisito com defaults corretos; o painel de configuração expande isso em [V2].
 
@@ -170,6 +181,7 @@ A detecção é feita via `MediaQuery` reativa do Svelte 5 (`import { MediaQuery
 ### DECISÃO-A11-08: Toggles de qualidade de renderização
 
 **Decisão:** O Fusion expõe um painel de configurações de qualidade gráfica com toggles independentes, persistidos por usuário:
+
 - `lights.animated` — animar luzes (flickering, pulsating); default `true`.
 - `fog.quality` — qualidade do fog of war: `'full'` | `'simplified'` | `'off'`; default `'full'`.
 - `canvas.antialias` — antialiasing do renderer PixiJS; default `false` em `devicePixelRatio >= 2`.
@@ -178,8 +190,9 @@ A detecção é feita via `MediaQuery` reativa do Svelte 5 (`import { MediaQuery
 - `canvas.particleEffects` — efeitos de partículas (chuva, névoa animada, faíscas); default `true`.
 
 **Alternativas rejeitadas:**
-- *Preset único "baixa qualidade":* menos granular; pode desabilitar algo que o usuário quer manter (ex.: quer fog simplificado mas não quer perder animação de luz).
-- *Detecção automática sem controle do usuário:* heurísticas de GPU são não confiáveis; melhor deixar o usuário decidir.
+
+- _Preset único "baixa qualidade":_ menos granular; pode desabilitar algo que o usuário quer manter (ex.: quer fog simplificado mas não quer perder animação de luz).
+- _Detecção automática sem controle do usuário:_ heurísticas de GPU são não confiáveis; melhor deixar o usuário decidir.
 
 **Racional:** Dispositivos de jogadores variam enormemente — desde iPads M4 recentes a laptops com GPUs integradas de 5 anos. Toggles independentes dão controle preciso sem obrigar o usuário a escolher entre "tudo" e "nada". `prefers-reduced-motion` do OS é respeitado automaticamente como ponto de partida (se ativo, `lights.animated` e `canvas.particleEffects` iniciam como `false`).
 
@@ -192,8 +205,9 @@ A detecção é feita via `MediaQuery` reativa do Svelte 5 (`import { MediaQuery
 **Por que [V2]:** A definição de MVP é "jogar uma sessão de PF2e com mapa+grid, tokens, visão/fog, fichas, rolagens, chat e combat tracker". PWA e Service Worker não são necessários para jogar essa sessão — são polimento que melhora a experiência de instalação e recarga offline, mas não desbloqueiam nenhuma funcionalidade de jogo. O research 94 §12.1 item 4 afirma explicitamente que "o modo standalone é bonus, não requisito".
 
 **Alternativas rejeitadas:**
-- *Sem PWA nunca:* jogadores perdem a opção de instalar na home screen e fullscreen imersivo no longo prazo.
-- *Service Worker cacheando dados de jogo:* dados ao vivo mudam continuamente via WebSocket; cachear causaria inconsistências.
+
+- _Sem PWA nunca:_ jogadores perdem a opção de instalar na home screen e fullscreen imersivo no longo prazo.
+- _Service Worker cacheando dados de jogo:_ dados ao vivo mudam continuamente via WebSocket; cachear causaria inconsistências.
 
 **Racional:** PWA melhora a experiência do jogador em tablet sem exigir app store, mas é um incremento de polimento. As limitações do iOS (EU: PWA abre no Safari; sem install prompt automático; cache de 7 dias/50MB) reduzem ainda mais o impacto no público primário. Priorizar MVP funcional antes de investir na infraestrutura de Service Worker.
 
@@ -275,15 +289,15 @@ A detecção é feita via `MediaQuery` reativa do Svelte 5 (`import { MediaQuery
 
 **REQ-A11-041** [MVP] O canvas deve suportar os seguintes gestos touch fundamentais via Pointer Events:
 
-| Gesto | Ação | Nível |
-|---|---|---|
-| Arrastar 1 dedo sobre token (logo após `pointerdown`) | Mover token (se owner/GM) | [MVP] |
-| Pinch 2 dedos | Zoom do canvas (inward = zoom in, outward = zoom out) | [MVP] |
-| Pan 2 dedos | Navegar o canvas | [MVP] |
-| Tap em token | Selecionar token | [MVP] |
-| Tap fora de token | Deselecionar | [MVP] |
-| Long-press 500ms sobre token | Abrir menu de contexto (equivalente ao right-click) | [MVP-stretch] |
-| Double-tap em token | Abrir sheet do token | [MVP-stretch] |
+| Gesto                                                 | Ação                                                  | Nível         |
+| ----------------------------------------------------- | ----------------------------------------------------- | ------------- |
+| Arrastar 1 dedo sobre token (logo após `pointerdown`) | Mover token (se owner/GM)                             | [MVP]         |
+| Pinch 2 dedos                                         | Zoom do canvas (inward = zoom in, outward = zoom out) | [MVP]         |
+| Pan 2 dedos                                           | Navegar o canvas                                      | [MVP]         |
+| Tap em token                                          | Selecionar token                                      | [MVP]         |
+| Tap fora de token                                     | Deselecionar                                          | [MVP]         |
+| Long-press 500ms sobre token                          | Abrir menu de contexto (equivalente ao right-click)   | [MVP-stretch] |
+| Double-tap em token                                   | Abrir sheet do token                                  | [MVP-stretch] |
 
 **[MVP-stretch]:** Implementar se validado em hardware real antes do freeze de MVP; caso contrário promovido a [V2]. O zoom via pinch com âncora no ponto médio dos dois dedos (Questão 2) requer validação em dispositivos reais — no MVP o zoom pode usar o centro da tela como âncora se a âncora de gesto não for validada a tempo.
 
@@ -296,6 +310,7 @@ A detecção é feita via `MediaQuery` reativa do Svelte 5 (`import { MediaQuery
 **REQ-A11-045** [MVP] A sidebar em modo tablet deve ser colapsável/expansível via: swipe from the right edge (gesto de pan a partir de ≤ 24px da borda direita), toque no FAB, e botão dedicado no topo. O estado (colapsada/expandida) é persistido por sessão.
 
 **REQ-A11-046** [MVP] A UI deve detectar hover-only affordances e prover alternativas para touch. Especificamente:
+
 - Tooltips que aparecem ao hover devem também aparecer ao long-press.
 - Botões de ação que aparecem ao hover sobre um token devem ter representação permanente no HUD do token quando em modo tablet.
 - Fórmulas de dados visíveis ao hover devem ser exibidas permanentemente em modo tablet.
@@ -339,7 +354,7 @@ const app = new Application();
 await app.init({
   antialias: canvasAntialias,
   resolution: Math.min(window.devicePixelRatio, 2),
-  preference: 'webgpu', // fallback automático para WebGL se WebGPU indisponível
+  preference: "webgpu", // fallback automático para WebGL se WebGPU indisponível
 });
 ```
 
@@ -389,7 +404,7 @@ export interface UserQualitySettings {
   /** Animar luzes (flickering, pulsating). Default: true */
   lightsAnimated: boolean;
   /** Qualidade do fog of war. Default: 'full' */
-  fogQuality: 'full' | 'simplified' | 'off';
+  fogQuality: "full" | "simplified" | "off";
   /** Antialiasing do renderer PixiJS. Default: false em DPR >= 2 */
   canvasAntialias: boolean;
   /** Resolução de renderização (fração do devicePixelRatio). Default: 1.0 capped em DPR 2 */
@@ -428,15 +443,15 @@ export interface KeybindingAction {
   /** Label legível para exibir no painel de controles */
   label: string; // i18n key
   /** Contexto em que o atalho é ativo */
-  context: 'global' | 'canvas' | 'chat' | 'sheet';
+  context: "global" | "canvas" | "chat" | "sheet";
   /** Default binding */
-  default: Omit<KeybindingEntry, 'actionId'>;
+  default: Omit<KeybindingEntry, "actionId">;
   /** Callback a executar quando o binding é acionado */
   handler: () => void | Promise<void>;
 }
 
 /** Modo de dispositivo detectado */
-export type DeviceMode = 'desktop' | 'tablet' | 'mobile';
+export type DeviceMode = "desktop" | "tablet" | "mobile";
 
 /** Store reativo global de estado de dispositivo */
 export interface DeviceState {
@@ -459,31 +474,26 @@ export interface DeviceState {
 
 ```typescript
 // packages/client/src/stores/device.ts
-import { MediaQuery } from 'svelte/reactivity';
+import { MediaQuery } from "svelte/reactivity";
 
-const touchQuery = new MediaQuery('(hover: none) and (pointer: coarse)');
-const tabletQuery = new MediaQuery('(max-width: 1024px) and (pointer: coarse)');
+const touchQuery = new MediaQuery("(hover: none) and (pointer: coarse)");
+const tabletQuery = new MediaQuery("(max-width: 1024px) and (pointer: coarse)");
 // Usa MediaQuery para reagir a resize sem polling imperativo.
 // O gate de 'mobile' combina largura E altura para cobrir telefones em
 // landscape (largura > 640px mas altura pequena) sem falso-positivo em
 // desktop redimensionado com mouse (touchQuery exclui pointer: fine).
-const mobileQuery = new MediaQuery(
-  '(hover: none) and (pointer: coarse) and (max-width: 639px)'
-);
+const mobileQuery = new MediaQuery("(hover: none) and (pointer: coarse) and (max-width: 639px)");
 
 export const deviceMode: Readable<DeviceMode> = derived(
   [mobileQuery, tabletQuery],
   ([$mobile, $tablet]) => {
-    if ($mobile.current) return 'mobile';
-    if ($tablet.current) return 'tablet';
-    return 'desktop';
-  }
+    if ($mobile.current) return "mobile";
+    if ($tablet.current) return "tablet";
+    return "desktop";
+  },
 );
 
-export const isTouchDevice: Readable<boolean> = derived(
-  touchQuery,
-  ($q) => $q.current
-);
+export const isTouchDevice: Readable<boolean> = derived(touchQuery, ($q) => $q.current);
 ```
 
 ### KeybindingRegistry
@@ -499,7 +509,7 @@ class KeybindingRegistry {
   applyUserBindings(bindings: UserKeybindings): void;
 
   /** Detecta conflitos no contexto */
-  getConflicts(context: KeybindingAction['context']): Array<{
+  getConflicts(context: KeybindingAction["context"]): Array<{
     actionA: string;
     actionB: string;
     binding: KeybindingEntry;
@@ -522,7 +532,7 @@ export const keybindings = new KeybindingRegistry();
 
 /** Emitido quando o foco de teclado muda de token */
 interface TokenFocusEvent {
-  type: 'token:focus';
+  type: "token:focus";
   tokenId: string;
   tokenName: string;
   hp: { current: number; max: number } | null;
@@ -531,7 +541,7 @@ interface TokenFocusEvent {
 
 /** Emitido quando token recebe "click" via teclado (Enter/Space) */
 interface TokenActivateEvent {
-  type: 'token:activate';
+  type: "token:activate";
   tokenId: string;
 }
 ```

@@ -32,51 +32,51 @@ O `system.json` é o contrato entre o sistema e o Foundry. Abaixo todos os campo
 
 #### Campos Obrigatórios
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | string | Identificador único em minúsculas; deve coincidir com o nome da pasta |
-| `title` | string | Nome legível exibido nos menus de criação de mundo |
-| `description` | string | Texto de apresentação; aceita HTML |
-| `version` | string | Versão do sistema (qualquer esquema: semver, data, etc.) |
+| Campo         | Tipo   | Descrição                                                             |
+| ------------- | ------ | --------------------------------------------------------------------- |
+| `id`          | string | Identificador único em minúsculas; deve coincidir com o nome da pasta |
+| `title`       | string | Nome legível exibido nos menus de criação de mundo                    |
+| `description` | string | Texto de apresentação; aceita HTML                                    |
+| `version`     | string | Versão do sistema (qualquer esquema: semver, data, etc.)              |
 
 #### Campos de Código e Estilo
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
+| Campo       | Tipo     | Descrição                                                        |
+| ----------- | -------- | ---------------------------------------------------------------- |
 | `esmodules` | string[] | Arquivos JS importados como ES6 modules (preferível a `scripts`) |
-| `scripts` | string[] | Arquivos JS tradicionais carregados via `<script>` |
-| `styles` | string[] | Arquivos CSS aplicados ao cliente |
+| `scripts`   | string[] | Arquivos JS tradicionais carregados via `<script>`               |
+| `styles`    | string[] | Arquivos CSS aplicados ao cliente                                |
 
 #### Compatibilidade e Autoria
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `compatibility.minimum` | string | Versão mínima do Foundry suportada |
-| `compatibility.verified` | string | Versão testada e verificada |
-| `compatibility.maximum` | string | Versão máxima (omitir permite execução em versões futuras) |
-| `authors` | object[] | Array com name, email, discord, url de cada autor |
-| `url` | string | URL pública de documentação |
-| `manifest` | string | URL raw do system.json para atualização automática |
-| `download` | string | URL do zip para instalação automática |
+| Campo                    | Tipo     | Descrição                                                  |
+| ------------------------ | -------- | ---------------------------------------------------------- |
+| `compatibility.minimum`  | string   | Versão mínima do Foundry suportada                         |
+| `compatibility.verified` | string   | Versão testada e verificada                                |
+| `compatibility.maximum`  | string   | Versão máxima (omitir permite execução em versões futuras) |
+| `authors`                | object[] | Array com name, email, discord, url de cada autor          |
+| `url`                    | string   | URL pública de documentação                                |
+| `manifest`               | string   | URL raw do system.json para atualização automática         |
+| `download`               | string   | URL do zip para instalação automática                      |
 
 #### Conteúdo e Idiomas
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `packs` | object[] | Compendium packs (name, label, system, type, path) |
-| `packFolders` | object[] | Organização hierárquica dos packs em pastas |
-| `languages` | object[] | Arquivos de localização (lang, name, path) |
+| Campo         | Tipo     | Descrição                                          |
+| ------------- | -------- | -------------------------------------------------- |
+| `packs`       | object[] | Compendium packs (name, label, system, type, path) |
+| `packFolders` | object[] | Organização hierárquica dos packs em pastas        |
+| `languages`   | object[] | Arquivos de localização (lang, name, path)         |
 
 #### Definição de Tipos e Mecânicas
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `documentTypes` | object | Define subtipos de Actor/Item/etc. e seus schemas; **necessário para TypeDataModel** |
-| `initiative` | string | Fórmula de dados padrão para ordem de turno no combate |
-| `grid` | object | Unidade de medida e distância das cenas (distance, units) |
-| `primaryTokenAttribute` | string | Caminho do atributo exibido como barra primária no token |
-| `secondaryTokenAttribute` | string | Caminho do atributo exibido como barra secundária no token |
-| `socket` | boolean | Ativa namespace dedicado no socket.io para o sistema |
+| Campo                     | Tipo    | Descrição                                                                            |
+| ------------------------- | ------- | ------------------------------------------------------------------------------------ |
+| `documentTypes`           | object  | Define subtipos de Actor/Item/etc. e seus schemas; **necessário para TypeDataModel** |
+| `initiative`              | string  | Fórmula de dados padrão para ordem de turno no combate                               |
+| `grid`                    | object  | Unidade de medida e distância das cenas (distance, units)                            |
+| `primaryTokenAttribute`   | string  | Caminho do atributo exibido como barra primária no token                             |
+| `secondaryTokenAttribute` | string  | Caminho do atributo exibido como barra secundária no token                           |
+| `socket`                  | boolean | Ativa namespace dedicado no socket.io para o sistema                                 |
 
 #### Exemplo de `documentTypes`
 
@@ -144,10 +144,10 @@ class CharacterData extends foundry.abstract.TypeDataModel {
     return {
       hp: new fields.SchemaField({
         value: new fields.NumberField({ required: true, integer: true, min: 0 }),
-        max:   new fields.NumberField({ required: true, integer: true, min: 0 })
+        max: new fields.NumberField({ required: true, integer: true, min: 0 }),
       }),
       biography: new fields.HTMLField({ required: false, blank: true }),
-      level: new fields.NumberField({ integer: true, min: 1, max: 20, initial: 1 })
+      level: new fields.NumberField({ integer: true, min: 1, max: 20, initial: 1 }),
     };
   }
 
@@ -164,19 +164,19 @@ class CharacterData extends foundry.abstract.TypeDataModel {
 
 #### Tipos de DataField Disponíveis
 
-| Tipo | Uso |
-|------|-----|
-| `StringField` | Texto simples |
-| `NumberField` | Números, suporta `min`, `max`, `integer`, `initial` |
-| `BooleanField` | true/false |
-| `HTMLField` | HTML com sanitização automática |
-| `SchemaField` | Objeto aninhado com sub-schema |
-| `ArrayField` | Coleção de valores |
-| `SetField` | Conjunto sem duplicatas |
-| `ObjectField` | Objeto livre sem schema definido |
-| `FilePathField` | Caminhos de mídia, com `categories` (IMAGE, VIDEO, etc.) |
-| `DocumentUUIDField` | UUID de documento vinculado |
-| `EmbeddedDataField` | DataModel aninhado |
+| Tipo                | Uso                                                      |
+| ------------------- | -------------------------------------------------------- |
+| `StringField`       | Texto simples                                            |
+| `NumberField`       | Números, suporta `min`, `max`, `integer`, `initial`      |
+| `BooleanField`      | true/false                                               |
+| `HTMLField`         | HTML com sanitização automática                          |
+| `SchemaField`       | Objeto aninhado com sub-schema                           |
+| `ArrayField`        | Coleção de valores                                       |
+| `SetField`          | Conjunto sem duplicatas                                  |
+| `ObjectField`       | Objeto livre sem schema definido                         |
+| `FilePathField`     | Caminhos de mídia, com `categories` (IMAGE, VIDEO, etc.) |
+| `DocumentUUIDField` | UUID de documento vinculado                              |
+| `EmbeddedDataField` | DataModel aninhado                                       |
 
 #### Registro dos DataModels
 
@@ -241,9 +241,9 @@ O registro de sheets usa `DocumentCollection.registerSheet()` (acessível via `A
 
 ```javascript
 Actors.registerSheet(namespace, SheetClass, {
-  types: ["character", "npc"],  // subtipos que essa sheet atende
-  makeDefault: true,             // sheet padrão para o(s) tipo(s)
-  label: "MEUSISTEMA.SheetLabels.Actor"
+  types: ["character", "npc"], // subtipos que essa sheet atende
+  makeDefault: true, // sheet padrão para o(s) tipo(s)
+  label: "MEUSISTEMA.SheetLabels.Actor",
 });
 ```
 
@@ -292,7 +292,7 @@ Mixin que adiciona suporte a Handlebars ao `ApplicationV2`. Necessário para usa
 class MinhaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   static PARTS = {
     header: { template: "systems/x/templates/header.hbs" },
-    body:   { template: "systems/x/templates/body.hbs" }
+    body: { template: "systems/x/templates/body.hbs" },
   };
 }
 ```
@@ -300,6 +300,7 @@ class MinhaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 **ActorSheetV2 e ItemSheetV2:**
 
 Subclasses de `DocumentSheetV2` específicas para Actors e Items. `ActorSheetV2` já inclui:
+
 - Setup automático de drag & drop (elementos com `data-item-id`, `data-effect-id`)
 - Verificações de permissão para drag
 - Ordenação de items dentro do mesmo actor
@@ -333,6 +334,7 @@ Hooks.callAll("hookName", ...args);
 ```
 
 **Diferença crítica entre `call` e `callAll`:**
+
 - `Hooks.call()` para a execução se qualquer handler retornar `false`
 - `Hooks.callAll()` executa todos os handlers independentemente do retorno
 
@@ -340,26 +342,26 @@ Hooks.callAll("hookName", ...args);
 
 #### Inicialização (sequência garantida, executam uma vez por sessão)
 
-| Hook | Momento |
-|------|---------|
-| `init` | Primeira chamada; registrar configs do sistema |
-| `i18nInit` | Após carregamento das strings de idioma |
-| `setup` | Após preparação inicial dos documentos |
-| `canvasConfig` | Configuração do canvas (se habilitado) |
-| `ready` | Sistema pronto; dados de mundo disponíveis |
+| Hook           | Momento                                        |
+| -------------- | ---------------------------------------------- |
+| `init`         | Primeira chamada; registrar configs do sistema |
+| `i18nInit`     | Após carregamento das strings de idioma        |
+| `setup`        | Após preparação inicial dos documentos         |
+| `canvasConfig` | Configuração do canvas (se habilitado)         |
+| `ready`        | Sistema pronto; dados de mundo disponíveis     |
 
 #### CRUD de Documentos (substituem por tipo específico)
 
 O padrão é `<pre><NomeDoc>` para hooks canceláveis e `<NomeDoc>` para hooks de notificação. Exemplos com `Actor`:
 
-| Hook | Cancelável? | Descrição |
-|------|-------------|-----------|
-| `preCreateActor` | Sim | Antes da criação; permite modificar dados ou cancelar |
-| `createActor` | Não | Após criação confirmada |
-| `preUpdateActor` | Sim | Antes de update; permite modificar diff ou cancelar |
-| `updateActor` | Não | Após update confirmado |
-| `preDeleteActor` | Sim | Antes de deleção; pode cancelar |
-| `deleteActor` | Não | Após deleção |
+| Hook             | Cancelável? | Descrição                                             |
+| ---------------- | ----------- | ----------------------------------------------------- |
+| `preCreateActor` | Sim         | Antes da criação; permite modificar dados ou cancelar |
+| `createActor`    | Não         | Após criação confirmada                               |
+| `preUpdateActor` | Sim         | Antes de update; permite modificar diff ou cancelar   |
+| `updateActor`    | Não         | Após update confirmado                                |
+| `preDeleteActor` | Sim         | Antes de deleção; pode cancelar                       |
+| `deleteActor`    | Não         | Após deleção                                          |
 
 Outros tipos seguem o mesmo padrão: `Item`, `Scene`, `JournalEntry`, `Combat`, `Combatant`, etc.
 
@@ -367,46 +369,46 @@ Hooks genéricos também existem: `preCreateDocument`, `createDocument`, `preUpd
 
 #### Hooks de Render
 
-| Hook | Descrição |
-|------|-----------|
-| `renderApplicationV2` | Ao renderizar qualquer app V2 |
-| `preRenderApplication` | Antes de renderizar app V2 |
+| Hook                    | Descrição                              |
+| ----------------------- | -------------------------------------- |
+| `renderApplicationV2`   | Ao renderizar qualquer app V2          |
+| `preRenderApplication`  | Antes de renderizar app V2             |
 | `renderChatMessageHTML` | Ao renderizar HTML de mensagem no chat |
 
 O padrão `render<NomeApp>` (ex.: `renderActorSheet`) permite interceptar sheets específicas.
 
 #### Hooks de Canvas
 
-| Hook | Descrição |
-|------|-----------|
-| `canvasInit` | Inicialização do canvas |
-| `canvasDraw` | Desenho do canvas |
-| `canvasReady` | Canvas pronto para uso |
-| `canvasPan` | Quando o usuário movimenta a câmera |
+| Hook             | Descrição                              |
+| ---------------- | -------------------------------------- |
+| `canvasInit`     | Inicialização do canvas                |
+| `canvasDraw`     | Desenho do canvas                      |
+| `canvasReady`    | Canvas pronto para uso                 |
+| `canvasPan`      | Quando o usuário movimenta a câmera    |
 | `canvasTearDown` | Destruição do canvas (mudança de cena) |
-| `dropCanvasData` | Dado arrastado sobre o canvas |
-| `drawLayer` | Ao desenhar uma layer |
+| `dropCanvasData` | Dado arrastado sobre o canvas          |
+| `drawLayer`      | Ao desenhar uma layer                  |
 
 #### Hooks de Combate
 
-| Hook | Descrição |
-|------|-----------|
-| `combatStart` | Início do combate |
-| `combatRound` | Mudança de round |
-| `combatTurn` | Mudança de turno |
+| Hook               | Descrição                                  |
+| ------------------ | ------------------------------------------ |
+| `combatStart`      | Início do combate                          |
+| `combatRound`      | Mudança de round                           |
+| `combatTurn`       | Mudança de turno                           |
 | `combatTurnChange` | Transição de turno (detalhes da transição) |
 
 #### Outros Hooks Importantes
 
-| Hook | Descrição |
-|------|-----------|
-| `hotbarDrop` | Item arrastado para a hotbar |
-| `userConnected` | Usuário conecta/desconecta |
-| `chatMessage` | Mensagem enviada no chat (pré-processamento) |
-| `pauseGame` | Jogo pausado/retomado |
+| Hook                   | Descrição                                      |
+| ---------------------- | ---------------------------------------------- |
+| `hotbarDrop`           | Item arrastado para a hotbar                   |
+| `userConnected`        | Usuário conecta/desconecta                     |
+| `chatMessage`          | Mensagem enviada no chat (pré-processamento)   |
+| `pauseGame`            | Jogo pausado/retomado                          |
 | `modifyTokenAttribute` | Atributo do token modificado (clique na barra) |
-| `targetToken` | Token alvo marcado/desmarcado |
-| `dropCanvasData` | Drop de dados no canvas |
+| `targetToken`          | Token alvo marcado/desmarcado                  |
+| `dropCanvasData`       | Drop de dados no canvas                        |
 
 ---
 
@@ -416,30 +418,32 @@ O padrão `render<NomeApp>` (ex.: `renderActorSheet`) permite interceptar sheets
 
 ```javascript
 game.settings.register(namespace, key, {
-  name: "MEUSISTEMA.Settings.NomeDaSetting",  // chave de i18n
+  name: "MEUSISTEMA.Settings.NomeDaSetting", // chave de i18n
   hint: "MEUSISTEMA.Settings.NomeDaSettingHint",
-  type: Boolean,         // ou Number, String, Array, ou uma DataField class
-  scope: "world",        // "world" | "client" | "user"
-  config: true,          // aparece na tela de configurações?
-  default: false,        // valor padrão
+  type: Boolean, // ou Number, String, Array, ou uma DataField class
+  scope: "world", // "world" | "client" | "user"
+  config: true, // aparece na tela de configurações?
+  default: false, // valor padrão
   requiresReload: false, // pede reload ao mudar?
-  onChange: value => {   // callback disparado ao mudar (em todos os clientes para world-scope)
+  onChange: (value) => {
+    // callback disparado ao mudar (em todos os clientes para world-scope)
     console.log("Setting changed:", value);
   },
-  choices: {             // opcional — cria dropdown
-    "option1": "MEUSISTEMA.Choice1",
-    "option2": "MEUSISTEMA.Choice2"
-  }
+  choices: {
+    // opcional — cria dropdown
+    option1: "MEUSISTEMA.Choice1",
+    option2: "MEUSISTEMA.Choice2",
+  },
 });
 ```
 
 ### 6.2 Escopos
 
-| Scope | Armazenamento | Quem pode modificar | Sincronização |
-|-------|---------------|---------------------|---------------|
-| `world` | Banco de dados do mundo | GMs e Assistant GMs | Todos os clientes |
-| `user` | Dado do usuário | O próprio usuário | Qualquer dispositivo do usuário |
-| `client` | localStorage do navegador | Qualquer usuário | Apenas o dispositivo local |
+| Scope    | Armazenamento             | Quem pode modificar | Sincronização                   |
+| -------- | ------------------------- | ------------------- | ------------------------------- |
+| `world`  | Banco de dados do mundo   | GMs e Assistant GMs | Todos os clientes               |
+| `user`   | Dado do usuário           | O próprio usuário   | Qualquer dispositivo do usuário |
+| `client` | localStorage do navegador | Qualquer usuário    | Apenas o dispositivo local      |
 
 **Nota:** O callback `onChange` dispara em todos os clientes para `world`, mas apenas localmente para `client`.
 
@@ -462,8 +466,8 @@ game.settings.registerMenu("meu-sistema", "config-avancada", {
   name: "Configurações Avançadas",
   label: "Abrir",
   icon: "fas fa-cog",
-  type: MinhaConfigSheet,  // ApplicationV2 subclass
-  restricted: true          // apenas GMs
+  type: MinhaConfigSheet, // ApplicationV2 subclass
+  restricted: true, // apenas GMs
 });
 ```
 
@@ -530,7 +534,7 @@ game.i18n.format("MEUSISTEMA.Errors.InvalidRoll", { reason: "dado inválido" });
 ```
 
 ```handlebars
-{{!-- Templates Handlebars --}}
+{{! Templates Handlebars }}
 <h1>{{localize "MEUSISTEMA.Title"}}</h1>
 ```
 
@@ -544,21 +548,21 @@ game.i18n.format("MEUSISTEMA.Errors.InvalidRoll", { reason: "dado inválido" });
 
 Os tipos de documento nativos do Foundry são:
 
-| Documento | Embedded Em | Tem `system` field? | Suporta Subtipos? |
-|-----------|-------------|---------------------|-------------------|
-| Actor | — | Sim | Sim |
-| Item | Actor (embedded) | Sim | Sim |
-| ActiveEffect | Actor, Item | Sim (v14+) | Não |
-| JournalEntry | — | Não | Não |
-| JournalEntryPage | JournalEntry | Sim | Sim |
-| Scene | — | Não | Não |
-| Combat | — | Não | Não |
-| Combatant | Combat | Não | Não |
-| ChatMessage | — | Sim | Sim |
-| Macro | — | Não | Não |
-| RollTable | — | Não | Não |
-| Playlist | — | Não | Não |
-| Cards | — | Não | Sim |
+| Documento        | Embedded Em      | Tem `system` field? | Suporta Subtipos? |
+| ---------------- | ---------------- | ------------------- | ----------------- |
+| Actor            | —                | Sim                 | Sim               |
+| Item             | Actor (embedded) | Sim                 | Sim               |
+| ActiveEffect     | Actor, Item      | Sim (v14+)          | Não               |
+| JournalEntry     | —                | Não                 | Não               |
+| JournalEntryPage | JournalEntry     | Sim                 | Sim               |
+| Scene            | —                | Não                 | Não               |
+| Combat           | —                | Não                 | Não               |
+| Combatant        | Combat           | Não                 | Não               |
+| ChatMessage      | —                | Sim                 | Sim               |
+| Macro            | —                | Não                 | Não               |
+| RollTable        | —                | Não                 | Não               |
+| Playlist         | —                | Não                 | Não               |
+| Cards            | —                | Não                 | Sim               |
 
 ### 9.2 CRUD de Documentos
 
@@ -608,6 +612,7 @@ await document.unsetFlag("meu-sistema", "customData");
 ```
 
 **Diferença entre `system` e `flags`:**
+
 - `system`: dados estruturados definidos pelo sistema via TypeDataModel; validados e migrados
 - `flags`: dados arbitrários sem schema definido; qualquer pacote pode escrever em seu namespace
 
@@ -633,6 +638,7 @@ CONFIG.JournalEntryPage.dataModels["quest-pages.quest"] = QuestModel;
 ```
 
 **Limitações dos module sub-types:**
+
 - Sistemas têm controle total sobre quais subtipos reconhecem; erros podem ocorrer se o sistema não suportar o tipo do módulo
 - Ao desativar o módulo, documentos com esse subtipo ficam invisíveis (mas não são deletados)
 - Reativar o módulo restaura a visibilidade
@@ -660,14 +666,14 @@ O sistema de Active Effects aplica modificadores temporários a Actors de forma 
 
 ### 10.2 Modos de Mudança
 
-| Modo | Constante | Comportamento |
-|------|-----------|---------------|
-| Custom | 0 | Lógica definida pelo sistema/módulo |
-| Multiply | 1 | Multiplica o atributo pelo valor fornecido |
-| Add | 2 | Soma (ou subtrai com valor negativo) |
-| Downgrade | 3 | Reduz apenas se o valor atual for maior que o fornecido |
-| Upgrade | 4 | Aumenta apenas se o valor atual for menor que o fornecido |
-| Override | 5 | Substitui o atributo pelo valor fornecido |
+| Modo      | Constante | Comportamento                                             |
+| --------- | --------- | --------------------------------------------------------- |
+| Custom    | 0         | Lógica definida pelo sistema/módulo                       |
+| Multiply  | 1         | Multiplica o atributo pelo valor fornecido                |
+| Add       | 2         | Soma (ou subtrai com valor negativo)                      |
+| Downgrade | 3         | Reduz apenas se o valor atual for maior que o fornecido   |
+| Upgrade   | 4         | Aumenta apenas se o valor atual for menor que o fornecido |
+| Override  | 5         | Substitui o atributo pelo valor fornecido                 |
 
 ### 10.3 Mudanças no v14
 
@@ -720,14 +726,14 @@ Qualquer tipo de documento pode ser armazenado: Actor, Item, Scene, JournalEntry
 
 ### 12.1 Diferenças Fundamentais
 
-| Aspecto | System | Module |
-|---------|--------|--------|
-| Define subtipos de documentos | Sim (campo `system`) | Sim (desde v11, com prefixo) |
-| Carregado sem sistema ativo | Não | Sim |
-| Pode afetar tela de Setup/Join | Sim | Não |
-| Define `initiative`, `grid` | Sim | Não |
-| `library: true` | Não | Sim |
-| Restricão por sistema | N/A | Via campo `system: ["meu-sistema"]` |
+| Aspecto                        | System               | Module                              |
+| ------------------------------ | -------------------- | ----------------------------------- |
+| Define subtipos de documentos  | Sim (campo `system`) | Sim (desde v11, com prefixo)        |
+| Carregado sem sistema ativo    | Não                  | Sim                                 |
+| Pode afetar tela de Setup/Join | Sim                  | Não                                 |
+| Define `initiative`, `grid`    | Sim                  | Não                                 |
+| `library: true`                | Não                  | Sim                                 |
+| Restricão por sistema          | N/A                  | Via campo `system: ["meu-sistema"]` |
 
 ### 12.2 O que Módulos Podem Alterar
 
@@ -742,6 +748,7 @@ Qualquer tipo de documento pode ser armazenado: Actor, Item, Scene, JournalEntry
 ### 12.3 Módulos de Biblioteca (Library Modules)
 
 Módulos com `"library": true` no manifest:
+
 - Carregam antes dos módulos normais
 - Não aparecem em listagens públicas
 - Uso típico: fornecer APIs compartilhadas para outros módulos
@@ -759,6 +766,7 @@ Padrão de uso recomendado: preferir hooks nativos. Usar libWrapper apenas quand
 ### 12.5 socketlib
 
 Biblioteca que simplifica o uso do socket.io para comunicação entre clientes. Abstrai o namespace do módulo e oferece:
+
 - `socketlib.registerModule(moduleId)` para registrar
 - Execução de funções em clientes específicos (GM, todos, outros)
 - Padrão de RPC entre cliente e servidor
@@ -808,13 +816,13 @@ Omitir `maximum` permite que usuários tentem executar em versões futuras (arri
 
 ### 13.2 Histórico de Mudanças Impactantes
 
-| Versão | Mudança Relevante para Sistemas/Módulos |
-|--------|----------------------------------------|
-| v10 | Introdução do DataModel; mudanças no modelo de dados de documentos |
-| v11 | NeDB → LevelDB em compendiums; module sub-types introduzidos |
-| v12 | ApplicationV2 introduzido como alternativa ao ApplicationV1 |
-| v13 | Todas as UIs do core migradas para ApplicationV2; scope `user` em settings |
-| v14 | `template.json` entra em depreciação; Measured Templates removidos; ActiveEffect v2; ApplicationV1 movido para `foundry.appv1` namespace |
+| Versão | Mudança Relevante para Sistemas/Módulos                                                                                                  |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| v10    | Introdução do DataModel; mudanças no modelo de dados de documentos                                                                       |
+| v11    | NeDB → LevelDB em compendiums; module sub-types introduzidos                                                                             |
+| v12    | ApplicationV2 introduzido como alternativa ao ApplicationV1                                                                              |
+| v13    | Todas as UIs do core migradas para ApplicationV2; scope `user` em settings                                                               |
+| v14    | `template.json` entra em depreciação; Measured Templates removidos; ActiveEffect v2; ApplicationV1 movido para `foundry.appv1` namespace |
 
 ### 13.3 Compatibilidade do Sistema PF2e (Referência)
 

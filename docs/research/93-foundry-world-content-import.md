@@ -77,27 +77,27 @@ Data/worlds/meu-mundo/
 
 O `world.json` é o manifesto do mundo e implementa a interface `WorldManifestData`. Campos obrigatórios:
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | string | Identificador único (kebab-case, sem espaços) |
-| `title` | string | Nome legível do mundo |
-| `type` | `"world"` | Constante que identifica o tipo de pacote |
-| `coreVersion` | string | Versão do core Foundry na última abertura |
-| `system` | string | ID do game system (ex.: `"pf2e"`) |
-| `systemVersion` | string | Versão do sistema na última abertura |
-| `version` | string | Versão do mundo (dot-separated) |
+| Campo           | Tipo      | Descrição                                     |
+| --------------- | --------- | --------------------------------------------- |
+| `id`            | string    | Identificador único (kebab-case, sem espaços) |
+| `title`         | string    | Nome legível do mundo                         |
+| `type`          | `"world"` | Constante que identifica o tipo de pacote     |
+| `coreVersion`   | string    | Versão do core Foundry na última abertura     |
+| `system`        | string    | ID do game system (ex.: `"pf2e"`)             |
+| `systemVersion` | string    | Versão do sistema na última abertura          |
+| `version`       | string    | Versão do mundo (dot-separated)               |
 
 Campos opcionais relevantes:
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `authors` | array | Co-autores com nomes |
-| `description` | string | Descrição em HTML |
-| `packs` | array | Compendiums do próprio mundo |
-| `packFolders` | array | Organização dos compendiums (v11+) |
-| `nextSession` | string | ISO datetime para próxima sessão |
-| `flags` | object | Dados customizados por namespace |
-| `relationships` | object | Dependências de módulos/sistemas |
+| Campo           | Tipo   | Descrição                          |
+| --------------- | ------ | ---------------------------------- |
+| `authors`       | array  | Co-autores com nomes               |
+| `description`   | string | Descrição em HTML                  |
+| `packs`         | array  | Compendiums do próprio mundo       |
+| `packFolders`   | array  | Organização dos compendiums (v11+) |
+| `nextSession`   | string | ISO datetime para próxima sessão   |
+| `flags`         | object | Dados customizados por namespace   |
+| `relationships` | object | Dependências de módulos/sistemas   |
 
 ### 1.4 LevelDB — Formato Binário e Sublevels
 
@@ -125,6 +125,7 @@ npm install -g @foundryvtt/foundryvtt-cli
 ### 2.2 Comandos Principais
 
 **Unpack (extração LevelDB → JSON/YAML):**
+
 ```bash
 # Descompacta um compendium pack para a pasta de saída
 fvtt package unpack "nome-do-pack" --out ./extracted/
@@ -143,6 +144,7 @@ fvtt package unpack "nome-do-pack" --out ./extracted/ --omitVolatile
 ```
 
 **Pack (JSON/YAML → LevelDB):**
+
 ```bash
 fvtt package pack "nome-do-pack" --in ./extracted/ --out ./packs/
 ```
@@ -189,49 +191,49 @@ O Foundry define 34 tipos de documentos concretos (v14). Para import ao Fusion, 
 
 **Documentos Primários (têm coleção própria no mundo):**
 
-| Document | Relevância para Import |
-|---|---|
-| `Actor` | Personagens, NPCs, criaturas |
-| `Item` | Itens, feats, magias, equipamentos |
-| `Scene` | Mapas com walls, lights, tokens, tiles |
-| `JournalEntry` | Notas, handouts, lore |
-| `Macro` | Comandos e automações |
-| `RollTable` | Tabelas de resultado aleatório |
-| `Playlist` | Trilha sonora |
-| `Folder` | Organização hierárquica |
-| `Adventure` | Container com múltiplos documentos empacotados |
+| Document       | Relevância para Import                         |
+| -------------- | ---------------------------------------------- |
+| `Actor`        | Personagens, NPCs, criaturas                   |
+| `Item`         | Itens, feats, magias, equipamentos             |
+| `Scene`        | Mapas com walls, lights, tokens, tiles         |
+| `JournalEntry` | Notas, handouts, lore                          |
+| `Macro`        | Comandos e automações                          |
+| `RollTable`    | Tabelas de resultado aleatório                 |
+| `Playlist`     | Trilha sonora                                  |
+| `Folder`       | Organização hierárquica                        |
+| `Adventure`    | Container com múltiplos documentos empacotados |
 
 **Documentos Embedded (vivem dentro de um pai):**
 
-| Document Embedded | Pai |
-|---|---|
-| `ActiveEffect` | Actor, Item |
-| `Item` (owned) | Actor |
-| `TokenDocument` | Scene |
-| `AmbientLight` | Scene |
-| `AmbientSound` | Scene |
-| `MeasuredTemplate` | Scene |
-| `Note` | Scene |
-| `Region` | Scene |
-| `Tile` | Scene |
-| `Wall` | Scene |
-| `Drawing` | Scene |
+| Document Embedded  | Pai         |
+| ------------------ | ----------- |
+| `ActiveEffect`     | Actor, Item |
+| `Item` (owned)     | Actor       |
+| `TokenDocument`    | Scene       |
+| `AmbientLight`     | Scene       |
+| `AmbientSound`     | Scene       |
+| `MeasuredTemplate` | Scene       |
+| `Note`             | Scene       |
+| `Region`           | Scene       |
+| `Tile`             | Scene       |
+| `Wall`             | Scene       |
+| `Drawing`          | Scene       |
 
 ### 3.2 Campos Comuns a Todos os Documents
 
 Todo documento Foundry compartilha estes campos independente do tipo:
 
-| Campo | Tipo | Notas |
-|---|---|---|
-| `_id` | string (16 chars base62) | Identificador único imutável; gerado uma vez |
-| `name` | string | Nome legível |
-| `type` | string | Subtipo dentro do document type |
-| `img` | string (path) | Caminho para imagem/ícone |
-| `flags` | object | Dados arbitrários por namespace (`flags.<namespace>.<key>`) |
-| `folder` | string \| null | `_id` da Folder pai |
-| `sort` | integer | Ordem de exibição |
-| `ownership` | object | Permissões por `userId` → nível |
-| `_stats` | object | Metadados: `coreVersion`, `systemVersion`, `createdTime`, `modifiedTime`, `lastModifiedBy` |
+| Campo       | Tipo                     | Notas                                                                                      |
+| ----------- | ------------------------ | ------------------------------------------------------------------------------------------ |
+| `_id`       | string (16 chars base62) | Identificador único imutável; gerado uma vez                                               |
+| `name`      | string                   | Nome legível                                                                               |
+| `type`      | string                   | Subtipo dentro do document type                                                            |
+| `img`       | string (path)            | Caminho para imagem/ícone                                                                  |
+| `flags`     | object                   | Dados arbitrários por namespace (`flags.<namespace>.<key>`)                                |
+| `folder`    | string \| null           | `_id` da Folder pai                                                                        |
+| `sort`      | integer                  | Ordem de exibição                                                                          |
+| `ownership` | object                   | Permissões por `userId` → nível                                                            |
+| `_stats`    | object                   | Metadados: `coreVersion`, `systemVersion`, `createdTime`, `modifiedTime`, `lastModifiedBy` |
 
 ### 3.3 O Campo `system`
 
@@ -242,11 +244,13 @@ O campo `system` é um `TypeDataField` que contém todos os dados específicos d
 ### 3.4 O Campo `flags`
 
 `flags` segue a convenção `flags.<namespace>.<chave>`. Por exemplo:
+
 - `flags.core.*` — dados internos do Foundry core
 - `flags.pf2e.*` — dados do sistema PF2e
 - `flags.my-module.*` — dados de um módulo específico
 
 No contexto de import, o Fusion deve:
+
 1. **Ignorar** flags de módulos específicos (ex.: `flags.midi-qol`, `flags.tidy5e-sheet`) que não têm equivalente
 2. **Mapear** flags com semântica universal (ex.: `flags.core.initiativeBonus`) se relevante
 3. **Preservar** flags em um campo genérico de metadados para não perder dados do usuário
@@ -301,11 +305,11 @@ Todo item no compendium PF2e segue este schema de alto nível:
 
 Cada entrada do compendium PF2e contém um bloco `system.publication` com:
 
-| Campo | Valores | Significado |
-|---|---|---|
-| `license` | `"ORC"` ou `"OGL"` | Licença sob a qual o conteúdo mecânico foi publicado |
-| `remaster` | `true` ou `false` | Se é conteúdo do Remaster (Player Core, GM Core, etc.) |
-| `title` | string | Nome exato do livro fonte |
+| Campo      | Valores            | Significado                                            |
+| ---------- | ------------------ | ------------------------------------------------------ |
+| `license`  | `"ORC"` ou `"OGL"` | Licença sob a qual o conteúdo mecânico foi publicado   |
+| `remaster` | `true` ou `false`  | Se é conteúdo do Remaster (Player Core, GM Core, etc.) |
+| `title`    | string             | Nome exato do livro fonte                              |
 
 **Para o pipeline ETL do Fusion:** Este bloco deve ser preservado. Ele é essencial para determinar quais itens podem ser incluídos nos compendiums abertos do Fusion e sob qual licença.
 
@@ -346,6 +350,7 @@ Repositório pf2e (GitHub)
 ```
 
 Este pipeline é técnica e legalmente viável porque:
+
 1. O repositório `foundryvtt/pf2e` é open-source (Apache-2.0)
 2. O conteúdo mecânico dos compendiums está sob ORC/OGL
 3. O `foundryvtt-cli` é open-source (MIT) e pode ser usado em pipelines de build
@@ -360,71 +365,71 @@ Uma Scene no Foundry é o container de todos os elementos visuais do mapa. O sch
 
 **Campos de configuração:**
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `_id`, `name`, `flags`, `_stats` | comuns | Campos universais |
-| `backgroundColor` | string | Cor de fundo do canvas |
-| `width`, `height` | number | Dimensões do canvas em pixels |
-| `padding` | number | Espaço de buffer proporcional |
-| `thumb` | string | Thumbnail em baixa resolução |
-| `active` | boolean | Se é a cena ativa |
-| `navigation` | boolean | Se aparece na barra de navegação |
+| Campo                            | Tipo    | Descrição                        |
+| -------------------------------- | ------- | -------------------------------- |
+| `_id`, `name`, `flags`, `_stats` | comuns  | Campos universais                |
+| `backgroundColor`                | string  | Cor de fundo do canvas           |
+| `width`, `height`                | number  | Dimensões do canvas em pixels    |
+| `padding`                        | number  | Espaço de buffer proporcional    |
+| `thumb`                          | string  | Thumbnail em baixa resolução     |
+| `active`                         | boolean | Se é a cena ativa                |
+| `navigation`                     | boolean | Se aparece na barra de navegação |
 
 **Camada de imagem:**
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `background` | TextureData | Imagem de fundo (caminho + transformações) |
-| `foreground` | string (path) | Imagem de sobreposição (acima dos tokens) |
-| `foregroundElevation` | number | Elevação da camada foreground |
+| Campo                 | Tipo          | Descrição                                  |
+| --------------------- | ------------- | ------------------------------------------ |
+| `background`          | TextureData   | Imagem de fundo (caminho + transformações) |
+| `foreground`          | string (path) | Imagem de sobreposição (acima dos tokens)  |
+| `foregroundElevation` | number        | Elevação da camada foreground              |
 
 **Grid:**
 
-| Campo | Tipo | Descrição |
-|---|---|---|
+| Campo  | Tipo     | Descrição                                      |
+| ------ | -------- | ---------------------------------------------- |
 | `grid` | GridData | Tipo (square/hex), tamanho em pixels, unidades |
 
 **Visão e iluminação:**
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `tokenVision` | boolean | Se tokens precisam de visão para ver |
-| `fogExploration` | boolean | Se fog of war é rastreada |
-| `darkness` | number | Nível de escuridão (0 = luz plena, 1 = escuridão total) |
-| `environment` | SceneEnvironmentData | Efeitos ambientais aplicados |
+| Campo            | Tipo                 | Descrição                                               |
+| ---------------- | -------------------- | ------------------------------------------------------- |
+| `tokenVision`    | boolean              | Se tokens precisam de visão para ver                    |
+| `fogExploration` | boolean              | Se fog of war é rastreada                               |
+| `darkness`       | number               | Nível de escuridão (0 = luz plena, 1 = escuridão total) |
+| `environment`    | SceneEnvironmentData | Efeitos ambientais aplicados                            |
 
 **Coleções embedded:**
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `walls` | WallData[] | Segmentos de parede/porta |
-| `lights` | AmbientLightData[] | Fontes de luz ambientes |
-| `tokens` | TokenDocumentData[] | Tokens de ator na cena |
-| `tiles` | TileData[] | Tiles (imagens não-background) |
-| `drawings` | DrawingData[] | Desenhos do GM |
-| `notes` | NoteData[] | Pins de notas |
-| `sounds` | AmbientSoundData[] | Fontes de som ambientes |
-| `templates` | MeasuredTemplateData[] | Templates de medição |
-| `regions` | RegionData[] | Regiões (novo em v12) com behaviors |
+| Campo       | Tipo                   | Descrição                           |
+| ----------- | ---------------------- | ----------------------------------- |
+| `walls`     | WallData[]             | Segmentos de parede/porta           |
+| `lights`    | AmbientLightData[]     | Fontes de luz ambientes             |
+| `tokens`    | TokenDocumentData[]    | Tokens de ator na cena              |
+| `tiles`     | TileData[]             | Tiles (imagens não-background)      |
+| `drawings`  | DrawingData[]          | Desenhos do GM                      |
+| `notes`     | NoteData[]             | Pins de notas                       |
+| `sounds`    | AmbientSoundData[]     | Fontes de som ambientes             |
+| `templates` | MeasuredTemplateData[] | Templates de medição                |
+| `regions`   | RegionData[]           | Regiões (novo em v12) com behaviors |
 
 ### 5.2 Schema `WallData` — Paredes e Portas
 
 O `WallData` é a estrutura mais crítica para importação de cenas com iluminação dinâmica:
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `_id` | string | ID único do wall |
-| `c` | number[4] | Coordenadas `[x0, y0, x1, y1]` em pixels no canvas |
-| `move` | number (enum) | Restrição de movimento: 0=nenhum, 1=normal |
-| `sight` | number (enum) | Restrição de visão: 0=nenhum, 1=normal, 2=limitado, 3=proximidade |
-| `light` | number (enum) | Restrição de luz: 0=nenhum, 1=normal, 2=limitado, 3=proximidade |
-| `sound` | number (enum) | Restrição de som: 0=nenhum, 1=normal, 2=limitado, 3=proximidade |
-| `dir` | number | Direção do efeito (0=ambos os lados, 1=esquerda, 2=direita) |
-| `door` | number | Tipo de porta: 0=nenhuma, 1=porta normal, 2=porta secreta |
-| `ds` | number | Estado da porta: 0=fechada, 1=aberta, 2=travada |
-| `doorSound` | string | ID do sound profile para a porta |
-| `threshold` | WallThresholdData | Configuração de threshold para walls de proximidade |
-| `flags` | object | Flags por namespace |
+| Campo       | Tipo              | Descrição                                                         |
+| ----------- | ----------------- | ----------------------------------------------------------------- |
+| `_id`       | string            | ID único do wall                                                  |
+| `c`         | number[4]         | Coordenadas `[x0, y0, x1, y1]` em pixels no canvas                |
+| `move`      | number (enum)     | Restrição de movimento: 0=nenhum, 1=normal                        |
+| `sight`     | number (enum)     | Restrição de visão: 0=nenhum, 1=normal, 2=limitado, 3=proximidade |
+| `light`     | number (enum)     | Restrição de luz: 0=nenhum, 1=normal, 2=limitado, 3=proximidade   |
+| `sound`     | number (enum)     | Restrição de som: 0=nenhum, 1=normal, 2=limitado, 3=proximidade   |
+| `dir`       | number            | Direção do efeito (0=ambos os lados, 1=esquerda, 2=direita)       |
+| `door`      | number            | Tipo de porta: 0=nenhuma, 1=porta normal, 2=porta secreta         |
+| `ds`        | number            | Estado da porta: 0=fechada, 1=aberta, 2=travada                   |
+| `doorSound` | string            | ID do sound profile para a porta                                  |
+| `threshold` | WallThresholdData | Configuração de threshold para walls de proximidade               |
+| `flags`     | object            | Flags por namespace                                               |
 
 **Para importação de UVTT/mapas externos:** O mapeamento mais crítico é converter os segmentos de `line_of_sight` do formato UVTT para o array `c` do `WallData`. As coordenadas no UVTT são em unidades de "squares" (decimais), enquanto o Foundry usa pixels — a conversão requer multiplicar por `grid.size` (pixels por grid).
 
@@ -438,6 +443,7 @@ modules/module-name/art/portrait.webp
 ```
 
 **Implicação para import no Fusion:** O importador deve:
+
 1. Detectar se o arquivo referenciado existe no sistema de arquivos do usuário
 2. Copiar (ou criar link simbólico) para o diretório de assets do Fusion
 3. Atualizar o path no documento importado para o novo local
@@ -542,6 +548,7 @@ O export produz um arquivo `campaign.json` (ou ZIP contendo-o) com estrutura apr
 ```
 
 **Limitações importantes:**
+
 - O schema varia conforme a versão da sheet usada (OGL 5e, Shaped, etc.)
 - NPCs e personagens de sistemas não-D&D5e terão estrutura completamente diferente
 - Tokens em páginas de mapas têm posições em pixels mas sem walls/lights (as Dynamic Lighting do Roll20 são um sistema proprietário não exportado via R20Exporter)
@@ -571,6 +578,7 @@ O Roll20 usa um sistema proprietário de **Dynamic Lighting** que não é export
 O **Universal VTT** (UVTT) é um formato de arquivo criado pela Megasploot (desenvolvedora do Wonderdraft e Dungeondraft) para exportar mapas de ferramentas de cartografia com seus metadados de VTT (walls, portas, fontes de luz). É o **padrão de facto** da indústria para interoperabilidade de mapas entre VTTs.
 
 Extensões de arquivo:
+
 - `.dd2vtt` — export nativo do Dungeondraft
 - `.df2vtt` — export do Dungeonfog
 - `.uvtt` — formato genérico (mesmo conteúdo)
@@ -588,16 +596,30 @@ Extensões de arquivo:
     "pixels_per_grid": 140
   },
   "line_of_sight": [
-    [ { "x": 1.0, "y": 0.0 }, { "x": 1.0, "y": 5.5 }, { "x": 3.5, "y": 5.5 } ],
-    [ { "x": 8.0, "y": 0.0 }, { "x": 8.0, "y": 8.0 } ]
+    [
+      { "x": 1.0, "y": 0.0 },
+      { "x": 1.0, "y": 5.5 },
+      { "x": 3.5, "y": 5.5 }
+    ],
+    [
+      { "x": 8.0, "y": 0.0 },
+      { "x": 8.0, "y": 8.0 }
+    ]
   ],
   "objects_line_of_sight": [
-    [ { "x": 4.5, "y": 3.0 }, { "x": 5.5, "y": 3.0 }, { "x": 5.5, "y": 4.0 } ]
+    [
+      { "x": 4.5, "y": 3.0 },
+      { "x": 5.5, "y": 3.0 },
+      { "x": 5.5, "y": 4.0 }
+    ]
   ],
   "portals": [
     {
       "position": { "x": 3.5, "y": 2.0 },
-      "bounds": [ { "x": 3.0, "y": 2.0 }, { "x": 4.0, "y": 2.0 } ],
+      "bounds": [
+        { "x": 3.0, "y": 2.0 },
+        { "x": 4.0, "y": 2.0 }
+      ],
       "rotation": 0.0,
       "closed": true,
       "freestanding": false
@@ -622,19 +644,19 @@ Extensões de arquivo:
 
 **Campos explicados:**
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `format` | decimal | Versão do schema UVTT |
-| `resolution.map_origin` | `{x, y}` | Origem do mapa (geralmente 0,0) |
-| `resolution.map_size` | `{x, y}` | Tamanho em **squares** (unidades de grid) |
-| `resolution.pixels_per_grid` | integer | Pixels por unidade de grid |
-| `line_of_sight` | array de polylines | Cada polyline é um array de `{x,y}` em **squares**. Representa paredes e obstáculos de LOS |
-| `objects_line_of_sight` | array de polylines | LOS para objetos/móveis (mesas, pilares) — separado das paredes estruturais |
-| `portals` | array | Portas e janelas. `position` e `bounds` em squares; `rotation` em radianos; `closed` boolean; `freestanding` = portal de área aberta |
-| `environment.baked_lighting` | boolean | Se o mapa tem iluminação pré-renderizada (baked) |
-| `environment.ambient_light` | hex color | Cor da luz ambiente |
-| `lights` | array | Fontes de luz. `range` em squares; `intensity` 0-1; `color` hex; `shadows` boolean |
-| `image` | string | Base64 da imagem do mapa (PNG ou WEBP) |
+| Campo                        | Tipo               | Descrição                                                                                                                            |
+| ---------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `format`                     | decimal            | Versão do schema UVTT                                                                                                                |
+| `resolution.map_origin`      | `{x, y}`           | Origem do mapa (geralmente 0,0)                                                                                                      |
+| `resolution.map_size`        | `{x, y}`           | Tamanho em **squares** (unidades de grid)                                                                                            |
+| `resolution.pixels_per_grid` | integer            | Pixels por unidade de grid                                                                                                           |
+| `line_of_sight`              | array de polylines | Cada polyline é um array de `{x,y}` em **squares**. Representa paredes e obstáculos de LOS                                           |
+| `objects_line_of_sight`      | array de polylines | LOS para objetos/móveis (mesas, pilares) — separado das paredes estruturais                                                          |
+| `portals`                    | array              | Portas e janelas. `position` e `bounds` em squares; `rotation` em radianos; `closed` boolean; `freestanding` = portal de área aberta |
+| `environment.baked_lighting` | boolean            | Se o mapa tem iluminação pré-renderizada (baked)                                                                                     |
+| `environment.ambient_light`  | hex color          | Cor da luz ambiente                                                                                                                  |
+| `lights`                     | array              | Fontes de luz. `range` em squares; `intensity` 0-1; `color` hex; `shadows` boolean                                                   |
+| `image`                      | string             | Base64 da imagem do mapa (PNG ou WEBP)                                                                                               |
 
 ### 8.3 Conversão UVTT → Scene Foundry
 
@@ -653,6 +675,7 @@ UVTT line_of_sight[i] (polyline de N pontos)
 ```
 
 Para portals (portas):
+
 ```
 UVTT portal
 → WallData com:
@@ -662,6 +685,7 @@ UVTT portal
 ```
 
 Para luzes:
+
 ```
 UVTT lights[i]
 → AmbientLightData com:
@@ -674,6 +698,7 @@ UVTT lights[i]
 ### 8.4 Suporte a UVTT em VTTs Existentes
 
 O formato é suportado nativamente por:
+
 - Foundry VTT (via módulo Universal Importer)
 - Roll20 (via script UniversalVTTImporter — requer Pro subscription)
 - MapTool, Owlbear Rodeo, e outros VTTs menores
@@ -688,9 +713,10 @@ O formato é suportado nativamente por:
 
 O EULA do Foundry VTT (Software License) estabelece explicitamente:
 
-> *"You retain ownership to any personal data created within the software even if you relinquish or transfer your license."*
+> _"You retain ownership to any personal data created within the software even if you relinquish or transfer your license."_
 
 Isso significa que:
+
 - Qualquer coisa criada pelo GM no mundo (notas, mapas desenhados à mão, descrições originais, personagens originais) pertence ao GM
 - O GM tem todo o direito de exportar, migrar, importar em outro software e modificar esses dados
 - O Fusion pode receber esses dados livremente
@@ -706,6 +732,7 @@ Muitos GMs compram módulos oficiais Paizo (ex.: Abomination Vaults, Kingmaker) 
 - Tokens de personagem de artistas específicos
 
 **Status legal para import no Fusion:**
+
 - **Conteúdo mecânico (stats de NPCs, dados de itens) sob ORC/OGL:** Pode ser importado se o usuário cria sua própria implementação. A licença ORC cobre o conteúdo mecânico das regras.
 - **Texto narrativo/lore:** Protegido por copyright Paizo. Pode ser armazenado localmente pelo usuário para uso pessoal, mas o Fusion não deve facilitar redistribuição.
 - **Arte/imagens:** Cada asset tem sua própria licença (tipicamente All Rights Reserved para arte de módulos pagos). O Fusion pode armazenar e exibir para o usuário que comprou, mas não pode redistribuir.
@@ -716,21 +743,25 @@ Muitos GMs compram módulos oficiais Paizo (ex.: Abomination Vaults, Kingmaker) 
 ### 9.3 Compendiums Open-Source PF2e/SF2e
 
 Os compendiums do repositório `foundryvtt/pf2e` (GitHub, Apache-2.0) contêm conteúdo sob:
+
 - **ORC License:** Conteúdo do Remaster (Player Core, GM Core, Monster Core, etc.)
 - **OGL v1.0a:** Conteúdo pré-Remaster
 
 **O que pode ser feito:**
+
 - Extrair os JSON dos compendiums e incluí-los no Fusion como biblioteca de conteúdo
 - Redistribuir o conteúdo mecânico (stats, mecânicas) sob ORC/OGL
 - Referenciar as fontes corretamente (bloco `publication` em cada item)
 
 **O que NÃO pode:**
+
 - Incluir arte dos livros Paizo (cada imagem tem licença separada)
 - Incluir flavor text que seja IP exclusivo da Golarion (ex.: nomes de locais, personagens de lore)
 
 ### 9.4 Código do Foundry VTT (Sistema de Jogo)
 
 O Foundry VTT core é **software proprietário**. O código JavaScript/Electron do Foundry não pode ser copiado. Porém:
+
 - A API pública (API docs em `foundryvtt.com/api/`) documenta comportamento — pode ser estudada e implementada de forma independente
 - O sistema PF2e (`foundryvtt/pf2e`) é Apache-2.0 — pode ser estudado, citado em pequenos trechos, e reimplementado
 
@@ -742,13 +773,13 @@ O Foundry VTT core é **software proprietário**. O código JavaScript/Electron 
 
 Baseado na análise acima, os casos de uso de import ordenados por viabilidade e valor:
 
-| Prioridade | Caso de Uso | Complexidade | Valor |
-|---|---|---|---|
-| 1 | Import UVTT (mapas com walls/lights) | Baixa (parse JSON + conversão) | Alto (cartógrafos) |
-| 2 | Import de compendiums PF2e open-source | Média (ETL + mapeamento de schema) | Alto (conteúdo base) |
-| 3 | Import de Adventure JSON exportado do Foundry | Média (mapeamento de schema Foundry → Fusion) | Alto (preservar mundos) |
-| 4 | Import de mundo Foundry completo (via CLI) | Alta (ETL completo + assets) | Alto (migração total) |
-| 5 | Import de campanha Roll20 (via R20Exporter) | Alta (mapeamento diferente) | Médio (usuários migrando) |
+| Prioridade | Caso de Uso                                   | Complexidade                                  | Valor                     |
+| ---------- | --------------------------------------------- | --------------------------------------------- | ------------------------- |
+| 1          | Import UVTT (mapas com walls/lights)          | Baixa (parse JSON + conversão)                | Alto (cartógrafos)        |
+| 2          | Import de compendiums PF2e open-source        | Média (ETL + mapeamento de schema)            | Alto (conteúdo base)      |
+| 3          | Import de Adventure JSON exportado do Foundry | Média (mapeamento de schema Foundry → Fusion) | Alto (preservar mundos)   |
+| 4          | Import de mundo Foundry completo (via CLI)    | Alta (ETL completo + assets)                  | Alto (migração total)     |
+| 5          | Import de campanha Roll20 (via R20Exporter)   | Alta (mapeamento diferente)                   | Médio (usuários migrando) |
 
 ### 10.2 Arquitetura do Importador
 
@@ -764,20 +795,24 @@ Roll20 JSON          ──→  R20 Parser       ──→  R20→Fusion Mapper 
 ### 10.3 Considerações de Implementação
 
 **Resolução de assets:**
+
 - Manter um mapa `{ original_path → fusion_path }` durante o import
 - Verificar se assets existem no filesystem local antes de copiar
 - Para assets em base64 (UVTT), extrair e salvar como arquivo
 
 **Resolução de referências por UUID:**
+
 - No Foundry, documentos se referenciam por UUID: `Compendium.pf2e.feats-srd.Item.abc123`
 - No import, manter um mapa de UUIDs Foundry → IDs Fusion
 - Resolver referências dentro de Rule Elements e em links de JournalEntries
 
 **Migração incremental:**
+
 - Suportar re-import: se um documento com o mesmo `_id` Foundry já existe no Fusion, oferecer opção de sobrescrever ou duplicar
 - Para mundos grandes, processar em batches para não travar a UI
 
 **Validação pós-import:**
+
 - Verificar que todos os assets referenciados existem
 - Verificar que todas as referências UUID foram resolvidas
 - Reportar ao usuário quais elementos não puderam ser mapeados (ex.: Rule Elements sem equivalente)

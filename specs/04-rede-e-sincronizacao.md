@@ -66,6 +66,7 @@ Esta spec define **como os dados trafegam** entre o servidor autoritativo e os n
 **Racional:** socket.io fornece, prontos, vários mecanismos que precisaríamos reimplementar sobre `ws` nativo: reconexão automática com backoff, ACK callbacks (request/response correlacionado por op), namespaces, rooms (broadcast seletivo eficiente), heartbeat (ping/pong) e fallback de transporte. Está na stack fixada do projeto.
 
 **Alternativas rejeitadas:**
+
 - **WebSocket nativo (`ws`):** é o caminho para onde o Foundry migrou (v12+, ver `01-foundry-arquitetura-stack.md` §7.1), eliminando o overhead do socket.io. Rejeitado para o MVP do Fusion porque exigiria reimplementar ACK, rooms, reconexão e heartbeat manualmente — esforço que não agrega valor no MVP. Migração para `ws` nativo é candidata a [V2] caso o overhead se mostre relevante em profiling. A camada de `Envelope` (D2) é projetada para ser transporte-agnóstica, facilitando essa troca futura.
 - **WebTransport/HTTP3:** imaturo em 2026 para o público-alvo (navegadores LAN/residenciais variados); rejeitado.
 
@@ -76,6 +77,7 @@ Esta spec define **como os dados trafegam** entre o servidor autoritativo e os n
 **Racional:** um envelope único simplifica logging, rate limiting, validação de tamanho e versionamento do protocolo, e isola a lógica de aplicação do transporte (permitindo trocar socket.io por `ws` sem reescrever handlers). Definido em `packages/shared` para ser compartilhado por servidor e cliente (single source of truth de tipos).
 
 **Alternativas rejeitadas:**
+
 - **Um evento socket.io distinto por tipo de operação** (estilo `socket.on("updateActor", ...)`): dispersa a lógica transversal (rate limit, auth, logging) por dezenas de handlers e dificulta versionamento. Rejeitado. Usamos **poucos** eventos socket.io de baixo nível (`op`, `query`, `ephemeral`, `system`) e discriminamos a ação pelo campo `type` do envelope.
 
 ### D3 — Autoridade total no servidor
@@ -85,6 +87,7 @@ Esta spec define **como os dados trafegam** entre o servidor autoritativo e os n
 **Racional:** modelo provado no Foundry (ver `06-foundry-rede-multiplayer.md` §3) e essencial para anti-cheat (a stack fixou rolagens no servidor). Clientes são consumidores de verdade emitida pelo servidor.
 
 **Alternativas rejeitadas:**
+
 - **Autoridade no cliente do GM** (estilo `socketlib.executeAsGM` do Foundry, §4 do research): o cliente do GM executaria operações privilegiadas a pedido de jogadores. Rejeitado: nosso servidor é o próprio processo do GM e já é autoritativo; não precisamos delegar a um cliente-GM. Mantemos toda validação no servidor, eliminando a classe de bugs onde "o GM precisa estar online para o jogador descontar HP".
 
 ### D4 — Concorrência: otimista para movimento de token, pessimista para o resto
@@ -94,6 +97,7 @@ Esta spec define **como os dados trafegam** entre o servidor autoritativo e os n
 **Racional:** arrastar tokens precisa ser fluido (sub-frame), e esperar o round-trip introduziria lag perceptível. O risco de divergência é baixo e contornável por rollback. Para o restante (editar HP, criar item, mudar cena), a frequência é baixa e a corretude/consistência importa mais que a latência — o modelo pessimista evita "flicker" e estados intermediários inválidos. O Foundry usa essencialmente last-writer-wins sem optimistic update documentado (§3, §8 do research); nós adotamos otimismo cirúrgico só onde o UX justifica.
 
 **Alternativas rejeitadas:**
+
 - **Tudo otimista (estilo CRDT/local-first):** complexidade de reconciliação alta, conflitos difíceis em dados de regra (HP, condições). Rejeitado para o MVP.
 - **Tudo pessimista (incluindo movimento):** simples, mas movimento de token com lag de rede é UX inaceitável. Rejeitado.
 
@@ -104,6 +108,7 @@ Esta spec define **como os dados trafegam** entre o servidor autoritativo e os n
 **Racional:** LWW é suficiente para a maioria dos casos (edições de baixa frequência, raramente concorrentes). A guarda opcional de versão dá ao chamador a opção de compare-and-swap para campos críticos sem impor o custo a todas as ops.
 
 **Alternativas rejeitadas:**
+
 - **Locking pessimista de documento:** trava UX (jogador "segura" a ficha). Rejeitado.
 - **Merge automático 3-way de diffs concorrentes:** complexidade desproporcional para o MVP. Rejeitado.
 
@@ -114,6 +119,7 @@ Esta spec define **como os dados trafegam** entre o servidor autoritativo e os n
 **Racional:** delta minimiza tráfego em reconexões curtas (queda momentânea de Wi-Fi). O snapshot garante consistência quando a desconexão foi longa demais. Resolve a "janela de perda de atualizações" que o Foundry só corrigiu na v12 (§8 do research) — nós tratamos desde o início via buffer no servidor + buffer de aplicação no cliente até o `ready`.
 
 **Alternativas rejeitadas:**
+
 - **Sempre snapshot completo:** simples mas caro (recarrega todo o mundo a cada blip de rede). Rejeitado como padrão; mantido só como fallback.
 - **Event sourcing persistente completo:** guardar todo o histórico no banco para resync arbitrário. Overkill para o MVP; o buffer circular em memória basta. [V2] pode persistir um log de ops para auditoria (ver `24-operacao-backups-telemetria.md`).
 
@@ -221,14 +227,23 @@ export const PROTOCOL_VERSION = 1 as const;
 
 /** Discriminador de ação no formato "domain:action". */
 export type EnvelopeType =
-  | "doc:create" | "doc:update" | "doc:delete"
-  | "token:move" | "token:preview"
+  | "doc:create"
+  | "doc:update"
+  | "doc:delete"
+  | "token:move"
+  | "token:preview"
   | "query"
-  | "presence:cursor" | "presence:ping" | "presence:pan"
-  | "presence:online" | "presence:typing"
+  | "presence:cursor"
+  | "presence:ping"
+  | "presence:pan"
+  | "presence:online"
+  | "presence:typing"
   | "system"
-  | "resync:request" | "resync:delta" | "resync:full"
-  | "ack:ok" | "ack:error";
+  | "resync:request"
+  | "resync:delta"
+  | "resync:full"
+  | "ack:ok"
+  | "ack:error";
 
 /** Envelope comum a toda mensagem socket.io. */
 export interface Envelope<T = unknown> {
@@ -246,10 +261,18 @@ export interface Envelope<T = unknown> {
 
 /** Códigos de erro padronizados retornados em ack:error. */
 export type ErrorCode =
-  | "AUTH_FAILED" | "PROTOCOL_MISMATCH" | "WORLD_FULL"
-  | "PERMISSION_DENIED" | "VALIDATION_FAILED" | "NOT_FOUND"
-  | "STALE_WRITE" | "RATE_LIMITED" | "TOO_LARGE"
-  | "QUERY_TIMEOUT" | "SLOW_CONSUMER" | "INTERNAL_ERROR";
+  | "AUTH_FAILED"
+  | "PROTOCOL_MISMATCH"
+  | "WORLD_FULL"
+  | "PERMISSION_DENIED"
+  | "VALIDATION_FAILED"
+  | "NOT_FOUND"
+  | "STALE_WRITE"
+  | "RATE_LIMITED"
+  | "TOO_LARGE"
+  | "QUERY_TIMEOUT"
+  | "SLOW_CONSUMER"
+  | "INTERNAL_ERROR";
 
 /** Resposta de ack (via callback do socket.io). */
 export type Ack<R = unknown> =
@@ -261,11 +284,11 @@ export type DocumentDiff = Record<string, unknown>;
 
 /** Payload de doc:update (lote). */
 export interface DocUpdatePayload {
-  documentType: string;          // "Actor" | "Item" | "Scene" | ...
+  documentType: string; // "Actor" | "Item" | "Scene" | ...
   updates: Array<{
     _id: string;
     diff: DocumentDiff;
-    expectedVersion?: number;    // compare-and-swap opcional (D5)
+    expectedVersion?: number; // compare-and-swap opcional (D5)
     /** Endereçamento de documento embutido, quando aplicável. */
     embedded?: { type: string; id: string };
   }>;
@@ -273,7 +296,7 @@ export interface DocUpdatePayload {
 
 export interface DocCreatePayload {
   documentType: string;
-  data: unknown[];               // documentos completos a criar
+  data: unknown[]; // documentos completos a criar
   parent?: { type: string; id: string };
 }
 
@@ -345,7 +368,7 @@ export interface ResyncRequestPayload {
 export interface ResyncDeltaPayload {
   fromSeq: number;
   toSeq: number;
-  ops: Envelope[];               // ops canônicas faltantes, em ordem de seq
+  ops: Envelope[]; // ops canônicas faltantes, em ordem de seq
 }
 
 /** Mensagem custom de sistema (canal namespaced, D8). */
@@ -353,13 +376,13 @@ export interface SystemMessagePayload {
   systemId: string;
   channel: string;
   scope: "all" | "gm" | "user";
-  targetUserId?: string;         // obrigatório quando scope === "user"
-  data: unknown;                 // JSON-serializável; validado pelo sistema
+  targetUserId?: string; // obrigatório quando scope === "user"
+  data: unknown; // JSON-serializável; validado pelo sistema
 }
 
 /** Query genérica request/response. */
 export interface QueryPayload {
-  queryType: string;            // ex.: "system.pf2e.resolveCheck"
+  queryType: string; // ex.: "system.pf2e.resolveCheck"
   data: unknown;
 }
 ```
@@ -370,15 +393,15 @@ export interface QueryPayload {
 
 O Fusion usa um conjunto mínimo de eventos socket.io; a ação real é discriminada pelo `Envelope.type`.
 
-| Evento socket.io | Direção | Ack? | `Envelope.type` esperados |
-|---|---|---|---|
-| `op` | cliente → servidor | sim (callback `Ack`) | `doc:create`, `doc:update`, `doc:delete`, `token:move` |
-| `op` (broadcast) | servidor → clientes | não | mesmos, com `seq` preenchido |
-| `query` | cliente → servidor | sim (callback `Ack`) | `query` |
-| `ephemeral` | bidirecional | não | `token:preview`, `presence:cursor`, `presence:ping`, `presence:pan`, `presence:typing` |
-| `presence` | servidor → clientes | não | `presence:online` |
-| `system` | bidirecional (via servidor) | opcional | `system` |
-| `resync` | cliente → servidor | sim | `resync:request` → `resync:delta` \| `resync:full` |
+| Evento socket.io | Direção                     | Ack?                 | `Envelope.type` esperados                                                              |
+| ---------------- | --------------------------- | -------------------- | -------------------------------------------------------------------------------------- |
+| `op`             | cliente → servidor          | sim (callback `Ack`) | `doc:create`, `doc:update`, `doc:delete`, `token:move`                                 |
+| `op` (broadcast) | servidor → clientes         | não                  | mesmos, com `seq` preenchido                                                           |
+| `query`          | cliente → servidor          | sim (callback `Ack`) | `query`                                                                                |
+| `ephemeral`      | bidirecional                | não                  | `token:preview`, `presence:cursor`, `presence:ping`, `presence:pan`, `presence:typing` |
+| `presence`       | servidor → clientes         | não                  | `presence:online`                                                                      |
+| `system`         | bidirecional (via servidor) | opcional             | `system`                                                                               |
+| `resync`         | cliente → servidor          | sim                  | `resync:request` → `resync:delta` \| `resync:full`                                     |
 
 ### Ciclo de uma op pessimista (ex.: `doc:update` de HP)
 

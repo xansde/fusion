@@ -77,6 +77,7 @@ Especificar o subsistema de áudio do Fusion: modelo de dados de playlists e fai
 **Racional:** Howler.js resolve as principais dificuldades cross-browser: gestão de `AudioContext` (resume em interação), fallback automático para HTML5 Audio quando Web Audio não está disponível, suporte a sprite de áudio (útil para soundboard), spatial audio via `pannerAttr` e `pos()`, e loop sem lacuna via Web Audio native looping (diferente do `<audio>` element que tem gap). Elimina código de compatibilidade que seria necessário com Web Audio puro. A licença MIT é compatível com o projeto.
 
 **Alternativas rejeitadas:**
+
 - **Web Audio API diretamente:** máximo controle mas alto custo de implementação; compatibilidade cross-browser inconsistente para spatial audio; loop gap precisa de solução manual.
 - **Tone.js:** mais voltado para síntese e music production; overhead desnecessário para VTT.
 - **Buzz.js:** biblioteca abandonada, não mantida.
@@ -88,6 +89,7 @@ Especificar o subsistema de áudio do Fusion: modelo de dados de playlists e fai
 **Racional:** o servidor autoritativo garante que todos os clientes ouçam a mesma trilha ao mesmo tempo (com margem de tolerância de posição). Isso é essencial para imersão e para o uso de "música dramática no clímax". O volume local é sempre pessoal — um jogador com deficiência auditiva pode precisar de volume mais alto sem afetar os outros. Essa separação de responsabilidades evita conflitos de preferência e mantém o banco de dados livre de dados de preferência por usuário.
 
 **Alternativas rejeitadas:**
+
 - **Volume da faixa local:** causaria dessincronização de experiência e conflitos entre usuários.
 - **Estado de playback no cliente (peer-to-peer):** sem servidor autoritativo, o catch-up de jogadores que entram tarde seria não-determinístico e dependente de qual cliente está "na frente".
 
@@ -98,6 +100,7 @@ Especificar o subsistema de áudio do Fusion: modelo de dados de playlists e fai
 **Racional:** sincronização perfeita de áudio em rede (sample-accurate) exigiria NTP-like clock sync e buffering adicional — complexidade desproporcional para trilha sonora de RPG. Diferenças de ±2 segundos em músicas de fundo não são perceptíveis em sessões normais. O único caso problemático seria sincronização de efeito sonoro dramático com evento visual — coberto por [V2] com Web Audio `AudioContext.currentTime` scheduling.
 
 **Alternativas rejeitadas:**
+
 - **NTP-like clock sync (ex.: Cristian's Algorithm):** complexidade alta; necessário apenas para apps de música compartilhada ao vivo (DJ software), não para VTT.
 - **Recomeçar a faixa no catch-up:** simples de implementar, mas ruim para UX — um jogador que reconecta não quer que a música reinicie do zero.
 
@@ -105,9 +108,10 @@ Especificar o subsistema de áudio do Fusion: modelo de dados de playlists e fai
 
 **Decisão:** faixas configuradas com `loop: true` usam o modo `loop` nativo do Howler.js (que usa Web Audio native looping, sem gap). Para faixas que ainda apresentem gap perceptível (especialmente em formato MP3 com cabeçalho LAME), aplicar crossfade interno configurável de 50–500ms entre o fim e o início da faixa.
 
-**Racional:** o Foundry VTT documentadamente tem lacuna audível em loops — seu módulo de terceiros *The Sound of Silence* resolve com crossfade. O Fusion deve resolver isso nativamente. O loop nativo do Howler.js via Web Audio elimina o gap em OGG/OPUS/WebM; para MP3, o crossfade é necessário. O intervalo 50–500ms é configurável por faixa.
+**Racional:** o Foundry VTT documentadamente tem lacuna audível em loops — seu módulo de terceiros _The Sound of Silence_ resolve com crossfade. O Fusion deve resolver isso nativamente. O loop nativo do Howler.js via Web Audio elimina o gap em OGG/OPUS/WebM; para MP3, o crossfade é necessário. O intervalo 50–500ms é configurável por faixa.
 
 **Alternativas rejeitadas:**
+
 - **Dois `Howl` objects alternados (ping-pong):** funciona mas dobra o uso de memória por faixa; complexidade adicional de scheduling.
 - **Ignorar o gap:** experiência degradada notada pela maioria dos usuários em loops de ambient music.
 
@@ -118,6 +122,7 @@ Especificar o subsistema de áudio do Fusion: modelo de dados de playlists e fai
 **Racional:** `Howl.fade()` integra com o sistema de volume do Howler (não briga com o volume master), é não-bloqueante e cancela corretamente ao receber novos comandos. A curva equal-power em crossfade evita o "dip" de volume perceptível no ponto de troca que curvas lineares produzem.
 
 **Alternativas rejeitadas:**
+
 - **CSS animations / Web Animations API:** não aplicável a áudio.
 - **`setInterval` manual com volume steps:** frágil, impreciso, desperdiça CPU.
 
@@ -128,6 +133,7 @@ Especificar o subsistema de áudio do Fusion: modelo de dados de playlists e fai
 **Racional:** Howler.js encapsula a `PannerNode` do Web Audio, incluindo o modelo HRTF (Head Related Transfer Function) que produz spatial audio convincente mesmo em speakers estéreo. O volume por distância é calculado no cliente (e não no servidor) porque a posição do token é informação já disponível localmente e a atualização precisa ser responsiva (sem round-trip de rede a cada movimento).
 
 **Alternativas rejeitadas:**
+
 - **Panning com `StereoPannerNode` (apenas L/R):** som menos convincente, sem modelo de distância integrado.
 - **Cálculo de volume no servidor:** latência inaceitável para updates de posição contínuos; servidor não deve processar posição de câmera de cada cliente.
 
@@ -138,6 +144,7 @@ Especificar o subsistema de áudio do Fusion: modelo de dados de playlists e fai
 **Racional:** OGG produz loop limpo e tamanho menor; MP3 tem compatibilidade universal. Howler.js suporta array de sources nativamente (`src: ['sound.ogg', 'sound.mp3']`), selecionando o primeiro que o browser suportar. O Foundry usa exatamente o mesmo conjunto de formatos (`.flac`, `.mp3`, `.wav`, `.ogg`, `.webm`, `.opus`).
 
 **Alternativas rejeitadas:**
+
 - **Apenas MP3:** loop com gap perceptível; qualidade inferior por bitrate.
 - **Converter automaticamente no servidor:** FLAC→OGG no upload é desejável mas depende de `ffmpeg` instalado — tornar opcional, não obrigatório (ver `20-assets-e-midia.md`).
 
@@ -148,6 +155,7 @@ Especificar o subsistema de áudio do Fusion: modelo de dados de playlists e fai
 **Racional:** arquivos grandes de áudio (trilha lossless FLAC, ambient music de 30 min) não devem ser baixados completamente antes de tocar. O Fastify tem plugin `@fastify/static` com suporte a range requests built-in. O threshold de 5MB é baseado nas recomendações de bitrate (128–192kbps): arquivos até ~3 minutos ficam abaixo de 5MB em MP3/OGG e se beneficiam do Web Audio mode para loop perfeito.
 
 **Alternativas rejeitadas:**
+
 - **Sempre usar HTML5 audio:** loop gap em alguns formatos; sem controle fino via Web Audio API.
 - **Threshold fixo por formato:** complexidade desnecessária; o tamanho é melhor proxy que o formato.
 
@@ -158,6 +166,7 @@ Especificar o subsistema de áudio do Fusion: modelo de dados de playlists e fai
 **Racional:** browsers modernos (Chrome 66+, Firefox 74+, Safari 11+) bloqueiam `AudioContext` antes de interação do usuário — não há contorno técnico. A UI de desbloqueio é o padrão adotado por Foundry VTT e pela maioria dos VTTs web. O overlay deve ser mínimo e não-intrusivo (badge no canto, não modal bloqueante).
 
 **Alternativas rejeitadas:**
+
 - **Silenciosamente ignorar e tentar novamente:** cria confusão — o usuário não sabe por que não há áudio.
 - **Modal bloqueante:** interrompe o fluxo de entrada na sessão para jogadores.
 
@@ -267,15 +276,11 @@ Especificar o subsistema de áudio do Fusion: modelo de dados de playlists e fai
 ```typescript
 // packages/shared/src/documents/playlist.ts
 
-export type PlaylistMode =
-  | 'sequential'
-  | 'shuffle'
-  | 'simultaneous'
-  | 'soundboard';
+export type PlaylistMode = "sequential" | "shuffle" | "simultaneous" | "soundboard";
 
-export type AudioChannel = 'music' | 'environment' | 'interface';
+export type AudioChannel = "music" | "environment" | "interface";
 
-export type FalloffCurve = 'linear' | 'logarithmic';
+export type FalloffCurve = "linear" | "logarithmic";
 
 /** Subdocumento embedded em Playlist */
 export interface PlaylistSoundData {
@@ -357,23 +362,23 @@ export interface AmbientSoundData {
 
 /** Evento socket emitido pelo servidor para atualizar clientes */
 export interface AudioPlaybackEvent {
-  type: 'audio:playback-state';
+  type: "audio:playback-state";
   payload: PlaybackState;
 }
 
 /** Evento emitido quando o GM para toda a reprodução */
 export interface AudioStopAllEvent {
-  type: 'audio:stop-all';
+  type: "audio:stop-all";
   /** Duração do fade out em ms */
   fadeMs: number;
 }
 
 /** Preferências de volume armazenadas no localStorage do cliente (nunca no servidor) */
 export interface ClientAudioPreferences {
-  'fusion.audio.volume.music': number;    // default 0.8
-  'fusion.audio.volume.environment': number; // default 0.6
-  'fusion.audio.volume.interface': number; // default 0.5
-  'fusion.audio.unlocked': boolean;       // true após primeiro audioContext.resume()
+  "fusion.audio.volume.music": number; // default 0.8
+  "fusion.audio.volume.environment": number; // default 0.6
+  "fusion.audio.volume.interface": number; // default 0.5
+  "fusion.audio.unlocked": boolean; // true após primeiro audioContext.resume()
 }
 ```
 
@@ -383,34 +388,34 @@ export interface ClientAudioPreferences {
 
 ### Eventos socket.io (servidor → clientes)
 
-| Evento | Payload | Descrição |
-|---|---|---|
-| `audio:playback-state` | `PlaybackState` | Estado atualizado de uma playlist (play, pause, stop, skip, volume) |
-| `audio:stop-all` | `{ fadeMs: number }` | Parar toda a reprodução com fade out |
-| `audio:ambient-update` | `AmbientSoundData[]` | Lista de ambient sounds atualizada na cena ativa |
-| `audio:scene-linked` | `{ sceneId, playlistId }` | Cena ativada com playlist vinculada |
+| Evento                 | Payload                   | Descrição                                                           |
+| ---------------------- | ------------------------- | ------------------------------------------------------------------- |
+| `audio:playback-state` | `PlaybackState`           | Estado atualizado de uma playlist (play, pause, stop, skip, volume) |
+| `audio:stop-all`       | `{ fadeMs: number }`      | Parar toda a reprodução com fade out                                |
+| `audio:ambient-update` | `AmbientSoundData[]`      | Lista de ambient sounds atualizada na cena ativa                    |
+| `audio:scene-linked`   | `{ sceneId, playlistId }` | Cena ativada com playlist vinculada                                 |
 
 ### Mensagens socket.io (cliente GM → servidor)
 
-| Mensagem | Payload | Validação no servidor |
-|---|---|---|
-| `audio:play` | `{ playlistId, soundId? }` | Role ≥ GM; playlist existe no mundo |
-| `audio:pause` | `{ playlistId }` | Role ≥ GM |
-| `audio:stop` | `{ playlistId, fadeMs? }` | Role ≥ GM |
-| `audio:skip` | `{ playlistId, direction: 'next' \| 'prev' }` | Role ≥ GM; modo não é simultaneous/soundboard |
-| `audio:set-volume` | `{ playlistId, soundId?, volume: number }` | Role ≥ GM; volume ∈ [0.0, 1.0] |
-| `audio:stop-all` | `{ fadeMs?: number }` | Role ≥ GM |
-| `audio:request-state` | `{}` | Qualquer role; retorna array de `PlaybackState` ativos |
+| Mensagem              | Payload                                       | Validação no servidor                                  |
+| --------------------- | --------------------------------------------- | ------------------------------------------------------ |
+| `audio:play`          | `{ playlistId, soundId? }`                    | Role ≥ GM; playlist existe no mundo                    |
+| `audio:pause`         | `{ playlistId }`                              | Role ≥ GM                                              |
+| `audio:stop`          | `{ playlistId, fadeMs? }`                     | Role ≥ GM                                              |
+| `audio:skip`          | `{ playlistId, direction: 'next' \| 'prev' }` | Role ≥ GM; modo não é simultaneous/soundboard          |
+| `audio:set-volume`    | `{ playlistId, soundId?, volume: number }`    | Role ≥ GM; volume ∈ [0.0, 1.0]                         |
+| `audio:stop-all`      | `{ fadeMs?: number }`                         | Role ≥ GM                                              |
+| `audio:request-state` | `{}`                                          | Qualquer role; retorna array de `PlaybackState` ativos |
 
 ### REST endpoints (Fastify)
 
-| Método | Rota | Descrição |
-|---|---|---|
-| `GET` | `/api/worlds/:worldId/playlists` | Lista playlists do mundo |
-| `POST` | `/api/worlds/:worldId/playlists` | Cria playlist (body: `Partial<PlaylistData>`) |
-| `PATCH` | `/api/worlds/:worldId/playlists/:id` | Atualiza playlist (metadados, não estado de playback) |
-| `DELETE` | `/api/worlds/:worldId/playlists/:id` | Remove playlist |
-| `GET` | `/assets/*` | Serving estático com suporte a `Range` headers (via `@fastify/static`) |
+| Método   | Rota                                 | Descrição                                                              |
+| -------- | ------------------------------------ | ---------------------------------------------------------------------- |
+| `GET`    | `/api/worlds/:worldId/playlists`     | Lista playlists do mundo                                               |
+| `POST`   | `/api/worlds/:worldId/playlists`     | Cria playlist (body: `Partial<PlaylistData>`)                          |
+| `PATCH`  | `/api/worlds/:worldId/playlists/:id` | Atualiza playlist (metadados, não estado de playback)                  |
+| `DELETE` | `/api/worlds/:worldId/playlists/:id` | Remove playlist                                                        |
+| `GET`    | `/assets/*`                          | Serving estático com suporte a `Range` headers (via `@fastify/static`) |
 
 ### API interna do cliente (Svelte store + módulos)
 

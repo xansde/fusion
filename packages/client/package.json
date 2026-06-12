@@ -1,0 +1,24 @@
+{
+  "name": "@fusion/client",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "preview": "vite preview",
+    "typecheck": "svelte-check --tsconfig tsconfig.json --output machine-verbose",
+    "check": "svelte-check --tsconfig tsconfig.json --output machine-verbose",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fusion/shared": "workspace:*",
+    "svelte": "^5.0.0"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^5.0.0",
+    "svelte-check": "^4.0.0",
+    "vite": "^6.0.0",
+    "vitest": "^3.2.2"
+  }
+}

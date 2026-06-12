@@ -4,6 +4,7 @@
 **Data:** 2026-06-11
 
 **Baseada em:**
+
 - `docs/research/92-install-distribution-autoupdate.md` — distribuição, Tauri v2, auto-update, empacotamento Node.js, onboarding
 - `docs/research/01-foundry-arquitetura-stack.md` — referência Foundry: requisitos mínimos, porta, UPnP, estrutura de dados
 
@@ -46,21 +47,21 @@ O objetivo primário do MVP é que um GM não-técnico consiga: baixar um único
 
 ## Conceitos e Terminologia
 
-| Termo | Definição |
-|---|---|
-| **sidecar** | Binário do servidor Node.js empacotado dentro do app Tauri; gerenciado pelo processo Rust do Tauri |
-| **data directory** | Pasta escolhida pelo GM na primeira execução; contém `worlds/`, `systems/`, `assets/`, `Config/`, `Logs/` |
-| **portable build** | Modo em que o data directory fica ao lado do executável, em vez da pasta de documentos do usuário |
-| **update channel** | Canal de distribuição: `stable` (produção) ou `dev` (preview de features) |
-| **update manifest** | Arquivo JSON (`latest.json`) hospedado junto ao release; descreve versões disponíveis por plataforma |
-| **latest.json** | Manifesto de versão lido pelo `tauri-plugin-updater` para detectar updates disponíveis |
-| **NSIS installer** | Formato de instalador Windows gerado pelo Tauri; suporta instalação por usuário sem privilégios de administrador |
-| **AppImage** | Formato de distribuição Linux portátil; não requer instalação; executa diretamente |
-| **notarização** | Processo obrigatório da Apple para apps distribuídos fora da Mac App Store; valida que o app não contém malware |
-| **UPnP** | Universal Plug and Play; protocolo que solicita automaticamente ao roteador a abertura de portas |
+| Termo                 | Definição                                                                                                        |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **sidecar**           | Binário do servidor Node.js empacotado dentro do app Tauri; gerenciado pelo processo Rust do Tauri               |
+| **data directory**    | Pasta escolhida pelo GM na primeira execução; contém `worlds/`, `systems/`, `assets/`, `Config/`, `Logs/`        |
+| **portable build**    | Modo em que o data directory fica ao lado do executável, em vez da pasta de documentos do usuário                |
+| **update channel**    | Canal de distribuição: `stable` (produção) ou `dev` (preview de features)                                        |
+| **update manifest**   | Arquivo JSON (`latest.json`) hospedado junto ao release; descreve versões disponíveis por plataforma             |
+| **latest.json**       | Manifesto de versão lido pelo `tauri-plugin-updater` para detectar updates disponíveis                           |
+| **NSIS installer**    | Formato de instalador Windows gerado pelo Tauri; suporta instalação por usuário sem privilégios de administrador |
+| **AppImage**          | Formato de distribuição Linux portátil; não requer instalação; executa diretamente                               |
+| **notarização**       | Processo obrigatório da Apple para apps distribuídos fora da Mac App Store; valida que o app não contém malware  |
+| **UPnP**              | Universal Plug and Play; protocolo que solicita automaticamente ao roteador a abertura de portas                 |
 | **Cloudflare Tunnel** | `cloudflared` — cria túnel HTTPS gratuito entre o servidor local e a internet sem necessidade de port forwarding |
-| **join token** | Token aleatório anexado à URL de convite para impedir que estranhos entrem na sessão |
-| **world.db** | Arquivo SQLite por mundo (ver `03-persistencia-e-mundos.md`) |
+| **join token**        | Token aleatório anexado à URL de convite para impedir que estranhos entrem na sessão                             |
+| **world.db**          | Arquivo SQLite por mundo (ver `03-persistencia-e-mundos.md`)                                                     |
 
 ---
 
@@ -71,6 +72,7 @@ O objetivo primário do MVP é que um GM não-técnico consiga: baixar um único
 **Decisão:** No MVP, o Fusion distribui apenas o servidor Node.js em modo headless (CLI/executável sem GUI nativa). A UI de gerenciamento do GM é servida pelo próprio servidor e acessada no browser local. O wrapper Tauri v2 com tray icon é implementado na fase V2.
 
 **Alternativas rejeitadas:**
+
 - Electron imediato: bundle ~180 MB, RAM idle ~450 MB, cold start ~12 s — overhead desnecessário para o MVP.
 - Sem wrapper nunca: dados de adoção do Foundry mostram 72% dos usuários em app de desktop; o wrapper Tauri v2 é obrigatório para adoção em larga escala.
 
@@ -83,6 +85,7 @@ O objetivo primário do MVP é que um GM não-técnico consiga: baixar um único
 **Decisão:** O servidor (`packages/server`) é compilado em um executável autocontido por plataforma usando `@yao-pkg/pkg` (fork ativo do `vercel/pkg`), suportando `node22-win-x64`, `node22-macos-x64`, `node22-macos-arm64`, `node22-linux-x64`.
 
 **Alternativas rejeitadas:**
+
 - Node.js SEA: não tem VFS; `fs.readFile` de `node_modules` dentro do SEA é problemático; sem suporte cross-compilation transparente.
 - Distribuir como pacote npm (`npx fusion-server`): exige que o GM tenha Node.js instalado; UX ruim para usuários não-técnicos.
 - Node.js como `externalBin` no Tauri: adiciona ~50 MB ao bundle sem vantagem funcional.
@@ -104,12 +107,14 @@ O objetivo primário do MVP é que um GM não-técnico consiga: baixar um único
 ### DEC-DST-04: Instalador Windows NSIS; macOS DMG; Linux AppImage + DEB
 
 **Decisão:**
+
 - **Windows:** NSIS (`-setup.exe`) — suporta instalação por usuário sem UAC, cross-compilation em CI, ARM64 via emulação.
 - **macOS:** DMG com App Bundle (`.app`) — padrão UX da plataforma; notarização obrigatória.
 - **Linux:** AppImage (portátil, sem instalação) + DEB (Debian/Ubuntu). RPM pode ser adicionado após MVP.
 - **MVP headless:** um único executável binário por plataforma, sem instalador com wizard de sistema; a instalação é apenas "copiar e executar".
 
 **Alternativas rejeitadas:**
+
 - MSI (Windows): só compila em Windows; não suporta ARM64 nativo; mais rígido que NSIS.
 - Flatpak/Snap Linux: overhead de sandbox conflita com acesso ao sistema de arquivos local (data directory do GM).
 
@@ -118,12 +123,14 @@ O objetivo primário do MVP é que um GM não-técnico consiga: baixar um único
 ### DEC-DST-05: Code signing Windows com Azure Artifact Signing; macOS com Apple Developer
 
 **Decisão:**
+
 - **Windows:** Microsoft Azure Artifact Signing (Trusted Signing) — $9,99/mês, funciona em CI Linux/macOS, sem hardware token.
 - **macOS:** Apple Developer Program — $99/ano, notarização via `xcrun notarytool` integrada no `tauri-action`.
 - **Linux:** sem code signing obrigatório para distribuição direta (não App Store).
 - **Fase MVP headless:** sem code signing (distribuição para early adopters). Code signing entra junto com a distribuição pública estável.
 
 **Alternativas rejeitadas:**
+
 - Certificado OV tradicional (~$200–300/ano): desde 2023, exige HSM ou serviço cloud de qualquer forma; sem vantagem vs Azure.
 - EV: desde março de 2024, não elimina mais o warning do SmartScreen — sem vantagem prática.
 - SignPath Foundation (gratuito open-source): avaliar se o Fusion for licenciado open-source.
@@ -143,13 +150,15 @@ O objetivo primário do MVP é que um GM não-técnico consiga: baixar um único
 ### DEC-DST-07: Porta padrão 33000; UPnP opcional; Cloudflare Tunnel como fallback WAN
 
 **Decisão:**
+
 - Porta padrão: **33000** (porta própria do Fusion — ver `01-arquitetura-geral.md` D7 e REQ-ARQ-022).
 - UPnP: **desabilitado por padrão** no MVP; habilitável via configuração (risco de segurança em redes corporativas).
 - Cloudflare Tunnel (`cloudflared`) integrado como opção "Compartilhar pela internet" — zero config para o GM.
 - URL de convite LAN detectada automaticamente + exibida com QR code.
 
 **Alternativas rejeitadas:**
-- *30000*: é a porta default do Foundry VTT. Reusá-la causaria conflito de porta para quem roda os dois apps na mesma máquina e confundiria diagnósticos de rede (ver `01-arquitetura-geral.md` D7).
+
+- _30000_: é a porta default do Foundry VTT. Reusá-la causaria conflito de porta para quem roda os dois apps na mesma máquina e confundiria diagnósticos de rede (ver `01-arquitetura-geral.md` D7).
 - UPnP habilitado por padrão: o Foundry usa essa abordagem, mas o risco de segurança em redes corporativas/educacionais supera a conveniência.
 - ngrok: requer conta; menos privacidade do que Cloudflare Tunnel.
 - Relay TURN próprio: requer infraestrutura; fora do escopo.
@@ -196,6 +205,7 @@ O objetivo primário do MVP é que um GM não-técnico consiga: baixar um único
 ```
 
 **REQ-DST-008** [MVP] O data directory padrão deve ser:
+
 - Windows: `%USERPROFILE%\Documents\FusionVTT`
 - macOS: `~/Documents/FusionVTT`
 - Linux: `~/FusionVTT`
@@ -211,6 +221,7 @@ O objetivo primário do MVP é que um GM não-técnico consiga: baixar um único
 **REQ-DST-011** [MVP] Na primeira execução (detectada pela ausência de `Config/fusion.json`), o servidor deve servir uma página de setup inicial no browser (`http://localhost:{porta}/setup`) antes de disponibilizar qualquer funcionalidade de jogo.
 
 **REQ-DST-012** [MVP] O wizard de primeira execução deve coletar, nesta ordem:
+
 1. **Data directory** — caminho (pré-preenchido com o default; input livre; botão "Usar pasta portátil")
 2. **Porta do servidor** — número entre 1024 e 65535 (default: 33000); verificar se está disponível em tempo real
 3. **Senha de admin (Admin Key)** — campo de senha com confirmação; armazenada como hash **Argon2id** (`@node-rs/argon2`; parâmetros mínimos: `memory≥65536 KiB`, `iterations≥3`, `parallelism≥4`) em `Config/fusion.json`; conforme `21-seguranca.md` REQ-SEC-010
@@ -235,6 +246,7 @@ Os dois planos são paralelos: um GM pode ter a Admin Key sem ter um User de mun
 ### Atalho e Inicialização (Windows)
 
 **REQ-DST-016** [MVP] No Windows, o instalador (ou a primeira execução) deve oferecer a criação de:
+
 - Atalho no Desktop com ícone do Fusion
 - Entrada no menu Iniciar
 - (Opcional) Iniciar com o Windows via entrada no registro
@@ -250,14 +262,17 @@ Os dois planos são paralelos: um GM pode ter a Admin Key sem ter um User de mun
 **REQ-DST-020** [MVP] A verificação de update deve ser não-bloqueante: o servidor inicia normalmente mesmo se a verificação falhar (sem conexão, rate limit da API, etc.).
 
 **REQ-DST-021** [MVP] Quando um update estiver disponível, o servidor deve:
+
 1. Notificar o GM na tela de admin com versão atual, versão nova e notas de release
 2. Não iniciar o download automaticamente sem consentimento explícito do GM
 
 **REQ-DST-022** [MVP] Antes de aplicar um update, o sistema deve:
+
 1. Gerar o pre-event backup de cada world ativo via SQLite Online Backup API (`db.backup()`) conforme `24-operacao-backups-telemetria.md` REQ-OPS-005, salvo como `worlds/<slug>/backups/pre-event-update-<version>-<timestamp-ISO>.db` (formato canônico de backup `.db`, não tarball)
 2. Confirmar com o GM que os snapshots foram criados antes de prosseguir
 
 **REQ-DST-023** [MVP] O processo de update deve:
+
 1. Baixar o novo binário para um arquivo temporário
 2. Verificar o hash SHA-256 do download contra o valor publicado no release
 3. Substituir o executável atual pelo novo (renomear o atual para `.bak` antes)
@@ -301,23 +316,23 @@ Os dois planos são paralelos: um GM pode ter a Admin Key sem ter um User de mun
 
 **REQ-DST-039** [MVP] Requisitos mínimos da **máquina do GM** (servidor):
 
-| Recurso | Mínimo | Recomendado |
-|---|---|---|
-| CPU | Dual-core 2 GHz | Quad-core 3 GHz |
-| RAM | 4 GB | 8 GB |
-| Armazenamento livre | 2 GB | 10 GB+ (assets de mapas) |
-| Upload de rede | 5 Mbps | 20 Mbps |
-| OS | Windows 10 (64-bit), macOS 11 Big Sur, Ubuntu 20.04 | Windows 11, macOS 14, Ubuntu 22.04 |
+| Recurso             | Mínimo                                              | Recomendado                        |
+| ------------------- | --------------------------------------------------- | ---------------------------------- |
+| CPU                 | Dual-core 2 GHz                                     | Quad-core 3 GHz                    |
+| RAM                 | 4 GB                                                | 8 GB                               |
+| Armazenamento livre | 2 GB                                                | 10 GB+ (assets de mapas)           |
+| Upload de rede      | 5 Mbps                                              | 20 Mbps                            |
+| OS                  | Windows 10 (64-bit), macOS 11 Big Sur, Ubuntu 20.04 | Windows 11, macOS 14, Ubuntu 22.04 |
 
 **REQ-DST-040** [MVP] Requisitos mínimos do **browser dos jogadores** (cliente):
 
-| Recurso | Mínimo |
-|---|---|
-| Browser | Chrome 110+, Firefox 115+, Edge 110+, Safari 16.4+ |
-| RAM | 4 GB (8 GB recomendado) |
-| GPU | Aceleração de hardware ativa; suporte a WebGL 2.0 |
-| Resolução | 1280×720 |
-| Conexão | 2 Mbps download |
+| Recurso   | Mínimo                                             |
+| --------- | -------------------------------------------------- |
+| Browser   | Chrome 110+, Firefox 115+, Edge 110+, Safari 16.4+ |
+| RAM       | 4 GB (8 GB recomendado)                            |
+| GPU       | Aceleração de hardware ativa; suporte a WebGL 2.0  |
+| Resolução | 1280×720                                           |
+| Conexão   | 2 Mbps download                                    |
 
 **REQ-DST-041** [MVP] O cliente deve verificar suporte gráfico no lado do browser antes de inicializar o canvas: tentativa de contexto WebGPU; em caso de falha, fallback para WebGL 2.0; se nenhum estiver disponível, exibir página de erro estática com instruções para habilitar aceleração de hardware. O servidor não tem como detectar capacidades gráficas pelo User-Agent — a detecção é exclusivamente client-side, alinhada com a stack PIXI.js v8 (WebGPU com fallback WebGL) fixada no projeto. O requisito mínimo do lado do cliente (WebGL 2.0) é definido em REQ-DST-040.
 
@@ -358,33 +373,33 @@ Os dois planos são paralelos: um GM pode ter a Admin Key sem ter um User de mun
 ```typescript
 interface FusionConfig {
   // Versões
-  serverVersion: string;       // ex.: "0.1.0" — versão do binário que escreveu este arquivo
-  dataVersion: number;         // versão do schema do data directory; incrementada em migrações
+  serverVersion: string; // ex.: "0.1.0" — versão do binário que escreveu este arquivo
+  dataVersion: number; // versão do schema do data directory; incrementada em migrações
 
   // Rede
-  port: number;                // padrão: 33000 (ver 01-arquitetura-geral.md D7 e REQ-ARQ-022)
-  hostname: string;            // padrão: "0.0.0.0" (ouve em todas as interfaces)
-  routePrefix: string;         // padrão: "" (raiz); ex.: "/fusion" para reverse proxy
-  proxySSL: boolean;           // true se atrás de reverse proxy com SSL
-  proxyPort: number | null;    // porta externa do proxy (null = usar `port`)
-  upnpEnabled: boolean;        // padrão: false
-  allowedOrigins: string[];    // origens permitidas no upgrade WS e no CORS REST; padrão: [] (apenas 'self'); ver 21-seguranca.md REQ-SEC-056/057
+  port: number; // padrão: 33000 (ver 01-arquitetura-geral.md D7 e REQ-ARQ-022)
+  hostname: string; // padrão: "0.0.0.0" (ouve em todas as interfaces)
+  routePrefix: string; // padrão: "" (raiz); ex.: "/fusion" para reverse proxy
+  proxySSL: boolean; // true se atrás de reverse proxy com SSL
+  proxyPort: number | null; // porta externa do proxy (null = usar `port`)
+  upnpEnabled: boolean; // padrão: false
+  allowedOrigins: string[]; // origens permitidas no upgrade WS e no CORS REST; padrão: [] (apenas 'self'); ver 21-seguranca.md REQ-SEC-056/057
   logLevel: "fatal" | "error" | "warn" | "info" | "debug" | "trace"; // nível de log Pino; padrão: "info"; alterável em runtime sem reiniciar (ver 24-operacao-backups-telemetria.md REQ-OPS-023)
 
   // Autenticação
-  adminPasswordHash: string;   // Argon2id hash da Admin Key (ver REQ-DST-012 e 21-seguranca.md REQ-SEC-010)
-  jwtHmacSecret: string;       // segredo HMAC-SHA256 para assinar Access Tokens JWT (gerado na primeira execução; ver 05-usuarios-e-permissoes.md DEC-USR-03 e REQ-USR-NF-004); mantido apenas em memória em runtime — não exposto via HTTP
+  adminPasswordHash: string; // Argon2id hash da Admin Key (ver REQ-DST-012 e 21-seguranca.md REQ-SEC-010)
+  jwtHmacSecret: string; // segredo HMAC-SHA256 para assinar Access Tokens JWT (gerado na primeira execução; ver 05-usuarios-e-permissoes.md DEC-USR-03 e REQ-USR-NF-004); mantido apenas em memória em runtime — não exposto via HTTP
 
   // Updates
-  updateChannel: "stable" | "dev";   // padrão: "stable"
-  lastUpdateCheck: string | null;    // ISO 8601 da última verificação
+  updateChannel: "stable" | "dev"; // padrão: "stable"
+  lastUpdateCheck: string | null; // ISO 8601 da última verificação
 
   // Onboarding
-  setupCompleted: boolean;     // false enquanto wizard não foi concluído
-  dataDirectory: string;       // path absoluto do data directory escolhido
+  setupCompleted: boolean; // false enquanto wizard não foi concluído
+  dataDirectory: string; // path absoluto do data directory escolhido
 
   // Telemetria (opcional, ver 24-operacao-backups-telemetria.md)
-  telemetryEnabled: boolean;   // padrão: false; opt-in explícito
+  telemetryEnabled: boolean; // padrão: false; opt-in explícito
 }
 ```
 
@@ -393,16 +408,17 @@ interface FusionConfig {
 ```typescript
 // Hospedado em: https://github.com/{owner}/fusion/releases/download/{tag}/latest-{channel}.json
 interface UpdateManifest {
-  version: string;             // semver sem prefixo "v": "0.2.0"
-  releaseDate: string;         // ISO 8601
-  releaseNotes: string;        // markdown com changelog resumido
+  version: string; // semver sem prefixo "v": "0.2.0"
+  releaseDate: string; // ISO 8601
+  releaseNotes: string; // markdown com changelog resumido
   channel: "stable" | "dev";
   platforms: {
-    [platform: string]: {      // ex.: "windows-x64", "macos-x64", "macos-arm64", "linux-x64"
-      url: string;             // URL de download do binário
-      sha256: string;          // hash SHA-256 do binário
-      size: number;            // tamanho em bytes
-      signature?: string;      // assinatura Ed25519 (apenas no wrapper Tauri V2)
+    [platform: string]: {
+      // ex.: "windows-x64", "macos-x64", "macos-arm64", "linux-x64"
+      url: string; // URL de download do binário
+      sha256: string; // hash SHA-256 do binário
+      size: number; // tamanho em bytes
+      signature?: string; // assinatura Ed25519 (apenas no wrapper Tauri V2)
     };
   };
 }
@@ -414,39 +430,39 @@ interface UpdateManifest {
 
 ### Endpoints HTTP do servidor relevantes para distribuição
 
-| Método | Path | Descrição |
-|---|---|---|
-| `GET` | `/` | Redireciona para `/setup` na primeira execução; para `/game` após |
-| `GET` | `/setup` | Wizard de primeira execução (SPA Svelte) |
-| `GET` | `/join?world=<worldId>` | Página de entrada para jogadores (MVP); `?token=<uuid>` adicional apenas em [V2] |
-| `GET` | `/admin/version` | Retorna `{ serverVersion, dataVersion, updateChannel }` |
-| `GET` | `/admin/update/check` | Dispara verificação de update; retorna `{ available, latestVersion, releaseNotes }` |
-| `POST` | `/admin/update/apply` | Inicia processo de update (requer auth admin) |
-| `GET` | `/admin/network` | Retorna `{ lanUrl, publicIp, upnpStatus, tunnelUrl? }` |
-| `GET` | `/health` | `{ status: "ok", version, uptime }` — para monitoramento e tela de join dos jogadores |
+| Método | Path                    | Descrição                                                                             |
+| ------ | ----------------------- | ------------------------------------------------------------------------------------- |
+| `GET`  | `/`                     | Redireciona para `/setup` na primeira execução; para `/game` após                     |
+| `GET`  | `/setup`                | Wizard de primeira execução (SPA Svelte)                                              |
+| `GET`  | `/join?world=<worldId>` | Página de entrada para jogadores (MVP); `?token=<uuid>` adicional apenas em [V2]      |
+| `GET`  | `/admin/version`        | Retorna `{ serverVersion, dataVersion, updateChannel }`                               |
+| `GET`  | `/admin/update/check`   | Dispara verificação de update; retorna `{ available, latestVersion, releaseNotes }`   |
+| `POST` | `/admin/update/apply`   | Inicia processo de update (requer auth admin)                                         |
+| `GET`  | `/admin/network`        | Retorna `{ lanUrl, publicIp, upnpStatus, tunnelUrl? }`                                |
+| `GET`  | `/health`               | `{ status: "ok", version, uptime }` — para monitoramento e tela de join dos jogadores |
 
 ### Eventos WebSocket relacionados
 
 Ver `04-rede-e-sincronizacao.md` para o protocolo completo. Eventos específicos de distribuição:
 
-| Evento (servidor → cliente) | Payload | Quando |
-|---|---|---|
-| `server.update_available` | `{ version, channel, releaseNotes }` | Quando update detectado; enviado apenas para clientes com role GM/admin |
-| `server.restarting` | `{ reason: "update" \| "config", countdown: number }` | Antes de reiniciar; clientes exibem countdown |
-| `server.protocol_mismatch` | `{ serverProtocol, clientProtocol, updateUrl }` | Ao detectar versão de protocolo incompatível |
+| Evento (servidor → cliente) | Payload                                               | Quando                                                                  |
+| --------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------------- |
+| `server.update_available`   | `{ version, channel, releaseNotes }`                  | Quando update detectado; enviado apenas para clientes com role GM/admin |
+| `server.restarting`         | `{ reason: "update" \| "config", countdown: number }` | Antes de reiniciar; clientes exibem countdown                           |
+| `server.protocol_mismatch`  | `{ serverProtocol, clientProtocol, updateUrl }`       | Ao detectar versão de protocolo incompatível                            |
 
 ---
 
 ## Dependências (specs irmãs)
 
-| Spec | Dependência |
-|---|---|
-| `03-persistencia-e-mundos.md` | Estrutura do `world.db`; estratégia de backup antes do update; localização do data directory |
-| `04-rede-e-sincronizacao.md` | Protocolo WebSocket; handshake com `serverVersion` e `protocolVersion`; evento `server.restarting` |
-| `05-usuarios-e-permissoes.md` | Autenticação do GM na tela de admin; sessões; hash da senha de admin |
-| `21-seguranca.md` | TLS/SSL no servidor; configuração de reverse proxy seguro; CORS |
-| `24-operacao-backups-telemetria.md` | Backup contínuo de worlds; logs de operação; telemetria opt-in |
-| `25-testes-e-qualidade.md` | Testes de instalação em CI; smoke test pós-deploy |
+| Spec                                | Dependência                                                                                        |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `03-persistencia-e-mundos.md`       | Estrutura do `world.db`; estratégia de backup antes do update; localização do data directory       |
+| `04-rede-e-sincronizacao.md`        | Protocolo WebSocket; handshake com `serverVersion` e `protocolVersion`; evento `server.restarting` |
+| `05-usuarios-e-permissoes.md`       | Autenticação do GM na tela de admin; sessões; hash da senha de admin                               |
+| `21-seguranca.md`                   | TLS/SSL no servidor; configuração de reverse proxy seguro; CORS                                    |
+| `24-operacao-backups-telemetria.md` | Backup contínuo de worlds; logs de operação; telemetria opt-in                                     |
+| `25-testes-e-qualidade.md`          | Testes de instalação em CI; smoke test pós-deploy                                                  |
 
 ---
 

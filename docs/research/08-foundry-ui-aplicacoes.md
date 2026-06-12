@@ -30,20 +30,20 @@ A interface do Foundry VTT, a partir da versão 13 (com consolidação total no 
 
 **Singletons no namespace `ui`** (registrados em `foundry.ui`):
 
-| Chave           | Descrição                                          |
-|-----------------|----------------------------------------------------|
-| `ui.sidebar`    | Sidebar principal (colapsável, direita)            |
-| `ui.chat`       | Chat log (primeira aba da sidebar)                 |
-| `ui.combat`     | Combat tracker                                     |
-| `ui.controls`   | SceneControls (toolbar esquerda)                   |
-| `ui.hotbar`     | Macro hotbar (barra inferior)                      |
-| `ui.nav`        | SceneNavigation (barra de cenas, topo)             |
-| `ui.notifications` | Toast notifications                             |
-| `ui.players`    | Lista de jogadores (canto inferior esquerdo)       |
-| `ui.pause`      | Indicador de pausa (relógio giratório centralizado)|
-| `ui.menu`       | Menu principal                                     |
-| `ui.windows`    | Registry de todas as janelas abertas (por ID)      |
-| `ui.activeWindow` | Janela atualmente em foco                        |
+| Chave              | Descrição                                           |
+| ------------------ | --------------------------------------------------- |
+| `ui.sidebar`       | Sidebar principal (colapsável, direita)             |
+| `ui.chat`          | Chat log (primeira aba da sidebar)                  |
+| `ui.combat`        | Combat tracker                                      |
+| `ui.controls`      | SceneControls (toolbar esquerda)                    |
+| `ui.hotbar`        | Macro hotbar (barra inferior)                       |
+| `ui.nav`           | SceneNavigation (barra de cenas, topo)              |
+| `ui.notifications` | Toast notifications                                 |
+| `ui.players`       | Lista de jogadores (canto inferior esquerdo)        |
+| `ui.pause`         | Indicador de pausa (relógio giratório centralizado) |
+| `ui.menu`          | Menu principal                                      |
+| `ui.windows`       | Registry de todas as janelas abertas (por ID)       |
+| `ui.activeWindow`  | Janela atualmente em foco                           |
 
 ---
 
@@ -55,19 +55,19 @@ A Sidebar estende `ApplicationV2` via mixin `HandlebarsApplication`. É **colaps
 
 **Abas disponíveis** (11 tabs no total):
 
-| Tab | Ícone (Font Awesome) | Conteúdo |
-|-----|----------------------|----------|
-| Chat | fa-comments | Chat log, histórico de mensagens e rolls |
-| Combat | fa-fist-raised | Combat tracker |
-| Scenes | fa-map | Diretório de cenas |
-| Actors | fa-users | Diretório de atores (personagens, NPCs) |
-| Items | fa-suitcase | Diretório de itens |
-| Journal | fa-book-open | Journal entries e páginas |
-| Tables | fa-table | Rollable tables |
-| Cards | fa-cards | Decks, mãos e pilhas de cartas |
-| Playlists | fa-music | Playlists + controles de volume global |
-| Compendium | fa-atlas | Browser de compendium packs |
-| Settings | fa-cogs | Configurações, keybindings, invitation links |
+| Tab        | Ícone (Font Awesome) | Conteúdo                                     |
+| ---------- | -------------------- | -------------------------------------------- |
+| Chat       | fa-comments          | Chat log, histórico de mensagens e rolls     |
+| Combat     | fa-fist-raised       | Combat tracker                               |
+| Scenes     | fa-map               | Diretório de cenas                           |
+| Actors     | fa-users             | Diretório de atores (personagens, NPCs)      |
+| Items      | fa-suitcase          | Diretório de itens                           |
+| Journal    | fa-book-open         | Journal entries e páginas                    |
+| Tables     | fa-table             | Rollable tables                              |
+| Cards      | fa-cards             | Decks, mãos e pilhas de cartas               |
+| Playlists  | fa-music             | Playlists + controles de volume global       |
+| Compendium | fa-atlas             | Browser de compendium packs                  |
+| Settings   | fa-cogs              | Configurações, keybindings, invitation links |
 
 Cada aba pode ser **popada em janela separada** via right-click no ícone da tab.
 
@@ -96,6 +96,7 @@ Qualquer aba da sidebar pode ser "popada" (destacada como janela flutuante indep
 ### 2.5 Aba de Playlists e Áudio
 
 **3 sliders de volume global** (client-side, não sincronizados entre jogadores):
+
 1. Playlists — volume mestre de playlists tocadas pelo GM.
 2. Ambient — volume de sons ambiente posicionados na cena.
 3. Interface — volume de sons de UI (notificações, chat, rolls).
@@ -138,6 +139,7 @@ A classe `SceneControls` estende `ApplicationV2` e organiza controles em **duas 
 2. **Tools** — ferramentas disponíveis dentro da layer ativa.
 
 Estrutura de um `SceneControl`:
+
 ```
 {
   name: string,           // identificador único
@@ -156,23 +158,24 @@ O PARTS estático define dois templates: `layers` (coluna de layers) e `tools` (
 
 ### 3.2 Layers e Ferramentas Disponíveis
 
-| Layer | Ícone | Ferramentas principais |
-|-------|-------|------------------------|
-| Token (Actors) | fa-user-alt | Selecionar, TargetAll, Toggle combat |
-| Measurement | fa-ruler-combined | Circle, Cone, Rectangle, Ray, Clear |
-| Tiles | fa-cubes | Select, Place, Overhead toggle |
-| Drawings | fa-pencil-alt | Select, Rect, Circle, Polygon, Freehand, Text |
-| Walls | fa-university | Select, Wall, Door, Secret Door, Terrain, etc. |
-| Lighting | fa-lightbulb | Select, Place Light Source |
-| Sound (Ambient) | fa-volume-up | Select, Place Sound |
-| Notes | fa-bookmark | Select, Create Note |
-| Scene Regions | fa-draw-polygon | Select, Draw, Rectangle, Circle, Polygon |
+| Layer           | Ícone             | Ferramentas principais                         |
+| --------------- | ----------------- | ---------------------------------------------- |
+| Token (Actors)  | fa-user-alt       | Selecionar, TargetAll, Toggle combat           |
+| Measurement     | fa-ruler-combined | Circle, Cone, Rectangle, Ray, Clear            |
+| Tiles           | fa-cubes          | Select, Place, Overhead toggle                 |
+| Drawings        | fa-pencil-alt     | Select, Rect, Circle, Polygon, Freehand, Text  |
+| Walls           | fa-university     | Select, Wall, Door, Secret Door, Terrain, etc. |
+| Lighting        | fa-lightbulb      | Select, Place Light Source                     |
+| Sound (Ambient) | fa-volume-up      | Select, Place Sound                            |
+| Notes           | fa-bookmark       | Select, Create Note                            |
+| Scene Regions   | fa-draw-polygon   | Select, Draw, Rectangle, Circle, Polygon       |
 
 No v14, cada layer (exceto Tokens) ganhou um botão de **Placeables Palette** para edição em massa de objetos selecionados. Uma nova aba da sidebar — **Placeables Sidebar Tab** — permite visualizar, filtrar e interagir com objetos de cada layer sem tocar no canvas.
 
 ### 3.3 Token HUD
 
 Aparece ao **right-click** em token controlado pelo usuário:
+
 - Barras de recurso (2 barras configuráveis, valores editáveis inline).
 - Campo de elevação (seta para cima/baixo).
 - Targeting (designar como alvo).
@@ -255,9 +258,11 @@ _onFirstRender()      → executado apenas na primeira renderização
 Todos os renders e closes são **enfileirados em semáforo**, garantindo processamento sequencial (sem race conditions).
 
 **Eventos emitidos** (via EventEmitter):
+
 - `prerender`, `render`, `close`, `position`
 
 Podem ser interceptados via:
+
 1. Método protegido na subclasse (`_onRender`).
 2. Hook global: `Hooks.on("renderMyApplication", fn)`.
 3. Listener de instância específica.
@@ -293,6 +298,7 @@ static DEFAULT_OPTIONS = {
 ```
 
 A janela ApplicationV2 tem:
+
 - Header com título, ícone, botões de controle (minimize, close) e context menus.
 - Handle de resize (se `resizable: true`).
 - Área de conteúdo.
@@ -373,13 +379,13 @@ static DEFAULT_OPTIONS = {
 
 ### 8.1 Métodos Estáticos
 
-| Método | Propósito | Retorno |
-|--------|-----------|---------|
-| `DialogV2.confirm(options)` | Dialog sim/não | `true`/`false` |
-| `DialogV2.prompt(options)` | Confirmação simples | id do botão ou resultado do callback |
-| `DialogV2.input(options)` | Formulário de entrada | objeto com dados do form |
-| `DialogV2.wait(options)` | Dialog genérico | id do botão ou resultado do callback |
-| `DialogV2.query(user, type, config)` | Apresenta dialog a usuário específico | resposta ou null |
+| Método                               | Propósito                             | Retorno                              |
+| ------------------------------------ | ------------------------------------- | ------------------------------------ |
+| `DialogV2.confirm(options)`          | Dialog sim/não                        | `true`/`false`                       |
+| `DialogV2.prompt(options)`           | Confirmação simples                   | id do botão ou resultado do callback |
+| `DialogV2.input(options)`            | Formulário de entrada                 | objeto com dados do form             |
+| `DialogV2.wait(options)`             | Dialog genérico                       | id do botão ou resultado do callback |
+| `DialogV2.query(user, type, config)` | Apresenta dialog a usuário específico | resposta ou null                     |
 
 ### 8.2 Configuração de Botões
 
@@ -416,21 +422,21 @@ Controller para workflows de drag-and-drop. Configuração:
 
 ```js
 new DragDrop({
-  dragSelector: ".item",          // o que pode ser arrastado
-  dropSelector: ".inventory",     // onde pode ser solto
+  dragSelector: ".item", // o que pode ser arrastado
+  dropSelector: ".inventory", // onde pode ser solto
   permissions: {
     dragstart: (selector) => true,
     drop: (selector) => true,
   },
   callbacks: {
     dragstart: this._onDragStart.bind(this),
-    dragover:  this._onDragOver.bind(this),
+    dragover: this._onDragOver.bind(this),
     dragenter: this._onDragEnter.bind(this),
     dragleave: this._onDragLeave.bind(this),
-    dragend:   this._onDragEnd.bind(this),
-    drop:      this._onDrop.bind(this),
-  }
-})
+    dragend: this._onDragEnd.bind(this),
+    drop: this._onDrop.bind(this),
+  },
+});
 ```
 
 - `bind(element)` — vincula listeners ao elemento HTML.
@@ -453,6 +459,7 @@ new DragDrop({
 ### 10.1 Draggable
 
 `Draggable` é a classe que torna janelas arrastáveis. Aceita:
+
 - `application` — referência à ApplicationV2.
 - `element` — elemento HTML raiz.
 - `handle` — elemento de drag handle (header).
@@ -484,6 +491,7 @@ new ContextMenu(container, ".item", [
 ### 10.3 Notifications (`ui.notifications`)
 
 Toast system com fila:
+
 - `MAX_ACTIVE = 5` notificações simultâneas.
 - `LIFETIME_MS = 5000` ms de duração padrão.
 - Métodos: `info()`, `warn()`, `error()`, `success()`, `notify()`.
@@ -509,21 +517,21 @@ new FilePicker({ type: "image", current: "/path/to/file" }).render();
 
 Foundry v14 expõe elementos HTML customizados (form-associated) para uso em templates:
 
-| Elemento | Tag HTML | Propósito |
-|----------|----------|-----------|
-| `HTMLColorPickerElement` | `<color-picker>` | Seletor de cor (par de inputs linked) |
-| `HTMLFilePickerElement` | `<file-picker>` | Seletor de arquivo |
-| `HTMLProseMirrorElement` | `<prose-mirror>` | Editor rich-text |
-| `HTMLMultiSelectElement` | `<multi-select>` | Dropdown multi-seleção |
-| `HTMLMultiCheckboxElement` | `<multi-checkbox>` | Grupo de checkboxes |
-| `HTMLStringTagsElement` | `<string-tags>` | Input de tags (lista de strings) |
-| `HTMLDocumentTagsElement` | `<document-tags>` | Tags de documentos vinculados |
-| `HTMLSecretBlockElement` | — | Blocos secretos (visíveis só ao GM) |
-| `HTMLFormulaInputElement` | `<formula-input>` | Input de fórmulas de dado |
-| `HTMLRangePickerElement` | `<range-picker>` | Seletor de faixa numérica |
-| `HTMLHueSelectorSlider` | — | Slider de matiz (hue) |
-| `HTMLCodeMirrorElement` | `<code-mirror>` | Editor de código |
-| `HTMLEnrichedContentElement` | — | Renderização de rich text/HTML |
+| Elemento                     | Tag HTML           | Propósito                             |
+| ---------------------------- | ------------------ | ------------------------------------- |
+| `HTMLColorPickerElement`     | `<color-picker>`   | Seletor de cor (par de inputs linked) |
+| `HTMLFilePickerElement`      | `<file-picker>`    | Seletor de arquivo                    |
+| `HTMLProseMirrorElement`     | `<prose-mirror>`   | Editor rich-text                      |
+| `HTMLMultiSelectElement`     | `<multi-select>`   | Dropdown multi-seleção                |
+| `HTMLMultiCheckboxElement`   | `<multi-checkbox>` | Grupo de checkboxes                   |
+| `HTMLStringTagsElement`      | `<string-tags>`    | Input de tags (lista de strings)      |
+| `HTMLDocumentTagsElement`    | `<document-tags>`  | Tags de documentos vinculados         |
+| `HTMLSecretBlockElement`     | —                  | Blocos secretos (visíveis só ao GM)   |
+| `HTMLFormulaInputElement`    | `<formula-input>`  | Input de fórmulas de dado             |
+| `HTMLRangePickerElement`     | `<range-picker>`   | Seletor de faixa numérica             |
+| `HTMLHueSelectorSlider`      | —                  | Slider de matiz (hue)                 |
+| `HTMLCodeMirrorElement`      | `<code-mirror>`    | Editor de código                      |
+| `HTMLEnrichedContentElement` | —                  | Renderização de rich text/HTML        |
 
 Todos estendem `AbstractFormInputElement` e são **form-associated** (participam da submissão do form nativo).
 
@@ -552,10 +560,10 @@ Foundry v13 implementou **ThemeV2** com suporte a light e dark mode:
 ```js
 // Constante em CONST.CSS_THEMES
 CSS_THEMES = {
-  dark:    { id: "dark",    label: "...", theme: "foundry" },
+  dark: { id: "dark", label: "...", theme: "foundry" },
   fantasy: { id: "fantasy", label: "...", theme: "fantasy" },
-  scifi:   { id: "scifi",   label: "...", theme: "scifi"   },
-}
+  scifi: { id: "scifi", label: "...", theme: "scifi" },
+};
 ```
 
 - A UI detecta automaticamente a preferência do sistema operacional/browser (prefers-color-scheme) e aplica dark ou light.
@@ -585,12 +593,12 @@ CSS_THEMES = {
 
 Disponível ao acessar o servidor Foundry antes de entrar em um mundo. Estrutura de abas:
 
-| Aba | Conteúdo |
-|-----|----------|
-| Worlds | Lista todos os mundos criados, ordenados por último uso; botão Launch World |
-| Game Systems | Sistemas instalados; botão Install System + Update |
-| Add-on Modules | Módulos instalados; botão Install Module + Update |
-| Configuration | Configurações do servidor (porta, SSL, UPnP, path de dados) |
+| Aba            | Conteúdo                                                                    |
+| -------------- | --------------------------------------------------------------------------- |
+| Worlds         | Lista todos os mundos criados, ordenados por último uso; botão Launch World |
+| Game Systems   | Sistemas instalados; botão Install System + Update                          |
+| Add-on Modules | Módulos instalados; botão Install Module + Update                           |
+| Configuration  | Configurações do servidor (porta, SSL, UPnP, path de dados)                 |
 
 - Refresh v11: nova tela de setup responsiva, seção News, Featured Content.
 - O Admin Password protege o acesso à tela de setup (encriptado, armazenado no Config folder).
@@ -598,6 +606,7 @@ Disponível ao acessar o servidor Foundry antes de entrar em um mundo. Estrutura
 ### 12.2 Tela de Login / Join
 
 Após um mundo ser iniciado pelo GM, jogadores acessam via URL convite:
+
 - **LAN**: IP local + porta (ex: `http://192.168.1.10:30000`).
 - **Internet**: IP público + porta.
 - Tela de Join lista usuários configurados no mundo, campo de senha (opcional), botão "Join Game Session".
@@ -607,6 +616,7 @@ Após um mundo ser iniciado pelo GM, jogadores acessam via URL convite:
 ### 12.3 Usuários e Roles
 
 Roles disponíveis: `NONE` (0), `PLAYER` (1), `TRUSTED` (2), `ASSISTANT` (3), `GAMEMASTER` (4).
+
 - GMs têm acesso a todas as ferramentas e layers.
 - Roles controlam quais layers do canvas são visíveis e editáveis.
 
@@ -617,6 +627,7 @@ Roles disponíveis: `NONE` (0), `PLAYER` (1), `TRUSTED` (2), `ASSISTANT` (3), `G
 Foundry usa **ProseMirror** como editor padrão desde o v10. No v14, o TinyMCE foi removido completamente.
 
 **Funcionalidades**:
+
 - Formatação: headers (H1–H6), bold, italic, underline, strikethrough.
 - Tabelas (insert, delete, merge cells).
 - Blocos colapsáveis (Details plugin).
@@ -635,18 +646,18 @@ Foundry usa **ProseMirror** como editor padrão desde o v10. No v14, o TinyMCE f
 
 ### 14.1 Problemas Documentados da Comunidade
 
-| Problema | Descrição | Oportunidade para o Fusion |
-|----------|-----------|---------------------------|
-| **Curva de aprendizado íngreme** | Setup "front-loaded": visão, compendiums, automação requerem estudo antes de funcionar | Onboarding guiado, tooltips contextuais, templates prontos |
-| **Gestão de janelas caótica** | Muitas janelas abertas sobrepostas sem sistema de organização nativo | Sistema de tiles/abas nativo, snap-to-grid de janelas, workspace por cena |
-| **Token Linking confuso** | Distinção prototype token vs. placed token não é óbvia; editar ator nem sempre atualiza token no mapa | Sincronização mais transparente, indicadores visuais de status de link |
-| **Permissões não-intuitivas** | Handouts aparecem em branco porque a permissão padrão é "none" — confunde novos GMs | Permissões com defaults mais permissivos ou wizard de configuração |
-| **Configuração de visão** | Configurar walls+lighting+vision requer múltiplos menus aninhados | Editor de cena integrado, "quick setup" de visão |
-| **Módulos causam cascata de falhas** | Atualizações criam incompatibilidades entre módulos interdependentes | Sistema de plugins com contratos de API versionados |
-| **Muitas janelas e z-index** | ApplicationV1 e ApplicationV2 tinham z-index mal coordenado (corrigido no v13) | Sistema de z-index unificado desde o início |
-| **Tabs de sidebar não pesquisáveis** | Busca de compendium só por nome do pack, não conteúdo (corrigido no v14) | Busca full-text integrada em todos os diretórios |
-| **Falta de suporte a acessibilidade** | Sem suporte nativo a screen readers ou navegação completa por teclado | Implementar ARIA desde o início, navegação por teclado nativa |
-| **Sidebar começa colapsada (v13)** | Mudança de comportamento que gerou módulos de restauração | Configuração de estado inicial como preferência do usuário |
+| Problema                              | Descrição                                                                                             | Oportunidade para o Fusion                                                |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| **Curva de aprendizado íngreme**      | Setup "front-loaded": visão, compendiums, automação requerem estudo antes de funcionar                | Onboarding guiado, tooltips contextuais, templates prontos                |
+| **Gestão de janelas caótica**         | Muitas janelas abertas sobrepostas sem sistema de organização nativo                                  | Sistema de tiles/abas nativo, snap-to-grid de janelas, workspace por cena |
+| **Token Linking confuso**             | Distinção prototype token vs. placed token não é óbvia; editar ator nem sempre atualiza token no mapa | Sincronização mais transparente, indicadores visuais de status de link    |
+| **Permissões não-intuitivas**         | Handouts aparecem em branco porque a permissão padrão é "none" — confunde novos GMs                   | Permissões com defaults mais permissivos ou wizard de configuração        |
+| **Configuração de visão**             | Configurar walls+lighting+vision requer múltiplos menus aninhados                                     | Editor de cena integrado, "quick setup" de visão                          |
+| **Módulos causam cascata de falhas**  | Atualizações criam incompatibilidades entre módulos interdependentes                                  | Sistema de plugins com contratos de API versionados                       |
+| **Muitas janelas e z-index**          | ApplicationV1 e ApplicationV2 tinham z-index mal coordenado (corrigido no v13)                        | Sistema de z-index unificado desde o início                               |
+| **Tabs de sidebar não pesquisáveis**  | Busca de compendium só por nome do pack, não conteúdo (corrigido no v14)                              | Busca full-text integrada em todos os diretórios                          |
+| **Falta de suporte a acessibilidade** | Sem suporte nativo a screen readers ou navegação completa por teclado                                 | Implementar ARIA desde o início, navegação por teclado nativa             |
+| **Sidebar começa colapsada (v13)**    | Mudança de comportamento que gerou módulos de restauração                                             | Configuração de estado inicial como preferência do usuário                |
 
 ### 14.2 Elogios de UX (Preservar no Fusion)
 

@@ -49,6 +49,7 @@ DataModel (foundry.abstract.DataModel)
 ```
 
 Cada tipo de documento possui:
+
 - Uma classe **Base** (ex.: `BaseActor`, `BaseItem`) que define o schema e comportamentos comuns entre cliente e servidor. O servidor roda apenas as classes Base.
 - Uma classe **cliente** (ex.: `Actor`, `Item`) que estende a Base via `ClientDocumentMixin` e acrescenta lógica de renderização, interação com canvas, etc.
 
@@ -64,25 +65,27 @@ Os documentos primários são armazenados em coleções próprias e acessíveis 
 
 **Campos principais** (via `defineSchema`):
 
-| Campo | Tipo de Field | Descrição |
-|---|---|---|
-| `_id` | DocumentIdField | Identificador único |
-| `_stats` | DocumentStatsField | Metadados de versão/auditoria |
-| `name` | StringField | Nome do ator |
-| `type` | DocumentTypeField | Subtipo (ex.: "character", "npc") |
-| `img` | FilePathField | Caminho para artwork |
-| `system` | TypeDataField | Dados específicos do sistema/subtipo |
-| `prototypeToken` | EmbeddedDataField | Config padrão de token |
-| `ownership` | DocumentOwnershipField | Permissões por usuário |
-| `folder` | ForeignDocumentField | Pasta pai |
-| `sort` | IntegerSortField | Ordem de exibição |
-| `flags` | DocumentFlagsField | Dados arbitrários por namespace |
+| Campo            | Tipo de Field          | Descrição                            |
+| ---------------- | ---------------------- | ------------------------------------ |
+| `_id`            | DocumentIdField        | Identificador único                  |
+| `_stats`         | DocumentStatsField     | Metadados de versão/auditoria        |
+| `name`           | StringField            | Nome do ator                         |
+| `type`           | DocumentTypeField      | Subtipo (ex.: "character", "npc")    |
+| `img`            | FilePathField          | Caminho para artwork                 |
+| `system`         | TypeDataField          | Dados específicos do sistema/subtipo |
+| `prototypeToken` | EmbeddedDataField      | Config padrão de token               |
+| `ownership`      | DocumentOwnershipField | Permissões por usuário               |
+| `folder`         | ForeignDocumentField   | Pasta pai                            |
+| `sort`           | IntegerSortField       | Ordem de exibição                    |
+| `flags`          | DocumentFlagsField     | Dados arbitrários por namespace      |
 
 **Embedded collections**:
+
 - `items` → coleção de `Item` embedded
 - `effects` → coleção de `ActiveEffect` embedded
 
 **Propriedades importantes**:
+
 - `statuses`: Set de status effects aplicados
 - `overrides`: Alterações aplicadas por active effects (in-memory)
 - `itemTypes`: Record `<type, Item[]>` para acesso agrupado por subtipo
@@ -93,20 +96,21 @@ Os documentos primários são armazenados em coleções próprias e acessíveis 
 
 **Campos principais**:
 
-| Campo | Tipo de Field | Descrição |
-|---|---|---|
-| `_id` | DocumentIdField | Identificador único |
-| `_stats` | DocumentStatsField | Metadados |
-| `name` | StringField | Nome do item |
-| `type` | DocumentTypeField | Subtipo (ex.: "weapon", "spell") |
-| `img` | FilePathField | Ícone |
-| `system` | TypeDataField | Dados do sistema |
-| `ownership` | DocumentOwnershipField | Permissões |
-| `folder` | ForeignDocumentField | Pasta pai |
-| `sort` | IntegerSortField | Ordem |
-| `flags` | DocumentFlagsField | Flags arbitrários |
+| Campo       | Tipo de Field          | Descrição                        |
+| ----------- | ---------------------- | -------------------------------- |
+| `_id`       | DocumentIdField        | Identificador único              |
+| `_stats`    | DocumentStatsField     | Metadados                        |
+| `name`      | StringField            | Nome do item                     |
+| `type`      | DocumentTypeField      | Subtipo (ex.: "weapon", "spell") |
+| `img`       | FilePathField          | Ícone                            |
+| `system`    | TypeDataField          | Dados do sistema                 |
+| `ownership` | DocumentOwnershipField | Permissões                       |
+| `folder`    | ForeignDocumentField   | Pasta pai                        |
+| `sort`      | IntegerSortField       | Ordem                            |
+| `flags`     | DocumentFlagsField     | Flags arbitrários                |
 
 **Embedded collections**:
+
 - `effects` → coleção de `ActiveEffect`
 
 Items podem existir como documentos mundiais independentes ou embedded dentro de um `Actor`.
@@ -117,46 +121,47 @@ Items podem existir como documentos mundiais independentes ou embedded dentro de
 
 **Campos de configuração**:
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `name` | StringField | Nome da cena |
-| `active` | BooleanField | Se é a cena ativa |
-| `width`, `height` | NumberField | Dimensões em pixels |
-| `padding` | NumberField | Padding relativo |
-| `grid` | GridData (SchemaField) | Config do grid |
-| `tokenVision` | BooleanField | Habilita visão de token |
-| `fog` | SchemaField | Config de fog of war (mode, colors, reset) |
-| `environment` | SchemaField | Efeitos ambientais |
-| `backgroundColor` | ColorField | Cor de fundo |
-| `initial` | SchemaField | Vista inicial (x, y, scale) |
-| `navigation` | BooleanField | Exibir na nav bar |
-| `navName` | StringField | Nome na navegação |
-| `playlist`, `playlistSound` | ForeignDocumentField | Áudio vinculado |
-| `journal`, `journalEntryPage` | ForeignDocumentField | Journal vinculado |
-| `thumb` | FilePathField | Thumbnail |
-| `transition` | SchemaField | Animação de transição |
-| `weather` | StringField | Efeito de clima |
-| `shiftX`, `shiftY` | NumberField | Deslocamento de canvas |
+| Campo                         | Tipo                   | Descrição                                  |
+| ----------------------------- | ---------------------- | ------------------------------------------ |
+| `name`                        | StringField            | Nome da cena                               |
+| `active`                      | BooleanField           | Se é a cena ativa                          |
+| `width`, `height`             | NumberField            | Dimensões em pixels                        |
+| `padding`                     | NumberField            | Padding relativo                           |
+| `grid`                        | GridData (SchemaField) | Config do grid                             |
+| `tokenVision`                 | BooleanField           | Habilita visão de token                    |
+| `fog`                         | SchemaField            | Config de fog of war (mode, colors, reset) |
+| `environment`                 | SchemaField            | Efeitos ambientais                         |
+| `backgroundColor`             | ColorField             | Cor de fundo                               |
+| `initial`                     | SchemaField            | Vista inicial (x, y, scale)                |
+| `navigation`                  | BooleanField           | Exibir na nav bar                          |
+| `navName`                     | StringField            | Nome na navegação                          |
+| `playlist`, `playlistSound`   | ForeignDocumentField   | Áudio vinculado                            |
+| `journal`, `journalEntryPage` | ForeignDocumentField   | Journal vinculado                          |
+| `thumb`                       | FilePathField          | Thumbnail                                  |
+| `transition`                  | SchemaField            | Animação de transição                      |
+| `weather`                     | StringField            | Efeito de clima                            |
+| `shiftX`, `shiftY`            | NumberField            | Deslocamento de canvas                     |
 
 **Embedded collections** (todas referenciadas diretamente pelo Scene):
 
-| Coleção | Tipo de documento | Descrição |
-|---|---|---|
-| `tokens` | TokenData[] | Tokens posicionados |
-| `walls` | WallData[] | Paredes/obstáculos |
-| `lights` | AmbientLightData[] | Fontes de luz |
-| `sounds` | AmbientSoundData[] | Sons ambientes |
-| `tiles` | TileData[] | Tiles/imagens de mapa |
-| `drawings` | DrawingData[] | Formas desenhadas |
-| `notes` | NoteData[] | Pins de journal |
-| `regions` | RegionData[] | Regiões com comportamentos |
-| `levels` | LevelData[] | Níveis verticais (v14+) |
+| Coleção    | Tipo de documento  | Descrição                  |
+| ---------- | ------------------ | -------------------------- |
+| `tokens`   | TokenData[]        | Tokens posicionados        |
+| `walls`    | WallData[]         | Paredes/obstáculos         |
+| `lights`   | AmbientLightData[] | Fontes de luz              |
+| `sounds`   | AmbientSoundData[] | Sons ambientes             |
+| `tiles`    | TileData[]         | Tiles/imagens de mapa      |
+| `drawings` | DrawingData[]      | Formas desenhadas          |
+| `notes`    | NoteData[]         | Pins de journal            |
+| `regions`  | RegionData[]       | Regiões com comportamentos |
+| `levels`   | LevelData[]        | Níveis verticais (v14+)    |
 
 ### 3.4 JournalEntry
 
 **Papel**: notas, lore, handouts, regras, descrições de locais.
 
 **Embedded collections**:
+
 - `pages` → coleção de `JournalEntryPage`
 - `categories` → coleção de `JournalEntryCategory` (para organização por abas)
 
@@ -166,19 +171,19 @@ Items podem existir como documentos mundiais independentes ou embedded dentro de
 
 **Campos principais**:
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `name` | StringField | Título da página |
-| `type` | DocumentTypeField | Tipo de conteúdo |
-| `category` | DocumentIdField | Categoria/aba vinculada |
-| `text` | SchemaField | Conteúdo textual |
-| `image` | SchemaField | Dados de imagem (caption) |
-| `video` | SchemaField | Dados de vídeo (loop, autoplay, volume, timestamp) |
-| `src` | StringField | Fonte do arquivo (img/video/pdf) |
-| `title` | SchemaField | Configuração de exibição do título |
-| `ownership` | DocumentOwnershipField | Permissões individuais por página |
-| `sort` | IntegerSortField | Ordem |
-| `system` | TypeDataField | Dados de sistema |
+| Campo       | Tipo                   | Descrição                                          |
+| ----------- | ---------------------- | -------------------------------------------------- |
+| `name`      | StringField            | Título da página                                   |
+| `type`      | DocumentTypeField      | Tipo de conteúdo                                   |
+| `category`  | DocumentIdField        | Categoria/aba vinculada                            |
+| `text`      | SchemaField            | Conteúdo textual                                   |
+| `image`     | SchemaField            | Dados de imagem (caption)                          |
+| `video`     | SchemaField            | Dados de vídeo (loop, autoplay, volume, timestamp) |
+| `src`       | StringField            | Fonte do arquivo (img/video/pdf)                   |
+| `title`     | SchemaField            | Configuração de exibição do título                 |
+| `ownership` | DocumentOwnershipField | Permissões individuais por página                  |
+| `sort`      | IntegerSortField       | Ordem                                              |
+| `system`    | TypeDataField          | Dados de sistema                                   |
 
 **Tipos de página nativos**: `text`, `image`, `video`, `pdf` (e tipos personalizados via módulos/sistemas).
 
@@ -208,22 +213,22 @@ Items podem existir como documentos mundiais independentes ou embedded dentro de
 
 **Campos principais**:
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `author` | DocumentAuthorField | Usuário autor |
-| `timestamp` | NumberField | Timestamp Unix |
-| `type` | DocumentTypeField | Tipo da mensagem |
-| `style` | NumberField | Estilo de exibição |
-| `content` | HTMLField | Conteúdo HTML |
-| `flavor` | HTMLField | Texto de sabor |
-| `title` | StringField | Título opcional |
-| `rolls` | ArrayField(JSONField) | Dados serializados (Roll objects) |
-| `sound` | FilePathField | Efeito sonoro |
-| `speaker` | SchemaField | Origem (scene, actor, token, alias) |
-| `whisper` | ArrayField(ForeignDocumentField) | IDs de usuários destinatários |
-| `blind` | BooleanField | Rolar blind (só GM vê) |
-| `emote` | BooleanField | Ação de emote |
-| `system` | TypeDataField | Dados de sistema |
+| Campo       | Tipo                             | Descrição                           |
+| ----------- | -------------------------------- | ----------------------------------- |
+| `author`    | DocumentAuthorField              | Usuário autor                       |
+| `timestamp` | NumberField                      | Timestamp Unix                      |
+| `type`      | DocumentTypeField                | Tipo da mensagem                    |
+| `style`     | NumberField                      | Estilo de exibição                  |
+| `content`   | HTMLField                        | Conteúdo HTML                       |
+| `flavor`    | HTMLField                        | Texto de sabor                      |
+| `title`     | StringField                      | Título opcional                     |
+| `rolls`     | ArrayField(JSONField)            | Dados serializados (Roll objects)   |
+| `sound`     | FilePathField                    | Efeito sonoro                       |
+| `speaker`   | SchemaField                      | Origem (scene, actor, token, alias) |
+| `whisper`   | ArrayField(ForeignDocumentField) | IDs de usuários destinatários       |
+| `blind`     | BooleanField                     | Rolar blind (só GM vê)              |
+| `emote`     | BooleanField                     | Ação de emote                       |
+| `system`    | TypeDataField                    | Dados de sistema                    |
 
 **Modos de roll**: `public` (whisper=[], blind=false), `self` (whisper=[userId], blind=false), `gm` (whisper=[gmIds], blind=false), `blind` (whisper=[gmIds], blind=true).
 
@@ -300,20 +305,20 @@ O documento Adventure é sempre armazenado dentro de um Compendium Pack e import
 
 **Campos principais**:
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `name` | StringField | Nome do efeito |
-| `img` | FilePathField | Ícone |
-| `type` | DocumentTypeField | Subtipo |
-| `system` | TypeDataField | Dados de sistema |
-| `changes` | ArrayField(SchemaField) | Modificações (key, value, mode, priority) |
-| `disabled` | BooleanField | Se está desabilitado |
-| `duration` | SchemaField | Duração (rounds, seconds, turns, etc.) |
-| `description` | HTMLField | Descrição |
-| `origin` | DocumentUUIDField | Origem (UUID do Item que gerou) |
-| `tint` | ColorField | Tint do ícone |
-| `transfer` | BooleanField | Se transfere do Item para o Actor |
-| `statuses` | SetField(StringField) | Status IDs associados |
+| Campo         | Tipo                    | Descrição                                 |
+| ------------- | ----------------------- | ----------------------------------------- |
+| `name`        | StringField             | Nome do efeito                            |
+| `img`         | FilePathField           | Ícone                                     |
+| `type`        | DocumentTypeField       | Subtipo                                   |
+| `system`      | TypeDataField           | Dados de sistema                          |
+| `changes`     | ArrayField(SchemaField) | Modificações (key, value, mode, priority) |
+| `disabled`    | BooleanField            | Se está desabilitado                      |
+| `duration`    | SchemaField             | Duração (rounds, seconds, turns, etc.)    |
+| `description` | HTMLField               | Descrição                                 |
+| `origin`      | DocumentUUIDField       | Origem (UUID do Item que gerou)           |
+| `tint`        | ColorField              | Tint do ícone                             |
+| `transfer`    | BooleanField            | Se transfere do Item para o Actor         |
+| `statuses`    | SetField(StringField)   | Status IDs associados                     |
 
 **Como funciona**: `changes` contém uma lista de modificações, cada uma com um `key` (caminho no objeto do actor como `"system.attributes.hp.value"`), `value`, `mode` (CUSTOM=0, MULTIPLY=1, ADD=2, DOWNGRADE=3, UPGRADE=4, OVERRIDE=5) e `priority`.
 
@@ -327,30 +332,30 @@ Os efeitos são aplicados em `Actor#applyActiveEffects()` durante o ciclo `prepa
 
 **Campos principais**:
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `_id` | DocumentIdField | ID único no contexto da cena |
-| `name` | StringField | Nome exibido |
-| `displayName` | NumberField | Modo de exibição do nome |
-| `actorId` | ForeignDocumentField | Referência ao Actor base |
-| `actorLink` | BooleanField | Se é linked ao Actor base |
-| `delta` | EmbeddedDocumentField(ActorDelta) | Diferencial para unlinked tokens |
-| `x`, `y` | NumberField | Posição no canvas |
-| `elevation` | NumberField | Elevação vertical |
-| `width`, `height` | NumberField | Dimensão em tiles de grid |
-| `img` | FilePathField | Artwork do token |
-| `displayBars` | NumberField | Modo de exibição das barras |
-| `bar1`, `bar2` | SchemaField | Config das barras de atributo |
-| `light` | SchemaField | Config de luz emitida |
-| `sight` | SchemaField | Config de visão |
-| `ring` | SchemaField | Config do anel animado |
-| `hidden` | BooleanField | Se está oculto para jogadores |
-| `locked` | BooleanField | Se está travado |
-| `disposition` | NumberField | Amigo/Neutro/Hostil |
-| `rotation` | AngleField | Rotação |
-| `alpha` | AlphaField | Transparência |
-| `texture` | SchemaField | Config de textura |
-| `flags` | DocumentFlagsField | Flags por namespace |
+| Campo             | Tipo                              | Descrição                        |
+| ----------------- | --------------------------------- | -------------------------------- |
+| `_id`             | DocumentIdField                   | ID único no contexto da cena     |
+| `name`            | StringField                       | Nome exibido                     |
+| `displayName`     | NumberField                       | Modo de exibição do nome         |
+| `actorId`         | ForeignDocumentField              | Referência ao Actor base         |
+| `actorLink`       | BooleanField                      | Se é linked ao Actor base        |
+| `delta`           | EmbeddedDocumentField(ActorDelta) | Diferencial para unlinked tokens |
+| `x`, `y`          | NumberField                       | Posição no canvas                |
+| `elevation`       | NumberField                       | Elevação vertical                |
+| `width`, `height` | NumberField                       | Dimensão em tiles de grid        |
+| `img`             | FilePathField                     | Artwork do token                 |
+| `displayBars`     | NumberField                       | Modo de exibição das barras      |
+| `bar1`, `bar2`    | SchemaField                       | Config das barras de atributo    |
+| `light`           | SchemaField                       | Config de luz emitida            |
+| `sight`           | SchemaField                       | Config de visão                  |
+| `ring`            | SchemaField                       | Config do anel animado           |
+| `hidden`          | BooleanField                      | Se está oculto para jogadores    |
+| `locked`          | BooleanField                      | Se está travado                  |
+| `disposition`     | NumberField                       | Amigo/Neutro/Hostil              |
+| `rotation`        | AngleField                        | Rotação                          |
+| `alpha`           | AlphaField                        | Transparência                    |
+| `texture`         | SchemaField                       | Config de textura                |
+| `flags`           | DocumentFlagsField                | Flags por namespace              |
 
 **Token vinculado (linked)**: `actorLink: true` — o token aponta para o Actor mundial. Toda mudança no token modifica o Actor.
 
@@ -502,6 +507,7 @@ Ver seções 3.5 e 3.4.
 ### 5.2 EmbeddedCollection
 
 Todos os documentos embedded são gerenciados por instâncias de `EmbeddedCollection`, que:
+
 - Mantém referência ao array `_source` do documento pai
 - Sincroniza instâncias de Document com os dados fonte via `initialize()`
 - Indexa documentos por `_id`
@@ -525,6 +531,7 @@ Documentos podem referenciar outros documentos primários por `_id` via `Foreign
 ### 6.1 DataModel
 
 `foundry.abstract.DataModel` é a classe base para toda estrutura de dados validada. Características:
+
 - Define o schema via método estático `defineSchema()` que retorna um objeto `DataSchema`
 - O schema é computado na primeira acesso e cacheado
 - Suporta herança: `static defineSchema() { const schema = super.defineSchema(); schema.newField = ...; return schema; }`
@@ -637,6 +644,7 @@ Document pronto
 - `migrateDataSafe(source)`: wrapper com try/catch para evitar falha na construção de documentos com dados malformados.
 
 Padrão de uso:
+
 ```
 // Exemplo conceitual (não é código do Foundry)
 static migrateData(source) {
@@ -661,6 +669,7 @@ A instância do TypeDataModel é acessível como `document.system`. O documento 
 ### 8.2 Registro
 
 No manifest (`system.json` ou `module.json`):
+
 ```json
 {
   "documentTypes": {
@@ -671,6 +680,7 @@ No manifest (`system.json` ou `module.json`):
 ```
 
 No código (hook `init`):
+
 ```javascript
 // Exemplo conceitual
 Hooks.on("init", () => {
@@ -689,6 +699,7 @@ Esses métodos são chamados em ordem pelo ciclo `prepareData` do documento pai.
 ### 8.4 Documentos que suportam TypeDataModel
 
 Via v12+, os seguintes documentos suportam subtypes com TypeDataModel:
+
 - `Actor`, `Item`: suporte original (v10)
 - `JournalEntryPage`: suporte para custom page types
 - `ChatMessage`: custom message types
@@ -750,13 +761,13 @@ await document.setFlag("my-module", "myKey", null);
 
 ### 9.5 Flags vs campo `system`
 
-| Aspecto | `flags` | `system` |
-|---|---|---|
-| Propósito | Extensão arbitrária por módulo | Dados tipados do sistema de jogo |
-| Validação | Nenhuma (ObjectField) | Schema definido via TypeDataModel |
-| Namespace | Por packageId | Único por tipo de documento |
-| Performance | Merge atômico | Parte do schema completo |
-| Validação no servidor | Não | Não (TypeDataModel é client-side) |
+| Aspecto               | `flags`                        | `system`                          |
+| --------------------- | ------------------------------ | --------------------------------- |
+| Propósito             | Extensão arbitrária por módulo | Dados tipados do sistema de jogo  |
+| Validação             | Nenhuma (ObjectField)          | Schema definido via TypeDataModel |
+| Namespace             | Por packageId                  | Único por tipo de documento       |
+| Performance           | Merge atômico                  | Parte do schema completo          |
+| Validação no servidor | Não                            | Não (TypeDataModel é client-side) |
 
 ---
 
@@ -764,13 +775,13 @@ await document.setFlag("my-module", "myKey", null);
 
 ### 10.1 Níveis de ownership (CONST.DOCUMENT_OWNERSHIP_LEVELS)
 
-| Valor | Nome | Descrição |
-|---|---|---|
-| -1 | INHERIT | Herda da Folder pai |
-| 0 | NONE | Documento invisível para o usuário |
-| 1 | LIMITED | Acesso básico (sidebar + dados limitados) |
-| 2 | OBSERVER | Visualização completa sem edição |
-| 3 | OWNER | Visualização e edição completa |
+| Valor | Nome     | Descrição                                 |
+| ----- | -------- | ----------------------------------------- |
+| -1    | INHERIT  | Herda da Folder pai                       |
+| 0     | NONE     | Documento invisível para o usuário        |
+| 1     | LIMITED  | Acesso básico (sidebar + dados limitados) |
+| 2     | OBSERVER | Visualização completa sem edição          |
+| 3     | OWNER    | Visualização e edição completa            |
 
 ### 10.2 Estrutura do campo ownership
 
@@ -875,6 +886,7 @@ A migração de NeDB para LevelDB ocorre automaticamente na primeira carga do mu
 - **SSTables**: dados são armazenados em tabelas imutáveis de log-estruturado (Sorted String Tables) gerenciadas internamente.
 
 Vantagens sobre NeDB:
+
 - Atualização granular de embedded documents sem reescrever o documento inteiro
 - Suporte a "grandchildren" (documentos 2+ níveis abaixo)
 - Melhor performance em operações bulk
@@ -907,6 +919,7 @@ Vantagens sobre NeDB:
 ### 11.6 Acesso programático ao LevelDB
 
 O Foundry CLI (`foundryvtt-cli`) provê acesso seguro:
+
 - `unpack`: lê um LevelDB e exporta cada documento como arquivo `.json` ou `.yaml` separado
 - `pack`: lê um diretório de arquivos exportados e cria um LevelDB
 
@@ -973,6 +986,7 @@ Exemplo: `Compendium.pf2e.bestiary-1.Actor.goblinWarrior123`
 ### 13.1 Métodos CRUD
 
 **Create**:
+
 ```
 Document.create(data, operation?)           → cria documento primário
 Document.createDocuments(data[], operation?) → criação em batch
@@ -980,6 +994,7 @@ document.createEmbeddedDocuments(type, data[], operation?) → cria embedded
 ```
 
 **Read**:
+
 ```
 collection.get(id, options?)               → busca por ID
 fromUuid(uuid)                             → busca por UUID (async)
@@ -987,6 +1002,7 @@ fromUuidSync(uuid)                         → busca síncrona (só world docs)
 ```
 
 **Update**:
+
 ```
 document.update(data, operation?)          → atualiza documento (diff parcial)
 Document.updateDocuments(updates[], op?)   → batch update
@@ -995,6 +1011,7 @@ document.updateSource(changes, options?)   → atualiza in-memory sem persistir
 ```
 
 **Delete**:
+
 ```
 document.delete(operation?)                → deleta documento
 Document.deleteDocuments(ids[], op?)       → batch delete
@@ -1011,14 +1028,14 @@ Os hooks seguem o padrão: `{pre|}{action}{DocumentType}`.
 
 **Hooks genéricos** (disparam para qualquer tipo de documento):
 
-| Hook | Quando dispara | Cancelável |
-|---|---|---|
-| `preCreateDocument` | Antes de criar | Sim (return false) |
-| `createDocument` | Após criar (todos os clientes) | Não |
-| `preUpdateDocument` | Antes de atualizar | Sim (return false) |
-| `updateDocument` | Após atualizar (todos os clientes) | Não |
-| `preDeleteDocument` | Antes de deletar | Sim (return false) |
-| `deleteDocument` | Após deletar (todos os clientes) | Não |
+| Hook                | Quando dispara                     | Cancelável         |
+| ------------------- | ---------------------------------- | ------------------ |
+| `preCreateDocument` | Antes de criar                     | Sim (return false) |
+| `createDocument`    | Após criar (todos os clientes)     | Não                |
+| `preUpdateDocument` | Antes de atualizar                 | Sim (return false) |
+| `updateDocument`    | Após atualizar (todos os clientes) | Não                |
+| `preDeleteDocument` | Antes de deletar                   | Sim (return false) |
+| `deleteDocument`    | Após deletar (todos os clientes)   | Não                |
 
 **Hooks específicos por tipo** (substituir "Document" pelo tipo): `preCreateActor`, `createActor`, `preUpdateToken`, `updateToken`, etc.
 
@@ -1031,7 +1048,6 @@ Hooks.on("preUpdateActor", (document, changed, options, userId) => {
   // changed: objeto com o diff a ser aplicado (modificável)
   // options: DatabaseUpdateOperation
   // userId: id do usuário que iniciou a operação
-  
   // Para cancelar: return false
   // Para modificar o diff: alterar `changed` diretamente
 });
@@ -1055,14 +1071,14 @@ Hooks.on("createActor", (document, options, userId) => {
 
 ### 13.7 Outros hooks relevantes para o ciclo de dados
 
-| Hook | Contexto |
-|---|---|
-| `preImportAdventure` / `importAdventure` | Importação de Adventure |
-| `updateCompendium` | Mudança em compêndio |
-| `applyActiveEffect` | Aplicação de ActiveEffect |
-| `combatStart`, `combatRound`, `combatTurn` | Ciclo de combate |
-| `moveToken` / `preMoveToken` | Movimento de token |
-| `dropCanvasData` | Drop de dados no canvas |
+| Hook                                       | Contexto                  |
+| ------------------------------------------ | ------------------------- |
+| `preImportAdventure` / `importAdventure`   | Importação de Adventure   |
+| `updateCompendium`                         | Mudança em compêndio      |
+| `applyActiveEffect`                        | Aplicação de ActiveEffect |
+| `combatStart`, `combatRound`, `combatTurn` | Ciclo de combate          |
+| `moveToken` / `preMoveToken`               | Movimento de token        |
+| `dropCanvasData`                           | Drop de dados no canvas   |
 
 ---
 
@@ -1074,13 +1090,13 @@ UUIDs são identificadores universais que permitem localizar qualquer documento 
 
 **Padrões de formato**:
 
-| Contexto | Formato |
-|---|---|
-| Documento primário no mundo | `Actor.{actorId}` |
-| Documento embedded | `Scene.{sceneId}.Token.{tokenId}` |
-| Embedded aninhado | `Actor.{actorId}.Item.{itemId}.ActiveEffect.{effectId}` |
-| Compêndio | `Compendium.{packId}.{DocType}.{docId}` |
-| Synthetic Actor (token) | `Scene.{sceneId}.Token.{tokenId}.Actor.{actorId}` |
+| Contexto                    | Formato                                                 |
+| --------------------------- | ------------------------------------------------------- |
+| Documento primário no mundo | `Actor.{actorId}`                                       |
+| Documento embedded          | `Scene.{sceneId}.Token.{tokenId}`                       |
+| Embedded aninhado           | `Actor.{actorId}.Item.{itemId}.ActiveEffect.{effectId}` |
+| Compêndio                   | `Compendium.{packId}.{DocType}.{docId}`                 |
+| Synthetic Actor (token)     | `Scene.{sceneId}.Token.{tokenId}.Actor.{actorId}`       |
 
 ### 14.2 Funções de resolução
 
@@ -1121,18 +1137,18 @@ Actor.prepareData()
 
 Dados persistidos (`_source`) **nunca** são alterados pelos active effects ou pelo prepareData. Todos os overrides são aplicados em-memory sobre os dados de instância. Isso permite reverter facilmente e calcular diffs precisos na hora do update.
 
-### 15.3 DocumentStats (_stats)
+### 15.3 DocumentStats (\_stats)
 
 Todos os documentos primários possuem o campo `_stats` (DocumentStatsField), gerenciado pelo servidor:
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `coreVersion` | string | Versão do Foundry na criação/atualização |
-| `systemId` | string | ID do sistema de jogo |
-| `systemVersion` | string | Versão do sistema |
-| `createdTime` | number | Timestamp Unix de criação |
-| `modifiedTime` | number | Timestamp Unix de última modificação |
-| `lastModifiedBy` | string | userId de quem fez a última modificação |
+| Campo            | Tipo   | Descrição                                |
+| ---------------- | ------ | ---------------------------------------- |
+| `coreVersion`    | string | Versão do Foundry na criação/atualização |
+| `systemId`       | string | ID do sistema de jogo                    |
+| `systemVersion`  | string | Versão do sistema                        |
+| `createdTime`    | number | Timestamp Unix de criação                |
+| `modifiedTime`   | number | Timestamp Unix de última modificação     |
+| `lastModifiedBy` | string | userId de quem fez a última modificação  |
 
 Campos marcados como **voláteis** (excluídos por padrão ao fazer export via CLI com `omitVolatile: true`): `createdTime`, `modifiedTime`, `lastModifiedBy`, `systemVersion`, `coreVersion`.
 

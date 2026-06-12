@@ -7,21 +7,21 @@
 
 ## 1. Identificação do Sistema
 
-| Campo | Dado |
-|---|---|
-| **Nome** | Etmos RPG |
-| **Subtítulo** | *Grimório de Introdução à Linguagem Mágica* |
-| **Autor / Game Designer** | Rafa Reis |
-| **Editora** | Editora Balde Galáctico |
-| **País de origem** | Brasil |
-| **Ano de lançamento** | 2024 |
-| **ISBN** | 978-65-984386-1-6 |
-| **Gênero / Ambientação** | Fantasia urbana contemporânea |
-| **Idioma principal** | Português brasileiro |
+| Campo                     | Dado                                        |
+| ------------------------- | ------------------------------------------- |
+| **Nome**                  | Etmos RPG                                   |
+| **Subtítulo**             | _Grimório de Introdução à Linguagem Mágica_ |
+| **Autor / Game Designer** | Rafa Reis                                   |
+| **Editora**               | Editora Balde Galáctico                     |
+| **País de origem**        | Brasil                                      |
+| **Ano de lançamento**     | 2024                                        |
+| **ISBN**                  | 978-65-984386-1-6                           |
+| **Gênero / Ambientação**  | Fantasia urbana contemporânea               |
+| **Idioma principal**      | Português brasileiro                        |
 
 A Editora Balde Galáctico é uma publisher brasileira independente de RPGs nacionais; além de Etmos, publica **Barlavento** (combate naval) e **Anansi** (musical narrativista).
 
-O jogo tem forte parceria com o canal/produtora **A Távola Produções** (`@ATavolaProds`), que conduz campanhas oficiais usando Etmos — incluindo a série *InstetRPG* e *AusentesERPG* — e foi responsável pelo lançamento público do livro com live de anúncio em 2025.
+O jogo tem forte parceria com o canal/produtora **A Távola Produções** (`@ATavolaProds`), que conduz campanhas oficiais usando Etmos — incluindo a série _InstetRPG_ e _AusentesERPG_ — e foi responsável pelo lançamento público do livro com live de anúncio em 2025.
 
 ---
 
@@ -46,12 +46,12 @@ A ambientação é predominantemente brasileira/latino-americana em referências
 
 ## 3. Componentes Necessários para Jogar
 
-| Componente | Quantidade | Obrigatório? |
-|---|---|---|
-| Dados de 6 lados (d6) | 2 | Sim |
-| Ficha de personagem | 1 por jogador | Sim |
-| Papel e lápis | — | Sim |
-| Baralho de Grimório (cartas impressas) | 1 por jogador | Recomendado |
+| Componente                             | Quantidade    | Obrigatório? |
+| -------------------------------------- | ------------- | ------------ |
+| Dados de 6 lados (d6)                  | 2             | Sim          |
+| Ficha de personagem                    | 1 por jogador | Sim          |
+| Papel e lápis                          | —             | Sim          |
+| Baralho de Grimório (cartas impressas) | 1 por jogador | Recomendado  |
 
 O baralho de Grimório é o suporte físico principal das **Partículas de Etmos** — os fragmentos da linguagem mágica do personagem. Não é estritamente obrigatório (pode-se usar listas escritas), mas é fortemente recomendado para fluidez.
 
@@ -63,19 +63,19 @@ O baralho de Grimório é o suporte físico principal das **Partículas de Etmos
 
 Cada personagem possui **três atributos**, e o jogador tem **6 pontos para distribuir** entre eles na criação. Nenhum atributo pode começar com mais de **4 pontos** (mínimo: 0).
 
-| Atributo | O que representa |
-|---|---|
-| **Corpo** | Vitalidade física, resistência, força bruta, capacidade de aguentar ferimentos e fadiga |
+| Atributo  | O que representa                                                                          |
+| --------- | ----------------------------------------------------------------------------------------- |
+| **Corpo** | Vitalidade física, resistência, força bruta, capacidade de aguentar ferimentos e fadiga   |
 | **Mente** | Inteligência, capacidade lógica, memória e facilidade de manipular a realidade pela magia |
-| **Alma** | Força de vontade, emoções, conexão espiritual e potência mágica |
+| **Alma**  | Força de vontade, emoções, conexão espiritual e potência mágica                           |
 
 ### 4.2 Recursos Derivados
 
-| Recurso | Fórmula |
-|---|---|
-| **Limite de Ferimentos** | 4 + 1 para cada 2 pontos de Corpo |
-| **Limite de Estresse** | 4 + valor do atributo Alma |
-| **Complexidade máxima de magia** | Determinada pelo valor de Mente |
+| Recurso                          | Fórmula                           |
+| -------------------------------- | --------------------------------- |
+| **Limite de Ferimentos**         | 4 + 1 para cada 2 pontos de Corpo |
+| **Limite de Estresse**           | 4 + valor do atributo Alma        |
+| **Complexidade máxima de magia** | Determinada pelo valor de Mente   |
 
 Ferimentos representam dano físico; Estresse representa desgaste mental/emocional acumulado, especialmente ao conjurar magias.
 
@@ -94,16 +94,16 @@ O coração do sistema. Magia em Etmos não é um catálogo de feitiços pré-de
 
 - Cada Partícula tem um **nome**, um **símbolo** e um **significado** dentro da linguagem mágica ancestral "Etmos".
 - As Partículas ficam fisicamente no **Grimório do personagem** — uma coleção de cartas.
-- Uma frase mágica mínima precisa de uma **Partícula de Função** (o que a magia *faz*) e uma **Partícula de Objeto** (o que é *afetado*).
+- Uma frase mágica mínima precisa de uma **Partícula de Função** (o que a magia _faz_) e uma **Partícula de Objeto** (o que é _afetado_).
 - **Partículas de Característica** modificam a frase (intensidade, alcance, duração, etc.).
 
 **Dotação inicial de Partículas (criação do personagem):**
 
 | Tipo de Partícula | Quantidade inicial |
-|---|---|
-| Função | 2 |
-| Objeto | 3 |
-| Característica | 4 |
+| ----------------- | ------------------ |
+| Função            | 2                  |
+| Objeto            | 3                  |
+| Característica    | 4                  |
 
 A magia deve ser **falada em voz alta** pelo jogador (ou pelo personagem em cena) — a intenção, lógica e criatividade da frase são parte da mecânica. Não há lista de magias prontas: **criatividade é o limite**.
 
@@ -112,6 +112,7 @@ Conjurar magia acumula **Estresse** no personagem. A **Complexidade** da magia �
 #### Encantamento de Itens
 
 Itens mágicos são objetos do cotidiano imbuídos com efeitos de feitiços. O processo envolve:
+
 1. Definir qual feitiço o item reproduz.
 2. Selecionar ferramentas de marcação (tinta, cinzel, gravador de som, etc.).
 3. Gravar o feitiço enquanto o conjura simultaneamente.
@@ -153,11 +154,11 @@ Divididas em **Práticas** (físicas, atléticas, manuais) e **Teóricas** (conh
 
 O avanço usa **Marcos de Crescimento** em três categorias:
 
-| Categoria | Exemplos de gatilho |
-|---|---|
-| **Físico** | Vitórias em combate, conquistas atléticas |
-| **Emocional** | Relacionamentos, crescimento pessoal |
-| **Mental** | Resolução de enigmas, teoria mágica |
+| Categoria     | Exemplos de gatilho                       |
+| ------------- | ----------------------------------------- |
+| **Físico**    | Vitórias em combate, conquistas atléticas |
+| **Emocional** | Relacionamentos, crescimento pessoal      |
+| **Mental**    | Resolução de enigmas, teoria mágica       |
 
 Ao acumular **5 Marcos em cada categoria**, o personagem sobe de nível. Os marcos são zerados (mas os bônus permanecem). Cada subida de nível concede **um bônus à escolha**:
 
@@ -171,13 +172,13 @@ Ao acumular **5 Marcos em cada categoria**, o personagem sobe de nível. Os marc
 
 A Editora Balde Galáctico disponibiliza gratuitamente no site oficial (`baldegalactico.com.br/jogo/etmos/`):
 
-| Recurso | Formato | Gratuito? |
-|---|---|---|
-| **Baixe e Jogue** (quick-start v2.1) | PDF | Sim |
-| **Baralho de Grimório para impressão** | PDF imprimível | Sim |
-| **Ficha em Branco** | PDF editável | Sim |
-| **SRD Etmos** (Documento de Referência do Sistema) | PDF/web | Sim |
-| **Livro completo físico** | Capa dura, 210 páginas | Compra (Amazon BR) |
+| Recurso                                            | Formato                | Gratuito?          |
+| -------------------------------------------------- | ---------------------- | ------------------ |
+| **Baixe e Jogue** (quick-start v2.1)               | PDF                    | Sim                |
+| **Baralho de Grimório para impressão**             | PDF imprimível         | Sim                |
+| **Ficha em Branco**                                | PDF editável           | Sim                |
+| **SRD Etmos** (Documento de Referência do Sistema) | PDF/web                | Sim                |
+| **Livro completo físico**                          | Capa dura, 210 páginas | Compra (Amazon BR) |
 
 O livro físico tem 210 páginas, capa dura com laminação matte e hot stamping, medidas 18,2 × 25,7 cm. Disponível na Amazon Brasil.
 
@@ -199,6 +200,7 @@ A Balde Galáctico confirma a existência de um **SRD Etmos** disponível para d
 ### 8.3 Posicionamento para o projeto Fusion
 
 Dado que o sistema **não é open source / OGL**, a implementação no Fusion VTT deve:
+
 - Contatar diretamente a Editora Balde Galáctico e/ou Rafa Reis para licenciamento formal.
 - Usar o SRD disponível como base para descrever o sistema sem reproduzir o livro completo.
 - Não reproduzir arte proprietária (ilustrações de Vinícius Ferreira Barth e Iago Pacheco).
@@ -208,6 +210,7 @@ Dado que o sistema **não é open source / OGL**, a implementação no Fusion VT
 ## 9. Presença em VTTs Existentes
 
 Não foi encontrada **nenhuma implementação de Etmos em Foundry VTT, Roll20 ou qualquer outro VTT** nas fontes consultadas. O sistema existe exclusivamente em formato:
+
 - Livro físico
 - PDFs gratuitos/pagos
 - Fichas impressas/editáveis
@@ -220,12 +223,12 @@ Isso significa que o **Fusion VTT seria a primeira plataforma VTT a implementar 
 
 Com base nas fontes coletadas:
 
-| Função | Nome |
-|---|---|
-| Autor / Game Designer | Rafa Reis |
-| Direção | Lucas Basso Salgado |
-| Edição | Rayana Fridlund, Vinícius Ferreira Barth |
-| Ilustrações | Vinícius Ferreira Barth, Iago Pacheco |
+| Função                | Nome                                     |
+| --------------------- | ---------------------------------------- |
+| Autor / Game Designer | Rafa Reis                                |
+| Direção               | Lucas Basso Salgado                      |
+| Edição                | Rayana Fridlund, Vinícius Ferreira Barth |
+| Ilustrações           | Vinícius Ferreira Barth, Iago Pacheco    |
 
 ---
 

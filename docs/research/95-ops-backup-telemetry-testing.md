@@ -38,6 +38,7 @@ UserData/
 ```
 
 O sistema de backup do Foundry V11+ introduz três modalidades:
+
 1. **Package Backup**: backup de um mundo/sistema/módulo específico via clique direito na tela de Setup. Gera um par `.bak` + `.json` (manifesto) na pasta `Backups/`.
 2. **Snapshot**: captura completa de todos os pacotes instalados de uma só vez. Recomendado antes de atualizações de versão major (ex.: V12 → V13). Armazenado como `.json` que referencia os `.bak` correspondentes.
 3. **Backup manual**: cópia do diretório `Data/` enquanto o servidor está parado.
@@ -65,14 +66,14 @@ O Fusion usa **better-sqlite3** com modo **WAL** (Write-Ahead Log). Isso possibi
 
 O banco de cada mundo deve ser inicializado com os seguintes PRAGMAs:
 
-| PRAGMA | Valor recomendado | Justificativa |
-|--------|-------------------|---------------|
-| `journal_mode` | `WAL` | Permite backup online; leitores não bloqueiam escritores |
-| `synchronous` | `NORMAL` | Equilibrio durabilidade/performance em WAL (3× mais rápido que FULL) |
-| `wal_autocheckpoint` | `1000` | Checkpoint a cada 1000 páginas; +12% perf vs. padrão |
-| `busy_timeout` | `30000` | 30s de retry automático em SQLITE_BUSY |
-| `foreign_keys` | `ON` | Integridade referencial explícita |
-| `cache_size` | `-16000` | 16 MB de cache de páginas |
+| PRAGMA               | Valor recomendado | Justificativa                                                        |
+| -------------------- | ----------------- | -------------------------------------------------------------------- |
+| `journal_mode`       | `WAL`             | Permite backup online; leitores não bloqueiam escritores             |
+| `synchronous`        | `NORMAL`          | Equilibrio durabilidade/performance em WAL (3× mais rápido que FULL) |
+| `wal_autocheckpoint` | `1000`            | Checkpoint a cada 1000 páginas; +12% perf vs. padrão                 |
+| `busy_timeout`       | `30000`           | 30s de retry automático em SQLITE_BUSY                               |
+| `foreign_keys`       | `ON`              | Integridade referencial explícita                                    |
+| `cache_size`         | `-16000`          | 16 MB de cache de páginas                                            |
 
 #### 1.2.2 Backup online com better-sqlite3
 
@@ -83,9 +84,9 @@ A API `Database.backup(destination, [options])` do better-sqlite3 usa o **SQLite
 await db.backup(`worlds/${worldSlug}/backups/${timestamp}.db`, {
   progress({ totalPages, remainingPages }) {
     const pct = Math.round(((totalPages - remainingPages) / totalPages) * 100);
-    logger.debug({ worldSlug, pct }, 'backup progress');
+    logger.debug({ worldSlug, pct }, "backup progress");
     return 100; // páginas por ciclo do event loop
-  }
+  },
 });
 ```
 
@@ -93,12 +94,12 @@ await db.backup(`worlds/${worldSlug}/backups/${timestamp}.db`, {
 
 #### 1.2.3 Modalidades de backup para o Fusion
 
-| Modalidade | Mecanismo | Gatilho | Destino |
-|------------|-----------|---------|---------|
-| **Automático periódico** | `db.backup()` online | Cron a cada 30 min enquanto servidor ativo | `worlds/<slug>/backups/auto-<timestamp>.db` |
-| **Snapshot de mundo** | `db.backup()` + export assets | Chamado pelo GM manualmente via UI | `worlds/<slug>/backups/manual-<timestamp>.db` |
-| **Pre-update** | Snapshot completo | Antes de atualizar o Fusion | `backups/pre-update-<version>-<timestamp>.tar.gz` |
-| **Export JSON versionável** | `SELECT` + serialização | Sob demanda | `worlds/<slug>/export/<timestamp>/` (um .json por document type) |
+| Modalidade                  | Mecanismo                     | Gatilho                                    | Destino                                                          |
+| --------------------------- | ----------------------------- | ------------------------------------------ | ---------------------------------------------------------------- |
+| **Automático periódico**    | `db.backup()` online          | Cron a cada 30 min enquanto servidor ativo | `worlds/<slug>/backups/auto-<timestamp>.db`                      |
+| **Snapshot de mundo**       | `db.backup()` + export assets | Chamado pelo GM manualmente via UI         | `worlds/<slug>/backups/manual-<timestamp>.db`                    |
+| **Pre-update**              | Snapshot completo             | Antes de atualizar o Fusion                | `backups/pre-update-<version>-<timestamp>.tar.gz`                |
+| **Export JSON versionável** | `SELECT` + serialização       | Sob demanda                                | `worlds/<slug>/export/<timestamp>/` (um .json por document type) |
 
 #### 1.2.4 Retenção
 
@@ -113,6 +114,7 @@ Proposta de política de retenção padrão (configurável):
 Para GMs que quiserem redundância maior sem gerenciar backups manualmente, o **Litestream** é o padrão de mercado para replicação contínua de SQLite. Ele opera como processo separado (sem mudança de código), monitora o WAL e envia incrementos para S3/GCS/Azure Blob ou mesmo um diretório local de rede.
 
 Funcionamento interno:
+
 - Litestream mantém uma "shadow WAL" — recria os arquivos WAL como série sequencial (`00000000.wal`, `00000001.wal`, ...)
 - Organiza backups em "generations" — cada geração é um snapshot base + WAL sequenciais
 - Retenção padrão: 24 horas de WAL (precisão de restauração: ~10 segundos)
@@ -123,11 +125,13 @@ Para o Fusion, Litestream é uma **integração opcional** documentada no guia d
 #### 1.2.6 Export JSON para controle de versão
 
 Independentemente do backup binário, o Fusion deve oferecer **export canônico em JSON** de cada mundo. Isso permite:
+
 - Armazenamento em git para histórico versionável
 - Inspeção human-readable do conteúdo do mundo
 - Interoperabilidade com ferramentas externas
 
 Estrutura proposta do export:
+
 ```
 worlds/<slug>/export/<timestamp>/
   manifest.json          ← metadados do mundo e versão do schema
@@ -163,26 +167,26 @@ O Fusion deve registrar no log de início do servidor o resultado de cada `integ
 
 O **Pino** é o logger de produção mais adequado para o servidor Node.js do Fusion:
 
-| Critério | Pino | Winston |
-|----------|------|---------|
-| Performance | ~115ms para 10.000 ops | ~270ms para 10.000 ops |
-| Formato padrão | JSON estruturado | Texto (configurável) |
-| Worker threads para I/O | Sim (pino-transport) | Não nativo |
-| Tamanho do bundle | Pequeno | Médio |
-| Ecossistema de transports | Amplo | Muito amplo |
+| Critério                  | Pino                   | Winston                |
+| ------------------------- | ---------------------- | ---------------------- |
+| Performance               | ~115ms para 10.000 ops | ~270ms para 10.000 ops |
+| Formato padrão            | JSON estruturado       | Texto (configurável)   |
+| Worker threads para I/O   | Sim (pino-transport)   | Não nativo             |
+| Tamanho do bundle         | Pequeno                | Médio                  |
+| Ecossistema de transports | Amplo                  | Muito amplo            |
 
 O Pino é 2,4× mais rápido que o Winston em benchmarks, relevante para um servidor de jogo onde o logging não pode competir com o event loop.
 
 #### 2.1.2 Níveis de log
 
-| Nível | Uso no Fusion |
-|-------|---------------|
-| `fatal` | Crash do servidor, corrupção de banco detectada |
-| `error` | Exceções não tratadas, falha em operações de backup |
-| `warn` | Backup próximo do limite de disco, latência de socket elevada |
-| `info` | Início/fim de sessão, mundos abertos/fechados, backups completados |
-| `debug` | Operações individuais de documento, progresso de backup |
-| `trace` | Broadcast socket por mensagem (somente dev) |
+| Nível   | Uso no Fusion                                                      |
+| ------- | ------------------------------------------------------------------ |
+| `fatal` | Crash do servidor, corrupção de banco detectada                    |
+| `error` | Exceções não tratadas, falha em operações de backup                |
+| `warn`  | Backup próximo do limite de disco, latência de socket elevada      |
+| `info`  | Início/fim de sessão, mundos abertos/fechados, backups completados |
+| `debug` | Operações individuais de documento, progresso de backup            |
+| `trace` | Broadcast socket por mensagem (somente dev)                        |
 
 Em produção, o nível padrão deve ser `info`. O GM pode elevar para `debug` via painel de configuração.
 
@@ -218,16 +222,17 @@ O campo `module` identifica o subsistema emitente (ex.: `socket`, `db`, `backup`
 
 Métricas de performance a emitir como log `debug` a cada tick do servidor (ou a cada N segundos):
 
-| Métrica | Descrição |
-|---------|-----------|
+| Métrica              | Descrição                                     |
+| -------------------- | --------------------------------------------- |
 | `socket.latency.p50` | Latência mediana do round-trip de socket (ms) |
-| `socket.latency.p99` | Latência no percentil 99 |
-| `socket.connected` | Número de clientes conectados |
-| `db.writeLatency` | Tempo médio de escrita no SQLite (ms) |
-| `db.walSize` | Tamanho do WAL em páginas |
-| `memory.rss` | Memória RSS do processo Node.js (MB) |
+| `socket.latency.p99` | Latência no percentil 99                      |
+| `socket.connected`   | Número de clientes conectados                 |
+| `db.writeLatency`    | Tempo médio de escrita no SQLite (ms)         |
+| `db.walSize`         | Tamanho do WAL em páginas                     |
+| `memory.rss`         | Memória RSS do processo Node.js (MB)          |
 
 Alertas internos sugeridos (logar como `warn`):
+
 - WAL size > 100 MB (sinal de checkpoint travado)
 - SQLITE_BUSY rate > 10/min
 - Socket latency p99 > 500ms
@@ -265,6 +270,7 @@ O Fusion é um servidor local do GM. Não há "produto SaaS" coletando dados cen
 #### 2.2.2 Modelo do Foundry VTT como referência
 
 O Foundry V11 introduziu telemetria opt-in com as seguintes características (referência comportamental):
+
 - Desabilitada por padrão
 - Diálogo de consentimento na primeira execução
 - Dados salvos localmente em `Logs/diagnostics.json` antes de qualquer transmissão
@@ -276,12 +282,12 @@ O Foundry V11 introduziu telemetria opt-in com as seguintes características (re
 
 #### 2.2.3 Crash reporting: Sentry vs. self-hosted vs. local-only
 
-| Opção | Infraestrutura | Privacidade | Complexidade |
-|-------|----------------|-------------|--------------|
-| **Sentry SaaS** | Nenhuma | Dados saem da máquina | Baixa |
-| **Sentry self-hosted** | Docker 8+ GB RAM, PostgreSQL, Redis, Kafka, Clickhouse, 20+ containers | Dados ficam no servidor do GM | Alta |
-| **GlitchTip** (alternativa leve) | Docker 1-2 containers | Dados no servidor | Média |
-| **Log-only local** | Nenhuma | Total | Zero |
+| Opção                            | Infraestrutura                                                         | Privacidade                   | Complexidade |
+| -------------------------------- | ---------------------------------------------------------------------- | ----------------------------- | ------------ |
+| **Sentry SaaS**                  | Nenhuma                                                                | Dados saem da máquina         | Baixa        |
+| **Sentry self-hosted**           | Docker 8+ GB RAM, PostgreSQL, Redis, Kafka, Clickhouse, 20+ containers | Dados ficam no servidor do GM | Alta         |
+| **GlitchTip** (alternativa leve) | Docker 1-2 containers                                                  | Dados no servidor             | Média        |
+| **Log-only local**               | Nenhuma                                                                | Total                         | Zero         |
 
 **Recomendação para o Fusion**: dado que o servidor roda na máquina do GM e que a maioria dos GMs não vai querer operar uma stack Docker para Sentry self-hosted, o **baseline deve ser log-only local** com export de crash report como arquivo JSON. Para equipes técnicas, documentar a integração com Sentry SaaS como opção opt-in (via variável de ambiente `SENTRY_DSN`).
 
@@ -303,13 +309,13 @@ Esses dados ficam visíveis apenas no painel do GM (nunca transmitidos extername
 
 Um VTT tem três camadas de lógica com requisitos de teste completamente diferentes:
 
-| Camada | Característica | Ferramenta |
-|--------|----------------|------------|
-| **Motor de regras** (PF2e, SF2e, Etmos) | Lógica pura, sem DOM, sem browser | Vitest (unit) |
-| **Servidor** (CRUD, socket broadcast) | I/O de arquivo, WebSocket, sem browser | Vitest (integration) |
-| **Cliente** (UI, canvas, Pixi.js) | Browser real, canvas/WebGL | Playwright (E2E) |
-| **Carga multiplayer** | Múltiplos clientes simultâneos | Artillery ou k6 |
-| **Regressão visual do canvas** | Screenshots do canvas | Playwright + pixelmatch |
+| Camada                                  | Característica                         | Ferramenta              |
+| --------------------------------------- | -------------------------------------- | ----------------------- |
+| **Motor de regras** (PF2e, SF2e, Etmos) | Lógica pura, sem DOM, sem browser      | Vitest (unit)           |
+| **Servidor** (CRUD, socket broadcast)   | I/O de arquivo, WebSocket, sem browser | Vitest (integration)    |
+| **Cliente** (UI, canvas, Pixi.js)       | Browser real, canvas/WebGL             | Playwright (E2E)        |
+| **Carga multiplayer**                   | Múltiplos clientes simultâneos         | Artillery ou k6         |
+| **Regressão visual do canvas**          | Screenshots do canvas                  | Playwright + pixelmatch |
 
 ### 3.2 Testes Unitários — Motor de Regras
 
@@ -318,6 +324,7 @@ Um VTT tem três camadas de lógica com requisitos de teste completamente difere
 O motor de regras do Fusion é a parte mais crítica e testável de forma isolada. Deve cobrir:
 
 **Degree of Success (PF2e Remaster)**:
+
 - Critical Success: resultado ≥ DC + 10
 - Success: resultado ≥ DC
 - Failure: resultado < DC
@@ -326,6 +333,7 @@ O motor de regras do Fusion é a parte mais crítica e testável de forma isolad
 - Efeito de "one degree better/worse" de condições
 
 **Modifier Stacking (PF2e)**:
+
 - Bônus do mesmo tipo: apenas o maior se aplica
 - Bônus de tipos diferentes: todos se somam
 - Penalidades: cumulativas independente do tipo
@@ -333,6 +341,7 @@ O motor de regras do Fusion é a parte mais crítica e testável de forma isolad
 - Condicional: `predicate` em modifier deve ser avaliado contra o contexto do check
 
 **Dice Parser**:
+
 - Notações básicas: `1d20`, `4d6`, `2d10+5`
 - Notações compostas: `2d6+1d4+3`
 - Keep/Drop: `4d6kh3` (keep highest 3), `4d6dl1` (drop lowest 1)
@@ -390,8 +399,8 @@ Testes de integração cobrem a camada de servidor com banco real (SQLite in-mem
 
 ```typescript
 // Exemplo conceitual de setup de banco in-memory para testes
-const testDb = new Database(':memory:');
-testDb.pragma('journal_mode = WAL');
+const testDb = new Database(":memory:");
+testDb.pragma("journal_mode = WAL");
 // Aplicar migrations
 runMigrations(testDb);
 ```
@@ -411,6 +420,7 @@ O canvas WebGL/Pixi.js é a maior dificuldade para testes E2E:
 - O estado visual é não-determinístico sem controle de seed do RNG
 
 **Abordagem recomendada**:
+
 1. Expor um objeto `window.__fusion_test_api__` no cliente em modo de teste, com métodos para:
    - Obter o estado atual do canvas em formato serializável
    - Injetar tokens em posições determinísticas
@@ -437,6 +447,7 @@ O Playwright requer browser headless instalado. Configuração no GitHub Actions
 ```
 
 O servidor deve suportar `--test-mode` flag que:
+
 - Usa banco SQLite in-memory ou temporário
 - Pré-popula dados de fixture
 - Desabilita autenticação de licença
@@ -449,19 +460,20 @@ O servidor deve suportar `--test-mode` flag que:
 O Playwright suporta comparação pixel-a-pixel via `expect(page).toHaveScreenshot()` usando a biblioteca **pixelmatch**. Comparação de um screenshot 1280×720 em ~50ms.
 
 Para canvas WebGL:
+
 - Configurar `preserveDrawingBuffer: true` no contexto WebGL/Pixi.js em modo de teste
 - Garantir estado determinístico antes de capturar screenshot: mesma cena, mesmas posições de tokens, sem animações
 - Threshold de diferença configurável (padrão: 1 pixel) para tolerar variações de anti-aliasing entre GPUs
 
 #### 3.5.2 O que cobrir com regressão visual
 
-| Cena de teste | Descrição |
-|---------------|-----------|
-| Scene rendering | Tile de fundo + grid + tokens em posições fixas |
-| Fog of war | Área revelada vs. não revelada |
-| Token HUD | Barra de HP, condições, nome |
-| Lighting | Fontes de luz com raio e cor configurados |
-| Measurement template | Template de cone/círculo/linha |
+| Cena de teste        | Descrição                                       |
+| -------------------- | ----------------------------------------------- |
+| Scene rendering      | Tile de fundo + grid + tokens em posições fixas |
+| Fog of war           | Área revelada vs. não revelada                  |
+| Token HUD            | Barra de HP, condições, nome                    |
+| Lighting             | Fontes de luz com raio e cor configurados       |
+| Measurement template | Template de cone/círculo/linha                  |
 
 **Atenção**: regressão visual do canvas é frágil entre GPUs e sistemas operacionais. Recomenda-se rodar esses testes apenas no CI (ambiente controlado) e não localmente na máquina do dev.
 
@@ -477,14 +489,15 @@ O documento 06 das specs cita limite de ~6-8 usuários simultâneos de audio/ví
 
 #### 3.6.2 Ferramentas
 
-| Ferramenta | Protocolo suportado | Configuração | CI-friendly |
-|------------|---------------------|--------------|-------------|
-| **Artillery** | HTTP, WebSocket, **Socket.IO nativo** | YAML | Sim |
-| **k6** | HTTP, WebSocket (raw) | JavaScript | Sim |
+| Ferramenta    | Protocolo suportado                   | Configuração | CI-friendly |
+| ------------- | ------------------------------------- | ------------ | ----------- |
+| **Artillery** | HTTP, WebSocket, **Socket.IO nativo** | YAML         | Sim         |
+| **k6**        | HTTP, WebSocket (raw)                 | JavaScript   | Sim         |
 
 Para o Fusion, **Artillery** é preferível porque suporta Socket.IO nativamente (via `artillery-engine-socketio-v3`), refletindo o protocolo real usado. Evitar k6 + Socket.IO pois requer wrappers que não cobrem handshake do protocolo.
 
 **Atenção**: a instalação padrão do Artillery vem com cliente Socket.IO v2, incompatível com servidor v3/v4. É mandatório usar o engine customizado:
+
 ```
 npm install artillery artillery-engine-socketio-v3
 ```
@@ -501,14 +514,14 @@ npm install artillery artillery-engine-socketio-v3
 
 #### 3.6.4 Métricas a coletar
 
-| Métrica | Meta |
-|---------|------|
-| Socket connection time | p99 < 500ms |
-| Round-trip latency | p99 < 200ms |
-| Packets per second throughput | > 1000 pps sem degradação |
-| SQLITE_BUSY rate | < 1% sob estresse |
-| WAL file size após 30 min | < 50 MB |
-| Node.js RSS durante carga | Crescimento < 10% após warmup |
+| Métrica                       | Meta                          |
+| ----------------------------- | ----------------------------- |
+| Socket connection time        | p99 < 500ms                   |
+| Round-trip latency            | p99 < 200ms                   |
+| Packets per second throughput | > 1000 pps sem degradação     |
+| SQLITE_BUSY rate              | < 1% sob estresse             |
+| WAL file size após 30 min     | < 50 MB                       |
+| Node.js RSS durante carga     | Crescimento < 10% após warmup |
 
 ### 3.7 Pipeline de CI/CD
 
@@ -525,6 +538,7 @@ npm install artillery artillery-engine-socketio-v3
 #### 3.7.2 Workflow de CI principal
 
 O workflow `ci.yml` deve:
+
 1. Instalar dependências (`npm ci`)
 2. Rodar typecheck (`tsc --noEmit`)
 3. Rodar lint (ESLint)
@@ -535,6 +549,7 @@ O workflow `ci.yml` deve:
 #### 3.7.3 Workflow E2E
 
 O workflow `e2e.yml` deve:
+
 1. Buildar o servidor e cliente
 2. Instalar browsers Playwright (`npx playwright install --with-deps chromium`)
 3. Subir servidor em modo de teste
@@ -550,18 +565,18 @@ Armazenar screenshots baseline como artefatos versionados no repositório (diret
 
 ## 4. Tabela de Decisões Arquiteturais
 
-| Decisão | Opção escolhida | Alternativa considerada | Razão |
-|---------|----------------|------------------------|-------|
-| Backend de logging | Pino | Winston | 2.4× mais rápido; JSON nativo |
-| Rotação de logs | pino-roll | logrotate (SO) | Portável entre Windows/macOS/Linux |
-| Backup online | `db.backup()` (better-sqlite3) | `VACUUM INTO` | Backup incremental page-by-page; reflte mutações in-flight |
-| Replicação avançada | Litestream (opcional) | Nenhuma | Zero code change; opt-in para power users |
-| Crash reporting default | Log local JSON | Sentry SaaS | Privacidade; server roda localmente |
-| Telemetria | Opt-in, arquivo local primeiro | Automático | Alinhado com modelo Foundry V11+ |
-| Framework de testes unitários | Vitest | Jest | ESM nativo; compatível com Jest API; mais rápido |
-| Framework E2E | Playwright | Cypress | Suporte headless melhor; canvas testing mais maduro |
-| Load testing | Artillery | k6 | Socket.IO v3/v4 nativo |
-| Cobertura de regressão visual | pixelmatch (Playwright built-in) | Percy/Chromatic | Zero infra externa; suficiente para canvas determinístico |
+| Decisão                       | Opção escolhida                  | Alternativa considerada | Razão                                                      |
+| ----------------------------- | -------------------------------- | ----------------------- | ---------------------------------------------------------- |
+| Backend de logging            | Pino                             | Winston                 | 2.4× mais rápido; JSON nativo                              |
+| Rotação de logs               | pino-roll                        | logrotate (SO)          | Portável entre Windows/macOS/Linux                         |
+| Backup online                 | `db.backup()` (better-sqlite3)   | `VACUUM INTO`           | Backup incremental page-by-page; reflte mutações in-flight |
+| Replicação avançada           | Litestream (opcional)            | Nenhuma                 | Zero code change; opt-in para power users                  |
+| Crash reporting default       | Log local JSON                   | Sentry SaaS             | Privacidade; server roda localmente                        |
+| Telemetria                    | Opt-in, arquivo local primeiro   | Automático              | Alinhado com modelo Foundry V11+                           |
+| Framework de testes unitários | Vitest                           | Jest                    | ESM nativo; compatível com Jest API; mais rápido           |
+| Framework E2E                 | Playwright                       | Cypress                 | Suporte headless melhor; canvas testing mais maduro        |
+| Load testing                  | Artillery                        | k6                      | Socket.IO v3/v4 nativo                                     |
+| Cobertura de regressão visual | pixelmatch (Playwright built-in) | Percy/Chromatic         | Zero infra externa; suficiente para canvas determinístico  |
 
 ---
 

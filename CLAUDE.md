@@ -26,3 +26,16 @@ Monorepo planejado: `packages/{server,client,shared,system-api}` + `systems/{eng
 - Requisitos das specs: `REQ-<PREFIXO>-NNN`, tags [MVP]/[V2].
 - Sistemas de jogo são pacotes compilados no monorepo (sem plugins dinâmicos no MVP).
 - Rolagens sempre executam no servidor (anti-cheat); toda validação de permissão é no servidor.
+
+## Resolução de @fusion/shared entre pacotes (decisão arquitetural)
+
+Cada pacote resolve `@fusion/shared` de forma diferente por design:
+
+| Pacote          | Estratégia                      | Motivo                                                    |
+| --------------- | ------------------------------- | --------------------------------------------------------- |
+| `system-api`    | `paths` → `shared/src/index.ts` | compila junto com shared; sem dependência de build prévia |
+| `server`        | `node_modules` → `shared/dist/` | precisa de ESM real com `.js` extensions (NodeNext)       |
+| `client`        | Vite alias                      | Vite resolve TypeScript diretamente; `noEmit: true`       |
+| `boundary-test` | `paths` → `shared/src/index.ts` | ferramenta de análise, não emite                          |
+
+Ordem de build obrigatória: `@fusion/shared` antes de `@fusion/server`. O script `pnpm build` no root garante isso via `-r` (topological order do pnpm workspaces).

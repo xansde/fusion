@@ -12,6 +12,7 @@ Foundry Virtual Tabletop (Foundry VTT) é uma plataforma self-hosted de mesa vir
 O modelo de negócio é licença perpétua paga uma única vez. O GM (Game Master) hospeda o servidor em sua própria máquina ou em um servidor de nuvem, e os jogadores conectam pelo navegador sem instalar nada.
 
 Distribuição de plataformas (dados de adoção do v13, 2025):
+
 - **68,35%** usam o pacote Electron para Windows
 - Os demais usam Node.js headless (Linux, servidores, cloud)
 
@@ -44,16 +45,16 @@ Foundry VTT opera em uma arquitetura cliente-servidor desacoplada:
 
 ### 2.2 Conectividade e Rede
 
-| Mecanismo | Descrição |
-|-----------|-----------|
-| **Porta padrão** | TCP 30000 (configurável via `options.json` → `port` ou CLI `--port`) |
-| **UPnP** | Ativado por padrão (`upnp: true`). Permite abertura automática de portas no roteador. Desabilitar com `--noupnp`. |
-| **Port forwarding manual** | Alternativa ao UPnP para redes sem suporte automático. |
-| **SSL/TLS direto** | `sslKey` + `sslCert` em `options.json` para HTTPS nativo. |
-| **Reverse proxy** | Suportado via `proxySSL: true` + `proxyPort` em `options.json`. Documentação oficial cobre Nginx e Apache. |
-| **Route prefix** | `routePrefix` permite hospedar em subpasta (`exemplo.com/foundry`). |
-| **Invite links** | Gerados pela UI do setup screen; codificam host + porta + token de acesso. |
-| **Hosting partners** | The Forge, Molten Hosting, Sqyre (serviços gerenciados que hospedam Node.js headless). |
+| Mecanismo                  | Descrição                                                                                                         |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **Porta padrão**           | TCP 30000 (configurável via `options.json` → `port` ou CLI `--port`)                                              |
+| **UPnP**                   | Ativado por padrão (`upnp: true`). Permite abertura automática de portas no roteador. Desabilitar com `--noupnp`. |
+| **Port forwarding manual** | Alternativa ao UPnP para redes sem suporte automático.                                                            |
+| **SSL/TLS direto**         | `sslKey` + `sslCert` em `options.json` para HTTPS nativo.                                                         |
+| **Reverse proxy**          | Suportado via `proxySSL: true` + `proxyPort` em `options.json`. Documentação oficial cobre Nginx e Apache.        |
+| **Route prefix**           | `routePrefix` permite hospedar em subpasta (`exemplo.com/foundry`).                                               |
+| **Invite links**           | Gerados pela UI do setup screen; codificam host + porta + token de acesso.                                        |
+| **Hosting partners**       | The Forge, Molten Hosting, Sqyre (serviços gerenciados que hospedam Node.js headless).                            |
 
 **Requisitos de rede do GM:** mínimo 1,5 MB/s de upload (12 Mbps recomendado); suporte a IPv4 com port forwarding.
 
@@ -63,14 +64,14 @@ Foundry VTT opera em uma arquitetura cliente-servidor desacoplada:
 
 ### 3.1 Backend (Servidor)
 
-| Componente | Tecnologia | Notas |
-|------------|------------|-------|
-| Runtime | **Node.js 20+** (22 recomendado; 23+ incompatível) | glibc 2.28+ no Linux |
-| Framework HTTP | **Express 5** | Migrado no v14 (era Express 4) |
-| WebSockets tempo real | **WebSocket nativo do browser** (`ws` no Node) | Migrado do socket.io no v12 |
-| Banco de dados | **LevelDB** (`classic-level` / `level`) | Migrado do NeDB no v11 |
-| Formato de dados | JSON/BSON dentro de LevelDB (binary SSTables) | Sublevels por coleção de documentos |
-| Wrapper desktop | **Electron** | Empacota Node.js + Chromium |
+| Componente            | Tecnologia                                         | Notas                               |
+| --------------------- | -------------------------------------------------- | ----------------------------------- |
+| Runtime               | **Node.js 20+** (22 recomendado; 23+ incompatível) | glibc 2.28+ no Linux                |
+| Framework HTTP        | **Express 5**                                      | Migrado no v14 (era Express 4)      |
+| WebSockets tempo real | **WebSocket nativo do browser** (`ws` no Node)     | Migrado do socket.io no v12         |
+| Banco de dados        | **LevelDB** (`classic-level` / `level`)            | Migrado do NeDB no v11              |
+| Formato de dados      | JSON/BSON dentro de LevelDB (binary SSTables)      | Sublevels por coleção de documentos |
+| Wrapper desktop       | **Electron**                                       | Empacota Node.js + Chromium         |
 
 **Nota sobre o socket.io:** até o v11 o Foundry usava socket.io v4, expondo `game.socket` para módulos enviarem eventos com namespace `module.{nome}`. A partir do v12 a migração para WebSockets nativos do browser foi iniciada; o v12 marcou a deprecação e o v13/v14 concluíram a remoção.
 
@@ -78,15 +79,15 @@ Foundry VTT opera em uma arquitetura cliente-servidor desacoplada:
 
 ### 3.2 Frontend (Cliente)
 
-| Componente | Tecnologia | Notas |
-|------------|------------|-------|
-| Renderização de canvas | **PIXI.js v7** (WebGL) | Migração para PIXI v8/WebGPU adiada do v13 para futura versão |
-| Templating HTML | **Handlebars** (via `HandlebarsApplicationMixin`) | Legado AppV1 e mixin opcional no AppV2 |
-| Framework de UI | **ApplicationV2** | Introduzido no v12, 100% migrado no v13 |
-| Manipulação DOM | **jQuery** (em depreciação) | Removido progressivamente a partir do v13 (migração para CSS Layers) |
-| Animações | **GreenSock (GSAP)** | Disponível via API do FVTT para módulos |
-| Editor de rich text | **ProseMirror** | Substituiu TinyMCE (removido no v14) |
-| CSS architecture | **CSS Layers** | Adotado no v13 para controle de especificidade de estilos de módulos |
+| Componente             | Tecnologia                                        | Notas                                                                |
+| ---------------------- | ------------------------------------------------- | -------------------------------------------------------------------- |
+| Renderização de canvas | **PIXI.js v7** (WebGL)                            | Migração para PIXI v8/WebGPU adiada do v13 para futura versão        |
+| Templating HTML        | **Handlebars** (via `HandlebarsApplicationMixin`) | Legado AppV1 e mixin opcional no AppV2                               |
+| Framework de UI        | **ApplicationV2**                                 | Introduzido no v12, 100% migrado no v13                              |
+| Manipulação DOM        | **jQuery** (em depreciação)                       | Removido progressivamente a partir do v13 (migração para CSS Layers) |
+| Animações              | **GreenSock (GSAP)**                              | Disponível via API do FVTT para módulos                              |
+| Editor de rich text    | **ProseMirror**                                   | Substituiu TinyMCE (removido no v14)                                 |
+| CSS architecture       | **CSS Layers**                                    | Adotado no v13 para controle de especificidade de estilos de módulos |
 
 #### PIXI.js — Papel e Versão
 
@@ -112,13 +113,13 @@ O ApplicationV2 substitui o antigo sistema AppV1 (baseado em jQuery + Handlebars
 
 ### 4.1 Evolução Histórica
 
-| Versão | Mudança |
-|--------|---------|
-| v9 e anteriores | `DocumentData` como objeto interno (acesso via `actor.data.data.str`) |
-| **v10** | Introdução do `DataModel` — `Document` passou a estender `DataModel` diretamente |
-| v12 | Fim do período de retrocompatibilidade com API v9/v10 |
-| **v13** | `actor.data.data` completamente removido; somente `actor.system` |
-| v14 | Pipeline unificado de cleaning/validation; batch transactions no banco |
+| Versão          | Mudança                                                                          |
+| --------------- | -------------------------------------------------------------------------------- |
+| v9 e anteriores | `DocumentData` como objeto interno (acesso via `actor.data.data.str`)            |
+| **v10**         | Introdução do `DataModel` — `Document` passou a estender `DataModel` diretamente |
+| v12             | Fim do período de retrocompatibilidade com API v9/v10                            |
+| **v13**         | `actor.data.data` completamente removido; somente `actor.system`                 |
+| v14             | Pipeline unificado de cleaning/validation; batch transactions no banco           |
 
 ### 4.2 DataModel Atual (v14)
 
@@ -133,6 +134,7 @@ O ApplicationV2 substitui o antigo sistema AppV1 (baseado em jQuery + Handlebars
 `TypeDataModel` é a subclasse usada para dados de sistema (o campo `system` de Actors, Items, etc.) — é aqui que sistemas RPG definem seus próprios campos.
 
 **Renames críticos do v10:**
+
 - `actor.data.data.*` → `actor.system.*`
 - `actor.data.permission` → `actor.ownership`
 - `Actor#token` → `Actor#prototypeToken`
@@ -145,11 +147,11 @@ O ApplicationV2 substitui o antigo sistema AppV1 (baseado em jQuery + Handlebars
 
 Foundry VTT organiza todo conteúdo em três tipos de pacote:
 
-| Tipo | Arquivo manifest | Diretório | Função |
-|------|-----------------|-----------|--------|
-| **System** | `system.json` | `Data/systems/` | Define regras, schema de dados, UI para um RPG específico |
-| **Module** | `module.json` | `Data/modules/` | Plugin independente que estende funcionalidades |
-| **World** | `world.json` | `Data/worlds/` | Campanha com dados criados pelo usuário |
+| Tipo       | Arquivo manifest | Diretório       | Função                                                    |
+| ---------- | ---------------- | --------------- | --------------------------------------------------------- |
+| **System** | `system.json`    | `Data/systems/` | Define regras, schema de dados, UI para um RPG específico |
+| **Module** | `module.json`    | `Data/modules/` | Plugin independente que estende funcionalidades           |
+| **World**  | `world.json`     | `Data/worlds/`  | Campanha com dados criados pelo usuário                   |
 
 ### 5.2 Manifests
 
@@ -182,11 +184,13 @@ A URL de manifest estável é usada para instalação automática e verificaçã
 ### 5.4 Tela de Setup e Inicialização
 
 O fluxo de startup do servidor segue estas fases:
+
 1. Carga do `options.json`
 2. Apresentação da **tela de Setup** (`/setup`) — gerencia instalação de sistemas, módulos e worlds
 3. Lançamento de um World → carrega sistema + módulos habilitados → inicializa banco LevelDB → abre a sessão de jogo
 
 As três camadas de configuração, em ordem de precedência:
+
 1. **CLI flags** (maior precedência; temporários)
 2. **`options.json`** (persistentes; editados via Setup UI ou diretamente)
 3. **Setup UI** (interface gráfica que escreve no `options.json`)
@@ -207,24 +211,25 @@ As três camadas de configuração, em ordem de precedência:
 
 O canvas é um elemento `<canvas>` HTML5 controlado pelo PIXI.js. Toda cena é um conjunto de **camadas PIXI** (cada uma é uma `PIXI.Container` extendida):
 
-| # | Camada | Conteúdo |
-|---|--------|----------|
-| 1 | Background Image | Imagem de fundo da cena |
-| 2 | Standard Tiles | Tiles "underfoot" (chão, mobília, obstáculos) |
-| 3 | Token / Actors Layer | Tokens dos personagens e NPCs |
-| 4 | Overhead Tiles | Tiles com flag Overhead (telhados, copas de árvores) |
-| 5 | Foreground Image | Imagem de primeiro plano (sempre visível) |
-| 6 | Weather Layer | Efeitos de clima |
-| 7 | Effects / Lighting & Vision | Iluminação, visão, fog of war |
-| 8 | Template Layer | Medições e templates de magia |
-| 9 | Sound Layer (GM) | Emissores de som ambiente |
-| 10 | Walls Layer (GM) | Paredes bloqueando luz, visão, som |
+| #   | Camada                      | Conteúdo                                             |
+| --- | --------------------------- | ---------------------------------------------------- |
+| 1   | Background Image            | Imagem de fundo da cena                              |
+| 2   | Standard Tiles              | Tiles "underfoot" (chão, mobília, obstáculos)        |
+| 3   | Token / Actors Layer        | Tokens dos personagens e NPCs                        |
+| 4   | Overhead Tiles              | Tiles com flag Overhead (telhados, copas de árvores) |
+| 5   | Foreground Image            | Imagem de primeiro plano (sempre visível)            |
+| 6   | Weather Layer               | Efeitos de clima                                     |
+| 7   | Effects / Lighting & Vision | Iluminação, visão, fog of war                        |
+| 8   | Template Layer              | Medições e templates de magia                        |
+| 9   | Sound Layer (GM)            | Emissores de som ambiente                            |
+| 10  | Walls Layer (GM)            | Paredes bloqueando luz, visão, som                   |
 
 Há também camadas de controle/interface (régua, seleção, HUD) sobre todas as acima.
 
 ### 6.2 Scene Regions (v12+)
 
 Introduzidas no v12 como camada adicional do canvas:
+
 - Geometria: formas retangulares, elípticas ou poligonais; suporte a "holes" (geometria negativa)
 - Elevation ranges: tokens podem passar acima ou abaixo de uma Region sem ativá-la
 - **Behaviors** (comportamentos): subscritos a eventos, executados quando o evento ocorre
@@ -235,6 +240,7 @@ Introduzidas no v12 como camada adicional do canvas:
 ### 6.3 Scene Levels (v14)
 
 Suporte nativo a múltiplos andares em uma única cena:
+
 - Paredes e fontes de luz podem ser específicas por nível ou compartilhadas
 - Visão, movimento e combate funcionam através dos níveis de elevação
 - Completa o último item da whiteboard de features original (2018)
@@ -252,15 +258,16 @@ Suporte nativo a múltiplos andares em uma única cena:
 
 ### 7.1 Evolução do Protocolo
 
-| Versão | Tecnologia |
-|--------|-----------|
-| v9–v11 | socket.io v4 (`game.socket`; eventos `module.{name}`) |
-| v12 | Deprecação do socket.io; início da migração para WebSocket nativo |
-| v13–v14 | WebSocket nativo do browser (API `WebSocket`) + `ws` no Node.js |
+| Versão  | Tecnologia                                                        |
+| ------- | ----------------------------------------------------------------- |
+| v9–v11  | socket.io v4 (`game.socket`; eventos `module.{name}`)             |
+| v12     | Deprecação do socket.io; início da migração para WebSocket nativo |
+| v13–v14 | WebSocket nativo do browser (API `WebSocket`) + `ws` no Node.js   |
 
 ### 7.2 Padrão de Mensagens
 
 No sistema atual (v12+), as mensagens são enviadas como JSON comprimido (avaliação de envio binário também ocorreu). O servidor roteia mensagens para:
+
 - **Document operations:** creates, updates, deletes sincronizados entre todos os clientes
 - **Canvas operations:** movimentos de token, drawing, ruler, etc.
 - **Chat:** mensagens, rolls de dados
@@ -272,14 +279,14 @@ O objeto `game` no cliente é o ponto central de acesso: `game.socket`, `game.us
 
 ## 8. Histórico de Versões e Mudanças Arquiteturais
 
-| Versão | Data Stable | Principais mudanças arquiteturais |
-|--------|-------------|----------------------------------|
-| **v9** | Ago 2022 | Base estável pré-modernização |
-| **v10** | Jun 2023 | **DataModel** substitui DocumentData; `actor.system` |
-| **v11** | Nov 2023 | **LevelDB** substitui NeDB; suporte a Sublevels; PIXI v7 com events engine reimplementada |
-| **v12** | Mai 2025 | **ApplicationV2** (preview); **migração socket.io → WS nativo**; Scene Regions; SMAA; ProseMirror improvements |
-| **v13** | Abr 2025 | **ApplicationV2 100%** migrado; **Theme V2**; jQuery em deprecação; CSS Layers; Token Drag Measurement; Win Portable build; Node.js 20+ obrigatório |
-| **v14** | Abr 2026 | **Express 5**; Scene Levels; Active Effects V2; batch DB transactions; pop-out windows; TinyMCE removido; Measured Templates → Scene Regions; performance +3–25% |
+| Versão  | Data Stable | Principais mudanças arquiteturais                                                                                                                                |
+| ------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **v9**  | Ago 2022    | Base estável pré-modernização                                                                                                                                    |
+| **v10** | Jun 2023    | **DataModel** substitui DocumentData; `actor.system`                                                                                                             |
+| **v11** | Nov 2023    | **LevelDB** substitui NeDB; suporte a Sublevels; PIXI v7 com events engine reimplementada                                                                        |
+| **v12** | Mai 2025    | **ApplicationV2** (preview); **migração socket.io → WS nativo**; Scene Regions; SMAA; ProseMirror improvements                                                   |
+| **v13** | Abr 2025    | **ApplicationV2 100%** migrado; **Theme V2**; jQuery em deprecação; CSS Layers; Token Drag Measurement; Win Portable build; Node.js 20+ obrigatório              |
+| **v14** | Abr 2026    | **Express 5**; Scene Levels; Active Effects V2; batch DB transactions; pop-out windows; TinyMCE removido; Measured Templates → Scene Regions; performance +3–25% |
 
 **Versão estável atual (junho 2026): v14, build 14.364**
 
@@ -289,25 +296,25 @@ O objeto `game` no cliente é o ponto central de acesso: `game.socket`, `game.us
 
 ### 9.1 Servidor (GM / host)
 
-| Recurso | Mínimo | Recomendado |
-|---------|--------|-------------|
-| CPU | 1 vCPU | 2 vCPUs |
-| RAM | 2 GB | 4 GB |
-| Armazenamento | 1 GB | — |
-| Upload | — | 1,5 MB/s (12 Mbps) |
-| OS | Suporte a Node 20+ + glibc 2.28+ | — |
-| Node.js | 20+ | 22 |
+| Recurso       | Mínimo                           | Recomendado        |
+| ------------- | -------------------------------- | ------------------ |
+| CPU           | 1 vCPU                           | 2 vCPUs            |
+| RAM           | 2 GB                             | 4 GB               |
+| Armazenamento | 1 GB                             | —                  |
+| Upload        | —                                | 1,5 MB/s (12 Mbps) |
+| OS            | Suporte a Node 20+ + glibc 2.28+ | —                  |
+| Node.js       | 20+                              | 22                 |
 
 Hardware suportado adicionalmente: Raspberry Pi 4 Model B, Pi 5 e Compute Module 4.
 
 ### 9.2 Cliente (Jogadores)
 
-| Recurso | Mínimo | Recomendado |
-|---------|--------|-------------|
-| RAM | 8 GB | 16 GB |
-| GPU | GPU integrada com aceleração de hardware | GPU dedicada com WebGL 2.0 |
-| Resolução | 1366×768 | 1920×1080+ |
-| Browser | Chrome, Firefox, Opera, Edge (hardware acceleration ativa) | Chrome ou Chromium |
+| Recurso   | Mínimo                                                     | Recomendado                |
+| --------- | ---------------------------------------------------------- | -------------------------- |
+| RAM       | 8 GB                                                       | 16 GB                      |
+| GPU       | GPU integrada com aceleração de hardware                   | GPU dedicada com WebGL 2.0 |
+| Resolução | 1366×768                                                   | 1920×1080+                 |
+| Browser   | Chrome, Firefox, Opera, Edge (hardware acceleration ativa) | Chrome ou Chromium         |
 
 **Nota de performance:** o desempenho depende fortemente do conteúdo da cena (número de tokens, complexidade de iluminação/visão, tamanho do mapa). A maior limitação do cliente é a GPU para renderização WebGL.
 
@@ -318,6 +325,7 @@ Hardware suportado adicionalmente: Raspberry Pi 4 Model B, Pi 5 e Compute Module
 ### 10.1 O que a licença do Foundry VTT proíbe
 
 A licença (EULA da Foundry Gaming LLC) proíbe:
+
 - Vender, distribuir, sublicenciar ou transferir o software
 - Engenharia reversa, decompilação ou desassemblagem para obter código-fonte
 - Implementar mecanismos que repliquem funcionalidades do Foundry sem o software licenciado
@@ -344,16 +352,16 @@ A licença (EULA da Foundry Gaming LLC) proíbe:
 
 ### 11.1 Decisões de stack validadas pela pesquisa
 
-| Decisão para o Fusion | Validação pelo Foundry |
-|-----------------------|----------------------|
-| Node.js como servidor | Confirmado como única opção viável para performance |
-| WebSocket nativo (não socket.io) | Foundry migrou para isto no v12 — socket.io é overhead desnecessário |
-| LevelDB ou similar para persistência | LevelDB provado em produção no Foundry v11+ |
-| PIXI.js para canvas WebGL | Única lib WebGL de alto nível com maturidade suficiente para VTT |
-| Express como HTTP server | Express 5 confirmado no Foundry v14 |
-| Electron para desktop do GM | Abordagem validada; 68% dos usuários do Foundry usam Electron |
-| DataModel com schema declarativo | Padrão provado para VTTs; simplifica validação e serialização |
-| Compendiums em JSON para git | CLI oficial do Foundry faz exatamente isso |
+| Decisão para o Fusion                | Validação pelo Foundry                                               |
+| ------------------------------------ | -------------------------------------------------------------------- |
+| Node.js como servidor                | Confirmado como única opção viável para performance                  |
+| WebSocket nativo (não socket.io)     | Foundry migrou para isto no v12 — socket.io é overhead desnecessário |
+| LevelDB ou similar para persistência | LevelDB provado em produção no Foundry v11+                          |
+| PIXI.js para canvas WebGL            | Única lib WebGL de alto nível com maturidade suficiente para VTT     |
+| Express como HTTP server             | Express 5 confirmado no Foundry v14                                  |
+| Electron para desktop do GM          | Abordagem validada; 68% dos usuários do Foundry usam Electron        |
+| DataModel com schema declarativo     | Padrão provado para VTTs; simplifica validação e serialização        |
+| Compendiums em JSON para git         | CLI oficial do Foundry faz exatamente isso                           |
 
 ### 11.2 Lições arquiteturais do Foundry
 

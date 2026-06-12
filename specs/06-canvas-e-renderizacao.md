@@ -46,26 +46,26 @@ Esta spec é a fonte de verdade para tudo que aparece **dentro do `<canvas>`** d
 
 ## Conceitos e terminologia
 
-| Termo | Definição no Fusion |
-|---|---|
-| **Canvas** | O elemento `<canvas>` único onde o mapa da cena ativa é renderizado via PIXI.js v8. Distinto da UI Svelte sobreposta. |
-| **Stage** | Container raiz do PIXI (`app.stage`). Toda a hierarquia de grupos/camadas pende dele. |
-| **Group (grupo)** | Container de alto nível que agrupa camadas afins. O Fusion define quatro grupos: `PrimaryGroup`, `EffectsGroup`, `InterfaceGroup`, `OverlayGroup` (ver Decisões). |
-| **Layer (camada)** | Container especializado dentro de um grupo, responsável por um tipo de conteúdo (ex.: `TokenLayer`, `TileLayer`). Uma camada pode ser **interativa** (recebe input) ou apenas **renderizada**. |
-| **Render Group (PIXI v8)** | Otimização do PIXI v8: um container marcado como render group tem sua transformação (pan/zoom) aplicada na GPU, habilitando câmera 2D acelerada por hardware (research 15 §3.1). O Fusion usa um render group na raiz do "mundo da cena" para pan/zoom. |
-| **Placeable (objeto posicionável)** | Objeto visual no canvas espelhando um Embedded Document da cena: Token, Tile, Drawing, MeasuredTemplate, Note, Wall, AmbientLight. Tem posição, transformação e estado de seleção/hover. |
-| **Camada ativa (active tool layer)** | A única camada interativa que recebe input de ponteiro por vez (ex.: TokenLayer ativa quando a ferramenta de tokens está selecionada). Mudar de ferramenta troca a camada ativa. |
-| **Scene coordinates (coordenadas de cena)** | Sistema de coordenadas interno em pixels, com origem no canto da área da cena (incluindo padding). Independe do zoom/pan. |
-| **Client coordinates** | Pixels na viewport do navegador (evento de mouse). Convertidos para scene coordinates via a inversa da transformação do render group. |
-| **Cell / célula** | Unidade da grade (um quadrado ou hexágono). Identificada por offset `(i, j)`. |
-| **gridSize** | Tamanho da célula em pixels (lado do quadrado ou largura entre lados paralelos do hex). Mínimo 50 px. |
-| **gridDistance / gridUnits** | Distância que uma célula representa no jogo (ex.: 5) e a unidade (ex.: "ft", "m", "quadrados"). |
-| **Footprint** | Quantas células um token ocupa (`width`×`height` em células). Distinto da `scale` visual da arte. |
-| **Snapping** | Ajuste automático de uma posição livre para um ponto válido da grade (centro de célula, vértice, aresta, interseção), conforme a resolução de snap configurada. |
-| **Targeting** | Marcar um ou mais tokens como alvos de uma ação (distinto de selecionar/controlar). Alvos são visíveis aos outros usuários conforme política. |
-| **Culling** | Não processar/renderizar objetos fora do viewport visível, para economizar CPU/GPU. |
-| **LOD (Level of Detail)** | Reduzir/ocultar detalhe (ex.: nameplates) conforme o zoom, para manter performance e legibilidade. |
-| **Texture atlas** | Spritesheet que agrega várias texturas pequenas (ícones de status, ring) numa só, reduzindo trocas de textura e draw calls. |
+| Termo                                       | Definição no Fusion                                                                                                                                                                                                                                     |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Canvas**                                  | O elemento `<canvas>` único onde o mapa da cena ativa é renderizado via PIXI.js v8. Distinto da UI Svelte sobreposta.                                                                                                                                   |
+| **Stage**                                   | Container raiz do PIXI (`app.stage`). Toda a hierarquia de grupos/camadas pende dele.                                                                                                                                                                   |
+| **Group (grupo)**                           | Container de alto nível que agrupa camadas afins. O Fusion define quatro grupos: `PrimaryGroup`, `EffectsGroup`, `InterfaceGroup`, `OverlayGroup` (ver Decisões).                                                                                       |
+| **Layer (camada)**                          | Container especializado dentro de um grupo, responsável por um tipo de conteúdo (ex.: `TokenLayer`, `TileLayer`). Uma camada pode ser **interativa** (recebe input) ou apenas **renderizada**.                                                          |
+| **Render Group (PIXI v8)**                  | Otimização do PIXI v8: um container marcado como render group tem sua transformação (pan/zoom) aplicada na GPU, habilitando câmera 2D acelerada por hardware (research 15 §3.1). O Fusion usa um render group na raiz do "mundo da cena" para pan/zoom. |
+| **Placeable (objeto posicionável)**         | Objeto visual no canvas espelhando um Embedded Document da cena: Token, Tile, Drawing, MeasuredTemplate, Note, Wall, AmbientLight. Tem posição, transformação e estado de seleção/hover.                                                                |
+| **Camada ativa (active tool layer)**        | A única camada interativa que recebe input de ponteiro por vez (ex.: TokenLayer ativa quando a ferramenta de tokens está selecionada). Mudar de ferramenta troca a camada ativa.                                                                        |
+| **Scene coordinates (coordenadas de cena)** | Sistema de coordenadas interno em pixels, com origem no canto da área da cena (incluindo padding). Independe do zoom/pan.                                                                                                                               |
+| **Client coordinates**                      | Pixels na viewport do navegador (evento de mouse). Convertidos para scene coordinates via a inversa da transformação do render group.                                                                                                                   |
+| **Cell / célula**                           | Unidade da grade (um quadrado ou hexágono). Identificada por offset `(i, j)`.                                                                                                                                                                           |
+| **gridSize**                                | Tamanho da célula em pixels (lado do quadrado ou largura entre lados paralelos do hex). Mínimo 50 px.                                                                                                                                                   |
+| **gridDistance / gridUnits**                | Distância que uma célula representa no jogo (ex.: 5) e a unidade (ex.: "ft", "m", "quadrados").                                                                                                                                                         |
+| **Footprint**                               | Quantas células um token ocupa (`width`×`height` em células). Distinto da `scale` visual da arte.                                                                                                                                                       |
+| **Snapping**                                | Ajuste automático de uma posição livre para um ponto válido da grade (centro de célula, vértice, aresta, interseção), conforme a resolução de snap configurada.                                                                                         |
+| **Targeting**                               | Marcar um ou mais tokens como alvos de uma ação (distinto de selecionar/controlar). Alvos são visíveis aos outros usuários conforme política.                                                                                                           |
+| **Culling**                                 | Não processar/renderizar objetos fora do viewport visível, para economizar CPU/GPU.                                                                                                                                                                     |
+| **LOD (Level of Detail)**                   | Reduzir/ocultar detalhe (ex.: nameplates) conforme o zoom, para manter performance e legibilidade.                                                                                                                                                      |
+| **Texture atlas**                           | Spritesheet que agrega várias texturas pequenas (ícones de status, ring) numa só, reduzindo trocas de textura e draw calls.                                                                                                                             |
 
 ---
 
@@ -78,8 +78,8 @@ Cada decisão lista alternativas rejeitadas e o racional.
 O canvas usa **um** `PIXI.Application` (WebGPU com fallback WebGL) cujo `stage` contém quatro grupos, do fundo ao topo: **PrimaryGroup** (conteúdo físico da cena: background, tiles, drawings, tokens, overhead, foreground), **EffectsGroup** (weather, iluminação, visão, fog — detalhe em `07`), **InterfaceGroup** (objetos interativos da cena que não são físicos: templates, notes, walls (GM), grid, controles de seleção) e **OverlayGroup** (elementos que NÃO seguem o transform do mundo: ruler, pings, cursores de outros usuários).
 
 - **Alternativas rejeitadas:**
-  - *Pilha plana de camadas sem grupos* (só uma lista ordenada por z-index): dificulta aplicar efeitos/máscaras a um subconjunto inteiro (ex.: a máscara de visão deve afetar todo o Primary de uma vez) e mistura objetos físicos com UI de canvas.
-  - *Replicar literalmente a taxonomia de grupos do Foundry* (`Hidden`, `Rendered`, `Environment`, `PrimaryCanvasGroup`, `EffectsCanvasGroup`, `VisibilityCanvasGroup`, `InterfaceCanvasGroup`, `OverlayCanvasGroup` — research 03 §2): mais granular do que o MVP precisa e atrelado a nomenclatura proprietária. O Fusion consolida em quatro grupos com a mesma intenção funcional.
+  - _Pilha plana de camadas sem grupos_ (só uma lista ordenada por z-index): dificulta aplicar efeitos/máscaras a um subconjunto inteiro (ex.: a máscara de visão deve afetar todo o Primary de uma vez) e mistura objetos físicos com UI de canvas.
+  - _Replicar literalmente a taxonomia de grupos do Foundry_ (`Hidden`, `Rendered`, `Environment`, `PrimaryCanvasGroup`, `EffectsCanvasGroup`, `VisibilityCanvasGroup`, `InterfaceCanvasGroup`, `OverlayCanvasGroup` — research 03 §2): mais granular do que o MVP precisa e atrelado a nomenclatura proprietária. O Fusion consolida em quatro grupos com a mesma intenção funcional.
 - **Racional:** A pesquisa mostra que o agrupamento físico (Primary) × efeitos × interface × overlay é o que viabiliza (a) aplicar a máscara de visão e os filtros de iluminação ao bloco físico inteiro de uma vez, e (b) manter ruler/pings fixos ao stage transform sem herdar o pan/zoom do mundo (research 03 §2, §3, §17). Quatro grupos cobrem a intenção sem o peso da taxonomia completa. A ordem de renderização visual segue a pesquisa: background → tiles underfoot → tokens → tiles overhead → foreground → weather → iluminação/visão → templates → controles → ruler (research 03 §3).
 
 ### D2 — Render Group na raiz do "mundo da cena" para pan/zoom acelerado
@@ -87,8 +87,8 @@ O canvas usa **um** `PIXI.Application` (WebGPU com fallback WebGL) cujo `stage` 
 A transformação de câmera (pan e zoom) é aplicada a **um** container que envolve PrimaryGroup + EffectsGroup + InterfaceGroup, marcado como **Render Group** do PIXI v8. O OverlayGroup fica **fora** desse container (não recebe a transformação do mundo).
 
 - **Alternativas rejeitadas:**
-  - *Aplicar pan/zoom mexendo no `position`/`scale` do `stage` inteiro a cada frame na CPU*: força recálculo de transform em toda a árvore na CPU; com mapas grandes e muitos placeables, é exatamente o custo que o PIXI v8 elimina com Render Groups (research 15 §3.1: "Render Groups: containers podem usar GPU para transformações, habilitando câmera 2D hardware-accelerated — fundamental para pan/zoom em mapas grandes").
-  - *Escalar o background e reposicionar cada objeto individualmente*: inviável e propenso a drift de coordenadas.
+  - _Aplicar pan/zoom mexendo no `position`/`scale` do `stage` inteiro a cada frame na CPU_: força recálculo de transform em toda a árvore na CPU; com mapas grandes e muitos placeables, é exatamente o custo que o PIXI v8 elimina com Render Groups (research 15 §3.1: "Render Groups: containers podem usar GPU para transformações, habilitando câmera 2D hardware-accelerated — fundamental para pan/zoom em mapas grandes").
+  - _Escalar o background e reposicionar cada objeto individualmente_: inviável e propenso a drift de coordenadas.
 - **Racional:** Render Groups são o mecanismo nativo do PIXI v8 para câmera 2D eficiente (research 15 §3.1, §16). Manter o Overlay fora do render group do mundo garante que ruler, pings e cursores permaneçam em coordenadas de tela/cena fixas, como o "OverlayCanvasGroup" do Foundry que não segue o stage transform (research 03 §2). Limites de zoom default 0.1×–3× (research 03 §16.3), configuráveis.
 
 ### D3 — Abstração de grade com três implementações por trás de uma interface única
@@ -96,8 +96,8 @@ A transformação de câmera (pan e zoom) é aplicada a **um** container que env
 Define-se a interface `GridStrategy` com três implementações: `SquareGrid`, `HexGrid` (parametrizada por orientação pointy/flat e paridade odd/even) e `GridlessGrid`. Cada uma implementa conversão pixel↔célula, snapping, medição de distância e geração do highlight de células. A grade hexagonal usa **coordenadas cúbicas** internamente, apoiada na biblioteca **`honeycomb-grid`** (MIT) para a matemática.
 
 - **Alternativas rejeitadas:**
-  - *Só grade quadrada no MVP*: PF2e é quadrado 5ft, mas SF2e/Etmos e muitos mapas usam hex; deixar hex de fora forçaria refactor depois. A pesquisa recomenda explicitamente uma camada de abstração que suporte square/hex/gridless (research 15 §7.2).
-  - *Implementar hex math do zero*: `honeycomb-grid` é MIT, TypeScript, estável e cobre pointy/flat, offset/axial/cube e shapes (research 15 §7.1). Reimplementar é risco desnecessário; usamos a lib para a matemática e implementamos nós a renderização/snapping no PIXI.
+  - _Só grade quadrada no MVP_: PF2e é quadrado 5ft, mas SF2e/Etmos e muitos mapas usam hex; deixar hex de fora forçaria refactor depois. A pesquisa recomenda explicitamente uma camada de abstração que suporte square/hex/gridless (research 15 §7.2).
+  - _Implementar hex math do zero_: `honeycomb-grid` é MIT, TypeScript, estável e cobre pointy/flat, offset/axial/cube e shapes (research 15 §7.1). Reimplementar é risco desnecessário; usamos a lib para a matemática e implementamos nós a renderização/snapping no PIXI.
 - **Racional:** Uma única interface isola o resto do canvas (movimento de token, templates, ruler) do tipo de grade concreto. Cubo como representação canônica do hex segue a convenção padrão (`q + r + s = 0`) e dá distância trivial `max(|Δq|,|Δr|,|Δs|)` (research 03 §5.2). Conversões `offset↔cube↔point` ficam na estratégia hex.
 
 ### D4 — Regra de diagonal configurável por cena, com o conjunto de regras da pesquisa
@@ -105,9 +105,9 @@ Define-se a interface `GridStrategy` com três implementações: `SquareGrid`, `
 A medição em grade quadrada respeita uma regra de diagonal configurável por cena, do conjunto: `equidistant` (diagonal=1, D&D5e), `exact` (√2), `approximate` (1.5), `rectilinear` (2), `alternating_1` (alterna 1-2-1-2, **começa em 1** — **PF2e 5-10-5**, `ALTERNATING_1` do Foundry), `alternating_2` (alterna 2-1-2-1, começa em 2 — `ALTERNATING_2` do Foundry; suportado no MVP para fidelidade ao conjunto, marcado [V2] pois nenhum sistema-alvo o usa) e `illegal` (diagonal proibida). O **default para cenas de sistema PF2e é `alternating_1`**.
 
 - **Alternativas rejeitadas:**
-  - *Hardcode da regra euclidiana*: não atende PF2e (5-10-5) nem D&D (equidistante); a pesquisa enumera 7 regras distintas que o domínio exige (research 03 §5.1).
-  - *Colapsar `alternating_1` e `alternating_2` em um único `alternating_5_10_5`*: a pesquisa distingue explicitamente as duas variantes por onde começam (research 03 §5.1: `ALTERNATING_1` começa em 1, `ALTERNATING_2` começa em 2). Usar um único nome causa ambiguidade na implementação da contagem acumulada de diagonais.
-  - *Regra fixa por sistema sem override de cena*: GMs precisam ajustar por cena/encontro; manter configurável na cena é o comportamento esperado.
+  - _Hardcode da regra euclidiana_: não atende PF2e (5-10-5) nem D&D (equidistante); a pesquisa enumera 7 regras distintas que o domínio exige (research 03 §5.1).
+  - _Colapsar `alternating_1` e `alternating_2` em um único `alternating_5_10_5`_: a pesquisa distingue explicitamente as duas variantes por onde começam (research 03 §5.1: `ALTERNATING_1` começa em 1, `ALTERNATING_2` começa em 2). Usar um único nome causa ambiguidade na implementação da contagem acumulada de diagonais.
+  - _Regra fixa por sistema sem override de cena_: GMs precisam ajustar por cena/encontro; manter configurável na cena é o comportamento esperado.
 - **Racional:** A pesquisa lista as constantes de diagonal e identifica explicitamente `ALTERNATING_1` como a regra "PF2e 5-10-5" e `ALTERNATING_2` como variante que começa em 2 (research 03 §5.1). O Fusion inclui ambas para mapeamento 1:1 com a pesquisa. Tornar configurável por cena com default por sistema cobre os três sistemas-alvo. A estratégia de grade recebe a regra e a aplica na medição acumulada ao longo de um caminho (a alternância é por passo diagonal acumulado no caminho, não por segmento isolado).
 
 ### D5 — Movimento de token: otimismo com rollback (originador) + animação a partir do broadcast (peers)
@@ -115,8 +115,8 @@ A medição em grade quadrada respeita uma regra de diagonal configurável por c
 O movimento de token segue o modelo otimista definido em `04-rede-e-sincronizacao.md` (REQ-NET-050/051/052) como fonte única de autoridade sobre o comportamento de rede. O fluxo tem três momentos: (1) **preview local (ghost)** durante o drag/setas — antes do drop/confirmação — exibindo um fantasma de posição e um ruler de movimento com distância/custo, sem alterar o estado canônico do token; (2) ao confirmar (drop ou tecla), o **originador aplica a posição localmente (otimismo)** e emite `token:move` ao servidor; (3) ao receber o broadcast ou ack do servidor, o originador corrige para a posição autoritativa se divergir (rollback — REQ-NET-051); **peers** só aplicam a posição a partir do broadcast canônico (REQ-NET-052), com animação interpolada origem→destino.
 
 - **Alternativas rejeitadas:**
-  - *Mover apenas o ghost durante e após o drag, sem aplicar posição localmente antes do broadcast (non-optimistic ghost only)*: introduz lag perceptível no próprio jogador que moveu o token; contrária ao modelo de concorrência otimista fixado em `04` (D4, REQ-NET-050). Rejeitado: o originador DEVE ver o movimento imediato.
-  - *Esperar o round-trip completo antes de qualquer feedback visual*: UX inaceitável; o preview local (ghost durante drag + posição otimista após drop) resolve a latência percebida sem ceder autoridade ao cliente.
+  - _Mover apenas o ghost durante e após o drag, sem aplicar posição localmente antes do broadcast (non-optimistic ghost only)_: introduz lag perceptível no próprio jogador que moveu o token; contrária ao modelo de concorrência otimista fixado em `04` (D4, REQ-NET-050). Rejeitado: o originador DEVE ver o movimento imediato.
+  - _Esperar o round-trip completo antes de qualquer feedback visual_: UX inaceitável; o preview local (ghost durante drag + posição otimista após drop) resolve a latência percebida sem ceder autoridade ao cliente.
 - **Racional:** O modelo otimista com rollback é a decisão arquitetural de concorrência de `04` (D4, REQ-NET-050/051/052). O ghost é restrito ao período de drag (antes da confirmação) e serve de preview sem alterar o estado persistido; após o drop, a posição é aplicada otimisticamente no originador. O servidor continua sendo o árbitro: se rejeitar ou corrigir, o originador reverte para a posição autoritativa. Peers nunca avançam otimisticamente — animam a partir do broadcast. A animação é parametrizável (duração por distância, easing, rotação em direção ao movimento) à semelhança do `TokenAnimationOptions` (research 03 §7.6). A exibição de custo de movimento via Regions (terreno difícil) é **[V2]**, pois depende de Region/RegionBehavior que não fazem parte do MVP (REQ-DOC-022, DEC-MAC-04 em `14`); a aplicação de custo é regra de sistema. Alinha REQ-ARQ-031, REQ-VIS-008.
 
 ### D6 — Quatro formas de MeasuredTemplate cobrindo a geometria do PF2e
@@ -124,8 +124,8 @@ O movimento de token segue o modelo otimista definido em `04-rede-e-sincronizaca
 O Fusion implementa quatro formas de template: **circle** (raio a partir da origem — bursts), **cone** (setor angular configurável; o default do Fusion para PF2e é **90° — decisão de design a confirmar em `17-sistema-pf2e.md`**, não atribuída ao Foundry cujo padrão é ~53°), **line/ray** (linha com largura) e **emanation** (área ao redor de uma origem/token — em grade, é equivalente a um burst centrado no token com o quadrado/hex de origem incluído). Cada template gera o **highlight de células** afetadas conforme a estratégia de grade ativa.
 
 - **Alternativas rejeitadas:**
-  - *Reusar `rectangle` do Foundry como quinta forma genérica*: PF2e não usa retângulo livre como forma primária de efeito; line/ray cobre os casos lineares. Retângulo fica como possível extensão [V2].
-  - *Apenas geometria contínua sem highlight de células*: em grade, o que importa para PF2e é **quais quadrados** a área cobre (um quadrado é afetado se a área cobre seu ponto relevante segundo a regra do sistema). Sem highlight de células, o GM não sabe quem é atingido.
+  - _Reusar `rectangle` do Foundry como quinta forma genérica_: PF2e não usa retângulo livre como forma primária de efeito; line/ray cobre os casos lineares. Retângulo fica como possível extensão [V2].
+  - _Apenas geometria contínua sem highlight de células_: em grade, o que importa para PF2e é **quais quadrados** a área cobre (um quadrado é afetado se a área cobre seu ponto relevante segundo a regra do sistema). Sem highlight de células, o GM não sabe quem é atingido.
 - **Racional:** A pesquisa lista circle/cone/rectangle/ray como as formas do Foundry (research 03 §6.3) e identifica o cone como setor angular de 1°–360° com **padrão ~53° no Foundry** (research 03 §6.3). Para PF2e, o conjunto necessário é burst (circle), cone, line (ray) e emanation; mapeamos para essas quatro. O ângulo default de 90° para cone em PF2e é uma **decisão de design do Fusion** (um cone de PF2e a partir de um canto ocupa um quadrante de 90°), não um comportamento do Foundry — a regra exata do PF2e remaster deve ser fechada em `17-sistema-pf2e.md`. A regra de "qual quadrado conta como atingido" é igualmente detalhe do sistema PF2e (`17`); o canvas oferece o highlight geométrico e a estratégia de inclusão de célula como ponto de extensão da grade.
 
 ### D7 — Tokens com footprint em células separado da escala da arte, e ring opcional
@@ -133,8 +133,8 @@ O Fusion implementa quatro formas de template: **circle** (raio a partir da orig
 O token separa **footprint** (`width`×`height` em células — define a ocupação na grade e o snapping) da **escala visual** da arte (`scale`, multiplicador estético). Suporta espelhamento (`mirrorX/Y`), `tint`, `rotation`, `alpha`, `elevation` e `disposition`. O **token ring** (moldura circular com cor/fundo dirigida por disposição/estado) é uma camada de apresentação **opcional**, separada da arte do sujeito.
 
 - **Alternativas rejeitadas:**
-  - *Acoplar tamanho na grade ao tamanho da imagem*: quebra para artes com moldura/respiro; o footprint precisa ser independente da arte (research 03 §7.2: "`scale` ajusta apenas a aparência da artwork").
-  - *Ring obrigatório (todo token tem moldura)*: nem todo token quer moldura; mantê-lo opcional respeita arte de mapa custom. O ring é um framework separado em camadas (subject/ring/background) à semelhança dos Dynamic Token Rings (research 03 §7.5), mas no MVP entregamos uma forma simples (borda colorida por disposição); o ring dinâmico completo é refinamento.
+  - _Acoplar tamanho na grade ao tamanho da imagem_: quebra para artes com moldura/respiro; o footprint precisa ser independente da arte (research 03 §7.2: "`scale` ajusta apenas a aparência da artwork").
+  - _Ring obrigatório (todo token tem moldura)_: nem todo token quer moldura; mantê-lo opcional respeita arte de mapa custom. O ring é um framework separado em camadas (subject/ring/background) à semelhança dos Dynamic Token Rings (research 03 §7.5), mas no MVP entregamos uma forma simples (borda colorida por disposição); o ring dinâmico completo é refinamento.
 - **Racional:** Separar footprint de escala é o modelo correto observado na pesquisa (research 03 §7.1, §7.2). Disposition pinta a borda/ring (friendly/neutral/hostile/secret), seguindo o esquema de cores observado (research 03 §7.1). Tokens grandes (2×2, 3×3…) exigem snapping multi-célula, com lógica especial em hex (research 03 §5.2, §7.2).
 
 ### D8 — Barras de atributo, status icons e nameplate como overlays cacheáveis do token
@@ -142,8 +142,8 @@ O token separa **footprint** (`width`×`height` em células — define a ocupaç
 Cada token compõe, acima da arte: até **duas resource bars** (`bar1`, `bar2`) vinculadas a caminhos de atributo do ator, **ícones de status** (no canto, definidos pelo sistema), **nameplate** (rótulo) e, opcionalmente, indicador de **elevação**. A visibilidade de cada elemento é configurável por nível (nunca / dono / hover dono / hover todos / sempre). Esses overlays são **cacheados como bitmap** quando estáticos, para reduzir draw calls.
 
 - **Alternativas rejeitadas:**
-  - *Desenhar barras/ícones com `PIXI.Graphics` por frame sem cache*: `PIXI.Graphics` não participa de batching e gera um draw call por objeto; com 50 tokens isso explode os draw calls (research 03 §4.2, §15.2).
-  - *Renderizar nameplates sempre, em qualquer zoom*: ilegível e custoso em zoom out; daí o LOD de nameplate (ver D11).
+  - _Desenhar barras/ícones com `PIXI.Graphics` por frame sem cache_: `PIXI.Graphics` não participa de batching e gera um draw call por objeto; com 50 tokens isso explode os draw calls (research 03 §4.2, §15.2).
+  - _Renderizar nameplates sempre, em qualquer zoom_: ilegível e custoso em zoom out; daí o LOD de nameplate (ver D11).
 - **Racional:** A pesquisa quantifica o ganho de cachear barras/ícones como textura (`cacheAsBitmap`): de ~85 para ~36 draw calls, de ~55 fps para 100+ fps (research 03 §15.2). A visibilidade por nível é o comportamento esperado das resource bars/status (research 03 §7.4). Os ícones de status são definidos pelo sistema de jogo (`15-api-de-sistemas.md`).
 
 ### D9 — Tiles overhead com modos de oclusão; teste de oclusão por amostragem de pontos
@@ -151,8 +151,8 @@ Cada token compõe, acima da arte: até **duas resource bars** (`bar1`, `bar2`) 
 Tiles dividem-se em **underfoot** (abaixo dos tokens: chão, móveis) e **overhead** (acima: telhados, copas). Tiles overhead suportam modos de oclusão: `none`, `fade` (todo o tile faz fade quando um token controlado passa por baixo), `radial` (revela um raio ao redor do token) e `vision` (revela conforme o polígono de visão do token — integra com `07`). A detecção de "token sob o tile" amostra múltiplos pontos do token (centro, cantos e cardeais).
 
 - **Alternativas rejeitadas:**
-  - *Só fade global do tile*: insuficiente para telhados grandes onde só a parte sobre o token deveria revelar (daí radial/vision).
-  - *Testar só o centro do token*: falha em tokens grandes e em bordas de tile; a pesquisa indica teste de 9 pontos (centro, 4 cantos, 4 cardeais) e considera áreas transparentes da arte (research 03 §8.3).
+  - _Só fade global do tile_: insuficiente para telhados grandes onde só a parte sobre o token deveria revelar (daí radial/vision).
+  - _Testar só o centro do token_: falha em tokens grandes e em bordas de tile; a pesquisa indica teste de 9 pontos (centro, 4 cantos, 4 cardeais) e considera áreas transparentes da arte (research 03 §8.3).
 - **Racional:** Os quatro modos cobrem os casos reais (research 03 §8.3). O modo `vision` depende do polígono de visão calculado em `07`; no MVP entregamos `none`/`fade`/`radial` como base e `vision` acoplado quando a visão estiver pronta. A oclusão é uma flag de re-render batched (ver D13), não um recálculo por frame.
 
 ### D10 — Sistema de flags de re-render (perception) para coalescer atualizações
@@ -160,7 +160,7 @@ Tiles dividem-se em **underfoot** (abaixo dos tokens: chão, móveis) e **overhe
 Mudanças que afetam o canvas (mover token, alterar luz, abrir porta, mudar oclusão) **não** disparam re-render imediato e isolado. Elas **enfileiram flags** (ex.: `refreshTokens`, `refreshLighting`, `refreshVision`, `refreshOcclusion`, `refreshGrid`) que são processadas **em lote uma vez por frame**, com propagação entre flags (uma flag pode acionar outras).
 
 - **Alternativas rejeitadas:**
-  - *Re-renderizar/recalcular a cada mutação individual*: várias mudanças no mesmo frame causam recálculos redundantes (ex.: mover 5 tokens recalcula visão 5×). A pesquisa descreve exatamente esse problema e a solução por flags batched (research 03 §4.5, §11.4 — PerceptionManager).
+  - _Re-renderizar/recalcular a cada mutação individual_: várias mudanças no mesmo frame causam recálculos redundantes (ex.: mover 5 tokens recalcula visão 5×). A pesquisa descreve exatamente esse problema e a solução por flags batched (research 03 §4.5, §11.4 — PerceptionManager).
 - **Racional:** Coalescer por frame é o que mantém o custo previsível com muitos objetos. As flags de visão/iluminação/oclusão são consumidas pelo subsistema de `07`; esta spec define o mecanismo geral e as flags puramente de canvas (tokens, grid, controles). Alinha com o RNF de não bloquear o event loop e com D9 de `01`.
 
 ### D11 — LOD de nameplates e detalhe por nível de zoom
@@ -168,8 +168,8 @@ Mudanças que afetam o canvas (mover token, alterar luz, abrir porta, mudar oclu
 Nameplates, barras e ícones de status têm **LOD por zoom**: abaixo de um limiar de zoom, nameplates somem (ou viram um ponto), barras simplificam e ícones de status agregam. A grade também ajusta densidade visual (linhas mais finas/atenuadas) em zoom baixo.
 
 - **Alternativas rejeitadas:**
-  - *Detalhe constante em todo zoom*: ilegível em zoom out e custoso (texto pequeno re-renderizado). 
-  - *Esconder tudo abaixo de um zoom fixo*: perde informação útil; LOD gradual é melhor que liga/desliga abrupto.
+  - _Detalhe constante em todo zoom_: ilegível em zoom out e custoso (texto pequeno re-renderizado).
+  - _Esconder tudo abaixo de um zoom fixo_: perde informação útil; LOD gradual é melhor que liga/desliga abrupto.
 - **Racional:** LOD é a técnica padrão para manter legibilidade e fps. A pesquisa não dá limiares exatos de nameplate, então os limiares concretos ficam como decisão de design afinável (ver Questões em aberto). O LOD é puramente visual e local (não afeta estado autoritativo).
 
 ### D12 — Coordenadas: scene coordinates como sistema canônico; conversão única client↔scene
@@ -177,8 +177,8 @@ Nameplates, barras e ícones de status têm **LOD por zoom**: abaixo de um limia
 Todo placeable e toda lógica de grade operam em **scene coordinates** (pixels da cena, origem no canto da área com padding). A conversão de evento do navegador (**client coordinates**) para scene coordinates passa por **uma** função que inverte a transformação do render group da câmera. Nunca se aplica rotação/skew ao render group do mundo (apenas translação e escala).
 
 - **Alternativas rejeitadas:**
-  - *Cada camada faz sua própria conversão de coordenadas*: fonte garantida de bugs de mapeamento cursor→canvas, especialmente sob zoom (research 03 §16.4 menciona bugs de transform que corrompem o mapeamento).
-  - *Permitir rotação do stage do mundo (mapas girados)*: introduz exatamente a classe de transform bugs citada; rotação de cena fica [V2] e, se vier, com tratamento dedicado.
+  - _Cada camada faz sua própria conversão de coordenadas_: fonte garantida de bugs de mapeamento cursor→canvas, especialmente sob zoom (research 03 §16.4 menciona bugs de transform que corrompem o mapeamento).
+  - _Permitir rotação do stage do mundo (mapas girados)_: introduz exatamente a classe de transform bugs citada; rotação de cena fica [V2] e, se vier, com tratamento dedicado.
 - **Racional:** Um único ponto de conversão elimina drift e bugs de mapeamento. Restringir a câmera a translação+escala (sem rotação/skew) evita a corrupção de coordenadas observada na pesquisa (research 03 §16.4).
 
 ### D13 — Culling manual e atlas de textura como base de performance
@@ -186,8 +186,8 @@ Todo placeable e toda lógica de grade operam em **scene coordinates** (pixels d
 O canvas faz **culling manual**: antes de renderizar/atualizar, verifica se o bounding box do placeable intersecta o viewport. Ícones de status e elementos de ring usam **texture atlas** (spritesheet). Texturas grandes (background) usam mipmapping; formatos preferidos WebP/AVIF.
 
 - **Alternativas rejeitadas:**
-  - *Confiar no culling automático do PIXI*: o PIXI não faz culling automático por padrão — todos os objetos do container são processados mesmo fora do viewport (research 03 §15.1). É preciso culling manual.
-  - *Uma textura por ícone de status*: troca de textura por ícone aumenta draw calls; um atlas agrega tudo num batch (research 03 §15.2, §15.3).
+  - _Confiar no culling automático do PIXI_: o PIXI não faz culling automático por padrão — todos os objetos do container são processados mesmo fora do viewport (research 03 §15.1). É preciso culling manual.
+  - _Uma textura por ícone de status_: troca de textura por ícone aumenta draw calls; um atlas agrega tudo num batch (research 03 §15.2, §15.3).
 - **Racional:** A pesquisa é explícita: PIXI não faz culling automático e a otimização vem de culling manual + caching como textura + batching + atlas + formatos WebP/AVIF (research 03 §15). Essas técnicas são o caminho para a meta de 60 fps com 50 tokens em mapa 10k×10k (research 03 §15.4).
 
 ---
@@ -335,13 +335,13 @@ export type HexOrientation = "pointy" | "flat";
 export type HexParity = "odd" | "even";
 
 export type DiagonalRule =
-  | "equidistant"        // diagonal = 1 (D&D 5e) — EQUIDISTANT do Foundry
-  | "exact"              // diagonal = √2 — EXACT do Foundry
-  | "approximate"        // diagonal = 1.5 — APPROXIMATE do Foundry
-  | "rectilinear"        // diagonal = 2 — RECTILINEAR do Foundry
-  | "alternating_1"      // alterna 1-2-1-2 (começa em 1; PF2e 5-10-5) — ALTERNATING_1 do Foundry
-  | "alternating_2"      // alterna 2-1-2-1 (começa em 2) — ALTERNATING_2 do Foundry [V2]
-  | "illegal";           // diagonal proibida — ILLEGAL do Foundry
+  | "equidistant" // diagonal = 1 (D&D 5e) — EQUIDISTANT do Foundry
+  | "exact" // diagonal = √2 — EXACT do Foundry
+  | "approximate" // diagonal = 1.5 — APPROXIMATE do Foundry
+  | "rectilinear" // diagonal = 2 — RECTILINEAR do Foundry
+  | "alternating_1" // alterna 1-2-1-2 (começa em 1; PF2e 5-10-5) — ALTERNATING_1 do Foundry
+  | "alternating_2" // alterna 2-1-2-1 (começa em 2) — ALTERNATING_2 do Foundry [V2]
+  | "illegal"; // diagonal proibida — ILLEGAL do Foundry
 
 export interface GridConfig {
   type: GridType;
@@ -361,11 +361,21 @@ export interface GridConfig {
 }
 
 /** Coordenada de célula em offset (linha/coluna). */
-export interface CellOffset { i: number; j: number; }
+export interface CellOffset {
+  i: number;
+  j: number;
+}
 /** Ponto em scene coordinates (px). */
-export interface ScenePoint { x: number; y: number; }
+export interface ScenePoint {
+  x: number;
+  y: number;
+}
 /** Coordenada cúbica de hexágono (q + r + s = 0). */
-export interface CubeCoord { q: number; r: number; s: number; }
+export interface CubeCoord {
+  q: number;
+  r: number;
+  s: number;
+}
 
 /** Resolução de snapping. */
 export type SnapResolution = "center" | "vertex" | "edge" | "intersection";
@@ -387,8 +397,7 @@ export interface GridStrategy {
 export type Disposition = "friendly" | "neutral" | "hostile" | "secret";
 
 /** Nível de visibilidade de um overlay do token. */
-export type DisplayMode =
-  | "never" | "owner" | "hover_owner" | "hover_all" | "always";
+export type DisplayMode = "never" | "owner" | "hover_owner" | "hover_all" | "always";
 
 export interface ResourceBarView {
   /** Caminho de atributo no ator (ex.: "attributes.hp"). */
@@ -404,15 +413,15 @@ export interface TokenView {
   height: number;
   /** Escala visual da arte (multiplicador). */
   scale: number;
-  rotation: number;   // graus
-  alpha: number;      // 0–1
-  tint?: string;      // hex
+  rotation: number; // graus
+  alpha: number; // 0–1
+  tint?: string; // hex
   mirrorX: boolean;
   mirrorY: boolean;
-  elevation: number;  // em gridUnits
+  elevation: number; // em gridUnits
   disposition: Disposition;
   textureSrc: string; // URL servida por HTTP estático (nunca via socket)
-  ring: boolean;      // borda/ring por disposição (MVP); ring dinâmico é [V2]
+  ring: boolean; // borda/ring por disposição (MVP); ring dinâmico é [V2]
   bars: [ResourceBarView?, ResourceBarView?];
   statusIcons: string[]; // ids de status definidos pelo sistema
   nameplate: { text: string; display: DisplayMode };
@@ -423,10 +432,10 @@ export type TemplateShapeKind = "circle" | "cone" | "line" | "emanation";
 export interface TemplateShape {
   kind: TemplateShapeKind;
   origin: ScenePoint;
-  direction: number;   // graus
-  distance: number;    // em gridUnits
-  angle?: number;      // cone (graus; default 90 para PF2e — decisão de design, a confirmar em 17)
-  width?: number;      // line (em gridUnits)
+  direction: number; // graus
+  distance: number; // em gridUnits
+  angle?: number; // cone (graus; default 90 para PF2e — decisão de design, a confirmar em 17)
+  width?: number; // line (em gridUnits)
   color: string;
   alpha: number;
   /** Token-âncora opcional (emanation/burst centrado). */
@@ -435,7 +444,7 @@ export interface TemplateShape {
 
 export interface FootprintShape {
   origin: CellOffset;
-  width: number;  // células
+  width: number; // células
   height: number; // células
 }
 
@@ -456,7 +465,11 @@ export interface CanvasRenderFlags {
 }
 
 /** View de câmera (apenas translação + escala no MVP). */
-export interface CameraView { x: number; y: number; scale: number; }
+export interface CameraView {
+  x: number;
+  y: number;
+  scale: number;
+}
 ```
 
 ---
@@ -467,24 +480,24 @@ Esta spec descreve a **API local do canvas** (no cliente). O contrato de socket 
 
 ### Camadas e grupos (resumo)
 
-| Grupo | Camadas (ordem do fundo ao topo) | Interativa? |
-|---|---|---|
-| `PrimaryGroup` | background, tiles-underfoot, drawings-underfoot, tokens, tiles-overhead, foreground | tokens (quando ativa) |
-| `EffectsGroup` | weather, lighting, vision, fog (ver `07`) | não |
-| `InterfaceGroup` | templates, notes, walls (GM, ver `07`), grid, controls/selection | a ferramenta ativa |
-| `OverlayGroup` | ruler, pings, cursores remotos | n/a (segue presença) |
+| Grupo            | Camadas (ordem do fundo ao topo)                                                    | Interativa?           |
+| ---------------- | ----------------------------------------------------------------------------------- | --------------------- |
+| `PrimaryGroup`   | background, tiles-underfoot, drawings-underfoot, tokens, tiles-overhead, foreground | tokens (quando ativa) |
+| `EffectsGroup`   | weather, lighting, vision, fog (ver `07`)                                           | não                   |
+| `InterfaceGroup` | templates, notes, walls (GM, ver `07`), grid, controls/selection                    | a ferramenta ativa    |
+| `OverlayGroup`   | ruler, pings, cursores remotos                                                      | n/a (segue presença)  |
 
 ### Eventos locais emitidos pelo canvas (cliente → app)
 
-| Evento local | Quando | Carga |
-|---|---|---|
-| `canvas:ready` | cena ativa carregada e renderizada | `{ sceneId }` |
-| `token:select` | seleção muda | `{ tokenIds }` |
-| `token:target` | alvos mudam | `{ tokenIds }` |
-| `token:moveRequest` | usuário confirma um movimento | `{ tokenId, path, finalPosition }` → vira mutação de Document via socket |
-| `template:placeRequest` | usuário coloca um template | `{ shape }` → vira criação de Document |
-| `ruler:update` | waypoints do ruler mudam | `{ path, distance }` → broadcast de presença |
-| `camera:change` | pan/zoom muda | `{ view }` (local; force-pan do GM em `05`) |
+| Evento local            | Quando                             | Carga                                                                    |
+| ----------------------- | ---------------------------------- | ------------------------------------------------------------------------ |
+| `canvas:ready`          | cena ativa carregada e renderizada | `{ sceneId }`                                                            |
+| `token:select`          | seleção muda                       | `{ tokenIds }`                                                           |
+| `token:target`          | alvos mudam                        | `{ tokenIds }`                                                           |
+| `token:moveRequest`     | usuário confirma um movimento      | `{ tokenId, path, finalPosition }` → vira mutação de Document via socket |
+| `template:placeRequest` | usuário coloca um template         | `{ shape }` → vira criação de Document                                   |
+| `ruler:update`          | waypoints do ruler mudam           | `{ path, distance }` → broadcast de presença                             |
+| `camera:change`         | pan/zoom muda                      | `{ view }` (local; force-pan do GM em `05`)                              |
 
 ### Updates de Document consumidos pelo canvas (socket → cliente)
 

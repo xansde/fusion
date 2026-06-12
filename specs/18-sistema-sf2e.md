@@ -8,7 +8,7 @@
   - `docs/research/13-pf2e-sf2e-mecanicas-nucleo.md`
 
 > Esta spec é clean-room: descreve a implementação do sistema SF2e no Fusion
-> inspirada no *comportamento* observável e em dados abertos (ORC/Apache-2.0),
+> inspirada no _comportamento_ observável e em dados abertos (ORC/Apache-2.0),
 > sem copiar código proprietário do Foundry VTT ou da Paizo.
 
 > **Nota normativa de escopo de fase:** O sistema SF2e é classificado como
@@ -65,7 +65,7 @@ o **Starfinder Second Edition (SF2e)** construído sobre o mesmo motor 2e do PF2
   proficiências, condições base) — mecânicas implementadas em
   `systems/engine-2e` (definido em `ver 17-sistema-pf2e.md` DEC-PF2-01);
   contrato de registro em `ver 15-api-de-sistemas.md`; esta spec só define o que
-  o SF2e *adiciona*.
+  o SF2e _adiciona_.
 - Starship Combat **tático** com grid (Tech Core, outubro 2026) — [V2] fora do
   escopo da spec atual; mapeado apenas conceitualmente.
 - Classes Mechanic e Technomancer (Tech Core) — dados chegam com o livro; o
@@ -82,20 +82,20 @@ o **Starfinder Second Edition (SF2e)** construído sobre o mesmo motor 2e do PF2
 
 ## Conceitos e Terminologia
 
-| Termo | Definição |
-|---|---|
-| **engine 2e** | Motor de regras compartilhado entre PF2e e SF2e: three-action economy, proficiências TEML, graus de sucesso, condições base, effects data-driven. Lógica de mecânicas 2e compartilhadas implementada em `systems/engine-2e`; contrato de registro (API) em `packages/system-api`. Ambos os pacotes são reutilizados por `systems/pf2e` e `systems/sf2e`. |
-| **delta SF2e** | Conjunto de extensões que o `systems/sf2e` adiciona ao engine 2e: tipos de item novos, skills exclusivos, condição Untethered, tiers de qualidade de armas, augmentações, créditos. |
-| **Augmentation** | Item do tipo `augmentation` representando uma modificação tecnológica ou biológica implantada no corpo do personagem. |
-| **Tech Weapon** | Arma com o trait `Tech` — usa cargas de energia ou projéteis, sujeita a glitch, com tier de qualidade em vez de runas. |
-| **Tier de qualidade** | Substituto funcional das runas fundamentais de armas no SF2e: Commercial → Tactical → Advanced → Superior → Elite → Ultimate → Paragon. |
-| **Credstick** | Item do tipo `equipment` representando um portador de créditos físico. A moeda contábil é o crédito (cr). |
-| **Untethered** | Condição exclusiva do SF2e: criatura flutuando sem propulsão em ambiente zero-g, sem controle de direção. |
-| **Starship Scene** | Encontro de combate cinemático envolvendo naves, mapeado como `CombatType = "starship"`. Os personagens assumem papéis funcionais na nave. |
-| **Papel na nave** | Captain, Engineer, Gunner, Magic Officer, Pilot ou Science Officer — determina skill de iniciativa e ações disponíveis em Starship Scene. |
-| **Body Slot** | Um dos slots corporais disponíveis para augmentações (brain, eyes, ears, throat, arms, hands, legs, feet, skin, spinal). |
-| **Compendium pack SF2e** | Um dos 26 packs de dados do SF2e hospedados no repositório `foundryvtt/pf2e`, licenciados Apache-2.0 e ORC. |
-| **Species** | Denominação SF2e para ancestry. Mecanicamente idêntica: mesma estrutura de dados, apenas `displayName` diferente na ficha. |
+| Termo                    | Definição                                                                                                                                                                                                                                                                                                                                                |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **engine 2e**            | Motor de regras compartilhado entre PF2e e SF2e: three-action economy, proficiências TEML, graus de sucesso, condições base, effects data-driven. Lógica de mecânicas 2e compartilhadas implementada em `systems/engine-2e`; contrato de registro (API) em `packages/system-api`. Ambos os pacotes são reutilizados por `systems/pf2e` e `systems/sf2e`. |
+| **delta SF2e**           | Conjunto de extensões que o `systems/sf2e` adiciona ao engine 2e: tipos de item novos, skills exclusivos, condição Untethered, tiers de qualidade de armas, augmentações, créditos.                                                                                                                                                                      |
+| **Augmentation**         | Item do tipo `augmentation` representando uma modificação tecnológica ou biológica implantada no corpo do personagem.                                                                                                                                                                                                                                    |
+| **Tech Weapon**          | Arma com o trait `Tech` — usa cargas de energia ou projéteis, sujeita a glitch, com tier de qualidade em vez de runas.                                                                                                                                                                                                                                   |
+| **Tier de qualidade**    | Substituto funcional das runas fundamentais de armas no SF2e: Commercial → Tactical → Advanced → Superior → Elite → Ultimate → Paragon.                                                                                                                                                                                                                  |
+| **Credstick**            | Item do tipo `equipment` representando um portador de créditos físico. A moeda contábil é o crédito (cr).                                                                                                                                                                                                                                                |
+| **Untethered**           | Condição exclusiva do SF2e: criatura flutuando sem propulsão em ambiente zero-g, sem controle de direção.                                                                                                                                                                                                                                                |
+| **Starship Scene**       | Encontro de combate cinemático envolvendo naves, mapeado como `CombatType = "starship"`. Os personagens assumem papéis funcionais na nave.                                                                                                                                                                                                               |
+| **Papel na nave**        | Captain, Engineer, Gunner, Magic Officer, Pilot ou Science Officer — determina skill de iniciativa e ações disponíveis em Starship Scene.                                                                                                                                                                                                                |
+| **Body Slot**            | Um dos slots corporais disponíveis para augmentações (brain, eyes, ears, throat, arms, hands, legs, feet, skin, spinal).                                                                                                                                                                                                                                 |
+| **Compendium pack SF2e** | Um dos 26 packs de dados do SF2e hospedados no repositório `foundryvtt/pf2e`, licenciados Apache-2.0 e ORC.                                                                                                                                                                                                                                              |
+| **Species**              | Denominação SF2e para ancestry. Mecanicamente idêntica: mesma estrutura de dados, apenas `displayName` diferente na ficha.                                                                                                                                                                                                                               |
 
 ---
 
@@ -112,6 +112,7 @@ DEC-PF2-01) e de `packages/system-api` (contrato de registro engine ↔ sistemas
 subsistemas via APIs de extensão da system API.
 
 **Alternativas rejeitadas:**
+
 - Engine separado para SF2e: duplicaria toda a lógica de three-action economy,
   proficiências e effects data-driven sem nenhum benefício. Rejeitado.
 - SF2e como módulo sobre PF2e (abordagem playtest): cria dependência de runtime
@@ -132,6 +133,7 @@ de dano de forma análoga às runas Potency + Striking. O importer mapeia o camp
 `tier` do JSON fonte para este campo.
 
 **Alternativas rejeitadas:**
+
 - Reutilizar runas PF2e para armas tech: semanticamente incorreto; runas são mágicas
   e o SF2e explicitamente usa tiers tecnológicos. Rejeitado.
 - Tratar tier como um item separado aplicado sobre a arma: complexidade desnecessária;
@@ -151,6 +153,7 @@ schema Zod antes de persistir o item. Apex augmentations têm flag `isApex: true
 e não contam para o limite.
 
 **Alternativas rejeitadas:**
+
 - Modelar como equipment genérico com flag: perderiam type-safety e a UI de
   inventário não saberia exibir os body slots. Rejeitado.
 - Modelar como feats: semanticamente incorreto — augmentações são itens físicos
@@ -171,6 +174,7 @@ papel, ações especiais de 2 ações por papel, e stats de nave como subdocumen
 Esta feature é inteira [V2].
 
 **Alternativas rejeitadas:**
+
 - Starship Combat como sistema de jogo separado fora do engine: forçaria duplicar
   toda a infraestrutura de tracker, turnos e UI. Rejeitado.
 - Implementar no MVP: o Tech Core com starship combat tático só sai em outubro 2026
@@ -187,6 +191,7 @@ Credsticks são itens do tipo `equipment` (tipo herdado do engine 2e) com campo
 `credits: number` que podem ser adicionados ao inventário.
 
 **Alternativas rejeitadas:**
+
 - Reutilizar o campo multi-denominação do PF2e com renomeação cosmética: o SF2e
   não tem subdivisões de moeda; forçar quatro campos causaria confusão. Rejeitado.
 
@@ -248,6 +253,7 @@ ainda previstas na spec 15 são classificadas como [V2] mesmo que sejam mecânic
 centrais das classes SF2e.
 
 Em particular:
+
 - `SpecialResource` como tipo de efeito ou registrar method não está na spec 15
   MVP → features que dependem dele são [V2].
 - EffectRule types plugáveis por sistema são [V2] (spec 15 D4/REQ-SYS-089).
@@ -299,10 +305,10 @@ e apenas adicionar a condição `Untethered` (ver REQ-SF2-022).
 **REQ-SF2-007** [MVP] O `systems/sf2e` deve registrar dois skills adicionais na
 lista de perícias do ator:
 
-| Skill | Atributo-chave | Ações principais |
-|---|---|---|
-| `computers` | Intelligence | Hack, Access System, Recall Knowledge (tecnologia/IA) |
-| `piloting` | Dexterity | Fly/Drive veículo ou nave, manobras avançadas |
+| Skill       | Atributo-chave | Ações principais                                      |
+| ----------- | -------------- | ----------------------------------------------------- |
+| `computers` | Intelligence   | Hack, Access System, Recall Knowledge (tecnologia/IA) |
+| `piloting`  | Dexterity      | Fly/Drive veículo ou nave, manobras avançadas         |
 
 **REQ-SF2-008** [MVP] A ficha de personagem SF2e deve exibir Computers e Piloting
 na seção de skills, com bônus calculado pelo engine (atributo + proficiência TEML).
@@ -354,7 +360,7 @@ e `heritage`.
 features fisiológicas compartilhadas entre species) deve ser suportado pelo modelo
 existente de ancestry feats, sem extensão especial de engine.
 
-**REQ-SF2-017** [V2] As 21 species adicionais do suplemento *Galactic Ancestries*
+**REQ-SF2-017** [V2] As 21 species adicionais do suplemento _Galactic Ancestries_
 (2026) serão adicionadas como pack de compendium suplementar.
 
 ---
@@ -366,13 +372,13 @@ existente de ancestry feats, sem extensão especial de engine.
 
 ```typescript
 type WeaponTier =
-  | "commercial"   // nível aprox. 0  — bônus e dados: ver QA-SF2-01
-  | "tactical"     // nível aprox. 2  — bônus e dados: ver QA-SF2-01
-  | "advanced"     // nível aprox. 4  — bônus e dados: ver QA-SF2-01
-  | "superior"     // nível aprox. 10 — bônus e dados: ver QA-SF2-01
-  | "elite"        // nível aprox. 12 — bônus e dados: ver QA-SF2-01
-  | "ultimate"     // nível aprox. 16 — bônus e dados: ver QA-SF2-01
-  | "paragon";     // nível aprox. 19 — bônus e dados: ver QA-SF2-01
+  | "commercial" // nível aprox. 0  — bônus e dados: ver QA-SF2-01
+  | "tactical" // nível aprox. 2  — bônus e dados: ver QA-SF2-01
+  | "advanced" // nível aprox. 4  — bônus e dados: ver QA-SF2-01
+  | "superior" // nível aprox. 10 — bônus e dados: ver QA-SF2-01
+  | "elite" // nível aprox. 12 — bônus e dados: ver QA-SF2-01
+  | "ultimate" // nível aprox. 16 — bônus e dados: ver QA-SF2-01
+  | "paragon"; // nível aprox. 19 — bônus e dados: ver QA-SF2-01
 ```
 
 O campo `tier` é um enum sem semântica numérica fixa embutida no tipo. Os bônus
@@ -384,17 +390,17 @@ do repositório `foundryvtt/pf2e` antes da implementação — ver QA-SF2-01.
 **REQ-SF2-019** [MVP] Os seguintes traits exclusivos de armas SF2e devem ser
 suportados pelo engine de traits com efeitos mecânicos:
 
-| Trait | Efeito mecânico |
-|---|---|
-| `Tech` | Item eletrônico; sujeito a glitch por efeitos EMP; usa charges |
-| `Automatic` | Ativa disparo em rajada: burst (área) ou full-auto (múltiplos alvos); consome charges extras |
-| `Area X` | Atinge todos em área de X pés; sem roll separado por alvo; salvaguarda Reflex padrão |
-| `Tracking X` | Bônus de item +X ao ataque (cumulativo com tier) |
-| `Analog` | Não tem trait Tech; imune a efeitos de glitch/EMP; não usa charges |
-| `Injection` | Ao acertar, pode entregar veneno ou item líquido via seringa |
-| `Line` | Projétil em linha reta; atinge múltiplos alvos em sequência |
-| `Unwieldy` | Não pode ser usada com MAP; máximo 1 Strike por turno |
-| `Seeking` | Ignora penalidade de miss chance por concealment |
+| Trait        | Efeito mecânico                                                                              |
+| ------------ | -------------------------------------------------------------------------------------------- |
+| `Tech`       | Item eletrônico; sujeito a glitch por efeitos EMP; usa charges                               |
+| `Automatic`  | Ativa disparo em rajada: burst (área) ou full-auto (múltiplos alvos); consome charges extras |
+| `Area X`     | Atinge todos em área de X pés; sem roll separado por alvo; salvaguarda Reflex padrão         |
+| `Tracking X` | Bônus de item +X ao ataque (cumulativo com tier)                                             |
+| `Analog`     | Não tem trait Tech; imune a efeitos de glitch/EMP; não usa charges                           |
+| `Injection`  | Ao acertar, pode entregar veneno ou item líquido via seringa                                 |
+| `Line`       | Projétil em linha reta; atinge múltiplos alvos em sequência                                  |
+| `Unwieldy`   | Não pode ser usada com MAP; máximo 1 Strike por turno                                        |
+| `Seeking`    | Ignora penalidade de miss chance por concealment                                             |
 
 **REQ-SF2-020** [MVP] Armas com trait `Tech` devem rastrear cargas (`charges`):
 campo `system.charges.current` e `system.charges.max`. A ação `Reload` consome
@@ -418,9 +424,7 @@ interface UntetheredCondition {
   // Personagem está flutuando sem propulsão em zero-g.
   // Não pode se mover voluntariamente sem Push Off, jetpack ou magia.
   // Pode ser removida ao agarrar superfície sólida ou usar propulsão.
-  effects: [
-    { type: "RollOption", option: "untethered", value: true }
-  ];
+  effects: [{ type: "RollOption"; option: "untethered"; value: true }];
 }
 ```
 
@@ -454,9 +458,16 @@ interface AugmentationItemSystem {
 }
 
 type BodySlot =
-  | "brain" | "eyes" | "ears" | "throat"
-  | "arms" | "hands" | "legs" | "feet"
-  | "skin" | "spinal";
+  | "brain"
+  | "eyes"
+  | "ears"
+  | "throat"
+  | "arms"
+  | "hands"
+  | "legs"
+  | "feet"
+  | "skin"
+  | "spinal";
 ```
 
 **REQ-SF2-024** [MVP] A validação do limite de augmentações deve ocorrer no
@@ -497,12 +508,12 @@ créditos são transferidos para `system.currency.credits` do ator com confirma�
 **REQ-SF2-030** [MVP] As seguintes condições de ambiente espacial devem ser
 modeladas como efeitos de hazard aplicáveis pelo GM via chat/scene:
 
-| Ambiente | Efeito mecânico (MVP: manual via GM) |
-|---|---|
-| Vácuo | Aplicar 1d6 bludgeoning/round + sufocação imediata como efeito persistente |
-| Descompressão | Aplicar 3d6 bludgeoning extra ao transitar de pressurizado para vácuo |
-| Radiação baixa | Aplicar efeito de veneno (poison, 4 níveis: low/medium/high/severe) |
-| Atmosfera espessa | GM rola Fortitude DC 15+1/check por hora; falha = sickened |
+| Ambiente          | Efeito mecânico (MVP: manual via GM)                                       |
+| ----------------- | -------------------------------------------------------------------------- |
+| Vácuo             | Aplicar 1d6 bludgeoning/round + sufocação imediata como efeito persistente |
+| Descompressão     | Aplicar 3d6 bludgeoning extra ao transitar de pressurizado para vácuo      |
+| Radiação baixa    | Aplicar efeito de veneno (poison, 4 níveis: low/medium/high/severe)        |
+| Atmosfera espessa | GM rola Fortitude DC 15+1/check por hora; falha = sickened                 |
 
 No MVP estes efeitos são aplicados manualmente pelo GM via drag de efeito no token.
 A automação de zonas de mapa é [V2].
@@ -532,11 +543,11 @@ adicionais:
 ```typescript
 interface StarshipCombatData {
   combatType: "starship";
-  playerShip: StarshipStatblock;  // nave dos PCs
-  threats: StarshipThreat[];      // naves inimigas / hazards / megafauna
+  playerShip: StarshipStatblock; // nave dos PCs
+  threats: StarshipThreat[]; // naves inimigas / hazards / megafauna
   phase: "initiative" | "active" | "ended";
   victoryPoints: number;
-  victoryCondition: string;       // descrição textual
+  victoryCondition: string; // descrição textual
 }
 
 interface StarshipStatblock {
@@ -551,22 +562,26 @@ interface StarshipStatblock {
 }
 
 type StarshipRole =
-  | "captain" | "engineer" | "gunner"
-  | "magic_officer" | "pilot" | "science_officer";
+  | "captain"
+  | "engineer"
+  | "gunner"
+  | "magic_officer"
+  | "pilot"
+  | "science_officer";
 ```
 
 **REQ-SF2-035** [V2] Em um encontro starship, cada `Combatant` deve ter um campo
 `starshipRole: StarshipRole`. O engine deve usar a skill mapeada ao papel para
 determinar a iniciativa:
 
-| Papel | Skill de iniciativa |
-|---|---|
-| Captain | Diplomacy ou Intimidation (maior) |
-| Engineer | Engineering (Crafting) |
-| Gunner | attack bonus (arma escolhida) |
-| Magic Officer | spell attack |
-| Pilot | Piloting |
-| Science Officer | Computers |
+| Papel           | Skill de iniciativa               |
+| --------------- | --------------------------------- |
+| Captain         | Diplomacy ou Intimidation (maior) |
+| Engineer        | Engineering (Crafting)            |
+| Gunner          | attack bonus (arma escolhida)     |
+| Magic Officer   | spell attack                      |
+| Pilot           | Piloting                          |
+| Science Officer | Computers                         |
 
 **REQ-SF2-036** [V2] Cada papel deve ter uma lista de ações especiais de 2 ações
 importadas do compendium (`featType: "starship-role"`). Estas ações consomem 2 das
@@ -588,15 +603,15 @@ ad-hoc durante o encontro.
 registrado como `sheet: "ActorSheetSF2ePC"` para atores do tipo `character`.
 A estrutura de tabs deve ser:
 
-| Tab | Conteúdo |
-|---|---|
-| **Core** | Stats principais, saves, AC, speed, HP; skills (incluindo Computers e Piloting); iniciativa |
-| **Actions** | Ações básicas, ações de classe, itens ativáveis |
-| **Inventory** | Armas (com barra de charges para Tech), armaduras, equipment; créditos |
-| **Augmentations** | Lista de augmentações por body slot; contador de slots (X/4) |
-| **Feats** | Feats de classe, ancestry, general, skill |
-| **Spells** | Slots por rank, spell list (apenas para Mystic e Witchwarper) |
-| **Biography** | Background, description, notes em rich text |
+| Tab               | Conteúdo                                                                                    |
+| ----------------- | ------------------------------------------------------------------------------------------- |
+| **Core**          | Stats principais, saves, AC, speed, HP; skills (incluindo Computers e Piloting); iniciativa |
+| **Actions**       | Ações básicas, ações de classe, itens ativáveis                                             |
+| **Inventory**     | Armas (com barra de charges para Tech), armaduras, equipment; créditos                      |
+| **Augmentations** | Lista de augmentações por body slot; contador de slots (X/4)                                |
+| **Feats**         | Feats de classe, ancestry, general, skill                                                   |
+| **Spells**        | Slots por rank, spell list (apenas para Mystic e Witchwarper)                               |
+| **Biography**     | Background, description, notes em rich text                                                 |
 
 **REQ-SF2-040** [MVP] O campo de moeda da aba Inventory deve exibir apenas
 "Créditos: [valor] cr" sem subdivisões de denominação.
@@ -624,16 +639,16 @@ gerando compendiums com prefixo `sf2e-`.
 **REQ-SF2-045** [MVP] Os seguintes 8 packs SF2e devem ser importados no MVP
 (subconjunto crítico para jogar uma sessão):
 
-| Pack | Conteúdo |
-|---|---|
-| `sf2e-alien-core-bestiario` | Criaturas do Alien Core |
-| `sf2e-classes` | 6 classes do Player Core |
-| `sf2e-species` | 10 species + 2 heritages |
-| `sf2e-equipment` | Armas, armaduras, equipment, augmentações |
-| `sf2e-feats` | Feats de classe, ancestry, general, skill |
-| `sf2e-spells` | Magias de Mystic e Witchwarper |
-| `sf2e-conditions` | Condições (incluindo Untethered) |
-| `sf2e-actions` | Ações básicas e de classe |
+| Pack                        | Conteúdo                                  |
+| --------------------------- | ----------------------------------------- |
+| `sf2e-alien-core-bestiario` | Criaturas do Alien Core                   |
+| `sf2e-classes`              | 6 classes do Player Core                  |
+| `sf2e-species`              | 10 species + 2 heritages                  |
+| `sf2e-equipment`            | Armas, armaduras, equipment, augmentações |
+| `sf2e-feats`                | Feats de classe, ancestry, general, skill |
+| `sf2e-spells`               | Magias de Mystic e Witchwarper            |
+| `sf2e-conditions`           | Condições (incluindo Untethered)          |
+| `sf2e-actions`              | Ações básicas e de classe                 |
 
 **REQ-SF2-046** [V2] Os 18 packs restantes (Starfinder Society, backgrounds,
 hazards, NPCs do GM Core, starship threats, etc.) serão importados em releases
@@ -689,8 +704,8 @@ interface ActorSystemSF2e extends ActorSystemPF2e {
   // Augmentações instaladas (rastreamento de slots)
   augmentations: {
     installed: AugmentationSlot[];
-    apexCount: number;      // apex augmentations (não contam para limite)
-    regularCount: number;   // contagem atual (máx 4)
+    apexCount: number; // apex augmentations (não contam para limite)
+    regularCount: number; // contagem atual (máx 4)
   };
 
   // Skills adicionais (além das 16 perícias core do PF2e — REQ-PF2-012)
@@ -703,8 +718,8 @@ interface ActorSystemSF2e extends ActorSystemPF2e {
   classResources?: {
     // Solarian
     solarian?: {
-      gravitonAttunement: number;  // 0-3
-      photonAttunement: number;    // 0-3
+      gravitonAttunement: number; // 0-3
+      photonAttunement: number; // 0-3
       pole: "graviton" | "photon" | "balanced";
     };
   };
@@ -712,7 +727,7 @@ interface ActorSystemSF2e extends ActorSystemPF2e {
   // [V2] Flag de ambiente para zero-g
   environmentFlags?: {
     inZeroG: boolean;
-    hasPropulsion: boolean;  // jetpack, thrusters, etc.
+    hasPropulsion: boolean; // jetpack, thrusters, etc.
   };
 }
 
@@ -737,12 +752,18 @@ interface TechWeaponExtension {
   reloadActions: 0 | 1 | 2 | 3;
   // Traits SF2e adicionais
   sfTraits: Array<
-    | "automatic" | "area" | "tracking"
-    | "analog" | "injection" | "line"
-    | "unwieldy" | "seeking" | "bright"
+    | "automatic"
+    | "area"
+    | "tracking"
+    | "analog"
+    | "injection"
+    | "line"
+    | "unwieldy"
+    | "seeking"
+    | "bright"
   >;
-  trackingBonus?: number;   // valor numérico do trait Tracking X
-  areaSize?: number;        // tamanho da área em pés (trait Area X)
+  trackingBonus?: number; // valor numérico do trait Tracking X
+  areaSize?: number; // tamanho da área em pés (trait Area X)
   automaticMode?: "burst" | "full-auto";
 }
 ```
@@ -756,19 +777,26 @@ interface AugmentationItemSystem {
   itemLevel: number;
   isApex: boolean;
   soulbound: true;
-  installationTime: number;       // horas
+  installationTime: number; // horas
   requiresMedicineMaster: boolean;
   bulk: string;
-  price: number;                  // créditos
+  price: number; // créditos
   description: string;
   publication: PublicationData;
-  effects: EffectRule[];          // tipos canônicos MVP (spec 15 REQ-SYS-082); plugáveis [V2]
+  effects: EffectRule[]; // tipos canônicos MVP (spec 15 REQ-SYS-082); plugáveis [V2]
 }
 
 type BodySlot =
-  | "brain" | "eyes" | "ears" | "throat"
-  | "arms" | "hands" | "legs" | "feet"
-  | "skin" | "spinal";
+  | "brain"
+  | "eyes"
+  | "ears"
+  | "throat"
+  | "arms"
+  | "hands"
+  | "legs"
+  | "feet"
+  | "skin"
+  | "spinal";
 ```
 
 ### StarshipStatblock [V2]
@@ -776,14 +804,14 @@ type BodySlot =
 ```typescript
 interface StarshipStatblock {
   name: string;
-  tier: number;           // tier numérico da nave (0.5, 1, 2, ... 20)
+  tier: number; // tier numérico da nave (0.5, 1, 2, ... 20)
   size: "Huge" | "Gargantuan";
   ac: number;
   fortitudeSave: number;
   reflexSave: number;
   hullPoints: ResourcePool;
   shieldPoints: ResourcePool & { regenPerRound: number };
-  speed: number;          // em unidades de hex (1 hex = 500 milhas)
+  speed: number; // em unidades de hex (1 hex = 500 milhas)
   powerCoreLimit: number;
   weapons: StarshipWeapon[];
   roles: Partial<Record<StarshipRole, string>>; // roleId -> actorId
@@ -793,9 +821,9 @@ interface StarshipWeapon {
   name: string;
   type: "direct-fire" | "tracking";
   range: "short" | "medium" | "long";
-  damage: string;         // ex: "4d6"
+  damage: string; // ex: "4d6"
   arcs: Array<"forward" | "aft" | "port" | "starboard" | "turret">;
-  pcuCost: number;        // Power Core Units consumidos por disparo
+  pcuCost: number; // Power Core Units consumidos por disparo
 }
 ```
 
@@ -803,46 +831,46 @@ interface StarshipWeapon {
 
 ## Tabela de Cobertura MVP / V2 / Manual
 
-| Funcionalidade | MVP | V2 | Manual/Narrativo |
-|---|---|---|---|
-| Engine 2e herdado (three-action, MAP, graus) | X | | |
-| Skills Computers e Piloting | X | | |
-| 6 classes (Envoy, Mystic, Operative, Solarian, Soldier, Witchwarper) | X | | |
-| 10 species + 2 heritages | X | | |
-| Ação Aim (Operative) — depende de effects [V2] | | X | |
-| Rastreador Graviton/Photon na ficha (manual) | X | | |
-| Automação de feats condicionados ao polo Solarian | | X | |
-| Armas Tech com tiers de qualidade e charges | X | | |
-| Traits exclusivos: Automatic, Area, Tracking, Analog, Injection, Line, Unwieldy, Seeking | X | | |
-| Augmentações (tipos, body slots, limite 4, regra apex) | X | | |
-| Ficha PC SF2e com aba Augmentations e barra de charges | X | | |
-| Ficha NPC SF2e | X | | |
-| Créditos como moeda única | X | | |
-| Credsticks como itens de equipment | X | | |
-| Condição Untethered | X | | |
-| Cobertura (igual PF2e remaster) | X | | |
-| 8 packs de compendium MVP | X | | |
-| Efeitos de vácuo e descompressão (aplicação manual pelo GM) | X | | |
-| Efeitos de radiação (aplicação manual pelo GM) | X | | |
-| Efeitos de atmosfera espessa (manual) | X | | |
-| Token muda ícone por polo Solarian | | X | |
-| Mechanic e Technomancer (Tech Core) | | X | |
-| 21 species adicionais (Galactic Ancestries) | | X | |
-| 18 packs de compendium restantes | | X | |
-| Augmentação: timer de instalação em downtime | | X | |
-| Zonas de ambiente no canvas (zero-g, vácuo, radiação) | | X | |
-| Condições automáticas em zonas (Clumsy 1, Off-Guard, Untethered) | | X | |
-| Carga ×10 e alcance ×10 em zero-g | | X | |
-| Starship Combat cinemático (CombatType starship) | | X | |
-| Papéis na nave e ações de papel | | X | |
-| Stats de nave (hull/shields, regeneração) | | X | |
-| Tracker visual de combate de naves | | X | |
-| Starship Combat tático com grid (Tech Core) | | | X (fora de escopo atual) |
-| Drift travel / viagem interestelar | | | X (fora de escopo atual) |
-| Hacking como hazard | | X | |
-| Veículos terrestres | | X | |
-| Roleplay e negociação social (Diplomacy, Intimidation) | | | X |
-| Papéis narrativos em Starship Scene | | X | |
+| Funcionalidade                                                                           | MVP | V2  | Manual/Narrativo         |
+| ---------------------------------------------------------------------------------------- | --- | --- | ------------------------ |
+| Engine 2e herdado (three-action, MAP, graus)                                             | X   |     |                          |
+| Skills Computers e Piloting                                                              | X   |     |                          |
+| 6 classes (Envoy, Mystic, Operative, Solarian, Soldier, Witchwarper)                     | X   |     |                          |
+| 10 species + 2 heritages                                                                 | X   |     |                          |
+| Ação Aim (Operative) — depende de effects [V2]                                           |     | X   |                          |
+| Rastreador Graviton/Photon na ficha (manual)                                             | X   |     |                          |
+| Automação de feats condicionados ao polo Solarian                                        |     | X   |                          |
+| Armas Tech com tiers de qualidade e charges                                              | X   |     |                          |
+| Traits exclusivos: Automatic, Area, Tracking, Analog, Injection, Line, Unwieldy, Seeking | X   |     |                          |
+| Augmentações (tipos, body slots, limite 4, regra apex)                                   | X   |     |                          |
+| Ficha PC SF2e com aba Augmentations e barra de charges                                   | X   |     |                          |
+| Ficha NPC SF2e                                                                           | X   |     |                          |
+| Créditos como moeda única                                                                | X   |     |                          |
+| Credsticks como itens de equipment                                                       | X   |     |                          |
+| Condição Untethered                                                                      | X   |     |                          |
+| Cobertura (igual PF2e remaster)                                                          | X   |     |                          |
+| 8 packs de compendium MVP                                                                | X   |     |                          |
+| Efeitos de vácuo e descompressão (aplicação manual pelo GM)                              | X   |     |                          |
+| Efeitos de radiação (aplicação manual pelo GM)                                           | X   |     |                          |
+| Efeitos de atmosfera espessa (manual)                                                    | X   |     |                          |
+| Token muda ícone por polo Solarian                                                       |     | X   |                          |
+| Mechanic e Technomancer (Tech Core)                                                      |     | X   |                          |
+| 21 species adicionais (Galactic Ancestries)                                              |     | X   |                          |
+| 18 packs de compendium restantes                                                         |     | X   |                          |
+| Augmentação: timer de instalação em downtime                                             |     | X   |                          |
+| Zonas de ambiente no canvas (zero-g, vácuo, radiação)                                    |     | X   |                          |
+| Condições automáticas em zonas (Clumsy 1, Off-Guard, Untethered)                         |     | X   |                          |
+| Carga ×10 e alcance ×10 em zero-g                                                        |     | X   |                          |
+| Starship Combat cinemático (CombatType starship)                                         |     | X   |                          |
+| Papéis na nave e ações de papel                                                          |     | X   |                          |
+| Stats de nave (hull/shields, regeneração)                                                |     | X   |                          |
+| Tracker visual de combate de naves                                                       |     | X   |                          |
+| Starship Combat tático com grid (Tech Core)                                              |     |     | X (fora de escopo atual) |
+| Drift travel / viagem interestelar                                                       |     |     | X (fora de escopo atual) |
+| Hacking como hazard                                                                      |     | X   |                          |
+| Veículos terrestres                                                                      |     | X   |                          |
+| Roleplay e negociação social (Diplomacy, Intimidation)                                   |     |     | X                        |
+| Papéis narrativos em Starship Scene                                                      |     | X   |                          |
 
 ---
 
@@ -874,7 +902,7 @@ const manifest = {
   },
   languages: [
     { lang: "pt-BR", name: "Português (Brasil)", path: "lang/sf2e-pt-BR.json" },
-    { lang: "en",    name: "English",             path: "lang/sf2e-en.json" },
+    { lang: "en", name: "English", path: "lang/sf2e-en.json" },
   ],
 } satisfies import("@fusion/system-api").SystemManifest;
 
@@ -894,19 +922,19 @@ export default defineSystem(manifest, (r) => {
     phase: "base",
     reads: [],
     writes: ["system.skills.computers", "system.skills.piloting"],
-    run(actor, _ctx) { /* inicializa computers e piloting */ },
+    run(actor, _ctx) {
+      /* inicializa computers e piloting */
+    },
   });
 
   // ── Condições ─────────────────────────────────────────────────────────────
   // Registra a condição exclusiva Untethered (REQ-SF2-022, REQ-SYS-043)
   r.condition({
     slug: "untethered",
-    label: "sf2e.condition.untethered.label",       // via i18n (REQ-SYS-048)
+    label: "sf2e.condition.untethered.label", // via i18n (REQ-SYS-048)
     img: "systems/sf2e/icons/conditions/untethered.webp",
     valued: false,
-    effects: [
-      { type: "rollOption", domain: "all", option: "untethered" },
-    ],
+    effects: [{ type: "rollOption", domain: "all", option: "untethered" }],
   });
 
   // ── Sheets ────────────────────────────────────────────────────────────────
@@ -942,30 +970,30 @@ export default defineSystem(manifest, (r) => {
 
 ### Eventos emitidos pelo sistema
 
-| Evento | Quando | Payload |
-|---|---|---|
-| `sf2e:augmentation:installed` | Augmentação adicionada ao ator | `{ actorId, itemId, bodySlot }` |
-| `sf2e:augmentation:removed` | Augmentação removida | `{ actorId, itemId }` |
-| `sf2e:weapon:reload` | Arma Tech recarregada | `{ actorId, itemId, chargesAfter }` |
-| `sf2e:solarian:attunement` | Polo Solarian muda | `{ actorId, pole, graviton, photon }` |
-| `sf2e:starship:hullDamage` [V2] | Nave recebe dano | `{ combatId, hpAfter, shieldsAfter }` |
-| `sf2e:starship:roleChanged` [V2] | Jogador muda de papel | `{ combatId, actorId, role }` |
+| Evento                           | Quando                         | Payload                               |
+| -------------------------------- | ------------------------------ | ------------------------------------- |
+| `sf2e:augmentation:installed`    | Augmentação adicionada ao ator | `{ actorId, itemId, bodySlot }`       |
+| `sf2e:augmentation:removed`      | Augmentação removida           | `{ actorId, itemId }`                 |
+| `sf2e:weapon:reload`             | Arma Tech recarregada          | `{ actorId, itemId, chargesAfter }`   |
+| `sf2e:solarian:attunement`       | Polo Solarian muda             | `{ actorId, pole, graviton, photon }` |
+| `sf2e:starship:hullDamage` [V2]  | Nave recebe dano               | `{ combatId, hpAfter, shieldsAfter }` |
+| `sf2e:starship:roleChanged` [V2] | Jogador muda de papel          | `{ combatId, actorId, role }`         |
 
 ---
 
 ## Dependências (specs irmãs)
 
-| Spec / Pacote | Dependência |
-|---|---|
-| `ver 02-modelo-de-dados.md` | Tipo base `Item`, `Actor`, `EffectRule`, `PublicationData` |
-| `ver 08-motor-de-rolagens.md` | Rolagem de dados no servidor; inline rolls para ações de classe |
-| `ver 10-combate-e-iniciativa.md` | `CombatType` extensível; `CombatLifecycleEvent` para expirar efeitos |
-| `ver 11-ui-framework-e-fichas.md` | Registro de `ActorSheet` Svelte; sistema de tabs; ativação de itens |
-| `ver 15-api-de-sistemas.md` | `defineSystem(manifest, build)`, `SystemRegistrar`, `ConditionDefinition`, `InitiativeFormula`, motor de effects data-driven (REQ-SYS-082) |
-| `ver 16-compendiums-e-importacao.md` | Pipeline de importação; extensão do importer para packs SF2e |
-| `ver 17-sistema-pf2e.md` | `systems/engine-2e` (mecânicas 2e compartilhadas: TEML, degrees of success, dying/wounded, IWR, MAP); tipos base PF2e herdados; runas (para armas Analog) |
-| `ver 06-canvas-e-renderizacao.md` | `ZoneType` extensível [V2]; tokens em zonas |
-| `ver 26-licencas-e-legal.md` | ORC License para mecânicas SF2e; Apache-2.0 para dados do compendium |
+| Spec / Pacote                        | Dependência                                                                                                                                               |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ver 02-modelo-de-dados.md`          | Tipo base `Item`, `Actor`, `EffectRule`, `PublicationData`                                                                                                |
+| `ver 08-motor-de-rolagens.md`        | Rolagem de dados no servidor; inline rolls para ações de classe                                                                                           |
+| `ver 10-combate-e-iniciativa.md`     | `CombatType` extensível; `CombatLifecycleEvent` para expirar efeitos                                                                                      |
+| `ver 11-ui-framework-e-fichas.md`    | Registro de `ActorSheet` Svelte; sistema de tabs; ativação de itens                                                                                       |
+| `ver 15-api-de-sistemas.md`          | `defineSystem(manifest, build)`, `SystemRegistrar`, `ConditionDefinition`, `InitiativeFormula`, motor de effects data-driven (REQ-SYS-082)                |
+| `ver 16-compendiums-e-importacao.md` | Pipeline de importação; extensão do importer para packs SF2e                                                                                              |
+| `ver 17-sistema-pf2e.md`             | `systems/engine-2e` (mecânicas 2e compartilhadas: TEML, degrees of success, dying/wounded, IWR, MAP); tipos base PF2e herdados; runas (para armas Analog) |
+| `ver 06-canvas-e-renderizacao.md`    | `ZoneType` extensível [V2]; tokens em zonas                                                                                                               |
+| `ver 26-licencas-e-legal.md`         | ORC License para mecânicas SF2e; Apache-2.0 para dados do compendium                                                                                      |
 
 ---
 

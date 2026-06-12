@@ -8,7 +8,7 @@
   - `docs/research/07-foundry-api-sistemas-modulos.md`
 
 > Esta spec é clean-room: descreve o modelo de dados do Fusion inspirado no
-> *comportamento* observável do Foundry VTT, sem copiar código proprietário.
+> _comportamento_ observável do Foundry VTT, sem copiar código proprietário.
 > Onde simplificamos ou divergimos do Foundry, a decisão é marcada como decisão
 > de design nossa.
 
@@ -58,12 +58,12 @@ Esta spec é a fundação contratual sobre a qual se apoiam: persistência
 - **Protocolo de fio** e reconciliação otimista cliente/servidor —
   `ver 04-rede-e-sincronizacao.md`.
 - **Avaliação de permissões em runtime** por operação e UI gating —
-  `ver 05-usuarios-e-permissoes.md` (esta spec define apenas o *campo* ownership
+  `ver 05-usuarios-e-permissoes.md` (esta spec define apenas o _campo_ ownership
   e a função pura de avaliação de nível).
 - O **conteúdo** dos schemas `system` de cada jogo (PF2e, SF2e, Etmos) —
   `ver 17-sistema-pf2e.md`, `18-sistema-sf2e.md`, `19-sistema-etmos.md`.
 - A **superfície da system API** (como sistemas registram models, sheets, hooks)
-  — `ver 15-api-de-sistemas.md` (esta spec define apenas o *contrato de dados*
+  — `ver 15-api-de-sistemas.md` (esta spec define apenas o _contrato de dados_
   que a API consome).
 - Pipeline de **importação/conversão** de dados do `foundryvtt/pf2e` —
   `ver 16-compendiums-e-importacao.md`.
@@ -92,7 +92,7 @@ Esta spec é a fundação contratual sobre a qual se apoiam: persistência
   validado. Estrutura `flags.<namespace>.<key>`.
 - **UUID**: string canônica que localiza qualquer document em qualquer contexto
   (mundo, embedded, compendium), formato hierárquico próprio do Fusion.
-- **Soft reference**: referência a outro document por id/UUID *sem* integridade
+- **Soft reference**: referência a outro document por id/UUID _sem_ integridade
   referencial forte no banco — pode apontar para algo inexistente
   (alvo deletado), e o consumidor deve tratar `null`.
 - **TokenActor**: ator efetivo de um token desvinculado, reconstruído em memória
@@ -154,7 +154,7 @@ Compendium.<packId>.<DocType>.<docId>[.<EmbeddedType>.<embeddedId>]*
   precisamos de uma chave globalmente resolvível para referências cruzadas
   (origem de efeito, alvo de nota, etc.).
 - **Rejeitado: copiar literalmente o esquema do Foundry incluindo o token actor
-  sintético `Scene.x.Token.y.Actor.z`.** Mantemos o *padrão* (é prático e os
+  sintético `Scene.x.Token.y.Actor.z`.** Mantemos o _padrão_ (é prático e os
   dados importados o usam), mas simplificamos a forma do token actor — ver D8.
 - **Racional:** formato textual, legível, parseável sem consultar o banco, e
   alinhado ao que aparece nos dados importados do `pf2e` (`@UUID[...]`,
@@ -169,7 +169,7 @@ O Fusion implementa um subconjunto curado dos 34 tipos do Foundry. Cortes
 explícitos para **[V2]**: `Cards`/`Card` (baralhos), `Region`/`RegionBehavior`
 (regiões com comportamentos), `Level` (níveis verticais), `Adventure` (bundle de
 distribuição), `CombatantGroup` (grupos de iniciativa) e `FogExploration` como
-*Document* de primeira classe.
+_Document_ de primeira classe.
 
 - **Rejeitado: paridade total com Foundry no MVP.** Cada tipo carrega schema,
   CRUD, UI e sync; a definição de MVP global (jogar uma sessão de PF2e com
@@ -211,7 +211,7 @@ namespace de flags, habilitando validação. Namespaces reservados: `core`
 
 Mantemos os níveis `none`(0)/`limited`(1)/`observer`(2)/`owner`(3) e o sentinel
 `inherit`(-1), mais a chave `default`. Esta spec define o **campo** e a **função
-pura de avaliação de nível**; o *enforcement* por operação fica em
+pura de avaliação de nível**; o _enforcement_ por operação fica em
 `ver 05-usuarios-e-permissoes.md`.
 
 - **Rejeitado: ACLs ricas (por capability).** Excesso para o MVP; os 4 níveis do
@@ -224,7 +224,7 @@ Tokens podem ser **linked** (espelham o `Actor` mundial) ou **unlinked**
 (carregam um `actorDelta`). O Fusion **simplifica** o `ActorDelta` do Foundry:
 em vez de um mini-Actor com suas próprias coleções embedded de `Item`/`Effect`,
 o delta do MVP é um **merge patch parcial** sobre os campos do Actor
-(`name`, `img`, `system`, e *substituição completa* das coleções `items`/
+(`name`, `img`, `system`, e _substituição completa_ das coleções `items`/
 `effects` quando o delta as especifica).
 
 - **Rejeitado: replicar `ActorDelta` com `EmbeddedCollectionDelta`** (diff
@@ -296,7 +296,7 @@ graciosamente.
   documents de compendium.
 - **REQ-DOC-004** [MVP] O sistema DEVE expor `parseUuid(uuid)` que retorna a
   decomposição `{ scope: "world"|"compendium", packId?, rootType, rootId,
-  embedded: Array<{ type, id }> }`, e DEVE rejeitar UUIDs malformados.
+embedded: Array<{ type, id }> }`, e DEVE rejeitar UUIDs malformados.
 - **REQ-DOC-005** [MVP] O sistema DEVE expor `resolveUuid(uuid)` (assíncrono,
   resolve world e compendium) e `resolveUuidSync(uuid)` (apenas documents de
   mundo já carregados); ambos DEVEM retornar `null` quando o alvo não existir
@@ -402,7 +402,7 @@ graciosamente.
   padrão; documents criados por GM DEVEM ter `ownership.default = none` (apenas
   GMs veem) salvo override.
 - **REQ-DOC-030** [MVP] O sistema DEVE expor `testUserLevel(document, user, min)`
-  que retorna boolean (nível efetivo ≥ `min`). O *enforcement* dessa checagem
+  que retorna boolean (nível efetivo ≥ `min`). O _enforcement_ dessa checagem
   por operação CRUD é especificado em `ver 05-usuarios-e-permissoes.md`.
 
 ### Herança token→actor
@@ -529,15 +529,15 @@ export type Uuid = string;
 
 /** Níveis de ownership. */
 export enum OwnershipLevel {
-  Inherit  = -1,
-  None     =  0,
-  Limited  =  1,
-  Observer =  2,
-  Owner    =  3,
+  Inherit = -1,
+  None = 0,
+  Limited = 1,
+  Observer = 2,
+  Owner = 3,
 }
 
 export interface OwnershipMap {
-  default: OwnershipLevel;          // nível para usuários não listados
+  default: OwnershipLevel; // nível para usuários não listados
   [userId: string]: OwnershipLevel; // override por usuário
 }
 
@@ -546,14 +546,14 @@ export type FlagsRecord = Record<string /*namespace*/, Record<string, Json>>;
 
 /** Metadados gerenciados pelo servidor. */
 export interface DocumentStats {
-  createdTime: number;       // epoch ms
-  modifiedTime: number;      // epoch ms
+  createdTime: number; // epoch ms
+  modifiedTime: number; // epoch ms
   createdBy: UserId | null;
   lastModifiedBy: UserId | null;
-  coreVersion: string;       // versão do engine Fusion
-  systemId: string | null;   // ex.: "pf2e"
+  coreVersion: string; // versão do engine Fusion
+  systemId: string | null; // ex.: "pf2e"
   systemVersion: string | null;
-  schemaVersion: number;     // versão do schema de ENGINE deste tipo
+  schemaVersion: number; // versão do schema de ENGINE deste tipo
 }
 
 /** Campos comuns a todo Document primário. */
@@ -564,8 +564,7 @@ export interface BaseDocument {
 }
 
 /** Para tipos com subtype + system. */
-export interface TypedDocument<TSubtype extends string = string>
-  extends BaseDocument {
+export interface TypedDocument<TSubtype extends string = string> extends BaseDocument {
   type: TSubtype;
   system: Json; // validado por schema (documentType, subtype) da system API
 }
@@ -577,7 +576,7 @@ export interface TypedDocument<TSubtype extends string = string>
 export interface WorldDocument extends BaseDocument {
   // _id é fixo "world"; uma instância por banco
   title: string;
-  systemId: string;          // sistema de jogo ativo
+  systemId: string; // sistema de jogo ativo
   systemVersion: string;
   coreVersion: string;
   description: string;
@@ -586,11 +585,11 @@ export interface WorldDocument extends BaseDocument {
 
 export interface UserDocument extends BaseDocument {
   name: string;
-  role: Role;                 // enum Role de packages/shared (ver 05-usuarios-e-permissoes.md)
+  role: Role; // enum Role de packages/shared (ver 05-usuarios-e-permissoes.md)
   passwordHash: string | null;
-  avatar: string | null;     // FilePath
-  color: string;             // cor de marcação
-  characterId: DocumentId | null;  // soft ref para Actor padrão
+  avatar: string | null; // FilePath
+  color: string; // cor de marcação
+  characterId: DocumentId | null; // soft ref para Actor padrão
   hotbar: Record<string /*slot*/, DocumentId /*macroId*/>;
   // sem ownership próprio
 }
@@ -598,9 +597,9 @@ export interface UserDocument extends BaseDocument {
 export interface FolderDocument extends BaseDocument {
   name: string;
   documentType: DocumentTypeName; // tipo que organiza (Actor, Item, ...)
-  parentId: DocumentId | null;    // soft ref para Folder pai
+  parentId: DocumentId | null; // soft ref para Folder pai
   sort: number;
-  sorting: "a" | "m";             // alfabético | manual
+  sorting: "a" | "m"; // alfabético | manual
   color: string | null;
   // Folders NÃO têm ownership próprio no MVP; INHERIT resolve até a raiz
 }
@@ -611,18 +610,18 @@ export interface ActorDocument extends TypedDocument {
   ownership: OwnershipMap;
   folderId: DocumentId | null;
   sort: number;
-  prototypeToken: PrototypeTokenData;      // config padrão de token
-  items: ActorEmbeddedItem[];              // EmbeddedCollection
-  effects: ActiveEffectData[];             // EmbeddedCollection
+  prototypeToken: PrototypeTokenData; // config padrão de token
+  items: ActorEmbeddedItem[]; // EmbeddedCollection
+  effects: ActiveEffectData[]; // EmbeddedCollection
 }
 
 export interface ItemDocument extends TypedDocument {
   name: string;
   img: string | null;
-  ownership: OwnershipMap;   // quando mundial; embedded herda do Actor
+  ownership: OwnershipMap; // quando mundial; embedded herda do Actor
   folderId: DocumentId | null;
   sort: number;
-  effects: ActiveEffectData[];             // EmbeddedCollection
+  effects: ActiveEffectData[]; // EmbeddedCollection
 }
 
 export interface SceneDocument extends BaseDocument {
@@ -634,17 +633,17 @@ export interface SceneDocument extends BaseDocument {
   width: number;
   height: number;
   padding: number;
-  background: string | null;     // FilePath da imagem de fundo
+  background: string | null; // FilePath da imagem de fundo
   backgroundColor: string;
-  grid: GridConfig;              // ver 06-canvas-e-renderizacao.md
+  grid: GridConfig; // ver 06-canvas-e-renderizacao.md
   tokenVision: boolean;
-  fog: FogConfig;               // ver 07-visao-iluminacao-fog.md
+  fog: FogConfig; // ver 07-visao-iluminacao-fog.md
   initialView: { x: number; y: number; scale: number } | null;
   navigation: boolean;
   navName: string | null;
   thumb: string | null;
-  playlistId: DocumentId | null;       // soft ref
-  journalId: DocumentId | null;        // soft ref
+  playlistId: DocumentId | null; // soft ref
+  journalId: DocumentId | null; // soft ref
   // EmbeddedCollections:
   tokens: TokenData[];
   walls: WallData[];
@@ -661,7 +660,7 @@ export interface JournalEntryDocument extends BaseDocument {
   ownership: OwnershipMap;
   folderId: DocumentId | null;
   sort: number;
-  pages: JournalPageData[];      // EmbeddedCollection
+  pages: JournalPageData[]; // EmbeddedCollection
 }
 
 export interface RollTableDocument extends BaseDocument {
@@ -671,10 +670,10 @@ export interface RollTableDocument extends BaseDocument {
   folderId: DocumentId | null;
   sort: number;
   description: string;
-  formula: string;               // ex.: "1d100"
+  formula: string; // ex.: "1d100"
   replacement: boolean;
   displayRoll: boolean;
-  results: TableResultData[];     // EmbeddedCollection
+  results: TableResultData[]; // EmbeddedCollection
 }
 
 export interface PlaylistDocument extends BaseDocument {
@@ -682,10 +681,10 @@ export interface PlaylistDocument extends BaseDocument {
   ownership: OwnershipMap;
   folderId: DocumentId | null;
   sort: number;
-  mode: number;                  // sequential/shuffle/loop/simultaneous
+  mode: number; // sequential/shuffle/loop/simultaneous
   playing: boolean;
   fade: number | null;
-  sounds: PlaylistSoundData[];    // EmbeddedCollection
+  sounds: PlaylistSoundData[]; // EmbeddedCollection
 }
 
 export interface MacroDocument extends BaseDocument {
@@ -695,37 +694,37 @@ export interface MacroDocument extends BaseDocument {
   ownership: OwnershipMap;
   folderId: DocumentId | null;
   sort: number;
-  scope: "global" | "actors";    // ver 14-macros-e-automacao.md
-  command: string;               // JS ou texto de chat
+  scope: "global" | "actors"; // ver 14-macros-e-automacao.md
+  command: string; // JS ou texto de chat
 }
 
 export interface ChatMessageDocument extends TypedDocument {
-  author: UserId;                // soft ref
+  author: UserId; // soft ref
   timestamp: number;
-  style: number;                 // estilo de exibição
-  content: string;               // HTML sanitizado
+  style: number; // estilo de exibição
+  content: string; // HTML sanitizado
   flavor: string | null;
-  speaker: ChatSpeaker;          // { sceneId, actorId, tokenId, alias }
-  rolls: Json[];                 // resultados de rolagem serializados (ver 08)
-  whisper: UserId[];             // destinatários (soft refs)
+  speaker: ChatSpeaker; // { sceneId, actorId, tokenId, alias }
+  rolls: Json[]; // resultados de rolagem serializados (ver 08)
+  whisper: UserId[]; // destinatários (soft refs)
   blind: boolean;
   sound: string | null;
   // ChatMessage não tem ownership; visibilidade via whisper/blind
 }
 
 export interface CombatDocument extends BaseDocument {
-  sceneId: DocumentId | null;    // soft ref
+  sceneId: DocumentId | null; // soft ref
   active: boolean;
   round: number;
   turn: number | null;
   sort: number;
-  combatants: CombatantData[];    // EmbeddedCollection
+  combatants: CombatantData[]; // EmbeddedCollection
   // sem ownership próprio
 }
 
 export interface SettingDocument extends BaseDocument {
-  key: string;                   // "namespace.key"
-  value: Json;                   // JSON serializado
+  key: string; // "namespace.key"
+  value: Json; // JSON serializado
   // sem name/type/ownership; chave única por (key)
 }
 ```
@@ -737,22 +736,24 @@ export interface TokenData {
   _id: DocumentId;
   name: string;
   displayName: number;
-  actorId: DocumentId | null;    // soft ref para Actor base
+  actorId: DocumentId | null; // soft ref para Actor base
   actorLink: boolean;
   actorDelta: ActorDeltaPatch | null; // merge patch quando unlinked (D8)
-  x: number; y: number;
+  x: number;
+  y: number;
   elevation: number;
-  width: number; height: number; // em células de grid
+  width: number;
+  height: number; // em células de grid
   img: string | null;
   hidden: boolean;
   locked: boolean;
-  disposition: -1 | 0 | 1;       // hostil/neutro/amigo
+  disposition: -1 | 0 | 1; // hostil/neutro/amigo
   rotation: number;
   alpha: number;
   bar1: { attribute: string | null };
   bar2: { attribute: string | null };
-  light: TokenLightConfig;       // ver 07
-  sight: TokenSightConfig;       // ver 07
+  light: TokenLightConfig; // ver 07
+  sight: TokenSightConfig; // ver 07
   flags: FlagsRecord;
   // sem ownership (deriva do Actor referenciado p/ fins de visão)
 }
@@ -761,40 +762,42 @@ export interface TokenData {
 export interface ActorDeltaPatch {
   name?: string;
   img?: string | null;
-  system?: Json;                 // merge profundo sobre system do Actor base
-  items?: ActorEmbeddedItem[];   // SUBSTITUI integralmente se presente
-  effects?: ActiveEffectData[];  // SUBSTITUI integralmente se presente
+  system?: Json; // merge profundo sobre system do Actor base
+  items?: ActorEmbeddedItem[]; // SUBSTITUI integralmente se presente
+  effects?: ActiveEffectData[]; // SUBSTITUI integralmente se presente
 }
 
 export interface WallData {
   _id: DocumentId;
   c: [number, number, number, number]; // x1,y1,x2,y2
-  door: 0 | 1 | 2;               // wall | door | secret
-  ds: 0 | 1 | 2;                 // door state: closed | open | locked
-  move: number;                  // bloqueio de movimento
-  sight: number;                 // bloqueio de visão
-  sound: number;                 // bloqueio de som
-  light: number;                 // bloqueio de luz
-  dir: number;                   // direção (one-way)
+  door: 0 | 1 | 2; // wall | door | secret
+  ds: 0 | 1 | 2; // door state: closed | open | locked
+  move: number; // bloqueio de movimento
+  sight: number; // bloqueio de visão
+  sound: number; // bloqueio de som
+  light: number; // bloqueio de luz
+  dir: number; // direção (one-way)
   flags: FlagsRecord;
 }
 
 export interface LightData {
   _id: DocumentId;
-  x: number; y: number;
+  x: number;
+  y: number;
   rotation: number;
-  walls: boolean;                // bloqueado por paredes
+  walls: boolean; // bloqueado por paredes
   vision: boolean;
   hidden: boolean;
-  config: LightConfig;           // ver 07 (dim, bright, color, angle, ...)
+  config: LightConfig; // ver 07 (dim, bright, color, angle, ...)
   flags: FlagsRecord;
 }
 
 export interface SoundData {
   _id: DocumentId;
-  x: number; y: number;
+  x: number;
+  y: number;
   radius: number;
-  path: string;                  // FilePath de áudio
+  path: string; // FilePath de áudio
   volume: number;
   repeat: boolean;
   walls: boolean;
@@ -805,41 +808,52 @@ export interface SoundData {
 
 export interface TileData {
   _id: DocumentId;
-  x: number; y: number;
-  width: number; height: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
   rotation: number;
   alpha: number;
-  elevation: number;             // determina overhead/underfoot (ver 06)
+  elevation: number; // determina overhead/underfoot (ver 06)
   sort: number;
   hidden: boolean;
   locked: boolean;
-  texture: TextureConfig;        // src, scaleX, scaleY, tint, ...
+  texture: TextureConfig; // src, scaleX, scaleY, tint, ...
   flags: FlagsRecord;
 }
 
 export interface DrawingData {
   _id: DocumentId;
   author: UserId;
-  shape: DrawingShape;           // type, points, width, height, radius
-  x: number; y: number;
+  shape: DrawingShape; // type, points, width, height, radius
+  x: number;
+  y: number;
   elevation: number;
   sort: number;
   rotation: number;
   fillType: number;
-  fillColor: string | null; fillAlpha: number;
-  strokeWidth: number; strokeColor: string | null; strokeAlpha: number;
+  fillColor: string | null;
+  fillAlpha: number;
+  strokeWidth: number;
+  strokeColor: string | null;
+  strokeAlpha: number;
   text: string | null;
-  fontFamily: string; fontSize: number;
-  textColor: string | null; textAlpha: number;
-  hidden: boolean; locked: boolean;
+  fontFamily: string;
+  fontSize: number;
+  textColor: string | null;
+  textAlpha: number;
+  hidden: boolean;
+  locked: boolean;
   flags: FlagsRecord;
 }
 
-export interface TemplateData {  // MeasuredTemplate
+export interface TemplateData {
+  // MeasuredTemplate
   _id: DocumentId;
   author: UserId;
   t: "circle" | "cone" | "ray" | "rect";
-  x: number; y: number;
+  x: number;
+  y: number;
   elevation: number;
   distance: number;
   width: number;
@@ -854,31 +868,33 @@ export interface TemplateData {  // MeasuredTemplate
 
 export interface NoteData {
   _id: DocumentId;
-  entryId: DocumentId | null;    // soft ref para JournalEntry
-  pageId: DocumentId | null;     // soft ref para JournalPage
-  x: number; y: number;
+  entryId: DocumentId | null; // soft ref para JournalEntry
+  pageId: DocumentId | null; // soft ref para JournalPage
+  x: number;
+  y: number;
   elevation: number;
   icon: string | null;
   iconSize: number;
-  text: string | null;           // tooltip override
-  fontFamily: string; fontSize: number;
+  text: string | null; // tooltip override
+  fontFamily: string;
+  fontSize: number;
   textColor: string | null;
   textAnchor: number;
-  global: boolean;               // visível sem ownership da entry
+  global: boolean; // visível sem ownership da entry
   flags: FlagsRecord;
 }
 
 export interface CombatantData {
   _id: DocumentId;
-  tokenId: DocumentId | null;    // soft ref (no contexto da scene)
-  sceneId: DocumentId | null;    // soft ref
-  actorId: DocumentId | null;    // soft ref
+  tokenId: DocumentId | null; // soft ref (no contexto da scene)
+  sceneId: DocumentId | null; // soft ref
+  actorId: DocumentId | null; // soft ref
   name: string | null;
   img: string | null;
   initiative: number | null;
   hidden: boolean;
   defeated: boolean;
-  type?: string;                 // subtype opcional p/ system (ver 23)
+  type?: string; // subtype opcional p/ system (ver 23)
   system?: Json;
   flags: FlagsRecord;
 }
@@ -888,22 +904,22 @@ export interface JournalPageData {
   name: string;
   type: "text" | "image" | "video" | "pdf" | string; // subtype
   system?: Json;
-  text: { content: string; format: number } | null;   // HTML/markdown
-  src: string | null;                                  // img/video/pdf
+  text: { content: string; format: number } | null; // HTML/markdown
+  src: string | null; // img/video/pdf
   title: { show: boolean; level: number };
-  ownership: OwnershipMap;       // EXCEÇÃO: page tem ownership próprio
+  ownership: OwnershipMap; // EXCEÇÃO: page tem ownership próprio
   sort: number;
   flags: FlagsRecord;
 }
 
 export interface TableResultData {
   _id: DocumentId;
-  type: number;                  // text | document | compendium
+  type: number; // text | document | compendium
   text: string;
   img: string | null;
-  documentUuid: Uuid | null;     // soft ref quando aponta p/ um document
+  documentUuid: Uuid | null; // soft ref quando aponta p/ um document
   weight: number;
-  range: [number, number];       // [min, max]
+  range: [number, number]; // [min, max]
   drawn: boolean;
   flags: FlagsRecord;
 }
@@ -911,7 +927,7 @@ export interface TableResultData {
 export interface PlaylistSoundData {
   _id: DocumentId;
   name: string;
-  path: string;                  // FilePath de áudio
+  path: string; // FilePath de áudio
   volume: number;
   repeat: boolean;
   fade: number | null;
@@ -921,27 +937,28 @@ export interface PlaylistSoundData {
   flags: FlagsRecord;
 }
 
-export interface ActiveEffectData {  // embedded em Actor ou Item
+export interface ActiveEffectData {
+  // embedded em Actor ou Item
   _id: DocumentId;
   name: string;
   img: string | null;
-  type?: string;                 // subtype opcional
+  type?: string; // subtype opcional
   system?: Json;
   changes: ActiveEffectChange[];
   disabled: boolean;
-  duration: EffectDuration;      // rounds/seconds/turns/...
+  duration: EffectDuration; // rounds/seconds/turns/...
   description: string | null;
-  origin: Uuid | null;           // soft ref (UUID do Item que gerou)
+  origin: Uuid | null; // soft ref (UUID do Item que gerou)
   tint: string | null;
-  transfer: boolean;             // transfere do Item para o Actor
-  statuses: string[];            // status ids
+  transfer: boolean; // transfere do Item para o Actor
+  statuses: string[]; // status ids
   flags: FlagsRecord;
 }
 
 export interface ActiveEffectChange {
-  key: string;                   // caminho, ex.: "system.attributes.hp.max"
-  value: string;                 // valor (parseado conforme mode)
-  mode: 0 | 1 | 2 | 3 | 4 | 5;   // custom|multiply|add|downgrade|upgrade|override
+  key: string; // caminho, ex.: "system.attributes.hp.max"
+  value: string; // valor (parseado conforme mode)
+  mode: 0 | 1 | 2 | 3 | 4 | 5; // custom|multiply|add|downgrade|upgrade|override
   priority: number;
 }
 
@@ -957,36 +974,36 @@ export type ActorEmbeddedItem = Omit<ItemDocument, "ownership" | "folderId">;
 
 ### Tabela de capacidades por tipo
 
-| Document          | Categoria | `type`/`system` | `ownership` próprio | MVP |
-|-------------------|-----------|-----------------|---------------------|-----|
-| World             | primário  | não             | não                 | MVP |
-| User              | primário  | não             | não                 | MVP |
-| Folder            | primário  | não             | não (INHERIT alvo)  | MVP |
-| Actor             | primário  | sim             | sim                 | MVP |
-| Item              | primário  | sim             | sim (quando mundial)| MVP |
-| Scene             | primário  | não             | sim                 | MVP |
-| JournalEntry      | primário  | não             | sim                 | MVP |
-| RollTable         | primário  | não             | sim                 | MVP |
-| Playlist          | primário  | não             | sim                 | MVP |
-| Macro             | primário  | sim (script/chat)| sim                | MVP |
-| ChatMessage       | primário  | sim             | não (whisper/blind) | MVP |
-| Combat            | primário  | não             | não                 | MVP |
-| Setting           | primário  | não             | não                 | MVP |
-| Token             | embedded  | via actorDelta  | herdado             | MVP |
-| Wall/Light/Sound  | embedded  | não             | herdado             | MVP |
-| Tile/Drawing      | embedded  | não             | herdado             | MVP |
-| Template/Note     | embedded  | não             | herdado             | MVP |
-| Combatant         | embedded  | opcional        | herdado             | MVP |
-| JournalPage       | embedded  | sim             | **próprio**         | MVP |
-| TableResult       | embedded  | não             | herdado             | MVP |
-| PlaylistSound     | embedded  | não             | herdado             | MVP |
-| ActiveEffect      | embedded  | opcional        | herdado             | MVP |
-| Cards/Card        | —         | —               | —                   | V2  |
-| Region/Behavior   | —         | —               | —                   | V2  |
-| Level             | —         | —               | —                   | V2  |
-| Adventure         | —         | —               | —                   | V2  |
-| CombatantGroup    | —         | —               | —                   | V2  |
-| FogExploration    | —         | —               | —                   | V2  |
+| Document         | Categoria | `type`/`system`   | `ownership` próprio  | MVP |
+| ---------------- | --------- | ----------------- | -------------------- | --- |
+| World            | primário  | não               | não                  | MVP |
+| User             | primário  | não               | não                  | MVP |
+| Folder           | primário  | não               | não (INHERIT alvo)   | MVP |
+| Actor            | primário  | sim               | sim                  | MVP |
+| Item             | primário  | sim               | sim (quando mundial) | MVP |
+| Scene            | primário  | não               | sim                  | MVP |
+| JournalEntry     | primário  | não               | sim                  | MVP |
+| RollTable        | primário  | não               | sim                  | MVP |
+| Playlist         | primário  | não               | sim                  | MVP |
+| Macro            | primário  | sim (script/chat) | sim                  | MVP |
+| ChatMessage      | primário  | sim               | não (whisper/blind)  | MVP |
+| Combat           | primário  | não               | não                  | MVP |
+| Setting          | primário  | não               | não                  | MVP |
+| Token            | embedded  | via actorDelta    | herdado              | MVP |
+| Wall/Light/Sound | embedded  | não               | herdado              | MVP |
+| Tile/Drawing     | embedded  | não               | herdado              | MVP |
+| Template/Note    | embedded  | não               | herdado              | MVP |
+| Combatant        | embedded  | opcional          | herdado              | MVP |
+| JournalPage      | embedded  | sim               | **próprio**          | MVP |
+| TableResult      | embedded  | não               | herdado              | MVP |
+| PlaylistSound    | embedded  | não               | herdado              | MVP |
+| ActiveEffect     | embedded  | opcional          | herdado              | MVP |
+| Cards/Card       | —         | —                 | —                    | V2  |
+| Region/Behavior  | —         | —                 | —                    | V2  |
+| Level            | —         | —                 | —                    | V2  |
+| Adventure        | —         | —                 | —                    | V2  |
+| CombatantGroup   | —         | —                 | —                    | V2  |
+| FogExploration   | —         | —                 | —                    | V2  |
 
 ## API e eventos
 
@@ -1034,22 +1051,22 @@ interface Operation {
 
 ### Eventos / hooks de ciclo de vida
 
-| Hook                | Fase | Cancelável | Onde dispara |
-|---------------------|------|------------|--------------|
-| `preCreate<Type>`   | pré  | sim (`false`) | servidor (autor) |
-| `create<Type>`      | pós  | não        | todos os clientes |
-| `preUpdate<Type>`   | pré  | sim        | servidor (autor) |
-| `update<Type>`      | pós  | não        | todos os clientes |
-| `preDelete<Type>`   | pré  | sim        | servidor (autor) |
-| `delete<Type>`      | pós  | não        | todos os clientes |
-| `*Document` (genérico) | ambos | conforme fase | idem |
-| `applyActiveEffect` | derivação | não | local (prepareData) |
+| Hook                   | Fase      | Cancelável    | Onde dispara        |
+| ---------------------- | --------- | ------------- | ------------------- |
+| `preCreate<Type>`      | pré       | sim (`false`) | servidor (autor)    |
+| `create<Type>`         | pós       | não           | todos os clientes   |
+| `preUpdate<Type>`      | pré       | sim           | servidor (autor)    |
+| `update<Type>`         | pós       | não           | todos os clientes   |
+| `preDelete<Type>`      | pré       | sim           | servidor (autor)    |
+| `delete<Type>`         | pós       | não           | todos os clientes   |
+| `*Document` (genérico) | ambos     | conforme fase | idem                |
+| `applyActiveEffect`    | derivação | não           | local (prepareData) |
 
 - Assinaturas: `pre*(doc, data|changes, op, userId)` /
   `*(doc, op, userId)`. Embedded recebem `parent` em `op`.
 - A cadeia `pre*` roda **no servidor** antes da persistência (autoridade e
   anti-cheat — `ver 04-`, `ver 21-`). Hooks `pre*` são síncronos; `false` cancela.
-- O *broadcast* dos eventos pós e a reconciliação otimista no cliente são
+- O _broadcast_ dos eventos pós e a reconciliação otimista no cliente são
   detalhados em `ver 04-rede-e-sincronizacao.md`.
 
 ## Dependências (specs irmãs)

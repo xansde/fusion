@@ -91,22 +91,22 @@ cada subsistema vive nas specs irmãs (chat, combate, journal, etc.).
 
 ## Conceitos e terminologia
 
-| Termo | Definição no Fusion |
-|---|---|
-| **Shell** | O conjunto de regiões fixas da UI que sempre existem em um mundo aberto (sidebar, scene controls, hotbar, nav, player list) mais o `<canvas>`. Componente raiz `<GameShell>`. |
-| **Region** | Uma área fixa do shell ancorada a uma borda da viewport (top/left/bottom/right) com z-index e comportamento próprios. |
-| **Window** (janela) | Uma superfície flutuante gerenciada pelo window manager: arrastável, redimensionável, minimizável, com header e foco. Toda sheet, dialog e popout vive em uma Window. |
-| **Window manager** | Serviço Svelte singleton (`windowManager`) que mantém o registry de Windows abertas, resolve z-index/foco e persiste posições. |
-| **Application** | Termo genérico para o **conteúdo** de uma Window (uma sheet, um dialog, um browser). No Fusion não há classe `Application` (clean-room): uma Application é apenas um componente Svelte conforme um contrato de props. |
-| **Sheet** (ficha) | Application especializada que edita/exibe um Document. Registrada pela system API por `(documentType, subtype)`. |
-| **DocumentType** | O tipo primário de Document (`Actor`, `Item`, `Scene`, `JournalEntry`, etc.), conforme `ver 02-modelo-de-dados.md`. |
-| **Subtype** | O discriminador de `system` (campo `type` do Document; ex.: Actor `"character"` vs `"npc"`), conforme `ver 02-modelo-de-dados.md`. |
-| **Modo edit / play** | Estado de uma sheet: `play` (interativa, executa ações/rolls, campos read-only exceto inputs de jogo) vs `edit` (campos de configuração desbloqueados para montar a ficha). |
-| **Autosave** | Persistência automática de mudanças de campo de uma sheet via update parcial de Document, com debounce, sem botão "Salvar". |
-| **SheetContext** | Objeto reativo passado a toda sheet com o Document, o resultado de permissão, o modo, helpers de autosave e o tema. |
-| **Design token** | Variável CSS (`--fusion-*`) que parametriza cor, tipografia, espaçamento e raio. Theming troca os valores, não os componentes. |
-| **i18n key** | Identificador hierárquico de string traduzível (ex.: `FUSION.Sheet.Tab.Inventory`). Resolvido pela função `t()`/store `$t`. |
-| **Player mode** | Variante de layout para telas `≤ 1024px` com `pointer: coarse` (tablet do jogador), com canvas maximizado e UI simplificada. |
+| Termo                | Definição no Fusion                                                                                                                                                                                                   |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Shell**            | O conjunto de regiões fixas da UI que sempre existem em um mundo aberto (sidebar, scene controls, hotbar, nav, player list) mais o `<canvas>`. Componente raiz `<GameShell>`.                                         |
+| **Region**           | Uma área fixa do shell ancorada a uma borda da viewport (top/left/bottom/right) com z-index e comportamento próprios.                                                                                                 |
+| **Window** (janela)  | Uma superfície flutuante gerenciada pelo window manager: arrastável, redimensionável, minimizável, com header e foco. Toda sheet, dialog e popout vive em uma Window.                                                 |
+| **Window manager**   | Serviço Svelte singleton (`windowManager`) que mantém o registry de Windows abertas, resolve z-index/foco e persiste posições.                                                                                        |
+| **Application**      | Termo genérico para o **conteúdo** de uma Window (uma sheet, um dialog, um browser). No Fusion não há classe `Application` (clean-room): uma Application é apenas um componente Svelte conforme um contrato de props. |
+| **Sheet** (ficha)    | Application especializada que edita/exibe um Document. Registrada pela system API por `(documentType, subtype)`.                                                                                                      |
+| **DocumentType**     | O tipo primário de Document (`Actor`, `Item`, `Scene`, `JournalEntry`, etc.), conforme `ver 02-modelo-de-dados.md`.                                                                                                   |
+| **Subtype**          | O discriminador de `system` (campo `type` do Document; ex.: Actor `"character"` vs `"npc"`), conforme `ver 02-modelo-de-dados.md`.                                                                                    |
+| **Modo edit / play** | Estado de uma sheet: `play` (interativa, executa ações/rolls, campos read-only exceto inputs de jogo) vs `edit` (campos de configuração desbloqueados para montar a ficha).                                           |
+| **Autosave**         | Persistência automática de mudanças de campo de uma sheet via update parcial de Document, com debounce, sem botão "Salvar".                                                                                           |
+| **SheetContext**     | Objeto reativo passado a toda sheet com o Document, o resultado de permissão, o modo, helpers de autosave e o tema.                                                                                                   |
+| **Design token**     | Variável CSS (`--fusion-*`) que parametriza cor, tipografia, espaçamento e raio. Theming troca os valores, não os componentes.                                                                                        |
+| **i18n key**         | Identificador hierárquico de string traduzível (ex.: `FUSION.Sheet.Tab.Inventory`). Resolvido pela função `t()`/store `$t`.                                                                                           |
+| **Player mode**      | Variante de layout para telas `≤ 1024px` com `pointer: coarse` (tablet do jogador), com canvas maximizado e UI simplificada.                                                                                          |
 
 ---
 
@@ -125,12 +125,12 @@ descrito abaixo, é o equivalente funcional do registro de janelas
 zero em Svelte.
 
 - **Alternativas rejeitadas:**
-  - *Portar o modelo ApplicationV2 (lifecycle `_prepareContext`/`_renderHTML`/PARTS)*:
+  - _Portar o modelo ApplicationV2 (lifecycle `_prepareContext`/`_renderHTML`/PARTS)_:
     é arquitetura acoplada a Handlebars e a um ciclo de render manual (research 08
     §7.2–7.3). Svelte já dá reatividade fina e render parcial nativos; replicar o
     ciclo seria reinventar o que o compilador resolve. Além disso seria copiar
     design proprietário sem ganho.
-  - *React/Vue*: a stack está fixada em Svelte 5. Svelte produz menos runtime
+  - _React/Vue_: a stack está fixada em Svelte 5. Svelte produz menos runtime
     overhead e integra bem com o canvas PIXI (montagem imperativa via `mount()`).
 - **Racional:** Svelte 5 entrega reatividade granular, compiler warnings de
   acessibilidade (research 94 §10.1) e bundle pequeno. O contrato de "componente
@@ -147,12 +147,12 @@ usam o elemento `<dialog>` nativo com `.showModal()`, ganhando focus trap,
 fechamento por `Escape` e backdrop de graça (research 94 §10.2).
 
 - **Alternativas rejeitadas:**
-  - *Tudo em `<dialog>` nativo*: `<dialog>` modal trava o foco e impede ter
+  - _Tudo em `<dialog>` nativo_: `<dialog>` modal trava o foco e impede ter
     múltiplas janelas não-modais sobrepostas (o caso de uso central do VTT:
     várias sheets abertas ao mesmo tempo — research 08 §14.2 "ações acessíveis
     sem navegar entre janelas"). `<dialog>` não-modal não dá z-index/foco
     coordenado entre instâncias.
-  - *Biblioteca de janelas de terceiros*: dependência grande, difícil de
+  - _Biblioteca de janelas de terceiros_: dependência grande, difícil de
     integrar com Runes e theming; o conjunto de features (drag/resize/snap) é
     pequeno o bastante para implementar.
 - **Racional:** Separar as duas necessidades — janelas persistentes empilháveis
@@ -172,10 +172,10 @@ par, a **engine fornece uma sheet default genérica** (key-value editor sobre o
 schema do Document), garantindo que todo Document seja sempre abrível.
 
 - **Alternativas rejeitadas:**
-  - *Sheet única configurável por dados (sem código)*: insuficiente para a riqueza
+  - _Sheet única configurável por dados (sem código)_: insuficiente para a riqueza
     de PF2e/SF2e (research 08 §14.2 elogia "character sheets interativas"). A
     automação de uma ficha PF2e exige lógica, não só layout.
-  - *Registro só por `documentType` (sem subtype)*: um Actor `character` e um
+  - _Registro só por `documentType` (sem subtype)_: um Actor `character` e um
     Actor `npc` têm fichas radicalmente diferentes; sem subtype, o sistema
     teria que ramificar dentro de um componente gigante.
 - **Racional:** Espelha a granularidade do schema (`02`) e da system API (`15`),
@@ -192,10 +192,10 @@ Sheets persistem mudanças automaticamente: ao alterar um campo, a sheet emite u
 reflete o Document atualizado reativamente.
 
 - **Alternativas rejeitadas:**
-  - *Botão "Salvar" explícito*: gera estado "sujo" divergente, risco de perda de
+  - _Botão "Salvar" explícito_: gera estado "sujo" divergente, risco de perda de
     edição e fricção. O Foundry usa `submitOnChange` (research 08 §7.8) — autosave
     é o padrão esperado de VTT.
-  - *Salvar em cada keystroke (sem debounce)*: gera tempestade de updates na rede
+  - _Salvar em cada keystroke (sem debounce)_: gera tempestade de updates na rede
     e no SQLite; ruim em campos de texto.
 - **Racional:** Autosave com debounce é o comportamento que usuários de VTT
   esperam e minimiza perda de dados. O debounce agrupa rajadas de digitação em um
@@ -211,10 +211,10 @@ HTML serializado, armazenado no campo do Document; a renderização "enriquecida
 acontece em um componente `<EnrichedContent>`.
 
 - **Alternativas rejeitadas:**
-  - *ProseMirror cru* (o que o Foundry usa, research 08 §13): TipTap dá uma API de
+  - _ProseMirror cru_ (o que o Foundry usa, research 08 §13): TipTap dá uma API de
     extensões muito mais ergonômica e integra melhor com Svelte; ProseMirror cru
     exigiria reescrever schema/commands/plugins manualmente.
-  - *Editor markdown simples (ex.: textarea + render)*: insuficiente para tabelas,
+  - _Editor markdown simples (ex.: textarea + render)_: insuficiente para tabelas,
     blocos colapsáveis, secrets e drag-and-drop de @links (research 08 §13).
 - **Racional:** A stack fixou TipTap. Ele cobre formatação, tabelas, colapsáveis e
   é extensível para os três recursos próprios. ProseMirror por baixo garante
@@ -230,8 +230,8 @@ ser sobrescrita por preferência do usuário. Sistemas podem registrar **skins**
 (conjuntos de tokens) por escopo de sheet.
 
 - **Alternativas rejeitadas:**
-  - *Cores hard-coded por componente*: impossibilita temas e overrides de sistema.
-  - *CSS-in-JS*: Svelte já tem `<style>` escopado; tokens em CSS variables são mais
+  - _Cores hard-coded por componente_: impossibilita temas e overrides de sistema.
+  - _CSS-in-JS_: Svelte já tem `<style>` escopado; tokens em CSS variables são mais
     performáticos e inspecionáveis.
 - **Racional:** CSS variables são a abordagem do Foundry v13 (research 08 §11.2) e
   a recomendada para acessibilidade/high-contrast (research 94 §1.1). Permitem
@@ -245,8 +245,8 @@ detectar faltantes). Engine e cada sistema contribuem bundles de tradução
 (`pt-BR.json`, `en.json`). Suporte a interpolação de variáveis e pluralização.
 
 - **Alternativas rejeitadas:**
-  - *Hard-code de strings pt-BR*: bloqueia en e qualquer futura localização.
-  - *Biblioteca i18n pesada (i18next completo)*: overkill; um resolver simples de
+  - _Hard-code de strings pt-BR_: bloqueia en e qualquer futura localização.
+  - _Biblioteca i18n pesada (i18next completo)_: overkill; um resolver simples de
     chave + interpolação + plural cobre o MVP.
 - **Racional:** pt-BR primário e en secundário estão fixados. Chaves hierárquicas
   espelham a estrutura de UI e facilitam contribuição por sistema. Fallback para a
@@ -264,9 +264,9 @@ detalhamento completo (gestos, PWA, safe areas, WCAG) é de
 separado é **[V2]** (research 08 §7.6).
 
 - **Alternativas rejeitadas:**
-  - *Só desktop no MVP*: o material de pesquisa dedica um doc inteiro a tablet
+  - _Só desktop no MVP_: o material de pesquisa dedica um doc inteiro a tablet
     (research 94) e jogadores em tablet são caso de uso explícito do projeto.
-  - *App mobile nativo*: fora de escopo; PWA/browser cobre o jogador
+  - _App mobile nativo_: fora de escopo; PWA/browser cobre o jogador
     (`ver 23-acessibilidade-e-dispositivos.md`).
 - **Racional:** Atender o jogador-tablet sem complicar o MVP. Container queries são
   production-ready (research 94 §5.2) e desacoplam a sheet do tamanho de tela.
@@ -280,9 +280,9 @@ Document → sheet (adiciona item/embedded), Document → editor TipTap (cria @l
 macro/Document → hotbar (cria slot).
 
 - **Alternativas rejeitadas:**
-  - *HTML5 DnD nativo com `dataTransfer` de texto solto*: frágil, sem tipagem,
+  - _HTML5 DnD nativo com `dataTransfer` de texto solto_: frágil, sem tipagem,
     difícil de validar permissão antes do drop.
-  - *Eventos de pointer ad-hoc por componente*: duplicação e inconsistência.
+  - _Eventos de pointer ad-hoc por componente_: duplicação e inconsistência.
 - **Racional:** Um payload tipado central (research 08 §9) permite validar
   permissão e tipo no `dragover` (rejeitar antes de soltar) e reaproveitar a mesma
   máquina em todas as zonas. Implementado sobre **Pointer Events** para funcionar
@@ -312,9 +312,9 @@ A reabertura de uma sheet do mesmo Document reusa a geometria de janela
 dados do usuário autenticado.
 
 - **Alternativas rejeitadas:**
-  - *Tudo client-side*: keybindings e tema perdidos ao trocar de dispositivo;
+  - _Tudo client-side_: keybindings e tema perdidos ao trocar de dispositivo;
     hostil para usuários que usam tablet + desktop.
-  - *Tudo server-side*: geometria de janela server-side seria inútil em telas de
+  - _Tudo server-side_: geometria de janela server-side seria inútil em telas de
     tamanhos diferentes; aumenta round-trips desnecessários para dados
     puramente locais.
 - **Racional:** A divisão pela portabilidade da preferência (depende do
@@ -418,7 +418,7 @@ chat, combat tracker).
 ### Sistema de Sheets
 
 - **REQ-UIF-018** [MVP] A system API deve expor `registerSheet(documentType,
-  subtype, component, options)` para associar um componente Svelte a um par
+subtype, component, options)` para associar um componente Svelte a um par
   `(documentType, subtype)`. O par `subtype = "*"` (ou ausência) registra um
   fallback para todos os subtypes daquele documentType. Contrato detalhado em
   `ver 15-api-de-sistemas.md`.
@@ -681,20 +681,23 @@ export interface WindowConfig {
   /** Componente Svelte 5 da Application (montado via mount()). */
   component: Component<Record<string, unknown>>;
   props: Record<string, unknown>;
-  title: string;            // i18n key ou texto já resolvido
-  icon?: string;            // nome de ícone
-  resizable?: boolean;      // default true
-  minimizable?: boolean;    // default true
-  modal?: boolean;          // default false -> usa <dialog> showModal (DEC-UIF-02)
+  title: string; // i18n key ou texto já resolvido
+  icon?: string; // nome de ícone
+  resizable?: boolean; // default true
+  minimizable?: boolean; // default true
+  modal?: boolean; // default false -> usa <dialog> showModal (DEC-UIF-02)
   minWidth?: number;
   minHeight?: number;
   /** Chave de singleton: reabrir com a mesma key foca a janela existente (REQ-UIF-014). */
-  singletonKey?: string;    // ex.: `sheet:${documentUuid}`
+  singletonKey?: string; // ex.: `sheet:${documentUuid}`
 }
 
 export interface WindowState {
   id: WindowId;
-  top: number; left: number; width: number; height: number;
+  top: number;
+  left: number;
+  width: number;
+  height: number;
   minimized: boolean;
   zIndex: number;
   focused: boolean;
@@ -751,7 +754,7 @@ export interface SheetContext<D extends FusionDocument = FusionDocument> {
 /** Opções no registro de uma sheet pela system API (detalhe em 15). */
 export interface SheetRegistration {
   documentType: DocumentTypeName;
-  subtype: string | "*";     // "*" = fallback p/ todos os subtypes
+  subtype: string | "*"; // "*" = fallback p/ todos os subtypes
   /** Componente Svelte 5 (montado via mount()). */
   component: Component<Record<string, unknown>>;
   /** Tamanho inicial sugerido da janela. */
@@ -763,7 +766,7 @@ export interface SheetRegistration {
 /** ---------- Drag & Drop ---------- */
 
 export interface DragPayload {
-  uuid: string;                 // UUID do Document (ver 02)
+  uuid: string; // UUID do Document (ver 02)
   documentType: DocumentTypeName;
   subtype?: string;
   origin: "sidebar" | "sheet" | "canvas" | "hotbar" | "compendium";
@@ -781,13 +784,13 @@ export interface DropZoneConfig {
 
 export interface DialogButton {
   action: string;
-  label: string;        // i18n key
-  default?: boolean;    // acionável por Enter
+  label: string; // i18n key
+  default?: boolean; // acionável por Enter
 }
 
 export interface InputFieldSpec {
   name: string;
-  label: string;        // i18n key
+  label: string; // i18n key
   type: "text" | "number" | "checkbox" | "select" | "textarea";
   options?: { value: string; label: string }[]; // p/ select
   value?: unknown;
@@ -817,7 +820,10 @@ export interface ClientUIPreferences {
   /** Página ativa do hotbar neste dispositivo. */
   hotbarPage: number;
   /** Geometria de janelas por singletonKey (depende do tamanho de tela). */
-  windowGeometry: Record<string, Pick<WindowState, "top" | "left" | "width" | "height" | "minimized">>;
+  windowGeometry: Record<
+    string,
+    Pick<WindowState, "top" | "left" | "width" | "height" | "minimized">
+  >;
 }
 ```
 
@@ -831,26 +837,26 @@ relevantes à UI.
 
 ### Serviços globais (client)
 
-| Serviço | Forma | Propósito |
-|---|---|---|
-| `windowManager` | `WindowManager` | Abrir/focar/fechar Windows; registry reativo (REQ-UIF-009..016). |
-| `sheets` | `registerSheet(...)` / `openSheet(document)` | Registro e abertura de sheets (REQ-UIF-018..019). |
-| `dialogs` | `Dialog.confirm/prompt/input` | Modais utilitários (REQ-UIF-027..030). |
-| `notifications` | `info/warn/error/success/remove` | Toasts (REQ-UIF-038..039). |
-| `dnd` | `registerDropZone(el, DropZoneConfig)` / `startDrag(el, () => DragPayload)` | Drag & drop tipado (REQ-UIF-044..046b). |
-| `i18n` | `I18n` (`t`, `$t`, `registerBundle`) | Tradução (REQ-UIF-057..060). |
-| `theme` | `get()/set()` + tokens CSS | Theming (REQ-UIF-053..056). |
-| `filePicker` | `FilePicker.pick({ type, current })` | Selecionar/upload de asset (REQ-UIF-040..042). |
+| Serviço         | Forma                                                                       | Propósito                                                        |
+| --------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `windowManager` | `WindowManager`                                                             | Abrir/focar/fechar Windows; registry reativo (REQ-UIF-009..016). |
+| `sheets`        | `registerSheet(...)` / `openSheet(document)`                                | Registro e abertura de sheets (REQ-UIF-018..019).                |
+| `dialogs`       | `Dialog.confirm/prompt/input`                                               | Modais utilitários (REQ-UIF-027..030).                           |
+| `notifications` | `info/warn/error/success/remove`                                            | Toasts (REQ-UIF-038..039).                                       |
+| `dnd`           | `registerDropZone(el, DropZoneConfig)` / `startDrag(el, () => DragPayload)` | Drag & drop tipado (REQ-UIF-044..046b).                          |
+| `i18n`          | `I18n` (`t`, `$t`, `registerBundle`)                                        | Tradução (REQ-UIF-057..060).                                     |
+| `theme`         | `get()/set()` + tokens CSS                                                  | Theming (REQ-UIF-053..056).                                      |
+| `filePicker`    | `FilePicker.pick({ type, current })`                                        | Selecionar/upload de asset (REQ-UIF-040..042).                   |
 
 ### Eventos de UI (emitidos no client)
 
-| Evento | Quando | Payload |
-|---|---|---|
-| `window:open` / `window:close` / `window:focus` | ciclo de vida de Window | `{ id, singletonKey? }` |
-| `sheet:render` | sheet (re)renderizada | `{ documentUuid, mode }` |
-| `control:change` / `tool:change` | troca de control/tool nos scene controls | `{ control, tool }` |
-| `scene:view` | usuário troca a cena visualizada | `{ sceneId }` |
-| `drag:start` / `drop` | drag & drop | `{ payload, zone? }` |
+| Evento                                          | Quando                                   | Payload                  |
+| ----------------------------------------------- | ---------------------------------------- | ------------------------ |
+| `window:open` / `window:close` / `window:focus` | ciclo de vida de Window                  | `{ id, singletonKey? }`  |
+| `sheet:render`                                  | sheet (re)renderizada                    | `{ documentUuid, mode }` |
+| `control:change` / `tool:change`                | troca de control/tool nos scene controls | `{ control, tool }`      |
+| `scene:view`                                    | usuário troca a cena visualizada         | `{ sceneId }`            |
+| `drag:start` / `drop`                           | drag & drop                              | `{ payload, zone? }`     |
 
 > Estes são **eventos de cliente** (UI local), distintos do protocolo de fio do
 > servidor (`ver 04-rede-e-sincronizacao.md`). O autosave da sheet **consome** o

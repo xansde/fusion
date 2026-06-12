@@ -1,0 +1,15 @@
+/**
+ * @fusion/shared — public API
+ *
+ * This package is the single source of truth for:
+ * - Document IDs and UUIDs
+ * - Network protocol types and envelope
+ * - Result/error helpers
+ *
+ * REQ-ARQ-002: shared must NOT import from server, client, system-api, or systems/*.
+ */
+
+export * from "./id.js";
+export * from "./uuid.js";
+export * from "./protocol.js";
+export * from "./result.js";

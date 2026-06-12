@@ -38,18 +38,18 @@ Esta spec **não** detalha arquitetura técnica (ver `01-arquitetura-geral.md`),
 
 ## Conceitos e terminologia
 
-| Termo | Definição no contexto do Fusion |
-|---|---|
-| **VTT** | Virtual Tabletop — plataforma de software que reproduz a mesa de RPG: mapa, tokens, fichas, rolagens de dados, chat e ferramentas de mestre. |
-| **GM** | Game Master (mestre). No Fusion, é quem hospeda o servidor e tem permissões plenas sobre o mundo. Persona primária: xansd. |
-| **Jogador (Player)** | Usuário que conecta ao servidor do GM pelo navegador, controla um ou mais personagens e tem permissões restritas. |
-| **Mundo (World)** | Uma campanha: o conjunto de dados criados pelo usuário (cenas, atores, itens, journals) persistido em um arquivo `world.db` próprio. Ver `03-persistencia-e-mundos.md`. |
-| **Sistema (System)** | Pacote TypeScript/Svelte que implementa as regras de um RPG específico (ex.: PF2e). No Fusion, sistemas são compilados junto com o app — não há plugins de terceiros carregados dinamicamente no MVP. Ver `15-api-de-sistemas.md`. |
-| **Compendium** | Coleção de conteúdo de referência reutilizável (monstros, magias, itens) importado de fonte open-source. Ver `16-compendiums-e-importacao.md`. |
-| **Clean-room** | Prática de engenharia em que se reimplementa funcionalidade equivalente a um software existente sem copiar seu código-fonte proprietário, trabalhando apenas a partir de comportamento observável e documentação pública. |
+| Termo                     | Definição no contexto do Fusion                                                                                                                                                                                                      |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **VTT**                   | Virtual Tabletop — plataforma de software que reproduz a mesa de RPG: mapa, tokens, fichas, rolagens de dados, chat e ferramentas de mestre.                                                                                         |
+| **GM**                    | Game Master (mestre). No Fusion, é quem hospeda o servidor e tem permissões plenas sobre o mundo. Persona primária: xansd.                                                                                                           |
+| **Jogador (Player)**      | Usuário que conecta ao servidor do GM pelo navegador, controla um ou mais personagens e tem permissões restritas.                                                                                                                    |
+| **Mundo (World)**         | Uma campanha: o conjunto de dados criados pelo usuário (cenas, atores, itens, journals) persistido em um arquivo `world.db` próprio. Ver `03-persistencia-e-mundos.md`.                                                              |
+| **Sistema (System)**      | Pacote TypeScript/Svelte que implementa as regras de um RPG específico (ex.: PF2e). No Fusion, sistemas são compilados junto com o app — não há plugins de terceiros carregados dinamicamente no MVP. Ver `15-api-de-sistemas.md`.   |
+| **Compendium**            | Coleção de conteúdo de referência reutilizável (monstros, magias, itens) importado de fonte open-source. Ver `16-compendiums-e-importacao.md`.                                                                                       |
+| **Clean-room**            | Prática de engenharia em que se reimplementa funcionalidade equivalente a um software existente sem copiar seu código-fonte proprietário, trabalhando apenas a partir de comportamento observável e documentação pública.            |
 | **Servidor autoritativo** | Modelo em que o servidor é a única fonte de verdade: valida, persiste e faz broadcast de todas as mutações. O cliente nunca decide o resultado de uma rolagem ou de uma mudança de estado sozinho. Ver `04-rede-e-sincronizacao.md`. |
-| **ORC / OGL** | Open RPG Creative License (Paizo, irrevogável) e Open Game License 1.0a — licenças sob as quais as mecânicas dos sistemas-alvo são abertas. Ver `26-licencas-e-legal.md`. |
-| **MVP** | Minimum Viable Product. Aqui: o conjunto mínimo que permite ao grupo jogar uma sessão completa de PF2e (definição detalhada abaixo). |
+| **ORC / OGL**             | Open RPG Creative License (Paizo, irrevogável) e Open Game License 1.0a — licenças sob as quais as mecânicas dos sistemas-alvo são abertas. Ver `26-licencas-e-legal.md`.                                                            |
+| **MVP**                   | Minimum Viable Product. Aqui: o conjunto mínimo que permite ao grupo jogar uma sessão completa de PF2e (definição detalhada abaixo).                                                                                                 |
 
 ## Decisões
 
@@ -59,61 +59,61 @@ Cada decisão lista a alternativa rejeitada e o racional. As decisões de **stac
 
 - **Decisão:** Desenvolver o Fusion do zero, em clean-room, como motor próprio com API de sistemas própria.
 - **Alternativas rejeitadas:**
-  - *Usar o Foundry VTT com o sistema oficial pf2e.* Rejeitada porque o objetivo do projeto é ter controle total sobre o motor, a API de sistemas e a experiência pt-BR-first, além de suportar o Etmos RPG (sistema brasileiro sem suporte no ecossistema Foundry). O Foundry também é software proprietário pago, com EULA que restringe extensão profunda e cuja arte/conteúdo pf2e está sob acordo de parceria exclusiva inacessível a terceiros (ver `docs/research/14-licencas-legal.md` §5.4).
-  - *Forkar um VTT open-source existente.* Rejeitada para não herdar dívida técnica e restrições de licença de terceiros, e porque a curva de aprendizado de um motor próprio é parte do valor do projeto.
+  - _Usar o Foundry VTT com o sistema oficial pf2e._ Rejeitada porque o objetivo do projeto é ter controle total sobre o motor, a API de sistemas e a experiência pt-BR-first, além de suportar o Etmos RPG (sistema brasileiro sem suporte no ecossistema Foundry). O Foundry também é software proprietário pago, com EULA que restringe extensão profunda e cuja arte/conteúdo pf2e está sob acordo de parceria exclusiva inacessível a terceiros (ver `docs/research/14-licencas-legal.md` §5.4).
+  - _Forkar um VTT open-source existente._ Rejeitada para não herdar dívida técnica e restrições de licença de terceiros, e porque a curva de aprendizado de um motor próprio é parte do valor do projeto.
 - **Racional:** Um motor próprio dá liberdade de design (GM-first, pt-BR-first, automação opcional), evita custos de licença e habilita o terceiro sistema-alvo (Etmos) sem depender de comunidade externa. A pesquisa confirma que as tecnologias-base (Node.js, WebSocket, canvas WebGL, persistência embarcada) são genéricas e legalmente livres de usar (ver `docs/research/01-foundry-arquitetura-stack.md` §10.2).
 
 ### D-VIS-02: Servidor self-hosted na máquina do GM, jogadores via navegador
 
 - **Decisão:** O servidor roda localmente na máquina do GM; jogadores conectam pelo navegador via LAN ou internet, sem instalar nada.
 - **Alternativas rejeitadas:**
-  - *SaaS multi-tenant hospedado.* Rejeitada porque introduz custo operacional contínuo, responsabilidade de dados de terceiros e complexidade de infraestrutura incompatível com um projeto pessoal de grupo fechado. Também aumenta o risco legal (distribuição pública de conteúdo).
-  - *Aplicativo desktop puro sem servidor de rede.* Rejeitada porque impede jogo remoto, que é um cenário central.
+  - _SaaS multi-tenant hospedado._ Rejeitada porque introduz custo operacional contínuo, responsabilidade de dados de terceiros e complexidade de infraestrutura incompatível com um projeto pessoal de grupo fechado. Também aumenta o risco legal (distribuição pública de conteúdo).
+  - _Aplicativo desktop puro sem servidor de rede._ Rejeitada porque impede jogo remoto, que é um cenário central.
 - **Racional:** O modelo self-hosted é o validado pelo Foundry (a pesquisa registra ~68% dos usuários rodando empacotado na máquina local — `docs/research/01-foundry-arquitetura-stack.md` §1) e é o que melhor serve a um grupo fechado com um GM técnico. Minimiza risco legal (uso privado — `docs/research/14-licencas-legal.md` §8.2) e custo.
 
 ### D-VIS-03: Foco em três sistemas-alvo, com PF2e como sistema de validação do MVP
 
 - **Decisão:** Suportar PF2e (remaster), Starfinder 2e e Etmos RPG; usar PF2e como o sistema cuja jogabilidade completa define o MVP.
 - **Alternativas rejeitadas:**
-  - *Engine system-agnostic genérica sem nenhum sistema de referência.* Rejeitada por contrariar o princípio "simplicidade > generalidade": uma engine abstrata sem um sistema concreto guiando o design tende a abstrair cedo demais e errar as abstrações.
-  - *Começar pelo Etmos (sistema brasileiro).* Rejeitada porque o PF2e tem o maior volume de dados abertos e a maior complexidade mecânica, sendo o melhor estresse para a engine; validar o caso difícil primeiro reduz risco.
+  - _Engine system-agnostic genérica sem nenhum sistema de referência._ Rejeitada por contrariar o princípio "simplicidade > generalidade": uma engine abstrata sem um sistema concreto guiando o design tende a abstrair cedo demais e errar as abstrações.
+  - _Começar pelo Etmos (sistema brasileiro)._ Rejeitada porque o PF2e tem o maior volume de dados abertos e a maior complexidade mecânica, sendo o melhor estresse para a engine; validar o caso difícil primeiro reduz risco.
 - **Racional:** PF2e é o sistema mais rico em dados abertos (compendiums JSON sob ORC/OGL no repo `foundryvtt/pf2e`) e o mais exigente mecanicamente, então valida a engine de forma robusta. SF2e reaproveita a base do PF2e (mesmo modelo ORC e mecânica de origem comum). Etmos valida a generalidade da API de sistemas com um sistema independente e material-fonte local.
 
 ### D-VIS-04: Não competir comercialmente; uso privado e, no máximo, distribuição gratuita
 
 - **Decisão:** O Fusion é um projeto de uso privado do grupo do GM. Não é um produto comercial, não tem marketplace, não cobra acesso. Se houver distribuição, será gratuita e sem marcas Paizo.
 - **Alternativas rejeitadas:**
-  - *Modelo comercial / freemium.* Rejeitada porque exigiria commercial license com a Paizo para usar marcas, e porque qualquer monetização choca com a Community Use Policy e eleva o risco legal (`docs/research/14-licencas-legal.md` §8.2). Não é o objetivo do projeto.
-  - *Marketplace de módulos/sistemas de terceiros.* Rejeitada por escopo: carregamento dinâmico de plugins de terceiros é explicitamente [V2], e um marketplace traz responsabilidades de moderação, segurança e legais desproporcionais.
+  - _Modelo comercial / freemium._ Rejeitada porque exigiria commercial license com a Paizo para usar marcas, e porque qualquer monetização choca com a Community Use Policy e eleva o risco legal (`docs/research/14-licencas-legal.md` §8.2). Não é o objetivo do projeto.
+  - _Marketplace de módulos/sistemas de terceiros._ Rejeitada por escopo: carregamento dinâmico de plugins de terceiros é explicitamente [V2], e um marketplace traz responsabilidades de moderação, segurança e legais desproporcionais.
 - **Racional:** O uso privado em grupo fechado é o cenário de risco mínimo segundo a pesquisa legal. Não monetizar mantém o projeto inteiramente dentro de ORC/OGL para mecânicas, sem necessidade de licença comercial.
 
 ### D-VIS-05: Sem compatibilidade com módulos, sistemas ou dados binários do Foundry
 
 - **Decisão:** O Fusion não busca compatibilidade com módulos do Foundry, com a API do Foundry, nem com seus formatos de dados (LevelDB packs, manifests `system.json`/`module.json`). A interoperabilidade com o ecossistema pf2e se dá apenas via **conversores** que leem os JSON abertos.
 - **Alternativas rejeitadas:**
-  - *Compat com a API do Foundry para reaproveitar módulos.* Rejeitada por ser clean-room incompatível com replicar a API proprietária do Foundry (`docs/research/14-licencas-legal.md` §1.3) e por acoplar o Fusion a um design externo que não controlamos.
-  - *Importar diretamente os LevelDB packs do Foundry.* Rejeitada porque os packs binários carregam arte e referências sob acordo de parceria exclusiva (proibido — `docs/research/14-licencas-legal.md` §5.4); a importação correta filtra apenas campos mecânicos dos JSON abertos.
+  - _Compat com a API do Foundry para reaproveitar módulos._ Rejeitada por ser clean-room incompatível com replicar a API proprietária do Foundry (`docs/research/14-licencas-legal.md` §1.3) e por acoplar o Fusion a um design externo que não controlamos.
+  - _Importar diretamente os LevelDB packs do Foundry._ Rejeitada porque os packs binários carregam arte e referências sob acordo de parceria exclusiva (proibido — `docs/research/14-licencas-legal.md` §5.4); a importação correta filtra apenas campos mecânicos dos JSON abertos.
 - **Racional:** Independência de design e conformidade clean-room. A engine tem liberdade de evoluir sua própria API de sistemas (`15-api-de-sistemas.md`) sem amarras com o Foundry. A importação de dados é tratada por conversores dedicados (`16-compendiums-e-importacao.md`, `tools/importer-pf2e`).
 
 ### D-VIS-06: Automação como camada opcional, não obrigatória
 
 - **Decisão:** A engine automatiza rolagens, aplicação de dano, condições e fluxo de combate, mas toda automação deve poder ser feita manualmente pelo GM. Nenhuma automação é um pré-requisito rígido para jogar.
 - **Alternativas rejeitadas:**
-  - *Automação total e opinativa (a engine sempre resolve tudo).* Rejeitada porque RPG de mesa frequentemente exige rulings do GM que contrariam a regra padrão; uma engine que impõe automação atrapalha. Também eleva o custo de implementação por sistema.
+  - _Automação total e opinativa (a engine sempre resolve tudo)._ Rejeitada porque RPG de mesa frequentemente exige rulings do GM que contrariam a regra padrão; uma engine que impõe automação atrapalha. Também eleva o custo de implementação por sistema.
 - **Racional:** Princípio "automação opcional, GM-first". A automação é um acelerador, não uma autoridade. O GM sempre pode sobrepor. Isso reduz o acoplamento entre engine e regras e mantém a engine utilizável mesmo para partes de um sistema ainda não automatizadas.
 
 ### D-VIS-07: pt-BR como idioma primário do produto
 
 - **Decisão:** A UI, a documentação de usuário e o conteúdo padrão são em português do Brasil; inglês é idioma secundário. Identificadores e código permanecem em inglês.
 - **Alternativas rejeitadas:**
-  - *en primário (padrão do ecossistema VTT).* Rejeitada porque o público é um grupo brasileiro e um dos sistemas (Etmos) é brasileiro; pt-BR-first é diferencial central de produto.
+  - _en primário (padrão do ecossistema VTT)._ Rejeitada porque o público é um grupo brasileiro e um dos sistemas (Etmos) é brasileiro; pt-BR-first é diferencial central de produto.
 - **Racional:** Princípio "pt-BR first". Nenhum VTT consolidado prioriza pt-BR; isso é parte do valor do Fusion para seu público. Ver `23-acessibilidade-e-dispositivos.md` para detalhes de i18n e `11-ui-framework-e-fichas.md` para a aplicação na UI.
 
 ### D-VIS-08: Distribuição inicial como executável/CLI de servidor + browser; desktop Tauri é [V2]
 
 - **Decisão:** O MVP distribui um executável/CLI do servidor que o GM roda na própria máquina; o acesso (inclusive do GM) é pelo navegador. O wrapper desktop (Tauri v2) é fase 2.
 - **Alternativas rejeitadas:**
-  - *Empacotar desde o MVP em um wrapper desktop (estilo Electron do Foundry).* Rejeitada para reduzir escopo do MVP e evitar a complexidade de empacotamento multi-plataforma antes de validar a jogabilidade. A pesquisa mostra que o Foundry oferece ambos os modos (empacotado e headless) — começar pelo headless/CLI é o caminho de menor esforço.
+  - _Empacotar desde o MVP em um wrapper desktop (estilo Electron do Foundry)._ Rejeitada para reduzir escopo do MVP e evitar a complexidade de empacotamento multi-plataforma antes de validar a jogabilidade. A pesquisa mostra que o Foundry oferece ambos os modos (empacotado e headless) — começar pelo headless/CLI é o caminho de menor esforço.
 - **Racional:** Foco do MVP em jogar uma sessão, não em conveniência de empacotamento. O wrapper desktop melhora a experiência do GM mas não habilita nenhuma capacidade nova de jogo. Ver `22-instalacao-e-distribuicao.md`.
 
 ## Requisitos funcionais

@@ -4,6 +4,7 @@
 **Data:** 2026-06-11
 
 **Baseada em:**
+
 - `docs/research/09-foundry-funcionalidades-mesa.md` — seções 2 (Journals), 3 (Roll Tables), 5 (Cards)
 
 ---
@@ -25,7 +26,7 @@ Especificar o subsistema de **conteúdo documental** do Fusion: entradas de jour
 - Permissões por entry e por página (None / Limited / Observer / Owner)
 - "Mostrar aos jogadores" — abertura forçada de entry/página no cliente de jogadores
 - `SecretBlock` — bloco de conteúdo visível apenas ao GM e Owner; revelação persistida por página
-- Links `@UUID` entre todos os documents do mundo; render como chip clicável com estado *broken*
+- Links `@UUID` entre todos os documents do mundo; render como chip clicável com estado _broken_
 - `RollTable` com `TableResult` embedded; tipos Text, Document, Compendium
 - Draw com e sem replacement; pesos; normalização automática de fórmula
 - Tabelas aninhadas (resultado Document apontando para outra RollTable)
@@ -48,22 +49,22 @@ Especificar o subsistema de **conteúdo documental** do Fusion: entradas de jour
 
 ## Conceitos e Terminologia
 
-| Termo | Definição |
-|---|---|
-| `JournalEntry` | Document de primeiro nível; container de páginas, permissões e metadados |
-| `JournalEntryPage` | Document embedded em `JournalEntry`; unidade de conteúdo individual |
-| `SecretBlock` | Bloco ProseMirror/TipTap com visibilidade restrita ao GM e Owner; revelação persistida |
-| `@UUID link` | Referência a qualquer document do mundo pela sua UUID canônica; renderizada como chip clicável |
-| Broken link | @UUID que aponta para UUID não encontrada no mundo ou compendium ativo |
-| TOC | Table of Contents gerada automaticamente a partir dos níveis de página |
-| `RollTable` | Document de primeiro nível; tabela de resultados indexados por range numérico |
-| `TableResult` | Document embedded em `RollTable`; um resultado possível com range, peso e tipo |
-| Draw with replacement | Rolagem onde todos os resultados permanecem disponíveis a cada draw |
-| Draw without replacement | Rolagem onde cada resultado sorteado é marcado `drawn: true` e excluído até reset |
-| Nested table | `TableResult` do tipo Document apontando para outra `RollTable`; a sub-tabela é rolada automaticamente |
-| `CardStack` | Document base para Deck, Hand e Pile [V2] |
-| `Card` | Document embedded em `CardStack`; possui faces, verso, suit e value [V2] |
-| Backlink | Referência reversa: document B sabe que document A o referencia via @UUID [V2] |
+| Termo                    | Definição                                                                                              |
+| ------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `JournalEntry`           | Document de primeiro nível; container de páginas, permissões e metadados                               |
+| `JournalEntryPage`       | Document embedded em `JournalEntry`; unidade de conteúdo individual                                    |
+| `SecretBlock`            | Bloco ProseMirror/TipTap com visibilidade restrita ao GM e Owner; revelação persistida                 |
+| `@UUID link`             | Referência a qualquer document do mundo pela sua UUID canônica; renderizada como chip clicável         |
+| Broken link              | @UUID que aponta para UUID não encontrada no mundo ou compendium ativo                                 |
+| TOC                      | Table of Contents gerada automaticamente a partir dos níveis de página                                 |
+| `RollTable`              | Document de primeiro nível; tabela de resultados indexados por range numérico                          |
+| `TableResult`            | Document embedded em `RollTable`; um resultado possível com range, peso e tipo                         |
+| Draw with replacement    | Rolagem onde todos os resultados permanecem disponíveis a cada draw                                    |
+| Draw without replacement | Rolagem onde cada resultado sorteado é marcado `drawn: true` e excluído até reset                      |
+| Nested table             | `TableResult` do tipo Document apontando para outra `RollTable`; a sub-tabela é rolada automaticamente |
+| `CardStack`              | Document base para Deck, Hand e Pile [V2]                                                              |
+| `Card`                   | Document embedded em `CardStack`; possui faces, verso, suit e value [V2]                               |
+| Backlink                 | Referência reversa: document B sabe que document A o referencia via @UUID [V2]                         |
 
 ---
 
@@ -74,6 +75,7 @@ Especificar o subsistema de **conteúdo documental** do Fusion: entradas de jour
 **Decisão:** Usar TipTap v2 (wrapper sobre ProseMirror) como editor rico de texto para páginas de journal.
 
 **Alternativas rejeitadas:**
+
 - Editor ProseMirror direto: TipTap oferece extensibilidade via extension API sem necessidade de gerenciar ProseMirror schemas manualmente.
 - Quill.js / Slate.js: menor ecossistema e menor alinhamento com o modelo de document ProseMirror necessário para @UUID enrichers e secret blocks.
 - CodeMirror: adequado para código, não para rich text com imagens e tabelas.
@@ -86,6 +88,7 @@ Especificar o subsistema de **conteúdo documental** do Fusion: entradas de jour
 **Decisão:** Autosave a cada 30 segundos (ou ao fechar o editor) enviando o documento inteiro via `document:update`. Sem CRDT (Yjs/Automerge) no MVP.
 
 **Alternativas rejeitadas:**
+
 - Yjs com provider socket.io: implementação correta de CRDT distribui complexidade significativa (awareness, merges, persistência de histórico). Reservar para V2.
 - Autosave polling a cada N segundos com diff: mais complexo que simplesmente enviar o JSON do documento.
 
@@ -96,6 +99,7 @@ Especificar o subsistema de **conteúdo documental** do Fusion: entradas de jour
 **Decisão:** O estado `revealed: boolean` de cada `SecretBlock` é persistido no documento (não apenas na sessão). O servidor é autoritativo; clientes filtram o conteúdo secreto antes de enviar a jogadores sem permissão Owner.
 
 **Alternativas rejeitadas:**
+
 - Revelação apenas por sessão (volátil): inaceitável — GM não deveria precisar re-revelar a cada sessão.
 - Filtro apenas no cliente: inseguro — dados secretos chegariam ao cliente do jogador.
 
@@ -106,16 +110,18 @@ Especificar o subsistema de **conteúdo documental** do Fusion: entradas de jour
 **Decisão:** Sintaxe `@UUID[TipoDoc.id]{Label}` no texto fonte; resolvida em tempo de render pelo TipTap extension `UUIDEnricher`. No servidor, a validação de UUIDs ocorre ao salvar (broken links são marcados mas não bloqueiam o save).
 
 **Alternativas rejeitadas:**
+
 - Links por nome (`@Actor[Nome]`): frágeis a renomeações; UUID é imutável.
 - Links resolvidos apenas no cliente: inconsistência com SSR futuro e exportação de journal.
 
-**Racional:** UUID canônica garante links duráveis. O enricher resolve assincrona­mente consultando o store local de documents; se não encontrar, renderiza o chip em estado *broken* com ícone visual distinto.
+**Racional:** UUID canônica garante links duráveis. O enricher resolve assincrona­mente consultando o store local de documents; se não encontrar, renderiza o chip em estado _broken_ com ícone visual distinto.
 
 ### D-JRN-05: Tipos de página de journal
 
 **Decisão:** MVP entrega Text, Image e Video embed. PDF é [V2].
 
 **Alternativas rejeitadas:**
+
 - PDF no MVP: renderização de PDF (pdf.js) adiciona ~800KB ao bundle e complexidade de testes. PDFs com formulários têm comportamento imprevisível (conforme observado no Foundry).
 
 **Racional:** Os três tipos cobrem >95% dos casos de uso de sessão. PDF é funcionalidade de worldbuilding avançada.
@@ -125,6 +131,7 @@ Especificar o subsistema de **conteúdo documental** do Fusion: entradas de jour
 **Decisão:** A `RollTable` armazena a fórmula de dados (`formula`) explicitamente. O endpoint de normalização (`POST /api/tables/:id/normalize`) recalcula a fórmula baseado nos pesos somados dos resultados (`1dN` onde N = soma dos pesos).
 
 **Alternativas rejeitadas:**
+
 - Fórmula sempre derivada dinamicamente: inflexível para tabelas com fórmulas customizadas (ex.: `2d6`).
 - Sem normalização: usabilidade ruim — GM precisaria calcular ranges manualmente.
 
@@ -135,6 +142,7 @@ Especificar o subsistema de **conteúdo documental** do Fusion: entradas de jour
 **Decisão:** `TableResult` tem campo `drawn: boolean`. Ao sortear sem replacement, o servidor persiste `drawn: true` no resultado sorteado. `RollTable#reset()` zera todos os `drawn: false`.
 
 **Alternativas rejeitadas:**
+
 - Manter estado drawn em memória: perdido ao reiniciar o servidor.
 - Lista separada de drawn IDs na tabela pai: redundante com flag no próprio resultado.
 
@@ -145,6 +153,7 @@ Especificar o subsistema de **conteúdo documental** do Fusion: entradas de jour
 **Decisão:** Implementar o modelo conceitual de `CardStack` (Deck/Hand/Pile) e `Card` apenas como tipos de dados no `packages/shared`; UI e lógica completas são [V2].
 
 **Alternativas rejeitadas:**
+
 - Omitir completamente do schema: dificultaria migração futura (documents do mundo precisariam ser re-tipados).
 - Implementar no MVP: fora da definição de MVP global (sessão de PF2e com mapa, tokens, fichas, rolagens e chat).
 
@@ -155,6 +164,7 @@ Especificar o subsistema de **conteúdo documental** do Fusion: entradas de jour
 **Decisão:** Manter um índice em memória de `{ id, type, name, text }` para todos os documents do mundo carregado no boot do servidor. Busca via substring case-insensitive. Para mundos grandes (>10.000 documents), fallback para FTS5 do SQLite.
 
 **Alternativas rejeitadas:**
+
 - Elasticsearch/Meilisearch: dependência externa desproporcional para uso local/LAN.
 - Busca full-text somente via SQLite FTS5 sem cache em memória: latência de I/O inaceitável para digitação em tempo real.
 
@@ -202,7 +212,7 @@ Especificar o subsistema de **conteúdo documental** do Fusion: entradas de jour
 
 **REQ-JRN-015** [MVP] Links @UUID devem ser renderizados como chips clicáveis com ícone do tipo do document (ator, item, tabela, journal, etc.) e label customizável. Clicar no chip abre o document referenciado.
 
-**REQ-JRN-016** [MVP] Links @UUID que apontam para UUID não encontrada no mundo (document deletado ou compendium inativo) devem ser renderizados em estado *broken* com ícone de alerta e tooltip informativo, sem causar erro.
+**REQ-JRN-016** [MVP] Links @UUID que apontam para UUID não encontrada no mundo (document deletado ou compendium inativo) devem ser renderizados em estado _broken_ com ícone de alerta e tooltip informativo, sem causar erro.
 
 **REQ-JRN-017** [MVP] @UUID deve suportar referência a: `Actor`, `Item`, `JournalEntry`, `JournalEntryPage`, `RollTable`, `Scene`. Novos tipos de document devem ser registráveis pela system API.
 
@@ -281,21 +291,21 @@ Especificar o subsistema de **conteúdo documental** do Fusion: entradas de jour
 ```typescript
 // packages/shared/src/documents/journal.ts
 
-export type JournalPageType = 'text' | 'image' | 'video' | 'pdf'; // pdf = V2
+export type JournalPageType = "text" | "image" | "video" | "pdf"; // pdf = V2
 
 export interface JournalEntryPageData {
-  id: string;           // UUID
+  id: string; // UUID
   name: string;
   type: JournalPageType;
-  tocLevel: number;     // 1–6, controla indentação no TOC
-  sort: number;         // ordem de exibição
-  content: string;      // JSON serializado do TipTap doc (type=text) | URL (image/video/pdf)
+  tocLevel: number; // 1–6, controla indentação no TOC
+  sort: number; // ordem de exibição
+  content: string; // JSON serializado do TipTap doc (type=text) | URL (image/video/pdf)
   secretBlocks: SecretBlockState[]; // estado de revelação de blocos secretos
-  ownership: OwnershipMap;          // permissões por página (sobrescrevem a entry)
+  ownership: OwnershipMap; // permissões por página (sobrescrevem a entry)
 }
 
 export interface SecretBlockState {
-  blockId: string;      // ID único do bloco no documento TipTap
+  blockId: string; // ID único do bloco no documento TipTap
   revealed: boolean;
 }
 
@@ -304,24 +314,24 @@ export interface JournalEntryData {
   name: string;
   folder: string | null;
   sort: number;
-  ownership: OwnershipMap;  // ver 05-usuarios-e-permissoes.md
+  ownership: OwnershipMap; // ver 05-usuarios-e-permissoes.md
   pages: JournalEntryPageData[];
   flags: Record<string, unknown>;
 }
 
 // packages/shared/src/documents/rolltable.ts
 
-export type TableResultType = 'text' | 'document' | 'compendium';
+export type TableResultType = "text" | "document" | "compendium";
 
 export interface TableResultData {
   id: string;
   type: TableResultType;
-  range: [number, number];  // [min, max] inclusivos
-  weight: number;           // peso relativo para normalização
+  range: [number, number]; // [min, max] inclusivos
+  weight: number; // peso relativo para normalização
   drawn: boolean;
-  text: string;             // type=text: conteúdo; outros: descrição opcional
+  text: string; // type=text: conteúdo; outros: descrição opcional
   documentId: string | null;
-  documentCollection: string | null;  // world collection name ou compendium pack id
+  documentCollection: string | null; // world collection name ou compendium pack id
 }
 
 export interface RollTableData {
@@ -329,7 +339,7 @@ export interface RollTableData {
   name: string;
   folder: string | null;
   sort: number;
-  formula: string;          // fórmula de dados, ex.: "1d20"
+  formula: string; // fórmula de dados, ex.: "1d20"
   replacement: boolean;
   displayRoll: boolean;
   description: string;
@@ -346,12 +356,12 @@ export interface CardFace {
   text: string;
 }
 
-export type CardStackType = 'deck' | 'hand' | 'pile';
+export type CardStackType = "deck" | "hand" | "pile";
 
 export interface CardData {
   id: string;
   name: string;
-  type: string;   // extensível pelo sistema
+  type: string; // extensível pelo sistema
   suit: string;
   value: number;
   faces: CardFace[];
@@ -361,7 +371,7 @@ export interface CardData {
   width: number;
   height: number;
   sort: number;
-  origin: string | null;   // id do Deck de origem, para reset
+  origin: string | null; // id do Deck de origem, para reset
 }
 
 export interface CardStackData {
@@ -382,50 +392,50 @@ export interface CardStackData {
 
 ### REST — Journal
 
-| Método | Rota | Descrição |
-|---|---|---|
-| `GET` | `/api/journal` | Lista `JournalEntry` com permissão do usuário solicitante |
-| `POST` | `/api/journal` | Cria `JournalEntry` (requer GM ou owner) |
-| `GET` | `/api/journal/:id` | Retorna entry com páginas; filtra SecretBlocks não revelados para não-owners |
-| `PATCH` | `/api/journal/:id` | Atualiza metadados da entry |
-| `DELETE` | `/api/journal/:id` | Remove entry (requer GM) |
-| `POST` | `/api/journal/:id/pages` | Adiciona página à entry |
-| `PATCH` | `/api/journal/:id/pages/:pageId` | Atualiza página (inclui content e secretBlocks) |
-| `DELETE` | `/api/journal/:id/pages/:pageId` | Remove página |
-| `POST` | `/api/journal/:id/show` | Envia evento `journal:showToPlayers` para os jogadores especificados |
+| Método   | Rota                             | Descrição                                                                    |
+| -------- | -------------------------------- | ---------------------------------------------------------------------------- |
+| `GET`    | `/api/journal`                   | Lista `JournalEntry` com permissão do usuário solicitante                    |
+| `POST`   | `/api/journal`                   | Cria `JournalEntry` (requer GM ou owner)                                     |
+| `GET`    | `/api/journal/:id`               | Retorna entry com páginas; filtra SecretBlocks não revelados para não-owners |
+| `PATCH`  | `/api/journal/:id`               | Atualiza metadados da entry                                                  |
+| `DELETE` | `/api/journal/:id`               | Remove entry (requer GM)                                                     |
+| `POST`   | `/api/journal/:id/pages`         | Adiciona página à entry                                                      |
+| `PATCH`  | `/api/journal/:id/pages/:pageId` | Atualiza página (inclui content e secretBlocks)                              |
+| `DELETE` | `/api/journal/:id/pages/:pageId` | Remove página                                                                |
+| `POST`   | `/api/journal/:id/show`          | Envia evento `journal:showToPlayers` para os jogadores especificados         |
 
 ### REST — RollTable
 
-| Método | Rota | Descrição |
-|---|---|---|
-| `GET` | `/api/tables` | Lista tabelas com permissão do usuário |
-| `POST` | `/api/tables` | Cria tabela |
-| `GET` | `/api/tables/:id` | Retorna tabela com resultados |
-| `PATCH` | `/api/tables/:id` | Atualiza metadados e resultados |
-| `DELETE` | `/api/tables/:id` | Remove tabela |
-| `POST` | `/api/tables/:id/draw` | Realiza draw; body: `{ count?: number }` |
-| `POST` | `/api/tables/:id/reset` | Reseta todos os `drawn: false` |
-| `POST` | `/api/tables/:id/normalize` | Recalcula formula e ranges com base nos pesos |
+| Método   | Rota                        | Descrição                                     |
+| -------- | --------------------------- | --------------------------------------------- |
+| `GET`    | `/api/tables`               | Lista tabelas com permissão do usuário        |
+| `POST`   | `/api/tables`               | Cria tabela                                   |
+| `GET`    | `/api/tables/:id`           | Retorna tabela com resultados                 |
+| `PATCH`  | `/api/tables/:id`           | Atualiza metadados e resultados               |
+| `DELETE` | `/api/tables/:id`           | Remove tabela                                 |
+| `POST`   | `/api/tables/:id/draw`      | Realiza draw; body: `{ count?: number }`      |
+| `POST`   | `/api/tables/:id/reset`     | Reseta todos os `drawn: false`                |
+| `POST`   | `/api/tables/:id/normalize` | Recalcula formula e ranges com base nos pesos |
 
 ### Eventos Socket.io
 
-| Evento | Direção | Payload | Descrição |
-|---|---|---|---|
-| `journal:update` | server → clients | `{ entryId, pageId?, patch }` | Página ou entry atualizada |
-| `journal:showToPlayers` | server → clients | `{ entryId, pageId?, userIds? }` | GM força abertura de journal |
+| Evento                   | Direção          | Payload                                  | Descrição                                |
+| ------------------------ | ---------------- | ---------------------------------------- | ---------------------------------------- |
+| `journal:update`         | server → clients | `{ entryId, pageId?, patch }`            | Página ou entry atualizada               |
+| `journal:showToPlayers`  | server → clients | `{ entryId, pageId?, userIds? }`         | GM força abertura de journal             |
 | `journal:secretRevealed` | server → clients | `{ entryId, pageId, blockId, revealed }` | GM alterou visibilidade de bloco secreto |
-| `journal:created` | server → clients | `JournalEntryData` | Nova entry criada |
-| `journal:deleted` | server → clients | `{ entryId }` | Entry removida |
-| `table:draw` | server → clients | `{ tableId, results, roll }` | Resultado de draw publicado |
-| `table:reset` | server → clients | `{ tableId }` | Tabela resetada |
-| `search:reindex` | server interno | `{ docType, id, op }` | Atualiza índice de busca em memória |
+| `journal:created`        | server → clients | `JournalEntryData`                       | Nova entry criada                        |
+| `journal:deleted`        | server → clients | `{ entryId }`                            | Entry removida                           |
+| `table:draw`             | server → clients | `{ tableId, results, roll }`             | Resultado de draw publicado              |
+| `table:reset`            | server → clients | `{ tableId }`                            | Tabela resetada                          |
+| `search:reindex`         | server interno   | `{ docType, id, op }`                    | Atualiza índice de busca em memória      |
 
 ### Comandos de Chat
 
-| Comando | Descrição |
-|---|---|
-| `/table <nome ou UUID>` | Realiza draw da tabela e posta no chat |
-| `/table <nome ou UUID> <N>` | Realiza N draws consecutivos |
+| Comando                     | Descrição                              |
+| --------------------------- | -------------------------------------- |
+| `/table <nome ou UUID>`     | Realiza draw da tabela e posta no chat |
+| `/table <nome ou UUID> <N>` | Realiza N draws consecutivos           |
 
 ---
 

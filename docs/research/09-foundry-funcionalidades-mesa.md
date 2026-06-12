@@ -22,6 +22,7 @@ Múltiplos encontros podem existir simultaneamente no mesmo mundo, cada um vincu
 ### 1.2 Combatant
 
 Cada `Combatant` mantém:
+
 - Referência ao `Token` e ao `Actor` correspondente
 - `initiative` — valor numérico (null antes de rolar)
 - `defeated` — flag booleana
@@ -33,33 +34,33 @@ Os jogadores podem atualizar propriedades do sistema em seus próprios Combatant
 
 A iniciativa é um número puro; a **fórmula** de rolagem é definida pelo sistema via `Combat#rollInitiative`. Operações disponíveis:
 
-| Operação | Descrição |
-|---|---|
-| Roll Initiative (individual) | Rola para um combatente específico |
-| Roll All | Rola para todos sem valor |
-| Roll NPCs | Rola apenas para combatentes não-PC |
-| Set Initiative | Define manualmente sem rolar |
-| Reset All | Limpa todos os valores para re-rolagem |
+| Operação                     | Descrição                              |
+| ---------------------------- | -------------------------------------- |
+| Roll Initiative (individual) | Rola para um combatente específico     |
+| Roll All                     | Rola para todos sem valor              |
+| Roll NPCs                    | Rola apenas para combatentes não-PC    |
+| Set Initiative               | Define manualmente sem rolar           |
+| Reset All                    | Limpa todos os valores para re-rolagem |
 
 A ordem na fila (`turns`) é gerada por `setupTurns()`, que ordena por `initiative` (descendente). Em caso de empate, a ordem é determinada pelo sistema (pode ser desempatada por atributo secundário definido pelo sistema, como Destreza no PF2e).
 
 #### Iniciativa no PF2e (Remaster)
 
-No sistema PF2e oficial do Foundry, a iniciativa pode ser rolada usando diferentes perícias além de Percepção — isso é definido no tracker como "statistic" do combatente. O módulo da comunidade *PF2e Avoid Notice* exibe automaticamente resultados de furtividade versus os DCs de Percepção dos combatentes ao iniciar o encontro. Starfinder 2e segue lógica similar (Perception ou outras skills).
+No sistema PF2e oficial do Foundry, a iniciativa pode ser rolada usando diferentes perícias além de Percepção — isso é definido no tracker como "statistic" do combatente. O módulo da comunidade _PF2e Avoid Notice_ exibe automaticamente resultados de furtividade versus os DCs de Percepção dos combatentes ao iniciar o encontro. Starfinder 2e segue lógica similar (Perception ou outras skills).
 
 ### 1.4 Turnos e Rodadas
 
 Controles disponíveis no tracker:
 
-| Controle | Efeito |
-|---|---|
-| Begin Combat | Inicia o encontro, salta para rodada 1 turno 1 |
-| Next Turn | Avança para o próximo combatente |
-| Previous Turn | Retrocede ao combatente anterior |
-| Next Round | Incrementa rodada, volta ao primeiro combatente |
-| Previous Round | Decrementa rodada |
-| End Turn | Disponível para o jogador ativo; avança o tracker |
-| End Combat | Finaliza o encontro (requer confirmação) |
+| Controle       | Efeito                                            |
+| -------------- | ------------------------------------------------- |
+| Begin Combat   | Inicia o encontro, salta para rodada 1 turno 1    |
+| Next Turn      | Avança para o próximo combatente                  |
+| Previous Turn  | Retrocede ao combatente anterior                  |
+| Next Round     | Incrementa rodada, volta ao primeiro combatente   |
+| Previous Round | Decrementa rodada                                 |
+| End Turn       | Disponível para o jogador ativo; avança o tracker |
+| End Combat     | Finaliza o encontro (requer confirmação)          |
 
 ### 1.5 Combatentes Derrotados
 
@@ -67,7 +68,7 @@ O botão "Mark Defeated" seta `defeated: true` no combatante e aplica o ícone d
 
 ### 1.6 Visibilidade de NPCs
 
-O toggle **Set Hidden** oculta completamente o combatente dos jogadores no tracker (o GM continua vendo). O menu de configuração do Combatant fornece a mesma opção. Isso é combinado frequentemente com tokens ocultos no canvas. Uma extensão popular, *Combat Tracker Extensions*, adiciona recursos como ofuscação de nomes, ocultação seletiva por tipo (NPC vs PC), e grupos de iniciativa.
+O toggle **Set Hidden** oculta completamente o combatente dos jogadores no tracker (o GM continua vendo). O menu de configuração do Combatant fornece a mesma opção. Isso é combinado frequentemente com tokens ocultos no canvas. Uma extensão popular, _Combat Tracker Extensions_, adiciona recursos como ofuscação de nomes, ocultação seletiva por tipo (NPC vs PC), e grupos de iniciativa.
 
 ### 1.7 Hooks de Turno (API)
 
@@ -81,6 +82,7 @@ Hooks.on("combatTurnChange", (combat, prior, current) => { ... })
 ```
 
 Métodos lifecycle protegidos para override em sistemas:
+
 - `_onStartTurn(combatant)` / `_onEndTurn(combatant)` — lógica por turno
 - `_onStartRound()` / `_onEndRound()` — lógica por rodada
 - `_onEnter(combatant)` / `_onExit(combatant)` — entrada/saída de combatentes
@@ -110,12 +112,12 @@ Gerenciado pela coleção `Journal` do mundo. A sheet de renderização usa `Jou
 
 ### 2.2 Tipos de Página
 
-| Tipo | Tecnologia | Notas |
-|---|---|---|
-| **Text** | ProseMirror (padrão) ou Markdown | Editor colaborativo em tempo real |
-| **Image** | Referência `src` (local ou URL) | Hand-outs visuais |
-| **Video** | Referência `src` (local, URL, YouTube) | Streaming externo suportado |
-| **PDF** | Referência `src` (upload ou URL) | PDFs com formulários têm comportamento imprevisível |
+| Tipo      | Tecnologia                             | Notas                                               |
+| --------- | -------------------------------------- | --------------------------------------------------- |
+| **Text**  | ProseMirror (padrão) ou Markdown       | Editor colaborativo em tempo real                   |
+| **Image** | Referência `src` (local ou URL)        | Hand-outs visuais                                   |
+| **Video** | Referência `src` (local, URL, YouTube) | Streaming externo suportado                         |
+| **PDF**   | Referência `src` (upload ou URL)       | PDFs com formulários têm comportamento imprevisível |
 
 ### 2.3 Autosave e Edição Colaborativa
 
@@ -124,6 +126,7 @@ O ProseMirror salva automaticamente a cada 60 segundos (configurável). Múltipl
 ### 2.4 Show to Players
 
 O GM pode:
+
 - **Show Players** (a partir do menu da entrada): abre a journal para todos os jogadores
 - Em modo multipage: clique direito em uma página específica para exibi-la seletivamente
 
@@ -167,10 +170,10 @@ Acessado globalmente via `game.tables`.
 
 ### 3.2 Tipos de Resultado
 
-| Tipo | Comportamento |
-|---|---|
-| **Text (0)** | Exibe string ou HTML no chat |
-| **Document (1)** | Referencia documento do mundo (Actor, Item, RollTable, etc.) |
+| Tipo               | Comportamento                                                             |
+| ------------------ | ------------------------------------------------------------------------- |
+| **Text (0)**       | Exibe string ou HTML no chat                                              |
+| **Document (1)**   | Referencia documento do mundo (Actor, Item, RollTable, etc.)              |
 | **Compendium (2)** | Referencia documento em compendium pack; carregado apenas ao ser sorteado |
 
 ### 3.3 Draw com/sem Replacement
@@ -202,11 +205,11 @@ Playlists são documentos `Playlist` contendo `PlaylistSound` embedded. O servid
 
 ### 4.2 Modos de Reprodução
 
-| Modo | Comportamento |
-|---|---|
-| **Sequential** | Reproduz sons um após outro em ordem |
-| **Shuffle** | Reproduz um por vez em ordem aleatória |
-| **Simultaneous** | Reproduz todos os sons ao mesmo tempo |
+| Modo                | Comportamento                                                                                   |
+| ------------------- | ----------------------------------------------------------------------------------------------- |
+| **Sequential**      | Reproduz sons um após outro em ordem                                                            |
+| **Shuffle**         | Reproduz um por vez em ordem aleatória                                                          |
+| **Simultaneous**    | Reproduz todos os sons ao mesmo tempo                                                           |
 | **Soundboard Only** | Não permite reprodução da playlist como um todo; apenas triggering manual de faixas individuais |
 
 ### 4.3 Fade
@@ -217,11 +220,11 @@ Tanto a playlist quanto faixas individuais têm configuração de **fade duratio
 
 O sistema mantém três canais distintos com controles master **por cliente** (não afetam outros usuários):
 
-| Canal | Conteúdo |
-|---|---|
-| **Playlists** | Músicas e sons sequenciais/simultâneos |
-| **Ambient Sounds** | Sons espaciais colocados nas cenas |
-| **Interface** | Sons de UI (chat, rolagem de dados, etc.) |
+| Canal              | Conteúdo                                  |
+| ------------------ | ----------------------------------------- |
+| **Playlists**      | Músicas e sons sequenciais/simultâneos    |
+| **Ambient Sounds** | Sons espaciais colocados nas cenas        |
+| **Interface**      | Sons de UI (chat, rolagem de dados, etc.) |
 
 Cada canal tem um slider master no sidebar de Playlists. Além disso, o volume por faixa é um multiplicador sobre o volume master.
 
@@ -231,7 +234,7 @@ Sons podem ser pré-carregados (push do buffer de áudio para todos os clientes 
 
 ### 4.6 Looping
 
-Faixas podem ser configuradas para loop contínuo. Nota arquitetural: há uma lacuna audível entre loops (limitação de implementação) — módulos da comunidade como *The Sound of Silence* resolvem com crossfade interno.
+Faixas podem ser configuradas para loop contínuo. Nota arquitetural: há uma lacuna audível entre loops (limitação de implementação) — módulos da comunidade como _The Sound of Silence_ resolvem com crossfade interno.
 
 ### 4.7 Ambient Sounds (Sons Ambientes no Canvas)
 
@@ -259,15 +262,16 @@ Cenas podem ter uma playlist vinculada que inicia automaticamente quando a cena 
 
 ### 5.1 Tipos de Stack
 
-| Tipo | Propósito | Operações Disponíveis |
-|---|---|---|
-| **Deck** | Coleção fonte de cartas | Criar carta, Shuffle, Deal, Reset |
-| **Hand** | Mão de um jogador específico | Draw, Play, Pass |
-| **Pile** | Pilha de cartas jogadas/descartadas | Pass, Shuffle, Reset |
+| Tipo     | Propósito                           | Operações Disponíveis             |
+| -------- | ----------------------------------- | --------------------------------- |
+| **Deck** | Coleção fonte de cartas             | Criar carta, Shuffle, Deal, Reset |
+| **Hand** | Mão de um jogador específico        | Draw, Play, Pass                  |
+| **Pile** | Pilha de cartas jogadas/descartadas | Pass, Shuffle, Reset              |
 
 ### 5.2 Modelo de Dados (Card)
 
 Cada `Card` (embedded em `CardStack`) contém:
+
 - `type` (padrão `base`, extensível pelo sistema)
 - `suit` — naipe/categoria
 - `value` — valor numérico para ordenação/lógica
@@ -301,7 +305,7 @@ Stacks suportam export/import JSON via context menu. Decks pré-definidos (baral
 
 ### 5.6 Extensibilidade
 
-O sistema aceita `DocumentSheet` customizado para UIs especializadas. O módulo *Complete Card Management (CCM)* adiciona interação com cartas diretamente no canvas (layer de cartas), com flip, rotação e associação de cartas a regiões.
+O sistema aceita `DocumentSheet` customizado para UIs especializadas. O módulo _Complete Card Management (CCM)_ adiciona interação com cartas diretamente no canvas (layer de cartas), com flip, rotação e associação de cartas a regiões.
 
 ---
 
@@ -331,12 +335,12 @@ O sistema aceita `DocumentSheet` customizado para UIs especializadas. O módulo 
 
 Variáveis disponíveis automaticamente:
 
-| Variável | Conteúdo |
-|---|---|
-| `token` | Token selecionado |
-| `actor` | Actor do token selecionado |
+| Variável                   | Conteúdo                              |
+| -------------------------- | ------------------------------------- |
+| `token`                    | Token selecionado                     |
+| `actor`                    | Actor do token selecionado            |
 | `canvas.tokens.controlled` | Array de todos os tokens selecionados |
-| `scope` | Objeto contendo argumentos passados |
+| `scope`                    | Objeto contendo argumentos passados   |
 
 Argumentos passados via `/macro` ou programaticamente ficam acessíveis via `scope.argName` ou diretamente como variáveis.
 
@@ -381,11 +385,11 @@ Introduzidas no v12 e expandidas no v13/v14. Regiões definem áreas interativas
 
 ### 8.1 Formas
 
-| Forma | Descrição |
-|---|---|
+| Forma     | Descrição                              |
+| --------- | -------------------------------------- |
 | Rectangle | Retângulo (ALT para quadrado perfeito) |
-| Ellipse | Elipse (ALT para círculo perfeito) |
-| Polygon | Polígono de múltiplos pontos |
+| Ellipse   | Elipse (ALT para círculo perfeito)     |
+| Polygon   | Polígono de múltiplos pontos           |
 
 Formas podem ser **holes** (geometria negativa que remove áreas). Cada forma aceita um **elevation range** para permitir que tokens passem acima ou abaixo. Uma região pode conter múltiplas formas com comportamentos compartilhados.
 
@@ -393,22 +397,22 @@ Formas podem ser **holes** (geometria negativa que remove áreas). Cada forma ac
 
 **Contínuos** (sempre ativos quando habilitados):
 
-| Behavior | Efeito |
-|---|---|
+| Behavior              | Efeito                                                                  |
+| --------------------- | ----------------------------------------------------------------------- |
 | Adjust Darkness Level | Exclui a área da Iluminação Global, com nível de escuridão configurável |
-| Suppress Weather | Previne renderização de clima dentro da região |
-| Modify Movement Cost | Multiplica o custo de movimento (0–5 em incrementos de 0.25) |
+| Suppress Weather      | Previne renderização de clima dentro da região                          |
+| Modify Movement Cost  | Multiplica o custo de movimento (0–5 em incrementos de 0.25)            |
 
 **Baseados em Eventos** (triggados por eventos específicos):
 
-| Behavior | Efeito |
-|---|---|
-| Display Scrolling Text | Texto animado colorido (opcional: apenas para GM) |
-| Execute Macro | Executa macro especificada; recebe behavior, event, region, scene como dados |
-| Execute Script | Similar ao Execute Macro mas executa arquivo de script |
-| Pause Game | Pausa o jogo para jogadores não-GM ao entrar na região |
-| Teleport Token | Transporta o token para outra região (mesma ou outra cena) |
-| Toggle Behavior | Habilita/desabilita behaviors vinculados baseado nos eventos de trigger |
+| Behavior               | Efeito                                                                       |
+| ---------------------- | ---------------------------------------------------------------------------- |
+| Display Scrolling Text | Texto animado colorido (opcional: apenas para GM)                            |
+| Execute Macro          | Executa macro especificada; recebe behavior, event, region, scene como dados |
+| Execute Script         | Similar ao Execute Macro mas executa arquivo de script                       |
+| Pause Game             | Pausa o jogo para jogadores não-GM ao entrar na região                       |
+| Teleport Token         | Transporta o token para outra região (mesma ou outra cena)                   |
+| Toggle Behavior        | Habilita/desabilita behaviors vinculados baseado nos eventos de trigger      |
 
 ### 8.3 Eventos Disponíveis
 
@@ -464,58 +468,58 @@ A seguir, um inventário dos módulos que se tornaram expectativa padrão dos us
 
 ### 10.1 Bibliotecas de Infraestrutura
 
-| Módulo | Propósito |
-|---|---|
-| **lib-wrapper** | Gerencia monkey-patching de forma segura, detecta conflitos entre módulos, aplica wrappers em cadeia com prioridades (LISTENER → WRAPPER → MIXED → OVERRIDE). Usado como dependência por dezenas de módulos. |
-| **socketlib** | Abstrai comunicação websocket entre clients; permite executar funções no client do GM, de outro jogador, de todos os GMs, ou de uma lista de jogadores. Resolve problemas de permissão de forma controlada. |
-| **libWrapper** dependency pattern | Prática esperada: módulos declaram dependências em `module.json`; o gerenciador de módulos do Foundry valida antes de ativar. |
+| Módulo                            | Propósito                                                                                                                                                                                                    |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **lib-wrapper**                   | Gerencia monkey-patching de forma segura, detecta conflitos entre módulos, aplica wrappers em cadeia com prioridades (LISTENER → WRAPPER → MIXED → OVERRIDE). Usado como dependência por dezenas de módulos. |
+| **socketlib**                     | Abstrai comunicação websocket entre clients; permite executar funções no client do GM, de outro jogador, de todos os GMs, ou de uma lista de jogadores. Resolve problemas de permissão de forma controlada.  |
+| **libWrapper** dependency pattern | Prática esperada: módulos declaram dependências em `module.json`; o gerenciador de módulos do Foundry valida antes de ativar.                                                                                |
 
 ### 10.2 Dados e Rolagens
 
-| Módulo | Propósito |
-|---|---|
-| **Dice So Nice!** | 3D dice com física realista, sons, temas customizáveis, per-die/per-actor appearance, API para custom dice 3D, efeitos em nat20, advantage, etc. Considerado praticamente obrigatório por grande parte da comunidade. |
-| **Dice Tray** | Interface simplificada de construção de fórmulas de dados na tela |
-| **Better Rolltables** | UI avançada para RollTables, draw em bulk, loot generation |
+| Módulo                | Propósito                                                                                                                                                                                                             |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Dice So Nice!**     | 3D dice com física realista, sons, temas customizáveis, per-die/per-actor appearance, API para custom dice 3D, efeitos em nat20, advantage, etc. Considerado praticamente obrigatório por grande parte da comunidade. |
+| **Dice Tray**         | Interface simplificada de construção de fórmulas de dados na tela                                                                                                                                                     |
+| **Better Rolltables** | UI avançada para RollTables, draw em bulk, loot generation                                                                                                                                                            |
 
 ### 10.3 Combate e Automação
 
-| Módulo | Propósito |
-|---|---|
-| **Monk's Active Tiles** | Triggers em tiles do canvas: teleporte, abrir portas, esconder tokens, exibir mensagens, reproduzir sons, alterar elevação. Suporte a Levels 3D. Alternativa/complemento às Scene Regions nativas. |
-| **Combat Tracker Extensions** | Ocultação de nomes/iniciativa por tipo, ordem inversa, grupos, iniciativa de grupo, fases de combate customizadas |
-| **Simultaneous Combat System (SCS)** | Modo de combate simultâneo (todos agem ao mesmo tempo) |
-| **Card Deck Initiative** | Usa deck de cartas para determinar iniciativa |
+| Módulo                               | Propósito                                                                                                                                                                                          |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Monk's Active Tiles**              | Triggers em tiles do canvas: teleporte, abrir portas, esconder tokens, exibir mensagens, reproduzir sons, alterar elevação. Suporte a Levels 3D. Alternativa/complemento às Scene Regions nativas. |
+| **Combat Tracker Extensions**        | Ocultação de nomes/iniciativa por tipo, ordem inversa, grupos, iniciativa de grupo, fases de combate customizadas                                                                                  |
+| **Simultaneous Combat System (SCS)** | Modo de combate simultâneo (todos agem ao mesmo tempo)                                                                                                                                             |
+| **Card Deck Initiative**             | Usa deck de cartas para determinar iniciativa                                                                                                                                                      |
 
 ### 10.4 UI e QoL (Quality of Life)
 
-| Módulo | Propósito |
-|---|---|
-| **Simple Calendar** | Calendário de mundo customizável; se tornou o padrão de facto para timekeeping; API pública usada por outros módulos |
-| **Monk's Token Bar** | Barra de recursos de tokens alternativa |
-| **PopOut!** | Permite abrir sheets/journals em janelas separadas do browser |
-| **Token Action HUD** | HUD contextual de ações do token selecionado |
+| Módulo               | Propósito                                                                                                            |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **Simple Calendar**  | Calendário de mundo customizável; se tornou o padrão de facto para timekeeping; API pública usada por outros módulos |
+| **Monk's Token Bar** | Barra de recursos de tokens alternativa                                                                              |
+| **PopOut!**          | Permite abrir sheets/journals em janelas separadas do browser                                                        |
+| **Token Action HUD** | HUD contextual de ações do token selecionado                                                                         |
 
 ### 10.5 Áudio
 
-| Módulo | Propósito |
-|---|---|
-| **The Sound of Silence** | Fade curves logarítmicas/equal-power para fades perceptivamente lineares, crossfade interno entre loops, gaps configuráveis entre faixas |
-| **Playlist Enchantment / Enhancer** | UI de playlist aprimorada, controles adicionais |
+| Módulo                              | Propósito                                                                                                                                |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **The Sound of Silence**            | Fade curves logarítmicas/equal-power para fades perceptivamente lineares, crossfade interno entre loops, gaps configuráveis entre faixas |
+| **Playlist Enchantment / Enhancer** | UI de playlist aprimorada, controles adicionais                                                                                          |
 
 ### 10.6 Níveis e Espaço 3D
 
-| Módulo | Propósito |
-|---|---|
+| Módulo                     | Propósito                                                                                                                                  |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Levels (módulo legado)** | Predecessor ao Scene Levels nativo; empilhamento de andares antes do v14. Módulos como Complete Card Management adicionaram suporte a ele. |
-| **Levels 3D Preview** | Modo de preview 3D experimental; Monk's Active Tiles adicionou suporte a ele |
+| **Levels 3D Preview**      | Modo de preview 3D experimental; Monk's Active Tiles adicionou suporte a ele                                                               |
 
 ### 10.7 Journals e Documentos
 
-| Módulo | Propósito |
-|---|---|
-| **Journals Like a Script** | Permite scripts embutidos em journals |
-| **Journal Shortcuts** | Links clicáveis em journals que ativam cenas, mostram imagens a jogadores, abrem outras journals |
+| Módulo                     | Propósito                                                                                        |
+| -------------------------- | ------------------------------------------------------------------------------------------------ |
+| **Journals Like a Script** | Permite scripts embutidos em journals                                                            |
+| **Journal Shortcuts**      | Links clicáveis em journals que ativam cenas, mostram imagens a jogadores, abrem outras journals |
 
 ---
 
@@ -523,19 +527,19 @@ A seguir, um inventário dos módulos que se tornaram expectativa padrão dos us
 
 Com base nos módulos acima, segue uma síntese do que um usuário moderno de VTT espera em qualquer plataforma:
 
-| Categoria | Expectativa |
-|---|---|
-| Combate | Tracker com múltiplos encontros, skip defeated, visibilidade de NPC, hooks por turno/rodada, combat turn marker visual |
-| Iniciativa | Fórmula definida pelo sistema, suporte a roll por tipo de skill (PF2e), manual override, reordenação por drag |
-| Rolagens | 3D dice animados (Dice So Nice-equivalente), áudio de rolagem, temas customizáveis |
-| Journal | Múltiplos tipos de página, secret blocks, @UUID links, show to players, colaboração simultânea, map notes, PDF support |
-| Tabelas | Draw com e sem replacement, pesos, tabelas aninhadas, integração com compendiums |
-| Áudio | Playlist com 4 modos, fade configurável, 3 canais com volume por cliente, ambient sounds espaciais, scene-linked audio |
-| Cards | Deck/hand/pile, deal/draw/pass/shuffle/recall, multi-face cards, permissões granulares |
-| Macros | Chat e script, hotbar de 50 slots em 5 páginas, execute como GM via socket, variáveis de contexto |
-| Calendário | Calendário customizável com API pública (Simple Calendar-compatível) |
-| Regiões | Shapes polimórficos, teleport, execute macro, modify movement, pause game, darkness adjust, múltiplos eventos |
-| Módulos/Extensões | Sistema de módulos com gerenciamento de dependências e detecção de conflitos |
+| Categoria         | Expectativa                                                                                                            |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Combate           | Tracker com múltiplos encontros, skip defeated, visibilidade de NPC, hooks por turno/rodada, combat turn marker visual |
+| Iniciativa        | Fórmula definida pelo sistema, suporte a roll por tipo de skill (PF2e), manual override, reordenação por drag          |
+| Rolagens          | 3D dice animados (Dice So Nice-equivalente), áudio de rolagem, temas customizáveis                                     |
+| Journal           | Múltiplos tipos de página, secret blocks, @UUID links, show to players, colaboração simultânea, map notes, PDF support |
+| Tabelas           | Draw com e sem replacement, pesos, tabelas aninhadas, integração com compendiums                                       |
+| Áudio             | Playlist com 4 modos, fade configurável, 3 canais com volume por cliente, ambient sounds espaciais, scene-linked audio |
+| Cards             | Deck/hand/pile, deal/draw/pass/shuffle/recall, multi-face cards, permissões granulares                                 |
+| Macros            | Chat e script, hotbar de 50 slots em 5 páginas, execute como GM via socket, variáveis de contexto                      |
+| Calendário        | Calendário customizável com API pública (Simple Calendar-compatível)                                                   |
+| Regiões           | Shapes polimórficos, teleport, execute macro, modify movement, pause game, darkness adjust, múltiplos eventos          |
+| Módulos/Extensões | Sistema de módulos com gerenciamento de dependências e detecção de conflitos                                           |
 
 ---
 
