@@ -13,8 +13,8 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M0-B  | SQLite/WAL, migrations, world lifecycle, Document model + CRUD, CLI             | concluído    | 96              |
 | M0-C  | Fastify boot, socket.io handshake/envelope, auth (Argon2id/JWT), contract tests | concluído    | 96              |
 | M1-A  | Canvas PIXI v8, grade square, render groups                                     | concluído    | 96              |
-| M1-B  | Scene/Token embedded, CRUD broadcast, snapshot+resync, reconexão                | em andamento | —               |
-| M1-C  | Tokens no canvas (drag, animação, barras), ownership no servidor                | pendente     | —               |
+| M1-B  | Scene/Token embedded, CRUD broadcast, snapshot+resync, reconexão                | concluído    | 97              |
+| M1-C  | Tokens no canvas (drag, animação, barras), ownership no servidor                | em andamento | —               |
 | M1-D  | Motor de rolagens (RNG servidor, roll modes, inline), chat + cards              | pendente     | —               |
 | M1-E  | Assets (upload/serving), presença (cursores, ping, ruler), DoD M1               | pendente     | —               |
 | M2-A  | Walls + portas, visibility polygon, luzes                                       | pendente     | —               |
@@ -28,6 +28,12 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M3-F  | DoD M3 / primeira sessão jogável — verificação integrada                        | pendente     | —               |
 
 ## Registro por batch
+
+### M1-B — Sync de Documents (2026-06-12) — score 97 ✅ (após correção dirigida)
+
+- Auditorias do batch: 38 → 82 → 91 (bloqueado no gate); correção dirigida com os 6 fixes do auditor + re-auditoria independente → **97**. ~650 testes verdes.
+- Entregue: Scene/TokenDocument embedded (Zod), doc:create/update/delete com permissão no servidor + broadcast com seq, snapshot filtrado por ownership (tokens hidden excluídos para não-GM), resync delta com buffer circular 1000 + fallback para snapshot (incl. pós-restart), DocumentMirror no client (ordenação estrita por seq, fila de boot, gap→resync), reconexão, UI mínima de cenas (GM cria/ativa), pendências M0-C fechadas (ack com requestId; cookie Secure configurável).
+- Fixes dirigidos: dot-path expandido no update primário; OpBuffer sinaliza stale pós-restart; world:activeScene aplicado no replay de delta; filtro de hidden no snapshot; allowlist no update de embedded (_id imutável, actorId GM-only); schema morto removido. TODO explícito: filtro de hidden no broadcast live (M1-C).
 
 ### M1-A — Grid math + canvas PIXI (2026-06-12) — score 96 ✅
 

@@ -61,6 +61,18 @@ export const DocumentStatsSchema = z.object({
   /** Unix timestamp (ms) of the last modification. */
   modifiedTime: z.number().int().nonnegative(),
 
+  /**
+   * Monotonically increasing write counter for this document.
+   * Starts at 1 on creation, increments by 1 on every successful update.
+   * Used for optimistic-concurrency (STALE_WRITE) checks:
+   *   client sends expectedVersion = version it last saw;
+   *   server rejects if _stats.version !== expectedVersion.
+   * This is the canonical version field — do NOT use modifiedTime for
+   * concurrency checks (timestamps are not monotonic across updates within
+   * the same millisecond and live in a different numeric space).
+   */
+  version: z.number().int().positive().default(1),
+
   /** UserId of the last modifier. */
   lastModifiedBy: z.string().nullable(),
 
@@ -105,6 +117,7 @@ export function defaultStats(coreVersion: string = "0.1.0"): DocumentStats {
   return {
     createdTime: now,
     modifiedTime: now,
+    version: 1,
     lastModifiedBy: null,
     createdBy: null,
     coreVersion,

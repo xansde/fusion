@@ -44,6 +44,9 @@ export const EnvelopeTypeSchema = z.union([
   z.literal("resync:request"),
   z.literal("resync:delta"),
   z.literal("resync:full"),
+  // World-level broadcast events (M1-B)
+  z.literal("world:snapshot"),
+  z.literal("world:activeScene"),
   z.literal("ack:ok"),
   z.literal("ack:error"),
 ]);
@@ -97,10 +100,17 @@ export type ErrorCode = z.infer<typeof ErrorCodeSchema>;
 // Ack
 // ---------------------------------------------------------------------------
 
-/** Acknowledgement callback payload. */
+/**
+ * Acknowledgement callback payload returned via socket.io callback.
+ *
+ * REQ-NET-011: The server MUST correlate the ack to the originating request
+ * by echoing back `requestId` (the ULID sent by the client).
+ * Both success and error shapes carry `requestId` so the client can match
+ * pending requests even when they arrive out of order.
+ */
 export type Ack<R = unknown> =
-  | { ok: true; seq?: number; result: R }
-  | { ok: false; code: ErrorCode; message: string };
+  | { ok: true; requestId?: string; seq?: number; result: R }
+  | { ok: false; requestId?: string; code: ErrorCode; message: string };
 
 // ---------------------------------------------------------------------------
 // Document operation payloads
@@ -185,3 +195,144 @@ export const ProtocolHandshakeSchema = z.object({
 });
 
 export type ProtocolHandshake = z.infer<typeof ProtocolHandshakeSchema>;
+
+// ---------------------------------------------------------------------------
+// World snapshot and resync payloads (REQ-NET-062..063, M1-B)
+// ---------------------------------------------------------------------------
+
+/**
+ * world:snapshot — sent by the server when a client joins a world.
+ *
+ * Contains the full set of documents visible to the connecting user plus
+ * the current canonical sequence number and the active scene ID.
+ *
+ * REQ-NET-024: only documents the user has at least LIMITED/OBSERVER ownership
+ *              are included; the server filters before building the snapshot.
+ *
+ * Usage pattern:
+ *   Client sends `resync:request` with `lastSeq`.
+ *   Server responds with `resync:delta` (delta ops) or `resync:full` which
+ *   triggers sending a `world:snapshot` payload back as the ack result.
+ */
+export const WorldSnapshotPayloadSchema = z.object({
+  /**
+   * The current canonical sequence number at the moment of the snapshot.
+   * The client should store this and use it for subsequent `resync:request`.
+   */
+  seq: z.number().int().nonnegative(),
+
+  /**
+   * The _id of the currently active scene, or null if no scene is active.
+   * Matches the scene document where `active === true`.
+   */
+  activeSceneId: z.string().nullable(),
+
+  /**
+   * All documents visible to this user, keyed by document type.
+   * Each array contains raw (JSON-serialised) document objects.
+   * Document types follow the spec 02 primary document catalogue.
+   *
+   * The server includes:
+   *   - All scenes (ownership-filtered)
+   *   - All actors visible to the user
+   *   - World/user metadata
+   *   - Any other collections the server deems necessary for initial render
+   *
+   * Clients MUST treat this as the canonical source of truth and discard
+   * any local state before applying.
+   */
+  documents: z.record(
+    z.string(), // document type name e.g. "Scene", "Actor"
+    z.array(z.unknown()), // raw document objects
+  ),
+});
+
+export type WorldSnapshotPayload = z.infer<typeof WorldSnapshotPayloadSchema>;
+
+/**
+ * world:resync request — sent by the client on reconnect.
+ * REQ-NET-063.
+ *
+ * The client reports the last sequence number it successfully applied.
+ * The server checks whether that seq is still in the circular op buffer
+ * (REQ-NET-062, N=1000) and either:
+ *   - responds with `resync:delta` (the missing ops in seq order), OR
+ *   - responds with `resync:full` + a fresh WorldSnapshotPayload.
+ */
+export const WorldResyncRequestPayloadSchema = z.object({
+  /** Last canonical seq the client has already applied. */
+  lastSeq: z.number().int().nonnegative(),
+});
+
+export type WorldResyncRequestPayload = z.infer<typeof WorldResyncRequestPayloadSchema>;
+
+/**
+ * resync:delta response — delta ops since lastSeq.
+ * REQ-NET-063: server sends ops in seq order when lastSeq is in the buffer.
+ */
+export const ResyncDeltaPayloadSchema = z.object({
+  /** First seq in this delta (= lastSeq + 1). */
+  fromSeq: z.number().int().nonnegative(),
+
+  /** Last seq included in this delta (= current server seq). */
+  toSeq: z.number().int().nonnegative(),
+
+  /**
+   * Canonical op envelopes in seq order.
+   * Each element is a fully formed Envelope (with seq set).
+   * The client applies them in order to catch up.
+   */
+  ops: z.array(EnvelopeSchema),
+});
+
+export type ResyncDeltaPayload = z.infer<typeof ResyncDeltaPayloadSchema>;
+
+/**
+ * resync:full response — indicates the client must do a full snapshot reload.
+ * REQ-NET-063: sent when lastSeq is outside the circular op buffer.
+ *
+ * After receiving this, the client discards all local state and requests
+ * (or receives as part of the join flow) a fresh world:snapshot.
+ */
+export const ResyncFullPayloadSchema = z.object({
+  /**
+   * Human-readable reason for the full resync.
+   * Used for diagnostics and UI messaging only.
+   */
+  reason: z.string().optional(),
+
+  /**
+   * Inline snapshot.
+   * When provided, the client can apply this immediately without an extra
+   * round-trip; when null the client should re-emit the join handshake.
+   */
+  snapshot: WorldSnapshotPayloadSchema.nullable(),
+});
+
+export type ResyncFullPayload = z.infer<typeof ResyncFullPayloadSchema>;
+
+/**
+ * world:activeScene — broadcast when the GM activates a different scene.
+ * REQ-NET-005 (rooms), spec 06 §scene activation.
+ *
+ * All connected clients receive this event and switch their canvas
+ * to the new active scene.
+ */
+export const WorldActiveScenePayloadSchema = z.object({
+  /**
+   * The _id of the newly activated scene, or null if all scenes were
+   * deactivated (unusual but valid state).
+   */
+  sceneId: z.string().nullable(),
+});
+
+export type WorldActiveScenePayload = z.infer<typeof WorldActiveScenePayloadSchema>;
+
+// ---------------------------------------------------------------------------
+// Note: EmbeddedAddress (EmbeddedAddressSchema) was defined here but never
+// wired into DocCreatePayload, DocUpdatePayload, or DocDeletePayload — those
+// payloads use inline { type, id } / { type, id } objects with different field
+// names (type/id vs parentType/parentId). Removed in M1-B audit (FIX-6) to
+// keep the public surface minimal. If an explicit EmbeddedAddress type is
+// needed in M1-C, re-introduce it aligned with the actual payload schemas.
+// ---------------------------------------------------------------------------

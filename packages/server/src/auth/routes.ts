@@ -30,12 +30,23 @@ import type { UserPublic } from "./user-store.js";
 // ---------------------------------------------------------------------------
 
 const REFRESH_COOKIE = "fusion_refresh";
-const COOKIE_OPTIONS = {
-  httpOnly: true,
-  sameSite: "strict" as const,
-  path: "/",
-  // secure: true in production (caller sets based on TLS config)
-};
+
+/**
+ * Build cookie options for the refresh token.
+ *
+ * REQ-SEC-056 / DEC-SEC-04: Secure flag is set when the server sits behind a
+ * TLS-terminating proxy (trustProxy=true) or when secureCookies is explicitly
+ * set to true.  When running plain HTTP on a LAN (the default for desktop use)
+ * the Secure flag must NOT be set or the browser will silently drop the cookie.
+ */
+function buildCookieOptions(secureCookies: boolean) {
+  return {
+    httpOnly: true,
+    sameSite: "strict" as const,
+    path: "/",
+    ...(secureCookies ? { secure: true } : {}),
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Zod schemas for request validation (REQ-SEC-036)
@@ -102,6 +113,17 @@ export interface RegisterAuthRoutesOptions {
    * Default: false — uses request.ip directly (DEC-SEC-04).
    */
   trustProxy?: boolean;
+  /**
+   * When true, the refresh token cookie will include the Secure flag.
+   *
+   * REQ-SEC-056 / DEC-SEC-04: Set this when the server is behind a TLS
+   * proxy (e.g. nginx, Caddy). Must be false (default) for plain HTTP LAN
+   * deployments — browsers silently discard Secure cookies over HTTP.
+   *
+   * Defaults to false for backward compatibility and safe desktop use.
+   * When trustProxy=true this should typically also be true.
+   */
+  secureCookies?: boolean;
 }
 
 /**
@@ -111,7 +133,8 @@ export function registerAuthRoutes(
   fastify: FastifyInstance,
   options: RegisterAuthRoutesOptions,
 ): void {
-  const { authService, worldInfo, trustProxy = false } = options;
+  const { authService, worldInfo, trustProxy = false, secureCookies = false } = options;
+  const cookieOptions = buildCookieOptions(secureCookies);
 
   // --------------------------------------------------------------------------
   // Helpers
@@ -213,7 +236,7 @@ export function registerAuthRoutes(
       if (body.password !== undefined) loginParams.password = body.password;
       const result = await authService.login(loginParams);
 
-      reply.setCookie(REFRESH_COOKIE, result.refreshToken, COOKIE_OPTIONS);
+      reply.setCookie(REFRESH_COOKIE, result.refreshToken, cookieOptions);
 
       return await reply.code(200).send({
         ok: true,
@@ -261,7 +284,7 @@ export function registerAuthRoutes(
       const result = await authService.refresh(rawToken);
 
       // Rotate cookie
-      reply.setCookie(REFRESH_COOKIE, result.refreshToken, COOKIE_OPTIONS);
+      reply.setCookie(REFRESH_COOKIE, result.refreshToken, cookieOptions);
 
       return await reply.code(200).send({
         ok: true,

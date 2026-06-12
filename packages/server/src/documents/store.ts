@@ -120,11 +120,13 @@ function buildCreateStats(author: AuthorContext): DocumentStats {
 
 /**
  * Build _stats for an updated document (preserve createdTime/createdBy).
+ * Increments the monotonic `version` counter for STALE_WRITE detection.
  */
 function buildUpdateStats(existing: DocumentStats, author: AuthorContext): DocumentStats {
   return {
     ...existing,
     modifiedTime: Date.now(),
+    version: existing.version + 1,
     lastModifiedBy: author.userId,
     systemId: author.systemId ?? existing.systemId,
     systemVersion: author.systemVersion ?? existing.systemVersion,

@@ -46,6 +46,32 @@ export const ServerConfigSchema = z.object({
 
   /** Log level (pino). Default: "info". */
   logLevel: z.enum(["trace", "debug", "info", "warn", "error", "fatal", "silent"]).default("info"),
+
+  /**
+   * Whether to set the Secure flag on the refresh-token cookie.
+   *
+   * REQ-SEC-056 / DEC-SEC-04: Set to true when the server runs behind a
+   * TLS-terminating reverse proxy (nginx, Caddy, etc.).  Must be false
+   * (default) for plain HTTP LAN deployments — browsers silently drop
+   * Secure cookies served over HTTP.
+   *
+   * Env: FUSION_SECURE_COOKIES=true
+   * Default: false (safe for direct desktop use without HTTPS).
+   */
+  secureCookies: z.boolean().default(false),
+
+  /**
+   * Whether the server runs behind a trusted reverse proxy.
+   *
+   * When true, Fastify reads the real client IP from the X-Forwarded-For
+   * header (set by the proxy). Must only be enabled when you control the
+   * proxy and it strips/overwrites XFF before forwarding — otherwise an
+   * attacker can spoof the header to bypass lockout by IP.
+   *
+   * Env: FUSION_TRUST_PROXY=true
+   * Default: false.
+   */
+  trustProxy: z.boolean().default(false),
 });
 
 export type ServerConfig = z.infer<typeof ServerConfigSchema>;
@@ -123,6 +149,12 @@ function readEnvLayer(): Partial<RawConfig> {
     partial.logLevel = env["FUSION_LOG_LEVEL"] as ServerConfig["logLevel"];
   }
 
+  const secureCookies = parseEnvBool(env["FUSION_SECURE_COOKIES"]);
+  if (secureCookies !== undefined) partial.secureCookies = secureCookies;
+
+  const trustProxy = parseEnvBool(env["FUSION_TRUST_PROXY"]);
+  if (trustProxy !== undefined) partial.trustProxy = trustProxy;
+
   return partial;
 }
 
@@ -185,6 +217,9 @@ export function loadConfig(options: LoadConfigOptions = {}): ServerConfig {
   if (cliOverrides.autoOpenWorld !== undefined)
     cliDefined.autoOpenWorld = cliOverrides.autoOpenWorld;
   if (cliOverrides.logLevel !== undefined) cliDefined.logLevel = cliOverrides.logLevel;
+  if (cliOverrides.secureCookies !== undefined)
+    cliDefined.secureCookies = cliOverrides.secureCookies;
+  if (cliOverrides.trustProxy !== undefined) cliDefined.trustProxy = cliOverrides.trustProxy;
 
   const merged: Partial<RawConfig> = {
     ...fileLayer, // layer 3

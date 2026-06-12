@@ -19,8 +19,20 @@ import { EnvelopeSchema, PROTOCOL_VERSION } from "@fusion/shared";
 
 import { verifyAccessToken } from "../auth/crypto.js";
 import { SeqStore } from "./seq-store.js";
+import { OpBuffer } from "./op-buffer.js";
 import { HandlerRegistry } from "./handler-registry.js";
 import { systemPingHandler, buildWhoAmIHandler } from "./handlers/system.js";
+import {
+  buildDocCreateHandler,
+  buildDocUpdateHandler,
+  buildDocDeleteHandler,
+} from "./handlers/doc-handlers.js";
+import {
+  buildResyncRequestHandler,
+  buildActiveSceneHandler,
+  sendJoinSnapshot,
+} from "./handlers/sync-handlers.js";
+import { DocumentStore } from "../documents/index.js";
 import type { AuthService } from "../auth/service.js";
 import type { Database as Db } from "better-sqlite3";
 
@@ -45,6 +57,11 @@ export interface WorldNamespaceOptions {
   authService: AuthService;
   /** Max simultaneous connections (REQ-NET-006). Default: 16. */
   maxConnections?: number;
+  /**
+   * Op buffer size for resync (REQ-NET-062). Default: 1000.
+   * Exposed for test overrides (small values to test buffer overflow).
+   */
+  opBufferSize?: number;
 }
 
 export interface SocketManagerOptions {
@@ -106,7 +123,7 @@ export class SocketManager {
    * REQ-NET-014: protocolVersion check
    */
   registerWorldNamespace(options: WorldNamespaceOptions): void {
-    const { worldId, db, secret, authService, maxConnections = 16 } = options;
+    const { worldId, db, secret, authService, maxConnections = 16, opBufferSize } = options;
 
     const namespacePath = `/world/${worldId}`;
     this.logger.info({ worldId, namespacePath }, "Registering world namespace");
@@ -115,7 +132,11 @@ export class SocketManager {
 
     // Build per-world services
     const seqStore = new SeqStore(db);
+    const opBuffer = new OpBuffer(opBufferSize);
+    const store = new DocumentStore({ db, coreVersion: "0.1.0" });
     const registry = new HandlerRegistry();
+
+    const syncDeps = { store, seqStore, opBuffer, ns, db };
 
     // Register built-in system handlers
     registry.register("system:ping", systemPingHandler);
@@ -123,6 +144,15 @@ export class SocketManager {
       "system:whoami",
       buildWhoAmIHandler((id) => authService.getUser(id)),
     );
+
+    // Register M1-B document CRUD handlers
+    registry.register("doc:create", buildDocCreateHandler(syncDeps));
+    registry.register("doc:update", buildDocUpdateHandler(syncDeps));
+    registry.register("doc:delete", buildDocDeleteHandler(syncDeps));
+
+    // Register M1-B sync handlers
+    registry.register("resync:request", buildResyncRequestHandler(syncDeps));
+    registry.register("world:activeScene", buildActiveSceneHandler(syncDeps));
 
     // REQ-NET-003/014: auth middleware runs before connection is accepted
     ns.use((socket, next) => {
@@ -228,6 +258,12 @@ export class SocketManager {
       if (data.role >= ROLE_ASSISTANT) {
         void socket.join("gm");
       }
+
+      // REQ-NET-062/063: send snapshot or delta on join
+      // Client may send lastSeq in handshake auth for reconnect resync
+      const auth = socket.handshake.auth as Record<string, unknown>;
+      const lastSeq = typeof auth["lastSeq"] === "number" ? auth["lastSeq"] : undefined;
+      sendJoinSnapshot(socket, syncDeps, data.userId, data.role, lastSeq);
 
       // Register low-level event handlers
       this._registerSocketHandlers(socket, data, registry, seqStore);
@@ -375,12 +411,25 @@ export class SocketManager {
       try {
         const result = await handler(envelope.payload, ctx);
         if (typeof ack === "function") {
+          // REQ-NET-011: echo requestId back in ack (M0-C pendência)
+          if (
+            typeof result === "object" &&
+            !("requestId" in (result as object)) &&
+            envelope.requestId !== undefined
+          ) {
+            (result as Record<string, unknown>)["requestId"] = envelope.requestId;
+          }
           ack(result);
         }
       } catch (err) {
         logger.error({ err, userId: data.userId, type: envelope.type }, "Handler threw");
         if (typeof ack === "function") {
-          ack({ ok: false, code: "INTERNAL_ERROR", message: "Internal server error" });
+          ack({
+            ok: false,
+            requestId: envelope.requestId,
+            code: "INTERNAL_ERROR",
+            message: "Internal server error",
+          });
         }
       }
     };
@@ -442,7 +491,7 @@ export class SocketManager {
       }
     });
 
-    // Expose seq for use by future op handlers
+    // seqStore is used by sync/doc handlers via the syncDeps closure above
     void seqStore;
   }
 }

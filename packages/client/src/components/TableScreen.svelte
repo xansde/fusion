@@ -6,6 +6,9 @@
    * The FusionCanvas is initialized when the component mounts and destroyed
    * on unmount (important for Vite HMR — prevents PIXI leaks).
    *
+   * M1-B (SCENE-UI): GM sidebar with Scenes tab. Players see no sidebar but
+   * receive the NoSceneOverlay while waiting for the GM to activate a scene.
+   *
    * REQ-CNV-001: WebGPU with automatic WebGL fallback.
    * REQ-CNV-006: Render group for camera transform.
    * REQ-CNV-007: Pan (middle-button / Space+drag) and zoom (scroll).
@@ -16,6 +19,12 @@
   import { session, sessionActions } from "../lib/session.svelte.js";
   import { FusionCanvas } from "../lib/canvas/FusionCanvas.js";
   import { loadDevScene } from "../lib/canvas/dev-scene.js";
+  import { loadSceneDocument } from "../lib/canvas/sceneLoader.js";
+  import { activeSceneState } from "../lib/docs/activeScene.svelte.js";
+  import ScenesSidebar from "./scenes/ScenesSidebar.svelte";
+  import ActiveSceneBadge from "./scenes/ActiveSceneBadge.svelte";
+  import NoSceneOverlay from "./scenes/NoSceneOverlay.svelte";
+  import { getSocket } from "../lib/session.svelte.js";
 
   let loggingOut = $state(false);
   let canvasContainer: HTMLElement | null = $state(null);
@@ -65,6 +74,9 @@
     }
   });
 
+  /** True when the logged-in user is the GM (role 4). */
+  const isGm = $derived(() => (session.user?.role ?? 0) === 4);
+
   // ---- Canvas lifecycle ----
 
   onMount(async () => {
@@ -75,7 +87,8 @@
 
     try {
       await canvas.init();
-      cleanupScene = await loadDevScene(canvas);
+      // Load initial scene: use real scene doc if available, else dev-scene fallback
+      cleanupScene = await _loadCurrentScene(canvas);
     } catch (err) {
       console.error("[TableScreen] Canvas init failed:", err);
     }
@@ -87,6 +100,48 @@
     fusionCanvas = null;
     cleanupScene = null;
   });
+
+  /**
+   * React to active scene changes.
+   * When activeSceneState.scene changes, reload the canvas content.
+   * Runs in a $effect so it re-executes reactively.
+   *
+   * M1-B: When no scene is active, we clear the canvas and let NoSceneOverlay
+   * handle the UI (no more dev-scene fallback in production paths).
+   */
+  $effect(() => {
+    const canvas = fusionCanvas;
+    if (!canvas) return;
+
+    const scene = activeSceneState.scene;
+
+    // Cleanup previous scene content
+    cleanupScene?.();
+    cleanupScene = null;
+
+    void (async () => {
+      try {
+        if (scene) {
+          cleanupScene = await loadSceneDocument(canvas, scene);
+        }
+        // When no active scene: canvas remains empty; NoSceneOverlay is shown
+        // by the Svelte template. Dev-scene is only used in initial mount
+        // fallback (see _loadCurrentScene below).
+      } catch (err) {
+        console.error("[TableScreen] Scene load failed:", err);
+      }
+    })();
+  });
+
+  async function _loadCurrentScene(canvas: FusionCanvas): Promise<() => void> {
+    const scene = activeSceneState.scene;
+    if (scene) {
+      return loadSceneDocument(canvas, scene);
+    }
+    // Initial mount: if no active scene yet, fall back to dev-scene so the
+    // canvas shows something while waiting for the world snapshot.
+    return loadDevScene(canvas);
+  }
 </script>
 
 <!-- ========================================================================
@@ -103,6 +158,11 @@
     role="img"
   ></div>
 
+  <!-- No-scene overlay: shown when no active scene -->
+  {#if !activeSceneState.scene}
+    <NoSceneOverlay isGm={isGm()} />
+  {/if}
+
   <!-- -------------------------------------------------------------------- -->
   <!-- Header overlay                                                        -->
   <!-- -------------------------------------------------------------------- -->
@@ -114,6 +174,9 @@
         {session.worldInfo?.title ?? "Fusion VTT"}
       </span>
     </div>
+
+    <!-- Active scene badge (centre area) -->
+    <ActiveSceneBadge scene={activeSceneState.scene} />
 
     <!-- Spacer -->
     <div class="table-header__spacer"></div>
@@ -150,6 +213,19 @@
       {loggingOut ? "…" : "Leave"}
     </button>
   </header>
+
+  <!-- -------------------------------------------------------------------- -->
+  <!-- GM-only: Scenes sidebar                                               -->
+  <!-- -------------------------------------------------------------------- -->
+  {#if isGm()}
+    {@const sock = getSocket()}
+    {#if sock}
+      <ScenesSidebar
+        socket={sock}
+        activeSceneId={activeSceneState.id}
+      />
+    {/if}
+  {/if}
 
 </div>
 

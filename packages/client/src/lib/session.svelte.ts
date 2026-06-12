@@ -23,6 +23,9 @@
 
 import { fusionApi, type UserPublic, type WorldInfo, ApiError } from "./api.js";
 import { SocketManager, type ConnectionState } from "./socket.js";
+import type { Socket } from "socket.io-client";
+import { attachWorldSync } from "./docs/worldSync.js";
+import { attachSceneListSync } from "./scenes/scenesState.svelte.js";
 
 // ---------------------------------------------------------------------------
 // Screen type
@@ -162,6 +165,7 @@ export const sessionActions = {
    * POST /api/auth/logout, disconnect socket, return to join screen.
    */
   async logout(): Promise<void> {
+    _disconnectSync();
     socketManager.disconnect();
     await fusionApi.logout();
     session.user = null;
@@ -175,7 +179,38 @@ export const sessionActions = {
 // Internal helpers
 // ---------------------------------------------------------------------------
 
+/**
+ * Returns the current socket instance (may be null before connection).
+ * Used by UI components (e.g. ScenesSidebar) that need to send ops.
+ */
+export function getSocket(): Socket | null {
+  return socketManager.socket;
+}
+
+/** Active world-sync cleanup function, called on disconnect/logout. */
+let _detachWorldSync: (() => void) | null = null;
+/** Active scene-list sync cleanup, called on disconnect/logout. */
+let _detachSceneSync: (() => void) | null = null;
+
 function _connectSocket(worldId: string): void {
   // The socket namespace is /world/<worldSlug> — use worldId as slug
   socketManager.connect(worldId);
+
+  // Attach world document sync once the socket manager has a socket instance.
+  // The socket is created synchronously by connect(), so we can grab it now.
+  const socket = socketManager.socket;
+  if (socket) {
+    _detachWorldSync?.();
+    _detachWorldSync = attachWorldSync(socket);
+    // Attach scene list mirror subscription
+    _detachSceneSync?.();
+    _detachSceneSync = attachSceneListSync();
+  }
+}
+
+function _disconnectSync(): void {
+  _detachWorldSync?.();
+  _detachWorldSync = null;
+  _detachSceneSync?.();
+  _detachSceneSync = null;
 }
