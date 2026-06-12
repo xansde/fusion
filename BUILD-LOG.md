@@ -12,8 +12,8 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M0-A  | Scaffold monorepo, shared, system-api, stub system, server/client skeletons, CI | concluído    | 96              |
 | M0-B  | SQLite/WAL, migrations, world lifecycle, Document model + CRUD, CLI             | concluído    | 96              |
 | M0-C  | Fastify boot, socket.io handshake/envelope, auth (Argon2id/JWT), contract tests | concluído    | 96              |
-| M1-A  | Canvas PIXI v8, grade square, render groups                                     | em andamento | —               |
-| M1-B  | Scene/Token embedded, CRUD broadcast, snapshot+resync, reconexão                | pendente     | —               |
+| M1-A  | Canvas PIXI v8, grade square, render groups                                     | concluído    | 96              |
+| M1-B  | Scene/Token embedded, CRUD broadcast, snapshot+resync, reconexão                | em andamento | —               |
 | M1-C  | Tokens no canvas (drag, animação, barras), ownership no servidor                | pendente     | —               |
 | M1-D  | Motor de rolagens (RNG servidor, roll modes, inline), chat + cards              | pendente     | —               |
 | M1-E  | Assets (upload/serving), presença (cursores, ping, ruler), DoD M1               | pendente     | —               |
@@ -28,6 +28,11 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M3-F  | DoD M3 / primeira sessão jogável — verificação integrada                        | pendente     | —               |
 
 ## Registro por batch
+
+### M1-A — Grid math + canvas PIXI (2026-06-12) — score 96 ✅
+
+- Auditorias 86 → 93 → 96; 477 testes verdes. Entregue: abstração de grid no shared (SquareGrid completo com 7 regras de diagonal incl. 5-10-5 com acumulação por caminho, snapping em 3 modos, footprints 2x2, path measurement), camera-math pura (zoom-at-point provadamente correto nos limites), FusionCanvas PIXI v8 (WebGPU→WebGL, render groups, stack de camadas da spec 06, GridRenderer, destroy sem leak para HMR), cena de desenvolvimento + overlay de debug F9.
+- Nota: o agente de grid caiu por erro de API no meio do batch; o integrador e corretores completaram o trabalho e a auditoria verificou a matemática manualmente.
 
 ### M0-C — Auth + socket base (2026-06-12) — score 96 ✅ — **MILESTONE M0 FECHADO (DoD 7/7)**
 

@@ -1,23 +1,27 @@
 <script lang="ts">
   /**
-   * TableScreen.svelte — post-login "table" placeholder.
+   * TableScreen.svelte — post-login "table" screen with PIXI canvas.
    *
-   * Shows:
-   * - Header: world name | user name + color | connection indicator + RTT
-   * - Logout button
-   * - Placeholder canvas area (M1-A)
+   * M1-A: Canvas occupies the full screen; header is an overlay on top.
+   * The FusionCanvas is initialized when the component mounts and destroyed
+   * on unmount (important for Vite HMR — prevents PIXI leaks).
    *
-   * The connection state and RTT are kept reactive via session.svelte.ts
-   * which feeds them from the SocketManager.
-   *
-   * REQ-USR-033: client tracks user online state via session store.
-   * REQ-NET-046: RTT displayed via system:ping (wired in SocketManager).
-   * REQ-NET-065: connection state indicator (connecting/reconnecting/connected).
+   * REQ-CNV-001: WebGPU with automatic WebGL fallback.
+   * REQ-CNV-006: Render group for camera transform.
+   * REQ-CNV-007: Pan (middle-button / Space+drag) and zoom (scroll).
+   * Debug overlay: F9 toggles renderer/fps/camera/cell info.
    */
 
+  import { onMount, onDestroy } from "svelte";
   import { session, sessionActions } from "../lib/session.svelte.js";
+  import { FusionCanvas } from "../lib/canvas/FusionCanvas.js";
+  import { loadDevScene } from "../lib/canvas/dev-scene.js";
 
   let loggingOut = $state(false);
+  let canvasContainer: HTMLElement | null = $state(null);
+  let fusionCanvas: FusionCanvas | null = null;
+  let cleanupScene: (() => void) | null = null;
+  // Debug overlay is toggled internally by F9 inside FusionCanvas.toggleDebug().
 
   async function handleLogout(): Promise<void> {
     if (loggingOut) return;
@@ -60,11 +64,47 @@
       default: return "Player";
     }
   });
+
+  // ---- Canvas lifecycle ----
+
+  onMount(async () => {
+    if (!canvasContainer) return;
+
+    const canvas = new FusionCanvas({ container: canvasContainer });
+    fusionCanvas = canvas;
+
+    try {
+      await canvas.init();
+      cleanupScene = await loadDevScene(canvas);
+    } catch (err) {
+      console.error("[TableScreen] Canvas init failed:", err);
+    }
+  });
+
+  onDestroy(() => {
+    cleanupScene?.();
+    fusionCanvas?.destroy();
+    fusionCanvas = null;
+    cleanupScene = null;
+  });
 </script>
 
+<!-- ========================================================================
+  Layout: canvas fills the viewport, header floats on top as an overlay.
+  REQ-CNV spec: canvas occupies full screen, header is overlay.
+========================================================================= -->
 <div class="table-shell">
+
+  <!-- Canvas host — PIXI mounts its <canvas> inside this -->
+  <div
+    class="canvas-host"
+    bind:this={canvasContainer}
+    aria-label="Game canvas"
+    role="img"
+  ></div>
+
   <!-- -------------------------------------------------------------------- -->
-  <!-- Header                                                                -->
+  <!-- Header overlay                                                        -->
   <!-- -------------------------------------------------------------------- -->
   <header class="table-header">
     <!-- World name -->
@@ -111,39 +151,36 @@
     </button>
   </header>
 
-  <!-- -------------------------------------------------------------------- -->
-  <!-- Canvas placeholder (M1-A)                                            -->
-  <!-- -------------------------------------------------------------------- -->
-  <main class="table-canvas" aria-label="Game canvas — coming in M1-A">
-    <div class="table-canvas__placeholder">
-      <p class="table-canvas__title">World canvas</p>
-      <p class="table-canvas__subtitle">PIXI.js integration arrives in M1-A.</p>
-      {#if session.connection !== "connected"}
-        <p class="table-canvas__status">
-          Waiting for WebSocket connection…
-        </p>
-      {:else}
-        <p class="table-canvas__status table-canvas__status--ok">
-          WebSocket connected
-        </p>
-      {/if}
-    </div>
-  </main>
 </div>
 
 <style>
   .table-shell {
-    display: flex;
-    flex-direction: column;
+    position: relative;
+    width: 100%;
     height: 100%;
+    overflow: hidden;
     background-color: var(--fusion-bg);
+  }
+
+  /* Canvas host fills the entire shell */
+  .canvas-host {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     overflow: hidden;
   }
 
-  /* ---- Header ---- */
+  /* ---- Header overlay ---- */
   .table-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
     align-items: center;
-    background: var(--fusion-surface);
+    background: rgba(24, 24, 31, 0.85);
+    backdrop-filter: blur(6px);
     border-bottom: 1px solid var(--fusion-border);
     display: flex;
     flex-shrink: 0;
@@ -292,45 +329,5 @@
   .btn--sm {
     font-size: 0.8125rem;
     padding: 0.3rem 0.75rem;
-  }
-
-  /* ---- Canvas placeholder ---- */
-  .table-canvas {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-  }
-
-  .table-canvas__placeholder {
-    align-items: center;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    max-width: 320px;
-    text-align: center;
-  }
-
-  .table-canvas__title {
-    color: var(--fusion-text-muted);
-    font-size: 1rem;
-    font-weight: 600;
-  }
-
-  .table-canvas__subtitle {
-    color: var(--fusion-text-subtle);
-    font-size: 0.8125rem;
-  }
-
-  .table-canvas__status {
-    color: var(--fusion-text-subtle);
-    font-family: var(--fusion-font-mono);
-    font-size: 0.75rem;
-    margin-top: 0.5rem;
-  }
-
-  .table-canvas__status--ok {
-    color: var(--fusion-success);
   }
 </style>
