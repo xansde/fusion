@@ -1,0 +1,16 @@
+# Material de terceiros com copyright — nunca enviar a repositório remoto
+docs/etmos-fontes/
+
+# Dependências e build
+node_modules/
+dist/
+build/
+
+# Ambiente e segredos
+.env
+.env.*
+
+# Artefatos locais
+*.log
+.DS_Store
+Thumbs.db
