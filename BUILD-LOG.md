@@ -16,8 +16,8 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M1-B  | Scene/Token embedded, CRUD broadcast, snapshot+resync, reconexão                | concluído    | 97              |
 | M1-C  | Tokens no canvas (drag, animação, barras), ownership no servidor                | concluído    | 97              |
 | M1-D  | Motor de rolagens (RNG servidor, roll modes, inline), chat + cards              | concluído    | 96              |
-| M1-E  | Assets (upload/serving), presença (cursores, ping, ruler), DoD M1               | em andamento | —               |
-| M2-A  | Walls + portas, visibility polygon, luzes                                       | pendente     | —               |
+| M1-E  | Assets (upload/serving), presença (cursores, ping, ruler), DoD M1               | concluído    | 97              |
+| M2-A  | Walls + portas, visibility polygon, luzes                                       | em andamento | —               |
 | M2-B  | Fog of war (3 estados, persistência, Clipper2), broadcast de delta              | pendente     | —               |
 | M2-C  | Combat/Combatant, tracker, InitiativeFormula, hooks de turno                    | pendente     | —               |
 | M3-A  | System API completa (derivação topológica, motor de effects MVP)                | pendente     | —               |
@@ -28,6 +28,11 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M3-F  | DoD M3 / primeira sessão jogável — verificação integrada                        | pendente     | —               |
 
 ## Registro por batch
+
+### M1-E — Assets + presença (2026-06-12) — score 97 ✅ — **MILESTONE M1 FECHADO (DoD 7/7)**
+
+- Auditorias 93 → 93 → 97; 1.079 testes verdes. DoD M1 verificada com evidência executável: RTT mediano de token em loopback **1ms** (p90 6ms); resync pós-desconexão correto; cursores/ping efêmeros (sem seq, sem buffer, sem DB); upload com magic bytes + path traversal bloqueado em variantes Windows/POSIX/URL-encoded (sonda adversarial 17/17); inline rolls no servidor com forge bloqueado por schema; PERMISSION_DENIED para token alheio. Item 1 parcial apenas por canvas não ser testável headless (fallback WebGPU→WebGL presente no código).
+- Entregue: rotas de assets (upload validado, serving imutável com cache, SVG sanitizado), FilePicker com drag&drop integrado a cenas/tokens, presença completa (cursores interpolados, ping Alt+click, ruler com medição do grid e broadcast efêmero, rate limit).
 
 ### M1-D — Rolagens autoritativas + chat (2026-06-12) — score 96 ✅ (após correção dirigida)
 

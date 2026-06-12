@@ -22,20 +22,25 @@
   "dependencies": {
     "@dice-roller/rpg-dice-roller": "^5.5.1",
     "@fastify/cookie": "^11.0.2",
+    "@fastify/multipart": "^10.0.0",
     "@fusion/shared": "workspace:*",
     "@fusion/system-api": "workspace:*",
     "@fusion/system-stub": "workspace:*",
     "@node-rs/argon2": "^2.0.2",
+    "@types/sanitize-html": "^2.16.1",
     "better-sqlite3": "^12.10.0",
     "fastify": "^5.3.2",
     "jose": "^6.2.3",
     "pino": "^9.6.0",
+    "sanitize-html": "^2.17.5",
     "socket.io": "^4.8.3",
     "zod": "^3.24.2"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
+    "@types/form-data": "^2.5.2",
     "@types/node": "^22.15.29",
+    "form-data": "^4.0.5",
     "socket.io-client": "^4.8.3",
     "vitest": "^3.2.2"
   }

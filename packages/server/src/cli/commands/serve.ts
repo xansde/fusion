@@ -5,6 +5,7 @@
  * Registers the stub system and wires WorldManager into the boot result's shutdown.
  */
 
+import { join as pathJoin } from "node:path";
 import type { Database as BetterSqlite3Database } from "better-sqlite3";
 import type { ServeArgs } from "../args.js";
 import { loadConfig } from "../../config.js";
@@ -135,6 +136,15 @@ export async function runServe(args: ServeArgs): Promise<void> {
         secret: authSecret,
         authService: authSvc,
         origin,
+      };
+
+      // REQ-AST-006..029: register asset routes for the open world.
+      // Assets are stored under <dataDir>/worlds/<worldSlug>/assets/.
+      // The secret enables short-lived asset query-tokens for PIXI / <img> loading.
+      bootOpts.assetContext = {
+        authService: authSvc,
+        assetsDir: pathJoin(config.dataDir, "worlds", worldSlug, "assets"),
+        secret: authSecret,
       };
     }
 

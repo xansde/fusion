@@ -15,7 +15,7 @@ import type { Namespace, Socket } from "socket.io";
 import type { Server as HttpServer } from "node:http";
 import type { Logger } from "pino";
 
-import { EnvelopeSchema, PROTOCOL_VERSION } from "@fusion/shared";
+import { EnvelopeSchema, PROTOCOL_VERSION, type Envelope } from "@fusion/shared";
 
 import { verifyAccessToken } from "../auth/crypto.js";
 import { SeqStore } from "./seq-store.js";
@@ -43,6 +43,7 @@ import type { AuthService } from "../auth/service.js";
 import type { Database as Db } from "better-sqlite3";
 
 import { isRolePrivileged } from "../documents/ownership.js";
+import { EphemeralRateLimiter, handleEphemeralEnvelope } from "./ephemeral-handlers.js";
 
 // --------------------------------------------------------------------------
 // Types
@@ -137,6 +138,16 @@ export class SocketManager {
     const opBuffer = new OpBuffer(opBufferSize);
     const store = new DocumentStore({ db, coreVersion: "0.1.0" });
     const registry = new HandlerRegistry();
+
+    // REQ-NET-040/071: ephemeral rate limiters shared across all sockets in this namespace
+    // cursor: ~20/s max = 50 ms minimum interval
+    const cursorRateLimiter = new EphemeralRateLimiter(50);
+    // ping: 2/s max = 500 ms minimum interval
+    const pingRateLimiter = new EphemeralRateLimiter(500);
+
+    // REQ-NET-005: track current scene room per socket (socketId → sceneId).
+    // Updated by ephemeral-handlers when a cursor event carries a new sceneId.
+    const sceneRooms = new Map<string, string>();
 
     const syncDeps = {
       store,
@@ -281,13 +292,22 @@ export class SocketManager {
       sendJoinSnapshot(socket, syncDeps, data.userId, data.role, lastSeq);
 
       // Register low-level event handlers
-      this._registerSocketHandlers(socket, data, registry, seqStore);
+      this._registerSocketHandlers(socket, data, registry, seqStore, ns, {
+        cursorRateLimiter,
+        pingRateLimiter,
+        sceneRooms,
+      });
 
       socket.on("disconnect", (reason) => {
         this.logger.info(
           { userId: data.userId, worldId, reason, socketId: socket.id },
           "Socket disconnected",
         );
+        // Evict rate limiter state for this socket to free memory
+        cursorRateLimiter.evict(socket.id);
+        pingRateLimiter.evict(socket.id);
+        // Evict scene room tracking for this socket
+        sceneRooms.delete(socket.id);
       });
     });
 
@@ -354,6 +374,13 @@ export class SocketManager {
     data: SocketData,
     registry: HandlerRegistry,
     seqStore: SeqStore,
+    ns: Namespace,
+    rateLimiters: {
+      cursorRateLimiter: EphemeralRateLimiter;
+      pingRateLimiter: EphemeralRateLimiter;
+      /** REQ-NET-005: shared scene room tracking map for this namespace. */
+      sceneRooms: Map<string, string>;
+    },
   ): void {
     const logger = this.logger;
 
@@ -493,9 +520,24 @@ export class SocketManager {
         logger.debug({ userId: data.userId }, "Malformed ephemeral envelope — discarding");
         return;
       }
-      // Ephemeral events are handled by game-layer handlers (M1+)
-      // For M0-C we simply acknowledge receipt silently.
-      logger.debug({ type: parsed.data.type, userId: data.userId }, "Ephemeral event received");
+
+      // M1-E: route ephemeral events to presence handlers
+      handleEphemeralEnvelope(
+        socket,
+        parsed.data as Envelope,
+        {
+          userId: data.userId,
+          role: data.role,
+          worldId: data.worldId,
+        },
+        {
+          ns,
+          logger,
+          cursorRateLimiter: rateLimiters.cursorRateLimiter,
+          pingRateLimiter: rateLimiters.pingRateLimiter,
+          sceneRooms: rateLimiters.sceneRooms,
+        },
+      );
     });
 
     // TODO (M1-B — REQ-NET-071 / REQ-SEC-060): per-socket/per-type rate limiting.

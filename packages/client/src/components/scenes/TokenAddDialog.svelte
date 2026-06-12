@@ -1,98 +1,135 @@
 <script lang="ts">
   /**
-   * SceneCreateDialog.svelte — modal dialog for creating or editing a Scene.
+   * TokenAddDialog.svelte — modal for adding a token to the active scene.
    *
    * Props:
-   *   mode   "create" | "edit"
-   *   scene  SceneDocument — populated in edit mode, ignored in create mode.
-   *   onClose() — called when the dialog is dismissed (cancel or success).
-   *   onSubmit(data) — called after successful op; parent re-fetches the list.
-   *   socket  Socket instance for sendOp.
+   *   sceneId   string        — ID of the target scene.
+   *   onClose   () => void    — called when the dialog is dismissed.
+   *   onSuccess () => void    — called after the token is created.
+   *   socket    Socket        — for sendOp.
    *
-   * Logic lives in sceneController.ts — this component is intentionally thin.
+   * The texture field uses FilePicker (world assets) OR an external URL.
+   * Logic (form validation, sendOp) lives in tokenController.ts (pure TS).
    */
 
   import type { Socket } from "socket.io-client";
-  import type { SceneDocument } from "@fusion/shared";
-  import {
-    validateSceneForm,
-    isFormValid,
-    defaultSceneFormData,
-    createScene,
-    updateSceneConfig,
-    OpError,
-    type SceneFormData,
-    type SceneFormErrors,
-  } from "../../lib/scenes/sceneController.js";
+  import { sendOp } from "../../lib/docs/sendOp.js";
+  import { createDocumentId } from "@fusion/shared";
   import { fusionApi } from "../../lib/api.js";
   import FilePicker from "../assets/FilePicker.svelte";
 
   // ---- Props ----
 
   const {
-    mode = "create",
-    scene = null,
+    sceneId,
     onClose,
     onSuccess,
     socket,
   }: {
-    mode?: "create" | "edit";
-    scene?: SceneDocument | null;
+    sceneId: string;
     onClose: () => void;
     onSuccess: () => void;
     socket: Socket;
   } = $props();
 
-  // ---- FilePicker state ----
-  let showFilePicker = $state(false);
+  // ---- Form state ----
 
-  // ---- Local state ----
+  interface TokenFormData {
+    name: string;
+    texture: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }
 
-  const initialData: SceneFormData =
-    mode === "edit" && scene
-      ? {
-          name: scene.name,
-          width: scene.width,
-          height: scene.height,
-          gridSize: scene.grid.size,
-          background: scene.background ?? "",
-        }
-      : defaultSceneFormData();
+  let formData = $state<TokenFormData>({
+    name: "New Token",
+    texture: "",
+    x: 0,
+    y: 0,
+    width: 1,
+    height: 1,
+  });
 
-  let formData = $state<SceneFormData>({ ...initialData });
-  let errors = $state<SceneFormErrors>({});
+  interface TokenFormErrors {
+    name?: string;
+    texture?: string;
+    x?: string;
+    y?: string;
+    width?: string;
+    height?: string;
+  }
+
+  let errors = $state<TokenFormErrors>({});
   let submitting = $state(false);
   let serverError = $state<string | null>(null);
+  let showFilePicker = $state(false);
+
+  // ---- Validation ----
+
+  function validate(data: TokenFormData): TokenFormErrors {
+    const errs: TokenFormErrors = {};
+    if (!data.name.trim()) errs.name = "Name is required.";
+    else if (data.name.trim().length > 128) errs.name = "Name must be 128 chars or fewer.";
+    if (!Number.isInteger(data.width) || data.width < 1) errs.width = "Width must be at least 1.";
+    if (!Number.isInteger(data.height) || data.height < 1) errs.height = "Height must be at least 1.";
+    return errs;
+  }
+
+  function isValid(errs: TokenFormErrors): boolean {
+    return Object.keys(errs).length === 0;
+  }
 
   // ---- Handlers ----
 
   function handleInput(): void {
-    // Live-validate on input to clear resolved errors
-    errors = validateSceneForm(formData);
+    errors = validate(formData);
     serverError = null;
   }
 
   async function handleSubmit(e: Event): Promise<void> {
     e.preventDefault();
-    errors = validateSceneForm(formData);
-    if (!isFormValid(errors)) return;
+    errors = validate(formData);
+    if (!isValid(errors)) return;
 
     submitting = true;
     serverError = null;
 
     try {
-      if (mode === "create") {
-        await createScene(socket, formData);
-      } else if (scene) {
-        await updateSceneConfig(socket, scene._id, formData);
-      }
+      await sendOp(socket, {
+        type: "doc:update",
+        payload: {
+          documentType: "Scene",
+          updates: [
+            {
+              _id: sceneId,
+              diff: {
+                tokens: {
+                  $push: {
+                    _id: createDocumentId(),
+                    name: formData.name.trim(),
+                    texture: formData.texture.trim() || null,
+                    x: formData.x,
+                    y: formData.y,
+                    width: formData.width,
+                    height: formData.height,
+                    rotation: 0,
+                    hidden: false,
+                    disposition: 0,
+                    elevation: 0,
+                    bar1: { attribute: null },
+                    bar2: { attribute: null },
+                  },
+                },
+              },
+            },
+          ],
+        },
+      });
       onSuccess();
     } catch (err) {
-      if (err instanceof OpError) {
-        serverError = err.message;
-      } else {
-        serverError = "An unexpected error occurred.";
-      }
+      serverError = err instanceof Error ? err.message : "An unexpected error occurred.";
     } finally {
       submitting = false;
     }
@@ -103,8 +140,8 @@
   }
 </script>
 
-<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <!-- Backdrop -->
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div
   class="dialog-backdrop"
   role="presentation"
@@ -114,13 +151,13 @@
 
 <!-- Dialog -->
 <dialog
-  class="scene-dialog"
+  class="token-dialog"
   open
-  aria-label={mode === "create" ? "Create scene" : "Edit scene"}
+  aria-label="Add token"
   onkeydown={handleKeydown}
 >
   <header class="dialog__header">
-    <h2 class="dialog__title">{mode === "create" ? "New Scene" : "Edit Scene"}</h2>
+    <h2 class="dialog__title">Add Token</h2>
     <button class="dialog__close btn btn--icon" onclick={onClose} aria-label="Close dialog">
       &#x2715;
     </button>
@@ -129,14 +166,14 @@
   <form class="dialog__body" onsubmit={handleSubmit} novalidate>
     <!-- Name -->
     <div class="field" class:field--error={!!errors.name}>
-      <label class="field__label" for="scene-name">Name</label>
+      <label class="field__label" for="token-name">Name</label>
       <input
-        id="scene-name"
+        id="token-name"
         class="field__input"
         type="text"
         bind:value={formData.name}
         oninput={handleInput}
-        placeholder="My Scene"
+        placeholder="Goblin Warrior"
         maxlength="128"
         autocomplete="off"
         disabled={submitting}
@@ -147,75 +184,17 @@
       {/if}
     </div>
 
-    <!-- Dimensions row -->
-    <div class="field-row">
-      <div class="field" class:field--error={!!errors.width}>
-        <label class="field__label" for="scene-width">Width (px)</label>
-        <input
-          id="scene-width"
-          class="field__input"
-          type="number"
-          bind:value={formData.width}
-          oninput={handleInput}
-          min="100"
-          max="20000"
-          step="1"
-          disabled={submitting}
-        />
-        {#if errors.width}
-          <span class="field__error" role="alert">{errors.width}</span>
-        {/if}
-      </div>
-
-      <div class="field" class:field--error={!!errors.height}>
-        <label class="field__label" for="scene-height">Height (px)</label>
-        <input
-          id="scene-height"
-          class="field__input"
-          type="number"
-          bind:value={formData.height}
-          oninput={handleInput}
-          min="100"
-          max="20000"
-          step="1"
-          disabled={submitting}
-        />
-        {#if errors.height}
-          <span class="field__error" role="alert">{errors.height}</span>
-        {/if}
-      </div>
-    </div>
-
-    <!-- Grid size -->
-    <div class="field" class:field--error={!!errors.gridSize}>
-      <label class="field__label" for="scene-grid">Grid cell size (px)</label>
-      <input
-        id="scene-grid"
-        class="field__input"
-        type="number"
-        bind:value={formData.gridSize}
-        oninput={handleInput}
-        min="50"
-        max="500"
-        step="1"
-        disabled={submitting}
-      />
-      {#if errors.gridSize}
-        <span class="field__error" role="alert">{errors.gridSize}</span>
-      {/if}
-    </div>
-
-    <!-- Background -->
-    <div class="field" class:field--error={!!errors.background}>
-      <label class="field__label" for="scene-bg">
-        Background <span class="field__optional">(optional)</span>
+    <!-- Texture / art -->
+    <div class="field" class:field--error={!!errors.texture}>
+      <label class="field__label" for="token-texture">
+        Texture <span class="field__optional">(optional)</span>
       </label>
       <div class="field__asset-row">
         <input
-          id="scene-bg"
+          id="token-texture"
           class="field__input field__input--grow"
           type="text"
-          bind:value={formData.background}
+          bind:value={formData.texture}
           oninput={handleInput}
           placeholder="https://… or pick from assets"
           disabled={submitting}
@@ -231,9 +210,88 @@
           &#128247;
         </button>
       </div>
-      {#if errors.background}
-        <span class="field__error" role="alert">{errors.background}</span>
+      {#if formData.texture && !submitting}
+        <div class="field__preview">
+          <img
+            class="field__preview-img"
+            src={formData.texture}
+            alt="Token texture preview"
+            loading="lazy"
+            onerror={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+          />
+        </div>
       {/if}
+      {#if errors.texture}
+        <span class="field__error" role="alert">{errors.texture}</span>
+      {/if}
+    </div>
+
+    <!-- Position row -->
+    <div class="field-row">
+      <div class="field" class:field--error={!!errors.x}>
+        <label class="field__label" for="token-x">X (px)</label>
+        <input
+          id="token-x"
+          class="field__input"
+          type="number"
+          bind:value={formData.x}
+          oninput={handleInput}
+          min="0"
+          step="1"
+          disabled={submitting}
+        />
+      </div>
+      <div class="field" class:field--error={!!errors.y}>
+        <label class="field__label" for="token-y">Y (px)</label>
+        <input
+          id="token-y"
+          class="field__input"
+          type="number"
+          bind:value={formData.y}
+          oninput={handleInput}
+          min="0"
+          step="1"
+          disabled={submitting}
+        />
+      </div>
+    </div>
+
+    <!-- Size row -->
+    <div class="field-row">
+      <div class="field" class:field--error={!!errors.width}>
+        <label class="field__label" for="token-w">Width (cells)</label>
+        <input
+          id="token-w"
+          class="field__input"
+          type="number"
+          bind:value={formData.width}
+          oninput={handleInput}
+          min="1"
+          max="10"
+          step="1"
+          disabled={submitting}
+        />
+        {#if errors.width}
+          <span class="field__error" role="alert">{errors.width}</span>
+        {/if}
+      </div>
+      <div class="field" class:field--error={!!errors.height}>
+        <label class="field__label" for="token-h">Height (cells)</label>
+        <input
+          id="token-h"
+          class="field__input"
+          type="number"
+          bind:value={formData.height}
+          oninput={handleInput}
+          min="1"
+          max="10"
+          step="1"
+          disabled={submitting}
+        />
+        {#if errors.height}
+          <span class="field__error" role="alert">{errors.height}</span>
+        {/if}
+      </div>
     </div>
 
     {#if serverError}
@@ -247,22 +305,22 @@
       <button
         type="submit"
         class="btn btn--primary"
-        disabled={submitting || !isFormValid(validateSceneForm(formData))}
+        disabled={submitting || !isValid(validate(formData))}
       >
-        {submitting ? "Saving…" : mode === "create" ? "Create Scene" : "Save Changes"}
+        {submitting ? "Adding…" : "Add Token"}
       </button>
     </footer>
   </form>
 </dialog>
 
-<!-- FilePicker modal — rendered outside the dialog so z-index layers correctly -->
+<!-- FilePicker rendered outside dialog -->
 {#if showFilePicker}
   {@const tok = fusionApi.getToken() ?? ""}
   <FilePicker
     token={tok}
     onSelect={(path) => {
-      formData.background = path;
-      errors = validateSceneForm(formData);
+      formData.texture = path;
+      errors = validate(formData);
       showFilePicker = false;
     }}
     onClose={() => { showFilePicker = false; }}
@@ -277,13 +335,12 @@
     z-index: 200;
   }
 
-  .scene-dialog {
+  .token-dialog {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 201;
-
     background: var(--fusion-surface);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-lg);
@@ -291,13 +348,12 @@
     color: var(--fusion-text);
     font-family: var(--fusion-font);
     padding: 0;
-    width: min(440px, 92vw);
+    width: min(480px, 92vw);
     max-height: 90dvh;
     overflow-y: auto;
   }
 
-  /* Reset browser dialog defaults */
-  .scene-dialog::backdrop {
+  .token-dialog::backdrop {
     background: transparent;
   }
 
@@ -338,7 +394,6 @@
     padding: 1.25rem;
   }
 
-  /* Field layout */
   .field {
     display: flex;
     flex-direction: column;
@@ -404,6 +459,25 @@
     font-size: 0.75rem;
   }
 
+  /* Inline preview of the selected texture URL */
+  .field__preview {
+    background: var(--fusion-bg);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    height: 80px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .field__preview-img {
+    display: block;
+    max-height: 78px;
+    max-width: 100%;
+    object-fit: contain;
+  }
+
   .server-error {
     background: rgba(255, 92, 92, 0.12);
     border: 1px solid var(--fusion-danger);
@@ -421,7 +495,6 @@
     padding: 1rem 1.25rem;
   }
 
-  /* Buttons (inline — avoids deep import of global .btn) */
   .btn {
     align-items: center;
     border: 1px solid transparent;
@@ -460,6 +533,11 @@
   .btn--ghost:hover:not(:disabled) {
     border-color: var(--fusion-text-muted);
     color: var(--fusion-text);
+  }
+
+  .btn--sm {
+    font-size: 0.8125rem;
+    padding: 0.3rem 0.75rem;
   }
 
   .btn--icon {

@@ -20,6 +20,7 @@ import type { Database as BetterSqlite3Database } from "better-sqlite3";
 import type { ServerConfig } from "./config.js";
 import type { SocketManager as SocketManagerType, WorldNamespaceOptions } from "./net/index.js";
 import type { AuthService } from "./auth/index.js";
+import type { RegisterAssetRoutesOptions } from "./assets/routes.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -49,6 +50,17 @@ export interface BootAuthContext {
   /** Loaded HMAC secret for JWT signing. */
   secret: Uint8Array;
 }
+
+// ---------------------------------------------------------------------------
+// Asset context (injected to register asset HTTP routes)
+// ---------------------------------------------------------------------------
+
+/**
+ * When provided, registers the asset upload/serving routes (REQ-AST-006..029).
+ * Mirrors RegisterAssetRoutesOptions from assets/routes.ts — imported as a type
+ * alias so boot.ts remains the single place callers configure the boot.
+ */
+export type BootAssetContext = RegisterAssetRoutesOptions;
 
 // ---------------------------------------------------------------------------
 // Net context (injected when the socket layer should be activated)
@@ -144,6 +156,11 @@ export interface BootOptions {
    * namespace is registered. Requires authContext to be set as well.
    */
   netContext?: BootNetContext;
+  /**
+   * When provided, asset upload / serving routes are registered on the Fastify
+   * instance (REQ-AST-006..029, REQ-SEC-040..045).
+   */
+  assetContext?: BootAssetContext;
 }
 
 /**
@@ -154,7 +171,14 @@ export interface BootOptions {
  * and 4 internally.
  */
 export async function boot(options: BootOptions): Promise<BootResult> {
-  const { config, logger, skipSignalHandlers = false, authContext, netContext } = options;
+  const {
+    config,
+    logger,
+    skipSignalHandlers = false,
+    authContext,
+    netContext,
+    assetContext,
+  } = options;
 
   // -------------------------------------------------------------------------
   // Phase 3 — HTTP (create Fastify, register routes)
@@ -190,6 +214,13 @@ export async function boot(options: BootOptions): Promise<BootResult> {
       },
     });
     logger.info({ worldId: authContext.worldId }, "Auth routes registered");
+  }
+
+  // Register asset routes if an asset context is provided (REQ-AST-006..029).
+  if (assetContext) {
+    const { registerAssetRoutes } = await import("./assets/routes.js");
+    registerAssetRoutes(fastify, assetContext);
+    logger.info({ assetsDir: assetContext.assetsDir }, "Asset routes registered");
   }
 
   // -------------------------------------------------------------------------
