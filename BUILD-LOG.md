@@ -15,8 +15,8 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M1-A  | Canvas PIXI v8, grade square, render groups                                     | concluído    | 96              |
 | M1-B  | Scene/Token embedded, CRUD broadcast, snapshot+resync, reconexão                | concluído    | 97              |
 | M1-C  | Tokens no canvas (drag, animação, barras), ownership no servidor                | concluído    | 97              |
-| M1-D  | Motor de rolagens (RNG servidor, roll modes, inline), chat + cards              | em andamento | —               |
-| M1-E  | Assets (upload/serving), presença (cursores, ping, ruler), DoD M1               | pendente     | —               |
+| M1-D  | Motor de rolagens (RNG servidor, roll modes, inline), chat + cards              | concluído    | 96              |
+| M1-E  | Assets (upload/serving), presença (cursores, ping, ruler), DoD M1               | em andamento | —               |
 | M2-A  | Walls + portas, visibility polygon, luzes                                       | pendente     | —               |
 | M2-B  | Fog of war (3 estados, persistência, Clipper2), broadcast de delta              | pendente     | —               |
 | M2-C  | Combat/Combatant, tracker, InitiativeFormula, hooks de turno                    | pendente     | —               |
@@ -28,6 +28,13 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M3-F  | DoD M3 / primeira sessão jogável — verificação integrada                        | pendente     | —               |
 
 ## Registro por batch
+
+### M1-D — Rolagens autoritativas + chat (2026-06-12) — score 96 ✅ (após correção dirigida)
+
+- Auditorias do batch: 68 → 28 → 82 (bloqueado); correção dirigida Opus → **96**. Invariantes verificadas por sondas do auditor: cliente jamais determina resultado de dado; gmroll/blindroll/selfroll/whisper redigidos em broadcast, ack, history E join-snapshot.
+- Defeito central corrigido: detecção de termos via `type==='roll-results'` só funciona na forma exportada da lib — conversor refatorado para `diceRoll.export()` com faces via AST do Parser; breakdown rico, crit/fumble, dados 3D e guard de DoS (10k dados, vetor multi-termo) operacionais com testes de regressão determinísticos.
+- Entregue: RollService (CSPRNG, limites anti-abuso), chat persistido com comandos completos, inline rolls resolvidos no servidor, cards declarativos sem HTML, sidebar de chat com breakdown expandível, dice-box 3D sincronizado com resultado autoritativo.
+- **Known issue de infra**: suíte completa do server ocasionalmente sai não-zero por timeout de RPC do worker do vitest sob carga (~240s) sem nenhum teste falhando — re-rodar isolado confirma. Tratar como infra, não como regressão.
 
 ### M1-C — Tokens interativos + segurança de hidden (2026-06-12) — score 97 ✅ (após 2 rodadas de fix de segurança)
 

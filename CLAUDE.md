@@ -26,6 +26,8 @@ Monorepo planejado: `packages/{server,client,shared,system-api}` + `systems/{eng
 - Requisitos das specs: `REQ-<PREFIXO>-NNN`, tags [MVP]/[V2].
 - Sistemas de jogo são pacotes compilados no monorepo (sem plugins dinâmicos no MVP).
 - Rolagens sempre executam no servidor (anti-cheat); toda validação de permissão é no servidor.
+- Redação de visibilidade (hidden tokens, roll modes) usa SEMPRE `packages/server/src/net/redaction.ts` + `isRolePrivileged` de `documents/ownership.ts` — nunca duplicar predicados/strip.
+- Testes do server: pool forks/maxForks 4 (better-sqlite3 crasha em worker_threads). Saída não-zero com "Timeout calling onTaskUpdate" sem teste falhando = flakiness de infra do vitest sob carga; re-rodar o arquivo isolado antes de tratar como regressão.
 
 ## Resolução de @fusion/shared entre pacotes (decisão arquitetural)
 

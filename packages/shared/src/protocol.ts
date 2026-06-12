@@ -49,6 +49,9 @@ export const EnvelopeTypeSchema = z.union([
   z.literal("world:activeScene"),
   z.literal("ack:ok"),
   z.literal("ack:error"),
+  // M1-D chat handlers
+  z.literal("chat:send"),
+  z.literal("chat:history"),
 ]);
 
 export type EnvelopeType = z.infer<typeof EnvelopeTypeSchema>;

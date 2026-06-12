@@ -9,6 +9,8 @@
    * M1-B (SCENE-UI): GM sidebar with Scenes tab. Players see no sidebar but
    * receive the NoSceneOverlay while waiting for the GM to activate a scene.
    *
+   * M1-D (CHAT): AppSidebar replaces ScenesSidebar; adds Chat tab for all users.
+   *
    * REQ-CNV-001: WebGPU with automatic WebGL fallback.
    * REQ-CNV-006: Render group for camera transform.
    * REQ-CNV-007: Pan (middle-button / Space+drag) and zoom (scroll).
@@ -21,7 +23,7 @@
   import { loadDevScene } from "../lib/canvas/dev-scene.js";
   import { loadSceneDocument } from "../lib/canvas/sceneLoader.js";
   import { activeSceneState } from "../lib/docs/activeScene.svelte.js";
-  import ScenesSidebar from "./scenes/ScenesSidebar.svelte";
+  import AppSidebar from "./chat/AppSidebar.svelte";
   import ActiveSceneBadge from "./scenes/ActiveSceneBadge.svelte";
   import NoSceneOverlay from "./scenes/NoSceneOverlay.svelte";
   import { getSocket } from "../lib/session.svelte.js";
@@ -215,16 +217,16 @@
   </header>
 
   <!-- -------------------------------------------------------------------- -->
-  <!-- GM-only: Scenes sidebar                                               -->
+  <!-- App sidebar — Scenes tab (GM) + Chat tab (all users)                 -->
   <!-- -------------------------------------------------------------------- -->
-  {#if isGm()}
-    {@const sock = getSocket()}
-    {#if sock}
-      <ScenesSidebar
-        socket={sock}
-        activeSceneId={activeSceneState.id}
-      />
-    {/if}
+  {#if getSocket()}
+    {@const sock = getSocket()!}
+    <AppSidebar
+      socket={sock}
+      worldId={session.worldInfo?.id ?? ""}
+      activeSceneId={activeSceneState.id}
+      isGm={isGm()}
+    />
   {/if}
 
 </div>

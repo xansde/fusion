@@ -32,6 +32,11 @@ import {
   buildActiveSceneHandler,
   sendJoinSnapshot,
 } from "./handlers/sync-handlers.js";
+import {
+  buildChatSendHandler,
+  buildChatHistoryHandler,
+  getRecentChatForUser,
+} from "../chat/index.js";
 import { redactAckResultForNonPrivileged } from "./redaction.js";
 import { DocumentStore } from "../documents/index.js";
 import type { AuthService } from "../auth/service.js";
@@ -133,7 +138,15 @@ export class SocketManager {
     const store = new DocumentStore({ db, coreVersion: "0.1.0" });
     const registry = new HandlerRegistry();
 
-    const syncDeps = { store, seqStore, opBuffer, ns, db };
+    const syncDeps = {
+      store,
+      seqStore,
+      opBuffer,
+      ns,
+      db,
+      // REQ-CHT-033: supply recent chat for join snapshot
+      getRecentChat: (userId: string, role: number) => getRecentChatForUser(db, userId, role),
+    };
 
     // Register built-in system handlers
     registry.register("system:ping", systemPingHandler);
@@ -150,6 +163,11 @@ export class SocketManager {
     // Register M1-B sync handlers
     registry.register("resync:request", buildResyncRequestHandler(syncDeps));
     registry.register("world:activeScene", buildActiveSceneHandler(syncDeps));
+
+    // Register M1-D chat + roll handlers
+    const chatDeps = { db, ns, seqStore, worldId };
+    registry.register("chat:send", buildChatSendHandler(chatDeps));
+    registry.register("chat:history", buildChatHistoryHandler(chatDeps));
 
     // REQ-NET-003/014: auth middleware runs before connection is accepted
     ns.use((socket, next) => {

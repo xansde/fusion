@@ -3,6 +3,7 @@ packages:
   - "systems/*"
   - "tools/*"
 allowBuilds:
+  '@3d-dice/dice-box': true
   better-sqlite3: true
 onlyBuiltDependencies:
   - esbuild

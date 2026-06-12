@@ -229,7 +229,7 @@ describe("TokenInteractionManager — socket payload contract", () => {
     // We expose a test-only path: call the internal select through keyboard ESC
     // first by casting.  For the contract test the cleanest approach is to cast
     // the manager and call the private _selectToken directly.
-    (mgr as unknown as Record<string, (id: string) => void>)["_selectToken"](TOKEN_ID);
+    (mgr as unknown as { _selectToken: (id: string) => void })._selectToken(TOKEN_ID);
 
     await mgr.deleteSelectedToken();
 
@@ -257,7 +257,7 @@ describe("TokenInteractionManager — socket payload contract", () => {
     const layer = makeFakeTokenLayer();
     const mgr = new TokenInteractionManager(buildOpts(socket, mirror, layer));
 
-    (mgr as unknown as Record<string, (id: string) => void>)["_selectToken"](TOKEN_ID);
+    (mgr as unknown as { _selectToken: (id: string) => void })._selectToken(TOKEN_ID);
 
     await mgr.toggleHiddenSelectedToken();
 
@@ -266,10 +266,10 @@ describe("TokenInteractionManager — socket payload contract", () => {
     const result = DocUpdatePayloadSchema.safeParse(emission!.payload);
     expect(result.success, `DocUpdatePayload parse failed: ${JSON.stringify(result)}`).toBe(true);
     expect(result.data?.documentType).toBe("Token");
-    expect(result.data?.updates[0]._id).toBe(TOKEN_ID);
-    expect(result.data?.updates[0].diff).toMatchObject({ hidden: true });
-    expect(result.data?.updates[0].embedded?.type).toBe("Token");
-    expect(result.data?.updates[0].embedded?.id).toBe(SCENE_ID);
+    expect(result.data?.updates[0]?._id).toBe(TOKEN_ID);
+    expect(result.data?.updates[0]?.diff).toMatchObject({ hidden: true });
+    expect(result.data?.updates[0]?.embedded?.type).toBe("Token");
+    expect(result.data?.updates[0]?.embedded?.id).toBe(SCENE_ID);
 
     mgr.destroy();
   });
@@ -305,10 +305,10 @@ describe("TokenInteractionManager — socket payload contract", () => {
     const result = DocUpdatePayloadSchema.safeParse(emission!.payload);
     expect(result.success, `DocUpdatePayload parse failed: ${JSON.stringify(result)}`).toBe(true);
     expect(result.data?.documentType).toBe("Token");
-    expect(result.data?.updates[0]._id).toBe(TOKEN_ID);
-    expect(result.data?.updates[0].diff).toMatchObject({ x: 200, y: 300 });
-    expect(result.data?.updates[0].embedded?.type).toBe("Token");
-    expect(result.data?.updates[0].embedded?.id).toBe(SCENE_ID);
+    expect(result.data?.updates[0]?._id).toBe(TOKEN_ID);
+    expect(result.data?.updates[0]?.diff).toMatchObject({ x: 200, y: 300 });
+    expect(result.data?.updates[0]?.embedded?.type).toBe("Token");
+    expect(result.data?.updates[0]?.embedded?.id).toBe(SCENE_ID);
 
     mgr.destroy();
   });

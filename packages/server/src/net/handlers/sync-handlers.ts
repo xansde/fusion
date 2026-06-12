@@ -27,6 +27,7 @@ import type {
   ResyncDeltaPayload,
   ResyncFullPayload,
   Ownership,
+  ChatMessage,
 } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
@@ -199,6 +200,12 @@ export interface SyncHandlerDeps {
   ns: Namespace;
   /** Raw DB for direct settings access (bypasses DocumentStore schema for meta keys). */
   db: Db;
+  /**
+   * Optional: returns recent chat messages visible to a specific user.
+   * When provided, the join snapshot will include up to 50 recent messages
+   * filtered by the viewer's role (REQ-CHT-033).
+   */
+  getRecentChat?: (userId: string, role: number) => ChatMessage[];
 }
 
 // ---------------------------------------------------------------------------
@@ -255,6 +262,23 @@ export function sendJoinSnapshot(
     ts: Date.now(),
     payload: fullPayload,
   });
+
+  // REQ-CHT-033: include recent chat in the join snapshot so the client
+  // can display the last N messages without a separate chat:history request.
+  if (deps.getRecentChat) {
+    const recentChat = deps.getRecentChat(userId, role);
+    if (recentChat.length > 0) {
+      socket.emit("op", {
+        type: "doc:create",
+        seq: deps.seqStore.peek(),
+        ts: Date.now(),
+        payload: {
+          documentType: "ChatMessage",
+          documents: recentChat,
+        },
+      });
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
