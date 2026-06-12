@@ -1,0 +1,451 @@
+{
+  "_meta": {
+    "sistema": "ETMOS RPG",
+    "versao_srd": "1.1",
+    "editora": "Balde Galáctico",
+    "autor": "Rafa Reis",
+    "fonte_primaria": "SRD-ETMOS-1.1.pdf",
+    "fontes_secundarias": ["12b-etmos-fontes-locais.md (documento de pesquisa)"],
+    "aviso_legal": "Conteúdo © Editora Balde Galáctico / Rafa Reis. Uso privado do grupo de jogo. NÃO distribuir sem autorização. Ver specs/26."
+  },
+  "tabela_A_complexidade": {
+    "nome": "Tabela A — Complexidade × Estresse × Requisito de Mente",
+    "descricao": "Define os cinco níveis de Complexidade das magias, seus requisitos de Atributo Mente e o custo em Estresse.",
+    "fonte": "SRD-ETMOS-1.1.pdf, seção Complexidade e seção Estresse",
+    "nota_milagre": "Milagre requer 'apenas acima de Mente 6' segundo o SRD. Como Mente máximo é 6, isso significa estritamente Mente = 6.",
+    "niveis": [
+      {
+        "nivel": 1,
+        "nome": "Trivial",
+        "requisito_mente": null,
+        "descricao_requisito": "Qualquer Orador",
+        "estresse_acumulado": 0,
+        "dano_maximo_potencial": "Negligível",
+        "descricao": "Efeitos comuns, cotidianos, de pouca intensidade ou quase Mundanos. A magia quase não precisa reorganizar a realidade para fazer efeito.",
+        "nota": "Magias Triviais NÃO acumulam Pontos de Estresse."
+      },
+      {
+        "nivel": 2,
+        "nome": "Regular",
+        "requisito_mente": null,
+        "descricao_requisito": "Qualquer Orador",
+        "estresse_acumulado": 1,
+        "dano_maximo_potencial": "Superficial",
+        "descricao": "Efeitos simples; expressivos, mas ainda pouco intensos. Capazes de causar ferimentos superficiais. A magia precisa reorganizar a realidade de forma branda."
+      },
+      {
+        "nivel": 3,
+        "nome": "Difícil",
+        "requisito_mente_minimo": 3,
+        "descricao_requisito": "Mente > 2 (ou seja, Mente ≥ 3)",
+        "estresse_acumulado": 2,
+        "dano_maximo_potencial": "Potencialmente letal",
+        "descricao": "Efeitos rebuscados e potencialmente perigosos, de intensidade mediana. A magia precisa reorganizar a realidade de forma expressiva."
+      },
+      {
+        "nivel": 4,
+        "nome": "Complexa",
+        "requisito_mente_minimo": 5,
+        "descricao_requisito": "Mente > 4 (ou seja, Mente ≥ 5)",
+        "estresse_acumulado": 4,
+        "dano_maximo_potencial": "Letal",
+        "descricao": "Efeitos poderosos e perigosos, de alta intensidade, capazes de causar ferimentos letais. A magia precisa reorganizar a realidade em grande escala."
+      },
+      {
+        "nivel": 5,
+        "nome": "Milagre",
+        "requisito_mente_minimo": 6,
+        "descricao_requisito": "Mente = 6 (máximo possível)",
+        "estresse_acumulado": 7,
+        "dano_maximo_potencial": "Cataclísmico",
+        "descricao": "Efeitos extremamente poderosos, de intensidade cataclísmica, capazes de encerrar a vida mesmo do mais poderoso dos seres. Apenas Oradores com Atributo de Mente 6 podem conjurá-los."
+      }
+    ],
+    "parametros_definicao_complexidade": [
+      "1. Quão diferente de um fenômeno natural é o efeito mágico?",
+      "2. Quanto a realidade precisa se reorganizar para o efeito ocorrer?",
+      "3. Quão amplo é o efeito?",
+      "4. Quão específico demais é o efeito?",
+      "5. Quanto a Frase Mágica se aproxima do efeito?",
+      "6. Qual o alcance do efeito?",
+      "7. Por quanto tempo o efeito dura?",
+      "8. Quão potente é o efeito?",
+      "9. E o livre-arbítrio? (não altera a Complexidade, mas há resistência natural)"
+    ]
+  },
+  "tabela_B_ferimentos_por_corpo": {
+    "nome": "Tabela B — Limite de Ferimentos × Corpo",
+    "descricao": "Limite de Ferimentos calculado pelo Atributo Corpo. Fórmula: 4 + floor(Corpo / 2) — ou '4 + 1 para cada 2 pontos de Corpo'.",
+    "formula": "4 + floor(Corpo / 2)",
+    "fonte": "SRD-ETMOS-1.1.pdf, seção Atributos e seção Ferimentos",
+    "valores": [
+      { "corpo": 1, "limite_ferimentos": 4 },
+      { "corpo": 2, "limite_ferimentos": 5 },
+      { "corpo": 3, "limite_ferimentos": 5 },
+      { "corpo": 4, "limite_ferimentos": 6 },
+      { "corpo": 5, "limite_ferimentos": 6 },
+      { "corpo": 6, "limite_ferimentos": 7 }
+    ],
+    "regras_ferimentos": {
+      "inconsciente_quando": "Ferimentos acumulados ultrapassam o Limite",
+      "morte_imediata_quando": "Ferimentos acumulados = Limite + 4",
+      "morte_enquanto_inconsciente": "Sofrer +1 Ferimento adicional enquanto inconsciente",
+      "ao_acordar": "+3 pontos de Estresse acumulados",
+      "descricao_niveis": [
+        { "ferimentos": 1, "descricao": "Danos superficiais. Contusões, escoriações, cortes simples e limpos e queimaduras pequenas e leves." },
+        { "ferimentos": 2, "descricao": "Danos ainda não preocupantes, mas mais severos. Cortes mais profundos, torções, leves concussões, queimaduras medianas e danos mentais e espirituais de baixa intensidade." },
+        { "ferimentos": 3, "descricao": "Danos possivelmente letais. Cortes profundos, hemorragias, quebra de ossos, concussões, grandes queimaduras e danos mentais e espirituais de intensidade mediana." },
+        { "ferimentos": 4, "descricao": "Danos letais. Hemorragia severa, perda de membros, traumatismos, queimaduras graves e danos mentais e espirituais de alta intensidade, que ameaçam a vida." }
+      ]
+    }
+  },
+  "tabela_C_estresse_por_alma": {
+    "nome": "Tabela C — Limite de Estresse × Alma",
+    "descricao": "Limite de Estresse calculado pelo Atributo Alma. Fórmula: 4 + Alma.",
+    "formula": "4 + Alma",
+    "fonte": "SRD-ETMOS-1.1.pdf, seção Atributos e seção Estresse",
+    "valores": [
+      { "alma": 1, "limite_estresse": 5 },
+      { "alma": 2, "limite_estresse": 6 },
+      { "alma": 3, "limite_estresse": 7 },
+      { "alma": 4, "limite_estresse": 8 },
+      { "alma": 5, "limite_estresse": 9 },
+      { "alma": 6, "limite_estresse": 10 }
+    ]
+  },
+  "tabela_D_fadiga": {
+    "nome": "Tabela D — Estados de Fadiga",
+    "descricao": "Estados de Fadiga determinados pela quantidade de Estresse acumulada acima do Limite de Estresse.",
+    "fonte": "SRD-ETMOS-1.1.pdf, seção Estresse (Fadiga)",
+    "estados": [
+      {
+        "estado": "Normal",
+        "condicao": "Estresse acumulado ≤ Limite de Estresse",
+        "estresse_acima_limite": "0",
+        "penalidades": []
+      },
+      {
+        "estado": "Cansado",
+        "condicao": "Estresse acumulado de 1 a 5 acima do Limite",
+        "estresse_acima_limite": "1–5",
+        "penalidades": [
+          "Sofre 1 Ferimento extra sempre que sofrer qualquer Ferimento (esta penalidade se mantém nos estados seguintes)"
+        ]
+      },
+      {
+        "estado": "Exausto",
+        "condicao": "Estresse acumulado de 6 a 8 acima do Limite",
+        "estresse_acima_limite": "6–8",
+        "penalidades": [
+          "Sempre que conjurar uma magia NÃO TRIVIAL: role 2d6. Se resultado for MAIOR que Corpo + 4, a magia falha (Estresse ainda acumula mesmo assim).",
+          "+1 Ferimento extra ao sofrer qualquer Ferimento (mesmo efeito do estado Cansado — não acumula; é o mesmo bônus)"
+        ],
+        "nota": "A penalidade de Exausto substitui a do Cansado no próximo estado (Esgotado), não acumula entre si."
+      },
+      {
+        "estado": "Esgotado",
+        "condicao": "Estresse acumulado 9 ou mais acima do Limite",
+        "estresse_acima_limite": "9+",
+        "penalidades": [
+          "Sempre que conjurar uma magia NÃO TRIVIAL: role 2d6. Se resultado for MAIOR que Corpo + 3, a personagem morre após a conjuração. O efeito da magia ainda acontece.",
+          "+1 Ferimento extra ao sofrer qualquer Ferimento (mesmo efeito do estado anterior — não acumula)"
+        ],
+        "nota": "Esta penalidade substitui a penalidade do estado Exausto."
+      }
+    ]
+  },
+  "tabela_E_progressao_nivel": {
+    "nome": "Tabela E — Progressão de Nível (N1 → N6)",
+    "descricao": "Bônus de Progressão obtidos ao completar todos os Marcos de Crescimento de um nível. Cada nível requer 5 Marcos Físicos + 5 Marcos Intelectuais + 5 Marcos Emocionais. A personagem escolhe 1 opção por categoria; não pode repetir a mesma opção mais de uma vez.",
+    "fonte": "SRD-ETMOS-1.1.pdf, seção Progressão de Nível",
+    "marcos_por_nivel": {
+      "fisicos": 5,
+      "intelectuais": 5,
+      "emocionais": 5,
+      "total": 15
+    },
+    "transicoes": [
+      {
+        "de_nivel": 1,
+        "para_nivel": 2,
+        "opcao_fisica": "+1 Objeto e +1 Característica no Grimório",
+        "opcao_mental": "+1 ponto de Atributo (distribuído livremente)",
+        "opcao_emocional": "+1 Habilidade Prática"
+      },
+      {
+        "de_nivel": 2,
+        "para_nivel": 3,
+        "opcao_fisica": "+1 Função no Grimório",
+        "opcao_mental": "+1 ponto de Atributo (distribuído livremente)",
+        "opcao_emocional": "+1 Habilidade Teórica"
+      },
+      {
+        "de_nivel": 3,
+        "para_nivel": 4,
+        "opcao_fisica": "+1 Objeto e +1 Característica no Grimório",
+        "opcao_mental": "+1 ponto de Atributo (distribuído livremente)",
+        "opcao_emocional": "+1 Habilidade Prática"
+      },
+      {
+        "de_nivel": 4,
+        "para_nivel": 5,
+        "opcao_fisica": "+1 Função no Grimório",
+        "opcao_mental": "+1 ponto de Atributo (distribuído livremente)",
+        "opcao_emocional": "+1 Habilidade Teórica"
+      },
+      {
+        "de_nivel": 5,
+        "para_nivel": 6,
+        "opcao_fisica": "+1 Função, +1 Objeto e +1 Característica no Grimório",
+        "opcao_mental": "+1 ponto de Atributo (distribuído livremente)",
+        "opcao_emocional": "+1 Habilidade Teórica e +1 Habilidade Prática"
+      }
+    ],
+    "exemplos_marcos_fisicos": [
+      "Participar de competição esportiva significativa",
+      "Derrotar um antagonista em luta ou duelo",
+      "Progredir em uma prática desportiva (faixa, titular em time etc.)",
+      "Passar por uma situação 'perigosa' e sair vivo",
+      "Treinar com afinco para uma competição",
+      "Aprender nova habilidade ou esporte",
+      "Ficar muito doente/severamente ferido e recuperar-se",
+      "Perder peso, ganhar massa muscular e/ou ser mais ativo",
+      "Sofrer 4 ou mais Ferimentos de uma única vez",
+      "Entrar no estado Esgotado e continuar em cena de ação por pelo menos 3 rodadas"
+    ],
+    "exemplos_marcos_intelectuais": [
+      "Passar em testes e exames acadêmicos para os quais tenha estudado",
+      "Participar de competição de cunho intelectual (xadrez, redação, debate)",
+      "Concluir tarefa acadêmica importante (livro, certificado, pesquisa)",
+      "Descobrir a verdade por trás de um mistério",
+      "Ajudar um amigo a estudar e passar em prova difícil",
+      "Estudar com afinco para uma prova ou exame",
+      "Defender-se completamente, pela primeira vez, de uma magia Complexa",
+      "Ter interação significativa com ser de cultura muito diferente",
+      "Ser criativo de forma surpreendente ao conjurar uma magia",
+      "Fazer viagem para longe e imergir na cultura local"
+    ],
+    "exemplos_marcos_emocionais": [
+      "Realizar apresentação artística para grande público",
+      "Alcançar objetivo pessoal (vencer competição, certificação de prestígio, reconhecimento)",
+      "Passar por uma desilusão amorosa",
+      "Criar laços fortes com alguém (amizade ou românticos)",
+      "Enfrentar seus medos",
+      "Falhar durante evento para o qual se esforçou",
+      "Comparecer a eventos sociais importantes (bailes, apresentações, festas)",
+      "Ter crenças e moralidades confrontadas",
+      "Reconhecer seus erros e falhas",
+      "Se Humano: fazer amizade com ser Fantástico de fora da escola (e vice-versa)"
+    ]
+  },
+  "tabela_dificuldade_testes": {
+    "nome": "Tabela de Dificuldade dos Testes",
+    "descricao": "Parâmetros gerais de dificuldade para Testes (2d6 + bônus). A dificuldade base para qualquer Teste é 6.",
+    "fonte": "SRD-ETMOS-1.1.pdf, seção Dificuldade dos Testes",
+    "niveis": [
+      { "resultado_necessario": "< 6", "classificacao": "Simples", "descricao": "Uma pessoa capacitada falha apenas se estiver distraída." },
+      { "resultado_necessario": "6", "classificacao": "Fácil", "descricao": "Uma pessoa capacitada deve conseguir realizar a tarefa sem muitos problemas." },
+      { "resultado_necessario": "7–10", "classificacao": "Mediano", "descricao": "Uma pessoa capacitada consegue realizar a tarefa, mas requer um pouco mais de concentração e foco." },
+      { "resultado_necessario": "11–14", "classificacao": "Árduo", "descricao": "Uma pessoa capacitada talvez não consiga realizar a tarefa. Requer empenho." },
+      { "resultado_necessario": "15+", "classificacao": "Difícil", "descricao": "Mesmo uma pessoa capacitada provavelmente não terá êxito. Requer concentração completa." }
+    ],
+    "fatores_que_aumentam_dificuldade": [
+      "Alta ou baixa luminosidade e visibilidade",
+      "Estado emocional extremo (pânico, desespero, euforia, depressão intensa)",
+      "Solo Instável",
+      "Alta movimentação",
+      "Cansaço / exaustão física, mental e espiritual",
+      "Estado físico debilitado (ferida, doente, enferma)"
+    ],
+    "bonus_extraordinario": {
+      "descricao": "O Narrador pode conceder um Bônus Extraordinário somado ao valor do Teste, prévio à rolagem.",
+      "fatores": [
+        "Situação oportuna (alvo de surpresa, fechadura já quebrada, parede já fragilizada)",
+        "Costume ou conhecimento prévio",
+        "Objetos úteis (ferramentas certas para a tarefa)",
+        "Ajuda de outra personagem competente",
+        "Estado de equilíbrio emocional (determinado, concentrado)"
+      ]
+    },
+    "regra_repeticao": "Um jogador não pode repetir o mesmo Teste, com o mesmo propósito, durante a mesma cena em que falhou naquele Teste."
+  },
+  "tabela_descanso_recuperacao": {
+    "nome": "Tabela de Descanso e Recuperação",
+    "descricao": "Tipos de descanso e seus efeitos sobre Ferimentos e Estresse acumulados.",
+    "fonte": "SRD-ETMOS-1.1.pdf, seção Descanso e Recuperação",
+    "tipos": [
+      {
+        "tipo": "Descanso Parcial",
+        "ferimentos_recuperados": -1,
+        "estresse_recuperado": -3,
+        "descricao": "Descansos curtos ou aqueles em que o corpo não conseguiu se regenerar como deveria."
+      },
+      {
+        "tipo": "Descanso Completo",
+        "ferimentos_recuperados": -2,
+        "estresse_recuperado": "Elimina todo o Estresse acumulado",
+        "descricao": "Descansos mais longos ou aqueles em que o corpo conseguiu se regenerar como deveria."
+      }
+    ],
+    "modificadores": [
+      {
+        "condicao": "Com Tratamento Médico (independente do tipo de descanso)",
+        "efeito": "-2 Ferimentos adicionais durante o descanso"
+      },
+      {
+        "condicao": "Sem Tratamento Médico + no Limite de Ferimentos",
+        "efeito": "Descanso Completo torna-se Parcial; Descanso Parcial não surte efeito"
+      },
+      {
+        "condicao": "Fora do mundo de origem",
+        "efeito": "Descanso Completo torna-se Parcial; Descansos Parciais não surtem efeito",
+        "nota": "Personagens descansam plenamente apenas em seu mundo de origem (Mundano ou Fantástico)"
+      }
+    ]
+  },
+  "tabela_encantamento_itens": {
+    "nome": "Tabela de Encantamento de Itens (Pontos de Preparo)",
+    "descricao": "Sistema de Pontos de Preparo (PP) para encantamento de objetos. O encantamento é concluído quando PP acumulados ≥ PP necessários conforme o Grau de Sofisticação.",
+    "fonte": "SRD-ETMOS-1.1.pdf, seção Encantamento de Itens",
+    "graus_sofisticacao": [
+      { "grau": "Simples", "complexidade_frase": "Trivial ou Regular", "pp_necessarios": 5 },
+      { "grau": "Sofisticado", "complexidade_frase": "Difícil", "pp_necessarios": 10 },
+      { "grau": "Primoroso", "complexidade_frase": "Complexa ou Milagre", "pp_necessarios": 15 }
+    ],
+    "fatores_pp": [
+      {
+        "fator": "Veículo: Consumível (poção, comida, adesivo — uso único)",
+        "modificador_pp": "+1"
+      },
+      {
+        "fator": "Veículo: Persistente (vestuário, joias, acessórios — uso múltiplo)",
+        "modificador_pp": "-2"
+      },
+      {
+        "fator": "Qualidade do Veículo: Inferior",
+        "modificador_pp": "-2"
+      },
+      {
+        "fator": "Qualidade do Veículo: Mediana",
+        "modificador_pp": "0"
+      },
+      {
+        "fator": "Qualidade do Veículo: Alta",
+        "modificador_pp": "+2"
+      },
+      {
+        "fator": "Qualidade do Veículo: Ideal",
+        "modificador_pp": "+3"
+      },
+      {
+        "fator": "Qualidade das Ferramentas: Ruins",
+        "modificador_pp": "-2"
+      },
+      {
+        "fator": "Qualidade das Ferramentas: Medianas",
+        "modificador_pp": "0"
+      },
+      {
+        "fator": "Qualidade das Ferramentas: Boas",
+        "modificador_pp": "+1"
+      },
+      {
+        "fator": "Qualidade das Ferramentas: Excelentes",
+        "modificador_pp": "+3"
+      },
+      {
+        "fator": "Frase marcada no objeto: Nada",
+        "modificador_pp": "-15"
+      },
+      {
+        "fator": "Frase marcada no objeto: Pouco",
+        "modificador_pp": "-5"
+      },
+      {
+        "fator": "Frase marcada no objeto: Bastante",
+        "modificador_pp": "+2"
+      },
+      {
+        "fator": "Frase marcada no objeto: Completamente",
+        "modificador_pp": "+5"
+      },
+      {
+        "fator": "Habilidade Artesão Nível 1",
+        "modificador_pp": "+1"
+      },
+      {
+        "fator": "Habilidade Artesão Nível 2",
+        "modificador_pp": "+2"
+      },
+      {
+        "fator": "Habilidade Artesão Nível 3",
+        "modificador_pp": "+3"
+      }
+    ],
+    "sessoes_pp": [
+      { "sessoes": 1, "modificador_pp": -15 },
+      { "sessoes": 2, "modificador_pp": -12 },
+      { "sessoes": 3, "modificador_pp": -7 },
+      { "sessoes": 4, "modificador_pp": -3 },
+      { "sessoes": 5, "modificador_pp": 0 },
+      { "sessoes": 6, "modificador_pp": 1 },
+      { "sessoes": 7, "modificador_pp": 2 },
+      { "sessoes": 9, "modificador_pp": 3 },
+      { "sessoes": 12, "modificador_pp": 4 },
+      { "sessoes": 20, "modificador_pp": 5 },
+      { "sessoes": 30, "modificador_pp": 6 }
+    ],
+    "regras_adicionais": [
+      "Cada sessão requer ao menos 3 horas de trabalho por dia, em dias consecutivos (máximo 24h entre sessões).",
+      "Uma personagem pode realizar mais de uma Sessão no mesmo dia, mas acumula 3 Pontos de Estresse para cada Sessão além da primeira.",
+      "Caso mais de 24 horas se passem entre sessões, é necessário recomeçar do zero.",
+      "A personagem começa com 0 PP e vai acumulando conforme os fatores."
+    ],
+    "nota_habilidade_artesao": "A Habilidade 'Artesão' é mencionada no sistema de encantamento mas não detalhada na seção de Habilidades do SRD como exemplo. Tratar como Habilidade Teórica disponível.",
+    "verify": true
+  },
+  "tabela_segmentos_jogo": {
+    "nome": "Tabela de Segmentos de Jogo",
+    "descricao": "Estrutura de dias escolares para campanhas ambientadas na escola Brasilis.",
+    "fonte": "SRD-ETMOS-1.1.pdf, seção Segmentos de Jogo",
+    "segmentos": [
+      {
+        "tipo": "Aula",
+        "descricao": "Momento em que as personagens estão em aula, palestras, excursões, provas etc. Serve para exposição narrativa dentro da diegese.",
+        "dado_empenho": true,
+        "nota": "Participar de Aula ou Extracurricular: +1 Dado de Empenho."
+      },
+      {
+        "tipo": "Extracurricular",
+        "descricao": "Clubes, práticas esportivas, oficinas de aprendizado. Interpretação da vida escolar além das aulas.",
+        "dado_empenho": true
+      },
+      {
+        "tipo": "Tempo Livre",
+        "descricao": "Personagens estão livres para fazer o que quiserem. Geralmente onde a história principal se desenrola.",
+        "dado_empenho": false
+      }
+    ],
+    "recomendacao_segmentos_por_jogo": "4 a 3 segmentos por jogo, com 1 ou mais de Tempo Livre.",
+    "dados_empenho": {
+      "obtencao": "Participar de Aula ou Extracurricular: +1 Dado de Empenho.",
+      "expiracao": "Perdem-se no início do próximo dia na ficção.",
+      "uso": "Gastar 1 Dado de Empenho: re-rola 1 dado em qualquer Teste já feito e escolhe o melhor resultado.",
+      "acumulo": "Acumulam indefinidamente ao longo do dia fictício."
+    }
+  },
+  "tabela_totens_santuarios": {
+    "nome": "Tabela de Totens e Santuários",
+    "descricao": "Magia não pode ser conjurada no Mundano sem Totem ou Santuário.",
+    "fonte": "SRD-ETMOS-1.1.pdf, seção Totens e Santuários",
+    "rank": {
+      "descricao": "Totens e Santuários possuem Rank de 0 a 5.",
+      "efeito": "O Rank indica quantos Pontos de Estresse extras são acumulados ao se conjurar uma magia NÃO TRIVIAL por intermédio do Totem ou Santuário.",
+      "valores": [0, 1, 2, 3, 4, 5]
+    },
+    "sem_totem_fantastico_no_mundano": {
+      "descricao": "Um ser Fantástico sem Totem sintonizado (ou fora de Santuário) no Mundano:",
+      "efeito": "Após Corpo+1 minutos, é forçosamente teletransportado para o Fantástico. Ao ser transportado: sofre Ferimentos e acumula Estresse até atingir o Limite de ambos."
+    }
+  }
+}

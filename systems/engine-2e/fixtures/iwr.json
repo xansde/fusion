@@ -1,0 +1,203 @@
+{
+  "$schema": "../fixtures-schema.json",
+  "description": "Golden fixtures for Immunity/Weakness/Resistance (IWR) pipeline (PF2e Remaster).",
+  "source": "docs/research/13-pf2e-sf2e-mecanicas-nucleo.md §6.4 — Immunities, Weaknesses, Resistances; specs/17-sistema-pf2e.md REQ-PF2-060/062",
+  "pipelineOrder": "Immunity → Weakness → Resistance",
+  "rules": {
+    "immunity": "Ignores the damage type completely (result = 0 for that type).",
+    "weakness": "Add weakness value to total damage after immunity check.",
+    "resistance": "Subtract resistance value from total damage (minimum 0).",
+    "postCrit": "Weaknesses and resistances apply AFTER critical hit multiplication.",
+    "source": "§6.4: 'Ordem de aplicação: Imunidade → Fraqueza → Resistência'; 'Fraquezas e resistências se aplicam ao dano após qualquer multiplicação de critical hit'"
+  },
+  "cases": [
+    {
+      "id": "iwr-001",
+      "description": "Immunity: damage of immune type is reduced to 0",
+      "damage": { "amount": 20, "type": "fire" },
+      "iwr": { "immunities": [{ "target": "fire" }], "weaknesses": [], "resistances": [] },
+      "isCritical": false,
+      "expected": { "finalDamage": 0 },
+      "rule": "§6.4: Immunity — ignora completamente o dano do tipo"
+    },
+    {
+      "id": "iwr-002",
+      "description": "Weakness: adds weakness value to damage",
+      "damage": { "amount": 10, "type": "cold" },
+      "iwr": { "immunities": [], "weaknesses": [{ "target": "cold", "value": 5 }], "resistances": [] },
+      "isCritical": false,
+      "expected": { "finalDamage": 15 },
+      "rule": "§6.4: Weakness X [tipo] — adiciona X ao dano total (10 + 5 = 15)"
+    },
+    {
+      "id": "iwr-003",
+      "description": "Resistance: reduces damage (minimum 0)",
+      "damage": { "amount": 10, "type": "fire" },
+      "iwr": { "immunities": [], "weaknesses": [], "resistances": [{ "target": "fire", "value": 5 }] },
+      "isCritical": false,
+      "expected": { "finalDamage": 5 },
+      "rule": "§6.4: Resistance X [tipo] — reduz dano em X (10 − 5 = 5)"
+    },
+    {
+      "id": "iwr-004",
+      "description": "Resistance: damage cannot go below 0",
+      "damage": { "amount": 3, "type": "fire" },
+      "iwr": { "immunities": [], "weaknesses": [], "resistances": [{ "target": "fire", "value": 10 }] },
+      "isCritical": false,
+      "expected": { "finalDamage": 0 },
+      "rule": "§6.4: Resistance — 'reduz dano do tipo indicado em X (mínimo 0)'; 3 − 10 floored at 0"
+    },
+    {
+      "id": "iwr-005",
+      "description": "Weakness + Resistance of same type: weakness applied first (adds), then resistance subtracts",
+      "damage": { "amount": 10, "type": "fire" },
+      "iwr": {
+        "immunities": [],
+        "weaknesses": [{ "target": "fire", "value": 5 }],
+        "resistances": [{ "target": "fire", "value": 3 }]
+      },
+      "isCritical": false,
+      "expected": { "finalDamage": 12 },
+      "rule": "§6.4: Immunity→Weakness→Resistance order; weakness adds: 10+5=15; then resistance subtracts: 15-3=12"
+    },
+    {
+      "id": "iwr-006",
+      "description": "Immunity takes priority: immune type, also has weakness — immunity wins",
+      "damage": { "amount": 20, "type": "fire" },
+      "iwr": {
+        "immunities": [{ "target": "fire" }],
+        "weaknesses": [{ "target": "fire", "value": 10 }],
+        "resistances": []
+      },
+      "isCritical": false,
+      "expected": { "finalDamage": 0 },
+      "rule": "§6.4: Immunity is first in pipeline — if immune, damage is 0 before weakness is ever considered"
+    },
+    {
+      "id": "iwr-007",
+      "description": "Critical hit: damage already doubled, THEN weakness/resistance apply",
+      "damage": { "amount": 20, "type": "cold", "note": "already doubled for crit (was 10 before doubling)" },
+      "iwr": {
+        "immunities": [],
+        "weaknesses": [{ "target": "cold", "value": 5 }],
+        "resistances": []
+      },
+      "isCritical": true,
+      "expected": { "finalDamage": 25 },
+      "rule": "§6.4: 'Fraquezas e resistências se aplicam ao dano após qualquer multiplicação de critical hit'; 20 (doubled) + 5 weakness = 25"
+    },
+    {
+      "id": "iwr-008",
+      "description": "Critical hit with resistance: resistance applies after doubling",
+      "damage": { "amount": 20, "type": "fire", "note": "already doubled" },
+      "iwr": {
+        "immunities": [],
+        "weaknesses": [],
+        "resistances": [{ "target": "fire", "value": 5 }]
+      },
+      "isCritical": true,
+      "expected": { "finalDamage": 15 },
+      "rule": "§6.4 + REQ-PF2-062: resistance after crit doubling; 20 (doubled) − 5 = 15"
+    },
+    {
+      "id": "iwr-009",
+      "description": "Multiple damage types: each resolved independently through IWR",
+      "damage": [
+        { "amount": 10, "type": "piercing" },
+        { "amount": 5, "type": "fire" }
+      ],
+      "iwr": {
+        "immunities": [{ "target": "fire" }],
+        "weaknesses": [{ "target": "piercing", "value": 5 }],
+        "resistances": []
+      },
+      "isCritical": false,
+      "expected": { "finalDamage": 15, "breakdown": [
+        { "type": "piercing", "before": 10, "after": 15, "note": "weakness +5" },
+        { "type": "fire", "before": 5, "after": 0, "note": "immunity" }
+      ]},
+      "rule": "§6.4: each damage type goes through IWR independently; piercing 10+5=15; fire 5→0 (immunity)"
+    },
+    {
+      "id": "iwr-010",
+      "description": "Resistance to 'physical' covers bludgeoning/piercing/slashing",
+      "damage": { "amount": 15, "type": "bludgeoning" },
+      "iwr": {
+        "immunities": [],
+        "weaknesses": [],
+        "resistances": [{ "target": "physical", "value": 5 }]
+      },
+      "isCritical": false,
+      "expected": { "finalDamage": 10 },
+      "rule": "§6.1 + §6.4: physical damage types (bludgeoning/piercing/slashing) are targeted by 'physical' resistance; 15 − 5 = 10",
+      "verify": true,
+      "verifyNote": "Confirm engine-2e treats 'physical' as an umbrella target covering all three physical damage subtypes, consistent with PF2e stat block conventions."
+    },
+    {
+      "id": "iwr-011",
+      "description": "Persistent damage basic: tracked separately, applied at end of turn",
+      "persistentDamage": { "amount": 5, "type": "bleed", "flatCheckDC": 15 },
+      "iwr": {
+        "immunities": [],
+        "weaknesses": [{ "target": "bleed", "value": 5 }],
+        "resistances": []
+      },
+      "isCritical": false,
+      "expected": { "damageApplied": 10, "note": "persistent damage still goes through IWR (weakness applies: 5 + 5 = 10)" },
+      "rule": "§6.5 + §6.4: persistent damage is applied at end of turn; it still interacts with IWR (weakness/resistance apply)",
+      "verify": true,
+      "verifyNote": "PF2e RAW states persistent damage triggers weakness/resistance. Confirm the engine IWR pipeline is called when persistent damage fires."
+    },
+    {
+      "id": "iwr-012",
+      "description": "Weakness to a trait (e.g., 'magical'): applies when damage has that trait",
+      "damage": { "amount": 10, "type": "fire", "traits": ["magical"] },
+      "iwr": {
+        "immunities": [],
+        "weaknesses": [{ "target": "magical", "value": 5 }],
+        "resistances": []
+      },
+      "isCritical": false,
+      "expected": { "finalDamage": 15 },
+      "rule": "§6.4: weakness target can be a trait, not just a damage type; 'magical' trait on damage triggers 5 weakness"
+    },
+    {
+      "id": "iwr-013",
+      "description": "Immunity to a condition (not damage): blocks condition application",
+      "conditionSlug": "frightened",
+      "iwr": {
+        "immunities": [{ "target": "frightened" }],
+        "weaknesses": [],
+        "resistances": []
+      },
+      "expected": { "conditionApplied": false },
+      "rule": "§6.4 + REQ-PF2-053: immunity applies to conditions as well; 'frightened' immunity blocks the condition"
+    },
+    {
+      "id": "iwr-014",
+      "description": "No relevant IWR: damage passes through unchanged",
+      "damage": { "amount": 12, "type": "slashing" },
+      "iwr": {
+        "immunities": [{ "target": "fire" }],
+        "weaknesses": [{ "target": "cold", "value": 5 }],
+        "resistances": [{ "target": "acid", "value": 3 }]
+      },
+      "isCritical": false,
+      "expected": { "finalDamage": 12 },
+      "rule": "§6.4: none of the IWR entries match 'slashing'; damage is unchanged"
+    },
+    {
+      "id": "iwr-015",
+      "description": "Zero damage after all IWR: result is 0, not negative",
+      "damage": { "amount": 8, "type": "fire" },
+      "iwr": {
+        "immunities": [],
+        "weaknesses": [],
+        "resistances": [{ "target": "fire", "value": 15 }]
+      },
+      "isCritical": false,
+      "expected": { "finalDamage": 0 },
+      "rule": "§6.4: Resistance — '(mínimo 0)'; 8 − 15 clamped to 0"
+    }
+  ]
+}

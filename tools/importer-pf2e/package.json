@@ -1,0 +1,44 @@
+{
+  "name": "@fusion/importer-pf2e",
+  "version": "0.1.0",
+  "description": "CLI tool to extract, transform and pack PF2E compendium data into Fusion packs",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "scan-rules": "node analysis/scan-rules.mjs",
+    "extract": "node src/cli.mjs extract",
+    "transform": "node src/cli.mjs transform",
+    "pack": "node src/cli.mjs pack",
+    "all": "node src/cli.mjs all"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "_dependencies_planned": {
+    "note": "Dependencies listed below are PLANNED but NOT yet installed. Run pnpm add when implementing each phase.",
+    "phase_extract": {
+      "comment": "Extract phase: unpack LevelDB packs from Foundry binary format (if needed)",
+      "@foundryvtt/foundryvtt-cli": "^1.1.2"
+    },
+    "phase_transform": {
+      "comment": "Transform phase: JSON schema validation and coercion",
+      "zod": "^3.23.8"
+    },
+    "phase_pack_output": {
+      "comment": "Pack output: write Fusion packs as NDJSON or LevelDB",
+      "classic-level": "^1.4.1"
+    },
+    "phase_cli": {
+      "comment": "CLI UX",
+      "commander": "^12.1.0",
+      "chalk": "^5.3.0",
+      "ora": "^8.1.1"
+    },
+    "phase_dev": {
+      "comment": "Dev/test",
+      "@types/node": "^22.0.0",
+      "vitest": "^2.0.0"
+    },
+    "note_no_new_deps": "Do NOT run pnpm install on the root workspace while batch M2 is in progress. Install only after M2 lands."
+  }
+}

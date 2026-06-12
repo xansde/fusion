@@ -1,0 +1,152 @@
+{
+  "$schema": "../fixtures-schema.json",
+  "description": "Golden fixtures for TEML proficiency bonus calculation (PF2e Remaster).",
+  "source": "docs/research/13-pf2e-sf2e-mecanicas-nucleo.md §3.1 — Sistema TEML; specs/17-sistema-pf2e.md §Conceitos (TEML), REQ-PF2-011",
+  "formula": "rank > 0 ? (rank * 2) + level : 0",
+  "rankMapping": {
+    "Untrained": 0,
+    "Trained": 1,
+    "Expert": 2,
+    "Master": 3,
+    "Legendary": 4
+  },
+  "cases": [
+    {
+      "id": "teml-001",
+      "description": "Untrained rank: always +0, level is NOT added",
+      "rank": "Untrained",
+      "rankValue": 0,
+      "level": 1,
+      "expected": { "proficiencyBonus": 0 },
+      "rule": "§3.1: Untrained = +0 (sem nível somado); REQ-PF2-011: Untrained +0 (sem nível)"
+    },
+    {
+      "id": "teml-002",
+      "description": "Untrained rank at level 10: still +0",
+      "rank": "Untrained",
+      "rankValue": 0,
+      "level": 10,
+      "expected": { "proficiencyBonus": 0 },
+      "rule": "§3.1: Untrained = +0 (sem nível somado) regardless of level"
+    },
+    {
+      "id": "teml-003",
+      "description": "Untrained rank at level 20: still +0",
+      "rank": "Untrained",
+      "rankValue": 0,
+      "level": 20,
+      "expected": { "proficiencyBonus": 0 },
+      "rule": "§3.1: Untrained = +0; level does not contribute when untrained"
+    },
+    {
+      "id": "teml-004",
+      "description": "Trained at level 1: +2 + 1 = +3",
+      "rank": "Trained",
+      "rankValue": 1,
+      "level": 1,
+      "expected": { "proficiencyBonus": 3 },
+      "rule": "§3.1: Trained = +2 + nível; level 1 → 2 + 1 = 3"
+    },
+    {
+      "id": "teml-005",
+      "description": "Trained at level 5: +2 + 5 = +7",
+      "rank": "Trained",
+      "rankValue": 1,
+      "level": 5,
+      "expected": { "proficiencyBonus": 7 },
+      "rule": "§3.1: Trained = +2 + nível; level 5 → 2 + 5 = 7"
+    },
+    {
+      "id": "teml-006",
+      "description": "Expert at level 1: +4 + 1 = +5",
+      "rank": "Expert",
+      "rankValue": 2,
+      "level": 1,
+      "expected": { "proficiencyBonus": 5 },
+      "rule": "§3.1: Expert = +4 + nível; level 1 → 4 + 1 = 5"
+    },
+    {
+      "id": "teml-007",
+      "description": "Expert at level 10: +4 + 10 = +14",
+      "rank": "Expert",
+      "rankValue": 2,
+      "level": 10,
+      "expected": { "proficiencyBonus": 14 },
+      "rule": "§3.1: Expert = +4 + nível; level 10 → 4 + 10 = 14"
+    },
+    {
+      "id": "teml-008",
+      "description": "Master at level 1: +6 + 1 = +7",
+      "rank": "Master",
+      "rankValue": 3,
+      "level": 1,
+      "expected": { "proficiencyBonus": 7 },
+      "rule": "§3.1: Master = +6 + nível; level 1 → 6 + 1 = 7"
+    },
+    {
+      "id": "teml-009",
+      "description": "Master at level 15: +6 + 15 = +21",
+      "rank": "Master",
+      "rankValue": 3,
+      "level": 15,
+      "expected": { "proficiencyBonus": 21 },
+      "rule": "§3.1: Master = +6 + nível; level 15 → 6 + 15 = 21"
+    },
+    {
+      "id": "teml-010",
+      "description": "Legendary at level 1: +8 + 1 = +9",
+      "rank": "Legendary",
+      "rankValue": 4,
+      "level": 1,
+      "expected": { "proficiencyBonus": 9 },
+      "rule": "§3.1: Legendary = +8 + nível; level 1 → 8 + 1 = 9"
+    },
+    {
+      "id": "teml-011",
+      "description": "Legendary at level 20: +8 + 20 = +28",
+      "rank": "Legendary",
+      "rankValue": 4,
+      "level": 20,
+      "expected": { "proficiencyBonus": 28 },
+      "rule": "§3.1: Legendary = +8 + nível; level 20 → 8 + 20 = 28"
+    },
+    {
+      "id": "teml-012",
+      "description": "Formula consistency check: rank*2 + level for all non-Untrained ranks",
+      "rank": "Expert",
+      "rankValue": 2,
+      "level": 7,
+      "expected": { "proficiencyBonus": 11 },
+      "rule": "specs/17 §Conceitos: formula 'rank > 0 ? rank*2 + level : 0'; Expert(2)*2 + 7 = 11"
+    },
+    {
+      "id": "teml-013",
+      "description": "Trained at level 20: +2 + 20 = +22",
+      "rank": "Trained",
+      "rankValue": 1,
+      "level": 20,
+      "expected": { "proficiencyBonus": 22 },
+      "rule": "§3.1: Trained = +2 + nível; level 20 → 2 + 20 = 22"
+    },
+    {
+      "id": "teml-014",
+      "description": "Level 0 (NPC, level can be 0 per spec model): Trained +2+0 = +2",
+      "rank": "Trained",
+      "rankValue": 1,
+      "level": 0,
+      "expected": { "proficiencyBonus": 2 },
+      "rule": "§3.1: Trained = +2 + nível; level 0 → 2 + 0 = 2 (NPC can have level 0)"
+    },
+    {
+      "id": "teml-015",
+      "description": "Negative level (NPC per spec: 'pode ser negativo (−1..)'): Trained +2 + (-1) = +1",
+      "rank": "Trained",
+      "rankValue": 1,
+      "level": -1,
+      "expected": { "proficiencyBonus": 1 },
+      "rule": "specs/17 NpcSystem.level: 'pode ser negativo (−1..)'; formula still rank*2+level = 2+(-1) = 1",
+      "verify": true,
+      "verifyNote": "Confirm engine-2e handles negative level for NPCs (spec 17 states NPC level can be -1 or lower). Does proficiency bonus floor at 0 or can it go negative at extreme negative levels?"
+    }
+  ]
+}
