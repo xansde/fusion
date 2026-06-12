@@ -22,8 +22,8 @@ import type { DocumentMirror } from "../DocumentMirror.js";
 // Mock Svelte activeScene module
 // ---------------------------------------------------------------------------
 
-const mockSetActiveSceneId = vi.fn<[string | null, unknown], void>();
-const mockSyncActiveSceneFromMirror = vi.fn<[unknown], void>();
+const mockSetActiveSceneId = vi.fn<(id: string | null, mirror: unknown) => void>();
+const mockSyncActiveSceneFromMirror = vi.fn<(mirror: unknown) => void>();
 
 vi.mock("../activeScene.svelte.js", () => ({
   activeSceneState: { id: null, scene: null },

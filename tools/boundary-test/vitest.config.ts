@@ -10,5 +10,8 @@ export default defineConfig({
   test: {
     name: "boundary-test",
     include: ["src/**/__tests__/**/*.test.ts"],
+    // Each test spawns dependency-cruiser as a cold subprocess that parses the
+    // whole TS tree; under concurrent-suite load this exceeds the 5s default.
+    testTimeout: 30_000,
   },
 });

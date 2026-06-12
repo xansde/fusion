@@ -14,8 +14,8 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M0-C  | Fastify boot, socket.io handshake/envelope, auth (Argon2id/JWT), contract tests | concluído    | 96              |
 | M1-A  | Canvas PIXI v8, grade square, render groups                                     | concluído    | 96              |
 | M1-B  | Scene/Token embedded, CRUD broadcast, snapshot+resync, reconexão                | concluído    | 97              |
-| M1-C  | Tokens no canvas (drag, animação, barras), ownership no servidor                | em andamento | —               |
-| M1-D  | Motor de rolagens (RNG servidor, roll modes, inline), chat + cards              | pendente     | —               |
+| M1-C  | Tokens no canvas (drag, animação, barras), ownership no servidor                | concluído    | 97              |
+| M1-D  | Motor de rolagens (RNG servidor, roll modes, inline), chat + cards              | em andamento | —               |
 | M1-E  | Assets (upload/serving), presença (cursores, ping, ruler), DoD M1               | pendente     | —               |
 | M2-A  | Walls + portas, visibility polygon, luzes                                       | pendente     | —               |
 | M2-B  | Fog of war (3 estados, persistência, Clipper2), broadcast de delta              | pendente     | —               |
@@ -29,11 +29,16 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 
 ## Registro por batch
 
+### M1-C — Tokens interativos + segurança de hidden (2026-06-12) — score 97 ✅ (após 2 rodadas de fix de segurança)
+
+- A saga deste batch mostra o valor da auditoria adversarial: auditorias iniciais 72→68→62 (vazamento de token hidden no **delta resync** com teste de guarda vaziamente verde); fix Opus 1 fechou snapshot/broadcast/delta com helper canônico `redaction.ts`, mas a sonda adversarial achou um 4º caminho — **eco do ACK** vazando a Scene completa ao remetente não-GM; fix Opus 2 centralizou a redação no dispatcher (cobre handlers futuros). Re-auditoria: invariante intacta nos 5 caminhos (sonda de 40 iterações), 88 segurado só por flakiness de teste; orquestrador centralizou o predicado `isRolePrivileged`, trocou pool threads→forks (ACCESS_VIOLATION do better-sqlite3 em worker_threads no Windows), maxForks 4 e timeouts honestos no runCli. Suíte 5x verde consecutivas → re-auditoria final **97**. 776 testes.
+- Entregue: TokenLayer reativo (texturas+placeholder, nameplates LOD, barras, animação interpolada), drag otimista com rollback (máquina de estados testada), setas, seleção, GM tools (add/del/toggle hidden), filtro de hidden em TODOS os caminhos de emissão, infra de teste determinística.
+
 ### M1-B — Sync de Documents (2026-06-12) — score 97 ✅ (após correção dirigida)
 
 - Auditorias do batch: 38 → 82 → 91 (bloqueado no gate); correção dirigida com os 6 fixes do auditor + re-auditoria independente → **97**. ~650 testes verdes.
 - Entregue: Scene/TokenDocument embedded (Zod), doc:create/update/delete com permissão no servidor + broadcast com seq, snapshot filtrado por ownership (tokens hidden excluídos para não-GM), resync delta com buffer circular 1000 + fallback para snapshot (incl. pós-restart), DocumentMirror no client (ordenação estrita por seq, fila de boot, gap→resync), reconexão, UI mínima de cenas (GM cria/ativa), pendências M0-C fechadas (ack com requestId; cookie Secure configurável).
-- Fixes dirigidos: dot-path expandido no update primário; OpBuffer sinaliza stale pós-restart; world:activeScene aplicado no replay de delta; filtro de hidden no snapshot; allowlist no update de embedded (_id imutável, actorId GM-only); schema morto removido. TODO explícito: filtro de hidden no broadcast live (M1-C).
+- Fixes dirigidos: dot-path expandido no update primário; OpBuffer sinaliza stale pós-restart; world:activeScene aplicado no replay de delta; filtro de hidden no snapshot; allowlist no update de embedded (\_id imutável, actorId GM-only); schema morto removido. TODO explícito: filtro de hidden no broadcast live (M1-C).
 
 ### M1-A — Grid math + canvas PIXI (2026-06-12) — score 96 ✅
 

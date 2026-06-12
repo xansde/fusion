@@ -16,7 +16,12 @@
  * cross-test interactions.
  */
 
-import { describe, it, expect, beforeAll, afterEach } from "vitest";
+import { describe, it, expect, beforeAll, afterEach, vi } from "vitest";
+
+// Each test spawns the real CLI as a cold Node child process (several per
+// test for roundtrips); under concurrent suite load these legitimately take
+// far longer than the package default of 30s.
+vi.setConfig({ testTimeout: 120_000 });
 import { spawnSync } from "node:child_process";
 import { mkdirSync, rmSync, existsSync } from "node:fs";
 import { join } from "node:path";
@@ -46,7 +51,7 @@ interface RunResult {
 function runCli(args: string[], dataDir: string): RunResult {
   const result = spawnSync(process.execPath, [CLI_ENTRY, ...args, "--data-dir", dataDir], {
     encoding: "utf8",
-    timeout: 15_000,
+    timeout: 30_000,
     env: {
       ...process.env,
       // Suppress pino pretty-print / colour codes in CI
@@ -55,8 +60,18 @@ function runCli(args: string[], dataDir: string): RunResult {
     },
   });
 
+  // A null status means the child was killed (timeout) or failed to spawn.
+  // Surface that loudly instead of masking it as a logic failure (exit 1).
+  if (result.error || result.status === null) {
+    throw new Error(
+      `CLI process did not exit cleanly: signal=${result.signal ?? "none"} error=${
+        result.error ? result.error.message : "none"
+      }`,
+    );
+  }
+
   return {
-    exitCode: result.status ?? 1,
+    exitCode: result.status,
     stdout: result.stdout ?? "",
     stderr: result.stderr ?? "",
   };

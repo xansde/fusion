@@ -16,9 +16,15 @@ export default defineConfig({
   test: {
     name: "server",
     environment: "node",
-    // threads pool preserves resolve.alias for @fusion/shared.
-    // forks would spawn isolated Node processes that lose Vite's module resolution.
-    pool: "threads",
+    // forks pool (child processes) instead of threads: better-sqlite3 is a
+    // native addon and intermittently crashes (ACCESS_VIOLATION on Windows)
+    // when loaded in worker_threads. Vite's transform pipeline (and
+    // resolve.alias) applies to forks workers the same way.
+    pool: "forks",
+    // Cap concurrent test-file processes: several suites spawn their own
+    // child processes (CLI tests) or bind sockets; unbounded forks saturate
+    // the machine and produce timeout flakiness.
+    poolOptions: { forks: { maxForks: 4 } },
     include: ["src/**/__tests__/**/*.test.ts"],
     testTimeout: 30_000,
     hookTimeout: 15_000,

@@ -30,6 +30,21 @@ export enum UserRole {
 }
 
 // ---------------------------------------------------------------------------
+// Privilege threshold (single source of truth)
+// ---------------------------------------------------------------------------
+
+/** Minimum role that bypasses ownership checks and hidden-token redaction. */
+const PRIVILEGED_ROLE_THRESHOLD: number = UserRole.ASSISTANT_GM;
+
+/**
+ * Every emission path (snapshot, live broadcast, delta resync, ack) MUST use
+ * this predicate so the privilege threshold can never drift between paths.
+ */
+export function isRolePrivileged(role: number): boolean {
+  return role >= PRIVILEGED_ROLE_THRESHOLD;
+}
+
+// ---------------------------------------------------------------------------
 // Folder ownership context (minimal interface for inheritance)
 // ---------------------------------------------------------------------------
 

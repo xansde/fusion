@@ -17,9 +17,32 @@
  *
  * REQ-NET-025: embedded doc ops must update the parent document and broadcast
  * the parent's new state with a fresh seq.
+ *
+ * M1-C hidden-token broadcast filtering (REQ-CNV hidden token):
+ *
+ * When a Scene update touches hidden tokens, we emit per-socket payloads
+ * instead of a single namespace-wide emit.  The filtering semantics are:
+ *
+ *   - GM/ASSISTANT sockets receive the full Scene including all hidden tokens.
+ *   - Player sockets receive the Scene with hidden tokens stripped out.
+ *
+ * From a player's perspective this produces naturally correct event semantics:
+ *   - Token created as hidden     → player receives nothing about that token
+ *                                   (Scene update arrives without it).
+ *   - Token toggled hidden→visible → player receives doc:update with Scene
+ *                                   now including that token (create-like).
+ *   - Token toggled visible→hidden → player receives doc:update with Scene
+ *                                   no longer containing that token (delete-like).
+ *   - Token moved while hidden    → player receives doc:update for the Scene
+ *                                   but the token is absent, so position leaks
+ *                                   nothing.
+ *
+ * We only pay the per-socket iteration cost when the operation actually
+ * involves a Scene document.  All other doc types (Actor, Item, etc.) continue
+ * to use the cheap namespace-wide emit path.
  */
 
-import type { Namespace } from "socket.io";
+import type { Namespace, Socket } from "socket.io";
 import type { HandlerFn, HandlerContext } from "../handler-registry.js";
 import type { SeqStore } from "../seq-store.js";
 import type { OpBuffer } from "../op-buffer.js";
@@ -29,7 +52,12 @@ import {
   DocumentValidationError,
   DocumentIdCollisionError,
 } from "../../documents/store.js";
-import { UserRole, resolveOwnership, OwnershipLevel } from "../../documents/ownership.js";
+import {
+  UserRole,
+  resolveOwnership,
+  OwnershipLevel,
+  isRolePrivileged,
+} from "../../documents/ownership.js";
 import {
   DocCreatePayloadSchema,
   DocUpdatePayloadSchema,
@@ -38,6 +66,7 @@ import {
 } from "@fusion/shared";
 import type { DocUpdatePayload, Ack, Ownership, Envelope, ErrorCode } from "@fusion/shared";
 import { createDocumentId } from "@fusion/shared";
+import { stripHiddenTokens, scenePayloadHasHiddenTokens } from "../redaction.js";
 
 // ---------------------------------------------------------------------------
 // Ack builder helpers
@@ -57,9 +86,6 @@ function ackOk<R>(result: R, seq: number): Ack<R> {
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
-
-/** Roles that can bypass ownership checks (GM and ASSISTANT). */
-const PRIVILEGED_ROLE = UserRole.ASSISTANT_GM;
 
 /** Map from documentType string (client-facing) to DocumentTable key. */
 const TYPE_TO_TABLE: Record<string, string> = {
@@ -94,8 +120,7 @@ function resolveTable(documentType: string): string | null {
 }
 
 function isPrivileged(role: number): boolean {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-  return role >= PRIVILEGED_ROLE;
+  return isRolePrivileged(role);
 }
 
 /** Extract the ownership map from a raw document, returning a default if absent. */
@@ -198,8 +223,8 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
     const envelope = buildBroadcastEnvelope("doc:create", broadcastPayload, seq);
     deps.opBuffer.push(envelope);
 
-    // Broadcast to world room (filter per-socket done via namespace emit)
-    broadcastToWorld(deps.ns, envelope);
+    // Broadcast to world (per-socket hidden-token filtering applied for Scene).
+    broadcastToWorld(deps.ns, envelope, documentType);
 
     return ackOk({ documentType, documents: created }, seq);
   };
@@ -302,7 +327,7 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
     const envelope = buildBroadcastEnvelope("doc:update", broadcastPayload, seq);
     deps.opBuffer.push(envelope);
 
-    broadcastToWorld(deps.ns, envelope);
+    broadcastToWorld(deps.ns, envelope, documentType);
 
     return ackOk({ documentType, documents: updated }, seq);
   };
@@ -477,7 +502,8 @@ function handleEmbeddedCreate(
   const envelope = buildBroadcastEnvelope("doc:update", broadcastPayload, seq);
   deps.opBuffer.push(envelope);
 
-  broadcastToWorld(deps.ns, envelope);
+  // parent.type is "Scene" for token ops — hidden-token filtering applied.
+  broadcastToWorld(deps.ns, envelope, parent.type);
 
   return {
     ok: true as const,
@@ -624,7 +650,8 @@ function handleEmbeddedUpdate(
   const envelope = buildBroadcastEnvelope("doc:update", broadcastPayload, seq);
   deps.opBuffer.push(envelope);
 
-  broadcastToWorld(deps.ns, envelope);
+  // resolvedParentType is "Scene" for token ops — hidden-token filtering applied.
+  broadcastToWorld(deps.ns, envelope, resolvedParentType);
 
   return {
     ok: true as const,
@@ -703,7 +730,8 @@ function handleEmbeddedDelete(
   const envelope = buildBroadcastEnvelope("doc:update", broadcastPayload, seq);
   deps.opBuffer.push(envelope);
 
-  broadcastToWorld(deps.ns, envelope);
+  // parent.type is "Scene" for token ops — hidden-token filtering applied.
+  broadcastToWorld(deps.ns, envelope, parent.type);
 
   return {
     ok: true as const,
@@ -717,31 +745,62 @@ function handleEmbeddedDelete(
 // ---------------------------------------------------------------------------
 
 /**
- * Broadcast a doc op envelope to all sockets in the world namespace.
- * Each socket receives the envelope only if it can see at least one of the
- * affected documents (REQ-NET-024).
- *
- * Because socket.io doesn't support per-socket payload filtering natively,
- * we do a simple namespace-wide emit here.  For a production system with
- * fine-grained visibility we would iterate sockets.  For M1-B the cost is
- * acceptable: the payload already uses ownership filtering in the snapshot;
- * the broadcast is the incremental update.
- *
- * NOTE: In practice, a player who receives a doc:update for a Scene they
- * don't have access to simply won't have that Scene in their local state, so
- * the update will be ignored by the client.  Suppressing at the network layer
- * is a latency optimization for M2.
- *
- * TODO(M1-C): Apply per-socket hidden-token filtering for Scene doc:update
- * broadcasts.  Right now, the snapshot already strips hidden tokens for
- * non-GM clients (FIX-4), but an incremental doc:update for a Scene still
- * delivers the full token list to all players.  Fixing this requires iterating
- * connected sockets and sending a per-socket filtered payload — non-trivial
- * because socket.io's namespace.emit does not support per-socket payloads.
- * Track as: REF M1-C hidden-token broadcast filtering.
+ * Return true when the socket belongs to a GM or ASSISTANT.
+ * socket.data is typed as `unknown` by socket.io; we read role defensively.
  */
-function broadcastToWorld(ns: Namespace, envelope: Envelope): void {
-  // Broadcast to all connected sockets in the namespace
+function socketIsPrivileged(socket: Socket): boolean {
+  const data = socket.data as Record<string, unknown> | null | undefined;
+  if (!data) return false;
+  const role = data["role"];
+  return typeof role === "number" && isRolePrivileged(role);
+}
+
+/**
+ * Broadcast a doc op envelope to all sockets in the world namespace.
+ *
+ * For Scene updates (doc:create / doc:update) that involve hidden tokens we
+ * iterate connected sockets and send a per-socket payload:
+ *   - privileged sockets (GM / ASSISTANT) → full payload
+ *   - player sockets → payload with hidden tokens stripped from every Scene doc
+ *
+ * For all other document types, or for Scene updates that contain no hidden
+ * tokens, we use the cheap namespace-wide emit (no per-socket iteration cost).
+ *
+ * doc:delete envelopes are always namespace-wide: deletes carry only IDs, not
+ * the document body, so there is nothing to strip.
+ */
+function broadcastToWorld(ns: Namespace, envelope: Envelope, documentType?: string): void {
+  // Only Scene doc:create / doc:update need hidden-token filtering.
+  if (
+    documentType === "Scene" &&
+    (envelope.type === "doc:create" || envelope.type === "doc:update")
+  ) {
+    const payload = envelope.payload as {
+      documentType: string;
+      documents: Record<string, unknown>[];
+    };
+
+    if (scenePayloadHasHiddenTokens(payload.documents)) {
+      // Build the player-visible payload once (shared across all player sockets).
+      const filteredDocs = payload.documents.map(stripHiddenTokens);
+      const playerEnvelope: Envelope = {
+        ...envelope,
+        payload: { ...payload, documents: filteredDocs },
+      };
+
+      // Iterate all connected sockets in the namespace.
+      for (const [, socket] of ns.sockets) {
+        if (socketIsPrivileged(socket)) {
+          socket.emit("op", envelope);
+        } else {
+          socket.emit("op", playerEnvelope);
+        }
+      }
+      return;
+    }
+  }
+
+  // Fast path: no hidden-token concern — namespace-wide emit.
   ns.emit("op", envelope);
 }
 

@@ -32,15 +32,12 @@ import {
   buildActiveSceneHandler,
   sendJoinSnapshot,
 } from "./handlers/sync-handlers.js";
+import { redactAckResultForNonPrivileged } from "./redaction.js";
 import { DocumentStore } from "../documents/index.js";
 import type { AuthService } from "../auth/service.js";
 import type { Database as Db } from "better-sqlite3";
 
-// --------------------------------------------------------------------------
-// Role numeric values (mirrors auth/user-store.ts)
-// --------------------------------------------------------------------------
-
-const ROLE_ASSISTANT = 3;
+import { isRolePrivileged } from "../documents/ownership.js";
 
 // --------------------------------------------------------------------------
 // Types
@@ -255,7 +252,7 @@ export class SocketManager {
 
       // REQ-NET-004: join user room; GM/ASSISTANT also join gm room
       void socket.join(`user:${data.userId}`);
-      if (data.role >= ROLE_ASSISTANT) {
+      if (isRolePrivileged(data.role)) {
         void socket.join("gm");
       }
 
@@ -411,15 +408,31 @@ export class SocketManager {
       try {
         const result = await handler(envelope.payload, ctx);
         if (typeof ack === "function") {
+          // SECURITY (M1-C): centralized hidden-token redaction for the ack
+          // echoed back to the requester.  Handlers that touch Scene tokens
+          // (the embedded create/update/delete paths and primary Scene
+          // create/update) return the full Scene in result.documents[] or
+          // result.parent.  For NON-privileged sockets (role < ASSISTANT) we
+          // strip hidden tokens here — at the single dispatcher choke point —
+          // so the hidden token's name/coords/_id can never reach a player via
+          // the ack, by ANY handler (present or future).  Privileged sockets
+          // (GM / ASSISTANT) receive the unredacted result.  redactAckResult*
+          // clones before stripping and never mutates the shared object that
+          // the live-broadcast / op-buffer paths also reference.
+          const acked = isRolePrivileged(data.role)
+            ? result
+            : redactAckResultForNonPrivileged(result);
+
           // REQ-NET-011: echo requestId back in ack (M0-C pendência)
           if (
-            typeof result === "object" &&
-            !("requestId" in (result as object)) &&
+            typeof acked === "object" &&
+            acked !== null &&
+            !("requestId" in acked) &&
             envelope.requestId !== undefined
           ) {
-            (result as Record<string, unknown>)["requestId"] = envelope.requestId;
+            (acked as Record<string, unknown>)["requestId"] = envelope.requestId;
           }
-          ack(result);
+          ack(acked);
         }
       } catch (err) {
         logger.error({ err, userId: data.userId, type: envelope.type }, "Handler threw");

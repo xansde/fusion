@@ -16,10 +16,12 @@ import type { HandlerFn } from "../handler-registry.js";
 import type { SeqStore } from "../seq-store.js";
 import type { OpBuffer } from "../op-buffer.js";
 import type { DocumentStore } from "../../documents/store.js";
-import { OwnershipLevel, resolveOwnership, UserRole } from "../../documents/ownership.js";
+import { OwnershipLevel, resolveOwnership, isRolePrivileged } from "../../documents/ownership.js";
+import { stripHiddenTokens } from "../redaction.js";
 
 import { WorldResyncRequestPayloadSchema, WorldActiveScenePayloadSchema } from "@fusion/shared";
 import type {
+  Envelope,
   WorldSnapshotPayload,
   WorldActiveScenePayload,
   ResyncDeltaPayload,
@@ -51,8 +53,7 @@ const SNAPSHOT_TABLES: Array<{ table: string; docType: string }> = [
 // ---------------------------------------------------------------------------
 
 function isPrivileged(role: number): boolean {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-  return role >= UserRole.ASSISTANT_GM;
+  return isRolePrivileged(role);
 }
 
 function getOwnershipFromDoc(doc: Record<string, unknown>): Ownership {
@@ -99,26 +100,50 @@ function persistActiveSceneId(db: Db, sceneId: string | null): void {
 }
 
 /**
- * Strip hidden tokens from a Scene document for non-GM players.
+ * Filter a list of buffered ops for delivery to a non-privileged client.
  *
- * REQ-NET-024 / FIX-4 (M1-B): players must not receive tokens whose
- * `hidden` field is true.  Fine-grained actor-ownership visibility
- * (e.g. tokens whose actor the player does not own) is deferred to M1-C.
+ * Invariant (specs 04/05): a hidden token's position/existence must never
+ * reach a non-GM socket — including via delta resync replay.
  *
- * Returns a shallow copy of the scene with the tokens array filtered.
- * If the scene has no tokens array the original object is returned unchanged.
+ * The OpBuffer stores the SAME GM-visible envelopes that the live broadcast
+ * path produces.  Every embedded token op (create / update / delete on a
+ * Token) is buffered by the doc handlers as a Scene update of the form
+ * `{ documentType: "Scene", documents: [fullScene] }` (see handleEmbedded*),
+ * and primary Scene create/update ops use the same `{ documentType, documents }`
+ * shape.  There is therefore exactly one shape to redact here, and it is the
+ * same one `broadcastToWorld` redacts live: map each Scene doc through the
+ * canonical `stripHiddenTokens`.
+ *
+ * There is no separate "Token" branch and no `payload.updates` / `payload.data`
+ * branch: those shapes are never buffered, so handling them would be dead code.
+ *
+ * The buffered envelope is SHARED with every other consumer (the GM delta, the
+ * buffer itself).  We must never mutate it in place — when redaction removes a
+ * token we emit a fresh cloned envelope and leave the buffered original intact.
+ *
+ * Returns a new array; each element is either the original op (nothing to
+ * redact) or a redacted clone.
  */
-function stripHiddenTokens(scene: Record<string, unknown>): Record<string, unknown> {
-  const rawTokens = scene["tokens"];
-  if (!Array.isArray(rawTokens)) return scene;
+function filterOpsForRole(ops: Envelope[]): Envelope[] {
+  return ops.map((op) => {
+    if (op.type !== "doc:create" && op.type !== "doc:update") return op;
 
-  const filtered = (rawTokens as Record<string, unknown>[]).filter(
-    (token) => token["hidden"] !== true,
-  );
+    const payload = op.payload as Record<string, unknown> | null | undefined;
+    if (!payload || typeof payload !== "object") return op;
+    if (payload["documentType"] !== "Scene") return op;
 
-  // Only allocate a new object when something was actually removed.
-  if (filtered.length === rawTokens.length) return scene;
-  return { ...scene, tokens: filtered };
+    const documents = payload["documents"];
+    if (!Array.isArray(documents)) return op;
+
+    const stripped = (documents as Record<string, unknown>[]).map(stripHiddenTokens);
+    // stripHiddenTokens returns the same reference when nothing was removed,
+    // so referential inequality tells us a hidden token was actually redacted.
+    const changed = stripped.some((doc, i) => doc !== documents[i]);
+    if (!changed) return op;
+
+    // Clone — never mutate the shared buffered envelope.
+    return { ...op, payload: { ...payload, documents: stripped } };
+  });
 }
 
 /**
@@ -197,8 +222,10 @@ export function sendJoinSnapshot(
     // Try delta first.  Pass currentSeq so opsAfter can distinguish between
     // "client already up-to-date" (empty return) and "buffer lost after restart"
     // (null → fall through to full snapshot).
-    const delta = deps.opBuffer.opsAfter(lastSeq, deps.seqStore.peek());
-    if (delta !== null) {
+    const rawDelta = deps.opBuffer.opsAfter(lastSeq, deps.seqStore.peek());
+    if (rawDelta !== null) {
+      // Redact hidden tokens for non-privileged clients (delta-resync leak fix)
+      const delta = isPrivileged(role) ? rawDelta : filterOpsForRole(rawDelta);
       // Client can catch up with delta
       const deltaPayload: ResyncDeltaPayload = {
         fromSeq: lastSeq + 1,
@@ -243,8 +270,10 @@ export function buildResyncRequestHandler(deps: SyncHandlerDeps): HandlerFn {
     const payload = parsed.data;
     const { lastSeq } = payload;
 
-    const delta = deps.opBuffer.opsAfter(lastSeq, deps.seqStore.peek());
-    if (delta !== null) {
+    const rawDelta = deps.opBuffer.opsAfter(lastSeq, deps.seqStore.peek());
+    if (rawDelta !== null) {
+      // Redact hidden tokens for non-privileged clients (delta-resync leak fix)
+      const delta = isPrivileged(ctx.role) ? rawDelta : filterOpsForRole(rawDelta);
       const deltaPayload: ResyncDeltaPayload = {
         fromSeq: lastSeq + 1,
         toSeq: deps.seqStore.peek(),

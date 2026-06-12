@@ -915,6 +915,192 @@ describe("M1-B — embedded token CRUD", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Test: M1-C ack-redaction guard
+//
+// Invariant (specs 04/05): a hidden token's existence / position / name must
+// NEVER reach a non-GM socket — including via the op ACK echoed back to the
+// requester.  The auditor proved the embedded handlers return the FULL parent
+// Scene (with the GM's hidden token) in result.parent / result.documents[], and
+// the dispatcher echoes that result in the ack to the sender.  A non-GM moving
+// their OWN token in a scene that also contains a GM hidden token would receive
+// the hidden token's coords/name in the ack.
+//
+// These assertions are STRUCTURAL — they walk result.documents[]/result.parent
+// and inspect each Scene's tokens[] by _id/hidden flag.  No naked-number
+// substring checks (those are flaky against timestamps/seqs).
+// ---------------------------------------------------------------------------
+
+describe("M1-C — ack hidden-token redaction", () => {
+  let ctx: TestContext;
+  let gmSocket: ClientSocket;
+  let playerSocket: ClientSocket;
+
+  // Secret marker values placed on the GM's hidden token.
+  const HIDDEN_X = 6363;
+  const HIDDEN_Y = 3636;
+  const HIDDEN_NAME = "GM_ONLY_GHOST";
+
+  beforeEach(async () => {
+    ctx = await buildTestContext();
+    gmSocket = connectClient(ctx.port, ctx.worldId, {
+      token: ctx.gmToken,
+      protocolVersion: PROTOCOL_VERSION,
+    });
+    playerSocket = connectClient(ctx.port, ctx.worldId, {
+      token: ctx.playerToken,
+      protocolVersion: PROTOCOL_VERSION,
+    });
+    gmSocket.connect();
+    playerSocket.connect();
+    await Promise.all([waitForConnect(gmSocket), waitForConnect(playerSocket)]);
+    await new Promise((r) => setTimeout(r, 50));
+  });
+
+  afterEach(async () => {
+    gmSocket.disconnect();
+    playerSocket.disconnect();
+    await teardown(ctx);
+  });
+
+  /** Collect every token across result.documents[] and result.parent. */
+  function tokensInAckResult(ack: Record<string, unknown>): Record<string, unknown>[] {
+    const result = ack["result"] as Record<string, unknown> | undefined;
+    if (!result) return [];
+    const tokens: Record<string, unknown>[] = [];
+
+    const documents = result["documents"];
+    if (Array.isArray(documents)) {
+      for (const doc of documents as Record<string, unknown>[]) {
+        const docTokens = doc["tokens"];
+        if (Array.isArray(docTokens)) tokens.push(...(docTokens as Record<string, unknown>[]));
+      }
+    }
+
+    const parent = result["parent"] as Record<string, unknown> | undefined;
+    if (parent && Array.isArray(parent["tokens"])) {
+      tokens.push(...(parent["tokens"] as Record<string, unknown>[]));
+    }
+
+    return tokens;
+  }
+
+  /**
+   * Build a scene that contains both a player-owned token (referencing an actor
+   * the player OWNS) and a GM-only hidden token carrying the secret markers.
+   * Returns the ids needed to drive the move + assertions.
+   */
+  async function buildSceneWithOwnedAndHiddenToken(): Promise<{
+    sceneId: string;
+    ownedTokenId: string;
+    hiddenTokenId: string;
+  }> {
+    // Actor owned by player1 (so the player can move its token).
+    const actorAck = await sendOp(gmSocket, "doc:create", {
+      documentType: "Actor",
+      data: [{ name: "Owned Char", type: "pc", ownership: { default: 0, [ctx.playerUserId]: 3 } }],
+    });
+    expect(actorAck["ok"]).toBe(true);
+    const actorId = (
+      (actorAck["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[]
+    )[0]?.["_id"] as string;
+
+    // Scene created by GM.
+    const sceneAck = await sendOp(gmSocket, "doc:create", {
+      documentType: "Scene",
+      data: [{ name: "Mixed-Visibility Scene" }],
+    });
+    expect(sceneAck["ok"]).toBe(true);
+    const sceneId = (
+      (sceneAck["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[]
+    )[0]?.["_id"] as string;
+
+    // Player-owned token (visible).
+    const ownedAck = await sendOp(gmSocket, "doc:create", {
+      documentType: "Token",
+      data: [{ name: "Player Token", actorId, x: 10, y: 20, hidden: false }],
+      parent: { type: "Scene", id: sceneId },
+    });
+    expect(ownedAck["ok"]).toBe(true);
+    const ownedTokens = (
+      (ownedAck["result"] as Record<string, unknown>)["parent"] as Record<string, unknown>
+    )["tokens"] as Record<string, unknown>[];
+    const ownedTokenId = ownedTokens.find((t) => t["actorId"] === actorId)?.["_id"] as string;
+
+    // GM-only hidden token with the secret markers.
+    const hiddenAck = await sendOp(gmSocket, "doc:create", {
+      documentType: "Token",
+      data: [{ name: HIDDEN_NAME, x: HIDDEN_X, y: HIDDEN_Y, hidden: true }],
+      parent: { type: "Scene", id: sceneId },
+    });
+    expect(hiddenAck["ok"]).toBe(true);
+    const allTokens = (
+      (hiddenAck["result"] as Record<string, unknown>)["parent"] as Record<string, unknown>
+    )["tokens"] as Record<string, unknown>[];
+    const hiddenTokenId = allTokens.find((t) => t["hidden"] === true)?.["_id"] as string;
+
+    expect(typeof ownedTokenId).toBe("string");
+    expect(typeof hiddenTokenId).toBe("string");
+    return { sceneId, ownedTokenId, hiddenTokenId };
+  }
+
+  it("player moving own token gets an ack with the GM hidden token REDACTED", async () => {
+    const { sceneId, ownedTokenId, hiddenTokenId } = await buildSceneWithOwnedAndHiddenToken();
+
+    // Player moves their OWN token.  The handler returns the full parent Scene,
+    // which on the server still contains the GM hidden token — the dispatcher
+    // must strip it before acking a non-privileged socket.
+    const moveAck = await sendOp(playerSocket, "doc:update", {
+      documentType: "Token",
+      updates: [
+        { _id: ownedTokenId, diff: { x: 111, y: 222 }, embedded: { type: "Token", id: sceneId } },
+      ],
+    });
+    expect(moveAck["ok"]).toBe(true);
+
+    // STRUCTURAL assertions — walk the ack's Scene tokens.
+    const tokens = tokensInAckResult(moveAck);
+
+    // The player's own token must be present with its new coords.
+    const own = tokens.find((t) => t["_id"] === ownedTokenId);
+    expect(own).toBeDefined();
+    expect(own?.["x"]).toBe(111);
+    expect(own?.["y"]).toBe(222);
+
+    // The GM hidden token must be ABSENT — no _id, no name, no coords leak.
+    expect(tokens.some((t) => t["_id"] === hiddenTokenId)).toBe(false);
+    expect(tokens.some((t) => t["hidden"] === true)).toBe(false);
+    expect(tokens.some((t) => t["name"] === HIDDEN_NAME)).toBe(false);
+    expect(tokens.some((t) => t["x"] === HIDDEN_X && t["y"] === HIDDEN_Y)).toBe(false);
+  });
+
+  it("GM moving the hidden token gets an ack WITHOUT redaction (sees the hidden token)", async () => {
+    const { sceneId, hiddenTokenId } = await buildSceneWithOwnedAndHiddenToken();
+
+    // GM moves the hidden token — as a privileged socket the ack must NOT be
+    // redacted: the hidden token comes back verbatim.
+    const moveAck = await sendOp(gmSocket, "doc:update", {
+      documentType: "Token",
+      updates: [
+        {
+          _id: hiddenTokenId,
+          diff: { x: 4242, y: 2424 },
+          embedded: { type: "Token", id: sceneId },
+        },
+      ],
+    });
+    expect(moveAck["ok"]).toBe(true);
+
+    const tokens = tokensInAckResult(moveAck);
+    const hidden = tokens.find((t) => t["_id"] === hiddenTokenId);
+    expect(hidden).toBeDefined();
+    expect(hidden?.["hidden"]).toBe(true);
+    expect(hidden?.["name"]).toBe(HIDDEN_NAME);
+    expect(hidden?.["x"]).toBe(4242);
+    expect(hidden?.["y"]).toBe(2424);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Test: secureCookies config
 // ---------------------------------------------------------------------------
 
@@ -1827,4 +2013,320 @@ describe("FIX-5 — embedded token: _id strip and actorId protection", () => {
     // x was actually updated
     expect(theToken?.["x"]).toBe(50);
   });
+});
+
+// ---------------------------------------------------------------------------
+// M1-C: live broadcast filtering for hidden tokens
+// ---------------------------------------------------------------------------
+
+/**
+ * Helper: listen for the next doc:update broadcast for a specific Scene on
+ * a socket, with a timeout.  Resolves with the Scene document from the payload.
+ */
+function waitForSceneUpdate(
+  socket: ClientSocket,
+  sceneId: string,
+  timeoutMs = 5000,
+): Promise<Record<string, unknown>> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error(`Timeout waiting for Scene update (${sceneId})`)),
+      timeoutMs,
+    );
+    const handler = (envelope: Record<string, unknown>) => {
+      if (envelope["type"] !== "doc:update" && envelope["type"] !== "doc:create") return;
+      const payload = envelope["payload"] as Record<string, unknown>;
+      if (payload["documentType"] !== "Scene" && payload["documentType"] !== "Token") return;
+      const docs = payload["documents"] as Record<string, unknown>[] | undefined;
+      const match = docs?.find((d) => (d as Record<string, unknown>)["_id"] === sceneId) as
+        | Record<string, unknown>
+        | undefined;
+      if (match) {
+        clearTimeout(timer);
+        socket.off("op", handler);
+        resolve(match);
+      }
+    };
+    socket.on("op", handler);
+  });
+}
+
+describe("M1-C — live broadcast: hidden token filtering per socket", () => {
+  let ctx: TestContext;
+  let gmSocket: ClientSocket;
+  let playerSocket: ClientSocket;
+  let sceneId: string;
+
+  beforeEach(async () => {
+    ctx = await buildTestContext();
+
+    gmSocket = connectClient(ctx.port, ctx.worldId, {
+      token: ctx.gmToken,
+      protocolVersion: PROTOCOL_VERSION,
+    });
+    playerSocket = connectClient(ctx.port, ctx.worldId, {
+      token: ctx.playerToken,
+      protocolVersion: PROTOCOL_VERSION,
+    });
+    gmSocket.connect();
+    playerSocket.connect();
+    await Promise.all([waitForConnect(gmSocket), waitForConnect(playerSocket)]);
+    await new Promise((r) => setTimeout(r, 100));
+
+    // Create a scene used by all tests in this suite
+    const sceneAck = await sendOp(gmSocket, "doc:create", {
+      documentType: "Scene",
+      data: [{ name: "Broadcast Filter Scene" }],
+    });
+    expect(sceneAck["ok"]).toBe(true);
+    sceneId = (
+      (sceneAck["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[]
+    )[0]?.["_id"] as string;
+    // Drain initial broadcast events
+    await new Promise((r) => setTimeout(r, 80));
+  });
+
+  afterEach(async () => {
+    gmSocket.disconnect();
+    playerSocket.disconnect();
+    await teardown(ctx);
+  });
+
+  it("GM creates hidden token → player does NOT receive the token; GM receives it", async () => {
+    // Set up listeners BEFORE sending the op
+    const playerScenePromise = waitForSceneUpdate(playerSocket, sceneId);
+    const gmScenePromise = waitForSceneUpdate(gmSocket, sceneId);
+
+    const tokenAck = await sendOp(gmSocket, "doc:create", {
+      documentType: "Token",
+      data: [{ name: "Hidden Ghost", x: 50, y: 50, hidden: true }],
+      parent: { type: "Scene", id: sceneId },
+    });
+    expect(tokenAck["ok"]).toBe(true);
+
+    // GM should see the Scene with the hidden token present
+    const gmScene = await gmScenePromise;
+    const gmTokens = gmScene["tokens"] as Record<string, unknown>[];
+    const hiddenInGm = gmTokens.filter((t) => t["hidden"] === true);
+    expect(hiddenInGm).toHaveLength(1);
+    expect(hiddenInGm[0]?.["name"]).toBe("Hidden Ghost");
+
+    // Player should receive the Scene update but WITHOUT the hidden token
+    const playerScene = await playerScenePromise;
+    const playerTokens = playerScene["tokens"] as Record<string, unknown>[];
+    const hiddenInPlayer = playerTokens.filter((t) => t["hidden"] === true);
+    expect(hiddenInPlayer).toHaveLength(0);
+  }, 15000);
+
+  it("GM moves hidden token → player does NOT receive position update for that token", async () => {
+    // First, create a hidden token (GM only op)
+    const tokenAck = await sendOp(gmSocket, "doc:create", {
+      documentType: "Token",
+      data: [{ name: "Lurker", x: 0, y: 0, hidden: true }],
+      parent: { type: "Scene", id: sceneId },
+    });
+    expect(tokenAck["ok"]).toBe(true);
+    const parentAfterCreate = (tokenAck["result"] as Record<string, unknown>)["parent"] as Record<
+      string,
+      unknown
+    >;
+    const tokenId = (parentAfterCreate["tokens"] as Record<string, unknown>[])[0]?.[
+      "_id"
+    ] as string;
+    await new Promise((r) => setTimeout(r, 80));
+
+    // Now move the hidden token
+    const playerMovePromise = waitForSceneUpdate(playerSocket, sceneId);
+    const gmMovePromise = waitForSceneUpdate(gmSocket, sceneId);
+
+    const moveAck = await sendOp(gmSocket, "doc:update", {
+      documentType: "Token",
+      updates: [
+        {
+          _id: tokenId,
+          diff: { x: 999, y: 999 },
+          embedded: { type: "Token", id: sceneId },
+        },
+      ],
+    });
+    expect(moveAck["ok"]).toBe(true);
+
+    // GM sees the updated position of the hidden token
+    const gmScene = await gmMovePromise;
+    const gmTokens = gmScene["tokens"] as Record<string, unknown>[];
+    const lurkerGm = gmTokens.find((t) => t["_id"] === tokenId) as Record<string, unknown>;
+    expect(lurkerGm).toBeDefined();
+    expect(lurkerGm["x"]).toBe(999);
+
+    // Player receives the Scene update but the hidden token is absent
+    const playerScene = await playerMovePromise;
+    const playerTokens = playerScene["tokens"] as Record<string, unknown>[];
+    const lurkerForPlayer = playerTokens.find(
+      (t) => (t as Record<string, unknown>)["_id"] === tokenId,
+    );
+    expect(lurkerForPlayer).toBeUndefined();
+  }, 15000);
+
+  it("GM toggles hidden→visible → player now receives the token (create-like)", async () => {
+    // Create hidden token
+    const tokenAck = await sendOp(gmSocket, "doc:create", {
+      documentType: "Token",
+      data: [{ name: "Appearing Spirit", x: 200, y: 200, hidden: true }],
+      parent: { type: "Scene", id: sceneId },
+    });
+    expect(tokenAck["ok"]).toBe(true);
+    const parentAfterCreate = (tokenAck["result"] as Record<string, unknown>)["parent"] as Record<
+      string,
+      unknown
+    >;
+    const tokenId = (parentAfterCreate["tokens"] as Record<string, unknown>[])[0]?.[
+      "_id"
+    ] as string;
+    await new Promise((r) => setTimeout(r, 80));
+
+    // Reveal the token (hidden=false)
+    const playerRevealPromise = waitForSceneUpdate(playerSocket, sceneId);
+    const gmRevealPromise = waitForSceneUpdate(gmSocket, sceneId);
+
+    const revealAck = await sendOp(gmSocket, "doc:update", {
+      documentType: "Token",
+      updates: [
+        {
+          _id: tokenId,
+          diff: { hidden: false },
+          embedded: { type: "Token", id: sceneId },
+        },
+      ],
+    });
+    expect(revealAck["ok"]).toBe(true);
+
+    // After reveal, player's Scene update must include the token (no longer hidden)
+    const playerScene = await playerRevealPromise;
+    const playerTokens = playerScene["tokens"] as Record<string, unknown>[];
+    const revealedForPlayer = playerTokens.find(
+      (t) => (t as Record<string, unknown>)["_id"] === tokenId,
+    ) as Record<string, unknown> | undefined;
+    expect(revealedForPlayer).toBeDefined();
+    expect(revealedForPlayer?.["hidden"]).toBe(false);
+
+    // GM also sees the token
+    const gmScene = await gmRevealPromise;
+    const gmTokens = gmScene["tokens"] as Record<string, unknown>[];
+    const revealedForGm = gmTokens.find(
+      (t) => (t as Record<string, unknown>)["_id"] === tokenId,
+    ) as Record<string, unknown> | undefined;
+    expect(revealedForGm).toBeDefined();
+    expect(revealedForGm?.["hidden"]).toBe(false);
+  }, 15000);
+
+  it("GM toggles visible→hidden → player's Scene update no longer contains the token (delete-like)", async () => {
+    // Create visible token first
+    const tokenAck = await sendOp(gmSocket, "doc:create", {
+      documentType: "Token",
+      data: [{ name: "Vanishing Hero", x: 100, y: 100, hidden: false }],
+      parent: { type: "Scene", id: sceneId },
+    });
+    expect(tokenAck["ok"]).toBe(true);
+    const parentAfterCreate = (tokenAck["result"] as Record<string, unknown>)["parent"] as Record<
+      string,
+      unknown
+    >;
+    const tokenId = (parentAfterCreate["tokens"] as Record<string, unknown>[])[0]?.[
+      "_id"
+    ] as string;
+    await new Promise((r) => setTimeout(r, 80));
+
+    // Hide the token
+    const playerHidePromise = waitForSceneUpdate(playerSocket, sceneId);
+    const gmHidePromise = waitForSceneUpdate(gmSocket, sceneId);
+
+    const hideAck = await sendOp(gmSocket, "doc:update", {
+      documentType: "Token",
+      updates: [
+        {
+          _id: tokenId,
+          diff: { hidden: true },
+          embedded: { type: "Token", id: sceneId },
+        },
+      ],
+    });
+    expect(hideAck["ok"]).toBe(true);
+
+    // Player's Scene update must NOT contain the token anymore
+    const playerScene = await playerHidePromise;
+    const playerTokens = playerScene["tokens"] as Record<string, unknown>[];
+    const hiddenForPlayer = playerTokens.find(
+      (t) => (t as Record<string, unknown>)["_id"] === tokenId,
+    );
+    expect(hiddenForPlayer).toBeUndefined();
+
+    // GM still sees the token as hidden
+    const gmScene = await gmHidePromise;
+    const gmTokens = gmScene["tokens"] as Record<string, unknown>[];
+    const hiddenForGm = gmTokens.find((t) => (t as Record<string, unknown>)["_id"] === tokenId) as
+      | Record<string, unknown>
+      | undefined;
+    expect(hiddenForGm).toBeDefined();
+    expect(hiddenForGm?.["hidden"]).toBe(true);
+  }, 15000);
+
+  it("snapshot still strips hidden tokens from player after live ops (FIX-4 re-validation)", async () => {
+    // Create a hidden token
+    const tokenAck = await sendOp(gmSocket, "doc:create", {
+      documentType: "Token",
+      data: [{ name: "Persistent Ghost", x: 300, y: 300, hidden: true }],
+      parent: { type: "Scene", id: sceneId },
+    });
+    expect(tokenAck["ok"]).toBe(true);
+    await new Promise((r) => setTimeout(r, 80));
+
+    // A fresh player connects — snapshot must not include the hidden token
+    const freshPlayer = connectClient(ctx.port, ctx.worldId, {
+      token: ctx.player2Token,
+      protocolVersion: PROTOCOL_VERSION,
+    });
+
+    let playerSnapshot: Record<string, unknown> | null = null;
+    const snapshotPromise = new Promise<void>((resolve) => {
+      freshPlayer.on("op", (env: Record<string, unknown>) => {
+        if (env["type"] === "resync:full") {
+          const snap = (env["payload"] as Record<string, unknown>)["snapshot"] as Record<
+            string,
+            unknown
+          > | null;
+          if (snap) {
+            playerSnapshot = snap;
+            resolve();
+          }
+        } else if (env["type"] === "resync:delta") {
+          resolve();
+        }
+      });
+    });
+
+    freshPlayer.connect();
+    await waitForConnect(freshPlayer);
+    await snapshotPromise;
+
+    if (playerSnapshot) {
+      const sceneDocs = (playerSnapshot as Record<string, unknown>)["documents"] as Record<
+        string,
+        unknown[]
+      >;
+      const scenes = sceneDocs["Scene"] as Record<string, unknown>[] | undefined;
+      const testScene = scenes?.find((s) => (s as Record<string, unknown>)["_id"] === sceneId) as
+        | Record<string, unknown>
+        | undefined;
+
+      if (testScene) {
+        const tokens = testScene["tokens"] as Record<string, unknown>[] | undefined;
+        if (tokens) {
+          const hiddenTokens = tokens.filter((t) => t["hidden"] === true);
+          expect(hiddenTokens).toHaveLength(0);
+        }
+      }
+    }
+
+    freshPlayer.disconnect();
+  }, 20000);
 });
