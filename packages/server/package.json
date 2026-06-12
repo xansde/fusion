@@ -20,17 +20,22 @@
     "test:unit": "vitest run --config vitest.config.ts"
   },
   "dependencies": {
+    "@fastify/cookie": "^11.0.2",
     "@fusion/shared": "workspace:*",
     "@fusion/system-api": "workspace:*",
     "@fusion/system-stub": "workspace:*",
+    "@node-rs/argon2": "^2.0.2",
     "better-sqlite3": "^12.10.0",
     "fastify": "^5.3.2",
+    "jose": "^6.2.3",
     "pino": "^9.6.0",
+    "socket.io": "^4.8.3",
     "zod": "^3.24.2"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.15.29",
+    "socket.io-client": "^4.8.3",
     "vitest": "^3.2.2"
   }
 }

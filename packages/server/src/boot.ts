@@ -5,6 +5,7 @@
  *   1. config  — load and validate configuration
  *   2. logger  — create structured pino logger
  *   3. http    — create and configure Fastify instance + routes
+ *   3b. net   — create socket.io server on same HTTP instance (M0-C)
  *   4. ready   — listen on port, log "ready for connections"
  *
  * Graceful shutdown on SIGINT / SIGTERM (REQ-ARQ-012).
@@ -12,9 +13,13 @@
  */
 
 import Fastify from "fastify";
+import fastifyCookie from "@fastify/cookie";
 import type { FastifyInstance } from "fastify";
 import type { Logger } from "pino";
+import type { Database as BetterSqlite3Database } from "better-sqlite3";
 import type { ServerConfig } from "./config.js";
+import type { SocketManager as SocketManagerType, WorldNamespaceOptions } from "./net/index.js";
+import type { AuthService } from "./auth/index.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -25,8 +30,43 @@ export interface BootResult {
   fastify: FastifyInstance;
   config: ServerConfig;
   logger: Logger;
+  /** SocketManager instance (present when netContext was provided). */
+  socketManager?: SocketManagerType;
   /** Resolves when the server has fully shut down. */
   shutdown: () => Promise<void>;
+}
+
+// ---------------------------------------------------------------------------
+// Auth context (injected per-world)
+// ---------------------------------------------------------------------------
+
+export interface BootAuthContext {
+  worldId: string;
+  worldTitle: string;
+  worldSystemId: string;
+  /** Open better-sqlite3 Db instance for the world. */
+  db: BetterSqlite3Database;
+  /** Loaded HMAC secret for JWT signing. */
+  secret: Uint8Array;
+}
+
+// ---------------------------------------------------------------------------
+// Net context (injected when the socket layer should be activated)
+// ---------------------------------------------------------------------------
+
+export interface BootNetContext {
+  /** World slug — used as the socket.io namespace id. */
+  worldId: string;
+  /** Open better-sqlite3 Db instance for the world (seq persistence). */
+  db: BetterSqlite3Database;
+  /** HMAC secret for verifying access tokens in the socket handshake. */
+  secret: Uint8Array;
+  /** AuthService for user lookups (whoami). */
+  authService: AuthService;
+  /** CORS origin to restrict socket.io. Defaults to "*" if omitted (dev only). */
+  origin?: string;
+  /** Max simultaneous connections. Default: 16. */
+  maxConnections?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -49,6 +89,31 @@ async function registerRoutes(fastify: FastifyInstance, config: ServerConfig): P
   // Imported lazily to avoid circular dependency with index.ts.
   const { PROTOCOL_VERSION } = await import("@fusion/shared");
 
+  // ---------------------------------------------------------------------------
+  // TODO (M1 — REQ-SEC-053/054/055): Security response headers.
+  //
+  // When the server begins serving the SPA (M1-A), register an onSend hook here
+  // that injects the following headers on every response:
+  //
+  //   X-Content-Type-Options: nosniff
+  //   X-Frame-Options: DENY
+  //   Referrer-Policy: strict-origin-when-cross-origin
+  //   Strict-Transport-Security: max-age=31536000; includeSubDomains   (TLS only)
+  //   Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-<random>'; ...
+  //
+  // The nonce must be generated per-request (crypto.randomBytes(16).toString('base64'))
+  // and threaded through to the HTML template so inline scripts/styles carry it.
+  //
+  // A CI test must assert that removing any of the above headers causes a failure
+  // (REQ-SEC-NF-003). Use fastify.inject() against /health or a dedicated /sec-test
+  // route and assert response.headers['x-content-type-options'] === 'nosniff', etc.
+  //
+  // This hook is intentionally NOT added in M0-C because:
+  //   a) The SPA is served by Vite dev server, not Fastify.
+  //   b) Adding it now would require the nonce infrastructure that depends on
+  //      the HTML template rendering pipeline (M1-A).
+  // ---------------------------------------------------------------------------
+
   fastify.get("/health", () => {
     return {
       ok: true,
@@ -69,6 +134,16 @@ export interface BootOptions {
   logger: Logger;
   /** When true, skip registering SIGINT/SIGTERM handlers (useful in tests). */
   skipSignalHandlers?: boolean;
+  /**
+   * When provided, auth routes and the @fastify/cookie plugin are registered
+   * for the given open world. Omit during tests that do not need auth.
+   */
+  authContext?: BootAuthContext;
+  /**
+   * When provided, socket.io is mounted on the same HTTP server and a world
+   * namespace is registered. Requires authContext to be set as well.
+   */
+  netContext?: BootNetContext;
 }
 
 /**
@@ -79,7 +154,7 @@ export interface BootOptions {
  * and 4 internally.
  */
 export async function boot(options: BootOptions): Promise<BootResult> {
-  const { config, logger, skipSignalHandlers = false } = options;
+  const { config, logger, skipSignalHandlers = false, authContext, netContext } = options;
 
   // -------------------------------------------------------------------------
   // Phase 3 — HTTP (create Fastify, register routes)
@@ -96,7 +171,26 @@ export async function boot(options: BootOptions): Promise<BootResult> {
     loggerInstance: logger,
   }) as unknown as FastifyInstance;
 
+  // Register cookie plugin (required for refresh token httpOnly cookie).
+  await fastify.register(fastifyCookie);
+
   await registerRoutes(fastify, config);
+
+  // Register auth routes if a world context is provided.
+  let authServiceInstance: AuthService | undefined;
+  if (authContext) {
+    const { AuthService, registerAuthRoutes } = await import("./auth/index.js");
+    authServiceInstance = new AuthService(authContext.db, authContext.secret, authContext.worldId);
+    registerAuthRoutes(fastify, {
+      authService: authServiceInstance,
+      worldInfo: {
+        id: authContext.worldId,
+        title: authContext.worldTitle,
+        systemId: authContext.worldSystemId,
+      },
+    });
+    logger.info({ worldId: authContext.worldId }, "Auth routes registered");
+  }
 
   // -------------------------------------------------------------------------
   // Phase 4 — ready (listen)
@@ -144,6 +238,52 @@ export async function boot(options: BootOptions): Promise<BootResult> {
   );
 
   // -------------------------------------------------------------------------
+  // Phase 3b — net (socket.io — M0-C)
+  // -------------------------------------------------------------------------
+  let socketManager: SocketManagerType | undefined;
+
+  if (netContext) {
+    logger.info(
+      { phase: "net", worldId: netContext.worldId },
+      "Boot phase: net — mounting socket.io",
+    );
+
+    const { SocketManager: SM } = await import("./net/index.js");
+
+    // Derive origin from config or from net context override
+    const origin = netContext.origin ?? `http://${config.host}:${String(config.port)}`;
+
+    socketManager = new SM({
+      httpServer: fastify.server,
+      logger,
+      origin,
+    });
+
+    // Resolve authService: use the one created in the auth phase, or create a new one
+    let resolvedAuthService = authServiceInstance;
+    if (!resolvedAuthService) {
+      const { AuthService: AS } = await import("./auth/index.js");
+      resolvedAuthService = new AS(netContext.db, netContext.secret, netContext.worldId);
+    }
+
+    const nsOptions: WorldNamespaceOptions = {
+      worldId: netContext.worldId,
+      db: netContext.db,
+      secret: netContext.secret,
+      authService: resolvedAuthService,
+    };
+    if (netContext.maxConnections !== undefined) {
+      nsOptions.maxConnections = netContext.maxConnections;
+    }
+    socketManager.registerWorldNamespace(nsOptions);
+
+    logger.info(
+      { worldId: netContext.worldId, path: `/world/${netContext.worldId}` },
+      `Socket.io namespace ready — join URL: http://${addressStr}/world/${netContext.worldId}`,
+    );
+  }
+
+  // -------------------------------------------------------------------------
   // Graceful shutdown helper
   // -------------------------------------------------------------------------
   let shutdownCalled = false;
@@ -152,6 +292,16 @@ export async function boot(options: BootOptions): Promise<BootResult> {
     if (shutdownCalled) return;
     shutdownCalled = true;
     logger.info("Shutdown requested — closing Fastify");
+
+    // Close socket.io before HTTP (drains websocket connections)
+    if (socketManager) {
+      try {
+        await socketManager.close();
+      } catch (err) {
+        logger.error({ err }, "Error while closing SocketManager");
+      }
+    }
+
     try {
       await fastify.close();
       logger.info("Fastify closed cleanly");
@@ -179,5 +329,7 @@ export async function boot(options: BootOptions): Promise<BootResult> {
     });
   }
 
-  return { fastify, config, logger, shutdown };
+  const result: BootResult = { fastify, config, logger, shutdown };
+  if (socketManager !== undefined) result.socketManager = socketManager;
+  return result;
 }

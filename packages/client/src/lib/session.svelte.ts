@@ -1,0 +1,181 @@
+/**
+ * Session store — Svelte 5 runes.
+ *
+ * Central reactive state for:
+ * - Authentication (user, accessToken in memory)
+ * - WebSocket connection state
+ * - World info
+ *
+ * Coordinates fusionApi (HTTP) and SocketManager (WebSocket) into a single
+ * coherent lifecycle.
+ *
+ * Usage:
+ *   import { session, sessionActions } from "$lib/session.svelte";
+ *   session.screen        // "loading" | "join" | "table"
+ *   session.user          // UserPublic | null
+ *   session.worldInfo     // WorldInfo | null
+ *   session.connection    // ConnectionState
+ *   session.rttMs         // number | null
+ *   sessionActions.load() // call once on app mount
+ *   sessionActions.login(userId, password?)
+ *   sessionActions.logout()
+ */
+
+import { fusionApi, type UserPublic, type WorldInfo, ApiError } from "./api.js";
+import { SocketManager, type ConnectionState } from "./socket.js";
+
+// ---------------------------------------------------------------------------
+// Screen type
+// ---------------------------------------------------------------------------
+
+export type Screen = "loading" | "join" | "table";
+
+// ---------------------------------------------------------------------------
+// Reactive state (Svelte 5 runes — $state)
+// ---------------------------------------------------------------------------
+
+export const session: {
+  screen: Screen;
+  user: UserPublic | null;
+  worldInfo: WorldInfo | null;
+  connection: ConnectionState;
+  rttMs: number | null;
+  error: string | null;
+  lockedOut: boolean;
+  retryAfterSecs: number;
+} = $state({
+  screen: "loading",
+  user: null,
+  worldInfo: null,
+  /** Current WebSocket connection state. */
+  connection: "disconnected",
+  /** Round-trip time in ms, null if not yet measured. */
+  rttMs: null,
+  /** Error message to surface in the UI. */
+  error: null,
+  /** If true the login endpoint returned 429 — show countdown. */
+  lockedOut: false,
+  /** Seconds until the user can retry after lockout. */
+  retryAfterSecs: 0,
+});
+
+// ---------------------------------------------------------------------------
+// Socket manager singleton
+// ---------------------------------------------------------------------------
+
+const socketManager = new SocketManager(() => fusionApi.getToken());
+
+// Subscribe to socket state changes and feed them into reactive state
+socketManager.subscribe((state: ConnectionState, rttMs?: number) => {
+  session.connection = state;
+  session.rttMs = rttMs ?? null;
+});
+
+// When the API's auto-refresh fails, redirect to join screen
+fusionApi.onSessionExpired(() => {
+  session.user = null;
+  session.screen = "join";
+  session.connection = "disconnected";
+  socketManager.disconnect();
+});
+
+// ---------------------------------------------------------------------------
+// Actions
+// ---------------------------------------------------------------------------
+
+export const sessionActions = {
+  /**
+   * Called once on app mount.
+   * Tries to rehydrate the session via the refresh cookie.
+   * Then fetches world info regardless (needed for the join screen).
+   */
+  async load(): Promise<void> {
+    session.screen = "loading";
+    session.error = null;
+
+    // Attempt silent token refresh (user may have a valid session from a
+    // previous page load; the httpOnly cookie carries the refresh token)
+    const existingUser = await fusionApi.tryRefresh();
+
+    // Fetch world info — always needed (join screen uses user list)
+    let fetchedWorldInfo;
+    try {
+      fetchedWorldInfo = await fusionApi.fetchWorldInfo();
+      session.worldInfo = fetchedWorldInfo;
+    } catch {
+      // Server unreachable — stay on join screen with error
+      session.worldInfo = null;
+      session.screen = "join";
+      session.error = "Cannot reach the server. Is it running?";
+      return;
+    }
+
+    if (existingUser) {
+      session.user = existingUser;
+      session.screen = "table";
+      _connectSocket(fetchedWorldInfo.id);
+    } else {
+      session.screen = "join";
+    }
+  },
+
+  /**
+   * POST /api/auth/login then connect the WebSocket.
+   */
+  async login(userId: string, password?: string): Promise<void> {
+    session.error = null;
+    session.lockedOut = false;
+
+    try {
+      const result = await fusionApi.login(userId, password);
+      session.user = result.user;
+
+      // Refresh world info to get the latest user list (optional but clean)
+      try {
+        session.worldInfo = await fusionApi.fetchWorldInfo();
+      } catch {
+        // Non-fatal — keep old worldInfo
+      }
+
+      session.screen = "table";
+      _connectSocket(session.worldInfo?.id ?? userId);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.httpStatus === 429) {
+          session.lockedOut = true;
+          session.retryAfterSecs = err.retryAfterSecs ?? 900;
+          session.error = `Too many failed attempts. Try again in ${String(session.retryAfterSecs)} seconds.`;
+        } else if (err.httpStatus === 401) {
+          session.error = "Invalid credentials. Please try again.";
+        } else if (err.httpStatus === 403) {
+          session.error = "This account is inactive.";
+        } else {
+          session.error = err.message || "Login failed.";
+        }
+      } else {
+        session.error = "An unexpected error occurred.";
+      }
+    }
+  },
+
+  /**
+   * POST /api/auth/logout, disconnect socket, return to join screen.
+   */
+  async logout(): Promise<void> {
+    socketManager.disconnect();
+    await fusionApi.logout();
+    session.user = null;
+    session.screen = "join";
+    session.error = null;
+    session.lockedOut = false;
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
+
+function _connectSocket(worldId: string): void {
+  // The socket namespace is /world/<worldSlug> — use worldId as slug
+  socketManager.connect(worldId);
+}

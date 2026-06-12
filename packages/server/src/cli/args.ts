@@ -21,6 +21,8 @@ export type ServeArgs = {
   port?: number;
   dataDir?: string;
   logLevel?: string;
+  /** When provided, open this world on boot and expose its socket namespace. */
+  world?: string;
 };
 
 export type WorldListArgs = {
@@ -34,6 +36,8 @@ export type WorldCreateArgs = {
   system: string;
   title?: string;
   dataDir?: string;
+  /** Explicit GM password (printed to stdout once if not set). */
+  gmPassword?: string;
 };
 
 export type WorldBackupArgs = {
@@ -42,12 +46,27 @@ export type WorldBackupArgs = {
   dataDir?: string;
 };
 
+export type UserAddArgs = {
+  command: "user:add";
+  world: string;
+  name: string;
+  role: string;
+  dataDir?: string;
+  password?: string;
+};
+
 export type HelpArgs = {
   command: "help";
   topic?: string;
 };
 
-export type ParsedArgs = ServeArgs | WorldListArgs | WorldCreateArgs | WorldBackupArgs | HelpArgs;
+export type ParsedArgs =
+  | ServeArgs
+  | WorldListArgs
+  | WorldCreateArgs
+  | WorldBackupArgs
+  | UserAddArgs
+  | HelpArgs;
 
 // ---------------------------------------------------------------------------
 // Parse error
@@ -114,6 +133,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
     const portStr = consumeOption(args, "--port");
     const dataDir = consumeOption(args, "--data-dir");
     const logLevel = consumeOption(args, "--log-level");
+    const world = consumeOption(args, "--world");
 
     if (consumeFlag(args, "--help") || consumeFlag(args, "-h")) {
       return { command: "help", topic: "serve" };
@@ -134,6 +154,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
     if (port !== undefined) result.port = port;
     if (dataDir !== undefined) result.dataDir = dataDir;
     if (logLevel !== undefined) result.logLevel = logLevel;
+    if (world !== undefined) result.world = world;
     return result;
   }
 
@@ -166,6 +187,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
       const system = consumeOption(args, "--system");
       const title = consumeOption(args, "--title");
       const dataDir = consumeOption(args, "--data-dir");
+      const gmPassword = consumeOption(args, "--gm-password");
 
       if (consumeFlag(args, "--help") || consumeFlag(args, "-h")) {
         return { command: "help", topic: "world create" };
@@ -178,6 +200,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
       const result: WorldCreateArgs = { command: "world:create", slug, system };
       if (title !== undefined) result.title = title;
       if (dataDir !== undefined) result.dataDir = dataDir;
+      if (gmPassword !== undefined) result.gmPassword = gmPassword;
       return result;
     }
 
@@ -205,6 +228,52 @@ export function parseArgs(argv: string[]): ParsedArgs {
     throw new ParseArgsError(
       `Unknown world subcommand: "${worldCmd}". Try: fusion world list|create|backup`,
     );
+  }
+
+  // -------------------------------------------------------------------------
+  // fusion user …
+  // -------------------------------------------------------------------------
+  if (subcommand === "user") {
+    const userCmd = args.shift();
+
+    // -- user add <world> <name> --
+    if (userCmd === "add") {
+      const world = args.shift();
+      if (world === undefined || world.startsWith("--")) {
+        throw new ParseArgsError(
+          "user add requires a world argument: fusion user add <world> <name> --role <role>",
+        );
+      }
+      const name = args.shift();
+      if (name === undefined || name.startsWith("--")) {
+        throw new ParseArgsError(
+          "user add requires a name argument: fusion user add <world> <name> --role <role>",
+        );
+      }
+
+      const role = consumeOption(args, "--role");
+      const dataDir = consumeOption(args, "--data-dir");
+      const password = consumeOption(args, "--password");
+
+      if (consumeFlag(args, "--help") || consumeFlag(args, "-h")) {
+        return { command: "help", topic: "user add" };
+      }
+
+      if (role === undefined) {
+        throw new ParseArgsError("user add requires --role <PLAYER|TRUSTED|ASSISTANT|GAMEMASTER>");
+      }
+
+      const result: UserAddArgs = { command: "user:add", world, name, role };
+      if (dataDir !== undefined) result.dataDir = dataDir;
+      if (password !== undefined) result.password = password;
+      return result;
+    }
+
+    if (userCmd === undefined || consumeFlag(args, "--help") || userCmd === "--help") {
+      return { command: "help", topic: "user" };
+    }
+
+    throw new ParseArgsError(`Unknown user subcommand: "${userCmd}". Try: fusion user add`);
   }
 
   // -------------------------------------------------------------------------

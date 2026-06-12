@@ -7,6 +7,8 @@ import { join } from "node:path";
 import type { WorldListArgs, WorldCreateArgs, WorldBackupArgs } from "../args.js";
 import { WorldManager } from "../../worlds/index.js";
 import { SystemRegistry } from "@fusion/system-api";
+import { openDatabase, applyMigrations } from "../../db/index.js";
+import { AuthService, loadOrCreateSecret } from "../../auth/index.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -107,6 +109,42 @@ export async function runWorldCreate(args: WorldCreateArgs): Promise<void> {
       `  system:  ${manifest.system}\n` +
       `  dataDir: ${dataDir}\n`,
   );
+
+  // Bootstrap GM user (REQ-USR spec: world create creates the GAMEMASTER user)
+  const dbPath = join(dataDir, "worlds", manifest.id, "world.db");
+  let fusionDb;
+  try {
+    fusionDb = openDatabase({ path: dbPath, skipIntegrityCheck: true });
+    applyMigrations(fusionDb.raw, dbPath);
+
+    const secret = loadOrCreateSecret(dataDir);
+    const authService = new AuthService(fusionDb.raw, secret, manifest.id);
+
+    const { user, password } = await authService.bootstrapGm(
+      args.gmPassword !== undefined ? { password: args.gmPassword } : undefined,
+    );
+
+    if (args.gmPassword !== undefined) {
+      process.stdout.write(
+        `\n  GM user "${user.name}" created (password set via --gm-password).\n`,
+      );
+    } else {
+      process.stdout.write(
+        `\n  GM user "${user.name}" created.\n` +
+          `  *** GM PASSWORD (shown once): ${password} ***\n` +
+          `  Store this password securely — it will not be shown again.\n`,
+      );
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    process.stderr.write(`fusion world create: warning — could not create GM user: ${msg}\n`);
+  } finally {
+    try {
+      fusionDb?.close();
+    } catch {
+      // best-effort
+    }
+  }
 }
 
 export async function runWorldBackup(args: WorldBackupArgs): Promise<void> {

@@ -5,11 +5,13 @@
  * Registers the stub system and wires WorldManager into the boot result's shutdown.
  */
 
+import type { Database as BetterSqlite3Database } from "better-sqlite3";
 import type { ServeArgs } from "../args.js";
 import { loadConfig } from "../../config.js";
 import type { ServerConfig, LoadConfigOptions } from "../../config.js";
 import { createLogger } from "../../logger.js";
 import { boot } from "../../boot.js";
+import type { BootOptions } from "../../boot.js";
 import { SystemRegistry } from "@fusion/system-api";
 import { WorldManager } from "../../worlds/index.js";
 
@@ -83,12 +85,60 @@ export async function runServe(args: ServeArgs): Promise<void> {
     validSystemIds: registry,
   });
 
-  // Phases 3 + 4 — HTTP boot
+  // Phase 2.7 — open world if --world flag was passed (M0-C)
+  const worldSlug: string | undefined = args.world;
+  let openWorldDb: BetterSqlite3Database | undefined;
+  let authSecret: Uint8Array | undefined;
+
+  if (worldSlug !== undefined) {
+    const slug = worldSlug;
+    try {
+      const { loadOrCreateSecret } = await import("../../auth/crypto.js");
+      authSecret = loadOrCreateSecret(config.dataDir);
+
+      const manifest = worldManager.open(slug);
+      const fusionDb = worldManager.getDatabase(slug);
+      if (!fusionDb) {
+        throw new Error(`World "${slug}" opened but no database handle available`);
+      }
+      openWorldDb = fusionDb.raw;
+      logger.info({ worldId: slug, title: manifest.title }, "World opened");
+    } catch (err) {
+      logger.fatal({ err, worldSlug }, "Failed to open world for serve");
+      process.exit(1);
+    }
+  }
+
+  // Phases 3 + 4 + 3b — HTTP + socket boot
   // boot() registers SIGINT/SIGTERM handlers via process.once().
   // We register a synchronous 'exit' hook to close open worlds on any exit path.
   let bootResult;
   try {
-    bootResult = await boot({ config, logger });
+    // Build auth + net contexts if we have an open world
+    const bootOpts: BootOptions = { config, logger };
+
+    if (openWorldDb !== undefined && authSecret !== undefined && worldSlug !== undefined) {
+      bootOpts.authContext = {
+        worldId: worldSlug,
+        worldTitle: worldSlug,
+        worldSystemId: "stub",
+        db: openWorldDb,
+        secret: authSecret,
+      };
+
+      const { AuthService } = await import("../../auth/index.js");
+      const authSvc = new AuthService(openWorldDb, authSecret, worldSlug);
+      const origin = `http://${config.host}:${String(config.port)}`;
+      bootOpts.netContext = {
+        worldId: worldSlug,
+        db: openWorldDb,
+        secret: authSecret,
+        authService: authSvc,
+        origin,
+      };
+    }
+
+    bootResult = await boot(bootOpts);
   } catch (err) {
     logger.fatal({ err }, "Boot failed");
     process.exit(1);

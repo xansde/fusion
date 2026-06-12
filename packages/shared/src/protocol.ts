@@ -38,6 +38,9 @@ export const EnvelopeTypeSchema = z.union([
   z.literal("presence:online"),
   z.literal("presence:typing"),
   z.literal("system"),
+  // Built-in system handlers (M0-C)
+  z.literal("system:ping"),
+  z.literal("system:whoami"),
   z.literal("resync:request"),
   z.literal("resync:delta"),
   z.literal("resync:full"),

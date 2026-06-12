@@ -11,8 +11,8 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | ----- | ------------------------------------------------------------------------------- | ------------ | --------------- |
 | M0-A  | Scaffold monorepo, shared, system-api, stub system, server/client skeletons, CI | concluído    | 96              |
 | M0-B  | SQLite/WAL, migrations, world lifecycle, Document model + CRUD, CLI             | concluído    | 96              |
-| M0-C  | Fastify boot, socket.io handshake/envelope, auth (Argon2id/JWT), contract tests | em andamento | —               |
-| M1-A  | Canvas PIXI v8, grade square, render groups                                     | pendente     | —               |
+| M0-C  | Fastify boot, socket.io handshake/envelope, auth (Argon2id/JWT), contract tests | concluído    | 96              |
+| M1-A  | Canvas PIXI v8, grade square, render groups                                     | em andamento | —               |
 | M1-B  | Scene/Token embedded, CRUD broadcast, snapshot+resync, reconexão                | pendente     | —               |
 | M1-C  | Tokens no canvas (drag, animação, barras), ownership no servidor                | pendente     | —               |
 | M1-D  | Motor de rolagens (RNG servidor, roll modes, inline), chat + cards              | pendente     | —               |
@@ -29,9 +29,14 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 
 ## Registro por batch
 
+### M0-C — Auth + socket base (2026-06-12) — score 96 ✅ — **MILESTONE M0 FECHADO (DoD 7/7)**
+
+- Auditorias 93 → correção → 96; 331 testes verdes. Entregue: Argon2id (params da REQ-SEC-010), JWT 15min + refresh opaco rotacionado com reuse-detection (revoga família), cookie httpOnly SameSite=Strict, lockout 5/15min anti-spoof, anti-enumeration; socket.io com namespace /world/<id>, handshake AUTH_FAILED/PROTOCOL_MISMATCH, envelope Zod, seq monotônico persistido; `fusion serve --world`; tela de join real no client (token só em memória) + ping/RTT.
+- **Pendências médias a fechar no M1-B**: cookie `Secure` atrás de TLS; ack devolvendo `requestId` (REQ-NET-011).
+
 ### M0-B — Persistência, worlds, documents e CLI (2026-06-12) — score 96 ✅
 
-- 7 agentes; auditorias 91 → correção → 96. Entregue: wrapper better-sqlite3 com PRAGMAs da spec 03 + integrity_check + checkpoint no close; framework de migrações com backup pré-migração e rollback seguro; WorldManager (create/open/close/list/delete-para-trash/backup, world.lock com recuperação de stale); DocumentStore com CRUD transacional, _stats server-only, diff parcial e ownership; CLI `fusion serve|world list|create|backup` com testes via child_process.
+- 7 agentes; auditorias 91 → correção → 96. Entregue: wrapper better-sqlite3 com PRAGMAs da spec 03 + integrity_check + checkpoint no close; framework de migrações com backup pré-migração e rollback seguro; WorldManager (create/open/close/list/delete-para-trash/backup, world.lock com recuperação de stale); DocumentStore com CRUD transacional, \_stats server-only, diff parcial e ownership; CLI `fusion serve|world list|create|backup` com testes via child_process.
 
 ### M0-A — Scaffold do monorepo (2026-06-12) — score 96 ✅
 

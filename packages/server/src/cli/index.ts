@@ -17,6 +17,7 @@ import { parseArgs, ParseArgsError } from "./args.js";
 import { printHelp } from "./help.js";
 import { runServe } from "./commands/serve.js";
 import { runWorldList, runWorldCreate, runWorldBackup } from "./commands/worlds.js";
+import { runUserAdd } from "./commands/users.js";
 
 // ---------------------------------------------------------------------------
 // Main
@@ -56,6 +57,10 @@ async function main(): Promise<void> {
 
     case "world:backup":
       await runWorldBackup(parsed);
+      break;
+
+    case "user:add":
+      await runUserAdd(parsed);
       break;
 
     default: {
