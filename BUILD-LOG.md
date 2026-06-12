@@ -10,8 +10,8 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | Batch | Conteúdo                                                                        | Status       | Score auditoria |
 | ----- | ------------------------------------------------------------------------------- | ------------ | --------------- |
 | M0-A  | Scaffold monorepo, shared, system-api, stub system, server/client skeletons, CI | concluído    | 96              |
-| M0-B  | SQLite/WAL, migrations, world lifecycle, Document model + CRUD, CLI             | em andamento | —               |
-| M0-C  | Fastify boot, socket.io handshake/envelope, auth (Argon2id/JWT), contract tests | pendente     | —               |
+| M0-B  | SQLite/WAL, migrations, world lifecycle, Document model + CRUD, CLI             | concluído    | 96              |
+| M0-C  | Fastify boot, socket.io handshake/envelope, auth (Argon2id/JWT), contract tests | em andamento | —               |
 | M1-A  | Canvas PIXI v8, grade square, render groups                                     | pendente     | —               |
 | M1-B  | Scene/Token embedded, CRUD broadcast, snapshot+resync, reconexão                | pendente     | —               |
 | M1-C  | Tokens no canvas (drag, animação, barras), ownership no servidor                | pendente     | —               |
@@ -28,6 +28,10 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M3-F  | DoD M3 / primeira sessão jogável — verificação integrada                        | pendente     | —               |
 
 ## Registro por batch
+
+### M0-B — Persistência, worlds, documents e CLI (2026-06-12) — score 96 ✅
+
+- 7 agentes; auditorias 91 → correção → 96. Entregue: wrapper better-sqlite3 com PRAGMAs da spec 03 + integrity_check + checkpoint no close; framework de migrações com backup pré-migração e rollback seguro; WorldManager (create/open/close/list/delete-para-trash/backup, world.lock com recuperação de stale); DocumentStore com CRUD transacional, _stats server-only, diff parcial e ownership; CLI `fusion serve|world list|create|backup` com testes via child_process.
 
 ### M0-A — Scaffold do monorepo (2026-06-12) — score 96 ✅
 

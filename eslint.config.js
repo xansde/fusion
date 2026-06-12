@@ -16,12 +16,20 @@ export default tseslint.config(
   {
     // Type-aware rules for source files covered by package tsconfigs.
     // Test files and vitest/vite configs are handled separately below.
+    // Explicitly exclude __tests__ and config files so they are not processed
+    // by projectService (they are excluded from package tsconfigs).
     files: [
-      "packages/shared/src/*.ts",
-      "packages/system-api/src/*.ts",
-      "packages/server/src/*.ts",
+      "packages/shared/src/**/*.ts",
+      "packages/system-api/src/**/*.ts",
+      "packages/server/src/**/*.ts",
       "packages/client/src/**/*.ts",
-      "systems/stub/src/*.ts",
+      "systems/stub/src/**/*.ts",
+    ],
+    ignores: [
+      "**/__tests__/**",
+      "**/vitest.config.ts",
+      "**/vitest.workspace.ts",
+      "**/vite.config.ts",
     ],
     extends: [...tseslint.configs.strictTypeChecked],
     languageOptions: {
@@ -56,6 +64,11 @@ export default tseslint.config(
       "@typescript-eslint/consistent-type-imports": [
         "error",
         { prefer: "type-imports", fixStyle: "separate-type-imports" },
+      ],
+      // Allow variables prefixed with _ as intentionally unused (destructure omissions)
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { varsIgnorePattern: "^_", argsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" },
       ],
     },
   },

@@ -1,0 +1,31 @@
+/**
+ * Database module public API.
+ *
+ * Re-exports connection helpers and registers all migrations on import.
+ */
+
+export {
+  openDatabase,
+  runIntegrityCheck,
+  getWalFileSize,
+  DatabaseCorruptionError,
+  DatabaseStateError,
+} from "./connection.js";
+
+export {
+  applyMigrations,
+  getSchemaVersion,
+  registerMigrations,
+  MigrationError,
+} from "./migrations.js";
+
+export type { FusionDatabase, OpenDatabaseOptions } from "./connection.js";
+export type { FusionMigration } from "./migrations.js";
+
+// ---------------------------------------------------------------------------
+// Register all bundled migrations
+// ---------------------------------------------------------------------------
+import { registerMigrations } from "./migrations.js";
+import { migration001 } from "./migrations/001_initial_schema.js";
+
+registerMigrations([migration001]);

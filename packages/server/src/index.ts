@@ -16,6 +16,8 @@ export type { BootResult, BootOptions } from "./boot.js";
 
 // ---------------------------------------------------------------------------
 // Main entry point — only runs when this file is executed directly.
+// Delegates to the CLI dispatcher (src/cli/index.ts) which handles all
+// subcommands including 'serve'.
 // ---------------------------------------------------------------------------
 
 import { fileURLToPath } from "node:url";
@@ -24,36 +26,12 @@ const argv1: string | undefined = process.argv[1];
 const isMain = argv1 !== undefined && fileURLToPath(import.meta.url) === argv1;
 
 if (isMain) {
-  await runMain();
-}
-
-async function runMain(): Promise<void> {
-  const { loadConfig } = await import("./config.js");
-  const { createLogger } = await import("./logger.js");
-  const { boot } = await import("./boot.js");
-
-  // Phase 1 — config
-  let config;
-  try {
-    config = loadConfig();
-  } catch (err) {
-    console.error("Failed to load configuration:", err);
-    process.exit(1);
+  // Redirect to the CLI entry point so `node dist/index.js` behaves identically
+  // to `fusion serve` (backwards-compatible with existing tooling).
+  // We inject "serve" as the default subcommand when no args are provided,
+  // and otherwise let the CLI dispatcher handle whatever the user typed.
+  if (process.argv.slice(2).length === 0) {
+    process.argv.splice(2, 0, "serve");
   }
-
-  // Phase 2 — logger
-  const logger = createLogger(config.logLevel);
-
-  logger.info(
-    { phase: "config", port: config.port, dataDir: config.dataDir },
-    "Boot phase: config — loaded",
-  );
-
-  // Phases 3 + 4
-  try {
-    await boot({ config, logger });
-  } catch (err) {
-    logger.fatal({ err }, "Boot failed");
-    process.exit(1);
-  }
+  await import("./cli/index.js");
 }
