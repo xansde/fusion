@@ -44,37 +44,37 @@
 
 ### Mapeamento campo a campo — weapon
 
-| Campo PF2E | Status Fusion | Campo Fusion | Notas |
-|---|---|---|---|
-| `_id` | Descartar | — | Novo UUID gerado pelo Fusion |
-| `img` | Substituir | `img` → placeholder | Arte proprietária; importer usa `/icons/placeholder-weapon.webp` |
-| `name` | Mapear | `name` | Texto ORC — ok |
-| `type` | Mapear | `type` | "weapon" vira tipo Fusion |
-| `system.ammo` | Mapear | `system.ammo` | Referência de ammo vinculada |
-| `system.baseItem` | Mapear | `system.baseItem` | Slug canônico (longsword) |
-| `system.bonus.value` | Mapear | `system.bonus` | Bônus de item (+X) |
-| `system.bonusDamage.value` | Mapear | `system.bonusDamage` | Bônus de dano fixo |
-| `system.bulk.value` | Mapear | `system.bulk` | Unidade de encumbrance PF2E |
-| `system.category` | Mapear | `system.category` | simple / martial / advanced |
-| `system.damage` | Mapear | `system.damage` | damageType + dice + die |
-| `system.description.value` | Mapear (filtrado) | `system.description` | Texto lore descritivo — ORC ok; ver nota abaixo |
-| `system.group` | Mapear | `system.weaponGroup` | club / sword / bow etc. — afeta critical specialization |
-| `system.hardness` | Mapear | `system.hardness` | Para itens com HP |
-| `system.hp` | Mapear | `system.hp` | HP do item (armas quebráveis) |
-| `system.level.value` | Mapear | `system.level` | Nível do item (0 = base) |
-| `system.material` | Mapear | `system.material` | grade + type (cold iron, silver…) |
-| `system.price.value` | Mapear | `system.price` | { gp, sp, cp } |
-| `system.publication` | Manter | `system.publication` | license/remaster/title — obrigatório para atribuição |
-| `system.quantity` | Mapear | `system.quantity` | Stack count |
-| `system.range` | Mapear | `system.range` | null = melee; número = range em ft |
-| `system.reload.value` | Mapear | `system.reload` | "-" = sem reload |
-| `system.rules` | Transformar | `system.rules` | Ver `analysis/03-rules-elements.md` |
-| `system.runes` | Mapear | `system.runes` | potency + striking + property[] |
-| `system.size` | Mapear | `system.size` | med / sm / lg / tiny / huge |
-| `system.splashDamage` | Mapear | `system.splashDamage` | Para armas de splash |
-| `system.traits.rarity` | Mapear | `system.traits.rarity` | common/uncommon/rare/unique |
-| `system.traits.value` | Mapear | `system.traits.value` | Array de slugs de trait |
-| `system.usage.value` | Mapear | `system.usage` | held-in-one-hand, worn, etc. |
+| Campo PF2E                 | Status Fusion     | Campo Fusion           | Notas                                                            |
+| -------------------------- | ----------------- | ---------------------- | ---------------------------------------------------------------- |
+| `_id`                      | Descartar         | —                      | Novo UUID gerado pelo Fusion                                     |
+| `img`                      | Substituir        | `img` → placeholder    | Arte proprietária; importer usa `/icons/placeholder-weapon.webp` |
+| `name`                     | Mapear            | `name`                 | Texto ORC — ok                                                   |
+| `type`                     | Mapear            | `type`                 | "weapon" vira tipo Fusion                                        |
+| `system.ammo`              | Mapear            | `system.ammo`          | Referência de ammo vinculada                                     |
+| `system.baseItem`          | Mapear            | `system.baseItem`      | Slug canônico (longsword)                                        |
+| `system.bonus.value`       | Mapear            | `system.bonus`         | Bônus de item (+X)                                               |
+| `system.bonusDamage.value` | Mapear            | `system.bonusDamage`   | Bônus de dano fixo                                               |
+| `system.bulk.value`        | Mapear            | `system.bulk`          | Unidade de encumbrance PF2E                                      |
+| `system.category`          | Mapear            | `system.category`      | simple / martial / advanced                                      |
+| `system.damage`            | Mapear            | `system.damage`        | damageType + dice + die                                          |
+| `system.description.value` | Mapear (filtrado) | `system.description`   | Texto lore descritivo — ORC ok; ver nota abaixo                  |
+| `system.group`             | Mapear            | `system.weaponGroup`   | club / sword / bow etc. — afeta critical specialization          |
+| `system.hardness`          | Mapear            | `system.hardness`      | Para itens com HP                                                |
+| `system.hp`                | Mapear            | `system.hp`            | HP do item (armas quebráveis)                                    |
+| `system.level.value`       | Mapear            | `system.level`         | Nível do item (0 = base)                                         |
+| `system.material`          | Mapear            | `system.material`      | grade + type (cold iron, silver…)                                |
+| `system.price.value`       | Mapear            | `system.price`         | { gp, sp, cp }                                                   |
+| `system.publication`       | Manter            | `system.publication`   | license/remaster/title — obrigatório para atribuição             |
+| `system.quantity`          | Mapear            | `system.quantity`      | Stack count                                                      |
+| `system.range`             | Mapear            | `system.range`         | null = melee; número = range em ft                               |
+| `system.reload.value`      | Mapear            | `system.reload`        | "-" = sem reload                                                 |
+| `system.rules`             | Transformar       | `system.rules`         | Ver `analysis/03-rules-elements.md`                              |
+| `system.runes`             | Mapear            | `system.runes`         | potency + striking + property[]                                  |
+| `system.size`              | Mapear            | `system.size`          | med / sm / lg / tiny / huge                                      |
+| `system.splashDamage`      | Mapear            | `system.splashDamage`  | Para armas de splash                                             |
+| `system.traits.rarity`     | Mapear            | `system.traits.rarity` | common/uncommon/rare/unique                                      |
+| `system.traits.value`      | Mapear            | `system.traits.value`  | Array de slugs de trait                                          |
+| `system.usage.value`       | Mapear            | `system.usage`         | held-in-one-hand, worn, etc.                                     |
 
 **Descartados (apenas para armas):** `system.containerId`, `system.expend`, `system.grade`
 (campos de estado de ator não relevantes no compendium).
@@ -96,11 +96,19 @@
     "cost": { "value": "" },
     "counteraction": false,
     "damage": {
-      "0": { "applyMod": false, "category": null, "formula": "6d6",
-             "kinds": ["damage"], "materials": [], "type": "fire" }
+      "0": {
+        "applyMod": false,
+        "category": null,
+        "formula": "6d6",
+        "kinds": ["damage"],
+        "materials": [],
+        "type": "fire"
+      }
     },
     "defense": { "save": { "basic": true, "statistic": "reflex" } },
-    "description": { "value": "<p>A roaring blast of fire...</p><hr/><p><strong>Heightened (+1)</strong> The damage increases by 2d6.</p>" },
+    "description": {
+      "value": "<p>A roaring blast of fire...</p><hr/><p><strong>Heightened (+1)</strong> The damage increases by 2d6.</p>"
+    },
     "duration": { "sustained": false, "value": "" },
     "heightening": { "area": 0, "damage": { "0": "2d6" }, "interval": 1, "type": "interval" },
     "level": { "value": 3 },
@@ -121,30 +129,30 @@
 
 ### Mapeamento campo a campo — spell
 
-| Campo PF2E | Status Fusion | Campo Fusion | Notas |
-|---|---|---|---|
-| `_id` | Descartar | — | Novo UUID Fusion |
-| `img` | Substituir | `img` → placeholder | Arte proprietária |
-| `name` | Mapear | `name` | ORC ok |
-| `type` | Mapear | `type` | "spell" |
-| `system.area` | Mapear | `system.area` | type (burst/cone/line/emanation) + value em ft |
-| `system.cost.value` | Mapear | `system.cost` | Material component cost |
-| `system.counteraction` | Mapear | `system.counteraction` | bool para contramágica |
-| `system.damage` | Mapear | `system.damage` | Mapa keyed; cada entrada: formula + type + kinds |
-| `system.defense` | Mapear | `system.defense` | save.statistic (reflex/fort/will) + basic |
-| `system.description.value` | Mapear (filtrado) | `system.description` | HTML com texto ORC ok; ver nota de lore |
-| `system.duration` | Mapear | `system.duration` | sustained + value textual |
-| `system.heightening` | Mapear | `system.heightening` | type=interval: intervalo + delta por rank |
-| `system.level.value` | Mapear | `system.level` | Rank da magia (1-10) |
-| `system.publication` | Manter | `system.publication` | Atribuição obrigatória |
-| `system.range.value` | Mapear | `system.range` | String: "touch", "30 feet", etc. |
-| `system.requirements` | Mapear | `system.requirements` | String de requisitos |
-| `system.rules` | Transformar | `system.rules` | Ver análise de rule elements |
-| `system.target.value` | Mapear | `system.target` | String descritiva do alvo |
-| `system.time.value` | Mapear | `system.castTime` | "1", "2", "3" actions ou "reaction" |
-| `system.traits.rarity` | Mapear | `system.traits.rarity` | |
-| `system.traits.traditions` | Mapear | `system.traits.traditions` | arcane/divine/occult/primal |
-| `system.traits.value` | Mapear | `system.traits.value` | concentrate, manipulate, etc. |
+| Campo PF2E                 | Status Fusion     | Campo Fusion               | Notas                                            |
+| -------------------------- | ----------------- | -------------------------- | ------------------------------------------------ |
+| `_id`                      | Descartar         | —                          | Novo UUID Fusion                                 |
+| `img`                      | Substituir        | `img` → placeholder        | Arte proprietária                                |
+| `name`                     | Mapear            | `name`                     | ORC ok                                           |
+| `type`                     | Mapear            | `type`                     | "spell"                                          |
+| `system.area`              | Mapear            | `system.area`              | type (burst/cone/line/emanation) + value em ft   |
+| `system.cost.value`        | Mapear            | `system.cost`              | Material component cost                          |
+| `system.counteraction`     | Mapear            | `system.counteraction`     | bool para contramágica                           |
+| `system.damage`            | Mapear            | `system.damage`            | Mapa keyed; cada entrada: formula + type + kinds |
+| `system.defense`           | Mapear            | `system.defense`           | save.statistic (reflex/fort/will) + basic        |
+| `system.description.value` | Mapear (filtrado) | `system.description`       | HTML com texto ORC ok; ver nota de lore          |
+| `system.duration`          | Mapear            | `system.duration`          | sustained + value textual                        |
+| `system.heightening`       | Mapear            | `system.heightening`       | type=interval: intervalo + delta por rank        |
+| `system.level.value`       | Mapear            | `system.level`             | Rank da magia (1-10)                             |
+| `system.publication`       | Manter            | `system.publication`       | Atribuição obrigatória                           |
+| `system.range.value`       | Mapear            | `system.range`             | String: "touch", "30 feet", etc.                 |
+| `system.requirements`      | Mapear            | `system.requirements`      | String de requisitos                             |
+| `system.rules`             | Transformar       | `system.rules`             | Ver análise de rule elements                     |
+| `system.target.value`      | Mapear            | `system.target`            | String descritiva do alvo                        |
+| `system.time.value`        | Mapear            | `system.castTime`          | "1", "2", "3" actions ou "reaction"              |
+| `system.traits.rarity`     | Mapear            | `system.traits.rarity`     |                                                  |
+| `system.traits.traditions` | Mapear            | `system.traits.traditions` | arcane/divine/occult/primal                      |
+| `system.traits.value`      | Mapear            | `system.traits.value`      | concentrate, manipulate, etc.                    |
 
 **Descartados:** `system.overlays` (overrides de variante — transformados em documentos separados no Fusion se necessário).
 
@@ -207,47 +215,47 @@
 
 ### Mapeamento campo a campo — npc (actor)
 
-| Campo PF2E | Status Fusion | Campo Fusion | Notas |
-|---|---|---|---|
-| `_id` | Descartar | — | Novo UUID Fusion |
-| `img` | Substituir | `img` → placeholder | Arte proprietária da Paizo — path `systems/pf2e/...` NUNCA importado |
-| `name` | Mapear | `name` | ORC ok |
-| `type` | Mapear | `type` | "npc" → "Actor" Fusion com subtype "npc" |
-| `system.abilities` | Mapear | `system.abilities` | STR/DEX/CON/INT/WIS/CHA com mod |
-| `system.attributes.ac.value` | Mapear | `system.attributes.ac` | AC total (NPC usa valor fixo, não derivado) |
-| `system.attributes.hp` | Mapear | `system.attributes.hp` | max + value + details (ex: "void healing") |
-| `system.attributes.immunities` | Mapear | `system.attributes.immunities` | Array de {type, exceptions} |
-| `system.attributes.resistances` | Mapear | `system.attributes.resistances` | Array de {type, value} |
-| `system.attributes.weaknesses` | Mapear | `system.attributes.weaknesses` | Idem, quando presente |
-| `system.attributes.speed` | Mapear | `system.attributes.speed` | value (ft) + otherSpeeds[] |
-| `system.attributes.allSaves` | Mapear | `system.attributes.allSaves` | Nota de save especial |
-| `system.details.level.value` | Mapear | `system.details.level` | Nível do monstro (-1 a 25) |
-| `system.details.languages` | Mapear | `system.details.languages` | Idiomas + details |
-| `system.details.publicNotes` | Mapear (filtrado) | `system.details.publicNotes` | HTML ORC ok; lore narrativo ver nota |
-| `system.details.privateNotes` | Descartar | — | Notas do editor, não relevantes |
-| `system.details.blurb` | Mapear | `system.details.blurb` | Frase resumida |
-| `system.details.publication` | Manter | `system.details.publication` | Atribuição obrigatória |
-| `system.initiative.statistic` | Mapear | `system.initiative` | "perception" ou skill slug |
-| `system.perception` | Mapear | `system.perception` | mod + senses[] + details |
-| `system.saves` | Mapear | `system.saves` | fort/ref/will com value + saveDetail |
-| `system.skills` | Mapear | `system.skills` | skill slug → { base } |
-| `system.traits.rarity` | Mapear | `system.traits.rarity` | |
-| `system.traits.size.value` | Mapear | `system.traits.size` | tiny/sm/med/lg/huge/grg |
-| `system.traits.value` | Mapear | `system.traits.value` | mindless, undead, etc. |
-| `items` | Transformar | `items` | Array de Items embutidos; ver abaixo |
+| Campo PF2E                      | Status Fusion     | Campo Fusion                    | Notas                                                                |
+| ------------------------------- | ----------------- | ------------------------------- | -------------------------------------------------------------------- |
+| `_id`                           | Descartar         | —                               | Novo UUID Fusion                                                     |
+| `img`                           | Substituir        | `img` → placeholder             | Arte proprietária da Paizo — path `systems/pf2e/...` NUNCA importado |
+| `name`                          | Mapear            | `name`                          | ORC ok                                                               |
+| `type`                          | Mapear            | `type`                          | "npc" → "Actor" Fusion com subtype "npc"                             |
+| `system.abilities`              | Mapear            | `system.abilities`              | STR/DEX/CON/INT/WIS/CHA com mod                                      |
+| `system.attributes.ac.value`    | Mapear            | `system.attributes.ac`          | AC total (NPC usa valor fixo, não derivado)                          |
+| `system.attributes.hp`          | Mapear            | `system.attributes.hp`          | max + value + details (ex: "void healing")                           |
+| `system.attributes.immunities`  | Mapear            | `system.attributes.immunities`  | Array de {type, exceptions}                                          |
+| `system.attributes.resistances` | Mapear            | `system.attributes.resistances` | Array de {type, value}                                               |
+| `system.attributes.weaknesses`  | Mapear            | `system.attributes.weaknesses`  | Idem, quando presente                                                |
+| `system.attributes.speed`       | Mapear            | `system.attributes.speed`       | value (ft) + otherSpeeds[]                                           |
+| `system.attributes.allSaves`    | Mapear            | `system.attributes.allSaves`    | Nota de save especial                                                |
+| `system.details.level.value`    | Mapear            | `system.details.level`          | Nível do monstro (-1 a 25)                                           |
+| `system.details.languages`      | Mapear            | `system.details.languages`      | Idiomas + details                                                    |
+| `system.details.publicNotes`    | Mapear (filtrado) | `system.details.publicNotes`    | HTML ORC ok; lore narrativo ver nota                                 |
+| `system.details.privateNotes`   | Descartar         | —                               | Notas do editor, não relevantes                                      |
+| `system.details.blurb`          | Mapear            | `system.details.blurb`          | Frase resumida                                                       |
+| `system.details.publication`    | Manter            | `system.details.publication`    | Atribuição obrigatória                                               |
+| `system.initiative.statistic`   | Mapear            | `system.initiative`             | "perception" ou skill slug                                           |
+| `system.perception`             | Mapear            | `system.perception`             | mod + senses[] + details                                             |
+| `system.saves`                  | Mapear            | `system.saves`                  | fort/ref/will com value + saveDetail                                 |
+| `system.skills`                 | Mapear            | `system.skills`                 | skill slug → { base }                                                |
+| `system.traits.rarity`          | Mapear            | `system.traits.rarity`          |                                                                      |
+| `system.traits.size.value`      | Mapear            | `system.traits.size`            | tiny/sm/med/lg/huge/grg                                              |
+| `system.traits.value`           | Mapear            | `system.traits.value`           | mindless, undead, etc.                                               |
+| `items`                         | Transformar       | `items`                         | Array de Items embutidos; ver abaixo                                 |
 
 **Items embutidos no NPC:**
 
-| Tipo de item embutido | Ação | Notas |
-|---|---|---|
-| `melee` | Mapear | Estatísticas de ataque melee (to-hit, dano, MAP) |
-| `ranged` | Mapear | Estatísticas de ataque ranged |
-| `weapon` | Mapear | Arma equipada (mesmos campos de weapon) |
-| `action` | Mapear | Ações especiais e habilidades |
-| `spell` | Mapear | Magias inatas |
-| `spellcastingEntry` | Mapear parcialmente | Entrada de spellcasting (DC, mod, tradition) |
-| `effect` | Mapear | Efeitos permanentes da criatura |
-| `lore` | Mapear | Skills de Lore específicas |
+| Tipo de item embutido | Ação                | Notas                                            |
+| --------------------- | ------------------- | ------------------------------------------------ |
+| `melee`               | Mapear              | Estatísticas de ataque melee (to-hit, dano, MAP) |
+| `ranged`              | Mapear              | Estatísticas de ataque ranged                    |
+| `weapon`              | Mapear              | Arma equipada (mesmos campos de weapon)          |
+| `action`              | Mapear              | Ações especiais e habilidades                    |
+| `spell`               | Mapear              | Magias inatas                                    |
+| `spellcastingEntry`   | Mapear parcialmente | Entrada de spellcasting (DC, mod, tradition)     |
+| `effect`              | Mapear              | Efeitos permanentes da criatura                  |
+| `lore`                | Mapear              | Skills de Lore específicas                       |
 
 **Descartados em NPC:** `system.resources.focus` (derivado em runtime), campos de estado volátil (`resources.initiative`, `hp.temp` — zeramos ao importar).
 
@@ -292,13 +300,13 @@ browser (specs/16 § Atribuição).
 
 ## 5. Resumo de campos descartados globalmente
 
-| Campo | Razão |
-|---|---|
-| `_id` original | Regenerado pelo Fusion (evita colisão) |
-| `img` (art paths) | Arte proprietária Paizo — substituído por placeholder |
-| `system.containerId` | Estado de ator; irrelevante em pack |
-| `system.hp.temp` | Estado volátil; zerado ao importar |
-| `system.details.privateNotes` | Notas internas do editor |
-| `folder` | Estrutura de pasta do Foundry; Fusion usa organização própria |
-| `sort` | Ordem de UI; regenerada |
+| Campo                               | Razão                                                               |
+| ----------------------------------- | ------------------------------------------------------------------- |
+| `_id` original                      | Regenerado pelo Fusion (evita colisão)                              |
+| `img` (art paths)                   | Arte proprietária Paizo — substituído por placeholder               |
+| `system.containerId`                | Estado de ator; irrelevante em pack                                 |
+| `system.hp.temp`                    | Estado volátil; zerado ao importar                                  |
+| `system.details.privateNotes`       | Notas internas do editor                                            |
+| `folder`                            | Estrutura de pasta do Foundry; Fusion usa organização própria       |
+| `sort`                              | Ordem de UI; regenerada                                             |
 | `_stats` (compendiumSource interno) | Referências cruzadas internas do pf2e; substituídas por UUID Fusion |

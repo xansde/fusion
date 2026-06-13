@@ -92,10 +92,22 @@
       "morte_enquanto_inconsciente": "Sofrer +1 Ferimento adicional enquanto inconsciente",
       "ao_acordar": "+3 pontos de Estresse acumulados",
       "descricao_niveis": [
-        { "ferimentos": 1, "descricao": "Danos superficiais. Contusões, escoriações, cortes simples e limpos e queimaduras pequenas e leves." },
-        { "ferimentos": 2, "descricao": "Danos ainda não preocupantes, mas mais severos. Cortes mais profundos, torções, leves concussões, queimaduras medianas e danos mentais e espirituais de baixa intensidade." },
-        { "ferimentos": 3, "descricao": "Danos possivelmente letais. Cortes profundos, hemorragias, quebra de ossos, concussões, grandes queimaduras e danos mentais e espirituais de intensidade mediana." },
-        { "ferimentos": 4, "descricao": "Danos letais. Hemorragia severa, perda de membros, traumatismos, queimaduras graves e danos mentais e espirituais de alta intensidade, que ameaçam a vida." }
+        {
+          "ferimentos": 1,
+          "descricao": "Danos superficiais. Contusões, escoriações, cortes simples e limpos e queimaduras pequenas e leves."
+        },
+        {
+          "ferimentos": 2,
+          "descricao": "Danos ainda não preocupantes, mas mais severos. Cortes mais profundos, torções, leves concussões, queimaduras medianas e danos mentais e espirituais de baixa intensidade."
+        },
+        {
+          "ferimentos": 3,
+          "descricao": "Danos possivelmente letais. Cortes profundos, hemorragias, quebra de ossos, concussões, grandes queimaduras e danos mentais e espirituais de intensidade mediana."
+        },
+        {
+          "ferimentos": 4,
+          "descricao": "Danos letais. Hemorragia severa, perda de membros, traumatismos, queimaduras graves e danos mentais e espirituais de alta intensidade, que ameaçam a vida."
+        }
       ]
     }
   },
@@ -243,11 +255,31 @@
     "descricao": "Parâmetros gerais de dificuldade para Testes (2d6 + bônus). A dificuldade base para qualquer Teste é 6.",
     "fonte": "SRD-ETMOS-1.1.pdf, seção Dificuldade dos Testes",
     "niveis": [
-      { "resultado_necessario": "< 6", "classificacao": "Simples", "descricao": "Uma pessoa capacitada falha apenas se estiver distraída." },
-      { "resultado_necessario": "6", "classificacao": "Fácil", "descricao": "Uma pessoa capacitada deve conseguir realizar a tarefa sem muitos problemas." },
-      { "resultado_necessario": "7–10", "classificacao": "Mediano", "descricao": "Uma pessoa capacitada consegue realizar a tarefa, mas requer um pouco mais de concentração e foco." },
-      { "resultado_necessario": "11–14", "classificacao": "Árduo", "descricao": "Uma pessoa capacitada talvez não consiga realizar a tarefa. Requer empenho." },
-      { "resultado_necessario": "15+", "classificacao": "Difícil", "descricao": "Mesmo uma pessoa capacitada provavelmente não terá êxito. Requer concentração completa." }
+      {
+        "resultado_necessario": "< 6",
+        "classificacao": "Simples",
+        "descricao": "Uma pessoa capacitada falha apenas se estiver distraída."
+      },
+      {
+        "resultado_necessario": "6",
+        "classificacao": "Fácil",
+        "descricao": "Uma pessoa capacitada deve conseguir realizar a tarefa sem muitos problemas."
+      },
+      {
+        "resultado_necessario": "7–10",
+        "classificacao": "Mediano",
+        "descricao": "Uma pessoa capacitada consegue realizar a tarefa, mas requer um pouco mais de concentração e foco."
+      },
+      {
+        "resultado_necessario": "11–14",
+        "classificacao": "Árduo",
+        "descricao": "Uma pessoa capacitada talvez não consiga realizar a tarefa. Requer empenho."
+      },
+      {
+        "resultado_necessario": "15+",
+        "classificacao": "Difícil",
+        "descricao": "Mesmo uma pessoa capacitada provavelmente não terá êxito. Requer concentração completa."
+      }
     ],
     "fatores_que_aumentam_dificuldade": [
       "Alta ou baixa luminosidade e visibilidade",

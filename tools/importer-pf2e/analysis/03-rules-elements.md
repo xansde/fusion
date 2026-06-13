@@ -9,57 +9,57 @@
 
 ## 1. Resultado do scan
 
-| Métrica | Valor |
-|---|---|
-| Documentos escaneados | 20 458 |
-| Documentos com regras | 8 511 (41,6%) |
-| Total de entradas em `system.rules[]` | 19 753 |
-| Chaves únicas de rule element | 38 |
+| Métrica                               | Valor         |
+| ------------------------------------- | ------------- |
+| Documentos escaneados                 | 20 458        |
+| Documentos com regras                 | 8 511 (41,6%) |
+| Total de entradas em `system.rules[]` | 19 753        |
+| Chaves únicas de rule element         | 38            |
 
 ---
 
 ## 2. Tabela de frequência completa
 
-| Rank | Chave | Ocorrências | % do total | % acumulado |
-|---|---|---|---|---|
-| 1 | **FlatModifier** | 4 537 | 23,0% | 23,0% |
-| 2 | **RollOption** | 2 033 | 10,3% | 33,3% |
-| 3 | **ItemAlteration** | 1 803 | 9,1% | 42,4% |
-| 4 | **ActiveEffectLike** | 1 667 | 8,4% | 50,8% |
-| 5 | **GrantItem** | 1 512 | 7,7% | 58,5% |
-| 6 | **ChoiceSet** | 1 252 | 6,3% | 64,8% |
-| 7 | **Note** | 881 | 4,5% | 69,3% |
-| 8 | **DamageDice** | 876 | 4,4% | 73,7% |
-| 9 | **Resistance** | 776 | 3,9% | 77,6% |
-| 10 | **Aura** | 545 | 2,8% | 80,4% |
-| 11 | AdjustModifier | 447 | 2,3% | 82,7% |
-| 12 | Strike | 374 | 1,9% | 84,6% |
-| 13 | AdjustDegreeOfSuccess | 341 | 1,7% | 86,3% |
-| 14 | BaseSpeed | 330 | 1,7% | 88,0% |
-| 15 | AdjustStrike | 262 | 1,3% | 89,3% |
-| 16 | TempHP | 236 | 1,2% | 90,5% |
-| 17 | Sense | 188 | 1,0% | 91,4% |
-| 18 | DamageAlteration | 186 | 0,9% | 92,4% |
-| 19 | Weakness | 177 | 0,9% | 93,3% |
-| 20 | FastHealing | 176 | 0,9% | 94,2% |
-| 21 | TokenLight | 149 | 0,8% | 94,9% |
-| 22 | CreatureSize | 120 | 0,6% | 95,5% |
-| 23 | MartialProficiency | 112 | 0,6% | 96,1% |
-| 24 | CriticalSpecialization | 111 | 0,6% | 96,6% |
-| 25 | BattleForm | 104 | 0,5% | 97,2% |
-| 26 | Immunity | 91 | 0,5% | 97,6% |
-| 27 | TokenMark | 86 | 0,4% | 98,1% |
-| 28 | ActorTraits | 78 | 0,4% | 98,5% |
-| 29 | RollTwice | 78 | 0,4% | 98,9% |
-| 30 | EphemeralEffect | 77 | 0,4% | 99,3% |
-| 31 | TokenEffectIcon | 50 | 0,3% | 99,5% |
-| 32 | CraftingAbility | 23 | 0,1% | 99,6% |
-| 33 | DexterityModifierCap | 18 | 0,1% | 99,7% |
-| 34 | SubstituteRoll | 18 | 0,1% | 99,8% |
-| 35 | SpecialStatistic | 15 | 0,1% | 99,9% |
-| 36 | MultipleAttackPenalty | 11 | 0,1% | 99,9% |
-| 37 | LoseHitPoints | 7 | 0,0% | 100,0% |
-| 38 | SpecialResource | 6 | 0,0% | 100,0% |
+| Rank | Chave                  | Ocorrências | % do total | % acumulado |
+| ---- | ---------------------- | ----------- | ---------- | ----------- |
+| 1    | **FlatModifier**       | 4 537       | 23,0%      | 23,0%       |
+| 2    | **RollOption**         | 2 033       | 10,3%      | 33,3%       |
+| 3    | **ItemAlteration**     | 1 803       | 9,1%       | 42,4%       |
+| 4    | **ActiveEffectLike**   | 1 667       | 8,4%       | 50,8%       |
+| 5    | **GrantItem**          | 1 512       | 7,7%       | 58,5%       |
+| 6    | **ChoiceSet**          | 1 252       | 6,3%       | 64,8%       |
+| 7    | **Note**               | 881         | 4,5%       | 69,3%       |
+| 8    | **DamageDice**         | 876         | 4,4%       | 73,7%       |
+| 9    | **Resistance**         | 776         | 3,9%       | 77,6%       |
+| 10   | **Aura**               | 545         | 2,8%       | 80,4%       |
+| 11   | AdjustModifier         | 447         | 2,3%       | 82,7%       |
+| 12   | Strike                 | 374         | 1,9%       | 84,6%       |
+| 13   | AdjustDegreeOfSuccess  | 341         | 1,7%       | 86,3%       |
+| 14   | BaseSpeed              | 330         | 1,7%       | 88,0%       |
+| 15   | AdjustStrike           | 262         | 1,3%       | 89,3%       |
+| 16   | TempHP                 | 236         | 1,2%       | 90,5%       |
+| 17   | Sense                  | 188         | 1,0%       | 91,4%       |
+| 18   | DamageAlteration       | 186         | 0,9%       | 92,4%       |
+| 19   | Weakness               | 177         | 0,9%       | 93,3%       |
+| 20   | FastHealing            | 176         | 0,9%       | 94,2%       |
+| 21   | TokenLight             | 149         | 0,8%       | 94,9%       |
+| 22   | CreatureSize           | 120         | 0,6%       | 95,5%       |
+| 23   | MartialProficiency     | 112         | 0,6%       | 96,1%       |
+| 24   | CriticalSpecialization | 111         | 0,6%       | 96,6%       |
+| 25   | BattleForm             | 104         | 0,5%       | 97,2%       |
+| 26   | Immunity               | 91          | 0,5%       | 97,6%       |
+| 27   | TokenMark              | 86          | 0,4%       | 98,1%       |
+| 28   | ActorTraits            | 78          | 0,4%       | 98,5%       |
+| 29   | RollTwice              | 78          | 0,4%       | 98,9%       |
+| 30   | EphemeralEffect        | 77          | 0,4%       | 99,3%       |
+| 31   | TokenEffectIcon        | 50          | 0,3%       | 99,5%       |
+| 32   | CraftingAbility        | 23          | 0,1%       | 99,6%       |
+| 33   | DexterityModifierCap   | 18          | 0,1%       | 99,7%       |
+| 34   | SubstituteRoll         | 18          | 0,1%       | 99,8%       |
+| 35   | SpecialStatistic       | 15          | 0,1%       | 99,9%       |
+| 36   | MultipleAttackPenalty  | 11          | 0,1%       | 99,9%       |
+| 37   | LoseHitPoints          | 7           | 0,0%       | 100,0%      |
+| 38   | SpecialResource        | 6           | 0,0%       | 100,0%      |
 
 ---
 
@@ -71,6 +71,7 @@ Aplica um modificador numérico fixo a um selector (perícia, atributo, saving t
 ataque etc.). É o building block mais fundamental do sistema de modifiers PF2E.
 
 **Exemplo:**
+
 ```json
 {
   "key": "FlatModifier",
@@ -81,6 +82,7 @@ ataque etc.). É o building block mais fundamental do sistema de modifiers PF2E.
 ```
 
 **Campos relevantes:**
+
 - `selector` — target do modifier (perícia, "saving-throw:will", "attack", etc.)
 - `type` — tipo do bonus (item / status / circumstance / untyped)
 - `value` — número fixo (pode ser negativo)
@@ -100,6 +102,7 @@ Define uma flag booleana no ator que outras regras podem usar como predicado. Po
 ser toggleável pelo usuário ou automático.
 
 **Exemplo:**
+
 ```json
 {
   "key": "RollOption",
@@ -110,6 +113,7 @@ ser toggleável pelo usuário ou automático.
 ```
 
 **Campos relevantes:**
+
 - `option` — slug da flag (ex: "alchemist-goggles-failure")
 - `toggleable` — se aparece como toggle na UI
 - `domain` — escopo da flag (all, item, attack, etc.)
@@ -128,6 +132,7 @@ Modifica campos de um item (description, traits, tags) em tempo de execução.
 Principal mecanismo de customização de itens por feats e equipamentos.
 
 **Exemplo:**
+
 ```json
 {
   "key": "ItemAlteration",
@@ -157,6 +162,7 @@ Modifica caminhos arbitrários no `system` do ator (como `system.abilities.str.m
 Equivalente ao ActiveEffect do Foundry core, mas operando no schema PF2E.
 
 **Exemplo:**
+
 ```json
 {
   "key": "ActiveEffectLike",
@@ -182,6 +188,7 @@ Concede automaticamente outro item ao ator (feat, condition, efeito) quando o it
 pai está presente.
 
 **Exemplo:**
+
 ```json
 {
   "key": "GrantItem",
@@ -193,6 +200,7 @@ pai está presente.
 ```
 
 **Campos relevantes:**
+
 - `uuid` — referência ao item a conceder (UUID do Foundry, precisa ser traduzido para UUID Fusion)
 - `inMemoryOnly` — não persiste no banco, apenas no runtime
 - `alterations` — modificações adicionais no item concedido
@@ -212,6 +220,7 @@ Apresenta uma escolha ao usuário na criação/nível do personagem e armazena a
 seleção como flag.
 
 **Exemplo:**
+
 ```json
 {
   "key": "ChoiceSet",
@@ -238,6 +247,7 @@ ser deferido para M5 se as escolhas forem fixas nos packs importados.
 Adiciona nota de regra a uma roll (ex: "Em hit, aplica condição X").
 
 **Exemplo:**
+
 ```json
 {
   "key": "Note",
@@ -259,6 +269,7 @@ efeito mecânico automático.
 Adiciona dados de dano extras a uma roll de dano.
 
 **Exemplo:**
+
 ```json
 {
   "key": "DamageDice",
@@ -281,6 +292,7 @@ predicados. Alta prioridade para combate funcional.
 Define resistência a tipo de dano.
 
 **Exemplo:**
+
 ```json
 {
   "key": "Resistance",
@@ -299,6 +311,7 @@ Aplicado durante `applyDamage()`. Pode usar `value: "half"` além de numérico.
 Define aura com raio, efeitos e condições em tokens próximos.
 
 **Exemplo:**
+
 ```json
 {
   "key": "Aura",
@@ -325,6 +338,7 @@ GrantItem, ChoiceSet, Note, DamageDice, Resistance, Aura
 ```
 
 Para cobertura de **90%**, adicionar:
+
 ```
 AdjustModifier, Strike, AdjustDegreeOfSuccess, BaseSpeed, AdjustStrike, TempHP
 ```
@@ -335,49 +349,50 @@ AdjustModifier, Strike, AdjustDegreeOfSuccess, BaseSpeed, AdjustStrike, TempHP
 
 ### Tier 1 — Implementar no M3-A (bloqueadores de combate básico)
 
-| RE | Razão |
-|---|---|
-| **FlatModifier** | Toda feat e item depende; sem ele, bônus não funcionam |
+| RE                   | Razão                                                   |
+| -------------------- | ------------------------------------------------------- |
+| **FlatModifier**     | Toda feat e item depende; sem ele, bônus não funcionam  |
 | **ActiveEffectLike** | Modifica abilities/stats derivadas — core do personagem |
-| **RollOption** | Flags de contexto para predicados — usado em 1/3 dos RE |
-| **DamageDice** | Dano extra por feats e itens — combate |
-| **Resistance** | IWR — apply damage não funciona sem |
-| **Note** | Baixa complexidade, alto valor visual para GMs |
+| **RollOption**       | Flags de contexto para predicados — usado em 1/3 dos RE |
+| **DamageDice**       | Dano extra por feats e itens — combate                  |
+| **Resistance**       | IWR — apply damage não funciona sem                     |
+| **Note**             | Baixa complexidade, alto valor visual para GMs          |
 
 ### Tier 2 — Implementar no M3-B / M4
 
-| RE | Razão |
-|---|---|
-| **GrantItem** | Complexo (UUID cross-compendium); crítico para feats com grants |
-| **ItemAlteration** | Necessário para muitos itens mágicos |
-| **ChoiceSet** | Necessário para build de personagem |
-| **AdjustModifier** | Refina FlatModifier — mais contexto |
-| **Strike** | Attacks de NPCs com múltiplos attacks |
-| **BaseSpeed** | Speed modificada por condições e feats |
-| **AdjustDegreeOfSuccess** | Crítico para mecânicas de success/crit (hero points, etc.) |
-| **TempHP** | HP temporário — comum em spells e feats |
-| **DamageAlteration** | Muda tipo de dano (DamageAlteration.override) |
+| RE                        | Razão                                                           |
+| ------------------------- | --------------------------------------------------------------- |
+| **GrantItem**             | Complexo (UUID cross-compendium); crítico para feats com grants |
+| **ItemAlteration**        | Necessário para muitos itens mágicos                            |
+| **ChoiceSet**             | Necessário para build de personagem                             |
+| **AdjustModifier**        | Refina FlatModifier — mais contexto                             |
+| **Strike**                | Attacks de NPCs com múltiplos attacks                           |
+| **BaseSpeed**             | Speed modificada por condições e feats                          |
+| **AdjustDegreeOfSuccess** | Crítico para mecânicas de success/crit (hero points, etc.)      |
+| **TempHP**                | HP temporário — comum em spells e feats                         |
+| **DamageAlteration**      | Muda tipo de dano (DamageAlteration.override)                   |
 
 ### Tier 3 — Deferido para M5 / post-MVP
 
-| RE | Razão |
-|---|---|
-| **Aura** | Requer integração com canvas |
-| **BattleForm** | Polimorfismo complexo (Wild Shape) |
-| **CreatureSize** | Muda size token — canvas dependency |
-| **TokenLight** | Apenas visual |
-| **TokenMark / TokenEffectIcon** | Apenas visual |
-| **MartialProficiency** | Específico de classes; tratar como FlatModifier em MVP |
-| **CriticalSpecialization** | Efeitos de crit por weapon group |
-| **RollTwice** | Fortune/Misfortune — adicionar depois |
-| **SubstituteRoll** | Raro (18 ocorrências) |
-| **SpecialStatistic** | Raro (15 ocorrências) |
-| **MultipleAttackPenalty** | MAP customizado — 11 ocorrências |
-| **LoseHitPoints / SpecialResource** | Raro, casos especiais |
+| RE                                  | Razão                                                  |
+| ----------------------------------- | ------------------------------------------------------ |
+| **Aura**                            | Requer integração com canvas                           |
+| **BattleForm**                      | Polimorfismo complexo (Wild Shape)                     |
+| **CreatureSize**                    | Muda size token — canvas dependency                    |
+| **TokenLight**                      | Apenas visual                                          |
+| **TokenMark / TokenEffectIcon**     | Apenas visual                                          |
+| **MartialProficiency**              | Específico de classes; tratar como FlatModifier em MVP |
+| **CriticalSpecialization**          | Efeitos de crit por weapon group                       |
+| **RollTwice**                       | Fortune/Misfortune — adicionar depois                  |
+| **SubstituteRoll**                  | Raro (18 ocorrências)                                  |
+| **SpecialStatistic**                | Raro (15 ocorrências)                                  |
+| **MultipleAttackPenalty**           | MAP customizado — 11 ocorrências                       |
+| **LoseHitPoints / SpecialResource** | Raro, casos especiais                                  |
 
 ### Rule Elements sem suporte (fallback)
 
 Para rule elements não suportados, o importer deve:
+
 1. Incluir o documento no pack Fusion com o RE original intacto em `system.rules`.
 2. Adicionar `"_unsupported": true` ao RE específico.
 3. O motor de effects do Fusion ignora entradas `_unsupported` sem erro.
@@ -392,10 +407,7 @@ O sistema de predicados do PF2E usa um mini-DSL:
 
 ```js
 // Exemplos de predicados
-["item:trait:curse"]             // item tem trait
-[{ "not": "self:trait:dwarf" }]  // ator NÃO é dwarf
-["target:trait:undead"]          // alvo tem trait
-["mode:encounter"]               // em modo de encontro
+["item:trait:curse"][{ not: "self:trait:dwarf" }]["target:trait:undead"]["mode:encounter"]; // item tem trait // ator NÃO é dwarf // alvo tem trait // em modo de encontro
 ```
 
 O motor de effects do Fusion **deve** implementar a resolução de predicados
@@ -407,12 +419,14 @@ incondicionalmente — gerando resultados incorretos.
 ## 7. UUID cross-compendium — problema chave para GrantItem
 
 Os campos `uuid` em `GrantItem` apontam para o formato Foundry:
+
 ```
 Compendium.pf2e.conditionitems.Item.Stupefied
 Compendium.pf2e.spells-srd.Item.XXX
 ```
 
 O importer deve construir um **mapa de UUID** durante a importação:
+
 ```
 pf2e UUID → Fusion UUID
 ```

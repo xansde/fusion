@@ -38,6 +38,12 @@ import {
   buildTokenMoveHandler,
 } from "./handlers/vision-handlers.js";
 import {
+  buildFogUpdateHandler,
+  buildFogGetHandler,
+  buildFogResetHandler,
+} from "./handlers/fog-handlers.js";
+import { FogStore } from "../fog/index.js";
+import {
   buildResyncRequestHandler,
   buildActiveSceneHandler,
   sendJoinSnapshot,
@@ -201,6 +207,13 @@ export class SocketManager {
     registry.register("scene:doorState", buildDoorStateHandler(visionDeps));
     // Override token:move with collision-aware handler
     registry.register("token:move", buildTokenMoveHandler(visionDeps));
+
+    // Register M2-B fog-of-war handlers
+    const fogStore = new FogStore(db);
+    const fogDeps = { fogStore, ns };
+    registry.register("fog:update", buildFogUpdateHandler(fogDeps));
+    registry.register("fog:get", buildFogGetHandler(fogDeps));
+    registry.register("fog:reset", buildFogResetHandler(fogDeps));
 
     // REQ-NET-003/014: auth middleware runs before connection is accepted
     ns.use((socket, next) => {

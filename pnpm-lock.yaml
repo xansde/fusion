@@ -133,6 +133,9 @@ importers:
 
   packages/shared:
     dependencies:
+      '@countertype/clipper2-ts':
+        specifier: 1.5.4-3.9a869ba
+        version: 1.5.4-3.9a869ba
       '@dice-roller/rpg-dice-roller':
         specifier: ^5.5.1
         version: 5.5.1
@@ -192,6 +195,8 @@ importers:
         specifier: ^3.2.2
         version: 3.2.6(@types/node@22.19.21)
 
+  tools/importer-pf2e: {}
+
 packages:
 
   '@3d-dice/dice-box@1.1.4':
@@ -239,6 +244,11 @@ packages:
   '@bcoe/v8-coverage@1.0.2':
     resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
     engines: {node: '>=18'}
+
+  '@countertype/clipper2-ts@1.5.4-3.9a869ba':
+    resolution: {integrity: sha512-LeO+CRdfipmLjSBszws6FC2KIjyjOpqDlNgLIrC5LtdV/ab0YXCt4cioIMYFaIVGT3saQQ51ejdHhWw28Rmdjw==}
+    engines: {node: '>=14.0.0'}
+    deprecated: Package moved to clipper2-ts (no scope). Please update your dependencies
 
   '@dice-roller/rpg-dice-roller@5.5.1':
     resolution: {integrity: sha512-De5/UTjihpv639XJDBOCfwuOlzIInLqCeal5rpIY9C8Qh8oaNL2/5e0wa/0lcVZyy8m+BCn5zT4eZamCnguIXQ==}
@@ -2361,6 +2371,8 @@ snapshots:
       '@babylonjs/core': 5.57.1
 
   '@bcoe/v8-coverage@1.0.2': {}
+
+  '@countertype/clipper2-ts@1.5.4-3.9a869ba': {}
 
   '@dice-roller/rpg-dice-roller@5.5.1':
     dependencies:

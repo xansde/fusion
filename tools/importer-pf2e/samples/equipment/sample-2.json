@@ -40,9 +40,7 @@
     "rules": [
       {
         "key": "FlatModifier",
-        "predicate": [
-          "using-the-chair"
-        ],
+        "predicate": ["using-the-chair"],
         "selector": "performance",
         "type": "item",
         "value": 1
@@ -51,9 +49,7 @@
     "size": "med",
     "traits": {
       "rarity": "common",
-      "value": [
-        "magical"
-      ]
+      "value": ["magical"]
     },
     "usage": {
       "value": "held-in-one-hand"

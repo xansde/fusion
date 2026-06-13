@@ -43,9 +43,7 @@
     "size": "med",
     "traits": {
       "rarity": "uncommon",
-      "value": [
-        "consumable"
-      ]
+      "value": ["consumable"]
     },
     "uses": {
       "autoDestroy": true,

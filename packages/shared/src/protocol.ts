@@ -63,6 +63,11 @@ export const EnvelopeTypeSchema = z.union([
   z.literal("light:update"),
   z.literal("light:delete"),
   z.literal("scene:doorState"),
+  // M2-B: fog of war
+  z.literal("fog:update"),
+  z.literal("fog:get"),
+  z.literal("fog:reset"),
+  z.literal("fog:wasReset"),
 ]);
 
 export type EnvelopeType = z.infer<typeof EnvelopeTypeSchema>;

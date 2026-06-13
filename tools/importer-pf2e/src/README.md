@@ -5,6 +5,7 @@ dados de compendium do repositório `foundryvtt/pf2e` (Apache-2.0) em packs Fusi
 versionados, importáveis de forma idempotente.
 
 Referências de spec:
+
 - `specs/16-compendiums-e-importacao.md` — spec do pipeline
 - `specs/17-sistema-pf2e.md` — schema de dados PF2E no Fusion
 - `specs/26-licencas-e-legal.md` — licença ORC/OGL; arte Paizo proibida
@@ -95,6 +96,7 @@ output/packs/<pack-name>/
 ```
 
 ### Exemplo `pack.json`
+
 ```json
 {
   "name": "equipment",
@@ -113,17 +115,17 @@ output/packs/<pack-name>/
 
 ## Convenções de placeholder de arte
 
-| Tipo de documento | Placeholder |
-|---|---|
-| weapon | `/icons/placeholder/weapon.svg` |
-| armor / shield | `/icons/placeholder/armor.svg` |
-| spell | `/icons/placeholder/spell.svg` |
-| consumable | `/icons/placeholder/consumable.svg` |
-| equipment (genérico) | `/icons/placeholder/item.svg` |
-| npc / character | `/icons/placeholder/npc.svg` |
-| feat / action | `/icons/placeholder/feat.svg` |
-| effect | `/icons/placeholder/effect.svg` |
-| condition | `/icons/placeholder/condition.svg` |
+| Tipo de documento    | Placeholder                         |
+| -------------------- | ----------------------------------- |
+| weapon               | `/icons/placeholder/weapon.svg`     |
+| armor / shield       | `/icons/placeholder/armor.svg`      |
+| spell                | `/icons/placeholder/spell.svg`      |
+| consumable           | `/icons/placeholder/consumable.svg` |
+| equipment (genérico) | `/icons/placeholder/item.svg`       |
+| npc / character      | `/icons/placeholder/npc.svg`        |
+| feat / action        | `/icons/placeholder/feat.svg`       |
+| effect               | `/icons/placeholder/effect.svg`     |
+| condition            | `/icons/placeholder/condition.svg`  |
 
 Os arquivos SVG placeholder são fornecidos por `packages/shared/assets/icons/placeholder/`.
 

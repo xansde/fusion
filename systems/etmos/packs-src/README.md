@@ -16,13 +16,13 @@
 
 ## Arquivos nesta pasta
 
-| Arquivo | Conteúdo | Entradas | Ambiguidades |
-|---|---|---|---|
-| `particulas.json` | 81 Partículas canônicas do Grimório | 18 Funções + 19 Objetos + 34 Características + 10 Complementos = 81 | 3 (`verify: true`) |
-| `origens.json` | Catálogo de Origens do SRD + Quickstart | 5 canônicas (SRD) + 5 do Quickstart | 5 (Quickstart, não confirmadas no SRD) |
-| `habilidades.json` | Catálogo de Habilidades do SRD + Quickstart | 5 Práticas + 3 Teóricas (SRD) + 15 do Quickstart | 15 (Quickstart) |
-| `antagonistas.json` | Fichas base, Aptidões e exemplos de antagonistas | 11 Aptidões canônicas + 2 fichas de exemplo | 1 ficha + aptidões do Curupira sem mecânica explícita |
-| `tabelas.json` | Tabelas mecânicas estruturadas | 9 tabelas | 1 (Habilidade Artesão não detalhada no SRD) |
+| Arquivo             | Conteúdo                                         | Entradas                                                            | Ambiguidades                                          |
+| ------------------- | ------------------------------------------------ | ------------------------------------------------------------------- | ----------------------------------------------------- |
+| `particulas.json`   | 81 Partículas canônicas do Grimório              | 18 Funções + 19 Objetos + 34 Características + 10 Complementos = 81 | 3 (`verify: true`)                                    |
+| `origens.json`      | Catálogo de Origens do SRD + Quickstart          | 5 canônicas (SRD) + 5 do Quickstart                                 | 5 (Quickstart, não confirmadas no SRD)                |
+| `habilidades.json`  | Catálogo de Habilidades do SRD + Quickstart      | 5 Práticas + 3 Teóricas (SRD) + 15 do Quickstart                    | 15 (Quickstart)                                       |
+| `antagonistas.json` | Fichas base, Aptidões e exemplos de antagonistas | 11 Aptidões canônicas + 2 fichas de exemplo                         | 1 ficha + aptidões do Curupira sem mecânica explícita |
+| `tabelas.json`      | Tabelas mecânicas estruturadas                   | 9 tabelas                                                           | 1 (Habilidade Artesão não detalhada no SRD)           |
 
 ---
 
@@ -54,13 +54,13 @@
 
 ## Particulas — Contagens e Verificação
 
-| Categoria | Contagem |
-|---|---|
-| Funções | **18** (17 no SRD + 1 excluída: "Mat" não canônica) |
-| Objetos | **19** |
-| Características | **34** |
-| Complementos | **10** (5 Modificadores nível 1 + 4 Criadores nível 2–3 + 1 Modificador nível 4) |
-| **TOTAL** | **81** |
+| Categoria       | Contagem                                                                         |
+| --------------- | -------------------------------------------------------------------------------- |
+| Funções         | **18** (17 no SRD + 1 excluída: "Mat" não canônica)                              |
+| Objetos         | **19**                                                                           |
+| Características | **34**                                                                           |
+| Complementos    | **10** (5 Modificadores nível 1 + 4 Criadores nível 2–3 + 1 Modificador nível 4) |
+| **TOTAL**       | **81**                                                                           |
 
 > Nota: "Mat" (Matar) aparece apenas na ficha do Quickstart de Marcela e não
 > consta na Lista Completa do SRD nem na ficha oficial. Está incluída em
@@ -102,13 +102,13 @@
 No Milestone 5 (construção dos compendium packs do Foundry VTT), estes arquivos
 serão consumidos da seguinte forma:
 
-| Arquivo fonte | Pack Foundry VTT | Tipo de documento |
-|---|---|---|
-| `particulas.json` | `etmos.particulas` | `Item` (type: `particula`) |
-| `origens.json` | `etmos.origens` | `Item` (type: `origem`) |
-| `habilidades.json` | `etmos.habilidades` | `Item` (type: `habilidade`) |
+| Arquivo fonte       | Pack Foundry VTT     | Tipo de documento                                        |
+| ------------------- | -------------------- | -------------------------------------------------------- |
+| `particulas.json`   | `etmos.particulas`   | `Item` (type: `particula`)                               |
+| `origens.json`      | `etmos.origens`      | `Item` (type: `origem`)                                  |
+| `habilidades.json`  | `etmos.habilidades`  | `Item` (type: `habilidade`)                              |
 | `antagonistas.json` | `etmos.antagonistas` | `Actor` (type: `antagonista`) + `Item` (type: `aptidao`) |
-| `tabelas.json` | `etmos.tabelas` | `JournalEntry` com seções estruturadas |
+| `tabelas.json`      | `etmos.tabelas`      | `JournalEntry` com seções estruturadas                   |
 
 O script de build (`scripts/build-packs.mjs`, a criar no M5) lê estes JSONs e
 gera os arquivos `.db` (LevelDB) para os compendium packs.

@@ -4,6 +4,7 @@
  * Spec: 06-canvas-e-renderizacao.md §REQ-CNV-025..033, §REQ-CNV-037, §D5, §D8
  * Spec: 05-usuarios-e-permissoes.md — hidden tokens; GM sees all
  * Spec: 04-rede-e-sincronizacao.md §REQ-NET-050/051/052 — optimistic move
+ * Spec: 07-visao-iluminacao-fog.md §REQ-VIS-080 — token visibility filter
  *
  * Responsibilities:
  *   - Subscribe to DocumentMirror "Token" (embedded in active SceneDocument).
@@ -17,6 +18,10 @@
  *   - Optimistic move API: TokenLayer.applyLocalMove() snaps a sprite
  *     immediately and marks it so the next mirror reconcile skips animation.
  *   - Rollback API: TokenLayer.rollbackMove() reverts a sprite to a given pos.
+ *   - Vision filter (M2-B): setVisionPolygons() feeds the current vision rings
+ *     so tokens outside the current vision polygon are hidden for players.
+ *     REQ-VIS-080: tokens in explored-but-not-visible areas are NOT visible.
+ *     GM always sees all tokens regardless of vision.
  *
  * This class does NOT own the PIXI ticker — it receives deltaMs from the
  * FusionCanvas ticker callback. The sceneLoader (or TableScreen) wires this up.
@@ -25,6 +30,8 @@
  *   const layer = new TokenLayer(container, mirror, sceneId, gridSize, isGm);
  *   // In ticker:
  *   layer.tick(ticker.deltaMS, camera.scale);
+ *   // On vision update (M2-B):
+ *   layer.setVisionPolygons(visionResult.visionPolygons, fogEnabled);
  *   // On local drag confirm:
  *   layer.applyLocalMove(tokenId, newX, newY);
  *   // On rollback (ack rejected):
@@ -37,6 +44,38 @@ import type { Container } from "pixi.js";
 import type { TokenDocument, SceneDocument } from "@fusion/shared";
 import type { DocumentMirror } from "../../docs/DocumentMirror.js";
 import { TokenSprite } from "./TokenSprite.js";
+import type { VisionPolygonResult } from "../vision/vision-state.js";
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Test whether a point (px, py) is inside any of the given vision polygons.
+ * Uses ray-casting algorithm on each polygon's vertices.
+ * Returns true if the point is in at least one polygon.
+ * Called client-side only for the token visibility filter.
+ */
+function pointInAnyPolygon(px: number, py: number, polygons: VisionPolygonResult[]): boolean {
+  for (const vp of polygons) {
+    const verts = vp.polygon.vertices;
+    const n = verts.length;
+    if (n < 3) continue;
+    let inside = false;
+    let j = n - 1;
+    for (let i = 0; i < n; i++) {
+      const vi = verts[i];
+      const vj = verts[j];
+      j = i;
+      if (!vi || !vj) continue;
+      if (vi.y > py !== vj.y > py && px < ((vj.x - vi.x) * (py - vi.y)) / (vj.y - vi.y) + vi.x) {
+        inside = !inside;
+      }
+    }
+    if (inside) return true;
+  }
+  return false;
+}
 
 // ---------------------------------------------------------------------------
 // TokenLayer
@@ -64,6 +103,19 @@ export class TokenLayer {
   /** Last known camera zoom (for LOD). */
   private _lastZoom = 1;
 
+  /**
+   * Current vision polygons for the player (set via setVisionPolygons).
+   * Used to filter token visibility: tokens outside vision are hidden for players.
+   * REQ-VIS-080: explored-but-not-visible area hides tokens.
+   */
+  private _visionPolygons: VisionPolygonResult[] = [];
+
+  /**
+   * Whether fog/token-vision is active for this user.
+   * When false (GM or fog disabled), all tokens are visible.
+   */
+  private _fogActive = false;
+
   constructor(
     container: Container,
     mirror: DocumentMirror,
@@ -75,6 +127,7 @@ export class TokenLayer {
     this._sceneId = sceneId;
     this._gridSize = gridSize;
     this._isGm = isGm;
+    this._fogActive = !isGm;
 
     // Subscribe to Scene collection changes; tokens are embedded in Scene.
     this._unsubscribe = mirror.subscribe<SceneDocument>("Scene", (scenes) => {
@@ -171,6 +224,30 @@ export class TokenLayer {
   }
 
   // ---------------------------------------------------------------------------
+  // Public — vision filter update (M2-B)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Update the current vision polygons and fog active state.
+   *
+   * Called after each VisionStateComputer.compute() to apply the token
+   * visibility filter: tokens outside the current vision polygon are
+   * hidden for non-GM players (REQ-VIS-080).
+   *
+   * The fog overlay (LightingRenderer) already hides the terrain in unexplored /
+   * explored-but-not-visible areas; this filter hides TOKENS in those areas
+   * so they don't bleed through the fog overlay.
+   *
+   * @param polygons - Current vision polygons from VisionStateResult.
+   * @param fogEnabled - Whether fog/token-vision is active.
+   */
+  setVisionPolygons(polygons: VisionPolygonResult[], fogEnabled: boolean): void {
+    this._visionPolygons = polygons;
+    this._fogActive = !this._isGm && fogEnabled;
+    this._applyVisionFilter();
+  }
+
+  // ---------------------------------------------------------------------------
   // Public — scene/grid update
   // ---------------------------------------------------------------------------
 
@@ -239,6 +316,10 @@ export class TokenLayer {
         this._sprites.delete(id);
       }
     }
+
+    // After reconciliation, apply vision filter to ensure new sprites are
+    // correctly hidden/shown based on current vision state.
+    this._applyVisionFilter();
   }
 
   private _clearAll(): void {
@@ -246,5 +327,42 @@ export class TokenLayer {
       sprite.destroy();
     }
     this._sprites.clear();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private — vision filter
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Apply the vision-based visibility filter to all active sprites.
+   *
+   * REQ-VIS-080: tokens outside the current vision polygon are invisible
+   * to non-GM players, even in explored areas.
+   *
+   * Only affects non-GM players when fog is active. GM and disabled fog
+   * always show all tokens.
+   */
+  private _applyVisionFilter(): void {
+    if (this._isGm || !this._fogActive) {
+      // Restore all sprites to visible
+      for (const sprite of this._sprites.values()) {
+        sprite.container.visible = true;
+      }
+      return;
+    }
+
+    // No vision polygons → player has no tokens with vision → see nothing
+    if (this._visionPolygons.length === 0) {
+      for (const sprite of this._sprites.values()) {
+        sprite.container.visible = false;
+      }
+      return;
+    }
+
+    for (const sprite of this._sprites.values()) {
+      const pos = sprite.container;
+      const visible = pointInAnyPolygon(pos.x, pos.y, this._visionPolygons);
+      sprite.container.visible = visible;
+    }
   }
 }

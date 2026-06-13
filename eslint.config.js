@@ -6,6 +6,8 @@ export default tseslint.config(
     ignores: [
       "**/dist/**",
       "**/coverage/**",
+      "**/vendor/**",
+      "tools/importer-pf2e/out/**",
       "**/node_modules/**",
       "**/*.d.ts",
       "**/*.svelte",

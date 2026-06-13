@@ -2,7 +2,15 @@
   "$schema": "../fixtures-schema.json",
   "description": "Golden fixtures for modifier stacking rules (PF2e Remaster). Same type = take highest; different types = sum.",
   "source": "docs/research/13-pf2e-sf2e-mecanicas-nucleo.md §3.2 — Fórmula Geral de Check; specs/17-sistema-pf2e.md §Conceitos (ModifierType)",
-  "modifierTypes": ["circumstance", "item", "status", "untyped", "ability", "proficiency", "potency"],
+  "modifierTypes": [
+    "circumstance",
+    "item",
+    "status",
+    "untyped",
+    "ability",
+    "proficiency",
+    "potency"
+  ],
   "stackingRules": {
     "bonuses": "Same type: highest wins (no stacking). Different types: all sum.",
     "penalties": "Same type: most negative wins (no stacking). Different types: all sum.",

@@ -8,14 +8,14 @@ values can be verified against the authoritative sources rather than against the
 
 ## File Index
 
-| File | Mechanic | Cases | Doubts (verify:true) |
-|---|---|---|---|
-| `degrees-of-success.json` | Degree of Success calculation (±10, nat20/nat1) | 20 | 0 |
-| `modifier-stacking.json` | Modifier stacking rules (7 types, same/different type) | 15 | 2 |
-| `map.json` | Multiple Attack Penalty — agile vs. non-agile | 12 | 1 |
-| `iwr.json` | Immunity / Weakness / Resistance pipeline | 15 | 2 |
-| `teml-proficiency.json` | TEML proficiency bonus by rank and level | 15 | 1 |
-| `dying-wounded.json` | Dying/Wounded/Doomed condition sequencing | 17 | 1 |
+| File                      | Mechanic                                               | Cases | Doubts (verify:true) |
+| ------------------------- | ------------------------------------------------------ | ----- | -------------------- |
+| `degrees-of-success.json` | Degree of Success calculation (±10, nat20/nat1)        | 20    | 0                    |
+| `modifier-stacking.json`  | Modifier stacking rules (7 types, same/different type) | 15    | 2                    |
+| `map.json`                | Multiple Attack Penalty — agile vs. non-agile          | 12    | 1                    |
+| `iwr.json`                | Immunity / Weakness / Resistance pipeline              | 15    | 2                    |
+| `teml-proficiency.json`   | TEML proficiency bonus by rank and level               | 15    | 1                    |
+| `dying-wounded.json`      | Dying/Wounded/Doomed condition sequencing              | 17    | 1                    |
 
 **Total: 94 cases, 7 marked `verify:true`.**
 
@@ -40,14 +40,14 @@ Both documents cite Archives of Nethys (ORC license) as the primary rule source.
 
 ### Section Map
 
-| File | Primary sections cited |
-|---|---|
-| `degrees-of-success.json` | §2.1 Quatro Graus, §2.2 Modificações por Dado Natural |
-| `modifier-stacking.json` | §3.2 Fórmula Geral de Check; specs/17 ModifierType |
-| `map.json` | §1.4 Multiple Attack Penalty, §1.3 Traits de Ação, §6.3 Agile trait |
-| `iwr.json` | §6.4 Immunities/Weaknesses/Resistances, §6.5 Persistent Damage; REQ-PF2-060/062/063 |
-| `teml-proficiency.json` | §3.1 Sistema TEML; specs/17 REQ-PF2-011, TEML formula |
-| `dying-wounded.json` | §7.6 Condições (Dying/Wounded/Doomed), §8.1–§8.3; REQ-PF2-070..074 |
+| File                      | Primary sections cited                                                              |
+| ------------------------- | ----------------------------------------------------------------------------------- |
+| `degrees-of-success.json` | §2.1 Quatro Graus, §2.2 Modificações por Dado Natural                               |
+| `modifier-stacking.json`  | §3.2 Fórmula Geral de Check; specs/17 ModifierType                                  |
+| `map.json`                | §1.4 Multiple Attack Penalty, §1.3 Traits de Ação, §6.3 Agile trait                 |
+| `iwr.json`                | §6.4 Immunities/Weaknesses/Resistances, §6.5 Persistent Damage; REQ-PF2-060/062/063 |
+| `teml-proficiency.json`   | §3.1 Sistema TEML; specs/17 REQ-PF2-011, TEML formula                               |
+| `dying-wounded.json`      | §7.6 Condições (Dying/Wounded/Doomed), §8.1–§8.3; REQ-PF2-070..074                  |
 
 ---
 
@@ -77,23 +77,23 @@ Each fixture file maps directly to a unit/integration test suite in `systems/eng
 
 ### Mapping
 
-| Fixture file | Test file (suggested) |
-|---|---|
+| Fixture file              | Test file (suggested)                              |
+| ------------------------- | -------------------------------------------------- |
 | `degrees-of-success.json` | `engine-2e/src/__tests__/degreesOfSuccess.test.ts` |
-| `modifier-stacking.json` | `engine-2e/src/__tests__/modifierStacking.test.ts` |
-| `map.json` | `engine-2e/src/__tests__/map.test.ts` |
-| `iwr.json` | `engine-2e/src/__tests__/iwr.test.ts` |
-| `teml-proficiency.json` | `engine-2e/src/__tests__/temlProficiency.test.ts` |
-| `dying-wounded.json` | `engine-2e/src/__tests__/dyingWounded.test.ts` |
+| `modifier-stacking.json`  | `engine-2e/src/__tests__/modifierStacking.test.ts` |
+| `map.json`                | `engine-2e/src/__tests__/map.test.ts`              |
+| `iwr.json`                | `engine-2e/src/__tests__/iwr.test.ts`              |
+| `teml-proficiency.json`   | `engine-2e/src/__tests__/temlProficiency.test.ts`  |
+| `dying-wounded.json`      | `engine-2e/src/__tests__/dyingWounded.test.ts`     |
 
 ### Pattern (TypeScript/Vitest example)
 
 ```typescript
-import cases from '../../fixtures/degrees-of-success.json';
-import { calculateDegreeOfSuccess } from '../degreesOfSuccess';
+import cases from "../../fixtures/degrees-of-success.json";
+import { calculateDegreeOfSuccess } from "../degreesOfSuccess";
 
-describe('Degrees of Success', () => {
-  test.each(cases.cases)('$id: $description', ({ check, dc, dieNatural, expected }) => {
+describe("Degrees of Success", () => {
+  test.each(cases.cases)("$id: $description", ({ check, dc, dieNatural, expected }) => {
     const result = calculateDegreeOfSuccess(check, dc, dieNatural);
     expect(result).toBe(expected);
   });
@@ -111,6 +111,7 @@ not make explicit enough, or where cross-references between sections introduce a
 The `verifyNote` field explains the doubt.
 
 Before writing the implementation for these cases, the M3-B implementer MUST:
+
 1. Read the cited `verifyNote`.
 2. Check the Archives of Nethys URL referenced in `13-pf2e-sf2e-mecanicas-nucleo.md §17 Fontes`.
 3. Resolve the ambiguity and update the fixture `expected` value if needed.
@@ -118,16 +119,16 @@ Before writing the implementation for these cases, the M3-B implementer MUST:
 
 **Current open doubts (verify:true):**
 
-| ID | File | Summary of doubt |
-|---|---|---|
-| `ms-009` | modifier-stacking | Untyped bonuses — highest wins (not stacking); confirm this is distinct from untyped penalties |
-| `ms-010` | modifier-stacking | Untyped penalties (MAP, range) stack with each other — confirm this is the intended engine-2e behavior |
-| `ms-011` | modifier-stacking | Same-type bonus and penalty interact by resolving independently then summing; confirm per PF2e RAW |
-| `map-011` | map | Mixed-weapon turn: MAP step based on total attacks made, not per-weapon count |
-| `iwr-010` | iwr | 'physical' as umbrella target covering all three physical subtypes |
-| `iwr-011` | iwr | Persistent damage goes through IWR pipeline (weakness/resistance apply) |
-| `dw-016` | dying-wounded | Wounded clears on full HP + 10min rest vs. full HP alone |
-| `teml-015` | teml-proficiency | Negative level NPCs: does proficiency bonus floor at 0? |
+| ID         | File              | Summary of doubt                                                                                       |
+| ---------- | ----------------- | ------------------------------------------------------------------------------------------------------ |
+| `ms-009`   | modifier-stacking | Untyped bonuses — highest wins (not stacking); confirm this is distinct from untyped penalties         |
+| `ms-010`   | modifier-stacking | Untyped penalties (MAP, range) stack with each other — confirm this is the intended engine-2e behavior |
+| `ms-011`   | modifier-stacking | Same-type bonus and penalty interact by resolving independently then summing; confirm per PF2e RAW     |
+| `map-011`  | map               | Mixed-weapon turn: MAP step based on total attacks made, not per-weapon count                          |
+| `iwr-010`  | iwr               | 'physical' as umbrella target covering all three physical subtypes                                     |
+| `iwr-011`  | iwr               | Persistent damage goes through IWR pipeline (weakness/resistance apply)                                |
+| `dw-016`   | dying-wounded     | Wounded clears on full HP + 10min rest vs. full HP alone                                               |
+| `teml-015` | teml-proficiency  | Negative level NPCs: does proficiency bonus floor at 0?                                                |
 
 ---
 

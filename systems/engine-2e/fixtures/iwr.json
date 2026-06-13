@@ -24,7 +24,11 @@
       "id": "iwr-002",
       "description": "Weakness: adds weakness value to damage",
       "damage": { "amount": 10, "type": "cold" },
-      "iwr": { "immunities": [], "weaknesses": [{ "target": "cold", "value": 5 }], "resistances": [] },
+      "iwr": {
+        "immunities": [],
+        "weaknesses": [{ "target": "cold", "value": 5 }],
+        "resistances": []
+      },
       "isCritical": false,
       "expected": { "finalDamage": 15 },
       "rule": "§6.4: Weakness X [tipo] — adiciona X ao dano total (10 + 5 = 15)"
@@ -33,7 +37,11 @@
       "id": "iwr-003",
       "description": "Resistance: reduces damage (minimum 0)",
       "damage": { "amount": 10, "type": "fire" },
-      "iwr": { "immunities": [], "weaknesses": [], "resistances": [{ "target": "fire", "value": 5 }] },
+      "iwr": {
+        "immunities": [],
+        "weaknesses": [],
+        "resistances": [{ "target": "fire", "value": 5 }]
+      },
       "isCritical": false,
       "expected": { "finalDamage": 5 },
       "rule": "§6.4: Resistance X [tipo] — reduz dano em X (10 − 5 = 5)"
@@ -42,7 +50,11 @@
       "id": "iwr-004",
       "description": "Resistance: damage cannot go below 0",
       "damage": { "amount": 3, "type": "fire" },
-      "iwr": { "immunities": [], "weaknesses": [], "resistances": [{ "target": "fire", "value": 10 }] },
+      "iwr": {
+        "immunities": [],
+        "weaknesses": [],
+        "resistances": [{ "target": "fire", "value": 10 }]
+      },
       "isCritical": false,
       "expected": { "finalDamage": 0 },
       "rule": "§6.4: Resistance — 'reduz dano do tipo indicado em X (mínimo 0)'; 3 − 10 floored at 0"
@@ -76,7 +88,11 @@
     {
       "id": "iwr-007",
       "description": "Critical hit: damage already doubled, THEN weakness/resistance apply",
-      "damage": { "amount": 20, "type": "cold", "note": "already doubled for crit (was 10 before doubling)" },
+      "damage": {
+        "amount": 20,
+        "type": "cold",
+        "note": "already doubled for crit (was 10 before doubling)"
+      },
       "iwr": {
         "immunities": [],
         "weaknesses": [{ "target": "cold", "value": 5 }],
@@ -112,10 +128,13 @@
         "resistances": []
       },
       "isCritical": false,
-      "expected": { "finalDamage": 15, "breakdown": [
-        { "type": "piercing", "before": 10, "after": 15, "note": "weakness +5" },
-        { "type": "fire", "before": 5, "after": 0, "note": "immunity" }
-      ]},
+      "expected": {
+        "finalDamage": 15,
+        "breakdown": [
+          { "type": "piercing", "before": 10, "after": 15, "note": "weakness +5" },
+          { "type": "fire", "before": 5, "after": 0, "note": "immunity" }
+        ]
+      },
       "rule": "§6.4: each damage type goes through IWR independently; piercing 10+5=15; fire 5→0 (immunity)"
     },
     {
@@ -143,7 +162,10 @@
         "resistances": []
       },
       "isCritical": false,
-      "expected": { "damageApplied": 10, "note": "persistent damage still goes through IWR (weakness applies: 5 + 5 = 10)" },
+      "expected": {
+        "damageApplied": 10,
+        "note": "persistent damage still goes through IWR (weakness applies: 5 + 5 = 10)"
+      },
       "rule": "§6.5 + §6.4: persistent damage is applied at end of turn; it still interacts with IWR (weakness/resistance apply)",
       "verify": true,
       "verifyNote": "PF2e RAW states persistent damage triggers weakness/resistance. Confirm the engine IWR pipeline is called when persistent damage fires."

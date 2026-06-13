@@ -144,10 +144,7 @@ export function clampToViewport(
   const h = Math.max(minHeight, Math.min(geo.height, viewport.height));
 
   // left: must not push the entire window past the right edge
-  const left = Math.max(
-    -(w - margin),
-    Math.min(geo.left, viewport.width - margin),
-  );
+  const left = Math.max(-(w - margin), Math.min(geo.left, viewport.width - margin));
   // top: must not push the header above 0 or below the bottom
   const top = Math.max(0, Math.min(geo.top, viewport.height - margin));
 
@@ -186,7 +183,7 @@ let _idCounter = 0;
 
 function nextId(): WindowId {
   _idCounter += 1;
-  return `win-${_idCounter}-${Date.now().toString(36)}`;
+  return `win-${String(_idCounter)}-${Date.now().toString(36)}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -439,11 +436,21 @@ export class WindowManager {
   private _makeHandle(id: WindowId): WindowHandle {
     return {
       id,
-      bringToFront: () => this.focus(id),
-      minimize: () => this.minimize(id),
-      restore: () => this.restore(id),
-      setPosition: (p) => this.setPosition(id, p),
-      close: () => this.close(id),
+      bringToFront: () => {
+        this.focus(id);
+      },
+      minimize: () => {
+        this.minimize(id);
+      },
+      restore: () => {
+        this.restore(id);
+      },
+      setPosition: (p) => {
+        this.setPosition(id, p);
+      },
+      close: () => {
+        this.close(id);
+      },
     };
   }
 }

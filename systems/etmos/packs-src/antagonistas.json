@@ -158,11 +158,7 @@
         "Imunidade Ígnea",
         "Fogo Intenso"
       ],
-      "ataques": [
-        "Pancada Pesada (Ataque)",
-        "Constringir (Ataque)",
-        "Explosão Elemental (Ataque)"
-      ],
+      "ataques": ["Pancada Pesada (Ataque)", "Constringir (Ataque)", "Explosão Elemental (Ataque)"],
       "descricao": "Exemplo canônico de ficha Intermediária no SRD. Criatura do folclore brasileiro, guardião das florestas.",
       "nota_aptidoes_verify": "As Aptidões 'Escalador', 'Pés Virados', 'Imunidade Ígnea', 'Fogo Intenso' e 'Constringir' não têm descrição mecânica explícita no SRD — apenas são listadas na ficha de exemplo. O Narrador deve determinar seus efeitos.",
       "verify": true,

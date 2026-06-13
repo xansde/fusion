@@ -14,12 +14,12 @@ Os dados do Starfinder Second Edition estão **totalmente integrados ao reposit�
 
 ## 1. Onde estão os dados
 
-| Artefato | Localização no repo |
-|---|---|
-| Manifesto do sistema | `system.sf2e.json` (raiz do repo) |
-| Todos os packs de dados | `packs/sf2e/` (30 subcategorias) |
-| Changelog SF2e | `CHANGELOG (SF2E).md` |
-| Redirects de UUID | `build/uuid-redirects/sf2e.json` |
+| Artefato                | Localização no repo               |
+| ----------------------- | --------------------------------- |
+| Manifesto do sistema    | `system.sf2e.json` (raiz do repo) |
+| Todos os packs de dados | `packs/sf2e/` (30 subcategorias)  |
+| Changelog SF2e          | `CHANGELOG (SF2E).md`             |
+| Redirects de UUID       | `build/uuid-redirects/sf2e.json`  |
 
 O sistema SF2e é um **modo alternativo do mesmo codebase PF2e** — a Paizo e a Foundry VTT autorizaram o projeto comunitário a manter ambos no mesmo repositório. A versão atual no vendor é **sf2e 1.2.0** (Foundry v14, verificado em 14.363).
 
@@ -29,37 +29,37 @@ O sistema SF2e é um **modo alternativo do mesmo codebase PF2e** — a Paizo e a
 
 Total: **4.073 documentos** (excluindo `_folders.json`).
 
-| Pack | Documentos |
-|---|---|
-| feats | 1.703 |
-| equipment | 538 |
-| heritages | 285 |
-| alien-core-bestiary | 247 |
-| feat-effects | 168 |
-| spells | 159 |
-| actions | 141 |
-| backgrounds | 131 |
-| class-features | 119 |
-| tales-from-the-vast-bestiary | 95 |
-| starfinder-society-bestiary | 76 |
-| ancestries | 48 |
-| rulebook-bestiaries | 46 |
-| ancestry-features | 45 |
-| bestiary-ability-glossary-srd | 41 |
-| guilt-of-the-grave-world-bestiary | 38 |
-| bestiary-effects | 37 |
-| spell-effects | 35 |
-| deities | 27 |
-| iconics | 24 |
-| standalone-adventure-bestiary | 21 |
-| starfinder-society-boons | 15 |
-| equipment-effects | 14 |
-| classes | 6 |
-| paizo-pregens | 6 |
-| journals | 4 |
-| conditions | 3 |
-| other-effects | 1 |
-| macros | 1 |
+| Pack                              | Documentos |
+| --------------------------------- | ---------- |
+| feats                             | 1.703      |
+| equipment                         | 538        |
+| heritages                         | 285        |
+| alien-core-bestiary               | 247        |
+| feat-effects                      | 168        |
+| spells                            | 159        |
+| actions                           | 141        |
+| backgrounds                       | 131        |
+| class-features                    | 119        |
+| tales-from-the-vast-bestiary      | 95         |
+| starfinder-society-bestiary       | 76         |
+| ancestries                        | 48         |
+| rulebook-bestiaries               | 46         |
+| ancestry-features                 | 45         |
+| bestiary-ability-glossary-srd     | 41         |
+| guilt-of-the-grave-world-bestiary | 38         |
+| bestiary-effects                  | 37         |
+| spell-effects                     | 35         |
+| deities                           | 27         |
+| iconics                           | 24         |
+| standalone-adventure-bestiary     | 21         |
+| starfinder-society-boons          | 15         |
+| equipment-effects                 | 14         |
+| classes                           | 6          |
+| paizo-pregens                     | 6          |
+| journals                          | 4          |
+| conditions                        | 3          |
+| other-effects                     | 1          |
+| macros                            | 1          |
 
 Classes disponíveis: `envoy`, `mystic`, `operative`, `solarian`, `soldier`, `witchwarper`.
 Ancestrais: 48 entradas cobrindo Android, Astrazoan, Barathu, Brenneri, Dragonkin, Elebrian, Formian, Goblin, Human, entre outras raças exclusivas SF.
@@ -88,15 +88,15 @@ Não há paywall, DRM ou restrição de acesso aos JSONs do repositório públic
 
 Os documentos SF2e em `packs/sf2e/` seguem **exatamente o mesmo schema JSON** dos packs PF2e em `packs/pf2e/`. O importer atual (que já lê `packs/pf2e/`) pode reutilizar os mesmos parsers com mudança mínima no path de entrada. Diferenças a considerar:
 
-| Aspecto | PF2e | SF2e | Impacto no importer |
-|---|---|---|---|
-| Schema de `feat` | igual | igual | zero |
-| Schema de `npc` (bestiary) | igual | igual | zero |
-| Schema de `equipment` | igual | igual | zero |
-| Classes | `packs/pf2e/classes/` | `packs/sf2e/classes/` | trocar path |
-| Ancestrais SF-exclusivos | n/a | ~30 raças novas | dados novos, schema igual |
-| Traits SF-específicos (`robot`, `alien`) | ausentes | presentes | parser de traits precisa de allowlist ampliada |
-| Augmentations (cybernetics) | ausentes | em `equipment` com `Bulk: 0` | nenhuma extensão de schema necessária |
+| Aspecto                                  | PF2e                  | SF2e                         | Impacto no importer                            |
+| ---------------------------------------- | --------------------- | ---------------------------- | ---------------------------------------------- |
+| Schema de `feat`                         | igual                 | igual                        | zero                                           |
+| Schema de `npc` (bestiary)               | igual                 | igual                        | zero                                           |
+| Schema de `equipment`                    | igual                 | igual                        | zero                                           |
+| Classes                                  | `packs/pf2e/classes/` | `packs/sf2e/classes/`        | trocar path                                    |
+| Ancestrais SF-exclusivos                 | n/a                   | ~30 raças novas              | dados novos, schema igual                      |
+| Traits SF-específicos (`robot`, `alien`) | ausentes              | presentes                    | parser de traits precisa de allowlist ampliada |
+| Augmentations (cybernetics)              | ausentes              | em `equipment` com `Bulk: 0` | nenhuma extensão de schema necessária          |
 
 ---
 

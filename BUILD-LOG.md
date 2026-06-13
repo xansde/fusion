@@ -18,14 +18,14 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M1-D  | Motor de rolagens (RNG servidor, roll modes, inline), chat + cards              | concluído    | 96              |
 | M1-E  | Assets (upload/serving), presença (cursores, ping, ruler), DoD M1               | concluído    | 97              |
 | M2-A  | Walls + portas, visibility polygon, luzes                                       | concluído    | 96              |
-| M2-B  | Fog of war (3 estados, persistência, Clipper2), broadcast de delta              | em andamento | —               |
+| M2-B  | Fog of war (3 estados, persistência, Clipper2), broadcast de delta              | concluído    | 93 (dívida)     |
 | M2-C  | Combat/Combatant, tracker, InitiativeFormula, hooks de turno                    | pendente     | —               |
-| M3-A  | System API completa (derivação topológica, motor de effects MVP)                | pendente     | —               |
-| M3-B  | engine-2e (DoS, stacking, TEML, MAP, IWR, dying/wounded)                        | pendente     | —               |
-| M3-C  | PF2e schemas + automação (strikes, saves, condições, spellcasting)              | pendente     | —               |
-| M3-D  | UI framework (window manager, sheets, TipTap) + fichas PF2e                     | pendente     | —               |
-| M3-E  | Importer pf2e + compendiums + i18n pt-BR                                        | pendente     | —               |
-| M3-F  | DoD M3 / primeira sessão jogável — verificação integrada                        | pendente     | —               |
+| M3-A  | System API completa + engine-2e (derivação, effects MVP, DoS, stacking, IWR)    | pendente     | —               |
+| M3-B  | PF2e schemas + automação (strikes, saves, condições, spellcasting)              | pendente     | —               |
+| M3-C  | UI framework (window manager, sheets, TipTap) + fichas PF2e                     | pendente     | —               |
+| M3-D  | Importer pf2e + compendiums + i18n pt-BR + DoD M3 (primeira sessão jogável)     | pendente     | —               |
+
+> **Processo acelerado (autorizado pelo usuário em 2026-06-12, durante M2-B)**: gate reduzido — máx. **2** auditorias Opus por batch (antes 3) e aprovação com **dívida registrada** quando score ≥ 90 sem issues de severidade alta; M3 consolidado de 6 para 4 batches. Issues altas continuam bloqueando sempre.
 
 ## ⏸️ PAUSA SOLICITADA PELO USUÁRIO (2026-06-12) — RETOMADO no mesmo dia via resumeFromRunId
 
@@ -35,6 +35,13 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 - Próximos batches após M2-A: M2-B (fog), M2-C (combate), depois M3 (A–F) → primeira sessão jogável.
 
 ## Registro por batch
+
+### M2-B — Fog of war (2026-06-12) — score 93 ✅ (aprovado pelo gate reduzido, com dívida)
+
+- O workflow do batch morreu no meio da fase de correção deixando o trabalho parcial no working tree; o orquestrador limpou as sobras (guard de `window` no fog-state, `stubGlobal` nos testes, imports não usados, non-null assertions, `**/vendor/**` ignorado no prettier/eslint — o clone pf2e tinha `.prettierrc` próprio que quebrava o format do monorepo) e rodou o gate reduzido: **93**, aprovado (≥90 sem issues altas). ~1.450 testes verdes.
+- Entregue: fog com 3 estados (não-explorado/explorado-translúcido/visível), união via Clipper2 com simplificação, persistência por (usuário, cena) com isolamento testado contra forja de userId, reset do GM com broadcast, filtro visual de tokens fora da visão atual.
+- **Invariante de isolamento confirmada** (fog de um usuário nunca acessível a outro). **Dívida registrada (revisitar no M3-C/polish):** (média) `simplifyFog` pode encolher área no teto de 20k vértices — docstring promete superset via inflate não implementado; (média) `LightingRenderer._buildStateKey` chaveia por contagens, não coords — token movendo curto não atualiza a janela visível; (baixa) `'PAYLOAD_TOO_LARGE'` fora do enum ErrorCode; (baixa×2) dead code em `fog-handlers`/`geometry`; (baixa) teste de visibilidade de token reimplementa a lógica em vez de exercitar `TokenLayer`.
+- **Gap de integração** (herdado do M2-A, fecha no M3-C): módulos de visão/fog/tokens testados unitariamente mas ainda não montados num orquestrador de cena/socket vivo — nenhuma sessão jogável end-to-end ainda.
 
 ### M2-A — Walls, visibility polygon e iluminação (2026-06-12) — score 96 ✅ (retomado pós-pausa via cache)
 

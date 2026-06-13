@@ -63,11 +63,7 @@
       "blurb": "",
       "languages": {
         "details": "Telepathy 100 feet",
-        "value": [
-          "aklo",
-          "common",
-          "sakvroth"
-        ]
+        "value": ["aklo", "common", "sakvroth"]
       },
       "level": {
         "value": 6
@@ -128,11 +124,7 @@
       "size": {
         "value": "med"
       },
-      "value": [
-        "humanoid",
-        "mutant",
-        "serpentfolk"
-      ]
+      "value": ["humanoid", "mutant", "serpentfolk"]
     }
   },
   "items": [
@@ -210,9 +202,7 @@
         },
         "traits": {
           "rarity": "common",
-          "value": [
-            "thrown"
-          ]
+          "value": ["thrown"]
         },
         "usage": {
           "canBeAmmo": false,
@@ -294,9 +284,7 @@
         },
         "traits": {
           "rarity": "common",
-          "value": [
-            "reach"
-          ]
+          "value": ["reach"]
         },
         "usage": {
           "value": "held-in-two-hands"
@@ -339,9 +327,7 @@
         "slug": null,
         "traits": {
           "rarity": "common",
-          "value": [
-            "reach"
-          ]
+          "value": ["reach"]
         }
       }
     },
@@ -357,9 +343,7 @@
         },
         "attackEffects": {
           "custom": "",
-          "value": [
-            "serpentfolk-venom"
-          ]
+          "value": ["serpentfolk-venom"]
         },
         "bonus": {
           "value": 17
@@ -456,11 +440,7 @@
         "slug": "telepathy",
         "traits": {
           "rarity": "common",
-          "value": [
-            "aura",
-            "magical",
-            "mental"
-          ]
+          "value": ["aura", "magical", "mental"]
         }
       }
     },
@@ -489,9 +469,7 @@
         "rules": [
           {
             "key": "FlatModifier",
-            "predicate": [
-              "mental"
-            ],
+            "predicate": ["mental"],
             "selector": "will",
             "type": "status",
             "value": 2
@@ -541,9 +519,7 @@
           {
             "key": "FlatModifier",
             "label": "Missing Scales",
-            "predicate": [
-              "shed-scales"
-            ],
+            "predicate": ["shed-scales"],
             "selector": "ac",
             "type": "untyped",
             "value": -2
@@ -612,11 +588,7 @@
         "slug": null,
         "traits": {
           "rarity": "common",
-          "value": [
-            "auditory",
-            "emotion",
-            "mental"
-          ]
+          "value": ["auditory", "emotion", "mental"]
         }
       }
     },
@@ -646,9 +618,7 @@
         "slug": null,
         "traits": {
           "rarity": "common",
-          "value": [
-            "poison"
-          ]
+          "value": ["poison"]
         }
       }
     }

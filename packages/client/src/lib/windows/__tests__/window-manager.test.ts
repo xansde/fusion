@@ -12,12 +12,11 @@
  *  8. onViewportResize re-clamps all windows
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
   WindowManager,
   clampToViewport,
   cascadePosition,
-  type WindowEntry,
   type ViewportSize,
 } from "../window-manager.js";
 
@@ -29,9 +28,15 @@ const localStorageMock = (() => {
   let store: Record<string, string> = {};
   return {
     getItem: (key: string) => store[key] ?? null,
-    setItem: (key: string, value: string) => { store[key] = value; },
-    removeItem: (key: string) => { delete store[key]; },
-    clear: () => { store = {}; },
+    setItem: (key: string, value: string) => {
+      store[key] = value;
+    },
+    removeItem: (key: string) => {
+      delete store[key];
+    },
+    clear: () => {
+      store = {};
+    },
   };
 })();
 
@@ -59,10 +64,7 @@ function freshManager(): WindowManager {
 
 describe("clampToViewport", () => {
   it("identity: window fully inside viewport is unchanged", () => {
-    const result = clampToViewport(
-      { top: 100, left: 100, width: 400, height: 300 },
-      VP,
-    );
+    const result = clampToViewport({ top: 100, left: 100, width: 400, height: 300 }, VP);
     expect(result).toEqual({ top: 100, left: 100, width: 400, height: 300 });
   });
 
@@ -90,10 +92,7 @@ describe("clampToViewport", () => {
   });
 
   it("clamps left when window pushed past right edge", () => {
-    const result = clampToViewport(
-      { top: 100, left: VP.width + 200, width: 400, height: 300 },
-      VP,
-    );
+    const result = clampToViewport({ top: 100, left: VP.width + 200, width: 400, height: 300 }, VP);
     // left must not exceed viewport.width - margin(40)
     expect(result.left).toBe(VP.width - 40);
   });
@@ -121,18 +120,12 @@ describe("clampToViewport", () => {
   });
 
   it("clamps width to viewport width", () => {
-    const result = clampToViewport(
-      { top: 0, left: 0, width: VP.width + 500, height: 300 },
-      VP,
-    );
+    const result = clampToViewport({ top: 0, left: 0, width: VP.width + 500, height: 300 }, VP);
     expect(result.width).toBe(VP.width);
   });
 
   it("clamps height to viewport height", () => {
-    const result = clampToViewport(
-      { top: 0, left: 0, width: 400, height: VP.height + 500 },
-      VP,
-    );
+    const result = clampToViewport({ top: 0, left: 0, width: 400, height: VP.height + 500 }, VP);
     expect(result.height).toBe(VP.height);
   });
 
@@ -190,7 +183,7 @@ describe("Z-order with 5 windows and alternating focus", () => {
     const ids = ["a", "b", "c", "d", "e"].map((title) => mgr.open({ title }).id);
     const zIndices = ids.map((id) => mgr.windows.get(id)!.zIndex);
     for (let i = 1; i < zIndices.length; i++) {
-      expect(zIndices[i]).toBeGreaterThan(zIndices[i - 1]);
+      expect(zIndices[i]!).toBeGreaterThan(zIndices[i - 1]!);
     }
   });
 
@@ -213,7 +206,12 @@ describe("Z-order with 5 windows and alternating focus", () => {
 
   it("alternating focus keeps correct ordering: C > A > E > B > D", () => {
     const mgr = freshManager();
-    const [a, b, c, d, e] = ["A", "B", "C", "D", "E"].map((t) => mgr.open({ title: t }).id);
+    const ids5 = ["A", "B", "C", "D", "E"].map((t) => mgr.open({ title: t }).id);
+    const a = ids5[0]!;
+    const b = ids5[1]!;
+    const c = ids5[2]!;
+    const d = ids5[3]!;
+    const e = ids5[4]!;
 
     // Sequence: focus D, focus B, focus E, focus A, focus C
     const sequence = [d, b, e, a, c];

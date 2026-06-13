@@ -42,7 +42,13 @@
       "description": "Reaching 0 HP from crit while Wounded 2: Dying = 2 + 2 = 4 = death",
       "before": { "hp": 1, "wounded": 2, "dying": 0, "doomed": 0 },
       "event": { "type": "damage", "amount": 1, "isCritical": true },
-      "expected": { "hp": 0, "dying": 4, "wounded": 2, "alive": false, "causeOfDeath": "dying reached max (4)" },
+      "expected": {
+        "hp": 0,
+        "dying": 4,
+        "wounded": 2,
+        "alive": false,
+        "causeOfDeath": "dying reached max (4)"
+      },
       "rule": "§8.1 + §8.3: crit → Dying 2 + Wounded 2 = Dying 4 = death (max 4)"
     },
     {
@@ -122,7 +128,11 @@
       "description": "Doomed 1: death threshold reduced to 3 (not 4)",
       "before": { "hp": 0, "dying": 2, "wounded": 0, "doomed": 1 },
       "event": { "type": "recovery_check", "degreeOfSuccess": "Failure" },
-      "expected": { "dying": 3, "alive": false, "causeOfDeath": "dying reached maxDying (3) due to Doomed 1" },
+      "expected": {
+        "dying": 3,
+        "alive": false,
+        "causeOfDeath": "dying reached maxDying (3) due to Doomed 1"
+      },
       "rule": "§7.6 Doomed: 'Doomed X → máximo de Dying é reduzido por X'; Doomed 1 → maxDying = 3; specs/17 REQ-PF2-074"
     },
     {

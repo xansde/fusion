@@ -1,5 +1,7 @@
 **/node_modules/**
 **/dist/**
 **/coverage/**
+**/vendor/**
+tools/importer-pf2e/out/**
 pnpm-lock.yaml
 docs/etmos-fontes/

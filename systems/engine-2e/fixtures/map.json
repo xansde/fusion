@@ -4,7 +4,7 @@
   "source": "docs/research/13-pf2e-sf2e-mecanicas-nucleo.md §1.4 — Multiple Attack Penalty (MAP)",
   "mapTable": {
     "standard": { "first": 0, "second": -5, "third_and_beyond": -10 },
-    "agile":    { "first": 0, "second": -4, "third_and_beyond": -8 },
+    "agile": { "first": 0, "second": -4, "third_and_beyond": -8 },
     "source": "§1.4 tabela MAP; §6.3 trait Agile"
   },
   "cases": [

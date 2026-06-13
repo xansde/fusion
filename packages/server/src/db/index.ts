@@ -28,5 +28,6 @@ export type { FusionMigration } from "./migrations.js";
 import { registerMigrations } from "./migrations.js";
 import { migration001 } from "./migrations/001_initial_schema.js";
 import { migration002 } from "./migrations/002_users_sessions.js";
+import { migration003 } from "./migrations/003_fog_exploration.js";
 
-registerMigrations([migration001, migration002]);
+registerMigrations([migration001, migration002, migration003]);
