@@ -1,0 +1,612 @@
+/**
+ * normalize.mjs — Fase 2 do pipeline de importação PF2E → Fusion
+ *
+ * Transforma cada documento bruto (saída do extract.mjs) no Formato Intermediário
+ * documentado em analysis/06-formato-intermediario.md.
+ *
+ * Regras de transformação:
+ *   - Mantém: type, name, _id (original pf2e), system.*, rules[]
+ *   - Remove: flags de módulos (_stats, flags.*), campos Foundry internos (sort, folder)
+ *   - Substitui: img proprietária → "icons/placeholder.svg" + originalImgRef (somente nome do arquivo)
+ *   - Preserva: rules[] intacto (transform M3-D converte)
+ *
+ * Saídas:
+ *   - out/<pack>/normalized.json    — array de documentos normalizados
+ *   - samples/<pack>/               — 3 documentos normalizados por pack (commitáveis)
+ *   - analysis/07-relatorio-normalize.md — estatísticas e pendências
+ *
+ * Zero dependências externas — Node 22 ESM puro.
+ *
+ * Uso:
+ *   node src/normalize.mjs [--packs equipment,spells,conditions,pathfinder-monster-core]
+ *   node src/normalize.mjs --skip-extract   # usa out/<pack>/raw.json já existente
+ */
+
+import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync } from 'node:fs';
+import { join, dirname, basename } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// ---------------------------------------------------------------------------
+// Paths
+// ---------------------------------------------------------------------------
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const IMPORTER_ROOT = join(__dirname, '..');
+const VENDOR_BASE   = join(IMPORTER_ROOT, 'vendor', 'pf2e', 'packs', 'pf2e');
+const OUT_DIR       = join(IMPORTER_ROOT, 'out');
+const SAMPLES_DIR   = join(IMPORTER_ROOT, 'samples');
+const ANALYSIS_DIR  = join(IMPORTER_ROOT, 'analysis');
+
+// ---------------------------------------------------------------------------
+// Config
+// ---------------------------------------------------------------------------
+const DEFAULT_TARGET_PACKS = [
+  'equipment',
+  'spells',
+  'conditions',
+  'pathfinder-monster-core',
+];
+
+/** Placeholder global conforme especificação. */
+const PLACEHOLDER_IMG = 'icons/placeholder.svg';
+
+/**
+ * Placeholder por tipo de documento (mais específico, usado como metadata).
+ * Segue convenção de packages/shared/assets/icons/placeholder/.
+ */
+const TYPE_PLACEHOLDERS = {
+  weapon:       'icons/placeholder/weapon.svg',
+  armor:        'icons/placeholder/armor.svg',
+  shield:       'icons/placeholder/armor.svg',
+  spell:        'icons/placeholder/spell.svg',
+  consumable:   'icons/placeholder/consumable.svg',
+  equipment:    'icons/placeholder/item.svg',
+  backpack:     'icons/placeholder/item.svg',
+  kit:          'icons/placeholder/item.svg',
+  treasure:     'icons/placeholder/item.svg',
+  ammo:         'icons/placeholder/item.svg',
+  npc:          'icons/placeholder/npc.svg',
+  character:    'icons/placeholder/npc.svg',
+  familiar:     'icons/placeholder/npc.svg',
+  hazard:       'icons/placeholder/npc.svg',
+  feat:         'icons/placeholder/feat.svg',
+  action:       'icons/placeholder/feat.svg',
+  background:   'icons/placeholder/feat.svg',
+  heritage:     'icons/placeholder/feat.svg',
+  ancestry:     'icons/placeholder/feat.svg',
+  class:        'icons/placeholder/feat.svg',
+  effect:       'icons/placeholder/effect.svg',
+  condition:    'icons/placeholder/condition.svg',
+  deity:        'icons/placeholder/item.svg',
+};
+
+// ---------------------------------------------------------------------------
+// Utilitários
+// ---------------------------------------------------------------------------
+
+function ensureDir(dir) {
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+}
+
+/**
+ * Extrai apenas o nome do arquivo de um path (sem diretório).
+ * Exemplo: "systems/pf2e/icons/conditions/blinded.webp" → "blinded.webp"
+ */
+function imgFilename(imgPath) {
+  if (!imgPath || typeof imgPath !== 'string') return null;
+  return basename(imgPath);
+}
+
+/**
+ * Verifica se um campo img é proprietário (Paizo/pf2e).
+ * Arte proprietária: paths que começam com "systems/pf2e/".
+ * Arte de fontes neutras (Foundry core icons): "icons/" sem "systems/".
+ * Todos os paths são substituídos por placeholder (conservador).
+ */
+function isProprietaryImg(img) {
+  if (!img || typeof img !== 'string') return false;
+  return true; // Substituir TODOS — política conservadora conforme specs/26
+}
+
+/**
+ * Remove campos Foundry internos que não devem constar no formato intermediário.
+ * Campos removidos:
+ *   - _stats       — metadados de sincronização de compendium (compendiumSource, etc.)
+ *   - flags        — flags de módulos pf2e (linkedWeapon, etc.)
+ *   - sort         — ordem de exibição na UI
+ *   - folder       — ID de pasta no Foundry
+ *   - ownership    — permissões por usuário
+ *   - _key         — chave de pacote interna
+ */
+const FOUNDRY_INTERNAL_FIELDS = new Set(['_stats', 'flags', 'sort', 'folder', 'ownership', '_key']);
+
+/**
+ * Campos system.* que são puramente de UI/Foundry e não mecânicos.
+ * Removidos no nível system:
+ *   - (nenhum por padrão — preservar tudo em system.* para o M3-D decidir)
+ *
+ * Nota: system.description.value é preservado (texto ORC/OGL).
+ */
+const SYSTEM_FIELDS_TO_REMOVE = new Set([]);
+
+// ---------------------------------------------------------------------------
+// Normalização de documento
+// ---------------------------------------------------------------------------
+
+/**
+ * Estatísticas acumuladas de normalização.
+ * @typedef {{
+ *   total: number,
+ *   imgReplaced: number,
+ *   imgReplacedProprietaryPf2e: number,
+ *   imgReplacedFoundryCore: number,
+ *   flagsRemoved: number,
+ *   statsRemoved: number,
+ *   sortRemoved: number,
+ *   folderRemoved: number,
+ *   docsWithRules: number,
+ *   totalRuleEntries: number,
+ *   ruleKeys: Record<string, number>,
+ *   byType: Record<string, number>,
+ *   embeddedItemsProcessed: number,
+ * }} NormStats
+ */
+
+/**
+ * Normaliza um único documento pf2e para o Formato Intermediário Fusion.
+ * Também atualiza as estatísticas in-place.
+ *
+ * @param {object} doc — documento bruto do pf2e
+ * @param {NormStats} stats — estatísticas acumuladas (mutadas)
+ * @returns {object} documento normalizado
+ */
+function normalizeDoc(doc, stats) {
+  const type = doc.type ?? '(sem tipo)';
+  stats.byType[type] = (stats.byType[type] ?? 0) + 1;
+  stats.total++;
+
+  // Placeholder por tipo
+  const typePlaceholder = TYPE_PLACEHOLDERS[type] ?? PLACEHOLDER_IMG;
+
+  // Campos removidos — rastrear para stats
+  const removedFields = [];
+
+  // --- Construir documento normalizado ---
+  const out = {};
+
+  // _id: preservar original pf2e (M3-D gera fusionId via hash)
+  out._id = doc._id;
+  out.pf2eSourceId = doc._id; // redundante aqui mas explícito para rastreabilidade
+
+  // type e name: sempre preservar
+  out.type = type;
+  out.name = doc.name ?? '';
+
+  // img: substituir por placeholder + registrar originalImgRef
+  const origImg = doc.img;
+  if (origImg) {
+    out.img = typePlaceholder;
+    out.originalImgRef = imgFilename(origImg); // apenas nome do arquivo, sem path
+    stats.imgReplaced++;
+    if (origImg.startsWith('systems/pf2e/')) {
+      stats.imgReplacedProprietaryPf2e++;
+    } else {
+      stats.imgReplacedFoundryCore++;
+    }
+  } else {
+    out.img = typePlaceholder;
+    out.originalImgRef = null;
+  }
+
+  // Campos Foundry internos — remover e registrar
+  for (const field of FOUNDRY_INTERNAL_FIELDS) {
+    if (Object.prototype.hasOwnProperty.call(doc, field)) {
+      removedFields.push(field);
+      if (field === 'flags') stats.flagsRemoved++;
+      if (field === '_stats') stats.statsRemoved++;
+      if (field === 'sort')   stats.sortRemoved++;
+      if (field === 'folder') stats.folderRemoved++;
+    }
+  }
+
+  // system.*: preservar integralmente
+  if (doc.system) {
+    out.system = deepClone(doc.system);
+  }
+
+  // rules[]: preservado de system.rules (já incluso acima)
+  // Registrar stats de rules
+  const rules = doc.system?.rules ?? [];
+  if (Array.isArray(rules) && rules.length > 0) {
+    stats.docsWithRules++;
+    stats.totalRuleEntries += rules.length;
+    for (const rule of rules) {
+      const key = rule?.key ?? '(sem key)';
+      stats.ruleKeys[key] = (stats.ruleKeys[key] ?? 0) + 1;
+    }
+  }
+
+  // items[]: documentos embutidos (NPC/character actors)
+  if (Array.isArray(doc.items) && doc.items.length > 0) {
+    out.items = doc.items.map(item => normalizeEmbeddedItem(item, stats));
+    stats.embeddedItemsProcessed += doc.items.length;
+  }
+
+  // Metadados de normalização (não fazem parte do schema de jogo)
+  out._fusion = {
+    normalizedAt: new Date().toISOString(),
+    removedFields,
+  };
+
+  return out;
+}
+
+/**
+ * Normaliza um item embutido dentro de um actor (NPC, character, etc.).
+ * Aplica as mesmas regras de img e remoção de campos internos.
+ */
+function normalizeEmbeddedItem(item, stats) {
+  const itemType = item.type ?? '(sem tipo)';
+  const typePlaceholder = TYPE_PLACEHOLDERS[itemType] ?? PLACEHOLDER_IMG;
+  const out = {};
+
+  out._id   = item._id;
+  out.type  = itemType;
+  out.name  = item.name ?? '';
+
+  // img do item embutido
+  const origImg = item.img;
+  if (origImg) {
+    out.img = typePlaceholder;
+    out.originalImgRef = imgFilename(origImg);
+    stats.imgReplaced++;
+    if (origImg.startsWith('systems/pf2e/')) {
+      stats.imgReplacedProprietaryPf2e++;
+    } else {
+      stats.imgReplacedFoundryCore++;
+    }
+  } else {
+    out.img = typePlaceholder;
+    out.originalImgRef = null;
+  }
+
+  // Remover campos internos
+  // (_stats, flags, sort já não são copiados — construção seletiva acima)
+
+  // system.*: preservar
+  if (item.system) {
+    out.system = deepClone(item.system);
+  }
+
+  // rules[] do item
+  const itemRules = item.system?.rules ?? [];
+  if (Array.isArray(itemRules) && itemRules.length > 0) {
+    stats.docsWithRules++;
+    stats.totalRuleEntries += itemRules.length;
+    for (const rule of itemRules) {
+      const key = rule?.key ?? '(sem key)';
+      stats.ruleKeys[key] = (stats.ruleKeys[key] ?? 0) + 1;
+    }
+  }
+
+  return out;
+}
+
+/**
+ * Clone profundo simples (via JSON) — suficiente para documentos sem circular refs.
+ */
+function deepClone(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
+
+// ---------------------------------------------------------------------------
+// Leitura de documentos brutos
+// ---------------------------------------------------------------------------
+
+/**
+ * Carrega documentos brutos — de out/<pack>/raw.json (se existir e --skip-extract)
+ * ou diretamente do vendor (walk recursivo).
+ */
+function loadRawDocs(packName, skipExtract = false) {
+  if (skipExtract) {
+    const rawPath = join(OUT_DIR, packName, 'raw.json');
+    if (existsSync(rawPath)) {
+      return JSON.parse(readFileSync(rawPath, 'utf8'));
+    }
+    console.warn(`[normalize] raw.json não encontrado para ${packName}, lendo diretamente do vendor...`);
+  }
+
+  // Ler diretamente do vendor
+  const packDir = join(VENDOR_BASE, packName);
+  if (!existsSync(packDir)) {
+    throw new Error(`Pack não encontrado: ${packDir}`);
+  }
+
+  function walkJsonFiles(dir, acc = []) {
+    const entries = readdirSync(dir, { withFileTypes: true });
+    for (const e of entries) {
+      const full = join(dir, e.name);
+      if (e.isDirectory()) walkJsonFiles(full, acc);
+      else if (e.name.endsWith('.json') && e.name !== '_folders.json') acc.push(full);
+    }
+    return acc;
+  }
+
+  return walkJsonFiles(packDir).map(f => JSON.parse(readFileSync(f, 'utf8')));
+}
+
+// ---------------------------------------------------------------------------
+// Escrita de saídas
+// ---------------------------------------------------------------------------
+
+function writeNormalized(packName, docs) {
+  const dir = join(OUT_DIR, packName);
+  ensureDir(dir);
+  const outPath = join(dir, 'normalized.json');
+  writeFileSync(outPath, JSON.stringify(docs, null, 2), 'utf8');
+  console.log(`[normalize] out/${packName}/normalized.json — ${docs.length} docs`);
+  return outPath;
+}
+
+function writeSamples(packName, docs) {
+  const dir = join(SAMPLES_DIR, packName);
+  ensureDir(dir);
+  // Pegar 3 documentos distribuídos (início, meio, fim)
+  const indices = [0, Math.floor(docs.length / 2), docs.length - 1].filter(i => i < docs.length);
+  const samples = [...new Set(indices)].map(i => docs[i]);
+  for (let i = 0; i < samples.length; i++) {
+    const samplePath = join(dir, `sample-${i + 1}.json`);
+    writeFileSync(samplePath, JSON.stringify(samples[i], null, 2), 'utf8');
+  }
+  console.log(`[normalize] samples/${packName}/ — ${samples.length} amostras`);
+  return samples;
+}
+
+// ---------------------------------------------------------------------------
+// Relatório analysis/07
+// ---------------------------------------------------------------------------
+
+function writeNormalizeReport(packResults) {
+  const lines = [];
+  lines.push('# 07 — Relatório de Normalização PF2E → Formato Intermediário Fusion');
+  lines.push('');
+  lines.push(`> Gerado em: ${new Date().toISOString().split('T')[0]}`);
+  lines.push(`> Script: \`src/normalize.mjs\``);
+  lines.push(`> Estágio: EXTRACT/NORMALIZE (M2-P)`);
+  lines.push('');
+  lines.push('---');
+  lines.push('');
+  lines.push('## 1. Sumário por pack');
+  lines.push('');
+  lines.push('| Pack | Docs | img substituídas | img Paizo | img FoundryCore | Docs c/ rules | Entradas rules | Itens embutidos |');
+  lines.push('|---|---|---|---|---|---|---|---|');
+
+  let grandTotal = 0, grandImgReplaced = 0, grandImgPaizo = 0, grandImgFoundry = 0;
+  let grandDocsWithRules = 0, grandRuleEntries = 0, grandEmbedded = 0;
+
+  for (const { packName, stats } of packResults) {
+    grandTotal         += stats.total;
+    grandImgReplaced   += stats.imgReplaced;
+    grandImgPaizo      += stats.imgReplacedProprietaryPf2e;
+    grandImgFoundry    += stats.imgReplacedFoundryCore;
+    grandDocsWithRules += stats.docsWithRules;
+    grandRuleEntries   += stats.totalRuleEntries;
+    grandEmbedded      += stats.embeddedItemsProcessed;
+
+    lines.push(`| **${packName}** | ${stats.total} | ${stats.imgReplaced} | ${stats.imgReplacedProprietaryPf2e} | ${stats.imgReplacedFoundryCore} | ${stats.docsWithRules} | ${stats.totalRuleEntries} | ${stats.embeddedItemsProcessed} |`);
+  }
+
+  lines.push(`| **TOTAL** | **${grandTotal}** | **${grandImgReplaced}** | **${grandImgPaizo}** | **${grandImgFoundry}** | **${grandDocsWithRules}** | **${grandRuleEntries}** | **${grandEmbedded}** |`);
+  lines.push('');
+  lines.push('---');
+  lines.push('');
+  lines.push('## 2. Campos removidos por categoria');
+  lines.push('');
+  lines.push('| Categoria | Campo | Política | Motivo |');
+  lines.push('|---|---|---|---|');
+  lines.push('| Metadados Foundry | `_stats` | Removido | Dados de sincronização de compendium (compendiumSource) — sem valor no Fusion |');
+  lines.push('| Metadados Foundry | `flags` | Removido | Flags de módulos pf2e (ex: `linkedWeapon`) — específicas do Foundry VTT |');
+  lines.push('| UI Foundry | `sort` | Removido | Ordem de exibição na UI do Foundry — irrelevante no Fusion |');
+  lines.push('| UI Foundry | `folder` | Removido | ID de pasta no Foundry — estrutura não transportável |');
+  lines.push('| Arte Paizo | `img` (paths `systems/pf2e/`) | Substituído | Arte proprietária Paizo — proibida por specs/26 |');
+  lines.push('| Arte Foundry Core | `img` (paths `icons/`) | Substituído | Política conservadora — substituir todos os imgs por placeholder |');
+  lines.push('');
+  lines.push('**Campos preservados:**');
+  lines.push('');
+  lines.push('| Campo | Motivo |');
+  lines.push('|---|---|');
+  lines.push('| `_id` | _id original pf2e — rastreabilidade e derivação de fusionId no M3-D |');
+  lines.push('| `pf2eSourceId` | Cópia explícita do _id original para rastreabilidade |');
+  lines.push('| `type` | Tipo de documento — classificação fundamental |');
+  lines.push('| `name` | Nome canônico ORC/OGL |');
+  lines.push('| `system.*` | Todos os campos mecânicos — integralmente preservados |');
+  lines.push('| `system.rules[]` | Rule Elements — preservados intactos para conversão no M3-D |');
+  lines.push('| `items[]` | Itens embutidos em actors (NPC, character) — normalizados recursivamente |');
+  lines.push('| `originalImgRef` | Nome do arquivo img original (ex: `blinded.webp`) — apenas para auditoria |');
+  lines.push('');
+  lines.push('---');
+  lines.push('');
+  lines.push('## 3. Tamanhos estimados de output');
+  lines.push('');
+  lines.push('| Pack | Docs | Tamanho estimado normalized.json |');
+  lines.push('|---|---|---|');
+
+  for (const { packName, normalizedDocs } of packResults) {
+    const sizeBytes = JSON.stringify(normalizedDocs).length;
+    const sizeMb = (sizeBytes / 1024 / 1024).toFixed(2);
+    lines.push(`| ${packName} | ${normalizedDocs.length} | ~${sizeMb} MB |`);
+  }
+
+  lines.push('');
+  lines.push('---');
+  lines.push('');
+  lines.push('## 4. Rule Elements — top 10 por frequência (packs alvo)');
+  lines.push('');
+  lines.push('| Rule Key | Ocorrências |');
+  lines.push('|---|---|');
+
+  // Agregar ruleKeys de todos os packs
+  const allRuleKeys = {};
+  for (const { stats } of packResults) {
+    for (const [key, count] of Object.entries(stats.ruleKeys)) {
+      allRuleKeys[key] = (allRuleKeys[key] ?? 0) + count;
+    }
+  }
+  const sortedRuleKeys = Object.entries(allRuleKeys).sort(([,a],[,b]) => b - a).slice(0, 10);
+  for (const [key, count] of sortedRuleKeys) {
+    lines.push(`| \`${key}\` | ${count} |`);
+  }
+
+  lines.push('');
+  lines.push('---');
+  lines.push('');
+  lines.push('## 5. Tipos de documento por pack');
+  lines.push('');
+
+  for (const { packName, stats } of packResults) {
+    lines.push(`### ${packName}`);
+    lines.push('');
+    lines.push('| Tipo | Docs |');
+    lines.push('|---|---|');
+    const sorted = Object.entries(stats.byType).sort(([,a],[,b]) => b - a);
+    for (const [t, cnt] of sorted) {
+      lines.push(`| ${t} | ${cnt} |`);
+    }
+    lines.push('');
+  }
+
+  lines.push('---');
+  lines.push('');
+  lines.push('## 6. Pendências para o estágio TRANSFORM (M3-D)');
+  lines.push('');
+  lines.push('As pendências abaixo NÃO são resolvidas neste estágio:');
+  lines.push('');
+  lines.push('| # | Pendência | Responsável |');
+  lines.push('|---|---|---|');
+  lines.push('| 1 | **Derivação de UUID Fusion**: `fusionId = base62_16(sha1(packName + ":" + pf2eSourceId))` | M3-D transform |');
+  lines.push('| 2 | **Mapa de UUIDs**: construção e persistência de `out/fusion-uuid-map.json` | M3-D transform |');
+  lines.push('| 3 | **Reescrita de UUIDs em rules[]**: `Compendium.pf2e.*` → UUIDs Fusion | M3-D patchUuids |');
+  lines.push('| 4 | **Marcação de Rule Elements não suportados**: `_unsupported: true` nos REs sem suporte Fusion | M3-D rules/ |');
+  lines.push('| 5 | **Validação Zod**: schema completo de documento Fusion normalizado | M3-D schema/ |');
+  lines.push('| 6 | **Serialização NDJSON**: conversão de normalized.json → documents.ndjson por pack | M3-E pack |');
+  lines.push('| 7 | **pack.json**: geração de metadados de pack (docCount, licenses, sourceCommit) | M3-E pack |');
+  lines.push('| 8 | **Strip de lore**: flag `--strip-lore` para remover texto narrativo proprietário | M3-D transform |');
+  lines.push('| 9 | **system.description.value**: avaliar texto ORC vs. lore não reutilizável por documento | M3-D + revisão legal |');
+  lines.push('| 10 | **Itens embutidos (items[])**: fusionId dos itens embutidos em NPC actors | M3-D transform |');
+  lines.push('');
+  lines.push('---');
+  lines.push('');
+  lines.push('## 7. Notas sobre originalImgRef');
+  lines.push('');
+  lines.push('O campo `originalImgRef` contém **apenas o nome do arquivo** (sem path completo),');
+  lines.push('por exemplo: `blinded.webp`, `longsword.webp`, `fireball.webp`.');
+  lines.push('');
+  lines.push('Não contém o path original (`systems/pf2e/icons/...`) para evitar');
+  lines.push('qualquer referência acidental a arte proprietária no output. Serve');
+  lines.push('exclusivamente para auditoria manual ("qual era a arte original?")');
+  lines.push('e para correlação futura com arte licenciada compatível.');
+
+  const reportPath = join(ANALYSIS_DIR, '07-relatorio-normalize.md');
+  writeFileSync(reportPath, lines.join('\n'), 'utf8');
+  console.log(`[normalize] analysis/07-relatorio-normalize.md escrito`);
+  return reportPath;
+}
+
+// ---------------------------------------------------------------------------
+// CLI entry point
+// ---------------------------------------------------------------------------
+
+async function main() {
+  const args = process.argv.slice(2);
+  const skipExtract = args.includes('--skip-extract');
+  const packsEq = args.find(a => a.startsWith('--packs='));
+  const packsIdx = args.indexOf('--packs');
+  const packsFlag = packsEq
+    ? packsEq.split('=')[1]
+    : (packsIdx !== -1 ? args[packsIdx + 1] : null);
+
+  let targetPacks = packsFlag
+    ? packsFlag.split(',').map(p => p.trim())
+    : DEFAULT_TARGET_PACKS;
+
+  // Remover flags que possam ter vazado como packs (ex: --skip-extract)
+  targetPacks = targetPacks.filter(p => !p.startsWith('--'));
+
+  console.log(`[normalize] Packs alvo: ${targetPacks.join(', ')}`);
+  if (skipExtract) {
+    console.log(`[normalize] Modo: --skip-extract (lendo de out/<pack>/raw.json)`);
+  }
+
+  ensureDir(OUT_DIR);
+  ensureDir(SAMPLES_DIR);
+  ensureDir(ANALYSIS_DIR);
+
+  const packResults = [];
+
+  for (const packName of targetPacks) {
+    console.log(`\n[normalize] === Pack: ${packName} ===`);
+
+    // 1. Carregar documentos brutos
+    let rawDocs;
+    try {
+      rawDocs = loadRawDocs(packName, skipExtract);
+      console.log(`[normalize] ${packName}: ${rawDocs.length} docs brutos carregados`);
+    } catch (err) {
+      console.error(`[normalize] ERRO ao carregar ${packName}: ${err.message}`);
+      continue;
+    }
+
+    // 2. Normalizar
+    const stats = {
+      total: 0,
+      imgReplaced: 0,
+      imgReplacedProprietaryPf2e: 0,
+      imgReplacedFoundryCore: 0,
+      flagsRemoved: 0,
+      statsRemoved: 0,
+      sortRemoved: 0,
+      folderRemoved: 0,
+      docsWithRules: 0,
+      totalRuleEntries: 0,
+      ruleKeys: {},
+      byType: {},
+      embeddedItemsProcessed: 0,
+    };
+
+    const normalizedDocs = [];
+    for (const doc of rawDocs) {
+      try {
+        normalizedDocs.push(normalizeDoc(doc, stats));
+      } catch (err) {
+        console.error(`[normalize] Erro ao normalizar doc ${doc._id} (${packName}): ${err.message}`);
+      }
+    }
+
+    console.log(`[normalize] ${packName}: ${normalizedDocs.length} docs normalizados`);
+    console.log(`[normalize] ${packName}: ${stats.imgReplaced} imgs substituídas (${stats.imgReplacedProprietaryPf2e} Paizo + ${stats.imgReplacedFoundryCore} FoundryCore)`);
+    console.log(`[normalize] ${packName}: ${stats.docsWithRules} docs c/ rules, ${stats.totalRuleEntries} entradas`);
+
+    // 3. Escrever outputs
+    writeNormalized(packName, normalizedDocs);
+    writeSamples(packName, normalizedDocs);
+
+    packResults.push({ packName, stats, normalizedDocs });
+  }
+
+  // 4. Gerar relatório
+  writeNormalizeReport(packResults);
+
+  // 5. Sumário final
+  const grandTotal = packResults.reduce((s, r) => s + r.stats.total, 0);
+  const grandImg   = packResults.reduce((s, r) => s + r.stats.imgReplaced, 0);
+  console.log('\n[normalize] === SUMÁRIO FINAL ===');
+  console.log(`Packs processados: ${packResults.length}`);
+  console.log(`Total documentos normalizados: ${grandTotal}`);
+  console.log(`Total imgs substituídas: ${grandImg}`);
+  console.log(`Relatório: analysis/07-relatorio-normalize.md`);
+  console.log(`Amostras: samples/<pack>/sample-{1,2,3}.json`);
+}
+
+main().catch(err => {
+  console.error('[normalize] FATAL:', err);
+  process.exit(1);
+});

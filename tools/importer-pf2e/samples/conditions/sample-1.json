@@ -1,0 +1,57 @@
+{
+  "_id": "XgEqL1kFApUbl5Z2",
+  "pf2eSourceId": "XgEqL1kFApUbl5Z2",
+  "type": "condition",
+  "name": "Blinded",
+  "img": "icons/placeholder/condition.svg",
+  "originalImgRef": "blinded.webp",
+  "system": {
+    "description": {
+      "value": "<p>You can't see. All normal terrain is difficult terrain to you. You can't detect anything using vision. You automatically critically fail Perception checks that require you to be able to see, and if vision is your only precise sense, you take a –4 status penalty to Perception checks. You are immune to visual effects. Blinded overrides @UUID[Compendium.pf2e.conditionitems.Item.Dazzled].</p>"
+    },
+    "duration": {
+      "expiry": null,
+      "unit": "unlimited",
+      "value": 0
+    },
+    "group": "senses",
+    "overrides": [
+      "dazzled"
+    ],
+    "publication": {
+      "license": "ORC",
+      "remaster": true,
+      "title": "Pathfinder Player Core"
+    },
+    "references": {
+      "children": [],
+      "immunityFrom": [],
+      "overriddenBy": [],
+      "overrides": []
+    },
+    "rules": [
+      {
+        "key": "FlatModifier",
+        "selector": "perception",
+        "slug": "blinded",
+        "type": "status",
+        "value": -4
+      },
+      {
+        "key": "Immunity",
+        "type": "visual"
+      }
+    ],
+    "traits": {
+      "value": []
+    },
+    "value": {
+      "isValued": false,
+      "value": null
+    }
+  },
+  "_fusion": {
+    "normalizedAt": "2026-06-13T00:29:04.643Z",
+    "removedFields": []
+  }
+}
