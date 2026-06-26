@@ -1,0 +1,27 @@
+{
+  "packs": [
+    {
+      "packId": "pf2e.conditions",
+      "slug": "conditions",
+      "documentCount": 43
+    },
+    {
+      "packId": "pf2e.weapons-core",
+      "slug": "weapons-core",
+      "documentCount": 30
+    },
+    {
+      "packId": "pf2e.bestiary-core",
+      "slug": "bestiary-core",
+      "documentCount": 10
+    },
+    {
+      "packId": "pf2e.spells-core",
+      "slug": "spells-core",
+      "documentCount": 22
+    }
+  ],
+  "generatedAt": "2026-06-26T07:43:28.340Z",
+  "importerVersion": "0.1.0",
+  "sourceVersion": "v14-dev"
+}

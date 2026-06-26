@@ -6,6 +6,7 @@
   import type { Socket } from "socket.io-client";
   import type { SceneDocument } from "@fusion/shared";
   import { deleteScene, OpError } from "../../lib/scenes/sceneController.js";
+  import { t } from "../../lib/i18n/i18n.js";
 
   const {
     scene,
@@ -32,7 +33,7 @@
       if (err instanceof OpError) {
         serverError = err.message;
       } else {
-        serverError = "An unexpected error occurred.";
+        serverError = t("FUSION.Scene.Delete.UnexpectedError");
       }
     } finally {
       deleting = false;
@@ -55,17 +56,17 @@
 <dialog
   class="confirm-dialog"
   open
-  aria-label="Confirm delete scene"
+  aria-label={t("FUSION.Scene.Delete.Title")}
   onkeydown={handleKeydown}
 >
   <header class="dialog__header">
-    <h2 class="dialog__title">Delete Scene</h2>
+    <h2 class="dialog__title">{t("FUSION.Scene.Delete.Title")}</h2>
   </header>
 
   <div class="dialog__body">
     <p class="dialog__message">
-      Are you sure you want to delete <strong>{scene.name}</strong>?
-      This action cannot be undone.
+      {t("FUSION.Scene.Delete.Confirm")} <strong>{scene.name}</strong>?
+      {t("FUSION.Scene.Delete.Cannot")}
     </p>
 
     {#if serverError}
@@ -75,10 +76,10 @@
 
   <footer class="dialog__footer">
     <button class="btn btn--ghost" onclick={onClose} disabled={deleting}>
-      Cancel
+      {t("FUSION.Scene.Delete.Cancel")}
     </button>
     <button class="btn btn--danger" onclick={handleDelete} disabled={deleting}>
-      {deleting ? "Deleting…" : "Delete"}
+      {deleting ? t("FUSION.Scene.Delete.Deleting") : t("FUSION.Scene.Delete.Delete")}
     </button>
   </footer>
 </dialog>

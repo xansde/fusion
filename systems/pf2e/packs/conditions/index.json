@@ -1,0 +1,475 @@
+[
+  {
+    "_id": "cN99V1BjsMlDp7wC",
+    "uuid": "Compendium.pf2e.conditions.Item.cN99V1BjsMlDp7wC",
+    "name": "Blinded",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": "senses",
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "Jmrc9oNnLuZusjC0",
+    "uuid": "Compendium.pf2e.conditions.Item.Jmrc9oNnLuZusjC0",
+    "name": "Broken",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": null,
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "rILucaw3wDhgtRm5",
+    "uuid": "Compendium.pf2e.conditions.Item.rILucaw3wDhgtRm5",
+    "name": "Clumsy",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": "abilities",
+      "system.value.isValued": true
+    }
+  },
+  {
+    "_id": "p46vSDSoJeNb5E6j",
+    "uuid": "Compendium.pf2e.conditions.Item.p46vSDSoJeNb5E6j",
+    "name": "Concealed",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": "senses",
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "CxtsDpc5Pt0PQPBU",
+    "uuid": "Compendium.pf2e.conditions.Item.CxtsDpc5Pt0PQPBU",
+    "name": "Confused",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": null,
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "wGRR82H2iUvl85jS",
+    "uuid": "Compendium.pf2e.conditions.Item.wGRR82H2iUvl85jS",
+    "name": "Controlled",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": null,
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "lFFfbIcj1ZNXZs8l",
+    "uuid": "Compendium.pf2e.conditions.Item.lFFfbIcj1ZNXZs8l",
+    "name": "Cursebound",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": "abilities",
+      "system.value.isValued": true
+    }
+  },
+  {
+    "_id": "hKCzjyZIDJAUN7ok",
+    "uuid": "Compendium.pf2e.conditions.Item.hKCzjyZIDJAUN7ok",
+    "name": "Dazzled",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": "senses",
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "WMJloZckDvJgHyQ4",
+    "uuid": "Compendium.pf2e.conditions.Item.WMJloZckDvJgHyQ4",
+    "name": "Deafened",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": "senses",
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "aKLx86GmKdWbuxdd",
+    "uuid": "Compendium.pf2e.conditions.Item.aKLx86GmKdWbuxdd",
+    "name": "Doomed",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": "death",
+      "system.value.isValued": true
+    }
+  },
+  {
+    "_id": "ORrLFcVTdK8kywYW",
+    "uuid": "Compendium.pf2e.conditions.Item.ORrLFcVTdK8kywYW",
+    "name": "Drained",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": "abilities",
+      "system.value.isValued": true
+    }
+  },
+  {
+    "_id": "J3mcBBY1A4JX5bk9",
+    "uuid": "Compendium.pf2e.conditions.Item.J3mcBBY1A4JX5bk9",
+    "name": "Dying",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": "death",
+      "system.value.isValued": true
+    }
+  },
+  {
+    "_id": "21PjUqwl0F5FkWrH",
+    "uuid": "Compendium.pf2e.conditions.Item.21PjUqwl0F5FkWrH",
+    "name": "Encumbered",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": null,
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "HhpjgQIvKpmv5eTa",
+    "uuid": "Compendium.pf2e.conditions.Item.HhpjgQIvKpmv5eTa",
+    "name": "Enfeebled",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": "abilities",
+      "system.value.isValued": true
+    }
+  },
+  {
+    "_id": "xo5dAXBYKpZ9D9yN",
+    "uuid": "Compendium.pf2e.conditions.Item.xo5dAXBYKpZ9D9yN",
+    "name": "Fascinated",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": null,
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "tVU2nlySKBJfRgHJ",
+    "uuid": "Compendium.pf2e.conditions.Item.tVU2nlySKBJfRgHJ",
+    "name": "Fatigued",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": null,
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "VaeC5MfBHCuL6Gil",
+    "uuid": "Compendium.pf2e.conditions.Item.VaeC5MfBHCuL6Gil",
+    "name": "Fleeing",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": null,
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "4xgZ1McjeRwBgr6T",
+    "uuid": "Compendium.pf2e.conditions.Item.4xgZ1McjeRwBgr6T",
+    "name": "Friendly",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": "attitudes",
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "kGowL6DUCNHiuVXh",
+    "uuid": "Compendium.pf2e.conditions.Item.kGowL6DUCNHiuVXh",
+    "name": "Frightened",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": null,
+      "system.value.isValued": true
+    }
+  },
+  {
+    "_id": "dTzLDvZ3sXMQqzT1",
+    "uuid": "Compendium.pf2e.conditions.Item.dTzLDvZ3sXMQqzT1",
+    "name": "Grabbed",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": null,
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "KBBwVjV938lWrQQA",
+    "uuid": "Compendium.pf2e.conditions.Item.KBBwVjV938lWrQQA",
+    "name": "Helpful",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": "attitudes",
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "k4SqZtccnqMvpPNA",
+    "uuid": "Compendium.pf2e.conditions.Item.k4SqZtccnqMvpPNA",
+    "name": "Hidden",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": "detection",
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "0yrAfM4Dw6ECFe1u",
+    "uuid": "Compendium.pf2e.conditions.Item.0yrAfM4Dw6ECFe1u",
+    "name": "Hostile",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": "attitudes",
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "6dq8lX4m2PnuPtWw",
+    "uuid": "Compendium.pf2e.conditions.Item.6dq8lX4m2PnuPtWw",
+    "name": "Immobilized",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": null,
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "PmASPT3WiXN6ppzk",
+    "uuid": "Compendium.pf2e.conditions.Item.PmASPT3WiXN6ppzk",
+    "name": "Indifferent",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": "attitudes",
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "DvjolXgUEJCJTsMr",
+    "uuid": "Compendium.pf2e.conditions.Item.DvjolXgUEJCJTsMr",
+    "name": "Invisible",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": "senses",
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "mFAmlDCZcYvZKj4U",
+    "uuid": "Compendium.pf2e.conditions.Item.mFAmlDCZcYvZKj4U",
+    "name": "Observed",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": "detection",
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "gbfY7Tq5xrGAEdft",
+    "uuid": "Compendium.pf2e.conditions.Item.gbfY7Tq5xrGAEdft",
+    "name": "Off-Guard",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": null,
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "Jj00q2PBN5chOYfB",
+    "uuid": "Compendium.pf2e.conditions.Item.Jj00q2PBN5chOYfB",
+    "name": "Paralyzed",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": null,
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "tFUVQ9sCMmrN1wFC",
+    "uuid": "Compendium.pf2e.conditions.Item.tFUVQ9sCMmrN1wFC",
+    "name": "Persistent Damage",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": null,
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "AsgVMrz7nnC2nNZk",
+    "uuid": "Compendium.pf2e.conditions.Item.AsgVMrz7nnC2nNZk",
+    "name": "Petrified",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": null,
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "GPlZxO8I86OvOFQq",
+    "uuid": "Compendium.pf2e.conditions.Item.GPlZxO8I86OvOFQq",
+    "name": "Prone",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": null,
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "m4XPRHHVgK23SRnM",
+    "uuid": "Compendium.pf2e.conditions.Item.m4XPRHHVgK23SRnM",
+    "name": "Quickened",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": null,
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "BP2SiM9tRK9cZf6f",
+    "uuid": "Compendium.pf2e.conditions.Item.BP2SiM9tRK9cZf6f",
+    "name": "Restrained",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": null,
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "mUv1cf1ICSqZ8jkm",
+    "uuid": "Compendium.pf2e.conditions.Item.mUv1cf1ICSqZ8jkm",
+    "name": "Sickened",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": null,
+      "system.value.isValued": true
+    }
+  },
+  {
+    "_id": "hrxzfNz3MmhiLbV0",
+    "uuid": "Compendium.pf2e.conditions.Item.hrxzfNz3MmhiLbV0",
+    "name": "Slowed",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": null,
+      "system.value.isValued": true
+    }
+  },
+  {
+    "_id": "5mIZJYhNHndltKnT",
+    "uuid": "Compendium.pf2e.conditions.Item.5mIZJYhNHndltKnT",
+    "name": "Stunned",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": null,
+      "system.value.isValued": true
+    }
+  },
+  {
+    "_id": "BhSy61PnYYWA8o9V",
+    "uuid": "Compendium.pf2e.conditions.Item.BhSy61PnYYWA8o9V",
+    "name": "Stupefied",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": "abilities",
+      "system.value.isValued": true
+    }
+  },
+  {
+    "_id": "zPDF0ZuLPl7FuNcW",
+    "uuid": "Compendium.pf2e.conditions.Item.zPDF0ZuLPl7FuNcW",
+    "name": "Unconscious",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": "death",
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "UxSQ92wponpzKFZ5",
+    "uuid": "Compendium.pf2e.conditions.Item.UxSQ92wponpzKFZ5",
+    "name": "Undetected",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": "detection",
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "lvnH40m5a2ULvqk7",
+    "uuid": "Compendium.pf2e.conditions.Item.lvnH40m5a2ULvqk7",
+    "name": "Unfriendly",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": "attitudes",
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "wqWDetgxQ9cwu4fA",
+    "uuid": "Compendium.pf2e.conditions.Item.wqWDetgxQ9cwu4fA",
+    "name": "Unnoticed",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": "detection",
+      "system.value.isValued": false
+    }
+  },
+  {
+    "_id": "7IAauDiq6a1BuOmx",
+    "uuid": "Compendium.pf2e.conditions.Item.7IAauDiq6a1BuOmx",
+    "name": "Wounded",
+    "img": "icons/placeholder/condition.svg",
+    "type": "condition",
+    "index": {
+      "system.group": "death",
+      "system.value.isValued": true
+    }
+  }
+]

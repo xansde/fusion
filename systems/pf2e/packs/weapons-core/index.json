@@ -1,0 +1,512 @@
+[
+  {
+    "_id": "wVXpiOdvD8kdIYO0",
+    "uuid": "Compendium.pf2e.weapons-core.Item.wVXpiOdvD8kdIYO0",
+    "name": "Bastard Sword",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": ["two-hand-d12"],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d8"
+      }
+    }
+  },
+  {
+    "_id": "mVsBrsRMH94Gvy8O",
+    "uuid": "Compendium.pf2e.weapons-core.Item.mVsBrsRMH94Gvy8O",
+    "name": "Battle Axe",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": ["sweep"],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d8"
+      }
+    }
+  },
+  {
+    "_id": "zfxeVhDAoCKL5cbn",
+    "uuid": "Compendium.pf2e.weapons-core.Item.zfxeVhDAoCKL5cbn",
+    "name": "Bo Staff",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": ["monk", "parry", "reach", "trip"],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d8"
+      }
+    }
+  },
+  {
+    "_id": "423eTVfFyu1RWvBJ",
+    "uuid": "Compendium.pf2e.weapons-core.Item.423eTVfFyu1RWvBJ",
+    "name": "Club",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": ["thrown-10"],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d6"
+      }
+    }
+  },
+  {
+    "_id": "gBD1NMBRRIvwXWUF",
+    "uuid": "Compendium.pf2e.weapons-core.Item.gBD1NMBRRIvwXWUF",
+    "name": "Composite Longbow",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 1,
+      "system.category": "martial",
+      "system.traits.value": ["deadly-d10", "propulsive", "volley-30"],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d8"
+      }
+    }
+  },
+  {
+    "_id": "gZmrIPdIMYhG0DCS",
+    "uuid": "Compendium.pf2e.weapons-core.Item.gZmrIPdIMYhG0DCS",
+    "name": "Composite Shortbow",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 1,
+      "system.category": "martial",
+      "system.traits.value": ["deadly-d10", "propulsive"],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      }
+    }
+  },
+  {
+    "_id": "jE23tNZbp7v7MIfx",
+    "uuid": "Compendium.pf2e.weapons-core.Item.jE23tNZbp7v7MIfx",
+    "name": "Crossbow",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": [],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d8"
+      }
+    }
+  },
+  {
+    "_id": "34nTLSjgq8d2Vmtz",
+    "uuid": "Compendium.pf2e.weapons-core.Item.34nTLSjgq8d2Vmtz",
+    "name": "Dagger",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": ["agile", "finesse", "thrown-10", "versatile-s"],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      }
+    }
+  },
+  {
+    "_id": "fXIVQcDApWV2gf6S",
+    "uuid": "Compendium.pf2e.weapons-core.Item.fXIVQcDApWV2gf6S",
+    "name": "Dart",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": ["agile", "thrown"],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      }
+    }
+  },
+  {
+    "_id": "8dPUHqUHPQOeHlaL",
+    "uuid": "Compendium.pf2e.weapons-core.Item.8dPUHqUHPQOeHlaL",
+    "name": "Flail",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": ["disarm", "sweep", "trip"],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d6"
+      }
+    }
+  },
+  {
+    "_id": "WLQmXb9poN7qyXCu",
+    "uuid": "Compendium.pf2e.weapons-core.Item.WLQmXb9poN7qyXCu",
+    "name": "Gnome Flickmace",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "advanced",
+      "system.traits.value": ["gnome", "reach", "sweep"],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d6"
+      }
+    }
+  },
+  {
+    "_id": "yWbGFsdqElPvOupp",
+    "uuid": "Compendium.pf2e.weapons-core.Item.yWbGFsdqElPvOupp",
+    "name": "Greataxe",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": ["sweep"],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d12"
+      }
+    }
+  },
+  {
+    "_id": "CvSLXnuw98gXuMpo",
+    "uuid": "Compendium.pf2e.weapons-core.Item.CvSLXnuw98gXuMpo",
+    "name": "Greatsword",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": ["versatile-p"],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d12"
+      }
+    }
+  },
+  {
+    "_id": "PfSf6oPNWQHpFfaI",
+    "uuid": "Compendium.pf2e.weapons-core.Item.PfSf6oPNWQHpFfaI",
+    "name": "Hand Crossbow",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": [],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      }
+    }
+  },
+  {
+    "_id": "5OR48i6MduU45DTI",
+    "uuid": "Compendium.pf2e.weapons-core.Item.5OR48i6MduU45DTI",
+    "name": "Hatchet",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": ["agile", "sweep", "thrown-10"],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d6"
+      }
+    }
+  },
+  {
+    "_id": "KXkuKWffHk5b80Rs",
+    "uuid": "Compendium.pf2e.weapons-core.Item.KXkuKWffHk5b80Rs",
+    "name": "Javelin",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": ["thrown"],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      }
+    }
+  },
+  {
+    "_id": "ueMXQ7zQ6SybUy1i",
+    "uuid": "Compendium.pf2e.weapons-core.Item.ueMXQ7zQ6SybUy1i",
+    "name": "Kukri",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": ["agile", "finesse", "trip"],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d6"
+      }
+    }
+  },
+  {
+    "_id": "sRYCmq4N5vSkGU6K",
+    "uuid": "Compendium.pf2e.weapons-core.Item.sRYCmq4N5vSkGU6K",
+    "name": "Longbow",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": ["deadly-d10", "volley-30"],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d8"
+      }
+    }
+  },
+  {
+    "_id": "ZC0yCuIHZvc8ap7H",
+    "uuid": "Compendium.pf2e.weapons-core.Item.ZC0yCuIHZvc8ap7H",
+    "name": "Longsword",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": ["versatile-p"],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d8"
+      }
+    }
+  },
+  {
+    "_id": "5Jt0XIrsb3JbD2Rq",
+    "uuid": "Compendium.pf2e.weapons-core.Item.5Jt0XIrsb3JbD2Rq",
+    "name": "Maul",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": ["shove"],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d12"
+      }
+    }
+  },
+  {
+    "_id": "QXm54OQROkZZzxbC",
+    "uuid": "Compendium.pf2e.weapons-core.Item.QXm54OQROkZZzxbC",
+    "name": "Morningstar",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": ["versatile-p"],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d6"
+      }
+    }
+  },
+  {
+    "_id": "MkMFwelxRUIHXXWr",
+    "uuid": "Compendium.pf2e.weapons-core.Item.MkMFwelxRUIHXXWr",
+    "name": "Rapier",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": ["deadly-d8", "disarm", "finesse"],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      }
+    }
+  },
+  {
+    "_id": "djKWYRzmFInUo5To",
+    "uuid": "Compendium.pf2e.weapons-core.Item.djKWYRzmFInUo5To",
+    "name": "Shortbow",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": ["deadly-d10"],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      }
+    }
+  },
+  {
+    "_id": "htGlEW9fhtmNCmoP",
+    "uuid": "Compendium.pf2e.weapons-core.Item.htGlEW9fhtmNCmoP",
+    "name": "Shortsword",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": ["agile", "finesse", "versatile-s"],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      }
+    }
+  },
+  {
+    "_id": "QqNXoDFpzt1XPFpj",
+    "uuid": "Compendium.pf2e.weapons-core.Item.QqNXoDFpzt1XPFpj",
+    "name": "Sling",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": ["propulsive"],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d6"
+      }
+    }
+  },
+  {
+    "_id": "FBizX9S27O643Sfi",
+    "uuid": "Compendium.pf2e.weapons-core.Item.FBizX9S27O643Sfi",
+    "name": "Spear",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": ["monk", "thrown-20"],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      }
+    }
+  },
+  {
+    "_id": "n6JFYoW2KALKOVq5",
+    "uuid": "Compendium.pf2e.weapons-core.Item.n6JFYoW2KALKOVq5",
+    "name": "Staff",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": ["monk", "two-hand-d8"],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d4"
+      }
+    }
+  },
+  {
+    "_id": "R1jA4r0oDFQ6K3kX",
+    "uuid": "Compendium.pf2e.weapons-core.Item.R1jA4r0oDFQ6K3kX",
+    "name": "Trident",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": ["thrown-20"],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d8"
+      }
+    }
+  },
+  {
+    "_id": "5UtaQdctjvknsGNg",
+    "uuid": "Compendium.pf2e.weapons-core.Item.5UtaQdctjvknsGNg",
+    "name": "Warhammer",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": ["shove"],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d8"
+      }
+    }
+  },
+  {
+    "_id": "0DVfmP59PKldTNdZ",
+    "uuid": "Compendium.pf2e.weapons-core.Item.0DVfmP59PKldTNdZ",
+    "name": "Whip",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": ["disarm", "finesse", "nonlethal", "reach", "trip"],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d4"
+      }
+    }
+  }
+]

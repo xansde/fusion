@@ -26,6 +26,7 @@
   } from "../../lib/scenes/sceneController.js";
   import { fusionApi } from "../../lib/api.js";
   import FilePicker from "../assets/FilePicker.svelte";
+  import { t } from "../../lib/i18n/i18n.js";
 
   // ---- Props ----
 
@@ -91,7 +92,7 @@
       if (err instanceof OpError) {
         serverError = err.message;
       } else {
-        serverError = "An unexpected error occurred.";
+        serverError = t("FUSION.Scene.Dialog.UnexpectedError");
       }
     } finally {
       submitting = false;
@@ -116,12 +117,12 @@
 <dialog
   class="scene-dialog"
   open
-  aria-label={mode === "create" ? "Create scene" : "Edit scene"}
+  aria-label={mode === "create" ? t("FUSION.Scene.Dialog.Create.Title") : t("FUSION.Scene.Dialog.Edit.Title")}
   onkeydown={handleKeydown}
 >
   <header class="dialog__header">
-    <h2 class="dialog__title">{mode === "create" ? "New Scene" : "Edit Scene"}</h2>
-    <button class="dialog__close btn btn--icon" onclick={onClose} aria-label="Close dialog">
+    <h2 class="dialog__title">{mode === "create" ? t("FUSION.Scene.Dialog.Create.Title") : t("FUSION.Scene.Dialog.Edit.Title")}</h2>
+    <button class="dialog__close btn btn--icon" onclick={onClose} aria-label={t("FUSION.Dialog.Close")}>
       &#x2715;
     </button>
   </header>
@@ -129,14 +130,14 @@
   <form class="dialog__body" onsubmit={handleSubmit} novalidate>
     <!-- Name -->
     <div class="field" class:field--error={!!errors.name}>
-      <label class="field__label" for="scene-name">Name</label>
+      <label class="field__label" for="scene-name">{t("FUSION.Scene.Dialog.Name")}</label>
       <input
         id="scene-name"
         class="field__input"
         type="text"
         bind:value={formData.name}
         oninput={handleInput}
-        placeholder="My Scene"
+        placeholder={t("FUSION.Scene.Dialog.NamePlaceholder")}
         maxlength="128"
         autocomplete="off"
         disabled={submitting}
@@ -150,7 +151,7 @@
     <!-- Dimensions row -->
     <div class="field-row">
       <div class="field" class:field--error={!!errors.width}>
-        <label class="field__label" for="scene-width">Width (px)</label>
+        <label class="field__label" for="scene-width">{t("FUSION.Scene.Dialog.Width")}</label>
         <input
           id="scene-width"
           class="field__input"
@@ -168,7 +169,7 @@
       </div>
 
       <div class="field" class:field--error={!!errors.height}>
-        <label class="field__label" for="scene-height">Height (px)</label>
+        <label class="field__label" for="scene-height">{t("FUSION.Scene.Dialog.Height")}</label>
         <input
           id="scene-height"
           class="field__input"
@@ -188,7 +189,7 @@
 
     <!-- Grid size -->
     <div class="field" class:field--error={!!errors.gridSize}>
-      <label class="field__label" for="scene-grid">Grid cell size (px)</label>
+      <label class="field__label" for="scene-grid">{t("FUSION.Scene.Dialog.GridSize")}</label>
       <input
         id="scene-grid"
         class="field__input"
@@ -208,7 +209,7 @@
     <!-- Background -->
     <div class="field" class:field--error={!!errors.background}>
       <label class="field__label" for="scene-bg">
-        Background <span class="field__optional">(optional)</span>
+        {t("FUSION.Scene.Dialog.Background")} <span class="field__optional">{t("FUSION.Scene.Dialog.BackgroundOptional")}</span>
       </label>
       <div class="field__asset-row">
         <input
@@ -217,7 +218,7 @@
           type="text"
           bind:value={formData.background}
           oninput={handleInput}
-          placeholder="https://… or pick from assets"
+          placeholder={t("FUSION.Scene.Dialog.BackgroundPlaceholder")}
           disabled={submitting}
         />
         <button
@@ -225,8 +226,8 @@
           class="btn btn--ghost btn--sm"
           onclick={() => { showFilePicker = true; }}
           disabled={submitting}
-          aria-label="Browse assets"
-          title="Browse world assets"
+          aria-label={t("FUSION.Scene.Dialog.BrowseAssets")}
+          title={t("FUSION.Scene.Dialog.BrowseAssets")}
         >
           &#128247;
         </button>
@@ -242,14 +243,14 @@
 
     <footer class="dialog__footer">
       <button type="button" class="btn btn--ghost" onclick={onClose} disabled={submitting}>
-        Cancel
+        {t("FUSION.Scene.Dialog.Cancel")}
       </button>
       <button
         type="submit"
         class="btn btn--primary"
         disabled={submitting || !isFormValid(validateSceneForm(formData))}
       >
-        {submitting ? "Saving…" : mode === "create" ? "Create Scene" : "Save Changes"}
+        {submitting ? t("FUSION.Scene.Dialog.Saving") : mode === "create" ? t("FUSION.Scene.Dialog.Create") : t("FUSION.Scene.Dialog.Save")}
       </button>
     </footer>
   </form>

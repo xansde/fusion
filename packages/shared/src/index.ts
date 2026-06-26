@@ -21,3 +21,4 @@ export * from "./chat/index.js";
 export * from "./vision/index.js";
 export * from "./fog/index.js";
 export * from "./combat/index.js";
+export * from "./compendium.js";

@@ -59,7 +59,7 @@
     // Resolve and open the registered PF2e sheet via the sheet registry
     // (REQ-UIF-018..019). openActorSheet uses sheetRegistry.resolve() and
     // falls back gracefully when no sheet is registered for a given subtype.
-    openActorSheet(actor._id, actor as Record<string, unknown>, {
+    openActorSheet(actor._id, actor as unknown as Record<string, unknown>, {
       userId,
       ownership: 3, // OWNER — sidebar actors are always accessible to the opener
       isGm,

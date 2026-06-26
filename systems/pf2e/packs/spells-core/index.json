@@ -1,0 +1,288 @@
+[
+  {
+    "_id": "wtUtCWlF8ALtCiyI",
+    "uuid": "Compendium.pf2e.spells-core.Item.wtUtCWlF8ALtCiyI",
+    "name": "Daze",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": ["cantrip", "concentrate", "manipulate", "mental", "nonlethal"],
+      "system.traits.traditions": ["arcane", "divine", "occult"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "WXDTCAYQe2ZuCJlw",
+    "uuid": "Compendium.pf2e.spells-core.Item.WXDTCAYQe2ZuCJlw",
+    "name": "Detect Magic",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": ["cantrip", "concentrate", "detection", "manipulate"],
+      "system.traits.traditions": ["arcane", "divine", "occult", "primal"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "4ic1I6BBiUnEckcZ",
+    "uuid": "Compendium.pf2e.spells-core.Item.4ic1I6BBiUnEckcZ",
+    "name": "Electric Arc",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": ["cantrip", "concentrate", "electricity", "manipulate"],
+      "system.traits.traditions": ["arcane", "primal"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "NMoy8CMqPFZNznXs",
+    "uuid": "Compendium.pf2e.spells-core.Item.NMoy8CMqPFZNznXs",
+    "name": "Frostbite",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": ["cantrip", "cold", "concentrate", "manipulate"],
+      "system.traits.traditions": ["arcane", "primal"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "h9hCSKioSZKWVvhk",
+    "uuid": "Compendium.pf2e.spells-core.Item.h9hCSKioSZKWVvhk",
+    "name": "Guidance",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": ["cantrip", "concentrate"],
+      "system.traits.traditions": ["divine", "occult", "primal"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "sSDFEcmH0UOVQO4t",
+    "uuid": "Compendium.pf2e.spells-core.Item.sSDFEcmH0UOVQO4t",
+    "name": "Ignition",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": ["attack", "cantrip", "concentrate", "fire", "manipulate"],
+      "system.traits.traditions": ["arcane", "primal"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "FkCfyHfebHbLsuzg",
+    "uuid": "Compendium.pf2e.spells-core.Item.FkCfyHfebHbLsuzg",
+    "name": "Light",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": ["cantrip", "concentrate", "light", "manipulate"],
+      "system.traits.traditions": ["arcane", "divine", "occult", "primal"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "fdbw5bA2bfXF0C00",
+    "uuid": "Compendium.pf2e.spells-core.Item.fdbw5bA2bfXF0C00",
+    "name": "Shield",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": ["cantrip", "concentrate", "force"],
+      "system.traits.traditions": ["arcane", "divine", "occult"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "vIZk61gZU2yGVk2F",
+    "uuid": "Compendium.pf2e.spells-core.Item.vIZk61gZU2yGVk2F",
+    "name": "Stabilize",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": ["cantrip", "concentrate", "healing", "manipulate", "vitality"],
+      "system.traits.traditions": ["divine", "primal"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "X59SCdoUi95EQV19",
+    "uuid": "Compendium.pf2e.spells-core.Item.X59SCdoUi95EQV19",
+    "name": "Fear",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": ["concentrate", "emotion", "fear", "manipulate", "mental"],
+      "system.traits.traditions": ["arcane", "divine", "occult", "primal"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "vWhS2SK4q2N9sTKR",
+    "uuid": "Compendium.pf2e.spells-core.Item.vWhS2SK4q2N9sTKR",
+    "name": "Harm",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": ["manipulate", "void"],
+      "system.traits.traditions": ["divine"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "YGI4Dvqkjtm8iJTM",
+    "uuid": "Compendium.pf2e.spells-core.Item.YGI4Dvqkjtm8iJTM",
+    "name": "Heal",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": ["healing", "manipulate", "vitality"],
+      "system.traits.traditions": ["divine", "primal"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "GvhcBi6vEBMEgSnn",
+    "uuid": "Compendium.pf2e.spells-core.Item.GvhcBi6vEBMEgSnn",
+    "name": "Hydraulic Push",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": ["attack", "concentrate", "manipulate", "water"],
+      "system.traits.traditions": ["arcane", "primal"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "QOjWMUnEwAG8Z3NY",
+    "uuid": "Compendium.pf2e.spells-core.Item.QOjWMUnEwAG8Z3NY",
+    "name": "Darkness",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 2,
+      "system.traits.value": ["concentrate", "darkness", "manipulate"],
+      "system.traits.traditions": ["arcane", "divine", "occult", "primal"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "5tDRfkMc8oeaILME",
+    "uuid": "Compendium.pf2e.spells-core.Item.5tDRfkMc8oeaILME",
+    "name": "Dispel Magic",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 2,
+      "system.traits.value": ["concentrate", "manipulate"],
+      "system.traits.traditions": ["arcane", "divine", "occult", "primal"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "o8D33oHXz0SBmEwD",
+    "uuid": "Compendium.pf2e.spells-core.Item.o8D33oHXz0SBmEwD",
+    "name": "Invisibility",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 2,
+      "system.traits.value": ["illusion", "manipulate", "subtle"],
+      "system.traits.traditions": ["arcane", "occult"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "8GpJtxdAIzontkFz",
+    "uuid": "Compendium.pf2e.spells-core.Item.8GpJtxdAIzontkFz",
+    "name": "Fireball",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 3,
+      "system.traits.value": ["concentrate", "fire", "manipulate"],
+      "system.traits.traditions": ["arcane", "primal"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "qY6PSqiSdu0qMvqh",
+    "uuid": "Compendium.pf2e.spells-core.Item.qY6PSqiSdu0qMvqh",
+    "name": "Haste",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 3,
+      "system.traits.value": ["concentrate", "manipulate"],
+      "system.traits.traditions": ["arcane", "occult", "primal"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "fCXJCSYfvBcpfogx",
+    "uuid": "Compendium.pf2e.spells-core.Item.fCXJCSYfvBcpfogx",
+    "name": "Heroism",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 3,
+      "system.traits.value": ["concentrate", "manipulate", "mental"],
+      "system.traits.traditions": ["divine", "occult"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "TymtpTgzuHV64cGg",
+    "uuid": "Compendium.pf2e.spells-core.Item.TymtpTgzuHV64cGg",
+    "name": "Lightning Bolt",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 3,
+      "system.traits.value": ["concentrate", "electricity", "manipulate"],
+      "system.traits.traditions": ["arcane", "primal"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "a2YWoPMNmTw9WKxF",
+    "uuid": "Compendium.pf2e.spells-core.Item.a2YWoPMNmTw9WKxF",
+    "name": "Slow",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 3,
+      "system.traits.value": ["concentrate", "manipulate"],
+      "system.traits.traditions": ["arcane", "occult", "primal"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "kfeRtNtOIzuBVcQm",
+    "uuid": "Compendium.pf2e.spells-core.Item.kfeRtNtOIzuBVcQm",
+    "name": "Fly",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 4,
+      "system.traits.value": ["concentrate", "manipulate"],
+      "system.traits.traditions": ["arcane", "divine", "occult", "primal"],
+      "system.traits.rarity": "common"
+    }
+  }
+]

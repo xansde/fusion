@@ -79,6 +79,18 @@ export interface BootNetContext {
   origin?: string;
   /** Max simultaneous connections. Default: 16. */
   maxConnections?: number;
+  /**
+   * Active world system id (e.g. "pf2e"). Used to discover the committed
+   * compendium packs under systems/<systemId>/packs (REQ-CMP-006..012).
+   * When omitted, no packs are loaded and compendium:list returns [].
+   */
+  systemId?: string;
+  /**
+   * Explicit packs directory override (the per-system root that contains
+   * <slug>/pack.json). When omitted, the directory is resolved from the
+   * monorepo layout via the systemId. Primarily for tests / custom layouts.
+   */
+  packsDir?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -297,11 +309,37 @@ export async function boot(options: BootOptions): Promise<BootResult> {
       resolvedAuthService = new AS(netContext.db, netContext.secret, netContext.worldId);
     }
 
+    // ----------------------------------------------------------------------
+    // Compendium service — discover the committed packs for the world system
+    // so compendium:list / index / get / import work over the real boot path
+    // (not only when the service is wired manually in tests). REQ-CMP-006..012.
+    // ----------------------------------------------------------------------
+    const { CompendiumService, resolveSystemPacksDir } = await import("./compendium/index.js");
+    const compendiumService = new CompendiumService(logger);
+    if (netContext.systemId !== undefined) {
+      const packsDir = resolveSystemPacksDir(netContext.systemId, netContext.packsDir);
+      if (packsDir !== null) {
+        compendiumService.discoverPacks(packsDir, netContext.systemId);
+        logger.info(
+          { systemId: netContext.systemId, packsDir, packs: compendiumService.listPacks().length },
+          "Compendium packs discovered",
+        );
+      } else {
+        logger.warn(
+          { systemId: netContext.systemId, packsDirOverride: netContext.packsDir },
+          "Compendium packs directory not found — compendium:list will be empty",
+        );
+      }
+    } else {
+      logger.warn("No systemId provided to net context — compendium packs not loaded");
+    }
+
     const nsOptions: WorldNamespaceOptions = {
       worldId: netContext.worldId,
       db: netContext.db,
       secret: netContext.secret,
       authService: resolvedAuthService,
+      compendiumService,
     };
     if (netContext.maxConnections !== undefined) {
       nsOptions.maxConnections = netContext.maxConnections;

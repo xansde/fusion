@@ -1,0 +1,3407 @@
+[
+  {
+    "_id": "cN99V1BjsMlDp7wC",
+    "name": "Blinded",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": "senses",
+      "overrides": ["dazzled"],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": "blinded",
+          "label": null,
+          "selector": "perception",
+          "value": -4,
+          "mode": "add",
+          "type": "status",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "selector": "perception",
+            "slug": "blinded",
+            "type": "status",
+            "value": -4
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "subkind": "immunity",
+          "slug": null,
+          "label": null,
+          "damageType": "visual",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Immunity",
+            "type": "visual"
+          }
+        }
+      ],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "XgEqL1kFApUbl5Z2",
+        "packName": "conditions",
+        "unconvertedRules": [
+          {
+            "key": "Immunity",
+            "type": "visual",
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "blinded.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Jmrc9oNnLuZusjC0",
+    "name": "Broken",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": null,
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "6dNUvdb1dhToNDj3",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "broken.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "rILucaw3wDhgtRm5",
+    "name": "Clumsy",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "active": false,
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "perpetual": false,
+        "text": "",
+        "unit": "unlimited",
+        "value": -1
+      },
+      "group": "abilities",
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "removable": false,
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": "clumsy",
+          "label": null,
+          "selector": "dex-based",
+          "value": "-@item.badge.value",
+          "mode": "add",
+          "type": "status",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "selector": "dex-based",
+            "slug": "clumsy",
+            "type": "status",
+            "value": "-@item.badge.value"
+          }
+        }
+      ],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "immutable": false,
+        "isValued": true,
+        "value": 1
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "i3OJZU2nk64Df3xm",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "clumsy.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "p46vSDSoJeNb5E6j",
+    "name": "Concealed",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "active": false,
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "perpetual": false,
+        "text": "",
+        "unit": "unlimited",
+        "value": -1
+      },
+      "group": "senses",
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "removable": false,
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "DmAIPqOBomZ7H95W",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "concealed.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "CxtsDpc5Pt0PQPBU",
+    "name": "Confused",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": null,
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [
+        {
+          "kind": "roll-option",
+          "slug": "target:ally",
+          "label": null,
+          "toggleable": false,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "option": "target:ally",
+            "value": false
+          }
+        },
+        {
+          "kind": "roll-option",
+          "slug": "origin:ally",
+          "label": null,
+          "toggleable": false,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "option": "origin:ally",
+            "value": false
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.conditionitems.Item.Off-Guard",
+          "inMemoryOnly": true,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "inMemoryOnly": true,
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.conditionitems.Item.Off-Guard"
+          }
+        },
+        {
+          "kind": "roll-note",
+          "slug": null,
+          "label": null,
+          "selector": "damage-received",
+          "outcome": null,
+          "text": "PF2E.condition.confused.note",
+          "title": "{item|name}",
+          "predicate": [
+            {
+              "or": ["item:type:spell", "origin:action:trait:attack"]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "Note",
+            "predicate": [
+              {
+                "or": ["item:type:spell", "origin:action:trait:attack"]
+              }
+            ],
+            "selector": "damage-received",
+            "text": "PF2E.condition.confused.note",
+            "title": "{item|name}"
+          }
+        }
+      ],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "yblD8fOR1J8rDwEQ",
+        "packName": "conditions",
+        "unconvertedRules": [
+          {
+            "key": "ActiveEffectLike",
+            "mode": "override",
+            "path": "system.attributes.flanking.canFlank",
+            "value": false,
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "confused.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "wGRR82H2iUvl85jS",
+    "name": "Controlled",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": null,
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "9qGBRpbX9NEwtAAr",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "controlled.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "lFFfbIcj1ZNXZs8l",
+    "name": "Cursebound",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "active": false,
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "perpetual": true,
+        "text": "",
+        "unit": "unlimited",
+        "value": -1
+      },
+      "group": "abilities",
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "removable": false,
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "immutable": false,
+        "isValued": true,
+        "value": 1
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "zXZjC8HLaRoLR17U",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "cursebound.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "hKCzjyZIDJAUN7ok",
+    "name": "Dazzled",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "active": false,
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "perpetual": false,
+        "text": "",
+        "unit": "unlimited",
+        "value": -1
+      },
+      "group": "senses",
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "removable": false,
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "TkIyaNPgTZFBCCuh",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "dazzled.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "WMJloZckDvJgHyQ4",
+    "name": "Deafened",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": "senses",
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": "deafened",
+          "label": null,
+          "selector": ["perception", "skill-check"],
+          "value": -2,
+          "mode": "add",
+          "type": "status",
+          "predicate": [
+            {
+              "or": [
+                {
+                  "and": ["check:type:skill", "item:trait:auditory"]
+                },
+                {
+                  "and": ["check:statistic:base:perception", "check:statistic:initiative"]
+                }
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              {
+                "or": [
+                  {
+                    "and": ["check:type:skill", "item:trait:auditory"]
+                  },
+                  {
+                    "and": ["check:statistic:base:perception", "check:statistic:initiative"]
+                  }
+                ]
+              }
+            ],
+            "selector": ["perception", "skill-check"],
+            "slug": "deafened",
+            "type": "status",
+            "value": -2
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "subkind": "immunity",
+          "slug": null,
+          "label": null,
+          "damageType": "auditory",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Immunity",
+            "type": "auditory"
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": ["item:trait:auditory"],
+          "priority": null,
+          "raw": {
+            "itemType": "action",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": ["item:trait:auditory"],
+            "property": "description",
+            "value": [
+              {
+                "text": "PF2E.condition.deafened.note"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": ["item:trait:auditory"],
+          "priority": null,
+          "raw": {
+            "itemType": "feat",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": ["item:trait:auditory"],
+            "property": "description",
+            "value": [
+              {
+                "text": "PF2E.condition.deafened.note"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": [
+            {
+              "not": "item:trait:subtle"
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              {
+                "not": "item:trait:subtle"
+              }
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": "PF2E.condition.deafened.note"
+              }
+            ]
+          }
+        }
+      ],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "9PR9y0bi4JPKnHPR",
+        "packName": "conditions",
+        "unconvertedRules": [
+          {
+            "key": "Immunity",
+            "type": "auditory",
+            "_conversionState": "partial"
+          },
+          {
+            "itemType": "action",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": ["item:trait:auditory"],
+            "property": "description",
+            "value": [
+              {
+                "text": "PF2E.condition.deafened.note"
+              }
+            ],
+            "_conversionState": "partial"
+          },
+          {
+            "itemType": "feat",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": ["item:trait:auditory"],
+            "property": "description",
+            "value": [
+              {
+                "text": "PF2E.condition.deafened.note"
+              }
+            ],
+            "_conversionState": "partial"
+          },
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              {
+                "not": "item:trait:subtle"
+              }
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": "PF2E.condition.deafened.note"
+              }
+            ],
+            "_conversionState": "partial"
+          },
+          {
+            "adjustment": {
+              "all": "to-critical-failure"
+            },
+            "key": "AdjustDegreeOfSuccess",
+            "predicate": ["item:trait:auditory"],
+            "selector": "perception",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "deafened.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "aKLx86GmKdWbuxdd",
+    "name": "Doomed",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": "death",
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": true,
+        "value": 1
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "3uh1r86TzbQvosxv",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "doomed.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "ORrLFcVTdK8kywYW",
+    "name": "Drained",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "active": false,
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "perpetual": false,
+        "text": "",
+        "unit": "unlimited",
+        "value": -1
+      },
+      "group": "abilities",
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "removable": false,
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": "drained",
+          "label": null,
+          "selector": "con-based",
+          "value": "-1 * @item.badge.value",
+          "mode": "add",
+          "type": "status",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "selector": "con-based",
+            "slug": "drained",
+            "type": "status",
+            "value": "-1 * @item.badge.value"
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "slug": "drained",
+          "label": null,
+          "selector": "hp",
+          "value": "min(-1 * @actor.level,-1) * @item.badge.value",
+          "mode": "add",
+          "type": "status",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "selector": "hp",
+            "slug": "drained",
+            "type": "status",
+            "value": "min(-1 * @actor.level,-1) * @item.badge.value"
+          }
+        }
+      ],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "immutable": false,
+        "isValued": true,
+        "value": 1
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "4D2KBtexWXa6oUMR",
+        "packName": "conditions",
+        "unconvertedRules": [
+          {
+            "key": "LoseHitPoints",
+            "reevaluateOnUpdate": true,
+            "value": "max(1,@actor.level) * @item.badge.value",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "drained.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "J3mcBBY1A4JX5bk9",
+    "name": "Dying",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": "death",
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.conditionitems.Item.Unconscious",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "onDeleteActions": {
+              "grantee": "restrict"
+            },
+            "uuid": "Compendium.pf2e.conditionitems.Item.Unconscious"
+          }
+        }
+      ],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": true,
+        "value": 1
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "yZRUzMqrMmfLu0V1",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "dying.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "21PjUqwl0F5FkWrH",
+    "name": "Encumbered",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": null,
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": "encumbered",
+          "label": null,
+          "selector": "all-speeds",
+          "value": -10,
+          "mode": "add",
+          "type": "untyped",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "selector": "all-speeds",
+            "slug": "encumbered",
+            "value": -10
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.conditionitems.Item.Clumsy",
+          "inMemoryOnly": true,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "inMemoryOnly": true,
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.conditionitems.Item.Clumsy"
+          }
+        }
+      ],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "D5mg6Tc7Jzrj6ro7",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "encumbered.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "HhpjgQIvKpmv5eTa",
+    "name": "Enfeebled",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "active": false,
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "perpetual": false,
+        "text": "",
+        "unit": "unlimited",
+        "value": -1
+      },
+      "group": "abilities",
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "removable": false,
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": "enfeebled",
+          "label": null,
+          "selector": ["str-based", "str-damage"],
+          "value": "-@item.badge.value",
+          "mode": "add",
+          "type": "status",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "selector": ["str-based", "str-damage"],
+            "slug": "enfeebled",
+            "type": "status",
+            "value": "-@item.badge.value"
+          }
+        }
+      ],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "immutable": false,
+        "isValued": true,
+        "value": 1
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "MIRkyAjyBeXivMa7",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "enfeebled.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "xo5dAXBYKpZ9D9yN",
+    "name": "Fascinated",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "active": false,
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "perpetual": false,
+        "text": "",
+        "unit": "unlimited",
+        "value": -1
+      },
+      "group": null,
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "removable": false,
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": "fascinated",
+          "label": null,
+          "selector": ["perception", "skill-check"],
+          "value": -2,
+          "mode": "add",
+          "type": "status",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "selector": ["perception", "skill-check"],
+            "slug": "fascinated",
+            "type": "status",
+            "value": -2
+          }
+        }
+      ],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "AdPVz7rbaVSRxHFg",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "fascinated.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "tVU2nlySKBJfRgHJ",
+    "name": "Fatigued",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": null,
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": "fatigued",
+          "label": null,
+          "selector": ["ac", "saving-throw"],
+          "value": -1,
+          "mode": "add",
+          "type": "status",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "selector": ["ac", "saving-throw"],
+            "slug": "fatigued",
+            "type": "status",
+            "value": -1
+          }
+        }
+      ],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "HL2l2VRSaQHu9lUw",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "fatigued.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "VaeC5MfBHCuL6Gil",
+    "name": "Fleeing",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "active": false,
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "perpetual": false,
+        "text": "",
+        "unit": "unlimited",
+        "value": -1
+      },
+      "group": null,
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "removable": false,
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "sDPxOjQ9kx2RZE8D",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "fleeing.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "4xgZ1McjeRwBgr6T",
+    "name": "Friendly",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": "attitudes",
+      "overrides": ["helpful", "indifferent", "unfriendly", "hostile"],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "v66R7FdOf11l94im",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "friendly.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "kGowL6DUCNHiuVXh",
+    "name": "Frightened",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "active": false,
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "perpetual": false,
+        "text": "",
+        "unit": "unlimited",
+        "value": -1
+      },
+      "group": null,
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "removable": false,
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": "frightened",
+          "label": null,
+          "selector": "all",
+          "value": "-@item.badge.value",
+          "mode": "add",
+          "type": "status",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "selector": "all",
+            "slug": "frightened",
+            "type": "status",
+            "value": "-@item.badge.value"
+          }
+        }
+      ],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "immutable": false,
+        "isValued": true,
+        "value": 1
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "TBSHQspnbcqxsmjL",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "frightened.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "dTzLDvZ3sXMQqzT1",
+    "name": "Grabbed",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": null,
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.conditionitems.Item.Off-Guard",
+          "inMemoryOnly": true,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "inMemoryOnly": true,
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.conditionitems.Item.Off-Guard"
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.conditionitems.Item.Immobilized",
+          "inMemoryOnly": true,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "inMemoryOnly": true,
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.conditionitems.Item.Immobilized"
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": ["item:trait:manipulate"],
+          "priority": null,
+          "raw": {
+            "itemType": "action",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": ["item:trait:manipulate"],
+            "property": "description",
+            "value": [
+              {
+                "text": "PF2E.condition.grabbed.note"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": ["item:trait:manipulate"],
+          "priority": null,
+          "raw": {
+            "itemType": "feat",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": ["item:trait:manipulate"],
+            "property": "description",
+            "value": [
+              {
+                "text": "PF2E.condition.grabbed.note"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": ["item:trait:manipulate"],
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": ["item:trait:manipulate"],
+            "property": "description",
+            "value": [
+              {
+                "text": "PF2E.condition.grabbed.note"
+              }
+            ]
+          }
+        }
+      ],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "kWc1fhmv9LBiTuei",
+        "packName": "conditions",
+        "unconvertedRules": [
+          {
+            "itemType": "action",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": ["item:trait:manipulate"],
+            "property": "description",
+            "value": [
+              {
+                "text": "PF2E.condition.grabbed.note"
+              }
+            ],
+            "_conversionState": "partial"
+          },
+          {
+            "itemType": "feat",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": ["item:trait:manipulate"],
+            "property": "description",
+            "value": [
+              {
+                "text": "PF2E.condition.grabbed.note"
+              }
+            ],
+            "_conversionState": "partial"
+          },
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": ["item:trait:manipulate"],
+            "property": "description",
+            "value": [
+              {
+                "text": "PF2E.condition.grabbed.note"
+              }
+            ],
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "grabbed.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "KBBwVjV938lWrQQA",
+    "name": "Helpful",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": "attitudes",
+      "overrides": ["friendly", "indifferent", "unfriendly", "hostile"],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "v44P3WUcU1j0115l",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "helpful.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "k4SqZtccnqMvpPNA",
+    "name": "Hidden",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": "detection",
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "iU0fEDdBp3rXpTMC",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "hidden.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "0yrAfM4Dw6ECFe1u",
+    "name": "Hostile",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": "attitudes",
+      "overrides": ["helpful", "friendly", "indifferent", "unfriendly"],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ud7gTLwPeklzYSXG",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "hostile.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "6dq8lX4m2PnuPtWw",
+    "name": "Immobilized",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "active": false,
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "perpetual": false,
+        "text": "",
+        "unit": "unlimited",
+        "value": -1
+      },
+      "group": null,
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "removable": false,
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "eIcWbB5o3pP6OIMe",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "immobilized.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "PmASPT3WiXN6ppzk",
+    "name": "Indifferent",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": "attitudes",
+      "overrides": ["helpful", "friendly", "unfriendly", "hostile"],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "fuG8dgthlDWfWjIA",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "indifferent.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "DvjolXgUEJCJTsMr",
+    "name": "Invisible",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "active": false,
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "perpetual": false,
+        "text": "",
+        "unit": "unlimited",
+        "value": -1
+      },
+      "group": "senses",
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "removable": false,
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "zJxUflt9np0q4yML",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "invisible.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "mFAmlDCZcYvZKj4U",
+    "name": "Observed",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": "detection",
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "1wQY3JYyhMYeeV2G",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "observed.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "gbfY7Tq5xrGAEdft",
+    "name": "Off-Guard",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "active": false,
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "perpetual": false,
+        "text": "",
+        "unit": "unlimited",
+        "value": -1
+      },
+      "group": null,
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "removable": false,
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": "off-guard",
+          "label": null,
+          "selector": "ac",
+          "value": -2,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "selector": "ac",
+            "slug": "off-guard",
+            "type": "circumstance",
+            "value": -2
+          }
+        }
+      ],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "AJh5ex99aV6VTggg",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "off-guard.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Jj00q2PBN5chOYfB",
+    "name": "Paralyzed",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": null,
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.conditionitems.Item.Off-Guard",
+          "inMemoryOnly": true,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "inMemoryOnly": true,
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.conditionitems.Item.Off-Guard"
+          }
+        }
+      ],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "6uEgoh53GbXuHpTF",
+        "packName": "conditions",
+        "unconvertedRules": [
+          {
+            "key": "ActiveEffectLike",
+            "mode": "override",
+            "path": "system.attributes.flanking.canFlank",
+            "value": false,
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "paralyzed.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "tFUVQ9sCMmrN1wFC",
+    "name": "Persistent Damage",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "active": false,
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "perpetual": false,
+        "text": "",
+        "unit": "unlimited",
+        "value": -1
+      },
+      "group": null,
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "removable": false,
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "lDVqvLKA6eF3Df60",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "persistent-damage.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "AsgVMrz7nnC2nNZk",
+    "name": "Petrified",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": null,
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "dTwPJuKgBQCMxixg",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "petrified.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "GPlZxO8I86OvOFQq",
+    "name": "Prone",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": null,
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": "prone",
+          "label": null,
+          "selector": "attack-roll",
+          "value": -2,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "selector": "attack-roll",
+            "slug": "prone",
+            "type": "circumstance",
+            "value": -2
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.conditionitems.Item.Off-Guard",
+          "inMemoryOnly": true,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "inMemoryOnly": true,
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.conditionitems.Item.Off-Guard"
+          }
+        }
+      ],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "j91X7x0XSomq8d60",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "prone.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "m4XPRHHVgK23SRnM",
+    "name": "Quickened",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "active": false,
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "perpetual": false,
+        "text": "",
+        "unit": "unlimited",
+        "value": -1
+      },
+      "group": null,
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "removable": false,
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "nlCjDvLMf2EkV2dl",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "quickened.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "BP2SiM9tRK9cZf6f",
+    "name": "Restrained",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": null,
+      "overrides": ["grabbed"],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.conditionitems.Item.Off-Guard",
+          "inMemoryOnly": true,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "inMemoryOnly": true,
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.conditionitems.Item.Off-Guard"
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.conditionitems.Item.Immobilized",
+          "inMemoryOnly": true,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "inMemoryOnly": true,
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.conditionitems.Item.Immobilized"
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": ["item:trait:manipulate"],
+          "priority": null,
+          "raw": {
+            "itemType": "action",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": ["item:trait:manipulate"],
+            "property": "description",
+            "value": [
+              {
+                "text": "PF2E.condition.restrained.note"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": ["item:trait:manipulate"],
+          "priority": null,
+          "raw": {
+            "itemType": "feat",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": ["item:trait:manipulate"],
+            "property": "description",
+            "value": [
+              {
+                "text": "PF2E.condition.restrained.note"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": ["item:trait:manipulate"],
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": ["item:trait:manipulate"],
+            "property": "description",
+            "value": [
+              {
+                "text": "PF2E.condition.restrained.note"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "roll-note",
+          "slug": null,
+          "label": null,
+          "selector": ["attack", "skill-check"],
+          "outcome": null,
+          "text": "PF2E.condition.restrained.note",
+          "title": "{item|name}",
+          "predicate": [
+            {
+              "nor": ["action:escape", "action:force-open"]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "Note",
+            "predicate": [
+              {
+                "nor": ["action:escape", "action:force-open"]
+              }
+            ],
+            "selector": ["attack", "skill-check"],
+            "text": "PF2E.condition.restrained.note",
+            "title": "{item|name}"
+          }
+        }
+      ],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "VcDeM8A5oI6VqhbM",
+        "packName": "conditions",
+        "unconvertedRules": [
+          {
+            "key": "ActiveEffectLike",
+            "mode": "override",
+            "path": "system.attributes.flanking.canFlank",
+            "value": false,
+            "_conversionState": "partial"
+          },
+          {
+            "itemType": "action",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": ["item:trait:manipulate"],
+            "property": "description",
+            "value": [
+              {
+                "text": "PF2E.condition.restrained.note"
+              }
+            ],
+            "_conversionState": "partial"
+          },
+          {
+            "itemType": "feat",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": ["item:trait:manipulate"],
+            "property": "description",
+            "value": [
+              {
+                "text": "PF2E.condition.restrained.note"
+              }
+            ],
+            "_conversionState": "partial"
+          },
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": ["item:trait:manipulate"],
+            "property": "description",
+            "value": [
+              {
+                "text": "PF2E.condition.restrained.note"
+              }
+            ],
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "restrained.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "mUv1cf1ICSqZ8jkm",
+    "name": "Sickened",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": null,
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": "sickened",
+          "label": null,
+          "selector": "all",
+          "value": "-@item.badge.value",
+          "mode": "add",
+          "type": "status",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "selector": "all",
+            "slug": "sickened",
+            "type": "status",
+            "value": "-@item.badge.value"
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": "PF2E.condition.sickened.name",
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": [
+            {
+              "or": [
+                "item:tag:alchemical-food",
+                "item:trait:elixir",
+                "item:trait:ingested",
+                "item:trait:potion",
+                "item:trait:serum"
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "consumable",
+            "key": "ItemAlteration",
+            "label": "PF2E.condition.sickened.name",
+            "mode": "add",
+            "predicate": [
+              {
+                "or": [
+                  "item:tag:alchemical-food",
+                  "item:trait:elixir",
+                  "item:trait:ingested",
+                  "item:trait:potion",
+                  "item:trait:serum"
+                ]
+              }
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": "PF2E.condition.sickened.note"
+              }
+            ]
+          }
+        }
+      ],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": true,
+        "value": 1
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "fesd1n5eVhpCSS18",
+        "packName": "conditions",
+        "unconvertedRules": [
+          {
+            "itemType": "consumable",
+            "key": "ItemAlteration",
+            "label": "PF2E.condition.sickened.name",
+            "mode": "add",
+            "predicate": [
+              {
+                "or": [
+                  "item:tag:alchemical-food",
+                  "item:trait:elixir",
+                  "item:trait:ingested",
+                  "item:trait:potion",
+                  "item:trait:serum"
+                ]
+              }
+            ],
+            "property": "description",
+            "value": [
+              {
+                "text": "PF2E.condition.sickened.note"
+              }
+            ],
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "sickened.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "hrxzfNz3MmhiLbV0",
+    "name": "Slowed",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": null,
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": true,
+        "value": 1
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "xYTAsEpcJE1Ccni3",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "slowed.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "5mIZJYhNHndltKnT",
+    "name": "Stunned",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": null,
+      "overrides": ["slowed"],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": true,
+        "value": 1
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "dfCMdR4wnpbYNTix",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "stunned.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "BhSy61PnYYWA8o9V",
+    "name": "Stupefied",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "active": false,
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "perpetual": false,
+        "text": "",
+        "unit": "unlimited",
+        "value": -1
+      },
+      "group": "abilities",
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "removable": false,
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": "stupefied",
+          "label": null,
+          "selector": ["cha-based", "int-based", "wis-based"],
+          "value": "-@item.badge.value",
+          "mode": "add",
+          "type": "status",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "selector": ["cha-based", "int-based", "wis-based"],
+            "slug": "stupefied",
+            "type": "status",
+            "value": "-@item.badge.value"
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "property": "description",
+            "value": [
+              {
+                "text": "PF2E.condition.stupefied.note"
+              }
+            ]
+          }
+        }
+      ],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "immutable": false,
+        "isValued": true,
+        "value": 1
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "e1XGnhKNSQIm5IXg",
+        "packName": "conditions",
+        "unconvertedRules": [
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "property": "description",
+            "value": [
+              {
+                "text": "PF2E.condition.stupefied.note"
+              }
+            ],
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "stupefied.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "zPDF0ZuLPl7FuNcW",
+    "name": "Unconscious",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": "death",
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": "unconscious",
+          "label": null,
+          "selector": ["ac", "perception", "reflex"],
+          "value": -4,
+          "mode": "add",
+          "type": "status",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "selector": ["ac", "perception", "reflex"],
+            "slug": "unconscious",
+            "type": "status",
+            "value": -4
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.conditionitems.Item.Blinded",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "onDeleteActions": {
+              "grantee": "restrict"
+            },
+            "uuid": "Compendium.pf2e.conditionitems.Item.Blinded"
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.conditionitems.Item.Off-Guard",
+          "inMemoryOnly": true,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "inMemoryOnly": true,
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.conditionitems.Item.Off-Guard"
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.conditionitems.Item.Prone",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "allowDuplicate": false,
+            "key": "GrantItem",
+            "onDeleteActions": {
+              "grantee": "restrict",
+              "granter": "detach"
+            },
+            "uuid": "Compendium.pf2e.conditionitems.Item.Prone"
+          }
+        }
+      ],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "fBnFDH2MTzgFijKf",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "unconscious.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "UxSQ92wponpzKFZ5",
+    "name": "Undetected",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": "detection",
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "VRSef5y1LmL2Hkjf",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "undetected.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "lvnH40m5a2ULvqk7",
+    "name": "Unfriendly",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": "attitudes",
+      "overrides": ["helpful", "friendly", "indifferent", "hostile"],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "I1ffBVISxLr2gC4u",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "unfriendly.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "wqWDetgxQ9cwu4fA",
+    "name": "Unnoticed",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "unit": "unlimited",
+        "value": 0
+      },
+      "group": "detection",
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "isValued": false,
+        "value": null
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "9evPzg9E6muFcoSk",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "unnoticed.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "7IAauDiq6a1BuOmx",
+    "name": "Wounded",
+    "type": "condition",
+    "img": "icons/placeholder/condition.svg",
+    "system": {
+      "active": false,
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "perpetual": false,
+        "text": "",
+        "unit": "unlimited",
+        "value": -1
+      },
+      "group": "death",
+      "overrides": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "references": {
+        "children": [],
+        "immunityFrom": [],
+        "overriddenBy": [],
+        "overrides": []
+      },
+      "removable": false,
+      "rules": [],
+      "traits": {
+        "value": []
+      },
+      "value": {
+        "immutable": false,
+        "isValued": true,
+        "value": 1
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Yl48xTdMh3aeQYL2",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "wounded.webp",
+            "placeholder": "icons/placeholder/condition.svg"
+          }
+        ]
+      }
+    }
+  }
+]

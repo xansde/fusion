@@ -1,0 +1,122 @@
+[
+  {
+    "_id": "G1IeHREXFKc7efep",
+    "uuid": "Compendium.pf2e.bestiary-core.Actor.G1IeHREXFKc7efep",
+    "name": "Eagle",
+    "img": "icons/placeholder/npc.svg",
+    "type": "npc",
+    "index": {
+      "system.details.level.value": -1,
+      "system.traits.value": ["animal"],
+      "system.attributes.hp.max": 6
+    }
+  },
+  {
+    "_id": "6QYBnYNDxuDRwg4N",
+    "uuid": "Compendium.pf2e.bestiary-core.Actor.6QYBnYNDxuDRwg4N",
+    "name": "Giant Rat",
+    "img": "icons/placeholder/npc.svg",
+    "type": "npc",
+    "index": {
+      "system.details.level.value": -1,
+      "system.traits.value": ["animal"],
+      "system.attributes.hp.max": 8
+    }
+  },
+  {
+    "_id": "2yTK19idZHdPmNUQ",
+    "uuid": "Compendium.pf2e.bestiary-core.Actor.2yTK19idZHdPmNUQ",
+    "name": "Goblin Warrior",
+    "img": "icons/placeholder/npc.svg",
+    "type": "npc",
+    "index": {
+      "system.details.level.value": -1,
+      "system.traits.value": ["goblin", "humanoid"],
+      "system.attributes.hp.max": 6
+    }
+  },
+  {
+    "_id": "MJpN3BV80ft4kyBa",
+    "uuid": "Compendium.pf2e.bestiary-core.Actor.MJpN3BV80ft4kyBa",
+    "name": "Guard Dog",
+    "img": "icons/placeholder/npc.svg",
+    "type": "npc",
+    "index": {
+      "system.details.level.value": -1,
+      "system.traits.value": ["animal"],
+      "system.attributes.hp.max": 8
+    }
+  },
+  {
+    "_id": "AQzRfYd0pjZDb4hX",
+    "uuid": "Compendium.pf2e.bestiary-core.Actor.AQzRfYd0pjZDb4hX",
+    "name": "Hryngar Sharpshooter",
+    "img": "icons/placeholder/npc.svg",
+    "type": "npc",
+    "index": {
+      "system.details.level.value": 0,
+      "system.traits.value": ["duergar", "dwarf", "humanoid"],
+      "system.attributes.hp.max": 18
+    }
+  },
+  {
+    "_id": "hHqIWsM1A0BUFhwn",
+    "uuid": "Compendium.pf2e.bestiary-core.Actor.hHqIWsM1A0BUFhwn",
+    "name": "Kobold Warrior",
+    "img": "icons/placeholder/npc.svg",
+    "type": "npc",
+    "index": {
+      "system.details.level.value": -1,
+      "system.traits.value": ["humanoid", "kobold"],
+      "system.attributes.hp.max": 7
+    }
+  },
+  {
+    "_id": "ZuTlfaOY8izOIlge",
+    "uuid": "Compendium.pf2e.bestiary-core.Actor.ZuTlfaOY8izOIlge",
+    "name": "Leaf Leshy",
+    "img": "icons/placeholder/npc.svg",
+    "type": "npc",
+    "index": {
+      "system.details.level.value": 0,
+      "system.traits.value": ["leshy", "plant"],
+      "system.attributes.hp.max": 15
+    }
+  },
+  {
+    "_id": "lLo4YnL8wrlyvFGM",
+    "uuid": "Compendium.pf2e.bestiary-core.Actor.lLo4YnL8wrlyvFGM",
+    "name": "Orc Scrapper",
+    "img": "icons/placeholder/npc.svg",
+    "type": "npc",
+    "index": {
+      "system.details.level.value": 0,
+      "system.traits.value": ["humanoid", "orc"],
+      "system.attributes.hp.max": 18
+    }
+  },
+  {
+    "_id": "3Bq64qA24L0BdAbz",
+    "uuid": "Compendium.pf2e.bestiary-core.Actor.3Bq64qA24L0BdAbz",
+    "name": "Skeleton Guard",
+    "img": "icons/placeholder/npc.svg",
+    "type": "npc",
+    "index": {
+      "system.details.level.value": -1,
+      "system.traits.value": ["mindless", "skeleton", "undead", "unholy"],
+      "system.attributes.hp.max": 4
+    }
+  },
+  {
+    "_id": "3ogCwy1TUABrjjw9",
+    "uuid": "Compendium.pf2e.bestiary-core.Actor.3ogCwy1TUABrjjw9",
+    "name": "Zombie Shambler",
+    "img": "icons/placeholder/npc.svg",
+    "type": "npc",
+    "index": {
+      "system.details.level.value": -1,
+      "system.traits.value": ["mindless", "undead", "unholy", "zombie"],
+      "system.attributes.hp.max": 20
+    }
+  }
+]

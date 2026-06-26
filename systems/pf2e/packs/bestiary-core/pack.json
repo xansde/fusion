@@ -1,0 +1,22 @@
+{
+  "id": "pf2e.bestiary-core",
+  "label": "PF2e Core Bestiary",
+  "documentType": "Actor",
+  "systemId": "pf2e",
+  "indexFields": ["system.details.level.value", "system.traits.value", "system.attributes.hp.max"],
+  "license": {
+    "license": "ORC",
+    "attribution": "Pathfinder Monster Core © 2024 Paizo Inc. Licensed under the ORC License.",
+    "reservedNotice": "Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+    "sourceRepo": "github.com/foundryvtt/pf2e",
+    "sourceVersion": "v14-dev"
+  },
+  "source": {
+    "repo": "github.com/foundryvtt/pf2e",
+    "version": "v14-dev",
+    "importerVersion": "0.1.0"
+  },
+  "schemaVersion": 1,
+  "documentCount": 10,
+  "generatedAt": "2026-06-26T07:43:28.537Z"
+}

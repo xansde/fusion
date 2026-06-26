@@ -23,7 +23,9 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M3-A  | System API completa + engine-2e (derivação, effects MVP, DoS, stacking, IWR)    | concluído    | 95              |
 | M3-B  | PF2e schemas + automação (strikes, saves, condições, spellcasting)              | concluído    | 72→✓ corrigido  |
 | M3-C  | UI framework (window manager, sheets, TipTap) + fichas PF2e                     | concluído    | 95              |
-| M3-D  | Importer pf2e + compendiums + i18n pt-BR + DoD M3 (primeira sessão jogável)     | pendente     | —               |
+| M3-D  | Importer pf2e + compendiums + i18n pt-BR + DoD M3 (primeira sessão jogável)     | concluído    | 58→94 corrigido |
+
+**🎉 MVP ALCANÇADO (2026-06-26) — primeira sessão jogável de PF2e funciona ponta-a-ponta (verificado via boot real).** ~2.500 testes verdes. Restam, pós-MVP e paralelizáveis: M4 (SF2e — dados confirmados), M5 (Etmos — packs prontos, falta compositor de magias), M6 (distribuição).
 
 > **Processo acelerado (autorizado pelo usuário em 2026-06-12, durante M2-B)**: gate reduzido — máx. **2** auditorias Opus por batch (antes 3) e aprovação com **dívida registrada** quando score ≥ 90 sem issues de severidade alta; M3 consolidado de 6 para 4 batches. Issues altas continuam bloqueando sempre.
 
@@ -48,6 +50,16 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 - Próximos batches após M2-A: M2-B (fog), M2-C (combate), depois M3 (A–F) → primeira sessão jogável.
 
 ## Registro por batch
+
+### M3-D — Importer + compendiums + DoD (correção de auditoria) (2026-06-26)
+
+Auditoria pós-batch pegou 2 falhas ALTAS que invalidavam a "primeira sessão jogável" na prática, mais 3 itens de redação/dívida. Correções aplicadas:
+
+- **FIX-1 (alta) — CompendiumService não ligado no boot real.** `boot.ts`/`serve.ts` montavam o namespace sem `compendiumService` e nunca chamavam `discoverPacks()`; o socket-manager caía em `new CompendiumService()` vazio, então `compendium:list` retornava `[]` num servidor CLI real (import impossível). O e2e-dod-m3 passava só porque ligava o serviço manualmente. **Corrigido:** `boot.ts` agora instancia `CompendiumService`, resolve `systems/<systemId>/packs` de forma robusta via `resolveSystemPacksDir()` (walk até `pnpm-workspace.yaml` — funciona de `src` e de `dist`; aceita override `packsDir`/config), chama `discoverPacks()` e injeta o serviço em `nsOptions`. `serve.ts` passa o `systemId` real do `world.json` (antes hardcodava `"stub"`). Prova: novo teste `__tests__/boot-compendium.test.ts` sobe pelo **boot real** (só `netContext.systemId="pf2e"`, sem wiring manual) e verifica `compendium:list` → bestiary-core/conditions/weapons-core/spells-core.
+- **FIX-2 (alta) — prosa Reserved Material da Paizo vazando nos packs.** Os normalizadores de item (`transform.mjs`) preservavam `system.description` (flavor com copyright; até 2128 chars em conditions). **Corrigido:** `stripFlavorProse()` zera `description`/`gmNotes`/`publicNotes`/`privateNotes` em todos os normalizadores de item e nos itens embarcados de NPC (efeito mecânico já vive em `rules[]`); nomes e campos mecânicos (ORC) ficam. Packs **regerados** (`transform.mjs` + `build-mvp-subset.mjs`) — 0 chars de prosa em todos os 4. Guarda de regressão em `transform.test.mjs` (falha se qualquer `description` de prosa ou trecho conhecido reaparecer). Política documentada no transform-report (§2.1).
+- **FIX-3 (média) — redação do DoD superestimava "AC/saves derived by server".** `importToWorld` só clona o doc (sem re-derivação); para NPC isso é correto (stats de statblock são autorais, não derivados de build). **Corrigido:** redação no e2e-dod-m3 (describe (b) + teste de AC) e doc no `service.importToWorld` agora dizem "preservado do pack, não re-derivado"; derivação de `character` ocorre no read/snapshot, não no import.
+- **FIX-4 (baixa, dívida) — packs em JSON em vez de SQLite.** REQ-CMP-001 pede pack.db (SQLite) como DEVE no MVP. **Decisão registrada:** "JSON no MVP, SQLite no V2" — subset pequeno (~105 docs/4 packs), interface do `CompendiumService` é storage-agnostic, migração não muda callers. Comentário reforçado no topo de `service.ts`.
+- **FIX-5 (baixa, redação) — `system.fusion.conversion` vs `flags.fusion.conversion`.** O data-model real usa `flags.fusion.*` para todos os metadados de conversão. **Corrigido:** spec 16 (§D6 e REQ-CMP-036) alinhada para `flags.fusion.conversion` com nota de alinhamento.
 
 ### M3-C — UI framework + fichas + montagem ao vivo (2026-06-26) — score 95 ✅ — **GAP DE INTEGRAÇÃO FECHADO**
 

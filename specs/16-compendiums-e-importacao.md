@@ -220,8 +220,15 @@ opção `omitVolatile` ligada.
 O importer traduz cada RE de `system.rules` para um **modifier descriptor** do
 Fusion segundo uma **tabela de cobertura** declarativa. REs sem conversor não são
 descartados: são preservados em `flags.fusion.unconvertedRules` e o documento é
-marcado `system.fusion.conversion = "partial"`. A spec define o **formato-alvo** e o
+marcado `flags.fusion.conversion = "partial"`. A spec define o **formato-alvo** e o
 **estado por RE**; a semântica de avaliação é de `ver 15-`.
+
+> Nota de alinhamento (M3-D): o data-model real do importer e dos packs usa o
+> namespace `flags.fusion.*` para TODOS os metadados de conversão
+> (`conversion`, `unconvertedRules`, `assetSubstitutions`, ...), espelhando a
+> convenção de `flags` do modelo de documento. Redações anteriores que citavam
+> `system.fusion.conversion` referiam-se ao mesmo campo — leia-se
+> `flags.fusion.conversion`.
 
 - **Rejeitado: descartar REs não suportados.** Perde dados e impossibilita
   retroconversão quando o conversor evoluir.
@@ -455,7 +462,9 @@ de Foundry.
 - **REQ-CMP-036** [MVP] Para REs marcados `unsupported` (ou `partial` no que não
   cobrirem), o importer DEVE preservar o RE original em
   `flags.fusion.unconvertedRules` (array) e marcar
-  `system.fusion.conversion = "partial"` no documento, **sem descartar** dados (D6).
+  `flags.fusion.conversion = "partial"` no documento, **sem descartar** dados (D6).
+  (Data-model real: o campo vive em `flags.fusion.conversion`, não em
+  `system.fusion.*` — ver nota de alinhamento em §D6.)
 - **REQ-CMP-037** [MVP] O importer DEVE suportar as **expressões de valor** dos REs
   (`@actor.level`, `floor(...)`, `ternary(...)`, `match/when(...)` —
   `docs/research/10-...md` §5.5), traduzindo-as para a sintaxe de roll data do Fusion

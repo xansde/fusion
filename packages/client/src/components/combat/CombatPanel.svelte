@@ -26,6 +26,7 @@
   } from "../../lib/combat/combatTracker.js";
   import { viewerRole, redactCombatForViewer, canUseGmControls } from "../../lib/combat/combatVisibility.js";
   import { activeSceneState } from "../../lib/docs/activeScene.svelte.js";
+  import { t } from "../../lib/i18n/i18n.js";
 
   const {
     socket,
@@ -142,15 +143,15 @@
   {#if !combat}
     <!-- ---- Empty state ---- -->
     <div class="combat-panel__empty">
-      <p class="combat-panel__empty-text">No active combat.</p>
+      <p class="combat-panel__empty-text">{t("FUSION.Combat.Empty")}</p>
       {#if isGm}
         <button
           class="btn btn--primary btn--sm"
           onclick={handleCreateCombat}
           disabled={busy || !activeSceneState.id}
-          aria-label="Create combat"
+          aria-label={t("FUSION.Combat.Create")}
         >
-          Create Combat
+          {t("FUSION.Combat.Create")}
         </button>
       {/if}
     </div>
@@ -160,11 +161,11 @@
     <div class="combat-panel__header">
       <span class="combat-panel__round">
         {#if combat.started && !combat.ended}
-          Round {combat.round}
+          {t("FUSION.Combat.Started", { round: combat.round })}
         {:else if combat.ended}
-          Combat ended
+          {t("FUSION.Combat.Ended")}
         {:else}
-          Not started
+          {t("FUSION.Combat.NotStarted")}
         {/if}
       </span>
 
@@ -175,8 +176,8 @@
               class="btn btn--primary btn--xs"
               onclick={() => combatActions.start(socket, combat._id)}
               disabled={busy}
-              title="Begin Combat"
-            >Begin</button>
+              title={t("FUSION.Combat.Begin")}
+            >{t("FUSION.Combat.Begin")}</button>
           {/if}
 
           {#if controls.canPrevious}
@@ -184,8 +185,8 @@
               class="btn btn--ghost btn--xs"
               onclick={() => combatActions.previousTurn(socket, combat._id)}
               disabled={busy}
-              title="Previous Turn"
-              aria-label="Previous turn"
+              title={t("FUSION.Combat.PreviousTurn")}
+              aria-label={t("FUSION.Combat.PreviousTurn")}
             >&#x276E;</button>
           {/if}
 
@@ -194,8 +195,8 @@
               class="btn btn--accent btn--xs"
               onclick={() => combatActions.nextTurn(socket, combat._id)}
               disabled={busy}
-              title="Next Turn"
-              aria-label="Next turn"
+              title={t("FUSION.Combat.NextTurn")}
+              aria-label={t("FUSION.Combat.NextTurn")}
             >&#x276F;</button>
           {/if}
 
@@ -204,9 +205,9 @@
               class="btn btn--danger btn--xs"
               onclick={() => combatActions.end(socket, combat._id)}
               disabled={busy}
-              title="End Combat"
-              aria-label="End combat"
-            >End</button>
+              title={t("FUSION.Combat.End")}
+              aria-label={t("FUSION.Combat.End")}
+            >{t("FUSION.Combat.End")}</button>
           {/if}
         </div>
       {/if}
@@ -220,16 +221,16 @@
             class="btn btn--ghost btn--xs"
             onclick={() => combatActions.rollInitiative(socket, combat._id)}
             disabled={busy}
-            title="Roll initiative for all combatants with no value"
-          >Roll All</button>
+            title={t("FUSION.Combat.RollAll")}
+          >{t("FUSION.Combat.RollAll")}</button>
         {/if}
         {#if controls.canReset}
           <button
             class="btn btn--ghost btn--xs"
             onclick={() => combatActions.resetInitiative(socket, combat._id)}
             disabled={busy}
-            title="Reset all initiative values"
-          >Reset Init</button>
+            title={t("FUSION.Combat.ResetInit")}
+          >{t("FUSION.Combat.ResetInit")}</button>
         {/if}
       </div>
     {/if}
@@ -243,10 +244,12 @@
     <div
       class="combat-panel__list"
       role="list"
-      aria-label="Combat turn order"
+      aria-label={t("FUSION.Combat.TurnOrder")}
     >
       {#if rows.length === 0}
-        <p class="combat-panel__empty-text">No combatants. {isGm ? 'Add tokens to join the combat.' : ''}</p>
+        <p class="combat-panel__empty-text">
+          {isGm ? t("FUSION.Combat.NoCombatantsGm") : t("FUSION.Combat.NoCombatants")}
+        </p>
       {:else}
         {#each rows as row (row.id)}
           <div
@@ -256,7 +259,7 @@
             class:combatant-row--hidden={row.isHidden}
             class:combatant-row--drag-over={dragSourceId !== null && dragSourceId !== row.id}
             role="listitem"
-            aria-label="{row.name} initiative {row.initiativeLabel}{row.isActive ? ' (active turn)' : ''}{row.isDefeated ? ' (defeated)' : ''}"
+            aria-label="{row.name} {t('FUSION.Combat.Initiative', { value: row.initiativeLabel })}{row.isActive ? ` (${t('FUSION.Combat.ActiveTurn')})` : ''}{row.isDefeated ? ` (${t('FUSION.Combat.Defeated')})` : ''}"
             draggable={isGm}
             ondragstart={() => handleDragStart(row.id)}
             ondragover={(e) => { e.preventDefault(); }}
@@ -280,7 +283,7 @@
               {/if}
 
               {#if row.isDefeated}
-                <span class="combatant-row__defeated-icon" aria-hidden="true" title="Defeated">&#x2620;</span>
+                <span class="combatant-row__defeated-icon" aria-hidden="true" title={t("FUSION.Combat.Defeated")}>&#x2620;</span>
               {/if}
             </div>
 
@@ -293,11 +296,11 @@
               >{row.name}</span>
 
               {#if row.isHidden}
-                <span class="combatant-row__hidden-badge" title="Hidden from players" aria-label="Hidden">&#x1F441;</span>
+                <span class="combatant-row__hidden-badge" title={t("FUSION.Combat.HiddenFromPlayers")} aria-label={t("FUSION.Combat.HiddenFromPlayers")}>&#x1F441;</span>
               {/if}
 
               {#if row.isActive}
-                <span class="combatant-row__active-badge" aria-label="Active turn">&#x25B6;</span>
+                <span class="combatant-row__active-badge" aria-label={t("FUSION.Combat.ActiveTurn")}>&#x25B6;</span>
               {/if}
             </div>
 
@@ -326,7 +329,7 @@
                     if (e.key === 'Enter') void commitEditInitiative(row.id);
                     if (e.key === 'Escape') cancelEditInitiative();
                   }}
-                  aria-label="Initiative for {row.name}"
+                  aria-label="{t('FUSION.Combat.RollInitiative')} {row.name}"
                   autofocus
                 />
               {:else}
@@ -335,8 +338,8 @@
                   onclick={() => {
                     if (gmControls) startEditInitiative(row.id, row.initiative);
                   }}
-                  title={gmControls ? 'Click to set initiative manually' : `Initiative: ${row.initiativeLabel}`}
-                  aria-label="Initiative {row.initiativeLabel}"
+                  title={gmControls ? t("FUSION.Combat.SetInitiativeManually") : t("FUSION.Combat.Initiative", { value: row.initiativeLabel })}
+                  aria-label="{t('FUSION.Combat.Initiative', { value: row.initiativeLabel })}"
                   disabled={!gmControls}
                   type="button"
                 >
@@ -355,8 +358,8 @@
                   class="action-btn"
                   onclick={() => combatActions.target(socket, tokenId, true)}
                   disabled={busy}
-                  title="Target this token"
-                  aria-label="Target {row.name}"
+                  title={t("FUSION.Combat.TargetToken")}
+                  aria-label="{t('FUSION.Combat.TargetToken')} {row.name}"
                 >&#x25CE;</button>
               {/if}
 
@@ -367,8 +370,8 @@
                     class="action-btn"
                     onclick={() => combatActions.rollInitiative(socket, combat._id, [row.id])}
                     disabled={busy}
-                    title="Roll initiative"
-                    aria-label="Roll initiative for {row.name}"
+                    title={t("FUSION.Combat.RollInitiative")}
+                    aria-label="{t('FUSION.Combat.RollInitiative')} {row.name}"
                   >&#x2685;</button>
                 {/if}
 
@@ -378,8 +381,8 @@
                   class:action-btn--active={row.isDefeated}
                   onclick={() => combatActions.toggleDefeated(socket, combat._id, row.id, !row.isDefeated)}
                   disabled={busy}
-                  title={row.isDefeated ? 'Unmark defeated' : 'Mark defeated'}
-                  aria-label={row.isDefeated ? 'Unmark defeated' : 'Mark defeated'}
+                  title={row.isDefeated ? t("FUSION.Combat.UnmarkDefeated") : t("FUSION.Combat.MarkDefeated")}
+                  aria-label={row.isDefeated ? t("FUSION.Combat.UnmarkDefeated") : t("FUSION.Combat.MarkDefeated")}
                 >&#x2620;</button>
 
                 <!-- Toggle hidden -->
@@ -388,8 +391,8 @@
                   class:action-btn--active={row.isHidden}
                   onclick={() => combatActions.setHidden(socket, combat._id, row.id, !row.isHidden)}
                   disabled={busy}
-                  title={row.isHidden ? 'Reveal combatant' : 'Hide from players'}
-                  aria-label={row.isHidden ? 'Reveal' : 'Hide'}
+                  title={row.isHidden ? t("FUSION.Combat.RevealCombatant") : t("FUSION.Combat.HiddenFromPlayers")}
+                  aria-label={row.isHidden ? t("FUSION.Combat.RevealCombatant") : t("FUSION.Combat.HiddenFromPlayers")}
                 >&#x1F441;</button>
 
                 <!-- Remove combatant -->
@@ -397,8 +400,8 @@
                   class="action-btn action-btn--danger"
                   onclick={() => combatActions.removeCombatant(socket, combat._id, row.id)}
                   disabled={busy}
-                  title="Remove from combat"
-                  aria-label="Remove {row.name} from combat"
+                  title={t("FUSION.Combat.RemoveFromCombat")}
+                  aria-label="{t('FUSION.Combat.RemoveFromCombat')} {row.name}"
                 >&#x2715;</button>
 
               {:else}
@@ -415,8 +418,8 @@
                     class="btn btn--primary btn--xs"
                     onclick={() => combatActions.rollInitiative(socket, combat._id, [row.id])}
                     disabled={busy}
-                    aria-label="Roll your initiative"
-                  >Roll</button>
+                    aria-label={t("FUSION.Combat.RollMyInitiative")}
+                  >{t("FUSION.Combat.RollMyInitiative")}</button>
                 {/if}
               {/if}
             </div>

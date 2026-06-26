@@ -98,6 +98,8 @@ export async function runServe(args: ServeArgs): Promise<void> {
   const worldSlug: string | undefined = args.world;
   let openWorldDb: BetterSqlite3Database | undefined;
   let authSecret: Uint8Array | undefined;
+  let openWorldSystemId: string | undefined;
+  let openWorldTitle: string | undefined;
 
   if (worldSlug !== undefined) {
     const slug = worldSlug;
@@ -111,7 +113,12 @@ export async function runServe(args: ServeArgs): Promise<void> {
         throw new Error(`World "${slug}" opened but no database handle available`);
       }
       openWorldDb = fusionDb.raw;
-      logger.info({ worldId: slug, title: manifest.title }, "World opened");
+      openWorldSystemId = manifest.system;
+      openWorldTitle = manifest.title;
+      logger.info(
+        { worldId: slug, title: manifest.title, system: manifest.system },
+        "World opened",
+      );
     } catch (err) {
       logger.fatal({ err, worldSlug }, "Failed to open world for serve");
       process.exit(1);
@@ -127,10 +134,11 @@ export async function runServe(args: ServeArgs): Promise<void> {
     const bootOpts: BootOptions = { config, logger };
 
     if (openWorldDb !== undefined && authSecret !== undefined && worldSlug !== undefined) {
+      const worldSystemId = openWorldSystemId ?? "stub";
       bootOpts.authContext = {
         worldId: worldSlug,
-        worldTitle: worldSlug,
-        worldSystemId: "stub",
+        worldTitle: openWorldTitle ?? worldSlug,
+        worldSystemId,
         db: openWorldDb,
         secret: authSecret,
       };
@@ -144,6 +152,9 @@ export async function runServe(args: ServeArgs): Promise<void> {
         secret: authSecret,
         authService: authSvc,
         origin,
+        // REQ-CMP-006..012: load committed packs for the world's system over
+        // the real boot path so compendium content is available in a live session.
+        systemId: worldSystemId,
       };
 
       // REQ-AST-006..029: register asset routes for the open world.

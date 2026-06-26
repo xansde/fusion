@@ -11,6 +11,7 @@
 
   import { session, sessionActions } from "../lib/session.svelte.js";
   import { PROTOCOL_VERSION } from "@fusion/shared";
+  import { t } from "../lib/i18n/i18n.js";
 
   // ---- Local state ----
   let selectedUserId = $state<string | null>(null);
@@ -78,13 +79,13 @@
     <!-- Protocol mismatch banner -->
     {#if protocolMismatch}
       <div class="alert alert--warning" role="alert">
-        <strong>Version mismatch.</strong>
-        The server runs an incompatible protocol version. Please
+        <strong>{t("FUSION.Join.VersionMismatch")}</strong>
+        {t("FUSION.Join.VersionMismatchDetail")}
         <button
           class="alert__link"
           onclick={() => window.location.reload()}
-        >reload the page</button>
-        to get the latest client.
+        >{t("FUSION.Join.ReloadPage")}</button>
+        {t("FUSION.Join.VersionMismatchEnd")}
       </div>
     {/if}
 
@@ -98,12 +99,12 @@
     <!-- User picker -->
     <form class="join-form" onsubmit={handleSubmit}>
       <fieldset class="join-form__fieldset" disabled={loading}>
-        <legend class="join-form__legend">Choose your character</legend>
+        <legend class="join-form__legend">{t("FUSION.Join.ChooseCharacter")}</legend>
 
         {#if users.length === 0}
-          <p class="join-form__empty">No users found. Is the server running?</p>
+          <p class="join-form__empty">{t("FUSION.Join.NoUsers")}</p>
         {:else}
-          <ul class="user-list" role="listbox" aria-label="Select your user">
+          <ul class="user-list" role="listbox" aria-label={t("FUSION.Join.ChooseCharacter")}>
             {#each users as user (user.id)}
               {@const isSelected = selectedUserId === user.id}
               <li>
@@ -125,7 +126,7 @@
                   <span class="user-item__name">{user.name}</span>
                   <!-- Lock icon when password required -->
                   {#if user.hasPassword}
-                    <span class="user-item__lock" aria-label="Password required">&#128274;</span>
+                    <span class="user-item__lock" aria-label={t("FUSION.Join.PasswordPlaceholder")}>&#128274;</span>
                   {/if}
                 </button>
               </li>
@@ -137,14 +138,14 @@
         {#if needsPassword && selectedUserId !== null}
           <div class="join-form__field" transition:slide={{ duration: 150 }}>
             <label class="join-form__label" for="join-password">
-              Password for <strong>{selectedUser?.name}</strong>
+              {t("FUSION.Join.PasswordFor")} <strong>{selectedUser?.name}</strong>
             </label>
             <input
               id="join-password"
               class="join-form__input"
               type="password"
               autocomplete="current-password"
-              placeholder="Enter password"
+              placeholder={t("FUSION.Join.PasswordPlaceholder")}
               bind:value={password}
             />
           </div>
@@ -157,11 +158,11 @@
         disabled={!canSubmit}
       >
         {#if loading}
-          Connecting…
+          {t("FUSION.Join.Connecting")}
         {:else if session.lockedOut}
-          Locked out — wait {session.retryAfterSecs}s
+          {t("FUSION.Join.LockedOut", { secs: session.retryAfterSecs })}
         {:else}
-          Join World
+          {t("FUSION.Join.JoinWorld")}
         {/if}
       </button>
     </form>

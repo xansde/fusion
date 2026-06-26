@@ -24,6 +24,8 @@
   import ChatPanel from "./ChatPanel.svelte";
   import CombatPanel from "../combat/CombatPanel.svelte";
   import ActorDirectory from "../actors/ActorDirectory.svelte";
+  import CompendiumBrowser from "../compendium/CompendiumBrowser.svelte";
+  import { t } from "../../lib/i18n/i18n.js";
 
   const {
     socket,
@@ -42,7 +44,7 @@
 
   // ---- Tab state ----
   // Default: GM sees Scenes tab; players see Chat tab
-  type Tab = "scenes" | "chat" | "combat" | "actors";
+  type Tab = "scenes" | "chat" | "combat" | "actors" | "compendium";
   // _tabOverride tracks explicit user selection; null means use default derived from isGm prop.
   let _tabOverride = $state<Tab | null>(null);
   const activeTab = $derived(_tabOverride ?? (isGm ? "scenes" : "chat"));
@@ -76,7 +78,7 @@
     try {
       await activateScene(socket, scene._id);
     } catch (err) {
-      activateError = err instanceof OpError ? err.message : "Failed to activate scene.";
+      activateError = err instanceof OpError ? err.message : t("FUSION.Scene.Dialog.UnexpectedError");
     } finally {
       activatingId = null;
     }
@@ -89,21 +91,21 @@
 <aside
   class="app-sidebar"
   class:app-sidebar--open={sidebarState.open}
-  aria-label="Application panel"
+  aria-label={t("FUSION.Sidebar.Tabs.Chat")}
 >
   <!-- Toggle button (always visible) -->
   <button
     class="sidebar__toggle"
     onclick={toggleSidebar}
     aria-expanded={sidebarState.open}
-    aria-label={sidebarState.open ? "Collapse panel" : "Expand panel"}
-    title={sidebarState.open ? "Collapse" : "Open panel"}
+    aria-label={sidebarState.open ? t("FUSION.Header.CollapsePanel") : t("FUSION.Header.ExpandPanel")}
+    title={sidebarState.open ? t("FUSION.Header.CollapsePanel") : t("FUSION.Header.ExpandPanel")}
   >
     <span class="sidebar__toggle-icon" aria-hidden="true">
       {sidebarState.open ? "&#x276D;" : "&#x2630;"}
     </span>
     {#if !sidebarState.open && chatUnread > 0}
-      <span class="sidebar__badge" aria-label="{chatUnread} unread messages">
+      <span class="sidebar__badge" aria-label={t("FUSION.Header.UnreadMessages", { count: chatUnread })}>
         {chatUnread > 99 ? "99+" : chatUnread}
       </span>
     {/if}
@@ -114,7 +116,7 @@
     <div class="sidebar__panel">
 
       <!-- Tab bar -->
-      <div class="sidebar__tabs" role="tablist" aria-label="Sidebar tabs">
+      <div class="sidebar__tabs" role="tablist" aria-label={t("FUSION.Sidebar.Tabs.Chat")}>
         {#if isGm}
           <button
             class="sidebar__tab"
@@ -123,7 +125,7 @@
             aria-selected={activeTab === "scenes"}
             onclick={() => selectTab("scenes")}
           >
-            Scenes
+            {t("FUSION.Sidebar.Tabs.Scenes")}
           </button>
         {/if}
         <button
@@ -132,11 +134,11 @@
           role="tab"
           aria-selected={activeTab === "combat"}
           onclick={() => selectTab("combat")}
-          title="Combat Tracker"
+          title={t("FUSION.Combat.TrackerTitle")}
         >
-          Combat
+          {t("FUSION.Sidebar.Tabs.Combat")}
           {#if hasCombat && activeTab !== "combat"}
-            <span class="sidebar__tab-badge sidebar__tab-badge--combat" aria-label="Active combat">&#x2694;</span>
+            <span class="sidebar__tab-badge sidebar__tab-badge--combat" aria-label={t("FUSION.Header.ActiveCombat")}>&#x2694;</span>
           {/if}
         </button>
         <button
@@ -146,9 +148,9 @@
           aria-selected={activeTab === "chat"}
           onclick={() => selectTab("chat")}
         >
-          Chat
+          {t("FUSION.Sidebar.Tabs.Chat")}
           {#if chatUnread > 0 && activeTab !== "chat"}
-            <span class="sidebar__tab-badge" aria-label="{chatUnread} unread">
+            <span class="sidebar__tab-badge" aria-label={t("FUSION.Header.UnreadMessages", { count: chatUnread })}>
               {chatUnread > 99 ? "99+" : chatUnread}
             </span>
           {/if}
@@ -159,9 +161,19 @@
           role="tab"
           aria-selected={activeTab === "actors"}
           onclick={() => selectTab("actors")}
-          title="Atores"
+          title={t("FUSION.Sidebar.Tabs.Actors")}
         >
-          Atores
+          {t("FUSION.Sidebar.Tabs.Actors")}
+        </button>
+        <button
+          class="sidebar__tab"
+          class:sidebar__tab--active={activeTab === "compendium"}
+          role="tab"
+          aria-selected={activeTab === "compendium"}
+          onclick={() => selectTab("compendium")}
+          title={t("FUSION.Sidebar.Tabs.Compendium")}
+        >
+          {t("FUSION.Sidebar.Tabs.Compendium")}
         </button>
       </div>
 
@@ -171,19 +183,19 @@
           <!-- Scenes tab -->
           <div class="sidebar__tab-body">
             <header class="sidebar__header">
-              <span class="sidebar__tab-label">Scenes</span>
+              <span class="sidebar__tab-label">{t("FUSION.Sidebar.Scenes.Title")}</span>
               <button
                 class="btn btn--primary btn--sm"
                 onclick={() => { showCreateDialog = true; }}
-                aria-label="Create new scene"
+                aria-label={t("FUSION.Sidebar.Scenes.Create")}
               >
-                + New
+                {t("FUSION.Sidebar.Scenes.Create")}
               </button>
             </header>
 
-            <div class="sidebar__body" role="list" aria-label="Scene list">
+            <div class="sidebar__body" role="list" aria-label={t("FUSION.Sidebar.Scenes.Title")}>
               {#if sidebarState.scenes.length === 0}
-                <p class="sidebar__empty">No scenes yet. Create one to get started.</p>
+                <p class="sidebar__empty">{t("FUSION.Sidebar.Scenes.Empty")}</p>
               {:else}
                 {#each sidebarState.scenes as scene (scene._id)}
                   {@const isActive = scene._id === activeSceneId}
@@ -196,7 +208,7 @@
                       class="scene-row__dot"
                       class:scene-row__dot--on={isActive}
                       aria-hidden="true"
-                      title={isActive ? "Active scene" : "Inactive"}
+                      title={isActive ? t("FUSION.Sidebar.Scenes.ActiveScene") : t("FUSION.Sidebar.Scenes.InactiveScene")}
                     ></span>
                     <span class="scene-row__name" title={scene.name}>{scene.name}</span>
                     <div class="scene-row__actions">
@@ -205,21 +217,21 @@
                           class="action-btn action-btn--activate"
                           onclick={() => handleActivate(scene)}
                           disabled={activatingId !== null}
-                          title="Activate scene"
-                          aria-label="Activate {scene.name}"
+                          title={t("FUSION.Scene.Dialog.ActivateScene")}
+                          aria-label="{t('FUSION.Scene.Dialog.ActivateScene')} {scene.name}"
                         >&#x25B6;</button>
                       {/if}
                       <button
                         class="action-btn action-btn--edit"
                         onclick={() => { editTarget = scene; }}
-                        title="Edit scene"
-                        aria-label="Edit {scene.name}"
+                        title={t("FUSION.Scene.Dialog.EditScene")}
+                        aria-label="{t('FUSION.Scene.Dialog.EditScene')} {scene.name}"
                       >&#x270E;</button>
                       <button
                         class="action-btn action-btn--delete"
                         onclick={() => { deleteTarget = scene; }}
-                        title="Delete scene"
-                        aria-label="Delete {scene.name}"
+                        title={t("FUSION.Scene.Dialog.DeleteScene")}
+                        aria-label="{t('FUSION.Scene.Dialog.DeleteScene')} {scene.name}"
                       >&#x1F5D1;</button>
                     </div>
                   </div>
@@ -242,6 +254,9 @@
         {:else if activeTab === "actors"}
           <!-- Actors tab -->
           <ActorDirectory {socket} {isGm} {userId} />
+        {:else if activeTab === "compendium"}
+          <!-- Compendium tab -->
+          <CompendiumBrowser {socket} {isGm} />
         {/if}
       </div>
 

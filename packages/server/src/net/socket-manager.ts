@@ -80,6 +80,14 @@ import type { Database as Db } from "better-sqlite3";
 import { isRolePrivileged } from "../documents/ownership.js";
 import { EphemeralRateLimiter, handleEphemeralEnvelope } from "./ephemeral-handlers.js";
 import { RollService } from "../chat/roll-service.js";
+import {
+  CompendiumService,
+  buildCompendiumListHandler,
+  buildCompendiumIndexHandler,
+  buildCompendiumSearchHandler,
+  buildCompendiumGetHandler,
+  buildCompendiumImportHandler,
+} from "../compendium/index.js";
 
 // --------------------------------------------------------------------------
 // Types
@@ -101,6 +109,12 @@ export interface WorldNamespaceOptions {
    * Exposed for test overrides (small values to test buffer overflow).
    */
   opBufferSize?: number;
+  /**
+   * CompendiumService with packs already discovered.
+   * If not provided, a new empty service is created (no packs available).
+   * REQ-CMP-010.
+   */
+  compendiumService?: CompendiumService;
 }
 
 export interface SocketManagerOptions {
@@ -162,7 +176,15 @@ export class SocketManager {
    * REQ-NET-014: protocolVersion check
    */
   registerWorldNamespace(options: WorldNamespaceOptions): void {
-    const { worldId, db, secret, authService, maxConnections = 16, opBufferSize } = options;
+    const {
+      worldId,
+      db,
+      secret,
+      authService,
+      maxConnections = 16,
+      opBufferSize,
+      compendiumService,
+    } = options;
 
     const namespacePath = `/world/${worldId}`;
     this.logger.info({ worldId, namespacePath }, "Registering world namespace");
@@ -261,6 +283,15 @@ export class SocketManager {
     registry.register("combat:target", buildCombatTargetHandler(targetDeps));
     // REQ-CBT-055: clear a targeter's targets when their combatant's turn ends.
     registerTargetingCleanup(targetDeps, eventBus);
+
+    // Register M3-D compendium handlers (REQ-CMP-010..024)
+    const compSvc = compendiumService ?? new CompendiumService();
+    const compDeps = { compendium: compSvc, db, ns };
+    registry.register("compendium:list", buildCompendiumListHandler(compDeps));
+    registry.register("compendium:index", buildCompendiumIndexHandler(compDeps));
+    registry.register("compendium:search", buildCompendiumSearchHandler(compDeps));
+    registry.register("compendium:get", buildCompendiumGetHandler(compDeps));
+    registry.register("compendium:import", buildCompendiumImportHandler(compDeps));
 
     // REQ-NET-003/014: auth middleware runs before connection is accepted
     ns.use((socket, next) => {

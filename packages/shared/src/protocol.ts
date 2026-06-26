@@ -86,6 +86,14 @@ export const EnvelopeTypeSchema = z.union([
   z.literal("combat:target"),
   // server → clients
   z.literal("combat:created"),
+  // M3-D compendium handlers (client → server)
+  z.literal("compendium:list"),
+  z.literal("compendium:index"),
+  z.literal("compendium:search"),
+  z.literal("compendium:get"),
+  z.literal("compendium:import"),
+  // server → client compendium events
+  z.literal("compendium:imported"),
   z.literal("combat:updated"),
   z.literal("combat:deleted"),
   z.literal("combat:turnChange"),

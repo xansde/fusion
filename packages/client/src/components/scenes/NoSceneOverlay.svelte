@@ -4,6 +4,8 @@
    * active scene. Guides the GM to activate one (or informs players to wait).
    */
 
+  import { t } from "../../lib/i18n/i18n.js";
+
   const {
     isGm,
   }: {
@@ -14,12 +16,12 @@
 <div class="no-scene" aria-live="polite" aria-atomic="true">
   <div class="no-scene__card">
     <span class="no-scene__icon" aria-hidden="true">&#x1F5FA;</span>
-    <p class="no-scene__title">No Active Scene</p>
+    <p class="no-scene__title">{t("FUSION.NoScene.Title")}</p>
     <p class="no-scene__hint">
       {#if isGm}
-        Open the <strong>Scenes</strong> panel and activate a scene to begin.
+        {t("FUSION.NoScene.HintGm")} <strong>{t("FUSION.NoScene.HintGmScenes")}</strong> {t("FUSION.NoScene.HintGmEnd")}
       {:else}
-        Waiting for the Game Master to activate a scene&hellip;
+        {t("FUSION.NoScene.HintPlayer")}
       {/if}
     </p>
   </div>

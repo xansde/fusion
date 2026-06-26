@@ -40,7 +40,10 @@
     buildTokenFromActorFields,
     type ActorDragPayload,
   } from "../lib/actors/actorDirectory.js";
+  import { importToWorld as compendiumImportToWorld } from "../lib/compendium/compendiumApi.js";
+  import type { CompendiumDragPayload } from "../lib/compendium/compendiumBrowser.js";
   import type { SceneDocument } from "@fusion/shared";
+  import { t } from "../lib/i18n/i18n.js";
 
   let loggingOut = $state(false);
   let canvasContainer: HTMLElement | null = $state(null);
@@ -71,12 +74,12 @@
   /** Human-readable connection status */
   const connectionLabel = $derived(() => {
     switch (session.connection) {
-      case "connected": return "Connected";
-      case "connecting": return "Connecting…";
-      case "reconnecting": return "Reconnecting…";
-      case "disconnected": return "Disconnected";
-      case "auth_failed": return "Auth failed";
-      case "protocol_mismatch": return "Version mismatch";
+      case "connected": return t("FUSION.Connection.Connected");
+      case "connecting": return t("FUSION.Connection.Connecting");
+      case "reconnecting": return t("FUSION.Connection.Reconnecting");
+      case "disconnected": return t("FUSION.Connection.Disconnected");
+      case "auth_failed": return t("FUSION.Connection.AuthFailed");
+      case "protocol_mismatch": return t("FUSION.Connection.ProtocolMismatch");
       default: return session.connection;
     }
   });
@@ -93,10 +96,10 @@
   const roleLabel = $derived(() => {
     const role = session.user?.role ?? 0;
     switch (role) {
-      case 4: return "GM";
-      case 3: return "Assistant";
-      case 2: return "Trusted";
-      default: return "Player";
+      case 4: return t("FUSION.Role.GM");
+      case 3: return t("FUSION.Role.Assistant");
+      case 2: return t("FUSION.Role.Trusted");
+      default: return t("FUSION.Role.Player");
     }
   });
 
@@ -161,12 +164,30 @@
     }
   }
 
+  /**
+   * Validate and extract a CompendiumDragPayload from a DragEvent.
+   * Compendium entries are dragged with "text/plain" + JSON.
+   * Returns null if the event does not carry a valid compendium payload.
+   */
+  function _getCompendiumDragPayload(event: DragEvent): CompendiumDragPayload | null {
+    const raw = event.dataTransfer?.getData("text/plain");
+    if (!raw) return null;
+    try {
+      const payload = JSON.parse(raw) as CompendiumDragPayload;
+      if (payload.kind !== "compendium-actor" && payload.kind !== "compendium-item") return null;
+      return payload;
+    } catch {
+      return null;
+    }
+  }
+
   function handleCanvasDragOver(event: DragEvent): void {
     // Only accept actor drags; only GMs can create tokens (permission gate).
     if (!isGm()) return;
     if (!activeSceneState.scene) return;
-    const payload = _getActorDragPayload(event);
-    if (!payload) return;
+    const actorPayload = _getActorDragPayload(event);
+    const compPayload = _getCompendiumDragPayload(event);
+    if (!actorPayload && !compPayload) return;
     event.preventDefault();
     if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
   }
@@ -178,10 +199,6 @@
     const canvas = fusionCanvas;
     if (!canvas) return;
 
-    const payload = _getActorDragPayload(event);
-    if (!payload) return;
-    event.preventDefault();
-
     // Convert client coords → scene (world) coords using the camera transform.
     const rect = canvasContainer!.getBoundingClientRect();
     const screenX = event.clientX - rect.left;
@@ -190,28 +207,73 @@
     const worldX = (screenX - cam.tx) / cam.scale;
     const worldY = (screenY - cam.ty) / cam.scale;
 
-    const gridSize = scene.grid?.size ?? 100;
-
-    const fields = buildTokenFromActorFields({
-      payload,
-      sceneId: scene._id,
-      x: worldX,
-      y: worldY,
-      gridSize,
-    });
-
     const sock = getSocket();
     if (!sock) return;
 
-    sock.emit("op", {
-      type: "doc:create",
-      ts: Date.now(),
-      payload: {
-        documentType: "Token",
-        embedded: { type: "Token", sceneId: scene._id },
-        documents: [fields],
-      },
-    });
+    const actorPayload = _getActorDragPayload(event);
+    if (actorPayload) {
+      event.preventDefault();
+      const gridSize = scene.grid?.size ?? 100;
+      const fields = buildTokenFromActorFields({
+        payload: actorPayload,
+        sceneId: scene._id,
+        x: worldX,
+        y: worldY,
+        gridSize,
+      });
+      sock.emit("op", {
+        type: "doc:create",
+        ts: Date.now(),
+        payload: {
+          documentType: "Token",
+          embedded: { type: "Token", sceneId: scene._id },
+          documents: [fields],
+        },
+      });
+      return;
+    }
+
+    const compPayload = _getCompendiumDragPayload(event);
+    if (compPayload && compPayload.kind === "compendium-actor") {
+      event.preventDefault();
+      // Import the actor to world, then create a token at the drop location.
+      void (async () => {
+        try {
+          const result = await compendiumImportToWorld(sock, [compPayload.uuid]);
+          const createdId = result.created[0];
+          if (!createdId) return;
+          const gridSize = scene.grid?.size ?? 100;
+          // Build a minimal actor payload to reuse buildTokenFromActorFields
+          const fakePayload: ActorDragPayload = {
+            kind: "actor",
+            uuid: createdId,
+            documentType: "Actor",
+            subtype: compPayload.subtype ?? "npc",
+            name: compPayload.name,
+            img: compPayload.img,
+            origin: "sidebar",
+          };
+          const fields = buildTokenFromActorFields({
+            payload: fakePayload,
+            sceneId: scene._id,
+            x: worldX,
+            y: worldY,
+            gridSize,
+          });
+          sock.emit("op", {
+            type: "doc:create",
+            ts: Date.now(),
+            payload: {
+              documentType: "Token",
+              embedded: { type: "Token", sceneId: scene._id },
+              documents: [fields],
+            },
+          });
+        } catch (err) {
+          console.error("[TableScreen] Failed to import compendium actor on drop:", err);
+        }
+      })();
+    }
   }
 
   /**
@@ -393,7 +455,7 @@
   <div
     class="canvas-host"
     bind:this={canvasContainer}
-    aria-label="Game canvas"
+    aria-label={t("FUSION.Header.GameCanvas")}
     role="img"
     ondragover={handleCanvasDragOver}
     ondrop={handleCanvasDrop}
@@ -449,9 +511,9 @@
       class="btn btn--ghost btn--sm"
       onclick={handleLogout}
       disabled={loggingOut}
-      aria-label="Log out"
+      aria-label={t("FUSION.Header.Leave")}
     >
-      {loggingOut ? "…" : "Leave"}
+      {loggingOut ? t("FUSION.Header.Leaving") : t("FUSION.Header.Leave")}
     </button>
   </header>
 
