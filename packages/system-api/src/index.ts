@@ -11,3 +11,8 @@ export * from "./system-module.js";
 export * from "./combat.js";
 export * from "./validate.js";
 export * from "./registry.js";
+// M3-A additions
+export * from "./derive.js";
+export * from "./effects.js";
+export * from "./hooks.js";
+export * from "./registries.js";

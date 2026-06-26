@@ -27,6 +27,7 @@ export default tseslint.config(
       "packages/server/src/**/*.ts",
       "packages/client/src/**/*.ts",
       "systems/stub/src/**/*.ts",
+      "systems/engine-2e/src/**/*.ts",
     ],
     ignores: [
       "**/__tests__/**",

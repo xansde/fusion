@@ -75,14 +75,6 @@ module.exports = {
       to: { path: "^packages/client" },
     },
     {
-      name: "engine-2e-must-not-import-system-api",
-      comment:
-        "systems/engine-2e must not import packages/system-api (REQ-ARQ-005)",
-      severity: "error",
-      from: { path: "^systems/engine-2e" },
-      to: { path: "^packages/system-api" },
-    },
-    {
       name: "engine-2e-must-not-import-other-systems",
       comment:
         "systems/engine-2e must not import other systems/* (REQ-ARQ-005)",

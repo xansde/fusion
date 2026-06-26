@@ -20,7 +20,7 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M2-A  | Walls + portas, visibility polygon, luzes                                       | concluído    | 96              |
 | M2-B  | Fog of war (3 estados, persistência, Clipper2), broadcast de delta              | concluído    | 93 (dívida)     |
 | M2-C  | Combat/Combatant, tracker, InitiativeFormula, hooks de turno                    | concluído    | 96              |
-| M3-A  | System API completa + engine-2e (derivação, effects MVP, DoS, stacking, IWR)    | pendente     | —               |
+| M3-A  | System API completa + engine-2e (derivação, effects MVP, DoS, stacking, IWR)    | concluído    | 95              |
 | M3-B  | PF2e schemas + automação (strikes, saves, condições, spellcasting)              | pendente     | —               |
 | M3-C  | UI framework (window manager, sheets, TipTap) + fichas PF2e                     | pendente     | —               |
 | M3-D  | Importer pf2e + compendiums + i18n pt-BR + DoD M3 (primeira sessão jogável)     | pendente     | —               |
@@ -48,6 +48,12 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 - Próximos batches após M2-A: M2-B (fog), M2-C (combate), depois M3 (A–F) → primeira sessão jogável.
 
 ## Registro por batch
+
+### M3-A — System API + engine-2e (2026-06-13) — score 95 ✅
+
+- Auditoria 95 (1 passada); **94/94 golden fixtures passando** (13+ verificados à mão pelo auditor, 15 probes de robustez 15/15). Entregue: contrato da system API (registro de subtypes com Zod, derivação por sort topológico com detecção de ciclo — resolve o "prepareData hell", hooks tipados com isolamento de erro e cancelamento por pre-hook), motor de effects MVP (FlatModifier/RollOption/Note/ToggleCondition/IWR + predicados all/any/not + fallback que loga rule elements não suportados sem crash) e o pacote `systems/engine-2e` (DoS, stacking dos 7 tipos, MAP, IWR, TEML, dying/wounded — math pura validada pelas fixtures). 136 testes engine-2e + 110 system-api.
+- **Limpeza pós-auditoria (orquestrador)**: 164 artefatos `.js/.d.ts/.map` compilados por engano em `src/` (um agente rodou `tsc` sem outDir) removidos via `git clean -Xfd` restrito; band-aid de eslint que os ignorava revertido; `global.d.ts` (escrito à mão) preservado. Gates revalidados verdes.
+- Dívida menor (não-bloqueante): caso `dw-016` (verify:true, mecânica V2 clearWounded) é tautológico no teste — revisitar quando clearWounded for implementado.
 
 ### M2-C — Combate (2026-06-13) — score 96 ✅ — **MILESTONE M2 FECHADO (DoD 6/6)**
 

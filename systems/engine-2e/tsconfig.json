@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "paths": {
+      // engine-2e resolves @fusion/system-api and @fusion/shared via built
+      // declaration files (.d.ts) to keep rootDir:"src" clean (TS6059 fix).
+      // Both packages must be built before engine-2e (pnpm build -r guarantees
+      // topological order: shared → system-api → engine-2e).
+      "@fusion/system-api": ["../../packages/system-api/dist/index.d.ts"],
+      "@fusion/shared": ["../../packages/shared/dist/index.d.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/__tests__/**", "dist"]
+}
