@@ -5,14 +5,15 @@
    * Svelte 5 Runes component.
    * Implements REQ-UIF-009 (registry), REQ-UIF-016 (modais).
    *
-   * Mount this once inside GameShell (or at app root). It:
+   * Mounted once inside TableScreen (M3-C). It:
    *  - Tracks windowManager.windows reactively via $state
-   *  - Renders one <Window> per entry
+   *  - Renders one <Window> per entry; mounts the dynamic sheet component
+   *    (WindowEntry.component) when present (REQ-UIF-019)
    *  - Listens to viewport resize and forwards to windowManager
    *  - Renders pending modals (ConfirmDialog / PromptDialog)
    *
-   * The M3-C integration ticket will mount this inside <GameShell>.
-   * Until then it can be mounted standalone for dev/test.
+   * TODO (next batch): migrate windowManager to expose a Svelte $state so the
+   * rAF-based polling loop can be replaced with proper reactive subscriptions.
    */
 
   import { onMount } from "svelte";
@@ -93,7 +94,14 @@
       {entry}
       onClose={() => handleClose(entry.id)}
       onFocus={() => handleFocus(entry.id)}
-    />
+    >
+      {#if entry.component}
+        <!-- REQ-UIF-019: mount the registered sheet component dynamically.
+             Svelte 5 runes: dynamic components use {@const} + direct render. -->
+        {@const SheetComponent = entry.component}
+        <SheetComponent {...(entry.componentProps ?? {})} />
+      {/if}
+    </Window>
   {/each}
 
   <!-- Modal dialogs -->

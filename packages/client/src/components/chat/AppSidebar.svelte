@@ -23,6 +23,7 @@
   import SceneDeleteConfirm from "../scenes/SceneDeleteConfirm.svelte";
   import ChatPanel from "./ChatPanel.svelte";
   import CombatPanel from "../combat/CombatPanel.svelte";
+  import ActorDirectory from "../actors/ActorDirectory.svelte";
 
   const {
     socket,
@@ -41,7 +42,7 @@
 
   // ---- Tab state ----
   // Default: GM sees Scenes tab; players see Chat tab
-  type Tab = "scenes" | "chat" | "combat";
+  type Tab = "scenes" | "chat" | "combat" | "actors";
   // _tabOverride tracks explicit user selection; null means use default derived from isGm prop.
   let _tabOverride = $state<Tab | null>(null);
   const activeTab = $derived(_tabOverride ?? (isGm ? "scenes" : "chat"));
@@ -152,6 +153,16 @@
             </span>
           {/if}
         </button>
+        <button
+          class="sidebar__tab"
+          class:sidebar__tab--active={activeTab === "actors"}
+          role="tab"
+          aria-selected={activeTab === "actors"}
+          onclick={() => selectTab("actors")}
+          title="Atores"
+        >
+          Atores
+        </button>
       </div>
 
       <!-- Tab content -->
@@ -227,6 +238,10 @@
         {:else if activeTab === "chat"}
           <!-- Chat tab -->
           <ChatPanel {socket} {worldId} visible={activeTab === "chat"} />
+
+        {:else if activeTab === "actors"}
+          <!-- Actors tab -->
+          <ActorDirectory {socket} {isGm} {userId} />
         {/if}
       </div>
 

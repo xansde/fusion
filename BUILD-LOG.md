@@ -22,7 +22,7 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M2-C  | Combat/Combatant, tracker, InitiativeFormula, hooks de turno                    | concluído    | 96              |
 | M3-A  | System API completa + engine-2e (derivação, effects MVP, DoS, stacking, IWR)    | concluído    | 95              |
 | M3-B  | PF2e schemas + automação (strikes, saves, condições, spellcasting)              | concluído    | 72→✓ corrigido  |
-| M3-C  | UI framework (window manager, sheets, TipTap) + fichas PF2e                     | pendente     | —               |
+| M3-C  | UI framework (window manager, sheets, TipTap) + fichas PF2e                     | concluído    | 95              |
 | M3-D  | Importer pf2e + compendiums + i18n pt-BR + DoD M3 (primeira sessão jogável)     | pendente     | —               |
 
 > **Processo acelerado (autorizado pelo usuário em 2026-06-12, durante M2-B)**: gate reduzido — máx. **2** auditorias Opus por batch (antes 3) e aprovação com **dívida registrada** quando score ≥ 90 sem issues de severidade alta; M3 consolidado de 6 para 4 batches. Issues altas continuam bloqueando sempre.
@@ -48,6 +48,12 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 - Próximos batches após M2-A: M2-B (fog), M2-C (combate), depois M3 (A–F) → primeira sessão jogável.
 
 ## Registro por batch
+
+### M3-C — UI framework + fichas + montagem ao vivo (2026-06-26) — score 95 ✅ — **GAP DE INTEGRAÇÃO FECHADO**
+
+- Auditorias 72 → 95; 2.336 testes verdes. **Fecha o gap arrastado desde o M2-A**: o `SceneOrchestrator` (testável, com renderers injetados como interfaces) conecta o `DocumentMirror` aos renderers existentes (TokenLayer, LightingRenderer, FogState, vision-state, CombatTurnMarker) e é instanciado pela `TableScreen` — o pipeline visão/fog/tokens/combate agora renderiza AO VIVO em resposta ao sync.
+- Entregue: WindowHost montado na mesa (window manager do prep agora em uso), fichas PF2e em Svelte (character/npc) consumindo o `derived` do servidor sem recalcular regras, sheet registry por subtype, TipTap (bold/italic/headings/lists/@links/secrets/inline rolls com schema controlado), diretório de atores (drag actor→token), i18n pt-BR, a11y básica.
+- Verificação headless: orquestrador testado com mirror mockado + renderers fake (token/porta/cena/combate/tear-down); o restante (Svelte/PIXI) confirmado por build + svelte-check. **A confirmação visual final fica para a DoD do M3-D** (requer execução real).
 
 ### M3-B — Sistema PF2e (2026-06-26) — bloqueado em 72, corrigido e verificado ✅
 

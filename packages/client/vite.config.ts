@@ -15,6 +15,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@fusion/shared": resolve("../shared/src/index.ts"),
+      $lib: resolve("./src/lib"),
     },
   },
 

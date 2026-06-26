@@ -45,6 +45,15 @@ export interface WindowEntry {
   height: number;
   minimized: boolean;
   zIndex: number;
+  /**
+   * Svelte 5 component constructor to mount inside the window body.
+   * When set, WindowHost renders it as a dynamic component (REQ-UIF-019).
+   * When absent, the window renders empty (or via the children snippet).
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  component?: any;
+  /** Props forwarded to the dynamic component. */
+  componentProps?: Record<string, unknown>;
 }
 
 export interface WindowOpenOptions {
@@ -58,6 +67,14 @@ export interface WindowOpenOptions {
   minHeight?: number;
   /** Initial position/size; if omitted and no saved geometry, cascade is used. */
   position?: Partial<WindowGeometry>;
+  /**
+   * Svelte 5 component constructor to mount inside the window body.
+   * Props are supplied via componentProps.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  component?: any;
+  /** Props forwarded to the dynamic component. */
+  componentProps?: Record<string, unknown>;
 }
 
 export interface WindowHandle {
@@ -281,6 +298,9 @@ export class WindowManager {
       height: geo.height,
       minimized: saved?.minimized ?? false,
       zIndex: this._highestZ,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      ...(opts.component !== undefined ? { component: opts.component } : {}),
+      ...(opts.componentProps !== undefined ? { componentProps: opts.componentProps } : {}),
     };
 
     this.windows.set(id, entry);

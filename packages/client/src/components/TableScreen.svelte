@@ -27,7 +27,20 @@
   import AppSidebar from "./chat/AppSidebar.svelte";
   import ActiveSceneBadge from "./scenes/ActiveSceneBadge.svelte";
   import NoSceneOverlay from "./scenes/NoSceneOverlay.svelte";
+  import WindowHost from "./windows/WindowHost.svelte";
   import { getSocket } from "../lib/session.svelte.js";
+  import { SceneOrchestrator } from "../lib/canvas/scene-orchestrator.js";
+  import { TokenLayer } from "../lib/canvas/tokens/TokenLayer.js";
+  import { LightingRenderer } from "../lib/canvas/vision/LightingRenderer.js";
+  import { FogState } from "../lib/canvas/vision/fog-state.js";
+  import { CombatCanvasController } from "../lib/canvas/combat/combatCanvasController.js";
+  import { worldMirror } from "../lib/docs/worldSync.js";
+  import { registerPf2eSheets } from "../lib/sheets/pf2e/registerPf2eSheets.js";
+  import {
+    buildTokenFromActorFields,
+    type ActorDragPayload,
+  } from "../lib/actors/actorDirectory.js";
+  import type { SceneDocument } from "@fusion/shared";
 
   let loggingOut = $state(false);
   let canvasContainer: HTMLElement | null = $state(null);
@@ -35,6 +48,15 @@
   let cleanupScene: (() => void) | null = null;
   let cleanupCombatSync: (() => void) | null = null;
   // Debug overlay is toggled internally by F9 inside FusionCanvas.toggleDebug().
+
+  // ---- SceneOrchestrator lifecycle ----
+  // One orchestrator per active scene. Created on scene activation, torn down on switch.
+  let sceneOrchestrator: SceneOrchestrator | null = null;
+
+  // Disposer for the PIXI ticker callback registered in _createOrchestrator.
+  // Stored here so _teardownOrchestrator and onDestroy can remove it cleanly,
+  // preventing accumulation of stale callbacks across scene switches (leak fix).
+  let _tickerDisposer: (() => void) | null = null;
 
   async function handleLogout(): Promise<void> {
     if (loggingOut) return;
@@ -103,9 +125,16 @@
       cleanupCombatSync?.();
       cleanupCombatSync = attachCombatSync(sock);
     }
+
+    // Register PF2e sheets once, after the Svelte runtime is ready (REQ-UIF-018..019).
+    // Errors are non-fatal — the sheets simply won't be available for resolution.
+    registerPf2eSheets().catch((err) => {
+      console.warn("[TableScreen] registerPf2eSheets failed:", err);
+    });
   });
 
   onDestroy(() => {
+    _teardownOrchestrator();
     cleanupScene?.();
     cleanupCombatSync?.();
     fusionCanvas?.destroy();
@@ -114,19 +143,96 @@
     cleanupCombatSync = null;
   });
 
+  // ---- Canvas drag-and-drop (REQ-UIF-046 [MVP]) ----
+
+  /**
+   * Validate and extract the ActorDragPayload from a DragEvent.
+   * Returns null if the event does not carry a valid fusion-actor payload.
+   */
+  function _getActorDragPayload(event: DragEvent): ActorDragPayload | null {
+    const raw = event.dataTransfer?.getData("application/fusion-actor");
+    if (!raw) return null;
+    try {
+      const payload = JSON.parse(raw) as ActorDragPayload;
+      if (payload.kind !== "actor") return null;
+      return payload;
+    } catch {
+      return null;
+    }
+  }
+
+  function handleCanvasDragOver(event: DragEvent): void {
+    // Only accept actor drags; only GMs can create tokens (permission gate).
+    if (!isGm()) return;
+    if (!activeSceneState.scene) return;
+    const payload = _getActorDragPayload(event);
+    if (!payload) return;
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
+  }
+
+  function handleCanvasDrop(event: DragEvent): void {
+    if (!isGm()) return;
+    const scene = activeSceneState.scene;
+    if (!scene) return;
+    const canvas = fusionCanvas;
+    if (!canvas) return;
+
+    const payload = _getActorDragPayload(event);
+    if (!payload) return;
+    event.preventDefault();
+
+    // Convert client coords → scene (world) coords using the camera transform.
+    const rect = canvasContainer!.getBoundingClientRect();
+    const screenX = event.clientX - rect.left;
+    const screenY = event.clientY - rect.top;
+    const cam = canvas.camera;
+    const worldX = (screenX - cam.tx) / cam.scale;
+    const worldY = (screenY - cam.ty) / cam.scale;
+
+    const gridSize = scene.grid?.size ?? 100;
+
+    const fields = buildTokenFromActorFields({
+      payload,
+      sceneId: scene._id,
+      x: worldX,
+      y: worldY,
+      gridSize,
+    });
+
+    const sock = getSocket();
+    if (!sock) return;
+
+    sock.emit("op", {
+      type: "doc:create",
+      ts: Date.now(),
+      payload: {
+        documentType: "Token",
+        embedded: { type: "Token", sceneId: scene._id },
+        documents: [fields],
+      },
+    });
+  }
+
   /**
    * React to active scene changes.
-   * When activeSceneState.scene changes, reload the canvas content.
+   * When activeSceneState.scene changes, reload the canvas content and
+   * restart the SceneOrchestrator for the new scene.
    * Runs in a $effect so it re-executes reactively.
    *
    * M1-B: When no scene is active, we clear the canvas and let NoSceneOverlay
    * handle the UI (no more dev-scene fallback in production paths).
+   *
+   * M3-C: SceneOrchestrator is created/destroyed here alongside scene content.
    */
   $effect(() => {
     const canvas = fusionCanvas;
     if (!canvas) return;
 
     const scene = activeSceneState.scene;
+
+    // Tear down previous orchestrator before changing scene
+    _teardownOrchestrator();
 
     // Cleanup previous scene content
     cleanupScene?.();
@@ -136,6 +242,9 @@
       try {
         if (scene) {
           cleanupScene = await loadSceneDocument(canvas, scene);
+          // Create and set up orchestrator for the new scene
+          sceneOrchestrator = _createOrchestrator(canvas, scene);
+          await sceneOrchestrator.setup();
         }
         // When no active scene: canvas remains empty; NoSceneOverlay is shown
         // by the Svelte template. Dev-scene is only used in initial mount
@@ -155,6 +264,122 @@
     // canvas shows something while waiting for the world snapshot.
     return loadDevScene(canvas);
   }
+
+  // ---- SceneOrchestrator helpers ----
+
+  /**
+   * Create a SceneOrchestrator for the given scene, wiring up all PIXI renderers.
+   * Called from the $effect whenever a new scene activates.
+   *
+   * The orchestrator is "thin assembly" — all logic lives in the .ts modules;
+   * this function just instantiates and connects them.
+   *
+   * M3-C: fog:get and fog:update are routed through the active socket.
+   *       CombatCanvasController is wired if the canvas is available.
+   *       GM gets no FogState (fog bypassed entirely).
+   */
+  function _createOrchestrator(canvas: FusionCanvas, scene: SceneDocument): SceneOrchestrator {
+    const sock = getSocket();
+    const currentIsGm = isGm();
+    const userId = session.user?.id ?? "";
+    const gridSize = scene.grid?.size ?? 100;
+
+    // --- TokenLayer ---
+    const tokenLayer = new TokenLayer(
+      canvas.getLayer("tokens"),
+      worldMirror,
+      scene._id,
+      gridSize,
+      currentIsGm,
+    );
+
+    // Wire SceneOrchestrator tick into FusionCanvas ticker via the public API.
+    // SceneOrchestrator.tick() already calls tokenLayer.tick() internally —
+    // calling it here too would double-tick tokens every frame (bug fix #3).
+    // The disposer is stored in _tickerDisposer so _teardownOrchestrator can
+    // remove the callback and prevent accumulation across scene switches (bug fix #2).
+    const tickerCb = (ticker: { deltaMS: number }) => {
+      sceneOrchestrator?.tick(ticker.deltaMS, canvas.camera.scale);
+    };
+    _tickerDisposer = canvas.addTicker(tickerCb);
+
+    // --- LightingRenderer ---
+    const lightingRenderer = new LightingRenderer(
+      canvas.getLayer("lighting"),
+      scene.width,
+      scene.height,
+      Math.round(scene.width * scene.padding),
+      Math.round(scene.height * scene.padding),
+    );
+
+    // --- FogState (player only) ---
+    let fogState: FogState | null = null;
+    if (!currentIsGm && sock) {
+      fogState = new FogState(
+        scene._id,
+        userId,
+        false,
+        // persistFn: send fog:update op
+        (payload) => {
+          sock.emit("op", { type: "fog:update", ts: Date.now(), payload });
+        },
+        // getFn: request fog:get op via ack
+        (payload) =>
+          new Promise((resolve, reject) => {
+            sock.emit(
+              "op",
+              { type: "fog:get", ts: Date.now(), payload },
+              (ack: { ok: boolean; result?: unknown }) => {
+                if (ack.ok) {
+                  resolve(ack.result as import("@fusion/shared").FogGetResponsePayload);
+                } else {
+                  reject(new Error("fog:get failed"));
+                }
+              },
+            );
+          }),
+      );
+    }
+
+    // --- CombatCanvasController ---
+    const combatController = new CombatCanvasController(
+      canvas,
+      tokenLayer,
+      canvas.getLayer("controls"),
+      gridSize,
+      currentIsGm,
+      userId,
+    );
+
+    return new SceneOrchestrator({
+      scene,
+      mirror: worldMirror,
+      isGm: currentIsGm,
+      userId,
+      tokenLayer,
+      lightingRenderer,
+      fogState,
+      combatController,
+    });
+  }
+
+  /**
+   * Tear down the current orchestrator (flush fog, destroy PIXI objects, unsubscribe).
+   * Also removes the PIXI ticker callback to prevent stale closures from accumulating
+   * across scene switches (fixes ticker leak — bug fix #2).
+   * Safe to call when orchestrator is null.
+   */
+  function _teardownOrchestrator(): void {
+    // Remove the ticker callback BEFORE destroying the orchestrator so the
+    // callback cannot fire against a half-destroyed tokenLayer.
+    _tickerDisposer?.();
+    _tickerDisposer = null;
+
+    if (sceneOrchestrator) {
+      sceneOrchestrator.teardown();
+      sceneOrchestrator = null;
+    }
+  }
 </script>
 
 <!-- ========================================================================
@@ -164,11 +389,14 @@
 <div class="table-shell">
 
   <!-- Canvas host — PIXI mounts its <canvas> inside this -->
+  <!-- REQ-UIF-046 [MVP]: ondragover/ondrop handle actor drag-to-canvas (GM only). -->
   <div
     class="canvas-host"
     bind:this={canvasContainer}
     aria-label="Game canvas"
     role="img"
+    ondragover={handleCanvasDragOver}
+    ondrop={handleCanvasDrop}
   ></div>
 
   <!-- No-scene overlay: shown when no active scene -->
@@ -240,6 +468,13 @@
       userId={session.user?.id ?? ""}
     />
   {/if}
+
+  <!-- -------------------------------------------------------------------- -->
+  <!-- Window Host — floating windows and dialogs (M3-C)                    -->
+  <!-- REQ-UIF-009..016: window manager registry mounted here once.          -->
+  <!-- pointer-events: none on the host; individual windows restore them.    -->
+  <!-- -------------------------------------------------------------------- -->
+  <WindowHost />
 
 </div>
 

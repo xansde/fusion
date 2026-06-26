@@ -212,6 +212,30 @@ export class FusionCanvas {
   }
 
   // ---------------------------------------------------------------------------
+  // Ticker API (public — avoids callers accessing private _app via bracket-hack)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Add a per-frame callback to the PIXI ticker.
+   * Returns a disposer function that removes the callback when called.
+   *
+   * REQ-CNV: callers (e.g. SceneOrchestrator wiring in TableScreen) must call
+   * the disposer on teardown to prevent callbacks from accumulating across
+   * scene switches.
+   */
+  addTicker(cb: (ticker: { deltaMS: number }) => void): () => void {
+    if (!this._app) {
+      return () => {
+        /* no-op — canvas not yet initialised */
+      };
+    }
+    this._app.ticker.add(cb);
+    return () => {
+      this._app?.ticker.remove(cb);
+    };
+  }
+
+  // ---------------------------------------------------------------------------
   // Grid
   // ---------------------------------------------------------------------------
 
