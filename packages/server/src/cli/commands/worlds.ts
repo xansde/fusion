@@ -77,14 +77,19 @@ export function runWorldList(args: WorldListArgs): void {
 export async function runWorldCreate(args: WorldCreateArgs): Promise<void> {
   const dataDir = resolveDataDir(args.dataDir);
 
-  // Build a registry with the stub system registered so validation works.
+  // Build a registry with the stub and pf2e systems registered so validation works.
   const registry = new SystemRegistry();
   try {
     const { stubSystem } = await import("@fusion/system-stub");
     registry.register(stubSystem);
   } catch {
-    // stub not available — registry stays empty; validation still runs against
-    // whatever systems are present (none in this case)
+    // stub not available
+  }
+  try {
+    const { pf2eSystem } = await import("@fusion/system-pf2e");
+    registry.register(pf2eSystem);
+  } catch {
+    // pf2e not available
   }
 
   const manager = new WorldManager({ dataDir, validSystemIds: registry });

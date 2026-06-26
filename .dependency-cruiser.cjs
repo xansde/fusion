@@ -82,6 +82,22 @@ module.exports = {
       from: { path: "^systems/engine-2e" },
       to: { path: "^systems/(?!engine-2e)" },
     },
+    {
+      name: "pf2e-must-not-import-server",
+      comment:
+        "systems/pf2e must not import packages/server (REQ-ARQ-005)",
+      severity: "error",
+      from: { path: "^systems/pf2e" },
+      to: { path: "^packages/server" },
+    },
+    {
+      name: "pf2e-must-not-import-client",
+      comment:
+        "systems/pf2e must not import packages/client (REQ-ARQ-005)",
+      severity: "error",
+      from: { path: "^systems/pf2e" },
+      to: { path: "^packages/client" },
+    },
   ],
   options: {
     doNotFollow: {

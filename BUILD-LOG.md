@@ -21,7 +21,7 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M2-B  | Fog of war (3 estados, persistência, Clipper2), broadcast de delta              | concluído    | 93 (dívida)     |
 | M2-C  | Combat/Combatant, tracker, InitiativeFormula, hooks de turno                    | concluído    | 96              |
 | M3-A  | System API completa + engine-2e (derivação, effects MVP, DoS, stacking, IWR)    | concluído    | 95              |
-| M3-B  | PF2e schemas + automação (strikes, saves, condições, spellcasting)              | pendente     | —               |
+| M3-B  | PF2e schemas + automação (strikes, saves, condições, spellcasting)              | concluído    | 72→✓ corrigido  |
 | M3-C  | UI framework (window manager, sheets, TipTap) + fichas PF2e                     | pendente     | —               |
 | M3-D  | Importer pf2e + compendiums + i18n pt-BR + DoD M3 (primeira sessão jogável)     | pendente     | —               |
 
@@ -48,6 +48,12 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 - Próximos batches após M2-A: M2-B (fog), M2-C (combate), depois M3 (A–F) → primeira sessão jogável.
 
 ## Registro por batch
+
+### M3-B — Sistema PF2e (2026-06-26) — bloqueado em 72, corrigido e verificado ✅
+
+- O gate fez seu trabalho: a auditoria pegou **2 bugs ALTOS de cálculo de regra** que teriam corrompido todo combate PF2e — (1) condições com valor não multiplicavam (`frightened 2` aplicava -1, não -2; a função de resolução existia mas estava órfã), (2) `drained` não propagava o valor (`drained 2` reduzia HP por 1×nível, não 2×nível). Ambos mascarados por testes que fabricavam os valores à mão — o mesmo padrão "vaziamente verde" pego no M1-C/M1-D.
+- Correção dirigida (Opus): adicionada `conditionsToEffectSources` (produção, em `conditions.ts`) que materializa ConditionItems com valor → -X; testes reescritos para partir do `ConditionItem` real. FIX-3/FIX-4 (médios) resolvidos via thin-delegation: `proficiencyBonus`/`mapPenalties`/`PF2E_STACKING_TABLE` viraram re-exports de `engine-2e` (fonte única validada por fixtures). O workflow de correção **morreu no retorno de output estruturado** (retry cap do harness), mas o trabalho de código foi concluído — **o orquestrador verificou manualmente, de forma adversarial**: probou frightened 2 → -2 (AC 24→22, Fort 11→9) e drained 2 → -10 HP (75→65) a partir de ConditionItems reais, confirmou a delegação ao engine-2e e a ausência de mascaramento; suíte completa verde (264 pf2e + 136 engine-2e + 399 server, exit 0).
+- Entregue: pacote `systems/pf2e` registrável (`fusion world create --system pf2e`), schemas de actor (character/npc) + 9 item types, derivação topológica (AC/saves/perícias/HP via engine-2e), strikes com MAP, condições como FlatModifiers, IWR no dano, iniciativa por Perception no servidor.
 
 ### M3-A — System API + engine-2e (2026-06-13) — score 95 ✅
 

@@ -75,10 +75,18 @@ export async function runServe(args: ServeArgs): Promise<void> {
   try {
     const { stubSystem } = await import("@fusion/system-stub");
     registry.register(stubSystem);
-    logger.info({ systems: registry.list() }, "Systems registered");
   } catch (err) {
     logger.warn({ err }, "Could not load @fusion/system-stub — stub system not available");
   }
+
+  try {
+    const { pf2eSystem } = await import("@fusion/system-pf2e");
+    registry.register(pf2eSystem);
+  } catch (err) {
+    logger.warn({ err }, "Could not load @fusion/system-pf2e — pf2e system not available");
+  }
+
+  logger.info({ systems: registry.list() }, "Systems registered");
 
   // Phase 2.6 — world manager (validates system IDs on world creation)
   const worldManager = new WorldManager({

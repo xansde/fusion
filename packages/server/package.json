@@ -25,6 +25,7 @@
     "@fastify/multipart": "^10.0.0",
     "@fusion/shared": "workspace:*",
     "@fusion/system-api": "workspace:*",
+    "@fusion/system-pf2e": "workspace:*",
     "@fusion/system-stub": "workspace:*",
     "@node-rs/argon2": "^2.0.2",
     "@types/sanitize-html": "^2.16.1",
