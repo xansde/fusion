@@ -4,7 +4,15 @@
     "rootDir": "src",
     "outDir": "dist",
     "paths": {
-      "@fusion/shared": ["../shared/src/index.ts"]
+      // system-api now consumes @fusion/shared types (combat contract). Pointing
+      // `paths` at shared's built declarations (not src) keeps rootDir:"src"
+      // intact — .d.ts files are never emit candidates, so they don't trip
+      // TS6059 the way shared/src/*.ts would. This requires `@fusion/shared`
+      // to be built first (`pnpm --filter @fusion/shared build`), which the
+      // workspace build order (`pnpm build -r`, shared before its consumers)
+      // already guarantees. Mirrors the server's node_modules→shared/dist
+      // strategy while remaining type-only (no runtime import from shared).
+      "@fusion/shared": ["../shared/dist/index.d.ts"]
     }
   },
   "include": ["src/**/*.ts"],

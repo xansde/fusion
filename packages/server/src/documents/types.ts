@@ -25,7 +25,12 @@
  */
 
 import { z } from "zod";
-import { BaseDocumentSchema, WallDocumentSchema, AmbientLightDocumentSchema } from "@fusion/shared";
+import {
+  BaseDocumentSchema,
+  WallDocumentSchema,
+  AmbientLightDocumentSchema,
+  CombatDocumentSchema,
+} from "@fusion/shared";
 import type { DocumentTable } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
@@ -202,15 +207,17 @@ export const ChatMessageSchema = BaseDocumentSchema.extend({
 
 /**
  * Combat — combat tracker with embedded combatants.
+ *
+ * Uses the full CombatDocumentSchema from @fusion/shared (M2-C).
+ * The shared schema is the authoritative definition; BaseDocumentSchema _stats
+ * is layered on by the DocumentStore separately — we use z.intersection to
+ * keep compatibility with the existing passthrough approach while accepting the
+ * full combat shape.
+ *
+ * NOTE: The DocumentStore strips _stats from input and adds it back internally,
+ * so we allow passthrough for unknown fields that the store may inject.
  */
-export const CombatSchema = BaseDocumentSchema.extend({
-  sceneId: z.string().nullable().optional(),
-  active: z.boolean().default(false),
-  round: z.number().int().nonnegative().default(0),
-  turn: z.number().int().nonnegative().nullable().optional(),
-  sort: z.number().int().default(0),
-  combatants: z.array(z.record(z.string(), z.unknown())).default(() => []),
-});
+export const CombatSchema = CombatDocumentSchema.passthrough();
 
 /**
  * User — server user account.

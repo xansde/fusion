@@ -196,7 +196,7 @@ describe("DocumentStore.create", () => {
       ["roll_tables", { name: "RollTable" }],
       ["playlists", { name: "Playlist" }],
       ["chat_messages", { author: "userXXXXXXXXXXXXX1", timestamp: Date.now() }],
-      ["combats", {}],
+      ["combats", { sceneId: "testsceneidXXXXX" }],
       ["users", { name: "User", role: 1 }],
       ["folders", { name: "Folder", type: "actors" }],
       ["settings", { key: "core.setting", value: true }],
@@ -794,7 +794,8 @@ describe("DocumentStore validation", () => {
     expect(() =>
       store.create("chat_messages", { author: "userXXXXXXXXXXXXX1", timestamp: 0 }),
     ).not.toThrow();
-    expect(() => store.create("combats", {})).not.toThrow();
+    // CombatSchema (M2-C) requires sceneId; all other fields have defaults
+    expect(() => store.create("combats", { sceneId: "testsceneidXXXXX" })).not.toThrow();
     expect(() => store.create("users", { name: "U", role: 1 })).not.toThrow();
     expect(() => store.create("folders", { name: "F", type: "actors" })).not.toThrow();
     expect(() => store.create("settings", { key: "ns.k", value: "v" })).not.toThrow();

@@ -23,6 +23,7 @@
   import { loadDevScene } from "../lib/canvas/dev-scene.js";
   import { loadSceneDocument } from "../lib/canvas/sceneLoader.js";
   import { activeSceneState } from "../lib/docs/activeScene.svelte.js";
+  import { attachCombatSync } from "../lib/combat/combatStore.svelte.js";
   import AppSidebar from "./chat/AppSidebar.svelte";
   import ActiveSceneBadge from "./scenes/ActiveSceneBadge.svelte";
   import NoSceneOverlay from "./scenes/NoSceneOverlay.svelte";
@@ -32,6 +33,7 @@
   let canvasContainer: HTMLElement | null = $state(null);
   let fusionCanvas: FusionCanvas | null = null;
   let cleanupScene: (() => void) | null = null;
+  let cleanupCombatSync: (() => void) | null = null;
   // Debug overlay is toggled internally by F9 inside FusionCanvas.toggleDebug().
 
   async function handleLogout(): Promise<void> {
@@ -94,13 +96,22 @@
     } catch (err) {
       console.error("[TableScreen] Canvas init failed:", err);
     }
+
+    // Attach combat sync (combat:turnChange events for the canvas turn marker)
+    const sock = getSocket();
+    if (sock) {
+      cleanupCombatSync?.();
+      cleanupCombatSync = attachCombatSync(sock);
+    }
   });
 
   onDestroy(() => {
     cleanupScene?.();
+    cleanupCombatSync?.();
     fusionCanvas?.destroy();
     fusionCanvas = null;
     cleanupScene = null;
+    cleanupCombatSync = null;
   });
 
   /**
@@ -226,6 +237,7 @@
       worldId={session.worldInfo?.id ?? ""}
       activeSceneId={activeSceneState.id}
       isGm={isGm()}
+      userId={session.user?.id ?? ""}
     />
   {/if}
 

@@ -19,7 +19,7 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M1-E  | Assets (upload/serving), presença (cursores, ping, ruler), DoD M1               | concluído    | 97              |
 | M2-A  | Walls + portas, visibility polygon, luzes                                       | concluído    | 96              |
 | M2-B  | Fog of war (3 estados, persistência, Clipper2), broadcast de delta              | concluído    | 93 (dívida)     |
-| M2-C  | Combat/Combatant, tracker, InitiativeFormula, hooks de turno                    | pendente     | —               |
+| M2-C  | Combat/Combatant, tracker, InitiativeFormula, hooks de turno                    | concluído    | 96              |
 | M3-A  | System API completa + engine-2e (derivação, effects MVP, DoS, stacking, IWR)    | pendente     | —               |
 | M3-B  | PF2e schemas + automação (strikes, saves, condições, spellcasting)              | pendente     | —               |
 | M3-C  | UI framework (window manager, sheets, TipTap) + fichas PF2e                     | pendente     | —               |
@@ -27,7 +27,20 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 
 > **Processo acelerado (autorizado pelo usuário em 2026-06-12, durante M2-B)**: gate reduzido — máx. **2** auditorias Opus por batch (antes 3) e aprovação com **dívida registrada** quando score ≥ 90 sem issues de severidade alta; M3 consolidado de 6 para 4 batches. Issues altas continuam bloqueando sempre.
 
-## ⏸️ PAUSA SOLICITADA PELO USUÁRIO (2026-06-12) — RETOMADO no mesmo dia via resumeFromRunId
+## ⏸️ PAUSA SOLICITADA PELO USUÁRIO (2026-06-25) — batch M2-C, retomável via resumeFromRunId
+
+- Build retomado em 2026-06-25 (após M2-B commitado em `3143fc7`). Baseline confirmado verde antes de iniciar: build ok, typecheck 0 erros, **server 350 testes + client 532 testes** verdes isolados (a suíte completa `pnpm test` sai não-zero por flakiness conhecida do worker vitest sob carga — 22 testes em cascata após `Timeout calling onTaskUpdate`; isolados passam 100%).
+- Batch **M2-C (Combate e Iniciativa)** lançado via workflow `wf_9dc5fcc5-b2f` (script: `.fusion-build/m2c-workflow.js`) com o pipeline: fundação → impl paralela server+client → integração verde → auditoria Opus + fix loop (gate acelerado ≥90 com dívida). **Pausado a pedido do usuário** durante a fase de implementação/integração.
+- **Working tree contém trabalho PARCIAL, NÃO commitado e NÃO auditado** — não tratar como pronto. Integração (build/typecheck/lint/boundaries/suíte completa do monorepo) **ainda não revalidada após o merge**; nenhuma auditoria Opus rodou.
+- **Já escrito pelos agentes:**
+  - _Fundação_ (provavelmente completa): `packages/shared/src/combat/` (schemas, types, initiative, protocol, index + teste), envelopes `combat:*`/`token:targeted` em `protocol.ts`, contrato system-api em `system-api/src/combat.ts` + `system-module.ts`, registros no server (`documents/types.ts` combatants tipado, `doc-handlers.ts` GM_ONLY/EMBEDDED_PARENT_MAP, `sync-handlers.ts` SNAPSHOT_TABLES, `redaction.ts` stripHiddenCombatants, `socket-manager.ts`). Shared rebuildado.
+  - _Server_: `packages/server/src/combat/` (combat-handlers, combat-event-bus, initiative-registry, targeting-store, target-handler, combat-chat, index) + testes `combat/__tests__/combat-unit.test.ts`, `__tests__/combat-m2c.test.ts`, `__tests__/combat-redaction-m2c.test.ts`.
+  - _Client_: `components/combat/CombatPanel.svelte`, `lib/combat/` (combatStore.svelte, combatTracker, combatVisibility, targeting + testes), `lib/canvas/combat/` (CombatTurnMarker, TargetingMarker, combatCanvasController, index + testes). Ajustes em `AppSidebar.svelte`, `TableScreen.svelte`.
+  - _Infra_: fix de alias `@fusion/shared` em `packages/client/vitest.config.ts` (resolve relativo ao config, não ao cwd); `.fusion-build/**` ignorado no eslint.
+- **Para retomar com cache** (agentes já concluídos não re-executam): `Workflow({scriptPath: ".fusion-build/m2c-workflow.js", resumeFromRunId: "wf_9dc5fcc5-b2f"})` — ou simplesmente pedir "retoma o build do Fusion".
+- **Próximos passos após M2-C:** M3-A → M3-D (primeira sessão jogável).
+
+## ⏸️ PAUSA (2026-06-12, M2-A) — RESOLVIDA (M2-A commitado em `06199e8`)
 
 - Build pausado a pedido do usuário durante o batch M2-A. Estado: fase de geometria (visibility polygon em `packages/shared/src/vision/` + testes) CONCLUÍDA pelos agentes; fases schemas/server e client-vision estavam em execução quando a pausa foi pedida.
 - **Working tree contém trabalho parcial NÃO commitado e NÃO auditado do M2-A** — não tratar como pronto.
@@ -35,6 +48,12 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 - Próximos batches após M2-A: M2-B (fog), M2-C (combate), depois M3 (A–F) → primeira sessão jogável.
 
 ## Registro por batch
+
+### M2-C — Combate (2026-06-13) — score 96 ✅ — **MILESTONE M2 FECHADO (DoD 6/6)**
+
+- Workflow morreu na sessão anterior deixando a implementação completa no working tree; retomado via `resumeFromRunId` (impl do cache, integração + auditoria ao vivo). Auditorias 86 → 96; ~1.685 testes verdes. Sem dívida.
+- Entregue: Combat/Combatant documents, tracker (CombatPanel) com controles de GM e iniciativa rolada **no servidor** via RollService + `InitiativeFormulaRegistry`/`generic-1d20`; comparator de desempate plugável (testado com fórmula "players beat NPCs" estilo Etmos); ciclo round/turn com wraparound e skipDefeated; hooks de turno na ordem canônica (`turnEnd`→`roundEnd`→`roundStart`→`turnStart` no boundary de rodada); targeting de tokens; indicador de turno no canvas.
+- **Invariante crítica verificada manualmente nos 4 caminhos**: NPC oculto nunca vaza iniciativa/nome/existência (snapshot via `stripHiddenCombatantsFromCombat`, broadcast per-socket com redação de `combat:turnChange`, delta resync via `filterCombatOpForRole`, ack via dispatcher central). Reusa `redaction.ts` canônico. DoD M2 (walls, luzes, fog, combate) confirmada 6/6.
 
 ### M2-B — Fog of war (2026-06-12) — score 93 ✅ (aprovado pelo gate reduzido, com dívida)
 

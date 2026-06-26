@@ -17,7 +17,11 @@ import type { SeqStore } from "../seq-store.js";
 import type { OpBuffer } from "../op-buffer.js";
 import type { DocumentStore } from "../../documents/store.js";
 import { OwnershipLevel, resolveOwnership, isRolePrivileged } from "../../documents/ownership.js";
-import { stripHiddenTokens, redactSecretDoors } from "../redaction.js";
+import {
+  stripHiddenTokens,
+  redactSecretDoors,
+  stripHiddenCombatantsFromCombat,
+} from "../redaction.js";
 
 import { WorldResyncRequestPayloadSchema, WorldActiveScenePayloadSchema } from "@fusion/shared";
 import type {
@@ -47,6 +51,10 @@ const SNAPSHOT_TABLES: Array<{ table: string; docType: string }> = [
   { table: "roll_tables", docType: "RollTable" },
   { table: "playlists", docType: "Playlist" },
   { table: "folders", docType: "Folder" },
+  // M2-C: combats appear in the join snapshot so reconnecting clients restore
+  // the active encounter (REQ-CBT-005, REQ-CBT-NFR-002). Hidden combatants are
+  // stripped for non-GM viewers below (REQ-CBT-031).
+  { table: "combats", docType: "Combat" },
 ];
 
 // ---------------------------------------------------------------------------
@@ -127,6 +135,12 @@ function persistActiveSceneId(db: Db, sceneId: string | null): void {
  */
 function filterOpsForRole(ops: Envelope[]): Envelope[] {
   return ops.map((op) => {
+    // M2-C: combat broadcasts may carry hidden combatants in their payload.
+    // Strip them for non-GM delta replay (REQ-CBT-031).
+    if (op.type === "combat:created" || op.type === "combat:updated") {
+      return filterCombatOpForRole(op);
+    }
+
     if (op.type !== "doc:create" && op.type !== "doc:update") return op;
 
     const payload = op.payload as Record<string, unknown> | null | undefined;
@@ -152,6 +166,72 @@ function filterOpsForRole(ops: Envelope[]): Envelope[] {
 }
 
 /**
+ * Redact hidden combatants from a buffered combat envelope for non-GM delta
+ * replay. Handles both payload shapes:
+ *   - combat:created → { combat: CombatDocument }
+ *   - combat:updated → { combatId, diff: { combatants?: [...] }, seq }
+ *
+ * Returns the original envelope when nothing needs redacting (fast path); never
+ * mutates the shared buffered envelope — clones only when stripping.
+ *
+ * REQ-CBT-031: hidden combatants must never reach a non-GM socket, including via
+ * delta resync replay.
+ */
+function filterCombatOpForRole(op: Envelope): Envelope {
+  const payload = op.payload as Record<string, unknown> | null | undefined;
+  if (!payload || typeof payload !== "object") return op;
+
+  // combat:created — { combat }
+  const combat = payload["combat"];
+  if (combat && typeof combat === "object") {
+    const stripped = stripHiddenCombatantsFromCombat(combat as Record<string, unknown>);
+    if (stripped === combat) return op;
+    return { ...op, payload: { ...payload, combat: stripped } };
+  }
+
+  // combat:updated — { combatId, diff: { combatants?, activeCombatantId? }, seq }
+  const diff = payload["diff"];
+  if (diff && typeof diff === "object") {
+    const diffObj = diff as Record<string, unknown>;
+    const combatants = diffObj["combatants"];
+
+    // When the diff carries the full combatants array we can both strip hidden
+    // combatants AND determine whether the active pointer must be masked.
+    if (Array.isArray(combatants)) {
+      const combatantList = combatants as Record<string, unknown>[];
+      const filtered = combatantList.filter((c) => c["hidden"] !== true);
+      const activeId = diffObj["activeCombatantId"];
+      const activeIsHidden =
+        typeof activeId === "string" &&
+        combatantList.some((c) => c["_id"] === activeId && c["hidden"] === true);
+
+      const nothingRemoved = filtered.length === combatantList.length;
+      if (nothingRemoved && !activeIsHidden) return op;
+
+      const newDiff: Record<string, unknown> = { ...diffObj };
+      if (!nothingRemoved) newDiff["combatants"] = filtered;
+      if (activeIsHidden) newDiff["activeCombatantId"] = null;
+      return { ...op, payload: { ...payload, diff: newDiff } };
+    }
+
+    // Diff WITHOUT the combatants array (e.g. a pure turnIndex/round/active
+    // transition from next/previous). We cannot tell from the diff alone whether
+    // activeCombatantId points at a hidden combatant, so mask it conservatively
+    // for non-GM replay: if the diff sets activeCombatantId, drop it. Losing the
+    // active pointer on replay is harmless — the client falls back to no
+    // highlight until the next full payload — whereas leaking a hidden id is not.
+    if (typeof diffObj["activeCombatantId"] === "string") {
+      return {
+        ...op,
+        payload: { ...payload, diff: { ...diffObj, activeCombatantId: null } },
+      };
+    }
+  }
+
+  return op;
+}
+
+/**
  * Build a world snapshot for a specific user.
  * Filters documents by ownership (REQ-NET-024).
  * For non-GM users, also strips hidden tokens from Scene documents (FIX-4).
@@ -166,6 +246,13 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
 
       if (isPrivileged(role)) {
         visible = all;
+      } else if (docType === "Combat") {
+        // M2-C: the combat tracker is shared world state, not ownership-gated —
+        // every player sees the encounter. Combats carry no ownership map, so
+        // the LIMITED filter would wrongly hide them from all players. We expose
+        // every combat but strip hidden combatants for non-GM viewers
+        // (REQ-CBT-031..033).
+        visible = all.map((combat) => stripHiddenCombatantsFromCombat(combat));
       } else {
         visible = all.filter((doc) => {
           const ownership = getOwnershipFromDoc(doc);
@@ -233,7 +320,7 @@ export function sendJoinSnapshot(
   role: number,
   lastSeq?: number,
 ): void {
-  if (lastSeq !== undefined && lastSeq > 0) {
+  if (lastSeq !== undefined) {
     // Try delta first.  Pass currentSeq so opsAfter can distinguish between
     // "client already up-to-date" (empty return) and "buffer lost after restart"
     // (null → fall through to full snapshot).

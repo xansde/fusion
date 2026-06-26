@@ -44,6 +44,25 @@ import {
 } from "./handlers/fog-handlers.js";
 import { FogStore } from "../fog/index.js";
 import {
+  buildCombatCreateHandler,
+  buildCombatStartHandler,
+  buildCombatAddCombatantHandler,
+  buildCombatRemoveCombatantHandler,
+  buildCombatRollInitiativeHandler,
+  buildCombatSetInitiativeHandler,
+  buildCombatResetInitiativeHandler,
+  buildCombatNextHandler,
+  buildCombatPreviousHandler,
+  buildCombatToggleDefeatedHandler,
+  buildCombatSetHiddenHandler,
+  buildCombatReorderHandler,
+  buildCombatEndHandler,
+} from "../combat/combat-handlers.js";
+import { InitiativeFormulaRegistry } from "../combat/initiative-registry.js";
+import { CombatEventBus } from "../combat/combat-event-bus.js";
+import { TargetingStore } from "../combat/targeting-store.js";
+import { buildCombatTargetHandler, registerTargetingCleanup } from "../combat/target-handler.js";
+import {
   buildResyncRequestHandler,
   buildActiveSceneHandler,
   sendJoinSnapshot,
@@ -60,6 +79,7 @@ import type { Database as Db } from "better-sqlite3";
 
 import { isRolePrivileged } from "../documents/ownership.js";
 import { EphemeralRateLimiter, handleEphemeralEnvelope } from "./ephemeral-handlers.js";
+import { RollService } from "../chat/roll-service.js";
 
 // --------------------------------------------------------------------------
 // Types
@@ -214,6 +234,33 @@ export class SocketManager {
     registry.register("fog:update", buildFogUpdateHandler(fogDeps));
     registry.register("fog:get", buildFogGetHandler(fogDeps));
     registry.register("fog:reset", buildFogResetHandler(fogDeps));
+
+    // Register M2-C combat handlers
+    const combatRollService = new RollService({ db });
+    const formulaRegistry = new InitiativeFormulaRegistry(combatRollService, worldId);
+    const eventBus = new CombatEventBus();
+    const combatDeps = { store, seqStore, opBuffer, ns, formulaRegistry, eventBus, db, worldId };
+    // Handler names match the EnvelopeTypeSchema literals in packages/shared/src/protocol.ts
+    registry.register("combat:create", buildCombatCreateHandler(combatDeps));
+    registry.register("combat:beginCombat", buildCombatStartHandler(combatDeps));
+    registry.register("combat:addCombatant", buildCombatAddCombatantHandler(combatDeps));
+    registry.register("combat:removeCombatant", buildCombatRemoveCombatantHandler(combatDeps));
+    registry.register("combat:rollInitiative", buildCombatRollInitiativeHandler(combatDeps));
+    registry.register("combat:setInitiative", buildCombatSetInitiativeHandler(combatDeps));
+    registry.register("combat:resetInitiative", buildCombatResetInitiativeHandler(combatDeps));
+    registry.register("combat:nextTurn", buildCombatNextHandler(combatDeps));
+    registry.register("combat:previousTurn", buildCombatPreviousHandler(combatDeps));
+    registry.register("combat:setDefeated", buildCombatToggleDefeatedHandler(combatDeps));
+    registry.register("combat:setHidden", buildCombatSetHiddenHandler(combatDeps));
+    registry.register("combat:reorder", buildCombatReorderHandler(combatDeps));
+    registry.register("combat:endCombat", buildCombatEndHandler(combatDeps));
+
+    // REQ-CBT-053..055: token targeting (ephemeral; userId server-authoritative).
+    const targetingStore = new TargetingStore();
+    const targetDeps = { store, seqStore, ns, targetingStore };
+    registry.register("combat:target", buildCombatTargetHandler(targetDeps));
+    // REQ-CBT-055: clear a targeter's targets when their combatant's turn ends.
+    registerTargetingCleanup(targetDeps, eventBus);
 
     // REQ-NET-003/014: auth middleware runs before connection is accepted
     ns.use((socket, next) => {

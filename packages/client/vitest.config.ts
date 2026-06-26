@@ -1,10 +1,17 @@
 import { defineConfig } from "vitest/config";
 import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+// __dirname equivalent for ESM — resolve the alias relative to this config
+// file, not relative to the cwd where vitest is invoked. Without this the
+// alias breaks when the root workspace runner (`pnpm test`) executes this
+// project from the repo root instead of packages/client.
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
   resolve: {
     alias: {
-      "@fusion/shared": resolve("../shared/src/index.ts"),
+      "@fusion/shared": resolve(__dirname, "../shared/src/index.ts"),
     },
   },
   test: {

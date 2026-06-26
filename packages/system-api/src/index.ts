@@ -8,5 +8,6 @@
 
 export * from "./manifest.js";
 export * from "./system-module.js";
+export * from "./combat.js";
 export * from "./validate.js";
 export * from "./registry.js";

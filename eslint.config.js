@@ -7,6 +7,7 @@ export default tseslint.config(
       "**/dist/**",
       "**/coverage/**",
       "**/vendor/**",
+      ".fusion-build/**",
       "tools/importer-pf2e/out/**",
       "**/node_modules/**",
       "**/*.d.ts",

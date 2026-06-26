@@ -18,28 +18,36 @@
   import { sidebarState, toggleSidebar } from "../../lib/scenes/scenesState.svelte.js";
   import { activateScene, OpError } from "../../lib/scenes/sceneController.js";
   import { activeSceneState } from "../../lib/docs/activeScene.svelte.js";
+  import { combatStore } from "../../lib/combat/combatStore.svelte.js";
   import SceneCreateDialog from "../scenes/SceneCreateDialog.svelte";
   import SceneDeleteConfirm from "../scenes/SceneDeleteConfirm.svelte";
   import ChatPanel from "./ChatPanel.svelte";
+  import CombatPanel from "../combat/CombatPanel.svelte";
 
   const {
     socket,
     worldId,
     activeSceneId,
     isGm,
+    userId,
   }: {
     socket: Socket;
     worldId: string;
     activeSceneId: string | null;
     isGm: boolean;
+    /** Current user's ID (for combat panel player-owned combatant logic). */
+    userId: string;
   } = $props();
 
   // ---- Tab state ----
   // Default: GM sees Scenes tab; players see Chat tab
-  type Tab = "scenes" | "chat";
+  type Tab = "scenes" | "chat" | "combat";
   // _tabOverride tracks explicit user selection; null means use default derived from isGm prop.
   let _tabOverride = $state<Tab | null>(null);
   const activeTab = $derived(_tabOverride ?? (isGm ? "scenes" : "chat"));
+
+  // Expose combatStore for badge (active combat indicator)
+  const hasCombat = $derived(combatStore.combat !== null);
 
   function selectTab(tab: Tab): void {
     _tabOverride = tab;
@@ -49,6 +57,8 @@
       setChatTabVisible(false);
     }
   }
+
+  const chatUnread = $derived(chatStore.unreadCount);
 
   // ---- Scenes tab state ----
 
@@ -70,8 +80,6 @@
       activatingId = null;
     }
   }
-
-  const chatUnread = $derived(chatStore.unreadCount);
 </script>
 
 <!-- ============================================================
@@ -117,6 +125,19 @@
             Scenes
           </button>
         {/if}
+        <button
+          class="sidebar__tab"
+          class:sidebar__tab--active={activeTab === "combat"}
+          role="tab"
+          aria-selected={activeTab === "combat"}
+          onclick={() => selectTab("combat")}
+          title="Combat Tracker"
+        >
+          Combat
+          {#if hasCombat && activeTab !== "combat"}
+            <span class="sidebar__tab-badge sidebar__tab-badge--combat" aria-label="Active combat">&#x2694;</span>
+          {/if}
+        </button>
         <button
           class="sidebar__tab"
           class:sidebar__tab--active={activeTab === "chat"}
@@ -198,6 +219,10 @@
               {/if}
             </div>
           </div>
+
+        {:else if activeTab === "combat"}
+          <!-- Combat tab -->
+          <CombatPanel {socket} {isGm} {userId} />
 
         {:else if activeTab === "chat"}
           <!-- Chat tab -->
@@ -351,6 +376,14 @@
     min-width: 1.1rem;
     padding: 0.1rem 0.25rem;
     text-align: center;
+  }
+
+  .sidebar__tab-badge--combat {
+    background: rgba(255, 215, 0, 0.2);
+    border: 1px solid #ffd700;
+    color: #ffd700;
+    padding: 0;
+    font-size: 0.65rem;
   }
 
   /* ---- Content area ---- */

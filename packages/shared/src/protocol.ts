@@ -68,6 +68,29 @@ export const EnvelopeTypeSchema = z.union([
   z.literal("fog:get"),
   z.literal("fog:reset"),
   z.literal("fog:wasReset"),
+  // M2-C: combat (spec 10 §API e Eventos)
+  // client → server
+  z.literal("combat:create"),
+  z.literal("combat:beginCombat"),
+  z.literal("combat:addCombatant"),
+  z.literal("combat:removeCombatant"),
+  z.literal("combat:rollInitiative"),
+  z.literal("combat:setInitiative"),
+  z.literal("combat:resetInitiative"),
+  z.literal("combat:nextTurn"),
+  z.literal("combat:previousTurn"),
+  z.literal("combat:setDefeated"),
+  z.literal("combat:setHidden"),
+  z.literal("combat:reorder"),
+  z.literal("combat:endCombat"),
+  z.literal("combat:target"),
+  // server → clients
+  z.literal("combat:created"),
+  z.literal("combat:updated"),
+  z.literal("combat:deleted"),
+  z.literal("combat:turnChange"),
+  z.literal("combat:initiativeSet"),
+  z.literal("token:targeted"),
 ]);
 
 export type EnvelopeType = z.infer<typeof EnvelopeTypeSchema>;

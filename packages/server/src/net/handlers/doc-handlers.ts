@@ -108,12 +108,34 @@ const TYPE_TO_TABLE: Record<string, string> = {
   Setting: "settings",
 };
 
-/** Document types that only GM/ASSISTANT can create or delete. */
-const GM_ONLY_CREATE_DELETE = new Set(["Scene", "Actor", "Item", "Macro", "RollTable", "Playlist"]);
+/**
+ * Document types that only GM/ASSISTANT can create or delete.
+ *
+ * Combat is included (M2-C): the dedicated combat:* handlers are the normal
+ * path, but the generic doc:create / doc:delete path must also reject non-GM
+ * Combat creation/deletion as a defense-in-depth measure (DEC-CBT-06 + spec 05).
+ */
+const GM_ONLY_CREATE_DELETE = new Set([
+  "Scene",
+  "Actor",
+  "Item",
+  "Macro",
+  "RollTable",
+  "Playlist",
+  "Combat",
+]);
 
-/** Embedded collection names → their parent's documentType. */
+/**
+ * Embedded collection names → their parent's documentType.
+ *
+ * Combatant is embedded in Combat (M2-C); the collection key is derived as
+ * `embeddedType.toLowerCase() + "s"` → "combatants". Combatants are normally
+ * managed via combat:addCombatant / combat:removeCombatant, but the mapping
+ * keeps the generic embedded path consistent for parent resolution.
+ */
 const EMBEDDED_PARENT_MAP: Record<string, string> = {
   Token: "Scene",
+  Combatant: "Combat",
 };
 
 // ---------------------------------------------------------------------------
