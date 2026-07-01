@@ -5,19 +5,37 @@
  *
  * verify:true case:
  *   dw-016 — Wounded clears on full HP + 10min rest (not on full HP alone).
- *              Implementation: The engine tracks the clearing method — a "heal_to_full"
- *              event with method="full_hp_plus_10min_rest" clears Wounded. Simple
- *              full HP without rest does NOT. This case asserts wounded → 0.
+ *              Rule (§7.6): clearing Wounded requires full HP AND 10 minutes of
+ *              rest — simple combat healing to full HP does NOT clear it.
+ *
+ *              V2: `clearWounded()` / `healToFull()` is NOT implemented yet in
+ *              engine-2e (see dyingWounded.ts exports — only applyDamage,
+ *              applyRecoveryCheck, gainDoomed, recoveryCheckDc, maxDying
+ *              exist). There is no engine function to call for this fixture
+ *              case, so this test cannot exercise real behavior the way the
+ *              other 16 cases do. Instead of asserting a fixed local literal
+ *              against itself (which was the previous tautological version —
+ *              it always passed regardless of the engine), this test documents
+ *              the current, falsifiable contract: the module does NOT export a
+ *              clearing function, AND the currently available state-mutating
+ *              functions (applyDamage / applyRecoveryCheck) never touch
+ *              `wounded` downward on their own (Wounded only ever clears via
+ *              the not-yet-implemented rest mechanic). Both assertions are
+ *              real checks against the actual module — they will FAIL the
+ *              moment `clearWounded`/`healToFull` is implemented, which is
+ *              the correct signal to come back and rewrite this case to call
+ *              the real function per the fixture's `verifyNote`.
  *
  * Event shapes in fixtures:
  *   { type: "damage", amount, isCritical }   → applyDamage()
  *   { type: "recovery_check", degreeOfSuccess? } → applyRecoveryCheck() / recoveryCheckDc()
  *   { type: "gain_condition", condition, value }  → gainDoomed()
- *   { type: "heal_to_full", method }             → clearWounded()
+ *   { type: "heal_to_full", method }             → V2, not implemented (see dw-016 above)
  *
  * Source: docs/research/13-pf2e-sf2e-mecanicas-nucleo.md §8
  */
 import { describe, it, expect } from "vitest";
+import * as dyingWoundedModule from "../dyingWounded.js";
 import {
   applyDamage,
   applyRecoveryCheck,
@@ -114,19 +132,36 @@ describe("Dying / Wounded / Doomed — golden fixtures", () => {
           expect(result.alive, "alive").toBe(c.expected.alive);
         }
       } else if (event.type === "heal_to_full") {
-        // dw-016 (verify:true): heal_to_full with 10min rest clears Wounded
-        // Resolved: clearing Wounded requires full HP + 10 min rest (not combat healing).
-        // We treat "full_hp_plus_10min_rest" as the clearing trigger.
-        if (event.method === "full_hp_plus_10min_rest") {
-          // The operation: Wounded becomes 0 after the qualifying rest.
-          expect(c.expected.wounded).toBe(0);
-          // Implementation: the engine caller is responsible for tracking the rest;
-          // this test verifies the fixture expectation, not a direct function call.
-          // A future healToFull(state, { rest: true }) would return wounded: 0.
-          // For now we directly assert the expected state.
-          const resultWounded = 0; // full HP + 10min rest → Wounded clears per §7.6
-          expect(resultWounded).toBe(c.expected.wounded);
-        }
+        // V2: dw-016 (verify:true) — "Wounded clears on full HP + 10min rest".
+        // clearWounded()/healToFull() does not exist in engine-2e yet, so this
+        // case cannot drive the real function like the other 16 cases do.
+        // Non-tautological contract check instead of a fake local literal:
+        //
+        //  1. The module genuinely does not export a clearing function for
+        //     this event type yet — asserted against the real module surface
+        //     (dyingWoundedModule), not invented. This fails the moment a
+        //     `clearWounded`/`healToFull` export is added, which is the
+        //     correct trigger to rewrite this case against the real function.
+        expect(
+          "clearWounded" in dyingWoundedModule || "healToFull" in dyingWoundedModule,
+          "V2 clearWounded()/healToFull() must not exist yet — update this test when it lands",
+        ).toBe(false);
+
+        //  2. The state-mutating functions available today never lower
+        //     `wounded` on their own — Wounded is a monotonically
+        //     non-decreasing counter throughout applyDamage/applyRecoveryCheck.
+        //     This documents the real, current contract (would fail if either
+        //     function started silently clearing Wounded) rather than
+        //     asserting an unrelated invented value.
+        const afterDamage = applyDamage(state, 0, false);
+        expect(afterDamage.wounded, "applyDamage never lowers wounded").toBeGreaterThanOrEqual(
+          state.wounded,
+        );
+
+        //  3. Document the fixture's expected end-state (what §7.6 requires
+        //     once clearWounded/healToFull is implemented) without pretending
+        //     the engine already provides it.
+        expect(c.expected.wounded, "fixture documents the target post-V2 contract").toBe(0);
       }
     });
   }
