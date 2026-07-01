@@ -72,6 +72,12 @@ import {
   redactSecretDoors,
   scenePayloadHasSecretDoors,
 } from "../redaction.js";
+import {
+  validateAugmentationSlotLimit,
+  AUGMENTATION_SLOT_LIMIT,
+  AUGMENTATION_SLOT_LIMIT_I18N_KEY,
+  type AugmentationLikeItem,
+} from "@fusion/system-sf2e";
 
 // ---------------------------------------------------------------------------
 // Ack builder helpers
@@ -187,6 +193,14 @@ export interface DocHandlerDeps {
   seqStore: SeqStore;
   opBuffer: OpBuffer;
   ns: Namespace;
+  /**
+   * The world's game system id (e.g. "pf2e", "sf2e"), when known.
+   * Used for system-specific server-side validation that cannot go through
+   * the (currently unwired) system-api hook bus — e.g. SF2e's augmentation
+   * slot-limit check in handleEmbeddedCreate. Optional because not every
+   * caller (tests, other systems) needs to supply it.
+   */
+  systemId?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -508,6 +522,31 @@ function handleEmbeddedCreate(
       }
       created.push(tokenResult.data);
     } else {
+      // SF2e augmentation slot-limit validation (REQ-SF2-024, CA-SF2-05).
+      //
+      // This is the ONLY real code path where an Item is embedded into an
+      // Actor's items[] collection in production (doc:create with
+      // documentType="Item" + parent={type:"Actor", id}) — the system-api
+      // hook bus is never invoked here (see systems/sf2e/src/hooks/
+      // augmentation.ts docstring for the full investigation). Gated on the
+      // world's systemId being "sf2e" (a world runs a single system for all
+      // its actors — there is no per-Actor systemId field) so pf2e/other
+      // worlds are entirely unaffected. Checked against `existing` PLUS any
+      // augmentations already accepted earlier in this same batch, so a
+      // single doc:create call with multiple augmentations is capped too.
+      if (embeddedType === "Item" && parent.type === "Actor" && deps.systemId === "sf2e") {
+        const augCheck = validateAugmentationSlotLimit(
+          [...existing, ...created] as AugmentationLikeItem[],
+          raw,
+        );
+        if (!augCheck.ok) {
+          const i18nKey = augCheck.i18nKey ?? AUGMENTATION_SLOT_LIMIT_I18N_KEY;
+          return ackError(
+            "VALIDATION_FAILED",
+            `${i18nKey}: actor already has ${String(augCheck.currentNonApexCount)} non-apex augmentations installed (limit ${String(AUGMENTATION_SLOT_LIMIT)})`,
+          );
+        }
+      }
       created.push(raw);
     }
   }

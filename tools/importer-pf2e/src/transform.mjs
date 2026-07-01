@@ -1,13 +1,17 @@
 /**
- * transform.mjs — Fase 3 do pipeline de importação PF2E → Fusion (M3-D)
+ * transform.mjs — Fase 3 do pipeline de importação PF2E/SF2E → Fusion (M3-D / M4)
  *
- * Consome a saída do normalize.mjs (out/<pack>/normalized.json) e produz
- * documentos Fusion válidos com:
+ * Consome a saída do normalize.mjs (out/<pack>/normalized.json, ou
+ * out/sf2e/<pack>/normalized.json para --system sf2e) e produz documentos
+ * Fusion válidos com:
  *
- *   1. fusionId = base62_16(sha1(packName + ":" + pf2eSourceId)) — estável e
- *      sem colisão cross-pack (análise 05-id-compat.md).
- *   2. Mapeamento de system.* pf2e → system.* Fusion por (documentType, subtype).
- *   3. Conversão de rules[] pf2e → ModifierDescriptors do motor de effects:
+ *   1. fusionId = base62_16(sha1(packName + ":" + sourceId)) — estável e
+ *      sem colisão cross-pack (análise 05-id-compat.md). Para sf2e, o
+ *      packName usado na derivação é prefixado com "sf2e:" para não colidir
+ *      com fusionIds pf2e (mesmo pf2e/sf2e _id vindo de packs de mesmo nome,
+ *      ex. "equipment", produziriam o mesmo hash sem o prefixo).
+ *   2. Mapeamento de system.* pf2e/sf2e → system.* Fusion por (documentType, subtype).
+ *   3. Conversão de rules[] pf2e/sf2e → ModifierDescriptors do motor de effects:
  *      - Chaves suportadas: FlatModifier, ActiveEffectLike, RollOption, GrantItem,
  *        Note, DamageDice, Resistance, Sense, BaseSpeed, TempHP, MartialProficiency.
  *      - Chaves não suportadas: preservadas em flags.fusion.unconvertedRules.
@@ -16,16 +20,20 @@
  *   5. Validação leve de campos obrigatórios (não usa Zod — zero deps externas).
  *
  * Saídas:
- *   - out/<pack>/transformed.json    — array de documentos Fusion
- *   - out/fusion-uuid-map.json       — mapa pf2eId → fusionId por pack
- *   - analysis/08-transform-report.md — relatório de cobertura de rules
+ *   - out/<pack>/transformed.json         — array de documentos Fusion (pf2e)
+ *   - out/sf2e/<pack>/transformed.json    — idem (sf2e)
+ *   - out/fusion-uuid-map.json            — mapa sourceId → fusionId por pack (pf2e)
+ *   - out/sf2e/fusion-uuid-map.json       — idem (sf2e, mapa separado)
+ *   - analysis/08-transform-report.md     — relatório de cobertura de rules (pf2e)
+ *   - analysis/08-sf2e-import.md          — relatório de import sf2e (gerado por build-mvp-subset.mjs)
  *
  * Uso:
- *   node src/transform.mjs [--packs equipment,spells,conditions,pathfinder-monster-core]
- *   node src/transform.mjs --pack conditions   # pack único
+ *   node src/transform.mjs [--system pf2e|sf2e] [--packs equipment,spells,conditions,pathfinder-monster-core]
+ *   node src/transform.mjs --system sf2e --pack conditions   # pack único
  *
- * REQ-CMP-026..044. Refs: analysis/02-schema-actor-item.md, 03-rules-elements.md,
- * 05-id-compat.md, 06-formato-intermediario.md, specs/16-compendiums-e-importacao.md.
+ * REQ-CMP-026..044, REQ-SF2-044..048. Refs: analysis/02-schema-actor-item.md,
+ * 03-rules-elements.md, 05-id-compat.md, 06-formato-intermediario.md,
+ * specs/16-compendiums-e-importacao.md, specs/18-sistema-sf2e.md.
  *
  * Zero dependências externas — Node 22 ESM + crypto nativo.
  */
@@ -42,6 +50,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const IMPORTER_ROOT = join(__dirname, '..');
 const OUT_DIR       = join(IMPORTER_ROOT, 'out');
 const ANALYSIS_DIR  = join(IMPORTER_ROOT, 'analysis');
+
+/** Resolves the out/ base dir for a given system ("pf2e" uses out/ directly, legacy path). */
+function outBaseFor(system) {
+  return system === 'pf2e' ? OUT_DIR : join(OUT_DIR, system);
+}
 
 // ---------------------------------------------------------------------------
 // Version metadata
@@ -530,13 +543,17 @@ function convertRuleElement(re) {
  * Transforms a single normalized document into a Fusion document.
  *
  * @param {object} normDoc — normalized document from normalize.mjs
- * @param {string} packName — pack slug (for fusionId derivation)
+ * @param {string} packName — pack slug (for reporting/flags.fusion.packName)
  * @param {object} stats — coverage stats (mutated in-place)
+ * @param {string} [fusionIdPackKey] — namespaced key used for fusionId
+ *   derivation only (defaults to `packName`). sf2e callers pass "sf2e:<pack>"
+ *   so a pf2e and sf2e document sharing the same pack name (e.g. "equipment")
+ *   and source _id never collide on fusionId (REQ-SF2-048).
  * @returns {{ fusionDoc: object, pf2eId: string, fusionId: string }}
  */
-function transformDoc(normDoc, packName, stats) {
+function transformDoc(normDoc, packName, stats, fusionIdPackKey = packName) {
   const pf2eId = normDoc.pf2eSourceId ?? normDoc._id;
-  const fusionId = deriveFusionId(packName, pf2eId);
+  const fusionId = deriveFusionId(fusionIdPackKey, pf2eId);
 
   // --- Convert rules[] ---
   const rawRules = normDoc.system?.rules ?? [];
@@ -610,7 +627,7 @@ function transformDoc(normDoc, packName, stats) {
 
   // --- Build items[] (embedded) with fusionId for each ---
   const embeddedItems = (normDoc.items ?? []).map(item => {
-    const embeddedFusionId = deriveFusionId(`${packName}:embedded`, item._id);
+    const embeddedFusionId = deriveFusionId(`${fusionIdPackKey}:embedded`, item._id);
     const itemRaws = item.system?.rules ?? [];
     const itemConverted = [];
     const itemUnconverted = [];
@@ -713,6 +730,17 @@ function buildSystem(normDoc, convertedRules, packName) {
     case 'melee':
     case 'ranged':
       return normalizeMeleeSystem(system, src);
+    case 'equipment':
+    case 'consumable':
+    case 'treasure':
+    case 'container':
+      // Generic equipment (incl. SF2e augmentations, which the real
+      // compendium models as type "equipment" with usage.value:"implanted" —
+      // see systems/sf2e/src/schemas/item-augmentation.ts docstring).
+      // Flattens the same {value:...} wrapper fields as weapon/armor and
+      // strips flavor prose so curated MVP subsets built from this type
+      // never carry Reserved Material (REQ-LEG-010).
+      return stripFlavorProse(normalizeEquipmentSystem(system, src));
     default:
       // Passthrough — preserve all system fields for unknown types
       return system;
@@ -907,6 +935,59 @@ function normalizeMeleeSystem(system, src) {
   };
 }
 
+/**
+ * SF2e augmentation category traits (D-SF2-03; types.ts AUGMENTATION_TYPES).
+ * The real compendium data has NO explicit `augType`/category field on
+ * augmentation items — the category only exists as one of these values inside
+ * `traits.value` (confirmed against every file in
+ * vendor/pf2e/packs/sf2e/equipment/augmentations/**). Used by
+ * normalizeEquipmentSystem to derive `augType` for the sf2e schema
+ * (systems/sf2e/src/schemas/item-augmentation.ts).
+ */
+const SF2E_AUGMENTATION_TYPE_TRAITS = new Set(['apex', 'biotech', 'magitech', 'necrograft', 'tech']);
+
+/**
+ * Normalizes generic equipment/consumable/treasure/container systems.
+ * Flattens the common Foundry `{value: ...}` wrapper fields the same way
+ * weapon/armor normalizers do. Also used for SF2e augmentations, which the
+ * real compendium stores as `type: "equipment"` with `usage.value:
+ * "implanted"` (systems/sf2e/src/schemas/item-augmentation.ts docstring;
+ * D-SF2-03) — `usage` is flattened here so downstream curation/schema
+ * parsing can rely on a plain string instead of digging into `.value`.
+ * For implanted items, also derives `augType` from the traits.value category
+ * trait when present (see SF2E_AUGMENTATION_TYPE_TRAITS docstring) — the
+ * schema keeps `augType` required, so this backfill lets sf2e augmentation
+ * docs parse against AugmentationSystemSchema without the schema needing to
+ * change (REQ-SF2-023).
+ */
+function normalizeEquipmentSystem(system, src) {
+  const traits = src.traits ?? system.traits ?? { rarity: 'common', value: [] };
+  const usage = src.usage?.value ?? src.usage ?? system.usage ?? null;
+
+  const out = {
+    ...system,
+    bulk: src.bulk?.value ?? src.bulk ?? system.bulk ?? 0,
+    level: src.level?.value ?? src.level ?? system.level ?? 0,
+    price: src.price?.value ?? src.price ?? system.price ?? {},
+    quantity: src.quantity ?? system.quantity ?? 1,
+    usage,
+    size: src.size ?? system.size ?? 'med',
+    hp: src.hp ?? system.hp,
+    hardness: src.hardness ?? system.hardness,
+    description: src.description?.value ?? src.description ?? system.description ?? '',
+    publication: src.publication ?? system.publication,
+    traits,
+    baseItem: src.baseItem ?? system.baseItem ?? null,
+  };
+
+  if (usage === 'implanted') {
+    const augType = (traits.value ?? []).find(t => SF2E_AUGMENTATION_TYPE_TRAITS.has(t));
+    if (augType) out.augType = augType;
+  }
+
+  return out;
+}
+
 // ---------------------------------------------------------------------------
 // Lightweight validation (no Zod — zero deps)
 // REQ-CMP-044: invalid documents excluded from pack, listed in report.
@@ -939,11 +1020,14 @@ function validateFusionDoc(doc) {
 /**
  * Processes a single pack — loads normalized.json, transforms all docs,
  * writes transformed.json, and returns stats.
+ * @param {string} packName
+ * @param {'pf2e'|'sf2e'} system
  */
-function processPack(packName) {
-  const normalizedPath = join(OUT_DIR, packName, 'normalized.json');
+function processPack(packName, system = 'pf2e') {
+  const outBase = outBaseFor(system);
+  const normalizedPath = join(outBase, packName, 'normalized.json');
   if (!existsSync(normalizedPath)) {
-    throw new Error(`normalized.json not found for pack "${packName}". Run normalize.mjs first.`);
+    throw new Error(`normalized.json not found for pack "${packName}" (system: ${system}). Run normalize.mjs first.`);
   }
 
   const normalizedDocs = JSON.parse(readFileSync(normalizedPath, 'utf8'));
@@ -965,11 +1049,14 @@ function processPack(packName) {
   };
 
   const fusionDocs = [];
-  const uuidMap = {}; // pf2eId → fusionId for this pack
+  const uuidMap = {}; // sourceId → fusionId for this pack
+  // sf2e fusionIds are namespaced ("sf2e:<pack>") to never collide with a
+  // pf2e pack of the same name sharing a source _id (REQ-SF2-048).
+  const fusionIdPackKey = system === 'pf2e' ? packName : `${system}:${packName}`;
 
   for (const normDoc of normalizedDocs) {
     try {
-      const { fusionDoc, pf2eId, fusionId } = transformDoc(normDoc, packName, stats);
+      const { fusionDoc, pf2eId, fusionId } = transformDoc(normDoc, packName, stats, fusionIdPackKey);
 
       // Validate
       const validation = validateFusionDoc(fusionDoc);
@@ -996,11 +1083,12 @@ function processPack(packName) {
   }
 
   // Write transformed docs
-  const outDir = join(OUT_DIR, packName);
+  const outDir = join(outBase, packName);
   mkdirSync(outDir, { recursive: true });
   const transformedPath = join(outDir, 'transformed.json');
   writeFileSync(transformedPath, JSON.stringify(fusionDocs, null, 2), 'utf8');
-  console.log(`[transform] ${packName}: wrote ${fusionDocs.length} docs → out/${packName}/transformed.json`);
+  const label = system === 'pf2e' ? packName : `${system}/${packName}`;
+  console.log(`[transform] ${packName}: wrote ${fusionDocs.length} docs → out/${label}/transformed.json`);
 
   return { stats, fusionDocs, uuidMap };
 }
@@ -1009,19 +1097,21 @@ function processPack(packName) {
 // UUID map merge + write
 // ---------------------------------------------------------------------------
 
-function loadUuidMap() {
-  const mapPath = join(OUT_DIR, 'fusion-uuid-map.json');
+function loadUuidMap(system = 'pf2e') {
+  const mapPath = join(outBaseFor(system), 'fusion-uuid-map.json');
   if (existsSync(mapPath)) {
     try { return JSON.parse(readFileSync(mapPath, 'utf8')); } catch { /* */ }
   }
   return {};
 }
 
-function saveUuidMap(map) {
-  const mapPath = join(OUT_DIR, 'fusion-uuid-map.json');
-  mkdirSync(OUT_DIR, { recursive: true });
+function saveUuidMap(map, system = 'pf2e') {
+  const outBase = outBaseFor(system);
+  const mapPath = join(outBase, 'fusion-uuid-map.json');
+  mkdirSync(outBase, { recursive: true });
   writeFileSync(mapPath, JSON.stringify(map, null, 2), 'utf8');
-  console.log(`[transform] out/fusion-uuid-map.json — ${Object.keys(map).length} packs`);
+  const label = system === 'pf2e' ? '' : `${system}/`;
+  console.log(`[transform] out/${label}fusion-uuid-map.json — ${Object.keys(map).length} packs`);
 }
 
 // ---------------------------------------------------------------------------
@@ -1029,13 +1119,14 @@ function saveUuidMap(map) {
 // analysis/08-transform-report.md — REQ-CMP-038/042/043
 // ---------------------------------------------------------------------------
 
-function writeTransformReport(packResults) {
+function writeTransformReport(packResults, system = 'pf2e') {
   const lines = [];
-  lines.push('# 08 — Relatório de Transformação PF2E → Fusion');
+  const systemLabel = system.toUpperCase();
+  lines.push(`# 08 — Relatório de Transformação ${systemLabel} → Fusion`);
   lines.push('');
   lines.push(`> Gerado em: ${new Date().toISOString().split('T')[0]}`);
-  lines.push(`> Script: \`src/transform.mjs\` v${IMPORTER_VERSION}`);
-  lines.push(`> Fonte: vendor/pf2e branch ${SOURCE_VERSION}`);
+  lines.push(`> Script: \`src/transform.mjs --system ${system}\` v${IMPORTER_VERSION}`);
+  lines.push(`> Fonte: vendor/pf2e packs/${system} branch ${SOURCE_VERSION}`);
   lines.push('');
   lines.push('---');
   lines.push('');
@@ -1166,10 +1257,13 @@ function writeTransformReport(packResults) {
   }
   lines.push('');
 
-  const reportPath = join(ANALYSIS_DIR, '08-transform-report.md');
+  const reportMdName = system === 'pf2e' ? '08-transform-report.md' : '08-transform-report-sf2e.md';
+  const reportJsonName = system === 'pf2e' ? '08-transform-report.json' : '08-transform-report-sf2e.json';
+
+  const reportPath = join(ANALYSIS_DIR, reportMdName);
   mkdirSync(ANALYSIS_DIR, { recursive: true });
   writeFileSync(reportPath, lines.join('\n'), 'utf8');
-  console.log(`[transform] analysis/08-transform-report.md escrito`);
+  console.log(`[transform] analysis/${reportMdName} escrito`);
 
   // JSON report (REQ-CMP-043)
   const jsonReport = {
@@ -1177,7 +1271,7 @@ function writeTransformReport(packResults) {
     sourceVersion: SOURCE_VERSION,
     generatedAt: new Date().toISOString(),
     packs: packResults.map(({ stats }) => ({
-      packId: `pf2e.${stats.packName}`,
+      packId: `${system}.${stats.packName}`,
       total: stats.total,
       transformed: stats.transformed,
       invalidExcluded: stats.invalidExcluded,
@@ -1205,9 +1299,9 @@ function writeTransformReport(packResults) {
     failed: false, // would be true if coverage regression below threshold
   };
 
-  const jsonReportPath = join(ANALYSIS_DIR, '08-transform-report.json');
+  const jsonReportPath = join(ANALYSIS_DIR, reportJsonName);
   writeFileSync(jsonReportPath, JSON.stringify(jsonReport, null, 2), 'utf8');
-  console.log(`[transform] analysis/08-transform-report.json escrito`);
+  console.log(`[transform] analysis/${reportJsonName} escrito`);
 
   return { totalRules, totalSupported, coveragePct };
 }
@@ -1219,7 +1313,17 @@ function writeTransformReport(packResults) {
 async function main() {
   const args = process.argv.slice(2);
 
-  const DEFAULT_PACKS = ['conditions', 'equipment', 'spells', 'pathfinder-monster-core'];
+  const DEFAULT_PACKS_BY_SYSTEM = {
+    pf2e: ['conditions', 'equipment', 'spells', 'pathfinder-monster-core'],
+    sf2e: ['conditions', 'equipment', 'spells', 'alien-core-bestiary', 'rulebook-bestiaries'],
+  };
+
+  const systemEq  = args.find(a => a.startsWith('--system='));
+  const systemIdx = args.indexOf('--system');
+  const systemFlag = systemEq
+    ? systemEq.split('=')[1]
+    : (systemIdx !== -1 ? args[systemIdx + 1] : null);
+  const system = systemFlag === 'sf2e' ? 'sf2e' : 'pf2e';
 
   const packArg = args.find(a => a.startsWith('--packs=')) ?? args.find(a => a.startsWith('--pack='));
   const packIdx = args.indexOf('--packs') !== -1 ? args.indexOf('--packs') : args.indexOf('--pack');
@@ -1230,20 +1334,21 @@ async function main() {
   } else if (packIdx !== -1 && args[packIdx + 1]) {
     packs = args[packIdx + 1].split(',').map(p => p.trim());
   } else {
-    packs = DEFAULT_PACKS;
+    packs = DEFAULT_PACKS_BY_SYSTEM[system];
   }
 
   packs = packs.filter(p => !p.startsWith('--'));
 
+  console.log(`[transform] Sistema: ${system}`);
   console.log(`[transform] Packs alvo: ${packs.join(', ')}`);
 
   const packResults = [];
-  const globalUuidMap = loadUuidMap();
+  const globalUuidMap = loadUuidMap(system);
 
   for (const packName of packs) {
     console.log(`\n[transform] === Pack: ${packName} ===`);
     try {
-      const { stats, fusionDocs, uuidMap } = processPack(packName);
+      const { stats, fusionDocs, uuidMap } = processPack(packName, system);
       packResults.push({ stats, fusionDocs });
       globalUuidMap[packName] = uuidMap;
       console.log(`[transform] ${packName}: rules ${stats.supportedRules} suportadas / ${stats.partialRules} parciais / ${stats.unsupportedRules} não suportadas`);
@@ -1252,13 +1357,13 @@ async function main() {
     }
   }
 
-  saveUuidMap(globalUuidMap);
-  const { totalRules, totalSupported, coveragePct } = writeTransformReport(packResults);
+  saveUuidMap(globalUuidMap, system);
+  const { totalRules, totalSupported, coveragePct } = writeTransformReport(packResults, system);
 
   console.log('\n[transform] === SUMÁRIO FINAL ===');
   console.log(`Packs processados: ${packResults.length}`);
   console.log(`Total rules: ${totalRules} | Suportadas: ${totalSupported} (${coveragePct}%)`);
-  console.log('Relatório: analysis/08-transform-report.md');
+  console.log(`Relatório: analysis/${system === 'pf2e' ? '08-transform-report.md' : '08-transform-report-sf2e.md'}`);
 }
 
 main().catch(err => {

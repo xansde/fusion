@@ -1,0 +1,369 @@
+[
+  {
+    "_id": "b6eu9Oghd9S6I6Ai",
+    "uuid": "Compendium.sf2e.weapons-core.Item.b6eu9Oghd9S6I6Ai",
+    "name": "Arc Pistol",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": ["arc", "tech"],
+      "system.damage": {
+        "damageType": "electricity",
+        "dice": 1,
+        "die": "d4"
+      },
+      "system.grade": "commercial"
+    }
+  },
+  {
+    "_id": "DSuMJpr3FSnR9E96",
+    "uuid": "Compendium.sf2e.weapons-core.Item.DSuMJpr3FSnR9E96",
+    "name": "Arc Rifle",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": ["arc", "tech"],
+      "system.damage": {
+        "damageType": "electricity",
+        "dice": 1,
+        "die": "d6"
+      },
+      "system.grade": "commercial"
+    }
+  },
+  {
+    "_id": "4QzOM5DJ0CfLDkfD",
+    "uuid": "Compendium.sf2e.weapons-core.Item.4QzOM5DJ0CfLDkfD",
+    "name": "Autotarget Rifle",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": ["analog", "automatic"],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "system.grade": "commercial"
+    }
+  },
+  {
+    "_id": "DJ0i71kuxwIrASDA",
+    "uuid": "Compendium.sf2e.weapons-core.Item.DJ0i71kuxwIrASDA",
+    "name": "Baton",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": ["analog", "finesse", "nonlethal", "parry"],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d6"
+      },
+      "system.grade": "commercial"
+    }
+  },
+  {
+    "_id": "JewzErqmlzCyzPZx",
+    "uuid": "Compendium.sf2e.weapons-core.Item.JewzErqmlzCyzPZx",
+    "name": "Coil Rifle",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": ["boost-1d10", "kickback", "tech", "unwieldy", "volley-30"],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d10"
+      },
+      "system.grade": "commercial"
+    }
+  },
+  {
+    "_id": "SCkpSClKa7hpGRo6",
+    "uuid": "Compendium.sf2e.weapons-core.Item.SCkpSClKa7hpGRo6",
+    "name": "Crossbolter",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": ["analog"],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d10"
+      },
+      "system.grade": "commercial"
+    }
+  },
+  {
+    "_id": "Gjz2wDtWtqhOhMJa",
+    "uuid": "Compendium.sf2e.weapons-core.Item.Gjz2wDtWtqhOhMJa",
+    "name": "Dueling Sword",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": ["analog", "versatile-p"],
+      "system.damage": {
+        "damageType": "slashing",
+        "dice": 1,
+        "die": "d8"
+      },
+      "system.grade": "commercial"
+    }
+  },
+  {
+    "_id": "VVgBiOUyGBdlfO7r",
+    "uuid": "Compendium.sf2e.weapons-core.Item.VVgBiOUyGBdlfO7r",
+    "name": "Flamethrower",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": ["area-cone", "tech", "unwieldy"],
+      "system.damage": {
+        "damageType": "fire",
+        "dice": 1,
+        "die": "d10"
+      },
+      "system.grade": "commercial"
+    }
+  },
+  {
+    "_id": "ypdzE5rtmvV5hhEe",
+    "uuid": "Compendium.sf2e.weapons-core.Item.ypdzE5rtmvV5hhEe",
+    "name": "Hammer",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": ["analog", "professional-crafting", "shove"],
+      "system.damage": {
+        "damageType": "bludgeoning",
+        "dice": 1,
+        "die": "d8"
+      },
+      "system.grade": "commercial"
+    }
+  },
+  {
+    "_id": "6ApzdPHVoik1rPQd",
+    "uuid": "Compendium.sf2e.weapons-core.Item.6ApzdPHVoik1rPQd",
+    "name": "Knife",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": ["agile", "analog", "finesse", "thrown-10", "versatile-s"],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "system.grade": "commercial"
+    }
+  },
+  {
+    "_id": "W8e8FT0YQWZq6sbj",
+    "uuid": "Compendium.sf2e.weapons-core.Item.W8e8FT0YQWZq6sbj",
+    "name": "Laser Pistol",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": ["tech"],
+      "system.damage": {
+        "damageType": "fire",
+        "dice": 1,
+        "die": "d6"
+      },
+      "system.grade": "commercial"
+    }
+  },
+  {
+    "_id": "y4sSHQ1MVyeh8C4m",
+    "uuid": "Compendium.sf2e.weapons-core.Item.y4sSHQ1MVyeh8C4m",
+    "name": "Laser Rifle",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": ["tech"],
+      "system.damage": {
+        "damageType": "fire",
+        "dice": 1,
+        "die": "d8"
+      },
+      "system.grade": "commercial"
+    }
+  },
+  {
+    "_id": "mPRwsk5rhQj1o5xQ",
+    "uuid": "Compendium.sf2e.weapons-core.Item.mPRwsk5rhQj1o5xQ",
+    "name": "Machine Gun",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": ["analog", "automatic"],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d8"
+      },
+      "system.grade": "commercial"
+    }
+  },
+  {
+    "_id": "fBGtyKUBGpY3WvJq",
+    "uuid": "Compendium.sf2e.weapons-core.Item.fBGtyKUBGpY3WvJq",
+    "name": "Plasma Sword",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": ["critical-plasma", "powered", "tech"],
+      "system.damage": {
+        "damageType": "fire",
+        "dice": 1,
+        "die": "d8"
+      },
+      "system.grade": "commercial"
+    }
+  },
+  {
+    "_id": "zv6jV0o22qJk7xi9",
+    "uuid": "Compendium.sf2e.weapons-core.Item.zv6jV0o22qJk7xi9",
+    "name": "Pulsecaster Pistol",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": ["nonlethal", "tech"],
+      "system.damage": {
+        "damageType": "electricity",
+        "dice": 1,
+        "die": "d6"
+      },
+      "system.grade": "commercial"
+    }
+  },
+  {
+    "_id": "kCiqlrRtW70MwWKt",
+    "uuid": "Compendium.sf2e.weapons-core.Item.kCiqlrRtW70MwWKt",
+    "name": "Semi-Auto Pistol",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": ["analog"],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "system.grade": "commercial"
+    }
+  },
+  {
+    "_id": "YHejERFBFVlD2DYZ",
+    "uuid": "Compendium.sf2e.weapons-core.Item.YHejERFBFVlD2DYZ",
+    "name": "Shock Pad",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": ["agile", "free-hand", "powered", "tech"],
+      "system.damage": {
+        "damageType": "electricity",
+        "dice": 1,
+        "die": "d4"
+      },
+      "system.grade": "commercial"
+    }
+  },
+  {
+    "_id": "UrLQiyYjRUgB76PB",
+    "uuid": "Compendium.sf2e.weapons-core.Item.UrLQiyYjRUgB76PB",
+    "name": "Shock Truncheon",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": ["disarm", "modular", "powered", "tech"],
+      "system.damage": {
+        "damageType": "electricity",
+        "dice": 1,
+        "die": "d6"
+      },
+      "system.grade": "commercial"
+    }
+  },
+  {
+    "_id": "1De0vVcNU1EZQFm0",
+    "uuid": "Compendium.sf2e.weapons-core.Item.1De0vVcNU1EZQFm0",
+    "name": "Shooting Starknife",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "agile",
+        "analog",
+        "deadly-d6",
+        "finesse",
+        "thrown-20",
+        "versatile-s"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "system.grade": "commercial"
+    }
+  },
+  {
+    "_id": "K9FXxy2PkUOMrIo8",
+    "uuid": "Compendium.sf2e.weapons-core.Item.K9FXxy2PkUOMrIo8",
+    "name": "Zero Pistol",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": ["tech"],
+      "system.damage": {
+        "damageType": "cold",
+        "dice": 1,
+        "die": "d6"
+      },
+      "system.grade": "commercial"
+    }
+  }
+]

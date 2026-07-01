@@ -86,6 +86,13 @@ export async function runServe(args: ServeArgs): Promise<void> {
     logger.warn({ err }, "Could not load @fusion/system-pf2e — pf2e system not available");
   }
 
+  try {
+    const { sf2eSystem } = await import("@fusion/system-sf2e");
+    registry.register(sf2eSystem);
+  } catch (err) {
+    logger.warn({ err }, "Could not load @fusion/system-sf2e — sf2e system not available");
+  }
+
   logger.info({ systems: registry.list() }, "Systems registered");
 
   // Phase 2.6 — world manager (validates system IDs on world creation)

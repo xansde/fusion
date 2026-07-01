@@ -341,6 +341,9 @@ export async function boot(options: BootOptions): Promise<BootResult> {
       authService: resolvedAuthService,
       compendiumService,
     };
+    if (netContext.systemId !== undefined) {
+      nsOptions.systemId = netContext.systemId;
+    }
     if (netContext.maxConnections !== undefined) {
       nsOptions.maxConnections = netContext.maxConnections;
     }

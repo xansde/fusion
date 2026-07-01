@@ -1,0 +1,374 @@
+{
+  "importerVersion": "0.1.0",
+  "sourceVersion": "v14-dev",
+  "generatedAt": "2026-07-01T21:21:19.865Z",
+  "packs": [
+    {
+      "packId": "sf2e.conditions",
+      "total": 3,
+      "transformed": 3,
+      "invalidExcluded": [],
+      "ruleCoverage": {
+        "totalRules": 8,
+        "byState": {
+          "supported": 8,
+          "partial": 0,
+          "unsupported": 0
+        },
+        "byKey": {
+          "FlatModifier": {
+            "total": 3,
+            "supported": 3,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "RollOption": {
+            "total": 4,
+            "supported": 4,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "GrantItem": {
+            "total": 1,
+            "supported": 1,
+            "partial": 0,
+            "unsupported": 0
+          }
+        },
+        "coveragePct": "100.0"
+      },
+      "assetSubstitutions": 3
+    },
+    {
+      "packId": "sf2e.equipment",
+      "total": 538,
+      "transformed": 538,
+      "invalidExcluded": [],
+      "ruleCoverage": {
+        "totalRules": 234,
+        "byState": {
+          "supported": 165,
+          "partial": 22,
+          "unsupported": 47
+        },
+        "byKey": {
+          "FlatModifier": {
+            "total": 78,
+            "supported": 78,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "TokenLight": {
+            "total": 3,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 3
+          },
+          "RollOption": {
+            "total": 16,
+            "supported": 16,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "TokenEffectIcon": {
+            "total": 1,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 1
+          },
+          "ActiveEffectLike": {
+            "total": 8,
+            "supported": 7,
+            "partial": 1,
+            "unsupported": 0
+          },
+          "Sense": {
+            "total": 5,
+            "supported": 5,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "ChoiceSet": {
+            "total": 27,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 27
+          },
+          "Resistance": {
+            "total": 8,
+            "supported": 8,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "ItemAlteration": {
+            "total": 17,
+            "supported": 0,
+            "partial": 17,
+            "unsupported": 0
+          },
+          "DamageAlteration": {
+            "total": 8,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 8
+          },
+          "Strike": {
+            "total": 2,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 2
+          },
+          "BaseSpeed": {
+            "total": 4,
+            "supported": 4,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "DamageDice": {
+            "total": 26,
+            "supported": 26,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "AdjustModifier": {
+            "total": 4,
+            "supported": 0,
+            "partial": 4,
+            "unsupported": 0
+          },
+          "AdjustStrike": {
+            "total": 5,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 5
+          },
+          "Note": {
+            "total": 21,
+            "supported": 21,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "AdjustDegreeOfSuccess": {
+            "total": 1,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 1
+          }
+        },
+        "coveragePct": "70.5"
+      },
+      "assetSubstitutions": 538
+    },
+    {
+      "packId": "sf2e.spells",
+      "total": 159,
+      "transformed": 159,
+      "invalidExcluded": [],
+      "ruleCoverage": {
+        "totalRules": 1,
+        "byState": {
+          "supported": 1,
+          "partial": 0,
+          "unsupported": 0
+        },
+        "byKey": {
+          "Note": {
+            "total": 1,
+            "supported": 1,
+            "partial": 0,
+            "unsupported": 0
+          }
+        },
+        "coveragePct": "100.0"
+      },
+      "assetSubstitutions": 159
+    },
+    {
+      "packId": "sf2e.alien-core-bestiary",
+      "total": 247,
+      "transformed": 247,
+      "invalidExcluded": [],
+      "ruleCoverage": {
+        "totalRules": 460,
+        "byState": {
+          "supported": 246,
+          "partial": 59,
+          "unsupported": 155
+        },
+        "byKey": {
+          "FlatModifier": {
+            "total": 74,
+            "supported": 74,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "Aura": {
+            "total": 92,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 92
+          },
+          "Note": {
+            "total": 40,
+            "supported": 40,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "RollOption": {
+            "total": 67,
+            "supported": 67,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "DamageDice": {
+            "total": 38,
+            "supported": 38,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "EphemeralEffect": {
+            "total": 3,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 3
+          },
+          "ActiveEffectLike": {
+            "total": 40,
+            "supported": 7,
+            "partial": 33,
+            "unsupported": 0
+          },
+          "AdjustDegreeOfSuccess": {
+            "total": 2,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 2
+          },
+          "Resistance": {
+            "total": 13,
+            "supported": 13,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "Weakness": {
+            "total": 5,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 5
+          },
+          "DamageAlteration": {
+            "total": 20,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 20
+          },
+          "BaseSpeed": {
+            "total": 2,
+            "supported": 2,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "ItemAlteration": {
+            "total": 12,
+            "supported": 0,
+            "partial": 12,
+            "unsupported": 0
+          },
+          "AdjustModifier": {
+            "total": 2,
+            "supported": 0,
+            "partial": 2,
+            "unsupported": 0
+          },
+          "FastHealing": {
+            "total": 12,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 12
+          },
+          "Immunity": {
+            "total": 12,
+            "supported": 0,
+            "partial": 12,
+            "unsupported": 0
+          },
+          "AdjustStrike": {
+            "total": 7,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 7
+          },
+          "ActorTraits": {
+            "total": 1,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 1
+          },
+          "TokenLight": {
+            "total": 4,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 4
+          },
+          "TokenEffectIcon": {
+            "total": 2,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 2
+          },
+          "GrantItem": {
+            "total": 5,
+            "supported": 5,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "SpecialResource": {
+            "total": 1,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 1
+          },
+          "SubstituteRoll": {
+            "total": 4,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 4
+          },
+          "CreatureSize": {
+            "total": 2,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 2
+          }
+        },
+        "coveragePct": "53.5"
+      },
+      "assetSubstitutions": 3240
+    },
+    {
+      "packId": "sf2e.rulebook-bestiaries",
+      "total": 46,
+      "transformed": 46,
+      "invalidExcluded": [],
+      "ruleCoverage": {
+        "totalRules": 0,
+        "byState": {
+          "supported": 0,
+          "partial": 0,
+          "unsupported": 0
+        },
+        "byKey": {},
+        "coveragePct": "0.0"
+      },
+      "assetSubstitutions": 110
+    }
+  ],
+  "aggregate": {
+    "totalRules": 703,
+    "supportedRules": 420,
+    "partialRules": 81,
+    "unsupportedRules": 202,
+    "coveragePct": "59.7"
+  },
+  "failed": false
+}

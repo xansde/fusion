@@ -67,6 +67,15 @@ export function getDocumentSchema(table: DocumentTable): DocumentSchema {
 /**
  * Actor — typed document (has type + system passthrough).
  * REQ-DOC-023: Actor supports subtype and typed system.
+ *
+ * `items` holds the Actor's embedded Item documents (e.g. weapons, feats,
+ * conditions, SF2e augmentations). Without an explicit field here, Zod's
+ * default strip-unknown-keys behavior on `.extend()` (no `.passthrough()`)
+ * silently discards any `items` array written by handleEmbeddedCreate /
+ * handleEmbeddedUpdate on every validateDocument() round-trip — found via
+ * the SF2e augmentation slot-limit test (REQ-SF2-024), which requires
+ * `items` to actually persist across doc:create calls. Mirrors the
+ * `tokens: z.array(...)` pattern already used by SceneSchema below.
  */
 export const ActorSchema = BaseDocumentSchema.extend({
   name: z.string().min(1),
@@ -76,6 +85,7 @@ export const ActorSchema = BaseDocumentSchema.extend({
   folder: z.string().nullable().optional(),
   sort: z.number().int().default(0),
   system: z.record(z.string(), z.unknown()).default(() => ({})),
+  items: z.array(z.record(z.string(), z.unknown())).default(() => []),
 });
 
 /**

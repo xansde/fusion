@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "paths": {
+      // sf2e resolves dependencies via built declaration files (.d.ts).
+      // pnpm build -r guarantees topological order:
+      //   shared → system-api → engine-2e → system-pf2e → system-sf2e
+      "@fusion/system-api": ["../../packages/system-api/dist/index.d.ts"],
+      "@fusion/engine-2e": ["../../systems/engine-2e/dist/index.d.ts"],
+      "@fusion/system-pf2e": ["../../systems/pf2e/dist/index.d.ts"],
+      "@fusion/shared": ["../../packages/shared/dist/index.d.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/__tests__/**", "dist"]
+}

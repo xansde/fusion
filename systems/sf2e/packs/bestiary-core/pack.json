@@ -1,0 +1,22 @@
+{
+  "id": "sf2e.bestiary-core",
+  "label": "SF2e Core Bestiary",
+  "documentType": "Actor",
+  "systemId": "sf2e",
+  "indexFields": ["system.details.level.value", "system.traits.value", "system.attributes.hp.max"],
+  "license": {
+    "license": "ORC",
+    "attribution": "Starfinder Alien Core © 2025 Paizo Inc. Licensed under the ORC License.",
+    "reservedNotice": "Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+    "sourceRepo": "github.com/foundryvtt/pf2e",
+    "sourceVersion": "v14-dev"
+  },
+  "source": {
+    "repo": "github.com/foundryvtt/pf2e",
+    "version": "v14-dev",
+    "importerVersion": "0.1.0"
+  },
+  "schemaVersion": 1,
+  "documentCount": 10,
+  "generatedAt": "2026-07-01T21:21:20.109Z"
+}

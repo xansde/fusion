@@ -115,6 +115,13 @@ export interface WorldNamespaceOptions {
    * REQ-CMP-010.
    */
   compendiumService?: CompendiumService;
+  /**
+   * The world's game system id (e.g. "pf2e", "sf2e"). Forwarded to doc
+   * handlers for system-specific server-side validation that can't go
+   * through the system-api hook bus (e.g. SF2e augmentation slot limit,
+   * REQ-SF2-024). Optional — undefined disables all such checks.
+   */
+  systemId?: string;
 }
 
 export interface SocketManagerOptions {
@@ -184,6 +191,7 @@ export class SocketManager {
       maxConnections = 16,
       opBufferSize,
       compendiumService,
+      systemId,
     } = options;
 
     const namespacePath = `/world/${worldId}`;
@@ -213,6 +221,7 @@ export class SocketManager {
       opBuffer,
       ns,
       db,
+      ...(systemId !== undefined ? { systemId } : {}),
       // REQ-CHT-033: supply recent chat for join snapshot
       getRecentChat: (userId: string, role: number) => getRecentChatForUser(db, userId, role),
     };

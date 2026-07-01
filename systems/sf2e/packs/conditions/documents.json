@@ -1,0 +1,284 @@
+[
+  {
+    "_id": "q0NhHdWCZIdUUZnB",
+    "name": "Glitching",
+    "type": "effect",
+    "img": "icons/placeholder/effect.svg",
+    "system": {
+      "badge": {
+        "labels": null,
+        "loop": false,
+        "max": null,
+        "min": null,
+        "type": "counter",
+        "value": 1
+      },
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "sustained": false,
+        "unit": "unlimited",
+        "value": -1
+      },
+      "fromSpell": false,
+      "level": 1,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "all",
+          "value": "-@item.badge.value",
+          "mode": "add",
+          "type": "item",
+          "predicate": ["glitching-failure"],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": ["glitching-failure"],
+            "selector": "all",
+            "type": "item",
+            "value": "-@item.badge.value"
+          }
+        },
+        {
+          "kind": "roll-option",
+          "slug": "self:condition:glitching",
+          "label": null,
+          "toggleable": false,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "option": "self:condition:glitching"
+          }
+        },
+        {
+          "kind": "roll-option",
+          "slug": "self:condition:glitching:{item|badge.value}",
+          "label": null,
+          "toggleable": false,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "option": "self:condition:glitching:{item|badge.value}"
+          }
+        },
+        {
+          "kind": "roll-option",
+          "slug": "glitching-failure",
+          "label": null,
+          "toggleable": true,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "option": "glitching-failure",
+            "toggleable": true
+          }
+        }
+      ],
+      "start": {
+        "initiative": null,
+        "value": 0
+      },
+      "tokenIcon": {
+        "show": true
+      },
+      "traits": {
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "6A2QDy8wRGCVQsSd",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "blue-mechanical-arm.webp",
+            "placeholder": "icons/placeholder/effect.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "B3YY1PvvYny0tgDs",
+    "name": "Suppressed",
+    "type": "effect",
+    "img": "icons/placeholder/effect.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "sustained": false,
+        "unit": "unlimited",
+        "value": -1
+      },
+      "fromSpell": false,
+      "level": 1,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": "suppressed-attack",
+          "label": null,
+          "selector": "attack",
+          "value": -1,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "selector": "attack",
+            "slug": "suppressed-attack",
+            "type": "circumstance",
+            "value": -1
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "slug": "suppressed-speed",
+          "label": null,
+          "selector": "all-speeds",
+          "value": -10,
+          "mode": "add",
+          "type": "status",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "selector": "all-speeds",
+            "slug": "suppressed-speed",
+            "type": "status",
+            "value": -10
+          }
+        },
+        {
+          "kind": "roll-option",
+          "slug": "self:condition:suppressed",
+          "label": null,
+          "toggleable": false,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "option": "self:condition:suppressed"
+          }
+        }
+      ],
+      "start": {
+        "initiative": null,
+        "value": 0
+      },
+      "tokenIcon": {
+        "show": true
+      },
+      "traits": {
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "enA7BxAjBb7ns1iF",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "figure-running-gray.webp",
+            "placeholder": "icons/placeholder/effect.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "xgF0Yky2xOMPvATM",
+    "name": "Untethered",
+    "type": "effect",
+    "img": "icons/placeholder/effect.svg",
+    "system": {
+      "description": "",
+      "duration": {
+        "expiry": null,
+        "sustained": false,
+        "unit": "unlimited",
+        "value": -1
+      },
+      "fromSpell": false,
+      "level": 1,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.sf2e.actions.Item.Push Off",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.sf2e.actions.Item.Push Off"
+          }
+        }
+      ],
+      "start": {
+        "initiative": null,
+        "value": 0
+      },
+      "tokenIcon": {
+        "show": true
+      },
+      "traits": {
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "z1ucw4CLwLqHoAp3",
+        "packName": "conditions",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "blue-arrow-up.webp",
+            "placeholder": "icons/placeholder/effect.svg"
+          }
+        ]
+      }
+    }
+  }
+]

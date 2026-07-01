@@ -98,6 +98,22 @@ module.exports = {
       from: { path: "^systems/pf2e" },
       to: { path: "^packages/client" },
     },
+    {
+      name: "sf2e-must-not-import-server",
+      comment:
+        "systems/sf2e must not import packages/server (REQ-ARQ-005)",
+      severity: "error",
+      from: { path: "^systems/sf2e" },
+      to: { path: "^packages/server" },
+    },
+    {
+      name: "sf2e-must-not-import-client",
+      comment:
+        "systems/sf2e must not import packages/client (REQ-ARQ-005)",
+      severity: "error",
+      from: { path: "^systems/sf2e" },
+      to: { path: "^packages/client" },
+    },
   ],
   options: {
     doNotFollow: {

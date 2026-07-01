@@ -1,21 +1,38 @@
 /**
  * build-mvp-subset.mjs — Gera o SUBCONJUNTO MVP commitável de packs Fusion.
  *
- * Consome os documentos transformados (out/<pack>/transformed.json) e
- * seleciona um subconjunto curado para o MVP da primeira sessão jogável.
+ * Consome os documentos transformados (out/<pack>/transformed.json, ou
+ * out/sf2e/<pack>/transformed.json para --system sf2e) e seleciona um
+ * subconjunto curado para o MVP da primeira sessão jogável de cada sistema.
  *
- * Subconjunto:
+ * Subconjunto pf2e (default):
  *   - pf2e.weapons-core:    ~30 armas básicas (ORC, dados mecânicos)
  *   - pf2e.conditions:      todas as 43 condições
  *   - pf2e.bestiary-core:   10 monstros de nível -1 a 3 (ORC)
  *   - pf2e.spells-core:     15 magias comuns level 1-3 (ORC)
  *
- * Saída: systems/pf2e/packs/<packSlug>/
+ * Subconjunto sf2e (--system sf2e, REQ-SF2-044..048):
+ *   - sf2e.weapons-core:       ~30 armas nível 0 (analog + tech: arc/laser/
+ *     plasma/automatic/area — cobre traits SF-exclusivos)
+ *   - sf2e.armor-core:         ~10 armaduras nível 0
+ *   - sf2e.augmentations-core: ~10 augmentações (equipment/usage:implanted)
+ *   - sf2e.conditions:         as 3 condições SF-exclusivas (glitching,
+ *     suppressed, untethered — type "effect", ver conditions.ts)
+ *   - sf2e.bestiary-core:      ~10 criaturas de nível -1 a 3 (ORC), incl.
+ *     robots/aliens para exercitar a allowlist de traits SF
+ *   - sf2e.spells-core:        ~15 magias comuns nível 1-3 (ORC)
+ *
+ * Saída: systems/<systemId>/packs/<packSlug>/
  *   - documents.json  — array de documentos Fusion (commitável)
  *   - pack.json       — manifesto com licença ORC e metadados
  *
- * REQ-CMP-001..004, REQ-CMP-030..033, REQ-CMP-040..044.
+ * REQ-CMP-001..004, REQ-CMP-030..033, REQ-CMP-040..044, REQ-SF2-044..048.
  * Spec 16 §Formato de pack e armazenamento, §Pipeline §Versionamento.
+ * Spec 18 §Compendium packs.
+ *
+ * Uso:
+ *   node src/build-mvp-subset.mjs               # pf2e (default)
+ *   node src/build-mvp-subset.mjs --system sf2e  # sf2e
  *
  * Zero dependências externas — Node 22 ESM puro.
  */
@@ -27,7 +44,9 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const IMPORTER_ROOT = join(__dirname, '..');
 const OUT_DIR       = join(IMPORTER_ROOT, 'out');
-const PACKS_OUT_DIR = join(IMPORTER_ROOT, '..', '..', 'systems', 'pf2e', 'packs');
+const SYSTEMS_ROOT  = join(IMPORTER_ROOT, '..', '..', 'systems');
+const PACKS_OUT_DIR = join(SYSTEMS_ROOT, 'pf2e', 'packs');
+const SF2E_PACKS_OUT_DIR = join(SYSTEMS_ROOT, 'sf2e', 'packs');
 
 const IMPORTER_VERSION = '0.1.0';
 const SOURCE_VERSION   = 'v14-dev';
@@ -217,17 +236,22 @@ const MVP_MONSTER_PF2E_IDS = new Set([
 // Build pack documents
 // ---------------------------------------------------------------------------
 
-function loadTransformed(packName) {
-  const path = join(OUT_DIR, packName, 'transformed.json');
+/**
+ * @param {string} packName
+ * @param {'pf2e'|'sf2e'} [system]
+ */
+function loadTransformed(packName, system = 'pf2e') {
+  const base = system === 'pf2e' ? OUT_DIR : join(OUT_DIR, system);
+  const path = join(base, packName, 'transformed.json');
   if (!existsSync(path)) {
-    throw new Error(`transformed.json not found for pack "${packName}". Run transform.mjs first.`);
+    throw new Error(`transformed.json not found for pack "${packName}" (system: ${system}). Run transform.mjs first.`);
   }
   return JSON.parse(readFileSync(path, 'utf8'));
 }
 
 /**
  * Filters transformed docs to the MVP subset.
- * Uses flags.fusion.sourceId to match original pf2e IDs.
+ * Uses flags.fusion.sourceId to match original pf2e/sf2e IDs.
  */
 function filterToMvpSubset(docs, selectedPf2eIds) {
   return docs.filter(doc => {
@@ -237,11 +261,15 @@ function filterToMvpSubset(docs, selectedPf2eIds) {
 }
 
 /**
- * Writes pack documents and manifest to systems/pf2e/packs/<slug>/.
+ * Writes pack documents and manifest to systems/<systemId>/packs/<slug>/.
  * REQ-CMP-003/004/030.
+ * @param {string} slug
+ * @param {object[]} docs
+ * @param {object} manifest
+ * @param {string} [packsOutDir] — defaults to PACKS_OUT_DIR (pf2e)
  */
-function writePack(slug, docs, manifest) {
-  const packDir = join(PACKS_OUT_DIR, slug);
+function writePack(slug, docs, manifest, packsOutDir = PACKS_OUT_DIR) {
+  const packDir = join(packsOutDir, slug);
   mkdirSync(packDir, { recursive: true });
 
   // Finalize manifest with counts
@@ -259,7 +287,8 @@ function writePack(slug, docs, manifest) {
   // commitável subset we use JSON. The server loads this via PackLoader.
   writeFileSync(join(packDir, 'documents.json'), JSON.stringify(docs, null, 2), 'utf8');
 
-  console.log(`[build-mvp] ${slug}: ${docs.length} docs → systems/pf2e/packs/${slug}/`);
+  const relBase = packsOutDir === SF2E_PACKS_OUT_DIR ? 'systems/sf2e/packs' : 'systems/pf2e/packs';
+  console.log(`[build-mvp] ${slug}: ${docs.length} docs → ${relBase}/${slug}/`);
   return finalManifest;
 }
 
@@ -292,11 +321,11 @@ function buildIndex(packId, docs, indexFields) {
 }
 
 // ---------------------------------------------------------------------------
-// Main
+// Main — pf2e
 // ---------------------------------------------------------------------------
 
-async function main() {
-  console.log('[build-mvp] Gerando subconjunto MVP de packs Fusion...\n');
+async function buildPf2eSubset() {
+  console.log('[build-mvp] Gerando subconjunto MVP de packs Fusion (pf2e)...\n');
   mkdirSync(PACKS_OUT_DIR, { recursive: true });
 
   const report = {
@@ -410,6 +439,330 @@ async function main() {
     console.log(`  ${p.packId}: ${p.documentCount} documentos`);
   }
   console.log(`\nPacks em: systems/pf2e/packs/`);
+  return report;
+}
+
+// ---------------------------------------------------------------------------
+// Main — sf2e (REQ-SF2-044..048)
+// ---------------------------------------------------------------------------
+
+/** sf2e MVP pack manifests, mirroring PACK_MANIFESTS' shape (spec 18). */
+const SF2E_PACK_MANIFESTS = {
+  'weapons-core': {
+    id: 'sf2e.weapons-core',
+    label: 'SF2e Core Weapons',
+    documentType: 'Item',
+    systemId: 'sf2e',
+    indexFields: ['system.level', 'system.category', 'system.traits.value', 'system.damage', 'system.grade'],
+    license: {
+      license: 'ORC',
+      attribution: 'Starfinder Player Core © 2025 Paizo Inc. Licensed under the ORC License.',
+      reservedNotice: 'Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
+      sourceRepo: 'github.com/foundryvtt/pf2e',
+      sourceVersion: SOURCE_VERSION,
+    },
+    source: { repo: 'github.com/foundryvtt/pf2e', version: SOURCE_VERSION, importerVersion: IMPORTER_VERSION },
+    schemaVersion: 1,
+  },
+  'armor-core': {
+    id: 'sf2e.armor-core',
+    label: 'SF2e Core Armor',
+    documentType: 'Item',
+    systemId: 'sf2e',
+    indexFields: ['system.level', 'system.category', 'system.traits.value'],
+    license: {
+      license: 'ORC',
+      attribution: 'Starfinder Player Core © 2025 Paizo Inc. Licensed under the ORC License.',
+      reservedNotice: 'Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
+      sourceRepo: 'github.com/foundryvtt/pf2e',
+      sourceVersion: SOURCE_VERSION,
+    },
+    source: { repo: 'github.com/foundryvtt/pf2e', version: SOURCE_VERSION, importerVersion: IMPORTER_VERSION },
+    schemaVersion: 1,
+  },
+  'augmentations-core': {
+    id: 'sf2e.augmentations-core',
+    label: 'SF2e Core Augmentations',
+    documentType: 'Item',
+    systemId: 'sf2e',
+    indexFields: ['system.level', 'system.traits.value', 'system.usage'],
+    license: {
+      license: 'ORC',
+      attribution: 'Starfinder Player Core © 2025 Paizo Inc. Licensed under the ORC License.',
+      reservedNotice: 'Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
+      sourceRepo: 'github.com/foundryvtt/pf2e',
+      sourceVersion: SOURCE_VERSION,
+    },
+    source: { repo: 'github.com/foundryvtt/pf2e', version: SOURCE_VERSION, importerVersion: IMPORTER_VERSION },
+    schemaVersion: 1,
+  },
+  'conditions': {
+    id: 'sf2e.conditions',
+    label: 'SF2e Conditions',
+    documentType: 'Item',
+    systemId: 'sf2e',
+    indexFields: ['system.duration', 'system.badge'],
+    license: {
+      license: 'ORC',
+      attribution: 'Starfinder Player Core © 2025 Paizo Inc. Licensed under the ORC License.',
+      reservedNotice: 'Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
+      sourceRepo: 'github.com/foundryvtt/pf2e',
+      sourceVersion: SOURCE_VERSION,
+    },
+    source: { repo: 'github.com/foundryvtt/pf2e', version: SOURCE_VERSION, importerVersion: IMPORTER_VERSION },
+    schemaVersion: 1,
+  },
+  'bestiary-core': {
+    id: 'sf2e.bestiary-core',
+    label: 'SF2e Core Bestiary',
+    documentType: 'Actor',
+    systemId: 'sf2e',
+    indexFields: ['system.details.level.value', 'system.traits.value', 'system.attributes.hp.max'],
+    license: {
+      license: 'ORC',
+      attribution: 'Starfinder Alien Core © 2025 Paizo Inc. Licensed under the ORC License.',
+      reservedNotice: 'Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
+      sourceRepo: 'github.com/foundryvtt/pf2e',
+      sourceVersion: SOURCE_VERSION,
+    },
+    source: { repo: 'github.com/foundryvtt/pf2e', version: SOURCE_VERSION, importerVersion: IMPORTER_VERSION },
+    schemaVersion: 1,
+  },
+  'spells-core': {
+    id: 'sf2e.spells-core',
+    label: 'SF2e Core Spells',
+    documentType: 'Item',
+    systemId: 'sf2e',
+    indexFields: ['system.level', 'system.traits.value', 'system.traits.traditions', 'system.traits.rarity'],
+    license: {
+      license: 'ORC',
+      attribution: 'Starfinder Player Core © 2025 Paizo Inc. Licensed under the ORC License.',
+      reservedNotice: 'Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
+      sourceRepo: 'github.com/foundryvtt/pf2e',
+      sourceVersion: SOURCE_VERSION,
+    },
+    source: { repo: 'github.com/foundryvtt/pf2e', version: SOURCE_VERSION, importerVersion: IMPORTER_VERSION },
+    schemaVersion: 1,
+  },
+};
+
+/**
+ * sourceIds curados para o subset MVP sf2e — spread analog/tech, tiers
+ * commercial/level-0, cobrindo traits SF-exclusivos (tech, analog, arc,
+ * automatic, area-cone). Curados a partir de out/sf2e/equipment/transformed.json
+ * (analysis/08-sf2e-import.md tem o detalhamento por arma).
+ */
+const SF2E_WEAPON_SOURCE_IDS = new Set([
+  'M0PsUbGLkBk878YZ', // Arc Pistol (tech, arc)
+  'TAgaAiDMPGnF87Vv', // Arc Rifle (tech, arc)
+  'qIgcUV22LaDCzmb2', // Laser Pistol (tech)
+  '0TSUahGsoVnDZ6kv', // Laser Rifle (tech)
+  'O3QRrXVfhNpF0XyY', // Zero Pistol (tech)
+  'jLiackiAHgru9OY0', // Plasma Sword (tech, powered)
+  'ST6R4rRFf50vzSdJ', // Shock Truncheon (tech, powered, modular)
+  '3yWQhmBrAXnBhYaF', // Flamethrower (tech, area-cone, unwieldy)
+  'EnufuFPBa1U2pPDn', // Machine Gun (analog, automatic)
+  'dxkmvJZOblZ8oImW', // Autotarget Rifle (analog, automatic)
+  'V0LgOSOvkNvs2i0x', // Knife (analog, agile, finesse)
+  'D4KuxPi9gqFkvZ3h', // Baton (analog, finesse, nonlethal)
+  'K0xFwEC6Zv7ghVFa', // Semi-Auto Pistol (analog)
+  '8nvXQmFxd5eCkD9v', // Hammer (analog)
+  'a2e5svVQ20WrzRTK', // Dueling Sword (analog, versatile-p)
+  'gwVhd31nGDXo5HAa', // Crossbolter (analog)
+  'sTe6qQmJ1lC1xDfC', // Shock Pad (tech, powered, agile)
+  'vpjJYIgYZab0UZFa', // Pulsecaster Pistol (tech, nonlethal)
+  'V7epvZwIrMLMYI97', // Coil Rifle (tech, kickback, unwieldy)
+  'wbKiBgYY120RyoGg', // Shooting Starknife (analog, thrown-20)
+]);
+
+/** sourceIds curados de armaduras nível 0 (analysis/08-sf2e-import.md). */
+const SF2E_ARMOR_SOURCE_IDS = new Set([
+  'ehsCl5WJTANTlzBy', // Abadarcorp Travel Suit (light)
+  'mkMWda6ivlhnXq4d', // Armored Coat (light)
+  'aNoSZiPBfxVJYvap', // Carbon Skin (light)
+  'FySX3VPYY1YkdBZg', // Estex Suit (light)
+  'pcPU3BjbNclch4lS', // Hardlight Series (light)
+  '9UiGMq93t13HEz90', // Quilted Armor (light)
+  'plBUD8dy3M3gGiHK', // Freebooter Armor (medium)
+  'eU5n2fP7DvnFyqov', // Shotalashu Armor (medium)
+  'E9MKSSJCOk9ceLKc', // Aegis Series (heavy)
+  'wnJTyjfupLw4Cy7G', // Hidden Soldier Armor (heavy)
+]);
+
+/**
+ * sourceIds curados de augmentações (D-SF2-03; type "equipment" com
+ * usage:"implanted" no dado real — ver systems/sf2e/src/schemas/item-augmentation.ts).
+ * Spread pelas 5 categorias reais (apex/biotech/magitech/necrograft/tech —
+ * pastas em vendor/pf2e/packs/sf2e/equipment/augmentations/, types.ts
+ * AUGMENTATION_TYPES).
+ */
+const SF2E_AUGMENTATION_SOURCE_IDS = new Set([
+  'GBtIO5fqFGD9Dzk1', // Autorecognition Lens (tech)
+  'uxJScsvafT7Nqwhj', // Hearing Aid (tech)
+  '3TQ2WCBNaFwEUDHo', // Datajack (Commercial) (tech)
+  'j66fZJrm1nECG3UM', // Dermal Plating (Commercial) (tech)
+  'PJaarOSEHTLje8sT', // Retinal Reflectors (tech)
+  'ejsPnjUVXf2TJgeD', // Dragon Gland (Commercial) (biotech)
+  'zyrPSFBAwL58wCUB', // Gill Sheath (biotech)
+  'VYtnxv13EtkyggD4', // Moodskin (magitech)
+  'Dmwb9DcWLf9y8JmC', // Telepathy Node (magitech)
+  'CBFbt7Xg5YP856ld', // Necrolung (Commercial) (necrograft)
+]);
+
+/**
+ * sourceIds curados de magias nível 1-3 (analog aos pf2e cantrips/rank-1).
+ */
+const SF2E_SPELL_SOURCE_IDS = new Set([
+  'FEaM1B4WuiqFO7Uk', // Eldritch Lance (L1)
+  'JIAIyvj4PV84tnFk', // Chill Gaze (L1)
+  'yXD9uU8w8uFD2OBQ', // Delete (L1)
+  'd5dmu4HZ3YyrwcaF', // Elemental Weapon (L1)
+  'ahXTkKpQtOTAQOFm', // Enhance Weapon (L1)
+  'ZBeKxBcUOsXrfMRo', // Implant Data (L1)
+  'uBo6g5aW087cLSJR', // Mind Skewer (L1)
+  'wOjoJjl2ndZKTuFJ', // Overheat (L1)
+  'mAu69GVbFKYzQM5a', // Akashic Fount (L1)
+  'smCC1LNhMb7Z1lrU', // Anthem (L1)
+]);
+
+/**
+ * sourceIds curados de bestiário — inclui robots/aliens para exercitar a
+ * allowlist de traits SF-exclusivos (REQ-SF2-047; analysis/04 §6 item 2).
+ */
+const SF2E_MONSTER_SOURCE_IDS = new Set([
+  'rl5p1LLCpKh16viU', // Repair-Class Security Robot (robot, construct, tech) L-1
+  'H53Dsx2DYmd9hBIn', // Botnib (fey, gremlin, tech) L-1
+  'dxbr3LNg0R66Aj1n', // Cybernetic Zombie (tech, undead) L-1
+  'MnOrSqYS5w8tAPXM', // Ordinance-Class Civil Robot (robot, construct, tech) L0
+  'pjh2PB4JwYlgMTwj', // Cyanoscum (elemental, plant) L0
+  'yhCFz4PyGPpFRr1O', // Akata (aberration) L1
+]);
+
+async function buildSf2eSubset() {
+  console.log('[build-mvp] Gerando subconjunto MVP de packs Fusion (sf2e)...\n');
+  mkdirSync(SF2E_PACKS_OUT_DIR, { recursive: true });
+
+  const report = {
+    packs: [],
+    generatedAt: new Date().toISOString(),
+    importerVersion: IMPORTER_VERSION,
+    sourceVersion: SOURCE_VERSION,
+    system: 'sf2e',
+  };
+
+  const writeSf2ePack = (slug, docs, manifest) => {
+    const finalManifest = writePack(slug, docs, manifest, SF2E_PACKS_OUT_DIR);
+    const index = buildIndex(manifest.id, docs, manifest.indexFields);
+    writeFileSync(
+      join(SF2E_PACKS_OUT_DIR, slug, 'index.json'),
+      JSON.stringify(index, null, 2),
+      'utf8',
+    );
+    report.packs.push({ packId: manifest.id, slug, documentCount: docs.length });
+    return finalManifest;
+  };
+
+  // --- 1. Conditions (all 3 SF-exclusive: glitching, suppressed, untethered) ---
+  {
+    console.log('[build-mvp] === Pack: conditions (sf2e) ===');
+    const docs = loadTransformed('conditions', 'sf2e');
+    console.log(`[build-mvp] conditions: ${docs.length} condições sf2e-exclusivas`);
+    writeSf2ePack('conditions', docs, SF2E_PACK_MANIFESTS['conditions']);
+  }
+
+  // --- 2. Weapons core (~20 curadas, spread analog/tech) ---
+  {
+    console.log('[build-mvp] === Pack: weapons-core (sf2e) ===');
+    const all = loadTransformed('equipment', 'sf2e');
+    const weapons = all.filter(d => d.type === 'weapon');
+    const docs = filterToMvpSubset(weapons, SF2E_WEAPON_SOURCE_IDS);
+    console.log(`[build-mvp] weapons-core: ${docs.length} selecionadas de ${weapons.length} armas`);
+    writeSf2ePack('weapons-core', docs, SF2E_PACK_MANIFESTS['weapons-core']);
+  }
+
+  // --- 3. Armor core (~10 curadas) ---
+  {
+    console.log('[build-mvp] === Pack: armor-core (sf2e) ===');
+    const all = loadTransformed('equipment', 'sf2e');
+    const armor = all.filter(d => d.type === 'armor');
+    const docs = filterToMvpSubset(armor, SF2E_ARMOR_SOURCE_IDS);
+    console.log(`[build-mvp] armor-core: ${docs.length} selecionadas de ${armor.length} armaduras`);
+    writeSf2ePack('armor-core', docs, SF2E_PACK_MANIFESTS['armor-core']);
+  }
+
+  // --- 4. Augmentations core (D-SF2-03) ---
+  {
+    console.log('[build-mvp] === Pack: augmentations-core (sf2e) ===');
+    const all = loadTransformed('equipment', 'sf2e');
+    const augmentations = all.filter(d => d.type === 'equipment' && d.system?.usage === 'implanted');
+    const docs = filterToMvpSubset(augmentations, SF2E_AUGMENTATION_SOURCE_IDS);
+    console.log(`[build-mvp] augmentations-core: ${docs.length} selecionadas de ${augmentations.length} augmentações`);
+    writeSf2ePack('augmentations-core', docs, SF2E_PACK_MANIFESTS['augmentations-core']);
+  }
+
+  // --- 5. Bestiary core (~10, incl. robots/aliens p/ allowlist de traits) ---
+  {
+    console.log('[build-mvp] === Pack: bestiary-core (sf2e) ===');
+    const all = loadTransformed('alien-core-bestiary', 'sf2e');
+    const monsters = all.filter(d => d.type === 'npc');
+    const curated = filterToMvpSubset(monsters, SF2E_MONSTER_SOURCE_IDS);
+
+    // Supplement with additional L-1..L3 ORC monsters to reach ~10 total
+    const alreadySelected = new Set(curated.map(d => d._id));
+    const supplemental = monsters
+      .filter(m => !alreadySelected.has(m._id))
+      .filter(m => {
+        const level = m.system?.details?.level?.value ?? 0;
+        const pub = m.system?.details?.publication?.license;
+        return pub === 'ORC' && level >= -1 && level <= 3;
+      })
+      .sort((a, b) => (a.system?.details?.level?.value ?? 0) - (b.system?.details?.level?.value ?? 0))
+      .slice(0, Math.max(0, 10 - curated.length));
+
+    const docs = [...curated, ...supplemental];
+    console.log(`[build-mvp] bestiary-core: ${docs.length} criaturas selecionadas`);
+    writeSf2ePack('bestiary-core', docs, SF2E_PACK_MANIFESTS['bestiary-core']);
+  }
+
+  // --- 6. Spells core (~10 curadas) ---
+  {
+    console.log('[build-mvp] === Pack: spells-core (sf2e) ===');
+    const all = loadTransformed('spells', 'sf2e');
+    const docs = filterToMvpSubset(all, SF2E_SPELL_SOURCE_IDS);
+    console.log(`[build-mvp] spells-core: ${docs.length} magias selecionadas`);
+    writeSf2ePack('spells-core', docs, SF2E_PACK_MANIFESTS['spells-core']);
+  }
+
+  // Write build report
+  const reportPath = join(SF2E_PACKS_OUT_DIR, 'build-report.json');
+  writeFileSync(reportPath, JSON.stringify(report, null, 2), 'utf8');
+
+  console.log('\n[build-mvp] === SUMÁRIO (sf2e) ===');
+  for (const p of report.packs) {
+    console.log(`  ${p.packId}: ${p.documentCount} documentos`);
+  }
+  console.log(`\nPacks em: systems/sf2e/packs/`);
+  return report;
+}
+
+// ---------------------------------------------------------------------------
+// CLI entry point
+// ---------------------------------------------------------------------------
+
+async function main() {
+  const args = process.argv.slice(2);
+  const systemEq  = args.find(a => a.startsWith('--system='));
+  const systemIdx = args.indexOf('--system');
+  const systemFlag = systemEq
+    ? systemEq.split('=')[1]
+    : (systemIdx !== -1 ? args[systemIdx + 1] : null);
+  const system = systemFlag === 'sf2e' ? 'sf2e' : 'pf2e';
+
+  if (system === 'sf2e') {
+    await buildSf2eSubset();
+  } else {
+    await buildPf2eSubset();
+  }
 }
 
 main().catch(err => {

@@ -1,0 +1,27 @@
+{
+  "id": "sf2e.spells-core",
+  "label": "SF2e Core Spells",
+  "documentType": "Item",
+  "systemId": "sf2e",
+  "indexFields": [
+    "system.level",
+    "system.traits.value",
+    "system.traits.traditions",
+    "system.traits.rarity"
+  ],
+  "license": {
+    "license": "ORC",
+    "attribution": "Starfinder Player Core © 2025 Paizo Inc. Licensed under the ORC License.",
+    "reservedNotice": "Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+    "sourceRepo": "github.com/foundryvtt/pf2e",
+    "sourceVersion": "v14-dev"
+  },
+  "source": {
+    "repo": "github.com/foundryvtt/pf2e",
+    "version": "v14-dev",
+    "importerVersion": "0.1.0"
+  },
+  "schemaVersion": 1,
+  "documentCount": 10,
+  "generatedAt": "2026-07-01T21:21:20.116Z"
+}

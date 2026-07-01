@@ -91,6 +91,12 @@ export async function runWorldCreate(args: WorldCreateArgs): Promise<void> {
   } catch {
     // pf2e not available
   }
+  try {
+    const { sf2eSystem } = await import("@fusion/system-sf2e");
+    registry.register(sf2eSystem);
+  } catch {
+    // sf2e not available
+  }
 
   const manager = new WorldManager({ dataDir, validSystemIds: registry });
 

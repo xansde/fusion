@@ -24,3 +24,6 @@ systems/*/src/**/*.map
 *.log
 .DS_Store
 Thumbs.db
+
+# Claude agent worktrees
+.claude/worktrees/

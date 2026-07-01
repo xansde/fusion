@@ -99,6 +99,9 @@ importers:
       '@fusion/system-pf2e':
         specifier: workspace:*
         version: link:../../systems/pf2e
+      '@fusion/system-sf2e':
+        specifier: workspace:*
+        version: link:../../systems/sf2e
       '@fusion/system-stub':
         specifier: workspace:*
         version: link:../../systems/stub
@@ -214,6 +217,28 @@ importers:
       '@fusion/system-api':
         specifier: workspace:*
         version: link:../../packages/system-api
+      zod:
+        specifier: ^3.24.2
+        version: 3.25.76
+    devDependencies:
+      vitest:
+        specifier: ^3.2.2
+        version: 3.2.6(@types/node@22.19.21)
+
+  systems/sf2e:
+    dependencies:
+      '@fusion/engine-2e':
+        specifier: workspace:*
+        version: link:../engine-2e
+      '@fusion/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      '@fusion/system-api':
+        specifier: workspace:*
+        version: link:../../packages/system-api
+      '@fusion/system-pf2e':
+        specifier: workspace:*
+        version: link:../pf2e
       zod:
         specifier: ^3.24.2
         version: 3.25.76

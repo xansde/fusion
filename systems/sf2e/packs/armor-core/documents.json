@@ -1,0 +1,682 @@
+[
+  {
+    "_id": "G9XKxDrssxccDjYT",
+    "name": "Abadarcorp Travel Suit",
+    "type": "armor",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 1,
+      "baseItem": "abadarcorp-travel-suit",
+      "bulk": 0.1,
+      "category": "light",
+      "checkPenalty": 0,
+      "containerId": null,
+      "description": "",
+      "dexCap": 3,
+      "grade": "commercial",
+      "group": "cloth",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {
+        "grade": null,
+        "type": null
+      },
+      "price": {
+        "sp": 10
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "resilient": 0
+      },
+      "size": "med",
+      "speedPenalty": 0,
+      "strength": 0,
+      "traits": {
+        "rarity": "common",
+        "value": ["exposed", "tech"]
+      },
+      "armorType": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ehsCl5WJTANTlzBy",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "vest-blue.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "ulBYTcXuZ4lnl8Ht",
+    "name": "Aegis Series",
+    "type": "armor",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 6,
+      "baseItem": "aegis-series",
+      "bulk": 3,
+      "category": "heavy",
+      "checkPenalty": -3,
+      "containerId": null,
+      "description": "",
+      "dexCap": 0,
+      "grade": "commercial",
+      "group": "plate",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {
+        "grade": null,
+        "type": null
+      },
+      "price": {
+        "sp": 300
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "resilient": 0
+      },
+      "size": "med",
+      "speedPenalty": -10,
+      "strength": 3,
+      "traits": {
+        "rarity": "common",
+        "value": ["bulwark", "tech"]
+      },
+      "armorType": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "E9MKSSJCOk9ceLKc",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "breastplate-gorget-steel-white.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "0HhWKLFHgNmBdwsd",
+    "name": "Armored Coat",
+    "type": "armor",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 2,
+      "baseItem": "armored-coat",
+      "bulk": 1,
+      "category": "light",
+      "checkPenalty": -1,
+      "containerId": null,
+      "description": "",
+      "dexCap": 2,
+      "grade": "commercial",
+      "group": "leather",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {
+        "grade": null,
+        "type": null
+      },
+      "price": {
+        "sp": 20
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "resilient": 0
+      },
+      "size": "med",
+      "speedPenalty": 0,
+      "strength": 2,
+      "traits": {
+        "rarity": "common",
+        "value": ["comfort", "flexible", "tech"]
+      },
+      "armorType": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "mkMWda6ivlhnXq4d",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "breastplate-banded-leather-brown.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "yx41XDMZydq79HJ7",
+    "name": "Carbon Skin",
+    "type": "armor",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 1,
+      "baseItem": "carbon-skin",
+      "bulk": 1,
+      "category": "light",
+      "checkPenalty": -1,
+      "containerId": null,
+      "description": "",
+      "dexCap": 4,
+      "grade": "commercial",
+      "group": "polymer",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {
+        "grade": null,
+        "type": null
+      },
+      "price": {
+        "sp": 30
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "resilient": 0
+      },
+      "size": "med",
+      "speedPenalty": 0,
+      "strength": 0,
+      "traits": {
+        "rarity": "common",
+        "value": ["tech"]
+      },
+      "armorType": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "aNoSZiPBfxVJYvap",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "mantle-collared-black.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "dsK67RvMFK9VBGdj",
+    "name": "Estex Suit",
+    "type": "armor",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 1,
+      "baseItem": "estex-suit",
+      "bulk": 0.1,
+      "category": "light",
+      "checkPenalty": -1,
+      "containerId": null,
+      "description": "",
+      "dexCap": 3,
+      "grade": "commercial",
+      "group": "cloth",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {
+        "grade": null,
+        "type": null
+      },
+      "price": {
+        "sp": 30
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "resilient": 0
+      },
+      "size": "med",
+      "speedPenalty": 0,
+      "strength": 1,
+      "traits": {
+        "rarity": "common",
+        "value": ["comfort", "flexible", "tech"]
+      },
+      "armorType": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "FySX3VPYY1YkdBZg",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "armor-light-metal.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "I3sQnHxP7mQT9ewl",
+    "name": "Freebooter Armor",
+    "type": "armor",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 4,
+      "baseItem": "freebooter-armor",
+      "bulk": 2,
+      "category": "medium",
+      "checkPenalty": -2,
+      "containerId": null,
+      "description": "",
+      "dexCap": 1,
+      "grade": "commercial",
+      "group": "plate",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {
+        "grade": null,
+        "type": null
+      },
+      "price": {
+        "sp": 65
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "resilient": 0
+      },
+      "size": "med",
+      "speedPenalty": -5,
+      "strength": 3,
+      "traits": {
+        "rarity": "common",
+        "value": ["tech"]
+      },
+      "armorType": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "plBUD8dy3M3gGiHK",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "armor-brown-medium-powered.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "AZEl52rQj7UNgQ4M",
+    "name": "Hardlight Series",
+    "type": "armor",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 2,
+      "baseItem": "hardlight-series",
+      "bulk": 1,
+      "category": "light",
+      "checkPenalty": -1,
+      "containerId": null,
+      "description": "",
+      "dexCap": 3,
+      "grade": "commercial",
+      "group": "chain",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {
+        "grade": null,
+        "type": null
+      },
+      "price": {
+        "sp": 50
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "resilient": 0
+      },
+      "size": "med",
+      "speedPenalty": 0,
+      "strength": 1,
+      "traits": {
+        "rarity": "common",
+        "value": ["flexible", "noisy", "tech"]
+      },
+      "armorType": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "pcPU3BjbNclch4lS",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "breastplate-banded-blue.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "HEZMSo7SxDdanfma",
+    "name": "Hidden Soldier Armor",
+    "type": "armor",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 5,
+      "baseItem": "hidden-soldier-armor",
+      "bulk": 3,
+      "category": "heavy",
+      "checkPenalty": -3,
+      "containerId": null,
+      "description": "",
+      "dexCap": 1,
+      "grade": "commercial",
+      "group": "ceramic",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {
+        "grade": null,
+        "type": null
+      },
+      "price": {
+        "sp": 285
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "resilient": 0
+      },
+      "size": "med",
+      "speedPenalty": -10,
+      "strength": 4,
+      "traits": {
+        "rarity": "common",
+        "value": ["bulwark", "tech"]
+      },
+      "armorType": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "wnJTyjfupLw4Cy7G",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "armor-chestplate-bue.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "eXFPbVm3vqWT3avb",
+    "name": "Quilted Armor",
+    "type": "armor",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 2,
+      "baseItem": "quilted-armor",
+      "bulk": 1,
+      "category": "light",
+      "checkPenalty": -1,
+      "containerId": null,
+      "description": "",
+      "dexCap": 2,
+      "grade": "commercial",
+      "group": "cloth",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {
+        "grade": null,
+        "type": null
+      },
+      "price": {
+        "sp": 15
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "resilient": 0
+      },
+      "size": "med",
+      "speedPenalty": 0,
+      "strength": 1,
+      "traits": {
+        "rarity": "common",
+        "value": ["comfort", "tech"]
+      },
+      "armorType": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "9UiGMq93t13HEz90",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "breastplate-rivited-red.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "MJ8WCFgDGgssOulF",
+    "name": "Shotalashu Armor",
+    "type": "armor",
+    "img": "icons/placeholder/armor.svg",
+    "system": {
+      "acBonus": 3,
+      "baseItem": "shotalashu-armor",
+      "bulk": 2,
+      "category": "medium",
+      "checkPenalty": -2,
+      "containerId": null,
+      "description": "",
+      "dexCap": 2,
+      "grade": "commercial",
+      "group": "composite",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {
+        "grade": null,
+        "type": null
+      },
+      "price": {
+        "sp": 40
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "quantity": 1,
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "resilient": 0
+      },
+      "size": "med",
+      "speedPenalty": -5,
+      "strength": 2,
+      "traits": {
+        "rarity": "common",
+        "value": ["tech"]
+      },
+      "armorType": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "eU5n2fP7DvnFyqov",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "breastplate-sculpted-green.webp",
+            "placeholder": "icons/placeholder/armor.svg"
+          }
+        ]
+      }
+    }
+  }
+]

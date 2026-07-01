@@ -1,0 +1,632 @@
+[
+  {
+    "_id": "UcUyX825fOKtl5rh",
+    "name": "Akashic Fount",
+    "type": "spell",
+    "img": "icons/placeholder/spell.svg",
+    "system": {
+      "area": null,
+      "cost": "",
+      "counteraction": false,
+      "damage": {},
+      "defense": null,
+      "description": "",
+      "duration": {
+        "sustained": false,
+        "value": "1 minute"
+      },
+      "level": 1,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "range": "500 feet",
+      "requirements": "",
+      "rules": [],
+      "target": "1 bonded creature",
+      "time": {
+        "value": "1"
+      },
+      "traits": {
+        "rarity": "uncommon",
+        "traditions": [],
+        "value": ["concentrate", "focus", "manipulate", "mystic"]
+      },
+      "castTime": "1",
+      "heightening": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "mAu69GVbFKYzQM5a",
+        "packName": "spells",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "blue-space-chart.webp",
+            "placeholder": "icons/placeholder/spell.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "45H1qpHsZFnP6lkf",
+    "name": "Anthem",
+    "type": "spell",
+    "img": "icons/placeholder/spell.svg",
+    "system": {
+      "area": {
+        "type": "emanation",
+        "value": 60
+      },
+      "cost": "",
+      "counteraction": false,
+      "damage": {},
+      "defense": null,
+      "description": "",
+      "duration": {
+        "sustained": true,
+        "value": "1 minute"
+      },
+      "level": 1,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "range": "",
+      "requirements": "",
+      "rules": [],
+      "target": "",
+      "time": {
+        "value": "1"
+      },
+      "traits": {
+        "rarity": "uncommon",
+        "traditions": [],
+        "value": ["concentrate", "emotion", "focus", "manipulate", "mental", "mystic"]
+      },
+      "castTime": "1",
+      "heightening": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "smCC1LNhMb7Z1lrU",
+        "packName": "spells",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "bell-alarm-red-purple.webp",
+            "placeholder": "icons/placeholder/spell.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "7gBlqNfjvBrLw4jD",
+    "name": "Elemental Weapon",
+    "type": "spell",
+    "img": "icons/placeholder/spell.svg",
+    "system": {
+      "area": null,
+      "cost": "",
+      "counteraction": false,
+      "damage": {},
+      "defense": null,
+      "description": "",
+      "duration": {
+        "sustained": false,
+        "value": "10 minutes"
+      },
+      "level": 1,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "range": "30 feet",
+      "requirements": "",
+      "rules": [],
+      "target": "1 willing bonded creature",
+      "time": {
+        "value": "2"
+      },
+      "traits": {
+        "rarity": "uncommon",
+        "traditions": [],
+        "value": ["concentrate", "focus", "manipulate", "mystic"]
+      },
+      "castTime": "2",
+      "heightening": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "d5dmu4HZ3YyrwcaF",
+        "packName": "spells",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "cerulean-plasma-rifle.webp",
+            "placeholder": "icons/placeholder/spell.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Qpzj0O673vvEGrZI",
+    "name": "Eldritch Lance",
+    "type": "spell",
+    "img": "icons/placeholder/spell.svg",
+    "system": {
+      "area": null,
+      "cost": "",
+      "counteraction": false,
+      "damage": {
+        "HSVx7dCjnK53Ic2d": {
+          "applyMod": false,
+          "category": null,
+          "formula": "2d6",
+          "kinds": ["damage"],
+          "materials": [],
+          "type": "mental"
+        }
+      },
+      "defense": null,
+      "description": "",
+      "duration": {
+        "sustained": false,
+        "value": ""
+      },
+      "heightening": {
+        "area": 0,
+        "damage": {
+          "HSVx7dCjnK53Ic2d": "1d6"
+        },
+        "interval": 1,
+        "type": "interval"
+      },
+      "level": 1,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "range": "30 feet",
+      "requirements": "",
+      "rules": [],
+      "target": "1 creature",
+      "time": {
+        "value": "2"
+      },
+      "traits": {
+        "rarity": "common",
+        "traditions": ["divine", "occult"],
+        "value": ["attack", "cantrip", "concentrate", "manipulate", "mental"]
+      },
+      "castTime": "2"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "FEaM1B4WuiqFO7Uk",
+        "packName": "spells",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "projectile-bolts-salvo-pink.webp",
+            "placeholder": "icons/placeholder/spell.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "yI2tDzzGdqWVPWlG",
+    "name": "Implant Data",
+    "type": "spell",
+    "img": "icons/placeholder/spell.svg",
+    "system": {
+      "area": null,
+      "cost": "",
+      "counteraction": false,
+      "damage": {},
+      "defense": null,
+      "description": "",
+      "duration": {
+        "sustained": false,
+        "value": "1 day"
+      },
+      "level": 1,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "range": "30 feet",
+      "requirements": "",
+      "rules": [],
+      "target": "1 computer",
+      "time": {
+        "value": "2"
+      },
+      "traits": {
+        "rarity": "common",
+        "traditions": ["arcane", "occult"],
+        "value": ["cantrip", "concentrate", "manipulate"]
+      },
+      "castTime": "2",
+      "heightening": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ZBeKxBcUOsXrfMRo",
+        "packName": "spells",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "purple-insignia.webp",
+            "placeholder": "icons/placeholder/spell.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "oKjS78hTif88Xd7E",
+    "name": "Chill Gaze",
+    "type": "spell",
+    "img": "icons/placeholder/spell.svg",
+    "system": {
+      "area": null,
+      "cost": "",
+      "counteraction": false,
+      "damage": {},
+      "defense": {
+        "save": {
+          "basic": false,
+          "statistic": "fortitude"
+        }
+      },
+      "description": "",
+      "duration": {
+        "sustained": true,
+        "value": "1 minute"
+      },
+      "heightening": {
+        "levels": {
+          "4": {
+            "target": {
+              "value": "up to five creatures"
+            }
+          },
+          "7": {
+            "target": {
+              "value": "up to ten creatures"
+            }
+          }
+        },
+        "type": "fixed"
+      },
+      "level": 1,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Guilt of the Grave World"
+      },
+      "range": "60 feet",
+      "requirements": "",
+      "rules": [],
+      "target": "1 creature",
+      "time": {
+        "value": "2"
+      },
+      "traits": {
+        "rarity": "common",
+        "traditions": ["arcane", "primal"],
+        "value": ["cold", "concentrate", "manipulate", "mental"]
+      },
+      "castTime": "2"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "JIAIyvj4PV84tnFk",
+        "packName": "spells",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "beam-ice-impact.webp",
+            "placeholder": "icons/placeholder/spell.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "YFLljMLzxFKfdN5T",
+    "name": "Delete",
+    "type": "spell",
+    "img": "icons/placeholder/spell.svg",
+    "system": {
+      "area": null,
+      "cost": "",
+      "counteraction": false,
+      "damage": {},
+      "defense": null,
+      "description": "",
+      "duration": {
+        "sustained": false,
+        "value": ""
+      },
+      "level": 1,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "range": "30 feet",
+      "requirements": "",
+      "rules": [],
+      "target": "1 dataset or tech item with the tracking trait",
+      "time": {
+        "value": "2"
+      },
+      "traits": {
+        "rarity": "common",
+        "traditions": ["arcane", "occult"],
+        "value": ["concentrate", "manipulate"]
+      },
+      "castTime": "2",
+      "heightening": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "yXD9uU8w8uFD2OBQ",
+        "packName": "spells",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "cerulean-circular-sign.webp",
+            "placeholder": "icons/placeholder/spell.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "IVRlRjzMNSB5CBvd",
+    "name": "Enhance Weapon",
+    "type": "spell",
+    "img": "icons/placeholder/spell.svg",
+    "system": {
+      "area": null,
+      "cost": "",
+      "counteraction": false,
+      "damage": {},
+      "defense": null,
+      "description": "",
+      "duration": {
+        "sustained": false,
+        "value": "1 minute"
+      },
+      "level": 1,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "range": "touch",
+      "requirements": "",
+      "rules": [],
+      "target": "1 weapon that is unattended or wielded by a willing creature",
+      "time": {
+        "value": "2"
+      },
+      "traits": {
+        "rarity": "common",
+        "traditions": ["arcane", "divine", "occult", "primal"],
+        "value": ["concentrate", "manipulate"]
+      },
+      "castTime": "2",
+      "heightening": null
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ahXTkKpQtOTAQOFm",
+        "packName": "spells",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "heavy-gun.webp",
+            "placeholder": "icons/placeholder/spell.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "uOPcXCKAz8vmoV3A",
+    "name": "Mind Skewer",
+    "type": "spell",
+    "img": "icons/placeholder/spell.svg",
+    "system": {
+      "area": null,
+      "cost": "",
+      "counteraction": false,
+      "damage": {
+        "7Kfw2D6v6EKf50rP": {
+          "applyMod": false,
+          "category": null,
+          "formula": "2d6",
+          "kinds": ["damage"],
+          "materials": [],
+          "type": "mental"
+        }
+      },
+      "defense": {
+        "save": {
+          "basic": true,
+          "statistic": "will"
+        }
+      },
+      "description": "",
+      "duration": {
+        "sustained": false,
+        "value": ""
+      },
+      "heightening": {
+        "area": 0,
+        "damage": {
+          "7Kfw2D6v6EKf50rP": "2d6"
+        },
+        "interval": 1,
+        "type": "interval"
+      },
+      "level": 1,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "range": "60 feet",
+      "requirements": "",
+      "rules": [],
+      "target": "1 creature",
+      "time": {
+        "value": "2"
+      },
+      "traits": {
+        "rarity": "common",
+        "traditions": ["divine", "occult"],
+        "value": ["concentrate", "manipulate", "mental"]
+      },
+      "castTime": "2"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "uBo6g5aW087cLSJR",
+        "packName": "spells",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "explosion-impact-purple.webp",
+            "placeholder": "icons/placeholder/spell.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "QvUDQThXrdg4760M",
+    "name": "Overheat",
+    "type": "spell",
+    "img": "icons/placeholder/spell.svg",
+    "system": {
+      "area": null,
+      "cost": "",
+      "counteraction": false,
+      "damage": {
+        "3O8BQ5UDY9uuF2j8": {
+          "applyMod": false,
+          "category": null,
+          "formula": "2d6",
+          "kinds": ["damage"],
+          "materials": [],
+          "type": "fire"
+        }
+      },
+      "defense": {
+        "save": {
+          "basic": true,
+          "statistic": "reflex"
+        }
+      },
+      "description": "",
+      "duration": {
+        "sustained": false,
+        "value": ""
+      },
+      "heightening": {
+        "area": 0,
+        "damage": {
+          "3O8BQ5UDY9uuF2j8": "2d6"
+        },
+        "interval": 1,
+        "type": "interval"
+      },
+      "level": 1,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Starfinder Player Core"
+      },
+      "range": "60 feet",
+      "requirements": "",
+      "rules": [],
+      "target": "1 creature",
+      "time": {
+        "value": "2"
+      },
+      "traits": {
+        "rarity": "common",
+        "traditions": ["arcane", "primal"],
+        "value": ["concentrate", "fire", "manipulate"]
+      },
+      "castTime": "2"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "wOjoJjl2ndZKTuFJ",
+        "packName": "spells",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "orange-timer-fire.webp",
+            "placeholder": "icons/placeholder/spell.svg"
+          }
+        ]
+      }
+    }
+  }
+]

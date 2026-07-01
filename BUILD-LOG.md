@@ -7,25 +7,26 @@
 
 Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 → M2 → M3** (primeira sessão jogável), depois M4/M5/M6 se houver tempo.
 
-| Batch | Conteúdo                                                                        | Status       | Score auditoria |
-| ----- | ------------------------------------------------------------------------------- | ------------ | --------------- |
-| M0-A  | Scaffold monorepo, shared, system-api, stub system, server/client skeletons, CI | concluído    | 96              |
-| M0-B  | SQLite/WAL, migrations, world lifecycle, Document model + CRUD, CLI             | concluído    | 96              |
-| M0-C  | Fastify boot, socket.io handshake/envelope, auth (Argon2id/JWT), contract tests | concluído    | 96              |
-| M1-A  | Canvas PIXI v8, grade square, render groups                                     | concluído    | 96              |
-| M1-B  | Scene/Token embedded, CRUD broadcast, snapshot+resync, reconexão                | concluído    | 97              |
-| M1-C  | Tokens no canvas (drag, animação, barras), ownership no servidor                | concluído    | 97              |
-| M1-D  | Motor de rolagens (RNG servidor, roll modes, inline), chat + cards              | concluído    | 96              |
-| M1-E  | Assets (upload/serving), presença (cursores, ping, ruler), DoD M1               | concluído    | 97              |
-| M2-A  | Walls + portas, visibility polygon, luzes                                       | concluído    | 96              |
-| M2-B  | Fog of war (3 estados, persistência, Clipper2), broadcast de delta              | concluído    | 93 (dívida)     |
-| M2-C  | Combat/Combatant, tracker, InitiativeFormula, hooks de turno                    | concluído    | 96              |
-| M3-A  | System API completa + engine-2e (derivação, effects MVP, DoS, stacking, IWR)    | concluído    | 95              |
-| M3-B  | PF2e schemas + automação (strikes, saves, condições, spellcasting)              | concluído    | 72→✓ corrigido  |
-| M3-C  | UI framework (window manager, sheets, TipTap) + fichas PF2e                     | concluído    | 95              |
-| M3-D  | Importer pf2e + compendiums + i18n pt-BR + DoD M3 (primeira sessão jogável)     | concluído    | 58→94 corrigido |
+| Batch | Conteúdo                                                                        | Status    | Score auditoria |
+| ----- | ------------------------------------------------------------------------------- | --------- | --------------- |
+| M0-A  | Scaffold monorepo, shared, system-api, stub system, server/client skeletons, CI | concluído | 96              |
+| M0-B  | SQLite/WAL, migrations, world lifecycle, Document model + CRUD, CLI             | concluído | 96              |
+| M0-C  | Fastify boot, socket.io handshake/envelope, auth (Argon2id/JWT), contract tests | concluído | 96              |
+| M1-A  | Canvas PIXI v8, grade square, render groups                                     | concluído | 96              |
+| M1-B  | Scene/Token embedded, CRUD broadcast, snapshot+resync, reconexão                | concluído | 97              |
+| M1-C  | Tokens no canvas (drag, animação, barras), ownership no servidor                | concluído | 97              |
+| M1-D  | Motor de rolagens (RNG servidor, roll modes, inline), chat + cards              | concluído | 96              |
+| M1-E  | Assets (upload/serving), presença (cursores, ping, ruler), DoD M1               | concluído | 97              |
+| M2-A  | Walls + portas, visibility polygon, luzes                                       | concluído | 96              |
+| M2-B  | Fog of war (3 estados, persistência, Clipper2), broadcast de delta              | concluído | 93 (dívida)     |
+| M2-C  | Combat/Combatant, tracker, InitiativeFormula, hooks de turno                    | concluído | 96              |
+| M3-A  | System API completa + engine-2e (derivação, effects MVP, DoS, stacking, IWR)    | concluído | 95              |
+| M3-B  | PF2e schemas + automação (strikes, saves, condições, spellcasting)              | concluído | 72→✓ corrigido  |
+| M3-C  | UI framework (window manager, sheets, TipTap) + fichas PF2e                     | concluído | 95              |
+| M3-D  | Importer pf2e + compendiums + i18n pt-BR + DoD M3 (primeira sessão jogável)     | concluído | 58→94 corrigido |
+| M4    | Starfinder 2e (delta sobre engine-2e, importer sf2e, 6 packs, registro no server) | concluído | 88→96 corrigido |
 
-**🎉 MVP ALCANÇADO (2026-06-26) — primeira sessão jogável de PF2e funciona ponta-a-ponta (verificado via boot real).** ~2.500 testes verdes. Restam, pós-MVP e paralelizáveis: M4 (SF2e — dados confirmados), M5 (Etmos — packs prontos, falta compositor de magias), M6 (distribuição).
+**🎉 MVP ALCANÇADO (2026-06-26) — primeira sessão jogável de PF2e funciona ponta-a-ponta (verificado via boot real).** ~2.500 testes verdes. Pós-MVP: **M4 (SF2e) concluído em 2026-07-01** (~2.700 testes); designs do M5 (compositor Etmos) e M6 (distribuição) prontos em `docs/design/`. Restam: **M4.5-wiring** (religações críticas pré-existentes: iniciativa por sistema + derive em produção), M5 (Etmos, 5 batches A–E) e M6 (distribuição, 6 batches).
 
 > **Processo acelerado (autorizado pelo usuário em 2026-06-12, durante M2-B)**: gate reduzido — máx. **2** auditorias Opus por batch (antes 3) e aprovação com **dívida registrada** quando score ≥ 90 sem issues de severidade alta; M3 consolidado de 6 para 4 batches. Issues altas continuam bloqueando sempre.
 
@@ -50,6 +51,15 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 - Próximos batches após M2-A: M2-B (fog), M2-C (combate), depois M3 (A–F) → primeira sessão jogável.
 
 ## Registro por batch
+
+### M4 — Starfinder 2e (2026-07-01)
+
+- Relançado do zero em 2026-07-01 (os runs de 2026-06-26 morreram com a sessão sem deixar artefatos em disco). Workflow `wf_321af210-9f7` + ciclo de correção.
+- **Auditoria**: as duas primeiras tentativas com structured output retornaram placeholders inválidos ("test"/"Teste de schema" — mesmo modo de falha do re-audit do M3-B); o processo migrou para auditorias Opus em **texto livre**. Auditoria válida 1: **88** (2 médias: limite de augmentation "NOT YET WIRED" [REQ-SF2-024]; falta de teste boot-real dos packs sf2e). Corretor aplicou os 4 fixes; auditoria final: **96, aprovado**.
+- **Bug real colateral descoberto e corrigido**: `ActorSchema` sem campo `items` — o `.extend()` do Zod descartava silenciosamente itens embedded de Actor a cada persistência (nenhum item embedded em Actor persistia de fato).
+- **Findings pré-existentes CONFIRMADOS por verificação adversarial** (alta severidade; viram o batch **M4.5-wiring** antes do M5): (1) fórmulas de iniciativa dos sistemas nunca chegam ao `InitiativeFormulaRegistry` — o server rola 1d20 genérico desde o M2-C (o próprio teste da época monkey-patchava o resolver); (2) pipeline de derivação topológica nunca é invocado em produção — `system.derived` nunca é populado (client cai em fallback de dados crus); (3) `HookBus` da system-api é código morto em produção.
+- **Dívidas baixas registradas**: teste do importer usa cópia inline de `detectCrossSystemLeak` (exportar e importar a real); redação por-actor de inventário (`items` de Actors não-owned trafegam via broadcast/snapshot) — gap pré-existente desde M1, documentado em `redaction.ts`, batch próprio futuro.
+- **Em paralelo neste ciclo**: dívidas M2-B/M3-B pagas na branch `fix/divida-m2b-m3b` (fog superset provado via Clipper2, lighting stateKey por coordenadas, dw-016 falsificável) — mergeada após o commit do M4; designs completos do M5 (`docs/design/m5-etmos-compositor.md`) e M6 (`docs/design/m6-distribuicao.md`); vault Obsidian migrado para o local canônico.
 
 ### M3-D — Importer + compendiums + DoD (correção de auditoria) (2026-06-26)
 

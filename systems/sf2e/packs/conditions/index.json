@@ -1,0 +1,55 @@
+[
+  {
+    "_id": "q0NhHdWCZIdUUZnB",
+    "uuid": "Compendium.sf2e.conditions.Item.q0NhHdWCZIdUUZnB",
+    "name": "Glitching",
+    "img": "icons/placeholder/effect.svg",
+    "type": "effect",
+    "index": {
+      "system.duration": {
+        "expiry": null,
+        "sustained": false,
+        "unit": "unlimited",
+        "value": -1
+      },
+      "system.badge": {
+        "labels": null,
+        "loop": false,
+        "max": null,
+        "min": null,
+        "type": "counter",
+        "value": 1
+      }
+    }
+  },
+  {
+    "_id": "B3YY1PvvYny0tgDs",
+    "uuid": "Compendium.sf2e.conditions.Item.B3YY1PvvYny0tgDs",
+    "name": "Suppressed",
+    "img": "icons/placeholder/effect.svg",
+    "type": "effect",
+    "index": {
+      "system.duration": {
+        "expiry": null,
+        "sustained": false,
+        "unit": "unlimited",
+        "value": -1
+      }
+    }
+  },
+  {
+    "_id": "xgF0Yky2xOMPvATM",
+    "uuid": "Compendium.sf2e.conditions.Item.xgF0Yky2xOMPvATM",
+    "name": "Untethered",
+    "img": "icons/placeholder/effect.svg",
+    "type": "effect",
+    "index": {
+      "system.duration": {
+        "expiry": null,
+        "sustained": false,
+        "unit": "unlimited",
+        "value": -1
+      }
+    }
+  }
+]

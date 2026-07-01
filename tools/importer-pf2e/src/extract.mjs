@@ -1,17 +1,20 @@
 /**
- * extract.mjs — Fase 1 do pipeline de importação PF2E → Fusion
+ * extract.mjs — Fase 1 do pipeline de importação PF2E/SF2E → Fusion
  *
- * Lê os packs essenciais do repositório pf2e (vendor/pf2e/packs/pf2e/),
- * valida o formato de _id de TODOS os documentos contra o padrão Fusion
+ * Lê os packs essenciais do repositório pf2e (vendor/pf2e/packs/<system>/,
+ * onde <system> é "pf2e" ou "sf2e" — REQ-SF2-044, análise 04-sf2e-disponibilidade.md
+ * §6), valida o formato de _id de TODOS os documentos contra o padrão Fusion
  * ^[A-Za-z0-9]{16}$ e produz:
- *   - analysis/05-id-compat.md  — relatório de compatibilidade de _ids
- *   - out/<pack>/raw.json       — array de documentos brutos por pack
+ *   - analysis/05-id-compat.md  — relatório de compatibilidade de _ids (pf2e)
+ *   - analysis/05-id-compat-sf2e.md — idem para sf2e (quando --system sf2e)
+ *   - out/<system>/<pack>/raw.json  — array de documentos brutos por pack
  *
  * Zero dependências externas — Node 22 ESM puro.
  *
  * Uso:
- *   node src/extract.mjs [--packs equipment,spells,conditions,pathfinder-monster-core]
- *   node src/extract.mjs --all        # todos os packs pf2e
+ *   node src/extract.mjs [--system pf2e|sf2e] [--packs equipment,spells,conditions,pathfinder-monster-core]
+ *   node src/extract.mjs --system sf2e --all   # todos os packs sf2e
+ *   node src/extract.mjs --all                 # todos os packs pf2e (default)
  */
 
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync } from 'node:fs';
@@ -23,19 +26,28 @@ import { fileURLToPath } from 'node:url';
 // ---------------------------------------------------------------------------
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const IMPORTER_ROOT = join(__dirname, '..');
-const VENDOR_BASE   = join(IMPORTER_ROOT, 'vendor', 'pf2e', 'packs', 'pf2e');
+const VENDOR_ROOT    = join(IMPORTER_ROOT, 'vendor', 'pf2e', 'packs');
 const ANALYSIS_DIR  = join(IMPORTER_ROOT, 'analysis');
 const OUT_DIR       = join(IMPORTER_ROOT, 'out');
 
-// ---------------------------------------------------------------------------
-// Config — packs alvo padrão (Tier 1 essenciais para este estágio)
-// ---------------------------------------------------------------------------
-const DEFAULT_TARGET_PACKS = [
-  'equipment',
-  'spells',
-  'conditions',
-  'pathfinder-monster-core',
-];
+/**
+ * Resolves the vendor packs base directory for a given system selection.
+ * Both pf2e and sf2e live in the same vendor/pf2e clone, under
+ * packs/pf2e/ and packs/sf2e/ respectively (analysis 04 §1/§6).
+ * @param {'pf2e'|'sf2e'} system
+ */
+function vendorBaseFor(system) {
+  return join(VENDOR_ROOT, system);
+}
+
+/** Default target packs per system (Tier 1 essenciais para este estágio). */
+const DEFAULT_TARGET_PACKS_BY_SYSTEM = {
+  pf2e: ['equipment', 'spells', 'conditions', 'pathfinder-monster-core'],
+  // sf2e: sem pack "conditions" mecânico útil isoladamente (só 3 docs, tipo
+  // "effect" — ver analysis/08-sf2e-import.md); bestiary/equipment/spells
+  // são as fontes do subset MVP.
+  sf2e: ['equipment', 'spells', 'conditions', 'alien-core-bestiary', 'rulebook-bestiaries'],
+};
 
 /** Formato Fusion: exatamente 16 caracteres alfanuméricos (case-sensitive). */
 const FUSION_ID_REGEX = /^[A-Za-z0-9]{16}$/;
@@ -81,6 +93,7 @@ function ensureDir(dir) {
 /**
  * Extrai todos os documentos de um pack e valida os _ids.
  * @param {string} packName
+ * @param {string} vendorBase — diretório base do sistema (packs/pf2e ou packs/sf2e)
  * @returns {{
  *   packName: string,
  *   docs: object[],
@@ -92,8 +105,8 @@ function ensureDir(dir) {
  *   types: Record<string, number>,
  * }}
  */
-function extractPack(packName) {
-  const packDir = join(VENDOR_BASE, packName);
+function extractPack(packName, vendorBase) {
+  const packDir = join(vendorBase, packName);
 
   if (!existsSync(packDir)) {
     throw new Error(`Pack não encontrado: ${packDir}`);
@@ -130,7 +143,7 @@ function extractPack(packName) {
       if (invalidExamples.length < 10) {
         invalidExamples.push({
           id: id ?? '(ausente)',
-          file: relative(VENDOR_BASE, filePath),
+          file: relative(vendorBase, filePath),
         });
       }
     }
@@ -153,31 +166,39 @@ function extractPack(packName) {
 }
 
 /**
- * Persiste os documentos brutos em out/<packName>/raw.json.
+ * Persiste os documentos brutos em out/<system>/<packName>/raw.json.
+ * Sistema "pf2e" usa out/<packName>/ diretamente (path legado, preserva
+ * compatibilidade com o pipeline M3-D já commitado); "sf2e" usa
+ * out/sf2e/<packName>/ para não colidir com os outputs pf2e existentes.
  * @param {string} packName
  * @param {object[]} docs
+ * @param {'pf2e'|'sf2e'} system
  */
-function writeRaw(packName, docs) {
-  const dir = join(OUT_DIR, packName);
+function writeRaw(packName, docs, system) {
+  const dir = system === 'pf2e' ? join(OUT_DIR, packName) : join(OUT_DIR, system, packName);
   ensureDir(dir);
   const outPath = join(dir, 'raw.json');
   writeFileSync(outPath, JSON.stringify(docs, null, 2), 'utf8');
-  console.log(`[extract] out/${packName}/raw.json — ${docs.length} docs`);
+  console.log(`[extract] out/${system === 'pf2e' ? '' : system + '/'}${packName}/raw.json — ${docs.length} docs`);
   return outPath;
 }
 
 /**
- * Gera o relatório analysis/05-id-compat.md.
+ * Gera o relatório analysis/05-id-compat.md (pf2e) ou
+ * analysis/05-id-compat-sf2e.md (sf2e).
  * @param {ReturnType<typeof extractPack>[]} results
  * @param {object} globalStats
+ * @param {'pf2e'|'sf2e'} system
  */
-function writeIdCompatReport(results, globalStats) {
+function writeIdCompatReport(results, globalStats, system) {
   const lines = [];
+  const reportName = system === 'pf2e' ? '05-id-compat.md' : '05-id-compat-sf2e.md';
+  const systemLabel = system.toUpperCase();
 
-  lines.push('# 05 — Compatibilidade de _ids PF2E ↔ Fusion');
+  lines.push(`# 05 — Compatibilidade de _ids ${systemLabel} ↔ Fusion`);
   lines.push('');
   lines.push(`> Gerado em: ${new Date().toISOString().split('T')[0]}`);
-  lines.push(`> Script: \`src/extract.mjs\``);
+  lines.push(`> Script: \`src/extract.mjs --system ${system}\``);
   lines.push(`> Formato Fusion esperado: \`^[A-Za-z0-9]{16}$\` (16 caracteres alfanuméricos case-sensitive)`);
   lines.push('');
   lines.push('---');
@@ -203,7 +224,7 @@ function writeIdCompatReport(results, globalStats) {
   lines.push('');
   lines.push('---');
   lines.push('');
-  lines.push('## 2. Resultado global — TODOS os packs pf2e');
+  lines.push(`## 2. Resultado global — TODOS os packs ${system}`);
   lines.push('');
   lines.push(`| Métrica | Valor |`);
   lines.push(`|---|---|`);
@@ -303,9 +324,9 @@ function writeIdCompatReport(results, globalStats) {
     lines.push('');
   }
 
-  const reportPath = join(ANALYSIS_DIR, '05-id-compat.md');
+  const reportPath = join(ANALYSIS_DIR, reportName);
   writeFileSync(reportPath, lines.join('\n'), 'utf8');
-  console.log(`[extract] analysis/05-id-compat.md escrito`);
+  console.log(`[extract] analysis/${reportName} escrito`);
   return reportPath;
 }
 
@@ -313,7 +334,7 @@ function writeIdCompatReport(results, globalStats) {
 // Scan global de todos os packs (para relatório completo)
 // ---------------------------------------------------------------------------
 
-function scanAllPacks() {
+function scanAllPacks(vendorBase) {
   const FUSION_ID_REGEX = /^[A-Za-z0-9]{16}$/;
 
   function walkJsonFiles(dir, acc = []) {
@@ -326,7 +347,7 @@ function scanAllPacks() {
     return acc;
   }
 
-  const allFiles = walkJsonFiles(VENDOR_BASE);
+  const allFiles = walkJsonFiles(vendorBase);
   let total = 0, valid = 0, invalid = 0;
   const invalidExamples = [];
   const idLengths = {};
@@ -343,7 +364,7 @@ function scanAllPacks() {
       } else {
         invalid++;
         if (invalidExamples.length < 10) {
-          invalidExamples.push({ id: id ?? '(ausente)', file: relative(VENDOR_BASE, f) });
+          invalidExamples.push({ id: id ?? '(ausente)', file: relative(vendorBase, f) });
         }
       }
     } catch (_) {}
@@ -365,22 +386,31 @@ async function main() {
     ? packsEq.split('=')[1]
     : (packsIdx !== -1 ? args[packsIdx + 1] : null);
 
+  const systemEq  = args.find(a => a.startsWith('--system='));
+  const systemIdx = args.indexOf('--system');
+  const systemFlag = systemEq
+    ? systemEq.split('=')[1]
+    : (systemIdx !== -1 ? args[systemIdx + 1] : null);
+  const system = systemFlag === 'sf2e' ? 'sf2e' : 'pf2e';
+  const vendorBase = vendorBaseFor(system);
+
   let targetPacks;
   if (allFlag) {
-    targetPacks = readdirSync(VENDOR_BASE, { withFileTypes: true })
+    targetPacks = readdirSync(vendorBase, { withFileTypes: true })
       .filter(e => e.isDirectory())
       .map(e => e.name);
   } else if (packsFlag) {
     targetPacks = packsFlag.split(',').map(p => p.trim());
   } else {
-    targetPacks = DEFAULT_TARGET_PACKS;
+    targetPacks = DEFAULT_TARGET_PACKS_BY_SYSTEM[system];
   }
 
+  console.log(`[extract] Sistema: ${system}`);
   console.log(`[extract] Packs alvo: ${targetPacks.join(', ')}`);
   console.log(`[extract] Scanning todos os packs para relatório global...`);
 
   // 1. Scan global (todos os packs) para o relatório de _ids
-  const globalStats = scanAllPacks();
+  const globalStats = scanAllPacks(vendorBase);
   console.log(`[extract] Global: ${globalStats.total} docs, ${globalStats.valid} válidos, ${globalStats.invalid} inválidos`);
 
   // 2. Extrair packs alvo
@@ -388,9 +418,9 @@ async function main() {
   for (const packName of targetPacks) {
     console.log(`[extract] Extraindo pack: ${packName}...`);
     try {
-      const result = extractPack(packName);
+      const result = extractPack(packName, vendorBase);
       results.push(result);
-      writeRaw(packName, result.docs);
+      writeRaw(packName, result.docs, system);
       console.log(`[extract] ${packName}: ${result.total} docs, ${result.validIds} _ids válidos, ${result.invalidIds} inválidos`);
     } catch (err) {
       console.error(`[extract] ERRO em ${packName}: ${err.message}`);
@@ -399,14 +429,14 @@ async function main() {
 
   // 3. Gerar relatório de compatibilidade de _ids
   ensureDir(ANALYSIS_DIR);
-  writeIdCompatReport(results, globalStats);
+  writeIdCompatReport(results, globalStats, system);
 
   // 4. Sumário final
   console.log('\n[extract] === SUMÁRIO ===');
   console.log(`Packs processados: ${results.length}`);
   console.log(`Total documentos extraídos: ${results.reduce((s, r) => s + r.total, 0)}`);
   console.log(`_ids válidos (Fusion): ${globalStats.valid}/${globalStats.total} (${((globalStats.valid/globalStats.total)*100).toFixed(2)}% GLOBAL)`);
-  console.log(`Relatório: analysis/05-id-compat.md`);
+  console.log(`Relatório: analysis/${system === 'pf2e' ? '05-id-compat.md' : '05-id-compat-sf2e.md'}`);
 }
 
 main().catch(err => {

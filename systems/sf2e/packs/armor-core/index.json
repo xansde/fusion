@@ -1,0 +1,122 @@
+[
+  {
+    "_id": "G9XKxDrssxccDjYT",
+    "uuid": "Compendium.sf2e.armor-core.Item.G9XKxDrssxccDjYT",
+    "name": "Abadarcorp Travel Suit",
+    "img": "icons/placeholder/armor.svg",
+    "type": "armor",
+    "index": {
+      "system.level": 0,
+      "system.category": "light",
+      "system.traits.value": ["exposed", "tech"]
+    }
+  },
+  {
+    "_id": "ulBYTcXuZ4lnl8Ht",
+    "uuid": "Compendium.sf2e.armor-core.Item.ulBYTcXuZ4lnl8Ht",
+    "name": "Aegis Series",
+    "img": "icons/placeholder/armor.svg",
+    "type": "armor",
+    "index": {
+      "system.level": 0,
+      "system.category": "heavy",
+      "system.traits.value": ["bulwark", "tech"]
+    }
+  },
+  {
+    "_id": "0HhWKLFHgNmBdwsd",
+    "uuid": "Compendium.sf2e.armor-core.Item.0HhWKLFHgNmBdwsd",
+    "name": "Armored Coat",
+    "img": "icons/placeholder/armor.svg",
+    "type": "armor",
+    "index": {
+      "system.level": 0,
+      "system.category": "light",
+      "system.traits.value": ["comfort", "flexible", "tech"]
+    }
+  },
+  {
+    "_id": "yx41XDMZydq79HJ7",
+    "uuid": "Compendium.sf2e.armor-core.Item.yx41XDMZydq79HJ7",
+    "name": "Carbon Skin",
+    "img": "icons/placeholder/armor.svg",
+    "type": "armor",
+    "index": {
+      "system.level": 0,
+      "system.category": "light",
+      "system.traits.value": ["tech"]
+    }
+  },
+  {
+    "_id": "dsK67RvMFK9VBGdj",
+    "uuid": "Compendium.sf2e.armor-core.Item.dsK67RvMFK9VBGdj",
+    "name": "Estex Suit",
+    "img": "icons/placeholder/armor.svg",
+    "type": "armor",
+    "index": {
+      "system.level": 0,
+      "system.category": "light",
+      "system.traits.value": ["comfort", "flexible", "tech"]
+    }
+  },
+  {
+    "_id": "I3sQnHxP7mQT9ewl",
+    "uuid": "Compendium.sf2e.armor-core.Item.I3sQnHxP7mQT9ewl",
+    "name": "Freebooter Armor",
+    "img": "icons/placeholder/armor.svg",
+    "type": "armor",
+    "index": {
+      "system.level": 0,
+      "system.category": "medium",
+      "system.traits.value": ["tech"]
+    }
+  },
+  {
+    "_id": "AZEl52rQj7UNgQ4M",
+    "uuid": "Compendium.sf2e.armor-core.Item.AZEl52rQj7UNgQ4M",
+    "name": "Hardlight Series",
+    "img": "icons/placeholder/armor.svg",
+    "type": "armor",
+    "index": {
+      "system.level": 0,
+      "system.category": "light",
+      "system.traits.value": ["flexible", "noisy", "tech"]
+    }
+  },
+  {
+    "_id": "HEZMSo7SxDdanfma",
+    "uuid": "Compendium.sf2e.armor-core.Item.HEZMSo7SxDdanfma",
+    "name": "Hidden Soldier Armor",
+    "img": "icons/placeholder/armor.svg",
+    "type": "armor",
+    "index": {
+      "system.level": 0,
+      "system.category": "heavy",
+      "system.traits.value": ["bulwark", "tech"]
+    }
+  },
+  {
+    "_id": "eXFPbVm3vqWT3avb",
+    "uuid": "Compendium.sf2e.armor-core.Item.eXFPbVm3vqWT3avb",
+    "name": "Quilted Armor",
+    "img": "icons/placeholder/armor.svg",
+    "type": "armor",
+    "index": {
+      "system.level": 0,
+      "system.category": "light",
+      "system.traits.value": ["comfort", "tech"]
+    }
+  },
+  {
+    "_id": "MJ8WCFgDGgssOulF",
+    "uuid": "Compendium.sf2e.armor-core.Item.MJ8WCFgDGgssOulF",
+    "name": "Shotalashu Armor",
+    "img": "icons/placeholder/armor.svg",
+    "type": "armor",
+    "index": {
+      "system.level": 0,
+      "system.category": "medium",
+      "system.traits.value": ["tech"]
+    }
+  }
+]

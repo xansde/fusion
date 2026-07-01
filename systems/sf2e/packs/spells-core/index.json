@@ -1,0 +1,132 @@
+[
+  {
+    "_id": "UcUyX825fOKtl5rh",
+    "uuid": "Compendium.sf2e.spells-core.Item.UcUyX825fOKtl5rh",
+    "name": "Akashic Fount",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": ["concentrate", "focus", "manipulate", "mystic"],
+      "system.traits.traditions": [],
+      "system.traits.rarity": "uncommon"
+    }
+  },
+  {
+    "_id": "45H1qpHsZFnP6lkf",
+    "uuid": "Compendium.sf2e.spells-core.Item.45H1qpHsZFnP6lkf",
+    "name": "Anthem",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": ["concentrate", "emotion", "focus", "manipulate", "mental", "mystic"],
+      "system.traits.traditions": [],
+      "system.traits.rarity": "uncommon"
+    }
+  },
+  {
+    "_id": "7gBlqNfjvBrLw4jD",
+    "uuid": "Compendium.sf2e.spells-core.Item.7gBlqNfjvBrLw4jD",
+    "name": "Elemental Weapon",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": ["concentrate", "focus", "manipulate", "mystic"],
+      "system.traits.traditions": [],
+      "system.traits.rarity": "uncommon"
+    }
+  },
+  {
+    "_id": "Qpzj0O673vvEGrZI",
+    "uuid": "Compendium.sf2e.spells-core.Item.Qpzj0O673vvEGrZI",
+    "name": "Eldritch Lance",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": ["attack", "cantrip", "concentrate", "manipulate", "mental"],
+      "system.traits.traditions": ["divine", "occult"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "yI2tDzzGdqWVPWlG",
+    "uuid": "Compendium.sf2e.spells-core.Item.yI2tDzzGdqWVPWlG",
+    "name": "Implant Data",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": ["cantrip", "concentrate", "manipulate"],
+      "system.traits.traditions": ["arcane", "occult"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "oKjS78hTif88Xd7E",
+    "uuid": "Compendium.sf2e.spells-core.Item.oKjS78hTif88Xd7E",
+    "name": "Chill Gaze",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": ["cold", "concentrate", "manipulate", "mental"],
+      "system.traits.traditions": ["arcane", "primal"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "YFLljMLzxFKfdN5T",
+    "uuid": "Compendium.sf2e.spells-core.Item.YFLljMLzxFKfdN5T",
+    "name": "Delete",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": ["concentrate", "manipulate"],
+      "system.traits.traditions": ["arcane", "occult"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "IVRlRjzMNSB5CBvd",
+    "uuid": "Compendium.sf2e.spells-core.Item.IVRlRjzMNSB5CBvd",
+    "name": "Enhance Weapon",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": ["concentrate", "manipulate"],
+      "system.traits.traditions": ["arcane", "divine", "occult", "primal"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "uOPcXCKAz8vmoV3A",
+    "uuid": "Compendium.sf2e.spells-core.Item.uOPcXCKAz8vmoV3A",
+    "name": "Mind Skewer",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": ["concentrate", "manipulate", "mental"],
+      "system.traits.traditions": ["divine", "occult"],
+      "system.traits.rarity": "common"
+    }
+  },
+  {
+    "_id": "QvUDQThXrdg4760M",
+    "uuid": "Compendium.sf2e.spells-core.Item.QvUDQThXrdg4760M",
+    "name": "Overheat",
+    "img": "icons/placeholder/spell.svg",
+    "type": "spell",
+    "index": {
+      "system.level": 1,
+      "system.traits.value": ["concentrate", "fire", "manipulate"],
+      "system.traits.traditions": ["arcane", "primal"],
+      "system.traits.rarity": "common"
+    }
+  }
+]
