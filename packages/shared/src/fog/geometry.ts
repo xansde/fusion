@@ -36,6 +36,9 @@ import {
   ramerDouglasPeuckerPathsD,
   simplifyPathsD,
   isPositiveD,
+  inflatePathsD,
+  JoinType,
+  EndType,
   type PathD,
   type PathsD,
 } from "@countertype/clipper2-ts";
@@ -452,20 +455,34 @@ export function unionFogMany(existing: FogShape, newPolygons: readonly FogRing[]
  *     the best result achieved — the invariant is "never silently discard
  *     large explored region", not "always hit the target".
  *
- * Safety invariant:
- *  The simplified shape may have slightly fewer vertices but MUST NOT silently
- *  drop large explored areas. Tiny polygons (< MIN_POLYGON_AREA_PX2) are
- *  dropped as they represent noise, not real exploration.
+ * Safety invariant (REQ-VIS-082 — fairness: never lose fog the player already
+ * revealed):
+ *  The simplified shape may have slightly fewer vertices but MUST NOT shrink
+ *  the explored area: simplifiedArea ⊇ originalArea (within fp tolerance) for
+ *  every polygon that survives step 1. Tiny polygons (< MIN_POLYGON_AREA_PX2)
+ *  are the only intentional exception — they are dropped as noise, not real
+ *  exploration, per the documented free-reduction step.
+ *
+ *  To guarantee the superset property even though raw Douglas-Peucker output
+ *  can cut corners (shrinking the polygon), `applyDPSimplification` outward-
+ *  offsets the DP result by a small epsilon-proportional delta via Clipper2's
+ *  `inflatePathsD` (outer rings grow outward, hole rings shrink inward — both
+ *  directions only ever ADD area). As a final safety net (belt-and-suspenders
+ *  for pathological inputs where offsetting alone isn't enough), the offset
+ *  result is unioned back with the pre-simplification polygon so the return
+ *  value is a strict geometric superset by construction, not just by epsilon
+ *  tuning.
  *
  * Behavior at the limit:
  *  If even the most aggressive DP pass cannot hit the target, the function
  *  returns the shape with the minimum vertex count achievable. This is
- *  documented as "aggressive simplification may cause minor corner rounding"
- *  — the explored area is approximately preserved, not exactly.
+ *  documented as "aggressive simplification may cause minor corner rounding
+ *  (outward only)" — the explored area is preserved as a superset, not shrunk.
  *
  * @param shape - FogShape to simplify.
  * @param targetVertices - Desired vertex count (default: SOFT_FOG_VERTICES_TARGET).
- * @returns Simplified FogShape.
+ * @returns Simplified FogShape whose covered area is a superset of `shape`'s
+ *   (after dropping any sub-MIN_POLYGON_AREA_PX2 fragments).
  */
 export function simplifyFog(
   shape: FogShape,
@@ -519,42 +536,90 @@ function dropTinyPolygons(shape: FogShape): FogShape {
 }
 
 /**
- * Apply Ramer-Douglas-Peucker simplification to all rings in the shape.
+ * Apply Ramer-Douglas-Peucker simplification to all rings in the shape,
+ * then restore the superset invariant (REQ-VIS-082) that plain DP can violate.
  *
- * After DP, drop any polygons whose outer ring has fewer than MIN_RING_VERTICES
- * vertices (DP can collapse small polygons to lines/points).
+ * Plain Douglas-Peucker (and Clipper2's collinear-trim `simplifyPathsD`) can
+ * cut corners off a polygon, which SHRINKS the covered area — a fairness bug,
+ * since the player would silently lose fog they had already revealed. This
+ * function corrects for that in two layers:
+ *
+ *  1. Outward offset (`inflatePathsD`): each simplified path is grown by
+ *     `epsilon` in the direction that only ever adds area — outer rings
+ *     (positive winding) are inflated by +epsilon; hole rings (negative
+ *     winding) are inflated by -epsilon, which shrinks the hole and thus also
+ *     grows the net covered area. This corrects the common case cheaply.
+ *  2. Union fallback: the offset result is unioned (via Clipper2 `unionD`)
+ *     with the ORIGINAL pre-simplification paths. A union can only ever grow
+ *     or preserve area, so the final polygons are guaranteed to be a strict
+ *     geometric superset of the input regardless of how aggressively DP or
+ *     the offset step behaved. This makes the invariant hold by construction,
+ *     not by tuning epsilon values.
+ *
+ * After the union, drop any polygons whose outer ring has fewer than
+ * MIN_RING_VERTICES vertices (degenerate slivers Clipper2 may emit).
  */
 function applyDPSimplification(shape: FogShape, epsilon: number): FogShape {
-  // Gather all outer rings and hole rings separately
+  // Gather all outer rings and hole rings (original, pre-simplification —
+  // kept for the union fallback below).
   const allPaths: PathsD = [];
-  const ringMeta: Array<{ polyIdx: number; isHole: boolean }> = [];
 
-  for (let i = 0; i < shape.polygons.length; i++) {
-    const poly = shape.polygons[i];
-    if (poly === undefined) continue;
+  for (const poly of shape.polygons) {
     const outerPath = ringToPathD(poly.outer);
     if (outerPath !== null) {
       allPaths.push(outerPath);
-      ringMeta.push({ polyIdx: i, isHole: false });
     }
     for (const hole of poly.holes) {
       const holePath = ringToPathD(hole);
       if (holePath !== null) {
         allPaths.push(holePath);
-        ringMeta.push({ polyIdx: i, isHole: true });
       }
     }
   }
 
   if (allPaths.length === 0) return shape;
 
-  // Simplify all paths at once
-  const simplified = ramerDouglasPeuckerPathsD(allPaths, epsilon);
+  // Step A: Simplify all paths at once (this is what may shrink area).
+  const dpSimplified = ramerDouglasPeuckerPathsD(allPaths, epsilon);
 
   // Also apply collinear trimming via clipper2's simplifyPathsD
-  const trimmed = simplifyPathsD(simplified, epsilon);
+  const trimmed = simplifyPathsD(dpSimplified, epsilon);
 
-  // Rebuild polygons from the trimmed paths
-  // We use pathsDToShape which handles winding detection
-  return pathsDToShape(trimmed);
+  // Step B: outward-offset each path so simplification only ever grows area.
+  // Outer rings (positive winding) inflate outward (+epsilon); hole rings
+  // (negative winding) inflate by -epsilon, which shrinks the hole footprint
+  // and therefore also grows the net explored area.
+  const offsetPaths: PathsD = [];
+  for (const path of trimmed) {
+    if (path.length < MIN_RING_VERTICES) continue;
+    const delta = isPositiveD(path) ? epsilon : -epsilon;
+    const inflated = inflatePathsD(
+      [path],
+      delta,
+      JoinType.Miter,
+      EndType.Polygon,
+      2, // miterLimit (Clipper2 default)
+    );
+    for (const p of inflated) offsetPaths.push(p);
+  }
+
+  const offsetResult = offsetPaths.length > 0 ? offsetPaths : trimmed;
+
+  // Step C: union fallback — guarantees a strict superset of the ORIGINAL
+  // (pre-simplification) paths by construction, regardless of how the DP +
+  // offset steps behaved. This is the safety net for the REQ-VIS-082
+  // invariant: exploration must never appear to shrink.
+  let unioned: PathsD;
+  try {
+    unioned = unionD([...offsetResult, ...allPaths], FillRule.NonZero);
+  } catch {
+    // Clipper2 should not throw on valid input, but stay conservative:
+    // fall back to the original (unsimplified) shape rather than risk
+    // losing area.
+    return shape;
+  }
+
+  // Rebuild polygons from the unioned paths.
+  // We use pathsDToShape which handles winding detection.
+  return pathsDToShape(unioned);
 }

@@ -36,7 +36,10 @@
  * Performance notes:
  *  - Uses PIXI Graphics (CPU polygons) for MVP; WebGPU mesh shaders in V2.
  *  - Redraws only when VisionStateResult or FogRenderState changes.
- *  - Re-render guard: skips draw when state key unchanged.
+ *  - Re-render guard: skips draw when state key unchanged. The key is built
+ *    from actual coordinates/properties (see buildLightingStateKey below),
+ *    not vertex/ring COUNTS — moving a source without changing its polygon's
+ *    vertex count must still invalidate the cached render.
  *  - Debug: logs recalc time to console when F9 debug is active.
  */
 
@@ -454,17 +457,84 @@ export class LightingRenderer {
   }
 
   private _buildStateKey(state: VisionStateResult, fogState?: FogRenderState | null): string {
-    const vpKey = state.visionPolygons
-      .map((v) => `${v.tokenId}:${String(v.polygon.vertices.length)}`)
-      .join(",");
-    const lpKey = state.lightPolygons
-      .map((l) => `${l.lightId}:${String(l.polygon.vertices.length)}`)
-      .join(",");
-    const fogKey = fogState
-      ? `fog:${String(fogState.explored.totalVertices)}:${String(fogState.currentVisionRings.length)}`
-      : "nofog";
-    return `${String(state.isGm)}|${String(state.darkness)}|${String(state.globalLight)}|${vpKey}|${lpKey}|${fogKey}`;
+    return buildLightingStateKey(state, fogState);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Pure state-key builder (exported for unit testing without a PIXI renderer)
+// ---------------------------------------------------------------------------
+
+/**
+ * Serialize a VisibilityPolygon's vertices into a compact, content-sensitive
+ * string: every coordinate is included, not just the vertex count.
+ *
+ * Coordinates are rounded to a small fraction of a pixel (4 decimal places)
+ * so floating-point noise from repeated geometry ops doesn't cause spurious
+ * re-renders, while any real movement (which changes coordinates by at least
+ * a visible fraction of a pixel) still changes the key.
+ */
+function polygonVerticesKey(vertices: readonly { x: number; y: number }[]): string {
+  let key = "";
+  for (const v of vertices) {
+    key += `${v.x.toFixed(4)},${v.y.toFixed(4)};`;
+  }
+  return key;
+}
+
+/** Serialize a FogRing (flat [x0,y0,x1,y1,...]) into a coordinate-sensitive string. */
+function fogRingKey(ring: FogRing): string {
+  let key = "";
+  for (const coord of ring) {
+    key += `${coord.toFixed(4)},`;
+  }
+  return key;
+}
+
+/**
+ * Build the re-render guard key for LightingRenderer.render().
+ *
+ * MUST reflect the actual content that affects the drawn pixels — not just
+ * counts. A stateKey based on vertex/ring COUNTS is a real bug: moving a
+ * light or token without changing its polygon's vertex count (the common
+ * case — a light's visibility polygon shape stays topologically the same as
+ * it slides across open floor) would produce an unchanged key, so
+ * LightingRenderer.render() would skip the redraw and leave stale geometry
+ * on screen.
+ *
+ * This function includes:
+ *  - Full vertex coordinates for every vision and light polygon (not counts).
+ *  - Light id + color + intensity + dim/bright radii (properties that affect
+ *    the drawn gradient/color even when the polygon shape is unchanged).
+ *  - Full fog ring coordinates for explored polygons + current vision rings
+ *    (not just totalVertices/ring-count).
+ *
+ * Exported as a pure function (no PIXI dependency) so it can be unit tested
+ * without a renderer, per this codebase's convention (see
+ * CombatTurnMarker.test.ts / computePulseAlpha).
+ */
+export function buildLightingStateKey(
+  state: VisionStateResult,
+  fogState?: FogRenderState | null,
+): string {
+  const vpKey = state.visionPolygons
+    .map((v) => `${v.tokenId}:${polygonVerticesKey(v.polygon.vertices)}`)
+    .join("|");
+
+  const lpKey = state.lightPolygons
+    .map(
+      (l) =>
+        `${l.lightId}:${l.color}:${String(l.intensity)}:${String(l.dimPx)}:${String(l.brightPx)}:${polygonVerticesKey(l.polygon.vertices)}:${polygonVerticesKey(l.brightPolygon.vertices)}`,
+    )
+    .join("|");
+
+  const fogKey = fogState
+    ? `fog:${fogState.explored.polygons
+        .map((p) => `${fogRingKey(p.outer)}[${p.holes.map((h) => fogRingKey(h)).join("/")}]`)
+        .join("|")}:cv:${fogState.currentVisionRings.map((r) => fogRingKey(r)).join("|")}`
+    : "nofog";
+
+  return `${String(state.isGm)}|${String(state.darkness)}|${String(state.globalLight)}|${vpKey}||${lpKey}||${fogKey}`;
 }
 
 // ---------------------------------------------------------------------------
