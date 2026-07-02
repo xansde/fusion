@@ -281,3 +281,6 @@ export * from "./compositor/montar-frase.js";
 
 // Derivation steps (Orador)
 export * from "./derivations/index.js";
+
+// Compositor card state machine (M5-C)
+export * from "./conjuracao/state-machine.js";

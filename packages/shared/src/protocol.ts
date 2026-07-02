@@ -99,6 +99,13 @@ export const EnvelopeTypeSchema = z.union([
   z.literal("combat:turnChange"),
   z.literal("combat:initiativeSet"),
   z.literal("token:targeted"),
+  // M5-C: Etmos Compositor de Magias — conjuração card lifecycle (spec 19
+  // §Eventos do Compositor, design doc §2.7). client → server.
+  z.literal("etmos:conjuracao:propor"),
+  z.literal("etmos:conjuracao:arbitrar"),
+  z.literal("etmos:conjuracao:rolar"),
+  z.literal("etmos:conjuracao:resolver"),
+  z.literal("etmos:conjuracao:cancelar"),
 ]);
 
 export type EnvelopeType = z.infer<typeof EnvelopeTypeSchema>;

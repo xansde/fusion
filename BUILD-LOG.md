@@ -28,6 +28,7 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M4.5  | Wiring: iniciativa por sistema + derive em produção (findings pré-existentes)                 | concluído | 82→86→✓ corrigido |
 | M5-A  | Fundação system-api p/ Etmos (rollData, degreeOfSuccess, {roll,compare}, effectsMaterializer) | concluído | 96                |
 | M5-B  | Etmos: schemas Zod + packs (80 partículas) + compositor puro (fixtures G1-G10+G7b)            | concluído | 48→97 corrigido   |
+| M5-C  | Etmos: motor de conjuração no server (state-machine + 5 handlers + 2d6 no RollService)        | concluído | 91→✓ endurecido   |
 
 **🎉 MVP ALCANÇADO (2026-06-26) — primeira sessão jogável de PF2e funciona ponta-a-ponta (verificado via boot real).** ~2.500 testes verdes. Pós-MVP: **M4 (SF2e) concluído em 2026-07-01** (~2.700 testes); designs do M5 (compositor Etmos) e M6 (distribuição) prontos em `docs/design/`. Restam: **M4.5-wiring** (religações críticas pré-existentes: iniciativa por sistema + derive em produção), M5 (Etmos, 5 batches A–E) e M6 (distribuição, 6 batches).
 
@@ -54,6 +55,13 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 - Próximos batches após M2-A: M2-B (fog), M2-C (combate), depois M3 (A–F) → primeira sessão jogável.
 
 ## Registro por batch
+
+### M5-C — Etmos: motor de conjuração no servidor (2026-07-02)
+
+- State-machine pura do card (`systems/etmos/src/conjuracao/`, proposta→arbitrada→rolada→resolvida + recusada/cancelada, guardas por ator) + 5 handlers autoritativos `etmos:conjuracao:*` em `packages/server/src/etmos/` (2d6+Alma SEMPRE via RollService com rollData do builder registrado no M5-A; controle de Fadiga com as fórmulas exatas do REQ-ETM-025, morte Esgotado como flag narrativa; custo de Estresse só na resolução e acumulando mesmo em falha; `excede_maxima` advisory no arbitrar). Registro no server (socket-manager + SystemRegistry) + e2e por boot real com GM e player via socket.io/JWT.
+- **Gate**: auditoria Fable 5 = 91 (aprovado, sem altas) com 4 médias — pagas na hora numa rodada de endurecimento em vez de viraram dívida: push no OpBuffer (cliente reconectando recebe Estresse/card via `resync:delta` — provado por teste e2e de reconexão), rollData pela fonte única registrada, ownership via `testOwnership` (honra default/INHERIT), cobertura do ramo Esgotado; + safeParse tipado e aviso REQ-ETM-026. **Sonda empírica final (Fable 5) aprovou**: fluxo completo com custo Totem calculado à mão (dificil rank 2 = 4), reconexão com delta íntegro, guardas rejeitando, zero scratch residual.
+- Nota: `combat-handlers.isOwnedByPlayer` tem o mesmo padrão hand-rolled de ownership (pré-existente, não tocado) — candidato a batch de unificação futuro.
+- Run anterior do workflow morreu com o processo (~5h paradas até o usuário avisar); relançado com instrução de inventariar o parcial em disco — funcionou bem.
 
 ### M5-B — Etmos: schemas, packs e compositor puro (2026-07-02)
 

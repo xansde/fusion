@@ -99,6 +99,9 @@ importers:
       '@fusion/system-api':
         specifier: workspace:*
         version: link:../system-api
+      '@fusion/system-etmos':
+        specifier: workspace:*
+        version: link:../../systems/etmos
       '@fusion/system-pf2e':
         specifier: workspace:*
         version: link:../../systems/pf2e

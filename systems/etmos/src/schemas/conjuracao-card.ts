@@ -28,6 +28,14 @@ export const ConjuracaoCardSchema = z.object({
   // preenchido pelo Narrador (arbitragem):
   complexidade: ComplexidadeSchema.nullable().default(null),
   custo_estresse: z.number().int().nullable().default(null),
+  /**
+   * REQ-ETM-026: true when the Narrador chose a `complexidade` above the
+   * conjurador's `complexidadeMaxima(mente)` at arbitragem time. This is an
+   * ADVISORY flag only — arbitrar is a GM-only action and choosing above the
+   * max is a legitimate Narrador override (never blocked); the flag exists
+   * purely so the M5-D UI can surface a warning on the card.
+   */
+  excede_maxima: z.boolean().default(false),
   notas_narrador: z.string().default(""),
   // resultado:
   roll_message_id: z.string().nullable().default(null),

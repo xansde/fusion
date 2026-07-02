@@ -97,6 +97,12 @@ export async function runWorldCreate(args: WorldCreateArgs): Promise<void> {
   } catch {
     // sf2e not available
   }
+  try {
+    const { etmosSystem } = await import("@fusion/system-etmos");
+    registry.register(etmosSystem);
+  } catch {
+    // etmos not available
+  }
 
   const manager = new WorldManager({ dataDir, validSystemIds: registry });
 

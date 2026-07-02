@@ -73,6 +73,13 @@ import {
   buildChatHistoryHandler,
   getRecentChatForUser,
 } from "../chat/index.js";
+import {
+  buildConjuracaoProporHandler,
+  buildConjuracaoArbitrarHandler,
+  buildConjuracaoRolarHandler,
+  buildConjuracaoResolverHandler,
+  buildConjuracaoCancelarHandler,
+} from "../etmos/index.js";
 import { redactAckResultForNonPrivileged } from "./redaction.js";
 import { DocumentStore } from "../documents/index.js";
 import type { AuthService } from "../auth/service.js";
@@ -344,6 +351,25 @@ export class SocketManager {
     registry.register("compendium:search", buildCompendiumSearchHandler(compDeps));
     registry.register("compendium:get", buildCompendiumGetHandler(compDeps));
     registry.register("compendium:import", buildCompendiumImportHandler(compDeps));
+
+    // Register M5-C Etmos Compositor de Magias handlers (etmos:conjuracao:*).
+    // Only meaningful when the active world system is "etmos" — registered
+    // unconditionally like the other system-agnostic handlers; clients of
+    // non-Etmos worlds simply never emit these envelope types.
+    const conjuracaoDeps = {
+      store,
+      db,
+      ns,
+      seqStore,
+      opBuffer,
+      worldId,
+      ...(systemModule !== undefined ? { systemModule } : {}),
+    };
+    registry.register("etmos:conjuracao:propor", buildConjuracaoProporHandler(conjuracaoDeps));
+    registry.register("etmos:conjuracao:arbitrar", buildConjuracaoArbitrarHandler(conjuracaoDeps));
+    registry.register("etmos:conjuracao:rolar", buildConjuracaoRolarHandler(conjuracaoDeps));
+    registry.register("etmos:conjuracao:resolver", buildConjuracaoResolverHandler(conjuracaoDeps));
+    registry.register("etmos:conjuracao:cancelar", buildConjuracaoCancelarHandler(conjuracaoDeps));
 
     // REQ-NET-003/014: auth middleware runs before connection is accepted
     ns.use((socket, next) => {
