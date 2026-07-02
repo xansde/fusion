@@ -1,0 +1,232 @@
+[
+  {
+    "_id": "ThB958OC9MR5eyGY",
+    "uuid": "Compendium.etmos.habilidades.Item.ThB958OC9MR5eyGY",
+    "name": "Conjuração Silenciosa",
+    "img": null,
+    "type": "habilidade",
+    "index": {
+      "system.categoria": "pratica"
+    }
+  },
+  {
+    "_id": "4UDN2hJr4MMFJvGP",
+    "uuid": "Compendium.etmos.habilidades.Item.4UDN2hJr4MMFJvGP",
+    "name": "Armas Brancas",
+    "img": null,
+    "type": "habilidade",
+    "index": {
+      "system.categoria": "pratica"
+    }
+  },
+  {
+    "_id": "LdjLivLdthCFlVlC",
+    "uuid": "Compendium.etmos.habilidades.Item.LdjLivLdthCFlVlC",
+    "name": "Diplomacia",
+    "img": null,
+    "type": "habilidade",
+    "index": {
+      "system.categoria": "pratica"
+    }
+  },
+  {
+    "_id": "iVThvPJD1sDhBCVo",
+    "uuid": "Compendium.etmos.habilidades.Item.iVThvPJD1sDhBCVo",
+    "name": "Performance",
+    "img": null,
+    "type": "habilidade",
+    "index": {
+      "system.categoria": "pratica"
+    }
+  },
+  {
+    "_id": "2cajCQhLuo6IKbdD",
+    "uuid": "Compendium.etmos.habilidades.Item.2cajCQhLuo6IKbdD",
+    "name": "Armas de Longo Alcance",
+    "img": null,
+    "type": "habilidade",
+    "index": {
+      "system.categoria": "pratica"
+    }
+  },
+  {
+    "_id": "gR2LgRVdmznHVMhi",
+    "uuid": "Compendium.etmos.habilidades.Item.gR2LgRVdmznHVMhi",
+    "name": "Treinamento Mágico",
+    "img": null,
+    "type": "habilidade",
+    "index": {
+      "system.categoria": "teorica"
+    }
+  },
+  {
+    "_id": "rb4kGF4aQ7lrEYT3",
+    "uuid": "Compendium.etmos.habilidades.Item.rb4kGF4aQ7lrEYT3",
+    "name": "Conhecimento",
+    "img": null,
+    "type": "habilidade",
+    "index": {
+      "system.categoria": "teorica"
+    }
+  },
+  {
+    "_id": "oCqe3cO0OZxApzff",
+    "uuid": "Compendium.etmos.habilidades.Item.oCqe3cO0OZxApzff",
+    "name": "Artes de Combate",
+    "img": null,
+    "type": "habilidade",
+    "index": {
+      "system.categoria": "teorica"
+    }
+  },
+  {
+    "_id": "6lMfPntdv7WPDMZh",
+    "uuid": "Compendium.etmos.habilidades.Item.6lMfPntdv7WPDMZh",
+    "name": "Sobrevivência",
+    "img": null,
+    "type": "habilidade",
+    "index": {
+      "system.categoria": "pratica"
+    }
+  },
+  {
+    "_id": "jf3Pgr0AIHVdzy3G",
+    "uuid": "Compendium.etmos.habilidades.Item.jf3Pgr0AIHVdzy3G",
+    "name": "Pronto para Ação",
+    "img": null,
+    "type": "habilidade",
+    "index": {
+      "system.categoria": "pratica"
+    }
+  },
+  {
+    "_id": "hAlahUI5shDcva2v",
+    "uuid": "Compendium.etmos.habilidades.Item.hAlahUI5shDcva2v",
+    "name": "Inspirador",
+    "img": null,
+    "type": "habilidade",
+    "index": {
+      "system.categoria": "pratica"
+    }
+  },
+  {
+    "_id": "EACsrrG0P5AAhCZm",
+    "uuid": "Compendium.etmos.habilidades.Item.EACsrrG0P5AAhCZm",
+    "name": "Fanático por Mundanos",
+    "img": null,
+    "type": "habilidade",
+    "index": {
+      "system.categoria": "pratica"
+    }
+  },
+  {
+    "_id": "13VnTQUv9lISESKE",
+    "uuid": "Compendium.etmos.habilidades.Item.13VnTQUv9lISESKE",
+    "name": "Aparar",
+    "img": null,
+    "type": "habilidade",
+    "index": {
+      "system.categoria": "pratica"
+    }
+  },
+  {
+    "_id": "hPnAyrPYQzno0G9T",
+    "uuid": "Compendium.etmos.habilidades.Item.hPnAyrPYQzno0G9T",
+    "name": "Ladinagem",
+    "img": null,
+    "type": "habilidade",
+    "index": {
+      "system.categoria": "pratica"
+    }
+  },
+  {
+    "_id": "hFJ2NQNFLiGWxLz6",
+    "uuid": "Compendium.etmos.habilidades.Item.hFJ2NQNFLiGWxLz6",
+    "name": "Percepção",
+    "img": null,
+    "type": "habilidade",
+    "index": {
+      "system.categoria": "pratica"
+    }
+  },
+  {
+    "_id": "Gg4GR3aYdc6DxOM6",
+    "uuid": "Compendium.etmos.habilidades.Item.Gg4GR3aYdc6DxOM6",
+    "name": "Exceder os Limites",
+    "img": null,
+    "type": "habilidade",
+    "index": {
+      "system.categoria": "pratica"
+    }
+  },
+  {
+    "_id": "WcOHe9DnEAEIR3Pd",
+    "uuid": "Compendium.etmos.habilidades.Item.WcOHe9DnEAEIR3Pd",
+    "name": "Enganar",
+    "img": null,
+    "type": "habilidade",
+    "index": {
+      "system.categoria": "pratica"
+    }
+  },
+  {
+    "_id": "pzqwD8u0OQaKCPkS",
+    "uuid": "Compendium.etmos.habilidades.Item.pzqwD8u0OQaKCPkS",
+    "name": "Agilidade Mental",
+    "img": null,
+    "type": "habilidade",
+    "index": {
+      "system.categoria": "teorica"
+    }
+  },
+  {
+    "_id": "DwuCKkHykcqyGbcx",
+    "uuid": "Compendium.etmos.habilidades.Item.DwuCKkHykcqyGbcx",
+    "name": "Dedicado",
+    "img": null,
+    "type": "habilidade",
+    "index": {
+      "system.categoria": "teorica"
+    }
+  },
+  {
+    "_id": "E4R7iR6HAyUjWJHX",
+    "uuid": "Compendium.etmos.habilidades.Item.E4R7iR6HAyUjWJHX",
+    "name": "Comunicação de Intenção",
+    "img": null,
+    "type": "habilidade",
+    "index": {
+      "system.categoria": "teorica"
+    }
+  },
+  {
+    "_id": "IEGyhiv9aCFbqAux",
+    "uuid": "Compendium.etmos.habilidades.Item.IEGyhiv9aCFbqAux",
+    "name": "Culinária",
+    "img": null,
+    "type": "habilidade",
+    "index": {
+      "system.categoria": "teorica"
+    }
+  },
+  {
+    "_id": "1TcYpwngsxROzHhw",
+    "uuid": "Compendium.etmos.habilidades.Item.1TcYpwngsxROzHhw",
+    "name": "Reconhecer Sinais",
+    "img": null,
+    "type": "habilidade",
+    "index": {
+      "system.categoria": "teorica"
+    }
+  },
+  {
+    "_id": "w2jrlWOBWNNsXx2u",
+    "uuid": "Compendium.etmos.habilidades.Item.w2jrlWOBWNNsXx2u",
+    "name": "Expert em Oratória (Invocar)",
+    "img": null,
+    "type": "habilidade",
+    "index": {
+      "system.categoria": "pratica"
+    }
+  }
+]

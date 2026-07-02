@@ -1,0 +1,25 @@
+{
+  "packs": [
+    {
+      "slug": "particulas",
+      "packId": "etmos.particulas",
+      "documentCount": 80
+    },
+    {
+      "slug": "origens",
+      "packId": "etmos.origens",
+      "documentCount": 10
+    },
+    {
+      "slug": "habilidades",
+      "packId": "etmos.habilidades",
+      "documentCount": 23
+    },
+    {
+      "slug": "antagonistas",
+      "packId": "etmos.antagonistas",
+      "documentCount": 2
+    }
+  ],
+  "generatedAt": "2026-07-02T04:22:36.158Z"
+}

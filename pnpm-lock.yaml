@@ -209,6 +209,22 @@ importers:
         specifier: ^3.2.2
         version: 3.2.6(@types/node@22.19.21)
 
+  systems/etmos:
+    dependencies:
+      '@fusion/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      '@fusion/system-api':
+        specifier: workspace:*
+        version: link:../../packages/system-api
+      zod:
+        specifier: ^3.24.2
+        version: 3.25.76
+    devDependencies:
+      vitest:
+        specifier: ^3.2.2
+        version: 3.2.6(@types/node@22.19.21)
+
   systems/pf2e:
     dependencies:
       '@fusion/engine-2e':

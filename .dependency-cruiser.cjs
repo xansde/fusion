@@ -114,6 +114,30 @@ module.exports = {
       from: { path: "^systems/sf2e" },
       to: { path: "^packages/client" },
     },
+    {
+      name: "etmos-must-not-import-server",
+      comment:
+        "systems/etmos must not import packages/server (REQ-ARQ-005)",
+      severity: "error",
+      from: { path: "^systems/etmos" },
+      to: { path: "^packages/server" },
+    },
+    {
+      name: "etmos-must-not-import-client",
+      comment:
+        "systems/etmos must not import packages/client (REQ-ARQ-005)",
+      severity: "error",
+      from: { path: "^systems/etmos" },
+      to: { path: "^packages/client" },
+    },
+    {
+      name: "etmos-must-not-import-other-systems",
+      comment:
+        "systems/etmos must not import other systems/* — it does not depend on engine-2e/pf2e/sf2e (REQ-ARQ-005)",
+      severity: "error",
+      from: { path: "^systems/etmos" },
+      to: { path: "^systems/(?!etmos)" },
+    },
   ],
   options: {
     doNotFollow: {

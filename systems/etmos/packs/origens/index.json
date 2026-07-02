@@ -1,0 +1,112 @@
+[
+  {
+    "_id": "cankZCvcVav5p2kB",
+    "uuid": "Compendium.etmos.origens.Item.cankZCvcVav5p2kB",
+    "name": "Berço de Ouro",
+    "img": null,
+    "type": "origem",
+    "index": {
+      "system.mundo_associado": "mundano",
+      "system.exclusiva": true
+    }
+  },
+  {
+    "_id": "g8uKg6y3aC571jxW",
+    "uuid": "Compendium.etmos.origens.Item.g8uKg6y3aC571jxW",
+    "name": "Orador Prodígio",
+    "img": null,
+    "type": "origem",
+    "index": {
+      "system.mundo_associado": "fantastico",
+      "system.exclusiva": false
+    }
+  },
+  {
+    "_id": "nV7V4xWTIjXZ43rK",
+    "uuid": "Compendium.etmos.origens.Item.nV7V4xWTIjXZ43rK",
+    "name": "Atleta",
+    "img": null,
+    "type": "origem",
+    "index": {
+      "system.mundo_associado": "mundano",
+      "system.exclusiva": false
+    }
+  },
+  {
+    "_id": "kg38Np3tJVvRha5K",
+    "uuid": "Compendium.etmos.origens.Item.kg38Np3tJVvRha5K",
+    "name": "\"Inteligência das Ruas\"",
+    "img": null,
+    "type": "origem",
+    "index": {
+      "system.mundo_associado": "mundano",
+      "system.exclusiva": true
+    }
+  },
+  {
+    "_id": "QboHLH7egWhFHBsU",
+    "uuid": "Compendium.etmos.origens.Item.QboHLH7egWhFHBsU",
+    "name": "Voo",
+    "img": null,
+    "type": "origem",
+    "index": {
+      "system.mundo_associado": "fantastico",
+      "system.exclusiva": true
+    }
+  },
+  {
+    "_id": "8aALytPMonMCwhN9",
+    "uuid": "Compendium.etmos.origens.Item.8aALytPMonMCwhN9",
+    "name": "Viajado",
+    "img": null,
+    "type": "origem",
+    "index": {
+      "system.mundo_associado": "ambos",
+      "system.exclusiva": false
+    }
+  },
+  {
+    "_id": "RQg4WTdtuZrHQVvt",
+    "uuid": "Compendium.etmos.origens.Item.RQg4WTdtuZrHQVvt",
+    "name": "Criado no Fantástico",
+    "img": null,
+    "type": "origem",
+    "index": {
+      "system.mundo_associado": "ambos",
+      "system.exclusiva": false
+    }
+  },
+  {
+    "_id": "YImNM7i1rHXjYihj",
+    "uuid": "Compendium.etmos.origens.Item.YImNM7i1rHXjYihj",
+    "name": "Charme Fantástico",
+    "img": null,
+    "type": "origem",
+    "index": {
+      "system.mundo_associado": "ambos",
+      "system.exclusiva": false
+    }
+  },
+  {
+    "_id": "ywdltrjS6l9wvccF",
+    "uuid": "Compendium.etmos.origens.Item.ywdltrjS6l9wvccF",
+    "name": "Ensino Formal Mundano",
+    "img": null,
+    "type": "origem",
+    "index": {
+      "system.mundo_associado": "ambos",
+      "system.exclusiva": false
+    }
+  },
+  {
+    "_id": "wM1BhkwbrqHqllLS",
+    "uuid": "Compendium.etmos.origens.Item.wM1BhkwbrqHqllLS",
+    "name": "Aluno Modelo",
+    "img": null,
+    "type": "origem",
+    "index": {
+      "system.mundo_associado": "ambos",
+      "system.exclusiva": false
+    }
+  }
+]

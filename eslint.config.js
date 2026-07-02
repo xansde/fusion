@@ -30,6 +30,7 @@ export default tseslint.config(
       "systems/engine-2e/src/**/*.ts",
       "systems/pf2e/src/**/*.ts",
       "systems/sf2e/src/**/*.ts",
+      "systems/etmos/src/**/*.ts",
     ],
     ignores: [
       "**/__tests__/**",

@@ -27,6 +27,7 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M4    | Starfinder 2e (delta sobre engine-2e, importer sf2e, 6 packs, registro no server)             | concluído | 88→96 corrigido   |
 | M4.5  | Wiring: iniciativa por sistema + derive em produção (findings pré-existentes)                 | concluído | 82→86→✓ corrigido |
 | M5-A  | Fundação system-api p/ Etmos (rollData, degreeOfSuccess, {roll,compare}, effectsMaterializer) | concluído | 96                |
+| M5-B  | Etmos: schemas Zod + packs (80 partículas) + compositor puro (fixtures G1-G10+G7b)            | concluído | 48→97 corrigido   |
 
 **🎉 MVP ALCANÇADO (2026-06-26) — primeira sessão jogável de PF2e funciona ponta-a-ponta (verificado via boot real).** ~2.500 testes verdes. Pós-MVP: **M4 (SF2e) concluído em 2026-07-01** (~2.700 testes); designs do M5 (compositor Etmos) e M6 (distribuição) prontos em `docs/design/`. Restam: **M4.5-wiring** (religações críticas pré-existentes: iniciativa por sistema + derive em produção), M5 (Etmos, 5 batches A–E) e M6 (distribuição, 6 batches).
 
@@ -53,6 +54,13 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 - Próximos batches após M2-A: M2-B (fog), M2-C (combate), depois M3 (A–F) → primeira sessão jogável.
 
 ## Registro por batch
+
+### M5-B — Etmos: schemas, packs e compositor puro (2026-07-02)
+
+- Nasce o pacote `systems/etmos` (@fusion/system-etmos): schemas Zod (Orador/Antagonista/Particula/FraseMagica/CriadorAplicado com alvo union number|tuple, enums Complexidade/Categoria/Subtipo), `defineSystem` registrando os subtypes + as surfaces do M5-A (degreeOfSuccess binário próprio, effectsMaterializer vazio — actors Etmos nunca caem no fallback 2e do derive-runner, rollData de orador+antagonista), build de packs (`build-packs.mjs` formata a própria saída; catálogo 80 = 81 − "Mat" verify, 17F/19O/34C/10Comp), e o **motor puro do compositor**: `montarFrase` (fusão núcleo + casing adaQuan/noTum/Mutexa/QuanAgAer), `validarFrase` (erros como chaves i18n), `custoEstresse` (rank Totem só fora de trivial), `estadoFadiga`, degree binário success/failure + `classeDificuldade`. 174 testes.
+- **Golden fixtures G1-G10 + G7b**: transcritas do SRD no batch, recalculadas à mão por DOIS auditores independentes contra `packs-src/particulas.json` — todas batem.
+- **Auditoria**: 48 na 1ª (conteúdo validado como de alta qualidade; reprova só por gates — format:check quebrando em packs gerados + etmos fora do bloco type-aware do eslint com 3 erros reais escondidos) → corretor (fixes estruturais, zero disables) → **97, aprovado** (2ª auditoria re-rodou o build de packs e confirmou saída prettier-clean regenerável).
+- Dívidas baixas: `descricao` dos packs carrega prosa editorial verbatim do packs-src já commitado (aceito sob R8 — uso privado; **esvaziar no build antes de qualquer distribuição/M6**); `initiative.ts` (2d6+Corpo, 9 testes) pronto mas não registrado — registro é escopo M5-E.
 
 ### M5-A — Fundação da system-api para o Etmos (2026-07-02)
 

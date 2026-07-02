@@ -1,0 +1,1362 @@
+[
+  {
+    "_id": "IQEw4kb1Df92Fr22",
+    "name": "Alterar",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "al",
+      "palavra_etmos": "Al",
+      "categoria": "funcao",
+      "significado": "Alterar",
+      "descricao": "A magia muda ou transforma algo existente. Representa a ação de alterar propriedades, estados ou características de um alvo.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "caJ7HEWDwDlh2B53",
+    "name": "Aprisionar",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "ar",
+      "palavra_etmos": "Ar",
+      "categoria": "funcao",
+      "significado": "Aprisionar",
+      "descricao": "A magia prende, imobiliza ou restringe o movimento de um alvo. Pode ser aplicada a pessoas, objetos ou elementos.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "058H8J2wv2TvYGtE",
+    "name": "Atacar / Ferir",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "im",
+      "palavra_etmos": "Im",
+      "categoria": "funcao",
+      "significado": "Atacar / Ferir",
+      "descricao": "A magia causa dano ou ferimento a um alvo. É a função ofensiva primária do sistema Etmos.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "iz5moezABhVJG3Za",
+    "name": "Atrair / Repelir",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "ir",
+      "palavra_etmos": "Ir",
+      "categoria": "funcao",
+      "significado": "Atrair / Repelir",
+      "descricao": "A magia exerce força de atração ou repulsão sobre um alvo. A intenção do conjurador determina se o efeito é de aproximação ou afastamento.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "gA9Igqz593eUv0gi",
+    "name": "Banir",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "en",
+      "palavra_etmos": "En",
+      "categoria": "funcao",
+      "significado": "Banir",
+      "descricao": "A magia expulsa, exila ou remove um alvo de um local ou plano de existência. Pode ser usada para dissipar magias ou afastar seres.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "TiCRwbkZf5cpF04m",
+    "name": "Controlar",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "et",
+      "palavra_etmos": "Et",
+      "categoria": "funcao",
+      "significado": "Controlar",
+      "descricao": "A magia assume controle ou influência sobre um alvo. Pode controlar ações, pensamentos ou elementos. Junto com um Objeto, forma a frase mínima funcional.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "2MIv4mqTpJsHM2nw",
+    "name": "Destruir",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "as",
+      "palavra_etmos": "As",
+      "categoria": "funcao",
+      "significado": "Destruir",
+      "descricao": "A magia destrói, dissolve ou desfaz um alvo. Pode ser usada para destruir objetos, estruturas ou dissipar energias.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "Axu5vEuMP0oCOcnp",
+    "name": "Empoderar",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "em",
+      "palavra_etmos": "Em",
+      "categoria": "funcao",
+      "significado": "Empoderar",
+      "descricao": "A magia fortalece, potencializa ou aumenta as capacidades de um alvo. Pode empoderar pessoas, objetos ou fenômenos.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "IuNo7aH500rBHMyV",
+    "name": "Enfraquecer",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "in",
+      "palavra_etmos": "In",
+      "categoria": "funcao",
+      "significado": "Enfraquecer",
+      "descricao": "A magia diminui, enfraquece ou reduz as capacidades de um alvo. Oposta à função Empoderar.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "zjJnpqW3nLR9n1KB",
+    "name": "Invocar / Criar",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "ev",
+      "palavra_etmos": "Ev",
+      "categoria": "funcao",
+      "significado": "Invocar / Criar",
+      "descricao": "A magia invoca, cria ou manifesta algo a partir de nada ou de outra fonte. É usada para criar elementos, criaturas ou fenômenos.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "se4ObGx4nqz7jVQK",
+    "name": "Juntar / Conectar",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "un",
+      "palavra_etmos": "Un",
+      "categoria": "funcao",
+      "significado": "Juntar / Conectar",
+      "descricao": "A magia une, conecta ou vincula dois ou mais alvos. Pode criar ligações físicas, mentais ou mágicas.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "hgFgAjhRBJxVOXJU",
+    "name": "Marcar",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "es",
+      "palavra_etmos": "Es",
+      "categoria": "funcao",
+      "significado": "Marcar",
+      "descricao": "A magia imprime, sinaliza ou identifica um alvo com uma marca mágica. Pode ser usada para rastreamento, identificação ou imposição de efeitos.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "WfNNlR2nlatKqf7i",
+    "name": "Proteger",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "am",
+      "palavra_etmos": "Am",
+      "categoria": "funcao",
+      "significado": "Proteger",
+      "descricao": "A magia defende, escuda ou guarda um alvo de danos ou efeitos indesejados. Usada tanto ofensivamente quanto como Reação.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "3Hcgd4fM5zjC8oR8",
+    "name": "Restaurar",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "an",
+      "palavra_etmos": "An",
+      "categoria": "funcao",
+      "significado": "Restaurar",
+      "descricao": "A magia recupera, cura ou retorna um alvo ao seu estado anterior ou íntegro. Usada para cura de ferimentos e restauração de estados.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "5EAN0Pnm6XjAFASz",
+    "name": "Revelar",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "il",
+      "palavra_etmos": "Il",
+      "categoria": "funcao",
+      "significado": "Revelar",
+      "descricao": "A magia expõe, descobre ou torna visível algo oculto. Pode revelar informações, objetos escondidos ou verdades.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "C23rOUhy9YlK2Ndv",
+    "name": "Transmitir",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "or",
+      "palavra_etmos": "Or",
+      "categoria": "funcao",
+      "significado": "Transmitir",
+      "descricao": "A magia envia, transmite ou propaga algo de um ponto a outro. Pode transmitir informações, energias ou efeitos à distância.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "AZEH9LnAG4mI5AnF",
+    "name": "Transportar",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "it",
+      "palavra_etmos": "It",
+      "categoria": "funcao",
+      "significado": "Transportar",
+      "descricao": "A magia move, desloca ou teletransporta um alvo de um lugar a outro. Pode ser usada para telecinesia, teletransporte ou deslocamento de objetos.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "KTZSSFzmZMj0Gz6E",
+    "name": "Abstrato",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "ala",
+      "palavra_etmos": "Ala",
+      "categoria": "objeto",
+      "significado": "Abstrato",
+      "descricao": "Representa conceitos intangíveis, ideias, emoções abstratas ou fenômenos sem forma física definida. O Objeto mais amplo do sistema.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "BgxbzO3V7heF1mT7",
+    "name": "Alma",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "ani",
+      "palavra_etmos": "Ani",
+      "categoria": "objeto",
+      "significado": "Alma",
+      "descricao": "Representa a essência espiritual de uma pessoa ou ser. Afeta a força de conjuração, o vínculo com o Fantástico e a integridade espiritual.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "LIxucYQCRt0bnFDD",
+    "name": "Animais",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "ali",
+      "palavra_etmos": "Ali",
+      "categoria": "objeto",
+      "significado": "Animais",
+      "descricao": "Representa criaturas animais do Mundano ou do Fantástico. Inclui qualquer ser da fauna de ambos os mundos.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "EVnKNCVmj5b44HCX",
+    "name": "Aura",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "iro",
+      "palavra_etmos": "Iro",
+      "categoria": "objeto",
+      "significado": "Aura",
+      "descricao": "Representa a emanação energética ao redor de uma pessoa, objeto ou local. Inclui campos de energia mágica, auras espirituais e emissões de qualquer natureza.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "FhBtaOEmuCIdz8Cw",
+    "name": "Cadáver",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "eva",
+      "palavra_etmos": "Eva",
+      "categoria": "objeto",
+      "significado": "Cadáver",
+      "descricao": "Representa corpos sem vida, restos mortais ou matéria orgânica morta. Relacionado com necromancia e interações com a morte.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "laK0Kclckr1VCXkE",
+    "name": "Clima",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "ayu",
+      "palavra_etmos": "Ayu",
+      "categoria": "objeto",
+      "significado": "Clima",
+      "descricao": "Representa fenômenos climáticos e meteorológicos. Inclui chuva, vento, temperatura, tempestades e condições atmosféricas em geral.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "UUlkGw8Acjo2yZZN",
+    "name": "Comida",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "ibo",
+      "palavra_etmos": "Ibo",
+      "categoria": "objeto",
+      "significado": "Comida",
+      "descricao": "Representa alimentos, bebidas e substâncias consumíveis. Pode ser usado para criar, alterar ou manipular comida e suas propriedades.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "g9TtbU6GlwkUbIyA",
+    "name": "Construção",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "omu",
+      "palavra_etmos": "Omu",
+      "categoria": "objeto",
+      "significado": "Construção",
+      "descricao": "Representa edificações, estruturas físicas e construções de qualquer tipo. Inclui paredes, pisos, tetos, pontes e qualquer obra construída.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "fVrVsT6QlCqZeTq0",
+    "name": "Elemento",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "eli",
+      "palavra_etmos": "Eli",
+      "categoria": "objeto",
+      "significado": "Elemento",
+      "descricao": "Representa elementos naturais básicos. Deve ser combinado com Características (Ig=Fogo, Quan=Água, Aer=Ar, Mun=Terra etc.) para especificar qual elemento está sendo afetado.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "gPEvywrW4bHGWGM6",
+    "name": "Explosão",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "epi",
+      "palavra_etmos": "Epi",
+      "categoria": "objeto",
+      "significado": "Explosão",
+      "descricao": "Representa detonações, explosões e liberações súbitas de energia. Pode ser combinado com características elementais para definir o tipo de explosão.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "1mSxGIszpHowkl7f",
+    "name": "Inanimado",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "exa",
+      "palavra_etmos": "Exa",
+      "categoria": "objeto",
+      "significado": "Inanimado",
+      "descricao": "Representa objetos sem vida, artefatos e itens físicos sem consciência. É o Objeto mais genérico para coisas materiais.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "1nsnB5zNHHHuqtMg",
+    "name": "Informação",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "azi",
+      "palavra_etmos": "Azi",
+      "categoria": "objeto",
+      "significado": "Informação",
+      "descricao": "Representa dados, conhecimentos, mensagens e conteúdo informacional. Usado para transmitir, revelar ou manipular informações.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "sBJogidZ2Kn8HSZA",
+    "name": "Mente / Pensamento",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "imu",
+      "palavra_etmos": "Imu",
+      "categoria": "objeto",
+      "significado": "Mente / Pensamento",
+      "descricao": "Representa a mente consciente, pensamentos e processos mentais. O Objeto mais usado em magias de controle mental.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "AxA66XZj9Jcp5fq4",
+    "name": "Pessoa",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "ivi",
+      "palavra_etmos": "Ivi",
+      "categoria": "objeto",
+      "significado": "Pessoa",
+      "descricao": "Representa seres sapientes, pessoas e indivíduos conscientes. Inclui humanos e seres Fantásticos com consciência.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "y91VtGIeRDYt1Xdy",
+    "name": "Sentido",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "una",
+      "palavra_etmos": "Una",
+      "categoria": "objeto",
+      "significado": "Sentido",
+      "descricao": "Representa os sentidos perceptivos: visão, audição, olfato, paladar e tato. Pode ser usado para ampliar, diminuir ou manipular percepções sensoriais.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "IBmxsZA3Yujjdbbj",
+    "name": "Tecnologia",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "ina",
+      "palavra_etmos": "Ina",
+      "categoria": "objeto",
+      "significado": "Tecnologia",
+      "descricao": "Representa dispositivos tecnológicos, máquinas, equipamentos eletrônicos e artefatos tecnológicos do Mundano.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "PDWoJkAjZE1aOruW",
+    "name": "Tempo",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "anu",
+      "palavra_etmos": "Anu",
+      "categoria": "objeto",
+      "significado": "Tempo",
+      "descricao": "Representa o tempo cronológico, duração e fluxo temporal. Usado em magias que afetam a passagem ou percepção do tempo.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "9w2UxF9nO4IL6iDf",
+    "name": "Terreno",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "era",
+      "palavra_etmos": "Era",
+      "categoria": "objeto",
+      "significado": "Terreno",
+      "descricao": "Representa o chão, solo, geografia e terreno físico. Inclui o solo em si, mas não necessariamente a pedra (ver Característica Roc) ou a vegetação (ver Objeto Ora).",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "6n5He1xMRpErlCML",
+    "name": "Vegetação / Flora",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "ora",
+      "palavra_etmos": "Ora",
+      "categoria": "objeto",
+      "significado": "Vegetação / Flora",
+      "descricao": "Representa plantas, árvores, fungos e toda a flora do Mundano e do Fantástico.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "CAHnQiL7P8Plv1WB",
+    "name": "Ácido",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "dum",
+      "palavra_etmos": "Dum",
+      "categoria": "caracteristica",
+      "significado": "Ácido",
+      "descricao": "Adiciona a propriedade de ácido, corrosão ou dissolução química ao efeito mágico.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "gqFHTOQcLwp61xQR",
+    "name": "Água",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "quan",
+      "palavra_etmos": "Quan",
+      "categoria": "caracteristica",
+      "significado": "Água",
+      "descricao": "Adiciona a propriedade da água ao efeito. Pode representar água líquida, umidade ou fluidos. Com o Criador Ada-, torna-se gelo (adaQuan).",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "z8K5Yc9qEdIN4G6B",
+    "name": "Ar",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "aer",
+      "palavra_etmos": "Aer",
+      "categoria": "caracteristica",
+      "significado": "Ar",
+      "descricao": "Adiciona a propriedade do ar, vento ou gases ao efeito mágico.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "DsTW1PPdwqRIdE1p",
+    "name": "Armas",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "impe",
+      "palavra_etmos": "Impe",
+      "categoria": "caracteristica",
+      "significado": "Armas",
+      "descricao": "Adiciona a propriedade de armas ao efeito. Pode conferir características cortantes, perfurantes ou contundentes associadas a armamentos.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "KdIU86JIgyjJ9c4n",
+    "name": "Cheiro",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "kar",
+      "palavra_etmos": "Kar",
+      "categoria": "caracteristica",
+      "significado": "Cheiro",
+      "descricao": "Adiciona a propriedade olfativa ou aromática ao efeito mágico.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "o5s9zkD2PfG0Rk8F",
+    "name": "Corpo",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "phys",
+      "palavra_etmos": "Phys",
+      "categoria": "caracteristica",
+      "significado": "Corpo",
+      "descricao": "Adiciona a propriedade do corpo físico, matéria orgânica ou substância corporal ao efeito. Uma das Características mais versáteis.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "VbFvGCXlOu8nfEw5",
+    "name": "Dimensional",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "rat",
+      "palavra_etmos": "Rat",
+      "categoria": "caracteristica",
+      "significado": "Dimensional",
+      "descricao": "Adiciona a propriedade dimensional ou espacial ao efeito. Relacionado com portais, dobras no espaço e manipulação de dimensões.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "6u01SJ3BRG90wJKS",
+    "name": "Elétrico",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "triz",
+      "palavra_etmos": "Triz",
+      "categoria": "caracteristica",
+      "significado": "Elétrico",
+      "descricao": "Adiciona a propriedade elétrica, de raio ou descarga eletrostática ao efeito mágico.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "ZDculqhzVCK29gQy",
+    "name": "Emoção",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "bhas",
+      "palavra_etmos": "Bhas-",
+      "categoria": "caracteristica",
+      "significado": "Emoção",
+      "descricao": "Adiciona a propriedade emocional ao efeito. Nota: a palavra Etmos inclui hífen indicando que pode funcionar como prefixo em composições. Afeta estados afetivos e sentimentos.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": true
+    }
+  },
+  {
+    "_id": "xw91Pv06FciZGhDH",
+    "name": "Escuridão",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "ten",
+      "palavra_etmos": "Ten",
+      "categoria": "caracteristica",
+      "significado": "Escuridão",
+      "descricao": "Adiciona a propriedade da escuridão, ausência de luz ou trevas ao efeito mágico.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "21WHwnNzC0l9nF6a",
+    "name": "Fogo",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "ig",
+      "palavra_etmos": "Ig",
+      "categoria": "caracteristica",
+      "significado": "Fogo",
+      "descricao": "Adiciona a propriedade ígnea, de calor ou chamas ao efeito mágico. Uma das Características mais comuns em combate.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "UB762XtKzVXUf2tk",
+    "name": "Força",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "vib",
+      "palavra_etmos": "Vib",
+      "categoria": "caracteristica",
+      "significado": "Força",
+      "descricao": "Adiciona a propriedade de força física, energia cinética ou pressão ao efeito mágico.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "JWbjWDOYTr5i73pA",
+    "name": "Gravidade",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "ym",
+      "palavra_etmos": "Ym",
+      "categoria": "caracteristica",
+      "significado": "Gravidade",
+      "descricao": "Adiciona a propriedade gravitacional ao efeito. Pode aumentar, diminuir ou redirecionar a gravidade sobre alvos.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "zd3y4GDdmphMPBw9",
+    "name": "Idioma",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "hin",
+      "palavra_etmos": "Hin",
+      "categoria": "caracteristica",
+      "significado": "Idioma",
+      "descricao": "Adiciona a propriedade linguística ou idiomática ao efeito. Pode ser usado para tradução, comunicação ou manipulação de linguagem.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": true
+    }
+  },
+  {
+    "_id": "IGMoGfJA6EFO5WeH",
+    "name": "Ilusão",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "alui",
+      "palavra_etmos": "Alui",
+      "categoria": "caracteristica",
+      "significado": "Ilusão",
+      "descricao": "Adiciona a propriedade ilusória ao efeito. Cria percepções falsas ou aparências enganosas.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "I65wt8oFRqqq9iS4",
+    "name": "Loucura",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "mok",
+      "palavra_etmos": "Mok",
+      "categoria": "caracteristica",
+      "significado": "Loucura",
+      "descricao": "Adiciona a propriedade da insanidade, desorientação mental ou perturbação psíquica ao efeito.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "pDaI65BM4MHFmAHM",
+    "name": "Luz",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "lum",
+      "palavra_etmos": "Lum",
+      "categoria": "caracteristica",
+      "significado": "Luz",
+      "descricao": "Adiciona a propriedade luminosa ou de brilho ao efeito mágico.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "zAJzqLsoHKmTeBbu",
+    "name": "Magia",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "mag",
+      "palavra_etmos": "Mag",
+      "categoria": "caracteristica",
+      "significado": "Magia",
+      "descricao": "Adiciona a propriedade mágica em si ao efeito. Pode ser usada para amplificar, bloquear ou manipular energias mágicas.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "C00VDyYcp4frJAVe",
+    "name": "Movimento",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "tum",
+      "palavra_etmos": "Tum",
+      "categoria": "caracteristica",
+      "significado": "Movimento",
+      "descricao": "Adiciona a propriedade de movimento, deslocamento ou mobilidade ao efeito. Com o Criador No-, torna-se Inércia (noTum).",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "FB2yOBCS7LkiUkP1",
+    "name": "Munição",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "sag",
+      "palavra_etmos": "Sag",
+      "categoria": "caracteristica",
+      "significado": "Munição",
+      "descricao": "Adiciona a propriedade de projéteis, balas ou munição ao efeito. Relacionado com ataques à distância e disparos.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "0biiBq76bZOZPDZE",
+    "name": "Necrótico",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "necro",
+      "palavra_etmos": "Necro",
+      "categoria": "caracteristica",
+      "significado": "Necrótico",
+      "descricao": "Adiciona a propriedade necrótica, de morte ou energia destrutiva ao efeito. Relacionado com poderes da morte e decadência.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "BFCo9LteDPwmAhwN",
+    "name": "Nojento / Secreção",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "apu",
+      "palavra_etmos": "Apu",
+      "categoria": "caracteristica",
+      "significado": "Nojento / Secreção",
+      "descricao": "Adiciona a propriedade de secreções biológicas, fluidos orgânicos repulsivos ou substâncias nojentas ao efeito.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "l63FHN9E3ouIMhG8",
+    "name": "Paladar",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "gus",
+      "palavra_etmos": "Gus",
+      "categoria": "caracteristica",
+      "significado": "Paladar",
+      "descricao": "Adiciona a propriedade gustativa ao efeito. Relacionado com o sentido do gosto e sabores.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "GK5VlaZsHPc1Yqmo",
+    "name": "Pedra",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "roc",
+      "palavra_etmos": "Roc",
+      "categoria": "caracteristica",
+      "significado": "Pedra",
+      "descricao": "Adiciona a propriedade rochosa, mineral ou pétrea ao efeito.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "i6bTJSHzGTScBuF8",
+    "name": "Radiação",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "cand",
+      "palavra_etmos": "Cand",
+      "categoria": "caracteristica",
+      "significado": "Radiação",
+      "descricao": "Adiciona a propriedade radioativa ou de radiação ao efeito. Pode representar energia radiante prejudicial ou emissões de alta energia.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "f2VeOpqTNm8DQiZ7",
+    "name": "Reflexo / Espelho",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "kan",
+      "palavra_etmos": "Kan",
+      "categoria": "caracteristica",
+      "significado": "Reflexo / Espelho",
+      "descricao": "Adiciona a propriedade refletiva ou especular ao efeito. Pode espelhar ataques, refletir luz ou criar superfícies espelhadas.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "CvDQZAfndFtvIlV6",
+    "name": "Sangue",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "hem",
+      "palavra_etmos": "Hem",
+      "categoria": "caracteristica",
+      "significado": "Sangue",
+      "descricao": "Adiciona a propriedade sanguínea, de fluido vital ou hemoglobina ao efeito.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "GRtmbNxR72qdFsOC",
+    "name": "Som",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "mul",
+      "palavra_etmos": "Mul",
+      "categoria": "caracteristica",
+      "significado": "Som",
+      "descricao": "Adiciona a propriedade sonora ao efeito. Pode criar, amplificar, bloquear ou distorcer sons.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "OoCb6EztoDO8zHeC",
+    "name": "Sono",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "cysg",
+      "palavra_etmos": "Cysg",
+      "categoria": "caracteristica",
+      "significado": "Sono",
+      "descricao": "Adiciona a propriedade do sono ou inconsciência ao efeito. Pode induzir sono, ampliar descanso ou criar estados de torpor.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": true
+    }
+  },
+  {
+    "_id": "k2S6cNWFJsaRUOSA",
+    "name": "Tecido",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "tuni",
+      "palavra_etmos": "Tuni",
+      "categoria": "caracteristica",
+      "significado": "Tecido",
+      "descricao": "Adiciona a propriedade têxtil, de fibras ou tecidos ao efeito. Pode envolver roupas, cordas ou qualquer material fibroso.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "qn8DqbM76A4n4nkW",
+    "name": "Terra",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "mun",
+      "palavra_etmos": "Mun",
+      "categoria": "caracteristica",
+      "significado": "Terra",
+      "descricao": "Adiciona a propriedade da terra, solo orgânico ou elemento telúrico ao efeito.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "m1M0fmJXrPlLNbHd",
+    "name": "Velocidade",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "ast",
+      "palavra_etmos": "Ast",
+      "categoria": "caracteristica",
+      "significado": "Velocidade",
+      "descricao": "Adiciona a propriedade de velocidade, celeridade ou aceleração ao efeito.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "omk130mkoLnfwIeg",
+    "name": "Veneno",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "tox",
+      "palavra_etmos": "Tox",
+      "categoria": "caracteristica",
+      "significado": "Veneno",
+      "descricao": "Adiciona a propriedade venenosa ou tóxica ao efeito.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "nC61pCKbwFdVKIMQ",
+    "name": "Visão",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "ocul",
+      "palavra_etmos": "Ocul",
+      "categoria": "caracteristica",
+      "significado": "Visão",
+      "descricao": "Adiciona a propriedade visual ou óptica ao efeito. Pode criar ilusões visuais, ampliar visão ou afetar a percepção visual.",
+      "nivel_grimorio": null,
+      "subtipo_complemento": null,
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "UawcFH6SPfcAsoiF",
+    "name": "Maior",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "mor",
+      "palavra_etmos": "Mor",
+      "categoria": "complemento",
+      "significado": "Maior",
+      "descricao": "Identifica que a potência geral da magia será maior, mais rápida ou de maior amplitude.",
+      "nivel_grimorio": 1,
+      "subtipo_complemento": "modificador",
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "haKgyotXPacTHc2Q",
+    "name": "Menor",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "min",
+      "palavra_etmos": "Min",
+      "categoria": "complemento",
+      "significado": "Menor",
+      "descricao": "Identifica que a potência geral da magia será menor, mais lenta ou de menor amplitude.",
+      "nivel_grimorio": 1,
+      "subtipo_complemento": "modificador",
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "vz9nmMm1qYOs7uMS",
+    "name": "Forma: Círculo / Redoma / Esfera",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "san",
+      "palavra_etmos": "San",
+      "categoria": "complemento",
+      "significado": "Forma: Círculo / Redoma / Esfera",
+      "descricao": "Identifica que o efeito da magia envolverá uma forma esférica, circular ou de redoma.",
+      "nivel_grimorio": 1,
+      "subtipo_complemento": "modificador",
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "Hmx7T0nG5unAPdpb",
+    "name": "Forma: Parede / Barreira / Muralha",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "sar",
+      "palavra_etmos": "Sar",
+      "categoria": "complemento",
+      "significado": "Forma: Parede / Barreira / Muralha",
+      "descricao": "Identifica que o efeito da magia envolverá uma parede, barreira, teto ou chão.",
+      "nivel_grimorio": 1,
+      "subtipo_complemento": "modificador",
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "PBhsmiHApgdme2rs",
+    "name": "Forma: Objeto Genérico",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "sin",
+      "palavra_etmos": "Sin",
+      "categoria": "complemento",
+      "significado": "Forma: Objeto Genérico",
+      "descricao": "Identifica que o efeito da magia de algum modo envolverá um objeto genérico — a forma específica é definida pela intenção.",
+      "nivel_grimorio": 1,
+      "subtipo_complemento": "modificador",
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "ltSoFh4Y2BdBDjNf",
+    "name": "Adição",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "ag",
+      "palavra_etmos": "Ag",
+      "categoria": "complemento",
+      "significado": "Adição",
+      "descricao": "Conecta-se entre duas Características para criar uma nova Característica, somando os dois conceitos para gerar um terceiro. Posiciona-se entre as duas Características na frase.",
+      "nivel_grimorio": 2,
+      "subtipo_complemento": "criador",
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "dwdwVvyWS6P6DrI7",
+    "name": "Variação",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "ada",
+      "palavra_etmos": "Ada-",
+      "categoria": "complemento",
+      "significado": "Variação",
+      "descricao": "Conecta-se como prefixo a uma Característica para criar uma nova Característica via variação lógica do conceito original.",
+      "nivel_grimorio": 3,
+      "subtipo_complemento": "criador",
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "PEppf7vXUn4uFw3q",
+    "name": "Negação",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "no",
+      "palavra_etmos": "No-",
+      "categoria": "complemento",
+      "significado": "Negação",
+      "descricao": "Conecta-se como prefixo a uma Característica para criar uma nova Característica com base na negação do conceito original.",
+      "nivel_grimorio": 3,
+      "subtipo_complemento": "criador",
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "6jwviFWWsEIEHADk",
+    "name": "Derivação",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "mut",
+      "palavra_etmos": "Mut-",
+      "categoria": "complemento",
+      "significado": "Derivação",
+      "descricao": "Conecta-se como prefixo a um Objeto para usá-lo como Característica na frase. Converte a semântica de Objeto para o papel gramatical de Característica.",
+      "nivel_grimorio": 3,
+      "subtipo_complemento": "criador",
+      "icone_runico": null,
+      "verify": false
+    }
+  },
+  {
+    "_id": "Ped3vpa84kHQCQeX",
+    "name": "Inerte",
+    "type": "particula",
+    "img": null,
+    "system": {
+      "slug": "itam",
+      "palavra_etmos": "Itam",
+      "categoria": "complemento",
+      "significado": "Inerte",
+      "descricao": "Faz a magia ficar aguardando um 'gatilho' para ser ativada. O gatilho é definido meramente pela intenção do conjurador. Quanto mais específico o gatilho ou mais tempo a magia permanecer inerte, maior será a Complexidade.",
+      "nivel_grimorio": 4,
+      "subtipo_complemento": "modificador",
+      "icone_runico": null,
+      "verify": false
+    }
+  }
+]

@@ -1,0 +1,1122 @@
+[
+  {
+    "_id": "IQEw4kb1Df92Fr22",
+    "uuid": "Compendium.etmos.particulas.Item.IQEw4kb1Df92Fr22",
+    "name": "Alterar",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "al",
+      "system.categoria": "funcao",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "caJ7HEWDwDlh2B53",
+    "uuid": "Compendium.etmos.particulas.Item.caJ7HEWDwDlh2B53",
+    "name": "Aprisionar",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "ar",
+      "system.categoria": "funcao",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "058H8J2wv2TvYGtE",
+    "uuid": "Compendium.etmos.particulas.Item.058H8J2wv2TvYGtE",
+    "name": "Atacar / Ferir",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "im",
+      "system.categoria": "funcao",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "iz5moezABhVJG3Za",
+    "uuid": "Compendium.etmos.particulas.Item.iz5moezABhVJG3Za",
+    "name": "Atrair / Repelir",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "ir",
+      "system.categoria": "funcao",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "gA9Igqz593eUv0gi",
+    "uuid": "Compendium.etmos.particulas.Item.gA9Igqz593eUv0gi",
+    "name": "Banir",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "en",
+      "system.categoria": "funcao",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "TiCRwbkZf5cpF04m",
+    "uuid": "Compendium.etmos.particulas.Item.TiCRwbkZf5cpF04m",
+    "name": "Controlar",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "et",
+      "system.categoria": "funcao",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "2MIv4mqTpJsHM2nw",
+    "uuid": "Compendium.etmos.particulas.Item.2MIv4mqTpJsHM2nw",
+    "name": "Destruir",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "as",
+      "system.categoria": "funcao",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "Axu5vEuMP0oCOcnp",
+    "uuid": "Compendium.etmos.particulas.Item.Axu5vEuMP0oCOcnp",
+    "name": "Empoderar",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "em",
+      "system.categoria": "funcao",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "IuNo7aH500rBHMyV",
+    "uuid": "Compendium.etmos.particulas.Item.IuNo7aH500rBHMyV",
+    "name": "Enfraquecer",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "in",
+      "system.categoria": "funcao",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "zjJnpqW3nLR9n1KB",
+    "uuid": "Compendium.etmos.particulas.Item.zjJnpqW3nLR9n1KB",
+    "name": "Invocar / Criar",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "ev",
+      "system.categoria": "funcao",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "se4ObGx4nqz7jVQK",
+    "uuid": "Compendium.etmos.particulas.Item.se4ObGx4nqz7jVQK",
+    "name": "Juntar / Conectar",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "un",
+      "system.categoria": "funcao",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "hgFgAjhRBJxVOXJU",
+    "uuid": "Compendium.etmos.particulas.Item.hgFgAjhRBJxVOXJU",
+    "name": "Marcar",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "es",
+      "system.categoria": "funcao",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "WfNNlR2nlatKqf7i",
+    "uuid": "Compendium.etmos.particulas.Item.WfNNlR2nlatKqf7i",
+    "name": "Proteger",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "am",
+      "system.categoria": "funcao",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "3Hcgd4fM5zjC8oR8",
+    "uuid": "Compendium.etmos.particulas.Item.3Hcgd4fM5zjC8oR8",
+    "name": "Restaurar",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "an",
+      "system.categoria": "funcao",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "5EAN0Pnm6XjAFASz",
+    "uuid": "Compendium.etmos.particulas.Item.5EAN0Pnm6XjAFASz",
+    "name": "Revelar",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "il",
+      "system.categoria": "funcao",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "C23rOUhy9YlK2Ndv",
+    "uuid": "Compendium.etmos.particulas.Item.C23rOUhy9YlK2Ndv",
+    "name": "Transmitir",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "or",
+      "system.categoria": "funcao",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "AZEH9LnAG4mI5AnF",
+    "uuid": "Compendium.etmos.particulas.Item.AZEH9LnAG4mI5AnF",
+    "name": "Transportar",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "it",
+      "system.categoria": "funcao",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "KTZSSFzmZMj0Gz6E",
+    "uuid": "Compendium.etmos.particulas.Item.KTZSSFzmZMj0Gz6E",
+    "name": "Abstrato",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "ala",
+      "system.categoria": "objeto",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "BgxbzO3V7heF1mT7",
+    "uuid": "Compendium.etmos.particulas.Item.BgxbzO3V7heF1mT7",
+    "name": "Alma",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "ani",
+      "system.categoria": "objeto",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "LIxucYQCRt0bnFDD",
+    "uuid": "Compendium.etmos.particulas.Item.LIxucYQCRt0bnFDD",
+    "name": "Animais",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "ali",
+      "system.categoria": "objeto",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "EVnKNCVmj5b44HCX",
+    "uuid": "Compendium.etmos.particulas.Item.EVnKNCVmj5b44HCX",
+    "name": "Aura",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "iro",
+      "system.categoria": "objeto",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "FhBtaOEmuCIdz8Cw",
+    "uuid": "Compendium.etmos.particulas.Item.FhBtaOEmuCIdz8Cw",
+    "name": "Cadáver",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "eva",
+      "system.categoria": "objeto",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "laK0Kclckr1VCXkE",
+    "uuid": "Compendium.etmos.particulas.Item.laK0Kclckr1VCXkE",
+    "name": "Clima",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "ayu",
+      "system.categoria": "objeto",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "UUlkGw8Acjo2yZZN",
+    "uuid": "Compendium.etmos.particulas.Item.UUlkGw8Acjo2yZZN",
+    "name": "Comida",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "ibo",
+      "system.categoria": "objeto",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "g9TtbU6GlwkUbIyA",
+    "uuid": "Compendium.etmos.particulas.Item.g9TtbU6GlwkUbIyA",
+    "name": "Construção",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "omu",
+      "system.categoria": "objeto",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "fVrVsT6QlCqZeTq0",
+    "uuid": "Compendium.etmos.particulas.Item.fVrVsT6QlCqZeTq0",
+    "name": "Elemento",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "eli",
+      "system.categoria": "objeto",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "gPEvywrW4bHGWGM6",
+    "uuid": "Compendium.etmos.particulas.Item.gPEvywrW4bHGWGM6",
+    "name": "Explosão",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "epi",
+      "system.categoria": "objeto",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "1mSxGIszpHowkl7f",
+    "uuid": "Compendium.etmos.particulas.Item.1mSxGIszpHowkl7f",
+    "name": "Inanimado",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "exa",
+      "system.categoria": "objeto",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "1nsnB5zNHHHuqtMg",
+    "uuid": "Compendium.etmos.particulas.Item.1nsnB5zNHHHuqtMg",
+    "name": "Informação",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "azi",
+      "system.categoria": "objeto",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "sBJogidZ2Kn8HSZA",
+    "uuid": "Compendium.etmos.particulas.Item.sBJogidZ2Kn8HSZA",
+    "name": "Mente / Pensamento",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "imu",
+      "system.categoria": "objeto",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "AxA66XZj9Jcp5fq4",
+    "uuid": "Compendium.etmos.particulas.Item.AxA66XZj9Jcp5fq4",
+    "name": "Pessoa",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "ivi",
+      "system.categoria": "objeto",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "y91VtGIeRDYt1Xdy",
+    "uuid": "Compendium.etmos.particulas.Item.y91VtGIeRDYt1Xdy",
+    "name": "Sentido",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "una",
+      "system.categoria": "objeto",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "IBmxsZA3Yujjdbbj",
+    "uuid": "Compendium.etmos.particulas.Item.IBmxsZA3Yujjdbbj",
+    "name": "Tecnologia",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "ina",
+      "system.categoria": "objeto",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "PDWoJkAjZE1aOruW",
+    "uuid": "Compendium.etmos.particulas.Item.PDWoJkAjZE1aOruW",
+    "name": "Tempo",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "anu",
+      "system.categoria": "objeto",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "9w2UxF9nO4IL6iDf",
+    "uuid": "Compendium.etmos.particulas.Item.9w2UxF9nO4IL6iDf",
+    "name": "Terreno",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "era",
+      "system.categoria": "objeto",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "6n5He1xMRpErlCML",
+    "uuid": "Compendium.etmos.particulas.Item.6n5He1xMRpErlCML",
+    "name": "Vegetação / Flora",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "ora",
+      "system.categoria": "objeto",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "CAHnQiL7P8Plv1WB",
+    "uuid": "Compendium.etmos.particulas.Item.CAHnQiL7P8Plv1WB",
+    "name": "Ácido",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "dum",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "gqFHTOQcLwp61xQR",
+    "uuid": "Compendium.etmos.particulas.Item.gqFHTOQcLwp61xQR",
+    "name": "Água",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "quan",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "z8K5Yc9qEdIN4G6B",
+    "uuid": "Compendium.etmos.particulas.Item.z8K5Yc9qEdIN4G6B",
+    "name": "Ar",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "aer",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "DsTW1PPdwqRIdE1p",
+    "uuid": "Compendium.etmos.particulas.Item.DsTW1PPdwqRIdE1p",
+    "name": "Armas",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "impe",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "KdIU86JIgyjJ9c4n",
+    "uuid": "Compendium.etmos.particulas.Item.KdIU86JIgyjJ9c4n",
+    "name": "Cheiro",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "kar",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "o5s9zkD2PfG0Rk8F",
+    "uuid": "Compendium.etmos.particulas.Item.o5s9zkD2PfG0Rk8F",
+    "name": "Corpo",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "phys",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "VbFvGCXlOu8nfEw5",
+    "uuid": "Compendium.etmos.particulas.Item.VbFvGCXlOu8nfEw5",
+    "name": "Dimensional",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "rat",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "6u01SJ3BRG90wJKS",
+    "uuid": "Compendium.etmos.particulas.Item.6u01SJ3BRG90wJKS",
+    "name": "Elétrico",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "triz",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "ZDculqhzVCK29gQy",
+    "uuid": "Compendium.etmos.particulas.Item.ZDculqhzVCK29gQy",
+    "name": "Emoção",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "bhas",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": true
+    }
+  },
+  {
+    "_id": "xw91Pv06FciZGhDH",
+    "uuid": "Compendium.etmos.particulas.Item.xw91Pv06FciZGhDH",
+    "name": "Escuridão",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "ten",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "21WHwnNzC0l9nF6a",
+    "uuid": "Compendium.etmos.particulas.Item.21WHwnNzC0l9nF6a",
+    "name": "Fogo",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "ig",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "UB762XtKzVXUf2tk",
+    "uuid": "Compendium.etmos.particulas.Item.UB762XtKzVXUf2tk",
+    "name": "Força",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "vib",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "JWbjWDOYTr5i73pA",
+    "uuid": "Compendium.etmos.particulas.Item.JWbjWDOYTr5i73pA",
+    "name": "Gravidade",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "ym",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "zd3y4GDdmphMPBw9",
+    "uuid": "Compendium.etmos.particulas.Item.zd3y4GDdmphMPBw9",
+    "name": "Idioma",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "hin",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": true
+    }
+  },
+  {
+    "_id": "IGMoGfJA6EFO5WeH",
+    "uuid": "Compendium.etmos.particulas.Item.IGMoGfJA6EFO5WeH",
+    "name": "Ilusão",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "alui",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "I65wt8oFRqqq9iS4",
+    "uuid": "Compendium.etmos.particulas.Item.I65wt8oFRqqq9iS4",
+    "name": "Loucura",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "mok",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "pDaI65BM4MHFmAHM",
+    "uuid": "Compendium.etmos.particulas.Item.pDaI65BM4MHFmAHM",
+    "name": "Luz",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "lum",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "zAJzqLsoHKmTeBbu",
+    "uuid": "Compendium.etmos.particulas.Item.zAJzqLsoHKmTeBbu",
+    "name": "Magia",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "mag",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "C00VDyYcp4frJAVe",
+    "uuid": "Compendium.etmos.particulas.Item.C00VDyYcp4frJAVe",
+    "name": "Movimento",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "tum",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "FB2yOBCS7LkiUkP1",
+    "uuid": "Compendium.etmos.particulas.Item.FB2yOBCS7LkiUkP1",
+    "name": "Munição",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "sag",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "0biiBq76bZOZPDZE",
+    "uuid": "Compendium.etmos.particulas.Item.0biiBq76bZOZPDZE",
+    "name": "Necrótico",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "necro",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "BFCo9LteDPwmAhwN",
+    "uuid": "Compendium.etmos.particulas.Item.BFCo9LteDPwmAhwN",
+    "name": "Nojento / Secreção",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "apu",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "l63FHN9E3ouIMhG8",
+    "uuid": "Compendium.etmos.particulas.Item.l63FHN9E3ouIMhG8",
+    "name": "Paladar",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "gus",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "GK5VlaZsHPc1Yqmo",
+    "uuid": "Compendium.etmos.particulas.Item.GK5VlaZsHPc1Yqmo",
+    "name": "Pedra",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "roc",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "i6bTJSHzGTScBuF8",
+    "uuid": "Compendium.etmos.particulas.Item.i6bTJSHzGTScBuF8",
+    "name": "Radiação",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "cand",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "f2VeOpqTNm8DQiZ7",
+    "uuid": "Compendium.etmos.particulas.Item.f2VeOpqTNm8DQiZ7",
+    "name": "Reflexo / Espelho",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "kan",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "CvDQZAfndFtvIlV6",
+    "uuid": "Compendium.etmos.particulas.Item.CvDQZAfndFtvIlV6",
+    "name": "Sangue",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "hem",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "GRtmbNxR72qdFsOC",
+    "uuid": "Compendium.etmos.particulas.Item.GRtmbNxR72qdFsOC",
+    "name": "Som",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "mul",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "OoCb6EztoDO8zHeC",
+    "uuid": "Compendium.etmos.particulas.Item.OoCb6EztoDO8zHeC",
+    "name": "Sono",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "cysg",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": true
+    }
+  },
+  {
+    "_id": "k2S6cNWFJsaRUOSA",
+    "uuid": "Compendium.etmos.particulas.Item.k2S6cNWFJsaRUOSA",
+    "name": "Tecido",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "tuni",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "qn8DqbM76A4n4nkW",
+    "uuid": "Compendium.etmos.particulas.Item.qn8DqbM76A4n4nkW",
+    "name": "Terra",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "mun",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "m1M0fmJXrPlLNbHd",
+    "uuid": "Compendium.etmos.particulas.Item.m1M0fmJXrPlLNbHd",
+    "name": "Velocidade",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "ast",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "omk130mkoLnfwIeg",
+    "uuid": "Compendium.etmos.particulas.Item.omk130mkoLnfwIeg",
+    "name": "Veneno",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "tox",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "nC61pCKbwFdVKIMQ",
+    "uuid": "Compendium.etmos.particulas.Item.nC61pCKbwFdVKIMQ",
+    "name": "Visão",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "ocul",
+      "system.categoria": "caracteristica",
+      "system.nivel_grimorio": null,
+      "system.subtipo_complemento": null,
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "UawcFH6SPfcAsoiF",
+    "uuid": "Compendium.etmos.particulas.Item.UawcFH6SPfcAsoiF",
+    "name": "Maior",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "mor",
+      "system.categoria": "complemento",
+      "system.nivel_grimorio": 1,
+      "system.subtipo_complemento": "modificador",
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "haKgyotXPacTHc2Q",
+    "uuid": "Compendium.etmos.particulas.Item.haKgyotXPacTHc2Q",
+    "name": "Menor",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "min",
+      "system.categoria": "complemento",
+      "system.nivel_grimorio": 1,
+      "system.subtipo_complemento": "modificador",
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "vz9nmMm1qYOs7uMS",
+    "uuid": "Compendium.etmos.particulas.Item.vz9nmMm1qYOs7uMS",
+    "name": "Forma: Círculo / Redoma / Esfera",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "san",
+      "system.categoria": "complemento",
+      "system.nivel_grimorio": 1,
+      "system.subtipo_complemento": "modificador",
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "Hmx7T0nG5unAPdpb",
+    "uuid": "Compendium.etmos.particulas.Item.Hmx7T0nG5unAPdpb",
+    "name": "Forma: Parede / Barreira / Muralha",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "sar",
+      "system.categoria": "complemento",
+      "system.nivel_grimorio": 1,
+      "system.subtipo_complemento": "modificador",
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "PBhsmiHApgdme2rs",
+    "uuid": "Compendium.etmos.particulas.Item.PBhsmiHApgdme2rs",
+    "name": "Forma: Objeto Genérico",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "sin",
+      "system.categoria": "complemento",
+      "system.nivel_grimorio": 1,
+      "system.subtipo_complemento": "modificador",
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "ltSoFh4Y2BdBDjNf",
+    "uuid": "Compendium.etmos.particulas.Item.ltSoFh4Y2BdBDjNf",
+    "name": "Adição",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "ag",
+      "system.categoria": "complemento",
+      "system.nivel_grimorio": 2,
+      "system.subtipo_complemento": "criador",
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "dwdwVvyWS6P6DrI7",
+    "uuid": "Compendium.etmos.particulas.Item.dwdwVvyWS6P6DrI7",
+    "name": "Variação",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "ada",
+      "system.categoria": "complemento",
+      "system.nivel_grimorio": 3,
+      "system.subtipo_complemento": "criador",
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "PEppf7vXUn4uFw3q",
+    "uuid": "Compendium.etmos.particulas.Item.PEppf7vXUn4uFw3q",
+    "name": "Negação",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "no",
+      "system.categoria": "complemento",
+      "system.nivel_grimorio": 3,
+      "system.subtipo_complemento": "criador",
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "6jwviFWWsEIEHADk",
+    "uuid": "Compendium.etmos.particulas.Item.6jwviFWWsEIEHADk",
+    "name": "Derivação",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "mut",
+      "system.categoria": "complemento",
+      "system.nivel_grimorio": 3,
+      "system.subtipo_complemento": "criador",
+      "system.verify": false
+    }
+  },
+  {
+    "_id": "Ped3vpa84kHQCQeX",
+    "uuid": "Compendium.etmos.particulas.Item.Ped3vpa84kHQCQeX",
+    "name": "Inerte",
+    "img": null,
+    "type": "particula",
+    "index": {
+      "system.slug": "itam",
+      "system.categoria": "complemento",
+      "system.nivel_grimorio": 4,
+      "system.subtipo_complemento": "modificador",
+      "system.verify": false
+    }
+  }
+]
