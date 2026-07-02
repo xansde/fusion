@@ -1145,6 +1145,98 @@ describe("M2-A — token:move collision validation", () => {
     expect(ack["ok"]).toBe(true);
   });
 
+  // ---------------------------------------------------------------------------
+  // Ownership.default recognition (M5-C debt payoff): token:move's permission
+  // check must go through testOwnership/resolveOwnership (documents/
+  // ownership.ts), not a hand-rolled `ownership[userId] ?? ownership.default`
+  // read. Regression coverage for an Actor with ownership.default = OWNER and
+  // NO per-user entry — the old hand-rolled read happened to also consult
+  // `default` as a fallback, so this specifically exercises that the
+  // single-source-of-truth path preserves (and does not regress) that
+  // behaviour while now also correctly resolving INHERIT.
+  // ---------------------------------------------------------------------------
+
+  it("player moves a token whose actor grants OWNER via ownership.default (no per-user entry)", async () => {
+    // Actor owned by "everyone" via default=OWNER — no explicit playerUserId
+    // entry at all.
+    const actorAck = await sendOp(gmSocket, "doc:create", {
+      documentType: "Actor",
+      data: [
+        {
+          name: "Default-Owned Hero",
+          type: "character",
+          ownership: { default: 3 }, // OwnershipLevel.OWNER, no per-user key
+        },
+      ],
+    });
+    expect(actorAck["ok"]).toBe(true);
+    const actorId = (
+      (actorAck["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[]
+    )[0]?.["_id"] as string;
+
+    const scene = await createScene(gmSocket);
+    const sceneId = scene["_id"] as string;
+
+    const tokenAck = await sendOp(gmSocket, "doc:create", {
+      documentType: "Token",
+      data: [{ name: "Default-Owned Hero", actorId, x: 50, y: 100 }],
+      parent: { type: "Scene", id: sceneId },
+    });
+    expect(tokenAck["ok"]).toBe(true);
+    const tokenId = (
+      (tokenAck["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[]
+    )[0]?.["_id"] as string;
+
+    // Open space move (no walls) — should be allowed for the player, since
+    // ownership.default = OWNER grants every player OWNER access.
+    const ack = await sendOp(playerSocket, "token:move", {
+      sceneId,
+      tokenId,
+      x: 80,
+      y: 100,
+    });
+    expect(ack["ok"]).toBe(true);
+  });
+
+  it("player is denied moving a token whose actor has ownership.default = NONE and no per-user entry", async () => {
+    const actorAck = await sendOp(gmSocket, "doc:create", {
+      documentType: "Actor",
+      data: [
+        {
+          name: "GM-Only Hero",
+          type: "npc",
+          ownership: { default: 0 }, // OwnershipLevel.NONE
+        },
+      ],
+    });
+    expect(actorAck["ok"]).toBe(true);
+    const actorId = (
+      (actorAck["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[]
+    )[0]?.["_id"] as string;
+
+    const scene = await createScene(gmSocket);
+    const sceneId = scene["_id"] as string;
+
+    const tokenAck = await sendOp(gmSocket, "doc:create", {
+      documentType: "Token",
+      data: [{ name: "GM-Only Hero", actorId, x: 50, y: 100 }],
+      parent: { type: "Scene", id: sceneId },
+    });
+    expect(tokenAck["ok"]).toBe(true);
+    const tokenId = (
+      (tokenAck["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[]
+    )[0]?.["_id"] as string;
+
+    const ack = await sendOp(playerSocket, "token:move", {
+      sceneId,
+      tokenId,
+      x: 80,
+      y: 100,
+    });
+    expect(ack["ok"]).toBe(false);
+    expect((ack as Record<string, unknown>)["code"]).toBe("PERMISSION_DENIED");
+  });
+
   it("token move through wall → MOVE_BLOCKED", async () => {
     const { sceneId, tokenId } = await buildSceneWithWallAndToken();
 

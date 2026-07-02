@@ -31,7 +31,13 @@ import type { SeqStore } from "../seq-store.js";
 import type { OpBuffer } from "../op-buffer.js";
 import type { DocumentStore } from "../../documents/store.js";
 import { DocumentNotFoundError } from "../../documents/store.js";
-import { isRolePrivileged } from "../../documents/ownership.js";
+import {
+  isRolePrivileged,
+  testOwnership,
+  UserRole,
+  OwnershipLevel,
+} from "../../documents/ownership.js";
+import type { Ownership } from "../../documents/ownership.js";
 import {
   WallDocumentSchema,
   AmbientLightDocumentSchema,
@@ -492,10 +498,18 @@ export function buildTokenMoveHandler(deps: VisionHandlerDeps): HandlerFn {
       }
       try {
         const actor = deps.store.get("actors", actorId);
-        const ownership = actor["ownership"] as Record<string, number> | undefined;
-        const userLevel = ownership?.[ctx.userId] ?? ownership?.["default"] ?? 0;
-        if (userLevel < 3) {
-          // OwnershipLevel.OWNER = 3
+        const ownership = actor["ownership"] as Ownership | undefined;
+        // Delegate to the single source of truth (documents/ownership.ts) so
+        // `ownership.default` and INHERIT are resolved correctly — a
+        // hand-rolled `ownership[userId] ?? ownership.default ?? 0` read
+        // stops at a per-user INHERIT entry instead of falling through to
+        // `default`/folder resolution. `role` is PLAYER here (not
+        // ctx.role): this branch only runs when isPrivileged is already
+        // false, so the GM-bypass has been handled above.
+        const owns = ownership
+          ? testOwnership(ownership, ctx.userId, UserRole.PLAYER, OwnershipLevel.OWNER)
+          : false;
+        if (!owns) {
           return ackError("PERMISSION_DENIED", `No OWNER access to token ${tokenId}`);
         }
       } catch {
