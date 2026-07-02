@@ -63,6 +63,8 @@ import type {
 import type { HandlerContext } from "../../net/handler-registry.js";
 import { pf2eSystem } from "@fusion/system-pf2e";
 import { sf2eSystem } from "@fusion/system-sf2e";
+import { defineSystem } from "@fusion/system-api";
+import { z } from "zod";
 
 // ---------------------------------------------------------------------------
 // Test harness
@@ -589,6 +591,80 @@ describe("M2-C combat unit (direct handlers)", () => {
     const finalCombat = combatFromAck(addPc as Ack<Record<string, unknown>>);
     expect(finalCombat.combatants[0]!._id).toBe(pcId); // player first
     expect(finalCombat.combatants[1]!._id).toBe(npcId);
+  });
+
+  // -------------------------------------------------------------------------
+  // M5-A E3: compare() registered via the system-API's
+  // registerInitiativeFormula(combatType, { roll, compare }) object form,
+  // propagated end-to-end through registerSystemFormulas/
+  // adaptSystemInitiativeFormula (the REAL production wiring path), not by
+  // hand-registering an already-built InitiativeFormula directly (that path
+  // is covered by the "player-owned combatants" test above).
+  // -------------------------------------------------------------------------
+
+  it("propagates a system-registered { roll, compare } (M5-A E3, defineSystem → registerSystemFormulas) end-to-end", async () => {
+    const sceneId = createScene(h);
+    const playerUser = "etmos-pc-owner";
+    const npcActor = createActor(h, "Big NPC"); // no player owner
+    const pcActor = createActor(h, "Small PC", playerUser); // player-owned
+
+    // A minimal Etmos-shaped fake system, registered via the real
+    // registrar surface (defineSystem → registrar.registerInitiativeFormula
+    // with the { roll, compare } object form — E3).
+    const etmosLikeSystem = defineSystem(
+      {
+        id: "etmos-like-test",
+        title: "Etmos-like Test System",
+        version: "0.1.0",
+        engineCompat: ">=0.1.0 <2.0.0",
+        authors: [{ name: "Test" }],
+        documentTypes: { Actor: ["orador"] },
+        languages: [{ lang: "en", name: "English", path: "lang/en.json" }],
+      },
+      (r) => {
+        r.defineModel({ documentType: "Actor", subtype: "orador", schema: z.object({}) });
+        r.registerInitiativeFormula("etmos-like", {
+          roll: () => ({ formula: "1", statistic: "Corpo" }), // total = 1 for everyone
+          compare: (x, y) => {
+            const xPlayer = x.combatant.hasPlayerOwner ? 1 : 0;
+            const yPlayer = y.combatant.hasPlayerOwner ? 1 : 0;
+            if (xPlayer !== yPlayer) return yPlayer - xPlayer; // players first
+            return (y.total ?? 0) - (x.total ?? 0);
+          },
+        });
+      },
+    );
+
+    // Real production wiring path (mirrors socket-manager.ts): pass BOTH
+    // initiativeFormulas AND initiativeCompares.
+    registerSystemFormulas(
+      h.formulaRegistry,
+      etmosLikeSystem.manifest.id,
+      etmosLikeSystem.combat.initiativeFormulas,
+      new RollService({ db: h.fusionDb.raw }),
+      "unit-world",
+      etmosLikeSystem.combat.initiativeCompares,
+    );
+
+    const create = buildCombatCreateHandler(h.combatDeps);
+    const add = buildCombatAddCombatantHandler(h.combatDeps);
+    const roll = buildCombatRollInitiativeHandler(h.combatDeps);
+
+    const combat = combatFromAck(await run(create, { sceneId, combatType: "etmos-like" }, GM_CTX));
+    const combatId = combat._id;
+    const addNpc = await run(add, { combatId, tokenId: "t-npc", actorId: npcActor }, GM_CTX);
+    const npcId = ((addNpc.result as Record<string, unknown>)["combatant"] as CombatantDocument)
+      ._id;
+    const addPc = await run(add, { combatId, tokenId: "t-pc", actorId: pcActor }, GM_CTX);
+    const pcId = ((addPc.result as Record<string, unknown>)["combatant"] as CombatantDocument)._id;
+
+    // Roll initiative for both — the registered `roll` always returns total=1
+    // for every combatant, so a numeric-only sort would tie/preserve
+    // insertion order; the registered `compare` must still put the
+    // player-owned combatant first.
+    const rolled = combatFromAck(await run(roll, { combatId }, GM_CTX));
+    expect(rolled.combatants[0]!._id).toBe(pcId); // player first despite equal totals
+    expect(rolled.combatants[1]!._id).toBe(npcId);
   });
 
   // -------------------------------------------------------------------------

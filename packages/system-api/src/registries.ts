@@ -248,6 +248,150 @@ export interface ErasedSettingDefinition {
 }
 
 // ---------------------------------------------------------------------------
+// Roll data (M5-A / E1)
+// ---------------------------------------------------------------------------
+
+/**
+ * Definition of a registered roll-data builder for a (documentType, subtype)
+ * pair.
+ *
+ * A system registers how to assemble the `rollData` object (the `@attr`
+ * substitution source consumed by RollService/replaceFormulaData) from a
+ * Document. This lets @-references such as `@perception` or
+ * `@atributos.alma.value` resolve consistently wherever a roll is issued
+ * server-side (chat rolls, initiative, future system-specific rolls) without
+ * every call site re-deriving the same ad-hoc shape.
+ *
+ * Aditive/retrocompatible: when no system has registered a builder for a
+ * given (documentType, subtype), callers fall back to whatever rollData they
+ * already assemble/pass today (or none at all) — nothing breaks.
+ *
+ * REQ-ETM-015 / spec 15 §API de sistemas.
+ */
+export interface RollDataDefinition {
+  readonly documentType: DocumentType;
+  /** Subtypes this builder handles. Empty array = all subtypes of documentType. */
+  readonly subtypes: string[];
+  /**
+   * Build the rollData object for a given document (typically an Actor).
+   *
+   * Pure function: reads the document, returns a plain object. No I/O.
+   */
+  build(doc: Record<string, unknown>): Record<string, unknown>;
+}
+
+/** Internal storage for a registered roll-data builder. */
+export interface RegisteredRollData extends RollDataDefinition {
+  readonly id: string; // generated: `${documentType}:${subtypes.join(",")}`
+}
+
+// ---------------------------------------------------------------------------
+// Degree of success (M5-A / E2)
+// ---------------------------------------------------------------------------
+
+/**
+ * Generic degree-of-success result.
+ *
+ * `degree` is a system-defined string — each system owns its own set (e.g.
+ * PF2e/SF2e keep using the 4-degree engine-2e helper via their existing
+ * pipeline; Etmos registers "success"/"failure" in M5-B). `meta` carries any
+ * extra system-specific data (e.g. margin) alongside the degree.
+ */
+export interface DegreeOfSuccessResult {
+  readonly degree: string;
+  readonly meta?: Record<string, unknown>;
+}
+
+/**
+ * Context passed to a registered degree-of-success comparator.
+ * Loosely typed (kept generic — systems interpret their own fields).
+ */
+export type DegreeOfSuccessContext = Record<string, unknown>;
+
+/**
+ * Definition of a registered degree-of-success comparator.
+ *
+ * A system registers `compute(total, dc, ctx)` to classify a roll result
+ * against a difficulty class using its own rules (e.g. Etmos's binary
+ * success/failure + margin, REQ-ROL-038/039, spec 19 D6).
+ *
+ * Aditive/retrocompatible: this is a NEW, independent registry keyed by `id`
+ * (not by documentType/subtype) — it does not replace or require migrating
+ * the existing `postRoll` hook or the engine-2e 4-degree helper used by
+ * PF2e/SF2e today. A system that does not register here simply has no entry
+ * in `SystemModule.registries.degreeOfSuccess`; consumers fall back to
+ * whatever degree computation they already perform (e.g. PF2e/SF2e keep
+ * calling `calculateDegreeOfSuccess` from `@fusion/engine-2e` directly).
+ */
+export interface DegreeOfSuccessDefinition {
+  /** Machine-readable stable identifier (e.g. "etmos.conjuracao"). */
+  readonly id: string;
+  /** Classify a roll total against a DC. Pure function. */
+  compute(total: number, dc: number, ctx?: DegreeOfSuccessContext): DegreeOfSuccessResult;
+}
+
+// ---------------------------------------------------------------------------
+// Effects materializer (M5-A / E4)
+// ---------------------------------------------------------------------------
+
+/**
+ * A source of EffectRules attached to a document — structurally identical to
+ * (and interchangeable with) `@fusion/engine-2e`'s `EffectSource`, redeclared
+ * here so `system-api` can expose this surface WITHOUT depending on
+ * `engine-2e` (REQ-ARQ-005: system-api may be depended on by system packages,
+ * not the other way around; engine-2e itself already imports `EffectRule`
+ * from `system-api`).
+ *
+ * A 2e-family system's materializer returns actual `EffectSource[]` values
+ * (structurally compatible with this type); a non-2e system (e.g. Etmos) may
+ * return an empty array or a different rule vocabulary entirely — the
+ * `rules` field only needs to satisfy `EffectRule[]`'s discriminated shape,
+ * consumption of those rules is entirely up to whatever engine the caller
+ * feeds them into.
+ */
+export interface GenericEffectSource {
+  readonly sourceId: string;
+  readonly label: string;
+  readonly rules: readonly EffectRule[];
+  readonly active?: boolean;
+  readonly isEquipped?: boolean;
+  readonly isInvested?: boolean;
+}
+
+/**
+ * Definition of a registered effects materializer for a (documentType,
+ * subtype) pair.
+ *
+ * A system registers how to turn a Document's authored state (embedded
+ * condition items, active effects, whatever the system models) into the flat
+ * list of `EffectSource`s an effects engine consumes. This lets the
+ * derive-runner delegate materialization to the ACTIVE system instead of
+ * hardcoding the 2e-family (`collectEffects` from `@fusion/engine-2e`)
+ * pipeline — see `packages/server/src/net/derive-runner.ts`.
+ *
+ * Aditive/retrocompatible: when no system has registered a materializer for
+ * a given (documentType, subtype), callers fall back to their existing
+ * hardcoded materialization (today: the derive-runner's 2e-family fallback,
+ * used unchanged by PF2e/SF2e).
+ */
+export interface EffectsMaterializerDefinition {
+  readonly documentType: DocumentType;
+  /** Subtypes this materializer handles. Empty array = all subtypes of documentType. */
+  readonly subtypes: string[];
+  /**
+   * Build the EffectSource list for a given document (typically an Actor).
+   *
+   * Pure function: reads the document, returns a plain array. No I/O.
+   */
+  build(doc: Record<string, unknown>): GenericEffectSource[];
+}
+
+/** Internal storage for a registered effects materializer. */
+export interface RegisteredEffectsMaterializer extends EffectsMaterializerDefinition {
+  readonly id: string; // generated: `${documentType}:${subtypes.join(",")}`
+}
+
+// ---------------------------------------------------------------------------
 // i18n (REQ-SYS-048 / REQ-SYS-049)
 // ---------------------------------------------------------------------------
 
@@ -305,6 +449,9 @@ export interface ExtendedAccumulator {
   chatCards: Map<string, ChatCardDefinition>;
   settings: Map<string, ErasedSettingDefinition>;
   stackingTable: StackingTable | null;
+  rollData: RegisteredRollData[];
+  degreeOfSuccess: Map<string, DegreeOfSuccessDefinition>;
+  effectsMaterializers: RegisteredEffectsMaterializer[];
 }
 
 /** Build a blank ExtendedAccumulator. */
@@ -316,6 +463,9 @@ export function emptyExtendedAccumulator(): ExtendedAccumulator {
     chatCards: new Map(),
     settings: new Map(),
     stackingTable: null,
+    rollData: [],
+    degreeOfSuccess: new Map(),
+    effectsMaterializers: [],
   };
 }
 
@@ -342,4 +492,10 @@ export interface ExtendedSystemRegistries {
   readonly settings: ReadonlyMap<string, ErasedSettingDefinition>;
   /** System-declared stacking table for modifier aggregation. */
   readonly stackingTable: StackingTable | null;
+  /** Roll-data builders, one per registered (documentType, subtypes) pair. REQ-ETM-015 / M5-A E1. */
+  readonly rollData: ReadonlyArray<RegisteredRollData>;
+  /** Degree-of-success comparators, keyed by id. M5-A E2. */
+  readonly degreeOfSuccess: ReadonlyMap<string, DegreeOfSuccessDefinition>;
+  /** Effects materializers, one per registered (documentType, subtypes) pair. M5-A E4. */
+  readonly effectsMaterializers: ReadonlyArray<RegisteredEffectsMaterializer>;
 }

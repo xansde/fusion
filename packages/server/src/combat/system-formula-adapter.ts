@@ -10,15 +10,24 @@
  * executes the formula through RollService — the ONLY place dice are rolled
  * (anti-cheat, DEC-CBT-03).
  *
- * NOTE for M5-A (Etmos): InitiativeFormula already supports an optional
- * `compare(a, b)` for non-monotonic tiebreaking (REQ-SYS-042, DEC-CBT-04).
- * This adapter deliberately does not set `compare` — systems that need it
- * attach it by registering a full InitiativeFormula directly via
- * InitiativeFormulaRegistry.registerFormula(), bypassing the adapter. No
- * change needed here to support that path later.
+ * M5-A (E3): InitiativeFormula already supports an optional `compare(a, b)`
+ * for non-monotonic tiebreaking (REQ-SYS-042, DEC-CBT-04). Since M5-A, a
+ * system can register that comparator alongside its roll function via
+ * `registrar.registerInitiativeFormula(combatType, { roll, compare })`
+ * (system-api `combat.ts`), which the system module exposes in the sparse,
+ * parallel `SystemModule.combat.initiativeCompares` map (keyed by the same
+ * `combatType`). `registerSystemFormulas` looks up that map and, when an
+ * entry exists, forwards it to `adaptSystemInitiativeFormula` so the
+ * resulting `InitiativeFormula.compare` is wired for real — the engine's
+ * `sortCombatants` picks it up automatically (it already reads
+ * `formula.compare` unconditionally). Systems that register via the bare-fn
+ * form (PF2e/SF2e) have no entry in `initiativeCompares`, so `compare` stays
+ * `undefined` and the engine falls back to `defaultInitiativeComparator` —
+ * IDENTICAL behaviour to before M5-A.
  */
 
 import type {
+  InitiativeEntry,
   InitiativeFormula,
   InitiativeFormulaFn,
   InitiativeRollContext,
@@ -35,6 +44,11 @@ import type { RollService, RollRequest } from "../chat/roll-service.js";
  * @param fn         The system-registered formula function.
  * @param rollService Server-authoritative dice roller (DEC-CBT-03).
  * @param worldId    World namespace, forwarded to RollRequest for audit log.
+ * @param compare    Optional non-monotonic comparator (M5-A E3). When
+ *                    provided, set verbatim on the returned InitiativeFormula
+ *                    so `sortCombatants` uses it instead of the default
+ *                    numeric-tiebreaker comparator. Omit (or pass undefined)
+ *                    to preserve the pre-M5-A behaviour exactly.
  */
 export function adaptSystemInitiativeFormula(
   id: string,
@@ -42,8 +56,9 @@ export function adaptSystemInitiativeFormula(
   fn: InitiativeFormulaFn,
   rollService: RollService,
   worldId: string,
+  compare?: (a: InitiativeEntry, b: InitiativeEntry) => number,
 ): InitiativeFormula {
-  return {
+  const formula: InitiativeFormula = {
     id,
     label,
 
@@ -71,11 +86,14 @@ export function adaptSystemInitiativeFormula(
         rollResult.tiebreaker = formulaResult.tiebreaker;
       }
       return rollResult;
-
-      // compare omitted — engine uses defaultInitiativeComparator unless the
-      // system registers a full InitiativeFormula directly (see docstring).
     },
   };
+
+  if (compare !== undefined) {
+    return { ...formula, compare };
+  }
+  // compare omitted — engine uses defaultInitiativeComparator.
+  return formula;
 }
 
 /**
@@ -95,6 +113,13 @@ export function adaptSystemInitiativeFormula(
  * registry's own `systemId` (its second resolution step — see
  * initiative-registry.ts) when no exact combatType match exists — no
  * duplicate registration under a second key is needed or performed here.
+ *
+ * M5-A (E3): `initiativeCompares` is the SystemModule's sparse map of
+ * per-combatType comparators (populated only for systems using the
+ * `{ roll, compare }` registration form). Passing it here is what makes the
+ * compare propagate end-to-end (system registration → SystemModule →
+ * adapter → InitiativeFormula → sortCombatants). Omitting the parameter
+ * (or passing an empty map) reproduces the exact pre-M5-A behaviour.
  */
 export function registerSystemFormulas(
   registry: { registerFormula(formula: InitiativeFormula): void },
@@ -102,10 +127,19 @@ export function registerSystemFormulas(
   initiativeFormulas: ReadonlyMap<string, InitiativeFormulaFn>,
   rollService: RollService,
   worldId: string,
+  initiativeCompares?: ReadonlyMap<string, (a: InitiativeEntry, b: InitiativeEntry) => number>,
 ): void {
   for (const [combatType, fn] of initiativeFormulas) {
     const label = `${systemId} (${combatType})`;
-    const adapted = adaptSystemInitiativeFormula(combatType, label, fn, rollService, worldId);
+    const compare = initiativeCompares?.get(combatType);
+    const adapted = adaptSystemInitiativeFormula(
+      combatType,
+      label,
+      fn,
+      rollService,
+      worldId,
+      compare,
+    );
     registry.registerFormula(adapted);
   }
 }

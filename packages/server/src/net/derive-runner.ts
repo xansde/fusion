@@ -51,17 +51,24 @@
  * performed here beyond object traversal — safe to call on every Actor
  * create/update.
  *
- * TODO(M5-A): this module hardcodes 2e semantics — it imports collectEffects
- * from @fusion/engine-2e directly and materializes the "template value -1 =
- * placeholder" condition convention inline (resolveConditionModifierValue).
- * That is correct for pf2e/sf2e (both 2e-family systems sharing engine-2e),
- * but Etmos (M5) is not a 2e-family system and will need a different (or no)
- * effects-materialization pipeline. When Etmos derivation lands, move the
- * EffectSources materialization step behind SystemModule itself (e.g. a
- * `SystemModule.deriveSteps.materializeEffects(doc)` hook that each system
- * package implements against its own engine) so this runner stays fully
- * system-agnostic instead of assuming engine-2e. Not refactored now — no
- * second system-family exists yet to validate the abstraction against.
+ * EFFECTS MATERIALIZATION (M5-A / E4): this module's DEFAULT/FALLBACK path
+ * hardcodes 2e semantics — it imports collectEffects from @fusion/engine-2e
+ * directly and materializes the "template value -1 = placeholder" condition
+ * convention inline (resolveConditionModifierValue). That is correct for
+ * pf2e/sf2e (both 2e-family systems sharing engine-2e), but Etmos (M5) is not
+ * a 2e-family system and needs a different (or no) effects-materialization
+ * pipeline.
+ *
+ * Since M5-A, a system can register its OWN materializer via
+ * `registrar.effectsMaterializer({ documentType, subtypes, build(doc) })`
+ * (system-api `registries.ts`/`system-module.ts`) — exposed as
+ * `SystemModule.registries.effectsMaterializers`. This runner PREFERS a
+ * registered materializer that matches the doc's (documentType, subtype)
+ * over the 2e-family fallback below. When no materializer matches, the
+ * fallback (collectEffects + actorConditionsToEffectSources) runs exactly as
+ * before M5-A — pf2e/sf2e do not register one, so their behaviour is
+ * byte-for-byte unchanged. Etmos (M5-B) registers its own materializer,
+ * overriding the fallback entirely for its Actor subtypes.
  */
 
 import { collectEffects, type EffectSource } from "@fusion/engine-2e";
@@ -71,6 +78,7 @@ import type {
   DeriveContext,
   EffectRule,
   FlatModifierRule,
+  RegisteredEffectsMaterializer,
   SystemModule,
 } from "@fusion/system-api";
 
@@ -171,6 +179,58 @@ function actorConditionsToEffectSources(
   return sources;
 }
 
+/**
+ * Resolve the registered effects materializer matching a (documentType,
+ * subtype) pair, if any. Mirrors the overlap semantics used at registration
+ * time (system-module.ts `rollDataOverlaps`): an empty `subtypes` array on
+ * the registration means "all subtypes of this documentType".
+ *
+ * M5-A E4 — this is the ONLY place that decides between a system's own
+ * materializer and the 2e-family fallback.
+ */
+function findEffectsMaterializer(
+  materializers: readonly RegisteredEffectsMaterializer[],
+  documentType: string,
+  subtype: string,
+): RegisteredEffectsMaterializer | null {
+  for (const m of materializers) {
+    if (m.documentType !== documentType) continue;
+    if (m.subtypes.length === 0 || m.subtypes.includes(subtype)) return m;
+  }
+  return null;
+}
+
+/**
+ * Materialize EffectSources for an Actor doc, preferring a system-registered
+ * materializer (M5-A E4) over the 2e-family fallback.
+ *
+ * - A registered materializer's `GenericEffectSource[]` output is
+ *   structurally compatible with `@fusion/engine-2e`'s `EffectSource[]`
+ *   (same shape — see `GenericEffectSource` docstring in system-api
+ *   registries.ts) so it can be fed directly into `collectEffects` below.
+ * - When no materializer matches, falls back to
+ *   `actorConditionsToEffectSources` + `collectEffects`, IDENTICAL to the
+ *   pre-M5-A behaviour (pf2e/sf2e never register a materializer).
+ */
+function materializeEffectSources(
+  doc: Record<string, unknown>,
+  systemModule: SystemModule,
+  subtype: string,
+): EffectSource[] {
+  const materializer = findEffectsMaterializer(
+    systemModule.registries.effectsMaterializers,
+    "Actor",
+    subtype,
+  );
+  if (materializer) {
+    // GenericEffectSource is structurally identical to EffectSource (see the
+    // GenericEffectSource docstring in system-api registries.ts) — no cast
+    // needed, TypeScript accepts it directly via structural typing.
+    return materializer.build(doc);
+  }
+  return actorConditionsToEffectSources(doc, systemModule.registries.conditions);
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -225,7 +285,7 @@ export function runActorDerivation(
     step.run(doc, baseCtx);
   }
 
-  const effectSources = actorConditionsToEffectSources(doc, systemModule.registries.conditions);
+  const effectSources = materializeEffectSources(doc, systemModule, subtype);
   const { synthetics } = collectEffects(effectSources, new Set<string>());
 
   const rollOptions = new Set<string>();

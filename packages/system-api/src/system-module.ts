@@ -14,7 +14,14 @@
 import type { z, ZodType } from "zod";
 import type { InitiativeFormulaFn } from "@fusion/shared";
 import { type SystemManifest, SystemManifestSchema, type DocumentType } from "./manifest.js";
-import type { CombatRegistrar, CombatSystemHooks, SystemCombatConfig } from "./combat.js";
+import {
+  type CombatRegistrar,
+  type CombatSystemHooks,
+  type SystemCombatConfig,
+  type InitiativeCompareFn,
+  type InitiativeFormulaRegistrationInput,
+  isInitiativeFormulaRegistrationObject,
+} from "./combat.js";
 import { DeriveStepRegistry, type DeriveStep } from "./derive.js";
 import type { StackingTable } from "./effects.js";
 import {
@@ -27,6 +34,9 @@ import {
   type ExtendedSystemRegistries,
   emptyExtendedAccumulator,
   type ExtendedAccumulator,
+  type RollDataDefinition,
+  type DegreeOfSuccessDefinition,
+  type EffectsMaterializerDefinition,
 } from "./registries.js";
 
 // ---------------------------------------------------------------------------
@@ -64,6 +74,8 @@ export interface SystemDataModel {
 interface RegistrarAccumulator {
   models: SystemDataModel[];
   initiativeFormulas: Map<string, InitiativeFormulaFn>;
+  /** Sparse — only combatTypes registered via the `{ roll, compare }` object form. */
+  initiativeCompares: Map<string, InitiativeCompareFn>;
   combatHooks: CombatSystemHooks | null;
   deriveSteps: DeriveStepRegistry;
   extended: ExtendedAccumulator;
@@ -84,6 +96,14 @@ interface RegistrarAccumulator {
  *   - `chatCard(def)` — register a chat card renderer (REQ-SYS-046).
  *   - `setting(def)` — register a setting (REQ-SYS-047).
  *   - `stackingRules(table)` — declare modifier stacking rules (REQ-SYS-085).
+ *
+ * New in M5-A (foundation for Etmos — aditive, retrocompatible):
+ *   - `rollData(def)` — register a roll-data builder (E1, REQ-ETM-015).
+ *   - `degreeOfSuccess(def)` — register a degree-of-success comparator (E2).
+ *   - `effectsMaterializer(def)` — register an EffectSource materializer (E4).
+ *   - `registerInitiativeFormula` (in CombatRegistrar) now also accepts an
+ *     `{ roll, compare? }` object form, letting a system supply a
+ *     non-monotonic `compare()` (E3, REQ-SYS-042).
  */
 export interface SystemRegistrar extends CombatRegistrar {
   /**
@@ -158,6 +178,66 @@ export interface SystemRegistrar extends CombatRegistrar {
    * REQ-SYS-085.
    */
   stackingRules(table: StackingTable): void;
+
+  /**
+   * Register a roll-data builder for a (documentType, subtypes) pair.
+   *
+   * The server calls `build(doc)` to assemble the `@attr`-substitution
+   * object before issuing a roll for that document, with fallback to
+   * whatever the caller already does when no builder is registered for the
+   * doc's (documentType, subtype) — aditive, retrocompatible (M5-A E1).
+   *
+   * At most one builder per (documentType, subtype): registering an
+   * overlapping subtype set for the same documentType twice is a
+   * programming error and MUST throw.
+   *
+   * REQ-ETM-015.
+   *
+   * @example
+   * ```ts
+   * registrar.rollData({
+   *   documentType: "Actor",
+   *   subtypes: ["orador"],
+   *   build(doc) {
+   *     const system = (doc as any).system ?? {};
+   *     return { atributos: system.atributos, ...system.derived };
+   *   },
+   * });
+   * ```
+   */
+  rollData(def: RollDataDefinition): void;
+
+  /**
+   * Register a degree-of-success comparator.
+   *
+   * The `degree` returned by `compute()` is a system-defined string (each
+   * system owns its own set — e.g. Etmos registers "success"/"failure").
+   * This is a NEW, independent, aditive surface: PF2e/SF2e are NOT required
+   * to migrate to it and keep resolving degree-of-success via their existing
+   * pipeline (the engine-2e `calculateDegreeOfSuccess` helper called from
+   * their actions) — see M5-A E2.
+   *
+   * Calling this twice with the same `id` is a programming error and MUST
+   * throw.
+   */
+  degreeOfSuccess(def: DegreeOfSuccessDefinition): void;
+
+  /**
+   * Register an EffectSource materializer for a (documentType, subtypes)
+   * pair.
+   *
+   * Lets the derive-runner delegate EffectSource materialization
+   * (`packages/server/src/net/derive-runner.ts`) to the ACTIVE system
+   * instead of assuming 2e-family semantics (`collectEffects` from
+   * `@fusion/engine-2e`). When no materializer is registered for a doc's
+   * (documentType, subtype), the derive-runner falls back to its existing
+   * 2e-family materialization — aditive, retrocompatible (M5-A E4).
+   *
+   * At most one materializer per (documentType, subtype): registering an
+   * overlapping subtype set for the same documentType twice is a
+   * programming error and MUST throw.
+   */
+  effectsMaterializer(def: EffectsMaterializerDefinition): void;
 }
 
 // ---------------------------------------------------------------------------
@@ -190,15 +270,36 @@ export interface SystemModule {
 
   /**
    * Extended registries: sheets, conditions, actions, chat cards, settings,
-   * stacking table.
+   * stacking table, roll-data builders, degree-of-success comparators,
+   * effects materializers.
    *
-   * REQ-SYS-040..047 / REQ-SYS-085.
+   * REQ-SYS-040..047 / REQ-SYS-085 / M5-A (E1/E2/E4).
    */
   readonly registries: ExtendedSystemRegistries;
 }
 
 function modelKey(documentType: string, subtype: string): string {
   return `${documentType}:${subtype}`;
+}
+
+/** Generate the storage id for a rollData/effectsMaterializer registration. */
+function rollDataId(documentType: string, subtypes: string[]): string {
+  return `${documentType}:${subtypes.join(",")}`;
+}
+
+/**
+ * Whether two (documentType, subtypes) registrations overlap: same
+ * documentType, and either shares at least one subtype OR either side
+ * declares "all subtypes" (empty array).
+ */
+function rollDataOverlaps(
+  a: { documentType: string; subtypes: string[] },
+  b: { documentType: string; subtypes: string[] },
+): boolean {
+  if (a.documentType !== b.documentType) return false;
+  if (a.subtypes.length === 0 || b.subtypes.length === 0) return true;
+  const bSet = new Set(b.subtypes);
+  return a.subtypes.some((s) => bSet.has(s));
 }
 
 // ---------------------------------------------------------------------------
@@ -230,6 +331,7 @@ export function defineSystem(
   const acc: RegistrarAccumulator = {
     models: [],
     initiativeFormulas: new Map<string, InitiativeFormulaFn>(),
+    initiativeCompares: new Map<string, InitiativeCompareFn>(),
     combatHooks: null,
     deriveSteps: new DeriveStepRegistry(),
     extended: emptyExtendedAccumulator(),
@@ -313,7 +415,40 @@ export function defineSystem(
       acc.extended.stackingTable = table;
     },
 
-    registerInitiativeFormula(combatType: string, fn: InitiativeFormulaFn): void {
+    rollData(def: RollDataDefinition): void {
+      const id = rollDataId(def.documentType, def.subtypes);
+      const overlap = acc.extended.rollData.find((existing) => rollDataOverlaps(existing, def));
+      if (overlap) {
+        throw new Error(
+          `[defineSystem] system "${manifest.id}" registered overlapping rollData builders for documentType "${def.documentType}" (subtypes: [${def.subtypes.join(", ")}] vs [${overlap.subtypes.join(", ")}])`,
+        );
+      }
+      acc.extended.rollData.push({ ...def, id });
+    },
+
+    degreeOfSuccess(def: DegreeOfSuccessDefinition): void {
+      if (acc.extended.degreeOfSuccess.has(def.id)) {
+        throw new Error(
+          `[defineSystem] system "${manifest.id}" registered duplicate degreeOfSuccess id "${def.id}"`,
+        );
+      }
+      acc.extended.degreeOfSuccess.set(def.id, def);
+    },
+
+    effectsMaterializer(def: EffectsMaterializerDefinition): void {
+      const id = rollDataId(def.documentType, def.subtypes);
+      const overlap = acc.extended.effectsMaterializers.find((existing) =>
+        rollDataOverlaps(existing, def),
+      );
+      if (overlap) {
+        throw new Error(
+          `[defineSystem] system "${manifest.id}" registered overlapping effectsMaterializer for documentType "${def.documentType}" (subtypes: [${def.subtypes.join(", ")}] vs [${overlap.subtypes.join(", ")}])`,
+        );
+      }
+      acc.extended.effectsMaterializers.push({ ...def, id });
+    },
+
+    registerInitiativeFormula(combatType: string, input: InitiativeFormulaRegistrationInput): void {
       if (combatType.length === 0) {
         throw new Error(
           `[defineSystem] registerInitiativeFormula for "${manifest.id}": combatType must be a non-empty string`,
@@ -324,7 +459,17 @@ export function defineSystem(
           `[defineSystem] system "${manifest.id}" registered two initiative formulas for combatType "${combatType}"`,
         );
       }
-      acc.initiativeFormulas.set(combatType, fn);
+      // Accept both forms (M5-A E3): a bare fn (legacy — PF2e/SF2e, stored
+      // exactly as before) or { roll, compare? } (new — compare stored in
+      // the separate, sparse initiativeCompares map).
+      if (isInitiativeFormulaRegistrationObject(input)) {
+        acc.initiativeFormulas.set(combatType, input.roll);
+        if (input.compare !== undefined) {
+          acc.initiativeCompares.set(combatType, input.compare);
+        }
+      } else {
+        acc.initiativeFormulas.set(combatType, input);
+      }
     },
 
     registerCombatHooks(hooks: CombatSystemHooks): void {
@@ -346,6 +491,7 @@ export function defineSystem(
 
   const combat: SystemCombatConfig = {
     initiativeFormulas: acc.initiativeFormulas,
+    initiativeCompares: acc.initiativeCompares,
     hooks: acc.combatHooks,
   };
 
@@ -356,6 +502,9 @@ export function defineSystem(
     chatCards: acc.extended.chatCards,
     settings: acc.extended.settings,
     stackingTable: acc.extended.stackingTable,
+    rollData: acc.extended.rollData,
+    degreeOfSuccess: acc.extended.degreeOfSuccess,
+    effectsMaterializers: acc.extended.effectsMaterializers,
   };
 
   return {

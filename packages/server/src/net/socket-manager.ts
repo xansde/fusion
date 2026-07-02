@@ -292,6 +292,7 @@ export class SocketManager {
         systemModule.combat.initiativeFormulas,
         combatRollService,
         worldId,
+        systemModule.combat.initiativeCompares,
       );
     }
     const eventBus = new CombatEventBus();

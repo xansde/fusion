@@ -7,25 +7,26 @@
 
 Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 → M2 → M3** (primeira sessão jogável), depois M4/M5/M6 se houver tempo.
 
-| Batch | Conteúdo                                                                          | Status    | Score auditoria |
-| ----- | --------------------------------------------------------------------------------- | --------- | --------------- |
-| M0-A  | Scaffold monorepo, shared, system-api, stub system, server/client skeletons, CI   | concluído | 96              |
-| M0-B  | SQLite/WAL, migrations, world lifecycle, Document model + CRUD, CLI               | concluído | 96              |
-| M0-C  | Fastify boot, socket.io handshake/envelope, auth (Argon2id/JWT), contract tests   | concluído | 96              |
-| M1-A  | Canvas PIXI v8, grade square, render groups                                       | concluído | 96              |
-| M1-B  | Scene/Token embedded, CRUD broadcast, snapshot+resync, reconexão                  | concluído | 97              |
-| M1-C  | Tokens no canvas (drag, animação, barras), ownership no servidor                  | concluído | 97              |
-| M1-D  | Motor de rolagens (RNG servidor, roll modes, inline), chat + cards                | concluído | 96              |
-| M1-E  | Assets (upload/serving), presença (cursores, ping, ruler), DoD M1                 | concluído | 97              |
-| M2-A  | Walls + portas, visibility polygon, luzes                                         | concluído | 96              |
-| M2-B  | Fog of war (3 estados, persistência, Clipper2), broadcast de delta                | concluído | 93 (dívida)     |
-| M2-C  | Combat/Combatant, tracker, InitiativeFormula, hooks de turno                      | concluído | 96              |
-| M3-A  | System API completa + engine-2e (derivação, effects MVP, DoS, stacking, IWR)      | concluído | 95              |
-| M3-B  | PF2e schemas + automação (strikes, saves, condições, spellcasting)                | concluído | 72→✓ corrigido  |
-| M3-C  | UI framework (window manager, sheets, TipTap) + fichas PF2e                       | concluído | 95              |
-| M3-D  | Importer pf2e + compendiums + i18n pt-BR + DoD M3 (primeira sessão jogável)       | concluído | 58→94 corrigido |
-| M4    | Starfinder 2e (delta sobre engine-2e, importer sf2e, 6 packs, registro no server) | concluído | 88→96 corrigido |
-| M4.5  | Wiring: iniciativa por sistema + derive em produção (findings pré-existentes)     | concluído | 82→86→✓ corrigido |
+| Batch | Conteúdo                                                                                      | Status    | Score auditoria   |
+| ----- | --------------------------------------------------------------------------------------------- | --------- | ----------------- |
+| M0-A  | Scaffold monorepo, shared, system-api, stub system, server/client skeletons, CI               | concluído | 96                |
+| M0-B  | SQLite/WAL, migrations, world lifecycle, Document model + CRUD, CLI                           | concluído | 96                |
+| M0-C  | Fastify boot, socket.io handshake/envelope, auth (Argon2id/JWT), contract tests               | concluído | 96                |
+| M1-A  | Canvas PIXI v8, grade square, render groups                                                   | concluído | 96                |
+| M1-B  | Scene/Token embedded, CRUD broadcast, snapshot+resync, reconexão                              | concluído | 97                |
+| M1-C  | Tokens no canvas (drag, animação, barras), ownership no servidor                              | concluído | 97                |
+| M1-D  | Motor de rolagens (RNG servidor, roll modes, inline), chat + cards                            | concluído | 96                |
+| M1-E  | Assets (upload/serving), presença (cursores, ping, ruler), DoD M1                             | concluído | 97                |
+| M2-A  | Walls + portas, visibility polygon, luzes                                                     | concluído | 96                |
+| M2-B  | Fog of war (3 estados, persistência, Clipper2), broadcast de delta                            | concluído | 93 (dívida)       |
+| M2-C  | Combat/Combatant, tracker, InitiativeFormula, hooks de turno                                  | concluído | 96                |
+| M3-A  | System API completa + engine-2e (derivação, effects MVP, DoS, stacking, IWR)                  | concluído | 95                |
+| M3-B  | PF2e schemas + automação (strikes, saves, condições, spellcasting)                            | concluído | 72→✓ corrigido    |
+| M3-C  | UI framework (window manager, sheets, TipTap) + fichas PF2e                                   | concluído | 95                |
+| M3-D  | Importer pf2e + compendiums + i18n pt-BR + DoD M3 (primeira sessão jogável)                   | concluído | 58→94 corrigido   |
+| M4    | Starfinder 2e (delta sobre engine-2e, importer sf2e, 6 packs, registro no server)             | concluído | 88→96 corrigido   |
+| M4.5  | Wiring: iniciativa por sistema + derive em produção (findings pré-existentes)                 | concluído | 82→86→✓ corrigido |
+| M5-A  | Fundação system-api p/ Etmos (rollData, degreeOfSuccess, {roll,compare}, effectsMaterializer) | concluído | 96                |
 
 **🎉 MVP ALCANÇADO (2026-06-26) — primeira sessão jogável de PF2e funciona ponta-a-ponta (verificado via boot real).** ~2.500 testes verdes. Pós-MVP: **M4 (SF2e) concluído em 2026-07-01** (~2.700 testes); designs do M5 (compositor Etmos) e M6 (distribuição) prontos em `docs/design/`. Restam: **M4.5-wiring** (religações críticas pré-existentes: iniciativa por sistema + derive em produção), M5 (Etmos, 5 batches A–E) e M6 (distribuição, 6 batches).
 
@@ -52,6 +53,12 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 - Próximos batches após M2-A: M2-B (fog), M2-C (combate), depois M3 (A–F) → primeira sessão jogável.
 
 ## Registro por batch
+
+### M5-A — Fundação da system-api para o Etmos (2026-07-02)
+
+- As 4 extensões aditivas que o design do compositor exige (`docs/design/m5-etmos-compositor.md` §2.6 + dívida E4 do M4.5): E1 `registrar.rollData({documentType, subtypes, build})`; E2 `registrar.degreeOfSuccess({id, compute})`; E3 `registerInitiativeFormula` aceitando `fn` OU `{roll, compare}` com compare propagado pelo `system-formula-adapter` do server (mapa paralelo esparso — PF2e/SF2e seguem no comparator default); E4 `registrar.effectsMaterializer({build})` consumido pelo derive-runner com fallback 2e intacto.
+- **Aprovado na 1ª auditoria (texto livre, 96)**: retrocompat estrutural (git diff vazio em `systems/*/src`; suítes pf2e 275/275, sf2e 100/100, server 486/486 isoladas), e2e por boot real nos dois sistemas (world create → serve → socket completo → iniciativa via adapter), 17 testes novos de system-api não-tautológicos.
+- Dívidas baixas registradas: E1/E2 ainda sem consumidor de produção (por design — **M5-B/C devem ligar** `build()` ao RollService e o comparador de grau ao resultado canônico); guarda de runtime opcional no type-guard de registro de iniciativa.
 
 ### M4.5 — Wiring de iniciativa e derive (2026-07-01)
 
