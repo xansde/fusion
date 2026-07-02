@@ -21,6 +21,7 @@ import type { ServerConfig } from "./config.js";
 import type { SocketManager as SocketManagerType, WorldNamespaceOptions } from "./net/index.js";
 import type { AuthService } from "./auth/index.js";
 import type { RegisterAssetRoutesOptions } from "./assets/routes.js";
+import type { SystemModule } from "@fusion/system-api";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -91,6 +92,14 @@ export interface BootNetContext {
    * monorepo layout via the systemId. Primarily for tests / custom layouts.
    */
   packsDir?: string;
+  /**
+   * The world's resolved SystemModule (e.g. from a SystemRegistry populated
+   * in the CLI boot path — see cli/commands/serve.ts). Forwarded to
+   * SocketManager.registerWorldNamespace so the system's initiative formulas
+   * get wired into the InitiativeFormulaRegistry (REQ-CBT-012). Optional —
+   * undefined leaves the registry with only the generic-1d20 fallback.
+   */
+  systemModule?: SystemModule;
 }
 
 // ---------------------------------------------------------------------------
@@ -343,6 +352,9 @@ export async function boot(options: BootOptions): Promise<BootResult> {
     };
     if (netContext.systemId !== undefined) {
       nsOptions.systemId = netContext.systemId;
+    }
+    if (netContext.systemModule !== undefined) {
+      nsOptions.systemModule = netContext.systemModule;
     }
     if (netContext.maxConnections !== undefined) {
       nsOptions.maxConnections = netContext.maxConnections;

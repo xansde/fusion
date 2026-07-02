@@ -15,17 +15,17 @@
 
 Levantado do repo em 2026-07-01 (branch `build/app`). É o ponto de partida real, não o que as specs assumem.
 
-| Fato observado | Arquivo | Implicação para M6 |
-| --- | --- | --- |
-| **Dois** addons nativos, não um: `better-sqlite3` **e** `@node-rs/argon2` | `packages/server/package.json` | O empacotamento tem de resolver **dois** `.node`, não só o SQLite. Isto derruba a premissa "sidecar JS puro" de `92`/`22`. |
-| `better-sqlite3` é usado em profundidade: WAL, `PRAGMA integrity_check`, **online backup API** (`db.backup()`), migrations versionadas, process-lock | `worlds/world-manager.ts`, `db/*` | "Mover SQLite para Rust" (recomendação de `92`/DEC-DST-03) reescreveria WorldManager, migrations e backup inteiros. **Rejeitado** (ver §1.4). |
-| Data dir default = `~/.fusion`; config = `fusion.json` **na raiz** do data dir | `packages/server/src/config.ts` | Diverge de REQ-DST-008 (`Documents/FusionVTT`) e REQ-DST-007 (`Config/fusion.json`). M6 precisa migrar o layout (§1.5). |
-| Layout de world: `<dataDir>/worlds/<slug>/{world.db,assets,backups,world.json,world.lock}` | `world-manager.ts` | Já compatível com REQ-DST-007. Só falta subir uma pasta de nível (`Config/`, `Logs/`, `assets/` global, `systems/`). |
-| O servidor **ainda não serve o SPA**: `boot.ts` registra só `/health` + rotas de auth/asset; SPA é servido pelo Vite dev | `boot.ts` (TODO M1-A), `packages/client` tem `dist/` mas não é servido | REQ-DST-002 (client embutido no executável) é **trabalho novo** e é pré-requisito de qualquer executável distribuível. Vira um batch dedicado (§5, B0). |
-| CLI atual: `serve`, `world list|create|backup`, `user add`. `serve` aceita `--port --data-dir --log-level --world` | `cli/args.ts`, `cli/commands/serve.ts` | Falta `--tunnel`, wizard de setup, `/setup`, checagem de update. `serve` abre **um** world via `--world` (multi-world é V2). |
-| `serve` só sobe HTTP+socket se `--world` for passado; sem world, sobe só `/health` | `cli/commands/serve.ts` | O modo "servidor de gerência sem world aberto" (tela admin/setup) ainda não existe. Necessário para o wizard (§4 / B1). |
-| Sem git remote configurado; CI é 1 job Ubuntu-only (`ci.yml`) | `.github/workflows/ci.yml` | O `{owner}/fusion` das URLs de update é **indefinido**. Release matrix multi-OS é trabalho novo (§5, B3). Decisão em aberto DA-01. |
-| `version` hardcoded `"0.1.0"` em 3 lugares (`boot.ts` /health, `world-manager.ts`, package.json) | vários | M6 precisa de **uma** fonte de versão (§2.4). |
+| Fato observado                                                                                                                                       | Arquivo                                                                | Implicação para M6                                                                                                                                      |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **Dois** addons nativos, não um: `better-sqlite3` **e** `@node-rs/argon2`                                                                            | `packages/server/package.json`                                         | O empacotamento tem de resolver **dois** `.node`, não só o SQLite. Isto derruba a premissa "sidecar JS puro" de `92`/`22`.                              |
+| `better-sqlite3` é usado em profundidade: WAL, `PRAGMA integrity_check`, **online backup API** (`db.backup()`), migrations versionadas, process-lock | `worlds/world-manager.ts`, `db/*`                                      | "Mover SQLite para Rust" (recomendação de `92`/DEC-DST-03) reescreveria WorldManager, migrations e backup inteiros. **Rejeitado** (ver §1.4).           |
+| Data dir default = `~/.fusion`; config = `fusion.json` **na raiz** do data dir                                                                       | `packages/server/src/config.ts`                                        | Diverge de REQ-DST-008 (`Documents/FusionVTT`) e REQ-DST-007 (`Config/fusion.json`). M6 precisa migrar o layout (§1.5).                                 |
+| Layout de world: `<dataDir>/worlds/<slug>/{world.db,assets,backups,world.json,world.lock}`                                                           | `world-manager.ts`                                                     | Já compatível com REQ-DST-007. Só falta subir uma pasta de nível (`Config/`, `Logs/`, `assets/` global, `systems/`).                                    |
+| O servidor **ainda não serve o SPA**: `boot.ts` registra só `/health` + rotas de auth/asset; SPA é servido pelo Vite dev                             | `boot.ts` (TODO M1-A), `packages/client` tem `dist/` mas não é servido | REQ-DST-002 (client embutido no executável) é **trabalho novo** e é pré-requisito de qualquer executável distribuível. Vira um batch dedicado (§5, B0). |
+| CLI atual: `serve`, `world list                                                                                                                      | create                                                                 | backup`, `user add`. `serve`aceita`--port --data-dir --log-level --world`                                                                               | `cli/args.ts`, `cli/commands/serve.ts` | Falta `--tunnel`, wizard de setup, `/setup`, checagem de update. `serve` abre **um** world via `--world` (multi-world é V2). |
+| `serve` só sobe HTTP+socket se `--world` for passado; sem world, sobe só `/health`                                                                   | `cli/commands/serve.ts`                                                | O modo "servidor de gerência sem world aberto" (tela admin/setup) ainda não existe. Necessário para o wizard (§4 / B1).                                 |
+| Sem git remote configurado; CI é 1 job Ubuntu-only (`ci.yml`)                                                                                        | `.github/workflows/ci.yml`                                             | O `{owner}/fusion` das URLs de update é **indefinido**. Release matrix multi-OS é trabalho novo (§5, B3). Decisão em aberto DA-01.                      |
+| `version` hardcoded `"0.1.0"` em 3 lugares (`boot.ts` /health, `world-manager.ts`, package.json)                                                     | vários                                                                 | M6 precisa de **uma** fonte de versão (§2.4).                                                                                                           |
 
 **Consequência central:** as decisões DEC-DST-02 (`@yao-pkg/pkg`) e DEC-DST-03 (SQLite→Rust) de `specs/22` foram tomadas em 2026-06-11 **antes** deste código existir e **antes** de o segundo addon (`@node-rs/argon2`) entrar. Este documento as **re-avalia** (§1) e propõe uma decisão atualizada, mantendo `22` como spec e registrando a mudança como decisão de design de M6.
 
@@ -42,13 +42,13 @@ Levantado do repo em 2026-07-01 (branch `build/app`). É o ponto de partida real
 
 ### 1.2 Opções avaliadas
 
-| Estratégia | Como lida com `.node` | 1 arquivo? | Cross-compile | Node embutido | Licença | Veredito |
-| --- | --- | --- | --- | --- | --- | --- |
-| **A. Node SEA** (`--experimental-sea-config`, Node 22 LTS estável) | `.node` fica externo; SEA + assets do client via `sea.getAsset()`; addons carregados de caminho ao lado do exe | Não puro (exe + pasta `native/`) — resolver com self-extract ou zip portátil | Não (precisa do `node` binário de cada alvo; roda a montagem em CI matrix) | Sim (o `node` host vira o exe) | MIT (Node) | **Recomendado** — oficial, sem dep de 3os, futuro-seguro |
-| **B. `@yao-pkg/pkg`** (fork ativo do vercel/pkg) — escolha de DEC-DST-02 | `.node` externo em `resources/`, resolvido por `process.execPath` | Não puro (mesmo problema) | Sim (targets num comando) | Sim (snapshot V8) | MIT, mas projeto é **fork** de um projeto arquivado; risco de manutenção | **Fallback** — só se SEA travar em algum alvo |
-| C. `nexe` | igual a B | Não | Parcial | Sim | MIT, manutenção intermitente | Rejeitado (menos ativo que B) |
-| D. esbuild bundle + exigir Node instalado (`npx fusion-server`) | trivial (usa Node do usuário) | Não — exige Node no PATH | n/a | Não | — | Rejeitado — quebra "GM não-técnico baixa 1 arquivo" (REQ-DST-001) |
-| E. Instalador que carrega runtime (MSI que instala Node) | trivial | Não — vira instalador pesado | n/a | Sim | — | Rejeitado no MVP headless; é o caminho V2/Tauri |
+| Estratégia                                                               | Como lida com `.node`                                                                                          | 1 arquivo?                                                                   | Cross-compile                                                              | Node embutido                  | Licença                                                                  | Veredito                                                          |
+| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------ | ------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| **A. Node SEA** (`--experimental-sea-config`, Node 22 LTS estável)       | `.node` fica externo; SEA + assets do client via `sea.getAsset()`; addons carregados de caminho ao lado do exe | Não puro (exe + pasta `native/`) — resolver com self-extract ou zip portátil | Não (precisa do `node` binário de cada alvo; roda a montagem em CI matrix) | Sim (o `node` host vira o exe) | MIT (Node)                                                               | **Recomendado** — oficial, sem dep de 3os, futuro-seguro          |
+| **B. `@yao-pkg/pkg`** (fork ativo do vercel/pkg) — escolha de DEC-DST-02 | `.node` externo em `resources/`, resolvido por `process.execPath`                                              | Não puro (mesmo problema)                                                    | Sim (targets num comando)                                                  | Sim (snapshot V8)              | MIT, mas projeto é **fork** de um projeto arquivado; risco de manutenção | **Fallback** — só se SEA travar em algum alvo                     |
+| C. `nexe`                                                                | igual a B                                                                                                      | Não                                                                          | Parcial                                                                    | Sim                            | MIT, manutenção intermitente                                             | Rejeitado (menos ativo que B)                                     |
+| D. esbuild bundle + exigir Node instalado (`npx fusion-server`)          | trivial (usa Node do usuário)                                                                                  | Não — exige Node no PATH                                                     | n/a                                                                        | Não                            | —                                                                        | Rejeitado — quebra "GM não-técnico baixa 1 arquivo" (REQ-DST-001) |
+| E. Instalador que carrega runtime (MSI que instala Node)                 | trivial                                                                                                        | Não — vira instalador pesado                                                 | n/a                                                                        | Sim                            | —                                                                        | Rejeitado no MVP headless; é o caminho V2/Tauri                   |
 
 ### 1.3 Decisão recomendada — **DEC-M6-01: Node SEA como primário, `@yao-pkg/pkg` como fallback**
 
@@ -95,6 +95,7 @@ Levantado do repo em 2026-07-01 (branch `build/app`). É o ponto de partida real
 ```
 
 **Defaults por SO (REQ-DST-008), substituindo `~/.fusion`:**
+
 - Windows: `%USERPROFILE%\Documents\FusionVTT`
 - macOS: `~/Documents/FusionVTT`
 - Linux: `~/FusionVTT` (ou `$XDG_DATA_HOME/FusionVTT` se definido — recomendação de conforto)
@@ -102,6 +103,7 @@ Levantado do repo em 2026-07-01 (branch `build/app`). É o ponto de partida real
 **Modo portátil (REQ-DST-009):** `--data-dir <path>` já existe no CLI; adicionar botão "Usar pasta portátil" no wizard que grava `<exeDir>/FusionVTT-Data`.
 
 **Migração do layout atual (trabalho de M6, batch B1):**
+
 1. `config.ts`: trocar o default de `~/.fusion` pela função `resolveDefaultDataDir(os)` acima. Manter `~/.fusion` como **fallback de leitura** por 1 versão (se existir e o novo não, usar o antigo e logar aviso de migração).
 2. `config.ts` `readFusionJson`: procurar `Config/fusion.json` **e** (fallback) `fusion.json` na raiz; se achar só o antigo, mover para `Config/` na primeira escrita. Sem quebrar mundos existentes.
 3. Estender o `FusionConfig` para o schema completo de REQ-DST (campos `serverVersion`, `dataVersion`, `adminPasswordHash`, `jwtHmacSecret`, `updateChannel`, `setupCompleted`, `allowedOrigins`, proxy, `upnpEnabled`). O schema atual (`ServerConfigSchema`) cobre porta/host/dataDir/logLevel/cookies/proxy parciais — é um superset a construir, não do zero.
@@ -152,18 +154,19 @@ Gratuito; **não** exigir conta paga como único caminho; latência tolerável; 
 
 ### 3.2 Opções
 
-| Opção | Gratuito | Conta obrigatória? | WebSocket | Latência | Automação CLI | Notas |
-| --- | --- | --- | --- | --- | --- | --- |
-| **Cloudflare Tunnel** (`cloudflared` quick tunnel) | Sim | **Não** (quick tunnel anônimo) | **Sim** (WS/HTTP2 suportado) | Boa (rede CF global) | `cloudflared tunnel --url http://localhost:33000` → URL `*.trycloudflare.com` no stdout | URL **efêmera** a cada sessão (aceitável p/ mandar link antes de jogar). URL fixa exige conta free + domínio. |
-| Tailscale / Headscale | Sim (tier free) | **Sim** (login/nós) | Sim (é rede, não proxy) | Ótima (P2P/WireGuard) | precisa de cada jogador no tailnet | Ótimo p/ grupo fixo técnico; ruim p/ "manda link e entra pelo navegador" (jogador teria de instalar Tailscale). Rejeitado como default. |
-| ngrok | Sim (limitado) | **Sim** (authtoken) | Sim | Boa | `ngrok http 33000` | Exige conta+token no free; limites de conexões. Menos privado. Fallback documentado, não default. |
-| localtunnel | Sim | Não | Sim | Média/instável | `lt --port 33000` | Sem conta, mas confiabilidade e velocidade piores; página de aviso intersticial atrapalha jogadores. Último recurso. |
+| Opção                                              | Gratuito        | Conta obrigatória?             | WebSocket                    | Latência              | Automação CLI                                                                           | Notas                                                                                                                                   |
+| -------------------------------------------------- | --------------- | ------------------------------ | ---------------------------- | --------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| **Cloudflare Tunnel** (`cloudflared` quick tunnel) | Sim             | **Não** (quick tunnel anônimo) | **Sim** (WS/HTTP2 suportado) | Boa (rede CF global)  | `cloudflared tunnel --url http://localhost:33000` → URL `*.trycloudflare.com` no stdout | URL **efêmera** a cada sessão (aceitável p/ mandar link antes de jogar). URL fixa exige conta free + domínio.                           |
+| Tailscale / Headscale                              | Sim (tier free) | **Sim** (login/nós)            | Sim (é rede, não proxy)      | Ótima (P2P/WireGuard) | precisa de cada jogador no tailnet                                                      | Ótimo p/ grupo fixo técnico; ruim p/ "manda link e entra pelo navegador" (jogador teria de instalar Tailscale). Rejeitado como default. |
+| ngrok                                              | Sim (limitado)  | **Sim** (authtoken)            | Sim                          | Boa                   | `ngrok http 33000`                                                                      | Exige conta+token no free; limites de conexões. Menos privado. Fallback documentado, não default.                                       |
+| localtunnel                                        | Sim             | Não                            | Sim                          | Média/instável        | `lt --port 33000`                                                                       | Sem conta, mas confiabilidade e velocidade piores; página de aviso intersticial atrapalha jogadores. Último recurso.                    |
 
 ### 3.3 Decisão — **DEC-M6-02: Cloudflare Tunnel (`cloudflared`) como default; ngrok documentado como fallback**
 
 Confirma DEC-DST-07. Razões: é a única que satisfaz **todos** os critérios simultaneamente — grátis, **sem conta** no quick tunnel, WS nativo, e a URL sai no stdout do `cloudflared` (fácil de capturar e exibir com QR). Jogadores só recebem um link `https://…trycloudflare.com` e abrem no navegador — zero instalação do lado deles.
 
 **Integração `fusion serve --tunnel` (batch B4):**
+
 - Detectar/baixar o binário `cloudflared` (ele **não** é dependência npm — é um binário externo baixado sob demanda para `<dataDir>/runtime/cloudflared[.exe]`, com verificação de hash). **Não** adiciona dependência ao `package.json`; é opt-in em runtime. Isso respeita "nenhuma dep nova sem justificar" e "nada exige conta paga".
 - Subir `cloudflared` como **processo filho**, ler a URL pública do stdout, exibir na tela admin + `/admin/network` (`tunnelUrl`) + evento, e derrubá-lo no shutdown do servidor.
 - Flag CLI e toggle "Compartilhar pela internet" na tela admin mapeiam ao mesmo código (REQ-DST-034).
@@ -225,49 +228,56 @@ graph TD
     B2 -.-> B4
 ```
 
-### B0 — Servir o SPA + fonte única de versão  *(MVP, complexidade M)*
+### B0 — Servir o SPA + fonte única de versão _(MVP, complexidade M)_
+
 - **Escopo:** registrar serving estático de `packages/client/dist` no Fastify (rota catch-all → `index.html` p/ SPA routing), com headers de segurança de `21` (o TODO em `boot.ts`). Criar `shared/src/version.ts` e consumi-lo em `/health`, handshake, manifest, update-check.
 - **Cobre:** REQ-DST-002, REQ-DST-036/037/038 (parte de versão/protocolo).
 - **Depende de:** nada (é a base).
 - **Auditoria:** (a) `pnpm build` e um `serve` de um world real responde a SPA em `/` e assets; (b) `/health` reporta a versão de `version.ts`, não string hardcoded; (c) headers `X-Content-Type-Options`/CSP presentes (teste negativo no CI).
 - **Fumaça automatizável:** sim — `fastify.inject()` em `/` e `/health`.
 
-### B1 — Layout do data dir + `Config/fusion.json` + migração + `serve` sem world  *(MVP, M)*
+### B1 — Layout do data dir + `Config/fusion.json` + migração + `serve` sem world _(MVP, M)_
+
 - **Escopo:** `resolveDefaultDataDir(os)`; ler/escrever `Config/fusion.json` com fallback do layout antigo; estender `FusionConfig` ao schema REQ-DST completo; criar `Logs/`, `systems/`, `assets/` globais no boot; permitir `fusion serve` **sem** `--world` subindo o servidor de gerência (host da tela admin/setup).
 - **Cobre:** REQ-DST-007/008/009/010, REQ-DST-038.
 - **Depende de:** B0 (versão).
 - **Auditoria:** (a) primeira execução cria a árvore de REQ-DST-007; (b) data dir antigo `~/.fusion` ainda abre (fallback), com aviso de migração; (c) permissão negada aborta com mensagem clara (REQ-DST-010); (d) `serve` sem world responde `/setup` sem crashar.
 - **Fumaça:** sim (fs temp + boot).
 
-### B2 — Wizard de primeira execução  *(MVP, M)*
+### B2 — Wizard de primeira execução _(MVP, M)_
+
 - **Escopo:** SPA de setup em `/setup` (ausência de `setupCompleted`); coletar data dir, porta (com checagem de disponibilidade em tempo real), **Admin Key** (hash **Argon2id** via `@node-rs/argon2` já presente — REQ-DST-012), conectividade (IP LAN + QR). Emitir Bearer admin (JWT HMAC, `jose` já presente). Reconfigurável (REQ-DST-014). Atalho de Desktop no Windows (`create-executable` do usuário; REQ-DST-016/017).
 - **Cobre:** REQ-DST-011..015, 015A (plano admin), 028/029 (LAN/QR), 016/017.
 - **Depende de:** B1 (config completa), B0 (SPA served).
 - **Auditoria:** (a) fresh install → `/setup` → wizard completo → servidor ativo (CA-DST-01); (b) porta em uso sugere alternativa (REQ-DST-015); (c) Admin Key gravada como Argon2id (nunca em claro); (d) URL LAN + QR corretos (CA-DST-05).
 - **Fumaça parcial + manual:** o fluxo de porta/hash é testável; a validação "GM não-técnico completa < 3 min" (REQ-DST-048) é **checklist manual** (§5.1).
 
-### B3 — Pipeline de release (SEA + native rebuild + CI matrix)  *(MVP, G)*
+### B3 — Pipeline de release (SEA + native rebuild + CI matrix) _(MVP, G)_
+
 - **Escopo:** script `pnpm build:release` (raiz) que: builda shared→server→client (ordem topológica já garantida por `-r`), roda `pnpm rebuild` dos dois addons no runner alvo, monta o SEA (embed client via assets), coleta `.node` em `native/`, produz o artefato por SO (exe/AppImage/dmg-app) nomeado `fusion-server-<versão>-<plat>-<arch>` (REQ-DST-004), calcula SHA-256, gera `latest-<canal>.json`. Estender `.github/workflows` com job `release.yml` em matrix (`windows-latest`, `macos-latest` x64+arm64, `ubuntu-22.04`), disparado por tag `v*`. Rodar `pnpm test` antes (REQ-DST-044).
 - **Cobre:** REQ-DST-001/003/004/042/043/044, 046 (checar ≤150 MB), 027 (manifesto).
 - **Depende de:** B0, B1.
 - **Auditoria:** (a) tag `v0.x` gera 4 artefatos + release + manifesto sem intervenção; (b) cada artefato ≤150 MB; (c) **smoke test de release** (§5.2) roda no CI: o exe recém-gerado sobe um world seed e um cliente HTTP conecta.
 - **Fumaça automatizável:** **sim, e é o critério-chave** — ver §5.2.
 
-### B4 — `fusion serve --tunnel` (cloudflared)  *(MVP, M)*
+### B4 — `fusion serve --tunnel` (cloudflared) _(MVP, M)_
+
 - **Escopo:** baixar `cloudflared` sob demanda p/ `runtime/` (com hash pin), subir como filho, capturar URL do stdout, expor em `/admin/network` + evento + QR, derrubar no shutdown. Flag CLI + toggle admin. Aviso de segurança.
 - **Cobre:** REQ-DST-034 (parte MVP do túnel), 028/029 (reuso QR), DEC-DST-07.
 - **Depende de:** B1 (admin/network), idealmente B2 (toggle na UI).
 - **Auditoria:** (a) `serve --tunnel` imprime URL pública `trycloudflare.com`; (b) um WS externo conecta pela URL (WebSocket através do túnel); (c) matar o servidor mata o `cloudflared`.
 - **Fumaça:** parcial automatizável (subir túnel e bater `/health` pela URL pública, se o runner tiver saída); conectividade WAN real = **manual**.
 
-### B5 — Auto-update headless  *(MVP, M)*
+### B5 — Auto-update headless _(MVP, M)_
+
 - **Escopo:** `/admin/update/check` (GitHub API, não-bloqueante), notificação GM, backup pré-update (`db.backup()`), download→SHA-256→swap-com-`.bak`→restart (helper de swap no Windows), rollback em falha, canal em config.
 - **Cobre:** REQ-DST-019..025, 049 (< 2 min).
 - **Depende de:** B3 (precisa de releases+manifesto reais para testar).
 - **Auditoria:** (a) release novo → "update disponível" com notas (CA-DST-10); (b) hash divergente → mantém binário atual + erro (CA-DST-07); (c) backup pré-update criado; (d) rollback restaura `.bak`.
 - **Fumaça automatizável:** sim, com um manifesto+binário de teste (mock do endpoint GitHub).
 
-### B6 — Wrapper Tauri v2  *(V2, G)*
+### B6 — Wrapper Tauri v2 _(V2, G)_
+
 - **Escopo:** §4.2. Sidecar = exe SEA do B3; tray; instaladores via `tauri-action`; updater Ed25519; signing (§6).
 - **Cobre:** REQ-DST-005/006/018/026/045/051, DEC-DST-01/04/05/06.
 - **Depende de:** B3 (binário sidecar), B5 (lógica de update a portar p/ Ed25519).
@@ -276,7 +286,9 @@ graph TD
 - **Fumaça:** instalação em máquina limpa é **majoritariamente manual** (§5.1).
 
 ### 5.1 Checklist de validação MANUAL do usuário (não automatizável)
+
 Marcos que exigem um humano e devem virar checklist no `BUILD-LOG.md` ao fechar M6:
+
 - [ ] GM não-técnico completa o wizard em < 3 min (REQ-DST-048) num Windows real.
 - [ ] Exe headless roda em **Windows 10 e 11 limpos** (sem Node/VC++) — CA-DST-01/02.
 - [ ] macOS arm64 roda **sem Rosetta** (CA-DST-03); Ubuntu 22.04 AppImage roda (CA-DST-04).
@@ -286,7 +298,9 @@ Marcos que exigem um humano e devem virar checklist no `BUILD-LOG.md` ao fechar 
 - [ ] (B6) Instalador Tauri sobe numa máquina limpa; tray start/stop funciona.
 
 ### 5.2 Smoke test de release AUTOMATIZÁVEL (o critério de fumaça pedido)
+
 No `release.yml`, após montar o artefato, um step por runner:
+
 1. Cria um data dir temp + `fusion world create smoke --system pf2e` usando o **próprio artefato** (não o `dist/` de dev).
 2. `./artefato serve --world smoke --port 0` em background.
 3. Aguarda `/health` responder `ok` com a versão certa.
@@ -299,20 +313,21 @@ Isso prova, por plataforma, que **"o executável gerado sobe um world real e um 
 
 ## 6. Riscos e decisões em aberto
 
-| # | Risco / Decisão | Impacto | Recomendação |
-| --- | --- | --- | --- |
-| **DA-01** | **Owner do repo GitHub indefinido** (sem git remote). As URLs de update/manifesto (`{owner}/fusion`) e o CI de release dependem disso. | Bloqueia B3/B5 na prática. | **Perguntar ao usuário** o slug `owner/repo` antes de B3. Enquanto isso, parametrizar via `Config/fusion.json` (`updateRepo`) com placeholder. |
-| **DA-02** | **SmartScreen/Gatekeeper em exe não assinado.** Windows mostra "editor desconhecido"; macOS bloqueia sem notarização. | Fricção séria de adoção; assusta GM não-técnico. | **MVP headless:** sem signing (early adopters/grupo do dev) — documentar o "Mais informações → Executar assim mesmo". **Assinar junto com a distribuição pública/Tauri (B6).** |
-| **DA-03** | **Custo de code signing.** Azure Artifact Signing ~$120/ano (Win) + Apple Developer $99/ano (mac). Nenhum é grátis. | Recorrente; conta paga. | Não é caminho **único** (a distribuição direta funciona sem). Só pagar quando houver distribuição pública. Se o projeto for **open-source**, avaliar **SignPath Foundation** (Win grátis) — decisão cruzada com `26-licencas-e-legal.md` (Q-DST-1). |
-| **DA-04** | **Tamanho do binário.** SEA (Node ~50–90 MB) + client + 2 `.node` pode se aproximar de REQ-DST-046 (150 MB). | Viola NFR se estourar. | Medir em B3; comprimir assets do client; se estourar, o zip portátil (1b) reduz o percebido. Provavelmente OK (Node headless < 100 MB). |
-| **DA-05** | **Licenças das ferramentas de empacotamento.** SEA = MIT (Node, upstream, seguro). `@yao-pkg/pkg` = MIT mas **fork** (risco de manutenção). `cloudflared` = binário externo (Apache-2.0), baixado em runtime, não redistribuído no pacote. Tauri = MIT/Apache. | Sustentação/legal. | DEC-M6-01 evita o fork como caminho primário. `cloudflared` fica como download opt-in (não é dep npm, não vai no bundle) — registrar a atribuição Apache-2.0. |
-| **DA-06** | **Windows: exe não se auto-sobrescreve.** O update precisa de helper de swap externo. | Update pode falhar/corromper no Windows. | Padrão conhecido (relançador curto pós-exit). Especificar no B5; testar rollback `.bak`. |
-| **DA-07** | **Rebuild dos `.node` por ABI do Node.** Se o Node do SEA e o Node do `pnpm rebuild` divergirem de ABI, o addon não carrega. | Falha silenciosa só no artefato final. | Fixar a **mesma** versão de Node (22 LTS pinada) no runner e no SEA; o smoke test §5.2 pega isso por plataforma. |
-| **DA-08** | **URL do túnel efêmera** muda a cada `serve`. | GM tem de reenviar link. | Aceitável no MVP/uso privado. URL fixa = conta Cloudflare free ([V2]). Documentar. |
-| **DA-09** | **Windows ARM64.** REQ-DST fala só x64; crescimento de Surface/Snapdragon. | Cobertura futura. | Fora do MVP de M6; reavaliar em V2 (Q-DST-2). x64 roda por emulação nesses aparelhos. |
-| **DA-10** | **Ordem "headless antes de Tauri"** conflita com a recomendação de `92` de mover SQLite p/ Rust. | Risco de retrabalho se Tauri exigir a migração. | DEC-M6-01/§1.4: manter `better-sqlite3` no headless; só reabrir a questão como **gate de entrada** de B6, não antes. |
+| #         | Risco / Decisão                                                                                                                                                                                                                                                | Impacto                                          | Recomendação                                                                                                                                                                                                                                        |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **DA-01** | **Owner do repo GitHub indefinido** (sem git remote). As URLs de update/manifesto (`{owner}/fusion`) e o CI de release dependem disso.                                                                                                                         | Bloqueia B3/B5 na prática.                       | **Perguntar ao usuário** o slug `owner/repo` antes de B3. Enquanto isso, parametrizar via `Config/fusion.json` (`updateRepo`) com placeholder.                                                                                                      |
+| **DA-02** | **SmartScreen/Gatekeeper em exe não assinado.** Windows mostra "editor desconhecido"; macOS bloqueia sem notarização.                                                                                                                                          | Fricção séria de adoção; assusta GM não-técnico. | **MVP headless:** sem signing (early adopters/grupo do dev) — documentar o "Mais informações → Executar assim mesmo". **Assinar junto com a distribuição pública/Tauri (B6).**                                                                      |
+| **DA-03** | **Custo de code signing.** Azure Artifact Signing ~$120/ano (Win) + Apple Developer $99/ano (mac). Nenhum é grátis.                                                                                                                                            | Recorrente; conta paga.                          | Não é caminho **único** (a distribuição direta funciona sem). Só pagar quando houver distribuição pública. Se o projeto for **open-source**, avaliar **SignPath Foundation** (Win grátis) — decisão cruzada com `26-licencas-e-legal.md` (Q-DST-1). |
+| **DA-04** | **Tamanho do binário.** SEA (Node ~50–90 MB) + client + 2 `.node` pode se aproximar de REQ-DST-046 (150 MB).                                                                                                                                                   | Viola NFR se estourar.                           | Medir em B3; comprimir assets do client; se estourar, o zip portátil (1b) reduz o percebido. Provavelmente OK (Node headless < 100 MB).                                                                                                             |
+| **DA-05** | **Licenças das ferramentas de empacotamento.** SEA = MIT (Node, upstream, seguro). `@yao-pkg/pkg` = MIT mas **fork** (risco de manutenção). `cloudflared` = binário externo (Apache-2.0), baixado em runtime, não redistribuído no pacote. Tauri = MIT/Apache. | Sustentação/legal.                               | DEC-M6-01 evita o fork como caminho primário. `cloudflared` fica como download opt-in (não é dep npm, não vai no bundle) — registrar a atribuição Apache-2.0.                                                                                       |
+| **DA-06** | **Windows: exe não se auto-sobrescreve.** O update precisa de helper de swap externo.                                                                                                                                                                          | Update pode falhar/corromper no Windows.         | Padrão conhecido (relançador curto pós-exit). Especificar no B5; testar rollback `.bak`.                                                                                                                                                            |
+| **DA-07** | **Rebuild dos `.node` por ABI do Node.** Se o Node do SEA e o Node do `pnpm rebuild` divergirem de ABI, o addon não carrega.                                                                                                                                   | Falha silenciosa só no artefato final.           | Fixar a **mesma** versão de Node (22 LTS pinada) no runner e no SEA; o smoke test §5.2 pega isso por plataforma.                                                                                                                                    |
+| **DA-08** | **URL do túnel efêmera** muda a cada `serve`.                                                                                                                                                                                                                  | GM tem de reenviar link.                         | Aceitável no MVP/uso privado. URL fixa = conta Cloudflare free ([V2]). Documentar.                                                                                                                                                                  |
+| **DA-09** | **Windows ARM64.** REQ-DST fala só x64; crescimento de Surface/Snapdragon.                                                                                                                                                                                     | Cobertura futura.                                | Fora do MVP de M6; reavaliar em V2 (Q-DST-2). x64 roda por emulação nesses aparelhos.                                                                                                                                                               |
+| **DA-10** | **Ordem "headless antes de Tauri"** conflita com a recomendação de `92` de mover SQLite p/ Rust.                                                                                                                                                               | Risco de retrabalho se Tauri exigir a migração.  | DEC-M6-01/§1.4: manter `better-sqlite3` no headless; só reabrir a questão como **gate de entrada** de B6, não antes.                                                                                                                                |
 
 ### Decisões que precisam do usuário antes de codar
+
 1. **DA-01** — qual `owner/repo` no GitHub? (bloqueia release/update)
 2. **DA-03/DA-02** — o projeto será **open-source**? Define signing grátis (SignPath) vs pago (Azure) e a licença (`26`).
 3. **Escopo de M6 a fechar agora:** confirmar que **B0–B5 (headless)** é o alvo de M6 e **B6 (Tauri)** fica explicitamente [V2] pós-headless — consistente com DEC-DST-01 e a nota de `27` de que M6 é "backlog priorizado", não marco binário único.

@@ -7,24 +7,25 @@
 
 Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 → M2 → M3** (primeira sessão jogável), depois M4/M5/M6 se houver tempo.
 
-| Batch | Conteúdo                                                                        | Status    | Score auditoria |
-| ----- | ------------------------------------------------------------------------------- | --------- | --------------- |
-| M0-A  | Scaffold monorepo, shared, system-api, stub system, server/client skeletons, CI | concluído | 96              |
-| M0-B  | SQLite/WAL, migrations, world lifecycle, Document model + CRUD, CLI             | concluído | 96              |
-| M0-C  | Fastify boot, socket.io handshake/envelope, auth (Argon2id/JWT), contract tests | concluído | 96              |
-| M1-A  | Canvas PIXI v8, grade square, render groups                                     | concluído | 96              |
-| M1-B  | Scene/Token embedded, CRUD broadcast, snapshot+resync, reconexão                | concluído | 97              |
-| M1-C  | Tokens no canvas (drag, animação, barras), ownership no servidor                | concluído | 97              |
-| M1-D  | Motor de rolagens (RNG servidor, roll modes, inline), chat + cards              | concluído | 96              |
-| M1-E  | Assets (upload/serving), presença (cursores, ping, ruler), DoD M1               | concluído | 97              |
-| M2-A  | Walls + portas, visibility polygon, luzes                                       | concluído | 96              |
-| M2-B  | Fog of war (3 estados, persistência, Clipper2), broadcast de delta              | concluído | 93 (dívida)     |
-| M2-C  | Combat/Combatant, tracker, InitiativeFormula, hooks de turno                    | concluído | 96              |
-| M3-A  | System API completa + engine-2e (derivação, effects MVP, DoS, stacking, IWR)    | concluído | 95              |
-| M3-B  | PF2e schemas + automação (strikes, saves, condições, spellcasting)              | concluído | 72→✓ corrigido  |
-| M3-C  | UI framework (window manager, sheets, TipTap) + fichas PF2e                     | concluído | 95              |
-| M3-D  | Importer pf2e + compendiums + i18n pt-BR + DoD M3 (primeira sessão jogável)     | concluído | 58→94 corrigido |
+| Batch | Conteúdo                                                                          | Status    | Score auditoria |
+| ----- | --------------------------------------------------------------------------------- | --------- | --------------- |
+| M0-A  | Scaffold monorepo, shared, system-api, stub system, server/client skeletons, CI   | concluído | 96              |
+| M0-B  | SQLite/WAL, migrations, world lifecycle, Document model + CRUD, CLI               | concluído | 96              |
+| M0-C  | Fastify boot, socket.io handshake/envelope, auth (Argon2id/JWT), contract tests   | concluído | 96              |
+| M1-A  | Canvas PIXI v8, grade square, render groups                                       | concluído | 96              |
+| M1-B  | Scene/Token embedded, CRUD broadcast, snapshot+resync, reconexão                  | concluído | 97              |
+| M1-C  | Tokens no canvas (drag, animação, barras), ownership no servidor                  | concluído | 97              |
+| M1-D  | Motor de rolagens (RNG servidor, roll modes, inline), chat + cards                | concluído | 96              |
+| M1-E  | Assets (upload/serving), presença (cursores, ping, ruler), DoD M1                 | concluído | 97              |
+| M2-A  | Walls + portas, visibility polygon, luzes                                         | concluído | 96              |
+| M2-B  | Fog of war (3 estados, persistência, Clipper2), broadcast de delta                | concluído | 93 (dívida)     |
+| M2-C  | Combat/Combatant, tracker, InitiativeFormula, hooks de turno                      | concluído | 96              |
+| M3-A  | System API completa + engine-2e (derivação, effects MVP, DoS, stacking, IWR)      | concluído | 95              |
+| M3-B  | PF2e schemas + automação (strikes, saves, condições, spellcasting)                | concluído | 72→✓ corrigido  |
+| M3-C  | UI framework (window manager, sheets, TipTap) + fichas PF2e                       | concluído | 95              |
+| M3-D  | Importer pf2e + compendiums + i18n pt-BR + DoD M3 (primeira sessão jogável)       | concluído | 58→94 corrigido |
 | M4    | Starfinder 2e (delta sobre engine-2e, importer sf2e, 6 packs, registro no server) | concluído | 88→96 corrigido |
+| M4.5  | Wiring: iniciativa por sistema + derive em produção (findings pré-existentes)     | concluído | 82→86→✓ corrigido |
 
 **🎉 MVP ALCANÇADO (2026-06-26) — primeira sessão jogável de PF2e funciona ponta-a-ponta (verificado via boot real).** ~2.500 testes verdes. Pós-MVP: **M4 (SF2e) concluído em 2026-07-01** (~2.700 testes); designs do M5 (compositor Etmos) e M6 (distribuição) prontos em `docs/design/`. Restam: **M4.5-wiring** (religações críticas pré-existentes: iniciativa por sistema + derive em produção), M5 (Etmos, 5 batches A–E) e M6 (distribuição, 6 batches).
 
@@ -51,6 +52,14 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 - Próximos batches após M2-A: M2-B (fog), M2-C (combate), depois M3 (A–F) → primeira sessão jogável.
 
 ## Registro por batch
+
+### M4.5 — Wiring de iniciativa e derive (2026-07-01)
+
+- Religou as duas pontas soltas pré-existentes confirmadas no gate do M4: (1) `system-formula-adapter.ts` + registry resolvendo combatType exato → systemId → generic-1d20, com `SystemModule` propagado boot→socket-manager; (2) `derive-runner` invocado em doc:create/update/embedded create/update/delete, snapshot, compendium import (+ on-read na iniciativa como cinto de segurança), escrevendo só em `system.derived` (contrato "not re-derived" dos packs preservado).
+- **Auditorias no Fable 5** (Opus em 529 Overloaded; e o Fable provou-se superior — reprovou 2x com provas empíricas via boot real): auditoria 1 = **82** (ALTA: Actor mínimo válido causava ghost write + snapshot zerando a lista de Actors de todos os usuários; médias: embedded update/delete sem recompute, NPC importado rolando 1d20+0). Corretor 1 fechou a ALTA. Auditoria 2 = **86** (ALTA nova: `stepNpcPerception` lia `attributes.perception.mod` mas os packs reais gravam `perception.mod` top-level — mascarado por `derived.perception.total=0` persistido; média: `NpcSystemSchema` rejeitava os NPCs reais dos packs). Rodada focada: fallback de shape + schemas alinhados + **teste de conformidade data-driven contra os 20 NPCs reais dos packs** + teste de import→iniciativa com formula auditada — verificador independente **provou por falsificação** que o teste novo pega o defeito (reverteu o fix → falha → restaurou) e **APROVOU**.
+- Suíte final: 2.948+ testes verdes (pf2e 275, sf2e 100, server 481, client 851, shared 673...), exit 0 em build/typecheck/format/lint/boundaries/test.
+- Lição de processo: fixtures no shape do schema mascararam o mismatch com os dados reais por 2.942 testes verdes — testes de conformidade contra artefatos commitados agora são guarda permanente nos dois sistemas.
+- Dívida M5-A registrada em `TODO(M5-A)` no derive-runner: semântica 2e hardcoded (collectEffects do engine-2e) — mover a materialização de EffectSources para trás do `SystemModule` (o Etmos não usa effects 2e).
 
 ### M4 — Starfinder 2e (2026-07-01)
 

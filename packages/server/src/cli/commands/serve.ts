@@ -153,6 +153,9 @@ export async function runServe(args: ServeArgs): Promise<void> {
       const { AuthService } = await import("../../auth/index.js");
       const authSvc = new AuthService(openWorldDb, authSecret, worldSlug);
       const origin = `http://${config.host}:${String(config.port)}`;
+      // REQ-CBT-012: resolve the world's SystemModule (if its package loaded
+      // successfully above) so the socket layer can wire initiative formulas.
+      const worldSystemModule = registry.tryGet(worldSystemId);
       bootOpts.netContext = {
         worldId: worldSlug,
         db: openWorldDb,
@@ -162,6 +165,7 @@ export async function runServe(args: ServeArgs): Promise<void> {
         // REQ-CMP-006..012: load committed packs for the world's system over
         // the real boot path so compendium content is available in a live session.
         systemId: worldSystemId,
+        ...(worldSystemModule !== undefined ? { systemModule: worldSystemModule } : {}),
       };
 
       // REQ-AST-006..029: register asset routes for the open world.

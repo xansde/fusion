@@ -43,7 +43,6 @@
  * Spec: 18-sistema-sf2e.md.
  */
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 
 import type { DeriveStep } from "@fusion/system-api";
 import { resolveModifiersForSelector, resolveStacking } from "@fusion/engine-2e";
@@ -64,6 +63,17 @@ function getSystem(doc: Record<string, unknown>): Record<string, unknown> {
 
 function getCharSystem(doc: Record<string, unknown>): CharacterSystem {
   return getSystem(doc) as unknown as CharacterSystem;
+}
+
+/**
+ * Read `system.level.value`, defaulting to 1 when `system.level` itself is
+ * absent (audit issue 1 — a minimal-but-schema-valid character doc may omit
+ * it entirely; the naive `(sys.level as {value:number}).value ?? 1` cast
+ * throws a TypeError on `undefined.value` before the `??` ever runs).
+ */
+function getLevel(sys: CharacterSystem): number {
+  const level = sys.level as { value?: number } | undefined;
+  return level?.value ?? 1;
 }
 
 // ---------------------------------------------------------------------------
@@ -107,23 +117,40 @@ export const stepCharAbilityMods: DeriveStep = {
     const sys = getCharSystem(doc);
     const derived = getDerived(doc);
 
+    // ROBUSTNESS (audit issue 1): a minimal-but-schema-valid character doc
+    // (store's `system` schema is a passthrough z.record) may be missing
+    // `system.abilities` entirely. Default every ability to score 10 (mod 0)
+    // rather than throwing — the resulting derived stats are simply the
+    // unmodified baseline, which is a safe, sane placeholder until the actor
+    // is properly authored.
+    const abilities = (sys.abilities ?? {}) as Partial<CharacterSystem["abilities"]>;
+    const scoreOf = (ability: { value?: number } | undefined): number => ability?.value ?? 10;
+
     const mods = {
-      str: abilityMod(sys.abilities.str.value),
-      dex: abilityMod(sys.abilities.dex.value),
-      con: abilityMod(sys.abilities.con.value),
-      int: abilityMod(sys.abilities.int.value),
-      wis: abilityMod(sys.abilities.wis.value),
-      cha: abilityMod(sys.abilities.cha.value),
+      str: abilityMod(scoreOf(abilities.str)),
+      dex: abilityMod(scoreOf(abilities.dex)),
+      con: abilityMod(scoreOf(abilities.con)),
+      int: abilityMod(scoreOf(abilities.int)),
+      wis: abilityMod(scoreOf(abilities.wis)),
+      cha: abilityMod(scoreOf(abilities.cha)),
     };
 
     derived["abilityMods"] = mods;
 
-    sys.abilities.str.mod = mods.str;
-    sys.abilities.dex.mod = mods.dex;
-    sys.abilities.con.mod = mods.con;
-    sys.abilities.int.mod = mods.int;
-    sys.abilities.wis.mod = mods.wis;
-    sys.abilities.cha.mod = mods.cha;
+    // Ensure the abilities sub-object exists before writing back onto it —
+    // otherwise this write would throw the same TypeError we just guarded
+    // against above.
+    if (!sys.abilities || typeof sys.abilities !== "object") {
+      (sys as unknown as Record<string, unknown>)["abilities"] = {};
+    }
+    for (const ability of ["str", "dex", "con", "int", "wis", "cha"] as const) {
+      const slot = sys.abilities[ability];
+      if (!slot || typeof slot !== "object") {
+        sys.abilities[ability] = { value: 10, mod: mods[ability] };
+      } else {
+        slot.mod = mods[ability];
+      }
+    }
   },
 };
 
@@ -152,12 +179,16 @@ export const stepCharHp: DeriveStep = {
     const sys = getCharSystem(doc);
     const derived = getDerived(doc);
 
-    const storedMax = sys.attributes.hp.max;
+    // ROBUSTNESS (audit issue 1): system.attributes.hp may be absent on a
+    // minimal-but-schema-valid doc. Default to 0/0/0 rather than throwing.
+    const hp = sys.attributes?.hp as { value?: number; max?: number; temp?: number } | undefined;
+    const storedMax = hp?.max ?? 0;
+    const storedValue = hp?.value ?? 0;
 
     derived["hp"] = {
-      value: Math.min(sys.attributes.hp.value, storedMax),
+      value: Math.min(storedValue, storedMax),
       max: storedMax,
-      temp: sys.attributes.hp.temp,
+      temp: hp?.temp ?? 0,
       drainedHpReduction: 0,
     };
   },
@@ -184,7 +215,7 @@ export const stepCharDyingMax: DeriveStep = {
   run(doc) {
     const sys = getCharSystem(doc);
     const derived = getDerived(doc);
-    const doomedValue = sys.attributes.doomed?.value ?? 0;
+    const doomedValue = sys.attributes?.doomed?.value ?? 0;
     derived["dyingMax"] = Math.max(0, 4 - doomedValue);
   },
 };
@@ -212,7 +243,7 @@ export const stepCharAc: DeriveStep = {
     const derived = getDerived(doc);
     const abilityMods = derived["abilityMods"] as { dex: number } | undefined;
     const dexMod = abilityMods?.dex ?? 0;
-    const level = (sys.level as { value: number }).value ?? 1;
+    const level = getLevel(sys);
 
     const equippedArmor = doc["_equippedArmor"] as
       | {
@@ -267,7 +298,7 @@ export const stepCharSaves: DeriveStep = {
     const sys = getCharSystem(doc);
     const derived = getDerived(doc);
     const abilityMods = derived["abilityMods"] as Record<string, number> | undefined;
-    const level = (sys.level as { value: number }).value ?? 1;
+    const level = getLevel(sys);
 
     const saveAbilities = {
       fortitude: "con",
@@ -276,12 +307,14 @@ export const stepCharSaves: DeriveStep = {
     } as const;
 
     const saves: Record<string, DerivedStatistic> = {};
+    // ROBUSTNESS (audit issue 1): system.saves may be entirely absent.
+    const sysSaves = sys.saves ?? ({} as CharacterSystem["saves"]);
 
     for (const [saveName, ability] of Object.entries(saveAbilities) as [
       "fortitude" | "reflex" | "will",
       "con" | "dex" | "wis",
     ][]) {
-      const rank = sys.saves[saveName]?.rank ?? 0;
+      const rank = sysSaves[saveName]?.rank ?? 0;
       const mod = abilityMods?.[ability] ?? 0;
       const base = mod + proficiencyBonus(rank, level);
 
@@ -321,7 +354,7 @@ export const stepCharPerception: DeriveStep = {
     const derived = getDerived(doc);
     const abilityMods = derived["abilityMods"] as Record<string, number> | undefined;
     const wisMod = abilityMods?.["wis"] ?? 0;
-    const level = (sys.level as { value: number }).value ?? 1;
+    const level = getLevel(sys);
     const rank = sys.perception?.rank ?? 0;
     const base = wisMod + proficiencyBonus(rank, level);
 
@@ -368,7 +401,7 @@ export const stepCharSkills: DeriveStep = {
     const sys = getCharSystem(doc);
     const derived = getDerived(doc);
     const abilityMods = derived["abilityMods"] as Record<string, number> | undefined;
-    const level = (sys.level as { value: number }).value ?? 1;
+    const level = getLevel(sys);
 
     const skillsResult: Record<string, DerivedStatistic> = {};
 
@@ -426,7 +459,7 @@ export const stepCharClassDC: DeriveStep = {
     const sys = getCharSystem(doc);
     const derived = getDerived(doc);
     const abilityMods = derived["abilityMods"] as Record<string, number> | undefined;
-    const level = (sys.level as { value: number }).value ?? 1;
+    const level = getLevel(sys);
 
     const keyAbility = sys.details?.keyAbility ?? "str";
     const keyMod = abilityMods?.[keyAbility] ?? 0;
@@ -473,7 +506,7 @@ export const stepCharDrainedHp: DeriveStep = {
   run(doc, ctx) {
     const sys = getCharSystem(doc);
     const derived = getDerived(doc);
-    const level = (sys.level as { value: number }).value ?? 1;
+    const level = getLevel(sys);
 
     let drainedValue = 0;
     for (const opt of ctx.rollOptions) {

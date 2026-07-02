@@ -12,6 +12,7 @@
 
 import type { Socket, Namespace } from "socket.io";
 import type { Database as Db } from "better-sqlite3";
+import type { Logger } from "pino";
 import type { HandlerFn } from "../handler-registry.js";
 import type { SeqStore } from "../seq-store.js";
 import type { OpBuffer } from "../op-buffer.js";
@@ -22,6 +23,8 @@ import {
   redactSecretDoors,
   stripHiddenCombatantsFromCombat,
 } from "../redaction.js";
+import type { SystemModule } from "@fusion/system-api";
+import { runActorDerivation } from "../derive-runner.js";
 
 import { WorldResyncRequestPayloadSchema, WorldActiveScenePayloadSchema } from "@fusion/shared";
 import type {
@@ -271,6 +274,48 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
         }
       }
 
+      // WIRING-DERIVE: compute-on-read for Actor documents joining the
+      // snapshot — covers actors that predate derivation wiring (or any
+      // other drift) without requiring a doc:update round-trip. Mutates a
+      // shallow clone (never the object read from the store) since this
+      // computed view is read-only and must not silently persist.
+      //
+      // ROBUSTNESS (audit issue 1): a minimal-but-schema-valid Actor doc
+      // (e.g. `{name, type: "character"}`, accepted by the store's
+      // passthrough `system` schema) makes the pf2e/sf2e DeriveSteps throw a
+      // TypeError on missing fields. Before this fix the try/catch around
+      // the WHOLE TABLE (see the outer catch below) meant one malformed
+      // actor turned `documents["Actor"] = []` for EVERY viewer, hiding even
+      // well-formed actors. Each actor is now derived independently: a
+      // failure logs a warning and that actor is served without `derived`
+      // (or whatever it already had), while every other actor is unaffected.
+      if (docType === "Actor" && deps.systemModule) {
+        const systemModule = deps.systemModule;
+        visible = visible.map((actor) => {
+          try {
+            const clone: Record<string, unknown> = { ...actor };
+            const sys = actor["system"];
+            // Deep-clone (audit issue 5) — some DeriveSteps mirror computed
+            // ability mods onto system.abilities.<ability>.mod for their own
+            // internal use (see doc-handlers.ts recomputeDerivedIfNeeded for
+            // the full rationale); a shallow clone would still share those
+            // nested objects with the store-returned document.
+            clone["system"] =
+              sys && typeof sys === "object" && !Array.isArray(sys)
+                ? structuredClone(sys as Record<string, unknown>)
+                : {};
+            runActorDerivation(clone, systemModule);
+            return clone;
+          } catch (err) {
+            deps.logger?.warn(
+              { err, documentId: actor["_id"] },
+              "Actor derivation failed while building snapshot — serving document without derived",
+            );
+            return actor;
+          }
+        });
+      }
+
       documents[docType] = visible;
     } catch {
       documents[docType] = [];
@@ -301,6 +346,20 @@ export interface SyncHandlerDeps {
    * filtered by the viewer's role (REQ-CHT-033).
    */
   getRecentChat?: (userId: string, role: number) => ChatMessage[];
+  /**
+   * The world's resolved SystemModule, when available. Used to compute
+   * `system.derived` on Actor documents served in the join snapshot
+   * (WIRING-DERIVE) — covers actors created before derivation was wired, or
+   * any drift, without requiring a doc:update round-trip. Optional —
+   * undefined skips derivation (stub system, or no system package loaded).
+   */
+  systemModule?: SystemModule;
+  /**
+   * Optional structured logger. When provided, a per-document derivation
+   * failure while building the snapshot is logged at `warn` level instead of
+   * being silently swallowed — see buildSnapshot.
+   */
+  logger?: Logger;
 }
 
 // ---------------------------------------------------------------------------

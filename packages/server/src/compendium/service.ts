@@ -47,6 +47,8 @@ import { DocumentStore } from "../documents/store.js";
 import { isRolePrivileged } from "../documents/ownership.js";
 import type { Database as Db } from "better-sqlite3";
 import { createDocumentId } from "@fusion/shared";
+import type { SystemModule } from "@fusion/system-api";
+import { runActorDerivation } from "../net/derive-runner.js";
 
 // ---------------------------------------------------------------------------
 // Internal types
@@ -234,13 +236,24 @@ export class CompendiumService {
    * - Inserts via DocumentStore.
    * - GM-only operation.
    *
-   * NOTE (M3-D audit): this is a clone, NOT a re-derivation. For an imported
-   * NPC statblock that is correct — NPC AC/saves/perception are authored
-   * directly in the pack, so the world Actor carries those values verbatim.
-   * Character stat derivation (ability mods → AC/saves/skills via the system
-   * module) happens on the read/snapshot path (DocumentStore read → system
-   * derive), not here, and applies to `character` actors rather than imported
-   * `npc` statblocks. Hence no re-derivation is performed on import.
+   * DERIVATION ON IMPORT (audit issue 3): imported Actor documents (both
+   * `character` and `npc` subtypes) are re-derived via `runActorDerivation`
+   * BEFORE the batch insert, when a `systemModule` is supplied. This matters
+   * even for NPCs — although an NPC's AC/saves/perception TOTALS are
+   * authored directly in the statblock (and correctly served verbatim by the
+   * "derived" steps' selector-modifier pass, which is a no-op with no active
+   * conditions), other systems' initiative formulas read
+   * `system.derived.perception.total` (see combat/system-formula-adapter.ts
+   * → SystemModule.combat.initiativeFormulas), which previously stayed
+   * `undefined` on freshly-imported actors because nothing had ever computed
+   * it — silently rolling "1d20 + 0" for a real statblock. Deriving at
+   * import time means `system.derived` is correct and PERSISTED from the
+   * moment the actor exists in the world, with no dependency on a later
+   * doc:update round-trip. A derivation failure for a single malformed
+   * document (e.g. a corrupt pack entry) is caught, logged, and does not
+   * fail the import — the actor is still created without `derived` (see
+   * combat:rollInitiative's own on-read fallback in combat-handlers.ts for
+   * the defense-in-depth cinto-de-segurança layer).
    */
   importToWorld(
     uuids: string[],
@@ -250,6 +263,15 @@ export class CompendiumService {
       userId: string;
       role: number;
       folderId?: string;
+      /**
+       * The world's resolved SystemModule, when available. Used to derive
+       * `system.derived` on imported Actor documents before they are
+       * persisted (see docstring above). Optional — undefined skips
+       * derivation entirely (stub system, or no system package loaded),
+       * same fallback behaviour as doc-handlers.ts/sync-handlers.ts.
+       */
+      systemModule?: SystemModule;
+      logger?: Logger;
     },
   ): CompendiumImportResult {
     if (!isRolePrivileged(options.role)) {
@@ -294,6 +316,26 @@ export class CompendiumService {
 
         // Strip pack-only fields
         delete worldDoc["uuid"];
+
+        // Derive on import (audit issue 3) — Actor documents only.
+        //
+        // No deep-clone needed here (unlike doc-handlers.ts/sync-handlers.ts/
+        // combat-handlers.ts — see derive-runner.ts docstring, audit issue
+        // 5): `worldDoc["system"]` is a freshly-parsed object from this
+        // iteration's `getDocument()` JSON.parse call, not shared with any
+        // other consumer — mutating it in place (including the cache fields
+        // some DeriveSteps write outside `derived`) is safe because the
+        // WHOLE worldDoc, exactly as mutated, is what gets persisted below.
+        if (manifest.documentType === "Actor" && options.systemModule) {
+          try {
+            runActorDerivation(worldDoc, options.systemModule);
+          } catch (deriveErr) {
+            options.logger?.warn(
+              { err: deriveErr, uuid },
+              "Actor derivation failed during compendium import — importing without derived",
+            );
+          }
+        }
 
         const results = store.createBatch(table as DocumentTable, [worldDoc], {
           userId: options.userId,

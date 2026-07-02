@@ -43,6 +43,7 @@
  */
 
 import type { Namespace, Socket } from "socket.io";
+import type { Logger } from "pino";
 import type { HandlerFn, HandlerContext } from "../handler-registry.js";
 import type { SeqStore } from "../seq-store.js";
 import type { OpBuffer } from "../op-buffer.js";
@@ -78,6 +79,8 @@ import {
   AUGMENTATION_SLOT_LIMIT_I18N_KEY,
   type AugmentationLikeItem,
 } from "@fusion/system-sf2e";
+import type { SystemModule } from "@fusion/system-api";
+import { runActorDerivation } from "../derive-runner.js";
 
 // ---------------------------------------------------------------------------
 // Ack builder helpers
@@ -201,6 +204,110 @@ export interface DocHandlerDeps {
    * caller (tests, other systems) needs to supply it.
    */
   systemId?: string;
+  /**
+   * The world's resolved SystemModule (from SystemRegistry.tryGet(systemId)),
+   * when the system package is available. Used to invoke the M3-C derivation
+   * pipeline (SystemModule.deriveSteps) on Actor create/update so
+   * `system.derived` is populated for the sheet — see derive-runner.ts.
+   * Optional — undefined disables derivation entirely (stub system, or a
+   * system package that registers no DeriveSteps).
+   */
+  systemModule?: SystemModule;
+  /**
+   * Optional structured logger. When provided, a derivation failure for a
+   * single malformed Actor document is logged at `warn` level instead of
+   * being silently swallowed — see recomputeDerivedIfNeeded.
+   */
+  logger?: Logger;
+}
+
+// ---------------------------------------------------------------------------
+// Derivation recompute helper (WIRING-DERIVE)
+// ---------------------------------------------------------------------------
+
+/**
+ * Recompute `system.derived` for a persisted Actor document and, if it
+ * changed, persist the recomputed subtree via a second store.update() before
+ * the caller broadcasts.
+ *
+ * Only acts on `documentType === "Actor"` when a systemModule is available;
+ * every other call is a no-op returning the input doc unchanged. Never
+ * touches authored fields — `runActorDerivation` writes exclusively to
+ * `doc.system.derived` (see derive-runner.ts docstring for the full
+ * contract).
+ *
+ * The second store.update() bumps `_stats.version` again and re-runs
+ * validation, but that is intentional: the persisted document must reflect
+ * the derived state that gets broadcast, and `system` is a passthrough
+ * z.record so validation always succeeds for these writes.
+ *
+ * ROBUSTNESS (audit issue 1): a minimal-but-schema-valid Actor doc (e.g.
+ * `{name, type: "character"}` with no `system.abilities`/`attributes`) is
+ * ACCEPTED by the store's passthrough `system` schema, but the pf2e/sf2e
+ * DeriveSteps assume those fields exist and throw a TypeError when they
+ * don't. Because this helper runs AFTER the document is already persisted
+ * (doc:create/doc:update already committed the write), an uncaught throw
+ * here would surface as INTERNAL_ERROR to the client with a ghost write
+ * already in the DB (persisted but never broadcast). Every call is
+ * therefore wrapped: on failure we log a warning and return the doc
+ * UNCHANGED (no derived, or whatever partial derived a previous successful
+ * call already produced) rather than let the exception propagate.
+ *
+ * AUTHORSHIP (audit M4.5-corretor, BAIXA): the second store.update() below
+ * MUST be given the same `authorCtx` the caller used for its own write —
+ * otherwise DocumentStore.update falls back to `defaultAuthor` and
+ * `_stats.lastModifiedBy` on the persisted/broadcast document silently
+ * reverts to the default author even though a real, identified user
+ * (ctx.userId) triggered the change. Callers therefore pass their resolved
+ * `authorCtx` through as the 4th argument.
+ */
+function recomputeDerivedIfNeeded(
+  deps: Pick<DocHandlerDeps, "store" | "systemModule" | "logger">,
+  documentType: string,
+  doc: Record<string, unknown>,
+  authorCtx?: { userId: string },
+): Record<string, unknown> {
+  if (documentType !== "Actor" || !deps.systemModule) return doc;
+
+  try {
+    // Deep-clone `system` before handing it to runActorDerivation (audit
+    // issue 5): the DeriveSteps' documented contract is "only ever writes to
+    // doc.system.derived" (see derive-runner.ts docstring), but several
+    // steps ALSO write cache fields outside `derived` for their own internal
+    // consumption (e.g. pf2e/sf2e stepCharAbilityMods mirrors the computed
+    // mod onto `system.abilities.<ability>.mod`, and stepCharStrikes reads
+    // that same cached mod back). A shallow clone of `system` still shares
+    // nested objects like `system.abilities.str` by reference with the
+    // document already returned by the store — mutating `.mod` on it would
+    // silently corrupt an object that may be referenced elsewhere (e.g.
+    // computeDiff snapshots taken earlier in the same handler call for other
+    // items in a batch). A full structuredClone removes that hazard; only
+    // `system.derived` is ever read back out and persisted, so the clone's
+    // cost (proportional to one actor's `system` subtree) is paid once per
+    // recompute and nothing else from the clone is retained.
+    const workingDoc: Record<string, unknown> = { ...doc };
+    const sys = doc["system"];
+    workingDoc["system"] =
+      sys && typeof sys === "object" && !Array.isArray(sys)
+        ? structuredClone(sys as Record<string, unknown>)
+        : {};
+
+    const derived = runActorDerivation(workingDoc, deps.systemModule);
+    if (!derived) return doc;
+
+    const id = doc["_id"] as string | undefined;
+    if (!id) return doc;
+
+    const newDerived = (workingDoc["system"] as Record<string, unknown>)["derived"];
+    const patched = deps.store.update("actors", id, { system: { derived: newDerived } }, authorCtx);
+    return patched ?? doc;
+  } catch (err) {
+    deps.logger?.warn(
+      { err, documentId: doc["_id"], documentType },
+      "Actor derivation failed for a single document — skipping derived, document persists without it",
+    );
+    return doc;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -245,8 +352,25 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
     const created: Record<string, unknown>[] = [];
 
     try {
-      for (const item of data) {
-        const doc = deps.store.create(table as never, item as Record<string, unknown>, authorCtx);
+      for (const rawItem of data) {
+        // WIRING-DERIVE (audit issue 4): system.derived is server-computed
+        // only. doc:update already strips a client-supplied value (see
+        // stripSystemDerived below); doc:create must apply the same
+        // stripping to its `data` items, otherwise a forged
+        // `{system: {derived: {...}}}` payload persists verbatim for any
+        // Actor subtype that has no registered DeriveSteps (recomputeDerived
+        // IfNeeded is a no-op for those — nothing overwrites the forged
+        // value). stripSystemDerived operates on a dot-path-or-nested diff
+        // shape, which a create payload's item already satisfies (nested
+        // `system.derived` key) even though it is a full document, not a
+        // partial diff.
+        let item: Record<string, unknown> = rawItem as Record<string, unknown>;
+        if (documentType === "Actor") {
+          item = stripSystemDerived(item);
+        }
+        let doc = deps.store.create(table as never, item, authorCtx);
+        // WIRING-DERIVE: populate system.derived for newly created Actors.
+        doc = recomputeDerivedIfNeeded(deps, documentType, doc, authorCtx);
         created.push(doc);
       }
     } catch (err) {
@@ -339,7 +463,13 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
       // being stored as a literal key "grid.size" (which Zod would silently
       // discard on read-back).  The same expansion is already applied in the
       // embedded path via applyDotPathDiff in handleEmbeddedUpdate.
-      const expandedDiff = applyDotPathDiff({}, upd.diff);
+      let expandedDiff = applyDotPathDiff({}, upd.diff);
+      // WIRING-DERIVE: system.derived is server-computed only — strip any
+      // client-supplied value so a stale/forged autosave payload can never
+      // overwrite it (recomputeDerivedIfNeeded below is the sole writer).
+      if (documentType === "Actor") {
+        expandedDiff = stripSystemDerived(expandedDiff);
+      }
       let result: Record<string, unknown> | null;
       try {
         result = deps.store.update(table as never, upd._id, expandedDiff, authorCtx);
@@ -354,6 +484,9 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
       }
 
       if (result !== null) {
+        // WIRING-DERIVE: keep system.derived in sync with authored-field updates
+        // (e.g. an ability score edit changes AC/saves/skills totals).
+        result = recomputeDerivedIfNeeded(deps, documentType, result, authorCtx);
         updated.push(result);
       }
     }
@@ -555,13 +688,19 @@ function handleEmbeddedCreate(
   const updatedCollection = [...existing, ...created];
   const patch: Record<string, unknown> = { [collectionKey]: updatedCollection };
 
-  const updatedParent = deps.store.update(parentTable as never, parent.id, patch, {
+  let updatedParent = deps.store.update(parentTable as never, parent.id, patch, {
     userId: ctx.userId,
   });
 
   if (!updatedParent) {
     return ackError("INTERNAL_ERROR", "Failed to update parent document");
   }
+
+  // WIRING-DERIVE: an embedded Item create on an Actor (e.g. a Condition)
+  // affects derived stats (AC, saves, ...) — recompute before broadcast.
+  updatedParent = recomputeDerivedIfNeeded(deps, parent.type, updatedParent, {
+    userId: ctx.userId,
+  });
 
   const seq = deps.seqStore.next();
   const broadcastPayload = { documentType: parent.type, documents: [updatedParent] };
@@ -694,11 +833,19 @@ function handleEmbeddedUpdate(
 
     // Persist parent with updated embedded collection
     const parentPatch: Record<string, unknown> = { [collectionKey]: collection };
-    const updatedParent = deps.store.update(parentTable as never, parentId, parentPatch, {
+    let updatedParent = deps.store.update(parentTable as never, parentId, parentPatch, {
       userId: ctx.userId,
     });
 
     if (updatedParent) {
+      // WIRING-DERIVE (audit issue 2): an embedded update (e.g. changing a
+      // Condition's `value`, such as Frightened 2 → 1) affects derived stats
+      // (AC, saves, ...) exactly like an embedded create does — recompute
+      // before broadcast so `system.derived` never goes stale relative to
+      // the embedded collection that was just persisted.
+      updatedParent = recomputeDerivedIfNeeded(deps, resolvedParentType, updatedParent, {
+        userId: ctx.userId,
+      });
       allUpdatedParents.push(updatedParent);
     }
   }
@@ -783,13 +930,21 @@ function handleEmbeddedDelete(
   const updatedCollection = collection.filter((item) => !idsToDelete.has(item["_id"] as string));
 
   const patch: Record<string, unknown> = { [collectionKey]: updatedCollection };
-  const updatedParent = deps.store.update(parentTable as never, parent.id, patch, {
+  let updatedParent = deps.store.update(parentTable as never, parent.id, patch, {
     userId: ctx.userId,
   });
 
   if (!updatedParent) {
     return ackError("INTERNAL_ERROR", "Failed to update parent after embedded delete");
   }
+
+  // WIRING-DERIVE (audit issue 2): removing an embedded Item (e.g. clearing a
+  // Condition) affects derived stats (AC, saves, ...) exactly like create/
+  // update does — recompute before broadcast so `system.derived` reflects
+  // the condition's removal (e.g. Frightened cleared → AC penalty lifted).
+  updatedParent = recomputeDerivedIfNeeded(deps, parent.type, updatedParent, {
+    userId: ctx.userId,
+  });
 
   const seq = deps.seqStore.next();
   const broadcastPayload = { documentType: parent.type, documents: [updatedParent] };
@@ -881,6 +1036,37 @@ function broadcastToWorld(ns: Namespace, envelope: Envelope, documentType?: stri
 
   // Fast path: no redaction concern — namespace-wide emit.
   ns.emit("op", envelope);
+}
+
+// ---------------------------------------------------------------------------
+// WIRING-DERIVE: strip client-supplied system.derived from an Actor diff
+// ---------------------------------------------------------------------------
+
+/**
+ * Remove any attempt to write `system.derived` (or a sub-path under it) from
+ * a client-supplied diff, in both shapes a diff may carry it:
+ *   - dot-path key:      "system.derived", "system.derived.ac", ...
+ *   - nested object key: { system: { derived: {...}, ...otherFields } }
+ *
+ * `system.derived` is exclusively server-computed (recomputeDerivedIfNeeded /
+ * runActorDerivation) — this is defense-in-depth so a forged or stale
+ * autosave payload can never persist bogus derived stats, even momentarily.
+ */
+function stripSystemDerived(diff: Record<string, unknown>): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(diff)) {
+    if (key === "system.derived" || key.startsWith("system.derived.")) {
+      continue; // dot-path form — drop entirely
+    }
+    if (key === "system" && value && typeof value === "object" && !Array.isArray(value)) {
+      const { derived: _droppedDerived, ...rest } = value as Record<string, unknown>;
+      void _droppedDerived;
+      result[key] = rest;
+      continue;
+    }
+    result[key] = value;
+  }
+  return result;
 }
 
 // ---------------------------------------------------------------------------

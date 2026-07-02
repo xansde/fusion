@@ -12,6 +12,23 @@
  *   - IWR is stored as flat arrays (immunities, resistances, weaknesses).
  *   - Strikes are embedded as `melee`/`ranged` items, not derived here.
  *
+ * FIX (audit M4.5-corretor, ISSUE MEDIA): this schema originally documented
+ * a shape that does NOT match the real packs produced by
+ * tools/importer-pf2e/src/transform.mjs normalizeActorSystem (verified
+ * against every NPC in systems/pf2e/packs/bestiary-core/documents.json —
+ * and, since sf2e imports through the same normalizer, every NPC in
+ * systems/sf2e/packs/bestiary-core/documents.json too). Three divergences,
+ * all fixed below by accepting BOTH shapes rather than regenerating the
+ * packs:
+ *   1. `perception` lives at the system TOP LEVEL (`system.perception`),
+ *      not nested under `attributes` — the schema required
+ *      `attributes.perception` and had no top-level field, so every real
+ *      NPC failed validation entirely.
+ *   2. `attributes.allSaves` is stored as `{ value: string }`, not a bare
+ *      string.
+ *   3. `traits.size` is stored as `{ value: <size enum> }`, not a bare
+ *      enum string.
+ *
  * Clean-room: spec 17 §Model de dados; ORC/OGL rules only.
  * REQ-PF2-002.
  */
@@ -21,6 +38,7 @@ import {
   HpBlockSchema,
   IwrBlockSchema,
   SenseDataSchema,
+  SizeSchema,
   SpeedSchema,
 } from "../schema-primitives.js";
 
@@ -63,6 +81,24 @@ const NpcSavesSchema = z.object({
 // NPC Attributes
 // ---------------------------------------------------------------------------
 
+/**
+ * Perception block shape — shared by the top-level `system.perception`
+ * (real packs) and the legacy `attributes.perception` nesting some
+ * hand-authored docs may still use.
+ */
+const NpcPerceptionSchema = z.object({
+  mod: z.number().int(),
+  senses: z.array(SenseDataSchema).default([]),
+  details: z.string().optional(),
+});
+
+/**
+ * `allSaves` real shape is `{ value: string }` (systems/pf2e/packs/
+ * bestiary-core/documents.json — e.g. "+2 status to all saves vs. magic").
+ * A bare string is also accepted for hand-authored/legacy docs.
+ */
+const NpcAllSavesSchema = z.union([z.string(), z.object({ value: z.string() })]);
+
 const NpcAttributesSchema = z.object({
   hp: HpBlockSchema,
   /** AC total for NPC — fixed from statblock, not derived. */
@@ -71,15 +107,16 @@ const NpcAttributesSchema = z.object({
     details: z.string().optional(),
   }),
   speed: SpeedSchema,
-  /** Perception total + senses (NPC stores mod directly). REQ-PF2-014 */
-  perception: z.object({
-    mod: z.number().int(),
-    senses: z.array(SenseDataSchema).default([]),
-    details: z.string().optional(),
-  }),
+  /**
+   * Legacy nested perception — the real packs store perception at the
+   * system TOP LEVEL (see NpcSystemSchema.perception below); this stays
+   * optional for hand-authored docs using the old nesting.
+   * REQ-PF2-014
+   */
+  perception: NpcPerceptionSchema.optional(),
   iwr: IwrBlockSchema.default({ immunities: [], weaknesses: [], resistances: [] }),
   /** Special note on all saves (e.g., "+1 status vs. magic"). */
-  allSaves: z.string().optional(),
+  allSaves: NpcAllSavesSchema.optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -127,10 +164,20 @@ const NpcDetailsSchema = z.object({
 // NPC Traits
 // ---------------------------------------------------------------------------
 
+/**
+ * `traits.size` real shape is `{ value: <size enum> }` (systems/pf2e/packs/
+ * bestiary-core/documents.json). A bare enum string is also accepted for
+ * hand-authored/legacy docs; normalized to the enum value either way.
+ */
+const NpcSizeSchema = z
+  .union([SizeSchema, z.object({ value: SizeSchema })])
+  .transform((v) => (typeof v === "string" ? v : v.value))
+  .default("med");
+
 const NpcTraitsSchema = z.object({
   rarity: z.enum(["common", "uncommon", "rare", "unique"]).default("common"),
   value: z.array(z.string()).default([]),
-  size: z.enum(["tiny", "sm", "med", "lg", "huge", "grg"]).default("med"),
+  size: NpcSizeSchema,
 });
 
 // ---------------------------------------------------------------------------
@@ -150,6 +197,15 @@ export const NpcSystemSchema = z
      * NPCs typically list only the skills they have.
      */
     skills: z.record(z.string(), NpcSkillEntrySchema).default({}),
+    /**
+     * Perception — real packs store this at the system TOP LEVEL (see
+     * NpcAttributesSchema.perception docstring for the legacy nested
+     * fallback). Optional here because a doc may still only carry the
+     * nested `attributes.perception`; derivation steps read both with a
+     * fallback chain (systems/pf2e/src/derivations/npc.ts stepNpcPerception).
+     * REQ-PF2-014
+     */
+    perception: NpcPerceptionSchema.optional(),
     /** Which statistic is used for initiative rolls. REQ-PF2-090 */
     initiative: z
       .object({ statistic: z.string().default("perception") })

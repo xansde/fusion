@@ -90,6 +90,9 @@ importers:
       '@fastify/multipart':
         specifier: ^10.0.0
         version: 10.0.0
+      '@fusion/engine-2e':
+        specifier: workspace:*
+        version: link:../../systems/engine-2e
       '@fusion/shared':
         specifier: workspace:*
         version: link:../shared

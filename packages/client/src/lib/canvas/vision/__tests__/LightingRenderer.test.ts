@@ -196,6 +196,7 @@ describe("buildLightingStateKey — fog state coordinate sensitivity", () => {
       explored,
       currentVisionRings,
       fogActive: true,
+      sceneId: "scene-1",
     };
   }
 

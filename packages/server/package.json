@@ -23,6 +23,7 @@
     "@dice-roller/rpg-dice-roller": "^5.5.1",
     "@fastify/cookie": "^11.0.2",
     "@fastify/multipart": "^10.0.0",
+    "@fusion/engine-2e": "workspace:*",
     "@fusion/shared": "workspace:*",
     "@fusion/system-api": "workspace:*",
     "@fusion/system-pf2e": "workspace:*",

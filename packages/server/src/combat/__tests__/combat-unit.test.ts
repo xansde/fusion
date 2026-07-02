@@ -34,6 +34,7 @@ import { OpBuffer } from "../../net/op-buffer.js";
 import { UserRole } from "../../documents/ownership.js";
 import { RollService } from "../../chat/roll-service.js";
 import { InitiativeFormulaRegistry } from "../initiative-registry.js";
+import { registerSystemFormulas } from "../system-formula-adapter.js";
 import { CombatEventBus } from "../combat-event-bus.js";
 import { TargetingStore } from "../targeting-store.js";
 import {
@@ -60,6 +61,8 @@ import type {
   InitiativeFormula,
 } from "@fusion/shared";
 import type { HandlerContext } from "../../net/handler-registry.js";
+import { pf2eSystem } from "@fusion/system-pf2e";
+import { sf2eSystem } from "@fusion/system-sf2e";
 
 // ---------------------------------------------------------------------------
 // Test harness
@@ -125,8 +128,12 @@ interface Harness {
  * Build a harness. `rng` is forwarded to the RollService for deterministic
  * initiative rolls (returns a constant raw uint32 — the dice library maps it
  * into the die range, so a fixed value yields a fixed result).
+ *
+ * `systemId` wires the InitiativeFormulaRegistry with a fallback key (see
+ * InitiativeFormulaRegistry.getFormulaForCombatType) matching production
+ * wiring in socket-manager.ts. When omitted, only generic-1d20 is resolvable.
  */
-function buildHarness(rng?: { next(): number }): Harness {
+function buildHarness(rng?: { next(): number }, systemId?: string): Harness {
   const dataDir = makeTempDir();
   const dbPath = join(dataDir, "world.db");
   const fusionDb = openDatabase({ path: dbPath, skipIntegrityCheck: true });
@@ -138,7 +145,7 @@ function buildHarness(rng?: { next(): number }): Harness {
   const ns = new MockNamespace();
   const eventBus = new CombatEventBus();
   const rollService = new RollService(rng ? { db: fusionDb.raw, rng } : { db: fusionDb.raw });
-  const formulaRegistry = new InitiativeFormulaRegistry(rollService, "unit-world");
+  const formulaRegistry = new InitiativeFormulaRegistry(rollService, "unit-world", systemId);
   const targetingStore = new TargetingStore();
 
   const combatDeps: CombatHandlerDeps = {
@@ -413,6 +420,126 @@ describe("M2-C combat unit (direct handlers)", () => {
   });
 
   // -------------------------------------------------------------------------
+  // System-formula wiring regression (REQ-CBT-012): the system's registered
+  // InitiativeFormulaFn (pf2e/sf2e) must actually be used by
+  // combat:rollInitiative — NOT the generic-1d20 fallback. Detected by
+  // asserting initiativeStatistic === "Perception" (generic-1d20 never sets
+  // a statistic) and, with a deterministic RNG, that total = d20 face + mod.
+  // -------------------------------------------------------------------------
+
+  it("wires the pf2e initiative formula into rollInitiative (statistic + total = d20 + perception mod)", async () => {
+    // Fixed RNG → d20 face is always 5 (verified against the dice-roller lib).
+    const fixedRng = { next: () => 0x40000000 };
+    const hd = buildHarness(fixedRng, "pf2e");
+    registerSystemFormulas(
+      hd.formulaRegistry,
+      pf2eSystem.manifest.id,
+      pf2eSystem.combat.initiativeFormulas,
+      new RollService({ db: hd.fusionDb.raw, rng: fixedRng }),
+      "unit-world",
+    );
+    try {
+      const sceneId = createScene(hd);
+      const perceptionMod = 7;
+      const actor = hd.store.create(
+        "actors",
+        {
+          name: "Perceptive Hero",
+          type: "character",
+          ownership: { default: 0 },
+          system: { derived: { perception: { total: perceptionMod } } },
+        },
+        { userId: GM_CTX.userId },
+      );
+      const actorId = actor["_id"] as string;
+
+      const create = buildCombatCreateHandler(hd.combatDeps);
+      const add = buildCombatAddCombatantHandler(hd.combatDeps);
+      const roll = buildCombatRollInitiativeHandler(hd.combatDeps);
+
+      // combatType defaults to "standard"; formula must resolve via the
+      // systemId fallback (InitiativeFormulaRegistry.getFormulaForCombatType).
+      const combat = combatFromAck(await run(create, { sceneId }, GM_CTX));
+      const combatId = combat._id;
+      await run(add, { combatId, tokenId: "t1", actorId }, GM_CTX);
+
+      const rolled = combatFromAck(await run(roll, { combatId }, GM_CTX));
+      const combatant = rolled.combatants[0]!;
+      expect(combatant.initiativeStatistic).toBe("Perception");
+      expect(combatant.initiative).toBe(5 + perceptionMod);
+    } finally {
+      teardown(hd);
+    }
+  });
+
+  it("wires the sf2e initiative formula into rollInitiative (statistic + total = d20 + perception mod)", async () => {
+    const fixedRng = { next: () => 0x40000000 };
+    const hd = buildHarness(fixedRng, "sf2e");
+    registerSystemFormulas(
+      hd.formulaRegistry,
+      sf2eSystem.manifest.id,
+      sf2eSystem.combat.initiativeFormulas,
+      new RollService({ db: hd.fusionDb.raw, rng: fixedRng }),
+      "unit-world",
+    );
+    try {
+      const sceneId = createScene(hd);
+      const perceptionMod = 3;
+      const actor = hd.store.create(
+        "actors",
+        {
+          name: "Perceptive Envoy",
+          type: "character",
+          ownership: { default: 0 },
+          system: { derived: { perception: { total: perceptionMod } } },
+        },
+        { userId: GM_CTX.userId },
+      );
+      const actorId = actor["_id"] as string;
+
+      const create = buildCombatCreateHandler(hd.combatDeps);
+      const add = buildCombatAddCombatantHandler(hd.combatDeps);
+      const roll = buildCombatRollInitiativeHandler(hd.combatDeps);
+
+      const combat = combatFromAck(await run(create, { sceneId }, GM_CTX));
+      const combatId = combat._id;
+      await run(add, { combatId, tokenId: "t1", actorId }, GM_CTX);
+
+      const rolled = combatFromAck(await run(roll, { combatId }, GM_CTX));
+      const combatant = rolled.combatants[0]!;
+      expect(combatant.initiativeStatistic).toBe("Perception");
+      expect(combatant.initiative).toBe(5 + perceptionMod);
+    } finally {
+      teardown(hd);
+    }
+  });
+
+  it("falls back to generic-1d20 (no statistic) when no system formula is registered for the combatType", async () => {
+    const fixedRng = { next: () => 0x40000000 };
+    // No systemId passed → registry only has generic-1d20.
+    const hd = buildHarness(fixedRng);
+    try {
+      const sceneId = createScene(hd);
+      const actorId = createActor(hd, "Nobody Special");
+
+      const create = buildCombatCreateHandler(hd.combatDeps);
+      const add = buildCombatAddCombatantHandler(hd.combatDeps);
+      const roll = buildCombatRollInitiativeHandler(hd.combatDeps);
+
+      const combat = combatFromAck(await run(create, { sceneId }, GM_CTX));
+      const combatId = combat._id;
+      await run(add, { combatId, tokenId: "t1", actorId }, GM_CTX);
+
+      const rolled = combatFromAck(await run(roll, { combatId }, GM_CTX));
+      const combatant = rolled.combatants[0]!;
+      expect(combatant.initiativeStatistic).toBeNull();
+      expect(combatant.initiative).toBe(5); // plain 1d20, no modifier
+    } finally {
+      teardown(hd);
+    }
+  });
+
+  // -------------------------------------------------------------------------
   // Custom compare() ordering via a registered formula (REQ-CBT-013)
   // -------------------------------------------------------------------------
 
@@ -435,39 +562,33 @@ describe("M2-C combat unit (direct handlers)", () => {
       },
     };
     h.formulaRegistry.registerFormula(proPlayerFormula);
-    // Force combats to use it (M2-C registry resolves by combatType → generic;
-    // we monkey-patch the resolver for this test only).
-    const origResolve = h.formulaRegistry.getFormulaForCombatType.bind(h.formulaRegistry);
-    h.formulaRegistry.getFormulaForCombatType = () => proPlayerFormula;
 
-    try {
-      const create = buildCombatCreateHandler(h.combatDeps);
-      const add = buildCombatAddCombatantHandler(h.combatDeps);
+    const create = buildCombatCreateHandler(h.combatDeps);
+    const add = buildCombatAddCombatantHandler(h.combatDeps);
 
-      const combat = combatFromAck(await run(create, { sceneId }, GM_CTX));
-      const combatId = combat._id;
-      // NPC has a HIGHER initiative but must still sort AFTER the player.
-      const addNpc = await run(
-        add,
-        { combatId, tokenId: "t-npc", actorId: npcActor, initiative: 100 },
-        GM_CTX,
-      );
-      const npcId = ((addNpc.result as Record<string, unknown>)["combatant"] as CombatantDocument)
-        ._id;
-      const addPc = await run(
-        add,
-        { combatId, tokenId: "t-pc", actorId: pcActor, initiative: 1 },
-        GM_CTX,
-      );
-      const pcId = ((addPc.result as Record<string, unknown>)["combatant"] as CombatantDocument)
-        ._id;
+    // getFormulaForCombatType now resolves for real (no monkey-patch): the
+    // combat is created with combatType "pro-player" so it picks up the
+    // formula registered above directly by its exact combatType key.
+    const combat = combatFromAck(await run(create, { sceneId, combatType: "pro-player" }, GM_CTX));
+    const combatId = combat._id;
+    // NPC has a HIGHER initiative but must still sort AFTER the player.
+    const addNpc = await run(
+      add,
+      { combatId, tokenId: "t-npc", actorId: npcActor, initiative: 100 },
+      GM_CTX,
+    );
+    const npcId = ((addNpc.result as Record<string, unknown>)["combatant"] as CombatantDocument)
+      ._id;
+    const addPc = await run(
+      add,
+      { combatId, tokenId: "t-pc", actorId: pcActor, initiative: 1 },
+      GM_CTX,
+    );
+    const pcId = ((addPc.result as Record<string, unknown>)["combatant"] as CombatantDocument)._id;
 
-      const finalCombat = combatFromAck(addPc as Ack<Record<string, unknown>>);
-      expect(finalCombat.combatants[0]!._id).toBe(pcId); // player first
-      expect(finalCombat.combatants[1]!._id).toBe(npcId);
-    } finally {
-      h.formulaRegistry.getFormulaForCombatType = origResolve;
-    }
+    const finalCombat = combatFromAck(addPc as Ack<Record<string, unknown>>);
+    expect(finalCombat.combatants[0]!._id).toBe(pcId); // player first
+    expect(finalCombat.combatants[1]!._id).toBe(npcId);
   });
 
   // -------------------------------------------------------------------------

@@ -33,6 +33,7 @@
  */
 
 import type { Namespace } from "socket.io";
+import type { Logger } from "pino";
 import type { HandlerFn, HandlerContext } from "../net/handler-registry.js";
 import type { SeqStore } from "../net/seq-store.js";
 import type { OpBuffer } from "../net/op-buffer.js";
@@ -41,9 +42,11 @@ import { DocumentNotFoundError } from "../documents/store.js";
 import { isRolePrivileged } from "../documents/ownership.js";
 import { stripHiddenCombatantsFromCombat } from "../net/redaction.js";
 import type { Database as Db } from "better-sqlite3";
+import type { SystemModule } from "@fusion/system-api";
 import type { InitiativeFormulaRegistry } from "./initiative-registry.js";
 import type { CombatEventBus } from "./combat-event-bus.js";
 import { buildInitiativeRollBroadcaster, type InitiativeRollChatEntry } from "./combat-chat.js";
+import { runActorDerivation } from "../net/derive-runner.js";
 import {
   CombatCreatePayloadSchema,
   CombatBeginPayloadSchema,
@@ -89,6 +92,19 @@ export interface CombatHandlerDeps {
   db: Db;
   /** World id this handler set is bound to (chat message worldId). */
   worldId: string;
+  /**
+   * The world's resolved SystemModule, when available. Used as an on-read
+   * safety net in combat:rollInitiative (audit issue 3): compendium-imported
+   * or otherwise pre-existing Actor documents may have no persisted
+   * `system.derived` (e.g. imported before the compendium import-time
+   * derivation fix landed). Deriving on read here guarantees the initiative
+   * formula always sees a populated `system.derived.perception` regardless
+   * of how/when the actor entered the world. Optional — undefined skips this
+   * safety net (stub system, or no system package loaded); the formula falls
+   * back to whatever `system.derived` already contains (possibly nothing).
+   */
+  systemModule?: SystemModule;
+  logger?: Logger;
 }
 
 // ---------------------------------------------------------------------------
@@ -816,6 +832,37 @@ export function buildCombatRollInitiativeHandler(deps: CombatHandlerDeps): Handl
           actor = deps.store.get("actors", target.actorId);
         } catch {
           // Actor missing — formula handles null gracefully per contract
+        }
+      }
+
+      // WIRING-DERIVE (audit issue 3): compute-on-read safety net — an actor
+      // that predates the compendium import-time derivation fix (or any
+      // other drift) may have no persisted `system.derived`, which would
+      // make the initiative formula silently fall back to +0 (e.g. an
+      // imported NPC's "Perception" statistic masking a real, non-zero mod).
+      // Mutates a shallow clone so this read-only view never persists.
+      // Import-time derivation (CompendiumService.importToWorld) remains the
+      // primary fix — this is defense-in-depth only, cheap because
+      // runActorDerivation is a pure, synchronous, I/O-free function.
+      if (actor && deps.systemModule) {
+        try {
+          const clone: Record<string, unknown> = { ...actor };
+          const sys = actor["system"];
+          // Deep-clone (audit issue 5) — see doc-handlers.ts
+          // recomputeDerivedIfNeeded for why a shallow clone of `system` is
+          // not enough (some DeriveSteps mirror computed values onto nested
+          // objects like system.abilities.<ability>.mod).
+          clone["system"] =
+            sys && typeof sys === "object" && !Array.isArray(sys)
+              ? structuredClone(sys as Record<string, unknown>)
+              : {};
+          runActorDerivation(clone, deps.systemModule);
+          actor = clone;
+        } catch (err) {
+          deps.logger?.warn(
+            { err, actorId: target.actorId },
+            "Actor derivation failed while rolling initiative — using actor as-read",
+          );
         }
       }
 

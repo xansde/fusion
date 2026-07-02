@@ -8,6 +8,8 @@
  */
 
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { CharacterSystemSchema } from "../schemas/actor-character.js";
 import { NpcSystemSchema } from "../schemas/actor-npc.js";
 import { HazardSystemSchema } from "../schemas/actor-hazard.js";
@@ -238,6 +240,47 @@ describe("NpcSystemSchema", () => {
     const result = NpcSystemSchema.safeParse(minimal);
     expect(result.success).toBe(true);
   });
+});
+
+// ---------------------------------------------------------------------------
+// NpcSystemSchema conformance vs. the REAL committed bestiary pack
+// (audit M4.5-corretor, ISSUE MEDIA) — data-driven guard against
+// importer↔schema drift.
+//
+// The hand-authored `skeletonGuard` fixture above documents the shape the
+// schema is WRITTEN against, but drifted from the real shape the importer
+// (tools/importer-pf2e/src/transform.mjs normalizeActorSystem) actually
+// produces — every real NPC failed NpcSystemSchema.safeParse (perception
+// required-but-absent, allSaves/traits.size shape mismatch) despite ~2.9k
+// green tests, because no test ever parsed the committed pack data itself.
+// This test iterates every NPC in systems/pf2e/packs/bestiary-core/
+// documents.json and is therefore a permanent guard against the schema
+// silently drifting away from the importer's real output again.
+// ---------------------------------------------------------------------------
+
+describe("NpcSystemSchema conformance — real bestiary-core pack", () => {
+  const packPath = fileURLToPath(
+    new URL("../../packs/bestiary-core/documents.json", import.meta.url),
+  );
+  const pack = JSON.parse(readFileSync(packPath, "utf8")) as Array<{
+    name: string;
+    system: unknown;
+  }>;
+
+  it("the pack fixture itself is non-empty (guards against a silently-empty pack file)", () => {
+    expect(pack.length).toBeGreaterThan(0);
+  });
+
+  it.each(pack.map((doc) => [doc.name, doc.system] as const))(
+    "NPC %s from the real pack parses against NpcSystemSchema",
+    (name, system) => {
+      const result = NpcSystemSchema.safeParse(system);
+      if (!result.success) {
+        throw new Error(`${name} failed: ${JSON.stringify(result.error.issues)}`);
+      }
+      expect(result.success).toBe(true);
+    },
+  );
 });
 
 // ---------------------------------------------------------------------------

@@ -59,6 +59,7 @@ import {
   buildCombatEndHandler,
 } from "../combat/combat-handlers.js";
 import { InitiativeFormulaRegistry } from "../combat/initiative-registry.js";
+import { registerSystemFormulas } from "../combat/system-formula-adapter.js";
 import { CombatEventBus } from "../combat/combat-event-bus.js";
 import { TargetingStore } from "../combat/targeting-store.js";
 import { buildCombatTargetHandler, registerTargetingCleanup } from "../combat/target-handler.js";
@@ -76,6 +77,7 @@ import { redactAckResultForNonPrivileged } from "./redaction.js";
 import { DocumentStore } from "../documents/index.js";
 import type { AuthService } from "../auth/service.js";
 import type { Database as Db } from "better-sqlite3";
+import type { SystemModule } from "@fusion/system-api";
 
 import { isRolePrivileged } from "../documents/ownership.js";
 import { EphemeralRateLimiter, handleEphemeralEnvelope } from "./ephemeral-handlers.js";
@@ -122,6 +124,15 @@ export interface WorldNamespaceOptions {
    * REQ-SF2-024). Optional — undefined disables all such checks.
    */
   systemId?: string;
+  /**
+   * The world's resolved SystemModule (from SystemRegistry.tryGet(systemId)),
+   * when the system package is available. Used to wire the system's
+   * InitiativeFormulaFn entries (SystemModule.combat.initiativeFormulas) into
+   * the per-world InitiativeFormulaRegistry — see system-formula-adapter.ts.
+   * Optional — undefined leaves the registry with only the generic-1d20
+   * fallback (e.g. stub system, or system package not loaded).
+   */
+  systemModule?: SystemModule;
 }
 
 export interface SocketManagerOptions {
@@ -192,6 +203,7 @@ export class SocketManager {
       opBufferSize,
       compendiumService,
       systemId,
+      systemModule,
     } = options;
 
     const namespacePath = `/world/${worldId}`;
@@ -221,7 +233,9 @@ export class SocketManager {
       opBuffer,
       ns,
       db,
+      logger: this.logger,
       ...(systemId !== undefined ? { systemId } : {}),
+      ...(systemModule !== undefined ? { systemModule } : {}),
       // REQ-CHT-033: supply recent chat for join snapshot
       getRecentChat: (userId: string, role: number) => getRecentChatForUser(db, userId, role),
     };
@@ -268,9 +282,31 @@ export class SocketManager {
 
     // Register M2-C combat handlers
     const combatRollService = new RollService({ db });
-    const formulaRegistry = new InitiativeFormulaRegistry(combatRollService, worldId);
+    const formulaRegistry = new InitiativeFormulaRegistry(combatRollService, worldId, systemId);
+    // REQ-CBT-012: wire the system's initiative formulas (if the system package
+    // was loaded — see serve.ts/worlds.ts SystemRegistry) into the registry.
+    if (systemModule) {
+      registerSystemFormulas(
+        formulaRegistry,
+        systemModule.manifest.id,
+        systemModule.combat.initiativeFormulas,
+        combatRollService,
+        worldId,
+      );
+    }
     const eventBus = new CombatEventBus();
-    const combatDeps = { store, seqStore, opBuffer, ns, formulaRegistry, eventBus, db, worldId };
+    const combatDeps = {
+      store,
+      seqStore,
+      opBuffer,
+      ns,
+      formulaRegistry,
+      eventBus,
+      db,
+      worldId,
+      logger: this.logger,
+      ...(systemModule !== undefined ? { systemModule } : {}),
+    };
     // Handler names match the EnvelopeTypeSchema literals in packages/shared/src/protocol.ts
     registry.register("combat:create", buildCombatCreateHandler(combatDeps));
     registry.register("combat:beginCombat", buildCombatStartHandler(combatDeps));
@@ -295,7 +331,13 @@ export class SocketManager {
 
     // Register M3-D compendium handlers (REQ-CMP-010..024)
     const compSvc = compendiumService ?? new CompendiumService();
-    const compDeps = { compendium: compSvc, db, ns };
+    const compDeps = {
+      compendium: compSvc,
+      db,
+      ns,
+      logger: this.logger,
+      ...(systemModule !== undefined ? { systemModule } : {}),
+    };
     registry.register("compendium:list", buildCompendiumListHandler(compDeps));
     registry.register("compendium:index", buildCompendiumIndexHandler(compDeps));
     registry.register("compendium:search", buildCompendiumSearchHandler(compDeps));

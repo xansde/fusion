@@ -15,6 +15,7 @@
 import type { HandlerFn } from "../net/handler-registry.js";
 import type { Namespace } from "socket.io";
 import type { Database as Db } from "better-sqlite3";
+import type { Logger } from "pino";
 import {
   CompendiumListPayloadSchema,
   CompendiumIndexPayloadSchema,
@@ -23,6 +24,7 @@ import {
   CompendiumImportPayloadSchema,
 } from "@fusion/shared";
 import type { Ack } from "@fusion/shared";
+import type { SystemModule } from "@fusion/system-api";
 import type { CompendiumService } from "./service.js";
 import { PermissionDeniedError } from "./service.js";
 import { isRolePrivileged } from "../documents/ownership.js";
@@ -35,6 +37,15 @@ export interface CompendiumHandlerDeps {
   compendium: CompendiumService;
   db: Db;
   ns: Namespace;
+  /**
+   * The world's resolved SystemModule, when available. Forwarded to
+   * CompendiumService.importToWorld so imported Actor documents are derived
+   * before being persisted (audit issue 3) — see service.ts docstring.
+   * Optional — undefined skips derivation on import (stub system, or no
+   * system package loaded).
+   */
+  systemModule?: SystemModule;
+  logger?: Logger;
 }
 
 // ---------------------------------------------------------------------------
@@ -175,6 +186,8 @@ export function buildCompendiumImportHandler(deps: CompendiumHandlerDeps): Handl
         userId: string;
         role: number;
         folderId?: string;
+        systemModule?: SystemModule;
+        logger?: Logger;
       } = {
         db: deps.db,
         worldId: ctx.worldId,
@@ -183,6 +196,12 @@ export function buildCompendiumImportHandler(deps: CompendiumHandlerDeps): Handl
       };
       if (parsed.data.folderId !== undefined) {
         importOpts.folderId = parsed.data.folderId;
+      }
+      if (deps.systemModule !== undefined) {
+        importOpts.systemModule = deps.systemModule;
+      }
+      if (deps.logger !== undefined) {
+        importOpts.logger = deps.logger;
       }
       const result = deps.compendium.importToWorld(parsed.data.uuids, importOpts);
 
