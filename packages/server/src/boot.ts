@@ -25,6 +25,8 @@ import type { RegisterAssetRoutesOptions } from "./assets/routes.js";
 import type { RegisterSpaRoutesOptions } from "./spa/routes.js";
 import type { RegisterTunnelRoutesOptions } from "./tunnel/routes.js";
 import type { TunnelManager as TunnelManagerType } from "./tunnel/tunnel-manager.js";
+import type { RegisterUpdateRoutesOptions } from "./update/routes.js";
+import type { UpdateCheckResult as UpdateCheckResultType } from "./update/update-checker.js";
 import type { SystemModule } from "@fusion/system-api";
 // Import for side effect only: augments FastifyRequest with `cspNonce`.
 import "./spa/routes.js";
@@ -81,6 +83,26 @@ export type BootAssetContext = RegisterAssetRoutesOptions;
  * Mirrors RegisterTunnelRoutesOptions from tunnel/routes.ts.
  */
 export type BootTunnelContext = RegisterTunnelRoutesOptions;
+
+// ---------------------------------------------------------------------------
+// Update context (injected to wire the auto-update routes — M6/B5)
+// ---------------------------------------------------------------------------
+
+/**
+ * When provided:
+ *   - registers GET /admin/update/check + POST /admin/update/apply;
+ *   - runs one non-blocking check at boot (REQ-DST-019/020), logging the
+ *     result and — if a socketManager ends up mounted (netContext was also
+ *     provided) — emitting `server.update_available` to GM sockets
+ *     (REQ-DST-021).
+ * Mirrors RegisterUpdateRoutesOptions from update/routes.ts, minus the
+ * fields boot.ts itself resolves (onApplyScheduled wires to this boot's own
+ * shutdown; onUpdateAvailable wires to the socketManager once created).
+ */
+export type BootUpdateContext = Omit<
+  RegisterUpdateRoutesOptions,
+  "onApplyScheduled" | "onUpdateAvailable"
+>;
 
 // ---------------------------------------------------------------------------
 // SPA context (injected to register the client static build — REQ-DST-002)
@@ -343,6 +365,12 @@ export interface BootOptions {
    */
   tunnelContext?: BootTunnelContext;
   /**
+   * When provided, registers the auto-update routes (REQ-DST-019..025):
+   * GET /admin/update/check + POST /admin/update/apply, and runs one
+   * non-blocking check at boot.
+   */
+  updateContext?: BootUpdateContext;
+  /**
    * SPA static serving is ON by default (REQ-DST-002) — pass `{}` or omit
    * entirely to use the default dist-dir resolution. Pass an explicit
    * `distDir` to override (tests / custom layouts). Pass `disabled: true`
@@ -368,6 +396,7 @@ export async function boot(options: BootOptions): Promise<BootResult> {
     netContext,
     assetContext,
     tunnelContext,
+    updateContext,
     spaContext,
   } = options;
 
@@ -446,6 +475,38 @@ export async function boot(options: BootOptions): Promise<BootResult> {
     const { registerTunnelRoutes } = await import("./tunnel/routes.js");
     registerTunnelRoutes(fastify, tunnelContext);
     logger.info("Tunnel control route registered (POST /admin/network/tunnel)");
+  }
+
+  // Register the auto-update routes (REQ-DST-019..025 — M6/B5) if an update
+  // context is provided. Must be registered before the SPA catch-all below.
+  //
+  // `onUpdateAvailable` forwards to the socketManager's GM broadcast
+  // (REQ-DST-021) — wired via a mutable holder because socketManager itself
+  // is only created in Phase 3b, AFTER routes must already be registered
+  // (a GET /admin/update/check call arriving before Phase 3b completes
+  // simply has no GM sockets to notify yet, which is correct: there is no
+  // socket connected before the HTTP listener is even up).
+  //
+  // `onApplyScheduled` forwards to THIS boot's own `shutdown()` — also only
+  // defined further down — via the same deferred-closure pattern, so a
+  // successful POST /admin/update/apply triggers the graceful shutdown the
+  // swap-helper is waiting on (swap-helper.ts's module doc comment step 2).
+  const updateHooks: {
+    notifyGm: ((result: UpdateCheckResultType) => void) | undefined;
+    triggerShutdown: (() => void) | undefined;
+  } = { notifyGm: undefined, triggerShutdown: undefined };
+  if (updateContext) {
+    const { registerUpdateRoutes } = await import("./update/routes.js");
+    registerUpdateRoutes(fastify, {
+      ...updateContext,
+      onUpdateAvailable: (result) => {
+        updateHooks.notifyGm?.(result);
+      },
+      onApplyScheduled: () => {
+        updateHooks.triggerShutdown?.();
+      },
+    });
+    logger.info("Update routes registered (GET/POST /admin/update/*)");
   }
 
   // Register the SPA static build (REQ-DST-002) — ON by default. Registered
@@ -567,6 +628,15 @@ export async function boot(options: BootOptions): Promise<BootResult> {
       origin,
     });
 
+    // M6/B5: now that a socketManager exists, wire the deferred
+    // updateHooks.notifyGm closure (registered above, before Phase 3b, when
+    // update routes were registered) to actually broadcast
+    // `server.update_available` to every GM socket (REQ-DST-021).
+    const smForUpdateNotify = socketManager;
+    updateHooks.notifyGm = (result) => {
+      smForUpdateNotify.broadcastToGm("server.update_available", result);
+    };
+
     // Resolve authService: use the one created in the auth phase, or create a new one
     let resolvedAuthService = authServiceInstance;
     if (!resolvedAuthService) {
@@ -650,6 +720,20 @@ export async function boot(options: BootOptions): Promise<BootResult> {
     }
   };
 
+  // M6/B5: wire the deferred updateHooks.triggerShutdown closure (registered
+  // above, before Phase 3b, when update routes were registered) to this
+  // boot's real shutdown + process exit. A successful POST
+  // /admin/update/apply already replied to the GM before calling this (see
+  // update/routes.ts) — the detached swap-helper process is waiting for
+  // THIS process's PID to disappear (swap-helper.ts's module doc comment
+  // step 2/3), so shutdown must actually end the process, not just close
+  // Fastify.
+  updateHooks.triggerShutdown = () => {
+    void shutdown().then(() => {
+      process.exit(0);
+    });
+  };
+
   // -------------------------------------------------------------------------
   // Signal handlers — REQ-ARQ-012
   // -------------------------------------------------------------------------
@@ -667,6 +751,35 @@ export async function boot(options: BootOptions): Promise<BootResult> {
     process.once("SIGTERM", () => {
       handleSignal("SIGTERM");
     });
+  }
+
+  // M6/B5 — boot-time update check (REQ-DST-019/020): fire-and-forget, never
+  // awaited by boot() itself (a slow/unreachable GitHub API must not add
+  // latency to server startup — REQ-DST-020's "não-bloqueante" applies to
+  // BOOT TIME specifically, not just "does not crash"). checkForUpdate()
+  // already never throws; the .catch below is pure defense in depth.
+  if (updateContext) {
+    const { checkForUpdate } = await import("./update/update-checker.js");
+    const checkOptions: Parameters<typeof checkForUpdate>[0] = {
+      currentVersion: updateContext.currentVersion,
+      channel: updateContext.getChannel(),
+      logger,
+    };
+    const updateRepo = updateContext.getUpdateRepo();
+    if (updateRepo !== undefined) checkOptions.updateRepo = updateRepo;
+    if (updateContext.manifestUrl !== undefined)
+      checkOptions.manifestUrl = updateContext.manifestUrl;
+    if (updateContext.fetchImpl !== undefined) checkOptions.fetchImpl = updateContext.fetchImpl;
+
+    void checkForUpdate(checkOptions)
+      .then((checkResult) => {
+        if (checkResult.checked && checkResult.updateAvailable) {
+          updateHooks.notifyGm?.(checkResult);
+        }
+      })
+      .catch((err: unknown) => {
+        logger.warn({ err }, "Boot-time update check failed unexpectedly (non-fatal)");
+      });
   }
 
   const result: BootResult = { fastify, config, logger, shutdown };

@@ -17,13 +17,20 @@
  *   node make-sea-config.mjs <bundlePath> <outConfigPath> <outBlobPath> \
  *     --asset native-better-sqlite3=<path> \
  *     --asset native-node-rs-argon2=<path> \
- *     --asset client-dist=<path>
+ *     --asset client-dist=<path> \
+ *     --asset system-packs=<path>
  *
  * Asset keys here MUST match native-loader.ts's `NATIVE_PACKAGES[].assetKey`
- * and sea-assets.ts's `CLIENT_DIST_ASSET_KEY` exactly — this script does not
- * hardcode them (they are passed in by build-release.mjs, which imports the
- * same constants from the compiled server package) so the two cannot drift
- * silently.
+ * and sea-assets.ts's `CLIENT_DIST_ASSET_KEY` / `SYSTEM_PACKS_ASSET_KEY`
+ * exactly — this script itself does not hardcode them (it treats `--asset`
+ * as an opaque `key=path` pair). The caller is the one obligated to keep
+ * them in sync: `build-release.mjs`'s `loadAssetKeyConstants()` dynamically
+ * `import()`s the COMPILED `packages/server/dist/runtime/{native-loader,
+ * sea-assets}.js` (built by phase 2, before phase 5 packs assets) and reads
+ * the real exported constants — never re-declares the string literals — so
+ * the `--asset` flags this script receives are always generated FROM the
+ * single source of truth those two modules own, not typed out by hand here
+ * or in build-release.mjs.
  */
 
 import { writeFileSync, mkdirSync, existsSync, statSync } from "node:fs";

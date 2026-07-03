@@ -34,8 +34,19 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M6-B0/B1 | Distribuição: SPA servido pelo server + versão única; data dir Documents/FusionVTT + migração + serve sem world | concluído | 74→97 corrigido   |
 | M6-B2/B4 | Distribuição: wizard /setup (Admin Key Argon2id, QR/LAN) + túnel cloudflared com hash pinado                    | concluído | 90→✓ endurecido   |
 | M6-B3    | Distribuição: pipeline de release — exe SEA Windows real (117MB, smoke §5.2 verde) + CI matrix + manifesto      | concluído | 93                |
+| M6-B5    | Distribuição: auto-update headless (check/backup/SHA-256/swap+rollback) + packs no exe (✅ fecha o M6 headless)  | concluído | 84→94→✓ endurecido |
 
-**🎉 MVP ALCANÇADO (2026-06-26) — primeira sessão jogável de PF2e funciona ponta-a-ponta (verificado via boot real).** ~2.500 testes verdes. Pós-MVP: **M4 (SF2e) concluído em 2026-07-01** (~2.700 testes); designs do M5 (compositor Etmos) e M6 (distribuição) prontos em `docs/design/`. Restam: **M4.5-wiring** (religações críticas pré-existentes: iniciativa por sistema + derive em produção), M5 (Etmos, 5 batches A–E) e M6 (distribuição, 6 batches).
+**🏁 BUILD COMPLETO (2026-07-03): M0–M6 headless concluídos.** MVP PF2e em 2026-06-26; M4 SF2e em 2026-07-01; M4.5 wiring, M5 Etmos completo e M6 distribuição (B0–B5) em 2026-07-02/03. **Três sistemas jogáveis (PF2e, SF2e, Etmos) + executável distribuível** (`fusion-server-0.1.0-windows-x64.exe`, ~118 MB, com SPA/wizard/packs embutidos, túnel WAN e auto-update). ~3.300 testes verdes. Restam apenas: **checklist de validação manual** (abaixo), as **decisões DA-01/DA-02** do usuário (repo GitHub p/ releases; open-source vs fechado) para publicar o primeiro release, e o **B6 Tauri [V2]** (fora do escopo do M6 headless por design).
+
+## ✅ Checklist de validação MANUAL (design M6 §5.1 — exige um humano)
+
+- [ ] GM não-técnico completa o wizard em < 3 min (REQ-DST-048) num Windows real (`dist-release/fusion-server-0.1.0-windows-x64.exe`, dois cliques, navegador abre `/setup`).
+- [ ] Exe headless roda em **Windows 10 e 11 limpos** (sem Node/VC++ instalados) — CA-DST-01/02.
+- [ ] macOS arm64 sem Rosetta (CA-DST-03) e Ubuntu 22.04 AppImage (CA-DST-04) — exigem a primeira tag `v*` no CI (legs autorados, validados só em CI).
+- [ ] Jogador na mesma LAN abre a URL/QR exibida pelo wizard e vê a tela de join (CA-DST-05).
+- [ ] Jogador **externo** conecta pela URL do túnel (`fusion serve --tunnel`) e o WebSocket sincroniza numa sessão real de jogo.
+- [ ] SmartScreen: registrar o comportamento do exe **não assinado** ("Mais informações → Executar assim mesmo") e o texto que o GM vê (DA-02).
+- [ ] Ciclo de update real após o primeiro release publicado: check → notificação → apply → swap → verificar backups pre-event-update.
 
 > **Processo acelerado (autorizado pelo usuário em 2026-06-12, durante M2-B)**: gate reduzido — máx. **2** auditorias Opus por batch (antes 3) e aprovação com **dívida registrada** quando score ≥ 90 sem issues de severidade alta; M3 consolidado de 6 para 4 batches. Issues altas continuam bloqueando sempre.
 
@@ -60,6 +71,13 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 - Próximos batches após M2-A: M2-B (fog), M2-C (combate), depois M3 (A–F) → primeira sessão jogável.
 
 ## Registro por batch
+
+### M6-B5 — Auto-update headless — ✅ M6 HEADLESS COMPLETO (2026-07-03)
+
+- **Auto-update** (`packages/server/src/update/`): check no GitHub **não-bloqueante** (boot segue com endpoint morto; canal stable|dev respeitado; placeholder DA-01 tratado sem crash), notificação `server.update_available` só na room GM (teste negativo com PLAYER), `POST /admin/update/apply` (Bearer + 403 pré-setup — sem isso um caller NÃO autenticado em fresh-install alcançava o apply): backup pre-event-update real via `db.backup()` por world aberto → download com timeout de 10min → **SHA-256 verificado antes de qualquer swap** (mismatch aborta com binário intocado, CA-DST-07) → swap via helper (o exe não se auto-sobrescreve no Windows; `.bak` + relançamento; **rollback provado com o exe real de 123MB** inclusive quando o binário novo nem spawna e quando o segundo rename falha — restauração com fallback copy para EXDEV) → limpeza oportunista de `.bak` no apply seguinte. Recusa clara fora de SEA.
+- **Médias do B3 pagas**: manifesto dos legs Linux/macOS re-estampado após empacotamento (restamp-manifest.mjs + 6 testes); **compêndios de sistema embutidos no exe SEA** e extraídos para `dataDir/systems/` — o smoke §5.2 agora asserta `compendium:list` com os 4 packs pf2e servidos do exe em máquina limpa.
+- **Gate**: 84 (1 ALTA: helper morria sem rollback em spawn síncrono falho — reproduzida com o exe real) → corretor → **94, aprovado** (auditor reproduziu release do zero + ciclo de update + rollback) → endurecimento final da média restante + 5 baixas. Server 766 testes; ~3.300 no monorepo.
+- Dívida documentada no código: watch-window de 3s do helper → substituir por probe de `/health` (V2); asset-matching do GitHub real destravado só com DA-01 resolvido.
 
 ### M6-B3 — Pipeline de release (2026-07-03)
 

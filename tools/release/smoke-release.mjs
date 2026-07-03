@@ -10,7 +10,7 @@
  * handshake and receives the join snapshot (proves the SPA/native-addon/net
  * stack all work together end to end).
  *
- * Steps (design doc §5.2):
+ * Steps (design doc §5.2; step 4b added by M6/B3-FIXES MÉDIA B):
  *   1. Temp data dir + `<artifact> world create smoke --system pf2e --gm-password ...`
  *   2. `<artifact> serve --world smoke --port <free>` in the background
  *   3. Poll /health until it answers { ok: true, version: FUSION_VERSION }
@@ -18,6 +18,15 @@
  *      open a socket.io connection to the world namespace; wait for the
  *      "hello" event and an "op" event of type "resync:full" (the join
  *      snapshot).
+ *   4b. Send a `compendium:list` query and assert it returns the pf2e packs
+ *      embedded in the artifact (REQ-CMP-006 in the packaged exe). This is
+ *      the regression guard for the exact gap B3-FIXES MÉDIA B closed:
+ *      before that fix, resolveSystemPacksDir's monorepo walk-up always
+ *      returned null on a clean machine running the SEA exe (no checkout
+ *      next to it), so compendium:list silently returned `[]` — the exe
+ *      booted fine, /health was green, the WS handshake worked, and this
+ *      gap was invisible to every OTHER smoke step. Without this assertion
+ *      the regression could ship again undetected forever.
  *   5. Tear down (SIGTERM the child, wait for exit).
  *
  * Exit codes: 0 = every step passed. 1 = any step failed (message printed).
@@ -267,6 +276,36 @@ async function main() {
 
     const snapshot = await Promise.race([snapshotPromise, connectErrorPromise]);
     log(`Received join snapshot (resync:full), seq=${snapshot.seq}`);
+
+    // -----------------------------------------------------------------------
+    // Step 4b — compendium:list must return the embedded pf2e packs
+    // (B3-FIXES MÉDIA B — see module doc comment)
+    // -----------------------------------------------------------------------
+    log("Step 4b/5 — compendium:list must return the embedded pf2e packs");
+
+    const compendiumAck = await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error("Timed out waiting for compendium:list ack")), 10_000);
+      socket.emit("query", { type: "compendium:list", ts: Date.now(), payload: { systemId: "pf2e" } }, (ack) => {
+        clearTimeout(timer);
+        resolve(ack);
+      });
+    });
+
+    if (compendiumAck?.ok !== true) {
+      throw new Error(`compendium:list did not ack ok: ${JSON.stringify(compendiumAck)}`);
+    }
+    const packs = compendiumAck.result?.packs ?? [];
+    const packIds = packs.map((p) => p.id);
+    const EXPECTED_PACK_IDS = ["pf2e.bestiary-core", "pf2e.conditions", "pf2e.weapons-core", "pf2e.spells-core"];
+    const missing = EXPECTED_PACK_IDS.filter((id) => !packIds.includes(id));
+    if (missing.length > 0) {
+      throw new Error(
+        `compendium:list is missing expected pf2e pack(s) ${JSON.stringify(missing)} — got ${JSON.stringify(packIds)}. ` +
+          `This means the packaged exe cannot find systems/pf2e/packs on this (clean) machine — ` +
+          `see resolveSystemPacksDir / ensureSystemPacksExtracted (B3-FIXES MÉDIA B).`,
+      );
+    }
+    log(`compendium:list OK: found ${String(packIds.length)} pack(s): ${packIds.join(", ")}`);
 
     socket.disconnect();
 

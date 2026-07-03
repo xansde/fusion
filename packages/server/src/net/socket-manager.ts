@@ -587,6 +587,23 @@ export class SocketManager {
     this.logger.info({ worldId }, "World namespace removed");
   }
 
+  /**
+   * Emit an event to the "gm" room of every currently-registered world
+   * namespace (M6/B5 — REQ-DST-021, `server.update_available`). The "gm"
+   * room is joined by every socket whose role is `isRolePrivileged`
+   * (GAMEMASTER/ASSISTANT) on connect — see the `ns.use`/connection handler
+   * above. This is a SERVER-wide notification (not scoped to one world),
+   * but socket.io has no cross-namespace broadcast primitive, so it fans
+   * out to each namespace's own "gm" room individually. In the MVP's
+   * single-`--world`-per-process shape this is at most one namespace; the
+   * loop future-proofs it for whenever multi-world-per-process (V2) lands.
+   */
+  broadcastToGm(event: string, payload: unknown): void {
+    for (const ns of this.namespaces.values()) {
+      ns.to("gm").emit(event, payload);
+    }
+  }
+
   /** Close all namespaces and the underlying socket.io server. */
   async close(): Promise<void> {
     const worldIds = [...this.namespaces.keys()];

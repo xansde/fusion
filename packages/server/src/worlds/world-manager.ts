@@ -567,6 +567,60 @@ export class WorldManager {
   }
 
   /**
+   * Create a pre-update backup with the exact canonical filename
+   * REQ-DST-022 specifies: `pre-event-update-<version>-<timestamp-ISO>.db`
+   * (distinct from the generic `<type>-<epochMs>.db` naming `backup()`
+   * uses for auto/manual/pre-delete/pre-restore/pre-migration — the design
+   * doc §2.1 point 3 and the spec both call out this exact filename shape,
+   * which an ISO timestamp with colons would break as-is on Windows
+   * filesystems, hence the colon-stripped ISO below).
+   *
+   * Reuses the SAME online-backup-API-when-open / file-copy-when-closed
+   * logic as {@link backup} — this is deliberately NOT a call to
+   * `backup(slug, "pre-update")`, because that generic method's filename
+   * format (`pre-update-<epochMs>.db`) does not match the canonical
+   * `pre-event-update-<version>-<ISO>.db` shape the spec requires callers
+   * (update/updater.ts) to produce.
+   */
+  async backupPreUpdate(slug: string, version: string): Promise<BackupEntry> {
+    if (!isValidSlug(slug)) throw new InvalidSlugError(slug);
+
+    const dir = worldDir(this.dataDir, slug);
+    if (!existsSync(dir)) throw new WorldNotFoundError(slug);
+
+    const bDir = backupsDir(this.dataDir, slug);
+    mkdirSync(bDir, { recursive: true });
+
+    const ts = Date.now();
+    // Colons are invalid in Windows filenames — strip them from the ISO
+    // string (keeping it lexically sortable and still round-trippable via
+    // Date parsing if colons are reinserted before the seconds/millis part).
+    const isoSafe = new Date(ts).toISOString().replace(/:/g, "-");
+    const filename = `pre-event-update-${version}-${isoSafe}.db`;
+    const destPath = join(bDir, filename);
+
+    const openWorld = this.openWorlds.get(slug);
+    if (openWorld) {
+      await openWorld.db.raw.backup(destPath);
+    } else {
+      const srcPath = dbPath(this.dataDir, slug);
+      if (!existsSync(srcPath)) {
+        throw new Error(`world.db not found for "${slug}"`);
+      }
+      copyFileSync(srcPath, destPath);
+    }
+
+    const stat = statSync(destPath);
+    return {
+      filename,
+      type: "pre-update",
+      timestamp: ts,
+      sizeBytes: stat.size,
+      path: destPath,
+    };
+  }
+
+  /**
    * List all backups for a world.
    * REQ-PER-027.
    */
@@ -698,6 +752,7 @@ export class WorldManager {
   }
 
   private _backupType(filename: string): BackupEntry["type"] {
+    if (filename.startsWith("pre-event-update-")) return "pre-update";
     if (filename.startsWith("auto-")) return "auto";
     if (filename.startsWith("manual-")) return "manual";
     if (filename.startsWith("pre-delete-")) return "pre-delete";
@@ -707,9 +762,26 @@ export class WorldManager {
   }
 
   private _backupTimestamp(filename: string): number {
-    // Filenames like "auto-1717000000000.db"
-    const match = /(\d{10,})\.db$/.exec(filename);
-    return match?.[1] !== undefined ? parseInt(match[1], 10) : 0;
+    // Filenames like "auto-1717000000000.db" (epoch-ms suffix).
+    const epochMatch = /(\d{10,})\.db$/.exec(filename);
+    if (epochMatch?.[1] !== undefined) return parseInt(epochMatch[1], 10);
+
+    // Filenames like "pre-event-update-1.2.3-2026-07-03T10-56-14.799Z.db"
+    // (colon-stripped ISO suffix — see backupPreUpdate's `.replace(/:/g, "-")`,
+    // which only touches the two literal colons in "THH:MM:SS" — the
+    // milliseconds separator stays a literal "."). Reinsert the two colons
+    // before parsing.
+    const isoMatch = /(\d{4}-\d{2}-\d{2}T\d{2})-(\d{2})-(\d{2}\.\d{3}Z)\.db$/.exec(filename);
+    const datePart = isoMatch?.[1];
+    const minutes = isoMatch?.[2];
+    const secondsAndMs = isoMatch?.[3];
+    if (datePart !== undefined && minutes !== undefined && secondsAndMs !== undefined) {
+      const reconstructed = `${datePart}:${minutes}:${secondsAndMs}`;
+      const parsed = Date.parse(reconstructed);
+      if (!Number.isNaN(parsed)) return parsed;
+    }
+
+    return 0;
   }
 
   // --------------------------------------------------------------------------

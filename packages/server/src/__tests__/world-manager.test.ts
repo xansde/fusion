@@ -483,6 +483,87 @@ describe("WorldManager.backup", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Pre-update backup (M6/B5 — REQ-DST-022, canonical filename shape)
+// ---------------------------------------------------------------------------
+
+describe("WorldManager.backupPreUpdate", () => {
+  it("creates a backup with the canonical pre-event-update-<version>-<ISO>.db filename", async () => {
+    const dataDir = newTempDir();
+    const wm = makeManager(dataDir);
+    wm.create({ title: "Update Backup World", system: "pf2e", slug: "upd_bk" });
+    wm.open("upd_bk");
+
+    const entry = await wm.backupPreUpdate("upd_bk", "1.2.3");
+
+    expect(existsSync(entry.path)).toBe(true);
+    expect(entry.type).toBe("pre-update");
+    expect(entry.sizeBytes).toBeGreaterThan(0);
+    // pre-event-update-1.2.3-2026-07-03T10-56-14.799Z.db (colons stripped from the ISO suffix)
+    expect(entry.filename).toMatch(
+      /^pre-event-update-1\.2\.3-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.\d{3}Z\.db$/,
+    );
+
+    wm.close("upd_bk");
+  });
+
+  it("works via the online backup API while the world is open (non-blocking for readers)", async () => {
+    const dataDir = newTempDir();
+    const wm = makeManager(dataDir);
+    wm.create({ title: "Open Update Backup", system: "pf2e", slug: "upd_bk_open" });
+    wm.open("upd_bk_open");
+
+    const entry = await wm.backupPreUpdate("upd_bk_open", "2.0.0");
+    const db = new Database(entry.path, { readonly: true, fileMustExist: true });
+    const row = db
+      .prepare(`SELECT 1 FROM sqlite_master WHERE type='table' AND name='actors'`)
+      .get();
+    expect(row).toBeDefined();
+    db.close();
+
+    wm.close("upd_bk_open");
+  });
+
+  it("falls back to a file copy when the world is closed", async () => {
+    const dataDir = newTempDir();
+    const wm = makeManager(dataDir);
+    wm.create({ title: "Closed Update Backup", system: "pf2e", slug: "upd_bk_closed" });
+    // Deliberately NOT opened — backupPreUpdate must still work via file copy.
+
+    const entry = await wm.backupPreUpdate("upd_bk_closed", "3.1.4");
+    expect(existsSync(entry.path)).toBe(true);
+    expect(entry.type).toBe("pre-update");
+  });
+
+  it("listBackups reports pre-update entries with a correctly parsed timestamp", async () => {
+    const dataDir = newTempDir();
+    const wm = makeManager(dataDir);
+    wm.create({ title: "List Update Backups", system: "pf2e", slug: "upd_bk_list" });
+    wm.open("upd_bk_list");
+
+    const before = Date.now();
+    const entry = await wm.backupPreUpdate("upd_bk_list", "1.0.0");
+    const after = Date.now();
+
+    const backups = wm.listBackups("upd_bk_list");
+    const found = backups.find((b) => b.filename === entry.filename);
+    expect(found).toBeDefined();
+    expect(found?.type).toBe("pre-update");
+    // Timestamp reconstructed from the ISO-in-filename should round-trip to
+    // within the [before, after] window the backup was actually taken in.
+    expect(found?.timestamp).toBeGreaterThanOrEqual(before - 1000);
+    expect(found?.timestamp).toBeLessThanOrEqual(after + 1000);
+
+    wm.close("upd_bk_list");
+  });
+
+  it("throws WorldNotFoundError for an unknown slug", async () => {
+    const dataDir = newTempDir();
+    const wm = makeManager(dataDir);
+    await expect(wm.backupPreUpdate("does_not_exist", "1.0.0")).rejects.toThrow(WorldNotFoundError);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Corruption recovery (CA-PER-05 / REQ-PER-005)
 // ---------------------------------------------------------------------------
 

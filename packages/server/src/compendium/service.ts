@@ -545,10 +545,21 @@ export function findMonorepoRoot(startDir: string): string | null {
 /**
  * Resolve the packs directory for a game system: `<root>/systems/<systemId>/packs`.
  *
- * Resolution order:
+ * Resolution order (B3-FIXES MÉDIA B added step 2 — the other two were the
+ * original M3 behaviour):
  *   1. Explicit `packsDirOverride` (e.g. FUSION_PACKS_DIR config) — used verbatim.
- *   2. `<monorepoRoot>/systems/<systemId>/packs` discovered from this module's
- *      location via {@link findMonorepoRoot}.
+ *   2. `<dataDir>/runtime/<version>/system-packs/<systemId>/packs` — the SEA
+ *      build's embedded copy, extracted once per version by
+ *      `runtime/sea-entry.ts` via `ensureSystemPacksExtracted` (sea-assets.ts)
+ *      BEFORE boot() runs, and exposed here through the
+ *      `FUSION_SEA_SYSTEM_PACKS_DIR` env var — same pattern
+ *      `spa/routes.ts`'s `resolveClientDistDir` uses for `FUSION_SEA_CLIENT_DIST`.
+ *      Takes priority over the monorepo walk-up because on a clean machine
+ *      running the packaged exe there IS no monorepo checkout next to it —
+ *      step 3 always returns null in that case, which is exactly the gap
+ *      this step closes (compendium:list was returning [] in the exe).
+ *   3. `<monorepoRoot>/systems/<systemId>/packs` discovered from this module's
+ *      location via {@link findMonorepoRoot} — dev/test/non-SEA path.
  *
  * Returns null when the directory cannot be located or does not exist; callers
  * should treat that as "no packs available" and continue (REQ-CMP-006).
@@ -560,6 +571,16 @@ export function findMonorepoRoot(startDir: string): string | null {
 export function resolveSystemPacksDir(systemId: string, packsDirOverride?: string): string | null {
   if (packsDirOverride !== undefined && packsDirOverride.length > 0) {
     return existsSync(packsDirOverride) ? packsDirOverride : null;
+  }
+
+  const seaSystemPacksRoot = process.env["FUSION_SEA_SYSTEM_PACKS_DIR"];
+  if (seaSystemPacksRoot !== undefined && seaSystemPacksRoot.length > 0) {
+    const seaPacksDir = join(seaSystemPacksRoot, systemId, "packs");
+    if (existsSync(seaPacksDir)) return seaPacksDir;
+    // Fall through to the monorepo walk-up rather than returning null
+    // outright — e.g. a system with no packs of its own (engine-2e, stub)
+    // legitimately has nothing under system-packs/, and a dev running a SEA
+    // build from a monorepo checkout should still find packs normally.
   }
 
   const here = dirname(fileURLToPath(import.meta.url));

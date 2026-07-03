@@ -43,6 +43,14 @@
  *     package resolution, no --nest support. Used by build-release.mjs to
  *     pack packages/client/dist using this exact same archive format/CLI,
  *     instead of a separate ad-hoc script.)
+ *   node tools/release/pack-native.mjs --multi-dir <outFile> \
+ *     --entry <archiveSubdir>=<absoluteDirPath> [--entry <archiveSubdir>=<absoluteDirPath>]...
+ *     (packs MULTIPLE source directories into ONE archive, each nested under
+ *     its own `archiveSubdir` prefix — used by build-release.mjs to pack
+ *     every game system's `systems/<systemId>/packs/` directory into a
+ *     single `system-packs` SEA asset, nested as `<systemId>/packs/...` so
+ *     the extracted tree matches resolveSystemPacksDir's expected
+ *     `<packsRoot>/<systemId>/packs` layout exactly — see M6/B3-FIXES MÉDIA B.)
  *
  * `--nest <specifier>` (repeatable) embeds a transitive runtime dependency
  * at `node_modules/<specifier>/` relative to the MAIN package's own
@@ -134,6 +142,53 @@ function packToArchive(rootDirLabel, sourceDir, extraDirs) {
 
 function main() {
   const args = process.argv.slice(2);
+
+  // --multi-dir mode: pack N source directories into ONE archive, each
+  // nested under its own archive-relative subdir prefix. Fixed positional
+  // order: `--multi-dir <outFile> --entry <subdir>=<dirPath> [--entry ...]`.
+  if (args[0] === "--multi-dir") {
+    const outFile = args[1];
+    if (outFile === undefined) {
+      process.stderr.write("Usage: node pack-native.mjs --multi-dir <outFile> --entry <subdir>=<dirPath>...\n");
+      process.exit(1);
+    }
+
+    const entries = [];
+    for (let i = 2; i < args.length; i++) {
+      if (args[i] === "--entry" && args[i + 1] !== undefined) {
+        const raw = args[i + 1];
+        const eqIdx = raw.indexOf("=");
+        if (eqIdx === -1) {
+          throw new Error(`Invalid --entry "${raw}". Expected "<archiveSubdir>=<dirPath>".`);
+        }
+        const archiveSubdir = raw.slice(0, eqIdx);
+        const dirPath = raw.slice(eqIdx + 1);
+        entries.push({ archiveSubdir, dir: dirPath });
+        i++;
+      }
+    }
+    if (entries.length === 0) {
+      throw new Error("--multi-dir requires at least one --entry <archiveSubdir>=<dirPath>.");
+    }
+
+    const allEntries = [];
+    const allChunks = [];
+    for (const { archiveSubdir, dir } of entries) {
+      collectEntries(dir, archiveSubdir, allEntries, allChunks);
+    }
+    const index = { entries: allEntries };
+    const indexJson = Buffer.from(JSON.stringify(index), "utf8");
+    const lenBuf = Buffer.alloc(8);
+    lenBuf.writeBigUInt64LE(BigInt(indexJson.length), 0);
+    const archive = Buffer.concat([lenBuf, indexJson, ...allChunks]);
+
+    mkdirSync(dirname(outFile), { recursive: true });
+    writeFileSync(outFile, archive);
+    process.stdout.write(
+      `[pack-native] packed ${String(entries.length)} dir(s) -> ${outFile} (${String(archive.length)} bytes)\n`,
+    );
+    return;
+  }
 
   // --dir mode: pack an arbitrary directory verbatim, no package resolution.
   // Fixed positional order: `--dir <dirPath> <outFile>`.

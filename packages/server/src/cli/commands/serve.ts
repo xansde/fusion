@@ -237,6 +237,28 @@ export async function runServe(args: ServeArgs): Promise<void> {
       bootOpts.tunnelContext = { tunnelManager, dataDir: config.dataDir, logger };
     }
 
+    // M6/B5 (REQ-DST-019..025): always wired, independent of --world — the
+    // update check/apply endpoints must be reachable even on a management
+    // boot with no world open, mirroring the admin routes (M6/B2) and
+    // tunnel routes (M6/B4) pattern. getOpenWorldSlugs reflects only the
+    // single world this process may have opened via --world (multi-world
+    // per process is [V2] — see design doc §1.3/serve.ts's own worldSlug
+    // handling); an empty array is valid (REQ-DST-022's "cada world aberto"
+    // then backs up nothing, which is correct for a management-only boot).
+    bootOpts.updateContext = {
+      dataDir: config.dataDir,
+      currentVersion: (await import("@fusion/shared")).FUSION_VERSION,
+      getChannel: () => loadConfig({ dataDirOverride: config.dataDir }).updateChannel,
+      getUpdateRepo: () => {
+        const repo = loadConfig({ dataDirOverride: config.dataDir }).updateRepo;
+        return repo.startsWith("REPLACE_ME") ? undefined : repo;
+      },
+      worldManager,
+      getOpenWorldSlugs: () => (worldSlug !== undefined ? [worldSlug] : []),
+      relaunchArgs: process.argv.slice(2),
+      logger,
+    };
+
     if (openWorldDb !== undefined && authSecret !== undefined && worldSlug !== undefined) {
       const worldSystemId = openWorldSystemId ?? "stub";
       bootOpts.authContext = {

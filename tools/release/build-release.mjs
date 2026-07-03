@@ -4,6 +4,14 @@
  * REQ-DST-001/002/003/004/027/042/043/044/046).
  *
  * Phases (bail on the first failure, exit 1):
+ *   0. Clean stale dist-release/ artifacts + manifests from a PREVIOUS
+ *      version (B3-FIXES BAIXA (a)) — a bump-and-rebuild without a fresh
+ *      checkout would otherwise leave the OLD version's fusion-server-*
+ *      binary and latest-<channel>.json sitting next to the new ones;
+ *      smoke-release.mjs's auto-discovery ("exactly one fusion-server-*
+ *      under dist-release/") fails loudly in that scenario, and a stale
+ *      manifest could get picked up by mistake. Only dist-release/ itself is
+ *      touched — never anything under systems/, packages/, node_modules/.
  *   1. Version-drift check (check-version-drift.mjs) — REQ-DST-038's single
  *      source of truth must agree with package.json before anything else.
  *   2. `pnpm -r build` — topological build of shared -> server -> client
@@ -22,9 +30,11 @@
  *      several modules in this codebase — native-loader.ts,
  *      compendium/service.ts, spa/routes.ts — need a real file URL to
  *      locate themselves).
- *   5. Pack the two native addon packages (+ their transitive runtime deps)
- *      and packages/client/dist into the custom archive format
- *      (pack-native.mjs / native-loader.ts's packDirectory).
+ *   5. Pack the two native addon packages (+ their transitive runtime deps),
+ *      packages/client/dist, AND every game system's systems/<id>/packs/
+ *      directory (B3-FIXES MÉDIA B — REQ-CMP-006 in the packaged exe) into
+ *      the custom archive format (pack-native.mjs / native-loader.ts's
+ *      packDirectory).
  *   6. Assemble the SEA: generate sea-config.json (make-sea-config.mjs),
  *      run `node --experimental-sea-config`, copy the CURRENT node.exe,
  *      inject the blob via postject, name the result
@@ -39,9 +49,19 @@
 
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, copyFileSync, statSync, chmodSync, rmSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+  readdirSync,
+  copyFileSync,
+  statSync,
+  chmodSync,
+  rmSync,
+} from "node:fs";
 import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { writeManifest } from "./manifest.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -115,6 +135,37 @@ function platformArchLabel() {
     throw new Error(`Unsupported build arch: "${arch}". Expected x64 or arm64.`);
   }
   return { platformLabel, archLabel: arch, isWindows: platform === "win32" };
+}
+
+// ---------------------------------------------------------------------------
+// Phase 0 — clean stale artifacts from a previous version (BAIXA (a))
+// ---------------------------------------------------------------------------
+
+function phaseCleanStaleArtifacts() {
+  log("Phase 0/8 — cleaning stale dist-release/ artifacts from a previous version");
+  if (!existsSync(distReleaseDir)) return;
+
+  let entries;
+  try {
+    entries = readdirSync(distReleaseDir, { withFileTypes: true });
+  } catch (err) {
+    log(`Could not read ${distReleaseDir} to clean it — continuing (${String(err)})`);
+    return;
+  }
+
+  for (const entry of entries) {
+    // Remove every previously-built artifact (fusion-server-*, including
+    // .exe/.AppImage/.dmg variants) and manifest (latest-*.json) — but
+    // NEVER the .work/ scratch dir mid-cleanup of a concurrent run, and
+    // nothing outside dist-release/ is ever touched.
+    const isArtifact = entry.name.startsWith("fusion-server-");
+    const isManifest = /^latest-.*\.json$/.test(entry.name);
+    if (!isArtifact && !isManifest) continue;
+
+    const fullPath = join(distReleaseDir, entry.name);
+    rmSync(fullPath, { recursive: true, force: true });
+    log(`Removed stale ${fullPath}`);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -201,47 +252,65 @@ function phaseBundle() {
 }
 
 // ---------------------------------------------------------------------------
+// Asset key constants — imported from the COMPILED server package (not
+// re-declared as string literals here) so this script and
+// native-loader.ts/sea-assets.ts can never drift silently (BAIXA (b) from
+// the B3 audit: the make-sea-config.mjs doc comment previously CLAIMED this
+// but the keys were actually hardcoded string literals below it — fixed by
+// making the claim true). Phase 2 (`pnpm -r build`) always runs before phase
+// 5 in main(), so packages/server/dist/runtime/{native-loader,sea-assets}.js
+// are guaranteed to exist by the time this import resolves.
+// ---------------------------------------------------------------------------
+
+async function loadAssetKeyConstants() {
+  const nativeLoaderPath = join(repoRoot, "packages", "server", "dist", "runtime", "native-loader.js");
+  const seaAssetsPath = join(repoRoot, "packages", "server", "dist", "runtime", "sea-assets.js");
+  if (!existsSync(nativeLoaderPath) || !existsSync(seaAssetsPath)) {
+    throw new Error(
+      `Compiled runtime modules not found at ${nativeLoaderPath} / ${seaAssetsPath} — ` +
+        `phase 2 (pnpm -r build) must run before phase 5 packs SEA assets.`,
+    );
+  }
+  const { NATIVE_PACKAGES } = await import(pathToFileURL(nativeLoaderPath).href);
+  const { CLIENT_DIST_ASSET_KEY, SYSTEM_PACKS_ASSET_KEY } = await import(pathToFileURL(seaAssetsPath).href);
+  return { NATIVE_PACKAGES, CLIENT_DIST_ASSET_KEY, SYSTEM_PACKS_ASSET_KEY };
+}
+
+// ---------------------------------------------------------------------------
 // Phase 5 — pack native addons + client dist
 // ---------------------------------------------------------------------------
 
-function phasePackAssets() {
-  log("Phase 5/8 — packing native addons + client dist into SEA assets");
+async function phasePackAssets(assetKeys) {
+  log("Phase 5/8 — packing native addons + client dist + system packs into SEA assets");
   mkdirSync(workDir, { recursive: true });
 
-  const betterSqlite3Archive = join(workDir, "native-better-sqlite3.bin");
-  const argon2Archive = join(workDir, "native-node-rs-argon2.bin");
-  const clientDistArchive = join(workDir, "client-dist.bin");
-
-  const platformArgonPackageMap = {
-    win32: { x64: "@node-rs/argon2-win32-x64-msvc", arm64: "@node-rs/argon2-win32-arm64-msvc" },
-    darwin: { x64: "@node-rs/argon2-darwin-x64", arm64: "@node-rs/argon2-darwin-arm64" },
-    linux: { x64: "@node-rs/argon2-linux-x64-gnu", arm64: "@node-rs/argon2-linux-arm64-gnu" },
+  // Per-package archive path + --nest flags, keyed by the specifier — the
+  // assetKey each maps to comes from assetKeys.NATIVE_PACKAGES (the REAL
+  // NATIVE_PACKAGES constant native-loader.ts exports), not a re-declared
+  // string literal (BAIXA (b)).
+  const nestFlagsBySpecifier = {
+    "better-sqlite3": ["bindings", "bindings>file-uri-to-path"],
+    "@node-rs/argon2": [platformArgon2Package()],
   };
-  const platformArgonPackage = platformArgonPackageMap[process.platform]?.[process.arch];
-  if (platformArgonPackage === undefined) {
-    throw new Error(
-      `No known @node-rs/argon2 platform package for ${process.platform}/${process.arch}. ` +
-        `Add it to platformArgonPackageMap in build-release.mjs.`,
-    );
+
+  const nativeAssetPaths = {}; // assetKey -> archive path
+  for (const pkg of assetKeys.NATIVE_PACKAGES) {
+    const archivePath = join(workDir, `${pkg.assetKey}.bin`);
+    const nestFlags = nestFlagsBySpecifier[pkg.specifier];
+    if (nestFlags === undefined) {
+      throw new Error(
+        `No --nest flags configured in build-release.mjs for native package "${pkg.specifier}" ` +
+          `(declared in native-loader.ts's NATIVE_PACKAGES but unknown here — add an entry to ` +
+          `nestFlagsBySpecifier).`,
+      );
+    }
+    const nestArgs = nestFlags.flatMap((n) => ["--nest", n]);
+    run(process.execPath, [join(__dirname, "pack-native.mjs"), pkg.specifier, archivePath, ...nestArgs]);
+    nativeAssetPaths[pkg.assetKey] = archivePath;
   }
 
-  run(process.execPath, [
-    join(__dirname, "pack-native.mjs"),
-    "better-sqlite3",
-    betterSqlite3Archive,
-    "--nest",
-    "bindings",
-    "--nest",
-    "bindings>file-uri-to-path",
-  ]);
-
-  run(process.execPath, [
-    join(__dirname, "pack-native.mjs"),
-    "@node-rs/argon2",
-    argon2Archive,
-    "--nest",
-    platformArgonPackage,
-  ]);
+  const clientDistArchive = join(workDir, `${assetKeys.CLIENT_DIST_ASSET_KEY}.bin`);
+  const systemPacksArchive = join(workDir, `${assetKeys.SYSTEM_PACKS_ASSET_KEY}.bin`);
 
   const clientDistDir = join(repoRoot, "packages", "client", "dist");
   if (!existsSync(clientDistDir)) {
@@ -256,7 +325,68 @@ function phasePackAssets() {
   // extraction code (sea-assets.ts) does not understand.
   run(process.execPath, [join(__dirname, "pack-native.mjs"), "--dir", clientDistDir, clientDistArchive]);
 
-  return { betterSqlite3Archive, argon2Archive, clientDistArchive };
+  // B3-FIXES MÉDIA B: pack every game system's committed packs/ directory
+  // into ONE archive, each nested under "<systemId>/packs/..." — the exact
+  // layout resolveSystemPacksDir (compendium/service.ts) expects a
+  // "packsRoot" to have. Only systems that actually ship packs are included
+  // (engine-2e/stub have none); missing/empty is fine, `--multi-dir` just
+  // gets fewer --entry flags.
+  const systemsRootDir = join(repoRoot, "systems");
+  const systemPackEntries = existsSync(systemsRootDir)
+    ? readdirSync(systemsRootDir, { withFileTypes: true })
+        .filter((d) => d.isDirectory())
+        .map((d) => ({ systemId: d.name, packsDir: join(systemsRootDir, d.name, "packs") }))
+        .filter(({ packsDir }) => existsSync(packsDir))
+    : [];
+
+  if (systemPackEntries.length === 0) {
+    log("No systems/<id>/packs directories found — system-packs asset will be empty");
+  }
+
+  const multiDirArgs = [join(__dirname, "pack-native.mjs"), "--multi-dir", systemPacksArchive];
+  for (const { systemId, packsDir } of systemPackEntries) {
+    multiDirArgs.push("--entry", `${systemId}/packs=${packsDir}`);
+  }
+  if (systemPackEntries.length > 0) {
+    run(process.execPath, multiDirArgs);
+  } else {
+    // --multi-dir requires at least one --entry; write an empty archive
+    // directly rather than special-casing the packer script for a scenario
+    // that should never happen in this repo (pf2e/sf2e/etmos always ship
+    // packs) but must not crash the whole pipeline if it ever did.
+    mkdirSync(dirname(systemPacksArchive), { recursive: true });
+    const emptyIndex = Buffer.from(JSON.stringify({ entries: [] }), "utf8");
+    const lenBuf = Buffer.alloc(8);
+    lenBuf.writeBigUInt64LE(BigInt(emptyIndex.length), 0);
+    writeFileSync(systemPacksArchive, Buffer.concat([lenBuf, emptyIndex]));
+  }
+
+  return {
+    // assetKey -> archive path, spread directly into make-sea-config.mjs's
+    // --asset flags in phaseAssembleSea — every key here is one of
+    // NATIVE_PACKAGES[].assetKey / CLIENT_DIST_ASSET_KEY /
+    // SYSTEM_PACKS_ASSET_KEY, never a hand-typed literal.
+    ...nativeAssetPaths,
+    [assetKeys.CLIENT_DIST_ASSET_KEY]: clientDistArchive,
+    [assetKeys.SYSTEM_PACKS_ASSET_KEY]: systemPacksArchive,
+  };
+}
+
+/** @node-rs/argon2's platform-specific optionalDependency package name for the CURRENT (build) platform/arch. */
+function platformArgon2Package() {
+  const platformArgonPackageMap = {
+    win32: { x64: "@node-rs/argon2-win32-x64-msvc", arm64: "@node-rs/argon2-win32-arm64-msvc" },
+    darwin: { x64: "@node-rs/argon2-darwin-x64", arm64: "@node-rs/argon2-darwin-arm64" },
+    linux: { x64: "@node-rs/argon2-linux-x64-gnu", arm64: "@node-rs/argon2-linux-arm64-gnu" },
+  };
+  const pkg = platformArgonPackageMap[process.platform]?.[process.arch];
+  if (pkg === undefined) {
+    throw new Error(
+      `No known @node-rs/argon2 platform package for ${process.platform}/${process.arch}. ` +
+        `Add it to platformArgonPackageMap in build-release.mjs.`,
+    );
+  }
+  return pkg;
 }
 
 // ---------------------------------------------------------------------------
@@ -270,18 +400,14 @@ function phaseAssembleSea(bundlePath, assets, version) {
   const seaConfigPath = join(workDir, "sea-config.json");
   const seaBlobPath = join(workDir, "fusion-server.blob");
 
-  run(process.execPath, [
-    join(__dirname, "make-sea-config.mjs"),
-    bundlePath,
-    seaConfigPath,
-    seaBlobPath,
-    "--asset",
-    `native-better-sqlite3=${assets.betterSqlite3Archive}`,
-    "--asset",
-    `native-node-rs-argon2=${assets.argon2Archive}`,
-    "--asset",
-    `client-dist=${assets.clientDistArchive}`,
-  ]);
+  // `assets` is keyed by the REAL assetKey constants (see
+  // loadAssetKeyConstants/phasePackAssets) — iterating it generically here
+  // (rather than hardcoding each `--asset <literal>=<path>` flag) is what
+  // actually makes good on make-sea-config.mjs's doc-comment claim that
+  // these keys cannot drift from native-loader.ts/sea-assets.ts (BAIXA (b)).
+  const assetArgs = Object.entries(assets).flatMap(([key, path]) => ["--asset", `${key}=${path}`]);
+
+  run(process.execPath, [join(__dirname, "make-sea-config.mjs"), bundlePath, seaConfigPath, seaBlobPath, ...assetArgs]);
 
   run(process.execPath, ["--experimental-sea-config", seaConfigPath]);
   if (!existsSync(seaBlobPath)) {
@@ -391,6 +517,7 @@ async function main() {
 
   const startedAt = Date.now();
 
+  phaseCleanStaleArtifacts();
   phaseVersionDrift();
   const version = readFusionVersion();
   log(`Building release for FUSION_VERSION=${version}, channel=${channel}`);
@@ -408,7 +535,8 @@ async function main() {
   }
 
   const bundlePath = phaseBundle();
-  const assets = phasePackAssets();
+  const assetKeys = await loadAssetKeyConstants();
+  const assets = await phasePackAssets(assetKeys);
   const artifactPath = phaseAssembleSea(bundlePath, assets, version);
   const sizeAndHash = phaseSizeAndHash(artifactPath);
   const manifestPath = phaseManifest(version, artifactPath, sizeAndHash, channel);

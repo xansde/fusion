@@ -275,6 +275,7 @@ graph TD
 - **Depende de:** B3 (precisa de releases+manifesto reais para testar).
 - **Auditoria:** (a) release novo → "update disponível" com notas (CA-DST-10); (b) hash divergente → mantém binário atual + erro (CA-DST-07); (c) backup pré-update criado; (d) rollback restaura `.bak`.
 - **Fumaça automatizável:** sim, com um manifesto+binário de teste (mock do endpoint GitHub).
+- **Divergência registrada vs. REQ-DST-022 item 2:** a spec pede "confirmar com o GM que os snapshots foram criados **antes de prosseguir**" — ou seja, um passo de confirmação explícita entre o backup e o download/swap. A implementação do B5 (`update/updater.ts::applyUpdate`) é **one-shot**: `POST /admin/update/apply` executa backup → download → verify → schedule-swap na mesma chamada, sem um segundo round-trip de confirmação. Interpretação MVP defensável: se o backup de qualquer world aberto falhar, `applyUpdate` aborta imediatamente com `BACKUP_FAILED` e o binário atual permanece intocado (equivalente em efeito a "não prosseguir sem snapshot"), e a resposta do apply já devolve a lista de `backups` criados para o client exibir. O que falta para atender o item 2 ao pé da letra é um passo assíncrono de "backup feito, confirme para continuar" (dois endpoints ou um apply em duas fases) — não implementado neste batch; revisitar se o fluxo de update ganhar uma UI dedicada de GM.
 
 ### B6 — Wrapper Tauri v2 _(V2, G)_
 

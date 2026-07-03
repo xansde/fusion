@@ -365,7 +365,7 @@ export interface WorldManifest {
  */
 export interface BackupEntry {
   filename: string;
-  type: "auto" | "manual" | "pre-delete" | "pre-restore" | "pre-migration";
+  type: "auto" | "manual" | "pre-delete" | "pre-restore" | "pre-migration" | "pre-update";
   timestamp: number; // Unix ms
   sizeBytes: number;
   path: string;

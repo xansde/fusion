@@ -67,6 +67,28 @@ function resolveDataDirForBootstrap(): string {
 }
 
 async function main(): Promise<void> {
+  // M6/B5 — swap-helper diversion. MUST be the very first check, before any
+  // node:sea / native-addon machinery: a spawned swap-helper invocation
+  // (`<exe> --fusion-swap-helper <scriptPath>`, see
+  // update/swap-helper.ts's module doc comment "WHO RUNS THE HELPER
+  // SCRIPT") needs the exe to act as a generic script host, not boot the
+  // full server (the OLD exe that spawned this may still be shutting down
+  // and holding the very file this helper is about to rename).
+  const swapHelperFlagIdx = process.argv.indexOf("--fusion-swap-helper");
+  if (swapHelperFlagIdx !== -1) {
+    const scriptPath = process.argv[swapHelperFlagIdx + 1];
+    if (scriptPath === undefined) {
+      process.stderr.write("fusion (sea): --fusion-swap-helper requires a script path argument\n");
+      process.exit(1);
+    }
+    // Dynamic import of an absolute file path — not a bare specifier — so
+    // this is a genuine filesystem load, unaffected by the SEA module
+    // resolution hook (native-loader.ts installs no hook this early, and
+    // even if it did, this specifier is never one of its two overrides).
+    await import(`file://${scriptPath.split("\\").join("/")}`);
+    return;
+  }
+
   const sea = await import("node:sea");
   if (!sea.isSea()) {
     // Defensive — this entry point should only ever run inside a SEA blob.
@@ -81,7 +103,12 @@ async function main(): Promise<void> {
 
   const { ensureNativeAddonsExtracted, installNativeAddonResolutionHook } =
     await import("./native-loader.js");
-  const { ensureClientDistExtracted, clientDistRuntimeDir } = await import("./sea-assets.js");
+  const {
+    ensureClientDistExtracted,
+    clientDistRuntimeDir,
+    ensureSystemPacksExtracted,
+    systemPacksRuntimeDir,
+  } = await import("./sea-assets.js");
 
   // 1. Extract both native addon packages (better-sqlite3, @node-rs/argon2)
   //    to <dataDir>/runtime/<version>/node_modules/... — verified by hash,
@@ -102,6 +129,13 @@ async function main(): Promise<void> {
   //    unchanged for both SEA and non-SEA boots).
   await ensureClientDistExtracted({ dataDir, version: FUSION_VERSION });
   process.env["FUSION_SEA_CLIENT_DIST"] = clientDistRuntimeDir(dataDir, FUSION_VERSION);
+
+  // 3b. Extract the embedded game-system compendium packs (pf2e/sf2e/etmos)
+  //    so compendium/service.ts's resolveSystemPacksDir finds a real
+  //    packsRoot inside the SEA — see that function's doc comment
+  //    (B3-FIXES MÉDIA B). Same env-var handoff pattern as step 3 above.
+  await ensureSystemPacksExtracted({ dataDir, version: FUSION_VERSION });
+  process.env["FUSION_SEA_SYSTEM_PACKS_DIR"] = systemPacksRuntimeDir(dataDir, FUSION_VERSION);
 
   // 4. NOW it is safe to load the rest of the server. cli/index.js parses
   //    argv itself (this process's real argv — unaffected by anything
