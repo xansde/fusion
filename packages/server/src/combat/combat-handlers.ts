@@ -39,7 +39,13 @@ import type { SeqStore } from "../net/seq-store.js";
 import type { OpBuffer } from "../net/op-buffer.js";
 import type { DocumentStore } from "../documents/store.js";
 import { DocumentNotFoundError } from "../documents/store.js";
-import { isRolePrivileged } from "../documents/ownership.js";
+import {
+  isRolePrivileged,
+  testOwnership,
+  UserRole,
+  OwnershipLevel,
+} from "../documents/ownership.js";
+import type { Ownership } from "../documents/ownership.js";
 import { stripHiddenCombatantsFromCombat } from "../net/redaction.js";
 import type { Database as Db } from "better-sqlite3";
 import type { SystemModule } from "@fusion/system-api";
@@ -627,16 +633,27 @@ export function buildCombatAddCombatantHandler(deps: CombatHandlerDeps): Handler
       // Scene not found or token missing — use defaults; not fatal
     }
 
-    // Check if the actor has a player owner
+    // Check if the actor has a player owner. "Has a player owner" is true
+    // when EITHER `ownership.default` itself resolves to OWNER (every player
+    // owns this Actor) OR at least one explicit per-user entry resolves to
+    // OWNER for a PLAYER role. Both checks are routed through
+    // testOwnership/resolveOwnership (documents/ownership.ts, the single
+    // source of truth for default/INHERIT resolution) instead of a bare
+    // `val >= 3` numeric comparison that used to skip `default` entirely —
+    // that hand-rolled read missed the "every player owns this" case.
     if (resolvedActorId) {
       try {
         const actor = deps.store.get("actors", resolvedActorId);
         const ownership = actor["ownership"];
         if (ownership && typeof ownership === "object" && !Array.isArray(ownership)) {
-          const ownerMap = ownership as Record<string, number>;
-          hasPlayerOwner = Object.entries(ownerMap).some(
-            ([key, val]) => key !== "default" && val >= 3, // OWNER level
-          );
+          const ownerMap = ownership as Ownership;
+          hasPlayerOwner =
+            defaultGrantsPlayerOwnership(ownerMap) ||
+            Object.keys(ownerMap).some(
+              (key) =>
+                key !== "default" &&
+                testOwnership(ownerMap, key, UserRole.PLAYER, OwnershipLevel.OWNER),
+            );
         }
       } catch {
         // Actor not found — hasPlayerOwner stays false
@@ -1479,6 +1496,18 @@ export function buildCombatEndHandler(deps: CombatHandlerDeps): HandlerFn {
 // REQ-CBT-034
 // ---------------------------------------------------------------------------
 
+/**
+ * Whether `ownership.default` alone grants OWNER to an arbitrary PLAYER —
+ * i.e. "every player owns this document" — resolved through the single
+ * source of truth (testOwnership) rather than a bare `ownership.default >= 3`
+ * read. Probes with a key that can never collide with a real userId so the
+ * probe deterministically falls through to the `default` entry inside
+ * getUserLevel/resolveOwnership.
+ */
+function defaultGrantsPlayerOwnership(ownership: Ownership): boolean {
+  return testOwnership(ownership, " default-probe", UserRole.PLAYER, OwnershipLevel.OWNER);
+}
+
 function isOwnedByPlayer(
   deps: CombatHandlerDeps,
   combatant: CombatantDocument,
@@ -1490,9 +1519,13 @@ function isOwnedByPlayer(
     const actor = deps.store.get("actors", combatant.actorId);
     const ownership = actor["ownership"];
     if (!ownership || typeof ownership !== "object" || Array.isArray(ownership)) return false;
-    const ownerMap = ownership as Record<string, number>;
-    // OWNER = 3
-    return (ownerMap[userId] ?? 0) >= 3;
+    // Delegate to the single source of truth (documents/ownership.ts) so
+    // `ownership.default` and INHERIT are honoured — a hand-rolled
+    // `ownerMap[userId] >= 3` read ignores both. `role` is always
+    // UserRole.PLAYER here: this helper only answers "does this specific
+    // user own the Actor", independent of privilege — the GM-bypass half of
+    // "own OR GM" is applied separately by callers via isRolePrivileged.
+    return testOwnership(ownership as Ownership, userId, UserRole.PLAYER, OwnershipLevel.OWNER);
   } catch {
     return false;
   }

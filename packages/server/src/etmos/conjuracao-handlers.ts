@@ -19,11 +19,12 @@
  *
  * Permission guards: every check funnels through `isRolePrivileged`
  * (`documents/ownership.ts`) for "is this user a GM", composed with an Actor
- * ownership check (`resolveOwnershipWithFolder`/`testOwnership`-equivalent —
- * here a direct `ownership[userId] >= OWNER` read, mirroring
- * `isOwnedByPlayer` in `combat/combat-handlers.ts`) for "is this user the
- * dono of the conjurador Actor". Neither predicate is duplicated — both are
- * imported from the existing single sources of truth.
+ * ownership check (`testOwnership`, same module) for "is this user the dono
+ * of the conjurador Actor" — see `isOwnerOfActor` below, which mirrors
+ * `isOwnedByPlayer` in `combat/combat-handlers.ts` (both now delegate to
+ * `testOwnership` rather than a hand-rolled `ownership[userId] >= OWNER`
+ * read). Neither predicate is duplicated — both are imported from the
+ * existing single sources of truth.
  *
  * Randomness: ALL dice go through `RollService.roll()` (CSPRNG, audit log).
  * This module never calls `Math.random()` or any other RNG.
@@ -127,7 +128,8 @@ function ackError(code: ErrorCode, message: string): Ack<never> {
 
 /**
  * Resolve Actor ownership through the SAME single source of truth used by
- * doc-handlers.ts (`testOwnership`/`resolveOwnership`,
+ * doc-handlers.ts and (post-M5-C debt payoff) combat-handlers.ts /
+ * target-handler.ts / vision-handlers.ts (`testOwnership`/`resolveOwnership`,
  * `documents/ownership.ts`) — NOT a hand-rolled `ownership[userId] >= 3`
  * read. This correctly honours `ownership.default` and `INHERIT` (which
  * resolves to NONE here, since Actors are not addressed via a folder chain

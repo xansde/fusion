@@ -818,5 +818,110 @@ describe("M2-C combat unit (direct handlers)", () => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// Ownership unification regression (debt payoff M5-C): isOwnedByPlayer and
+// the addCombatant hasPlayerOwner computation must go through
+// testOwnership/resolveOwnership (documents/ownership.ts), not a hand-rolled
+// `ownerMap[userId] >= 3` read that ignores `ownership.default`. These tests
+// cover an Actor whose ownership map has NO per-user entry at all — only
+// `default: OwnershipLevel.OWNER` — which the old hand-rolled read treated
+// as "not owned" (userId lookup missed, no fallback to default).
+// ---------------------------------------------------------------------------
+
+describe("Ownership unification — ownership.default recognition", () => {
+  let h: Harness;
+
+  beforeEach(() => {
+    h = buildHarness();
+  });
+
+  afterEach(() => {
+    teardown(h);
+  });
+
+  /** Create an actor with ONLY `ownership.default` set — no per-user entry. */
+  function createDefaultOwnedActor(hd: Harness, name: string, defaultLevel: number): string {
+    const actor = hd.store.create(
+      "actors",
+      { name, type: "character", ownership: { default: defaultLevel } },
+      { userId: GM_CTX.userId },
+    );
+    return actor["_id"] as string;
+  }
+
+  it("player rolls initiative for their own combatant recognized via ownership.default=OWNER (no per-user entry)", async () => {
+    const sceneId = createScene(h);
+    // OwnershipLevel.OWNER = 3, and crucially NO entry for "player-x" itself.
+    const actorId = createDefaultOwnedActor(h, "Default-Owned PC", 3);
+
+    const create = buildCombatCreateHandler(h.combatDeps);
+    const add = buildCombatAddCombatantHandler(h.combatDeps);
+    const roll = buildCombatRollInitiativeHandler(h.combatDeps);
+
+    const combat = combatFromAck(await run(create, { sceneId }, GM_CTX));
+    const combatId = combat._id;
+    const addAck = await run(add, { combatId, tokenId: "t-default-owned", actorId }, GM_CTX);
+    const combatantId = (
+      (addAck.result as Record<string, unknown>)["combatant"] as Record<string, unknown>
+    )["_id"] as string;
+
+    // A player with no explicit ownership entry, only inheriting via
+    // ownership.default, must still be recognized as the owner and be
+    // allowed to roll this combatant's initiative (REQ-CBT-034).
+    const rollAck = await run(
+      roll,
+      { combatId, combatantIds: [combatantId] },
+      playerCtx("player-x"),
+    );
+    expect(rollAck.ok).toBe(true);
+    if (!rollAck.ok) throw new Error("expected ok");
+    const rolledCombat = rollAck.result["combat"] as unknown as CombatDocument;
+    const rolledCombatant = rolledCombat.combatants.find((c) => c._id === combatantId);
+    expect(typeof rolledCombatant?.initiative).toBe("number");
+  });
+
+  it("player is denied rolling initiative for a combatant whose actor has ownership.default=NONE (no per-user entry)", async () => {
+    const sceneId = createScene(h);
+    // OwnershipLevel.NONE = 0, no per-user entry for "player-y".
+    const actorId = createDefaultOwnedActor(h, "GM-Only NPC", 0);
+
+    const create = buildCombatCreateHandler(h.combatDeps);
+    const add = buildCombatAddCombatantHandler(h.combatDeps);
+    const roll = buildCombatRollInitiativeHandler(h.combatDeps);
+
+    const combat = combatFromAck(await run(create, { sceneId }, GM_CTX));
+    const combatId = combat._id;
+    const addAck = await run(add, { combatId, tokenId: "t-none-owned", actorId }, GM_CTX);
+    const combatantId = (
+      (addAck.result as Record<string, unknown>)["combatant"] as Record<string, unknown>
+    )["_id"] as string;
+
+    const rollAck = await run(
+      roll,
+      { combatId, combatantIds: [combatantId] },
+      playerCtx("player-y"),
+    );
+    expect(rollAck.ok).toBe(false);
+    if (rollAck.ok) throw new Error("expected error");
+    expect(rollAck.code).toBe("PERMISSION_DENIED");
+  });
+
+  it("addCombatant marks hasPlayerOwner=true for an actor owned via ownership.default=OWNER (no per-user entry)", async () => {
+    const sceneId = createScene(h);
+    const actorId = createDefaultOwnedActor(h, "Default-Owned PC 2", 3);
+
+    const create = buildCombatCreateHandler(h.combatDeps);
+    const add = buildCombatAddCombatantHandler(h.combatDeps);
+
+    const combat = combatFromAck(await run(create, { sceneId }, GM_CTX));
+    const combatId = combat._id;
+    const addAck = await run(add, { combatId, tokenId: "t-hpo", actorId }, GM_CTX);
+    expect(addAck.ok).toBe(true);
+    if (!addAck.ok) throw new Error("expected ok");
+    const combatant = addAck.result["combatant"] as unknown as CombatantDocument;
+    expect(combatant.hasPlayerOwner).toBe(true);
+  });
+});
+
 // Silence unused import lint for createDocumentId (kept for potential fixtures).
 void createDocumentId;

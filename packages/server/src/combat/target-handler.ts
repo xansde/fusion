@@ -21,6 +21,8 @@ import type { SeqStore } from "../net/seq-store.js";
 import type { DocumentStore } from "../documents/store.js";
 import type { CombatEventBus } from "./combat-event-bus.js";
 import type { TargetingStore } from "./targeting-store.js";
+import { testOwnership, UserRole, OwnershipLevel } from "../documents/ownership.js";
+import type { Ownership } from "../documents/ownership.js";
 import { CombatTargetPayloadSchema } from "@fusion/shared";
 import type { Ack, ErrorCode, Envelope, CombatantDocument } from "@fusion/shared";
 
@@ -130,11 +132,19 @@ function ownersOfCombatant(store: DocumentStore, combatant: CombatantDocument): 
     const actor = store.get("actors", combatant.actorId);
     const ownership = actor["ownership"];
     if (!ownership || typeof ownership !== "object" || Array.isArray(ownership)) return [];
-    const ownerMap = ownership as Record<string, number>;
+    const ownerMap = ownership as Ownership;
     const owners: string[] = [];
-    for (const [key, level] of Object.entries(ownerMap)) {
+    // Enumerate explicit per-user keys and resolve each through the single
+    // source of truth (testOwnership) instead of a hand-rolled `level >= 3`
+    // read — this correctly honours INHERIT for keys whose own entry is
+    // INHERIT (they fall through to `default`/folder resolution rather than
+    // being silently treated as NONE). `default` itself is never a userId so
+    // it is excluded from the candidate set, matching prior behaviour.
+    for (const key of Object.keys(ownerMap)) {
       if (key === "default") continue;
-      if (level >= 3) owners.push(key); // OWNER level
+      if (testOwnership(ownerMap, key, UserRole.PLAYER, OwnershipLevel.OWNER)) {
+        owners.push(key);
+      }
     }
     return owners;
   } catch {
