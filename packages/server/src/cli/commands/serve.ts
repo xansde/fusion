@@ -73,7 +73,11 @@ export async function runServe(args: ServeArgs): Promise<void> {
   }
 
   // Phase 2 — logger
-  const logger = createLogger(config.logLevel);
+  // Also writes to <dataDir>/Logs/fusion-<date>.log (REQ-DST layout) so the
+  // boot log survives console-window closure/crash — see logger.ts. Safe to
+  // pass dataDir here even though ensureDataDirLayout (Phase 2.1) has not
+  // run yet: createLogger creates Logs/ itself, idempotently, best-effort.
+  const logger = createLogger(config.logLevel, config.dataDir);
 
   if (args.implicitServe === true) {
     logger.info("No command given — starting server (run with --help for CLI usage)");

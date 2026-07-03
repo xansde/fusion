@@ -286,6 +286,39 @@ describe("Management screen keys coverage", () => {
 });
 
 // ---------------------------------------------------------------------------
+// 10 — No raw HTML entities in bundle values (regression guard)
+//
+// i18n values are interpolated into Svelte text expressions ({t(...)}),
+// which escape their content as plain text — they are NOT parsed as HTML.
+// A value like "&#x276D;" would therefore render as the literal characters
+// "&#x276D;" on screen instead of the intended glyph. Bundle values must use
+// the real Unicode character directly, never an HTML entity escape.
+// ---------------------------------------------------------------------------
+
+describe("No raw HTML entities in bundle values", () => {
+  function findEntityLeaks(bundle: Bundle): string[] {
+    const leaks: string[] = [];
+    for (const [key, value] of Object.entries(bundle)) {
+      const str = bundleEntryToString(value);
+      if (/&#x[0-9a-f]+;?/i.test(str) || /&[a-z]+;/i.test(str)) {
+        leaks.push(`${key}: ${str}`);
+      }
+    }
+    return leaks;
+  }
+
+  it("no pt-BR value contains an HTML entity escape", () => {
+    const leaks = findEntityLeaks(ptBRBundle);
+    expect(leaks, `pt-BR values with raw HTML entities: ${leaks.join(", ")}`).toHaveLength(0);
+  });
+
+  it("no en value contains an HTML entity escape", () => {
+    const leaks = findEntityLeaks(enBundle);
+    expect(leaks, `en values with raw HTML entities: ${leaks.join(", ")}`).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // 9 — Connection and role keys coverage
 // ---------------------------------------------------------------------------
 

@@ -102,7 +102,7 @@
     title={sidebarState.open ? t("FUSION.Header.CollapsePanel") : t("FUSION.Header.ExpandPanel")}
   >
     <span class="sidebar__toggle-icon" aria-hidden="true">
-      {sidebarState.open ? "&#x276D;" : "&#x2630;"}
+      {sidebarState.open ? "❯" : "☰"}
     </span>
     {#if !sidebarState.open && chatUnread > 0}
       <span class="sidebar__badge" aria-label={t("FUSION.Header.UnreadMessages", { count: chatUnread })}>

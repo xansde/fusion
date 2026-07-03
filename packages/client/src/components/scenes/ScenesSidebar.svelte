@@ -96,7 +96,7 @@
   >
     <!-- Theatrical map icon -->
     <span class="sidebar__toggle-icon" aria-hidden="true">
-      {sidebarState.open ? "&#x276D;" : "&#x1F5FA;"}
+      {sidebarState.open ? "❯" : "🗺️"}
     </span>
   </button>
 
