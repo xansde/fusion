@@ -21,6 +21,7 @@
     handleIncomingMessage,
     setChatTabVisible,
   } from "../../lib/chat/chatStore.svelte.js";
+  import { session } from "../../lib/session.svelte.js";
   import { animateRoll, setDiceBoxEnabled, isDiceBoxEnabled } from "../../lib/chat/diceBoxBridge.js";
   import ChatLog from "./ChatLog.svelte";
   import ChatInput from "./ChatInput.svelte";
@@ -91,7 +92,11 @@
   // ---- Send ----
 
   async function handleSend(payload: ChatSendPayload): Promise<void> {
-    await sendChatMessage(socket, payload);
+    // BUG E FIX: pass the local user's identity so sendChatMessage can render
+    // an instant optimistic echo (plain text only — see isOptimisticallyRenderable).
+    const user = session.user;
+    const speaker = user ? { userId: user.id, alias: user.name } : undefined;
+    await sendChatMessage(socket, payload, speaker);
   }
 
   // ---- 3D dice toggle ----

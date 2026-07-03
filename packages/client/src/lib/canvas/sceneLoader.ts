@@ -12,10 +12,18 @@ import { Sprite, Assets, Graphics, type Texture } from "pixi.js";
 import type { SceneDocument, GridConfig } from "@fusion/shared";
 import { GridRenderer } from "./GridRenderer.js";
 import type { FusionCanvas } from "./FusionCanvas.js";
+import { resolveAssetUrl } from "../assets/assetApi.js";
+import { fusionApi } from "../api.js";
+import { session } from "../session.svelte.js";
 
 /**
  * Load a SceneDocument onto the canvas.
  * Clears any previous background/grid state first.
+ *
+ * BUG A FIX: scene.background is persisted as a clean `/assets/<name>` path
+ * (no query token — see resolveAssetUrl()'s doc comment). We mint a fresh
+ * token right before PIXI Assets.load() instead of loading the raw path,
+ * otherwise the server's static route 401s on every scene load.
  *
  * @returns Cleanup function — call before loading a new scene.
  */
@@ -33,7 +41,13 @@ export async function loadSceneDocument(
   // ---- Background ----
   if (scene.background) {
     try {
-      const texture = await Assets.load<Texture>(scene.background);
+      const accessToken = fusionApi.getToken();
+      const userId = session.user?.id;
+      const loadUrl =
+        accessToken && userId
+          ? await resolveAssetUrl(scene.background, accessToken, userId)
+          : scene.background;
+      const texture = await Assets.load<Texture>(loadUrl);
       const sprite = new Sprite(texture);
       sprite.x = padX;
       sprite.y = padY;

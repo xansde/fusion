@@ -23,6 +23,7 @@
     buildTrackerRows,
     controlsState,
     canPlayerRollInitiative,
+    addableTokens,
   } from "../../lib/combat/combatTracker.js";
   import { viewerRole, redactCombatForViewer, canUseGmControls } from "../../lib/combat/combatVisibility.js";
   import { activeSceneState } from "../../lib/docs/activeScene.svelte.js";
@@ -136,6 +137,36 @@
     if (!sceneId) return;
     await combatActions.create(socket, sceneId);
   }
+
+  // ---- GM: add combatants (BUG D FIX) ----
+  //
+  // Root cause: combat:create + combat:beginCombat already worked, and both
+  // the server handler (combat:addCombatant) and the client action
+  // (combatActions.addCombatant) already existed — but nothing in the UI
+  // ever called it, so a GM had no way to populate a combat, making it look
+  // like combat couldn't be started. This wires a simple "Add tokens" popover
+  // listing the active scene's tokens that aren't combatants yet. If no
+  // combat exists yet, the button creates one first (GM flow: activate a
+  // scene → Add tokens → Begin).
+  let showAddCombatants = $state(false);
+
+  const addable = $derived(
+    addableTokens(activeSceneState.scene?.tokens ?? [], combat),
+  );
+
+  async function handleOpenAddCombatants(): Promise<void> {
+    if (!combat) {
+      const sceneId = activeSceneState.id;
+      if (!sceneId) return;
+      await combatActions.create(socket, sceneId);
+    }
+    showAddCombatants = true;
+  }
+
+  async function handleAddToken(tokenId: string, actorId: string | null): Promise<void> {
+    if (!combat) return;
+    await combatActions.addCombatant(socket, combat._id, tokenId, actorId ?? undefined);
+  }
 </script>
 
 <div class="combat-panel">
@@ -145,14 +176,25 @@
     <div class="combat-panel__empty">
       <p class="combat-panel__empty-text">{t("FUSION.Combat.Empty")}</p>
       {#if isGm}
-        <button
-          class="btn btn--primary btn--sm"
-          onclick={handleCreateCombat}
-          disabled={busy || !activeSceneState.id}
-          aria-label={t("FUSION.Combat.Create")}
-        >
-          {t("FUSION.Combat.Create")}
-        </button>
+        <div class="combat-panel__empty-actions">
+          <button
+            class="btn btn--primary btn--sm"
+            onclick={handleCreateCombat}
+            disabled={busy || !activeSceneState.id}
+            aria-label={t("FUSION.Combat.Create")}
+          >
+            {t("FUSION.Combat.Create")}
+          </button>
+          <button
+            class="btn btn--ghost btn--sm"
+            onclick={handleOpenAddCombatants}
+            disabled={busy || !activeSceneState.id}
+            aria-label={t("FUSION.Combat.AddCombatants")}
+            title={t("FUSION.Combat.AddCombatantsTitle")}
+          >
+            {t("FUSION.Combat.AddCombatants")}
+          </button>
+        </div>
       {/if}
     </div>
 
@@ -216,6 +258,12 @@
     <!-- ---- GM sub-controls row ---- -->
     {#if isGm && controls}
       <div class="combat-panel__subcontrols">
+        <button
+          class="btn btn--ghost btn--xs"
+          onclick={handleOpenAddCombatants}
+          disabled={busy || !activeSceneState.id}
+          title={t("FUSION.Combat.AddCombatantsTitle")}
+        >{t("FUSION.Combat.AddCombatants")}</button>
         {#if controls.canRollAll}
           <button
             class="btn btn--ghost btn--xs"
@@ -231,6 +279,39 @@
             disabled={busy}
             title={t("FUSION.Combat.ResetInit")}
           >{t("FUSION.Combat.ResetInit")}</button>
+        {/if}
+      </div>
+    {/if}
+
+    <!-- ---- Add combatants popover (BUG D FIX) ---- -->
+    {#if isGm && showAddCombatants}
+      <div class="add-combatants" role="region" aria-label={t("FUSION.Combat.AddCombatantsTitle")}>
+        <div class="add-combatants__header">
+          <span class="add-combatants__title">{t("FUSION.Combat.AddCombatantsTitle")}</span>
+          <button
+            class="btn btn--icon"
+            onclick={() => { showAddCombatants = false; }}
+            aria-label={t("FUSION.Combat.CloseAddCombatants")}
+            type="button"
+          >&#x2715;</button>
+        </div>
+        {#if addable.length === 0}
+          <p class="add-combatants__empty">{t("FUSION.Combat.AddCombatantsEmpty")}</p>
+        {:else}
+          <ul class="add-combatants__list" role="list">
+            {#each addable as token (token.id)}
+              <li class="add-combatants__item">
+                <span class="add-combatants__name" title={token.name}>{token.name}</span>
+                <button
+                  class="btn btn--primary btn--xs"
+                  onclick={() => void handleAddToken(token.id, token.actorId)}
+                  disabled={busy}
+                  aria-label={t("FUSION.Combat.AddToken", { name: token.name })}
+                  type="button"
+                >{t("FUSION.Combat.AddCombatants")}</button>
+              </li>
+            {/each}
+          </ul>
         {/if}
       </div>
     {/if}
@@ -453,6 +534,66 @@
   .combat-panel__empty-text {
     color: var(--fusion-text-subtle);
     font-size: 0.8125rem;
+  }
+
+  .combat-panel__empty-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  /* ---- Add combatants popover (BUG D FIX) ---- */
+  .add-combatants {
+    border-bottom: 1px solid var(--fusion-border);
+    flex-shrink: 0;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .add-combatants__header {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
+  }
+
+  .add-combatants__title {
+    color: var(--fusion-text);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .add-combatants__empty {
+    color: var(--fusion-text-subtle);
+    font-size: 0.75rem;
+    padding: 0.4rem 0;
+  }
+
+  .add-combatants__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    list-style: none;
+    max-height: 160px;
+    overflow-y: auto;
+  }
+
+  .add-combatants__item {
+    align-items: center;
+    background: var(--fusion-surface-alt);
+    border-radius: var(--fusion-radius-sm);
+    display: flex;
+    gap: 0.5rem;
+    justify-content: space-between;
+    padding: 0.25rem 0.4rem;
+  }
+
+  .add-combatants__name {
+    color: var(--fusion-text);
+    font-size: 0.75rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   /* ---- Header ---- */
@@ -802,5 +943,9 @@
   .btn--xs {
     font-size: 0.75rem;
     padding: 0.2rem 0.5rem;
+  }
+
+  .btn--icon {
+    padding: 0.25rem 0.4rem;
   }
 </style>

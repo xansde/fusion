@@ -28,6 +28,9 @@
 import { Container, Graphics, Text, TextStyle, Assets, Sprite, type Texture } from "pixi.js";
 
 import type { TokenDocument } from "@fusion/shared";
+import { resolveAssetUrl } from "../../assets/assetApi.js";
+import { fusionApi } from "../../api.js";
+import { session } from "../../session.svelte.js";
 import {
   tokenPixelSize,
   tokenCenter,
@@ -402,7 +405,16 @@ export class TokenSprite {
 
     if (doc.texture) {
       try {
-        const texture = await Assets.load<Texture>(doc.texture);
+        // BUG A FIX: doc.texture is a clean "/assets/<name>" path (no query
+        // token — see resolveAssetUrl()'s doc comment in assetApi.ts). Mint a
+        // fresh token right before loading, otherwise the server 401s.
+        const accessToken = fusionApi.getToken();
+        const userId = session.user?.id;
+        const loadUrl =
+          accessToken && userId
+            ? await resolveAssetUrl(doc.texture, accessToken, userId)
+            : doc.texture;
+        const texture = await Assets.load<Texture>(loadUrl);
         const sprite = new Sprite(texture);
         // Position sprite centered within the footprint bounding box
         sprite.anchor.set(0.5, 0.5);

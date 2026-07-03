@@ -192,6 +192,16 @@
     event.dataTransfer.setData("application/fusion-actor", JSON.stringify(payload));
     event.dataTransfer.effectAllowed = "copy";
   }
+
+  // BUG C FIX: the row itself (.actor-row) had no click/dblclick handler —
+  // only the hover-only 📋 button (opacity:0 until :hover/:focus-within)
+  // called openSheet(). The header comment already promised "Double-click
+  // opens the actor sheet" but nothing wired it up. This adds ondblclick as
+  // a mouse-only enhancement on the existing role="listitem" row (adding
+  // tabindex/keydown here would fight the a11y linter, since a listitem
+  // isn't a native interactive role) — keyboard users already have a
+  // reachable path via the 📋 button, which is a real <button> and becomes
+  // visible on :focus-within.
 </script>
 
 <div class="actor-dir" role="region" aria-label={t("FUSION.Sidebar.Actors.Title")}>
@@ -247,6 +257,7 @@
             role="listitem"
             draggable={true}
             ondragstart={(e) => handleDragStart(e, actor)}
+            ondblclick={() => openSheet(actor)}
             title={t("FUSION.Sidebar.Actors.DragHint")}
           >
             <!-- Actor portrait -->

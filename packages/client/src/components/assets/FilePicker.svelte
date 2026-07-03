@@ -27,8 +27,9 @@
 
   import { onMount } from "svelte";
   import { assetStore } from "../../lib/assets/assetStore.svelte.js";
-  import { assetUrl } from "../../lib/assets/assetApi.js";
+  import { assetUrl, fetchAssetToken, type AssetQueryToken } from "../../lib/assets/assetApi.js";
   import { isImageExtension, formatBytes } from "../../lib/assets/clientValidation.js";
+  import { session } from "../../lib/session.svelte.js";
 
   // ---- Props ----
 
@@ -48,10 +49,25 @@
   let isDragOver = $state(false);
   let fileInput: HTMLInputElement | null = $state(null);
 
+  // BUG A FIX: grid thumbnails hit the same auth-token gap as the scene
+  // background — /assets/* 401s without a query-token. A single short-lived
+  // token is fetched once when the picker opens and reused for every
+  // thumbnail in the grid (they all render within the picker's lifetime,
+  // well under the 5-minute TTL). The value onSelect() hands back to the
+  // caller stays a clean path — callers resolve a fresh token at render time
+  // via resolveAssetUrl(), matching how scene.background / token.texture work.
+  let previewToken = $state<AssetQueryToken | null>(null);
+
   // ---- Lifecycle ----
 
   onMount(() => {
     void assetStore.loadAssets(token);
+    const userId = session.user?.id;
+    if (userId) {
+      void fetchAssetToken(token, userId)
+        .then((t) => { previewToken = t; })
+        .catch(() => { previewToken = null; });
+    }
   });
 
   // ---- Handlers ----
@@ -262,7 +278,7 @@
               {#if isImageExtension(asset.name)}
                 <img
                   class="asset-card__img"
-                  src={assetUrl(asset.name)}
+                  src={assetUrl(asset.name, previewToken ?? undefined)}
                   alt={asset.name}
                   loading="lazy"
                 />

@@ -216,7 +216,10 @@ describe("doc:create Actor — minimal '+Novo' button payload (pf2e)", () => {
     });
 
     expect(ack["ok"]).toBe(true);
-    const result = ack["result"] as { documentType: string; documents: Array<Record<string, unknown>> };
+    const result = ack["result"] as {
+      documentType: string;
+      documents: Array<Record<string, unknown>>;
+    };
     expect(result.documentType).toBe("Actor");
     expect(result.documents).toHaveLength(1);
 
@@ -276,7 +279,10 @@ describe("doc:create Actor — minimal '+Novo' button payload (etmos)", () => {
     });
 
     expect(ack["ok"]).toBe(true);
-    const result = ack["result"] as { documentType: string; documents: Array<Record<string, unknown>> };
+    const result = ack["result"] as {
+      documentType: string;
+      documents: Array<Record<string, unknown>>;
+    };
     const doc = result.documents[0]!;
     expect(doc["type"]).toBe("orador");
     expect(doc["_id"]).toEqual(expect.any(String));

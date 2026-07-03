@@ -16,6 +16,8 @@
   import { sendOp } from "../../lib/docs/sendOp.js";
   import { createDocumentId } from "@fusion/shared";
   import { fusionApi } from "../../lib/api.js";
+  import { session } from "../../lib/session.svelte.js";
+  import { resolveAssetUrl } from "../../lib/assets/assetApi.js";
   import FilePicker from "../assets/FilePicker.svelte";
 
   // ---- Props ----
@@ -65,6 +67,31 @@
   let submitting = $state(false);
   let serverError = $state<string | null>(null);
   let showFilePicker = $state(false);
+
+  // BUG A FIX: formData.texture is stored as a clean "/assets/<name>" path
+  // (see resolveAssetUrl()'s doc comment) — the <img> preview below needs a
+  // freshly-minted query token to actually load it, otherwise the server's
+  // static route 401s. External URLs pass through resolveAssetUrl() unchanged.
+  let previewUrl = $state<string | null>(null);
+
+  $effect(() => {
+    const raw = formData.texture.trim();
+    if (!raw) {
+      previewUrl = null;
+      return;
+    }
+    const accessToken = fusionApi.getToken();
+    const userId = session.user?.id;
+    if (!accessToken || !userId) {
+      previewUrl = raw;
+      return;
+    }
+    let cancelled = false;
+    void resolveAssetUrl(raw, accessToken, userId).then((url) => {
+      if (!cancelled) previewUrl = url;
+    });
+    return () => { cancelled = true; };
+  });
 
   // ---- Validation ----
 
@@ -210,11 +237,11 @@
           &#128247;
         </button>
       </div>
-      {#if formData.texture && !submitting}
+      {#if previewUrl && !submitting}
         <div class="field__preview">
           <img
             class="field__preview-img"
-            src={formData.texture}
+            src={previewUrl}
             alt="Token texture preview"
             loading="lazy"
             onerror={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}

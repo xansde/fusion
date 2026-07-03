@@ -22,6 +22,16 @@ import type {
   ChatHistoryResponse,
   ChatSendPayload,
 } from "@fusion/shared";
+import {
+  isOptimisticallyRenderable,
+  buildProvisionalMessage,
+  reconcileProvisional,
+  removeMessageById,
+  type ProvisionalSpeaker,
+} from "./chatOptimistic.js";
+
+export type { ProvisionalSpeaker } from "./chatOptimistic.js";
+export { isOptimisticallyRenderable, buildProvisionalMessage } from "./chatOptimistic.js";
 
 // ---------------------------------------------------------------------------
 // Reactive state
@@ -162,17 +172,63 @@ export async function loadMoreHistory(socket: Socket, worldId: string): Promise<
 /**
  * Send a raw chat input string to the server.
  * The server handles parsing, command dispatch, RNG, and persistence.
+ *
+ * BUG E FIX (perceived chat latency): previously the message only appeared
+ * after the full round-trip (emit → server persist/broadcast → this client's
+ * own `doc:create` broadcast came back). Now, for plain text with no inline
+ * rolls (see isOptimisticallyRenderable in chatOptimistic.ts), a provisional
+ * message is inserted into chatStore.messages BEFORE emitting. When the ack
+ * arrives with the canonical message (every chat:send branch returns
+ * `{ result: { message } }` — see chat-handler.ts), the provisional entry is
+ * replaced in place (same array index, so no visual jump/reorder) by its
+ * server `_id`. The later `doc:create` broadcast for that same canonical
+ * `_id` is then a no-op — insertMessage() already dedupes by `_id`, and by
+ * the time the broadcast arrives the provisional has already been swapped
+ * for the canonical entry.
+ *
+ * On ack failure the provisional entry is removed (not left stuck as
+ * "pending" forever) and the error is surfaced via chatStore.error, matching
+ * the pre-existing error-handling contract other callers rely on.
+ *
+ * @param speaker  Required to render the provisional echo (unused when the
+ *                 content isn't optimistically renderable — see
+ *                 isOptimisticallyRenderable()).
  */
-export async function sendChatMessage(socket: Socket, payload: ChatSendPayload): Promise<void> {
+export async function sendChatMessage(
+  socket: Socket,
+  payload: ChatSendPayload,
+  speaker?: ProvisionalSpeaker,
+): Promise<void> {
   chatStore.error = null;
+
+  let provisionalId: string | null = null;
+  if (speaker && isOptimisticallyRenderable(payload.content)) {
+    const provisional = buildProvisionalMessage(payload.content, speaker);
+    provisionalId = provisional._id;
+    insertMessage(provisional);
+  }
+
   return new Promise<void>((resolve, reject) => {
     socket.emit(
       "op",
       { type: "chat:send", payload, requestId: _reqId(), ts: Date.now() },
-      (ack: { ok: boolean; message?: string; code?: string }) => {
+      (ack: {
+        ok: boolean;
+        message?: string;
+        code?: string;
+        result?: { message?: ChatMessage };
+      }) => {
         if (ack.ok) {
+          // If no provisional was rendered (e.g. a /roll), the broadcast
+          // listener (handleIncomingMessage) inserts the canonical message —
+          // nothing to reconcile here.
+          const canonical = ack.result?.message;
+          if (provisionalId && canonical) {
+            reconcileProvisional(chatStore.messages, provisionalId, canonical);
+          }
           resolve();
         } else {
+          if (provisionalId) removeMessageById(chatStore.messages, provisionalId);
           const msg = ack.message ?? "Send failed";
           chatStore.error = msg;
           reject(new Error(msg));

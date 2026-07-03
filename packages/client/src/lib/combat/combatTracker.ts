@@ -15,7 +15,7 @@
  * Spec: 10-combate-e-iniciativa.md §REQ-CBT-040..047
  */
 
-import type { CombatDocument, CombatantDocument } from "@fusion/shared";
+import type { CombatDocument, CombatantDocument, TokenDocument } from "@fusion/shared";
 import { sortCombatants } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
@@ -235,6 +235,53 @@ export function canPlayerRollInitiative(
   if (combatant.initiative !== null) return false;
   if (!combatant.actorId) return false;
   return actorOwnerIds.has(combatant.actorId);
+}
+
+// ---------------------------------------------------------------------------
+// addableTokens (BUG D FIX)
+// ---------------------------------------------------------------------------
+
+/**
+ * Display model for a token the GM can add to the active combat.
+ */
+export interface AddableToken {
+  id: string;
+  name: string;
+  img: string | null;
+  actorId: string | null;
+}
+
+/**
+ * List the active scene's tokens that are NOT already combatants.
+ *
+ * BUG D root cause: combat:create + combat:beginCombat both work, and the
+ * server (combat:addCombatant) + client (combatActions.addCombatant) plumbing
+ * already exists end-to-end, but no UI ever called addCombatant — so a GM
+ * had no way to populate a combat with combatants, making it look like
+ * combat "couldn't be started". This is the pure filter behind the
+ * CombatPanel "add token" list: hidden tokens are included (the GM sees
+ * everything; hidden combatants are a combat-level flag set separately via
+ * combat:setHidden, not inherited from the token).
+ *
+ * @param sceneTokens  All tokens embedded in the active scene (GM view — unfiltered).
+ * @param combat       Current combat, or null when none exists yet.
+ */
+export function addableTokens(
+  sceneTokens: TokenDocument[],
+  combat: CombatDocument | null,
+): AddableToken[] {
+  const existingTokenIds = new Set(
+    (combat?.combatants ?? []).map((c) => c.tokenId).filter((id): id is string => id !== null),
+  );
+
+  return sceneTokens
+    .filter((t) => !existingTokenIds.has(t._id))
+    .map((t) => ({
+      id: t._id,
+      name: t.name || "Token",
+      img: t.texture,
+      actorId: t.actorId,
+    }));
 }
 
 // ---------------------------------------------------------------------------

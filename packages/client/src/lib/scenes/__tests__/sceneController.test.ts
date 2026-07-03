@@ -134,6 +134,32 @@ describe("defaultSceneFormData", () => {
 });
 
 // ---------------------------------------------------------------------------
+// BUG B regression — SceneCreateDialog edit-mode initialData fallback
+// ---------------------------------------------------------------------------
+
+describe("edit-mode initialData gridSize fallback (BUG B)", () => {
+  /**
+   * Mirrors SceneCreateDialog.svelte's `initialData` computation for
+   * mode==="edit": `scene.grid?.size ?? defaultSceneFormData().gridSize`.
+   * A scene with `grid` undefined (predates the schema default, or arrived
+   * via a partial mirror update) used to crash the whole dialog on open
+   * (`Cannot read properties of undefined (reading 'size')`) because the
+   * read was unguarded. This locks in the null-safe fallback contract.
+   */
+  function gridSizeFor(scene: { grid?: { size: number } | undefined }): number {
+    return scene.grid?.size ?? defaultSceneFormData().gridSize;
+  }
+
+  it("falls back to the canonical default (100) when grid is undefined", () => {
+    expect(gridSizeFor({ grid: undefined })).toBe(100);
+  });
+
+  it("uses the scene's own grid.size when present", () => {
+    expect(gridSizeFor({ grid: { size: 140 } })).toBe(140);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // listScenes
 // ---------------------------------------------------------------------------
 

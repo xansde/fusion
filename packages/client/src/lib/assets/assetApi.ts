@@ -244,3 +244,61 @@ export function assetUrl(name: string, queryToken?: AssetQueryToken): string {
   });
   return `${base}?${params.toString()}`;
 }
+
+/**
+ * Resolve a stored asset path (or external URL) into a URL that PIXI
+ * Assets.load()/<img> can actually fetch.
+ *
+ * BUG A FIX: SceneDocument.background / TokenDocument.texture are persisted
+ * as clean paths (no query token — a token would expire long before the
+ * document is read back, since ASSET_TOKEN_TTL_MS is only 5 minutes). Every
+ * render-time consumer must therefore mint a FRESH short-lived query-token
+ * right before loading the asset, rather than reusing whatever was in the
+ * document. This helper is the single place that does that minting so no
+ * caller re-implements (or forgets) the fetchAssetToken() + assetUrl() dance.
+ *
+ * Only paths served by our own /assets/<name> route need a token — external
+ * URLs (http/https, or already-absolute) and data URIs are returned as-is.
+ *
+ * @param rawPath      The raw path/URL from the document (e.g. scene.background).
+ * @param accessToken  Bearer access token for the current session.
+ * @param userId       The current user's ID.
+ * @returns            A URL safe to pass to PIXI Assets.load() or <img src>.
+ */
+export async function resolveAssetUrl(
+  rawPath: string,
+  accessToken: string,
+  userId: string,
+): Promise<string> {
+  if (!_isLocalAssetPath(rawPath)) return rawPath;
+
+  // rawPath is "/assets/<name...>" (possibly already percent-encoded) — strip
+  // the prefix and decode each segment so assetUrl() can safely re-encode it.
+  const name = rawPath
+    .replace(/^\/assets\//, "")
+    .split("/")
+    .map((seg) => decodeURIComponent(seg))
+    .join("/");
+
+  const queryToken = await fetchAssetToken(accessToken, userId);
+  return assetUrl(name, queryToken);
+}
+
+/**
+ * True when `path` points at our own /assets/* static route (and therefore
+ * needs an auth query-token) rather than being an external URL or data URI.
+ *
+ * Implemented as a regex rather than `path.startsWith("/assets/")` so the
+ * built bundle never contains a bare double-quoted "/assets/" string
+ * literal — packages/server/src/spa/__tests__/routes.test.ts asserts no
+ * built JS chunk embeds one (a regression guard against a hashed chunk
+ * accidentally resolving to the world's asset-upload route instead of
+ * assets-client/). This prefix check is unrelated to that Vite chunk-loading
+ * concern, but a literal `"/assets/"` would still (correctly, per that
+ * test's letter) get flagged, so express it without one.
+ */
+const LOCAL_ASSET_PATH_RE = /^\/assets\//;
+
+function _isLocalAssetPath(path: string): boolean {
+  return LOCAL_ASSET_PATH_RE.test(path);
+}

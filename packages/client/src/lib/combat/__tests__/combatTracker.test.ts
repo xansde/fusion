@@ -13,8 +13,10 @@ import {
   canPlayerRollInitiative,
   resolveCombatantTokenId,
   resolveTrackedResource,
+  addableTokens,
 } from "../combatTracker.js";
-import type { CombatDocument, CombatantDocument } from "@fusion/shared";
+import type { CombatDocument, CombatantDocument, TokenDocument } from "@fusion/shared";
+import { defaultTokenDocument } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
 // Factories
@@ -443,5 +445,76 @@ describe("resolveTrackedResource", () => {
     const combat = makeCombat({ combatants: [c] });
     const rows = buildTrackerRows(combat);
     expect(rows[0]!.trackedResource).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// addableTokens (BUG D FIX)
+// ---------------------------------------------------------------------------
+
+function makeToken(overrides: Partial<TokenDocument> = {}): TokenDocument {
+  return { ...defaultTokenDocument("tokenAAAAAAAAAAA"), ...overrides };
+}
+
+describe("addableTokens", () => {
+  it("returns all scene tokens when there is no combat yet", () => {
+    const tokens = [
+      makeToken({ _id: "tok1AAAAAAAAAAAA", name: "Goblin" }),
+      makeToken({ _id: "tok2AAAAAAAAAAAA", name: "Orc" }),
+    ];
+    const result = addableTokens(tokens, null);
+    expect(result.map((t) => t.id)).toEqual(["tok1AAAAAAAAAAAA", "tok2AAAAAAAAAAAA"]);
+  });
+
+  it("excludes tokens already present as combatants", () => {
+    const tokens = [
+      makeToken({ _id: "tok1AAAAAAAAAAAA", name: "Goblin" }),
+      makeToken({ _id: "tok2AAAAAAAAAAAA", name: "Orc" }),
+    ];
+    const combat = makeCombat({
+      combatants: [makeCombatant({ _id: "c1", tokenId: "tok1AAAAAAAAAAAA" })],
+    });
+    const result = addableTokens(tokens, combat);
+    expect(result.map((t) => t.id)).toEqual(["tok2AAAAAAAAAAAA"]);
+  });
+
+  it("returns an empty array when every token is already a combatant", () => {
+    const tokens = [makeToken({ _id: "tok1AAAAAAAAAAAA", name: "Goblin" })];
+    const combat = makeCombat({
+      combatants: [makeCombatant({ _id: "c1", tokenId: "tok1AAAAAAAAAAAA" })],
+    });
+    expect(addableTokens(tokens, combat)).toEqual([]);
+  });
+
+  it("falls back to a generic name when the token has an empty name", () => {
+    const tokens = [makeToken({ _id: "tok1AAAAAAAAAAAA", name: "" })];
+    const result = addableTokens(tokens, null);
+    expect(result[0]!.name).toBe("Token");
+  });
+
+  it("carries actorId and img through for the add-combatant call", () => {
+    const tokens = [
+      makeToken({
+        _id: "tok1AAAAAAAAAAAA",
+        name: "Goblin",
+        actorId: "actorAAAAAAAAAAA",
+        texture: "/assets/goblin.webp",
+      }),
+    ];
+    const result = addableTokens(tokens, null);
+    expect(result[0]).toEqual({
+      id: "tok1AAAAAAAAAAAA",
+      name: "Goblin",
+      img: "/assets/goblin.webp",
+      actorId: "actorAAAAAAAAAAA",
+    });
+  });
+
+  it("ignores combatants with a null tokenId (does not exclude everything)", () => {
+    const tokens = [makeToken({ _id: "tok1AAAAAAAAAAAA", name: "Goblin" })];
+    const combat = makeCombat({
+      combatants: [makeCombatant({ _id: "c1", tokenId: null })],
+    });
+    expect(addableTokens(tokens, combat).map((t) => t.id)).toEqual(["tok1AAAAAAAAAAAA"]);
   });
 });

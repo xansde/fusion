@@ -136,6 +136,12 @@
   "FUSION.Combat.TurnOrder": "Ordem de turno",
   "FUSION.Combat.ActiveTurn": "Turno ativo",
   "FUSION.Combat.TrackerTitle": "Combate",
+  "FUSION.Combat.AddCombatants": "Adicionar tokens",
+  "FUSION.Combat.AddCombatantsTitle": "Adicionar tokens da cena ao combate",
+  "FUSION.Combat.AddCombatantsEmpty": "Todos os tokens da cena já estão no combate.",
+  "FUSION.Combat.AddCombatantsNoScene": "Nenhuma cena ativa.",
+  "FUSION.Combat.AddToken": "Adicionar {{name}} ao combate",
+  "FUSION.Combat.CloseAddCombatants": "Fechar",
 
   "FUSION.Join.ChooseCharacter": "Escolha seu personagem",
   "FUSION.Join.NoUsers": "Nenhum usuário encontrado. O servidor está rodando?",

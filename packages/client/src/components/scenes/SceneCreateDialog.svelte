@@ -49,13 +49,19 @@
 
   // ---- Local state ----
 
+  // BUG B FIX: scene.grid could be undefined on a document that predates the
+  // grid default (or arrived via a partial diff) — reading scene.grid.size
+  // unguarded threw "Cannot read properties of undefined (reading 'size')"
+  // and silently aborted the whole dialog (crash during $state init, before
+  // <dialog> ever rendered). Fall back to defaultSceneFormData().gridSize,
+  // the same canonical default (100) the schema itself defaults to.
   const initialData: SceneFormData =
     mode === "edit" && scene
       ? {
           name: scene.name,
           width: scene.width,
           height: scene.height,
-          gridSize: scene.grid.size,
+          gridSize: scene.grid?.size ?? defaultSceneFormData().gridSize,
           background: scene.background ?? "",
         }
       : defaultSceneFormData();
