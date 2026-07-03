@@ -227,6 +227,26 @@ export class DocumentMirror {
       case "doc:delete":
         this._handleDelete(op.payload as DocDeletePayload, affectedTypes);
         break;
+      // BUG FIX: combat:created/updated/deleted are broadcast on their own
+      // dedicated envelope types (see combat-handlers.ts buildEnvelope calls) —
+      // they never went through doc:create/update/delete, so a mid-session
+      // "Criar Combate" never reached the mirror and combatStore.combat (which
+      // is derived purely from worldMirror.subscribe("Combat", ...)) stayed
+      // null. Treating them here — in the same seq-gated switch as doc:* —
+      // gives them the same dedup-against-snapshot and gap-detection guarantees
+      // as every other canonical op, instead of a parallel ad-hoc path.
+      case "combat:created":
+        this._handleCombatCreated(op.payload as { combat: Record<string, unknown> }, affectedTypes);
+        break;
+      case "combat:updated":
+        this._handleCombatUpdated(
+          op.payload as { combatId: string; diff: Record<string, unknown> },
+          affectedTypes,
+        );
+        break;
+      case "combat:deleted":
+        this._handleCombatDeleted(op.payload as { combatId: string }, affectedTypes);
+        break;
       default:
         // Other op types (token:move etc.) — advance seq but no doc changes
         break;
@@ -274,6 +294,66 @@ export class DocumentMirror {
       if (byId.delete(id)) {
         affected.add(documentType);
       }
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Private — Combat lifecycle broadcasts (combat:created/updated/deleted)
+  // --------------------------------------------------------------------------
+
+  /**
+   * combat:created — { combat: CombatDocument }.
+   * Insert the full combat document into the "Combat" collection, mirroring
+   * doc:create semantics (see CombatCreatedPayloadSchema doc comment: "All
+   * clients receive this and add the Combat to their local collection").
+   */
+  private _handleCombatCreated(
+    payload: { combat: Record<string, unknown> },
+    affected: Set<string>,
+  ): void {
+    const combat = payload.combat;
+    if (typeof combat["_id"] !== "string") return;
+    let byId = this._store.get("Combat");
+    if (!byId) {
+      byId = new Map<string, unknown>();
+      this._store.set("Combat", byId);
+    }
+    byId.set(combat["_id"], combat);
+    affected.add("Combat");
+  }
+
+  /**
+   * combat:updated — { combatId, diff }. The diff is a partial CombatDocument
+   * (dot-path fields; `combatants` when present is the full replacement array
+   * per REQ-DOC-037 — see CombatUpdatedPayloadSchema doc comment). Shallow-
+   * merge onto the existing local copy, mirroring how persistCombat() merges
+   * server-side. If we don't have the combat locally yet (e.g. this update
+   * raced ahead of the combat:created broadcast, or arrived after a resync
+   * gap), the diff alone isn't a valid document — skip rather than store a
+   * partial/broken Combat.
+   */
+  private _handleCombatUpdated(
+    payload: { combatId: string; diff: Record<string, unknown> },
+    affected: Set<string>,
+  ): void {
+    const { combatId, diff } = payload;
+    const byId = this._store.get("Combat");
+    const existing = byId?.get(combatId) as Record<string, unknown> | undefined;
+    if (!byId || !existing) return;
+    byId.set(combatId, { ...existing, ...diff });
+    affected.add("Combat");
+  }
+
+  /**
+   * combat:deleted — { combatId }. Broadcast when combat ends (REQ-CBT-006);
+   * remove it from the local collection so combatStore.combat (derived from
+   * this mirror) goes back to null and the tracker UI disappears.
+   */
+  private _handleCombatDeleted(payload: { combatId: string }, affected: Set<string>): void {
+    const byId = this._store.get("Combat");
+    if (!byId) return;
+    if (byId.delete(payload.combatId)) {
+      affected.add("Combat");
     }
   }
 

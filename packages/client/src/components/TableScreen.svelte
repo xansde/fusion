@@ -22,6 +22,7 @@
   import { FusionCanvas } from "../lib/canvas/FusionCanvas.js";
   import { loadDevScene } from "../lib/canvas/dev-scene.js";
   import { loadSceneDocument } from "../lib/canvas/sceneLoader.js";
+  import { canLoadScene } from "../lib/canvas/canvasReadyGate.js";
   import { activeSceneState } from "../lib/docs/activeScene.svelte.js";
   import { attachCombatSync } from "../lib/combat/combatStore.svelte.js";
   import AppSidebar from "./chat/AppSidebar.svelte";
@@ -52,6 +53,16 @@
   let cleanupScene: (() => void) | null = null;
   let cleanupCombatSync: (() => void) | null = null;
   // Debug overlay is toggled internally by F9 inside FusionCanvas.toggleDebug().
+
+  // BUG FIX (race): the scene-reload $effect below reacts to activeSceneState.scene
+  // and calls loadSceneDocument(canvas, scene) → canvas.getLayer("background"), which
+  // throws "Layer not found" if the PIXI layer hierarchy hasn't been built yet.
+  // $effect runs synchronously after first render — BEFORE onMount's `await
+  // canvas.init()` resolves — so activating a scene during that window raced ahead of
+  // _buildHierarchy() and the background never rendered. canvasReady is flipped to
+  // true only once init() has resolved; the $effect is gated on it so no
+  // loadSceneDocument call can reach the canvas before its layers exist.
+  let canvasReady = $state(false);
 
   // ---- SceneOrchestrator lifecycle ----
   // One orchestrator per active scene. Created on scene activation, torn down on switch.
@@ -117,8 +128,16 @@
 
     try {
       await canvas.init();
-      // Load initial scene: use real scene doc if available, else dev-scene fallback
-      cleanupScene = await _loadCurrentScene(canvas);
+      // If there is no active scene yet (world snapshot not received, or GM hasn't
+      // activated one), fall back to dev-scene so the canvas shows something.
+      // A real scene is loaded by the $effect below (gated on canvasReady) once
+      // activeSceneState.scene is set — never here, to avoid a double-load race.
+      if (!activeSceneState.scene) {
+        cleanupScene = await loadDevScene(canvas);
+      }
+      // Flip the gate LAST: this gets read by the reactive $effect, which will
+      // (re-)run now that the PIXI layer hierarchy is guaranteed to exist.
+      canvasReady = true;
     } catch (err) {
       console.error("[TableScreen] Canvas init failed:", err);
     }
@@ -292,9 +311,22 @@
    * handle the UI (no more dev-scene fallback in production paths).
    *
    * M3-C: SceneOrchestrator is created/destroyed here alongside scene content.
+   *
+   * BUG FIX (race): gated on canvasReady so this can NEVER call
+   * loadSceneDocument()/canvas.getLayer(...) before FusionCanvas.init() has
+   * finished building the PIXI layer hierarchy (_buildHierarchy). Without the
+   * gate, $effect runs synchronously on first render — before onMount's async
+   * `await canvas.init()` resolves — so activating a scene at boot raced ahead
+   * of the layers existing and getLayer("background") threw, silently dropping
+   * the background render. canvasReady flips to true once (in onMount, after
+   * init()), which re-triggers this effect and performs the (now safe) load —
+   * covering both the "scene already active at mount" and "GM activates a
+   * scene later" cases with the same code path.
    */
   $effect(() => {
     const canvas = fusionCanvas;
+    if (!canLoadScene(canvas !== null, canvasReady)) return;
+    // canLoadScene(true, ...) guarantees canvas !== null — narrow for TS.
     if (!canvas) return;
 
     const scene = activeSceneState.scene;
@@ -315,23 +347,13 @@
           await sceneOrchestrator.setup();
         }
         // When no active scene: canvas remains empty; NoSceneOverlay is shown
-        // by the Svelte template. Dev-scene is only used in initial mount
-        // fallback (see _loadCurrentScene below).
+        // by the Svelte template. Dev-scene is only used in the initial mount
+        // fallback (see onMount above, before canvasReady is set).
       } catch (err) {
         console.error("[TableScreen] Scene load failed:", err);
       }
     })();
   });
-
-  async function _loadCurrentScene(canvas: FusionCanvas): Promise<() => void> {
-    const scene = activeSceneState.scene;
-    if (scene) {
-      return loadSceneDocument(canvas, scene);
-    }
-    // Initial mount: if no active scene yet, fall back to dev-scene so the
-    // canvas shows something while waiting for the world snapshot.
-    return loadDevScene(canvas);
-  }
 
   // ---- SceneOrchestrator helpers ----
 

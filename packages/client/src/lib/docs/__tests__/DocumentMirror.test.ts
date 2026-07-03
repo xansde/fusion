@@ -406,3 +406,126 @@ describe("DocumentMirror — subscribe", () => {
     expect(cb).not.toHaveBeenCalled(); // duplicate was discarded
   });
 });
+
+// ---------------------------------------------------------------------------
+// Combat lifecycle broadcasts (BUG FIX: combat:created/updated/deleted)
+//
+// Root cause: combat-handlers.ts broadcasts combat:created/updated/deleted on
+// their own dedicated envelope types (never doc:create/update/delete), so the
+// mirror's switch(op.type) fell through to `default` (advance seq, no doc
+// change) — combatStore.combat (derived purely from
+// worldMirror.subscribe("Combat", ...)) never saw a combat created mid-session.
+// ---------------------------------------------------------------------------
+
+describe("DocumentMirror — combat lifecycle broadcasts", () => {
+  let mirror: DocumentMirror;
+
+  beforeEach(() => {
+    mirror = new DocumentMirror();
+    mirror.applySnapshot(makeSnapshot(0));
+  });
+
+  function makeCombatCreatedOp(
+    seq: number,
+    combat: { _id: string; [key: string]: unknown },
+  ): Envelope<unknown> {
+    return { type: "combat:created", seq, ts: Date.now(), payload: { combat } };
+  }
+
+  function makeCombatUpdatedOp(
+    seq: number,
+    combatId: string,
+    diff: Record<string, unknown>,
+  ): Envelope<unknown> {
+    return { type: "combat:updated", seq, ts: Date.now(), payload: { combatId, diff } };
+  }
+
+  function makeCombatDeletedOp(seq: number, combatId: string): Envelope<unknown> {
+    return { type: "combat:deleted", seq, ts: Date.now(), payload: { combatId } };
+  }
+
+  it("combat:created inserts the combat into the Combat collection", () => {
+    mirror.feedOp(
+      makeCombatCreatedOp(1, {
+        _id: "combat0000000001",
+        sceneId: "scene1",
+        round: 0,
+        started: false,
+      }),
+    );
+    const combats = mirror.getByType<{ _id: string }>("Combat");
+    expect(combats).toHaveLength(1);
+    expect(combats[0]?._id).toBe("combat0000000001");
+  });
+
+  it("combat:created notifies Combat subscribers", () => {
+    const cb = vi.fn();
+    mirror.subscribe("Combat", cb);
+    mirror.feedOp(makeCombatCreatedOp(1, { _id: "combat0000000001", round: 0 }));
+    expect(cb).toHaveBeenCalledTimes(1);
+    expect(cb).toHaveBeenCalledWith([{ _id: "combat0000000001", round: 0 }]);
+  });
+
+  it("combat:updated merges the diff onto the existing combat", () => {
+    mirror.feedOp(
+      makeCombatCreatedOp(1, { _id: "combat0000000001", round: 0, started: false, turnIndex: 0 }),
+    );
+    mirror.feedOp(makeCombatUpdatedOp(2, "combat0000000001", { started: true, round: 1 }));
+    const combat = mirror.getDoc<Record<string, unknown>>("Combat", "combat0000000001");
+    expect(combat).toEqual({
+      _id: "combat0000000001",
+      round: 1,
+      started: true,
+      turnIndex: 0,
+    });
+  });
+
+  it("combat:updated is a no-op when the combat isn't known locally yet", () => {
+    // Simulates a combat:updated that raced ahead of / arrived without a
+    // corresponding combat:created (e.g. after a gap) — must not store a
+    // partial/broken document.
+    mirror.feedOp(makeCombatUpdatedOp(1, "unknown-combat", { started: true }));
+    expect(mirror.getDoc("Combat", "unknown-combat")).toBeUndefined();
+  });
+
+  it("combat:deleted removes the combat from the collection", () => {
+    mirror.feedOp(makeCombatCreatedOp(1, { _id: "combat0000000001", round: 0 }));
+    expect(mirror.getByType("Combat")).toHaveLength(1);
+    mirror.feedOp(makeCombatDeletedOp(2, "combat0000000001"));
+    expect(mirror.getByType("Combat")).toHaveLength(0);
+  });
+
+  it("combat:deleted notifies Combat subscribers with the now-empty list", () => {
+    mirror.feedOp(makeCombatCreatedOp(1, { _id: "combat0000000001", round: 0 }));
+    const cb = vi.fn();
+    mirror.subscribe("Combat", cb);
+    mirror.feedOp(makeCombatDeletedOp(2, "combat0000000001"));
+    expect(cb).toHaveBeenCalledWith([]);
+  });
+
+  it("combat:created / updated / deleted all advance the mirror seq", () => {
+    mirror.feedOp(makeCombatCreatedOp(1, { _id: "c1", round: 0 }));
+    expect(mirror.seq).toBe(1);
+    mirror.feedOp(makeCombatUpdatedOp(2, "c1", { round: 1 }));
+    expect(mirror.seq).toBe(2);
+    mirror.feedOp(makeCombatDeletedOp(3, "c1"));
+    expect(mirror.seq).toBe(3);
+  });
+
+  it("duplicate combat:created (seq already applied) is discarded, not double-inserted", () => {
+    mirror.feedOp(makeCombatCreatedOp(1, { _id: "c1", round: 0 }));
+    const cb = vi.fn();
+    mirror.subscribe("Combat", cb);
+    mirror.feedOp(makeCombatCreatedOp(1, { _id: "c1", round: 0 })); // same seq, duplicate
+    expect(cb).not.toHaveBeenCalled();
+    expect(mirror.getByType("Combat")).toHaveLength(1);
+  });
+
+  it("a combat already present in the snapshot is not duplicated by a later combat:created replay", () => {
+    const snapMirror = new DocumentMirror();
+    snapMirror.applySnapshot(makeSnapshot(5, { Combat: [{ _id: "c1", round: 0 }] }));
+    // A resync/replay that re-delivers the same seq must be discarded.
+    snapMirror.feedOp(makeCombatCreatedOp(5, { _id: "c1", round: 0 }));
+    expect(snapMirror.getByType("Combat")).toHaveLength(1);
+  });
+});

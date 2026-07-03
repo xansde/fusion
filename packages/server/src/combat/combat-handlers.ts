@@ -1505,7 +1505,7 @@ export function buildCombatEndHandler(deps: CombatHandlerDeps): HandlerFn {
  * getUserLevel/resolveOwnership.
  */
 function defaultGrantsPlayerOwnership(ownership: Ownership): boolean {
-  return testOwnership(ownership, " default-probe", UserRole.PLAYER, OwnershipLevel.OWNER);
+  return testOwnership(ownership, "default-probe", UserRole.PLAYER, OwnershipLevel.OWNER);
 }
 
 function isOwnedByPlayer(

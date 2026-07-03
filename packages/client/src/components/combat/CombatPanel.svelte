@@ -171,6 +171,17 @@
 
 <div class="combat-panel">
 
+  <!-- ---- Error banner ----
+    BUG FIX: previously nested inside the {:else} branch below (only rendered
+    when `combat` was already truthy), so a failed combatActions.create()
+    (e.g. DEC-CBT-06 "combat already exists for this scene") silently no-op'd
+    from the GM's perspective whenever the mirror didn't already have a Combat
+    doc — exactly the empty-state case where "Criar Combate" is clicked. Hoisted
+    above the {#if !combat} split so it renders in both states. -->
+  {#if error}
+    <div class="combat-panel__error" role="alert">{error}</div>
+  {/if}
+
   {#if !combat}
     <!-- ---- Empty state ---- -->
     <div class="combat-panel__empty">
@@ -314,11 +325,6 @@
           </ul>
         {/if}
       </div>
-    {/if}
-
-    <!-- ---- Error banner ---- -->
-    {#if error}
-      <div class="combat-panel__error" role="alert">{error}</div>
     {/if}
 
     <!-- ---- Combatant list ---- -->
