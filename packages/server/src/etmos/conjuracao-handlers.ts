@@ -297,7 +297,7 @@ function buildCardMessage(
   authorUserId: string,
   card: ConjuracaoCard,
 ): ChatMessage {
-  const stats = defaultStats("0.1.0");
+  const stats = defaultStats();
   const actorName = resolveActorName(deps.db, card.conjurador_actor_id);
   return {
     _id: createDocumentId(),
@@ -650,7 +650,7 @@ export function buildConjuracaoRolarHandler(deps: ConjuracaoHandlerDeps): Handle
       card.dificuldade_alvo !== null
         ? `${actorName} testa Conjuração: ${String(rollResult.total)} (DC ${String(card.dificuldade_alvo)}) — ${sucesso ? "Sucesso" : "Falha"}`
         : `${actorName} testa Conjuração: ${String(rollResult.total)}`;
-    const stats = defaultStats("0.1.0");
+    const stats = defaultStats();
     const rollMsg: ChatMessage = {
       _id: createDocumentId(),
       worldId: deps.worldId,

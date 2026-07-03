@@ -220,7 +220,7 @@ export function buildContestadoHandler(deps: ContestadoHandlerDeps): HandlerFn {
         ? `Vencedor: ${nomeVencedor} (${MOTIVO_LABEL[resultado.motivo] ?? resultado.motivo})`
         : `Sem vencedor mecânico (${MOTIVO_LABEL[resultado.motivo] ?? resultado.motivo}) — o Narrador arbitra.`);
 
-    const stats = defaultStats("0.1.0");
+    const stats = defaultStats();
     const msg: ChatMessage = {
       _id: createDocumentId(),
       worldId: deps.worldId,

@@ -278,7 +278,7 @@ export class CompendiumService {
       throw new PermissionDeniedError("Only GM/ASSISTANT can import from compendiums");
     }
 
-    const store = new DocumentStore({ db: options.db, coreVersion: "0.1.0" });
+    const store = new DocumentStore({ db: options.db });
     const created: string[] = [];
     const failed: Array<{ uuid: string; reason: string }> = [];
 

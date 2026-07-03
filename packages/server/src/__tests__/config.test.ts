@@ -10,7 +10,7 @@
  * REQ-ARQ-022, REQ-ARQ-023
  */
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -283,5 +283,51 @@ describe("loadConfig", () => {
   it("throws ZodError for invalid logLevel values", () => {
     process.env["FUSION_LOG_LEVEL"] = "INVALID";
     expect(() => loadConfig({ dataDirOverride: tmpdir() })).toThrow();
+  });
+
+  // -------------------------------------------------------------------------
+  // Self-referential dataDir field inside fusion.json (ignored, but warned)
+  // -------------------------------------------------------------------------
+
+  it("ignores a divergent 'dataDir' field written inside fusion.json but warns about it", () => {
+    const dir = makeTempDataDir({ dataDir: "D:/elsewhere", port: 1234 });
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const config = loadConfig({ dataDirOverride: dir });
+      // The resolved directory always wins — never the value written inside
+      // the file itself (see config.ts loadConfig for the rationale).
+      expect(config.dataDir).toBe(dir);
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy.mock.calls[0]?.[0]).toContain("D:/elsewhere");
+    } finally {
+      warnSpy.mockRestore();
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("does not warn when fusion.json has no 'dataDir' field", () => {
+    const dir = makeTempDataDir({ port: 1234 });
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      loadConfig({ dataDirOverride: dir });
+      expect(warnSpy).not.toHaveBeenCalled();
+    } finally {
+      warnSpy.mockRestore();
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("does not warn when fusion.json's 'dataDir' field already matches the resolved directory", () => {
+    const dir = makeTempDataDir({ port: 1234 });
+    // Self-consistent: file's own dataDir field matches where it actually lives.
+    writeFileSync(join(dir, "fusion.json"), JSON.stringify({ dataDir: dir, port: 1234 }), "utf8");
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      loadConfig({ dataDirOverride: dir });
+      expect(warnSpy).not.toHaveBeenCalled();
+    } finally {
+      warnSpy.mockRestore();
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

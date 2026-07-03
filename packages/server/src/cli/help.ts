@@ -2,7 +2,9 @@
  * Help text for the fusion CLI.
  */
 
-const VERSION = "0.1.0";
+import { FUSION_VERSION } from "@fusion/shared";
+
+const VERSION = FUSION_VERSION;
 
 const USAGE_ROOT = `\
 fusion ${VERSION} — Fusion VTT server
@@ -31,7 +33,7 @@ USAGE
 
 OPTIONS
   --port <n>             TCP port to listen on (default: 33000)
-  --data-dir <path>      Root data directory (default: ~/.fusion)
+  --data-dir <path>      Root data directory (default: Documents/FusionVTT)
   --log-level <level>    Log level: trace|debug|info|warn|error|fatal|silent
                          (default: info)
   --help, -h             Show this help
@@ -63,7 +65,7 @@ USAGE
   fusion world list [options]
 
 OPTIONS
-  --data-dir <path>      Root data directory (default: ~/.fusion)
+  --data-dir <path>      Root data directory (default: Documents/FusionVTT)
   --help, -h             Show this help
 
 OUTPUT
@@ -82,7 +84,7 @@ ARGUMENTS
 OPTIONS
   --system <id>          System ID to use for the world (required)
   --title <text>         Human-readable world title (default: same as slug)
-  --data-dir <path>      Root data directory (default: ~/.fusion)
+  --data-dir <path>      Root data directory (default: Documents/FusionVTT)
   --help, -h             Show this help
 
 EXAMPLES
@@ -100,7 +102,7 @@ ARGUMENTS
   <slug>                 World slug to back up
 
 OPTIONS
-  --data-dir <path>      Root data directory (default: ~/.fusion)
+  --data-dir <path>      Root data directory (default: Documents/FusionVTT)
   --help, -h             Show this help
 `;
 

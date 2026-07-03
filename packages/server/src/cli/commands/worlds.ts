@@ -2,20 +2,41 @@
  * CLI commands: fusion world list | create | backup
  */
 
-import { homedir } from "node:os";
 import { join } from "node:path";
 import type { WorldListArgs, WorldCreateArgs, WorldBackupArgs } from "../args.js";
 import { WorldManager } from "../../worlds/index.js";
 import { SystemRegistry } from "@fusion/system-api";
 import { openDatabase, applyMigrations } from "../../db/index.js";
 import { AuthService, loadOrCreateSecret } from "../../auth/index.js";
+import { resolveDataDirForLoad } from "../../config.js";
+import { ensureDataDirLayout } from "../../data-dir.js";
+import { createLogger } from "../../logger.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
+/**
+ * Resolve the effective data directory (explicit --data-dir/FUSION_DATA_DIR,
+ * or the per-OS default with legacy ~/.fusion read-fallback — REQ-DST-008)
+ * and ensure the REQ-DST-007 tree/Config migration is in place.
+ *
+ * A logger is passed to ensureDataDirLayout so the legacy-fallback warning
+ * AND the data-dir migration log (data-dir.ts, logged at "info") both
+ * surface instead of being silently discarded — this CLI path has no
+ * long-lived server logger to reuse, so a fresh minimal logger is created
+ * just for this call. "info" (not "warn") is required so the one-time
+ * migration message is not swallowed.
+ */
 function resolveDataDir(dataDirArg: string | undefined): string {
-  return dataDirArg ?? process.env["FUSION_DATA_DIR"] ?? join(homedir(), ".fusion");
+  const { dataDir, usedLegacyFallback } = resolveDataDirForLoad(
+    dataDirArg !== undefined ? { cliOverrides: { dataDir: dataDirArg } } : {},
+  );
+  ensureDataDirLayout(dataDir, {
+    usedLegacyDataDir: usedLegacyFallback,
+    logger: createLogger("info"),
+  });
+  return dataDir;
 }
 
 /**

@@ -9,6 +9,7 @@
  */
 
 import { z } from "zod";
+import { FUSION_VERSION } from "./version.js";
 
 // ---------------------------------------------------------------------------
 // Ownership levels
@@ -112,7 +113,7 @@ export const DocumentStatsSchema = z.object({
 export type DocumentStats = z.infer<typeof DocumentStatsSchema>;
 
 /** Build default _stats for a newly created document. */
-export function defaultStats(coreVersion: string = "0.1.0"): DocumentStats {
+export function defaultStats(coreVersion: string = FUSION_VERSION): DocumentStats {
   const now = Date.now();
   return {
     createdTime: now,

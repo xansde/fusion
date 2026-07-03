@@ -8,13 +8,14 @@
 import { join as pathJoin } from "node:path";
 import type { Database as BetterSqlite3Database } from "better-sqlite3";
 import type { ServeArgs } from "../args.js";
-import { loadConfig } from "../../config.js";
+import { loadConfig, resolveDataDirForLoad } from "../../config.js";
 import type { ServerConfig, LoadConfigOptions } from "../../config.js";
 import { createLogger } from "../../logger.js";
 import { boot } from "../../boot.js";
 import type { BootOptions } from "../../boot.js";
 import { SystemRegistry } from "@fusion/system-api";
 import { WorldManager } from "../../worlds/index.js";
+import { ensureDataDirLayout, DataDirPermissionError } from "../../data-dir.js";
 
 type LogLevel = ServerConfig["logLevel"];
 
@@ -39,12 +40,12 @@ function parseLogLevel(raw: string): LogLevel {
 
 export async function runServe(args: ServeArgs): Promise<void> {
   // Phase 1 — config (CLI flags → env → fusion.json → defaults)
+  // Build cliOverrides incrementally — only assign defined fields so that
+  // lower-priority layers (env, fusion.json, defaults) are not shadowed.
+  const overrides: { port?: number; dataDir?: string; logLevel?: LogLevel } = {};
   let config: ServerConfig;
+  let usedLegacyDataDir = false;
   try {
-    // Build cliOverrides incrementally — only assign defined fields so that
-    // lower-priority layers (env, fusion.json, defaults) are not shadowed.
-    // Using Object.assign avoids exactOptionalPropertyTypes issues with spread.
-    const overrides: { port?: number; dataDir?: string; logLevel?: LogLevel } = {};
     if (args.port !== undefined) overrides.port = args.port;
     if (args.dataDir !== undefined) overrides.dataDir = args.dataDir;
     if (args.logLevel !== undefined) overrides.logLevel = parseLogLevel(args.logLevel);
@@ -53,6 +54,14 @@ export async function runServe(args: ServeArgs): Promise<void> {
     if (Object.keys(overrides).length > 0) {
       loadOpts.cliOverrides = overrides;
     }
+
+    // Resolve the effective data directory the SAME way loadConfig will,
+    // BEFORE loadConfig runs — this is the only point where we can still
+    // observe whether the legacy ~/.fusion fallback was used (loadConfig
+    // itself bakes the already-resolved dataDir back into cliOverrides, so
+    // asking again afterwards would always look "explicit").
+    usedLegacyDataDir = resolveDataDirForLoad(loadOpts).usedLegacyFallback;
+
     config = loadConfig(loadOpts);
   } catch (err) {
     process.stderr.write(`fusion serve: failed to load configuration: ${String(err)}\n`);
@@ -66,6 +75,22 @@ export async function runServe(args: ServeArgs): Promise<void> {
     { phase: "config", port: config.port, dataDir: config.dataDir },
     "Boot phase: config — loaded",
   );
+
+  // Phase 2.1 — data directory layout (REQ-DST-007/008/009/010/038)
+  //   Creates Config/, systems/, assets/, backups/, Logs/ if missing;
+  //   migrates a legacy root-level fusion.json into Config/; verifies
+  //   read/write access, aborting with a clear message on failure.
+  try {
+    ensureDataDirLayout(config.dataDir, { logger, usedLegacyDataDir });
+  } catch (err) {
+    if (err instanceof DataDirPermissionError) {
+      logger.fatal({ err, dataDir: config.dataDir }, err.message);
+      process.stderr.write(`fusion serve: ${err.message}\n`);
+    } else {
+      logger.fatal({ err, dataDir: config.dataDir }, "Failed to prepare the data directory");
+    }
+    process.exit(1);
+  }
 
   // Phase 2.5 — system registry
   //   Register the stub system so that 'fusion world create --system stub' works

@@ -11,6 +11,7 @@
 
 export * from "./id.js";
 export * from "./uuid.js";
+export * from "./version.js";
 export * from "./protocol.js";
 export * from "./result.js";
 export * from "./document.js";

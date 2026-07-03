@@ -4,15 +4,29 @@
  * Layers (highest → lowest precedence):
  *   1. CLI flags (passed as partial overrides)
  *   2. Environment variables  FUSION_*
- *   3. fusion.json  in the data directory
+ *   3. Config/fusion.json  in the data directory
  *   4. Built-in defaults
  *
  * REQ-ARQ-022, REQ-ARQ-023
+ *
+ * Data directory layout & migration (REQ-DST-007/008/009/010/038, M6/B1):
+ *
+ *   The default data directory moved from `~/.fusion` to a per-OS
+ *   `Documents/FusionVTT` location, and `fusion.json` moved from the data
+ *   dir root into a `Config/` subdirectory. Both moves are read-compatible
+ *   with the old layout for one version:
+ *     - {@link resolveDefaultDataDir} falls back to the legacy `~/.fusion`
+ *       directory when it exists and the new default does not (see
+ *       {@link resolveEffectiveDataDir}).
+ *     - {@link readFusionJson} falls back to a legacy `fusion.json` at the
+ *       data dir root when `Config/fusion.json` is absent, and callers that
+ *       write config (see `ensureDataDirLayout`) relocate it to `Config/` on
+ *       first write.
  */
 
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { homedir } from "node:os";
+import { homedir, platform } from "node:os";
 import { z } from "zod";
 
 // ---------------------------------------------------------------------------
@@ -27,8 +41,14 @@ export const ServerConfigSchema = z.object({
   host: z.string().default("0.0.0.0"),
 
   /**
-   * Root directory for all user data (worlds, assets, fusion.json).
+   * Root directory for all user data (worlds, assets, Config/fusion.json).
    * Must be separated from the app install directory (REQ-ARQ-027).
+   *
+   * NOTE: the schema default here is only used when `loadConfig` is called
+   * with no dataDir information at all (should not happen in practice —
+   * `loadConfig` always resolves a concrete dataDir before parsing). See
+   * {@link resolveDefaultDataDir} for the real default-resolution logic
+   * (per-OS + legacy-fallback), which callers should use directly.
    */
   dataDir: z.string().default(join(homedir(), ".fusion")),
 
@@ -72,6 +92,86 @@ export const ServerConfigSchema = z.object({
    * Default: false.
    */
   trustProxy: z.boolean().default(false),
+
+  // -------------------------------------------------------------------------
+  // REQ-DST schema extension (M6/B1) — superset of the fields above.
+  // All new fields are optional/defaulted so existing Config/fusion.json (or
+  // legacy fusion.json) files remain valid without edits.
+  // -------------------------------------------------------------------------
+
+  /**
+   * Version of the Fusion server that last wrote this config file.
+   * REQ-DST-038. Written by `ensureDataDirLayout`/setup, not user-editable
+   * in practice, but accepted here so round-tripping the file is safe.
+   */
+  serverVersion: z.string().optional(),
+
+  /**
+   * Data-directory layout/migration version (distinct from the world.db
+   * schemaVersion). REQ-DST-038. Used by `ensureDataDirLayout` to decide
+   * whether inline data-dir migrations need to run (Q-DST-04: simple
+   * numeric index in code, no formal migration-script system for MVP).
+   */
+  dataVersion: z.number().int().min(0).default(0),
+
+  /**
+   * Argon2id hash of the installation-level Admin Key (REQ-DST-012,
+   * REQ-DST-015A). Set by the first-run wizard (`/setup`, M6/B2). Absent
+   * until the wizard runs.
+   */
+  adminPasswordHash: z.string().optional(),
+
+  /**
+   * HMAC secret (hex-encoded) used to sign the short-lived admin session
+   * JWT (REQ-DST-015A) — distinct from the per-world auth secret in
+   * auth/crypto.ts (`loadOrCreateSecret`), which signs world-user tokens.
+   * Set by the first-run wizard; generated once and persisted.
+   */
+  jwtHmacSecret: z.string().optional(),
+
+  /** Auto-update channel (REQ-DST-025). Default: "stable". */
+  updateChannel: z.enum(["stable", "dev"]).default("stable"),
+
+  /**
+   * Whether the first-run wizard has completed (REQ-DST-011/013/014).
+   * Absence/false means the server should serve `/setup` before any game
+   * functionality.
+   */
+  setupCompleted: z.boolean().default(false),
+
+  /**
+   * Origins allowed for CORS / socket.io (REQ-SEC / REQ-DST-032). When
+   * empty, callers fall back to same-origin-only defaults.
+   */
+  allowedOrigins: z.array(z.string()).default([]),
+
+  /**
+   * GitHub `owner/repo` slug used to resolve update-check and release
+   * URLs (REQ-DST-019, DA-01). Placeholder until the repo owner is
+   * decided — auto-update (M6/B5) must treat an unset/placeholder value
+   * as "update checking disabled", never crash on it.
+   */
+  updateRepo: z.string().default("REPLACE_ME/fusion"),
+
+  /** Reverse-proxy configuration (REQ-DST-032). */
+  proxy: z
+    .object({
+      /** Whether the server is fronted by a TLS-terminating reverse proxy. */
+      ssl: z.boolean().default(false),
+      /** External port the proxy exposes (may differ from the internal `port`). */
+      port: z.number().int().min(0).max(65535).optional(),
+      /** Path prefix when hosted under a subpath (e.g. "/fusion"). */
+      routePrefix: z.string().optional(),
+    })
+    .default({ ssl: false }),
+
+  /**
+   * Attempt automatic router port-forwarding via UPnP (REQ-DST-033, [V2]).
+   * Distinct from `upnp` above (legacy field, kept for back-compat); new
+   * code should prefer this name. Default: false — UPnP is [V2] and must
+   * not be silently enabled for existing configs.
+   */
+  upnpEnabled: z.boolean().default(false),
 });
 
 export type ServerConfig = z.infer<typeof ServerConfigSchema>;
@@ -81,6 +181,73 @@ export type ServerConfig = z.infer<typeof ServerConfigSchema>;
 // ---------------------------------------------------------------------------
 
 type RawConfig = z.input<typeof ServerConfigSchema>;
+
+// ---------------------------------------------------------------------------
+// Default data directory resolution (REQ-DST-008, REQ-DST-009)
+// ---------------------------------------------------------------------------
+
+/** Legacy default data directory (pre-M6). Kept for read-fallback only. */
+export function legacyDataDir(): string {
+  return join(homedir(), ".fusion");
+}
+
+/**
+ * Resolve the per-OS default data directory (REQ-DST-008), ignoring any
+ * legacy-fallback concerns — this is the "if I were installing fresh"
+ * default.
+ *
+ * - Windows: %USERPROFILE%\Documents\FusionVTT
+ * - macOS:   ~/Documents/FusionVTT
+ * - Linux:   ~/FusionVTT (or $XDG_DATA_HOME/FusionVTT if set)
+ */
+export function resolveDefaultDataDir(os: NodeJS.Platform = platform()): string {
+  if (os === "win32") {
+    // USERPROFILE is the canonical Windows home-dir env var; fall back to
+    // node's homedir() (which itself reads USERPROFILE on win32) if unset.
+    const base = process.env["USERPROFILE"] ?? homedir();
+    return join(base, "Documents", "FusionVTT");
+  }
+
+  if (os === "darwin") {
+    return join(homedir(), "Documents", "FusionVTT");
+  }
+
+  // Linux and everything else: prefer XDG_DATA_HOME when set (comfort
+  // recommendation from the design doc), else ~/FusionVTT.
+  const xdgDataHome = process.env["XDG_DATA_HOME"];
+  if (xdgDataHome !== undefined && xdgDataHome.length > 0) {
+    return join(xdgDataHome, "FusionVTT");
+  }
+  return join(homedir(), "FusionVTT");
+}
+
+/**
+ * Resolve the *effective* default data directory, applying the one-version
+ * legacy-read fallback: if the new per-OS default does not exist on disk
+ * but the legacy `~/.fusion` directory does, use the legacy directory (and
+ * let the caller log a migration notice). Otherwise use the new default
+ * (whether or not it exists yet — first run creates it).
+ *
+ * This is ONLY consulted when no explicit dataDir was supplied by CLI/env —
+ * an explicit `--data-dir`/`FUSION_DATA_DIR` always wins outright and never
+ * triggers this fallback.
+ */
+export function resolveEffectiveDataDir(os: NodeJS.Platform = platform()): {
+  dataDir: string;
+  usedLegacyFallback: boolean;
+} {
+  const newDefault = resolveDefaultDataDir(os);
+  if (existsSync(newDefault)) {
+    return { dataDir: newDefault, usedLegacyFallback: false };
+  }
+
+  const legacy = legacyDataDir();
+  if (existsSync(legacy)) {
+    return { dataDir: legacy, usedLegacyFallback: true };
+  }
+
+  return { dataDir: newDefault, usedLegacyFallback: false };
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -98,12 +265,35 @@ function parseEnvBool(value: string | undefined): boolean | undefined {
 }
 
 /**
- * Reads and parses `fusion.json` from the given directory.
+ * Resolve the path to the config file for a given data directory, applying
+ * the Config/fusion.json-with-legacy-root-fallback rule (REQ-DST-007):
+ *   1. `{dataDir}/Config/fusion.json` if it exists.
+ *   2. Else `{dataDir}/fusion.json` (legacy root location) if it exists.
+ *   3. Else the new `Config/fusion.json` path (used for read-defaults and
+ *      as the target the first write should create).
+ */
+export function resolveConfigPath(dataDir: string): { path: string; isLegacyLocation: boolean } {
+  const newPath = join(dataDir, "Config", "fusion.json");
+  if (existsSync(newPath)) {
+    return { path: newPath, isLegacyLocation: false };
+  }
+
+  const legacyPath = join(dataDir, "fusion.json");
+  if (existsSync(legacyPath)) {
+    return { path: legacyPath, isLegacyLocation: true };
+  }
+
+  return { path: newPath, isLegacyLocation: false };
+}
+
+/**
+ * Reads and parses the config file (`Config/fusion.json`, with legacy
+ * root-level `fusion.json` fallback) from the given data directory.
  * Returns an empty object if the file does not exist or cannot be parsed.
  * Never throws — errors are surfaced as warnings at call site.
  */
 function readFusionJson(dataDir: string): Partial<RawConfig> {
-  const filePath = join(dataDir, "fusion.json");
+  const { path: filePath } = resolveConfigPath(dataDir);
   try {
     const raw = readFileSync(filePath, "utf8");
     const parsed: unknown = JSON.parse(raw);
@@ -155,6 +345,10 @@ function readEnvLayer(): Partial<RawConfig> {
   const trustProxy = parseEnvBool(env["FUSION_TRUST_PROXY"]);
   if (trustProxy !== undefined) partial.trustProxy = trustProxy;
 
+  if (env["FUSION_UPDATE_CHANNEL"] === "stable" || env["FUSION_UPDATE_CHANNEL"] === "dev") {
+    partial.updateChannel = env["FUSION_UPDATE_CHANNEL"];
+  }
+
   return partial;
 }
 
@@ -177,28 +371,47 @@ export interface LoadConfigOptions {
 }
 
 /**
+ * Resolve which data directory `loadConfig` should use to locate the config
+ * file, applying full precedence (dataDirOverride > cliOverrides.dataDir >
+ * FUSION_DATA_DIR env > effective default with legacy fallback).
+ *
+ * Exposed separately so callers (e.g. `ensureDataDirLayout`, CLI commands)
+ * can resolve the *same* data directory `loadConfig` would pick without
+ * duplicating the precedence chain.
+ */
+export function resolveDataDirForLoad(
+  options: Pick<LoadConfigOptions, "cliOverrides" | "dataDirOverride"> = {},
+): { dataDir: string; usedLegacyFallback: boolean } {
+  const { cliOverrides = {}, dataDirOverride } = options;
+
+  const explicit =
+    dataDirOverride ?? cliOverrides.dataDir ?? process.env["FUSION_DATA_DIR"] ?? undefined;
+
+  if (explicit !== undefined) {
+    return { dataDir: explicit, usedLegacyFallback: false };
+  }
+
+  return resolveEffectiveDataDir();
+}
+
+/**
  * Loads and validates the server configuration by merging four layers.
  *
  * Precedence (1 = highest):
  *   1. cliOverrides (caller-supplied CLI flags)
  *   2. FUSION_* environment variables
- *   3. fusion.json  in the resolved data directory
+ *   3. Config/fusion.json (or legacy fusion.json) in the resolved data directory
  *   4. Schema defaults
  *
  * Throws a {@link z.ZodError} if the merged result fails schema validation.
  */
 export function loadConfig(options: LoadConfigOptions = {}): ServerConfig {
-  const { cliOverrides = {}, dataDirOverride } = options;
+  const { cliOverrides = {} } = options;
 
   // Determine which data directory to use when locating fusion.json.
-  // The CLI override for dataDir (if present) wins here too.
-  const dataDirForJson =
-    dataDirOverride ??
-    cliOverrides.dataDir ??
-    process.env["FUSION_DATA_DIR"] ??
-    join(homedir(), ".fusion");
+  const { dataDir: dataDirForJson } = resolveDataDirForLoad(options);
 
-  // Layer 3: fusion.json
+  // Layer 3: Config/fusion.json (or legacy fusion.json)
   const fileLayer = readFusionJson(dataDirForJson);
 
   // Layer 2: environment variables
@@ -220,6 +433,34 @@ export function loadConfig(options: LoadConfigOptions = {}): ServerConfig {
   if (cliOverrides.secureCookies !== undefined)
     cliDefined.secureCookies = cliOverrides.secureCookies;
   if (cliOverrides.trustProxy !== undefined) cliDefined.trustProxy = cliOverrides.trustProxy;
+
+  // dataDir always reflects the resolved value (including the per-OS
+  // default / legacy fallback) so downstream consumers of ServerConfig
+  // never need to re-derive it. This means a `dataDir` field written INSIDE
+  // fusion.json (self-referential — "which dir am I in") is always ignored
+  // in favour of the dir it was actually read from: fusion.json is located
+  // via dataDirForJson, so by definition dataDirForJson IS the real answer,
+  // and honouring a stale/copied-over `dataDir` value from inside the file
+  // would let a moved/duplicated fusion.json silently redirect the server
+  // at a DIFFERENT data directory than the one it was just read from. This
+  // is a deliberate behaviour change from pre-B1 (when fusion.json's own
+  // dataDir field, if present, could influence resolution) — warn instead of
+  // silently discarding it, since a stale value here usually means the file
+  // was copied/moved without updating this field.
+  if (
+    typeof fileLayer.dataDir === "string" &&
+    fileLayer.dataDir.length > 0 &&
+    fileLayer.dataDir !== dataDirForJson
+  ) {
+    console.warn(
+      `[fusion] Config/fusion.json contains "dataDir": "${fileLayer.dataDir}", ` +
+        `which differs from the directory it was actually loaded from ` +
+        `("${dataDirForJson}"). The "dataDir" field inside fusion.json is ` +
+        `ignored — the resolved directory always wins. If you moved or copied ` +
+        `this fusion.json, remove the stale "dataDir" field to avoid confusion.`,
+    );
+  }
+  cliDefined.dataDir = dataDirForJson;
 
   const merged: Partial<RawConfig> = {
     ...fileLayer, // layer 3

@@ -23,13 +23,18 @@ import {
 import { join } from "node:path";
 import { openDatabase, applyMigrations, DatabaseCorruptionError } from "../db/index.js";
 import type { FusionDatabase } from "../db/index.js";
-import type { WorldManifest, WorldLock, BackupEntry, CreateWorldOptions } from "@fusion/shared";
+import {
+  FUSION_VERSION,
+  type WorldManifest,
+  type WorldLock,
+  type BackupEntry,
+  type CreateWorldOptions,
+} from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
-const FUSION_VERSION = "0.1.0";
 const SLUG_REGEX = /^[a-z0-9_]{1,64}$/;
 
 // ---------------------------------------------------------------------------
@@ -280,7 +285,7 @@ export class WorldManager {
       lastOpenedAt: now,
       playTime: 0,
       compatibility: {
-        minimumFusion: "0.1.0",
+        minimumFusion: FUSION_VERSION,
       },
     };
 

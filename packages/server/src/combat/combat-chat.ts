@@ -107,7 +107,7 @@ function persistChatMessage(db: Db, msg: ChatMessage): void {
  * Visible combatant → public message.
  */
 function buildInitiativeMessage(deps: CombatChatDeps, entry: InitiativeRollChatEntry): ChatMessage {
-  const stats = defaultStats("0.1.0");
+  const stats = defaultStats();
   const statSuffix = entry.statistic ? ` (${entry.statistic})` : "";
   const content = `${entry.combatantName} rolls initiative${statSuffix}: ${String(entry.total)}`;
 

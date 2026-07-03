@@ -31,6 +31,7 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M5-C  | Etmos: motor de conjuração no server (state-machine + 5 handlers + 2d6 no RollService)        | concluído | 91→✓ endurecido   |
 | M5-D  | Etmos: fichas Orador/Antagonista + Compositor UI + card de chat (🎯 Etmos jogável)            | concluído | 96                |
 | M5-E  | Etmos: iniciativa compare 3-níveis, Reação, Marcos+Tabela E, Contestado (fecha o M5)          | concluído | 91→✓ endurecido   |
+| M6-B0/B1 | Distribuição: SPA servido pelo server + versão única; data dir Documents/FusionVTT + migração + serve sem world | concluído | 74→97 corrigido |
 
 **🎉 MVP ALCANÇADO (2026-06-26) — primeira sessão jogável de PF2e funciona ponta-a-ponta (verificado via boot real).** ~2.500 testes verdes. Pós-MVP: **M4 (SF2e) concluído em 2026-07-01** (~2.700 testes); designs do M5 (compositor Etmos) e M6 (distribuição) prontos em `docs/design/`. Restam: **M4.5-wiring** (religações críticas pré-existentes: iniciativa por sistema + derive em produção), M5 (Etmos, 5 batches A–E) e M6 (distribuição, 6 batches).
 
@@ -57,6 +58,12 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 - Próximos batches após M2-A: M2-B (fog), M2-C (combate), depois M3 (A–F) → primeira sessão jogável.
 
 ## Registro por batch
+
+### M6-B0/B1 — Distribuição: SPA pelo server + data dir novo (2026-07-03)
+
+- **B0**: o server passa a servir o SPA (`packages/client/dist`) — resolve o TODO do M1-A: assets em `/assets-client/*` com cache imutável, catch-all → shell com **nonce de CSP por request** (headers REQ-SEC-053/054/055; `connect-src 'self'` deliberadamente mais estrito que a spec, divergência documentada), rotas de API/socket nunca engolidas (testes negativos), path traversal rejeitado, dist ausente = warn e segue. Fonte única de versão: `packages/shared/src/version.ts` (`FUSION_VERSION`) consumida por `/health`, handshake WS e WorldManifest — zero "0.1.0" hardcoded de runtime.
+- **B1**: data dir default migrado de `~/.fusion` para `Documents/FusionVTT` (REQ-DST-007/008) com **fallback de leitura** por 1 versão + migração automática do `fusion.json` da raiz para `Config/fusion.json` preservando campos; schema `FusionConfig` estendido ao REQ-DST completo (retrocompatível, `updateRepo` com placeholder — DA-01 pendente); árvore criada no boot; `dataVersion` com migração inline; **`fusion serve` sem `--world`** sobe o servidor de gerência (`/setup` responde; wizard real é B2); permissão negada aborta com erro claro.
+- **Gate**: 74 na 1ª (issues de integração) → corretor → **97 na 2ª** com reprodução independente de todas as fumaças pelo binário compilado. 587 testes no server. 5 baixas cosméticas registradas (favicon ausente pré-existente; `/api` exato sem guarda; lockstep manual da versão → automatizar no B3; `minimumFusion` acoplado à versão corrente → B3/B5; nota de divergência CSP na spec 21).
 
 ### M5-E — Etmos: progressão e combate — ✅ M5 COMPLETO (2026-07-03)
 

@@ -15,7 +15,7 @@ import type { Namespace, Socket } from "socket.io";
 import type { Server as HttpServer } from "node:http";
 import type { Logger } from "pino";
 
-import { EnvelopeSchema, PROTOCOL_VERSION, type Envelope } from "@fusion/shared";
+import { EnvelopeSchema, PROTOCOL_VERSION, FUSION_VERSION, type Envelope } from "@fusion/shared";
 
 import { verifyAccessToken } from "../auth/crypto.js";
 import { SeqStore } from "./seq-store.js";
@@ -225,7 +225,7 @@ export class SocketManager {
     // Build per-world services
     const seqStore = new SeqStore(db);
     const opBuffer = new OpBuffer(opBufferSize);
-    const store = new DocumentStore({ db, coreVersion: "0.1.0" });
+    const store = new DocumentStore({ db, coreVersion: FUSION_VERSION });
     const registry = new HandlerRegistry();
 
     // REQ-NET-040/071: ephemeral rate limiters shared across all sockets in this namespace
@@ -502,6 +502,18 @@ export class SocketManager {
       if (isRolePrivileged(data.role)) {
         void socket.join("gm");
       }
+
+      // REQ-DST-036/037: greet the client with the server's semantic version
+      // and protocol version right after the connection is accepted (auth +
+      // capacity checks already passed above). The client already validated
+      // protocolVersion compatibility during the handshake auth (REQ-NET-014,
+      // the ns.use middleware above) — this "hello" event is purely
+      // informational (e.g. UI "server vX.Y.Z" display, update-nudge logic),
+      // not a second compatibility gate.
+      socket.emit("hello", {
+        serverVersion: FUSION_VERSION,
+        protocolVersion: PROTOCOL_VERSION,
+      });
 
       // REQ-NET-062/063: send snapshot or delta on join
       // Client may send lastSeq in handshake auth for reconnect resync

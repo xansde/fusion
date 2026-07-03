@@ -12,6 +12,7 @@
  * Friendly error on port-in-use instead of raw EADDRINUSE (REQ-ARQ-026).
  */
 
+import { randomBytes } from "node:crypto";
 import Fastify from "fastify";
 import fastifyCookie from "@fastify/cookie";
 import type { FastifyInstance } from "fastify";
@@ -21,7 +22,10 @@ import type { ServerConfig } from "./config.js";
 import type { SocketManager as SocketManagerType, WorldNamespaceOptions } from "./net/index.js";
 import type { AuthService } from "./auth/index.js";
 import type { RegisterAssetRoutesOptions } from "./assets/routes.js";
+import type { RegisterSpaRoutesOptions } from "./spa/routes.js";
 import type { SystemModule } from "@fusion/system-api";
+// Import for side effect only: augments FastifyRequest with `cspNonce`.
+import "./spa/routes.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -62,6 +66,18 @@ export interface BootAuthContext {
  * alias so boot.ts remains the single place callers configure the boot.
  */
 export type BootAssetContext = RegisterAssetRoutesOptions;
+
+// ---------------------------------------------------------------------------
+// SPA context (injected to register the client static build — REQ-DST-002)
+// ---------------------------------------------------------------------------
+
+/**
+ * When provided (or by default — SPA serving is opt-out, not opt-in), the
+ * server serves packages/client/dist as a SPA: static assets under
+ * /assets-client/*, and a catch-all falling back to index.html for
+ * client-side routing. Mirrors RegisterSpaRoutesOptions from spa/routes.ts.
+ */
+export type BootSpaContext = RegisterSpaRoutesOptions;
 
 // ---------------------------------------------------------------------------
 // Net context (injected when the socket layer should be activated)
@@ -114,43 +130,142 @@ function isAddressInUse(err: unknown): boolean {
 }
 
 /**
+ * Build the CSP `connect-src` directive value.
+ *
+ * DECISION (M6/B1): the socket.io/WebSocket connection is always same-origin
+ * in the current (LAN, no tunnel) deployment shape — the client only ever
+ * connects back to the server that served it. `wss:`/`ws:` with no host
+ * restriction was wider than necessary (any host, any port, over either
+ * scheme) and is a data-exfiltration channel if a script injection ever
+ * occurred despite the nonce-gated script-src. This restricts to `'self'`
+ * (covers the same-origin case, which is 100% of connections today) plus
+ * the explicit `wss://`/`ws://` forms of each entry in `allowedOrigins`
+ * (REQ-SEC/REQ-DST-032) — populated once the M6/B4 tunnel batch starts
+ * fronting the server behind a different public origin than the one the
+ * socket itself binds to. Until allowedOrigins is configured, 'self' alone
+ * is correct and sufficient for the LAN-only deployment this batch targets.
+ */
+function connectSrcDirective(allowedOrigins: readonly string[]): string {
+  const wsOrigins = allowedOrigins
+    .map((origin) => {
+      try {
+        const url = new URL(origin);
+        const wsScheme = url.protocol === "https:" ? "wss:" : "ws:";
+        return `${wsScheme}//${url.host}`;
+      } catch {
+        // Malformed entries are skipped rather than thrown — config
+        // validation (config.ts) is the place to reject bad URLs outright;
+        // this directive builder stays defensive so a bad entry never
+        // crashes response header generation.
+        return null;
+      }
+    })
+    .filter((v): v is string => v !== null);
+
+  return ["'self'", ...wsOrigins].join(" ");
+}
+
+/**
  * Registers all HTTP routes on the Fastify instance.
  * At M0-A scope this is only the /health endpoint.
  * Additional routes (REST, static, auth) are M0-B/M0-C scope.
  */
 async function registerRoutes(fastify: FastifyInstance, config: ServerConfig): Promise<void> {
   // Imported lazily to avoid circular dependency with index.ts.
-  const { PROTOCOL_VERSION } = await import("@fusion/shared");
+  const { PROTOCOL_VERSION, FUSION_VERSION } = await import("@fusion/shared");
 
   // ---------------------------------------------------------------------------
-  // TODO (M1 — REQ-SEC-053/054/055): Security response headers.
+  // REQ-SEC-053/054/055: security response headers, on every response.
   //
-  // When the server begins serving the SPA (M1-A), register an onSend hook here
-  // that injects the following headers on every response:
+  // Registered as an onSend hook so it applies uniformly to /health, /api/*,
+  // /assets/*, and the SPA static routes registered below by registerSpaRoutes.
+  // socket.io traffic is unaffected — it never goes through Fastify's request
+  // pipeline (it hooks the raw HTTP server directly at path "/socket.io/").
   //
-  //   X-Content-Type-Options: nosniff
-  //   X-Frame-Options: DENY
-  //   Referrer-Policy: strict-origin-when-cross-origin
-  //   Strict-Transport-Security: max-age=31536000; includeSubDomains   (TLS only)
-  //   Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-<random>'; ...
-  //
-  // The nonce must be generated per-request (crypto.randomBytes(16).toString('base64'))
-  // and threaded through to the HTML template so inline scripts/styles carry it.
-  //
-  // A CI test must assert that removing any of the above headers causes a failure
-  // (REQ-SEC-NF-003). Use fastify.inject() against /health or a dedicated /sec-test
-  // route and assert response.headers['x-content-type-options'] === 'nosniff', etc.
-  //
-  // This hook is intentionally NOT added in M0-C because:
-  //   a) The SPA is served by Vite dev server, not Fastify.
-  //   b) Adding it now would require the nonce infrastructure that depends on
-  //      the HTML template rendering pipeline (M1-A).
+  //   X-Content-Type-Options: nosniff                 — always
+  //   X-Frame-Options: SAMEORIGIN                      — always (REQ-SEC-053)
+  //   Referrer-Policy: strict-origin-when-cross-origin — always
+  //   Strict-Transport-Security                        — only when the request
+  //     arrived over TLS (config.secureCookies signals a TLS-terminating proxy
+  //     in front of the server — see config.ts). Sending HSTS over plain HTTP
+  //     LAN deployments would be actively harmful (REQ-SEC-053 says "sob TLS").
+  //   Content-Security-Policy — only on HTML responses (the SPA shell); a
+  //     per-request nonce is generated and also exposed on the reply so
+  //     registerSpaRoutes can inject it into index.html's <script> tag
+  //     (REQ-SEC-054/055). API/JSON responses do not need a CSP.
   // ---------------------------------------------------------------------------
+  fastify.addHook("onRequest", (request, _reply, done) => {
+    // crypto.randomBytes is used instead of crypto.randomUUID so the nonce is
+    // valid base64 (CSP nonces are base64-encoded per the spec).
+    request.cspNonce = randomBytes(16).toString("base64");
+    done();
+  });
+
+  fastify.addHook("onSend", (request, reply, payload, done) => {
+    void reply.header("X-Content-Type-Options", "nosniff");
+    void reply.header("X-Frame-Options", "SAMEORIGIN");
+    void reply.header("Referrer-Policy", "strict-origin-when-cross-origin");
+
+    if (config.secureCookies) {
+      // REQ-SEC-053: HSTS only makes sense when the connection is (or is
+      // fronted by a proxy terminating) TLS.
+      void reply.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+    }
+
+    const contentType = reply.getHeader("content-type");
+    if (typeof contentType === "string" && contentType.includes("text/html")) {
+      // REQ-SEC-054: strict CSP for the SPA shell only.
+      // request.cspNonce is always set by the onRequest hook above (which
+      // runs earlier in the same request lifecycle); the `?? ""` fallback
+      // only satisfies the FastifyRequest augmentation's optional type
+      // (spa/routes.ts) and mirrors the same guard used there.
+      const nonce = request.cspNonce ?? "";
+      void reply.header(
+        "Content-Security-Policy",
+        [
+          "default-src 'self'",
+          "object-src 'none'",
+          "frame-ancestors 'none'",
+          "base-uri 'self'",
+          `connect-src ${connectSrcDirective(config.allowedOrigins)}`,
+          "img-src 'self' data: blob:",
+          "media-src 'self' blob:",
+          `script-src 'self' 'nonce-${nonce}'`,
+          // DECISION (M6/B1, spec×client tension — see project CLAUDE.md: the
+          // client is out of scope for this batch): REQ-SEC-054's MINIMUM
+          // required CSP directive set (default-src/object-src/frame-ancestors/
+          // base-uri/connect-src/img-src/media-src/script-src) does NOT include
+          // style-src — it is an addition made here, and the spec's blanket
+          // "'unsafe-inline'/'unsafe-eval' NÃO DEVEM aparecer em produção"
+          // clause was written with script-src's XSS risk in mind (DEC-SEC-05).
+          // `style-src 'self'` alone (verified against a real served build)
+          // breaks ~4 inline `style="..."` usages across 3 components
+          // (FilePicker upload-progress bar width, JoinScreen/TableScreen
+          // per-user arbitrary `background-color`) via the style-src-attr
+          // fallback — degrading the UI, invisible to curl-based smoke tests.
+          // Two of those are per-user ARBITRARY colors, which CSP hashes
+          // cannot cover (a hash only allow-lists one fixed string) and which
+          // would require a nonce-per-style-attribute mechanism that doesn't
+          // exist for style-src-attr in any shipping browser yet. Refactoring
+          // those components to CSSOM (`element.style.setProperty`) or Svelte
+          // 5 `style:` directives (which compile to the same inline-attribute
+          // output, so would NOT help) is out of scope for this batch and is
+          // tracked for the client batch. 'unsafe-inline' on style-src is a
+          // materially smaller attack surface than on script-src (CSS alone
+          // cannot execute arbitrary JS in modern browsers), so it is the
+          // accepted trade-off until the client refactor lands.
+          "style-src 'self' 'unsafe-inline'",
+        ].join("; "),
+      );
+    }
+
+    done(null, payload);
+  });
 
   fastify.get("/health", () => {
     return {
       ok: true,
-      version: "0.1.0",
+      version: FUSION_VERSION,
       protocolVersion: PROTOCOL_VERSION,
       host: config.host,
       port: config.port,
@@ -182,6 +297,14 @@ export interface BootOptions {
    * instance (REQ-AST-006..029, REQ-SEC-040..045).
    */
   assetContext?: BootAssetContext;
+  /**
+   * SPA static serving is ON by default (REQ-DST-002) — pass `{}` or omit
+   * entirely to use the default dist-dir resolution. Pass an explicit
+   * `distDir` to override (tests / custom layouts). Pass `disabled: true`
+   * to skip SPA registration altogether (e.g. a test asserting its own
+   * catch-all behaviour on unmatched routes).
+   */
+  spaContext?: BootSpaContext & { disabled?: boolean };
 }
 
 /**
@@ -199,6 +322,7 @@ export async function boot(options: BootOptions): Promise<BootResult> {
     authContext,
     netContext,
     assetContext,
+    spaContext,
   } = options;
 
   // -------------------------------------------------------------------------
@@ -242,6 +366,17 @@ export async function boot(options: BootOptions): Promise<BootResult> {
     const { registerAssetRoutes } = await import("./assets/routes.js");
     registerAssetRoutes(fastify, assetContext);
     logger.info({ assetsDir: assetContext.assetsDir }, "Asset routes registered");
+  }
+
+  // Register the SPA static build (REQ-DST-002) — ON by default. Registered
+  // LAST so its catch-all only ever answers requests that no other route
+  // (API/health/asset) claimed. If packages/client/dist is missing (test
+  // environments, or a checkout without a client build), registerSpaRoutes
+  // logs a warning internally and registers nothing — boot never crashes.
+  if (spaContext?.disabled !== true) {
+    const { registerSpaRoutes } = await import("./spa/routes.js");
+    const { disabled: _disabled, ...spaOptions } = spaContext ?? {};
+    registerSpaRoutes(fastify, { ...spaOptions, logger: spaOptions.logger ?? logger });
   }
 
   // -------------------------------------------------------------------------

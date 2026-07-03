@@ -25,7 +25,13 @@
  */
 
 import type { Database as Db } from "better-sqlite3";
-import { createDocumentId, isValidDocumentId, defaultStats, DOCUMENT_TABLES } from "@fusion/shared";
+import {
+  createDocumentId,
+  isValidDocumentId,
+  defaultStats,
+  DOCUMENT_TABLES,
+  FUSION_VERSION,
+} from "@fusion/shared";
 import type { DocumentTable, DocumentStats } from "@fusion/shared";
 import { getDocumentSchema } from "./types.js";
 import { deepMerge, computeDiff } from "./merge.js";
@@ -108,7 +114,7 @@ function stripStats(data: Record<string, unknown>): Record<string, unknown> {
  * Build _stats for a newly created document.
  */
 function buildCreateStats(author: AuthorContext): DocumentStats {
-  const stats = defaultStats(author.coreVersion ?? "0.1.0");
+  const stats = defaultStats(author.coreVersion ?? FUSION_VERSION);
   return {
     ...stats,
     createdBy: author.userId,
@@ -290,7 +296,7 @@ export class DocumentStore {
 
   constructor(options: DocumentStoreOptions) {
     this.db = options.db;
-    this.coreVersion = options.coreVersion ?? "0.1.0";
+    this.coreVersion = options.coreVersion ?? FUSION_VERSION;
     this.defaultAuthor = options.defaultAuthor ?? { userId: null };
   }
 

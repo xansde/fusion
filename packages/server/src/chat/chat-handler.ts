@@ -745,7 +745,7 @@ function buildBaseMessage(
   type: ChatMessage["type"],
   content: string,
 ): ChatMessage {
-  const stats = defaultStats("0.1.0");
+  const stats = defaultStats();
   return {
     _id: createDocumentId(),
     worldId,
