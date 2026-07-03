@@ -272,8 +272,12 @@ export class SceneOrchestrator {
       height: scene.height,
     };
 
-    // Compute vision state
-    const gridSize = scene.grid.size;
+    // Compute vision state. The SceneDocument type declares `grid` as always
+    // present (Zod default), but minimal/legacy/partial-diff scenes can arrive
+    // without it at runtime — reading `.size` then throws. Guard defensively;
+    // the type says non-nullish, so the lint rule is disabled here on purpose.
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    const gridSize = scene.grid?.size ?? 100;
     const darkness = scene.darkness;
     const globalLight = scene.globalLight;
 
@@ -324,7 +328,9 @@ export class SceneOrchestrator {
    * A token is "controlled" if: GM (sees all) OR the token belongs to the local user.
    */
   private _buildTokenSources(tokens: TokenDocument[]): TokenSourceConfig[] {
-    const gridSize = this._scene.grid.size;
+    // See note above: `grid` can be runtime-absent despite the non-nullish type.
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    const gridSize = this._scene.grid?.size ?? 100;
     const sources: TokenSourceConfig[] = [];
 
     for (const token of tokens) {
