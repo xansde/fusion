@@ -5,8 +5,8 @@
  * No real socket.io connection — uses a mock socket.
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { sendOp, OpError } from "../sendOp.js";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { sendOp, OpError, makeSendOpFn } from "../sendOp.js";
 import type { Socket } from "socket.io-client";
 
 // ---------------------------------------------------------------------------
@@ -115,5 +115,65 @@ describe("sendOp", () => {
       { requestId: string },
     ];
     expect(envelope.requestId).toBe("my-custom-id");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// makeSendOpFn — adapter from flat "op" callbacks (every sheet VM's
+// sendOpFn prop) to sendOp()'s { type, payload } envelope shape.
+// ---------------------------------------------------------------------------
+
+describe("makeSendOpFn", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("splits a flat op into { type, payload } and forwards via sendOp", () => {
+    const { socket, triggerAck } = makeMockSocket();
+    const fn = makeSendOpFn(socket);
+
+    fn({ type: "etmos:conjuracao:propor", conjuradorActorId: "actor1", frase: { foo: "bar" } });
+    triggerAck({ ok: true, result: null });
+
+    expect(socket.emit).toHaveBeenCalledOnce();
+    const [event, envelope] = (socket.emit as ReturnType<typeof vi.fn>).mock.calls[0] as [
+      string,
+      { type: string; payload: unknown },
+    ];
+    expect(event).toBe("op");
+    expect(envelope.type).toBe("etmos:conjuracao:propor");
+    expect(envelope.payload).toEqual({ conjuradorActorId: "actor1", frase: { foo: "bar" } });
+  });
+
+  it("logs and does not throw for a malformed op (missing type)", () => {
+    const { socket } = makeMockSocket();
+    const fn = makeSendOpFn(socket);
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    expect(() => fn({ conjuradorActorId: "actor1" })).not.toThrow();
+    expect(socket.emit).not.toHaveBeenCalled();
+    expect(errorSpy).toHaveBeenCalled();
+
+    errorSpy.mockRestore();
+  });
+
+  it("logs (but does not throw) when the server ack rejects", async () => {
+    const { socket, triggerAck } = makeMockSocket();
+    const fn = makeSendOpFn(socket);
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    fn({ type: "doc:update", documentType: "Actor", id: "a1", diff: {} });
+    triggerAck({ ok: false, code: "PERMISSION_DENIED", message: "nope" });
+
+    // Let the rejected sendOp promise's .catch() run.
+    await vi.runAllTimersAsync();
+
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("doc:update"), expect.anything());
+
+    errorSpy.mockRestore();
   });
 });

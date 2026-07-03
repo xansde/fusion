@@ -36,6 +36,7 @@
   import { CombatCanvasController } from "../lib/canvas/combat/combatCanvasController.js";
   import { worldMirror } from "../lib/docs/worldSync.js";
   import { registerPf2eSheets } from "../lib/sheets/pf2e/registerPf2eSheets.js";
+  import { registerEtmosSheets } from "../lib/sheets/etmos/registerEtmosSheets.js";
   import {
     buildTokenFromActorFields,
     type ActorDragPayload,
@@ -133,6 +134,11 @@
     // Errors are non-fatal — the sheets simply won't be available for resolution.
     registerPf2eSheets().catch((err) => {
       console.warn("[TableScreen] registerPf2eSheets failed:", err);
+    });
+
+    // Register Etmos sheets (orador/antagonista) — same pattern as PF2e above.
+    registerEtmosSheets().catch((err) => {
+      console.warn("[TableScreen] registerEtmosSheets failed:", err);
     });
   });
 

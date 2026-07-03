@@ -29,6 +29,7 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M5-A  | Fundação system-api p/ Etmos (rollData, degreeOfSuccess, {roll,compare}, effectsMaterializer) | concluído | 96                |
 | M5-B  | Etmos: schemas Zod + packs (80 partículas) + compositor puro (fixtures G1-G10+G7b)            | concluído | 48→97 corrigido   |
 | M5-C  | Etmos: motor de conjuração no server (state-machine + 5 handlers + 2d6 no RollService)        | concluído | 91→✓ endurecido   |
+| M5-D  | Etmos: fichas Orador/Antagonista + Compositor UI + card de chat (🎯 Etmos jogável)            | concluído | 96                |
 
 **🎉 MVP ALCANÇADO (2026-06-26) — primeira sessão jogável de PF2e funciona ponta-a-ponta (verificado via boot real).** ~2.500 testes verdes. Pós-MVP: **M4 (SF2e) concluído em 2026-07-01** (~2.700 testes); designs do M5 (compositor Etmos) e M6 (distribuição) prontos em `docs/design/`. Restam: **M4.5-wiring** (religações críticas pré-existentes: iniciativa por sistema + derive em produção), M5 (Etmos, 5 batches A–E) e M6 (distribuição, 6 batches).
 
@@ -55,6 +56,13 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 - Próximos batches após M2-A: M2-B (fog), M2-C (combate), depois M3 (A–F) → primeira sessão jogável.
 
 ## Registro por batch
+
+### M5-D — Etmos: fichas + Compositor UI — 🎯 ETMOS JOGÁVEL (2026-07-02)
+
+- Camada de apresentação completa: `OradorSheet`/`AntagonistaSheet` + VMs (atributos em trilhas, trackers de Ferimentos/Estresse/Empenho, aba Grimório com botão Conjurar, Marcos inline), `Compositor.svelte` (montagem guiada Função→Objetos→Características→Complementos com seleção de alvo de Criadores, preview ao vivo com tokens coloridos via `montarFrase` importada — nunca reimplementada), `ConjuracaoCard.svelte` por estado/papel (arbitrar com Complexidade 1-5 → enum persistido, badge `excede_maxima`, rolagem vinculada), `registerEtmosSheets` no boot junto do pf2e, i18n pt-BR/en com paridade 36/36 e chaves de erro byte-idênticas às do `validarFrase` (M5-B).
+- **Aprovado com 96 na 1ª auditoria (Fable 5)**: CA-8 confirmado pelo auditor rodando o teste isolado; E2E pelo boot real com sockets GM+player percorrendo TODA a state-machine usando os shapes exatos das VMs (18/18) — UI e servidor falam o mesmo protocolo; componentes finos (81 testes de VM); 2.970 testes verdes no monorepo.
+- Dívidas baixas (cosméticas): chave i18n emprestada no botão fechar do painel Arbitrar; exportar constantes de chave de erro de systems/etmos para a VM importar (anti-drift); `selectedTarget` do Antagonista sem caller (aplicar dano ao alvo via tracker fica para wiring futuro); `MarcosTrilha.svelte` órfão (M5-E decide usar ou remover); branch morto cosmético no getter `fraseCompleta`.
+- Incidentes de processo: run do integrador morreu 2x (queda de rede) — retomado com cache preservando ~6h de trabalho em disco; structured output falhou também em Sonnet (retry cap) → **pipeline inteiro migrado para texto livre com parse por regex** (padrão para M5-E/M6).
 
 ### M5-C — Etmos: motor de conjuração no servidor (2026-07-02)
 

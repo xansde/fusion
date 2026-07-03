@@ -22,7 +22,15 @@
     type ActorDragPayload,
   } from "../../lib/actors/actorDirectory.js";
   import { openActorSheet } from "../../lib/sheets/pf2e/registerPf2eSheets.js";
+  import { openEtmosActorSheet } from "../../lib/sheets/etmos/registerEtmosSheets.js";
+  import { makeSendOpFn } from "../../lib/docs/sendOp.js";
   import { t } from "../../lib/i18n/i18n.js";
+
+  /** Etmos Actor subtypes — routed through openEtmosActorSheet so the
+   * OradorSheet's "Conjurar" button gets its onConjurar wired to the
+   * Compositor (see registerEtmosSheets.ts). PF2e/SF2e subtypes keep using
+   * the system-agnostic openActorSheet path unchanged. */
+  const ETMOS_SUBTYPES = new Set(["orador", "antagonista"]);
 
   const {
     socket,
@@ -56,14 +64,24 @@
   // ---- Actor actions ----
 
   function openSheet(actor: ActorDocument): void {
-    // Resolve and open the registered PF2e sheet via the sheet registry
-    // (REQ-UIF-018..019). openActorSheet uses sheetRegistry.resolve() and
-    // falls back gracefully when no sheet is registered for a given subtype.
-    openActorSheet(actor._id, actor as unknown as Record<string, unknown>, {
+    // Resolve and open the registered sheet via the sheet registry
+    // (REQ-UIF-018..019). Etmos subtypes go through openEtmosActorSheet so
+    // the OradorSheet's "Conjurar" button opens the Compositor window;
+    // every other subtype keeps the system-agnostic openActorSheet path.
+    // sendOpFn is wired via makeSendOpFn(socket) so autosave/rolls/"Propor ao
+    // Narrador" actually reach the server instead of silently no-op'ing
+    // (every sheet's sendOpFn prop defaults to a no-op — see sendOp.ts).
+    const opts = {
       userId,
       ownership: 3, // OWNER — sidebar actors are always accessible to the opener
       isGm,
-    });
+      sendOpFn: makeSendOpFn(socket),
+    };
+    if (ETMOS_SUBTYPES.has(actor.type)) {
+      openEtmosActorSheet(actor._id, actor as unknown as Record<string, unknown>, opts);
+    } else {
+      openActorSheet(actor._id, actor as unknown as Record<string, unknown>, opts);
+    }
   }
 
   async function deleteActor(actor: ActorDocument): Promise<void> {

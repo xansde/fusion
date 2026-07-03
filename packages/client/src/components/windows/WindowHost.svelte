@@ -51,22 +51,35 @@
     rafId = requestAnimationFrame(syncState);
   }
 
+  /**
+   * Push the current viewport size into windowManager, guarding against a
+   * 0x0 read (window.innerWidth/innerHeight can legitimately be 0 for a
+   * frame or two before the browser has completed layout — e.g. very first
+   * paint, or a headless/embedded webview). A 0x0 viewport would otherwise
+   * get baked into clampToViewport() at windowManager.open() time and
+   * PERMANENTLY shrink every window opened in that window to
+   * DEFAULT_MIN_WIDTH/HEIGHT (200x100) — clampToViewport only ever shrinks
+   * geometry on subsequent resizes, it never grows it back. Verified via a
+   * real boot() + browser session (M5-D E2E): the very first sheet opened
+   * after login came out 200x100 instead of its configured 820x640 because
+   * this ran while window.innerWidth was still 0.
+   */
+  function pushViewportSize(): void {
+    const width = window.innerWidth || windowManager.viewport.width || 1280;
+    const height = window.innerHeight || windowManager.viewport.height || 800;
+    windowManager.onViewportResize({ width, height });
+  }
+
   onMount(() => {
     rafId = requestAnimationFrame(syncState);
 
     // Viewport resize
-    const onResize = () => {
-      windowManager.onViewportResize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-    };
-    windowManager.onViewportResize({ width: window.innerWidth, height: window.innerHeight });
-    window.addEventListener("resize", onResize);
+    pushViewportSize();
+    window.addEventListener("resize", pushViewportSize);
 
     return () => {
       cancelAnimationFrame(rafId);
-      window.removeEventListener("resize", onResize);
+      window.removeEventListener("resize", pushViewportSize);
     };
   });
 

@@ -95,3 +95,73 @@ export function sendOp<R = unknown>(
     });
   });
 }
+
+// ---------------------------------------------------------------------------
+// makeSendOpFn — adapts sendOp() to the flat `sendOpFn(op)` callback shape
+// ---------------------------------------------------------------------------
+
+/**
+ * Every sheet VM (CharacterSheetVM, OradorSheetVM, CompositorVM, ...) builds
+ * "op" objects shaped as `{ type: "...", ...fields }` (flat — see e.g.
+ * DocUpdatePayload in oradorSheetVM.ts or EtmosConjuracaoProporOp in
+ * compositorVM.ts) and every sheet component takes a `sendOpFn?: (op) => void`
+ * prop with a no-op default (injected for testability, mirroring
+ * CharacterSheet.svelte's pattern).
+ *
+ * `sendOp()` itself expects the split `{ type, payload }` envelope shape.
+ * This adapter is the ONE place that bridges the two: split `type` from the
+ * rest of the flat op and forward to `sendOp(socket, { type, payload })`.
+ *
+ * Callers that open a sheet/window (ActorDirectory.svelte, registerEtmosSheets.ts)
+ * should build `sendOpFn` via this helper instead of leaving the prop
+ * unset — an unset `sendOpFn` silently no-ops (see each sheet's default),
+ * which would make every button that only calls `sendOpFn(...)` (autosave,
+ * rolls, "Propor ao Narrador") appear to do nothing.
+ *
+ * doc:update shape mismatch (pre-existing, not introduced by this adapter):
+ * every sheet VM's DocUpdatePayload is `{ type: "doc:update", documentType,
+ * id, diff, expectedVersion? }` (singular `id`/`diff`), but the WIRE schema
+ * (`DocUpdatePayloadSchema`, packages/shared/src/protocol.ts) requires
+ * `{ documentType, updates: [{ _id, diff, expectedVersion? }] }` (a batch
+ * array). Sending the flat shape gets rejected with VALIDATION_FAILED —
+ * verified against a real boot()'d server. Normalizing here (instead of in
+ * every VM) fixes autosave for ALL sheets — PF2e's CharacterSheet/NpcSheet
+ * included — without touching their (correct, well-tested) VM logic.
+ */
+export function makeSendOpFn(socket: Socket): (op: unknown) => void {
+  return (op) => {
+    if (op === null || typeof op !== "object" || !("type" in op)) {
+      console.error("[sendOpFn] malformed op (missing type):", op);
+      return;
+    }
+    const { type, ...payload } = op as { type: string } & Record<string, unknown>;
+    const normalizedPayload = type === "doc:update" ? normalizeDocUpdate(payload) : payload;
+    sendOp(socket, { type: type as Envelope["type"], payload: normalizedPayload }).catch(
+      (err: unknown) => {
+        console.error(`[sendOpFn] "${type}" failed:`, err);
+      },
+    );
+  };
+}
+
+/**
+ * Normalizes a flat `{ documentType, id, diff, expectedVersion? }` doc:update
+ * op (every sheet VM's shape) into the wire shape `{ documentType, updates:
+ * [{ _id, diff, expectedVersion? }] }`. A payload that already carries
+ * `updates` (e.g. a future multi-doc batch update) passes through unchanged.
+ */
+function normalizeDocUpdate(payload: Record<string, unknown>): Record<string, unknown> {
+  if ("updates" in payload) return payload;
+  const { documentType, id, diff, expectedVersion } = payload;
+  if (typeof id !== "string" || diff === null || typeof diff !== "object") return payload;
+  return {
+    documentType,
+    updates: [
+      {
+        _id: id,
+        diff,
+        ...(expectedVersion !== undefined ? { expectedVersion } : {}),
+      },
+    ],
+  };
+}

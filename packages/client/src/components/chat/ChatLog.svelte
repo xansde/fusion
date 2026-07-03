@@ -28,10 +28,15 @@
     socket,
     worldId,
     visible = true,
+    isGm = false,
+    userId = "",
   }: {
     socket: Socket;
     worldId: string;
     visible?: boolean;
+    /** Forwarded to ChatMessage so system cards (e.g. Etmos ConjuracaoCard) can gate role-specific buttons. */
+    isGm?: boolean;
+    userId?: string;
   } = $props();
 
   let logEl: HTMLElement | null = $state(null);
@@ -120,7 +125,7 @@
       <p class="chat-log__empty">No messages yet. Say something!</p>
     {:else}
       {#each chatStore.messages as msg (msg._id)}
-        <ChatMessageComponent message={msg} />
+        <ChatMessageComponent message={msg} {socket} {isGm} {userId} />
       {/each}
     {/if}
 

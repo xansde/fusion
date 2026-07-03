@@ -11,7 +11,9 @@
    * REQ-CHT-024..028: chat cards, buttons, no arbitrary HTML.
    */
 
+  import type { Socket } from "socket.io-client";
   import type { ChatMessage as ChatMessageType } from "@fusion/shared";
+  import { ConjuracaoCardSchema } from "@fusion/system-etmos";
   import {
     getMessageDisplayMeta,
     formatRoll,
@@ -19,10 +21,39 @@
     type FormattedRoll,
   } from "../../lib/chat/messageFormatter.js";
   import ChatCard from "./ChatCard.svelte";
+  import ConjuracaoCard from "./etmos/ConjuracaoCard.svelte";
 
-  const { message }: { message: ChatMessageType } = $props();
+  const {
+    message,
+    socket,
+    isGm = false,
+    userId = "",
+  }: {
+    message: ChatMessageType;
+    /** Optional — only required to render system cards with actionable buttons (e.g. Etmos ConjuracaoCard). */
+    socket?: Socket;
+    isGm?: boolean;
+    userId?: string;
+  } = $props();
 
   const meta = $derived(getMessageDisplayMeta(message));
+
+  // Etmos Compositor de Magias card — flags.etmos.conjuracao (design doc
+  // m5-etmos-compositor.md §3.1/§3.4). NOT a `message.card` (CardData) —
+  // buildCardMessage (conjuracao-handlers.ts) stores the state machine
+  // payload directly under flags, so this is detected separately from the
+  // generic declarative ChatCard path. Validated (not just cast) with the
+  // SAME Zod schema the server uses (readCard's ConjuracaoCardSchema) —
+  // a malformed/foreign flag silently falls through to the text renderer
+  // instead of crashing the chat log.
+  const conjuracaoCard = $derived.by(() => {
+    const raw = (message.flags as Record<string, Record<string, unknown>> | undefined)?.["etmos"]?.[
+      "conjuracao"
+    ];
+    if (raw === undefined) return null;
+    const result = ConjuracaoCardSchema.safeParse(raw);
+    return result.success ? result.data : null;
+  });
 
   // Formatted rolls for the roll type
   const formattedRolls = $derived<FormattedRoll[]>(
@@ -137,6 +168,9 @@
         {/if}
       </div>
     {/each}
+  {:else if message.type === "system" && conjuracaoCard}
+    <!-- Etmos Compositor de Magias card (flags.etmos.conjuracao) -->
+    <ConjuracaoCard card={conjuracaoCard} messageId={message._id} {socket} {isGm} {userId} />
   {:else if message.type === "system" && message.card}
     <!-- Chat card (declarative, no innerHTML) -->
     <ChatCard card={message.card} messageId={message._id} />

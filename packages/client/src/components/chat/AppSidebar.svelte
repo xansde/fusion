@@ -249,7 +249,7 @@
 
         {:else if activeTab === "chat"}
           <!-- Chat tab -->
-          <ChatPanel {socket} {worldId} visible={activeTab === "chat"} />
+          <ChatPanel {socket} {worldId} {isGm} {userId} visible={activeTab === "chat"} />
 
         {:else if activeTab === "actors"}
           <!-- Actors tab -->

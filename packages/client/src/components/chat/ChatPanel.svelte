@@ -29,10 +29,15 @@
     socket,
     worldId,
     visible = true,
+    isGm = false,
+    userId = "",
   }: {
     socket: Socket;
     worldId: string;
     visible?: boolean;
+    /** Forwarded to ChatLog/ChatMessage so system cards (e.g. Etmos ConjuracaoCard) can gate role-specific buttons. */
+    isGm?: boolean;
+    userId?: string;
   } = $props();
 
   // 3D dice toggle (will be user setting in M1-E; default true)
@@ -113,7 +118,7 @@
   </div>
 
   <!-- Chat log -->
-  <ChatLog {socket} {worldId} {visible} />
+  <ChatLog {socket} {worldId} {visible} {isGm} {userId} />
 
   <!-- Dice canvas host (used by dice-box) -->
   <div
