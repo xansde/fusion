@@ -86,7 +86,7 @@ export async function loadSceneDocument(
   // Cast needed: scene.grid is inferred from Zod with `| undefined` on optional
   // fields, which is incompatible with GridConfig under exactOptionalPropertyTypes.
   const gridCfg = GridRenderer.fromGridConfig(
-    scene.grid as unknown as GridConfig,
+    (scene.grid ?? null) as unknown as GridConfig | null,
     totalWidth,
     totalHeight,
     padX,

@@ -89,12 +89,17 @@ export class GridRenderer {
    * Build a GridRenderConfig from a shared GridConfig + scene dimensions.
    */
   static fromGridConfig(
-    grid: GridConfig,
+    grid: GridConfig | null | undefined,
     totalWidth: number,
     totalHeight: number,
     offsetX = 0,
     offsetY = 0,
-  ): GridRenderConfig {
+  ): GridRenderConfig | null {
+    // Defense-in-depth: a scene without a `grid` block (e.g. legacy/minimal
+    // docs, or a gridless scene) must hide the grid, not crash reading
+    // `grid.size`. The caller passes the result straight to setGrid(), which
+    // accepts null.
+    if (!grid) return null;
     return {
       size: Math.max(50, grid.size),
       color: grid.color,
