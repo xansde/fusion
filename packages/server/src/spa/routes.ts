@@ -75,6 +75,17 @@ export function resolveClientDistDir(overrideDir?: string): string | null {
     return overrideDir;
   }
 
+  // M6/B3 (SEA build): there is no monorepo checkout on disk next to a SEA
+  // executable — findMonorepoRoot below would always return null. Inside a
+  // SEA process, runtime/sea-entry.ts extracts the embedded client dist to
+  // <dataDir>/runtime/<version>/client-dist/ BEFORE boot() runs and records
+  // the resulting path in this env var (process-local, never read from
+  // outside this process — not a persisted/user-facing config knob).
+  const seaClientDist = process.env["FUSION_SEA_CLIENT_DIST"];
+  if (seaClientDist !== undefined && seaClientDist.length > 0) {
+    return existsSync(seaClientDist) ? seaClientDist : null;
+  }
+
   const here = dirname(fileURLToPath(import.meta.url));
   const root = findMonorepoRoot(here);
   if (root === null) return null;

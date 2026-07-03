@@ -33,6 +33,7 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M5-E     | Etmos: iniciativa compare 3-níveis, Reação, Marcos+Tabela E, Contestado (fecha o M5)                            | concluído | 91→✓ endurecido   |
 | M6-B0/B1 | Distribuição: SPA servido pelo server + versão única; data dir Documents/FusionVTT + migração + serve sem world | concluído | 74→97 corrigido   |
 | M6-B2/B4 | Distribuição: wizard /setup (Admin Key Argon2id, QR/LAN) + túnel cloudflared com hash pinado                    | concluído | 90→✓ endurecido   |
+| M6-B3    | Distribuição: pipeline de release — exe SEA Windows real (117MB, smoke §5.2 verde) + CI matrix + manifesto      | concluído | 93                |
 
 **🎉 MVP ALCANÇADO (2026-06-26) — primeira sessão jogável de PF2e funciona ponta-a-ponta (verificado via boot real).** ~2.500 testes verdes. Pós-MVP: **M4 (SF2e) concluído em 2026-07-01** (~2.700 testes); designs do M5 (compositor Etmos) e M6 (distribuição) prontos em `docs/design/`. Restam: **M4.5-wiring** (religações críticas pré-existentes: iniciativa por sistema + derive em produção), M5 (Etmos, 5 batches A–E) e M6 (distribuição, 6 batches).
 
@@ -59,6 +60,11 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 - Próximos batches após M2-A: M2-B (fog), M2-C (combate), depois M3 (A–F) → primeira sessão jogável.
 
 ## Registro por batch
+
+### M6-B3 — Pipeline de release (2026-07-03)
+
+- **O executável distribuível existe**: `pnpm build:release` (8 fases: drift-check de versão → build → rebuild dos 2 addons com pin de ABI → bundle esbuild CJS → SEA assets (client dist + .node) → montagem SEA/postject → hash+budget → manifesto) gera `fusion-server-0.1.0-windows-x64.exe` de **117,2 MB** (≤150) em ~59s, SHA-256 reprodutível. Os `.node` são extraídos com verificação para `runtime/<versão>/` na 1ª execução e reusados (cache provado por mtime; re-extração seletiva sob corrupção). Smoke §5.2 (`pnpm smoke:release`) contra o próprio artefato: world PF2e criado → serve → `/health` (1,2s) → login GM → handshake socket.io → snapshot — 11s total. Wizard e SPA funcionam DENTRO do exe. `release.yml` com matrix 4 alvos (tag `v*`, testes antes, smoke por runner, publish com merge de manifestos; `updateRepo` placeholder — DA-01). `minimumFusion` desacoplado da versão do binário. esbuild/postject como devDeps de build justificadas; zero dependência de runtime nova; dev flow intacto.
+- **Gate**: 93 na 1ª auditoria (auditor reconstruiu do zero e reproduziu o smoke). 2 médias → **pagas no batch B5**: (a) legs Linux/macOS do release.yml escrevem o manifesto antes do empacotamento AppImage/dmg e deletam o binário cru (auto-update quebraria nesses alvos; Windows correto); (b) compêndios de sistema não viajam no SEA — em máquina sem checkout, `compendium:list` = [] (gap pré-existente; bloqueia a experiência completa de distribuição). 3 baixas registradas (limpeza de versões antigas no dist-release, comentário drift, deprecação do runner macos-13).
 
 ### M6-B2/B4 — Wizard de primeira execução + túnel WAN (2026-07-03)
 

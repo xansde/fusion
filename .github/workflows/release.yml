@@ -1,0 +1,257 @@
+name: Release
+
+# REQ-DST-042/043/044: matrix CI, tag-triggered, tests gate the release.
+on:
+  push:
+    tags:
+      - "v*"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # REQ-DST-044: full test suite MUST pass before any release artifact is
+  # built. A separate job (not a step inside build-release) so a test
+  # failure cancels every matrix leg instead of wasting matrix minutes.
+  # ---------------------------------------------------------------------------
+  test:
+    name: Test (gate)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Lint boundaries
+        run: pnpm lint:boundaries
+
+      - name: Test
+        run: pnpm test
+
+  # ---------------------------------------------------------------------------
+  # REQ-DST-042: matrix (windows-latest, macos-latest x64+arm64, ubuntu-22.04).
+  # Each runner builds its OWN artifact natively — DEC-M6-01/§1.3: "Nenhum
+  # cross-compile de addon — cada alvo é montado no seu próprio runner
+  # nativo (macOS arm64 via runner Apple Silicon do GitHub)".
+  # ---------------------------------------------------------------------------
+  build:
+    name: Build (${{ matrix.platform-label }})
+    needs: test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform-label: windows-x64
+          - os: macos-latest
+            platform-label: macos-arm64
+            # GitHub's `macos-latest` runners are Apple Silicon (arm64) —
+            # CA-DST-03 requires this artifact run NATIVELY without Rosetta.
+          - os: macos-13
+            platform-label: macos-x64
+            # macos-13 is the last Intel (x64) hosted runner GitHub offers;
+            # pins the x64 leg of the matrix to real x64 hardware rather
+            # than relying on Rosetta cross-emulation during the build.
+          - os: ubuntu-22.04
+            platform-label: linux-x64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build release (workspace build + native rebuild + SEA assembly)
+        run: pnpm build:release
+
+      - name: Smoke test (design doc §5.2 — REQ-DST gate)
+        run: pnpm smoke:release
+
+      # -------------------------------------------------------------------
+      # Linux: wrap the raw SEA binary into an AppImage (REQ-DST-006's
+      # spirit — "1 arquivo" — applied to the headless artifact per the
+      # design doc §1.3 "Linux: AppImage... resolve o '1 arquivo'
+      # nativamente"). CI-ONLY: appimagetool is not installed/validated on
+      # the dev machine this batch was implemented on — steps below are
+      # authored from appimagetool's documented CLI and Node SEA's own
+      # binary-is-already-self-contained property, but have NOT been run
+      # end-to-end outside this workflow. Treat as "validated only in CI"
+      # until a real release tag exercises this job.
+      # -------------------------------------------------------------------
+      - name: "[Linux, CI-only] Package AppImage"
+        if: matrix.platform-label == 'linux-x64'
+        run: |
+          set -euo pipefail
+          VERSION=$(node -p "require('./package.json').version")
+          ARTIFACT="dist-release/fusion-server-${VERSION}-linux-x64"
+
+          APPDIR="dist-release/AppDir"
+          mkdir -p "$APPDIR/usr/bin"
+          cp "$ARTIFACT" "$APPDIR/usr/bin/fusion-server"
+          chmod +x "$APPDIR/usr/bin/fusion-server"
+
+          cat > "$APPDIR/AppRun" <<'EOF'
+          #!/bin/sh
+          HERE="$(dirname "$(readlink -f "$0")")"
+          exec "$HERE/usr/bin/fusion-server" "$@"
+          EOF
+          chmod +x "$APPDIR/AppRun"
+
+          cat > "$APPDIR/fusion-server.desktop" <<EOF
+          [Desktop Entry]
+          Type=Application
+          Name=Fusion VTT Server
+          Exec=fusion-server
+          Icon=fusion-server
+          Categories=Game;
+          Terminal=true
+          EOF
+
+          # Minimal 1x1 placeholder icon — REQ-DST doesn't mandate real
+          # artwork for the headless server; AppImage requires SOME icon
+          # file to exist to build successfully.
+          printf '\x89PNG\r\n\x1a\n' > "$APPDIR/fusion-server.png"
+
+          curl -L -o appimagetool "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
+          chmod +x appimagetool
+          ./appimagetool --appimage-extract-and-run "$APPDIR" "dist-release/fusion-server-${VERSION}-linux-x64.AppImage"
+          rm -f "$ARTIFACT"
+
+      # -------------------------------------------------------------------
+      # macOS: wrap into a minimal .app bundle (design doc §1.3 "macOS:
+      # .app dentro de .dmg"). CI-ONLY, same caveat as the Linux step above
+      # — authored from Apple's documented bundle layout, not run outside
+      # this workflow. Notarization/signing is explicitly OUT of scope for
+      # the MVP headless distribution (DA-02/DA-03) — this produces an
+      # UNSIGNED .dmg, matching the documented Gatekeeper trade-off.
+      # -------------------------------------------------------------------
+      - name: "[macOS, CI-only] Package .app + .dmg"
+        if: startsWith(matrix.platform-label, 'macos-')
+        run: |
+          set -euo pipefail
+          VERSION=$(node -p "require('./package.json').version")
+          ARTIFACT="dist-release/fusion-server-${VERSION}-${{ matrix.platform-label }}"
+
+          APP="dist-release/Fusion VTT Server.app"
+          mkdir -p "$APP/Contents/MacOS"
+          mkdir -p "$APP/Contents/Resources"
+          cp "$ARTIFACT" "$APP/Contents/MacOS/fusion-server"
+          chmod +x "$APP/Contents/MacOS/fusion-server"
+
+          cat > "$APP/Contents/Info.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleName</key><string>Fusion VTT Server</string>
+            <key>CFBundleIdentifier</key><string>REPLACE_ME.fusion.server</string>
+            <key>CFBundleVersion</key><string>${VERSION}</string>
+            <key>CFBundleExecutable</key><string>fusion-server</string>
+            <key>CFBundlePackageType</key><string>APPL</string>
+          </dict>
+          </plist>
+          EOF
+
+          hdiutil create -volname "Fusion VTT Server" -srcfolder "$APP" -ov -format UDZO \
+            "dist-release/fusion-server-${VERSION}-${{ matrix.platform-label }}.dmg"
+          rm -f "$ARTIFACT"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.platform-label }}
+          path: |
+            dist-release/fusion-server-*
+            dist-release/latest-*.json
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
+  # REQ-DST-043: create the GitHub Release + merge each platform's manifest
+  # into one combined latest-stable.json (REQ-DST-027).
+  # ---------------------------------------------------------------------------
+  publish:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Merge per-platform manifests into one latest-stable.json
+        run: |
+          node -e '
+            const fs = require("fs");
+            const path = require("path");
+            const artifactsDir = "artifacts";
+            const dirs = fs.readdirSync(artifactsDir);
+            let merged = null;
+            for (const dir of dirs) {
+              const manifestPath = path.join(artifactsDir, dir, "latest-stable.json");
+              if (!fs.existsSync(manifestPath)) continue;
+              const m = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+              if (merged === null) {
+                merged = m;
+              } else {
+                merged.platforms = { ...merged.platforms, ...m.platforms };
+              }
+            }
+            if (merged === null) throw new Error("No latest-stable.json found in any artifact");
+            fs.writeFileSync("latest-stable.json", JSON.stringify(merged, null, 2));
+            console.log("Merged manifest:", JSON.stringify(merged, null, 2));
+          '
+
+      - name: Collect binaries for the release
+        run: |
+          mkdir -p release-files
+          find artifacts -name "fusion-server-*" -exec cp {} release-files/ \;
+          cp latest-stable.json release-files/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-files/*
+          generate_release_notes: true
+          draft: false
+          prerelease: false

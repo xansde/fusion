@@ -164,7 +164,14 @@ export async function runWorldCreate(args: WorldCreateArgs): Promise<void> {
 
     if (args.gmPassword !== undefined) {
       process.stdout.write(
-        `\n  GM user "${user.name}" created (password set via --gm-password).\n`,
+        `\n  GM user "${user.name}" created (password set via --gm-password).\n` +
+          // Machine-parseable line for tooling (M6/B3 smoke-release.mjs parses
+          // this to log in and open a socket.io session without needing a
+          // separate DB read) — deliberately only emitted in the
+          // --gm-password branch, since that is the only case where the
+          // caller already knows the plaintext password and can actually use
+          // this id to authenticate.
+          `  gmUserId: ${user.id}\n`,
       );
     } else {
       process.stdout.write(

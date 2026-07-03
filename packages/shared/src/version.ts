@@ -30,3 +30,24 @@
  *   Until then, this constant is the only place a human needs to edit.
  */
 export const FUSION_VERSION = "0.1.0";
+
+/**
+ * Minimum Fusion **data-format** version a world.db is compatible with.
+ *
+ * M6/B3 bonus (paying down a B0/B1 debt): `WorldManager.create` used to stamp
+ * `WorldManifest.compatibility.minimumFusion` with the CURRENT `FUSION_VERSION`
+ * at creation time (see worlds/world-manager.ts). That coupled a world's
+ * declared compatibility floor to whatever binary happened to create it —
+ * every release would silently raise the floor for brand-new worlds even
+ * when nothing about the on-disk world.db FORMAT changed, which is the wrong
+ * signal for "can an older/newer server open this world".
+ *
+ * This constant is the actual thing that matters for compatibility: the
+ * shape of world.db + world.json this version of the code knows how to read
+ * (see db/migrations.ts's `schemaVersion` for the SQLite-side counterpart —
+ * this constant is the sibling for whatever isn't expressed as a SQL
+ * migration, e.g. WorldManifest's own JSON shape). It changes only when a
+ * breaking change is made to that on-disk data format, independently of how
+ * often FUSION_VERSION itself bumps for unrelated feature releases.
+ */
+export const MINIMUM_FUSION_DATA_FORMAT = "0.1.0";

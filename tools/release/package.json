@@ -1,0 +1,16 @@
+{
+  "name": "@fusion/release-tools",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fusion/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.8.3",
+    "vitest": "^3.2.2"
+  }
+}

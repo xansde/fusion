@@ -4,6 +4,7 @@ docs/etmos-fontes/
 # Dependências e build
 node_modules/
 dist/
+dist-release/
 build/
 coverage/
 

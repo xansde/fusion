@@ -25,6 +25,7 @@ import { openDatabase, applyMigrations, DatabaseCorruptionError } from "../db/in
 import type { FusionDatabase } from "../db/index.js";
 import {
   FUSION_VERSION,
+  MINIMUM_FUSION_DATA_FORMAT,
   type WorldManifest,
   type WorldLock,
   type BackupEntry,
@@ -285,7 +286,9 @@ export class WorldManager {
       lastOpenedAt: now,
       playTime: 0,
       compatibility: {
-        minimumFusion: FUSION_VERSION,
+        // M6/B3: the data-format floor, NOT the creating binary's version —
+        // see shared/src/version.ts's doc comment on MINIMUM_FUSION_DATA_FORMAT.
+        minimumFusion: MINIMUM_FUSION_DATA_FORMAT,
       },
     };
 

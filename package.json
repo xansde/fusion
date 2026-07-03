@@ -11,13 +11,17 @@
     "test": "vitest run --workspace vitest.workspace.ts",
     "test:watch": "vitest --workspace vitest.workspace.ts",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\""
+    "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\"",
+    "build:release": "node tools/release/build-release.mjs",
+    "smoke:release": "node tools/release/smoke-release.mjs"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.33.0",
     "@typescript-eslint/parser": "^8.33.0",
     "dependency-cruiser": "^16.10.0",
+    "esbuild": "^0.28.1",
     "eslint": "^9.27.0",
+    "postject": "1.0.0-alpha.6",
     "prettier": "^3.5.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.33.0",
