@@ -13,6 +13,9 @@ export {
   EtmosConjuracaoRolarPayloadSchema,
   EtmosConjuracaoResolverPayloadSchema,
   EtmosConjuracaoCancelarPayloadSchema,
+  EtmosContestadoLadoPayloadSchema,
+  EtmosTesteContestadoPayloadSchema,
+  EtmosReacaoUsarPayloadSchema,
 } from "./protocol.js";
 
 export type {
@@ -22,4 +25,7 @@ export type {
   EtmosConjuracaoRolarPayload,
   EtmosConjuracaoResolverPayload,
   EtmosConjuracaoCancelarPayload,
+  EtmosContestadoLadoPayload,
+  EtmosTesteContestadoPayload,
+  EtmosReacaoUsarPayload,
 } from "./protocol.js";

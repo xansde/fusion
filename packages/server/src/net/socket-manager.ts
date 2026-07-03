@@ -79,6 +79,10 @@ import {
   buildConjuracaoRolarHandler,
   buildConjuracaoResolverHandler,
   buildConjuracaoCancelarHandler,
+  buildContestadoHandler,
+  buildReacaoUsarHandler,
+  registerReacaoResetOnTurnStart,
+  buildProgressaoConfirmarHandler,
 } from "../etmos/index.js";
 import { redactAckResultForNonPrivileged } from "./redaction.js";
 import { DocumentStore } from "../documents/index.js";
@@ -337,6 +341,12 @@ export class SocketManager {
     // REQ-CBT-055: clear a targeter's targets when their combatant's turn ends.
     registerTargetingCleanup(targetDeps, eventBus);
 
+    // REQ-ETM-023: reset each Etmos combatant's Reação counter at the start
+    // of their own turn. Registered unconditionally (same rationale as the
+    // etmos:conjuracao:* handlers below) — the listener itself no-ops for
+    // non-orador/antagonista combatants, so non-Etmos worlds are unaffected.
+    registerReacaoResetOnTurnStart(eventBus, { store, seqStore, opBuffer, ns });
+
     // Register M3-D compendium handlers (REQ-CMP-010..024)
     const compSvc = compendiumService ?? new CompendiumService();
     const compDeps = {
@@ -370,6 +380,23 @@ export class SocketManager {
     registry.register("etmos:conjuracao:rolar", buildConjuracaoRolarHandler(conjuracaoDeps));
     registry.register("etmos:conjuracao:resolver", buildConjuracaoResolverHandler(conjuracaoDeps));
     registry.register("etmos:conjuracao:cancelar", buildConjuracaoCancelarHandler(conjuracaoDeps));
+
+    // REQ-ETM-021/CA-6: Teste Contestado — one-shot two-roll action, same deps
+    // shape (store/db/ns/seqStore/opBuffer/worldId) as the Compositor handlers.
+    registry.register("etmos:teste:contestado", buildContestadoHandler(conjuracaoDeps));
+
+    // REQ-ETM-023: Reação por rodada — spend half (reset half is
+    // registerReacaoResetOnTurnStart above, wired directly to the CombatEventBus).
+    registry.register(
+      "etmos:reacao:usar",
+      buildReacaoUsarHandler({ store, db, ns, seqStore, opBuffer, worldId }),
+    );
+
+    // REQ-ETM-035..039/CA-11: Marcos de Crescimento level-up confirmation.
+    registry.register(
+      "etmos:progressao:confirmar",
+      buildProgressaoConfirmarHandler({ store, ns, seqStore, opBuffer, worldId }),
+    );
 
     // REQ-NET-003/014: auth middleware runs before connection is accepted
     ns.use((socket, next) => {

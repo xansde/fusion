@@ -255,6 +255,12 @@
   "ETMOS.Orador.Totem.Possui": "Has Totem",
   "ETMOS.Orador.Totem.Rank": "Totem Rank",
 
+  "ETMOS.Orador.Contestado.Titulo": "Contested Test",
+  "ETMOS.Orador.Contestado.MeuAtributo": "My Attribute",
+  "ETMOS.Orador.Contestado.BonusOponente": "Opponent's Bonus",
+  "ETMOS.Orador.Contestado.Descricao": "Description (optional)",
+  "ETMOS.Orador.Contestado.Disparar": "Contest",
+
   "ETMOS.Orador.Grimorio.Categoria.funcao": "Funções",
   "ETMOS.Orador.Grimorio.Categoria.objeto": "Objetos",
   "ETMOS.Orador.Grimorio.Categoria.caracteristica": "Características",
@@ -267,6 +273,14 @@
   "ETMOS.Orador.Marcos.Mentais": "Mental",
   "ETMOS.Orador.Marcos.Emocionais": "Emotional",
   "ETMOS.Orador.Marcos.EmBreve": "Level-up progression is coming in a future batch — Marcos can already be marked here.",
+  "ETMOS.Orador.Marcos.BonusDisponivel": "Progression Bonus available",
+
+  "ETMOS.Orador.Progressao.Titulo": "Level Up to {{n}}",
+  "ETMOS.Orador.Progressao.Fisica": "Physical Bonus",
+  "ETMOS.Orador.Progressao.Mental": "Mental Bonus",
+  "ETMOS.Orador.Progressao.Emocional": "Emotional Bonus",
+  "ETMOS.Orador.Progressao.ItemIdPlaceholder": "Item ID(s), comma-separated (Particle/Skill)",
+  "ETMOS.Orador.Progressao.Confirmar": "Confirm Level Up",
 
   "ETMOS.Orador.Conceito.Basico": "Basic Concept",
   "ETMOS.Orador.Conceito.Aparencia": "Appearance",

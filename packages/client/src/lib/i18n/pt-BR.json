@@ -255,6 +255,12 @@
   "ETMOS.Orador.Totem.Possui": "Possui Totem",
   "ETMOS.Orador.Totem.Rank": "Rank do Totem",
 
+  "ETMOS.Orador.Contestado.Titulo": "Teste Contestado",
+  "ETMOS.Orador.Contestado.MeuAtributo": "Meu Atributo",
+  "ETMOS.Orador.Contestado.BonusOponente": "Bônus do Oponente",
+  "ETMOS.Orador.Contestado.Descricao": "Descrição (opcional)",
+  "ETMOS.Orador.Contestado.Disparar": "Disputar",
+
   "ETMOS.Orador.Grimorio.Categoria.funcao": "Funções",
   "ETMOS.Orador.Grimorio.Categoria.objeto": "Objetos",
   "ETMOS.Orador.Grimorio.Categoria.caracteristica": "Características",
@@ -267,6 +273,14 @@
   "ETMOS.Orador.Marcos.Mentais": "Mentais",
   "ETMOS.Orador.Marcos.Emocionais": "Emocionais",
   "ETMOS.Orador.Marcos.EmBreve": "Progressão de nível chega em um próximo batch — os Marcos já podem ser marcados aqui.",
+  "ETMOS.Orador.Marcos.BonusDisponivel": "Bônus de Progressão disponível",
+
+  "ETMOS.Orador.Progressao.Titulo": "Subir para o Nível {{n}}",
+  "ETMOS.Orador.Progressao.Fisica": "Bônus Físico",
+  "ETMOS.Orador.Progressao.Mental": "Bônus Mental",
+  "ETMOS.Orador.Progressao.Emocional": "Bônus Emocional",
+  "ETMOS.Orador.Progressao.ItemIdPlaceholder": "ID(s) do Item, separados por vírgula (Partícula/Habilidade)",
+  "ETMOS.Orador.Progressao.Confirmar": "Confirmar Subida de Nível",
 
   "ETMOS.Orador.Conceito.Basico": "Conceito Básico",
   "ETMOS.Orador.Conceito.Aparencia": "Aparência",

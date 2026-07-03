@@ -41,6 +41,7 @@ import {
   PREFIX_OBJETO_SLUG,
   CONNECTOR_SLUG,
   PREFIX_CARACTERISTICA_SLUGS,
+  ERR as VALIDAR_FRASE_ERR,
 } from "@fusion/system-etmos";
 import type {
   FraseMagicaSystem,
@@ -409,15 +410,17 @@ export class CompositorVM {
 
     // Rule 1 needs the transient multi-select BEFORE it collapses to a single
     // slot — surface "multiplasFuncoes"/"semFuncao" precisely (G9/G10).
+    // Error keys imported from system-etmos's validar-frase.ts (single source
+    // of truth — M5-E anti-drift fix, CTX item (e)), never re-typed here.
     if (this.slots.funcaoSlugsSelecionados.length !== 1) {
       const erros: string[] = [];
       if (this.slots.funcaoSlugsSelecionados.length === 0) {
-        erros.push("etmos.compositor.erro.semFuncao");
+        erros.push(VALIDAR_FRASE_ERR.semFuncao);
       } else {
-        erros.push("etmos.compositor.erro.multiplasFuncoes");
+        erros.push(VALIDAR_FRASE_ERR.multiplasFuncoes);
       }
       if (this.slots.objetoSlugs.length === 0) {
-        erros.push("etmos.compositor.erro.semObjeto");
+        erros.push(VALIDAR_FRASE_ERR.semObjeto);
       }
       return { valido: false, erros, avisos: [] };
     }

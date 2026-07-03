@@ -796,6 +796,17 @@ export function buildConjuracaoResolverHandler(deps: ConjuracaoHandlerDeps): Han
     // custo_estresse was fixed at arbitragem time (possibly GM-overridden);
     // resolver applies EXACTLY that value, never recomputing it from
     // `sucesso` — success/failure never changes whether the cost applies.
+    //
+    // Cross-reference (M5-E audit FIX 6): reacao-handler.ts's
+    // applyEstresseCost replicates this EXACT same shape
+    // (`system.estresse.atual` + recomputed `system.fadiga.estado` via
+    // estadoFadiga) for the Agilidade Mental 2nd-Reação cost. The two call
+    // sites are intentionally NOT unified in this batch — this Compositor
+    // resolver flow is considered intocável for M5-E (see this file's own
+    // docstring). TODO [divida futura]: extract a shared
+    // `applyEstresseCost(store, actorId, delta, userId)` helper once both
+    // call sites are touched again for an unrelated reason — do not extract
+    // preemptively just to satisfy DRY.
     const custo = card.custo_estresse;
 
     let updatedActor: Record<string, unknown> | null;

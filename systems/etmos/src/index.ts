@@ -14,10 +14,12 @@
  * `compositor/degree.ts`.
  *
  * THIS BATCH (M5-B / B1) scope: schemas + defineSystem + pack build only.
- * NO sheets, NO UI, NO server wiring (M5-C/D). Initiative formula
- * registration (REQ-ETM-022, `compare`) is also OUT of scope for B1 — it
- * belongs to M5-E per the design doc's batch plan; this module does not call
- * `registerInitiativeFormula` yet.
+ * NO sheets, NO UI, NO server wiring (M5-C/D).
+ *
+ * M5-E adds the initiative formula registration (REQ-ETM-022, CA-7): `2d6 +
+ * Corpo` via `registrar.registerInitiativeFormula("etmos", { roll, compare })`
+ * — the `{ roll, compare }` object form (M5-A E3) so the "jogadores vencem
+ * NPCs" desempate rule (DEC-CBT-04) travels alongside the roll fn.
  *
  * Clean-room implementation. Etmos RPG is a Editora Balde Galáctico / Rafa
  * Reis property — no proprietary prose or art is included; only mechanical
@@ -50,6 +52,9 @@ import { etmosDegreeOfSuccessDefinition } from "./compositor/degree.js";
 
 // Derivation steps (Orador: limites, complexidade máxima, fadiga)
 import { registerDerivations } from "./derivations/index.js";
+
+// Initiative formula — REQ-ETM-022, CA-7 (M5-E)
+import { etmosInitiativeFormulaRegistration } from "./initiative.js";
 
 // ---------------------------------------------------------------------------
 // defineSystem
@@ -184,6 +189,17 @@ export const etmosSystem = defineSystem(
     // -----------------------------------------------------------------------
 
     registerDerivations(registrar);
+
+    // -----------------------------------------------------------------------
+    // Initiative formula — REQ-ETM-022, CA-7, DEC-CBT-04 (M5-E).
+    // `{ roll, compare }` object form (M5-A E3): compare() carries the
+    // non-monotonic "jogadores vencem NPCs, empate por Corpo" desempate rule.
+    // Combat type key is the system id ("etmos"), same convention pf2e/sf2e
+    // use (registerSystemFormulas falls back to the registry's systemId for
+    // the default "standard" combatType — see system-formula-adapter.ts).
+    // -----------------------------------------------------------------------
+
+    registrar.registerInitiativeFormula("etmos", etmosInitiativeFormulaRegistration);
   },
 );
 
@@ -278,9 +294,15 @@ export * from "./compositor/degree.js";
 export * from "./compositor/custo.js";
 export * from "./compositor/validar-frase.js";
 export * from "./compositor/montar-frase.js";
+export * from "./compositor/contestado.js";
+export * from "./compositor/reacao.js";
+export * from "./compositor/progressao.js";
 
 // Derivation steps (Orador)
 export * from "./derivations/index.js";
 
 // Compositor card state machine (M5-C)
 export * from "./conjuracao/state-machine.js";
+
+// Initiative formula (M5-E)
+export * from "./initiative.js";

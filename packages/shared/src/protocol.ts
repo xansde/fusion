@@ -106,6 +106,13 @@ export const EnvelopeTypeSchema = z.union([
   z.literal("etmos:conjuracao:rolar"),
   z.literal("etmos:conjuracao:resolver"),
   z.literal("etmos:conjuracao:cancelar"),
+  // M5-E: Etmos Teste Contestado (spec 19 REQ-ETM-021, CA-6). client → server.
+  z.literal("etmos:teste:contestado"),
+  // M5-E: Etmos Reação por rodada (spec 19 REQ-ETM-023). client → server.
+  z.literal("etmos:reacao:usar"),
+  // M5-E: Etmos Marcos de Crescimento / Tabela E level-up (spec 19
+  // REQ-ETM-035..039, CA-11). client → server.
+  z.literal("etmos:progressao:confirmar"),
 ]);
 
 export type EnvelopeType = z.infer<typeof EnvelopeTypeSchema>;

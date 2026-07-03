@@ -22,6 +22,8 @@
  */
 
 import type { Complexidade, EstadoFadiga } from "@fusion/system-etmos";
+import { todasTrilhasCompletas, opcoesProgressao } from "@fusion/system-etmos";
+import type { OpcaoProgressao } from "@fusion/system-etmos";
 
 // ---------------------------------------------------------------------------
 // Op payloads sent to server (mirrors characterSheetVM.ts's DocUpdatePayload)
@@ -32,6 +34,23 @@ export interface DocUpdatePayload {
   documentType: string;
   id: string;
   diff: Record<string, unknown>;
+}
+
+// ---------------------------------------------------------------------------
+// Marcos de Crescimento / Tabela E level-up op (REQ-ETM-038, CA-11) — mirrors
+// the server's EtmosProgressaoConfirmarPayload shape 1:1 (progressao-handler.ts).
+// ---------------------------------------------------------------------------
+
+export type BonusEscolhido =
+  | { tipo: "atributo"; atributo: TrilhaAtributo }
+  | { tipo: "items"; itemIds: string[] };
+
+export interface EtmosProgressaoConfirmarOp {
+  type: "etmos:progressao:confirmar";
+  actorId: string;
+  fisica: BonusEscolhido;
+  mental: BonusEscolhido;
+  emocional: BonusEscolhido;
 }
 
 // ---------------------------------------------------------------------------
@@ -310,8 +329,11 @@ export class OradorSheetVM {
   }
 
   // -------------------------------------------------------------------------
-  // Marcos de Crescimento — trilhas 5x3 (M5-E owns the level-up trigger;
-  // this VM only exposes read/click state for the stub UI, REQ-ETM-035..039).
+  // Marcos de Crescimento — trilhas 5x3 + Tabela E level-up (REQ-ETM-035..039,
+  // CA-11). The pure decision logic (todasTrilhasCompletas/opcoesProgressao)
+  // lives in @fusion/system-etmos — this VM only reads document state and
+  // exposes it; the actual level-up write is server-authoritative
+  // (etmos:progressao:confirmar, packages/server/src/etmos/progressao-handler.ts).
   // -------------------------------------------------------------------------
 
   get marcos(): {
@@ -329,6 +351,16 @@ export class OradorSheetVM {
       mentais: track("mentais"),
       emocionais: track("emocionais"),
     };
+  }
+
+  /** True when the 3 Marcos trilhas are all completas (5/5/5) — REQ-ETM-037. */
+  get podeSubirDeNivel(): boolean {
+    return todasTrilhasCompletas(this.marcos);
+  }
+
+  /** The Tabela E row for the current nivel's transition, or null at nivel 6 (max). */
+  get opcaoProgressao(): OpcaoProgressao | null {
+    return opcoesProgressao(this.nivel);
   }
 
   // -------------------------------------------------------------------------
@@ -460,6 +492,28 @@ export class OradorSheetVM {
     const max = this.marcos[categoria].max;
     const clamped = Math.max(0, Math.min(max, Math.round(value)));
     return this.fieldUpdate(`system.marcos_crescimento.${categoria}.value`, clamped);
+  }
+
+  /**
+   * Build the etmos:progressao:confirmar op for a level-up (REQ-ETM-038,
+   * CA-11). Returns null when `podeSubirDeNivel` is false or the Actor is
+   * already at nivel 6 (opcaoProgressao is null) — callers should gate the
+   * "Subir de Nível" button on those getters directly, but this guard makes
+   * the op-builder itself safe against a stale click.
+   */
+  buildProgressaoConfirmarOp(
+    fisica: BonusEscolhido,
+    mental: BonusEscolhido,
+    emocional: BonusEscolhido,
+  ): EtmosProgressaoConfirmarOp | null {
+    if (!this.podeSubirDeNivel || this.opcaoProgressao === null) return null;
+    return {
+      type: "etmos:progressao:confirmar",
+      actorId: this._actorId,
+      fisica,
+      mental,
+      emocional,
+    };
   }
 
   /**

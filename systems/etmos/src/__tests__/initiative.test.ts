@@ -11,6 +11,7 @@ import {
   etmosInitiativeCompare,
   etmosInitiativeFormulaRegistration,
 } from "../initiative.js";
+import { etmosSystem } from "../index.js";
 
 function makeCombatant(overrides: Partial<CombatantDocument> = {}): CombatantDocument {
   return {
@@ -53,6 +54,26 @@ describe("etmosInitiativeFormula — 2d6 + Corpo (REQ-ETM-022)", () => {
 
   it("defaults Corpo to 0 when the actor doc is malformed/missing atributos", () => {
     const result = etmosInitiativeFormula(makeCombatant(), {});
+    expect(result.formula).toBe("2d6 + 0");
+    expect(result.tiebreaker).toBe(0);
+  });
+
+  // M5-E audit FIX 2: Antagonista persists atributos as BARE integers
+  // (systems/etmos/src/types.ts's AtributoAntagonistaSchema — no `.value`/
+  // `.max` wrapper, unlike Orador's AtributoSchema), matching
+  // antagonistaSheetVM.ts's `atributos` getter. Reading only `corpo.value`
+  // silently rolled 2d6+0 with tiebreaker 0 for every Antagonista.
+  it("resolves Corpo from a bare integer (Antagonista schema shape, not {value})", () => {
+    const actor = { system: { atributos: { corpo: 5 } } };
+    const result = etmosInitiativeFormula(makeCombatant(), actor);
+    expect(result.formula).toBe("2d6 + 5");
+    expect(result.tiebreaker).toBe(5);
+    expect(result.statistic).toBe("Corpo");
+  });
+
+  it("Antagonista with Corpo 0 (schema allows 0, D2) still resolves 2d6 + 0 explicitly", () => {
+    const actor = { system: { atributos: { corpo: 0 } } };
+    const result = etmosInitiativeFormula(makeCombatant(), actor);
     expect(result.formula).toBe("2d6 + 0");
     expect(result.tiebreaker).toBe(0);
   });
@@ -117,11 +138,48 @@ describe("etmosInitiativeCompare — REQ-ETM-022 desempate (CA-7)", () => {
     });
     expect(etmosInitiativeCompare(rolled, notRolled)).toBeLessThan(0);
   });
+
+  // M5-E audit FIX 2: end-to-end roll -> compare using an Antagonista's bare-
+  // integer Corpo shape. Before the fix, both Antagonistas' tiebreaker was
+  // silently 0 regardless of their real Corpo, breaking rule 3 of the
+  // desempate order.
+  it("tied total, both NPC (Antagonista bare-integer schema shape): higher Corpo wins via compare", () => {
+    const highCorpoActor = { system: { atributos: { corpo: 5 } } };
+    const lowCorpoActor = { system: { atributos: { corpo: 1 } } };
+
+    const highRoll = etmosInitiativeFormula(makeCombatant({ _id: "high" }), highCorpoActor);
+    const lowRoll = etmosInitiativeFormula(makeCombatant({ _id: "low" }), lowCorpoActor);
+    expect(highRoll.tiebreaker).toBe(5);
+    expect(lowRoll.tiebreaker).toBe(1);
+
+    const high = makeEntry({
+      total: 8,
+      tiebreaker: highRoll.tiebreaker,
+      combatant: makeCombatant({ hasPlayerOwner: false, _id: "high" }),
+    });
+    const low = makeEntry({
+      total: 8,
+      tiebreaker: lowRoll.tiebreaker,
+      combatant: makeCombatant({ hasPlayerOwner: false, _id: "low" }),
+    });
+    expect(etmosInitiativeCompare(high, low)).toBeLessThan(0);
+  });
 });
 
 describe("etmosInitiativeFormulaRegistration — M5-A {roll, compare} shape", () => {
   it("exposes both roll and compare for registrar.initiativeFormula", () => {
     expect(etmosInitiativeFormulaRegistration.roll).toBe(etmosInitiativeFormula);
     expect(etmosInitiativeFormulaRegistration.compare).toBe(etmosInitiativeCompare);
+  });
+});
+
+describe("etmosSystem — registered initiative formula reaches the server (M5-E)", () => {
+  it("registers 'etmos' in combat.initiativeFormulas and combat.initiativeCompares", () => {
+    // Real production wiring path: defineSystem → registrar.registerInitiativeFormula
+    // → SystemModule.combat.{initiativeFormulas,initiativeCompares} — the SAME maps
+    // registerSystemFormulas (server/combat/system-formula-adapter.ts) reads to build
+    // the InitiativeFormula the engine's sortCombatants actually uses (REQ-ETM-022, CA-7).
+    expect(etmosSystem.combat.initiativeFormulas.get("etmos")).toBe(etmosInitiativeFormula);
+    expect(etmosSystem.combat.initiativeCompares.get("etmos")).toBe(etmosInitiativeCompare);
   });
 });

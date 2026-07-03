@@ -30,6 +30,7 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 | M5-B  | Etmos: schemas Zod + packs (80 partículas) + compositor puro (fixtures G1-G10+G7b)            | concluído | 48→97 corrigido   |
 | M5-C  | Etmos: motor de conjuração no server (state-machine + 5 handlers + 2d6 no RollService)        | concluído | 91→✓ endurecido   |
 | M5-D  | Etmos: fichas Orador/Antagonista + Compositor UI + card de chat (🎯 Etmos jogável)            | concluído | 96                |
+| M5-E  | Etmos: iniciativa compare 3-níveis, Reação, Marcos+Tabela E, Contestado (fecha o M5)          | concluído | 91→✓ endurecido   |
 
 **🎉 MVP ALCANÇADO (2026-06-26) — primeira sessão jogável de PF2e funciona ponta-a-ponta (verificado via boot real).** ~2.500 testes verdes. Pós-MVP: **M4 (SF2e) concluído em 2026-07-01** (~2.700 testes); designs do M5 (compositor Etmos) e M6 (distribuição) prontos em `docs/design/`. Restam: **M4.5-wiring** (religações críticas pré-existentes: iniciativa por sistema + derive em produção), M5 (Etmos, 5 batches A–E) e M6 (distribuição, 6 batches).
 
@@ -56,6 +57,13 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 - Próximos batches após M2-A: M2-B (fog), M2-C (combate), depois M3 (A–F) → primeira sessão jogável.
 
 ## Registro por batch
+
+### M5-E — Etmos: progressão e combate — ✅ M5 COMPLETO (2026-07-03)
+
+- Fecha o sistema Etmos: iniciativa `2d6+Corpo` registrada com **compare de 3 níveis** (initiative desc → `hasPlayerOwner` vence → Corpo desc) propagado pelo adapter; **Reação por rodada** resetada no `turnStart` real do combate (Agilidade Mental eleva a 2; a 2ª aplica +3 Estresse pelo caminho do M5-C); **Marcos de Crescimento + Tabela E** com subida de nível semiautomática (bloqueio aos 5, sem categoria repetida, trilhas resetadas); **Teste Contestado** via RollService com empate pró-provocador e PC vence NPC (CA-6). Ganchos [V2] documentados (Descanso, Encantamento, baralho, favoritos). Órfão `MarcosTrilha.svelte` removido; `selectedTarget` do Antagonista wireado ao targeting real.
+- **Gate**: 91 (sem altas) + endurecimento imediato das 2 médias: validação **anti-forja** do tipo de bônus da Tabela E no servidor (payload forjado `{tipo:"atributo"}×3` → `VALIDATION_FAILED` com Actor intacto — provado nas duas direções e em transições além da 1→2) e shape de atributo inteiro do Antagonista na iniciativa (rolava `2d6+0`; sonda provou `2d6+20` com tiebreaker correto). Verificação final Fable 5 aprovou com sondas via boot real; Compositor intacto (e2e isolado verde).
+- Notas informativas registradas: `combat:setInitiative` resorta sem tiebreakerMap (design pré-existente do engine); dívida futura de helper comum `applyEstresseCost` (comentários cruzados nos dois call sites).
+- Suíte: ~3.200 testes verdes (etmos 247, server 541, client 946...).
 
 ### M5-D — Etmos: fichas + Compositor UI — 🎯 ETMOS JOGÁVEL (2026-07-02)
 

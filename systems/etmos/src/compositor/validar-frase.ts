@@ -52,7 +52,15 @@ export interface ValidarFraseResult {
   readonly avisos: string[];
 }
 
-const ERR = {
+/**
+ * i18n error keys emitted by validarFrase()/validarFuncaoUnica() — exported
+ * (not module-private) so every caller that needs to branch on or compose
+ * these strings (e.g. the client's compositorVM.ts pre-collapse Função check,
+ * design doc §3.2/G9/G10) imports them from this single source of truth
+ * instead of re-typing the literal, which had drifted into a copy in
+ * compositorVM.ts (M5-D/M5-E anti-drift fix — CTX item (e)).
+ */
+export const ERR = {
   semFuncao: "etmos.compositor.erro.semFuncao",
   multiplasFuncoes: "etmos.compositor.erro.multiplasFuncoes",
   semObjeto: "etmos.compositor.erro.semObjeto",
@@ -63,7 +71,7 @@ const ERR = {
   complementoDesconhecido: "etmos.compositor.erro.complementoDesconhecido",
 } as const;
 
-const WARN = {
+export const WARN = {
   modificadorDuplicado: "etmos.compositor.aviso.modificadorDuplicado",
 } as const;
 

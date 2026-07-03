@@ -13,10 +13,17 @@
    *   - Ferimentos/Estresse/Complexidade/Movimentação limits are directly
    *     editable (fixed statblock, not derived).
    *   - Aptidões + Ataques free lists; Ataques carry EXACT `ferimentos` damage
-   *     (REQ-ETM-050) with an "apply to target" action wired to the combat
-   *     tracker's existing target-selection (via `selectedTargetActorId` prop +
-   *     `onApplyDamage` callback — no new tracker is invented here, this sheet
-   *     only builds the doc:update diff and delegates emission to the caller).
+   *     (REQ-ETM-050) with an "apply to target" action wired to the REAL
+   *     combat tracker's target-selection state (M5-E): when the
+   *     `selectedTarget` prop is omitted (the normal case — no caller
+   *     currently passes it, see registerEtmosSheets.ts), this component
+   *     self-resolves it from the reactive `targetingStore`/`combatStore`
+   *     singletons (packages/client/src/lib/combat/combatStore.svelte.ts) +
+   *     `worldMirror`: local user's targeted tokenId -> the active combat's
+   *     matching Combatant's actorId -> that Actor's Ferimentos from the
+   *     mirror. Passing `selectedTarget` explicitly (including `null`)
+   *     overrides self-resolution — used by tests and by any future caller
+   *     that wants to supply its own target source.
    *   - No Compositor tab — antagonistas don't compose frases in the MVP.
    *
    * REQ-ETM-002, REQ-ETM-049, REQ-ETM-050, REQ-ETM-051 (i18n pt-BR).
@@ -26,10 +33,15 @@
   import { AntagonistaSheetVM } from "$lib/sheets/etmos/antagonistaSheetVM.js";
   import type { DocUpdatePayload, TrilhaAtributo, FichaBase } from "$lib/sheets/etmos/antagonistaSheetVM.js";
   import { t } from "$lib/i18n/index.js";
+  import { combatStore, targetingStore, getTargetingState } from "$lib/combat/combatStore.svelte.js";
+  import { targetedTokens } from "$lib/combat/targeting.js";
+  import { worldMirror } from "$lib/docs/worldSync.js";
 
   // ---------------------------------------------------------------------------
   // Props
   // ---------------------------------------------------------------------------
+
+  type SelectedTarget = { actorId: string; ferimentosAtual: number; ferimentosLimite: number } | null;
 
   interface Props {
     doc: Record<string, unknown>;
@@ -39,15 +51,48 @@
     isGm: boolean;
     sendOpFn?: (op: DocUpdatePayload) => void;
     /**
-     * Currently targeted actor (for "apply damage" — REQ-ETM-050). Optional:
-     * when absent the apply-damage button is disabled with a tooltip. Wiring
-     * to the real combat-tracker target selection is the caller's job (this
-     * sheet has no knowledge of the scene/combat state).
+     * Currently targeted actor (for "apply damage" — REQ-ETM-050). Omit to
+     * self-resolve from the real combat-tracker targeting state (see module
+     * docstring); pass explicitly (including `null`) to override.
      */
-    selectedTarget?: { actorId: string; ferimentosAtual: number; ferimentosLimite: number } | null;
+    selectedTarget?: SelectedTarget;
   }
 
-  let { doc, actorId, ownership, userId, isGm, sendOpFn = () => {}, selectedTarget = null }: Props = $props();
+  let { doc, actorId, ownership, userId, isGm, sendOpFn = () => {}, selectedTarget }: Props = $props();
+
+  /**
+   * Self-resolved target: local user's targeted token -> matching Combatant
+   * in the active combat -> that Combatant's Actor's current Ferimentos.
+   * `targetingStore.version` is read only to establish the reactive
+   * dependency (bumped by the targeting reducer on every token:targeted
+   * event) — the actual data lives in the mutable `getTargetingState()` Map.
+   */
+  const resolvedTarget = $derived.by((): SelectedTarget => {
+    void targetingStore.version;
+    const combat = combatStore.combat;
+    if (!combat) return null;
+
+    const targeted = targetedTokens(getTargetingState(), userId).filter((t) => t.byLocalUser);
+    if (targeted.length === 0) return null;
+    // Single-target UX (REQ-ETM-050 doesn't specify multi-target damage) —
+    // the first token the local user is targeting wins.
+    const tokenId = targeted[0]?.tokenId;
+    if (!tokenId) return null;
+
+    const combatant = combat.combatants.find((c) => c.tokenId === tokenId);
+    if (!combatant?.actorId) return null;
+
+    const targetActor = worldMirror.getDoc<Record<string, unknown>>("Actor", combatant.actorId);
+    if (!targetActor) return null;
+    const sys = (targetActor["system"] as Record<string, unknown> | undefined) ?? {};
+    const ferimentos = (sys["ferimentos"] as Record<string, unknown> | undefined) ?? {};
+    const ferimentosAtual = typeof ferimentos["atual"] === "number" ? ferimentos["atual"] : 0;
+    const ferimentosLimite = typeof ferimentos["limite"] === "number" ? ferimentos["limite"] : 0;
+
+    return { actorId: combatant.actorId, ferimentosAtual, ferimentosLimite };
+  });
+
+  const effectiveSelectedTarget = $derived(selectedTarget !== undefined ? selectedTarget : resolvedTarget);
 
   // ---------------------------------------------------------------------------
   // View-model — recreated whenever doc changes
@@ -112,13 +157,14 @@
   }
 
   function applyDamage(ataqueIndex: number): void {
-    if (!selectedTarget) return;
+    const target = effectiveSelectedTarget;
+    if (!target) return;
     const ataque = vm.ataques[ataqueIndex];
     if (!ataque) return;
     const op = AntagonistaSheetVM.buildApplyDamageToTarget(
-      selectedTarget.actorId,
-      selectedTarget.ferimentosAtual,
-      selectedTarget.ferimentosLimite,
+      target.actorId,
+      target.ferimentosAtual,
+      target.ferimentosLimite,
       ataque,
     );
     if (op) sendOpFn(op);
@@ -383,8 +429,8 @@
               <div class="entry-row__actions">
                 <button
                   class="btn-apply-damage"
-                  disabled={!selectedTarget || ataque.ferimentos === null}
-                  title={selectedTarget ? t("ETMOS.Antagonista.Ataques.AplicarDano") : t("ETMOS.Antagonista.Ataques.SemAlvo")}
+                  disabled={!effectiveSelectedTarget || ataque.ferimentos === null}
+                  title={effectiveSelectedTarget ? t("ETMOS.Antagonista.Ataques.AplicarDano") : t("ETMOS.Antagonista.Ataques.SemAlvo")}
                   onclick={() => applyDamage(ataque.index)}
                 >
                   🎯 {t("ETMOS.Antagonista.Ataques.AplicarDano")}

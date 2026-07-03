@@ -109,3 +109,48 @@ export const EtmosConjuracaoCancelarPayloadSchema = z
   .strict();
 
 export type EtmosConjuracaoCancelarPayload = z.infer<typeof EtmosConjuracaoCancelarPayloadSchema>;
+
+// ---------------------------------------------------------------------------
+// etmos:teste:contestado — Teste Contestado (REQ-ETM-021, CA-6)
+// ---------------------------------------------------------------------------
+
+/**
+ * One side of a Teste Contestado request. `formula` is the full `2d6+mod`
+ * dice-formula string for this side's test (Atributo/Habilidade/Conjuração —
+ * any combination, per REQ-ETM-021); it is rolled server-side via
+ * RollService, never client-computed. `provocador` flags the side that
+ * initiated the contested test (REQ-ETM-021 tiebreak rule 2).
+ */
+export const EtmosContestadoLadoPayloadSchema = z
+  .object({
+    actorId: z.string().min(1).max(64).nullable(),
+    formula: z.string().min(1).max(200),
+    provocador: z.boolean().default(false),
+  })
+  .strict();
+
+export type EtmosContestadoLadoPayload = z.infer<typeof EtmosContestadoLadoPayloadSchema>;
+
+export const EtmosTesteContestadoPayloadSchema = z
+  .object({
+    a: EtmosContestadoLadoPayloadSchema,
+    b: EtmosContestadoLadoPayloadSchema,
+    /** Optional free-text label for the chat message (e.g. "Disputa de força"). */
+    descricao: z.string().max(200).optional(),
+  })
+  .strict();
+
+export type EtmosTesteContestadoPayload = z.infer<typeof EtmosTesteContestadoPayloadSchema>;
+
+// ---------------------------------------------------------------------------
+// etmos:reacao:usar — Reação por rodada (REQ-ETM-023)
+// ---------------------------------------------------------------------------
+
+export const EtmosReacaoUsarPayloadSchema = z
+  .object({
+    combatId: z.string().min(1).max(64),
+    combatantId: z.string().min(1).max(64),
+  })
+  .strict();
+
+export type EtmosReacaoUsarPayload = z.infer<typeof EtmosReacaoUsarPayloadSchema>;

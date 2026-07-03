@@ -22,10 +22,29 @@ import type { InitiativeFormulaFn, InitiativeFormulaResult, InitiativeEntry } fr
 import type { InitiativeCompareFn } from "@fusion/system-api";
 
 /**
+ * Read `atributos.corpo` off a system doc, accepting BOTH shapes Etmos
+ * persists: Orador's `{ value, max }` wrapper (`AtributoSchema`, D2 min 1)
+ * AND Antagonista's bare integer (`AtributoAntagonistaSchema`,
+ * systems/etmos/src/types.ts — Antagonistas may have Atributo 0, no
+ * `.value`/`.max` wrapper; see also antagonistaSheetVM.ts's `atributos`
+ * getter, which reads the same bare-integer shape). Reading only
+ * `corpo.value` silently yields 0 for every Antagonista (2d6+0, tiebreaker
+ * 0 regardless of its real Corpo) — this is the M5-E audit FIX 2.
+ */
+function readCorpo(atributos: Record<string, unknown> | undefined): number {
+  const corpo = atributos?.["corpo"];
+  if (typeof corpo === "number") return corpo;
+  const wrapped = corpo as Record<string, unknown> | undefined;
+  const value = wrapped?.["value"];
+  return typeof value === "number" ? value : 0;
+}
+
+/**
  * Etmos initiative formula: `2d6 + Corpo`.
  *
  * @param _combatant - The combatant document (unused; Corpo comes from the actor).
- * @param actor      - The actor document (with `system.atributos.corpo.value`), or null.
+ * @param actor      - The actor document (with `system.atributos.corpo`, either
+ *   Orador's `{ value, max }` or Antagonista's bare integer), or null.
  */
 export const etmosInitiativeFormula: InitiativeFormulaFn = (
   _combatant,
@@ -37,8 +56,7 @@ export const etmosInitiativeFormula: InitiativeFormulaFn = (
 
   const system = actor["system"] as Record<string, unknown> | undefined;
   const atributos = system?.["atributos"] as Record<string, unknown> | undefined;
-  const corpo = atributos?.["corpo"] as Record<string, unknown> | undefined;
-  const corpoValue = typeof corpo?.["value"] === "number" ? corpo["value"] : 0;
+  const corpoValue = readCorpo(atributos);
 
   return {
     formula: `2d6 + ${String(corpoValue)}`,

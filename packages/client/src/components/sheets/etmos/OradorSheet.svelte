@@ -32,7 +32,13 @@
    */
 
   import { OradorSheetVM } from "$lib/sheets/etmos/oradorSheetVM.js";
-  import type { DocUpdatePayload, TrilhaAtributo } from "$lib/sheets/etmos/oradorSheetVM.js";
+  import type {
+    DocUpdatePayload,
+    TrilhaAtributo,
+    EtmosProgressaoConfirmarOp,
+  } from "$lib/sheets/etmos/oradorSheetVM.js";
+  import { buildContestadoOp } from "$lib/sheets/etmos/contestadoVM.js";
+  import type { ContestadoAtributo, EtmosTesteContestadoOp } from "$lib/sheets/etmos/contestadoVM.js";
   import { t } from "$lib/i18n/index.js";
 
   // ---------------------------------------------------------------------------
@@ -45,7 +51,7 @@
     ownership: number;
     userId: string;
     isGm: boolean;
-    sendOpFn?: (op: DocUpdatePayload) => void;
+    sendOpFn?: (op: DocUpdatePayload | EtmosTesteContestadoOp | EtmosProgressaoConfirmarOp) => void;
     onConjurar?: (actorId: string) => void;
   }
 
@@ -160,6 +166,74 @@
   function conjurar(): void {
     onConjurar(actorId);
   }
+
+  // ---------------------------------------------------------------------------
+  // Teste Contestado — REQ-ETM-021, CA-6 (minimal UI surface, M5-E).
+  // Fires ONE etmos:teste:contestado op; the server rolls BOTH sides via
+  // RollService and resolves the winner via resolverContestado. This sheet
+  // never decides a winner or rolls dice itself.
+  // ---------------------------------------------------------------------------
+
+  let contestadoAtributo = $state<ContestadoAtributo>("corpo");
+  let contestadoOponenteBonus = $state(0);
+  let contestadoDescricao = $state("");
+
+  function dispararContestado(): void {
+    const op = buildContestadoOp({
+      meuActorId: actorId,
+      meuAtributo: contestadoAtributo,
+      oponenteActorId: null,
+      oponenteBonus: contestadoOponenteBonus,
+      descricao: contestadoDescricao,
+    });
+    sendOpFn(op);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Marcos de Crescimento / Tabela E — REQ-ETM-035..039, CA-11.
+  //
+  // Per Tabela E (systems/etmos/src/compositor/progressao.ts), "Físico" and
+  // "Emocional" ALWAYS grant Grimório/Habilidade Items (never an Atributo
+  // point) at every transição — only "Mental" is ever an Atributo pick. The
+  // server derives + enforces this same mapping from opcoesProgressao()
+  // (progressao-handler.ts's anti-forge check, M5-E audit FIX 1); this form
+  // mirrors it by always rendering the Item-id field(s) for Físico/Emocional
+  // and the Atributo select for Mental — no runtime branching needed. A full
+  // compendium/Partícula picker UI is a documented V2 gancho below; for now
+  // the player/GM types the already-known Item id(s) (some Tabela E rows
+  // grant 2-3 Items at once, e.g. nivel 1->2's "+1 Objeto e +1
+  // Característica" — the input accepts a comma-separated list, up to the
+  // zod schema's max of 10 ids).
+  // ---------------------------------------------------------------------------
+
+  let progressaoFisicaItemIdsRaw = $state("");
+  let progressaoMentalAtributo = $state<TrilhaAtributo>("corpo");
+  let progressaoEmocionalItemIdsRaw = $state("");
+
+  function parseItemIds(raw: string): string[] {
+    return raw
+      .split(",")
+      .map((id) => id.trim())
+      .filter((id) => id.length > 0);
+  }
+
+  const progressaoFisicaItemIds = $derived(parseItemIds(progressaoFisicaItemIdsRaw));
+  const progressaoEmocionalItemIds = $derived(parseItemIds(progressaoEmocionalItemIdsRaw));
+
+  /** Confirmar is only enabled once BOTH Item-id fields resolve to at least one id — an empty itemIds: [] is rejected by the server's zod schema with a raw/unfriendly message. */
+  const podeConfirmarProgressao = $derived(
+    progressaoFisicaItemIds.length > 0 && progressaoEmocionalItemIds.length > 0,
+  );
+
+  function confirmarSubidaDeNivel(): void {
+    if (!podeConfirmarProgressao) return;
+    const op = vm.buildProgressaoConfirmarOp(
+      { tipo: "items", itemIds: progressaoFisicaItemIds },
+      { tipo: "atributo", atributo: progressaoMentalAtributo },
+      { tipo: "items", itemIds: progressaoEmocionalItemIds },
+    );
+    if (op) sendOpFn(op);
+  }
 </script>
 
 <!-- ======================================================================
@@ -210,6 +284,16 @@
     {/each}
   </div>
 
+  <!--
+    TODO [V2] REQ-ETM-041 (Descanso Parcial/Completo): plug a "Descansar"
+    button here (Ferimentos/Estresse tracker row) that opens a small
+    Parcial/Completo picker with the Tratamento Médico (-2 Ferimentos extra)
+    and Mundo de Origem (Completo->Parcial, Parcial sem efeito fora do mundo
+    de origem) modifiers from packs-src/tabelas.json's
+    "tabela_descanso_recuperacao", then applies the resulting deltas via
+    vm.applyFerimentosDelta()/vm.applyEstresseDelta() (already the single
+    write path for both trackers — no new mutation primitive needed).
+  -->
   <!-- ---- Trackers row ---- -->
   <div class="tracker-row">
     <div class="tracker-block" aria-label="{t('ETMOS.Orador.Trackers.Ferimentos')}: {vm.ferimentos.atual}/{vm.ferimentos.limite}">
@@ -347,9 +431,60 @@
           </label>
         {/if}
       </div>
+
+      <!-- Teste Contestado — REQ-ETM-021, CA-6 -->
+      <div class="contestado-block">
+        <h3 class="section-header">{t("ETMOS.Orador.Contestado.Titulo")}</h3>
+        <div class="field-grid">
+          <label class="field">
+            <span class="field__label">{t("ETMOS.Orador.Contestado.MeuAtributo")}</span>
+            <select bind:value={contestadoAtributo} disabled={!vm.editable}>
+              <option value="corpo">{t("ETMOS.Orador.Atributos.corpo")}</option>
+              <option value="alma">{t("ETMOS.Orador.Atributos.alma")}</option>
+              <option value="mente">{t("ETMOS.Orador.Atributos.mente")}</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field__label">{t("ETMOS.Orador.Contestado.BonusOponente")}</span>
+            <input type="number" bind:value={contestadoOponenteBonus} disabled={!vm.editable} />
+          </label>
+          <label class="field field--full">
+            <span class="field__label">{t("ETMOS.Orador.Contestado.Descricao")}</span>
+            <input type="text" bind:value={contestadoDescricao} disabled={!vm.editable} />
+          </label>
+        </div>
+        <button
+          class="btn-primary btn-contestado"
+          disabled={!vm.editable}
+          onclick={dispararContestado}
+          aria-label={t("ETMOS.Orador.Contestado.Disparar")}
+        >
+          ⚔️ {t("ETMOS.Orador.Contestado.Disparar")}
+        </button>
+      </div>
     </section>
   {:else if activeTab === "grimorio"}
     <section id="tab-panel-grimorio" role="tabpanel" aria-labelledby="tab-grimorio" class="tab-panel">
+      <!--
+        TODO [V2] REQ-ETM-048 ("modo baralho de Grimório"): this list render
+        (vm.grimorio, grouped by categoria) is the plug point for an
+        alternative card-grid presentation — swap this <ul> for a draggable
+        ParticulaGrid.svelte-style layout (see
+        components/sheets/etmos/ParticulaGrid.svelte, already used by the
+        Compositor) behind a view-mode toggle. vm.grimorio's data shape is
+        already suitable for either renderer; no VM change needed to add the
+        toggle.
+      -->
+      <!--
+        TODO [V2] REQ-ETM-044/045 (calculadora assistida de Encantamento):
+        this Grimório tab is the plug point for a future "Encantar Item"
+        affordance — a Grau de Sofisticação (Simples/Sofisticado/Primoroso)
+        + PP-accumulation-factors form that produces a PP suggestion and
+        tracks progress toward completing an `item_encantado` Item (the
+        Narrador always has the final editable say, REQ-ETM-044). Out of
+        scope for M5-E — no `item_encantado` UI exists yet anywhere in this
+        sheet; this comment is the single plug point for it.
+      -->
       <button class="btn-primary btn-conjurar" onclick={conjurar} aria-label={t("ETMOS.Orador.Grimorio.Conjurar")}>
         ✨ {t("ETMOS.Orador.Grimorio.Conjurar")}
       </button>
@@ -379,13 +514,13 @@
   {:else if activeTab === "marcos"}
     <section id="tab-panel-marcos" role="tabpanel" aria-labelledby="tab-marcos" class="tab-panel">
       <!--
-        MVP: MarcosTrilha.svelte stub — no level-up trigger logic here.
-        REQ-ETM-035..039 (Tabela E, subida de nível) is M5-E scope per the
-        design doc's batch plan §6 ("Marcos... pode ficar V2 interno se apertar").
-        This tab lets values be clicked/persisted so M5-E can wire the trigger
-        without a schema/UI migration.
+        REQ-ETM-035..039, CA-11: trilhas clicáveis + subida de nível via
+        Tabela E quando as 3 estão completas (vm.podeSubirDeNivel). A
+        aplicação do bônus é semiautomática (REQ-ETM-038): Atributo é um
+        select direto; Partícula/Habilidade usa um campo de Item id (o
+        seletor de compendium completo é um gancho V2 — ver bloco de notas
+        abaixo do formulário).
       -->
-      <p class="info-banner">{t("ETMOS.Orador.Marcos.EmBreve")}</p>
       {#each (["fisicos", "mentais", "emocionais"] as const) as categoria}
         <div class="marco-row">
           <span class="marco-row__label">{t(`ETMOS.Orador.Marcos.${categoria.charAt(0).toUpperCase()}${categoria.slice(1)}`)}</span>
@@ -400,8 +535,60 @@
               ></button>
             {/each}
           </div>
+          {#if vm.marcos[categoria].value >= vm.marcos[categoria].max}
+            <span class="marco-row__bonus" aria-label={t("ETMOS.Orador.Marcos.BonusDisponivel")}>
+              ✓ {t("ETMOS.Orador.Marcos.BonusDisponivel")}
+            </span>
+          {/if}
         </div>
       {/each}
+
+      {#if vm.podeSubirDeNivel && vm.opcaoProgressao}
+        <div class="progressao-block">
+          <h3 class="section-header">{t("ETMOS.Orador.Progressao.Titulo", { n: vm.opcaoProgressao.paraNivel })}</h3>
+
+          <div class="progressao-row">
+            <span class="progressao-row__label">{t("ETMOS.Orador.Progressao.Fisica")}</span>
+            <span class="progressao-row__opcao">{vm.opcaoProgressao.fisica}</span>
+            <input
+              type="text"
+              placeholder={t("ETMOS.Orador.Progressao.ItemIdPlaceholder")}
+              bind:value={progressaoFisicaItemIdsRaw}
+              disabled={!vm.editable}
+            />
+          </div>
+
+          <div class="progressao-row">
+            <span class="progressao-row__label">{t("ETMOS.Orador.Progressao.Mental")}</span>
+            <span class="progressao-row__opcao">{vm.opcaoProgressao.mental}</span>
+            <select bind:value={progressaoMentalAtributo} disabled={!vm.editable}>
+              <option value="corpo">{t("ETMOS.Orador.Atributos.corpo")}</option>
+              <option value="alma">{t("ETMOS.Orador.Atributos.alma")}</option>
+              <option value="mente">{t("ETMOS.Orador.Atributos.mente")}</option>
+            </select>
+          </div>
+
+          <div class="progressao-row">
+            <span class="progressao-row__label">{t("ETMOS.Orador.Progressao.Emocional")}</span>
+            <span class="progressao-row__opcao">{vm.opcaoProgressao.emocional}</span>
+            <input
+              type="text"
+              placeholder={t("ETMOS.Orador.Progressao.ItemIdPlaceholder")}
+              bind:value={progressaoEmocionalItemIdsRaw}
+              disabled={!vm.editable}
+            />
+          </div>
+
+          <button
+            class="btn-primary btn-progressao"
+            disabled={!vm.editable || !podeConfirmarProgressao}
+            onclick={confirmarSubidaDeNivel}
+            aria-label={t("ETMOS.Orador.Progressao.Confirmar")}
+          >
+            ⭐ {t("ETMOS.Orador.Progressao.Confirmar")}
+          </button>
+        </div>
+      {/if}
     </section>
   {:else if activeTab === "conceito"}
     <section id="tab-panel-conceito" role="tabpanel" aria-labelledby="tab-conceito" class="tab-panel">
@@ -744,6 +931,16 @@
     margin-top: 8px;
   }
 
+  .contestado-block {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--fusion-color-border, #3a3a5c);
+  }
+
+  .btn-contestado {
+    margin-top: 8px;
+  }
+
   /* Grimório */
   .particula-list {
     list-style: none;
@@ -837,6 +1034,50 @@
 
   .marco-pip--filled {
     background: var(--fusion-color-magic, #aa66ff);
+  }
+
+  .marco-row__bonus {
+    font-size: 10px;
+    color: var(--fusion-color-success, #44cc88);
+  }
+
+  .progressao-block {
+    margin-top: 16px;
+    padding: 10px;
+    border: 1px solid var(--fusion-color-magic, #aa66ff);
+    border-radius: var(--fusion-radius-sm, 4px);
+    background: rgba(170, 102, 255, 0.08);
+  }
+
+  .progressao-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+
+  .progressao-row__label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--fusion-color-text-muted, #9999cc);
+  }
+
+  .progressao-row__opcao {
+    font-size: 12px;
+  }
+
+  .progressao-row select,
+  .progressao-row input {
+    background: var(--fusion-color-surface-raised, #16213e);
+    border: 1px solid var(--fusion-color-border, #3a3a5c);
+    border-radius: var(--fusion-radius-sm, 4px);
+    color: var(--fusion-color-text-primary, #e0e0ff);
+    padding: 4px 6px;
+    font-size: 12px;
+  }
+
+  .btn-progressao {
+    margin-top: 4px;
   }
 
   .empty-state {

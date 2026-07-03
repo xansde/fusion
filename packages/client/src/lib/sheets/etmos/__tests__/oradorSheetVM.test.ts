@@ -365,6 +365,80 @@ describe("OradorSheetVM — marcos", () => {
       5,
     );
   });
+
+  it("podeSubirDeNivel is false when trilhas are incomplete", () => {
+    const vm = makeVM(); // fixture: fisicos 1/5, mentais 0/5, emocionais 2/5
+    expect(vm.podeSubirDeNivel).toBe(false);
+  });
+
+  it("podeSubirDeNivel is true when all 3 trilhas are 5/5 (REQ-ETM-037)", () => {
+    const cheia = { value: 5, max: 5 };
+    const vm = makeVM({
+      system: {
+        nivel: 2,
+        atributos: {
+          corpo: { value: 3, max: 6 },
+          alma: { value: 4, max: 6 },
+          mente: { value: 5, max: 6 },
+        },
+        marcos_crescimento: { fisicos: cheia, mentais: cheia, emocionais: cheia },
+      },
+    });
+    expect(vm.podeSubirDeNivel).toBe(true);
+  });
+
+  it("opcaoProgressao returns the Tabela E row for the current nivel", () => {
+    const vm = makeVM({ system: { nivel: 2, atributos: {}, marcos_crescimento: {} } });
+    expect(vm.opcaoProgressao).toEqual({
+      deNivel: 2,
+      paraNivel: 3,
+      fisica: "+1 Função no Grimório",
+      mental: "+1 ponto de Atributo (distribuído livremente)",
+      emocional: "+1 Habilidade Teórica",
+    });
+  });
+
+  it("opcaoProgressao is null at nivel 6 (max)", () => {
+    const vm = makeVM({ system: { nivel: 6, atributos: {}, marcos_crescimento: {} } });
+    expect(vm.opcaoProgressao).toBeNull();
+  });
+
+  it("buildProgressaoConfirmarOp returns null when trilhas are incomplete", () => {
+    const vm = makeVM(); // incomplete fixture trilhas
+    const op = vm.buildProgressaoConfirmarOp(
+      { tipo: "atributo", atributo: "corpo" },
+      { tipo: "atributo", atributo: "alma" },
+      { tipo: "atributo", atributo: "mente" },
+    );
+    expect(op).toBeNull();
+  });
+
+  it("buildProgressaoConfirmarOp builds the op when trilhas are complete", () => {
+    const cheia = { value: 5, max: 5 };
+    const vm = makeVM({
+      system: {
+        nivel: 1,
+        atributos: {
+          corpo: { value: 3, max: 6 },
+          alma: { value: 4, max: 6 },
+          mente: { value: 5, max: 6 },
+        },
+        marcos_crescimento: { fisicos: cheia, mentais: cheia, emocionais: cheia },
+      },
+    });
+    const op = vm.buildProgressaoConfirmarOp(
+      { tipo: "items", itemIds: ["item-1"] },
+      { tipo: "atributo", atributo: "alma" },
+      { tipo: "items", itemIds: ["item-2"] },
+    );
+    expect(op).toEqual({
+      type: "etmos:progressao:confirmar",
+      actorId: "orador-001",
+      fisica: { tipo: "items", itemIds: ["item-1"] },
+      mental: { tipo: "atributo", atributo: "alma" },
+      emocional: { tipo: "items", itemIds: ["item-2"] },
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------
