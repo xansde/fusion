@@ -10,6 +10,8 @@
 
   "FUSION.Sidebar.Actors.Title": "Actors",
   "FUSION.Sidebar.Actors.Create": "+ New",
+  "FUSION.Sidebar.Actors.NewActorName": "New Actor",
+  "FUSION.Sidebar.Actors.CreateFailed": "Could not create the actor: {message}",
   "FUSION.Sidebar.Actors.Empty": "No actors yet.",
   "FUSION.Sidebar.Actors.Search": "Search actors…",
   "FUSION.Sidebar.Actors.Folders.Unnamed": "No folder",

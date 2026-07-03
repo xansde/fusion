@@ -10,6 +10,8 @@
 
   "FUSION.Sidebar.Actors.Title": "Atores",
   "FUSION.Sidebar.Actors.Create": "+ Novo",
+  "FUSION.Sidebar.Actors.NewActorName": "Novo Ator",
+  "FUSION.Sidebar.Actors.CreateFailed": "Não foi possível criar o ator: {message}",
   "FUSION.Sidebar.Actors.Empty": "Nenhum ator criado ainda.",
   "FUSION.Sidebar.Actors.Search": "Buscar atores…",
   "FUSION.Sidebar.Actors.Folders.Unnamed": "Sem pasta",

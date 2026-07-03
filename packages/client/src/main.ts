@@ -33,10 +33,30 @@
  * NOT a reliable load-bearing path either. Importing the barrel here, once,
  * for its registerBundle() side effect, guarantees both entry points always
  * have translations loaded before anything calls t().
+ *
+ * PIXI unsafe-eval bootstrap (bug fix, M6/B0 CSP regression): boot.ts serves
+ * a strict `script-src 'self' 'nonce-...'` CSP with NO `unsafe-eval`
+ * (REQ-SEC-054/055 — DEC-SEC-05 explicitly forbids it in production). PIXI.js
+ * v8's default renderer systems generate shader/UBO/uniform sync functions
+ * via `new Function(...)` for performance, which the CSP blocks outright —
+ * `Application.init()` then throws "Current environment does not allow
+ * unsafe-eval" and the canvas never renders (TableScreen.svelte's catch logs
+ * "[TableScreen] Canvas init failed"). `pixi.js/unsafe-eval` is PIXI's own
+ * documented fix for exactly this: importing it for its side effect installs
+ * eval-free polyfills (GlShaderSystem, GlUboSystem, GpuUboSystem,
+ * GlUniformGroupSystem, ParticleBuffer — see node_modules/pixi.js/lib/unsafe-eval/init.mjs)
+ * and disables PIXI's own unsafe-eval capability check, so the renderer never
+ * attempts eval/new Function in the first place. This keeps the CSP fully
+ * strict (no relaxation of script-src) — it makes PIXI compatible with the
+ * policy instead. MUST be imported before the first `new Application()` /
+ * `app.init()` call anywhere in the app; importing it once here at the true
+ * entry point (before the App/SetupWizard dynamic imports below) guarantees
+ * that ordering regardless of which screen mounts the canvas.
  */
 
 import "./styles/base.css";
 import "./lib/i18n/index.js";
+import "pixi.js/unsafe-eval";
 import { mount } from "svelte";
 
 const target = document.getElementById("fusion-app");

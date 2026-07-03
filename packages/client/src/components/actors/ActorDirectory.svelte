@@ -23,8 +23,34 @@
   } from "../../lib/actors/actorDirectory.js";
   import { openActorSheet } from "../../lib/sheets/pf2e/registerPf2eSheets.js";
   import { openEtmosActorSheet } from "../../lib/sheets/etmos/registerEtmosSheets.js";
-  import { makeSendOpFn } from "../../lib/docs/sendOp.js";
+  import { sendOp, OpError, makeSendOpFn } from "../../lib/docs/sendOp.js";
+  import { session } from "../../lib/session.svelte.js";
   import { t } from "../../lib/i18n/i18n.js";
+
+  /**
+   * Default Actor subtype per game system (bug fix — REQ-UIF-002).
+   *
+   * The "+Novo" button below must create a document that actually passes
+   * the world's active system, not a hardcoded pf2e assumption — a world can
+   * run pf2e/sf2e/etmos (CLAUDE.md: "Sistemas-alvo"). Each system's manifest
+   * (systems/<id>/src/index.ts, `documentTypes.Actor`) declares its Actor
+   * subtypes; the FIRST entry is that system's "default playable" subtype —
+   * pf2e/sf2e: ["character", "npc", ...], etmos: ["orador", "antagonista"].
+   * This map mirrors those manifests' first entries (kept in the client
+   * because the manifest itself is a server/build-time module, not something
+   * shipped to the browser). Falls back to "character" for an unknown/unset
+   * systemId so the button never throws even before worldInfo has loaded.
+   */
+  const DEFAULT_ACTOR_SUBTYPE: Record<string, string> = {
+    pf2e: "character",
+    sf2e: "character",
+    etmos: "orador",
+  };
+
+  function defaultActorSubtype(): string {
+    const systemId = session.worldInfo?.systemId;
+    return (systemId && DEFAULT_ACTOR_SUBTYPE[systemId]) || "character";
+  }
 
   /** Etmos Actor subtypes — routed through openEtmosActorSheet so the
    * OradorSheet's "Conjurar" button gets its onConjurar wired to the
@@ -84,6 +110,54 @@
     }
   }
 
+  /** True while a create request is in flight — disables the button to avoid double-submits. */
+  let creatingActor = $state(false);
+
+  /**
+   * "+Novo" button handler (bug fix, REQ-UIF-002).
+   *
+   * Two bugs fixed here:
+   *  1. The op was fire-and-forget (`socket.emit` with no ack callback) — a
+   *     server rejection was invisible to the user, which is exactly the
+   *     "clicking does nothing" symptom. Now uses `sendOp()` (the same
+   *     ack-correlated helper sceneController.ts uses for doc:create) and
+   *     surfaces a failure via alert() + console.error, matching this file's
+   *     existing confirm()/console.error pattern in deleteActor() above.
+   *  2. The payload used the wrong wire key (`documents` instead of `data` —
+   *     DocCreatePayloadSchema in packages/shared/src/protocol.ts requires
+   *     `data`), which made the server reject EVERY create with
+   *     VALIDATION_FAILED regardless of the document's own validity —
+   *     confirmed by probing DocCreatePayloadSchema.safeParse() directly.
+   *     The actor subtype is also no longer hardcoded to pf2e's "character"
+   *     — defaultActorSubtype() derives it from the world's active system.
+   */
+  async function createActor(): Promise<void> {
+    if (creatingActor) return;
+    creatingActor = true;
+    try {
+      await sendOp(socket, {
+        type: "doc:create",
+        payload: {
+          documentType: "Actor",
+          data: [
+            {
+              name: t("FUSION.Sidebar.Actors.NewActorName"),
+              type: defaultActorSubtype(),
+              ownership: { default: 0 },
+              flags: {},
+            },
+          ],
+        },
+      });
+    } catch (err) {
+      console.error("[ActorDirectory] create failed:", err);
+      const message = err instanceof OpError ? err.message : String(err);
+      alert(t("FUSION.Sidebar.Actors.CreateFailed", { message }));
+    } finally {
+      creatingActor = false;
+    }
+  }
+
   async function deleteActor(actor: ActorDocument): Promise<void> {
     const confirmed = confirm(
       t("FUSION.Dialog.Delete.Body", { name: actor.name ?? actor._id })
@@ -128,21 +202,8 @@
       <button
         class="btn btn--primary btn--sm"
         aria-label={t("FUSION.Sidebar.Actors.Create")}
-        onclick={() => {
-          socket.emit("op", {
-            type: "doc:create",
-            ts: Date.now(),
-            payload: {
-              documentType: "Actor",
-              documents: [{
-                name: "Novo Ator",
-                type: "character",
-                ownership: { default: 0 },
-                flags: {},
-              }],
-            },
-          });
-        }}
+        disabled={creatingActor}
+        onclick={createActor}
       >
         {t("FUSION.Sidebar.Actors.Create")}
       </button>
