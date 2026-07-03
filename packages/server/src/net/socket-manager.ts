@@ -146,13 +146,31 @@ export interface WorldNamespaceOptions {
   systemModule?: SystemModule;
 }
 
+/**
+ * Dynamic CORS origin validator (socket.io/`cors` package "CustomOrigin"
+ * shape). Used instead of a static string when the set of allowed origins
+ * can change at runtime — e.g. M6/B4's Cloudflare tunnel, whose public
+ * `*.trycloudflare.com` URL only exists once the tunnel has started and
+ * must be accepted for the WebSocket handshake without a server restart.
+ */
+export type DynamicCorsOrigin = (
+  requestOrigin: string | undefined,
+  callback: (err: Error | null, allow?: boolean | string) => void,
+) => void;
+
 export interface SocketManagerOptions {
   /** Underlying HTTP server (Fastify's server). */
   httpServer: HttpServer;
   /** Pino logger. */
   logger: Logger;
-  /** CORS origin (restricts socket.io CORS to the server's own origin). */
-  origin: string;
+  /**
+   * CORS origin (restricts socket.io CORS to the server's own origin, plus
+   * any additional allowed origins). A plain string covers the static case
+   * (REQ-SEC default); a {@link DynamicCorsOrigin} function covers the case
+   * where allowed origins change at runtime (M6/B4 tunnel) — see boot.ts's
+   * `buildSocketOrigin`.
+   */
+  origin: string | DynamicCorsOrigin;
 }
 
 // --------------------------------------------------------------------------

@@ -119,6 +119,18 @@ export interface RegisterSpaRoutesOptions {
    */
   distDir?: string;
   logger?: Logger;
+  /**
+   * REQ-DST-011: when provided, called on every request for `/` (root only)
+   * to decide whether to redirect to `/setup` instead of serving the app
+   * shell. Returns `true` when the first-run wizard has NOT completed yet.
+   * A function (not a boolean) so the check is re-evaluated live on every
+   * request — setupCompleted can flip to `true` mid-process once the wizard
+   * (admin/routes.ts) calls applySetup, without requiring a server restart
+   * for `/` to start serving the normal app again. Omitted entirely in
+   * contexts that don't have a data dir to check (most existing tests),
+   * which preserves the pre-M6/B2 behaviour of always serving the shell.
+   */
+  isSetupIncomplete?: () => boolean;
 }
 
 /**
@@ -216,10 +228,18 @@ export function registerSpaRoutes(
   });
 
   // -------------------------------------------------------------------------
-  // GET / and other top-level static files emitted by the client build
-  // (favicon.svg, etc) that live directly under dist/, not dist/assets/.
+  // GET / — the app shell, UNLESS the first-run wizard has not completed yet
+  // (REQ-DST-011), in which case redirect to /setup. Checked live via
+  // `isSetupIncomplete()` on every request (see the option's doc comment) —
+  // not just once at boot — so completing the wizard immediately unlocks the
+  // normal root without a server restart.
   // -------------------------------------------------------------------------
-  fastify.get("/", (request, reply) => sendIndex(request, reply));
+  fastify.get("/", (request, reply) => {
+    if (options.isSetupIncomplete?.() === true) {
+      return reply.redirect("/setup", 302);
+    }
+    return sendIndex(request, reply);
+  });
 
   // -------------------------------------------------------------------------
   // Catch-all — SPA client-side routing fallback.

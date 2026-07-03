@@ -23,6 +23,8 @@ import type { SocketManager as SocketManagerType, WorldNamespaceOptions } from "
 import type { AuthService } from "./auth/index.js";
 import type { RegisterAssetRoutesOptions } from "./assets/routes.js";
 import type { RegisterSpaRoutesOptions } from "./spa/routes.js";
+import type { RegisterTunnelRoutesOptions } from "./tunnel/routes.js";
+import type { TunnelManager as TunnelManagerType } from "./tunnel/tunnel-manager.js";
 import type { SystemModule } from "@fusion/system-api";
 // Import for side effect only: augments FastifyRequest with `cspNonce`.
 import "./spa/routes.js";
@@ -66,6 +68,19 @@ export interface BootAuthContext {
  * alias so boot.ts remains the single place callers configure the boot.
  */
 export type BootAssetContext = RegisterAssetRoutesOptions;
+
+// ---------------------------------------------------------------------------
+// Tunnel context (injected to wire the cloudflared tunnel — M6/B4)
+// ---------------------------------------------------------------------------
+
+/**
+ * When provided:
+ *   - registers POST /admin/network/tunnel (start/stop the tunnel);
+ *   - wires this TunnelManager's live state into the M6/B2 admin routes'
+ *     GET /admin/network response (the `tunnel` field).
+ * Mirrors RegisterTunnelRoutesOptions from tunnel/routes.ts.
+ */
+export type BootTunnelContext = RegisterTunnelRoutesOptions;
 
 // ---------------------------------------------------------------------------
 // SPA context (injected to register the client static build — REQ-DST-002)
@@ -166,11 +181,35 @@ function connectSrcDirective(allowedOrigins: readonly string[]): string {
 }
 
 /**
+ * Compute the allowed-origins list to use for a given request/response,
+ * folding in the live Cloudflare tunnel URL (M6/B4, REQ-DST-034) on top of
+ * the statically configured `config.allowedOrigins` whenever a tunnel is
+ * active. Read fresh on every call (never cached) so toggling the tunnel via
+ * POST /admin/network/tunnel takes effect on the very next request/CSP
+ * header — no server restart required.
+ */
+function effectiveAllowedOrigins(
+  config: ServerConfig,
+  tunnelManager: TunnelManagerType | undefined,
+): string[] {
+  if (tunnelManager === undefined) return config.allowedOrigins;
+  const tunnelUrl = tunnelManager.getState().tunnelUrl;
+  if (tunnelUrl === undefined) return config.allowedOrigins;
+  return config.allowedOrigins.includes(tunnelUrl)
+    ? config.allowedOrigins
+    : [...config.allowedOrigins, tunnelUrl];
+}
+
+/**
  * Registers all HTTP routes on the Fastify instance.
  * At M0-A scope this is only the /health endpoint.
  * Additional routes (REST, static, auth) are M0-B/M0-C scope.
  */
-async function registerRoutes(fastify: FastifyInstance, config: ServerConfig): Promise<void> {
+async function registerRoutes(
+  fastify: FastifyInstance,
+  config: ServerConfig,
+  tunnelManager?: TunnelManagerType,
+): Promise<void> {
   // Imported lazily to avoid circular dependency with index.ts.
   const { PROTOCOL_VERSION, FUSION_VERSION } = await import("@fusion/shared");
 
@@ -227,7 +266,7 @@ async function registerRoutes(fastify: FastifyInstance, config: ServerConfig): P
           "object-src 'none'",
           "frame-ancestors 'none'",
           "base-uri 'self'",
-          `connect-src ${connectSrcDirective(config.allowedOrigins)}`,
+          `connect-src ${connectSrcDirective(effectiveAllowedOrigins(config, tunnelManager))}`,
           "img-src 'self' data: blob:",
           "media-src 'self' blob:",
           `script-src 'self' 'nonce-${nonce}'`,
@@ -298,6 +337,12 @@ export interface BootOptions {
    */
   assetContext?: BootAssetContext;
   /**
+   * When provided, registers the network/tunnel admin routes (REQ-DST-034):
+   * GET /admin/network + POST /admin/network/tunnel. Registered before the
+   * SPA catch-all so it is never shadowed by it.
+   */
+  tunnelContext?: BootTunnelContext;
+  /**
    * SPA static serving is ON by default (REQ-DST-002) — pass `{}` or omit
    * entirely to use the default dist-dir resolution. Pass an explicit
    * `distDir` to override (tests / custom layouts). Pass `disabled: true`
@@ -322,6 +367,7 @@ export async function boot(options: BootOptions): Promise<BootResult> {
     authContext,
     netContext,
     assetContext,
+    tunnelContext,
     spaContext,
   } = options;
 
@@ -343,7 +389,31 @@ export async function boot(options: BootOptions): Promise<BootResult> {
   // Register cookie plugin (required for refresh token httpOnly cookie).
   await fastify.register(fastifyCookie);
 
-  await registerRoutes(fastify, config);
+  await registerRoutes(fastify, config, tunnelContext?.tunnelManager);
+
+  // Register the installation-level admin routes (REQ-DST-011..015, 015A,
+  // 028/029 — M6/B2). These are ALWAYS registered, independent of whether a
+  // world is open (authContext/netContext) — the wizard must be reachable
+  // even on a fresh `fusion serve` with no --world flag.
+  //
+  // When a tunnelContext is present (M6/B4, --tunnel), GET /admin/network's
+  // `tunnel` field is wired to the live TunnelManager state via
+  // getTunnelState — see tunnel/routes.ts's tunnelStateToAdminNetwork for
+  // the exact mapping to the AdminNetworkResponse envelope B2 defined.
+  {
+    const { registerAdminRoutes } = await import("./admin/routes.js");
+    const adminOptions: Parameters<typeof registerAdminRoutes>[1] = {
+      dataDir: config.dataDir,
+      currentPort: config.port,
+      logger,
+    };
+    if (tunnelContext) {
+      const { tunnelStateToAdminNetwork } = await import("./tunnel/routes.js");
+      adminOptions.getTunnelState = () =>
+        tunnelStateToAdminNetwork(tunnelContext.tunnelManager.getState());
+    }
+    registerAdminRoutes(fastify, adminOptions);
+  }
 
   // Register auth routes if a world context is provided.
   let authServiceInstance: AuthService | undefined;
@@ -368,6 +438,16 @@ export async function boot(options: BootOptions): Promise<BootResult> {
     logger.info({ assetsDir: assetContext.assetsDir }, "Asset routes registered");
   }
 
+  // Register the tunnel control route (POST /admin/network/tunnel) if a
+  // tunnel context is provided (REQ-DST-034). Must be registered before the
+  // SPA catch-all below. GET /admin/network itself was already registered
+  // above as part of the M6/B2 admin routes (with tunnel state wired in).
+  if (tunnelContext) {
+    const { registerTunnelRoutes } = await import("./tunnel/routes.js");
+    registerTunnelRoutes(fastify, tunnelContext);
+    logger.info("Tunnel control route registered (POST /admin/network/tunnel)");
+  }
+
   // Register the SPA static build (REQ-DST-002) — ON by default. Registered
   // LAST so its catch-all only ever answers requests that no other route
   // (API/health/asset) claimed. If packages/client/dist is missing (test
@@ -375,8 +455,22 @@ export async function boot(options: BootOptions): Promise<BootResult> {
   // logs a warning internally and registers nothing — boot never crashes.
   if (spaContext?.disabled !== true) {
     const { registerSpaRoutes } = await import("./spa/routes.js");
+    const { loadConfig } = await import("./config.js");
     const { disabled: _disabled, ...spaOptions } = spaContext ?? {};
-    registerSpaRoutes(fastify, { ...spaOptions, logger: spaOptions.logger ?? logger });
+    // REQ-DST-011: redirect / to /setup while the first-run wizard has not
+    // completed yet. Re-reads Config/fusion.json live on every request (via
+    // loadConfig) rather than capturing config.setupCompleted once at boot,
+    // so completing the wizard (admin/routes.ts's applySetup) unlocks the
+    // normal root immediately — no restart needed for THIS check, even
+    // though a changed port/dataDir still needs one (see admin/routes.ts).
+    const isSetupIncomplete =
+      spaOptions.isSetupIncomplete ??
+      (() => !loadConfig({ dataDirOverride: config.dataDir }).setupCompleted);
+    registerSpaRoutes(fastify, {
+      ...spaOptions,
+      logger: spaOptions.logger ?? logger,
+      isSetupIncomplete,
+    });
   }
 
   // -------------------------------------------------------------------------
@@ -438,7 +532,34 @@ export async function boot(options: BootOptions): Promise<BootResult> {
     const { SocketManager: SM } = await import("./net/index.js");
 
     // Derive origin from config or from net context override
-    const origin = netContext.origin ?? `http://${config.host}:${String(config.port)}`;
+    const selfOrigin = netContext.origin ?? `http://${config.host}:${String(config.port)}`;
+
+    // M6/B4: when a tunnel is configured for this boot, socket.io's CORS
+    // check must also accept the tunnel's public origin (its WebSocket
+    // handshake arrives with `Origin: https://<slug>.trycloudflare.com`, not
+    // the LAN origin) — and must keep accepting it after a start/stop toggle
+    // without a restart, so this is a live function, not a fixed string
+    // computed once at boot. Falls back to the static `selfOrigin` string
+    // (today's exact behaviour) when no tunnel context is present at all.
+    const origin:
+      | string
+      | ((
+          requestOrigin: string | undefined,
+          cb: (err: Error | null, allow?: boolean | string) => void,
+        ) => void) =
+      tunnelContext !== undefined
+        ? (requestOrigin, cb) => {
+            if (requestOrigin === undefined) {
+              cb(null, true); // non-browser clients (no Origin header) — same as socket.io's own default
+              return;
+            }
+            const allowed = [
+              selfOrigin,
+              ...effectiveAllowedOrigins(config, tunnelContext.tunnelManager),
+            ];
+            cb(null, allowed.includes(requestOrigin));
+          }
+        : selfOrigin;
 
     socketManager = new SM({
       httpServer: fastify.server,

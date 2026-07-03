@@ -7,31 +7,32 @@
 
 Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 → M2 → M3** (primeira sessão jogável), depois M4/M5/M6 se houver tempo.
 
-| Batch | Conteúdo                                                                                      | Status    | Score auditoria   |
-| ----- | --------------------------------------------------------------------------------------------- | --------- | ----------------- |
-| M0-A  | Scaffold monorepo, shared, system-api, stub system, server/client skeletons, CI               | concluído | 96                |
-| M0-B  | SQLite/WAL, migrations, world lifecycle, Document model + CRUD, CLI                           | concluído | 96                |
-| M0-C  | Fastify boot, socket.io handshake/envelope, auth (Argon2id/JWT), contract tests               | concluído | 96                |
-| M1-A  | Canvas PIXI v8, grade square, render groups                                                   | concluído | 96                |
-| M1-B  | Scene/Token embedded, CRUD broadcast, snapshot+resync, reconexão                              | concluído | 97                |
-| M1-C  | Tokens no canvas (drag, animação, barras), ownership no servidor                              | concluído | 97                |
-| M1-D  | Motor de rolagens (RNG servidor, roll modes, inline), chat + cards                            | concluído | 96                |
-| M1-E  | Assets (upload/serving), presença (cursores, ping, ruler), DoD M1                             | concluído | 97                |
-| M2-A  | Walls + portas, visibility polygon, luzes                                                     | concluído | 96                |
-| M2-B  | Fog of war (3 estados, persistência, Clipper2), broadcast de delta                            | concluído | 93 (dívida)       |
-| M2-C  | Combat/Combatant, tracker, InitiativeFormula, hooks de turno                                  | concluído | 96                |
-| M3-A  | System API completa + engine-2e (derivação, effects MVP, DoS, stacking, IWR)                  | concluído | 95                |
-| M3-B  | PF2e schemas + automação (strikes, saves, condições, spellcasting)                            | concluído | 72→✓ corrigido    |
-| M3-C  | UI framework (window manager, sheets, TipTap) + fichas PF2e                                   | concluído | 95                |
-| M3-D  | Importer pf2e + compendiums + i18n pt-BR + DoD M3 (primeira sessão jogável)                   | concluído | 58→94 corrigido   |
-| M4    | Starfinder 2e (delta sobre engine-2e, importer sf2e, 6 packs, registro no server)             | concluído | 88→96 corrigido   |
-| M4.5  | Wiring: iniciativa por sistema + derive em produção (findings pré-existentes)                 | concluído | 82→86→✓ corrigido |
-| M5-A  | Fundação system-api p/ Etmos (rollData, degreeOfSuccess, {roll,compare}, effectsMaterializer) | concluído | 96                |
-| M5-B  | Etmos: schemas Zod + packs (80 partículas) + compositor puro (fixtures G1-G10+G7b)            | concluído | 48→97 corrigido   |
-| M5-C  | Etmos: motor de conjuração no server (state-machine + 5 handlers + 2d6 no RollService)        | concluído | 91→✓ endurecido   |
-| M5-D  | Etmos: fichas Orador/Antagonista + Compositor UI + card de chat (🎯 Etmos jogável)            | concluído | 96                |
-| M5-E  | Etmos: iniciativa compare 3-níveis, Reação, Marcos+Tabela E, Contestado (fecha o M5)          | concluído | 91→✓ endurecido   |
-| M6-B0/B1 | Distribuição: SPA servido pelo server + versão única; data dir Documents/FusionVTT + migração + serve sem world | concluído | 74→97 corrigido |
+| Batch    | Conteúdo                                                                                                        | Status    | Score auditoria   |
+| -------- | --------------------------------------------------------------------------------------------------------------- | --------- | ----------------- |
+| M0-A     | Scaffold monorepo, shared, system-api, stub system, server/client skeletons, CI                                 | concluído | 96                |
+| M0-B     | SQLite/WAL, migrations, world lifecycle, Document model + CRUD, CLI                                             | concluído | 96                |
+| M0-C     | Fastify boot, socket.io handshake/envelope, auth (Argon2id/JWT), contract tests                                 | concluído | 96                |
+| M1-A     | Canvas PIXI v8, grade square, render groups                                                                     | concluído | 96                |
+| M1-B     | Scene/Token embedded, CRUD broadcast, snapshot+resync, reconexão                                                | concluído | 97                |
+| M1-C     | Tokens no canvas (drag, animação, barras), ownership no servidor                                                | concluído | 97                |
+| M1-D     | Motor de rolagens (RNG servidor, roll modes, inline), chat + cards                                              | concluído | 96                |
+| M1-E     | Assets (upload/serving), presença (cursores, ping, ruler), DoD M1                                               | concluído | 97                |
+| M2-A     | Walls + portas, visibility polygon, luzes                                                                       | concluído | 96                |
+| M2-B     | Fog of war (3 estados, persistência, Clipper2), broadcast de delta                                              | concluído | 93 (dívida)       |
+| M2-C     | Combat/Combatant, tracker, InitiativeFormula, hooks de turno                                                    | concluído | 96                |
+| M3-A     | System API completa + engine-2e (derivação, effects MVP, DoS, stacking, IWR)                                    | concluído | 95                |
+| M3-B     | PF2e schemas + automação (strikes, saves, condições, spellcasting)                                              | concluído | 72→✓ corrigido    |
+| M3-C     | UI framework (window manager, sheets, TipTap) + fichas PF2e                                                     | concluído | 95                |
+| M3-D     | Importer pf2e + compendiums + i18n pt-BR + DoD M3 (primeira sessão jogável)                                     | concluído | 58→94 corrigido   |
+| M4       | Starfinder 2e (delta sobre engine-2e, importer sf2e, 6 packs, registro no server)                               | concluído | 88→96 corrigido   |
+| M4.5     | Wiring: iniciativa por sistema + derive em produção (findings pré-existentes)                                   | concluído | 82→86→✓ corrigido |
+| M5-A     | Fundação system-api p/ Etmos (rollData, degreeOfSuccess, {roll,compare}, effectsMaterializer)                   | concluído | 96                |
+| M5-B     | Etmos: schemas Zod + packs (80 partículas) + compositor puro (fixtures G1-G10+G7b)                              | concluído | 48→97 corrigido   |
+| M5-C     | Etmos: motor de conjuração no server (state-machine + 5 handlers + 2d6 no RollService)                          | concluído | 91→✓ endurecido   |
+| M5-D     | Etmos: fichas Orador/Antagonista + Compositor UI + card de chat (🎯 Etmos jogável)                              | concluído | 96                |
+| M5-E     | Etmos: iniciativa compare 3-níveis, Reação, Marcos+Tabela E, Contestado (fecha o M5)                            | concluído | 91→✓ endurecido   |
+| M6-B0/B1 | Distribuição: SPA servido pelo server + versão única; data dir Documents/FusionVTT + migração + serve sem world | concluído | 74→97 corrigido   |
+| M6-B2/B4 | Distribuição: wizard /setup (Admin Key Argon2id, QR/LAN) + túnel cloudflared com hash pinado                    | concluído | 90→✓ endurecido   |
 
 **🎉 MVP ALCANÇADO (2026-06-26) — primeira sessão jogável de PF2e funciona ponta-a-ponta (verificado via boot real).** ~2.500 testes verdes. Pós-MVP: **M4 (SF2e) concluído em 2026-07-01** (~2.700 testes); designs do M5 (compositor Etmos) e M6 (distribuição) prontos em `docs/design/`. Restam: **M4.5-wiring** (religações críticas pré-existentes: iniciativa por sistema + derive em produção), M5 (Etmos, 5 batches A–E) e M6 (distribuição, 6 batches).
 
@@ -58,6 +59,12 @@ Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 �
 - Próximos batches após M2-A: M2-B (fog), M2-C (combate), depois M3 (A–F) → primeira sessão jogável.
 
 ## Registro por batch
+
+### M6-B2/B4 — Wizard de primeira execução + túnel WAN (2026-07-03)
+
+- **B2**: wizard `/setup` (redireciona `/` pré-setup; reconfiguração exige Bearer pós-setup): data dir com opção portátil, porta com checagem em tempo real, **Admin Key como Argon2id** reusando o auth existente (grep negativo de plaintext no data dir), Bearer admin JWT, IP LAN + QR (encoder ASCII próprio no server + `qrcode-generator` no client — dívida de consolidação documentada), atalho de Desktop opcional. Endpoints `/admin/*` com guarda server-side.
+- **B4**: `fusion serve --tunnel` — `cloudflared` baixado sob demanda com **hash SHA-256 pinado** (2026.6.1), processo filho com lifecycle limpo (hard-kill do server → zero órfãos), URL pública `trycloudflare.com` parseada e exposta em `/admin/network` + QR no console; **e2e real**: `curl /health` pela URL pública de fora + WebSocket nativo pelo túnel; toggle start/stop com Bearer; CORS/CSP refletem a URL viva do túnel.
+- **Gate**: 90 (sem altas) + endurecimento imediato das 4 médias de segurança (superfície de internet — dívida inaceitável): endpoints de setup minimizados/protegidos pós-setup (anônimo vê só `{setupCompleted}`), **lockout no `/admin/login`** reusando `auth/lockout.ts` (5/15min, 429 + Retry-After, senha certa também bloqueada na janela), `--tunnel` recusado pré-setup (exit 1, sem spawn) + 403 na API, URLs LAN/QR sempre com a porta real de boot (`configuredPortNextBoot` separado). +17 testes do encoder QR (golden hashes + invariantes ISO 18004). Verificação final com sondas reais aprovada. Server 694 testes.
 
 ### M6-B0/B1 — Distribuição: SPA pelo server + data dir novo (2026-07-03)
 

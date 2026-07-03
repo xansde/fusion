@@ -295,7 +295,7 @@ describe("SPA static serving", () => {
       config,
       logger,
       skipSignalHandlers: true,
-      spaContext: { distDir },
+      spaContext: { distDir, isSetupIncomplete: () => false },
     });
     fastify = result.fastify;
 
@@ -314,7 +314,7 @@ describe("SPA static serving", () => {
       config,
       logger,
       skipSignalHandlers: true,
-      spaContext: { distDir },
+      spaContext: { distDir, isSetupIncomplete: () => false },
     });
     fastify = result.fastify;
 
@@ -332,7 +332,7 @@ describe("SPA static serving", () => {
       config,
       logger,
       skipSignalHandlers: true,
-      spaContext: { distDir },
+      spaContext: { distDir, isSetupIncomplete: () => false },
     });
     fastify = result.fastify;
 
@@ -351,7 +351,7 @@ describe("SPA static serving", () => {
       config,
       logger,
       skipSignalHandlers: true,
-      spaContext: { distDir },
+      spaContext: { distDir, isSetupIncomplete: () => false },
     });
     fastify = result.fastify;
 
@@ -370,7 +370,7 @@ describe("SPA static serving", () => {
       config,
       logger,
       skipSignalHandlers: true,
-      spaContext: { distDir },
+      spaContext: { distDir, isSetupIncomplete: () => false },
     });
     fastify = result.fastify;
 
@@ -390,7 +390,7 @@ describe("SPA static serving", () => {
       config,
       logger,
       skipSignalHandlers: true,
-      spaContext: { distDir },
+      spaContext: { distDir, isSetupIncomplete: () => false },
     });
     fastify = result.fastify;
 
@@ -482,7 +482,7 @@ describe("security response headers", () => {
         config,
         logger,
         skipSignalHandlers: true,
-        spaContext: { distDir },
+        spaContext: { distDir, isSetupIncomplete: () => false },
       });
       fastify = result.fastify;
 
@@ -527,7 +527,7 @@ describe("security response headers", () => {
         config,
         logger,
         skipSignalHandlers: true,
-        spaContext: { distDir },
+        spaContext: { distDir, isSetupIncomplete: () => false },
       });
       fastify = result.fastify;
 
@@ -555,7 +555,7 @@ describe("security response headers", () => {
         config,
         logger,
         skipSignalHandlers: true,
-        spaContext: { distDir },
+        spaContext: { distDir, isSetupIncomplete: () => false },
       });
       fastify = result.fastify;
 
@@ -590,7 +590,7 @@ describe("security response headers", () => {
         config,
         logger,
         skipSignalHandlers: true,
-        spaContext: { distDir },
+        spaContext: { distDir, isSetupIncomplete: () => false },
       });
       fastify = result.fastify;
 
@@ -600,6 +600,16 @@ describe("security response headers", () => {
         "connect-src 'self' wss://my-tunnel.example.com ws://192.168.1.50:33000",
       );
     } finally {
+      // Close BEFORE removing dataDir: boot() now also opens a dedicated
+      // admin-plane lockout SQLite handle (admin/lockout-db.ts, REQ-SEC-011
+      // fix) under <dataDir>/Config/ — on Windows an open file handle blocks
+      // rmSync's unlink (EBUSY) unless it is released first. The describe
+      // block's own afterEach also calls fastify.close(), but that runs
+      // AFTER this finally block, too late for the rmSync below.
+      if (fastify !== undefined) {
+        await fastify.close();
+        fastify = undefined;
+      }
       rmSync(distDir, { recursive: true, force: true });
       rmSync(dataDir, { recursive: true, force: true });
     }

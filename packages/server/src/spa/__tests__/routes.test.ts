@@ -48,18 +48,29 @@ describe.runIf(hasDist)("SPA routes — built dist/ integrity", () => {
   });
 
   it("mapDeps-style chunk dependencies (CSS for lazy-loaded sheets) resolve under assets-client/", () => {
+    // NOTE (M6/B2): this asserts that AT LEAST ONE mapDeps array references a
+    // CSS chunk under assets-client/ (proving the assetsDir fix from the doc
+    // comment above actually applies to CSS, not just JS) — it does NOT
+    // assert that EVERY chunk containing "__vite__mapDeps" has a CSS entry.
+    // That stronger claim is not a real Vite invariant: a chunk's own
+    // mapDeps array only lists ITS dynamic-import dependencies, and plenty
+    // of legitimate chunks (e.g. @3d-dice/dice-box's internal renderer
+    // split, or this app's own /setup vs main-app entry split introduced in
+    // M6/B2) dynamically import other JS chunks with no CSS of their own.
     const assetsClientDir = joinPath(distDir as string, "assets-client");
     const jsFiles = readdirSync(assetsClientDir).filter((f) => f.endsWith(".js"));
-    let foundMapDeps = false;
+    let foundMapDepsWithCss = false;
     for (const file of jsFiles) {
       const content = readFileSync(joinPath(assetsClientDir, file), "utf8");
-      if (content.includes("__vite__mapDeps")) {
-        foundMapDeps = true;
-        const deps = content.match(/assets-client\/[A-Za-z0-9._-]+\.css/g) ?? [];
-        expect(deps.length).toBeGreaterThan(0);
+      if (
+        content.includes("__vite__mapDeps") &&
+        /assets-client\/[A-Za-z0-9._-]+\.css/.test(content)
+      ) {
+        foundMapDepsWithCss = true;
+        break;
       }
     }
-    expect(foundMapDeps).toBe(true);
+    expect(foundMapDepsWithCss).toBe(true);
   });
 });
 
@@ -111,5 +122,58 @@ describe("SPA routes — dist/ availability", () => {
     // Not a hard requirement for server-only checkouts/CI shards — the
     // describe.runIf blocks above already skip cleanly when dist is absent.
     expect(typeof hasDist).toBe("boolean");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// isSetupIncomplete — REQ-DST-011 redirect (M6/B2)
+// ---------------------------------------------------------------------------
+
+describe.runIf(hasDist)("SPA routes — isSetupIncomplete redirect (REQ-DST-011)", () => {
+  it("GET / redirects to /setup when isSetupIncomplete() returns true", async () => {
+    const fastify = Fastify();
+    registerSpaRoutes(fastify, { distDir: distDir ?? undefined, isSetupIncomplete: () => true });
+    await fastify.ready();
+
+    const res = await fastify.inject({ method: "GET", url: "/" });
+    expect(res.statusCode).toBe(302);
+    expect(res.headers.location).toBe("/setup");
+
+    await fastify.close();
+  });
+
+  it("GET / serves the shell normally when isSetupIncomplete() returns false", async () => {
+    const fastify = Fastify();
+    registerSpaRoutes(fastify, { distDir: distDir ?? undefined, isSetupIncomplete: () => false });
+    await fastify.ready();
+
+    const res = await fastify.inject({ method: "GET", url: "/" });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers["content-type"]).toContain("text/html");
+
+    await fastify.close();
+  });
+
+  it("GET / serves the shell normally when isSetupIncomplete is omitted (back-compat default)", async () => {
+    const fastify = Fastify();
+    registerSpaRoutes(fastify, { distDir: distDir ?? undefined });
+    await fastify.ready();
+
+    const res = await fastify.inject({ method: "GET", url: "/" });
+    expect(res.statusCode).toBe(200);
+
+    await fastify.close();
+  });
+
+  it("GET /setup itself is served by the catch-all (never redirected, even when incomplete)", async () => {
+    const fastify = Fastify();
+    registerSpaRoutes(fastify, { distDir: distDir ?? undefined, isSetupIncomplete: () => true });
+    await fastify.ready();
+
+    const res = await fastify.inject({ method: "GET", url: "/setup" });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers["content-type"]).toContain("text/html");
+
+    await fastify.close();
   });
 });

@@ -36,12 +36,18 @@ OPTIONS
   --data-dir <path>      Root data directory (default: Documents/FusionVTT)
   --log-level <level>    Log level: trace|debug|info|warn|error|fatal|silent
                          (default: info)
+  --world <slug>         Open this world on boot and expose its socket namespace
+  --tunnel               Share this server over the internet via a Cloudflare
+                         quick tunnel (downloads cloudflared on first use).
+                         The public URL is printed to the console and
+                         exposed at GET /admin/network.
   --help, -h             Show this help
 
 EXAMPLES
   fusion serve
   fusion serve --port 8080
   fusion serve --data-dir /var/fusion-data --log-level debug
+  fusion serve --world my-campaign --tunnel
 `;
 
 const USAGE_WORLD = `\

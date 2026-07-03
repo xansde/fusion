@@ -16,6 +16,8 @@ import type { BootOptions } from "../../boot.js";
 import { SystemRegistry } from "@fusion/system-api";
 import { WorldManager } from "../../worlds/index.js";
 import { ensureDataDirLayout, DataDirPermissionError } from "../../data-dir.js";
+import { TunnelManager } from "../../tunnel/index.js";
+import { qrAsciiFor, QrTooLargeError } from "../../tunnel/qr-ascii.js";
 
 type LogLevel = ServerConfig["logLevel"];
 
@@ -164,6 +166,66 @@ export async function runServe(args: ServeArgs): Promise<void> {
     }
   }
 
+  // Phase 2.8 — tunnel (REQ-DST-034, --tunnel)
+  //
+  // SECURITY (M6 audit FIX-4): refuse --tunnel while setupCompleted=false.
+  // A fresh install's /setup wizard is OPEN by design (no Admin Key exists
+  // yet to gate it — see admin/routes.ts's guard-rule doc comment), and
+  // POST /admin/setup/apply accepts an arbitrary, server-writable `dataDir`
+  // from that open wizard. Exposing that combination to the internet via a
+  // Cloudflare quick tunnel — mitigated only by the tunnel URL being hard to
+  // guess — is an unacceptable attack surface: anyone who found the URL
+  // before the GM completed setup could apply() their OWN Admin Key and
+  // dataDir, taking over the installation. Local `fusion serve` (no
+  // --tunnel) is unaffected — this only blocks the internet-facing case.
+  if (args.tunnel === true && !config.setupCompleted) {
+    const message =
+      "fusion serve --tunnel refused: setup has not been completed on this data " +
+      "directory yet. Complete the local setup first: run `fusion serve` " +
+      "(without --tunnel) and open /setup from a LAN/localhost browser, then " +
+      "re-run with --tunnel.";
+    logger.fatal({ dataDir: config.dataDir }, message);
+    process.stderr.write(`fusion serve: ${message}\n`);
+    process.exit(1);
+  }
+
+  //   Created here (before boot()) so its child-process lifecycle can be
+  //   wired into shutdown/SIGINT ahead of boot()'s own signal handlers (Node
+  //   EventEmitters invoke listeners in registration order — registering our
+  //   SIGINT/SIGTERM handlers first guarantees cloudflared is asked to exit
+  //   before boot()'s handler starts closing Fastify/sockets and calling
+  //   process.exit()). The tunnel itself is only *started* after boot()
+  //   succeeds (it forwards to http://localhost:<port>, which must be
+  //   listening first) — see below.
+  let tunnelManager: TunnelManager | undefined;
+  if (args.tunnel === true) {
+    tunnelManager = new TunnelManager({ dataDir: config.dataDir, port: config.port, logger });
+
+    const stopTunnel = (): void => {
+      if (tunnelManager === undefined) return;
+      // stop() is async but signal handlers must not block indefinitely —
+      // best-effort: fire it and let the process exit naturally afterwards
+      // (boot()'s own SIGINT/SIGTERM handler, registered after this one,
+      // still runs and calls process.exit()). killChild() inside stop()
+      // sends the kill signal synchronously even though stop() itself
+      // resolves asynchronously, so cloudflared reliably receives it before
+      // the process exits.
+      void tunnelManager.stop();
+    };
+    process.once("SIGINT", stopTunnel);
+    process.once("SIGTERM", stopTunnel);
+    // Belt-and-suspenders for non-signal exits (e.g. an uncaught crash path
+    // that reaches process.exit() directly): synchronous best-effort kill.
+    process.on("exit", () => {
+      if (tunnelManager?.isRunning() === true) {
+        // stop() is async; on the synchronous 'exit' event we can only fire
+        // the kill and not await it, but killChild() itself is synchronous
+        // (child_process.kill()), so the signal is still sent reliably.
+        void tunnelManager.stop();
+      }
+    });
+  }
+
   // Phases 3 + 4 + 3b — HTTP + socket boot
   // boot() registers SIGINT/SIGTERM handlers via process.once().
   // We register a synchronous 'exit' hook to close open worlds on any exit path.
@@ -171,6 +233,9 @@ export async function runServe(args: ServeArgs): Promise<void> {
   try {
     // Build auth + net contexts if we have an open world
     const bootOpts: BootOptions = { config, logger };
+    if (tunnelManager !== undefined) {
+      bootOpts.tunnelContext = { tunnelManager, dataDir: config.dataDir, logger };
+    }
 
     if (openWorldDb !== undefined && authSecret !== undefined && worldSlug !== undefined) {
       const worldSystemId = openWorldSystemId ?? "stub";
@@ -219,6 +284,41 @@ export async function runServe(args: ServeArgs): Promise<void> {
   process.on("exit", () => {
     worldManager.closeAll();
   });
+
+  // Phase 5 — start the tunnel (REQ-DST-034), now that the HTTP listener is
+  // actually up (the tunnel forwards to http://localhost:<port>). Failures
+  // here are logged but never fatal — the LAN/local server is fully
+  // functional without the tunnel, so a cloudflared download/network hiccup
+  // must not take down an otherwise-successful `fusion serve`.
+  if (tunnelManager !== undefined) {
+    try {
+      const tunnelUrl = await tunnelManager.start();
+      logger.info(
+        { tunnelUrl },
+        "Cloudflare quick tunnel is up — server reachable over the internet",
+      );
+      process.stdout.write(
+        `\nShare this server over the internet:\n  ${tunnelUrl}\n\n` +
+          "SECURITY WARNING: this server is now reachable by anyone with the link above.\n" +
+          "Make sure you set a strong GM Admin Key and review allowedOrigins before sharing it widely.\n\n",
+      );
+      try {
+        process.stdout.write(`${qrAsciiFor(tunnelUrl)}\n\n`);
+      } catch (err) {
+        if (err instanceof QrTooLargeError) {
+          logger.debug({ err }, "Tunnel URL too long to render as an ASCII QR code — URL only");
+        } else {
+          throw err;
+        }
+      }
+    } catch (err) {
+      logger.error(
+        { err },
+        "Failed to start the Cloudflare tunnel — the server is still reachable on LAN, " +
+          "but --tunnel could not expose it to the internet",
+      );
+    }
+  }
 
   // Prevent GC of manager and bootResult for the process lifetime.
   void worldManager;

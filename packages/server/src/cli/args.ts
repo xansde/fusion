@@ -23,6 +23,12 @@ export type ServeArgs = {
   logLevel?: string;
   /** When provided, open this world on boot and expose its socket namespace. */
   world?: string;
+  /**
+   * When true, start a Cloudflare quick tunnel (REQ-DST-034) so the server is
+   * reachable over the internet at a public `*.trycloudflare.com` URL, in
+   * addition to LAN. See packages/server/src/tunnel/.
+   */
+  tunnel?: boolean;
 };
 
 export type WorldListArgs = {
@@ -134,6 +140,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
     const dataDir = consumeOption(args, "--data-dir");
     const logLevel = consumeOption(args, "--log-level");
     const world = consumeOption(args, "--world");
+    const tunnel = consumeFlag(args, "--tunnel");
 
     if (consumeFlag(args, "--help") || consumeFlag(args, "-h")) {
       return { command: "help", topic: "serve" };
@@ -155,6 +162,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
     if (dataDir !== undefined) result.dataDir = dataDir;
     if (logLevel !== undefined) result.logLevel = logLevel;
     if (world !== undefined) result.world = world;
+    if (tunnel) result.tunnel = true;
     return result;
   }
 
