@@ -291,6 +291,13 @@ async function registerRoutes(
           `connect-src ${connectSrcDirective(effectiveAllowedOrigins(config, tunnelManager))}`,
           "img-src 'self' data: blob:",
           "media-src 'self' blob:",
+          // PIXI.js v8 (texture decode) and the 3D dice library spawn Web
+          // Workers from blob: URLs. Without an explicit worker-src these fall
+          // back to default-src 'self', which blocks blob: — breaking texture
+          // loading and 3D dice. blob: workers only run same-origin-derived
+          // code (NOT unsafe-eval), so this is a safe, targeted allowance that
+          // keeps script-src strict.
+          "worker-src 'self' blob:",
           `script-src 'self' 'nonce-${nonce}'`,
           // DECISION (M6/B1, spec×client tension — see project CLAUDE.md: the
           // client is out of scope for this batch): REQ-SEC-054's MINIMUM

@@ -500,6 +500,10 @@ describe("security response headers", () => {
       // beyond the nonce token is appended to it.
       expect(csp).not.toContain("unsafe-eval");
       expect(csp).toMatch(/script-src 'self' 'nonce-[A-Za-z0-9+/=]+';/);
+      // PIXI/3D-dice spawn blob: Web Workers — worker-src must allow blob:
+      // (falls back to default-src 'self' otherwise, breaking texture/dice
+      // workers). This is not unsafe-eval; script-src stays strict.
+      expect(csp).toContain("worker-src 'self' blob:");
     } finally {
       rmSync(distDir, { recursive: true, force: true });
     }
