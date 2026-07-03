@@ -41,7 +41,15 @@ OPTIONS
                          quick tunnel (downloads cloudflared on first use).
                          The public URL is printed to the console and
                          exposed at GET /admin/network.
+  --no-open              Do not auto-open the setup wizard in the default
+                         browser on first run (see AUTO-OPEN below).
   --help, -h             Show this help
+
+AUTO-OPEN
+  On first run (packaged executable, no --world, setup not completed yet),
+  the setup wizard is opened automatically in the default browser at
+  http://localhost:<port>/setup. Pass --no-open to disable this, or set
+  CI=1 in the environment (already the case in automated/CI contexts).
 
 EXAMPLES
   fusion serve

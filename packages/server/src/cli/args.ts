@@ -29,6 +29,20 @@ export type ServeArgs = {
    * addition to LAN. See packages/server/src/tunnel/.
    */
   tunnel?: boolean;
+  /**
+   * When true, suppress the first-run auto-open-browser behaviour (M6 UX
+   * fix — "double-click the exe, answer a short wizard in the browser").
+   * See decideAutoOpen() in commands/serve.ts for the full gate.
+   */
+  noOpen?: boolean;
+  /**
+   * True when `fusion serve` was reached because NO command was given at all
+   * (bare `fusion`/double-clicked exe) rather than an explicit `fusion
+   * serve`. Never set by the user — synthesized by parseArgs so runServe can
+   * log a clarifying line ("No command given — starting server ..."). Not a
+   * real CLI flag.
+   */
+  implicitServe?: boolean;
 };
 
 export type WorldListArgs = {
@@ -122,8 +136,19 @@ export function parseArgs(argv: string[]): ParsedArgs {
   // Work on a mutable copy
   const args = [...argv];
 
+  // No command at all (bare `fusion` — notably a double-clicked SEA exe on
+  // Windows, which passes zero argv) defaults to `serve` instead of printing
+  // help and exiting: the target UX (docs/design/m6-distribuicao.md
+  // guiding principle) is "GM double-clicks the exe, answers a short wizard
+  // in the browser" — silently exiting after a help dump defeats that. This
+  // must NOT swallow `--help`/`-h`/`--version`/`-v` passed with no other
+  // args, so those are checked first.
+  if (args.length === 0) {
+    return { command: "serve", implicitServe: true };
+  }
+
   // Check for top-level help / version
-  if (args.length === 0 || consumeFlag(args, "--help") || consumeFlag(args, "-h")) {
+  if (consumeFlag(args, "--help") || consumeFlag(args, "-h")) {
     return { command: "help" };
   }
   if (consumeFlag(args, "--version") || consumeFlag(args, "-v")) {
@@ -141,6 +166,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
     const logLevel = consumeOption(args, "--log-level");
     const world = consumeOption(args, "--world");
     const tunnel = consumeFlag(args, "--tunnel");
+    const noOpen = consumeFlag(args, "--no-open");
 
     if (consumeFlag(args, "--help") || consumeFlag(args, "-h")) {
       return { command: "help", topic: "serve" };
@@ -163,6 +189,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
     if (logLevel !== undefined) result.logLevel = logLevel;
     if (world !== undefined) result.world = world;
     if (tunnel) result.tunnel = true;
+    if (noOpen) result.noOpen = true;
     return result;
   }
 

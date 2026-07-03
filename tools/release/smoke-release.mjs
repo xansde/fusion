@@ -172,6 +172,11 @@ async function main() {
 
     child = spawn(artifactPath, ["serve", "--world", "smoke", "--port", String(port), "--data-dir", dataDir], {
       stdio: ["ignore", "pipe", "pipe"],
+      // --world is already passed above, which alone keeps the M6 first-run
+      // auto-open-browser gate (cli/auto-open.ts's decideAutoOpen) closed —
+      // CI=1 is set here as well, belt-and-suspenders, so this smoke test
+      // never pops a browser even if that gate's conditions ever change.
+      env: { ...process.env, CI: "1" },
     });
 
     let stdoutBuf = "";

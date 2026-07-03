@@ -18,6 +18,8 @@ import { WorldManager } from "../../worlds/index.js";
 import { ensureDataDirLayout, DataDirPermissionError } from "../../data-dir.js";
 import { TunnelManager } from "../../tunnel/index.js";
 import { qrAsciiFor, QrTooLargeError } from "../../tunnel/qr-ascii.js";
+import { isRunningAsSea } from "../../update/sea-detect.js";
+import { decideAutoOpen, openBrowserBestEffort } from "../auto-open.js";
 
 type LogLevel = ServerConfig["logLevel"];
 
@@ -72,6 +74,10 @@ export async function runServe(args: ServeArgs): Promise<void> {
 
   // Phase 2 — logger
   const logger = createLogger(config.logLevel);
+
+  if (args.implicitServe === true) {
+    logger.info("No command given — starting server (run with --help for CLI usage)");
+  }
 
   logger.info(
     { phase: "config", port: config.port, dataDir: config.dataDir },
@@ -339,6 +345,30 @@ export async function runServe(args: ServeArgs): Promise<void> {
         "Failed to start the Cloudflare tunnel — the server is still reachable on LAN, " +
           "but --tunnel could not expose it to the internet",
       );
+    }
+  }
+
+  // Phase 6 — first-run auto-open (M6 UX fix, see cli/auto-open.ts doc
+  // comment for the full 4-condition gate). Runs after boot succeeds so the
+  // HTTP listener is actually up before we try to point a browser at it.
+  {
+    const autoOpen = decideAutoOpen({
+      isSea: await isRunningAsSea(),
+      hasWorldFlag: worldSlug !== undefined,
+      setupCompleted: config.setupCompleted,
+      noOpen: args.noOpen === true,
+      isCi: process.env["CI"] !== undefined && process.env["CI"] !== "",
+    });
+
+    if (autoOpen) {
+      const setupUrl = `http://localhost:${String(config.port)}/setup`;
+      logger.info({ setupUrl }, "First run detected — opening the setup wizard in your browser");
+      openBrowserBestEffort(setupUrl, (err) => {
+        logger.warn(
+          { err, setupUrl },
+          "Could not auto-open the browser — open the setup wizard URL manually",
+        );
+      });
     }
   }
 

@@ -579,6 +579,16 @@ export async function boot(options: BootOptions): Promise<BootResult> {
     `Fusion server ready for connections at http://${addressStr}`,
   );
 
+  // A boot with no netContext (no --world opened) is a "management" boot —
+  // the GM has not finished (or hasn't started) the setup wizard yet, or is
+  // just managing the install without a live game session. Surface the
+  // wizard URL explicitly so it's not buried in the address line above (M6
+  // UX fix — see cli/auto-open.ts for the companion auto-open-browser gate).
+  if (!netContext) {
+    const setupUrl = `http://localhost:${String(config.port)}/setup`;
+    logger.info({ setupUrl }, `Setup wizard available at ${setupUrl}`);
+  }
+
   // -------------------------------------------------------------------------
   // Phase 3b — net (socket.io — M0-C)
   // -------------------------------------------------------------------------

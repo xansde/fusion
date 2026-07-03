@@ -7,36 +7,44 @@
 
 Caminho crítico do roadmap (`specs/27-roadmap-e-milestones.md`): **M0 → M1 → M2 → M3** (primeira sessão jogável), depois M4/M5/M6 se houver tempo.
 
-| Batch    | Conteúdo                                                                                                        | Status    | Score auditoria   |
-| -------- | --------------------------------------------------------------------------------------------------------------- | --------- | ----------------- |
-| M0-A     | Scaffold monorepo, shared, system-api, stub system, server/client skeletons, CI                                 | concluído | 96                |
-| M0-B     | SQLite/WAL, migrations, world lifecycle, Document model + CRUD, CLI                                             | concluído | 96                |
-| M0-C     | Fastify boot, socket.io handshake/envelope, auth (Argon2id/JWT), contract tests                                 | concluído | 96                |
-| M1-A     | Canvas PIXI v8, grade square, render groups                                                                     | concluído | 96                |
-| M1-B     | Scene/Token embedded, CRUD broadcast, snapshot+resync, reconexão                                                | concluído | 97                |
-| M1-C     | Tokens no canvas (drag, animação, barras), ownership no servidor                                                | concluído | 97                |
-| M1-D     | Motor de rolagens (RNG servidor, roll modes, inline), chat + cards                                              | concluído | 96                |
-| M1-E     | Assets (upload/serving), presença (cursores, ping, ruler), DoD M1                                               | concluído | 97                |
-| M2-A     | Walls + portas, visibility polygon, luzes                                                                       | concluído | 96                |
-| M2-B     | Fog of war (3 estados, persistência, Clipper2), broadcast de delta                                              | concluído | 93 (dívida)       |
-| M2-C     | Combat/Combatant, tracker, InitiativeFormula, hooks de turno                                                    | concluído | 96                |
-| M3-A     | System API completa + engine-2e (derivação, effects MVP, DoS, stacking, IWR)                                    | concluído | 95                |
-| M3-B     | PF2e schemas + automação (strikes, saves, condições, spellcasting)                                              | concluído | 72→✓ corrigido    |
-| M3-C     | UI framework (window manager, sheets, TipTap) + fichas PF2e                                                     | concluído | 95                |
-| M3-D     | Importer pf2e + compendiums + i18n pt-BR + DoD M3 (primeira sessão jogável)                                     | concluído | 58→94 corrigido   |
-| M4       | Starfinder 2e (delta sobre engine-2e, importer sf2e, 6 packs, registro no server)                               | concluído | 88→96 corrigido   |
-| M4.5     | Wiring: iniciativa por sistema + derive em produção (findings pré-existentes)                                   | concluído | 82→86→✓ corrigido |
-| M5-A     | Fundação system-api p/ Etmos (rollData, degreeOfSuccess, {roll,compare}, effectsMaterializer)                   | concluído | 96                |
-| M5-B     | Etmos: schemas Zod + packs (80 partículas) + compositor puro (fixtures G1-G10+G7b)                              | concluído | 48→97 corrigido   |
-| M5-C     | Etmos: motor de conjuração no server (state-machine + 5 handlers + 2d6 no RollService)                          | concluído | 91→✓ endurecido   |
-| M5-D     | Etmos: fichas Orador/Antagonista + Compositor UI + card de chat (🎯 Etmos jogável)                              | concluído | 96                |
-| M5-E     | Etmos: iniciativa compare 3-níveis, Reação, Marcos+Tabela E, Contestado (fecha o M5)                            | concluído | 91→✓ endurecido   |
-| M6-B0/B1 | Distribuição: SPA servido pelo server + versão única; data dir Documents/FusionVTT + migração + serve sem world | concluído | 74→97 corrigido   |
-| M6-B2/B4 | Distribuição: wizard /setup (Admin Key Argon2id, QR/LAN) + túnel cloudflared com hash pinado                    | concluído | 90→✓ endurecido   |
-| M6-B3    | Distribuição: pipeline de release — exe SEA Windows real (117MB, smoke §5.2 verde) + CI matrix + manifesto      | concluído | 93                |
-| M6-B5    | Distribuição: auto-update headless (check/backup/SHA-256/swap+rollback) + packs no exe (✅ fecha o M6 headless)  | concluído | 84→94→✓ endurecido |
+| Batch    | Conteúdo                                                                                                        | Status    | Score auditoria    |
+| -------- | --------------------------------------------------------------------------------------------------------------- | --------- | ------------------ |
+| M0-A     | Scaffold monorepo, shared, system-api, stub system, server/client skeletons, CI                                 | concluído | 96                 |
+| M0-B     | SQLite/WAL, migrations, world lifecycle, Document model + CRUD, CLI                                             | concluído | 96                 |
+| M0-C     | Fastify boot, socket.io handshake/envelope, auth (Argon2id/JWT), contract tests                                 | concluído | 96                 |
+| M1-A     | Canvas PIXI v8, grade square, render groups                                                                     | concluído | 96                 |
+| M1-B     | Scene/Token embedded, CRUD broadcast, snapshot+resync, reconexão                                                | concluído | 97                 |
+| M1-C     | Tokens no canvas (drag, animação, barras), ownership no servidor                                                | concluído | 97                 |
+| M1-D     | Motor de rolagens (RNG servidor, roll modes, inline), chat + cards                                              | concluído | 96                 |
+| M1-E     | Assets (upload/serving), presença (cursores, ping, ruler), DoD M1                                               | concluído | 97                 |
+| M2-A     | Walls + portas, visibility polygon, luzes                                                                       | concluído | 96                 |
+| M2-B     | Fog of war (3 estados, persistência, Clipper2), broadcast de delta                                              | concluído | 93 (dívida)        |
+| M2-C     | Combat/Combatant, tracker, InitiativeFormula, hooks de turno                                                    | concluído | 96                 |
+| M3-A     | System API completa + engine-2e (derivação, effects MVP, DoS, stacking, IWR)                                    | concluído | 95                 |
+| M3-B     | PF2e schemas + automação (strikes, saves, condições, spellcasting)                                              | concluído | 72→✓ corrigido     |
+| M3-C     | UI framework (window manager, sheets, TipTap) + fichas PF2e                                                     | concluído | 95                 |
+| M3-D     | Importer pf2e + compendiums + i18n pt-BR + DoD M3 (primeira sessão jogável)                                     | concluído | 58→94 corrigido    |
+| M4       | Starfinder 2e (delta sobre engine-2e, importer sf2e, 6 packs, registro no server)                               | concluído | 88→96 corrigido    |
+| M4.5     | Wiring: iniciativa por sistema + derive em produção (findings pré-existentes)                                   | concluído | 82→86→✓ corrigido  |
+| M5-A     | Fundação system-api p/ Etmos (rollData, degreeOfSuccess, {roll,compare}, effectsMaterializer)                   | concluído | 96                 |
+| M5-B     | Etmos: schemas Zod + packs (80 partículas) + compositor puro (fixtures G1-G10+G7b)                              | concluído | 48→97 corrigido    |
+| M5-C     | Etmos: motor de conjuração no server (state-machine + 5 handlers + 2d6 no RollService)                          | concluído | 91→✓ endurecido    |
+| M5-D     | Etmos: fichas Orador/Antagonista + Compositor UI + card de chat (🎯 Etmos jogável)                              | concluído | 96                 |
+| M5-E     | Etmos: iniciativa compare 3-níveis, Reação, Marcos+Tabela E, Contestado (fecha o M5)                            | concluído | 91→✓ endurecido    |
+| M6-B0/B1 | Distribuição: SPA servido pelo server + versão única; data dir Documents/FusionVTT + migração + serve sem world | concluído | 74→97 corrigido    |
+| M6-B2/B4 | Distribuição: wizard /setup (Admin Key Argon2id, QR/LAN) + túnel cloudflared com hash pinado                    | concluído | 90→✓ endurecido    |
+| M6-B3    | Distribuição: pipeline de release — exe SEA Windows real (117MB, smoke §5.2 verde) + CI matrix + manifesto      | concluído | 93                 |
+| M6-B5    | Distribuição: auto-update headless (check/backup/SHA-256/swap+rollback) + packs no exe (✅ fecha o M6 headless) | concluído | 84→94→✓ endurecido |
 
 **🏁 BUILD COMPLETO (2026-07-03): M0–M6 headless concluídos.** MVP PF2e em 2026-06-26; M4 SF2e em 2026-07-01; M4.5 wiring, M5 Etmos completo e M6 distribuição (B0–B5) em 2026-07-02/03. **Três sistemas jogáveis (PF2e, SF2e, Etmos) + executável distribuível** (`fusion-server-0.1.0-windows-x64.exe`, ~118 MB, com SPA/wizard/packs embutidos, túnel WAN e auto-update). ~3.300 testes verdes. Restam apenas: **checklist de validação manual** (abaixo), as **decisões DA-01/DA-02** do usuário (repo GitHub p/ releases; open-source vs fechado) para publicar o primeiro release, e o **B6 Tauri [V2]** (fora do escopo do M6 headless por design).
+
+## 🔎 Validação manual — rodada 1 (2026-07-03, usuário)
+
+Dois achados reais no primeiro teste do usuário com o exe, ambos corrigidos e re-provados no mesmo dia:
+
+1. **Duplo clique abria e fechava**: sem comando, o CLI imprimia o help e saía. Fix: sem comando → `serve` implícito + auto-open do navegador em `/setup` na primeira execução (gate puro `decideAutoOpen`: só em SEA, sem `--world`, setup incompleto, sem `--no-open`/`CI`). 21 testes novos.
+2. **Wizard com chaves i18n cruas** (`FUSION.Setup.*`): o singleton de i18n nascia vazio — os bundles só eram registrados como side-effect do barrel `lib/i18n/index.js`, que a rota `/setup` nunca importava (o app principal "funcionava por acaso" via cadeia de imports de uma sheet). Fix: import explícito do barrel em `main.ts` + teste-guarda (42 chaves do wizard resolvem em pt-BR/en; nada renderiza começando com `FUSION.`).
+   Lição de processo: a auditoria validou paridade de CHAVES (36/36), não a renderização real — só a validação manual pegou.
 
 ## ✅ Checklist de validação MANUAL (design M6 §5.1 — exige um humano)
 

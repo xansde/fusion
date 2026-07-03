@@ -19,9 +19,24 @@
  * (spa/routes.ts) already serves index.html for /setup like any other
  * unmatched path, so no server-side routing change was needed for this to
  * work — see spa/routes.ts's catch-all doc comment.
+ *
+ * i18n bootstrap (bug fix): most components call `t()`/`i18n` via the bare
+ * resolver module (`lib/i18n/i18n.js`), which exports an EMPTY singleton —
+ * the pt-BR/en bundles are only registered as a side effect of importing the
+ * barrel (`lib/i18n/index.js`, see that file's own doc comment). Previously
+ * nothing imported the barrel on the /setup path (SetupWizard.svelte mounts
+ * standalone here, without ever touching App.svelte's tree), so the wizard
+ * rendered raw translation keys ("FUSION.Setup.Title" etc.) instead of
+ * pt-BR text — the shared singleton was simply never populated on that path.
+ * The main App tree happened to reach the barrel incidentally, through a
+ * dynamically-registered Etmos character sheet several hops away, which is
+ * NOT a reliable load-bearing path either. Importing the barrel here, once,
+ * for its registerBundle() side effect, guarantees both entry points always
+ * have translations loaded before anything calls t().
  */
 
 import "./styles/base.css";
+import "./lib/i18n/index.js";
 import { mount } from "svelte";
 
 const target = document.getElementById("fusion-app");
