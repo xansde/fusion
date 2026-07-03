@@ -119,6 +119,27 @@ describe("serve without --world (management server mode)", () => {
     expect(result.socketManager).toBeUndefined();
   });
 
+  it("GET /api/world responds 404 NOT_FOUND with no world open (client management-mode signal)", async () => {
+    // registerAuthRoutes (and therefore GET /api/world) is only mounted
+    // when authContext is passed to boot() — see boot.ts, conditional on
+    // --world. With no world open, the request falls through to the SPA
+    // catch-all's /api/* guard (spa/routes.ts), which answers a clean
+    // 404 {ok:false, code:"NOT_FOUND"}. The client (session.svelte.ts's
+    // classifyWorldFetchError, packages/client/src/lib/worldFetchErrorClassifier.ts)
+    // relies on exactly this shape to distinguish "server up, no world
+    // open" (show ManagementScreen.svelte) from "server unreachable" (fetch
+    // itself throws, never reaching this assertion) — manual validation
+    // round 2 finding. This test pins the server-side half of that contract.
+    const dataDir = makeTempDataDir();
+    const result = await bootManagementServer(dataDir);
+
+    const res = await result.fastify.inject({ method: "GET", url: "/api/world" });
+    expect(res.statusCode).toBe(404);
+    const body = res.json<{ ok: boolean; code: string }>();
+    expect(body.ok).toBe(false);
+    expect(body.code).toBe("NOT_FOUND");
+  });
+
   it("stamps Config/fusion.json with dataVersion/serverVersion even with no world", async () => {
     const dataDir = makeTempDataDir();
     await bootManagementServer(dataDir);

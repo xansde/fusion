@@ -260,11 +260,16 @@ describe("CLI — world commands", () => {
     expect(res.stdout).toContain("USAGE");
   });
 
-  it("fusion world create --help exits 0 and prints usage", () => {
+  it("fusion world create --help exits 0 and prints world-create-specific usage (not the generic root usage)", () => {
     const dataDir = makeTempDir();
     const res = runCli(["world", "create", "--help"], dataDir);
     expect(res.exitCode).toBe(0);
-    expect(res.stdout).toContain("USAGE");
+    expect(res.stdout).toContain("fusion world create — Create a new world");
+    expect(res.stdout).toContain("--system <id>");
+    // Regression guard: a prior bug made every subcommand's --help collapse
+    // into the generic root usage, which also contains "USAGE" — so this
+    // must assert content that is UNIQUE to the "world create" topic.
+    expect(res.stdout).not.toContain("COMMANDS\n");
   });
 
   // -------------------------------------------------------------------------

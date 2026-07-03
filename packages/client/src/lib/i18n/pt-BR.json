@@ -147,6 +147,16 @@
   "FUSION.Join.ReloadPage": "recarregue a página",
   "FUSION.Join.VersionMismatchEnd": "para obter o cliente mais recente.",
 
+  "FUSION.Management.Title": "Servidor ativo — nenhum mundo aberto",
+  "FUSION.Management.Subtitle": "O servidor Fusion está rodando, mas nenhum mundo foi aberto ainda nesta sessão.",
+  "FUSION.Management.StepsTitle": "Como abrir um mundo",
+  "FUSION.Management.Step1Label": "1. Crie um mundo (se ainda não tiver um)",
+  "FUSION.Management.Step2Label": "2. Inicie o servidor apontando para o mundo",
+  "FUSION.Management.CopyCommand": "Copiar comando",
+  "FUSION.Management.Copied": "Copiado!",
+  "FUSION.Management.SetupLink": "Reconfigurar o servidor",
+  "FUSION.Management.RetryButton": "Verificar novamente",
+
   "FUSION.Scene.Dialog.Create.Title": "Nova Cena",
   "FUSION.Scene.Dialog.Edit.Title": "Editar Cena",
   "FUSION.Scene.Dialog.Name": "Nome",

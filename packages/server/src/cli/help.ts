@@ -17,6 +17,8 @@ COMMANDS
   world list             List all worlds in the data directory
   world create <slug>    Create a new world
   world backup <slug>    Create a manual backup of a world
+  user add <world> <name>
+                         Add a user to a world
 
 OPTIONS
   --help, -h             Show help
@@ -99,11 +101,15 @@ OPTIONS
   --system <id>          System ID to use for the world (required)
   --title <text>         Human-readable world title (default: same as slug)
   --data-dir <path>      Root data directory (default: Documents/FusionVTT)
+  --gm-password <pwd>    Explicit GM password (default: a random password is
+                         generated and printed once — save it, it cannot be
+                         recovered later)
   --help, -h             Show this help
 
 EXAMPLES
   fusion world create my_world --system stub --title "My World"
   fusion world create campaign_2025 --system stub
+  fusion world create my_world --system stub --gm-password "correct horse"
 `;
 
 const USAGE_WORLD_BACKUP = `\
@@ -118,6 +124,42 @@ ARGUMENTS
 OPTIONS
   --data-dir <path>      Root data directory (default: Documents/FusionVTT)
   --help, -h             Show this help
+`;
+
+const USAGE_USER = `\
+fusion user — User management commands
+
+USAGE
+  fusion user <subcommand> [options]
+
+SUBCOMMANDS
+  add <world> <name>     Add a user to a world
+
+Run 'fusion user <subcommand> --help' for more details.
+`;
+
+const USAGE_USER_ADD = `\
+fusion user add — Add a user to a world
+
+USAGE
+  fusion user add <world> <name> --role <role> [options]
+
+ARGUMENTS
+  <world>                 World slug to add the user to
+  <name>                  User's display name
+
+OPTIONS
+  --role <role>           User role: PLAYER|TRUSTED|ASSISTANT|GAMEMASTER
+                          (required)
+  --password <pwd>        Explicit password (default: a random password is
+                          generated and printed once — save it, it cannot be
+                          recovered later)
+  --data-dir <path>       Root data directory (default: Documents/FusionVTT)
+  --help, -h              Show this help
+
+EXAMPLES
+  fusion user add my_world Alice --role PLAYER
+  fusion user add my_world Bob --role GAMEMASTER --password "correct horse"
 `;
 
 export function printHelp(topic: string | undefined): void {
@@ -136,6 +178,12 @@ export function printHelp(topic: string | undefined): void {
       break;
     case "world backup":
       process.stdout.write(USAGE_WORLD_BACKUP);
+      break;
+    case "user":
+      process.stdout.write(USAGE_USER);
+      break;
+    case "user add":
+      process.stdout.write(USAGE_USER_ADD);
       break;
     case "version":
       process.stdout.write(`${VERSION}\n`);

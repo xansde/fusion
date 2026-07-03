@@ -174,6 +174,12 @@ describe("Spot-check: pt-BR translations differ from English for key terms", () 
     ["FUSION.Sheet.Labels.AC", "CA", "AC"],
     ["FUSION.Dialog.Cancel", "Cancelar", "Cancel"],
     ["FUSION.Header.Leave", "Sair", "Leave"],
+    [
+      "FUSION.Management.Title",
+      "Servidor ativo — nenhum mundo aberto",
+      "Server running — no world open",
+    ],
+    ["FUSION.Management.RetryButton", "Verificar novamente", "Check again"],
   ];
 
   for (const [key, expectedPtBR, _enValue] of spotCheck) {
@@ -252,7 +258,35 @@ describe("Join screen keys coverage", () => {
 });
 
 // ---------------------------------------------------------------------------
-// 8 — Connection and role keys coverage
+// 8 — Management screen keys coverage (server up, no world open)
+// ---------------------------------------------------------------------------
+
+describe("Management screen keys coverage", () => {
+  const managementKeys = [
+    "FUSION.Management.Title",
+    "FUSION.Management.Subtitle",
+    "FUSION.Management.StepsTitle",
+    "FUSION.Management.Step1Label",
+    "FUSION.Management.Step2Label",
+    "FUSION.Management.CopyCommand",
+    "FUSION.Management.Copied",
+    "FUSION.Management.SetupLink",
+    "FUSION.Management.RetryButton",
+  ];
+
+  it("all management keys exist in pt-BR", () => {
+    const missing = managementKeys.filter((k) => !(k in ptBRBundle));
+    expect(missing, `Missing management keys in pt-BR: ${missing.join(", ")}`).toHaveLength(0);
+  });
+
+  it("all management keys exist in en", () => {
+    const missing = managementKeys.filter((k) => !(k in enBundle));
+    expect(missing, `Missing management keys in en: ${missing.join(", ")}`).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 9 — Connection and role keys coverage
 // ---------------------------------------------------------------------------
 
 describe("Connection and role keys coverage", () => {

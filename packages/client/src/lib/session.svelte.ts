@@ -11,7 +11,7 @@
  *
  * Usage:
  *   import { session, sessionActions } from "$lib/session.svelte";
- *   session.screen        // "loading" | "join" | "table"
+ *   session.screen        // "loading" | "join" | "table" | "management"
  *   session.user          // UserPublic | null
  *   session.worldInfo     // WorldInfo | null
  *   session.connection    // ConnectionState
@@ -26,12 +26,13 @@ import { SocketManager, type ConnectionState } from "./socket.js";
 import type { Socket } from "socket.io-client";
 import { attachWorldSync } from "./docs/worldSync.js";
 import { attachSceneListSync } from "./scenes/scenesState.svelte.js";
+import { classifyWorldFetchError } from "./worldFetchErrorClassifier.js";
 
 // ---------------------------------------------------------------------------
 // Screen type
 // ---------------------------------------------------------------------------
 
-export type Screen = "loading" | "join" | "table";
+export type Screen = "loading" | "join" | "table" | "management";
 
 // ---------------------------------------------------------------------------
 // Reactive state (Svelte 5 runes — $state)
@@ -105,9 +106,19 @@ export const sessionActions = {
     try {
       fetchedWorldInfo = await fusionApi.fetchWorldInfo();
       session.worldInfo = fetchedWorldInfo;
-    } catch {
-      // Server unreachable — stay on join screen with error
+    } catch (err) {
       session.worldInfo = null;
+
+      // Previously ANY failure here (network error vs. a clean 404 meaning
+      // "no world open") showed the same raw "Cannot reach the server"
+      // error on the join screen, even when the server was very much up
+      // in management mode — manual validation round 2 finding. See
+      // classifyWorldFetchError()'s doc comment for the distinction.
+      if (classifyWorldFetchError(err) === "management") {
+        session.screen = "management";
+        return;
+      }
+
       session.screen = "join";
       session.error = "Cannot reach the server. Is it running?";
       return;

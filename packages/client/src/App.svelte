@@ -2,7 +2,9 @@
   /**
    * App.svelte — root shell (Svelte 5 runes).
    *
-   * Orchestrates screens: loading → join → table.
+   * Orchestrates screens: loading → join → table, with a "management"
+   * branch when the server is up but no world is open yet (see
+   * ManagementScreen.svelte and session.svelte.ts's sessionActions.load()).
    * Session state lives in src/lib/session.svelte.ts.
    *
    * M0-C: real auth + WebSocket join flow.
@@ -16,6 +18,7 @@
   import { session, sessionActions } from "./lib/session.svelte.js";
   import JoinScreen from "./components/JoinScreen.svelte";
   import TableScreen from "./components/TableScreen.svelte";
+  import ManagementScreen from "./components/ManagementScreen.svelte";
 
   onMount(async () => {
     await sessionActions.load();
@@ -32,6 +35,9 @@
 
   {:else if session.screen === "join"}
     <JoinScreen />
+
+  {:else if session.screen === "management"}
+    <ManagementScreen />
 
   {:else if session.screen === "table"}
     <TableScreen />

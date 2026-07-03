@@ -147,11 +147,23 @@ export function parseArgs(argv: string[]): ParsedArgs {
     return { command: "serve", implicitServe: true };
   }
 
-  // Check for top-level help / version
-  if (consumeFlag(args, "--help") || consumeFlag(args, "-h")) {
+  // Check for top-level help / version — ONLY when the flag is the very
+  // first token (args[0]). Using consumeFlag() here (which scans the whole
+  // array via indexOf) would also match `--help`/`-h` that belongs to a
+  // subcommand, e.g. `world create --help` or `serve --help`: it would
+  // consume the flag before the "world"/"serve" branch below ever runs,
+  // collapsing every subcommand's `--help` into the generic root usage
+  // (bug found in manual validation round 2 — every subcommand's own
+  // `--help` handling further down was unreachable as a result). Checking
+  // args[0] directly keeps `fusion --help`/`fusion -h` working while letting
+  // each subcommand branch own its own `--help`/`-h` detection wherever it
+  // appears in its own argument list.
+  if (args[0] === "--help" || args[0] === "-h") {
+    args.shift();
     return { command: "help" };
   }
-  if (consumeFlag(args, "--version") || consumeFlag(args, "-v")) {
+  if (args[0] === "--version" || args[0] === "-v") {
+    args.shift();
     return { command: "help", topic: "version" };
   }
 
@@ -212,6 +224,14 @@ export function parseArgs(argv: string[]): ParsedArgs {
 
     // -- world create <slug> --
     if (worldCmd === "create") {
+      // Check --help/-h BEFORE requiring the positional <slug>: a bare
+      // `fusion world create --help` (no slug yet — the user is asking
+      // what the command needs) must show this command's usage, not throw
+      // a "missing slug" parse error.
+      if (consumeFlag(args, "--help") || consumeFlag(args, "-h")) {
+        return { command: "help", topic: "world create" };
+      }
+
       const slug = args.shift();
       if (slug === undefined || slug.startsWith("--")) {
         throw new ParseArgsError(
@@ -241,6 +261,11 @@ export function parseArgs(argv: string[]): ParsedArgs {
 
     // -- world backup <slug> --
     if (worldCmd === "backup") {
+      // Same reasoning as `world create` above: --help must work even
+      // without the positional <slug> present yet.
+      if (consumeFlag(args, "--help") || consumeFlag(args, "-h")) {
+        return { command: "help", topic: "world backup" };
+      }
       const slug = args.shift();
       if (slug === undefined || slug.startsWith("--")) {
         throw new ParseArgsError(
@@ -273,6 +298,11 @@ export function parseArgs(argv: string[]): ParsedArgs {
 
     // -- user add <world> <name> --
     if (userCmd === "add") {
+      // Same reasoning as `world create`/`world backup`: --help must work
+      // even without the positional <world>/<name> present yet.
+      if (consumeFlag(args, "--help") || consumeFlag(args, "-h")) {
+        return { command: "help", topic: "user add" };
+      }
       const world = args.shift();
       if (world === undefined || world.startsWith("--")) {
         throw new ParseArgsError(
