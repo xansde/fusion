@@ -136,23 +136,35 @@ function makeFighterDoc(level = 5): Record<string, unknown> {
       details: { keyAbility: "str", level: level },
       traits: { rarity: "common", value: [], size: "med" },
     } as Record<string, unknown>,
-    // Equipped plate armor: heavy, AC+6, dexCap 0, potency 1 (REQ-PF2-020, REQ-PF2-130)
-    _equippedArmor: {
-      category: "heavy",
-      acBonus: 6,
-      dexCap: 0,
-      potency: 1,
-    },
-    // Equipped longsword: martial, 1d8 slashing, potency 1, striking 1
-    _equippedWeapons: [
+    // Equipped plate armor + longsword, expressed as `items` — the real
+    // production path (stepCharCollectEquipment scans doc.items and
+    // populates doc._equippedArmor / doc._equippedWeapons; REQ-PF2-020,
+    // REQ-PF2-030, REQ-PF2-130).
+    items: [
       {
+        _id: "plate-1",
+        name: "Plate Armor",
+        type: "armor",
+        system: {
+          category: "heavy",
+          acBonus: 6,
+          dexCap: 0,
+          runes: { potency: 1 },
+          equipped: true,
+        },
+      },
+      {
+        _id: "longsword-1",
         name: "Longsword",
-        id: "longsword-1",
-        damage: { dice: 1, die: "d8", damageType: "slashing", modifier: 0 },
-        category: "martial",
-        traits: [],
-        range: null,
-        runes: { potency: 1, striking: 1 },
+        type: "weapon",
+        system: {
+          category: "martial",
+          range: null,
+          damage: { dice: 1, die: "d8", damageType: "slashing", modifier: 0 },
+          traits: { value: [] },
+          runes: { potency: 1, striking: 1 },
+          equipped: true,
+        },
       },
     ],
   };
@@ -582,16 +594,21 @@ describe("Frightened 2 condition (REQ-PF2-051)", () => {
 describe("Agile weapon strike MAP", () => {
   it("agile dagger has MAP 0/−4/−8 variants", () => {
     const doc = makeFighterDoc(5);
-    // Override equipped weapons with an agile dagger
-    doc["_equippedWeapons"] = [
+    // Override equipped weapons with an agile dagger (via doc.items — the
+    // real production path; stepCharCollectEquipment scans doc.items).
+    doc["items"] = [
       {
+        _id: "dagger-1",
         name: "Dagger",
-        id: "dagger-1",
-        damage: { dice: 1, die: "d4", damageType: "piercing", modifier: 0 },
-        category: "simple",
-        traits: ["agile", "finesse", "thrown-20"],
-        range: null,
-        runes: { potency: 0, striking: 0 },
+        type: "weapon",
+        system: {
+          category: "simple",
+          range: null,
+          damage: { dice: 1, die: "d4", damageType: "piercing", modifier: 0 },
+          traits: { value: ["agile", "finesse", "thrown-20"] },
+          runes: { potency: 0, striking: 0 },
+          equipped: true,
+        },
       },
     ];
 

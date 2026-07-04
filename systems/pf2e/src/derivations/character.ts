@@ -26,6 +26,8 @@ import { SKILL_ABILITY } from "../types.js";
 import { abilityMod, proficiencyBonus, resolveStatisticMulti, mapPenalties } from "./helpers.js";
 import { deriveStrikeFromWeapon, type StrikeModifier } from "../actions/strikes.js";
 import type { DerivedStatistic, DerivedStrike, ModifierBreakdown } from "./types.js";
+import { stepCharCollectEquipment } from "./equipment.js";
+import { stepCharSpellcasting } from "./spellcasting.js";
 
 function getSystem(doc: Record<string, unknown>): Record<string, unknown> {
   return (doc["system"] as Record<string, unknown>) ?? {};
@@ -649,6 +651,39 @@ function renderCritDamageFormula(
 }
 
 /**
+ * Render a PURE rollable damage formula for `@dice-roller/rpg-dice-roller`
+ * (CONTRACT 3) — no damage type in the text.
+ *
+ * `NdX+M` (or `NdX-M` for a negative bonus, or bare `NdX` when bonus is 0).
+ */
+function renderDamageRoll(dice: number, die: string, flatBonus: number): string {
+  if (flatBonus === 0) return `${String(dice)}${die}`;
+  const sign = flatBonus > 0 ? "+" : "";
+  return `${String(dice)}${die}${sign}${String(flatBonus)}`;
+}
+
+/**
+ * Render a PURE rollable critical damage formula (CONTRACT 3) — no damage
+ * type in the text. Mirrors `renderCritDamageFormula`'s semantics: the base
+ * pool is doubled, deadly adds one (undoubled) extra die outside the
+ * doubling, and fatal adds one extra die of the fatal size outside the
+ * doubling (fatal does NOT replace the base die — same as the display
+ * formula above).
+ */
+function renderCritDamageRoll(
+  dice: number,
+  die: string,
+  flatBonus: number,
+  deadlyDie: string | undefined,
+  fatalDie: string | undefined,
+): string {
+  const base = `(${renderDamageRoll(dice, die, flatBonus)})*2`;
+  if (fatalDie !== undefined) return `${base}+1${fatalDie}`;
+  if (deadlyDie !== undefined) return `${base}+1${deadlyDie}`;
+  return base;
+}
+
+/**
  * Derive strikes from the `_equippedWeapons` array on the document.
  *
  * Delegates the attack/damage math (ability mod, proficiency, potency, striking
@@ -773,6 +808,18 @@ export const stepCharStrikes: DeriveStep = {
         descriptor.deadlyDie,
         descriptor.fatalDie,
       );
+      const damageRoll = renderDamageRoll(
+        descriptor.damageDice,
+        descriptor.damageDie,
+        descriptor.damageBonus,
+      );
+      const critDamageRoll = renderCritDamageRoll(
+        descriptor.damageDice,
+        descriptor.damageDie,
+        descriptor.damageBonus,
+        descriptor.deadlyDie,
+        descriptor.fatalDie,
+      );
 
       return {
         label: descriptor.label,
@@ -784,6 +831,8 @@ export const stepCharStrikes: DeriveStep = {
         damageAbilityMod: descriptor.damageAbilityMod,
         damageFormula,
         critDamageFormula,
+        damageRoll,
+        critDamageRoll,
         damageType: descriptor.damageType,
         traits: descriptor.traits,
       };
@@ -829,6 +878,7 @@ function deduplicateModifiers(
 
 export const CHARACTER_DERIVE_STEPS: DeriveStep[] = [
   stepCharAbilityMods,
+  stepCharCollectEquipment,
   stepCharHp,
   stepCharDyingMax,
   stepCharAc,
@@ -838,4 +888,5 @@ export const CHARACTER_DERIVE_STEPS: DeriveStep[] = [
   stepCharClassDC,
   stepCharDrainedHp,
   stepCharStrikes,
+  stepCharSpellcasting,
 ];

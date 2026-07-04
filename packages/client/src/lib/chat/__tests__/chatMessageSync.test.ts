@@ -12,6 +12,7 @@ import {
   createChatOpHandler,
   attachChatOpListener,
   extractChatMessageFromEnvelope,
+  extractChatMessagesFromEnvelope,
   isPubliclyVisibleRoll,
   type OpEmitter,
 } from "../chatMessageSync.js";
@@ -59,7 +60,22 @@ function makeRollMessage(overrides: Partial<ChatMessage> = {}): ChatMessage {
   });
 }
 
+/**
+ * Builds the envelope in the REAL wire shape the server broadcasts
+ * (chat-handler.ts broadcastChatMessage): batch `documents: [msg]`.
+ * The singular `document` key that earlier versions of this suite used was
+ * never what the server sent — that mismatch hid the live-sync bug.
+ */
 function makeDocCreateEnvelope(msg: ChatMessage): Envelope {
+  return {
+    type: "doc:create",
+    ts: Date.now(),
+    payload: { documentType: "ChatMessage", documents: [msg] },
+  } as unknown as Envelope;
+}
+
+/** Legacy singular shape — still accepted for robustness. */
+function makeLegacySingularEnvelope(msg: ChatMessage): Envelope {
   return {
     type: "doc:create",
     ts: Date.now(),
@@ -83,24 +99,63 @@ class FakeSocket implements OpEmitter {
   }
 }
 
-describe("extractChatMessageFromEnvelope", () => {
-  it("extracts the ChatMessage from a doc:create envelope", () => {
+describe("extractChatMessagesFromEnvelope", () => {
+  it("extracts messages from the real server broadcast shape (documents: [msg])", () => {
     const msg = makeTextMessage();
     const envelope = makeDocCreateEnvelope(msg);
-    expect(extractChatMessageFromEnvelope(envelope)).toEqual(msg);
+    expect(extractChatMessagesFromEnvelope(envelope)).toEqual([msg]);
+  });
+
+  it("still accepts the legacy singular shape (document: msg)", () => {
+    const msg = makeTextMessage();
+    const envelope = makeLegacySingularEnvelope(msg);
+    expect(extractChatMessagesFromEnvelope(envelope)).toEqual([msg]);
+  });
+
+  it("extracts every message from a multi-document batch", () => {
+    const a = makeTextMessage({ _id: "a" });
+    const b = makeTextMessage({ _id: "b" });
+    const envelope = {
+      type: "doc:create",
+      ts: Date.now(),
+      payload: { documentType: "ChatMessage", documents: [a, b] },
+    } as unknown as Envelope;
+    expect(extractChatMessagesFromEnvelope(envelope)).toEqual([a, b]);
+  });
+
+  it("skips malformed entries without an _id", () => {
+    const good = makeTextMessage({ _id: "good" });
+    const envelope = {
+      type: "doc:create",
+      ts: Date.now(),
+      payload: { documentType: "ChatMessage", documents: [{ nope: true }, good] },
+    } as unknown as Envelope;
+    expect(extractChatMessagesFromEnvelope(envelope)).toEqual([good]);
+  });
+
+  it("returns [] for non doc:create envelopes", () => {
+    const envelope = { type: "doc:update", ts: Date.now(), payload: {} } as unknown as Envelope;
+    expect(extractChatMessagesFromEnvelope(envelope)).toEqual([]);
+  });
+
+  it("returns [] for doc:create of a different document type", () => {
+    const envelope = {
+      type: "doc:create",
+      ts: Date.now(),
+      payload: { documentType: "Token", documents: [{ _id: "t1" }] },
+    } as unknown as Envelope;
+    expect(extractChatMessagesFromEnvelope(envelope)).toEqual([]);
+  });
+});
+
+describe("extractChatMessageFromEnvelope (back-compat wrapper)", () => {
+  it("returns the first message of a batch", () => {
+    const msg = makeTextMessage();
+    expect(extractChatMessageFromEnvelope(makeDocCreateEnvelope(msg))).toEqual(msg);
   });
 
   it("returns null for non doc:create envelopes", () => {
     const envelope = { type: "doc:update", ts: Date.now(), payload: {} } as unknown as Envelope;
-    expect(extractChatMessageFromEnvelope(envelope)).toBeNull();
-  });
-
-  it("returns null for doc:create of a different document type", () => {
-    const envelope = {
-      type: "doc:create",
-      ts: Date.now(),
-      payload: { documentType: "Token", document: { _id: "t1" } },
-    } as unknown as Envelope;
     expect(extractChatMessageFromEnvelope(envelope)).toBeNull();
   });
 });

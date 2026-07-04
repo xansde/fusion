@@ -258,7 +258,7 @@
 
         {:else if activeTab === "actors"}
           <!-- Actors tab -->
-          <ActorDirectory {socket} {isGm} {userId} />
+          <ActorDirectory {socket} {isGm} {userId} {worldId} />
         {:else if activeTab === "compendium"}
           <!-- Compendium tab -->
           <CompendiumBrowser {socket} {isGm} />

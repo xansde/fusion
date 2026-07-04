@@ -41,18 +41,45 @@ export interface ChatMessageSyncDeps {
 }
 
 /**
- * Extract a ChatMessage from a doc:create envelope, or null if the envelope
- * is not a ChatMessage creation (e.g. a different document type, or a
- * malformed payload).
+ * Extract the ChatMessages from a doc:create envelope, or an empty array if
+ * the envelope is not a ChatMessage creation (e.g. a different document
+ * type, or a malformed payload).
+ *
+ * The server's broadcastChatMessage (chat-handler.ts) emits the batch shape
+ * `{ documentType, documents: [msg] }` — the same wire shape as every other
+ * doc:create broadcast. The singular `document` key is also accepted for
+ * robustness, but reading ONLY the singular key was a real bug: live
+ * broadcasts never matched it, so messages from other users (and sheet rolls
+ * sent via sendOpFn, which ignores the ack result) only appeared after a
+ * history reload.
+ */
+export function extractChatMessagesFromEnvelope(envelope: Envelope): ChatMessage[] {
+  if (envelope.type !== "doc:create") return [];
+  const payload = envelope.payload as {
+    documentType?: string;
+    document?: unknown;
+    documents?: unknown;
+  };
+  if (payload.documentType !== CHAT_DOCUMENT_TYPE) return [];
+
+  const candidates: unknown[] = Array.isArray(payload.documents)
+    ? payload.documents
+    : payload.document !== undefined
+      ? [payload.document]
+      : [];
+
+  return candidates.filter((raw): raw is ChatMessage => {
+    const msg = raw as ChatMessage | null | undefined;
+    return !!msg && typeof msg._id === "string";
+  });
+}
+
+/**
+ * Back-compat single-message variant (first message or null). Prefer
+ * {@link extractChatMessagesFromEnvelope} — broadcasts carry an array.
  */
 export function extractChatMessageFromEnvelope(envelope: Envelope): ChatMessage | null {
-  if (envelope.type !== "doc:create") return null;
-  const payload = envelope.payload as { documentType?: string; document?: unknown };
-  if (payload.documentType !== CHAT_DOCUMENT_TYPE) return null;
-
-  const msg = payload.document as ChatMessage | undefined;
-  if (!msg || typeof msg._id !== "string") return null;
-  return msg;
+  return extractChatMessagesFromEnvelope(envelope)[0] ?? null;
 }
 
 /** True when a roll on this message should trigger the 3D dice animation. */
@@ -73,17 +100,18 @@ export function isPubliclyVisibleRoll(msg: ChatMessage): boolean {
  */
 export function createChatOpHandler(deps: ChatMessageSyncDeps): (envelope: Envelope) => void {
   return (envelope: Envelope) => {
-    const msg = extractChatMessageFromEnvelope(envelope);
-    if (!msg) return;
+    const messages = extractChatMessagesFromEnvelope(envelope);
 
-    deps.handleIncomingMessage(msg);
+    for (const msg of messages) {
+      deps.handleIncomingMessage(msg);
 
-    if (!isPubliclyVisibleRoll(msg) || !msg.rolls) return;
-    const animator = deps.getRollAnimator();
-    if (!animator) return;
-    for (const roll of msg.rolls) {
-      if (roll.rollMode === "public") {
-        animator(roll);
+      if (!isPubliclyVisibleRoll(msg) || !msg.rolls) continue;
+      const animator = deps.getRollAnimator();
+      if (!animator) continue;
+      for (const roll of msg.rolls) {
+        if (roll.rollMode === "public") {
+          animator(roll);
+        }
       }
     }
   };

@@ -62,10 +62,12 @@
     socket,
     isGm,
     userId,
+    worldId = "",
   }: {
     socket: Socket;
     isGm: boolean;
     userId: string;
+    worldId?: string;
   } = $props();
 
   // ---- Reactive state ----
@@ -97,10 +99,22 @@
     // sendOpFn is wired via makeSendOpFn(socket) so autosave/rolls/"Propor ao
     // Narrador" actually reach the server instead of silently no-op'ing
     // (every sheet's sendOpFn prop defaults to a no-op — see sendOp.ts).
+    //
+    // Ownership bug fix: was hardcoded to 3 (OWNER) for every viewer, which
+    // let non-GM players open (and, per vm.editable, edit) actors they don't
+    // own. Resolve the real per-user ownership level: GM always gets OWNER
+    // (matches server's resolveOwnership — GAMEMASTER role short-circuits to
+    // OWNER); otherwise read the actor's own ownership map, falling back to
+    // its "default" entry, then to NONE (OwnershipLevel enum: NONE=0).
+    const actorOwnership = (actor as unknown as Record<string, unknown>)["ownership"] as
+      | Record<string, number>
+      | undefined;
+    const ownership = isGm ? 3 : (actorOwnership?.[userId] ?? actorOwnership?.["default"] ?? 0);
     const opts = {
       userId,
-      ownership: 3, // OWNER — sidebar actors are always accessible to the opener
+      ownership,
       isGm,
+      worldId,
       sendOpFn: makeSendOpFn(socket),
     };
     if (ETMOS_SUBTYPES.has(actor.type)) {

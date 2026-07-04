@@ -95,6 +95,17 @@ export interface DerivedStrike {
   readonly damageFormula: string;
   /** Critical damage formula (typically double; deadly/fatal modify this). */
   readonly critDamageFormula: string;
+  /**
+   * Pure rollable damage formula for `@dice-roller/rpg-dice-roller`, with NO
+   * damage type in the text (e.g. "1d6+3", "1d4-1", or "1d6" when bonus is 0).
+   * CONTRACT 3.
+   */
+  readonly damageRoll?: string;
+  /**
+   * Pure rollable critical damage formula (e.g. "(1d6+3)*2"; with deadly:
+   * "(1d6+3)*2+1d6"; with fatal d8: "(1d8+3)*2+1d8"). CONTRACT 3.
+   */
+  readonly critDamageRoll?: string;
   /** Damage type. */
   readonly damageType: string;
   /** Weapon traits (for UI and downstream processing). */
@@ -161,6 +172,17 @@ export interface CharacterDerived {
 
   /** Dying max adjusted for doomed. REQ-PF2-074 */
   readonly dyingMax: number;
+
+  /**
+   * Spellcasting DC/attack per spellcastingEntry item id (CONTRACT 2).
+   * `attack` already includes synthetics modifiers; `dc = 10 + attack`.
+   * Optional: absent for characters with no spellcasting entries (some
+   * derivation call sites may skip writing an empty object).
+   */
+  readonly spellcasting?: Record<
+    string,
+    { dc: number; attack: number; ability: string; rank: number }
+  >;
 }
 
 // ---------------------------------------------------------------------------

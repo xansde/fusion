@@ -28,3 +28,6 @@ Thumbs.db
 
 # Claude agent worktrees
 .claude/worktrees/
+
+# Claude session-local launch config (absolute local paths)
+.claude/launch.json

@@ -9,6 +9,8 @@
 
 export * from "./types.js";
 export * from "./helpers.js";
+export * from "./equipment.js";
+export * from "./spellcasting.js";
 export * from "./character.js";
 export * from "./npc.js";
 

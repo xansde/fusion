@@ -79,6 +79,7 @@ export function openActorSheet(
     userId: string;
     ownership: number;
     isGm: boolean;
+    worldId?: string;
     sendOpFn?: (op: unknown) => void;
   },
 ): void {

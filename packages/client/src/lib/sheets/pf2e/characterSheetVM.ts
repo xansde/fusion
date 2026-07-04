@@ -50,6 +50,26 @@ export function proficiencyLabel(rank: number): string {
   }
 }
 
+/**
+ * Canonical "equipped" predicate (contract 1 — mirrored on the server side
+ * in systems/pf2e; MUST keep the same semantics on both sides).
+ *
+ * sys.equipped === true || sys.equipped?.value === true || sys.equipped?.inSlot === true.
+ * Weapons of category "unarmed" always count as equipped (you cannot
+ * unequip a bite) — callers pass isUnarmed=true for those.
+ */
+export function isEquippedFlag(sys: Record<string, unknown>, isUnarmed = false): boolean {
+  if (isUnarmed) return true;
+  const eq = sys["equipped"];
+  if (eq === true) return true;
+  if (typeof eq === "object" && eq !== null) {
+    const e = eq as Record<string, unknown>;
+    if (e["value"] === true) return true;
+    if (e["inSlot"] === true) return true;
+  }
+  return false;
+}
+
 /** Full proficiency label. */
 export function proficiencyLabelFull(rank: number): string {
   switch (rank) {
@@ -82,6 +102,20 @@ function getDerived(doc: Record<string, unknown>): CharacterDerived | null {
   return derived as unknown as CharacterDerived;
 }
 
+/**
+ * Unwrap a `{ value: string }` wrapper (the shape pf2e item schemas use for
+ * enum-ish fields like tradition/prepared/ability) OR accept a flat string.
+ * Returns `fallback` for anything else.
+ */
+function unwrapStringValue(raw: unknown, fallback: string): string {
+  if (typeof raw === "string") return raw;
+  if (raw && typeof raw === "object") {
+    const v = (raw as Record<string, unknown>)["value"];
+    if (typeof v === "string") return v;
+  }
+  return fallback;
+}
+
 // ---------------------------------------------------------------------------
 // Ability names
 // ---------------------------------------------------------------------------
@@ -108,7 +142,14 @@ export const ABILITY_LONG_LABELS: Record<string, string> = {
 // Sheet tab types
 // ---------------------------------------------------------------------------
 
-export type CharacterSheetTab = "main" | "skills" | "actions" | "spells" | "inventory";
+export type CharacterSheetTab =
+  | "main"
+  | "skills"
+  | "actions"
+  | "spells"
+  | "inventory"
+  | "feats"
+  | "bio";
 
 // ---------------------------------------------------------------------------
 // Row types for the sheet UI
@@ -184,8 +225,32 @@ export interface SpellcastingEntryRow {
     rank: number;
     value: number;
     max: number;
-    spells: Array<{ id: string; name: string; level: number }>;
+    /** True for the rank-0 "slot" (cantrips have no slot consumption). */
+    isCantrip: boolean;
+    spells: SpellRow[];
   }>;
+}
+
+export interface SpellRow {
+  id: string;
+  name: string;
+  level: number;
+  hasAttack: boolean;
+  castTime: string | null;
+}
+
+export interface FeatRow {
+  id: string;
+  name: string;
+  subtype: string;
+  level: number | null;
+}
+
+export interface DetailsInfo {
+  ancestry: string;
+  background: string;
+  class: string;
+  keyAbility: string;
 }
 
 export interface InventoryRow {
@@ -217,6 +282,21 @@ export interface DocUpdatePayload {
   diff: Record<string, unknown>;
 }
 
+/**
+ * Wire payload for sheet rolls (contract 5, fixed with the server side).
+ * Rolls from the sheet go through chat:send so they render as chat cards —
+ * NOT roll:check (that type is legacy/unused by this VM going forward).
+ * The VM emits "/r <formula> # <flavor>" content; makeSendOpFn splits
+ * type/payload for the wire.
+ */
+export interface ChatRollPayload {
+  type: "chat:send";
+  content: string;
+  worldId: string;
+  rollMode: "public";
+  speakerActorId: string;
+}
+
 // ---------------------------------------------------------------------------
 // CharacterSheetVM
 // ---------------------------------------------------------------------------
@@ -236,6 +316,7 @@ export class CharacterSheetVM {
   private readonly _ownership: number;
   private readonly _userId: string;
   private readonly _isGm: boolean;
+  private readonly _worldId: string;
 
   constructor(opts: {
     doc: Record<string, unknown>;
@@ -243,12 +324,14 @@ export class CharacterSheetVM {
     ownership: number;
     userId: string;
     isGm: boolean;
+    worldId?: string;
   }) {
     this._doc = opts.doc;
     this._actorId = opts.actorId;
     this._ownership = opts.ownership;
     this._userId = opts.userId;
     this._isGm = opts.isGm;
+    this._worldId = opts.worldId ?? "";
   }
 
   // -------------------------------------------------------------------------
@@ -655,17 +738,16 @@ export class CharacterSheetVM {
         const rawName = item["name"];
         const rawType = item["type"];
         const rawQty = sys["quantity"];
-        const equippedObj =
-          typeof sys["equipped"] === "object" && sys["equipped"] !== null
-            ? (sys["equipped"] as Record<string, unknown>)
-            : {};
+        // Weapons of category "unarmed" always count as equipped (contract 1).
+        const category = sys["category"];
+        const isUnarmed = rawType === "weapon" && category === "unarmed";
         return {
           id: typeof rawId === "string" ? rawId : "",
           name: typeof rawName === "string" ? rawName : "",
           subtype: typeof rawType === "string" ? rawType : "",
           quantity: typeof rawQty === "number" ? rawQty : 1,
           bulk,
-          equipped: equippedObj["inSlot"] === true,
+          equipped: isEquippedFlag(sys, isUnarmed),
           img: typeof item["img"] === "string" ? item["img"] : null,
         };
       });
@@ -675,9 +757,22 @@ export class CharacterSheetVM {
   // Spells tab
   // -------------------------------------------------------------------------
 
+  /**
+   * Spellcasting entries (spells tab).
+   *
+   * Fixes 2 pre-existing bugs (contract 4):
+   *  (a) slots were read with key "slot{N}" — the real schema (SpellSlotsMapSchema)
+   *      uses keys "0".."10" directly.
+   *  (b) spells were pushed into EVERY rank bucket regardless of their own
+   *      level — now each spell is grouped by its own system.level (0 = cantrip)
+   *      and associated to an entry via the item's root `location` field
+   *      (fallback: root `spellcastingEntry` for older docs).
+   */
   get spellcastingEntries(): SpellcastingEntryRow[] {
     const items = this._doc["items"] as Array<Record<string, unknown>> | undefined;
     if (!items) return [];
+
+    const spellcastingDerived = this._derived?.spellcasting;
 
     return items
       .filter((item) => item["type"] === "spellcastingEntry")
@@ -688,50 +783,70 @@ export class CharacterSheetVM {
             : {};
         const rawId = entry["_id"];
         const entryId = typeof rawId === "string" ? rawId : "";
-        const rawTradition = sys["tradition"];
-        const tradition = typeof rawTradition === "string" ? rawTradition : "arcane";
-        const rawPrepared = sys["prepared"];
-        const prepared = typeof rawPrepared === "string" ? rawPrepared : "spontaneous";
-        const rawAbility = sys["ability"];
-        const ability = typeof rawAbility === "string" ? rawAbility : "int";
+        // SpellcastingEntrySystemSchema wraps these as { value } objects; a
+        // flat string is also tolerated for older/hand-authored data.
+        const tradition = unwrapStringValue(sys["tradition"], "arcane");
+        const prepared = unwrapStringValue(sys["prepared"], "spontaneous");
+        const ability = unwrapStringValue(sys["ability"], "int");
 
-        // Spell DC and attack from derived (if available)
-        const spellDC = 10; // simplified for now — full derivation in M3-D
-        const spellAttack = 0;
+        // Spell DC and attack from derived.spellcasting[entryId] (contract 2);
+        // fallback to 10/0 when derived data is absent (older doc / pre-migration).
+        const derivedEntry = spellcastingDerived?.[entryId];
+        const spellDC = derivedEntry?.dc ?? 10;
+        const spellAttack = derivedEntry?.attack ?? 0;
 
-        // Slots
+        // Slots — contract 4: keys are "0".."10", NOT "slot0".."slot10".
         const slotsRaw = sys["slots"] as
           | Record<string, { value?: number; max?: number }>
           | undefined;
+
+        // Group every spell belonging to this entry by its own system.level.
+        const spellsByRank = new Map<number, SpellRow[]>();
+        for (const spItem of items) {
+          if (spItem["type"] !== "spell") continue;
+          const spSys =
+            typeof spItem["system"] === "object" && spItem["system"] !== null
+              ? (spItem["system"] as Record<string, unknown>)
+              : {};
+          // Contract 4: location lives on the item ROOT (fallback: root spellcastingEntry).
+          const location = spItem["location"] ?? spItem["spellcastingEntry"];
+          if (location !== entryId) continue;
+
+          const rawLevel = spSys["level"];
+          const spLevel = typeof rawLevel === "number" ? rawLevel : 0;
+          const rawSpId = spItem["_id"];
+          const rawSpName = spItem["name"];
+          const defense = spSys["defense"] as Record<string, unknown> | undefined;
+          const hasAttack = defense?.["spellAttack"] === true;
+          const rawCastTime = spSys["castTime"];
+
+          const row: SpellRow = {
+            id: typeof rawSpId === "string" ? rawSpId : "",
+            name: typeof rawSpName === "string" ? rawSpName : "",
+            level: spLevel,
+            hasAttack,
+            castTime: typeof rawCastTime === "string" ? rawCastTime : null,
+          };
+
+          const bucket = spellsByRank.get(spLevel);
+          if (bucket) bucket.push(row);
+          else spellsByRank.set(spLevel, [row]);
+        }
+
         const slots: SpellcastingEntryRow["slots"] = [];
-        if (slotsRaw) {
-          for (let rank = 0; rank <= 10; rank++) {
-            const slotKey = `slot${String(rank)}`;
-            const slot = slotsRaw[slotKey];
-            if (!slot || (slot.max === 0 && rank > 0)) continue;
-            // Find prepared spells for this rank in this entry
-            const preparedSpells: Array<{ id: string; name: string; level: number }> = [];
-            for (const spItem of items) {
-              if (spItem["type"] !== "spell") continue;
-              const spSys = spItem["system"] as Record<string, unknown> | undefined;
-              if ((spItem["spellcastingEntry"] ?? spItem["location"]) !== entryId) continue;
-              const rawLevel = spSys?.["level"];
-              const spLevel = typeof rawLevel === "number" ? rawLevel : rank;
-              const rawSpId = spItem["_id"];
-              const rawSpName = spItem["name"];
-              preparedSpells.push({
-                id: typeof rawSpId === "string" ? rawSpId : "",
-                name: typeof rawSpName === "string" ? rawSpName : "",
-                level: spLevel,
-              });
-            }
-            slots.push({
-              rank,
-              value: slot.value ?? 0,
-              max: slot.max ?? 0,
-              spells: preparedSpells,
-            });
-          }
+        for (let rank = 0; rank <= 10; rank++) {
+          const slot = slotsRaw?.[String(rank)];
+          const rankSpells = spellsByRank.get(rank) ?? [];
+          // Skip ranks with neither a slot entry nor any spells (nothing to show).
+          if (!slot && rankSpells.length === 0) continue;
+          if (slot && slot.max === 0 && rank > 0 && rankSpells.length === 0) continue;
+          slots.push({
+            rank,
+            value: slot?.value ?? 0,
+            max: slot?.max ?? 0,
+            isCantrip: rank === 0,
+            spells: rankSpells,
+          });
         }
 
         const rawEntryName = entry["name"];
@@ -750,93 +865,202 @@ export class CharacterSheetVM {
   }
 
   // -------------------------------------------------------------------------
+  // Feats tab
+  // -------------------------------------------------------------------------
+
+  private static readonly FEAT_TYPES = new Set([
+    "feat",
+    "ancestry",
+    "background",
+    "class",
+    "heritage",
+  ]);
+
+  get feats(): FeatRow[] {
+    const items = this._doc["items"] as Array<Record<string, unknown>> | undefined;
+    if (!items) return [];
+
+    return items
+      .filter((item) => {
+        const t = item["type"];
+        return typeof t === "string" && CharacterSheetVM.FEAT_TYPES.has(t);
+      })
+      .map((item) => {
+        const sys =
+          typeof item["system"] === "object" && item["system"] !== null
+            ? (item["system"] as Record<string, unknown>)
+            : {};
+        const rawId = item["_id"];
+        const rawName = item["name"];
+        const rawType = item["type"];
+        const rawLevel = sys["level"];
+        let level: number | null = null;
+        if (typeof rawLevel === "number") {
+          level = rawLevel;
+        } else if (typeof rawLevel === "object" && rawLevel !== null) {
+          const v = (rawLevel as Record<string, unknown>)["value"];
+          level = typeof v === "number" ? v : null;
+        }
+        return {
+          id: typeof rawId === "string" ? rawId : "",
+          name: typeof rawName === "string" ? rawName : "",
+          subtype: typeof rawType === "string" ? rawType : "",
+          level,
+        };
+      });
+  }
+
+  // -------------------------------------------------------------------------
+  // Bio tab
+  // -------------------------------------------------------------------------
+
+  get biography(): string {
+    const details = this._system["details"] as Record<string, unknown> | undefined;
+    const raw = details?.["biography"];
+    return typeof raw === "string" ? raw : "";
+  }
+
+  get detailsInfo(): DetailsInfo {
+    const details = this._system["details"] as Record<string, unknown> | undefined;
+    const rawAncestry = details?.["ancestry"];
+    const rawBackground = details?.["background"];
+    const rawClass = details?.["class"];
+    const rawKeyAbility = details?.["keyAbility"];
+    return {
+      ancestry: typeof rawAncestry === "string" ? rawAncestry : "",
+      background: typeof rawBackground === "string" ? rawBackground : "",
+      class: typeof rawClass === "string" ? rawClass : "",
+      keyAbility: typeof rawKeyAbility === "string" ? rawKeyAbility : "",
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // Class DC (main tab summary)
+  // -------------------------------------------------------------------------
+
+  get classDC(): { total: number; dc: number } {
+    const derived = this._derived?.classDC;
+    return { total: derived?.total ?? 0, dc: derived?.dc ?? 10 };
+  }
+
+  // -------------------------------------------------------------------------
+  // Senses (main tab summary)
+  // -------------------------------------------------------------------------
+
+  get senses(): string[] {
+    const perception = this._system["perception"] as Record<string, unknown> | undefined;
+    const raw = perception?.["senses"];
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .map((s) => {
+        if (typeof s === "string") return s;
+        if (typeof s === "object" && s !== null) {
+          const type = (s as Record<string, unknown>)["type"];
+          return typeof type === "string" ? type : null;
+        }
+        return null;
+      })
+      .filter((s): s is string => s !== null);
+  }
+
+  // -------------------------------------------------------------------------
   // Op builders — called by Svelte component to build sendOp payloads
   // -------------------------------------------------------------------------
 
   /**
-   * Build a roll:check op for a skill check.
-   * The server executes the roll and posts a chat card.
+   * Format a "1d20+N" / "1d20-N" roll formula part with a correct sign —
+   * NEVER "1d20+-1" for negative totals.
    */
-  rollSkill(skillSlug: string): RollCheckPayload {
+  private static _fmtRollFormula(base: string, total: number): string {
+    return total >= 0 ? `${base}+${String(total)}` : `${base}${String(total)}`;
+  }
+
+  /**
+   * Build a chat:send op (contract 5) for a skill check.
+   * "/r 1d20+9 # Acrobatics"
+   */
+  rollSkill(skillSlug: string): ChatRollPayload {
     const skillStat = this._derived?.skills[skillSlug];
     const total = skillStat?.total ?? 0;
-    return {
-      type: "roll:check",
-      formula: `1d20 + ${String(total)}`,
-      actorId: this._actorId,
-      context: {
-        label: CharacterSheetVM.SKILL_LABELS[skillSlug] ?? skillSlug,
-        type: "skill",
-        skill: skillSlug,
-        dc: null,
-      },
-    };
+    const label = CharacterSheetVM.SKILL_LABELS[skillSlug] ?? skillSlug;
+    return this._buildChatRoll(CharacterSheetVM._fmtRollFormula("1d20", total), label);
   }
 
   /**
-   * Build a roll:check op for a saving throw.
+   * Build a chat:send op for a saving throw.
+   * "/r 1d20+11 # Fortitude Save"
    */
-  rollSave(saveName: "fortitude" | "reflex" | "will"): RollCheckPayload {
+  rollSave(saveName: "fortitude" | "reflex" | "will"): ChatRollPayload {
     const derivedSave = this._derived?.saves[saveName];
     const total = derivedSave?.total ?? 0;
-    return {
-      type: "roll:check",
-      formula: `1d20 + ${String(total)}`,
-      actorId: this._actorId,
-      context: {
-        label: saveName.charAt(0).toUpperCase() + saveName.slice(1) + " Save",
-        type: "save",
-        save: saveName,
-        dc: null,
-      },
-    };
+    const label = saveName.charAt(0).toUpperCase() + saveName.slice(1) + " Save";
+    return this._buildChatRoll(CharacterSheetVM._fmtRollFormula("1d20", total), label);
   }
 
   /**
-   * Build a roll:check op for Perception.
+   * Build a chat:send op for Perception.
+   * "/r 1d20+8 # Perception"
    */
-  rollPerception(): RollCheckPayload {
+  rollPerception(): ChatRollPayload {
     const total = this._derived?.perception.total ?? 0;
-    return {
-      type: "roll:check",
-      formula: `1d20 + ${String(total)}`,
-      actorId: this._actorId,
-      context: {
-        label: "Perception",
-        type: "perception",
-        dc: null,
-      },
-    };
+    return this._buildChatRoll(CharacterSheetVM._fmtRollFormula("1d20", total), "Perception");
   }
 
   /**
-   * Build a roll:check op for a strike (attack roll).
+   * Build a chat:send op for a strike (attack roll).
+   * "/r 1d20+13 # Longsword (MAP 0)"
    * @param strikeSourceId  The sourceId from the StrikeRow.
    * @param mapIndex        0 = first attack, 1 = second, 2 = third.
    */
-  rollStrike(strikeSourceId: string, mapIndex: 0 | 1 | 2): RollCheckPayload {
+  rollStrike(strikeSourceId: string, mapIndex: 0 | 1 | 2): ChatRollPayload {
     const strike = this._derived?.strikes.find((s) => s.sourceId === strikeSourceId);
     if (!strike) {
-      return {
-        type: "roll:check",
-        formula: "1d20",
-        actorId: this._actorId,
-        context: { label: "Strike", type: "strike" },
-      };
+      return this._buildChatRoll("1d20", `Strike (MAP ${String(mapIndex)})`);
     }
     const variant = strike.variants[mapIndex];
+    const label = `${strike.label} (MAP ${String(mapIndex)})`;
+    // variant.formula is already a full "1d20 + N" style formula from derived
+    // data — reuse it verbatim as the roll formula.
+    return this._buildChatRoll(variant.formula.replace(/\s+/g, ""), label);
+  }
+
+  /**
+   * Build a chat:send op for a strike's damage roll (new — contract 3).
+   * Returns null when the derived strike lacks damageRoll/critDamageRoll
+   * (older/pre-migration data) so the component can hide the button.
+   */
+  rollStrikeDamage(strikeSourceId: string, crit: boolean): ChatRollPayload | null {
+    const strike = this._derived?.strikes.find((s) => s.sourceId === strikeSourceId);
+    if (!strike) return null;
+    const formula = crit ? strike.critDamageRoll : strike.damageRoll;
+    if (!formula) return null;
+    const label = `${strike.label} — ${crit ? "Critical" : "Damage"}`;
+    return this._buildChatRoll(formula, label);
+  }
+
+  /**
+   * Build a chat:send op for a spell attack roll (new).
+   * Returns null when derived.spellcasting[entryId] is unavailable.
+   */
+  rollSpellAttack(entryId: string): ChatRollPayload | null {
+    const derivedEntry = this._derived?.spellcasting?.[entryId];
+    if (!derivedEntry) return null;
+    const entry = this.spellcastingEntries.find((e) => e.entryId === entryId);
+    const label = `Spell Attack (${entry?.label ?? "Spellcasting"})`;
+    return this._buildChatRoll(
+      CharacterSheetVM._fmtRollFormula("1d20", derivedEntry.attack),
+      label,
+    );
+  }
+
+  /** Build the wire chat:send payload: "/r <formula> # <flavor>". */
+  private _buildChatRoll(formula: string, flavor: string): ChatRollPayload {
     return {
-      type: "roll:check",
-      formula: variant.formula,
-      actorId: this._actorId,
-      context: {
-        label: `${strike.label} (MAP ${String(mapIndex)})`,
-        type: "strike",
-        strikeSourceId,
-        mapIndex,
-        damageFormula: strike.damageFormula,
-        critDamageFormula: strike.critDamageFormula,
-      },
+      type: "chat:send",
+      content: `/r ${formula} # ${flavor}`,
+      worldId: this._worldId,
+      rollMode: "public",
+      speakerActorId: this._actorId,
     };
   }
 
@@ -905,6 +1129,74 @@ export class CharacterSheetVM {
       documentType: "Actor",
       id: this._actorId,
       diff: { [path]: value },
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // Hero / Focus points setters (clickable pips — REQ-UIF-023)
+  // -------------------------------------------------------------------------
+
+  /** Set Hero Points to an explicit value, clamped to [0, max]. */
+  setHeroPoints(n: number): DocUpdatePayload | null {
+    if (!this.editable) return null;
+    const clamped = Math.max(0, Math.min(n, this.heroPoints.max));
+    return this.fieldUpdate("system.resources.heroPoints.value", clamped);
+  }
+
+  /** Set Focus Points to an explicit value, clamped to [0, max]. */
+  setFocusPoints(n: number): DocUpdatePayload | null {
+    if (!this.editable) return null;
+    const clamped = Math.max(0, Math.min(n, this.focusPoints.max));
+    return this.fieldUpdate("system.resources.focusPoints.value", clamped);
+  }
+
+  // -------------------------------------------------------------------------
+  // Edit-mode field helpers (REQ-UIF-023) — typed wrappers over fieldUpdate
+  // -------------------------------------------------------------------------
+
+  updateName(value: string): DocUpdatePayload | null {
+    return this.fieldUpdate("name", value);
+  }
+
+  updateAbilityScore(slug: string, value: number): DocUpdatePayload | null {
+    return this.fieldUpdate(`system.abilities.${slug}.value`, value);
+  }
+
+  updateSkillRank(slug: string, rank: number): DocUpdatePayload | null {
+    return this.fieldUpdate(`system.skills.${slug}.rank`, rank);
+  }
+
+  updateSaveRank(name: "fortitude" | "reflex" | "will", rank: number): DocUpdatePayload | null {
+    return this.fieldUpdate(`system.saves.${name}.rank`, rank);
+  }
+
+  updatePerceptionRank(rank: number): DocUpdatePayload | null {
+    return this.fieldUpdate("system.perception.rank", rank);
+  }
+
+  updateHpMax(value: number): DocUpdatePayload | null {
+    return this.fieldUpdate("system.attributes.hp.max", value);
+  }
+
+  updateSpeed(value: number): DocUpdatePayload | null {
+    return this.fieldUpdate("system.attributes.speed.value", value);
+  }
+
+  /**
+   * Level lives in two places on the document (system.level.value and
+   * system.details.level) — update both in the SAME diff so they never
+   * drift apart.
+   */
+  updateLevel(value: number): DocUpdatePayload | null {
+    if (!this.editable) return null;
+    return {
+      type: "doc:update",
+      documentType: "Actor",
+      id: this._actorId,
+      diff: {
+        "system.level.value": value,
+        "system.details.level": value,
+      },
     };
   }
 }

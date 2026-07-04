@@ -1,0 +1,488 @@
+/**
+ * @fusion/system-pf2e — Equipment collector + spellcasting derivation tests.
+ *
+ * TDD coverage for:
+ *   - stepCharCollectEquipment: populates doc._equippedWeapons / _equippedArmor
+ *     from doc.items, fixing the bug where stepCharAc/stepCharStrikes read
+ *     fields that nothing in production ever wrote.
+ *   - isEquippedFlag: the shared "is this item equipped" predicate.
+ *   - stepCharSpellcasting: derives system.derived.spellcasting from
+ *     spellcastingEntry items.
+ *   - damageRoll / critDamageRoll: rollable formula strings on DerivedStrike.
+ *
+ * REQ-PF2-020, REQ-PF2-030..034, REQ-PF2-080..083.
+ */
+
+import { describe, it, expect } from "vitest";
+import { emptySynthetics } from "@fusion/system-api";
+import type { DeriveContext } from "@fusion/system-api";
+import { stepCharCollectEquipment, isEquippedFlag } from "../derivations/equipment.js";
+import { stepCharSpellcasting } from "../derivations/spellcasting.js";
+import { stepCharAbilityMods, stepCharAc, stepCharStrikes } from "../derivations/character.js";
+import { pf2eSystem } from "../index.js";
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function emptyCtx(): DeriveContext {
+  return {
+    system: pf2eSystem,
+    synthetics: emptySynthetics(),
+    rollOptions: new Set<string>(),
+  };
+}
+
+function getDerived(doc: Record<string, unknown>): Record<string, unknown> {
+  return (doc.system as Record<string, unknown>)["derived"] as Record<string, unknown>;
+}
+
+/** Minimal character doc builder — enough for the collector + AC/strikes/spellcasting steps. */
+function makeCharDoc(
+  overrides: Partial<{
+    level: number;
+    abilities: Record<string, { value: number; mod?: number }>;
+    proficiencies: Record<string, unknown>;
+    items: Record<string, unknown>[];
+  }> = {},
+): Record<string, unknown> {
+  const level = overrides.level ?? 3;
+  const abilities = overrides.abilities ?? {
+    str: { value: 10 },
+    dex: { value: 10 },
+    con: { value: 10 },
+    int: { value: 10 },
+    wis: { value: 10 },
+    cha: { value: 10 },
+  };
+  return {
+    system: {
+      systemVersion: "0.1.0",
+      level: { value: level },
+      abilities: {
+        str: { value: abilities.str?.value ?? 10, mod: 0 },
+        dex: { value: abilities.dex?.value ?? 10, mod: 0 },
+        con: { value: abilities.con?.value ?? 10, mod: 0 },
+        int: { value: abilities.int?.value ?? 10, mod: 0 },
+        wis: { value: abilities.wis?.value ?? 10, mod: 0 },
+        cha: { value: abilities.cha?.value ?? 10, mod: 0 },
+      },
+      attributes: {
+        hp: { value: 10, max: 10, temp: 0 },
+        ac: { value: 10 },
+        speed: { value: 25, otherSpeeds: [] },
+        dying: { value: 0, max: 4 },
+        wounded: { value: 0 },
+        doomed: { value: 0 },
+        iwr: { immunities: [], weaknesses: [], resistances: [] },
+      },
+      saves: {
+        fortitude: { rank: 0 },
+        reflex: { rank: 0 },
+        will: { rank: 0 },
+      },
+      perception: { rank: 0, senses: [] },
+      skills: {},
+      proficiencies: overrides.proficiencies ?? {
+        classDC: { rank: 0 },
+        weapons: { unarmed: 0, simple: 0, martial: 0, advanced: 0 },
+        armor: { unarmored: 0, light: 0, medium: 0, heavy: 0 },
+      },
+      resources: { heroPoints: { value: 1, max: 3 }, focusPoints: { value: 0, max: 0 } },
+      details: { keyAbility: "str", level },
+      traits: { rarity: "common", value: [], size: "med" },
+    } as Record<string, unknown>,
+    items: overrides.items ?? [],
+  };
+}
+
+// ---------------------------------------------------------------------------
+// isEquippedFlag
+// ---------------------------------------------------------------------------
+
+describe("isEquippedFlag", () => {
+  it("true for equipped: true", () => {
+    expect(isEquippedFlag({ equipped: true })).toBe(true);
+  });
+  it("true for equipped: { value: true }", () => {
+    expect(isEquippedFlag({ equipped: { value: true } })).toBe(true);
+  });
+  it("true for equipped: { inSlot: true }", () => {
+    expect(isEquippedFlag({ equipped: { inSlot: true } })).toBe(true);
+  });
+  it("false when equipped is absent", () => {
+    expect(isEquippedFlag({})).toBe(false);
+  });
+  it("false when equipped: false", () => {
+    expect(isEquippedFlag({ equipped: false })).toBe(false);
+  });
+  it("false when equipped: {}", () => {
+    expect(isEquippedFlag({ equipped: {} })).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// stepCharCollectEquipment — armor + AC integration (Tobias-style)
+// ---------------------------------------------------------------------------
+
+describe("stepCharCollectEquipment — armor collection", () => {
+  it("Tobias: dex 18, level 3, armor.light=1, equipped light armor {acBonus 1, dexCap 4} → AC 20", () => {
+    const doc = makeCharDoc({
+      level: 3,
+      abilities: {
+        str: { value: 10 },
+        dex: { value: 18 },
+        con: { value: 10 },
+        int: { value: 10 },
+        wis: { value: 10 },
+        cha: { value: 10 },
+      },
+      proficiencies: {
+        classDC: { rank: 0 },
+        weapons: { unarmed: 0, simple: 0, martial: 0, advanced: 0 },
+        armor: { unarmored: 0, light: 1, medium: 0, heavy: 0 },
+      },
+      items: [
+        {
+          _id: "armor-1",
+          name: "Studded Leather",
+          type: "armor",
+          system: {
+            category: "light",
+            acBonus: 1,
+            dexCap: 4,
+            equipped: true,
+          },
+        },
+      ],
+    });
+
+    stepCharAbilityMods.run(doc, emptyCtx());
+    stepCharCollectEquipment.run(doc, emptyCtx());
+    stepCharAc.run(doc, emptyCtx());
+
+    // AC = 10 + min(dex=4, dexCap=4) + profBonus(rank1,lvl3=1*2+3=5) + acBonus(1) + potency(0)
+    //    = 10 + 4 + 5 + 1 + 0 = 20
+    const derived = getDerived(doc);
+    const ac = derived["ac"] as { total: number };
+    expect(ac.total).toBe(20);
+  });
+
+  it("no armor equipped → AC does not regress (10 + dex + unarmored prof)", () => {
+    const doc = makeCharDoc({
+      level: 3,
+      abilities: {
+        str: { value: 10 },
+        dex: { value: 18 },
+        con: { value: 10 },
+        int: { value: 10 },
+        wis: { value: 10 },
+        cha: { value: 10 },
+      },
+      proficiencies: {
+        classDC: { rank: 0 },
+        weapons: { unarmed: 0, simple: 0, martial: 0, advanced: 0 },
+        armor: { unarmored: 1, light: 0, medium: 0, heavy: 0 },
+      },
+      items: [],
+    });
+
+    stepCharAbilityMods.run(doc, emptyCtx());
+    stepCharCollectEquipment.run(doc, emptyCtx());
+    stepCharAc.run(doc, emptyCtx());
+
+    // unarmored prof rank1 @ lvl3 = 5; dex mod = 4; AC = 10+4+5 = 19
+    const derived = getDerived(doc);
+    const ac = derived["ac"] as { total: number };
+    expect(ac.total).toBe(19);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// stepCharCollectEquipment — weapon collection + strikes
+// ---------------------------------------------------------------------------
+
+describe("stepCharCollectEquipment — weapon collection", () => {
+  it("Funda (sling): simple, ranged 50, 1d6 bludgeoning, equipped → 1 strike, attackBonus 9, isRanged true", () => {
+    const doc = makeCharDoc({
+      level: 3,
+      abilities: {
+        str: { value: 10 },
+        dex: { value: 18 }, // +4
+        con: { value: 10 },
+        int: { value: 10 },
+        wis: { value: 10 },
+        cha: { value: 10 },
+      },
+      proficiencies: {
+        classDC: { rank: 0 },
+        weapons: { unarmed: 0, simple: 1, martial: 0, advanced: 0 },
+        armor: { unarmored: 0, light: 0, medium: 0, heavy: 0 },
+      },
+      items: [
+        {
+          _id: "sling-1",
+          name: "Funda",
+          type: "weapon",
+          system: {
+            category: "simple",
+            range: 50,
+            damage: { dice: 1, die: "d6", damageType: "bludgeoning", modifier: 0 },
+            traits: { value: [] },
+            runes: { potency: 0, striking: 0 },
+            equipped: true,
+          },
+        },
+      ],
+    });
+
+    stepCharAbilityMods.run(doc, emptyCtx());
+    stepCharCollectEquipment.run(doc, emptyCtx());
+    stepCharStrikes.run(doc, emptyCtx());
+
+    const derived = getDerived(doc);
+    const strikes = derived["strikes"] as Array<{
+      isRanged: boolean;
+      attackBonus: number;
+      damageRoll?: string;
+      variants: Array<{ total: number }>;
+    }>;
+
+    expect(strikes).toHaveLength(1);
+    const strike = strikes[0];
+    expect(strike).toBeDefined();
+    if (!strike) return;
+    // dex mod(4) + simple prof rank1@lvl3(5) + potency(0) = 9
+    expect(strike.attackBonus).toBe(9);
+    expect(strike.isRanged).toBe(true);
+    // standard ranged (no thrown/propulsive) → no ability mod on damage
+    expect(strike.damageRoll).toBe("1d6");
+    expect(strike.variants[0]?.total).toBe(9);
+    expect(strike.variants[1]?.total).toBe(4);
+    expect(strike.variants[2]?.total).toBe(-1);
+  });
+
+  it("Mordida (unarmed, unequipped explicitly) always becomes a strike; finesse uses dex on attack, str on damage", () => {
+    const doc = makeCharDoc({
+      level: 3,
+      abilities: {
+        str: { value: 8 }, // -1
+        dex: { value: 18 }, // +4
+        con: { value: 10 },
+        int: { value: 10 },
+        wis: { value: 10 },
+        cha: { value: 10 },
+      },
+      proficiencies: {
+        classDC: { rank: 0 },
+        weapons: { unarmed: 1, simple: 0, martial: 0, advanced: 0 },
+        armor: { unarmored: 0, light: 0, medium: 0, heavy: 0 },
+      },
+      items: [
+        {
+          _id: "bite-1",
+          name: "Mordida",
+          type: "weapon",
+          system: {
+            category: "unarmed",
+            range: null,
+            damage: { dice: 1, die: "d4", damageType: "piercing", modifier: 0 },
+            traits: { value: ["agile", "finesse"] },
+            runes: { potency: 0, striking: 0 },
+            // NOTE: no `equipped` field at all — unarmed strikes always count.
+          },
+        },
+      ],
+    });
+
+    stepCharAbilityMods.run(doc, emptyCtx());
+    stepCharCollectEquipment.run(doc, emptyCtx());
+    stepCharStrikes.run(doc, emptyCtx());
+
+    const derived = getDerived(doc);
+    const strikes = derived["strikes"] as Array<{
+      attackBonus: number;
+      damageRoll?: string;
+      variants: Array<{ total: number }>;
+    }>;
+
+    expect(strikes).toHaveLength(1);
+    const strike = strikes[0];
+    expect(strike).toBeDefined();
+    if (!strike) return;
+    // finesse: dex(4) > str(-1) → attack uses dex. unarmed prof rank1@lvl3 = 5. total = 4+5=9
+    expect(strike.attackBonus).toBe(9);
+    // damage uses STR (melee, not ranged) → -1
+    expect(strike.damageRoll).toBe("1d4-1");
+    // agile MAP: 0/-4/-8 → 9/5/1
+    expect(strike.variants[0]?.total).toBe(9);
+    expect(strike.variants[1]?.total).toBe(5);
+    expect(strike.variants[2]?.total).toBe(1);
+  });
+
+  it("non-equipped martial weapon does NOT become a strike", () => {
+    const doc = makeCharDoc({
+      items: [
+        {
+          _id: "sword-1",
+          name: "Longsword",
+          type: "weapon",
+          system: {
+            category: "martial",
+            range: null,
+            damage: { dice: 1, die: "d8", damageType: "slashing", modifier: 0 },
+            traits: { value: [] },
+            runes: { potency: 0, striking: 0 },
+            // equipped absent
+          },
+        },
+      ],
+    });
+
+    stepCharAbilityMods.run(doc, emptyCtx());
+    stepCharCollectEquipment.run(doc, emptyCtx());
+    stepCharStrikes.run(doc, emptyCtx());
+
+    const derived = getDerived(doc);
+    const strikes = derived["strikes"] as unknown[];
+    expect(strikes).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// stepCharSpellcasting
+// ---------------------------------------------------------------------------
+
+describe("stepCharSpellcasting", () => {
+  it("spellcastingEntry {ability int, proficiency 1}, int 16 (+3), level 3 → attack 8, dc 18", () => {
+    const doc = makeCharDoc({
+      level: 3,
+      abilities: {
+        str: { value: 10 },
+        dex: { value: 10 },
+        con: { value: 10 },
+        int: { value: 16 },
+        wis: { value: 10 },
+        cha: { value: 10 },
+      },
+      items: [
+        {
+          _id: "entry-1",
+          name: "Arcane Spellcasting",
+          type: "spellcastingEntry",
+          system: {
+            ability: { value: "int" },
+            proficiency: { value: 1 },
+          },
+        },
+      ],
+    });
+
+    stepCharAbilityMods.run(doc, emptyCtx());
+    stepCharSpellcasting.run(doc, emptyCtx());
+
+    const derived = getDerived(doc);
+    const spellcasting = derived["spellcasting"] as Record<
+      string,
+      { dc: number; attack: number; ability: string; rank: number }
+    >;
+    const entry = spellcasting["entry-1"];
+    expect(entry).toBeDefined();
+    // base = intMod(3) + profBonus(rank1, lvl3 = 1*2+3=5) = 8; dc = 18
+    expect(entry?.attack).toBe(8);
+    expect(entry?.dc).toBe(18);
+    expect(entry?.ability).toBe("int");
+    expect(entry?.rank).toBe(1);
+  });
+
+  it("no spellcasting entries → derived.spellcasting = {}", () => {
+    const doc = makeCharDoc({ items: [] });
+    stepCharAbilityMods.run(doc, emptyCtx());
+    stepCharSpellcasting.run(doc, emptyCtx());
+
+    const derived = getDerived(doc);
+    expect(derived["spellcasting"]).toEqual({});
+  });
+});
+
+// ---------------------------------------------------------------------------
+// critDamageRoll — rollable crit formula
+// ---------------------------------------------------------------------------
+
+describe("critDamageRoll", () => {
+  it("weapon 1d6+3 (via potency-equivalent flat), no traits → (1d6+3)*2", () => {
+    const doc = makeCharDoc({
+      level: 1,
+      abilities: {
+        str: { value: 16 }, // +3
+        dex: { value: 10 },
+        con: { value: 10 },
+        int: { value: 10 },
+        wis: { value: 10 },
+        cha: { value: 10 },
+      },
+      items: [
+        {
+          _id: "club-1",
+          name: "Club",
+          type: "weapon",
+          system: {
+            category: "simple",
+            range: null,
+            damage: { dice: 1, die: "d6", damageType: "bludgeoning", modifier: 0 },
+            traits: { value: [] },
+            runes: { potency: 0, striking: 0 },
+            equipped: true,
+          },
+        },
+      ],
+    });
+
+    stepCharAbilityMods.run(doc, emptyCtx());
+    stepCharCollectEquipment.run(doc, emptyCtx());
+    stepCharStrikes.run(doc, emptyCtx());
+
+    const derived = getDerived(doc);
+    const strikes = derived["strikes"] as Array<{ damageRoll?: string; critDamageRoll?: string }>;
+    const strike = strikes[0];
+    expect(strike?.damageRoll).toBe("1d6+3");
+    expect(strike?.critDamageRoll).toBe("(1d6+3)*2");
+  });
+
+  it("weapon with deadly-d8 → (1d6+3)*2+1d8", () => {
+    const doc = makeCharDoc({
+      level: 1,
+      abilities: {
+        str: { value: 16 },
+        dex: { value: 10 },
+        con: { value: 10 },
+        int: { value: 10 },
+        wis: { value: 10 },
+        cha: { value: 10 },
+      },
+      items: [
+        {
+          _id: "rapier-1",
+          name: "Rapier",
+          type: "weapon",
+          system: {
+            category: "martial",
+            range: null,
+            damage: { dice: 1, die: "d6", damageType: "piercing", modifier: 0 },
+            traits: { value: ["deadly-d8"] },
+            runes: { potency: 0, striking: 0 },
+            equipped: true,
+          },
+        },
+      ],
+    });
+
+    stepCharAbilityMods.run(doc, emptyCtx());
+    stepCharCollectEquipment.run(doc, emptyCtx());
+    stepCharStrikes.run(doc, emptyCtx());
+
+    const derived = getDerived(doc);
+    const strikes = derived["strikes"] as Array<{ critDamageRoll?: string }>;
+    expect(strikes[0]?.critDamageRoll).toBe("(1d6+3)*2+1d8");
+  });
+});

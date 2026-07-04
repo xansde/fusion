@@ -14,6 +14,7 @@
 
   import { NpcSheetVM } from "$lib/sheets/pf2e/npcSheetVM.js";
   import type { DocUpdatePayload, RollCheckPayload } from "$lib/sheets/pf2e/npcSheetVM.js";
+  import { worldMirror } from "$lib/docs/worldSync.js";
 
   // ---------------------------------------------------------------------------
   // Props
@@ -24,6 +25,7 @@
     actorId: string;
     ownership: number;
     isGm: boolean;
+    worldId?: string;
     sendOpFn?: (op: RollCheckPayload | DocUpdatePayload) => void;
   }
 
@@ -32,15 +34,34 @@
     actorId,
     ownership,
     isGm,
+    worldId = "",
     sendOpFn = () => {},
   }: Props = $props();
+
+  // ---------------------------------------------------------------------------
+  // Reactivity (REQ-UIF-025) — see CharacterSheet.svelte for the full
+  // rationale: WindowHost captures componentProps once at open time, so
+  // without this the sheet renders a frozen snapshot and never reacts to
+  // doc:update broadcasts. liveDoc is refreshed from worldMirror on every
+  // Actor batch change; vm is re-derived from liveDoc.
+  // ---------------------------------------------------------------------------
+
+  let liveDoc = $state(doc);
+
+  $effect(() => {
+    const unsub = worldMirror.subscribe<Record<string, unknown>>("Actor", (docs) => {
+      const fresh = docs.find((d) => (d as { _id?: unknown })._id === actorId);
+      if (fresh) liveDoc = fresh;
+    });
+    return unsub;
+  });
 
   // ---------------------------------------------------------------------------
   // View-model
   // ---------------------------------------------------------------------------
 
   const vm = $derived(
-    new NpcSheetVM({ doc, actorId, ownership, isGm }),
+    new NpcSheetVM({ doc: liveDoc, actorId, ownership, isGm }),
   );
 
   // ---------------------------------------------------------------------------

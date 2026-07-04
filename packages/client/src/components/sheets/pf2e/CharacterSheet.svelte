@@ -19,7 +19,8 @@
    */
 
   import { CharacterSheetVM } from "$lib/sheets/pf2e/characterSheetVM.js";
-  import type { RollCheckPayload, DocUpdatePayload, CharacterSheetTab } from "$lib/sheets/pf2e/characterSheetVM.js";
+  import type { ChatRollPayload, DocUpdatePayload, CharacterSheetTab } from "$lib/sheets/pf2e/characterSheetVM.js";
+  import { worldMirror } from "$lib/docs/worldSync.js";
 
   // ---------------------------------------------------------------------------
   // Props
@@ -31,7 +32,8 @@
     ownership: number;
     userId: string;
     isGm: boolean;
-    sendOpFn?: (op: RollCheckPayload | DocUpdatePayload) => void;
+    worldId?: string;
+    sendOpFn?: (op: ChatRollPayload | DocUpdatePayload) => void;
   }
 
   let {
@@ -40,15 +42,34 @@
     ownership,
     userId,
     isGm,
+    worldId = "",
     sendOpFn = () => {},
   }: Props = $props();
 
   // ---------------------------------------------------------------------------
-  // View-model — recreated whenever doc changes
+  // Reactivity (REQ-UIF-025) — the sheet must react to doc:update broadcasts
+  // that arrive after the window was opened, not just render a frozen
+  // snapshot captured at open time (WindowHost stores componentProps once).
+  // liveDoc starts as the initial doc and is refreshed from worldMirror
+  // whenever an Actor document batch changes; vm is re-derived from liveDoc.
+  // ---------------------------------------------------------------------------
+
+  let liveDoc = $state(doc);
+
+  $effect(() => {
+    const unsub = worldMirror.subscribe<Record<string, unknown>>("Actor", (docs) => {
+      const fresh = docs.find((d) => (d as { _id?: unknown })._id === actorId);
+      if (fresh) liveDoc = fresh;
+    });
+    return unsub;
+  });
+
+  // ---------------------------------------------------------------------------
+  // View-model — recreated whenever the live document changes
   // ---------------------------------------------------------------------------
 
   const vm = $derived(
-    new CharacterSheetVM({ doc, actorId, ownership, userId, isGm }),
+    new CharacterSheetVM({ doc: liveDoc, actorId, ownership, userId, isGm, worldId }),
   );
 
   // ---------------------------------------------------------------------------
@@ -56,6 +77,12 @@
   // ---------------------------------------------------------------------------
 
   let activeTab = $state<CharacterSheetTab>("main");
+
+  // ---------------------------------------------------------------------------
+  // Play / Edit mode toggle (REQ-UIF-023) — local UI state, does not persist.
+  // ---------------------------------------------------------------------------
+
+  let editMode = $state(false);
 
   // ---------------------------------------------------------------------------
   // Autosave state
@@ -96,6 +123,16 @@
     sendOpFn(vm.rollStrike(sourceId, mapIndex));
   }
 
+  function rollStrikeDamage(sourceId: string, crit: boolean): void {
+    const op = vm.rollStrikeDamage(sourceId, crit);
+    if (op) sendOpFn(op);
+  }
+
+  function rollSpellAttack(entryId: string): void {
+    const op = vm.rollSpellAttack(entryId);
+    if (op) sendOpFn(op);
+  }
+
   function toggleCondition(slug: string): void {
     const op = vm.toggleCondition(slug);
     if (op) sendOpFn(op);
@@ -110,6 +147,110 @@
       scheduleUpdate(op);
     }
   }
+
+  // ---------------------------------------------------------------------------
+  // Hero / Focus points — clickable pips
+  // ---------------------------------------------------------------------------
+
+  function clickHeroPip(index: number): void {
+    // index is 0-based; clicking pip N sets value to N+1, unless that pip is
+    // already the highest filled one, in which case it decrements to N.
+    const current = vm.heroPoints.value;
+    const newValue = index + 1 === current ? index : index + 1;
+    const op = vm.setHeroPoints(newValue);
+    if (op) scheduleUpdate(op);
+  }
+
+  function clickFocusPip(index: number): void {
+    const current = vm.focusPoints.value;
+    const newValue = index + 1 === current ? index : index + 1;
+    const op = vm.setFocusPoints(newValue);
+    if (op) scheduleUpdate(op);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Edit-mode field handlers (REQ-UIF-023)
+  // ---------------------------------------------------------------------------
+
+  function handleNameInput(e: Event): void {
+    const input = e.currentTarget as HTMLInputElement;
+    scheduleUpdate(vm.updateName(input.value));
+  }
+
+  function handleLevelInput(e: Event): void {
+    const input = e.currentTarget as HTMLInputElement;
+    const val = parseInt(input.value, 10);
+    if (!Number.isNaN(val)) scheduleUpdate(vm.updateLevel(val));
+  }
+
+  function handleSpeedInput(e: Event): void {
+    const input = e.currentTarget as HTMLInputElement;
+    const val = parseInt(input.value, 10);
+    if (!Number.isNaN(val)) scheduleUpdate(vm.updateSpeed(val));
+  }
+
+  function handleHpMaxInput(e: Event): void {
+    const input = e.currentTarget as HTMLInputElement;
+    const val = parseInt(input.value, 10);
+    if (!Number.isNaN(val)) scheduleUpdate(vm.updateHpMax(val));
+  }
+
+  function handleAbilityScoreInput(slug: string, e: Event): void {
+    const input = e.currentTarget as HTMLInputElement;
+    const val = parseInt(input.value, 10);
+    if (!Number.isNaN(val)) scheduleUpdate(vm.updateAbilityScore(slug, val));
+  }
+
+  function handleSaveRankChange(name: "fortitude" | "reflex" | "will", e: Event): void {
+    const select = e.currentTarget as HTMLSelectElement;
+    const val = parseInt(select.value, 10);
+    if (!Number.isNaN(val)) scheduleUpdate(vm.updateSaveRank(name, val));
+  }
+
+  function handlePerceptionRankChange(e: Event): void {
+    const select = e.currentTarget as HTMLSelectElement;
+    const val = parseInt(select.value, 10);
+    if (!Number.isNaN(val)) scheduleUpdate(vm.updatePerceptionRank(val));
+  }
+
+  function handleSkillRankChange(slug: string, e: Event): void {
+    const select = e.currentTarget as HTMLSelectElement;
+    const val = parseInt(select.value, 10);
+    if (!Number.isNaN(val)) scheduleUpdate(vm.updateSkillRank(slug, val));
+  }
+
+  function handleHeroMaxInput(e: Event): void {
+    const input = e.currentTarget as HTMLInputElement;
+    const val = parseInt(input.value, 10);
+    if (!Number.isNaN(val)) scheduleUpdate(vm.fieldUpdate("system.resources.heroPoints.max", val));
+  }
+
+  function handleHeroValueInput(e: Event): void {
+    const input = e.currentTarget as HTMLInputElement;
+    const val = parseInt(input.value, 10);
+    if (!Number.isNaN(val)) scheduleUpdate(vm.setHeroPoints(val));
+  }
+
+  function handleFocusMaxInput(e: Event): void {
+    const input = e.currentTarget as HTMLInputElement;
+    const val = parseInt(input.value, 10);
+    if (!Number.isNaN(val)) scheduleUpdate(vm.fieldUpdate("system.resources.focusPoints.max", val));
+  }
+
+  function handleFocusValueInput(e: Event): void {
+    const input = e.currentTarget as HTMLInputElement;
+    const val = parseInt(input.value, 10);
+    if (!Number.isNaN(val)) scheduleUpdate(vm.setFocusPoints(val));
+  }
+
+  // TEML rank options shared by the Saves/Perception/Skills edit selects.
+  const RANK_OPTIONS = [
+    { value: 0, label: "U" },
+    { value: 1, label: "T" },
+    { value: 2, label: "E" },
+    { value: 3, label: "M" },
+    { value: 4, label: "L" },
+  ];
 </script>
 
 <!-- ======================================================================
@@ -139,6 +280,18 @@
         Level {vm.level}
       </div>
     </div>
+
+    <!-- Play/Edit toggle (REQ-UIF-023) — visible only to editors; local UI state -->
+    {#if vm.editable}
+      <button
+        class="mode-toggle"
+        aria-pressed={editMode}
+        aria-label={editMode ? "Switch to Play mode" : "Switch to Edit mode"}
+        onclick={() => { editMode = !editMode; }}
+      >
+        {editMode ? "Play" : "Edit"}
+      </button>
+    {/if}
 
     <!-- HP editor -->
     <div class="sheet-hp" aria-label="Hit Points">
@@ -206,14 +359,26 @@
     <div class="sheet-resources">
       <div class="resource-pip-group" aria-label="Hero Points {vm.heroPoints.value}/{vm.heroPoints.max}">
         {#each { length: vm.heroPoints.max } as _, i}
-          <span class="resource-pip" class:resource-pip--filled={i < vm.heroPoints.value} aria-hidden="true"></span>
+          <button
+            class="resource-pip"
+            class:resource-pip--filled={i < vm.heroPoints.value}
+            title="Set Hero Points to {i < vm.heroPoints.value ? i : i + 1}"
+            aria-label="Hero point {i + 1}"
+            onclick={() => clickHeroPip(i)}
+          ></button>
         {/each}
         <span class="resource-label">HP</span>
       </div>
       {#if vm.focusPoints.max > 0}
         <div class="resource-pip-group" aria-label="Focus Points {vm.focusPoints.value}/{vm.focusPoints.max}">
           {#each { length: vm.focusPoints.max } as _, i}
-            <span class="resource-pip resource-pip--focus" class:resource-pip--filled={i < vm.focusPoints.value} aria-hidden="true"></span>
+            <button
+              class="resource-pip resource-pip--focus"
+              class:resource-pip--filled={i < vm.focusPoints.value}
+              title="Set Focus Points to {i < vm.focusPoints.value ? i : i + 1}"
+              aria-label="Focus point {i + 1}"
+              onclick={() => clickFocusPip(i)}
+            ></button>
           {/each}
           <span class="resource-label">Focus</span>
         </div>
@@ -268,7 +433,7 @@
 
   <!-- ---- Tab bar ---- -->
   <div class="tab-bar" role="tablist" aria-label="Character sheet sections">
-    {#each (["main", "skills", "actions", "spells", "inventory"] as const) as tab}
+    {#each (["main", "skills", "actions", "spells", "inventory", "feats", "bio"] as const) as tab}
       <button
         class="tab-btn"
         class:tab-btn--active={activeTab === tab}
@@ -285,7 +450,7 @@
 
   <!-- ---- Tab panels ---- -->
 
-  <!-- MAIN tab: Speed, Class DC -->
+  <!-- MAIN tab: Speed, Class DC, Spell DC, Senses -->
   {#if activeTab === "main"}
     <section
       id="tab-panel-main"
@@ -293,16 +458,114 @@
       aria-labelledby="tab-main"
       class="tab-panel tab-panel--main"
     >
-      <div class="stat-row">
-        <div class="stat-block">
-          <span class="stat-block__value">{vm.speed} ft</span>
-          <span class="stat-block__label">Speed</span>
+      {#if editMode}
+        <div class="edit-field">
+          <label for="edit-name-{actorId}">Name</label>
+          <input id="edit-name-{actorId}" type="text" value={vm.name} oninput={handleNameInput} />
         </div>
-        <div class="stat-block">
-          <span class="stat-block__value">{vm.perception.totalFormatted}</span>
-          <span class="stat-block__label">Perc. ({vm.perception.rankLabel})</span>
+        <div class="edit-field-row">
+          <div class="edit-field">
+            <label for="edit-level-{actorId}">Level</label>
+            <input id="edit-level-{actorId}" type="number" min="1" max="20" value={vm.level} oninput={handleLevelInput} />
+          </div>
+          <div class="edit-field">
+            <label for="edit-speed-{actorId}">Speed</label>
+            <input id="edit-speed-{actorId}" type="number" min="0" value={vm.speed} oninput={handleSpeedInput} />
+          </div>
+          <div class="edit-field">
+            <label for="edit-hpmax-{actorId}">HP Max</label>
+            <input id="edit-hpmax-{actorId}" type="number" min="0" value={vm.hpMax} oninput={handleHpMaxInput} />
+          </div>
         </div>
-      </div>
+
+        <h3 class="section-header">Abilities</h3>
+        <div class="edit-field-row edit-field-row--abilities">
+          {#each vm.abilities as ability (ability.slug)}
+            <div class="edit-field">
+              <label for="edit-ability-{ability.slug}-{actorId}">{ability.label}</label>
+              <input
+                id="edit-ability-{ability.slug}-{actorId}"
+                type="number"
+                value={ability.score}
+                oninput={(e) => handleAbilityScoreInput(ability.slug, e)}
+              />
+            </div>
+          {/each}
+        </div>
+
+        <h3 class="section-header">Saves &amp; Perception</h3>
+        <div class="edit-field-row">
+          {#each vm.saves as save (save.slug)}
+            <div class="edit-field">
+              <label for="edit-save-{save.slug}-{actorId}">{save.label}</label>
+              <select
+                id="edit-save-{save.slug}-{actorId}"
+                value={save.rank}
+                onchange={(e) => handleSaveRankChange(save.slug as "fortitude" | "reflex" | "will", e)}
+              >
+                {#each RANK_OPTIONS as opt (opt.value)}
+                  <option value={opt.value}>{opt.label}</option>
+                {/each}
+              </select>
+            </div>
+          {/each}
+          <div class="edit-field">
+            <label for="edit-perception-{actorId}">Perception</label>
+            <select id="edit-perception-{actorId}" value={vm.perception.rank} onchange={handlePerceptionRankChange}>
+              {#each RANK_OPTIONS as opt (opt.value)}
+                <option value={opt.value}>{opt.label}</option>
+              {/each}
+            </select>
+          </div>
+        </div>
+
+        <h3 class="section-header">Resources</h3>
+        <div class="edit-field-row">
+          <div class="edit-field">
+            <label for="edit-hero-value-{actorId}">Hero Points</label>
+            <input id="edit-hero-value-{actorId}" type="number" min="0" value={vm.heroPoints.value} oninput={handleHeroValueInput} />
+          </div>
+          <div class="edit-field">
+            <label for="edit-hero-max-{actorId}">Hero Max</label>
+            <input id="edit-hero-max-{actorId}" type="number" min="0" value={vm.heroPoints.max} oninput={handleHeroMaxInput} />
+          </div>
+          <div class="edit-field">
+            <label for="edit-focus-value-{actorId}">Focus Points</label>
+            <input id="edit-focus-value-{actorId}" type="number" min="0" value={vm.focusPoints.value} oninput={handleFocusValueInput} />
+          </div>
+          <div class="edit-field">
+            <label for="edit-focus-max-{actorId}">Focus Max</label>
+            <input id="edit-focus-max-{actorId}" type="number" min="0" value={vm.focusPoints.max} oninput={handleFocusMaxInput} />
+          </div>
+        </div>
+      {:else}
+        <div class="stat-row">
+          <div class="stat-block">
+            <span class="stat-block__value">{vm.speed} ft</span>
+            <span class="stat-block__label">Speed</span>
+          </div>
+          <div class="stat-block">
+            <span class="stat-block__value">{vm.perception.totalFormatted}</span>
+            <span class="stat-block__label">Perc. ({vm.perception.rankLabel})</span>
+          </div>
+          <div class="stat-block">
+            <span class="stat-block__value">{vm.classDC.dc}</span>
+            <span class="stat-block__label">Class DC</span>
+          </div>
+          {#if vm.spellcastingEntries.length > 0}
+            <div class="stat-block">
+              <span class="stat-block__value">{vm.spellcastingEntries[0]!.spellDC}</span>
+              <span class="stat-block__label">Spell DC</span>
+            </div>
+          {/if}
+        </div>
+        {#if vm.senses.length > 0}
+          <div class="senses-row" aria-label="Senses">
+            <span class="senses-row__label">Senses:</span>
+            <span class="senses-row__value">{vm.senses.join(", ")}</span>
+          </div>
+        {/if}
+      {/if}
     </section>
 
   <!-- SKILLS tab -->
@@ -313,24 +576,43 @@
       aria-labelledby="tab-skills"
       class="tab-panel tab-panel--skills"
     >
-      <ul class="skill-list" aria-label="Skills">
-        {#each vm.skills as skill (skill.slug)}
-          <li class="skill-row">
-            <span class="skill-row__rank" title={skill.rankLabelFull} aria-label="Rank: {skill.rankLabelFull}">
-              {skill.rankLabel}
-            </span>
-            <button
-              class="skill-row__name skill-row__rollable"
-              onclick={() => rollSkill(skill.slug)}
-              aria-label="Roll {skill.label} ({skill.totalFormatted})"
-            >
-              {skill.label}
-            </button>
-            <span class="skill-row__ability">{skill.abilityLabel}</span>
-            <span class="skill-row__total">{skill.totalFormatted}</span>
-          </li>
-        {/each}
-      </ul>
+      {#if editMode}
+        <ul class="skill-list" aria-label="Skills">
+          {#each vm.skills as skill (skill.slug)}
+            <li class="skill-row skill-row--edit">
+              <span class="skill-row__name">{skill.label}</span>
+              <select
+                aria-label="{skill.label} rank"
+                value={skill.rank}
+                onchange={(e) => handleSkillRankChange(skill.slug, e)}
+              >
+                {#each RANK_OPTIONS as opt (opt.value)}
+                  <option value={opt.value}>{opt.label}</option>
+                {/each}
+              </select>
+            </li>
+          {/each}
+        </ul>
+      {:else}
+        <ul class="skill-list" aria-label="Skills">
+          {#each vm.skills as skill (skill.slug)}
+            <li class="skill-row">
+              <span class="skill-row__rank" title={skill.rankLabelFull} aria-label="Rank: {skill.rankLabelFull}">
+                {skill.rankLabel}
+              </span>
+              <button
+                class="skill-row__name skill-row__rollable"
+                onclick={() => rollSkill(skill.slug)}
+                aria-label="Roll {skill.label} ({skill.totalFormatted})"
+              >
+                {skill.label}
+              </button>
+              <span class="skill-row__ability">{skill.abilityLabel}</span>
+              <span class="skill-row__total">{skill.totalFormatted}</span>
+            </li>
+          {/each}
+        </ul>
+      {/if}
     </section>
 
   <!-- ACTIONS tab: Strikes -->
@@ -366,10 +648,28 @@
                     <span class="map-btn__label">MAP {String(i)}</span>
                   </button>
                 {/each}
+                {#if vm.rollStrikeDamage(strike.sourceId, false)}
+                  <button
+                    class="map-btn map-btn--damage"
+                    onclick={() => rollStrikeDamage(strike.sourceId, false)}
+                    aria-label="Roll {strike.label} damage"
+                  >
+                    <span class="map-btn__label">Damage</span>
+                  </button>
+                {/if}
+                {#if vm.rollStrikeDamage(strike.sourceId, true)}
+                  <button
+                    class="map-btn map-btn--crit"
+                    onclick={() => rollStrikeDamage(strike.sourceId, true)}
+                    aria-label="Roll {strike.label} critical damage"
+                  >
+                    <span class="map-btn__label">Crit</span>
+                  </button>
+                {/if}
               </div>
               <div class="strike-row__damage">
+                <!-- damageFormula already ends with the damage type word -->
                 Damage: <span class="damage-formula">{strike.damageFormula}</span>
-                <span class="damage-type">{strike.damageType}</span>
               </div>
               {#if strike.traits.length > 0}
                 <div class="strike-row__traits">
@@ -405,8 +705,43 @@
             </h3>
             <div class="spellcasting-entry__stats">
               <span>DC {entry.spellDC}</span>
-              <span>Attack {entry.spellAttackFormatted}</span>
+              <button
+                class="spellcasting-entry__attack-btn"
+                onclick={() => rollSpellAttack(entry.entryId)}
+                aria-label="Roll spell attack ({entry.spellAttackFormatted})"
+              >
+                Attack {entry.spellAttackFormatted}
+              </button>
             </div>
+            {#each entry.slots as slot (slot.rank)}
+              <div class="spell-rank-block">
+                <div class="spell-rank-block__header">
+                  <span>{slot.isCantrip ? "Cantrips" : `Rank ${String(slot.rank)}`}</span>
+                  {#if !slot.isCantrip}
+                    <span class="spell-rank-block__slots">{slot.value}/{slot.max}</span>
+                  {/if}
+                </div>
+                <ul class="spell-list" aria-label="Spells rank {slot.rank}">
+                  {#each slot.spells as spell (spell.id)}
+                    <li class="spell-row">
+                      <span class="spell-row__name">{spell.name}</span>
+                      {#if spell.castTime}
+                        <span class="trait-badge">{spell.castTime}</span>
+                      {/if}
+                      {#if spell.hasAttack}
+                        <button
+                          class="spell-row__attack-btn"
+                          onclick={() => rollSpellAttack(entry.entryId)}
+                          aria-label="Roll attack for {spell.name}"
+                        >
+                          Attack
+                        </button>
+                      {/if}
+                    </li>
+                  {/each}
+                </ul>
+              </div>
+            {/each}
           </div>
         {/each}
       {:else}
@@ -441,6 +776,48 @@
       {:else}
         <p class="empty-state">Empty inventory.</p>
       {/if}
+    </section>
+
+  <!-- FEATS tab -->
+  {:else if activeTab === "feats"}
+    <section
+      id="tab-panel-feats"
+      role="tabpanel"
+      aria-labelledby="tab-feats"
+      class="tab-panel tab-panel--feats"
+    >
+      {#if vm.feats.length > 0}
+        <ul class="feat-list" aria-label="Feats">
+          {#each vm.feats as feat (feat.id)}
+            <li class="feat-row">
+              <span class="feat-row__name">{feat.name}</span>
+              <span class="trait-badge">{feat.subtype}</span>
+              {#if feat.level != null}
+                <span class="feat-row__level">Lvl {feat.level}</span>
+              {/if}
+            </li>
+          {/each}
+        </ul>
+      {:else}
+        <p class="empty-state">No feats.</p>
+      {/if}
+    </section>
+
+  <!-- BIO tab -->
+  {:else if activeTab === "bio"}
+    <section
+      id="tab-panel-bio"
+      role="tabpanel"
+      aria-labelledby="tab-bio"
+      class="tab-panel tab-panel--bio"
+    >
+      <div class="bio-details">
+        <div class="bio-details__row"><strong>Ancestry:</strong> {vm.detailsInfo.ancestry || "—"}</div>
+        <div class="bio-details__row"><strong>Background:</strong> {vm.detailsInfo.background || "—"}</div>
+        <div class="bio-details__row"><strong>Class:</strong> {vm.detailsInfo.class || "—"}</div>
+        <div class="bio-details__row"><strong>Key Ability:</strong> {vm.detailsInfo.keyAbility || "—"}</div>
+      </div>
+      <p class="bio-text">{vm.biography}</p>
     </section>
   {/if}
 
@@ -1112,6 +1489,209 @@
     font-size: 12px;
     text-align: center;
     padding: 24px 0;
+  }
+
+  /* ---- Play/Edit toggle ---- */
+  .mode-toggle {
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-radius: var(--fusion-radius-sm, 4px);
+    border: 1px solid var(--fusion-color-border, #3a3a5c);
+    background: var(--fusion-color-surface, #1a1a2e);
+    color: var(--fusion-color-text-secondary, #b0b0cc);
+    cursor: pointer;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+
+  .mode-toggle:hover,
+  .mode-toggle:focus-visible {
+    background: rgba(255, 255, 255, 0.08);
+    outline: 2px solid var(--fusion-color-focus, #5b8dee);
+  }
+
+  .mode-toggle[aria-pressed="true"] {
+    background: var(--fusion-color-accent, #5b8dee);
+    color: #fff;
+    border-color: var(--fusion-color-accent, #5b8dee);
+  }
+
+  /* ---- Edit-mode fields (main tab) ---- */
+  .edit-field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 64px;
+  }
+
+  .edit-field label {
+    font-size: 10px;
+    color: var(--fusion-color-text-muted, #9999cc);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .edit-field input,
+  .edit-field select {
+    background: var(--fusion-color-surface, #1a1a2e);
+    border: 1px solid var(--fusion-color-border, #3a3a5c);
+    border-radius: var(--fusion-radius-sm, 4px);
+    color: var(--fusion-color-text-primary, #e0e0ff);
+    font-size: 12px;
+    padding: 4px 6px;
+  }
+
+  .edit-field-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .edit-field-row--abilities {
+    gap: 6px;
+  }
+
+  .skill-row--edit {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 3px 4px;
+  }
+
+  .skill-row--edit select {
+    background: var(--fusion-color-surface, #1a1a2e);
+    border: 1px solid var(--fusion-color-border, #3a3a5c);
+    border-radius: var(--fusion-radius-sm, 4px);
+    color: var(--fusion-color-text-primary, #e0e0ff);
+    font-size: 11px;
+    padding: 2px 4px;
+  }
+
+  /* ---- Senses row (main tab) ---- */
+  .senses-row {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--fusion-color-text-secondary, #b0b0cc);
+  }
+
+  .senses-row__label {
+    color: var(--fusion-color-text-muted, #9999cc);
+    margin-right: 4px;
+  }
+
+  /* ---- Strike damage/crit buttons ---- */
+  .map-btn--damage,
+  .map-btn--crit {
+    min-width: 44px;
+  }
+
+  .map-btn--crit .map-btn__label {
+    color: var(--fusion-color-warning, #ffcc00);
+  }
+
+  /* ---- Spell rank blocks ---- */
+  .spell-rank-block {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid var(--fusion-color-border, #3a3a5c);
+  }
+
+  .spell-rank-block__header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--fusion-color-text-muted, #9999cc);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .spell-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 0;
+    font-size: 12px;
+  }
+
+  .spell-row__name {
+    flex: 1;
+  }
+
+  .spell-row__attack-btn,
+  .spellcasting-entry__attack-btn {
+    background: transparent;
+    border: 1px solid var(--fusion-color-border, #3a3a5c);
+    border-radius: var(--fusion-radius-sm, 4px);
+    color: var(--fusion-color-text-primary, #e0e0ff);
+    cursor: pointer;
+    font-size: 11px;
+    padding: 2px 8px;
+    transition: background 0.15s;
+  }
+
+  .spell-row__attack-btn:hover,
+  .spellcasting-entry__attack-btn:hover,
+  .spell-row__attack-btn:focus-visible,
+  .spellcasting-entry__attack-btn:focus-visible {
+    background: rgba(255, 255, 255, 0.08);
+    outline: 2px solid var(--fusion-color-focus, #5b8dee);
+  }
+
+  /* ---- Feats tab ---- */
+  .feat-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .feat-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 8px;
+    background: var(--fusion-color-surface-raised, #16213e);
+    border: 1px solid var(--fusion-color-border, #3a3a5c);
+    border-radius: var(--fusion-radius-sm, 4px);
+  }
+
+  .feat-row__name {
+    flex: 1;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .feat-row__level {
+    font-size: 11px;
+    color: var(--fusion-color-text-muted, #9999cc);
+  }
+
+  /* ---- Bio tab ---- */
+  .bio-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+    font-size: 12px;
+  }
+
+  .bio-details__row strong {
+    color: var(--fusion-color-text-muted, #9999cc);
+    margin-right: 4px;
+  }
+
+  .bio-text {
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap;
   }
 
   /* ---- Container query: narrow layout (<400px) ---- */

@@ -58,6 +58,17 @@ export interface DerivedStrike {
   readonly critDamageFormula: string;
   readonly damageType: string;
   readonly traits: string[];
+  /**
+   * Rollable formula string (no damage type in the text), e.g. "1d6+3".
+   * Manual mirror — server contract (Tarefa A). Optional: absent on
+   * older/pre-migration derived data — callers must handle undefined.
+   */
+  readonly damageRoll?: string;
+  /**
+   * Rollable crit formula string, e.g. "(1d6+3)*2" or with deadly/fatal
+   * dice appended. Manual mirror — server contract (Tarefa A).
+   */
+  readonly critDamageRoll?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -102,6 +113,21 @@ export interface CharacterDerived {
   readonly strikes: DerivedStrike[];
 
   readonly dyingMax: number;
+
+  /**
+   * Spell DC/attack per spellcasting entry, keyed by entryItemId.
+   * Manual mirror — server contract (Tarefa A). Optional: absent on
+   * older/pre-migration derived data — callers must fall back to 10/0.
+   */
+  readonly spellcasting?: Record<
+    string,
+    {
+      readonly dc: number;
+      readonly attack: number;
+      readonly ability: string;
+      readonly rank: number;
+    }
+  >;
 }
 
 // ---------------------------------------------------------------------------
