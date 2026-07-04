@@ -14,6 +14,8 @@ import {
   resolveCombatantTokenId,
   resolveTrackedResource,
   addableTokens,
+  resolveActiveCombat,
+  extractConflictingCombatId,
 } from "../combatTracker.js";
 import type { CombatDocument, CombatantDocument, TokenDocument } from "@fusion/shared";
 import { defaultTokenDocument } from "@fusion/shared";
@@ -516,5 +518,91 @@ describe("addableTokens", () => {
       combatants: [makeCombatant({ _id: "c1", tokenId: null })],
     });
     expect(addableTokens(tokens, combat).map((t) => t.id)).toEqual(["tok1AAAAAAAAAAAA"]);
+  });
+});
+
+describe("resolveActiveCombat (GRUPO 4 — combat panel deadlock regression)", () => {
+  it("picks the Combat belonging to the active scene, ignoring a non-ended orphan from another scene", () => {
+    // Reproduces the real-world "argiburgo" DB shape: multiple Combat rows,
+    // including a stale non-ended orphan that belongs to a different scene
+    // than the one currently active.
+    const orphanFromOtherScene = makeCombat({
+      _id: "orphan1AAAAAAAAA",
+      sceneId: "scene-other",
+      started: true,
+      ended: false,
+    });
+    const activeSceneCombat = makeCombat({
+      _id: "combatActiveScene",
+      sceneId: "scene-active",
+      started: false,
+      ended: false,
+    });
+
+    const result = resolveActiveCombat([orphanFromOtherScene, activeSceneCombat], "scene-active");
+
+    expect(result?._id).toBe("combatActiveScene");
+  });
+
+  it("returns null when no Combat exists for the active scene, even if other scenes have non-ended combats", () => {
+    const orphanFromOtherScene = makeCombat({
+      _id: "orphan1AAAAAAAAA",
+      sceneId: "scene-other",
+      started: true,
+      ended: false,
+    });
+
+    expect(resolveActiveCombat([orphanFromOtherScene], "scene-active")).toBeNull();
+  });
+
+  it("prefers the started, non-ended combat for the active scene over a not-yet-started one", () => {
+    const notStarted = makeCombat({
+      _id: "combatNotStarted",
+      sceneId: "scene-active",
+      started: false,
+      ended: false,
+    });
+    const started = makeCombat({
+      _id: "combatStartedAAAA",
+      sceneId: "scene-active",
+      started: true,
+      ended: false,
+    });
+
+    expect(resolveActiveCombat([notStarted, started], "scene-active")?._id).toBe(
+      "combatStartedAAAA",
+    );
+  });
+
+  it("ignores ended combats for the active scene", () => {
+    const ended = makeCombat({
+      _id: "combatEndedAAAAAA",
+      sceneId: "scene-active",
+      started: true,
+      ended: true,
+    });
+
+    expect(resolveActiveCombat([ended], "scene-active")).toBeNull();
+  });
+
+  it("returns null when activeSceneId is null (no scene active)", () => {
+    const combat = makeCombat({ sceneId: "scene-active", started: true, ended: false });
+    expect(resolveActiveCombat([combat], null)).toBeNull();
+  });
+});
+
+describe("extractConflictingCombatId (GRUPO 4 — DEC-CBT-06 self-heal)", () => {
+  it("extracts the combatId from a DEC-CBT-06 rejection message", () => {
+    const message =
+      "A combat encounter already exists for scene U66mcIDJWWxuesHb (combatId=lDCeVTIzaDeQYk0W). End it before creating another (DEC-CBT-06).";
+    expect(extractConflictingCombatId(message)).toBe("lDCeVTIzaDeQYk0W");
+  });
+
+  it("returns null for a message without a combatId (different VALIDATION_FAILED cause)", () => {
+    expect(extractConflictingCombatId("Some other validation error")).toBeNull();
+  });
+
+  it("returns null for an empty string without throwing", () => {
+    expect(extractConflictingCombatId("")).toBeNull();
   });
 });

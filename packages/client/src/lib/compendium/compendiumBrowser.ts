@@ -283,6 +283,14 @@ export function buildDocumentPreview(doc: Record<string, unknown>): DocumentPrev
     fields.push({ label: "Tradições", value: (traditions as string[]).join(", ") });
   }
 
+  // Mechanical effects — system.rules[] (structural only, never proprietary prose).
+  const rules = system["rules"];
+  if (Array.isArray(rules)) {
+    for (const rule of rules as Array<Record<string, unknown>>) {
+      fields.push(buildRuleField(rule));
+    }
+  }
+
   // License
   const pub = extractNested(system, "publication");
   const pubObj = typeof pub === "object" && pub !== null ? (pub as Record<string, unknown>) : null;
@@ -297,6 +305,64 @@ export function buildDocumentPreview(doc: Record<string, unknown>): DocumentPrev
   };
 }
 
+/**
+ * Convert a single system.rules[] entry into a readable preview field.
+ * Maps the most common rule `kind`s to pt-BR labels; unmapped kinds fall
+ * back to a generic representation so the preview never silently drops data.
+ * REQ-CMP-015 (#4): mechanical effect visibility, never proprietary prose.
+ */
+/** Best-effort string for an unknown rule value: primitives only, else "?". */
+function scalar(v: unknown): string {
+  if (typeof v === "string") return v;
+  if (typeof v === "number" || typeof v === "boolean") return String(v);
+  return "?";
+}
+
+function buildRuleField(rule: Record<string, unknown>): { label: string; value: string } {
+  const kind = typeof rule["kind"] === "string" ? rule["kind"] : "unknown";
+  const subkind = typeof rule["subkind"] === "string" ? rule["subkind"] : undefined;
+
+  if (kind === "flat-modifier" && subkind === "immunity") {
+    return { label: "Imunidade", value: scalar(rule["damageType"] ?? rule["selector"]) };
+  }
+
+  if (kind === "flat-modifier") {
+    const selector = typeof rule["selector"] === "string" ? rule["selector"] : "?";
+    const value = rule["value"];
+    const sign = typeof value === "number" && value >= 0 ? "+" : "";
+    const type = typeof rule["type"] === "string" ? ` (${rule["type"]})` : "";
+    return { label: "Modificador", value: `${selector} ${sign}${scalar(value)}${type}` };
+  }
+
+  if (kind === "resistance") {
+    const target = scalar(rule["damageType"] ?? rule["selector"]);
+    const value = rule["value"];
+    return {
+      label: "Resistência",
+      value: value !== undefined ? `${target} ${scalar(value)}` : target,
+    };
+  }
+
+  if (kind === "weakness") {
+    const target = scalar(rule["damageType"] ?? rule["selector"]);
+    const value = rule["value"];
+    return {
+      label: "Fraqueza",
+      value: value !== undefined ? `${target} ${scalar(value)}` : target,
+    };
+  }
+
+  if (kind === "note") {
+    const title = typeof rule["title"] === "string" ? rule["title"] : "Nota";
+    return { label: "Nota", value: title };
+  }
+
+  // Generic fallback: kind + best-effort key field, so no rule is silently dropped.
+  const detailKey = Object.keys(rule).find((k) => k !== "kind" && k !== "key");
+  const detail = detailKey ? `${detailKey}: ${scalar(rule[detailKey])}` : "";
+  return { label: "Regra", value: detail ? `${kind} — ${detail}` : kind };
+}
+
 function extractNested(obj: Record<string, unknown>, ...keys: string[]): unknown {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let cur: any = obj;
@@ -305,6 +371,54 @@ function extractNested(obj: Record<string, unknown>, ...keys: string[]): unknown
     cur = (cur as Record<string, unknown>)[k];
   }
   return cur;
+}
+
+// ---------------------------------------------------------------------------
+// Image fallback helper
+// REQ-CMP-012, REQ-CMP-015 (#2): graceful placeholder instead of broken <img>
+// ---------------------------------------------------------------------------
+
+/**
+ * Emoji fallback shown when an entry has no usable image.
+ * Chosen by documentType/subtype so entries remain visually distinguishable.
+ */
+export function fallbackIcon(documentType: string, subtype: string | null): string {
+  if (documentType === "Actor") {
+    if (subtype === "npc" || subtype === "hazard") return "\u{1F47E}"; // 👾
+    return "\u{1F9D9}"; // 🧙
+  }
+  if (documentType === "Item") {
+    switch (subtype) {
+      case "weapon":
+        return "⚔️"; // ⚔️
+      case "armor":
+        return "\u{1F6E1}️"; // 🛡️
+      case "spell":
+        return "✨"; // ✨
+      case "consumable":
+        return "\u{1F9EA}"; // 🧪
+      case "condition":
+        return "⚠️"; // ⚠️
+      default:
+        return "\u{1F4E6}"; // 📦
+    }
+  }
+  if (documentType === "JournalEntry") return "\u{1F4D6}"; // 📖
+  if (documentType === "RollTable") return "\u{1F3B2}"; // 🎲
+  if (documentType === "Macro") return "⚙️"; // ⚙️
+  if (documentType === "Scene") return "\u{1F5FA}️"; // 🗺️
+  if (documentType === "Playlist") return "\u{1F3B5}"; // 🎵
+  return "❓"; // ❓
+}
+
+/**
+ * Known placeholder paths were never populated with real assets (no HTTP
+ * route serves /icons/*). Detect them so the UI can skip the request
+ * entirely instead of rendering a broken-image icon.
+ */
+export function isKnownPlaceholderImg(img: string | null | undefined): boolean {
+  if (!img) return true;
+  return img.startsWith("icons/placeholder");
 }
 
 // ---------------------------------------------------------------------------

@@ -19,8 +19,10 @@ import type { Socket } from "socket.io-client";
 import type { CombatDocument, CombatantDocument, CombatTurnSnapshot } from "@fusion/shared";
 import { sortCombatants } from "@fusion/shared";
 import { worldMirror } from "../docs/worldSync.js";
+import { activeSceneState } from "../docs/activeScene.svelte.js";
 import { sendOp, OpError } from "../docs/sendOp.js";
 import { createTargetingState, applyTargeted, type TargetingState } from "./targeting.js";
+import { resolveActiveCombat, extractConflictingCombatId } from "./combatTracker.js";
 
 // ---------------------------------------------------------------------------
 // Reactive state
@@ -73,14 +75,50 @@ export function getTargetingState(): TargetingState {
 // Mirror subscription — Combat documents
 // ---------------------------------------------------------------------------
 
+// Latest raw Combat list from the mirror, cached so we can re-derive
+// combatStore.combat whenever the active scene changes too (see effect
+// below) — not just when the "Combat" collection itself changes.
+let _latestCombats: CombatDocument[] = [];
+
+/**
+ * Recompute combatStore.combat from the latest known Combat list, scoped to
+ * the currently active scene.
+ *
+ * BUG FIX (combat panel deadlock, #6 / GRUPO 4): the mirror can hold more
+ * than one non-ended Combat at a time (e.g. a stale orphan left over from a
+ * previous scene that was never explicitly ended — reproduced against the
+ * real "argiburgo" world DB, which had 5 Combat rows with one non-ended
+ * orphan). Previously this picked "the first non-ended Combat across the
+ * whole world" with no sceneId filter, so it could latch onto a Combat that
+ * does not belong to the active scene (or fail to surface the active
+ * scene's own Combat). The GM would then see the wrong encounter — or the
+ * add-combatants/tracker UI gated behind `{#if !combat}` would never open —
+ * and combatActions.create() for the real active scene would be rejected by
+ * the server (DEC-CBT-06: one active combat per scene) pointing at a combat
+ * unrelated to what the GM sees, with no way out. See resolveActiveCombat()
+ * in combatTracker.ts for the scoped selection logic.
+ */
+function _recomputeActiveCombat(): void {
+  combatStore.combat = resolveActiveCombat(_latestCombats, activeSceneState.id);
+}
+
 // Subscribe to Combat documents in the world mirror.
 // "Combat" is the documentType used by the server.
 worldMirror.subscribe<CombatDocument>("Combat", (combats) => {
-  // MVP: one combat per session world. Pick the first non-ended one.
-  // If multiple exist (unusual), prefer the one that is started.
-  const active =
-    combats.find((c) => c.started && !c.ended) ?? combats.find((c) => !c.ended) ?? null;
-  combatStore.combat = active;
+  _latestCombats = combats;
+  _recomputeActiveCombat();
+});
+
+// Re-derive combatStore.combat whenever the active scene changes (e.g. the
+// GM switches scenes) even if the Combat collection itself didn't change.
+// $effect.root is used because this is module-level (non-component) reactive
+// code — see Svelte 5 docs on effects outside components.
+$effect.root(() => {
+  $effect(() => {
+    // Read activeSceneState.id to establish the reactive dependency.
+    void activeSceneState.id;
+    _recomputeActiveCombat();
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -165,10 +203,38 @@ async function _runOp(socket: Socket, fn: () => Promise<void>): Promise<void> {
 }
 
 export const combatActions = {
-  /** GM creates a new combat for the given scene. */
+  /**
+   * GM creates a new combat for the given scene.
+   *
+   * Self-heal (GRUPO 4, combat panel deadlock #6): if the server rejects the
+   * create with DEC-CBT-06 (a non-ended Combat already exists for this
+   * scene) because the client's local mirror was out of sync, the server
+   * embeds the conflicting combatId in the error message. Rather than
+   * leaving combatStore.error as the only feedback (a dead end — the "Create
+   * Combat" button would just fail again the same way), check whether the
+   * mirror already has that Combat and, if so, re-derive combatStore.combat
+   * from it so the panel recovers on the spot. If the mirror does NOT have
+   * it yet (the create raced ahead of the combat:created broadcast reaching
+   * this client), there is nothing to reconcile from locally — the next
+   * combat:created/updated broadcast or resync will populate it, same as any
+   * other document.
+   */
   async create(socket: Socket, sceneId: string): Promise<void> {
     await _runOp(socket, async () => {
-      await sendOp(socket, { type: "combat:create", payload: { sceneId } });
+      try {
+        await sendOp(socket, { type: "combat:create", payload: { sceneId } });
+      } catch (err) {
+        if (err instanceof OpError) {
+          const conflictingId = extractConflictingCombatId(err.message);
+          if (conflictingId !== null) {
+            const existing = worldMirror.getDoc<CombatDocument>("Combat", conflictingId);
+            if (existing) {
+              _recomputeActiveCombat();
+            }
+          }
+        }
+        throw err;
+      }
     });
   },
 

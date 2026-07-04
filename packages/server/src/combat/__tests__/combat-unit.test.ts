@@ -264,6 +264,28 @@ describe("M2-C combat unit (direct handlers)", () => {
     if (!second.ok) expect(second.code).toBe("VALIDATION_FAILED");
   });
 
+  // GRUPO 4 (combat panel deadlock, #6): self-heal defense-in-depth. If a
+  // client's local combatStore.combat is somehow out of sync with the server
+  // (e.g. stale mirror, race between two GMs) and combat:create is rejected
+  // by DEC-CBT-06, the client has no way to recover unless the rejection
+  // tells it WHICH combat already exists for the scene — otherwise it's
+  // stuck looking at an empty-state "Create Combat" button that always
+  // fails. Assert the conflicting combatId is present (parseable) in the
+  // error so the client can fetch/reconcile it instead of dead-ending.
+  it("includes the conflicting combatId in the DEC-CBT-06 rejection message", async () => {
+    const sceneId = createScene(h);
+    const create = buildCombatCreateHandler(h.combatDeps);
+
+    const first = await run(create, { sceneId }, GM_CTX);
+    const existingCombat = combatFromAck(first);
+
+    const second = await run(create, { sceneId }, GM_CTX);
+    expect(second.ok).toBe(false);
+    if (!second.ok) {
+      expect(second.message).toContain(existingCombat._id);
+    }
+  });
+
   // -------------------------------------------------------------------------
   // Lifecycle events with a FAKE system stub on the EventBus
   // -------------------------------------------------------------------------

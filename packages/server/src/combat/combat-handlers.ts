@@ -477,9 +477,18 @@ export function buildCombatCreateHandler(deps: CombatHandlerDeps): HandlerFn {
     const existing = deps.store.getAll("combats");
     const activeForScene = existing.find((c) => c["sceneId"] === sceneId && c["ended"] !== true);
     if (activeForScene) {
+      // GRUPO 4 (combat panel deadlock, #6) — self-heal defense-in-depth:
+      // include the conflicting combatId in the rejection message so a
+      // client whose local combatStore.combat is out of sync (e.g. a stale
+      // mirror, or a race between two GMs) can recover instead of dead-
+      // ending on an empty-state "Create Combat" button that always fails.
+      // The client-side fix (resolveActiveCombat scoping by sceneId) closes
+      // the root cause; this is the belt-and-suspenders fallback for any
+      // remaining desync window.
+      const conflictingId = activeForScene["_id"] as string;
       return ackError(
         "VALIDATION_FAILED",
-        `A combat encounter already exists for scene ${sceneId}. End it before creating another (DEC-CBT-06).`,
+        `A combat encounter already exists for scene ${sceneId} (combatId=${conflictingId}). End it before creating another (DEC-CBT-06).`,
       );
     }
 

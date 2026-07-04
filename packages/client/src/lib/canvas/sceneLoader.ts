@@ -59,7 +59,11 @@ export async function loadSceneDocument(
       cleanupFns.push(() => {
         sprite.destroy();
       });
-    } catch {
+    } catch (err) {
+      // BUG #5b instrumentation: log the real cause instead of silently
+      // falling back — resolveAssetUrl()/Assets.load() failures were
+      // invisible before this, masking why a valid background didn't render.
+      console.error("[sceneLoader] background load failed:", scene.background, err);
       // Fallback: solid color rectangle
       const g = new Graphics();
       const bgColor = parseInt(scene.backgroundColor.replace("#", ""), 16);
@@ -86,6 +90,10 @@ export async function loadSceneDocument(
   // Cast needed: scene.grid is inferred from Zod with `| undefined` on optional
   // fields, which is incompatible with GridConfig under exactOptionalPropertyTypes.
   const gridCfg = GridRenderer.fromGridConfig(
+    // scene.grid can be undefined at runtime (scenes persisted without a grid,
+    // see r7.1) despite the type saying otherwise; `?? null` normalizes it for
+    // fromGridConfig's null guard, so this conditional is intentional.
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     (scene.grid ?? null) as unknown as GridConfig | null,
     totalWidth,
     totalHeight,

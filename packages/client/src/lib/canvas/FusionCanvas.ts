@@ -343,9 +343,16 @@ export class FusionCanvas {
     if (!app) return;
     const stage = app.stage;
 
-    // World container = render group for camera transform
-    // REQ-CNV-006: Primary + Effects + Interface wrapped in render group
-    const world = new Container({ isRenderGroup: true });
+    // World container holds the camera transform (Primary + Effects + Interface).
+    // REQ-CNV-006 originally wrapped these in a PIXI render group (isRenderGroup)
+    // for camera-transform batching. BUG (r8): PIXI v8.19's WebGPU backend does
+    // not paint a render group's contents — confirmed live against a real world
+    // (background, tokens and grid were all invisible, the canvas showed only the
+    // clear color; disabling the render group made them render immediately). Kept
+    // as a plain Container so the scene renders on both WebGPU and WebGL.
+    // TODO(perf): re-enable the render group once the PIXI WebGPU bug is fixed or
+    // PIXI is upgraded past the broken version.
+    const world = new Container();
     this._worldContainer = world;
     stage.addChild(world);
 

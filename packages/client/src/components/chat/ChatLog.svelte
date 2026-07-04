@@ -16,11 +16,7 @@
   import { onMount } from "svelte";
   import type { Socket } from "socket.io-client";
   import type { ChatMessage } from "@fusion/shared";
-  import {
-    chatStore,
-    loadMoreHistory,
-    setChatTabVisible,
-  } from "../../lib/chat/chatStore.svelte.js";
+  import { chatStore, loadMoreHistory } from "../../lib/chat/chatStore.svelte.js";
   import { ScrollStateManager } from "../../lib/chat/scrollState.js";
   import ChatMessageComponent from "./ChatMessage.svelte";
 
@@ -53,13 +49,11 @@
     },
   });
 
-  // ---- Visibility tracking for unread count ----
-
-  $effect(() => {
-    setChatTabVisible(visible);
-  });
-
   // ---- React to new messages ----
+  // NOTE: unread-count visibility tracking (setChatTabVisible) now lives in
+  // AppSidebar.svelte, which owns activeTab and can observe every tab value —
+  // including the initial default — even though ChatLog only mounts while
+  // the chat tab is the active one (see AppSidebar's BUG #1 FIX comment).
 
   let _prevMsgCount = 0;
 

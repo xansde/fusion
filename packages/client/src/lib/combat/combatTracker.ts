@@ -308,3 +308,63 @@ export function resolveCombatantTokenId(combat: CombatDocument): string | null {
   const active = combat.combatants.find((c) => c._id === combat.activeCombatantId);
   return active?.tokenId ?? null;
 }
+
+// ---------------------------------------------------------------------------
+// Active-combat resolution (GRUPO 4 / combat panel deadlock fix)
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolve "the" Combat the combat panel should display, scoped to the given
+ * active scene.
+ *
+ * BUG FIX (combat panel deadlock, #6): the mirror can legitimately hold more
+ * than one non-ended Combat document at a time — e.g. a stale/orphaned
+ * Combat left over from a previous scene that was never explicitly ended.
+ * The previous selection ("first non-ended Combat across the WHOLE world")
+ * had no sceneId filter, so it could latch onto a Combat that does not
+ * belong to the currently active scene, or fail to surface the active
+ * scene's own Combat if an orphan from another scene sorted first. Either
+ * way combatStore.combat diverged from "the active scene's Combat": the GM
+ * would see the wrong encounter (or none), and combatActions.create() for
+ * the real active scene would be rejected by the server with DEC-CBT-06
+ * ("one active combat per scene") pointing at a combat the GM can't see or
+ * act on — a dead end with no visible way out.
+ *
+ * Selection, scoped to `combats.filter(c => c.sceneId === activeSceneId)`:
+ *   1. Prefer a started, non-ended combat (the in-progress encounter).
+ *   2. Otherwise, the first non-ended combat (not yet started).
+ *   3. null if the active scene has no non-ended combat.
+ *
+ * When `activeSceneId` is null (no scene active yet), returns null — there is
+ * no scene to scope the search to.
+ */
+export function resolveActiveCombat(
+  combats: CombatDocument[],
+  activeSceneId: string | null,
+): CombatDocument | null {
+  if (activeSceneId === null) return null;
+  const forScene = combats.filter((c) => c.sceneId === activeSceneId);
+  return forScene.find((c) => c.started && !c.ended) ?? forScene.find((c) => !c.ended) ?? null;
+}
+
+/**
+ * Extract the conflicting combatId from a DEC-CBT-06 rejection message, if
+ * present.
+ *
+ * Self-heal defense-in-depth (GRUPO 4, combat panel deadlock #6): the server
+ * embeds `combatId=<id>` in the VALIDATION_FAILED message when combat:create
+ * is rejected because a non-ended Combat already exists for the scene (see
+ * buildCombatCreateHandler in combat-handlers.ts). If the client's local
+ * combatStore.combat is out of sync with the server for any reason (stale
+ * mirror, a race between two GMs), this lets the client recognize the
+ * situation and reconcile instead of dead-ending on a "Create Combat" button
+ * that will always fail the same way.
+ *
+ * Returns null if the message doesn't match the expected shape (e.g. a
+ * different VALIDATION_FAILED cause, or a future server that no longer
+ * includes the id — parsing failure must never throw).
+ */
+export function extractConflictingCombatId(message: string): string | null {
+  const match = /combatId=([A-Za-z0-9]+)/.exec(message);
+  return match?.[1] ?? null;
+}

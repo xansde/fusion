@@ -21,6 +21,7 @@ import type {
   ChatHistoryRequest,
   ChatHistoryResponse,
   ChatSendPayload,
+  RollResultData,
 } from "@fusion/shared";
 import {
   isOptimisticallyRenderable,
@@ -29,6 +30,7 @@ import {
   removeMessageById,
   type ProvisionalSpeaker,
 } from "./chatOptimistic.js";
+import { attachChatOpListener, type OpEmitter } from "./chatMessageSync.js";
 
 export type { ProvisionalSpeaker } from "./chatOptimistic.js";
 export { isOptimisticallyRenderable, buildProvisionalMessage } from "./chatOptimistic.js";
@@ -273,18 +275,56 @@ function _emitHistory(socket: Socket, req: ChatHistoryRequest): Promise<ChatHist
 /**
  * Initialize chat sync for a world session.
  * Loads initial history and returns a cleanup function.
- * Incoming live messages are fed via handleIncomingMessage() from ChatPanel.
+ * Incoming live messages are fed via attachChatMessageSync() (see below) —
+ * NOT tied to this function's lifecycle.
+ *
+ * BUG #1 FIX: this must be called ONCE per table session (TableScreen's
+ * onMount), not from ChatPanel — ChatPanel unmounts whenever the user leaves
+ * the chat tab, and previously this cleanup (which resets chatStore.messages)
+ * ran on every tab switch, discarding history that loadInitialHistory then
+ * had to re-fetch from the server (the "switching tabs fixes it" illusion).
  */
 export function attachChatSync(socket: Socket, worldId: string): () => void {
   // Load initial history
   void loadInitialHistory(socket, worldId);
 
   return () => {
-    // Reset store on disconnect
+    // Reset store on session teardown (NOT on chat tab switch).
     chatStore.messages = [];
     chatStore.hasMore = false;
     chatStore.nextCursor = null;
     chatStore.unreadCount = 0;
     chatStore.error = null;
   };
+}
+
+// ---------------------------------------------------------------------------
+// Live message sync (BUG #1 FIX) — decoupled from ChatPanel's mount lifecycle
+// ---------------------------------------------------------------------------
+
+/** Roll animator, registered by ChatPanel while it's mounted (dice-canvas needs its DOM). */
+let _rollAnimator: ((roll: RollResultData) => void) | null = null;
+
+/**
+ * Register (or unregister, passing null) the 3D dice roll animator.
+ * Called from ChatPanel's onMount/onDestroy — animation only plays while the
+ * user is actually looking at the chat tab (the #dice-canvas element only
+ * exists then), but message delivery itself does NOT depend on this.
+ */
+export function setRollAnimator(fn: ((roll: RollResultData) => void) | null): void {
+  _rollAnimator = fn;
+}
+
+/**
+ * Attach the live "op" listener that feeds incoming ChatMessage broadcasts
+ * into chatStore, independent of any UI component's mount state.
+ *
+ * Call ONCE per table session (TableScreen's onMount), alongside
+ * attachChatSync. Returns a cleanup function that removes the listener.
+ */
+export function attachChatMessageSync(socket: OpEmitter): () => void {
+  return attachChatOpListener(socket, {
+    handleIncomingMessage,
+    getRollAnimator: () => _rollAnimator,
+  });
 }

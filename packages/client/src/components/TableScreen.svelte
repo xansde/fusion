@@ -25,6 +25,7 @@
   import { canLoadScene } from "../lib/canvas/canvasReadyGate.js";
   import { activeSceneState } from "../lib/docs/activeScene.svelte.js";
   import { attachCombatSync } from "../lib/combat/combatStore.svelte.js";
+  import { attachChatSync, attachChatMessageSync } from "../lib/chat/chatStore.svelte.js";
   import AppSidebar from "./chat/AppSidebar.svelte";
   import ActiveSceneBadge from "./scenes/ActiveSceneBadge.svelte";
   import NoSceneOverlay from "./scenes/NoSceneOverlay.svelte";
@@ -52,6 +53,8 @@
   let fusionCanvas: FusionCanvas | null = null;
   let cleanupScene: (() => void) | null = null;
   let cleanupCombatSync: (() => void) | null = null;
+  let cleanupChatSync: (() => void) | null = null;
+  let cleanupChatMessageSync: (() => void) | null = null;
   // Debug overlay is toggled internally by F9 inside FusionCanvas.toggleDebug().
 
   // BUG FIX (race): the scene-reload $effect below reacts to activeSceneState.scene
@@ -147,6 +150,16 @@
     if (sock) {
       cleanupCombatSync?.();
       cleanupCombatSync = attachCombatSync(sock);
+
+      // BUG #1 FIX: chat history load + live "op" listener are session-scoped
+      // here, NOT tied to ChatPanel's mount lifecycle (see chatStore.svelte.ts
+      // header comment on attachChatSync/attachChatMessageSync). Previously
+      // these lived in ChatPanel's onMount/onDestroy, so leaving the chat tab
+      // dropped incoming messages and reset the store.
+      cleanupChatSync?.();
+      cleanupChatSync = attachChatSync(sock, session.worldInfo?.id ?? "");
+      cleanupChatMessageSync?.();
+      cleanupChatMessageSync = attachChatMessageSync(sock);
     }
 
     // Register PF2e sheets once, after the Svelte runtime is ready (REQ-UIF-018..019).
@@ -165,10 +178,14 @@
     _teardownOrchestrator();
     cleanupScene?.();
     cleanupCombatSync?.();
+    cleanupChatSync?.();
+    cleanupChatMessageSync?.();
     fusionCanvas?.destroy();
     fusionCanvas = null;
     cleanupScene = null;
     cleanupCombatSync = null;
+    cleanupChatSync = null;
+    cleanupChatMessageSync = null;
   });
 
   // ---- Canvas drag-and-drop (REQ-UIF-046 [MVP]) ----

@@ -12,14 +12,11 @@
 
   import { onMount, onDestroy } from "svelte";
   import type { Socket } from "socket.io-client";
-  import type { ChatMessage, ChatSendPayload, Envelope } from "@fusion/shared";
-  import { CHAT_DOCUMENT_TYPE } from "@fusion/shared";
+  import type { ChatSendPayload } from "@fusion/shared";
   import {
     chatStore,
     sendChatMessage,
-    attachChatSync,
-    handleIncomingMessage,
-    setChatTabVisible,
+    setRollAnimator,
   } from "../../lib/chat/chatStore.svelte.js";
   import { session } from "../../lib/session.svelte.js";
   import { animateRoll, setDiceBoxEnabled, isDiceBoxEnabled } from "../../lib/chat/diceBoxBridge.js";
@@ -45,49 +42,24 @@
   let diceEnabled = $state(isDiceBoxEnabled());
   let diceContainer: HTMLElement | null = $state(null);
 
-  // ---- Chat sync ----
-
-  let _detachSync: (() => void) | null = null;
+  // ---- Roll animator registration ----
+  //
+  // BUG #1 FIX: message sync (history load + live "op" listener) is now
+  // owned by TableScreen (session-scoped, via attachChatSync +
+  // attachChatMessageSync) — NOT by this component, since ChatPanel unmounts
+  // whenever the user leaves the chat tab. ChatPanel only registers the 3D
+  // dice animator, which is correctly scoped to "chat tab visible" (the
+  // #dice-canvas element below only exists while this component is mounted).
 
   onMount(() => {
-    _detachSync = attachChatSync(socket, worldId);
-
-    // Listen for live ChatMessage broadcasts
-    socket.on("op", _onOp);
+    setRollAnimator((roll) => {
+      if (diceEnabled) void animateRoll(roll);
+    });
   });
 
   onDestroy(() => {
-    _detachSync?.();
-    _detachSync = null;
-    socket.off("op", _onOp);
+    setRollAnimator(null);
   });
-
-  function _onOp(envelope: Envelope): void {
-    if (envelope.type !== "doc:create") return;
-    const payload = envelope.payload as { documentType?: string; document?: unknown };
-    if (payload.documentType !== CHAT_DOCUMENT_TYPE) return;
-
-    const msg = payload.document as ChatMessage;
-    if (!msg || typeof msg._id !== "string") return;
-
-    handleIncomingMessage(msg);
-
-    // Animate 3D dice for visible rolls
-    if (
-      diceEnabled &&
-      msg.type === "roll" &&
-      msg.rolls &&
-      msg.rolls.length > 0 &&
-      !msg.blind &&
-      msg.whisper.length === 0
-    ) {
-      for (const roll of msg.rolls) {
-        if (roll.rollMode === "public") {
-          void animateRoll(roll);
-        }
-      }
-    }
-  }
 
   // ---- Send ----
 

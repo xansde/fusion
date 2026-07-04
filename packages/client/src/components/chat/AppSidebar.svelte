@@ -54,12 +54,17 @@
 
   function selectTab(tab: Tab): void {
     _tabOverride = tab;
-    if (tab === "chat") {
-      setChatTabVisible(true);
-    } else {
-      setChatTabVisible(false);
-    }
   }
+
+  // BUG #1 FIX: the unread badge must be tracked here (AppSidebar), not via a
+  // prop into ChatLog — ChatLog only exists while activeTab === "chat" (the
+  // {#if} below unmounts it otherwise), so an effect living inside it can
+  // never observe "tab became invisible" (the component is already gone by
+  // then). This effect owns setChatTabVisible for every activeTab value,
+  // including the initial default (GM → "scenes", player → "chat").
+  $effect(() => {
+    setChatTabVisible(activeTab === "chat");
+  });
 
   const chatUnread = $derived(chatStore.unreadCount);
 

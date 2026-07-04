@@ -22,6 +22,8 @@ import {
   sortEntries,
   buildDocumentPreview,
   highlightMatch,
+  fallbackIcon,
+  isKnownPlaceholderImg,
 } from "../compendiumBrowser.js";
 
 // ---------------------------------------------------------------------------
@@ -327,6 +329,73 @@ describe("buildDocumentPreview", () => {
     };
     const preview = buildDocumentPreview(doc);
     expect(preview.fields.find((f) => f.label === "Dano")?.value).toContain("1d8");
+  });
+
+  it("extracts readable fields from system.rules[] (e.g. Blinded condition)", () => {
+    const doc = {
+      _id: "cond1",
+      name: "Blinded",
+      type: "condition",
+      system: {
+        rules: [
+          { kind: "flat-modifier", selector: "perception", value: -4, type: "status" },
+          { kind: "flat-modifier", subkind: "immunity", damageType: "visual" },
+        ],
+      },
+    };
+    const preview = buildDocumentPreview(doc);
+    expect(
+      preview.fields.some(
+        (f) =>
+          f.label === "Modificador" && f.value.includes("perception") && f.value.includes("-4"),
+      ),
+    ).toBe(true);
+    expect(preview.fields.some((f) => f.label === "Imunidade" && f.value.includes("visual"))).toBe(
+      true,
+    );
+  });
+
+  it("falls back to a generic label for unmapped rule kinds", () => {
+    const doc = {
+      _id: "misc1",
+      name: "Weird Thing",
+      type: "feat",
+      system: {
+        rules: [{ kind: "some-unmapped-kind", note: "Something happens" }],
+      },
+    };
+    const preview = buildDocumentPreview(doc);
+    expect(preview.fields.some((f) => f.value.includes("some-unmapped-kind"))).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// isKnownPlaceholderImg / fallbackIcon
+// ---------------------------------------------------------------------------
+
+describe("isKnownPlaceholderImg", () => {
+  it("treats known placeholder paths as unusable", () => {
+    expect(isKnownPlaceholderImg("icons/placeholder/npc.svg")).toBe(true);
+  });
+
+  it("treats null/undefined/empty as unusable", () => {
+    expect(isKnownPlaceholderImg(null)).toBe(true);
+    expect(isKnownPlaceholderImg(undefined)).toBe(true);
+    expect(isKnownPlaceholderImg("")).toBe(true);
+  });
+
+  it("treats a real image path as usable", () => {
+    expect(isKnownPlaceholderImg("icons/real/npc.png")).toBe(false);
+  });
+});
+
+describe("fallbackIcon", () => {
+  it("returns a distinct icon per Actor subtype", () => {
+    expect(fallbackIcon("Actor", "npc")).not.toBe(fallbackIcon("Item", "weapon"));
+  });
+
+  it("returns a generic icon for unknown documentType", () => {
+    expect(fallbackIcon("Whatever", null)).toBe("❓");
   });
 });
 

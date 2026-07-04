@@ -20,6 +20,8 @@
     sortEntries,
     buildDocumentPreview,
     highlightMatch,
+    isKnownPlaceholderImg,
+    fallbackIcon,
     type BrowserFilterState,
     type PackGroup,
     type SortField,
@@ -47,6 +49,7 @@
   // Preview state
   let previewDoc = $state<Record<string, unknown> | null>(null);
   let previewLoading = $state(false);
+  let previewImgBroken = $state(false);
 
   // Filter state
   let filterState = $state<BrowserFilterState>({ text: "" });
@@ -110,6 +113,7 @@
   async function previewEntry(entry: PackIndexEntry): Promise<void> {
     previewLoading = true;
     previewDoc = null;
+    previewImgBroken = false;
     try {
       const result = await getDocument(socket, entry.uuid);
       previewDoc = result.document;
@@ -160,6 +164,23 @@
   function sortArrow(field: SortField): string {
     if (sortField !== field) return "";
     return sortAsc ? " ▲" : " ▼";
+  }
+
+  // ---- Image fallback ----
+  // Entries store known-placeholder paths (e.g. "icons/placeholder/npc.svg")
+  // that were never populated with a real asset and have no serving route.
+  // Skip fetching them entirely and render a per-type emoji placeholder
+  // instead of a broken-image icon. Real paths that still 404 fall back the
+  // same way via onerror.
+
+  let brokenImgUuids = $state<Set<string>>(new Set());
+
+  function handleImgError(uuid: string): void {
+    brokenImgUuids = new Set(brokenImgUuids).add(uuid);
+  }
+
+  function shouldShowImg(entry: PackIndexEntry): boolean {
+    return !isKnownPlaceholderImg(entry.img) && !brokenImgUuids.has(entry.uuid);
   }
 </script>
 
@@ -286,10 +307,21 @@
                 ondragstart={(e) => handleDragStart(e, entry)}
                 title={`Arraste para o canvas ou ficha. UUID: ${entry.uuid}`}
               >
-                {#if entry.img}
-                  <img class="entry-row__img" src={entry.img} alt="" aria-hidden="true" loading="lazy" />
+                {#if shouldShowImg(entry)}
+                  <img
+                    class="entry-row__img"
+                    src={entry.img}
+                    alt=""
+                    aria-hidden="true"
+                    loading="lazy"
+                    onerror={() => handleImgError(entry.uuid)}
+                  />
                 {:else}
-                  <span class="entry-row__img entry-row__img--placeholder" aria-hidden="true">?</span>
+                  <span
+                    class="entry-row__img entry-row__img--placeholder"
+                    aria-hidden="true"
+                    title={entry.type ?? selectedPack.documentType}
+                  >{fallbackIcon(selectedPack.documentType, entry.type)}</span>
                 {/if}
 
                 <div class="entry-row__info">
@@ -318,7 +350,7 @@
                       aria-label="Importar {entry.name} para o world"
                       title="Importar para o world"
                     >
-                      {isImporting ? "…" : "&#x2B07;"}
+                      {isImporting ? "…" : "⬇"}
                     </button>
                   {/if}
                 </div>
@@ -339,8 +371,18 @@
     {:else if previewData}
       <div class="preview-panel" role="complementary" aria-label="Pré-visualização">
         <div class="preview-panel__header">
-          {#if previewData.img}
-            <img class="preview-panel__img" src={previewData.img} alt="" aria-hidden="true" />
+          {#if !isKnownPlaceholderImg(previewData.img) && !previewImgBroken}
+            <img
+              class="preview-panel__img"
+              src={previewData.img}
+              alt=""
+              aria-hidden="true"
+              onerror={() => { previewImgBroken = true; }}
+            />
+          {:else}
+            <span class="preview-panel__img preview-panel__img--placeholder" aria-hidden="true">
+              {fallbackIcon(selectedPack?.documentType ?? "", previewData.type)}
+            </span>
           {/if}
           <div>
             <h4 class="preview-panel__name">{previewData.name}</h4>
@@ -632,6 +674,15 @@
     border-radius: 4px;
     object-fit: cover;
     flex-shrink: 0;
+  }
+
+  .preview-panel__img--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--fusion-surface, #222);
+    color: var(--fusion-text-muted, #888);
+    font-size: 1.3rem;
   }
 
   .preview-panel__name {

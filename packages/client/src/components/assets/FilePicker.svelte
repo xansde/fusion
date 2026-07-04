@@ -106,8 +106,16 @@
     const files = e.dataTransfer?.files;
     if (!files || files.length === 0) return;
 
-    for (const file of Array.from(files)) {
-      void assetStore.startUpload(token, file);
+    const fileList = Array.from(files);
+    // BUG #5a FIX: a single dropped file is auto-selected once the upload
+    // finishes (mirrors handleSelectAsset's assetUrl(name) + onClose()).
+    // Multiple files are left for the user to pick manually from the grid.
+    const onDone = fileList.length === 1
+      ? (path: string) => { onSelect(assetUrl(path)); onClose(); }
+      : undefined;
+
+    for (const file of fileList) {
+      void assetStore.startUpload(token, file, onDone);
     }
   }
 
@@ -116,8 +124,14 @@
     const files = input.files;
     if (!files || files.length === 0) return;
 
-    for (const file of Array.from(files)) {
-      void assetStore.startUpload(token, file);
+    const fileList = Array.from(files);
+    // BUG #5a FIX: same auto-select-on-single-upload behavior as handleDrop.
+    const onDone = fileList.length === 1
+      ? (path: string) => { onSelect(assetUrl(path)); onClose(); }
+      : undefined;
+
+    for (const file of fileList) {
+      void assetStore.startUpload(token, file, onDone);
     }
 
     // Reset so the same file can be re-selected after an error
