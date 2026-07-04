@@ -78,6 +78,21 @@ Dois achados reais no primeiro teste do usuário com o exe, ambos corrigidos e r
 - **Para retomar o M2-A com cache** (agentes já concluídos não re-executam): `Workflow({scriptPath: "C:\Users\xansd\.claude\projects\C--Users-xansd-pessoal-fusion\477c65a9-566c-4c09-9ba1-752ee88a14fd\workflows\scripts\fusion-batch-m2a-wf_daeea573-1cb.js", resumeFromRunId: "wf_daeea573-1cb"})` — ou simplesmente pedir "retome o build do Fusion" que o processo segue do BUILD-LOG.
 - Próximos batches após M2-A: M2-B (fog), M2-C (combate), depois M3 (A–F) → primeira sessão jogável.
 
+## Validação manual em uso real (2026-07-03) — rounds r4→r7.1
+
+O usuário rodou o exe e reportou bugs de uso; todos corrigidos (commitados; exe reconstruído). Cada um seguiu o padrão "backend pronto, ponta de UI desconectada" — e agora testados por mim via **sonda headless própria** (puppeteer-core + socket.io-client em `<scratchpad>/ui-probe/`, Edge; login por `userId`, handshake `auth:{token,protocolVersion:1}`, doc:create=`{documentType,data:[...]}`, doc:update=`{documentType,updates:[{_id,diff}]}`).
+
+| Round | Commit | Bugs corrigidos |
+| --- | --- | --- |
+| r4 | `4791a29` | duplo-clique subia help e saía (sem comando→serve+auto-open do wizard); "+Novo"/doc:create mandava `documents` vs `data` e sem ack |
+| r4.1 | `e050c86` | CSP bloqueava Web Worker de blob do PIXI/dado 3D (`worker-src 'self' blob:`) |
+| r5 | `5475299` | asset de fundo 401 (client não anexava query-token → `resolveAssetUrl` no render); editar cena crashava (`scene.grid.size` no dialog); ficha não abria (`.actor-row` sem ondblclick); combate sem UI de adicionar tokens; chat sem eco otimista (`chatOptimistic.ts`) |
+| (i18n) | (no r4) | wizard com chaves i18n cruas — bundle só carregava por side-effect que `/setup` não alcançava; fix: import do barrel em `main.ts` + import `pixi.js/unsafe-eval` (CSP estrita bloqueava o eval do PIXI) |
+| r6 | `b22275a` | fundo não renderizava (corrida `$effect`×`canvas.init()` → `canvasReadyGate`); edição de ficha não persistia (shape `doc:update` → `normalizeDocUpdate`); "Criar Combate" não refletia (DocumentMirror não ingeria `combat:created/updated/deleted` → handlers de lifecycle) |
+| r7/r7.1 | `22d48d7`, `e92091d` | ativar cena sem grid crashava em `scene.grid.size` — 3 leitores: `GridRenderer.fromGridConfig`, `sceneLoader`, `scene-orchestrator` (tipo diz grid sempre presente, runtime não) |
+
+**Setup do usuário no mundo `argiburgo`** (pf2e): GM `Gamemaster`/`argiburgo-gm`, player `Jogador`/`jogador-1`. **Tobias** (Ratfolk Magus 3, do vault `Resources/argiburgo/personagens/tobias.md`) importado como character, posse OWNER→Jogador (jogável como player). **Sylas «Presa»** (Nagaji Monge 3) como NPC. Follow-ups não-bloqueantes: cenas de teste a apagar; cenas novas sem grade visível (grid não preenchido na criação); AC Tobias exibe 14 (derive sem armadura; inventário não modelado); endCombat não deleta a linha; 400 cosmético em `/api/auth/refresh`.
+
 ## Registro por batch
 
 ### M6-B5 — Auto-update headless — ✅ M6 HEADLESS COMPLETO (2026-07-03)
