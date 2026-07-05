@@ -15,10 +15,11 @@
  * Two independent concerns:
  *   1. sanitizeDescriptionHtml — vendor system.description HTML → safe,
  *      renderable HTML: strips all tags except a small allow-list
- *      (p/strong/em/b/i/ul/ol/li/br/hr), and rewrites inline
- *      @UUID[...]{Label} / @Damage[...] / @Check[...] / @Template[...]
- *      reference tags into their human-readable label text (never executed
- *      — V2 per the task's item 2).
+ *      (p/strong/em/b/i/ul/ol/li/br/hr), and humanizes inline Foundry
+ *      enrichers — @UUID[...]{Label}, @Damage[...], @Check[...],
+ *      @Template[...], @Localize[...], and [[/r ...]] / [[/act ...]] roll
+ *      blocks — into readable prose (numbers/dice preserved; never executed
+ *      — V2 per the task's item 2). No raw enricher syntax ever leaks.
  *   2. buildMechanicalFields — extracts the type-specific mechanical fields
  *      (spell: time/range/area/target/duration/save/damage/heighten; feat:
  *      prerequisites/frequency; classFeature: level) from a full document's
@@ -53,48 +54,274 @@ function findMatchingBracket(text: string, openIdx: number): number {
   return -1;
 }
 
+/** Saving-throw statistics that read as "<Name> save" rather than a skill check. */
+const SAVE_STATISTICS = new Set(["fortitude", "reflex", "will"]);
+
+/** Title-case a lowercase system slug for display, e.g. "fortitude" → "Fortitude". */
+function capitalize(word: string): string {
+  return word.length > 0 ? word[0]!.toUpperCase() + word.slice(1) : word;
+}
+
+/**
+ * Strip Foundry `@`-prefixed roll-data paths (e.g. `@actor.level`,
+ * `@item.rank`, `@actor.abilities.str.mod`) down to a short readable token
+ * so a damage/formula fragment reads as text instead of leaking template
+ * syntax. `@actor.level` → "level"; `@item.rank` → "rank"; anything else →
+ * its last path segment. Never leaves a literal `@` behind.
+ */
+function humanizeRollData(formula: string): string {
+  return formula.replace(/@[\w.]+/g, (path) => {
+    const body = path.slice(1); // drop leading '@'
+    if (body === "actor.level" || body === "self.level") return "level";
+    const segment = body.split(".").pop();
+    return segment && segment.trim() ? segment.trim() : body;
+  });
+}
+
+/**
+ * Turn a `@Damage[...]` bracket body into readable "<formula> <type>" text.
+ *
+ * The body is `formula[damageType]` optionally followed by `|options:...`
+ * / `|traits:...` flags, and the formula itself may contain nested
+ * parens/brackets and roll-data references, e.g.:
+ *   `max(16,(2*(floor(@actor.level/2))))d6[fire]|options:area-damage`
+ *   `(1d4+2)[persistent,fire]`
+ *   `ceil(@actor.level/2)d8[@actor.flags...damageType]`
+ *
+ * Result: `max(16,(2*(floor(level/2))))d6 fire` — formula (roll-data
+ * simplified, no leading `@`) + damage type, with `[]` and `|flags` dropped.
+ */
+function humanizeDamage(bracketBody: string): string {
+  // Split off trailing `|options:...` / `|traits:...` flag segments. A bare
+  // `|` never appears inside the formula, so the first top-level `|` marks
+  // the start of the flags.
+  const pipeIdx = bracketBody.indexOf("|");
+  const core = (pipeIdx === -1 ? bracketBody : bracketBody.slice(0, pipeIdx)).trim();
+
+  // The damage type is the LAST `[...]` group in the core, e.g. the `[fire]`
+  // in `...d6[fire]`. Match it greedily so nested brackets in the formula
+  // (rare) don't win over the trailing type tag.
+  const typeMatch = /^(.*)\[([^\]]*)]\s*$/.exec(core);
+  if (typeMatch) {
+    const formula = humanizeRollData(typeMatch[1]!.trim());
+    // Damage type may itself be a list ("persistent,acid") or a roll-data ref.
+    const damageType = humanizeRollData(typeMatch[2]!.trim()).replace(/,/g, " ");
+    return damageType ? `${formula} ${damageType}`.trim() : formula;
+  }
+
+  // No `[type]` group (e.g. `(@actor.level)` untyped) — just the formula.
+  return humanizeRollData(core);
+}
+
+/**
+ * Turn a `@Template[...]` bracket body into readable area text, e.g.
+ *   `type:burst|distance:10` → "10-foot burst"
+ *   `burst|distance:10`      → "10-foot burst"
+ *   `cone|distance:30`       → "30-foot cone"
+ * The shape may be a bare first segment or a `type:` key; the size comes
+ * from the `distance:` flag. Falls back to the raw shape if no distance.
+ */
+function humanizeTemplate(bracketBody: string): string {
+  const parts = bracketBody.split("|").map((p) => p.trim());
+  let shape: string | null = null;
+  let distance: string | null = null;
+  for (const part of parts) {
+    if (part.startsWith("type:")) shape = part.slice(5);
+    else if (part.startsWith("distance:")) distance = part.slice(9);
+    else if (shape === null && !part.includes(":")) shape = part;
+  }
+  if (shape && distance) return `${distance}-foot ${shape}`;
+  if (shape) return shape;
+  return bracketBody;
+}
+
+/**
+ * Turn a `@Check[...]` bracket body into readable text, e.g.
+ *   `fortitude|dc:29`            → "Fortitude save (DC 29)"
+ *   `type:fortitude|dc:29`       → "Fortitude save (DC 29)"
+ *   `fortitude|basic|options:..` → "basic Fortitude save"
+ *   `reflex|against:class-spell` → "Reflex save"
+ *   `athletics|dc:15`            → "Athletics (DC 15)"
+ *   `athletics`                  → "Athletics"
+ * Saves (fortitude/reflex/will) render as "<Name> save"; other statistics
+ * are skill checks and render as the capitalized skill name. A `basic` flag
+ * prefixes "basic "; a `dc:` flag appends " (DC N)".
+ */
+function humanizeCheck(bracketBody: string): string {
+  const parts = bracketBody.split("|").map((p) => p.trim());
+  const first = parts[0] ?? "";
+  const statistic = (first.startsWith("type:") ? first.slice(5) : first).toLowerCase();
+  const flags = parts.slice(1);
+
+  const dcFlag = flags.find((f) => f.startsWith("dc:"));
+  const dcRaw = dcFlag ? dcFlag.slice(3).trim() : null;
+  // Roll-data DCs like `dc:@self.level` are not literal numbers — drop the
+  // `@`-syntax rather than leak it; keep plain numeric DCs.
+  const dc = dcRaw && /^\d+$/.test(dcRaw) ? dcRaw : null;
+  const basic = flags.includes("basic");
+
+  if (!statistic) return bracketBody;
+
+  const name = capitalize(statistic);
+  let text: string;
+  if (SAVE_STATISTICS.has(statistic)) {
+    text = basic ? `basic ${name} save` : `${name} save`;
+  } else {
+    text = name;
+  }
+  return dc ? `${text} (DC ${dc})` : text;
+}
+
 /**
  * Rewrite one `@Tag[...]{...}` inline reference into readable text.
  *
- * - `@UUID[Compendium.pf2e.pack.Item.Name]{Label}` → "Label"
- * - `@UUID[Compendium.pf2e.pack.Item.Name]` (no label) → "Name" (last path
- *   segment — vendor UUIDs with no explicit label use the document name).
- * - `@Damage[formula[type]]{label}` / no label → the raw formula text (kept
- *   as visible plain text; never executed, per the task's V2 note).
- * - `@Check[...]`, `@Template[...]` → same: explicit `{label}` wins,
- *   otherwise a best-effort readable fallback built from the bracket body.
+ * An explicit `{Label}` always wins (Foundry's own display text). Otherwise:
+ * - `@UUID[Compendium.pf2e.pack.Item.Name]` → "Name" (last path segment).
+ * - `@Damage[formula[type]|options:...]` → "formula type" (see
+ *   {@link humanizeDamage}); roll-data (`@actor.level`) is simplified and
+ *   the bracket/flag syntax is dropped — never executed (V2).
+ * - `@Template[type:burst|distance:10]` → "10-foot burst".
+ * - `@Check[fortitude|dc:29]` → "Fortitude save (DC 29)".
+ * - `@Localize[...]` → dropped (localization key with no inline prose).
+ * - Any other/unknown tag → the readable bracket body (roll-data stripped),
+ *   never the raw `@Tag[...]` syntax.
  */
 function rewriteInlineTag(tagName: string, bracketBody: string, label: string | null): string {
   if (label) return label;
 
-  if (tagName === "UUID") {
-    const lastSegment = bracketBody.split(".").pop();
-    return lastSegment && lastSegment.trim() ? lastSegment.trim() : bracketBody;
+  switch (tagName) {
+    case "UUID": {
+      const lastSegment = bracketBody.split(".").pop();
+      return lastSegment && lastSegment.trim() ? lastSegment.trim() : bracketBody;
+    }
+    case "Damage":
+      return humanizeDamage(bracketBody);
+    case "Template":
+      return humanizeTemplate(bracketBody);
+    case "Check":
+      return humanizeCheck(bracketBody);
+    case "Localize":
+      // Pure localization-key wrapper (e.g. @Localize[PF2E.NPC...]) with no
+      // inline prose — nothing readable to show, so drop it entirely.
+      return "";
+    default:
+      // Unknown enricher: show a readable form of the bracket body with
+      // roll-data references simplified, never the raw `@Tag[...]` syntax.
+      return humanizeRollData(bracketBody);
+  }
+}
+
+/**
+ * Humanize the body of a `[[...]]` inline-roll block (the text between the
+ * double brackets, without a `{Label}` — that's handled by the caller).
+ *
+ * Foundry forms:
+ *   `/r 1d20+5`            (roll)         → "1d20+5"
+ *   `/br 2d6[fire]`        (blind roll)   → "2d6 fire"
+ *   `/gmr 1d4 #hours`      (GM roll)      → "1d4"    (drops the #comment)
+ *   `/r 1d4 #Recharge ...` (roll+flavor)  → "1d4"
+ *   `/act climb skill=warfare-lore`       → "Climb"  (action macro)
+ * Roll-data references (`@actor.level`) are simplified; `[type]` tags become
+ * a trailing type word; `#flavor` comments and macro `key=value` args are
+ * dropped as non-prose. Returns null if the body is not a recognized form.
+ */
+function humanizeInlineRoll(body: string): string | null {
+  const trimmed = body.trim();
+  const macroMatch = /^\/([a-z]+)\s+([\s\S]*)$/i.exec(trimmed);
+  if (!macroMatch) return null;
+
+  const kind = macroMatch[1]!.toLowerCase();
+  let rest = macroMatch[2]!.trim();
+
+  // Action macro: [[/act climb skill=warfare-lore]] → "Climb". Show only the
+  // action slug (first token), title-cased and de-kebabed; drop key=value args.
+  if (kind === "act") {
+    const slug = rest.split(/\s+/)[0] ?? "";
+    const words = slug.split("-").filter((w) => w.length > 0).map(capitalize);
+    return words.length > 0 ? words.join(" ") : rest;
   }
 
-  if (tagName === "Damage") {
-    // Strip the trailing [damageType] tag for a shorter fallback, e.g.
-    // "(1d4+2)[fire]" -> "(1d4+2) fire".
-    const m = /^(.*)\[([^\]]+)]$/.exec(bracketBody);
-    return m ? `${m[1]} ${m[2]}` : bracketBody;
+  // Roll forms (/r, /br, /sr, /gmr, ...): drop trailing `#flavor` comment,
+  // then reuse damage humanization so `2d6[fire]` → "2d6 fire" and
+  // `@actor.level` is simplified. A bare formula (no `[type]`) passes through.
+  const hashIdx = rest.indexOf("#");
+  if (hashIdx !== -1) rest = rest.slice(0, hashIdx).trim();
+  return humanizeDamage(rest);
+}
+
+/**
+ * Replace every `[[...]]{...}` inline-roll block in `text` with its
+ * human-readable form (see {@link humanizeInlineRoll}). An explicit
+ * `{Label}` wins. Unrecognized blocks are left untouched for the `@Tag`
+ * pass / plain rendering.
+ */
+function rewriteInlineRolls(text: string): string {
+  let result = "";
+  let i = 0;
+
+  while (i < text.length) {
+    const open = text.indexOf("[[", i);
+    if (open === -1) {
+      result += text.slice(i);
+      break;
+    }
+
+    // Find the `]]` that closes this block by bracket depth: the opening `[[`
+    // starts depth at 2, inner `[type]` groups nest and unnest, and the block
+    // ends where depth returns to 0. This correctly handles a damage type tag
+    // inside the roll, e.g. `[[/br 2d6[fire]]]` (body = `/br 2d6[fire]`).
+    let depth = 0;
+    let bodyEnd = -1;
+    for (let j = open; j < text.length; j++) {
+      const ch = text[j];
+      if (ch === "[") depth++;
+      else if (ch === "]") {
+        depth--;
+        if (depth === 0) {
+          bodyEnd = j; // points at the final `]`
+          break;
+        }
+      }
+    }
+    if (bodyEnd === -1) {
+      // Unbalanced — keep the rest verbatim rather than dropping prose.
+      result += text.slice(i);
+      break;
+    }
+
+    result += text.slice(i, open);
+
+    const body = text.slice(open + 2, bodyEnd - 1); // strip leading `[[` and trailing `]]`
+    let label: string | null = null;
+    let cursor = bodyEnd + 1;
+    if (text[cursor] === "{") {
+      const labelClose = text.indexOf("}", cursor);
+      if (labelClose !== -1) {
+        label = text.slice(cursor + 1, labelClose);
+        cursor = labelClose + 1;
+      }
+    }
+
+    const readable = label ?? humanizeInlineRoll(body);
+    if (readable !== null) {
+      result += readable;
+      i = cursor;
+    } else {
+      // Not a recognized roll block (e.g. a stray `[[1, 2]]` array in prose) —
+      // keep the `[[` and re-scan from just after it.
+      result += "[[";
+      i = open + 2;
+    }
   }
 
-  if (tagName === "Check") {
-    const [statistic, ...opts] = bracketBody.split("|");
-    const dcOpt = opts.find((o) => o.startsWith("dc:"));
-    const dc = dcOpt ? dcOpt.slice(3) : null;
-    return dc ? `${statistic} (DC ${dc})` : (statistic ?? bracketBody);
-  }
-
-  // @Template and any other unknown inline tag: show the raw bracket body.
-  return bracketBody;
+  return result;
 }
 
 /**
  * Replace every `@Tag[...]{...}` inline reference in `text` with its
  * human-readable form (see {@link rewriteInlineTag}).
  */
-function rewriteInlineTags(text: string): string {
+function rewriteAtTags(text: string): string {
   let result = "";
   let i = 0;
 
@@ -131,6 +358,16 @@ function rewriteInlineTags(text: string): string {
   }
 
   return result;
+}
+
+/**
+ * Convert every Foundry enricher in `text` into human-readable prose:
+ * `[[...]]` inline-roll blocks first (see {@link rewriteInlineRolls}), then
+ * `@Tag[...]{...}` references (see {@link rewriteAtTags}). Idempotent on text
+ * that contains no enrichers.
+ */
+function rewriteInlineTags(text: string): string {
+  return rewriteAtTags(rewriteInlineRolls(text));
 }
 
 /**

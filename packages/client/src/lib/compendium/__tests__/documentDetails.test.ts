@@ -76,14 +76,14 @@ describe("sanitizeDescriptionToText", () => {
     expect(result).not.toContain("[poison]"); // bracket syntax itself should not leak through
   });
 
-  it("rewrites @Check[...] with a DC into readable text", () => {
+  it("rewrites a save @Check[...] with a DC into '<Save> save (DC N)'", () => {
     const html = "<p>Attempt a @Check[fortitude|dc:29] save.</p>";
-    expect(sanitizeDescriptionToText(html)[0]).toBe("Attempt a fortitude (DC 29) save.");
+    expect(sanitizeDescriptionToText(html)[0]).toBe("Attempt a Fortitude save (DC 29) save.");
   });
 
-  it("rewrites @Check[...] without a DC into the bare statistic", () => {
+  it("rewrites a skill @Check[...] without a DC into the capitalized skill", () => {
     const html = "<p>Roll @Check[athletics] to climb.</p>";
-    expect(sanitizeDescriptionToText(html)[0]).toBe("Roll athletics to climb.");
+    expect(sanitizeDescriptionToText(html)[0]).toBe("Roll Athletics to climb.");
   });
 
   it("never leaves an @Tag[ fragment in the output for known or unknown tags", () => {
@@ -97,6 +97,197 @@ describe("sanitizeDescriptionToText", () => {
     expect(() => sanitizeDescriptionToText(html)).not.toThrow();
     const result = sanitizeDescriptionToText(html)[0];
     expect(result).toContain("Broken");
+  });
+});
+
+describe("Foundry enricher humanization (via sanitizeDescriptionToText)", () => {
+  /** Convenience: humanize a bare (already tag-free) enricher string. */
+  const humanize = (s: string): string => sanitizeDescriptionToText(`<p>${s}</p>`)[0] ?? "";
+
+  describe("@Damage", () => {
+    it("renders formula + damage type, dropping bracket/flag syntax", () => {
+      expect(humanize("@Damage[6d6[fire]]")).toBe("6d6 fire");
+    });
+
+    it("drops a trailing |options: flag block", () => {
+      expect(humanize("@Damage[((max(5,ceil(@actor.level/2)))d4)[fire]|options:area-damage]")).toBe(
+        "((max(5,ceil(level/2)))d4) fire",
+      );
+    });
+
+    it("simplifies @actor.level roll-data to 'level' with no leading @", () => {
+      const out = humanize("@Damage[max(16,(2*(floor(@actor.level/2))))d6[fire]|options:area-damage]");
+      expect(out).toBe("max(16,(2*(floor(level/2))))d6 fire");
+      expect(out).not.toContain("@");
+    });
+
+    it("keeps multi-word damage types (persistent, acid) as words", () => {
+      expect(humanize("@Damage[2d6[persistent,acid]]")).toBe("2d6 persistent acid");
+    });
+
+    it("simplifies a roll-data damage type to its last path segment", () => {
+      expect(humanize("@Damage[ceil(@actor.level/2)d6[@actor.flags.system.x.damageType]]")).toBe(
+        "ceil(level/2)d6 damageType",
+      );
+    });
+
+    it("handles an untyped damage formula (no [type] group)", () => {
+      expect(humanize("@Damage[(@actor.level)d6[untyped]]")).toBe("(level)d6 untyped");
+    });
+
+    it("prefers an explicit {label} over the computed formula", () => {
+      expect(humanize("@Damage[(8d6+@actor.abilities.str.mod)[bludgeoning]|options:area-damage]{8d6}")).toBe("8d6");
+    });
+  });
+
+  describe("@Template", () => {
+    it("renders 'N-foot shape' from a type: prefixed body", () => {
+      expect(humanize("@Template[type:burst|distance:10]")).toBe("10-foot burst");
+    });
+
+    it("renders 'N-foot shape' from a bare shape segment", () => {
+      expect(humanize("@Template[burst|distance:10]")).toBe("10-foot burst");
+    });
+
+    it("handles cone/emanation/line shapes", () => {
+      expect(humanize("@Template[cone|distance:30]")).toBe("30-foot cone");
+      expect(humanize("@Template[emanation|distance:20]")).toBe("20-foot emanation");
+      expect(humanize("@Template[line|distance:30]")).toBe("30-foot line");
+    });
+
+    it("falls back to the shape when there is no distance", () => {
+      expect(humanize("@Template[burst]")).toBe("burst");
+    });
+  });
+
+  describe("@Check", () => {
+    it("renders a save as '<Save> save (DC N)'", () => {
+      expect(humanize("@Check[fortitude|dc:29]")).toBe("Fortitude save (DC 29)");
+    });
+
+    it("accepts the type: prefixed statistic form", () => {
+      expect(humanize("@Check[type:fortitude|dc:29]")).toBe("Fortitude save (DC 29)");
+    });
+
+    it("prefixes 'basic' for basic saves and drops other flags", () => {
+      expect(humanize("@Check[fortitude|against:spell|basic|options:area-effect]")).toBe("basic Fortitude save");
+    });
+
+    it("renders reflex/will saves without a DC", () => {
+      expect(humanize("@Check[reflex|against:class-spell]")).toBe("Reflex save");
+      expect(humanize("@Check[will]")).toBe("Will save");
+    });
+
+    it("renders a skill check as the capitalized skill (not a save)", () => {
+      expect(humanize("@Check[athletics|dc:15]")).toBe("Athletics (DC 15)");
+      expect(humanize("@Check[acrobatics]")).toBe("Acrobatics");
+    });
+
+    it("drops a non-numeric roll-data DC rather than leaking @-syntax", () => {
+      const out = humanize("@Check[crafting|dc:@self.level]");
+      expect(out).toBe("Crafting");
+      expect(out).not.toContain("@");
+    });
+  });
+
+  describe("@Localize", () => {
+    it("drops a pure localization-key wrapper, keeping surrounding prose", () => {
+      const out = humanize("Text @Localize[PF2E.NPC.Abilities.Glossary.Grab] more");
+      expect(out).toContain("Text");
+      expect(out).toContain("more");
+      expect(out).not.toContain("@Localize");
+      expect(out).not.toContain("PF2E");
+    });
+
+    it("leaves no @Localize syntax behind", () => {
+      expect(humanize("@Localize[PF2E.condition.sickened.rules]")).not.toContain("@Localize");
+    });
+  });
+
+  describe("unknown enrichers", () => {
+    it("uses an explicit {Label} when present", () => {
+      expect(humanize("@Foo[bar]{Nice Label}")).toBe("Nice Label");
+    });
+
+    it("falls back to a readable bracket body, never raw @Tag[ syntax", () => {
+      const out = humanize("@Foo[some readable content]");
+      expect(out).toBe("some readable content");
+      expect(out).not.toMatch(/@[A-Za-z]+\[/);
+    });
+
+    it("strips @-roll-data from an unknown enricher body", () => {
+      expect(humanize("@Bar[@actor.level rounds]")).toBe("level rounds");
+    });
+  });
+
+  describe("[[/roll]] inline blocks", () => {
+    it("renders [[/r formula]] as the bare formula", () => {
+      expect(humanize("Roll [[/r 1d20+5]] to hit.")).toBe("Roll 1d20+5 to hit.");
+    });
+
+    it("drops a #flavor comment from a roll", () => {
+      expect(humanize("[[/r 1d4 #Recharge Lantern Beam]]")).toBe("1d4");
+    });
+
+    it("handles [[/br 2d6[fire]]] blind rolls with a damage type", () => {
+      expect(humanize("[[/br 2d6[fire]]]")).toBe("2d6 fire");
+    });
+
+    it("handles [[/gmr 1d4 #hours]] GM rolls", () => {
+      expect(humanize("[[/gmr 1d4 #hours]]")).toBe("1d4");
+    });
+
+    it("prefers an explicit {label} on a roll block", () => {
+      expect(humanize("[[/r 1d4]]{4}")).toBe("4");
+    });
+
+    it("humanizes an [[/act slug]] action macro to a title-cased name", () => {
+      expect(humanize("[[/act administer-first-aid variant=stabilize]]")).toBe("Administer First Aid");
+      expect(humanize("[[/act climb skill=warfare-lore]]")).toBe("Climb");
+    });
+
+    it("leaves lone/mismatched double brackets in prose untouched", () => {
+      expect(humanize("An array like [[1, 2]] stays put.")).toContain("[[1, 2]]");
+    });
+  });
+
+  describe("the real Blazing Conflagration action (golden case)", () => {
+    it("humanizes every enricher with no raw syntax leaking", () => {
+      const html =
+        "<p>Each creature in a @Template[type:burst|distance:10] takes " +
+        "@Damage[max(16,(2*(floor(@actor.level/2))))d6[fire]|options:area-damage] damage with a " +
+        "@Check[fortitude|against:spell|basic|options:area-effect] save against your spell DC; " +
+        "creatures that critically fail are " +
+        "@UUID[Compendium.pf2e.conditionitems.Item.Blinded] for 1 round.</p>";
+      const out = sanitizeDescriptionToText(html)[0] ?? "";
+
+      expect(out).toBe(
+        "Each creature in a 10-foot burst takes max(16,(2*(floor(level/2))))d6 fire damage with a " +
+          "basic Fortitude save save against your spell DC; creatures that critically fail are Blinded for 1 round.",
+      );
+      // Hard guarantees: no Foundry enricher syntax survives.
+      expect(out).not.toContain("@");
+      expect(out).not.toContain("|options:");
+      expect(out).not.toMatch(/@[A-Za-z]+\[/);
+      expect(out).not.toMatch(/\[\[/);
+    });
+  });
+
+  describe("idempotency / no-enricher safety", () => {
+    it("leaves plain prose with no enrichers unchanged", () => {
+      const plain = "This is a normal sentence with numbers 3d6 and punctuation.";
+      expect(sanitizeDescriptionToText(`<p>${plain}</p>`)[0]).toBe(plain);
+    });
+
+    it("is idempotent: humanized output contains no re-processable enrichers", () => {
+      const html = "<p>@Template[burst|distance:20] and @Check[reflex|dc:18] and [[/r 2d8]].</p>";
+      const once = sanitizeDescriptionToText(html)[0] ?? "";
+      // Feeding the already-humanized text back through must be a no-op.
+      const twice = sanitizeDescriptionToText(`<p>${once}</p>`)[0] ?? "";
+      expect(twice).toBe(once);
+      expect(once).not.toMatch(/@[A-Za-z]+\[/);
+      expect(once).not.toMatch(/\[\[/);
+    });
   });
 });
 
