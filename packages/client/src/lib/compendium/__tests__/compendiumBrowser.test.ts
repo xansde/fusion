@@ -24,6 +24,8 @@ import {
   highlightMatch,
   fallbackIcon,
   isKnownPlaceholderImg,
+  entryDisplayName,
+  entrySecondaryName,
 } from "../compendiumBrowser.js";
 
 // ---------------------------------------------------------------------------
@@ -422,5 +424,166 @@ describe("highlightMatch", () => {
 
   it("returns escaped HTML for empty query", () => {
     expect(highlightMatch("Hello <world>", "")).toBe("Hello &lt;world&gt;");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Bilingual display (T1): entryDisplayName / entrySecondaryName
+// ---------------------------------------------------------------------------
+
+describe("entryDisplayName / entrySecondaryName", () => {
+  const translated = makeEntry({
+    _id: "c1",
+    name: "Confused",
+    type: "condition",
+    namePt: "Confuso",
+    i18n: { ptBR: { name: "Confuso", description: "Você está confuso." } },
+  });
+
+  const untranslated = makeEntry({ _id: "c2", name: "Blinded", type: "condition" });
+
+  it("shows the pt-BR name when locale is pt-BR and a translation exists", () => {
+    expect(entryDisplayName(translated, "pt-BR")).toBe("Confuso");
+  });
+
+  it("shows the EN name as a secondary line when displaying pt-BR", () => {
+    expect(entrySecondaryName(translated, "pt-BR")).toBe("Confused");
+  });
+
+  it("falls back to the EN name when locale is en", () => {
+    expect(entryDisplayName(translated, "en")).toBe("Confused");
+    // No secondary EN line when we are already showing EN.
+    expect(entrySecondaryName(translated, "en")).toBeNull();
+  });
+
+  it("falls back to the EN name when no translation exists (pt-BR locale)", () => {
+    expect(entryDisplayName(untranslated, "pt-BR")).toBe("Blinded");
+    expect(entrySecondaryName(untranslated, "pt-BR")).toBeNull();
+  });
+
+  it("reads i18n.ptBR.name when namePt flat field is absent", () => {
+    const bagOnly = makeEntry({
+      _id: "c3",
+      name: "Fatigued",
+      i18n: { ptBR: { name: "Fatigado" } },
+    });
+    expect(entryDisplayName(bagOnly, "pt-BR")).toBe("Fatigado");
+    expect(entrySecondaryName(bagOnly, "pt-BR")).toBe("Fatigued");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// each_key_duplicate regression (bug #2): Confused preview
+// ---------------------------------------------------------------------------
+
+describe("buildDocumentPreview — unique field keys (each_key_duplicate fix)", () => {
+  // Reproduces the real "Confused" condition: multiple rules that all fall
+  // back to the SAME pt-BR label ("Regra"). Before the fix, the Svelte
+  // {#each ... (field.label)} used the label as the key → duplicate keys →
+  // Error: each_key_duplicate → the preview spinner spun forever.
+  const confusedDoc = {
+    _id: "CxtsDpc5Pt0PQPBU",
+    name: "Confused",
+    type: "condition",
+    system: {
+      rules: [
+        { kind: "roll-option", slug: "target:ally", domain: "all" },
+        { kind: "roll-option", slug: "origin:ally", domain: "all" },
+        { kind: "grant-item", uuid: "Compendium.pf2e.conditionitems.Item.Off-Guard" },
+        { kind: "roll-note", selector: "damage-received", title: "{item|name}" },
+      ],
+    },
+  };
+
+  it("produces a UNIQUE key for every field even when labels collide", () => {
+    const preview = buildDocumentPreview(confusedDoc, "pt-BR");
+    const keys = preview.fields.map((f) => f.key);
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  it("does not silently drop any of Confused's four rules", () => {
+    const preview = buildDocumentPreview(confusedDoc, "pt-BR");
+    // Four rules → four preview fields (Confused has no level/traits/etc.).
+    expect(preview.fields).toHaveLength(4);
+  });
+
+  it("keeps the human-readable label alongside the unique key", () => {
+    const preview = buildDocumentPreview(confusedDoc, "pt-BR");
+    // The two roll-options and grant-item collapse to the generic "Regra"
+    // label — the collision that used to break keying.
+    const regraCount = preview.fields.filter((f) => f.label === "Regra").length;
+    expect(regraCount).toBeGreaterThanOrEqual(2);
+    // Every field still carries a label and a key.
+    for (const f of preview.fields) {
+      expect(f.label.length).toBeGreaterThan(0);
+      expect(f.key.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("still yields unique keys for the Blinded control (distinct labels)", () => {
+    const blindedDoc = {
+      _id: "b1",
+      name: "Blinded",
+      type: "condition",
+      system: {
+        rules: [
+          { kind: "flat-modifier", selector: "perception", value: -4, type: "status" },
+          { kind: "flat-modifier", subkind: "immunity", damageType: "visual" },
+        ],
+      },
+    };
+    const preview = buildDocumentPreview(blindedDoc, "pt-BR");
+    const keys = preview.fields.map((f) => f.key);
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildDocumentPreview — localized name + description (T1)
+// ---------------------------------------------------------------------------
+
+describe("buildDocumentPreview — localization", () => {
+  const doc = {
+    _id: "cond1",
+    name: "Confused",
+    type: "condition",
+    system: { description: "You are addled." },
+    i18n: { ptBR: { name: "Confuso", description: "Você está transtornado." } },
+  };
+
+  it("prefers the pt-BR overlay name and exposes the EN name as secondary", () => {
+    const preview = buildDocumentPreview(doc, "pt-BR");
+    expect(preview.name).toBe("Confuso");
+    expect(preview.nameSecondary).toBe("Confused");
+  });
+
+  it("prefers the pt-BR overlay description", () => {
+    const preview = buildDocumentPreview(doc, "pt-BR");
+    expect(preview.description).toBe("Você está transtornado.");
+  });
+
+  it("falls back to the EN name and description under the en locale", () => {
+    const preview = buildDocumentPreview(doc, "en");
+    expect(preview.name).toBe("Confused");
+    expect(preview.nameSecondary).toBeNull();
+    expect(preview.description).toBe("You are addled.");
+  });
+
+  it("falls back to the EN description when no pt-BR overlay exists", () => {
+    const enOnly = {
+      _id: "x",
+      name: "Blinded",
+      type: "condition",
+      system: { description: "You cannot see." },
+    };
+    const preview = buildDocumentPreview(enOnly, "pt-BR");
+    expect(preview.name).toBe("Blinded");
+    expect(preview.nameSecondary).toBeNull();
+    expect(preview.description).toBe("You cannot see.");
+  });
+
+  it("yields a null description when the document carries none", () => {
+    const noDesc = { _id: "y", name: "Thing", type: "condition", system: {} };
+    expect(buildDocumentPreview(noDesc, "pt-BR").description).toBeNull();
   });
 });

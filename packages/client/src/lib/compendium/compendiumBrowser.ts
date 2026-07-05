@@ -14,6 +14,7 @@
 import type { PackManifest, PackIndexEntry } from "@fusion/shared";
 import { searchPackIndex, normalizeSearchText } from "@fusion/shared";
 import type { CompendiumSearchPayload } from "@fusion/shared";
+import type { SupportedLocale } from "../i18n/i18n.js";
 
 // ---------------------------------------------------------------------------
 // Pack grouping
@@ -60,6 +61,54 @@ export function groupPacksByType(packs: PackManifest[]): PackGroup[] {
   groups.sort((a, b) => (ORDER[a.documentType] ?? 99) - (ORDER[b.documentType] ?? 99));
 
   return groups;
+}
+
+// ---------------------------------------------------------------------------
+// Bilingual display (T1)
+// ---------------------------------------------------------------------------
+//
+// The server attaches a pt-BR overlay to each served index entry: a flat
+// `namePt` (denormalized for cheap search) plus an `i18n.ptBR` bag
+// ({ name, description? }). EN `name` is ALWAYS the source-of-truth fallback.
+// These helpers are the single decision point that consults the active
+// `locale`, mirroring the character-sheet pickers (pickLocalizedName in
+// documentDetails.ts) but reading directly off PackIndexEntry so the browser
+// stays self-contained and unit-testable.
+
+/** Narrow, read-only view of the `i18n.ptBR` bag on a served entry/doc. */
+function entryPtBRName(entry: PackIndexEntry): string | undefined {
+  // Prefer the flat namePt (always mirrors i18n.ptBR.name); fall back to the bag.
+  if (typeof entry.namePt === "string" && entry.namePt.length > 0) return entry.namePt;
+  const bag = entry.i18n?.ptBR;
+  if (bag && typeof bag.name === "string" && bag.name.length > 0) return bag.name;
+  return undefined;
+}
+
+/**
+ * Display name for an index entry given the active locale.
+ * pt-BR overlay name when locale is "pt-BR" and a translation exists; the EN
+ * `name` otherwise (missing overlay, non-pt-BR locale, or empty translation).
+ */
+export function entryDisplayName(entry: PackIndexEntry, locale: SupportedLocale): string {
+  if (locale === "pt-BR") {
+    const pt = entryPtBRName(entry);
+    if (pt !== undefined) return pt;
+  }
+  return entry.name;
+}
+
+/**
+ * EN name shown as a secondary line beside a translated display name so the
+ * reader can cross-reference the source material. Returns null when the
+ * display name already equals the EN name (untranslated / non-pt-BR locale),
+ * so the UI never renders a redundant "Name (Name)".
+ */
+export function entrySecondaryName(
+  entry: PackIndexEntry,
+  locale: SupportedLocale,
+): string | null {
+  const display = entryDisplayName(entry, locale);
+  return display !== entry.name && entry.name.length > 0 ? entry.name : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -228,22 +277,54 @@ export function sortEntries(
  * Extract a human-readable summary from a full pack document.
  * REQ-CMP-015: preview shows name, img, license, and relevant system fields.
  */
+export interface PreviewField {
+  /**
+   * Stable, unique key for {#each} keying. Two rules can map to the SAME
+   * `label` (e.g. Confused has three rules that all fall back to "Regra"),
+   * so the label alone is NOT a safe each-key — a duplicate key throws
+   * `each_key_duplicate` and aborts the render. The key is `${label}#${index}`,
+   * unique by construction and stable across re-renders of the same document.
+   */
+  key: string;
+  label: string;
+  value: string;
+}
+
 export interface DocumentPreview {
   name: string;
+  /**
+   * EN name shown as a secondary line when the localized `name` differs from
+   * it (pt-BR translation active); null when they are equal (untranslated /
+   * non-pt-BR locale).
+   */
+  nameSecondary: string | null;
   img: string | null;
   type: string | null;
+  /**
+   * Localized narrative description (pt-BR overlay preferred, EN fallback),
+   * or null when the document carries none. Plain text — the browser preview
+   * does not render prose HTML (that is DocumentDetailsPanel's job).
+   */
+  description: string | null;
   /** Key-value pairs of relevant system fields for display. */
-  fields: Array<{ label: string; value: string }>;
+  fields: PreviewField[];
   licenseLabel: string;
 }
 
 /**
  * Build a preview from a loaded document.
  * System fields displayed depend on the document type.
+ *
+ * @param doc    the full served document (may carry an `i18n.ptBR` overlay).
+ * @param locale active UI locale; selects the localized name/description.
  */
-export function buildDocumentPreview(doc: Record<string, unknown>): DocumentPreview {
+export function buildDocumentPreview(
+  doc: Record<string, unknown>,
+  locale: SupportedLocale = "pt-BR",
+): DocumentPreview {
   const system = (doc["system"] ?? {}) as Record<string, unknown>;
   const type = typeof doc["type"] === "string" ? doc["type"] : null;
+  // Collected as {label, value}; keyed with a unique `key` once at the return.
   const fields: Array<{ label: string; value: string }> = [];
 
   // Common fields
@@ -296,13 +377,62 @@ export function buildDocumentPreview(doc: Record<string, unknown>): DocumentPrev
   const pubObj = typeof pub === "object" && pub !== null ? (pub as Record<string, unknown>) : null;
   const licenseLabel = typeof pubObj?.["license"] === "string" ? pubObj["license"] : "ORC";
 
+  // Localized name/description (T1). The server attaches `i18n.ptBR` to the
+  // served doc; prefer it when the locale is pt-BR, EN otherwise.
+  const enName = typeof doc["name"] === "string" ? doc["name"] : "(sem nome)";
+  const ptName = docPtBRName(doc);
+  const name = locale === "pt-BR" && ptName !== undefined ? ptName : enName;
+  const nameSecondary = name !== enName && enName.length > 0 ? enName : null;
+  const description = pickPreviewDescription(doc, system, locale);
+
   return {
-    name: typeof doc["name"] === "string" ? doc["name"] : "(sem nome)",
+    name,
+    nameSecondary,
     img: typeof doc["img"] === "string" ? doc["img"] : null,
     type,
-    fields,
+    description,
+    // Unique each-key per field: label + index. Guards against duplicate labels
+    // (multiple rules mapping to the same pt-BR label) that would otherwise
+    // throw `each_key_duplicate` and abort the preview render.
+    fields: fields.map((f, i) => ({ key: `${f.label}#${i}`, label: f.label, value: f.value })),
     licenseLabel,
   };
+}
+
+/** Read the doc-level pt-BR overlay name (`i18n.ptBR.name`), if present. */
+function docPtBRName(doc: Record<string, unknown>): string | undefined {
+  const bag = readDocI18nPtBR(doc);
+  if (bag && typeof bag["name"] === "string" && (bag["name"] as string).length > 0) {
+    return bag["name"] as string;
+  }
+  return undefined;
+}
+
+/** Narrow read of `doc.i18n.ptBR` as an untyped bag; null when absent. */
+function readDocI18nPtBR(doc: Record<string, unknown>): Record<string, unknown> | null {
+  const i18n = doc["i18n"];
+  if (i18n === null || typeof i18n !== "object" || Array.isArray(i18n)) return null;
+  const ptBR = (i18n as Record<string, unknown>)["ptBR"];
+  if (ptBR === null || typeof ptBR !== "object" || Array.isArray(ptBR)) return null;
+  return ptBR as Record<string, unknown>;
+}
+
+/**
+ * Pick the narrative description to show in the preview: the translated
+ * `i18n.ptBR.description` when the locale is pt-BR and one exists, else the EN
+ * `system.description`. Returns null when neither is a non-empty string.
+ */
+function pickPreviewDescription(
+  doc: Record<string, unknown>,
+  system: Record<string, unknown>,
+  locale: SupportedLocale,
+): string | null {
+  if (locale === "pt-BR") {
+    const ptDesc = readDocI18nPtBR(doc)?.["description"];
+    if (typeof ptDesc === "string" && ptDesc.length > 0) return ptDesc;
+  }
+  const enDesc = system["description"];
+  return typeof enDesc === "string" && enDesc.length > 0 ? enDesc : null;
 }
 
 /**

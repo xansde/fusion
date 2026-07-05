@@ -22,6 +22,8 @@
     highlightMatch,
     isKnownPlaceholderImg,
     fallbackIcon,
+    entryDisplayName,
+    entrySecondaryName,
     type BrowserFilterState,
     type PackGroup,
     type SortField,
@@ -33,6 +35,7 @@
     getDocument,
     importToWorld,
   } from "../../lib/compendium/compendiumApi.js";
+  import { i18n } from "../../lib/i18n/i18n.js";
 
   const { socket, isGm }: { socket: Socket; isGm: boolean } = $props();
 
@@ -50,6 +53,13 @@
   let previewDoc = $state<Record<string, unknown> | null>(null);
   let previewLoading = $state(false);
   let previewImgBroken = $state(false);
+  /** Set when the preview FETCH failed, or when its RENDER threw (via the
+   * <svelte:boundary> below). A render error must not leave the spinner
+   * spinning forever (lesson r10) — it surfaces here as a visible error with
+   * a retry affordance. */
+  let previewError = $state<string | null>(null);
+  /** Last previewed entry, kept so the retry button can re-run the fetch. */
+  let lastPreviewEntry = $state<PackIndexEntry | null>(null);
 
   // Filter state
   let filterState = $state<BrowserFilterState>({ text: "" });
@@ -65,7 +75,7 @@
     return sortEntries(filtered, sortField, sortAsc);
   });
 
-  const previewData = $derived(previewDoc ? buildDocumentPreview(previewDoc) : null);
+  const previewData = $derived(previewDoc ? buildDocumentPreview(previewDoc, i18n.locale) : null);
 
   // ---- Lifecycle ----
 
@@ -111,17 +121,30 @@
   }
 
   async function previewEntry(entry: PackIndexEntry): Promise<void> {
+    lastPreviewEntry = entry;
     previewLoading = true;
     previewDoc = null;
     previewImgBroken = false;
+    previewError = null;
     try {
       const result = await getDocument(socket, entry.uuid);
       previewDoc = result.document;
     } catch (err) {
-      error = err instanceof Error ? err.message : "Failed to load document";
+      previewError = err instanceof Error ? err.message : "Falha ao carregar documento";
     } finally {
       previewLoading = false;
     }
+  }
+
+  /** Re-run the preview for the last entry (fetch or render error recovery). */
+  function retryPreview(): void {
+    if (lastPreviewEntry) void previewEntry(lastPreviewEntry);
+  }
+
+  /** Dismiss the preview entirely (also used to clear an error panel). */
+  function closePreview(): void {
+    previewDoc = null;
+    previewError = null;
   }
 
   async function importEntry(entry: PackIndexEntry): Promise<void> {
@@ -300,6 +323,8 @@
           {:else}
             {#each filteredEntries as entry (entry._id)}
               {@const isImporting = importingUuids.has(entry.uuid)}
+              {@const displayName = entryDisplayName(entry, i18n.locale)}
+              {@const secondaryName = entrySecondaryName(entry, i18n.locale)}
               <li
                 class="entry-row"
                 role="listitem"
@@ -326,7 +351,10 @@
 
                 <div class="entry-row__info">
                   <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-                  <span class="entry-row__name">{@html highlightMatch(entry.name, filterState.text)}</span>
+                  <span class="entry-row__name">{@html highlightMatch(displayName, filterState.text)}</span>
+                  {#if secondaryName}
+                    <span class="entry-row__name-en" title={secondaryName}>{secondaryName}</span>
+                  {/if}
                   {#if entry.type}
                     <span class="entry-row__type">{entry.type}</span>
                   {/if}
@@ -339,7 +367,7 @@
                   <button
                     class="action-btn action-btn--preview"
                     onclick={() => previewEntry(entry)}
-                    aria-label="Pré-visualizar {entry.name}"
+                    aria-label="Pré-visualizar {displayName}"
                     title="Pré-visualizar"
                   >&#x1F441;</button>
                   {#if isGm}
@@ -368,46 +396,89 @@
     <!-- Preview panel -->
     {#if previewLoading}
       <div class="preview-panel preview-panel--loading" role="status">Carregando pré-visualização…</div>
-    {:else if previewData}
-      <div class="preview-panel" role="complementary" aria-label="Pré-visualização">
-        <div class="preview-panel__header">
-          {#if !isKnownPlaceholderImg(previewData.img) && !previewImgBroken}
-            <img
-              class="preview-panel__img"
-              src={previewData.img}
-              alt=""
-              aria-hidden="true"
-              onerror={() => { previewImgBroken = true; }}
-            />
-          {:else}
-            <span class="preview-panel__img preview-panel__img--placeholder" aria-hidden="true">
-              {fallbackIcon(selectedPack?.documentType ?? "", previewData.type)}
-            </span>
-          {/if}
-          <div>
-            <h4 class="preview-panel__name">{previewData.name}</h4>
-            {#if previewData.type}
-              <span class="preview-panel__type">{previewData.type}</span>
-            {/if}
-            <span class="preview-panel__license">{previewData.licenseLabel}</span>
-          </div>
+    {:else if previewError}
+      <!-- FETCH error: visible message + retry, never an endless spinner. -->
+      <div class="preview-panel preview-panel--error" role="alert">
+        <p class="preview-panel__error-msg">Falha ao carregar a pré-visualização.</p>
+        <div class="preview-panel__error-actions">
+          <button class="btn btn--sm" onclick={retryPreview}>Tentar novamente</button>
+          <button class="btn btn--sm btn--ghost" onclick={closePreview}>Fechar</button>
         </div>
-        <dl class="preview-panel__fields">
-          {#each previewData.fields as field (field.label)}
-            <div class="preview-panel__field">
-              <dt class="preview-panel__field-label">{field.label}</dt>
-              <dd class="preview-panel__field-value">{field.value}</dd>
-            </div>
-          {/each}
-        </dl>
-        <button
-          class="preview-panel__close btn btn--sm btn--ghost"
-          onclick={() => { previewDoc = null; }}
-          aria-label="Fechar pré-visualização"
-        >
-          Fechar
-        </button>
       </div>
+    {:else if previewData}
+      <!--
+        RENDER-error boundary (lesson r10): if building/rendering the preview
+        ever throws (e.g. a future duplicate each-key), the boundary swaps in a
+        visible error + retry instead of tearing the tree down and stranding the
+        user on the spinner. The specific each_key_duplicate is already fixed by
+        the unique field.key below; this is defense in depth.
+      -->
+      <svelte:boundary>
+        <div class="preview-panel" role="complementary" aria-label="Pré-visualização">
+          <div class="preview-panel__header">
+            {#if !isKnownPlaceholderImg(previewData.img) && !previewImgBroken}
+              <img
+                class="preview-panel__img"
+                src={previewData.img}
+                alt=""
+                aria-hidden="true"
+                onerror={() => { previewImgBroken = true; }}
+              />
+            {:else}
+              <span class="preview-panel__img preview-panel__img--placeholder" aria-hidden="true">
+                {fallbackIcon(selectedPack?.documentType ?? "", previewData.type)}
+              </span>
+            {/if}
+            <div>
+              <h4 class="preview-panel__name">{previewData.name}</h4>
+              {#if previewData.nameSecondary}
+                <span class="preview-panel__name-en" title={previewData.nameSecondary}>
+                  {previewData.nameSecondary}
+                </span>
+              {/if}
+              {#if previewData.type}
+                <span class="preview-panel__type">{previewData.type}</span>
+              {/if}
+              <span class="preview-panel__license">{previewData.licenseLabel}</span>
+            </div>
+          </div>
+          {#if previewData.description}
+            <p class="preview-panel__description">{previewData.description}</p>
+          {/if}
+          <dl class="preview-panel__fields">
+            {#each previewData.fields as field (field.key)}
+              <div class="preview-panel__field">
+                <dt class="preview-panel__field-label">{field.label}</dt>
+                <dd class="preview-panel__field-value">{field.value}</dd>
+              </div>
+            {/each}
+          </dl>
+          <button
+            class="preview-panel__close btn btn--sm btn--ghost"
+            onclick={closePreview}
+            aria-label="Fechar pré-visualização"
+          >
+            Fechar
+          </button>
+        </div>
+
+        {#snippet failed(_error, reset)}
+          <div class="preview-panel preview-panel--error" role="alert">
+            <p class="preview-panel__error-msg">
+              Não foi possível exibir esta pré-visualização.
+            </p>
+            <div class="preview-panel__error-actions">
+              <button
+                class="btn btn--sm"
+                onclick={() => { reset(); retryPreview(); }}
+              >
+                Tentar novamente
+              </button>
+              <button class="btn btn--sm btn--ghost" onclick={closePreview}>Fechar</button>
+            </div>
+          </div>
+        {/snippet}
+      </svelte:boundary>
     {/if}
   {/if}
 </div>
@@ -619,6 +690,15 @@
     color: var(--fusion-text, #eee);
   }
 
+  .entry-row__name-en {
+    font-size: 0.68rem;
+    font-style: italic;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--fusion-text-muted, #888);
+  }
+
   .entry-row__type,
   .entry-row__level {
     font-size: 0.7rem;
@@ -691,11 +771,46 @@
     margin: 0 0 0.1rem;
   }
 
+  .preview-panel__name-en {
+    display: block;
+    font-size: 0.7rem;
+    font-style: italic;
+    color: var(--fusion-text-muted, #888);
+    margin-bottom: 0.1rem;
+  }
+
+  .preview-panel__description {
+    font-size: 0.78rem;
+    color: var(--fusion-text, #eee);
+    margin: 0 0 0.4rem;
+    line-height: 1.35;
+    white-space: pre-wrap;
+  }
+
   .preview-panel__type,
   .preview-panel__license {
     font-size: 0.7rem;
     color: var(--fusion-text-muted, #888);
     margin-right: 0.4rem;
+  }
+
+  .preview-panel--error {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    align-items: center;
+    text-align: center;
+  }
+
+  .preview-panel__error-msg {
+    margin: 0;
+    color: var(--fusion-danger, #e74c3c);
+    font-size: 0.8rem;
+  }
+
+  .preview-panel__error-actions {
+    display: flex;
+    gap: 0.4rem;
   }
 
   .preview-panel__fields {
