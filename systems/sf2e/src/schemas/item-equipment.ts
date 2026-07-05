@@ -216,11 +216,34 @@ export const parseContainerSystem = (data: unknown): ContainerSystem =>
 export const ActionSystemSchema = z
   .object({
     systemVersion: z.string().default("0.1.0"),
-    actionType: z.object({ value: z.enum(["passive", "action", "reaction", "free"]) }),
-    actions: z
-      .object({ value: z.number().int().min(1).max(3).nullable() })
-      .default({ value: null }),
-    category: z.string().optional(),
+    /**
+     * "passive", "action", "reaction", "free" — flattened plain value, not
+     * the vendor's `{value: ...}` wrapper. transform.mjs's buildSystem()
+     * routes `type: "action"` docs through normalizeFeatSystem() the same
+     * way it does for pf2e (see systems/pf2e/src/schemas/item-equipment.ts
+     * ActionSystemSchema) — this schema mirrors that real output shape
+     * rather than the raw Foundry shape.
+     */
+    actionType: z.enum(["passive", "action", "reaction", "free"]).default("passive"),
+    /** Number of actions (null for non-action types, e.g. passive/reaction/free). */
+    actions: z.number().int().min(1).max(3).nullable().default(null),
+    /**
+     * Gameplay tag ("offensive"/"defensive"/"interaction") — vendor's own
+     * system.category. Nullable (not just optional): normalizeFeatSystem
+     * (transform.mjs) explicitly sets `category: null` when the vendor doc
+     * omits it — plain `.optional()` rejects an explicit `null`.
+     */
+    category: z.string().nullable().optional(),
+    /**
+     * Navigation category derived from the vendor's physical actions/
+     * subfolder (e.g. "basic", "skill", "class", "ancestry") — injected by
+     * normalize.mjs's loadRawDocs() as system.fusionCategory before the
+     * Foundry `folder` id field (never itself a readable name) is stripped.
+     * Orthogonal to `category` above. Optional because sf2e has no dedicated
+     * actions-core pack yet (REQ-SF2-013 pending); mirrors pf2e's field so
+     * the shape is ready once that pack lands.
+     */
+    fusionCategory: z.string().optional(),
     traits: TraitsBlockSchema.default({ rarity: "common", value: [] }),
     rules: z.array(EffectRuleSchema).default([]),
     publication: PublicationSchema.optional(),
