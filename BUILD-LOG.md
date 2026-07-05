@@ -133,6 +133,28 @@ Lições operacionais novas: copiar `world.db` SEM o `-wal` com o servidor do us
 
 **Exe regenerado pós-r11** (2026-07-05): `fusion-server-0.1.0-windows-x64.exe` 122,2 MB, sha256 `5bd415b443bcd7cf32bd73be675d395a6dcc22ec59ba6d1b6629e26df02d7e54`, smoke §5.2 **PASSED** (world create → serve → /health → login GM → socket hello + snapshot → `compendium:list` com os 10 packs pf2e embutidos). Inclui todas as entregas r11: multi-seleção de boosts/perícias, descrições ORC/OGL + painel de detalhes, feats aninhadas, Descansar/Recuperar, traits agrupados e o fix end-to-end do bug de boosts.
 
+## Rodada r12 — aba de Ações, descrições em tudo, foco no pack (2026-07-05)
+
+Feedback do usuário (8 itens, prints Pathbuilder/ficha) + 3 itens mid-round. **Mudança de processo nesta rodada (feedback direto: "Você tem que aprender a trabalhar em entregas pequenas"): cada workstream/fix verde vira commit+push imediato — verificação viva não segura entrega, produz fix-commits.** Repo remoto criado: **github.com/xansde/fusion** (privado, conta pessoal; push exige `gh auth switch xansde` e restaurar).
+
+**Workstreams (3 workflows paralelos, territórios disjuntos):**
+- **W1** `0b87b6f` — reedição de boosts/perícias (chip com lápis reabre diálogo pré-preenchido; reconciliação do grupo no ledger num doc:update; exclusões por origem preservadas) + painéis de ajuda curada pt-BR (6 atributos, 16 perícias, TEML) em abilitySkillHelp.ts. +25 testes.
+- **W2** `21cd650` — pack **actions-core (521 ações, 14 categorias** da subpasta do vendor via `system.fusionCategory`) + aba de Ações com grade de filtros estilo Pathbuilder. Bugs reais achados: ActionSystemSchema esperava shape bruto do Foundry (transform achata); stripRuleProse não descia em `rules[].value[]` (REQ-LEG-010 — regenerou conditions/class-features/feats). Colateral `76c6821`: mesmo fix de schema espelhado no sf2e.
+- **W3** `36de45b` — resolução de nome de magia em 4 camadas (ref pendurada → "Magia removida" + limpar; causa raiz: ponteiro morto no doc real do Tobias); aba Foco com heal-on-read; `derived.archetypeClassDCs` via dedications (alchemist→int; Tobias DC 16 correto — o 18 do enunciado era premissa errada); pips de Hero Points rotulados "Herói" (âmbar ≠ FOCUS roxo).
+
+**Verificação viva (playwright, mundo copiado): 5 PASS, 2 ressalvas, 1 FAIL → fixes r12.1, um commit cada:**
+- `1d50835` dado 3D: 3 causas compostas (assetPath sem barra + colisão com rota autenticada /assets/* + assets nunca copiados) → /dice-assets/.
+- `22160fc` lista de Ações travada em 60: duplo scroll aninhado soterrava o "Ver mais"; detalhe de ação embutida; copy "magia→ação" (DocumentDetailsPanel com labels por prop).
+- `c3259a1` **FAIL de foco era do pack**: build-mvp-subset selecionava por tradição arcana OU trait magus — focus spells têm `traditions: []`; agora trait `focus` (806→**1252 magias**, +446, 0 ids alterados) + picker de foco não passa tradição (AND derrubava tudo).
+- `bfe5249` CSP: `script-src` ganha `'wasm-unsafe-eval'` (WASM do dice-box; teste corrigido de falso-positivo por substring).
+- `3dd826e` enrichers humanizados na exibição (@Template→"10-foot burst", @Damage→"8d6 fire", @Check→"Fortitude save", [[/r]]→fórmula; golden case Blazing Conflagration).
+- `0833bc9` **filtro de relevância por personagem** na aba de Ações (default ligado: universais + classe/ancestralidade/arquétipo do perfil derivado dos itens embutidos; toggle "Mostrar todas") + heal de descrição embutida pré-r11 via fallbackUuid do dedupe.
+- `37f2ed3` descrições em TODA a coluna Plano: picker 2 colunas com painel (primeiro item auto-selecionado), chips auto-grant e slots preenchidos clicáveis (PlanDetailsDialog; resolução por NOME — featuresByLevel[].uuid é id interno do vendor, não uuid de compêndio).
+
+**Exe final r12** (2026-07-05): 125,4 MB, sha256 `6297eb3d236d73b59ab2eb9f5a8704dbb032a11348c7831919087478643ba60f`, smoke **PASSED** — 11 packs embutidos (actions-core incluso), spells-core 1252, todos os fixes r12.1 dentro. (Um exe intermediário pós-workstreams, sha `4a48621f`, foi gerado antes dos fixes — descartar.)
+
+Lições operacionais: cadeia de agentes-narradores em background (4 níveis, cada um só delegava) — playbook: stand-down por SendMessage pedindo delação do filho + TaskStop no id da folha; folha parada deixou edição parcial que o worker autorizado reconciliou. Suítes ao fechar: client 1495, pf2e 424, sf2e 129, importer 194, server verde (3073+ no root). Follow-ups: sub-aba fantasma "arcane Spells" (entry vazia duplicada pré-r11 no doc do Tobias), pt-BR de conteúdo, /api/auth/refresh 400 benigno, "save save" cosmético no humanizador de @Check.
+
 ## Registro por batch
 
 ### M6-B5 — Auto-update headless — ✅ M6 HEADLESS COMPLETO (2026-07-03)
