@@ -619,7 +619,7 @@ function transformDoc(normDoc, packName, stats, fusionIdPackKey = packName, pipe
     sourceVersion: SOURCE_VERSION,
     sourceId: pf2eId,
     packName,
-    unconvertedRules,
+    unconvertedRules: stripRuleProse(unconvertedRules),
     assetSubstitutions,
   };
 
@@ -661,12 +661,12 @@ function transformDoc(normDoc, packName, stats, fusionIdPackKey = packName, pipe
         // Embedded items (NPC strikes/gear) also lose flavor prose — the
         // mechanical effect lives in rules[]/damageRolls (REQ-LEG-010).
         ...stripFlavorProse(stripNormalizationMeta(item.system ?? {})),
-        rules: itemConverted,
+        rules: stripRuleProse(itemConverted),
       },
       flags: {
         fusion: {
           conversion: itemUnconverted.length > 0 ? 'partial' : 'full',
-          unconvertedRules: itemUnconverted,
+          unconvertedRules: stripRuleProse(itemUnconverted),
           assetSubstitutions: item.originalImgRef
             ? [{ field: 'img', original: item.originalImgRef, placeholder: item.img }]
             : [],
@@ -719,7 +719,7 @@ function buildSystem(normDoc, convertedRules, packName, fusionType = normDoc.typ
   const stripped = stripNormalizationMeta(src);
 
   // Add converted rules
-  const system = { ...stripped, rules: convertedRules };
+  const system = { ...stripped, rules: stripRuleProse(convertedRules) };
 
   // Type-specific field normalization.
   // Item types run through stripFlavorProse() so committed packs never carry
@@ -811,6 +811,44 @@ function stripFlavorProse(system) {
     }
   }
   return out;
+}
+
+/**
+ * REQ-LEG-010 hardening (r10 final clean-room audit finding): rule elements
+ * carry verbatim book prose in their `text` field (Note/RollNote REs — e.g.
+ * "Mortal Healing" shipped the full feat paragraph in rules[0].text AND in
+ * rules[0].raw.text). stripFlavorProse only covers top-level description
+ * fields, so that prose survived the RE pipeline into committed packs.
+ *
+ * Blanks every non-empty `text` string on rule descriptors, on their
+ * embedded `raw` copies, and on unconverted raw REs, leaving a
+ * `textStripped: true` marker so a future in-app rules editor knows a note
+ * existed (the mechanical trigger — selector/outcome/predicate — is kept).
+ */
+/**
+ * Clean-room cap for spell `target` (REQ-LEG-010, r10 final audit): keep
+ * short mechanical shorthands ("1 creature", "1 willing creature") but blank
+ * anything long enough to be book prose. 60 chars comfortably covers every
+ * legitimate mechanical target phrase observed in the vendor data.
+ */
+function capSpellTarget(target) {
+  if (typeof target !== 'string') return '';
+  return target.length > 60 ? '' : target;
+}
+
+function stripRuleProse(rules) {
+  return (rules ?? []).map((rule) => {
+    if (!rule || typeof rule !== 'object') return rule;
+    const out = { ...rule };
+    if (typeof out.text === 'string' && out.text.length > 0) {
+      out.text = '';
+      out.textStripped = true;
+    }
+    if (out.raw && typeof out.raw === 'object' && typeof out.raw.text === 'string' && out.raw.text.length > 0) {
+      out.raw = { ...out.raw, text: '', textStripped: true };
+    }
+    return out;
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -946,7 +984,11 @@ function normalizeSpellSystem(system, src) {
     // `undefined` keeps the same "absent" semantics the schema expects.
     area: normalizeSpellArea(src.area ?? system.area),
     duration: src.duration ?? system.duration ?? undefined,
-    target: src.target?.value ?? src.target ?? system.target ?? '',
+    // Clean-room cap (r10 final audit): most vendor targets are short
+    // mechanical phrases ("1 creature"), but a few carry a verbatim book
+    // sentence (e.g. Magnetic Dominion, ~110 chars from Rage of Elements).
+    // Anything longer than a mechanical shorthand is blanked (REQ-LEG-010).
+    target: capSpellTarget(src.target?.value ?? src.target ?? system.target ?? ''),
     defense: normalizeSpellDefense(src.defense ?? system.defense),
     damage: src.damage ?? system.damage ?? {},
     heightening: normalizeSpellHeightening(src.heightening ?? system.heightening),
@@ -2001,8 +2043,15 @@ function writeTransformReport(packResults, system = 'pf2e') {
 async function main() {
   const args = process.argv.slice(2);
 
+  // Keep in sync with extract.mjs/normalize.mjs defaults and the README —
+  // r10 final audit found this list stale (missing the R10-B builder packs),
+  // which made a default `node src/transform.mjs` run silently reuse STALE
+  // out/<pack>/transformed.json for feats/classes/etc. in the next build.
   const DEFAULT_PACKS_BY_SYSTEM = {
-    pf2e: ['conditions', 'equipment', 'spells', 'pathfinder-monster-core'],
+    pf2e: [
+      'conditions', 'equipment', 'spells', 'pathfinder-monster-core',
+      'classes', 'class-features', 'feats', 'ancestries', 'heritages', 'backgrounds',
+    ],
     sf2e: ['conditions', 'equipment', 'spells', 'alien-core-bestiary', 'rulebook-bestiaries'],
   };
 

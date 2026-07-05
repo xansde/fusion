@@ -1026,7 +1026,7 @@
           "outcome": [
             "criticalSuccess"
           ],
-          "text": "{item|description}",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             "origin:enemy",
@@ -1053,9 +1053,11 @@
               }
             ],
             "selector": "damage-received",
-            "text": "{item|description}",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -5651,7 +5653,7 @@
             "success",
             "criticalSuccess"
           ],
-          "text": "{item|system.description.value}",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             "action:coerce"
@@ -5667,9 +5669,11 @@
               "action:coerce"
             ],
             "selector": "intimidation",
-            "text": "{item|system.description.value}",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -8259,7 +8263,7 @@
           "label": null,
           "selector": "strike-attack-roll",
           "outcome": null,
-          "text": "PF2E.SpecificRule.Magus.UnsheathingTheSwordLight.Note",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             "unsheathing-the-sword-light"
@@ -8271,9 +8275,11 @@
               "unsheathing-the-sword-light"
             ],
             "selector": "strike-attack-roll",
-            "text": "PF2E.SpecificRule.Magus.UnsheathingTheSwordLight.Note",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -11078,7 +11084,7 @@
             "success",
             "criticalSuccess"
           ],
-          "text": "PF2E.SpecificRule.Feat.FastRecovery.Note",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             "ongoing",
@@ -11106,9 +11112,11 @@
               }
             ],
             "selector": "fortitude",
-            "text": "PF2E.SpecificRule.Feat.FastRecovery.Note",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         },
         {
           "kind": "set-property",
@@ -13476,7 +13484,7 @@
           "outcome": [
             "criticalSuccess"
           ],
-          "text": "PF2E.SpecificRule.Feat.CharmingLiar.Note",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             "action:lie"
@@ -13491,9 +13499,11 @@
               "action:lie"
             ],
             "selector": "skill-check",
-            "text": "PF2E.SpecificRule.Feat.CharmingLiar.Note",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -14080,7 +14090,7 @@
           "outcome": [
             "failure"
           ],
-          "text": "PF2E.SpecificRule.DubiousKnowledge.Note",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             "action:recall-knowledge"
@@ -14095,9 +14105,11 @@
               "action:recall-knowledge"
             ],
             "selector": "skill-check",
-            "text": "PF2E.SpecificRule.DubiousKnowledge.Note",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -14156,7 +14168,7 @@
           "outcome": [
             "failure"
           ],
-          "text": "PF2E.SpecificRule.Feat.ExperiencedProfessional.Note",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             {
@@ -14183,9 +14195,11 @@
               }
             ],
             "selector": "lore-skill-check",
-            "text": "PF2E.SpecificRule.Feat.ExperiencedProfessional.Note",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -14522,7 +14536,7 @@
           "label": null,
           "selector": "survival",
           "outcome": null,
-          "text": "PF2E.SpecificRule.Feat.Forager.Note",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             "action:subsist"
@@ -14534,9 +14548,11 @@
               "action:subsist"
             ],
             "selector": "survival",
-            "text": "PF2E.SpecificRule.Feat.Forager.Note",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -15140,7 +15156,7 @@
           "outcome": [
             "criticalSuccess"
           ],
-          "text": "{item|description}",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             "action:create-a-diversion"
@@ -15155,9 +15171,11 @@
               "action:create-a-diversion"
             ],
             "selector": "deception",
-            "text": "{item|description}",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -16587,7 +16605,7 @@
           "label": null,
           "selector": "medicine",
           "outcome": null,
-          "text": "PF2E.SpecificRule.Feat.RiskySurgery.Note",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             "action:treat-wounds",
@@ -16601,9 +16619,11 @@
               "risky-surgery"
             ],
             "selector": "medicine",
-            "text": "PF2E.SpecificRule.Feat.RiskySurgery.Note",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -17290,7 +17310,7 @@
           "label": null,
           "selector": "acrobatics",
           "outcome": null,
-          "text": "PF2E.SpecificRule.SteadyBalance.Note",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             "action:balance"
@@ -17302,9 +17322,11 @@
               "action:balance"
             ],
             "selector": "acrobatics",
-            "text": "PF2E.SpecificRule.SteadyBalance.Note",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -18528,7 +18550,7 @@
           "outcome": [
             "success"
           ],
-          "text": "PF2E.SpecificRule.AssuredIdentification.CursedItem",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             "action:identify-magic"
@@ -18543,9 +18565,11 @@
               "action:identify-magic"
             ],
             "selector": "skill-check",
-            "text": "PF2E.SpecificRule.AssuredIdentification.CursedItem",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -19067,7 +19091,7 @@
           "label": null,
           "selector": "skill-check",
           "outcome": null,
-          "text": "PF2E.SpecificRule.ContinualRecovery.Note",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             "action:treat-wounds"
@@ -19079,9 +19103,11 @@
               "action:treat-wounds"
             ],
             "selector": "skill-check",
-            "text": "PF2E.SpecificRule.ContinualRecovery.Note",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -19713,7 +19739,7 @@
           "label": null,
           "selector": "deception",
           "outcome": null,
-          "text": "{item|system.description.value}",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             "action:create-a-diversion"
@@ -19725,9 +19751,11 @@
               "action:create-a-diversion"
             ],
             "selector": "deception",
-            "text": "{item|system.description.value}",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -20416,7 +20444,7 @@
             "criticalFailure",
             "failure"
           ],
-          "text": "PF2E.SpecificRule.MagicalShorthand.Note",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             "action:learn-a-spell"
@@ -20432,9 +20460,11 @@
               "action:learn-a-spell"
             ],
             "selector": "skill-check",
-            "text": "PF2E.SpecificRule.MagicalShorthand.Note",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -20506,7 +20536,7 @@
           "label": null,
           "selector": "medicine",
           "outcome": null,
-          "text": "When you roll a success to @UUID[Compendium.pf2e.actionspf2e.Item.Treat Wounds] for a creature that hasn't regained Hit Points from divine magic in the past 24 hours, you get a critical success on your check instead and restore the corresponding amount of Hit Points.",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             "action:treat-wounds"
@@ -20518,9 +20548,11 @@
               "action:treat-wounds"
             ],
             "selector": "medicine",
-            "text": "When you roll a success to @UUID[Compendium.pf2e.actionspf2e.Item.Treat Wounds] for a creature that hasn't regained Hit Points from divine magic in the past 24 hours, you get a critical success on your check instead and restore the corresponding amount of Hit Points.",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -21731,7 +21763,7 @@
           "label": null,
           "selector": "lore-skill-check",
           "outcome": null,
-          "text": "When you Recall Knowledge using any Lore subcategory in which you're trained, if you roll a critical failure, you get a failure instead. If you're a master in a Lore subcategory, on a critical success, you gain even more information or context than usual.",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             "action:recall-knowledge"
@@ -21743,9 +21775,11 @@
               "action:recall-knowledge"
             ],
             "selector": "lore-skill-check",
-            "text": "When you Recall Knowledge using any Lore subcategory in which you're trained, if you roll a critical failure, you get a failure instead. If you're a master in a Lore subcategory, on a critical success, you gain even more information or context than usual.",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -21945,7 +21979,7 @@
           "label": null,
           "selector": "skill-check",
           "outcome": null,
-          "text": "PF2E.SpecificRule.WardMedic.Note",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             {
@@ -21967,9 +22001,11 @@
               }
             ],
             "selector": "skill-check",
-            "text": "PF2E.SpecificRule.WardMedic.Note",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -22965,16 +23001,18 @@
           "label": null,
           "selector": "initiative",
           "outcome": null,
-          "text": "{item|system.description.value}",
+          "text": "",
           "title": "{item|name}",
           "predicate": null,
           "priority": null,
           "raw": {
             "key": "Note",
             "selector": "initiative",
-            "text": "{item|system.description.value}",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         },
         {
           "kind": "roll-note",
@@ -22984,7 +23022,7 @@
           "outcome": [
             "criticalSuccess"
           ],
-          "text": "{item|system.description.value}",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             "skill:intimidation:rank:4"
@@ -22999,9 +23037,11 @@
               "skill:intimidation:rank:4"
             ],
             "selector": "attack",
-            "text": "{item|system.description.value}",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -23419,7 +23459,7 @@
           "outcome": [
             "criticalSuccess"
           ],
-          "text": "PF2E.SpecificRule.Feat.DisturbingKnowledge.CriticalSuccess",
+          "text": "",
           "title": "PF2E.Check.Result.Degree.Check.criticalSuccess",
           "predicate": [
             "action:disturbing-knowledge"
@@ -23436,9 +23476,11 @@
             "selector": [
               "occultism"
             ],
-            "text": "PF2E.SpecificRule.Feat.DisturbingKnowledge.CriticalSuccess",
-            "title": "PF2E.Check.Result.Degree.Check.criticalSuccess"
-          }
+            "text": "",
+            "title": "PF2E.Check.Result.Degree.Check.criticalSuccess",
+            "textStripped": true
+          },
+          "textStripped": true
         },
         {
           "kind": "roll-note",
@@ -23450,7 +23492,7 @@
           "outcome": [
             "success"
           ],
-          "text": "PF2E.SpecificRule.Feat.DisturbingKnowledge.Success",
+          "text": "",
           "title": "PF2E.Check.Result.Degree.Check.success",
           "predicate": [
             "action:disturbing-knowledge"
@@ -23467,9 +23509,11 @@
             "selector": [
               "occultism"
             ],
-            "text": "PF2E.SpecificRule.Feat.DisturbingKnowledge.Success",
-            "title": "PF2E.Check.Result.Degree.Check.success"
-          }
+            "text": "",
+            "title": "PF2E.Check.Result.Degree.Check.success",
+            "textStripped": true
+          },
+          "textStripped": true
         },
         {
           "kind": "roll-note",
@@ -23481,7 +23525,7 @@
           "outcome": [
             "failure"
           ],
-          "text": "PF2E.SpecificRule.Feat.DisturbingKnowledge.Failure",
+          "text": "",
           "title": "PF2E.Check.Result.Degree.Check.failure",
           "predicate": [
             "action:disturbing-knowledge"
@@ -23498,9 +23542,11 @@
             "selector": [
               "occultism"
             ],
-            "text": "PF2E.SpecificRule.Feat.DisturbingKnowledge.Failure",
-            "title": "PF2E.Check.Result.Degree.Check.failure"
-          }
+            "text": "",
+            "title": "PF2E.Check.Result.Degree.Check.failure",
+            "textStripped": true
+          },
+          "textStripped": true
         },
         {
           "kind": "roll-note",
@@ -23512,7 +23558,7 @@
           "outcome": [
             "criticalFailure"
           ],
-          "text": "PF2E.SpecificRule.Feat.DisturbingKnowledge.CriticalFailure",
+          "text": "",
           "title": "PF2E.Check.Result.Degree.Check.criticalFailure",
           "predicate": [
             "action:disturbing-knowledge"
@@ -23529,9 +23575,11 @@
             "selector": [
               "occultism"
             ],
-            "text": "PF2E.SpecificRule.Feat.DisturbingKnowledge.CriticalFailure",
-            "title": "PF2E.Check.Result.Degree.Check.criticalFailure"
-          }
+            "text": "",
+            "title": "PF2E.Check.Result.Degree.Check.criticalFailure",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -23769,7 +23817,7 @@
           "outcome": [
             "criticalSuccess"
           ],
-          "text": "PF2E.SpecificRule.Feat.Evangelize.CriticalSuccess",
+          "text": "",
           "title": "PF2E.Check.Result.Degree.Check.criticalSuccess",
           "predicate": [
             "action:evangelize"
@@ -23786,9 +23834,11 @@
             "selector": [
               "diplomacy-check"
             ],
-            "text": "PF2E.SpecificRule.Feat.Evangelize.CriticalSuccess",
-            "title": "PF2E.Check.Result.Degree.Check.criticalSuccess"
-          }
+            "text": "",
+            "title": "PF2E.Check.Result.Degree.Check.criticalSuccess",
+            "textStripped": true
+          },
+          "textStripped": true
         },
         {
           "kind": "roll-note",
@@ -23800,7 +23850,7 @@
           "outcome": [
             "success"
           ],
-          "text": "PF2E.SpecificRule.Feat.Evangelize.Success",
+          "text": "",
           "title": "PF2E.Check.Result.Degree.Check.success",
           "predicate": [
             "action:evangelize"
@@ -23817,9 +23867,11 @@
             "selector": [
               "diplomacy-check"
             ],
-            "text": "PF2E.SpecificRule.Feat.Evangelize.Success",
-            "title": "PF2E.Check.Result.Degree.Check.success"
-          }
+            "text": "",
+            "title": "PF2E.Check.Result.Degree.Check.success",
+            "textStripped": true
+          },
+          "textStripped": true
         },
         {
           "kind": "roll-note",
@@ -23831,7 +23883,7 @@
           "outcome": [
             "failure"
           ],
-          "text": "PF2E.SpecificRule.Feat.Evangelize.Failure",
+          "text": "",
           "title": "PF2E.Check.Result.Degree.Check.failure",
           "predicate": [
             "action:evangelize"
@@ -23848,9 +23900,11 @@
             "selector": [
               "diplomacy-check"
             ],
-            "text": "PF2E.SpecificRule.Feat.Evangelize.Failure",
-            "title": "PF2E.Check.Result.Degree.Check.failure"
-          }
+            "text": "",
+            "title": "PF2E.Check.Result.Degree.Check.failure",
+            "textStripped": true
+          },
+          "textStripped": true
         },
         {
           "kind": "roll-note",
@@ -23862,7 +23916,7 @@
           "outcome": [
             "criticalFailure"
           ],
-          "text": "PF2E.SpecificRule.Feat.Evangelize.Failure",
+          "text": "",
           "title": "PF2E.Check.Result.Degree.Check.criticalFailure",
           "predicate": [
             "action:evangelize"
@@ -23879,9 +23933,11 @@
             "selector": [
               "diplomacy-check"
             ],
-            "text": "PF2E.SpecificRule.Feat.Evangelize.Failure",
-            "title": "PF2E.Check.Result.Degree.Check.criticalFailure"
-          }
+            "text": "",
+            "title": "PF2E.Check.Result.Degree.Check.criticalFailure",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -24045,7 +24101,7 @@
           "label": null,
           "selector": "crafting",
           "outcome": null,
-          "text": "Whenever you roll a success at a Crafting check to make an item of the type you chose with Specialty Crafting, you get a critical success instead.",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             "action:craft",
@@ -24059,9 +24115,11 @@
               "speciality"
             ],
             "selector": "crafting",
-            "text": "Whenever you roll a success at a Crafting check to make an item of the type you chose with Specialty Crafting, you get a critical success instead.",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -24598,7 +24656,7 @@
             "success",
             "criticalSuccess"
           ],
-          "text": "PF2E.SpecificRule.Feat.QuickClimb.Note",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             "action:climb"
@@ -24614,9 +24672,11 @@
               "action:climb"
             ],
             "selector": "athletics",
-            "text": "PF2E.SpecificRule.Feat.QuickClimb.Note",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -24838,7 +24898,7 @@
             "success",
             "criticalSuccess"
           ],
-          "text": "PF2E.SpecificRule.Feat.QuickSwim.Note",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             "action:swim"
@@ -24854,9 +24914,11 @@
               "action:swim"
             ],
             "selector": "athletics",
-            "text": "PF2E.SpecificRule.Feat.QuickSwim.Note",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -25498,7 +25560,7 @@
           "outcome": [
             "criticalSuccess"
           ],
-          "text": "{item|system.description.value}",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             "action:demoralize",
@@ -25525,9 +25587,11 @@
               }
             ],
             "selector": "intimidation",
-            "text": "{item|system.description.value}",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {

@@ -338,7 +338,7 @@
           "label": null,
           "selector": "damage-received",
           "outcome": null,
-          "text": "PF2E.condition.confused.note",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             {
@@ -360,9 +360,11 @@
               }
             ],
             "selector": "damage-received",
-            "text": "PF2E.condition.confused.note",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -2636,7 +2638,7 @@
             "skill-check"
           ],
           "outcome": null,
-          "text": "PF2E.condition.restrained.note",
+          "text": "",
           "title": "{item|name}",
           "predicate": [
             {
@@ -2661,9 +2663,11 @@
               "attack",
               "skill-check"
             ],
-            "text": "PF2E.condition.restrained.note",
-            "title": "{item|name}"
-          }
+            "text": "",
+            "title": "{item|name}",
+            "textStripped": true
+          },
+          "textStripped": true
         }
       ],
       "traits": {

@@ -318,6 +318,56 @@ describe("packs-validation: r10 domain invariants", () => {
   });
 
   // ---------------------------------------------------------------------------
+  // 2e-bis. No book prose survives OUTSIDE description either (REQ-LEG-010 —
+  // r10 final clean-room audit found prose leaking through rules[].text /
+  // rules[].raw.text (Note REs) and through spell `target` sentences).
+  // ---------------------------------------------------------------------------
+
+  it("no document carries prose in rules[].text / rules[].raw.text / unconvertedRules[].text, and spell targets stay short", () => {
+    const offenders: string[] = [];
+    const ruleTextOffender = (rules: unknown, where: string, docLabel: string): void => {
+      if (!Array.isArray(rules)) return;
+      for (const rule of rules as Array<Record<string, unknown>>) {
+        if (!rule || typeof rule !== "object") continue;
+        if (typeof rule["text"] === "string" && (rule["text"] as string).length > 0) {
+          offenders.push(`${docLabel}: ${where}.text non-empty`);
+        }
+        const raw = rule["raw"];
+        if (
+          raw &&
+          typeof raw === "object" &&
+          typeof (raw as Record<string, unknown>)["text"] === "string" &&
+          ((raw as Record<string, unknown>)["text"] as string).length > 0
+        ) {
+          offenders.push(`${docLabel}: ${where}.raw.text non-empty`);
+        }
+      }
+    };
+    for (const slug of listPackSlugs()) {
+      for (const doc of loadDocuments(slug)) {
+        const docLabel = `[${slug}] "${doc.name}"`;
+        const sys = doc.system as Record<string, unknown>;
+        ruleTextOffender(sys["rules"], "rules[]", docLabel);
+        const fusion = (doc as { flags?: { fusion?: Record<string, unknown> } }).flags?.fusion;
+        ruleTextOffender(fusion?.["unconvertedRules"], "unconvertedRules[]", docLabel);
+        if (doc.type === "spell") {
+          const target = sys["target"];
+          const targetStr =
+            typeof target === "string"
+              ? target
+              : typeof (target as Record<string, unknown> | null)?.["value"] === "string"
+                ? ((target as Record<string, unknown>)["value"] as string)
+                : "";
+          if (targetStr.length > 60) {
+            offenders.push(`${docLabel}: system.target longer than 60 chars (likely book prose)`);
+          }
+        }
+      }
+    }
+    expect(offenders, offenders.join("\n")).toEqual([]);
+  });
+
+  // ---------------------------------------------------------------------------
   // 2f. every pack.json has a license block with attribution
   // ---------------------------------------------------------------------------
 

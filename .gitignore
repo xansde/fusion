@@ -31,3 +31,4 @@ Thumbs.db
 
 # Claude session-local launch config (absolute local paths)
 .claude/launch.json
+.playwright-cli/

@@ -3530,7 +3530,7 @@
       "range": "30 feet",
       "requirements": "",
       "rules": [],
-      "target": "your eidolon, or a creature with the minion trait under your control",
+      "target": "",
       "time": {
         "value": "1"
       },
@@ -6655,7 +6655,7 @@
       "range": "touch",
       "requirements": "",
       "rules": [],
-      "target": "1 metal weapon that is unattended or is wielded by you or a willing ally",
+      "target": "",
       "time": {
         "value": "2"
       },
@@ -10407,7 +10407,7 @@
       "range": "touch",
       "requirements": "",
       "rules": [],
-      "target": "1 flat unattended surface or non-magical object of light Bulk",
+      "target": "",
       "time": {
         "value": "5 minutes"
       },
@@ -11479,7 +11479,7 @@
       "range": "10 feet",
       "requirements": "",
       "rules": [],
-      "target": "up to 200 unattended objects in range, each of light Bulk or less",
+      "target": "",
       "time": {
         "value": "3"
       },
@@ -13792,7 +13792,7 @@
       "range": "touch",
       "requirements": "",
       "rules": [],
-      "target": "1 broken weapon that is unattended or held by a willing creature",
+      "target": "",
       "time": {
         "value": "2"
       },
@@ -13979,7 +13979,7 @@
       "range": "touch",
       "requirements": "",
       "rules": [],
-      "target": "1 creature, unattended object, or hazard or structure made of stone or earth",
+      "target": "",
       "time": {
         "value": "2"
       },
@@ -14038,7 +14038,7 @@
       "range": "touch",
       "requirements": "",
       "rules": [],
-      "target": "1 piece of unprocessed wood, reeds, or plant fiber of 1 Bulk or less",
+      "target": "",
       "time": {
         "value": "1 minute"
       },
@@ -17113,7 +17113,7 @@
       "range": "touch",
       "requirements": "",
       "rules": [],
-      "target": "1 metal object of 5 Bulk or less that's unattended or attended by a willing creature",
+      "target": "",
       "time": {
         "value": "2"
       },
@@ -17447,7 +17447,7 @@
       "range": "60 feet",
       "requirements": "",
       "rules": [],
-      "target": "1 touched shield (unattended or in your possession) and 1 willing creature",
+      "target": "",
       "time": {
         "value": "2"
       },
@@ -18978,7 +18978,7 @@
       "range": "120 feet",
       "requirements": "",
       "rules": [],
-      "target": "1 creature with the minion trait that you summoned or permanently control",
+      "target": "",
       "time": {
         "value": "2"
       },
@@ -23487,7 +23487,7 @@
       "range": "touch",
       "requirements": "",
       "rules": [],
-      "target": "up to 1 gallon of non-magical liquid or up to 5 pounds of food",
+      "target": "",
       "time": {
         "value": "1 minute"
       },
@@ -24165,7 +24165,7 @@
       "range": "30 feet",
       "requirements": "",
       "rules": [],
-      "target": "1 willing creature that would take damage from the triggering effect",
+      "target": "",
       "time": {
         "value": "reaction"
       },
@@ -24735,7 +24735,7 @@
       "range": "30 feet",
       "requirements": "",
       "rules": [],
-      "target": "1 mindless undead creature with a level no greater than bind undead's spell rank",
+      "target": "",
       "time": {
         "value": "2"
       },
@@ -25115,7 +25115,7 @@
       "range": "touch",
       "requirements": "",
       "rules": [],
-      "target": "1 weapon that is either wielded by a member of the Red Mantis or is a praying mantis's leg Strike",
+      "target": "",
       "time": {
         "value": "2"
       },
@@ -27589,7 +27589,7 @@
       "range": "touch",
       "requirements": "",
       "rules": [],
-      "target": "1 weapon that is either unattended or wielded by you or a willing ally",
+      "target": "",
       "time": {
         "value": "2"
       },
@@ -28508,7 +28508,7 @@
       "range": "50 feet",
       "requirements": "",
       "rules": [],
-      "target": "up to 50 feet of unattended rope or an inanimate rope-like object",
+      "target": "",
       "time": {
         "value": "2"
       },
@@ -30997,7 +30997,7 @@
       "range": "touch",
       "requirements": "",
       "rules": [],
-      "target": "1 non-magical object up to 20 cubic feet in volume and up to 80 Bulk",
+      "target": "",
       "time": {
         "value": "10 minutes"
       },
@@ -31381,7 +31381,7 @@
       "range": "60 feet",
       "requirements": "",
       "rules": [],
-      "target": "one beneficial spell effect currently affecting a creature, with a duration of 10 minutes or less",
+      "target": "",
       "time": {
         "value": "2"
       },
@@ -31496,7 +31496,7 @@
       "range": "touch",
       "requirements": "",
       "rules": [],
-      "target": "one item of 1 Bulk or less that a willing creature is holding",
+      "target": "",
       "time": {
         "value": "1 minute"
       },
@@ -31560,7 +31560,7 @@
       "range": "60 feet",
       "requirements": "",
       "rules": [],
-      "target": "1 item you're holding and 1 item in another creature's possession you can see, each no more than light Bulk",
+      "target": "",
       "time": {
         "value": "2"
       },
@@ -45340,7 +45340,7 @@
       "range": "120 feet",
       "requirements": "",
       "rules": [],
-      "target": "1 unattended object of up to 80 Bulk with no dimension longer than 20 feet",
+      "target": "",
       "time": {
         "value": "2"
       },
@@ -49568,7 +49568,7 @@
       "range": "100 miles",
       "requirements": "",
       "rules": [],
-      "target": "you and up to 4 targets touched, either willing creatures or objects roughly the size of a creature.",
+      "target": "",
       "time": {
         "value": "10 minutes"
       },
@@ -56073,7 +56073,7 @@
       "range": "100 feet",
       "requirements": "",
       "rules": [],
-      "target": "1 creature or object tracked and up to 5 other willing creatures",
+      "target": "",
       "time": {
         "value": "2"
       },
@@ -57248,7 +57248,7 @@
       "range": "",
       "requirements": "",
       "rules": [],
-      "target": "any number of creatures wearing metal armor, creatures made of metal, creatures that have the metal trait, and unattended metal objects",
+      "target": "",
       "time": {
         "value": "3"
       },
