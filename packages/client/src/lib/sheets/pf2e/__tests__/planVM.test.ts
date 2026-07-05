@@ -71,7 +71,9 @@ function magusClassDoc(): Record<string, unknown> {
       },
       trainedSkills: { value: ["arcana"], additional: 2 },
       traits: { rarity: "common", value: [] },
-      classDC: 0,
+      // Every class is Trained in its own class DC (final r10 audit issue #1
+      // — keep in sync with the corrected pack default in transform.mjs).
+      classDC: 1,
       featLevels: {
         ancestry: [1, 5, 9, 13, 17],
         class: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20],

@@ -1558,7 +1558,11 @@ function normalizeClassSystem(system, src, docName) {
     savingThrows,
     defenses,
     attacks,
-    classDC: src.classDC ?? system.classDC ?? 0,
+    // Every class is Trained (rank 1) in its own class DC — a rule fact the
+    // vendor class docs don't carry as a field (final r10 audit issue #1:
+    // the old `?? 0` default shipped every class untrained, and
+    // stepCharApplyClass would overwrite the manual rank with it).
+    classDC: src.classDC ?? system.classDC ?? 1,
     featLevels,
     skillIncreaseLevels: src.skillIncreaseLevels?.value ?? [],
     trainedSkills,

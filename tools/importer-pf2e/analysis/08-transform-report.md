@@ -10,62 +10,44 @@
 
 | Pack | Total | Transformados | Excluídos | Parciais | Completos | Substituições de arte |
 |---|---|---|---|---|---|---|
-| **conditions** | 43 | 43 | 0 | 9 | 34 | 43 |
-| **equipment** | 5645 | 5645 | 0 | 316 | 5329 | 5645 |
-| **spells** | 1796 | 1796 | 0 | 5 | 1791 | 1796 |
-| **pathfinder-monster-core** | 492 | 492 | 0 | 0 | 492 | 6695 |
 | **classes** | 27 | 27 | 0 | 1 | 26 | 27 |
 | **class-features** | 841 | 841 | 0 | 400 | 441 | 841 |
-| **feats** | 5987 | 5987 | 0 | 1210 | 4777 | 5987 |
-| **ancestries** | 50 | 50 | 0 | 11 | 39 | 50 |
-| **heritages** | 322 | 322 | 0 | 107 | 215 | 322 |
-| **backgrounds** | 495 | 495 | 0 | 68 | 427 | 495 |
-| **TOTAL** | **15698** | **15698** | **0** | **2127** | **13571** | **21901** |
+| **TOTAL** | **868** | **868** | **0** | **401** | **467** | **868** |
 
 ---
 
 ## 2. Cobertura de Rule Elements
 
-**Cobertura total:** 7592/11770 (64.5% suportadas integralmente)
+**Cobertura total:** 1124/2181 (51.5% suportadas integralmente)
 
 | Rule Key | Total | Suportadas | Parciais | Não suportadas | Status |
 |---|---|---|---|---|---|
-| `FlatModifier` | 2094 | 2094 | 0 | 0 | ✅ suportada |
-| `ItemAlteration` | 1542 | 0 | 1542 | 0 | ⚠️ parcial |
-| `RollOption` | 1396 | 1396 | 0 | 0 | ✅ suportada |
-| `ActiveEffectLike` | 1391 | 1096 | 295 | 0 | ✅ suportada |
-| `GrantItem` | 1253 | 1253 | 0 | 0 | ✅ suportada |
-| `ChoiceSet` | 620 | 0 | 0 | 620 | ❌ não suportada |
-| `Note` | 614 | 614 | 0 | 0 | ✅ suportada |
-| `DamageDice` | 388 | 388 | 0 | 0 | ✅ suportada |
-| `Resistance` | 359 | 359 | 0 | 0 | ✅ suportada |
-| `AdjustDegreeOfSuccess` | 248 | 0 | 0 | 248 | ❌ não suportada |
-| `Aura` | 234 | 0 | 0 | 234 | ❌ não suportada |
-| `AdjustModifier` | 224 | 0 | 224 | 0 | ⚠️ parcial |
-| `Strike` | 223 | 0 | 0 | 223 | ❌ não suportada |
-| `BaseSpeed` | 173 | 173 | 0 | 0 | ✅ suportada |
-| `MartialProficiency` | 109 | 109 | 0 | 0 | ✅ suportada |
-| `Sense` | 108 | 108 | 0 | 0 | ✅ suportada |
-| `AdjustStrike` | 102 | 0 | 0 | 102 | ❌ não suportada |
-| `DamageAlteration` | 102 | 0 | 0 | 102 | ❌ não suportada |
-| `TokenLight` | 101 | 0 | 0 | 101 | ❌ não suportada |
-| `CriticalSpecialization` | 100 | 0 | 0 | 100 | ❌ não suportada |
-| `CreatureSize` | 61 | 0 | 0 | 61 | ❌ não suportada |
-| `ActorTraits` | 54 | 0 | 0 | 54 | ❌ não suportada |
-| `TokenEffectIcon` | 48 | 0 | 0 | 48 | ❌ não suportada |
-| `EphemeralEffect` | 43 | 0 | 0 | 43 | ❌ não suportada |
-| `Immunity` | 41 | 0 | 41 | 0 | ⚠️ parcial |
-| `FastHealing` | 37 | 0 | 0 | 37 | ❌ não suportada |
-| `Weakness` | 28 | 0 | 0 | 28 | ❌ não suportada |
-| `CraftingAbility` | 21 | 0 | 0 | 21 | ❌ não suportada |
-| `DexterityModifierCap` | 12 | 0 | 0 | 12 | ❌ não suportada |
-| `SpecialStatistic` | 12 | 0 | 0 | 12 | ❌ não suportada |
-| `SubstituteRoll` | 9 | 0 | 0 | 9 | ❌ não suportada |
-| `RollTwice` | 7 | 0 | 0 | 7 | ❌ não suportada |
-| `MultipleAttackPenalty` | 7 | 0 | 0 | 7 | ❌ não suportada |
-| `SpecialResource` | 6 | 0 | 0 | 6 | ❌ não suportada |
-| `TempHP` | 2 | 2 | 0 | 0 | ✅ suportada |
-| `LoseHitPoints` | 1 | 0 | 0 | 1 | ❌ não suportada |
+| `ActiveEffectLike` | 458 | 295 | 163 | 0 | ✅ suportada |
+| `ItemAlteration` | 405 | 0 | 405 | 0 | ⚠️ parcial |
+| `GrantItem` | 382 | 382 | 0 | 0 | ✅ suportada |
+| `ChoiceSet` | 195 | 0 | 0 | 195 | ❌ não suportada |
+| `RollOption` | 189 | 189 | 0 | 0 | ✅ suportada |
+| `FlatModifier` | 80 | 80 | 0 | 0 | ✅ suportada |
+| `AdjustModifier` | 79 | 0 | 79 | 0 | ⚠️ parcial |
+| `Note` | 72 | 72 | 0 | 0 | ✅ suportada |
+| `Resistance` | 72 | 72 | 0 | 0 | ✅ suportada |
+| `AdjustDegreeOfSuccess` | 64 | 0 | 0 | 64 | ❌ não suportada |
+| `Strike` | 35 | 0 | 0 | 35 | ❌ não suportada |
+| `CriticalSpecialization` | 32 | 0 | 0 | 32 | ❌ não suportada |
+| `DamageAlteration` | 18 | 0 | 0 | 18 | ❌ não suportada |
+| `MartialProficiency` | 17 | 17 | 0 | 0 | ✅ suportada |
+| `DamageDice` | 17 | 17 | 0 | 0 | ✅ suportada |
+| `Aura` | 16 | 0 | 0 | 16 | ❌ não suportada |
+| `AdjustStrike` | 13 | 0 | 0 | 13 | ❌ não suportada |
+| `Immunity` | 7 | 0 | 7 | 0 | ⚠️ parcial |
+| `SpecialStatistic` | 7 | 0 | 0 | 7 | ❌ não suportada |
+| `Weakness` | 7 | 0 | 0 | 7 | ❌ não suportada |
+| `ActorTraits` | 4 | 0 | 0 | 4 | ❌ não suportada |
+| `MultipleAttackPenalty` | 4 | 0 | 0 | 4 | ❌ não suportada |
+| `CraftingAbility` | 3 | 0 | 0 | 3 | ❌ não suportada |
+| `SpecialResource` | 2 | 0 | 0 | 2 | ❌ não suportada |
+| `EphemeralEffect` | 2 | 0 | 0 | 2 | ❌ não suportada |
+| `TokenLight` | 1 | 0 | 0 | 1 | ❌ não suportada |
 
 ---
 
@@ -93,17 +75,9 @@ Nenhum arquivo de imagem do repositório pf2e é incluído.
 
 | Pack | Substituições totais |
 |---|---|
-| conditions | 43 |
-| equipment | 5645 |
-| spells | 1796 |
-| pathfinder-monster-core | 6695 |
 | classes | 27 |
 | class-features | 841 |
-| feats | 5987 |
-| ancestries | 50 |
-| heritages | 322 |
-| backgrounds | 495 |
-| **TOTAL** | **21901** |
+| **TOTAL** | **868** |
 
 ---
 

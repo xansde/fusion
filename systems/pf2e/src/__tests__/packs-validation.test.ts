@@ -181,6 +181,11 @@ describe("packs-validation: r10 domain invariants", () => {
     expect(magus).toBeDefined();
   });
 
+  it("Magus classDC is at least Trained (every class is trained in its own class DC — audit issue #1)", () => {
+    const system = magus!.system as unknown as ClassSystem;
+    expect((system as unknown as { classDC?: number }).classDC ?? 0).toBeGreaterThanOrEqual(1);
+  });
+
   it("Magus trainedSkills includes arcana with 2 additional free choices", () => {
     const system = magus!.system as unknown as ClassSystem;
     expect(system.trainedSkills.value).toContain("arcana");
