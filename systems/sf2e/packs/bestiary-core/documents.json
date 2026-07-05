@@ -144,7 +144,9 @@
         "size": {
           "value": "med"
         },
-        "value": ["aberration"]
+        "value": [
+          "aberration"
+        ]
       },
       "rules": []
     },
@@ -206,7 +208,9 @@
           "action": "strike",
           "area": null,
           "attackEffects": {
-            "value": ["void-death"]
+            "value": [
+              "void-death"
+            ]
           },
           "bonus": {
             "value": 9
@@ -227,7 +231,10 @@
           "rules": [],
           "slug": null,
           "traits": {
-            "value": ["agile", "unarmed"]
+            "value": [
+              "agile",
+              "unarmed"
+            ]
           }
         },
         "flags": {
@@ -309,16 +316,24 @@
               "kind": "flat-modifier",
               "slug": null,
               "label": null,
-              "selector": ["perception"],
+              "selector": [
+                "perception"
+              ],
               "value": -2,
               "mode": "add",
               "type": "status",
-              "predicate": ["no-hearing"],
+              "predicate": [
+                "no-hearing"
+              ],
               "priority": null,
               "raw": {
                 "key": "FlatModifier",
-                "predicate": ["no-hearing"],
-                "selector": ["perception"],
+                "predicate": [
+                  "no-hearing"
+                ],
+                "selector": [
+                  "perception"
+                ],
                 "type": "status",
                 "value": -2
               }
@@ -326,7 +341,9 @@
           ],
           "slug": null,
           "traits": {
-            "value": ["auditory"]
+            "value": [
+              "auditory"
+            ]
           }
         },
         "flags": {
@@ -336,7 +353,9 @@
               {
                 "adjustment": "to-critical-failure",
                 "key": "AdjustDegreeOfSuccess",
-                "predicate": ["item:trait:auditory"],
+                "predicate": [
+                  "item:trait:auditory"
+                ],
                 "selector": "perception",
                 "_conversionState": "unsupported"
               }
@@ -454,7 +473,9 @@
           "rules": [],
           "slug": "void-death",
           "traits": {
-            "value": ["disease"]
+            "value": [
+              "disease"
+            ]
           }
         },
         "flags": {
@@ -547,7 +568,10 @@
         "blurb": "",
         "languages": {
           "details": "Digital telepathy 30 feet",
-          "value": ["aklo", "common"]
+          "value": [
+            "aklo",
+            "common"
+          ]
         },
         "level": {
           "value": -1
@@ -603,7 +627,11 @@
         "size": {
           "value": "tiny"
         },
-        "value": ["fey", "gremlin", "tech"]
+        "value": [
+          "fey",
+          "gremlin",
+          "tech"
+        ]
       },
       "rules": []
     },
@@ -773,8 +801,14 @@
           },
           "traits": {
             "rarity": "common",
-            "traditions": ["arcane", "occult"],
-            "value": ["concentrate", "manipulate"]
+            "traditions": [
+              "arcane",
+              "occult"
+            ],
+            "value": [
+              "concentrate",
+              "manipulate"
+            ]
           }
         },
         "flags": {
@@ -808,7 +842,9 @@
               "applyMod": false,
               "category": null,
               "formula": "2d4",
-              "kinds": ["damage"],
+              "kinds": [
+                "damage"
+              ],
               "materials": [],
               "type": "electricity"
             }
@@ -856,8 +892,16 @@
           },
           "traits": {
             "rarity": "common",
-            "traditions": ["arcane", "primal"],
-            "value": ["cantrip", "concentrate", "electricity", "manipulate"]
+            "traditions": [
+              "arcane",
+              "primal"
+            ],
+            "value": [
+              "cantrip",
+              "concentrate",
+              "electricity",
+              "manipulate"
+            ]
           }
         },
         "flags": {
@@ -918,8 +962,17 @@
           },
           "traits": {
             "rarity": "common",
-            "traditions": ["arcane", "occult"],
-            "value": ["cantrip", "concentrate", "illusion", "manipulate", "subtle"]
+            "traditions": [
+              "arcane",
+              "occult"
+            ],
+            "value": [
+              "cantrip",
+              "concentrate",
+              "illusion",
+              "manipulate",
+              "subtle"
+            ]
           }
         },
         "flags": {
@@ -980,8 +1033,15 @@
           },
           "traits": {
             "rarity": "common",
-            "traditions": ["arcane", "occult"],
-            "value": ["cantrip", "concentrate", "manipulate"]
+            "traditions": [
+              "arcane",
+              "occult"
+            ],
+            "value": [
+              "cantrip",
+              "concentrate",
+              "manipulate"
+            ]
           }
         },
         "flags": {
@@ -1015,7 +1075,9 @@
               "applyMod": false,
               "category": null,
               "formula": "1d12",
-              "kinds": ["damage"],
+              "kinds": [
+                "damage"
+              ],
               "materials": [],
               "type": "electricity"
             },
@@ -1023,7 +1085,9 @@
               "applyMod": false,
               "category": null,
               "formula": "1d4",
-              "kinds": ["damage"],
+              "kinds": [
+                "damage"
+              ],
               "materials": [],
               "type": "sonic"
             }
@@ -1073,8 +1137,16 @@
           },
           "traits": {
             "rarity": "common",
-            "traditions": ["arcane", "primal"],
-            "value": ["concentrate", "electricity", "manipulate", "sonic"]
+            "traditions": [
+              "arcane",
+              "primal"
+            ],
+            "value": [
+              "concentrate",
+              "electricity",
+              "manipulate",
+              "sonic"
+            ]
           }
         },
         "flags": {
@@ -1122,7 +1194,11 @@
           "rules": [],
           "slug": null,
           "traits": {
-            "value": ["agile", "finesse", "magical"]
+            "value": [
+              "agile",
+              "finesse",
+              "magical"
+            ]
           }
         },
         "flags": {
@@ -1173,7 +1249,11 @@
           "rules": [],
           "slug": null,
           "traits": {
-            "value": ["agile", "electricity", "magical"]
+            "value": [
+              "agile",
+              "electricity",
+              "magical"
+            ]
           }
         },
         "flags": {
@@ -1253,7 +1333,10 @@
           "rules": [],
           "slug": null,
           "traits": {
-            "value": ["detection", "primal"]
+            "value": [
+              "detection",
+              "primal"
+            ]
           }
         },
         "flags": {
@@ -1293,7 +1376,10 @@
           "rules": [],
           "slug": null,
           "traits": {
-            "value": ["aura", "primal"]
+            "value": [
+              "aura",
+              "primal"
+            ]
           }
         },
         "flags": {
@@ -1304,7 +1390,9 @@
                 "effects": [],
                 "key": "Aura",
                 "radius": 20,
-                "traits": ["primal"],
+                "traits": [
+                  "primal"
+                ],
                 "_conversionState": "unsupported"
               }
             ],
@@ -1460,7 +1548,11 @@
         "size": {
           "value": "tiny"
         },
-        "value": ["elemental", "plant", "wood"]
+        "value": [
+          "elemental",
+          "plant",
+          "wood"
+        ]
       },
       "rules": []
     },
@@ -1543,7 +1635,9 @@
           "rules": [],
           "slug": null,
           "traits": {
-            "value": ["finesse"]
+            "value": [
+              "finesse"
+            ]
           }
         },
         "flags": {
@@ -1860,7 +1954,12 @@
         "size": {
           "value": "med"
         },
-        "value": ["mindless", "tech", "undead", "zombie"]
+        "value": [
+          "mindless",
+          "tech",
+          "undead",
+          "zombie"
+        ]
       },
       "rules": []
     },
@@ -1995,7 +2094,9 @@
           },
           "traits": {
             "rarity": "common",
-            "value": ["tech"]
+            "value": [
+              "tech"
+            ]
           },
           "usage": {
             "value": "held-in-one-hand"
@@ -2118,7 +2219,11 @@
           "rules": [],
           "slug": "laser-pistol",
           "traits": {
-            "value": ["expend-2", "reload-1", "tech"]
+            "value": [
+              "expend-2",
+              "reload-1",
+              "tech"
+            ]
           }
         },
         "flags": {
@@ -2419,7 +2524,9 @@
         "blurb": "",
         "languages": {
           "details": "",
-          "value": ["common"]
+          "value": [
+            "common"
+          ]
         },
         "level": {
           "value": 0
@@ -2475,7 +2582,11 @@
         "size": {
           "value": "med"
         },
-        "value": ["construct", "robot", "tech"]
+        "value": [
+          "construct",
+          "robot",
+          "tech"
+        ]
       },
       "rules": []
     },
@@ -2635,7 +2746,10 @@
           },
           "traits": {
             "rarity": "common",
-            "value": ["nonlethal", "tech"]
+            "value": [
+              "nonlethal",
+              "tech"
+            ]
           },
           "usage": {
             "value": "held-in-one-hand"
@@ -2717,7 +2831,9 @@
           "slug": "flashlight-commercial",
           "traits": {
             "rarity": "common",
-            "value": ["tech"]
+            "value": [
+              "tech"
+            ]
           },
           "usage": {
             "value": "held-in-one-hand"
@@ -2729,7 +2845,9 @@
             "unconvertedRules": [
               {
                 "key": "TokenLight",
-                "predicate": ["flashlight-lit"],
+                "predicate": [
+                  "flashlight-lit"
+                ],
                 "value": {
                   "alpha": 0.1,
                   "animation": {},
@@ -2989,7 +3107,12 @@
           "rules": [],
           "slug": "pulsecaster-pistol",
           "traits": {
-            "value": ["expend-2", "nonlethal", "reload-1", "tech"]
+            "value": [
+              "expend-2",
+              "nonlethal",
+              "reload-1",
+              "tech"
+            ]
           }
         },
         "flags": {
@@ -3117,7 +3240,10 @@
           "rules": [],
           "slug": null,
           "traits": {
-            "value": ["concentrate", "exploration"]
+            "value": [
+              "concentrate",
+              "exploration"
+            ]
           }
         },
         "flags": {
@@ -3402,7 +3528,11 @@
         "size": {
           "value": "sm"
         },
-        "value": ["construct", "robot", "tech"]
+        "value": [
+          "construct",
+          "robot",
+          "tech"
+        ]
       },
       "rules": []
     },
@@ -3703,7 +3833,10 @@
         "blurb": "",
         "languages": {
           "details": "",
-          "value": ["aklo", "common"]
+          "value": [
+            "aklo",
+            "common"
+          ]
         },
         "level": {
           "value": -1
@@ -3759,7 +3892,11 @@
         "size": {
           "value": "tiny"
         },
-        "value": ["fey", "gremlin", "tech"]
+        "value": [
+          "fey",
+          "gremlin",
+          "tech"
+        ]
       },
       "rules": []
     },
@@ -3934,8 +4071,15 @@
           },
           "traits": {
             "rarity": "common",
-            "traditions": ["arcane", "occult"],
-            "value": ["illusion", "manipulate", "subtle"]
+            "traditions": [
+              "arcane",
+              "occult"
+            ],
+            "value": [
+              "illusion",
+              "manipulate",
+              "subtle"
+            ]
           }
         },
         "flags": {
@@ -3996,8 +4140,16 @@
           },
           "traits": {
             "rarity": "common",
-            "traditions": ["arcane", "occult", "primal"],
-            "value": ["cantrip", "concentrate", "manipulate"]
+            "traditions": [
+              "arcane",
+              "occult",
+              "primal"
+            ],
+            "value": [
+              "cantrip",
+              "concentrate",
+              "manipulate"
+            ]
           }
         },
         "flags": {
@@ -4031,7 +4183,9 @@
               "applyMod": false,
               "category": null,
               "formula": "2d4",
-              "kinds": ["damage"],
+              "kinds": [
+                "damage"
+              ],
               "materials": [],
               "type": "electricity"
             }
@@ -4079,8 +4233,16 @@
           },
           "traits": {
             "rarity": "common",
-            "traditions": ["arcane", "primal"],
-            "value": ["cantrip", "concentrate", "electricity", "manipulate"]
+            "traditions": [
+              "arcane",
+              "primal"
+            ],
+            "value": [
+              "cantrip",
+              "concentrate",
+              "electricity",
+              "manipulate"
+            ]
           }
         },
         "flags": {
@@ -4141,8 +4303,17 @@
           },
           "traits": {
             "rarity": "common",
-            "traditions": ["arcane", "occult"],
-            "value": ["cantrip", "concentrate", "illusion", "manipulate", "subtle"]
+            "traditions": [
+              "arcane",
+              "occult"
+            ],
+            "value": [
+              "cantrip",
+              "concentrate",
+              "illusion",
+              "manipulate",
+              "subtle"
+            ]
           }
         },
         "flags": {
@@ -4207,8 +4378,16 @@
           },
           "traits": {
             "rarity": "common",
-            "traditions": ["arcane", "occult"],
-            "value": ["concentrate", "illusion", "manipulate", "visual"]
+            "traditions": [
+              "arcane",
+              "occult"
+            ],
+            "value": [
+              "concentrate",
+              "illusion",
+              "manipulate",
+              "visual"
+            ]
           }
         },
         "flags": {
@@ -4242,7 +4421,9 @@
               "applyMod": false,
               "category": null,
               "formula": "2d6",
-              "kinds": ["damage"],
+              "kinds": [
+                "damage"
+              ],
               "materials": [],
               "type": "fire"
             }
@@ -4292,8 +4473,15 @@
           },
           "traits": {
             "rarity": "common",
-            "traditions": ["arcane", "primal"],
-            "value": ["concentrate", "fire", "manipulate"]
+            "traditions": [
+              "arcane",
+              "primal"
+            ],
+            "value": [
+              "concentrate",
+              "fire",
+              "manipulate"
+            ]
           }
         },
         "flags": {
@@ -4354,8 +4542,15 @@
           },
           "traits": {
             "rarity": "common",
-            "traditions": ["arcane", "occult"],
-            "value": ["cantrip", "concentrate", "manipulate"]
+            "traditions": [
+              "arcane",
+              "occult"
+            ],
+            "value": [
+              "cantrip",
+              "concentrate",
+              "manipulate"
+            ]
           }
         },
         "flags": {
@@ -4403,7 +4598,11 @@
           "rules": [],
           "slug": null,
           "traits": {
-            "value": ["agile", "finesse", "magical"]
+            "value": [
+              "agile",
+              "finesse",
+              "magical"
+            ]
           }
         },
         "flags": {
@@ -4454,7 +4653,11 @@
           "rules": [],
           "slug": null,
           "traits": {
-            "value": ["agile", "electricity", "magical"]
+            "value": [
+              "agile",
+              "electricity",
+              "magical"
+            ]
           }
         },
         "flags": {
@@ -4534,7 +4737,10 @@
           "rules": [],
           "slug": null,
           "traits": {
-            "value": ["primal", "teleportation"]
+            "value": [
+              "primal",
+              "teleportation"
+            ]
           }
         },
         "flags": {
@@ -4670,7 +4876,10 @@
         "size": {
           "value": "tiny"
         },
-        "value": ["animal", "mindless"]
+        "value": [
+          "animal",
+          "mindless"
+        ]
       },
       "rules": []
     },
@@ -4747,7 +4956,10 @@
           "rules": [],
           "slug": null,
           "traits": {
-            "value": ["agile", "finesse"]
+            "value": [
+              "agile",
+              "finesse"
+            ]
           }
         },
         "flags": {
@@ -4787,7 +4999,9 @@
           "rules": [],
           "slug": null,
           "traits": {
-            "value": ["fire"]
+            "value": [
+              "fire"
+            ]
           }
         },
         "flags": {
@@ -4827,7 +5041,9 @@
           "rules": [],
           "slug": null,
           "traits": {
-            "value": ["fire"]
+            "value": [
+              "fire"
+            ]
           }
         },
         "flags": {
@@ -4996,7 +5212,9 @@
         "size": {
           "value": "tiny"
         },
-        "value": ["animal"]
+        "value": [
+          "animal"
+        ]
       },
       "rules": []
     },
@@ -5069,7 +5287,9 @@
           "rules": [],
           "slug": null,
           "traits": {
-            "value": ["finesse"]
+            "value": [
+              "finesse"
+            ]
           }
         },
         "flags": {
@@ -5149,7 +5369,9 @@
           "rules": [],
           "slug": null,
           "traits": {
-            "value": ["mental"]
+            "value": [
+              "mental"
+            ]
           }
         },
         "flags": {
@@ -5334,7 +5556,9 @@
         "size": {
           "value": "sm"
         },
-        "value": ["animal"]
+        "value": [
+          "animal"
+        ]
       },
       "rules": []
     },
@@ -5402,7 +5626,9 @@
           "rules": [],
           "slug": null,
           "traits": {
-            "value": ["agile"]
+            "value": [
+              "agile"
+            ]
           }
         },
         "flags": {
@@ -5490,7 +5716,9 @@
           "rules": [],
           "slug": null,
           "traits": {
-            "value": ["exploration"]
+            "value": [
+              "exploration"
+            ]
           }
         },
         "flags": {

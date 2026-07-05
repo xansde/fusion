@@ -21,10 +21,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "sp": 10
       },
@@ -45,7 +42,10 @@
       "strength": 0,
       "traits": {
         "rarity": "common",
-        "value": ["exposed", "tech"]
+        "value": [
+          "exposed",
+          "tech"
+        ]
       },
       "armorType": null
     },
@@ -89,10 +89,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "sp": 300
       },
@@ -113,7 +110,10 @@
       "strength": 3,
       "traits": {
         "rarity": "common",
-        "value": ["bulwark", "tech"]
+        "value": [
+          "bulwark",
+          "tech"
+        ]
       },
       "armorType": null
     },
@@ -157,10 +157,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "sp": 20
       },
@@ -181,7 +178,11 @@
       "strength": 2,
       "traits": {
         "rarity": "common",
-        "value": ["comfort", "flexible", "tech"]
+        "value": [
+          "comfort",
+          "flexible",
+          "tech"
+        ]
       },
       "armorType": null
     },
@@ -225,10 +226,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "sp": 30
       },
@@ -249,7 +247,9 @@
       "strength": 0,
       "traits": {
         "rarity": "common",
-        "value": ["tech"]
+        "value": [
+          "tech"
+        ]
       },
       "armorType": null
     },
@@ -293,10 +293,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "sp": 30
       },
@@ -317,7 +314,11 @@
       "strength": 1,
       "traits": {
         "rarity": "common",
-        "value": ["comfort", "flexible", "tech"]
+        "value": [
+          "comfort",
+          "flexible",
+          "tech"
+        ]
       },
       "armorType": null
     },
@@ -361,10 +362,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "sp": 65
       },
@@ -385,7 +383,9 @@
       "strength": 3,
       "traits": {
         "rarity": "common",
-        "value": ["tech"]
+        "value": [
+          "tech"
+        ]
       },
       "armorType": null
     },
@@ -429,10 +429,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "sp": 50
       },
@@ -453,7 +450,11 @@
       "strength": 1,
       "traits": {
         "rarity": "common",
-        "value": ["flexible", "noisy", "tech"]
+        "value": [
+          "flexible",
+          "noisy",
+          "tech"
+        ]
       },
       "armorType": null
     },
@@ -497,10 +498,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "sp": 285
       },
@@ -521,7 +519,10 @@
       "strength": 4,
       "traits": {
         "rarity": "common",
-        "value": ["bulwark", "tech"]
+        "value": [
+          "bulwark",
+          "tech"
+        ]
       },
       "armorType": null
     },
@@ -565,10 +566,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "sp": 15
       },
@@ -589,7 +587,10 @@
       "strength": 1,
       "traits": {
         "rarity": "common",
-        "value": ["comfort", "tech"]
+        "value": [
+          "comfort",
+          "tech"
+        ]
       },
       "armorType": null
     },
@@ -633,10 +634,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "sp": 40
       },
@@ -657,7 +655,9 @@
       "strength": 2,
       "traits": {
         "rarity": "common",
-        "value": ["tech"]
+        "value": [
+          "tech"
+        ]
       },
       "armorType": null
     },

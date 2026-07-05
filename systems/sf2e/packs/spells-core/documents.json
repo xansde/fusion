@@ -5,11 +5,9 @@
     "type": "spell",
     "img": "icons/placeholder/spell.svg",
     "system": {
-      "area": null,
       "cost": "",
       "counteraction": false,
       "damage": {},
-      "defense": null,
       "description": "",
       "duration": {
         "sustained": false,
@@ -31,10 +29,14 @@
       "traits": {
         "rarity": "uncommon",
         "traditions": [],
-        "value": ["concentrate", "focus", "manipulate", "mystic"]
+        "value": [
+          "concentrate",
+          "focus",
+          "manipulate",
+          "mystic"
+        ]
       },
-      "castTime": "1",
-      "heightening": null
+      "castTime": "1"
     },
     "flags": {
       "fusion": {
@@ -67,7 +69,6 @@
       "cost": "",
       "counteraction": false,
       "damage": {},
-      "defense": null,
       "description": "",
       "duration": {
         "sustained": true,
@@ -89,10 +90,16 @@
       "traits": {
         "rarity": "uncommon",
         "traditions": [],
-        "value": ["concentrate", "emotion", "focus", "manipulate", "mental", "mystic"]
+        "value": [
+          "concentrate",
+          "emotion",
+          "focus",
+          "manipulate",
+          "mental",
+          "mystic"
+        ]
       },
-      "castTime": "1",
-      "heightening": null
+      "castTime": "1"
     },
     "flags": {
       "fusion": {
@@ -118,11 +125,9 @@
     "type": "spell",
     "img": "icons/placeholder/spell.svg",
     "system": {
-      "area": null,
       "cost": "",
       "counteraction": false,
       "damage": {},
-      "defense": null,
       "description": "",
       "duration": {
         "sustained": false,
@@ -144,10 +149,14 @@
       "traits": {
         "rarity": "uncommon",
         "traditions": [],
-        "value": ["concentrate", "focus", "manipulate", "mystic"]
+        "value": [
+          "concentrate",
+          "focus",
+          "manipulate",
+          "mystic"
+        ]
       },
-      "castTime": "2",
-      "heightening": null
+      "castTime": "2"
     },
     "flags": {
       "fusion": {
@@ -173,7 +182,6 @@
     "type": "spell",
     "img": "icons/placeholder/spell.svg",
     "system": {
-      "area": null,
       "cost": "",
       "counteraction": false,
       "damage": {
@@ -181,12 +189,13 @@
           "applyMod": false,
           "category": null,
           "formula": "2d6",
-          "kinds": ["damage"],
+          "kinds": [
+            "damage"
+          ],
           "materials": [],
           "type": "mental"
         }
       },
-      "defense": null,
       "description": "",
       "duration": {
         "sustained": false,
@@ -215,8 +224,17 @@
       },
       "traits": {
         "rarity": "common",
-        "traditions": ["divine", "occult"],
-        "value": ["attack", "cantrip", "concentrate", "manipulate", "mental"]
+        "traditions": [
+          "divine",
+          "occult"
+        ],
+        "value": [
+          "attack",
+          "cantrip",
+          "concentrate",
+          "manipulate",
+          "mental"
+        ]
       },
       "castTime": "2"
     },
@@ -244,11 +262,9 @@
     "type": "spell",
     "img": "icons/placeholder/spell.svg",
     "system": {
-      "area": null,
       "cost": "",
       "counteraction": false,
       "damage": {},
-      "defense": null,
       "description": "",
       "duration": {
         "sustained": false,
@@ -269,11 +285,17 @@
       },
       "traits": {
         "rarity": "common",
-        "traditions": ["arcane", "occult"],
-        "value": ["cantrip", "concentrate", "manipulate"]
+        "traditions": [
+          "arcane",
+          "occult"
+        ],
+        "value": [
+          "cantrip",
+          "concentrate",
+          "manipulate"
+        ]
       },
-      "castTime": "2",
-      "heightening": null
+      "castTime": "2"
     },
     "flags": {
       "fusion": {
@@ -299,7 +321,6 @@
     "type": "spell",
     "img": "icons/placeholder/spell.svg",
     "system": {
-      "area": null,
       "cost": "",
       "counteraction": false,
       "damage": {},
@@ -344,8 +365,16 @@
       },
       "traits": {
         "rarity": "common",
-        "traditions": ["arcane", "primal"],
-        "value": ["cold", "concentrate", "manipulate", "mental"]
+        "traditions": [
+          "arcane",
+          "primal"
+        ],
+        "value": [
+          "cold",
+          "concentrate",
+          "manipulate",
+          "mental"
+        ]
       },
       "castTime": "2"
     },
@@ -373,11 +402,9 @@
     "type": "spell",
     "img": "icons/placeholder/spell.svg",
     "system": {
-      "area": null,
       "cost": "",
       "counteraction": false,
       "damage": {},
-      "defense": null,
       "description": "",
       "duration": {
         "sustained": false,
@@ -398,11 +425,16 @@
       },
       "traits": {
         "rarity": "common",
-        "traditions": ["arcane", "occult"],
-        "value": ["concentrate", "manipulate"]
+        "traditions": [
+          "arcane",
+          "occult"
+        ],
+        "value": [
+          "concentrate",
+          "manipulate"
+        ]
       },
-      "castTime": "2",
-      "heightening": null
+      "castTime": "2"
     },
     "flags": {
       "fusion": {
@@ -428,11 +460,9 @@
     "type": "spell",
     "img": "icons/placeholder/spell.svg",
     "system": {
-      "area": null,
       "cost": "",
       "counteraction": false,
       "damage": {},
-      "defense": null,
       "description": "",
       "duration": {
         "sustained": false,
@@ -453,11 +483,18 @@
       },
       "traits": {
         "rarity": "common",
-        "traditions": ["arcane", "divine", "occult", "primal"],
-        "value": ["concentrate", "manipulate"]
+        "traditions": [
+          "arcane",
+          "divine",
+          "occult",
+          "primal"
+        ],
+        "value": [
+          "concentrate",
+          "manipulate"
+        ]
       },
-      "castTime": "2",
-      "heightening": null
+      "castTime": "2"
     },
     "flags": {
       "fusion": {
@@ -483,7 +520,6 @@
     "type": "spell",
     "img": "icons/placeholder/spell.svg",
     "system": {
-      "area": null,
       "cost": "",
       "counteraction": false,
       "damage": {
@@ -491,7 +527,9 @@
           "applyMod": false,
           "category": null,
           "formula": "2d6",
-          "kinds": ["damage"],
+          "kinds": [
+            "damage"
+          ],
           "materials": [],
           "type": "mental"
         }
@@ -530,8 +568,15 @@
       },
       "traits": {
         "rarity": "common",
-        "traditions": ["divine", "occult"],
-        "value": ["concentrate", "manipulate", "mental"]
+        "traditions": [
+          "divine",
+          "occult"
+        ],
+        "value": [
+          "concentrate",
+          "manipulate",
+          "mental"
+        ]
       },
       "castTime": "2"
     },
@@ -559,7 +604,6 @@
     "type": "spell",
     "img": "icons/placeholder/spell.svg",
     "system": {
-      "area": null,
       "cost": "",
       "counteraction": false,
       "damage": {
@@ -567,7 +611,9 @@
           "applyMod": false,
           "category": null,
           "formula": "2d6",
-          "kinds": ["damage"],
+          "kinds": [
+            "damage"
+          ],
           "materials": [],
           "type": "fire"
         }
@@ -606,8 +652,15 @@
       },
       "traits": {
         "rarity": "common",
-        "traditions": ["arcane", "primal"],
-        "value": ["concentrate", "fire", "manipulate"]
+        "traditions": [
+          "arcane",
+          "primal"
+        ],
+        "value": [
+          "concentrate",
+          "fire",
+          "manipulate"
+        ]
       },
       "castTime": "2"
     },

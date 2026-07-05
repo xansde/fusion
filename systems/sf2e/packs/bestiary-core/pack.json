@@ -3,7 +3,11 @@
   "label": "SF2e Core Bestiary",
   "documentType": "Actor",
   "systemId": "sf2e",
-  "indexFields": ["system.details.level.value", "system.traits.value", "system.attributes.hp.max"],
+  "indexFields": [
+    "system.details.level.value",
+    "system.traits.value",
+    "system.attributes.hp.max"
+  ],
   "license": {
     "license": "ORC",
     "attribution": "Starfinder Alien Core © 2025 Paizo Inc. Licensed under the ORC License.",
@@ -18,5 +22,5 @@
   },
   "schemaVersion": 1,
   "documentCount": 10,
-  "generatedAt": "2026-07-01T21:21:20.109Z"
+  "generatedAt": "2026-07-05T03:07:29.864Z"
 }

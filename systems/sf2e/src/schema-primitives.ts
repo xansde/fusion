@@ -149,14 +149,25 @@ export const PublicationSchema = z.object({
 
 // ---------------------------------------------------------------------------
 // EffectRule — permissive passthrough for rules stored on items.
-// Identical to PF2e (REQ-SF2-051 mirrors REQ-PF2-204).
+// Mirrors PF2e's fixed EffectRuleSchema (systems/pf2e/src/schema-primitives.ts,
+// REQ-SF2-051 mirrors REQ-PF2-204): tools/importer-pf2e/src/transform.mjs's
+// convertRuleElement() produces ModifierDescriptor objects with a `kind`
+// discriminator field, not `type` — verified against every rules[] entry in
+// systems/sf2e/packs/{conditions,augmentations-core}/documents.json (e.g.
+// Glitching's badge rules, Retinal Reflectors' Sense/FlatModifier
+// descriptors). A bare `type: z.string()` (no `kind` alternative) rejects
+// every one of them with "rules.N.type: Required".
 // ---------------------------------------------------------------------------
 
 export const EffectRuleSchema = z
   .object({
-    type: z.string(),
+    kind: z.string().optional(),
+    type: z.string().optional(),
   })
-  .passthrough();
+  .passthrough()
+  .refine((rule) => typeof rule.kind === "string" || typeof rule.type === "string", {
+    message: "EffectRule must have a string 'kind' or 'type' discriminator",
+  });
 
 export type EffectRuleRaw = z.infer<typeof EffectRuleSchema>;
 

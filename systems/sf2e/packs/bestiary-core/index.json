@@ -7,7 +7,9 @@
     "type": "npc",
     "index": {
       "system.details.level.value": 1,
-      "system.traits.value": ["aberration"],
+      "system.traits.value": [
+        "aberration"
+      ],
       "system.attributes.hp.max": 15
     }
   },
@@ -19,7 +21,11 @@
     "type": "npc",
     "index": {
       "system.details.level.value": -1,
-      "system.traits.value": ["fey", "gremlin", "tech"],
+      "system.traits.value": [
+        "fey",
+        "gremlin",
+        "tech"
+      ],
       "system.attributes.hp.max": 8
     }
   },
@@ -31,7 +37,11 @@
     "type": "npc",
     "index": {
       "system.details.level.value": 0,
-      "system.traits.value": ["elemental", "plant", "wood"],
+      "system.traits.value": [
+        "elemental",
+        "plant",
+        "wood"
+      ],
       "system.attributes.hp.max": 12
     }
   },
@@ -43,7 +53,12 @@
     "type": "npc",
     "index": {
       "system.details.level.value": -1,
-      "system.traits.value": ["mindless", "tech", "undead", "zombie"],
+      "system.traits.value": [
+        "mindless",
+        "tech",
+        "undead",
+        "zombie"
+      ],
       "system.attributes.hp.max": 40
     }
   },
@@ -55,7 +70,11 @@
     "type": "npc",
     "index": {
       "system.details.level.value": 0,
-      "system.traits.value": ["construct", "robot", "tech"],
+      "system.traits.value": [
+        "construct",
+        "robot",
+        "tech"
+      ],
       "system.attributes.hp.max": 18
     }
   },
@@ -67,7 +86,11 @@
     "type": "npc",
     "index": {
       "system.details.level.value": -1,
-      "system.traits.value": ["construct", "robot", "tech"],
+      "system.traits.value": [
+        "construct",
+        "robot",
+        "tech"
+      ],
       "system.attributes.hp.max": 8
     }
   },
@@ -79,7 +102,11 @@
     "type": "npc",
     "index": {
       "system.details.level.value": -1,
-      "system.traits.value": ["fey", "gremlin", "tech"],
+      "system.traits.value": [
+        "fey",
+        "gremlin",
+        "tech"
+      ],
       "system.attributes.hp.max": 8
     }
   },
@@ -91,7 +118,10 @@
     "type": "npc",
     "index": {
       "system.details.level.value": -1,
-      "system.traits.value": ["animal", "mindless"],
+      "system.traits.value": [
+        "animal",
+        "mindless"
+      ],
       "system.attributes.hp.max": 10
     }
   },
@@ -103,7 +133,9 @@
     "type": "npc",
     "index": {
       "system.details.level.value": -1,
-      "system.traits.value": ["animal"],
+      "system.traits.value": [
+        "animal"
+      ],
       "system.attributes.hp.max": 6
     }
   },
@@ -115,7 +147,9 @@
     "type": "npc",
     "index": {
       "system.details.level.value": -1,
-      "system.traits.value": ["animal"],
+      "system.traits.value": [
+        "animal"
+      ],
       "system.attributes.hp.max": 7
     }
   }

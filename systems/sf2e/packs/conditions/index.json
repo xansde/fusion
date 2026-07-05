@@ -13,10 +13,6 @@
         "value": -1
       },
       "system.badge": {
-        "labels": null,
-        "loop": false,
-        "max": null,
-        "min": null,
         "type": "counter",
         "value": 1
       }

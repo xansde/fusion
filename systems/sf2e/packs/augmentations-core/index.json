@@ -7,7 +7,9 @@
     "type": "equipment",
     "index": {
       "system.level": 1,
-      "system.traits.value": ["biotech"],
+      "system.traits.value": [
+        "biotech"
+      ],
       "system.usage": "implanted"
     }
   },
@@ -19,7 +21,9 @@
     "type": "equipment",
     "index": {
       "system.level": 1,
-      "system.traits.value": ["biotech"],
+      "system.traits.value": [
+        "biotech"
+      ],
       "system.usage": "implanted"
     }
   },
@@ -31,7 +35,10 @@
     "type": "equipment",
     "index": {
       "system.level": 0,
-      "system.traits.value": ["magical", "magitech"],
+      "system.traits.value": [
+        "magical",
+        "magitech"
+      ],
       "system.usage": "implanted"
     }
   },
@@ -43,7 +50,10 @@
     "type": "equipment",
     "index": {
       "system.level": 1,
-      "system.traits.value": ["magical", "magitech"],
+      "system.traits.value": [
+        "magical",
+        "magitech"
+      ],
       "system.usage": "implanted"
     }
   },
@@ -55,7 +65,9 @@
     "type": "equipment",
     "index": {
       "system.level": 0,
-      "system.traits.value": ["necrograft"],
+      "system.traits.value": [
+        "necrograft"
+      ],
       "system.usage": "implanted"
     }
   },
@@ -67,7 +79,9 @@
     "type": "equipment",
     "index": {
       "system.level": 0,
-      "system.traits.value": ["tech"],
+      "system.traits.value": [
+        "tech"
+      ],
       "system.usage": "implanted"
     }
   },
@@ -79,7 +93,9 @@
     "type": "equipment",
     "index": {
       "system.level": 1,
-      "system.traits.value": ["tech"],
+      "system.traits.value": [
+        "tech"
+      ],
       "system.usage": "implanted"
     }
   },
@@ -91,7 +107,9 @@
     "type": "equipment",
     "index": {
       "system.level": 1,
-      "system.traits.value": ["tech"],
+      "system.traits.value": [
+        "tech"
+      ],
       "system.usage": "implanted"
     }
   },
@@ -103,7 +121,9 @@
     "type": "equipment",
     "index": {
       "system.level": 0,
-      "system.traits.value": ["tech"],
+      "system.traits.value": [
+        "tech"
+      ],
       "system.usage": "implanted"
     }
   },
@@ -115,7 +135,9 @@
     "type": "equipment",
     "index": {
       "system.level": 1,
-      "system.traits.value": ["tech"],
+      "system.traits.value": [
+        "tech"
+      ],
       "system.usage": "implanted"
     }
   }

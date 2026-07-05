@@ -6,10 +6,6 @@
     "img": "icons/placeholder/effect.svg",
     "system": {
       "badge": {
-        "labels": null,
-        "loop": false,
-        "max": null,
-        "min": null,
         "type": "counter",
         "value": 1
       },
@@ -36,11 +32,15 @@
           "value": "-@item.badge.value",
           "mode": "add",
           "type": "item",
-          "predicate": ["glitching-failure"],
+          "predicate": [
+            "glitching-failure"
+          ],
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "predicate": ["glitching-failure"],
+            "predicate": [
+              "glitching-failure"
+            ],
             "selector": "all",
             "type": "item",
             "value": "-@item.badge.value"
