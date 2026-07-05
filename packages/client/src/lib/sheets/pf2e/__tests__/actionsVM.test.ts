@@ -16,17 +16,23 @@ import { SocketUnavailableError } from "../../../compendium/compendiumApi.js";
 import {
   resolveActionCost,
   resolveActionGroup,
+  fusionCategoryOf,
   slugFromName,
   rowFromIndexEntry,
   rowFromEmbeddedItem,
   mergeActionRows,
   filterActionRows,
+  filterRelevantRows,
+  deriveCharacterProfile,
+  isActionRelevant,
   sortActionRows,
   defaultFilterState,
   classifyLoadError,
   paginate,
   buildEmbeddedDetailsDoc,
   descriptionHtmlOf,
+  needsFallbackDescription,
+  withFallbackDescription,
   ACTIONS_PAGE_SIZE,
   type ActionRow,
   type ActionCostFilter,
@@ -279,6 +285,35 @@ describe("mergeActionRows()", () => {
     expect(merged[0]?.fromCharacter).toBe(true);
     expect(merged[0]?.cost.kind).toBe("2");
   });
+
+  it("preserves the deduped pack row's uuid as fallbackUuid on the embedded row", () => {
+    // Embedded Bon Mot has an EMPTY description (pre-r11 embed); the pack has
+    // the same-slug action with the ORC/OGL description behind its uuid.
+    const packBonMot = packEntry("Bon Mot", { "system.actionType": "action", "system.actions": 1 });
+    const embedded = [
+      { _id: "bm1", type: "feat", name: "Bon Mot", system: { actionType: "action", actions: 1, slug: "bon-mot", description: "" } },
+    ];
+    const merged = mergeActionRows([packBonMot], embedded);
+    const bonMot = merged.find((r) => r.slug === "bon-mot");
+    expect(bonMot?.fromCharacter).toBe(true);
+    expect(bonMot?.uuid).toBeNull();
+    expect(bonMot?.fallbackUuid).toBe(packBonMot.uuid);
+  });
+
+  it("leaves fallbackUuid null for an embedded row with no matching pack row", () => {
+    const embedded = [
+      { _id: "ma1", type: "feat", name: "Magus's Analysis", system: { actionType: "action", actions: 1, slug: "maguss-analysis" } },
+    ];
+    const merged = mergeActionRows([packEntry("Seek", { "system.actionType": "action", "system.actions": 1 })], embedded);
+    const analysis = merged.find((r) => r.fromCharacter);
+    expect(analysis?.fallbackUuid).toBeNull();
+  });
+
+  it("leaves fallbackUuid null on plain pack rows (they already carry uuid)", () => {
+    const merged = mergeActionRows([packEntry("Seek", { "system.actionType": "action", "system.actions": 1 })], []);
+    expect(merged[0]?.fallbackUuid).toBeNull();
+    expect(merged[0]?.uuid).not.toBeNull();
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -410,6 +445,99 @@ describe("buildEmbeddedDetailsDoc()", () => {
 });
 
 // ---------------------------------------------------------------------------
+// needsFallbackDescription — heal-on-read decision for empty embedded descs
+// ---------------------------------------------------------------------------
+
+describe("needsFallbackDescription()", () => {
+  it("is true when the details doc has no/empty/whitespace description", () => {
+    expect(needsFallbackDescription(buildEmbeddedDetailsDoc({ _id: "a", type: "action", name: "Bare" }))).toBe(true);
+    expect(needsFallbackDescription({ system: { description: "" } })).toBe(true);
+    expect(needsFallbackDescription({ system: { description: "   \n  " } })).toBe(true);
+    // Bare markup with no text content counts as empty.
+    expect(needsFallbackDescription({ system: { description: "<p></p>" } })).toBe(true);
+    expect(needsFallbackDescription({ system: { description: "<p>&nbsp;</p>" } })).toBe(true);
+  });
+
+  it("is true for a null/non-record doc or a doc with no system", () => {
+    expect(needsFallbackDescription(null)).toBe(true);
+    expect(needsFallbackDescription(undefined)).toBe(true);
+    expect(needsFallbackDescription({})).toBe(true);
+  });
+
+  it("is false when the description has real text content", () => {
+    expect(needsFallbackDescription({ system: { description: "<p>Sling an insult.</p>" } })).toBe(false);
+    expect(needsFallbackDescription({ system: { description: "Plain text" } })).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// withFallbackDescription — splice pack description into the embedded doc
+// ---------------------------------------------------------------------------
+
+describe("withFallbackDescription()", () => {
+  it("splices the pack doc's description while keeping the embedded identity", () => {
+    const embedded = buildEmbeddedDetailsDoc({
+      _id: "bm",
+      type: "feat",
+      name: "Bon Mot",
+      system: { actionType: "action", actions: 1, description: "", traits: { value: ["auditory"] } },
+    });
+    const packDoc = { name: "Bon Mot", type: "action", system: { description: "<p>Sling an insult.</p>" } };
+    const merged = withFallbackDescription(embedded, packDoc);
+    expect(merged?.["name"]).toBe("Bon Mot"); // embedded identity kept
+    expect(merged?.["type"]).toBe("feat");
+    const system = merged?.["system"] as Record<string, unknown>;
+    expect(system["description"]).toBe("<p>Sling an insult.</p>"); // pack description
+    expect(system["actions"]).toBe(1); // embedded mechanical fields kept
+  });
+
+  it("unwraps a {value}-wrapped pack description", () => {
+    const embedded = buildEmbeddedDetailsDoc({ _id: "x", type: "action", name: "Foo", system: { description: "" } });
+    const packDoc = { system: { description: { value: "<p>Wrapped.</p>" } } };
+    const merged = withFallbackDescription(embedded, packDoc);
+    expect((merged?.["system"] as Record<string, unknown>)["description"]).toBe("<p>Wrapped.</p>");
+  });
+
+  it("returns the embedded doc unchanged when the pack doc has no description", () => {
+    const embedded = buildEmbeddedDetailsDoc({ _id: "y", type: "action", name: "Foo", system: { description: "" } });
+    expect(withFallbackDescription(embedded, { system: {} })).toBe(embedded);
+    expect(withFallbackDescription(embedded, null)).toBe(embedded);
+  });
+
+  it("does not mutate the embedded doc's system", () => {
+    const embedded = buildEmbeddedDetailsDoc({ _id: "z", type: "action", name: "Foo", system: { description: "" } });
+    const before = (embedded?.["system"] as Record<string, unknown>)["description"];
+    withFallbackDescription(embedded, { system: { description: "<p>new</p>" } });
+    expect((embedded?.["system"] as Record<string, unknown>)["description"]).toBe(before);
+  });
+
+  it("returns the input unchanged for a non-record embedded doc", () => {
+    expect(withFallbackDescription(null, { system: { description: "<p>x</p>" } })).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// fusionCategoryOf — raw fine-grained folder axis for the relevance filter
+// ---------------------------------------------------------------------------
+
+describe("fusionCategoryOf()", () => {
+  it("reads system.fusionCategory lower-cased", () => {
+    expect(fusionCategoryOf({ system: { fusionCategory: "Class" } })).toBe("class");
+    expect(fusionCategoryOf({ system: { fusionCategory: "heritage" } })).toBe("heritage");
+  });
+
+  it("falls back to legacy re-injection sites", () => {
+    expect(fusionCategoryOf({ flags: { fusion: { actionFolder: "archetype" } } })).toBe("archetype");
+    expect(fusionCategoryOf({ system: { actionFolder: "skill" } })).toBe("skill");
+  });
+
+  it("returns null when absent", () => {
+    expect(fusionCategoryOf({ system: {} })).toBeNull();
+    expect(fusionCategoryOf({})).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // filterActionRows
 // ---------------------------------------------------------------------------
 
@@ -417,11 +545,13 @@ function row(partial: Partial<ActionRow> & { name: string; slug: string; group: 
   return {
     key: partial.key ?? partial.slug,
     uuid: partial.uuid ?? null,
+    fallbackUuid: partial.fallbackUuid ?? null,
     slug: partial.slug,
     name: partial.name,
     group: partial.group,
     cost: partial.cost ?? { kind: "1", glyphs: "◆" },
     traits: partial.traits ?? [],
+    fusionCategory: partial.fusionCategory ?? null,
     fromCharacter: partial.fromCharacter ?? false,
   };
 }
@@ -500,5 +630,200 @@ describe("classifyLoadError()", () => {
   it("maps any other error to load", () => {
     expect(classifyLoadError(new Error("boom"))).toBe("load");
     expect(classifyLoadError("nope")).toBe("load");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Character relevance filter — deriveCharacterProfile / isActionRelevant /
+// filterRelevantRows. Scenario: a Magus + Ratfolk with an Alchemist Dedication.
+// ---------------------------------------------------------------------------
+
+/** A Magus / Ratfolk character carrying an Alchemist Dedication feat. */
+const magusRatfolkItems: Array<Record<string, unknown>> = [
+  { _id: "cls", type: "class", name: "Magus", system: {} },
+  { _id: "anc", type: "ancestry", name: "Ratfolk", system: {} },
+  {
+    _id: "ded",
+    type: "feat",
+    name: "Alchemist Dedication",
+    system: { actionType: "passive", traits: { value: ["archetype", "dedication", "multiclass"] } },
+  },
+];
+
+describe("deriveCharacterProfile()", () => {
+  it("collects class, ancestry/heritage, and archetype-dedication slugs", () => {
+    const p = deriveCharacterProfile(magusRatfolkItems);
+    expect([...p.classSlugs]).toEqual(["magus"]);
+    expect([...p.ancestrySlugs]).toEqual(["ratfolk"]);
+    expect([...p.archetypeSlugs]).toEqual(["alchemist"]);
+  });
+
+  it("reads heritage items into the ancestry slug set", () => {
+    const p = deriveCharacterProfile([{ _id: "h", type: "heritage", name: "Sylph", system: {} }]);
+    expect([...p.ancestrySlugs]).toEqual(["sylph"]);
+  });
+
+  it("ignores non-dedication feats for the archetype set", () => {
+    const p = deriveCharacterProfile([
+      { _id: "f", type: "feat", name: "Toughness", system: { traits: { value: ["general"] } } },
+    ]);
+    expect(p.archetypeSlugs.size).toBe(0);
+  });
+
+  it("returns empty sets for an item-less character", () => {
+    const p = deriveCharacterProfile([]);
+    expect(p.classSlugs.size).toBe(0);
+    expect(p.ancestrySlugs.size).toBe(0);
+    expect(p.archetypeSlugs.size).toBe(0);
+  });
+});
+
+describe("isActionRelevant()", () => {
+  const profile = deriveCharacterProfile(magusRatfolkItems);
+
+  const packRow = (
+    partial: Partial<ActionRow> & { name: string; group: ActionGroup; fusionCategory: string | null },
+  ): ActionRow => row({ slug: slugFromName(partial.name), ...partial });
+
+  it("always shows embedded character actions (Magus's Analysis)", () => {
+    const analysis = packRow({
+      name: "Magus's Analysis",
+      group: "class",
+      fusionCategory: "class",
+      traits: [],
+      fromCharacter: true,
+    });
+    expect(isActionRelevant(analysis, profile)).toBe(true);
+  });
+
+  it("always shows universal categories (basic/skill/exploration/downtime/equipment)", () => {
+    for (const fc of ["basic", "skill", "exploration", "downtime", "equipment"]) {
+      const r = packRow({ name: `Uni ${fc}`, group: "basic", fusionCategory: fc });
+      expect(isActionRelevant(r, profile)).toBe(true);
+    }
+  });
+
+  it("shows a class action only when a trait matches the character's class (Arcane Cascade)", () => {
+    const arcaneCascade = packRow({
+      name: "Arcane Cascade",
+      group: "class",
+      fusionCategory: "class",
+      traits: ["concentrate", "magus", "stance"],
+    });
+    expect(isActionRelevant(arcaneCascade, profile)).toBe(true);
+
+    // A different class's action (barbarian) is not relevant.
+    const mightyRage = packRow({
+      name: "Mighty Rage",
+      group: "class",
+      fusionCategory: "class",
+      traits: ["barbarian"],
+    });
+    expect(isActionRelevant(mightyRage, profile)).toBe(false);
+  });
+
+  it("hides class/archetype actions that carry NO class/archetype trait (no confident match)", () => {
+    // "A Challenge for Heroes" (class) — traits carry no class slug.
+    const challenge = packRow({
+      name: "A Challenge for Heroes",
+      group: "class",
+      fusionCategory: "class",
+      traits: ["concentrate", "mental", "spirit", "transcendence"],
+    });
+    expect(isActionRelevant(challenge, profile)).toBe(false);
+
+    // "Blazing Conflagration" (archetype) — traits carry no archetype slug.
+    const blazing = packRow({
+      name: "Blazing Conflagration",
+      group: "archetype",
+      fusionCategory: "archetype",
+      traits: ["fire", "healing", "light", "visual"],
+    });
+    expect(isActionRelevant(blazing, profile)).toBe(false);
+  });
+
+  it("shows an archetype action whose trait matches a character archetype slug", () => {
+    const alchemistArch = packRow({
+      name: "Some Alchemist Trick",
+      group: "archetype",
+      fusionCategory: "archetype",
+      traits: ["alchemist"],
+    });
+    expect(isActionRelevant(alchemistArch, profile)).toBe(true);
+  });
+
+  it("shows an ancestry/heritage action only when its trait matches the character's ancestry", () => {
+    const ratfolkAction = packRow({
+      name: "Rat Scurry",
+      group: "ancestry",
+      fusionCategory: "ancestry",
+      traits: ["ratfolk"],
+    });
+    expect(isActionRelevant(ratfolkAction, profile)).toBe(true);
+
+    const anadiAction = packRow({
+      name: "Anadi Venom",
+      group: "ancestry",
+      fusionCategory: "ancestry",
+      traits: ["anadi"],
+    });
+    expect(isActionRelevant(anadiAction, profile)).toBe(false);
+
+    // heritage-category action matches against the same ancestry slug set.
+    const sylphAction = packRow({
+      name: "Smoke Blending",
+      group: "ancestry",
+      fusionCategory: "heritage",
+      traits: ["sylph"],
+    });
+    expect(isActionRelevant(sylphAction, profile)).toBe(false); // char is ratfolk, not sylph
+  });
+
+  it("hides default-hidden and unknown categories (background/familiar/spells/stamina/mythic/null)", () => {
+    for (const fc of ["background", "familiar", "spells", "stamina", "mythic", null]) {
+      const r = packRow({ name: `Hidden ${fc}`, group: "other", fusionCategory: fc });
+      expect(isActionRelevant(r, profile)).toBe(false);
+    }
+  });
+});
+
+describe("filterRelevantRows()", () => {
+  const profile = deriveCharacterProfile(magusRatfolkItems);
+
+  const rows: ActionRow[] = [
+    row({ name: "Seek", slug: "seek", group: "basic", fusionCategory: "basic" }),
+    row({ name: "Arcane Cascade", slug: "arcane-cascade", group: "class", fusionCategory: "class", traits: ["magus"] }),
+    row({ name: "Mighty Rage", slug: "mighty-rage", group: "class", fusionCategory: "class", traits: ["barbarian"] }),
+    row({
+      name: "Blazing Conflagration",
+      slug: "blazing-conflagration",
+      group: "archetype",
+      fusionCategory: "archetype",
+      traits: ["fire"],
+    }),
+    row({
+      name: "Magus's Analysis",
+      slug: "maguss-analysis",
+      group: "class",
+      fusionCategory: "class",
+      traits: [],
+      fromCharacter: true,
+    }),
+  ];
+
+  it("keeps only relevant rows by default (magus sees Analysis & Arcane Cascade, not Blazing/Rage)", () => {
+    const out = filterRelevantRows(rows, profile, false).map((r) => r.slug);
+    expect(out).toContain("maguss-analysis");
+    expect(out).toContain("arcane-cascade");
+    expect(out).toContain("seek");
+    expect(out).not.toContain("blazing-conflagration");
+    expect(out).not.toContain("mighty-rage");
+  });
+
+  it("reveals every row when showAll is true", () => {
+    const out = filterRelevantRows(rows, profile, true);
+    expect(out).toHaveLength(rows.length);
+    expect(out.map((r) => r.slug)).toContain("blazing-conflagration");
+    expect(out.map((r) => r.slug)).toContain("mighty-rage");
   });
 });

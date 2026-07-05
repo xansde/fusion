@@ -39,8 +39,12 @@
     classifyLoadError,
     mergeActionRows,
     filterActionRows,
+    filterRelevantRows,
+    deriveCharacterProfile,
     sortActionRows,
     buildEmbeddedDetailsDoc,
+    needsFallbackDescription,
+    withFallbackDescription,
     paginate,
     ACTIONS_PAGE_SIZE,
     GROUP_ORDER,
@@ -77,6 +81,10 @@
   let enabledGroups = $state<Set<ActionGroup>>(new Set(GROUP_ORDER));
   let enabledCosts = $state<Set<ActionCostFilter>>(new Set());
   let search = $state("");
+  // Character-relevance filter (default ON): hide actions the character can't
+  // take (other classes' / ancestries' / archetypes' actions). "Mostrar todas"
+  // reveals the full pack.
+  let showAll = $state(false);
 
   // --- Details panel state --------------------------------------------------
   const detailsCache = new DocumentDetailsCache();
@@ -132,8 +140,24 @@
 
   const allRows = $derived(mergeActionRows(packEntries, embeddedItems));
 
+  // The character's class/ancestry/archetype identity, for the relevance filter.
+  const profile = $derived(deriveCharacterProfile(embeddedItems));
+
+  // Rows surviving the character-relevance pre-filter (all rows when showAll).
+  // Group counts derive from THIS set so each checkbox reflects the relevance
+  // filter, not the raw 521-action pack.
+  const relevantRows = $derived(filterRelevantRows(allRows, profile, showAll));
+
+  // Per-group counts of the relevance-filtered set (independent of which groups
+  // are currently toggled on), shown beside each group checkbox.
+  const groupCounts = $derived.by((): Record<ActionGroup, number> => {
+    const counts = Object.fromEntries(GROUP_ORDER.map((g) => [g, 0])) as Record<ActionGroup, number>;
+    for (const row of relevantRows) counts[row.group] += 1;
+    return counts;
+  });
+
   const filtered = $derived.by(() => {
-    const rows = filterActionRows(allRows, {
+    const rows = filterActionRows(relevantRows, {
       groups: enabledGroups,
       costs: enabledCosts,
       search,
@@ -169,20 +193,30 @@
     selectedKey = rowItem.key;
     if (rowItem.uuid) {
       void loadDetails(rowItem.key, rowItem.uuid);
-    } else {
-      // Character-only action with no compendium uuid — render the embedded
-      // item's OWN description directly (no fetch). Key is "embedded:<_id>".
-      const itemId = rowItem.key.startsWith("embedded:") ? rowItem.key.slice("embedded:".length) : "";
-      detailsDoc = buildEmbeddedDetailsDoc(embeddedById.get(itemId));
-      detailsLoading = false;
-      detailsError = false;
+      return;
     }
+    // Character-only action with no compendium uuid — render the embedded
+    // item's OWN description directly (no fetch). Key is "embedded:<_id>".
+    const itemId = rowItem.key.startsWith("embedded:") ? rowItem.key.slice("embedded:".length) : "";
+    const embeddedDoc = buildEmbeddedDetailsDoc(embeddedById.get(itemId));
+    // Heal-on-read: items embedded before the r11 ORC/OGL policy carry an empty
+    // description. When the embedded description is empty AND the row deduped a
+    // pack doc (fallbackUuid), fetch that pack doc and splice in its
+    // description, keeping the embedded identity (name / "Do personagem" badge).
+    if (rowItem.fallbackUuid && needsFallbackDescription(embeddedDoc)) {
+      void loadEmbeddedFallback(rowItem.key, rowItem.fallbackUuid, embeddedDoc);
+      return;
+    }
+    detailsDoc = embeddedDoc;
+    detailsLoading = false;
+    detailsError = false;
   }
 
   async function loadDetails(key: string, uuid: string): Promise<void> {
     const cached = detailsCache.get(uuid);
     if (cached) {
       detailsDoc = cached;
+      detailsLoading = false;
       detailsError = false;
       return;
     }
@@ -203,9 +237,53 @@
     }
   }
 
+  /**
+   * Fetch the pack doc behind an embedded row's fallbackUuid and render its
+   * description under the embedded item's identity. Uses the SAME on-demand
+   * cache/socket path as loadDetails, with visible loading/error/retry states
+   * (never an endless spinner).
+   */
+  async function loadEmbeddedFallback(
+    key: string,
+    fallbackUuid: string,
+    embeddedDoc: Record<string, unknown> | null,
+  ): Promise<void> {
+    const cached = detailsCache.get(fallbackUuid);
+    if (cached) {
+      detailsDoc = withFallbackDescription(embeddedDoc, cached);
+      detailsLoading = false;
+      detailsError = false;
+      return;
+    }
+    detailsLoading = true;
+    detailsError = false;
+    try {
+      const sock = requireConnectedSocket(getSocket());
+      const { document } = await getDocument(sock, fallbackUuid);
+      detailsCache.set(fallbackUuid, document);
+      if (selectedKey === key) detailsDoc = withFallbackDescription(embeddedDoc, document);
+    } catch {
+      if (selectedKey === key) {
+        detailsError = true;
+        detailsDoc = null;
+      }
+    } finally {
+      if (selectedKey === key) detailsLoading = false;
+    }
+  }
+
   function retryDetails(): void {
     const rowItem = filtered.find((r) => r.key === selectedKey);
-    if (rowItem?.uuid) void loadDetails(rowItem.key, rowItem.uuid);
+    if (!rowItem) return;
+    if (rowItem.uuid) {
+      void loadDetails(rowItem.key, rowItem.uuid);
+      return;
+    }
+    if (rowItem.fallbackUuid) {
+      const itemId = rowItem.key.startsWith("embedded:") ? rowItem.key.slice("embedded:".length) : "";
+      const embeddedDoc = buildEmbeddedDetailsDoc(embeddedById.get(itemId));
+      void loadEmbeddedFallback(rowItem.key, rowItem.fallbackUuid, embeddedDoc);
+    }
   }
 
   function groupBadgeLabel(group: ActionGroup): string {
@@ -225,6 +303,7 @@
             onchange={() => toggleGroup(group)}
           />
           <span>{groupBadgeLabel(group)}</span>
+          <span class="actions-check__count">{groupCounts[group]}</span>
         </label>
       {/each}
     </div>
@@ -255,6 +334,16 @@
           bind:value={search}
         />
       </div>
+      <button
+        type="button"
+        class="actions-showall"
+        class:actions-showall--active={showAll}
+        aria-pressed={showAll}
+        title={t("FUSION.Sheet.Actions.ShowAllHint")}
+        onclick={() => { showAll = !showAll; }}
+      >
+        {t("FUSION.Sheet.Actions.ShowAll")}
+      </button>
     </div>
 
     <!-- Result list -->
@@ -414,6 +503,23 @@
     color: var(--fusion-accent);
   }
 
+  .actions-check__count {
+    font-size: 10px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--fusion-text-subtle);
+    background: var(--fusion-surface);
+    border-radius: var(--fusion-radius-pill);
+    padding: 0 5px;
+    min-width: 16px;
+    text-align: center;
+  }
+
+  .actions-check--on .actions-check__count {
+    color: var(--fusion-accent);
+    background: var(--fusion-surface);
+  }
+
   .actions-controls {
     display: flex;
     flex-wrap: wrap;
@@ -489,6 +595,32 @@
     color: var(--fusion-text);
     font-size: 13px;
     font-family: var(--fusion-font);
+  }
+
+  .actions-showall {
+    flex-shrink: 0;
+    font-family: var(--fusion-font);
+    font-weight: 600;
+    font-size: 11px;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: var(--fusion-radius-pill);
+    background: transparent;
+    color: var(--fusion-text-muted);
+    border: 1px solid var(--fusion-border);
+    white-space: nowrap;
+    transition: border-color 0.12s, color 0.12s, background 0.12s;
+  }
+
+  .actions-showall:hover {
+    border-color: var(--fusion-accent);
+    color: var(--fusion-text);
+  }
+
+  .actions-showall--active {
+    background: var(--fusion-accent-dim);
+    border-color: var(--fusion-accent);
+    color: var(--fusion-accent);
   }
 
   .actions-results {

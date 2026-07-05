@@ -78,12 +78,30 @@ export interface ActionRow {
   key: string;
   /** Compendium UUID when loadable in the details panel, else null. */
   uuid: string | null;
+  /**
+   * Compendium UUID of the same-slug pack doc this row deduped, if any. Only
+   * set on embedded (character) rows that overrode a pack row during merge: it
+   * lets the details panel heal an empty embedded description on read by
+   * fetching the pack doc's description (embedded items imported before the r11
+   * ORC/OGL-preservation policy carry an empty system.description). null for
+   * pack rows and for embedded rows with no pack counterpart.
+   */
+  fallbackUuid: string | null;
   /** Canonical dedupe slug (system.slug if present, else derived from name). */
   slug: string;
   name: string;
   group: ActionGroup;
   cost: ActionCost;
   traits: string[];
+  /**
+   * Raw vendor folder category (system.fusionCategory) — the FINE-grained axis
+   * the relevance filter keys on: class / archetype / ancestry / heritage /
+   * background / familiar / spells / stamina / mythic / basic / skill /
+   * exploration / downtime / equipment. null when the source carried no folder
+   * field. Distinct from `group`, which collapses several of these (heritage →
+   * ancestry; familiar/spells/stamina/mythic → other) for the display grid.
+   */
+  fusionCategory: string | null;
   /** True when this action comes from an embedded actor item ("do personagem"). */
   fromCharacter: boolean;
 }
@@ -183,6 +201,24 @@ export function resolveActionGroup(doc: Record<string, unknown>): ActionGroup {
   return "other";
 }
 
+/**
+ * Read the raw vendor folder category (system.fusionCategory), the fine-grained
+ * axis the relevance filter keys on. Accepts the same alternate re-injection
+ * sites resolveActionGroup() reads (flags.fusion.actionFolder / actionCategory,
+ * system.actionFolder), lower-cased and trimmed. Returns null when absent.
+ */
+export function fusionCategoryOf(doc: Record<string, unknown>): string | null {
+  const system = isRecord(doc["system"]) ? (doc["system"] as Record<string, unknown>) : {};
+  const flags = isRecord(doc["flags"]) ? (doc["flags"] as Record<string, unknown>) : {};
+  const fusionFlags = isRecord(flags["fusion"]) ? (flags["fusion"] as Record<string, unknown>) : {};
+  const raw =
+    str(system["fusionCategory"]) ??
+    str(fusionFlags["actionFolder"]) ??
+    str(fusionFlags["actionCategory"]) ??
+    str(system["actionFolder"]);
+  return raw ? raw.toLowerCase() : null;
+}
+
 function traitsOf(system: Record<string, unknown>): string[] {
   const traits = system["traits"];
   if (!isRecord(traits)) return [];
@@ -236,11 +272,13 @@ export function rowFromIndexEntry(entry: PackIndexEntry): ActionRow {
   return {
     key: entry.uuid,
     uuid: entry.uuid,
+    fallbackUuid: null,
     slug: slugFromName(entry.name),
     name: entry.name,
     group: resolveActionGroup(docLike),
     cost: resolveActionCost(system),
     traits: traitsOf(system),
+    fusionCategory: fusionCategoryOf(docLike),
     fromCharacter: false,
   };
 }
@@ -264,11 +302,13 @@ export function rowFromEmbeddedItem(item: Record<string, unknown>): ActionRow | 
   return {
     key: `embedded:${itemId}`,
     uuid: null,
+    fallbackUuid: null,
     slug: slugOf(item, system),
     name,
     group: resolveActionGroup(item),
     cost: resolveActionCost(system),
     traits: traitsOf(system),
+    fusionCategory: fusionCategoryOf(item),
     fromCharacter: true,
   };
 }
@@ -277,6 +317,13 @@ export function rowFromEmbeddedItem(item: Record<string, unknown>): ActionRow | 
  * Merge pack rows with the actor's embedded action rows, deduped by slug:
  * an embedded (character) row WINS over a same-slug pack row. Rows without a
  * slug are never deduped against each other (kept as-is).
+ *
+ * When an embedded row overrides a same-slug pack row, the overridden pack
+ * row's compendium uuid is preserved on the embedded row as `fallbackUuid`,
+ * so the details panel can heal an empty embedded description on read by
+ * fetching the pack doc (r11 ORC/OGL descriptions live in the pack, not on
+ * items embedded before that policy). Embedded rows with no pack counterpart
+ * keep `fallbackUuid: null`.
  */
 export function mergeActionRows(
   packEntries: PackIndexEntry[],
@@ -292,12 +339,18 @@ export function mergeActionRows(
     else noSlug.push(row);
   }
 
-  // Embedded (character) rows override same-slug pack rows.
+  // Embedded (character) rows override same-slug pack rows, inheriting the
+  // overridden pack row's uuid as their description fallback.
   for (const item of embeddedItems) {
     const row = rowFromEmbeddedItem(item);
     if (!row) continue;
-    if (row.slug) bySlug.set(row.slug, row);
-    else noSlug.push(row);
+    if (row.slug) {
+      const packRow = bySlug.get(row.slug);
+      if (packRow?.uuid) row.fallbackUuid = packRow.uuid;
+      bySlug.set(row.slug, row);
+    } else {
+      noSlug.push(row);
+    }
   }
 
   return [...bySlug.values(), ...noSlug];
@@ -337,6 +390,65 @@ export function buildEmbeddedDetailsDoc(
   };
 }
 
+/**
+ * Extract a details-panel doc's `system.description` as a plain HTML string
+ * (already normalized by buildEmbeddedDetailsDoc). Non-record docs and
+ * non-string descriptions read as an empty string.
+ */
+function detailsDescriptionOf(doc: Record<string, unknown> | null | undefined): string {
+  if (!isRecord(doc)) return "";
+  const system = doc["system"];
+  if (!isRecord(system)) return "";
+  const desc = system["description"];
+  return typeof desc === "string" ? desc : "";
+}
+
+/**
+ * Decide whether a details-panel doc has NO usable description — true when the
+ * description is missing, empty, or only whitespace/empty markup (e.g. "",
+ * "   ", "<p></p>", "<p>&nbsp;</p>"). Embedded items imported before the r11
+ * ORC/OGL-preservation policy carry such empty descriptions; when true AND the
+ * row has a fallbackUuid, the panel fetches the pack doc's description instead.
+ */
+export function needsFallbackDescription(doc: Record<string, unknown> | null | undefined): boolean {
+  const html = detailsDescriptionOf(doc);
+  if (!html) return true;
+  // Strip tags and HTML whitespace entities, then trim: bare markup with no
+  // text content (e.g. "<p></p>") counts as empty.
+  const text = html
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .trim();
+  return text.length === 0;
+}
+
+/**
+ * Return a copy of an embedded details doc with the compendium (pack) doc's
+ * description spliced in, keeping the embedded item's own identity — name,
+ * type, traits and mechanical system fields — so the panel still reads as the
+ * character's action ("Do personagem" badge lives on the row, not here). Used
+ * only when the embedded description is empty and a fallbackUuid resolved a
+ * pack doc. Falls back to the embedded doc unchanged if either input is unusable
+ * or the pack doc has no string description.
+ */
+export function withFallbackDescription(
+  embeddedDoc: Record<string, unknown> | null,
+  packDoc: Record<string, unknown> | null | undefined,
+): Record<string, unknown> | null {
+  if (!isRecord(embeddedDoc)) return embeddedDoc;
+  const packDescription = descriptionHtmlOf(
+    isRecord(packDoc) && isRecord(packDoc["system"])
+      ? (packDoc["system"] as Record<string, unknown>)
+      : {},
+  );
+  if (!packDescription) return embeddedDoc;
+  const system = isRecord(embeddedDoc["system"])
+    ? { ...(embeddedDoc["system"] as Record<string, unknown>) }
+    : {};
+  system["description"] = packDescription;
+  return { ...embeddedDoc, system };
+}
+
 // ---------------------------------------------------------------------------
 // Pagination
 // ---------------------------------------------------------------------------
@@ -365,6 +477,148 @@ export function paginate<T>(rows: T[], visibleCount: number): PaginationResult<T
     hasMore: clamped < rows.length,
     remaining: rows.length - clamped,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Character relevance filter (default ON) + "show all" toggle
+// ---------------------------------------------------------------------------
+
+/**
+ * The fine-grained fusionCategory values that are UNIVERSAL — every character
+ * can take them regardless of class/ancestry/archetype — so they are always
+ * relevant. Skill/basic/exploration/downtime actions and gear-use actions apply
+ * to anyone.
+ */
+const UNIVERSAL_CATEGORIES = new Set(["basic", "skill", "exploration", "downtime", "equipment"]);
+
+/**
+ * Fine-grained categories HIDDEN by default (surface only via the "Mostrar
+ * todas" toggle, or when a row also matches an embedded actor item →
+ * fromCharacter): narrow subsystems (familiar / spells / stamina / mythic) or
+ * ones the browser can't match confidently (background). Kept as documentation
+ * of the intended set; the relevance switch's `default` branch enforces it (any
+ * category not universal/class/ancestry/heritage/archetype is hidden).
+ */
+
+/**
+ * A character's identity slugs, derived from embedded items, used to decide
+ * which class/ancestry/archetype actions are relevant. All slugs are lower-cased.
+ */
+export interface CharacterActionProfile {
+  /** Class slugs (e.g. "magus") from embedded type:"class" items. */
+  classSlugs: Set<string>;
+  /** Ancestry + heritage slugs (e.g. "ratfolk") from embedded type:"ancestry"/"heritage". */
+  ancestrySlugs: Set<string>;
+  /** Archetype slugs (e.g. "alchemist") from embedded dedication feats. */
+  archetypeSlugs: Set<string>;
+}
+
+/** Lower-cased, trimmed slug from an item name, or null. */
+function nameSlug(item: Record<string, unknown>): string | null {
+  const name = str(item["name"]);
+  return name ? name.toLowerCase() : null;
+}
+
+/**
+ * Derive the archetype slug a dedication feat grants. Dedication feats carry the
+ * "dedication" trait but NOT the archetype's own slug as a trait (Alchemist
+ * Dedication traits are ["archetype","dedication","multiclass"]), so the slug is
+ * read from the feat NAME by stripping a trailing " dedication"
+ * ("Alchemist Dedication" → "alchemist"). Returns null when the item is not a
+ * dedication feat.
+ */
+function archetypeSlugFromDedication(item: Record<string, unknown>): string | null {
+  if (str(item["type"]) !== "feat") return null;
+  const system = isRecord(item["system"]) ? (item["system"] as Record<string, unknown>) : {};
+  const traits = traitsOf(system);
+  if (!traits.includes("dedication")) return null;
+  const name = str(item["name"]);
+  if (!name) return null;
+  const slug = name.toLowerCase().replace(/\s+dedication$/, "").trim();
+  return slug || null;
+}
+
+/**
+ * Build the character's relevance profile from the actor doc's embedded items:
+ * class slugs (type:"class"), ancestry/heritage slugs (type:"ancestry" /
+ * "heritage"), and archetype slugs (dedication feats). Pure — reads only the
+ * item name/type/traits.
+ */
+export function deriveCharacterProfile(
+  embeddedItems: Array<Record<string, unknown>>,
+): CharacterActionProfile {
+  const classSlugs = new Set<string>();
+  const ancestrySlugs = new Set<string>();
+  const archetypeSlugs = new Set<string>();
+
+  for (const item of embeddedItems) {
+    if (!isRecord(item)) continue;
+    const type = str(item["type"]);
+    if (type === "class") {
+      const s = nameSlug(item);
+      if (s) classSlugs.add(s);
+    } else if (type === "ancestry" || type === "heritage") {
+      const s = nameSlug(item);
+      if (s) ancestrySlugs.add(s);
+    }
+    const arch = archetypeSlugFromDedication(item);
+    if (arch) archetypeSlugs.add(arch);
+  }
+
+  return { classSlugs, ancestrySlugs, archetypeSlugs };
+}
+
+/** True when any of the row's traits is in `slugs`. */
+function traitsMatchAny(row: ActionRow, slugs: Set<string>): boolean {
+  if (slugs.size === 0) return false;
+  return row.traits.some((t) => slugs.has(t.toLowerCase()));
+}
+
+/**
+ * Decide whether an action row is relevant to the character (the default
+ * filter). Policy — err toward hiding when no confident match:
+ *   - embedded actor actions (fromCharacter) → always relevant.
+ *   - universal categories (basic/skill/exploration/downtime/equipment) → always.
+ *   - class → only if a trait matches one of the character's class slugs.
+ *   - ancestry / heritage → only if a trait matches an ancestry/heritage slug.
+ *   - archetype → only if a trait matches one of the character's archetype slugs.
+ *   - default-hidden categories (background/familiar/spells/stamina/mythic) and
+ *     anything with no/unknown category → not relevant.
+ */
+export function isActionRelevant(row: ActionRow, profile: CharacterActionProfile): boolean {
+  if (row.fromCharacter) return true;
+
+  const category = row.fusionCategory;
+  if (category && UNIVERSAL_CATEGORIES.has(category)) return true;
+
+  switch (category) {
+    case "class":
+      return traitsMatchAny(row, profile.classSlugs);
+    case "ancestry":
+    case "heritage":
+      return traitsMatchAny(row, profile.ancestrySlugs);
+    case "archetype":
+      return traitsMatchAny(row, profile.archetypeSlugs);
+    default:
+      // background / familiar / spells / stamina / mythic (DEFAULT_HIDDEN) plus
+      // any unknown/null category: hidden until "show all" (err toward hiding).
+      return false;
+  }
+}
+
+/**
+ * Apply the character-relevance pre-filter. When `showAll` is true the rows are
+ * returned unchanged (the "Mostrar todas" toggle). Otherwise only rows passing
+ * {@link isActionRelevant} survive. Runs BEFORE group/cost/search filtering so
+ * any group counts derived from the result reflect the relevance filter.
+ */
+export function filterRelevantRows(
+  rows: ActionRow[],
+  profile: CharacterActionProfile,
+  showAll: boolean,
+): ActionRow[] {
+  if (showAll) return rows;
+  return rows.filter((row) => isActionRelevant(row, profile));
 }
 
 // ---------------------------------------------------------------------------
