@@ -1,9 +1,25 @@
 {
   "schemaVersion": 1,
   "packId": "pf2e.feats-core",
-  "generatedAt": "2026-07-05T21:49:25.278Z",
+  "generatedAt": "2026-07-05T22:33:40.067Z",
   "generator": "tools/translate-packs@0.1.0",
   "entries": {
+    "UfknkTVC2ks7AnzY": {
+      "sourceHash": "e8e8c63b03863f35df3ed7f19e466179ae466999",
+      "grants": [
+        {
+          "kind": "feat-choice",
+          "category": "skill",
+          "count": 1,
+          "filters": {
+            "maxLevel": 1
+          },
+          "source": "llm",
+          "confidence": 0.7
+        }
+      ],
+      "unlocks": []
+    },
     "bduri70co98T1fwA": {
       "sourceHash": "b7d57c40b9661b5644b28b386f401671ab244d75",
       "grants": [
