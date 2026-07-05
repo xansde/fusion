@@ -472,7 +472,7 @@ describe("security response headers", () => {
     expect(res.headers["strict-transport-security"]).toContain("max-age=");
   });
 
-  it("HTML responses (the SPA shell) include a strict CSP with a per-request script-src nonce and no unsafe-eval anywhere", async () => {
+  it("HTML responses (the SPA shell) include a strict CSP with a per-request script-src nonce, 'wasm-unsafe-eval' for the 3D dice engine, and no generic unsafe-eval anywhere", async () => {
     const distDir = makeDistFixture();
     try {
       const config = makeTestConfig();
@@ -491,15 +491,18 @@ describe("security response headers", () => {
       expect(csp).toBeDefined();
       expect(csp).toContain("default-src 'self'");
       expect(csp).toContain("object-src 'none'");
-      expect(csp).toMatch(/script-src 'self' 'nonce-[A-Za-z0-9+/=]+'/);
-      // REQ-SEC-054/DEC-SEC-05: unsafe-eval must never appear (any directive),
-      // and script-src specifically must never carry unsafe-inline — that is
-      // the directive the spec's XSS-mitigation intent targets, and this repo
-      // enforces it strictly (nonce-only, per REQ-SEC-055). Matching the
-      // whole script-src directive (up to the next `;`) confirms nothing
-      // beyond the nonce token is appended to it.
-      expect(csp).not.toContain("unsafe-eval");
-      expect(csp).toMatch(/script-src 'self' 'nonce-[A-Za-z0-9+/=]+';/);
+      expect(csp).toMatch(/script-src 'self' 'nonce-[A-Za-z0-9+/=]+' 'wasm-unsafe-eval'/);
+      // The 3D dice library (@3d-dice/dice-box) compiles/instantiates a WASM
+      // physics engine (ammo.wasm) at runtime, which requires
+      // 'wasm-unsafe-eval' in script-src. REQ-SEC-054/DEC-SEC-05 still bans
+      // generic 'unsafe-eval' (arbitrary JS eval/Function) everywhere — the
+      // token match below is exact (surrounded by quotes) so it does not
+      // false-positive on the 'wasm-unsafe-eval' substring.
+      expect(csp).not.toContain("'unsafe-eval'");
+      // Matching the whole script-src directive (up to the next `;`)
+      // confirms nothing beyond the nonce + wasm-unsafe-eval tokens is
+      // appended to it.
+      expect(csp).toMatch(/script-src 'self' 'nonce-[A-Za-z0-9+/=]+' 'wasm-unsafe-eval';/);
       // PIXI/3D-dice spawn blob: Web Workers — worker-src must allow blob:
       // (falls back to default-src 'self' otherwise, breaking texture/dice
       // workers). This is not unsafe-eval; script-src stays strict.

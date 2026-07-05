@@ -298,7 +298,15 @@ async function registerRoutes(
           // code (NOT unsafe-eval), so this is a safe, targeted allowance that
           // keeps script-src strict.
           "worker-src 'self' blob:",
-          `script-src 'self' 'nonce-${nonce}'`,
+          // 'wasm-unsafe-eval' is required by the 3D dice library
+          // (@3d-dice/dice-box), whose physics engine compiles/instantiates a
+          // WebAssembly module (ammo.wasm) at runtime. Without it,
+          // WebAssembly.instantiate is blocked by CSP's script-src, breaking
+          // the 3D dice roller entirely. This is intentionally scoped to WASM
+          // only — it does NOT grant 'unsafe-eval' (arbitrary JS eval/Function
+          // constructor remain blocked), so the XSS attack surface added is
+          // limited to executing WASM modules, not arbitrary script strings.
+          `script-src 'self' 'nonce-${nonce}' 'wasm-unsafe-eval'`,
           // DECISION (M6/B1, spec×client tension — see project CLAUDE.md: the
           // client is out of scope for this batch): REQ-SEC-054's MINIMUM
           // required CSP directive set (default-src/object-src/frame-ancestors/
