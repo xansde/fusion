@@ -528,17 +528,31 @@ function isFeatsCoreDoc(doc) {
  * spells (kept verbatim — 5 of them are divine/primal only, e.g. Heal, not
  * arcane, but were part of the pre-R10 MVP and the plan says "mantenha os 22
  * atuais") UNION every spell with "arcane" in traits.traditions (all ranks +
- * cantrips) UNION every Magus focus spell (trait "magus" — covers all 8
- * Hybrid Study focus spells including Starlit Span's Shooting Star). No
- * ritual documents exist in the vendor's `spells` pack (rituals are simply
- * absent from this vendor snapshot — REQ confirmed by inspection), so the
- * "sem rituals (V2)" requirement is trivially satisfied without a filter.
+ * cantrips) UNION EVERY focus spell (trait "focus").
+ *
+ * BUGFIX (r12 blocker): the previous predicate only pulled in Magus focus
+ * spells via `hasTrait(doc, 'magus')`, which is 12 of the vendor's 458 focus
+ * spells (all in vendor/pf2e/packs/pf2e/spells/focus/). Focus spells cast
+ * from a class's focus POOL, not from a spellcasting tradition, so they carry
+ * an EMPTY `system.traits.traditions` — the `hasTradition(doc, 'arcane')`
+ * branch never matched them and the other 446 (cleric/druid/bard/sorcerer/
+ * etc. focus spells) were silently dropped. The sheet's focus-spell picker
+ * filters the pack by the `focus` TRAIT, so it returned an empty list. The
+ * `hasTrait(doc, 'focus')` branch below is the canonical, class-agnostic
+ * selector — every focus spell in the compendium is now present (the 12
+ * Magus ones already carry both `focus` AND `magus`, so this is a strict
+ * superset; no doc is duplicated).
+ *
+ * Rituals (vendor/pf2e/packs/pf2e/spells/rituals/, 150 docs, also `type:
+ * "spell"`) carry neither `arcane` tradition nor the `focus` trait, so they
+ * stay excluded — the "sem rituals (V2)" requirement holds without an extra
+ * filter.
  */
 function isSpellsCoreDoc(doc, existingSourceIds) {
   const sourceId = doc.flags?.fusion?.sourceId;
   if (sourceId && existingSourceIds.has(sourceId)) return true;
   if (hasTradition(doc, 'arcane')) return true;
-  if (hasTrait(doc, 'magus')) return true;
+  if (hasTrait(doc, 'focus')) return true;
   return false;
 }
 
@@ -784,7 +798,8 @@ async function buildPf2eSubset() {
     const original22 = filterToMvpSubset(all, MVP_SPELL_PF2E_IDS);
     const existingSourceIds = new Set(original22.map(d => d.flags.fusion.sourceId));
     const docs = all.filter(d => isSpellsCoreDoc(d, existingSourceIds));
-    console.log(`[build-mvp] spells-core: ${docs.length} magias selecionadas (22 originais + arcane + foco do magus) de ${all.length} totais`);
+    const focusCount = docs.filter((d) => Array.isArray(d.system?.traits?.value) && d.system.traits.value.includes('focus')).length;
+    console.log(`[build-mvp] spells-core: ${docs.length} magias selecionadas (22 originais + arcane + ${focusCount} focus) de ${all.length} totais`);
 
     const manifest = PACK_MANIFESTS['spells-core'];
     writePack('spells-core', docs, manifest);

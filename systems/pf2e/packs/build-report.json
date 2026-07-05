@@ -18,7 +18,7 @@
     {
       "packId": "pf2e.spells-core",
       "slug": "spells-core",
-      "documentCount": 806
+      "documentCount": 1252
     },
     {
       "packId": "pf2e.classes-core",
@@ -56,7 +56,7 @@
       "documentCount": 521
     }
   ],
-  "generatedAt": "2026-07-05T18:45:16.393Z",
+  "generatedAt": "2026-07-05T19:48:28.677Z",
   "importerVersion": "0.1.0",
   "sourceVersion": "v14-dev"
 }

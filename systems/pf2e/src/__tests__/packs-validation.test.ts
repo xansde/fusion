@@ -309,6 +309,79 @@ describe("packs-validation: r10 domain invariants", () => {
     expect(spells.map((s) => s.name)).toContain("Shooting Star");
   });
 
+  // r12 blocker guard: the focus-spell picker filters spells-core by the
+  // `focus` trait. A previous build only included the 12 Magus focus spells
+  // (the pipeline selected focus spells via the `magus` trait, missing the
+  // other ~446 class-agnostic focus spells because focus spells carry an
+  // empty traits.traditions and so never matched the `arcane` branch either).
+  // These assertions lock in that EVERY vendor focus spell is present and
+  // that every focus spell in the pack actually carries the `focus` trait
+  // (so the picker's trait filter has data to show).
+  it("spells-core contains focus spells (picker filters by the 'focus' trait)", () => {
+    const spells = loadDocuments("spells-core");
+    const focusSpells = spells.filter((s) => {
+      const value = (s.system as { traits?: { value?: unknown } }).traits?.value;
+      return Array.isArray(value) && value.includes("focus");
+    });
+    // The vendor snapshot ships hundreds of focus spells across every class;
+    // a healthy pack has far more than the 12 Magus ones that used to leak in.
+    expect(focusSpells.length).toBeGreaterThan(100);
+    // Shooting Star (Starlit Span) must specifically be among them.
+    expect(focusSpells.map((s) => s.name)).toContain("Shooting Star");
+  });
+
+  it("Shooting Star's traits include 'focus', and Magus focus spells keep both 'focus' and 'magus'", () => {
+    const spells = loadDocuments("spells-core");
+    const shootingStar = spells.find((s) => s.name === "Shooting Star");
+    expect(shootingStar).toBeDefined();
+    const ssTraits = (shootingStar!.system as { traits?: { value?: unknown } }).traits?.value;
+    const ssValues = Array.isArray(ssTraits)
+      ? ssTraits.filter((v): v is string => typeof v === "string")
+      : [];
+    // Shooting Star is a Magus (Starlit Span) focus spell — it must carry
+    // BOTH traits so it surfaces under the picker's focus filter AND remains
+    // discoverable as a Magus conflux spell.
+    expect(ssValues).toEqual(expect.arrayContaining(["focus", "magus"]));
+  });
+
+  it("the picker's 'focus' trait filter surfaces every focus spell, and each is index-consistent", () => {
+    const spells = loadDocuments("spells-core");
+    const isFocus = (doc: RawDoc): boolean => {
+      const value = (doc.system as { traits?: { value?: unknown } }).traits?.value;
+      return Array.isArray(value) && value.includes("focus");
+    };
+
+    const focusSpells = spells.filter(isFocus);
+    // The bug this guards: a build where focus spells were selected by the
+    // `magus` trait pulled in only 12; a class-agnostic `focus`-trait selector
+    // must ship hundreds (cleric/druid/bard/sorcerer/... focus spells too).
+    expect(focusSpells.length).toBeGreaterThan(100);
+
+    // The picker reads the SEARCH INDEX (index.json), not documents.json.
+    // Assert the index's system.traits.value carries `focus` for the same set
+    // of docs — otherwise the picker's chip filter would silently disagree
+    // with the pack (index vs. document drift).
+    const indexRaw = readFileSync(resolve(PACKS_ROOT, "spells-core", "index.json"), "utf-8");
+    const index = JSON.parse(indexRaw) as Array<{
+      _id: string;
+      name: string;
+      index: Record<string, unknown>;
+    }>;
+    const indexFocusIds = new Set(
+      index
+        .filter((e) => {
+          const value = e.index["system.traits.value"];
+          return Array.isArray(value) && value.includes("focus");
+        })
+        .map((e) => e._id),
+    );
+    const docFocusIds = new Set(focusSpells.map((s) => s._id));
+    const onlyInDocs = [...docFocusIds].filter((id) => !indexFocusIds.has(id));
+    const onlyInIndex = [...indexFocusIds].filter((id) => !docFocusIds.has(id));
+    expect(onlyInDocs, `focus in documents but not index: ${onlyInDocs.join(", ")}`).toEqual([]);
+    expect(onlyInIndex, `focus in index but not documents: ${onlyInIndex.join(", ")}`).toEqual([]);
+  });
+
   it("system.description is present only on documents whose system.publication.license is ORC or OGL (policy update W2-C1, stripFlavorProse)", () => {
     const offenders: string[] = [];
     const REDISTRIBUTABLE = new Set(["ORC", "OGL"]);

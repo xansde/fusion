@@ -729,7 +729,7 @@
   {@const entry = findEntry(pickerEntryId)}
   {#if entry}
     <SpellPickerDialog
-      tradition={entry.tradition}
+      tradition={pickerMode === "focus" ? "" : entry.tradition}
       traditionLabel={traditionLabel(entry.tradition)}
       entryLabel={entry.label}
       maxRank={pickerMode === "prepare" ? pickerRank : undefined}

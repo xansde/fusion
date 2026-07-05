@@ -10,18 +10,8 @@
 
 | Pack | Docs | img substituídas | img Paizo | img FoundryCore | Docs c/ rules | Entradas rules | Itens embutidos |
 |---|---|---|---|---|---|---|---|
-| **equipment** | 5645 | 5645 | 2769 | 2876 | 1313 | 2276 | 0 |
 | **spells** | 1796 | 1796 | 755 | 1041 | 11 | 18 | 0 |
-| **conditions** | 43 | 43 | 43 | 0 | 19 | 49 | 0 |
-| **pathfinder-monster-core** | 492 | 6695 | 5523 | 1172 | 771 | 1251 | 6203 |
-| **classes** | 27 | 27 | 27 | 0 | 5 | 11 | 0 |
-| **class-features** | 841 | 841 | 199 | 642 | 584 | 2170 | 0 |
-| **feats** | 5987 | 5987 | 11 | 5976 | 2411 | 5112 | 0 |
-| **ancestries** | 50 | 50 | 50 | 0 | 13 | 33 | 0 |
-| **heritages** | 322 | 322 | 95 | 227 | 282 | 535 | 0 |
-| **backgrounds** | 495 | 495 | 495 | 0 | 135 | 315 | 0 |
-| **actions** | 559 | 559 | 559 | 0 | 69 | 146 | 0 |
-| **TOTAL** | **16257** | **22460** | **10526** | **11934** | **5613** | **11916** | **6203** |
+| **TOTAL** | **1796** | **1796** | **755** | **1041** | **11** | **18** | **0** |
 
 ---
 
@@ -55,17 +45,7 @@
 
 | Pack | Docs | Tamanho estimado normalized.json |
 |---|---|---|
-| equipment | 5645 | ~9.61 MB |
 | spells | 1796 | ~3.17 MB |
-| conditions | 43 | ~0.05 MB |
-| pathfinder-monster-core | 492 | ~6.99 MB |
-| classes | 27 | ~0.13 MB |
-| class-features | 841 | ~1.71 MB |
-| feats | 5987 | ~7.47 MB |
-| ancestries | 50 | ~0.08 MB |
-| heritages | 322 | ~0.36 MB |
-| backgrounds | 495 | ~0.84 MB |
-| actions | 559 | ~0.69 MB |
 
 ---
 
@@ -73,94 +53,21 @@
 
 | Rule Key | Ocorrências |
 |---|---|
-| `FlatModifier` | 2121 |
-| `ItemAlteration` | 1554 |
-| `RollOption` | 1447 |
-| `ActiveEffectLike` | 1392 |
-| `GrantItem` | 1253 |
-| `Note` | 628 |
-| `ChoiceSet` | 622 |
-| `DamageDice` | 397 |
-| `Resistance` | 363 |
-| `AdjustDegreeOfSuccess` | 251 |
+| `DamageAlteration` | 7 |
+| `DamageDice` | 7 |
+| `ItemAlteration` | 2 |
+| `RollOption` | 1 |
+| `EphemeralEffect` | 1 |
 
 ---
 
 ## 5. Tipos de documento por pack
-
-### equipment
-
-| Tipo | Docs |
-|---|---|
-| equipment | 2281 |
-| consumable | 1666 |
-| weapon | 975 |
-| ammo | 203 |
-| armor | 201 |
-| treasure | 153 |
-| shield | 118 |
-| backpack | 46 |
-| kit | 2 |
 
 ### spells
 
 | Tipo | Docs |
 |---|---|
 | spell | 1796 |
-
-### conditions
-
-| Tipo | Docs |
-|---|---|
-| condition | 43 |
-
-### pathfinder-monster-core
-
-| Tipo | Docs |
-|---|---|
-| npc | 492 |
-
-### classes
-
-| Tipo | Docs |
-|---|---|
-| class | 27 |
-
-### class-features
-
-| Tipo | Docs |
-|---|---|
-| feat | 841 |
-
-### feats
-
-| Tipo | Docs |
-|---|---|
-| feat | 5987 |
-
-### ancestries
-
-| Tipo | Docs |
-|---|---|
-| ancestry | 50 |
-
-### heritages
-
-| Tipo | Docs |
-|---|---|
-| heritage | 322 |
-
-### backgrounds
-
-| Tipo | Docs |
-|---|---|
-| background | 495 |
-
-### actions
-
-| Tipo | Docs |
-|---|---|
-| action | 559 |
 
 ---
 
