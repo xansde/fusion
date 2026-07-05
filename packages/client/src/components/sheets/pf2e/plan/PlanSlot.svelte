@@ -11,9 +11,15 @@
    * R12 item 1: when `onEdit` is supplied the whole slot body becomes a
    * button that re-opens the slot's dialog pre-populated (in-place re-editing
    * of an already-filled ability-boost/skill-training slot), and a pencil
-   * affordance appears on hover next to the remove (×). Slots without an
-   * in-place re-edit path (feats/hybrid study — reversible only via remove +
-   * re-pick) simply omit `onEdit` and stay non-clickable in the body.
+   * affordance appears on hover next to the remove (×).
+   *
+   * R12 (details): slots WITHOUT an in-place re-edit path (feats/hybrid
+   * study — reversible only via remove + re-pick) instead accept `onDetails`,
+   * which makes the body a button that opens the read-only details dialog
+   * ("what does this feat do?") and shows an info (ⓘ) affordance on hover.
+   * `onEdit` takes precedence when both are given. Passing neither keeps the
+   * body non-clickable. Neither affordance interferes with the × remove
+   * button (its click is stopPropagation'd).
    */
 
   import type { Snippet } from "svelte";
@@ -23,19 +29,26 @@
     type: string;
     onRemove?: (() => void) | undefined;
     onEdit?: (() => void) | undefined;
+    onDetails?: (() => void) | undefined;
     badge?: Snippet | undefined;
   }
 
-  let { name, type, onRemove, onEdit, badge }: Props = $props();
+  let { name, type, onRemove, onEdit, onDetails, badge }: Props = $props();
+
+  // Edit is the primary body action when available (ability boosts / skill
+  // trainings); details is the fallback for non-editable filled slots (feats).
+  const bodyAction = $derived(onEdit ?? onDetails);
+  const bodyIsEdit = $derived(onEdit !== undefined);
+  const bodyLabel = $derived(bodyIsEdit ? `Editar: ${name}` : `Detalhes: ${name}`);
 </script>
 
-<div class="plan-slot" class:plan-slot--editable={onEdit !== undefined}>
-  {#if onEdit}
+<div class="plan-slot" class:plan-slot--editable={bodyAction !== undefined}>
+  {#if bodyAction}
     <button
       type="button"
       class="plan-slot__body"
-      onclick={onEdit}
-      aria-label={`Editar: ${name}`}
+      onclick={bodyAction}
+      aria-label={bodyLabel}
     >
       <span class="plan-slot__check" aria-hidden="true">&#10003;</span>
       <span class="plan-slot__main">
@@ -45,7 +58,7 @@
         </span>
         <span class="plan-slot__type">{type}</span>
       </span>
-      <span class="plan-slot__edit" aria-hidden="true">&#9998;</span>
+      <span class="plan-slot__edit" aria-hidden="true">{bodyIsEdit ? "✎" : "ⓘ"}</span>
     </button>
   {:else}
     <span class="plan-slot__check" aria-hidden="true">&#10003;</span>

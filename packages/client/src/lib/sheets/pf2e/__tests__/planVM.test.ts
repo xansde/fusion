@@ -41,9 +41,14 @@ import {
   previewAbilityScores,
   grantedFeatChoiceFor,
   matchesGrantedFeatFilter,
+  detailsRequestForSlot,
+  detailsRequestForAutoFeature,
+  findEntryUuidByName,
+  pickDefaultEntryUuid,
   type PlanOpBuilderContext,
   type PlanSlotModel,
   type FeatDocLike,
+  type PlanIndexEntryLike,
 } from "../planVM.js";
 import type { DocUpdatePayload } from "../characterSheetVM.js";
 import { DocCreatePayloadSchema, DocUpdatePayloadSchema, DocDeletePayloadSchema } from "@fusion/shared";
@@ -2581,5 +2586,91 @@ describe("removeChoice — cascades to a filled grantedFeat sub-slot", () => {
     const deleteOps = ops.filter((op) => op.type === "doc:delete") as Array<{ id: string }>;
     expect(deleteOps).toHaveLength(1);
     expect(deleteOps[0]!.id).toBe("item-archetype-feat-4");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// R12 — details-panel resolution (chips + filled slots + picker default)
+// ---------------------------------------------------------------------------
+
+describe("detailsRequestForSlot", () => {
+  function slot(overrides: Partial<PlanSlotModel>): PlanSlotModel {
+    return { slotId: "s", type: "classFeat", label: "Class Feat", filled: true, choiceName: "Sudden Charge", ...overrides };
+  }
+
+  it("routes a filled hybrid-study slot to class-features-core", () => {
+    const req = detailsRequestForSlot(slot({ type: "hybridStudy", choiceName: "Arcane Fists" }));
+    expect(req).toEqual({ packSlug: "class-features-core", name: "Arcane Fists" });
+  });
+
+  it("routes every filled feat-family slot to feats-core", () => {
+    for (const type of ["ancestryFeat", "classFeat", "generalFeat", "skillFeat", "archetypeFeat", "grantedFeat"] as const) {
+      const req = detailsRequestForSlot(slot({ type, choiceName: "Some Feat" }));
+      expect(req).toEqual({ packSlug: "feats-core", name: "Some Feat" });
+    }
+  });
+
+  it("returns null for slot types with no single compendium document", () => {
+    expect(detailsRequestForSlot(slot({ type: "abilityBoosts", choiceName: "str, dex" }))).toBeNull();
+    expect(detailsRequestForSlot(slot({ type: "skillTraining", choiceName: "2/4" }))).toBeNull();
+    expect(detailsRequestForSlot(slot({ type: "skillIncrease", choiceName: "1/1" }))).toBeNull();
+  });
+
+  it("returns null for an unfilled slot or one with no choice name", () => {
+    expect(detailsRequestForSlot(slot({ filled: false }))).toBeNull();
+    // A filled slot missing choiceName entirely (not "choiceName: undefined",
+    // which exactOptionalPropertyTypes rejects) also yields no request.
+    const noName: PlanSlotModel = { slotId: "s", type: "classFeat", label: "Class Feat", filled: true };
+    expect(detailsRequestForSlot(noName)).toBeNull();
+  });
+});
+
+describe("detailsRequestForAutoFeature", () => {
+  it("always resolves an auto-feature against class-features-core", () => {
+    const req = detailsRequestForAutoFeature({ name: "Spellstrike", locked: true });
+    expect(req).toEqual({ packSlug: "class-features-core", name: "Spellstrike" });
+  });
+});
+
+describe("findEntryUuidByName", () => {
+  const entries: PlanIndexEntryLike[] = [
+    { name: "Arcane Spellcasting (Magus)", uuid: "Compendium.pf2e.class-features-core.Item.a1" },
+    { name: "Spellstrike", uuid: "Compendium.pf2e.class-features-core.Item.b2" },
+    { name: "Conflux Spells", uuid: "Compendium.pf2e.class-features-core.Item.c3" },
+  ];
+
+  it("matches an exact name (the common chip case, parenthetical included)", () => {
+    expect(findEntryUuidByName(entries, "Arcane Spellcasting (Magus)")).toBe(
+      "Compendium.pf2e.class-features-core.Item.a1",
+    );
+  });
+
+  it("is accent- and case-insensitive", () => {
+    expect(findEntryUuidByName(entries, "spellstrike")).toBe("Compendium.pf2e.class-features-core.Item.b2");
+    expect(findEntryUuidByName([{ name: "Estratégia", uuid: "u" }], "estrategia")).toBe("u");
+  });
+
+  it("falls back to a UNIQUE prefix match when there is no exact match", () => {
+    expect(findEntryUuidByName(entries, "Conflux")).toBe("Compendium.pf2e.class-features-core.Item.c3");
+  });
+
+  it("returns null on no match, empty name, or an ambiguous prefix", () => {
+    expect(findEntryUuidByName(entries, "Nonexistent Feature")).toBeNull();
+    expect(findEntryUuidByName(entries, "")).toBeNull();
+    const ambiguous: PlanIndexEntryLike[] = [
+      { name: "Arcane Cascade", uuid: "x1" },
+      { name: "Arcane Fists", uuid: "x2" },
+    ];
+    expect(findEntryUuidByName(ambiguous, "Arcane")).toBeNull();
+  });
+});
+
+describe("pickDefaultEntryUuid", () => {
+  it("returns the first entry's uuid so the picker's details panel is never empty", () => {
+    expect(pickDefaultEntryUuid([{ name: "A", uuid: "u-a" }, { name: "B", uuid: "u-b" }])).toBe("u-a");
+  });
+
+  it("returns null for an empty list", () => {
+    expect(pickDefaultEntryUuid([])).toBeNull();
   });
 });

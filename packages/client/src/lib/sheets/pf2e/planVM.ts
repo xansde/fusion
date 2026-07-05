@@ -2162,6 +2162,108 @@ function syncSlotMaxOp(
 }
 
 // ---------------------------------------------------------------------------
+// Details-panel resolution (R12 — "explain what each item means")
+//
+// Both the compendium picker (unchosen slots) and the Plan column's inline
+// affordances (locked auto-feature chips, already-filled feat/hybrid-study
+// slots) need to show the ORC/OGL description of a compendium document. The
+// picker already holds the pack's index entries (each carrying the full
+// compendium uuid), but the chips/filled slots only know an item NAME — and
+// the embedded actor item may have an empty description (pre-r11 imports).
+//
+// So resolution is uniform and NAME-based: search the right pack's index for
+// an entry whose name matches, then getDocument(uuid) with the same
+// on-demand cache the picker uses. featuresByLevel[].uuid is a bare Foundry
+// id (e.g. "xvC1jNDkNdNtZQiF"), NOT a "Compendium.<pack>.Item.<id>" uuid, so
+// it cannot feed compendium:get directly — name resolution is the reliable
+// path for every case.
+// ---------------------------------------------------------------------------
+
+/** Minimal index-entry shape the details resolvers need (subset of PackIndexEntry). */
+export interface PlanIndexEntryLike {
+  name: string;
+  uuid: string;
+}
+
+/**
+ * A request to open the details panel for a Plan item: which pack to search
+ * and the item name to match. `level`/`rank` are display-only extras the
+ * caller may already know; the resolver ignores them.
+ */
+export interface PlanDetailsRequest {
+  /** Pack slug suffix, e.g. "class-features-core" / "feats-core". */
+  packSlug: string;
+  /** Item name to resolve against the pack index (accent/case-insensitive). */
+  name: string;
+}
+
+/** Normalize a name for matching — mirrors normalizeSearchText (accent/case-fold). */
+function normalizeName(name: string): string {
+  return name
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+/**
+ * Which pack a FILLED slot's description lives in. Hybrid Study picks are
+ * class features; every feat slot (class/ancestry/general/skill/archetype/
+ * granted) is a feat. Ability-boost/skill-training slots have no single
+ * compendium document to describe, so they return null (the Plan column
+ * never opens a details panel for those — they're edited in their own
+ * dialogs instead).
+ */
+export function detailsRequestForSlot(slot: PlanSlotModel): PlanDetailsRequest | null {
+  const name = slot.choiceName;
+  if (!name || !slot.filled) return null;
+  switch (slot.type) {
+    case "hybridStudy":
+      return { packSlug: "class-features-core", name };
+    case "ancestryFeat":
+    case "classFeat":
+    case "generalFeat":
+    case "skillFeat":
+    case "archetypeFeat":
+    case "grantedFeat":
+      return { packSlug: "feats-core", name };
+    default:
+      return null;
+  }
+}
+
+/** The pack a locked auto-feature chip's description lives in (always a class feature). */
+export function detailsRequestForAutoFeature(feature: AutoFeatureModel): PlanDetailsRequest {
+  return { packSlug: "class-features-core", name: feature.name };
+}
+
+/**
+ * Find the compendium uuid of the index entry whose name matches `name`
+ * (accent/case-insensitive), or null if none. An exact normalized match wins;
+ * failing that, a unique prefix match is accepted (vendor chip names like
+ * "Arcane Spellcasting (Magus)" already carry their parenthetical, so exact
+ * match is the common path — the prefix fallback only helps when a chip name
+ * is a shortened form of the pack entry's name).
+ */
+export function findEntryUuidByName(entries: PlanIndexEntryLike[], name: string): string | null {
+  const target = normalizeName(name);
+  if (!target) return null;
+  const exact = entries.find((e) => normalizeName(e.name) === target);
+  if (exact) return exact.uuid;
+  const prefixed = entries.filter((e) => normalizeName(e.name).startsWith(target));
+  return prefixed.length === 1 ? prefixed[0]!.uuid : null;
+}
+
+/**
+ * The entry to select by default when a picker opens: the first of the
+ * already-sorted/filtered list, so the details panel is never empty. Returns
+ * null for an empty list.
+ */
+export function pickDefaultEntryUuid(entries: PlanIndexEntryLike[]): string | null {
+  return entries.length > 0 ? entries[0]!.uuid : null;
+}
+
+// ---------------------------------------------------------------------------
 // Re-exports for convenience
 // ---------------------------------------------------------------------------
 

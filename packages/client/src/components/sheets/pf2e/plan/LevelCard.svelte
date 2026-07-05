@@ -8,7 +8,8 @@
    * (.fusion-build/r10-design/claude-design/components/plan/LevelCard.jsx).
    */
 
-  import type { LevelPlanModel, PlanSlotModel } from "../../../../lib/sheets/pf2e/planVM.js";
+  import type { LevelPlanModel, PlanSlotModel, AutoFeatureModel } from "../../../../lib/sheets/pf2e/planVM.js";
+  import { detailsRequestForSlot } from "../../../../lib/sheets/pf2e/planVM.js";
   import PlanSlot from "./PlanSlot.svelte";
   import PlanEmptySlot from "./PlanEmptySlot.svelte";
   import PlanAutoChip from "./PlanAutoChip.svelte";
@@ -21,15 +22,21 @@
     slotLabel: (slot: PlanSlotModel) => string;
     onSlotClick: (slot: PlanSlotModel) => void;
     onSlotRemove: (slot: PlanSlotModel) => void;
+    /** Open the read-only details dialog for a filled feat/hybrid-study slot (R12). */
+    onSlotDetails: (slot: PlanSlotModel) => void;
+    /** Open the read-only details dialog for a locked auto-feature chip (R12). */
+    onAutoFeatureClick: (feature: AutoFeatureModel) => void;
   }
 
-  let { levelPlan, editable, slotLabel, onSlotClick, onSlotRemove }: Props = $props();
+  let { levelPlan, editable, slotLabel, onSlotClick, onSlotRemove, onSlotDetails, onAutoFeatureClick }: Props =
+    $props();
 
   // R12 item 1: which filled slot types support in-place re-editing (re-open
   // the same dialog pre-populated). Ability boosts read straight from the live
   // ledger and skill trainings/increases reconcile the whole level+kind group,
   // so both are safe to re-open. Feats/hybrid study have no in-place edit path
-  // (change = remove + re-pick), so their body stays non-clickable.
+  // (change = remove + re-pick), so their body stays non-clickable — but they
+  // DO get a details click instead (see hasDetails).
   const EDITABLE_SLOT_TYPES = new Set<PlanSlotModel["type"]>([
     "abilityBoosts",
     "skillTraining",
@@ -38,6 +45,12 @@
 
   function canEdit(slot: PlanSlotModel): boolean {
     return editable && EDITABLE_SLOT_TYPES.has(slot.type);
+  }
+
+  // A filled slot gets a details click when it maps to a compendium document
+  // (feats/hybrid study) and it's NOT already showing the edit affordance.
+  function hasDetails(slot: PlanSlotModel): boolean {
+    return !canEdit(slot) && detailsRequestForSlot(slot) !== null;
   }
 </script>
 
@@ -60,6 +73,7 @@
             type={slot.label}
             onRemove={editable ? () => onSlotRemove(slot) : undefined}
             onEdit={canEdit(slot) ? () => onSlotClick(slot) : undefined}
+            onDetails={hasDetails(slot) ? () => onSlotDetails(slot) : undefined}
           >
             {#snippet badge()}
               {#if slot.optional}<PlanOptionalBadge />{/if}
@@ -74,7 +88,7 @@
     {#if levelPlan.autoFeatures.length > 0}
       <div class="level-card__auto">
         {#each levelPlan.autoFeatures as feature (feature.name)}
-          <PlanAutoChip name={feature.name} />
+          <PlanAutoChip name={feature.name} onClick={() => onAutoFeatureClick(feature)} />
         {/each}
       </div>
     {/if}

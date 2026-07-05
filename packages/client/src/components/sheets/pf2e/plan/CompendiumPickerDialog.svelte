@@ -18,7 +18,14 @@
    * a prop (see SpellPickerDialog.svelte's docstring for the frozen-socket
    * bug this avoids).
    *
-   * Clean-room: only mechanical index fields are shown — no prose.
+   * Clean-room: only mechanical index fields are shown in the LIST — no
+   * prose. The DETAILS PANEL (R12 — "preciso de uma descrição do que cada
+   * item significa para poder decidir o que escolher") renders the full
+   * ORC/OGL description/mechanics of the focused entry, fetched on demand
+   * via getDocument(uuid) and cached per dialog instance — the same flow
+   * SpellPickerDialog uses (DocumentDetailsCache + DocumentDetailsPanel).
+   * The first entry of the (sorted/filtered) list is auto-selected on open
+   * so the panel is never empty.
    */
 
   import type { PackIndexEntry } from "@fusion/shared";
@@ -30,6 +37,9 @@
     requireConnectedSocket,
     SocketUnavailableError,
   } from "../../../../lib/compendium/compendiumApi.js";
+  import { DocumentDetailsCache } from "../../../../lib/compendium/documentDetails.js";
+  import { pickDefaultEntryUuid } from "../../../../lib/sheets/pf2e/planVM.js";
+  import DocumentDetailsPanel from "../DocumentDetailsPanel.svelte";
   import { session, getSocket } from "../../../../lib/session.svelte.js";
   import { t } from "../../../../lib/i18n/i18n.js";
 
@@ -55,6 +65,15 @@
   let errorKind = $state<"not-connected" | "load" | null>(null);
   let entries = $state<PackIndexEntry[]>([]);
   let submitting = $state(false);
+
+  // --- Details panel state (R12) -------------------------------------------
+  // Cache is created once per dialog instance (not module-level) so a
+  // closed/reopened dialog always starts clean and separate instances never
+  // share entries — same contract as SpellPickerDialog.
+  const detailsCache = new DocumentDetailsCache();
+  let detailsDoc = $state<Record<string, unknown> | null>(null);
+  let detailsLoading = $state(false);
+  let detailsError = $state(false);
 
   const systemId = $derived(session.worldInfo?.systemId ?? "pf2e");
 
@@ -115,6 +134,57 @@
 
   function selectRow(e: PackIndexEntry): void {
     selectedUuid = e.uuid;
+    void loadDetails(e.uuid);
+  }
+
+  // Auto-select the first entry of the sorted/filtered list whenever the
+  // current selection falls out of view (initial load, or after a
+  // search/filter change that hides the selected row) so the details panel
+  // is never empty. Reading `filtered` here makes this reactive to the list.
+  $effect(() => {
+    const list = filtered;
+    if (list.length === 0) return;
+    if (selectedUuid && list.some((e) => e.uuid === selectedUuid)) return;
+    const next = pickDefaultEntryUuid(list);
+    if (next) {
+      selectedUuid = next;
+      void loadDetails(next);
+    }
+  });
+
+  /**
+   * Load the full document for the details panel, on demand, cached by uuid
+   * for the lifetime of this dialog instance. Never blocks the confirm flow —
+   * confirmSelection() reuses the same cache independently. Stale-response
+   * guarded against a faster later selection.
+   */
+  async function loadDetails(uuid: string): Promise<void> {
+    const cached = detailsCache.get(uuid);
+    if (cached) {
+      detailsDoc = cached;
+      detailsError = false;
+      detailsLoading = false;
+      return;
+    }
+    detailsLoading = true;
+    detailsError = false;
+    try {
+      const sock = requireConnectedSocket(getSocket());
+      const { document } = await getDocument(sock, uuid);
+      detailsCache.set(uuid, document);
+      if (selectedUuid === uuid) detailsDoc = document;
+    } catch {
+      if (selectedUuid === uuid) {
+        detailsError = true;
+        detailsDoc = null;
+      }
+    } finally {
+      if (selectedUuid === uuid) detailsLoading = false;
+    }
+  }
+
+  function retryDetails(): void {
+    if (selectedUuid) void loadDetails(selectedUuid);
   }
 
   async function confirmSelection(): Promise<void> {
@@ -122,8 +192,8 @@
     submitting = true;
     errorKind = null;
     try {
-      const sock = requireConnectedSocket(getSocket());
-      const { document } = await getDocument(sock, selectedUuid);
+      const cached = detailsCache.get(selectedUuid);
+      const document = cached ?? (await getDocument(requireConnectedSocket(getSocket()), selectedUuid)).document;
       onSelect(document);
       onClose();
     } catch (err) {
@@ -160,6 +230,7 @@
     </div>
 
     <div class="picker-modal__body">
+      <div class="picker-modal__main">
       <div class="picker-search">
         <span class="picker-search__icon" aria-hidden="true">&#128269;</span>
         <input
@@ -192,11 +263,11 @@
           <div class="picker-empty picker-empty--error">
             <span>
               {errorKind === "not-connected"
-                ? t("FUSION.Sheet.Spells.Picker.NotConnected")
+                ? t("FUSION.Sheet.Plan.Picker.NotConnected")
                 : t("FUSION.Sheet.Plan.Picker.LoadError")}
             </span>
             <button type="button" class="picker-btn picker-btn--secondary picker-retry" onclick={() => void loadEntries()}>
-              {t("FUSION.Sheet.Spells.Picker.Retry")}
+              {t("FUSION.Sheet.Plan.Picker.Retry")}
             </button>
           </div>
         {:else if filtered.length === 0}
@@ -230,10 +301,25 @@
           {/each}
         {/if}
       </div>
+      </div>
+
+      <div class="picker-modal__side">
+        <DocumentDetailsPanel
+          document={detailsDoc}
+          loading={detailsLoading}
+          error={detailsError}
+          onRetry={retryDetails}
+          loadingKey="FUSION.Sheet.Plan.Picker.Details.Loading"
+          loadErrorKey="FUSION.Sheet.Plan.Picker.Details.LoadError"
+          retryKey="FUSION.Sheet.Plan.Picker.Details.Retry"
+          selectHintKey="FUSION.Sheet.Plan.Picker.Details.SelectHint"
+          noDescriptionKey="FUSION.Sheet.Plan.Picker.Details.NoDescription"
+        />
+      </div>
     </div>
 
     <div class="picker-modal__footer">
-      <span class="picker-modal__note">{t("FUSION.Sheet.Spells.Picker.CleanRoomNote")}</span>
+      <span class="picker-modal__note">{t("FUSION.Sheet.Plan.Picker.CleanRoomNote")}</span>
       <div class="picker-modal__actions">
         <button type="button" class="picker-btn picker-btn--secondary" onclick={onClose}>
           {t("FUSION.Dialog.Cancel")}
@@ -264,9 +350,9 @@
   }
 
   .picker-modal {
-    width: 640px;
+    width: 960px;
     max-width: 100%;
-    max-height: 700px;
+    max-height: 720px;
     background: var(--fusion-surface);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-lg);
@@ -274,6 +360,12 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+  }
+
+  @media (max-width: 720px) {
+    .picker-modal {
+      width: 680px;
+    }
   }
 
   .picker-modal__header {
@@ -313,11 +405,49 @@
   }
 
   .picker-modal__body {
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .picker-modal__main {
     padding: 14px 18px;
     display: flex;
     flex-direction: column;
     gap: 12px;
     overflow-y: auto;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .picker-modal__side {
+    width: 300px;
+    flex-shrink: 0;
+    border-left: 1px solid var(--fusion-border);
+    background: var(--fusion-surface-alt);
+    overflow-y: auto;
+  }
+
+  @media (max-width: 720px) {
+    .picker-modal__body {
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .picker-modal__main {
+      overflow-y: visible;
+      flex: none;
+    }
+
+    .picker-modal__side {
+      width: 100%;
+      flex-shrink: 1;
+      border-left: none;
+      border-top: 1px solid var(--fusion-border);
+      max-height: 260px;
+    }
   }
 
   .picker-search {

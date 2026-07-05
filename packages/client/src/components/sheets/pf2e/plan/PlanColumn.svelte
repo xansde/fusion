@@ -46,16 +46,21 @@
     skillTrainingDialogContext,
     confirmSkillTraining,
     addLoreSkill,
+    detailsRequestForSlot,
+    detailsRequestForAutoFeature,
     type PlanSlotModel,
     type PlanSlotType,
     type PlanOpBuilderContext,
     type FeatDocLike,
     type SkillTrainingDialogKind,
+    type PlanDetailsRequest,
+    type AutoFeatureModel,
   } from "../../../../lib/sheets/pf2e/planVM.js";
   import type { DocOpPayload } from "../../../../lib/sheets/pf2e/characterSheetVM.js";
   import ABCCard from "./ABCCard.svelte";
   import LevelCard from "./LevelCard.svelte";
   import CompendiumPickerDialog from "./CompendiumPickerDialog.svelte";
+  import PlanDetailsDialog from "./PlanDetailsDialog.svelte";
   import AbilityBoostsDialog from "./AbilityBoostsDialog.svelte";
   import SkillTrainingDialog from "./SkillTrainingDialog.svelte";
   import { t } from "../../../../lib/i18n/i18n.js";
@@ -184,6 +189,23 @@
   function handleSlotRemove(_level: number, slot: PlanSlotModel): void {
     if (!editable) return;
     sendAll(removeChoice(opCtx, slot));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Inline details dialog (R12 — explain locked auto-feature chips and filled
+  // feat/hybrid-study slots). Read-only: no editable gate, since even
+  // visitors benefit from reading what a granted feature does.
+  // ---------------------------------------------------------------------------
+
+  let detailsRequest = $state<PlanDetailsRequest | null>(null);
+
+  function handleSlotDetails(slot: PlanSlotModel): void {
+    const req = detailsRequestForSlot(slot);
+    if (req) detailsRequest = req;
+  }
+
+  function handleAutoFeatureClick(feature: AutoFeatureModel): void {
+    detailsRequest = detailsRequestForAutoFeature(feature);
   }
 
   /** Reconstruct just enough of the FeatDocLike shape from a PackIndexEntry's flat dot-path index to run a feat predicate against it. */
@@ -404,6 +426,8 @@
           {slotLabel}
           onSlotClick={(slot) => handleSlotClick(levelPlan.level, slot)}
           onSlotRemove={(slot) => handleSlotRemove(levelPlan.level, slot)}
+          onSlotDetails={handleSlotDetails}
+          onAutoFeatureClick={handleAutoFeatureClick}
         />
       {/each}
     </div>
@@ -446,6 +470,10 @@
     onClose={() => { slotPicker = null; }}
     onSelect={handleSlotPickerSelect}
   />
+{/if}
+
+{#if detailsRequest}
+  <PlanDetailsDialog request={detailsRequest} onClose={() => { detailsRequest = null; }} />
 {/if}
 
 {#if boostsDialogTarget}
