@@ -1,0 +1,17 @@
+<!-- @dsCard group="Colors" viewport="700x150" name="Surfaces" subtitle="Layering scale — bg → surface → surface-alt → border" -->
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; background: var(--fusion-bg); font-family: var(--fusion-font); }
+  .wrap { display: flex; gap: 12px; padding: 20px; }
+  .sw { flex: 1; border: 1px solid var(--fusion-border); border-radius: var(--fusion-radius); overflow: hidden; }
+  .chip { height: 64px; }
+  .meta { padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; background: var(--fusion-surface); }
+  .name { font-size: 12px; font-weight: 600; color: var(--fusion-text); }
+  .hex { font-family: var(--fusion-font-mono); font-size: 11px; color: var(--fusion-text-muted); }
+</style>
+<div class="wrap">
+  <div class="sw"><div class="chip" style="background:#0e0e12"></div><div class="meta"><span class="name">bg</span><span class="hex">#0e0e12</span></div></div>
+  <div class="sw"><div class="chip" style="background:#18181f"></div><div class="meta"><span class="name">surface</span><span class="hex">#18181f</span></div></div>
+  <div class="sw"><div class="chip" style="background:#1f1f2a"></div><div class="meta"><span class="name">surface-alt</span><span class="hex">#1f1f2a</span></div></div>
+  <div class="sw"><div class="chip" style="background:#2e2e3d"></div><div class="meta"><span class="name">border</span><span class="hex">#2e2e3d</span></div></div>
+</div>

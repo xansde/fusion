@@ -1,0 +1,48 @@
+<!-- @dsCard group="Components" viewport="700x300" name="Navigation — Tabs · Chip" subtitle="Section tab bar and pill chips" -->
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  body { margin: 0; background: var(--fusion-bg); font-family: var(--fusion-font); color: var(--fusion-text); }
+  #root { padding: 24px; display: flex; flex-direction: column; gap: 18px; }
+  .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fusion-text-muted); font-weight: 600; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .grp { display: flex; flex-direction: column; gap: 8px; }
+</style>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script type="text/babel">
+  const { Tabs, Chip } = window.FusionVTTDesignSystem_1daa5f;
+  function Demo() {
+    return (
+      <>
+        <div className="grp">
+          <span className="lbl">Tabs</span>
+          <Tabs tabs={["Principal","Perícias","Ações","Magias","Inventário","Talentos","Bio"]} defaultValue="Magias" />
+        </div>
+        <div className="grp">
+          <span className="lbl">Chip — sub-tabs (origem)</span>
+          <div className="row">
+            <Chip active>Magus</Chip>
+            <Chip>Alquimista (Arquétipo)</Chip>
+            <Chip>Foco</Chip>
+            <Chip>Rituais</Chip>
+          </div>
+        </div>
+        <div className="grp">
+          <span className="lbl">Chip — filtros de compêndio</span>
+          <div className="row">
+            <Chip>0</Chip>
+            <Chip active>1</Chip>
+            <Chip>2</Chip>
+            <Chip fixed>Tradição: Arcana</Chip>
+            <Chip>Evocation</Chip>
+            <Chip>Conjuration</Chip>
+          </div>
+        </div>
+      </>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById("root")).render(<Demo />);
+</script>

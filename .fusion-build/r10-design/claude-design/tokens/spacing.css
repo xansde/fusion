@@ -1,0 +1,21 @@
+/* Fusion VTT — Spacing tokens
+   8px grid. Half-steps (2/4/6) are used for dense tool rows. */
+:root {
+  --fusion-space-0: 0;
+  --fusion-space-1: 2px;
+  --fusion-space-2: 4px;
+  --fusion-space-3: 6px;
+  --fusion-space-4: 8px;   /* base unit */
+  --fusion-space-5: 10px;
+  --fusion-space-6: 12px;
+  --fusion-space-7: 14px;
+  --fusion-space-8: 16px;
+  --fusion-space-10: 20px;
+  --fusion-space-12: 24px;
+  --fusion-space-16: 32px;
+
+  /* Common layout dimensions pulled from the sheet */
+  --fusion-plan-col-w: 300px;   /* embedded plan column */
+  --fusion-plan-col-w-lg: 360px;/* standalone plan column */
+  --fusion-titlebar-h: 44px;
+}

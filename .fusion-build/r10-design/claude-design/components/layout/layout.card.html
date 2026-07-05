@@ -1,0 +1,50 @@
+<!-- @dsCard group="Components" viewport="700x300" name="Layout — Panel · Modal" subtitle="Section card and the compendium dialog" -->
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  body { margin: 0; background: var(--fusion-bg); font-family: var(--fusion-font); color: var(--fusion-text); }
+  #root { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+  .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fusion-text-muted); font-weight: 600; }
+</style>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script type="text/babel">
+  const { Panel, Modal, Button, SearchBox, Chip, ResultRow } = window.FusionVTTDesignSystem_1daa5f;
+  function Demo() {
+    const [open, setOpen] = React.useState(false);
+    return (
+      <>
+        <span className="lbl">Panel (title + actions)</span>
+        <Panel title="Grimório" actions={<Button variant="primary" size="sm">+ Adicionar magia</Button>}>
+          <div style={{fontSize:13, color:"var(--fusion-text-muted)"}}>Graxa · Golpe Certeiro · Tentáculos Sombrios</div>
+        </Panel>
+        <div>
+          <Button variant="secondary" onClick={() => setOpen(true)}>Abrir Modal</Button>
+        </div>
+        {open && (
+          <Modal
+            title="Adicionar magia — Magus (Arcana)"
+            onClose={() => setOpen(false)}
+            footerNote="Dados mecânicos ORC — prosa não incluída (clean-room)"
+            footer={<>
+              <Button variant="secondary" onClick={() => setOpen(false)}>Cancelar</Button>
+              <Button variant="primary" onClick={() => setOpen(false)}>Adicionar ao grimório</Button>
+            </>}
+          >
+            <SearchBox />
+            <div style={{display:"flex", gap:6, flexWrap:"wrap"}}>
+              <Chip active>1</Chip><Chip>2</Chip><Chip fixed>Tradição: Arcana</Chip>
+            </div>
+            <div style={{border:"1px solid var(--fusion-border)", borderRadius:8, padding:4}}>
+              <ResultRow rank={1} actionCost="2A" name="Rajada de Força" traits={["Evocation","Force"]} source="Player Core" selected />
+              <ResultRow rank={1} actionCost="1A" name="Graxa" traits={["Conjuration"]} source="Player Core" />
+            </div>
+          </Modal>
+        )}
+      </>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById("root")).render(<Demo />);
+</script>

@@ -1,0 +1,166 @@
+<!-- @dsCard group="Fundações" name="Tokens — cores, raios, tipografia e badges" -->
+<style>
+  :root {
+    --fusion-bg: #0e0e12;
+    --fusion-surface: #18181f;
+    --fusion-surface-alt: #1f1f2a;
+    --fusion-border: #2e2e3d;
+    --fusion-text: #e8e8f0;
+    --fusion-text-muted: #8888a0;
+    --fusion-text-subtle: #55556a;
+    --fusion-accent: #7c5cfc;
+    --fusion-accent-hover: #9b7ffe;
+    --fusion-accent-dim: rgba(124, 92, 252, 0.15);
+    --fusion-success: #3ddc84;
+    --fusion-warning: #ffc857;
+    --fusion-danger: #ff5c5c;
+    --fusion-radius-sm: 4px;
+    --fusion-radius: 8px;
+    --fusion-radius-lg: 12px;
+    --fusion-font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --fusion-font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  .tk-root {
+    background: var(--fusion-bg);
+    color: var(--fusion-text);
+    font-family: var(--fusion-font);
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    min-height: 100%;
+  }
+  .tk-title { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+  .tk-sub { color: var(--fusion-text-muted); font-size: 13px; margin-top: 2px; }
+  .tk-section { display: flex; flex-direction: column; gap: 14px; }
+  .tk-label {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--fusion-text-muted);
+  }
+  .tk-swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .tk-swatch {
+    background: var(--fusion-surface);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius);
+    overflow: hidden;
+  }
+  .tk-chip { height: 56px; }
+  .tk-swatch-meta { padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; }
+  .tk-swatch-name { font-size: 12px; font-weight: 500; }
+  .tk-swatch-hex { font-family: var(--fusion-font-mono); font-size: 11px; color: var(--fusion-text-muted); }
+  .tk-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+  .tk-radius-demo {
+    width: 96px; height: 64px;
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--fusion-text-muted); font-family: var(--fusion-font-mono); font-size: 11px;
+  }
+  .tk-type-scale { display: flex; flex-direction: column; gap: 10px; }
+  .tk-type-scale > div { display: flex; align-items: baseline; gap: 16px; }
+  .tk-type-tag { font-family: var(--fusion-font-mono); font-size: 11px; color: var(--fusion-text-subtle); width: 96px; flex: none; }
+  .tk-badges { display: flex; gap: 10px; flex-wrap: wrap; }
+  .tk-badge {
+    width: 26px; height: 26px; border-radius: var(--fusion-radius-sm);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; border: 1px solid transparent;
+  }
+  .tk-badge.u { background: rgba(85,85,106,0.18); color: var(--fusion-text-subtle); border-color: var(--fusion-border); }
+  .tk-badge.t { background: var(--fusion-accent-dim); color: var(--fusion-accent-hover); border-color: rgba(124,92,252,0.4); }
+  .tk-badge.e { background: rgba(61,220,132,0.14); color: var(--fusion-success); border-color: rgba(61,220,132,0.4); }
+  .tk-badge.m { background: rgba(255,200,87,0.14); color: var(--fusion-warning); border-color: rgba(255,200,87,0.4); }
+  .tk-badge.l { background: rgba(255,92,92,0.14); color: var(--fusion-danger); border-color: rgba(255,92,92,0.4); }
+  .tk-badge-item { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .tk-badge-cap { font-size: 11px; color: var(--fusion-text-muted); }
+  .tk-btns { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .tk-btn {
+    padding: 7px 14px; border-radius: var(--fusion-radius); font-size: 13px; font-weight: 500;
+    border: 1px solid var(--fusion-border); cursor: pointer;
+  }
+  .tk-btn.primary { background: var(--fusion-accent); color: #fff; border-color: var(--fusion-accent); }
+  .tk-btn.ghost { background: transparent; color: var(--fusion-text); }
+  .tk-btn.subtle { background: var(--fusion-surface-alt); color: var(--fusion-text-muted); }
+</style>
+
+<div class="tk-root">
+  <div>
+    <div class="tk-title">Fusion VTT — Fundações da ficha</div>
+    <div class="tk-sub">Tokens reais de <code>styles/base.css</code>. Referência de marca para a rodada r10 (ficha PF2e).</div>
+  </div>
+
+  <div class="tk-section">
+    <div class="tk-label">Superfícies</div>
+    <div class="tk-swatches">
+      <div class="tk-swatch"><div class="tk-chip" style="background:#0e0e12"></div><div class="tk-swatch-meta"><span class="tk-swatch-name">bg</span><span class="tk-swatch-hex">#0e0e12</span></div></div>
+      <div class="tk-swatch"><div class="tk-chip" style="background:#18181f"></div><div class="tk-swatch-meta"><span class="tk-swatch-name">surface</span><span class="tk-swatch-hex">#18181f</span></div></div>
+      <div class="tk-swatch"><div class="tk-chip" style="background:#1f1f2a"></div><div class="tk-swatch-meta"><span class="tk-swatch-name">surface-alt</span><span class="tk-swatch-hex">#1f1f2a</span></div></div>
+      <div class="tk-swatch"><div class="tk-chip" style="background:#2e2e3d"></div><div class="tk-swatch-meta"><span class="tk-swatch-name">border</span><span class="tk-swatch-hex">#2e2e3d</span></div></div>
+    </div>
+  </div>
+
+  <div class="tk-section">
+    <div class="tk-label">Texto & acento</div>
+    <div class="tk-swatches">
+      <div class="tk-swatch"><div class="tk-chip" style="background:#e8e8f0"></div><div class="tk-swatch-meta"><span class="tk-swatch-name">text</span><span class="tk-swatch-hex">#e8e8f0</span></div></div>
+      <div class="tk-swatch"><div class="tk-chip" style="background:#8888a0"></div><div class="tk-swatch-meta"><span class="tk-swatch-name">text-muted</span><span class="tk-swatch-hex">#8888a0</span></div></div>
+      <div class="tk-swatch"><div class="tk-chip" style="background:#55556a"></div><div class="tk-swatch-meta"><span class="tk-swatch-name">text-subtle</span><span class="tk-swatch-hex">#55556a</span></div></div>
+      <div class="tk-swatch"><div class="tk-chip" style="background:#7c5cfc"></div><div class="tk-swatch-meta"><span class="tk-swatch-name">accent</span><span class="tk-swatch-hex">#7c5cfc</span></div></div>
+      <div class="tk-swatch"><div class="tk-chip" style="background:#9b7ffe"></div><div class="tk-swatch-meta"><span class="tk-swatch-name">accent-hover</span><span class="tk-swatch-hex">#9b7ffe</span></div></div>
+    </div>
+  </div>
+
+  <div class="tk-section">
+    <div class="tk-label">Semânticas</div>
+    <div class="tk-swatches">
+      <div class="tk-swatch"><div class="tk-chip" style="background:#3ddc84"></div><div class="tk-swatch-meta"><span class="tk-swatch-name">success</span><span class="tk-swatch-hex">#3ddc84</span></div></div>
+      <div class="tk-swatch"><div class="tk-chip" style="background:#ffc857"></div><div class="tk-swatch-meta"><span class="tk-swatch-name">warning</span><span class="tk-swatch-hex">#ffc857</span></div></div>
+      <div class="tk-swatch"><div class="tk-chip" style="background:#ff5c5c"></div><div class="tk-swatch-meta"><span class="tk-swatch-name">danger</span><span class="tk-swatch-hex">#ff5c5c</span></div></div>
+    </div>
+  </div>
+
+  <div class="tk-section">
+    <div class="tk-label">Proficiência (badges TEML)</div>
+    <div class="tk-badges">
+      <div class="tk-badge-item"><span class="tk-badge u">U</span><span class="tk-badge-cap">Destreinado</span></div>
+      <div class="tk-badge-item"><span class="tk-badge t">T</span><span class="tk-badge-cap">Treinado</span></div>
+      <div class="tk-badge-item"><span class="tk-badge e">E</span><span class="tk-badge-cap">Expert</span></div>
+      <div class="tk-badge-item"><span class="tk-badge m">M</span><span class="tk-badge-cap">Mestre</span></div>
+      <div class="tk-badge-item"><span class="tk-badge l">L</span><span class="tk-badge-cap">Lendário</span></div>
+    </div>
+  </div>
+
+  <div class="tk-section">
+    <div class="tk-label">Raios de canto</div>
+    <div class="tk-row">
+      <div class="tk-radius-demo" style="border-radius:4px">sm · 4px</div>
+      <div class="tk-radius-demo" style="border-radius:8px">base · 8px</div>
+      <div class="tk-radius-demo" style="border-radius:12px">lg · 12px</div>
+    </div>
+  </div>
+
+  <div class="tk-section">
+    <div class="tk-label">Escala tipográfica</div>
+    <div class="tk-type-scale">
+      <div><span class="tk-type-tag">20 / 600</span><span style="font-size:20px;font-weight:600">Tobias — Magus 3</span></div>
+      <div><span class="tk-type-tag">16 / 600</span><span style="font-size:16px;font-weight:600">Magias · Patamar 2</span></div>
+      <div><span class="tk-type-tag">14 / 400</span><span style="font-size:14px">Corpo — perícias, slots e descrições curtas.</span></div>
+      <div><span class="tk-type-tag">11 / 600 up</span><span class="tk-label">Rótulo de seção</span></div>
+      <div><span class="tk-type-tag">mono 13</span><span style="font-family:var(--fusion-font-mono);font-size:13px">+8 · CD 18 · 1d6+3</span></div>
+    </div>
+  </div>
+
+  <div class="tk-section">
+    <div class="tk-label">Botões</div>
+    <div class="tk-btns">
+      <button class="tk-btn primary">Adicionar magia</button>
+      <button class="tk-btn ghost">Trocar</button>
+      <button class="tk-btn subtle">Ocultar plano</button>
+    </div>
+  </div>
+</div>

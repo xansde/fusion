@@ -1,0 +1,48 @@
+/* Fusion VTT — Color tokens
+   Dark-first tool palette. The violet accent (#7c5cfc) is reserved for
+   interactive/active elements only — never as decorative fill. */
+:root {
+  /* Surfaces (darkest → lightest) */
+  --fusion-bg: #0e0e12;          /* app background / behind everything */
+  --fusion-surface: #18181f;     /* windows, panels, cards */
+  --fusion-surface-alt: #1f1f2a; /* nested cards, inputs, raised rows */
+  --fusion-border: #2e2e3d;      /* hairlines, dividers, card edges */
+
+  /* Text */
+  --fusion-text: #e8e8f0;        /* primary body + headings */
+  --fusion-text-muted: #8888a0;  /* secondary labels, captions */
+  --fusion-text-subtle: #55556a; /* tertiary: units, hints, uppercase micro-labels */
+
+  /* Accent — INTERACTIVE / ACTIVE ONLY */
+  --fusion-accent: #7c5cfc;                       /* active tab, primary button, link, filled pip */
+  --fusion-accent-hover: #9b7ffe;                 /* hover on accent surfaces */
+  --fusion-accent-dim: rgba(124, 92, 252, 0.15);  /* active-state wash / selected background */
+
+  /* Semantic — kept distinct from the accent */
+  --fusion-success: #3ddc84;
+  --fusion-warning: #ffc857;
+  --fusion-danger: #ff5c5c;
+
+  /* Semantic washes (subtle tinted fills for badges / states) */
+  --fusion-success-dim: rgba(61, 220, 132, 0.14);
+  --fusion-warning-dim: rgba(255, 200, 87, 0.14);
+  --fusion-danger-dim: rgba(255, 92, 92, 0.14);
+
+  /* On-accent text (buttons) */
+  --fusion-on-accent: #ffffff;
+
+  /* Elevation shadow (windows, modals) */
+  --fusion-shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.55);
+
+  /* ---- Semantic aliases (prefer these in components) ---- */
+  --bg: var(--fusion-bg);
+  --surface: var(--fusion-surface);
+  --surface-raised: var(--fusion-surface-alt);
+  --border: var(--fusion-border);
+  --text-body: var(--fusion-text);
+  --text-muted: var(--fusion-text-muted);
+  --text-subtle: var(--fusion-text-subtle);
+  --interactive: var(--fusion-accent);
+  --interactive-hover: var(--fusion-accent-hover);
+  --interactive-wash: var(--fusion-accent-dim);
+}

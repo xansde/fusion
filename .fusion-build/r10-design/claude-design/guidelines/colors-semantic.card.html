@@ -1,0 +1,16 @@
+<!-- @dsCard group="Colors" viewport="700x150" name="Semantic" subtitle="Success / warning / danger — kept distinct from the accent" -->
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; background: var(--fusion-bg); font-family: var(--fusion-font); }
+  .wrap { display: flex; gap: 12px; padding: 20px; }
+  .sw { flex: 1; border: 1px solid var(--fusion-border); border-radius: var(--fusion-radius); overflow: hidden; }
+  .chip { height: 64px; }
+  .meta { padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; background: var(--fusion-surface); }
+  .name { font-size: 12px; font-weight: 600; color: var(--fusion-text); }
+  .hex { font-family: var(--fusion-font-mono); font-size: 11px; color: var(--fusion-text-muted); }
+</style>
+<div class="wrap">
+  <div class="sw"><div class="chip" style="background:#3ddc84"></div><div class="meta"><span class="name">success</span><span class="hex">#3ddc84</span></div></div>
+  <div class="sw"><div class="chip" style="background:#ffc857"></div><div class="meta"><span class="name">warning</span><span class="hex">#ffc857</span></div></div>
+  <div class="sw"><div class="chip" style="background:#ff5c5c"></div><div class="meta"><span class="name">danger</span><span class="hex">#ff5c5c</span></div></div>
+</div>

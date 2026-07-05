@@ -1,0 +1,428 @@
+<!-- @dsCard group="Ficha PF2e r10" name="Picker de magias (compêndio)" -->
+<style>
+  :root {
+    --fusion-bg: #0e0e12;
+    --fusion-surface: #18181f;
+    --fusion-surface-alt: #1f1f2a;
+    --fusion-border: #2e2e3d;
+    --fusion-text: #e8e8f0;
+    --fusion-text-muted: #8888a0;
+    --fusion-text-subtle: #55556a;
+    --fusion-accent: #7c5cfc;
+    --fusion-accent-hover: #9b7ffe;
+    --fusion-accent-dim: rgba(124,92,252,0.15);
+    --fusion-success: #3ddc84;
+    --fusion-warning: #ffc857;
+    --fusion-danger: #ff5c5c;
+    --fusion-radius-sm: 4px;
+    --fusion-radius: 8px;
+    --fusion-radius-lg: 12px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--fusion-bg);
+    color: var(--fusion-text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    margin: 0;
+  }
+  .page {
+    background: var(--fusion-bg);
+    padding: 32px 0 64px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .viewport-sim {
+    width: 100%;
+    min-height: 780px;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 0;
+  }
+
+  .modal {
+    width: 680px;
+    max-height: 720px;
+    background: var(--fusion-surface);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-lg);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.55);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--fusion-border);
+  }
+  .modal-header h2 { font-size: 15px; font-weight: 600; margin: 0; }
+  .modal-close {
+    width: 24px; height: 24px;
+    border-radius: var(--fusion-radius-sm);
+    border: 1px solid var(--fusion-border);
+    background: transparent;
+    color: var(--fusion-text-muted);
+    cursor: pointer;
+    font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: inherit;
+  }
+  .modal-close:hover { border-color: var(--fusion-danger); color: var(--fusion-danger); }
+
+  .modal-body {
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+  }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius);
+    padding: 8px 12px;
+  }
+  .search-box .icon { color: var(--fusion-text-subtle); font-size: 13px; }
+  .search-box input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--fusion-text);
+    font-size: 13px;
+    font-family: inherit;
+  }
+  .search-box input::placeholder { color: var(--fusion-text-subtle); }
+
+  .filters-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .filter-chip {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 11px;
+    border-radius: 999px;
+    border: 1px solid var(--fusion-border);
+    color: var(--fusion-text-muted);
+    cursor: pointer;
+    background: transparent;
+    font-family: inherit;
+  }
+  .filter-chip:hover { border-color: var(--fusion-accent); color: var(--fusion-text); }
+  .filter-chip.active { background: var(--fusion-accent-dim); border-color: var(--fusion-accent); color: var(--fusion-accent); }
+  .filter-chip.fixed {
+    background: var(--fusion-surface-alt);
+    color: var(--fusion-text-muted);
+    cursor: default;
+    border-style: dashed;
+  }
+  .filter-sep {
+    width: 1px; height: 16px; background: var(--fusion-border); margin: 0 4px;
+  }
+
+  .results-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius);
+    padding: 4px;
+    max-height: 340px;
+    overflow-y: auto;
+  }
+  .result-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--fusion-radius-sm);
+    cursor: pointer;
+  }
+  .result-row:hover { background: var(--fusion-surface-alt); }
+  .result-row.selected {
+    background: var(--fusion-accent-dim);
+    border: 1px solid var(--fusion-accent);
+    padding: 7px 9px;
+  }
+  .result-row .rank {
+    width: 20px; height: 20px; flex-shrink: 0;
+    border-radius: var(--fusion-radius-sm);
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: var(--fusion-text-muted);
+  }
+  .result-row.selected .rank { border-color: var(--fusion-accent); color: var(--fusion-accent); }
+  .result-row .action-icon {
+    width: 20px; height: 20px; flex-shrink: 0;
+    border-radius: 50%;
+    border: 1px solid var(--fusion-border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; color: var(--fusion-text-subtle);
+  }
+  .result-row .name-col { flex: 1; min-width: 0; }
+  .result-row .name { font-size: 12.5px; font-weight: 600; color: var(--fusion-text); }
+  .result-row .traits { display: flex; gap: 4px; margin-top: 3px; }
+  .trait-chip {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--fusion-text-subtle);
+    background: var(--fusion-surface);
+    border: 1px solid var(--fusion-border);
+    padding: 1px 6px;
+    border-radius: var(--fusion-radius-sm);
+  }
+  .result-row .source {
+    font-size: 10.5px;
+    color: var(--fusion-text-subtle);
+    flex-shrink: 0;
+  }
+
+  .modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 18px;
+    border-top: 1px solid var(--fusion-border);
+  }
+  .footer-note { font-size: 10.5px; color: var(--fusion-text-subtle); }
+  .footer-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .btn-primary {
+    background: var(--fusion-accent);
+    color: #fff;
+    border: none;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: var(--fusion-radius);
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-primary:hover { background: var(--fusion-accent-hover); }
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--fusion-border);
+    color: var(--fusion-text-muted);
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: var(--fusion-radius);
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-secondary:hover { border-color: var(--fusion-text-muted); color: var(--fusion-text); }
+
+  .variant-heading {
+    color: var(--fusion-text);
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+    margin: 0;
+    padding: 0 16px;
+  }
+</style>
+
+<div class="page">
+  <!-- Modal 1: Adicionar magia -->
+  <div class="viewport-sim">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Adicionar magia — Magus (Arcana)</h2>
+        <button class="modal-close">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="search-box">
+          <span class="icon">&#128269;</span>
+          <input type="text" placeholder="Buscar no compêndio&hellip;" />
+        </div>
+
+        <div class="filters-row">
+          <button class="filter-chip">0</button>
+          <button class="filter-chip active">1</button>
+          <button class="filter-chip">2</button>
+          <div class="filter-sep"></div>
+          <button class="filter-chip fixed">Tradição: Arcana</button>
+          <div class="filter-sep"></div>
+          <button class="filter-chip">Evocation</button>
+          <button class="filter-chip">Conjuration</button>
+          <button class="filter-chip">Mental</button>
+          <button class="filter-chip">Force</button>
+        </div>
+
+        <div class="results-list">
+          <div class="result-row selected">
+            <span class="rank">1</span>
+            <span class="action-icon">2A</span>
+            <div class="name-col">
+              <div class="name">Rajada de Força</div>
+              <div class="traits"><span class="trait-chip">Evocation</span><span class="trait-chip">Force</span></div>
+            </div>
+            <span class="source">Player Core</span>
+          </div>
+          <div class="result-row">
+            <span class="rank">1</span>
+            <span class="action-icon">1A</span>
+            <div class="name-col">
+              <div class="name">Graxa</div>
+              <div class="traits"><span class="trait-chip">Conjuration</span></div>
+            </div>
+            <span class="source">Player Core</span>
+          </div>
+          <div class="result-row">
+            <span class="rank">1</span>
+            <span class="action-icon">2A</span>
+            <div class="name-col">
+              <div class="name">Golpe Certeiro</div>
+              <div class="traits"><span class="trait-chip">Evocation</span></div>
+            </div>
+            <span class="source">Player Core</span>
+          </div>
+          <div class="result-row">
+            <span class="rank">1</span>
+            <span class="action-icon">2A</span>
+            <div class="name-col">
+              <div class="name">Tentáculos Sombrios</div>
+              <div class="traits"><span class="trait-chip">Conjuration</span></div>
+            </div>
+            <span class="source">Player Core</span>
+          </div>
+          <div class="result-row">
+            <span class="rank">1</span>
+            <span class="action-icon">1A</span>
+            <div class="name-col">
+              <div class="name">Escudo do Feiticeiro</div>
+              <div class="traits"><span class="trait-chip">Evocation</span><span class="trait-chip">Force</span></div>
+            </div>
+            <span class="source">Player Core</span>
+          </div>
+          <div class="result-row">
+            <span class="rank">2</span>
+            <span class="action-icon">2A</span>
+            <div class="name-col">
+              <div class="name">Névoa Obscurecente</div>
+              <div class="traits"><span class="trait-chip">Conjuration</span></div>
+            </div>
+            <span class="source">Player Core</span>
+          </div>
+          <div class="result-row">
+            <span class="rank">2</span>
+            <span class="action-icon">2A</span>
+            <div class="name-col">
+              <div class="name">Golpe Flamejante</div>
+              <div class="traits"><span class="trait-chip">Evocation</span></div>
+            </div>
+            <span class="source">Player Core</span>
+          </div>
+          <div class="result-row">
+            <span class="rank">0</span>
+            <span class="action-icon">1A</span>
+            <div class="name-col">
+              <div class="name">Projétil Telecinético</div>
+              <div class="traits"><span class="trait-chip">Evocation</span><span class="trait-chip">Mental</span></div>
+            </div>
+            <span class="source">Player Core</span>
+          </div>
+          <div class="result-row">
+            <span class="rank">0</span>
+            <span class="action-icon">2A</span>
+            <div class="name-col">
+              <div class="name">Arco Elétrico</div>
+              <div class="traits"><span class="trait-chip">Evocation</span></div>
+            </div>
+            <span class="source">Player Core</span>
+          </div>
+          <div class="result-row">
+            <span class="rank">0</span>
+            <span class="action-icon">1A</span>
+            <div class="name-col">
+              <div class="name">Detectar Magia</div>
+              <div class="traits"><span class="trait-chip">Conjuration</span></div>
+            </div>
+            <span class="source">Player Core</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <span class="footer-note">Dados mecânicos ORC — prosa não incluída (clean-room)</span>
+        <div class="footer-actions">
+          <button class="btn-secondary">Cancelar</button>
+          <button class="btn-primary">Adicionar ao grimório</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="variant-heading">Variante: trocar magia preparada</h2>
+
+  <!-- Modal 2: Trocar magia preparada -->
+  <div class="viewport-sim">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Trocar magia preparada — Slot Patamar 1</h2>
+        <button class="modal-close">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="search-box">
+          <span class="icon">&#128269;</span>
+          <input type="text" placeholder="Buscar no compêndio&hellip;" />
+        </div>
+
+        <div class="filters-row">
+          <button class="filter-chip fixed">Patamar: 1</button>
+          <div class="filter-sep"></div>
+          <button class="filter-chip fixed">Tradição: Arcana</button>
+          <div class="filter-sep"></div>
+          <button class="filter-chip">Evocation</button>
+          <button class="filter-chip">Conjuration</button>
+          <button class="filter-chip">Mental</button>
+        </div>
+
+        <div class="results-list">
+          <div class="result-row selected">
+            <span class="rank">1</span>
+            <span class="action-icon">1A</span>
+            <div class="name-col">
+              <div class="name">Graxa</div>
+              <div class="traits"><span class="trait-chip">Conjuration</span></div>
+            </div>
+            <span class="source">Player Core</span>
+          </div>
+          <div class="result-row">
+            <span class="rank">1</span>
+            <span class="action-icon">2A</span>
+            <div class="name-col">
+              <div class="name">Golpe Certeiro</div>
+              <div class="traits"><span class="trait-chip">Evocation</span></div>
+            </div>
+            <span class="source">Player Core</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <span class="footer-note">Dados mecânicos ORC — prosa não incluída (clean-room)</span>
+        <div class="footer-actions">
+          <button class="btn-secondary">Cancelar</button>
+          <button class="btn-primary">Trocar magia preparada</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

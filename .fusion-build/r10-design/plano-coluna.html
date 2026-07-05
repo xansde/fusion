@@ -1,0 +1,364 @@
+<!-- @dsCard group="Ficha PF2e r10" name="Coluna Plano (nível a nível)" -->
+<style>
+  :root {
+    --fusion-bg: #0e0e12;
+    --fusion-surface: #18181f;
+    --fusion-surface-alt: #1f1f2a;
+    --fusion-border: #2e2e3d;
+    --fusion-text: #e8e8f0;
+    --fusion-text-muted: #8888a0;
+    --fusion-text-subtle: #55556a;
+    --fusion-accent: #7c5cfc;
+    --fusion-accent-hover: #9b7ffe;
+    --fusion-accent-dim: rgba(124,92,252,0.15);
+    --fusion-success: #3ddc84;
+    --fusion-warning: #ffc857;
+    --fusion-danger: #ff5c5c;
+    --fusion-radius-sm: 4px;
+    --fusion-radius: 8px;
+    --fusion-radius-lg: 12px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--fusion-bg);
+    color: var(--fusion-text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    margin: 0;
+  }
+  .stage {
+    background: var(--fusion-bg);
+    padding: 24px;
+    min-height: 900px;
+    display: flex;
+    justify-content: center;
+  }
+  .plan-col {
+    width: 360px;
+    background: var(--fusion-surface);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-lg);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-height: 860px;
+  }
+
+  .plan-header {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .plan-header h1 { font-size: 16px; font-weight: 600; margin: 0; }
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--fusion-border);
+    color: var(--fusion-text-muted);
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: var(--fusion-radius-sm);
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-ghost:hover { border-color: var(--fusion-accent); color: var(--fusion-text); }
+
+  /* ABC cards */
+  .abc-group {
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .abc-card {
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius);
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .abc-card .check {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: rgba(61,220,132,0.15);
+    color: var(--fusion-success);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .abc-card .body { flex: 1; }
+  .abc-card .type-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--fusion-text-subtle);
+  }
+  .abc-card .name { font-size: 13px; font-weight: 600; color: var(--fusion-text); }
+  .abc-card .sub-line {
+    font-size: 11px; color: var(--fusion-text-muted); margin-top: 2px;
+  }
+
+  /* Level cards */
+  .level-card {
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius);
+    overflow: hidden;
+  }
+  .level-card-header {
+    background: var(--fusion-accent-dim);
+    color: var(--fusion-accent);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--fusion-border);
+  }
+  .level-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px;
+  }
+
+  .slot {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 8px;
+    border-radius: var(--fusion-radius-sm);
+    position: relative;
+  }
+  .slot:hover { background: var(--fusion-surface); }
+  .slot .check {
+    color: var(--fusion-success);
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .slot .info { flex: 1; min-width: 0; }
+  .slot .name { font-size: 12.5px; font-weight: 600; color: var(--fusion-text); }
+  .slot .type { font-size: 10px; color: var(--fusion-text-subtle); }
+  .slot .remove {
+    opacity: 0;
+    transition: opacity 0.15s;
+    color: var(--fusion-text-subtle);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 2px 4px;
+    flex-shrink: 0;
+  }
+  .slot:hover .remove { opacity: 1; }
+  .slot .remove:hover { color: var(--fusion-danger); }
+
+  /* Locked / automatic feature chips */
+  .auto-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px;
+    margin-top: 2px;
+    border-top: 1px dashed var(--fusion-border);
+  }
+  .auto-chip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--fusion-surface);
+    border: 1px solid var(--fusion-border);
+    color: var(--fusion-text-muted);
+    font-size: 11px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    cursor: default;
+  }
+  .auto-chip .lock { font-size: 9px; color: var(--fusion-text-subtle); }
+
+  /* Optional-rule badge */
+  .badge-optional {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--fusion-warning);
+    background: rgba(255,200,87,0.12);
+    border: 1px solid rgba(255,200,87,0.35);
+    padding: 1px 6px;
+    border-radius: var(--fusion-radius-sm);
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  /* Empty slot */
+  .slot-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 8px;
+    border: 1px dashed var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    margin-top: 2px;
+  }
+  .slot-empty:hover { border-color: var(--fusion-accent); color: var(--fusion-accent-hover); }
+
+  .plan-footer { margin-top: auto; }
+  .btn-primary {
+    width: 100%;
+    background: var(--fusion-accent);
+    color: #fff;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 14px;
+    border-radius: var(--fusion-radius);
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-primary:hover { background: var(--fusion-accent-hover); }
+</style>
+
+<div class="stage">
+  <div class="plan-col">
+    <div class="plan-header">
+      <h1>Plano</h1>
+      <button class="btn-ghost">Ocultar plano</button>
+    </div>
+
+    <div class="abc-group">
+      <div class="abc-card">
+        <div class="check">&#10003;</div>
+        <div class="body">
+          <div class="type-label">Ancestralidade</div>
+          <div class="name">Ratfolk</div>
+        </div>
+      </div>
+      <div class="abc-card">
+        <div class="check">&#10003;</div>
+        <div class="body">
+          <div class="type-label">Herança</div>
+          <div class="name">Snow Rat</div>
+        </div>
+      </div>
+      <div class="abc-card">
+        <div class="check">&#10003;</div>
+        <div class="body">
+          <div class="type-label">Antecedente</div>
+          <div class="name">Fireworks Performer</div>
+        </div>
+      </div>
+      <div class="abc-card">
+        <div class="check">&#10003;</div>
+        <div class="body">
+          <div class="type-label">Classe</div>
+          <div class="name">Magus</div>
+          <div class="sub-line">Estudo Híbrido: Starlit Span</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="level-card">
+      <div class="level-card-header">Nível 1</div>
+      <div class="level-card-body">
+        <div class="slot">
+          <span class="check">&#10003;</span>
+          <div class="info">
+            <div class="name">Dádivas de Atributo</div>
+            <div class="type">4 aumentos de atributo</div>
+          </div>
+          <span class="remove">&times;</span>
+        </div>
+        <div class="slot">
+          <span class="check">&#10003;</span>
+          <div class="info">
+            <div class="name">Tinkering Fingers</div>
+            <div class="type">Talento de Ancestralidade</div>
+          </div>
+          <span class="remove">&times;</span>
+        </div>
+        <div class="slot">
+          <span class="check">&#10003;</span>
+          <div class="info">
+            <div class="name">Starlit Span</div>
+            <div class="type">Estudo Híbrido</div>
+          </div>
+          <span class="remove">&times;</span>
+        </div>
+        <div class="slot">
+          <span class="check">&#10003;</span>
+          <div class="info">
+            <div class="name">Arcanismo + 5 outras</div>
+            <div class="type">Treinamento de Perícias</div>
+          </div>
+          <span class="remove">&times;</span>
+        </div>
+
+        <div class="auto-chips">
+          <div class="auto-chip"><span class="lock">&#128274;</span> Conjuração Arcana</div>
+          <div class="auto-chip"><span class="lock">&#128274;</span> Golpe Feiticeiro</div>
+          <div class="auto-chip"><span class="lock">&#128274;</span> Magias de Confluência</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="level-card">
+      <div class="level-card-header">Nível 2</div>
+      <div class="level-card-body">
+        <div class="slot">
+          <span class="check">&#10003;</span>
+          <div class="info">
+            <div class="name">Magus's Analysis</div>
+            <div class="type">Talento de Classe</div>
+          </div>
+          <span class="remove">&times;</span>
+        </div>
+        <div class="slot">
+          <span class="check">&#10003;</span>
+          <div class="info">
+            <div class="name">Impressive Performance</div>
+            <div class="type">Talento de Perícia</div>
+          </div>
+          <span class="remove">&times;</span>
+        </div>
+        <div class="slot">
+          <span class="check">&#10003;</span>
+          <div class="info">
+            <div class="name">Alchemist Dedication <span class="badge-optional">Regra opcional ativa</span></div>
+            <div class="type">Arquétipo Livre</div>
+          </div>
+          <span class="remove">&times;</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="level-card">
+      <div class="level-card-header">Nível 3</div>
+      <div class="level-card-body">
+        <div class="slot">
+          <span class="check">&#10003;</span>
+          <div class="info">
+            <div class="name">Read Lips</div>
+            <div class="type">Talento Geral</div>
+          </div>
+          <span class="remove">&times;</span>
+        </div>
+        <div class="slot">
+          <span class="check">&#10003;</span>
+          <div class="info">
+            <div class="name">Ofícios &rarr; Especialista</div>
+            <div class="type">Aumento de Perícia</div>
+          </div>
+          <span class="remove">&times;</span>
+        </div>
+
+        <div class="auto-chips">
+          <div class="auto-chip"><span class="lock">&#128274;</span> Reação de Classe</div>
+        </div>
+
+        <div class="slot-empty">+ Escolher talento de classe</div>
+      </div>
+    </div>
+
+    <div class="plan-footer">
+      <button class="btn-primary">Subir de nível &rarr; 4</button>
+    </div>
+  </div>
+</div>

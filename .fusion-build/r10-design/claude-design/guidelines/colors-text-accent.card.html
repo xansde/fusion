@@ -1,0 +1,18 @@
+<!-- @dsCard group="Colors" viewport="700x150" name="Text & accent" subtitle="Text ramp + violet accent (interactive only)" -->
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; background: var(--fusion-bg); font-family: var(--fusion-font); }
+  .wrap { display: flex; gap: 12px; padding: 20px; }
+  .sw { flex: 1; border: 1px solid var(--fusion-border); border-radius: var(--fusion-radius); overflow: hidden; }
+  .chip { height: 64px; }
+  .meta { padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; background: var(--fusion-surface); }
+  .name { font-size: 12px; font-weight: 600; color: var(--fusion-text); }
+  .hex { font-family: var(--fusion-font-mono); font-size: 11px; color: var(--fusion-text-muted); }
+</style>
+<div class="wrap">
+  <div class="sw"><div class="chip" style="background:#e8e8f0"></div><div class="meta"><span class="name">text</span><span class="hex">#e8e8f0</span></div></div>
+  <div class="sw"><div class="chip" style="background:#8888a0"></div><div class="meta"><span class="name">text-muted</span><span class="hex">#8888a0</span></div></div>
+  <div class="sw"><div class="chip" style="background:#55556a"></div><div class="meta"><span class="name">text-subtle</span><span class="hex">#55556a</span></div></div>
+  <div class="sw"><div class="chip" style="background:#7c5cfc"></div><div class="meta"><span class="name">accent</span><span class="hex">#7c5cfc</span></div></div>
+  <div class="sw"><div class="chip" style="background:#9b7ffe"></div><div class="meta"><span class="name">accent-hover</span><span class="hex">#9b7ffe</span></div></div>
+</div>

@@ -1,0 +1,28 @@
+/* Fusion VTT — Proficiency (TEML) tokens
+   Pathfinder 2e rank system. Each rank maps to a fixed hue so a badge is
+   readable at a glance across the sheet.
+     U — Destreinado (Untrained) → subtle grey
+     T — Treinado    (Trained)   → accent violet
+     E — Expert      (Expert)    → success green
+     M — Mestre      (Master)    → warning amber
+     L — Lendário    (Legendary) → danger red */
+:root {
+  --fusion-prof-u: var(--fusion-text-subtle);
+  --fusion-prof-t: var(--fusion-accent);
+  --fusion-prof-e: var(--fusion-success);
+  --fusion-prof-m: var(--fusion-warning);
+  --fusion-prof-l: var(--fusion-danger);
+
+  /* Tinted fills used by the large "specimen" TEML badges */
+  --fusion-prof-u-bg: rgba(85, 85, 106, 0.18);
+  --fusion-prof-t-bg: var(--fusion-accent-dim);
+  --fusion-prof-e-bg: var(--fusion-success-dim);
+  --fusion-prof-m-bg: var(--fusion-warning-dim);
+  --fusion-prof-l-bg: var(--fusion-danger-dim);
+
+  --fusion-prof-u-border: var(--fusion-border);
+  --fusion-prof-t-border: rgba(124, 92, 252, 0.40);
+  --fusion-prof-e-border: rgba(61, 220, 132, 0.40);
+  --fusion-prof-m-border: rgba(255, 200, 87, 0.40);
+  --fusion-prof-l-border: rgba(255, 92, 92, 0.40);
+}

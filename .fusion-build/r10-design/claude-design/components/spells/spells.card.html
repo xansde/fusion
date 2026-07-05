@@ -1,0 +1,46 @@
+<!-- @dsCard group="Components" viewport="700x360" name="Spells — SpellChip · SpellSlotCard · ResultRow" subtitle="Cantrips, prepared slots and compendium rows" -->
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  body { margin: 0; background: var(--fusion-bg); font-family: var(--fusion-font); color: var(--fusion-text); }
+  #root { padding: 24px; display: flex; flex-direction: column; gap: 18px; }
+  .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fusion-text-muted); font-weight: 600; }
+  .grp { display: flex; flex-direction: column; gap: 8px; }
+</style>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<script type="text/babel">
+  const { SpellChip, SpellSlotCard, SpellSlotEmpty, ResultRow } = window.FusionVTTDesignSystem_1daa5f;
+  function Demo() {
+    return (
+      <>
+        <div className="grp">
+          <span className="lbl">SpellChip — truques</span>
+          <div style={{display:"flex", gap:8, flexWrap:"wrap"}}>
+            <SpellChip name="Detectar Magia" onAction={()=>{}} />
+            <SpellChip name="Arco Elétrico" onAction={()=>{}} />
+            <SpellChip name="Escudo" onAction={()=>{}} />
+          </div>
+        </div>
+        <div className="grp">
+          <span className="lbl">SpellSlotCard — Patamar 1</span>
+          <div style={{display:"flex", gap:10}}>
+            <SpellSlotCard name="Rajada de Força" available onCast={()=>{}} onSwap={()=>{}} />
+            <SpellSlotEmpty />
+          </div>
+        </div>
+        <div className="grp">
+          <span className="lbl">ResultRow — compêndio</span>
+          <div style={{border:"1px solid var(--fusion-border)", borderRadius:8, padding:4}}>
+            <ResultRow rank={1} actionCost="2A" name="Rajada de Força" traits={["Evocation","Force"]} source="Player Core" selected />
+            <ResultRow rank={2} actionCost="2A" name="Névoa Obscurecente" traits={["Conjuration"]} source="Player Core" />
+            <ResultRow rank={0} actionCost="1A" name="Detectar Magia" traits={["Conjuration"]} source="Player Core" />
+          </div>
+        </div>
+      </>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById("root")).render(<Demo />);
+</script>

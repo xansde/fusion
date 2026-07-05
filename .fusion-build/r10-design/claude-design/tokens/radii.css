@@ -1,0 +1,13 @@
+/* Fusion VTT — Corner radii
+   Three steps only. Sharp enough to read as a dense tool. */
+:root {
+  --fusion-radius-sm: 4px;  /* badges, inputs, small chips, inner rows */
+  --fusion-radius: 8px;     /* cards, panels, buttons */
+  --fusion-radius-lg: 12px; /* windows, modals, standalone columns */
+  --fusion-radius-pill: 999px; /* trait/filter chips */
+
+  /* ---- Semantic aliases ---- */
+  --radius-input: var(--fusion-radius-sm);
+  --radius-card: var(--fusion-radius);
+  --radius-window: var(--fusion-radius-lg);
+}

@@ -1,0 +1,7 @@
+/* Fusion VTT Design System — global entry point.
+   Consumers link THIS file. It only @imports the token layer. */
+@import "tokens/colors.css";
+@import "tokens/typography.css";
+@import "tokens/spacing.css";
+@import "tokens/radii.css";
+@import "tokens/proficiency.css";

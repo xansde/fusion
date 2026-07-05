@@ -1,0 +1,403 @@
+<!-- @dsCard group="Ficha PF2e r10" name="Aba Magias por origem" -->
+<style>
+  :root {
+    --fusion-bg: #0e0e12;
+    --fusion-surface: #18181f;
+    --fusion-surface-alt: #1f1f2a;
+    --fusion-border: #2e2e3d;
+    --fusion-text: #e8e8f0;
+    --fusion-text-muted: #8888a0;
+    --fusion-text-subtle: #55556a;
+    --fusion-accent: #7c5cfc;
+    --fusion-accent-hover: #9b7ffe;
+    --fusion-accent-dim: rgba(124,92,252,0.15);
+    --fusion-success: #3ddc84;
+    --fusion-warning: #ffc857;
+    --fusion-danger: #ff5c5c;
+    --fusion-radius-sm: 4px;
+    --fusion-radius: 8px;
+    --fusion-radius-lg: 12px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--fusion-bg);
+    color: var(--fusion-text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    margin: 0;
+  }
+  .stage {
+    background: var(--fusion-bg);
+    padding: 24px;
+    min-height: 760px;
+    display: flex;
+    justify-content: center;
+  }
+  .spell-panel {
+    width: 900px;
+    background: var(--fusion-surface);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-lg);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  /* Tab radios (functional tab switch, no JS needed) */
+  input[name="spell-origin-tab"] { display: none; }
+
+  .tabbar {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid var(--fusion-border);
+  }
+  .tabbar label {
+    padding: 9px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--fusion-text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    user-select: none;
+  }
+  .tabbar label:hover { color: var(--fusion-text); }
+
+  #tab-magus:checked ~ .tabbar label[for="tab-magus"],
+  #tab-alchemist:checked ~ .tabbar label[for="tab-alchemist"],
+  #tab-focus:checked ~ .tabbar label[for="tab-focus"],
+  #tab-rituals:checked ~ .tabbar label[for="tab-rituals"] {
+    color: var(--fusion-accent);
+    border-bottom-color: var(--fusion-accent);
+    background: var(--fusion-accent-dim);
+    border-radius: var(--fusion-radius-sm) var(--fusion-radius-sm) 0 0;
+  }
+
+  .tab-panels { position: relative; }
+  .tab-panel { display: none; flex-direction: column; gap: 16px; }
+  #tab-magus:checked ~ .tab-panels #panel-magus { display: flex; }
+  #tab-alchemist:checked ~ .tab-panels #panel-alchemist { display: flex; }
+  #tab-focus:checked ~ .tab-panels #panel-focus { display: flex; }
+  #tab-rituals:checked ~ .tab-panels #panel-rituals { display: flex; }
+
+  /* Panel header stats */
+  .stats-bar {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius);
+    padding: 10px 14px;
+  }
+  .stat-item { display: flex; flex-direction: column; gap: 1px; }
+  .stat-item .lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--fusion-text-subtle); }
+  .stat-item .val { font-size: 15px; font-weight: 700; color: var(--fusion-text); }
+  .rank-badge {
+    width: 20px; height: 20px; border-radius: var(--fusion-radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    border: 1px solid var(--fusion-accent);
+    color: var(--fusion-accent);
+  }
+
+  /* Sections */
+  .spell-section h3 {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--fusion-text-muted);
+    margin: 0 0 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .spell-section .hint {
+    font-size: 10.5px;
+    font-weight: 400;
+    text-transform: none;
+    color: var(--fusion-text-subtle);
+    letter-spacing: 0;
+  }
+  .section-head-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .chip-cards { display: flex; flex-wrap: wrap; gap: 8px; }
+  .spell-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius);
+    padding: 8px 10px;
+  }
+  .spell-chip .name { font-size: 12.5px; font-weight: 600; color: var(--fusion-text); }
+  .btn-tiny {
+    background: transparent;
+    border: 1px solid var(--fusion-border);
+    color: var(--fusion-text-muted);
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: var(--fusion-radius-sm);
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-tiny:hover { border-color: var(--fusion-accent); color: var(--fusion-accent-hover); }
+
+  .slots-row { display: flex; gap: 10px; }
+  .spell-slot-card {
+    flex: 1;
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius);
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .spell-slot-card .info { flex: 1; }
+  .spell-slot-card .name { font-size: 13px; font-weight: 600; color: var(--fusion-text); }
+  .use-pip {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--fusion-accent);
+    display: inline-block;
+    margin-left: 6px;
+    vertical-align: middle;
+    title: "";
+  }
+  .btn-actions { display: flex; gap: 6px; }
+  .btn-primary-sm {
+    background: var(--fusion-accent);
+    color: #fff;
+    border: none;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 11px;
+    border-radius: var(--fusion-radius-sm);
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-primary-sm:hover { background: var(--fusion-accent-hover); }
+
+  .spell-slot-empty {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed var(--fusion-border);
+    border-radius: var(--fusion-radius);
+    color: var(--fusion-text-muted);
+    font-size: 12.5px;
+    padding: 14px;
+    cursor: pointer;
+  }
+  .spell-slot-empty:hover { border-color: var(--fusion-accent); color: var(--fusion-accent-hover); }
+
+  .grimoire-list { display: flex; flex-direction: column; gap: 6px; }
+  .grimoire-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    padding: 8px 10px;
+  }
+  .grimoire-row .name { flex: 1; font-size: 12.5px; font-weight: 600; color: var(--fusion-text); }
+
+  .btn-primary {
+    background: var(--fusion-accent);
+    color: #fff;
+    border: none;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 14px;
+    border-radius: var(--fusion-radius);
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-primary:hover { background: var(--fusion-accent-hover); }
+
+  /* Empty states */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 60px 20px;
+    color: var(--fusion-text-muted);
+    text-align: center;
+  }
+  .empty-state .glyph {
+    font-size: 32px;
+    color: var(--fusion-text-subtle);
+  }
+  .empty-state .msg { font-size: 13px; max-width: 380px; line-height: 1.5; }
+
+  /* Focus tab */
+  .focus-card {
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius);
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .focus-card .info { flex: 1; }
+  .focus-card .name { font-size: 14px; font-weight: 600; color: var(--fusion-text); }
+  .focus-card .note { font-size: 11px; color: var(--fusion-text-subtle); margin-top: 2px; }
+
+  .pip-dots { display: flex; gap: 5px; }
+  .pip {
+    width: 13px; height: 13px; border-radius: 50%;
+    border: 1px solid var(--fusion-border);
+    background: transparent;
+  }
+  .pip.filled { background: var(--fusion-accent); border-color: var(--fusion-accent); }
+  .pip.locked {
+    background: repeating-linear-gradient(45deg, var(--fusion-surface), var(--fusion-surface) 2px, transparent 2px, transparent 4px);
+    border-color: var(--fusion-border);
+    opacity: 0.4;
+  }
+
+  .refocus-note {
+    font-size: 11.5px;
+    color: var(--fusion-text-muted);
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    padding: 8px 10px;
+  }
+</style>
+
+<div class="stage">
+  <div class="spell-panel">
+    <input type="radio" name="spell-origin-tab" id="tab-magus" checked>
+    <input type="radio" name="spell-origin-tab" id="tab-alchemist">
+    <input type="radio" name="spell-origin-tab" id="tab-focus">
+    <input type="radio" name="spell-origin-tab" id="tab-rituals">
+
+    <div class="tabbar">
+      <label for="tab-magus">Magus</label>
+      <label for="tab-alchemist">Alquimista (Arquétipo)</label>
+      <label for="tab-focus">Foco</label>
+      <label for="tab-rituals">Rituais</label>
+    </div>
+
+    <div class="tab-panels">
+      <!-- MAGUS -->
+      <div class="tab-panel" id="panel-magus">
+        <div class="stats-bar">
+          <div class="stat-item"><span class="lbl">CD de Magia</span><span class="val">18</span></div>
+          <div class="stat-item"><span class="lbl">Ataque</span><span class="val">+8</span></div>
+          <div class="stat-item"><span class="lbl">Tradição</span><span class="val">Arcana</span></div>
+          <div class="stat-item"><span class="lbl">Atributo</span><span class="val">INT</span></div>
+          <div class="stat-item"><span class="lbl">Proficiência</span><span class="rank-badge">T</span></div>
+        </div>
+
+        <div class="spell-section">
+          <h3>Truques <span class="hint">elevados ao patamar 2</span></h3>
+          <div class="chip-cards">
+            <div class="spell-chip"><span class="name">Detectar Magia</span><button class="btn-tiny">Trocar</button></div>
+            <div class="spell-chip"><span class="name">Arco Elétrico</span><button class="btn-tiny">Trocar</button></div>
+            <div class="spell-chip"><span class="name">Escudo</span><button class="btn-tiny">Trocar</button></div>
+            <div class="spell-chip"><span class="name">Mordida do Gelo</span><button class="btn-tiny">Trocar</button></div>
+            <div class="spell-chip"><span class="name">Projétil Telecinético</span><button class="btn-tiny">Trocar</button></div>
+          </div>
+        </div>
+
+        <div class="spell-section">
+          <h3>Patamar 1</h3>
+          <div class="slots-row">
+            <div class="spell-slot-card">
+              <div class="info">
+                <span class="name">Rajada de Força<span class="use-pip" title="Espaço de magia disponível"></span></span>
+              </div>
+              <div class="btn-actions">
+                <button class="btn-primary-sm">Lançar</button>
+                <button class="btn-tiny">Trocar</button>
+              </div>
+            </div>
+            <div class="spell-slot-empty">Preparar magia&hellip;</div>
+          </div>
+        </div>
+
+        <div class="spell-section">
+          <h3>Patamar 2</h3>
+          <div class="slots-row">
+            <div class="spell-slot-card">
+              <div class="info">
+                <span class="name">Névoa Obscurecente<span class="use-pip" title="Espaço de magia disponível"></span></span>
+              </div>
+              <div class="btn-actions">
+                <button class="btn-primary-sm">Lançar</button>
+                <button class="btn-tiny">Trocar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="spell-section">
+          <div class="section-head-row">
+            <h3 style="margin:0;">Grimório</h3>
+            <button class="btn-primary" title="Abrir o compêndio de magias para adicionar ao grimório">+ Adicionar magia</button>
+          </div>
+          <div class="grimoire-list">
+            <div class="grimoire-row"><span class="name">Graxa</span><button class="btn-tiny">Preparar</button></div>
+            <div class="grimoire-row"><span class="name">Golpe Certeiro</span><button class="btn-tiny">Preparar</button></div>
+            <div class="grimoire-row"><span class="name">Tentáculos Sombrios</span><button class="btn-tiny">Preparar</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALCHEMIST -->
+      <div class="tab-panel" id="panel-alchemist">
+        <div class="empty-state">
+          <div class="glyph">&#9899;</div>
+          <div class="msg">Este arquétipo não concede magias — itens alquímicos ficam no Inventário.</div>
+        </div>
+      </div>
+
+      <!-- FOCUS -->
+      <div class="tab-panel" id="panel-focus">
+        <div class="stats-bar">
+          <div class="stat-item"><span class="lbl">Pontos de Foco</span>
+            <div class="pip-dots" style="margin-top:3px;">
+              <div class="pip filled"></div>
+              <div class="pip locked" title="Além do seu máximo atual de Pontos de Foco (1)"></div>
+              <div class="pip locked" title="Além do seu máximo atual de Pontos de Foco (1)"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="focus-card">
+          <div class="info">
+            <div class="name">Estrela Cadente</div>
+            <div class="note">Patamar 2 &bull; consome 1 ponto de foco</div>
+          </div>
+          <button class="btn-primary-sm">Lançar</button>
+        </div>
+
+        <div class="refocus-note">
+          <strong>Refocus:</strong> recupere 1 Ponto de Foco após 10 minutos de descanso concentrando-se na prática da sua classe.
+        </div>
+      </div>
+
+      <!-- RITUALS -->
+      <div class="tab-panel" id="panel-rituals">
+        <div class="empty-state">
+          <div class="glyph">&#9899;</div>
+          <div class="msg">Nenhum ritual conhecido</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,55 @@
+/* Fusion VTT — Typography tokens
+   No webfonts. Native system-ui stack keeps the tool feeling like part of the OS.
+   Body is 14px; the scale is tight and functional. */
+
+/* The mono token names Cascadia Code / Source Code Pro as preferred faces.
+   These are declared as local()-only @font-face rules: if the reader has the
+   font installed it is used, otherwise the browser falls through to the
+   ui-monospace system stack below. No binary is shipped or required. */
+@font-face {
+  font-family: "Cascadia Code";
+  src: local("Cascadia Code"), local("CascadiaCode"), local("Cascadia Mono");
+  font-weight: 400 700;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Source Code Pro";
+  src: local("Source Code Pro"), local("SourceCodePro-Regular");
+  font-weight: 400 700;
+  font-style: normal;
+}
+
+:root {
+  --fusion-font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --fusion-font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
+
+  /* Type scale (px) */
+  --fusion-text-title: 20px;   /* character name, window/screen title  — 600 */
+  --fusion-text-heading: 16px; /* panel / section title                — 600 */
+  --fusion-text-subhead: 15px; /* modal title, stat value              — 600/700 */
+  --fusion-text-body: 14px;    /* default body                         — 400 */
+  --fusion-text-sm: 13px;      /* dense rows, tab labels, buttons      — 400/600 */
+  --fusion-text-xs: 12px;      /* meta, chips, secondary rows          — 400/600 */
+  --fusion-text-micro: 11px;   /* uppercase section labels             — 600 */
+  --fusion-text-nano: 10px;    /* type-labels above values, traits     — 600 up */
+  --fusion-text-tiny: 9px;     /* pill traits, shield caption          — 600 up */
+
+  /* Weights */
+  --fusion-weight-regular: 400;
+  --fusion-weight-medium: 500;
+  --fusion-weight-semibold: 600;
+  --fusion-weight-bold: 700;
+
+  /* Line heights */
+  --fusion-leading-body: 1.5;
+  --fusion-leading-tight: 1.2;
+
+  /* Letter-spacing */
+  --fusion-tracking-title: -0.01em; /* large headings tighten slightly */
+  --fusion-tracking-label: 0.08em;  /* uppercase micro labels */
+  --fusion-tracking-caps: 0.04em;   /* uppercase level/section heads */
+
+  /* ---- Semantic aliases ---- */
+  --font-sans: var(--fusion-font);
+  --font-mono: var(--fusion-font-mono);
+}

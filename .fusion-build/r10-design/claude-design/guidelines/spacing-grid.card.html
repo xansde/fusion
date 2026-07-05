@@ -1,0 +1,18 @@
+<!-- @dsCard group="Spacing" viewport="700x160" name="8px grid" subtitle="Base 8, dense half-steps 2/4/6 for tool rows" -->
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; background: var(--fusion-bg); font-family: var(--fusion-font); color: var(--fusion-text); }
+  .wrap { padding: 22px 26px; display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
+  .step { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .bar { background: var(--fusion-accent-dim); border: 1px solid var(--fusion-accent); border-radius: var(--fusion-radius-sm); height: 24px; }
+  .cap { font-family: var(--fusion-font-mono); font-size: 11px; color: var(--fusion-text-muted); }
+</style>
+<div class="wrap">
+  <div class="step"><div class="bar" style="width:4px"></div><span class="cap">4</span></div>
+  <div class="step"><div class="bar" style="width:8px"></div><span class="cap">8</span></div>
+  <div class="step"><div class="bar" style="width:12px"></div><span class="cap">12</span></div>
+  <div class="step"><div class="bar" style="width:16px"></div><span class="cap">16</span></div>
+  <div class="step"><div class="bar" style="width:20px"></div><span class="cap">20</span></div>
+  <div class="step"><div class="bar" style="width:24px"></div><span class="cap">24</span></div>
+  <div class="step"><div class="bar" style="width:32px"></div><span class="cap">32</span></div>
+</div>
