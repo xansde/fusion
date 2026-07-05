@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "packId": "pf2e.backgrounds-core",
+  "locale": "pt-BR",
+  "generatedAt": "2026-07-05T22:09:09.118Z",
+  "generator": "tools/translate-packs@0.1.0",
+  "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
+  "entries": {
+    "XGTsuhOCcthVvoFt": {
+      "name": "Performista de Fogos de Artifício",
+      "sourceHash": "4a280fdf80966c7557c8cf10ec2fd44e7479254f",
+      "description": "<p>Poucas celebrações em Tian Xia são completas sem um show de fogos de artifício, e seu trabalho é garantir que funcionem sem problemas. Você carrega os fogos, acende os fusíveis e coreografa a apresentação, trazendo o show junto em um desfecho de luzes e explosões. Depois é hora de guardar seu equipamento e seguir para o próximo feriado cívico ou festival religioso. É claro que alguém que viaja pelas estradas com uma mochila cheia de explosivos de alto potencial está fadado a encontrar uma aventura ou duas pelo caminho, e assim ao longo do tempo, seus fogos foram gastos em apoio a essa vida.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser para <strong>Inteligência</strong> ou <strong>Carisma</strong>, e um é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Atuação e na perícia Conhecimento de Fogos de Artifício. Você ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Fascinating Performance].</p>"
+    }
+  }
+}

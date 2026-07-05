@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "packId": "pf2e.heritages-core",
+  "locale": "pt-BR",
+  "generatedAt": "2026-07-05T22:11:49.721Z",
+  "generator": "tools/translate-packs@0.1.0",
+  "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
+  "entries": {
+    "6B5uk7Fe6I4NrWjn": {
+      "name": "Rato da Neve",
+      "sourceHash": "52bd49dfcc0a7ead728b8951c7f278b0c390d3a7",
+      "description": "<p>Você tem uma pelagem mais espessa e um corpo mais volumoso para se defender do frio, concedendo a você resistencia ao frio igual a metade do seu nivel (mínimo 1). Você trata efeitos de frio ambiental como se fossem um grau menos extremos (frio incrível se torna extremo, frio extremo se torna severo, e assim por diante).</p>"
+    },
+    "BPDF1w5U8k1HrUvZ": {
+      "name": "Rato do Deserto",
+      "sourceHash": "0b403efd4fb6c31562db27abfcdc46e774cb6987",
+      "description": "<p>Você é nativo de planícies áridas e provavelmente cresceu viajando pelas estradas. Se você tem ambas as mãos livres, voce pode aumentar sua Velocidade para 9 metros conforme corre sobre os quatro membros. Além disso, efeitos de calor ambiental são um grau menos extremos para você, e você pode resistir 10 vezes mais do que o normal antes de ser afetado por fome ou sede. Porém, a menos que você vista equipamento de proteção ou procure abrigo, efeitos de frio ambiental são um grau mais extremos para você.</p>"
+    },
+    "GIbhAzqqCZsfVZ4Z": {
+      "name": "Rato da Sombra",
+      "sourceHash": "12764fc3acd24009f8c487cc517c84be9fab5cc0",
+      "description": "<p>Seus ancestrais viviam em espaços escuros no subsolo, concedendo a você pelo negro escuro e uma aparência vagamente antinatural. Você ganha proficiência treinada em Intimidação e pode usar Intimidação para @UUID[Compendium.pf2e.actionspf2e.Item.Coerce] animais. Quando você @UUID[Compendium.pf2e.actionspf2e.Item.Demoralize] um animal, você não recebe penalidade por não compartilhar um idioma com ele. Se você se tornaria automaticamente treinado em Intimidação (de seu antecedente ou classe, por exemplo), você se torna treinado em outra pericia de sua escolha.</p>\n<p>Atitudes de animais em relação a você começam um grau pior do que o normal, geralmente começando inamistosa em vez de indiferente para animais domesticados, e hostil em vez de inamistosa para animais selvagens.</p>"
+    },
+    "Rd2aNjE56aR5fN0d": {
+      "name": "Rato Longirostro",
+      "sourceHash": "e30a7935a7407a2894a1bf087480f6a3905aede9",
+      "description": "<p>Seu focinho alongado lhe dá um olfato mais aguçado do que a maioria dos ratkin. Você ganha olfato impreciso com alcance de 9 metros. Isso significa que você pode usar seu senso de olfato para determinar a localização de uma criatura. O MJ geralmente dobrará o alcance se você estiver sotavento da criatura ou reduzirá o alcance à metade se você estiver barlavento.</p>\n<p>Além disso, você ganha um bônus de circunstância +2 em testes de Percepção para @UUID[Compendium.pf2e.actionspf2e.Item.Seek] uma criatura ou objeto dentro do alcance do seu olfato.</p>"
+    },
+    "STr5kDJYUrafYtZy": {
+      "name": "Rato do Esgoto",
+      "sourceHash": "9c79bd844730717ceec8a0bd3380e6cc48cd3d4b",
+      "description": "<p>Você vem de uma longa linhagem de ratkin com uma comunidade baseada nos esgotos sob um grande assentamento. Você é imune à doença praga pútrida. Você ganha um bônus de circunstância +1 em testes de resistência contra doenças e venenos. Se você obtiver sucesso em um teste de resistência contra uma doença ou veneno, você obtém sucesso crítico no lugar. Se você tiver uma habilidade diferente que melhoraria o teste dessa forma (como a habilidade de classe @UUID[Compendium.pf2e.classfeatures.Item.Battle Hardened] do guerreiro), se você obtiver falha crítica no teste você obtém falha no lugar.</p>"
+    },
+    "azDELWXz1ds3XeL0": {
+      "name": "Rato Profundo",
+      "sourceHash": "074659d75ea600bb35215099a4c247d620e4d184",
+      "description": "<p>Seus ancestrais viviam mais profundamente no subsolo do que outros ratkin, concedendo a você a capacidade de enxergar no escuro. Voce ganha visão noturna.</p>"
+    },
+    "pVqpKjLfoDY2XzA3": {
+      "name": "Rato do Túnel",
+      "sourceHash": "7c82ec3029975577711a66b4c43ffe186df66ba4",
+      "description": "<p>Você pode facilmente comprimir seu corpo e se espremer por aberturas. Você ganha o talento @UUID[Compendium.pf2e.feats-srd.Item.Quick Squeeze] como talento bônus, mesmo que você não esteja treinado em Acrobacia. Espaços apertados não suficientemente apertados para exigir a ação @UUID[Compendium.pf2e.actionspf2e.Item.Squeeze] não são terreno difícil para você.</p>"
+    }
+  }
+}

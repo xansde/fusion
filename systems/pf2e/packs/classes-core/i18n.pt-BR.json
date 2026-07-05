@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "packId": "pf2e.classes-core",
+  "locale": "pt-BR",
+  "generatedAt": "2026-07-05T22:09:11.731Z",
+  "generator": "tools/translate-packs@0.1.0",
+  "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
+  "entries": {
+    "fk29yXFinPhreKL0": {
+      "name": "Magus",
+      "sourceHash": "80de4387ce349d748efb5a1910169bd5562368b5",
+      "description": "<p><em>Combinando a fisicalidade e a técnica de um guerreiro com a capacidade de conjurar magia arcana, você busca aperfeiçoar a arte de fundir feitiço e golpe. Enquanto o tratado pesado que você carrega reflete horas de pesquisa arcana, seus inimigos não precisam de recordação de seu treinamento. Reconhecem-no conforme você os derrota.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.YVoyzV9v4QyP2UIC]{Magus}</em></p>"
+    }
+  }
+}
