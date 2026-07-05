@@ -113,6 +113,30 @@ export interface DerivedStrike {
 }
 
 // ---------------------------------------------------------------------------
+// Archetype class DC (dedication-granted, DEC-R12-04)
+// ---------------------------------------------------------------------------
+
+/**
+ * A class DC granted by a multiclass/archetype dedication feat.
+ *
+ * `slug`  = archetype key (e.g. "alchemist") — from the feat's
+ *           `subfeatures.proficiencies.<slug>`.
+ * `label` = display name ("Alchemist").
+ * `ability` = key ability slug used for this DC ("int", "dex", …).
+ * `total` = abilityMod + proficiencyBonus(rank, level).
+ * `dc`    = 10 + total.
+ * `rank`  = proficiency rank granted (dedications grant Trained = 1).
+ */
+export interface ArchetypeClassDC {
+  readonly slug: string;
+  readonly label: string;
+  readonly ability: string;
+  readonly rank: number;
+  readonly total: number;
+  readonly dc: number;
+}
+
+// ---------------------------------------------------------------------------
 // Character derived data
 // ---------------------------------------------------------------------------
 
@@ -181,6 +205,15 @@ export interface CharacterDerived {
     readonly dc: number;
     readonly modifiers: ModifierBreakdown[];
   };
+
+  /**
+   * Class DCs granted by multiclass/archetype dedications (DEC-R12-04),
+   * separate from the base-class `classDC`. One entry per dedication feat
+   * that grants its own class DC (e.g. Alchemist Dedication → INT-based
+   * class DC). Empty when the character has no such dedications. Optional:
+   * docs derived before r12 lack it (clients treat absent as `[]`).
+   */
+  readonly archetypeClassDCs?: ArchetypeClassDC[];
 
   /** Derived strikes from equipped weapons. REQ-PF2-030 */
   readonly strikes: DerivedStrike[];

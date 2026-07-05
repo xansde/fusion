@@ -79,11 +79,13 @@
     maxRank?: number | undefined;
     /** Pre-select this rank chip (the slot's rank when opened from an empty slot). */
     initialRank?: number | undefined;
+    /** Pre-select this trait chip (e.g. "focus" when adding a focus spell). */
+    initialTrait?: string | undefined;
     onClose: () => void;
     onSelect: (doc: Record<string, unknown>) => void;
   }
 
-  let { tradition, traditionLabel, entryLabel, maxRank, initialRank, onClose, onSelect }: Props =
+  let { tradition, traditionLabel, entryLabel, maxRank, initialRank, initialTrait, onClose, onSelect }: Props =
     $props();
 
   let query = $state("");
@@ -92,9 +94,15 @@
   // later prop changes must NOT clobber the user's manual chip choice.
   let rankFilter = $state<number | null>(initialRank ?? null);
   let traditionFilter = $state<string | null>(null);
-  let traitFilter = $state<string | null>(null);
+  // svelte-ignore state_referenced_locally — initialTrait seeds the trait chip
+  // at mount only (the dialog is recreated per opening); later prop changes
+  // must not clobber the user's manual chip choice.
+  let traitFilter = $state<string | null>(initialTrait ?? null);
   let traitSearch = $state("");
-  let moreFiltersOpen = $state(false);
+  // Open "More filters" by default when a trait is pre-selected, so the user
+  // sees the active focus-trait chip (it lives in that collapsed section).
+  // svelte-ignore state_referenced_locally — mount-only seed (see above).
+  let moreFiltersOpen = $state(Boolean(initialTrait));
   let selectedUuid = $state<string | null>(null);
   let loading = $state(true);
   let errorKind = $state<"not-connected" | "load" | null>(null);

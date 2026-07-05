@@ -72,6 +72,24 @@ export interface DerivedStrike {
 }
 
 // ---------------------------------------------------------------------------
+// Archetype class DC (dedication-granted, DEC-R12-04)
+// ---------------------------------------------------------------------------
+
+/**
+ * A class DC granted by a multiclass/archetype dedication feat, separate
+ * from the base-class classDC. Manual mirror of systems/pf2e
+ * derivations/types.ts ArchetypeClassDC — MUST stay in sync.
+ */
+export interface ArchetypeClassDC {
+  readonly slug: string;
+  readonly label: string;
+  readonly ability: string;
+  readonly rank: number;
+  readonly total: number;
+  readonly dc: number;
+}
+
+// ---------------------------------------------------------------------------
 // CharacterDerived (populated by M3-B steps on server; arrives via DocumentMirror)
 // ---------------------------------------------------------------------------
 
@@ -109,6 +127,13 @@ export interface CharacterDerived {
     readonly dc: number;
     readonly modifiers: ModifierBreakdown[];
   };
+
+  /**
+   * Class DCs granted by archetype/multiclass dedications (DEC-R12-04),
+   * separate from the base-class classDC. Manual mirror — server contract.
+   * Optional: absent on pre-r12 derived data — callers treat as [].
+   */
+  readonly archetypeClassDCs?: ArchetypeClassDC[];
 
   readonly strikes: DerivedStrike[];
 

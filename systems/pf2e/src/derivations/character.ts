@@ -25,7 +25,13 @@ import type { WeaponSystem } from "../schemas/item-weapon.js";
 import { SKILL_ABILITY, SKILL_SLUGS } from "../types.js";
 import { abilityMod, proficiencyBonus, resolveStatisticMulti, mapPenalties } from "./helpers.js";
 import { deriveStrikeFromWeapon, type StrikeModifier } from "../actions/strikes.js";
-import type { DerivedStatistic, DerivedStrike, ModifierBreakdown } from "./types.js";
+import type {
+  DerivedStatistic,
+  DerivedStrike,
+  ModifierBreakdown,
+  ArchetypeClassDC,
+} from "./types.js";
+import { ARCHETYPE_KEY_ABILITY, ARCHETYPE_LABEL, titleCaseSlug } from "./archetypes.js";
 import { stepCharCollectEquipment } from "./equipment.js";
 import { stepCharSpellcasting } from "./spellcasting.js";
 import {
@@ -533,6 +539,117 @@ export const stepCharClassDC: DeriveStep = {
 };
 
 // ---------------------------------------------------------------------------
+// STEP 8b (derived phase): Archetype (dedication) class DCs
+// REQ-PF2-016, DEC-R12-04
+// ---------------------------------------------------------------------------
+
+/**
+ * Read `system.subfeatures.proficiencies.<slug>` off a feat item, tolerating
+ * both `{ attribute, rank }` and partial/absent shapes. Returns null when
+ * the feat carries no such subfeature block.
+ */
+function readArchetypeProficiency(
+  itemSys: Record<string, unknown>,
+): { slug: string; attribute?: string; rank?: number } | null {
+  const subfeatures = itemSys["subfeatures"];
+  if (!subfeatures || typeof subfeatures !== "object") return null;
+  const profs = (subfeatures as Record<string, unknown>)["proficiencies"];
+  if (!profs || typeof profs !== "object") return null;
+  // The first (and, for dedications, only) key is the archetype slug.
+  for (const [slug, raw] of Object.entries(profs as Record<string, unknown>)) {
+    if (!raw || typeof raw !== "object") continue;
+    const entry = raw as Record<string, unknown>;
+    const attribute = typeof entry["attribute"] === "string" ? entry["attribute"] : undefined;
+    const rank = typeof entry["rank"] === "number" ? entry["rank"] : undefined;
+    return { slug, ...(attribute ? { attribute } : {}), ...(rank !== undefined ? { rank } : {}) };
+  }
+  return null;
+}
+
+/**
+ * Derive class DCs granted by archetype/multiclass dedication feats
+ * (DEC-R12-04), separate from the base-class `classDC`.
+ *
+ * A dedication is detected as a feat item whose `system.category === "class"`
+ * AND whose `system.traits.value` includes "dedication". Its class DC is
+ * built from the feat's own `subfeatures.proficiencies.<slug>` block
+ * (`{ attribute, rank }`), falling back to ARCHETYPE_KEY_ABILITY + Trained
+ * (rank 1) when that block is absent (dedications always grant at least
+ * Trained). Only dedications that actually grant a class-DC proficiency
+ * (either via the subfeature block or a known ARCHETYPE_KEY_ABILITY entry)
+ * produce an output row — a bare "flavor" dedication contributes nothing.
+ *
+ * total = abilityMod(attribute) + proficiencyBonus(rank, level); dc = 10 + total.
+ *
+ * Every read is guarded: this runs against RAW persisted docs (no Zod
+ * defaults) and the r11 malformed-input posture applies — a feat authored
+ * outside the schema must be skipped, never throw.
+ *
+ * Reads:  system.derived.abilityMods, system.level, doc.items (dedication feats)
+ * Writes: system.derived.archetypeClassDCs
+ */
+export const stepCharArchetypeClassDCs: DeriveStep = {
+  id: "pf2e.character.derived.archetypeClassDCs",
+  documentType: "Actor",
+  subtypes: ["character"],
+  phase: "derived",
+  reads: ["system.derived.abilityMods", "system.level"],
+  writes: ["system.derived.archetypeClassDCs"],
+
+  run(doc) {
+    const sys = getCharSystem(doc);
+    const derived = getDerived(doc);
+    const abilityMods = derived["abilityMods"] as Record<string, number> | undefined;
+    const level = getLevel(sys);
+
+    const results: ArchetypeClassDC[] = [];
+    const seen = new Set<string>();
+
+    const rawItems = doc["items"];
+    if (Array.isArray(rawItems)) {
+      for (const raw of rawItems) {
+        if (!raw || typeof raw !== "object") continue;
+        const item = raw as Record<string, unknown>;
+        if (item["type"] !== "feat") continue;
+
+        const itemSys = (item["system"] as Record<string, unknown> | undefined) ?? {};
+        if (itemSys["category"] !== "class") continue;
+
+        const traitsBlock = itemSys["traits"] as { value?: unknown } | undefined;
+        const traits = Array.isArray(traitsBlock?.value) ? (traitsBlock.value as unknown[]) : [];
+        if (!traits.includes("dedication")) continue;
+
+        const prof = readArchetypeProficiency(itemSys);
+        const slug = prof?.slug;
+        if (!slug) continue; // dedication grants no class-DC proficiency
+
+        // Fallbacks: dedications grant Trained (rank 1); key ability from the
+        // subfeature block, then the extensible map.
+        const ability = prof.attribute ?? ARCHETYPE_KEY_ABILITY[slug];
+        if (!ability) continue; // unknown key ability — cannot derive a DC
+        const rank = prof.rank ?? 1;
+
+        if (seen.has(slug)) continue;
+        seen.add(slug);
+
+        const mod = abilityMods?.[ability] ?? 0;
+        const total = mod + proficiencyBonus(rank, level);
+        results.push({
+          slug,
+          label: ARCHETYPE_LABEL[slug] ?? titleCaseSlug(slug),
+          ability,
+          rank,
+          total,
+          dc: 10 + total,
+        });
+      }
+    }
+
+    derived["archetypeClassDCs"] = results;
+  },
+};
+
+// ---------------------------------------------------------------------------
 // STEP 9 (derived phase): Drained HP reduction
 // REQ-PF2-051 (drained X → max HP reduced by level × X)
 // ---------------------------------------------------------------------------
@@ -940,6 +1057,7 @@ export const CHARACTER_DERIVE_STEPS: DeriveStep[] = [
   stepCharPerception,
   stepCharSkills,
   stepCharClassDC,
+  stepCharArchetypeClassDCs,
   stepCharDrainedHp,
   stepCharStrikes,
   stepCharSpellcasting,

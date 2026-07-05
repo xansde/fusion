@@ -1481,6 +1481,223 @@ describe("CharacterSheetVM — restAll", () => {
 });
 
 // ---------------------------------------------------------------------------
+// resolveSpellName — prepared-slot name resolution across 3 embedded layers
+// + dangling ref (DEC-R12-05, W3 r12). Layer 4 (compendium on-demand) lives
+// in the Svelte component; here we verify layers 1-3 + the null contract.
+// ---------------------------------------------------------------------------
+
+describe("CharacterSheetVM — resolveSpellName (DEC-R12-05)", () => {
+  it("layer 1: resolves a spell grouped under the given entry", () => {
+    const vm = makeVM();
+    // Magic Missile is embedded with location=entry-arcane at rank 1.
+    expect(vm.resolveSpellName("entry-arcane", "spell-magic-missile")).toBe("Magic Missile");
+  });
+
+  it("layer 2: resolves a spell that belongs to a DIFFERENT entry", () => {
+    const doc = makeCharacter();
+    const items = doc["items"] as Array<Record<string, unknown>>;
+    items.push({
+      _id: "entry-divine",
+      name: "Divine",
+      type: "spellcastingEntry",
+      system: { tradition: "divine", prepared: "prepared", ability: "wis", slots: {} },
+    });
+    items.push({
+      _id: "spell-heal",
+      name: "Heal",
+      type: "spell",
+      location: "entry-divine",
+      system: { level: 1 },
+    });
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    // Asked for it under entry-arcane, but it lives under entry-divine — still found.
+    expect(vm.resolveSpellName("entry-arcane", "spell-heal")).toBe("Heal");
+  });
+
+  it("layer 3: resolves an embedded spell whose location link is stale/wrong", () => {
+    const doc = makeCharacter();
+    const items = doc["items"] as Array<Record<string, unknown>>;
+    // A spell embedded but pointing at a non-existent entry (mislinked).
+    items.push({
+      _id: "spell-orphan-link",
+      name: "Mislinked Spell",
+      type: "spell",
+      location: "entry-does-not-exist",
+      system: { level: 2 },
+    });
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    // Not grouped under any entry (layers 1-2 miss), but the embedded item
+    // exists (layer 3 recovers it by id, location-agnostic).
+    expect(vm.resolveSpellName("entry-arcane", "spell-orphan-link")).toBe("Mislinked Spell");
+  });
+
+  it("returns null for a dangling reference (id matches no embedded spell — Tobias 'QM1xJwDDsAEYA3uJ')", () => {
+    const vm = makeVM();
+    expect(vm.resolveSpellName("entry-arcane", "QM1xJwDDsAEYA3uJ")).toBeNull();
+  });
+
+  it("returns null for an empty/blank id (unprepared-slot sentinel)", () => {
+    const vm = makeVM();
+    expect(vm.resolveSpellName("entry-arcane", "")).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// focusSpells / focusEntryId — Foco tab (DEC-R12-05, feedback b).
+// Heal-on-read: focus spells are collected by the "focus" trait OR by a link
+// to an isFocusPool entry, regardless of a possibly-wrong location.
+// ---------------------------------------------------------------------------
+
+describe("CharacterSheetVM — focusSpells / focusEntryId", () => {
+  function makeFocusDoc(): Record<string, unknown> {
+    const doc = makeCharacter();
+    const items = doc["items"] as Array<Record<string, unknown>>;
+    items.push({
+      _id: "entry-focus",
+      name: "Focus Spells",
+      type: "spellcastingEntry",
+      system: { tradition: "arcane", prepared: "focus", ability: "int", isFocusPool: true, slots: {} },
+    });
+    return doc;
+  }
+
+  it("returns [] and null entry when there are no focus spells/entries", () => {
+    const vm = makeVM();
+    expect(vm.focusSpells).toEqual([]);
+    expect(vm.focusEntryId).toBeNull();
+  });
+
+  it("exposes the focus-pool entry id when present", () => {
+    const vm = new CharacterSheetVM({
+      doc: makeFocusDoc(),
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    expect(vm.focusEntryId).toBe("entry-focus");
+  });
+
+  it("collects a spell linked to the focus entry (correct location)", () => {
+    const doc = makeFocusDoc();
+    const items = doc["items"] as Array<Record<string, unknown>>;
+    items.push({
+      _id: "spell-shooting-star",
+      name: "Shooting Star",
+      type: "spell",
+      location: "entry-focus",
+      system: { level: 1, traits: { value: ["focus"] } },
+    });
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    expect(vm.focusSpells.map((s) => s.name)).toEqual(["Shooting Star"]);
+  });
+
+  it("heals on read: collects a focus-trait spell even when its location is wrong", () => {
+    const doc = makeFocusDoc();
+    const items = doc["items"] as Array<Record<string, unknown>>;
+    items.push({
+      _id: "spell-conflux",
+      name: "Conflux Spell",
+      type: "spell",
+      // location points at the NON-focus arcane entry (mislinked), but the
+      // focus trait makes it a focus spell regardless.
+      location: "entry-arcane",
+      system: { level: 1, traits: { value: ["focus", "magus"] } },
+    });
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    expect(vm.focusSpells.map((s) => s.name)).toContain("Conflux Spell");
+  });
+
+  it("does not double-count a focus-trait spell that is also linked to the focus entry", () => {
+    const doc = makeFocusDoc();
+    const items = doc["items"] as Array<Record<string, unknown>>;
+    items.push({
+      _id: "spell-both",
+      name: "Both",
+      type: "spell",
+      location: "entry-focus",
+      system: { level: 1, traits: { value: ["focus"] } },
+    });
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    expect(vm.focusSpells.filter((s) => s.id === "spell-both")).toHaveLength(1);
+  });
+
+  it("does not collect ordinary (non-focus) spells", () => {
+    const vm = new CharacterSheetVM({
+      doc: makeFocusDoc(),
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    // The base fixture's Magic Missile / Shield / Ray of Frost are not focus.
+    expect(vm.focusSpells).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// archetypeClassDCs getter — DEC-R12-04 exposure to the sheet.
+// ---------------------------------------------------------------------------
+
+describe("CharacterSheetVM — archetypeClassDCs", () => {
+  it("returns [] when derived.archetypeClassDCs is absent (pre-r12 doc)", () => {
+    const vm = makeVM();
+    expect(vm.archetypeClassDCs).toEqual([]);
+  });
+
+  it("exposes derived.archetypeClassDCs verbatim when present (Alchemist DC 18)", () => {
+    const doc = makeCharacter();
+    const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<
+      string,
+      unknown
+    >;
+    derived["archetypeClassDCs"] = [
+      { slug: "alchemist", label: "Alchemist", ability: "int", rank: 1, total: 8, dc: 18 },
+    ];
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    expect(vm.archetypeClassDCs).toHaveLength(1);
+    expect(vm.archetypeClassDCs[0]!.slug).toBe("alchemist");
+    expect(vm.archetypeClassDCs[0]!.dc).toBe(18);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // sendOp normalization — R10-C4 item 4 (regression + embedded passthrough).
 // Exercised indirectly through the exact payload shapes the VM produces,
 // mirroring normalizeDocUpdate/normalizeDocCreate/normalizeDocDelete in

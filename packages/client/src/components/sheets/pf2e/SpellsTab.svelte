@@ -33,6 +33,8 @@
   import type { CharacterSheetVM, SpellTabRow, SpellcastingEntryRow } from "../../../lib/sheets/pf2e/characterSheetVM.js";
   import ProficiencyBadge from "./ProficiencyBadge.svelte";
   import SpellPickerDialog from "./SpellPickerDialog.svelte";
+  import { getDocument, requireConnectedSocket } from "../../../lib/compendium/compendiumApi.js";
+  import { getSocket } from "../../../lib/session.svelte.js";
   import { t } from "../../../lib/i18n/i18n.js";
 
   interface Props {
@@ -50,9 +52,10 @@
     return tabs.find((tb) => tb.key === activeTabKey) ?? tabs[0] ?? null;
   });
 
-  // Picker modal state — "add" (grimoire) or "prepare" (into a specific slot).
+  // Picker modal state — "add" (grimoire), "prepare" (into a specific slot),
+  // or "focus" (add a focus spell to the focus-pool entry).
   let pickerOpen = $state(false);
-  let pickerMode = $state<"add" | "prepare">("add");
+  let pickerMode = $state<"add" | "prepare" | "focus">("add");
   let pickerEntryId = $state<string | null>(null);
   let pickerRank = $state<number | undefined>(undefined);
   let pickerSlotIndex = $state<number | null>(null);
@@ -98,6 +101,63 @@
     if (op) sendOpFn(op);
   });
 
+  // --- Dangling prepared-ref name resolution (DEC-R12-05, layer 4) ---------
+  // resolveSpellName crosses the 3 embedded layers in the VM; when it returns
+  // null the id is dangling. Before declaring "spell removed", try an
+  // on-demand compendium fetch keyed by the raw id (some slots stored a
+  // compendium id that was never materialized as an embedded item). Results
+  // are cached per id for this tab session: `string` = resolved name,
+  // `null` = confirmed missing (render the removed state), `undefined` =
+  // not looked up yet. $state so the template re-renders when a fetch lands.
+  let compendiumNameCache = $state<Record<string, string | null>>({});
+  const pendingNameLookups = new Set<string>();
+
+  /**
+   * Best-effort compendium name lookup for a dangling id. The prepared slot
+   * stores an embedded item id, not a compendium uuid, so this only succeeds
+   * when the id happens to be a resolvable compendium uuid; otherwise it
+   * caches null (→ "spell removed"). Never throws to the UI.
+   */
+  async function lookupCompendiumName(id: string): Promise<void> {
+    if (id in compendiumNameCache || pendingNameLookups.has(id)) return;
+    pendingNameLookups.add(id);
+    try {
+      const { document } = await getDocument(requireConnectedSocket(getSocket()), id);
+      const rawName = document["name"];
+      compendiumNameCache = {
+        ...compendiumNameCache,
+        [id]: typeof rawName === "string" ? rawName : null,
+      };
+    } catch {
+      // Not a resolvable compendium id (the common dangling case) or offline —
+      // treat as confirmed missing so the UI shows the removed state.
+      compendiumNameCache = { ...compendiumNameCache, [id]: null };
+    } finally {
+      pendingNameLookups.delete(id);
+    }
+  }
+
+  /**
+   * Resolve a prepared slot's spell id to a display name. Returns the name
+   * (embedded or compendium), or null when the reference is confirmed
+   * dangling (→ render "spell removed" + clear-slot action). Triggers the
+   * compendium lookup lazily the first time an id isn't found embedded.
+   */
+  function resolvedSlotName(entryId: string, id: string): string | null {
+    const embedded = vm.resolveSpellName(entryId, id);
+    if (embedded !== null) return embedded;
+    const cached = compendiumNameCache[id];
+    if (cached !== undefined) return cached; // string (found) or null (confirmed missing)
+    void lookupCompendiumName(id); // fire once; re-renders when it lands
+    return null;
+  }
+
+  /** Clear a dangling prepared slot (feedback: never leave a raw id/broken ref). */
+  function clearDanglingSlot(entryId: string, rank: number, slotIndex: number): void {
+    const op = vm.unprepareSlot(entryId, rank, slotIndex);
+    if (op) sendOpFn(op);
+  }
+
   function selectTab(key: string): void {
     activeTabKey = key;
   }
@@ -106,6 +166,13 @@
     const key = `FUSION.Sheet.Spells.Tradition.${tradition}`;
     const resolved = t(key);
     return resolved === key ? tradition : resolved;
+  }
+
+  /** Localized archetype name (falls back to the derived English label). */
+  function archetypeLabel(slug: string, fallback: string): string {
+    const key = `FUSION.Sheet.Spells.ArchetypeName.${slug}`;
+    const resolved = t(key);
+    return resolved === key ? fallback : resolved;
   }
 
   function findEntry(entryId: string): SpellcastingEntryRow | null {
@@ -212,7 +279,17 @@
     const rawLevel = sys["level"];
     const spellRank = typeof rawLevel === "number" ? rawLevel : 0;
 
-    if (pickerMode === "add") {
+    if (pickerMode === "focus") {
+      // Add the focus spell as an embedded item linked to the focus-pool
+      // entry. No slot/prepare step — focus spells cast from the pool, not
+      // from ranked slots. Flash + toast the same way as a grimoire add.
+      const op = vm.addSpellToEntry(pickerEntryId, doc);
+      if (op) {
+        sendOpFn(op);
+        flashGrimoireRow(spellName);
+        showToast({ message: t("FUSION.Sheet.Spells.Toast.FocusAdded", { name: spellName }) });
+      }
+    } else if (pickerMode === "add") {
       const op = vm.addSpellToEntry(pickerEntryId, doc);
       if (op) {
         sendOpFn(op);
@@ -317,6 +394,33 @@
     if (op) sendOpFn(op);
   }
 
+  // --- Focus tab (DEC-R12-05 / feedback b) ----------------------------------
+
+  /** Set focus points via a pip click (same toggle-down semantics as hero/focus pips). */
+  function setFocusPip(index: number): void {
+    const current = vm.focusPoints.value;
+    const next = index + 1 === current ? index : index + 1;
+    const op = vm.setFocusPoints(next);
+    if (op) sendOpFn(op);
+  }
+
+  /** Casting a focus spell spends one Focus Point (min 0). */
+  function castFocusSpell(): void {
+    const op = vm.setFocusPoints(Math.max(0, vm.focusPoints.value - 1));
+    if (op) sendOpFn(op);
+  }
+
+  /** Open the picker to add a focus spell to the focus-pool entry. */
+  function openFocusPicker(entry: SpellcastingEntryRow | null): void {
+    const entryId = entry?.entryId ?? vm.focusEntryId;
+    if (!entryId) return;
+    pickerMode = "focus";
+    pickerEntryId = entryId;
+    pickerRank = undefined;
+    pickerSlotIndex = null;
+    pickerOpen = true;
+  }
+
   function rollSpellAttack(entryId: string): void {
     const op = vm.rollSpellAttack(entryId);
     if (op) sendOpFn(op);
@@ -325,11 +429,6 @@
   function removeFromGrimoire(spellItemId: string): void {
     const op = vm.removeSpell(spellItemId);
     if (op) sendOpFn(op);
-  }
-
-  function spellNameById(entry: SpellcastingEntryRow, rank: number, id: string): string {
-    const slot = entry.slots.find((s) => s.rank === rank);
-    return slot?.spells.find((sp) => sp.id === id)?.name ?? id;
   }
 
   /** Every known spell across all ranks for an entry — used for the Grimório section. */
@@ -368,6 +467,19 @@
     </div>
 
     {#if activeTab?.kind === "entry"}
+      {#if vm.archetypeClassDCs.length > 0}
+        <!-- Archetype/multiclass dedication class DCs (DEC-R12-04) — shown
+             alongside the spellcasting stats since a caster archetype's DC
+             (e.g. Alchemist) is most relevant next to the spell DC/attack. -->
+        <div class="archetype-dc-bar" aria-label={t("FUSION.Sheet.Spells.ArchetypeDCs")}>
+          {#each vm.archetypeClassDCs as adc (adc.slug)}
+            <div class="archetype-dc">
+              <span class="archetype-dc__label">{t("FUSION.Sheet.Spells.ArchetypeDC", { archetype: archetypeLabel(adc.slug, adc.label) })}</span>
+              <span class="archetype-dc__value">{adc.dc}</span>
+            </div>
+          {/each}
+        </div>
+      {/if}
       {#each activeTab.entries as entry (entry.entryId)}
         <div class="spells-entry">
           <div class="spells-statsbar">
@@ -420,10 +532,34 @@
                 {#each Array.from({ length: slot.max }) as _, slotIndex (slotIndex)}
                   {@const prepared = vm.getPreparedSlot(entry.entryId, slot.rank, slotIndex)}
                   {#if prepared && prepared.id}
+                    {@const resolvedName = resolvedSlotName(entry.entryId, prepared.id)}
+                    {#if resolvedName === null}
+                      <!-- Dangling reference: the prepared id matches no embedded
+                           spell (removed/never materialized). Show an explicit
+                           error state with a clear action — NEVER the raw id. -->
+                      <div class="spell-slot-card spell-slot-card--missing">
+                        <div class="spell-slot-card__main">
+                          <span class="spell-slot-card__name spell-slot-card__name--missing">
+                            {t("FUSION.Sheet.Spells.SlotRemoved")}
+                          </span>
+                        </div>
+                        <div class="spell-slot-card__actions">
+                          {#if vm.editable}
+                            <button
+                              type="button"
+                              class="spell-btn spell-btn--ghost"
+                              onclick={() => clearDanglingSlot(entry.entryId, slot.rank, slotIndex)}
+                            >
+                              {t("FUSION.Sheet.Spells.ClearSlot")}
+                            </button>
+                          {/if}
+                        </div>
+                      </div>
+                    {:else}
                     <div class="spell-slot-card" class:spell-slot-card--expended={prepared.expended}>
                       <div class="spell-slot-card__main">
                         <span class="spell-slot-card__name">
-                          {spellNameById(entry, slot.rank, prepared.id)}
+                          {resolvedName}
                           {#if !prepared.expended}
                             <span class="spell-slot-card__dot" title={t("FUSION.Sheet.Spells.SlotAvailable")}></span>
                           {/if}
@@ -435,7 +571,7 @@
                             <button
                               type="button"
                               class="spell-btn spell-btn--primary"
-                              onclick={() => castSpell(entry, slot.rank, slotIndex, prepared.id, spellNameById(entry, slot.rank, prepared.id))}
+                              onclick={() => castSpell(entry, slot.rank, slotIndex, prepared.id, resolvedName)}
                             >
                               {t("FUSION.Sheet.Spells.Cast")}
                             </button>
@@ -459,6 +595,7 @@
                         {/if}
                       </div>
                     </div>
+                    {/if}
                   {:else}
                     <button
                       type="button"
@@ -510,25 +647,74 @@
         <div class="spells-statsbar">
           <div class="spells-stat">
             <span class="spells-stat__label">{t("FUSION.Sheet.Spells.FocusPoints")}</span>
-            <span class="spells-stat__value">{vm.focusPoints.value} / {t("FUSION.Sheet.Spells.MaxAbbrev")} {vm.focusPoints.max}</span>
-          </div>
-        </div>
-        {#each activeTab.entries as entry (entry.entryId)}
-          {#each entry.slots.filter((s) => s.isCantrip) as slot (slot.rank)}
-            {#each slot.spells as spell (spell.id)}
-              <div class="focus-spell-row">
-                <div class="focus-spell-row__main">
-                  <div class="focus-spell-row__name">{spell.name}</div>
-                </div>
-                {#if vm.editable}
-                  <button type="button" class="spell-btn spell-btn--primary">
-                    {t("FUSION.Sheet.Spells.Cast")}
-                  </button>
+            <div
+              class="focus-pip-row"
+              role="group"
+              aria-label={t("FUSION.Sheet.Spells.FocusPoints") + " " + vm.focusPoints.value + "/" + vm.focusPoints.max}
+            >
+              {#each Array.from({ length: 3 }) as _, i (i)}
+                {#if i < vm.focusPoints.max}
+                  <button
+                    type="button"
+                    class="focus-pip"
+                    class:focus-pip--filled={i < vm.focusPoints.value}
+                    disabled={!vm.editable}
+                    title={t("FUSION.Sheet.Spells.SetFocusPoints", { n: String(i < vm.focusPoints.value ? i : i + 1) })}
+                    aria-label={t("FUSION.Sheet.Spells.FocusPip", { n: String(i + 1) })}
+                    onclick={() => setFocusPip(i)}
+                  ></button>
+                {:else}
+                  <span
+                    class="focus-pip focus-pip--locked"
+                    title={t("FUSION.Sheet.Spells.FocusPipLocked")}
+                    aria-label={t("FUSION.Sheet.Spells.FocusPipLocked")}
+                  ></span>
                 {/if}
+              {/each}
+              <span class="focus-pip-count">{vm.focusPoints.value} / {t("FUSION.Sheet.Spells.MaxAbbrev")} {vm.focusPoints.max}</span>
+            </div>
+          </div>
+          {#if vm.editable && vm.focusEntryId}
+            <button
+              type="button"
+              class="spell-btn spell-btn--primary focus-add-btn"
+              onclick={() => openFocusPicker(activeTab.entries[0] ?? null)}
+            >
+              {t("FUSION.Sheet.Spells.AddFocusSpell")}
+            </button>
+          {/if}
+        </div>
+
+        {#if vm.focusSpells.length === 0}
+          <p class="spells-empty spells-empty--inline">{t("FUSION.Sheet.Spells.NoFocusSpells")}</p>
+        {:else}
+          {#each vm.focusSpells as spell (spell.id)}
+            <div class="focus-spell-row" class:spell-chip--new={spell.name === recentlyAddedName}>
+              <div class="focus-spell-row__main">
+                <div class="focus-spell-row__name">{spell.name}</div>
               </div>
-            {/each}
+              {#if vm.editable}
+                <button
+                  type="button"
+                  class="spell-btn spell-btn--primary"
+                  disabled={vm.focusPoints.value <= 0}
+                  title={vm.focusPoints.value <= 0 ? t("FUSION.Sheet.Spells.NoFocusPoints") : ""}
+                  onclick={() => castFocusSpell()}
+                >
+                  {t("FUSION.Sheet.Spells.Cast")}
+                </button>
+                <button
+                  type="button"
+                  class="spell-btn spell-btn--ghost"
+                  onclick={() => removeFromGrimoire(spell.id)}
+                >
+                  {t("FUSION.Sheet.Spells.Remove")}
+                </button>
+              {/if}
+            </div>
           {/each}
-        {/each}
+        {/if}
+
         <div class="focus-refocus-note">
           <strong>{t("FUSION.Sheet.Spells.RefocusLabel")}:</strong> {t("FUSION.Sheet.Spells.RefocusHint")}
         </div>
@@ -548,6 +734,7 @@
       entryLabel={entry.label}
       maxRank={pickerMode === "prepare" ? pickerRank : undefined}
       initialRank={pickerMode === "prepare" ? pickerRank : undefined}
+      initialTrait={pickerMode === "focus" ? "focus" : undefined}
       onClose={closePicker}
       onSelect={handlePickerSelect}
     />
@@ -956,6 +1143,92 @@
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
     padding: 8px 10px;
+  }
+
+  /* Archetype/dedication class DCs (DEC-R12-04) */
+  .archetype-dc-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .archetype-dc {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius);
+    padding: 8px 12px;
+  }
+
+  .archetype-dc__label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--fusion-text-subtle);
+  }
+
+  .archetype-dc__value {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--fusion-text);
+    font-family: var(--fusion-font-mono);
+  }
+
+  /* Dangling prepared-slot state (DEC-R12-05) */
+  .spell-slot-card--missing {
+    border-style: dashed;
+    border-color: var(--fusion-danger);
+  }
+
+  .spell-slot-card__name--missing {
+    color: var(--fusion-danger);
+    font-style: italic;
+  }
+
+  /* Focus pips (Foco tab) — distinct magic-purple, separate from hero pips */
+  .focus-pip-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .focus-pip {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid var(--fusion-color-magic, #aa66ff);
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .focus-pip:disabled {
+    cursor: default;
+  }
+
+  .focus-pip--filled {
+    background: var(--fusion-color-magic, #aa66ff);
+  }
+
+  .focus-pip--locked {
+    cursor: default;
+    opacity: 0.4;
+    border-style: dashed;
+  }
+
+  .focus-pip-count {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--fusion-text);
+    font-family: var(--fusion-font-mono);
+    margin-left: 4px;
+  }
+
+  .focus-add-btn {
+    margin-left: auto;
   }
 
   .focus-refocus-note strong {

@@ -17,13 +17,18 @@
  * Spec: 17-sistema-pf2e.md §Fichas, 11-ui-framework-e-fichas.md §Sistema de Sheets.
  */
 
-import type { CharacterDerived, DerivedStatistic, DerivedStrike } from "./derivedTypes.js";
+import type {
+  CharacterDerived,
+  DerivedStatistic,
+  DerivedStrike,
+  ArchetypeClassDC,
+} from "./derivedTypes.js";
 
 // ---------------------------------------------------------------------------
 // Re-export derived types for consumers
 // ---------------------------------------------------------------------------
 
-export type { CharacterDerived, DerivedStatistic, DerivedStrike };
+export type { CharacterDerived, DerivedStatistic, DerivedStrike, ArchetypeClassDC };
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -1016,6 +1021,138 @@ export class CharacterSheetVM {
     return items.some((item) => item["type"] === "ritual");
   }
 
+  /**
+   * Focus spells to show under the "Foco" tab (DEC-R12-05 / feedback b).
+   *
+   * The builder currently creates the focus-pool spellcasting entry but never
+   * materializes the granted focus spell as an embedded item (grant-item does
+   * not execute — a cross-cutting gap outside W3), and even when a focus spell
+   * IS embedded its `location` can point at the wrong entry (created before an
+   * ability/entry re-sync). So instead of trusting `location`, this getter
+   * collects EVERY embedded spell that reads as a focus spell — i.e. carries
+   * the "focus" trait — regardless of which entry (if any) it is linked to.
+   * This "heal on read" recovers mislinked focus spells for display without
+   * mutating the stored doc. Spells already correctly linked to an
+   * isFocusPool entry are included too (deduplicated by item id).
+   *
+   * Returns rows sorted by name; empty when the character has no focus spells
+   * embedded yet (the tab then shows only the pool + an "add" affordance).
+   */
+  get focusSpells(): SpellRow[] {
+    const items = this._doc["items"] as Array<Record<string, unknown>> | undefined;
+    if (!items) return [];
+
+    // Ids of spellcastingEntry items that are focus pools.
+    const focusEntryIds = new Set<string>();
+    for (const item of items) {
+      if (item["type"] !== "spellcastingEntry") continue;
+      const sys =
+        typeof item["system"] === "object" && item["system"] !== null
+          ? (item["system"] as Record<string, unknown>)
+          : {};
+      if (sys["isFocusPool"] === true) {
+        const id = item["_id"];
+        if (typeof id === "string") focusEntryIds.add(id);
+      }
+    }
+
+    const seen = new Set<string>();
+    const rows: SpellRow[] = [];
+    for (const item of items) {
+      if (item["type"] !== "spell") continue;
+      const sys =
+        typeof item["system"] === "object" && item["system"] !== null
+          ? (item["system"] as Record<string, unknown>)
+          : {};
+
+      const traitsBlock = sys["traits"] as { value?: unknown } | undefined;
+      const traits = Array.isArray(traitsBlock?.value) ? (traitsBlock.value as unknown[]) : [];
+      const isFocusTrait = traits.includes("focus");
+      const location = item["location"] ?? item["spellcastingEntry"];
+      const linkedToFocusEntry = typeof location === "string" && focusEntryIds.has(location);
+
+      if (!isFocusTrait && !linkedToFocusEntry) continue;
+
+      const rawId = item["_id"];
+      const id = typeof rawId === "string" ? rawId : "";
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+
+      const rawName = item["name"];
+      const rawLevel = sys["level"];
+      const defense = sys["defense"] as Record<string, unknown> | undefined;
+      const rawCastTime = sys["castTime"];
+      rows.push({
+        id,
+        name: typeof rawName === "string" ? rawName : "",
+        level: typeof rawLevel === "number" ? rawLevel : 0,
+        hasAttack: defense?.["spellAttack"] === true,
+        castTime: typeof rawCastTime === "string" ? rawCastTime : null,
+      });
+    }
+
+    return rows.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  /** The id of the first focus-pool spellcasting entry, if any (for add-spell wiring). */
+  get focusEntryId(): string | null {
+    const entry = this.spellcastingEntries.find((e) => e.isFocusPool);
+    return entry?.entryId ?? null;
+  }
+
+  /**
+   * Resolve a prepared-slot spell id to a display name, crossing three
+   * embedded-document layers (DEC-R12-05):
+   *   1. the spells grouped under the given entry (the common case);
+   *   2. spells belonging to ANY spellcasting entry (heightened/mis-located);
+   *   3. any embedded `type: "spell"` item on the actor, regardless of
+   *      `location` (recovers a spell whose `location` link is stale/wrong).
+   *
+   * Returns `null` when the id matches no embedded spell item — a DANGLING
+   * reference (the spell was removed from the grimoire, or the slot stored a
+   * compendium id that was never materialized as an embedded item). Callers
+   * MUST render an explicit "spell removed" error state for null (never the
+   * raw id) and MAY then try an on-demand compendium fetch (layer 4, which
+   * lives in the Svelte component since this VM is dependency-free).
+   *
+   * An empty/blank id resolves to null as well (unprepared-slot sentinel).
+   */
+  resolveSpellName(entryId: string, spellItemId: string): string | null {
+    if (!spellItemId) return null;
+
+    // Layer 1: within the entry's grouped spells.
+    const entry = this.spellcastingEntries.find((e) => e.entryId === entryId);
+    if (entry) {
+      for (const slot of entry.slots) {
+        const hit = slot.spells.find((sp) => sp.id === spellItemId);
+        if (hit) return hit.name;
+      }
+    }
+
+    // Layer 2: across every entry's grouped spells.
+    for (const other of this.spellcastingEntries) {
+      if (other.entryId === entryId) continue;
+      for (const slot of other.slots) {
+        const hit = slot.spells.find((sp) => sp.id === spellItemId);
+        if (hit) return hit.name;
+      }
+    }
+
+    // Layer 3: any embedded spell item on the actor (location-agnostic).
+    const items = this._doc["items"] as Array<Record<string, unknown>> | undefined;
+    if (items) {
+      for (const item of items) {
+        if (item["type"] !== "spell") continue;
+        if (item["_id"] !== spellItemId) continue;
+        const rawName = item["name"];
+        return typeof rawName === "string" ? rawName : null;
+      }
+    }
+
+    // Dangling reference — no embedded spell matches this id.
+    return null;
+  }
+
   // -------------------------------------------------------------------------
   // Feats tab
   // -------------------------------------------------------------------------
@@ -1093,6 +1230,15 @@ export class CharacterSheetVM {
   get classDC(): { total: number; dc: number } {
     const derived = this._derived?.classDC;
     return { total: derived?.total ?? 0, dc: derived?.dc ?? 10 };
+  }
+
+  /**
+   * Class DCs granted by archetype/multiclass dedications (DEC-R12-04),
+   * separate from the base-class classDC. Empty array when the character has
+   * none or the doc predates r12 (absent `derived.archetypeClassDCs`).
+   */
+  get archetypeClassDCs(): ArchetypeClassDC[] {
+    return this._derived?.archetypeClassDCs ?? [];
   }
 
   // -------------------------------------------------------------------------

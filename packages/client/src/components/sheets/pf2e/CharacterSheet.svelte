@@ -28,6 +28,7 @@
   import type { ChatRollPayload, DocUpdatePayload, DocOpPayload, CharacterSheetTab } from "$lib/sheets/pf2e/characterSheetVM.js";
   import { worldMirror } from "$lib/docs/worldSync.js";
   import SpellsTab from "./SpellsTab.svelte";
+  import ActionsTab from "./ActionsTab.svelte";
   import ProficiencyBadge from "./ProficiencyBadge.svelte";
   import PlanColumn from "./plan/PlanColumn.svelte";
   import { t } from "$lib/i18n/i18n.js";
@@ -413,17 +414,21 @@
 
     <!-- Hero / Focus Points -->
     <div class="sheet-resources">
-      <div class="resource-pip-group" aria-label="Hero Points {vm.heroPoints.value}/{vm.heroPoints.max}">
+      <div
+        class="resource-pip-group"
+        title={t("FUSION.Sheet.HeroPoints.Tooltip")}
+        aria-label={t("FUSION.Sheet.HeroPoints.Group", { value: String(vm.heroPoints.value), max: String(vm.heroPoints.max) })}
+      >
         {#each { length: vm.heroPoints.max } as _, i}
           <button
-            class="resource-pip"
+            class="resource-pip resource-pip--hero"
             class:resource-pip--filled={i < vm.heroPoints.value}
-            title="Set Hero Points to {i < vm.heroPoints.value ? i : i + 1}"
-            aria-label="Hero point {i + 1}"
+            title={t("FUSION.Sheet.HeroPoints.SetTo", { n: String(i < vm.heroPoints.value ? i : i + 1) })}
+            aria-label={t("FUSION.Sheet.HeroPoints.Pip", { n: String(i + 1) })}
             onclick={() => clickHeroPip(i)}
           ></button>
         {/each}
-        <span class="resource-label">HP</span>
+        <span class="resource-label">{t("FUSION.Sheet.HeroPoints.Label")}</span>
       </div>
       {#if vm.focusPoints.max > 0 || vm.focusPoints.value > 0}
         <!-- Focus pips always render up to the DEC-R10-02 hard cap (3), even
@@ -754,6 +759,9 @@
       {:else}
         <p class="empty-state">No strikes available. Equip a weapon.</p>
       {/if}
+
+      <h3 class="section-header">{t("FUSION.Sheet.Actions.Title")}</h3>
+      <ActionsTab doc={liveDoc} />
     </section>
 
   <!-- SPELLS tab (DEC-R10-03/04) -->
@@ -1072,6 +1080,17 @@
 
   .resource-pip--focus.resource-pip--filled {
     background: var(--fusion-color-magic, #aa66ff);
+  }
+
+  /* Hero pips: amber/gold — visually distinct from focus (purple) and from
+     any red death/dying UI, so a filled hero pip never reads as damage or a
+     death save (feedback item 8). */
+  .resource-pip--hero {
+    border-color: var(--fusion-color-hero, #e0a92e);
+  }
+
+  .resource-pip--hero.resource-pip--filled {
+    background: var(--fusion-color-hero, #e0a92e);
   }
 
   .resource-pip--locked {
