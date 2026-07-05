@@ -23,7 +23,7 @@ replaced by placeholders).
 
 2. **Run all stages in order** (default pack list — includes the R10-B Magus
    builder source packs: `classes`, `class-features`, `feats`, `ancestries`,
-   `heritages`, `backgrounds`):
+   `heritages`, `backgrounds`; and the W2 Actions tab source pack: `actions`):
    ```
    node src/extract.mjs
    node src/normalize.mjs --skip-extract
@@ -32,9 +32,9 @@ replaced by placeholders).
    ```
    Or explicitly:
    ```
-   node src/extract.mjs --packs equipment,spells,conditions,pathfinder-monster-core,classes,class-features,feats,ancestries,heritages,backgrounds
-   node src/normalize.mjs --skip-extract --packs equipment,spells,conditions,pathfinder-monster-core,classes,class-features,feats,ancestries,heritages,backgrounds
-   node src/transform.mjs --packs conditions,equipment,spells,pathfinder-monster-core,classes,class-features,feats,ancestries,heritages,backgrounds
+   node src/extract.mjs --packs equipment,spells,conditions,pathfinder-monster-core,classes,class-features,feats,ancestries,heritages,backgrounds,actions
+   node src/normalize.mjs --skip-extract --packs equipment,spells,conditions,pathfinder-monster-core,classes,class-features,feats,ancestries,heritages,backgrounds,actions
+   node src/transform.mjs --packs conditions,equipment,spells,pathfinder-monster-core,classes,class-features,feats,ancestries,heritages,backgrounds,actions
    node src/build-mvp-subset.mjs
    ```
    **Important:** `classes` and `class-features` MUST be transformed in the same

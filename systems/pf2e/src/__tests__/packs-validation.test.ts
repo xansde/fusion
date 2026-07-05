@@ -35,6 +35,7 @@ import {
   parseAncestrySystem,
   parseHeritageSystem,
   parseBackgroundSystem,
+  parseActionSystem,
 } from "../schemas/item-equipment.js";
 import { spellSlotsForLevel } from "../derivations/build.js";
 import type { ClassSystem } from "../schemas/item-equipment.js";
@@ -98,6 +99,7 @@ const PARSERS_BY_TYPE: Record<string, (data: unknown) => unknown> = {
   ancestry: parseAncestrySystem,
   heritage: parseHeritageSystem,
   background: parseBackgroundSystem,
+  action: parseActionSystem,
   // NPC/monster actors: bestiary-core is documentType "Actor", type "npc".
   // NpcSystemSchema was hardened (see actor-npc.ts header) to match the real
   // shape produced by transform.mjs normalizeActorSystem, so we validate the
@@ -136,6 +138,7 @@ describe("packs-validation: every document validates against its Zod schema", ()
         "weapons-core",
         "conditions",
         "bestiary-core",
+        "actions-core",
       ]),
     );
   });
@@ -403,5 +406,153 @@ describe("packs-validation: r10 domain invariants", () => {
       }
     }
     expect(failures, failures.join("\n")).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 3. pf2e.actions-core domain invariants (W2, r11-follow-up)
+// ---------------------------------------------------------------------------
+
+describe("packs-validation: actions-core domain invariants", () => {
+  const ACTIONS_CORE_CURATED_CATEGORIES = new Set([
+    "basic",
+    "skill",
+    "exploration",
+    "downtime",
+    "class",
+    "equipment",
+    "ancestry",
+    "archetype",
+    "background",
+    "familiar",
+    "heritage",
+    "spells",
+    "stamina",
+    "mythic",
+  ]);
+  const VALID_ACTION_TYPES = new Set(["action", "reaction", "free", "passive"]);
+
+  const docs = loadDocuments("actions-core");
+
+  it("actions-core has documents (non-empty pack)", () => {
+    expect(docs.length).toBeGreaterThan(0);
+  });
+
+  it("every document is type 'action'", () => {
+    const offenders = docs.filter((d) => d.type !== "action").map((d) => `${d.name} (${d.type})`);
+    expect(offenders, offenders.join("\n")).toEqual([]);
+  });
+
+  it("every document has a valid system.actionType (action/reaction/free/passive)", () => {
+    const offenders: string[] = [];
+    for (const doc of docs) {
+      const actionType = (doc.system as Record<string, unknown>)["actionType"];
+      if (typeof actionType !== "string" || !VALID_ACTION_TYPES.has(actionType)) {
+        offenders.push(`"${doc.name}": system.actionType = ${JSON.stringify(actionType)}`);
+      }
+    }
+    expect(offenders, offenders.join("\n")).toEqual([]);
+  });
+
+  it("system.actions cost is coherent with actionType (1-3 for 'action', null/1 otherwise)", () => {
+    const offenders: string[] = [];
+    for (const doc of docs) {
+      const sys = doc.system as Record<string, unknown>;
+      const actionType = sys["actionType"];
+      const actions = sys["actions"];
+      if (actionType === "action") {
+        if (typeof actions !== "number" || actions < 1 || actions > 3) {
+          offenders.push(`"${doc.name}": actionType="action" but system.actions = ${JSON.stringify(actions)}`);
+        }
+      } else if (actions !== null && actions !== 1) {
+        // Reactions/free actions occasionally carry actions:1 in the vendor
+        // data (e.g. some free actions); passive/reaction never carry 2-3.
+        offenders.push(`"${doc.name}": actionType="${String(actionType)}" but system.actions = ${JSON.stringify(actions)}`);
+      }
+    }
+    expect(offenders, offenders.join("\n")).toEqual([]);
+  });
+
+  it("every document's system.fusionCategory is in the curated category set", () => {
+    const offenders: string[] = [];
+    for (const doc of docs) {
+      const category = (doc.system as Record<string, unknown>)["fusionCategory"];
+      if (typeof category !== "string" || !ACTIONS_CORE_CURATED_CATEGORIES.has(category)) {
+        offenders.push(`"${doc.name}": system.fusionCategory = ${JSON.stringify(category)}`);
+      }
+    }
+    expect(offenders, offenders.join("\n")).toEqual([]);
+  });
+
+  it("excludes subsystems/vehicles/aftermath/campaign noise categories entirely", () => {
+    const excluded = new Set(["subsystems", "vehicles", "aftermath", "campaign"]);
+    const offenders = docs
+      .filter((d) => excluded.has((d.system as Record<string, unknown>)["fusionCategory"] as string))
+      .map((d) => d.name);
+    expect(offenders, offenders.join("\n")).toEqual([]);
+  });
+
+  it("every document carries an ORC/OGL publication and a non-empty description (clean-room r11 policy)", () => {
+    const offenders: string[] = [];
+    for (const doc of docs) {
+      const sys = doc.system as Record<string, unknown>;
+      const publication = sys["publication"] as { license?: string } | undefined;
+      const license = publication?.license;
+      if (license !== "ORC" && license !== "OGL") {
+        offenders.push(`"${doc.name}": system.publication.license = ${JSON.stringify(license)}`);
+        continue;
+      }
+      const description = sys["description"];
+      if (typeof description !== "string" || description.length === 0) {
+        offenders.push(`"${doc.name}": empty system.description despite ORC/OGL license`);
+      }
+    }
+    expect(offenders, offenders.join("\n")).toEqual([]);
+  });
+
+  it("no rule element (at any nesting depth) leaks a non-empty text field without textStripped", () => {
+    // Stronger than the flat rules[].text/rules[].raw.text check above (2e-bis):
+    // real actions-core ItemAlteration REs nest `text` inside a `value[]`
+    // array of sub-objects (rules[].raw.value[].text), which a one-level
+    // check never visits. Walks the FULL rule/unconvertedRule tree.
+    const offenders: string[] = [];
+    const walk = (node: unknown, path: string, docLabel: string, ruleStripped: boolean): void => {
+      if (Array.isArray(node)) {
+        node.forEach((item, i) => walk(item, `${path}[${i}]`, docLabel, ruleStripped));
+        return;
+      }
+      if (node && typeof node === "object") {
+        const obj = node as Record<string, unknown>;
+        const stripped = ruleStripped || obj["textStripped"] === true;
+        for (const [k, v] of Object.entries(obj)) {
+          if (k === "text" && typeof v === "string" && v.length > 0 && !stripped) {
+            offenders.push(`${docLabel}: ${path}.text non-empty without textStripped marker`);
+          }
+          walk(v, `${path}.${k}`, docLabel, stripped);
+        }
+      }
+    };
+    for (const doc of docs) {
+      const docLabel = `"${doc.name}"`;
+      const sys = doc.system as Record<string, unknown>;
+      walk(sys["rules"], "rules", docLabel, false);
+      const fusion = (doc as { flags?: { fusion?: Record<string, unknown> } }).flags?.fusion;
+      walk(fusion?.["unconvertedRules"], "unconvertedRules", docLabel, false);
+    }
+    expect(offenders, offenders.join("\n")).toEqual([]);
+  });
+
+  it("no document carries gmNotes/publicNotes/privateNotes prose", () => {
+    const offenders: string[] = [];
+    for (const doc of docs) {
+      const sys = doc.system as Record<string, unknown>;
+      for (const field of ["gmNotes", "publicNotes", "privateNotes"]) {
+        const value = sys[field];
+        if (typeof value === "string" && value.length > 0) {
+          offenders.push(`"${doc.name}": system.${field} non-empty`);
+        }
+      }
+    }
+    expect(offenders, offenders.join("\n")).toEqual([]);
   });
 });

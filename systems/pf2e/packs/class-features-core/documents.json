@@ -564,10 +564,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.SpecificRule.ClassFeatures.Spellcaster.{actor|class.slug}.Expert"
+                "text": ""
               }
             ]
-          }
+          },
+          "textStripped": true
         },
         {
           "kind": "set-property",
@@ -626,10 +627,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.SpecificRule.ClassFeatures.Spellcaster.{actor|class.slug}.Expert"
+                "text": ""
               }
             ],
-            "_conversionState": "partial"
+            "_conversionState": "partial",
+            "textStripped": true
           },
           {
             "itemId": "{item|id}",
@@ -909,10 +911,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.SpecificRule.ClassFeatures.Juggernaut.{actor|class.slug}.Description"
+                "text": ""
               }
             ]
-          }
+          },
+          "textStripped": true
         },
         {
           "kind": "set-property",
@@ -971,10 +974,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.SpecificRule.ClassFeatures.Juggernaut.{actor|class.slug}.Description"
+                "text": ""
               }
             ],
-            "_conversionState": "partial"
+            "_conversionState": "partial",
+            "textStripped": true
           },
           {
             "itemId": "{item|id}",
@@ -1320,10 +1324,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.SpecificRule.ClassFeatures.Spellcaster.{actor|class.slug}.Master"
+                "text": ""
               }
             ]
-          }
+          },
+          "textStripped": true
         },
         {
           "kind": "set-property",
@@ -1382,10 +1387,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.SpecificRule.ClassFeatures.Spellcaster.{actor|class.slug}.Master"
+                "text": ""
               }
             ],
-            "_conversionState": "partial"
+            "_conversionState": "partial",
+            "textStripped": true
           },
           {
             "itemId": "{item|id}",
@@ -2632,10 +2638,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.SpecificRule.ClassFeatures.WeaponExpertise.{actor|class.slug}.Description"
+                "text": ""
               }
             ]
-          }
+          },
+          "textStripped": true
         }
       ],
       "subfeatures": {
@@ -2707,10 +2714,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.SpecificRule.ClassFeatures.WeaponExpertise.{actor|class.slug}.Description"
+                "text": ""
               }
             ],
-            "_conversionState": "partial"
+            "_conversionState": "partial",
+            "textStripped": true
           }
         ],
         "assetSubstitutions": [

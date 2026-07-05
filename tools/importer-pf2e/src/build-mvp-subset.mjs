@@ -297,7 +297,73 @@ const PACK_MANIFESTS = {
     },
     schemaVersion: 1,
   },
+  // -------------------------------------------------------------------------
+  // W2 (Actions tab, r11-follow-up) — pf2e.actions-core. Curated by physical
+  // vendor subfolder (system.fusionCategory, injected in normalize.mjs) over
+  // the FULL "actions" vendor pack — every tabletop-relevant category kept,
+  // subsystem/vehicle/aftermath/campaign/adventure-specific noise excluded
+  // (see ACTIONS_CORE_INCLUDED_CATEGORIES below). Same ORC/OGL clean-room
+  // policy as every other -core pack (stripFlavorProse/stripRuleProse in
+  // transform.mjs; placeholders only, never Paizo art).
+  // -------------------------------------------------------------------------
+  'actions-core': {
+    id: 'pf2e.actions-core',
+    label: 'PF2e Core Actions',
+    documentType: 'Item',
+    systemId: 'pf2e',
+    indexFields: [
+      'name',
+      'system.actionType',
+      'system.actions',
+      'system.category',
+      'system.fusionCategory',
+      'system.traits.value',
+    ],
+    license: {
+      license: 'ORC',
+      attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',
+      reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
+      sourceRepo: 'github.com/foundryvtt/pf2e',
+      sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
+    },
+    source: {
+      repo: 'github.com/foundryvtt/pf2e',
+      version: SOURCE_VERSION,
+      importerVersion: IMPORTER_VERSION,
+    },
+    schemaVersion: 1,
+  },
 };
+
+/**
+ * pf2e.actions-core curation (W2, r11-follow-up): vendor `actions/` physical
+ * subfolders to INCLUDE, keyed by the `system.fusionCategory` value injected
+ * in normalize.mjs. Every tabletop-relevant category is kept; excluded:
+ * "subsystems", "vehicles", "aftermath", "campaign" (subsystem/vehicle rules
+ * and adventure-specific actions — noise for a general-purpose Actions tab).
+ */
+const ACTIONS_CORE_INCLUDED_CATEGORIES = new Set([
+  'basic',
+  'skill',
+  'exploration',
+  'downtime',
+  'class',
+  'equipment',
+  'ancestry',
+  'archetype',
+  'background',
+  'familiar',
+  'heritage',
+  'spells',
+  'stamina',
+  'mythic',
+]);
+
+/** True when a transformed action doc's fusionCategory is in the curated set. */
+function isActionsCoreDoc(doc) {
+  return ACTIONS_CORE_INCLUDED_CATEGORIES.has(doc.system?.fusionCategory);
+}
 
 // ---------------------------------------------------------------------------
 // MVP weapon selection — ~30 armas básicas curadas
@@ -816,6 +882,20 @@ async function buildPf2eSubset() {
     const index = buildIndex(manifest.id, docs, manifest.indexFields);
     writeFileSync(join(PACKS_OUT_DIR, 'backgrounds-core', 'index.json'), JSON.stringify(index, null, 2), 'utf8');
     report.packs.push({ packId: manifest.id, slug: 'backgrounds-core', documentCount: docs.length });
+  }
+
+  // --- 11. Actions core (W2, r11-follow-up) ---
+  {
+    console.log('[build-mvp] === Pack: actions-core ===');
+    const all = loadTransformed('actions');
+    const docs = all.filter(isActionsCoreDoc);
+    console.log(`[build-mvp] actions-core: ${docs.length} ações selecionadas de ${all.length} totais`);
+
+    const manifest = PACK_MANIFESTS['actions-core'];
+    writePack('actions-core', docs, manifest);
+    const index = buildIndex(manifest.id, docs, manifest.indexFields);
+    writeFileSync(join(PACKS_OUT_DIR, 'actions-core', 'index.json'), JSON.stringify(index, null, 2), 'utf8');
+    report.packs.push({ packId: manifest.id, slug: 'actions-core', documentCount: docs.length });
   }
 
   // Write build report

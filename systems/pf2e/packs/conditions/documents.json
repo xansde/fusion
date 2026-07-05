@@ -361,8 +361,7 @@
             ],
             "selector": "damage-received",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         }
@@ -674,10 +673,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.condition.deafened.note"
+                "text": ""
               }
             ]
-          }
+          },
+          "textStripped": true
         },
         {
           "kind": "set-property",
@@ -701,10 +701,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.condition.deafened.note"
+                "text": ""
               }
             ]
-          }
+          },
+          "textStripped": true
         },
         {
           "kind": "set-property",
@@ -732,10 +733,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.condition.deafened.note"
+                "text": ""
               }
             ]
-          }
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -766,10 +768,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.condition.deafened.note"
+                "text": ""
               }
             ],
-            "_conversionState": "partial"
+            "_conversionState": "partial",
+            "textStripped": true
           },
           {
             "itemType": "feat",
@@ -781,10 +784,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.condition.deafened.note"
+                "text": ""
               }
             ],
-            "_conversionState": "partial"
+            "_conversionState": "partial",
+            "textStripped": true
           },
           {
             "itemType": "spell",
@@ -798,10 +802,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.condition.deafened.note"
+                "text": ""
               }
             ],
-            "_conversionState": "partial"
+            "_conversionState": "partial",
+            "textStripped": true
           },
           {
             "adjustment": {
@@ -1612,10 +1617,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.condition.grabbed.note"
+                "text": ""
               }
             ]
-          }
+          },
+          "textStripped": true
         },
         {
           "kind": "set-property",
@@ -1639,10 +1645,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.condition.grabbed.note"
+                "text": ""
               }
             ]
-          }
+          },
+          "textStripped": true
         },
         {
           "kind": "set-property",
@@ -1666,10 +1673,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.condition.grabbed.note"
+                "text": ""
               }
             ]
-          }
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -1695,10 +1703,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.condition.grabbed.note"
+                "text": ""
               }
             ],
-            "_conversionState": "partial"
+            "_conversionState": "partial",
+            "textStripped": true
           },
           {
             "itemType": "feat",
@@ -1710,10 +1719,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.condition.grabbed.note"
+                "text": ""
               }
             ],
-            "_conversionState": "partial"
+            "_conversionState": "partial",
+            "textStripped": true
           },
           {
             "itemType": "spell",
@@ -1725,10 +1735,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.condition.grabbed.note"
+                "text": ""
               }
             ],
-            "_conversionState": "partial"
+            "_conversionState": "partial",
+            "textStripped": true
           }
         ],
         "assetSubstitutions": [
@@ -2570,10 +2581,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.condition.restrained.note"
+                "text": ""
               }
             ]
-          }
+          },
+          "textStripped": true
         },
         {
           "kind": "set-property",
@@ -2597,10 +2609,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.condition.restrained.note"
+                "text": ""
               }
             ]
-          }
+          },
+          "textStripped": true
         },
         {
           "kind": "set-property",
@@ -2624,10 +2637,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.condition.restrained.note"
+                "text": ""
               }
             ]
-          }
+          },
+          "textStripped": true
         },
         {
           "kind": "roll-note",
@@ -2664,8 +2678,7 @@
               "skill-check"
             ],
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         }
@@ -2700,10 +2713,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.condition.restrained.note"
+                "text": ""
               }
             ],
-            "_conversionState": "partial"
+            "_conversionState": "partial",
+            "textStripped": true
           },
           {
             "itemType": "feat",
@@ -2715,10 +2729,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.condition.restrained.note"
+                "text": ""
               }
             ],
-            "_conversionState": "partial"
+            "_conversionState": "partial",
+            "textStripped": true
           },
           {
             "itemType": "spell",
@@ -2730,10 +2745,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.condition.restrained.note"
+                "text": ""
               }
             ],
-            "_conversionState": "partial"
+            "_conversionState": "partial",
+            "textStripped": true
           }
         ],
         "assetSubstitutions": [
@@ -2829,10 +2845,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.condition.sickened.note"
+                "text": ""
               }
             ]
-          }
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -2868,10 +2885,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.condition.sickened.note"
+                "text": ""
               }
             ],
-            "_conversionState": "partial"
+            "_conversionState": "partial",
+            "textStripped": true
           }
         ],
         "assetSubstitutions": [
@@ -3059,10 +3077,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.condition.stupefied.note"
+                "text": ""
               }
             ]
-          }
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -3086,10 +3105,11 @@
             "property": "description",
             "value": [
               {
-                "text": "PF2E.condition.stupefied.note"
+                "text": ""
               }
             ],
-            "_conversionState": "partial"
+            "_conversionState": "partial",
+            "textStripped": true
           }
         ],
         "assetSubstitutions": [

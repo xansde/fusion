@@ -49,9 +49,14 @@
       "packId": "pf2e.backgrounds-core",
       "slug": "backgrounds-core",
       "documentCount": 1
+    },
+    {
+      "packId": "pf2e.actions-core",
+      "slug": "actions-core",
+      "documentCount": 521
     }
   ],
-  "generatedAt": "2026-07-05T15:03:11.081Z",
+  "generatedAt": "2026-07-05T18:45:16.393Z",
   "importerVersion": "0.1.0",
   "sourceVersion": "v14-dev"
 }

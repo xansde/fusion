@@ -421,6 +421,8 @@ describe('MVP packs', () => {
     'ancestries-core',
     'heritages-core',
     'backgrounds-core',
+    // W2 (Actions tab, r11-follow-up)
+    'actions-core',
   ];
 
   for (const slug of packSlugs) {
@@ -580,7 +582,7 @@ describe('MVP packs', () => {
   });
 
   it('no committed R10-B pack document.json exceeds ~15 MB', () => {
-    const slugs = ['classes-core', 'class-features-core', 'feats-core', 'ancestries-core', 'heritages-core', 'backgrounds-core', 'spells-core'];
+    const slugs = ['classes-core', 'class-features-core', 'feats-core', 'ancestries-core', 'heritages-core', 'backgrounds-core', 'spells-core', 'actions-core'];
     for (const slug of slugs) {
       const path = join(PACKS_DIR, slug, 'documents.json');
       const sizeMb = statSync(path).size / (1024 * 1024);
@@ -609,6 +611,55 @@ describe('MVP packs', () => {
       for (const doc of docs) {
         assert.ok(doc.img.startsWith('icons/placeholder'), `${slug}/${doc.name} img is not a placeholder: ${doc.img}`);
       }
+    }
+  });
+
+  // -------------------------------------------------------------------------
+  // W2 (Actions tab, r11-follow-up) — pf2e.actions-core.
+  // -------------------------------------------------------------------------
+
+  it('actions-core has 521 actions across the 14 curated categories', () => {
+    const docs = loadJson(join(PACKS_DIR, 'actions-core', 'documents.json'));
+    assert.equal(docs.length, 521);
+    const byCategory = {};
+    for (const d of docs) {
+      const c = d.system.fusionCategory;
+      byCategory[c] = (byCategory[c] ?? 0) + 1;
+    }
+    assert.deepEqual(byCategory, {
+      basic: 30,
+      skill: 54,
+      exploration: 13,
+      downtime: 4,
+      class: 187,
+      equipment: 7,
+      ancestry: 42,
+      archetype: 134,
+      background: 26,
+      familiar: 1,
+      heritage: 7,
+      spells: 11,
+      stamina: 4,
+      mythic: 1,
+    });
+  });
+
+  it('actions-core excludes subsystems/vehicles/aftermath/campaign vendor subfolders', () => {
+    const docs = loadJson(join(PACKS_DIR, 'actions-core', 'documents.json'));
+    const excluded = new Set(['subsystems', 'vehicles', 'aftermath', 'campaign']);
+    for (const d of docs) {
+      assert.ok(!excluded.has(d.system.fusionCategory), `${d.name} has excluded fusionCategory "${d.system.fusionCategory}"`);
+    }
+  });
+
+  it('actions-core is entirely type "action" with a flattened (non-wrapper) actionType/actions shape', () => {
+    const docs = loadJson(join(PACKS_DIR, 'actions-core', 'documents.json'));
+    for (const doc of docs) {
+      assert.equal(doc.type, 'action');
+      assert.ok(['passive', 'action', 'reaction', 'free'].includes(doc.system.actionType), `${doc.name} has invalid actionType: ${JSON.stringify(doc.system.actionType)}`);
+      const actions = doc.system.actions;
+      const isWrapperLeftover = actions !== null && typeof actions === 'object' && !Array.isArray(actions);
+      assert.ok(!isWrapperLeftover, `${doc.name} still has a wrapper object for system.actions: ${JSON.stringify(actions)}`);
     }
   });
 });

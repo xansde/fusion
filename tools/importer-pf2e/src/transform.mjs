@@ -877,18 +877,63 @@ function capSpellTarget(target) {
   return target.length > 60 ? '' : target;
 }
 
+/**
+ * Recursively walks `node` (plain object or array), blanking every non-empty
+ * `text` string field it finds, wherever it is nested. Returns a boolean
+ * flag alongside the (deep-cloned) result indicating whether anything was
+ * actually stripped.
+ *
+ * Hardening (W2, pf2e.actions-core, r11-follow-up): the original
+ * stripRuleProse only checked `rule.text` and `rule.raw.text` — a flat,
+ * one-level check. Real vendor ItemAlteration REs (e.g. Spellstrike, Breath
+ * Weapon, Flash of Grandeur — all in actions/class/**) nest their `text`
+ * inside a `value` ARRAY of sub-objects (`re.value[].text`), which the flat
+ * check never visited, letting that field survive verbatim into
+ * flags.fusion.unconvertedRules (and its `raw` copy) unstripped. Every
+ * observed instance in the vendor data is an i18n key or an `@Embed[...]`
+ * UUID reference rather than book prose, but the guard must not rely on
+ * that being true forever — REQ-LEG-010 requires no `text`/`raw.text` field
+ * survives ANYWHERE in rules[], not just at the shapes seen so far.
+ */
+function deepStripText(node) {
+  if (Array.isArray(node)) {
+    let stripped = false;
+    const out = node.map((item) => {
+      const [next, didStrip] = deepStripTextInner(item);
+      if (didStrip) stripped = true;
+      return next;
+    });
+    return [out, stripped];
+  }
+  return deepStripTextInner(node);
+}
+
+function deepStripTextInner(node) {
+  if (node === null || typeof node !== 'object') return [node, false];
+  if (Array.isArray(node)) return deepStripText(node);
+  let stripped = false;
+  const out = {};
+  for (const [k, v] of Object.entries(node)) {
+    if (k === 'text' && typeof v === 'string' && v.length > 0) {
+      out[k] = '';
+      stripped = true;
+    } else if (v !== null && typeof v === 'object') {
+      const [next, didStrip] = deepStripText(v);
+      out[k] = next;
+      if (didStrip) stripped = true;
+    } else {
+      out[k] = v;
+    }
+  }
+  return [out, stripped];
+}
+
 function stripRuleProse(rules) {
   return (rules ?? []).map((rule) => {
     if (!rule || typeof rule !== 'object') return rule;
-    const out = { ...rule };
-    if (typeof out.text === 'string' && out.text.length > 0) {
-      out.text = '';
-      out.textStripped = true;
-    }
-    if (out.raw && typeof out.raw === 'object' && typeof out.raw.text === 'string' && out.raw.text.length > 0) {
-      out.raw = { ...out.raw, text: '', textStripped: true };
-    }
-    return out;
+    const [stripped, didStrip] = deepStripTextInner(rule);
+    if (didStrip) stripped.textStripped = true;
+    return stripped;
   });
 }
 
@@ -2096,6 +2141,7 @@ async function main() {
     pf2e: [
       'conditions', 'equipment', 'spells', 'pathfinder-monster-core',
       'classes', 'class-features', 'feats', 'ancestries', 'heritages', 'backgrounds',
+      'actions',
     ],
     sf2e: ['conditions', 'equipment', 'spells', 'alien-core-bestiary', 'rulebook-bestiaries'],
   };

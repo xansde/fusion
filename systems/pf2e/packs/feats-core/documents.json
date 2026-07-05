@@ -1054,8 +1054,7 @@
             ],
             "selector": "damage-received",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         }
@@ -5105,10 +5104,11 @@
             "property": "description",
             "value": [
               {
-                "text": "{item|description}"
+                "text": ""
               }
             ]
-          }
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -5137,10 +5137,11 @@
             "property": "description",
             "value": [
               {
-                "text": "{item|description}"
+                "text": ""
               }
             ],
-            "_conversionState": "partial"
+            "_conversionState": "partial",
+            "textStripped": true
           }
         ],
         "assetSubstitutions": [
@@ -5670,8 +5671,7 @@
             ],
             "selector": "intimidation",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         }
@@ -8276,8 +8276,7 @@
             ],
             "selector": "strike-attack-roll",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         }
@@ -9138,10 +9137,11 @@
             "property": "description",
             "value": [
               {
-                "text": "{item|description}"
+                "text": ""
               }
             ]
-          }
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -9169,10 +9169,11 @@
             "property": "description",
             "value": [
               {
-                "text": "{item|description}"
+                "text": ""
               }
             ],
-            "_conversionState": "partial"
+            "_conversionState": "partial",
+            "textStripped": true
           }
         ],
         "assetSubstitutions": [
@@ -11113,8 +11114,7 @@
             ],
             "selector": "fortitude",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         },
@@ -13500,8 +13500,7 @@
             ],
             "selector": "skill-check",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         }
@@ -14106,8 +14105,7 @@
             ],
             "selector": "skill-check",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         }
@@ -14196,8 +14194,7 @@
             ],
             "selector": "lore-skill-check",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         }
@@ -14549,8 +14546,7 @@
             ],
             "selector": "survival",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         }
@@ -15172,8 +15168,7 @@
             ],
             "selector": "deception",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         }
@@ -16620,8 +16615,7 @@
             ],
             "selector": "medicine",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         }
@@ -17323,8 +17317,7 @@
             ],
             "selector": "acrobatics",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         }
@@ -18566,8 +18559,7 @@
             ],
             "selector": "skill-check",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         }
@@ -19104,8 +19096,7 @@
             ],
             "selector": "skill-check",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         }
@@ -19752,8 +19743,7 @@
             ],
             "selector": "deception",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         }
@@ -20461,8 +20451,7 @@
             ],
             "selector": "skill-check",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         }
@@ -20549,8 +20538,7 @@
             ],
             "selector": "medicine",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         }
@@ -21776,8 +21764,7 @@
             ],
             "selector": "lore-skill-check",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         }
@@ -22002,8 +21989,7 @@
             ],
             "selector": "skill-check",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         }
@@ -23009,8 +22995,7 @@
             "key": "Note",
             "selector": "initiative",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         },
@@ -23038,8 +23023,7 @@
             ],
             "selector": "attack",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         }
@@ -23477,8 +23461,7 @@
               "occultism"
             ],
             "text": "",
-            "title": "PF2E.Check.Result.Degree.Check.criticalSuccess",
-            "textStripped": true
+            "title": "PF2E.Check.Result.Degree.Check.criticalSuccess"
           },
           "textStripped": true
         },
@@ -23510,8 +23493,7 @@
               "occultism"
             ],
             "text": "",
-            "title": "PF2E.Check.Result.Degree.Check.success",
-            "textStripped": true
+            "title": "PF2E.Check.Result.Degree.Check.success"
           },
           "textStripped": true
         },
@@ -23543,8 +23525,7 @@
               "occultism"
             ],
             "text": "",
-            "title": "PF2E.Check.Result.Degree.Check.failure",
-            "textStripped": true
+            "title": "PF2E.Check.Result.Degree.Check.failure"
           },
           "textStripped": true
         },
@@ -23576,8 +23557,7 @@
               "occultism"
             ],
             "text": "",
-            "title": "PF2E.Check.Result.Degree.Check.criticalFailure",
-            "textStripped": true
+            "title": "PF2E.Check.Result.Degree.Check.criticalFailure"
           },
           "textStripped": true
         }
@@ -23835,8 +23815,7 @@
               "diplomacy-check"
             ],
             "text": "",
-            "title": "PF2E.Check.Result.Degree.Check.criticalSuccess",
-            "textStripped": true
+            "title": "PF2E.Check.Result.Degree.Check.criticalSuccess"
           },
           "textStripped": true
         },
@@ -23868,8 +23847,7 @@
               "diplomacy-check"
             ],
             "text": "",
-            "title": "PF2E.Check.Result.Degree.Check.success",
-            "textStripped": true
+            "title": "PF2E.Check.Result.Degree.Check.success"
           },
           "textStripped": true
         },
@@ -23901,8 +23879,7 @@
               "diplomacy-check"
             ],
             "text": "",
-            "title": "PF2E.Check.Result.Degree.Check.failure",
-            "textStripped": true
+            "title": "PF2E.Check.Result.Degree.Check.failure"
           },
           "textStripped": true
         },
@@ -23934,8 +23911,7 @@
               "diplomacy-check"
             ],
             "text": "",
-            "title": "PF2E.Check.Result.Degree.Check.criticalFailure",
-            "textStripped": true
+            "title": "PF2E.Check.Result.Degree.Check.criticalFailure"
           },
           "textStripped": true
         }
@@ -24116,8 +24092,7 @@
             ],
             "selector": "crafting",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         }
@@ -24673,8 +24648,7 @@
             ],
             "selector": "athletics",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         }
@@ -24752,10 +24726,11 @@
             "property": "description",
             "value": [
               {
-                "text": "{item|description}"
+                "text": ""
               }
             ]
-          }
+          },
+          "textStripped": true
         }
       ],
       "traits": {
@@ -24784,10 +24759,11 @@
             "property": "description",
             "value": [
               {
-                "text": "{item|description}"
+                "text": ""
               }
             ],
-            "_conversionState": "partial"
+            "_conversionState": "partial",
+            "textStripped": true
           }
         ],
         "assetSubstitutions": [
@@ -24915,8 +24891,7 @@
             ],
             "selector": "athletics",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         }
@@ -25588,8 +25563,7 @@
             ],
             "selector": "intimidation",
             "text": "",
-            "title": "{item|name}",
-            "textStripped": true
+            "title": "{item|name}"
           },
           "textStripped": true
         }

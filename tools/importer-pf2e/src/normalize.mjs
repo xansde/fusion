@@ -53,6 +53,10 @@ function vendorBaseFor(system) {
  * heritages/backgrounds — vendor source packs for the Magus builder MVP
  * subset (classes-core, class-features-core, feats-core, ancestries-core,
  * heritages-core, backgrounds-core in build-mvp-subset.mjs).
+ *
+ * W2 (Actions tab, r11-follow-up) added "actions" — vendor source pack for
+ * pf2e.actions-core (build-mvp-subset.mjs). See CATEGORY_SUBFOLDERS below
+ * for which of its physical subfolders are curated into the MVP pack.
  */
 const DEFAULT_TARGET_PACKS_BY_SYSTEM = {
   pf2e: [
@@ -66,9 +70,24 @@ const DEFAULT_TARGET_PACKS_BY_SYSTEM = {
     "ancestries",
     "heritages",
     "backgrounds",
+    "actions",
   ],
   sf2e: ["equipment", "spells", "conditions", "alien-core-bestiary", "rulebook-bestiaries"],
 };
+
+/**
+ * Packs whose first-level vendor subfolder is a meaningful gameplay category
+ * that should survive normalization as `system.fusionCategory` (the vendor's
+ * own `folder` field — a Foundry folder _id — is stripped by
+ * FOUNDRY_INTERNAL_FIELDS and does not by itself carry a readable category
+ * name; the physical subfolder name is 1:1 with the pack's top-level
+ * `_folders.json` root folders — see BUILD-LOG r11 W2 entry).
+ *
+ * Only "actions" needs this today. Injected in loadRawDocs() by tagging each
+ * raw doc with a non-Foundry `__fusionCategory` field (read and deleted by
+ * normalizeDoc()) before the doc is normalized.
+ */
+const CATEGORY_SUBFOLDER_PACKS = new Set(["actions"]);
 
 /**
  * SF2e-exclusive trait allowlist (REQ-SF2-044/047; analysis 04 §6 item 2).
@@ -303,6 +322,12 @@ function normalizeDoc(doc, stats, system = "pf2e") {
     return null;
   }
 
+  // Category tag injected by loadRawDocs() for CATEGORY_SUBFOLDER_PACKS —
+  // read here (before it's copied into system.* below) and never left on the
+  // raw doc object itself, since `doc` may be a normalizeDoc argument shared
+  // across calls in some future caller.
+  const fusionCategory = doc.__fusionCategory;
+
   const type = doc.type ?? "(sem tipo)";
   stats.byType[type] = (stats.byType[type] ?? 0) + 1;
   stats.total++;
@@ -354,6 +379,16 @@ function normalizeDoc(doc, stats, system = "pf2e") {
   // system.*: preservar integralmente
   if (doc.system) {
     out.system = deepClone(doc.system);
+  }
+
+  // fusionCategory: physical vendor subfolder name, injected only for packs
+  // in CATEGORY_SUBFOLDER_PACKS (currently "actions") — see loadRawDocs().
+  // Kept separate from the vendor's own `system.category` field (which is a
+  // gameplay tag like "offensive"/"defensive"/"interaction", orthogonal to
+  // navigation grouping).
+  if (fusionCategory) {
+    out.system = out.system ?? {};
+    out.system.fusionCategory = fusionCategory;
   }
 
   // rules[]: preservado de system.rules (já incluso acima)
@@ -470,17 +505,31 @@ function loadRawDocs(packName, skipExtract, system, vendorBase) {
     throw new Error(`Pack não encontrado: ${packDir}`);
   }
 
-  function walkJsonFiles(dir, acc = []) {
+  const tagCategory = CATEGORY_SUBFOLDER_PACKS.has(packName);
+
+  // Walks the pack dir recursively. `category` tracks the pack's first-level
+  // subfolder name (e.g. "basic", "skill", "class") as files are visited —
+  // undefined at the pack root itself, set once entering a first-level dir.
+  function walkJsonFiles(dir, acc = [], category) {
     const entries = readdirSync(dir, { withFileTypes: true });
     for (const e of entries) {
       const full = join(dir, e.name);
-      if (e.isDirectory()) walkJsonFiles(full, acc);
-      else if (e.name.endsWith(".json") && e.name !== "_folders.json") acc.push(full);
+      if (e.isDirectory()) {
+        walkJsonFiles(full, acc, category ?? e.name);
+      } else if (e.name.endsWith(".json") && e.name !== "_folders.json") {
+        acc.push({ path: full, category });
+      }
     }
     return acc;
   }
 
-  return walkJsonFiles(packDir).map((f) => JSON.parse(readFileSync(f, "utf8")));
+  return walkJsonFiles(packDir).map(({ path: f, category }) => {
+    const doc = JSON.parse(readFileSync(f, "utf8"));
+    if (tagCategory && category) {
+      doc.__fusionCategory = category;
+    }
+    return doc;
+  });
 }
 
 // ---------------------------------------------------------------------------

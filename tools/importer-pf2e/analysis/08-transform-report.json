@@ -1,7 +1,7 @@
 {
   "importerVersion": "0.1.0",
   "sourceVersion": "v14-dev",
-  "generatedAt": "2026-07-05T15:02:57.445Z",
+  "generatedAt": "2026-07-05T18:45:16.223Z",
   "packs": [
     {
       "packId": "pf2e.conditions",
@@ -1220,14 +1220,122 @@
         "coveragePct": "72.7"
       },
       "assetSubstitutions": 495
+    },
+    {
+      "packId": "pf2e.actions",
+      "total": 559,
+      "transformed": 559,
+      "invalidExcluded": [],
+      "ruleCoverage": {
+        "totalRules": 146,
+        "byState": {
+          "supported": 106,
+          "partial": 19,
+          "unsupported": 21
+        },
+        "byKey": {
+          "ItemAlteration": {
+            "total": 12,
+            "supported": 0,
+            "partial": 12,
+            "unsupported": 0
+          },
+          "RollOption": {
+            "total": 51,
+            "supported": 51,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "FlatModifier": {
+            "total": 27,
+            "supported": 27,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "AdjustDegreeOfSuccess": {
+            "total": 3,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 3
+          },
+          "Resistance": {
+            "total": 4,
+            "supported": 4,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "AdjustModifier": {
+            "total": 7,
+            "supported": 0,
+            "partial": 7,
+            "unsupported": 0
+          },
+          "CreatureSize": {
+            "total": 1,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 1
+          },
+          "DamageDice": {
+            "total": 9,
+            "supported": 9,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "DamageAlteration": {
+            "total": 10,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 10
+          },
+          "AdjustStrike": {
+            "total": 2,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 2
+          },
+          "Note": {
+            "total": 14,
+            "supported": 14,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "CraftingAbility": {
+            "total": 2,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 2
+          },
+          "EphemeralEffect": {
+            "total": 1,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 1
+          },
+          "ChoiceSet": {
+            "total": 2,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 2
+          },
+          "ActiveEffectLike": {
+            "total": 1,
+            "supported": 1,
+            "partial": 0,
+            "unsupported": 0
+          }
+        },
+        "coveragePct": "72.6"
+      },
+      "assetSubstitutions": 559
     }
   ],
   "aggregate": {
-    "totalRules": 11770,
-    "supportedRules": 7592,
-    "partialRules": 2102,
-    "unsupportedRules": 2076,
-    "coveragePct": "64.5"
+    "totalRules": 11916,
+    "supportedRules": 7698,
+    "partialRules": 2121,
+    "unsupportedRules": 2097,
+    "coveragePct": "64.6"
   },
   "failed": false
 }

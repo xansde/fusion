@@ -20,7 +20,8 @@
 | **ancestries** | 50 | 50 | 50 | 0 | 13 | 33 | 0 |
 | **heritages** | 322 | 322 | 95 | 227 | 282 | 535 | 0 |
 | **backgrounds** | 495 | 495 | 495 | 0 | 135 | 315 | 0 |
-| **TOTAL** | **15698** | **21901** | **9967** | **11934** | **5544** | **11770** | **6203** |
+| **actions** | 559 | 559 | 559 | 0 | 69 | 146 | 0 |
+| **TOTAL** | **16257** | **22460** | **10526** | **11934** | **5613** | **11916** | **6203** |
 
 ---
 
@@ -64,6 +65,7 @@
 | ancestries | 50 | ~0.08 MB |
 | heritages | 322 | ~0.36 MB |
 | backgrounds | 495 | ~0.84 MB |
+| actions | 559 | ~0.69 MB |
 
 ---
 
@@ -71,16 +73,16 @@
 
 | Rule Key | Ocorrências |
 |---|---|
-| `FlatModifier` | 2094 |
-| `ItemAlteration` | 1542 |
-| `RollOption` | 1396 |
-| `ActiveEffectLike` | 1391 |
+| `FlatModifier` | 2121 |
+| `ItemAlteration` | 1554 |
+| `RollOption` | 1447 |
+| `ActiveEffectLike` | 1392 |
 | `GrantItem` | 1253 |
-| `ChoiceSet` | 620 |
-| `Note` | 614 |
-| `DamageDice` | 388 |
-| `Resistance` | 359 |
-| `AdjustDegreeOfSuccess` | 248 |
+| `Note` | 628 |
+| `ChoiceSet` | 622 |
+| `DamageDice` | 397 |
+| `Resistance` | 363 |
+| `AdjustDegreeOfSuccess` | 251 |
 
 ---
 
@@ -153,6 +155,12 @@
 | Tipo | Docs |
 |---|---|
 | background | 495 |
+
+### actions
+
+| Tipo | Docs |
+|---|---|
+| action | 559 |
 
 ---
 

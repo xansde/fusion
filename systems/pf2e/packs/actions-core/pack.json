@@ -1,12 +1,14 @@
 {
-  "id": "pf2e.feats-core",
-  "label": "PF2e Core Feats",
+  "id": "pf2e.actions-core",
+  "label": "PF2e Core Actions",
   "documentType": "Item",
   "systemId": "pf2e",
   "indexFields": [
     "name",
-    "system.level",
+    "system.actionType",
+    "system.actions",
     "system.category",
+    "system.fusionCategory",
     "system.traits.value"
   ],
   "license": {
@@ -23,6 +25,6 @@
     "importerVersion": "0.1.0"
   },
   "schemaVersion": 1,
-  "documentCount": 418,
-  "generatedAt": "2026-07-05T18:45:17.044Z"
+  "documentCount": 521,
+  "generatedAt": "2026-07-05T18:45:17.114Z"
 }
