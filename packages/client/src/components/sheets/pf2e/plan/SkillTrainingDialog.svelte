@@ -31,6 +31,7 @@
 
   import type { SkillTrainingDialogContext, SkillTrainingRow } from "../../../../lib/sheets/pf2e/planVM.js";
   import ProficiencyBadge from "../ProficiencyBadge.svelte";
+  import { skillHelpFor, TEML_LEGEND } from "./abilitySkillHelp.js";
   import { t } from "../../../../lib/i18n/i18n.js";
 
   interface Props {
@@ -45,10 +46,18 @@
 
   // svelte-ignore state_referenced_locally — intentional: `dialogCtx` seeds
   // this dialog's list at mount only (recreated per opening, same pattern as
-  // AbilityBoostsDialog's `selectedByGroup`).
-  let picks = $state<string[]>([]);
+  // AbilityBoostsDialog's `selectedByGroup`). R12 item 1: a slot re-opened for
+  // editing pre-selects the skills already picked for this level+kind
+  // (`filledPicks`), so the player sees the current ledger and can swap or
+  // remove any of them — confirm sends the FULL list, reconciling the whole
+  // group (see confirmSkillTraining).
+  let picks = $state<string[]>([...dialogCtx.filledPicks]);
   let showLoreInput = $state(false);
   let loreName = $state("");
+
+  // R12 item 2: description side-panel — the skill the player is
+  // hovering/focusing, shown with its curated help text + the TEML legend.
+  let hoveredSlug = $state<string | null>(null);
 
   const totalSlots = $derived(dialogCtx.totalSlots);
   const remaining = $derived(Math.max(0, totalSlots - picks.length));
@@ -57,6 +66,11 @@
       ? t("FUSION.Sheet.Plan.SlotLabel.skillIncrease")
       : t("FUSION.Sheet.Plan.SlotLabel.skillTraining"),
   );
+
+  // R12 item 2: the help entry for the row under the cursor/focus (falls back
+  // to the first row so the panel is never empty when the dialog opens).
+  const helpSlug = $derived(hoveredSlug ?? dialogCtx.rows[0]?.slug ?? null);
+  const activeHelp = $derived(helpSlug !== null ? skillHelpFor(helpSlug) : null);
 
   function rankToBadge(rank: number): "U" | "T" | "E" | "M" | "L" {
     switch (rank) {
@@ -174,35 +188,58 @@
     </div>
 
     <div class="st-modal__body">
-      <div class="st-list">
-        {#each dialogCtx.rows as row (row.slug)}
-          {@const selected = isSelected(row.slug)}
-          {@const disabled = !canToggle(row)}
-          <button
-            type="button"
-            class="st-row"
-            class:st-row--selected={selected}
-            class:st-row--disabled={disabled}
-            {disabled}
-            onclick={() => toggle(row)}
-          >
-            <span class="st-row__check" aria-hidden="true">{selected ? "✓" : ""}</span>
-            <span class="st-row__name">{skillLabel(row)}</span>
-            <span class="st-row__ability">{row.ability.toUpperCase()}</span>
-            <span class="st-row__breakdown">
-              {t("FUSION.Sheet.Plan.SkillTraining.Breakdown", {
-                ability: fmtSigned(row.abilityMod),
-                prof: fmtSigned(profPart(row, selected)),
-              })}
-            </span>
-            <span class="st-row__badges">
-              <ProficiencyBadge rank={rankToBadge(row.currentRank)} size={16} />
-              <span class="st-row__arrow" aria-hidden="true">&#8594;</span>
-              <ProficiencyBadge rank={rankToBadge(selected ? row.targetRank : row.currentRank)} size={16} />
-            </span>
-            <span class="st-row__mod">{selected ? row.targetModFormatted : row.currentModFormatted}</span>
-          </button>
-        {/each}
+      <div class="st-main">
+        <div class="st-list">
+          {#each dialogCtx.rows as row (row.slug)}
+            {@const selected = isSelected(row.slug)}
+            {@const disabled = !canToggle(row)}
+            <button
+              type="button"
+              class="st-row"
+              class:st-row--selected={selected}
+              class:st-row--disabled={disabled}
+              {disabled}
+              onclick={() => toggle(row)}
+              onmouseenter={() => { hoveredSlug = row.slug; }}
+              onfocus={() => { hoveredSlug = row.slug; }}
+            >
+              <span class="st-row__check" aria-hidden="true">{selected ? "✓" : ""}</span>
+              <span class="st-row__name">{skillLabel(row)}</span>
+              <span class="st-row__ability">{row.ability.toUpperCase()}</span>
+              <span class="st-row__breakdown">
+                {t("FUSION.Sheet.Plan.SkillTraining.Breakdown", {
+                  ability: fmtSigned(row.abilityMod),
+                  prof: fmtSigned(profPart(row, selected)),
+                })}
+              </span>
+              <span class="st-row__badges">
+                <ProficiencyBadge rank={rankToBadge(row.currentRank)} size={16} />
+                <span class="st-row__arrow" aria-hidden="true">&#8594;</span>
+                <ProficiencyBadge rank={rankToBadge(selected ? row.targetRank : row.currentRank)} size={16} />
+              </span>
+              <span class="st-row__mod">{selected ? row.targetModFormatted : row.currentModFormatted}</span>
+            </button>
+          {/each}
+        </div>
+
+        <!-- R12 item 2: curated description side-panel + TEML legend. -->
+        <aside class="st-help" aria-live="polite">
+          {#if activeHelp}
+            <p class="st-help__name">{activeHelp.name}</p>
+            <p class="st-help__ability">Atributo-chave: {activeHelp.ability.toUpperCase()}</p>
+            <p class="st-help__desc">{activeHelp.description}</p>
+          {/if}
+          <div class="st-help__legend">
+            <p class="st-help__legend-title">Proficiência (TEML)</p>
+            {#each TEML_LEGEND as row (row.badge)}
+              <div class="st-help__legend-row">
+                <ProficiencyBadge rank={row.badge} size={16} />
+                <span class="st-help__legend-name">{row.name}</span>
+                <span class="st-help__legend-note">{row.note}</span>
+              </div>
+            {/each}
+          </div>
+        </aside>
       </div>
 
       {#if showLoreInput}
@@ -259,7 +296,7 @@
   }
 
   .st-modal {
-    width: 640px;
+    width: 860px;
     max-width: 100%;
     max-height: 82vh;
     background: var(--fusion-surface);
@@ -320,7 +357,15 @@
     overflow-y: auto;
   }
 
+  .st-main {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
   .st-list {
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -329,6 +374,81 @@
     padding: 4px;
     max-height: 420px;
     overflow-y: auto;
+  }
+
+  .st-help {
+    width: 240px;
+    flex-shrink: 0;
+    align-self: stretch;
+    max-height: 420px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius);
+    background: var(--fusion-surface-alt);
+  }
+
+  .st-help__name {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--fusion-text);
+  }
+
+  .st-help__ability {
+    margin: 0;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--fusion-text-subtle);
+  }
+
+  .st-help__desc {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--fusion-text-muted);
+  }
+
+  .st-help__legend {
+    margin-top: 4px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--fusion-border);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .st-help__legend-title {
+    margin: 0;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--fusion-text-subtle);
+  }
+
+  .st-help__legend-row {
+    display: grid;
+    grid-template-columns: 16px auto 1fr;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .st-help__legend-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--fusion-text);
+  }
+
+  .st-help__legend-note {
+    font-size: 10px;
+    color: var(--fusion-text-subtle);
+    text-align: right;
   }
 
   .st-row {

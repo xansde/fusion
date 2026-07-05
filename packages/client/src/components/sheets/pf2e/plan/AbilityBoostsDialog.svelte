@@ -33,6 +33,7 @@
     type AbilityBoostsGroup,
     type AbilitySlug,
   } from "../../../../lib/sheets/pf2e/planVM.js";
+  import { abilityHelpFor } from "./abilitySkillHelp.js";
   import { t } from "../../../../lib/i18n/i18n.js";
 
   interface Props {
@@ -69,6 +70,11 @@
   // math the rest of the builder uses (previewAbilityScores wraps
   // computeAbilityScores) every time a pick toggles.
   const previewScores = $derived(previewAbilityScores(doc, level, groups, selectedByGroup));
+
+  // R12 item 2: description side-panel — the ability under the cursor/focus
+  // (defaults to Strength so the panel is never empty on open).
+  let hoveredSlug = $state<string>(ABILITY_SLUGS[0]);
+  const activeHelp = $derived(abilityHelpFor(hoveredSlug));
 
   function abilityMod(score: number): number {
     return Math.floor((score - 10) / 2);
@@ -160,7 +166,13 @@
           <div class="ab-grid">
             {#each ABILITY_SLUGS as slug (slug)}
               {#if isFixed(slug)}
-                <div class="ab-tile ab-tile--fixed">
+                <div
+                  class="ab-tile ab-tile--fixed"
+                  role="button"
+                  tabindex="0"
+                  onmouseenter={() => { hoveredSlug = slug; }}
+                  onfocus={() => { hoveredSlug = slug; }}
+                >
                   <span class="ab-tile__label">{abilityLabel(slug)}</span>
                   <span class="ab-tile__tag">{t("FUSION.Sheet.Plan.AbilityBoosts.Fixed")}</span>
                 </div>
@@ -189,6 +201,8 @@
                   disabled={isExcluded(index, slug) ||
                     (!isSelected(index, slug) && (selectedByGroup[index]?.length ?? 0) >= group.freeCount)}
                   onclick={() => toggle(index, slug)}
+                  onmouseenter={() => { hoveredSlug = slug; }}
+                  onfocus={() => { hoveredSlug = slug; }}
                 >
                   <span class="ab-tile__label">{abilityLabel(slug)}</span>
                   {#if isExcluded(index, slug)}
@@ -216,6 +230,19 @@
           {/each}
         </div>
       </div>
+
+      <!-- R12 item 2: curated pt-BR help for the hovered/focused ability. -->
+      {#if activeHelp}
+        <div class="ab-help" aria-live="polite">
+          <p class="ab-help__name">{activeHelp.name}</p>
+          <p class="ab-help__summary">{activeHelp.summary}</p>
+          <ul class="ab-help__affects">
+            {#each activeHelp.affects as line (line)}
+              <li>{line}</li>
+            {/each}
+          </ul>
+        </div>
+      {/if}
     </div>
 
     <div class="ab-modal__footer">
@@ -355,6 +382,44 @@
     font-weight: 600;
     color: var(--fusion-accent);
     font-family: var(--fusion-font-mono);
+  }
+
+  .ab-help {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px;
+    border-radius: var(--fusion-radius);
+    border: 1px solid var(--fusion-border);
+    background: var(--fusion-surface-alt);
+  }
+
+  .ab-help__name {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--fusion-text);
+  }
+
+  .ab-help__summary {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--fusion-text-muted);
+  }
+
+  .ab-help__affects {
+    margin: 0;
+    padding-left: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .ab-help__affects li {
+    font-size: 11.5px;
+    line-height: 1.35;
+    color: var(--fusion-text-subtle);
   }
 
   .ab-grid {

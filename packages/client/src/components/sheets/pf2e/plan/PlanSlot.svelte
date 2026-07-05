@@ -7,6 +7,13 @@
    * caption, hover-revealed remove (x). Optional badge slot (e.g. the amber
    * "Regra opcional ativa" tag for a Free Archetype feat) via the `badge`
    * snippet prop.
+   *
+   * R12 item 1: when `onEdit` is supplied the whole slot body becomes a
+   * button that re-opens the slot's dialog pre-populated (in-place re-editing
+   * of an already-filled ability-boost/skill-training slot), and a pencil
+   * affordance appears on hover next to the remove (×). Slots without an
+   * in-place re-edit path (feats/hybrid study — reversible only via remove +
+   * re-pick) simply omit `onEdit` and stay non-clickable in the body.
    */
 
   import type { Snippet } from "svelte";
@@ -15,21 +22,41 @@
     name: string;
     type: string;
     onRemove?: (() => void) | undefined;
+    onEdit?: (() => void) | undefined;
     badge?: Snippet | undefined;
   }
 
-  let { name, type, onRemove, badge }: Props = $props();
+  let { name, type, onRemove, onEdit, badge }: Props = $props();
 </script>
 
-<div class="plan-slot">
-  <span class="plan-slot__check" aria-hidden="true">&#10003;</span>
-  <div class="plan-slot__main">
-    <div class="plan-slot__name">
-      {name}
-      {#if badge}{@render badge()}{/if}
+<div class="plan-slot" class:plan-slot--editable={onEdit !== undefined}>
+  {#if onEdit}
+    <button
+      type="button"
+      class="plan-slot__body"
+      onclick={onEdit}
+      aria-label={`Editar: ${name}`}
+    >
+      <span class="plan-slot__check" aria-hidden="true">&#10003;</span>
+      <span class="plan-slot__main">
+        <span class="plan-slot__name">
+          {name}
+          {#if badge}{@render badge()}{/if}
+        </span>
+        <span class="plan-slot__type">{type}</span>
+      </span>
+      <span class="plan-slot__edit" aria-hidden="true">&#9998;</span>
+    </button>
+  {:else}
+    <span class="plan-slot__check" aria-hidden="true">&#10003;</span>
+    <div class="plan-slot__main">
+      <div class="plan-slot__name">
+        {name}
+        {#if badge}{@render badge()}{/if}
+      </div>
+      <div class="plan-slot__type">{type}</div>
     </div>
-    <div class="plan-slot__type">{type}</div>
-  </div>
+  {/if}
   {#if onRemove}
     <button
       type="button"
@@ -57,6 +84,22 @@
     background: var(--fusion-surface);
   }
 
+  .plan-slot__body {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+    cursor: pointer;
+    font-family: var(--fusion-font);
+    color: inherit;
+  }
+
   .plan-slot__check {
     color: var(--fusion-success);
     font-size: 12px;
@@ -66,6 +109,26 @@
   .plan-slot__main {
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .plan-slot__edit {
+    opacity: 0;
+    transition: opacity 0.15s, color 0.15s;
+    color: var(--fusion-text-subtle);
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  .plan-slot--editable:hover .plan-slot__edit,
+  .plan-slot__body:focus-visible .plan-slot__edit {
+    opacity: 1;
+  }
+
+  .plan-slot__body:hover .plan-slot__name,
+  .plan-slot__body:focus-visible .plan-slot__name {
+    color: var(--fusion-accent-hover);
   }
 
   .plan-slot__name {

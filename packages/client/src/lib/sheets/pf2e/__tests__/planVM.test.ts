@@ -47,6 +47,14 @@ import {
 } from "../planVM.js";
 import type { DocUpdatePayload } from "../characterSheetVM.js";
 import { DocCreatePayloadSchema, DocUpdatePayloadSchema, DocDeletePayloadSchema } from "@fusion/shared";
+import {
+  ABILITY_HELP,
+  SKILL_HELP,
+  LORE_HELP,
+  TEML_LEGEND,
+  skillHelpFor,
+  abilityHelpFor,
+} from "../../../../components/sheets/pf2e/plan/abilitySkillHelp.js";
 
 // ---------------------------------------------------------------------------
 // Real compendium fixtures (systems/pf2e/packs/*-core/documents.json,
@@ -2118,15 +2126,23 @@ describe("confirmSkillTraining", () => {
   it("persists ALL picks in ONE doc:update carrying the whole choices array (lesson r10: never index arrays)", () => {
     const doc = tobiasLevel3DocComplete();
     const dctx = skillTrainingDialogContext(doc, 1, "skillTraining");
-    expect(dctx.emptySlotIds).toHaveLength(3);
+    expect(dctx.groupSlotIds).toHaveLength(5);
+    // The dialog seeds with the already-picked skills and sends the FULL list
+    // (kept picks + new ones), reconciling the whole level+kind group.
+    expect(dctx.filledPicks).toEqual(["stealth", "thievery"]);
 
-    const op = confirmSkillTraining(ctx(doc), dctx, ["arcana", "athletics", "medicine"]);
+    const op = confirmSkillTraining(ctx(doc), dctx, [
+      ...dctx.filledPicks,
+      "arcana",
+      "athletics",
+      "medicine",
+    ]);
     expect(op).not.toBeNull();
     const wire = { documentType: op!.documentType, updates: [{ _id: op!.id, diff: op!.diff }] };
     expect(DocUpdatePayloadSchema.safeParse(wire).success).toBe(true);
 
     const choices = op!.diff["system.build.choices"] as Array<Record<string, unknown>>;
-    // Pre-existing choices (stealth/thievery/skillIncrease-3/abilityBoosts-1 marker) survive untouched.
+    // Pre-existing choices (stealth/thievery) survive on their own slot ids.
     expect(choices.some((c) => c["skill"] === "stealth" && c["slot"] === "skillTraining-1-0")).toBe(true);
     expect(choices.some((c) => c["skill"] === "thievery" && c["slot"] === "skillTraining-1-1")).toBe(true);
     // New picks land on the previously-empty slot ids, in order.
@@ -2137,12 +2153,21 @@ describe("confirmSkillTraining", () => {
         { level: 1, slot: "skillTraining-1-4", type: "skillTraining", skill: "medicine", rank: 1 },
       ]),
     );
+    // The unrelated skillIncrease-3 choice is byte-preserved (only this
+    // level+kind group is reconciled).
+    expect(choices.some((c) => c["slot"] === "skillIncrease-3" && c["skill"] === "stealth")).toBe(true);
   });
 
-  it("ignores picks beyond the number of empty slots (defensive)", () => {
+  it("ignores picks beyond the number of group slots (defensive)", () => {
     const doc = tobiasLevel3DocComplete();
     const dctx = skillTrainingDialogContext(doc, 1, "skillTraining");
-    const op = confirmSkillTraining(ctx(doc), dctx, ["arcana", "athletics", "medicine", "religion"]);
+    const op = confirmSkillTraining(ctx(doc), dctx, [
+      ...dctx.filledPicks,
+      "arcana",
+      "athletics",
+      "medicine",
+      "religion", // 6th pick, only 5 slots — dropped
+    ]);
     const choices = op!.diff["system.build.choices"] as Array<Record<string, unknown>>;
     expect(choices.some((c) => c["skill"] === "religion")).toBe(false);
   });
@@ -2175,6 +2200,195 @@ describe("confirmSkillTraining", () => {
     const op = confirmSkillTraining(ctx(doc), dctx, ["athletics"]);
     const choices = op!.diff["system.build.choices"] as Array<Record<string, unknown>>;
     expect(choices.some((c) => c["skill"] === "athletics" && c["rank"] === 3)).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// R12 item 1 — re-editing a FILLED skillTraining group in place. The dialog
+// re-opens pre-populated (`filledPicks`) and confirm reconciles the WHOLE
+// level+kind group against the returned pick list, so the ledger of THAT
+// origin is substituted, not merely appended to.
+// ---------------------------------------------------------------------------
+
+describe("skillTrainingDialogContext — pre-population on re-open (R12 item 1)", () => {
+  it("exposes groupSlotIds and filledPicks aligned to the filled slots in slot order", () => {
+    const dctx = skillTrainingDialogContext(tobiasLevel3DocComplete(), 1, "skillTraining");
+    expect(dctx.groupSlotIds).toEqual([
+      "skillTraining-1-0",
+      "skillTraining-1-1",
+      "skillTraining-1-2",
+      "skillTraining-1-3",
+      "skillTraining-1-4",
+    ]);
+    // stealth (slot -0) and thievery (slot -1) are the already-made picks.
+    expect(dctx.filledPicks).toEqual(["stealth", "thievery"]);
+  });
+
+  it("a skill already picked BY THIS GROUP stays eligible/reversible (its own choice is excluded from currentRank)", () => {
+    // thievery is trained ONLY by this level-1 skillTraining group — so when
+    // the dialog re-opens it must read as currentRank 0 / eligible so the
+    // player can deselect or swap it. (stealth also gets a level-3
+    // skillIncrease, so it legitimately stays rank 2 / ineligible here.)
+    const dctx = skillTrainingDialogContext(tobiasLevel3DocComplete(), 1, "skillTraining");
+    const thievery = dctx.rows.find((r) => r.slug === "thievery")!;
+    expect(thievery.currentRank).toBe(0);
+    expect(thievery.eligible).toBe(true);
+
+    const stealth = dctx.rows.find((r) => r.slug === "stealth")!;
+    expect(stealth.currentRank).toBe(2); // from the level-3 skillIncrease, not this group
+    expect(stealth.eligible).toBe(false);
+  });
+});
+
+describe("confirmSkillTraining — re-edit substitutes the group ledger (R12 item 1)", () => {
+  it("swapping a pick replaces the old skill on the SAME slot, no duplication", () => {
+    const doc = tobiasLevel3DocComplete();
+    const dctx = skillTrainingDialogContext(doc, 1, "skillTraining");
+    // Player swaps thievery (slot -1) for medicine, keeps stealth, and fills
+    // the 3 empty slots — the dialog sends the FULL reconciled list.
+    const op = confirmSkillTraining(ctx(doc), dctx, [
+      "stealth",
+      "medicine", // was thievery
+      "arcana",
+      "athletics",
+      "society",
+    ]);
+    expect(op).not.toBeNull();
+    const wire = { documentType: op!.documentType, updates: [{ _id: op!.id, diff: op!.diff }] };
+    expect(DocUpdatePayloadSchema.safeParse(wire).success).toBe(true);
+
+    const choices = op!.diff["system.build.choices"] as Array<Record<string, unknown>>;
+    const level1Training = choices.filter(
+      (c) => c["type"] === "skillTraining" && c["level"] === 1,
+    );
+    // Exactly 5 level-1 training choices, one per group slot — no orphaned
+    // thievery entry, no duplicate slot.
+    expect(level1Training).toHaveLength(5);
+    expect(level1Training.some((c) => c["skill"] === "thievery")).toBe(false);
+    expect(level1Training.some((c) => c["skill"] === "medicine" && c["slot"] === "skillTraining-1-1")).toBe(true);
+    const slotIds = level1Training.map((c) => c["slot"]);
+    expect(new Set(slotIds).size).toBe(5); // all distinct
+  });
+
+  it("deselecting a pick removes its choice, leaving the group partially filled", () => {
+    const doc = tobiasLevel3DocComplete();
+    const dctx = skillTrainingDialogContext(doc, 1, "skillTraining");
+    // Player keeps only stealth (deselects thievery, adds nothing).
+    const op = confirmSkillTraining(ctx(doc), dctx, ["stealth"]);
+    const choices = op!.diff["system.build.choices"] as Array<Record<string, unknown>>;
+    const level1Training = choices.filter(
+      (c) => c["type"] === "skillTraining" && c["level"] === 1,
+    );
+    expect(level1Training).toHaveLength(1);
+    expect(level1Training[0]!["skill"]).toBe("stealth");
+    expect(level1Training[0]!["slot"]).toBe("skillTraining-1-0");
+    // thievery's choice is gone.
+    expect(choices.some((c) => c["skill"] === "thievery")).toBe(false);
+  });
+
+  it("re-editing one level's group never disturbs another level/kind's choices", () => {
+    const doc = tobiasLevel3DocComplete();
+    const dctx = skillTrainingDialogContext(doc, 1, "skillTraining");
+    const op = confirmSkillTraining(ctx(doc), dctx, ["stealth", "thievery", "arcana", "athletics", "society"]);
+    const choices = op!.diff["system.build.choices"] as Array<Record<string, unknown>>;
+    // The level-3 skillIncrease and the abilityBoosts-1 marker are untouched.
+    expect(choices.some((c) => c["slot"] === "skillIncrease-3" && c["type"] === "skillIncrease")).toBe(true);
+    expect(choices.some((c) => c["slot"] === "abilityBoosts-1" && c["type"] === "abilityBoosts")).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// R12 item 1 — re-editing a FILLED abilityBoosts slot. abilityBoostsSlotContext
+// already reads the live ledger, so re-open pre-population is "free"; these
+// tests lock in that setAbilityBoosts substitutes only the edited origin and
+// that the same-origin exclusion rule survives a re-edit.
+// ---------------------------------------------------------------------------
+
+describe("abilityBoosts re-edit (R12 item 1)", () => {
+  it("re-opening a filled slot seeds each group from the live ledger (initialFreeSlugs)", () => {
+    const slotCtx = abilityBoostsSlotContext(tobiasLevel3DocComplete(), 1);
+    const byOrigin = Object.fromEntries(slotCtx.groups.map((g) => [g.origin, g]));
+    expect(byOrigin["ancestryFree"]!.initialFreeSlugs).toEqual(["cha"]);
+    expect(byOrigin["backgroundFree"]!.initialFreeSlugs).toEqual(["int", "dex"]);
+    expect(byOrigin["classBoost"]!.initialFreeSlugs).toEqual(["str"]);
+    expect(byOrigin["levelled"]!.initialFreeSlugs).toEqual(["int", "dex", "con", "cha"]);
+    // A fully-seeded slot reports filled.
+    expect(isAbilityBoostsSlotFilled(slotCtx)).toBe(true);
+  });
+
+  it("re-editing ONE origin substitutes only that origin's key, leaving the others intact", () => {
+    const doc = tobiasLevel3DocComplete();
+    // Player re-opens and changes ancestryFree from [cha] to [wis].
+    const op = setAbilityBoosts(ctx(doc), "ancestryFree", ["wis"]);
+    expect(op).not.toBeNull();
+    expect(op!.diff).toEqual({ "system.build.abilities.ancestryFree": ["wis"] });
+    // The op targets ONLY ancestryFree — background/class/levelled keys are
+    // absent from the diff, so they are byte-preserved by the merge.
+    expect(Object.keys(op!.diff)).toEqual(["system.build.abilities.ancestryFree"]);
+  });
+
+  it("re-editing a levelled milestone overwrites only that level's boosts array", () => {
+    const doc = tobiasLevel3DocComplete();
+    const op = setAbilityBoosts(ctx(doc), "levelled", ["str", "con", "wis", "cha"], 1);
+    expect(op).not.toBeNull();
+    const levelled = op!.diff["system.build.abilities.levelledBoosts"] as Record<string, unknown>;
+    expect(levelled["1"]).toEqual(["str", "con", "wis", "cha"]);
+  });
+
+  it("same-origin exclusion (r11) still holds on re-edit — a group excludes only its OWN fixed abilities", () => {
+    const slotCtx = abilityBoostsSlotContext(tobiasLevel3DocComplete(), 1);
+    const ancestryFree = slotCtx.groups.find((g) => g.origin === "ancestryFree")!;
+    // Ratfolk's fixed ancestry boosts are dex/int — excluded from the ancestry
+    // FREE group so the same origin can't double-boost them.
+    expect(ancestryFree.excludedSlugs).toEqual(expect.arrayContaining(["dex", "int"]));
+    // But a DIFFERENT origin (levelled) may still pick dex/int — cross-origin
+    // repetition is legal (that's how 16s exist at level 1).
+    const levelled = slotCtx.groups.find((g) => g.origin === "levelled")!;
+    expect(levelled.excludedSlugs).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// R12 item 2 — curated ability/skill help text module.
+// ---------------------------------------------------------------------------
+
+describe("abilitySkillHelp (R12 item 2)", () => {
+  it("covers all six abilities with a name, summary and non-empty affects list", () => {
+    for (const slug of ["str", "dex", "con", "int", "wis", "cha"] as const) {
+      const help = abilityHelpFor(slug);
+      expect(help).not.toBeNull();
+      expect(help!.name.length).toBeGreaterThan(0);
+      expect(help!.summary.length).toBeGreaterThan(0);
+      expect(help!.affects.length).toBeGreaterThan(0);
+    }
+    expect(Object.keys(ABILITY_HELP)).toHaveLength(6);
+  });
+
+  it("returns null help for an unknown ability slug", () => {
+    expect(abilityHelpFor("zzz")).toBeNull();
+  });
+
+  it("covers all 16 canonical skills with a description and ability key", () => {
+    expect(Object.keys(SKILL_HELP)).toHaveLength(16);
+    for (const slug of Object.keys(SKILL_HELP)) {
+      const help = skillHelpFor(slug);
+      expect(help.description.length).toBeGreaterThan(0);
+      expect(["str", "dex", "con", "int", "wis", "cha"]).toContain(help.ability);
+    }
+  });
+
+  it("folds any lore-* slug onto the generic LORE_HELP entry", () => {
+    expect(skillHelpFor("lore-warfare")).toBe(LORE_HELP);
+    expect(skillHelpFor("lore-anything")).toBe(LORE_HELP);
+  });
+
+  it("falls back to LORE_HELP for an unknown non-lore slug rather than throwing", () => {
+    expect(skillHelpFor("made-up-skill")).toBe(LORE_HELP);
+  });
+
+  it("TEML legend has all five ranks with the Remaster bonus-over-level values", () => {
+    expect(TEML_LEGEND.map((r) => r.badge)).toEqual(["U", "T", "E", "M", "L"]);
+    expect(TEML_LEGEND.map((r) => r.bonusOverLevel)).toEqual([0, 2, 4, 6, 8]);
   });
 });
 

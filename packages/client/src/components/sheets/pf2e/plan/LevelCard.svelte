@@ -24,6 +24,21 @@
   }
 
   let { levelPlan, editable, slotLabel, onSlotClick, onSlotRemove }: Props = $props();
+
+  // R12 item 1: which filled slot types support in-place re-editing (re-open
+  // the same dialog pre-populated). Ability boosts read straight from the live
+  // ledger and skill trainings/increases reconcile the whole level+kind group,
+  // so both are safe to re-open. Feats/hybrid study have no in-place edit path
+  // (change = remove + re-pick), so their body stays non-clickable.
+  const EDITABLE_SLOT_TYPES = new Set<PlanSlotModel["type"]>([
+    "abilityBoosts",
+    "skillTraining",
+    "skillIncrease",
+  ]);
+
+  function canEdit(slot: PlanSlotModel): boolean {
+    return editable && EDITABLE_SLOT_TYPES.has(slot.type);
+  }
 </script>
 
 <div class="level-card">
@@ -44,6 +59,7 @@
             name={slot.choiceName ?? slot.label}
             type={slot.label}
             onRemove={editable ? () => onSlotRemove(slot) : undefined}
+            onEdit={canEdit(slot) ? () => onSlotClick(slot) : undefined}
           >
             {#snippet badge()}
               {#if slot.optional}<PlanOptionalBadge />{/if}

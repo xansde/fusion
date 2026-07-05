@@ -1469,7 +1469,20 @@ function manualSkillRank(sys: Record<string, unknown>, slug: string): number {
  * `stepCharBuildSkills` reads server-side. MUST stay in sync with that
  * server-side implementation.
  */
-function effectiveSkillRank(doc: Record<string, unknown>, slug: string, charLevel: number): number {
+function effectiveSkillRank(
+  doc: Record<string, unknown>,
+  slug: string,
+  charLevel: number,
+  /**
+   * Slot ids to EXCLUDE from the build-choice fold (R12 item 1): when the
+   * skill-training dialog reopens to re-edit a level+kind group, the group's
+   * OWN choices must not count toward the row's current rank — otherwise a
+   * skill trained by this very group would report `currentRank >= 1` and so
+   * become ineligible/irreversible, making it impossible to swap or remove
+   * within the same dialog. Empty set = the normal "rank right now" reading.
+   */
+  ignoreSlotIds?: ReadonlySet<string>,
+): number {
   const sys = getSystem(doc);
   let rank = manualSkillRank(sys, slug);
 
@@ -1480,6 +1493,7 @@ function effectiveSkillRank(doc: Record<string, unknown>, slug: string, charLeve
 
   const choices = getBuildChoices(sys)
     .filter((c) => (c.type === "skillTraining" || c.type === "skillIncrease") && c.level <= charLevel && c.skill === slug)
+    .filter((c) => !ignoreSlotIds?.has(c.slot))
     .sort((a, b) => a.level - b.level);
   for (const choice of choices) {
     const target = choice.rank ?? (choice.type === "skillTraining" ? 1 : Math.min(rank + 1, 4));
@@ -1521,8 +1535,23 @@ export interface SkillTrainingDialogContext {
   level: number;
   /** Total slots of this kind at this level (e.g. trainedSkills.additional + Int mod). */
   totalSlots: number;
-  /** Slot ids (in order) still unfilled — the caller's picks are zipped onto these 1:1. */
+  /**
+   * ALL slot ids of this level+kind, in order (both filled and empty). The
+   * dialog reconciles its FULL pick list against these 1:1 on confirm, so a
+   * re-open pre-populated with the already-picked skills can substitute the
+   * whole group at once (R12 item 1 — in-place re-editing of a filled slot),
+   * not merely append to the empty tail.
+   */
+  groupSlotIds: string[];
+  /** Slot ids (in order) still unfilled — kept for callers that only append. */
   emptySlotIds: string[];
+  /**
+   * Skill slugs already picked for this level+kind, aligned to the FILLED
+   * subset of `groupSlotIds` in slot order (R12 item 1). The dialog seeds its
+   * initial selection with these so a re-opened filled slot shows the current
+   * ledger picks pre-selected and reversible.
+   */
+  filledPicks: string[];
   rows: SkillTrainingRow[];
 }
 
@@ -1566,19 +1595,33 @@ export function skillTrainingDialogContext(
   // here as a thin re-check since collapseSkillSlotGroups doesn't expose the
   // per-member filled flags, only the aggregate count.
   const choices = getBuildChoices(sys);
-  const filledSlotIds = new Set(
-    choices.filter((c) => c.type === kind && c.level === level).map((c) => c.slot),
+  const skillBySlot = new Map(
+    choices
+      .filter((c) => c.type === kind && c.level === level && typeof c.skill === "string")
+      .map((c) => [c.slot, c.skill as string]),
   );
-  const emptySlotIds = groupSlotIds.filter((id) => !filledSlotIds.has(id));
+  const emptySlotIds = groupSlotIds.filter((id) => !skillBySlot.has(id));
+  // The already-picked slugs, aligned to filled slots in group order (R12
+  // item 1) — seeds the dialog so a re-opened filled slot shows current picks.
+  const filledPicks = groupSlotIds
+    .map((id) => skillBySlot.get(id))
+    .filter((skill): skill is string => skill !== undefined);
 
   const loreSlugs = existingLoreSlugs(sys);
   const allSlugs = [...CANONICAL_SKILL_SLUGS, ...loreSlugs];
+
+  // Exclude THIS group's own choices from each row's current-rank reading
+  // (R12 item 1) so a re-opened filled slot shows every already-picked skill
+  // as still-eligible/reversible instead of frozen at the rank its own pick
+  // granted. Ranks from OTHER levels/kinds still count as a floor (you can't
+  // "train" a skill this level made Expert elsewhere).
+  const groupSlotIdSet = new Set(groupSlotIds);
 
   const rows: SkillTrainingRow[] = allSlugs.map((slug) => {
     const isLore = loreSlugs.includes(slug);
     const ability: AbilitySlug = isLore ? "int" : (SKILL_ABILITY[slug] ?? "int");
     const abilityModValue = abilityMod(scores[ability]);
-    const currentRank = effectiveSkillRank(doc, slug, charLevel);
+    const currentRank = effectiveSkillRank(doc, slug, charLevel, groupSlotIdSet);
     const currentMod = abilityModValue + skillProficiencyBonus(currentRank, charLevel);
 
     const targetRank = kind === "skillTraining" ? 1 : Math.min(currentRank + 1, 4);
@@ -1602,7 +1645,7 @@ export function skillTrainingDialogContext(
     };
   });
 
-  return { kind, level, totalSlots, emptySlotIds, rows };
+  return { kind, level, totalSlots, groupSlotIds, emptySlotIds, filledPicks, rows };
 }
 
 function fmtModLocal(value: number): string {
@@ -1614,11 +1657,19 @@ function fmtModLocal(value: number): string {
  * doc:update carrying the whole `system.build.choices` array (lesson r10:
  * diffs never index arrays — the entire array is always sent whole).
  *
- * `picks` is zipped 1:1 onto `ctx2.emptySlotIds` in order — the caller
- * collects picks in whatever order the player clicked/deselected rows, and
- * this function assigns the Nth pick to the Nth still-empty slot id. Extra
- * picks beyond `emptySlotIds.length` are ignored (defensive; the dialog's own
- * "Concluído" button is disabled until picks.length === emptySlotIds.length).
+ * `picks` is the dialog's COMPLETE selection (already-picked skills that
+ * survived + newly chosen ones), zipped 1:1 onto `dialogCtx.groupSlotIds` in
+ * order — reconciling the WHOLE level+kind group, not merely appending to the
+ * empty tail (R12 item 1 — in-place re-editing of an already-filled group).
+ * Any group slot that receives no pick (because the player deselected a skill
+ * it previously held) has its `choices` entry dropped, so a reopened filled
+ * slot can genuinely swap or remove a pick. Picks beyond `groupSlotIds.length`
+ * are ignored (defensive; the dialog disables "Concluído" until
+ * picks.length === totalSlots).
+ *
+ * Choices of OTHER levels/kinds are byte-preserved — only this level+kind's
+ * group slot ids are reconciled, so re-editing one level's skill trainings
+ * never disturbs another level's or the ability-boost marker.
  */
 export function confirmSkillTraining(
   ctx: PlanOpBuilderContext,
@@ -1630,8 +1681,8 @@ export function confirmSkillTraining(
   const rowBySlug = new Map(dialogCtx.rows.map((r) => [r.slug, r]));
 
   const newChoices: BuildChoice[] = [];
-  for (let i = 0; i < dialogCtx.emptySlotIds.length && i < picks.length; i++) {
-    const slotId = dialogCtx.emptySlotIds[i];
+  for (let i = 0; i < dialogCtx.groupSlotIds.length && i < picks.length; i++) {
+    const slotId = dialogCtx.groupSlotIds[i];
     const skillSlug = picks[i];
     if (!slotId || !skillSlug) continue;
     const row = rowBySlug.get(skillSlug);
@@ -1639,9 +1690,12 @@ export function confirmSkillTraining(
     newChoices.push({ level: dialogCtx.level, slot: slotId, type: dialogCtx.kind, skill: skillSlug, rank });
   }
 
-  const remaining = existingChoices.filter(
-    (c) => !newChoices.some((n) => n.slot === c.slot),
-  );
+  // Drop EVERY prior choice occupying one of this group's slot ids (whether it
+  // received a new pick or was deselected), then re-append the reconciled set
+  // — a full substitution of the level+kind group, leaving all other choices
+  // untouched.
+  const groupSlotIdSet = new Set(dialogCtx.groupSlotIds);
+  const remaining = existingChoices.filter((c) => !groupSlotIdSet.has(c.slot));
 
   return {
     type: "doc:update",
