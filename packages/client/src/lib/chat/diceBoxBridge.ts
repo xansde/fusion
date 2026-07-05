@@ -47,10 +47,50 @@ export interface DiceBoxNotation {
 }
 
 export interface DiceBoxConfig {
-  /** Path to the dice-box assets (default: /assets/dice-box). */
+  /** Path to the dice-box assets (default: /dice-assets/, see DEFAULT_ASSET_PATH). */
   assetPath?: string;
   /** dice-box container selector (default: #dice-canvas). */
   container?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Asset path handling
+// ---------------------------------------------------------------------------
+
+/**
+ * Default dice-box asset path.
+ *
+ * MUST NOT be `/assets/...`: the Fusion server reserves that prefix for the
+ * world's authenticated asset-upload/serving route (see
+ * packages/server/src/assets/routes.ts, GET /assets/*), which requires a
+ * Bearer/query token and 401s anonymous-looking requests. dice-box's own
+ * files (ammo physics wasm, dice themes) are static build output, not
+ * user-uploaded content, and must be served unauthenticated — so they live
+ * under packages/client/public/dice-assets/, copied verbatim from
+ * @3d-dice/dice-box's `dist/assets` (see that package's copyAssets.js, whose
+ * documented default target is /public/assets — renamed here to avoid the
+ * exact same /assets/* collision described above).
+ *
+ * MUST end with a trailing slash: dice-box builds request URLs via naive
+ * string concatenation, e.g. `${origin}${assetPath}themes/${theme}` and
+ * `${assetPath}ammo/ammo.wasm.wasm` (see @3d-dice/dice-box dist/dice-box.es.js).
+ * There is no separator inserted between assetPath and the sub-path, so a
+ * missing trailing slash produces a malformed, joined path such as
+ * `dice-assetsammo/ammo.wasm.wasm` — the root cause of the 401/404 seen when
+ * this constant lacked the slash.
+ */
+export const DEFAULT_ASSET_PATH = "/dice-assets/";
+
+/**
+ * Normalize a user/caller-supplied assetPath so it always ends in exactly one
+ * trailing slash, regardless of what was passed in (matches dice-box's own
+ * concatenation contract — see DEFAULT_ASSET_PATH doc above).
+ *
+ * Exported so it can be unit-tested without needing a WebGL context.
+ */
+export function normalizeAssetPath(assetPath: string | undefined): string {
+  const path = assetPath && assetPath.length > 0 ? assetPath : DEFAULT_ASSET_PATH;
+  return path.endsWith("/") ? path : `${path}/`;
 }
 
 // ---------------------------------------------------------------------------
@@ -127,7 +167,7 @@ async function _getOrCreate(config: DiceBoxConfig = {}): Promise<DiceBoxInstance
       const { default: DiceBox } = await import("@3d-dice/dice-box");
 
       const container = config.container ?? "#dice-canvas";
-      const assetPath = config.assetPath ?? "/assets/dice-box";
+      const assetPath = normalizeAssetPath(config.assetPath);
 
       const box = new DiceBox(container, {
         assetPath,

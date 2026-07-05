@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { mapRollToDiceBoxNotations } from "../diceBoxBridge.js";
+import { mapRollToDiceBoxNotations, normalizeAssetPath, DEFAULT_ASSET_PATH } from "../diceBoxBridge.js";
 import type { RollResultData } from "@fusion/shared";
 
 const makeRoll = (overrides: Partial<RollResultData> = {}): RollResultData => ({
@@ -146,5 +146,48 @@ describe("mapRollToDiceBoxNotations", () => {
       expect(n.results.length).toBeGreaterThan(0);
       expect(n.results.every((v) => typeof v === "number")).toBe(true);
     }
+  });
+});
+
+// Regression guard (r12 verification): dice-box builds request URLs by naive
+// string concatenation — `${origin}${assetPath}themes/...` and
+// `${assetPath}ammo/ammo.wasm.wasm` — with no separator inserted. A missing
+// trailing slash on assetPath therefore produced malformed URLs like
+// ".../dice-boxammo.wasm.wasm", which 401/404'd (worse: the old default
+// "/assets/dice-box" also collided with the server's authenticated
+// world-upload route at GET /assets/*, see assets/routes.ts). This suite
+// pins the join behavior so a regression is caught without a browser.
+describe("normalizeAssetPath", () => {
+  it("returns the default asset path when no config is supplied", () => {
+    expect(normalizeAssetPath(undefined)).toBe(DEFAULT_ASSET_PATH);
+  });
+
+  it("default asset path ends with a trailing slash", () => {
+    expect(DEFAULT_ASSET_PATH.endsWith("/")).toBe(true);
+  });
+
+  it("default asset path does not live under the authenticated /assets/* route", () => {
+    expect(DEFAULT_ASSET_PATH.startsWith("/assets/")).toBe(false);
+  });
+
+  it("appends a trailing slash when the caller omits one", () => {
+    expect(normalizeAssetPath("/custom/path")).toBe("/custom/path/");
+  });
+
+  it("does not double the trailing slash when the caller already supplies one", () => {
+    expect(normalizeAssetPath("/custom/path/")).toBe("/custom/path/");
+  });
+
+  it("falls back to the default for an empty string", () => {
+    expect(normalizeAssetPath("")).toBe(DEFAULT_ASSET_PATH);
+  });
+
+  it("joins with the dice-box concatenation contract without a malformed path", () => {
+    // Mirrors dice-box's own `${origin}${assetPath}ammo/ammo.wasm.wasm`.
+    const origin = "http://localhost:33000";
+    const joined = `${origin}${normalizeAssetPath(undefined)}ammo/ammo.wasm.wasm`;
+    expect(joined).toBe("http://localhost:33000/dice-assets/ammo/ammo.wasm.wasm");
+    // Never produces the historical malformed shape (missing "/" between dir and file).
+    expect(joined).not.toContain("dice-assetsammo");
   });
 });
