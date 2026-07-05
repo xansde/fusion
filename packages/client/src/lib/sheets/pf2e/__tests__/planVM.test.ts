@@ -14,9 +14,10 @@ import { describe, it, expect } from "vitest";
 import {
   derivePlan,
   planContext,
-  featElegivel,
+  isFeatEligible,
   isHybridStudyOption,
   spellSlotsForLevel,
+  computeAbilityScores,
   applyClass,
   applyAncestry,
   applyHeritage,
@@ -28,13 +29,23 @@ import {
   setAbilityBoosts,
   markAbilityBoostsChoice,
   abilityBoostsSlotContext,
+  isAbilityBoostsSlotFilled,
   setFreeArchetype,
   removeChoice,
   levelUp,
   levelSet,
+  skillTrainingDialogContext,
+  confirmSkillTraining,
+  addLoreSkill,
+  skillProficiencyBonus,
+  previewAbilityScores,
+  grantedFeatChoiceFor,
+  matchesGrantedFeatFilter,
   type PlanOpBuilderContext,
   type PlanSlotModel,
+  type FeatDocLike,
 } from "../planVM.js";
+import type { DocUpdatePayload } from "../characterSheetVM.js";
 import { DocCreatePayloadSchema, DocUpdatePayloadSchema, DocDeletePayloadSchema } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
@@ -212,6 +223,99 @@ function alchemistDedicationFeatDoc(): Record<string, unknown> {
   };
 }
 
+/**
+ * Basic Concoction (W1-D) — real fixture from systems/pf2e/packs/feats-core/
+ * documents.json: "You gain a 1st- or 2nd-level alchemist feat." Category
+ * "class", trait "archetype" (NOT "alchemist" — the GRANTING feat's own
+ * traits are unrelated to the traits of what it grants), level 4. Its
+ * `rules[]` carries the vendor's `grant-item` pointed at an unresolved
+ * ChoiceSet placeholder (`{item|flags.system.rulesSelections.basicConcoction}`)
+ * — confirmed unconverted in `flags.fusion.unconvertedRules` (kind
+ * "ChoiceSet", filter `["item:category:class","item:trait:alchemist",
+ * {"lte":["item:level",2]}]`) — this fixture keeps that shape verbatim so the
+ * grant lookup is exercised against the exact vendor data, not an
+ * approximation.
+ */
+function basicConcoctionFeatDoc(): Record<string, unknown> {
+  return {
+    _id: "bduri70co98T1fwA",
+    name: "Basic Concoction",
+    type: "feat",
+    img: "icons/placeholder/feat.svg",
+    system: {
+      actionType: "passive",
+      actions: null,
+      category: "class",
+      description: "<p>You gain a 1st- or 2nd-level alchemist feat.</p>",
+      level: 4,
+      prerequisites: [{ value: "Alchemist Dedication" }],
+      rules: [
+        {
+          kind: "grant-item",
+          slug: null,
+          label: null,
+          uuid: "{item|flags.system.rulesSelections.basicConcoction}",
+          inMemoryOnly: false,
+          predicate: null,
+          alterations: [],
+          priority: null,
+        },
+      ],
+      traits: { rarity: "common", value: ["archetype"] },
+    },
+    flags: {
+      fusion: {
+        conversion: "partial",
+        unconvertedRules: [
+          {
+            adjustName: false,
+            choices: {
+              filter: ["item:category:class", "item:trait:alchemist", { lte: ["item:level", 2] }],
+              itemType: "feat",
+            },
+            flag: "basicConcoction",
+            key: "ChoiceSet",
+            prompt: "PF2E.SpecificRule.Prompt.LevelOneOrTwoClassFeat",
+          },
+        ],
+      },
+    },
+  };
+}
+
+/** A 1st-level alchemist class feat — satisfies Basic Concoction's grant filter (category:class, trait:alchemist, level<=2). */
+function alchemicalFamiliarFeatDoc(): Record<string, unknown> {
+  return {
+    _id: "feat-alchemical-familiar",
+    name: "Alchemical Familiar",
+    type: "feat",
+    system: {
+      category: "class",
+      level: 1,
+      traits: { rarity: "common", value: ["alchemist"] },
+    },
+  };
+}
+
+/** A general feat — does NOT satisfy Basic Concoction's grant filter (wrong category, no alchemist trait). Used to assert the filter rejects it. */
+function ineligibleGeneralFeatDoc(): Record<string, unknown> {
+  return {
+    _id: "feat-ineligible-general",
+    name: "Fleet",
+    type: "feat",
+    system: {
+      category: "general",
+      level: 1,
+      traits: { rarity: "common", value: [] },
+    },
+  };
+}
+
+/** Narrow a compendium fixture doc's `system` block down to the minimal FeatDocLike shape `matchesGrantedFeatFilter`/`isFeatEligible` consume — cast is safe, every fixture in this file fully populates category/level/traits. */
+function asFeatDocLike(doc: Record<string, unknown>): FeatDocLike {
+  return { system: doc["system"] as { category: string; level: number; traits: { value: string[] } } };
+}
+
 function starlitSpanHybridStudyDoc(): Record<string, unknown> {
   return {
     _id: "RD63JAZ4zd2UvGQ4",
@@ -321,6 +425,38 @@ function tobiasLevel3Doc(): Record<string, unknown> {
   };
 }
 
+/**
+ * Tobias level 3 with a COMPLETE ability-boost ledger (R11 fixture — every
+ * origin filled in, per the task prompt's rule facts):
+ *   - ancestry: dex/int fixed boosts, str flaw, cha free (Ratfolk: 1 free).
+ *   - background: int/dex free (Fireworks Performer: 2 free — modeled here
+ *     via `backgroundFree`, NOT `backgroundBoosts`, per R11 item 1's schema
+ *     fix).
+ *   - class: str boost (key ability choice for this fixture; distinct from
+ *     the ACTUAL Magus doc's dex/str choice — synthetic on purpose so the
+ *     math lands on the plan's target scores, same disclaimer as
+ *     derivations-build.test.ts).
+ *   - levelled N1: int/dex/con/cha (the 4 free level-1 boosts every PF2e
+ *     Remaster character gets, independent of ancestry/background/class).
+ *
+ * Expected resulting scores (verified by hand + computeAbilityScores):
+ *   str 10, dex 16, con 12, int 16, wis 10, cha 14.
+ */
+function tobiasLevel3DocComplete(): Record<string, unknown> {
+  const base = tobiasLevel3Doc();
+  const sys = base["system"] as Record<string, unknown> & { build: Record<string, unknown> };
+  sys.build["abilities"] = {
+    ancestryBoosts: ["dex", "int"],
+    ancestryFlaws: ["str"],
+    ancestryFree: ["cha"],
+    backgroundBoosts: [],
+    backgroundFree: ["int", "dex"],
+    classBoost: ["str"],
+    levelledBoosts: { "1": ["int", "dex", "con", "cha"] },
+  };
+  return base;
+}
+
 function ctx(doc: Record<string, unknown>, editable = true): PlanOpBuilderContext {
   return { actorId: "actor-tobias", doc, editable };
 }
@@ -374,11 +510,16 @@ describe("derivePlan — Tobias level 3 (Magus, real fixture)", () => {
     expect(classCard.subLine).toBe("Hybrid Study: Starlit Span");
   });
 
-  it("level 1 has abilityBoosts (filled via choice) + ancestryFeat (filled via item) + hybridStudy (filled) + 2 skillTraining slots (filled)", () => {
+  it("level 1: abilityBoosts UNFILLED (orphan choices marker, no backing ledger data — R11 production bug repro) + ancestryFeat (filled via item) + hybridStudy (filled) + skillTraining group (2/4 filled, R11 item 3 collapsed slot)", () => {
     const l1 = plan.levels.find((l) => l.level === 1)!;
     const byType = Object.fromEntries(l1.slots.map((s) => [s.slotId, s]));
 
-    expect(byType["abilityBoosts-1"]!.filled).toBe(true);
+    // The fixture's `choices` array has an `abilityBoosts-1` marker entry,
+    // but `abilities.backgroundFree`/`levelledBoosts["1"]` are empty — the
+    // EXACT shape of Tobias's real production doc (see R11 task prompt's
+    // DIAGNÓSTICO REAL). The slot must report unfilled: filled state is
+    // derived from the ledger, never from the marker alone.
+    expect(byType["abilityBoosts-1"]!.filled).toBe(false);
     expect(byType["abilityBoosts-1"]!.type).toBe("abilityBoosts");
 
     expect(byType["ancestryFeat-1"]!.filled).toBe(true);
@@ -388,10 +529,22 @@ describe("derivePlan — Tobias level 3 (Magus, real fixture)", () => {
     expect(byType["hybridStudy-1"]!.filled).toBe(true);
     expect(byType["hybridStudy-1"]!.choiceName).toBe("Starlit Span");
 
-    expect(byType["skillTraining-1-0"]!.filled).toBe(true);
-    expect(byType["skillTraining-1-0"]!.choiceName).toBe("stealth (rank 1)");
-    expect(byType["skillTraining-1-1"]!.filled).toBe(true);
-    expect(byType["skillTraining-1-1"]!.choiceName).toBe("thievery (rank 1)");
+    // R11 item 3: every skillTraining-1-* slot collapses into ONE group slot
+    // (keyed by the first member's slotId). This fixture's Int mod is +2
+    // (classBoost+ancestryBoosts include int) -> additional(2) + 2 = 4 total
+    // slots, 2 already filled via choices -> partially filled group (2/4).
+    const skillGroup = byType["skillTraining-1-0"]!;
+    expect(skillGroup.filled).toBe(false);
+    expect(skillGroup.filledCount).toBe(2);
+    expect(skillGroup.totalCount).toBe(4);
+    expect(skillGroup.choiceName).toBe("2/4");
+    expect(skillGroup.groupSlotIds).toEqual([
+      "skillTraining-1-0",
+      "skillTraining-1-1",
+      "skillTraining-1-2",
+      "skillTraining-1-3",
+    ]);
+    expect(byType["skillTraining-1-1"]).toBeUndefined();
   });
 
   it("level 1 auto-features exclude the 'Hybrid Study' placeholder but include the rest", () => {
@@ -419,7 +572,7 @@ describe("derivePlan — Tobias level 3 (Magus, real fixture)", () => {
     expect(byType["archetypeFeat-2"]!.optional).toBe(true);
   });
 
-  it("level 3 has generalFeat (filled) and skillIncrease (filled via choice)", () => {
+  it("level 3 has generalFeat (filled) and skillIncrease group (1/1 filled, R11 item 3 collapsed slot)", () => {
     const l3 = plan.levels.find((l) => l.level === 3)!;
     const byType = Object.fromEntries(l3.slots.map((s) => [s.slotId, s]));
 
@@ -427,7 +580,8 @@ describe("derivePlan — Tobias level 3 (Magus, real fixture)", () => {
     expect(byType["generalFeat-3"]!.choiceName).toBe("Adopted Ancestry");
 
     expect(byType["skillIncrease-3"]!.filled).toBe(true);
-    expect(byType["skillIncrease-3"]!.choiceName).toBe("stealth (rank 2)");
+    expect(byType["skillIncrease-3"]!.choiceName).toBe("1/1");
+    expect(byType["skillIncrease-3"]!.groupSlotIds).toEqual(["skillIncrease-3"]);
   });
 
   it("no archetypeFeat slot appears on odd levels even with freeArchetype on", () => {
@@ -721,17 +875,23 @@ describe("applyBackground", () => {
     );
   });
 
-  it("creates the background item and appends its skill(s) as level-1 skillTraining build choices", () => {
+  it("creates the background item, resets backgroundFree (fresh apply), and appends its skill(s) as level-1 skillTraining build choices", () => {
     const ops = applyBackground(ctx(baseCharacterDoc()), fireworksPerformerBackgroundDoc());
     const createOp = ops[0]!;
     if (createOp.type !== "doc:create") throw new Error("expected doc:create");
     const wire = { documentType: createOp.documentType, data: [createOp.data], parent: createOp.parent };
     expect(DocCreatePayloadSchema.safeParse(wire).success).toBe(true);
 
-    // Fireworks Performer's boosts are ["free","free"] (no fixed boosts), so
-    // no backgroundBoosts update op should be emitted — only the skill op.
-    expect(ops).toHaveLength(2);
-    const skillOp = ops[1]!;
+    // Fireworks Performer's boosts are ["free","free"] (no fixed boosts) —
+    // the abilities op still fires (to reset/seed backgroundFree), plus the
+    // skill op: 3 ops total.
+    expect(ops).toHaveLength(3);
+    const abilitiesOp = ops[1]!;
+    if (abilitiesOp.type !== "doc:update") throw new Error("expected doc:update");
+    expect(abilitiesOp.diff["system.build.abilities.backgroundBoosts"]).toEqual([]);
+    expect(abilitiesOp.diff["system.build.abilities.backgroundFree"]).toEqual([]);
+
+    const skillOp = ops[2]!;
     if (skillOp.type !== "doc:update") throw new Error("expected doc:update");
     const choices = skillOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
     expect(choices).toHaveLength(1);
@@ -762,6 +922,64 @@ describe("applyBackground", () => {
     expect(boostOp).toBeDefined();
     if (!boostOp || boostOp.type !== "doc:update") throw new Error("expected doc:update");
     expect(boostOp.diff["system.build.abilities.backgroundBoosts"]).toEqual(["wis"]);
+    // Only 1 "free" entry remains → backgroundFree count is 1.
+    expect(boostOp.diff["system.build.abilities.backgroundFree"]).toEqual([]);
+  });
+
+  it("preserves existing backgroundFree picks when re-applying a background with the SAME free count", () => {
+    const doc = baseCharacterDoc({
+      system: {
+        level: { value: 1 },
+        details: {},
+        build: {
+          abilities: {
+            ancestryBoosts: [],
+            ancestryFlaws: [],
+            ancestryFree: [],
+            backgroundBoosts: [],
+            backgroundFree: ["wis", "cha"],
+            classBoost: [],
+            levelledBoosts: {},
+          },
+          choices: [],
+          bonusHp: 0,
+          bonusHpPerLevel: 0,
+          freeArchetype: false,
+        },
+      },
+    });
+    const ops = applyBackground(ctx(doc), fireworksPerformerBackgroundDoc()); // grants exactly 2 free boosts
+    const abilitiesOp = ops[1]!;
+    if (abilitiesOp.type !== "doc:update") throw new Error("expected doc:update");
+    expect(abilitiesOp.diff["system.build.abilities.backgroundFree"]).toEqual(["wis", "cha"]);
+  });
+
+  it("resets backgroundFree picks when the new background's free count differs", () => {
+    const doc = baseCharacterDoc({
+      system: {
+        level: { value: 1 },
+        details: {},
+        build: {
+          abilities: {
+            ancestryBoosts: [],
+            ancestryFlaws: [],
+            ancestryFree: [],
+            backgroundBoosts: [],
+            backgroundFree: ["wis"], // 1 pick from a previous background
+            classBoost: [],
+            levelledBoosts: {},
+          },
+          choices: [],
+          bonusHp: 0,
+          bonusHpPerLevel: 0,
+          freeArchetype: false,
+        },
+      },
+    });
+    const ops = applyBackground(ctx(doc), fireworksPerformerBackgroundDoc()); // grants 2 free boosts
+    const abilitiesOp = ops[1]!;
+    if (abilitiesOp.type !== "doc:update") throw new Error("expected doc:update");
+    expect(abilitiesOp.diff["system.build.abilities.backgroundFree"]).toEqual([]);
   });
 
   it("appends new skill choices onto existing choices (does not clobber)", () => {
@@ -786,7 +1004,7 @@ describe("applyBackground", () => {
       },
     });
     const ops = applyBackground(ctx(doc), fireworksPerformerBackgroundDoc());
-    const skillOp = ops[1]!;
+    const skillOp = ops[2]!;
     if (skillOp.type !== "doc:update") throw new Error("expected doc:update");
     const choices = skillOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
     expect(choices).toHaveLength(2);
@@ -1010,23 +1228,36 @@ describe("markAbilityBoostsChoice", () => {
 });
 
 describe("abilityBoostsSlotContext", () => {
-  it("level 1: fixed = ancestryBoosts+classBoost, freeCount 1, origin ancestryFree", () => {
+  it("level 1: fixed = ancestryBoosts+backgroundBoosts+classBoost; 3 groups (ancestryFree/backgroundFree/levelled)", () => {
     const result = abilityBoostsSlotContext(tobiasLevel3Doc(), 1);
-    expect(result.fixedSlugs).toEqual(["dex", "int", "int"]); // ancestryBoosts + classBoost
-    expect(result.freeCount).toBe(1);
-    expect(result.initialFreeSlugs).toEqual(["cha"]);
-    expect(result.origin).toBe("ancestryFree");
+    expect(result.fixedSlugs).toEqual(["dex", "int", "int"]); // ancestryBoosts + backgroundBoosts([]) + classBoost
+    expect(result.groups).toHaveLength(3);
+
+    const ancestryGroup = result.groups.find((g) => g.origin === "ancestryFree")!;
+    // Ratfolk (tobiasLevel3Doc's ancestry item) grants exactly 1 free boost.
+    expect(ancestryGroup.freeCount).toBe(1);
+    expect(ancestryGroup.initialFreeSlugs).toEqual(["cha"]);
+
+    const backgroundGroup = result.groups.find((g) => g.origin === "backgroundFree")!;
+    // Fireworks Performer grants 2 free boosts; fixture has none picked yet.
+    expect(backgroundGroup.freeCount).toBe(2);
+    expect(backgroundGroup.initialFreeSlugs).toEqual([]);
+
+    const levelledGroup = result.groups.find((g) => g.origin === "levelled")!;
+    expect(levelledGroup.freeCount).toBe(4);
+    expect(levelledGroup.initialFreeSlugs).toEqual([]);
   });
 
-  it("a levelled milestone: no fixed slugs, freeCount 4, origin levelled", () => {
+  it("a levelled milestone: no fixed slugs, a single 'levelled' group with freeCount 4", () => {
     const result = abilityBoostsSlotContext(tobiasLevel3Doc(), 5);
     expect(result.fixedSlugs).toEqual([]);
-    expect(result.freeCount).toBe(4);
-    expect(result.initialFreeSlugs).toEqual([]);
-    expect(result.origin).toBe("levelled");
+    expect(result.groups).toHaveLength(1);
+    expect(result.groups[0]!.origin).toBe("levelled");
+    expect(result.groups[0]!.freeCount).toBe(4);
+    expect(result.groups[0]!.initialFreeSlugs).toEqual([]);
   });
 
-  it("pre-seeds initialFreeSlugs from an existing levelledBoosts entry", () => {
+  it("pre-seeds the levelled group's initialFreeSlugs from an existing levelledBoosts entry", () => {
     const doc = baseCharacterDoc({
       system: {
         level: { value: 5 },
@@ -1048,7 +1279,117 @@ describe("abilityBoostsSlotContext", () => {
       },
     });
     const result = abilityBoostsSlotContext(doc, 5);
-    expect(result.initialFreeSlugs).toEqual(["str", "dex", "con", "wis"]);
+    expect(result.groups[0]!.initialFreeSlugs).toEqual(["str", "dex", "con", "wis"]);
+  });
+
+  it("level 1 without an ancestry/background yet: ancestryFree/backgroundFree groups report freeCount 0", () => {
+    const result = abilityBoostsSlotContext(baseCharacterDoc(), 1);
+    const ancestryGroup = result.groups.find((g) => g.origin === "ancestryFree")!;
+    const backgroundGroup = result.groups.find((g) => g.origin === "backgroundFree")!;
+    expect(ancestryGroup.freeCount).toBe(0);
+    expect(backgroundGroup.freeCount).toBe(0);
+    const levelledGroup = result.groups.find((g) => g.origin === "levelled")!;
+    expect(levelledGroup.freeCount).toBe(4);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// previewAbilityScores (R11 item 2 — AbilityBoostsDialog live preview)
+// ---------------------------------------------------------------------------
+
+describe("previewAbilityScores", () => {
+  it("overlays the dialog's in-progress picks onto the ledger and returns the resulting scores, matching computeAbilityScores' own math", () => {
+    const doc = tobiasLevel3Doc(); // ancestryBoosts dex/int, ancestryFlaws str, classBoost int, no free picks yet
+    const slotCtx = abilityBoostsSlotContext(doc, 1);
+    const picks = slotCtx.groups.map((g) => {
+      if (g.origin === "ancestryFree") return ["cha"];
+      if (g.origin === "backgroundFree") return ["wis", "con"];
+      return ["int", "dex", "con", "cha"]; // levelled
+    });
+    const scores = previewAbilityScores(doc, 1, slotCtx.groups, picks);
+
+    const abilities: Parameters<typeof computeAbilityScores>[0] = {
+      ancestryBoosts: ["dex", "int"],
+      ancestryFlaws: ["str"],
+      ancestryFree: ["cha"],
+      backgroundBoosts: [],
+      backgroundFree: ["wis", "con"],
+      classBoost: ["int"],
+      levelledBoosts: { "1": ["int", "dex", "con", "cha"] },
+    };
+    expect(scores).toEqual(computeAbilityScores(abilities, 3));
+  });
+
+  it("reacts to picks changing (empty picks -> only fixed boosts apply)", () => {
+    const doc = tobiasLevel3Doc();
+    const slotCtx = abilityBoostsSlotContext(doc, 1);
+    const emptyPicks = slotCtx.groups.map(() => []);
+    const scores = previewAbilityScores(doc, 1, slotCtx.groups, emptyPicks);
+    // ancestryBoosts dex/int (+2 each), ancestryFlaws str (-2), classBoost int (+2, stacking to +4 total on int).
+    expect(scores.dex).toBe(12);
+    expect(scores.int).toBe(14);
+    expect(scores.str).toBe(8);
+    expect(scores.cha).toBe(10); // no free picks selected yet
+  });
+
+  it("a levelled milestone (non-1) writes into levelledBoosts[level], not ancestryFree/backgroundFree", () => {
+    const doc = tobiasLevel3Doc();
+    const sys = doc["system"] as Record<string, unknown> & { level: { value: number } };
+    sys.level = { value: 5 };
+    const slotCtx = abilityBoostsSlotContext(doc, 5);
+    const scores = previewAbilityScores(doc, 5, slotCtx.groups, [["str", "str", "str", "str"]]);
+    // str: base 8 (10 -2 ancestryFlaw) -> +2 (below 18) four times from the levelled picks = 8+2+2+2+2=16.
+    expect(scores.str).toBe(16);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// isAbilityBoostsSlotFilled
+// ---------------------------------------------------------------------------
+
+describe("isAbilityBoostsSlotFilled", () => {
+  it("reports false when a group with freeCount > 0 has fewer picks than freeCount", () => {
+    const slotCtx = abilityBoostsSlotContext(tobiasLevel3Doc(), 1);
+    // Fixture has ancestryFree filled (1/1) but backgroundFree empty (0/2)
+    // and levelledBoosts["1"] empty (0/4) — overall unfilled.
+    expect(isAbilityBoostsSlotFilled(slotCtx)).toBe(false);
+  });
+
+  it("reports true when every non-zero group has exactly freeCount picks", () => {
+    const doc = tobiasLevel3Doc();
+    (doc["system"] as Record<string, unknown> & { build: Record<string, unknown> }).build[
+      "abilities"
+    ] = {
+      ancestryBoosts: ["dex", "int"],
+      ancestryFlaws: ["str"],
+      ancestryFree: ["cha"],
+      backgroundBoosts: [],
+      backgroundFree: ["int", "dex"],
+      classBoost: ["int"],
+      levelledBoosts: { "1": ["int", "dex", "con", "cha"] },
+    };
+    const slotCtx = abilityBoostsSlotContext(doc, 1);
+    expect(isAbilityBoostsSlotFilled(slotCtx)).toBe(true);
+  });
+
+  it("a levelled milestone with no picks reports false; with 4 picks reports true", () => {
+    const empty = abilityBoostsSlotContext(tobiasLevel3Doc(), 5);
+    expect(isAbilityBoostsSlotFilled(empty)).toBe(false);
+
+    const doc = tobiasLevel3Doc();
+    (doc["system"] as Record<string, unknown> & { build: Record<string, unknown> }).build[
+      "abilities"
+    ] = {
+      ancestryBoosts: ["dex", "int"],
+      ancestryFlaws: ["str"],
+      ancestryFree: ["cha"],
+      backgroundBoosts: [],
+      backgroundFree: [],
+      classBoost: ["int"],
+      levelledBoosts: { "5": ["str", "wis", "cha", "con"] },
+    };
+    const filled = abilityBoostsSlotContext(doc, 5);
+    expect(isAbilityBoostsSlotFilled(filled)).toBe(true);
   });
 });
 
@@ -1346,80 +1687,80 @@ describe("levelSet", () => {
 });
 
 // ---------------------------------------------------------------------------
-// featElegivel
+// isFeatEligible
 // ---------------------------------------------------------------------------
 
-describe("featElegivel", () => {
+describe("isFeatEligible", () => {
   const opts = { classSlug: "magus", ancestrySlug: "ratfolk" };
 
   it("classFeat: accepts a feat tagged with the character's class trait", () => {
-    expect(featElegivel(arcaneFistsFeatDoc(), "classFeat", 2, opts)).toBe(true);
+    expect(isFeatEligible(arcaneFistsFeatDoc(), "classFeat", 2, opts)).toBe(true);
   });
 
   it("classFeat: accepts a SHARED class feat (category class, no class-specific trait)", () => {
     const shared = { system: { category: "class", level: 1, traits: { value: [] } } };
-    expect(featElegivel(shared, "classFeat", 1, opts)).toBe(true);
+    expect(isFeatEligible(shared, "classFeat", 1, opts)).toBe(true);
   });
 
   it("classFeat: rejects a feat tagged for a DIFFERENT known class", () => {
     const wizardFeat = { system: { category: "class", level: 1, traits: { value: ["wizard"] } } };
-    expect(featElegivel(wizardFeat, "classFeat", 5, opts)).toBe(false);
+    expect(isFeatEligible(wizardFeat, "classFeat", 5, opts)).toBe(false);
   });
 
   it("classFeat: rejects archetype-trait feats (they belong in the archetypeFeat slot)", () => {
-    expect(featElegivel(alchemistDedicationFeatDoc(), "classFeat", 5, opts)).toBe(false);
+    expect(isFeatEligible(alchemistDedicationFeatDoc(), "classFeat", 5, opts)).toBe(false);
   });
 
   it("classFeat: rejects a feat above the character's level", () => {
     const highLevelFeat = { system: { category: "class", level: 10, traits: { value: ["magus"] } } };
-    expect(featElegivel(highLevelFeat, "classFeat", 2, opts)).toBe(false);
+    expect(isFeatEligible(highLevelFeat, "classFeat", 2, opts)).toBe(false);
   });
 
   it("archetypeFeat: accepts category class + trait archetype (dedications)", () => {
-    expect(featElegivel(alchemistDedicationFeatDoc(), "archetypeFeat", 2, opts)).toBe(true);
+    expect(isFeatEligible(alchemistDedicationFeatDoc(), "archetypeFeat", 2, opts)).toBe(true);
   });
 
   it("archetypeFeat: rejects a regular class feat without the archetype trait", () => {
-    expect(featElegivel(arcaneFistsFeatDoc(), "archetypeFeat", 2, opts)).toBe(false);
+    expect(isFeatEligible(arcaneFistsFeatDoc(), "archetypeFeat", 2, opts)).toBe(false);
   });
 
   it("ancestryFeat: accepts a feat tagged with the character's ancestry", () => {
-    expect(featElegivel(cheekPouchesAncestryFeatDoc(), "ancestryFeat", 1, opts)).toBe(true);
+    expect(isFeatEligible(cheekPouchesAncestryFeatDoc(), "ancestryFeat", 1, opts)).toBe(true);
   });
 
   it("ancestryFeat: rejects a feat for a different ancestry", () => {
     const elfFeat = { system: { category: "ancestry", level: 1, traits: { value: ["elf"] } } };
-    expect(featElegivel(elfFeat, "ancestryFeat", 1, opts)).toBe(false);
+    expect(isFeatEligible(elfFeat, "ancestryFeat", 1, opts)).toBe(false);
   });
 
   it("ancestryFeat: rejects a non-ancestry-category feat", () => {
-    expect(featElegivel(arcaneFistsFeatDoc(), "ancestryFeat", 1, opts)).toBe(false);
+    expect(isFeatEligible(arcaneFistsFeatDoc(), "ancestryFeat", 1, opts)).toBe(false);
   });
 
   it("generalFeat: accepts category general regardless of traits", () => {
-    expect(featElegivel(adoptedAncestryGeneralFeatDoc(), "generalFeat", 1, opts)).toBe(true);
+    expect(isFeatEligible(adoptedAncestryGeneralFeatDoc(), "generalFeat", 1, opts)).toBe(true);
   });
 
   it("generalFeat: rejects non-general category", () => {
-    expect(featElegivel(arcaneFistsFeatDoc(), "generalFeat", 2, opts)).toBe(false);
+    expect(isFeatEligible(arcaneFistsFeatDoc(), "generalFeat", 2, opts)).toBe(false);
   });
 
   it("skillFeat: accepts category skill", () => {
-    expect(featElegivel(speedrunStratsSkillFeatDoc(), "skillFeat", 1, opts)).toBe(true);
+    expect(isFeatEligible(speedrunStratsSkillFeatDoc(), "skillFeat", 1, opts)).toBe(true);
   });
 
   it("skillFeat: rejects non-skill category", () => {
-    expect(featElegivel(arcaneFistsFeatDoc(), "skillFeat", 2, opts)).toBe(false);
+    expect(isFeatEligible(arcaneFistsFeatDoc(), "skillFeat", 2, opts)).toBe(false);
   });
 
   it("works without classSlug/ancestrySlug opts (never throws, defaults permissive for shared feats)", () => {
     const shared = { system: { category: "class", level: 1, traits: { value: [] } } };
-    expect(featElegivel(shared, "classFeat", 1)).toBe(true);
+    expect(isFeatEligible(shared, "classFeat", 1)).toBe(true);
   });
 
   it("defaults category to 'general' and level to 1 when the feat doc is minimal", () => {
-    expect(featElegivel({}, "generalFeat", 1)).toBe(true);
-    expect(featElegivel({}, "classFeat", 1)).toBe(false);
+    expect(isFeatEligible({}, "generalFeat", 1)).toBe(true);
+    expect(isFeatEligible({}, "classFeat", 1)).toBe(false);
   });
 });
 
@@ -1442,5 +1783,573 @@ describe("isHybridStudyOption", () => {
 
   it("returns false for a non-hybrid-study classFeature (e.g. Arcane Cascade)", () => {
     expect(isHybridStudyOption({ system: { traits: { otherTags: [] } } })).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// computeAbilityScores (R11 item 1 — full level-1 dádivas model)
+// ---------------------------------------------------------------------------
+
+describe("computeAbilityScores", () => {
+  it("Tobias COMPLETE ledger: str 10, dex 16, con 12, int 16, wis 10, cha 14", () => {
+    const doc = tobiasLevel3DocComplete();
+    const sysBuild = (doc["system"] as Record<string, unknown> & { build: Record<string, unknown> })
+      .build["abilities"] as Parameters<typeof computeAbilityScores>[0];
+    const scores = computeAbilityScores(sysBuild, 3);
+    expect(scores).toEqual({ str: 10, dex: 16, con: 12, int: 16, wis: 10, cha: 14 });
+  });
+
+  it("empty ledger stays at base 10 for every ability", () => {
+    const scores = computeAbilityScores(
+      {
+        ancestryBoosts: [],
+        ancestryFlaws: [],
+        ancestryFree: [],
+        backgroundBoosts: [],
+        backgroundFree: [],
+        classBoost: [],
+        levelledBoosts: {},
+      },
+      1,
+    );
+    expect(scores).toEqual({ str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 });
+  });
+
+  it("levelledBoosts entries ABOVE the current level are not applied yet", () => {
+    const scores = computeAbilityScores(
+      {
+        ancestryBoosts: [],
+        ancestryFlaws: [],
+        ancestryFree: [],
+        backgroundBoosts: [],
+        backgroundFree: [],
+        classBoost: [],
+        levelledBoosts: { "5": ["str", "str", "str", "str"] },
+      },
+      3, // character is only level 3 — the level-5 milestone hasn't happened
+    );
+    expect(scores.str).toBe(10);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// derivePlan — level-1 skillTraining slot count reacts to Int (R11 item 3,
+// audit r10 final issue #4)
+// ---------------------------------------------------------------------------
+
+describe("derivePlan — level-1 skillTraining slot count = trainedSkills.additional + max(0, Int mod)", () => {
+  it("Tobias COMPLETE ledger (Int 16 -> mod +3, Magus additional=2): skillTraining group totalCount=5 (R11 item 3 collapsed slot)", () => {
+    const plan = derivePlan(tobiasLevel3DocComplete());
+    const l1 = plan.levels.find((l) => l.level === 1)!;
+    const skillGroup = l1.slots.find((s) => s.type === "skillTraining")!;
+    expect(skillGroup.totalCount).toBe(5); // additional(2) + Int mod(+3)
+    expect(skillGroup.groupSlotIds).toEqual([
+      "skillTraining-1-0",
+      "skillTraining-1-1",
+      "skillTraining-1-2",
+      "skillTraining-1-3",
+      "skillTraining-1-4",
+    ]);
+  });
+
+  it("negative Int mod never reduces below trainedSkills.additional (floored at 0)", () => {
+    const doc = tobiasLevel3DocComplete();
+    const sys = doc["system"] as Record<string, unknown> & { build: Record<string, unknown> };
+    // Force a very low Int: no int boosts of any kind, one flaw.
+    sys.build["abilities"] = {
+      ancestryBoosts: ["dex", "str"],
+      ancestryFlaws: ["int"],
+      ancestryFree: ["cha"],
+      backgroundBoosts: [],
+      backgroundFree: ["wis", "con"],
+      classBoost: ["str"],
+      levelledBoosts: { "1": ["str", "dex", "con", "wis"] },
+    };
+    const plan = derivePlan(doc);
+    const l1 = plan.levels.find((l) => l.level === 1)!;
+    const skillGroup = l1.slots.find((s) => s.type === "skillTraining")!;
+    // Int lands at 8 (10 - 2 flaw) -> mod -1 -> floored to 0 extra.
+    // Magus trainedSkills.additional = 2 -> exactly 2 slots, not fewer.
+    expect(skillGroup.totalCount).toBe(2);
+  });
+
+  it("reacts reactively: recomputes from the CURRENT ledger every derivePlan call (no stale count)", () => {
+    const doc = baseCharacterDoc({
+      items: [{ ...magusClassDoc(), _id: "item-class" }],
+      system: {
+        level: { value: 1 },
+        details: {},
+        build: {
+          abilities: {
+            ancestryBoosts: [],
+            ancestryFlaws: [],
+            ancestryFree: [],
+            backgroundBoosts: [],
+            backgroundFree: [],
+            classBoost: [],
+            levelledBoosts: {},
+          },
+          choices: [],
+          bonusHp: 0,
+          bonusHpPerLevel: 0,
+          freeArchetype: false,
+        },
+      },
+    });
+    const before = derivePlan(doc);
+    const l1Before = before.levels.find((l) => l.level === 1)!;
+    // Empty ledger -> Int stays at base 10 -> mod 0 -> just additional(2).
+    expect(l1Before.slots.find((s) => s.type === "skillTraining")!.totalCount).toBe(2);
+
+    // Simulate the player completing the level-1 boosts (Int now boosted to 16).
+    const sys = doc["system"] as Record<string, unknown> & { build: Record<string, unknown> };
+    sys.build["abilities"] = {
+      ancestryBoosts: ["dex", "int"],
+      ancestryFlaws: ["str"],
+      ancestryFree: ["cha"],
+      backgroundBoosts: [],
+      backgroundFree: ["int", "dex"],
+      classBoost: ["str"],
+      levelledBoosts: { "1": ["int", "dex", "con", "cha"] },
+    };
+    const after = derivePlan(doc);
+    const l1After = after.levels.find((l) => l.level === 1)!;
+    expect(l1After.slots.find((s) => s.type === "skillTraining")!.totalCount).toBe(5); // additional(2) + Int mod(+3)
+  });
+});
+
+// ---------------------------------------------------------------------------
+// abilityBoosts-1 slot: ledger -> filled derivation end-to-end (R11 item 2)
+// ---------------------------------------------------------------------------
+
+describe("derivePlan — abilityBoosts-1 slot filled state is derived from the ledger, not the choices marker", () => {
+  it("orphan marker (Tobias's real production doc shape) reports UNFILLED", () => {
+    const plan = derivePlan(tobiasLevel3Doc());
+    const l1 = plan.levels.find((l) => l.level === 1)!;
+    const slot = l1.slots.find((s) => s.slotId === "abilityBoosts-1")!;
+    expect(slot.filled).toBe(false);
+  });
+
+  it("completing the ledger (no marker needed) reports FILLED", () => {
+    const doc = tobiasLevel3Doc();
+    const sys = doc["system"] as Record<string, unknown> & { build: Record<string, unknown> };
+    // Strip the orphan marker entirely — filled state must come from the
+    // ledger alone.
+    sys.build["choices"] = (sys.build["choices"] as Array<Record<string, unknown>>).filter(
+      (c) => c["slot"] !== "abilityBoosts-1",
+    );
+    sys.build["abilities"] = {
+      ancestryBoosts: ["dex", "int"],
+      ancestryFlaws: ["str"],
+      ancestryFree: ["cha"],
+      backgroundBoosts: [],
+      backgroundFree: ["int", "dex"],
+      classBoost: ["str"],
+      levelledBoosts: { "1": ["int", "dex", "con", "cha"] },
+    };
+    const plan = derivePlan(doc);
+    const l1 = plan.levels.find((l) => l.level === 1)!;
+    const slot = l1.slots.find((s) => s.slotId === "abilityBoosts-1")!;
+    expect(slot.filled).toBe(true);
+  });
+
+  it("a partially-completed ledger (missing backgroundFree picks) still reports UNFILLED", () => {
+    const doc = tobiasLevel3Doc();
+    const sys = doc["system"] as Record<string, unknown> & { build: Record<string, unknown> };
+    sys.build["abilities"] = {
+      ancestryBoosts: ["dex", "int"],
+      ancestryFlaws: ["str"],
+      ancestryFree: ["cha"],
+      backgroundBoosts: [],
+      backgroundFree: [], // Fireworks Performer needs 2 — missing
+      classBoost: ["str"],
+      levelledBoosts: { "1": ["int", "dex", "con", "cha"] },
+    };
+    const plan = derivePlan(doc);
+    const l1 = plan.levels.find((l) => l.level === 1)!;
+    const slot = l1.slots.find((s) => s.slotId === "abilityBoosts-1")!;
+    expect(slot.filled).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// skillProficiencyBonus
+// ---------------------------------------------------------------------------
+
+describe("skillProficiencyBonus", () => {
+  it("untrained (rank 0) is always +0, level not added", () => {
+    expect(skillProficiencyBonus(0, 1)).toBe(0);
+    expect(skillProficiencyBonus(0, 20)).toBe(0);
+  });
+
+  it("trained..legendary = rank*2 + level", () => {
+    expect(skillProficiencyBonus(1, 3)).toBe(5); // trained
+    expect(skillProficiencyBonus(2, 3)).toBe(7); // expert
+    expect(skillProficiencyBonus(3, 10)).toBe(16); // master
+    expect(skillProficiencyBonus(4, 20)).toBe(28); // legendary
+  });
+});
+
+// ---------------------------------------------------------------------------
+// skillTrainingDialogContext / confirmSkillTraining (R11 item 1 — mass
+// skill-training picker replacing the one-at-a-time mini-dialog)
+// ---------------------------------------------------------------------------
+
+describe("skillTrainingDialogContext", () => {
+  it("skillTraining kind: reports totalSlots/emptySlotIds from the level's collapsed group and marks only UNTRAINED skills eligible", () => {
+    const dctx = skillTrainingDialogContext(tobiasLevel3DocComplete(), 1, "skillTraining");
+    // Tobias complete: additional(2) + Int mod(+3) = 5 total; 2 already
+    // filled via choices (stealth, thievery) -> 3 still empty.
+    expect(dctx.totalSlots).toBe(5);
+    expect(dctx.emptySlotIds).toEqual(["skillTraining-1-2", "skillTraining-1-3", "skillTraining-1-4"]);
+
+    // Tobias is level 3, so effectiveSkillRank folds in BOTH the level-1
+    // skillTraining choice (stealth -> 1) and the level-3 skillIncrease
+    // choice (stealth -> 2) — current rank is the character's rank RIGHT
+    // NOW, not frozen at the level being edited.
+    const stealthRow = dctx.rows.find((r) => r.slug === "stealth")!;
+    expect(stealthRow.currentRank).toBe(2);
+    expect(stealthRow.eligible).toBe(false); // skillTraining slots don't offer already-trained skills
+
+    // "arcana" is the Magus fixture's trainedSkills.value entry -> already
+    // rank 1 from the class itself, so it's NOT offered for skillTraining;
+    // "athletics" has no floor at all and stays untrained/eligible.
+    const arcanaRow = dctx.rows.find((r) => r.slug === "arcana")!;
+    expect(arcanaRow.currentRank).toBe(1);
+    expect(arcanaRow.eligible).toBe(false);
+
+    const athleticsRow = dctx.rows.find((r) => r.slug === "athletics")!;
+    expect(athleticsRow.currentRank).toBe(0);
+    expect(athleticsRow.eligible).toBe(true);
+    expect(athleticsRow.targetRank).toBe(1);
+  });
+
+  it("every one of the 16 canonical skills is present as a row, plus lore skills found on the doc", () => {
+    const doc = tobiasLevel3DocComplete();
+    const sys = doc["system"] as Record<string, unknown> & { skills?: Record<string, unknown> };
+    sys["skills"] = { "lore-nature-lore": { rank: 1, lore: true } };
+    const dctx = skillTrainingDialogContext(doc, 1, "skillTraining");
+    expect(dctx.rows.map((r) => r.slug)).toContain("lore-nature-lore");
+    expect(dctx.rows.filter((r) => !r.isLore)).toHaveLength(16);
+  });
+
+  it("skillIncrease kind: eligible rows are trained (rank 1-3), not untrained or already-legendary", () => {
+    // A fresh Magus doc (no inherited build.choices) with manual skill ranks
+    // set directly, so the eligibility boundaries are isolated from any
+    // build-choice floor.
+    const doc = baseCharacterDoc({
+      items: [{ ...magusClassDoc(), _id: "item-class" }],
+      system: {
+        level: { value: 3 },
+        details: {},
+        skills: {
+          stealth: { rank: 1 },
+          thievery: { rank: 4 }, // already legendary -> not eligible for another increase
+        },
+        build: {
+          abilities: {
+            ancestryBoosts: [],
+            ancestryFlaws: [],
+            ancestryFree: [],
+            backgroundBoosts: [],
+            backgroundFree: [],
+            classBoost: [],
+            levelledBoosts: {},
+          },
+          choices: [],
+          bonusHp: 0,
+          bonusHpPerLevel: 0,
+          freeArchetype: false,
+        },
+      },
+    });
+    const dctx = skillTrainingDialogContext(doc, 3, "skillIncrease");
+    const stealthRow = dctx.rows.find((r) => r.slug === "stealth")!;
+    expect(stealthRow.eligible).toBe(true);
+    expect(stealthRow.targetRank).toBe(2);
+
+    const thieveryRow = dctx.rows.find((r) => r.slug === "thievery")!;
+    expect(thieveryRow.eligible).toBe(false);
+
+    // "arcana" is the Magus fixture's trainedSkills.value entry -> already
+    // rank 1, NOT eligible for skillTraining, but IS trained-and-eligible
+    // for skillIncrease.
+    const arcanaRow = dctx.rows.find((r) => r.slug === "arcana")!;
+    expect(arcanaRow.eligible).toBe(true);
+
+    const athleticsRow = dctx.rows.find((r) => r.slug === "athletics")!;
+    expect(athleticsRow.eligible).toBe(false); // untrained -> can't "increase"
+  });
+
+  it("current/target modifiers reflect abilityMod + proficiencyBonus(rank, characterLevel)", () => {
+    // Tobias complete: Int mod +3, character level 3.
+    const dctx = skillTrainingDialogContext(tobiasLevel3DocComplete(), 1, "skillTraining");
+    // "athletics" (str-based, no build floor in this fixture) stays untrained.
+    const athleticsRow = dctx.rows.find((r) => r.slug === "athletics")!;
+    expect(athleticsRow.abilityMod).toBe(0); // str stays at base 10 in the complete fixture
+    expect(athleticsRow.currentMod).toBe(0); // untrained: just the ability mod
+    expect(athleticsRow.targetMod).toBe(0 + skillProficiencyBonus(1, 3)); // trained at char level 3
+    expect(athleticsRow.targetModFormatted).toBe(`+${String(athleticsRow.targetMod)}`);
+  });
+});
+
+describe("confirmSkillTraining", () => {
+  it("returns null when not editable", () => {
+    const dctx = skillTrainingDialogContext(tobiasLevel3DocComplete(), 1, "skillTraining");
+    expect(confirmSkillTraining(ctx(tobiasLevel3DocComplete(), false), dctx, ["arcana"])).toBeNull();
+  });
+
+  it("persists ALL picks in ONE doc:update carrying the whole choices array (lesson r10: never index arrays)", () => {
+    const doc = tobiasLevel3DocComplete();
+    const dctx = skillTrainingDialogContext(doc, 1, "skillTraining");
+    expect(dctx.emptySlotIds).toHaveLength(3);
+
+    const op = confirmSkillTraining(ctx(doc), dctx, ["arcana", "athletics", "medicine"]);
+    expect(op).not.toBeNull();
+    const wire = { documentType: op!.documentType, updates: [{ _id: op!.id, diff: op!.diff }] };
+    expect(DocUpdatePayloadSchema.safeParse(wire).success).toBe(true);
+
+    const choices = op!.diff["system.build.choices"] as Array<Record<string, unknown>>;
+    // Pre-existing choices (stealth/thievery/skillIncrease-3/abilityBoosts-1 marker) survive untouched.
+    expect(choices.some((c) => c["skill"] === "stealth" && c["slot"] === "skillTraining-1-0")).toBe(true);
+    expect(choices.some((c) => c["skill"] === "thievery" && c["slot"] === "skillTraining-1-1")).toBe(true);
+    // New picks land on the previously-empty slot ids, in order.
+    expect(choices).toEqual(
+      expect.arrayContaining([
+        { level: 1, slot: "skillTraining-1-2", type: "skillTraining", skill: "arcana", rank: 1 },
+        { level: 1, slot: "skillTraining-1-3", type: "skillTraining", skill: "athletics", rank: 1 },
+        { level: 1, slot: "skillTraining-1-4", type: "skillTraining", skill: "medicine", rank: 1 },
+      ]),
+    );
+  });
+
+  it("ignores picks beyond the number of empty slots (defensive)", () => {
+    const doc = tobiasLevel3DocComplete();
+    const dctx = skillTrainingDialogContext(doc, 1, "skillTraining");
+    const op = confirmSkillTraining(ctx(doc), dctx, ["arcana", "athletics", "medicine", "religion"]);
+    const choices = op!.diff["system.build.choices"] as Array<Record<string, unknown>>;
+    expect(choices.some((c) => c["skill"] === "religion")).toBe(false);
+  });
+
+  it("skillIncrease kind: recorded rank is targetRank (currentRank+1) from the row, not a hardcoded default", () => {
+    const doc = baseCharacterDoc({
+      items: [{ ...magusClassDoc(), _id: "item-class" }],
+      system: {
+        level: { value: 3 },
+        details: {},
+        skills: { athletics: { rank: 2 } },
+        build: {
+          abilities: {
+            ancestryBoosts: [],
+            ancestryFlaws: [],
+            ancestryFree: [],
+            backgroundBoosts: [],
+            backgroundFree: [],
+            classBoost: [],
+            levelledBoosts: {},
+          },
+          choices: [],
+          bonusHp: 0,
+          bonusHpPerLevel: 0,
+          freeArchetype: false,
+        },
+      },
+    });
+    const dctx = skillTrainingDialogContext(doc, 3, "skillIncrease");
+    const op = confirmSkillTraining(ctx(doc), dctx, ["athletics"]);
+    const choices = op!.diff["system.build.choices"] as Array<Record<string, unknown>>;
+    expect(choices.some((c) => c["skill"] === "athletics" && c["rank"] === 3)).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// addLoreSkill
+// ---------------------------------------------------------------------------
+
+describe("addLoreSkill", () => {
+  it("returns null when not editable", () => {
+    expect(addLoreSkill(ctx(baseCharacterDoc(), false), "Nature")).toBeNull();
+  });
+
+  it("returns null for a blank name", () => {
+    expect(addLoreSkill(ctx(baseCharacterDoc()), "   ")).toBeNull();
+  });
+
+  it("creates a slugified lore-<name> entry at rank 0, valid against DocUpdatePayloadSchema", () => {
+    const op = addLoreSkill(ctx(baseCharacterDoc()), "Nature Lore");
+    expect(op).not.toBeNull();
+    expect(op!.diff["system.skills.lore-nature-lore"]).toEqual({ rank: 0, lore: true, label: "Nature Lore" });
+    const wire = { documentType: op!.documentType, updates: [{ _id: op!.id, diff: op!.diff }] };
+    expect(DocUpdatePayloadSchema.safeParse(wire).success).toBe(true);
+  });
+
+  it("returns null when a lore with the same slug already exists", () => {
+    const doc = baseCharacterDoc({
+      system: { level: { value: 1 }, details: {}, skills: { "lore-nature-lore": { rank: 1, lore: true } } },
+    });
+    expect(addLoreSkill(ctx(doc), "Nature Lore")).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Granted feat choices (W1-D) — feats that grant a nested feat choice, e.g.
+// Basic Concoction (feats-core, level 4, category "class", trait
+// "archetype") → "You gain a 1st- or 2nd-level alchemist feat." Modeled via
+// GRANTED_FEAT_CHOICES + a `grantedFeat` sub-slot rendered nested under the
+// granting feat's own slot (see LevelCard.svelte's `--nested` styling).
+// ---------------------------------------------------------------------------
+
+/** Tobias level 3 fixture (freeArchetype on) leveled to 4, with Basic Concoction filling the level-4 archetypeFeat slot instead of a plain archetype feat. */
+function tobiasLevel4WithBasicConcoctionDoc(grantedFilled = false): Record<string, unknown> {
+  const base = tobiasLevel3Doc();
+  const sys = base["system"] as Record<string, unknown> & { level: { value: number } };
+  sys.level = { value: 4 };
+  const items = [...(base["items"] as Array<Record<string, unknown>>)];
+  items.push({
+    ...basicConcoctionFeatDoc(),
+    _id: "item-archetype-feat-4",
+    flags: { fusion: { build: { level: 4, slot: "archetypeFeat-4" } } },
+  });
+  if (grantedFilled) {
+    items.push({
+      ...alchemicalFamiliarFeatDoc(),
+      _id: "item-granted-feat",
+      flags: { fusion: { build: { level: 4, slot: "archetypeFeat-4:granted" } } },
+    });
+  }
+  return { ...base, items };
+}
+
+describe("grantedFeatChoiceFor / matchesGrantedFeatFilter", () => {
+  it("resolves Basic Concoction's grant filter by name", () => {
+    const grant = grantedFeatChoiceFor("Basic Concoction");
+    expect(grant).toBeDefined();
+    expect(grant!.labelKey).toBe("FUSION.Sheet.Plan.SlotLabel.grantedFeat.basicConcoction");
+  });
+
+  it("is case/whitespace insensitive (same nameToSlug convention as classSlug/ancestrySlug)", () => {
+    expect(grantedFeatChoiceFor("  BASIC CONCOCTION  ")).toBeDefined();
+  });
+
+  it("returns undefined for a feat with no registered grant", () => {
+    expect(grantedFeatChoiceFor("Arcane Fists")).toBeUndefined();
+    expect(grantedFeatChoiceFor(undefined)).toBeUndefined();
+  });
+
+  it("accepts a real 1st-level alchemist class feat against Basic Concoction's filter", () => {
+    const grant = grantedFeatChoiceFor("Basic Concoction")!;
+    expect(matchesGrantedFeatFilter(asFeatDocLike(alchemicalFamiliarFeatDoc()), grant)).toBe(true);
+  });
+
+  it("rejects a feat missing category/trait/level constraints", () => {
+    const grant = grantedFeatChoiceFor("Basic Concoction")!;
+    expect(matchesGrantedFeatFilter(asFeatDocLike(ineligibleGeneralFeatDoc()), grant)).toBe(false);
+  });
+
+  it("rejects a class feat of the right trait but ABOVE the level cap", () => {
+    const grant = grantedFeatChoiceFor("Basic Concoction")!;
+    const tooHigh: FeatDocLike["system"] = { category: "class", level: 3, traits: { value: ["alchemist"] } };
+    expect(matchesGrantedFeatFilter({ system: tooHigh }, grant)).toBe(false);
+  });
+});
+
+describe("derivePlan — granted feat sub-slot (Basic Concoction, real fixture)", () => {
+  it("generates an unfilled grantedFeat sub-slot right after the filled archetypeFeat-4 slot", () => {
+    const plan = derivePlan(tobiasLevel4WithBasicConcoctionDoc());
+    const l4 = plan.levels.find((l) => l.level === 4)!;
+    const parentIdx = l4.slots.findIndex((s) => s.slotId === "archetypeFeat-4");
+    const subIdx = l4.slots.findIndex((s) => s.slotId === "archetypeFeat-4:granted");
+    expect(parentIdx).toBeGreaterThanOrEqual(0);
+    expect(subIdx).toBe(parentIdx + 1);
+
+    const sub = l4.slots[subIdx]!;
+    expect(sub.type).toBe("grantedFeat");
+    expect(sub.filled).toBe(false);
+    expect(sub.parentSlotId).toBe("archetypeFeat-4");
+    expect(sub.grantFilter?.labelKey).toBe("FUSION.Sheet.Plan.SlotLabel.grantedFeat.basicConcoction");
+  });
+
+  it("reports the sub-slot filled once the granted alchemist feat is embedded", () => {
+    const plan = derivePlan(tobiasLevel4WithBasicConcoctionDoc(true));
+    const l4 = plan.levels.find((l) => l.level === 4)!;
+    const sub = l4.slots.find((s) => s.slotId === "archetypeFeat-4:granted")!;
+    expect(sub.filled).toBe(true);
+    expect(sub.choiceName).toBe("Alchemical Familiar");
+    expect(sub.itemId).toBe("item-granted-feat");
+  });
+
+  it("does NOT generate a sub-slot for a feat with no registered grant (e.g. a plain archetype feat)", () => {
+    const plan = derivePlan(tobiasLevel3Doc());
+    const l2 = plan.levels.find((l) => l.level === 2)!;
+    expect(l2.slots.some((s) => s.slotId === "archetypeFeat-2:granted")).toBe(false);
+  });
+
+  it("does NOT generate a sub-slot while the parent slot is still empty", () => {
+    const doc = baseCharacterDoc({
+      system: { level: { value: 2 }, details: {}, build: { freeArchetype: true } },
+      items: [{ ...magusClassDoc(), _id: "item-class" }],
+    });
+    const plan = derivePlan(doc);
+    const l2 = plan.levels.find((l) => l.level === 2)!;
+    expect(l2.slots.some((s) => s.slotId === "archetypeFeat-2:granted")).toBe(false);
+  });
+});
+
+describe("chooseFeat — filling a grantedFeat sub-slot", () => {
+  it("embeds the chosen alchemist feat tagged with the sub-slot id and appends a matching build choice", () => {
+    const doc = tobiasLevel4WithBasicConcoctionDoc();
+    const plan = derivePlan(doc);
+    const l4 = plan.levels.find((l) => l.level === 4)!;
+    const subSlot = l4.slots.find((s) => s.slotId === "archetypeFeat-4:granted")!;
+
+    const ops = chooseFeat(ctx(doc), subSlot, 4, alchemicalFamiliarFeatDoc());
+    expect(ops).toHaveLength(2);
+
+    const createOp = ops[0] as { data: Record<string, unknown> };
+    expect((createOp.data["flags"] as Record<string, unknown>)).toMatchObject({
+      fusion: { build: { level: 4, slot: "archetypeFeat-4:granted" } },
+    });
+
+    const updateOp = ops[1] as DocUpdatePayload;
+    const choices = updateOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
+    expect(choices).toContainEqual({ level: 4, slot: "archetypeFeat-4:granted", type: "grantedFeat" });
+  });
+});
+
+describe("removeChoice — cascades to a filled grantedFeat sub-slot", () => {
+  it("deletes both the parent feat item AND the granted sub-slot's item, and strips both choices entries", () => {
+    const doc = tobiasLevel4WithBasicConcoctionDoc(true);
+    const sysBuild = (doc["system"] as Record<string, unknown>)["build"] as Record<string, unknown>;
+    sysBuild["choices"] = [
+      ...(sysBuild["choices"] as unknown[]),
+      { level: 4, slot: "archetypeFeat-4", type: "archetypeFeat" },
+      { level: 4, slot: "archetypeFeat-4:granted", type: "grantedFeat" },
+    ];
+
+    const plan = derivePlan(doc);
+    const l4 = plan.levels.find((l) => l.level === 4)!;
+    const parentSlot = l4.slots.find((s) => s.slotId === "archetypeFeat-4")!;
+    expect(parentSlot.filled).toBe(true);
+
+    const ops = removeChoice(ctx(doc), parentSlot);
+    const deleteOps = ops.filter((op) => op.type === "doc:delete") as Array<{ id: string }>;
+    expect(deleteOps.map((op) => op.id).sort()).toEqual(["item-archetype-feat-4", "item-granted-feat"].sort());
+
+    const updateOp = ops.find((op) => op.type === "doc:update") as DocUpdatePayload;
+    const remainingChoices = updateOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
+    expect(remainingChoices.some((c) => c["slot"] === "archetypeFeat-4")).toBe(false);
+    expect(remainingChoices.some((c) => c["slot"] === "archetypeFeat-4:granted")).toBe(false);
+  });
+
+  it("removing the parent when the sub-slot was never filled only deletes the parent item (no-op cascade)", () => {
+    const doc = tobiasLevel4WithBasicConcoctionDoc(false);
+    const plan = derivePlan(doc);
+    const l4 = plan.levels.find((l) => l.level === 4)!;
+    const parentSlot = l4.slots.find((s) => s.slotId === "archetypeFeat-4")!;
+
+    const ops = removeChoice(ctx(doc), parentSlot);
+    const deleteOps = ops.filter((op) => op.type === "doc:delete") as Array<{ id: string }>;
+    expect(deleteOps).toHaveLength(1);
+    expect(deleteOps[0]!.id).toBe("item-archetype-feat-4");
   });
 });

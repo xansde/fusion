@@ -276,33 +276,53 @@ describe('sf2e MVP packs (systems/sf2e/packs/)', () => {
 });
 
 // ---------------------------------------------------------------------------
-// 4. Flavor-prose policy (clean-room, mirrors pf2e's guard) — REQ-LEG-010
+// 4. Flavor-prose policy (clean-room, mirrors pf2e's guard) — REQ-LEG-010,
+// policy update W2-C1 2026-07-05: system.description is preserved whenever
+// the document's system.publication.license is ORC or OGL (licensed content,
+// redistributable with attribution); gmNotes/publicNotes/privateNotes are
+// GM-only/lore flavor and stay unconditionally stripped regardless of
+// license. See transform.mjs's stripFlavorProse for the pf2e-side rationale.
 // ---------------------------------------------------------------------------
 
 describe('sf2e flavor-prose policy (committed packs)', () => {
-  const MAX_PROSE_LEN = 0;
-  const PROSE_FIELDS = ['description', 'gmNotes', 'publicNotes', 'privateNotes'];
+  const ALWAYS_STRIPPED_FIELDS = ['gmNotes', 'publicNotes', 'privateNotes'];
   const itemPackSlugs = ['conditions', 'weapons-core', 'armor-core', 'augmentations-core', 'spells-core'];
 
   for (const slug of itemPackSlugs) {
-    it(`sf2e.${slug}: no flavor prose in any document or embedded item`, () => {
+    it(`sf2e.${slug}: gmNotes/publicNotes/privateNotes always stripped; description present only under ORC/OGL`, () => {
       const docs = loadJson(join(SF2E_PACKS_DIR, slug, 'documents.json'));
       for (const doc of docs) {
         const sys = doc.system ?? {};
-        for (const field of PROSE_FIELDS) {
+        for (const field of ALWAYS_STRIPPED_FIELDS) {
           const len = proseLen(sys[field]);
           assert.ok(
-            len <= MAX_PROSE_LEN,
+            len === 0,
             `Flavor prose leaked: ${slug} doc "${doc.name}" system.${field} has ${len} chars`,
+          );
+        }
+        const license = sys.publication?.license;
+        if (!['ORC', 'OGL'].includes(license)) {
+          const descLen = proseLen(sys.description);
+          assert.ok(
+            descLen === 0,
+            `${slug} doc "${doc.name}" has non-empty description without an ORC/OGL publication.license (got "${license}")`,
           );
         }
         for (const item of doc.items ?? []) {
           const isys = item.system ?? {};
-          for (const field of PROSE_FIELDS) {
+          for (const field of ALWAYS_STRIPPED_FIELDS) {
             const len = proseLen(isys[field]);
             assert.ok(
-              len <= MAX_PROSE_LEN,
+              len === 0,
               `Flavor prose leaked: ${slug} doc "${doc.name}" embedded item.${field} has ${len} chars`,
+            );
+          }
+          const itemLicense = isys.publication?.license;
+          if (!['ORC', 'OGL'].includes(itemLicense)) {
+            const itemDescLen = proseLen(isys.description);
+            assert.ok(
+              itemDescLen === 0,
+              `${slug} doc "${doc.name}" embedded item has non-empty description without an ORC/OGL publication.license (got "${itemLicense}")`,
             );
           }
         }
@@ -310,42 +330,27 @@ describe('sf2e flavor-prose policy (committed packs)', () => {
     });
   }
 
-  it('sf2e.bestiary-core: NPC details carry no flavor prose', () => {
+  it('sf2e.bestiary-core: NPC details carry no flavor prose (no publication-gated description on actors)', () => {
     const docs = loadJson(join(SF2E_PACKS_DIR, 'bestiary-core', 'documents.json'));
     for (const doc of docs) {
       const details = doc.system?.details ?? {};
       for (const field of ['publicNotes', 'blurb', 'privateNotes']) {
         const len = proseLen(details[field]);
         assert.ok(
-          len <= MAX_PROSE_LEN,
+          len === 0,
           `Flavor prose leaked: bestiary doc "${doc.name}" details.${field} has ${len} chars`,
         );
       }
       for (const item of doc.items ?? []) {
         const isys = item.system ?? {};
-        const len = proseLen(isys.description);
-        assert.ok(
-          len <= MAX_PROSE_LEN,
-          `Flavor prose leaked: bestiary doc "${doc.name}" embedded item.description has ${len} chars`,
-        );
-      }
-    }
-  });
-
-  it('no known Paizo/sf2e flavor sentence appears in committed packs', () => {
-    // Sentence fragments from real sf2e descriptions the importer must strip.
-    const KNOWN_PROSE = [
-      "you're in a zero gravity",
-      'This rifle’s oversized body',
-      'automatically tracks a database of associated names',
-    ];
-    for (const slug of [...itemPackSlugs, 'bestiary-core']) {
-      const str = JSON.stringify(loadJson(join(SF2E_PACKS_DIR, slug, 'documents.json'))).toLowerCase();
-      for (const fragment of KNOWN_PROSE) {
-        assert.ok(
-          !str.includes(fragment.toLowerCase()),
-          `Known Paizo/sf2e prose fragment found in ${slug}: "${fragment}"`,
-        );
+        const license = isys.publication?.license;
+        if (!['ORC', 'OGL'].includes(license)) {
+          const len = proseLen(isys.description);
+          assert.ok(
+            len === 0,
+            `Flavor prose leaked: bestiary doc "${doc.name}" embedded item.description has ${len} chars`,
+          );
+        }
       }
     }
   });

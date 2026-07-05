@@ -307,19 +307,22 @@ describe('art policy', () => {
 });
 
 // ---------------------------------------------------------------------------
-// 4b. Flavor-prose policy — no copyrighted description prose in committed packs
-// (clean-room — spec 26 §D4, REQ-LEG-010)
+// 4b. Flavor-prose policy — description text under ORC/OGL is licensed
+// content and MAY be redistributed with attribution (clean-room — spec 26
+// §D4, REQ-LEG-010, policy update W2-C1 2026-07-05).
 //
-// NAMES and structured MECHANICAL fields are ORC and stay; the PROSE of
-// system.description (and gmNotes/publicNotes/privateNotes flavor) is Reserved
-// Material and must be stripped. This guard FAILS if any committed pack doc
-// regains a non-trivial description string (top-level or embedded item).
+// NAMES and structured MECHANICAL fields are ORC and stay, as always.
+// `system.description` is now PRESERVED whenever the document's
+// `system.publication.license` is ORC or OGL (the vendor's own license
+// declaration, verified per-doc) — the pre-W2-C1 conservative default (always
+// blank) only still applies to documents with no publication block at all
+// (e.g. NPC actors, which don't even carry a `system.description` field).
+// `gmNotes`/`publicNotes`/`privateNotes` are GM-only/lore flavor — NEVER
+// rules text — and stay unconditionally stripped regardless of license.
 // ---------------------------------------------------------------------------
 
 describe('flavor-prose policy (committed packs)', () => {
-  // A blank string is allowed (schema may keep the key); any real prose fails.
-  const MAX_PROSE_LEN = 0;
-  const PROSE_FIELDS = ['description', 'gmNotes', 'publicNotes', 'privateNotes'];
+  const ALWAYS_STRIPPED_FIELDS = ['gmNotes', 'publicNotes', 'privateNotes'];
   const itemPackSlugs = ['conditions', 'weapons-core', 'spells-core'];
 
   /** Returns the prose length of a system.* field, handling string | {value}. */
@@ -332,24 +335,40 @@ describe('flavor-prose policy (committed packs)', () => {
   }
 
   for (const slug of itemPackSlugs) {
-    it(`pf2e.${slug}: no flavor prose in any document or embedded item`, () => {
+    it(`pf2e.${slug}: gmNotes/publicNotes/privateNotes always stripped; description present only under ORC/OGL`, () => {
       const docs = loadJson(join(PACKS_DIR, slug, 'documents.json'));
       for (const doc of docs) {
         const sys = doc.system ?? {};
-        for (const field of PROSE_FIELDS) {
+        for (const field of ALWAYS_STRIPPED_FIELDS) {
           const len = proseLen(sys[field]);
           assert.ok(
-            len <= MAX_PROSE_LEN,
+            len === 0,
             `Flavor prose leaked: ${slug} doc "${doc.name}" system.${field} has ${len} chars`,
+          );
+        }
+        const license = sys.publication?.license;
+        const descLen = proseLen(sys.description);
+        if (!['ORC', 'OGL'].includes(license)) {
+          assert.ok(
+            descLen === 0,
+            `${slug} doc "${doc.name}" has non-empty description without an ORC/OGL publication.license (got "${license}")`,
           );
         }
         for (const item of doc.items ?? []) {
           const isys = item.system ?? {};
-          for (const field of PROSE_FIELDS) {
+          for (const field of ALWAYS_STRIPPED_FIELDS) {
             const len = proseLen(isys[field]);
             assert.ok(
-              len <= MAX_PROSE_LEN,
+              len === 0,
               `Flavor prose leaked: ${slug} doc "${doc.name}" embedded item.${field} has ${len} chars`,
+            );
+          }
+          const itemLicense = isys.publication?.license;
+          if (!['ORC', 'OGL'].includes(itemLicense)) {
+            const itemDescLen = proseLen(isys.description);
+            assert.ok(
+              itemDescLen === 0,
+              `${slug} doc "${doc.name}" embedded item has non-empty description without an ORC/OGL publication.license (got "${itemLicense}")`,
             );
           }
         }
@@ -357,43 +376,28 @@ describe('flavor-prose policy (committed packs)', () => {
     });
   }
 
-  it('pf2e.bestiary-core: NPC details carry no flavor prose', () => {
+  it('pf2e.bestiary-core: NPC details carry no flavor prose (no publication-gated description on actors)', () => {
     const docs = loadJson(join(PACKS_DIR, 'bestiary-core', 'documents.json'));
     for (const doc of docs) {
       const details = doc.system?.details ?? {};
       for (const field of ['publicNotes', 'blurb', 'privateNotes']) {
         const len = proseLen(details[field]);
         assert.ok(
-          len <= MAX_PROSE_LEN,
+          len === 0,
           `Flavor prose leaked: bestiary doc "${doc.name}" details.${field} has ${len} chars`,
         );
       }
-      // Embedded strikes/gear must also be prose-free.
+      // Embedded strikes/gear: description allowed only under ORC/OGL license.
       for (const item of doc.items ?? []) {
         const isys = item.system ?? {};
-        const len = proseLen(isys.description);
-        assert.ok(
-          len <= MAX_PROSE_LEN,
-          `Flavor prose leaked: bestiary doc "${doc.name}" embedded item.description has ${len} chars`,
-        );
-      }
-    }
-  });
-
-  it('no known Paizo flavor sentence appears in committed packs', () => {
-    // Sentence fragments that were present in the pre-fix packs (Reserved Material).
-    const KNOWN_PROSE = [
-      "You're sleeping or have been knocked out",
-      'This projectile weapon is made from horn',
-      'You send out a pulse that registers the presence of magic',
-    ];
-    for (const slug of [...itemPackSlugs, 'bestiary-core']) {
-      const str = JSON.stringify(loadJson(join(PACKS_DIR, slug, 'documents.json')));
-      for (const fragment of KNOWN_PROSE) {
-        assert.ok(
-          !str.includes(fragment),
-          `Known Paizo prose fragment found in ${slug}: "${fragment}"`,
-        );
+        const license = isys.publication?.license;
+        if (!['ORC', 'OGL'].includes(license)) {
+          const len = proseLen(isys.description);
+          assert.ok(
+            len === 0,
+            `Flavor prose leaked: bestiary doc "${doc.name}" embedded item.description has ${len} chars`,
+          );
+        }
       }
     }
   });
@@ -584,14 +588,15 @@ describe('MVP packs', () => {
     }
   });
 
-  it('no R10-B pack document has non-empty system.description (flavor prose stripped, REQ-LEG-010)', () => {
+  it('every R10-B pack document description is present only under an ORC/OGL publication.license (policy update W2-C1, REQ-LEG-010)', () => {
     const slugs = ['classes-core', 'class-features-core', 'feats-core', 'ancestries-core', 'heritages-core', 'backgrounds-core', 'spells-core'];
     for (const slug of slugs) {
       const docs = loadJson(join(PACKS_DIR, slug, 'documents.json'));
       for (const doc of docs) {
         const desc = doc.system?.description;
-        if (typeof desc === 'string') {
-          assert.equal(desc, '', `${slug}/${doc.name} has non-empty system.description`);
+        const license = doc.system?.publication?.license;
+        if (typeof desc === 'string' && !['ORC', 'OGL'].includes(license)) {
+          assert.equal(desc, '', `${slug}/${doc.name} has non-empty system.description without an ORC/OGL license (got "${license}")`);
         }
       }
     }
@@ -793,9 +798,10 @@ describe('R10-B: normalizeClassSystem (Magus)', () => {
     );
   });
 
-  it('description prose is stripped (clean-room, REQ-LEG-010)', () => {
+  it('description is preserved under its OGL publication.license (policy update W2-C1, REQ-LEG-010)', () => {
     const { system } = getMagus();
-    assert.equal(system.description, '');
+    assert.equal(system.publication?.license, 'OGL', 'Magus class doc publication.license must be OGL');
+    assert.ok(system.description.length > 0, 'Magus description must be preserved (ORC/OGL-licensed content)');
   });
 });
 
@@ -839,10 +845,15 @@ describe('R10-B: normalizeClassFeatureSystem (Magus features + Hybrid Study)', (
     }
   });
 
-  it('description prose is stripped on every class-feature doc (clean-room, REQ-LEG-010)', () => {
+  it('description is preserved (ORC/OGL) on every class-feature doc; blanked only if license is neither (policy update W2-C1, REQ-LEG-010)', () => {
     const docs = getClassFeatures();
     for (const doc of docs.slice(0, 50)) {
-      assert.equal(doc.system.description, '', `${doc.name} must have empty description`);
+      const license = doc.system.publication?.license;
+      if (['ORC', 'OGL'].includes(license)) {
+        assert.ok(doc.system.description.length > 0, `${doc.name} (license ${license}) should have a preserved description`);
+      } else {
+        assert.equal(doc.system.description, '', `${doc.name} must have empty description (license "${license}" not ORC/OGL)`);
+      }
     }
   });
 });

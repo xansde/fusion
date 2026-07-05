@@ -7,9 +7,12 @@
  * the real Zod schema for its `type`, plus a set of domain invariants
  * (clean-room description stripping, pack.json license/attribution blocks).
  *
- * Clean-room: only mechanical facts / structural shape are asserted here —
- * no vendor prose is read or compared (stripFlavorProse guarantees empty
- * `description` fields, asserted explicitly below).
+ * Clean-room: mechanical facts / structural shape are asserted here.
+ * `system.description` (policy update W2-C1, REQ-LEG-010, 2026-07-05) is
+ * PRESERVED whenever the document's `system.publication.license` is ORC or
+ * OGL — licensed rules text, redistributable with attribution — and stays
+ * blank only for documents without an ORC/OGL publication (e.g. NPC actors,
+ * whose lore fields remain always stripped, asserted explicitly below).
  *
  * REQ-SF2-003, REQ-SF2-044..048.
  */
@@ -166,21 +169,27 @@ describe("packs-validation (sf2e): every document validates against its Zod sche
 describe("packs-validation (sf2e): clean-room invariants", () => {
   const slugs = listPackSlugs();
 
-  it("no document in any pack has a non-empty system.description.value or system.description (stripFlavorProse)", () => {
+  it("system.description is present only on documents whose system.publication.license is ORC or OGL (policy update W2-C1, stripFlavorProse)", () => {
     const offenders: string[] = [];
+    const REDISTRIBUTABLE = new Set(["ORC", "OGL"]);
     for (const slug of slugs) {
       for (const doc of loadDocuments(slug)) {
-        const desc = (doc.system as { description?: unknown }).description;
-        if (typeof desc === "string" && desc.length > 0) {
-          offenders.push(`[${slug}] "${doc.name}": system.description = "${desc.slice(0, 40)}..."`);
-        } else if (
-          desc &&
-          typeof desc === "object" &&
-          "value" in (desc as Record<string, unknown>) &&
-          typeof (desc as { value: unknown }).value === "string" &&
-          (desc as { value: string }).value.length > 0
-        ) {
-          offenders.push(`[${slug}] "${doc.name}": system.description.value non-empty`);
+        const sys = doc.system as { description?: unknown; publication?: { license?: string } };
+        const license = sys.publication?.license;
+        const desc = sys.description;
+        const descLen =
+          typeof desc === "string"
+            ? desc.length
+            : desc &&
+                typeof desc === "object" &&
+                "value" in (desc as Record<string, unknown>) &&
+                typeof (desc as { value: unknown }).value === "string"
+              ? (desc as { value: string }).value.length
+              : 0;
+        if (descLen > 0 && !REDISTRIBUTABLE.has(license ?? "")) {
+          offenders.push(
+            `[${slug}] "${doc.name}": system.description non-empty without an ORC/OGL publication.license (got "${license}")`,
+          );
         }
       }
     }

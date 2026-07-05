@@ -22,7 +22,7 @@
  *     payload(s) — same DocUpdatePayload/DocCreateEmbeddedPayload/
  *     DocDeleteEmbeddedPayload shapes as characterSheetVM.ts — the caller
  *     (Svelte component) sends them via sendOpFn/makeSendOpFn.
- *   - featElegivel(): pure, non-blocking eligibility check for the feat
+ *   - isFeatEligible(): pure, non-blocking eligibility check for the feat
  *     picker.
  *
  * Clean-room: PF2e Remaster mechanics from ORC/OGL (Archives of Nethys). No
@@ -138,6 +138,7 @@ export interface BuildAbilities {
   ancestryFlaws: string[];
   ancestryFree: string[];
   backgroundBoosts: string[];
+  backgroundFree: string[];
   classBoost: string[];
   levelledBoosts: Record<string, string[]>;
 }
@@ -150,9 +151,68 @@ function getBuildAbilities(sys: Record<string, unknown>): BuildAbilities {
     ancestryFlaws: asStringArray(abilities["ancestryFlaws"]),
     ancestryFree: asStringArray(abilities["ancestryFree"]),
     backgroundBoosts: asStringArray(abilities["backgroundBoosts"]),
+    backgroundFree: asStringArray(abilities["backgroundFree"]),
     classBoost: asStringArray(abilities["classBoost"]),
     levelledBoosts: asStringArrayRecord(abilities["levelledBoosts"]),
   };
+}
+
+/**
+ * computeAbilityScores — pure mirror of systems/pf2e/src/derivations/
+ * build.ts's `computeAbilityScores` (same origin order, same +2/+1-below-18
+ * math). Needed here so the client builder can preview the CURRENT ability
+ * scores (post-boosts) without importing systems/pf2e — used by
+ * `trainedSkillCount` (issue #4: level-1 skill training slots = additional +
+ * Int mod AFTER boosts) and by any future preview UI.
+ *
+ * MUST stay in sync with the server-side implementation.
+ */
+export function computeAbilityScores(
+  abilities: BuildAbilities,
+  level: number,
+): Record<AbilitySlug, number> {
+  const scores: Record<AbilitySlug, number> = {
+    str: 10,
+    dex: 10,
+    con: 10,
+    int: 10,
+    wis: 10,
+    cha: 10,
+  };
+
+  const applyBoost = (slug: string): void => {
+    if (!ABILITY_SLUGS.includes(slug as AbilitySlug)) return;
+    const ability = slug as AbilitySlug;
+    scores[ability] += scores[ability] < 18 ? 2 : 1;
+  };
+  const applyFlaw = (slug: string): void => {
+    if (!ABILITY_SLUGS.includes(slug as AbilitySlug)) return;
+    const ability = slug as AbilitySlug;
+    scores[ability] -= 2;
+  };
+
+  for (const slug of abilities.ancestryBoosts) applyBoost(slug);
+  for (const slug of abilities.ancestryFlaws) applyFlaw(slug);
+  for (const slug of abilities.ancestryFree) applyBoost(slug);
+  for (const slug of abilities.backgroundBoosts) applyBoost(slug);
+  for (const slug of abilities.backgroundFree) applyBoost(slug);
+  for (const slug of abilities.classBoost) applyBoost(slug);
+
+  const levelledLevels = Object.keys(abilities.levelledBoosts)
+    .map((lvl) => Number(lvl))
+    .filter((lvl) => !Number.isNaN(lvl) && lvl <= level)
+    .sort((a, b) => a - b);
+  for (const lvl of levelledLevels) {
+    const boosts = abilities.levelledBoosts[String(lvl)] ?? [];
+    for (const slug of boosts) applyBoost(slug);
+  }
+
+  return scores;
+}
+
+/** Ability modifier from score: floor((score-10)/2) — PF2e Remaster rule. */
+function abilityMod(score: number): number {
+  return Math.floor((score - 10) / 2);
 }
 
 function getBuildChoices(sys: Record<string, unknown>): BuildChoice[] {
@@ -299,7 +359,8 @@ export type PlanSlotType =
   | "archetypeFeat"
   | "hybridStudy"
   | "skillTraining"
-  | "skillIncrease";
+  | "skillIncrease"
+  | "grantedFeat";
 
 export interface PlanSlotModel {
   slotId: string;
@@ -309,6 +370,29 @@ export interface PlanSlotModel {
   choiceName?: string;
   itemId?: string;
   optional?: boolean;
+  /**
+   * Present ONLY on a collapsed group slot (R11 item 3 — the Plan column
+   * shows one "Treinamento de Perícias (x/N)" entry per level+type instead
+   * of N one-per-slot rows). `filledCount`/`totalCount` drive the "(x/N)"
+   * label; `groupSlotIds` lists every underlying slotId this group
+   * represents, in order — the caller (PlanColumn) passes the group's level+
+   * type to `skillTrainingDialogContext`, which recomputes the authoritative
+   * empty-slot list itself rather than trusting this snapshot.
+   */
+  filledCount?: number;
+  totalCount?: number;
+  groupSlotIds?: string[];
+  /**
+   * Present ONLY on a `grantedFeat` sub-slot (W1-D — feats that grant a
+   * nested feat choice, e.g. Basic Concoction → 1st-/2nd-level alchemist
+   * feat). Rendered INDENTED inside the parent's card (Pathbuilder-style
+   * nested pick). `parentSlotId` is the slot id of the feat that granted
+   * this choice — `removeChoice` on the parent cascades to remove every
+   * sub-slot whose `parentSlotId` matches it.
+   */
+  parentSlotId?: string;
+  /** The grant's declarative filter — carried on the sub-slot so the picker can apply it without re-deriving the parent's grant lookup. */
+  grantFilter?: GrantedFeatFilter;
 }
 
 export interface AutoFeatureModel {
@@ -343,7 +427,85 @@ const SLOT_TYPE_LABELS: Record<PlanSlotType, string> = {
   hybridStudy: "Hybrid Study",
   skillTraining: "Skill Training",
   skillIncrease: "Skill Increase",
+  grantedFeat: "Granted Feat",
 };
+
+// ---------------------------------------------------------------------------
+// Granted feat choices (W1-D) — feats that grant a NESTED feat choice via the
+// vendor's ChoiceSet+GrantItem rule pair (unconverted — see
+// systems/pf2e/packs/feats-core's `flags.fusion.unconvertedRules`, e.g. Basic
+// Concoction: `{"key":"ChoiceSet","choices":{"itemType":"feat","filter":
+// ["item:category:class","item:trait:alchemist",{"lte":["item:level",2]}]}}`
+// paired with a `rules[].kind === "grant-item"` whose uuid is the in-memory
+// ChoiceSet placeholder `{item|flags.system.rulesSelections.<flag>}`).
+//
+// The server does NOT resolve ChoiceSet (V2 — generic ChoiceSet interpretation
+// is explicitly out of scope for R11). This table is a CLIENT-SIDE, hand-
+// curated mirror of the handful of core feats whose grant is "pick a feat
+// meeting these declarative predicates" — extend it as new cases are found,
+// one entry per granting feat's name (matched via `nameToSlug`, the same
+// name→slug convention `planContext` already uses for class/ancestry — core
+// feat docs carry no dedicated `system.slug` field, see W1-D investigation).
+// ---------------------------------------------------------------------------
+
+/** A single declarative predicate the granted feat's compendium index entry must satisfy. */
+export type GrantedFeatPredicate =
+  | { kind: "category"; value: string }
+  | { kind: "trait"; value: string }
+  | { kind: "levelAtMost"; value: number };
+
+export interface GrantedFeatFilter {
+  /** i18n key suffix for the sub-slot's label, e.g. "FUSION.Sheet.Plan.SlotLabel.grantedFeat.basicConcoction". */
+  labelKey: string;
+  predicates: GrantedFeatPredicate[];
+}
+
+/**
+ * GRANTED_FEAT_CHOICES — keyed by `nameToSlug(grantingFeat.name)`.
+ *
+ * Basic Concoction (feats-core, Pathfinder Player Core 2): "You gain a 1st-
+ * or 2nd-level alchemist feat." — filter confirmed against the vendor's
+ * unconverted ChoiceSet: category "class", trait "alchemist", level <= 2.
+ */
+export const GRANTED_FEAT_CHOICES: Record<string, GrantedFeatFilter> = {
+  "basic concoction": {
+    labelKey: "FUSION.Sheet.Plan.SlotLabel.grantedFeat.basicConcoction",
+    predicates: [
+      { kind: "category", value: "class" },
+      { kind: "trait", value: "alchemist" },
+      { kind: "levelAtMost", value: 2 },
+    ],
+  },
+};
+
+/** Look up a granting feat's nested-choice filter by its (embedded item) name. */
+export function grantedFeatChoiceFor(featName: string | undefined): GrantedFeatFilter | undefined {
+  const slug = nameToSlug(featName);
+  return slug ? GRANTED_FEAT_CHOICES[slug] : undefined;
+}
+
+/**
+ * Evaluate a `GrantedFeatFilter` against a candidate feat's minimal doc shape
+ * (same `FeatDocLike` shape `isFeatEligible` already consumes) — pure,
+ * non-blocking, mirrors `isFeatEligible`'s style exactly.
+ */
+export function matchesGrantedFeatFilter(featDoc: FeatDocLike, filter: GrantedFeatFilter): boolean {
+  const sys = featDoc.system ?? {};
+  const category = sys.category ?? "general";
+  const level = sys.level ?? 1;
+  const traits = sys.traits?.value ?? [];
+
+  return filter.predicates.every((p) => {
+    switch (p.kind) {
+      case "category":
+        return category === p.value;
+      case "trait":
+        return traits.includes(p.value);
+      case "levelAtMost":
+        return level <= p.value;
+    }
+  });
+}
 
 /**
  * planContext — small bundle of facts the Plan column's pickers need beyond
@@ -401,10 +563,11 @@ export function derivePlan(doc: Record<string, unknown>): PlanModel {
   const choices = getBuildChoices(sys);
   const freeArchetype = getFreeArchetype(sys);
   const items = getItems(doc);
+  const abilities = getBuildAbilities(sys);
 
   const levels: LevelPlanModel[] = [];
   for (let lvl = 1; lvl <= level; lvl++) {
-    levels.push(buildLevelPlan(lvl, classSystem, choices, items, freeArchetype));
+    levels.push(buildLevelPlan(lvl, classSystem, choices, items, freeArchetype, doc, abilities, level));
   }
 
   return { abc, levels, needsClass: false };
@@ -476,6 +639,9 @@ function buildLevelPlan(
   choices: BuildChoice[],
   items: Array<Record<string, unknown>>,
   freeArchetype: boolean,
+  doc: Record<string, unknown>,
+  abilities: BuildAbilities,
+  charLevel: number,
 ): LevelPlanModel {
   const slots: PlanSlotModel[] = [];
   const featLevels = classSystem.featLevels ?? {};
@@ -484,28 +650,32 @@ function buildLevelPlan(
   // (Magus-specific, but slotted generically as "hybridStudy" — the picker
   // only offers it when the class actually has hybrid-study features).
   if (level === 1) {
-    slots.push(resolveSlot("abilityBoosts", `abilityBoosts-1`, level, choices, items));
+    slots.push(resolveAbilityBoostsSlot(`abilityBoosts-1`, level, doc));
     slots.push(resolveSlot("hybridStudy", `hybridStudy-1`, level, choices, items));
   }
 
   // Levelled ability boosts (5/10/15/20 by default, or the class's own set).
   const abilityBoostLevels = classSystem.abilityBoostLevels ?? [5, 10, 15, 20];
   if (level !== 1 && abilityBoostLevels.includes(level)) {
-    slots.push(resolveSlot("abilityBoosts", `abilityBoosts-${String(level)}`, level, choices, items));
+    slots.push(resolveAbilityBoostsSlot(`abilityBoosts-${String(level)}`, level, doc));
   }
 
-  // Feat slots by category.
+  // Feat slots by category. Each pushes its own resolved slot immediately
+  // followed by a nested `grantedFeat` sub-slot (W1-D) when the chosen feat
+  // grants one (see `pushFeatSlotWithGrant`) — keeping the parent and its
+  // sub-slot adjacent in `slots[]` is what lets LevelCard render the sub-slot
+  // indented directly under its parent without a second pass.
   if ((featLevels.ancestry ?? []).includes(level)) {
-    slots.push(resolveSlot("ancestryFeat", `ancestryFeat-${String(level)}`, level, choices, items));
+    pushFeatSlotWithGrant(slots, "ancestryFeat", `ancestryFeat-${String(level)}`, level, choices, items);
   }
   if ((featLevels.class ?? []).includes(level)) {
-    slots.push(resolveSlot("classFeat", `classFeat-${String(level)}`, level, choices, items));
+    pushFeatSlotWithGrant(slots, "classFeat", `classFeat-${String(level)}`, level, choices, items);
   }
   if ((featLevels.general ?? []).includes(level)) {
-    slots.push(resolveSlot("generalFeat", `generalFeat-${String(level)}`, level, choices, items));
+    pushFeatSlotWithGrant(slots, "generalFeat", `generalFeat-${String(level)}`, level, choices, items);
   }
   if ((featLevels.skill ?? []).includes(level)) {
-    slots.push(resolveSlot("skillFeat", `skillFeat-${String(level)}`, level, choices, items));
+    pushFeatSlotWithGrant(slots, "skillFeat", `skillFeat-${String(level)}`, level, choices, items);
   }
 
   // Free Archetype: an extra archetype feat slot on even levels.
@@ -513,6 +683,7 @@ function buildLevelPlan(
     const slot = resolveSlot("archetypeFeat", `archetypeFeat-${String(level)}`, level, choices, items);
     slot.optional = true;
     slots.push(slot);
+    pushGrantedFeatSubSlot(slots, slot, level, choices, items);
   }
 
   // Skill increases.
@@ -520,12 +691,16 @@ function buildLevelPlan(
     slots.push(resolveSlot("skillIncrease", `skillIncrease-${String(level)}`, level, choices, items));
   }
 
-  // Level 1: trained-skill free choices (trainedSkills.additional) — one
-  // slot per additional free choice, distinct slot ids so each can be
-  // filled independently.
+  // Level 1: trained-skill free choices — trainedSkills.additional PLUS the
+  // Int modifier computed from the CURRENT boost ledger (issue #4 / audit
+  // r10 final #4): a character with Int +3 gets 3 extra skill slots on top
+  // of the class's additional count. Recomputed from `abilities` on every
+  // derivePlan call, so it reacts immediately when boosts change (no stale
+  // slot count after the player edits ability boosts).
   if (level === 1) {
     const additional = classSystem.trainedSkills?.additional ?? 0;
-    for (let i = 0; i < additional; i++) {
+    const total = trainedSkillCount(additional, abilities, charLevel);
+    for (let i = 0; i < total; i++) {
       slots.push(resolveSlot("skillTraining", `skillTraining-1-${String(i)}`, level, choices, items));
     }
   }
@@ -535,7 +710,43 @@ function buildLevelPlan(
     .filter((f) => !isChoiceFeature(f))
     .map((f) => ({ name: f.name, locked: true as const }));
 
-  return { level, slots, autoFeatures };
+  return { level, slots: collapseSkillSlotGroups(slots), autoFeatures };
+}
+
+/**
+ * collapseSkillSlotGroups — merge every skillTraining/skillIncrease slot of
+ * this level into a SINGLE group slot per type (R11 item 3 — Pathbuilder-
+ * style "Treinamento de Perícias (x/N)" entry instead of N one-per-slot
+ * rows). Only these two types collapse — every other slot type (feats,
+ * abilityBoosts, hybridStudy) still renders one row per slot, since only
+ * skillTraining ever produces more than one slot per level in the current
+ * model (skillIncrease is always exactly one, but collapsing it too keeps
+ * PlanColumn's rendering uniform and future-proofs classes with >1/level).
+ *
+ * The group slot is "filled" only when EVERY underlying slot is filled
+ * (x === N) — a partially-filled group still shows as an open pick with the
+ * "(x/N)" progress in its `choiceName`.
+ */
+function collapseSkillSlotGroups(slots: PlanSlotModel[]): PlanSlotModel[] {
+  const rest = slots.filter((s) => s.type !== "skillTraining" && s.type !== "skillIncrease");
+  const groups: PlanSlotModel[] = [];
+  for (const groupType of ["skillTraining", "skillIncrease"] as const) {
+    const members = slots.filter((s) => s.type === groupType);
+    if (members.length === 0) continue;
+    const filledCount = members.filter((s) => s.filled).length;
+    const totalCount = members.length;
+    groups.push({
+      slotId: members[0]!.slotId,
+      type: groupType,
+      label: SLOT_TYPE_LABELS[groupType],
+      filled: filledCount === totalCount,
+      choiceName: `${String(filledCount)}/${String(totalCount)}`,
+      filledCount,
+      totalCount,
+      groupSlotIds: members.map((s) => s.slotId),
+    });
+  }
+  return [...rest, ...groups];
 }
 
 /**
@@ -548,6 +759,65 @@ function buildLevelPlan(
 function isChoiceFeature(ref: ClassFeatureRef): boolean {
   return ref.name === "Hybrid Study";
 }
+
+/**
+ * pushFeatSlotWithGrant — resolve a feat slot and, if it ends up filled with
+ * a feat that grants a nested feat choice (W1-D), push the resulting
+ * `grantedFeat` sub-slot right after it in `slots`.
+ */
+function pushFeatSlotWithGrant(
+  slots: PlanSlotModel[],
+  type: PlanSlotType,
+  slotId: string,
+  level: number,
+  choices: BuildChoice[],
+  items: Array<Record<string, unknown>>,
+): void {
+  const slot = resolveSlot(type, slotId, level, choices, items);
+  slots.push(slot);
+  pushGrantedFeatSubSlot(slots, slot, level, choices, items);
+}
+
+/**
+ * pushGrantedFeatSubSlot — if `parentSlot` is filled with a feat whose name
+ * matches `GRANTED_FEAT_CHOICES`, resolve the nested sub-slot (slot id
+ * convention `<parentSlotId>:granted`, per the task's lesson-encoded
+ * convention) and push it onto `slots`.
+ *
+ * The sub-slot is item-backed exactly like a normal feat slot — filled when
+ * an embedded item carries `flags.fusion.build = { level, slot:
+ * "<parentSlotId>:granted" }` — so `resolveSlot`'s own item-lookup logic
+ * covers it unchanged; only the sub-slot's extra `parentSlotId`/`grantFilter`
+ * fields (for indentation + picker filtering) are added here.
+ */
+function pushGrantedFeatSubSlot(
+  slots: PlanSlotModel[],
+  parentSlot: PlanSlotModel,
+  level: number,
+  choices: BuildChoice[],
+  items: Array<Record<string, unknown>>,
+): void {
+  if (!parentSlot.filled) return;
+  const grant = grantedFeatChoiceFor(parentSlot.choiceName);
+  if (!grant) return;
+
+  const subSlotId = `${parentSlot.slotId}:granted`;
+  const subSlot = resolveSlot("grantedFeat", subSlotId, level, choices, items);
+  // Override the generic "Granted Feat" fallback label with the grant's own
+  // (still-English, matching every other SLOT_TYPE_LABELS entry's fallback
+  // role — the real translation happens in PlanColumn's slotLabel()/i18n via
+  // `grantFilter.labelKey`, same split responsibility resolveSlot already has
+  // for every other slot type).
+  subSlot.label = GRANTED_FEAT_FALLBACK_LABELS[grant.labelKey] ?? SLOT_TYPE_LABELS.grantedFeat;
+  subSlot.parentSlotId = parentSlot.slotId;
+  subSlot.grantFilter = grant;
+  slots.push(subSlot);
+}
+
+/** English fallback label per grant labelKey — mirrors SLOT_TYPE_LABELS' role for the fixed slot types. */
+const GRANTED_FEAT_FALLBACK_LABELS: Record<string, string> = {
+  "FUSION.Sheet.Plan.SlotLabel.grantedFeat.basicConcoction": "Alchemist Feat (1st-2nd Level)",
+};
 
 function resolveSlot(
   type: PlanSlotType,
@@ -598,6 +868,50 @@ function choiceDisplayName(choice: BuildChoice): string {
   return choice.type;
 }
 
+/**
+ * resolveAbilityBoostsSlot — an abilityBoosts-N slot's `filled` state is
+ * DERIVED from the actual boost ledger (via `abilityBoostsSlotContext` +
+ * `isAbilityBoostsSlotFilled`), NOT from a `system.build.choices` marker
+ * (R11 item 2 fix — the production bug: a doc can have an `abilityBoosts-1`
+ * choice marker recorded with NO backing ancestryFree/backgroundFree/
+ * levelledBoosts data at all, which must show as UNFILLED so the player is
+ * prompted to actually complete the picks).
+ *
+ * `choiceName` summarizes the picked free slugs across all groups for
+ * display (e.g. "cha, int, dex" for a filled slot), or is omitted while
+ * incomplete.
+ */
+function resolveAbilityBoostsSlot(
+  slotId: string,
+  level: number,
+  doc: Record<string, unknown>,
+): PlanSlotModel {
+  const slotCtx = abilityBoostsSlotContext(doc, level);
+  const filled = isAbilityBoostsSlotFilled(slotCtx);
+  const pickedSlugs = slotCtx.groups.flatMap((g) => g.initialFreeSlugs);
+  return {
+    slotId,
+    type: "abilityBoosts",
+    label: SLOT_TYPE_LABELS.abilityBoosts,
+    filled,
+    ...withOptional("choiceName", filled && pickedSlugs.length > 0 ? pickedSlugs.join(", ") : undefined),
+  };
+}
+
+/**
+ * trainedSkillCount — level-1 free skill-training slot count (issue #4 /
+ * audit r10 final #4): `trainedSkills.additional` PLUS the Int modifier
+ * computed from the CURRENT boost ledger (`abilities`), floored at 0 (a
+ * negative Int modifier never REDUCES the class's guaranteed additional
+ * slots — PF2e Remaster rule: `max(0, intMod)` extra trained skills at
+ * character creation).
+ */
+function trainedSkillCount(additional: number, abilities: BuildAbilities, charLevel: number): number {
+  const scores = computeAbilityScores(abilities, charLevel);
+  const intMod = abilityMod(scores.int);
+  return additional + Math.max(0, intMod);
+}
+
 // ---------------------------------------------------------------------------
 // Feat eligibility (pure, non-blocking UI validation)
 // ---------------------------------------------------------------------------
@@ -631,7 +945,7 @@ export interface FeatDocLike {
  * warn; this function never throws and never blocks the picker from
  * displaying an "ineligible" result.
  */
-export function featElegivel(
+export function isFeatEligible(
   featDoc: FeatDocLike,
   slotType: PlanSlotType,
   charLevel: number,
@@ -673,7 +987,7 @@ export function featElegivel(
 /**
  * Known class trait slugs used to distinguish "this class feat belongs to a
  * DIFFERENT class" from "this is a shared/general class feat" in
- * featElegivel's classFeat branch. MVP set — extend as new classes ship.
+ * isFeatEligible's classFeat branch. MVP set — extend as new classes ship.
  */
 const KNOWN_CLASS_TRAITS = new Set([
   "magus",
@@ -922,11 +1236,13 @@ export function applyHeritage(
 
 /**
  * applyBackground — doc:create the background item + merge its fixed boosts
- * into `system.build.abilities.backgroundBoosts`. Background boosts in the
- * PF2e Remaster are two "free" choices from the applicable ability list
- * (see systems/pf2e/packs/backgrounds-core, e.g. Fireworks Performer:
- * `["free","free"]`) — like ancestry free boosts, resolved later via
- * setAbilityBoosts("backgroundBoosts", [...]).
+ * into `system.build.abilities.backgroundBoosts`, and reset/preserve its
+ * FREE boosts into `system.build.abilities.backgroundFree` (R11 item 1: the
+ * PF2e Remaster background boost table is normally two "free" choices — see
+ * systems/pf2e/packs/backgrounds-core, e.g. Fireworks Performer:
+ * `["free","free"]` — resolved later via
+ * setAbilityBoosts(ctx, "backgroundFree", [...])). Same preserve-if-same-
+ * count / reset-otherwise policy as applyAncestry's `ancestryFree` handling.
  */
 export function applyBackground(
   ctx: PlanOpBuilderContext,
@@ -936,6 +1252,7 @@ export function applyBackground(
   const sys = asRecord(backgroundDoc["system"]);
   const boosts = asStringArray(sys["boosts"]);
   const fixedBoosts = boosts.filter((b) => b !== "free");
+  const freeCount = boosts.filter((b) => b === "free").length;
 
   const ops: DocOpPayload[] = [
     {
@@ -946,14 +1263,17 @@ export function applyBackground(
     } satisfies DocCreateEmbeddedPayload,
   ];
 
-  if (fixedBoosts.length > 0) {
-    ops.push({
-      type: "doc:update",
-      documentType: "Actor",
-      id: ctx.actorId,
-      diff: { "system.build.abilities.backgroundBoosts": fixedBoosts },
-    } satisfies DocUpdatePayload);
-  }
+  const existing = getBuildAbilities(getSystem(ctx.doc));
+  ops.push({
+    type: "doc:update",
+    documentType: "Actor",
+    id: ctx.actorId,
+    diff: {
+      "system.build.abilities.backgroundBoosts": fixedBoosts,
+      "system.build.abilities.backgroundFree":
+        existing.backgroundFree.length === freeCount ? existing.backgroundFree : [],
+    },
+  } satisfies DocUpdatePayload);
 
   // Background-granted skill proficiencies (e.g. Fireworks Performer →
   // Performance trained) apply as a level-1 skillTraining build choice so
@@ -1077,15 +1397,288 @@ function upsertSkillChoice(
   };
 }
 
+// ---------------------------------------------------------------------------
+// Bulk skill training/increase dialog (R11 item 1 — Pathbuilder-style mass
+// picker replacing the one-at-a-time skillTraining/skillIncrease mini-dialog).
+//
+// The Plan column collapses every skillTraining-<level>-* (or
+// skillIncrease-<level>) slot of the SAME level into a single UI entry
+// ("Treinamento de Perícias (x/N)") that opens `SkillTrainingDialog`. This
+// dialog needs, for every one of the 16 canonical skills + lores: the
+// CURRENT rank/modifier, the TARGET rank/modifier if picked, a TEML badge
+// pair, and the ability/proficiency breakdown — all pure, no socket.
+// ---------------------------------------------------------------------------
+
+/** Mirrors characterSheetVM.ts's SKILL_ABILITY (kept in sync by hand — same rule as ABILITY_SLUGS above). */
+export const SKILL_ABILITY: Record<string, AbilitySlug> = {
+  acrobatics: "dex",
+  arcana: "int",
+  athletics: "str",
+  crafting: "int",
+  deception: "cha",
+  diplomacy: "cha",
+  intimidation: "cha",
+  medicine: "wis",
+  nature: "wis",
+  occultism: "int",
+  performance: "cha",
+  religion: "wis",
+  society: "int",
+  stealth: "dex",
+  survival: "wis",
+  thievery: "dex",
+};
+
+/** The 16 canonical PF2e skill slugs (REQ-PF2-012) — mirrors CANONICAL_SKILL_SLUGS in characterSheetVM.ts. */
+export const CANONICAL_SKILL_SLUGS: readonly string[] = Object.keys(SKILL_ABILITY);
+
+/**
+ * proficiencyBonus — pure mirror of systems/pf2e/src/derivations/helpers.ts's
+ * `proficiencyBonus`/`calculateProficiencyBonus`: untrained (rank 0) = +0
+ * (level NOT added); trained..legendary = rank*2 + level. MUST stay in sync
+ * with the server-side implementation.
+ */
+export function skillProficiencyBonus(rank: number, level: number): number {
+  return rank === 0 ? 0 : rank * 2 + level;
+}
+
+/** Read the persisted (manual) rank of a skill from `system.skills`, tolerating a missing entry. */
+function manualSkillRank(sys: Record<string, unknown>, slug: string): number {
+  const skills = asRecord(sys["skills"]);
+  const entry = asRecord(skills[slug]);
+  const rank = entry["rank"];
+  return typeof rank === "number" ? rank : 0;
+}
+
+/**
+ * effectiveSkillRank — pure mirror of systems/pf2e/src/derivations/build.ts's
+ * `stepCharBuildSkills`: the rank a skill has RIGHT NOW once the class's
+ * `trainedSkills.value` and every `system.build.choices` entry of type
+ * skillTraining/skillIncrease with `level <= charLevel` are folded in as a
+ * FLOOR over the manually-persisted `system.skills.<slug>.rank` (never an
+ * override — same `max(manualRank, buildRank)` merge policy).
+ *
+ * This is what makes `skillTrainingDialogContext` see a skill as "already
+ * trained" from a build choice ALONE, even on a doc where `system.skills`
+ * itself was never explicitly derived/persisted (e.g. a freshly-built
+ * in-memory doc, or a unit test fixture) — the same doc shape
+ * `stepCharBuildSkills` reads server-side. MUST stay in sync with that
+ * server-side implementation.
+ */
+function effectiveSkillRank(doc: Record<string, unknown>, slug: string, charLevel: number): number {
+  const sys = getSystem(doc);
+  let rank = manualSkillRank(sys, slug);
+
+  const classSystem = readClassSystem(doc);
+  if ((classSystem?.trainedSkills?.value ?? []).includes(slug)) {
+    rank = Math.max(rank, 1);
+  }
+
+  const choices = getBuildChoices(sys)
+    .filter((c) => (c.type === "skillTraining" || c.type === "skillIncrease") && c.level <= charLevel && c.skill === slug)
+    .sort((a, b) => a.level - b.level);
+  for (const choice of choices) {
+    const target = choice.rank ?? (choice.type === "skillTraining" ? 1 : Math.min(rank + 1, 4));
+    rank = Math.max(rank, target);
+  }
+
+  return rank;
+}
+
+/** Every lore skill slug present on `system.skills` (flagged `lore: true`), sorted alphabetically. */
+function existingLoreSlugs(sys: Record<string, unknown>): string[] {
+  const skills = asRecord(sys["skills"]);
+  return Object.keys(skills)
+    .filter((slug) => asRecord(skills[slug])["lore"] === true)
+    .sort((a, b) => a.localeCompare(b));
+}
+
+export type SkillTrainingDialogKind = "skillTraining" | "skillIncrease";
+
+export interface SkillTrainingRow {
+  slug: string;
+  isLore: boolean;
+  ability: AbilitySlug;
+  /** Current rank (0-4, TEML) BEFORE this dialog's picks are applied. */
+  currentRank: number;
+  currentMod: number;
+  currentModFormatted: string;
+  /** Rank/mod this row would have if selected (current picks + this pick). Equals current when not selected. */
+  targetRank: number;
+  targetMod: number;
+  targetModFormatted: string;
+  abilityMod: number;
+  /** Whether this row can be selected at all for the dialog's kind (skillTraining: untrained only; skillIncrease: trained..master). */
+  eligible: boolean;
+}
+
+export interface SkillTrainingDialogContext {
+  kind: SkillTrainingDialogKind;
+  level: number;
+  /** Total slots of this kind at this level (e.g. trainedSkills.additional + Int mod). */
+  totalSlots: number;
+  /** Slot ids (in order) still unfilled — the caller's picks are zipped onto these 1:1. */
+  emptySlotIds: string[];
+  rows: SkillTrainingRow[];
+}
+
+/**
+ * skillTrainingDialogContext — everything `SkillTrainingDialog` needs to
+ * render the mass picker for every skillTraining-<level>-* (or the single
+ * skillIncrease-<level>) slot of one level, computed from the live doc: the
+ * remaining slot count, which slot ids are still empty, and one row per
+ * canonical skill + existing lore with current/target rank+modifier.
+ *
+ * `kind` selects eligibility: "skillTraining" only offers currently
+ * untrained skills (rank 0 -> 1); "skillIncrease" only offers skills already
+ * trained but below Legendary (rank 1-3 -> +1), matching PF2e Remaster rules
+ * (you cannot "train" an already-trained skill via a training slot, and you
+ * cannot "increase" an untrained one).
+ */
+export function skillTrainingDialogContext(
+  doc: Record<string, unknown>,
+  level: number,
+  kind: SkillTrainingDialogKind,
+): SkillTrainingDialogContext {
+  const sys = getSystem(doc);
+  const abilities = getBuildAbilities(sys);
+  const charLevel = getLevel(doc);
+  const scores = computeAbilityScores(abilities, charLevel);
+
+  // Reuse derivePlan's own level model (which already collapses every
+  // skillTraining-<level>-*/skillIncrease-<level> slot into one group slot
+  // per DEC — see collapseSkillSlotGroups) rather than re-deriving the raw
+  // per-slot list here: the group slot's `groupSlotIds` already carries the
+  // authoritative ordered list of underlying slot ids, and `filledCount`
+  // already tells us how many of them are taken.
+  const plan = derivePlan(doc);
+  const levelPlan = plan.levels.find((l) => l.level === level);
+  const groupSlot = levelPlan?.slots.find((s) => s.type === kind);
+  const groupSlotIds = groupSlot?.groupSlotIds ?? [];
+  const totalSlots = groupSlot?.totalCount ?? 0;
+
+  // Re-derive which of the group's member slot ids are actually filled —
+  // resolveSlot's own filled predicate (choices matching level+slotId), kept
+  // here as a thin re-check since collapseSkillSlotGroups doesn't expose the
+  // per-member filled flags, only the aggregate count.
+  const choices = getBuildChoices(sys);
+  const filledSlotIds = new Set(
+    choices.filter((c) => c.type === kind && c.level === level).map((c) => c.slot),
+  );
+  const emptySlotIds = groupSlotIds.filter((id) => !filledSlotIds.has(id));
+
+  const loreSlugs = existingLoreSlugs(sys);
+  const allSlugs = [...CANONICAL_SKILL_SLUGS, ...loreSlugs];
+
+  const rows: SkillTrainingRow[] = allSlugs.map((slug) => {
+    const isLore = loreSlugs.includes(slug);
+    const ability: AbilitySlug = isLore ? "int" : (SKILL_ABILITY[slug] ?? "int");
+    const abilityModValue = abilityMod(scores[ability]);
+    const currentRank = effectiveSkillRank(doc, slug, charLevel);
+    const currentMod = abilityModValue + skillProficiencyBonus(currentRank, charLevel);
+
+    const targetRank = kind === "skillTraining" ? 1 : Math.min(currentRank + 1, 4);
+    const targetMod = abilityModValue + skillProficiencyBonus(targetRank, charLevel);
+
+    const eligible =
+      kind === "skillTraining" ? currentRank === 0 : currentRank >= 1 && currentRank < 4;
+
+    return {
+      slug,
+      isLore,
+      ability,
+      currentRank,
+      currentMod,
+      currentModFormatted: fmtModLocal(currentMod),
+      targetRank,
+      targetMod,
+      targetModFormatted: fmtModLocal(targetMod),
+      abilityMod: abilityModValue,
+      eligible,
+    };
+  });
+
+  return { kind, level, totalSlots, emptySlotIds, rows };
+}
+
+function fmtModLocal(value: number): string {
+  return value >= 0 ? `+${String(value)}` : String(value);
+}
+
+/**
+ * confirmSkillTraining — persist ALL of the dialog's picks in a SINGLE
+ * doc:update carrying the whole `system.build.choices` array (lesson r10:
+ * diffs never index arrays — the entire array is always sent whole).
+ *
+ * `picks` is zipped 1:1 onto `ctx2.emptySlotIds` in order — the caller
+ * collects picks in whatever order the player clicked/deselected rows, and
+ * this function assigns the Nth pick to the Nth still-empty slot id. Extra
+ * picks beyond `emptySlotIds.length` are ignored (defensive; the dialog's own
+ * "Concluído" button is disabled until picks.length === emptySlotIds.length).
+ */
+export function confirmSkillTraining(
+  ctx: PlanOpBuilderContext,
+  dialogCtx: SkillTrainingDialogContext,
+  picks: string[],
+): DocUpdatePayload | null {
+  if (!ctx.editable) return null;
+  const existingChoices = getBuildChoices(getSystem(ctx.doc));
+  const rowBySlug = new Map(dialogCtx.rows.map((r) => [r.slug, r]));
+
+  const newChoices: BuildChoice[] = [];
+  for (let i = 0; i < dialogCtx.emptySlotIds.length && i < picks.length; i++) {
+    const slotId = dialogCtx.emptySlotIds[i];
+    const skillSlug = picks[i];
+    if (!slotId || !skillSlug) continue;
+    const row = rowBySlug.get(skillSlug);
+    const rank = row?.targetRank ?? (dialogCtx.kind === "skillTraining" ? 1 : 2);
+    newChoices.push({ level: dialogCtx.level, slot: slotId, type: dialogCtx.kind, skill: skillSlug, rank });
+  }
+
+  const remaining = existingChoices.filter(
+    (c) => !newChoices.some((n) => n.slot === c.slot),
+  );
+
+  return {
+    type: "doc:update",
+    documentType: "Actor",
+    id: ctx.actorId,
+    diff: { "system.build.choices": [...remaining, ...newChoices] },
+  };
+}
+
+/**
+ * addLoreSkill — create a new custom Lore skill (rank 0) on `system.skills`,
+ * keyed `lore-<slug(name)>`. Pure `doc:update` — the dialog calls this BEFORE
+ * offering the new lore as a pickable row (it must exist on the ledger to be
+ * targetable by a skillTraining pick in the same session).
+ */
+export function addLoreSkill(ctx: PlanOpBuilderContext, name: string): DocUpdatePayload | null {
+  if (!ctx.editable) return null;
+  const trimmed = name.trim();
+  if (!trimmed) return null;
+  const slug = `lore-${trimmed.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}`;
+  if (!slug || slug === "lore-") return null;
+  const sys = getSystem(ctx.doc);
+  const skills = asRecord(sys["skills"]);
+  if (skills[slug]) return null; // already exists — no-op (caller should filter its own list too)
+  return {
+    type: "doc:update",
+    documentType: "Actor",
+    id: ctx.actorId,
+    diff: { [`system.skills.${slug}`]: { rank: 0, lore: true, label: trimmed } },
+  };
+}
+
 /**
  * setAbilityBoosts — overwrite one origin's boost slugs (ancestryFree,
- * backgroundBoosts, classBoost, or a levelled-boosts level) with the
- * player's picks. `origin` "levelled" requires `level` to key
+ * backgroundFree, backgroundBoosts, classBoost, or a levelled-boosts level)
+ * with the player's picks. `origin` "levelled" requires `level` to key
  * `levelledBoosts`.
  */
 export function setAbilityBoosts(
   ctx: PlanOpBuilderContext,
-  origin: "ancestryFree" | "backgroundBoosts" | "classBoost" | "levelled",
+  origin: "ancestryFree" | "backgroundFree" | "backgroundBoosts" | "classBoost" | "levelled",
   slugs: string[],
   level?: number,
 ): DocUpdatePayload | null {
@@ -1114,13 +1707,19 @@ export function setAbilityBoosts(
  * markAbilityBoostsChoice — upsert a `system.build.choices` marker entry for
  * an `abilityBoosts-<level>` slot (R10-D item 2, D2 fix).
  *
- * `setAbilityBoosts` above only writes the actual ability data into
- * `system.build.abilities.*` — it does NOT touch `system.build.choices`, so
- * on its own `resolveSlot`'s abilityBoosts branch (which checks `choices`
- * for the item-less slot types) never reports the slot as filled. Call this
- * alongside `setAbilityBoosts` (same op batch) whenever the player confirms
- * a level's ability boosts, so the Plan column's LevelCard renders the slot
- * as a filled Slot instead of perpetually empty.
+ * HISTORICAL NOTE (R11 item 2 fix): this marker is NO LONGER what makes the
+ * Plan column render the abilityBoosts-N slot as filled — `resolveSlot` for
+ * that type was replaced by `resolveAbilityBoostsSlot`, which derives
+ * "filled" from the actual `system.build.abilities.*` ledger via
+ * `abilityBoostsSlotContext`/`isAbilityBoostsSlotFilled`. This was exactly
+ * the production bug: a doc could carry this marker with ZERO backing boost
+ * data (Tobias's real-world doc) and render as filled while every ability
+ * score stayed wrong.
+ *
+ * Kept only for `removeChoice`'s symmetry (it strips whatever `choices`
+ * entry matches a slot id, including this legacy marker type, on old docs
+ * that still carry one) and because emitting it alongside `setAbilityBoosts`
+ * is harmless — it no longer has any effect on `derivePlan`'s filled state.
  */
 export function markAbilityBoostsChoice(
   ctx: PlanOpBuilderContext,
@@ -1138,38 +1737,62 @@ export function markAbilityBoostsChoice(
   };
 }
 
+/** Which BuildAbilities field a free-boost group's confirmed slugs are written to. */
+export type AbilityBoostsOrigin = "ancestryFree" | "backgroundFree" | "levelled";
+
+/**
+ * One selectable group inside the abilityBoosts-N dialog: a origin (where
+ * the confirmed slugs are persisted) + how many free picks it grants +
+ * whatever slugs are already picked (pre-seeds the dialog on reopen).
+ *
+ * Boosts from the SAME origin never repeat an ability (PF2e Remaster rule) —
+ * enforced by the dialog not double-counting a slug within one group; a
+ * later group MAY reuse an ability another group already boosted (e.g.
+ * ancestryFree picking cha and the level-1 free boosts also picking cha is
+ * legal — different origins).
+ */
+export interface AbilityBoostsGroup {
+  origin: AbilityBoostsOrigin;
+  freeCount: number;
+  initialFreeSlugs: string[];
+}
+
 /**
  * abilityBoostsSlotContext — everything the "Dádivas de Atributo" dialog
- * needs to render one abilityBoosts slot (R10-D item 2, D2 helper):
- *   - level 1: fixed = ancestryBoosts + classBoost (if already set); free
- *     count = 1 (ancestryFree) + background's free count (from the
- *     background item's `system.boosts` "free" entries, already resolved
- *     into `backgroundBoosts` length by applyBackground... but that field
- *     stores FIXED boosts, not a count — see note below).
- *   - a levelled milestone (5/10/15/20 by default): no fixed slugs, free
- *     count is always 4 (PF2e Remaster rule), pre-seeded from
- *     `levelledBoosts[level]`.
+ * needs to render one abilityBoosts slot (R10-D item 2/D2, extended R11 item
+ * 1 for the FULL level-1 dádivas model):
  *
- * NOTE on level 1: `applyAncestry`/`applyBackground` already resolve each
- * origin's FIXED boosts into `ancestryBoosts`/`backgroundBoosts` at
- * apply-time (the sentinel "free" slots in the compendium doc's own
- * `system.boosts` are counted, not stored) — only `ancestryFree` remains a
- * genuinely free pick after applying an ancestry. Background's free boosts
- * are NOT tracked by a dedicated count field in `BuildAbilities`; this
- * helper conservatively reports 0 background-origin free slots until a
- * dedicated field exists, so today's level-1 free count reflects only
- * `ancestryFree`. This mirrors the exact fields available in `system.build`
- * as of R10-A/D1 — extending the schema is out of D2's scope.
+ *   - level 1: `fixedSlugs` = ancestryBoosts + ancestryFlaws-adjusted +
+ *     backgroundBoosts + classBoost (all read-only in the UI — already
+ *     decided by the ABC picks); THREE independent free-pick groups:
+ *       1. ancestryFree — count = the embedded ancestry item's `system.
+ *          boosts` "free" entries (0 if no ancestry yet).
+ *       2. backgroundFree — count = the embedded background item's `system.
+ *          boosts` "free" entries (0 if no background yet).
+ *       3. levelled (keyed "1") — ALWAYS 4 free boosts (PF2e Remaster level-1
+ *          rule, independent of ancestry/background/class picks).
+ *   - a levelled milestone (5/10/15/20 by default): no fixed slugs, a single
+ *     "levelled" group of 4 free picks, pre-seeded from `levelledBoosts[level]`.
+ *
+ * Ancestry/background free-boost COUNTS are read from the embedded item's
+ * OWN `system.boosts` array (counting `"free"` sentinel entries) rather than
+ * from a dedicated ledger field — the compendium doc is the source of truth
+ * for how many free boosts that origin grants, and every ancestry/background
+ * in the core packs varies this count (Ratfolk: 1 free; Fireworks Performer:
+ * 2 free) — see systems/pf2e/packs/{ancestries,backgrounds}-core.
  */
 export interface AbilityBoostsSlotContext {
   /** Ability slugs already fixed for this level's boost step (read-only in the UI). */
   fixedSlugs: string[];
-  /** How many additional slugs the player may pick freely. */
-  freeCount: number;
-  /** Already-selected free slugs (pre-seeds the dialog). */
-  initialFreeSlugs: string[];
-  /** Which BuildAbilities field the confirmed free slugs should be written to. */
-  origin: "ancestryFree" | "levelled";
+  /** One or more independent free-pick groups (level 1 has up to 3; a levelled milestone has exactly 1). */
+  groups: AbilityBoostsGroup[];
+}
+
+function countFreeBoostSlots(itemDoc: Record<string, unknown> | undefined): number {
+  if (!itemDoc) return 0;
+  const sys = asRecord(itemDoc["system"]);
+  const boosts = asStringArray(sys["boosts"]);
+  return boosts.filter((b) => b === "free").length;
 }
 
 export function abilityBoostsSlotContext(
@@ -1178,19 +1801,95 @@ export function abilityBoostsSlotContext(
 ): AbilityBoostsSlotContext {
   const abilities = getBuildAbilities(getSystem(doc));
   if (level === 1) {
+    const ancestryItem = findFirstItemByType(doc, "ancestry");
+    const backgroundItem = findFirstItemByType(doc, "background");
+    const groups: AbilityBoostsGroup[] = [
+      {
+        origin: "ancestryFree",
+        freeCount: countFreeBoostSlots(ancestryItem),
+        initialFreeSlugs: abilities.ancestryFree,
+      },
+      {
+        origin: "backgroundFree",
+        freeCount: countFreeBoostSlots(backgroundItem),
+        initialFreeSlugs: abilities.backgroundFree,
+      },
+      {
+        origin: "levelled",
+        freeCount: 4,
+        initialFreeSlugs: abilities.levelledBoosts["1"] ?? [],
+      },
+    ];
     return {
-      fixedSlugs: [...abilities.ancestryBoosts, ...abilities.classBoost],
-      freeCount: 1,
-      initialFreeSlugs: abilities.ancestryFree,
-      origin: "ancestryFree",
+      fixedSlugs: [...abilities.ancestryBoosts, ...abilities.backgroundBoosts, ...abilities.classBoost],
+      groups,
     };
   }
   return {
     fixedSlugs: [],
-    freeCount: 4,
-    initialFreeSlugs: abilities.levelledBoosts[String(level)] ?? [],
-    origin: "levelled",
+    groups: [
+      {
+        origin: "levelled",
+        freeCount: 4,
+        initialFreeSlugs: abilities.levelledBoosts[String(level)] ?? [],
+      },
+    ],
   };
+}
+
+/**
+ * previewAbilityScores — LIVE preview of the resulting ability scores/mods
+ * for the AbilityBoostsDialog (R11 item 2), given the player's IN-PROGRESS
+ * picks for each of `slotCtx.groups` (not yet persisted). Overlays
+ * `selectedByGroup[i]` onto `slotCtx.groups[i].origin`'s slot in a COPY of
+ * the doc's current `BuildAbilities` ledger, then runs the same
+ * `computeAbilityScores` the rest of the builder uses — so the dialog always
+ * shows exactly what `derivePlan`/`isAbilityBoostsSlotFilled` will see once
+ * "Concluído" is pressed, with no separate preview math to keep in sync.
+ */
+export function previewAbilityScores(
+  doc: Record<string, unknown>,
+  level: number,
+  groups: AbilityBoostsGroup[],
+  selectedByGroup: string[][],
+): Record<AbilitySlug, number> {
+  const abilities: BuildAbilities = { ...getBuildAbilities(getSystem(doc)) };
+  abilities.levelledBoosts = { ...abilities.levelledBoosts };
+
+  for (let i = 0; i < groups.length; i++) {
+    const group = groups[i];
+    if (!group) continue;
+    const slugs = selectedByGroup[i] ?? [];
+    switch (group.origin) {
+      case "ancestryFree":
+        abilities.ancestryFree = slugs;
+        break;
+      case "backgroundFree":
+        abilities.backgroundFree = slugs;
+        break;
+      case "levelled":
+        abilities.levelledBoosts[String(level)] = slugs;
+        break;
+    }
+  }
+
+  return computeAbilityScores(abilities, getLevel(doc));
+}
+
+/**
+ * isAbilityBoostsSlotFilled — a level's abilityBoosts slot is "filled" when
+ * EVERY group in its context has exactly as many slugs picked as its
+ * freeCount (a group with freeCount 0 — e.g. no ancestry/background applied
+ * yet — is trivially satisfied). This is what makes the slot's filled state
+ * DERIVED from the actual ledger (R11 item 2 fix) instead of a marker choice
+ * recorded separately from the data — a doc missing boosts (like the
+ * Tobias production bug: an `abilityBoosts-1` choice marker with NO
+ * ancestryFree/backgroundFree/levelledBoosts data at all) now correctly
+ * reports unfilled, and self-corrects the moment the player finishes the
+ * dialog for real.
+ */
+export function isAbilityBoostsSlotFilled(slotCtx: AbilityBoostsSlotContext): boolean {
+  return slotCtx.groups.every((g) => g.freeCount === 0 || g.initialFreeSlugs.length === g.freeCount);
 }
 
 /** setFreeArchetype — toggle the Free Archetype variant rule. */
@@ -1225,8 +1924,30 @@ export function removeChoice(ctx: PlanOpBuilderContext, slot: PlanSlotModel): Do
     } satisfies DocDeleteEmbeddedPayload);
   }
 
+  // Cascade: removing a granting feat must also remove its nested
+  // `grantedFeat` sub-slot (W1-D item 3) — find the embedded item tagged
+  // `flags.fusion.build.slot === "<slot.slotId>:granted"` (there is at most
+  // one, since a feat only grants one nested choice in the current model)
+  // and delete it too, so the sub-slot's own `resolveSlot` lookup naturally
+  // reports unfilled/absent afterward.
+  const grantedSlotId = `${slot.slotId}:granted`;
+  const grantedItem = getItems(ctx.doc).find((it) => getItemBuildFlag(it)?.slot === grantedSlotId);
+  if (grantedItem) {
+    const grantedItemId = grantedItem["_id"];
+    if (typeof grantedItemId === "string") {
+      ops.push({
+        type: "doc:delete",
+        documentType: "Item",
+        id: grantedItemId,
+        parent: { type: "Actor", id: ctx.actorId },
+      } satisfies DocDeleteEmbeddedPayload);
+    }
+  }
+
   const existingChoices = getBuildChoices(getSystem(ctx.doc));
-  const remaining = existingChoices.filter((c) => c.slot !== slot.slotId);
+  const remaining = existingChoices.filter(
+    (c) => c.slot !== slot.slotId && c.slot !== grantedSlotId,
+  );
   if (remaining.length !== existingChoices.length) {
     ops.push({
       type: "doc:update",

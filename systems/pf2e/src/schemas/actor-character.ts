@@ -203,8 +203,15 @@ const BuildAbilitiesSchema = z
     ancestryFlaws: z.array(AbilitySlugSchema).default([]),
     /** Free ability boost slugs chosen from ancestry (unrestricted boosts). */
     ancestryFree: z.array(AbilitySlugSchema).default([]),
-    /** Ability slugs boosted by background. */
+    /** Ability slugs boosted by background (fixed boosts). */
     backgroundBoosts: z.array(AbilitySlugSchema).default([]),
+    /**
+     * Free ability boost slugs chosen from background (unrestricted boosts —
+     * the PF2e Remaster background boost table is two "free" choices for
+     * most backgrounds, e.g. Fireworks Performer's `system.boosts` =
+     * `["free","free"]`; see systems/pf2e/packs/backgrounds-core).
+     */
+    backgroundFree: z.array(AbilitySlugSchema).default([]),
     /** Key ability boost slug(s) chosen at class selection. */
     classBoost: z.array(AbilitySlugSchema).default([]),
     /** Ability boosts chosen at level-up milestones, keyed by level (as string). */

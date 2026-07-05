@@ -27,9 +27,25 @@
    * chips live in a collapsed "More filters" section. The tradition filter
    * is a SOFT default (resolveInitialTradition) — it is only pre-applied
    * when it matches at least one entry, so the list is never empty on open.
+   * Trait chips (W2-F) are bucketed into curated semantic groups via
+   * lib/sheets/pf2e/traitGroups.ts (groupTraits) instead of one flat
+   * alphabetical row — each group renders under its own i18n'd subtitle,
+   * plus a free-text trait search box that narrows within groups without
+   * changing the selected traitFilter.
    *
-   * Clean-room: only mechanical index fields (rank, traits, source) are shown —
-   * no prose (footer note documents this, matching the design contract).
+   * DETAILS PANEL (W2-C2): selecting a row fetches the full document via
+   * compendiumApi.getDocument(uuid) on demand (cached per uuid for this
+   * dialog instance via DocumentDetailsCache — see loadDetails/confirmSelection,
+   * which reuse the same cache entry to avoid a duplicate round-trip) and
+   * renders it in the side (bottom, on narrow viewports) panel:
+   * DocumentDetailsPanel.svelte. Description HTML is sanitized (allow-listed
+   * tags only, @UUID/@Damage/@Check/@Template inline refs rewritten to
+   * readable text — see lib/compendium/documentDetails.ts) — never executed,
+   * that's V2. The row list itself still only shows mechanical index fields
+   * (rank, traits) — the description/full mechanics only render in the
+   * details panel once a row is selected; the footer note reflects that
+   * the description content shown is ORC/OGL-gated at import time
+   * (W2-C1/stripFlavorProse), not stripped by this component.
    */
 
   import type { PackIndexEntry } from "@fusion/shared";
@@ -40,11 +56,15 @@
     requireConnectedSocket,
     SocketUnavailableError,
   } from "../../../lib/compendium/compendiumApi.js";
+  import { DocumentDetailsCache } from "../../../lib/compendium/documentDetails.js";
+  import DocumentDetailsPanel from "./DocumentDetailsPanel.svelte";
   import {
     filterSpellPicker,
     sortSpellPickerEntries,
     resolveInitialTradition,
   } from "../../../lib/sheets/pf2e/characterSheetVM.js";
+  import { groupTraits } from "../../../lib/sheets/pf2e/traitGroups.js";
+  import { normalizeSearchText } from "@fusion/shared";
   import { session, getSocket } from "../../../lib/session.svelte.js";
   import { t } from "../../../lib/i18n/i18n.js";
 
@@ -73,12 +93,22 @@
   let rankFilter = $state<number | null>(initialRank ?? null);
   let traditionFilter = $state<string | null>(null);
   let traitFilter = $state<string | null>(null);
+  let traitSearch = $state("");
   let moreFiltersOpen = $state(false);
   let selectedUuid = $state<string | null>(null);
   let loading = $state(true);
   let errorKind = $state<"not-connected" | "load" | null>(null);
   let entries = $state<PackIndexEntry[]>([]);
   let submitting = $state(false);
+
+  // --- Details panel state (W2-C2) -----------------------------------------
+  // Cache is created once per dialog instance (not module-level) so a
+  // closed/reopened dialog always starts with a clean cache and separate
+  // dialog instances never share entries.
+  const detailsCache = new DocumentDetailsCache();
+  let detailsDoc = $state<Record<string, unknown> | null>(null);
+  let detailsLoading = $state(false);
+  let detailsError = $state(false);
 
   const systemId = $derived(session.worldInfo?.systemId ?? "pf2e");
 
@@ -118,6 +148,22 @@
       if (Array.isArray(raw)) for (const v of raw) if (typeof v === "string") set.add(v);
     }
     return Array.from(set).sort();
+  });
+
+  /**
+   * availableTraits bucketed into curated semantic groups (traitGroups.ts,
+   * W2-F) — replaces the single flat alphabetical chip row. traitSearch
+   * narrows within groups (a trait not matching the search is dropped from
+   * its group; groups left empty by the search are omitted, same as an
+   * empty group from the base data).
+   */
+  const groupedTraits = $derived.by(() => {
+    const searchNorm = traitSearch.trim() ? normalizeSearchText(traitSearch.trim()) : null;
+    const groups = groupTraits(availableTraits);
+    if (!searchNorm) return groups;
+    return groups
+      .map((g) => ({ ...g, traits: g.traits.filter((tr) => normalizeSearchText(tr).includes(searchNorm)) }))
+      .filter((g) => g.traits.length > 0);
   });
 
   const filtered = $derived.by(() => {
@@ -162,6 +208,44 @@
 
   function selectRow(e: PackIndexEntry): void {
     selectedUuid = e.uuid;
+    void loadDetails(e.uuid);
+  }
+
+  /**
+   * Load the full document for the details panel, on demand, cached by
+   * uuid for the lifetime of this dialog instance. Never blocks the
+   * confirm flow — confirmSelection() re-fetches (or reuses the same
+   * cache) independently.
+   */
+  async function loadDetails(uuid: string): Promise<void> {
+    const cached = detailsCache.get(uuid);
+    if (cached) {
+      detailsDoc = cached;
+      detailsError = false;
+      return;
+    }
+
+    detailsLoading = true;
+    detailsError = false;
+    try {
+      const sock = requireConnectedSocket(getSocket());
+      const { document } = await getDocument(sock, uuid);
+      detailsCache.set(uuid, document);
+      // Guard against a stale response landing after the user selected a
+      // different row while this fetch was in flight.
+      if (selectedUuid === uuid) detailsDoc = document;
+    } catch {
+      if (selectedUuid === uuid) {
+        detailsError = true;
+        detailsDoc = null;
+      }
+    } finally {
+      if (selectedUuid === uuid) detailsLoading = false;
+    }
+  }
+
+  function retryDetails(): void {
+    if (selectedUuid) void loadDetails(selectedUuid);
   }
 
   async function confirmSelection(): Promise<void> {
@@ -169,8 +253,8 @@
     submitting = true;
     errorKind = null;
     try {
-      const sock = requireConnectedSocket(getSocket());
-      const { document } = await getDocument(sock, selectedUuid);
+      const cached = detailsCache.get(selectedUuid);
+      const document = cached ?? (await getDocument(requireConnectedSocket(getSocket()), selectedUuid)).document;
       onSelect(document);
       onClose();
     } catch (err) {
@@ -216,6 +300,7 @@
     </div>
 
     <div class="picker-modal__body">
+      <div class="picker-modal__main">
       <div class="picker-search">
         <span class="picker-search__icon" aria-hidden="true">&#128269;</span>
         <input
@@ -262,17 +347,37 @@
             {t("FUSION.Sheet.Spells.Picker.TraditionFilter", { tradition: traditionLabel })}
           </button>
           {#if availableTraits.length > 0}
-            <span class="picker-filters__sep"></span>
-            {#each availableTraits as trait (trait)}
-              <button
-                type="button"
-                class="picker-chip"
-                class:picker-chip--active={traitFilter === trait}
-                onclick={() => { traitFilter = traitFilter === trait ? null : trait; }}
-              >
-                {trait}
-              </button>
-            {/each}
+            <div class="picker-trait-search">
+              <input
+                type="text"
+                class="picker-trait-search__input"
+                placeholder={t("FUSION.Sheet.Spells.Picker.TraitSearchPlaceholder")}
+                bind:value={traitSearch}
+              />
+            </div>
+            {#if groupedTraits.length === 0}
+              <div class="picker-trait-groups__empty">{t("FUSION.Sheet.Spells.Picker.NoTraitsFound")}</div>
+            {:else}
+              <div class="picker-trait-groups">
+                {#each groupedTraits as group (group.key)}
+                  <div class="picker-trait-group">
+                    <div class="picker-trait-group__label">{t(group.labelKey)}</div>
+                    <div class="picker-filters">
+                      {#each group.traits as trait (trait)}
+                        <button
+                          type="button"
+                          class="picker-chip"
+                          class:picker-chip--active={traitFilter === trait}
+                          onclick={() => { traitFilter = traitFilter === trait ? null : trait; }}
+                        >
+                          {trait}
+                        </button>
+                      {/each}
+                    </div>
+                  </div>
+                {/each}
+              </div>
+            {/if}
           {/if}
         </div>
       {/if}
@@ -324,6 +429,11 @@
           {/each}
         {/if}
       </div>
+      </div>
+
+      <div class="picker-modal__side">
+        <DocumentDetailsPanel document={detailsDoc} loading={detailsLoading} error={detailsError} onRetry={retryDetails} />
+      </div>
     </div>
 
     <div class="picker-modal__footer">
@@ -358,7 +468,7 @@
   }
 
   .picker-modal {
-    width: 680px;
+    width: 960px;
     max-width: 100%;
     max-height: 720px;
     background: var(--fusion-surface);
@@ -368,6 +478,12 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+  }
+
+  @media (max-width: 720px) {
+    .picker-modal {
+      width: 680px;
+    }
   }
 
   .picker-modal__header {
@@ -407,11 +523,49 @@
   }
 
   .picker-modal__body {
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .picker-modal__main {
     padding: 14px 18px;
     display: flex;
     flex-direction: column;
     gap: 12px;
     overflow-y: auto;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .picker-modal__side {
+    width: 300px;
+    flex-shrink: 0;
+    border-left: 1px solid var(--fusion-border);
+    background: var(--fusion-surface-alt);
+    overflow-y: auto;
+  }
+
+  @media (max-width: 720px) {
+    .picker-modal__body {
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .picker-modal__main {
+      overflow-y: visible;
+      flex: none;
+    }
+
+    .picker-modal__side {
+      width: 100%;
+      flex-shrink: 1;
+      border-left: none;
+      border-top: 1px solid var(--fusion-border);
+      max-height: 260px;
+    }
   }
 
   .picker-search {
@@ -493,6 +647,53 @@
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius);
     padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .picker-trait-search__input {
+    width: 100%;
+    background: var(--fusion-surface);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    padding: 5px 9px;
+    font-size: 11.5px;
+    font-family: var(--fusion-font);
+    color: var(--fusion-text);
+    outline: none;
+  }
+
+  .picker-trait-search__input:focus {
+    border-color: var(--fusion-accent);
+  }
+
+  .picker-trait-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 220px;
+    overflow-y: auto;
+  }
+
+  .picker-trait-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .picker-trait-group__label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--fusion-text-subtle);
+  }
+
+  .picker-trait-groups__empty {
+    font-size: 11.5px;
+    color: var(--fusion-text-muted);
+    padding: 6px 2px;
   }
 
   .picker-results {

@@ -32,19 +32,27 @@
   </div>
   <div class="level-card__body">
     {#each levelPlan.slots as slot (slot.slotId)}
-      {#if slot.filled}
-        <PlanSlot
-          name={slot.choiceName ?? slot.label}
-          type={slot.label}
-          onRemove={editable ? () => onSlotRemove(slot) : undefined}
-        >
-          {#snippet badge()}
-            {#if slot.optional}<PlanOptionalBadge />{/if}
-          {/snippet}
-        </PlanSlot>
-      {:else}
-        <PlanEmptySlot label={slotLabel(slot)} disabled={!editable} onClick={() => onSlotClick(slot)} />
-      {/if}
+      <!--
+        A grantedFeat sub-slot (W1-D — e.g. Basic Concoction's nested
+        alchemist feat pick) carries `parentSlotId` and is wrapped indented
+        directly under its parent, matching the Pathbuilder-style nested card
+        the user referenced (print 2).
+      -->
+      <div class="level-card__slot" class:level-card__slot--nested={slot.parentSlotId !== undefined}>
+        {#if slot.filled}
+          <PlanSlot
+            name={slot.choiceName ?? slot.label}
+            type={slot.label}
+            onRemove={editable ? () => onSlotRemove(slot) : undefined}
+          >
+            {#snippet badge()}
+              {#if slot.optional}<PlanOptionalBadge />{/if}
+            {/snippet}
+          </PlanSlot>
+        {:else}
+          <PlanEmptySlot label={slotLabel(slot)} disabled={!editable} onClick={() => onSlotClick(slot)} />
+        {/if}
+      </div>
     {/each}
 
     {#if levelPlan.autoFeatures.length > 0}
@@ -90,5 +98,16 @@
     padding: 8px;
     margin-top: 2px;
     border-top: 1px dashed var(--fusion-border);
+  }
+
+  .level-card__slot {
+    display: contents;
+  }
+
+  .level-card__slot--nested {
+    display: block;
+    margin-left: 18px;
+    padding-left: 8px;
+    border-left: 2px solid var(--fusion-border);
   }
 </style>

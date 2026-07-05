@@ -1341,6 +1341,146 @@ describe("CharacterSheetVM — spell management ops (protocol-validated)", () =>
 });
 
 // ---------------------------------------------------------------------------
+// restAll — "Descansar" header button (feedback: expended slots had no
+// recovery path). Recovers every expended prepared slot across every
+// spellcasting entry/rank + refills Focus Points to max. Never touches HP.
+// ---------------------------------------------------------------------------
+
+describe("CharacterSheetVM — restAll", () => {
+  it("clears expended on every rank across every entry (one op per rank-with-expended-slots)", () => {
+    const doc = makeCharacter();
+    const items = doc["items"] as Array<Record<string, unknown>>;
+    const entry = items.find((i) => i["_id"] === "entry-arcane")!;
+    (entry["system"] as Record<string, unknown>)["slots"] = {
+      "0": { value: 0, max: 0 },
+      "1": {
+        value: 2,
+        max: 3,
+        prepared: [
+          { id: "spell-magic-missile", expended: true },
+          { id: "spell-x", expended: false },
+        ],
+      },
+      "2": {
+        value: 1,
+        max: 1,
+        prepared: [{ id: "spell-y", expended: true }],
+      },
+    };
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+
+    const ops = vm.restAll();
+    // Two ranks had at least one expended slot → 2 doc:update ops (no focus
+    // points on this fixture, so no third op).
+    expect(ops.length).toBe(2);
+
+    const rank1Op = ops.find((op) => "diff" in op && "system.slots.1.prepared" in (op as { diff: Record<string, unknown> }).diff);
+    expect(rank1Op).toBeDefined();
+    expect((rank1Op as { diff: Record<string, unknown> }).diff).toEqual({
+      "system.slots.1.prepared": [
+        { id: "spell-magic-missile", expended: false },
+        { id: "spell-x", expended: false },
+      ],
+    });
+    expect((rank1Op as { embedded?: unknown }).embedded).toEqual({ type: "Item", id: "actor-001" });
+
+    const rank2Op = ops.find((op) => "diff" in op && "system.slots.2.prepared" in (op as { diff: Record<string, unknown> }).diff);
+    expect((rank2Op as { diff: Record<string, unknown> }).diff).toEqual({
+      "system.slots.2.prepared": [{ id: "spell-y", expended: false }],
+    });
+
+    // Every emitted op validates against the real wire schema.
+    for (const op of ops) {
+      const u = op as { documentType: string; id: string; diff: Record<string, unknown>; embedded?: { type: string; id: string } };
+      const wirePayload = { documentType: u.documentType, updates: [{ _id: u.id, diff: u.diff, embedded: u.embedded }] };
+      expect(DocUpdatePayloadSchema.safeParse(wirePayload).success).toBe(true);
+    }
+  });
+
+  it("also refills focusPoints.value to max when below max", () => {
+    const doc = makeCharacter();
+    (doc["system"] as Record<string, unknown>)["resources"] = {
+      heroPoints: { value: 1, max: 3 },
+      focusPoints: { value: 1, max: 3 },
+    };
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    const ops = vm.restAll();
+    const focusOp = ops.find(
+      (op) => "diff" in op && "system.resources.focusPoints.value" in (op as { diff: Record<string, unknown> }).diff,
+    );
+    expect(focusOp).toBeDefined();
+    expect((focusOp as { diff: Record<string, unknown> }).diff["system.resources.focusPoints.value"]).toBe(3);
+  });
+
+  it("returns an empty array when nothing is expended and focus points are full", () => {
+    const doc = makeCharacter();
+    const items = doc["items"] as Array<Record<string, unknown>>;
+    const entry = items.find((i) => i["_id"] === "entry-arcane")!;
+    (entry["system"] as Record<string, unknown>)["slots"] = {
+      "1": { value: 2, max: 3, prepared: [{ id: "spell-magic-missile", expended: false }] },
+    };
+    (doc["system"] as Record<string, unknown>)["resources"] = {
+      heroPoints: { value: 1, max: 3 },
+      focusPoints: { value: 2, max: 2 },
+    };
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    expect(vm.restAll()).toEqual([]);
+  });
+
+  it("returns an empty array when not editable", () => {
+    const doc = makeCharacter();
+    const items = doc["items"] as Array<Record<string, unknown>>;
+    const entry = items.find((i) => i["_id"] === "entry-arcane")!;
+    (entry["system"] as Record<string, unknown>)["slots"] = {
+      "1": { value: 2, max: 3, prepared: [{ id: "spell-magic-missile", expended: true }] },
+    };
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OBSERVER,
+      userId: "u",
+      isGm: false,
+    });
+    expect(vm.restAll()).toEqual([]);
+  });
+
+  it("skips cantrip slots (rank 0 has no expended concept)", () => {
+    const doc = makeCharacter();
+    const items = doc["items"] as Array<Record<string, unknown>>;
+    const entry = items.find((i) => i["_id"] === "entry-arcane")!;
+    (entry["system"] as Record<string, unknown>)["slots"] = {
+      "0": { value: 0, max: 0, prepared: [{ id: "spell-shield", expended: true }] },
+    };
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    expect(vm.restAll()).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // sendOp normalization — R10-C4 item 4 (regression + embedded passthrough).
 // Exercised indirectly through the exact payload shapes the VM produces,
 // mirroring normalizeDocUpdate/normalizeDocCreate/normalizeDocDelete in

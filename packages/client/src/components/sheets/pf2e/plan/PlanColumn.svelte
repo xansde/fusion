@@ -28,8 +28,9 @@
   import {
     derivePlan,
     planContext,
-    featElegivel,
+    isFeatEligible,
     isHybridStudyOption,
+    matchesGrantedFeatFilter,
     abilityBoostsSlotContext,
     applyClass,
     applyAncestry,
@@ -37,23 +38,26 @@
     applyBackground,
     chooseFeat,
     chooseHybridStudy,
-    chooseSkillTraining,
-    chooseSkillIncrease,
     setAbilityBoosts,
     markAbilityBoostsChoice,
     setFreeArchetype,
     removeChoice,
     levelUp,
+    skillTrainingDialogContext,
+    confirmSkillTraining,
+    addLoreSkill,
     type PlanSlotModel,
     type PlanSlotType,
     type PlanOpBuilderContext,
     type FeatDocLike,
+    type SkillTrainingDialogKind,
   } from "../../../../lib/sheets/pf2e/planVM.js";
   import type { DocOpPayload } from "../../../../lib/sheets/pf2e/characterSheetVM.js";
   import ABCCard from "./ABCCard.svelte";
   import LevelCard from "./LevelCard.svelte";
   import CompendiumPickerDialog from "./CompendiumPickerDialog.svelte";
   import AbilityBoostsDialog from "./AbilityBoostsDialog.svelte";
+  import SkillTrainingDialog from "./SkillTrainingDialog.svelte";
   import { t } from "../../../../lib/i18n/i18n.js";
 
   interface Props {
@@ -153,8 +157,23 @@
   let boostsDialogTarget = $state<{ level: number; slot: PlanSlotModel } | null>(null);
 
   function slotLabel(slot: PlanSlotModel): string {
-    const key = `FUSION.Sheet.Plan.SlotLabel.${slot.type}`;
-    return t(key);
+    // A grantedFeat sub-slot (W1-D) uses its grant's OWN i18n key (e.g.
+    // "...grantedFeat.basicConcoction") instead of the generic
+    // "...grantedFeat" fallback — every grant in GRANTED_FEAT_CHOICES names a
+    // specific i18n key precisely so each nested pick's label describes what
+    // it actually grants ("Talento de Alquimista (Nível 1-2)"), not a vague
+    // "Talento Concedido".
+    const key = slot.grantFilter?.labelKey ?? `FUSION.Sheet.Plan.SlotLabel.${slot.type}`;
+    const base = t(key);
+    // Collapsed skillTraining/skillIncrease group slot (R11 item 3): show the
+    // "(x/N)" progress even while it's still the EMPTY-slot affordance (a
+    // partially-filled group — e.g. 2/4 — isn't `filled` yet, so it renders
+    // via PlanEmptySlot, but the player still needs the count to know how
+    // many picks remain before opening the dialog).
+    if (slot.totalCount !== undefined) {
+      return `${base} (${String(slot.filledCount ?? 0)}/${String(slot.totalCount)})`;
+    }
+    return base;
   }
 
   function handleSlotClick(level: number, slot: PlanSlotModel): void {
@@ -164,7 +183,8 @@
       return;
     }
     if (slot.type === "skillTraining" || slot.type === "skillIncrease") {
-      skillDialogTarget = { level, slot };
+      skillDialogLevel = level;
+      skillDialogKind = slot.type;
       return;
     }
     slotPicker = { level, slot };
@@ -173,6 +193,20 @@
   function handleSlotRemove(_level: number, slot: PlanSlotModel): void {
     if (!editable) return;
     sendAll(removeChoice(opCtx, slot));
+  }
+
+  /** Reconstruct just enough of the FeatDocLike shape from a PackIndexEntry's flat dot-path index to run a feat predicate against it. */
+  function featDocFromIndex(e: { index: Record<string, unknown> }): FeatDocLike {
+    const category = e.index["system.category"];
+    const level2 = e.index["system.level"];
+    const traits = e.index["system.traits.value"];
+    return {
+      system: {
+        ...(typeof category === "string" ? { category } : {}),
+        ...(typeof level2 === "number" ? { level: level2 } : {}),
+        traits: { value: Array.isArray(traits) ? traits.filter((v): v is string => typeof v === "string") : [] },
+      },
+    };
   }
 
   function pickerConfigFor(slot: PlanSlotModel): { packSlug: string; title: string; filterFn?: (e: { name: string; index: Record<string, unknown> }) => boolean } {
@@ -184,26 +218,26 @@
         filterFn: (e) => isHybridStudyOption({ system: { traits: { otherTags: e.index["system.traits.otherTags"] } } }),
       };
     }
+    if (slot.type === "grantedFeat" && slot.grantFilter) {
+      const grant = slot.grantFilter;
+      return {
+        packSlug: "feats-core",
+        title: t(grant.labelKey),
+        // A granted-feat sub-slot's eligibility comes from the grant's OWN
+        // declarative predicates (category/trait/level<=N) — NOT from
+        // isFeatEligible's slot-type/class/ancestry rules, which only make
+        // sense for the character's own class/ancestry feat slots (W1-D:
+        // Basic Concoction's grant is an alchemist feat regardless of the
+        // character's actual class).
+        filterFn: (e) => matchesGrantedFeatFilter(featDocFromIndex(e), grant),
+      };
+    }
     return {
       packSlug: "feats-core",
       title: t(`FUSION.Sheet.Plan.SlotLabel.${slot.type}`),
       filterFn: (e) => {
-        // PackIndexEntry stores index fields as a flat dot-path map
-        // (e.index["system.category"], ...) — featElegivel expects the
-        // nested FeatDocLike shape (system.category/level/traits.value), so
-        // reconstruct just enough of that shape from the index here (same
-        // pattern the hybridStudy branch above uses for otherTags).
-        const category = e.index["system.category"];
-        const level2 = e.index["system.level"];
-        const traits = e.index["system.traits.value"];
-        const featDoc: FeatDocLike = {
-          system: {
-            ...(typeof category === "string" ? { category } : {}),
-            ...(typeof level2 === "number" ? { level: level2 } : {}),
-            traits: { value: Array.isArray(traits) ? traits.filter((v): v is string => typeof v === "string") : [] },
-          },
-        };
-        return featElegivel(featDoc, slot.type, level, {
+        const featDoc = featDocFromIndex(e);
+        return isFeatEligible(featDoc, slot.type, level, {
           ...(ctx.classSlug ? { classSlug: ctx.classSlug } : {}),
           ...(ctx.ancestrySlug ? { ancestrySlug: ctx.ancestrySlug } : {}),
         });
@@ -232,57 +266,58 @@
       : t("FUSION.Sheet.Plan.AbilityBoosts.TitleMilestone", { level: String(level) });
   }
 
-  function handleAbilityBoostsConfirm(level: number, slot: PlanSlotModel, freeSlugs: string[]): void {
+  function handleAbilityBoostsConfirm(level: number, slot: PlanSlotModel, freeSlugsByGroup: string[][]): void {
     const boostCtx = abilityBoostsSlotContext(doc, level);
-    const op = setAbilityBoosts(opCtx, boostCtx.origin, freeSlugs, boostCtx.origin === "levelled" ? level : undefined);
-    if (op) sendOpFn(op);
+    for (let i = 0; i < boostCtx.groups.length; i++) {
+      const group = boostCtx.groups[i];
+      if (!group || group.freeCount === 0) continue;
+      const slugs = freeSlugsByGroup[i] ?? [];
+      const op = setAbilityBoosts(opCtx, group.origin, slugs, group.origin === "levelled" ? level : undefined);
+      if (op) sendOpFn(op);
+    }
     const marker = markAbilityBoostsChoice(opCtx, slot.slotId, level);
     if (marker) sendOpFn(marker);
     boostsDialogTarget = null;
   }
 
   // ---------------------------------------------------------------------------
-  // Skill training / increase dialog — a compact inline list, no compendium
-  // needed (the 16 canonical skills + lores are a fixed, small set already
-  // known client-side via characterSheetVM's SKILL_LABELS-equivalent).
+  // Skill training / increase dialog (R11 item 1 — Pathbuilder-style mass
+  // picker). One dialog instance covers EVERY skillTraining-<level>-*/
+  // skillIncrease-<level> slot of a level at once (the Plan card already
+  // collapses them into a single "Treinamento de Perícias (x/N)" entry via
+  // derivePlan's collapseSkillSlotGroups) — see planVM.ts's
+  // `skillTrainingDialogContext`/`confirmSkillTraining`.
   // ---------------------------------------------------------------------------
 
-  let skillDialogTarget = $state<{ level: number; slot: PlanSlotModel } | null>(null);
+  let skillDialogLevel = $state<number | null>(null);
+  let skillDialogKind = $state<SkillTrainingDialogKind | null>(null);
 
-  // Skill names are PF2e game terms and stay in English everywhere in the
-  // sheet (see characterSheetVM.ts's SKILL_LABELS — the Skills tab does the
-  // same, never routes these through t()).
-  const SKILL_LABELS: Record<string, string> = {
-    acrobatics: "Acrobatics",
-    arcana: "Arcana",
-    athletics: "Athletics",
-    crafting: "Crafting",
-    deception: "Deception",
-    diplomacy: "Diplomacy",
-    intimidation: "Intimidation",
-    medicine: "Medicine",
-    nature: "Nature",
-    occultism: "Occultism",
-    performance: "Performance",
-    religion: "Religion",
-    society: "Society",
-    stealth: "Stealth",
-    survival: "Survival",
-    thievery: "Thievery",
-  };
-  const SKILL_CHOICES: Array<{ slug: string; label: string }> = Object.entries(SKILL_LABELS).map(
-    ([slug, label]) => ({ slug, label }),
+  const skillDialogCtx = $derived(
+    skillDialogLevel !== null && skillDialogKind !== null
+      ? skillTrainingDialogContext(doc, skillDialogLevel, skillDialogKind)
+      : null,
   );
 
-  function handleSkillChoice(skillSlug: string): void {
-    if (!skillDialogTarget) return;
-    const { level, slot } = skillDialogTarget;
-    const op =
-      slot.type === "skillIncrease"
-        ? chooseSkillIncrease(opCtx, slot, level, skillSlug, 1)
-        : chooseSkillTraining(opCtx, slot, level, skillSlug);
+  function skillDialogTitle(kind: SkillTrainingDialogKind): string {
+    return kind === "skillIncrease"
+      ? t("FUSION.Sheet.Plan.SlotLabel.skillIncrease")
+      : t("FUSION.Sheet.Plan.SlotLabel.skillTraining");
+  }
+
+  function closeSkillDialog(): void {
+    skillDialogLevel = null;
+    skillDialogKind = null;
+  }
+
+  function handleSkillDialogConfirm(picks: string[]): void {
+    if (!skillDialogCtx) return;
+    const op = confirmSkillTraining(opCtx, skillDialogCtx, picks);
     if (op) sendOpFn(op);
-    skillDialogTarget = null;
+  }
+
+  function handleAddLore(name: string): void {
+    const op = addLoreSkill(opCtx, name);
+    if (op) sendOpFn(op);
   }
 
   // ---------------------------------------------------------------------------
@@ -427,41 +462,24 @@
   <AbilityBoostsDialog
     title={abilityBoostsDialogTitle(boostsDialogTarget.level)}
     fixedSlugs={boostCtx.fixedSlugs}
-    freeCount={boostCtx.freeCount}
-    initialFreeSlugs={boostCtx.initialFreeSlugs}
+    groups={boostCtx.groups}
+    level={boostsDialogTarget.level}
+    {doc}
     onClose={() => { boostsDialogTarget = null; }}
-    onConfirm={(freeSlugs) => {
-      if (boostsDialogTarget) handleAbilityBoostsConfirm(boostsDialogTarget.level, boostsDialogTarget.slot, freeSlugs);
+    onConfirm={(freeSlugsByGroup) => {
+      if (boostsDialogTarget) handleAbilityBoostsConfirm(boostsDialogTarget.level, boostsDialogTarget.slot, freeSlugsByGroup);
     }}
   />
 {/if}
 
-{#if skillDialogTarget}
-  <div
-    class="skill-dialog-backdrop"
-    role="presentation"
-    onclick={() => { skillDialogTarget = null; }}
-    onkeydown={(e) => { if (e.key === "Escape") skillDialogTarget = null; }}
-  >
-    <div
-      class="skill-dialog"
-      role="dialog"
-      aria-modal="true"
-      tabindex="-1"
-      aria-label={t(`FUSION.Sheet.Plan.SlotLabel.${skillDialogTarget.slot.type}`)}
-      onclick={(e) => e.stopPropagation()}
-      onkeydown={(e) => { if (e.key === "Escape") skillDialogTarget = null; }}
-    >
-      <h3 class="skill-dialog__title">{t(`FUSION.Sheet.Plan.SlotLabel.${skillDialogTarget.slot.type}`)}</h3>
-      <div class="skill-dialog__list">
-        {#each SKILL_CHOICES as choice (choice.slug)}
-          <button type="button" class="skill-dialog__item" onclick={() => handleSkillChoice(choice.slug)}>
-            {choice.label}
-          </button>
-        {/each}
-      </div>
-    </div>
-  </div>
+{#if skillDialogCtx && skillDialogKind}
+  <SkillTrainingDialog
+    title={skillDialogTitle(skillDialogKind)}
+    dialogCtx={skillDialogCtx}
+    onClose={closeSkillDialog}
+    onConfirm={handleSkillDialogConfirm}
+    onAddLore={handleAddLore}
+  />
 {/if}
 
 <style>
@@ -584,62 +602,5 @@
   .plan-column__levelup:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-  }
-
-  /* Skill choice mini-dialog */
-  .skill-dialog-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.45);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    z-index: 110;
-  }
-
-  .skill-dialog {
-    width: 320px;
-    max-width: 100%;
-    max-height: 420px;
-    overflow-y: auto;
-    background: var(--fusion-surface);
-    border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-lg);
-    box-shadow: var(--fusion-shadow-modal);
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .skill-dialog__title {
-    font-size: 13px;
-    font-weight: 600;
-    margin: 0;
-    color: var(--fusion-text);
-  }
-
-  .skill-dialog__list {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .skill-dialog__item {
-    text-align: left;
-    padding: 8px 10px;
-    border-radius: var(--fusion-radius-sm);
-    border: 1px solid transparent;
-    background: transparent;
-    color: var(--fusion-text);
-    font-family: var(--fusion-font);
-    font-size: 12.5px;
-    cursor: pointer;
-  }
-
-  .skill-dialog__item:hover {
-    background: var(--fusion-surface-alt);
-    border-color: var(--fusion-accent);
   }
 </style>

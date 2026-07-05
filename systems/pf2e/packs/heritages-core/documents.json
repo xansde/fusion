@@ -10,7 +10,7 @@
         "slug": "ratfolk",
         "uuid": "Compendium.pf2e.ancestries.Item.P6PcVnCkh4XMdefw"
       },
-      "description": "",
+      "description": "<p>Your ancestors lived deeper underground than other ratfolk, granting you the ability to see in the dark. You gain darkvision.</p>",
       "publication": {
         "license": "ORC",
         "remaster": true,
@@ -66,7 +66,7 @@
         "slug": "ratfolk",
         "uuid": "Compendium.pf2e.ancestries.Item.P6PcVnCkh4XMdefw"
       },
-      "description": "",
+      "description": "<p>You are native to arid plains and likely grew up traveling the roads. If you have both hands free, you can increase your Speed to 30 feet as you run on all fours. In addition, environmental heat effects are one step less extreme for you, and you can go 10 times longer than normal before you are affected by starvation or thirst. However, unless you wear protective gear or take shelter, environmental cold effects are one step more extreme for you.</p>",
       "publication": {
         "license": "ORC",
         "remaster": true,
@@ -129,7 +129,7 @@
         "slug": "ratfolk",
         "uuid": "Compendium.pf2e.ancestries.Item.P6PcVnCkh4XMdefw"
       },
-      "description": "",
+      "description": "<p>Your long snout gives you a keener sense of smell than most ratfolk. You gain imprecise scent with a range of 30 feet. This means you can use your sense of smell to determine a creature's location. The GM will usually double the range if you're downwind from the creature or halve the range if you're upwind.</p>\n<p>In addition, you gain a +2 circumstance bonus to Perception checks to @UUID[Compendium.pf2e.actionspf2e.Item.Seek] a creature or object within the range of your scent.</p>",
       "publication": {
         "license": "ORC",
         "remaster": true,
@@ -221,7 +221,7 @@
         "slug": "ratfolk",
         "uuid": "Compendium.pf2e.ancestries.Item.P6PcVnCkh4XMdefw"
       },
-      "description": "",
+      "description": "<p>You come from a long line of ratfolk with a community based in the sewers beneath a large settlement. You are immune to the disease putrid plague. You gain a +1 circumstance bonus to saving throws against diseases and poisons. If you roll a success on a saving throw against a disease or poison, you get a critical success instead. If you have a different ability that would improve the save in this way (such as the @UUID[Compendium.pf2e.classfeatures.Item.Battle Hardened] fighter class feature), if you roll a critical failure on the save you get a failure instead.</p>",
       "publication": {
         "license": "ORC",
         "remaster": true,
@@ -312,7 +312,7 @@
         "slug": "ratfolk",
         "uuid": "Compendium.pf2e.ancestries.Item.P6PcVnCkh4XMdefw"
       },
-      "description": "",
+      "description": "<p>Your ancestors lived in dark spaces underground, granting you dark fur and a vaguely unnatural mien. You gain the trained proficiency rank in Intimidation and can use Intimidation to @UUID[Compendium.pf2e.actionspf2e.Item.Coerce] animals. When you @UUID[Compendium.pf2e.actionspf2e.Item.Demoralize] an animal, you don't take a penalty for not sharing a language with it. If you would automatically become trained in Intimidation (from your background or class, for example), you become trained in another skill of your choice.</p>\n<p>Animals' attitudes toward you begin one degree worse than normal, usually starting at unfriendly instead of indifferent for domesticated animals, and hostile instead of unfriendly for wild animals.</p>",
       "publication": {
         "license": "ORC",
         "remaster": true,
@@ -370,7 +370,7 @@
         "slug": "ratfolk",
         "uuid": "Compendium.pf2e.ancestries.Item.P6PcVnCkh4XMdefw"
       },
-      "description": "",
+      "description": "<p>You have a thicker coat and bulkier frame to defend against the cold, granting you cold resistance equal to half your level (minimum 1). You treat environmental cold effects as if they were one step less extreme (incredible cold becomes extreme, extreme cold becomes severe, and so on).</p>",
       "publication": {
         "license": "ORC",
         "remaster": true,
@@ -428,7 +428,7 @@
         "slug": "ratfolk",
         "uuid": "Compendium.pf2e.ancestries.Item.P6PcVnCkh4XMdefw"
       },
-      "description": "",
+      "description": "<p>You can easily compress your body and squeeze through gaps. You gain the @UUID[Compendium.pf2e.feats-srd.Item.Quick Squeeze] feat as a bonus feat, even if you aren't trained in Acrobatics. Tight spaces not tight enough to require the @UUID[Compendium.pf2e.actionspf2e.Item.Squeeze] action aren't difficult terrain for you.</p>",
       "publication": {
         "license": "ORC",
         "remaster": true,

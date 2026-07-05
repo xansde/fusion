@@ -221,7 +221,9 @@
               "damageType": "piercing"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -265,7 +267,9 @@
             "value": null
           },
           "category": "interaction",
-          "description": "",
+          "description": {
+            "value": "<p>An akata can secrete resin that encases it safely in a noqual cocoon. The cocoon has Hardness 9, 40 HP, and a BT of 18. It has resistance 5 to damage from magical sources. While ensconced within this cocoon, the akata can't be harmed, doesn't need to eat or drink, and gains @UUID[Compendium.sf2e.bestiary-ability-glossary-srd.Item.Lifesense] 30 feet. During its hibernation, the akata remains dormant until exposed to extreme heat or it senses a living creature. It can then break free of its cocoon within [[/gmr 1d4 #minutes]]{1d4 minutes}.</p>"
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -305,7 +309,9 @@
             "value": null
           },
           "category": "interaction",
-          "description": "",
+          "description": {
+            "value": "<p>Akatas are immune to auditory effects, automatically critically fail Perception checks that require it to hear, and take a –2 status penalty to Perception checks (but not initiative rolls) that involve sound but also rely on its other senses.</p>"
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -384,7 +390,9 @@
             "value": null
           },
           "category": "defensive",
-          "description": "",
+          "description": {
+            "value": "<p>@Localize[PF2E.NPC.Abilities.Glossary.NoBreath]</p>"
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -424,7 +432,9 @@
             "value": null
           },
           "category": "defensive",
-          "description": "",
+          "description": {
+            "value": "<p>Salt water attacks an akata's cells and acts as a potent acid. If the akata is fully immersed in salt water, it takes @Damage[4d6[acid]] damage from the water immediately and at the end of each of its turns as long as it remains immersed. Its weakness to salt water applies to this damage.</p>"
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -464,7 +474,9 @@
             "value": null
           },
           "category": "offensive",
-          "description": "",
+          "description": {
+            "value": "<p>An akata implants microscopic larvae into any creature it bites, but only Small or Medium humanoids make suitable hosts; all other creatures are @UUID[Compendium.sf2e.conditions.Item.Sickened]{Sickened 1} at Stage 2 and further instead.</p><hr /><p><strong>Saving Throw</strong> @Check[fortitude|dc:17]</p>\n<p><strong>Stage 1</strong> carrier with no ill effect 1 (1 day)</p>\n<p><strong>Stage 2</strong> @UUID[Compendium.sf2e.conditions.Item.Drained]{Drained 1} (1 day)</p>\n<p><strong>Stage 3</strong> as stage 2 (1 day)</p>\n<p><strong>Stage 4</strong> @UUID[Compendium.sf2e.conditions.Item.Drained]{Drained 2} and @UUID[Compendium.sf2e.conditions.Item.Fatigued] (1 day)</p>\n<p><strong>Stage 5</strong> as stage 4 (1 day)</p>\n<p><strong>Stage 6</strong> dead and corpse rises as a void zombie in [[/gmr 2d4 #hours]]{2d4 hours}</p>"
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -718,7 +730,9 @@
           "autoHeightenLevel": {
             "value": null
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "prepared": {
             "value": "innate"
           },
@@ -770,7 +784,9 @@
           "counteraction": false,
           "damage": {},
           "defense": null,
-          "description": "",
+          "description": {
+            "value": "<p>You delete data from a device or object with a flamboyant magical gesture. This data might be handwritten, printed, or digital. You delete up to 1,500 words' worth of text, one page of content, or one display screen worth of text or other visual information. Non-magical writing in or on an unattended or held object is automatically deleted. Attempt a counteract check to delete digital or magical writing. If you fail to delete writing that's part of a hazard, you trigger the hazard. This can't be used to delete the contents of a spellbook or similar means of storing magical formulas or spells.</p>\n<p>If you target an attended tech item with the tracking trait, attempt a counteract check. On a success, the item becomes glitching 1. A creature holding the item can Interact to restart the software, reducing the glitching value by 1.</p><hr /><p><strong>Heightened (7th)</strong> You can delete all the data stored locally on a single device or book, or all the data on a device or book related to a specific name, topic, or category.</p>"
+          },
           "duration": {
             "sustained": false,
             "value": ""
@@ -855,7 +871,9 @@
               "statistic": "reflex"
             }
           },
-          "description": "",
+          "description": {
+            "value": "<p>An arc of lightning leaps from one target to another. Each target takes 2d4 electricity damage with a basic Reflex save.</p>\n<hr />\n<p><strong>Heightened (+1)</strong> The damage increases by 1d4.</p>"
+          },
           "duration": {
             "sustained": false,
             "value": ""
@@ -932,7 +950,9 @@
           "counteraction": false,
           "damage": {},
           "defense": null,
-          "description": "",
+          "description": {
+            "value": "<p>You create a simple illusory sound or vision. A sound adds the auditory trait to the spell and the sound can't include intelligible words or elaborate music. A vision adds the visual trait, can be no larger than a 5-foot cube, and is clearly crude and undetailed if viewed from within 15 feet. When you Cast or Sustain the Spell, you can attempt to @UUID[Compendium.sf2e.actions.Item.Create a Diversion] with the illusion, gaining a +2 circumstance bonus to your Deception check. If the attempt fails against a creature, that creature disbelieves the <em>figment</em>.</p>\n<p>@UUID[Compendium.sf2e.spell-effects.Item.Spell Effect: Figment]</p>"
+          },
           "duration": {
             "sustained": true,
             "value": ""
@@ -1003,7 +1023,9 @@
           "counteraction": false,
           "damage": {},
           "defense": null,
-          "description": "",
+          "description": {
+            "value": "<p>You touch a weapon with no remaining ammunition and recharge it with magical energy. The target gains ammunition or charges equal to its expend until the end of your next turn, allowing anyone holding the target to make one Strike with the weapon. This spell only recharges weapons that use ammunition with a cost of 10 credits or less.</p><hr /><p><strong>Heightened (3rd)</strong> The target gains ammunition or charges equal to double its expend.</p>\n<p><strong>Heightened (6th)</strong> The target gains ammunition or charges equal to triple its expend.</p>\n<p><strong>Heightened (9th)</strong> The target gains ammunition or charges equal to quadruple its expend.</p>"
+          },
           "duration": {
             "sustained": false,
             "value": ""
@@ -1098,7 +1120,9 @@
               "statistic": "reflex"
             }
           },
-          "description": "",
+          "description": {
+            "value": "<p>You call down a tendril of lightning that cracks with thunder, dealing 1d12 electricity damage and 1d4 sonic damage to the target with a basic Reflex save. A target wearing metal armor or made of metal takes a –1 circumstance bonus to its save, and if damaged by the spell is @UUID[Compendium.sf2e.conditions.Item.Clumsy]{Clumsy 1} for 1 round.</p>\n<hr />\n<p><strong>Heightened (+1)</strong> The damage increases by 1d12 electricity and 1d4 sonic.</p>"
+          },
           "duration": {
             "sustained": false,
             "value": ""
@@ -1184,7 +1208,9 @@
               "damageType": "piercing"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -1236,7 +1262,9 @@
               "damageType": "electricity"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -1284,7 +1312,9 @@
             "value": null
           },
           "category": "interaction",
-          "description": "",
+          "description": {
+            "value": "<p>A botnib can communicate telepathically with digital devices and with other creatures that can do so (such as other botnibs). This allows the botnib to attempt Computers checks to access any computer within the telepathy's range.</p>"
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -1324,7 +1354,9 @@
             "value": null
           },
           "category": "interaction",
-          "description": "",
+          "description": {
+            "value": "<p>The botnib can sense items and creatures with the tech trait within 100 feet.</p>"
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -1367,7 +1399,9 @@
             "value": null
           },
           "category": "defensive",
-          "description": "",
+          "description": {
+            "value": "<p>20 feet. Creatures and items with the tech trait struggle to function reliably when near a botnib. Creatures with the tech trait, unattended items with the tech trait, or creatures holding equipment with the tech trait that start their turn in the aura must attempt a @Check[will|dc:16|options:area-effect,inflicts:glitching] save.</p><hr /><p><strong>Critical Success</strong> No effect, and the creature or item is temporarily immune to the botnib's glitch aura for 1 minute.</p>\n<p><strong>Success</strong> The creature or items are unaffected.</p>\n<p><strong>Failure</strong> The creature, item, or all the creature's held items become @UUID[Compendium.sf2e.conditions.Item.Glitching]{Glitching 1}.</p>\n<p><strong>Critical Failure</strong> As failure, but @UUID[Compendium.sf2e.conditions.Item.Glitching]{Glitching 2}.</p>"
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -1625,7 +1659,9 @@
               "damageType": "piercing"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -1668,7 +1704,9 @@
             "value": null
           },
           "category": "interaction",
-          "description": "",
+          "description": {
+            "value": "<p>A cyanoscum can sense the presence of water within 60 feet as an imprecise sense.</p>"
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -1709,7 +1747,9 @@
           },
           "category": "defensive",
           "deathNote": true,
-          "description": "",
+          "description": {
+            "value": "<p>@Localize[PF2E.NPC.Abilities.Glossary.Regeneration]</p>"
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -1757,7 +1797,9 @@
             "value": null
           },
           "category": "offensive",
-          "description": "",
+          "description": {
+            "value": "<p>A cyanoscum can Squeeze through spaces that aren't airtight at its Speed per round.</p>"
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -1797,7 +1839,9 @@
             "value": null
           },
           "category": "offensive",
-          "description": "",
+          "description": {
+            "value": "<p>Any creature whose skin comes in direct contact with the cyanoscum, such as during an unarmed Strike, must succeed at a @Check[fortitude|dc:13] save or take @Damage[1d4[poison]] damage.</p>"
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -2045,7 +2089,9 @@
             "dice": 1,
             "die": "d6"
           },
-          "description": "",
+          "description": {
+            "value": "<p><strong>Upgrades:</strong> 1</p><hr /><p>This compact pistol is the most popular sidearm in the Pact Worlds thanks to its reliability, durability, and affordability. Most common laser pistols have a lightweight polycarbon body ending in a long, slim barrel.</p>"
+          },
           "equipped": {
             "carryType": "worn",
             "handsHeld": 0,
@@ -2129,7 +2175,9 @@
           },
           "containerId": null,
           "craftableAs": null,
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "equipped": {
             "carryType": "worn",
             "handsHeld": 0
@@ -2206,7 +2254,9 @@
               "damageType": "fire"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -2261,7 +2311,9 @@
               "damageType": "bludgeoning"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -2302,7 +2354,9 @@
             "value": null
           },
           "category": "defensive",
-          "description": "",
+          "description": {
+            "value": "<p>A cybernetic zombie's cybernetics can be disabled for 1 hour by a creature that succeeds at a DC 15 check to [[/act disable-device dc=15]] or Disable a System. Attempting to do so can typically be done only while within reach of the zombie and is a 2-action activity that has the manipulate trait. The cybernetics are also disabled for 1 hour if the zombie takes any electricity damage. A cybernetic zombie with disabled cybernetics is @UUID[Compendium.sf2e.conditions.Item.Slowed]{Slowed 1} and can't use any reactions.</p>"
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -2343,7 +2397,9 @@
           },
           "category": "defensive",
           "deathNote": true,
-          "description": "",
+          "description": {
+            "value": "<p>A cybernetic zombie must use this reaction unless its cybernetics are disabled</p>\n<p><strong>Trigger</strong> The cybernetic zombie is reduced to 0 Hit Points</p><hr /><p><strong>Effect</strong> The zombie's damaged cybernetics explode, dealing @Damage[1d8[electricity]|options:area-damage] damage in a @Template[type:emanation|distance:10] (@Check[reflex|dc:15|basic|options:area-effect] save). This ability destroys the zombie's integrated items and any tech items on the zombie of 1st level or lower.</p>"
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -2383,7 +2439,9 @@
             "value": null
           },
           "category": "defensive",
-          "description": "",
+          "description": {
+            "value": "<p>@Localize[PF2E.NPC.Abilities.Glossary.NegativeHealing]</p>"
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -2697,7 +2755,9 @@
             "dice": 1,
             "die": "d6"
           },
-          "description": "",
+          "description": {
+            "value": "<p><strong>Upgrades:</strong> 1</p><hr /><p>This imposing pistol fires a jolt of paralyzing electricity from its barrel. Its remaining charges are visible as glowing lines of energy radiating down its body. Pulsecaster pistols are often used by bounty hunters and law enforcement who need to keep their targets alive.</p>"
+          },
           "equipped": {
             "carryType": "worn",
             "handsHeld": 0,
@@ -2781,7 +2841,9 @@
             "value": 1
           },
           "containerId": null,
-          "description": "",
+          "description": {
+            "value": "<p>A flashlight sheds bright light. A commercial flashlight emits light in a 30-foot emanation (and dim light in the next 30 feet).</p>"
+          },
           "equipped": {
             "carryType": "worn",
             "handsHeld": 0,
@@ -2881,7 +2943,9 @@
             "value": 1
           },
           "containerId": null,
-          "description": "",
+          "description": {
+            "value": "<p>These contain analgesics, bandages, sterile gauze, and suturing tools necessary for Medicine checks to @UUID[Compendium.sf2e.actions.Item.Administer First Aid], @UUID[Compendium.sf2e.actions.Item.Treat Disease], @UUID[Compendium.sf2e.actions.Item.Treat Poison], or @UUID[Compendium.sf2e.actions.Item.Treat Wounds].</p>"
+          },
           "equipped": {
             "carryType": "worn",
             "handsHeld": 0,
@@ -2948,7 +3012,9 @@
           },
           "containerId": null,
           "craftableAs": null,
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "equipped": {
             "carryType": "worn",
             "handsHeld": 0
@@ -3017,7 +3083,9 @@
           },
           "containerId": null,
           "craftableAs": null,
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "equipped": {
             "carryType": "worn",
             "handsHeld": 0
@@ -3094,7 +3162,9 @@
               "damageType": "electricity"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -3150,7 +3220,9 @@
               "damageType": "bludgeoning"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -3191,7 +3263,9 @@
             "value": null
           },
           "category": "defensive",
-          "description": "",
+          "description": {
+            "value": "<p><strong>Frequency</strong> once every 10 minutes</p>\n<p><strong>Trigger</strong> A creature targets the robot with an attack</p><hr /><p><strong>Effect</strong> The robot overclocks its processing power to dodge, gaining a +2 circumstance bonus to its AC against the triggering attack.</p>"
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -3231,7 +3305,9 @@
             "value": null
           },
           "category": "offensive",
-          "description": "",
+          "description": {
+            "value": "<p>After receiving a request for information about a named location or a local law from a non-hostile creature, the ordinance-class robot spends 5 minutes to consult its database, automatically succeeding at a @UUID[Compendium.sf2e.actions.Item.Recall Knowledge] check to answer the question. At the GM's discretion, the information might not be available to the robot.</p>"
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -3274,7 +3350,9 @@
             "value": 2
           },
           "category": "offensive",
-          "description": "",
+          "description": {
+            "value": "<p>The ordinance-class civil robot scans all creatures in a @Template[type:cone|distance:15], attempting a single Legal Lore check and comparing the result to the Deception DC of each creature in the area. If the robot succeeds and the creature is known to have broken local laws, the robot gains a +1 circumstance bonus to Strikes and Athletics checks to [[/act grapple]] the creature for 24 hours.</p>"
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -3307,7 +3385,9 @@
         "name": "Legal Lore",
         "img": "icons/placeholder.svg",
         "system": {
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "mod": {
             "value": 6
           },
@@ -3344,7 +3424,9 @@
         "name": "Settlement Lore",
         "img": "icons/placeholder.svg",
         "system": {
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "mod": {
             "value": 6
           },
@@ -3595,7 +3677,9 @@
               "damageType": "bludgeoning"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -3643,7 +3727,9 @@
               "damageType": "fire"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -3687,7 +3773,9 @@
             "value": null
           },
           "category": "defensive",
-          "description": "",
+          "description": {
+            "value": "<p><strong>Frequency</strong> once every 10 minutes</p>\n<p><strong>Trigger</strong> A creature targets the security robot with an attack</p><hr /><p><strong>Effect</strong> The robot overclocks its processing power to attempt to avoid an attack, gaining a +2 circumstance bonus to its AC against the triggering attack.</p>"
+          },
           "frequency": {
             "max": 1,
             "per": "PT10M"
@@ -3731,7 +3819,9 @@
             "value": 2
           },
           "category": "offensive",
-          "description": "",
+          "description": {
+            "value": "<p>The robot sprays a torrent of water that functions as @UUID[Compendium.sf2e.spells.Item.Hydraulic Push] (1st-rank, DC 16). The robot must refill its tanks after using this ability.</p>"
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -3988,7 +4078,9 @@
           "autoHeightenLevel": {
             "value": null
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "prepared": {
             "value": "innate"
           },
@@ -4040,7 +4132,9 @@
           "counteraction": false,
           "damage": {},
           "defense": null,
-          "description": "",
+          "description": {
+            "value": "<p>Illusions bend light around the target, rendering it @UUID[Compendium.sf2e.conditions.Item.Invisible]. This makes it @UUID[Compendium.sf2e.conditions.Item.Undetected] to all creatures, though the creatures can attempt to find the target, making it @UUID[Compendium.sf2e.conditions.Item.Hidden] to them instead. If the target uses a hostile action, the spell ends after that hostile action is completed.</p>\n<hr />\n<p><strong>Heightened (4th)</strong> The spell lasts 1 minute, but it doesn't end if the target uses a hostile action.</p>"
+          },
           "duration": {
             "sustained": false,
             "value": "10 minutes"
@@ -4110,7 +4204,9 @@
           "counteraction": false,
           "damage": {},
           "defense": null,
-          "description": "",
+          "description": {
+            "value": "<p>You create a molecular bond between an unattended object you touch (or an object you're holding) and another object or surface that object is touching. Pulling the object free of that surface requires a successful [[/act force-open]]{Athletics} check against your spell DC to @UUID[Compendium.sf2e.actions.Item.Force Open].</p>\n<p>If you instead touch one unoccupied 5-foot square, that surface becomes charged with adhering magic. That space becomes greater difficult terrain.</p>"
+          },
           "duration": {
             "sustained": false,
             "value": "1 minute"
@@ -4196,7 +4292,9 @@
               "statistic": "reflex"
             }
           },
-          "description": "",
+          "description": {
+            "value": "<p>An arc of lightning leaps from one target to another. Each target takes 2d4 electricity damage with a basic Reflex save.</p>\n<hr />\n<p><strong>Heightened (+1)</strong> The damage increases by 1d4.</p>"
+          },
           "duration": {
             "sustained": false,
             "value": ""
@@ -4273,7 +4371,9 @@
           "counteraction": false,
           "damage": {},
           "defense": null,
-          "description": "",
+          "description": {
+            "value": "<p>You create a simple illusory sound or vision. A sound adds the auditory trait to the spell and the sound can't include intelligible words or elaborate music. A vision adds the visual trait, can be no larger than a 5-foot cube, and is clearly crude and undetailed if viewed from within 15 feet. When you Cast or Sustain the Spell, you can attempt to @UUID[Compendium.sf2e.actions.Item.Create a Diversion] with the illusion, gaining a +2 circumstance bonus to your Deception check. If the attempt fails against a creature, that creature disbelieves the <em>figment</em>.</p>\n<p>@UUID[Compendium.sf2e.spell-effects.Item.Spell Effect: Figment]</p>"
+          },
           "duration": {
             "sustained": true,
             "value": ""
@@ -4347,7 +4447,9 @@
           "counteraction": false,
           "damage": {},
           "defense": null,
-          "description": "",
+          "description": {
+            "value": "<p>You create an illusory visual image of a stationary object. The entire image must fit within the spell's area. The object appears to animate naturally, but it doesn't make sounds or generate smells. For example, water would appear to pour down an illusory waterfall, but it would be silent.</p>\n<p>Any creature that touches the image or uses the @UUID[Compendium.sf2e.actions.Item.Seek] action to examine it can attempt to disbelieve your illusion.</p>\n<hr />\n<p><strong>Heightened (2nd)</strong> Your image makes appropriate sounds, generates normal smells, and feels right to the touch. The spell gains the auditory and olfactory traits. The duration increases to 1 hour.</p>\n<p><strong>Heightened (5th)</strong> As the 2nd-rank version, but the duration is unlimited.</p>"
+          },
           "duration": {
             "sustained": false,
             "value": "10 minutes"
@@ -4434,7 +4536,9 @@
               "statistic": "reflex"
             }
           },
-          "description": "",
+          "description": {
+            "value": "<p>You vent heat toward a nearby target. You deal 2d6 fire damage to the target. On a failed save, the target's held equipment becomes hot to the touch for the next round. Unless the target drops its currently held equipment at the start of its turn, it takes @Damage[(3*@item.rank)[fire]] damage.</p><hr /><p><strong>Heightened (+1)</strong> The damage increases by 2d6. Increase the damage of touching affected objects by 3.</p>"
+          },
           "duration": {
             "sustained": false,
             "value": ""
@@ -4512,7 +4616,9 @@
           "counteraction": false,
           "damage": {},
           "defense": null,
-          "description": "",
+          "description": {
+            "value": "<p>You touch a weapon with no remaining ammunition and recharge it with magical energy. The target gains ammunition or charges equal to its expend until the end of your next turn, allowing anyone holding the target to make one Strike with the weapon. This spell only recharges weapons that use ammunition with a cost of 10 credits or less.</p><hr /><p><strong>Heightened (3rd)</strong> The target gains ammunition or charges equal to double its expend.</p>\n<p><strong>Heightened (6th)</strong> The target gains ammunition or charges equal to triple its expend.</p>\n<p><strong>Heightened (9th)</strong> The target gains ammunition or charges equal to quadruple its expend.</p>"
+          },
           "duration": {
             "sustained": false,
             "value": ""
@@ -4588,7 +4694,9 @@
               "damageType": "piercing"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -4640,7 +4748,9 @@
               "damageType": "electricity"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -4688,7 +4798,9 @@
             "value": 1
           },
           "category": "offensive",
-          "description": "",
+          "description": {
+            "value": "<p>When a clangit has spent at least 1 hour exploring a ship or space station, the gremlin gains an innate sense of its inner workings and can remotely control mechanical infrastructure within 60 feet, performing simple actions such as opening and shutting airlocks and doors, opening heat vents, activating alarms, turning lights on and off, or tampering with gravity controls.</p>"
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -4728,7 +4840,9 @@
             "value": 2
           },
           "category": "offensive",
-          "description": "",
+          "description": {
+            "value": "<p>The clangit enters adjacent mechanical infrastructure, such as a control panel or pipe network, and instantly emerges from another within 100 feet.</p>"
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -4946,7 +5060,9 @@
               "damageType": "fire"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -4990,7 +5106,9 @@
             "value": null
           },
           "category": "defensive",
-          "description": "",
+          "description": {
+            "value": "<p><strong>Trigger</strong> The diatha takes acid, electricity, fire, piercing, slashing, or sonic damage</p>\n<p><strong>Requirements</strong> The diatha has 5 or fewer Hit Points</p><hr /><p><strong>Effect</strong> The diatha dies, its body combusting in a flash of flame. All creatures in a @Template[emanation|distance:5] take @Damage[1d6[fire]|options:area-damage] damage (@Check[reflex|dc:16|basic|options:area-effect] save).</p>"
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -5032,7 +5150,9 @@
             "value": null
           },
           "category": "defensive",
-          "description": "",
+          "description": {
+            "value": "<p>If a diatha dies before it can detonate, its body rapidly decomposes into a slick of highly volatile hydrocarbons. Any effect that deals acid, electricity, or fire damage in an area that includes the square where the diatha died, or targets a creature in that square, causes a small explosion and consumes the slick.</p>\n<p>All creatures in the square and in a @Template[type:emanation|distance:5] take @Damage[1d6[fire]|options:area-damage] damage (@Check[reflex|dc:16|basic|options:area-effect] save). The slick evaporates after 10 minutes if it isn't ignited.</p>"
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -5074,7 +5194,9 @@
             "value": 2
           },
           "category": "offensive",
-          "description": "",
+          "description": {
+            "value": "<p><strong>Requirements</strong> The diatha has 5 or fewer Hit Points</p><hr /><p><strong>Effect</strong> The diatha Strides twice and makes a melee Strike at the end of that movement. After the Strike, the diatha uses Detonate.</p>"
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -5277,7 +5399,9 @@
               "damageType": "piercing"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -5320,7 +5444,9 @@
             "value": null
           },
           "category": "interaction",
-          "description": "",
+          "description": {
+            "value": "<p>This is a precise sense against creatures under an emotion effect or in the grips of overwhelming emotions (at the GM's discretion). Against other creatures, this is an imprecise sense. Creatures immune to emotion or mental effects or under the effects of a @UUID[Compendium.sf2e.spells.Item.Calm] spell are undetectable by emotionsense.</p>"
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -5360,7 +5486,9 @@
             "value": null
           },
           "category": "defensive",
-          "description": "",
+          "description": {
+            "value": "<p>Allies sharing the same space as the empathnid receive a +1 circumstance bonus on saving throws against emotion and mental effects.</p>"
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -5402,7 +5530,9 @@
             "value": 1
           },
           "category": "offensive",
-          "description": "",
+          "description": {
+            "value": "<p><strong>Frequency</strong> once per day</p>\n<p><strong>Requirements</strong> The empathnid is sharing a space with a creature with the dying condition</p><hr /><p><strong>Effect</strong> The empathnid injects its proto-venom into the creature. That creature loses the dying condition, though it remains @UUID[Compendium.sf2e.conditions.Item.Unconscious] at 0 Hit Points.</p>"
+          },
           "frequency": {
             "max": 1,
             "per": "day"
@@ -5616,7 +5746,9 @@
               "damageType": "slashing"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -5666,7 +5798,9 @@
               "damageType": "piercing"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,
@@ -5707,7 +5841,9 @@
             "value": null
           },
           "category": "offensive",
-          "description": "",
+          "description": {
+            "value": "<p>A khefak chews on an unattended object to feed, dealing @Damage[4[piercing]] damage every 10 minutes to the object. This damage ignores 10 points of Hardness. If a khefak doesn't spend at least 1 hour Gnawing Scrap per day, it begins to starve until it spends 10 minutes Gnawing Scrap.</p>"
+          },
           "publication": {
             "license": "OGL",
             "remaster": false,

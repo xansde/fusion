@@ -782,33 +782,74 @@ function stripNormalizationMeta(sys) {
 }
 
 // ---------------------------------------------------------------------------
-// Flavor-prose stripping (clean-room — spec 26 §D4, REQ-LEG-010)
+// Flavor-prose stripping (clean-room — spec 26 §D4, REQ-LEG-010, policy update
+// W2-C1 2026-07-05: product decision — "eu preciso saber o que cada opção faz
+// para selecionar").
 //
 // NAMES and structured MECHANICAL fields (system.damage, traits, level, price,
-// etc.) are Open Game Content (ORC) and are KEPT. The PROSE of an item's
-// description (and any GM/publisher flavor notes) is Reserved Material under
-// Paizo copyright and MUST be discarded — the same treatment already applied to
-// NPC details.publicNotes/blurb in normalizeActorSystem.
+// etc.) are Open Game Content (ORC) and are KEPT — as always.
 //
-// For conditions the mechanical EFFECT already lives in rules[]; only the prose
-// is removed here.
+// `system.description` is now a SPECIAL CASE: the vendor's rules-text prose
+// (spell/feat/class/etc. descriptions) is itself licensed content — every
+// pf2e/sf2e document that carries one also carries a `system.publication`
+// block declaring which license covers it (`{license: 'ORC'|'OGL', ...}`,
+// verified against vendor/pf2e/packs/**: classes/spells/feats/conditions/
+// equipment all set this). Per DEC-LEG (W2-C1), description text under an
+// ORC or OGL publication CAN be redistributed with attribution (see each
+// pack.json's `license.attribution` + the new `license.textAttribution`,
+// build-mvp-subset.mjs) and is therefore PRESERVED. Documents with no
+// `publication` block at all (e.g. bestiary NPCs — which don't even carry a
+// `system.description` field; their prose lives in `details.blurb`/
+// `publicNotes`, always stripped in normalizeActorSystem) or a license
+// outside the {ORC, OGL} allowlist keep description blanked, unchanged from
+// the prior conservative default.
+//
+// `gmNotes`/`publicNotes`/`privateNotes` are NEVER rules text — they are
+// GM-only authoring notes / lore asides — and stay unconditionally cleared
+// regardless of license, same as before.
+//
+// For conditions the mechanical EFFECT already lives in rules[]; description
+// prose (when preserved) is supplementary flavor/reminder text, not the sole
+// carrier of mechanics.
 // ---------------------------------------------------------------------------
 
-/** Names of system.* prose fields that carry Paizo flavor text and must be cleared. */
-const FLAVOR_PROSE_FIELDS = ['description', 'gmNotes', 'publicNotes', 'privateNotes'];
+/** Licenses under which vendor `system.description` prose may be redistributed (with attribution). */
+const REDISTRIBUTABLE_DESCRIPTION_LICENSES = new Set(['ORC', 'OGL']);
+
+/** Names of system.* prose fields that are GM/publisher-only flavor and must always be cleared. */
+const ALWAYS_STRIPPED_PROSE_FIELDS = ['gmNotes', 'publicNotes', 'privateNotes'];
 
 /**
- * Returns a copy of an item system object with all flavor-prose fields cleared.
- * Mechanical fields are untouched. Applied to every non-actor (item) normalizer
- * so committed packs never carry copyrighted description prose.
+ * Returns a copy of an item system object with GM/publisher-only flavor
+ * fields always cleared, and `description` cleared UNLESS the document's
+ * `system.publication.license` is ORC or OGL (policy update W2-C1) — in
+ * which case the mechanical rules-text description is preserved verbatim
+ * (HTML/UUID-refs untouched; a future panel formats it for display).
+ * Mechanical fields (damage, traits, level, price, etc.) are always untouched.
  */
 function stripFlavorProse(system) {
   const out = { ...system };
-  for (const field of FLAVOR_PROSE_FIELDS) {
+  for (const field of ALWAYS_STRIPPED_PROSE_FIELDS) {
     if (field in out) {
       // Preserve the field key (schema may expect it) but blank the prose.
       out[field] = '';
     }
+  }
+  if ('description' in out) {
+    const license = out.publication?.license;
+    if (!REDISTRIBUTABLE_DESCRIPTION_LICENSES.has(license)) {
+      // Blank in whichever shape the field currently has — most normalizers
+      // already flatten to a plain string (`?? ''`), but the embedded-item
+      // call site (buildSystem's items[] map) passes the RAW vendor
+      // system.* through unnormalized, where description is still the
+      // vendor's `{value: string}` wrapper.
+      out.description =
+        out.description && typeof out.description === 'object' && 'value' in out.description
+          ? { ...out.description, value: '' }
+          : '';
+    }
+    // else: ORC/OGL — keep out.description as-is (preserved verbatim,
+    // whichever shape it arrived in).
   }
   return out;
 }

@@ -53,6 +53,23 @@ const VENDOR_ROOT_FOR_MVP = join(IMPORTER_ROOT, 'vendor', 'pf2e', 'packs', 'pf2e
 const IMPORTER_VERSION = '0.1.0';
 const SOURCE_VERSION   = 'v14-dev';
 
+/**
+ * textAttribution (W2-C1, follow-up #10 of the clean-room audit, REQ-LEG-010):
+ * explains WHY committed packs now carry `system.description` prose (policy
+ * update 2026-07-05 — the previous default zeroed every description
+ * regardless of license) and under what two licenses that is permitted.
+ * `system.publication.license` on each individual document (set by the
+ * vendor, read by transform.mjs's stripFlavorProse) is the actual per-doc
+ * gate; this string is a human-readable pointer to that mechanism plus the
+ * Apache-2.0 attribution for the source repo the importer itself reads.
+ */
+const TEXT_ATTRIBUTION =
+  'Item/spell/feat/class descriptions in this pack are reproduced from Paizo ' +
+  'rules text under the license declared in each document\'s system.publication.license ' +
+  '("ORC" or "OGL" only — see the Paizo Community Use Policy for the relevant license); ' +
+  'documents without an ORC/OGL publication keep an empty description. The importer ' +
+  'pipeline itself is derived from github.com/foundryvtt/pf2e (Apache License 2.0).';
+
 // ---------------------------------------------------------------------------
 // Pack manifests (REQ-CMP-003/004/040)
 // ---------------------------------------------------------------------------
@@ -71,6 +88,7 @@ const PACK_MANIFESTS = {
       reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
       sourceRepo: 'github.com/foundryvtt/pf2e',
       sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
     },
     source: {
       repo: 'github.com/foundryvtt/pf2e',
@@ -91,6 +109,7 @@ const PACK_MANIFESTS = {
       reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
       sourceRepo: 'github.com/foundryvtt/pf2e',
       sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
     },
     source: {
       repo: 'github.com/foundryvtt/pf2e',
@@ -111,6 +130,7 @@ const PACK_MANIFESTS = {
       reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
       sourceRepo: 'github.com/foundryvtt/pf2e',
       sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
     },
     source: {
       repo: 'github.com/foundryvtt/pf2e',
@@ -131,6 +151,7 @@ const PACK_MANIFESTS = {
       reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
       sourceRepo: 'github.com/foundryvtt/pf2e',
       sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
     },
     source: {
       repo: 'github.com/foundryvtt/pf2e',
@@ -157,6 +178,7 @@ const PACK_MANIFESTS = {
       reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
       sourceRepo: 'github.com/foundryvtt/pf2e',
       sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
     },
     source: {
       repo: 'github.com/foundryvtt/pf2e',
@@ -182,6 +204,7 @@ const PACK_MANIFESTS = {
       reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
       sourceRepo: 'github.com/foundryvtt/pf2e',
       sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
     },
     source: {
       repo: 'github.com/foundryvtt/pf2e',
@@ -202,6 +225,7 @@ const PACK_MANIFESTS = {
       reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
       sourceRepo: 'github.com/foundryvtt/pf2e',
       sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
     },
     source: {
       repo: 'github.com/foundryvtt/pf2e',
@@ -222,6 +246,7 @@ const PACK_MANIFESTS = {
       reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
       sourceRepo: 'github.com/foundryvtt/pf2e',
       sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
     },
     source: {
       repo: 'github.com/foundryvtt/pf2e',
@@ -242,6 +267,7 @@ const PACK_MANIFESTS = {
       reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
       sourceRepo: 'github.com/foundryvtt/pf2e',
       sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
     },
     source: {
       repo: 'github.com/foundryvtt/pf2e',
@@ -262,6 +288,7 @@ const PACK_MANIFESTS = {
       reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
       sourceRepo: 'github.com/foundryvtt/pf2e',
       sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
     },
     source: {
       repo: 'github.com/foundryvtt/pf2e',
@@ -821,6 +848,7 @@ const SF2E_PACK_MANIFESTS = {
       reservedNotice: 'Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
       sourceRepo: 'github.com/foundryvtt/pf2e',
       sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
     },
     source: { repo: 'github.com/foundryvtt/pf2e', version: SOURCE_VERSION, importerVersion: IMPORTER_VERSION },
     schemaVersion: 1,
@@ -837,6 +865,7 @@ const SF2E_PACK_MANIFESTS = {
       reservedNotice: 'Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
       sourceRepo: 'github.com/foundryvtt/pf2e',
       sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
     },
     source: { repo: 'github.com/foundryvtt/pf2e', version: SOURCE_VERSION, importerVersion: IMPORTER_VERSION },
     schemaVersion: 1,
@@ -853,6 +882,7 @@ const SF2E_PACK_MANIFESTS = {
       reservedNotice: 'Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
       sourceRepo: 'github.com/foundryvtt/pf2e',
       sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
     },
     source: { repo: 'github.com/foundryvtt/pf2e', version: SOURCE_VERSION, importerVersion: IMPORTER_VERSION },
     schemaVersion: 1,
@@ -869,6 +899,7 @@ const SF2E_PACK_MANIFESTS = {
       reservedNotice: 'Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
       sourceRepo: 'github.com/foundryvtt/pf2e',
       sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
     },
     source: { repo: 'github.com/foundryvtt/pf2e', version: SOURCE_VERSION, importerVersion: IMPORTER_VERSION },
     schemaVersion: 1,
@@ -885,6 +916,7 @@ const SF2E_PACK_MANIFESTS = {
       reservedNotice: 'Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
       sourceRepo: 'github.com/foundryvtt/pf2e',
       sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
     },
     source: { repo: 'github.com/foundryvtt/pf2e', version: SOURCE_VERSION, importerVersion: IMPORTER_VERSION },
     schemaVersion: 1,
@@ -901,6 +933,7 @@ const SF2E_PACK_MANIFESTS = {
       reservedNotice: 'Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
       sourceRepo: 'github.com/foundryvtt/pf2e',
       sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
     },
     source: { repo: 'github.com/foundryvtt/pf2e', version: SOURCE_VERSION, importerVersion: IMPORTER_VERSION },
     schemaVersion: 1,

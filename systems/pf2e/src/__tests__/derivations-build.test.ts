@@ -395,6 +395,20 @@ describe("Tobias-by-build — level 3 Magus, fully build-driven (R10-A acceptanc
     expect(sys.details.keyAbility).toBe("int");
   });
 
+  it("backgroundFree boosts apply exactly like ancestryFree (R11 item 1 — new ledger field)", () => {
+    doc = makeTobiasByBuildDoc();
+    const build = (doc.system as Record<string, unknown>)["build"] as Record<string, unknown>;
+    const abilities = build["abilities"] as Record<string, unknown>;
+    // Move the 3 ancestryFree picks over to backgroundFree — same slugs,
+    // different origin — the resulting scores must be identical.
+    abilities["ancestryFree"] = [];
+    abilities["backgroundFree"] = ["dex", "dex", "int"];
+    runCharacterPipeline(doc);
+    const sys = doc.system as unknown as { abilities: Record<string, { value: number }> };
+    expect(sys.abilities.dex.value).toBe(16);
+    expect(sys.abilities.int.value).toBe(16);
+  });
+
   it("HP max = 33 (ancestry 6 + (class 8 + conMod 1) * level 3)", () => {
     doc = makeTobiasByBuildDoc();
     runCharacterPipeline(doc);

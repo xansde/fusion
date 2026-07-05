@@ -8,7 +8,7 @@
       "cost": "",
       "counteraction": false,
       "damage": {},
-      "description": "",
+      "description": "<p>You open the target's mind to the Akashic Record to draw in feelings, memories, and knowledge contained within that astral repository. Choose one Lore skill. The target temporarily gains the same proficiency rank in that skill as your proficiency rank in Occultism.</p>",
       "duration": {
         "sustained": false,
         "value": "1 minute"
@@ -69,7 +69,7 @@
       "cost": "",
       "counteraction": false,
       "damage": {},
-      "description": "",
+      "description": "<p>You compose the tangle of cosmic melodies into an anthem for your bonded companions. All bonded creatures in the area gain a +1 status bonus to attack rolls and damage rolls, and also gain a +1 status bonus to saves against effects that cause @UUID[Compendium.sf2e.conditions.Item.Fascinated] or @UUID[Compendium.sf2e.conditions.Item.Confused].</p>\n<p>@UUID[Compendium.sf2e.spell-effects.Item.Spell Effect: Anthem]</p>",
       "duration": {
         "sustained": true,
         "value": "1 minute"
@@ -128,7 +128,7 @@
       "cost": "",
       "counteraction": false,
       "damage": {},
-      "description": "",
+      "description": "<p>You create an advanced, martial, or simple weapon out of elemental energy that materializes in the hands of a bonded creature. Select an elemental trait for the created weapon: air, earth, fire, metal, water, or wood. The weapon is tactical grade and comes fully charged and loaded with basic ammunition. It cannot be made of any special materials.</p>\n<p>The weapon has one fewer upgrade slot but can be upgraded with any upgrades you hold in your hands as a locus when casting this spell, which become inert until the spell ends. The weapon deals damage as normal plus 1d4 additional damage based on the chosen trait: electricity for air, bludgeoning for earth, fire for fire, acid for metal, cold for water, or poison for wood.</p><hr /><p><strong>Heightened (2nd)</strong> You can create an advanced weapon.</p>\n<p><strong>Heightened (5th)</strong> You can create a superior weapon.</p>\n<p><strong>Heightened (6th)</strong> You can create an elite weapon.</p>\n<p><strong>Heightened (8th)</strong> You can create an ultimate weapon.</p>\n<p><strong>Heightened (9th)</strong> You can create a paragon weapon.</p>",
       "duration": {
         "sustained": false,
         "value": "10 minutes"
@@ -196,7 +196,7 @@
           "type": "mental"
         }
       },
-      "description": "",
+      "description": "<p>You condense a beam of mind-assaulting eldritch energy from the dark spaces between the stars and fire it at a target. Make a ranged spell attack roll against the target's AC. If you hit, you deal 2d6 mental damage. On a critical success, you deal double damage.</p><hr /><p><strong>Heightened (+1)</strong> The damage increases by 1d6.</p>",
       "duration": {
         "sustained": false,
         "value": ""
@@ -265,7 +265,7 @@
       "cost": "",
       "counteraction": false,
       "damage": {},
-      "description": "",
+      "description": "<p>You reprogram a computer or device to display a chosen piece of data when accessed. You can implant up to one piece of data per spell rank. A piece of data can be a simple fact, such as a creature or object's location or physical description; an image of a creature or object; or a simple statement of no more than 300 characters. When the target computer or device is accessed, this implanted data is the first data the accessing creature gains, regardless of what data the creature is looking for. Implanted data doesn't prevent a creature from accessing other information stored on a device, change how the device functions, or otherwise inhibit the device from functioning. If this spell's duration ends before a creature accesses the implanted data, the information vanishes.</p><hr /><p><strong>Heightened (3rd)</strong> The duration is one year.</p>\n<p><strong>Heightened (6th)</strong> The duration is unlimited.</p>",
       "duration": {
         "sustained": false,
         "value": "1 day"
@@ -330,7 +330,7 @@
           "statistic": "fortitude"
         }
       },
-      "description": "",
+      "description": "<p>Your eyes turn an icy blue color as the temperature in the area drops. Your cold, hard gaze literally chills the air around your foe's body, making it harder for them to move. When you cast chill gaze, choose clumsy or enfeebled. Your foe takes effects depending on your choice, based on the result of its saving throw.</p><hr /><p><strong>Success</strong> The creature is unaffected.</p>\n<p><strong>Failure</strong> The creature is @UUID[Compendium.sf2e.conditions.Item.Clumsy]{Clumsy 1} or @UUID[Compendium.sf2e.conditions.Item.Enfeebled]{Enfeebled 1} (depending on your choice) for the duration of the spell.</p>\n<p><strong>Critical Failure</strong> As failure, but the target is @UUID[Compendium.sf2e.conditions.Item.Clumsy]{Clumsy 2} or @UUID[Compendium.sf2e.conditions.Item.Enfeebled]{Enfeebled 2}.</p><hr /><p><strong>Heightened (4th)</strong> You can target up to five creatures.</p>\n<p><strong>Heightened (7th)</strong> You can target up to ten creatures.</p>",
       "duration": {
         "sustained": true,
         "value": "1 minute"
@@ -405,7 +405,7 @@
       "cost": "",
       "counteraction": false,
       "damage": {},
-      "description": "",
+      "description": "<p>You delete data from a device or object with a flamboyant magical gesture. This data might be handwritten, printed, or digital. You delete up to 1,500 words' worth of text, one page of content, or one display screen worth of text or other visual information. Non-magical writing in or on an unattended or held object is automatically deleted. Attempt a counteract check to delete digital or magical writing. If you fail to delete writing that's part of a hazard, you trigger the hazard. This can't be used to delete the contents of a spellbook or similar means of storing magical formulas or spells.</p>\n<p>If you target an attended tech item with the tracking trait, attempt a counteract check. On a success, the item becomes glitching 1. A creature holding the item can Interact to restart the software, reducing the glitching value by 1.</p><hr /><p><strong>Heightened (7th)</strong> You can delete all the data stored locally on a single device or book, or all the data on a device or book related to a specific name, topic, or category.</p>",
       "duration": {
         "sustained": false,
         "value": ""
@@ -463,7 +463,7 @@
       "cost": "",
       "counteraction": false,
       "damage": {},
-      "description": "",
+      "description": "<p>You infuse the weapon with magic allowing it to safely operate beyond its normal parameters. If the target is a commercial or tactical weapon, it becomes an advanced weapon, gaining a +1 item bonus to attack rolls and increasing the number of weapon damage dice to two.</p><hr /><p><strong>Heightened (6th)</strong> If the target is a commercial, tactical, advanced, or superior weapon, it becomes an elite weapon, gaining a +2 item bonus to attack rolls and increasing the number of weapon damage dice to three.</p>\n<p><strong>Heightened (9th)</strong> The target becomes a paragon weapon, gaining a +3 to item bonus to attack rolls and increasing the number of weapon damage dice to four.</p>\n<p>@UUID[Compendium.sf2e.spell-effects.Item.Spell Effect: Enhance Weapon]</p>",
       "duration": {
         "sustained": false,
         "value": "1 minute"
@@ -540,7 +540,7 @@
           "statistic": "will"
         }
       },
-      "description": "",
+      "description": "<p>You overload a creature's mind with a glut of psychic information or divine judgments. The mental onslaught deals 2d6 mental damage. On a critical failure, the target is also @UUID[Compendium.sf2e.conditions.Item.Stupefied]{Stupefied 2} for 1 round.</p><hr /><p><strong>Heightened (+1)</strong> The damage increases by 2d6.</p>",
       "duration": {
         "sustained": false,
         "value": ""
@@ -624,7 +624,7 @@
           "statistic": "reflex"
         }
       },
-      "description": "",
+      "description": "<p>You vent heat toward a nearby target. You deal 2d6 fire damage to the target. On a failed save, the target's held equipment becomes hot to the touch for the next round. Unless the target drops its currently held equipment at the start of its turn, it takes @Damage[(3*@item.rank)[fire]] damage.</p><hr /><p><strong>Heightened (+1)</strong> The damage increases by 2d6. Increase the damage of touching affected objects by 3.</p>",
       "duration": {
         "sustained": false,
         "value": ""

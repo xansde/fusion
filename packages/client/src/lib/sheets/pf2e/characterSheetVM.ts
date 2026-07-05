@@ -1550,6 +1550,79 @@ export class CharacterSheetVM {
     }
     return null;
   }
+
+  // -------------------------------------------------------------------------
+  // Rest (Descansar — feedback item: recovering expended spell slots)
+  // -------------------------------------------------------------------------
+
+  /**
+   * Build the ops for a full "Rest" action (Pathbuilder-style header button):
+   * for every spellcasting entry, clear `expended` on every prepared slot
+   * (across every rank) via a whole-array doc:update diff (same
+   * `_preparedArrayWith`-shaped array the prepare/unprepare/toggle ops use —
+   * arrays are never diffed by index, per r10-C lesson), plus a
+   * `focusPoints.value = max` update.
+   *
+   * Only entries/ranks that actually have at least one expended slot (or a
+   * focus-point deficit) produce an op — resting with nothing to recover
+   * returns an empty array so callers can skip the "nothing changed" no-op
+   * network round-trip.
+   *
+   * Deliberately does NOT restore HP — PF2e's rest rules heal
+   * Constitution-modifier × level HP per night, which requires the
+   * character's CON mod and level and isn't implemented here. Documented as
+   * a follow-up (see BUILD-LOG r11); resting only clears spell slots and
+   * focus points in this MVP.
+   */
+  restAll(): DocOpPayload[] {
+    if (!this.editable) return [];
+    const ops: DocOpPayload[] = [];
+
+    for (const entry of this.spellcastingEntries) {
+      for (const slot of entry.slots) {
+        if (slot.isCantrip) continue;
+        const items = this._doc["items"] as Array<Record<string, unknown>> | undefined;
+        const entryItem = items?.find((i) => i["_id"] === entry.entryId);
+        const sys =
+          typeof entryItem?.["system"] === "object" && entryItem["system"] !== null
+            ? (entryItem["system"] as Record<string, unknown>)
+            : {};
+        const slots = sys["slots"] as Record<string, { prepared?: unknown[] }> | undefined;
+        const rawPrepared = slots?.[String(slot.rank)]?.prepared;
+        if (!Array.isArray(rawPrepared) || rawPrepared.length === 0) continue;
+
+        const hasExpended = rawPrepared.some(
+          (e) => typeof e === "object" && e !== null && (e as Record<string, unknown>)["expended"] === true,
+        );
+        if (!hasExpended) continue;
+
+        const restedPrepared = rawPrepared.map((e) => {
+          const el = (typeof e === "object" && e !== null ? e : {}) as Record<string, unknown>;
+          return {
+            id: typeof el["id"] === "string" ? el["id"] : "",
+            expended: false,
+          };
+        });
+
+        ops.push({
+          type: "doc:update",
+          documentType: "Item",
+          id: entry.entryId,
+          embedded: { type: "Item", id: this._actorId },
+          diff: {
+            [`system.slots.${String(slot.rank)}.prepared`]: restedPrepared,
+          },
+        });
+      }
+    }
+
+    if (this.focusPoints.value < this.focusPoints.max) {
+      const op = this.setFocusPoints(this.focusPoints.max);
+      if (op) ops.push(op);
+    }
+
+    return ops;
+  }
 }
 
 // ---------------------------------------------------------------------------

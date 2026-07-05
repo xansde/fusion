@@ -151,6 +151,20 @@
     if (op) sendOpFn(op);
   }
 
+  // ---------------------------------------------------------------------------
+  // Rest (header "Descansar" button — Pathbuilder "Rest" reference).
+  // Recovers every expended spell slot + refills Focus Points. Does NOT heal
+  // HP (PF2e's rest rules heal CON-mod × level, which needs data this VM
+  // doesn't derive yet — documented follow-up, not implemented here).
+  // ---------------------------------------------------------------------------
+
+  function rest(): void {
+    const ops = vm.restAll();
+    if (ops.length === 0) return;
+    if (!confirm(t("FUSION.Sheet.Rest.Confirm"))) return;
+    for (const op of ops) sendOpFn(op);
+  }
+
   // HP inline editing
   function handleHpInput(e: Event): void {
     const input = e.currentTarget as HTMLInputElement;
@@ -323,6 +337,15 @@
         onclick={() => { editMode = !editMode; }}
       >
         {editMode ? "Play" : "Edit"}
+      </button>
+      <button
+        type="button"
+        class="rest-btn"
+        onclick={rest}
+        aria-label={t("FUSION.Sheet.Rest.Button")}
+        title={t("FUSION.Sheet.Rest.Confirm")}
+      >
+        {t("FUSION.Sheet.Rest.Button")}
       </button>
     {/if}
 
@@ -1518,6 +1541,29 @@
     background: var(--fusion-color-accent, #5b8dee);
     color: #fff;
     border-color: var(--fusion-color-accent, #5b8dee);
+  }
+
+  /* ---- Rest button (header) ---- */
+  .rest-btn {
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-radius: var(--fusion-radius-sm, 4px);
+    border: 1px solid var(--fusion-success, #3ddc84);
+    background: var(--fusion-success-dim, rgba(61, 220, 132, 0.14));
+    color: var(--fusion-success, #3ddc84);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+  }
+
+  .rest-btn:hover,
+  .rest-btn:focus-visible {
+    background: var(--fusion-success, #3ddc84);
+    color: var(--fusion-on-accent, #fff);
+    outline: 2px solid var(--fusion-color-focus, #5b8dee);
   }
 
   /* ---- Edit-mode fields (main tab) ---- */

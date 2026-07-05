@@ -165,7 +165,9 @@
               "damageType": "piercing"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -219,7 +221,9 @@
               "damageType": "slashing"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -265,7 +269,9 @@
             "value": 2
           },
           "category": "offensive",
-          "description": "",
+          "description": {
+            "value": "<p>The eagle @UUID[Compendium.pf2e.actionspf2e.Item.Fly]{Flies} up to double its fly Speed in a straight line, descending at least 10 feet, and then makes a talon Strike.</p>"
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -482,7 +488,9 @@
               "damageType": "piercing"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -528,7 +536,9 @@
             "value": null
           },
           "category": "offensive",
-          "description": "",
+          "description": {
+            "value": "<p>The @UUID[Compendium.pf2e.conditionitems.Item.Sickened] and @UUID[Compendium.pf2e.conditionitems.Item.Unconscious] conditions from putrid plague don't improve on their own until the disease is cured.</p>\n<p><strong>Saving Throw</strong> @Check[fortitude|dc:14]</p>\n<hr />\n<p><strong>Stage 1</strong> carrier with no ill effect ([[/gmr 1d4 #hours]]{1d4 hours})</p>\n<p><strong>Stage 2</strong> @UUID[Compendium.pf2e.conditionitems.Item.Sickened]{Sickened 1} (1 day)</p>\n<p><strong>Stage 3</strong> Sickened 1 and @UUID[Compendium.pf2e.conditionitems.Item.Slowed]{Slowed 1} (1 day)</p>\n<p><strong>Stage 4</strong> @UUID[Compendium.pf2e.conditionitems.Item.Unconscious] (1 day)</p>\n<p><strong>Stage 5</strong> dead</p>"
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -754,7 +764,9 @@
             "dice": 1,
             "die": "d6"
           },
-          "description": "",
+          "description": {
+            "value": "<p>This short, curved, and crude makeshift blade often has holes drilled into it to reduce its weight. It's a favored weapon of goblins.</p>"
+          },
           "equipped": {
             "carryType": "held",
             "handsHeld": 1,
@@ -856,7 +868,9 @@
             "dice": 1,
             "die": "d6"
           },
-          "description": "",
+          "description": {
+            "value": "<p>This smaller bow is made of a single piece of wood and favored by skirmishers and cavalry.</p>"
+          },
           "equipped": {
             "carryType": "worn",
             "handsHeld": 0,
@@ -941,7 +955,9 @@
           "category": "light",
           "checkPenalty": -1,
           "containerId": null,
-          "description": "",
+          "description": {
+            "value": "<p>A mix of flexible and molded boiled leather, a suit of this type of armor provides some protection with maximum flexibility.</p>"
+          },
           "dexCap": 4,
           "equipped": {
             "carryType": "worn",
@@ -1015,7 +1031,9 @@
           },
           "containerId": null,
           "craftableAs": null,
-          "description": "",
+          "description": {
+            "value": "<p>These projectiles are the ammunition for bows. The shaft of an arrow is made of wood. It is stabilized in flight by fletching at one end and bears a metal head on the other.</p>"
+          },
           "level": {
             "value": 0
           },
@@ -1083,7 +1101,9 @@
               "damageType": "slashing"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -1138,7 +1158,9 @@
               "damageType": "piercing"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -1186,7 +1208,9 @@
             "value": null
           },
           "category": "defensive",
-          "description": "",
+          "description": {
+            "value": "<p><strong>Trigger</strong> A goblin ally ends a move action adjacent to the goblin.</p>\n<hr />\n<p><strong>Effect</strong> The goblin warrior @UUID[Compendium.pf2e.actionspf2e.Item.Step]{Steps}.</p>"
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -1385,7 +1409,9 @@
               "damageType": "piercing"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -1429,7 +1455,9 @@
             "value": null
           },
           "category": "offensive",
-          "description": "",
+          "description": {
+            "value": "<p>The dog's Strikes deal 1d4 extra damage to creatures within the reach of at least two of the dog's allies.</p>"
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -1715,7 +1743,9 @@
           "autoHeightenLevel": {
             "value": null
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "prepared": {
             "flexible": false,
             "value": "innate"
@@ -1788,7 +1818,9 @@
               "statistic": "will"
             }
           },
-          "description": "",
+          "description": {
+            "value": "<p><strong>Requirements</strong> You can bleed.</p>\n<p><strong>Trigger</strong> A creature deals piercing, slashing, or persistent bleed damage to you.</p>\n<hr />\n<p>You curse the target, punishing it for having the audacity to spill your blood. The target takes 2d6 persistent bleed damage and must attempt a Will save.</p>\n<hr />\n<p><strong>Critical Success</strong> The target is unaffected.</p>\n<p><strong>Success</strong> The target takes half the persistent bleed damage.</p>\n<p><strong>Failure</strong> The target takes the full persistent bleed damage. Until the bleeding stops, the target has weakness 1 to piercing and slashing damage. @UUID[Compendium.pf2e.spell-effects.Item.Spell Effect: Blood Vendetta (Failure)]</p>\n<p><strong>Critical Failure</strong> As failure, but the target takes double the persistent bleed damage.</p>\n<hr />\n<p><strong>Heightened (+2)</strong> The persistent bleed damage increases by 2d6.</p>"
+          },
           "duration": {
             "sustained": false,
             "value": "varies"
@@ -1870,7 +1902,9 @@
               "statistic": "will"
             }
           },
-          "description": "",
+          "description": {
+            "value": "<p>You cause the target to see all other creatures as dire threats. The target is stricken by intense paranoia toward all creatures around it and must attempt a Will save.</p>\n<hr /><p><strong>Critical Success</strong> The target is unaffected.</p>\n<p><strong>Success</strong> The target believes everyone it sees is a potential threat. It becomes @UUID[Compendium.pf2e.conditionitems.Item.Unfriendly] to all creatures to which it wasn't already hostile, even those that were previously allies. It treats no one as an ally. The spell ends after 1 round.</p>\n<p><strong>Failure</strong> As success, but the effect lasts 1 minute.</p>\n<p><strong>Critical Failure</strong> As failure, except the target believes that everyone it sees is a mortal enemy. It uses its reactions and free actions against everyone, regardless of whether they were previously its allies, as determined by the GM. It otherwise acts as rationally as it normally does and likely prefers to attack creatures that are actively attacking or hindering it over those leaving it alone.</p>\n<hr /><p><strong>Heightened (6th)</strong> You can target up to 5 creatures.</p>"
+          },
           "duration": {
             "sustained": false,
             "value": "1 minute"
@@ -1950,7 +1984,9 @@
           "counteraction": false,
           "damage": {},
           "defense": null,
-          "description": "",
+          "description": {
+            "value": "<p>You harmlessly place your unique magical sigil, which is about 1 square inch in size, on the targeted creature or object. The mark can be visible or invisible, and you can change it from one state to another by using an Interact action to touch the target. The mark can be scrubbed or scraped off with 5 minutes of work. If it's on a creature, it fades naturally over the course of a week. The time before the mark fades increases depending on your heightened level.</p>\n<hr />\n<p><strong>Heightened (3rd)</strong> The sigil instead fades after 1 month.</p>\n<p><strong>Heightened (5th)</strong> The sigil instead fades after 1 year.</p>\n<p><strong>Heightened (7th)</strong> The sigil never fades.</p>"
+          },
           "duration": {
             "sustained": false,
             "value": "unlimited"
@@ -2036,7 +2072,9 @@
             "dice": 1,
             "die": "d8"
           },
-          "description": "",
+          "description": {
+            "value": "<p>This ranged weapon has a bow-like assembly mounted on a handled frame called a tiller. The tiller has a mechanism to lock the bowstring in place, attached to a trigger mechanism that releases the tension and launches a bolt.</p>"
+          },
           "equipped": {
             "carryType": "held",
             "handsHeld": 2,
@@ -2128,7 +2166,9 @@
             "dice": 1,
             "die": "d4"
           },
-          "description": "",
+          "description": {
+            "value": "<p>A light mace has a short wooden or metal shaft ending with a dense metal head. Used much like a club, it delivers heavy bludgeoning blows, but with extra power derived from the head's metal ridges or spikes.</p>"
+          },
           "equipped": {
             "carryType": "worn",
             "handsHeld": 0,
@@ -2215,7 +2255,9 @@
           "category": "light",
           "checkPenalty": -1,
           "containerId": null,
-          "description": "",
+          "description": {
+            "value": "<p>Sometimes called a hauberk, this is a long shirt constructed of the same metal rings as chainmail. However, it is much lighter than chainmail and protects only the torso, upper arms, and upper legs of its wearer.</p>"
+          },
           "dexCap": 3,
           "equipped": {
             "carryType": "worn",
@@ -2292,7 +2334,9 @@
           },
           "containerId": null,
           "craftableAs": null,
-          "description": "",
+          "description": {
+            "value": "<p>This shot deals no damage, but on a hit, the target must succeed at a @Check[reflex|dc:16] or be knocked @UUID[Compendium.pf2e.conditionitems.Item.Prone] and @UUID[Compendium.pf2e.conditionitems.Item.Immobilized] until it is freed with a successful DC 15 check to [[/act escape dc=15]]. This check can be attempted either by the target or a creature adjacent to the target.</p>"
+          },
           "level": {
             "value": 0
           },
@@ -2350,7 +2394,9 @@
           },
           "containerId": null,
           "craftableAs": null,
-          "description": "",
+          "description": {
+            "value": "<p>Shorter than traditional arrows but similar in construction, bolts are the ammunition used by crossbows.</p>"
+          },
           "level": {
             "value": 0
           },
@@ -2418,7 +2464,9 @@
               "damageType": "bludgeoning"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -2475,7 +2523,9 @@
               "damageType": "piercing"
             }
           },
-          "description": "",
+          "description": {
+            "value": "<p>No damage if using Bola Bolt.</p>"
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -2522,7 +2572,9 @@
             "value": null
           },
           "category": "defensive",
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -2586,7 +2638,9 @@
             "value": null
           },
           "category": "defensive",
-          "description": "",
+          "description": {
+            "value": "<p>@Localize[PF2E.NPC.Abilities.Glossary.LightBlindness]</p>"
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -2627,7 +2681,9 @@
             "value": null
           },
           "category": "offensive",
-          "description": "",
+          "description": {
+            "value": "<p>This shot deals no damage, but on a hit, the target must succeed at a @Check[reflex|dc:16] save or be knocked @UUID[Compendium.pf2e.conditionitems.Item.Prone] and @UUID[Compendium.pf2e.conditionitems.Item.Immobilized] until it is freed with a successful DC 15 check to [[/act escape dc=15]]. This check can be attempted either by the target or a creature adjacent to the target.</p>"
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -2863,7 +2919,9 @@
             "dice": 1,
             "die": "d6"
           },
-          "description": "",
+          "description": {
+            "value": "<p>Little more than a leather cup attached to a pair of straps, a sling can be used to fling smooth stones or sling bullets at a range.</p>"
+          },
           "equipped": {
             "carryType": "worn",
             "handsHeld": 0,
@@ -2955,7 +3013,9 @@
             "dice": 1,
             "die": "d6"
           },
-          "description": "",
+          "description": {
+            "value": "<p>A long metal shaft ending with a metal spike, a spear can be used one-handed as a melee weapon and can be thrown.</p>"
+          },
           "equipped": {
             "carryType": "held",
             "handsHeld": 1,
@@ -3042,7 +3102,9 @@
           "category": "light",
           "checkPenalty": -1,
           "containerId": null,
-          "description": "",
+          "description": {
+            "value": "<p>A mix of flexible and molded boiled leather, a suit of this type of armor provides some protection with maximum flexibility.</p>"
+          },
           "dexCap": 4,
           "equipped": {
             "carryType": "worn",
@@ -3116,7 +3178,9 @@
           },
           "containerId": null,
           "craftableAs": null,
-          "description": "",
+          "description": {
+            "value": "<p>These are small metal balls, typically either iron or lead, designed to be used as ammunition in slings.</p>"
+          },
           "level": {
             "value": 0
           },
@@ -3184,7 +3248,9 @@
               "damageType": "piercing"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -3235,7 +3301,9 @@
               "damageType": "piercing"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -3288,7 +3356,9 @@
               "damageType": "bludgeoning"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -3336,7 +3406,9 @@
             "value": 1
           },
           "category": "offensive",
-          "description": "",
+          "description": {
+            "value": "<p><strong>Requirements</strong> The kobold warrior is adjacent to at least one enemy</p>\n<hr />\n<p><strong>Effect</strong> The kobold warrior Strides up to their Speed plus 5 feet and gains a +2 circumstance bonus to AC against reactions triggered by this movement. They must end this movement in a space that's not adjacent to any enemy.</p>"
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -3435,7 +3507,9 @@
             "value": null
           },
           "category": "offensive",
-          "description": "",
+          "description": {
+            "value": "<p>The kobold warrior deals an extra 1d4 precision damage to off-guard creatures.</p>"
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -3710,7 +3784,9 @@
           "autoHeightenLevel": {
             "value": null
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "prepared": {
             "flexible": false,
             "value": "innate"
@@ -3767,7 +3843,9 @@
           "counteraction": false,
           "damage": {},
           "defense": null,
-          "description": "",
+          "description": {
+            "value": "<p>You can ask questions of and receive answers from plants and fungi, but the spell doesn't make them more friendly or intelligent than normal. Most normal plants and fungi have a distinctive view of the world around them, so they don't recognize details about creatures or know anything about the world beyond their immediate vicinity. Cunning plant or fungus monsters are likely to be terse and evasive, while less intelligent ones often make inane comments.</p>\n<hr />\n<p><strong>Heightened (4th)</strong> The duration is 8 hours.</p>"
+          },
           "duration": {
             "sustained": false,
             "value": "1 hour"
@@ -3849,7 +3927,9 @@
             "dice": 1,
             "die": "d8"
           },
-          "description": "",
+          "description": {
+            "value": "<p>This very long spear, sometimes called a pike, is purely for thrusting rather than throwing. Used by many soldiers and city watch for crowd control and defense against charging enemies, it must be wielded with two hands.</p>"
+          },
           "equipped": {
             "carryType": "held",
             "handsHeld": 2,
@@ -3942,7 +4022,9 @@
               "damageType": "piercing"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -3997,7 +4079,9 @@
               "damageType": "bludgeoning"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -4042,7 +4126,9 @@
             "value": null
           },
           "category": "interaction",
-          "description": "",
+          "description": {
+            "value": "<p>@Localize[PF2E.NPC.Abilities.Glossary.ConstantSpells]</p>"
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -4084,7 +4170,9 @@
           },
           "category": "defensive",
           "deathNote": true,
-          "description": "",
+          "description": {
+            "value": "<p>When a leaf leshy dies, a burst of primal energy explodes from their body, restoring @Damage[1d4[healing]]{1d4 Hit Points} to each plant creature in a @Template[emanation|distance:30]. This area is filled with tree saplings, becoming difficult terrain.</p>\n<p>If the terrain is not a viable environment for these trees, they wither after 24 hours.</p>"
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -4129,7 +4217,9 @@
             "value": 1
           },
           "category": "offensive",
-          "description": "",
+          "description": {
+            "value": "<p>The leaf leshy transforms into a Small tree. This ability otherwise uses the effects of @UUID[Compendium.pf2e.spells-srd.Item.One with Plants].</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.ChangeShape]</p>"
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -4203,7 +4293,9 @@
             "value": null
           },
           "category": "offensive",
-          "description": "",
+          "description": {
+            "value": "<p>When a leaf leshy hits with their seedpod Strike, the pod explodes loudly. The target must attempt a @Check[fortitude|dc:16] save.</p>\n<hr />\n<p><strong>Critical Success</strong> The target is unaffected and temporarily immune for 24 hours.</p>\n<p><strong>Success</strong> The target is unaffected.</p>\n<p><strong>Failure</strong> The target is @UUID[Compendium.pf2e.conditionitems.Item.Deafened] for 1 round.</p>\n<p><strong>Critical Failure</strong> The target is deafened for 1 minute.</p>"
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -4244,7 +4336,9 @@
             "value": 1
           },
           "category": "offensive",
-          "description": "",
+          "description": {
+            "value": "<p>The leshy glides gently through the air, moving 5 feet toward the ground and up to 25 feet forward. As long as the leshy spends at least 1 action gliding each round, they remain in the air at the end of each turn. For the purpose of determining damage from falls, a leaf leshy always treats falls as if they were 20 feet shorter.</p>"
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -4464,7 +4558,9 @@
             "dice": 1,
             "die": "d6"
           },
-          "description": "",
+          "description": {
+            "value": "<p>This thin spear is well balanced for throwing but is not designed for melee use.</p>"
+          },
           "equipped": {
             "carryType": "held",
             "handsHeld": 1,
@@ -4559,7 +4655,9 @@
             "dice": 1,
             "die": "d6"
           },
-          "description": "",
+          "description": {
+            "value": "<p>This stout, metal blade of orc design has a horizontal basket hilt with blades jutting from each end, or sometimes one blade like that of a katar.</p>"
+          },
           "equipped": {
             "carryType": "held",
             "handsHeld": 1,
@@ -4646,7 +4744,9 @@
           "category": "medium",
           "checkPenalty": -2,
           "containerId": null,
-          "description": "",
+          "description": {
+            "value": "<p>Though referred to as a breastplate, this type of armor consists of several pieces of plate or @UUID[Compendium.pf2e.equipment-srd.Item.Half Plate] armor that protect the torso, chest, neck, and sometimes the hips and lower legs. It strategically grants some of the protection of plate while allowing greater flexibility and speed.</p>"
+          },
           "dexCap": 1,
           "equipped": {
             "carryType": "worn",
@@ -4730,7 +4830,9 @@
               "damageType": "piercing"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -4784,7 +4886,9 @@
               "damageType": "bludgeoning"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -4839,7 +4943,9 @@
               "damageType": "piercing"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -4884,7 +4990,9 @@
           },
           "category": "defensive",
           "deathNote": true,
-          "description": "",
+          "description": {
+            "value": "<p>@Localize[PF2E.NPC.Abilities.Glossary.Ferocity]</p>"
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -5154,7 +5262,9 @@
             "dice": 1,
             "die": "d6"
           },
-          "description": "",
+          "description": {
+            "value": "<p>This smaller bow is made of a single piece of wood and favored by skirmishers and cavalry.</p>"
+          },
           "equipped": {
             "carryType": "worn",
             "handsHeld": 0,
@@ -5248,7 +5358,9 @@
             "dice": 1,
             "die": "d6"
           },
-          "description": "",
+          "description": {
+            "value": "<p>This one-handed curved blade is sharp on one side.</p>"
+          },
           "equipped": {
             "carryType": "held",
             "handsHeld": 1,
@@ -5332,7 +5444,9 @@
           },
           "containerId": null,
           "craftableAs": null,
-          "description": "",
+          "description": {
+            "value": "<p>These projectiles are the ammunition for bows. The shaft of an arrow is made of wood. It is stabilized in flight by fletching at one end and bears a metal head on the other.</p>"
+          },
           "level": {
             "value": 0
           },
@@ -5399,7 +5513,9 @@
               "damageType": "slashing"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -5452,7 +5568,9 @@
               "damageType": "slashing"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -5506,7 +5624,9 @@
               "damageType": "piercing"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -5554,7 +5674,9 @@
             "value": null
           },
           "category": "defensive",
-          "description": "",
+          "description": {
+            "value": "<p>@Localize[PF2E.NPC.Abilities.Glossary.NegativeHealing]</p>"
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -5803,7 +5925,9 @@
               "damageType": "bludgeoning"
             }
           },
-          "description": "",
+          "description": {
+            "value": ""
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -5856,7 +5980,9 @@
               "damageType": "piercing"
             }
           },
-          "description": "",
+          "description": {
+            "value": "<p><strong>Requirements</strong> The zombie has a creature @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] or @UUID[Compendium.pf2e.conditionitems.Item.Restrained].</p>"
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -5900,7 +6026,9 @@
             "value": null
           },
           "category": "interaction",
-          "description": "",
+          "description": {
+            "value": "<p>A zombie is permanently @UUID[Compendium.pf2e.conditionitems.Item.Slowed]{Slowed 1} and can't use reactions.</p>"
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -5957,7 +6085,9 @@
             "value": null
           },
           "category": "defensive",
-          "description": "",
+          "description": {
+            "value": "<p>@Localize[PF2E.NPC.Abilities.Glossary.NegativeHealing]</p>"
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,
@@ -6006,7 +6136,9 @@
             "value": 1
           },
           "category": "offensive",
-          "description": "",
+          "description": {
+            "value": "<p>@Localize[PF2E.NPC.Abilities.Glossary.Grab]</p>"
+          },
           "publication": {
             "license": "ORC",
             "remaster": true,

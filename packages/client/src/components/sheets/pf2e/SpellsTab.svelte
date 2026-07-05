@@ -301,6 +301,17 @@
     void spellName;
   }
 
+  /**
+   * Inverse of castSpell — recover an already-expended slot without waiting
+   * for a full Rest (feedback: "Ao usar uma magia, não consigo recuperar os
+   * slots dela" — the UI previously had no button that flipped `expended`
+   * back to false; toggleSlotExpended already supported both directions).
+   */
+  function recoverSlot(entry: SpellcastingEntryRow, rank: number, slotIndex: number): void {
+    const op = vm.toggleSlotExpended(entry.entryId, rank, slotIndex);
+    if (op) sendOpFn(op);
+  }
+
   function unprepare(entry: SpellcastingEntryRow, rank: number, slotIndex: number): void {
     const op = vm.unprepareSlot(entry.entryId, rank, slotIndex);
     if (op) sendOpFn(op);
@@ -430,6 +441,13 @@
                             </button>
                           {:else}
                             <span class="spell-slot-card__expended-label">{t("FUSION.Sheet.Spells.Expended")}</span>
+                            <button
+                              type="button"
+                              class="spell-btn spell-btn--recover"
+                              onclick={() => recoverSlot(entry, slot.rank, slotIndex)}
+                            >
+                              {t("FUSION.Sheet.Spells.Recover")}
+                            </button>
                           {/if}
                           <button
                             type="button"
@@ -798,7 +816,10 @@
     gap: 10px;
   }
 
-  .spell-slot-card--expended {
+  /* Dim only the name/main area, not the action buttons — a fully-dimmed
+     card (previous opacity:0.6 on the whole card) muddied the "Recuperar"
+     button's contrast right when it needs to read as an available action. */
+  .spell-slot-card--expended .spell-slot-card__main {
     opacity: 0.6;
   }
 
@@ -893,6 +914,19 @@
   .spell-btn--ghost:hover {
     border-color: var(--fusion-accent);
     color: var(--fusion-accent-hover);
+  }
+
+  /* Recover an expended slot — visually distinct (success/green) from the
+     primary "Lançar" action so it reads as "undo the spend", not "cast". */
+  .spell-btn--recover {
+    background: var(--fusion-success-dim);
+    border: 1px solid var(--fusion-success);
+    color: var(--fusion-success);
+  }
+
+  .spell-btn--recover:hover {
+    background: var(--fusion-success);
+    color: var(--fusion-on-accent);
   }
 
   .focus-spell-row {

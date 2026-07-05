@@ -17,7 +17,7 @@
         "dice": 1,
         "die": "d8"
       },
-      "description": "",
+      "description": "<p>This broad-bladed sword, sometimes called the hand-and-a-half sword, has a longer grip so it can be held in one hand or used with two hands to provide extra slashing power.</p>",
       "expend": null,
       "grade": null,
       "group": "sword",
@@ -92,7 +92,7 @@
         "dice": 1,
         "die": "d8"
       },
-      "description": "",
+      "description": "<p>These axes are designed explicitly as weapons, rather than tools. They typically weigh less, with a shaft reinforced with metal bands or bolts, and have a sharper blade, making them ideal for chopping limbs rather than wood.</p>",
       "expend": null,
       "grade": null,
       "group": "axe",
@@ -167,7 +167,7 @@
         "dice": 1,
         "die": "d8"
       },
-      "description": "",
+      "description": "<p>This strong but slender staff is tapered at the ends and well balanced. It's designed to be an offensive and defensive weapon.</p>",
       "expend": null,
       "grade": null,
       "group": "club",
@@ -245,7 +245,7 @@
         "dice": 1,
         "die": "d6"
       },
-      "description": "",
+      "description": "<p>This is a piece of stout wood shaped or repurposed to bludgeon an enemy. Clubs can be intricately carved pieces of martial art or as simple as a tree branch or piece of wood.</p>",
       "expend": null,
       "grade": null,
       "group": "club",
@@ -318,7 +318,7 @@
         "dice": 1,
         "die": "d8"
       },
-      "description": "",
+      "description": "<p>This projectile weapon is made from horn, wood, and sinew laminated together to increase the power of its pull and the force of its projectile. Like all longbows, its great size also increases the bow's range and power. You must use two hands to fire it, and it cannot be used while mounted. Any time an ability is specifically restricted to a longbow, such as Erastil's favored weapon, it also applies to composite longbows unless otherwise stated.</p>",
       "expend": 1,
       "grade": null,
       "group": "bow",
@@ -395,7 +395,7 @@
         "dice": 1,
         "die": "d6"
       },
-      "description": "",
+      "description": "<p>This shortbow is made from horn, wood, and sinew laminated together to increase the power of its pull and the force of its projectile. Its compact size and power make it a favorite of mounted archers. Any time an ability is specifically restricted to a shortbow, it also applies to composite shortbows unless otherwise stated.</p>",
       "expend": 1,
       "grade": null,
       "group": "bow",
@@ -471,7 +471,7 @@
         "dice": 1,
         "die": "d8"
       },
-      "description": "",
+      "description": "<p>This ranged weapon has a bow-like assembly mounted on a handled frame called a tiller. The tiller has a mechanism to lock the bowstring in place, attached to a trigger mechanism that releases the tension and launches a bolt.</p>",
       "expend": 1,
       "grade": null,
       "group": "crossbow",
@@ -544,7 +544,7 @@
         "dice": 1,
         "die": "d4"
       },
-      "description": "",
+      "description": "<p>This small, bladed weapon is held in one hand and used to stab a creature in close combat. It can also be thrown.</p>",
       "expend": null,
       "grade": null,
       "group": "knife",
@@ -622,7 +622,7 @@
         "dice": 1,
         "die": "d4"
       },
-      "description": "",
+      "description": "<p>This thrown weapon is larger than an arrow but shorter than a javelin. It typically has a short shaft of wood ending in a metal tip and is sometimes stabilized by feathers or fur.</p>",
       "expend": null,
       "grade": null,
       "group": "dart",
@@ -698,7 +698,7 @@
         "dice": 1,
         "die": "d6"
       },
-      "description": "",
+      "description": "<p>This weapon consists of a wooden handle attached to a spiked ball or cylinder by a chain, rope, or strap of leather.</p>",
       "expend": null,
       "grade": null,
       "group": "flail",
@@ -775,7 +775,7 @@
         "dice": 1,
         "die": "d6"
       },
-      "description": "",
+      "description": "<p>More a flail than a mace, this weapon has a short handle attached to a length of chain with a ball at the end. The ball is propelled to its reach with the flick of the wrist, the momentum of which brings the ball back to the wielder after the strike.</p>",
       "expend": null,
       "grade": null,
       "group": "flail",
@@ -852,7 +852,7 @@
         "dice": 1,
         "die": "d12"
       },
-      "description": "",
+      "description": "<p>This large battle axe is too heavy to wield with only one hand. Many greataxes incorporate two blades, and they are often \"bearded,\" having a hook at the bottom to increase the strength of their chopping power.</p>",
       "expend": null,
       "grade": null,
       "group": "axe",
@@ -927,7 +927,7 @@
         "dice": 1,
         "die": "d12"
       },
-      "description": "",
+      "description": "<p>This immense two-handed sword is nearly as tall as its wielder. Its lower blade is often somewhat dulled to allow it to be gripped for extra leverage in close-quarter fights.</p>",
       "expend": null,
       "grade": null,
       "group": "sword",
@@ -1002,7 +1002,7 @@
         "dice": 1,
         "die": "d6"
       },
-      "description": "",
+      "description": "<p>Sometimes referred to as an alley bow by rogues or ruffians, this small crossbow fires small bolts that are sometimes used to deliver poison to the target. It's small enough to be shot one-handed, but it still requires two hands to load.</p>",
       "expend": 1,
       "grade": null,
       "group": "crossbow",
@@ -1075,7 +1075,7 @@
         "dice": 1,
         "die": "d6"
       },
-      "description": "",
+      "description": "<p>This small axe can be used in close combat or thrown.</p>",
       "expend": null,
       "grade": null,
       "group": "axe",
@@ -1152,7 +1152,7 @@
         "dice": 1,
         "die": "d6"
       },
-      "description": "",
+      "description": "<p>This thin spear is well balanced for throwing but is not designed for melee use.</p>",
       "expend": null,
       "grade": null,
       "group": "dart",
@@ -1227,7 +1227,7 @@
         "dice": 1,
         "die": "d6"
       },
-      "description": "",
+      "description": "<p>The blade of this foot-long knife curves inward and lacks a cross guard at the hilt.</p>",
       "expend": null,
       "grade": null,
       "group": "knife",
@@ -1304,7 +1304,7 @@
         "dice": 1,
         "die": "d8"
       },
-      "description": "",
+      "description": "<p>This 5-foot-tall bow, usually made of a single piece of elm, hickory, or yew, has a powerful draw and is excellent at propelling arrows with great force and at an extreme distance. You must use two hands to fire a longbow, and it can't be used while mounted.</p>",
       "expend": 1,
       "grade": null,
       "group": "bow",
@@ -1380,7 +1380,7 @@
         "dice": 1,
         "die": "d8"
       },
-      "description": "",
+      "description": "<p>Longswords, also known as arming swords, can be one-edged or two-edged swords. Their blades are heavy and they're between 3 and 4 feet in length.</p>",
       "expend": null,
       "grade": null,
       "group": "sword",
@@ -1455,7 +1455,7 @@
         "dice": 1,
         "die": "d12"
       },
-      "description": "",
+      "description": "<p>Mauls are massive warhammers that must be swung with two hands.</p>",
       "expend": null,
       "grade": null,
       "group": "hammer",
@@ -1530,7 +1530,7 @@
         "dice": 1,
         "die": "d6"
       },
-      "description": "",
+      "description": "<p>This weapon has a short shaft ending in a metal ball studded with spikes.</p>",
       "expend": null,
       "grade": null,
       "group": "club",
@@ -1605,7 +1605,7 @@
         "dice": 1,
         "die": "d6"
       },
-      "description": "",
+      "description": "<p>The rapier is a long and thin piercing blade with a basket hilt. It is prized among many as a dueling weapon.</p>",
       "expend": null,
       "grade": null,
       "group": "sword",
@@ -1682,7 +1682,7 @@
         "dice": 1,
         "die": "d6"
       },
-      "description": "",
+      "description": "<p>This smaller bow is made of a single piece of wood and favored by skirmishers and cavalry.</p>",
       "expend": 1,
       "grade": null,
       "group": "bow",
@@ -1757,7 +1757,7 @@
         "dice": 1,
         "die": "d6"
       },
-      "description": "",
+      "description": "<p>These blades come in a variety of shapes and styles, but they are typically 2 feet long.</p>",
       "expend": null,
       "grade": null,
       "group": "sword",
@@ -1834,7 +1834,7 @@
         "dice": 1,
         "die": "d6"
       },
-      "description": "",
+      "description": "<p>Little more than a leather cup attached to a pair of straps, a sling can be used to fling smooth stones or sling bullets at a range.</p>",
       "expend": 1,
       "grade": null,
       "group": "sling",
@@ -1907,7 +1907,7 @@
         "dice": 1,
         "die": "d6"
       },
-      "description": "",
+      "description": "<p>A long metal shaft ending with a metal spike, a spear can be used one-handed as a melee weapon and can be thrown.</p>",
       "expend": null,
       "grade": null,
       "group": "spear",
@@ -1983,7 +1983,7 @@
         "dice": 1,
         "die": "d4"
       },
-      "description": "",
+      "description": "<p>This long piece of wood can aid in walking and deliver a mighty blow.</p>",
       "expend": null,
       "grade": null,
       "group": "club",
@@ -2057,7 +2057,7 @@
         "dice": 1,
         "die": "d8"
       },
-      "description": "",
+      "description": "<p>This three-pronged, spear-like weapon typically has a 4-foot shaft. Like a spear, it can be wielded with one hand or thrown.</p>",
       "expend": null,
       "grade": null,
       "group": "spear",
@@ -2132,7 +2132,7 @@
         "dice": 1,
         "die": "d8"
       },
-      "description": "",
+      "description": "<p>This weapon has a wooden shaft ending in a large, heavy metal head. The head of the hammer might be single-sided or double-sided, but it's always capable of delivering powerful bludgeoning blows.</p>",
       "expend": null,
       "grade": null,
       "group": "hammer",
@@ -2207,7 +2207,7 @@
         "dice": 1,
         "die": "d4"
       },
-      "description": "",
+      "description": "<p>This long strand of thick leather, often braided, delivers a painful but nonlethal slash at a distance, usually accompanied by a distinctive cracking sound.</p>",
       "expend": null,
       "grade": null,
       "group": "flail",

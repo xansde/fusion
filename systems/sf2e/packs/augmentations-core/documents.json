@@ -8,7 +8,7 @@
       "baseItem": null,
       "bulk": 0,
       "containerId": null,
-      "description": "",
+      "description": "<p>With cutting edge surgery, you're implanted with an magical gland modified to function for a creature of your ancestry at the back of your throat. Choose your breath weapon's damage type when the organ is biocrafted from the following list: acid, cold, electricity, fire, or sonic. You gain the following activation.</p>\n<p><strong>Activate—Exhale</strong> <span class=\"action-glyph\">1</span> (manipulate)</p>\n<p><strong>Frequency</strong> once per 10 minutes</p><hr /><p><strong>Effect</strong> Each creature in a @Template[type:cone|distance:15] takes @Damage[(1d6)[untyped]] damage with a @Check[reflex|dc:15|basic] save. The damage depends on the augmentation's version.</p>",
       "hardness": 0,
       "hp": {
         "max": 0,
@@ -103,7 +103,7 @@
       "baseItem": null,
       "bulk": 0,
       "containerId": null,
-      "description": "",
+      "description": "<p>Oxygen-filtering nodules line the outside of your lungs. If you breathe in water, the gill sheath filters the oxygen into your lungs. This allows you to breathe underwater or in the air. You exhale normally.</p>",
       "hardness": 0,
       "hp": {
         "max": 0,
@@ -158,7 +158,7 @@
       "baseItem": null,
       "bulk": 0,
       "containerId": null,
-      "description": "",
+      "description": "<p>Magically infused nanites injected into your skin automatically react to your mood by changing the pigmentation of your skin. The color change is gradual, typically taking at least 30 seconds to fully transition from one color to another. Moodskin can be customized to adjust which colors correspond to each mood during installation. This augmentation doesn't count toward your implant limit.</p>",
       "hardness": 0,
       "hp": {
         "max": 0,
@@ -214,7 +214,7 @@
       "baseItem": null,
       "bulk": 0,
       "containerId": null,
-      "description": "",
+      "description": "<p>A rune-carved device of treated alloys and crystal the size of a pebble is implanted into your brain's communication center. You gain limited telepathy to a range of 30 feet.</p>",
       "hardness": 0,
       "hp": {
         "max": 0,
@@ -270,7 +270,7 @@
       "baseItem": null,
       "bulk": 0,
       "containerId": null,
-      "description": "",
+      "description": "<p>Spongy black webbing radiates from a grayish purple mass of necrotized flesh that pulses when it's exposed to air. Specially grown in vats from waste produced in the necrograft manufacturing process, necrolungs allow living creatures to breathe efficiently and safely on Eox, becoming effectively immune to the toxins in its atmosphere for an additional 24 hours.</p>\n<p>Installing a necrolung takes one minute and requires no skill checks. When installed, a necrolung slithers down your throat (or appropriate alien anatomy) and integrates into your respiratory system. Most users notice a harmless pallor and rotting smell while using the tech.</p>",
       "hardness": 0,
       "hp": {
         "max": 0,
@@ -325,7 +325,7 @@
       "baseItem": null,
       "bulk": 0,
       "containerId": null,
-      "description": "",
+      "description": "<p>An artificial eye lens microscopically wired into your brain automatically tracks a database of associated names and faces as you meet or interact with individuals. After you've learned someone's name and appearance, a tiny HUD displays their name to you whenever you're looking at them as long as you're aware of their presence and their appearance hasn't dramatically changed (at the GM's discretion). This doesn't help you see or identify people who are trying to hide or disguise their appearance. This augmentation doesn't count toward your implant limit.</p>",
       "hardness": 0,
       "hp": {
         "max": 0,
@@ -380,7 +380,7 @@
       "baseItem": null,
       "bulk": 0,
       "containerId": null,
-      "description": "",
+      "description": "<p>This cybernetic is a programmable data port installed into your body, allowing you to access computers and digital storage devices. Any handheld computer can connect to the port, while larger systems typically require an adapter cable. You don't need an interface to access the system, as it connects directly to your nervous system via the datajack. You must still attempt any skill checks associated with operating the device, such as Computers to access a system. Some closed systems don't allow direct data access at all.</p>",
       "hardness": 0,
       "hp": {
         "max": 0,
@@ -435,7 +435,7 @@
       "baseItem": null,
       "bulk": 0,
       "containerId": null,
-      "description": "",
+      "description": "<p>Hardened plates protect your skin and help you deflect physical blows. A limb with dermal plating functions as a shield. You can Raise a Shield with your limb, giving you a +1 circumstance bonus to AC until the start of your next turn, but it doesn't require a hand to use. You can use the Shield Block reaction with your limb. Dermal plating has Hardness 5. After you use Shield Block, your dermal plating becomes damaged and can't be used for 24 hours as the nanites repair the durable plates.</p>",
       "hardness": 0,
       "hp": {
         "max": 0,
@@ -490,7 +490,7 @@
       "baseItem": null,
       "bulk": 0,
       "containerId": null,
-      "description": "",
+      "description": "<p>This device fits into your ear canal or other suitable auditory organs. Commonly available at UPB printing kiosks, this augmentation restores or enhances hearing. This augmentation doesn't count toward your implant limit.</p>",
       "hardness": 0,
       "hp": {
         "max": 0,
@@ -545,7 +545,7 @@
       "baseItem": null,
       "bulk": 0,
       "containerId": null,
-      "description": "",
+      "description": "<p>These sheets of reflective material, implanted in your visual organs, enhance your vision without changing your appearance. You gain low-light vision and a +1 item bonus to Perception checks to @UUID[Compendium.sf2e.actions.Item.Seek] if they involve sight.</p>",
       "hardness": 0,
       "hp": {
         "max": 0,

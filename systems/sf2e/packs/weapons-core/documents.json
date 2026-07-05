@@ -21,7 +21,7 @@
         "dice": 1,
         "die": "d4"
       },
-      "description": "",
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>Instead of traditional ammunition, this bulky pistol contains a capacitor that generates arcs of electricity. Its stock is crafted from polycarbon or other synthetic insulators, often tinted bright yellow and inscribed with the universal bolt symbol for high voltage.</p>",
       "expend": 2,
       "grade": "commercial",
       "group": "shock",
@@ -101,7 +101,7 @@
         "dice": 1,
         "die": "d6"
       },
-      "description": "",
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>This rifle's oversized body contains a larger version of an arc pistol capacitor, with a short barrel and polycarbon stock designed to insulate the wielder from high voltage. The arc rifle's larger capacitor allows it to produce a charge with enough power to subdue a rampaging renkroda.</p>",
       "expend": 2,
       "grade": "commercial",
       "group": "shock",
@@ -181,7 +181,7 @@
         "dice": 1,
         "die": "d6"
       },
-      "description": "",
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>This short, bulky assault rifle incorporates a piston system that allows the user to switch to auto-fire and unload a magazine with one trigger squeeze.</p>",
       "expend": 1,
       "grade": "commercial",
       "group": "projectile",
@@ -257,7 +257,7 @@
         "dice": 1,
         "die": "d6"
       },
-      "description": "",
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>This reinforced rod is commonly made from metal alloys and designed to strike and parry incoming blows.</p>",
       "expend": null,
       "grade": "commercial",
       "group": "club",
@@ -338,7 +338,7 @@
         "dice": 1,
         "die": "d10"
       },
-      "description": "",
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>The barrel of this rifle is surrounded by a coil that accelerates ammunition with power and accuracy using carefully aligned magnetic fields.</p>",
       "expend": 1,
       "grade": "commercial",
       "group": "sniper",
@@ -422,7 +422,7 @@
         "dice": 1,
         "die": "d10"
       },
-      "description": "",
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>This high-tech crossbow uses a series of pistons to propel bolts along its barrel. These quiet-firing semiautomatic weapons are popular in high-density settlements where gunfire might cause a panic.</p>",
       "expend": 1,
       "grade": "commercial",
       "group": "crossbow",
@@ -497,7 +497,7 @@
         "dice": 1,
         "die": "d8"
       },
-      "description": "",
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>Coming in a variety of styles, these traditional and time-tested weapons have been honed with advanced smithing techniques and modern materials.</p>",
       "expend": null,
       "grade": "commercial",
       "group": "sword",
@@ -577,7 +577,7 @@
         "dice": 1,
         "die": "d10"
       },
-      "description": "",
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>This bulky, rifle-shaped weapon spews flames using a tank of highly combustible, pressurized chemicals housed in its stock.</p>",
       "expend": 2,
       "grade": "commercial",
       "group": "flame",
@@ -654,7 +654,7 @@
         "dice": 1,
         "die": "d8"
       },
-      "description": "",
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>Valued as both a crafting tool and an effective weapon, this hammer uses specially weighted heads and handles to deliver maximum force with each strike.</p>",
       "expend": null,
       "grade": "commercial",
       "group": "hammer",
@@ -731,7 +731,7 @@
         "dice": 1,
         "die": "d4"
       },
-      "description": "",
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>Invaluable as both a weapon and a tool, knives come in a variety of shapes, styles, and materials ranging from starmetals to ceramics.</p>",
       "expend": null,
       "grade": "commercial",
       "group": "knife",
@@ -814,7 +814,7 @@
         "dice": 1,
         "die": "d6"
       },
-      "description": "",
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>This compact pistol is the most popular sidearm in the Pact Worlds thanks to its reliability, durability, and affordability. Most common laser pistols have a lightweight polycarbon body ending in a long, slim barrel.</p>",
       "expend": 2,
       "grade": "commercial",
       "group": "laser",
@@ -893,7 +893,7 @@
         "dice": 1,
         "die": "d8"
       },
-      "description": "",
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>These dependable, mass-produced rifles shoot concentrated beams of energy out of square-shaped barrels. The universal standard Pact Worlds model is highly modifiable and designed to function with a variety of accessories and upgrades, with wielders adapting the laser rifle to their preferences and even kit-bashing it into a nearly unrecognizable weapon.</p>",
       "expend": 2,
       "grade": "commercial",
       "group": "laser",
@@ -972,7 +972,7 @@
         "dice": 1,
         "die": "d8"
       },
-      "description": "",
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>These proven and reliable automatic weapons are capable of firing in short bursts or completely emptying their magazines to clear a battlefield.</p>",
       "expend": 1,
       "grade": "commercial",
       "group": "projectile",
@@ -1048,7 +1048,7 @@
         "dice": 1,
         "die": "d8"
       },
-      "description": "",
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>This sword generates a focused beam of plasma around a localized force field powered by a generator in the sword's hilt. The beam only blazes to life when the sword is powered.</p>",
       "expend": null,
       "grade": "commercial",
       "group": "sword",
@@ -1129,7 +1129,7 @@
         "dice": 1,
         "die": "d6"
       },
-      "description": "",
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>This imposing pistol fires a jolt of paralyzing electricity from its barrel. Its remaining charges are visible as glowing lines of energy radiating down its body. Pulsecaster pistols are often used by bounty hunters and law enforcement who need to keep their targets alive.</p>",
       "expend": 2,
       "grade": "commercial",
       "group": "shock",
@@ -1209,7 +1209,7 @@
         "dice": 1,
         "die": "d6"
       },
-      "description": "",
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>This pistol automatically ejects used cartridges and loads new ammunition after every shot fired.</p>",
       "expend": 1,
       "grade": "commercial",
       "group": "projectile",
@@ -1284,7 +1284,7 @@
         "dice": 1,
         "die": "d4"
       },
-      "description": "",
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>This flexible nanocarbon circuit can be installed as an upgrade into gloves, kneepads, or similar appendage protectors to emit a powerful electric shock when forcefully applied to a target.</p>",
       "expend": null,
       "grade": "commercial",
       "group": "shock",
@@ -1362,7 +1362,7 @@
         "dice": 1,
         "die": "d6"
       },
-      "description": "",
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>Popular among security forces, this retractable baton discharges electricity with each Strike. A whirring device inside the grip generates voltage, creating a sound like a swarm of buzzing insects when it's fully charged.</p>",
       "expend": null,
       "grade": "commercial",
       "group": "club",
@@ -1456,7 +1456,7 @@
         "dice": 1,
         "die": "d4"
       },
-      "description": "",
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>This traditional star-shaped blade design of lost Golarion is often forged from reinforced carbon steel and treated with chemicals that create an iridescent sheen. When properly balanced and honed, a shooting starknife sings as it slices through the air.</p>",
       "expend": null,
       "grade": "commercial",
       "group": "knife",
@@ -1540,7 +1540,7 @@
         "dice": 1,
         "die": "d6"
       },
-      "description": "",
+      "description": "<p><strong>Upgrades:</strong> 1</p><hr /><p>Zero pistols use transparent canisters of supercooled liquid as ammunition.</p>",
       "expend": 2,
       "grade": "commercial",
       "group": "cryo",

@@ -95,10 +95,10 @@ function findAncestryHp(doc: Record<string, unknown>): number | undefined {
  * the running score is below 18, else +1; each flaw subtracts 2.
  *
  * Boosts/flaws are applied in a fixed origin order (ancestry boosts →
- * ancestry flaws → ancestry free boosts → background boosts → class boost →
- * levelled boosts up to the character's current level, in level order) —
- * this mirrors the PF2e Remaster character-creation sequence (a fact of the
- * rule system, not copyrighted prose).
+ * ancestry flaws → ancestry free boosts → background boosts → background
+ * free boosts → class boost → levelled boosts up to the character's current
+ * level, in level order) — this mirrors the PF2e Remaster character-creation
+ * sequence (a fact of the rule system, not copyrighted prose).
  */
 function computeAbilityScores(
   build: NonNullable<CharacterSystem["build"]>,
@@ -129,6 +129,12 @@ function computeAbilityScores(
   for (const slug of abilities.ancestryFlaws) applyFlaw(slug);
   for (const slug of abilities.ancestryFree) applyBoost(slug);
   for (const slug of abilities.backgroundBoosts) applyBoost(slug);
+  // `?? []`: backgroundFree is a NEW field (R11 item 1) — docs built directly
+  // as literals in older tests/fixtures (bypassing the Zod `.default([])`)
+  // predate it and omit the key entirely; degrade to no boosts instead of
+  // throwing, same defensive posture as the rest of this file's malformed-
+  // input handling (see the "Malformed class item" test suite).
+  for (const slug of abilities.backgroundFree ?? []) applyBoost(slug);
   for (const slug of abilities.classBoost) applyBoost(slug);
 
   const levelledLevels = Object.keys(abilities.levelledBoosts)
