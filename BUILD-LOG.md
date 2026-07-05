@@ -129,7 +129,9 @@ Feedback do usuário pós-r10 (prints do Pathbuilder como referência). Dois wor
 5. **Descansar/Recuperar**: slot gasto com ação inversa explícita + botão Descansar (slots+foco via restAll; HP = follow-up, regra CON×nível).
 6. **Traits agrupados**: 107 traits reais curados em traitGroups.ts (grupos semânticos, <10% em Outros, teste de cobertura viva).
 
-Lições operacionais novas: copiar `world.db` SEM o `-wal` com o servidor do usuário aberto entrega um mundo sem os dados recentes (diagnóstico fantasma de "Tobias revertido"); o server cacheia index.html na memória (rebuild do client exige restart); derivação que falha dentro de recomputeDerivedIfNeeded é silenciosa — guardar TODA leitura de ledger cru. Exe pendente de regeneração (servidor do usuário aberto). Suítes: client 1331, pf2e 398, sf2e 122, importer 186.
+Lições operacionais novas: copiar `world.db` SEM o `-wal` com o servidor do usuário aberto entrega um mundo sem os dados recentes (diagnóstico fantasma de "Tobias revertido"); o server cacheia index.html na memória (rebuild do client exige restart); derivação que falha dentro de recomputeDerivedIfNeeded é silenciosa — guardar TODA leitura de ledger cru. Suítes: client 1331, pf2e 398, sf2e 122, importer 186.
+
+**Exe regenerado pós-r11** (2026-07-05): `fusion-server-0.1.0-windows-x64.exe` 122,2 MB, sha256 `5bd415b443bcd7cf32bd73be675d395a6dcc22ec59ba6d1b6629e26df02d7e54`, smoke §5.2 **PASSED** (world create → serve → /health → login GM → socket hello + snapshot → `compendium:list` com os 10 packs pf2e embutidos). Inclui todas as entregas r11: multi-seleção de boosts/perícias, descrições ORC/OGL + painel de detalhes, feats aninhadas, Descansar/Recuperar, traits agrupados e o fix end-to-end do bug de boosts.
 
 ## Registro por batch
 
