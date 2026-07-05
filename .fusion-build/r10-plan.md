@@ -4,6 +4,11 @@
 > **Mudança de processo (usuário, 2026-07-04, durante R10-B/C): auditorias Opus REMOVIDAS
 > desta rodada** — o R10-A foi o único batch auditado (score 94). Gate vigente: integração
 > verde (build/typecheck/lint/testes) + validação manual do próprio usuário no app.
+> **Adendo (usuário, 2026-07-05, madrugada): UMA auditoria única em FABLE ao final da
+> implantação (pós R10-D), cobrindo o conjunto da rodada; ao finalizar esta parte do
+> projeto (R10-D + auditoria + fechamento R10-E), DESLIGAR O PC.** Verificação ao vivo
+> via browser (playwright) pelo orquestrador é obrigatória antes do fechamento — pegou
+> 3 bugs reais no R10-C que os testes verdes não pegaram.
 > Branch `build/app`.
 
 ## Feedback (itens do usuário)
