@@ -16,11 +16,18 @@
    *   userId     — current user's id
    *   isGm       — true if current user is GM
    *   sendOpFn   — callback to emit ops via socket (injected for testability)
+   *   socket     — optional live Socket, needed ONLY by the Spells tab's
+   *                compendium spell picker (SpellPickerDialog calls
+   *                compendiumApi.searchPack/getDocument directly). Omitted in
+   *                unit tests / any caller that doesn't need spell management.
    */
 
   import { CharacterSheetVM } from "$lib/sheets/pf2e/characterSheetVM.js";
-  import type { ChatRollPayload, DocUpdatePayload, CharacterSheetTab } from "$lib/sheets/pf2e/characterSheetVM.js";
+  import type { ChatRollPayload, DocUpdatePayload, DocOpPayload, CharacterSheetTab } from "$lib/sheets/pf2e/characterSheetVM.js";
   import { worldMirror } from "$lib/docs/worldSync.js";
+  import SpellsTab from "./SpellsTab.svelte";
+  import ProficiencyBadge from "./ProficiencyBadge.svelte";
+  import type { Socket } from "socket.io-client";
 
   // ---------------------------------------------------------------------------
   // Props
@@ -33,7 +40,8 @@
     userId: string;
     isGm: boolean;
     worldId?: string;
-    sendOpFn?: (op: ChatRollPayload | DocUpdatePayload) => void;
+    socket?: Socket;
+    sendOpFn?: (op: ChatRollPayload | DocOpPayload) => void;
   }
 
   let {
@@ -43,6 +51,7 @@
     userId,
     isGm,
     worldId = "",
+    socket,
     sendOpFn = () => {},
   }: Props = $props();
 
@@ -125,11 +134,6 @@
 
   function rollStrikeDamage(sourceId: string, crit: boolean): void {
     const op = vm.rollStrikeDamage(sourceId, crit);
-    if (op) sendOpFn(op);
-  }
-
-  function rollSpellAttack(entryId: string): void {
-    const op = vm.rollSpellAttack(entryId);
     if (op) sendOpFn(op);
   }
 
@@ -369,16 +373,28 @@
         {/each}
         <span class="resource-label">HP</span>
       </div>
-      {#if vm.focusPoints.max > 0}
+      {#if vm.focusPoints.max > 0 || vm.focusPoints.value > 0}
+        <!-- Focus pips always render up to the DEC-R10-02 hard cap (3), even
+             when the character's current max is lower — pips beyond `max`
+             render locked/hatched (unclickable), matching the design
+             contract's PipRow "locked" state (guidelines/pips.card.html). -->
         <div class="resource-pip-group" aria-label="Focus Points {vm.focusPoints.value}/{vm.focusPoints.max}">
-          {#each { length: vm.focusPoints.max } as _, i}
-            <button
-              class="resource-pip resource-pip--focus"
-              class:resource-pip--filled={i < vm.focusPoints.value}
-              title="Set Focus Points to {i < vm.focusPoints.value ? i : i + 1}"
-              aria-label="Focus point {i + 1}"
-              onclick={() => clickFocusPip(i)}
-            ></button>
+          {#each { length: 3 } as _, i}
+            {#if i < vm.focusPoints.max}
+              <button
+                class="resource-pip resource-pip--focus"
+                class:resource-pip--filled={i < vm.focusPoints.value}
+                title="Set Focus Points to {i < vm.focusPoints.value ? i : i + 1}"
+                aria-label="Focus point {i + 1}"
+                onclick={() => clickFocusPip(i)}
+              ></button>
+            {:else}
+              <span
+                class="resource-pip resource-pip--focus resource-pip--locked"
+                title="Beyond your current Focus Points maximum"
+                aria-label="Focus point {i + 1} (locked)"
+              ></span>
+            {/if}
           {/each}
           <span class="resource-label">Focus</span>
         </div>
@@ -594,12 +610,14 @@
           {/each}
         </ul>
       {:else}
+        <!-- All 16 canonical skills + lores, untrained included (feedback item
+             2 / DEC-R10-07) — every row stays clickable via rollSkill,
+             untrained rows just get a slightly reduced opacity so the eye
+             still lands on trained+ skills first. -->
         <ul class="skill-list" aria-label="Skills">
           {#each vm.skills as skill (skill.slug)}
-            <li class="skill-row">
-              <span class="skill-row__rank" title={skill.rankLabelFull} aria-label="Rank: {skill.rankLabelFull}">
-                {skill.rankLabel}
-              </span>
+            <li class="skill-row" class:skill-row--untrained={skill.rank === 0}>
+              <ProficiencyBadge rank={skill.rankLabel as "U" | "T" | "E" | "M" | "L"} size={18} title={skill.rankLabelFull} />
               <button
                 class="skill-row__name skill-row__rollable"
                 onclick={() => rollSkill(skill.slug)}
@@ -686,7 +704,7 @@
       {/if}
     </section>
 
-  <!-- SPELLS tab -->
+  <!-- SPELLS tab (DEC-R10-03/04) -->
   {:else if activeTab === "spells"}
     <section
       id="tab-panel-spells"
@@ -694,59 +712,7 @@
       aria-labelledby="tab-spells"
       class="tab-panel tab-panel--spells"
     >
-      {#if vm.spellcastingEntries.length > 0}
-        {#each vm.spellcastingEntries as entry (entry.entryId)}
-          <div class="spellcasting-entry">
-            <h3 class="spellcasting-entry__header">
-              {entry.label}
-              <span class="spellcasting-entry__meta">
-                {entry.tradition} · {entry.prepared}
-              </span>
-            </h3>
-            <div class="spellcasting-entry__stats">
-              <span>DC {entry.spellDC}</span>
-              <button
-                class="spellcasting-entry__attack-btn"
-                onclick={() => rollSpellAttack(entry.entryId)}
-                aria-label="Roll spell attack ({entry.spellAttackFormatted})"
-              >
-                Attack {entry.spellAttackFormatted}
-              </button>
-            </div>
-            {#each entry.slots as slot (slot.rank)}
-              <div class="spell-rank-block">
-                <div class="spell-rank-block__header">
-                  <span>{slot.isCantrip ? "Cantrips" : `Rank ${String(slot.rank)}`}</span>
-                  {#if !slot.isCantrip}
-                    <span class="spell-rank-block__slots">{slot.value}/{slot.max}</span>
-                  {/if}
-                </div>
-                <ul class="spell-list" aria-label="Spells rank {slot.rank}">
-                  {#each slot.spells as spell (spell.id)}
-                    <li class="spell-row">
-                      <span class="spell-row__name">{spell.name}</span>
-                      {#if spell.castTime}
-                        <span class="trait-badge">{spell.castTime}</span>
-                      {/if}
-                      {#if spell.hasAttack}
-                        <button
-                          class="spell-row__attack-btn"
-                          onclick={() => rollSpellAttack(entry.entryId)}
-                          aria-label="Roll attack for {spell.name}"
-                        >
-                          Attack
-                        </button>
-                      {/if}
-                    </li>
-                  {/each}
-                </ul>
-              </div>
-            {/each}
-          </div>
-        {/each}
-      {:else}
-        <p class="empty-state">No spellcasting entries.</p>
-      {/if}
+      <SpellsTab {vm} {socket} sendOpFn={(op) => sendOpFn(op as ChatRollPayload | DocOpPayload)} />
     </section>
 
   <!-- INVENTORY tab -->
@@ -1028,6 +994,18 @@
     background: var(--fusion-color-magic, #aa66ff);
   }
 
+  .resource-pip--locked {
+    cursor: default;
+    opacity: 0.4;
+    background: repeating-linear-gradient(
+      45deg,
+      var(--fusion-surface-alt),
+      var(--fusion-surface-alt) 2px,
+      transparent 2px,
+      transparent 4px
+    );
+  }
+
   .resource-label {
     font-size: 9px;
     color: var(--fusion-color-text-muted, #9999cc);
@@ -1258,11 +1236,8 @@
     background: rgba(255, 255, 255, 0.05);
   }
 
-  .skill-row__rank {
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--fusion-color-accent, #5b8dee);
-    text-align: center;
+  .skill-row--untrained {
+    opacity: 0.82;
   }
 
   .skill-row__rollable {
@@ -1391,37 +1366,6 @@
     background: rgba(91, 141, 238, 0.15);
     border: 1px solid rgba(91, 141, 238, 0.3);
     color: #8ab0f0;
-  }
-
-  /* Spellcasting */
-  .spellcasting-entry {
-    margin-bottom: 12px;
-    padding: 8px 10px;
-    background: var(--fusion-color-surface-raised, #16213e);
-    border: 1px solid var(--fusion-color-border, #3a3a5c);
-    border-radius: var(--fusion-radius-sm, 4px);
-  }
-
-  .spellcasting-entry__header {
-    margin: 0 0 6px;
-    font-size: 13px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .spellcasting-entry__meta {
-    font-size: 11px;
-    font-weight: 400;
-    color: var(--fusion-color-text-muted, #9999cc);
-  }
-
-  .spellcasting-entry__stats {
-    display: flex;
-    gap: 12px;
-    font-size: 12px;
-    color: var(--fusion-color-text-secondary, #b0b0cc);
   }
 
   /* Inventory */
@@ -1592,55 +1536,6 @@
 
   .map-btn--crit .map-btn__label {
     color: var(--fusion-color-warning, #ffcc00);
-  }
-
-  /* ---- Spell rank blocks ---- */
-  .spell-rank-block {
-    margin-top: 8px;
-    padding-top: 6px;
-    border-top: 1px solid var(--fusion-color-border, #3a3a5c);
-  }
-
-  .spell-rank-block__header {
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--fusion-color-text-muted, #9999cc);
-    text-transform: uppercase;
-    margin-bottom: 4px;
-  }
-
-  .spell-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 3px 0;
-    font-size: 12px;
-  }
-
-  .spell-row__name {
-    flex: 1;
-  }
-
-  .spell-row__attack-btn,
-  .spellcasting-entry__attack-btn {
-    background: transparent;
-    border: 1px solid var(--fusion-color-border, #3a3a5c);
-    border-radius: var(--fusion-radius-sm, 4px);
-    color: var(--fusion-color-text-primary, #e0e0ff);
-    cursor: pointer;
-    font-size: 11px;
-    padding: 2px 8px;
-    transition: background 0.15s;
-  }
-
-  .spell-row__attack-btn:hover,
-  .spellcasting-entry__attack-btn:hover,
-  .spell-row__attack-btn:focus-visible,
-  .spellcasting-entry__attack-btn:focus-visible {
-    background: rgba(255, 255, 255, 0.08);
-    outline: 2px solid var(--fusion-color-focus, #5b8dee);
   }
 
   /* ---- Feats tab ---- */

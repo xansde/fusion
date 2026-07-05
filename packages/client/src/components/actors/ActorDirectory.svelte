@@ -115,6 +115,7 @@
       ownership,
       isGm,
       worldId,
+      socket,
       sendOpFn: makeSendOpFn(socket),
     };
     if (ETMOS_SUBTYPES.has(actor.type)) {

@@ -12,8 +12,15 @@ import {
   proficiencyLabel,
   proficiencyLabelFull,
   isEquippedFlag,
+  filterSpellPicker,
+  type SpellPickerEntry,
 } from "../characterSheetVM.js";
-import { OwnershipLevel } from "@fusion/shared";
+import {
+  OwnershipLevel,
+  DocUpdatePayloadSchema,
+  DocCreatePayloadSchema,
+  DocDeletePayloadSchema,
+} from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -929,5 +936,527 @@ describe("CharacterSheetVM — spellcastingEntries", () => {
     const entry = vm.spellcastingEntries[0]!;
     const rank1 = entry.slots.find((s) => s.rank === 1)!;
     expect(rank1.spells.map((s) => s.name)).toContain("Magic Missile");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Skills — R10-C4 item 1: 16 canonical skills + lore, untrained rollable
+// ---------------------------------------------------------------------------
+
+describe("CharacterSheetVM — skills (canonical 16 + lore)", () => {
+  it("returns 17 rows (16 canonical + 1 lore) sorted alphabetically by label, with a full derived.skills doc", () => {
+    const doc = makeCharacter();
+    const system = doc["system"] as Record<string, unknown>;
+    // Add a lore skill on the raw document (not part of the canonical 16).
+    (system["skills"] as Record<string, unknown>)["lore-warfare"] = { rank: 2, lore: true };
+    const derived = system["derived"] as Record<string, unknown>;
+    const derivedSkills = derived["skills"] as Record<string, unknown>;
+    derivedSkills["lore-warfare"] = { slug: "lore-warfare", base: 9, modifiers: [], total: 9, dc: 19 };
+    // Fill out the remaining canonical skills so derived.skills is "complete"
+    // (mirrors the R10-A guarantee that the server always derives all 16).
+    const allCanonical = [
+      "acrobatics",
+      "arcana",
+      "athletics",
+      "crafting",
+      "deception",
+      "diplomacy",
+      "intimidation",
+      "medicine",
+      "nature",
+      "occultism",
+      "performance",
+      "religion",
+      "society",
+      "stealth",
+      "survival",
+      "thievery",
+    ];
+    for (const slug of allCanonical) {
+      if (!(slug in derivedSkills)) {
+        derivedSkills[slug] = { slug, base: 0, modifiers: [], total: 0, dc: 10 };
+      }
+    }
+
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+      worldId: "world-001",
+    });
+
+    const skills = vm.skills;
+    expect(skills).toHaveLength(17);
+
+    // Sorted alphabetically by label.
+    const labels = skills.map((s) => s.label);
+    const sortedLabels = [...labels].sort((a, b) => a.localeCompare(b));
+    expect(labels).toEqual(sortedLabels);
+
+    // Untrained skill (rank 0, not on the raw system.skills at all — e.g.
+    // "arcana") still appears, with rank 0 and the correct derived mod.
+    const arcana = skills.find((s) => s.slug === "arcana")!;
+    expect(arcana).toBeDefined();
+    expect(arcana.rank).toBe(0);
+    expect(arcana.rankLabel).toBe("U");
+    expect(arcana.total).toBe(0);
+    expect(arcana.totalFormatted).toBe("+0");
+
+    // rollSkill works for an untrained skill (uses derived.skills total).
+    const op = vm.rollSkill("arcana");
+    expect(op.content).toBe("/r 1d20+0 # Arcana");
+
+    // Lore skill present with generated label.
+    const lore = skills.find((s) => s.slug === "lore-warfare")!;
+    expect(lore.isLore).toBe(true);
+    expect(lore.label).toBe("Lore (warfare)");
+    expect(lore.total).toBe(9);
+  });
+
+  it("falls back to all 16 canonical skills (untrained) when derived is absent", () => {
+    const doc = makeCharacter();
+    (doc["system"] as Record<string, unknown>)["derived"] = undefined;
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    const skills = vm.skills;
+    // At least the 16 canonical skills must be present (doc also declares
+    // acrobatics/athletics/stealth on system.skills, which are a subset).
+    expect(skills.length).toBeGreaterThanOrEqual(16);
+    const slugs = skills.map((s) => s.slug);
+    for (const slug of [
+      "acrobatics",
+      "arcana",
+      "athletics",
+      "crafting",
+      "deception",
+      "diplomacy",
+      "intimidation",
+      "medicine",
+      "nature",
+      "occultism",
+      "performance",
+      "religion",
+      "society",
+      "stealth",
+      "survival",
+      "thievery",
+    ]) {
+      expect(slugs).toContain(slug);
+    }
+    // Untrained fallback total is 0 when no derived data exists.
+    const arcana = skills.find((s) => s.slug === "arcana")!;
+    expect(arcana.rank).toBe(0);
+    expect(arcana.total).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// spellTabs — R10-C4 item 2 (DEC-R10-03)
+// ---------------------------------------------------------------------------
+
+describe("CharacterSheetVM — spellTabs", () => {
+  function makeTwoEntryDoc(): Record<string, unknown> {
+    const doc = makeCharacter();
+    const items = doc["items"] as Array<Record<string, unknown>>;
+    // Second non-focus entry.
+    items.push({
+      _id: "entry-divine",
+      name: "Divine Font",
+      type: "spellcastingEntry",
+      system: {
+        tradition: "divine",
+        prepared: "prepared",
+        ability: "wis",
+        slots: { "0": { value: 0, max: 0 }, "1": { value: 1, max: 1 } },
+      },
+    });
+    // Focus entry.
+    items.push({
+      _id: "entry-focus",
+      name: "Bloodline Focus Spells",
+      type: "spellcastingEntry",
+      system: {
+        tradition: "arcane",
+        prepared: "focus",
+        ability: "cha",
+        isFocusPool: true,
+        slots: {},
+      },
+    });
+    // A spell that lives under the divine entry, to verify location routing.
+    items.push({
+      _id: "spell-heal",
+      name: "Heal",
+      type: "spell",
+      location: "entry-divine",
+      system: { level: 1, defense: { spellAttack: false }, castTime: "2A" },
+    });
+    return doc;
+  }
+
+  it("returns [entry1, entry2, Focus] with no Rituals tab when there are no ritual items", () => {
+    const doc = makeTwoEntryDoc();
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    const tabs = vm.spellTabs;
+    expect(tabs.map((t) => t.key)).toEqual(["entry-arcane", "entry-divine", "focus"]);
+    expect(tabs.map((t) => t.kind)).toEqual(["entry", "entry", "focus"]);
+    expect(tabs.some((t) => t.kind === "rituals")).toBe(false);
+
+    const focusTab = tabs.find((t) => t.kind === "focus")!;
+    expect(focusTab.entries).toHaveLength(1);
+    expect(focusTab.entries[0]!.entryId).toBe("entry-focus");
+  });
+
+  it("adds a Rituals tab when the actor has a ritual item", () => {
+    const doc = makeTwoEntryDoc();
+    const items = doc["items"] as Array<Record<string, unknown>>;
+    items.push({
+      _id: "ritual-item",
+      name: "Some Ritual",
+      type: "ritual",
+      system: { level: 3 },
+    });
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    const tabs = vm.spellTabs;
+    expect(tabs.map((t) => t.kind)).toEqual(["entry", "entry", "focus", "rituals"]);
+    const ritualsTab = tabs.find((t) => t.kind === "rituals")!;
+    expect(ritualsTab.key).toBe("rituals");
+    expect(ritualsTab.entries).toEqual([]);
+  });
+
+  it("associates spells to the correct entry tab via item location", () => {
+    const doc = makeTwoEntryDoc();
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    const tabs = vm.spellTabs;
+    const divineTab = tabs.find((t) => t.key === "entry-divine")!;
+    const spellNames = divineTab.entries[0]!.slots.flatMap((s) => s.spells.map((sp) => sp.name));
+    expect(spellNames).toContain("Heal");
+
+    const arcaneTab = tabs.find((t) => t.key === "entry-arcane")!;
+    const arcaneSpellNames = arcaneTab.entries[0]!.slots.flatMap((s) =>
+      s.spells.map((sp) => sp.name),
+    );
+    expect(arcaneSpellNames).not.toContain("Heal");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Spell management ops — R10-C4 item 3 (DEC-R10-04), validated against the
+// real Zod wire schemas (best proof of contract).
+// ---------------------------------------------------------------------------
+
+describe("CharacterSheetVM — spell management ops (protocol-validated)", () => {
+  it("addSpellToEntry builds a doc:create with parent Actor, location=entryId, and no _id", () => {
+    const vm = makeVM();
+    const spellDoc = {
+      _id: "compendium-spell-id-should-be-dropped",
+      name: "Fireball",
+      type: "spell",
+      system: { level: 3 },
+    };
+    const op = vm.addSpellToEntry("entry-arcane", spellDoc);
+    expect(op).not.toBeNull();
+    expect(op!.type).toBe("doc:create");
+    expect(op!.parent).toEqual({ type: "Actor", id: "actor-001" });
+    expect(op!.data["location"]).toBe("entry-arcane");
+    expect(op!.data["_id"]).toBeUndefined();
+    expect("_id" in op!.data).toBe(false);
+
+    // Validate against the real wire schema (data must be normalized to an array).
+    const wirePayload = { documentType: op!.documentType, data: [op!.data], parent: op!.parent };
+    const result = DocCreatePayloadSchema.safeParse(wirePayload);
+    expect(result.success).toBe(true);
+  });
+
+  it("addSpellToEntry returns null when not editable", () => {
+    const vm = makeVM({}, { ownership: OwnershipLevel.OBSERVER, isGm: false });
+    expect(vm.addSpellToEntry("entry-arcane", { name: "Fireball" })).toBeNull();
+  });
+
+  it("removeSpell builds a doc:delete with parent Actor", () => {
+    const vm = makeVM();
+    const op = vm.removeSpell("spell-magic-missile");
+    expect(op).not.toBeNull();
+    expect(op!.type).toBe("doc:delete");
+    expect(op!.id).toBe("spell-magic-missile");
+    expect(op!.parent).toEqual({ type: "Actor", id: "actor-001" });
+
+    const wirePayload = { documentType: op!.documentType, ids: [op!.id], parent: op!.parent };
+    const result = DocDeletePayloadSchema.safeParse(wirePayload);
+    expect(result.success).toBe(true);
+  });
+
+  it("removeSpell returns null when not editable", () => {
+    const vm = makeVM({}, { ownership: OwnershipLevel.OBSERVER, isGm: false });
+    expect(vm.removeSpell("spell-magic-missile")).toBeNull();
+  });
+
+  it("prepareSpell builds a minimal doc:update diff targeting the embedded entry Item", () => {
+    const vm = makeVM();
+    const op = vm.prepareSpell("entry-arcane", 1, 0, "spell-magic-missile");
+    expect(op).not.toBeNull();
+    expect(op!.type).toBe("doc:update");
+    expect(op!.documentType).toBe("Item");
+    expect(op!.id).toBe("entry-arcane");
+    expect(op!.embedded).toEqual({ type: "Item", id: "entry-arcane" });
+    expect(op!.diff).toEqual({
+      "system.slots.1.prepared.0": { id: "spell-magic-missile", expended: false },
+    });
+
+    // Validate against the real wire schema (single update, batched).
+    const wirePayload = {
+      documentType: op!.documentType,
+      updates: [{ _id: op!.id, diff: op!.diff, embedded: op!.embedded }],
+    };
+    const result = DocUpdatePayloadSchema.safeParse(wirePayload);
+    expect(result.success).toBe(true);
+  });
+
+  it("unprepareSlot builds a doc:update diff clearing the slot with the {id:'', expended:false} sentinel", () => {
+    const vm = makeVM();
+    const op = vm.unprepareSlot("entry-arcane", 1, 0);
+    expect(op).not.toBeNull();
+    expect(op!.diff).toEqual({
+      "system.slots.1.prepared.0": { id: "", expended: false },
+    });
+    expect(op!.embedded).toEqual({ type: "Item", id: "entry-arcane" });
+
+    const wirePayload = {
+      documentType: op!.documentType,
+      updates: [{ _id: op!.id, diff: op!.diff, embedded: op!.embedded }],
+    };
+    const result = DocUpdatePayloadSchema.safeParse(wirePayload);
+    expect(result.success).toBe(true);
+  });
+
+  it("toggleSlotExpended flips expended from false to true (minimal diff)", () => {
+    const doc = makeCharacter();
+    const items = doc["items"] as Array<Record<string, unknown>>;
+    const entry = items.find((i) => i["_id"] === "entry-arcane")!;
+    (entry["system"] as Record<string, unknown>)["slots"] = {
+      "1": { value: 2, max: 3, prepared: [{ id: "spell-magic-missile", expended: false }] },
+    };
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    const op = vm.toggleSlotExpended("entry-arcane", 1, 0);
+    expect(op).not.toBeNull();
+    expect(op!.diff).toEqual({ "system.slots.1.prepared.0.expended": true });
+
+    const wirePayload = {
+      documentType: op!.documentType,
+      updates: [{ _id: op!.id, diff: op!.diff, embedded: op!.embedded }],
+    };
+    const result = DocUpdatePayloadSchema.safeParse(wirePayload);
+    expect(result.success).toBe(true);
+  });
+
+  it("toggleSlotExpended flips expended from true back to false", () => {
+    const doc = makeCharacter();
+    const items = doc["items"] as Array<Record<string, unknown>>;
+    const entry = items.find((i) => i["_id"] === "entry-arcane")!;
+    (entry["system"] as Record<string, unknown>)["slots"] = {
+      "1": { value: 2, max: 3, prepared: [{ id: "spell-magic-missile", expended: true }] },
+    };
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    const op = vm.toggleSlotExpended("entry-arcane", 1, 0);
+    expect(op!.diff).toEqual({ "system.slots.1.prepared.0.expended": false });
+  });
+
+  it("prepareSpell/unprepareSlot/toggleSlotExpended return null when not editable", () => {
+    const vm = makeVM({}, { ownership: OwnershipLevel.OBSERVER, isGm: false });
+    expect(vm.prepareSpell("entry-arcane", 1, 0, "spell-x")).toBeNull();
+    expect(vm.unprepareSlot("entry-arcane", 1, 0)).toBeNull();
+    expect(vm.toggleSlotExpended("entry-arcane", 1, 0)).toBeNull();
+  });
+
+  it("getPreparedSlot reads the raw prepared-slot entry", () => {
+    const doc = makeCharacter();
+    const items = doc["items"] as Array<Record<string, unknown>>;
+    const entry = items.find((i) => i["_id"] === "entry-arcane")!;
+    (entry["system"] as Record<string, unknown>)["slots"] = {
+      "1": { value: 2, max: 3, prepared: [{ id: "spell-magic-missile", expended: true }] },
+    };
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    expect(vm.getPreparedSlot("entry-arcane", 1, 0)).toEqual({
+      id: "spell-magic-missile",
+      expended: true,
+    });
+    expect(vm.getPreparedSlot("entry-arcane", 1, 5)).toBeNull();
+    expect(vm.getPreparedSlot("does-not-exist", 1, 0)).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// sendOp normalization — R10-C4 item 4 (regression + embedded passthrough).
+// Exercised indirectly through the exact payload shapes the VM produces,
+// mirroring normalizeDocUpdate/normalizeDocCreate/normalizeDocDelete in
+// packages/client/src/lib/docs/sendOp.ts (covered directly in sendOp.test.ts).
+// ---------------------------------------------------------------------------
+
+describe("CharacterSheetVM — op payload shapes stay wire-compatible", () => {
+  it("doc:update ops without embedded (flat legacy shape) still validate", () => {
+    const vm = makeVM();
+    const op = vm.applyHpDelta(-5);
+    expect(op).not.toBeNull();
+    expect(op!.embedded).toBeUndefined();
+    const wirePayload = {
+      documentType: op!.documentType,
+      updates: [{ _id: op!.id, diff: op!.diff }],
+    };
+    expect(DocUpdatePayloadSchema.safeParse(wirePayload).success).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Focus points cap + spell picker filters — R10-C4 item 5
+// ---------------------------------------------------------------------------
+
+describe("CharacterSheetVM — setFocusPoints hard cap at 3 (DEC-R10-02)", () => {
+  it("clamps to 3 even when focusPoints.max is stale/higher (e.g. 5)", () => {
+    const doc = makeCharacter();
+    (doc["system"] as Record<string, unknown>)["resources"] = {
+      heroPoints: { value: 1, max: 3 },
+      focusPoints: { value: 1, max: 5 },
+    };
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    expect(vm.setFocusPoints(99)!.diff["system.resources.focusPoints.value"]).toBe(3);
+  });
+
+  it("still respects a lower max (e.g. 2) below the hard cap", () => {
+    const doc = makeCharacter();
+    (doc["system"] as Record<string, unknown>)["resources"] = {
+      heroPoints: { value: 1, max: 3 },
+      focusPoints: { value: 1, max: 2 },
+    };
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    expect(vm.setFocusPoints(99)!.diff["system.resources.focusPoints.value"]).toBe(2);
+  });
+
+  it("clamps at 0 for negative input regardless of max", () => {
+    const doc = makeCharacter();
+    (doc["system"] as Record<string, unknown>)["resources"] = {
+      heroPoints: { value: 1, max: 3 },
+      focusPoints: { value: 1, max: 5 },
+    };
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    expect(vm.setFocusPoints(-1)!.diff["system.resources.focusPoints.value"]).toBe(0);
+  });
+
+  it("returns null when not editable", () => {
+    const vm = makeVM({}, { ownership: OwnershipLevel.OBSERVER, isGm: false });
+    expect(vm.setFocusPoints(2)).toBeNull();
+  });
+});
+
+describe("filterSpellPicker", () => {
+  function entry(name: string, level: number, traditions: string[] = []): SpellPickerEntry {
+    return {
+      name,
+      index: {
+        "system.level": level,
+        "system.traits.traditions": traditions,
+      },
+    };
+  }
+
+  const entries: SpellPickerEntry[] = [
+    entry("Shield", 0, ["arcane", "divine", "occult", "primal"]),
+    entry("Magic Missile", 1, ["arcane"]),
+    entry("Heal", 1, ["divine", "primal"]),
+    entry("Fireball", 3, ["arcane", "primal"]),
+  ];
+
+  it("filters by maxRank (inclusive)", () => {
+    const result = filterSpellPicker(entries, { maxRank: 1 });
+    expect(result.map((e) => e.name)).toEqual(["Shield", "Magic Missile", "Heal"]);
+  });
+
+  it("filters by tradition membership", () => {
+    const result = filterSpellPicker(entries, { tradition: "divine" });
+    expect(result.map((e) => e.name)).toEqual(["Shield", "Heal"]);
+  });
+
+  it("filters by case-insensitive name substring", () => {
+    const result = filterSpellPicker(entries, { search: "fire" });
+    expect(result.map((e) => e.name)).toEqual(["Fireball"]);
+  });
+
+  it("combines maxRank + tradition + search with AND semantics", () => {
+    const result = filterSpellPicker(entries, {
+      maxRank: 1,
+      tradition: "arcane",
+      search: "mag",
+    });
+    expect(result.map((e) => e.name)).toEqual(["Magic Missile"]);
+  });
+
+  it("returns all entries when no filters are given", () => {
+    const result = filterSpellPicker(entries, {});
+    expect(result).toHaveLength(4);
+  });
+
+  it("returns empty array when no entry matches", () => {
+    const result = filterSpellPicker(entries, { search: "nonexistent-spell-name" });
+    expect(result).toEqual([]);
   });
 });

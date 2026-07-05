@@ -1,8 +1,10 @@
 # Rodada r10 — Ficha PF2e: builder Magus nível a nível + gestão de magias
 
-> Feedback do usuário (2026-07-04) sobre a ficha r9. Método: batch-gated development
-> (gate acelerado autorizado: máx. 2 auditorias Opus/batch; aprova ≥90 sem issues altas,
-> dívida registrada; issues altas sempre bloqueiam). Branch `build/app`.
+> Feedback do usuário (2026-07-04) sobre a ficha r9. Método: batch-gated development.
+> **Mudança de processo (usuário, 2026-07-04, durante R10-B/C): auditorias Opus REMOVIDAS
+> desta rodada** — o R10-A foi o único batch auditado (score 94). Gate vigente: integração
+> verde (build/typecheck/lint/testes) + validação manual do próprio usuário no app.
+> Branch `build/app`.
 
 ## Feedback (itens do usuário)
 

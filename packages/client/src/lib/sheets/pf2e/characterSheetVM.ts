@@ -221,6 +221,11 @@ export interface SpellcastingEntryRow {
   spellDC: number;
   spellAttack: number;
   spellAttackFormatted: string;
+  /** True for focus-spell entries (isFocusPool — REQ-PF2-083); grouped into the "Focus" spellTab. */
+  isFocusPool: boolean;
+  /** Proficiency rank (0-4, TEML) for this entry's spell DC/attack. */
+  proficiencyRank: number;
+  proficiencyRankLabel: string;
   slots: Array<{
     rank: number;
     value: number;
@@ -237,6 +242,19 @@ export interface SpellRow {
   level: number;
   hasAttack: boolean;
   castTime: string | null;
+}
+
+/**
+ * One sub-tab within the Spells tab (DEC-R10-03): a non-focus spellcasting
+ * entry gets its own tab (kind "entry"), all focus-pool entries + focus
+ * spells collapse into a single "Foco" tab (kind "focus"), and a "Rituais"
+ * tab (kind "rituals") appears only when the actor has ritual items.
+ */
+export interface SpellTabRow {
+  key: string;
+  label: string;
+  kind: "entry" | "focus" | "rituals";
+  entries: SpellcastingEntryRow[];
 }
 
 export interface FeatRow {
@@ -280,7 +298,44 @@ export interface DocUpdatePayload {
   documentType: string;
   id: string;
   diff: Record<string, unknown>;
+  /**
+   * When present, `id`/`diff` target an embedded document (e.g. a spell or
+   * spellcastingEntry Item nested in this Actor) rather than the Actor
+   * itself. `embedded.id` is the embedded document's own `_id`; the outer
+   * `id` stays the Actor id so sendOp/normalizeDocUpdate can route the
+   * update. Mirrors DocUpdatePayloadSchema's `updates[].embedded`
+   * (packages/shared/src/protocol.ts).
+   */
+  embedded?: { type: string; id: string };
 }
+
+/**
+ * doc:create op targeting an embedded document (e.g. adding a spell Item to
+ * an Actor). `data` is the new document's fields (no `_id` — the server
+ * assigns one); `parent` identifies the owning document. Normalized to the
+ * wire's `data: [...]` array shape by sendOp's makeSendOpFn.
+ */
+export interface DocCreateEmbeddedPayload {
+  type: "doc:create";
+  documentType: string;
+  data: Record<string, unknown>;
+  parent: { type: string; id: string };
+}
+
+/**
+ * doc:delete op targeting a single embedded document (e.g. removing a spell
+ * Item from an Actor). Normalized to the wire's `ids: [...]` array shape by
+ * sendOp's makeSendOpFn.
+ */
+export interface DocDeleteEmbeddedPayload {
+  type: "doc:delete";
+  documentType: string;
+  id: string;
+  parent: { type: string; id: string };
+}
+
+/** Union of every doc:* op payload this VM's builders can produce. */
+export type DocOpPayload = DocUpdatePayload | DocCreateEmbeddedPayload | DocDeleteEmbeddedPayload;
 
 /**
  * Wire payload for sheet rolls (contract 5, fixed with the server side).
@@ -611,18 +666,47 @@ export class CharacterSheetVM {
     thievery: "Thievery",
   };
 
+  /**
+   * The 16 canonical PF2e skill slugs (REQ-PF2-012). Kept as a local
+   * constant — the client package does not depend on systems/pf2e — but
+   * MUST stay in sync with SKILL_SLUGS (systems/pf2e/src/types.ts), which is
+   * what stepCharSkills (DEC-R10-07) always derives on the server.
+   */
+  private static readonly CANONICAL_SKILL_SLUGS: readonly string[] = Object.keys(
+    CharacterSheetVM.SKILL_LABELS,
+  );
+
+  /**
+   * Skills tab rows — ALL 16 canonical skills (untrained included, rank 0)
+   * plus any lore skills on the document (DEC-R10-07 / feedback item 2:
+   * untrained skills are shown and rollable, never hidden).
+   *
+   * Prefers `derived.skills` (the server now always derives all 16 —
+   * fundação R10-A) for rank/total; falls back to merging
+   * CANONICAL_SKILL_SLUGS with whatever ranks are on `system.skills` for
+   * older/hand-authored docs that predate that guarantee, so untrained
+   * skills still render (rank 0) even without derived data.
+   *
+   * Rows are sorted alphabetically by `label` (design contract's SkillRow
+   * ordering) — lore skills sort by their generated "Lore (X)" label.
+   */
   get skills(): SkillRow[] {
-    const skillsSource = this._system["skills"] as
-      | Record<string, { rank?: number; lore?: boolean }>
-      | undefined;
+    const skillsSource =
+      (this._system["skills"] as Record<string, { rank?: number; lore?: boolean }> | undefined) ??
+      {};
     const derivedSkills: Record<string, { total: number; dc: number; modifiers: unknown[] }> =
       this._derived?.skills ?? {};
 
-    if (!skillsSource) return [];
+    // Union of canonical slugs + whatever is present on the document (covers
+    // lore skills, which have no canonical slug, and any derived-only entry).
+    const slugs = new Set<string>(CharacterSheetVM.CANONICAL_SKILL_SLUGS);
+    for (const slug of Object.keys(skillsSource)) slugs.add(slug);
+    for (const slug of Object.keys(derivedSkills)) slugs.add(slug);
 
-    return Object.entries(skillsSource).map(([slug, raw]) => {
-      const rank = raw.rank ?? 0;
-      const isLore = raw.lore === true;
+    const rows = Array.from(slugs).map((slug) => {
+      const raw = skillsSource[slug];
+      const rank = raw?.rank ?? 0;
+      const isLore = raw?.lore === true;
       const ability = isLore ? "int" : (CharacterSheetVM.SKILL_ABILITY[slug] ?? "int");
       const derivedStat = derivedSkills[slug];
       const total = derivedStat?.total ?? 0;
@@ -643,6 +727,8 @@ export class CharacterSheetVM {
         isLore,
       };
     });
+
+    return rows.sort((a, b) => a.label.localeCompare(b.label));
   }
 
   // -------------------------------------------------------------------------
@@ -788,12 +874,18 @@ export class CharacterSheetVM {
         const tradition = unwrapStringValue(sys["tradition"], "arcane");
         const prepared = unwrapStringValue(sys["prepared"], "spontaneous");
         const ability = unwrapStringValue(sys["ability"], "int");
+        const isFocusPool = sys["isFocusPool"] === true;
 
         // Spell DC and attack from derived.spellcasting[entryId] (contract 2);
         // fallback to 10/0 when derived data is absent (older doc / pre-migration).
         const derivedEntry = spellcastingDerived?.[entryId];
         const spellDC = derivedEntry?.dc ?? 10;
         const spellAttack = derivedEntry?.attack ?? 0;
+        // Proficiency rank (0-4, TEML) — prefer derived; fall back to the raw
+        // document's system.proficiency.value (SpellcastingEntrySystemSchema).
+        const rawProficiency = sys["proficiency"] as Record<string, unknown> | undefined;
+        const proficiencyRank =
+          derivedEntry?.rank ?? (typeof rawProficiency?.["value"] === "number" ? rawProficiency["value"] : 0);
 
         // Slots — contract 4: keys are "0".."10", NOT "slot0".."slot10".
         const slotsRaw = sys["slots"] as
@@ -859,9 +951,61 @@ export class CharacterSheetVM {
           spellDC,
           spellAttack,
           spellAttackFormatted: fmtMod(spellAttack),
+          isFocusPool,
+          proficiencyRank,
+          proficiencyRankLabel: proficiencyLabel(proficiencyRank),
           slots,
         };
       });
+  }
+
+  /**
+   * Spells tab sub-tabs (DEC-R10-03): one tab per non-focus spellcasting
+   * entry, a single "Foco" tab collapsing every focus-pool entry, and a
+   * "Rituais" tab that appears ONLY when the actor has at least one item of
+   * type "ritual" (REQ-PF2-087 is V2 — hence the conditional tab rather than
+   * an always-present empty one).
+   *
+   * Order: non-focus entries first (in document order), then Focus, then
+   * Rituals — matching the design contract's tab bar.
+   */
+  get spellTabs(): SpellTabRow[] {
+    const entries = this.spellcastingEntries;
+    const nonFocusEntries = entries.filter((e) => !e.isFocusPool);
+    const focusEntries = entries.filter((e) => e.isFocusPool);
+
+    const tabs: SpellTabRow[] = nonFocusEntries.map((entry) => ({
+      key: entry.entryId,
+      label: entry.label,
+      kind: "entry",
+      entries: [entry],
+    }));
+
+    if (focusEntries.length > 0) {
+      tabs.push({
+        key: "focus",
+        label: "Focus",
+        kind: "focus",
+        entries: focusEntries,
+      });
+    }
+
+    if (this._hasRitualItems()) {
+      tabs.push({
+        key: "rituals",
+        label: "Rituals",
+        kind: "rituals",
+        entries: [],
+      });
+    }
+
+    return tabs;
+  }
+
+  private _hasRitualItems(): boolean {
+    const items = this._doc["items"] as Array<Record<string, unknown>> | undefined;
+    if (!items) return false;
+    return items.some((item) => item["type"] === "ritual");
   }
 
   // -------------------------------------------------------------------------
@@ -1143,10 +1287,17 @@ export class CharacterSheetVM {
     return this.fieldUpdate("system.resources.heroPoints.value", clamped);
   }
 
-  /** Set Focus Points to an explicit value, clamped to [0, max]. */
+  /**
+   * Set Focus Points to an explicit value, clamped to [0, min(3, max)].
+   * The upper bound of 3 (REQ-PF2-083, DEC-R10-02) is enforced HERE in
+   * addition to the schema/derivation clamp, so a stale/unclamped
+   * `focusPoints.max` on an older document can never push the pip UI (or
+   * this setter) past 3.
+   */
   setFocusPoints(n: number): DocUpdatePayload | null {
     if (!this.editable) return null;
-    const clamped = Math.max(0, Math.min(n, this.focusPoints.max));
+    const cappedMax = Math.min(3, this.focusPoints.max);
+    const clamped = Math.max(0, Math.min(n, cappedMax));
     return this.fieldUpdate("system.resources.focusPoints.value", clamped);
   }
 
@@ -1199,4 +1350,213 @@ export class CharacterSheetVM {
       },
     };
   }
+
+  // -------------------------------------------------------------------------
+  // Spell management ops (DEC-R10-04) — add/remove/prepare/expend
+  // -------------------------------------------------------------------------
+
+  /**
+   * Add a compendium spell doc to a spellcasting entry.
+   * Builds a doc:create op for an embedded Item on this Actor — `spellDoc`
+   * is the compendium document (e.g. from compendium:get's `document`
+   * field); its `_id` is stripped (the server assigns a fresh one) and
+   * `location` is set to `entryId` so spellcastingEntries/spellTabs group it
+   * correctly.
+   */
+  addSpellToEntry(
+    entryId: string,
+    spellDoc: Record<string, unknown>,
+  ): DocCreateEmbeddedPayload | null {
+    if (!this.editable) return null;
+    const { _id: _drop, ...rest } = spellDoc;
+    return {
+      type: "doc:create",
+      documentType: "Item",
+      data: { ...rest, location: entryId },
+      parent: { type: "Actor", id: this._actorId },
+    };
+  }
+
+  /**
+   * Remove a spell Item from this actor (e.g. dropping a spell from an
+   * entry's repertoire).
+   */
+  removeSpell(spellItemId: string): DocDeleteEmbeddedPayload | null {
+    if (!this.editable) return null;
+    return {
+      type: "doc:delete",
+      documentType: "Item",
+      id: spellItemId,
+      parent: { type: "Actor", id: this._actorId },
+    };
+  }
+
+  /**
+   * Prepare a spell into a specific slot (prepared casters — DEC-R10-04).
+   * Builds a doc:update op targeting the spellcastingEntry ITEM (embedded),
+   * diffing `system.slots.<rank>.prepared[<slotIndex>]`.
+   *
+   * The slot element MUST be a `{ id, expended }` object (PreparedSpellSchema,
+   * systems/pf2e/src/schema-primitives.ts) — NOT a bare spell-item-id string.
+   * The server re-validates the diff-applied spellcastingEntry Item against
+   * this schema (doc-handlers.ts handleEmbeddedUpdate →
+   * validateEmbeddedItemForSystem), so a bare string would be rejected with
+   * VALIDATION_FAILED.
+   */
+  prepareSpell(
+    entryId: string,
+    rank: number,
+    slotIndex: number,
+    spellItemId: string,
+  ): DocUpdatePayload | null {
+    if (!this.editable) return null;
+    return {
+      type: "doc:update",
+      documentType: "Item",
+      id: entryId,
+      embedded: { type: "Item", id: entryId },
+      diff: {
+        [`system.slots.${String(rank)}.prepared.${String(slotIndex)}`]: {
+          id: spellItemId,
+          expended: false,
+        },
+      },
+    };
+  }
+
+  /**
+   * Clear a prepared slot (the inverse of prepareSpell).
+   *
+   * Sets the slot element to `{ id: "", expended: false }` rather than `null`
+   * — PreparedSpellSchema's array elements are non-nullable objects (see
+   * prepareSpell's doc comment), so a literal `null` here would fail the
+   * server's post-diff Zod re-validation. An empty `id` is this VM's "slot is
+   * unprepared" sentinel; isSlotPrepared()/the UI treat a falsy id as empty.
+   */
+  unprepareSlot(entryId: string, rank: number, slotIndex: number): DocUpdatePayload | null {
+    if (!this.editable) return null;
+    return {
+      type: "doc:update",
+      documentType: "Item",
+      id: entryId,
+      embedded: { type: "Item", id: entryId },
+      diff: {
+        [`system.slots.${String(rank)}.prepared.${String(slotIndex)}`]: { id: "", expended: false },
+      },
+    };
+  }
+
+  /**
+   * Toggle a prepared slot's expended state (spent this slot for the day).
+   * Diffs `system.slots.<rank>.prepared[<slotIndex>].expended`.
+   */
+  toggleSlotExpended(entryId: string, rank: number, slotIndex: number): DocUpdatePayload | null {
+    if (!this.editable) return null;
+    const currentlyExpended = this._isSlotExpended(entryId, rank, slotIndex);
+    return {
+      type: "doc:update",
+      documentType: "Item",
+      id: entryId,
+      embedded: { type: "Item", id: entryId },
+      diff: {
+        [`system.slots.${String(rank)}.prepared.${String(slotIndex)}.expended`]: !currentlyExpended,
+      },
+    };
+  }
+
+  /** Read whether a prepared slot is currently expended (raw document read, not derived). */
+  private _isSlotExpended(entryId: string, rank: number, slotIndex: number): boolean {
+    return this.getPreparedSlot(entryId, rank, slotIndex)?.expended ?? false;
+  }
+
+  /**
+   * Read the raw prepared-slot entry (spell item id + expended flag) for a
+   * given spellcastingEntry/rank/slotIndex — the UI-facing counterpart of
+   * `_isSlotExpended`, exposed so SpellsTab can render "prepared" (has a
+   * non-empty id) vs "empty" (no entry, or unprepareSlot's `{id: ""}`
+   * sentinel — see unprepareSlot's doc comment) vs "expended" slot states.
+   * Reads the raw document, NOT `derived` (prepared-slot state isn't part of
+   * CharacterDerived).
+   */
+  getPreparedSlot(
+    entryId: string,
+    rank: number,
+    slotIndex: number,
+  ): { id: string; expended: boolean } | null {
+    const items = this._doc["items"] as Array<Record<string, unknown>> | undefined;
+    const entryItem = items?.find((i) => i["_id"] === entryId);
+    const sys =
+      typeof entryItem?.["system"] === "object" && entryItem["system"] !== null
+        ? (entryItem["system"] as Record<string, unknown>)
+        : {};
+    const slots = sys["slots"] as Record<string, { prepared?: unknown[] }> | undefined;
+    const prepared = slots?.[String(rank)]?.prepared;
+    const slotEntry = Array.isArray(prepared) ? prepared[slotIndex] : undefined;
+    if (typeof slotEntry === "object" && slotEntry !== null) {
+      const e = slotEntry as Record<string, unknown>;
+      return {
+        id: typeof e["id"] === "string" ? e["id"] : "",
+        expended: e["expended"] === true,
+      };
+    }
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Spell picker helpers (DEC-R10-04) — pure, client-side filtering for the
+// compendium spell picker. Operate on PackIndexEntry-shaped objects (the
+// compendium:search index result) so they're testable without a socket.
+// ---------------------------------------------------------------------------
+
+/** Minimal shape the picker needs from a compendium spell index entry. */
+export interface SpellPickerEntry {
+  name: string;
+  /** Extra index fields keyed by JSON path (PackIndexEntry.index), e.g. "system.level.value". */
+  index: Record<string, unknown>;
+}
+
+export interface SpellPickerFilters {
+  /** Maximum spell rank/level to include (inclusive). Omit for no cap. */
+  maxRank?: number;
+  /** Restrict to spells whose traditions include this value (e.g. "arcane"). */
+  tradition?: string;
+  /** Case-insensitive substring match against the spell name. */
+  search?: string;
+}
+
+function pickerSpellLevel(entry: SpellPickerEntry): number {
+  // The "spell" item schema stores level as a flat number at system.level
+  // (NOT a { value } wrapper) — the spells-core pack manifest indexes it
+  // under the exact key "system.level" (see systems/pf2e/packs/spells-core/
+  // pack.json indexFields + packages/server/src/compendium/service.ts
+  // _buildIndexFromDocuments, which extracts via dot-path verbatim).
+  const raw = entry.index["system.level"];
+  return typeof raw === "number" ? raw : 0;
+}
+
+function pickerSpellTraditions(entry: SpellPickerEntry): string[] {
+  const raw = entry.index["system.traits.traditions"];
+  if (Array.isArray(raw)) return raw.filter((t): t is string => typeof t === "string");
+  return [];
+}
+
+/**
+ * Filter a compendium spell index by rank ceiling, tradition, and a name
+ * search substring. Every filter is optional and combines with AND.
+ */
+export function filterSpellPicker<T extends SpellPickerEntry>(
+  entries: T[],
+  filters: SpellPickerFilters,
+): T[] {
+  const searchLower = filters.search?.trim().toLowerCase();
+  return entries.filter((entry) => {
+    if (filters.maxRank !== undefined && pickerSpellLevel(entry) > filters.maxRank) return false;
+    if (filters.tradition !== undefined) {
+      const traditions = pickerSpellTraditions(entry);
+      if (!traditions.includes(filters.tradition)) return false;
+    }
+    if (searchLower && !entry.name.toLowerCase().includes(searchLower)) return false;
+    return true;
+  });
 }

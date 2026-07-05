@@ -8,6 +8,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { sendOp, OpError, makeSendOpFn } from "../sendOp.js";
 import type { Socket } from "socket.io-client";
+import {
+  DocUpdatePayloadSchema,
+  DocCreatePayloadSchema,
+  DocDeletePayloadSchema,
+} from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
 // Mock socket
@@ -175,5 +180,163 @@ describe("makeSendOpFn", () => {
     expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("doc:update"), expect.anything());
 
     errorSpy.mockRestore();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// makeSendOpFn — normalizeDocUpdate/normalizeDocCreate/normalizeDocDelete
+// (R10-C4 item 4): embedded passthrough + doc:create/delete parent handling +
+// flat-shape regression, each validated against the real wire Zod schemas.
+// ---------------------------------------------------------------------------
+
+describe("makeSendOpFn — doc:* payload normalization (protocol-validated)", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("normalizeDocUpdate preserves an `embedded` field into the batched update entry", () => {
+    const { socket, triggerAck } = makeMockSocket();
+    const fn = makeSendOpFn(socket);
+
+    fn({
+      type: "doc:update",
+      documentType: "Item",
+      id: "entry-arcane",
+      embedded: { type: "Item", id: "entry-arcane" },
+      diff: { "system.slots.1.prepared.0": { id: "spell-x", expended: false } },
+    });
+    triggerAck({ ok: true, result: null });
+
+    const [, envelope] = (socket.emit as ReturnType<typeof vi.fn>).mock.calls[0] as [
+      string,
+      { type: string; payload: unknown },
+    ];
+    expect(envelope.payload).toEqual({
+      documentType: "Item",
+      updates: [
+        {
+          _id: "entry-arcane",
+          diff: { "system.slots.1.prepared.0": { id: "spell-x", expended: false } },
+          embedded: { type: "Item", id: "entry-arcane" },
+        },
+      ],
+    });
+    expect(DocUpdatePayloadSchema.safeParse(envelope.payload).success).toBe(true);
+  });
+
+  it("normalizeDocUpdate omits `embedded` entirely when absent (flat legacy shape unchanged)", () => {
+    const { socket, triggerAck } = makeMockSocket();
+    const fn = makeSendOpFn(socket);
+
+    fn({
+      type: "doc:update",
+      documentType: "Actor",
+      id: "actor-001",
+      diff: { "system.attributes.hp.value": 50 },
+    });
+    triggerAck({ ok: true, result: null });
+
+    const [, envelope] = (socket.emit as ReturnType<typeof vi.fn>).mock.calls[0] as [
+      string,
+      { type: string; payload: Record<string, unknown> },
+    ];
+    const updates = envelope.payload["updates"] as Array<Record<string, unknown>>;
+    expect(updates).toHaveLength(1);
+    expect("embedded" in updates[0]!).toBe(false);
+    expect(updates[0]).toEqual({
+      _id: "actor-001",
+      diff: { "system.attributes.hp.value": 50 },
+    });
+    expect(DocUpdatePayloadSchema.safeParse(envelope.payload).success).toBe(true);
+  });
+
+  it("normalizeDocCreate wraps flat `data` into an array and forwards `parent` verbatim", () => {
+    const { socket, triggerAck } = makeMockSocket();
+    const fn = makeSendOpFn(socket);
+
+    fn({
+      type: "doc:create",
+      documentType: "Item",
+      data: { name: "Fireball", type: "spell", system: { level: 3 } },
+      parent: { type: "Actor", id: "actor-001" },
+    });
+    triggerAck({ ok: true, result: null });
+
+    const [, envelope] = (socket.emit as ReturnType<typeof vi.fn>).mock.calls[0] as [
+      string,
+      { type: string; payload: unknown },
+    ];
+    expect(envelope.payload).toEqual({
+      documentType: "Item",
+      data: [{ name: "Fireball", type: "spell", system: { level: 3 } }],
+      parent: { type: "Actor", id: "actor-001" },
+    });
+    expect(DocCreatePayloadSchema.safeParse(envelope.payload).success).toBe(true);
+  });
+
+  it("normalizeDocDelete wraps flat `id` into `ids` and forwards `parent` verbatim", () => {
+    const { socket, triggerAck } = makeMockSocket();
+    const fn = makeSendOpFn(socket);
+
+    fn({
+      type: "doc:delete",
+      documentType: "Item",
+      id: "spell-magic-missile",
+      parent: { type: "Actor", id: "actor-001" },
+    });
+    triggerAck({ ok: true, result: null });
+
+    const [, envelope] = (socket.emit as ReturnType<typeof vi.fn>).mock.calls[0] as [
+      string,
+      { type: string; payload: unknown },
+    ];
+    expect(envelope.payload).toEqual({
+      documentType: "Item",
+      ids: ["spell-magic-missile"],
+      parent: { type: "Actor", id: "actor-001" },
+    });
+    expect(DocDeletePayloadSchema.safeParse(envelope.payload).success).toBe(true);
+  });
+
+  it("regression: pre-existing flat doc:update (no embedded, no parent) still normalizes exactly as before", () => {
+    const { socket, triggerAck } = makeMockSocket();
+    const fn = makeSendOpFn(socket);
+
+    fn({ type: "doc:update", documentType: "Actor", id: "a1", diff: { name: "New Name" } });
+    triggerAck({ ok: true, result: null });
+
+    const [, envelope] = (socket.emit as ReturnType<typeof vi.fn>).mock.calls[0] as [
+      string,
+      { type: string; payload: unknown },
+    ];
+    expect(envelope.payload).toEqual({
+      documentType: "Actor",
+      updates: [{ _id: "a1", diff: { name: "New Name" } }],
+    });
+  });
+
+  it("a payload that already carries `updates`/`data`/`ids` passes through unchanged", () => {
+    const { socket, triggerAck } = makeMockSocket();
+    const fn = makeSendOpFn(socket);
+
+    fn({
+      type: "doc:update",
+      documentType: "Actor",
+      updates: [{ _id: "a1", diff: { name: "X" } }],
+    });
+    triggerAck({ ok: true, result: null });
+
+    const [, envelope] = (socket.emit as ReturnType<typeof vi.fn>).mock.calls[0] as [
+      string,
+      { type: string; payload: unknown },
+    ];
+    expect(envelope.payload).toEqual({
+      documentType: "Actor",
+      updates: [{ _id: "a1", diff: { name: "X" } }],
+    });
   });
 });

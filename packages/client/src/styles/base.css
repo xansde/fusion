@@ -32,12 +32,44 @@
   --fusion-warning:      #ffc857;
   --fusion-danger:       #ff5c5c;
 
+  /* Semantic washes — subtle tinted fills for badges / states */
+  --fusion-success-dim:  rgba(61, 220, 132, 0.14);
+  --fusion-warning-dim:  rgba(255, 200, 87, 0.14);
+  --fusion-danger-dim:   rgba(255, 92, 92, 0.14);
+
+  /* On-accent text (buttons filled with --fusion-accent) */
+  --fusion-on-accent:    #ffffff;
+
+  /* Elevation shadow (windows, modals) */
+  --fusion-shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.55);
+
   /* Layout */
   --fusion-sidebar-width: 280px;
   --fusion-header-height:  48px;
   --fusion-radius-sm:      4px;
   --fusion-radius:         8px;
   --fusion-radius-lg:      12px;
+  --fusion-radius-pill:    999px;
+
+  /* Proficiency (TEML) — Pathfinder 2e rank system.
+     U=Destreinado, T=Treinado, E=Expert, M=Mestre, L=Lendário. */
+  --fusion-prof-u:        var(--fusion-text-subtle);
+  --fusion-prof-t:        var(--fusion-accent);
+  --fusion-prof-e:        var(--fusion-success);
+  --fusion-prof-m:        var(--fusion-warning);
+  --fusion-prof-l:        var(--fusion-danger);
+
+  --fusion-prof-u-bg:     rgba(85, 85, 106, 0.18);
+  --fusion-prof-t-bg:     var(--fusion-accent-dim);
+  --fusion-prof-e-bg:     var(--fusion-success-dim);
+  --fusion-prof-m-bg:     var(--fusion-warning-dim);
+  --fusion-prof-l-bg:     var(--fusion-danger-dim);
+
+  --fusion-prof-u-border: var(--fusion-border);
+  --fusion-prof-t-border: rgba(124, 92, 252, 0.40);
+  --fusion-prof-e-border: rgba(61, 220, 132, 0.40);
+  --fusion-prof-m-border: rgba(255, 200, 87, 0.40);
+  --fusion-prof-l-border: rgba(255, 92, 92, 0.40);
 
   /* Typography */
   --fusion-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",

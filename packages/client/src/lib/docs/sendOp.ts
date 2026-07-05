@@ -135,7 +135,10 @@ export function makeSendOpFn(socket: Socket): (op: unknown) => void {
       return;
     }
     const { type, ...payload } = op as { type: string } & Record<string, unknown>;
-    const normalizedPayload = type === "doc:update" ? normalizeDocUpdate(payload) : payload;
+    let normalizedPayload = payload;
+    if (type === "doc:update") normalizedPayload = normalizeDocUpdate(payload);
+    else if (type === "doc:create") normalizedPayload = normalizeDocCreate(payload);
+    else if (type === "doc:delete") normalizedPayload = normalizeDocDelete(payload);
     sendOp(socket, { type: type as Envelope["type"], payload: normalizedPayload }).catch(
       (err: unknown) => {
         console.error(`[sendOpFn] "${type}" failed:`, err);
@@ -145,14 +148,18 @@ export function makeSendOpFn(socket: Socket): (op: unknown) => void {
 }
 
 /**
- * Normalizes a flat `{ documentType, id, diff, expectedVersion? }` doc:update
- * op (every sheet VM's shape) into the wire shape `{ documentType, updates:
- * [{ _id, diff, expectedVersion? }] }`. A payload that already carries
- * `updates` (e.g. a future multi-doc batch update) passes through unchanged.
+ * Normalizes a flat `{ documentType, id, diff, expectedVersion?, embedded? }`
+ * doc:update op (every sheet VM's shape) into the wire shape `{ documentType,
+ * updates: [{ _id, diff, expectedVersion?, embedded? }] }`. `embedded`
+ * (`{ type, id }` — see DocUpdatePayloadSchema, packages/shared/src/protocol.ts)
+ * is preserved verbatim into the batched update entry when present, so ops
+ * targeting an embedded document (e.g. a spellcastingEntry Item on an Actor)
+ * are routed correctly server-side. A payload that already carries `updates`
+ * (e.g. a future multi-doc batch update) passes through unchanged.
  */
 function normalizeDocUpdate(payload: Record<string, unknown>): Record<string, unknown> {
   if ("updates" in payload) return payload;
-  const { documentType, id, diff, expectedVersion } = payload;
+  const { documentType, id, diff, expectedVersion, embedded } = payload;
   if (typeof id !== "string" || diff === null || typeof diff !== "object") return payload;
   return {
     documentType,
@@ -161,7 +168,37 @@ function normalizeDocUpdate(payload: Record<string, unknown>): Record<string, un
         _id: id,
         diff,
         ...(expectedVersion !== undefined ? { expectedVersion } : {}),
+        ...(embedded !== undefined ? { embedded } : {}),
       },
     ],
   };
+}
+
+/**
+ * Normalizes a flat `{ documentType, data, parent? }` doc:create op into the
+ * wire shape `{ documentType, data: [...], parent? }` (DocCreatePayloadSchema
+ * expects `data` as an array — VM builders pass a single object for
+ * ergonomics). `parent` (`{ type, id }`, e.g. `{ type: "Actor", id }` for an
+ * embedded Item) is forwarded verbatim. A payload that already carries an
+ * array `data` passes through unchanged.
+ */
+function normalizeDocCreate(payload: Record<string, unknown>): Record<string, unknown> {
+  const { data } = payload;
+  if (Array.isArray(data)) return payload;
+  if (data === undefined) return payload;
+  return { ...payload, data: [data] };
+}
+
+/**
+ * Normalizes a flat `{ documentType, id, parent? }` doc:delete op (single
+ * target — the common case for embedded item removal) into the wire shape
+ * `{ documentType, ids: [...], parent? }` (DocDeletePayloadSchema). A payload
+ * that already carries `ids` passes through unchanged.
+ */
+function normalizeDocDelete(payload: Record<string, unknown>): Record<string, unknown> {
+  if ("ids" in payload) return payload;
+  const { id } = payload;
+  if (typeof id !== "string") return payload;
+  const { id: _drop, ...rest } = payload;
+  return { ...rest, ids: [id] };
 }

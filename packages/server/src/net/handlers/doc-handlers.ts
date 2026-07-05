@@ -141,10 +141,16 @@ const GM_ONLY_CREATE_DELETE = new Set([
  * `embeddedType.toLowerCase() + "s"` → "combatants". Combatants are normally
  * managed via combat:addCombatant / combat:removeCombatant, but the mapping
  * keeps the generic embedded path consistent for parent resolution.
+ *
+ * Item is embedded in Actor (R10-C): a character sheet's inventory, spells,
+ * feats, etc. are Items living in the Actor's `items[]` collection. Unlike
+ * Token (embedded.id = the parent Scene's id) and Combatant (embedded.id =
+ * the parent Combat's id), Item's embedded.id is the parent Actor's id.
  */
 const EMBEDDED_PARENT_MAP: Record<string, string> = {
   Token: "Scene",
   Combatant: "Combat",
+  Item: "Actor",
 };
 
 // ---------------------------------------------------------------------------
@@ -169,6 +175,87 @@ function getOwnershipFromDoc(doc: Record<string, unknown>): Ownership {
     return doc["ownership"] as Ownership;
   }
   return { default: OwnershipLevel.NONE };
+}
+
+/**
+ * Result of validating an embedded Item document against the active
+ * system's registered data models (see validateEmbeddedItemForSystem).
+ */
+interface ItemSystemValidation {
+  ok: true;
+  /** The item with its `system` subtree replaced by the schema-parsed value
+   *  (defaults applied, unknown keys stripped per the model's own schema). */
+  doc: Record<string, unknown>;
+}
+interface ItemSystemValidationError {
+  ok: false;
+  message: string;
+}
+
+/**
+ * Validate an embedded Item document's `type` + `system` subtree against the
+ * active system's registered data models (SystemModule.models, keyed
+ * "Item:<subtype>" — see packages/system-api/src/system-module.ts).
+ *
+ * REQ-DOC (R10-C): closes the gap where embedded Item create/update
+ * accepted arbitrary `system` payloads with zero schema validation. Rules:
+ *   - `manifest.documentTypes.Item` is a CLOSED list: an item `type` not
+ *     declared there is rejected (unknown subtype).
+ *   - A declared subtype MUST have a registered SystemDataModel (guaranteed
+ *     by validateSystemModule/REQ-SYS-011 as a CI gate on every system
+ *     package, but we still guard defensively here rather than throw).
+ *   - Only `system` is validated against the model's Zod schema — engine
+ *     fields (name, ownership, ...) are already covered by DocumentStore's
+ *     own schema on the primary Item path, and embedded Items are never
+ *     written through DocumentStore.create/update directly (they're spliced
+ *     into the parent Actor's `items[]` array), so this is the only place
+ *     that ever validates them.
+ *
+ * No systemModule available (systemId unset, stub system, or test deps that
+ * don't wire one) → validation is skipped entirely (returns ok:true
+ * unchanged), preserving the pre-R10-C behavior for callers that don't care.
+ */
+function validateEmbeddedItemForSystem(
+  systemModule: SystemModule | undefined,
+  raw: Record<string, unknown>,
+): ItemSystemValidation | ItemSystemValidationError {
+  if (!systemModule) {
+    return { ok: true, doc: raw };
+  }
+
+  const itemTypes = systemModule.manifest.documentTypes["Item"];
+  if (!itemTypes) {
+    // System doesn't declare any Item subtypes at all — nothing to validate
+    // against; skip (defense-in-depth, should not happen for pf2e/sf2e).
+    return { ok: true, doc: raw };
+  }
+
+  const subtype = typeof raw["type"] === "string" ? raw["type"] : undefined;
+  if (!subtype || !itemTypes.includes(subtype)) {
+    return {
+      ok: false,
+      message: `Unknown Item type "${String(raw["type"])}" for system "${systemModule.manifest.id}" (known types: ${itemTypes.join(", ")})`,
+    };
+  }
+
+  const model = systemModule.models.get(`Item:${subtype}`);
+  if (!model) {
+    return {
+      ok: false,
+      message: `Item type "${subtype}" is declared by system "${systemModule.manifest.id}" but has no registered data model`,
+    };
+  }
+
+  const systemData = raw["system"] ?? {};
+  const result = model.schema.safeParse(systemData);
+  if (!result.success) {
+    return {
+      ok: false,
+      message: `Invalid system data for Item type "${subtype}": ${result.error.message}`,
+    };
+  }
+
+  return { ok: true, doc: { ...raw, system: result.data } };
 }
 
 /**
@@ -680,6 +767,24 @@ function handleEmbeddedCreate(
           );
         }
       }
+
+      // Schema validation of embedded Items against the active system's
+      // registered data models (R10-C, see validateEmbeddedItemForSystem).
+      // Only applies to Item embedded directly in an Actor — the SF2e
+      // augmentation gate above and this validation are complementary
+      // (slot-limit is a cross-item business rule; this is per-item shape).
+      if (embeddedType === "Item" && parent.type === "Actor") {
+        if (typeof raw["name"] !== "string" || raw["name"].length === 0) {
+          return ackError("VALIDATION_FAILED", "Embedded Item requires a non-empty name");
+        }
+        const validation = validateEmbeddedItemForSystem(deps.systemModule, raw);
+        if (!validation.ok) {
+          return ackError("VALIDATION_FAILED", validation.message);
+        }
+        created.push(validation.doc);
+        continue;
+      }
+
       created.push(raw);
     }
   }
@@ -766,9 +871,23 @@ function handleEmbeddedUpdate(
     for (const upd of parentUpdates) {
       const tokenId = upd._id;
 
-      // Verify actor ownership for token updates (REQ-DOC-025)
-      // If not privileged, user must own the actor that the token references
-      if (!isPrivileged(ctx.role)) {
+      // Verify ownership for embedded updates (REQ-DOC-025)
+      //
+      // Item (embedded directly in Actor, resolvedParentType === "Actor") is
+      // checked against the parent Actor's OWN ownership map — there is no
+      // `actorId` indirection like Token has (see handleEmbeddedDelete for
+      // the same distinction).
+      if (!isPrivileged(ctx.role) && resolvedParentType === "Actor") {
+        const token = collection.find((t) => t["_id"] === tokenId);
+        if (!token) {
+          return ackError("NOT_FOUND", `Embedded doc not found: ${embeddedType}/${tokenId}`);
+        }
+        const ownership = getOwnershipFromDoc(parentDoc);
+        const level = resolveOwnership(ownership, ctx.userId, ctx.role);
+        if (level < OwnershipLevel.OWNER) {
+          return ackError("PERMISSION_DENIED", `No OWNER access to parent Actor/${parentId}`);
+        }
+      } else if (!isPrivileged(ctx.role)) {
         const token = collection.find((t) => t["_id"] === tokenId);
         if (!token) {
           return ackError("NOT_FOUND", `Embedded doc not found: ${embeddedType}/${tokenId}`);
@@ -828,6 +947,21 @@ function handleEmbeddedUpdate(
       // Build the updated token by applying dot-path diff (uses sanitized diff)
       const existingToken = collection[idx] ?? {};
       const patchedToken = applyDotPathDiff(existingToken, sanitizedDiff);
+
+      // Schema validation of embedded Items against the active system's
+      // registered data models (R10-C, see validateEmbeddedItemForSystem).
+      // Validated on the DIFF-APPLIED doc, not just the diff — a partial
+      // diff (e.g. {"system.slots.prepared": [...]}) must still result in a
+      // schema-valid whole item after merging onto the existing document.
+      if (embeddedType === "Item" && resolvedParentType === "Actor") {
+        const validation = validateEmbeddedItemForSystem(deps.systemModule, patchedToken);
+        if (!validation.ok) {
+          return ackError("VALIDATION_FAILED", validation.message);
+        }
+        collection[idx] = validation.doc;
+        continue;
+      }
+
       collection[idx] = patchedToken;
     }
 
@@ -896,7 +1030,19 @@ function handleEmbeddedDelete(
   }
 
   // Permission: GM/ASSISTANT or actor owner
-  if (!isPrivileged(ctx.role)) {
+  //
+  // Item (embedded directly in Actor, parent.type === "Actor") is checked
+  // against the parent Actor's OWN ownership map — there is no separate
+  // `actorId` indirection like Token has (a Token embedded in a Scene
+  // references its Actor via `token.actorId`; an Item embedded in an Actor
+  // simply IS a child of that Actor).
+  if (!isPrivileged(ctx.role) && parent.type === "Actor") {
+    const ownership = getOwnershipFromDoc(parentDoc);
+    const level = resolveOwnership(ownership, ctx.userId, ctx.role);
+    if (level < OwnershipLevel.OWNER) {
+      return ackError("PERMISSION_DENIED", `No OWNER access to parent Actor/${parent.id}`);
+    }
+  } else if (!isPrivileged(ctx.role)) {
     const collKey = embeddedType.toLowerCase() + "s";
     const rawColl = parentDoc[collKey];
     const collection = Array.isArray(rawColl) ? (rawColl as Record<string, unknown>[]) : [];

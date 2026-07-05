@@ -16,6 +16,7 @@
  * Clean-room.
  */
 
+import type { Socket } from "socket.io-client";
 import { sheetRegistry } from "../sheetRegistry.js";
 
 // Lazy import to avoid pulling Svelte heavy import graph until needed.
@@ -70,7 +71,10 @@ export async function registerPf2eSheets(): Promise<void> {
  *
  * @param actorId   The actor._id.
  * @param actorDoc  The full actor document (reactive, from DocumentMirror).
- * @param opts      Window context: userId, ownership, isGm, sendOpFn.
+ * @param opts      Window context: userId, ownership, isGm, sendOpFn, socket
+ *                  (DEC-R10-04 — CharacterSheet's Spells tab needs a live
+ *                  Socket for the compendium spell picker; optional so
+ *                  callers that don't have one yet keep compiling).
  */
 export function openActorSheet(
   actorId: string,
@@ -80,6 +84,7 @@ export function openActorSheet(
     ownership: number;
     isGm: boolean;
     worldId?: string;
+    socket?: Socket;
     sendOpFn?: (op: unknown) => void;
   },
 ): void {
