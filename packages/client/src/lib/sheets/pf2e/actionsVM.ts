@@ -303,6 +303,70 @@ export function mergeActionRows(
   return [...bySlug.values(), ...noSlug];
 }
 
+/**
+ * Normalize a possibly-{value}-wrapped rich-text field to a plain HTML string.
+ * Embedded actor items carry system.description as either a flattened string
+ * (post-transform shape) or the vendor `{ value: "<p>…</p>" }` wrapper. The
+ * details panel's sanitizeDescriptionHtml() expects a string, so unwrap first.
+ */
+export function descriptionHtmlOf(system: Record<string, unknown>): string {
+  const desc = unwrap(system["description"]);
+  return typeof desc === "string" ? desc : "";
+}
+
+/**
+ * Build a details-panel `document` from an embedded actor item so the SHARED
+ * DocumentDetailsPanel can render it WITHOUT any compendium fetch (character
+ * actions have no compendium uuid). The returned doc keeps the item's own
+ * type/name/traits and mechanical system fields, but with system.description
+ * normalized to a plain HTML string (the panel sanitizes it with the same
+ * documentDetails sanitizer used for pack docs). Returns null when the item is
+ * not a usable record.
+ */
+export function buildEmbeddedDetailsDoc(
+  item: Record<string, unknown> | null | undefined,
+): Record<string, unknown> | null {
+  if (!isRecord(item)) return null;
+  const system = isRecord(item["system"]) ? { ...(item["system"] as Record<string, unknown>) } : {};
+  system["description"] = descriptionHtmlOf(system);
+  return {
+    name: str(item["name"]) ?? "Action",
+    type: str(item["type"]) ?? "action",
+    system,
+    flags: isRecord(item["flags"]) ? item["flags"] : {},
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Pagination
+// ---------------------------------------------------------------------------
+
+/** Client-side page size for the rendered action list (the pack has 500+). */
+export const ACTIONS_PAGE_SIZE = 60;
+
+export interface PaginationResult<T> {
+  /** The slice to render (rows 0..visibleCount). */
+  visible: T[];
+  /** Whether a "show more" affordance should be shown. */
+  hasMore: boolean;
+  /** How many rows remain beyond the visible slice (for the button count). */
+  remaining: number;
+}
+
+/**
+ * Pure pagination helper: clamp `visibleCount` to [0, rows.length] and derive
+ * the visible slice + whether more remain. Kept pure and separate from the
+ * component so the "show more" arithmetic is unit-testable.
+ */
+export function paginate<T>(rows: T[], visibleCount: number): PaginationResult<T> {
+  const clamped = Math.max(0, Math.min(visibleCount, rows.length));
+  return {
+    visible: rows.slice(0, clamped),
+    hasMore: clamped < rows.length,
+    remaining: rows.length - clamped,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Filtering + sorting
 // ---------------------------------------------------------------------------

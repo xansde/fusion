@@ -40,7 +40,9 @@
     mergeActionRows,
     filterActionRows,
     sortActionRows,
-    defaultFilterState,
+    buildEmbeddedDetailsDoc,
+    paginate,
+    ACTIONS_PAGE_SIZE,
     GROUP_ORDER,
     type ActionRow,
     type ActionCostFilter,
@@ -84,8 +86,7 @@
   let detailsError = $state(false);
 
   // --- Pagination -----------------------------------------------------------
-  const PAGE_SIZE = 60;
-  let visibleCount = $state(PAGE_SIZE);
+  let visibleCount = $state(ACTIONS_PAGE_SIZE);
 
   const COST_CHIPS: Array<{ cost: ActionCostFilter; glyphs: string; labelKey: string }> = [
     { cost: "1", glyphs: "◆", labelKey: "FUSION.Sheet.Actions.Cost.One" },
@@ -118,6 +119,17 @@
     return items.filter((it): it is Record<string, unknown> => typeof it === "object" && it !== null);
   });
 
+  // Index embedded items by their _id so a selected character row can render
+  // its OWN description without any compendium fetch (key is "embedded:<_id>").
+  const embeddedById = $derived.by((): Map<string, Record<string, unknown>> => {
+    const map = new Map<string, Record<string, unknown>>();
+    for (const it of embeddedItems) {
+      const id = it["_id"];
+      if (typeof id === "string") map.set(id, it);
+    }
+    return map;
+  });
+
   const allRows = $derived(mergeActionRows(packEntries, embeddedItems));
 
   const filtered = $derived.by(() => {
@@ -129,13 +141,14 @@
     return sortActionRows(rows);
   });
 
-  const visibleRows = $derived(filtered.slice(0, visibleCount));
+  const page = $derived(paginate(filtered, visibleCount));
+  const visibleRows = $derived(page.visible);
 
   // Reset pagination whenever the filter result set changes shape.
   $effect(() => {
     // Touch the length so this re-runs when filters change.
     void filtered.length;
-    visibleCount = PAGE_SIZE;
+    visibleCount = ACTIONS_PAGE_SIZE;
   });
 
   function toggleGroup(group: ActionGroup): void {
@@ -157,8 +170,10 @@
     if (rowItem.uuid) {
       void loadDetails(rowItem.key, rowItem.uuid);
     } else {
-      // Character-only action with no compendium uuid — nothing to fetch.
-      detailsDoc = null;
+      // Character-only action with no compendium uuid — render the embedded
+      // item's OWN description directly (no fetch). Key is "embedded:<_id>".
+      const itemId = rowItem.key.startsWith("embedded:") ? rowItem.key.slice("embedded:".length) : "";
+      detailsDoc = buildEmbeddedDetailsDoc(embeddedById.get(itemId));
       detailsLoading = false;
       detailsError = false;
     }
@@ -293,18 +308,18 @@
             </div>
           </div>
         {/each}
-
-        {#if visibleCount < filtered.length}
-          <button
-            type="button"
-            class="actions-showmore"
-            onclick={() => { visibleCount += PAGE_SIZE; }}
-          >
-            {t("FUSION.Sheet.Actions.ShowMore", { count: filtered.length - visibleCount })}
-          </button>
-        {/if}
       {/if}
     </div>
+
+    {#if !loading && !errorKind && page.hasMore}
+      <button
+        type="button"
+        class="actions-showmore"
+        onclick={() => { visibleCount += ACTIONS_PAGE_SIZE; }}
+      >
+        {t("FUSION.Sheet.Actions.ShowMore", { count: page.remaining })}
+      </button>
+    {/if}
   </div>
 
   <div class="actions-browser__side">
@@ -316,6 +331,11 @@
         loading={detailsLoading}
         error={detailsError}
         onRetry={retryDetails}
+        loadingKey="FUSION.Sheet.Actions.Details.Loading"
+        loadErrorKey="FUSION.Sheet.Actions.Details.LoadError"
+        retryKey="FUSION.Sheet.Actions.Details.Retry"
+        selectHintKey="FUSION.Sheet.Actions.Details.SelectHint"
+        noDescriptionKey="FUSION.Sheet.Actions.Details.NoDescription"
       />
     {/if}
   </div>
@@ -478,8 +498,13 @@
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius);
     padding: 4px;
-    max-height: 420px;
-    overflow-y: auto;
+    /*
+     * No inner max-height/overflow: the whole list flows in the tab panel,
+     * which is the single vertical scroller (.tab-panel: overflow-y: auto).
+     * A nested scroller here buried the "show more" button (r12 blocker) and
+     * fought the outer scroll — keeping one scroller lets the user reach every
+     * row and the button below the list.
+     */
   }
 
   .actions-empty {
@@ -613,7 +638,8 @@
   }
 
   .actions-showmore {
-    margin: 6px auto 2px;
+    align-self: center;
+    margin: 2px 0;
     font-family: var(--fusion-font);
     font-weight: 600;
     font-size: 11.5px;

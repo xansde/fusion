@@ -24,6 +24,10 @@ import {
   sortActionRows,
   defaultFilterState,
   classifyLoadError,
+  paginate,
+  buildEmbeddedDetailsDoc,
+  descriptionHtmlOf,
+  ACTIONS_PAGE_SIZE,
   type ActionRow,
   type ActionCostFilter,
 } from "../actionsVM.js";
@@ -274,6 +278,134 @@ describe("mergeActionRows()", () => {
     expect(merged).toHaveLength(1);
     expect(merged[0]?.fromCharacter).toBe(true);
     expect(merged[0]?.cost.kind).toBe("2");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// paginate — the "show more" arithmetic (r12 blocker: list capped at 60)
+// ---------------------------------------------------------------------------
+
+describe("paginate()", () => {
+  const many = Array.from({ length: 521 }, (_, i) => i); // 521 actions in the pack
+
+  it("caps the visible slice at PAGE_SIZE and flags there is more", () => {
+    const p = paginate(many, ACTIONS_PAGE_SIZE);
+    expect(ACTIONS_PAGE_SIZE).toBe(60);
+    expect(p.visible).toHaveLength(60);
+    expect(p.hasMore).toBe(true);
+    expect(p.remaining).toBe(521 - 60);
+  });
+
+  it("reveals the next page when visibleCount is incremented (button works)", () => {
+    const p1 = paginate(many, ACTIONS_PAGE_SIZE);
+    const p2 = paginate(many, ACTIONS_PAGE_SIZE * 2);
+    expect(p2.visible).toHaveLength(120);
+    expect(p2.remaining).toBeLessThan(p1.remaining);
+    expect(p2.hasMore).toBe(true);
+  });
+
+  it("lets the user reach EVERY row across successive increments", () => {
+    let visibleCount = ACTIONS_PAGE_SIZE;
+    let guard = 0;
+    while (paginate(many, visibleCount).hasMore && guard < 100) {
+      visibleCount += ACTIONS_PAGE_SIZE;
+      guard += 1;
+    }
+    const final = paginate(many, visibleCount);
+    expect(final.hasMore).toBe(false);
+    expect(final.remaining).toBe(0);
+    expect(final.visible).toHaveLength(many.length); // all 521 reachable
+  });
+
+  it("shows all rows and hides 'show more' when count >= length", () => {
+    const p = paginate([1, 2, 3], 60);
+    expect(p.visible).toEqual([1, 2, 3]);
+    expect(p.hasMore).toBe(false);
+    expect(p.remaining).toBe(0);
+  });
+
+  it("clamps a negative visibleCount to zero", () => {
+    const p = paginate(many, -10);
+    expect(p.visible).toHaveLength(0);
+    expect(p.hasMore).toBe(true);
+    expect(p.remaining).toBe(521);
+  });
+
+  it("handles an empty list", () => {
+    const p = paginate<number>([], 60);
+    expect(p.visible).toEqual([]);
+    expect(p.hasMore).toBe(false);
+    expect(p.remaining).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildEmbeddedDetailsDoc — character actions render their OWN description
+// ---------------------------------------------------------------------------
+
+describe("descriptionHtmlOf()", () => {
+  it("passes through a flattened string description", () => {
+    expect(descriptionHtmlOf({ description: "<p>Hit them.</p>" })).toBe("<p>Hit them.</p>");
+  });
+
+  it("unwraps the vendor {value} description wrapper", () => {
+    expect(descriptionHtmlOf({ description: { value: "<p>Cast it.</p>" } })).toBe("<p>Cast it.</p>");
+  });
+
+  it("returns empty string when the description is missing or non-textual", () => {
+    expect(descriptionHtmlOf({})).toBe("");
+    expect(descriptionHtmlOf({ description: 42 })).toBe("");
+    expect(descriptionHtmlOf({ description: { value: null } })).toBe("");
+  });
+});
+
+describe("buildEmbeddedDetailsDoc()", () => {
+  it("builds a panel doc from an embedded item, preserving name/type/system", () => {
+    const item = {
+      _id: "abc",
+      type: "feat",
+      name: "Bon Mot",
+      system: {
+        actionType: "action",
+        actions: 1,
+        description: "<p>Sling an insult.</p>",
+        traits: { value: ["auditory"] },
+      },
+    };
+    const doc = buildEmbeddedDetailsDoc(item);
+    expect(doc).not.toBeNull();
+    expect(doc?.["name"]).toBe("Bon Mot");
+    expect(doc?.["type"]).toBe("feat");
+    const system = doc?.["system"] as Record<string, unknown>;
+    expect(system["description"]).toBe("<p>Sling an insult.</p>"); // string, panel-sanitizable
+    expect(system["actions"]).toBe(1); // mechanical fields preserved for the panel
+  });
+
+  it("normalizes a {value}-wrapped description to a plain string", () => {
+    const doc = buildEmbeddedDetailsDoc({
+      _id: "x",
+      type: "action",
+      name: "Spellstrike",
+      system: { description: { value: "<p>Channel a spell.</p>" } },
+    });
+    expect((doc?.["system"] as Record<string, unknown>)["description"]).toBe("<p>Channel a spell.</p>");
+  });
+
+  it("does not mutate the original item's system object", () => {
+    const item = { _id: "y", type: "action", name: "Foo", system: { description: { value: "<p>x</p>" } } };
+    buildEmbeddedDetailsDoc(item);
+    // Original wrapper is untouched (we clone system before normalizing).
+    expect(item.system.description).toEqual({ value: "<p>x</p>" });
+  });
+
+  it("falls back to defaults for a description-less item and empty system", () => {
+    const doc = buildEmbeddedDetailsDoc({ _id: "z", type: "action", name: "Bare" });
+    expect((doc?.["system"] as Record<string, unknown>)["description"]).toBe("");
+  });
+
+  it("returns null for a non-record input", () => {
+    expect(buildEmbeddedDetailsDoc(null)).toBeNull();
+    expect(buildEmbeddedDetailsDoc(undefined)).toBeNull();
   });
 });
 

@@ -32,9 +32,30 @@
     loading: boolean;
     error: boolean;
     onRetry: () => void;
+    /**
+     * i18n keys for the panel's state strings. Default to the spell-picker
+     * namespace so existing callers (SpellPickerDialog) keep their copy; the
+     * Actions tab overrides these with FUSION.Sheet.Actions.Details.* so the
+     * hint/placeholder reads "Select an action", not "Select a spell".
+     */
+    loadingKey?: string;
+    loadErrorKey?: string;
+    retryKey?: string;
+    selectHintKey?: string;
+    noDescriptionKey?: string;
   }
 
-  let { document: doc, loading, error, onRetry }: Props = $props();
+  let {
+    document: doc,
+    loading,
+    error,
+    onRetry,
+    loadingKey = "FUSION.Sheet.Spells.Picker.Details.Loading",
+    loadErrorKey = "FUSION.Sheet.Spells.Picker.Details.LoadError",
+    retryKey = "FUSION.Sheet.Spells.Picker.Details.Retry",
+    selectHintKey = "FUSION.Sheet.Spells.Picker.Details.SelectHint",
+    noDescriptionKey = "FUSION.Sheet.Spells.Picker.Details.NoDescription",
+  }: Props = $props();
 
   const header = $derived(doc ? buildDetailsHeader(doc) : null);
   const mechanicalFields = $derived(doc ? buildMechanicalFields(doc) : []);
@@ -51,16 +72,16 @@
 
 <div class="details-panel">
   {#if loading}
-    <div class="details-panel__state">{t("FUSION.Sheet.Spells.Picker.Details.Loading")}</div>
+    <div class="details-panel__state">{t(loadingKey)}</div>
   {:else if error}
     <div class="details-panel__state details-panel__state--error">
-      <span>{t("FUSION.Sheet.Spells.Picker.Details.LoadError")}</span>
+      <span>{t(loadErrorKey)}</span>
       <button type="button" class="details-panel__retry" onclick={onRetry}>
-        {t("FUSION.Sheet.Spells.Picker.Details.Retry")}
+        {t(retryKey)}
       </button>
     </div>
   {:else if !doc || !header}
-    <div class="details-panel__state">{t("FUSION.Sheet.Spells.Picker.Details.SelectHint")}</div>
+    <div class="details-panel__state">{t(selectHintKey)}</div>
   {:else}
     <div class="details-panel__header">
       <h3 class="details-panel__name">{header.name}</h3>
@@ -95,7 +116,7 @@
       {#if descriptionHtml}
         {@html descriptionHtml}
       {:else}
-        <p class="details-panel__no-description">{t("FUSION.Sheet.Spells.Picker.Details.NoDescription")}</p>
+        <p class="details-panel__no-description">{t(noDescriptionKey)}</p>
       {/if}
     </div>
   {/if}
