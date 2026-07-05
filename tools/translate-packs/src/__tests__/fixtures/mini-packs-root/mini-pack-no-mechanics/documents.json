@@ -1,0 +1,11 @@
+[
+  {
+    "_id": "miniDoc0000003C",
+    "name": "Mini Plain Spell",
+    "type": "spell",
+    "system": {
+      "description": "<p>A plain spell with no rule elements.</p>",
+      "level": 1
+    }
+  }
+]

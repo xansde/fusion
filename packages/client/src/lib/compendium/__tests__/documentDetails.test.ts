@@ -22,6 +22,10 @@ import {
   buildMechanicalFields,
   buildDetailsHeader,
   DocumentDetailsCache,
+  pickLocalizedName,
+  pickEnName,
+  localizedNameParts,
+  pickLocalizedDescription,
 } from "../documentDetails.js";
 
 describe("sanitizeDescriptionToText", () => {
@@ -483,17 +487,140 @@ describe("buildMechanicalFields (dispatch)", () => {
 });
 
 describe("buildDetailsHeader", () => {
-  it("extracts name, level/rank, traits and rarity", () => {
+  it("extracts name, level/rank, traits and rarity (no translation → subtitleEn null)", () => {
     const header = buildDetailsHeader({
       name: "Fireball",
       system: { level: 3, traits: { value: ["fire", "attack"], rarity: "common" } },
     });
-    expect(header).toEqual({ name: "Fireball", levelOrRank: 3, traits: ["fire", "attack"], rarity: "common" });
+    expect(header).toEqual({
+      name: "Fireball",
+      subtitleEn: null,
+      levelOrRank: 3,
+      traits: ["fire", "attack"],
+      rarity: "common",
+    });
   });
 
   it("falls back to null/empty for missing fields", () => {
     const header = buildDetailsHeader({ name: "Mystery" });
-    expect(header).toEqual({ name: "Mystery", levelOrRank: null, traits: [], rarity: null });
+    expect(header).toEqual({
+      name: "Mystery",
+      subtitleEn: null,
+      levelOrRank: null,
+      traits: [],
+      rarity: null,
+    });
+  });
+
+  it("prefers the pt-BR name and exposes the EN subtitle when locale is pt-BR", () => {
+    const header = buildDetailsHeader(
+      {
+        name: "Basic Concoction",
+        system: { level: 4 },
+        i18n: { ptBR: { name: "Concocção Básica" } },
+      },
+      "pt-BR",
+    );
+    expect(header.name).toBe("Concocção Básica");
+    expect(header.subtitleEn).toBe("Basic Concoction");
+  });
+
+  it("uses the EN name (no subtitle) when locale is en, even if a translation exists", () => {
+    const header = buildDetailsHeader(
+      { name: "Basic Concoction", i18n: { ptBR: { name: "Concocção Básica" } } },
+      "en",
+    );
+    expect(header.name).toBe("Basic Concoction");
+    expect(header.subtitleEn).toBeNull();
+  });
+});
+
+describe("localization helpers (T1)", () => {
+  const translated = {
+    name: "Basic Concoction",
+    system: { description: "<p>You gain a 1st- or 2nd-level alchemist feat.</p>" },
+    i18n: {
+      ptBR: {
+        name: "Concocção Básica",
+        description: "<p>Você ganha um talento de alquimista de 1º ou 2º nível.</p>",
+      },
+    },
+  };
+  const untranslated = {
+    name: "Longsword",
+    system: { description: "<p>A versatile blade.</p>" },
+  };
+
+  describe("pickLocalizedName", () => {
+    it("returns the pt-BR name when locale is pt-BR and a translation exists", () => {
+      expect(pickLocalizedName(translated, "pt-BR")).toBe("Concocção Básica");
+    });
+
+    it("returns the EN name when locale is en", () => {
+      expect(pickLocalizedName(translated, "en")).toBe("Basic Concoction");
+    });
+
+    it("falls back to the EN name when no translation exists (pt-BR locale)", () => {
+      expect(pickLocalizedName(untranslated, "pt-BR")).toBe("Longsword");
+    });
+
+    it("returns '' for a null/nameless source", () => {
+      expect(pickLocalizedName(null, "pt-BR")).toBe("");
+      expect(pickLocalizedName({}, "pt-BR")).toBe("");
+    });
+  });
+
+  describe("pickEnName", () => {
+    it("always returns the EN name regardless of translation", () => {
+      expect(pickEnName(translated)).toBe("Basic Concoction");
+      expect(pickEnName(untranslated)).toBe("Longsword");
+    });
+  });
+
+  describe("localizedNameParts", () => {
+    it("exposes the EN subtitle only when a translation is actually shown", () => {
+      expect(localizedNameParts(translated, "pt-BR")).toEqual({
+        display: "Concocção Básica",
+        subtitleEn: "Basic Concoction",
+      });
+    });
+
+    it("has no subtitle when untranslated (display equals EN)", () => {
+      expect(localizedNameParts(untranslated, "pt-BR")).toEqual({
+        display: "Longsword",
+        subtitleEn: null,
+      });
+    });
+
+    it("has no subtitle on the en locale", () => {
+      expect(localizedNameParts(translated, "en")).toEqual({
+        display: "Basic Concoction",
+        subtitleEn: null,
+      });
+    });
+  });
+
+  describe("pickLocalizedDescription", () => {
+    it("prefers the pt-BR description on the pt-BR locale", () => {
+      expect(pickLocalizedDescription(translated, "pt-BR")).toBe(
+        "<p>Você ganha um talento de alquimista de 1º ou 2º nível.</p>",
+      );
+    });
+
+    it("uses the EN description on the en locale", () => {
+      expect(pickLocalizedDescription(translated, "en")).toBe(
+        "<p>You gain a 1st- or 2nd-level alchemist feat.</p>",
+      );
+    });
+
+    it("falls back to the EN description when no translation exists", () => {
+      expect(pickLocalizedDescription(untranslated, "pt-BR")).toBe("<p>A versatile blade.</p>");
+    });
+
+    it("returns null when neither a translation nor an EN description is present", () => {
+      expect(pickLocalizedDescription({ name: "X" }, "pt-BR")).toBeNull();
+      expect(pickLocalizedDescription(null, "pt-BR")).toBeNull();
+    });
   });
 });
 

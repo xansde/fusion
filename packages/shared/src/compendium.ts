@@ -17,6 +17,7 @@
  */
 
 import { z } from "zod";
+import { DocMechanicsSchema } from "./mechanics.js";
 
 // ---------------------------------------------------------------------------
 // License kinds
@@ -116,6 +117,65 @@ export const PackManifestSchema = z.object({
 export type PackManifest = z.infer<typeof PackManifestSchema>;
 
 // ---------------------------------------------------------------------------
+// PackI18nOverlay — pt-BR translation overlay (T1)
+// ---------------------------------------------------------------------------
+
+/**
+ * One translated document entry in an `i18n.pt-BR.json` overlay.
+ *
+ * `description` is optional (a name-only translation is valid). `sourceHash`
+ * is sha1 over the EN source (`name_EN + "\u0000" + description_EN`) so
+ * tools/translate-packs can regenerate incrementally: a matching hash keeps
+ * the translation, a diverging hash marks it stale (server falls back to EN
+ * until re-translated). EN is ALWAYS the fallback — the overlay never mutates
+ * the source `documents.json`.
+ */
+export const PackI18nEntrySchema = z.object({
+  name: z.string(),
+  description: z.string().optional(),
+  sourceHash: z.string(),
+});
+
+export type PackI18nEntry = z.infer<typeof PackI18nEntrySchema>;
+
+/**
+ * The full `i18n.pt-BR.json` overlay file for one pack. `entries` maps doc
+ * `_id` → its pt-BR translation. `attribution` records the clean-room
+ * provenance: a derived (fan-content) translation of the ORC/OGL EN text —
+ * NEVER the official BR translation.
+ */
+export const PackI18nOverlaySchema = z.object({
+  schemaVersion: z.number().int(),
+  packId: z.string(),
+  locale: z.literal("pt-BR"),
+  generatedAt: z.string(),
+  generator: z.string().optional(),
+  attribution: z.string(),
+  entries: z.record(z.string(), PackI18nEntrySchema),
+});
+
+export type PackI18nOverlay = z.infer<typeof PackI18nOverlaySchema>;
+
+/**
+ * The localized shape attached to a served document / index entry
+ * (`entry.i18n.ptBR` / `doc.i18n.ptBR`). Same as PackI18nEntry minus the
+ * `sourceHash` (an internal regen detail the UI never needs).
+ */
+export const DocI18nSchema = z.object({
+  name: z.string(),
+  description: z.string().optional(),
+});
+
+export type DocI18n = z.infer<typeof DocI18nSchema>;
+
+/** Localized fields bag on a served entry/doc, keyed by locale. */
+export const LocalizedFieldsSchema = z.object({
+  ptBR: DocI18nSchema.optional(),
+});
+
+export type LocalizedFields = z.infer<typeof LocalizedFieldsSchema>;
+
+// ---------------------------------------------------------------------------
 // PackIndexEntry — lightweight index for lazy browse
 // REQ-CMP-007
 // ---------------------------------------------------------------------------
@@ -129,7 +189,7 @@ export const PackIndexEntrySchema = z.object({
    * REQ-CMP-009.
    */
   uuid: z.string(),
-  /** Document name. */
+  /** Document name (EN — the source-of-truth name; always present). */
   name: z.string(),
   /** Image path (placeholder-mapped by importer). */
   img: z.string().nullable(),
@@ -140,6 +200,20 @@ export const PackIndexEntrySchema = z.object({
    * Key = JSON path, value = extracted scalar / array.
    */
   index: z.record(z.string(), z.unknown()),
+  /**
+   * Localized fields overlaid by the server when a translation overlay exists
+   * (T1). `undefined` when no overlay entry matched — the UI falls back to
+   * `name`. Optional so entries WITHOUT an overlay serialize byte-identically
+   * to the pre-T1 shape (no `i18n` key at all).
+   */
+  i18n: LocalizedFieldsSchema.optional(),
+  /**
+   * Denormalized pt-BR name for cheap bilingual text search (T1). Mirrors
+   * `i18n.ptBR.name`; kept as a flat top-level field so `matchesTextSearch`
+   * can match against it without descending into the `i18n` bag. Optional —
+   * absent when no translation exists.
+   */
+  namePt: z.string().optional(),
 });
 
 export type PackIndexEntry = z.infer<typeof PackIndexEntrySchema>;
@@ -290,13 +364,18 @@ export function normalizeSearchText(text: string): string {
 
 /**
  * Test whether a PackIndexEntry matches a text search query.
- * Accent-insensitive, case-insensitive match against `name`.
- * REQ-CMP-013.
+ * Accent-insensitive, case-insensitive match against the EN `name` OR the
+ * pt-BR `namePt` (bilingual — the user can type either language and find the
+ * entry). REQ-CMP-013, T1.
  */
 export function matchesTextSearch(entry: PackIndexEntry, query: string): boolean {
   if (!query) return true;
   const normalized = normalizeSearchText(query);
-  return normalizeSearchText(entry.name).includes(normalized);
+  if (normalizeSearchText(entry.name).includes(normalized)) return true;
+  if (entry.namePt !== undefined && normalizeSearchText(entry.namePt).includes(normalized)) {
+    return true;
+  }
+  return false;
 }
 
 /**

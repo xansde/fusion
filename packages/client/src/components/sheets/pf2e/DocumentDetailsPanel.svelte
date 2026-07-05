@@ -23,8 +23,13 @@
    * executável — V2), conforme o item 2 da tarefa.
    */
 
-  import { sanitizeDescriptionHtml, buildMechanicalFields, buildDetailsHeader } from "../../../lib/compendium/documentDetails.js";
-  import { t } from "../../../lib/i18n/i18n.js";
+  import {
+    sanitizeDescriptionHtml,
+    buildMechanicalFields,
+    buildDetailsHeader,
+    pickLocalizedDescription,
+  } from "../../../lib/compendium/documentDetails.js";
+  import { t, i18n } from "../../../lib/i18n/i18n.js";
 
   interface Props {
     /** Full document (system.description + system.* mechanical fields), or null before selection. */
@@ -57,16 +62,15 @@
     noDescriptionKey = "FUSION.Sheet.Spells.Picker.Details.NoDescription",
   }: Props = $props();
 
-  const header = $derived(doc ? buildDetailsHeader(doc) : null);
+  const header = $derived(doc ? buildDetailsHeader(doc, i18n.locale) : null);
   const mechanicalFields = $derived(doc ? buildMechanicalFields(doc) : []);
   const descriptionHtml = $derived.by(() => {
     if (!doc) return "";
-    const system = doc["system"];
-    const description =
-      system && typeof system === "object" && !Array.isArray(system)
-        ? (system as Record<string, unknown>)["description"]
-        : null;
-    return typeof description === "string" ? sanitizeDescriptionHtml(description) : "";
+    // Prefer the pt-BR translation when the active locale is pt-BR and the
+    // server attached one (doc.i18n.ptBR.description); fall back to the EN
+    // system.description otherwise. Sanitized identically either way. T1.
+    const description = pickLocalizedDescription(doc, i18n.locale);
+    return description !== null ? sanitizeDescriptionHtml(description) : "";
   });
 </script>
 
@@ -84,7 +88,12 @@
     <div class="details-panel__state">{t(selectHintKey)}</div>
   {:else}
     <div class="details-panel__header">
-      <h3 class="details-panel__name">{header.name}</h3>
+      <div class="details-panel__name-block">
+        <h3 class="details-panel__name">{header.name}</h3>
+        {#if header.subtitleEn}
+          <span class="details-panel__name-en" title={header.subtitleEn}>{header.subtitleEn}</span>
+        {/if}
+      </div>
       {#if header.levelOrRank !== null}
         <span class="details-panel__rank">{header.levelOrRank}</span>
       {/if}
@@ -169,13 +178,29 @@
     gap: 8px;
   }
 
+  .details-panel__name-block {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
   .details-panel__name {
     font-size: 14px;
     font-weight: 700;
     margin: 0;
     color: var(--fusion-text);
-    flex: 1;
-    min-width: 0;
+  }
+
+  .details-panel__name-en {
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--fusion-text-subtle);
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .details-panel__rank {

@@ -1,0 +1,484 @@
+{
+  "Basic Concoction": {
+    "_id": "bduri70co98T1fwA",
+    "name": "Basic Concoction",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You gain a 1st- or 2nd-level alchemist feat.</p>",
+      "level": 4,
+      "prerequisites": [
+        {
+          "value": "Alchemist Dedication"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "{item|flags.system.rulesSelections.basicConcoction}",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "{item|flags.system.rulesSelections.basicConcoction}"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "archetype"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "h5ZT9i79BFVJ0VfE",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "adjustName": false,
+            "choices": {
+              "filter": [
+                "item:category:class",
+                "item:trait:alchemist",
+                {
+                  "lte": [
+                    "item:level",
+                    2
+                  ]
+                }
+              ],
+              "itemType": "feat"
+            },
+            "flag": "basicConcoction",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Prompt.LevelOneOrTwoClassFeat",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  "Ancestral Paragon": {
+    "_id": "fT8qqAEVrd0fUbdo",
+    "name": "Ancestral Paragon",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "general",
+      "description": "<p>Whether through instinct, study, or magic, you feel a deeper connection to your ancestry. You gain a 1st-level ancestry feat.</p>",
+      "level": 3,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "{item|flags.system.rulesSelections.ancestralParagon}",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "{item|flags.system.rulesSelections.ancestralParagon}"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "general"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "m7KjpkAAh9PptJsY",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "adjustName": false,
+            "choices": {
+              "filter": [
+                "item:level:1",
+                "item:category:ancestry",
+                {
+                  "or": [
+                    "item:trait:{actor|system.details.ancestry.trait}",
+                    "item:trait:{actor|system.details.ancestry.adopted}",
+                    "item:trait:{actor|system.details.ancestry.versatile}",
+                    "item:trait:{actor|system.details.heritage.trait}"
+                  ]
+                },
+                {
+                  "not": "item:trait:lineage"
+                }
+              ],
+              "itemType": "feat"
+            },
+            "flag": "ancestralParagon",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.AncestralParagon.Prompt",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  "Adopted Ancestry": {
+    "_id": "pP1ESEvFaPyF2OFM",
+    "name": "Adopted Ancestry",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "general",
+      "description": "<p>You're fully immersed in another ancestry's culture and traditions, whether born into them, earned through rite of passage, or bonded through a deep friendship or romance. Choose a common ancestry or another ancestry to which you have access. You can select ancestry feats from the ancestry you chose, in addition to your character's own ancestry, as long as the ancestry feats don't require any physiological feature that you lack, as determined by the GM.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.details.ancestry.adopted",
+          "value": "{item|flags.system.rulesSelections.ancestry}",
+          "mode": "override",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "override",
+            "path": "system.details.ancestry.adopted",
+            "value": "{item|flags.system.rulesSelections.ancestry}"
+          }
+        },
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.details.ancestry.countsAs",
+          "value": "{item|flags.system.rulesSelections.ancestry}",
+          "mode": "add",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "add",
+            "path": "system.details.ancestry.countsAs",
+            "value": "{item|flags.system.rulesSelections.ancestry}"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "general"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ihN8gkHSdPG9Trte",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "choices": {
+              "filter": [
+                {
+                  "not": "item:slug:{actor|system.details.ancestry.trait}"
+                }
+              ],
+              "itemType": "ancestry",
+              "slugsAsValues": true
+            },
+            "flag": "ancestry",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.AdoptedAncestry.Prompt",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  "Alchemist Dedication": {
+    "_id": "zbqmJqI5T5Q7fgMS",
+    "name": "Alchemist Dedication",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You put your alchemical interest into practice. You become trained in alchemical bombs, the alchemist class DC, and Crafting; if you were already trained in Crafting, you instead become trained in a skill of your choice.</p>\n<p>You gain the @UUID[Compendium.pf2e.journals.JournalEntry.vx5FGEG34AxI2dow.JournalEntryPage.Jkl5KOZih7MoMqAJ]{Quick Alchemy} benefits, creating up to 4 versatile vials during your daily preparations. Add the formulas for four additional common alchemical items to your formula book, in addition to those you gain from Alchemical Crafting.</p>\n<p>@UUID[Compendium.pf2e.journals.JournalEntry.vx5FGEG34AxI2dow.JournalEntryPage.Ux0sa5SUBu616i5k]{Alchemist}</p>",
+      "level": 2,
+      "prerequisites": [
+        {
+          "value": "Intelligence +2"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.skills.crafting.rank",
+          "value": 1,
+          "mode": "upgrade",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.skills.crafting.rank",
+            "value": 1
+          }
+        },
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.proficiencies.attacks.weapon-base-alchemical-bomb.rank",
+          "value": 1,
+          "mode": "upgrade",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.proficiencies.attacks.weapon-base-alchemical-bomb.rank",
+            "value": 1
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.feats-srd.Item.Alchemical Crafting",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.feats-srd.Item.Alchemical Crafting"
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.actionspf2e.Item.Quick Alchemy",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "allowDuplicate": false,
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.actionspf2e.Item.Quick Alchemy"
+          }
+        }
+      ],
+      "subfeatures": {
+        "proficiencies": {
+          "alchemist": {
+            "attribute": "int",
+            "rank": 1
+          }
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "archetype",
+          "dedication",
+          "multiclass"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "CJMkxlxHiHZQYDCz",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "itemUUID": "Compendium.pf2e.equipment-srd.Item.Versatile Vial",
+            "key": "SpecialResource",
+            "label": "PF2E.SpecificRule.Alchemist.VersatileVials",
+            "level": "ternary(gte(@actor.level, 18), 18, ternary(gte(@actor.level, 12), 12, ternary(gte(@actor.level, 4), 4, 1)))",
+            "max": 4,
+            "slug": "versatile-vials",
+            "_conversionState": "unsupported"
+          },
+          {
+            "craftableItems": [
+              "item:trait:alchemical",
+              "item:trait:consumable"
+            ],
+            "key": "CraftingAbility",
+            "slug": "quick-alchemy",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  "Terrain Stalker": {
+    "_id": "51mcZ3KeNe3CYOJL",
+    "name": "Terrain Stalker",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "skill",
+      "description": "<p>Select one type of difficult terrain from the following list: rubble, snow, or underbrush. While @UUID[Compendium.pf2e.conditionitems.Item.Undetected] by all non-allies in that type of terrain, you can @UUID[Compendium.pf2e.actionspf2e.Item.Sneak] without attempting a Stealth check as long as you move no more than 5 feet and do not pass within 10 feet of an enemy during your movement.</p>\n<p>During exploration, this also allows you to automatically approach within 15 feet of other creatures while @UUID[Compendium.pf2e.actionspf2e.Item.Avoid Notice]{Avoiding their Notice}, as long as they aren't actively @UUID[Compendium.pf2e.actionspf2e.Item.Search]{Searching} or on guard.</p><hr /><p><strong>Special</strong> You can select this feat multiple times. Each time, choose a different type of terrain.</p>",
+      "level": 1,
+      "maxTakable": null,
+      "prerequisites": [
+        {
+          "value": "trained in Stealth"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "general",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "beyw5bdA5hkQbmaG",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "choices": [
+              {
+                "label": "PF2E.SpecificRule.TerrainStalker.Rubble",
+                "predicate": [
+                  {
+                    "not": "terrain-stalker:rubble"
+                  }
+                ],
+                "value": "rubble"
+              },
+              {
+                "label": "PF2E.SpecificRule.TerrainStalker.Snow",
+                "predicate": [
+                  {
+                    "not": "terrain-stalker:snow"
+                  }
+                ],
+                "value": "snow"
+              },
+              {
+                "label": "PF2E.SpecificRule.TerrainStalker.Underbrush",
+                "predicate": [
+                  {
+                    "not": "terrain-stalker:underbrush"
+                  }
+                ],
+                "value": "underbrush"
+              }
+            ],
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.TerrainExpertise.Prompt",
+            "rollOption": "terrain-stalker",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  }
+}

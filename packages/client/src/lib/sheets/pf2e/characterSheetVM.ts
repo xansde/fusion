@@ -1785,6 +1785,11 @@ export class CharacterSheetVM {
 /** Minimal shape the picker needs from a compendium spell index entry. */
 export interface SpellPickerEntry {
   name: string;
+  /**
+   * Denormalized pt-BR name for bilingual search (T1). Mirrors
+   * PackIndexEntry.namePt — present only when a translation overlay exists.
+   */
+  namePt?: string | undefined;
   /** Extra index fields keyed by JSON path (PackIndexEntry.index), e.g. "system.level.value". */
   index: Record<string, unknown>;
 }
@@ -1828,11 +1833,23 @@ function normalizePickerText(text: string): string {
 }
 
 /**
+ * Test whether an entry's EN name OR its pt-BR namePt contains the (already
+ * normalized) search term. Bilingual (T1): the user can type either language.
+ */
+function pickerNameMatches(entry: SpellPickerEntry, searchNorm: string): boolean {
+  if (normalizePickerText(entry.name).includes(searchNorm)) return true;
+  if (entry.namePt !== undefined && normalizePickerText(entry.namePt).includes(searchNorm)) {
+    return true;
+  }
+  return false;
+}
+
+/**
  * Filter a compendium spell index by rank ceiling, tradition, and a name
  * search substring. Every filter is optional and combines with AND.
  * The name search is case- AND accent-insensitive on both sides ("revelacao"
- * matches "Revelação" and vice versa) — spell pack names are English, but
- * pt-BR users often type with diacritics.
+ * matches "Revelação" and vice versa) and BILINGUAL — it matches the EN name
+ * or the pt-BR namePt overlay, so a pt-BR user can search in either language.
  */
 export function filterSpellPicker<T extends SpellPickerEntry>(
   entries: T[],
@@ -1846,7 +1863,7 @@ export function filterSpellPicker<T extends SpellPickerEntry>(
       const traditions = pickerSpellTraditions(entry);
       if (!traditions.includes(filters.tradition)) return false;
     }
-    if (searchNorm && !normalizePickerText(entry.name).includes(searchNorm)) return false;
+    if (searchNorm && !pickerNameMatches(entry, searchNorm)) return false;
     return true;
   });
 }

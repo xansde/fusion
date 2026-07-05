@@ -1,0 +1,40 @@
+[
+  {
+    "_id": "miniDoc0000001A",
+    "name": "Mini Fireball",
+    "type": "spell",
+    "system": {
+      "description": "<p>You deal 6d6 fire damage in a burst.</p>",
+      "level": 3
+    }
+  },
+  {
+    "_id": "miniDoc0000002B",
+    "name": "Mini Grant Feat",
+    "type": "feat",
+    "system": {
+      "description": "<p>You gain a 1st-level general feat.</p>",
+      "level": 5,
+      "rules": [
+        {
+          "kind": "grant-item",
+          "uuid": "{item|flags.system.rulesSelections.miniGrant}"
+        }
+      ]
+    },
+    "flags": {
+      "fusion": {
+        "unconvertedRules": [
+          {
+            "key": "ChoiceSet",
+            "flag": "miniGrant",
+            "choices": {
+              "itemType": "feat",
+              "filter": ["item:category:general", { "lte": ["item:level", 1] }]
+            }
+          }
+        ]
+      }
+    }
+  }
+]

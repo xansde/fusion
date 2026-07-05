@@ -56,7 +56,10 @@
     requireConnectedSocket,
     SocketUnavailableError,
   } from "../../../lib/compendium/compendiumApi.js";
-  import { DocumentDetailsCache } from "../../../lib/compendium/documentDetails.js";
+  import {
+    DocumentDetailsCache,
+    localizedNameParts,
+  } from "../../../lib/compendium/documentDetails.js";
   import DocumentDetailsPanel from "./DocumentDetailsPanel.svelte";
   import {
     filterSpellPicker,
@@ -66,7 +69,7 @@
   import { groupTraits } from "../../../lib/sheets/pf2e/traitGroups.js";
   import { normalizeSearchText } from "@fusion/shared";
   import { session, getSocket } from "../../../lib/session.svelte.js";
-  import { t } from "../../../lib/i18n/i18n.js";
+  import { t, i18n } from "../../../lib/i18n/i18n.js";
 
   interface Props {
     /** Tradition to pre-filter results to (e.g. "arcane"). Soft default — see docstring. */
@@ -411,6 +414,7 @@
           </div>
         {:else}
           {#each filtered as entry (entry.uuid)}
+            {@const nameParts = localizedNameParts(entry, i18n.locale)}
             <div
               class="picker-row"
               class:picker-row--selected={selectedUuid === entry.uuid}
@@ -424,7 +428,12 @@
                 <span class="picker-row__cost">{actionCostOf(entry)}</span>
               {/if}
               <div class="picker-row__main">
-                <div class="picker-row__name">{entry.name}</div>
+                <div class="picker-row__name">
+                  {nameParts.display}
+                  {#if nameParts.subtitleEn}
+                    <span class="picker-row__name-en">{nameParts.subtitleEn}</span>
+                  {/if}
+                </div>
                 {#if traitsOf(entry).length > 0}
                   <div class="picker-row__traits">
                     {#each traitsOf(entry) as trait (trait)}
@@ -804,6 +813,13 @@
     font-size: 12.5px;
     font-weight: 600;
     color: var(--fusion-text);
+  }
+
+  .picker-row__name-en {
+    margin-left: 6px;
+    font-size: 10.5px;
+    font-weight: 400;
+    color: var(--fusion-text-subtle);
   }
 
   .picker-row__traits {

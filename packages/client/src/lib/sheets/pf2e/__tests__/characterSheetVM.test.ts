@@ -1841,6 +1841,51 @@ describe("filterSpellPicker", () => {
     const result = filterSpellPicker(accented, { search: "revelacao" });
     expect(result.map((e) => e.name)).toEqual(["Revelação Arcana"]);
   });
+
+  // Bilingual search (T1): a translated entry carries a denormalized namePt,
+  // and the search must match EN name OR pt-BR namePt.
+  describe("bilingual search (namePt)", () => {
+    function translatedEntry(
+      name: string,
+      namePt: string,
+      level: number,
+      traditions: string[] = [],
+    ): SpellPickerEntry {
+      return {
+        name,
+        namePt,
+        index: { "system.level": level, "system.traits.traditions": traditions },
+      };
+    }
+
+    const translated = [
+      translatedEntry("Fireball", "Bola de Fogo", 3, ["arcane"]),
+      translatedEntry("Heal", "Curar", 1, ["divine"]),
+    ];
+
+    it("matches the pt-BR namePt (accent-insensitive)", () => {
+      // "fogo" only appears in the pt-BR name
+      expect(filterSpellPicker(translated, { search: "fogo" }).map((e) => e.name)).toEqual([
+        "Fireball",
+      ]);
+    });
+
+    it("still matches the EN name for a translated entry", () => {
+      expect(filterSpellPicker(translated, { search: "fire" }).map((e) => e.name)).toEqual([
+        "Fireball",
+      ]);
+    });
+
+    it("matches accent-insensitively against namePt (curar via 'curar')", () => {
+      expect(filterSpellPicker(translated, { search: "curar" }).map((e) => e.name)).toEqual([
+        "Heal",
+      ]);
+    });
+
+    it("does not match a term absent from both EN name and namePt", () => {
+      expect(filterSpellPicker(translated, { search: "gelo" })).toEqual([]);
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------

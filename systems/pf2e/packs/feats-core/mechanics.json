@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "packId": "pf2e.feats-core",
+  "generatedAt": "2026-07-05T21:49:25.278Z",
+  "generator": "tools/translate-packs@0.1.0",
+  "entries": {
+    "bduri70co98T1fwA": {
+      "sourceHash": "b7d57c40b9661b5644b28b386f401671ab244d75",
+      "grants": [
+        {
+          "kind": "feat-choice",
+          "category": "class",
+          "count": 1,
+          "filters": {
+            "traits": [
+              "alchemist"
+            ],
+            "maxLevel": 2
+          },
+          "source": "rule-element",
+          "confidence": 1,
+          "labelKey": "FUSION.Sheet.Plan.SlotLabel.grantedFeat.basicConcoction"
+        }
+      ],
+      "unlocks": []
+    },
+    "fT8qqAEVrd0fUbdo": {
+      "sourceHash": "561a06d1e9ff9de3e716c64f0298825e4c067503",
+      "grants": [
+        {
+          "kind": "feat-choice",
+          "category": "ancestry",
+          "count": 1,
+          "filters": {
+            "levelExpr": "item:level:1"
+          },
+          "source": "rule-element",
+          "confidence": 0.6
+        }
+      ],
+      "unlocks": []
+    },
+    "pP1ESEvFaPyF2OFM": {
+      "sourceHash": "1f4f738aeb372947722c790b1b60f62374e43a6d",
+      "grants": [],
+      "unlocks": [
+        {
+          "kind": "ancestry-feat-eligibility",
+          "mechanism": "adopted-ancestry",
+          "filters": {
+            "excludeOwnAncestry": true
+          },
+          "source": "rule-element",
+          "confidence": 1
+        }
+      ]
+    }
+  }
+}

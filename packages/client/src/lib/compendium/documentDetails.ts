@@ -31,6 +31,102 @@
  * renders whatever the server already sent.
  */
 
+import type { SupportedLocale } from "../i18n/i18n.js";
+
+// ---------------------------------------------------------------------------
+// Localization overlay picking (T1)
+// ---------------------------------------------------------------------------
+
+/**
+ * Shape of the localization bag the server attaches to served entries/docs
+ * (`entry.i18n` / `doc.i18n`). Mirrors @fusion/shared's `LocalizedFields`, but
+ * declared locally as a structural read-only view over the untyped
+ * `Record<string, unknown>` documents/entries flow through here.
+ */
+interface LocalizedBag {
+  ptBR?: { name?: unknown; description?: unknown } | undefined;
+}
+
+/** Read the server-attached `i18n` bag off an untyped entry/doc, if present. */
+function readI18nBag(source: Record<string, unknown> | null | undefined): LocalizedBag | null {
+  if (!source) return null;
+  const bag = source["i18n"];
+  if (bag === null || typeof bag !== "object" || Array.isArray(bag)) return null;
+  return bag as LocalizedBag;
+}
+
+/**
+ * Pick the display name for an entry/doc given the active locale (T1).
+ *
+ * When the locale is "pt-BR" and a translated name exists, returns it;
+ * otherwise falls back to the EN `name`. EN is ALWAYS the fallback — a missing
+ * overlay, a non-pt-BR locale, or a nameless entry all resolve to the EN name
+ * (or "" as a last resort). The server attaches `i18n.ptBR` unconditionally
+ * (it doesn't know the client locale); this helper is the single decision
+ * point that consults `locale`.
+ */
+export function pickLocalizedName(
+  source: Record<string, unknown> | null | undefined,
+  locale: SupportedLocale,
+): string {
+  const enName = str(source?.["name"]) ?? "";
+  if (locale !== "pt-BR") return enName;
+  const ptName = str(readI18nBag(source)?.ptBR?.name);
+  return ptName ?? enName;
+}
+
+/**
+ * The EN name for an entry/doc, regardless of locale — used as a subtitle/
+ * tooltip beside a translated name so the reader can cross-reference EN source
+ * material. Returns "" when absent. When the display name already equals the
+ * EN name (untranslated, or non-pt-BR locale), callers should suppress the
+ * subtitle (see {@link localizedNameParts}).
+ */
+export function pickEnName(source: Record<string, unknown> | null | undefined): string {
+  return str(source?.["name"]) ?? "";
+}
+
+/**
+ * Resolve both the display name and the (optional) EN subtitle in one pass.
+ * `subtitleEn` is non-null ONLY when a pt-BR translation is actually being
+ * shown AND differs from the EN name — so the UI shows the EN name as a
+ * secondary line to aid cross-referencing, and never shows a redundant
+ * "EN (EN)" when untranslated.
+ */
+export function localizedNameParts(
+  source: Record<string, unknown> | null | undefined,
+  locale: SupportedLocale,
+): { display: string; subtitleEn: string | null } {
+  const en = pickEnName(source);
+  const display = pickLocalizedName(source, locale);
+  const subtitleEn = display !== en && en.length > 0 ? en : null;
+  return { display, subtitleEn };
+}
+
+/**
+ * Pick the description HTML for a doc given the active locale (T1). Prefers the
+ * translated `i18n.ptBR.description` when the locale is pt-BR and a translation
+ * exists; otherwise falls back to the EN `system.description`. Returns null
+ * when neither is a string (caller renders the "no description" placeholder).
+ * The returned HTML is NOT yet sanitized — callers pipe it through
+ * {@link sanitizeDescriptionHtml}.
+ */
+export function pickLocalizedDescription(
+  doc: Record<string, unknown> | null | undefined,
+  locale: SupportedLocale,
+): string | null {
+  if (locale === "pt-BR") {
+    const ptDesc = str(readI18nBag(doc)?.ptBR?.description);
+    if (ptDesc !== null) return ptDesc;
+  }
+  const system = doc?.["system"];
+  const enDesc =
+    system !== null && typeof system === "object" && !Array.isArray(system)
+      ? (system as Record<string, unknown>)["description"]
+      : null;
+  return typeof enDesc === "string" ? enDesc : null;
+}
+
 // ---------------------------------------------------------------------------
 // HTML sanitization + @Tag[...] rewriting
 // ---------------------------------------------------------------------------
@@ -660,16 +756,32 @@ export function buildMechanicalFields(doc: Record<string, unknown>): MechanicalF
 // ---------------------------------------------------------------------------
 
 export interface DocumentDetailsHeader {
+  /** Display name in the active locale (pt-BR translation when available, else EN). */
   name: string;
+  /**
+   * EN name shown as a secondary subtitle beside a translated `name`, to help
+   * cross-reference EN source material. Null when untranslated (name === EN) or
+   * on a non-pt-BR locale — so the panel never shows a redundant "EN (EN)".
+   */
+  subtitleEn: string | null;
   /** Rank (spells) or level (feats/classFeatures) — null if not applicable. */
   levelOrRank: number | null;
   traits: string[];
   rarity: string | null;
 }
 
-/** Extract the header block (name/level-or-rank/traits/rarity) shown at the top of the panel. */
-export function buildDetailsHeader(doc: Record<string, unknown>): DocumentDetailsHeader {
-  const name = str(doc["name"]) ?? "";
+/**
+ * Extract the header block (name/subtitle/level-or-rank/traits/rarity) shown at
+ * the top of the panel. `locale` selects the display name: on "pt-BR" the
+ * server-attached `doc.i18n.ptBR.name` wins when present (EN otherwise); on
+ * "en" the EN name is always used. Defaults to "pt-BR" (the app default) so
+ * existing non-locale-aware callers keep the translated behaviour. T1.
+ */
+export function buildDetailsHeader(
+  doc: Record<string, unknown>,
+  locale: SupportedLocale = "pt-BR",
+): DocumentDetailsHeader {
+  const { display: name, subtitleEn } = localizedNameParts(doc, locale);
   const system = doc["system"];
   const sys = isRecord(system) ? system : {};
 
@@ -687,7 +799,7 @@ export function buildDetailsHeader(doc: Record<string, unknown>): DocumentDetail
     rarity = str(traitsBlock["rarity"]);
   }
 
-  return { name, levelOrRank, traits, rarity };
+  return { name, subtitleEn, levelOrRank, traits, rarity };
 }
 
 // ---------------------------------------------------------------------------

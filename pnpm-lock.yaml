@@ -319,6 +319,8 @@ importers:
         specifier: ^3.2.2
         version: 3.2.6(@types/node@22.19.21)
 
+  tools/translate-packs: {}
+
 packages:
 
   '@3d-dice/dice-box@1.1.4':

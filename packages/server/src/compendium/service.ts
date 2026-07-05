@@ -25,12 +25,15 @@
  */
 
 import { readFileSync, existsSync, readdirSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Logger } from "pino";
 import {
   PackManifestSchema,
   PackIndexEntrySchema,
+  PackI18nOverlaySchema,
+  PackMechanicsOverlaySchema,
   searchPackIndex,
   buildPackDocUuid,
   parsePackDocUuid,
@@ -42,6 +45,8 @@ import type {
   CompendiumSearchPayload,
   CompendiumImportResult,
   DocumentTable,
+  DocI18n,
+  DocMechanics,
 } from "@fusion/shared";
 import { DocumentStore } from "../documents/store.js";
 import { isRolePrivileged } from "../documents/ownership.js";
@@ -62,6 +67,26 @@ interface LoadedPack {
   docsPath: string;
   /** Path to index.json (pre-built index, may not exist). */
   indexPath: string | null;
+  /**
+   * Path to i18n.pt-BR.json (translation overlay, may not exist). Resolved at
+   * discovery; content is loaded lazily (see `_i18nPtBR`). T1.
+   */
+  i18nPtBRPath: string | null;
+  /**
+   * Path to mechanics.json (grants/unlocks overlay, may not exist). T1.
+   */
+  mechanicsPath: string | null;
+  /**
+   * Lazy-loaded pt-BR overlay: doc `_id` → localized fields, ALREADY validated
+   * against the doc's live EN sourceHash (stale entries dropped → EN fallback).
+   * `null` = not yet loaded; an empty Map = overlay absent/empty/all-stale.
+   */
+  _i18nPtBR: Map<string, DocI18n> | null;
+  /**
+   * Lazy-loaded mechanics overlay: doc `_id` → grants/unlocks. `null` = not yet
+   * loaded; an empty Map = overlay absent/empty.
+   */
+  _mechanics: Map<string, DocMechanics> | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -130,12 +155,18 @@ export class CompendiumService {
         }
 
         const indexPath = join(packDir, "index.json");
+        const i18nPtBRPath = join(packDir, "i18n.pt-BR.json");
+        const mechanicsPath = join(packDir, "mechanics.json");
 
         this.packs.set(manifest.id, {
           manifest,
           _index: null,
           docsPath,
           indexPath: existsSync(indexPath) ? indexPath : null,
+          i18nPtBRPath: existsSync(i18nPtBRPath) ? i18nPtBRPath : null,
+          mechanicsPath: existsSync(mechanicsPath) ? mechanicsPath : null,
+          _i18nPtBR: null,
+          _mechanics: null,
         });
 
         this.logger?.info(
@@ -185,7 +216,11 @@ export class CompendiumService {
     if (!loaded) return null;
 
     if (!loaded._index) {
-      loaded._index = this._buildIndex(loaded);
+      // Build the base (EN) index, then overlay pt-BR names when a translation
+      // overlay exists. The enrichment is applied ONCE here and cached in
+      // `_index`, so subsequent index/search calls reuse the enriched entries.
+      const base = this._buildIndex(loaded);
+      loaded._index = this._applyI18nToIndex(loaded, base);
     }
 
     return { packId, entries: loaded._index };
@@ -220,7 +255,26 @@ export class CompendiumService {
           d !== null &&
           (d as Record<string, unknown>)["_id"] === parsed.docId,
       );
-      return doc !== undefined ? (doc as Record<string, unknown>) : null;
+      if (doc === undefined) return null;
+
+      // Attach translation + mechanics overlays WITHOUT mutating the source
+      // arrays. `doc` is a freshly-parsed object from this call's JSON.parse,
+      // so a shallow spread here is a private copy — safe to add `i18n`/
+      // `mechanics` fields. EN `name`/`system.description` remain untouched
+      // (fallback + sourceHash stay computable). T1.
+      const enriched: Record<string, unknown> = { ...(doc as Record<string, unknown>) };
+
+      const i18nPtBR = this._getI18nPtBR(loaded).get(parsed.docId);
+      if (i18nPtBR !== undefined) {
+        enriched["i18n"] = { ptBR: i18nPtBR };
+      }
+
+      const mechanics = this._getMechanics(loaded).get(parsed.docId);
+      if (mechanics !== undefined) {
+        enriched["mechanics"] = mechanics;
+      }
+
+      return enriched;
     } catch (err) {
       this.logger?.warn({ err, uuid }, "Failed to read document from pack");
       return null;
@@ -314,8 +368,14 @@ export class CompendiumService {
           // Preserve flags.fusion (conversion metadata)
         };
 
-        // Strip pack-only fields
+        // Strip pack-only / browser-only fields. `i18n` and `mechanics` are
+        // overlay projections attached by getDocument() for the picker UI (T1);
+        // the imported world document must stay EN-pure and identical to the
+        // pre-T1 import shape, so drop them here (belt-and-suspenders — the
+        // world derivation/persistence never reads them).
         delete worldDoc["uuid"];
+        delete worldDoc["i18n"];
+        delete worldDoc["mechanics"];
 
         // Derive on import (audit issue 3) — Actor documents only.
         //
@@ -356,6 +416,167 @@ export class CompendiumService {
     }
 
     return { created, failed };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private helpers — overlays (T1)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Lazily load + validate the pt-BR translation overlay for a pack, keyed by
+   * doc `_id`. Result is cached on `loaded._i18nPtBR`.
+   *
+   * STALENESS GATE: each overlay entry carries a `sourceHash` computed by
+   * tools/translate-packs over the EN source (name + description). We recompute
+   * that hash from the LIVE `documents.json` and DROP any entry whose hash no
+   * longer matches — so a doc whose EN text changed without the overlay being
+   * regenerated falls back to EN instead of showing an obsolete translation.
+   * EN is always the fallback (REQ: overlay never mutates the source).
+   *
+   * Tolerant of a missing/corrupt/mis-typed overlay: returns an empty Map and
+   * logs, matching the discovery philosophy (REQ-CMP-006).
+   */
+  private _getI18nPtBR(loaded: LoadedPack): Map<string, DocI18n> {
+    if (loaded._i18nPtBR) return loaded._i18nPtBR;
+
+    const result = new Map<string, DocI18n>();
+    loaded._i18nPtBR = result;
+
+    if (!loaded.i18nPtBRPath) return result;
+
+    let overlay;
+    try {
+      const raw = JSON.parse(readFileSync(loaded.i18nPtBRPath, "utf8")) as unknown;
+      const parsed = PackI18nOverlaySchema.safeParse(raw);
+      if (!parsed.success) {
+        this.logger?.warn(
+          { packId: loaded.manifest.id, issues: parsed.error.issues },
+          "Invalid i18n.pt-BR.json — ignoring translation overlay",
+        );
+        return result;
+      }
+      overlay = parsed.data;
+    } catch (err) {
+      this.logger?.warn(
+        { err, packId: loaded.manifest.id },
+        "Failed to read i18n.pt-BR.json — ignoring translation overlay",
+      );
+      return result;
+    }
+
+    // Build the live EN source-hash map so we can gate stale translations.
+    const enHashes = this._buildEnSourceHashes(loaded);
+
+    let stale = 0;
+    for (const [docId, entry] of Object.entries(overlay.entries)) {
+      const liveHash = enHashes.get(docId);
+      if (liveHash === undefined || liveHash !== entry.sourceHash) {
+        stale++;
+        continue; // EN fallback for stale/absent source
+      }
+      const localized: DocI18n = { name: entry.name };
+      if (entry.description !== undefined) localized.description = entry.description;
+      result.set(docId, localized);
+    }
+
+    this.logger?.debug(
+      { packId: loaded.manifest.id, translated: result.size, stale },
+      "Loaded pt-BR translation overlay",
+    );
+    return result;
+  }
+
+  /**
+   * Lazily load the mechanics overlay for a pack, keyed by doc `_id`. Result is
+   * cached on `loaded._mechanics`. Tolerant of missing/corrupt overlay (empty
+   * Map). Unlike the i18n overlay, mechanics entries are served as-is (their
+   * `sourceHash` is a regen detail for tools/translate-packs, not a runtime
+   * gate — a grant filter does not become "wrong" the way stale prose does).
+   */
+  private _getMechanics(loaded: LoadedPack): Map<string, DocMechanics> {
+    if (loaded._mechanics) return loaded._mechanics;
+
+    const result = new Map<string, DocMechanics>();
+    loaded._mechanics = result;
+
+    if (!loaded.mechanicsPath) return result;
+
+    try {
+      const raw = JSON.parse(readFileSync(loaded.mechanicsPath, "utf8")) as unknown;
+      const parsed = PackMechanicsOverlaySchema.safeParse(raw);
+      if (!parsed.success) {
+        this.logger?.warn(
+          { packId: loaded.manifest.id, issues: parsed.error.issues },
+          "Invalid mechanics.json — ignoring mechanics overlay",
+        );
+        return result;
+      }
+      for (const [docId, entry] of Object.entries(parsed.data.entries)) {
+        result.set(docId, { grants: entry.grants, unlocks: entry.unlocks });
+      }
+      this.logger?.debug(
+        { packId: loaded.manifest.id, entries: result.size },
+        "Loaded mechanics overlay",
+      );
+    } catch (err) {
+      this.logger?.warn(
+        { err, packId: loaded.manifest.id },
+        "Failed to read mechanics.json — ignoring mechanics overlay",
+      );
+    }
+    return result;
+  }
+
+  /**
+   * Compute the EN source-hash for every doc in a pack, keyed by `_id`. The
+   * hash is `sha1(name_EN + "\u0000" + description_EN)` — the SAME formula
+   * tools/translate-packs uses to key its overlay entries (T1 contract §3.a).
+   * A NUL separator prevents boundary collisions. Missing name/description are
+   * treated as empty strings.
+   */
+  private _buildEnSourceHashes(loaded: LoadedPack): Map<string, string> {
+    const hashes = new Map<string, string>();
+    let docs: unknown[];
+    try {
+      docs = JSON.parse(readFileSync(loaded.docsPath, "utf8")) as unknown[];
+    } catch (err) {
+      this.logger?.warn(
+        { err, packId: loaded.manifest.id },
+        "Failed to read documents.json for i18n source-hash gate",
+      );
+      return hashes;
+    }
+    for (const raw of docs) {
+      if (typeof raw !== "object" || raw === null) continue;
+      const doc = raw as Record<string, unknown>;
+      const id = doc["_id"];
+      if (typeof id !== "string") continue;
+      hashes.set(id, computeI18nSourceHash(doc));
+    }
+    return hashes;
+  }
+
+  /**
+   * Overlay pt-BR localized fields onto the base (EN) index entries. Attaches
+   * `entry.i18n.ptBR` and the denormalized `entry.namePt` (for bilingual
+   * search) when a validated translation exists. Entries WITHOUT a translation
+   * are returned unchanged (no `i18n`/`namePt` keys) so their serialized shape
+   * stays byte-identical to the pre-T1 index. T1.
+   */
+  private _applyI18nToIndex(loaded: LoadedPack, base: PackIndexEntry[]): PackIndexEntry[] {
+    const i18nMap = this._getI18nPtBR(loaded);
+    if (i18nMap.size === 0) return base;
+
+    return base.map((entry) => {
+      const localized = i18nMap.get(entry._id);
+      if (localized === undefined) return entry;
+      const enriched: PackIndexEntry = {
+        ...entry,
+        i18n: { ptBR: localized },
+        namePt: localized.name,
+      };
+      return enriched;
+    });
   }
 
   // ---------------------------------------------------------------------------
@@ -460,6 +681,36 @@ export class CompendiumService {
 
 function packed<T>(v: T | null): v is T {
   return v !== null;
+}
+
+/**
+ * Separator between name and description in the i18n source-hash input. A NUL
+ * (U+0000) can never appear in the source text, so it cannot collide with a
+ * name/description boundary. Kept as an explicit escape (never a raw NUL byte
+ * in this file) so the source stays plain text.
+ */
+const I18N_HASH_SEP = "\u0000";
+
+/**
+ * Compute the i18n source-hash for a document — the staleness key for pt-BR
+ * translation overlay entries. sha1(name_EN + NUL + description_EN), matching
+ * the formula tools/translate-packs uses (T1 contract §3.a). Missing
+ * fields are treated as empty strings.
+ *
+ * IMPORTANT: this must stay byte-for-byte in sync with the generator hash
+ * (tools/translate-packs/src/hash.ts) — both derive from the same documented
+ * formula, not shared code (module boundaries: shared must not depend on the
+ * tool, the tool must not depend on the server).
+ */
+export function computeI18nSourceHash(doc: Record<string, unknown>): string {
+  const name = typeof doc["name"] === "string" ? doc["name"] : "";
+  const system = doc["system"];
+  const description =
+    system !== null && typeof system === "object" && !Array.isArray(system)
+      ? (system as Record<string, unknown>)["description"]
+      : undefined;
+  const descStr = typeof description === "string" ? description : "";
+  return createHash("sha1").update(name + I18N_HASH_SEP + descStr).digest("hex");
 }
 
 /**

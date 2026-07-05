@@ -29,7 +29,7 @@
    */
 
   import type { PackIndexEntry } from "@fusion/shared";
-  import { normalizeSearchText } from "@fusion/shared";
+  import { normalizeSearchText, matchesTextSearch } from "@fusion/shared";
   import {
     listPacks,
     searchPack,
@@ -37,11 +37,15 @@
     requireConnectedSocket,
     SocketUnavailableError,
   } from "../../../../lib/compendium/compendiumApi.js";
-  import { DocumentDetailsCache } from "../../../../lib/compendium/documentDetails.js";
+  import {
+    DocumentDetailsCache,
+    localizedNameParts,
+    pickLocalizedName,
+  } from "../../../../lib/compendium/documentDetails.js";
   import { pickDefaultEntryUuid } from "../../../../lib/sheets/pf2e/planVM.js";
   import DocumentDetailsPanel from "../DocumentDetailsPanel.svelte";
   import { session, getSocket } from "../../../../lib/session.svelte.js";
-  import { t } from "../../../../lib/i18n/i18n.js";
+  import { t, i18n } from "../../../../lib/i18n/i18n.js";
 
   interface Props {
     /** Pack slug suffix to search, e.g. "feats-core" (resolved to "<systemId>.<packSlug>"). */
@@ -121,14 +125,20 @@
   });
 
   const filtered = $derived.by(() => {
-    const searchNorm = query.trim() ? normalizeSearchText(query.trim()) : null;
+    const searchText = query.trim();
+    // Reference i18n.locale so the derived recomputes on a locale switch (the
+    // display-name sort below depends on it). Bilingual text search matches the
+    // EN name OR the pt-BR namePt via the shared helper (accent/case-insensitive).
+    const locale = i18n.locale;
     return eligible
-      .filter((e) => (searchNorm ? normalizeSearchText(e.name).includes(searchNorm) : true))
+      .filter((e) => (searchText ? matchesTextSearch(e, searchText) : true))
       .filter((e) => (traitFilter ? traitsOf(e).includes(traitFilter) : true))
       .sort((a, b) => {
         const levelDiff = (levelOf(a) ?? 0) - (levelOf(b) ?? 0);
         if (levelDiff !== 0) return levelDiff;
-        return normalizeSearchText(a.name).localeCompare(normalizeSearchText(b.name));
+        return normalizeSearchText(pickLocalizedName(a, locale)).localeCompare(
+          normalizeSearchText(pickLocalizedName(b, locale)),
+        );
       });
   });
 
@@ -276,6 +286,7 @@
           </div>
         {:else}
           {#each filtered as entry (entry.uuid)}
+            {@const nameParts = localizedNameParts(entry, i18n.locale)}
             <div
               class="picker-row"
               class:picker-row--selected={selectedUuid === entry.uuid}
@@ -288,7 +299,12 @@
                 <span class="picker-row__rank">{levelOf(entry)}</span>
               {/if}
               <div class="picker-row__main">
-                <div class="picker-row__name">{entry.name}</div>
+                <div class="picker-row__name">
+                  {nameParts.display}
+                  {#if nameParts.subtitleEn}
+                    <span class="picker-row__name-en">{nameParts.subtitleEn}</span>
+                  {/if}
+                </div>
                 {#if traitsOf(entry).length > 0}
                   <div class="picker-row__traits">
                     {#each traitsOf(entry) as trait (trait)}
@@ -593,6 +609,13 @@
     font-size: 12.5px;
     font-weight: 600;
     color: var(--fusion-text);
+  }
+
+  .picker-row__name-en {
+    margin-left: 6px;
+    font-size: 10.5px;
+    font-weight: 400;
+    color: var(--fusion-text-subtle);
   }
 
   .picker-row__traits {

@@ -9,6 +9,7 @@ export {
   PermissionDeniedError,
   findMonorepoRoot,
   resolveSystemPacksDir,
+  computeI18nSourceHash,
 } from "./service.js";
 export {
   buildCompendiumListHandler,

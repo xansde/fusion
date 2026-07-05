@@ -1,0 +1,17 @@
+{
+  "name": "@fusion/translate-packs",
+  "version": "0.1.0",
+  "description": "CLI pipeline that generates pt-BR translation overlays and mechanics (grants/unlocks) overlays for Fusion PF2e packs",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "extract": "node src/extract.mjs",
+    "grants": "node src/grants-from-rules.mjs",
+    "apply": "node src/apply.mjs",
+    "qa": "node src/qa.mjs",
+    "test": "node --test src/__tests__/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

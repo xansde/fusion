@@ -21,8 +21,10 @@ import {
   searchPackIndex,
   PackManifestSchema,
   PackIndexEntrySchema,
+  PackI18nOverlaySchema,
 } from "../compendium.js";
 import type { PackIndexEntry } from "../compendium.js";
+import { PackMechanicsOverlaySchema, GrantSchema } from "../mechanics.js";
 
 // ---------------------------------------------------------------------------
 // buildCompendiumUuid / parseCompendiumUuid
@@ -113,6 +115,29 @@ describe("matchesTextSearch", () => {
   it("matches accent-insensitively", () => {
     const accented: PackIndexEntry = { ...entry, name: "Maçã" };
     expect(matchesTextSearch(accented, "maca")).toBe(true);
+  });
+
+  // --- Bilingual search (T1): match EN name OR pt-BR namePt ---
+
+  it("matches the pt-BR namePt when present (accent-insensitive)", () => {
+    const translated: PackIndexEntry = { ...entry, name: "Basic Concoction", namePt: "Concocção Básica" };
+    // pt-BR term (typed without diacritics) hits the namePt overlay
+    expect(matchesTextSearch(translated, "concoccao")).toBe(true);
+    // EN term still hits the EN name
+    expect(matchesTextSearch(translated, "basic")).toBe(true);
+    // A term in neither language matches nothing
+    expect(matchesTextSearch(translated, "xyzzy")).toBe(false);
+  });
+
+  it("ignores namePt when it does not contain the query but name does", () => {
+    const translated: PackIndexEntry = { ...entry, name: "Fireball", namePt: "Bola de Fogo" };
+    expect(matchesTextSearch(translated, "fire")).toBe(true);
+  });
+
+  it("matches only via namePt when the EN name does not contain the query", () => {
+    const translated: PackIndexEntry = { ...entry, name: "Fireball", namePt: "Bola de Fogo" };
+    expect(matchesTextSearch(translated, "fogo")).toBe(true);
+    expect(matchesTextSearch(translated, "bola")).toBe(true);
   });
 });
 
@@ -304,5 +329,156 @@ describe("PackIndexEntrySchema", () => {
       index: {},
     });
     expect(result.success).toBe(true);
+  });
+
+  it("validates entry with the optional i18n + namePt overlay fields (T1)", () => {
+    const result = PackIndexEntrySchema.safeParse({
+      _id: "abc123",
+      uuid: "Compendium.pf2e.feats-core.Item.abc123",
+      name: "Basic Concoction",
+      img: null,
+      type: "feat",
+      index: {},
+      i18n: { ptBR: { name: "Concocção Básica", description: "<p>...</p>" } },
+      namePt: "Concocção Básica",
+    });
+    expect(result.success).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// PackI18nOverlaySchema (T1)
+// ---------------------------------------------------------------------------
+
+describe("PackI18nOverlaySchema", () => {
+  const base = {
+    schemaVersion: 1,
+    packId: "pf2e.feats-core",
+    locale: "pt-BR",
+    generatedAt: "2026-07-05T00:00:00.000Z",
+    generator: "tools/translate-packs@0.1.0",
+    attribution: "Derived fan-content translation of the ORC/OGL EN text.",
+    entries: {
+      abc123: {
+        name: "Concocção Básica",
+        description: "<p>Você ganha um talento de alquimista.</p>",
+        sourceHash: "deadbeef",
+      },
+    },
+  };
+
+  it("validates a full overlay", () => {
+    expect(PackI18nOverlaySchema.safeParse(base).success).toBe(true);
+  });
+
+  it("accepts a name-only entry (no description)", () => {
+    const nameOnly = {
+      ...base,
+      entries: { abc123: { name: "Concocção Básica", sourceHash: "deadbeef" } },
+    };
+    expect(PackI18nOverlaySchema.safeParse(nameOnly).success).toBe(true);
+  });
+
+  it("rejects a non-pt-BR locale", () => {
+    expect(PackI18nOverlaySchema.safeParse({ ...base, locale: "en" }).success).toBe(false);
+  });
+
+  it("rejects an entry missing sourceHash", () => {
+    const bad = { ...base, entries: { abc123: { name: "X" } } };
+    expect(PackI18nOverlaySchema.safeParse(bad).success).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// PackMechanicsOverlaySchema (T1)
+// ---------------------------------------------------------------------------
+
+describe("PackMechanicsOverlaySchema", () => {
+  it("validates a grant entry (Basic Concoction shape)", () => {
+    const overlay = {
+      schemaVersion: 1,
+      packId: "pf2e.feats-core",
+      generatedAt: "2026-07-05T00:00:00.000Z",
+      entries: {
+        bduri70co98T1fwA: {
+          sourceHash: "9a1b",
+          grants: [
+            {
+              kind: "feat-choice",
+              category: "class",
+              count: 1,
+              filters: { traits: ["alchemist"], maxLevel: 2 },
+              labelKey: "FUSION.Sheet.Plan.SlotLabel.grantedFeat.basicConcoction",
+              source: "rule-element",
+              confidence: 1.0,
+            },
+          ],
+          unlocks: [],
+        },
+      },
+    };
+    const result = PackMechanicsOverlaySchema.safeParse(overlay);
+    expect(result.success).toBe(true);
+  });
+
+  it("validates an unlock entry (Adopted Ancestry shape)", () => {
+    const overlay = {
+      schemaVersion: 1,
+      packId: "pf2e.feats-core",
+      generatedAt: "2026-07-05T00:00:00.000Z",
+      entries: {
+        pP1ESEvFaPyF2OFM: {
+          sourceHash: "7c22",
+          grants: [],
+          unlocks: [
+            {
+              kind: "ancestry-feat-eligibility",
+              mechanism: "adopted-ancestry",
+              filters: { excludeOwnAncestry: true },
+              source: "rule-element",
+              confidence: 1.0,
+            },
+          ],
+        },
+      },
+    };
+    expect(PackMechanicsOverlaySchema.safeParse(overlay).success).toBe(true);
+  });
+
+  it("defaults count to 1 and grants/unlocks to [] on a minimal entry", () => {
+    const grant = GrantSchema.parse({
+      kind: "feat-choice",
+      category: "general",
+      filters: {},
+      source: "curated",
+      confidence: 0.5,
+    });
+    expect(grant.count).toBe(1);
+
+    const overlay = PackMechanicsOverlaySchema.parse({
+      schemaVersion: 1,
+      packId: "pf2e.feats-core",
+      generatedAt: "2026-07-05T00:00:00.000Z",
+      entries: { x: { sourceHash: "h" } },
+    });
+    expect(overlay.entries["x"]!.grants).toEqual([]);
+    expect(overlay.entries["x"]!.unlocks).toEqual([]);
+  });
+
+  it("rejects an invalid grant category", () => {
+    const overlay = {
+      schemaVersion: 1,
+      packId: "pf2e.feats-core",
+      generatedAt: "2026-07-05T00:00:00.000Z",
+      entries: {
+        x: {
+          sourceHash: "h",
+          grants: [
+            { kind: "feat-choice", category: "bogus", filters: {}, source: "rule-element", confidence: 1 },
+          ],
+        },
+      },
+    };
+    expect(PackMechanicsOverlaySchema.safeParse(overlay).success).toBe(false);
   });
 });
