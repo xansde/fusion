@@ -683,8 +683,14 @@ function handleEmbeddedCreate(
     return ackError("VALIDATION_FAILED", `Unknown parent type: ${parent.type}`);
   }
 
-  // Embedded create: GM/ASSISTANT only for Scene tokens (TOKEN_CREATE permission)
+  // Embedded create role floor: Scene tokens (and other non-Actor parents)
+  // require TRUSTED+ (TOKEN_CREATE permission, simplified). Actor-embedded
+  // Items are governed purely by the OWNER ownership check below — a PLAYER
+  // managing spells/gear on their own sheet is the intended path (r10-C,
+  // found in live verification: the blanket gate blocked every player from
+  // adding a spell to their own actor).
   if (
+    parent.type !== "Actor" &&
     !isPrivileged(ctx.role) && // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     ctx.role < UserRole.TRUSTED
   ) {

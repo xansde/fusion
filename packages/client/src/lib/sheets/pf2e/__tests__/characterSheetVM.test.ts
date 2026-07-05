@@ -13,6 +13,8 @@ import {
   proficiencyLabelFull,
   isEquippedFlag,
   filterSpellPicker,
+  sortSpellPickerEntries,
+  resolveInitialTradition,
   type SpellPickerEntry,
 } from "../characterSheetVM.js";
 import {
@@ -1223,9 +1225,15 @@ describe("CharacterSheetVM — spell management ops (protocol-validated)", () =>
     expect(op!.type).toBe("doc:update");
     expect(op!.documentType).toBe("Item");
     expect(op!.id).toBe("entry-arcane");
-    expect(op!.embedded).toEqual({ type: "Item", id: "entry-arcane" });
+    // embedded.id is the PARENT Actor's id (the server loads the parent by
+    // embedded.id and edits child `_id` inside its items[]) — regression for
+    // the r10-C live finding "Parent not found: Actor/<entryId>".
+    expect(op!.embedded).toEqual({ type: "Item", id: "actor-001" });
+    // The diff carries the WHOLE prepared array (never a `prepared.<index>`
+    // path — the server's diff applier would morph the array into an object;
+    // r10-C live finding "Expected array, received object").
     expect(op!.diff).toEqual({
-      "system.slots.1.prepared.0": { id: "spell-magic-missile", expended: false },
+      "system.slots.1.prepared": [{ id: "spell-magic-missile", expended: false }],
     });
 
     // Validate against the real wire schema (single update, batched).
@@ -1242,9 +1250,9 @@ describe("CharacterSheetVM — spell management ops (protocol-validated)", () =>
     const op = vm.unprepareSlot("entry-arcane", 1, 0);
     expect(op).not.toBeNull();
     expect(op!.diff).toEqual({
-      "system.slots.1.prepared.0": { id: "", expended: false },
+      "system.slots.1.prepared": [{ id: "", expended: false }],
     });
-    expect(op!.embedded).toEqual({ type: "Item", id: "entry-arcane" });
+    expect(op!.embedded).toEqual({ type: "Item", id: "actor-001" });
 
     const wirePayload = {
       documentType: op!.documentType,
@@ -1270,7 +1278,9 @@ describe("CharacterSheetVM — spell management ops (protocol-validated)", () =>
     });
     const op = vm.toggleSlotExpended("entry-arcane", 1, 0);
     expect(op).not.toBeNull();
-    expect(op!.diff).toEqual({ "system.slots.1.prepared.0.expended": true });
+    expect(op!.diff).toEqual({
+      "system.slots.1.prepared": [{ id: "spell-magic-missile", expended: true }],
+    });
 
     const wirePayload = {
       documentType: op!.documentType,
@@ -1295,7 +1305,9 @@ describe("CharacterSheetVM — spell management ops (protocol-validated)", () =>
       isGm: true,
     });
     const op = vm.toggleSlotExpended("entry-arcane", 1, 0);
-    expect(op!.diff).toEqual({ "system.slots.1.prepared.0.expended": false });
+    expect(op!.diff).toEqual({
+      "system.slots.1.prepared": [{ id: "spell-magic-missile", expended: false }],
+    });
   });
 
   it("prepareSpell/unprepareSlot/toggleSlotExpended return null when not editable", () => {
@@ -1458,5 +1470,108 @@ describe("filterSpellPicker", () => {
   it("returns empty array when no entry matches", () => {
     const result = filterSpellPicker(entries, { search: "nonexistent-spell-name" });
     expect(result).toEqual([]);
+  });
+
+  // Accent-insensitive search (picker UX fix): pt-BR users type with
+  // diacritics but pack names are English/ASCII — and vice versa.
+  it("matches accented query against ASCII name", () => {
+    const result = filterSpellPicker(entries, { search: "mágic" });
+    expect(result.map((e) => e.name)).toEqual(["Magic Missile"]);
+  });
+
+  it("matches ASCII query against accented name", () => {
+    const accented = [entry("Revelação Arcana", 2, ["arcane"])];
+    const result = filterSpellPicker(accented, { search: "revelacao" });
+    expect(result.map((e) => e.name)).toEqual(["Revelação Arcana"]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// sortSpellPickerEntries — picker display order (rank asc → name asc)
+// ---------------------------------------------------------------------------
+
+describe("sortSpellPickerEntries", () => {
+  function entry(name: string, level: number): SpellPickerEntry {
+    return { name, index: { "system.level": level } };
+  }
+
+  it("sorts by rank ascending, then name ascending", () => {
+    const entries = [
+      entry("Zephyr", 1),
+      entry("Fireball", 3),
+      entry("Aid", 1),
+      entry("Shield", 0),
+    ];
+    const result = sortSpellPickerEntries(entries);
+    expect(result.map((e) => e.name)).toEqual(["Shield", "Aid", "Zephyr", "Fireball"]);
+  });
+
+  it("sorts names case- and accent-insensitively within a rank", () => {
+    const entries = [entry("échelon", 1), entry("Ebb", 1), entry("acid", 1)];
+    const result = sortSpellPickerEntries(entries);
+    expect(result.map((e) => e.name)).toEqual(["acid", "Ebb", "échelon"]);
+  });
+
+  it("does not mutate the input array", () => {
+    const entries = [entry("B", 2), entry("A", 1)];
+    const snapshot = [...entries];
+    sortSpellPickerEntries(entries);
+    expect(entries).toEqual(snapshot);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// resolveInitialTradition — soft tradition default (never-empty-on-open fix)
+// ---------------------------------------------------------------------------
+
+describe("resolveInitialTradition", () => {
+  function entry(name: string, traditions: string[]): SpellPickerEntry {
+    return { name, index: { "system.traits.traditions": traditions } };
+  }
+
+  const entries = [
+    entry("Magic Missile", ["arcane"]),
+    entry("Heal", ["divine", "primal"]),
+    entry("Force Fang", []), // focus spell — no traditions
+  ];
+
+  it("returns the tradition when at least one entry matches it", () => {
+    expect(resolveInitialTradition(entries, "arcane")).toBe("arcane");
+    expect(resolveInitialTradition(entries, "divine")).toBe("divine");
+  });
+
+  it("returns null when no entry carries the tradition (mismatch never empties the list)", () => {
+    expect(resolveInitialTradition(entries, "occult")).toBeNull();
+    expect(resolveInitialTradition(entries, "Arcane")).toBeNull(); // wrong casing = mismatch
+  });
+
+  it("returns null for empty/blank/undefined tradition", () => {
+    expect(resolveInitialTradition(entries, "")).toBeNull();
+    expect(resolveInitialTradition(entries, "   ")).toBeNull();
+    expect(resolveInitialTradition(entries, undefined)).toBeNull();
+  });
+
+  it("returns null for an empty index (default filter returns non-empty list downstream)", () => {
+    expect(resolveInitialTradition([], "arcane")).toBeNull();
+  });
+
+  it("guarantees the default filter pipeline yields a non-empty, sorted list", () => {
+    // End-to-end guard for the original bug: apply the SAME pipeline the
+    // picker uses on open (soft tradition + no search + sort) and assert the
+    // result is non-empty and rank->name ordered even when the entry's
+    // tradition matches nothing in the pack.
+    const pack = [
+      { name: "Zeta", index: { "system.level": 2, "system.traits.traditions": [] } },
+      { name: "Alpha", index: { "system.level": 1, "system.traits.traditions": [] } },
+      { name: "Beta", index: { "system.level": 1, "system.traits.traditions": [] } },
+    ];
+    const tradition = resolveInitialTradition(pack, "arcane"); // no match → null
+    const filtered = filterSpellPicker(pack, {
+      ...(tradition !== null ? { tradition } : {}),
+      search: "",
+    });
+    const sorted = sortSpellPickerEntries(filtered);
+    expect(sorted.length).toBeGreaterThan(0);
+    expect(sorted.map((e) => e.name)).toEqual(["Alpha", "Beta", "Zeta"]);
   });
 });

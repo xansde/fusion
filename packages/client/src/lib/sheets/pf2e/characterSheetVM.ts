@@ -300,11 +300,14 @@ export interface DocUpdatePayload {
   diff: Record<string, unknown>;
   /**
    * When present, `id`/`diff` target an embedded document (e.g. a spell or
-   * spellcastingEntry Item nested in this Actor) rather than the Actor
-   * itself. `embedded.id` is the embedded document's own `_id`; the outer
-   * `id` stays the Actor id so sendOp/normalizeDocUpdate can route the
-   * update. Mirrors DocUpdatePayloadSchema's `updates[].embedded`
-   * (packages/shared/src/protocol.ts).
+   * spellcastingEntry Item nested in this Actor) rather than a top-level
+   * document. Semantics mirror DocUpdatePayloadSchema's `updates[].embedded`
+   * (packages/shared/src/protocol.ts) as consumed by the server's
+   * handleEmbeddedUpdate: the outer `id` (wire `_id`) is the EMBEDDED
+   * document's own `_id`, while `embedded.id` is the PARENT document's id
+   * (the Actor) — the server loads the parent by `embedded.id` and edits the
+   * child `_id` inside its items[]. (Getting this backwards produces
+   * "Parent not found: Actor/<itemId>" — found live in r10-C verification.)
    */
   embedded?: { type: string; id: string };
 }
@@ -1414,12 +1417,12 @@ export class CharacterSheetVM {
       type: "doc:update",
       documentType: "Item",
       id: entryId,
-      embedded: { type: "Item", id: entryId },
+      embedded: { type: "Item", id: this._actorId },
       diff: {
-        [`system.slots.${String(rank)}.prepared.${String(slotIndex)}`]: {
+        [`system.slots.${String(rank)}.prepared`]: this._preparedArrayWith(entryId, rank, slotIndex, {
           id: spellItemId,
           expended: false,
-        },
+        }),
       },
     };
   }
@@ -1439,9 +1442,12 @@ export class CharacterSheetVM {
       type: "doc:update",
       documentType: "Item",
       id: entryId,
-      embedded: { type: "Item", id: entryId },
+      embedded: { type: "Item", id: this._actorId },
       diff: {
-        [`system.slots.${String(rank)}.prepared.${String(slotIndex)}`]: { id: "", expended: false },
+        [`system.slots.${String(rank)}.prepared`]: this._preparedArrayWith(entryId, rank, slotIndex, {
+          id: "",
+          expended: false,
+        }),
       },
     };
   }
@@ -1452,16 +1458,59 @@ export class CharacterSheetVM {
    */
   toggleSlotExpended(entryId: string, rank: number, slotIndex: number): DocUpdatePayload | null {
     if (!this.editable) return null;
-    const currentlyExpended = this._isSlotExpended(entryId, rank, slotIndex);
+    const current = this.getPreparedSlot(entryId, rank, slotIndex);
     return {
       type: "doc:update",
       documentType: "Item",
       id: entryId,
-      embedded: { type: "Item", id: entryId },
+      embedded: { type: "Item", id: this._actorId },
       diff: {
-        [`system.slots.${String(rank)}.prepared.${String(slotIndex)}.expended`]: !currentlyExpended,
+        [`system.slots.${String(rank)}.prepared`]: this._preparedArrayWith(entryId, rank, slotIndex, {
+          id: current?.id ?? "",
+          expended: !(current?.expended ?? false),
+        }),
       },
     };
+  }
+
+  /**
+   * Clone this entry's `system.slots.<rank>.prepared` array, pad it with the
+   * `{id:"",expended:false}` empty sentinel up to `slotIndex`, and replace
+   * the element at `slotIndex` with `element`.
+   *
+   * The prepare/unprepare/toggle diffs send the whole ARRAY under
+   * `system.slots.<rank>.prepared` (never a `prepared.<index>` path): the
+   * server's diff applier treats numeric path segments as object keys, so an
+   * index path would morph the array into `{"0": {...}}` and fail the
+   * post-diff Zod re-validation with "Expected array, received object"
+   * (found live in r10-C verification).
+   */
+  private _preparedArrayWith(
+    entryId: string,
+    rank: number,
+    slotIndex: number,
+    element: { id: string; expended: boolean },
+  ): Array<{ id: string; expended: boolean }> {
+    const items = this._doc["items"] as Array<Record<string, unknown>> | undefined;
+    const entryItem = items?.find((i) => i["_id"] === entryId);
+    const sys =
+      typeof entryItem?.["system"] === "object" && entryItem["system"] !== null
+        ? (entryItem["system"] as Record<string, unknown>)
+        : {};
+    const slots = sys["slots"] as Record<string, { prepared?: unknown[] }> | undefined;
+    const rawPrepared = slots?.[String(rank)]?.prepared;
+    const next: Array<{ id: string; expended: boolean }> = Array.isArray(rawPrepared)
+      ? rawPrepared.map((e) => {
+          const el = (typeof e === "object" && e !== null ? e : {}) as Record<string, unknown>;
+          return {
+            id: typeof el["id"] === "string" ? el["id"] : "",
+            expended: el["expended"] === true,
+          };
+        })
+      : [];
+    while (next.length <= slotIndex) next.push({ id: "", expended: false });
+    next[slotIndex] = element;
+    return next;
   }
 
   /** Read whether a prepared slot is currently expended (raw document read, not derived). */
@@ -1542,21 +1591,72 @@ function pickerSpellTraditions(entry: SpellPickerEntry): string[] {
 }
 
 /**
+ * Normalize a string for case- and diacritics-insensitive matching:
+ * NFD-decompose, strip combining marks, lowercase. Local copy (this module is
+ * dependency-free by design — see the file docstring); semantics match
+ * normalizeSearchText in packages/shared/src/compendium.ts (REQ-CMP-013).
+ */
+function normalizePickerText(text: string): string {
+  return text
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase();
+}
+
+/**
  * Filter a compendium spell index by rank ceiling, tradition, and a name
  * search substring. Every filter is optional and combines with AND.
+ * The name search is case- AND accent-insensitive on both sides ("revelacao"
+ * matches "Revelação" and vice versa) — spell pack names are English, but
+ * pt-BR users often type with diacritics.
  */
 export function filterSpellPicker<T extends SpellPickerEntry>(
   entries: T[],
   filters: SpellPickerFilters,
 ): T[] {
-  const searchLower = filters.search?.trim().toLowerCase();
+  const rawSearch = filters.search?.trim();
+  const searchNorm = rawSearch ? normalizePickerText(rawSearch) : undefined;
   return entries.filter((entry) => {
     if (filters.maxRank !== undefined && pickerSpellLevel(entry) > filters.maxRank) return false;
     if (filters.tradition !== undefined) {
       const traditions = pickerSpellTraditions(entry);
       if (!traditions.includes(filters.tradition)) return false;
     }
-    if (searchLower && !entry.name.toLowerCase().includes(searchLower)) return false;
+    if (searchNorm && !normalizePickerText(entry.name).includes(searchNorm)) return false;
     return true;
   });
+}
+
+/**
+ * Sort picker entries for display: rank ascending, then name ascending
+ * (case/diacritics-insensitive). Returns a NEW array — does not mutate.
+ * The picker always shows results in this order (design decision: the list
+ * must be scannable on open, before any search is typed).
+ */
+export function sortSpellPickerEntries<T extends SpellPickerEntry>(entries: T[]): T[] {
+  return [...entries].sort((a, b) => {
+    const rankDiff = pickerSpellLevel(a) - pickerSpellLevel(b);
+    if (rankDiff !== 0) return rankDiff;
+    return normalizePickerText(a.name).localeCompare(normalizePickerText(b.name));
+  });
+}
+
+/**
+ * Resolve the picker's INITIAL tradition filter so the list is never empty on
+ * open (root-cause fix: a tradition mismatch — wrong casing, unknown value,
+ * or an index where no entry carries that tradition — used to zero the whole
+ * list with no way to recover in the UI).
+ *
+ * Returns `tradition` when at least one entry matches it; otherwise null
+ * (= no tradition filter, show everything). Also returns null for an
+ * empty/blank tradition.
+ */
+export function resolveInitialTradition(
+  entries: SpellPickerEntry[],
+  tradition: string | undefined,
+): string | null {
+  const t = tradition?.trim();
+  if (!t) return null;
+  const hasMatch = entries.some((e) => pickerSpellTraditions(e).includes(t));
+  return hasMatch ? t : null;
 }

@@ -24,7 +24,7 @@
   import { openActorSheet } from "../../lib/sheets/pf2e/registerPf2eSheets.js";
   import { openEtmosActorSheet } from "../../lib/sheets/etmos/registerEtmosSheets.js";
   import { sendOp, OpError, makeSendOpFn } from "../../lib/docs/sendOp.js";
-  import { session } from "../../lib/session.svelte.js";
+  import { session, getSocket } from "../../lib/session.svelte.js";
   import { t } from "../../lib/i18n/i18n.js";
 
   /**
@@ -96,9 +96,13 @@
     // (REQ-UIF-018..019). Etmos subtypes go through openEtmosActorSheet so
     // the OradorSheet's "Conjurar" button opens the Compositor window;
     // every other subtype keeps the system-agnostic openActorSheet path.
-    // sendOpFn is wired via makeSendOpFn(socket) so autosave/rolls/"Propor ao
-    // Narrador" actually reach the server instead of silently no-op'ing
-    // (every sheet's sendOpFn prop defaults to a no-op — see sendOp.ts).
+    // sendOpFn is wired via makeSendOpFn with a LAZY accessor (frozen-socket
+    // fix): the sheet window's componentProps are captured once at open time
+    // and outlive socket reconnects (SocketManager.connect() replaces the
+    // Socket instance), so a captured `socket` reference goes stale and its
+    // emits get buffered forever. `() => getSocket()` resolves the LIVE
+    // socket on every op instead. (An unset sendOpFn silently no-ops — see
+    // sendOp.ts — so it must still always be provided here.)
     //
     // Ownership bug fix: was hardcoded to 3 (OWNER) for every viewer, which
     // let non-GM players open (and, per vm.editable, edit) actors they don't
@@ -116,7 +120,7 @@
       isGm,
       worldId,
       socket,
-      sendOpFn: makeSendOpFn(socket),
+      sendOpFn: makeSendOpFn(() => getSocket() ?? socket),
     };
     if (ETMOS_SUBTYPES.has(actor.type)) {
       openEtmosActorSheet(actor._id, actor as unknown as Record<string, unknown>, opts);

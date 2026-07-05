@@ -127,19 +127,36 @@ export function sendOp<R = unknown>(
  * verified against a real boot()'d server. Normalizing here (instead of in
  * every VM) fixes autosave for ALL sheets — PF2e's CharacterSheet/NpcSheet
  * included — without touching their (correct, well-tested) VM logic.
+ *
+ * FROZEN-SOCKET FIX: `socket` may be a Socket instance (legacy — captured at
+ * call time) OR an accessor `() => Socket | null` resolved lazily on EVERY
+ * op. Sheet windows outlive socket reconnects (SocketManager.connect()
+ * creates a brand-new Socket instance, so a captured reference goes stale
+ * and its emits are silently buffered forever — see WindowHost's frozen
+ * componentProps). Callers that open long-lived windows (ActorDirectory)
+ * should pass `() => getSocket()` so ops always ride the LIVE socket. When
+ * the accessor returns null/disconnected at op time, the op is dropped with
+ * a console.error (the sheet's own UI feedback for that case lives in the
+ * feature components, e.g. SpellPickerDialog's not-connected state).
  */
-export function makeSendOpFn(socket: Socket): (op: unknown) => void {
+export function makeSendOpFn(socket: Socket | (() => Socket | null)): (op: unknown) => void {
+  const resolveSocket: () => Socket | null = typeof socket === "function" ? socket : () => socket;
   return (op) => {
     if (op === null || typeof op !== "object" || !("type" in op)) {
       console.error("[sendOpFn] malformed op (missing type):", op);
       return;
     }
     const { type, ...payload } = op as { type: string } & Record<string, unknown>;
+    const live = resolveSocket();
+    if (!live) {
+      console.error(`[sendOpFn] "${type}" dropped: no live socket (disconnected?)`);
+      return;
+    }
     let normalizedPayload = payload;
     if (type === "doc:update") normalizedPayload = normalizeDocUpdate(payload);
     else if (type === "doc:create") normalizedPayload = normalizeDocCreate(payload);
     else if (type === "doc:delete") normalizedPayload = normalizeDocDelete(payload);
-    sendOp(socket, { type: type as Envelope["type"], payload: normalizedPayload }).catch(
+    sendOp(live, { type: type as Envelope["type"], payload: normalizedPayload }).catch(
       (err: unknown) => {
         console.error(`[sendOpFn] "${type}" failed:`, err);
       },

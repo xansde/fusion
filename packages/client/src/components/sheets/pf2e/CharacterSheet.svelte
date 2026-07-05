@@ -16,10 +16,12 @@
    *   userId     — current user's id
    *   isGm       — true if current user is GM
    *   sendOpFn   — callback to emit ops via socket (injected for testability)
-   *   socket     — optional live Socket, needed ONLY by the Spells tab's
-   *                compendium spell picker (SpellPickerDialog calls
-   *                compendiumApi.searchPack/getDocument directly). Omitted in
-   *                unit tests / any caller that doesn't need spell management.
+   *
+   * NOTE: no `socket` prop — the Spells tab's compendium picker resolves the
+   * LIVE socket itself via getSocket() (frozen-socket fix: componentProps are
+   * captured once at window-open time and outlive socket reconnects, so a
+   * prop-passed Socket reference goes stale). A caller-provided `socket` in
+   * componentProps is simply ignored.
    */
 
   import { CharacterSheetVM } from "$lib/sheets/pf2e/characterSheetVM.js";
@@ -27,7 +29,6 @@
   import { worldMirror } from "$lib/docs/worldSync.js";
   import SpellsTab from "./SpellsTab.svelte";
   import ProficiencyBadge from "./ProficiencyBadge.svelte";
-  import type { Socket } from "socket.io-client";
 
   // ---------------------------------------------------------------------------
   // Props
@@ -40,7 +41,6 @@
     userId: string;
     isGm: boolean;
     worldId?: string;
-    socket?: Socket;
     sendOpFn?: (op: ChatRollPayload | DocOpPayload) => void;
   }
 
@@ -51,7 +51,6 @@
     userId,
     isGm,
     worldId = "",
-    socket,
     sendOpFn = () => {},
   }: Props = $props();
 
@@ -712,7 +711,7 @@
       aria-labelledby="tab-spells"
       class="tab-panel tab-panel--spells"
     >
-      <SpellsTab {vm} {socket} sendOpFn={(op) => sendOpFn(op as ChatRollPayload | DocOpPayload)} />
+      <SpellsTab {vm} sendOpFn={(op) => sendOpFn(op as ChatRollPayload | DocOpPayload)} />
     </section>
 
   <!-- INVENTORY tab -->

@@ -12,22 +12,44 @@
    *
    * Data comes from compendiumApi.searchPack/getDocument against the active
    * system's spells pack (`<systemId>.spells-core`), filtered client-side via
-   * the C2 VM helper filterSpellPicker (rank ceiling + tradition + name search).
+   * the C2 VM helpers (rank ceiling + tradition + accent-insensitive name
+   * search), sorted rank → name.
+   *
+   * SOCKET: resolved LIVE via getSocket() on every operation — never held as
+   * a prop. Sheet windows outlive socket reconnects (componentProps are
+   * frozen at open time, and SocketManager.connect() replaces the Socket
+   * instance), so a prop-captured socket goes stale and its emits get
+   * silently buffered forever — the "endless spinner, zero ops on the
+   * server" bug. requireConnectedSocket() fails fast instead, and the error
+   * state offers an explicit retry.
+   *
+   * FILTERS: search box + rank chips are always visible; tradition + trait
+   * chips live in a collapsed "More filters" section. The tradition filter
+   * is a SOFT default (resolveInitialTradition) — it is only pre-applied
+   * when it matches at least one entry, so the list is never empty on open.
    *
    * Clean-room: only mechanical index fields (rank, traits, source) are shown —
    * no prose (footer note documents this, matching the design contract).
    */
 
-  import type { Socket } from "socket.io-client";
   import type { PackIndexEntry } from "@fusion/shared";
-  import { listPacks, searchPack, getDocument } from "../../../lib/compendium/compendiumApi.js";
-  import { filterSpellPicker, type SpellPickerEntry } from "../../../lib/sheets/pf2e/characterSheetVM.js";
-  import { session } from "../../../lib/session.svelte.js";
+  import {
+    listPacks,
+    searchPack,
+    getDocument,
+    requireConnectedSocket,
+    SocketUnavailableError,
+  } from "../../../lib/compendium/compendiumApi.js";
+  import {
+    filterSpellPicker,
+    sortSpellPickerEntries,
+    resolveInitialTradition,
+  } from "../../../lib/sheets/pf2e/characterSheetVM.js";
+  import { session, getSocket } from "../../../lib/session.svelte.js";
   import { t } from "../../../lib/i18n/i18n.js";
 
   interface Props {
-    socket: Socket;
-    /** Tradition to restrict results to (e.g. "arcane"). */
+    /** Tradition to pre-filter results to (e.g. "arcane"). Soft default — see docstring. */
     tradition: string;
     /** Human label for the tradition, e.g. "Arcana" (header text). */
     traditionLabel: string;
@@ -35,18 +57,26 @@
     entryLabel: string;
     /** Cap the results to this rank (used for "swap into rank N slot"). Omit for "add any". */
     maxRank?: number | undefined;
+    /** Pre-select this rank chip (the slot's rank when opened from an empty slot). */
+    initialRank?: number | undefined;
     onClose: () => void;
     onSelect: (doc: Record<string, unknown>) => void;
   }
 
-  let { socket, tradition, traditionLabel, entryLabel, maxRank, onClose, onSelect }: Props = $props();
+  let { tradition, traditionLabel, entryLabel, maxRank, initialRank, onClose, onSelect }: Props =
+    $props();
 
   let query = $state("");
-  let rankFilter = $state<number | null>(null);
+  // svelte-ignore state_referenced_locally — intentional: initialRank seeds
+  // the chip selection at mount only (the dialog is recreated per opening);
+  // later prop changes must NOT clobber the user's manual chip choice.
+  let rankFilter = $state<number | null>(initialRank ?? null);
+  let traditionFilter = $state<string | null>(null);
   let traitFilter = $state<string | null>(null);
+  let moreFiltersOpen = $state(false);
   let selectedUuid = $state<string | null>(null);
   let loading = $state(true);
-  let error = $state<string | null>(null);
+  let errorKind = $state<"not-connected" | "load" | null>(null);
   let entries = $state<PackIndexEntry[]>([]);
   let submitting = $state(false);
 
@@ -58,18 +88,23 @@
 
   async function loadSpells(): Promise<void> {
     loading = true;
-    error = null;
+    errorKind = null;
     try {
-      const { packs } = await listPacks(socket, { systemId, documentType: "Item" });
+      const sock = requireConnectedSocket(getSocket());
+      const { packs } = await listPacks(sock, { systemId, documentType: "Item" });
       const spellPack = packs.find((p) => p.id.endsWith(".spells-core")) ?? packs[0];
       if (!spellPack) {
         entries = [];
+        traditionFilter = null;
         return;
       }
-      const { entries: found } = await searchPack(socket, { packId: spellPack.id });
+      const { entries: found } = await searchPack(sock, { packId: spellPack.id });
       entries = found;
+      // Soft tradition default: only pre-apply when it actually matches
+      // something, so the picker never opens onto an empty list.
+      traditionFilter = resolveInitialTradition(found, tradition);
     } catch (err) {
-      error = err instanceof Error ? err.message : t("FUSION.Sheet.Spells.Picker.LoadError");
+      errorKind = err instanceof SocketUnavailableError ? "not-connected" : "load";
     } finally {
       loading = false;
     }
@@ -86,26 +121,27 @@
   });
 
   const filtered = $derived.by(() => {
-    const pickerEntries: SpellPickerEntry[] = entries.map((e) => ({ name: e.name, index: e.index }));
-    const byTraditionAndRank = filterSpellPicker(pickerEntries, {
-      tradition,
+    const base = filterSpellPicker(entries, {
+      ...(traditionFilter !== null ? { tradition: traditionFilter } : {}),
       search: query,
       ...(maxRank !== undefined ? { maxRank } : {}),
     });
-    const allowedNames = new Set(byTraditionAndRank.map((e) => e.name));
-    return entries
-      .filter((e) => allowedNames.has(e.name))
+    const chipped = base
       .filter((e) => {
         if (rankFilter === null) return true;
-        const raw = e.index["system.level"];
-        return raw === rankFilter;
+        return e.index["system.level"] === rankFilter;
       })
       .filter((e) => {
         if (!traitFilter) return true;
         const raw = e.index["system.traits.value"];
         return Array.isArray(raw) && raw.includes(traitFilter);
       });
+    return sortSpellPickerEntries(chipped);
   });
+
+  function toggleTradition(): void {
+    traditionFilter = traditionFilter === null ? tradition.trim() || null : null;
+  }
 
   function rankOf(e: PackIndexEntry): number {
     const raw = e.index["system.level"];
@@ -131,13 +167,14 @@
   async function confirmSelection(): Promise<void> {
     if (!selectedUuid || submitting) return;
     submitting = true;
-    error = null;
+    errorKind = null;
     try {
-      const { document } = await getDocument(socket, selectedUuid);
+      const sock = requireConnectedSocket(getSocket());
+      const { document } = await getDocument(sock, selectedUuid);
       onSelect(document);
       onClose();
     } catch (err) {
-      error = err instanceof Error ? err.message : t("FUSION.Sheet.Spells.Picker.LoadError");
+      errorKind = err instanceof SocketUnavailableError ? "not-connected" : "load";
     } finally {
       submitting = false;
     }
@@ -167,6 +204,7 @@
     tabindex="-1"
     aria-label={t("FUSION.Sheet.Spells.Picker.Title", { entry: entryLabel, tradition: traditionLabel })}
     onclick={(e) => e.stopPropagation()}
+    onkeydown={(e) => { if (e.key === "Escape") onClose(); }}
   >
     <div class="picker-modal__header">
       <h2 class="picker-modal__title">
@@ -202,31 +240,62 @@
           {/if}
         {/each}
         <span class="picker-filters__sep"></span>
-        <span class="picker-chip picker-chip--fixed">
-          {t("FUSION.Sheet.Spells.Picker.TraditionFixed", { tradition: traditionLabel })}
-        </span>
-        {#if availableTraits.length > 0}
-          <span class="picker-filters__sep"></span>
-          {#each availableTraits as trait (trait)}
-            <button
-              type="button"
-              class="picker-chip"
-              class:picker-chip--active={traitFilter === trait}
-              onclick={() => { traitFilter = traitFilter === trait ? null : trait; }}
-            >
-              {trait}
-            </button>
-          {/each}
-        {/if}
+        <button
+          type="button"
+          class="picker-chip picker-chip--more"
+          class:picker-chip--active={moreFiltersOpen}
+          aria-expanded={moreFiltersOpen}
+          onclick={() => { moreFiltersOpen = !moreFiltersOpen; }}
+        >
+          {t("FUSION.Sheet.Spells.Picker.MoreFilters")} {moreFiltersOpen ? "▾" : "▸"}
+        </button>
       </div>
+
+      {#if moreFiltersOpen}
+        <div class="picker-filters picker-filters--more">
+          <button
+            type="button"
+            class="picker-chip"
+            class:picker-chip--active={traditionFilter !== null}
+            onclick={toggleTradition}
+          >
+            {t("FUSION.Sheet.Spells.Picker.TraditionFilter", { tradition: traditionLabel })}
+          </button>
+          {#if availableTraits.length > 0}
+            <span class="picker-filters__sep"></span>
+            {#each availableTraits as trait (trait)}
+              <button
+                type="button"
+                class="picker-chip"
+                class:picker-chip--active={traitFilter === trait}
+                onclick={() => { traitFilter = traitFilter === trait ? null : trait; }}
+              >
+                {trait}
+              </button>
+            {/each}
+          {/if}
+        </div>
+      {/if}
 
       <div class="picker-results">
         {#if loading}
           <div class="picker-empty">{t("FUSION.Sheet.Spells.Picker.Loading")}</div>
-        {:else if error}
-          <div class="picker-empty picker-empty--error">{error}</div>
+        {:else if errorKind}
+          <div class="picker-empty picker-empty--error">
+            <span>
+              {errorKind === "not-connected"
+                ? t("FUSION.Sheet.Spells.Picker.NotConnected")
+                : t("FUSION.Sheet.Spells.Picker.LoadError")}
+            </span>
+            <button type="button" class="picker-btn picker-btn--secondary picker-retry" onclick={() => void loadSpells()}>
+              {t("FUSION.Sheet.Spells.Picker.Retry")}
+            </button>
+          </div>
         {:else if filtered.length === 0}
-          <div class="picker-empty">{t("FUSION.Sheet.Spells.Picker.NoResults")}</div>
+          <div class="picker-empty">
+            <span>{t("FUSION.Sheet.Spells.Picker.NoResults")}</span>
+            <span class="picker-empty__hint">{t("FUSION.Sheet.Spells.Picker.NoResultsHint")}</span>
+          </div>
         {:else}
           {#each filtered as entry (entry.uuid)}
             <div
@@ -415,15 +484,15 @@
     color: var(--fusion-accent);
   }
 
-  .picker-chip--fixed {
-    background: var(--fusion-surface-alt);
+  .picker-chip--more {
     border-style: dashed;
-    cursor: default;
   }
 
-  .picker-chip--fixed:hover {
-    border-color: var(--fusion-border);
-    color: var(--fusion-text-muted);
+  .picker-filters--more {
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius);
+    padding: 8px 10px;
   }
 
   .picker-results {
@@ -442,10 +511,23 @@
     text-align: center;
     font-size: 13px;
     color: var(--fusion-text-muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
   }
 
   .picker-empty--error {
     color: var(--fusion-danger);
+  }
+
+  .picker-empty__hint {
+    font-size: 11.5px;
+    color: var(--fusion-text-subtle);
+  }
+
+  .picker-retry {
+    align-self: center;
   }
 
   .picker-row {

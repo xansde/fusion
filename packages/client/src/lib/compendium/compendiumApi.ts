@@ -18,6 +18,42 @@ import type {
 import { sendOp } from "../docs/sendOp.js";
 
 // ---------------------------------------------------------------------------
+// Socket availability guard
+// ---------------------------------------------------------------------------
+
+/**
+ * Thrown by {@link requireConnectedSocket} when there is no usable socket.
+ * Callers (e.g. SpellPickerDialog) match on `code === "NOT_CONNECTED"` to
+ * show a specific "not connected" message + retry affordance instead of a
+ * generic load error.
+ */
+export class SocketUnavailableError extends Error {
+  readonly code = "NOT_CONNECTED";
+  constructor() {
+    super("Socket is not connected");
+    this.name = "SocketUnavailableError";
+  }
+}
+
+/**
+ * Fail-fast guard for compendium calls (bug fix — frozen-socket class).
+ *
+ * socket.io buffers `emit()` calls on a disconnected/replaced Socket
+ * instance silently: the ack callback never fires and the caller's Promise
+ * hangs until its timeout (10 s), which the user experiences as an endless
+ * spinner with ZERO ops reaching the server. Checking `connected` here turns
+ * that failure mode into an immediate, actionable error.
+ *
+ * @param socket current socket (typically from session's getSocket()).
+ * @returns the same socket, narrowed to non-null.
+ * @throws {SocketUnavailableError} when null/undefined or not connected.
+ */
+export function requireConnectedSocket(socket: Socket | null | undefined): Socket {
+  if (!socket || !socket.connected) throw new SocketUnavailableError();
+  return socket;
+}
+
+// ---------------------------------------------------------------------------
 // sendQuery helper (mirrors sendOp but uses "query" event)
 // ---------------------------------------------------------------------------
 

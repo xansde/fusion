@@ -16,9 +16,20 @@
    * Item ops (add/remove/prepare/unprepare/expend) are sent IMMEDIATELY (no
    * debounce) via sendOpFn — unlike field autosave, there's no "typing" to
    * coalesce and the UI needs instant feedback for slot state.
+   *
+   * GUIDED 2-STEP FLOW (UX decision):
+   *   - "Adicionar ao grimório" (picker "add" mode) → the new grimoire row is
+   *     highlighted briefly and a toast offers "Preparar agora" (first empty
+   *     slot of the spell's rank; a mini-menu when several are empty).
+   *   - An empty slot opens a "Preparar do grimório" mini-menu (eligible
+   *     known spells, rank 1..slotRank) with a "buscar no compêndio…" link
+   *     that opens the compendium picker pre-filtered to the slot's rank.
+   *   - Picking from the compendium in "prepare" mode both adds the spell to
+   *     the grimoire AND auto-prepares it into the originating slot once the
+   *     created item arrives from the server (pendingPrepare effect below —
+   *     the item id only exists after the server ack + mirror broadcast).
    */
 
-  import type { Socket } from "socket.io-client";
   import type { CharacterSheetVM, SpellTabRow, SpellcastingEntryRow } from "../../../lib/sheets/pf2e/characterSheetVM.js";
   import ProficiencyBadge from "./ProficiencyBadge.svelte";
   import SpellPickerDialog from "./SpellPickerDialog.svelte";
@@ -26,11 +37,10 @@
 
   interface Props {
     vm: CharacterSheetVM;
-    socket?: Socket | undefined;
     sendOpFn: (op: unknown) => void;
   }
 
-  let { vm, socket, sendOpFn }: Props = $props();
+  let { vm, sendOpFn }: Props = $props();
 
   let activeTabKey = $state<string | null>(null);
 
@@ -40,12 +50,53 @@
     return tabs.find((tb) => tb.key === activeTabKey) ?? tabs[0] ?? null;
   });
 
-  // Picker modal state — "add" (grimoire) or "swap"/"prepare" (into a specific slot).
+  // Picker modal state — "add" (grimoire) or "prepare" (into a specific slot).
   let pickerOpen = $state(false);
   let pickerMode = $state<"add" | "prepare">("add");
   let pickerEntryId = $state<string | null>(null);
   let pickerRank = $state<number | undefined>(undefined);
   let pickerSlotIndex = $state<number | null>(null);
+
+  // "Preparar do grimório" mini-menu (opened from an empty slot).
+  let prepareMenu = $state<{ entryId: string; rank: number; slotIndex: number } | null>(null);
+
+  // Slot-choice mini-menu (toast's "Preparar agora" when several slots are empty).
+  let slotChoice = $state<{ entryId: string; rank: number; spellName: string; slots: number[] } | null>(null);
+
+  // Toast (bottom-center) after adding a spell to the grimoire.
+  let toast = $state<{ message: string; spellName?: string; rank?: number; entryId?: string } | null>(null);
+  let toastTimer: ReturnType<typeof setTimeout> | null = null;
+
+  // Briefly-highlighted grimoire row (the spell just added).
+  let recentlyAddedName = $state<string | null>(null);
+  let highlightTimer: ReturnType<typeof setTimeout> | null = null;
+
+  // Deferred prepare: the picker's "prepare" mode creates the spell item, but
+  // its _id only exists after the server ack + mirror broadcast. This records
+  // the intent; the $effect below completes it when the item shows up in vm.
+  let pendingPrepare = $state<{
+    entryId: string;
+    rank: number;
+    slotIndex: number;
+    spellName: string;
+    expiresAt: number;
+  } | null>(null);
+
+  $effect(() => {
+    const pending = pendingPrepare;
+    if (!pending) return;
+    if (Date.now() > pending.expiresAt) {
+      pendingPrepare = null;
+      return;
+    }
+    const entry = findEntry(pending.entryId);
+    if (!entry) return;
+    const spell = findGrimoireSpellByName(entry, pending.spellName);
+    if (!spell) return; // not mirrored yet — re-runs when vm changes
+    pendingPrepare = null;
+    const op = vm.prepareSpell(pending.entryId, pending.rank, pending.slotIndex, spell.id);
+    if (op) sendOpFn(op);
+  });
 
   function selectTab(key: string): void {
     activeTabKey = key;
@@ -57,6 +108,51 @@
     return resolved === key ? tradition : resolved;
   }
 
+  function findEntry(entryId: string): SpellcastingEntryRow | null {
+    return tabs.flatMap((tb) => tb.entries).find((e) => e.entryId === entryId) ?? null;
+  }
+
+  /** Known (grimoire) spell matching a name, with its item id and rank. */
+  function findGrimoireSpellByName(
+    entry: SpellcastingEntryRow,
+    name: string,
+  ): { id: string; rank: number } | null {
+    for (const slot of entry.slots) {
+      for (const sp of slot.spells) {
+        if (sp.name === name && sp.id) return { id: sp.id, rank: slot.rank };
+      }
+    }
+    return null;
+  }
+
+  /** Indices of empty (unprepared) slots for a rank in an entry. */
+  function emptySlotIndices(entry: SpellcastingEntryRow, rank: number): number[] {
+    const slot = entry.slots.find((s) => s.rank === rank && !s.isCantrip);
+    if (!slot) return [];
+    const out: number[] = [];
+    for (let i = 0; i < slot.max; i++) {
+      const prepared = vm.getPreparedSlot(entry.entryId, rank, i);
+      if (!prepared || !prepared.id) out.push(i);
+    }
+    return out;
+  }
+
+  function showToast(toastData: NonNullable<typeof toast>, durationMs = 8000): void {
+    if (toastTimer !== null) clearTimeout(toastTimer);
+    toast = toastData;
+    toastTimer = setTimeout(() => {
+      toast = null;
+    }, durationMs);
+  }
+
+  function flashGrimoireRow(name: string): void {
+    if (highlightTimer !== null) clearTimeout(highlightTimer);
+    recentlyAddedName = name;
+    highlightTimer = setTimeout(() => {
+      recentlyAddedName = null;
+    }, 4000);
+  }
+
   function openAddPicker(entry: SpellcastingEntryRow): void {
     pickerMode = "add";
     pickerEntryId = entry.entryId;
@@ -65,12 +161,39 @@
     pickerOpen = true;
   }
 
-  function openPreparePicker(entry: SpellcastingEntryRow, rank: number, slotIndex: number): void {
+  function openPreparePicker(entryId: string, rank: number, slotIndex: number): void {
+    prepareMenu = null;
     pickerMode = "prepare";
-    pickerEntryId = entry.entryId;
+    pickerEntryId = entryId;
     pickerRank = rank;
     pickerSlotIndex = slotIndex;
     pickerOpen = true;
+  }
+
+  /** Empty slot click → "Preparar do grimório" mini-menu. */
+  function openPrepareMenu(entry: SpellcastingEntryRow, rank: number, slotIndex: number): void {
+    prepareMenu = { entryId: entry.entryId, rank, slotIndex };
+  }
+
+  /** Eligible grimoire spells for a slot: known, rank 1..slotRank. */
+  function prepareMenuSpells(entryId: string, maxRank: number): Array<{ id: string; name: string; rank: number }> {
+    const entry = findEntry(entryId);
+    if (!entry) return [];
+    const out: Array<{ id: string; name: string; rank: number }> = [];
+    for (const slot of entry.slots) {
+      if (slot.isCantrip || slot.rank > maxRank) continue;
+      for (const sp of slot.spells) {
+        if (sp.id) out.push({ id: sp.id, name: sp.name, rank: slot.rank });
+      }
+    }
+    return out.sort((a, b) => a.rank - b.rank || a.name.localeCompare(b.name));
+  }
+
+  function prepareFromMenu(spellId: string): void {
+    if (!prepareMenu) return;
+    const op = vm.prepareSpell(prepareMenu.entryId, prepareMenu.rank, prepareMenu.slotIndex, spellId);
+    if (op) sendOpFn(op);
+    prepareMenu = null;
   }
 
   function closePicker(): void {
@@ -81,20 +204,90 @@
 
   function handlePickerSelect(doc: Record<string, unknown>): void {
     if (!pickerEntryId) return;
+    const rawName = doc["name"];
+    const spellName = typeof rawName === "string" ? rawName : "";
+    const sys = typeof doc["system"] === "object" && doc["system"] !== null
+      ? (doc["system"] as Record<string, unknown>)
+      : {};
+    const rawLevel = sys["level"];
+    const spellRank = typeof rawLevel === "number" ? rawLevel : 0;
+
     if (pickerMode === "add") {
       const op = vm.addSpellToEntry(pickerEntryId, doc);
-      if (op) sendOpFn(op);
+      if (op) {
+        sendOpFn(op);
+        flashGrimoireRow(spellName);
+        showToast({
+          message: t("FUSION.Sheet.Spells.Toast.Added", { name: spellName }),
+          spellName,
+          rank: spellRank,
+          entryId: pickerEntryId,
+        });
+      }
     } else if (pickerMode === "prepare" && pickerRank !== undefined && pickerSlotIndex !== null) {
-      // Prepared-slot flow: add the spell to the grimoire first (if it isn't
-      // already known), THEN prepare it into the target slot. The picker
-      // returns the full compendium document (no _id yet) — addSpellToEntry
-      // creates it; the resulting item id isn't known client-side until the
-      // server acks, so preparation is a manual follow-up step for now (the
-      // user re-opens the slot's "Preparar" from the grimoire row).
-      const op = vm.addSpellToEntry(pickerEntryId, doc);
-      if (op) sendOpFn(op);
+      // Guided flow: add to the grimoire (unless already known), then
+      // auto-prepare into the originating slot. If the spell is already in
+      // the grimoire, prepare immediately; otherwise defer via
+      // pendingPrepare until the created item arrives from the server.
+      const entry = findEntry(pickerEntryId);
+      const known = entry ? findGrimoireSpellByName(entry, spellName) : null;
+      if (known) {
+        const op = vm.prepareSpell(pickerEntryId, pickerRank, pickerSlotIndex, known.id);
+        if (op) sendOpFn(op);
+      } else {
+        const op = vm.addSpellToEntry(pickerEntryId, doc);
+        if (op) {
+          sendOpFn(op);
+          flashGrimoireRow(spellName);
+          pendingPrepare = {
+            entryId: pickerEntryId,
+            rank: pickerRank,
+            slotIndex: pickerSlotIndex,
+            spellName,
+            expiresAt: Date.now() + 10_000,
+          };
+        }
+      }
     }
     closePicker();
+  }
+
+  /** Toast's "Preparar agora": first empty slot of the spell's rank; mini-menu when several. */
+  function prepareNowFromToast(): void {
+    if (!toast?.spellName || toast.rank === undefined || !toast.entryId) return;
+    const entry = findEntry(toast.entryId);
+    if (!entry) return;
+    const { spellName, rank, entryId } = toast;
+    const empty = emptySlotIndices(entry, rank);
+    if (empty.length === 0) {
+      showToast({ message: t("FUSION.Sheet.Spells.Toast.NoEmptySlot", { rank: String(rank) }) }, 5000);
+      return;
+    }
+    if (empty.length === 1) {
+      prepareIntoSlot(entryId, rank, empty[0] ?? 0, spellName);
+      toast = null;
+      return;
+    }
+    slotChoice = { entryId, rank, spellName, slots: empty };
+    toast = null;
+  }
+
+  /** Prepare a named grimoire spell into a slot now (or defer if not mirrored yet). */
+  function prepareIntoSlot(entryId: string, rank: number, slotIndex: number, spellName: string): void {
+    const entry = findEntry(entryId);
+    const known = entry ? findGrimoireSpellByName(entry, spellName) : null;
+    if (known) {
+      const op = vm.prepareSpell(entryId, rank, slotIndex, known.id);
+      if (op) sendOpFn(op);
+    } else {
+      pendingPrepare = { entryId, rank, slotIndex, spellName, expiresAt: Date.now() + 10_000 };
+    }
+  }
+
+  function chooseSlot(slotIndex: number): void {
+    if (!slotChoice) return;
+    prepareIntoSlot(slotChoice.entryId, slotChoice.rank, slotIndex, slotChoice.spellName);
+    slotChoice = null;
   }
 
   function castSpell(entry: SpellcastingEntryRow, rank: number, slotIndex: number, spellId: string, spellName: string): void {
@@ -253,7 +446,7 @@
                       type="button"
                       class="spell-slot-empty"
                       disabled={!vm.editable}
-                      onclick={() => openPreparePicker(entry, slot.rank, slotIndex)}
+                      onclick={() => openPrepareMenu(entry, slot.rank, slotIndex)}
                     >
                       {t("FUSION.Sheet.Spells.PrepareEllipsis")}
                     </button>
@@ -277,7 +470,10 @@
             {:else}
               <div class="spells-grimoire">
                 {#each grimoireSpells(entry) as spell (spell.id)}
-                  <div class="spell-chip spell-chip--row">
+                  <div
+                    class="spell-chip spell-chip--row"
+                    class:spell-chip--new={spell.name === recentlyAddedName}
+                  >
                     <span class="spell-chip__name">{spell.name}</span>
                     {#if vm.editable}
                       <button type="button" class="spell-btn spell-btn--ghost" onclick={() => removeFromGrimoire(spell.id)}>
@@ -325,19 +521,110 @@
   {/if}
 </div>
 
-{#if pickerOpen && socket && pickerEntryId}
-  {@const entry = tabs.flatMap((tb) => tb.entries).find((e) => e.entryId === pickerEntryId)}
+{#if pickerOpen && pickerEntryId}
+  {@const entry = findEntry(pickerEntryId)}
   {#if entry}
     <SpellPickerDialog
-      {socket}
       tradition={entry.tradition}
       traditionLabel={traditionLabel(entry.tradition)}
       entryLabel={entry.label}
       maxRank={pickerMode === "prepare" ? pickerRank : undefined}
+      initialRank={pickerMode === "prepare" ? pickerRank : undefined}
       onClose={closePicker}
       onSelect={handlePickerSelect}
     />
   {/if}
+{/if}
+
+<!-- "Preparar do grimório" mini-menu (empty slot click) -->
+{#if prepareMenu}
+  {@const menuSpells = prepareMenuSpells(prepareMenu.entryId, prepareMenu.rank)}
+  <div
+    class="mini-backdrop"
+    role="presentation"
+    onclick={() => { prepareMenu = null; }}
+    onkeydown={(e) => { if (e.key === "Escape") prepareMenu = null; }}
+  >
+    <div
+      class="mini-menu"
+      role="dialog"
+      aria-modal="true"
+      tabindex="-1"
+      aria-label={t("FUSION.Sheet.Spells.PrepareMenu.Title", { rank: String(prepareMenu.rank) })}
+      onclick={(e) => e.stopPropagation()}
+      onkeydown={(e) => { if (e.key === "Escape") prepareMenu = null; }}
+    >
+      <h3 class="mini-menu__title">{t("FUSION.Sheet.Spells.PrepareMenu.Title", { rank: String(prepareMenu.rank) })}</h3>
+      {#if menuSpells.length === 0}
+        <p class="mini-menu__empty">{t("FUSION.Sheet.Spells.PrepareMenu.Empty")}</p>
+      {:else}
+        <div class="mini-menu__list">
+          {#each menuSpells as sp (sp.id)}
+            <button type="button" class="mini-menu__item" onclick={() => prepareFromMenu(sp.id)}>
+              <span class="mini-menu__item-rank">{sp.rank}</span>
+              <span class="mini-menu__item-name">{sp.name}</span>
+            </button>
+          {/each}
+        </div>
+      {/if}
+      <button
+        type="button"
+        class="mini-menu__link"
+        onclick={() => {
+          if (prepareMenu) openPreparePicker(prepareMenu.entryId, prepareMenu.rank, prepareMenu.slotIndex);
+        }}
+      >
+        {t("FUSION.Sheet.Spells.PrepareMenu.SearchCompendium")}
+      </button>
+    </div>
+  </div>
+{/if}
+
+<!-- Slot-choice mini-menu (toast's "Preparar agora" with several empty slots) -->
+{#if slotChoice}
+  <div
+    class="mini-backdrop"
+    role="presentation"
+    onclick={() => { slotChoice = null; }}
+    onkeydown={(e) => { if (e.key === "Escape") slotChoice = null; }}
+  >
+    <div
+      class="mini-menu"
+      role="dialog"
+      aria-modal="true"
+      tabindex="-1"
+      aria-label={t("FUSION.Sheet.Spells.SlotChoice.Title", { rank: String(slotChoice.rank) })}
+      onclick={(e) => e.stopPropagation()}
+      onkeydown={(e) => { if (e.key === "Escape") slotChoice = null; }}
+    >
+      <h3 class="mini-menu__title">{t("FUSION.Sheet.Spells.SlotChoice.Title", { rank: String(slotChoice.rank) })}</h3>
+      <div class="mini-menu__list">
+        {#each slotChoice.slots as slotIndex (slotIndex)}
+          <button type="button" class="mini-menu__item" onclick={() => chooseSlot(slotIndex)}>
+            <span class="mini-menu__item-name">{t("FUSION.Sheet.Spells.SlotChoice.Option", { n: String(slotIndex + 1) })}</span>
+          </button>
+        {/each}
+      </div>
+    </div>
+  </div>
+{/if}
+
+<!-- Toast (bottom-center) -->
+{#if toast}
+  <div class="spells-toast" role="status">
+    <span class="spells-toast__msg">{toast.message}</span>
+    {#if toast.spellName && toast.rank !== undefined && toast.rank > 0}
+      <button type="button" class="spells-toast__action" onclick={prepareNowFromToast}>
+        {t("FUSION.Sheet.Spells.Toast.PrepareNow")}
+      </button>
+    {/if}
+    <button
+      type="button"
+      class="spells-toast__close"
+      aria-label={t("FUSION.Dialog.Close")}
+      onclick={() => { toast = null; }}
+    >&times;</button>
+  </div>
 {/if}
 
 <style>
@@ -655,5 +942,176 @@
 
   .spells-empty--inline {
     padding: 12px;
+  }
+
+  /* Recently-added grimoire row highlight (guided 2-step flow) */
+  .spell-chip--new {
+    animation: spell-chip-flash 4s ease-out;
+  }
+
+  @keyframes spell-chip-flash {
+    0%,
+    60% {
+      border-color: var(--fusion-accent);
+      background: var(--fusion-accent-dim);
+    }
+    100% {
+      border-color: var(--fusion-border);
+      background: var(--fusion-surface-alt);
+    }
+  }
+
+  /* Toast (bottom-center, above windows; below nothing relevant) */
+  .spells-toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--fusion-surface);
+    border: 1px solid var(--fusion-accent);
+    border-radius: var(--fusion-radius);
+    box-shadow: var(--fusion-shadow-modal);
+    padding: 10px 14px;
+    z-index: 120;
+    font-size: 12.5px;
+    color: var(--fusion-text);
+  }
+
+  .spells-toast__action {
+    background: var(--fusion-accent);
+    color: var(--fusion-on-accent);
+    border: none;
+    border-radius: var(--fusion-radius-sm);
+    font-family: var(--fusion-font);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 11px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .spells-toast__action:hover {
+    background: var(--fusion-accent-hover);
+  }
+
+  .spells-toast__close {
+    background: transparent;
+    border: none;
+    color: var(--fusion-text-muted);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0 2px;
+    font-family: var(--fusion-font);
+  }
+
+  .spells-toast__close:hover {
+    color: var(--fusion-text);
+  }
+
+  /* Mini-menu (prepare-from-grimoire / slot choice) */
+  .mini-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 110;
+  }
+
+  .mini-menu {
+    width: 340px;
+    max-width: 100%;
+    max-height: 420px;
+    overflow-y: auto;
+    background: var(--fusion-surface);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-lg);
+    box-shadow: var(--fusion-shadow-modal);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .mini-menu__title {
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--fusion-text);
+  }
+
+  .mini-menu__empty {
+    font-size: 12px;
+    color: var(--fusion-text-muted);
+    margin: 0;
+    padding: 8px 0;
+  }
+
+  .mini-menu__list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .mini-menu__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--fusion-radius-sm);
+    border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    font-family: var(--fusion-font);
+    text-align: left;
+  }
+
+  .mini-menu__item:hover {
+    background: var(--fusion-surface-alt);
+    border-color: var(--fusion-accent);
+  }
+
+  .mini-menu__item-rank {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    border-radius: var(--fusion-radius-sm);
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--fusion-text-muted);
+    font-family: var(--fusion-font-mono);
+  }
+
+  .mini-menu__item-name {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--fusion-text);
+  }
+
+  .mini-menu__link {
+    background: transparent;
+    border: none;
+    color: var(--fusion-accent);
+    cursor: pointer;
+    font-family: var(--fusion-font);
+    font-size: 12px;
+    text-align: left;
+    padding: 4px 0 0;
+    text-decoration: underline;
+  }
+
+  .mini-menu__link:hover {
+    color: var(--fusion-accent-hover);
   }
 </style>

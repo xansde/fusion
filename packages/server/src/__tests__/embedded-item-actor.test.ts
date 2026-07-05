@@ -83,14 +83,15 @@ async function buildCtx(): Promise<Ctx> {
 
   const authService = new AuthService(fusionDb.raw, secret, worldId);
   const { user: gm, password: gmPw } = await authService.bootstrapGm();
-  // TRUSTED (not plain PLAYER): handleEmbeddedCreate's role gate requires
-  // TRUSTED+ for ANY non-privileged embedded create (Token or Item) before
-  // ownership is even checked — see doc-handlers.ts "Insufficient role to
-  // create embedded documents". Using TRUSTED for both players isolates the
-  // outsider-rejection tests to the ownership check specifically.
+  // Plain PLAYER on purpose (regression for the r10-C live finding): the
+  // embedded-create TRUSTED role floor applies only to non-Actor parents
+  // (Scene tokens) — a PLAYER who OWNS the actor must be able to manage the
+  // actor's embedded Items (add/remove spells on their own sheet). The
+  // outsider stays TRUSTED so its rejection tests isolate the ownership
+  // check specifically (not the role floor).
   const { user: owner } = await authService.createUser({
     name: "OwnerPlayer",
-    role: Role.TRUSTED,
+    role: Role.PLAYER,
     password: "owner-pass",
   });
   const { user: outsider } = await authService.createUser({

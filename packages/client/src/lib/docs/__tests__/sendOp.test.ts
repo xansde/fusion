@@ -181,6 +181,41 @@ describe("makeSendOpFn", () => {
 
     errorSpy.mockRestore();
   });
+
+  // -------------------------------------------------------------------------
+  // Lazy socket accessor (frozen-socket fix): sheet windows outlive socket
+  // reconnects, so callers pass `() => getSocket()` and the LIVE socket is
+  // resolved on EVERY op instead of captured once.
+  // -------------------------------------------------------------------------
+
+  it("accepts a lazy accessor and resolves the socket on every op", () => {
+    const first = makeMockSocket();
+    const second = makeMockSocket();
+    let current = first.socket;
+    const fn = makeSendOpFn(() => current);
+
+    fn({ type: "doc:update", documentType: "Actor", id: "a1", diff: {} });
+    expect(first.socket.emit).toHaveBeenCalledOnce();
+    expect(second.socket.emit).not.toHaveBeenCalled();
+
+    // Simulate a reconnect: SocketManager.connect() replaces the instance.
+    current = second.socket;
+    fn({ type: "doc:update", documentType: "Actor", id: "a1", diff: {} });
+    expect(first.socket.emit).toHaveBeenCalledOnce(); // unchanged
+    expect(second.socket.emit).toHaveBeenCalledOnce(); // op rode the NEW socket
+  });
+
+  it("drops the op (log, no throw, no emit) when the accessor returns null", () => {
+    const { socket } = makeMockSocket();
+    const fn = makeSendOpFn(() => null);
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    expect(() => fn({ type: "doc:update", documentType: "Actor", id: "a1", diff: {} })).not.toThrow();
+    expect(socket.emit).not.toHaveBeenCalled();
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("no live socket"));
+
+    errorSpy.mockRestore();
+  });
 });
 
 // ---------------------------------------------------------------------------
