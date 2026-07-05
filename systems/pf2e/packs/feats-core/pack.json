@@ -1,0 +1,27 @@
+{
+  "id": "pf2e.feats-core",
+  "label": "PF2e Core Feats",
+  "documentType": "Item",
+  "systemId": "pf2e",
+  "indexFields": [
+    "name",
+    "system.level",
+    "system.category",
+    "system.traits.value"
+  ],
+  "license": {
+    "license": "ORC",
+    "attribution": "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
+    "reservedNotice": "Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+    "sourceRepo": "github.com/foundryvtt/pf2e",
+    "sourceVersion": "v14-dev"
+  },
+  "source": {
+    "repo": "github.com/foundryvtt/pf2e",
+    "version": "v14-dev",
+    "importerVersion": "0.1.0"
+  },
+  "schemaVersion": 1,
+  "documentCount": 418,
+  "generatedAt": "2026-07-05T03:27:08.048Z"
+}

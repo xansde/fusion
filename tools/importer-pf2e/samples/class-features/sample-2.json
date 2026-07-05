@@ -1,0 +1,45 @@
+{
+  "_id": "PLMmDXJCDdMS0V5C",
+  "pf2eSourceId": "PLMmDXJCDdMS0V5C",
+  "type": "feat",
+  "name": "Lesson of Calamity",
+  "img": "icons/placeholder/feat.svg",
+  "originalImgRef": "daydreamers-curse.webp",
+  "system": {
+    "actionType": {
+      "value": "passive"
+    },
+    "actions": {
+      "value": null
+    },
+    "category": "classfeature",
+    "description": {
+      "value": "<p>You gain the @UUID[Compendium.pf2e.spells-srd.Item.Stumbling Curse] hex, and your familiar learns @UUID[Compendium.pf2e.spells-srd.Item.Ill Omen].</p>"
+    },
+    "level": {
+      "value": 2
+    },
+    "prerequisites": {
+      "value": []
+    },
+    "publication": {
+      "license": "OGL",
+      "remaster": false,
+      "title": "Pathfinder #169: Kindled Magic"
+    },
+    "rules": [],
+    "traits": {
+      "otherTags": [
+        "witch-lesson"
+      ],
+      "rarity": "uncommon",
+      "value": [
+        "witch"
+      ]
+    }
+  },
+  "_fusion": {
+    "normalizedAt": "2026-07-05T02:09:30.831Z",
+    "removedFields": []
+  }
+}

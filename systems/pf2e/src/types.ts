@@ -84,6 +84,7 @@ export const WEAPON_GROUPS = [
   "bow",
   "brawling",
   "club",
+  "crossbow",
   "dart",
   "flail",
   "hammer",

@@ -1,0 +1,86 @@
+[
+  {
+    "_id": "azDELWXz1ds3XeL0",
+    "uuid": "Compendium.pf2e.heritages-core.Item.azDELWXz1ds3XeL0",
+    "name": "Deep Rat",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Deep Rat",
+      "system.ancestry.slug": "ratfolk",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "BPDF1w5U8k1HrUvZ",
+    "uuid": "Compendium.pf2e.heritages-core.Item.BPDF1w5U8k1HrUvZ",
+    "name": "Desert Rat",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Desert Rat",
+      "system.ancestry.slug": "ratfolk",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "Rd2aNjE56aR5fN0d",
+    "uuid": "Compendium.pf2e.heritages-core.Item.Rd2aNjE56aR5fN0d",
+    "name": "Longsnout Rat",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Longsnout Rat",
+      "system.ancestry.slug": "ratfolk",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "STr5kDJYUrafYtZy",
+    "uuid": "Compendium.pf2e.heritages-core.Item.STr5kDJYUrafYtZy",
+    "name": "Sewer Rat",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Sewer Rat",
+      "system.ancestry.slug": "ratfolk",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "GIbhAzqqCZsfVZ4Z",
+    "uuid": "Compendium.pf2e.heritages-core.Item.GIbhAzqqCZsfVZ4Z",
+    "name": "Shadow Rat",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Shadow Rat",
+      "system.ancestry.slug": "ratfolk",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "6B5uk7Fe6I4NrWjn",
+    "uuid": "Compendium.pf2e.heritages-core.Item.6B5uk7Fe6I4NrWjn",
+    "name": "Snow Rat",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Snow Rat",
+      "system.ancestry.slug": "ratfolk",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "pVqpKjLfoDY2XzA3",
+    "uuid": "Compendium.pf2e.heritages-core.Item.pVqpKjLfoDY2XzA3",
+    "name": "Tunnel Rat",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Tunnel Rat",
+      "system.ancestry.slug": "ratfolk",
+      "system.traits.value": []
+    }
+  }
+]

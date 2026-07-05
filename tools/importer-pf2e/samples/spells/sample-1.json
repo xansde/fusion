@@ -100,11 +100,19 @@
     "traits": {
       "rarity": "uncommon",
       "traditions": [],
-      "value": ["auditory", "concentrate", "focus", "mental", "sorcerer"]
+      "value": [
+        "auditory",
+        "concentrate",
+        "focus",
+        "mental",
+        "sorcerer"
+      ]
     }
   },
   "_fusion": {
-    "normalizedAt": "2026-06-13T00:29:04.556Z",
-    "removedFields": ["folder"]
+    "normalizedAt": "2026-07-05T02:09:29.613Z",
+    "removedFields": [
+      "folder"
+    ]
   }
 }

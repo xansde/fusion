@@ -1,0 +1,476 @@
+[
+  {
+    "_id": "azDELWXz1ds3XeL0",
+    "name": "Deep Rat",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Ratfolk",
+        "slug": "ratfolk",
+        "uuid": "Compendium.pf2e.ancestries.Item.P6PcVnCkh4XMdefw"
+      },
+      "description": "",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "kind": "sense",
+          "slug": null,
+          "label": null,
+          "senseType": null,
+          "acuity": "precise",
+          "range": null,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Sense",
+            "selector": "darkvision"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "7p9HtLzWBHc18JDW",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "deep-rat.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "BPDF1w5U8k1HrUvZ",
+    "name": "Desert Rat",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Ratfolk",
+        "slug": "ratfolk",
+        "uuid": "Compendium.pf2e.ancestries.Item.P6PcVnCkh4XMdefw"
+      },
+      "description": "",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "land-speed",
+          "value": 5,
+          "mode": "add",
+          "type": "untyped",
+          "predicate": [
+            "hands-free:2"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              "hands-free:2"
+            ],
+            "selector": "land-speed",
+            "value": 5
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "twayjFuXbsvyHUwy",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "desert-rat.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Rd2aNjE56aR5fN0d",
+    "name": "Longsnout Rat",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Ratfolk",
+        "slug": "ratfolk",
+        "uuid": "Compendium.pf2e.ancestries.Item.P6PcVnCkh4XMdefw"
+      },
+      "description": "",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "kind": "sense",
+          "slug": null,
+          "label": null,
+          "senseType": null,
+          "acuity": "imprecise",
+          "range": 30,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "acuity": "imprecise",
+            "key": "Sense",
+            "range": 30,
+            "selector": "scent"
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "perception",
+          "value": 2,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": [
+            "action:seek",
+            {
+              "lte": [
+                "target:distance",
+                30
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              "action:seek",
+              {
+                "lte": [
+                  "target:distance",
+                  30
+                ]
+              }
+            ],
+            "selector": "perception",
+            "type": "circumstance",
+            "value": 2
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "fROPRHGyUn4PgcER",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "longsnout-rat.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "STr5kDJYUrafYtZy",
+    "name": "Sewer Rat",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Ratfolk",
+        "slug": "ratfolk",
+        "uuid": "Compendium.pf2e.ancestries.Item.P6PcVnCkh4XMdefw"
+      },
+      "description": "",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "saving-throw",
+          "value": 1,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": [
+            {
+              "or": [
+                "item:trait:disease",
+                "item:trait:poison"
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              {
+                "or": [
+                  "item:trait:disease",
+                  "item:trait:poison"
+                ]
+              }
+            ],
+            "selector": "saving-throw",
+            "type": "circumstance",
+            "value": 1
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "eFsD7W6hnK33jlDQ",
+        "packName": "heritages",
+        "unconvertedRules": [
+          {
+            "adjustment": {
+              "success": "one-degree-better"
+            },
+            "key": "AdjustDegreeOfSuccess",
+            "predicate": [
+              {
+                "or": [
+                  "item:trait:disease",
+                  "item:trait:poison"
+                ]
+              }
+            ],
+            "selector": "saving-throw",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "sewer-rat.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "GIbhAzqqCZsfVZ4Z",
+    "name": "Shadow Rat",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Ratfolk",
+        "slug": "ratfolk",
+        "uuid": "Compendium.pf2e.ancestries.Item.P6PcVnCkh4XMdefw"
+      },
+      "description": "",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.skills.intimidation.rank",
+          "value": 1,
+          "mode": "upgrade",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.skills.intimidation.rank",
+            "value": 1
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "tarfuEXmi0E0Enfy",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "shadow-rat.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "6B5uk7Fe6I4NrWjn",
+    "name": "Snow Rat",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Ratfolk",
+        "slug": "ratfolk",
+        "uuid": "Compendium.pf2e.ancestries.Item.P6PcVnCkh4XMdefw"
+      },
+      "description": "",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "subkind": "resistance",
+          "slug": null,
+          "label": null,
+          "damageType": "cold",
+          "value": null,
+          "exceptions": [],
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Resistance",
+            "type": "cold",
+            "value": "max(1,floor(@actor.level/2))"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "7lFPhRMAFXQsXUP2",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "weather-clouds-snow.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "pVqpKjLfoDY2XzA3",
+    "name": "Tunnel Rat",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Ratfolk",
+        "slug": "ratfolk",
+        "uuid": "Compendium.pf2e.ancestries.Item.P6PcVnCkh4XMdefw"
+      },
+      "description": "",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.feats-srd.Item.Quick Squeeze",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.feats-srd.Item.Quick Squeeze"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "U882U2NUUGL6u3rL",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "mine-exterior-entrance.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  }
+]

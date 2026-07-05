@@ -1,0 +1,17 @@
+[
+  {
+    "_id": "3FBntMsNiVE09eEx",
+    "uuid": "Compendium.pf2e.ancestries-core.Item.3FBntMsNiVE09eEx",
+    "name": "Ratfolk",
+    "img": "icons/placeholder/feat.svg",
+    "type": "ancestry",
+    "index": {
+      "name": "Ratfolk",
+      "system.traits.value": [
+        "humanoid",
+        "ratfolk"
+      ],
+      "system.size": "sm"
+    }
+  }
+]

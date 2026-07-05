@@ -27,10 +27,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "gp": 4
       },
@@ -41,9 +38,7 @@
       },
       "quantity": 1,
       "range": null,
-      "reload": {
-        "value": null
-      },
+      "reload": "-",
       "rules": [],
       "runes": {
         "potency": 0,
@@ -51,12 +46,12 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["two-hand-d12"]
+        "value": [
+          "two-hand-d12"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "sword"
@@ -107,10 +102,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "gp": 1
       },
@@ -121,9 +113,7 @@
       },
       "quantity": 1,
       "range": null,
-      "reload": {
-        "value": null
-      },
+      "reload": "-",
       "rules": [],
       "runes": {
         "potency": 0,
@@ -131,12 +121,12 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["sweep"]
+        "value": [
+          "sweep"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "axe"
@@ -187,10 +177,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "sp": 2
       },
@@ -201,9 +188,7 @@
       },
       "quantity": 1,
       "range": null,
-      "reload": {
-        "value": null
-      },
+      "reload": "-",
       "rules": [],
       "runes": {
         "potency": 0,
@@ -211,12 +196,15 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["monk", "parry", "reach", "trip"]
+        "value": [
+          "monk",
+          "parry",
+          "reach",
+          "trip"
+        ]
       },
       "usage": "held-in-two-hands",
       "weaponGroup": "club"
@@ -267,10 +255,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {},
       "publication": {
         "license": "ORC",
@@ -287,12 +272,12 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["thrown-10"]
+        "value": [
+          "thrown-10"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "club"
@@ -321,11 +306,7 @@
     "type": "weapon",
     "img": "icons/placeholder/weapon.svg",
     "system": {
-      "ammo": {
-        "baseType": "arrows",
-        "builtIn": false,
-        "capacity": null
-      },
+      "ammo": "arrows",
       "baseItem": "composite-longbow",
       "bonus": 0,
       "bonusDamage": 0,
@@ -347,10 +328,7 @@
         "value": 0
       },
       "level": 1,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "gp": 20
       },
@@ -369,12 +347,14 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["deadly-d10", "propulsive", "volley-30"]
+        "value": [
+          "deadly-d10",
+          "propulsive",
+          "volley-30"
+        ]
       },
       "usage": "held-in-one-plus-hands",
       "weaponGroup": "bow"
@@ -403,11 +383,7 @@
     "type": "weapon",
     "img": "icons/placeholder/weapon.svg",
     "system": {
-      "ammo": {
-        "baseType": "arrows",
-        "builtIn": false,
-        "capacity": null
-      },
+      "ammo": "arrows",
       "baseItem": "composite-shortbow",
       "bonus": 0,
       "bonusDamage": 0,
@@ -429,10 +405,7 @@
         "value": 0
       },
       "level": 1,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "gp": 14
       },
@@ -451,12 +424,13 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["deadly-d10", "propulsive"]
+        "value": [
+          "deadly-d10",
+          "propulsive"
+        ]
       },
       "usage": "held-in-one-plus-hands",
       "weaponGroup": "bow"
@@ -485,11 +459,7 @@
     "type": "weapon",
     "img": "icons/placeholder/weapon.svg",
     "system": {
-      "ammo": {
-        "baseType": "bolts",
-        "builtIn": false,
-        "capacity": 1
-      },
+      "ammo": "bolts",
       "baseItem": "crossbow",
       "bonus": 0,
       "bonusDamage": 0,
@@ -511,10 +481,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "gp": 3
       },
@@ -533,9 +500,7 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
         "value": []
@@ -589,10 +554,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "sp": 2
       },
@@ -611,12 +573,15 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["agile", "finesse", "thrown-10", "versatile-s"]
+        "value": [
+          "agile",
+          "finesse",
+          "thrown-10",
+          "versatile-s"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "knife"
@@ -667,10 +632,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "cp": 1
       },
@@ -689,12 +651,13 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["agile", "thrown"]
+        "value": [
+          "agile",
+          "thrown"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "dart"
@@ -745,10 +708,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "sp": 8
       },
@@ -759,9 +719,7 @@
       },
       "quantity": 1,
       "range": null,
-      "reload": {
-        "value": null
-      },
+      "reload": "-",
       "rules": [],
       "runes": {
         "potency": 0,
@@ -769,12 +727,14 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["disarm", "sweep", "trip"]
+        "value": [
+          "disarm",
+          "sweep",
+          "trip"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "flail"
@@ -825,10 +785,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "gp": 3
       },
@@ -839,9 +796,7 @@
       },
       "quantity": 1,
       "range": null,
-      "reload": {
-        "value": null
-      },
+      "reload": "-",
       "rules": [],
       "runes": {
         "potency": 0,
@@ -849,12 +804,14 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "uncommon",
-        "value": ["gnome", "reach", "sweep"]
+        "value": [
+          "gnome",
+          "reach",
+          "sweep"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "flail"
@@ -905,10 +862,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "gp": 2
       },
@@ -919,9 +873,7 @@
       },
       "quantity": 1,
       "range": null,
-      "reload": {
-        "value": null
-      },
+      "reload": "-",
       "rules": [],
       "runes": {
         "potency": 0,
@@ -929,12 +881,12 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["sweep"]
+        "value": [
+          "sweep"
+        ]
       },
       "usage": "held-in-two-hands",
       "weaponGroup": "axe"
@@ -985,10 +937,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "gp": 2
       },
@@ -999,9 +948,7 @@
       },
       "quantity": 1,
       "range": null,
-      "reload": {
-        "value": null
-      },
+      "reload": "-",
       "rules": [],
       "runes": {
         "potency": 0,
@@ -1009,12 +956,12 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["versatile-p"]
+        "value": [
+          "versatile-p"
+        ]
       },
       "usage": "held-in-two-hands",
       "weaponGroup": "sword"
@@ -1043,11 +990,7 @@
     "type": "weapon",
     "img": "icons/placeholder/weapon.svg",
     "system": {
-      "ammo": {
-        "baseType": "bolts",
-        "builtIn": false,
-        "capacity": 1
-      },
+      "ammo": "bolts",
       "baseItem": "hand-crossbow",
       "bonus": 0,
       "bonusDamage": 0,
@@ -1069,10 +1012,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "gp": 3
       },
@@ -1091,9 +1031,7 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
         "value": []
@@ -1147,10 +1085,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "sp": 4
       },
@@ -1169,12 +1104,14 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["agile", "sweep", "thrown-10"]
+        "value": [
+          "agile",
+          "sweep",
+          "thrown-10"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "axe"
@@ -1225,10 +1162,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "sp": 1
       },
@@ -1247,12 +1181,12 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["thrown"]
+        "value": [
+          "thrown"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "dart"
@@ -1303,10 +1237,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "sp": 6
       },
@@ -1317,9 +1248,7 @@
       },
       "quantity": 1,
       "range": null,
-      "reload": {
-        "value": null
-      },
+      "reload": "-",
       "rules": [],
       "runes": {
         "potency": 0,
@@ -1327,12 +1256,14 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "uncommon",
-        "value": ["agile", "finesse", "trip"]
+        "value": [
+          "agile",
+          "finesse",
+          "trip"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "knife"
@@ -1361,11 +1292,7 @@
     "type": "weapon",
     "img": "icons/placeholder/weapon.svg",
     "system": {
-      "ammo": {
-        "baseType": "arrows",
-        "builtIn": false,
-        "capacity": null
-      },
+      "ammo": "arrows",
       "baseItem": "longbow",
       "bonus": 0,
       "bonusDamage": 0,
@@ -1387,10 +1314,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "gp": 6
       },
@@ -1409,12 +1333,13 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["deadly-d10", "volley-30"]
+        "value": [
+          "deadly-d10",
+          "volley-30"
+        ]
       },
       "usage": "held-in-one-plus-hands",
       "weaponGroup": "bow"
@@ -1465,10 +1390,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "gp": 1
       },
@@ -1487,12 +1409,12 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["versatile-p"]
+        "value": [
+          "versatile-p"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "sword"
@@ -1543,10 +1465,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "gp": 3
       },
@@ -1557,9 +1476,7 @@
       },
       "quantity": 1,
       "range": null,
-      "reload": {
-        "value": null
-      },
+      "reload": "-",
       "rules": [],
       "runes": {
         "potency": 0,
@@ -1567,12 +1484,12 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["shove"]
+        "value": [
+          "shove"
+        ]
       },
       "usage": "held-in-two-hands",
       "weaponGroup": "hammer"
@@ -1623,10 +1540,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "gp": 1
       },
@@ -1637,9 +1551,7 @@
       },
       "quantity": 1,
       "range": null,
-      "reload": {
-        "value": null
-      },
+      "reload": "-",
       "rules": [],
       "runes": {
         "potency": 0,
@@ -1647,12 +1559,12 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["versatile-p"]
+        "value": [
+          "versatile-p"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "club"
@@ -1703,10 +1615,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "gp": 2
       },
@@ -1717,9 +1626,7 @@
       },
       "quantity": 1,
       "range": null,
-      "reload": {
-        "value": null
-      },
+      "reload": "-",
       "rules": [],
       "runes": {
         "potency": 0,
@@ -1727,12 +1634,14 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["deadly-d8", "disarm", "finesse"]
+        "value": [
+          "deadly-d8",
+          "disarm",
+          "finesse"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "sword"
@@ -1761,11 +1670,7 @@
     "type": "weapon",
     "img": "icons/placeholder/weapon.svg",
     "system": {
-      "ammo": {
-        "baseType": "arrows",
-        "builtIn": false,
-        "capacity": null
-      },
+      "ammo": "arrows",
       "baseItem": "shortbow",
       "bonus": 0,
       "bonusDamage": 0,
@@ -1787,10 +1692,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "gp": 3
       },
@@ -1809,12 +1711,12 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["deadly-d10"]
+        "value": [
+          "deadly-d10"
+        ]
       },
       "usage": "held-in-one-plus-hands",
       "weaponGroup": "bow"
@@ -1865,10 +1767,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "sp": 9
       },
@@ -1879,9 +1778,7 @@
       },
       "quantity": 1,
       "range": null,
-      "reload": {
-        "value": null
-      },
+      "reload": "-",
       "rules": [],
       "runes": {
         "potency": 0,
@@ -1889,12 +1786,14 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["agile", "finesse", "versatile-s"]
+        "value": [
+          "agile",
+          "finesse",
+          "versatile-s"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "sword"
@@ -1923,11 +1822,7 @@
     "type": "weapon",
     "img": "icons/placeholder/weapon.svg",
     "system": {
-      "ammo": {
-        "baseType": "sling-bullets",
-        "builtIn": false,
-        "capacity": 1
-      },
+      "ammo": "sling-bullets",
       "baseItem": "sling",
       "bonus": 0,
       "bonusDamage": 0,
@@ -1949,10 +1844,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {},
       "publication": {
         "license": "ORC",
@@ -1969,12 +1861,12 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["propulsive"]
+        "value": [
+          "propulsive"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "sling"
@@ -2025,10 +1917,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "sp": 1
       },
@@ -2047,12 +1936,13 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["monk", "thrown-20"]
+        "value": [
+          "monk",
+          "thrown-20"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "spear"
@@ -2103,10 +1993,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {},
       "publication": {
         "license": "ORC",
@@ -2115,9 +2002,7 @@
       },
       "quantity": 1,
       "range": null,
-      "reload": {
-        "value": null
-      },
+      "reload": "-",
       "rules": [],
       "runes": {
         "potency": 0,
@@ -2125,12 +2010,13 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["monk", "two-hand-d8"]
+        "value": [
+          "monk",
+          "two-hand-d8"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "club"
@@ -2181,10 +2067,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "gp": 1
       },
@@ -2203,12 +2086,12 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["thrown-20"]
+        "value": [
+          "thrown-20"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "spear"
@@ -2259,10 +2142,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "gp": 1
       },
@@ -2273,9 +2153,7 @@
       },
       "quantity": 1,
       "range": null,
-      "reload": {
-        "value": null
-      },
+      "reload": "-",
       "rules": [],
       "runes": {
         "potency": 0,
@@ -2283,12 +2161,12 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["shove"]
+        "value": [
+          "shove"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "hammer"
@@ -2339,10 +2217,7 @@
         "value": 0
       },
       "level": 0,
-      "material": {
-        "grade": null,
-        "type": null
-      },
+      "material": {},
       "price": {
         "sp": 1
       },
@@ -2353,9 +2228,7 @@
       },
       "quantity": 1,
       "range": null,
-      "reload": {
-        "value": null
-      },
+      "reload": "-",
       "rules": [],
       "runes": {
         "potency": 0,
@@ -2363,12 +2236,16 @@
         "striking": 0
       },
       "size": "med",
-      "splashDamage": {
-        "value": 0
-      },
+      "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["disarm", "finesse", "nonlethal", "reach", "trip"]
+        "value": [
+          "disarm",
+          "finesse",
+          "nonlethal",
+          "reach",
+          "trip"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "flail"

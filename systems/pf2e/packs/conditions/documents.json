@@ -12,7 +12,9 @@
         "value": 0
       },
       "group": "senses",
-      "overrides": ["dazzled"],
+      "overrides": [
+        "dazzled"
+      ],
       "publication": {
         "license": "ORC",
         "remaster": true,
@@ -60,10 +62,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "blinded"
     },
     "flags": {
       "fusion": {
@@ -118,10 +117,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "broken"
     },
     "flags": {
       "fusion": {
@@ -193,11 +189,8 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "immutable": false,
-        "isValued": true,
-        "value": 1
-      }
+      "value": 1,
+      "slug": "clumsy"
     },
     "flags": {
       "fusion": {
@@ -250,10 +243,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "concealed"
     },
     "flags": {
       "fusion": {
@@ -352,7 +342,10 @@
           "title": "{item|name}",
           "predicate": [
             {
-              "or": ["item:type:spell", "origin:action:trait:attack"]
+              "or": [
+                "item:type:spell",
+                "origin:action:trait:attack"
+              ]
             }
           ],
           "priority": null,
@@ -360,7 +353,10 @@
             "key": "Note",
             "predicate": [
               {
-                "or": ["item:type:spell", "origin:action:trait:attack"]
+                "or": [
+                  "item:type:spell",
+                  "origin:action:trait:attack"
+                ]
               }
             ],
             "selector": "damage-received",
@@ -372,10 +368,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "confused"
     },
     "flags": {
       "fusion": {
@@ -432,10 +425,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "controlled"
     },
     "flags": {
       "fusion": {
@@ -488,11 +478,8 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "immutable": false,
-        "isValued": true,
-        "value": 1
-      }
+      "value": 1,
+      "slug": "cursebound"
     },
     "flags": {
       "fusion": {
@@ -545,10 +532,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "dazzled"
     },
     "flags": {
       "fusion": {
@@ -598,7 +582,10 @@
           "kind": "flat-modifier",
           "slug": "deafened",
           "label": null,
-          "selector": ["perception", "skill-check"],
+          "selector": [
+            "perception",
+            "skill-check"
+          ],
           "value": -2,
           "mode": "add",
           "type": "status",
@@ -606,10 +593,16 @@
             {
               "or": [
                 {
-                  "and": ["check:type:skill", "item:trait:auditory"]
+                  "and": [
+                    "check:type:skill",
+                    "item:trait:auditory"
+                  ]
                 },
                 {
-                  "and": ["check:statistic:base:perception", "check:statistic:initiative"]
+                  "and": [
+                    "check:statistic:base:perception",
+                    "check:statistic:initiative"
+                  ]
                 }
               ]
             }
@@ -621,15 +614,24 @@
               {
                 "or": [
                   {
-                    "and": ["check:type:skill", "item:trait:auditory"]
+                    "and": [
+                      "check:type:skill",
+                      "item:trait:auditory"
+                    ]
                   },
                   {
-                    "and": ["check:statistic:base:perception", "check:statistic:initiative"]
+                    "and": [
+                      "check:statistic:base:perception",
+                      "check:statistic:initiative"
+                    ]
                   }
                 ]
               }
             ],
-            "selector": ["perception", "skill-check"],
+            "selector": [
+              "perception",
+              "skill-check"
+            ],
             "slug": "deafened",
             "type": "status",
             "value": -2
@@ -656,13 +658,17 @@
           "selector": "description",
           "value": null,
           "mode": "add",
-          "predicate": ["item:trait:auditory"],
+          "predicate": [
+            "item:trait:auditory"
+          ],
           "priority": null,
           "raw": {
             "itemType": "action",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": ["item:trait:auditory"],
+            "predicate": [
+              "item:trait:auditory"
+            ],
             "property": "description",
             "value": [
               {
@@ -679,13 +685,17 @@
           "selector": "description",
           "value": null,
           "mode": "add",
-          "predicate": ["item:trait:auditory"],
+          "predicate": [
+            "item:trait:auditory"
+          ],
           "priority": null,
           "raw": {
             "itemType": "feat",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": ["item:trait:auditory"],
+            "predicate": [
+              "item:trait:auditory"
+            ],
             "property": "description",
             "value": [
               {
@@ -729,10 +739,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "deafened"
     },
     "flags": {
       "fusion": {
@@ -751,7 +758,9 @@
             "itemType": "action",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": ["item:trait:auditory"],
+            "predicate": [
+              "item:trait:auditory"
+            ],
             "property": "description",
             "value": [
               {
@@ -764,7 +773,9 @@
             "itemType": "feat",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": ["item:trait:auditory"],
+            "predicate": [
+              "item:trait:auditory"
+            ],
             "property": "description",
             "value": [
               {
@@ -795,7 +806,9 @@
               "all": "to-critical-failure"
             },
             "key": "AdjustDegreeOfSuccess",
-            "predicate": ["item:trait:auditory"],
+            "predicate": [
+              "item:trait:auditory"
+            ],
             "selector": "perception",
             "_conversionState": "unsupported"
           }
@@ -839,10 +852,8 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": true,
-        "value": 1
-      }
+      "value": 1,
+      "slug": "doomed"
     },
     "flags": {
       "fusion": {
@@ -932,11 +943,8 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "immutable": false,
-        "isValued": true,
-        "value": 1
-      }
+      "value": 1,
+      "slug": "drained"
     },
     "flags": {
       "fusion": {
@@ -1010,10 +1018,8 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": true,
-        "value": 1
-      }
+      "value": 1,
+      "slug": "dying"
     },
     "flags": {
       "fusion": {
@@ -1095,10 +1101,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "encumbered"
     },
     "flags": {
       "fusion": {
@@ -1152,7 +1155,10 @@
           "kind": "flat-modifier",
           "slug": "enfeebled",
           "label": null,
-          "selector": ["str-based", "str-damage"],
+          "selector": [
+            "str-based",
+            "str-damage"
+          ],
           "value": "-@item.badge.value",
           "mode": "add",
           "type": "status",
@@ -1160,7 +1166,10 @@
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "selector": ["str-based", "str-damage"],
+            "selector": [
+              "str-based",
+              "str-damage"
+            ],
             "slug": "enfeebled",
             "type": "status",
             "value": "-@item.badge.value"
@@ -1170,11 +1179,8 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "immutable": false,
-        "isValued": true,
-        "value": 1
-      }
+      "value": 1,
+      "slug": "enfeebled"
     },
     "flags": {
       "fusion": {
@@ -1228,7 +1234,10 @@
           "kind": "flat-modifier",
           "slug": "fascinated",
           "label": null,
-          "selector": ["perception", "skill-check"],
+          "selector": [
+            "perception",
+            "skill-check"
+          ],
           "value": -2,
           "mode": "add",
           "type": "status",
@@ -1236,7 +1245,10 @@
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "selector": ["perception", "skill-check"],
+            "selector": [
+              "perception",
+              "skill-check"
+            ],
             "slug": "fascinated",
             "type": "status",
             "value": -2
@@ -1246,10 +1258,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "fascinated"
     },
     "flags": {
       "fusion": {
@@ -1299,7 +1308,10 @@
           "kind": "flat-modifier",
           "slug": "fatigued",
           "label": null,
-          "selector": ["ac", "saving-throw"],
+          "selector": [
+            "ac",
+            "saving-throw"
+          ],
           "value": -1,
           "mode": "add",
           "type": "status",
@@ -1307,7 +1319,10 @@
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "selector": ["ac", "saving-throw"],
+            "selector": [
+              "ac",
+              "saving-throw"
+            ],
             "slug": "fatigued",
             "type": "status",
             "value": -1
@@ -1317,10 +1332,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "fatigued"
     },
     "flags": {
       "fusion": {
@@ -1373,10 +1385,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "fleeing"
     },
     "flags": {
       "fusion": {
@@ -1409,7 +1418,12 @@
         "value": 0
       },
       "group": "attitudes",
-      "overrides": ["helpful", "indifferent", "unfriendly", "hostile"],
+      "overrides": [
+        "helpful",
+        "indifferent",
+        "unfriendly",
+        "hostile"
+      ],
       "publication": {
         "license": "ORC",
         "remaster": true,
@@ -1425,10 +1439,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "friendly"
     },
     "flags": {
       "fusion": {
@@ -1500,11 +1511,8 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "immutable": false,
-        "isValued": true,
-        "value": 1
-      }
+      "value": 1,
+      "slug": "frightened"
     },
     "flags": {
       "fusion": {
@@ -1588,13 +1596,17 @@
           "selector": "description",
           "value": null,
           "mode": "add",
-          "predicate": ["item:trait:manipulate"],
+          "predicate": [
+            "item:trait:manipulate"
+          ],
           "priority": null,
           "raw": {
             "itemType": "action",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": ["item:trait:manipulate"],
+            "predicate": [
+              "item:trait:manipulate"
+            ],
             "property": "description",
             "value": [
               {
@@ -1611,13 +1623,17 @@
           "selector": "description",
           "value": null,
           "mode": "add",
-          "predicate": ["item:trait:manipulate"],
+          "predicate": [
+            "item:trait:manipulate"
+          ],
           "priority": null,
           "raw": {
             "itemType": "feat",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": ["item:trait:manipulate"],
+            "predicate": [
+              "item:trait:manipulate"
+            ],
             "property": "description",
             "value": [
               {
@@ -1634,13 +1650,17 @@
           "selector": "description",
           "value": null,
           "mode": "add",
-          "predicate": ["item:trait:manipulate"],
+          "predicate": [
+            "item:trait:manipulate"
+          ],
           "priority": null,
           "raw": {
             "itemType": "spell",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": ["item:trait:manipulate"],
+            "predicate": [
+              "item:trait:manipulate"
+            ],
             "property": "description",
             "value": [
               {
@@ -1653,10 +1673,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "grabbed"
     },
     "flags": {
       "fusion": {
@@ -1670,7 +1687,9 @@
             "itemType": "action",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": ["item:trait:manipulate"],
+            "predicate": [
+              "item:trait:manipulate"
+            ],
             "property": "description",
             "value": [
               {
@@ -1683,7 +1702,9 @@
             "itemType": "feat",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": ["item:trait:manipulate"],
+            "predicate": [
+              "item:trait:manipulate"
+            ],
             "property": "description",
             "value": [
               {
@@ -1696,7 +1717,9 @@
             "itemType": "spell",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": ["item:trait:manipulate"],
+            "predicate": [
+              "item:trait:manipulate"
+            ],
             "property": "description",
             "value": [
               {
@@ -1729,7 +1752,12 @@
         "value": 0
       },
       "group": "attitudes",
-      "overrides": ["friendly", "indifferent", "unfriendly", "hostile"],
+      "overrides": [
+        "friendly",
+        "indifferent",
+        "unfriendly",
+        "hostile"
+      ],
       "publication": {
         "license": "ORC",
         "remaster": true,
@@ -1745,10 +1773,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "helpful"
     },
     "flags": {
       "fusion": {
@@ -1797,10 +1822,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "hidden"
     },
     "flags": {
       "fusion": {
@@ -1833,7 +1855,12 @@
         "value": 0
       },
       "group": "attitudes",
-      "overrides": ["helpful", "friendly", "indifferent", "unfriendly"],
+      "overrides": [
+        "helpful",
+        "friendly",
+        "indifferent",
+        "unfriendly"
+      ],
       "publication": {
         "license": "ORC",
         "remaster": true,
@@ -1849,10 +1876,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "hostile"
     },
     "flags": {
       "fusion": {
@@ -1905,10 +1929,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "immobilized"
     },
     "flags": {
       "fusion": {
@@ -1941,7 +1962,12 @@
         "value": 0
       },
       "group": "attitudes",
-      "overrides": ["helpful", "friendly", "unfriendly", "hostile"],
+      "overrides": [
+        "helpful",
+        "friendly",
+        "unfriendly",
+        "hostile"
+      ],
       "publication": {
         "license": "ORC",
         "remaster": true,
@@ -1957,10 +1983,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "indifferent"
     },
     "flags": {
       "fusion": {
@@ -2013,10 +2036,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "invisible"
     },
     "flags": {
       "fusion": {
@@ -2065,10 +2085,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "observed"
     },
     "flags": {
       "fusion": {
@@ -2140,10 +2157,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "off-guard"
     },
     "flags": {
       "fusion": {
@@ -2208,10 +2222,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "paralyzed"
     },
     "flags": {
       "fusion": {
@@ -2272,10 +2283,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "persistent-damage"
     },
     "flags": {
       "fusion": {
@@ -2324,10 +2332,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "petrified"
     },
     "flags": {
       "fusion": {
@@ -2410,10 +2415,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "prone"
     },
     "flags": {
       "fusion": {
@@ -2466,10 +2468,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "quickened"
     },
     "flags": {
       "fusion": {
@@ -2502,7 +2501,9 @@
         "value": 0
       },
       "group": null,
-      "overrides": ["grabbed"],
+      "overrides": [
+        "grabbed"
+      ],
       "publication": {
         "license": "ORC",
         "remaster": true,
@@ -2553,13 +2554,17 @@
           "selector": "description",
           "value": null,
           "mode": "add",
-          "predicate": ["item:trait:manipulate"],
+          "predicate": [
+            "item:trait:manipulate"
+          ],
           "priority": null,
           "raw": {
             "itemType": "action",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": ["item:trait:manipulate"],
+            "predicate": [
+              "item:trait:manipulate"
+            ],
             "property": "description",
             "value": [
               {
@@ -2576,13 +2581,17 @@
           "selector": "description",
           "value": null,
           "mode": "add",
-          "predicate": ["item:trait:manipulate"],
+          "predicate": [
+            "item:trait:manipulate"
+          ],
           "priority": null,
           "raw": {
             "itemType": "feat",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": ["item:trait:manipulate"],
+            "predicate": [
+              "item:trait:manipulate"
+            ],
             "property": "description",
             "value": [
               {
@@ -2599,13 +2608,17 @@
           "selector": "description",
           "value": null,
           "mode": "add",
-          "predicate": ["item:trait:manipulate"],
+          "predicate": [
+            "item:trait:manipulate"
+          ],
           "priority": null,
           "raw": {
             "itemType": "spell",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": ["item:trait:manipulate"],
+            "predicate": [
+              "item:trait:manipulate"
+            ],
             "property": "description",
             "value": [
               {
@@ -2618,13 +2631,19 @@
           "kind": "roll-note",
           "slug": null,
           "label": null,
-          "selector": ["attack", "skill-check"],
+          "selector": [
+            "attack",
+            "skill-check"
+          ],
           "outcome": null,
           "text": "PF2E.condition.restrained.note",
           "title": "{item|name}",
           "predicate": [
             {
-              "nor": ["action:escape", "action:force-open"]
+              "nor": [
+                "action:escape",
+                "action:force-open"
+              ]
             }
           ],
           "priority": null,
@@ -2632,10 +2651,16 @@
             "key": "Note",
             "predicate": [
               {
-                "nor": ["action:escape", "action:force-open"]
+                "nor": [
+                  "action:escape",
+                  "action:force-open"
+                ]
               }
             ],
-            "selector": ["attack", "skill-check"],
+            "selector": [
+              "attack",
+              "skill-check"
+            ],
             "text": "PF2E.condition.restrained.note",
             "title": "{item|name}"
           }
@@ -2644,10 +2669,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "restrained"
     },
     "flags": {
       "fusion": {
@@ -2668,7 +2690,9 @@
             "itemType": "action",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": ["item:trait:manipulate"],
+            "predicate": [
+              "item:trait:manipulate"
+            ],
             "property": "description",
             "value": [
               {
@@ -2681,7 +2705,9 @@
             "itemType": "feat",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": ["item:trait:manipulate"],
+            "predicate": [
+              "item:trait:manipulate"
+            ],
             "property": "description",
             "value": [
               {
@@ -2694,7 +2720,9 @@
             "itemType": "spell",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": ["item:trait:manipulate"],
+            "predicate": [
+              "item:trait:manipulate"
+            ],
             "property": "description",
             "value": [
               {
@@ -2806,10 +2834,8 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": true,
-        "value": 1
-      }
+      "value": 1,
+      "slug": "sickened"
     },
     "flags": {
       "fusion": {
@@ -2883,10 +2909,8 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": true,
-        "value": 1
-      }
+      "value": 1,
+      "slug": "slowed"
     },
     "flags": {
       "fusion": {
@@ -2919,7 +2943,9 @@
         "value": 0
       },
       "group": null,
-      "overrides": ["slowed"],
+      "overrides": [
+        "slowed"
+      ],
       "publication": {
         "license": "ORC",
         "remaster": true,
@@ -2935,10 +2961,8 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": true,
-        "value": 1
-      }
+      "value": 1,
+      "slug": "stunned"
     },
     "flags": {
       "fusion": {
@@ -2992,7 +3016,11 @@
           "kind": "flat-modifier",
           "slug": "stupefied",
           "label": null,
-          "selector": ["cha-based", "int-based", "wis-based"],
+          "selector": [
+            "cha-based",
+            "int-based",
+            "wis-based"
+          ],
           "value": "-@item.badge.value",
           "mode": "add",
           "type": "status",
@@ -3000,7 +3028,11 @@
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "selector": ["cha-based", "int-based", "wis-based"],
+            "selector": [
+              "cha-based",
+              "int-based",
+              "wis-based"
+            ],
             "slug": "stupefied",
             "type": "status",
             "value": "-@item.badge.value"
@@ -3032,11 +3064,8 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "immutable": false,
-        "isValued": true,
-        "value": 1
-      }
+      "value": 1,
+      "slug": "stupefied"
     },
     "flags": {
       "fusion": {
@@ -3099,7 +3128,11 @@
           "kind": "flat-modifier",
           "slug": "unconscious",
           "label": null,
-          "selector": ["ac", "perception", "reflex"],
+          "selector": [
+            "ac",
+            "perception",
+            "reflex"
+          ],
           "value": -4,
           "mode": "add",
           "type": "status",
@@ -3107,7 +3140,11 @@
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "selector": ["ac", "perception", "reflex"],
+            "selector": [
+              "ac",
+              "perception",
+              "reflex"
+            ],
             "slug": "unconscious",
             "type": "status",
             "value": -4
@@ -3168,10 +3205,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "unconscious"
     },
     "flags": {
       "fusion": {
@@ -3220,10 +3254,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "undetected"
     },
     "flags": {
       "fusion": {
@@ -3256,7 +3287,12 @@
         "value": 0
       },
       "group": "attitudes",
-      "overrides": ["helpful", "friendly", "indifferent", "hostile"],
+      "overrides": [
+        "helpful",
+        "friendly",
+        "indifferent",
+        "hostile"
+      ],
       "publication": {
         "license": "ORC",
         "remaster": true,
@@ -3272,10 +3308,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "unfriendly"
     },
     "flags": {
       "fusion": {
@@ -3324,10 +3357,7 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "isValued": false,
-        "value": null
-      }
+      "slug": "unnoticed"
     },
     "flags": {
       "fusion": {
@@ -3380,11 +3410,8 @@
       "traits": {
         "value": []
       },
-      "value": {
-        "immutable": false,
-        "isValued": true,
-        "value": 1
-      }
+      "value": 1,
+      "slug": "wounded"
     },
     "flags": {
       "fusion": {

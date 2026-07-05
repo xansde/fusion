@@ -21,13 +21,27 @@ replaced by placeholders).
    git clone --depth 1 https://github.com/foundryvtt/pf2e vendor/pf2e
    ```
 
-2. **Run all stages in order**:
+2. **Run all stages in order** (default pack list — includes the R10-B Magus
+   builder source packs: `classes`, `class-features`, `feats`, `ancestries`,
+   `heritages`, `backgrounds`):
    ```
-   node src/extract.mjs --packs equipment,spells,conditions,pathfinder-monster-core
-   node src/normalize.mjs --packs equipment,spells,conditions,pathfinder-monster-core
-   node src/transform.mjs --packs equipment,spells,conditions,pathfinder-monster-core
+   node src/extract.mjs
+   node src/normalize.mjs --skip-extract
+   node src/transform.mjs
    node src/build-mvp-subset.mjs
    ```
+   Or explicitly:
+   ```
+   node src/extract.mjs --packs equipment,spells,conditions,pathfinder-monster-core,classes,class-features,feats,ancestries,heritages,backgrounds
+   node src/normalize.mjs --skip-extract --packs equipment,spells,conditions,pathfinder-monster-core,classes,class-features,feats,ancestries,heritages,backgrounds
+   node src/transform.mjs --packs conditions,equipment,spells,pathfinder-monster-core,classes,class-features,feats,ancestries,heritages,backgrounds
+   node src/build-mvp-subset.mjs
+   ```
+   **Important:** `classes` and `class-features` MUST be transformed in the same
+   `--packs` run — the Magus class document's `featuresByLevel[].uuid` cross-references
+   are resolved against `out/class-features/normalized.json` during that same pass
+   (see `resolveClassFeatureSourceId` in `transform.mjs`); running them separately
+   leaves `"unresolved:<name>"` placeholders instead of real fusionIds.
 
 ## Running the transform tests
 
@@ -51,13 +65,58 @@ only require `systems/pf2e/packs/` and run without `out/`.
 A minimal synthetic fixture (`samples/<pack>/sample-*.json`) is provided for
 reference and manual inspection but is not wired to the pnpm test pipeline.
 
+## Committed packs (`systems/pf2e/packs/`)
+
+| Pack                   | Docs | Curation                                                                                                  |
+| ---------------------- | ---: | ----------------------------------------------------------------------------------------------------------- |
+| `conditions`            |   43 | All PF2e conditions.                                                                                       |
+| `weapons-core`          |   30 | Hand-curated simple/martial/ranged spread.                                                                 |
+| `bestiary-core`         |   10 | Level -1..3 ORC monsters.                                                                                  |
+| `spells-core`           |  806 | Original 22 hand-picked spells + every spell with `arcane` in `traits.traditions` (all ranks/cantrips) + every Magus focus spell (R10-B, DEC-R10-06). No rituals exist in the vendor `spells` pack. |
+| `classes-core`          |    1 | Magus only (R10-B).                                                                                        |
+| `class-features-core`   |   27 | The 19 class-features referenced by the Magus's vendor `items{}` map + all 8 Magus Hybrid Studies (R10-B). |
+| `feats-core`            |  418 | Magus class feats (55, incl. shared-class-feats it's eligible for) + Ratfolk ancestry feats (26) + skill feats level ≤8 + general feats level ≤8 + Alchemist Dedication + its 2 level-4 archetype feats (R10-B). |
+| `ancestries-core`       |    1 | Ratfolk only (R10-B).                                                                                      |
+| `heritages-core`        |    7 | The 7 Ratfolk heritages, incl. Snow Rat (R10-B).                                                            |
+| `backgrounds-core`      |    1 | Fireworks Performer only (R10-B).                                                                          |
+
+R10-B curation rules (classes/class-features/feats/ancestries/heritages/backgrounds)
+are implemented as **declarative predicates** over transformed Fusion docs
+(trait/category/level checks) in `build-mvp-subset.mjs`, not fixed source-id sets —
+see `isFeatsCoreDoc`, `isClassFeaturesCoreDoc`, etc. in that file for the exact rules.
+
 ## Legal
 
 - Only ORC-licensed mechanical data is included in the committed `systems/pf2e/packs/`.
 - Paizo art (`systems/pf2e/icons/`) is replaced by placeholders (`icons/placeholder/`).
 - NPC lore/flavor text (`publicNotes`, `blurb`) is stripped — Reserved Material under
   ORC (spec 26 §D4, REQ-LEG-010).
+- Item/class/feat description prose is stripped the same way (`stripFlavorProse` in
+  `transform.mjs`) — every committed doc has `system.description === ""`.
 - The `vendor/pf2e` clone is gitignored and must not be committed.
+
+## Known schema gaps (fixed in R10-B3 `packs-validation.test.ts`)
+
+The three gaps below were found while writing `systems/pf2e/src/__tests__/packs-validation.test.ts`
+(R10-B3) — validating every committed doc in every pack against the real Zod schemas.
+All three are now fixed at the schema level (not the importer):
+
+- `EffectRuleSchema` (schema-primitives.ts) required `rules[].type: string()`, but
+  every `ModifierDescriptor` `transform.mjs` produces carries a `kind` field instead
+  (spec 16 §ModifierDescriptor is `kind`-keyed; pre-existing since before R10).
+  Fixed: the schema now accepts either `kind` or `type` as the discriminator
+  (`type` kept for backward compat with hand-authored fixtures).
+- `SpellSystemSchema`'s `area`/`defense`/`heightening` were `z.object({...}).optional()`
+  (accepts `undefined`, not `null`), but `normalizeSpellSystem` always wrote an
+  explicit `null` when the field was absent — affected 712/806 `spells-core` docs.
+  Fixed in `transform.mjs` (`normalizeSpellArea`/`Defense`/`Heightening` helpers
+  write `undefined`, never `null`).
+- `FeatSystemSchema.frequency.per` enum was missing `"round"` — a legitimate vendor
+  value (e.g. Quick Stow (Ratfolk): "once per round"); affected 3/418 `feats-core`
+  docs. Fixed: `"round"` added to the enum.
+
+All three are covered by `packs-validation.test.ts`, which parses every document in
+every pack under `systems/pf2e/packs/` against the corresponding `parse*System()`.
 
 ## V2 roadmap
 

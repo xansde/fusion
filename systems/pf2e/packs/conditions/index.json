@@ -6,8 +6,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "senses",
-      "system.value.isValued": false
+      "system.group": "senses"
     }
   },
   {
@@ -17,8 +16,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null,
-      "system.value.isValued": false
+      "system.group": null
     }
   },
   {
@@ -28,8 +26,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "abilities",
-      "system.value.isValued": true
+      "system.group": "abilities"
     }
   },
   {
@@ -39,8 +36,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "senses",
-      "system.value.isValued": false
+      "system.group": "senses"
     }
   },
   {
@@ -50,8 +46,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null,
-      "system.value.isValued": false
+      "system.group": null
     }
   },
   {
@@ -61,8 +56,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null,
-      "system.value.isValued": false
+      "system.group": null
     }
   },
   {
@@ -72,8 +66,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "abilities",
-      "system.value.isValued": true
+      "system.group": "abilities"
     }
   },
   {
@@ -83,8 +76,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "senses",
-      "system.value.isValued": false
+      "system.group": "senses"
     }
   },
   {
@@ -94,8 +86,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "senses",
-      "system.value.isValued": false
+      "system.group": "senses"
     }
   },
   {
@@ -105,8 +96,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "death",
-      "system.value.isValued": true
+      "system.group": "death"
     }
   },
   {
@@ -116,8 +106,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "abilities",
-      "system.value.isValued": true
+      "system.group": "abilities"
     }
   },
   {
@@ -127,8 +116,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "death",
-      "system.value.isValued": true
+      "system.group": "death"
     }
   },
   {
@@ -138,8 +126,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null,
-      "system.value.isValued": false
+      "system.group": null
     }
   },
   {
@@ -149,8 +136,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "abilities",
-      "system.value.isValued": true
+      "system.group": "abilities"
     }
   },
   {
@@ -160,8 +146,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null,
-      "system.value.isValued": false
+      "system.group": null
     }
   },
   {
@@ -171,8 +156,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null,
-      "system.value.isValued": false
+      "system.group": null
     }
   },
   {
@@ -182,8 +166,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null,
-      "system.value.isValued": false
+      "system.group": null
     }
   },
   {
@@ -193,8 +176,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "attitudes",
-      "system.value.isValued": false
+      "system.group": "attitudes"
     }
   },
   {
@@ -204,8 +186,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null,
-      "system.value.isValued": true
+      "system.group": null
     }
   },
   {
@@ -215,8 +196,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null,
-      "system.value.isValued": false
+      "system.group": null
     }
   },
   {
@@ -226,8 +206,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "attitudes",
-      "system.value.isValued": false
+      "system.group": "attitudes"
     }
   },
   {
@@ -237,8 +216,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "detection",
-      "system.value.isValued": false
+      "system.group": "detection"
     }
   },
   {
@@ -248,8 +226,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "attitudes",
-      "system.value.isValued": false
+      "system.group": "attitudes"
     }
   },
   {
@@ -259,8 +236,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null,
-      "system.value.isValued": false
+      "system.group": null
     }
   },
   {
@@ -270,8 +246,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "attitudes",
-      "system.value.isValued": false
+      "system.group": "attitudes"
     }
   },
   {
@@ -281,8 +256,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "senses",
-      "system.value.isValued": false
+      "system.group": "senses"
     }
   },
   {
@@ -292,8 +266,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "detection",
-      "system.value.isValued": false
+      "system.group": "detection"
     }
   },
   {
@@ -303,8 +276,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null,
-      "system.value.isValued": false
+      "system.group": null
     }
   },
   {
@@ -314,8 +286,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null,
-      "system.value.isValued": false
+      "system.group": null
     }
   },
   {
@@ -325,8 +296,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null,
-      "system.value.isValued": false
+      "system.group": null
     }
   },
   {
@@ -336,8 +306,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null,
-      "system.value.isValued": false
+      "system.group": null
     }
   },
   {
@@ -347,8 +316,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null,
-      "system.value.isValued": false
+      "system.group": null
     }
   },
   {
@@ -358,8 +326,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null,
-      "system.value.isValued": false
+      "system.group": null
     }
   },
   {
@@ -369,8 +336,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null,
-      "system.value.isValued": false
+      "system.group": null
     }
   },
   {
@@ -380,8 +346,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null,
-      "system.value.isValued": true
+      "system.group": null
     }
   },
   {
@@ -391,8 +356,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null,
-      "system.value.isValued": true
+      "system.group": null
     }
   },
   {
@@ -402,8 +366,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null,
-      "system.value.isValued": true
+      "system.group": null
     }
   },
   {
@@ -413,8 +376,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "abilities",
-      "system.value.isValued": true
+      "system.group": "abilities"
     }
   },
   {
@@ -424,8 +386,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "death",
-      "system.value.isValued": false
+      "system.group": "death"
     }
   },
   {
@@ -435,8 +396,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "detection",
-      "system.value.isValued": false
+      "system.group": "detection"
     }
   },
   {
@@ -446,8 +406,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "attitudes",
-      "system.value.isValued": false
+      "system.group": "attitudes"
     }
   },
   {
@@ -457,8 +416,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "detection",
-      "system.value.isValued": false
+      "system.group": "detection"
     }
   },
   {
@@ -468,8 +426,7 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "death",
-      "system.value.isValued": true
+      "system.group": "death"
     }
   }
 ]

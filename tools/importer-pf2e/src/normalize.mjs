@@ -48,8 +48,25 @@ function vendorBaseFor(system) {
 // ---------------------------------------------------------------------------
 // Config
 // ---------------------------------------------------------------------------
+/**
+ * R10-B (DEC-R10-06) added classes/class-features/feats/ancestries/
+ * heritages/backgrounds — vendor source packs for the Magus builder MVP
+ * subset (classes-core, class-features-core, feats-core, ancestries-core,
+ * heritages-core, backgrounds-core in build-mvp-subset.mjs).
+ */
 const DEFAULT_TARGET_PACKS_BY_SYSTEM = {
-  pf2e: ["equipment", "spells", "conditions", "pathfinder-monster-core"],
+  pf2e: [
+    "equipment",
+    "spells",
+    "conditions",
+    "pathfinder-monster-core",
+    "classes",
+    "class-features",
+    "feats",
+    "ancestries",
+    "heritages",
+    "backgrounds",
+  ],
   sf2e: ["equipment", "spells", "conditions", "alien-core-bestiary", "rulebook-bestiaries"],
 };
 
@@ -115,6 +132,7 @@ const TYPE_PLACEHOLDERS = {
   heritage: "icons/placeholder/feat.svg",
   ancestry: "icons/placeholder/feat.svg",
   class: "icons/placeholder/feat.svg",
+  classFeature: "icons/placeholder/feat.svg",
   effect: "icons/placeholder/effect.svg",
   condition: "icons/placeholder/condition.svg",
   deity: "icons/placeholder/item.svg",

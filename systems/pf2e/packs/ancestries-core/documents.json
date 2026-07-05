@@ -1,0 +1,84 @@
+[
+  {
+    "_id": "3FBntMsNiVE09eEx",
+    "name": "Ratfolk",
+    "type": "ancestry",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "additionalLanguages": {
+        "count": 0,
+        "custom": "",
+        "value": [
+          "aklo",
+          "draconic",
+          "dwarven",
+          "gnomish",
+          "goblin",
+          "halfling",
+          "kholo",
+          "orcish",
+          "sakvroth"
+        ]
+      },
+      "boosts": [
+        "dex",
+        "int",
+        "free"
+      ],
+      "description": "",
+      "flaws": [
+        "str"
+      ],
+      "hands": 2,
+      "hp": 6,
+      "items": {
+        "jkllM": {
+          "img": "icons/commodities/bones/skull-lizard-tan.webp",
+          "level": 1,
+          "name": "Sharp Teeth",
+          "uuid": "Compendium.pf2e.ancestryfeatures.Item.Sharp Teeth"
+        }
+      },
+      "languages": {
+        "value": [
+          "common",
+          "ysoki"
+        ]
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "reach": 5,
+      "rules": [],
+      "size": "sm",
+      "speed": 25,
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "humanoid",
+          "ratfolk"
+        ]
+      },
+      "vision": "low-light-vision"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "P6PcVnCkh4XMdefw",
+        "packName": "ancestries",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "ratfolk.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  }
+]

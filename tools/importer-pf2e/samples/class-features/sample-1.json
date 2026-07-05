@@ -1,0 +1,42 @@
+{
+  "_id": "GI5IAl4dkly4At8e",
+  "pf2eSourceId": "GI5IAl4dkly4At8e",
+  "type": "feat",
+  "name": "Ability Boosts",
+  "img": "icons/placeholder/feat.svg",
+  "originalImgRef": "ability-boosts.webp",
+  "system": {
+    "actionType": {
+      "value": "passive"
+    },
+    "actions": {
+      "value": null
+    },
+    "category": "classfeature",
+    "description": {
+      "value": "<p>At 5th level and every 5 levels thereafter, boost four different ability scores. You can use these boosts to increase ability scores above 18. Boosting an ability score increases it by 1 if it's already 18 or above, or by 2 if it starts out below 18.</p>\n<p>Your eidolon also gets four ability boosts at these levels. The eidolon's ability boosts follow the same rules as yours.</p>"
+    },
+    "level": {
+      "value": 5
+    },
+    "prerequisites": {
+      "value": []
+    },
+    "publication": {
+      "license": "OGL",
+      "remaster": false,
+      "title": "Pathfinder Secrets of Magic"
+    },
+    "rules": [],
+    "traits": {
+      "rarity": "common",
+      "value": [
+        "summoner"
+      ]
+    }
+  },
+  "_fusion": {
+    "normalizedAt": "2026-07-05T02:09:30.813Z",
+    "removedFields": []
+  }
+}

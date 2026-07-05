@@ -18,10 +18,40 @@
     {
       "packId": "pf2e.spells-core",
       "slug": "spells-core",
-      "documentCount": 22
+      "documentCount": 806
+    },
+    {
+      "packId": "pf2e.classes-core",
+      "slug": "classes-core",
+      "documentCount": 1
+    },
+    {
+      "packId": "pf2e.class-features-core",
+      "slug": "class-features-core",
+      "documentCount": 27
+    },
+    {
+      "packId": "pf2e.feats-core",
+      "slug": "feats-core",
+      "documentCount": 418
+    },
+    {
+      "packId": "pf2e.ancestries-core",
+      "slug": "ancestries-core",
+      "documentCount": 1
+    },
+    {
+      "packId": "pf2e.heritages-core",
+      "slug": "heritages-core",
+      "documentCount": 7
+    },
+    {
+      "packId": "pf2e.backgrounds-core",
+      "slug": "backgrounds-core",
+      "documentCount": 1
     }
   ],
-  "generatedAt": "2026-06-26T07:43:28.340Z",
+  "generatedAt": "2026-07-05T03:27:06.712Z",
   "importerVersion": "0.1.0",
   "sourceVersion": "v14-dev"
 }

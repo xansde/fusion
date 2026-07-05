@@ -1,0 +1,17 @@
+[
+  {
+    "_id": "fk29yXFinPhreKL0",
+    "uuid": "Compendium.pf2e.classes-core.Item.fk29yXFinPhreKL0",
+    "name": "Magus",
+    "img": "icons/placeholder/feat.svg",
+    "type": "class",
+    "index": {
+      "name": "Magus",
+      "system.keyAbility": [
+        "dex",
+        "str"
+      ],
+      "system.traits.value": []
+    }
+  }
+]

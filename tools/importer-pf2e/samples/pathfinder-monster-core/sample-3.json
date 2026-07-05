@@ -55,7 +55,11 @@
       "blurb": "",
       "languages": {
         "details": "Telepathy 100 feet",
-        "value": ["aklo", "common", "sakvroth"]
+        "value": [
+          "aklo",
+          "common",
+          "sakvroth"
+        ]
       },
       "level": {
         "value": 2
@@ -127,7 +131,10 @@
       "size": {
         "value": "med"
       },
-      "value": ["humanoid", "serpentfolk"]
+      "value": [
+        "humanoid",
+        "serpentfolk"
+      ]
     }
   },
   "items": [
@@ -234,8 +241,18 @@
         },
         "traits": {
           "rarity": "common",
-          "traditions": ["arcane", "occult"],
-          "value": ["concentrate", "incapacitation", "linguistic", "manipulate", "mental", "subtle"]
+          "traditions": [
+            "arcane",
+            "occult"
+          ],
+          "value": [
+            "concentrate",
+            "incapacitation",
+            "linguistic",
+            "manipulate",
+            "mental",
+            "subtle"
+          ]
         }
       }
     },
@@ -286,8 +303,16 @@
         },
         "traits": {
           "rarity": "common",
-          "traditions": ["arcane", "occult"],
-          "value": ["concentrate", "illusion", "manipulate", "visual"]
+          "traditions": [
+            "arcane",
+            "occult"
+          ],
+          "value": [
+            "concentrate",
+            "illusion",
+            "manipulate",
+            "visual"
+          ]
         }
       }
     },
@@ -337,8 +362,16 @@
         },
         "traits": {
           "rarity": "common",
-          "traditions": ["arcane", "occult"],
-          "value": ["concentrate", "illusion", "manipulate", "visual"]
+          "traditions": [
+            "arcane",
+            "occult"
+          ],
+          "value": [
+            "concentrate",
+            "illusion",
+            "manipulate",
+            "visual"
+          ]
         }
       }
     },
@@ -388,8 +421,18 @@
         },
         "traits": {
           "rarity": "common",
-          "traditions": ["arcane", "divine", "occult", "primal"],
-          "value": ["auditory", "concentrate", "illusion", "manipulate"]
+          "traditions": [
+            "arcane",
+            "divine",
+            "occult",
+            "primal"
+          ],
+          "value": [
+            "auditory",
+            "concentrate",
+            "illusion",
+            "manipulate"
+          ]
         }
       }
     },
@@ -467,7 +510,12 @@
         },
         "traits": {
           "rarity": "common",
-          "value": ["agile", "finesse", "thrown-10", "versatile-s"]
+          "value": [
+            "agile",
+            "finesse",
+            "thrown-10",
+            "versatile-s"
+          ]
         },
         "usage": {
           "canBeAmmo": false,
@@ -554,7 +602,9 @@
         },
         "traits": {
           "rarity": "common",
-          "value": ["deadly-d10"]
+          "value": [
+            "deadly-d10"
+          ]
         },
         "usage": {
           "value": "held-in-one-plus-hands"
@@ -597,7 +647,9 @@
         "slug": "arrows",
         "traits": {
           "rarity": "common",
-          "value": ["consumable"]
+          "value": [
+            "consumable"
+          ]
         },
         "uses": {
           "autoDestroy": true,
@@ -618,7 +670,9 @@
         },
         "attackEffects": {
           "custom": "",
-          "value": ["serpentfolk-venom"]
+          "value": [
+            "serpentfolk-venom"
+          ]
         },
         "bonus": {
           "value": 10
@@ -642,7 +696,9 @@
         "slug": null,
         "traits": {
           "rarity": "common",
-          "value": ["finesse"]
+          "value": [
+            "finesse"
+          ]
         }
       }
     },
@@ -658,7 +714,9 @@
         },
         "attackEffects": {
           "custom": "",
-          "value": ["serpentfolk-venom"]
+          "value": [
+            "serpentfolk-venom"
+          ]
         },
         "bonus": {
           "value": 10
@@ -682,7 +740,11 @@
         "slug": null,
         "traits": {
           "rarity": "common",
-          "value": ["agile", "finesse", "versatile-s"]
+          "value": [
+            "agile",
+            "finesse",
+            "versatile-s"
+          ]
         }
       }
     },
@@ -698,7 +760,9 @@
         },
         "attackEffects": {
           "custom": "",
-          "value": ["serpentfolk-venom"]
+          "value": [
+            "serpentfolk-venom"
+          ]
         },
         "bonus": {
           "value": 10
@@ -725,7 +789,9 @@
         "slug": null,
         "traits": {
           "rarity": "common",
-          "value": ["deadly-d10"]
+          "value": [
+            "deadly-d10"
+          ]
         }
       }
     },
@@ -755,7 +821,11 @@
         "slug": "telepathy",
         "traits": {
           "rarity": "common",
-          "value": ["aura", "magical", "mental"]
+          "value": [
+            "aura",
+            "magical",
+            "mental"
+          ]
         }
       }
     },
@@ -784,7 +854,9 @@
         "rules": [
           {
             "key": "FlatModifier",
-            "predicate": ["item:magical"],
+            "predicate": [
+              "item:magical"
+            ],
             "selector": "saving-throw",
             "type": "status",
             "value": 1
@@ -822,7 +894,9 @@
         "rules": [
           {
             "key": "FlatModifier",
-            "predicate": ["mental"],
+            "predicate": [
+              "mental"
+            ],
             "selector": "will",
             "type": "status",
             "value": 4
@@ -890,13 +964,15 @@
         "slug": "serpentfolk-venom",
         "traits": {
           "rarity": "common",
-          "value": ["poison"]
+          "value": [
+            "poison"
+          ]
         }
       }
     }
   ],
   "_fusion": {
-    "normalizedAt": "2026-06-13T00:29:04.874Z",
+    "normalizedAt": "2026-07-05T02:09:30.470Z",
     "removedFields": []
   }
 }

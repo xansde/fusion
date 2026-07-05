@@ -143,17 +143,38 @@ export const PublicationSchema = z.object({
 /**
  * Permissive schema for a single effect rule.
  *
- * We validate only the discriminator `type` field; all other fields are
- * passed through untouched. This ensures documents from the importer with
- * unsupported rule types remain valid.
+ * We validate only that a discriminator string field is present; all other
+ * fields are passed through untouched. This ensures documents from the
+ * importer with unsupported rule types remain valid.
+ *
+ * Two discriminator field names are accepted:
+ *   - `kind` — the canonical `ModifierDescriptor` shape emitted by
+ *     tools/importer-pf2e/src/transform.mjs, per spec 16
+ *     (§ModifierDescriptor: "flat-modifier" | "set-property" | "roll-option"
+ *     | "grant-item" | "roll-note"). This is what every real pack on disk
+ *     contains (conditions, heritages-core, feats-core, class-features-core).
+ *   - `type` — accepted for backward compatibility with hand-authored
+ *     fixtures/tests written before the importer's `kind` shape was
+ *     finalized (e.g. `{ type: "grantItem", ... }` in schemas-item.test.ts).
+ *
+ * FIX (R10-B3 packs-validation): this schema originally required `type`
+ * only, which rejected every real rule ever produced by the importer
+ * (verified against conditions/heritages-core/feats-core/class-features-core
+ * — 100% of documents with non-empty `rules[]` use `kind`, matching spec 16
+ * verbatim). Rather than rewrite the importer to emit a field name the spec
+ * doesn't use, the schema now accepts the spec-correct field.
  *
  * REQ-PF2-204.
  */
 export const EffectRuleSchema = z
   .object({
-    type: z.string(),
+    kind: z.string().optional(),
+    type: z.string().optional(),
   })
-  .passthrough();
+  .passthrough()
+  .refine((rule) => typeof rule.kind === "string" || typeof rule.type === "string", {
+    message: "EffectRule must have a string 'kind' or 'type' discriminator",
+  });
 
 export type EffectRuleRaw = z.infer<typeof EffectRuleSchema>;
 

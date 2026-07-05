@@ -40,9 +40,26 @@ function vendorBaseFor(system) {
   return join(VENDOR_ROOT, system);
 }
 
-/** Default target packs per system (Tier 1 essenciais para este estágio). */
+/**
+ * Default target packs per system (Tier 1 essenciais para este estágio).
+ * R10-B (DEC-R10-06) added classes/class-features/feats/ancestries/
+ * heritages/backgrounds — vendor source packs for the Magus builder MVP
+ * subset (classes-core, class-features-core, feats-core, ancestries-core,
+ * heritages-core, backgrounds-core in build-mvp-subset.mjs).
+ */
 const DEFAULT_TARGET_PACKS_BY_SYSTEM = {
-  pf2e: ['equipment', 'spells', 'conditions', 'pathfinder-monster-core'],
+  pf2e: [
+    'equipment',
+    'spells',
+    'conditions',
+    'pathfinder-monster-core',
+    'classes',
+    'class-features',
+    'feats',
+    'ancestries',
+    'heritages',
+    'backgrounds',
+  ],
   // sf2e: sem pack "conditions" mecânico útil isoladamente (só 3 docs, tipo
   // "effect" — ver analysis/08-sf2e-import.md); bestiary/equipment/spells
   // são as fontes do subset MVP.

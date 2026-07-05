@@ -3,7 +3,11 @@
   "label": "PF2e Core Bestiary",
   "documentType": "Actor",
   "systemId": "pf2e",
-  "indexFields": ["system.details.level.value", "system.traits.value", "system.attributes.hp.max"],
+  "indexFields": [
+    "system.details.level.value",
+    "system.traits.value",
+    "system.attributes.hp.max"
+  ],
   "license": {
     "license": "ORC",
     "attribution": "Pathfinder Monster Core © 2024 Paizo Inc. Licensed under the ORC License.",
@@ -18,5 +22,5 @@
   },
   "schemaVersion": 1,
   "documentCount": 10,
-  "generatedAt": "2026-06-26T07:43:28.537Z"
+  "generatedAt": "2026-07-05T03:27:07.459Z"
 }

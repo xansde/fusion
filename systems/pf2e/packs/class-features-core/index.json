@@ -1,0 +1,492 @@
+[
+  {
+    "_id": "X9sJnNpTtf1p2nbI",
+    "uuid": "Compendium.pf2e.class-features-core.Item.X9sJnNpTtf1p2nbI",
+    "name": "Alertness",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Alertness",
+      "system.level": 3,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "magus"
+      ]
+    }
+  },
+  {
+    "_id": "W2TtTf4vbOLuac4K",
+    "uuid": "Compendium.pf2e.class-features-core.Item.W2TtTf4vbOLuac4K",
+    "name": "Aloof Firmament",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Aloof Firmament",
+      "system.level": 1,
+      "system.category": "hybridStudy",
+      "system.traits.value": [
+        "magus"
+      ]
+    }
+  },
+  {
+    "_id": "pf6KyAB13Qf5GQ9Q",
+    "uuid": "Compendium.pf2e.class-features-core.Item.pf6KyAB13Qf5GQ9Q",
+    "name": "Arcane Cascade",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Arcane Cascade",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "magus"
+      ]
+    }
+  },
+  {
+    "_id": "xvC1jNDkNdNtZQiF",
+    "uuid": "Compendium.pf2e.class-features-core.Item.xvC1jNDkNdNtZQiF",
+    "name": "Arcane Spellcasting (Magus)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Arcane Spellcasting (Magus)",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "magus"
+      ]
+    }
+  },
+  {
+    "_id": "4TibtVUC1A4nu3lj",
+    "uuid": "Compendium.pf2e.class-features-core.Item.4TibtVUC1A4nu3lj",
+    "name": "Conflux Spells",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Conflux Spells",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "magus"
+      ]
+    }
+  },
+  {
+    "_id": "d1DLOebEvisqe0VP",
+    "uuid": "Compendium.pf2e.class-features-core.Item.d1DLOebEvisqe0VP",
+    "name": "Double Spellstrike",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Double Spellstrike",
+      "system.level": 19,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "magus"
+      ]
+    }
+  },
+  {
+    "_id": "HBkLN3XV5QAcSEaH",
+    "uuid": "Compendium.pf2e.class-features-core.Item.HBkLN3XV5QAcSEaH",
+    "name": "Expert Spellcaster",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Expert Spellcaster",
+      "system.level": 7,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "animist",
+        "bard",
+        "druid",
+        "magus",
+        "oracle",
+        "psychic",
+        "sorcerer",
+        "summoner",
+        "witch",
+        "wizard"
+      ]
+    }
+  },
+  {
+    "_id": "08FZP49WC5QReus0",
+    "uuid": "Compendium.pf2e.class-features-core.Item.08FZP49WC5QReus0",
+    "name": "Greater Weapon Specialization",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Greater Weapon Specialization",
+      "system.level": 15,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "champion",
+        "commander",
+        "fighter",
+        "gunslinger",
+        "inventor",
+        "investigator",
+        "magus",
+        "monk",
+        "ranger",
+        "rogue",
+        "swashbuckler",
+        "thaumaturge"
+      ]
+    }
+  },
+  {
+    "_id": "YQVqWitPCozoffq5",
+    "uuid": "Compendium.pf2e.class-features-core.Item.YQVqWitPCozoffq5",
+    "name": "Hybrid Study",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Hybrid Study",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "magus"
+      ]
+    }
+  },
+  {
+    "_id": "o6Oc3e0GSFurrogA",
+    "uuid": "Compendium.pf2e.class-features-core.Item.o6Oc3e0GSFurrogA",
+    "name": "Inexorable Iron",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Inexorable Iron",
+      "system.level": 1,
+      "system.category": "hybridStudy",
+      "system.traits.value": [
+        "magus"
+      ]
+    }
+  },
+  {
+    "_id": "pdx0rwjDYMVqctIw",
+    "uuid": "Compendium.pf2e.class-features-core.Item.pdx0rwjDYMVqctIw",
+    "name": "Juggernaut",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Juggernaut",
+      "system.level": 7,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "barbarian",
+        "magus"
+      ]
+    }
+  },
+  {
+    "_id": "8WLs2Ful9QpO9lun",
+    "uuid": "Compendium.pf2e.class-features-core.Item.8WLs2Ful9QpO9lun",
+    "name": "Laughing Shadow",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Laughing Shadow",
+      "system.level": 1,
+      "system.category": "hybridStudy",
+      "system.traits.value": [
+        "magus"
+      ]
+    }
+  },
+  {
+    "_id": "qm5rjGcbeMbHRQ79",
+    "uuid": "Compendium.pf2e.class-features-core.Item.qm5rjGcbeMbHRQ79",
+    "name": "Master Spellcaster",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Master Spellcaster",
+      "system.level": 15,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "animist",
+        "bard",
+        "druid",
+        "magus",
+        "oracle",
+        "psychic",
+        "sorcerer",
+        "summoner",
+        "witch",
+        "wizard"
+      ]
+    }
+  },
+  {
+    "_id": "j125sa25OAnogfDh",
+    "uuid": "Compendium.pf2e.class-features-core.Item.j125sa25OAnogfDh",
+    "name": "Medium Armor Expertise",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Medium Armor Expertise",
+      "system.level": 11,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "alchemist",
+        "barbarian",
+        "druid",
+        "gunslinger",
+        "magus",
+        "ranger",
+        "thaumaturge"
+      ]
+    }
+  },
+  {
+    "_id": "ZI7nywEZnJF0CMiw",
+    "uuid": "Compendium.pf2e.class-features-core.Item.ZI7nywEZnJF0CMiw",
+    "name": "Medium Armor Mastery",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Medium Armor Mastery",
+      "system.level": 17,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "alchemist",
+        "gunslinger",
+        "inventor",
+        "magus",
+        "ranger",
+        "thaumaturge"
+      ]
+    }
+  },
+  {
+    "_id": "BIuU56P6JTTJz7oI",
+    "uuid": "Compendium.pf2e.class-features-core.Item.BIuU56P6JTTJz7oI",
+    "name": "Reflex Expertise",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Reflex Expertise",
+      "system.level": 3,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "barbarian",
+        "bard",
+        "champion",
+        "cleric",
+        "druid",
+        "guardian",
+        "sorcerer",
+        "thaumaturge",
+        "witch",
+        "wizard"
+      ]
+    }
+  },
+  {
+    "_id": "GFaalT8iDyFLANvS",
+    "uuid": "Compendium.pf2e.class-features-core.Item.GFaalT8iDyFLANvS",
+    "name": "Resolve",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Resolve",
+      "system.level": 7,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "magus"
+      ]
+    }
+  },
+  {
+    "_id": "9X7WoX3myV1ob9wi",
+    "uuid": "Compendium.pf2e.class-features-core.Item.9X7WoX3myV1ob9wi",
+    "name": "Resurgent Maelstrom",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Resurgent Maelstrom",
+      "system.level": 1,
+      "system.category": "hybridStudy",
+      "system.traits.value": [
+        "magus"
+      ]
+    }
+  },
+  {
+    "_id": "9qxi3y111QjyQ7oE",
+    "uuid": "Compendium.pf2e.class-features-core.Item.9qxi3y111QjyQ7oE",
+    "name": "Sparkling Targe",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Sparkling Targe",
+      "system.level": 1,
+      "system.category": "hybridStudy",
+      "system.traits.value": [
+        "magus"
+      ]
+    }
+  },
+  {
+    "_id": "sy7rtPbt8x4XsYkp",
+    "uuid": "Compendium.pf2e.class-features-core.Item.sy7rtPbt8x4XsYkp",
+    "name": "Spellstrike",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Spellstrike",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "magus"
+      ]
+    }
+  },
+  {
+    "_id": "RD63JAZ4zd2UvGQ4",
+    "uuid": "Compendium.pf2e.class-features-core.Item.RD63JAZ4zd2UvGQ4",
+    "name": "Starlit Span",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Starlit Span",
+      "system.level": 1,
+      "system.category": "hybridStudy",
+      "system.traits.value": [
+        "magus"
+      ]
+    }
+  },
+  {
+    "_id": "RhQckzSWHQESDGTs",
+    "uuid": "Compendium.pf2e.class-features-core.Item.RhQckzSWHQESDGTs",
+    "name": "Studious Spells",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Studious Spells",
+      "system.level": 7,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "magus"
+      ]
+    }
+  },
+  {
+    "_id": "5iAgApzCdVQlJd7p",
+    "uuid": "Compendium.pf2e.class-features-core.Item.5iAgApzCdVQlJd7p",
+    "name": "Twisting Tree",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Twisting Tree",
+      "system.level": 1,
+      "system.category": "hybridStudy",
+      "system.traits.value": [
+        "magus"
+      ]
+    }
+  },
+  {
+    "_id": "qrFYGMgRpplhKmpU",
+    "uuid": "Compendium.pf2e.class-features-core.Item.qrFYGMgRpplhKmpU",
+    "name": "Unfurling Brocade",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Unfurling Brocade",
+      "system.level": 1,
+      "system.category": "hybridStudy",
+      "system.traits.value": [
+        "magus"
+      ]
+    }
+  },
+  {
+    "_id": "LVADu3YwnAamOx70",
+    "uuid": "Compendium.pf2e.class-features-core.Item.LVADu3YwnAamOx70",
+    "name": "Weapon Expertise",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Weapon Expertise",
+      "system.level": 5,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "champion",
+        "druid",
+        "exemplar",
+        "guardian",
+        "investigator",
+        "kineticist",
+        "magus",
+        "oracle",
+        "psychic",
+        "sorcerer",
+        "swashbuckler",
+        "thaumaturge",
+        "witch",
+        "wizard"
+      ]
+    }
+  },
+  {
+    "_id": "UXAihglkf3UssC8V",
+    "uuid": "Compendium.pf2e.class-features-core.Item.UXAihglkf3UssC8V",
+    "name": "Weapon Mastery",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Weapon Mastery",
+      "system.level": 13,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "barbarian",
+        "commander",
+        "guardian",
+        "magus",
+        "thaumaturge"
+      ]
+    }
+  },
+  {
+    "_id": "J9FT6XRcaEhYUHnV",
+    "uuid": "Compendium.pf2e.class-features-core.Item.J9FT6XRcaEhYUHnV",
+    "name": "Weapon Specialization",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Weapon Specialization",
+      "system.level": 7,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "alchemist",
+        "animist",
+        "bard",
+        "champion",
+        "cleric",
+        "commander",
+        "druid",
+        "fighter",
+        "gunslinger",
+        "inventor",
+        "investigator",
+        "kineticist",
+        "ranger",
+        "rogue",
+        "sorcerer",
+        "summoner",
+        "swashbuckler",
+        "witch",
+        "wizard"
+      ]
+    }
+  }
+]

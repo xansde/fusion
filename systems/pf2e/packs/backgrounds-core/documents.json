@@ -1,0 +1,64 @@
+[
+  {
+    "_id": "XGTsuhOCcthVvoFt",
+    "name": "Fireworks Performer",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "",
+      "items": {
+        "wr9b9": {
+          "img": "icons/sundries/books/book-red-exclamation.webp",
+          "level": 1,
+          "name": "Fascinating Performance",
+          "uuid": "Compendium.pf2e.feats-srd.Item.Fascinating Performance"
+        }
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Guns & Gears"
+      },
+      "rules": [],
+      "trainedSkills": {
+        "custom": "",
+        "lore": [
+          "Fireworks Lore"
+        ],
+        "value": [
+          "performance"
+        ]
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "skills": {
+        "performance": {
+          "value": 1
+        }
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "2lk5NOcu1aUglUdK",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "background.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  }
+]

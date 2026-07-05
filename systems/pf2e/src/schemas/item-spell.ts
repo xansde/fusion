@@ -72,10 +72,16 @@ export const SpellSystemSchema = z
     castTime: z.string().default("2"),
     /** Range description ("touch", "30 feet", "500 feet"). */
     range: z.string().optional(),
-    /** Area of effect. */
+    /**
+     * Area of effect. "cylinder"/"cube"/"square" added (R10-B3
+     * packs-validation): real PF2e area shapes used by public-domain-
+     * mechanics spells (Flame Vortex/Reverse Gravity/Whirlpool = cylinder;
+     * Bramble Bush/Expeditious Excavation = cube; Buzzing Servants/Rally
+     * Point = square — all verified against spells-core, not prose).
+     */
     area: z
       .object({
-        type: z.enum(["burst", "cone", "line", "emanation"]),
+        type: z.enum(["burst", "cone", "cube", "cylinder", "emanation", "line", "square"]),
         value: z.number().int().positive(),
       })
       .optional(),
@@ -83,7 +89,13 @@ export const SpellSystemSchema = z
     target: z.string().optional(),
     /** Duration description. */
     duration: z.object({ value: z.string(), sustained: z.boolean().default(false) }).optional(),
-    /** Defense — save or spell attack. */
+    /**
+     * Defense — save, spell attack, or passive (vs. a target's own
+     * statistic, e.g. AC). `passive` added (R10-B3 packs-validation): real
+     * vendor shape for spells like Banishing Touch/Black Tentacles
+     * (`{passive: {statistic: "ac"}, save: null}` — a passive defense
+     * distinct from an active saving throw, not prose).
+     */
     defense: z
       .object({
         save: z
@@ -94,6 +106,7 @@ export const SpellSystemSchema = z
           })
           .optional(),
         spellAttack: z.boolean().optional(),
+        passive: z.object({ statistic: z.string() }).optional(),
       })
       .optional(),
     /** Damage map: "0" | "1" | ... → entry. */

@@ -22,11 +22,18 @@ export const FeatSystemSchema = z
     actionType: z.enum(["passive", "action", "reaction", "free"]).default("passive"),
     /** Number of actions (relevant when actionType = "action"). */
     actions: z.number().int().min(1).max(3).nullable().default(null),
-    /** Frequency: times-per-day, per-encounter, etc. */
+    /**
+     * Frequency: times-per-day, per-encounter, etc.
+     *
+     * "round" added (R10-B3 packs-validation): real vendor feats use it
+     * (e.g. Quick Stow (Ratfolk), Diverse Recognition, That Was a Close
+     * One, Huh? — all `{max:1, per:"round"}`), and it's a legitimate PF2e
+     * frequency unit (shorter than "turn") distinct from the other five.
+     */
     frequency: z
       .object({
         max: z.number().int().positive(),
-        per: z.enum(["day", "encounter", "hour", "minute", "turn"]),
+        per: z.enum(["day", "encounter", "hour", "minute", "round", "turn"]),
       })
       .optional(),
     /** Prerequisites (displayed text). */

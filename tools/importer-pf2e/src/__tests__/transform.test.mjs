@@ -19,7 +19,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -405,7 +405,19 @@ describe('flavor-prose policy (committed packs)', () => {
 // ---------------------------------------------------------------------------
 
 describe('MVP packs', () => {
-  const packSlugs = ['conditions', 'weapons-core', 'bestiary-core', 'spells-core'];
+  const packSlugs = [
+    'conditions',
+    'weapons-core',
+    'bestiary-core',
+    'spells-core',
+    // R10-B (DEC-R10-06) — Magus builder MVP subset
+    'classes-core',
+    'class-features-core',
+    'feats-core',
+    'ancestries-core',
+    'heritages-core',
+    'backgrounds-core',
+  ];
 
   for (const slug of packSlugs) {
     describe(`pf2e.${slug}`, () => {
@@ -474,9 +486,125 @@ describe('MVP packs', () => {
     assert.ok(docs.length >= 8 && docs.length <= 15, `Expected ~10 monsters, got ${docs.length}`);
   });
 
-  it('spells-core has 15-25 spells', () => {
+  it('spells-core has the original 22 plus every arcane-tradition + Magus focus spell (DEC-R10-06)', () => {
     const docs = loadJson(join(PACKS_DIR, 'spells-core', 'documents.json'));
-    assert.ok(docs.length >= 15 && docs.length <= 25, `Expected 15-25 spells, got ${docs.length}`);
+    assert.ok(docs.length >= 700, `Expected 700+ spells after R10-B expansion, got ${docs.length}`);
+    const names = docs.map(d => d.name);
+    // Original 22 hand-picked spells must all still be present.
+    for (const n of ['Fireball', 'Heal', 'Guidance', 'Stabilize', 'Heroism', 'Harm']) {
+      assert.ok(names.includes(n), `Original spells-core spell "${n}" missing after expansion`);
+    }
+    // Magus focus spell from the Starlit Span hybrid study.
+    assert.ok(names.includes('Shooting Star'), 'Shooting Star (Magus focus spell) missing');
+  });
+
+  // -------------------------------------------------------------------------
+  // R10-B (DEC-R10-06) — new curated packs for the Magus builder MVP.
+  // -------------------------------------------------------------------------
+
+  it('classes-core has exactly Magus', () => {
+    const docs = loadJson(join(PACKS_DIR, 'classes-core', 'documents.json'));
+    assert.equal(docs.length, 1);
+    assert.equal(docs[0].name, 'Magus');
+    assert.equal(docs[0].type, 'class');
+  });
+
+  it('class-features-core has the 19 items{}-map features + 8 hybrid studies (27 total)', () => {
+    const docs = loadJson(join(PACKS_DIR, 'class-features-core', 'documents.json'));
+    assert.equal(docs.length, 27);
+    assert.ok(docs.every(d => d.type === 'classFeature'));
+    const hybridStudies = docs.filter(d => d.system.category === 'hybridStudy');
+    assert.equal(hybridStudies.length, 8, 'Expected all 8 Magus Hybrid Studies');
+    assert.ok(docs.some(d => d.name === 'Starlit Span'), 'Starlit Span hybrid study missing');
+  });
+
+  it('classes-core Magus featuresByLevel[].uuid all resolve to a real class-features-core _id', () => {
+    const magus = loadJson(join(PACKS_DIR, 'classes-core', 'documents.json'))[0];
+    const classFeatures = loadJson(join(PACKS_DIR, 'class-features-core', 'documents.json'));
+    const classFeatureIds = new Set(classFeatures.map(d => d._id));
+    assert.equal(magus.system.featuresByLevel.length, 19);
+    for (const ref of magus.system.featuresByLevel) {
+      assert.ok(
+        classFeatureIds.has(ref.uuid),
+        `featuresByLevel ref "${ref.name}" (uuid ${ref.uuid}) does not resolve to a class-features-core doc`,
+      );
+    }
+  });
+
+  it('feats-core contains every acceptance-criterion feat from the Tobias build (DEC-R10-06)', () => {
+    const docs = loadJson(join(PACKS_DIR, 'feats-core', 'documents.json'));
+    assert.equal(docs.length, 418);
+    const names = docs.map(d => d.name);
+    for (const n of [
+      "Magus's Analysis",
+      'Impressive Performance',
+      'Read Lips',
+      'Tinkering Fingers',
+      'Alchemical Crafting',
+      'Fascinating Performance',
+      'Alchemist Dedication',
+    ]) {
+      assert.ok(names.includes(n), `Required feat "${n}" missing from feats-core`);
+    }
+  });
+
+  it('feats-core has no leftover {value: ...} wrapper on system.actions', () => {
+    const docs = loadJson(join(PACKS_DIR, 'feats-core', 'documents.json'));
+    for (const doc of docs) {
+      const actions = doc.system.actions;
+      const isWrapperLeftover = actions !== null && typeof actions === 'object' && !Array.isArray(actions);
+      assert.ok(!isWrapperLeftover, `${doc.name} still has a wrapper object for system.actions: ${JSON.stringify(actions)}`);
+    }
+  });
+
+  it('ancestries-core has exactly Ratfolk', () => {
+    const docs = loadJson(join(PACKS_DIR, 'ancestries-core', 'documents.json'));
+    assert.equal(docs.length, 1);
+    assert.equal(docs[0].name, 'Ratfolk');
+  });
+
+  it('heritages-core has exactly the 7 Ratfolk heritages (including Snow Rat)', () => {
+    const docs = loadJson(join(PACKS_DIR, 'heritages-core', 'documents.json'));
+    assert.equal(docs.length, 7);
+    assert.ok(docs.some(d => d.name === 'Snow Rat'));
+  });
+
+  it('backgrounds-core has exactly Fireworks Performer', () => {
+    const docs = loadJson(join(PACKS_DIR, 'backgrounds-core', 'documents.json'));
+    assert.equal(docs.length, 1);
+    assert.equal(docs[0].name, 'Fireworks Performer');
+  });
+
+  it('no committed R10-B pack document.json exceeds ~15 MB', () => {
+    const slugs = ['classes-core', 'class-features-core', 'feats-core', 'ancestries-core', 'heritages-core', 'backgrounds-core', 'spells-core'];
+    for (const slug of slugs) {
+      const path = join(PACKS_DIR, slug, 'documents.json');
+      const sizeMb = statSync(path).size / (1024 * 1024);
+      assert.ok(sizeMb < 15, `${slug}/documents.json is ${sizeMb.toFixed(2)} MB — exceeds 15 MB budget`);
+    }
+  });
+
+  it('no R10-B pack document has non-empty system.description (flavor prose stripped, REQ-LEG-010)', () => {
+    const slugs = ['classes-core', 'class-features-core', 'feats-core', 'ancestries-core', 'heritages-core', 'backgrounds-core', 'spells-core'];
+    for (const slug of slugs) {
+      const docs = loadJson(join(PACKS_DIR, slug, 'documents.json'));
+      for (const doc of docs) {
+        const desc = doc.system?.description;
+        if (typeof desc === 'string') {
+          assert.equal(desc, '', `${slug}/${doc.name} has non-empty system.description`);
+        }
+      }
+    }
+  });
+
+  it('every R10-B pack document img points to a placeholder path', () => {
+    const slugs = ['classes-core', 'class-features-core', 'feats-core', 'ancestries-core', 'heritages-core', 'backgrounds-core'];
+    for (const slug of slugs) {
+      const docs = loadJson(join(PACKS_DIR, slug, 'documents.json'));
+      for (const doc of docs) {
+        assert.ok(doc.img.startsWith('icons/placeholder'), `${slug}/${doc.name} img is not a placeholder: ${doc.img}`);
+      }
+    }
   });
 });
 
@@ -488,7 +616,7 @@ describe('MVP packs', () => {
 describe('fusion-uuid-map.json', () => {
   const mapPath = join(OUT_DIR, 'fusion-uuid-map.json');
 
-  it('exists and has 4 packs', () => {
+  it('exists and has the core packs (plus R10-B vendor input packs)', () => {
     const map = loadJson(mapPath);
     const keys = Object.keys(map);
     assert.ok(keys.includes('conditions'), 'Missing conditions pack in uuid map');
@@ -503,5 +631,284 @@ describe('fusion-uuid-map.json', () => {
     assert.ok(longswordFusionId, 'Longsword fusionId not in uuid map');
     const expected = deriveFusionId('equipment', 'LJdbVTOZog39EEbi');
     assert.equal(longswordFusionId, expected, 'Longsword fusionId must match derivation');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 7. R10-B — class / classFeature / ancestry / heritage / background
+// normalizers (DEC-R10-06). Reads out/{classes,class-features,ancestries,
+// heritages,backgrounds}/transformed.json — run the pipeline first:
+//   node src/extract.mjs --packs classes,class-features,ancestries,heritages,backgrounds
+//   node src/normalize.mjs --packs classes,class-features,ancestries,heritages,backgrounds
+//   node src/transform.mjs --packs classes,class-features,ancestries,heritages,backgrounds
+// (classes and class-features MUST be transformed in the same run so
+// featuresByLevel[].uuid cross-references resolve — see
+// resolveClassFeatureSourceId in transform.mjs.)
+// ---------------------------------------------------------------------------
+
+describe('R10-B: normalizeClassSystem (Magus)', () => {
+  const getMagus = () => loadTransformed('classes').find(d => d.name === 'Magus');
+
+  it('Magus doc has type "class" and a valid fusionId', () => {
+    const magus = getMagus();
+    assert.ok(magus, 'Magus class doc not found in out/classes/transformed.json');
+    assert.equal(magus.type, 'class');
+    assert.ok(isValidFusionId(magus._id));
+  });
+
+  it('featLevels match the vendor items{} map exactly', () => {
+    const { system } = getMagus();
+    assert.deepEqual(system.featLevels.ancestry, [1, 5, 9, 13, 17]);
+    assert.deepEqual(system.featLevels.class, [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]);
+    assert.deepEqual(system.featLevels.general, [3, 7, 11, 15, 19]);
+    assert.deepEqual(system.featLevels.skill, [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]);
+  });
+
+  it('skillIncreaseLevels and trainedSkills match the vendor', () => {
+    const { system } = getMagus();
+    assert.deepEqual(system.skillIncreaseLevels, [3, 5, 7, 9, 11, 13, 15, 17, 19]);
+    assert.deepEqual(system.trainedSkills, { value: ['arcana'], additional: 2 });
+  });
+
+  it('keyAbility preserves vendor order (dex, str)', () => {
+    const { system } = getMagus();
+    assert.deepEqual(system.keyAbility, ['dex', 'str']);
+  });
+
+  it('level-1 ranks (perception, saves, defenses, attacks) match the vendor', () => {
+    const { system } = getMagus();
+    assert.equal(system.perception, 1);
+    assert.deepEqual(system.savingThrows, { fortitude: 2, reflex: 1, will: 2 });
+    assert.equal(system.defenses.light, 1);
+    assert.equal(system.defenses.medium, 1);
+    assert.equal(system.defenses.unarmored, 1);
+    assert.equal(system.defenses.heavy, 0);
+    assert.equal(system.attacks.simple, 1);
+    assert.equal(system.attacks.martial, 1);
+    assert.equal(system.attacks.unarmed, 1);
+  });
+
+  it('spellcasting L1: 5 cantrips, one rank-1 slot', () => {
+    const { system } = getMagus();
+    assert.ok(system.spellcasting, 'Magus must carry a spellcasting progression table');
+    assert.equal(system.spellcasting.tradition, 'arcane');
+    assert.equal(system.spellcasting.type, 'prepared');
+    assert.equal(system.spellcasting.ability, 'int');
+    const l1Cantrips = system.spellcasting.cantripsKnown.find(e => e.level === 1);
+    const l1Slots = system.spellcasting.slots.find(e => e.level === 1);
+    assert.equal(l1Cantrips.count, 5);
+    assert.deepEqual(l1Slots.slots, { '1': 1 });
+  });
+
+  it('spellcasting L3: 5 cantrips, 2x rank-1 + 1x rank-2 (acceptance criterion, Tobias/Pathbuilder perDay [5,2,1])', () => {
+    const { system } = getMagus();
+    const l3Cantrips = system.spellcasting.cantripsKnown.find(e => e.level === 3);
+    const l3Slots = system.spellcasting.slots.find(e => e.level === 3);
+    assert.equal(l3Cantrips.count, 5, 'L3 cantrips must be 5');
+    assert.deepEqual(l3Slots.slots, { '1': 2, '2': 1 }, 'L3 slots must be {"1":2,"2":1}');
+  });
+
+  it('spellcasting matches the official journal table at the pair-jump and cap levels', () => {
+    // Source of truth: vendor journals/classes.json, page "Magus" —
+    // two slots of each of the top two ranks, pair moving up every 2 levels
+    // from L5; lower ranks dropped; never any 10th-rank slots.
+    const { system } = getMagus();
+    const slotsAt = (lvl) => system.spellcasting.slots.find(e => e.level === lvl).slots;
+    assert.deepEqual(slotsAt(4), { '1': 2, '2': 2 });
+    assert.deepEqual(slotsAt(5), { '2': 2, '3': 2 }, 'L5 drops rank 1 and jumps to 2x2nd + 2x3rd');
+    assert.deepEqual(slotsAt(7), { '3': 2, '4': 2 });
+    assert.deepEqual(slotsAt(17), { '8': 2, '9': 2 });
+    assert.deepEqual(slotsAt(20), { '8': 2, '9': 2 }, 'no 10th-rank slots ever');
+  });
+
+  it('proficiencyUpgrades match every class-feature subfeatures.proficiencies rank exactly', () => {
+    const { system } = getMagus();
+    const upgrades = system.proficiencyUpgrades;
+    const has = (level, stat, rank) => upgrades.some(u => u.level === level && u.stat === stat && u.rank === rank);
+
+    // L5 — Lightning Reflexes (reflex-expertise.json) + Weapon Expertise (weapon-expertise.json)
+    assert.ok(has(5, 'reflex', 2), 'L5 reflex -> rank 2 (Lightning Reflexes)');
+    assert.ok(has(5, 'weapons.simple', 2), 'L5 weapons.simple -> rank 2 (Weapon Expertise)');
+    assert.ok(has(5, 'weapons.unarmed', 2), 'L5 weapons.unarmed -> rank 2 (Weapon Expertise)');
+    assert.ok(has(5, 'weapons.martial', 2), 'L5 weapons.martial -> rank 2 (Weapon Expertise rules[], class:magus predicate)');
+
+    // L9 — Alertness (perception:2), Expert Spellcaster (spellcasting:2), Resolve (will:3 — MASTER, not expert)
+    assert.ok(has(9, 'perception', 2), 'L9 perception -> rank 2 (Alertness)');
+    assert.ok(has(9, 'spellcasting', 2), 'L9 spellcasting -> rank 2 (Expert Spellcaster)');
+    assert.ok(has(9, 'will', 3), 'L9 will -> rank 3 MASTER (Resolve — resolve.json subfeatures.proficiencies.will.rank is 3, not 2)');
+
+    // L11 — Medium Armor Expertise
+    assert.ok(has(11, 'armor.light', 2) && has(11, 'armor.medium', 2) && has(11, 'armor.unarmored', 2));
+
+    // L13 — Weapon Mastery
+    assert.ok(has(13, 'weapons.simple', 3) && has(13, 'weapons.martial', 3) && has(13, 'weapons.unarmed', 3));
+
+    // L15 — Juggernaut (fortitude:3 MASTER). Greater Weapon Specialization is
+    // also granted at L15 but carries a damage-scaling rule, not a
+    // proficiency subfeature — intentionally absent from this table.
+    assert.ok(has(15, 'fortitude', 3), 'L15 fortitude -> rank 3 MASTER (Juggernaut)');
+
+    // L17 — Master Spellcaster + Medium Armor Mastery
+    assert.ok(has(17, 'spellcasting', 3));
+    assert.ok(has(17, 'armor.light', 3) && has(17, 'armor.medium', 3) && has(17, 'armor.unarmored', 3));
+  });
+
+  it('featuresByLevel has one entry per items{} map key, all resolved (no "unresolved:" uuid)', () => {
+    const { system } = getMagus();
+    assert.equal(system.featuresByLevel.length, 19, 'Magus items{} map has 19 entries');
+    for (const ref of system.featuresByLevel) {
+      assert.ok(ref.level >= 1 && ref.level <= 20);
+      assert.ok(ref.name.length > 0);
+      assert.ok(isValidFusionId(ref.uuid), `featuresByLevel ref "${ref.name}" did not resolve to a fusionId (got "${ref.uuid}") — run transform.mjs with both classes and class-features in the same --packs list`);
+    }
+  });
+
+  it('featuresByLevel resolves class-specific display labels to the correct source doc (Lightning Reflexes -> Reflex Expertise)', () => {
+    const { system } = getMagus();
+    const classFeatureDocs = loadTransformed('class-features');
+    const reflexExpertise = classFeatureDocs.find(d => d.name === 'Reflex Expertise');
+    assert.ok(reflexExpertise, 'Reflex Expertise class-feature doc not found');
+
+    const lightningReflexesRef = system.featuresByLevel.find(f => f.name === 'Lightning Reflexes');
+    assert.ok(lightningReflexesRef, 'Lightning Reflexes ref not found in featuresByLevel');
+    assert.equal(lightningReflexesRef.level, 5);
+
+    // The uuid must match the REAL fusionId (_id) the "Reflex Expertise" doc
+    // was given when the class-features vendor pack itself was transformed —
+    // not a recomputed hash under a different (curated-pack-name) namespace.
+    // fusionId namespacing is always the INPUT vendor pack name (here
+    // "class-features"), matching every other pack's convention (e.g.
+    // pf2e.weapons-core's committed docs are deriveFusionId('equipment', ...),
+    // not deriveFusionId('weapons-core', ...)).
+    assert.equal(
+      lightningReflexesRef.uuid,
+      reflexExpertise._id,
+      'Lightning Reflexes ref must resolve to the REAL fusionId (_id) of the "Reflex Expertise" class-feature doc',
+    );
+    const expectedFusionId = deriveFusionId('class-features', reflexExpertise.flags.fusion.sourceId);
+    assert.equal(
+      lightningReflexesRef.uuid,
+      expectedFusionId,
+      'Lightning Reflexes ref must resolve to the fusionId of the "Reflex Expertise" class-feature doc',
+    );
+  });
+
+  it('description prose is stripped (clean-room, REQ-LEG-010)', () => {
+    const { system } = getMagus();
+    assert.equal(system.description, '');
+  });
+});
+
+describe('R10-B: normalizeClassFeatureSystem (Magus features + Hybrid Study)', () => {
+  const getClassFeatures = () => loadTransformed('class-features');
+
+  it('Arcane Spellcasting (Magus) is type "classFeature" with category "classfeature"', () => {
+    const docs = getClassFeatures();
+    const doc = docs.find(d => d.name === 'Arcane Spellcasting (Magus)');
+    assert.ok(doc, 'Arcane Spellcasting (Magus) not found');
+    assert.equal(doc.type, 'classFeature');
+    assert.equal(doc.system.category, 'classfeature');
+    assert.equal(doc.system.level, 1);
+  });
+
+  it('Exemplar "Calling" docs are NOT reclassified to classFeature (category "calling" stays type "feat")', () => {
+    const docs = getClassFeatures();
+    const calling = docs.find(d => d.system.category === 'calling');
+    assert.ok(calling, 'Expected at least one "calling" category doc in class-features pack');
+    assert.equal(calling.type, 'feat', '"calling" category docs must remain type "feat", not be reclassified');
+  });
+
+  it('Starlit Span (Magus Hybrid Study) is category "hybridStudy"', () => {
+    const docs = getClassFeatures();
+    const doc = docs.find(d => d.name === 'Starlit Span');
+    assert.ok(doc, 'Starlit Span not found');
+    assert.equal(doc.type, 'classFeature');
+    assert.equal(doc.system.category, 'hybridStudy', 'otherTags: ["magus-hybrid-study"] must map to category "hybridStudy"');
+  });
+
+  it('all 8 Magus Hybrid Study choices map to category "hybridStudy"', () => {
+    const docs = getClassFeatures();
+    const hybridStudyNames = [
+      'Starlit Span', 'Laughing Shadow', 'Inexorable Iron', 'Sparkling Targe',
+      'Aloof Firmament', 'Twisting Tree', 'Unfurling Brocade', 'Resurgent Maelstrom',
+    ];
+    for (const name of hybridStudyNames) {
+      const doc = docs.find(d => d.name === name);
+      assert.ok(doc, `Hybrid Study choice "${name}" not found in class-features pack`);
+      assert.equal(doc.system.category, 'hybridStudy', `"${name}" must be category "hybridStudy"`);
+    }
+  });
+
+  it('description prose is stripped on every class-feature doc (clean-room, REQ-LEG-010)', () => {
+    const docs = getClassFeatures();
+    for (const doc of docs.slice(0, 50)) {
+      assert.equal(doc.system.description, '', `${doc.name} must have empty description`);
+    }
+  });
+});
+
+describe('R10-B: normalizeAncestrySystem (Ratfolk)', () => {
+  const getRatfolk = () => loadTransformed('ancestries').find(d => d.name === 'Ratfolk');
+
+  it('Ratfolk has type "ancestry" with correct hp/size/speed/vision', () => {
+    const ratfolk = getRatfolk();
+    assert.ok(ratfolk, 'Ratfolk ancestry doc not found');
+    assert.equal(ratfolk.type, 'ancestry');
+    assert.equal(ratfolk.system.hp, 6);
+    assert.equal(ratfolk.system.size, 'sm');
+    assert.equal(ratfolk.system.speed, 25);
+    assert.equal(ratfolk.system.vision, 'low-light-vision');
+  });
+
+  it('boosts flatten single-option groups to their slug and multi-option groups to "free"', () => {
+    const { system } = getRatfolk();
+    // vendor: boosts.0 = ["dex"] (fixed), boosts.1 = ["int"] (fixed),
+    // boosts.2 = [str,dex,con,int,wis,cha] (free choice)
+    assert.deepEqual(system.boosts, ['dex', 'int', 'free']);
+    assert.deepEqual(system.flaws, ['str']);
+  });
+
+  it('languages.value carries the vendor language list', () => {
+    const { system } = getRatfolk();
+    assert.deepEqual(system.languages.value, ['common', 'ysoki']);
+  });
+});
+
+describe('R10-B: normalizeHeritageSystem (ratfolk heritages)', () => {
+  const getHeritages = () => loadTransformed('heritages');
+
+  it('all 7 ratfolk heritages are present with type "heritage"', () => {
+    const docs = getHeritages();
+    const names = ['Deep Rat', 'Desert Rat', 'Longsnout Rat', 'Sewer Rat', 'Shadow Rat', 'Snow Rat', 'Tunnel Rat'];
+    for (const name of names) {
+      const doc = docs.find(d => d.name === name);
+      assert.ok(doc, `Heritage "${name}" not found`);
+      assert.equal(doc.type, 'heritage');
+    }
+  });
+
+  it('Snow Rat carries its Resistance rule converted', () => {
+    const doc = getHeritages().find(d => d.name === 'Snow Rat');
+    const resistance = doc.system.rules.find(r => r.kind === 'flat-modifier' && r.subkind === 'resistance');
+    assert.ok(resistance, 'Snow Rat should have a converted Resistance rule');
+    assert.equal(resistance.damageType, 'cold');
+  });
+});
+
+describe('R10-B: normalizeBackgroundSystem (Fireworks Performer)', () => {
+  const getFireworksPerformer = () => loadTransformed('backgrounds').find(d => d.name === 'Fireworks Performer');
+
+  it('has type "background" with Performance trained at rank 1', () => {
+    const doc = getFireworksPerformer();
+    assert.ok(doc, 'Fireworks Performer background doc not found');
+    assert.equal(doc.type, 'background');
+    assert.deepEqual(doc.system.skills.performance, { value: 1 });
+  });
+
+  it('boosts include the free choice between int/cha plus one fully-free boost', () => {
+    const { system } = getFireworksPerformer();
+    // vendor: boosts.0 = [cha,int] (choice, >1 option -> "free"),
+    // boosts.1 = [cha,con,dex,int,str,wis] (free)
+    assert.deepEqual(system.boosts, ['free', 'free']);
   });
 });

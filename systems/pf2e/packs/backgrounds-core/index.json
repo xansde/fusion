@@ -1,0 +1,13 @@
+[
+  {
+    "_id": "XGTsuhOCcthVvoFt",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.XGTsuhOCcthVvoFt",
+    "name": "Fireworks Performer",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Fireworks Performer",
+      "system.traits.value": []
+    }
+  }
+]

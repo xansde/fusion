@@ -41,12 +41,20 @@
     },
     "traits": {
       "rarity": "common",
-      "traditions": ["divine"],
-      "value": ["concentrate", "manipulate", "polymorph"]
+      "traditions": [
+        "divine"
+      ],
+      "value": [
+        "concentrate",
+        "manipulate",
+        "polymorph"
+      ]
     }
   },
   "_fusion": {
-    "normalizedAt": "2026-06-13T00:29:04.569Z",
-    "removedFields": ["folder"]
+    "normalizedAt": "2026-07-05T02:09:29.650Z",
+    "removedFields": [
+      "folder"
+    ]
   }
 }

@@ -47,6 +47,8 @@ const OUT_DIR       = join(IMPORTER_ROOT, 'out');
 const SYSTEMS_ROOT  = join(IMPORTER_ROOT, '..', '..', 'systems');
 const PACKS_OUT_DIR = join(SYSTEMS_ROOT, 'pf2e', 'packs');
 const SF2E_PACKS_OUT_DIR = join(SYSTEMS_ROOT, 'sf2e', 'packs');
+/** Vendor pf2e packs root — used by R10-B to read magus.json's items{} map directly. */
+const VENDOR_ROOT_FOR_MVP = join(IMPORTER_ROOT, 'vendor', 'pf2e', 'packs', 'pf2e');
 
 const IMPORTER_VERSION = '0.1.0';
 const SOURCE_VERSION   = 'v14-dev';
@@ -123,6 +125,132 @@ const PACK_MANIFESTS = {
     documentType: 'Item',
     systemId: 'pf2e',
     indexFields: ['system.level', 'system.traits.value', 'system.traits.traditions', 'system.traits.rarity'],
+    license: {
+      license: 'ORC',
+      attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',
+      reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
+      sourceRepo: 'github.com/foundryvtt/pf2e',
+      sourceVersion: SOURCE_VERSION,
+    },
+    source: {
+      repo: 'github.com/foundryvtt/pf2e',
+      version: SOURCE_VERSION,
+      importerVersion: IMPORTER_VERSION,
+    },
+    schemaVersion: 1,
+  },
+  // -------------------------------------------------------------------------
+  // R10-B (DEC-R10-06) — Magus builder MVP subset. All six packs below share
+  // the same ORC + foundryvtt/pf2e attribution as the packs above; mechanical
+  // data only (prosa strippada via stripFlavorProse in transform.mjs), art
+  // replaced by placeholders (normalize.mjs, policy-wide).
+  // -------------------------------------------------------------------------
+  'classes-core': {
+    id: 'pf2e.classes-core',
+    label: 'PF2e Core Classes',
+    documentType: 'Item',
+    systemId: 'pf2e',
+    indexFields: ['name', 'system.keyAbility', 'system.traits.value'],
+    license: {
+      license: 'ORC',
+      attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',
+      reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
+      sourceRepo: 'github.com/foundryvtt/pf2e',
+      sourceVersion: SOURCE_VERSION,
+    },
+    source: {
+      repo: 'github.com/foundryvtt/pf2e',
+      version: SOURCE_VERSION,
+      importerVersion: IMPORTER_VERSION,
+    },
+    schemaVersion: 1,
+  },
+  'class-features-core': {
+    id: 'pf2e.class-features-core',
+    label: 'PF2e Core Class Features',
+    documentType: 'Item',
+    systemId: 'pf2e',
+    indexFields: ['name', 'system.level', 'system.category', 'system.traits.value'],
+    license: {
+      license: 'ORC',
+      attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',
+      reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
+      sourceRepo: 'github.com/foundryvtt/pf2e',
+      sourceVersion: SOURCE_VERSION,
+    },
+    source: {
+      repo: 'github.com/foundryvtt/pf2e',
+      version: SOURCE_VERSION,
+      importerVersion: IMPORTER_VERSION,
+    },
+    schemaVersion: 1,
+  },
+  'feats-core': {
+    id: 'pf2e.feats-core',
+    label: 'PF2e Core Feats',
+    documentType: 'Item',
+    systemId: 'pf2e',
+    indexFields: ['name', 'system.level', 'system.category', 'system.traits.value'],
+    license: {
+      license: 'ORC',
+      attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',
+      reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
+      sourceRepo: 'github.com/foundryvtt/pf2e',
+      sourceVersion: SOURCE_VERSION,
+    },
+    source: {
+      repo: 'github.com/foundryvtt/pf2e',
+      version: SOURCE_VERSION,
+      importerVersion: IMPORTER_VERSION,
+    },
+    schemaVersion: 1,
+  },
+  'ancestries-core': {
+    id: 'pf2e.ancestries-core',
+    label: 'PF2e Core Ancestries',
+    documentType: 'Item',
+    systemId: 'pf2e',
+    indexFields: ['name', 'system.traits.value', 'system.size'],
+    license: {
+      license: 'ORC',
+      attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',
+      reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
+      sourceRepo: 'github.com/foundryvtt/pf2e',
+      sourceVersion: SOURCE_VERSION,
+    },
+    source: {
+      repo: 'github.com/foundryvtt/pf2e',
+      version: SOURCE_VERSION,
+      importerVersion: IMPORTER_VERSION,
+    },
+    schemaVersion: 1,
+  },
+  'heritages-core': {
+    id: 'pf2e.heritages-core',
+    label: 'PF2e Core Heritages',
+    documentType: 'Item',
+    systemId: 'pf2e',
+    indexFields: ['name', 'system.ancestry.slug', 'system.traits.value'],
+    license: {
+      license: 'ORC',
+      attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',
+      reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
+      sourceRepo: 'github.com/foundryvtt/pf2e',
+      sourceVersion: SOURCE_VERSION,
+    },
+    source: {
+      repo: 'github.com/foundryvtt/pf2e',
+      version: SOURCE_VERSION,
+      importerVersion: IMPORTER_VERSION,
+    },
+    schemaVersion: 1,
+  },
+  'backgrounds-core': {
+    id: 'pf2e.backgrounds-core',
+    label: 'PF2e Core Backgrounds',
+    documentType: 'Item',
+    systemId: 'pf2e',
+    indexFields: ['name', 'system.traits.value'],
     license: {
       license: 'ORC',
       attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',
@@ -231,6 +359,145 @@ const MVP_MONSTER_PF2E_IDS = new Set([
   // Level 1+
   // (add a few more interesting ones from L1-3)
 ]);
+
+// ---------------------------------------------------------------------------
+// R10-B (DEC-R10-06) — Magus builder MVP subset selection.
+//
+// Unlike the weapons/spells/monsters curation above (fixed source-id sets,
+// hand-picked one at a time), classes/class-features/feats/ancestries/
+// heritages/backgrounds are curated by DECLARATIVE PREDICATE over
+// transformed Fusion docs (traits/category/level) — the selection rules are
+// stable facts about the Magus + Ratfolk + Fireworks Performer build (DEC-R10-06)
+// and are far more legible/maintainable as predicates than as a fixed list of
+// hundreds of 16-char source ids (feats-core alone selects 400+ docs).
+// Every predicate below was validated against the real transformed data
+// during R10-B curation (see BUILD-LOG r10 entry) — counts are asserted in
+// the build's console summary and in the importer test suite.
+// ---------------------------------------------------------------------------
+
+/** True when a Fusion doc's system.traits.value array contains `trait`. */
+function hasTrait(doc, trait) {
+  return Array.isArray(doc.system?.traits?.value) && doc.system.traits.value.includes(trait);
+}
+
+/** True when a Fusion doc's system.traits.traditions array contains `tradition`. */
+function hasTradition(doc, tradition) {
+  return Array.isArray(doc.system?.traits?.traditions) && doc.system.traits.traditions.includes(tradition);
+}
+
+/**
+ * feats-core selection (DEC-R10-06 item 3):
+ *   - ALL Magus class feats (trait "magus" + category "class") — includes
+ *     the class's own 51 exclusive feats plus shared-class-feats it's
+ *     eligible for (Familiar, Cantrip Expansion, Enhanced Familiar,
+ *     Reactive Strike carry "magus" in their multi-class traits list) — 55 total.
+ *   - ALL Ratfolk ancestry feats (trait "ratfolk" + category "ancestry") — 26.
+ *   - Skill feats level <= 8 (category "skill") — includes every acceptance-
+ *     criterion feat from the Tobias build (Impressive Performance, Read
+ *     Lips, Tinkering Fingers is actually ancestry-categorized — see below —
+ *     Alchemical Crafting, Fascinating Performance).
+ *   - General feats level <= 8 (category "general").
+ *   - Alchemist Dedication (category "class", traits archetype+dedication;
+ *     the vendor files dedication feats under category "class", NOT
+ *     "archetype") + its two level-4 archetype feats (Advanced Alchemy,
+ *     Basic Concoction — identified by an "Alchemist Dedication" prerequisite,
+ *     since dedication feats don't carry the class name as a trait).
+ * Tinkering Fingers is a Ratfolk ANCESTRY feat (category "ancestry"), already
+ * covered by the ratfolk-ancestry-feats predicate above — it does not need
+ * its own special-case.
+ */
+function isFeatsCoreDoc(doc) {
+  if (doc.type !== 'feat') return false;
+  const category = doc.system?.category;
+  const level = doc.system?.level ?? 0;
+
+  if (category === 'class' && hasTrait(doc, 'magus')) return true;
+  if (category === 'ancestry' && hasTrait(doc, 'ratfolk')) return true;
+  if (category === 'skill' && level <= 8) return true;
+  if (category === 'general' && level <= 8) return true;
+  if (doc.name === 'Alchemist Dedication') return true;
+  if (hasTrait(doc, 'archetype') && level <= 4) {
+    const prereqText = JSON.stringify(doc.system?.prerequisites ?? []).toLowerCase();
+    if (prereqText.includes('alchemist')) return true;
+  }
+  return false;
+}
+
+/**
+ * spells-core selection (DEC-R10-06 item 5, EXPANDED — same pack id as the
+ * original 22-spell MVP curation above, to avoid duplicating the same doc
+ * under two different fusionId namespaces): the original 22 hand-picked
+ * spells (kept verbatim — 5 of them are divine/primal only, e.g. Heal, not
+ * arcane, but were part of the pre-R10 MVP and the plan says "mantenha os 22
+ * atuais") UNION every spell with "arcane" in traits.traditions (all ranks +
+ * cantrips) UNION every Magus focus spell (trait "magus" — covers all 8
+ * Hybrid Study focus spells including Starlit Span's Shooting Star). No
+ * ritual documents exist in the vendor's `spells` pack (rituals are simply
+ * absent from this vendor snapshot — REQ confirmed by inspection), so the
+ * "sem rituals (V2)" requirement is trivially satisfied without a filter.
+ */
+function isSpellsCoreDoc(doc, existingSourceIds) {
+  const sourceId = doc.flags?.fusion?.sourceId;
+  if (sourceId && existingSourceIds.has(sourceId)) return true;
+  if (hasTradition(doc, 'arcane')) return true;
+  if (hasTrait(doc, 'magus')) return true;
+  return false;
+}
+
+/**
+ * class-features-core selection (DEC-R10-06 item 2): every class-feature
+ * referenced by the Magus's own vendor items{} map (19 features — resolved
+ * by display name via the same uuid-trailing-segment convention transform.mjs
+ * uses for ClassSystem.featuresByLevel, see classFeatureNameFromUuid/
+ * resolveClassFeatureSourceId there) UNION every Magus Hybrid Study choice
+ * (category "hybridStudy" — 8 studies, tagged by transform.mjs from the
+ * vendor's traits.otherTags:["magus-hybrid-study"] marker).
+ */
+function buildClassFeatureNameSet() {
+  const magusJsonPath = join(VENDOR_ROOT_FOR_MVP, 'classes', 'magus.json');
+  const magusJson = JSON.parse(readFileSync(magusJsonPath, 'utf8'));
+  const itemsMap = magusJson.system.items ?? {};
+  const uuidMarker = 'Compendium.pf2e.classfeatures.Item.';
+  return new Set(
+    Object.values(itemsMap).map((entry) =>
+      typeof entry.uuid === 'string' && entry.uuid.startsWith(uuidMarker)
+        ? entry.uuid.slice(uuidMarker.length)
+        : entry.name,
+    ),
+  );
+}
+
+function isClassFeaturesCoreDoc(doc, magusFeatureNames) {
+  if (doc.type !== 'classFeature') return false;
+  if (magusFeatureNames.has(doc.name)) return true;
+  if (doc.system?.category === 'hybridStudy') return true;
+  return false;
+}
+
+/** ancestries-core (DEC-R10-06 item 4): Ratfolk only. */
+function isAncestriesCoreDoc(doc) {
+  return doc.type === 'ancestry' && doc.name === 'Ratfolk';
+}
+
+/**
+ * heritages-core (DEC-R10-06 item 4): the 7 Ratfolk heritages, identified by
+ * `system.ancestry.slug === 'ratfolk'` (the real vendor linkage field — see
+ * heritage docs' `system.ancestry.{name,slug,uuid}`; heritage names alone
+ * don't carry a "ratfolk" trait).
+ */
+function isHeritagesCoreDoc(doc) {
+  return doc.type === 'heritage' && doc.system?.ancestry?.slug === 'ratfolk';
+}
+
+/** backgrounds-core (DEC-R10-06 item 4): Fireworks Performer only. */
+function isBackgroundsCoreDoc(doc) {
+  return doc.type === 'background' && doc.name === 'Fireworks Performer';
+}
+
+/** classes-core (DEC-R10-06 item 1): Magus only. */
+function isClassesCoreDoc(doc) {
+  return doc.type === 'class' && doc.name === 'Magus';
+}
 
 // ---------------------------------------------------------------------------
 // Build pack documents
@@ -409,16 +676,20 @@ async function buildPf2eSubset() {
     report.packs.push({ packId: manifest.id, slug: 'bestiary-core', documentCount: docs.length });
   }
 
-  // --- 4. Core Spells (~20) ---
+  // --- 4. Core Spells — EXPANDED (R10-B, DEC-R10-06 item 5) ---
+  // Original 22 hand-picked spells UNION every arcane-tradition spell (all
+  // ranks + cantrips) UNION every Magus focus spell. Same pack id as the
+  // pre-R10 MVP curation (no doc duplication across packs).
   {
-    console.log('[build-mvp] === Pack: spells-core ===');
+    console.log('[build-mvp] === Pack: spells-core (expandido — R10-B) ===');
     const all = loadTransformed('spells');
-    const curated = filterToMvpSubset(all, MVP_SPELL_PF2E_IDS);
-    const docs = curated;
-    console.log(`[build-mvp] spells-core: ${docs.length} magias selecionadas`);
+    const original22 = filterToMvpSubset(all, MVP_SPELL_PF2E_IDS);
+    const existingSourceIds = new Set(original22.map(d => d.flags.fusion.sourceId));
+    const docs = all.filter(d => isSpellsCoreDoc(d, existingSourceIds));
+    console.log(`[build-mvp] spells-core: ${docs.length} magias selecionadas (22 originais + arcane + foco do magus) de ${all.length} totais`);
 
     const manifest = PACK_MANIFESTS['spells-core'];
-    const finalManifest = writePack('spells-core', docs, manifest);
+    writePack('spells-core', docs, manifest);
 
     const index = buildIndex(manifest.id, docs, manifest.indexFields);
     writeFileSync(
@@ -428,6 +699,91 @@ async function buildPf2eSubset() {
     );
 
     report.packs.push({ packId: manifest.id, slug: 'spells-core', documentCount: docs.length });
+  }
+
+  // --- 5. Classes core (R10-B, DEC-R10-06 item 1: Magus only) ---
+  {
+    console.log('[build-mvp] === Pack: classes-core ===');
+    const all = loadTransformed('classes');
+    const docs = all.filter(isClassesCoreDoc);
+    console.log(`[build-mvp] classes-core: ${docs.length} classe(s) selecionada(s) de ${all.length} totais`);
+
+    const manifest = PACK_MANIFESTS['classes-core'];
+    writePack('classes-core', docs, manifest);
+    const index = buildIndex(manifest.id, docs, manifest.indexFields);
+    writeFileSync(join(PACKS_OUT_DIR, 'classes-core', 'index.json'), JSON.stringify(index, null, 2), 'utf8');
+    report.packs.push({ packId: manifest.id, slug: 'classes-core', documentCount: docs.length });
+  }
+
+  // --- 6. Class features core (R10-B, DEC-R10-06 item 2) ---
+  {
+    console.log('[build-mvp] === Pack: class-features-core ===');
+    const all = loadTransformed('class-features');
+    const magusFeatureNames = buildClassFeatureNameSet();
+    const docs = all.filter(d => isClassFeaturesCoreDoc(d, magusFeatureNames));
+    console.log(`[build-mvp] class-features-core: ${docs.length} features selecionadas (items{} map + hybrid studies) de ${all.length} totais`);
+
+    const manifest = PACK_MANIFESTS['class-features-core'];
+    writePack('class-features-core', docs, manifest);
+    const index = buildIndex(manifest.id, docs, manifest.indexFields);
+    writeFileSync(join(PACKS_OUT_DIR, 'class-features-core', 'index.json'), JSON.stringify(index, null, 2), 'utf8');
+    report.packs.push({ packId: manifest.id, slug: 'class-features-core', documentCount: docs.length });
+  }
+
+  // --- 7. Feats core (R10-B, DEC-R10-06 item 3) ---
+  {
+    console.log('[build-mvp] === Pack: feats-core ===');
+    const all = loadTransformed('feats');
+    const docs = all.filter(isFeatsCoreDoc);
+    console.log(`[build-mvp] feats-core: ${docs.length} feats selecionados de ${all.length} totais`);
+
+    const manifest = PACK_MANIFESTS['feats-core'];
+    writePack('feats-core', docs, manifest);
+    const index = buildIndex(manifest.id, docs, manifest.indexFields);
+    writeFileSync(join(PACKS_OUT_DIR, 'feats-core', 'index.json'), JSON.stringify(index, null, 2), 'utf8');
+    report.packs.push({ packId: manifest.id, slug: 'feats-core', documentCount: docs.length });
+  }
+
+  // --- 8. Ancestries core (R10-B, DEC-R10-06 item 4: Ratfolk) ---
+  {
+    console.log('[build-mvp] === Pack: ancestries-core ===');
+    const all = loadTransformed('ancestries');
+    const docs = all.filter(isAncestriesCoreDoc);
+    console.log(`[build-mvp] ancestries-core: ${docs.length} ancestralidade(s) selecionada(s) de ${all.length} totais`);
+
+    const manifest = PACK_MANIFESTS['ancestries-core'];
+    writePack('ancestries-core', docs, manifest);
+    const index = buildIndex(manifest.id, docs, manifest.indexFields);
+    writeFileSync(join(PACKS_OUT_DIR, 'ancestries-core', 'index.json'), JSON.stringify(index, null, 2), 'utf8');
+    report.packs.push({ packId: manifest.id, slug: 'ancestries-core', documentCount: docs.length });
+  }
+
+  // --- 9. Heritages core (R10-B, DEC-R10-06 item 4: 7 heranças do ratfolk) ---
+  {
+    console.log('[build-mvp] === Pack: heritages-core ===');
+    const all = loadTransformed('heritages');
+    const docs = all.filter(isHeritagesCoreDoc);
+    console.log(`[build-mvp] heritages-core: ${docs.length} heranças selecionadas de ${all.length} totais`);
+
+    const manifest = PACK_MANIFESTS['heritages-core'];
+    writePack('heritages-core', docs, manifest);
+    const index = buildIndex(manifest.id, docs, manifest.indexFields);
+    writeFileSync(join(PACKS_OUT_DIR, 'heritages-core', 'index.json'), JSON.stringify(index, null, 2), 'utf8');
+    report.packs.push({ packId: manifest.id, slug: 'heritages-core', documentCount: docs.length });
+  }
+
+  // --- 10. Backgrounds core (R10-B, DEC-R10-06 item 4: Fireworks Performer) ---
+  {
+    console.log('[build-mvp] === Pack: backgrounds-core ===');
+    const all = loadTransformed('backgrounds');
+    const docs = all.filter(isBackgroundsCoreDoc);
+    console.log(`[build-mvp] backgrounds-core: ${docs.length} background(s) selecionado(s) de ${all.length} totais`);
+
+    const manifest = PACK_MANIFESTS['backgrounds-core'];
+    writePack('backgrounds-core', docs, manifest);
+    const index = buildIndex(manifest.id, docs, manifest.indexFields);
+    writeFileSync(join(PACKS_OUT_DIR, 'backgrounds-core', 'index.json'), JSON.stringify(index, null, 2), 'utf8');
+    report.packs.push({ packId: manifest.id, slug: 'backgrounds-core', documentCount: docs.length });
   }
 
   // Write build report

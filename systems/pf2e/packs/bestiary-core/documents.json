@@ -103,7 +103,9 @@
         "size": {
           "value": "sm"
         },
-        "value": ["animal"]
+        "value": [
+          "animal"
+        ]
       },
       "rules": []
     },
@@ -174,7 +176,10 @@
           "slug": null,
           "traits": {
             "rarity": "common",
-            "value": ["finesse", "unarmed"]
+            "value": [
+              "finesse",
+              "unarmed"
+            ]
           }
         },
         "flags": {
@@ -225,7 +230,11 @@
           "slug": null,
           "traits": {
             "rarity": "common",
-            "value": ["agile", "finesse", "unarmed"]
+            "value": [
+              "agile",
+              "finesse",
+              "unarmed"
+            ]
           }
         },
         "flags": {
@@ -396,7 +405,10 @@
               "label": "to Climb or Swim",
               "predicate": [
                 {
-                  "or": ["action:climb", "action:swim"]
+                  "or": [
+                    "action:climb",
+                    "action:swim"
+                  ]
                 }
               ]
             }
@@ -411,7 +423,9 @@
         "size": {
           "value": "sm"
         },
-        "value": ["animal"]
+        "value": [
+          "animal"
+        ]
       },
       "rules": []
     },
@@ -455,7 +469,9 @@
           },
           "attackEffects": {
             "custom": "",
-            "value": ["filth-fever"]
+            "value": [
+              "filth-fever"
+            ]
           },
           "bonus": {
             "value": 7
@@ -477,7 +493,11 @@
           "slug": null,
           "traits": {
             "rarity": "common",
-            "value": ["agile", "finesse", "unarmed"]
+            "value": [
+              "agile",
+              "finesse",
+              "unarmed"
+            ]
           }
         },
         "flags": {
@@ -518,7 +538,9 @@
           "slug": "filth-fever",
           "traits": {
             "rarity": "common",
-            "value": ["disease"]
+            "value": [
+              "disease"
+            ]
           }
         },
         "flags": {
@@ -586,7 +608,10 @@
         "blurb": "",
         "languages": {
           "details": "",
-          "value": ["goblin", "common"]
+          "value": [
+            "goblin",
+            "common"
+          ]
         },
         "level": {
           "value": -1
@@ -645,7 +670,10 @@
         "size": {
           "value": "sm"
         },
-        "value": ["goblin", "humanoid"]
+        "value": [
+          "goblin",
+          "humanoid"
+        ]
       },
       "rules": []
     },
@@ -774,7 +802,12 @@
           },
           "traits": {
             "rarity": "uncommon",
-            "value": ["agile", "backstabber", "finesse", "goblin"]
+            "value": [
+              "agile",
+              "backstabber",
+              "finesse",
+              "goblin"
+            ]
           },
           "usage": {
             "value": "held-in-one-hand"
@@ -871,7 +904,9 @@
           },
           "traits": {
             "rarity": "common",
-            "value": ["deadly-d10"]
+            "value": [
+              "deadly-d10"
+            ]
           },
           "usage": {
             "value": "held-in-one-plus-hands"
@@ -1001,7 +1036,9 @@
           "slug": "arrows",
           "traits": {
             "rarity": "common",
-            "value": ["consumable"]
+            "value": [
+              "consumable"
+            ]
           },
           "uses": {
             "autoDestroy": true,
@@ -1057,7 +1094,11 @@
           "slug": null,
           "traits": {
             "rarity": "common",
-            "value": ["agile", "backstabber", "finesse"]
+            "value": [
+              "agile",
+              "backstabber",
+              "finesse"
+            ]
           }
         },
         "flags": {
@@ -1111,7 +1152,10 @@
           "slug": null,
           "traits": {
             "rarity": "common",
-            "value": ["deadly-d10", "reload-0"]
+            "value": [
+              "deadly-d10",
+              "reload-0"
+            ]
           }
         },
         "flags": {
@@ -1284,7 +1328,9 @@
         "size": {
           "value": "sm"
         },
-        "value": ["animal"]
+        "value": [
+          "animal"
+        ]
       },
       "rules": []
     },
@@ -1350,7 +1396,9 @@
           "slug": null,
           "traits": {
             "rarity": "common",
-            "value": ["unarmed"]
+            "value": [
+              "unarmed"
+            ]
           }
         },
         "flags": {
@@ -1413,13 +1461,17 @@
               "dieSize": "d4",
               "damageType": null,
               "category": null,
-              "predicate": ["pack-attack"],
+              "predicate": [
+                "pack-attack"
+              ],
               "priority": null,
               "raw": {
                 "diceNumber": 1,
                 "dieSize": "d4",
                 "key": "DamageDice",
-                "predicate": ["pack-attack"],
+                "predicate": [
+                  "pack-attack"
+                ],
                 "selector": "strike-damage"
               }
             }
@@ -1495,7 +1547,11 @@
         "blurb": "",
         "languages": {
           "details": "",
-          "value": ["common", "dwarven", "sakvroth"]
+          "value": [
+            "common",
+            "dwarven",
+            "sakvroth"
+          ]
         },
         "level": {
           "value": 0
@@ -1553,7 +1609,11 @@
         "size": {
           "value": "med"
         },
-        "value": ["duergar", "dwarf", "humanoid"]
+        "value": [
+          "duergar",
+          "dwarf",
+          "humanoid"
+        ]
       },
       "rules": []
     },
@@ -1715,7 +1775,9 @@
               "applyMod": false,
               "category": "persistent",
               "formula": "2d6",
-              "kinds": ["damage"],
+              "kinds": [
+                "damage"
+              ],
               "materials": [],
               "type": "bleed"
             }
@@ -1764,8 +1826,15 @@
           },
           "traits": {
             "rarity": "common",
-            "traditions": ["arcane", "divine", "occult"],
-            "value": ["concentrate", "curse"]
+            "traditions": [
+              "arcane",
+              "divine",
+              "occult"
+            ],
+            "value": [
+              "concentrate",
+              "curse"
+            ]
           }
         },
         "flags": {
@@ -1842,8 +1911,15 @@
           },
           "traits": {
             "rarity": "common",
-            "traditions": ["occult"],
-            "value": ["concentrate", "illusion", "manipulate", "mental"]
+            "traditions": [
+              "occult"
+            ],
+            "value": [
+              "concentrate",
+              "illusion",
+              "manipulate",
+              "mental"
+            ]
           }
         },
         "flags": {
@@ -1904,8 +1980,17 @@
           },
           "traits": {
             "rarity": "common",
-            "traditions": ["arcane", "divine", "occult", "primal"],
-            "value": ["cantrip", "concentrate", "manipulate"]
+            "traditions": [
+              "arcane",
+              "divine",
+              "occult",
+              "primal"
+            ],
+            "value": [
+              "cantrip",
+              "concentrate",
+              "manipulate"
+            ]
           }
         },
         "flags": {
@@ -2091,7 +2176,11 @@
           },
           "traits": {
             "rarity": "common",
-            "value": ["agile", "finesse", "shove"]
+            "value": [
+              "agile",
+              "finesse",
+              "shove"
+            ]
           },
           "usage": {
             "value": "held-in-one-hand"
@@ -2170,7 +2259,10 @@
           "strength": 1,
           "traits": {
             "rarity": "common",
-            "value": ["flexible", "noisy"]
+            "value": [
+              "flexible",
+              "noisy"
+            ]
           }
         },
         "flags": {
@@ -2221,7 +2313,9 @@
           "slug": "bolts",
           "traits": {
             "rarity": "common",
-            "value": ["consumable"]
+            "value": [
+              "consumable"
+            ]
           },
           "uses": {
             "autoDestroy": true,
@@ -2277,7 +2371,9 @@
           "slug": "bolts",
           "traits": {
             "rarity": "common",
-            "value": ["consumable"]
+            "value": [
+              "consumable"
+            ]
           },
           "uses": {
             "autoDestroy": true,
@@ -2333,7 +2429,11 @@
           "slug": null,
           "traits": {
             "rarity": "common",
-            "value": ["agile", "finesse", "shove"]
+            "value": [
+              "agile",
+              "finesse",
+              "shove"
+            ]
           }
         },
         "flags": {
@@ -2362,7 +2462,9 @@
           },
           "attackEffects": {
             "custom": "",
-            "value": ["bolts"]
+            "value": [
+              "bolts"
+            ]
           },
           "bonus": {
             "value": 7
@@ -2387,7 +2489,9 @@
           "slug": null,
           "traits": {
             "rarity": "common",
-            "value": ["reload-1"]
+            "value": [
+              "reload-1"
+            ]
           }
         },
         "flags": {
@@ -2433,11 +2537,15 @@
               "value": 2,
               "mode": "add",
               "type": "status",
-              "predicate": ["item:magical"],
+              "predicate": [
+                "item:magical"
+              ],
               "priority": null,
               "raw": {
                 "key": "FlatModifier",
-                "predicate": ["item:magical"],
+                "predicate": [
+                  "item:magical"
+                ],
                 "selector": "saving-throw",
                 "type": "status",
                 "value": 2
@@ -2597,7 +2705,10 @@
         "blurb": "",
         "languages": {
           "details": "",
-          "value": ["common", "sakvroth"]
+          "value": [
+            "common",
+            "sakvroth"
+          ]
         },
         "level": {
           "value": -1
@@ -2653,7 +2764,10 @@
         "size": {
           "value": "sm"
         },
-        "value": ["humanoid", "kobold"]
+        "value": [
+          "humanoid",
+          "kobold"
+        ]
       },
       "rules": []
     },
@@ -2795,7 +2909,9 @@
           },
           "traits": {
             "rarity": "common",
-            "value": ["propulsive"]
+            "value": [
+              "propulsive"
+            ]
           },
           "usage": {
             "value": "held-in-one-hand"
@@ -2887,7 +3003,10 @@
           },
           "traits": {
             "rarity": "common",
-            "value": ["monk", "thrown-20"]
+            "value": [
+              "monk",
+              "thrown-20"
+            ]
           },
           "usage": {
             "canBeAmmo": false,
@@ -3018,7 +3137,9 @@
           "slug": "sling-bullets",
           "traits": {
             "rarity": "common",
-            "value": ["consumable"]
+            "value": [
+              "consumable"
+            ]
           },
           "uses": {
             "autoDestroy": true,
@@ -3125,7 +3246,9 @@
           "slug": null,
           "traits": {
             "rarity": "common",
-            "value": ["thrown-20"]
+            "value": [
+              "thrown-20"
+            ]
           }
         },
         "flags": {
@@ -3179,7 +3302,10 @@
           "slug": null,
           "traits": {
             "rarity": "common",
-            "value": ["propulsive", "reload-1"]
+            "value": [
+              "propulsive",
+              "reload-1"
+            ]
           }
         },
         "flags": {
@@ -3239,11 +3365,15 @@
               "value": 5,
               "mode": "add",
               "type": "untyped",
-              "predicate": ["scamper"],
+              "predicate": [
+                "scamper"
+              ],
               "priority": null,
               "raw": {
                 "key": "FlatModifier",
-                "predicate": ["scamper"],
+                "predicate": [
+                  "scamper"
+                ],
                 "selector": "land-speed",
                 "value": 5
               }
@@ -3256,11 +3386,15 @@
               "value": 2,
               "mode": "add",
               "type": "circumstance",
-              "predicate": ["scamper"],
+              "predicate": [
+                "scamper"
+              ],
               "priority": null,
               "raw": {
                 "key": "FlatModifier",
-                "predicate": ["scamper"],
+                "predicate": [
+                  "scamper"
+                ],
                 "selector": "ac",
                 "type": "circumstance",
                 "value": 2
@@ -3318,14 +3452,18 @@
               "dieSize": "d4",
               "damageType": null,
               "category": "precision",
-              "predicate": ["target:condition:off-guard"],
+              "predicate": [
+                "target:condition:off-guard"
+              ],
               "priority": null,
               "raw": {
                 "category": "precision",
                 "diceNumber": 1,
                 "dieSize": "d4",
                 "key": "DamageDice",
-                "predicate": ["target:condition:off-guard"],
+                "predicate": [
+                  "target:condition:off-guard"
+                ],
                 "selector": "strike-damage"
               }
             },
@@ -3423,7 +3561,10 @@
         "blurb": "",
         "languages": {
           "details": "Speak with Plants (Trees Only)",
-          "value": ["common", "fey"]
+          "value": [
+            "common",
+            "fey"
+          ]
         },
         "level": {
           "value": 0
@@ -3484,7 +3625,10 @@
         "size": {
           "value": "sm"
         },
-        "value": ["leshy", "plant"]
+        "value": [
+          "leshy",
+          "plant"
+        ]
       },
       "rules": []
     },
@@ -3654,8 +3798,17 @@
           },
           "traits": {
             "rarity": "common",
-            "traditions": ["divine", "occult", "primal"],
-            "value": ["concentrate", "manipulate", "plant", "wood"]
+            "traditions": [
+              "divine",
+              "occult",
+              "primal"
+            ],
+            "value": [
+              "concentrate",
+              "manipulate",
+              "plant",
+              "wood"
+            ]
           }
         },
         "flags": {
@@ -3744,7 +3897,9 @@
           },
           "traits": {
             "rarity": "common",
-            "value": ["reach"]
+            "value": [
+              "reach"
+            ]
           },
           "usage": {
             "value": "held-in-two-hands"
@@ -3798,7 +3953,9 @@
           "slug": null,
           "traits": {
             "rarity": "common",
-            "value": ["reach-10"]
+            "value": [
+              "reach-10"
+            ]
           }
         },
         "flags": {
@@ -3827,7 +3984,9 @@
           },
           "attackEffects": {
             "custom": "",
-            "value": ["deafening-blow"]
+            "value": [
+              "deafening-blow"
+            ]
           },
           "bonus": {
             "value": 6
@@ -3935,7 +4094,11 @@
           "slug": null,
           "traits": {
             "rarity": "common",
-            "value": ["healing", "primal", "vitality"]
+            "value": [
+              "healing",
+              "primal",
+              "vitality"
+            ]
           }
         },
         "flags": {
@@ -4005,7 +4168,11 @@
           "slug": "change-shape",
           "traits": {
             "rarity": "common",
-            "value": ["concentrate", "polymorph", "primal"]
+            "value": [
+              "concentrate",
+              "polymorph",
+              "primal"
+            ]
           }
         },
         "flags": {
@@ -4087,7 +4254,9 @@
           "slug": null,
           "traits": {
             "rarity": "common",
-            "value": ["move"]
+            "value": [
+              "move"
+            ]
           }
         },
         "flags": {
@@ -4155,7 +4324,10 @@
         "blurb": "",
         "languages": {
           "details": "",
-          "value": ["orcish", "common"]
+          "value": [
+            "orcish",
+            "common"
+          ]
         },
         "level": {
           "value": 0
@@ -4208,7 +4380,10 @@
         "size": {
           "value": "med"
         },
-        "value": ["humanoid", "orc"]
+        "value": [
+          "humanoid",
+          "orc"
+        ]
       },
       "rules": []
     },
@@ -4337,7 +4512,9 @@
           },
           "traits": {
             "rarity": "common",
-            "value": ["thrown"]
+            "value": [
+              "thrown"
+            ]
           },
           "usage": {
             "canBeAmmo": false,
@@ -4430,7 +4607,11 @@
           },
           "traits": {
             "rarity": "uncommon",
-            "value": ["agile", "disarm", "orc"]
+            "value": [
+              "agile",
+              "disarm",
+              "orc"
+            ]
           },
           "usage": {
             "value": "held-in-one-hand"
@@ -4560,7 +4741,10 @@
           "slug": null,
           "traits": {
             "rarity": "common",
-            "value": ["agile", "disarm"]
+            "value": [
+              "agile",
+              "disarm"
+            ]
           }
         },
         "flags": {
@@ -4611,7 +4795,11 @@
           "slug": null,
           "traits": {
             "rarity": "common",
-            "value": ["agile", "nonlethal", "unarmed"]
+            "value": [
+              "agile",
+              "nonlethal",
+              "unarmed"
+            ]
           }
         },
         "flags": {
@@ -4662,7 +4850,9 @@
           "slug": null,
           "traits": {
             "rarity": "common",
-            "value": ["thrown-30"]
+            "value": [
+              "thrown-30"
+            ]
           }
         },
         "flags": {
@@ -4873,7 +5063,12 @@
         "size": {
           "value": "med"
         },
-        "value": ["mindless", "skeleton", "undead", "unholy"]
+        "value": [
+          "mindless",
+          "skeleton",
+          "undead",
+          "unholy"
+        ]
       },
       "rules": []
     },
@@ -5007,7 +5202,9 @@
           },
           "traits": {
             "rarity": "common",
-            "value": ["deadly-d10"]
+            "value": [
+              "deadly-d10"
+            ]
           },
           "usage": {
             "value": "held-in-one-plus-hands"
@@ -5099,7 +5296,10 @@
           },
           "traits": {
             "rarity": "common",
-            "value": ["forceful", "sweep"]
+            "value": [
+              "forceful",
+              "sweep"
+            ]
           },
           "usage": {
             "value": "held-in-one-hand"
@@ -5153,7 +5353,9 @@
           "slug": "arrows",
           "traits": {
             "rarity": "common",
-            "value": ["consumable"]
+            "value": [
+              "consumable"
+            ]
           },
           "uses": {
             "autoDestroy": true,
@@ -5208,7 +5410,10 @@
           "slug": null,
           "traits": {
             "rarity": "common",
-            "value": ["forceful", "sweep"]
+            "value": [
+              "forceful",
+              "sweep"
+            ]
           }
         },
         "flags": {
@@ -5258,7 +5463,11 @@
           "slug": null,
           "traits": {
             "rarity": "common",
-            "value": ["agile", "finesse", "unarmed"]
+            "value": [
+              "agile",
+              "finesse",
+              "unarmed"
+            ]
           }
         },
         "flags": {
@@ -5311,7 +5520,10 @@
           "slug": null,
           "traits": {
             "rarity": "common",
-            "value": ["deadly-d10", "reload-0"]
+            "value": [
+              "deadly-d10",
+              "reload-0"
+            ]
           }
         },
         "flags": {
@@ -5514,7 +5726,12 @@
         "size": {
           "value": "med"
         },
-        "value": ["mindless", "undead", "unholy", "zombie"]
+        "value": [
+          "mindless",
+          "undead",
+          "unholy",
+          "zombie"
+        ]
       },
       "rules": []
     },
@@ -5573,7 +5790,9 @@
           },
           "attackEffects": {
             "custom": "",
-            "value": ["grab"]
+            "value": [
+              "grab"
+            ]
           },
           "bonus": {
             "value": 7
@@ -5595,7 +5814,9 @@
           "slug": null,
           "traits": {
             "rarity": "common",
-            "value": ["unarmed"]
+            "value": [
+              "unarmed"
+            ]
           }
         },
         "flags": {
@@ -5646,7 +5867,9 @@
           "slug": "jaws",
           "traits": {
             "rarity": "common",
-            "value": ["unarmed"]
+            "value": [
+              "unarmed"
+            ]
           }
         },
         "flags": {
