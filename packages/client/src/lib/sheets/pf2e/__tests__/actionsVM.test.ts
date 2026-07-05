@@ -20,6 +20,7 @@ import {
   slugFromName,
   rowFromIndexEntry,
   rowFromEmbeddedItem,
+  actionRowNameParts,
   mergeActionRows,
   filterActionRows,
   filterRelevantRows,
@@ -142,7 +143,11 @@ describe("slugFromName()", () => {
 // rowFromIndexEntry
 // ---------------------------------------------------------------------------
 
-function packEntry(name: string, index: Record<string, unknown>): PackIndexEntry {
+function packEntry(
+  name: string,
+  index: Record<string, unknown>,
+  namePt?: string,
+): PackIndexEntry {
   return {
     _id: slugFromName(name),
     uuid: `Compendium.pf2e.actions-core.Item.${slugFromName(name)}`,
@@ -150,6 +155,9 @@ function packEntry(name: string, index: Record<string, unknown>): PackIndexEntry
     img: null,
     type: "action",
     index,
+    ...(namePt !== undefined
+      ? { namePt, i18n: { ptBR: { name: namePt } } }
+      : {}),
   };
 }
 
@@ -192,6 +200,58 @@ describe("rowFromIndexEntry()", () => {
     const row = rowFromIndexEntry(entry);
     expect(row.cost.kind).toBe("reaction");
     expect(row.cost.glyphs).toBe("⟳");
+  });
+
+  it("carries the EN name and the server-attached pt-BR name (T1)", () => {
+    const entry = packEntry(
+      "Raise a Shield",
+      { "system.actionType": "action", "system.actions": 1 },
+      "Erguer Escudo",
+    );
+    const row = rowFromIndexEntry(entry);
+    expect(row.name).toBe("Raise a Shield");
+    expect(row.nameEn).toBe("Raise a Shield");
+    expect(row.namePt).toBe("Erguer Escudo");
+  });
+
+  it("reads pt-BR name from nested i18n.ptBR.name when the flat namePt is absent", () => {
+    const entry: PackIndexEntry = {
+      ...packEntry("Seek", { "system.actionType": "action", "system.actions": 1 }),
+      i18n: { ptBR: { name: "Procurar" } },
+    };
+    expect(rowFromIndexEntry(entry).namePt).toBe("Procurar");
+  });
+
+  it("leaves namePt null for an untranslated entry", () => {
+    const entry = packEntry("Seek", { "system.actionType": "action", "system.actions": 1 });
+    expect(rowFromIndexEntry(entry).namePt).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// actionRowNameParts — bilingual display (reuses shared localizedNameParts)
+// ---------------------------------------------------------------------------
+
+describe("actionRowNameParts()", () => {
+  it("shows the pt-BR name with the EN name as subtitle on the pt-BR locale", () => {
+    const r = row({ name: "Raise a Shield", slug: "raise-a-shield", group: "basic", namePt: "Erguer Escudo" });
+    const parts = actionRowNameParts(r, "pt-BR");
+    expect(parts.display).toBe("Erguer Escudo");
+    expect(parts.subtitleEn).toBe("Raise a Shield");
+  });
+
+  it("shows only the EN name (no subtitle) when untranslated", () => {
+    const r = row({ name: "Seek", slug: "seek", group: "basic" });
+    const parts = actionRowNameParts(r, "pt-BR");
+    expect(parts.display).toBe("Seek");
+    expect(parts.subtitleEn).toBeNull();
+  });
+
+  it("shows the EN name and no subtitle on the 'en' locale even when translated", () => {
+    const r = row({ name: "Raise a Shield", slug: "raise-a-shield", group: "basic", namePt: "Erguer Escudo" });
+    const parts = actionRowNameParts(r, "en");
+    expect(parts.display).toBe("Raise a Shield");
+    expect(parts.subtitleEn).toBeNull();
   });
 });
 
@@ -313,6 +373,33 @@ describe("mergeActionRows()", () => {
     const merged = mergeActionRows([packEntry("Seek", { "system.actionType": "action", "system.actions": 1 })], []);
     expect(merged[0]?.fallbackUuid).toBeNull();
     expect(merged[0]?.uuid).not.toBeNull();
+  });
+
+  it("inherits the deduped pack row's pt-BR name onto the embedded (character) row", () => {
+    // The embedded Bon Mot is EN of birth; the same-slug pack row carries the
+    // translated name, so the character row should display it (T1).
+    const packBonMot = packEntry(
+      "Bon Mot",
+      { "system.actionType": "action", "system.actions": 1 },
+      "Bom Mot",
+    );
+    const embedded = [
+      { _id: "bm1", type: "feat", name: "Bon Mot", system: { actionType: "action", actions: 1, slug: "bon-mot" } },
+    ];
+    const merged = mergeActionRows([packBonMot], embedded);
+    const bonMot = merged.find((r) => r.slug === "bon-mot");
+    expect(bonMot?.fromCharacter).toBe(true);
+    expect(bonMot?.namePt).toBe("Bom Mot");
+    expect(bonMot?.nameEn).toBe("Bon Mot");
+  });
+
+  it("leaves the character row's namePt null when the deduped pack row is untranslated", () => {
+    const packBonMot = packEntry("Bon Mot", { "system.actionType": "action", "system.actions": 1 });
+    const embedded = [
+      { _id: "bm1", type: "feat", name: "Bon Mot", system: { actionType: "action", actions: 1, slug: "bon-mot" } },
+    ];
+    const merged = mergeActionRows([packBonMot], embedded);
+    expect(merged.find((r) => r.slug === "bon-mot")?.namePt).toBeNull();
   });
 });
 
@@ -514,6 +601,35 @@ describe("withFallbackDescription()", () => {
   it("returns the input unchanged for a non-record embedded doc", () => {
     expect(withFallbackDescription(null, { system: { description: "<p>x</p>" } })).toBeNull();
   });
+
+  it("prefers the pack doc's pt-BR description on the pt-BR locale (T1)", () => {
+    const embedded = buildEmbeddedDetailsDoc({ _id: "bm", type: "feat", name: "Bon Mot", system: { description: "" } });
+    const packDoc = {
+      name: "Bon Mot",
+      type: "action",
+      system: { description: "<p>Sling an insult.</p>" },
+      i18n: { ptBR: { name: "Bom Mot", description: "<p>Lance um insulto.</p>" } },
+    };
+    const merged = withFallbackDescription(embedded, packDoc, "pt-BR");
+    expect((merged?.["system"] as Record<string, unknown>)["description"]).toBe("<p>Lance um insulto.</p>");
+  });
+
+  it("uses the EN pack description on the 'en' locale even when a pt-BR translation exists", () => {
+    const embedded = buildEmbeddedDetailsDoc({ _id: "bm", type: "feat", name: "Bon Mot", system: { description: "" } });
+    const packDoc = {
+      system: { description: "<p>Sling an insult.</p>" },
+      i18n: { ptBR: { description: "<p>Lance um insulto.</p>" } },
+    };
+    const merged = withFallbackDescription(embedded, packDoc, "en");
+    expect((merged?.["system"] as Record<string, unknown>)["description"]).toBe("<p>Sling an insult.</p>");
+  });
+
+  it("falls back to the EN pack description when no pt-BR translation exists (pt-BR locale)", () => {
+    const embedded = buildEmbeddedDetailsDoc({ _id: "bm", type: "feat", name: "Bon Mot", system: { description: "" } });
+    const packDoc = { system: { description: "<p>Sling an insult.</p>" } };
+    const merged = withFallbackDescription(embedded, packDoc, "pt-BR");
+    expect((merged?.["system"] as Record<string, unknown>)["description"]).toBe("<p>Sling an insult.</p>");
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -548,6 +664,8 @@ function row(partial: Partial<ActionRow> & { name: string; slug: string; group: 
     fallbackUuid: partial.fallbackUuid ?? null,
     slug: partial.slug,
     name: partial.name,
+    nameEn: partial.nameEn ?? partial.name,
+    namePt: partial.namePt ?? null,
     group: partial.group,
     cost: partial.cost ?? { kind: "1", glyphs: "◆" },
     traits: partial.traits ?? [],
@@ -598,6 +716,25 @@ describe("filterActionRows()", () => {
     const f2 = defaultFilterState();
     f2.search = "medicine";
     expect(filterActionRows(rows, f2).map((r) => r.slug)).toEqual(["battle-medicine"]);
+  });
+
+  it("matches the pt-BR name as well as the EN name (bilingual search, T1)", () => {
+    const bilingual: ActionRow[] = [
+      row({ name: "Raise a Shield", slug: "raise-a-shield", group: "basic", namePt: "Erguer Escudo" }),
+      row({ name: "Seek", slug: "seek", group: "basic" }),
+    ];
+    // Portuguese query hits the pt-BR name...
+    const fPt = defaultFilterState();
+    fPt.search = "erguer";
+    expect(filterActionRows(bilingual, fPt).map((r) => r.slug)).toEqual(["raise-a-shield"]);
+    // ...and accent-insensitively.
+    const fAccent = defaultFilterState();
+    fAccent.search = "ESCUDO";
+    expect(filterActionRows(bilingual, fAccent).map((r) => r.slug)).toEqual(["raise-a-shield"]);
+    // The English name still matches the same row.
+    const fEn = defaultFilterState();
+    fEn.search = "shield";
+    expect(filterActionRows(bilingual, fEn).map((r) => r.slug)).toEqual(["raise-a-shield"]);
   });
 });
 

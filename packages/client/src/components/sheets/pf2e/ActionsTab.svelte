@@ -42,6 +42,7 @@
     filterRelevantRows,
     deriveCharacterProfile,
     sortActionRows,
+    actionRowNameParts,
     buildEmbeddedDetailsDoc,
     needsFallbackDescription,
     withFallbackDescription,
@@ -58,7 +59,7 @@
     type ActionGroup,
   } from "../../../lib/sheets/pf2e/actionCategories.js";
   import { session, getSocket } from "../../../lib/session.svelte.js";
-  import { t } from "../../../lib/i18n/i18n.js";
+  import { t, i18n } from "../../../lib/i18n/i18n.js";
 
   interface Props {
     /** The reactive actor document — its `items` array feeds character actions. */
@@ -189,6 +190,21 @@
     enabledCosts = next;
   }
 
+  /**
+   * Attach the row's pt-BR name overlay onto an embedded details doc so the
+   * shared DocumentDetailsPanel header renders the translated name (with the EN
+   * name as a subtitle) exactly like pack docs. Embedded items are EN of birth;
+   * the pt-BR name was inherited from the deduped pack row on merge. When the
+   * row has no translation (namePt null) the doc is returned unchanged (EN). T1.
+   */
+  function localizeEmbeddedDoc(
+    rowItem: ActionRow,
+    embeddedDoc: Record<string, unknown> | null,
+  ): Record<string, unknown> | null {
+    if (embeddedDoc === null || rowItem.namePt === null) return embeddedDoc;
+    return { ...embeddedDoc, i18n: { ptBR: { name: rowItem.namePt } } };
+  }
+
   function selectRow(rowItem: ActionRow): void {
     selectedKey = rowItem.key;
     if (rowItem.uuid) {
@@ -198,7 +214,7 @@
     // Character-only action with no compendium uuid — render the embedded
     // item's OWN description directly (no fetch). Key is "embedded:<_id>".
     const itemId = rowItem.key.startsWith("embedded:") ? rowItem.key.slice("embedded:".length) : "";
-    const embeddedDoc = buildEmbeddedDetailsDoc(embeddedById.get(itemId));
+    const embeddedDoc = localizeEmbeddedDoc(rowItem, buildEmbeddedDetailsDoc(embeddedById.get(itemId)));
     // Heal-on-read: items embedded before the r11 ORC/OGL policy carry an empty
     // description. When the embedded description is empty AND the row deduped a
     // pack doc (fallbackUuid), fetch that pack doc and splice in its
@@ -250,7 +266,7 @@
   ): Promise<void> {
     const cached = detailsCache.get(fallbackUuid);
     if (cached) {
-      detailsDoc = withFallbackDescription(embeddedDoc, cached);
+      detailsDoc = withFallbackDescription(embeddedDoc, cached, i18n.locale);
       detailsLoading = false;
       detailsError = false;
       return;
@@ -261,7 +277,7 @@
       const sock = requireConnectedSocket(getSocket());
       const { document } = await getDocument(sock, fallbackUuid);
       detailsCache.set(fallbackUuid, document);
-      if (selectedKey === key) detailsDoc = withFallbackDescription(embeddedDoc, document);
+      if (selectedKey === key) detailsDoc = withFallbackDescription(embeddedDoc, document, i18n.locale);
     } catch {
       if (selectedKey === key) {
         detailsError = true;
@@ -281,7 +297,7 @@
     }
     if (rowItem.fallbackUuid) {
       const itemId = rowItem.key.startsWith("embedded:") ? rowItem.key.slice("embedded:".length) : "";
-      const embeddedDoc = buildEmbeddedDetailsDoc(embeddedById.get(itemId));
+      const embeddedDoc = localizeEmbeddedDoc(rowItem, buildEmbeddedDetailsDoc(embeddedById.get(itemId)));
       void loadEmbeddedFallback(rowItem.key, rowItem.fallbackUuid, embeddedDoc);
     }
   }
@@ -368,6 +384,7 @@
         </div>
       {:else}
         {#each visibleRows as rowItem (rowItem.key)}
+          {@const nameParts = actionRowNameParts(rowItem, i18n.locale)}
           <div
             class="actions-row"
             class:actions-row--selected={selectedKey === rowItem.key}
@@ -378,7 +395,12 @@
           >
             <span class="actions-row__cost" aria-hidden="true">{rowItem.cost.glyphs}</span>
             <div class="actions-row__main">
-              <div class="actions-row__name">{rowItem.name}</div>
+              <div class="actions-row__name">
+                {nameParts.display}
+                {#if nameParts.subtitleEn}
+                  <span class="actions-row__name-en" title={nameParts.subtitleEn}>{nameParts.subtitleEn}</span>
+                {/if}
+              </div>
               {#if rowItem.traits.length > 0}
                 <div class="actions-row__traits">
                   {#each rowItem.traits as trait (trait)}
@@ -719,6 +741,13 @@
     font-size: 12.5px;
     font-weight: 600;
     color: var(--fusion-text);
+  }
+
+  .actions-row__name-en {
+    margin-left: 6px;
+    font-size: 10.5px;
+    font-weight: 400;
+    color: var(--fusion-text-subtle);
   }
 
   .actions-row__traits {

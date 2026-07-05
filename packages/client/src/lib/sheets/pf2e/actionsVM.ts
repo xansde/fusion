@@ -41,6 +41,11 @@
 import type { Socket } from "socket.io-client";
 import type { PackIndexEntry } from "@fusion/shared";
 import { normalizeSearchText } from "@fusion/shared";
+import type { SupportedLocale } from "../../i18n/i18n.js";
+import {
+  localizedNameParts,
+  pickLocalizedDescription,
+} from "../../compendium/documentDetails.js";
 import {
   listPacks,
   searchPack,
@@ -89,7 +94,24 @@ export interface ActionRow {
   fallbackUuid: string | null;
   /** Canonical dedupe slug (system.slug if present, else derived from name). */
   slug: string;
+  /**
+   * EN name — the source-of-truth name, used for the dedupe slug, sorting and
+   * as the secondary/subtitle line beside a pt-BR translation. Always present.
+   */
   name: string;
+  /**
+   * The English name, mirrored for bilingual display (identical to {@link name}).
+   * Kept as a distinct field so the display helper can decide subtitle vs. main
+   * line via the SHARED localizedNameParts logic without re-reading `name`.
+   */
+  nameEn: string;
+  /**
+   * pt-BR name when the server attached a translation (pack rows carry
+   * `entry.namePt` / `entry.i18n.ptBR.name`; embedded/character rows inherit it
+   * from the same-slug pack row on merge). null when untranslated — the display
+   * falls back to the EN name. T1.
+   */
+  namePt: string | null;
   group: ActionGroup;
   cost: ActionCost;
   traits: string[];
@@ -275,12 +297,46 @@ export function rowFromIndexEntry(entry: PackIndexEntry): ActionRow {
     fallbackUuid: null,
     slug: slugFromName(entry.name),
     name: entry.name,
+    nameEn: entry.name,
+    namePt: entryNamePt(entry),
     group: resolveActionGroup(docLike),
     cost: resolveActionCost(system),
     traits: traitsOf(system),
     fusionCategory: fusionCategoryOf(docLike),
     fromCharacter: false,
   };
+}
+
+/**
+ * Read the server-attached pt-BR name off a pack index entry (T1). Prefers the
+ * denormalized flat `namePt`, then the nested `i18n.ptBR.name`. null when the
+ * entry has no translation overlay. Mirrors how the pickers read bilingual
+ * names, keeping the EN `name` as the source-of-truth fallback.
+ */
+function entryNamePt(entry: PackIndexEntry): string | null {
+  const flat = entry.namePt;
+  if (typeof flat === "string" && flat.trim()) return flat.trim();
+  const nested = entry.i18n?.ptBR?.name;
+  return typeof nested === "string" && nested.trim() ? nested.trim() : null;
+}
+
+/**
+ * Resolve the bilingual display parts (main line + optional EN subtitle) for an
+ * action row given the active locale, REUSING the shared {@link localizedNameParts}
+ * decision the pickers use — so the Actions tab renders identically: pt-BR name
+ * on top with the EN name as a secondary line/tooltip when translated, and just
+ * the EN name (no redundant subtitle) when untranslated or on the "en" locale.
+ */
+export function actionRowNameParts(
+  row: ActionRow,
+  locale: SupportedLocale,
+): { display: string; subtitleEn: string | null } {
+  return localizedNameParts(
+    row.namePt !== null
+      ? { name: row.nameEn, i18n: { ptBR: { name: row.namePt } } }
+      : { name: row.nameEn },
+    locale,
+  );
 }
 
 /**
@@ -305,6 +361,11 @@ export function rowFromEmbeddedItem(item: Record<string, unknown>): ActionRow | 
     fallbackUuid: null,
     slug: slugOf(item, system),
     name,
+    nameEn: name,
+    // Embedded actor items are EN of birth; a pt-BR name is inherited from the
+    // deduped same-slug pack row during merge (see mergeActionRows) when one
+    // exists — otherwise the row stays EN.
+    namePt: null,
     group: resolveActionGroup(item),
     cost: resolveActionCost(system),
     traits: traitsOf(system),
@@ -340,13 +401,16 @@ export function mergeActionRows(
   }
 
   // Embedded (character) rows override same-slug pack rows, inheriting the
-  // overridden pack row's uuid as their description fallback.
+  // overridden pack row's uuid as their description fallback AND its pt-BR name
+  // so the character row displays the translated name (embedded items are EN of
+  // birth; the pack row behind fallbackUuid carries the translation). T1.
   for (const item of embeddedItems) {
     const row = rowFromEmbeddedItem(item);
     if (!row) continue;
     if (row.slug) {
       const packRow = bySlug.get(row.slug);
       if (packRow?.uuid) row.fallbackUuid = packRow.uuid;
+      if (packRow?.namePt) row.namePt = packRow.namePt;
       bySlug.set(row.slug, row);
     } else {
       noSlug.push(row);
@@ -429,18 +493,30 @@ export function needsFallbackDescription(doc: Record<string, unknown> | null | u
  * character's action ("Do personagem" badge lives on the row, not here). Used
  * only when the embedded description is empty and a fallbackUuid resolved a
  * pack doc. Falls back to the embedded doc unchanged if either input is unusable
- * or the pack doc has no string description.
+ * or the pack doc has no usable description.
+ *
+ * The spliced description is LOCALE-AWARE: when `locale` is "pt-BR" and the pack
+ * doc carries `i18n.ptBR.description`, the translated prose is used (via the
+ * shared {@link pickLocalizedDescription}); otherwise the EN system.description.
+ * So a character action healed from its pack counterpart reads in the active
+ * locale, not EN-always. T1.
  */
 export function withFallbackDescription(
   embeddedDoc: Record<string, unknown> | null,
   packDoc: Record<string, unknown> | null | undefined,
+  locale: SupportedLocale = "pt-BR",
 ): Record<string, unknown> | null {
   if (!isRecord(embeddedDoc)) return embeddedDoc;
-  const packDescription = descriptionHtmlOf(
-    isRecord(packDoc) && isRecord(packDoc["system"])
-      ? (packDoc["system"] as Record<string, unknown>)
-      : {},
-  );
+  // Prefer the pt-BR translation (locale-aware), then the vendor {value}-wrapped
+  // or flattened EN system.description.
+  const localized = isRecord(packDoc) ? pickLocalizedDescription(packDoc, locale) : null;
+  const packDescription =
+    (typeof localized === "string" && localized.trim() ? localized : null) ??
+    descriptionHtmlOf(
+      isRecord(packDoc) && isRecord(packDoc["system"])
+        ? (packDoc["system"] as Record<string, unknown>)
+        : {},
+    );
   if (!packDescription) return embeddedDoc;
   const system = isRecord(embeddedDoc["system"])
     ? { ...(embeddedDoc["system"] as Record<string, unknown>) }
@@ -630,6 +706,18 @@ export function defaultFilterState(): ActionFilterState {
   return { groups: new Set(ACTION_GROUPS), costs: new Set(), search: "" };
 }
 
+/**
+ * Accent/case-insensitive bilingual name match: true when the query is a
+ * substring of the EN name OR the pt-BR name (when translated). Lets the user
+ * type either language and find the row, mirroring the pickers'
+ * `matchesTextSearch`. T1.
+ */
+function rowMatchesSearch(row: ActionRow, searchNorm: string): boolean {
+  if (normalizeSearchText(row.nameEn).includes(searchNorm)) return true;
+  if (row.namePt !== null && normalizeSearchText(row.namePt).includes(searchNorm)) return true;
+  return false;
+}
+
 export function filterActionRows(rows: ActionRow[], filter: ActionFilterState): ActionRow[] {
   const searchNorm = filter.search.trim() ? normalizeSearchText(filter.search.trim()) : null;
 
@@ -642,7 +730,7 @@ export function filterActionRows(rows: ActionRow[], filter: ActionFilterState): 
       if (!filter.costs.has(row.cost.kind as ActionCostFilter)) return false;
     }
 
-    if (searchNorm && !normalizeSearchText(row.name).includes(searchNorm)) return false;
+    if (searchNorm && !rowMatchesSearch(row, searchNorm)) return false;
 
     return true;
   });
