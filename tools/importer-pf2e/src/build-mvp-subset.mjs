@@ -170,7 +170,12 @@ const PACK_MANIFESTS = {
     label: 'PF2e Core Class Features',
     documentType: 'Item',
     systemId: 'pf2e',
-    indexFields: ['name', 'system.level', 'system.category', 'system.traits.value'],
+    // 'system.traits.otherTags' is indexed so the Plan column's Hybrid
+    // Study picker (R10-D item D2) can filter the compendium SEARCH INDEX
+    // (PackIndexEntry.index) for the "magus-hybrid-study" marker without a
+    // full getDocument() round-trip per candidate — see
+    // characterSheetVM-sibling planVM.ts's isHybridStudyOption().
+    indexFields: ['name', 'system.level', 'system.category', 'system.traits.value', 'system.traits.otherTags'],
     license: {
       license: 'ORC',
       attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',

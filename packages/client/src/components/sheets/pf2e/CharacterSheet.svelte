@@ -29,6 +29,8 @@
   import { worldMirror } from "$lib/docs/worldSync.js";
   import SpellsTab from "./SpellsTab.svelte";
   import ProficiencyBadge from "./ProficiencyBadge.svelte";
+  import PlanColumn from "./plan/PlanColumn.svelte";
+  import { t } from "$lib/i18n/i18n.js";
 
   // ---------------------------------------------------------------------------
   // Props
@@ -91,6 +93,14 @@
   // ---------------------------------------------------------------------------
 
   let editMode = $state(false);
+
+  // ---------------------------------------------------------------------------
+  // Plan column visibility (DEC-R10-05) — local UI state, does not persist.
+  // The column is navigable regardless of editMode; only its write actions
+  // are gated by vm.editable (ownership), not by the Play/Edit toggle.
+  // ---------------------------------------------------------------------------
+
+  let planVisible = $state(true);
 
   // ---------------------------------------------------------------------------
   // Autosave state
@@ -259,11 +269,31 @@
 <!-- ======================================================================
   Character Sheet
   REQ-UIF-061: container queries for responsive layout within the window.
+  DEC-R10-05: the Plan column sits to the left of the sheet body, always
+  navigable (editMode does not hide it) — only its write actions require
+  vm.editable. "Ocultar plano"/"Mostrar plano" is local UI state, not
+  persisted.
 ====================================================================== -->
-<div class="pf2e-sheet pf2e-character-sheet" role="document" aria-label="Character Sheet: {vm.name}">
+<div class="pf2e-sheet-shell">
+  {#if planVisible}
+    <PlanColumn
+      doc={liveDoc}
+      {actorId}
+      editable={vm.editable}
+      sendOpFn={(op) => sendOpFn(op)}
+      onHide={() => { planVisible = false; }}
+    />
+  {/if}
+
+  <div class="pf2e-sheet pf2e-character-sheet" role="document" aria-label="Character Sheet: {vm.name}">
 
   <!-- ---- Header ---- -->
   <header class="sheet-header">
+    {#if !planVisible}
+      <button type="button" class="show-plan-btn" onclick={() => { planVisible = true; }}>
+        {t("FUSION.Sheet.Plan.Show")}
+      </button>
+    {/if}
     {#if vm.img}
       <img
         class="sheet-portrait"
@@ -786,15 +816,43 @@
     </section>
   {/if}
 
+  </div>
 </div>
 
 <style>
+  /* ---- Shell: Plan column + sheet body side by side (DEC-R10-05) ---- */
+  .pf2e-sheet-shell {
+    display: flex;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .show-plan-btn {
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: var(--fusion-radius-sm, 4px);
+    border: 1px solid var(--fusion-color-border, #3a3a5c);
+    background: var(--fusion-color-surface, #1a1a2e);
+    color: var(--fusion-color-text-secondary, #b0b0cc);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .show-plan-btn:hover,
+  .show-plan-btn:focus-visible {
+    background: rgba(255, 255, 255, 0.08);
+    outline: 2px solid var(--fusion-color-focus, #5b8dee);
+  }
+
   /* ---- Container query: adapt to the window width ---- */
   .pf2e-character-sheet {
     container-type: inline-size;
     display: flex;
     flex-direction: column;
     height: 100%;
+    flex: 1;
+    min-width: 0;
     overflow: hidden;
     background: var(--fusion-color-surface, #1a1a2e);
     color: var(--fusion-color-text-primary, #e0e0ff);
