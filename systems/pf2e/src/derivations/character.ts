@@ -22,12 +22,19 @@ import type { DeriveStep } from "@fusion/system-api";
 import { resolveModifiersForSelector, resolveStacking } from "@fusion/engine-2e";
 import type { CharacterSystem } from "../schemas/actor-character.js";
 import type { WeaponSystem } from "../schemas/item-weapon.js";
-import { SKILL_ABILITY } from "../types.js";
+import { SKILL_ABILITY, SKILL_SLUGS } from "../types.js";
 import { abilityMod, proficiencyBonus, resolveStatisticMulti, mapPenalties } from "./helpers.js";
 import { deriveStrikeFromWeapon, type StrikeModifier } from "../actions/strikes.js";
 import type { DerivedStatistic, DerivedStrike, ModifierBreakdown } from "./types.js";
 import { stepCharCollectEquipment } from "./equipment.js";
 import { stepCharSpellcasting } from "./spellcasting.js";
+import {
+  stepCharBuildAbilities,
+  stepCharApplyClass,
+  stepCharBuildSkills,
+  stepCharBuildHp,
+  stepCharFocusClamp,
+} from "./build.js";
 
 function getSystem(doc: Record<string, unknown>): Record<string, unknown> {
   return (doc["system"] as Record<string, unknown>) ?? {};
@@ -380,7 +387,16 @@ export const stepCharPerception: DeriveStep = {
 // ---------------------------------------------------------------------------
 
 /**
- * Derive all 16 canonical skills and any Lore skills.
+ * Derive all 16 canonical skills (REQ-PF2-012, DEC-R10-07) plus any
+ * persisted Lore/custom skills found in `system.skills`.
+ *
+ * Untrained canonical skills (not present in `system.skills`, or present
+ * with `rank: 0`) are ALWAYS derived — with base = abilityMod only (rank 0
+ * contributes no proficiency bonus, REQ-PF2-011) — so the sheet can show and
+ * roll all 16 skills even when the underlying document only stores the
+ * trained ones. `derived.skills` therefore always has at least the 16
+ * canonical slugs, plus any Lore/custom entries persisted in `system.skills`
+ * that aren't among the 16 (e.g. "underworld-lore").
  *
  * Each skill = abilityMod(skill.ability) + proficiency(rank) + Σmodifiers.
  * Selectors: "skill:<slug>" + broad "skill-check".
@@ -403,11 +419,9 @@ export const stepCharSkills: DeriveStep = {
     const level = getLevel(sys);
 
     const skillsResult: Record<string, DerivedStatistic> = {};
+    const persisted = sys.skills ?? {};
 
-    for (const [slug, skillData] of Object.entries(sys.skills ?? {})) {
-      const rank = (skillData as { rank: number }).rank ?? 0;
-      const isLore = (skillData as { lore?: boolean }).lore === true;
-
+    const deriveOne = (slug: string, rank: number, isLore: boolean): DerivedStatistic => {
       // Determine key ability: Lore uses INT; canonical skills use SKILL_ABILITY map.
       const ability: string = isLore
         ? "int"
@@ -417,13 +431,29 @@ export const stepCharSkills: DeriveStep = {
       const base = mod + proficiencyBonus(rank, level);
 
       // Selectors: specific "skill:acrobatics" + broad "skill-check"
-      skillsResult[slug] = resolveStatisticMulti(
+      return resolveStatisticMulti(
         slug,
         base,
         [`skill:${slug}`, "skill-check"],
         ctx.synthetics,
         ctx.rollOptions,
       );
+    };
+
+    // All 16 canonical skills — always present, untrained (rank 0) if not
+    // stored on the document (DEC-R10-07: every skill is shown and rollable).
+    for (const slug of SKILL_SLUGS) {
+      const stored = persisted[slug] as { rank?: number } | undefined;
+      skillsResult[slug] = deriveOne(slug, stored?.rank ?? 0, false);
+    }
+
+    // Any additional persisted skills (Lore, or custom entries) not already
+    // covered by the canonical 16.
+    for (const [slug, skillData] of Object.entries(persisted)) {
+      if (slug in skillsResult) continue;
+      const rank = (skillData as { rank: number }).rank ?? 0;
+      const isLore = (skillData as { lore?: boolean }).lore === true;
+      skillsResult[slug] = deriveOne(slug, rank, isLore);
     }
 
     derived["skills"] = skillsResult;
@@ -877,9 +907,17 @@ function deduplicateModifiers(
 // ---------------------------------------------------------------------------
 
 export const CHARACTER_DERIVE_STEPS: DeriveStep[] = [
+  // Build-driven steps (base phase) run FIRST, before any consumer of
+  // system.abilities/saves/perception/proficiencies/skills/attributes.hp —
+  // they no-op entirely on r9 manual-entry actors (no embedded class item).
+  stepCharBuildAbilities,
+  stepCharApplyClass,
+  stepCharBuildSkills,
+  stepCharBuildHp,
   stepCharAbilityMods,
   stepCharCollectEquipment,
   stepCharHp,
+  stepCharFocusClamp,
   stepCharDyingMax,
   stepCharAc,
   stepCharSaves,

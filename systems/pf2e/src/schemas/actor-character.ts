@@ -142,8 +142,18 @@ const ResourcesSchema = z.object({
   heroPoints: z
     .object({ value: z.number().int().min(0), max: z.number().int().min(0) })
     .default({ value: 1, max: 3 }),
+  /**
+   * Focus points pool. `max` is capped at 3 (REQ-PF2-083, DEC-R10-02) — this
+   * is a hard PF2e rule, not a soft UI limit, so it's safe to enforce here:
+   * no production code path calls `CharacterSystemSchema.parse` strictly on
+   * document load/update (verified — only tests call `parseCharacterSystem`
+   * directly), so tightening this bound cannot brick an existing world doc
+   * mid-session. The derivation step (R10-A item 5 / batch A2) additionally
+   * clamps `max` to 3 when recomputing from focus-granting items, so the
+   * value is double-guarded even if a future load path starts validating.
+   */
   focusPoints: z
-    .object({ value: z.number().int().min(0), max: z.number().int().min(0) })
+    .object({ value: z.number().int().min(0), max: z.number().int().min(0).max(3) })
     .default({ value: 0, max: 0 }),
 });
 
@@ -166,6 +176,85 @@ const CharacterDetailsSchema = z.object({
   /** Character's level (1..20). REQ-PF2-011 */
   level: z.number().int().min(1).max(20).default(1),
 });
+
+// ---------------------------------------------------------------------------
+// Build (level-by-level character builder state)
+// R10-A, DEC-R10-01.
+//
+// The build block records *choices* that aren't represented by an embedded
+// item: ability boosts/flaws by origin, and a flat log of builder slot
+// choices (feats, skill training/increases, hybrid studies, ability
+// boosts, ...). Choices that ARE items (class, ancestry, heritage,
+// background, feat, classFeature) are embedded on the actor and tagged
+// with `flags.fusion.build = {level, slot}` instead of living here.
+//
+// Derivation only applies build-driven steps (abilities from boosts, HP,
+// class proficiencies/saves/classDC, trained skills, spellcasting slots)
+// when an embedded `type: 'class'` item exists — see R10-A item 5. Actors
+// without a class item keep the r9 manual-entry behavior untouched.
+// ---------------------------------------------------------------------------
+
+/** Ability boosts/flaws granted by ancestry, background, class, and level-ups. */
+const BuildAbilitiesSchema = z
+  .object({
+    /** Ability slugs boosted by ancestry (fixed boosts). */
+    ancestryBoosts: z.array(AbilitySlugSchema).default([]),
+    /** Ability slugs flawed by ancestry. */
+    ancestryFlaws: z.array(AbilitySlugSchema).default([]),
+    /** Free ability boost slugs chosen from ancestry (unrestricted boosts). */
+    ancestryFree: z.array(AbilitySlugSchema).default([]),
+    /** Ability slugs boosted by background. */
+    backgroundBoosts: z.array(AbilitySlugSchema).default([]),
+    /** Key ability boost slug(s) chosen at class selection. */
+    classBoost: z.array(AbilitySlugSchema).default([]),
+    /** Ability boosts chosen at level-up milestones, keyed by level (as string). */
+    levelledBoosts: z.record(z.string(), z.array(AbilitySlugSchema)).default({}),
+  })
+  .default({});
+export type BuildAbilities = z.infer<typeof BuildAbilitiesSchema>;
+
+/**
+ * A single builder slot choice.
+ *
+ * `slot` is a unique id for the slot within the plan (e.g. "classFeat-2",
+ * "skillTraining-1a"), used by the UI to know which slot a choice fills and
+ * to allow removal/replacement. `type` identifies what kind of choice this
+ * is; kept as an open string (documented enum below) rather than a closed
+ * z.enum so future archetypes/classes can introduce new slot types:
+ *   - "classFeat" | "skillFeat" | "generalFeat" | "ancestryFeat" | "archetypeFeat"
+ *   - "heritage"
+ *   - "skillTraining" | "skillIncrease"
+ *   - "hybridStudy"
+ *   - "abilityBoosts"
+ */
+const BuildChoiceSchema = z.object({
+  level: z.number().int().min(1).max(20),
+  slot: z.string().min(1),
+  type: z.string().min(1),
+  /** Compendium UUID reference, when the choice targets a compendium doc. */
+  ref: z.string().optional(),
+  /** Embedded item id, when the choice materialized an embedded item. */
+  itemId: z.string().optional(),
+  /** Skill slug, for skillTraining/skillIncrease choices. */
+  skill: z.string().optional(),
+  /** Resulting proficiency rank, for skillTraining/skillIncrease choices. */
+  rank: ProficiencyRankSchema.optional(),
+});
+export type BuildChoice = z.infer<typeof BuildChoiceSchema>;
+
+const CharacterBuildSchema = z
+  .object({
+    abilities: BuildAbilitiesSchema,
+    choices: z.array(BuildChoiceSchema).default([]),
+    /** Extra max HP granted by build choices (e.g. ancestry/heritage), flat. */
+    bonusHp: z.number().int().min(0).default(0),
+    /** Extra max HP granted per level (e.g. a feat that adds HP/level). */
+    bonusHpPerLevel: z.number().int().min(0).default(0),
+    /** Free Archetype variant rule toggle — grants archetype feat slots on even levels. */
+    freeArchetype: z.boolean().default(false),
+  })
+  .default({});
+export type CharacterBuild = z.infer<typeof CharacterBuildSchema>;
 
 // ---------------------------------------------------------------------------
 // Full CharacterSystem schema
@@ -191,6 +280,8 @@ export const CharacterSystemSchema = z
     proficiencies: ProficiencyBlockSchema.default({}),
     resources: ResourcesSchema.default({}),
     details: CharacterDetailsSchema,
+    /** Level-by-level builder state (R10-A, DEC-R10-01). Optional/absent = r9 manual mode. */
+    build: CharacterBuildSchema.optional(),
     /** System-level traits (ancestry traits, size). */
     traits: z
       .object({

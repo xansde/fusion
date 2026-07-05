@@ -31,6 +31,7 @@ import { FeatSystemSchema } from "./schemas/item-feat.js";
 import { ConditionSystemSchema } from "./schemas/item-condition.js";
 import { EffectSystemSchema } from "./schemas/item-effect.js";
 import { SpellcastingEntrySystemSchema } from "./schemas/item-spellcasting-entry.js";
+import { ClassFeatureSystemSchema } from "./schemas/item-class-feature.js";
 import {
   EquipmentSystemSchema,
   ConsumableSystemSchema,
@@ -87,6 +88,7 @@ export const pf2eSystem = defineSystem(
         "heritage",
         "background",
         "class",
+        "classFeature",
       ],
     },
     languages: [
@@ -244,6 +246,12 @@ export const pf2eSystem = defineSystem(
       schema: ClassSystemSchema,
     });
 
+    registrar.defineModel({
+      documentType: "Item",
+      subtype: "classFeature",
+      schema: ClassFeatureSystemSchema,
+    });
+
     // -----------------------------------------------------------------------
     // Conditions (REQ-PF2-050..052)
     // -----------------------------------------------------------------------
@@ -310,7 +318,12 @@ export const pf2eSystem = defineSystem(
 
 // Actor schemas
 export { CharacterSystemSchema, parseCharacterSystem } from "./schemas/actor-character.js";
-export type { CharacterSystem } from "./schemas/actor-character.js";
+export type {
+  CharacterSystem,
+  BuildAbilities,
+  BuildChoice,
+  CharacterBuild,
+} from "./schemas/actor-character.js";
 
 export { NpcSystemSchema, parseNpcSystem } from "./schemas/actor-npc.js";
 export type { NpcSystem } from "./schemas/actor-npc.js";
@@ -347,6 +360,12 @@ export {
 export type { SpellcastingEntrySystem } from "./schemas/item-spellcasting-entry.js";
 
 export {
+  ClassFeatureSystemSchema,
+  parseClassFeatureSystem,
+} from "./schemas/item-class-feature.js";
+export type { ClassFeatureSystem } from "./schemas/item-class-feature.js";
+
+export {
   EquipmentSystemSchema,
   ConsumableSystemSchema,
   ShieldSystemSchema,
@@ -359,6 +378,13 @@ export {
   BackgroundSystemSchema,
   ClassSystemSchema,
   HeritageSystemSchema,
+  ClassFeatLevelsSchema,
+  ClassTrainedSkillsSchema,
+  ProficiencyUpgradeSchema,
+  CantripsKnownEntrySchema,
+  ClassSpellSlotsEntrySchema,
+  ClassSpellcastingSchema,
+  ClassFeatureRefSchema,
   parseEquipmentSystem,
   parseConsumableSystem,
   parseShieldSystem,
@@ -385,6 +411,13 @@ export type {
   BackgroundSystem,
   ClassSystem,
   HeritageSystem,
+  ClassFeatLevels,
+  ClassTrainedSkills,
+  ProficiencyUpgrade,
+  CantripsKnownEntry,
+  ClassSpellSlotsEntry,
+  ClassSpellcasting,
+  ClassFeatureRef,
 } from "./schemas/item-equipment.js";
 
 // Schema primitives (shared across schemas)

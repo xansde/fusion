@@ -11,10 +11,12 @@
 
 import { z } from "zod";
 import {
+  AbilitySlugSchema,
   DamageTypeSchema,
   EffectRuleSchema,
   ProficiencyRankSchema,
   PublicationSchema,
+  SpellTraditionSchema,
   TraitsBlockSchema,
   WeaponCategorySchema,
 } from "../schema-primitives.js";
@@ -293,7 +295,95 @@ export const parseBackgroundSystem = (data: unknown): BackgroundSystem =>
 
 // ---------------------------------------------------------------------------
 // class (MVP: hp per level, key ability, initial proficiencies)
+// R10-A: structured level-by-level progression for the builder
+// (DEC-R10-01, DEC-R10-06). Shape is authored clean-room from the Fusion
+// spec; field names mirror the vendor's items{} map / featLevels arrays
+// only as *structure* (facts of the rule system, not copyrighted prose).
 // ---------------------------------------------------------------------------
+
+/**
+ * Feat slot levels grouped by category. Each array lists the character
+ * levels at which the class grants a feat slot of that category.
+ * e.g. Magus classFeatLevels = [2,4,6,8,10,12,14,16,18,20].
+ */
+export const ClassFeatLevelsSchema = z
+  .object({
+    ancestry: z.array(z.number().int().min(1).max(20)).default([]),
+    class: z.array(z.number().int().min(1).max(20)).default([]),
+    general: z.array(z.number().int().min(1).max(20)).default([]),
+    skill: z.array(z.number().int().min(1).max(20)).default([]),
+  })
+  .default({});
+export type ClassFeatLevels = z.infer<typeof ClassFeatLevelsSchema>;
+
+/** Skill trained at level 1 (from class) plus a count of free choices. */
+export const ClassTrainedSkillsSchema = z
+  .object({
+    value: z.array(z.string()).default([]),
+    additional: z.number().int().min(0).default(0),
+  })
+  .default({});
+export type ClassTrainedSkills = z.infer<typeof ClassTrainedSkillsSchema>;
+
+/**
+ * A single proficiency-rank upgrade granted at a class level.
+ *
+ * `stat` identifies what gets upgraded. Kept as an open string (documented
+ * enum below) rather than a closed z.enum so that future classes/archetypes
+ * can introduce new stat slugs without a schema change:
+ *   - "perception"
+ *   - "fortitude" | "reflex" | "will"
+ *   - "classDC"
+ *   - "spellcasting"
+ *   - "weapons.<category>" (unarmed|simple|martial|advanced)
+ *   - "armor.<category>" (unarmored|light|medium|heavy)
+ */
+export const ProficiencyUpgradeSchema = z.object({
+  level: z.number().int().min(1).max(20),
+  stat: z.string().min(1),
+  rank: ProficiencyRankSchema,
+});
+export type ProficiencyUpgrade = z.infer<typeof ProficiencyUpgradeSchema>;
+
+/** Cantrips known at a given character level (count grows with level). */
+export const CantripsKnownEntrySchema = z.object({
+  level: z.number().int().min(1).max(20),
+  count: z.number().int().min(0),
+});
+export type CantripsKnownEntry = z.infer<typeof CantripsKnownEntrySchema>;
+
+/**
+ * Spell slots granted at a given character level, keyed by spell rank
+ * ("1".."10") → number of slots. Mirrors SpellSlotsMapSchema's rank keys
+ * but only carries counts (no runtime `value`/`prepared` state — this is
+ * the class's static progression table, not a live spellcasting entry).
+ */
+export const ClassSpellSlotsEntrySchema = z.object({
+  level: z.number().int().min(1).max(20),
+  slots: z.record(z.string(), z.number().int().min(0)).default({}),
+});
+export type ClassSpellSlotsEntry = z.infer<typeof ClassSpellSlotsEntrySchema>;
+
+/**
+ * Optional spellcasting progression table for the class (e.g. Magus arcane
+ * prepared casting). Absent for non-casting classes.
+ */
+export const ClassSpellcastingSchema = z.object({
+  tradition: SpellTraditionSchema,
+  type: z.enum(["prepared", "spontaneous"]),
+  ability: AbilitySlugSchema,
+  cantripsKnown: z.array(CantripsKnownEntrySchema).default([]),
+  slots: z.array(ClassSpellSlotsEntrySchema).default([]),
+});
+export type ClassSpellcasting = z.infer<typeof ClassSpellcastingSchema>;
+
+/** Reference to a classFeature item granted at a given level. */
+export const ClassFeatureRefSchema = z.object({
+  level: z.number().int().min(1).max(20),
+  uuid: z.string().min(1),
+  name: z.string().min(1),
+});
+export type ClassFeatureRef = z.infer<typeof ClassFeatureRefSchema>;
 
 export const ClassSystemSchema = z
   .object({
@@ -312,6 +402,36 @@ export const ClassSystemSchema = z
         skills: z.record(z.string(), ProficiencyRankSchema).optional(),
       })
       .default({}),
+    /** Perception proficiency rank at level 1. */
+    perception: ProficiencyRankSchema.default(0),
+    /** Saving throw proficiency ranks at level 1. */
+    savingThrows: z
+      .object({
+        fortitude: ProficiencyRankSchema.optional(),
+        reflex: ProficiencyRankSchema.optional(),
+        will: ProficiencyRankSchema.optional(),
+      })
+      .default({}),
+    /** Armor category proficiency ranks at level 1 (mirrors vendor `defenses`). */
+    defenses: z.record(z.string(), ProficiencyRankSchema).default({}),
+    /** Weapon category proficiency ranks at level 1 (mirrors vendor `attacks`). */
+    attacks: z.record(z.string(), ProficiencyRankSchema).default({}),
+    /** Class DC proficiency rank at level 1. */
+    classDC: ProficiencyRankSchema.default(0),
+    /** Feat slot levels by category (ancestry/class/general/skill). */
+    featLevels: ClassFeatLevelsSchema,
+    /** Levels at which the class grants a free skill increase. */
+    skillIncreaseLevels: z.array(z.number().int().min(1).max(20)).default([]),
+    /** Levels at which the class grants a free ability boost set (default PF2e cadence). */
+    abilityBoostLevels: z.array(z.number().int().min(1).max(20)).default([5, 10, 15, 20]),
+    /** Skill(s) trained at level 1 by the class, plus free additional choices. */
+    trainedSkills: ClassTrainedSkillsSchema,
+    /** Level-by-level proficiency rank upgrades (perception, saves, classDC, weapons, ...). */
+    proficiencyUpgrades: z.array(ProficiencyUpgradeSchema).default([]),
+    /** Spellcasting progression table, if this class grants spellcasting. */
+    spellcasting: ClassSpellcastingSchema.optional(),
+    /** classFeature item references granted at each level. */
+    featuresByLevel: z.array(ClassFeatureRefSchema).default([]),
     rules: z.array(EffectRuleSchema).default([]),
     publication: PublicationSchema.optional(),
     description: z.string().optional(),
