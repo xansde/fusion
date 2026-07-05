@@ -1060,9 +1060,16 @@ function embeddedItemPayload(
 }
 
 /**
- * applyClass — doc:create the class item (key ability narrowed to the
- * player's pick) plus doc:create ops for its arcane prepared spellcasting
- * entry and, if the class grants a focus pool, a focus entry.
+ * applyClass — doc:create the class item plus doc:create ops for its arcane
+ * prepared spellcasting entry and, if the class grants a focus pool, a
+ * focus entry.
+ *
+ * The embedded class item keeps the class's FULL `keyAbility` option list
+ * (r11 live-verification fix): the actual key-ability CHOICE lives in
+ * `system.build.abilities.classBoost` (picked in the "Dádivas de Atributo"
+ * dialog's class group) and the server's stepCharApplyClass prefers it over
+ * `keyAbility[0]`. Narrowing the item at apply time silently locked the
+ * choice to the first option (Magus → always dex, Tobias's str impossible).
  *
  * Returns the ops in creation order (class item first — though doc:create
  * ops for different embedded items are independent and order doesn't matter
@@ -1072,22 +1079,16 @@ function embeddedItemPayload(
 export function applyClass(
   ctx: PlanOpBuilderContext,
   classDoc: Record<string, unknown>,
-  keyAbilityChoice: string,
 ): DocOpPayload[] {
   if (!ctx.editable) return [];
   const classSystemRaw = asRecord(classDoc["system"]);
   const classSystem = classSystemRaw as unknown as ClassSystemLike;
 
-  const narrowedClassDoc: Record<string, unknown> = {
-    ...classDoc,
-    system: { ...classSystemRaw, keyAbility: [keyAbilityChoice] },
-  };
-
   const ops: DocOpPayload[] = [];
   ops.push({
     type: "doc:create",
     documentType: "Item",
-    data: embeddedItemPayload(narrowedClassDoc),
+    data: embeddedItemPayload(classDoc),
     parent: { type: "Actor", id: ctx.actorId },
   } satisfies DocCreateEmbeddedPayload);
 
@@ -1123,7 +1124,10 @@ export function applyClass(
         system: {
           prepared: { value: "innate" },
           tradition: { value: classSystem.spellcasting?.tradition ?? "arcane" },
-          ability: { value: keyAbilityChoice },
+          // Focus spells cast with the class's SPELLCASTING ability (Magus
+          // conflux = INT), not the key ability (r11 fix — Pathbuilder's
+          // focus block confirms int for Tobias).
+          ability: { value: classSystem.spellcasting?.ability ?? "int" },
           proficiency: { value: 1 },
           slots: {},
           isFocusPool: true,
@@ -1738,7 +1742,7 @@ export function markAbilityBoostsChoice(
 }
 
 /** Which BuildAbilities field a free-boost group's confirmed slugs are written to. */
-export type AbilityBoostsOrigin = "ancestryFree" | "backgroundFree" | "levelled";
+export type AbilityBoostsOrigin = "ancestryFree" | "backgroundFree" | "classBoost" | "levelled";
 
 /**
  * One selectable group inside the abilityBoosts-N dialog: a origin (where
@@ -1755,6 +1759,21 @@ export interface AbilityBoostsGroup {
   origin: AbilityBoostsOrigin;
   freeCount: number;
   initialFreeSlugs: string[];
+  /**
+   * Ability slugs this group may NOT pick — only the abilities already
+   * boosted by the SAME origin (PF2e rule: one boost set never applies two
+   * boosts to the same ability, but DIFFERENT origins may repeat — that's
+   * how 16s exist at level 1). Live-verification finding (r11): blocking the
+   * global fixedSlugs in every group made Tobias's real allocation
+   * (dex/int repeated across ancestry, background and level-1 boosts)
+   * impossible to enter.
+   */
+  excludedSlugs: string[];
+  /**
+   * When present, ONLY these slugs are offered (class boost: the class's
+   * keyAbility options — Magus offers str|dex). Absent = all six abilities.
+   */
+  allowedSlugs?: string[];
 }
 
 /**
@@ -1788,6 +1807,28 @@ export interface AbilityBoostsSlotContext {
   groups: AbilityBoostsGroup[];
 }
 
+/**
+ * The class's key-ability OPTIONS for the classBoost group, read from the
+ * embedded class item's `system.keyAbility` (kept as the full option list —
+ * Magus ships ["str","dex"]; applyClass narrowing may reduce it to one).
+ * Returns undefined (no restriction) when unreadable, so a malformed class
+ * item degrades to "any ability" instead of an empty, unfillable group.
+ */
+function classKeyAbilityOptions(
+  classItem: Record<string, unknown> | undefined,
+): string[] | undefined {
+  if (!classItem) return undefined;
+  const sys = asRecord(classItem["system"]);
+  const options = asStringArray(sys["keyAbility"]);
+  // A single-option list means either a genuinely fixed-key class OR a doc
+  // narrowed by the pre-r11 applyClass bug (the user's real Tobias carries
+  // Magus keyAbility ["dex"]). Restricting to it would make the true pick
+  // (str) permanently unreachable — so only lists with a real choice
+  // restrict the group; everything else offers all six (the ledger records
+  // whatever is picked, and the server derives from the ledger).
+  return options.length > 1 ? options : undefined;
+}
+
 function countFreeBoostSlots(itemDoc: Record<string, unknown> | undefined): number {
   if (!itemDoc) return 0;
   const sys = asRecord(itemDoc["system"]);
@@ -1808,20 +1849,38 @@ export function abilityBoostsSlotContext(
         origin: "ancestryFree",
         freeCount: countFreeBoostSlots(ancestryItem),
         initialFreeSlugs: abilities.ancestryFree,
+        excludedSlugs: abilities.ancestryBoosts,
       },
       {
         origin: "backgroundFree",
         freeCount: countFreeBoostSlots(backgroundItem),
         initialFreeSlugs: abilities.backgroundFree,
+        excludedSlugs: abilities.backgroundBoosts,
+      },
+      {
+        origin: "classBoost",
+        // The class grants exactly one key-ability boost; the options come
+        // from the EMBEDDED class item's keyAbility array (Magus: str|dex).
+        // Missing class item → 0 choices (group hidden by the dialog).
+        // Live-verification finding (r11): without this group the class
+        // boost never reached the ledger and STR stayed 8 instead of 10.
+        freeCount: findFirstItemByType(doc, "class") ? 1 : 0,
+        initialFreeSlugs: abilities.classBoost,
+        excludedSlugs: [],
+        ...withOptional(
+          "allowedSlugs",
+          classKeyAbilityOptions(findFirstItemByType(doc, "class")),
+        ),
       },
       {
         origin: "levelled",
         freeCount: 4,
         initialFreeSlugs: abilities.levelledBoosts["1"] ?? [],
+        excludedSlugs: [],
       },
     ];
     return {
-      fixedSlugs: [...abilities.ancestryBoosts, ...abilities.backgroundBoosts, ...abilities.classBoost],
+      fixedSlugs: [...abilities.ancestryBoosts, ...abilities.backgroundBoosts],
       groups,
     };
   }
@@ -1832,6 +1891,7 @@ export function abilityBoostsSlotContext(
         origin: "levelled",
         freeCount: 4,
         initialFreeSlugs: abilities.levelledBoosts[String(level)] ?? [],
+        excludedSlugs: [],
       },
     ],
   };
@@ -1866,6 +1926,12 @@ export function previewAbilityScores(
         break;
       case "backgroundFree":
         abilities.backgroundFree = slugs;
+        break;
+      case "classBoost":
+        // r11 live-verification fix: without this case the class group's
+        // pick was silently dropped from the preview (the confirm path was
+        // already generic over origins and persisted it correctly).
+        abilities.classBoost = slugs;
         break;
       case "levelled":
         abilities.levelledBoosts[String(level)] = slugs;

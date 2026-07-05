@@ -88,11 +88,30 @@
         return t("FUSION.Sheet.Plan.AbilityBoosts.GroupAncestryFree");
       case "backgroundFree":
         return t("FUSION.Sheet.Plan.AbilityBoosts.GroupBackgroundFree");
+      case "classBoost":
+        return t("FUSION.Sheet.Plan.AbilityBoosts.GroupClassBoost");
       case "levelled":
         return t("FUSION.Sheet.Plan.AbilityBoosts.GroupLevelled");
     }
   }
 
+  /** classBoost restricts the offer to the class's keyAbility options. */
+  function isOffered(groupIndex: number, slug: string): boolean {
+    const allowed = groups[groupIndex]?.allowedSlugs;
+    return !allowed || allowed.includes(slug);
+  }
+
+  /**
+   * A slug is blocked ONLY within its own group (same-origin rule): the
+   * group's excludedSlugs carries the abilities already boosted by that
+   * origin. Cross-origin repetition is legal (r11 live-verification fix —
+   * a global fixedSlugs block made Tobias's dex/int 16s impossible).
+   */
+  function isExcluded(groupIndex: number, slug: string): boolean {
+    return groups[groupIndex]?.excludedSlugs.includes(slug) ?? false;
+  }
+
+  /** Read-only membership in the "Dádivas Fixas" display section only. */
   function isFixed(slug: string): boolean {
     return fixedSlugs.includes(slug);
   }
@@ -102,7 +121,7 @@
   }
 
   function toggle(groupIndex: number, slug: string): void {
-    if (isFixed(slug)) return;
+    if (isExcluded(groupIndex, slug)) return;
     const freeCount = groups[groupIndex]?.freeCount ?? 0;
     const current = selectedByGroup[groupIndex] ?? [];
     if (current.includes(slug)) {
@@ -161,21 +180,24 @@
           <p class="ab-hint">{t("FUSION.Sheet.Plan.AbilityBoosts.FreeHint", { n: String(group.freeCount) })}</p>
           <div class="ab-grid">
             {#each ABILITY_SLUGS as slug (slug)}
-              <button
-                type="button"
-                class="ab-tile"
-                class:ab-tile--fixed={isFixed(slug)}
-                class:ab-tile--selected={isSelected(index, slug)}
-                disabled={isFixed(slug) || (!isSelected(index, slug) && (selectedByGroup[index]?.length ?? 0) >= group.freeCount)}
-                onclick={() => toggle(index, slug)}
-              >
-                <span class="ab-tile__label">{abilityLabel(slug)}</span>
-                {#if isFixed(slug)}
-                  <span class="ab-tile__tag">{t("FUSION.Sheet.Plan.AbilityBoosts.Fixed")}</span>
-                {:else if isSelected(index, slug)}
-                  <span class="ab-tile__check" aria-hidden="true">&#10003;</span>
-                {/if}
-              </button>
+              {#if isOffered(index, slug)}
+                <button
+                  type="button"
+                  class="ab-tile"
+                  class:ab-tile--fixed={isExcluded(index, slug)}
+                  class:ab-tile--selected={isSelected(index, slug)}
+                  disabled={isExcluded(index, slug) ||
+                    (!isSelected(index, slug) && (selectedByGroup[index]?.length ?? 0) >= group.freeCount)}
+                  onclick={() => toggle(index, slug)}
+                >
+                  <span class="ab-tile__label">{abilityLabel(slug)}</span>
+                  {#if isExcluded(index, slug)}
+                    <span class="ab-tile__tag">{t("FUSION.Sheet.Plan.AbilityBoosts.Fixed")}</span>
+                  {:else if isSelected(index, slug)}
+                    <span class="ab-tile__check" aria-hidden="true">&#10003;</span>
+                  {/if}
+                </button>
+              {/if}
             {/each}
           </div>
         </div>

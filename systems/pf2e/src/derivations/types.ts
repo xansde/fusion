@@ -135,6 +135,21 @@ export interface CharacterDerived {
     readonly cha: number;
   };
 
+  /**
+   * Final ability SCORES after the build-driven base-phase overwrite
+   * (r11): what the sheet must display for build-driven actors — the raw
+   * persisted scores can be stale manual values. Optional: docs derived
+   * before r11 lack it (clients fall back to the raw scores).
+   */
+  readonly abilityScores?: {
+    readonly str: number;
+    readonly dex: number;
+    readonly con: number;
+    readonly int: number;
+    readonly wis: number;
+    readonly cha: number;
+  };
+
   /** Derived HP values (after drained penalty). REQ-PF2-021, REQ-PF2-051 */
   readonly hp: {
     readonly value: number;

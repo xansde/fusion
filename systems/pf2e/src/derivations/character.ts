@@ -91,7 +91,7 @@ export const stepCharAbilityMods: DeriveStep = {
     "system.abilities.wis.value",
     "system.abilities.cha.value",
   ],
-  writes: ["system.derived.abilityMods"],
+  writes: ["system.derived.abilityMods", "system.derived.abilityScores"],
 
   run(doc) {
     const sys = getCharSystem(doc);
@@ -116,6 +116,22 @@ export const stepCharAbilityMods: DeriveStep = {
     };
 
     derived["abilityMods"] = mods;
+
+    // Final ability SCORES too (r11 live-verification fix): the build steps
+    // overwrite sys.abilities.*.value in the base phase, but that mutation
+    // lives only in the server's in-memory derive pass — clients keep seeing
+    // the raw persisted scores unless the final values ride along inside
+    // system.derived. This step runs AFTER stepCharBuildAbilities (reads/
+    // writes edge on system.abilities.*.value), so these are the
+    // post-build-ledger scores the sheet must display.
+    derived["abilityScores"] = {
+      str: scoreOf(abilities.str),
+      dex: scoreOf(abilities.dex),
+      con: scoreOf(abilities.con),
+      int: scoreOf(abilities.int),
+      wis: scoreOf(abilities.wis),
+      cha: scoreOf(abilities.cha),
+    };
 
     // Also update the cached mod on abilities (DEC-PF2-03: derived, but
     // the schema exposes `.mod` for items that reference it directly).

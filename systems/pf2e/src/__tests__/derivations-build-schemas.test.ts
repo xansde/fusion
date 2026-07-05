@@ -259,14 +259,18 @@ describe("Tobias-por-build (full fixture) — level 3 Magus, all plan skills", (
     expect(ac.total).toBe(19);
   });
 
-  it("classDC/spell DC 18 and spell attack +8 (INT key, Trained@lvl3)", () => {
+  it("class DC 15 via the ledger's classBoost (STR key — Pathbuilder shows 'Magus DC 15')", () => {
     doc = makeDoc();
     runCharacterPipeline(doc);
     const derived = (doc.system as Record<string, unknown>)["derived"] as Record<string, unknown>;
     const classDC = derived["classDC"] as { total: number; dc: number };
-    // Trained@lvl3(5) + INT+3 = 8; dc = 18
-    expect(classDC.total).toBe(8);
-    expect(classDC.dc).toBe(18);
+    // r11 fix: stepCharApplyClass prefers build.abilities.classBoost[0]
+    // ('str' in this fixture) over the class item's keyAbility[0]. The old
+    // expectation (INT-keyed DC 18) conflated the SPELL DC with the class
+    // DC — the user's Pathbuilder export shows Magus DC 15 and Spell DC 18.
+    // Trained@lvl3(5) + STR+0 = 5; dc = 15.
+    expect(classDC.total).toBe(5);
+    expect(classDC.dc).toBe(15);
   });
 
   it("skills: Acrobatics +3 untrained, Athletics +0 untrained (still present, DEC-R10-07)", () => {

@@ -130,19 +130,10 @@
         sendAll(applyBackground(opCtx, doc2));
         break;
       case "class":
-        // Key ability: default to the class's first listed keyAbility choice
-        // (e.g. Magus: dex or str) — a full "choose key ability" sub-step is
-        // future work; picking the first keeps applyClass always callable.
-        {
-          const sys = doc2["system"];
-          const keyAbilityList =
-            typeof sys === "object" && sys !== null && Array.isArray((sys as Record<string, unknown>)["keyAbility"])
-              ? ((sys as Record<string, unknown>)["keyAbility"] as unknown[]).filter(
-                  (v): v is string => typeof v === "string",
-                )
-              : [];
-          sendAll(applyClass(opCtx, doc2, keyAbilityList[0] ?? "str"));
-        }
+        // The key-ability CHOICE is made in the "Dádivas de Atributo"
+        // dialog's class group (build.abilities.classBoost) — the embedded
+        // class item keeps the full keyAbility option list (r11 fix).
+        sendAll(applyClass(opCtx, doc2));
         break;
     }
     abcPicker = null;

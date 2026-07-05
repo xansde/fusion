@@ -676,17 +676,17 @@ describe("spellSlotsForLevel", () => {
 
 describe("applyClass", () => {
   it("returns [] when not editable", () => {
-    const ops = applyClass(ctx(baseCharacterDoc(), false), magusClassDoc(), "int");
+    const ops = applyClass(ctx(baseCharacterDoc(), false), magusClassDoc());
     expect(ops).toEqual([]);
   });
 
-  it("creates the class item with keyAbility narrowed to the player's pick, valid against DocCreatePayloadSchema", () => {
-    const ops = applyClass(ctx(baseCharacterDoc()), magusClassDoc(), "int");
+  it("creates the class item keeping the FULL keyAbility option list (choice lives in build.abilities.classBoost), valid against DocCreatePayloadSchema", () => {
+    const ops = applyClass(ctx(baseCharacterDoc()), magusClassDoc());
     const classOp = ops[0]!;
     expect(classOp.type).toBe("doc:create");
     if (classOp.type !== "doc:create") throw new Error("expected doc:create");
     expect(classOp.data["_id"]).toBeUndefined();
-    expect((classOp.data["system"] as Record<string, unknown>)["keyAbility"]).toEqual(["int"]);
+    expect((classOp.data["system"] as Record<string, unknown>)["keyAbility"]).toEqual(["dex", "str"]);
     expect(classOp.parent).toEqual({ type: "Actor", id: "actor-tobias" });
 
     const wire = { documentType: classOp.documentType, data: [classOp.data], parent: classOp.parent };
@@ -695,7 +695,7 @@ describe("applyClass", () => {
 
   it("creates an arcane prepared spellcastingEntry with slots from the level-1 table", () => {
     const doc = baseCharacterDoc(); // level 1
-    const ops = applyClass(ctx(doc), magusClassDoc(), "int");
+    const ops = applyClass(ctx(doc), magusClassDoc());
     const entryOp = ops.find(
       (o) => o.type === "doc:create" && (o.data["name"] as string) === "arcane Spells",
     );
@@ -715,7 +715,7 @@ describe("applyClass", () => {
 
   it("computes spellcasting slots at the ACTOR's current level, not always level 1", () => {
     const doc = baseCharacterDoc({ system: { level: { value: 3 }, details: {} } });
-    const ops = applyClass(ctx(doc), magusClassDoc(), "int");
+    const ops = applyClass(ctx(doc), magusClassDoc());
     const entryOp = ops.find(
       (o) => o.type === "doc:create" && (o.data["name"] as string) === "arcane Spells",
     );
@@ -729,7 +729,7 @@ describe("applyClass", () => {
   });
 
   it("creates a focus spellcastingEntry when the class has a Conflux/focus feature at level 1", () => {
-    const ops = applyClass(ctx(baseCharacterDoc()), magusClassDoc(), "int");
+    const ops = applyClass(ctx(baseCharacterDoc()), magusClassDoc());
     const focusOp = ops.find(
       (o) => o.type === "doc:create" && (o.data["name"] as string) === "Focus Spells",
     );
@@ -751,7 +751,7 @@ describe("applyClass", () => {
         featuresByLevel: [{ level: 1, uuid: "x", name: "Some Other Feature" }],
       },
     };
-    const ops = applyClass(ctx(baseCharacterDoc()), noFocusClass, "int");
+    const ops = applyClass(ctx(baseCharacterDoc()), noFocusClass);
     const focusOp = ops.find(
       (o) => o.type === "doc:create" && (o.data["name"] as string) === "Focus Spells",
     );
@@ -1228,24 +1228,37 @@ describe("markAbilityBoostsChoice", () => {
 });
 
 describe("abilityBoostsSlotContext", () => {
-  it("level 1: fixed = ancestryBoosts+backgroundBoosts+classBoost; 3 groups (ancestryFree/backgroundFree/levelled)", () => {
+  it("level 1: fixed = ancestry+background fixed only; 4 groups incl. classBoost restricted to keyAbility (same-origin exclusions)", () => {
     const result = abilityBoostsSlotContext(tobiasLevel3Doc(), 1);
-    expect(result.fixedSlugs).toEqual(["dex", "int", "int"]); // ancestryBoosts + backgroundBoosts([]) + classBoost
-    expect(result.groups).toHaveLength(3);
+    // classBoost is a CHOICE group now (r11 live-verification fix), never a
+    // fixed slug — and cross-origin repetition must stay possible, so each
+    // group only excludes its own origin's fixed boosts.
+    expect(result.fixedSlugs).toEqual(["dex", "int"]);
+    expect(result.groups).toHaveLength(4);
 
     const ancestryGroup = result.groups.find((g) => g.origin === "ancestryFree")!;
     // Ratfolk (tobiasLevel3Doc's ancestry item) grants exactly 1 free boost.
     expect(ancestryGroup.freeCount).toBe(1);
     expect(ancestryGroup.initialFreeSlugs).toEqual(["cha"]);
+    expect(ancestryGroup.excludedSlugs).toEqual(["dex", "int"]);
 
     const backgroundGroup = result.groups.find((g) => g.origin === "backgroundFree")!;
     // Fireworks Performer grants 2 free boosts; fixture has none picked yet.
+    // Its exclusions are ONLY its own fixed boosts (none) — dex/int stay
+    // pickable here (that's how Tobias reaches 16/16).
     expect(backgroundGroup.freeCount).toBe(2);
     expect(backgroundGroup.initialFreeSlugs).toEqual([]);
+    expect(backgroundGroup.excludedSlugs).toEqual([]);
+
+    const classGroup = result.groups.find((g) => g.origin === "classBoost")!;
+    expect(classGroup.freeCount).toBe(1);
+    expect(classGroup.allowedSlugs).toEqual(["dex", "str"]); // Magus keyAbility options
+    expect(classGroup.excludedSlugs).toEqual([]);
 
     const levelledGroup = result.groups.find((g) => g.origin === "levelled")!;
     expect(levelledGroup.freeCount).toBe(4);
     expect(levelledGroup.initialFreeSlugs).toEqual([]);
+    expect(levelledGroup.excludedSlugs).toEqual([]);
   });
 
   it("a levelled milestone: no fixed slugs, a single 'levelled' group with freeCount 4", () => {
@@ -1304,6 +1317,7 @@ describe("previewAbilityScores", () => {
     const picks = slotCtx.groups.map((g) => {
       if (g.origin === "ancestryFree") return ["cha"];
       if (g.origin === "backgroundFree") return ["wis", "con"];
+      if (g.origin === "classBoost") return ["int"];
       return ["int", "dex", "con", "cha"]; // levelled
     });
     const scores = previewAbilityScores(doc, 1, slotCtx.groups, picks);
@@ -1325,9 +1339,11 @@ describe("previewAbilityScores", () => {
     const slotCtx = abilityBoostsSlotContext(doc, 1);
     const emptyPicks = slotCtx.groups.map(() => []);
     const scores = previewAbilityScores(doc, 1, slotCtx.groups, emptyPicks);
-    // ancestryBoosts dex/int (+2 each), ancestryFlaws str (-2), classBoost int (+2, stacking to +4 total on int).
+    // ancestryBoosts dex/int (+2 each), ancestryFlaws str (-2). classBoost is
+    // a CHOICE group now (r11): an all-empty in-progress selection clears it
+    // from the preview, so int stays at 12 (ancestry only) until picked.
     expect(scores.dex).toBe(12);
-    expect(scores.int).toBe(14);
+    expect(scores.int).toBe(12);
     expect(scores.str).toBe(8);
     expect(scores.cha).toBe(10); // no free picks selected yet
   });

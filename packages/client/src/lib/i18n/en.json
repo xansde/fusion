@@ -346,6 +346,7 @@
   "FUSION.Sheet.Plan.Picker.Confirm": "Confirm",
   "FUSION.Sheet.Plan.AbilityBoosts.GroupAncestryFree": "Ancestry Free Boost",
   "FUSION.Sheet.Plan.AbilityBoosts.GroupBackgroundFree": "Background Free Boost",
+  "FUSION.Sheet.Plan.AbilityBoosts.GroupClassBoost": "Class Boost",
   "FUSION.Sheet.Plan.AbilityBoosts.GroupLevelled": "Free Level Boosts",
   "FUSION.Sheet.Plan.AbilityBoosts.FixedLabel": "Fixed Boosts",
   "FUSION.Sheet.Plan.AbilityBoosts.NoFreeChoices": "No free choices available yet (pick an ancestry/background first).",

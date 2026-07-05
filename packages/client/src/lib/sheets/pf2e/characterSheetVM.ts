@@ -553,10 +553,15 @@ export class CharacterSheetVM {
     if (!abilities) return [];
 
     const abilityMods = this._derived?.abilityMods;
+    // r11: build-driven actors have their FINAL scores in derived.abilityScores
+    // (the base-phase overwrite from the boosts ledger never persists into the
+    // raw doc) — prefer it; raw persisted scores are the manual-entry fallback.
+    const derivedScores = (this._derived as { abilityScores?: Record<string, number> } | null)
+      ?.abilityScores;
 
     return Object.entries(ABILITY_LABELS).map(([slug, label]) => {
       const raw = abilities[slug];
-      const score = raw?.value ?? 10;
+      const score = derivedScores?.[slug] ?? raw?.value ?? 10;
       const mod = abilityMods
         ? ((abilityMods as Record<string, number>)[slug] ?? Math.floor((score - 10) / 2))
         : Math.floor((score - 10) / 2);

@@ -124,25 +124,29 @@ function computeAbilityScores(
     scores[ability] -= 2;
   };
 
+  // EVERY array read is guarded (`?? []`): this runs against RAW persisted
+  // docs (no Zod defaults applied), and real-world ledgers carry only the
+  // keys their dialogs have written so far — the user's actual Tobias had
+  // backgroundFree/classBoost but NO backgroundBoosts key, which made the
+  // unguarded iteration throw "abilities.backgroundBoosts is not iterable"
+  // inside recomputeDerivedIfNeeded's try/catch and silently freeze the
+  // stored derived (r11 live-verification finding). Degrade to "no boosts
+  // from that origin" instead — same defensive posture as the rest of this
+  // file's malformed-input handling.
   const abilities = build.abilities;
-  for (const slug of abilities.ancestryBoosts) applyBoost(slug);
-  for (const slug of abilities.ancestryFlaws) applyFlaw(slug);
-  for (const slug of abilities.ancestryFree) applyBoost(slug);
-  for (const slug of abilities.backgroundBoosts) applyBoost(slug);
-  // `?? []`: backgroundFree is a NEW field (R11 item 1) — docs built directly
-  // as literals in older tests/fixtures (bypassing the Zod `.default([])`)
-  // predate it and omit the key entirely; degrade to no boosts instead of
-  // throwing, same defensive posture as the rest of this file's malformed-
-  // input handling (see the "Malformed class item" test suite).
+  for (const slug of abilities.ancestryBoosts ?? []) applyBoost(slug);
+  for (const slug of abilities.ancestryFlaws ?? []) applyFlaw(slug);
+  for (const slug of abilities.ancestryFree ?? []) applyBoost(slug);
+  for (const slug of abilities.backgroundBoosts ?? []) applyBoost(slug);
   for (const slug of abilities.backgroundFree ?? []) applyBoost(slug);
-  for (const slug of abilities.classBoost) applyBoost(slug);
+  for (const slug of abilities.classBoost ?? []) applyBoost(slug);
 
-  const levelledLevels = Object.keys(abilities.levelledBoosts)
+  const levelledLevels = Object.keys(abilities.levelledBoosts ?? {})
     .map((lvl) => Number(lvl))
     .filter((lvl) => !Number.isNaN(lvl) && lvl <= level)
     .sort((a, b) => a - b);
   for (const lvl of levelledLevels) {
-    const boosts = abilities.levelledBoosts[String(lvl)] ?? [];
+    const boosts = (abilities.levelledBoosts ?? {})[String(lvl)] ?? [];
     for (const slug of boosts) applyBoost(slug);
   }
 
@@ -256,7 +260,7 @@ export const stepCharApplyClass: DeriveStep = {
   documentType: "Actor",
   subtypes: ["character"],
   phase: "base",
-  reads: ["system.level"],
+  reads: ["system.level", "system.build"],
   // NOTE: exact strings matching what stepCharClassDC/stepCharPerception/
   // stepCharSaves/stepCharAc/stepCharStrikes declare in their own `reads`
   // (topo-sort edges are exact-string membership tests — see
@@ -278,12 +282,16 @@ export const stepCharApplyClass: DeriveStep = {
     const level = getLevel(sys);
     const upgrades = classSystem.proficiencyUpgrades ?? [];
 
-    // Key ability (first option in the class's keyAbility array).
+    // Key ability: the player's pick lives in build.abilities.classBoost
+    // (chosen in the builder's boosts dialog — r11); the class item keeps
+    // its FULL keyAbility option list, so keyAbility[0] is only the
+    // fallback for docs without a recorded choice.
     // All classSystem.* sub-object reads below are guarded (`?.`/`??`):
     // findClassItem() casts raw.system without a Zod parse, so a class item
     // authored outside the schema (e.g. {system:{hp:8}}) must degrade to
     // rank-0 defaults instead of throwing mid-derive.
-    const keyAbility = classSystem.keyAbility?.[0];
+    const classBoostPick = sys.build?.abilities?.classBoost?.[0];
+    const keyAbility = classBoostPick ?? classSystem.keyAbility?.[0];
     if (keyAbility) {
       if (!sys.details || typeof sys.details !== "object") {
         (sys as unknown as Record<string, unknown>)["details"] = {};

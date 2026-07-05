@@ -658,3 +658,71 @@ describe("Malformed class item degrades to rank-0 defaults instead of throwing",
     expect(skills["arcana"].rank).toBe(2);
   });
 });
+
+// ---------------------------------------------------------------------------
+// 7. Partial boosts ledger — real-world dialogs write only the keys they own
+// (r11 live finding: Tobias's ledger had backgroundFree/classBoost but no
+// backgroundBoosts key, and the unguarded iteration threw inside
+// recomputeDerivedIfNeeded, silently freezing the stored derived).
+// ---------------------------------------------------------------------------
+
+describe("Partial build.abilities ledger derives without throwing", () => {
+  it("a ledger missing backgroundBoosts/levelledBoosts keys still derives scores", () => {
+    const doc: Record<string, unknown> = {
+      system: {
+        systemVersion: "0.1.0",
+        level: { value: 3 },
+        abilities: {
+          str: { value: 8, mod: 0 },
+          dex: { value: 18, mod: 0 },
+          con: { value: 14, mod: 0 },
+          int: { value: 16, mod: 0 },
+          wis: { value: 12, mod: 0 },
+          cha: { value: 10, mod: 0 },
+        },
+        attributes: {
+          hp: { value: 10, max: 10, temp: 0 },
+          ac: { value: 10 },
+          speed: { value: 25, otherSpeeds: [] },
+          dying: { value: 0, max: 4 },
+          wounded: { value: 0 },
+          doomed: { value: 0 },
+          iwr: { immunities: [], weaknesses: [], resistances: [] },
+        },
+        saves: { fortitude: { rank: 0 }, reflex: { rank: 0 }, will: { rank: 0 } },
+        perception: { rank: 0, senses: [] },
+        skills: {},
+        proficiencies: {},
+        resources: { heroPoints: { value: 1, max: 3 }, focusPoints: { value: 0, max: 0 } },
+        details: { keyAbility: "str", level: 3 },
+        traits: { rarity: "common", value: [], size: "sm" },
+        // Raw persisted shape as written by the r11 dialogs — NO Zod
+        // defaults, NO backgroundBoosts, NO choices/bonusHp keys.
+        build: {
+          abilities: {
+            ancestryBoosts: ["dex", "int"],
+            ancestryFlaws: ["str"],
+            ancestryFree: ["cha"],
+            backgroundFree: ["int", "dex"],
+            classBoost: ["str"],
+          },
+        },
+      },
+      items: [{ _id: "cls1", type: "class", name: "Magus", system: { hp: 8, keyAbility: ["dex", "str"] } }],
+    };
+
+    expect(() => runCharacterPipeline(doc)).not.toThrow();
+
+    const sys = doc.system as Record<string, unknown>;
+    const abilities = sys["abilities"] as Record<string, { value: number }>;
+    // str 10 -2(flaw) +2(class) = 10; dex 10+2+2 = 14; int 10+2+2 = 14; cha 12.
+    expect(abilities["str"].value).toBe(10);
+    expect(abilities["dex"].value).toBe(14);
+    expect(abilities["int"].value).toBe(14);
+    expect(abilities["cha"].value).toBe(12);
+
+    // And the final scores ride inside derived for the client (r11).
+    const derived = sys["derived"] as { abilityScores?: Record<string, number> };
+    expect(derived.abilityScores?.["dex"]).toBe(14);
+  });
+});
