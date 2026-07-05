@@ -250,6 +250,19 @@ export interface SpellRow {
 }
 
 /**
+ * A resolver that maps an embedded spell's EN name to its pt-BR display name
+ * (T1 r13). Built from the spells-core pack index by the Svelte component
+ * (which owns the socket) and threaded into the VM's name-resolving getters so
+ * cantrips, grimoire rows, prepared slots, and focus spells all render the
+ * translated name — falling back to EN when no pack match exists.
+ *
+ * The VM stays dependency-free: it never fetches; it only APPLIES a translator
+ * the caller passes in. An absent/undefined translator is the identity
+ * (everything renders EN), so existing headless tests keep working unchanged.
+ */
+export type SpellNameTranslator = (enName: string) => string;
+
+/**
  * One sub-tab within the Spells tab (DEC-R10-03): a non-focus spellcasting
  * entry gets its own tab (kind "entry"), all focus-pool entries + focus
  * spells collapse into a single "Foco" tab (kind "focus"), and a "Rituais"
@@ -380,6 +393,14 @@ export class CharacterSheetVM {
   private readonly _userId: string;
   private readonly _isGm: boolean;
   private readonly _worldId: string;
+  /**
+   * Optional EN→pt-BR spell-name translator (T1 r13). When present, every
+   * embedded spell name the VM surfaces (cantrips, grimoire, prepared slots,
+   * focus spells) is passed through it so the sheet shows pt-BR names even
+   * when the actor's embedded spell items were copied with EN names. Absent =
+   * identity (EN names render as-is). See {@link SpellNameTranslator}.
+   */
+  private readonly _spellNameTranslator: SpellNameTranslator | undefined;
 
   constructor(opts: {
     doc: Record<string, unknown>;
@@ -388,6 +409,8 @@ export class CharacterSheetVM {
     userId: string;
     isGm: boolean;
     worldId?: string;
+    /** EN→pt-BR spell-name resolver; omitted in headless tests. */
+    spellNameTranslator?: SpellNameTranslator;
   }) {
     this._doc = opts.doc;
     this._actorId = opts.actorId;
@@ -395,6 +418,16 @@ export class CharacterSheetVM {
     this._userId = opts.userId;
     this._isGm = opts.isGm;
     this._worldId = opts.worldId ?? "";
+    this._spellNameTranslator = opts.spellNameTranslator;
+  }
+
+  /**
+   * Apply the optional spell-name translator to an EN name (identity when no
+   * translator was provided or the input is empty).
+   */
+  private _translateSpellName(enName: string): string {
+    if (!enName || !this._spellNameTranslator) return enName;
+    return this._spellNameTranslator(enName);
   }
 
   // -------------------------------------------------------------------------
@@ -927,7 +960,7 @@ export class CharacterSheetVM {
 
           const row: SpellRow = {
             id: typeof rawSpId === "string" ? rawSpId : "",
-            name: typeof rawSpName === "string" ? rawSpName : "",
+            name: this._translateSpellName(typeof rawSpName === "string" ? rawSpName : ""),
             level: spLevel,
             hasAttack,
             castTime: typeof rawCastTime === "string" ? rawCastTime : null,
@@ -1084,7 +1117,7 @@ export class CharacterSheetVM {
       const rawCastTime = sys["castTime"];
       rows.push({
         id,
-        name: typeof rawName === "string" ? rawName : "",
+        name: this._translateSpellName(typeof rawName === "string" ? rawName : ""),
         level: typeof rawLevel === "number" ? rawLevel : 0,
         hasAttack: defense?.["spellAttack"] === true,
         castTime: typeof rawCastTime === "string" ? rawCastTime : null,
@@ -1145,12 +1178,33 @@ export class CharacterSheetVM {
         if (item["type"] !== "spell") continue;
         if (item["_id"] !== spellItemId) continue;
         const rawName = item["name"];
-        return typeof rawName === "string" ? rawName : null;
+        return typeof rawName === "string" ? this._translateSpellName(rawName) : null;
       }
     }
 
     // Dangling reference — no embedded spell matches this id.
     return null;
+  }
+
+  /**
+   * Distinct EN names of every embedded `type: "spell"` item on the actor
+   * (T1 r13). The Svelte component uses this to know which names to resolve
+   * against the spells-core pack index when building the spell-name
+   * translator — so it only looks up names the sheet will actually show.
+   *
+   * Returns the RAW stored names (never translated) — this is the join key
+   * against the pack index's EN `name`, not a display value.
+   */
+  get embeddedSpellNames(): string[] {
+    const items = this._doc["items"] as Array<Record<string, unknown>> | undefined;
+    if (!items) return [];
+    const seen = new Set<string>();
+    for (const item of items) {
+      if (item["type"] !== "spell") continue;
+      const raw = item["name"];
+      if (typeof raw === "string" && raw.length > 0) seen.add(raw);
+    }
+    return Array.from(seen);
   }
 
   // -------------------------------------------------------------------------
@@ -1842,6 +1896,41 @@ function pickerNameMatches(entry: SpellPickerEntry, searchNorm: string): boolean
     return true;
   }
   return false;
+}
+
+/**
+ * Build an EN→pt-BR spell-name translator from spells-core pack index entries
+ * (T1 r13). Each entry carries an EN `name` and, when a translation overlay
+ * exists, a denormalized `namePt` (see PackIndexEntry). The translator maps an
+ * embedded spell's stored name (usually EN, but tolerant of pt-BR-copied data)
+ * to its pt-BR display name; names with no matching pack entry — or no
+ * `namePt` — return unchanged (EN fallback).
+ *
+ * Matching is accent/case-insensitive on BOTH sides, so it resolves regardless
+ * of whether the actor's embedded item name was copied in EN ("Sure Strike")
+ * or already in pt-BR ("Golpe Certeiro"): the index is keyed by BOTH the
+ * normalized EN name and the normalized pt-BR name, both pointing at the
+ * pt-BR display name. Later entries never clobber earlier ones for a given
+ * key (first write wins) — deterministic given a stable index order.
+ *
+ * Pure and dependency-free (the caller — SpellsTab — owns the socket that
+ * loads the index and threads the result into the VM via
+ * `spellNameTranslator`).
+ */
+export function buildSpellNameTranslator(entries: SpellPickerEntry[]): SpellNameTranslator {
+  const map = new Map<string, string>();
+  for (const entry of entries) {
+    const pt = entry.namePt;
+    if (pt === undefined || pt.length === 0) continue;
+    const enKey = normalizePickerText(entry.name);
+    const ptKey = normalizePickerText(pt);
+    if (enKey && !map.has(enKey)) map.set(enKey, pt);
+    if (ptKey && !map.has(ptKey)) map.set(ptKey, pt);
+  }
+  return (enName: string): string => {
+    if (!enName) return enName;
+    return map.get(normalizePickerText(enName)) ?? enName;
+  };
 }
 
 /**

@@ -30,12 +30,14 @@
    *     the item id only exists after the server ack + mirror broadcast).
    */
 
-  import type { CharacterSheetVM, SpellTabRow, SpellcastingEntryRow } from "../../../lib/sheets/pf2e/characterSheetVM.js";
+  import type { CharacterSheetVM, SpellTabRow, SpellcastingEntryRow, SpellNameTranslator } from "../../../lib/sheets/pf2e/characterSheetVM.js";
+  import { buildSpellNameTranslator } from "../../../lib/sheets/pf2e/characterSheetVM.js";
   import ProficiencyBadge from "./ProficiencyBadge.svelte";
   import SpellPickerDialog from "./SpellPickerDialog.svelte";
-  import { getDocument, requireConnectedSocket } from "../../../lib/compendium/compendiumApi.js";
-  import { getSocket } from "../../../lib/session.svelte.js";
-  import { t } from "../../../lib/i18n/i18n.js";
+  import { getDocument, requireConnectedSocket, listPacks, searchPack } from "../../../lib/compendium/compendiumApi.js";
+  import { pickLocalizedName } from "../../../lib/compendium/documentDetails.js";
+  import { getSocket, session } from "../../../lib/session.svelte.js";
+  import { t, i18n } from "../../../lib/i18n/i18n.js";
 
   interface Props {
     vm: CharacterSheetVM;
@@ -70,7 +72,10 @@
   let toast = $state<{ message: string; spellName?: string; rank?: number; entryId?: string } | null>(null);
   let toastTimer: ReturnType<typeof setTimeout> | null = null;
 
-  // Briefly-highlighted grimoire row (the spell just added).
+  // Briefly-highlighted grimoire row (the spell just added). Stored as the raw
+  // picker doc name (EN or pt-BR); the flash comparison uses its TRANSLATED
+  // form (see recentlyAddedDisplayName) because the grimoire/focus rows now
+  // render translated names (T1 r13).
   let recentlyAddedName = $state<string | null>(null);
   let highlightTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -123,10 +128,12 @@
     pendingNameLookups.add(id);
     try {
       const { document } = await getDocument(requireConnectedSocket(getSocket()), id);
-      const rawName = document["name"];
+      // Prefer the server-attached pt-BR overlay (document.i18n.ptBR.name) when
+      // the locale is pt-BR; pickLocalizedName falls back to the EN name (T1).
+      const localized = pickLocalizedName(document, i18n.locale);
       compendiumNameCache = {
         ...compendiumNameCache,
-        [id]: typeof rawName === "string" ? rawName : null,
+        [id]: localized.length > 0 ? localized : null,
       };
     } catch {
       // Not a resolvable compendium id (the common dangling case) or offline —
@@ -145,7 +152,9 @@
    */
   function resolvedSlotName(entryId: string, id: string): string | null {
     const embedded = vm.resolveSpellName(entryId, id);
-    if (embedded !== null) return embedded;
+    // Embedded name found: translate EN → pt-BR via the pack index (T1 r13).
+    // Falls back to the stored name when there's no pack match / not pt-BR.
+    if (embedded !== null) return translateName(embedded);
     const cached = compendiumNameCache[id];
     if (cached !== undefined) return cached; // string (found) or null (confirmed missing)
     void lookupCompendiumName(id); // fire once; re-renders when it lands
@@ -157,6 +166,56 @@
     const op = vm.unprepareSlot(entryId, rank, slotIndex);
     if (op) sendOpFn(op);
   }
+
+  // --- Spell-name translation (T1 r13) --------------------------------------
+  // The actor's embedded spell items were copied with mixed languages (cantrips
+  // in pt-BR, slot/grimoire spells in EN — the copy happened before an i18n
+  // overlay existed). The compendium index carries a denormalized pt-BR
+  // `namePt` per entry; loading the spells-core index once lets us resolve
+  // EVERY embedded spell's display name to pt-BR (EN fallback when no pack
+  // match), independent of how the actor data was copied. Display-time only —
+  // never mutates the actor. Names with no pack match stay EN.
+  let spellNameTranslator = $state<SpellNameTranslator | null>(null);
+  const systemId = $derived(session.worldInfo?.systemId ?? "pf2e");
+
+  $effect(() => {
+    // Re-run when the locale or system changes so a pt-BR ⇄ en switch (or a
+    // world/system change) re-resolves names. EN locale still loads the map;
+    // translate() below is gated on locale.
+    void i18n.locale;
+    void systemId;
+    void loadSpellNameTranslator();
+  });
+
+  async function loadSpellNameTranslator(): Promise<void> {
+    try {
+      const sock = requireConnectedSocket(getSocket());
+      const { packs } = await listPacks(sock, { systemId, documentType: "Item" });
+      const spellPack = packs.find((p) => p.id.endsWith(".spells-core")) ?? packs[0];
+      if (!spellPack) return;
+      const { entries } = await searchPack(sock, { packId: spellPack.id });
+      spellNameTranslator = buildSpellNameTranslator(entries);
+    } catch {
+      // Offline / no socket / no pack: leave the translator null → names render
+      // EN (or whatever the actor stored). Never blocks the tab.
+    }
+  }
+
+  /**
+   * Resolve a spell's display name to pt-BR when the active locale is pt-BR and
+   * the spells-core index is loaded; otherwise pass the stored name through.
+   * The single choke-point every render helper below routes names through.
+   */
+  function translateName(name: string): string {
+    if (i18n.locale !== "pt-BR" || !spellNameTranslator) return name;
+    return spellNameTranslator(name);
+  }
+
+  // Translated form of the just-added spell name, for the flash-highlight
+  // comparison against the (now translated) rendered row names.
+  const recentlyAddedDisplayName = $derived(
+    recentlyAddedName !== null ? translateName(recentlyAddedName) : null,
+  );
 
   function selectTab(key: string): void {
     activeTabKey = key;
@@ -250,7 +309,7 @@
     for (const slot of entry.slots) {
       if (slot.isCantrip || slot.rank > maxRank) continue;
       for (const sp of slot.spells) {
-        if (sp.id) out.push({ id: sp.id, name: sp.name, rank: slot.rank });
+        if (sp.id) out.push({ id: sp.id, name: translateName(sp.name), rank: slot.rank });
       }
     }
     return out.sort((a, b) => a.rank - b.rank || a.name.localeCompare(b.name));
@@ -436,14 +495,14 @@
     const out: Array<{ id: string; name: string; rank: number }> = [];
     for (const slot of entry.slots) {
       if (slot.isCantrip) continue;
-      for (const sp of slot.spells) out.push({ id: sp.id, name: sp.name, rank: slot.rank });
+      for (const sp of slot.spells) out.push({ id: sp.id, name: translateName(sp.name), rank: slot.rank });
     }
     return out;
   }
 
   function cantrips(entry: SpellcastingEntryRow): Array<{ id: string; name: string }> {
     const slot = entry.slots.find((s) => s.isCantrip);
-    return slot?.spells.map((sp) => ({ id: sp.id, name: sp.name })) ?? [];
+    return slot?.spells.map((sp) => ({ id: sp.id, name: translateName(sp.name) })) ?? [];
   }
 </script>
 
@@ -627,7 +686,7 @@
                 {#each grimoireSpells(entry) as spell (spell.id)}
                   <div
                     class="spell-chip spell-chip--row"
-                    class:spell-chip--new={spell.name === recentlyAddedName}
+                    class:spell-chip--new={spell.name === recentlyAddedDisplayName}
                   >
                     <span class="spell-chip__name">{spell.name}</span>
                     {#if vm.editable}
@@ -689,9 +748,9 @@
           <p class="spells-empty spells-empty--inline">{t("FUSION.Sheet.Spells.NoFocusSpells")}</p>
         {:else}
           {#each vm.focusSpells as spell (spell.id)}
-            <div class="focus-spell-row" class:spell-chip--new={spell.name === recentlyAddedName}>
+            <div class="focus-spell-row" class:spell-chip--new={translateName(spell.name) === recentlyAddedDisplayName}>
               <div class="focus-spell-row__main">
-                <div class="focus-spell-row__name">{spell.name}</div>
+                <div class="focus-spell-row__name">{translateName(spell.name)}</div>
               </div>
               {#if vm.editable}
                 <button

@@ -15,6 +15,7 @@ import {
   filterSpellPicker,
   sortSpellPickerEntries,
   resolveInitialTradition,
+  buildSpellNameTranslator,
   type SpellPickerEntry,
 } from "../characterSheetVM.js";
 import {
@@ -195,7 +196,12 @@ function makeCharacter(overrides: Record<string, unknown> = {}): Record<string, 
 
 function makeVM(
   docOverrides: Record<string, unknown> = {},
-  opts: { ownership?: number; isGm?: boolean; worldId?: string } = {},
+  opts: {
+    ownership?: number;
+    isGm?: boolean;
+    worldId?: string;
+    spellNameTranslator?: (enName: string) => string;
+  } = {},
 ): CharacterSheetVM {
   return new CharacterSheetVM({
     doc: makeCharacter(docOverrides),
@@ -204,6 +210,7 @@ function makeVM(
     userId: "user-gm",
     isGm: opts.isGm ?? true,
     worldId: opts.worldId ?? "world-001",
+    ...(opts.spellNameTranslator ? { spellNameTranslator: opts.spellNameTranslator } : {}),
   });
 }
 
@@ -1551,6 +1558,124 @@ describe("CharacterSheetVM — resolveSpellName (DEC-R12-05)", () => {
   it("returns null for an empty/blank id (unprepared-slot sentinel)", () => {
     const vm = makeVM();
     expect(vm.resolveSpellName("entry-arcane", "")).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Spell-name translation (T1 r13) — bilingual display via the pack overlay.
+// The actor's embedded spell items were copied with EN names; a translator
+// (built from the spells-core index's namePt) resolves them to pt-BR for
+// display, EN-fallback when no pack match. resolveSpellName + spellcasting
+// rows all route through it; a dangling ref stays a null error state.
+// ---------------------------------------------------------------------------
+
+describe("CharacterSheetVM — spell-name translation (T1 r13)", () => {
+  /** A translator that knows two EN→pt-BR spell names; everything else = identity. */
+  const translator = (en: string): string => {
+    const map: Record<string, string> = {
+      "Magic Missile": "Mísseis Mágicos",
+      Shield: "Escudo",
+    };
+    return map[en] ?? en;
+  };
+
+  it("translates a grouped spell row name (grimoire/slot) to pt-BR", () => {
+    const vm = makeVM({}, { spellNameTranslator: translator });
+    const entry = vm.spellcastingEntries[0]!;
+    const names = entry.slots.flatMap((s) => s.spells).map((sp) => sp.name);
+    expect(names).toContain("Mísseis Mágicos"); // Magic Missile → pt-BR
+    expect(names).toContain("Escudo"); // Shield (cantrip) → pt-BR
+  });
+
+  it("leaves a spell with no pack match in EN (fallback)", () => {
+    // Add a spell whose name the translator does not know.
+    const doc = makeCharacter();
+    (doc["items"] as Array<Record<string, unknown>>).push({
+      _id: "spell-unknown",
+      name: "Horizon Thunder Sphere",
+      type: "spell",
+      location: "entry-arcane",
+      system: { level: 1 },
+    });
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+      spellNameTranslator: translator,
+    });
+    const names = vm.spellcastingEntries[0]!.slots.flatMap((s) => s.spells).map((sp) => sp.name);
+    expect(names).toContain("Horizon Thunder Sphere"); // untranslated → EN kept
+  });
+
+  it("resolveSpellName returns the translated name for a matched embedded spell", () => {
+    const vm = makeVM({}, { spellNameTranslator: translator });
+    expect(vm.resolveSpellName("entry-arcane", "spell-magic-missile")).toBe("Mísseis Mágicos");
+  });
+
+  it("resolveSpellName still returns null for a dangling ref (translator does not mask it)", () => {
+    const vm = makeVM({}, { spellNameTranslator: translator });
+    expect(vm.resolveSpellName("entry-arcane", "QM1xJwDDsAEYA3uJ")).toBeNull();
+  });
+
+  it("without a translator, names render as stored (EN) — identity", () => {
+    const vm = makeVM(); // no translator
+    expect(vm.resolveSpellName("entry-arcane", "spell-magic-missile")).toBe("Magic Missile");
+  });
+
+  it("embeddedSpellNames lists the distinct RAW (untranslated) embedded spell names", () => {
+    const vm = makeVM({}, { spellNameTranslator: translator });
+    const names = vm.embeddedSpellNames;
+    // Raw names — the join key against the pack index, never translated.
+    expect(names).toContain("Magic Missile");
+    expect(names).toContain("Shield");
+    expect(names).not.toContain("Mísseis Mágicos");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildSpellNameTranslator (T1 r13) — pure EN/pt-BR resolver from pack index
+// entries carrying a denormalized namePt.
+// ---------------------------------------------------------------------------
+
+describe("buildSpellNameTranslator (T1 r13)", () => {
+  function entry(name: string, namePt?: string): SpellPickerEntry {
+    return { name, index: {}, ...(namePt !== undefined ? { namePt } : {}) };
+  }
+
+  it("maps an EN name to its pt-BR namePt", () => {
+    const translate = buildSpellNameTranslator([entry("Sure Strike", "Golpe Certeiro")]);
+    expect(translate("Sure Strike")).toBe("Golpe Certeiro");
+  });
+
+  it("matches accent/case-insensitively on the EN side", () => {
+    const translate = buildSpellNameTranslator([entry("Blazing Bolt", "Raio Flamejante")]);
+    expect(translate("blazing bolt")).toBe("Raio Flamejante");
+  });
+
+  it("also resolves a name already stored in pt-BR (pt-BR key)", () => {
+    // Cantrips embedded in pt-BR still resolve to the canonical namePt.
+    const translate = buildSpellNameTranslator([entry("Shield", "Escudo")]);
+    expect(translate("Escudo")).toBe("Escudo");
+  });
+
+  it("returns the input unchanged when there is no pack match (EN fallback)", () => {
+    const translate = buildSpellNameTranslator([entry("Heal", "Curar")]);
+    expect(translate("Fireball")).toBe("Fireball");
+  });
+
+  it("ignores entries without a namePt (untranslated pack entries)", () => {
+    const translate = buildSpellNameTranslator([entry("Fireball")]); // no namePt
+    expect(translate("Fireball")).toBe("Fireball");
+  });
+
+  it("first write wins for a duplicated key (deterministic)", () => {
+    const translate = buildSpellNameTranslator([
+      entry("Light", "Luz"),
+      entry("Light", "Iluminar"),
+    ]);
+    expect(translate("Light")).toBe("Luz");
   });
 });
 
