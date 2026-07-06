@@ -14,6 +14,7 @@
   import type { Socket } from "socket.io-client";
   import type { ChatMessage as ChatMessageType } from "@fusion/shared";
   import { ConjuracaoCardSchema } from "@fusion/system-etmos";
+  import { SpellCastCardSchema } from "@fusion/shared";
   import {
     getMessageDisplayMeta,
     formatRoll,
@@ -22,18 +23,22 @@
   } from "../../lib/chat/messageFormatter.js";
   import ChatCard from "./ChatCard.svelte";
   import ConjuracaoCard from "./etmos/ConjuracaoCard.svelte";
+  import SpellCastCard from "./pf2e/SpellCastCard.svelte";
 
   const {
     message,
     socket,
     isGm = false,
     userId = "",
+    worldId = "",
   }: {
     message: ChatMessageType;
     /** Optional — only required to render system cards with actionable buttons (e.g. Etmos ConjuracaoCard). */
     socket?: Socket;
     isGm?: boolean;
     userId?: string;
+    /** World id — required for the PF2e SpellCastCard's chat:send roll ops (r17-P2). */
+    worldId?: string;
   } = $props();
 
   const meta = $derived(getMessageDisplayMeta(message));
@@ -52,6 +57,19 @@
     ];
     if (raw === undefined) return null;
     const result = ConjuracaoCardSchema.safeParse(raw);
+    return result.success ? result.data : null;
+  });
+
+  // PF2e interactive spell-cast card — flags.pf2e.spellCast (r17-P2). Rides on a
+  // plain "text" cast announcement (so old clients still see the text). Validated
+  // with the SAME Zod schema the server uses; a malformed/foreign flag falls
+  // through to the plain text renderer instead of crashing the log.
+  const spellCastCard = $derived.by(() => {
+    const raw = (message.flags as Record<string, Record<string, unknown>> | undefined)?.["pf2e"]?.[
+      "spellCast"
+    ];
+    if (raw === undefined) return null;
+    const result = SpellCastCardSchema.safeParse(raw);
     return result.success ? result.data : null;
   });
 
@@ -174,6 +192,12 @@
   {:else if message.type === "system" && message.card}
     <!-- Chat card (declarative, no innerHTML) -->
     <ChatCard card={message.card} messageId={message._id} />
+  {:else if spellCastCard}
+    <!-- PF2e interactive spell-cast card (flags.pf2e.spellCast) — text + buttons -->
+    {#if message.content}
+      <p class="msg__content">{message.content}</p>
+    {/if}
+    <SpellCastCard card={spellCastCard} {worldId} {socket} {isGm} {userId} />
   {:else}
     <!-- text / whisper / system (no card) -->
     <p class="msg__content">{message.content}</p>

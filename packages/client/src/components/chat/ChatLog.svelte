@@ -119,7 +119,7 @@
       <p class="chat-log__empty">No messages yet. Say something!</p>
     {:else}
       {#each chatStore.messages as msg (msg._id)}
-        <ChatMessageComponent message={msg} {socket} {isGm} {userId} />
+        <ChatMessageComponent message={msg} {socket} {isGm} {userId} {worldId} />
       {/each}
     {/if}
 
