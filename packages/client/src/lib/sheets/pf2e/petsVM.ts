@@ -297,12 +297,18 @@ export function readFamiliar(
     attack: num(derAttack?.total, 0),
     speed: num(derSpeed?.value, 25),
     otherSpeeds: Array.isArray(rawOther)
-      ? (rawOther as Array<{ type: string; value: number }>).filter(
-          (s) => s && typeof s.type === "string" && typeof s.value === "number",
+      ? (rawOther as unknown[]).filter(
+          (s): s is { type: string; value: number } =>
+            typeof s === "object" &&
+            s !== null &&
+            typeof (s as { type?: unknown }).type === "string" &&
+            typeof (s as { value?: unknown }).value === "number",
         )
       : [],
     abilitiesBudget: { value: num(budget?.value, FAMILIAR_ABILITY_BASE), max: num(budget?.max, FAMILIAR_ABILITY_BASE) },
-    selectedAbilities: Array.isArray(selected) ? (selected as string[]).filter((s) => typeof s === "string") : [],
+    selectedAbilities: Array.isArray(selected)
+      ? (selected as unknown[]).filter((s): s is string => typeof s === "string")
+      : [],
     orphaned: masterId !== expectedMasterId,
   };
 }
@@ -554,7 +560,7 @@ export function abilitySlug(entry: PackIndexEntry): string {
 
 /** Map a pack index entry to an AbilityRow in the active locale. */
 export function toAbilityRow(entry: PackIndexEntry, locale: SupportedLocale): AbilityRow {
-  const parts = localizedNameParts(entry as unknown as Record<string, unknown>, locale);
+  const parts = localizedNameParts(entry, locale);
   const slug = abilitySlug(entry);
   const enName = entry.name;
   const ptName = parts.display !== enName ? parts.display : "";
