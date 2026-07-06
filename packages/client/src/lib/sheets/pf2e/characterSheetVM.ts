@@ -23,6 +23,7 @@ import type {
   DerivedStrike,
   ArchetypeClassDC,
 } from "./derivedTypes.js";
+import type { SpellCastCard, SpellSaveType } from "@fusion/shared";
 import { t } from "../../i18n/index.js";
 import { skillNamePt } from "./skillNames.js";
 import {
@@ -490,6 +491,14 @@ export interface ChatRollPayload {
   worldId: string;
   rollMode: "public";
   speakerActorId: string;
+  /**
+   * Optional namespaced flags to attach to the resulting ChatMessage (r17-P2).
+   * Only `pf2e.spellCast` is whitelisted server-side (interactive spell-cast
+   * card). Present on the cast announcement; absent on plain rolls. The wire
+   * schema (ChatSendFlagsSchema) validates the shape and the server never
+   * trusts the DC (coherence-checked against the caster's derived DC).
+   */
+  flags?: { pf2e: { spellCast: SpellCastCard } };
 }
 
 // ---------------------------------------------------------------------------
@@ -1490,16 +1499,113 @@ export class CharacterSheetVM {
     if (saveLine) parts.push(`(${saveLine})`);
     const content = parts.join(" ");
 
+    // Build the structured interactive card (r17-P2). The announcement text
+    // stays for old clients; new clients render buttons from this flag.
+    const card = this._buildSpellCastCard(sys, entryId, eff, glyphs, name, spellItemId);
+
     const announcement: ChatRollPayload = {
       type: "chat:send",
       content,
       worldId: this._worldId,
       rollMode: "public",
       speakerActorId: this._actorId,
+      flags: { pf2e: { spellCast: card } },
     };
 
     const attack = spellSystemHasAttack(sys) ? this.rollSpellAttack(entryId) : null;
     return { announcement, attack };
+  }
+
+  /**
+   * Assemble the {@link SpellCastCard} payload for the interactive chat card
+   * (r17-P2). Populates save (statistic/DC/basic from `system.defense` +
+   * derived DC) and damage (ALREADY heightened to `eff` via the heightening
+   * helper — never re-derived on the client render) so the card's two buttons
+   * ("Fazer teste de resistência" / "Rolar dano") have everything they need.
+   *
+   * `dcValue`/`saveType`/`basicSave` are present only for save spells;
+   * `damageFormula`/`damageType` only when the heightened spell deals damage.
+   * The server re-validates this shape and never trusts the DC.
+   */
+  private _buildSpellCastCard(
+    sys: Record<string, unknown>,
+    entryId: string,
+    eff: number,
+    glyphs: string,
+    displayName: string,
+    spellItemId: string,
+  ): SpellCastCard {
+    const card: SpellCastCard = {
+      casterActorId: this._actorId,
+      spellName: displayName,
+      rank: eff,
+    };
+    if (glyphs) card.actionCost = glyphs;
+
+    // Raw EN name (pack join key) — the untranslated stored name, when present.
+    const enName = this._rawSpellName(spellItemId);
+    if (enName && enName !== displayName) card.spellNameEn = enName;
+
+    // Save (statistic + DC + basic) from the healed defense block.
+    const defense = sys["defense"] as Record<string, unknown> | undefined;
+    const save = defense?.["save"] as Record<string, unknown> | undefined;
+    const statistic = typeof save?.["statistic"] === "string" ? (save["statistic"] as string) : "";
+    if (statistic === "fortitude" || statistic === "reflex" || statistic === "will") {
+      card.saveType = statistic satisfies SpellSaveType;
+      card.dcValue = this._derived?.spellcasting?.[entryId]?.dc ?? 10;
+      if (save?.["basic"] === true) card.basicSave = true;
+    }
+
+    // Damage — heightened to `eff` (r16-G3). Reuse the same helper the sheet row
+    // uses so the formula matches the Dano button exactly.
+    const rawLevel = sys["level"];
+    const baseRank = typeof rawLevel === "number" ? rawLevel : 0;
+    const heightened = computeHeightenedSpell(sys, baseRank, eff);
+    if (heightened.rollFormula) {
+      card.damageFormula = heightened.rollFormula;
+      const dmgType = this._primaryDamageType(sys);
+      if (dmgType) card.damageType = dmgType;
+    }
+
+    // Traits (display only).
+    const traitsBlock = sys["traits"] as { value?: unknown } | undefined;
+    if (Array.isArray(traitsBlock?.value)) {
+      const traits = (traitsBlock.value as unknown[]).filter(
+        (v): v is string => typeof v === "string",
+      );
+      if (traits.length > 0) card.traits = traits;
+    }
+
+    return card;
+  }
+
+  /** Raw (untranslated) stored name of an embedded spell item by id, or "". */
+  private _rawSpellName(spellItemId: string): string {
+    const items = this._doc["items"] as Array<Record<string, unknown>> | undefined;
+    if (!items) return "";
+    for (const item of items) {
+      if (item["type"] !== "spell" || item["_id"] !== spellItemId) continue;
+      const raw = item["name"];
+      return typeof raw === "string" ? raw : "";
+    }
+    return "";
+  }
+
+  /**
+   * The primary damage type of a spell's `system.damage` map (first entry with
+   * a `type`). Used only for the card badge; the roll formula itself already
+   * carries the numbers (r17-P2).
+   */
+  private _primaryDamageType(sys: Record<string, unknown>): string | null {
+    const damage = sys["damage"];
+    if (!damage || typeof damage !== "object") return null;
+    for (const entry of Object.values(damage as Record<string, unknown>)) {
+      if (entry && typeof entry === "object") {
+        const type = (entry as Record<string, unknown>)["type"];
+        if (typeof type === "string" && type.length > 0) return type;
+      }
+    }
+    return null;
   }
 
   /**

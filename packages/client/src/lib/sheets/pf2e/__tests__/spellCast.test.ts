@@ -9,7 +9,7 @@
 
 import { describe, it, expect } from "vitest";
 import { CharacterSheetVM, type SpellHealResolver } from "../characterSheetVM.js";
-import { ChatSendPayloadSchema } from "@fusion/shared";
+import { ChatSendPayloadSchema, SpellCastCardSchema } from "@fusion/shared";
 
 // Tobias-like caster: level 3 Magus, one arcane entry, Ignition (attack cantrip)
 // and Electric Arc (save cantrip). Embedded copies are STRIPPED (no heightening/
@@ -112,5 +112,54 @@ describe("castSpell — announcement", () => {
   it("returns null for an unknown spell id", () => {
     const vm = makeVM();
     expect(vm.castSpell("nope", "entry-arcane", "cantrip")).toBeNull();
+  });
+});
+
+describe("castSpell — interactive card payload (r17-P2)", () => {
+  it("attack cantrip (Ignition): card has damage (heightened), no save", () => {
+    const vm = makeVM();
+    const { announcement } = vm.castSpell("sp-ignition", "entry-arcane", "cantrip")!;
+    const card = announcement.flags?.pf2e.spellCast;
+    expect(card).toBeDefined();
+    // Card is a valid SpellCastCard.
+    expect(SpellCastCardSchema.safeParse(card).success).toBe(true);
+    expect(card!.casterActorId).toBe("tobias");
+    expect(card!.rank).toBe(2); // L3 cantrip → effective rank 2
+    expect(card!.actionCost).toBe("◆◆");
+    // Ignition is an attack cantrip — no save.
+    expect(card!.saveType).toBeUndefined();
+    expect(card!.dcValue).toBeUndefined();
+    // Damage heightened: base 2d4 + 1 interval step (rank 2 - 1) = 2d4+1d4, fire.
+    expect(card!.damageFormula).toBe("2d4+1d4");
+    expect(card!.damageType).toBe("fire");
+    expect(card!.traits).toContain("attack");
+  });
+
+  it("save cantrip (Electric Arc): card has save (DC + basic) AND damage", () => {
+    const vm = makeVM();
+    const { announcement } = vm.castSpell("sp-arc", "entry-arcane", "cantrip")!;
+    const card = announcement.flags?.pf2e.spellCast;
+    expect(card).toBeDefined();
+    expect(card!.saveType).toBe("reflex");
+    expect(card!.dcValue).toBe(19); // derived spellcasting DC
+    expect(card!.basicSave).toBe(true);
+    expect(card!.damageFormula).toBe("2d4+1d4");
+    expect(card!.damageType).toBe("electricity");
+  });
+
+  it("prepared heightening: card damage scales with the slot rank", () => {
+    const vm = makeVM();
+    // Ignition prepared in a rank-3 slot → +2 interval steps over base rank 1.
+    const { announcement } = vm.castSpell("sp-ignition", "entry-arcane", "prepared", 3)!;
+    const card = announcement.flags?.pf2e.spellCast;
+    expect(card!.rank).toBe(3);
+    expect(card!.damageFormula).toBe("2d4+1d4+1d4"); // base 2d4 + 2 interval steps
+  });
+
+  it("card announcement still validates as a chat:send payload with flags", () => {
+    const vm = makeVM();
+    const { announcement } = vm.castSpell("sp-arc", "entry-arcane", "cantrip")!;
+    const { type: _t, ...payload } = announcement;
+    expect(ChatSendPayloadSchema.safeParse(payload).success).toBe(true);
   });
 });
