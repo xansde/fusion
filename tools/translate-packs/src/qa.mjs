@@ -49,8 +49,15 @@ export function runQa({ packsRoot, packs, glossary }) {
     const overlay = readOverlay(packsRoot, slug, I18N_FILENAME);
     const results = runQaForPack(docs, overlay, glossary);
     const failed = results.filter((r) => !r.pass);
+    const withWarnings = results.filter((r) => (r.warnings?.length ?? 0) > 0);
 
-    report.packs[slug] = { checked: results.length, failed: failed.length, failures: failed };
+    report.packs[slug] = {
+      checked: results.length,
+      failed: failed.length,
+      failures: failed,
+      warningDocs: withWarnings.length,
+      warnings: withWarnings.map((r) => ({ id: r.id, name: r.name, warnings: r.warnings })),
+    };
     if (failed.length > 0) anyFailure = true;
   }
 
@@ -76,6 +83,12 @@ async function main() {
       }
     } else {
       console.log(`[qa] ${slug}: ${result.checked} doc(s) checked, all passed`);
+    }
+    if (result.warningDocs > 0) {
+      console.log(`[qa] ${slug}: ${result.warningDocs} doc(s) with heuristic warnings (non-fatal)`);
+      for (const w of result.warnings) {
+        console.log(`  ~ ${w.id} "${w.name}": ${w.warnings.join("; ")}`);
+      }
     }
   }
 

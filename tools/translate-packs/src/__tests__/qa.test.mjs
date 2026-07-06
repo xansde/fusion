@@ -99,6 +99,25 @@ test("glossary-applied: passes when at least one EN glossary term is translated 
   assert.deepEqual(failures, []);
 });
 
+test("glossary-applied: passes when PT uses accented pt-BR text matching a diacritic-free glossary value", () => {
+  // The glossary stores pt-BR values without diacritics (e.g. glossary.terms["you can"]
+  // === "voce pode", per glossary.pt-BR.json), but real translations correctly write
+  // accented pt-BR ("você pode"). The comparison must normalize both sides so this counts
+  // as a match rather than a false-positive failure.
+  const term = "you can";
+  const ptValue = glossary.terms[term];
+  assert.ok(ptValue, `expected glossary to define a pt-BR value for "${term}"`);
+  assert.equal(ptValue, "voce pode", "glossary value expected without diacritics for this test to be meaningful");
+
+  const failures = checkDoc({
+    nameEn: "Some Feat",
+    descriptionEn: "<p>You can use this action once per day.</p>",
+    entry: { name: "Algum Talento", description: "<p>Você pode usar esta ação uma vez por dia.</p>" },
+    glossary,
+  });
+  assert.deepEqual(failures, []);
+});
+
 test("glossary-applied: skipped (no failure) when EN text has zero recognized glossary terms", () => {
   const failures = checkDoc({
     nameEn: "Odd Doc",
@@ -149,11 +168,40 @@ test("no-new-enrichers: passes when PT preserves an EN enricher verbatim, transl
     entry: {
       name: "Algum Talento",
       description:
-        '<p>Você ganha @UUID[Compendium.pf2e.actionspf2e.Item.Quick Alchemy]{Quick Alchemy}.</p>',
+        '<p>Você ganha @UUID[Compendium.pf2e.actionspf2e.Item.Quick Alchemy]{Alquimia Rápida}.</p>',
     },
     glossary,
   });
   assert.deepEqual(failures, []);
+});
+
+test("no-new-enrichers: fails when PT changes the enricher's path (not just the label)", () => {
+  const failures = checkDoc({
+    nameEn: "Some Feat",
+    descriptionEn: '<p>You gain @UUID[Compendium.pf2e.actionspf2e.Item.Quick Alchemy]{Quick Alchemy}.</p>',
+    entry: {
+      name: "Algum Talento",
+      description:
+        '<p>Você ganha @UUID[Compendium.pf2e.actionspf2e.Item.Sneak Attack]{Quick Alchemy}.</p>',
+    },
+    glossary,
+  });
+  assert.ok(failures.some((f) => f.startsWith("no-new-enrichers")));
+});
+
+test("no-new-enrichers: fails when PT translates the damage-type inside an @Damage enricher's args", () => {
+  const failures = checkDoc({
+    nameEn: "Acid Splash",
+    descriptionEn: "<p>Deal @Damage[2d6[acid]]{2d6 acid damage}.</p>",
+    entry: {
+      name: "Respingo de Ácido",
+      // Damage type translated inside the args (not just the label) — this
+      // is a real drift (mutates roll/type resolution), must still fail.
+      description: "<p>Causa @Damage[2d6[ácido]]{2d6 de dano ácido}.</p>",
+    },
+    glossary,
+  });
+  assert.ok(failures.some((f) => f.startsWith("no-new-enrichers")));
 });
 
 test("runQaForPack skips docs with no overlay entry and reports pass/fail per translated doc", () => {

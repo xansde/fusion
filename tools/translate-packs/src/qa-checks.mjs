@@ -14,9 +14,11 @@
  *                         glossary terms (nothing to check).
  *   4. length-ratio     — len(PT) / len(EN) is within [0.5, 2.0].
  *   5. no-new-enrichers — every @Tag[...] enricher present in PT already
- *                         existed (verbatim) in EN — translation must only
- *                         touch prose/labels, never invent or mutate
- *                         enricher syntax.
+ *                         existed (verbatim) in EN, comparing only the
+ *                         structural part (@Tag[path/args], before any
+ *                         `{label}`) — translating the label text is
+ *                         correct and expected; only a changed path/args
+ *                         is a real failure.
  */
 
 import { findGlossaryTermsInText } from "./glossary.mjs";
@@ -24,6 +26,14 @@ import { findGlossaryTermsInText } from "./glossary.mjs";
 const DICE_PATTERN = /\d+d\d+(?:[+-]\d+)?/gi;
 const TAG_PATTERN = /<\/?([a-zA-Z][a-zA-Z0-9]*)\b[^>]*>/g;
 const ENRICHER_PATTERN = /@[A-Za-z]+\[[^\]]*\](?:\{[^}]*\})?/g;
+
+/** Strips the trailing `{label}` from an enricher match, leaving only the
+ * structural `@Tag[path/args]` part — the label may be legitimately
+ * translated, but the path/args must never drift. */
+function enricherStructuralPart(enricher) {
+  const braceIndex = enricher.indexOf("{");
+  return braceIndex === -1 ? enricher : enricher.slice(0, braceIndex);
+}
 
 function extractDiceFormulas(text) {
   return new Set((text.match(DICE_PATTERN) ?? []).map((m) => m.toLowerCase().replace(/\s+/g, "")));
@@ -58,6 +68,18 @@ function mapsEqual(a, b) {
 
 function stripHtmlToText(html) {
   return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+/** Normalizes text for tolerant comparison: NFD decomposition + diacritic
+ * removal + lowercase. The glossary stores pt-BR values without diacritics
+ * (e.g. "pericia", "voce pode"), but real translations correctly use
+ * accents (e.g. "perícia", "você pode") — both sides must be normalized
+ * before comparing, or every accented glossary hit reads as a miss. */
+function normalizeForComparison(text) {
+  return text
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase();
 }
 
 /**
@@ -95,19 +117,28 @@ export function checkDoc({ nameEn, descriptionEn, entry, glossary }) {
       );
     }
 
-    // 3. glossary-applied
+    // 3. glossary-applied — HEURISTIC, reported as a warning (never fails the
+    // doc): legitimate translations can use morphological variants the flat
+    // glossary can't encode. Enricher syntax is stripped from the EN side
+    // first so placeholder-only descriptions (e.g. a bare @Localize[...])
+    // don't leak path words like "condition" into term extraction.
     if (glossary) {
-      const enPlainText = stripHtmlToText(descriptionEn);
+      const enPlainText = stripHtmlToText(descriptionEn.replace(ENRICHER_PATTERN, " "));
       const termsInEn = findGlossaryTermsInText(enPlainText, glossary);
       if (termsInEn.length > 0) {
-        const ptLower = descriptionPt.toLowerCase();
+        // Normalize both sides (NFD + strip diacritics + lowercase): the
+        // glossary stores pt-BR values without accents (e.g. "pericia",
+        // "voce pode"), but correct translations use accents ("perícia",
+        // "você pode") — a literal includes() would false-positive-fail
+        // every one of those.
+        const ptNormalized = normalizeForComparison(descriptionPt);
         const anyTranslated = termsInEn.some((term) => {
           const ptTerm = glossary.terms[term];
-          return ptTerm && ptLower.includes(ptTerm.toLowerCase());
+          return ptTerm && ptNormalized.includes(normalizeForComparison(ptTerm));
         });
         if (!anyTranslated) {
           failures.push(
-            `glossary-applied: none of the EN glossary terms [${termsInEn.join(", ")}] found translated in PT`,
+            `warning:glossary-applied: none of the EN glossary terms [${termsInEn.join(", ")}] found translated in PT`,
           );
         }
       }
@@ -123,11 +154,14 @@ export function checkDoc({ nameEn, descriptionEn, entry, glossary }) {
       }
     }
 
-    // 5. no-new-enrichers
+    // 5. no-new-enrichers (structural part only — translating the
+    // `{label}` is correct and expected; only a changed path/args is
+    // a real failure)
     const enrichersEn = extractEnrichers(descriptionEn);
     const enrichersPt = extractEnrichers(descriptionPt);
+    const enricherStructuralPartsEn = new Set([...enrichersEn].map(enricherStructuralPart));
     for (const enricher of enrichersPt) {
-      if (!enrichersEn.has(enricher)) {
+      if (!enricherStructuralPartsEn.has(enricherStructuralPart(enricher))) {
         failures.push(`no-new-enrichers: PT introduces enricher not present in EN: ${enricher}`);
       }
     }
@@ -148,14 +182,18 @@ export function runQaForPack(docs, overlay, glossary) {
     const entry = entries[doc._id];
     if (!entry) continue; // untranslated — nothing to QA yet.
 
-    const failures = checkDoc({
+    const all = checkDoc({
       nameEn: doc.name,
       descriptionEn: doc.system?.description ?? "",
       entry,
       glossary,
     });
+    // "warning:"-prefixed entries are heuristic findings (glossary-applied):
+    // surfaced in the report but they never fail the doc.
+    const warnings = all.filter((f) => f.startsWith("warning:"));
+    const failures = all.filter((f) => !f.startsWith("warning:"));
 
-    results.push({ id: doc._id, name: doc.name, pass: failures.length === 0, failures });
+    results.push({ id: doc._id, name: doc.name, pass: failures.length === 0, failures, warnings });
   }
 
   return results;
