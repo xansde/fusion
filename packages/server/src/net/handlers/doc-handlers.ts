@@ -58,7 +58,9 @@ import {
   resolveOwnership,
   OwnershipLevel,
   isRolePrivileged,
+  testOwnership,
 } from "../../documents/ownership.js";
+import { detectFamiliarGrant } from "@fusion/system-pf2e";
 import {
   DocCreatePayloadSchema,
   DocUpdatePayloadSchema,
@@ -175,6 +177,172 @@ function getOwnershipFromDoc(doc: Record<string, unknown>): Ownership {
     return doc["ownership"] as Ownership;
   }
   return { default: OwnershipLevel.NONE };
+}
+
+// ---------------------------------------------------------------------------
+// Player-owned companion (familiar) create/delete authorization (r17-P1)
+// ---------------------------------------------------------------------------
+//
+// A PLAYER may create/delete an Actor of type "familiar" (a companion) WITHOUT
+// a GM, but ONLY under a tightly-scoped set of conditions. Actor is otherwise
+// in GM_ONLY_CREATE_DELETE (anti-cheat: players cannot mint arbitrary actors).
+// The gate below is the sole exception and is deliberately narrow:
+//
+//   create — ALL must hold:
+//     (a) the payload is a companion: type === "familiar", a `companionKind`
+//         and a non-empty `system.masterActorId` are present;
+//     (b) the master Actor exists AND the requester owns it at OWNER level
+//         (testOwnership from documents/ownership.ts — never a duplicated
+//         predicate);
+//     (c) the world runs pf2e AND the master actually has a feat/rule that
+//         grants a familiar (detectFamiliarGrant, read live from the master's
+//         embedded items on the SERVER — the client CTA is advisory, this is
+//         authoritative);
+//     (d) the master has no familiar linked yet (1 familiar per master; a
+//         second is rejected as a duplicate).
+//     On success the created familiar's ownership is FORCED to the master's
+//     ownership map (the master's owners become the familiar's owners), never
+//     trusting a client-supplied ownership.
+//
+//   delete — the target Actor is a companion (type "familiar" + a
+//     `system.masterActorId`) whose master the requester owns at OWNER level.
+//
+// Companion type is "familiar" in the MVP (spec 29: pet/animalCompanion share
+// the same Actor type "familiar" with a `companionKind` discriminator).
+
+/** The Actor subtype used for every companion in the MVP (spec 29). */
+const COMPANION_ACTOR_TYPE = "familiar";
+
+/** Read `system.masterActorId` from a raw doc, or null when absent/blank. */
+function readMasterActorId(doc: Record<string, unknown>): string | null {
+  const sys = doc["system"];
+  if (!sys || typeof sys !== "object" || Array.isArray(sys)) return null;
+  const raw = (sys as Record<string, unknown>)["masterActorId"];
+  return typeof raw === "string" && raw.length > 0 ? raw : null;
+}
+
+/** Read `system.companionKind` from a raw doc, or null when absent/blank. */
+function readCompanionKind(doc: Record<string, unknown>): string | null {
+  const sys = doc["system"];
+  if (!sys || typeof sys !== "object" || Array.isArray(sys)) return null;
+  const raw = (sys as Record<string, unknown>)["companionKind"];
+  return typeof raw === "string" && raw.length > 0 ? raw : null;
+}
+
+/** True when a raw doc is a companion payload (type + kind + master link). */
+function isCompanionDoc(doc: Record<string, unknown>): boolean {
+  return (
+    doc["type"] === COMPANION_ACTOR_TYPE &&
+    readCompanionKind(doc) !== null &&
+    readMasterActorId(doc) !== null
+  );
+}
+
+/**
+ * Whether the master already has a familiar linked (1 per master, condition d).
+ * Scans the actors table filtered to companions and matches masterActorId.
+ */
+function masterHasFamiliar(store: DocumentStore, masterId: string): boolean {
+  const familiars = store.getAll("actors", { type: COMPANION_ACTOR_TYPE });
+  return familiars.some((f) => readMasterActorId(f) === masterId);
+}
+
+/** Outcome of the player-companion create authorization. */
+type CompanionCreateAuth =
+  | { ok: true; master: Record<string, unknown> }
+  | { ok: false; code: ErrorCode; message: string };
+
+/**
+ * Authorize a single non-privileged companion create against conditions
+ * (a)–(d). Only ever called for a doc that already passed isCompanionDoc.
+ */
+function authorizePlayerCompanionCreate(
+  deps: Pick<DocHandlerDeps, "store" | "systemId">,
+  ctx: HandlerContext,
+  companion: Record<string, unknown>,
+): CompanionCreateAuth {
+  // (c-guard) Only pf2e worlds grant familiars; other systems keep Actor
+  // strictly GM-only.
+  if (deps.systemId !== "pf2e") {
+    return { ok: false, code: "PERMISSION_DENIED", message: "Only GM/Assistant can create Actor" };
+  }
+
+  const masterId = readMasterActorId(companion);
+  if (!masterId) {
+    return { ok: false, code: "PERMISSION_DENIED", message: "Companion has no master" };
+  }
+
+  // (b) Master must exist and the requester must OWN it.
+  let master: Record<string, unknown>;
+  try {
+    master = deps.store.get("actors", masterId);
+  } catch (err) {
+    if (err instanceof DocumentNotFoundError) {
+      return { ok: false, code: "NOT_FOUND", message: `Master actor not found: ${masterId}` };
+    }
+    throw err;
+  }
+  const masterOwnership = getOwnershipFromDoc(master);
+  if (!testOwnership(masterOwnership, ctx.userId, ctx.role, OwnershipLevel.OWNER)) {
+    return {
+      ok: false,
+      code: "PERMISSION_DENIED",
+      message: "You do not own the master actor",
+    };
+  }
+
+  // (c) Master must actually have a familiar-granting feat/rule.
+  if (!detectFamiliarGrant(master).canHaveFamiliar) {
+    return {
+      ok: false,
+      code: "PERMISSION_DENIED",
+      message: "Master has no feat that grants a familiar",
+    };
+  }
+
+  // (d) One familiar per master.
+  if (masterHasFamiliar(deps.store, masterId)) {
+    return {
+      ok: false,
+      code: "VALIDATION_FAILED",
+      message: "Master already has a familiar",
+    };
+  }
+
+  return { ok: true, master };
+}
+
+/**
+ * Authorize a single non-privileged companion delete: the target must be a
+ * companion whose master the requester owns at OWNER level.
+ */
+function authorizePlayerCompanionDelete(
+  deps: Pick<DocHandlerDeps, "store">,
+  ctx: HandlerContext,
+  target: Record<string, unknown>,
+): { ok: true } | { ok: false; code: ErrorCode; message: string } {
+  if (!isCompanionDoc(target)) {
+    return { ok: false, code: "PERMISSION_DENIED", message: "Only GM/Assistant can delete Actor" };
+  }
+  const masterId = readMasterActorId(target);
+  if (!masterId) {
+    return { ok: false, code: "PERMISSION_DENIED", message: "Companion has no master" };
+  }
+  let master: Record<string, unknown>;
+  try {
+    master = deps.store.get("actors", masterId);
+  } catch (err) {
+    if (err instanceof DocumentNotFoundError) {
+      // Orphan companion (dangling master) — only a GM may delete it.
+      return { ok: false, code: "PERMISSION_DENIED", message: "Only GM/Assistant can delete Actor" };
+    }
+    throw err;
+  }
+  const masterOwnership = getOwnershipFromDoc(master);
+  if (!testOwnership(masterOwnership, ctx.userId, ctx.role, OwnershipLevel.OWNER)) {
+    return { ok: false, code: "PERMISSION_DENIED", message: "You do not own the master actor" };
+  }
+  return { ok: true };
 }
 
 /**
@@ -421,9 +589,33 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
       return ackError("VALIDATION_FAILED", `Unknown documentType: ${documentType}`);
     }
 
-    // Permission check: GM_ONLY_CREATE_DELETE types require GM/ASSISTANT
+    // Permission check: GM_ONLY_CREATE_DELETE types require GM/ASSISTANT.
+    //
+    // EXCEPTION (r17-P1): a non-privileged PLAYER may create Actor(s) that are
+    // companions (familiars) linked to a master they own. Each item in the
+    // batch must individually pass authorizePlayerCompanionCreate; the master's
+    // ownership map is captured so we can force it onto the created familiar
+    // (never trusting a client-supplied ownership). Any non-companion Actor in
+    // the batch, or a companion that fails a condition, falls back to the
+    // GM-only denial.
+    const forcedOwnership = new Map<number, Ownership>();
     if (GM_ONLY_CREATE_DELETE.has(documentType) && !isPrivileged(ctx.role)) {
-      return ackError("PERMISSION_DENIED", `Only GM/Assistant can create ${documentType}`);
+      if (documentType !== "Actor") {
+        return ackError("PERMISSION_DENIED", `Only GM/Assistant can create ${documentType}`);
+      }
+      // Every item must be an authorized companion, else deny the whole batch.
+      for (let i = 0; i < data.length; i++) {
+        const item = data[i] as Record<string, unknown>;
+        if (!isCompanionDoc(item)) {
+          return ackError("PERMISSION_DENIED", `Only GM/Assistant can create ${documentType}`);
+        }
+        const auth = authorizePlayerCompanionCreate(deps, ctx, item);
+        if (!auth.ok) {
+          return ackError(auth.code, auth.message);
+        }
+        // Force the familiar's ownership to mirror the master's owners.
+        forcedOwnership.set(i, getOwnershipFromDoc(auth.master));
+      }
     }
 
     // Non-privileged users can create their own documents for allowed types
@@ -439,7 +631,8 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
     const created: Record<string, unknown>[] = [];
 
     try {
-      for (const rawItem of data) {
+      for (let i = 0; i < data.length; i++) {
+        const rawItem = data[i];
         // WIRING-DERIVE (audit issue 4): system.derived is server-computed
         // only. doc:update already strips a client-supplied value (see
         // stripSystemDerived below); doc:create must apply the same
@@ -454,6 +647,13 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
         let item: Record<string, unknown> = rawItem as Record<string, unknown>;
         if (documentType === "Actor") {
           item = stripSystemDerived(item);
+        }
+        // r17-P1: for a player-authorized companion create, force the master's
+        // ownership map onto the payload so the master's owners own the
+        // familiar and a forged/absent ownership cannot widen access.
+        const forced = forcedOwnership.get(i);
+        if (forced) {
+          item = { ...item, ownership: forced };
         }
         let doc = deps.store.create(table as never, item, authorCtx);
         // WIRING-DERIVE: populate system.derived for newly created Actors.
@@ -617,13 +817,38 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
       return ackError("VALIDATION_FAILED", `Unknown documentType: ${documentType}`);
     }
 
-    // Permission check for delete: GM/ASSISTANT only for important types
+    // Permission check for delete: GM/ASSISTANT only for important types.
+    //
+    // EXCEPTION (r17-P1): a non-privileged PLAYER may delete their OWN
+    // companion (a familiar Actor linked to a master they own). Each id in the
+    // batch must be such a companion; anything else falls back to the GM-only
+    // denial. This is checked here (before the store loop) so a mixed batch of
+    // a companion + an ordinary GM-only Actor is rejected atomically.
     if (GM_ONLY_CREATE_DELETE.has(documentType) && !isPrivileged(ctx.role)) {
-      return ackError("PERMISSION_DENIED", `Only GM/Assistant can delete ${documentType}`);
+      if (documentType !== "Actor") {
+        return ackError("PERMISSION_DENIED", `Only GM/Assistant can delete ${documentType}`);
+      }
+      for (const id of ids) {
+        let target: Record<string, unknown>;
+        try {
+          target = deps.store.get("actors", id);
+        } catch (err) {
+          if (err instanceof DocumentNotFoundError) {
+            return ackError("NOT_FOUND", `Document not found: ${documentType}/${id}`);
+          }
+          throw err;
+        }
+        const auth = authorizePlayerCompanionDelete(deps, ctx, target);
+        if (!auth.ok) {
+          return ackError(auth.code, auth.message);
+        }
+      }
     }
 
-    // For other types: non-privileged must own the document
-    if (!isPrivileged(ctx.role)) {
+    // For non-GM types: non-privileged must own the document.
+    // (GM_ONLY types are already fully authorized above; this covers the
+    // remaining doc types where plain OWNER access is the delete rule.)
+    if (!isPrivileged(ctx.role) && !GM_ONLY_CREATE_DELETE.has(documentType)) {
       for (const id of ids) {
         let existing: Record<string, unknown>;
         try {

@@ -39,6 +39,7 @@ import type {
   ChatSpeaker,
   InlineRollSpan,
   ChatSendPayload,
+  SpellCastCard,
 } from "@fusion/shared";
 
 import type { HandlerFn, HandlerContext } from "../net/handler-registry.js";
@@ -526,6 +527,20 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
         msg.rolls = rollResults;
       }
 
+      // Attach a validated spell-cast card flag (r17-P2), if present. The Zod
+      // shape was already validated by ChatSendPayloadSchema; sanitizeSpellCastCard
+      // adds the caster=speaker check and DC coherence (never trust the client).
+      const spellCast = payload.flags?.pf2e?.spellCast;
+      if (spellCast) {
+        const sanitized = sanitizeSpellCastCard(deps.db, spellCast, payload.speakerActorId);
+        if (sanitized) {
+          msg.flags = {
+            ...msg.flags,
+            [SPELLCAST_FLAG_NAMESPACE]: { [SPELLCAST_FLAG_KEY]: sanitized },
+          };
+        }
+      }
+
       persistChatMessage(deps.db, msg);
       const seq = broadcastChatMessage(deps.ns, deps.seqStore, msg, ctx.userId);
       return { ok: true, seq, result: { message: msg } };
@@ -807,6 +822,85 @@ function buildRollMessage(
   msg.blind = blind;
   msg.rolls = [rollResult];
   return msg;
+}
+
+// ---------------------------------------------------------------------------
+// SpellCast card flag (r17-P2)
+// ---------------------------------------------------------------------------
+
+const SPELLCAST_FLAG_NAMESPACE = "pf2e" as const;
+const SPELLCAST_FLAG_KEY = "spellCast" as const;
+
+/**
+ * Read the set of derived spellcasting DCs for an actor (server side).
+ * Returns an empty array when the actor is unknown, has no derived
+ * spellcasting, or the data can't be parsed — the caller then skips the
+ * coherence check (it is a best-effort log, never a hard gate).
+ */
+function readCasterSpellDCs(db: Db, actorId: string): number[] {
+  try {
+    const row = db.prepare(`SELECT data FROM actors WHERE id = ?`).get(actorId) as
+      | { data: string }
+      | undefined;
+    if (!row) return [];
+    const doc = JSON.parse(row.data) as Record<string, unknown>;
+    const system = doc["system"] as Record<string, unknown> | undefined;
+    const derived = system?.["derived"] as Record<string, unknown> | undefined;
+    const spellcasting = derived?.["spellcasting"] as
+      | Record<string, { dc?: unknown }>
+      | undefined;
+    if (!spellcasting) return [];
+    const dcs: number[] = [];
+    for (const entry of Object.values(spellcasting)) {
+      if (typeof entry?.dc === "number") dcs.push(entry.dc);
+    }
+    return dcs;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Validate a client-provided SpellCastCard flag before it is attached to a
+ * ChatMessage (r17-P2). The shape is already Zod-validated by
+ * ChatSendPayloadSchema; here we add a best-effort DC coherence check: the
+ * client is NEVER trusted for the DC — if the actor exists and has derived
+ * spellcasting DCs, `dcValue` must match one of them, otherwise the DC is
+ * dropped (save button falls back to display-only) and a warning is logged.
+ *
+ * Also enforces that the speaker really is the caster: `casterActorId` must
+ * equal the message's resolved speaker actor. A forged card claiming another
+ * actor as caster (to make its owner able to roll damage) is rejected by
+ * clearing the flag entirely.
+ */
+function sanitizeSpellCastCard(
+  db: Db,
+  card: SpellCastCard,
+  speakerActorId: string | undefined,
+): SpellCastCard | null {
+  // The caster on the card MUST be the speaker actor of this message. This
+  // prevents forging a card that names an actor the sender does not control
+  // (the damage button's server gate rides on speakerActorId = casterActorId).
+  if (!speakerActorId || card.casterActorId !== speakerActorId) {
+    console.warn(
+      `[chat] spellCast card rejected: casterActorId "${card.casterActorId}" != speaker "${speakerActorId ?? "<none>"}"`,
+    );
+    return null;
+  }
+
+  // DC coherence — never trust the client for the DC.
+  if (card.dcValue !== undefined) {
+    const knownDCs = readCasterSpellDCs(db, card.casterActorId);
+    if (knownDCs.length > 0 && !knownDCs.includes(card.dcValue)) {
+      console.warn(
+        `[chat] spellCast DC ${String(card.dcValue)} for actor ${card.casterActorId} matches no derived spell DC (${knownDCs.join(",")}); dropping DC.`,
+      );
+      const { dcValue: _drop, ...rest } = card;
+      return rest;
+    }
+  }
+
+  return card;
 }
 
 // ---------------------------------------------------------------------------
