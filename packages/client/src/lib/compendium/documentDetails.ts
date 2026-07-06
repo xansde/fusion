@@ -35,7 +35,6 @@ import type { SupportedLocale } from "../i18n/i18n.js";
 import {
   TRAIT_NAMES_PT,
   DAMAGE_TYPE_NAMES_PT,
-  TRADITION_NAMES_PT,
   RARITY_NAMES_PT,
   AREA_SHAPE_NAMES_PT,
 } from "./traitNames.js";
