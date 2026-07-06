@@ -28,7 +28,7 @@
  * Spec: 17-sistema-pf2e.md; .fusion-build/r14-plan.md (Fase 2, B2).
  */
 
-import type { DocCreateEmbeddedPayload } from "./characterSheetVM.js";
+import type { DocCreateEmbeddedPayload, DocOpPayload, DocUpdatePayload } from "./characterSheetVM.js";
 
 // ---------------------------------------------------------------------------
 // Grant markers on materialized items (flags.fusion.*)
@@ -96,6 +96,38 @@ export function parseGrantItems(rules: unknown): ParsedGrant[] {
     if (parsed) grants.push(parsed);
   }
   return grants;
+}
+
+/**
+ * Extract every FIXED-ITEM grant from a granter doc's `mechanics.grants`
+ * overlay (r15 A2). A fixed-item grant names ONE concrete vendor document to
+ * materialize — the same downstream shape as a `system.rules` GrantItem, but
+ * recovered by tools/translate-packs from a document whose grant lives only in
+ * prose (the Magus "Conflux Spell": Starlit Span → Shooting Star, etc.). The
+ * server attaches this overlay to the served doc as `doc.mechanics` (see
+ * CompendiumService.getDocument), so the granterDoc the caller resolves already
+ * carries it — no server change needed for the client to read it.
+ *
+ * Non-fixed grants in the overlay (`kind: "feat-choice"`, the player-picks
+ * case) are ignored here — those are handled by the GRANTED_FEAT_CHOICES /
+ * mechanics feat-choice path in planVM, not by fixed materialization.
+ */
+export function parseMechanicsGrants(mechanics: unknown): ParsedGrant[] {
+  if (!mechanics || typeof mechanics !== "object") return [];
+  const grants = (mechanics as Record<string, unknown>)["grants"];
+  if (!Array.isArray(grants)) return [];
+  const out: ParsedGrant[] = [];
+  for (const g of grants) {
+    if (!g || typeof g !== "object") continue;
+    const grant = g as Record<string, unknown>;
+    if (grant["kind"] !== "fixed-item") continue;
+    const vendor = typeof grant["vendor"] === "string" ? grant["vendor"] : undefined;
+    const name = typeof grant["name"] === "string" ? grant["name"].trim() : undefined;
+    if (!vendor || !name) continue;
+    const uuid = typeof grant["uuid"] === "string" ? grant["uuid"] : `Compendium.pf2e.${vendor}.Item.${name}`;
+    out.push({ vendor, name, uuid });
+  }
+  return out;
 }
 
 /**
@@ -244,6 +276,61 @@ function normalizeName(name: string): string {
     .trim();
 }
 
+/**
+ * Find an ALREADY-EMBEDDED item on the actor that IS this granted document but
+ * was added MANUALLY (no `flags.fusion.grantedBy`) — matched on the granted
+ * doc's own sourceId first, then on normalized name as a fallback. Returns the
+ * embedded item (which carries an `_id`) so the caller can ADOPT it (stamp
+ * `grantedBy` via an update) instead of creating a duplicate.
+ *
+ * The concrete case (r15 A2): the real Tobias already has Shooting Star in the
+ * focus pool (added by hand, no grantedBy). When Starlit Span's conflux grant
+ * materializes, the heal must ADOPT that existing spell — never create a second
+ * copy. Items that already carry a `grantedBy` are NOT adoptable here (they're
+ * covered by `alreadyGranted`'s idempotency check).
+ */
+function findAdoptableItem(
+  existingItems: Array<Record<string, unknown>>,
+  grantedDoc: Record<string, unknown>,
+  grantedSourceId: string,
+): Record<string, unknown> | undefined {
+  const grantedName = typeof grantedDoc["name"] === "string" ? normalizeName(grantedDoc["name"]) : undefined;
+  const grantedType = grantedDoc["type"];
+  return existingItems.find((it) => {
+    const fusion = itemFusionFlags(it);
+    if (typeof fusion["grantedBy"] === "string") return false; // already a grant — not a manual add
+    if (it["type"] !== grantedType) return false;
+    const sid = fusion["sourceId"];
+    if (typeof sid === "string" && sid === grantedSourceId) return true;
+    const name = typeof it["name"] === "string" ? normalizeName(it["name"]) : undefined;
+    return grantedName !== undefined && name === grantedName;
+  });
+}
+
+/**
+ * Build the adoption `doc:update` op that stamps `flags.fusion.grantedBy`
+ * (+ grantedSlot) onto a manually-added embedded item, so it becomes part of
+ * the granter's cascade (removeChoice on the granter later removes it too) and
+ * the Plan renders it as a locked nested chip. Targets the embedded item by its
+ * own `_id`, with `embedded.id` = the actor (parent) — the standard embedded-
+ * update wire shape (see planVM.syncSlotMaxOp / DocUpdatePayload docs).
+ */
+function buildAdoptOp(
+  embeddedItem: Record<string, unknown>,
+  marker: GrantMarker,
+  actorId: string,
+): DocUpdatePayload {
+  const diff: Record<string, unknown> = { "flags.fusion.grantedBy": marker.grantedBy };
+  if (marker.grantedSlot !== undefined) diff["flags.fusion.grantedSlot"] = marker.grantedSlot;
+  return {
+    type: "doc:update",
+    documentType: "Item",
+    id: String(embeddedItem["_id"]),
+    embedded: { type: "Item", id: actorId },
+    diff,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Core materialization
 // ---------------------------------------------------------------------------
@@ -266,8 +353,8 @@ export async function materializeGrants(
   granterSlot: string | undefined,
   mctx: MaterializeContext,
   maxDepth = 3,
-): Promise<DocCreateEmbeddedPayload[]> {
-  const ops: DocCreateEmbeddedPayload[] = [];
+): Promise<DocOpPayload[]> {
+  const ops: DocOpPayload[] = [];
   // Track sourceIds we've already scheduled in THIS pass so nested chains that
   // re-reference the same doc (or an actor that already has it) don't duplicate.
   const scheduled = new Set<string>();
@@ -276,9 +363,13 @@ export async function materializeGrants(
 
   async function walk(doc: Record<string, unknown>, depth: number): Promise<void> {
     if (depth >= maxDepth) return;
+    // Two grant sources, processed uniformly: `system.rules` GrantItem elements
+    // (Foundry-shaped, e.g. Alchemist Dedication) AND `mechanics.grants` of
+    // kind "fixed-item" (curated from prose, e.g. the Magus conflux spell). The
+    // latter arrives on the served doc via the CompendiumService overlay.
     const system = doc["system"];
     const rules = system && typeof system === "object" ? (system as Record<string, unknown>)["rules"] : undefined;
-    const grants = parseGrantItems(rules);
+    const grants = [...parseGrantItems(rules), ...parseMechanicsGrants(doc["mechanics"])];
     for (const grant of grants) {
       const packSlug = mapVendorToFusionPack(grant.vendor);
       if (!packSlug) continue; // unknown vendor → skip (caller may log)
@@ -300,7 +391,16 @@ export async function materializeGrants(
         ...(granterSlot !== undefined ? { grantedSlot: granterSlot } : {}),
         sourceId: grantedSourceId,
       };
-      ops.push(buildGrantCreateOp(grantedDoc, marker, mctx));
+      // ADOPTION (r15 A2, critical): if the actor ALREADY holds this document
+      // as a MANUAL add (same sourceId/name, no grantedBy) — e.g. Shooting Star
+      // added to the focus pool by hand — stamp `grantedBy` onto it instead of
+      // creating a duplicate. Only when no adoptable item exists do we create.
+      const adoptable = findAdoptableItem(mctx.existingItems, grantedDoc, grantedSourceId);
+      if (adoptable) {
+        ops.push(buildAdoptOp(adoptable, marker, mctx.actorId));
+      } else {
+        ops.push(buildGrantCreateOp(grantedDoc, marker, mctx));
+      }
       await walk(grantedDoc, depth + 1);
     }
   }
