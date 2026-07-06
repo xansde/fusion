@@ -60,8 +60,16 @@
   const systemId = $derived(session.worldInfo?.systemId ?? "pf2e");
 
   // --- Reactive world actor list -------------------------------------------
-  let allActors = $state<Array<Record<string, unknown>>>([]);
+  // Seed with the CURRENT actor snapshot: worldMirror.subscribe only fires on
+  // FUTURE changes (r16 verificação viva bug) — without the getByType seed a
+  // familiar that already exists when the tab opens is invisible (the GM only
+  // saw it because they created it live; a player reopening the tab saw just
+  // the CTA). Mirrors ActorDirectory's subscribe+getByType pattern.
+  let allActors = $state<Array<Record<string, unknown>>>(
+    worldMirror.getByType<Record<string, unknown>>("Actor"),
+  );
   $effect(() => {
+    allActors = worldMirror.getByType<Record<string, unknown>>("Actor");
     const unsub = worldMirror.subscribe<Record<string, unknown>>("Actor", (docs) => {
       allActors = docs;
     });

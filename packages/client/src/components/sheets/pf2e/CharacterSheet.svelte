@@ -144,9 +144,14 @@
 
   // Pets tab visibility (REQ-PET-050): shown when the character already has a
   // linked familiar OR has a feat that grants one. worldMirror gives the live
-  // actor list so linked familiars are detected reactively.
-  let allActors = $state<Array<Record<string, unknown>>>([]);
+  // actor list so linked familiars are detected reactively. Seed with the
+  // current snapshot — subscribe only fires on future changes, so an existing
+  // familiar wouldn't show the tab on open without the getByType seed (r16).
+  let allActors = $state<Array<Record<string, unknown>>>(
+    worldMirror.getByType<Record<string, unknown>>("Actor"),
+  );
   $effect(() => {
+    allActors = worldMirror.getByType<Record<string, unknown>>("Actor");
     const unsub = worldMirror.subscribe<Record<string, unknown>>("Actor", (docs) => {
       allActors = docs;
     });
