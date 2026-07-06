@@ -139,6 +139,22 @@ export function pickLocalizedDescription(
 
 const ALLOWED_TAGS = new Set(["p", "strong", "em", "b", "i", "ul", "ol", "li", "br", "hr"]);
 
+/** Action-count glyphs: ◆ per action, ◇ free action, ⟳ reaction. */
+const ACTION_GLYPH = "◆";
+const FREE_GLYPH = "◇";
+const REACTION_GLYPH = "⟳";
+
+/** "◆".repeat(n) with a guard for n<=0. */
+function actionGlyphs(n: number): string {
+  return n >= 1 ? ACTION_GLYPH.repeat(n) : "";
+}
+
+/** pt-BR / en label for a plain action count. */
+function actionCountLabel(n: number, locale: SupportedLocale): string {
+  if (locale === "pt-BR") return n === 1 ? "1 ação" : `${n} ações`;
+  return n === 1 ? "1 action" : `${n} actions`;
+}
+
 /**
  * Find the index of the `]` that closes the bracket opened at `openIdx`
  * (which must point at a `[`), accounting for nested `[...]` (e.g.
@@ -272,6 +288,102 @@ function humanizeCheck(bracketBody: string): string {
     text = name;
   }
   return dc ? `${text} (DC ${dc})` : text;
+}
+
+/**
+ * Convert one `action-glyph` span VALUE (the vendor's Foundry-font token,
+ * e.g. "1", "F", "1 - 3") into the accessible icon string this app uses
+ * instead (◆ per action / ◇ free / ⟳ reaction), plus a pt-BR/en title for
+ * the wrapping span. r16-G2 (feedback: "2 Esta magia tem alcance de 9
+ * metros." — the raw glyph number rendered as a bare, confusing digit
+ * because we don't ship the Foundry glyph font and previously just
+ * stripped the `<span class="action-glyph">` tag, leaving the digit as
+ * plain text).
+ *
+ * Recognized single-token values (case-insensitive):
+ *   "1"/"2"/"3"      → "◆".repeat(n)      (n actions)
+ *   "a"              → "◆"                (Foundry uses this for a single
+ *                                           attack's action cost, e.g. a
+ *                                           summoned creature's "Melee ⟨a⟩
+ *                                           fangs" — same weight as "1")
+ *   "f"              → "◇"                (free action)
+ *   "r"              → "⟳"                (reaction)
+ * A two-token range ("1 - 3", "1-3", "1 to 3", "2 or 3") maps each bound
+ * through the table above and joins with " a " (pt-BR) / " to " (en).
+ * Any other value (unrecognized letter, out-of-range digit, malformed
+ * range) is returned unchanged — content must never disappear.
+ */
+function convertActionGlyphValue(
+  rawValue: string,
+  locale: SupportedLocale,
+): { icons: string; title: string | null } {
+  const isPt = locale === "pt-BR";
+  const joiner = isPt ? " a " : " to ";
+  const trimmed = rawValue.trim();
+
+  const single = singleActionGlyph(trimmed, locale);
+  if (single !== null) return single;
+
+  const range = /^(\S+)\s*(?:-|to|or|a|ou|até)\s*(\S+)$/i.exec(trimmed);
+  if (range) {
+    const lo = singleActionGlyph(range[1]!, locale);
+    const hi = singleActionGlyph(range[2]!, locale);
+    if (lo !== null && hi !== null) {
+      return { icons: `${lo.icons}${joiner}${hi.icons}`, title: rawValue };
+    }
+  }
+
+  // Unknown shape: never drop content — keep the raw glyph text as-is, with
+  // no title (nothing readable to add beyond the text itself).
+  return { icons: rawValue, title: null };
+}
+
+/**
+ * Single-token (non-range) glyph value → icon + pt-BR/en title, or null if
+ * unrecognized (the caller falls through to raw-text passthrough).
+ */
+function singleActionGlyph(
+  token: string,
+  locale: SupportedLocale,
+): { icons: string; title: string } | null {
+  const isPt = locale === "pt-BR";
+  const lower = token.toLowerCase();
+  if (lower === "f") return { icons: FREE_GLYPH, title: isPt ? "ação livre" : "free action" };
+  if (lower === "r") return { icons: REACTION_GLYPH, title: isPt ? "reação" : "reaction" };
+  if (lower === "a") return { icons: ACTION_GLYPH, title: isPt ? "1 ação" : "1 action" };
+  if (/^[1-4]$/.test(lower)) {
+    const n = Number(lower);
+    return { icons: actionGlyphs(n), title: actionCountLabel(n, locale) };
+  }
+  return null;
+}
+
+/**
+ * Replace every `<span class="action-glyph">VALUE</span>` in `html` with the
+ * accessible icon text (see {@link convertActionGlyphValue}), wrapped in a
+ * bare `<span>` carrying a `title` attribute with a readable pt-BR/en label
+ * (e.g. title="2 ações"). Must run BEFORE the allow-list tag strip in
+ * {@link sanitizeDescriptionHtml} — `span` is not itself an allow-listed
+ * tag, so only glyph-converted spans (emitted here, after this point) are
+ * preserved; the allow-list pass then special-cases this exact shape.
+ *
+ * Runs before {@link rewriteInlineTags} has no bearing here: action-glyph
+ * spans never nest `@Tag[...]`/`[[...]]` enrichers, so ordering relative to
+ * that pass is immaterial; this is called first for clarity.
+ */
+function convertActionGlyphs(html: string, locale: SupportedLocale): string {
+  return html.replace(
+    /<span class="action-glyph">([^<]*)<\/span>/g,
+    (_whole, rawValue: string) => {
+      const { icons, title } = convertActionGlyphValue(rawValue, locale);
+      return title ? `<span title="${escapeHtmlAttr(title)}">${icons}</span>` : icons;
+    },
+  );
+}
+
+/** Escape a string for safe use inside a double-quoted HTML attribute. */
+function escapeHtmlAttr(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 /**
@@ -481,14 +593,24 @@ function rewriteInlineTags(text: string): string {
  * (p/li/hr) — callers that need HTML rendering wrap paragraphs themselves;
  * this keeps the function trivially safe (no HTML re-injection surface)
  * since nothing here is inserted into the DOM as markup.
+ *
+ * `<span class="action-glyph">X</span>` tokens (r16-G2) are converted to
+ * accessible icons (◆/◇/⟳) BEFORE the tag strip, so e.g. "2 This spell has
+ * a range..." reads as "◆◆ This spell has a range..." instead of a bare,
+ * confusing digit.
  */
-export function sanitizeDescriptionToText(html: string | null | undefined): string[] {
+export function sanitizeDescriptionToText(
+  html: string | null | undefined,
+  locale: SupportedLocale = "pt-BR",
+): string[] {
   if (!html) return [];
+
+  const withGlyphs = convertActionGlyphs(html, locale);
 
   // Rewrite @Tag[...] references BEFORE stripping tags — some fallbacks
   // (e.g. @UUID's last-path-segment) rely on raw bracket content that must
   // not be tag-stripped first.
-  const withReadableTags = rewriteInlineTags(html);
+  const withReadableTags = rewriteInlineTags(withGlyphs);
 
   // Turn block-level boundaries into paragraph breaks before removing tags.
   const withBreaks = withReadableTags
@@ -521,23 +643,62 @@ function decodeHtmlEntities(text: string): string {
 
 /**
  * Sanitize vendor description HTML into a safe, renderable HTML string
- * restricted to {@link ALLOWED_TAGS}. Inline `@Tag[...]` references are
- * rewritten to plain readable text first (never executable — V2). Every
- * other tag/attribute is stripped; only bare allow-listed tags survive
- * (no attributes are ever preserved, so no `onclick=`/`href=`/`style=`
- * injection surface exists).
+ * restricted to {@link ALLOWED_TAGS} (plus the glyph-icon `<span title=...>`
+ * described below). Inline `@Tag[...]` references are rewritten to plain
+ * readable text first (never executable — V2). Every other tag/attribute is
+ * stripped; only bare allow-listed tags survive (no attributes are ever
+ * preserved, so no `onclick=`/`href=`/`style=` injection surface exists).
+ *
+ * `<span class="action-glyph">X</span>` tokens (r16-G2) are converted to
+ * accessible icons (◆/◇/⟳, e.g. "2" → "◆◆") BEFORE the allow-list pass —
+ * the vendor HTML relies on a Foundry-specific glyph font we don't ship, so
+ * left alone the class is dropped and a bare, confusing digit remains (the
+ * reported bug: "2 Esta magia tem alcance de 9 metros."). The converted
+ * `<span title="...">` (a readable pt-BR/en label, e.g. "2 ações") is the
+ * ONLY span shape that survives; any other `<span ...>` from the vendor
+ * HTML is still stripped like every other disallowed tag.
  */
-export function sanitizeDescriptionHtml(html: string | null | undefined): string {
+export function sanitizeDescriptionHtml(
+  html: string | null | undefined,
+  locale: SupportedLocale = "pt-BR",
+): string {
   if (!html) return "";
 
-  const withReadableTags = rewriteInlineTags(html);
+  const withGlyphs = convertActionGlyphs(html, locale);
+  const withReadableTags = rewriteInlineTags(withGlyphs);
 
-  return withReadableTags.replace(/<\/?([a-zA-Z0-9]+)([^>]*)>/g, (whole, tagName: string) => {
-    const lower = tagName.toLowerCase();
-    if (!ALLOWED_TAGS.has(lower)) return "";
-    const isClosing = whole.startsWith("</");
-    return isClosing ? `</${lower}>` : `<${lower}>`;
-  });
+  // The glyph-icon span is the one exception to the "no attributes survive"
+  // rule: it carries a `title="..."` we generated ourselves (escaped), never
+  // vendor-controlled markup, so it is safe to pull it out into an indexed
+  // placeholder before the generic allow-list strip below removes every
+  // other tag, then splice the finished `<span title="...">` back in. The
+  // placeholder index is wrapped in Unicode Private-Use-Area sentinels
+  // (U+E000/U+E001) rather than bare digits/spaces so it can never collide
+  // with ordinary prose numbers (e.g. "30 feet", "1 round" already contain
+  // digits that a plain-digit delimiter would misfire on).
+  const glyphSpans: string[] = [];
+  const withPlaceholders = withReadableTags.replace(
+    /<span title="([^"]*)">([^<]*)<\/span>/g,
+    (_whole, title: string, icons: string) => {
+      const index = glyphSpans.push(`<span title="${title}">${icons}</span>`) - 1;
+      return `\u{E000}${index}\u{E001}`;
+    },
+  );
+
+  const stripped = withPlaceholders.replace(
+    /<\/?([a-zA-Z0-9]+)([^>]*)>/g,
+    (whole, tagName: string) => {
+      const lower = tagName.toLowerCase();
+      if (!ALLOWED_TAGS.has(lower)) return "";
+      const isClosing = whole.startsWith("</");
+      return isClosing ? `</${lower}>` : `<${lower}>`;
+    },
+  );
+
+  return stripped.replace(
+    /\u{E000}(\d+)\u{E001}/gu,
+    (_whole, index: string) => glyphSpans[Number(index)] ?? "",
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -647,11 +808,6 @@ export function translateDamageType(type: string, locale: SupportedLocale): stri
 // Action-cost formatting (r15-A1, feedback: "2 to 2 rounds" is illegible)
 // ---------------------------------------------------------------------------
 
-/** Action-count glyphs: ◆ per action, ◇ free action, ⟳ reaction. */
-const ACTION_GLYPH = "◆";
-const FREE_GLYPH = "◇";
-const REACTION_GLYPH = "⟳";
-
 export interface ActionCost {
   /** Glyph string for a numbered/ranged action cost ("◆◆", "◆◆ a ◆◆◆", "◇", "⟳"), or "" for text-only times. */
   icons: string;
@@ -659,17 +815,6 @@ export interface ActionCost {
   label: string;
   /** True when the cost is a long/textual time (minutes/hours) with no glyphs. */
   isText: boolean;
-}
-
-/** "◆".repeat(n) with a guard for n<=0. */
-function actionGlyphs(n: number): string {
-  return n >= 1 ? ACTION_GLYPH.repeat(n) : "";
-}
-
-/** pt-BR / en label for a plain action count. */
-function actionCountLabel(n: number, locale: SupportedLocale): string {
-  if (locale === "pt-BR") return n === 1 ? "1 ação" : `${n} ações`;
-  return n === 1 ? "1 action" : `${n} actions`;
 }
 
 /**

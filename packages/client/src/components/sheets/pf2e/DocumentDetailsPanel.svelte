@@ -72,7 +72,7 @@
     // server attached one (doc.i18n.ptBR.description); fall back to the EN
     // system.description otherwise. Sanitized identically either way. T1.
     const description = pickLocalizedDescription(doc, i18n.locale);
-    return description !== null ? sanitizeDescriptionHtml(description) : "";
+    return description !== null ? sanitizeDescriptionHtml(description, i18n.locale) : "";
   });
 </script>
 

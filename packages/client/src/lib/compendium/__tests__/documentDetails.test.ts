@@ -352,6 +352,158 @@ describe("sanitizeDescriptionHtml", () => {
   });
 });
 
+describe("action-glyph inline icon conversion (r16-G2)", () => {
+  // Feedback: "Esfera de Trovão do Horizonte" rendered "2 Esta magia tem
+  // alcance de 9 metros." — the vendor HTML's `<span class="action-glyph">2
+  // </span>` relies on a Foundry-specific glyph font we don't ship; the
+  // previous sanitizer dropped the unknown `class` attribute and left the
+  // bare "2" as confusing prose. These tokens must become the app's own
+  // accessible action-cost icons (◆/◇/⟳) instead of disappearing or leaking
+  // a stray digit.
+
+  describe("sanitizeDescriptionHtml — single-action-count glyphs", () => {
+    it("converts 1/2/3 to the matching number of ◆ icons", () => {
+      expect(sanitizeDescriptionHtml('<p><span class="action-glyph">1</span> One action.</p>')).toBe(
+        '<p><span title="1 ação">◆</span> One action.</p>',
+      );
+      expect(sanitizeDescriptionHtml('<p><span class="action-glyph">2</span> Two actions.</p>')).toBe(
+        '<p><span title="2 ações">◆◆</span> Two actions.</p>',
+      );
+      expect(sanitizeDescriptionHtml('<p><span class="action-glyph">3</span> Three actions.</p>')).toBe(
+        '<p><span title="3 ações">◆◆◆</span> Three actions.</p>',
+      );
+    });
+
+    it("uses the EN label when locale is en", () => {
+      expect(
+        sanitizeDescriptionHtml('<p><span class="action-glyph">2</span> Two actions.</p>', "en"),
+      ).toBe('<p><span title="2 actions">◆◆</span> Two actions.</p>');
+    });
+  });
+
+  describe("sanitizeDescriptionHtml — free action (F) and reaction (R)", () => {
+    it("converts F/f to the free-action glyph ◇", () => {
+      expect(sanitizeDescriptionHtml('<span class="action-glyph">F</span> {item|name}')).toBe(
+        '<span title="ação livre">◇</span> {item|name}',
+      );
+    });
+
+    it("converts R/r to the reaction glyph ⟳", () => {
+      expect(sanitizeDescriptionHtml('{item|name} <span class="action-glyph">R</span>')).toBe(
+        '{item|name} <span title="reação">⟳</span>',
+      );
+      expect(sanitizeDescriptionHtml('<p><strong>Rewrite Possibility</strong> <span class="action-glyph">r</span></p>')).toBe(
+        '<p><strong>Rewrite Possibility</strong> <span title="reação">⟳</span></p>',
+      );
+    });
+  });
+
+  describe("sanitizeDescriptionHtml — summon-creature attack glyph (a)", () => {
+    it("converts the lowercase 'a' attack-cost glyph to a single ◆ (same weight as '1')", () => {
+      const html = '<p><strong>Melee</strong> <span class="action-glyph">a</span> fangs, <strong>Damage</strong> 2d8 piercing.</p>';
+      expect(sanitizeDescriptionHtml(html)).toBe(
+        '<p><strong>Melee</strong> <span title="1 ação">◆</span> fangs, <strong>Damage</strong> 2d8 piercing.</p>',
+      );
+    });
+  });
+
+  describe("sanitizeDescriptionHtml — ranges", () => {
+    it('converts a "1 - 3" range to the min/max icon range joined by "a"', () => {
+      expect(sanitizeDescriptionHtml('<p><span class="action-glyph">1 - 3</span></p>')).toBe(
+        '<p><span title="1 - 3">◆ a ◆◆◆</span></p>',
+      );
+    });
+
+    it('converts "2 or 3" and "1 to 2" ranges', () => {
+      expect(sanitizeDescriptionHtml('<p><span class="action-glyph">2 or 3</span></p>')).toBe(
+        '<p><span title="2 or 3">◆◆ a ◆◆◆</span></p>',
+      );
+      expect(sanitizeDescriptionHtml('<p><span class="action-glyph">1 to 2</span></p>')).toBe(
+        '<p><span title="1 to 2">◆ a ◆◆</span></p>',
+      );
+    });
+  });
+
+  describe("sanitizeDescriptionHtml — unknown glyph values never disappear", () => {
+    it("keeps an unrecognized glyph value as plain text instead of dropping it", () => {
+      expect(sanitizeDescriptionHtml('<p><span class="action-glyph">?</span> Mystery.</p>')).toBe(
+        "<p>? Mystery.</p>",
+      );
+    });
+  });
+
+  describe("sanitizeDescriptionHtml — coexists with other tags/enrichers", () => {
+    it("does not disturb sibling allow-listed tags or @UUID rewriting", () => {
+      const html =
+        '<p><span class="action-glyph">2</span> Grants @UUID[Compendium.pf2e.conditionitems.Item.Dazzled]{Dazzled}.</p>';
+      expect(sanitizeDescriptionHtml(html)).toBe(
+        '<p><span title="2 ações">◆◆</span> Grants Dazzled.</p>',
+      );
+    });
+
+    it("never leaves an unstyled <span> in the output for any OTHER vendor span", () => {
+      const html = '<p><span class="foo">bar</span></p>';
+      expect(sanitizeDescriptionHtml(html)).toBe("<p>bar</p>");
+    });
+  });
+
+  describe("sanitizeDescriptionToText — glyphs render as plain icon text", () => {
+    it("converts glyphs to icons in the plain-text pipeline (no digits leak)", () => {
+      const html = '<p><span class="action-glyph">2</span> This spell has a range of 30 feet.</p>';
+      expect(sanitizeDescriptionToText(html)[0]).toBe("◆◆ This spell has a range of 30 feet.");
+    });
+
+    it("keeps other numbers in the prose untouched (no over-eager digit stripping)", () => {
+      const html =
+        '<p><span class="action-glyph">3</span> This spell has a range of 60 feet and deals 3d6 damage.</p>';
+      const out = sanitizeDescriptionToText(html)[0] ?? "";
+      expect(out).toBe("◆◆◆ This spell has a range of 60 feet and deals 3d6 damage.");
+      expect(out).toContain("60 feet");
+      expect(out).toContain("3d6");
+    });
+  });
+
+  describe("golden case: Horizon Thunder Sphere / Esfera de Trovão do Horizonte", () => {
+    const EN_HTML =
+      "<p>You gather magical energy into your palm, forming a concentrated ball of electricity that crackles and rumbles like impossibly distant thunder. Make a ranged spell attack roll against your target's AC. On a success, you deal 3d6 electricity damage. On a critical success, the target takes double damage and is @UUID[Compendium.pf2e.conditionitems.Item.Dazzled] for 1 round. The number of actions you spend when Casting this Spell determines the range and other parameters.</p>\n" +
+      '<p><span class="action-glyph">2</span> This spell has a range of 30 feet.</p>\n' +
+      '<p><span class="action-glyph">3</span> This spell has a range of 60 feet and deals half damage on a failure (but not a critical failure) as the electricity lashes out and jolts the target.</p>';
+
+    const PT_HTML =
+      "<p>Você reúne energia mágica em sua palma, formando uma bola concentrada de eletricidade que crepita e zumbe como um trovão impossivelmente distante. Faça uma rolagem de ataque de magia a distância contra a CA de seu alvo. Em um sucesso, você causa 3d6 dano de eletricidade. Em um sucesso crítico, o alvo sofre o dobro do dano e fica @UUID[Compendium.pf2e.conditionitems.Item.Dazzled]{Ofuscado} por 1 rodada. O número de ações que você gasta ao Conjurar esta Magia determina o alcance e outros parâmetros.</p>\n" +
+      '<p><span class="action-glyph">2</span> Esta magia tem alcance de 9 metros.</p>\n' +
+      '<p><span class="action-glyph">3</span> Esta magia tem alcance de 18 metros e causa metade do dano em uma falha (mas não uma falha crítica) enquanto a eletricidade chicoteia e choca o alvo.</p>';
+
+    it("EN: renders ◆◆/◆◆◆ icons instead of a bare '2'/'3' in the HTML pipeline", () => {
+      const out = sanitizeDescriptionHtml(EN_HTML, "en");
+      expect(out).toContain('<span title="2 actions">◆◆</span> This spell has a range of 30 feet.');
+      expect(out).toContain(
+        '<span title="3 actions">◆◆◆</span> This spell has a range of 60 feet and deals half damage',
+      );
+      expect(out).not.toMatch(/<p>\s*2\s+This spell/);
+      expect(out).not.toMatch(/<p>\s*3\s+This spell/);
+    });
+
+    it("pt-BR: renders ◆◆/◆◆◆ icons instead of a bare '2'/'3' in the HTML pipeline (the reported bug)", () => {
+      const out = sanitizeDescriptionHtml(PT_HTML, "pt-BR");
+      expect(out).toContain('<span title="2 ações">◆◆</span> Esta magia tem alcance de 9 metros.');
+      expect(out).toContain(
+        '<span title="3 ações">◆◆◆</span> Esta magia tem alcance de 18 metros',
+      );
+      // The exact bug reported: a bare leading digit followed by the sentence.
+      expect(out).not.toMatch(/<p>\s*2\s+Esta magia/);
+      expect(out).not.toMatch(/<p>\s*3\s+Esta magia/);
+    });
+
+    it("pt-BR: the plain-text pipeline also reads as icons, not bare digits", () => {
+      const blocks = sanitizeDescriptionToText(PT_HTML, "pt-BR");
+      expect(blocks.some((b) => b.startsWith("◆◆ Esta magia tem alcance de 9 metros."))).toBe(true);
+      expect(blocks.some((b) => b.startsWith("◆◆◆ Esta magia tem alcance de 18 metros"))).toBe(true);
+      expect(blocks.some((b) => /^\d/.test(b))).toBe(false);
+    });
+  });
+});
+
 describe("buildSpellFields (EN, default locale)", () => {
   it("extracts cast time, range, target, and requirements", () => {
     const fields = buildSpellFields({
