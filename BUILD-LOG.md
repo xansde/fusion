@@ -211,6 +211,25 @@ Feedback do usuário testando o exe r14 (rodada interativa, 3 batches paralelos 
 
 **Exe final r15** (2026-07-06): 127,7 MB, sha256 `9cc6594a31b3958264870cc698e8af6faf63028eb584c493944786dc033d005b`, smoke §5.2 **PASSED** (11 packs). Autorização permanente registrada: no fechamento de rodada, encerrar o processo do exe do usuário para regenerar é permitido.
 
+## Rodada r16 — Fleet/velocidade, glyphs, elevação, tela de Pets, cast→chat, descanso (2026-07-06, dia)
+
+Feedback do usuário testando o exe r15 (rodada interativa; ele reportou 5 itens AO VIVO durante a verificação — todos roteados por SendMessage ao agente com o ambiente aberto). **Mudança de processo (pedido do usuário): clone local dedicado a release** em `C:\Users\xansd\pessoal\fusion-release` (origin = repo de trabalho; `git pull` só traz o commitado — trabalho sujo de agentes nunca vaza pro exe); os 5 atalhos .bat do Desktop preferem `fusion-release\dist-release` com fallback no antigo. Fluxo: `git pull → pnpm install --frozen-lockfile → build:release → smoke:release`.
+
+| Commits | Entrega |
+| ------- | ------- |
+| `accb0a1`+`0755c39` | **G1 — velocidade**: novo `stepCharSpeed` consome `flat-modifier` land-speed/speed de itens embutidos com stacking PF2e (untyped não empilha entre si); causa raiz dupla pega ao vivo: base lida de `system.speed` mas o doc real usa `system.attributes.speed.value` (mostrava "5 ft"!). Fleet: 25→**30** |
+| `f6f8d23` | **G2 — glyphs**: `<span class="action-glyph">X</span>` nas descrições → ◆/◆◆/◆◆◆/◇/⟳ (tooltip pt-BR, fallback seguro) em todas as superfícies do DocumentDetailsPanel; golden EN+PT da Esfera de Trovão do Horizonte |
+| `1e8fddd`+`f632e3c`+`349e4de`+`0ffba19` | **G3 — elevação automática**: truques/foco elevam para ceil(nível/2), preparadas pelo rank do slot; interval soma dados por componente (fórmula concatenada `3d6+2d6+…` validada no dice-roller), fixed simples aplica override, fixed complexo = badge+detalhes; dano exibido E rolado elevado com flavor "(nível N)". Fix ao vivo: spell items EMBUTIDOS não têm `system.heightening` → `spellHeal.ts` (heal-on-read do doc do pack, sobrepondo heightening/damage/traits/defense/time). Handoff G1 incluído: getter `speed()` lê `derived.speed` |
+| `c3643f9`+`4ab2e77`+`2e93a2e` | **G4 — tela de Pets (MVP familiar ponta a ponta, spec 29)**: Actor `familiar` (`companionKind`+`masterActorId`), derivação master-mirrored (HP 5×nível, saves/CA/Percepção do mestre, ataque nível+mod de conjuração; budget habilidades 2+upgrade `familiarAbilities` → Rat Familiar = 4), **12º pack `familiar-abilities-core`** (111 docs, pt-BR acentuado, QA verde), aba Pets (CTA criar, card com HP editável/renomear, picker de habilidades diárias com cap, mini-ficha "Pertence a Tobias") |
+| `62290ab` `00d7c60` `1d0a968` | fixes dos reportes ao vivo do usuário: i18n `{count}` sem interpolar (`{var}`→`{{var}}`); **doc:create do familiar mandava `data` objeto** (protocolo exige array — r4!) → `toEnvelope` normaliza create/update/delete + teste de contrato com schemas reais; jogador não via familiar existente (subscribe não semeia estado → seed `getByType` no mount) |
+| `c4e0e45` | **Lançar → chat** (evolução pedida ao vivo): anúncio "lança <nome> (nível N) ◆◆" com speaker, CD+salvaguarda quando houver, e rolagem de spell attack automática em magias de ataque |
+| `9835d13` | **Descansar recupera HP** (follow-up r11 pago): CON×nível (mín 1×nível, clamp) + card "descansou: +6 PV, magias e foco restaurados" |
+| `98ed570` | refactor: aba "pets" no tipo canônico `CharacterSheetTab` |
+
+**Verificação viva: 9/9 PASS no fechamento** (3 FAILs reais achados e corrigidos pela própria verificação: velocidade "5 ft", elevação sem dado embutido, familiar invisível pro jogador). Suítes: client 1.743, pf2e 449 (total monorepo ~3.4k). Esclarecimentos de regra: familiar ataque +6 e Percepção +5 estão CORRETOS (keyAbility dex +3; +9 era o spell attack). Follow-ups r16: CTA "Criar familiar" visível para jogador mas criação de Actor é GM-only no server (decidir relaxamento de permissão); slot de familiar no Plano; animal companion UI (fundação pronta); sync mestre→familiar ao vivo (hoje re-derive on-open); preview truncado do compendium browser com sanitização própria.
+
+**Exe final r16** (2026-07-06, PRIMEIRO gerado no fluxo fusion-release): 128,2 MB, sha256 `26a4dbe7b1c6d747d1ccd38300f7064b7a2dab429d409781a0d74f3d75a8dd47`, smoke §5.2 **PASSED** (12 packs, familiar-abilities-core incluso). Exe intermediário `0c1fcb27` (gerado mid-round no repo de trabalho) descartado/superado.
+
 ## Registro por batch
 
 ### M6-B5 — Auto-update headless — ✅ M6 HEADLESS COMPLETO (2026-07-03)
