@@ -472,5 +472,78 @@
         ]
       }
     }
+  },
+  {
+    "_id": "uMYunHHMgAR6hgvz",
+    "name": "Sylph",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": null,
+      "description": "<p>You are descended from air elementals or were born under the element's influence. You gain the sylph trait, in addition to the traits from your ancestry. You also gain low-light vision or darkvision if your ancestry already has low-light vision. You can choose from sylph feats and feats from your ancestry whenever you gain an ancestry feat.</p>",
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Ancestry Guide"
+      },
+      "rules": [
+        {
+          "kind": "sense",
+          "slug": null,
+          "label": null,
+          "senseType": null,
+          "acuity": "precise",
+          "range": null,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Sense",
+            "selector": "low-light-vision"
+          }
+        },
+        {
+          "kind": "sense",
+          "slug": null,
+          "label": null,
+          "senseType": null,
+          "acuity": "precise",
+          "range": null,
+          "predicate": [
+            "self:low-light-vision:from-ancestry"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "Sense",
+            "predicate": [
+              "self:low-light-vision:from-ancestry"
+            ],
+            "selector": "darkvision"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "sylph"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "G8jfMayPv4vZvAVr",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "sylph.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
   }
 ]

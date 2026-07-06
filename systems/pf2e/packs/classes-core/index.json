@@ -1,5 +1,19 @@
 [
   {
+    "_id": "ZuJDBnRwp0YQ9IoP",
+    "uuid": "Compendium.pf2e.classes-core.Item.ZuJDBnRwp0YQ9IoP",
+    "name": "Kineticist",
+    "img": "icons/placeholder/feat.svg",
+    "type": "class",
+    "index": {
+      "name": "Kineticist",
+      "system.keyAbility": [
+        "con"
+      ],
+      "system.traits.value": []
+    }
+  },
+  {
     "_id": "fk29yXFinPhreKL0",
     "uuid": "Compendium.pf2e.classes-core.Item.fk29yXFinPhreKL0",
     "name": "Magus",

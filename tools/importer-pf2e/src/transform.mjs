@@ -1442,12 +1442,60 @@ const MAGUS_PROFICIENCY_UPGRADES = [
 ];
 
 /**
- * Class-slug → static proficiency-upgrade table. Only Magus is populated for
- * R10-B; other classes fall back to an empty array (no upgrades derived)
- * until their own packs are imported.
+ * Kineticist proficiency-rank upgrades by character level (r18-N2a). Same
+ * derivation method as MAGUS_PROFICIENCY_UPGRADES: the vendor kineticist.json
+ * `items{}` map is the SOURCE OF TRUTH for the level each feature is granted
+ * (the generic class-feature file's own `system.level` is shared across
+ * classes and is NOT authoritative), cross-referenced with each referenced
+ * class-feature file's `system.subfeatures.proficiencies` map (rank numbers
+ * are TEML: 1=trained, 2=expert, 3=master, 4=legendary). Every rank below was
+ * read directly from the corresponding class-feature file's own
+ * `system.subfeatures.proficiencies` (vendor/pf2e/packs/pf2e/class-features/):
+ *
+ *   - L3  Will Expertise        → will-expertise.json            → will:2
+ *   - L7  Kinetic Durability    → kinetic-durability.json        → fortitude:3
+ *   - L7  Kinetic Expertise     → kinetic-expertise.json         → kineticist(classDC):2
+ *   - L9  Perception Expertise  → perception-expertise.json      → perception:2
+ *   - L11 Weapon Expertise      → weapon-expertise.json          → weapons.simple:2, weapons.unarmed:2
+ *   - L13 Light Armor Expertise → light-armor-expertise.json     → armor.light:2, armor.unarmored:2
+ *   - L15 Kinetic Mastery       → kinetic-mastery.json           → kineticist(classDC):3
+ *   - L15 Greater Kinetic Durability → greater-kinetic-durability.json → fortitude:4
+ *   - L19 Kinetic Legend        → kinetic-legend.json            → kineticist(classDC):4
+ *   - L19 Light Armor Mastery   → light-armor-mastery.json       → armor.light:3, armor.unarmored:3
+ *
+ * The kineticist's class-DC ("impulse attack") is what the vendor subfeatures
+ * map calls the `kineticist` stat — mapped here to `classDC`, the Fusion
+ * proficiencyUpgrades vocabulary for a class's own DC. Weapon Specialization
+ * (L7/L13) scales damage rather than a proficiency rank (empty subfeatures
+ * proficiencies) and is intentionally absent, as are the Gate's Threshold /
+ * Impulse-slot features (no proficiency-rank subfeature).
+ * Acceptance anchor (Finn, level 3, Pathbuilder): Will Expertise makes Will
+ * EXPERT at L3 (will:2) — the single upgrade that lands by level 3.
+ */
+const KINETICIST_PROFICIENCY_UPGRADES = [
+  { level: 3, stat: 'will', rank: 2 },
+  { level: 7, stat: 'fortitude', rank: 3 },
+  { level: 7, stat: 'classDC', rank: 2 },
+  { level: 9, stat: 'perception', rank: 2 },
+  { level: 11, stat: 'weapons.simple', rank: 2 },
+  { level: 11, stat: 'weapons.unarmed', rank: 2 },
+  { level: 13, stat: 'armor.light', rank: 2 },
+  { level: 13, stat: 'armor.unarmored', rank: 2 },
+  { level: 15, stat: 'classDC', rank: 3 },
+  { level: 15, stat: 'fortitude', rank: 4 },
+  { level: 19, stat: 'classDC', rank: 4 },
+  { level: 19, stat: 'armor.light', rank: 3 },
+  { level: 19, stat: 'armor.unarmored', rank: 3 },
+];
+
+/**
+ * Class-slug → static proficiency-upgrade table. Magus (R10-B) and Kineticist
+ * (r18-N2a) are populated; other classes fall back to an empty array (no
+ * upgrades derived) until their own packs are imported.
  */
 const CLASS_PROFICIENCY_UPGRADES = {
   magus: MAGUS_PROFICIENCY_UPGRADES,
+  kineticist: KINETICIST_PROFICIENCY_UPGRADES,
 };
 
 /**

@@ -1694,6 +1694,1997 @@
     }
   },
   {
+    "_id": "Gnfar31LthtGwz8V",
+    "name": "Elemental Eyes",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "ancestry",
+      "description": "<p>You can see in the darkness as easily as an elemental. You gain darkvision.</p>\n<hr />\n<p><strong>Special</strong> You can select this feat only at 1st level, and you can't retrain into or out of this feat.</p>",
+      "level": 1,
+      "onlyLevel1": true,
+      "prerequisites": [
+        {
+          "value": "low-light vision"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Ancestry Guide"
+      },
+      "rules": [],
+      "subfeatures": {
+        "senses": {
+          "darkvision": {}
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "ardande",
+          "naari",
+          "oread",
+          "suli",
+          "sylph",
+          "talos",
+          "undine"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "6ENHSzqg88J6dri6",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "daufQMgA68tRfMS4",
+    "name": "Elemental Lore",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "ancestry",
+      "description": "<p>You've devoted yourself to researching the secrets of the Inner Sphere. You gain the trained proficiency in your choice of Survival and either Arcana or Nature. If you would automatically become trained in Survival (from your background or class, for example), you instead become trained in a skill of your choice. You also become trained in the Lore associated with your Elemental Plane of origin (such as Plane of Fire Lore).</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Ancestry Guide"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.skills.survival.rank",
+          "value": 1,
+          "mode": "upgrade",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.skills.survival.rank",
+            "value": 1
+          }
+        },
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "{item|flags.system.rulesSelections.elementalLore}",
+          "value": 1,
+          "mode": "upgrade",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "{item|flags.system.rulesSelections.elementalLore}",
+            "value": 1
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "ardande",
+          "naari",
+          "oread",
+          "suli",
+          "sylph",
+          "talos",
+          "undine"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "RJClD7YYsAFutxNs",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "choices": [
+              {
+                "label": "PF2E.Skill.Arcana",
+                "value": "system.skills.arcana.rank"
+              },
+              {
+                "label": "PF2E.Skill.Nature",
+                "value": "system.skills.nature.rank"
+              }
+            ],
+            "flag": "elementalLore",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Prompt.Skill",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "09CZSRu6HjbeUID6",
+    "name": "Genie Weapon Familiarity",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "ancestry",
+      "description": "<p>You've trained with weapons used by your genie ancestors. You are trained with @UUID[Compendium.pf2e.equipment-srd.Item.Falchion]{Falchions}, @UUID[Compendium.pf2e.equipment-srd.Item.Ranseur]{Ranseurs}, @UUID[Compendium.pf2e.equipment-srd.Item.Scimitar]{Scimitars}, and @UUID[Compendium.pf2e.equipment-srd.Item.Trident]{Tridents}.</p>\n<p>In addition, you gain access to all uncommon geniekin weapons. For the purpose of determining your proficiency, martial geniekin weapons are simple weapons and advanced geniekin weapons are martial weapons.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Ancestry Guide"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.proficiencies.attacks.weapon-base-falchion.rank",
+          "value": 1,
+          "mode": "upgrade",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.proficiencies.attacks.weapon-base-falchion.rank",
+            "value": 1
+          }
+        },
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.proficiencies.attacks.weapon-base-ranseur.rank",
+          "value": 1,
+          "mode": "upgrade",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.proficiencies.attacks.weapon-base-ranseur.rank",
+            "value": 1
+          }
+        },
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.proficiencies.attacks.weapon-base-scimitar.rank",
+          "value": 1,
+          "mode": "upgrade",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.proficiencies.attacks.weapon-base-scimitar.rank",
+            "value": 1
+          }
+        },
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.proficiencies.attacks.weapon-base-trident.rank",
+          "value": 1,
+          "mode": "upgrade",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.proficiencies.attacks.weapon-base-trident.rank",
+            "value": 1
+          }
+        },
+        {
+          "kind": "proficiency",
+          "slug": "advanced-geniekin-weapons",
+          "label": "PF2E.SpecificRule.MartialProficiency.AdvancedGeniekinWeapons",
+          "selector": null,
+          "value": null,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "definition": [
+              "item:trait:geniekin",
+              "item:category:advanced"
+            ],
+            "key": "MartialProficiency",
+            "label": "PF2E.SpecificRule.MartialProficiency.AdvancedGeniekinWeapons",
+            "sameAs": "martial",
+            "slug": "advanced-geniekin-weapons"
+          }
+        },
+        {
+          "kind": "proficiency",
+          "slug": "martial-geniekin-weapons",
+          "label": "PF2E.SpecificRule.MartialProficiency.MartialGeniekinWeapons",
+          "selector": null,
+          "value": null,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "definition": [
+              "item:trait:geniekin",
+              "item:category:martial",
+              {
+                "not": "item:category:advanced"
+              }
+            ],
+            "key": "MartialProficiency",
+            "label": "PF2E.SpecificRule.MartialProficiency.MartialGeniekinWeapons",
+            "sameAs": "simple",
+            "slug": "martial-geniekin-weapons"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "ardande",
+          "naari",
+          "oread",
+          "suli",
+          "sylph",
+          "talos",
+          "undine"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "8DDwqrYHie33cf6d",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "YUSRbJlY1iJGxGRv",
+    "name": "Genie Weapon Expertise",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "ancestry",
+      "description": "<p>Whenever you gain a class feature that grants you expert or greater proficiency in certain weapons, you also gain that proficiency in @UUID[Compendium.pf2e.equipment-srd.Item.Falchion]{Falchions}, @UUID[Compendium.pf2e.equipment-srd.Item.Ranseur]{Ranseurs}, @UUID[Compendium.pf2e.equipment-srd.Item.Scimitar]{Scimitars}, @UUID[Compendium.pf2e.equipment-srd.Item.Trident]{Tridents}, and all geniekin weapons in which you are trained.</p>",
+      "level": 13,
+      "prerequisites": [
+        {
+          "value": "Genie Weapon Familiarity"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Ancestry Guide"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.proficiencies.attacks.weapon-base-falchion.rank",
+          "value": "@actor.system.proficiencies.attacks.unarmed.rank",
+          "mode": "upgrade",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.proficiencies.attacks.weapon-base-falchion.rank",
+            "value": "@actor.system.proficiencies.attacks.unarmed.rank"
+          }
+        },
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.proficiencies.attacks.weapon-base-ranseur.rank",
+          "value": "@actor.system.proficiencies.attacks.unarmed.rank",
+          "mode": "upgrade",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.proficiencies.attacks.weapon-base-ranseur.rank",
+            "value": "@actor.system.proficiencies.attacks.unarmed.rank"
+          }
+        },
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.proficiencies.attacks.weapon-base-scimitar.rank",
+          "value": "@actor.system.proficiencies.attacks.unarmed.rank",
+          "mode": "upgrade",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.proficiencies.attacks.weapon-base-scimitar.rank",
+            "value": "@actor.system.proficiencies.attacks.unarmed.rank"
+          }
+        },
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.proficiencies.attacks.weapon-base-trident.rank",
+          "value": "@actor.system.proficiencies.attacks.unarmed.rank",
+          "mode": "upgrade",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.proficiencies.attacks.weapon-base-trident.rank",
+            "value": "@actor.system.proficiencies.attacks.unarmed.rank"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "ardande",
+          "naari",
+          "oread",
+          "suli",
+          "sylph",
+          "talos",
+          "undine"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "i3wSkeU7CSyHEi4Y",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "tTFPOMh4fiX4SF5f",
+    "name": "Planar Sidestep",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "reaction",
+      "actions": null,
+      "category": "ancestry",
+      "description": "<p><strong>Frequency</strong> once per day</p>\n<p><strong>Trigger</strong> A creature hits you with a melee Strike.</p>\n<hr />\n<p>You shift your body briefly between planes, reducing the damage from your foe's attack. You gain resistance 25 to all damage against the triggering attack. Observers simply see you shimmer with elemental energy for a moment, just as the attack lands.</p>",
+      "frequency": {
+        "max": 1,
+        "per": "day"
+      },
+      "level": 13,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Impossible Lands"
+      },
+      "rules": [
+        {
+          "kind": "roll-option",
+          "slug": "planar-sidestep",
+          "label": null,
+          "toggleable": true,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "option": "planar-sidestep",
+            "toggleable": true
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "subkind": "resistance",
+          "slug": null,
+          "label": null,
+          "damageType": "all-damage",
+          "value": 25,
+          "exceptions": [],
+          "predicate": [
+            "planar-sidestep"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "Resistance",
+            "predicate": [
+              "planar-sidestep"
+            ],
+            "type": "all-damage",
+            "value": 25
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "arcane",
+          "ardande",
+          "concentrate",
+          "naari",
+          "oread",
+          "suli",
+          "sylph",
+          "talos",
+          "undine"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "HWLD3zGFBIjCDATo",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "zkEqhSgXn6gDb2EH",
+    "name": "Genie Weapon Flourish",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "ancestry",
+      "description": "<p>Whenever you critically hit using a @UUID[Compendium.pf2e.equipment-srd.Item.Falchion], @UUID[Compendium.pf2e.equipment-srd.Item.Ranseur], @UUID[Compendium.pf2e.equipment-srd.Item.Scimitar], @UUID[Compendium.pf2e.equipment-srd.Item.Trident], or a geniekin weapon, you apply the weapon's critical specialization effect.</p>",
+      "level": 5,
+      "prerequisites": [
+        {
+          "value": "Genie Weapon Familiarity"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Ancestry Guide"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "ardande",
+          "naari",
+          "oread",
+          "suli",
+          "sylph",
+          "talos",
+          "undine"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "2kwLzw618QaIHOap",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "key": "CriticalSpecialization",
+            "predicate": [
+              {
+                "or": [
+                  "item:trait:geniekin",
+                  "item:base:falchion",
+                  "item:base:ranseur",
+                  "item:base:scimitar",
+                  "item:base:trident"
+                ]
+              }
+            ],
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "QMLBHEPzuEjCr5JS",
+    "name": "Noble Resolve",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "ancestry",
+      "description": "<p>Once, genies ruled vast kingdoms, and a remnant of that confidence and power is reflected in your strong will. You gain a +1 circumstance bonus to Will saves against effects with the mental trait. Regardless of success or failure, you become aware of the person who used the effect on you if they were visible to you at the time of use.</p>",
+      "level": 5,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Impossible Lands"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "will",
+          "value": 1,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": [
+            "mental"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              "mental"
+            ],
+            "selector": "will",
+            "type": "circumstance",
+            "value": 1
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "ardande",
+          "naari",
+          "oread",
+          "suli",
+          "sylph",
+          "talos",
+          "undine"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "e3oaaoMZPzyP26QV",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "gpfwpbNTvGV53I4t",
+    "name": "Skillful Tail",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "ancestry",
+      "description": "<p><strong>Geniekin</strong> You were born with a tail, and with practice you've learned how to perform simple Interact actions with it, such as opening an unlocked door. Your tail can't perform actions that require fingers or significant manual dexterity, including any action that would require a check to accomplish, and you can't use it to hold items.</p><hr /><p><strong>Nephilim</strong> You've always had a tail, but with practice, you've learned to use it for more than signaling your mood. You can perform simple Interact actions with your tail, such as opening an unlocked door. Your tail can't perform actions that require fingers or significant manual dexterity, including any action that would require a check to accomplish, and you can't use it to hold items.</p>",
+      "level": 5,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "override",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "itemId": "{item|id}",
+            "key": "ItemAlteration",
+            "mode": "override",
+            "property": "description",
+            "value": [
+              {
+                "predicate": [
+                  "self:heritage:nephilim"
+                ],
+                "text": ""
+              },
+              {
+                "predicate": [
+                  {
+                    "or": [
+                      "self:ancestry:ardande",
+                      "self:ancestry:naari",
+                      "self:ancestry:oread",
+                      "self:ancestry:suli",
+                      "self:ancestry:sylph",
+                      "self:ancestry:talos",
+                      "self:ancestry:undine"
+                    ]
+                  }
+                ],
+                "text": ""
+              }
+            ]
+          },
+          "textStripped": true
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "ardande",
+          "naari",
+          "nephilim",
+          "oread",
+          "suli",
+          "sylph",
+          "talos",
+          "undine"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "aVRuchEAJIvnd70k",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "itemId": "{item|id}",
+            "key": "ItemAlteration",
+            "mode": "override",
+            "property": "description",
+            "value": [
+              {
+                "predicate": [
+                  "self:heritage:nephilim"
+                ],
+                "text": ""
+              },
+              {
+                "predicate": [
+                  {
+                    "or": [
+                      "self:ancestry:ardande",
+                      "self:ancestry:naari",
+                      "self:ancestry:oread",
+                      "self:ancestry:suli",
+                      "self:ancestry:sylph",
+                      "self:ancestry:talos",
+                      "self:ancestry:undine"
+                    ]
+                  }
+                ],
+                "text": ""
+              }
+            ],
+            "_conversionState": "partial",
+            "textStripped": true
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "rv4LiCxUbPCkIxuD",
+    "name": "Miraculous Repair",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 3,
+      "category": "ancestry",
+      "description": "<p>Geniekin can't grant magical wishes, but some echo of power lingers within you. Faced with a mechanism that is damaged but not destroyed, you can wish it back into a functional state for a period of 10 minutes. The object must be mundane and no larger than 5 Bulk, such as a disabled locking mechanism in a door. For 10 minutes, the object functions as it should, ignoring any damage to its mechanism. This doesn't grant you any knowledge of what a device might do or how it ought to function. Once the 10 minutes are up, the object falls back into disrepair and is temporarily immune to Miraculous Repair for 1 day.</p>",
+      "frequency": {
+        "max": 1,
+        "per": "day"
+      },
+      "level": 9,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Impossible Lands"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "arcane",
+          "ardande",
+          "concentrate",
+          "naari",
+          "oread",
+          "suli",
+          "sylph",
+          "talos",
+          "undine"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "fEzxwMCNyvooYqdn",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "hgI7XwvleVrAaefF",
+    "name": "Airy Step",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "reaction",
+      "actions": null,
+      "category": "ancestry",
+      "description": "<p><strong>Frequency</strong> once per day</p>\n<p><strong>Trigger</strong> A creature targets you with an attack or other targeted effect, and you can see the attacker.</p>\n<hr />\n<p>You create a blanket of fog in a @Template[burst|distance:5] centered on one corner of your space. All creatures within that area are @UUID[Compendium.pf2e.conditionitems.Item.Concealed], and all others are concealed to them. This concealment applies to the triggering effect, and the fog lasts for 1 minute or until dispersed by a strong wind. After resolving the triggering effect, you Step. If an effect prevents you from Stepping, you attempt to @UUID[Compendium.pf2e.actionspf2e.Item.Escape] the effect and Step if you succeed.</p>",
+      "frequency": {
+        "max": 1,
+        "per": "day"
+      },
+      "level": 13,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Ancestry Guide"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "sylph"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "hOD9de1ftfYRSEKn",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "RxYoPQ9w6pJnAQEc",
+    "name": "Cloud Gazer",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "ancestry",
+      "description": "<p>Your connection to air allows you to see through obscuring mists. You can see well enough through fog, mist, and clouds that would normally cause creatures to be @UUID[Compendium.pf2e.conditionitems.Item.Concealed] that you don't need to succeed at a flat check to target creatures benefiting from such concealment.</p>",
+      "level": 5,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Ancestry Guide"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "sylph"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "SzZFmcfLoHMAS0gt",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "fqoSXsm5zR9BfVdE",
+    "name": "Djinni Magic",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "ancestry",
+      "description": "<p>The magic of djinn runs through your blood. You can cast @UUID[Compendium.pf2e.spells-srd.Item.Gust of Wind] and @UUID[Compendium.pf2e.spells-srd.Item.Invisibility] once per day each as 2nd-rank arcane innate spells.</p>",
+      "level": 9,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Ancestry Guide"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "other-tags",
+          "value": "ancestral-spell",
+          "mode": "add",
+          "predicate": [
+            {
+              "or": [
+                "item:slug:gust-of-wind",
+                "item:slug:invisibility"
+              ]
+            },
+            "spellcasting:innate"
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              {
+                "or": [
+                  "item:slug:gust-of-wind",
+                  "item:slug:invisibility"
+                ]
+              },
+              "spellcasting:innate"
+            ],
+            "property": "other-tags",
+            "value": "ancestral-spell"
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "other-tags",
+          "value": "ancestral-spell:sylph",
+          "mode": "add",
+          "predicate": [
+            {
+              "or": [
+                "item:slug:gust-of-wind",
+                "item:slug:invisibility"
+              ]
+            },
+            "spellcasting:innate"
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              {
+                "or": [
+                  "item:slug:gust-of-wind",
+                  "item:slug:invisibility"
+                ]
+              },
+              "spellcasting:innate"
+            ],
+            "property": "other-tags",
+            "value": "ancestral-spell:sylph"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "sylph"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "nHoRM1gLL7MtIiCS",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              {
+                "or": [
+                  "item:slug:gust-of-wind",
+                  "item:slug:invisibility"
+                ]
+              },
+              "spellcasting:innate"
+            ],
+            "property": "other-tags",
+            "value": "ancestral-spell",
+            "_conversionState": "partial"
+          },
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              {
+                "or": [
+                  "item:slug:gust-of-wind",
+                  "item:slug:invisibility"
+                ]
+              },
+              "spellcasting:innate"
+            ],
+            "property": "other-tags",
+            "value": "ancestral-spell:sylph",
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "4LWibHftybG0M9hj",
+    "name": "Eternal Wings (Sylph)",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "ancestry",
+      "description": "<p>Your wings are now a permanent part of your body. You gain the effects of @UUID[Compendium.pf2e.feats-srd.Item.Wings of Air] at all times rather than just once per day for 10 minutes.</p>",
+      "level": 17,
+      "prerequisites": [
+        {
+          "value": "Wings of Air"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Ancestry Guide"
+      },
+      "rules": [
+        {
+          "kind": "base-speed",
+          "slug": null,
+          "label": null,
+          "selector": "fly",
+          "value": "@actor.system.movement.speeds.land.value",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "BaseSpeed",
+            "selector": "fly",
+            "value": "@actor.system.movement.speeds.land.value"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "sylph"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "8ZWMJYNgyH5zh1yH",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "1m2wanSSbMHqm3Rd",
+    "name": "Fumesoul",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "ancestry",
+      "description": "<p>The air inside you asserts itself as a toxic miasma, inuring you to most poisons. You gain resistance to poison equal to half your level (minimum 1).</p>",
+      "level": 1,
+      "onlyLevel1": true,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Ancestry Guide"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "subkind": "resistance",
+          "slug": null,
+          "label": null,
+          "damageType": "poison",
+          "value": null,
+          "exceptions": [],
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Resistance",
+            "type": "poison",
+            "value": "max(1,floor(@actor.level/2))"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "lineage",
+          "sylph"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "vWf6uykXkQp1Li0r",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "CzwK5yy0Gci9qD7G",
+    "name": "Inner Breath",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "ancestry",
+      "description": "<p>Your body is capable of recycling its own air. When you hold your breath, you can do so for an additional hour. At the end of this hour, your body needs to rest before it can recycle air again. This rest requires 10 minutes of exposure to breathable air.</p>",
+      "level": 9,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Ancestry Guide"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "flags.system.remainingAir.rounds",
+          "value": 600,
+          "mode": "upgrade",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "flags.system.remainingAir.rounds",
+            "value": "600"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "sylph"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "tyae2vpOiAMxXvQH",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "SfRpm1mZAhqJmTj0",
+    "name": "Slip with the Breeze",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "ancestry",
+      "description": "<p>You create gusts of wind when you jump, allowing you to carry yourself across greater distances. You gain the @UUID[Compendium.pf2e.feats-srd.Item.Quick Jump] and @UUID[Compendium.pf2e.feats-srd.Item.Powerful Leap] skill feats as bonus feats.</p>",
+      "level": 5,
+      "prerequisites": [
+        {
+          "value": "expert in Athletics"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Ancestry Guide"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.feats-srd.Item.Quick Jump",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.feats-srd.Item.Quick Jump"
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.feats-srd.Item.Powerful Leap",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.feats-srd.Item.Powerful Leap"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "sylph"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "mfy0nasMIiMLUm3f",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "8SCk0Poa7RyYZLmP",
+    "name": "Smokesoul",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "ancestry",
+      "description": "<p>You have a connection to smoke and haze. You gain the @UUID[Compendium.pf2e.actionspf2e.Item.Smoke Blending] reaction.</p>",
+      "level": 1,
+      "onlyLevel1": true,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Ancestry Guide"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.actionspf2e.Item.Smoke Blending",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.actionspf2e.Item.Smoke Blending"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "lineage",
+          "sylph"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "lqhhvDJAjPw6LZy5",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "gCvkR1P90T5BdTfK",
+    "name": "Storm Form",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "ancestry",
+      "description": "<p>You can transform into an elemental. Once per day, you can cast @UUID[Compendium.pf2e.spells-srd.Item.Elemental Form] as a 7th-rank primal innate spell, but you can only choose the air elemental form.</p>",
+      "level": 17,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Ancestry Guide"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "other-tags",
+          "value": "ancestral-spell",
+          "mode": "add",
+          "predicate": [
+            "item:slug:elemental-form",
+            "spellcasting:innate"
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:slug:elemental-form",
+              "spellcasting:innate"
+            ],
+            "property": "other-tags",
+            "value": "ancestral-spell"
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "other-tags",
+          "value": "ancestral-spell:sylph",
+          "mode": "add",
+          "predicate": [
+            "item:slug:elemental-form",
+            "spellcasting:innate"
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:slug:elemental-form",
+              "spellcasting:innate"
+            ],
+            "property": "other-tags",
+            "value": "ancestral-spell:sylph"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "sylph"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "FBhBnyGX0Uje0tbJ",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:slug:elemental-form",
+              "spellcasting:innate"
+            ],
+            "property": "other-tags",
+            "value": "ancestral-spell",
+            "_conversionState": "partial"
+          },
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:slug:elemental-form",
+              "spellcasting:innate"
+            ],
+            "property": "other-tags",
+            "value": "ancestral-spell:sylph",
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "1HdhcSQUvGTUANrH",
+    "name": "Stormsoul",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "ancestry",
+      "description": "<p>Your elemental ancestor's influence manifests in you as tumultuous, thundering storms, with dark clouds and bolts of lightning. You gain resistance to electricity equal to half your level (minimum 1).</p>",
+      "level": 1,
+      "onlyLevel1": true,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Ancestry Guide"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "subkind": "resistance",
+          "slug": null,
+          "label": null,
+          "damageType": "electricity",
+          "value": null,
+          "exceptions": [],
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Resistance",
+            "type": "electricity",
+            "value": "max(floor(@actor.level/2),1)"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "lineage",
+          "sylph"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "qm1lIMLVdsQtVFT0",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "hGvtimRNKI3L5qnO",
+    "name": "Summon Air Elemental",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "ancestry",
+      "description": "<p>You have a connection to the Inner Spheres, allowing you to summon an elemental ally. Once per day, you can cast @UUID[Compendium.pf2e.spells-srd.Item.Summon Elemental] as a 5th-rank primal innate spell, but the elemental summoned must be an air elemental.</p>",
+      "level": 13,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Ancestry Guide"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "other-tags",
+          "value": "ancestral-spell",
+          "mode": "add",
+          "predicate": [
+            "item:slug:summon-elemental",
+            "spellcasting:innate"
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:slug:summon-elemental",
+              "spellcasting:innate"
+            ],
+            "property": "other-tags",
+            "value": "ancestral-spell"
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "other-tags",
+          "value": "ancestral-spell:sylph",
+          "mode": "add",
+          "predicate": [
+            "item:slug:summon-elemental",
+            "spellcasting:innate"
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:slug:summon-elemental",
+              "spellcasting:innate"
+            ],
+            "property": "other-tags",
+            "value": "ancestral-spell:sylph"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "sylph"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "569SxRBvTCDiHlbW",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:slug:summon-elemental",
+              "spellcasting:innate"
+            ],
+            "property": "other-tags",
+            "value": "ancestral-spell",
+            "_conversionState": "partial"
+          },
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:slug:summon-elemental",
+              "spellcasting:innate"
+            ],
+            "property": "other-tags",
+            "value": "ancestral-spell:sylph",
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "NKjpgsu5Bsoz9Adw",
+    "name": "Swift",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "ancestry",
+      "description": "<p>You move with the wind always at your back. Your Speed increases by 5 feet.</p>\n<hr />\n<p><strong>Special</strong> The Speed increase from this feat isn't cumulative with any Speed increase from your ancestry feats (such as Nimble Elf).</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Ancestry Guide"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "land-speed",
+          "value": 5,
+          "mode": "add",
+          "type": "untyped",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "selector": "land-speed",
+            "value": 5
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "sylph"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "l0VBbymCVT1Qz9t9",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "udhE1Sw80AiPRqww",
+    "name": "Wind Pillow",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "ancestry",
+      "description": "<p>The winds have whispered to you all your life, and the essence of air itself helps you at times, making you somewhat buoyant when you're suspended in space. Treat all falls as though they were 10 feet less than the actual distance traveled. You also gain the Powerful Leap skill feat, even if you don't meet that feat's prerequisites.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Impossible Lands"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.feats-srd.Item.Powerful Leap",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.feats-srd.Item.Powerful Leap"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "sylph"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "0198lXWmDdrVWolN",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "jWxX5GCk4jqtb1LN",
+    "name": "Wind Tempered",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "ancestry",
+      "description": "<p>You are at home in tempestuous weather and accustomed to even the harshest winds. You gain a +1 circumstance bonus to saves against air and electricity effects. If you roll a success on a save against an air effect, you get a critical success instead.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Ancestry Guide"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "saving-throw",
+          "value": 1,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": [
+            {
+              "or": [
+                "air",
+                "electricity"
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              {
+                "or": [
+                  "air",
+                  "electricity"
+                ]
+              }
+            ],
+            "selector": "saving-throw",
+            "type": "circumstance",
+            "value": 1
+          }
+        },
+        {
+          "kind": "roll-note",
+          "slug": null,
+          "label": null,
+          "selector": "saving-throw",
+          "outcome": [
+            "success"
+          ],
+          "text": "",
+          "title": "{item|name}",
+          "predicate": [
+            "air"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "Note",
+            "outcome": [
+              "success"
+            ],
+            "predicate": [
+              "air"
+            ],
+            "selector": "saving-throw",
+            "text": "",
+            "title": "{item|name}"
+          },
+          "textStripped": true
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "sylph"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "arR15QoJH3xokw12",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "adjustment": {
+              "success": "one-degree-better"
+            },
+            "key": "AdjustDegreeOfSuccess",
+            "predicate": [
+              "air"
+            ],
+            "selector": "saving-throw",
+            "type": "save",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "QQxIZuyfgEwnM81l",
+    "name": "Wings of Air",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 2,
+      "category": "ancestry",
+      "description": "<p><strong>Frequency</strong> once per day</p>\n<hr />\n<p>You can strain to call forth feathered or cloudy wings from your back. Once manifested, these wings remain for 10 minutes. You gain a fly Speed equal to your land Speed while you've manifested your wings.</p>",
+      "frequency": {
+        "max": 1,
+        "per": "day"
+      },
+      "level": 9,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Ancestry Guide"
+      },
+      "rules": [],
+      "selfEffect": {
+        "name": "Effect: Wings of Air",
+        "uuid": "Compendium.pf2e.feat-effects.Item.Effect: Wings of Air"
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "morph",
+          "primal",
+          "sylph"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "FUOUyhHufNH4ri7H",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "z1okD1YDUMcrW0TL",
     "name": "Graceful Leaper",
     "type": "feat",
@@ -5867,6 +7858,325 @@
     }
   },
   {
+    "_id": "w0xOZvggBIM2sOsW",
+    "name": "Basic Trickery",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You gain a 1st- or 2nd-level rogue feat.</p>",
+      "level": 4,
+      "prerequisites": [
+        {
+          "value": "Rogue Dedication"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "{item|flags.system.rulesSelections.basicTrickery}",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "{item|flags.system.rulesSelections.basicTrickery}"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "archetype"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "xMTC8UOerwGyCtaN",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "adjustName": false,
+            "choices": {
+              "filter": [
+                "item:category:class",
+                "item:trait:rogue",
+                {
+                  "lte": [
+                    "item:level",
+                    2
+                  ]
+                }
+              ],
+              "itemType": "feat"
+            },
+            "flag": "basicTrickery",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Prompt.LevelOneOrTwoClassFeat",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Doi6p9WhOes6OrFS",
+    "name": "Rogue Dedication",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You gain a skill feat and the rogue's @UUID[Compendium.pf2e.classfeatures.Item.Surprise Attack] class feature. You become trained in light armor. In addition, you become trained in Stealth or Thievery plus one skill of your choice; if you are already trained in both Stealth and Thievery, you become trained in an additional skill of your choice. You become trained in rogue class DC.</p>\n<p>@UUID[Compendium.pf2e.journals.JournalEntry.vx5FGEG34AxI2dow.JournalEntryPage.kVC4kgYKbhqPsaDt]{Rogue}</p>",
+      "level": 2,
+      "prerequisites": [
+        {
+          "value": "Dexterity +2"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "{item|flags.system.rulesSelections.rogueDedication}",
+          "value": 1,
+          "mode": "upgrade",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "{item|flags.system.rulesSelections.rogueDedication}",
+            "value": 1
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.classfeatures.Item.Surprise Attack",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.classfeatures.Item.Surprise Attack"
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "{item|flags.system.rulesSelections.skillFeat}",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "{item|flags.system.rulesSelections.skillFeat}"
+          }
+        }
+      ],
+      "subfeatures": {
+        "proficiencies": {
+          "light": {
+            "rank": 1
+          },
+          "rogue": {
+            "attribute": "dex",
+            "rank": 1
+          }
+        }
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "archetype",
+          "dedication",
+          "multiclass"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "bCWieNDC1CD35tin",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "adjustName": false,
+            "choices": [
+              {
+                "label": "PF2E.Skill.Stealth",
+                "value": "system.skills.stealth.rank"
+              },
+              {
+                "label": "PF2E.Skill.Thievery",
+                "value": "system.skills.thievery.rank"
+              }
+            ],
+            "flag": "rogueDedication",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Rogue.TrainSkill.Prompt",
+            "_conversionState": "unsupported"
+          },
+          {
+            "adjustName": false,
+            "choices": {
+              "filter": [
+                "item:trait:skill",
+                {
+                  "lte": [
+                    "item:level",
+                    "self:level"
+                  ]
+                }
+              ],
+              "itemType": "feat"
+            },
+            "flag": "skillFeat",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Prompt.SkillFeat",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "4hzMl5PrkHO8GTZQ",
+    "name": "Sneak Attacker",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "class",
+      "description": "<p>You gain the @UUID[Compendium.pf2e.classfeatures.Item.Sneak Attack] class feature, except it deals 1d4 damage, increasing to 1d6 at 6th level. You don't increase the number of dice as you gain levels.</p>",
+      "level": 4,
+      "prerequisites": [
+        {
+          "value": "Rogue Dedication"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "flags.system.sneakAttackDamage.number",
+          "value": 1,
+          "mode": "override",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "override",
+            "path": "flags.system.sneakAttackDamage.number",
+            "value": 1
+          }
+        },
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "flags.system.sneakAttackDamage.faces",
+          "value": "ternary(lt(@actor.level, 6), 4, 6)",
+          "mode": "override",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "override",
+            "path": "flags.system.sneakAttackDamage.faces",
+            "value": "ternary(lt(@actor.level, 6), 4, 6)"
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.classfeatures.Item.Sneak Attack",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.classfeatures.Item.Sneak Attack"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "archetype"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "bCAvo59b5RyW12iI",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "uGZTTytpLsFDAeBr",
     "name": "Embed Aeon Stone",
     "type": "feat",
@@ -7447,6 +9757,674 @@
         "importerVersion": "0.1.0",
         "sourceVersion": "v14-dev",
         "sourceId": "9lyFxaoZjF1ZjVN9",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "MTtJss6FXXvcTCbm",
+    "name": "Aerial Boomerang",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 2,
+      "category": "class",
+      "description": "<p>A blade of shearing wind races away from you in a @Template[line|distance:60]. Each creature in the area takes @Damage[(floor((@actor.level -1)/2) +2)d4[slashing]|options:area-damage] damage with a @Check[reflex|against:kineticist|basic|options:area-effect] save against your class DC. In the final square of the line, the boomerang whirls in place until the end of your next turn. Any creature that ends its turn in that square has to save against the boomerang.</p>\n<p>On your next turn, you can use a single action, which has the concentrate trait, to return the boomerang to you. It returns in a line from its square to your current location, with the same effect as the initial line, then the impulse ends. You must have line of effect to the boomerang and be within 60 feet of it.</p>\n<hr />\n<p><strong>Level (+2)</strong> The damage increases by 1d4.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "air",
+          "impulse",
+          "kineticist",
+          "primal"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "jSSN8WF65RqNcZhF",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "AcY0pZnHLtQ2BmaI",
+    "name": "Air Cushion",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "reaction",
+      "actions": null,
+      "category": "class",
+      "description": "<p><strong>Trigger</strong> A creature within 60 feet is falling.</p>\n<hr />\n<p>Air currents flow upward to slow the target's fall to 60 feet per round. The cushion ends when the target reaches the ground, and the creature takes no damage from the fall. The cushion expires if the creature doesn't reach the ground within 1 minute, but any distance it fell during that minute doesn't count for any damage the creature would take from the fall. You can't use Air Cushion again while you have one in effect.</p>\n<hr />\n<p><strong>Level (8th)</strong> The range is 120 feet, and you can create cushions for up to 5 falling creatures with one reaction.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "air",
+          "impulse",
+          "kineticist",
+          "primal"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "pIHXinKNQ13ugBGm",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "1kOdLts4tY4SBymE",
+    "name": "Flashforge",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 2,
+      "category": "class",
+      "description": "<p>An artificial metal object forms in the hands of you or a willing ally within 30 feet. You can choose a level 0, common, handheld weapon or piece of adventuring gear of 1 Bulk or less. The item is entirely made from metal, making some items impossible or impractical to use (if it's unclear, the GM decides). You can make items with simple moving parts or magnetism, like a compass, poor lock, or merchant's scale. The item lasts for 10 minutes, but each time it's used, the user must succeed at a @Check[flat|dc:5] or the item is destroyed after the action is completed.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "impulse",
+          "kineticist",
+          "metal",
+          "primal"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "S3NFO9meH9b08oiN",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "mviFw5Uv7NbELr4Q",
+    "name": "Four Winds",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 2,
+      "category": "class",
+      "description": "<p>Mimicking the anemoi-monarchs of the four winds-you propel four creatures. Target up to four willing creatures within 30 feet of you. Each of those creatures can Stride up to half its Speed. If it has a fly Speed, it can instead Fly up to half its fly Speed.</p>\n<hr />\n<p><strong>Level (10th)</strong> The targets move up to full Speed instead of half.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "air",
+          "impulse",
+          "kineticist",
+          "primal"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "iySa8O4NaTdLPKQl",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "pcKBJhSSBOPjaL2W",
+    "name": "Magnetic Pinions",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 3,
+      "category": "class",
+      "description": "<p>Small pieces of metal fly from you, propelled with magnetism at great velocity. Make ranged @Check[impulse|defense:ac]{impulse attack} rolls against up to three creatures within 60 feet of you; you gain a +1 circumstance bonus to your attack roll against any target wearing metal armor or made of metal. All three attacks count toward your multiple attack penalty, but it doesn't increase until after all the attacks. The metal pieces deal @Damage[(floor((@actor.level -1)/2)+1)d4[bludgeoning],(floor((@actor.level -1)/2)+1)d4[piercing]] damage on a hit (or double damage on a critical hit).</p>\n<hr />\n<p><strong>Level (+2)</strong> Each type of damage increases by 1d4.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "attack",
+          "impulse",
+          "kineticist",
+          "metal",
+          "overflow",
+          "primal"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "IAo6UeLgWqG7KK1x",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "CdOEjbg1Z9jqLzWf",
+    "name": "Metal Carapace",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "class",
+      "description": "<p>Sheets of bent and rusted metal cover you in an armored shell. The carapace is medium armor but uses your highest armor proficiency. The carapace's statistics are: AC Bonus +3; Dex Cap +2; Check Penalty –2; Speed Penalty –5 feet; Strength +2; Bulk 2; Group plate; Armor Traits noisy. Any bonuses, runes, and magical abilities of your actual armor are suppressed, but any that could apply to the metal carapace are replicated onto it.</p>\n<p>When you use this impulse, you can also create a rusty steel shield in a free hand, which uses the statistics of a regular steel shield. You can Shield Block with this shield even if you don't have that feat. The hand wielding this shield counts as a free hand for using impulses. The shield crumbles to flakes of rust if it becomes broken or leaves your grasp. The impulse lasts for 10 minutes, and you can Dismiss this impulse. If you use this impulse again, any existing one ends. The metal is rusted and fragile. If you take damage from a critical hit, the metal shatters and the impulse ends.</p>\n<hr />\n<p><strong>Level (+3)</strong> The shield's Hardness increases by 1, its HP by 4, and its BT by 2.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "impulse",
+          "kineticist",
+          "metal",
+          "primal"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "HbdOZ8YTtu8ykASc",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "KEllvQVPtXKLSJvm",
+    "name": "Shard Strike",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 2,
+      "category": "class",
+      "description": "<p>Jagged metal shards form in the air and lash out from you. You choose shards or spines, which changes the area, damage type, and critical failure effect. Each creature in the area attempts a @Check[reflex|against:kineticist|basic|options:area-effect] save against your class DC.</p>\n<p><strong>Shards</strong> Shards deal @Damage[(floor((@actor.level -1)/2)+1)d6[slashing]|options:area-damage] damage in a @Template[cone|distance:15], and a creature that critically fails takes @Damage[1d6[bleed]] damage.</p>\n<p><strong>Spines</strong> Spines deal @Damage[(floor((@actor.level -1)/2)+1)d6[piercing]|options:area-damage] damage in a @Template[line|distance:30], and a creature that critically fails is @UUID[Compendium.pf2e.conditionitems.Item.Clumsy]{Clumsy 1} until the start of your next turn.</p><hr /><p><strong>Level (+2)</strong> The damage increases by 1d6.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "impulse",
+          "kineticist",
+          "metal",
+          "primal"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ECH7BEQQEq3pCQaS",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "TLfDg0NLwPH4TagN",
+    "name": "Whisper on the Wind",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "class",
+      "description": "<p>You speak in a whisper, a soft wind carrying your words far away. This has the effect of the @UUID[Compendium.pf2e.spells-srd.Item.Message] spell with a range of 500 feet, and it can target only a creature surrounded by air. If you start your message with the target's name, you and the target don't need to be able to see each other, nor do you need line of effect.</p>\n<hr />\n<p><strong>Level (4th)</strong> The range is 1 mile.</p>\n<p><strong>Level (14th)</strong> The range is planetary plus the Plane of Air.</p>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "air",
+          "auditory",
+          "illusion",
+          "impulse",
+          "kineticist",
+          "linguistic",
+          "primal"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "apKvJtD1Qpvt3O9f",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "wT5wZlDuao7lGuZP",
+    "name": "Air Shroud",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "class",
+      "description": "<p>Turbulent air suffuses your kinetic aura. This doesn't displace other matter but provides air for creatures in your kinetic aura that need air to breathe. Attacks with ranged weapons take a -1 circumstance penalty to their attack rolls if their paths pass through your kinetic aura. Air in your kinetic aura is difficult terrain for flying creatures other than yourself.</p>",
+      "level": 4,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "selfEffect": {
+        "name": "Stance: Air Shroud",
+        "uuid": "Compendium.pf2e.feat-effects.Item.Stance: Air Shroud"
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "air",
+          "impulse",
+          "kineticist",
+          "primal",
+          "stance"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "QV4NCyZQBCABykS1",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "k06AdzS5zYbcFjI7",
+    "name": "Lightning Dash",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 2,
+      "category": "class",
+      "description": "<p>For an instant, you transform yourself into a being of pure lightning and fly forward, shocking anyone in your way. You propel yourself forward in a @Template[line|distance:30]. You can move through creatures during this movement, and this movement doesn't trigger reactions that are triggered by movement. Each creature you move through takes @Damage[(floor((@actor.level -4)/3)+2)d12[electricity]|options:area-damage] damage with a @Check[reflex|against:kineticist|basic|options:area-effect] save against your class DC. You return to your normal form in the final square of the line. If you're in the air, you fall unless you have a fly Speed.</p>\n<hr />\n<p><strong>Level (+3)</strong> The length of the line increases by 5 feet, and the damage increases by 1d12.</p>",
+      "level": 4,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "air",
+          "electricity",
+          "impulse",
+          "kineticist",
+          "move",
+          "overflow",
+          "polymorph",
+          "primal"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "8GG4h6DbpAEGGETG",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "JhzdQYZ4U6qVs8Ld",
+    "name": "Magnetic Field",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "class",
+      "description": "<p>A magnetic field surrounds you. Choose a polarity when you take this action. You can switch the polarity as a free action at the start of each of your turns while you remain in this stance.</p>\n<p><strong>Attract</strong> A creature that is wearing metal armor, has the metal trait, or is made of metal treats squares in your kinetic aura as difficult terrain when moving away from you. You pull unattended metal objects of light Bulk or less in your kinetic aura to you. They gather in your space and move with you.</p>\n<p><strong>Repel</strong> A creature that is wearing metal armor, has the metal trait, or is made of metal treats squares in your kinetic aura as difficult terrain when moving closer to you. You push unattended metal objects of light Bulk or less in your kinetic aura away. They stop moving once they're outside your aura.</p>",
+      "level": 4,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "selfEffect": {
+        "name": "Stance: Magnetic Field",
+        "uuid": "Compendium.pf2e.feat-effects.Item.Stance: Magnetic Field"
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "impulse",
+          "kineticist",
+          "metal",
+          "primal",
+          "stance"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "YJCAiNpFbX2MIc0G",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "xQL90QXmNYxSodJT",
+    "name": "Plate in Treasure",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "class",
+      "description": "<p>Precious metal flows from your fingers to plate an object. This has the effects of a @UUID[Compendium.pf2e.spells-srd.Item.Clad In Metal] spell with a rank equal to half your level rounded up. While you're wearing or holding an item of light Bulk or greater that's Plated in Treasure, any metal created by one of your impulses is plated with the metal. If you use Plate in Treasure again, any previous one ends.</p>",
+      "level": 4,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "impulse",
+          "kineticist",
+          "metal",
+          "primal"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "exrMKEHRyfINLJhV",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "7Mo2F2uLhudHCYA7",
+    "name": "Rain of Rust",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 3,
+      "category": "class",
+      "description": "<p>You conjure a red raincloud in a @Template[burst|distance:10] within 60 feet, which pours rust-colored rain directly below it. Any creature in the rain with the metal trait, that is made of metal, or is wearing metal armor is covered in corrosive build-up. Any such creature is @UUID[Compendium.pf2e.conditionitems.Item.Clumsy]{Clumsy 1} as long as it remains in the area. If such a creature is in the rain at the start of its turn, it takes @Damage[(floor((@actor.level -4)/2)+3)d6[untyped]|options:area-damage] damage with a @Check[fortitude|against:kineticist|basic|options:area-effect] save against your class DC, plus @Damage[1d6[persistent,untyped]|options:area-damage] damage if it fails. Damage from this impulse ignores Hardness. The cloud lasts 1 minute but ends if you use the impulse again.</p><hr /><p><strong>Level (+2)</strong> The initial damage increases by 1d6.</p>",
+      "level": 4,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "composite",
+          "impulse",
+          "kineticist",
+          "metal",
+          "primal",
+          "water"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "t3BPLh4rEInYGJJW",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "DqEAQRbIML9ZTANE",
+    "name": "Whirling Grindstone",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 2,
+      "category": "class",
+      "description": "<p>A whirling grindstone made of flint appears in an unoccupied square within 30 feet. The grindstone shreds flesh and shoots sparks. Attempt an @Check[impulse|defense:ac]{impulse attack} roll against the AC of a creature adjacent to the grindstone. On a hit, the creature takes @Damage[(floor((@actor.level -4)/5)+2)d6[slashing], (floor((@actor.level -4)/5)+1)d6[fire]] damage (or double damage on a critical hit). The grindstone lasts until the end of your next turn, and you can Sustain the impulse up to 1 minute. On subsequent turns, the first time you Sustain the impulse that turn, you can roll the grindstone up to 20 feet and can repeat the attack.</p>\n<p>A creature within reach of the grindstone can Interact with it to sharpen a metal weapon. This grants a +2 circumstance bonus to the next damage roll made with that weapon within 1 minute.</p>\n<hr />\n<p><strong>Level (+5)</strong> The grindstone's damage increases by 1d6 slashing and 1d6 fire, and the bonus to weapons increases by 1.</p>",
+      "level": 4,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "attack",
+          "composite",
+          "earth",
+          "impulse",
+          "kineticist",
+          "metal",
+          "primal"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "EVgtfnOPDKpB0bAi",
         "packName": "feats",
         "unconvertedRules": [],
         "assetSubstitutions": [

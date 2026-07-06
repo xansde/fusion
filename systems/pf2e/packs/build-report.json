@@ -23,40 +23,45 @@
     {
       "packId": "pf2e.classes-core",
       "slug": "classes-core",
-      "documentCount": 1
+      "documentCount": 2
     },
     {
       "packId": "pf2e.class-features-core",
       "slug": "class-features-core",
-      "documentCount": 27
+      "documentCount": 48
     },
     {
       "packId": "pf2e.feats-core",
       "slug": "feats-core",
-      "documentCount": 418
+      "documentCount": 459
     },
     {
       "packId": "pf2e.ancestries-core",
       "slug": "ancestries-core",
-      "documentCount": 1
+      "documentCount": 2
     },
     {
       "packId": "pf2e.heritages-core",
       "slug": "heritages-core",
-      "documentCount": 7
+      "documentCount": 8
     },
     {
       "packId": "pf2e.backgrounds-core",
       "slug": "backgrounds-core",
-      "documentCount": 1
+      "documentCount": 2
     },
     {
       "packId": "pf2e.actions-core",
       "slug": "actions-core",
       "documentCount": 521
+    },
+    {
+      "packId": "pf2e.familiar-abilities-core",
+      "slug": "familiar-abilities-core",
+      "documentCount": 111
     }
   ],
-  "generatedAt": "2026-07-05T19:48:28.677Z",
+  "generatedAt": "2026-07-06T23:23:49.537Z",
   "importerVersion": "0.1.0",
   "sourceVersion": "v14-dev"
 }

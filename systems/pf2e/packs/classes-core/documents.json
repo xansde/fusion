@@ -1,5 +1,306 @@
 [
   {
+    "_id": "ZuJDBnRwp0YQ9IoP",
+    "name": "Kineticist",
+    "type": "class",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "attacks": {
+        "advanced": 0,
+        "martial": 0,
+        "simple": 1,
+        "unarmed": 1
+      },
+      "defenses": {
+        "heavy": 0,
+        "light": 1,
+        "medium": 0,
+        "unarmored": 1
+      },
+      "description": "<p><em>The power of the elements flows from within you. Roaring fire pure water, fleeting air, steadfast earth, twisting wood, slicing metal. A kinetic gate inextricably tied to your body channels power directly from the elemental planes, causing elements to leap to your hand, whirl around your body, and blast foes at your whim. As your connection to the planes grows, you attain true mastery over your chosen elements.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.lNWQPwgT4vhYCOT7]{Kineticist}</em></p>",
+      "hp": 8,
+      "keyAbility": [
+        "con"
+      ],
+      "perception": 1,
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [],
+      "savingThrows": {
+        "fortitude": 2,
+        "reflex": 2,
+        "will": 1
+      },
+      "skillIncreaseLevels": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19
+      ],
+      "trainedSkills": {
+        "value": [
+          "nature"
+        ],
+        "additional": 3
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "classDC": 1,
+      "featLevels": {
+        "ancestry": [
+          1,
+          5,
+          9,
+          13,
+          17
+        ],
+        "class": [
+          1,
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ],
+        "general": [
+          3,
+          7,
+          11,
+          15,
+          19
+        ],
+        "skill": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ]
+      },
+      "proficiencyUpgrades": [
+        {
+          "level": 3,
+          "stat": "will",
+          "rank": 2
+        },
+        {
+          "level": 7,
+          "stat": "fortitude",
+          "rank": 3
+        },
+        {
+          "level": 7,
+          "stat": "classDC",
+          "rank": 2
+        },
+        {
+          "level": 9,
+          "stat": "perception",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "weapons.simple",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "weapons.unarmed",
+          "rank": 2
+        },
+        {
+          "level": 13,
+          "stat": "armor.light",
+          "rank": 2
+        },
+        {
+          "level": 13,
+          "stat": "armor.unarmored",
+          "rank": 2
+        },
+        {
+          "level": 15,
+          "stat": "classDC",
+          "rank": 3
+        },
+        {
+          "level": 15,
+          "stat": "fortitude",
+          "rank": 4
+        },
+        {
+          "level": 19,
+          "stat": "classDC",
+          "rank": 4
+        },
+        {
+          "level": 19,
+          "stat": "armor.light",
+          "rank": 3
+        },
+        {
+          "level": 19,
+          "stat": "armor.unarmored",
+          "rank": 3
+        }
+      ],
+      "featuresByLevel": [
+        {
+          "level": 1,
+          "uuid": "cYO6tM48V3dPIOrt",
+          "name": "Kinetic Aura"
+        },
+        {
+          "level": 1,
+          "uuid": "MJMyOpvG6rbLdvUk",
+          "name": "Kinetic Gate"
+        },
+        {
+          "level": 1,
+          "uuid": "HOwyGH93xrAKXT3Q",
+          "name": "Impulses"
+        },
+        {
+          "level": 3,
+          "uuid": "m9zzP0MZI5sIP1ia",
+          "name": "Will Expertise"
+        },
+        {
+          "level": 3,
+          "uuid": "H2LJjggIreLQ66Oy",
+          "name": "Extract Element"
+        },
+        {
+          "level": 5,
+          "uuid": "hYxkutfYKZfTlJb5",
+          "name": "Gate's Threshold"
+        },
+        {
+          "level": 7,
+          "uuid": "xrRej8tD2r8mCDfJ",
+          "name": "Kinetic Durability"
+        },
+        {
+          "level": 7,
+          "uuid": "4tESQc8fAic5Ha9F",
+          "name": "Kinetic Expertise"
+        },
+        {
+          "level": 9,
+          "uuid": "2K4xQnGRqtCwjRoU",
+          "name": "Second Gate's Threshold"
+        },
+        {
+          "level": 9,
+          "uuid": "lq2hF5SquDtGyQjd",
+          "name": "Perception Expertise"
+        },
+        {
+          "level": 11,
+          "uuid": "9qVi6PwcqCTSlbQh",
+          "name": "Reflow Elements"
+        },
+        {
+          "level": 11,
+          "uuid": "zIp1kwKnaqtq9qB5",
+          "name": "Kinetic Quickness"
+        },
+        {
+          "level": 11,
+          "uuid": "LVADu3YwnAamOx70",
+          "name": "Weapon Expertise"
+        },
+        {
+          "level": 13,
+          "uuid": "AVh4glubbzygKbI8",
+          "name": "Light Armor Expertise"
+        },
+        {
+          "level": 13,
+          "uuid": "h6aJkvglqVbjB2oK",
+          "name": "Third Gate's Threshold"
+        },
+        {
+          "level": 13,
+          "uuid": "J9FT6XRcaEhYUHnV",
+          "name": "Weapon Specialization"
+        },
+        {
+          "level": 15,
+          "uuid": "BdnE00rTSkwOe3Or",
+          "name": "Kinetic Mastery"
+        },
+        {
+          "level": 15,
+          "uuid": "YFDgTLc4gyZOGzK0",
+          "name": "Greater Kinetic Durability"
+        },
+        {
+          "level": 17,
+          "uuid": "RqBETppduK38w0zx",
+          "name": "Fourth Gate's Threshold"
+        },
+        {
+          "level": 17,
+          "uuid": "pHKmK2P504QxLvsL",
+          "name": "Double Reflow"
+        },
+        {
+          "level": 19,
+          "uuid": "5RREuzrz80kpHqFf",
+          "name": "Light Armor Mastery"
+        },
+        {
+          "level": 19,
+          "uuid": "Mim1iWGtOZhuBsTH",
+          "name": "Kinetic Legend"
+        },
+        {
+          "level": 19,
+          "uuid": "phFV9ukpsGR9yCFY",
+          "name": "Final Gate"
+        }
+      ]
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "RggQN3bX5SEcsffR",
+        "packName": "classes",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "class.svg",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "fk29yXFinPhreKL0",
     "name": "Magus",
     "type": "class",

@@ -548,6 +548,34 @@ function isFeatsCoreDoc(doc) {
     const prereqText = JSON.stringify(doc.system?.prerequisites ?? []).toLowerCase();
     if (prereqText.includes('alchemist')) return true;
   }
+
+  // --- r18-N2a: Finn (Kineticist Ar+Metal / Sylph / Rogue FA dedication) ---
+  // Every Air OR Metal Kineticist impulse feat at level <= 4 (category
+  // "class", traits kineticist+impulse+<element>). The dossiê picks Aerial
+  // Boomerang, Four Winds, Magnetic Pinions, Flashforge, Wind Pillow; the
+  // <=4 window gives the user margin to swap element impulses at char build
+  // (Air: 6 feats, Metal: 8 feats — 14 total, no overlap with Magus feats).
+  if (
+    category === 'class' &&
+    level <= 4 &&
+    hasTrait(doc, 'kineticist') &&
+    hasTrait(doc, 'impulse') &&
+    (hasTrait(doc, 'air') || hasTrait(doc, 'metal'))
+  ) {
+    return true;
+  }
+  // Sylph versatile-heritage ancestry feats (trait "sylph"), e.g. Wind Pillow.
+  if (category === 'ancestry' && hasTrait(doc, 'sylph')) return true;
+  // Rogue Free-Archetype dedication chain: the dedication itself plus its
+  // level<=4 follow-up archetype feats (Surprise Attack etc.), identified by a
+  // "Rogue Dedication" prerequisite (dedication feats file under category
+  // "class" and don't carry the class name as a trait — same shape as the
+  // Alchemist branch above).
+  if (doc.name === 'Rogue Dedication') return true;
+  if (hasTrait(doc, 'archetype') && level <= 4) {
+    const prereqText = JSON.stringify(doc.system?.prerequisites ?? []).toLowerCase();
+    if (prereqText.includes('rogue dedication')) return true;
+  }
   return false;
 }
 
@@ -609,36 +637,67 @@ function buildClassFeatureNameSet() {
   );
 }
 
-function isClassFeaturesCoreDoc(doc, magusFeatureNames) {
+/**
+ * Kineticist class-feature name set (r18-N2a, item 2): every class-feature
+ * referenced by the Kineticist's own vendor items{} map (23 features —
+ * Kinetic Gate, Kinetic Aura, Will Expertise, Extract Element, the four
+ * Gate's Threshold tiers, the expertise/mastery ladder, etc.), resolved by
+ * display name via the same uuid-trailing-segment convention as the Magus set
+ * above. Same source-of-truth rule (the class's own items{} map, not the
+ * generic class-feature file's level).
+ */
+function buildKineticistClassFeatureNameSet() {
+  const kineticistJsonPath = join(VENDOR_ROOT_FOR_MVP, 'classes', 'kineticist.json');
+  const kineticistJson = JSON.parse(readFileSync(kineticistJsonPath, 'utf8'));
+  const itemsMap = kineticistJson.system.items ?? {};
+  const uuidMarker = 'Compendium.pf2e.classfeatures.Item.';
+  return new Set(
+    Object.values(itemsMap).map((entry) =>
+      typeof entry.uuid === 'string' && entry.uuid.startsWith(uuidMarker)
+        ? entry.uuid.slice(uuidMarker.length)
+        : entry.name,
+    ),
+  );
+}
+
+function isClassFeaturesCoreDoc(doc, classFeatureNames) {
   if (doc.type !== 'classFeature') return false;
-  if (magusFeatureNames.has(doc.name)) return true;
+  if (classFeatureNames.has(doc.name)) return true;
   if (doc.system?.category === 'hybridStudy') return true;
   return false;
 }
 
-/** ancestries-core (DEC-R10-06 item 4): Ratfolk only. */
+/** ancestries-core (DEC-R10-06 item 4; r18-N2a): Ratfolk (Magus) + Fleshwarp (Finn). */
 function isAncestriesCoreDoc(doc) {
-  return doc.type === 'ancestry' && doc.name === 'Ratfolk';
+  return doc.type === 'ancestry' && (doc.name === 'Ratfolk' || doc.name === 'Fleshwarp');
 }
 
 /**
- * heritages-core (DEC-R10-06 item 4): the 7 Ratfolk heritages, identified by
- * `system.ancestry.slug === 'ratfolk'` (the real vendor linkage field — see
- * heritage docs' `system.ancestry.{name,slug,uuid}`; heritage names alone
- * don't carry a "ratfolk" trait).
+ * heritages-core (DEC-R10-06 item 4; r18-N2a): the 7 Ratfolk heritages
+ * (identified by `system.ancestry.slug === 'ratfolk'` — the real vendor
+ * linkage field; heritage names alone don't carry a "ratfolk" trait) PLUS the
+ * Sylph versatile heritage (Finn). Versatile heritages carry NO ancestry
+ * linkage (`system.ancestry === null`) and are keyed by the ancestry-agnostic
+ * trait matching their own name, so they're selected here by explicit name.
  */
 function isHeritagesCoreDoc(doc) {
-  return doc.type === 'heritage' && doc.system?.ancestry?.slug === 'ratfolk';
+  if (doc.type !== 'heritage') return false;
+  if (doc.system?.ancestry?.slug === 'ratfolk') return true;
+  if (doc.name === 'Sylph') return true;
+  return false;
 }
 
-/** backgrounds-core (DEC-R10-06 item 4): Fireworks Performer only. */
+/** backgrounds-core (DEC-R10-06 item 4; r18-N2a): Fireworks Performer (Magus) + Aeronaut (Finn). */
 function isBackgroundsCoreDoc(doc) {
-  return doc.type === 'background' && doc.name === 'Fireworks Performer';
+  return (
+    doc.type === 'background' &&
+    (doc.name === 'Fireworks Performer' || doc.name === 'Aeronaut')
+  );
 }
 
-/** classes-core (DEC-R10-06 item 1): Magus only. */
+/** classes-core (DEC-R10-06 item 1; r18-N2a): Magus (r10-B) + Kineticist (Finn). */
 function isClassesCoreDoc(doc) {
-  return doc.type === 'class' && doc.name === 'Magus';
+  return doc.type === 'class' && (doc.name === 'Magus' || doc.name === 'Kineticist');
 }
 
 // ---------------------------------------------------------------------------
@@ -862,8 +921,12 @@ async function buildPf2eSubset() {
   {
     console.log('[build-mvp] === Pack: class-features-core ===');
     const all = loadTransformed('class-features');
-    const magusFeatureNames = buildClassFeatureNameSet();
-    const docs = all.filter(d => isClassFeaturesCoreDoc(d, magusFeatureNames));
+    // Union of Magus (r10-B) and Kineticist (r18-N2a) items{} map features.
+    const classFeatureNames = new Set([
+      ...buildClassFeatureNameSet(),
+      ...buildKineticistClassFeatureNameSet(),
+    ]);
+    const docs = all.filter(d => isClassFeaturesCoreDoc(d, classFeatureNames));
     console.log(`[build-mvp] class-features-core: ${docs.length} features selecionadas (items{} map + hybrid studies) de ${all.length} totais`);
 
     const manifest = PACK_MANIFESTS['class-features-core'];

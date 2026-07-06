@@ -82,5 +82,18 @@
       "system.ancestry.slug": "ratfolk",
       "system.traits.value": []
     }
+  },
+  {
+    "_id": "uMYunHHMgAR6hgvz",
+    "uuid": "Compendium.pf2e.heritages-core.Item.uMYunHHMgAR6hgvz",
+    "name": "Sylph",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Sylph",
+      "system.traits.value": [
+        "sylph"
+      ]
+    }
   }
 ]

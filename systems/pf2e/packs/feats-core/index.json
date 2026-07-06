@@ -395,6 +395,430 @@
     }
   },
   {
+    "_id": "Gnfar31LthtGwz8V",
+    "uuid": "Compendium.pf2e.feats-core.Item.Gnfar31LthtGwz8V",
+    "name": "Elemental Eyes",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Elemental Eyes",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "ardande",
+        "naari",
+        "oread",
+        "suli",
+        "sylph",
+        "talos",
+        "undine"
+      ]
+    }
+  },
+  {
+    "_id": "daufQMgA68tRfMS4",
+    "uuid": "Compendium.pf2e.feats-core.Item.daufQMgA68tRfMS4",
+    "name": "Elemental Lore",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Elemental Lore",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "ardande",
+        "naari",
+        "oread",
+        "suli",
+        "sylph",
+        "talos",
+        "undine"
+      ]
+    }
+  },
+  {
+    "_id": "09CZSRu6HjbeUID6",
+    "uuid": "Compendium.pf2e.feats-core.Item.09CZSRu6HjbeUID6",
+    "name": "Genie Weapon Familiarity",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Genie Weapon Familiarity",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "ardande",
+        "naari",
+        "oread",
+        "suli",
+        "sylph",
+        "talos",
+        "undine"
+      ]
+    }
+  },
+  {
+    "_id": "YUSRbJlY1iJGxGRv",
+    "uuid": "Compendium.pf2e.feats-core.Item.YUSRbJlY1iJGxGRv",
+    "name": "Genie Weapon Expertise",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Genie Weapon Expertise",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "ardande",
+        "naari",
+        "oread",
+        "suli",
+        "sylph",
+        "talos",
+        "undine"
+      ]
+    }
+  },
+  {
+    "_id": "tTFPOMh4fiX4SF5f",
+    "uuid": "Compendium.pf2e.feats-core.Item.tTFPOMh4fiX4SF5f",
+    "name": "Planar Sidestep",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Planar Sidestep",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "arcane",
+        "ardande",
+        "concentrate",
+        "naari",
+        "oread",
+        "suli",
+        "sylph",
+        "talos",
+        "undine"
+      ]
+    }
+  },
+  {
+    "_id": "zkEqhSgXn6gDb2EH",
+    "uuid": "Compendium.pf2e.feats-core.Item.zkEqhSgXn6gDb2EH",
+    "name": "Genie Weapon Flourish",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Genie Weapon Flourish",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "ardande",
+        "naari",
+        "oread",
+        "suli",
+        "sylph",
+        "talos",
+        "undine"
+      ]
+    }
+  },
+  {
+    "_id": "QMLBHEPzuEjCr5JS",
+    "uuid": "Compendium.pf2e.feats-core.Item.QMLBHEPzuEjCr5JS",
+    "name": "Noble Resolve",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Noble Resolve",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "ardande",
+        "naari",
+        "oread",
+        "suli",
+        "sylph",
+        "talos",
+        "undine"
+      ]
+    }
+  },
+  {
+    "_id": "gpfwpbNTvGV53I4t",
+    "uuid": "Compendium.pf2e.feats-core.Item.gpfwpbNTvGV53I4t",
+    "name": "Skillful Tail",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Skillful Tail",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "ardande",
+        "naari",
+        "nephilim",
+        "oread",
+        "suli",
+        "sylph",
+        "talos",
+        "undine"
+      ]
+    }
+  },
+  {
+    "_id": "rv4LiCxUbPCkIxuD",
+    "uuid": "Compendium.pf2e.feats-core.Item.rv4LiCxUbPCkIxuD",
+    "name": "Miraculous Repair",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Miraculous Repair",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "arcane",
+        "ardande",
+        "concentrate",
+        "naari",
+        "oread",
+        "suli",
+        "sylph",
+        "talos",
+        "undine"
+      ]
+    }
+  },
+  {
+    "_id": "hgI7XwvleVrAaefF",
+    "uuid": "Compendium.pf2e.feats-core.Item.hgI7XwvleVrAaefF",
+    "name": "Airy Step",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Airy Step",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "sylph"
+      ]
+    }
+  },
+  {
+    "_id": "RxYoPQ9w6pJnAQEc",
+    "uuid": "Compendium.pf2e.feats-core.Item.RxYoPQ9w6pJnAQEc",
+    "name": "Cloud Gazer",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Cloud Gazer",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "sylph"
+      ]
+    }
+  },
+  {
+    "_id": "fqoSXsm5zR9BfVdE",
+    "uuid": "Compendium.pf2e.feats-core.Item.fqoSXsm5zR9BfVdE",
+    "name": "Djinni Magic",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Djinni Magic",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "sylph"
+      ]
+    }
+  },
+  {
+    "_id": "4LWibHftybG0M9hj",
+    "uuid": "Compendium.pf2e.feats-core.Item.4LWibHftybG0M9hj",
+    "name": "Eternal Wings (Sylph)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Eternal Wings (Sylph)",
+      "system.level": 17,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "sylph"
+      ]
+    }
+  },
+  {
+    "_id": "1m2wanSSbMHqm3Rd",
+    "uuid": "Compendium.pf2e.feats-core.Item.1m2wanSSbMHqm3Rd",
+    "name": "Fumesoul",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Fumesoul",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lineage",
+        "sylph"
+      ]
+    }
+  },
+  {
+    "_id": "CzwK5yy0Gci9qD7G",
+    "uuid": "Compendium.pf2e.feats-core.Item.CzwK5yy0Gci9qD7G",
+    "name": "Inner Breath",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Inner Breath",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "sylph"
+      ]
+    }
+  },
+  {
+    "_id": "SfRpm1mZAhqJmTj0",
+    "uuid": "Compendium.pf2e.feats-core.Item.SfRpm1mZAhqJmTj0",
+    "name": "Slip with the Breeze",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Slip with the Breeze",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "sylph"
+      ]
+    }
+  },
+  {
+    "_id": "8SCk0Poa7RyYZLmP",
+    "uuid": "Compendium.pf2e.feats-core.Item.8SCk0Poa7RyYZLmP",
+    "name": "Smokesoul",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Smokesoul",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lineage",
+        "sylph"
+      ]
+    }
+  },
+  {
+    "_id": "gCvkR1P90T5BdTfK",
+    "uuid": "Compendium.pf2e.feats-core.Item.gCvkR1P90T5BdTfK",
+    "name": "Storm Form",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Storm Form",
+      "system.level": 17,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "sylph"
+      ]
+    }
+  },
+  {
+    "_id": "1HdhcSQUvGTUANrH",
+    "uuid": "Compendium.pf2e.feats-core.Item.1HdhcSQUvGTUANrH",
+    "name": "Stormsoul",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Stormsoul",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "lineage",
+        "sylph"
+      ]
+    }
+  },
+  {
+    "_id": "hGvtimRNKI3L5qnO",
+    "uuid": "Compendium.pf2e.feats-core.Item.hGvtimRNKI3L5qnO",
+    "name": "Summon Air Elemental",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Summon Air Elemental",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "sylph"
+      ]
+    }
+  },
+  {
+    "_id": "NKjpgsu5Bsoz9Adw",
+    "uuid": "Compendium.pf2e.feats-core.Item.NKjpgsu5Bsoz9Adw",
+    "name": "Swift",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Swift",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "sylph"
+      ]
+    }
+  },
+  {
+    "_id": "udhE1Sw80AiPRqww",
+    "uuid": "Compendium.pf2e.feats-core.Item.udhE1Sw80AiPRqww",
+    "name": "Wind Pillow",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Wind Pillow",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "sylph"
+      ]
+    }
+  },
+  {
+    "_id": "jWxX5GCk4jqtb1LN",
+    "uuid": "Compendium.pf2e.feats-core.Item.jWxX5GCk4jqtb1LN",
+    "name": "Wind Tempered",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Wind Tempered",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "sylph"
+      ]
+    }
+  },
+  {
+    "_id": "QQxIZuyfgEwnM81l",
+    "uuid": "Compendium.pf2e.feats-core.Item.QQxIZuyfgEwnM81l",
+    "name": "Wings of Air",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Wings of Air",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": [
+        "morph",
+        "primal",
+        "sylph"
+      ]
+    }
+  },
+  {
     "_id": "z1okD1YDUMcrW0TL",
     "uuid": "Compendium.pf2e.feats-core.Item.z1okD1YDUMcrW0TL",
     "name": "Graceful Leaper",
@@ -1517,6 +1941,53 @@
     }
   },
   {
+    "_id": "w0xOZvggBIM2sOsW",
+    "uuid": "Compendium.pf2e.feats-core.Item.w0xOZvggBIM2sOsW",
+    "name": "Basic Trickery",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Basic Trickery",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "archetype"
+      ]
+    }
+  },
+  {
+    "_id": "Doi6p9WhOes6OrFS",
+    "uuid": "Compendium.pf2e.feats-core.Item.Doi6p9WhOes6OrFS",
+    "name": "Rogue Dedication",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Rogue Dedication",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": [
+        "archetype",
+        "dedication",
+        "multiclass"
+      ]
+    }
+  },
+  {
+    "_id": "4hzMl5PrkHO8GTZQ",
+    "uuid": "Compendium.pf2e.feats-core.Item.4hzMl5PrkHO8GTZQ",
+    "name": "Sneak Attacker",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sneak Attacker",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "archetype"
+      ]
+    }
+  },
+  {
     "_id": "uGZTTytpLsFDAeBr",
     "uuid": "Compendium.pf2e.feats-core.Item.uGZTTytpLsFDAeBr",
     "name": "Embed Aeon Stone",
@@ -1929,6 +2400,274 @@
       "system.traits.value": [
         "archetype",
         "skill"
+      ]
+    }
+  },
+  {
+    "_id": "MTtJss6FXXvcTCbm",
+    "uuid": "Compendium.pf2e.feats-core.Item.MTtJss6FXXvcTCbm",
+    "name": "Aerial Boomerang",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Aerial Boomerang",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "air",
+        "impulse",
+        "kineticist",
+        "primal"
+      ]
+    }
+  },
+  {
+    "_id": "AcY0pZnHLtQ2BmaI",
+    "uuid": "Compendium.pf2e.feats-core.Item.AcY0pZnHLtQ2BmaI",
+    "name": "Air Cushion",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Air Cushion",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "air",
+        "impulse",
+        "kineticist",
+        "primal"
+      ]
+    }
+  },
+  {
+    "_id": "1kOdLts4tY4SBymE",
+    "uuid": "Compendium.pf2e.feats-core.Item.1kOdLts4tY4SBymE",
+    "name": "Flashforge",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Flashforge",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "impulse",
+        "kineticist",
+        "metal",
+        "primal"
+      ]
+    }
+  },
+  {
+    "_id": "mviFw5Uv7NbELr4Q",
+    "uuid": "Compendium.pf2e.feats-core.Item.mviFw5Uv7NbELr4Q",
+    "name": "Four Winds",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Four Winds",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "air",
+        "impulse",
+        "kineticist",
+        "primal"
+      ]
+    }
+  },
+  {
+    "_id": "pcKBJhSSBOPjaL2W",
+    "uuid": "Compendium.pf2e.feats-core.Item.pcKBJhSSBOPjaL2W",
+    "name": "Magnetic Pinions",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Magnetic Pinions",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "attack",
+        "impulse",
+        "kineticist",
+        "metal",
+        "overflow",
+        "primal"
+      ]
+    }
+  },
+  {
+    "_id": "CdOEjbg1Z9jqLzWf",
+    "uuid": "Compendium.pf2e.feats-core.Item.CdOEjbg1Z9jqLzWf",
+    "name": "Metal Carapace",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Metal Carapace",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "impulse",
+        "kineticist",
+        "metal",
+        "primal"
+      ]
+    }
+  },
+  {
+    "_id": "KEllvQVPtXKLSJvm",
+    "uuid": "Compendium.pf2e.feats-core.Item.KEllvQVPtXKLSJvm",
+    "name": "Shard Strike",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Shard Strike",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "impulse",
+        "kineticist",
+        "metal",
+        "primal"
+      ]
+    }
+  },
+  {
+    "_id": "TLfDg0NLwPH4TagN",
+    "uuid": "Compendium.pf2e.feats-core.Item.TLfDg0NLwPH4TagN",
+    "name": "Whisper on the Wind",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Whisper on the Wind",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "air",
+        "auditory",
+        "illusion",
+        "impulse",
+        "kineticist",
+        "linguistic",
+        "primal"
+      ]
+    }
+  },
+  {
+    "_id": "wT5wZlDuao7lGuZP",
+    "uuid": "Compendium.pf2e.feats-core.Item.wT5wZlDuao7lGuZP",
+    "name": "Air Shroud",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Air Shroud",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "air",
+        "impulse",
+        "kineticist",
+        "primal",
+        "stance"
+      ]
+    }
+  },
+  {
+    "_id": "k06AdzS5zYbcFjI7",
+    "uuid": "Compendium.pf2e.feats-core.Item.k06AdzS5zYbcFjI7",
+    "name": "Lightning Dash",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Lightning Dash",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "air",
+        "electricity",
+        "impulse",
+        "kineticist",
+        "move",
+        "overflow",
+        "polymorph",
+        "primal"
+      ]
+    }
+  },
+  {
+    "_id": "JhzdQYZ4U6qVs8Ld",
+    "uuid": "Compendium.pf2e.feats-core.Item.JhzdQYZ4U6qVs8Ld",
+    "name": "Magnetic Field",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Magnetic Field",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "impulse",
+        "kineticist",
+        "metal",
+        "primal",
+        "stance"
+      ]
+    }
+  },
+  {
+    "_id": "xQL90QXmNYxSodJT",
+    "uuid": "Compendium.pf2e.feats-core.Item.xQL90QXmNYxSodJT",
+    "name": "Plate in Treasure",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Plate in Treasure",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "impulse",
+        "kineticist",
+        "metal",
+        "primal"
+      ]
+    }
+  },
+  {
+    "_id": "7Mo2F2uLhudHCYA7",
+    "uuid": "Compendium.pf2e.feats-core.Item.7Mo2F2uLhudHCYA7",
+    "name": "Rain of Rust",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Rain of Rust",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "composite",
+        "impulse",
+        "kineticist",
+        "metal",
+        "primal",
+        "water"
+      ]
+    }
+  },
+  {
+    "_id": "DqEAQRbIML9ZTANE",
+    "uuid": "Compendium.pf2e.feats-core.Item.DqEAQRbIML9ZTANE",
+    "name": "Whirling Grindstone",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Whirling Grindstone",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "attack",
+        "composite",
+        "earth",
+        "impulse",
+        "kineticist",
+        "metal",
+        "primal"
       ]
     }
   },

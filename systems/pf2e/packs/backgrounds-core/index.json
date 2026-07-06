@@ -1,5 +1,16 @@
 [
   {
+    "_id": "mwHmaKUwhaLcRwys",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.mwHmaKUwhaLcRwys",
+    "name": "Aeronaut",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Aeronaut",
+      "system.traits.value": []
+    }
+  },
+  {
     "_id": "XGTsuhOCcthVvoFt",
     "uuid": "Compendium.pf2e.backgrounds-core.Item.XGTsuhOCcthVvoFt",
     "name": "Fireworks Performer",

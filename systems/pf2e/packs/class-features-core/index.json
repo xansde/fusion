@@ -78,6 +78,21 @@
     }
   },
   {
+    "_id": "pHKmK2P504QxLvsL",
+    "uuid": "Compendium.pf2e.class-features-core.Item.pHKmK2P504QxLvsL",
+    "name": "Double Reflow",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Double Reflow",
+      "system.level": 17,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "kineticist"
+      ]
+    }
+  },
+  {
     "_id": "d1DLOebEvisqe0VP",
     "uuid": "Compendium.pf2e.class-features-core.Item.d1DLOebEvisqe0VP",
     "name": "Double Spellstrike",
@@ -113,6 +128,81 @@
         "summoner",
         "witch",
         "wizard"
+      ]
+    }
+  },
+  {
+    "_id": "H2LJjggIreLQ66Oy",
+    "uuid": "Compendium.pf2e.class-features-core.Item.H2LJjggIreLQ66Oy",
+    "name": "Extract Element",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Extract Element",
+      "system.level": 3,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "kineticist"
+      ]
+    }
+  },
+  {
+    "_id": "phFV9ukpsGR9yCFY",
+    "uuid": "Compendium.pf2e.class-features-core.Item.phFV9ukpsGR9yCFY",
+    "name": "Final Gate",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Final Gate",
+      "system.level": 19,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "kineticist"
+      ]
+    }
+  },
+  {
+    "_id": "RqBETppduK38w0zx",
+    "uuid": "Compendium.pf2e.class-features-core.Item.RqBETppduK38w0zx",
+    "name": "Fourth Gate's Threshold",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Fourth Gate's Threshold",
+      "system.level": 17,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "kineticist"
+      ]
+    }
+  },
+  {
+    "_id": "hYxkutfYKZfTlJb5",
+    "uuid": "Compendium.pf2e.class-features-core.Item.hYxkutfYKZfTlJb5",
+    "name": "Gate's Threshold",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Gate's Threshold",
+      "system.level": 5,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "kineticist"
+      ]
+    }
+  },
+  {
+    "_id": "YFDgTLc4gyZOGzK0",
+    "uuid": "Compendium.pf2e.class-features-core.Item.YFDgTLc4gyZOGzK0",
+    "name": "Greater Kinetic Durability",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Greater Kinetic Durability",
+      "system.level": 15,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "kineticist"
       ]
     }
   },
@@ -158,6 +248,21 @@
     }
   },
   {
+    "_id": "HOwyGH93xrAKXT3Q",
+    "uuid": "Compendium.pf2e.class-features-core.Item.HOwyGH93xrAKXT3Q",
+    "name": "Impulses",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Impulses",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "kineticist"
+      ]
+    }
+  },
+  {
     "_id": "o6Oc3e0GSFurrogA",
     "uuid": "Compendium.pf2e.class-features-core.Item.o6Oc3e0GSFurrogA",
     "name": "Inexorable Iron",
@@ -192,6 +297,111 @@
     }
   },
   {
+    "_id": "cYO6tM48V3dPIOrt",
+    "uuid": "Compendium.pf2e.class-features-core.Item.cYO6tM48V3dPIOrt",
+    "name": "Kinetic Aura",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Kinetic Aura",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "kineticist"
+      ]
+    }
+  },
+  {
+    "_id": "xrRej8tD2r8mCDfJ",
+    "uuid": "Compendium.pf2e.class-features-core.Item.xrRej8tD2r8mCDfJ",
+    "name": "Kinetic Durability",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Kinetic Durability",
+      "system.level": 7,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "kineticist"
+      ]
+    }
+  },
+  {
+    "_id": "4tESQc8fAic5Ha9F",
+    "uuid": "Compendium.pf2e.class-features-core.Item.4tESQc8fAic5Ha9F",
+    "name": "Kinetic Expertise",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Kinetic Expertise",
+      "system.level": 7,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "kineticist"
+      ]
+    }
+  },
+  {
+    "_id": "MJMyOpvG6rbLdvUk",
+    "uuid": "Compendium.pf2e.class-features-core.Item.MJMyOpvG6rbLdvUk",
+    "name": "Kinetic Gate",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Kinetic Gate",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "kineticist"
+      ]
+    }
+  },
+  {
+    "_id": "Mim1iWGtOZhuBsTH",
+    "uuid": "Compendium.pf2e.class-features-core.Item.Mim1iWGtOZhuBsTH",
+    "name": "Kinetic Legend",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Kinetic Legend",
+      "system.level": 19,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "kineticist"
+      ]
+    }
+  },
+  {
+    "_id": "BdnE00rTSkwOe3Or",
+    "uuid": "Compendium.pf2e.class-features-core.Item.BdnE00rTSkwOe3Or",
+    "name": "Kinetic Mastery",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Kinetic Mastery",
+      "system.level": 15,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "kineticist"
+      ]
+    }
+  },
+  {
+    "_id": "zIp1kwKnaqtq9qB5",
+    "uuid": "Compendium.pf2e.class-features-core.Item.zIp1kwKnaqtq9qB5",
+    "name": "Kinetic Quickness",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Kinetic Quickness",
+      "system.level": 11,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "kineticist"
+      ]
+    }
+  },
+  {
     "_id": "8WLs2Ful9QpO9lun",
     "uuid": "Compendium.pf2e.class-features-core.Item.8WLs2Ful9QpO9lun",
     "name": "Laughing Shadow",
@@ -206,6 +416,44 @@
       ],
       "system.traits.otherTags": [
         "magus-hybrid-study"
+      ]
+    }
+  },
+  {
+    "_id": "AVh4glubbzygKbI8",
+    "uuid": "Compendium.pf2e.class-features-core.Item.AVh4glubbzygKbI8",
+    "name": "Light Armor Expertise",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Light Armor Expertise",
+      "system.level": 13,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "bard",
+        "investigator",
+        "kineticist",
+        "oracle",
+        "rogue",
+        "swashbuckler"
+      ]
+    }
+  },
+  {
+    "_id": "5RREuzrz80kpHqFf",
+    "uuid": "Compendium.pf2e.class-features-core.Item.5RREuzrz80kpHqFf",
+    "name": "Light Armor Mastery",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Light Armor Mastery",
+      "system.level": 19,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "investigator",
+        "kineticist",
+        "rogue",
+        "swashbuckler"
       ]
     }
   },
@@ -275,6 +523,31 @@
     }
   },
   {
+    "_id": "lq2hF5SquDtGyQjd",
+    "uuid": "Compendium.pf2e.class-features-core.Item.lq2hF5SquDtGyQjd",
+    "name": "Perception Expertise",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Perception Expertise",
+      "system.level": 3,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "alchemist",
+        "animist",
+        "champion",
+        "cleric",
+        "druid",
+        "exemplar",
+        "kineticist",
+        "monk",
+        "sorcerer",
+        "witch",
+        "wizard"
+      ]
+    }
+  },
+  {
     "_id": "BIuU56P6JTTJz7oI",
     "uuid": "Compendium.pf2e.class-features-core.Item.BIuU56P6JTTJz7oI",
     "name": "Reflex Expertise",
@@ -295,6 +568,21 @@
         "thaumaturge",
         "witch",
         "wizard"
+      ]
+    }
+  },
+  {
+    "_id": "9qVi6PwcqCTSlbQh",
+    "uuid": "Compendium.pf2e.class-features-core.Item.9qVi6PwcqCTSlbQh",
+    "name": "Reflow Elements",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Reflow Elements",
+      "system.level": 11,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "kineticist"
       ]
     }
   },
@@ -328,6 +616,21 @@
       ],
       "system.traits.otherTags": [
         "magus-hybrid-study"
+      ]
+    }
+  },
+  {
+    "_id": "2K4xQnGRqtCwjRoU",
+    "uuid": "Compendium.pf2e.class-features-core.Item.2K4xQnGRqtCwjRoU",
+    "name": "Second Gate's Threshold",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Second Gate's Threshold",
+      "system.level": 9,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "kineticist"
       ]
     }
   },
@@ -394,6 +697,21 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "magus"
+      ]
+    }
+  },
+  {
+    "_id": "h6aJkvglqVbjB2oK",
+    "uuid": "Compendium.pf2e.class-features-core.Item.h6aJkvglqVbjB2oK",
+    "name": "Third Gate's Threshold",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Third Gate's Threshold",
+      "system.level": 13,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "kineticist"
       ]
     }
   },
@@ -510,6 +828,23 @@
         "swashbuckler",
         "witch",
         "wizard"
+      ]
+    }
+  },
+  {
+    "_id": "m9zzP0MZI5sIP1ia",
+    "uuid": "Compendium.pf2e.class-features-core.Item.m9zzP0MZI5sIP1ia",
+    "name": "Will Expertise",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Will Expertise",
+      "system.level": 3,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "alchemist",
+        "kineticist",
+        "ranger"
       ]
     }
   }
