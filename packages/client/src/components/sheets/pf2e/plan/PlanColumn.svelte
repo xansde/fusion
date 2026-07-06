@@ -38,6 +38,9 @@
     applyBackground,
     chooseFeat,
     chooseHybridStudy,
+    chooseKineticGate,
+    readGateElements,
+    type KineticGatePick,
     setAbilityBoosts,
     markAbilityBoostsChoice,
     setFreeArchetype,
@@ -77,6 +80,7 @@
   import PlanDetailsDialog from "./PlanDetailsDialog.svelte";
   import AbilityBoostsDialog from "./AbilityBoostsDialog.svelte";
   import SkillTrainingDialog from "./SkillTrainingDialog.svelte";
+  import KineticGateDialog from "./KineticGateDialog.svelte";
   import { t, i18n } from "../../../../lib/i18n/i18n.js";
   import { session, getSocket } from "../../../../lib/session.svelte.js";
   import {
@@ -442,6 +446,7 @@
   type SlotPicker = { level: number; slot: PlanSlotModel } | null;
   let slotPicker = $state<SlotPicker>(null);
   let boostsDialogTarget = $state<{ level: number; slot: PlanSlotModel } | null>(null);
+  let kineticGateTarget = $state<{ level: number; slot: PlanSlotModel } | null>(null);
 
   function slotLabel(slot: PlanSlotModel): string {
     // A grantedFeat sub-slot (W1-D) uses its grant's OWN i18n key (e.g.
@@ -472,6 +477,10 @@
     if (slot.type === "skillTraining" || slot.type === "skillIncrease") {
       skillDialogLevel = level;
       skillDialogKind = slot.type;
+      return;
+    }
+    if (slot.type === "kineticGate") {
+      kineticGateTarget = { level, slot };
       return;
     }
     slotPicker = { level, slot };
@@ -536,6 +545,10 @@
         filterFn: (e) => matchesGrantedFeatFilter(featDocFromIndex(e), grant),
       };
     }
+    // Kineticist: a classFeat slot filters impulse feats by the character's
+    // chosen gate elements (an Air+Metal kineticist can't pick a Fire impulse).
+    // gateElements is [] for a non-kineticist → the impulse filter is a no-op.
+    const gateElements = readGateElements(doc);
     return {
       packSlug: "feats-core",
       title: t(`FUSION.Sheet.Plan.SlotLabel.${slot.type}`),
@@ -544,6 +557,7 @@
         return isFeatEligible(featDoc, slot.type, level, {
           ...(ctx.classSlug ? { classSlug: ctx.classSlug } : {}),
           ...(ctx.ancestrySlug ? { ancestrySlug: ctx.ancestrySlug } : {}),
+          ...(gateElements.length > 0 ? { gateElements } : {}),
         });
       },
     };
@@ -562,6 +576,17 @@
     // so this reads the grants and sends the granted items' create ops.
     void materializeAppliedGrants(selectedDoc, slot.slotId);
     slotPicker = null;
+  }
+
+  /**
+   * Kinetic Gate confirm — the dialog resolves the "Kinetic Gate" classFeature
+   * doc itself and hands it here with the player's element/damage picks; we
+   * stamp them into `system.kineticGates` via chooseKineticGate.
+   */
+  function handleKineticGateConfirm(featureDoc: Record<string, unknown>, picks: KineticGatePick[]): void {
+    if (!kineticGateTarget) return;
+    sendAll(chooseKineticGate(opCtx, kineticGateTarget.level, featureDoc, picks));
+    kineticGateTarget = null;
   }
 
   // ---------------------------------------------------------------------------
@@ -799,6 +824,14 @@
     onClose={closeSkillDialog}
     onConfirm={handleSkillDialogConfirm}
     onAddLore={handleAddLore}
+  />
+{/if}
+
+{#if kineticGateTarget}
+  <KineticGateDialog
+    title={t("FUSION.Sheet.Plan.KineticGate.Title")}
+    onClose={() => { kineticGateTarget = null; }}
+    onConfirm={handleKineticGateConfirm}
   />
 {/if}
 

@@ -358,6 +358,7 @@ export type PlanSlotType =
   | "skillFeat"
   | "archetypeFeat"
   | "hybridStudy"
+  | "kineticGate"
   | "skillTraining"
   | "skillIncrease"
   | "grantedFeat";
@@ -442,6 +443,7 @@ const SLOT_TYPE_LABELS: Record<PlanSlotType, string> = {
   skillFeat: "Skill Feat",
   archetypeFeat: "Archetype Feat",
   hybridStudy: "Hybrid Study",
+  kineticGate: "Kinetic Gate",
   skillTraining: "Skill Training",
   skillIncrease: "Skill Increase",
   grantedFeat: "Granted Feat",
@@ -674,6 +676,12 @@ function buildLevelPlan(
     // (Starlit Span → Shooting Star) — surface it as a locked nested chip under
     // the study, same as feat grants.
     pushFixedGrantChips(slots, hybridStudySlot, items);
+    // Kineticist: a level-1 Kinetic Gate choice slot (single/dual gate →
+    // element(s) → damage type). Only offered when the class actually grants
+    // a kinetic gate (Kineticist), same generic gating as hybrid study.
+    if (classHasKineticGate(classSystem)) {
+      slots.push(resolveSlot("kineticGate", `kineticGate-1`, level, choices, items));
+    }
   }
 
   // Levelled ability boosts (5/10/15/20 by default, or the class's own set).
@@ -780,7 +788,7 @@ function collapseSkillSlotGroups(slots: PlanSlotModel[]): PlanSlotModel[] {
  * choice point, not a concrete feature).
  */
 function isChoiceFeature(ref: ClassFeatureRef): boolean {
-  return ref.name === "Hybrid Study";
+  return ref.name === "Hybrid Study" || ref.name === "Kinetic Gate";
 }
 
 /**
@@ -1103,7 +1111,7 @@ export function isFeatEligible(
   featDoc: FeatDocLike,
   slotType: PlanSlotType,
   charLevel: number,
-  opts: { classSlug?: string; ancestrySlug?: string } = {},
+  opts: { classSlug?: string; ancestrySlug?: string; gateElements?: readonly string[] } = {},
 ): boolean {
   const sys = featDoc.system ?? {};
   const category = sys.category ?? "general";
@@ -1123,6 +1131,19 @@ export function isFeatEligible(
         // eligible; feats tagged for a DIFFERENT class are not.
         const looksClassTagged = traits.some((t) => KNOWN_CLASS_TRAITS.has(t));
         if (looksClassTagged) return false;
+      }
+      // Kineticist impulse feats are element-gated: an `impulse` feat that
+      // carries an element trait (air/metal/…) is only eligible when that
+      // element is one of the character's chosen gates. Impulses with no
+      // element trait, and non-impulse class feats, are unaffected. Only
+      // applied when the caller supplies `gateElements` (a kineticist actor).
+      if (opts.gateElements && traits.includes("impulse")) {
+        const featElements = traits.filter((t) =>
+          (KINETIC_ELEMENTS as readonly string[]).includes(t),
+        );
+        if (featElements.length > 0 && !featElements.some((e) => opts.gateElements!.includes(e))) {
+          return false;
+        }
       }
       return true;
     case "ancestryFeat":
@@ -1180,6 +1201,96 @@ export function isHybridStudyOption(classFeatureDoc: {
   const otherTags = classFeatureDoc.system?.traits?.otherTags;
   if (!Array.isArray(otherTags)) return false;
   return otherTags.includes("magus-hybrid-study");
+}
+
+// ---------------------------------------------------------------------------
+// Kinetic Gate (Kineticist — Rage of Elements)
+//
+// The kineticist picks a Kinetic Gate at level 1: a SINGLE gate (one element)
+// or a DUAL gate (two elements). Each chosen element opens that element's
+// impulses and a base Elemental Blast. The client drives this choice (the
+// server does not resolve the vendor ChoiceSet rules — V2), then emits a copy
+// of the "Kinetic Gate" classFeature with `system.kineticGates: [{element,
+// damageType}]` — the exact shape `stepCharElementalBlasts` (r18-N2b,
+// systems/pf2e/src/derivations/elementalBlast.ts) reads to derive the blasts.
+//
+// The element list + valid damage types per element MIRROR the derivation's
+// ELEMENT_BLAST_TABLE (kept in sync by hand, same discipline as SKILL_ABILITY
+// vs characterSheetVM). Only the damage types the derivation accepts for an
+// element are offered, so an invalid choice can never be recorded.
+// ---------------------------------------------------------------------------
+
+/** Kineticist element slug. */
+export type KineticElement = "air" | "earth" | "fire" | "metal" | "water" | "wood";
+
+export const KINETIC_ELEMENTS: readonly KineticElement[] = [
+  "air",
+  "earth",
+  "fire",
+  "metal",
+  "water",
+  "wood",
+];
+
+/**
+ * Valid damage-type options per element — MUST match ELEMENT_BLAST_TABLE in
+ * systems/pf2e/src/derivations/elementalBlast.ts (the derivation rejects any
+ * damageType not in its own list, falling back to the first option). Kept in
+ * sync by hand; the kineticGate test asserts the two never drift.
+ */
+export const KINETIC_ELEMENT_DAMAGE_TYPES: Record<KineticElement, readonly string[]> = {
+  air: ["electricity", "slashing"],
+  earth: ["bludgeoning", "slashing"],
+  fire: ["fire"],
+  metal: ["piercing", "slashing"],
+  water: ["bludgeoning", "cold"],
+  wood: ["bludgeoning", "vitality"],
+};
+
+export type KineticGateMode = "single-gate" | "dual-gate";
+
+/** A single gate pick: an element and (optionally) its chosen damage type. */
+export interface KineticGatePick {
+  element: KineticElement;
+  damageType?: string;
+}
+
+/**
+ * True when this class has the "Kinetic Gate" choice feature at level 1 — the
+ * signal that a level-1 `kineticGate` slot must be offered. Read from the
+ * class's own `featuresByLevel` (the Kineticist pack carries `{level:1, name:
+ * "Kinetic Gate"}`), so any future class that grants a kinetic gate lights up
+ * the slot without a name special-case here.
+ */
+export function classHasKineticGate(classSystem: ClassSystemLike): boolean {
+  return (classSystem.featuresByLevel ?? []).some(
+    (f) => f.level === 1 && f.name === "Kinetic Gate",
+  );
+}
+
+/**
+ * Read the gate elements the character has already chosen from the embedded
+ * "Kinetic Gate" classFeature's `system.kineticGates`. Returns [] when the
+ * gate isn't chosen yet (or the character isn't a kineticist). Used both to
+ * filter impulse feats (only impulses of a gate element are eligible) and to
+ * render the filled gate slot.
+ */
+export function readGateElements(doc: Record<string, unknown>): KineticElement[] {
+  const items = getItems(doc);
+  const out: KineticElement[] = [];
+  for (const item of items) {
+    if (item["type"] !== "classFeature") continue;
+    const sys = asRecord(item["system"]);
+    const gates = sys["kineticGates"];
+    if (!Array.isArray(gates)) continue;
+    for (const g of gates) {
+      const element = asRecord(g)["element"];
+      if (typeof element === "string" && (KINETIC_ELEMENTS as readonly string[]).includes(element)) {
+        out.push(element as KineticElement);
+      }
+    }
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -1505,6 +1616,46 @@ export function chooseHybridStudy(
   featureDoc: Record<string, unknown>,
 ): DocOpPayload[] {
   return chooseFeat(ctx, { slotId: "hybridStudy-1", type: "hybridStudy" } as PlanSlotModel, level, featureDoc);
+}
+
+/**
+ * chooseKineticGate — emit the "Kinetic Gate" classFeature with the chosen
+ * gate picks stamped into `system.kineticGates` (the shape
+ * stepCharElementalBlasts reads to derive the Elemental Blasts).
+ *
+ * `featureDoc` is the vendor "Kinetic Gate" classFeature (class-features-core);
+ * `picks` is 1 element (single gate) or 2 (dual gate), each with its chosen
+ * damage type. Invalid damage types are dropped defensively (the derivation
+ * would fall back anyway), but the dialog only ever offers valid ones.
+ *
+ * Records the choice both as an embedded item (with `flags.fusion.build`) and
+ * a `system.build.choices` marker, exactly like a feat — so removeChoice and
+ * the slot's `filled` state work with no special case.
+ */
+export function chooseKineticGate(
+  ctx: PlanOpBuilderContext,
+  level: number,
+  featureDoc: Record<string, unknown>,
+  picks: KineticGatePick[],
+): DocOpPayload[] {
+  if (!ctx.editable) return [];
+  const kineticGates = picks
+    .filter((p) => (KINETIC_ELEMENTS as readonly string[]).includes(p.element))
+    .map((p) => {
+      const valid = KINETIC_ELEMENT_DAMAGE_TYPES[p.element];
+      const damageType =
+        p.damageType && valid.includes(p.damageType) ? p.damageType : valid[0];
+      return { element: p.element, damageType };
+    });
+
+  const featureSystem = asRecord(featureDoc["system"]);
+  const gateDoc: Record<string, unknown> = {
+    ...featureDoc,
+    system: { ...featureSystem, kineticGates },
+  };
+
+  const slot = { slotId: "kineticGate-1", type: "kineticGate" } as PlanSlotModel;
+  return chooseFeat(ctx, slot, level, gateDoc);
 }
 
 /**
@@ -2672,6 +2823,7 @@ export function detailsRequestForSlot(slot: PlanSlotModel): PlanDetailsRequest |
   if (slot.detailsPackSlug) return { packSlug: slot.detailsPackSlug, name };
   switch (slot.type) {
     case "hybridStudy":
+    case "kineticGate":
       return { packSlug: "class-features-core", name };
     case "ancestryFeat":
     case "classFeat":
