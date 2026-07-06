@@ -163,6 +163,78 @@ export const CardDataSchema = z.object({
 export type CardData = z.infer<typeof CardDataSchema>;
 
 // ---------------------------------------------------------------------------
+// SpellCastCard — interactive spell-cast card (r17-P2)
+// ---------------------------------------------------------------------------
+
+/**
+ * The three PF2e basic-save statistics a spell can call for.
+ */
+export const SpellSaveTypeSchema = z.enum(["fortitude", "reflex", "will"]);
+export type SpellSaveType = z.infer<typeof SpellSaveTypeSchema>;
+
+/**
+ * Structured payload for an interactive spell-cast chat card (r17-P2).
+ *
+ * Stored under `flags.pf2e.spellCast` of a ChatMessage (mirroring the Etmos
+ * ConjuracaoCard's `flags.etmos.conjuracao` pattern — NOT a declarative
+ * `message.card`/CardData). Rendered by <SpellCastCard>, which shows:
+ *   - "Fazer teste de resistência" when {saveType + dcValue} are present — any
+ *     player may click; the TARGET rolls the save with THEIR actor.
+ *   - "Rolar dano" when {damageFormula} is present — visible only to the caster's
+ *     owner / GM; rolls the (already-heightened) formula with the caster as
+ *     speaker.
+ *
+ * SECURITY: the server (chat-handler) re-validates this shape with Zod on
+ * chat:send and NEVER trusts the client for the DC — `dcValue` is coherence-
+ * checked against the caster's derived spellcasting DC when possible. The
+ * damage button's caster-ownership gate is enforced client-side (hide) AND, when
+ * the button rolls via chat:send with `speakerActorId = casterActorId`, by the
+ * server's existing speaker-ownership check (REQ-CHT-022).
+ */
+export const SpellCastCardSchema = z.object({
+  /** Actor id of the caster (speaker + damage-roll ownership gate). */
+  casterActorId: z.string().min(1),
+  /** Display name of the spell (pt-BR or EN as shown on the sheet). */
+  spellName: z.string().min(1).max(200),
+  /** Raw EN name (pack join key), when known — display uses `spellName`. */
+  spellNameEn: z.string().max(200).optional(),
+  /** Effective casting rank (>= base). */
+  rank: z.number().int().min(0).max(10),
+  /** Action-cost glyphs for display (e.g. "◆◆", "⟳", "◇"), when applicable. */
+  actionCost: z.string().max(8).optional(),
+  /** Save DC (from the caster's derived spellcasting DC). */
+  dcValue: z.number().int().min(1).max(60).optional(),
+  /** Save statistic the spell calls for. */
+  saveType: SpellSaveTypeSchema.optional(),
+  /** True when the save is a basic save. */
+  basicSave: z.boolean().optional(),
+  /** Damage formula, ALREADY HEIGHTENED to `rank` (r16-G3). */
+  damageFormula: z.string().max(200).optional(),
+  /** Damage type (e.g. "fire", "electricity"). */
+  damageType: z.string().max(40).optional(),
+  /** Spell traits (display only). */
+  traits: z.array(z.string().max(40)).max(30).optional(),
+});
+
+export type SpellCastCard = z.infer<typeof SpellCastCardSchema>;
+
+/**
+ * Flags a client may attach to a chat:send payload (r17-P2). The ONLY
+ * permitted namespaced flag is `pf2e.spellCast`; every other key is stripped
+ * server-side (this schema is `.strict()`-free but the server reads only the
+ * whitelisted path, so a forged/foreign flag never reaches the stored doc).
+ */
+export const ChatSendFlagsSchema = z.object({
+  pf2e: z
+    .object({
+      spellCast: SpellCastCardSchema.optional(),
+    })
+    .optional(),
+});
+
+export type ChatSendFlags = z.infer<typeof ChatSendFlagsSchema>;
+
+// ---------------------------------------------------------------------------
 // ChatSpeaker — REQ-CHT-022
 // ---------------------------------------------------------------------------
 

@@ -7,7 +7,7 @@
  */
 
 import { z } from "zod";
-import { RollModeSchema } from "./types.js";
+import { RollModeSchema, ChatSendFlagsSchema } from "./types.js";
 
 // ---------------------------------------------------------------------------
 // chat:send — client → server
@@ -57,6 +57,15 @@ export const ChatSendPayloadSchema = z.object({
    * Server verifies ownership before accepting.
    */
   speakerTokenId: z.string().optional(),
+
+  /**
+   * Optional namespaced flags to attach to the resulting ChatMessage (r17-P2).
+   * The ONLY whitelisted flag is `pf2e.spellCast` (interactive spell-cast
+   * card) — the server validates the shape with Zod and reads only that path,
+   * so a forged/foreign flag never reaches the stored document. The DC inside
+   * spellCast is coherence-checked server-side (never trusted blindly).
+   */
+  flags: ChatSendFlagsSchema.optional(),
 });
 
 export type ChatSendPayload = z.infer<typeof ChatSendPayloadSchema>;
