@@ -15,10 +15,15 @@
   import type { ChatMessage as ChatMessageType } from "@fusion/shared";
   import { ConjuracaoCardSchema } from "@fusion/system-etmos";
   import { SpellCastCardSchema } from "@fusion/shared";
+  import { t } from "$lib/i18n/i18n.js";
   import {
     getMessageDisplayMeta,
     formatRoll,
     getRollTotalClass,
+    toDegreeKey,
+    degreeLabelKey,
+    degreeCssClass,
+    basicSaveHintKey,
     type FormattedRoll,
   } from "../../lib/chat/messageFormatter.js";
   import ChatCard from "./ChatCard.svelte";
@@ -77,6 +82,16 @@
   const formattedRolls = $derived<FormattedRoll[]>(
     message.rolls ? message.rolls.map(formatRoll) : [],
   );
+
+  // Graded save context persisted by the server (flags.pf2e.checkContext, r17.1).
+  // Only `basicSave` is read here — it drives the per-degree damage hint. The
+  // degree itself lives on each roll (roll.degreeOfSuccess), computed server-side.
+  const isBasicSave = $derived.by(() => {
+    const raw = (message.flags as Record<string, Record<string, unknown>> | undefined)?.["pf2e"]?.[
+      "checkContext"
+    ] as Record<string, unknown> | undefined;
+    return raw?.["kind"] === "save" && raw["basicSave"] === true;
+  });
 
   // Expanded state per roll index
   let expandedRolls = $state<boolean[]>([]);
@@ -139,9 +154,17 @@
           {roll.total}
         </div>
 
-        <!-- Degree of success -->
+        <!-- Degree of success (r17.1) — localized badge + basic-save damage hint -->
         {#if roll.degreeOfSuccess}
-          <div class="roll-card__dos">{roll.degreeOfSuccess}</div>
+          {@const dk = toDegreeKey(roll.degreeOfSuccess)}
+          {#if dk}
+            <div class="roll-card__dos {degreeCssClass(dk)}">{t(degreeLabelKey(dk))}</div>
+            {#if isBasicSave}
+              <div class="roll-card__basic-hint">{t(basicSaveHintKey(dk))}</div>
+            {/if}
+          {:else}
+            <div class="roll-card__dos">{roll.degreeOfSuccess}</div>
+          {/if}
         {/if}
 
         <!-- Warnings -->
@@ -369,6 +392,33 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
+  }
+
+  /* Degree-of-success badge colors (r17.1) — coherent with the total palette. */
+  .roll-card__dos.dos--crit-success {
+    color: var(--fusion-success);
+    text-shadow: 0 0 10px rgba(61, 220, 132, 0.35);
+  }
+
+  .roll-card__dos.dos--success {
+    color: var(--fusion-success);
+  }
+
+  .roll-card__dos.dos--failure {
+    color: var(--fusion-danger);
+  }
+
+  .roll-card__dos.dos--crit-failure {
+    color: var(--fusion-danger);
+    text-shadow: 0 0 10px rgba(255, 92, 92, 0.35);
+  }
+
+  .roll-card__basic-hint {
+    text-align: center;
+    font-size: 0.68rem;
+    color: var(--fusion-text-muted);
+    padding: 0 0.6rem 0.4rem;
+    font-style: italic;
   }
 
   .roll-card__warning {

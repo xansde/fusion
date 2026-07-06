@@ -307,6 +307,12 @@ describe("chat:send save degree-of-success wire (r17.1)", () => {
     // Sanity: the deterministic engine really produced a natural 1.
     expect(readNaturalD20(roll!.terms)).toBe(1);
     expect(roll!.degreeOfSuccess).toBe("criticalFailure");
+    // The graded save context is persisted on the message flags so the render
+    // can show the per-degree basic-save damage hint (r17.1).
+    const flagCtx = (ack.result?.message?.flags as Record<string, Record<string, unknown>>)["pf2e"]?.[
+      "checkContext"
+    ] as Record<string, unknown> | undefined;
+    expect(flagCtx).toEqual({ kind: "save", dcValue: 10, saveType: "reflex", basicSave: true });
   });
 
   it("leaves degreeOfSuccess undefined when NO checkContext is present (behavior intact)", () => {
@@ -319,6 +325,9 @@ describe("chat:send save degree-of-success wire (r17.1)", () => {
     const roll = firstRoll(ack.result?.message ?? null);
     expect(roll).toBeDefined();
     expect(roll!.degreeOfSuccess).toBeUndefined();
+    // No checkContext flag persisted either.
+    const pf2e = (ack.result?.message?.flags as Record<string, Record<string, unknown>>)["pf2e"];
+    expect(pf2e?.["checkContext"]).toBeUndefined();
   });
 
   it("rejects the whole chat:send when checkContext is malformed (Zod)", () => {

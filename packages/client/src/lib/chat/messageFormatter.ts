@@ -163,6 +163,58 @@ export function getMessageDisplayMeta(msg: ChatMessage): MessageDisplayMeta {
 // Total display with crit coloring
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Degree of success — display mapping (r17.1)
+// ---------------------------------------------------------------------------
+
+/**
+ * The four PF2e degree-of-success strings the server persists on a graded roll
+ * (aligned with `RollResultData.degreeOfSuccess`). Anything else is unknown.
+ */
+export type DegreeKey = "criticalSuccess" | "success" | "failure" | "criticalFailure";
+
+const DEGREE_KEYS: readonly DegreeKey[] = [
+  "criticalSuccess",
+  "success",
+  "failure",
+  "criticalFailure",
+];
+
+/** Narrow an arbitrary degree string to a known DegreeKey, or null. */
+export function toDegreeKey(degree: string | undefined): DegreeKey | null {
+  if (degree && (DEGREE_KEYS as readonly string[]).includes(degree)) {
+    return degree as DegreeKey;
+  }
+  return null;
+}
+
+/** i18n key for a degree badge label (e.g. "FUSION.Chat.Degree.success"). */
+export function degreeLabelKey(degree: DegreeKey): string {
+  return `FUSION.Chat.Degree.${degree}`;
+}
+
+/** i18n key for the basic-save per-degree damage hint. */
+export function basicSaveHintKey(degree: DegreeKey): string {
+  return `FUSION.Chat.BasicSave.${degree}`;
+}
+
+/**
+ * CSS modifier class for coloring a degree badge, coherent with the roll-total
+ * crit/fumble palette (success/crit-success → green family, failures → red).
+ */
+export function degreeCssClass(degree: DegreeKey): string {
+  switch (degree) {
+    case "criticalSuccess":
+      return "dos--crit-success";
+    case "success":
+      return "dos--success";
+    case "failure":
+      return "dos--failure";
+    case "criticalFailure":
+      return "dos--crit-failure";
+  }
+}
+
 /** Returns "crit", "fumble", or "" for a roll total on a single-die roll. */
 export function getRollTotalClass(roll: FormattedRoll): "crit" | "fumble" | "" {
   // Single d20 roll — check for nat 20/1

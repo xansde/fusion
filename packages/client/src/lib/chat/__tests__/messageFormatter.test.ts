@@ -9,6 +9,10 @@ import {
   formatRoll,
   getMessageDisplayMeta,
   getRollTotalClass,
+  toDegreeKey,
+  degreeLabelKey,
+  degreeCssClass,
+  basicSaveHintKey,
 } from "../messageFormatter.js";
 import type { DiceResult, RollTermResult, RollResultData, ChatMessage } from "@fusion/shared";
 
@@ -282,5 +286,37 @@ describe("getMessageDisplayMeta", () => {
   it("detects blind", () => {
     const msg = { ...baseMsg, blind: true };
     expect(getMessageDisplayMeta(msg).isBlind).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Degree of success — display mapping (r17.1)
+// ---------------------------------------------------------------------------
+
+describe("degree-of-success display mapping", () => {
+  it("narrows known degree strings and rejects unknowns", () => {
+    expect(toDegreeKey("criticalSuccess")).toBe("criticalSuccess");
+    expect(toDegreeKey("success")).toBe("success");
+    expect(toDegreeKey("failure")).toBe("failure");
+    expect(toDegreeKey("criticalFailure")).toBe("criticalFailure");
+    expect(toDegreeKey("nonsense")).toBeNull();
+    expect(toDegreeKey(undefined)).toBeNull();
+  });
+
+  it("builds the badge label i18n key per degree", () => {
+    expect(degreeLabelKey("criticalSuccess")).toBe("FUSION.Chat.Degree.criticalSuccess");
+    expect(degreeLabelKey("failure")).toBe("FUSION.Chat.Degree.failure");
+  });
+
+  it("builds the basic-save hint i18n key per degree", () => {
+    expect(basicSaveHintKey("success")).toBe("FUSION.Chat.BasicSave.success");
+    expect(basicSaveHintKey("criticalFailure")).toBe("FUSION.Chat.BasicSave.criticalFailure");
+  });
+
+  it("assigns a distinct CSS class per degree (success family vs failure family)", () => {
+    expect(degreeCssClass("criticalSuccess")).toBe("dos--crit-success");
+    expect(degreeCssClass("success")).toBe("dos--success");
+    expect(degreeCssClass("failure")).toBe("dos--failure");
+    expect(degreeCssClass("criticalFailure")).toBe("dos--crit-failure");
   });
 });

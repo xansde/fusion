@@ -457,10 +457,12 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       // AUTHORITATIVELY here (never on the client). The DC came from the card's
       // coherence-checked spellcasting DC; the total was rolled by the server.
       const checkContext = payload.flags?.checkContext;
+      let gradedSave: SaveCheckContext | null = null;
       if (checkContext?.kind === "save") {
         const degree = computeSaveDegree(rollResult, checkContext);
         if (degree !== null) {
           rollResult = { ...rollResult, degreeOfSuccess: degree };
+          gradedSave = checkContext;
         }
       }
 
@@ -472,6 +474,20 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
         rollResult,
         effectiveMode,
       );
+
+      // Persist the graded save context on the message so the client render is
+      // self-contained (the per-degree basic-save damage hint needs `basicSave`,
+      // which is NOT carried on RollResultData). Only attached when a degree was
+      // actually computed — never trusted for anything but display.
+      if (gradedSave) {
+        msg.flags = {
+          ...msg.flags,
+          [SPELLCAST_FLAG_NAMESPACE]: {
+            ...(msg.flags?.[SPELLCAST_FLAG_NAMESPACE] as Record<string, unknown> | undefined),
+            [CHECK_CONTEXT_FLAG_KEY]: gradedSave,
+          },
+        };
+      }
 
       persistChatMessage(deps.db, msg);
       const seq = broadcastChatMessage(deps.ns, deps.seqStore, msg, ctx.userId);
@@ -905,6 +921,8 @@ export function computeSaveDegree(roll: RollResultData, ctx: SaveCheckContext): 
 
 const SPELLCAST_FLAG_NAMESPACE = "pf2e" as const;
 const SPELLCAST_FLAG_KEY = "spellCast" as const;
+/** flags.pf2e.checkContext — the graded save context, for the render's basic hint (r17.1). */
+const CHECK_CONTEXT_FLAG_KEY = "checkContext" as const;
 
 /**
  * Read the set of derived spellcasting DCs for an actor (server side).
