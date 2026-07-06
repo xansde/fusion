@@ -489,6 +489,11 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
         };
       }
 
+      // Parent linkage (r18-N1): an attack / damage / save roll fired from a
+      // spell-cast card carries the announcement's id so the client nests it
+      // under that card. Dangling parent → dropped (still delivered top-level).
+      attachParentFlag(msg, resolveParentMessageId(deps.db, payload.flags?.parentMessageId));
+
       persistChatMessage(deps.db, msg);
       const seq = broadcastChatMessage(deps.ns, deps.seqStore, msg, ctx.userId);
 
@@ -572,6 +577,14 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
         }
       }
 
+      // Parent linkage (r18-N1) — symmetric with the roll branch. A cast
+      // announcement is a PARENT and carries no parentMessageId, so this is a
+      // no-op for it; it only matters for a hypothetical nested text child.
+      attachParentFlag(msg, resolveParentMessageId(deps.db, payload.flags?.parentMessageId));
+
+      // Return the CANONICAL message on the ack (r18-N1): castSpell chains the
+      // attack roll under this announcement using result.message._id. The id is
+      // already on every ack (`result.message`), so no wire change is needed.
       persistChatMessage(deps.db, msg);
       const seq = broadcastChatMessage(deps.ns, deps.seqStore, msg, ctx.userId);
       return { ok: true, seq, result: { message: msg } };
@@ -923,6 +936,49 @@ const SPELLCAST_FLAG_NAMESPACE = "pf2e" as const;
 const SPELLCAST_FLAG_KEY = "spellCast" as const;
 /** flags.pf2e.checkContext — the graded save context, for the render's basic hint (r17.1). */
 const CHECK_CONTEXT_FLAG_KEY = "checkContext" as const;
+/** flags.fusion.parentMessageId — id of the message this roll nests under (r18-N1). */
+const PARENT_FLAG_NAMESPACE = "fusion" as const;
+const PARENT_MESSAGE_ID_FLAG_KEY = "parentMessageId" as const;
+
+/**
+ * Resolve a client-provided `flags.parentMessageId` (r18-N1) to a persisted
+ * parent id, or `undefined`. The flag is a plain id string (Zod-bounded); here
+ * we verify a message with that id actually exists in the store. A dangling
+ * parent (typo, race, deleted message) is DROPPED — never a hard failure: the
+ * caller still delivers the roll as a normal top-level message. This keeps the
+ * nesting a best-effort UI grouping, never a gate on the send.
+ */
+function resolveParentMessageId(db: Db, parentMessageId: string | undefined): string | undefined {
+  if (!parentMessageId) return undefined;
+  const row = db
+    .prepare(`SELECT id FROM chat_messages WHERE id = ?`)
+    .get(parentMessageId) as { id: string } | undefined;
+  if (!row) {
+    console.warn(
+      `[chat] parentMessageId "${parentMessageId}" not found in store; dropping nesting flag (message delivered as top-level).`,
+    );
+    return undefined;
+  }
+  return parentMessageId;
+}
+
+/**
+ * Attach the validated `flags.fusion.parentMessageId` onto a message so it
+ * travels in the persisted/broadcast document (r18-N1). No-op when `parentId`
+ * is undefined (dangling/absent), so old messages and non-nested rolls stay
+ * unchanged. Merges into any existing flags namespace without clobbering
+ * (a save roll carries both `pf2e.checkContext` and `fusion.parentMessageId`).
+ */
+function attachParentFlag(msg: ChatMessage, parentId: string | undefined): void {
+  if (!parentId) return;
+  msg.flags = {
+    ...msg.flags,
+    [PARENT_FLAG_NAMESPACE]: {
+      ...(msg.flags?.[PARENT_FLAG_NAMESPACE] as Record<string, unknown> | undefined),
+      [PARENT_MESSAGE_ID_FLAG_KEY]: parentId,
+    },
+  };
+}
 
 /**
  * Read the set of derived spellcasting DCs for an actor (server side).
