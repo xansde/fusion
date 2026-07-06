@@ -78,6 +78,89 @@ function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
 }
 
+/** True when a spell `system.damage` map has at least one component. */
+function hasDamage(system: Record<string, unknown>): boolean {
+  const d = system["damage"];
+  return isRecord(d) && Object.keys(d).length > 0;
+}
+
+/** True when a spell `system.traits.value` array is non-empty. */
+function hasTraits(system: Record<string, unknown>): boolean {
+  const traits = system["traits"];
+  if (!isRecord(traits)) return false;
+  const value = traits["value"];
+  return Array.isArray(value) && value.length > 0;
+}
+
+/**
+ * Heal an embedded spell's `system` against the same spell's pack `system`
+ * (r16 verificação viva). PF2e actors copy spells into `items[]`, but the
+ * copies observed in Argiburgo lost their scaling data: `heightening` is
+ * absent, `damage` component keys differ or are empty, `traits.value` is `[]`,
+ * and `defense` (spell-attack flag) is gone. Without `heightening` the sheet's
+ * automatic-heightening (r16-G3) shows every cantrip/spell at base — the bug
+ * the player reported ("elevação não funciona").
+ *
+ * The heal is a DISPLAY-time, non-destructive overlay: it never mutates the
+ * actor doc and only fills fields the embedded copy is MISSING, preferring
+ * the embedded value whenever it carries real data:
+ *   - `heightening` → pack's when the embedded has none (the core fix). When
+ *                     this fires the pack `damage` is ALSO taken (see below).
+ *   - `damage`      → pack's when the embedded map is empty OR when pack
+ *                     heightening is being applied. The latter matters because
+ *                     `heightening.damage` is keyed by the PACK's component ids
+ *                     (e.g. "cQDyW0QpjJ38MlSi"), which won't match the embedded
+ *                     copy's re-keyed damage ("0") — so the per-rank increment
+ *                     would silently no-op. Taking the pack damage keeps the
+ *                     keys aligned so the extra dice actually apply.
+ *   - `traits`      → pack's when the embedded `traits.value` is empty (restores
+ *                     the "attack"/"focus" traits the surface/attack logic reads).
+ *   - `defense`     → pack's when the embedded has none (spell-attack flag).
+ *
+ * `level` (base rank) is intentionally NOT healed: the sheet groups spells into
+ * slot ranks by the embedded `system.level` (absent = 0 = cantrip bucket), and
+ * `computeHeightenedSpell` already normalizes a 0 base to 1 for cantrips — so
+ * overlaying the pack's `level` (cantrips are stored at 1) would wrongly move a
+ * cantrip out of the rank-0 section. Heightening math is unaffected.
+ *
+ * When `packSystem` is null/undefined (no pack match — homebrew), the embedded
+ * system is returned unchanged. Pure: returns a new object, inputs untouched.
+ */
+export function healSpellSystem(
+  embeddedSystem: unknown,
+  packSystem: unknown,
+): Record<string, unknown> {
+  const embedded = isRecord(embeddedSystem) ? embeddedSystem : {};
+  if (!isRecord(packSystem)) return embedded;
+
+  const healed: Record<string, unknown> = { ...embedded };
+
+  // heightening: the core fix — only overlay when the embedded lacks it.
+  const overlayHeightening =
+    !isRecord(embedded["heightening"]) && isRecord(packSystem["heightening"]);
+  if (overlayHeightening) {
+    healed["heightening"] = packSystem["heightening"];
+  }
+
+  // damage: take the pack's when the embedded map is empty OR when we just
+  // overlaid pack heightening (so the component keys line up — see docstring).
+  if ((overlayHeightening || !hasDamage(embedded)) && hasDamage(packSystem)) {
+    healed["damage"] = packSystem["damage"];
+  }
+
+  // traits: restore attack/focus/etc. when the embedded copy dropped them.
+  if (!hasTraits(embedded) && hasTraits(packSystem)) {
+    healed["traits"] = packSystem["traits"];
+  }
+
+  // defense: the save block (statistic + basic) the sheet reads for saves.
+  if (!isRecord(embedded["defense"]) && isRecord(packSystem["defense"])) {
+    healed["defense"] = packSystem["defense"];
+  }
+
+  return healed;
+}
+
 function str(v: unknown): string | null {
   return typeof v === "string" && v.length > 0 ? v : null;
 }

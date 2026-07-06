@@ -6,6 +6,7 @@ import { describe, it, expect } from "vitest";
 import {
   effectiveSpellRank,
   computeHeightenedSpell,
+  healSpellSystem,
 } from "../spellHeightening.js";
 
 describe("effectiveSpellRank", () => {
@@ -162,5 +163,85 @@ describe("computeHeightenedSpell — no heightening", () => {
     // base 0 (cantrip-like) is normalized to the rank-1 casting baseline.
     expect(r.baseRank).toBe(1);
     expect(r.effectiveRank).toBe(2);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// healSpellSystem (r16 verificação viva) — real Argiburgo shapes
+// ---------------------------------------------------------------------------
+
+describe("healSpellSystem", () => {
+  // The embedded Ignition copy on Tobias: no heightening, damage keyed "0",
+  // empty traits — exactly what the world DB inspection revealed.
+  const embeddedIgnition = {
+    damage: { "0": { formula: "2d4", type: "fire", kinds: ["damage"], applyMod: false } },
+    traits: { value: [] },
+  };
+  // The spells-core pack Ignition: interval heightening keyed by the pack's
+  // component id, full traits (including "attack").
+  const packIgnition = {
+    level: 1,
+    damage: { cQDyW0QpjJ38MlSi: { formula: "2d4", type: "fire" } },
+    heightening: { type: "interval", interval: 1, damage: { cQDyW0QpjJ38MlSi: "1d4" } },
+    traits: { value: ["attack", "cantrip", "concentrate", "fire", "manipulate"] },
+  };
+
+  it("overlays pack heightening/damage/traits when the embedded copy lacks them", () => {
+    const healed = healSpellSystem(embeddedIgnition, packIgnition);
+    expect(healed["heightening"]).toEqual(packIgnition.heightening);
+    // damage is replaced by the pack's (keys line up with heightening).
+    expect(healed["damage"]).toEqual(packIgnition.damage);
+    expect((healed["traits"] as { value: string[] }).value).toContain("attack");
+  });
+
+  it("does not clobber a real embedded value", () => {
+    const embeddedWithData = {
+      heightening: { type: "interval", interval: 1, damage: { "0": "9d9" } },
+      damage: { "0": { formula: "9d9", type: "acid" } },
+      traits: { value: ["custom"] },
+    };
+    const healed = healSpellSystem(embeddedWithData, packIgnition);
+    expect(healed["heightening"]).toEqual(embeddedWithData.heightening);
+    expect(healed["damage"]).toEqual(embeddedWithData.damage);
+    expect((healed["traits"] as { value: string[] }).value).toEqual(["custom"]);
+  });
+
+  it("returns the embedded system unchanged when no pack match", () => {
+    const healed = healSpellSystem(embeddedIgnition, null);
+    expect(healed).toEqual(embeddedIgnition);
+  });
+
+  it("does NOT heal system.level (cantrip grouping stays at rank 0)", () => {
+    const healed = healSpellSystem(embeddedIgnition, packIgnition);
+    expect(healed["level"]).toBeUndefined();
+  });
+
+  it("end-to-end: healed Ignition heightens for Tobias (L3 cantrip → rank 2 → 2d4+1d4)", () => {
+    const healed = healSpellSystem(embeddedIgnition, packIgnition);
+    // Cantrip base 0 → effective rank ceil(3/2) = 2.
+    const eff = effectiveSpellRank("cantrip", 3, 0);
+    expect(eff).toBe(2);
+    const h = computeHeightenedSpell(healed, 0, eff);
+    // base normalized to 1, heightenedBy 1 → one extra 1d4 term.
+    expect(h.rollFormula).toBe("2d4+1d4");
+    expect(h.heightenedBy).toBe(1);
+  });
+
+  it("end-to-end: Horizon Thunder Sphere at rank 3 → 3d6+2d6+2d6", () => {
+    const embedded = {
+      damage: { "0": { formula: "3d6", type: "electricity" } },
+      traits: { value: [] },
+    };
+    const pack = {
+      level: 1,
+      damage: { "0": { formula: "3d6", type: "electricity" } },
+      heightening: { type: "interval", interval: 1, damage: { "0": "2d6" } },
+      traits: { value: ["attack", "concentrate", "electricity", "manipulate"] },
+    };
+    const healed = healSpellSystem(embedded, pack);
+    // Prepared in a rank-3 slot (base 1 → +2 → two extra 2d6 terms).
+    const h = computeHeightenedSpell(healed, 1, 3);
+    expect(h.rollFormula).toBe("3d6+2d6+2d6");
+    expect(h.heightenedBy).toBe(2);
   });
 });

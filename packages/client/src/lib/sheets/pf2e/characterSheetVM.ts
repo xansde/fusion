@@ -28,6 +28,7 @@ import { skillNamePt } from "./skillNames.js";
 import {
   effectiveSpellRank,
   computeHeightenedSpell,
+  healSpellSystem,
   type SpellSurface,
   type HeightenedSpell,
 } from "./spellHeightening.js";
@@ -127,6 +128,21 @@ function unwrapStringValue(raw: unknown, fallback: string): string {
     if (typeof v === "string") return v;
   }
   return fallback;
+}
+
+/**
+ * Whether a spell `system` describes a spell ATTACK (needs a spell-attack roll).
+ * Remaster spells signal this with the `"attack"` trait (see spells-core pack:
+ * Ignition/Blazing Bolt carry it, Electric Arc — a save spell — does not).
+ * Also honours the legacy `defense.spellAttack === true` flag for any
+ * hand-authored data that used it. Reads the HEALED system (traits restored).
+ */
+function spellSystemHasAttack(system: Record<string, unknown>): boolean {
+  const traitsBlock = system["traits"] as { value?: unknown } | undefined;
+  const traits = Array.isArray(traitsBlock?.value) ? (traitsBlock.value as unknown[]) : [];
+  if (traits.includes("attack")) return true;
+  const defense = system["defense"] as Record<string, unknown> | undefined;
+  return defense?.["spellAttack"] === true;
 }
 
 // ---------------------------------------------------------------------------
@@ -299,6 +315,20 @@ export interface SpellHeighteningView {
 export type SpellNameTranslator = (enName: string) => string;
 
 /**
+ * Resolve an embedded spell (by RAW name — EN or pt-BR — and optional
+ * `sourceId`) to the matching spells-core pack spell's `system` object, so the
+ * VM can heal scaling data (`heightening`/`damage`/`traits`/`defense`/`level`)
+ * the embedded copy lost (r16 verificação viva). Built by the Svelte layer from
+ * the pack docs it fetches (it owns the socket); the VM stays fetch-free and
+ * only APPLIES the overlay via {@link healSpellSystem}. Absent/undefined = no
+ * heal (embedded systems render as-is), so headless tests keep working.
+ */
+export type SpellHealResolver = (
+  rawName: string,
+  sourceId?: string | null,
+) => Record<string, unknown> | null;
+
+/**
  * Raw (untranslated) view of one embedded `type: "spell"` item on the actor,
  * keyed by its `_id` (r14-B4). The Spells tab uses this to open a spell's
  * details popup when the player clicks its name: `name` is the join key against
@@ -463,6 +493,15 @@ export class CharacterSheetVM {
    */
   private readonly _spellNameTranslator: SpellNameTranslator | undefined;
 
+  /**
+   * Optional pack-spell heal resolver (r16 verificação viva). When present,
+   * every embedded spell `system` the VM reads is overlaid with the matching
+   * pack spell's scaling data via {@link healSpellSystem}, so automatic
+   * heightening (r16-G3) works even when the actor's copied spell items lost
+   * their `heightening`/`damage`/`traits`. Absent = identity (no heal).
+   */
+  private readonly _spellHeal: SpellHealResolver | undefined;
+
   constructor(opts: {
     doc: Record<string, unknown>;
     actorId: string;
@@ -472,6 +511,8 @@ export class CharacterSheetVM {
     worldId?: string;
     /** EN→pt-BR spell-name resolver; omitted in headless tests. */
     spellNameTranslator?: SpellNameTranslator;
+    /** Pack-spell heal resolver (heightening/damage overlay); omitted in tests. */
+    spellHeal?: SpellHealResolver;
   }) {
     this._doc = opts.doc;
     this._actorId = opts.actorId;
@@ -480,6 +521,27 @@ export class CharacterSheetVM {
     this._isGm = opts.isGm;
     this._worldId = opts.worldId ?? "";
     this._spellNameTranslator = opts.spellNameTranslator;
+    this._spellHeal = opts.spellHeal;
+  }
+
+  /**
+   * Heal an embedded spell item's `system` with pack data (r16). Reads the
+   * item's RAW name + `flags.fusion.sourceId` as the join key into the heal
+   * resolver; returns the embedded system untouched when no resolver or no
+   * pack match. Centralizes the overlay so every spell read (cantrip rows,
+   * focus rows, prepared slots, damage rolls) benefits uniformly.
+   */
+  private _healSpellSystem(item: Record<string, unknown>): Record<string, unknown> {
+    const rawSys = item["system"];
+    const embedded = typeof rawSys === "object" && rawSys !== null ? (rawSys as Record<string, unknown>) : {};
+    if (!this._spellHeal) return embedded;
+    const rawName = item["name"];
+    const name = typeof rawName === "string" ? rawName : "";
+    const flags = item["flags"] as Record<string, unknown> | undefined;
+    const fusion = flags?.["fusion"] as Record<string, unknown> | undefined;
+    const sourceId = typeof fusion?.["sourceId"] === "string" ? (fusion["sourceId"] as string) : null;
+    const packSystem = this._spellHeal(name, sourceId);
+    return healSpellSystem(embedded, packSystem);
   }
 
   /**
@@ -1013,10 +1075,9 @@ export class CharacterSheetVM {
         const spellsByRank = new Map<number, SpellRow[]>();
         for (const spItem of items) {
           if (spItem["type"] !== "spell") continue;
-          const spSys =
-            typeof spItem["system"] === "object" && spItem["system"] !== null
-              ? (spItem["system"] as Record<string, unknown>)
-              : {};
+          // Heal against the pack so heightening/damage/traits are present even
+          // when the embedded copy dropped them (r16).
+          const spSys = this._healSpellSystem(spItem);
           // Contract 4: location lives on the item ROOT (fallback: root spellcastingEntry).
           const location = spItem["location"] ?? spItem["spellcastingEntry"];
           if (location !== entryId) continue;
@@ -1025,8 +1086,7 @@ export class CharacterSheetVM {
           const spLevel = typeof rawLevel === "number" ? rawLevel : 0;
           const rawSpId = spItem["_id"];
           const rawSpName = spItem["name"];
-          const defense = spSys["defense"] as Record<string, unknown> | undefined;
-          const hasAttack = defense?.["spellAttack"] === true;
+          const hasAttack = spellSystemHasAttack(spSys);
           const rawCastTime = spSys["castTime"];
 
           const row: SpellRow = {
@@ -1172,10 +1232,9 @@ export class CharacterSheetVM {
     const rows: SpellRow[] = [];
     for (const item of items) {
       if (item["type"] !== "spell") continue;
-      const sys =
-        typeof item["system"] === "object" && item["system"] !== null
-          ? (item["system"] as Record<string, unknown>)
-          : {};
+      // Heal against the pack so the focus trait (embedded copies drop it) and
+      // heightening/damage are present (r16).
+      const sys = this._healSpellSystem(item);
 
       const traitsBlock = sys["traits"] as { value?: unknown } | undefined;
       const traits = Array.isArray(traitsBlock?.value) ? (traitsBlock.value as unknown[]) : [];
@@ -1192,14 +1251,13 @@ export class CharacterSheetVM {
 
       const rawName = item["name"];
       const rawLevel = sys["level"];
-      const defense = sys["defense"] as Record<string, unknown> | undefined;
       const rawCastTime = sys["castTime"];
       const spLevel = typeof rawLevel === "number" ? rawLevel : 0;
       rows.push({
         id,
         name: this._translateSpellName(typeof rawName === "string" ? rawName : ""),
         level: spLevel,
-        hasAttack: defense?.["spellAttack"] === true,
+        hasAttack: spellSystemHasAttack(sys),
         castTime: typeof rawCastTime === "string" ? rawCastTime : null,
         // Focus spells auto-heighten to the highest rank you can cast (ceil/2).
         heightening: this._heighteningView(sys, spLevel, "focus"),
@@ -1272,15 +1330,18 @@ export class CharacterSheetVM {
   // Spell heightening (r16-G3) — automatic level scaling on the sheet
   // -------------------------------------------------------------------------
 
-  /** Read an embedded spell item's `system` object by item id (or null). */
+  /**
+   * Read an embedded spell item's `system` object by item id (or null), HEALED
+   * against the pack (r16) so heightening/damage are present even when the
+   * embedded copy dropped them.
+   */
   private _readSpellSystem(spellItemId: string): Record<string, unknown> | null {
     if (!spellItemId) return null;
     const items = this._doc["items"] as Array<Record<string, unknown>> | undefined;
     if (!items) return null;
     for (const item of items) {
       if (item["type"] !== "spell" || item["_id"] !== spellItemId) continue;
-      const sys = item["system"];
-      return typeof sys === "object" && sys !== null ? (sys as Record<string, unknown>) : {};
+      return this._healSpellSystem(item);
     }
     return null;
   }

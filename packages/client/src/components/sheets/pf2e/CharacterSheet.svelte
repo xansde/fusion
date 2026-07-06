@@ -25,8 +25,10 @@
    */
 
   import { CharacterSheetVM } from "$lib/sheets/pf2e/characterSheetVM.js";
-  import type { ChatRollPayload, DocUpdatePayload, DocOpPayload, CharacterSheetTab } from "$lib/sheets/pf2e/characterSheetVM.js";
+  import type { ChatRollPayload, DocUpdatePayload, DocOpPayload, CharacterSheetTab, SpellHealResolver } from "$lib/sheets/pf2e/characterSheetVM.js";
+  import { buildSpellHealResolver } from "$lib/sheets/pf2e/spellHeal.js";
   import { skillNamePt } from "$lib/sheets/pf2e/skillNames.js";
+  import { getSocket, session } from "$lib/session.svelte.js";
   import { worldMirror } from "$lib/docs/worldSync.js";
   import SpellsTab from "./SpellsTab.svelte";
   import ActionsTab from "./ActionsTab.svelte";
@@ -82,8 +84,51 @@
   // View-model — recreated whenever the live document changes
   // ---------------------------------------------------------------------------
 
+  // Pack-spell heal resolver (r16): overlays each embedded spell's lost
+  // heightening/damage/traits from the spells-core pack so automatic
+  // heightening works. Loaded once per doc (the embedded spell set is stable
+  // for a snapshot); null until loaded (spells render at base meanwhile).
+  let spellHeal = $state<SpellHealResolver | null>(null);
+  const systemId = $derived(session.worldInfo?.systemId ?? "pf2e");
+  $effect(() => {
+    // Re-run when the embedded spell names change (add/remove a spell) or the
+    // system changes. Reads the RAW names + sourceIds directly off the doc to
+    // avoid depending on the VM (which we're about to construct with the result).
+    void systemId;
+    const items = (liveDoc["items"] as Array<Record<string, unknown>> | undefined) ?? [];
+    const embedded = items
+      .filter((it) => it["type"] === "spell")
+      .map((it) => {
+        const flags = it["flags"] as Record<string, unknown> | undefined;
+        const fusion = flags?.["fusion"] as Record<string, unknown> | undefined;
+        return {
+          name: typeof it["name"] === "string" ? (it["name"] as string) : "",
+          sourceId: typeof fusion?.["sourceId"] === "string" ? (fusion["sourceId"] as string) : null,
+        };
+      });
+    if (embedded.length === 0) {
+      spellHeal = null;
+      return;
+    }
+    let cancelled = false;
+    void buildSpellHealResolver(() => getSocket(), embedded, systemId).then((resolver) => {
+      if (!cancelled) spellHeal = resolver;
+    });
+    return () => {
+      cancelled = true;
+    };
+  });
+
   const vm = $derived(
-    new CharacterSheetVM({ doc: liveDoc, actorId, ownership, userId, isGm, worldId }),
+    new CharacterSheetVM({
+      doc: liveDoc,
+      actorId,
+      ownership,
+      userId,
+      isGm,
+      worldId,
+      ...(spellHeal ? { spellHeal } : {}),
+    }),
   );
 
   // ---------------------------------------------------------------------------
