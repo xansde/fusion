@@ -78,7 +78,7 @@ test("balanced-tags: passes when PT has the same tag multiset as EN (order/conte
   assert.deepEqual(failures, []);
 });
 
-test("glossary-applied: fails when EN has recognizable glossary terms but PT translates none of them", () => {
+test("glossary-applied: emits a non-fatal warning when EN has recognizable glossary terms but PT translates none of them", () => {
   const failures = checkDoc({
     nameEn: "Some Feat",
     descriptionEn: "<p>You become trained in this skill and gain a class feat.</p>",
@@ -86,7 +86,9 @@ test("glossary-applied: fails when EN has recognizable glossary terms but PT tra
     entry: { name: "Algum Talento", description: "<p>Texto sem nenhum termo mecanico reconhecido aqui.</p>" },
     glossary,
   });
-  assert.ok(failures.some((f) => f.startsWith("glossary-applied")));
+  // Heuristic check: surfaced with the "warning:" prefix so runQaForPack
+  // reports it without failing the doc.
+  assert.ok(failures.some((f) => f.startsWith("warning:glossary-applied")));
 });
 
 test("glossary-applied: passes when at least one EN glossary term is translated in PT", () => {
