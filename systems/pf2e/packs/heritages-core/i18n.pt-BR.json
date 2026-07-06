@@ -9,12 +9,12 @@
     "6B5uk7Fe6I4NrWjn": {
       "name": "Rato da Neve",
       "sourceHash": "52bd49dfcc0a7ead728b8951c7f278b0c390d3a7",
-      "description": "<p>Você tem uma pelagem mais espessa e um corpo mais volumoso para se defender do frio, concedendo a você resistencia ao frio igual a metade do seu nivel (mínimo 1). Você trata efeitos de frio ambiental como se fossem um grau menos extremos (frio incrível se torna extremo, frio extremo se torna severo, e assim por diante).</p>"
+      "description": "<p>Você tem uma pelagem mais espessa e um corpo mais volumoso para se defender do frio, concedendo a você resistência ao frio igual a metade do seu nível (mínimo 1). Você trata efeitos de frio ambiental como se fossem um grau menos extremos (frio incrível se torna extremo, frio extremo se torna severo, e assim por diante).</p>"
     },
     "BPDF1w5U8k1HrUvZ": {
       "name": "Rato do Deserto",
       "sourceHash": "0b403efd4fb6c31562db27abfcdc46e774cb6987",
-      "description": "<p>Você é nativo de planícies áridas e provavelmente cresceu viajando pelas estradas. Se você tem ambas as mãos livres, voce pode aumentar sua Velocidade para 9 metros conforme corre sobre os quatro membros. Além disso, efeitos de calor ambiental são um grau menos extremos para você, e você pode resistir 10 vezes mais do que o normal antes de ser afetado por fome ou sede. Porém, a menos que você vista equipamento de proteção ou procure abrigo, efeitos de frio ambiental são um grau mais extremos para você.</p>"
+      "description": "<p>Você é nativo de planícies áridas e provavelmente cresceu viajando pelas estradas. Se você tem ambas as mãos livres, você pode aumentar sua Velocidade para 9 metros conforme corre sobre os quatro membros. Além disso, efeitos de calor ambiental são um grau menos extremos para você, e você pode resistir 10 vezes mais do que o normal antes de ser afetado por fome ou sede. Porém, a menos que você vista equipamento de proteção ou procure abrigo, efeitos de frio ambiental são um grau mais extremos para você.</p>"
     },
     "GIbhAzqqCZsfVZ4Z": {
       "name": "Rato da Sombra",
@@ -34,7 +34,7 @@
     "azDELWXz1ds3XeL0": {
       "name": "Rato Profundo",
       "sourceHash": "074659d75ea600bb35215099a4c247d620e4d184",
-      "description": "<p>Seus ancestrais viviam mais profundamente no subsolo do que outros ratkin, concedendo a você a capacidade de enxergar no escuro. Voce ganha visão noturna.</p>"
+      "description": "<p>Seus ancestrais viviam mais profundamente no subsolo do que outros ratkin, concedendo a você a capacidade de enxergar no escuro. Você ganha visão noturna.</p>"
     },
     "pVqpKjLfoDY2XzA3": {
       "name": "Rato do Túnel",

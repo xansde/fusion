@@ -14,7 +14,7 @@
     "08aUs7E34040A10a": {
       "name": "Ingredientes Frescos",
       "sourceHash": "5992be36bd87e75b41f95d4bf13185d76083c335",
-      "description": "<p>E incrivel a diferenca que ervas frescas podem fazer. Ao usar @UUID[Compendium.pf2e.feats-srd.Item.Natural Medicine] para @UUID[Compendium.pf2e.actionspf2e.Item.Treat Wounds], voce ganha o bonus de circunstancia +2 por ter ingredientes frescos, mesmo que nao esteja em ambiente selvagem. Se voce fizer isso em ambiente selvagem, voce ganha um bonus de circunstancia +4 em vez disso.</p>"
+      "description": "<p>E incrivel a diferenca que ervas frescas podem fazer. Ao usar @UUID[Compendium.pf2e.feats-srd.Item.Natural Medicine] para @UUID[Compendium.pf2e.actionspf2e.Item.Treat Wounds], você ganha o bonus de circunstância +2 por ter ingredientes frescos, mesmo que não esteja em ambiente selvagem. Se você fizer isso em ambiente selvagem, você ganha um bonus de circunstância +4 em vez disso.</p>"
     },
     "0AcvJbjigOBaIeTh": {
       "name": "Sobrevivência Planar",
@@ -59,12 +59,12 @@
     "1QHS9IytSWMZgYdh": {
       "name": "Explorador da Selva",
       "sourceHash": "4619f547d6e1fc93dacd0d978a9d284dce2cee4f",
-      "description": "<p>Escolha um tipo de terreno da seguinte lista: aquatico, artico, deserto, floresta, montanha, planicie, ceu, pantano, ou subterraneo. Voce pode usar Sobrevivencia no lugar de Percepcao para rolar iniciativa quando no terreno selecionado em uma localizacao natural (nao uma estrutura) mesmo que nao estivesse rastreando ou de outra forma usando Sobrevivencia antes do combate. Voce tambem pode usar Sobrevivencia em vez de Percepcao para notar armadilhas em localizacoes naturais no terreno escolhido; se encontrar uma cilada dessa forma, voce pode tambem usar Sobrevivencia em vez de Ladinagem para Desativar o Dispositivo.</p>\n<hr />\n<p><strong>Especial</strong> Voce pode selecionar este talento mais de uma vez. Cada vez que seleciona, o talento se aplica a um novo tipo de terreno.</p>"
+      "description": "<p>Escolha um tipo de terreno da seguinte lista: aquatico, artico, deserto, floresta, montanha, planicie, ceu, pantano, ou subterraneo. Você pode usar Sobrevivência no lugar de Percepção para rolar iniciativa quando no terreno selecionado em uma localização natural (não uma estrutura) mesmo que não estivesse rastreando ou de outra forma usando Sobrevivência antes do combate. Você também pode usar Sobrevivência em vez de Percepção para notar armadilhas em localizações naturais no terreno escolhido; se encontrar uma cilada dessa forma, você pode também usar Sobrevivência em vez de Ladinagem para Desativar o Dispositivo.</p>\n<hr />\n<p><strong>Especial</strong> Você pode selecionar este talento mais de uma vez. Cada vez que seleciona, o talento se aplica a um novo tipo de terreno.</p>"
     },
     "1RdMRZqRxKovx1IX": {
       "name": "Certeza Diabolica",
       "sourceHash": "a12a6e21525237b0297bfdf297f50bdbc4ed7421",
-      "description": "<p><strong>Gatilho</strong> Seu turno comeca, e voce pode observar um diaabo.</p><hr /><p>Seu treinamento de Cavaleiro do Inferno perfurou detalhes dos habitantes do Inferno profundamente em sua mente. Tente uma verificacao para @UUID[Compendium.pf2e.actionspf2e.Item.Recall Knowledge] sobre um diaabo que voce esta observando. Se voce falhar criticamente nesta verificacao, voce falha em vez disso. Se voce tem sucesso nesta verificacao, voce tem sucesso critico em vez disso.</p>"
+      "description": "<p><strong>Gatilho</strong> Seu turno comeca, e você pode observar um diaabo.</p><hr /><p>Seu treinamento de Cavaleiro do Inferno perfurou detalhes dos habitantes do Inferno profundamente em sua mente. Tente uma verificação para @UUID[Compendium.pf2e.actionspf2e.Item.Recall Knowledge] sobre um diaabo que você esta observando. Se você falhar criticamente nesta verificação, você falha em vez disso. Se você tem sucesso nesta verificação, você tem sucesso crítico em vez disso.</p>"
     },
     "1bVaKqJG9g3WPvqS": {
       "name": "Medicina de Combate",
@@ -72,14 +72,14 @@
       "description": "<p><strong>Requisitos</strong> Você está carregando ou usando um kit de curador.</p>\n<hr /><p>Você pode remediar ferimentos, até mesmo em combate. Tente um teste de Medicina com a mesma CD que para @UUID[Compendium.pf2e.actionspf2e.Item.Treat Wounds] e restaure a quantidade correspondente de Pontos de Vida; isso não remove a condicão Ferido. Como com Tratar Ferimentos, você pode tentar testes contra CDs mais altas se tiver o grau de proficiência mínimo. O alvo fica então @UUID[Compendium.pf2e.feat-effects.Item.Effect: Battle Medicine Immunity]{imune} a sua Medicina de Combate por 1 dia. Isso não os torna imunes a, ou de outra forma conta como, Tratar Ferimentos.</p>"
     },
     "1v2rIlRqpVsdQ3Rn": {
-      "name": "Ajustar Aparencias",
+      "name": "Ajustar Aparências",
       "sourceHash": "d34c5826f7b4cd94d70bd41f4d2880817cac4743",
-      "description": "<p>Voce gasta 1 minuto fazendo ajustes rapidos na roupa e aparencia de alguem, fazendo suas palavras carregarem mais peso com uma audiencia de sua escolha. Enquanto fala para essa audiencia, o alvo ganha um bonus de item de +1 em testes de Diplomacia e Atuacao. Se tiver proficiencia de mestre em Oficio, o bonus aumenta para +2; se tiver proficiencia lendaria em Oficio, o bonus aumenta para +3. Este bonus dura ate que esta habilidade seja usada no alvo novamente, a situacao para a qual foram preparados acabe, ou eles troquem de roupa em seguida.</p>"
+      "description": "<p>Você gasta 1 minuto fazendo ajustes rapidos na roupa e aparência de alguem, fazendo suas palavras carregarem mais peso com uma audiência de sua escolha. Enquanto fala para essa audiência, o alvo ganha um bonus de item de +1 em testes de Diplomacia e Atuação. Se tiver proficiência de mestre em Oficio, o bonus aumenta para +2; se tiver proficiência lendaria em Oficio, o bonus aumenta para +3. Este bonus dura até que esta habilidade seja usada no alvo novamente, a situação para a qual foram preparados acabe, ou eles troquem de roupa em seguida.</p>"
     },
     "1vyVMmsWAgpqsxd7": {
-      "name": "Proficiencia em Armadura",
+      "name": "Proficiência em Armadura",
       "sourceHash": "f60c07e2a2cc799134638c3a90c0e80427929e4e",
-      "description": "<p>Voce se torna treinado em armadura leve. Se voce ja era treinado em armadura leve, voce ganha treinamento em armadura media. Se voce era treinado em ambas, voce se torna treinado em armadura pesada. Se voce tem pelo menos nivel 13, voce se torna perito neste tipo de armadura.</p>\n<hr />\n<p><strong>Especial</strong> Voce pode selecionar este talento mais de uma vez. Cada vez, voce se torna treinado no proximo tipo de armadura, conforme detalhado acima.</p>"
+      "description": "<p>Você se torna treinado em armadura leve. Se você ja era treinado em armadura leve, você ganha treinamento em armadura media. Se você era treinado em ambas, você se torna treinado em armadura pesada. Se você tem pelo menos nível 13, você se torna perito neste tipo de armadura.</p>\n<hr />\n<p><strong>Especial</strong> Você pode selecionar este talento mais de uma vez. Cada vez, você se torna treinado no próximo tipo de armadura, conforme detalhado acima.</p>"
     },
     "1zJCcju11Fj3CVhS": {
       "name": "Improviso Engenhoso",
@@ -94,12 +94,12 @@
     "29dHh7VIeyv33jha": {
       "name": "Aço Sustentador",
       "sourceHash": "b95ff1f38f3d818d07cd93ffcd45ac61e653bae7",
-      "description": "<p><strong>Gatilho</strong> Você Conjura uma Magia usando um espaço de magia.</p>\n<p><strong>Requisitos</strong> Você está na postura Cascata Arcana.</p>\n<hr />\n<p>Você puxa magia para sua arma, usando sua substância para transformar a magia em energia restauradora. Você recupera Pontos de Vida iguais ao dobro do nível da magia e faz um teste para terminar qualquer @UUID[Compendium.pf2e.conditionitems.Item.Persistent Damage]{Dano Persistente de Vazio} que você tem.</p>\n<p>Se a magia era da escola de Necromancia, qualquer dano persistente de vazio que você tenha termina automaticamente, e você pode mudar o tipo de dano de Cascata Arcana para vitalidade se desejar. (Dano de vitalidade normalmente danifica apenas mortos-vivos ou outras criaturas com @UUID[Compendium.pf2e.bestiary-ability-glossary-srd.Item.Void Healing]{Cura de Vazio}.)</p>"
+      "description": "<p><strong>Gatilho</strong> Você Conjura uma Magia usando um espaço de magia.</p>\n<p><strong>Requisitos</strong> Você está na postura Cascata Arcana.</p>\n<hr />\n<p>Você puxa magia para sua arma, usando sua substância para transformar a magia em energia restauradora. Você recupera Pontos de Vida iguais ao dobro do nível da magia e faz um teste para terminar qualquer @UUID[Compendium.pf2e.conditionitems.Item.Persistent Damage]{Dano Persistente de Vazio} que você tem.</p>\n<p>Se a magia era da escola de Necromância, qualquer dano persistente de vazio que você tenha termina automaticamente, e você pode mudar o tipo de dano de Cascata Arcana para vitalidade se desejar. (Dano de vitalidade normalmente danifica apenas mortos-vivos ou outras criaturas com @UUID[Compendium.pf2e.bestiary-ability-glossary-srd.Item.Void Healing]{Cura de Vazio}.)</p>"
     },
     "2BhmpXX82Lv0kJaB": {
-      "name": "Falador de Espiritos",
+      "name": "Falador de Espíritos",
       "sourceHash": "fb4f327675746920141c814b91ae1916cb2da990",
-      "description": "<p>Voce sabe que quando um animal morre, seu espirito fica brevemente antes de partir. Usando cantos baixos, linguagem corporal que mostra respeito, e movimentos especiais que demonstram ao espirito que voce eh um aliado, voce obtém informacoes de um espirito antes dele partir. Esta eh uma atividade de 1 minuto. Voce deve iniciar a atividade enquanto adjacente ao corpo de um animal ou besta que morreu nos ultimos 1 minuto.</p>\n<p>Como parte da atividade, faz uma pergunta simples ao espirito. Tenta um teste de Natureza em uma CD determinada pelo GM (normalmente, esta eh a CD apropriada para o nivel do animal ou besta quando estava vivo). Independentemente do resultado de seu teste, o espirito imediatamente parte e nao pode ser usado para Falador de Espiritos novamente. Se a criatura tinha a condicao @UUID[Compendium.pf2e.conditionitems.Item.Confused] ou @UUID[Compendium.pf2e.conditionitems.Item.Frightened] quando morreu, voce nao pode obter um resultado melhor do que uma falha critica.</p>\n<p>Apenas uma criatura pode usar Falador de Espiritos em um dado animal morto, pois o esforco consome toda a atencao do espirito.</p>\n<hr />\n<p><strong>Sucesso Critico</strong> O espirito responde voce com sinceridade. A resposta do espirito eh provavelmente ser terse ou críptica comparada com comunicacao normal com um animal, e pode pertencer apenas a coisas que a criatura experimentou diretamente ou considerou importante. O espirito nao se lembra de nada que aconteceu mais de 1 dia atras.</p>\n<p><strong>Sucesso</strong> Como sucesso critico, mas o espirito nao se lembra de nada que aconteceu mais de 1 hora atras.</p>\n<p><strong>Falha</strong> O espirito nao responde voce.</p>\n<p><strong>Falha Critica</strong> O espirito eh acometido de miseria ou perplexidade e lhe da uma resposta erronea.</p>"
+      "description": "<p>Você sabe que quando um animal morre, seu espirito fica brevemente antes de partir. Usando cantos baixos, linguagem corporal que mostra respeito, e movimentos especiais que demonstram ao espirito que você eh um aliado, você obtém informações de um espirito antes dele partir. Esta eh uma atividade de 1 minuto. Você deve iniciar a atividade enquanto adjacente ao corpo de um animal ou besta que morreu nos últimos 1 minuto.</p>\n<p>Como parte da atividade, faz uma pergunta simples ao espirito. Tenta um teste de Natureza em uma CD determinada pelo GM (normalmente, esta eh a CD apropriada para o nível do animal ou besta quando estava vivo). Independentemente do resultado de seu teste, o espirito imediatamente parte e não pode ser usado para Falador de Espíritos novamente. Se a criatura tinha a condição @UUID[Compendium.pf2e.conditionitems.Item.Confused] ou @UUID[Compendium.pf2e.conditionitems.Item.Frightened] quando morreu, você não pode obter um resultado melhor do que uma falha crítica.</p>\n<p>Apenas uma criatura pode usar Falador de Espíritos em um dado animal morto, pois o esforco consome toda a atenção do espirito.</p>\n<hr />\n<p><strong>Sucesso Crítico</strong> O espirito responde você com sinceridade. A resposta do espirito eh provavelmente ser terse ou críptica comparada com comunicação normal com um animal, e pode pertencer apenas a coisas que a criatura experimentou diretamente ou considerou importante. O espirito não se lembra de nada que aconteceu mais de 1 dia atras.</p>\n<p><strong>Sucesso</strong> Como sucesso crítico, mas o espirito não se lembra de nada que aconteceu mais de 1 hora atras.</p>\n<p><strong>Falha</strong> O espirito não responde você.</p>\n<p><strong>Falha Crítica</strong> O espirito eh acometido de miseria ou perplexidade e lhe da uma resposta erronea.</p>"
     },
     "2BjbDSv5UjSqx4X6": {
       "name": "Golpe de Magia Fragmentador",
@@ -144,7 +144,7 @@
     "3cFWIBataRJT3D3k": {
       "name": "Escavador de Tocaia",
       "sourceHash": "55f493098a8154f4aad3e3932e758ad262c87df0",
-      "description": "<p>Voce aprendeu a usar suas garras robustas para cavar a terra. Voce ganha uma Velocidade de escavacao de 15 pes.</p>"
+      "description": "<p>Você aprendeu a usar suas garras robustas para cavar a terra. Você ganha uma Velocidade de escavação de 15 pes.</p>"
     },
     "3geJE1vytLKFeZ78": {
       "name": "Magia Oculta",
@@ -154,7 +154,7 @@
     "3mMUvlcq3rZOhdfa": {
       "name": "Acumulador Nato",
       "sourceHash": "7be058ed1be8d3b11579c44f7123570cfdd424ca",
-      "description": "<p>Voce aprendeu como empacotar quantidades imensas em espacos pequenos. Voce pode encaixar um volume adicional de 50% da capacidade de volume listada em recipientes de armazenamento mundano ou veiculos. Por exemplo, voce pode encaixar 6 volumes em uma mochila ou 12 volumes em um bau. Isso nao altera o volume dos itens nem muda quanto voce pode armazenar em um espaco magico ou extradimensional, como uma <em>bolsa espaciosa</em>.</p>"
+      "description": "<p>Você aprendeu como empacotar quantidades imensas em espacos pequenos. Você pode encaixar um volume adicional de 50% da capacidade de volume listada em recipientes de armazenamento mundano ou veiculos. Por exemplo, você pode encaixar 6 volumes em uma mochila ou 12 volumes em um bau. Isso não altera o volume dos itens nem muda quanto você pode armazenar em um espaco mágico ou extradimensional, como uma <em>bolsa espaciosa</em>.</p>"
     },
     "3o7yzBV6jJbPu6xp": {
       "name": "Mestre do Aprendiz",
@@ -184,17 +184,17 @@
     "4HkbjBauPCEgmZuE": {
       "name": "Dominio Ortografico",
       "sourceHash": "ffa34fe98a2792227d9f83d33deb11baeedd1b6d",
-      "description": "<p>Voce entende os principios que subjazem todas as palavras escritas, permitindo que voce leia quase qualquer texto. Voce pode tentar [[/act decipher-writing skill=loremaster-lore]] usando Conhecimento de Mestre dos Conhecimentos em lugar da pericia necessaria.</p>"
+      "description": "<p>Você entende os principios que subjazem todas as palavras escritas, permitindo que você leia quase qualquer texto. Você pode tentar [[/act decipher-writing skill=loremaster-lore]] usando Conhecimento de Mestre dos Conhecimentos em lugar da pericia necessaria.</p>"
     },
     "4ITWx9lOm78peghZ": {
       "name": "Impressao Runica",
       "sourceHash": "d72c36d691b4bfe12b104795c61d42b9735a9daf",
-      "description": "<p>Voce pode replicar temporariamente os efeitos de uma runa de propriedade para sua arma ou ataques desarmados. Voce aprende a magia de foco @UUID[Compendium.pf2e.spells-srd.Item.Runic Impression].</p>\n<p>Aumente o numero de Pontos de Foco em sua reserva de foco por 1.</p>"
+      "description": "<p>Você pode replicar temporariamente os efeitos de uma runa de propriedade para sua arma ou ataques desarmados. Você aprende a magia de foco @UUID[Compendium.pf2e.spells-srd.Item.Runic Impression].</p>\n<p>Aumente o número de Pontos de Foco em sua reserva de foco por 1.</p>"
     },
     "4IrtH8X2wtRYs8lF": {
       "name": "Semear Boato",
       "sourceHash": "7b4f23dc09048aab20974cfd16cc68981d1e8231",
-      "description": "<p>Voce espalha boatos, que podem ser verdadeiros ou falsos, sobre um assunto especifico. Se o assunto de seu boato nao eh atualmente alvo de nenhum boato contraditorio, isto leva o tempo que normalmente levaria para voce Colher Informacoes (normalmente 2 horas), ao final do qual o GM faz um teste secreto de Enganacao contra uma CD que ele define para ver como bem voce espalha o boato. Se seu boato corresponde a qualquer boato atual sobre o assunto, leva menos tempo para se espalhar, e se esta tentando superar um boato particularmente popular e contraditorio, pode levar muito mais tempo ou ser impossivel. A CD aumenta ou diminui similarmente dependendo de como seu boato eh plausivel. Por exemplo, pode ser mais dificil semear um boato de que o prefeito amado e generoso eh o chefe de um culto de adoradores de demonios assassinos.</p><hr /><p><strong>Sucesso Critico</strong> Seu boato se espalha como fogo em palha. Qualquer um que obtenha sucesso em um teste para Colher Informacoes sobre o assunto especifico aprende seu boato em preferencia a outros boatos sobre o assunto. Seu boato persiste por 1 mes. Voce ganha um bonus de circunstancia de +2 em testes de Enganacao, Diplomacia e Intimidacao em uma situacao apropriada quando invoca seu boato.</p>\n<p><strong>Sucesso</strong> Voce espalha com sucesso o boato. Qualquer um que obtenha sucesso em um teste para Colher Informacoes sobre o assunto especifico adiciona seu boato a lista de boatos que poderia aprender sobre o assunto. Seu boato persiste por 1 semana. Voce ganha um bonus de circunstancia de +1 em testes de Enganacao, Diplomacia e Intimidacao em uma situacao apropriada quando invoca seu boato.</p>\n<p><strong>Falha</strong> Seu boato desaparece, nunca se tornando popular o suficiente para que outras pessoas o aprendam via Colher Informacoes.</p>\n<p><strong>Falha Critica</strong> Voce eh incapaz de espalhar um boato e sofre uma penalidade de circunstancia de -4 em testes de Enganacao para Semear Boatos sobre o mesmo assunto dentro da mesma regiao por 1 semana. Alem disso, um boato se espalha sobre alguem tentando espalhar boatos falsos sobre o assunto.</p>"
+      "description": "<p>Você espalha boatos, que podem ser verdadeiros ou falsos, sobre um assunto específico. Se o assunto de seu boato não eh atualmente alvo de nenhum boato contraditorio, isto leva o tempo que normalmente levaria para você Colher Informações (normalmente 2 horas), ao final do qual o GM faz um teste secreto de Enganação contra uma CD que ele define para ver como bem você espalha o boato. Se seu boato corresponde a qualquer boato atual sobre o assunto, leva menos tempo para se espalhar, e se esta tentando superar um boato particularmente popular e contraditorio, pode levar muito mais tempo ou ser impossível. A CD aumenta ou diminui similarmente dependendo de como seu boato eh plausivel. Por exemplo, pode ser mais difícil semear um boato de que o prefeito amado e generoso eh o chefe de um culto de adoradores de demonios assassinos.</p><hr /><p><strong>Sucesso Crítico</strong> Seu boato se espalha como fogo em palha. Qualquer um que obtenha sucesso em um teste para Colher Informações sobre o assunto específico aprende seu boato em preferência a outros boatos sobre o assunto. Seu boato persiste por 1 mes. Você ganha um bonus de circunstância de +2 em testes de Enganação, Diplomacia e Intimidação em uma situação apropriada quando invoca seu boato.</p>\n<p><strong>Sucesso</strong> Você espalha com sucesso o boato. Qualquer um que obtenha sucesso em um teste para Colher Informações sobre o assunto específico adiciona seu boato a lista de boatos que poderia aprender sobre o assunto. Seu boato persiste por 1 semana. Você ganha um bonus de circunstância de +1 em testes de Enganação, Diplomacia e Intimidação em uma situação apropriada quando invoca seu boato.</p>\n<p><strong>Falha</strong> Seu boato desaparece, nunca se tornando popular o suficiente para que outras pessoas o aprendam via Colher Informações.</p>\n<p><strong>Falha Crítica</strong> Você eh incapaz de espalhar um boato e sofre uma penalidade de circunstância de -4 em testes de Enganação para Semear Boatos sobre o mesmo assunto dentro da mesma região por 1 semana. Além disso, um boato se espalha sobre alguem tentando espalhar boatos falsos sobre o assunto.</p>"
     },
     "4SYQTGAuQ9vHz0q3": {
       "name": "Bochechas Incomuns",
@@ -224,7 +224,7 @@
     "53NXOA5XUr8809lU": {
       "name": "Aliado da Tocaia",
       "sourceHash": "4e1db5d5e90cac234afefc58ced38aa5795c6c81",
-      "description": "<p>Voce e adroit em fazer contato com outros ratkin. Quando voce chega a um novo assentamento, voce encontra automaticamente o enclave ratkin mais proximo passando 1 dia de tempo livre procurando, desde que um exista e seus membros nao estejam ativamente se escondendo de voce. Apos fazer contato, voce ganha um bonus de circunstancia +1 em Obter Informacoes e Obter Rendimento no assentamento.</p>"
+      "description": "<p>Você e adroit em fazer contato com outros ratkin. Quando você chega a um novo assentamento, você encontra automaticamente o enclave ratkin mais próximo passando 1 dia de tempo livre procurando, desde que um exista e seus membros não estejam ativamente se escondendo de você. Após fazer contato, você ganha um bonus de circunstância +1 em Obter Informações e Obter Rendimento no assentamento.</p>"
     },
     "58ey5HhLPSNzLkQ0": {
       "name": "Atuação Distrativa",
@@ -267,14 +267,14 @@
       "description": "<p>Você pode @UUID[Compendium.pf2e.actionspf2e.Item.Pick a Lock] usando 1 ação em vez de 2.</p>"
     },
     "6jb1R5GHMzTorfFR": {
-      "name": "Guarda Rapida (Ratkin)",
+      "name": "Guarda Rápida (Ratkin)",
       "sourceHash": "1980a4d1c08758ac313907610ceab1d6928e5574",
-      "description": "<p><strong>Frequencia</strong> uma vez por rodada</p><hr /><p>Voce Interage para armazenar um item que esta segurando em suas bolsas bucais (desde que caiba).</p>"
+      "description": "<p><strong>Frequência</strong> uma vez por rodada</p><hr /><p>Você Interage para armazenar um item que esta segurando em suas bolsas bucais (desde que caiba).</p>"
     },
     "6r7EC6ScZd5KmIYF": {
       "name": "Bastao Fundido",
       "sourceHash": "74fadf02dbff55be921dde4bc687ddbb679a6d08",
-      "description": "<p>Quando voce prepara um bastao, voce pode erque-lo junto a uma arma para fundir os dois itens. Voce pode mudar a forma do item fundido da arma para o bastao ou vice-versa como uma acao unica, que tem o traco concentracao. Quando o item esta em forma de bastao, voce pode Conjurar as Magias do bastao e se beneficia de qualquer outra capacidade que o bastao concede. O bastao e a arma compartilham suas runas fundamentais, usando qualquer que seja a runa de <em>potencia da arma</em> e qualquer que seja a runa de <em>golpe</em> de nivel mais alto. Eles nao compartilham nenhuma outra runa ou capacidades especificas.</p>\n<p>Voce pode Conjurar Magias do bastao como parte de um Golpe Magico mesmo quando o bastao esta em forma de arma. Caso contrario, voce nao pode conjurar as magias do bastao enquanto ele esta em forma de arma.</p>\n<p>A fusao dura ate suas proximas preparacoes diarias, embora voce possa gastar 10 minutos para separar os dois itens e fundir o bastao em uma arma diferente. A fusao funciona apenas para voce. Um portador diferente pode usar o bastao em sua forma atual mas nao pode transforma-lo, obter o beneficio das runas compartilhadas, ou usar suas magias para um Golpe Magico se estiver em forma de arma.</p>"
+      "description": "<p>Quando você prepara um bastao, você pode erque-lo junto a uma arma para fundir os dois itens. Você pode mudar a forma do item fundido da arma para o bastao ou vice-versa como uma ação única, que tem o traco concentração. Quando o item esta em forma de bastao, você pode Conjurar as Magias do bastao e se beneficia de qualquer outra capacidade que o bastao concede. O bastao e a arma compartilham suas runas fundamentais, usando qualquer que seja a runa de <em>potência da arma</em> e qualquer que seja a runa de <em>golpe</em> de nível mais alto. Eles não compartilham nenhuma outra runa ou capacidades específicas.</p>\n<p>Você pode Conjurar Magias do bastao como parte de um Golpe Mágico mesmo quando o bastao esta em forma de arma. Caso contrario, você não pode conjurar as magias do bastao enquanto ele esta em forma de arma.</p>\n<p>A fusao dura até suas proximas preparações diarias, embora você possa gastar 10 minutos para separar os dois itens e fundir o bastao em uma arma diferente. A fusao funciona apenas para você. Um portador diferente pode usar o bastao em sua forma atual mas não pode transforma-lo, obter o beneficio das runas compartilhadas, ou usar suas magias para um Golpe Mágico se estiver em forma de arma.</p>"
     },
     "72VGaIJDzSPhx6P7": {
       "name": "Ajuste de Temperatura",
@@ -304,7 +304,7 @@
     "7amFRAgZhqd1hHpO": {
       "name": "Cabeceado por Auroque",
       "sourceHash": "4a8c3f151664f51983ecd893f01df0debb941fb7",
-      "description": "<p>Suas palavras e linguagem corporal podem sutilmente perturbar orcs, dando-lhe uma vantagem ao convence-los a ver as coisas do seu jeito. Muitos com este talento o usam para viajar livremente entre fortalezas, advertindo todos menos os orcs mais duros a atacar presas mais fracas. Voce ganha um bonus de circunstancia de +1 em testes de pericia para @UUID[Compendium.pf2e.actionspf2e.Item.Make an Impression] ou @UUID[Compendium.pf2e.actionspf2e.Item.Coerce] criaturas com o traco orc. Orcs inimigos que podem ve-lo no inicio do combate sofrem uma penalidade de -1 em rolagens de iniciativa.</p>"
+      "description": "<p>Suas palavras e linguagem corporal podem sutilmente perturbar orcs, dando-lhe uma vantagem ao convence-los a ver as coisas do seu jeito. Muitos com este talento o usam para viajar livremente entre fortalezas, advertindo todos menos os orcs mais duros a atacar presas mais fracas. Você ganha um bonus de circunstância de +1 em testes de pericia para @UUID[Compendium.pf2e.actionspf2e.Item.Make an Impression] ou @UUID[Compendium.pf2e.actionspf2e.Item.Coerce] criaturas com o traco orc. Orcs inimigos que podem ve-lo no inicio do combate sofrem uma penalidade de -1 em rolagens de iniciativa.</p>"
     },
     "7jbQDAYXJQMeFdiw": {
       "name": "Conexões Fabricadas",
@@ -329,7 +329,7 @@
     "8S34DnTWTg3LrI2p": {
       "name": "Carteador",
       "sourceHash": "f1d56f638403558fcff842ecab3632b84d87f23a",
-      "description": "<p>Você pode @UUID[Compendium.pf2e.actionspf2e.Item.Steal] ou @UUID[Compendium.pf2e.actionspf2e.Item.Palm an Object] um objeto que é de guarda proxima, como em um bolso, sem tomar a penalidade –5. Você não pode roubar objetos que seriam extremamente notaveis ou consumidores de tempo para remover (como sapatos usados ou armadura ou objetos ativamente empunhados). Se você é mestre em Ladinagem, você pode tentar Roubar de uma criatura em combate ou de outra forma em guarda. Ao fazer isso, Roubar requer 2 acoes em vez de 1, e você toma uma penalidade –5.</p>"
+      "description": "<p>Você pode @UUID[Compendium.pf2e.actionspf2e.Item.Steal] ou @UUID[Compendium.pf2e.actionspf2e.Item.Palm an Object] um objeto que é de guarda próxima, como em um bolso, sem tomar a penalidade –5. Você não pode roubar objetos que seriam extremamente notaveis ou consumidores de tempo para remover (como sapatos usados ou armadura ou objetos ativamente empunhados). Se você é mestre em Ladinagem, você pode tentar Roubar de uma criatura em combate ou de outra forma em guarda. Ao fazer isso, Roubar requer 2 ações em vez de 1, e você toma uma penalidade –5.</p>"
     },
     "8d8s1sq5MIRVhF97": {
       "name": "Gerenciador de Contratados",
@@ -364,7 +364,7 @@
     "98Lr3ecoL96dSXYl": {
       "name": "Rastreador de Pestes",
       "sourceHash": "d51e39ef42195ea263b48c9f1dd6488faf51075d",
-      "description": "<p>Voce pode farejar o odor pungente da doenca. Quando voce detecta uma criatura pelo olfato, voce tambem pode detectar se essa criatura esta sofrendo de uma doenca em estado nao-portador. Se a doenca for particularmente sutil, voce pode precisar tentar um teste de Percepcao contra a CD da doenca (a criterio do Mestre).</p>"
+      "description": "<p>Você pode farejar o odor pungente da doença. Quando você detecta uma criatura pelo olfato, você também pode detectar se essa criatura esta sofrendo de uma doença em estado não-portador. Se a doença for particularmente sutil, você pode precisar tentar um teste de Percepção contra a CD da doença (a criterio do Mestre).</p>"
     },
     "9D2Pv6IKRKZSDZfP": {
       "name": "Pouso Amortecido",
@@ -372,9 +372,9 @@
       "description": "<p><strong>Gatilho</strong> Você cai de uma altura de 15 pés ou superior.</p>\n<p><strong>Requisitos</strong> Sua montaria pode alcançar seu local de pouso com um único Deslocar.</p><hr /><p>Conforme você cai, sua montaria o resgata correndo. Sua montaria Desloca até sua Velocidade, posicionando-se abaixo de você. Em vez de cair sobre sua montaria, você @UUID[Compendium.pf2e.actionspf2e.Item.Mount]{Monta} em sua montaria. Trate a queda que desencadeou como se fosse 15 pés mais curta, e você não fica @UUID[Compendium.pf2e.conditionitems.Item.Prone]{Caído} (porém você e sua montaria ambos sofrem dano da queda com base no que você normalmente sofreria pela distância restante).</p>"
     },
     "9PVfIRg66W7ZFLyS": {
-      "name": "Coercao de Grupo",
+      "name": "Coerção de Grupo",
       "sourceHash": "87908892e870552fb8dd38b0e594014aeb0ec877",
-      "description": "<p>Você pode coagir pessoas efetivamente, mesmo quando você não as tem isoladas. Quando você @UUID[Compendium.pf2e.actionspf2e.Item.Coerce], você pode comparar seu resultado de teste de Intimidacao para os CDs de Vontade de até cinco alvo em vez de um.</p>\n<p>É possível obter um grau de sucesso diferente para cada alvo. O número de alvos que você pode Coagir em uma única ação aumenta para 10 se você é perito, 25 se você é mestre, e 50 se você é lendário.</p>"
+      "description": "<p>Você pode coagir pessoas efetivamente, mesmo quando você não as tem isoladas. Quando você @UUID[Compendium.pf2e.actionspf2e.Item.Coerce], você pode comparar seu resultado de teste de Intimidação para os CDs de Vontade de até cinco alvo em vez de um.</p>\n<p>É possível obter um grau de sucesso diferente para cada alvo. O número de alvos que você pode Coagir em uma única ação aumenta para 10 se você é perito, 25 se você é mestre, e 50 se você é lendário.</p>"
     },
     "9UKWPM8kyBYXnqOS": {
       "name": "Alquimia Avançada",
@@ -392,9 +392,9 @@
       "description": "<p>Você tem um sistema que permite procurar em alta velocidade, encontrando detalhes e segredos duas vezes mais rápido do que os outros conseguem. Ao Procurar, você leva metade do tempo normal para @UUID[Compendium.pf2e.actionspf2e.Item.Search] uma determinada área. Isso significa que enquanto explora, você dobra a Velocidade que pode se mover enquanto garante que tenha Procurado em uma área antes de entrar nela (até metade de sua Velocidade). Se você é lendário em Percepção, você Procura áreas quatro vezes mais rápido.</p>"
     },
     "9wX3WV0MpJfoeABQ": {
-      "name": "Contramedicao em Cascata",
+      "name": "Contramedição em Cascata",
       "sourceHash": "09333cc12ea37e96bac433a67740effcbffcc44a",
-      "description": "<p>Quando em Cascata Arcana, voce pode se tornar resistente a magia. Voce aprende o truque de magia de foco @UUID[Compendium.pf2e.spells-srd.Item.Cascade Countermeasure].</p>\n<p>Aumente o numero de Pontos de Foco em sua reserva de foco por 1.</p>"
+      "description": "<p>Quando em Cascata Arcana, você pode se tornar resistente a magia. Você aprende o truque de magia de foco @UUID[Compendium.pf2e.spells-srd.Item.Cascade Countermeasure].</p>\n<p>Aumente o número de Pontos de Foco em sua reserva de foco por 1.</p>"
     },
     "A4HXLXvr9cqXZud0": {
       "name": "Ofício Comunitário",
@@ -404,7 +404,7 @@
     "A7qaXmDxt2TkVZ1o": {
       "name": "Acuidade Tatica",
       "sourceHash": "e500707319531efc62c6a811574f4fd5d5c2a69b",
-      "description": "<p>Mesmo que nao conheca muito sobre suas criaturas constituintes, voce sempre pode reconhecer as capacidades de uma tropa atraves de features como a formacao em que se movem ou ate mesmo dicas mais sutis que outros poderiam perder. Voce pode sempre usar Conhecimento de Estrategia Militar quando @UUID[Compendium.pf2e.actionspf2e.Item.Recall Knowledge] para identificar uma tropa. Isto funciona como usar um Conhecimento aplicavel para identificar uma criatura. Se for lendario em Conhecimento de Estrategia Militar, reduza qualquer ajuste a CD do teste de Rememorar Conhecimento causado pela raridade da tropa por 5.</p>\n<p>Se lidera uma tropa, quando usar com sucesso Conhecimento de Estrategia Militar para identificar uma tropa, essa tropa sofre uma penalidade de circunstancia de -1 em testes de resistencia contra as habilidades ofensivas de sua tropa ate o final de seu proximo turno.</p>"
+      "description": "<p>Mesmo que não conheca muito sobre suas criaturas constituintes, você sempre pode reconhecer as capacidades de uma tropa através de features como a formação em que se movem ou até mesmo dicas mais sutis que outros poderiam perder. Você pode sempre usar Conhecimento de Estrategia Militar quando @UUID[Compendium.pf2e.actionspf2e.Item.Recall Knowledge] para identificar uma tropa. Isto funciona como usar um Conhecimento aplicavel para identificar uma criatura. Se for lendario em Conhecimento de Estrategia Militar, reduza qualquer ajuste a CD do teste de Rememorar Conhecimento causado pela raridade da tropa por 5.</p>\n<p>Se lidera uma tropa, quando usar com sucesso Conhecimento de Estrategia Militar para identificar uma tropa, essa tropa sofre uma penalidade de circunstância de -1 em testes de resistência contra as habilidades ofensivas de sua tropa até o final de seu próximo turno.</p>"
     },
     "AHfU2UEaaNT0m8QJ": {
       "name": "Cruzamento Cognitivo de Kreighton",
@@ -514,7 +514,7 @@
     "Dof8zH7NqEYJfoyZ": {
       "name": "Pesquisador Medico",
       "sourceHash": "bf6250d4ba0f315fa49743622584daf10a6a0d89",
-      "description": "<p>Kassi te ensinou não apenas como aplicar medicinas com suas pericias medicas mas como criá-las também. Quando você @UUID[Compendium.pf2e.actionspf2e.Item.Craft] kits de curador, vacinas, supressores de vicio, antidotos, anti-pragas, elixires de vida, ou outros itens medicos ou curativos nao-magicos, você pode usar Medicina em vez de Oficio.</p>"
+      "description": "<p>Kassi te ensinou não apenas como aplicar medicinas com suas pericias medicas mas como criá-las também. Quando você @UUID[Compendium.pf2e.actionspf2e.Item.Craft] kits de curador, vacinas, supressores de vicio, antidotos, anti-pragas, elixires de vida, ou outros itens medicos ou curativos não-mágicos, você pode usar Medicina em vez de Oficio.</p>"
     },
     "DuWOTJQPg2vHrA1y": {
       "name": "Fixação Rápida",
@@ -524,7 +524,7 @@
     "EYbnXG5urqY29YkG": {
       "name": "Acuidade Precavida",
       "sourceHash": "aba93dc7ea9ff389c98be5674b0e775f1dab8d57",
-      "description": "<p>Sua evasao ou observacao esta alem do alcance da maioria em sua profissao. Escolha testes de resistencia de Fortitude, testes de resistencia de Reflexos, testes de resistencia de Vontade, ou Percepcao. Voce se torna perito em sua escolha. No nivel 17, voce se torna mestre em sua escolha.</p>"
+      "description": "<p>Sua evasao ou observação esta além do alcance da maioria em sua profissao. Escolha testes de resistência de Fortitude, testes de resistência de Reflexos, testes de resistência de Vontade, ou Percepção. Você se torna perito em sua escolha. No nível 17, você se torna mestre em sua escolha.</p>"
     },
     "EZFEUyyaXNdF28YU": {
       "name": "Ofício Cooperativo",
@@ -564,7 +564,7 @@
     "FMSlOvZZ6Y6WIuti": {
       "name": "Linguagem Ratkin",
       "sourceHash": "e7aaf58e85db6d9af810b03828c278a541455eca",
-      "description": "<p>Voce pode fazer perguntas, receber respostas e usar a pericia Diplomacia com roedores, incluindo castores, camundongos, porcos-espinhos, ratos e esquilos, mas nao com outros mamiferos, como caes ou morcegos. O Mestre determina quais animais contam como roedores.</p>"
+      "description": "<p>Você pode fazer perguntas, receber respostas e usar a pericia Diplomacia com roedores, incluindo castores, camundongos, porcos-espinhos, ratos e esquilos, mas não com outros mamiferos, como caes ou morcegos. O Mestre determina quais animais contam como roedores.</p>"
     },
     "GhZ0V2q3lWFaeWOA": {
       "name": "Cura Ímpia",
@@ -589,7 +589,7 @@
     "H4IcqKqH2Yu6rQei": {
       "name": "Tatuador",
       "sourceHash": "f23554dc7bd9cb9e13cedf9510b5940bbda0e235",
-      "description": "<p>Voce pode criar tatuagens, incluindo tatuagens magicas. Quando seleciona este talento, ganha as formulas para quatro tatuagens magicas comuns de nivel 2 ou inferior.</p>\n<p>Voce ganha um bonus de circunstancia de +1 em testes de Oficio para Criar tatuagens. Se for mestre em Oficio, este bonus aumenta para +2 e voce ganha as formulas para quatro tatuagens magicas comuns de nivel 7 ou inferior.</p>"
+      "description": "<p>Você pode criar tatuagens, incluindo tatuagens mágicas. Quando seleciona este talento, ganha as formulas para quatro tatuagens mágicas comuns de nível 2 ou inferior.</p>\n<p>Você ganha um bonus de circunstância de +1 em testes de Oficio para Criar tatuagens. Se for mestre em Oficio, este bonus aumenta para +2 e você ganha as formulas para quatro tatuagens mágicas comuns de nível 7 ou inferior.</p>"
     },
     "HAwogTuRyvSuEpzE": {
       "name": "Desvendar Mistérios",
@@ -609,7 +609,7 @@
     "HhYY8WAw2Wnym9ik": {
       "name": "Veu de Cinzas",
       "sourceHash": "013536926d3774ef235367dfa17c8ffe8a89686b",
-      "description": "<p>Ao passar cinzas ou terra contaminada sobre sua pele e armadura, voce se envolve dos mortos-vivos. Voce se torna @UUID[Compendium.pf2e.conditionitems.Item.Concealed] para mortos-vivos usando visao ou sensibilidade a vida, permitindo que voce Esconda e @UUID[Compendium.pf2e.actionspf2e.Item.Sneak] sem outras fontes de cobertura ou ocultacao. Este efeito dura apenas enquanto voce continuar tomando apenas acoes para Esconder, Esgueirar, ou outras acoes sub-rosa. O MJ determina quais acoes terminam o efeito, mas atacar, conjurar magias, ativar itens, e similares sempre o fazem.</p>"
+      "description": "<p>Ao passar cinzas ou terra contaminada sobre sua pele e armadura, você se envolve dos mortos-vivos. Você se torna @UUID[Compendium.pf2e.conditionitems.Item.Concealed] para mortos-vivos usando visão ou sensibilidade a vida, permitindo que você Esconda e @UUID[Compendium.pf2e.actionspf2e.Item.Sneak] sem outras fontes de cobertura ou ocultação. Este efeito dura apenas enquanto você continuar tomando apenas ações para Esconder, Esgueirar, ou outras ações sub-rosa. O MJ determina quais ações terminam o efeito, mas atacar, conjurar magias, ativar itens, e similares sempre o fazem.</p>"
     },
     "Hk76KkcWw33Js192": {
       "name": "Acuidade Forense",
@@ -617,9 +617,9 @@
       "description": "<p>Você entende os princípios da medicina forense, tornando você melhor em examinar um corpo para determinar a causa da morte ou lesão.</p>\n<p>Você pode executar um exame forense em um corpo, conforme descrito sob @UUID[Compendium.pf2e.actionspf2e.Item.Recall Knowledge]{Rememorar Conhecimento} na perícia de Medicina, na metade do tempo normal que levaria (para um mínimo de 5 minutos).</p>\n<p>Se você obtém sucesso em seu teste, você pode tentar um teste imediato para Rememorar Conhecimento para seguir algo que você encontrou, com um bônus de circunstância +2.</p>\n<p>Este teste é usualmente relacionado à causa de lesão ou morte, como um teste de Ofício para identificar um veneno ou arma que foi usada ou um teste de Medicina adicional para identificar uma doença específica. Se você preferir, você pode em vez disso tentar Rememorar Conhecimento sobre o tipo de criatura cujo corpo você estava examinando, usando a perícia apropriada e ganhando o mesmo bônus de circunstância.</p>\n<p>O bônus de circunstância aumenta para +3 se você tiver proficiência mestre em Medicina e +4 se você tiver proficiência lendária.</p>"
     },
     "HlpDI1e2gasDjFrt": {
-      "name": "Santificar Agua",
+      "name": "Santificar Água",
       "sourceHash": "ae85bf620ad7dae64b66c2f039fb08dee4799acc",
-      "description": "<p>Voce impregna agua com a bencao de sua divindade. Escolha um recipiente de agua com volume leve possuido por voce ou um aliado dentro de seu alcance natural. Ate o final de seu proximo turno, ele se torna agua bencao ou agua profana. Voce pode escolher agua bencao se sua divindade permite santificacao bencao, agua profana se sua divindade permite santificacao profana, ou ambas se sua divindade permite ambas as santificacoes. Este eh um efeito temporario e nao confere valor monetario ou permite que a agua seja usada para custos de rituais ou similares. Se voce for mestre em Religiao, pode santificar dois recipientes quando toma esta acao, e se for lendario, pode santificar tres.</p>"
+      "description": "<p>Você impregna água com a bênção de sua divindade. Escolha um recipiente de água com volume leve possuido por você ou um aliado dentro de seu alcance natural. Até o final de seu próximo turno, ele se torna água bênção ou água profana. Você pode escolher água bênção se sua divindade permite santificação bênção, água profana se sua divindade permite santificação profana, ou ambas se sua divindade permite ambas as santificações. Este eh um efeito temporario e não confere valor monetario ou permite que a água seja usada para custos de rituais ou similares. Se você for mestre em Religião, pode santificar dois recipientes quando toma esta ação, e se for lendario, pode santificar três.</p>"
     },
     "IENC0xZHp2FyAVhU": {
       "name": "Técnico de Enxertos",
@@ -634,7 +634,7 @@
     "IjVETRVq9eN8td3j": {
       "name": "Espeto de Canelas",
       "sourceHash": "2b21938df9fb5822190fec81ded397d1a73c4a67",
-      "description": "<p>Enquanto voce e pequeno ou menor, voce pode encerrar seu movimento no mesmo quadrado que um aliado de qualquer tamanho. Apenas duas criaturas no total podem compartilhar o mesmo espaco quando usam essa habilidade ou uma similar.</p>"
+      "description": "<p>Enquanto você e pequeno ou menor, você pode encerrar seu movimento no mesmo quadrado que um aliado de qualquer tamanho. Apenas duas criaturas no total podem compartilhar o mesmo espaco quando usam essa habilidade ou uma similar.</p>"
     },
     "InsAJv7piTNQKyc5": {
       "name": "Palavras de Encorajamento",
@@ -644,7 +644,7 @@
     "It8D3sTbx9k57zII": {
       "name": "O que Esta ai na sua Manga",
       "sourceHash": "87655139209f25001ac645029bfa659720fe8456",
-      "description": "<p>Se fosse negociante ou jogador, aprendeu a avistar trapaceiros. Quando outra criatura tenta @UUID[Compendium.pf2e.actionspf2e.Item.Conceal an Object] de voce, use sua CD de Conhecimento de Jogo se for superior a sua CD de Percepcao para determinar se obtem sucesso. Quando procura uma criatura por um objeto @UUID[Compendium.pf2e.conditionitems.Item.Concealed], pode usar Conhecimento de Jogo no lugar de Percepcao.</p>"
+      "description": "<p>Se fosse negociante ou jogador, aprendeu a avistar trapaceiros. Quando outra criatura tenta @UUID[Compendium.pf2e.actionspf2e.Item.Conceal an Object] de você, use sua CD de Conhecimento de Jogo se for superior a sua CD de Percepção para determinar se obtem sucesso. Quando procura uma criatura por um objeto @UUID[Compendium.pf2e.conditionitems.Item.Concealed], pode usar Conhecimento de Jogo no lugar de Percepção.</p>"
     },
     "Iud0U1lwir6eWam4": {
       "name": "Nado Rápido",
@@ -659,7 +659,7 @@
     "JBcRCbPY8TQYUTGh": {
       "name": "Expansao de Truques",
       "sourceHash": "05649d49a03e454dd01f7fb21b90a388654b90ae",
-      "description": "<p><strong>Bardo, Oraculo, Feiticeiro</strong> O estudo amplia sua gama de magias simples.</p>\n<p><strong>Clerigo</strong> Voce estuda uma gama mais ampla de magias simples.</p>\n<p><strong>Magus, Mago</strong> O estudo dedicado permite que voce prepare uma gama mais ampla de magias simples para toda situacao.</p>\n<p><strong>Psiquico</strong> Voce expande o que sua mente pode realizar.</p>\n<p><strong>Bruxo</strong> Seu padroeiro reconhece sua necessidade de flexibilidade e versatilidade, e lhe concede o poder de preparar uma gama mais ampla de magias simples.</p>\n<hr />\n<p><strong>Preparada</strong> Voce pode preparar dois truques adicionais cada dia.</p>\n<p><strong>Espontanea</strong> Adicione dois truques adicionais de sua lista de magia ao seu repertorio.</p>"
+      "description": "<p><strong>Bardo, Oraculo, Feiticeiro</strong> O estudo amplia sua gama de magias simples.</p>\n<p><strong>Clerigo</strong> Você estuda uma gama mais ampla de magias simples.</p>\n<p><strong>Magus, Mago</strong> O estudo dedicado permite que você prepare uma gama mais ampla de magias simples para toda situação.</p>\n<p><strong>Psiquico</strong> Você expande o que sua mente pode realizar.</p>\n<p><strong>Bruxo</strong> Seu padroeiro reconhece sua necessidade de flexibilidade e versatilidade, e lhe concede o poder de preparar uma gama mais ampla de magias simples.</p>\n<hr />\n<p><strong>Preparada</strong> Você pode preparar dois truques adicionais cada dia.</p>\n<p><strong>Espontanea</strong> Adicione dois truques adicionais de sua lista de magia ao seu repertorio.</p>"
     },
     "JFrqHMbZu3jpbDse": {
       "name": "Séquito",
@@ -674,7 +674,7 @@
     "JWIJm068sa2SApUc": {
       "name": "Navegante da Tocaia",
       "sourceHash": "2a6c33edef3b8d64fd24d93b00c1aee8bac23e64",
-      "description": "<p>Voce ganha o grau de proficiencia treinado em Sobrevivencia. Se voce se tornaria automaticamente treinado em Sobrevivencia (de seu antecedente ou classe, por exemplo), voce se torna treinado em uma pericia diferente de sua escolha. Quando voce @UUID[Compendium.pf2e.actionspf2e.Item.Sense Direction] ou tenta uma rolagem contra uma magia @UUID[Compendium.pf2e.spells-srd.Item.Quandary], voce obtém um resultado um grau de sucesso melhor que o obteve. Voce nao sofre penalidade em @UUID[Compendium.pf2e.actionspf2e.Item.Sense Direction] quando nao tem uma bussola.</p>"
+      "description": "<p>Você ganha o grau de proficiência treinado em Sobrevivência. Se você se tornaria automaticamente treinado em Sobrevivência (de seu antecedente ou classe, por exemplo), você se torna treinado em uma pericia diferente de sua escolha. Quando você @UUID[Compendium.pf2e.actionspf2e.Item.Sense Direction] ou tenta uma rolagem contra uma magia @UUID[Compendium.pf2e.spells-srd.Item.Quandary], você obtém um resultado um grau de sucesso melhor que o obteve. Você não sofre penalidade em @UUID[Compendium.pf2e.actionspf2e.Item.Sense Direction] quando não tem uma bussola.</p>"
     },
     "Jqh56TdT8gLdoaPF": {
       "name": "Escrita Automática",
@@ -684,7 +684,7 @@
     "JsYougBg1DGW3O9u": {
       "name": "Rato de Laboratorio",
       "sourceHash": "de012a8a7ae69329793fa75001376d25a099b012",
-      "description": "<p>Voce passou mais que sua parte de tempo em um laboratorio de alquimia. Voce foi exposto a uma ampla variedade de venenos alquimicos e substancias prejudiciais, deixando voce com uma tolerancia aumentada a seus efeitos. Voce tem um bonus de circunstancia +1 em testes de resistencia contra venenos e doencas. Se voce obtiver um sucesso em seu teste de resistencia contra um veneno ou doenca, voce obtém um sucesso critico em vez disso.</p>"
+      "description": "<p>Você passou mais que sua parte de tempo em um laboratorio de alquimia. Você foi exposto a uma ampla variedade de venenos alquimicos e substâncias prejudiciais, deixando você com uma tolerância aumentada a seus efeitos. Você tem um bonus de circunstância +1 em testes de resistência contra venenos e doenças. Se você obtiver um sucesso em seu teste de resistência contra um veneno ou doença, você obtém um sucesso crítico em vez disso.</p>"
     },
     "K44QezHgE4eITCp5": {
       "name": "Bon Mot",
@@ -694,7 +694,7 @@
     "KBYtRiA3082J5m01": {
       "name": "Glenar Conteudos",
       "sourceHash": "43620d73f7f96e46a0d7e16009d3358abcea3ee4",
-      "description": "<p>Você é apto a rapidamente varrer papéis soltos e cuidadosamente discernir o conteúdo de cartas seladas sem danificar o lacre. Você pode tentar testes de Sociedade para Decifrar Escrita em uma mensagem que é apenas parcialmente vislumbrada, invertida ou revertida de sua perspectiva, e ganha um bonus de circunstancia +1 para a tentativa ao fazer isso. Você também pode usar este talento para decifrar cartas seladas, adicionando o traco de manipulacao a sua tentativa de Decifrar Escrita. Isso não impede testemunhas de notar seus esforços; você talvez precise de tentar testes de Enganacao ou Furtividade para evitar ser notado. Em qualquer uso deste talento, o destinatário é feito ciente de seus esforços em uma falha critica (por exemplo, você pode ser surpreendido bisbilhotando ou você pode perturbar os papéis de forma que seu dono nota).</p>"
+      "description": "<p>Você é apto a rapidamente varrer papéis soltos e cuidadosamente discernir o conteúdo de cartas seladas sem danificar o lacre. Você pode tentar testes de Sociedade para Decifrar Escrita em uma mensagem que é apenas parcialmente vislumbrada, invertida ou revertida de sua perspectiva, e ganha um bonus de circunstância +1 para a tentativa ao fazer isso. Você também pode usar este talento para decifrar cartas seladas, adicionando o traco de manipulação a sua tentativa de Decifrar Escrita. Isso não impede testemunhas de notar seus esforços; você talvez precise de tentar testes de Enganação ou Furtividade para evitar ser notado. Em qualquer uso deste talento, o destinatário é feito ciente de seus esforços em uma falha crítica (por exemplo, você pode ser surpreendido bisbilhotando ou você pode perturbar os papéis de forma que seu dono nota).</p>"
     },
     "KR729WLus6ZUbIcg": {
       "name": "Prever o Tempo",
@@ -709,7 +709,7 @@
     "KmPKxxeWVBVTsVUS": {
       "name": "Contra-Ataque de Correntezas",
       "sourceHash": "2666ad63ecef7860283e0ce622e5be9d05251d4a",
-      "description": "<p><strong>Gatilho</strong> Voce fica @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] ou @UUID[Compendium.pf2e.conditionitems.Item.Restrained] por uma criatura.</p><hr /><p>Voce contra-ataca a criatura com o poder da agua elemental, um tentaculo dela envolvendo seu membro ou arma. Voce tenta um teste de Atletismo para @UUID[Compendium.pf2e.actionspf2e.Item.Grapple] a criatura que disparou o gatilho, mesmo que ela esteja fora de seu alcance ou voce nao tenha uma mao livre. Se voce sucede, voce tambem remove a condicao disparadora, e o tentaculo de agua puxa a criatura adjacente a voce antes de se dissipar.</p>"
+      "description": "<p><strong>Gatilho</strong> Você fica @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] ou @UUID[Compendium.pf2e.conditionitems.Item.Restrained] por uma criatura.</p><hr /><p>Você contra-ataca a criatura com o poder da água elemental, um tentaculo dela envolvendo seu membro ou arma. Você tenta um teste de Atletismo para @UUID[Compendium.pf2e.actionspf2e.Item.Grapple] a criatura que disparou o gatilho, mesmo que ela esteja fora de seu alcance ou você não tenha uma mao livre. Se você sucede, você também remove a condição disparadora, e o tentaculo de água puxa a criatura adjacente a você antes de se dissipar.</p>"
     },
     "L4wwyiHN6fupOFui": {
       "name": "Salto Poderoso",
@@ -719,7 +719,7 @@
     "LAIolKpbxc7QCd9k": {
       "name": "Truque Sujo",
       "sourceHash": "aec87e1d6291d72aa98f14043953fe78a04059e2",
-      "description": "<p><strong>Requisitos</strong> Você tem uma mão livre e está ao alcance corpo a corpo de um oponente.</p><hr /><p>Você prende os cadarços de bota de um inimigo, puxa seu chapéu sobre seus olhos, solta seu cinturão ou de outra forma confunde sua mobilidade através de uma tática desonesta. Tente um teste de @Check[thievery|defense:reflex] contra a CD de Reflexos do alvo.</p><hr /><p><strong>Sucesso Crítico</strong> O alvo é @UUID[Compendium.pf2e.conditionitems.Item.Clumsy]{Desajeitado 1} até que ele use uma ação de Interagir para encerrar o impedimento</p>\n<p><strong>Sucesso</strong> Como sucesso crítico, mas a condicao termina automaticamente após 1 rodada.</p>\n<p><strong>Falha Crítica</strong> Você cai @UUID[Compendium.pf2e.conditionitems.Item.Prone]{Caído} quando sua tentativa se volta contra você.</p>"
+      "description": "<p><strong>Requisitos</strong> Você tem uma mão livre e está ao alcance corpo a corpo de um oponente.</p><hr /><p>Você prende os cadarços de bota de um inimigo, puxa seu chapéu sobre seus olhos, solta seu cinturão ou de outra forma confunde sua mobilidade através de uma tática desonesta. Tente um teste de @Check[thievery|defense:reflex] contra a CD de Reflexos do alvo.</p><hr /><p><strong>Sucesso Crítico</strong> O alvo é @UUID[Compendium.pf2e.conditionitems.Item.Clumsy]{Desajeitado 1} até que ele use uma ação de Interagir para encerrar o impedimento</p>\n<p><strong>Sucesso</strong> Como sucesso crítico, mas a condição termina automaticamente após 1 rodada.</p>\n<p><strong>Falha Crítica</strong> Você cai @UUID[Compendium.pf2e.conditionitems.Item.Prone]{Caído} quando sua tentativa se volta contra você.</p>"
     },
     "LD8Gxwc5qbiIOhEq": {
       "name": "Reconhecer Magia",
@@ -779,7 +779,7 @@
     "MmNT1k1Zu26jGSXc": {
       "name": "Conhecimento Ratkin",
       "sourceHash": "4a6434d1b83a2ad1b713805e1e775a7307d10acf",
-      "description": "<p>Anos de experiencia entre comunidades ratkin o tornaram agil e voce aprendeu a correr e se esconder quando inimigos o ameacam. Voce ganha o grau de proficiencia treinado em Acrobacia e Furtividade. Se voce se tornaria automaticamente treinado em uma dessas pericias (de seu antecedente ou classe, por exemplo), voce se torna treinado em uma pericia de sua escolha.</p>\n<p>Voce tambem ganha o talento geral @UUID[Compendium.pf2e.feats-srd.Item.Additional Lore] para Conhecimento Ratkin.</p>"
+      "description": "<p>Anos de experiência entre comunidades ratkin o tornaram agil e você aprendeu a correr e se esconder quando inimigos o ameacam. Você ganha o grau de proficiência treinado em Acrobacia e Furtividade. Se você se tornaria automaticamente treinado em uma dessas pericias (de seu antecedente ou classe, por exemplo), você se torna treinado em uma pericia de sua escolha.</p>\n<p>Você também ganha o talento geral @UUID[Compendium.pf2e.feats-srd.Item.Additional Lore] para Conhecimento Ratkin.</p>"
     },
     "N2Xkql4HHl89yOzU": {
       "name": "Planejador Perspicaz",
@@ -789,12 +789,12 @@
     "N6YWCOq6zL8w5gcR": {
       "name": "Medicina Natural",
       "sourceHash": "ea0d44f01b94b10a18cdbfd24e104233285f7a6f",
-      "description": "<p>Você pode aplicar curas naturais para curar seus aliados. Você pode usar Natureza em vez de Medicina para @UUID[Compendium.pf2e.actionspf2e.Item.Treat Wounds], incluindo maior proficiencia de Natureza deixando você tentar testes mais dificeis. Isso não substitui Medicina para usos da pericia alem de Tratar Feridas ou para pre-requisitos de talento.</p>\n<p>Se você está no deserto, você talvez tenha acesso mais facil a ingredientes frescos, permitindo você ganhar um bonus de circunstancia +2 para seu teste de Tratar Feridas usando Natureza, sujeito ao entendimento do MJ.</p>"
+      "description": "<p>Você pode aplicar curas naturais para curar seus aliados. Você pode usar Natureza em vez de Medicina para @UUID[Compendium.pf2e.actionspf2e.Item.Treat Wounds], incluindo maior proficiência de Natureza deixando você tentar testes mais dificeis. Isso não substitui Medicina para usos da pericia além de Tratar Feridas ou para pre-requisitos de talento.</p>\n<p>Se você está no deserto, você talvez tenha acesso mais fácil a ingredientes frescos, permitindo você ganhar um bonus de circunstância +2 para seu teste de Tratar Feridas usando Natureza, sujeito ao entendimento do MJ.</p>"
     },
     "NKibpnH1UKvvlX1W": {
       "name": "Magia em Espera",
       "sourceHash": "b3238b57e8e94260cc94f6206de68346f66af887",
-      "description": "<p>Voce aperfeicoou uma magia como sua tecnica favorita de combate, e voce a praticou o suficiente para nao precisar mais prepara-la para conjura-la. Escolha uma magia em seu grimorio que voce poderia usar com Golpe Magico e que tem um nivel nao superior ao espaco de magia de magus de nivel mais alto que voce tem. Voce pode Conjurar esta Magia sem tê-la preparado antecipadamente expend endo um espaco de magia de nivel suficiente para conjurar sua magia escolhida. Voce pode mudar esta magia sempre que voce adiciona novas magias ao seu grimorio, ou estudando seu grimorio por 1 hora.</p>"
+      "description": "<p>Você aperfeicoou uma magia como sua tecnica favorita de combate, e você a praticou o suficiente para não precisar mais prepara-la para conjura-la. Escolha uma magia em seu grimorio que você poderia usar com Golpe Mágico e que tem um nível não superior ao espaco de magia de magus de nível mais alto que você tem. Você pode Conjurar esta Magia sem tê-la preparado antecipadamente expend endo um espaco de magia de nível suficiente para conjurar sua magia escolhida. Você pode mudar esta magia sempre que você adiciona novas magias ao seu grimorio, ou estudando seu grimorio por 1 hora.</p>"
     },
     "NQDRKElc67wuZL8R": {
       "name": "Preparação Rápida",
@@ -804,7 +804,7 @@
     "NQjfvlBUif3CjxX1": {
       "name": "Tratamento Incomum",
       "sourceHash": "588b39ba2dac8bb8794f2082b672409974c3ca65",
-      "description": "<p>Seu treinamento medico se estende a condicoes menos obvias. Quando obtem sucesso contra uma verificacao de CD 20 para @UUID[Compendium.pf2e.actionspf2e.Item.Treat Wounds], voce pode tambem reduzir o valor de uma condicao de @UUID[Compendium.pf2e.conditionitems.Item.Clumsy], @UUID[Compendium.pf2e.conditionitems.Item.Enfeebled], ou @UUID[Compendium.pf2e.conditionitems.Item.Stupefied] no paciente por 1. Se for capaz de tratar mais de uma criatura de uma vez, escolhe apenas uma para ganhar este beneficio. Uma criatura pode se beneficiar de Tratamento Incomum apenas uma vez por dia. Se a condicao resultar de uma aflicao, a aflicao nao eh curada, embora a condicao seja reduzida enquanto a aflicao permanecer nesse estagio. Se for mestre em Medicina, adiciona a condicao @UUID[Compendium.pf2e.conditionitems.Item.Drained] a lista de condicoes que pode remover se obtiver sucesso em uma verificacao de CD 30. Se for lendario em Medicina, reduz a condicao escolhida por 2 em vez de por 1.</p>"
+      "description": "<p>Seu treinamento medico se estende a condições menos obvias. Quando obtem sucesso contra uma verificação de CD 20 para @UUID[Compendium.pf2e.actionspf2e.Item.Treat Wounds], você pode também reduzir o valor de uma condição de @UUID[Compendium.pf2e.conditionitems.Item.Clumsy], @UUID[Compendium.pf2e.conditionitems.Item.Enfeebled], ou @UUID[Compendium.pf2e.conditionitems.Item.Stupefied] no paciente por 1. Se for capaz de tratar mais de uma criatura de uma vez, escolhe apenas uma para ganhar este beneficio. Uma criatura pode se beneficiar de Tratamento Incomum apenas uma vez por dia. Se a condição resultar de uma aflição, a aflição não eh curada, embora a condição seja reduzida enquanto a aflição permanecer nesse estagio. Se for mestre em Medicina, adiciona a condição @UUID[Compendium.pf2e.conditionitems.Item.Drained] a lista de condições que pode remover se obtiver sucesso em uma verificação de CD 30. Se for lendario em Medicina, reduz a condição escolhida por 2 em vez de por 1.</p>"
     },
     "Ndtxk0ynhKh2kiiS": {
       "name": "Presa de Força",
@@ -819,7 +819,7 @@
     "NymfYOm5QlQksBLE": {
       "name": "Trabalho de Faca Belo",
       "sourceHash": "5b1afcb4945062d6ff29c302533f3f3b42250255",
-      "description": "<p>Voce realiza ajustes cirurgicos para disfarcar um aliado disposto ou seu companheiro construto. Isto conta como preparar um disfarce para Personificar, demorando 10 minutos e exigindo um kit de curador em vez de um kit de disfarce. A CD para ver atraves da decepcao com @UUID[Compendium.pf2e.actionspf2e.Item.Seek] e sua CD de Medicina (@Check[perception|against:medicine|rollerRole:target|traits:secret|options:action:seek]) a menos que a CD de Enganacao do personagem disfarçado seja maior. Se o alvo interage diretamente com alguem enquanto disfarçado, ele ganha um bonus de circunstancia +2 para sua verificacao de Enganacao.</p>\n<p>Voce pode reverter este efeito com outra cirurgia de 10 minutos. O personagem disfarçado tambem pode termina-lo como uma acao livre quando receber qualquer efeito de cura.</p>"
+      "description": "<p>Você realiza ajustes cirurgicos para disfarcar um aliado disposto ou seu companheiro construto. Isto conta como preparar um disfarce para Personificar, demorando 10 minutos e exigindo um kit de curador em vez de um kit de disfarce. A CD para ver através da decepção com @UUID[Compendium.pf2e.actionspf2e.Item.Seek] e sua CD de Medicina (@Check[perception|against:medicine|rollerRole:target|traits:secret|options:action:seek]) a menos que a CD de Enganação do personagem disfarçado seja maior. Se o alvo interage diretamente com alguem enquanto disfarçado, ele ganha um bonus de circunstância +2 para sua verificação de Enganação.</p>\n<p>Você pode reverter este efeito com outra cirurgia de 10 minutos. O personagem disfarçado também pode termina-lo como uma ação livre quando receber qualquer efeito de cura.</p>"
     },
     "OAUpEhRa8HMF1xMc": {
       "name": "Confabulador",
@@ -829,7 +829,7 @@
     "OBTgafRXpMItLIp3": {
       "name": "Minta para Mim",
       "sourceHash": "c0030d3fe863e9e6434ffdb5a9a00fad2c4a4fa6",
-      "description": "<p>Você pode usar Enganacao para tecer armadilhas para enganar qualquer um tentando enganar você. Se você pode se envolver em conversa com alguém tentando @UUID[Compendium.pf2e.actionspf2e.Item.Lie] para você, use sua CD de Enganacao se for maior do que sua CD de Percepcao para determinar se eles conseguem. Isso não se aplica se você não tem um diálogo bidirecional, como quando alguém tenta Mentir durante um discurso longo.</p>"
+      "description": "<p>Você pode usar Enganação para tecer armadilhas para enganar qualquer um tentando enganar você. Se você pode se envolver em conversa com alguém tentando @UUID[Compendium.pf2e.actionspf2e.Item.Lie] para você, use sua CD de Enganação se for maior do que sua CD de Percepção para determinar se eles conseguem. Isso não se aplica se você não tem um diálogo bidirecional, como quando alguém tenta Mentir durante um discurso longo.</p>"
     },
     "OnVGRKoVp9U0CwYc": {
       "name": "Calma e Centrado",
@@ -862,9 +862,9 @@
       "description": "<p>Você verte energia do vazio em toxinas que cria para debilitar ainda mais seus alvos. Quando você @UUID[Compendium.pf2e.actionspf2e.Item.Craft] um veneno alquímico (em vez de criá-lo com alquimia avançada, Alquimia Rápida, ou outro meio), ele se torna um veneno alquímico abençoado e ganha o traco de vazio. Quando uma criatura é afligida por um veneno alquímico abençoado, por 1 rodada, quaisquer Pontos de Vida que seria restaurar de um efeito de vitalidade são reduzidos em 5, ou por 10 se você for lendário em Ofício.</p>"
     },
     "PTM0EYNT0IINDWCb": {
-      "name": "Controle da Respiracao",
+      "name": "Controle da Respiração",
       "sourceHash": "864f043f64be72fcfb2c4a4d2554c3052e1cae2e",
-      "description": "<p>Voce pode respirar mesmo em ar perigoso ou raro. Voce pode prender sua respiracao por 25 vezes o tempo habitual antes de sufocar. Voce ganha um bonus de circunstancia +1 em testes de resistencia contra ameacas inaladas, como venenos inalados, e se voce obtiver um sucesso em tal teste de resistencia, voce obtém um sucesso critico ao inves disso.</p>"
+      "description": "<p>Você pode respirar mesmo em ar perigoso ou raro. Você pode prender sua respiração por 25 vezes o tempo habitual antes de sufocar. Você ganha um bonus de circunstância +1 em testes de resistência contra ameacas inaladas, como venenos inalados, e se você obtiver um sucesso em tal teste de resistência, você obtém um sucesso crítico ao inves disso.</p>"
     },
     "PjBncGU0vwKFpWyh": {
       "name": "Escorregadio Como uma Enguia",
@@ -889,7 +889,7 @@
     "PrEy99jH37K2HXgB": {
       "name": "Treinamento Fonetico",
       "sourceHash": "05e5e1cf925fd9b58e7ea0a9f4b511778f0421e3",
-      "description": "<p>Voce pode pronunciar e repetir palavras com precisao quase perfeita mesmo que nao compreenda seu significado, e voce pode escreve-las em um script fonetico que permite que voce ou outra criatura com Treinamento Fonetico as leia depois. Mesmo que as palavras estejam em uma linguagem com sons que voce nao pode pronunciar, voce pode transcreve-las fielmente. Memorizar longas sequencias de palavras permanece tao dificil quanto normalmente.</p>"
+      "description": "<p>Você pode pronunciar e repetir palavras com precisao quase perfeita mesmo que não compreenda seu significado, e você pode escreve-las em um script fonetico que permite que você ou outra criatura com Treinamento Fonetico as leia depois. Mesmo que as palavras estejam em uma linguagem com sons que você não pode pronunciar, você pode transcreve-las fielmente. Memorizar longas sequências de palavras permanece tao difícil quanto normalmente.</p>"
     },
     "Pv7fhhpTyrbIbcLC": {
       "name": "Coerção Duradoura",
@@ -909,7 +909,7 @@
     "QMrvDIBj0LnbQ2g0": {
       "name": "Inimigo Familiar",
       "sourceHash": "ef041fbbb2a66cef8ef049ced6bafb6c3e321a99",
-      "description": "<p>Voce enfrenta regularmente mortos-vivos e pode identificar muitos com um relance. Voce ganha um bonus de circunstancia +1 em verificacoes de pericia para Rememorar Conhecimento sobre mortos-vivos. Sempre que voce rola uma falha critica em uma verificacao para Rememorar Conhecimento sobre mortos-vivos, voce tem uma falha em vez disso.</p>"
+      "description": "<p>Você enfrenta regularmente mortos-vivos e pode identificar muitos com um relance. Você ganha um bonus de circunstância +1 em verificações de pericia para Rememorar Conhecimento sobre mortos-vivos. Sempre que você rola uma falha crítica em uma verificação para Rememorar Conhecimento sobre mortos-vivos, você tem uma falha em vez disso.</p>"
     },
     "RSCnsIGv3IYI0Y9l": {
       "name": "Forma de Ratkin",
@@ -929,7 +929,7 @@
     "RsOTyiT66ruiwZ7d": {
       "name": "Tensao Superficial",
       "sourceHash": "c7b47dda79cd01d8c12d3aa1fd0454188b06af36",
-      "description": "<p><strong>Requisitos</strong> Voce esta empunhando uma arma quebrada.</p><hr /><p>Voce envolve os pedacos de sua arma quebrada com agua que voce puxa do ambiente circundante. A condicao quebrada da arma e temporariamente suprimida, e a arma causa uma quantidade adicional de dano de concussao igual ao dobro do numero de dados de dano da arma; este dano nao pode ser alterado para nenhum outro tipo. A arma tambem ganha o traco letal d8; se a arma ja tinha o traco letal, o dado de dano aumenta por um passo ou para d8, o que for maior. A primeira vez que voce usa esta arma para Golpe Magico ou consegue um acerto critico com ela, a arma e completamente destruida.</p>\n<p>Se a arma tem Dureza maior que seu nivel, ou se e um artefato, item amaldicoado ou outro item que e dificil de quebrar ou destruir, ele nao e destruido, e esta capacidade dura apenas ate o final de seu turno.</p>"
+      "description": "<p><strong>Requisitos</strong> Você esta empunhando uma arma quebrada.</p><hr /><p>Você envolve os pedacos de sua arma quebrada com água que você puxa do ambiente circundante. A condição quebrada da arma e temporariamente suprimida, e a arma causa uma quantidade adicional de dano de concussao igual ao dobro do número de dados de dano da arma; este dano não pode ser alterado para nenhum outro tipo. A arma também ganha o traco letal d8; se a arma ja tinha o traco letal, o dado de dano aumenta por um passo ou para d8, o que for maior. A primeira vez que você usa esta arma para Golpe Mágico ou consegue um acerto crítico com ela, a arma e completamente destruida.</p>\n<p>Se a arma tem Dureza maior que seu nível, ou se e um artefato, item amaldicoado ou outro item que e difícil de quebrar ou destruir, ele não e destruido, e esta capacidade dura apenas até o final de seu turno.</p>"
     },
     "S2cGfwXwkPcUh2RJ": {
       "name": "Montar",
@@ -944,12 +944,12 @@
     "SNqtAXdqdSIbu20y": {
       "name": "Incisivos Virulentos",
       "sourceHash": "9bfd3041ff305a303f7f5439c83dbe9aa24a4cc8",
-      "description": "<p>Seu ataque desarmado com mandibulas causa dano de perfuracao 1d6 em vez de 1d4 e ganha o traco traicoeiro. Voce pode limar seus dentes e faze-los crescer novamente mais tarde, permitindo voce selecionar este talento em qualquer nivel e se treinar dentro e fora deste talento.</p>"
+      "description": "<p>Seu ataque desarmado com mandibulas causa dano de perfuração 1d6 em vez de 1d4 e ganha o traco traicoeiro. Você pode limar seus dentes e faze-los crescer novamente mais tarde, permitindo você selecionar este talento em qualquer nível e se treinar dentro e fora deste talento.</p>"
     },
     "SOyzc3JwviugygSU": {
       "name": "Furtividade Impetuosa",
       "sourceHash": "9dce2949428e22b88551f763b7559b3eab12d4d5",
-      "description": "<p>Voce se comprime, esgueira e corre de cobertura para cobertura com grande velocidade e furtividade. Voce pode se deslocar ate sua Velocidade completa quando voce @UUID[Compendium.pf2e.actionspf2e.Item.Sneak].</p>"
+      "description": "<p>Você se comprime, esgueira e corre de cobertura para cobertura com grande velocidade e furtividade. Você pode se deslocar até sua Velocidade completa quando você @UUID[Compendium.pf2e.actionspf2e.Item.Sneak].</p>"
     },
     "SXKLuYOLFRu1i9oN": {
       "name": "Pele de Aço",
@@ -999,7 +999,7 @@
     "TeyFjizqGY8giKRI": {
       "name": "Cazador de Mitos",
       "sourceHash": "74efd77e0e2a935ff206a24305f1ceda57b50919",
-      "description": "<p><strong>Gatilho</strong> Você com sucesso @UUID[Compendium.pf2e.actionspf2e.Item.Recall Knowledge] identifica uma criatura que tem o traco mitico.</p>\n<p><strong>Frequencia</strong> uma vez por 10 minutos</p><hr /><p>Seus ancestrais confrontaram e venceram bestas miticas de antiguidade Iblydan. Através de uma combinacao de ouvir estas historias e canalizando um toque do poder mitico daqueles guerreiros, você desenvolveu uma destreza para contornar as defesas lendarias de uma criatura mitica. A proxima vez que você com sucesso Golpeia a criatura desencadeadora, seu Golpe trata sua resistencia mitica como 2 inferior. Você trata sua resistencia como 4 inferior se sua proficiencia de Conhecimento de Deus-Heroi ou Conhecimento de Besta Lendaria é perito, 6 inferior se sua proficiencia é mestre, e 8 inferior se sua proficiencia é lendario.</p>\n<p>Se seu Golpe ja ignoraria resistencia mitica (porque você é um personagem mitico ou empunha uma arma mitica), seu proximo Golpe bem-sucedido contra a criatura ao inves disso causa um dano de precisao adicional de 1d6. Este dano adicional aumenta para 1d8 se sua proficiencia de Conhecimento de Deus-Heroi ou Conhecimento de Besta Lendaria é perito, 1d10 se sua proficiencia é mestre, ou 1d12 se sua proficiencia é lendario.</p>"
+      "description": "<p><strong>Gatilho</strong> Você com sucesso @UUID[Compendium.pf2e.actionspf2e.Item.Recall Knowledge] identifica uma criatura que tem o traco mitico.</p>\n<p><strong>Frequência</strong> uma vez por 10 minutos</p><hr /><p>Seus ancestrais confrontaram e venceram bestas miticas de antiguidade Iblydan. Através de uma combinação de ouvir estas historias e canalizando um toque do poder mitico daqueles guerreiros, você desenvolveu uma destreza para contornar as defesas lendarias de uma criatura mitica. A próxima vez que você com sucesso Golpeia a criatura desencadeadora, seu Golpe trata sua resistência mitica como 2 inferior. Você trata sua resistência como 4 inferior se sua proficiência de Conhecimento de Deus-Heroi ou Conhecimento de Besta Lendaria é perito, 6 inferior se sua proficiência é mestre, e 8 inferior se sua proficiência é lendario.</p>\n<p>Se seu Golpe ja ignoraria resistência mitica (porque você é um personagem mitico ou empunha uma arma mitica), seu próximo Golpe bem-sucedido contra a criatura ao inves disso causa um dano de precisao adicional de 1d6. Este dano adicional aumenta para 1d8 se sua proficiência de Conhecimento de Deus-Heroi ou Conhecimento de Besta Lendaria é perito, 1d10 se sua proficiência é mestre, ou 1d12 se sua proficiência é lendario.</p>"
     },
     "TvAVsEIKpmGWIQ9n": {
       "name": "Segurança",
@@ -1019,7 +1019,7 @@
     "UT0pm4KfGR5VjSFG": {
       "name": "Simbolo de Peregrino",
       "sourceHash": "04545ca4d425b4518693b063a1c9bd228190b2d0",
-      "description": "<p>Você carrega um pequeno simbolo de protecao de um local sagrado para sua fe. Você ganha um simbolo religioso de madeira para sua divindade de graca. Enquanto este simbolo religioso estiver em sua posse, quando você desempateta o teste de iniciativa de um adversario, você vai primeiro.</p>\n<p>Se você perder este simbolo religioso, você deve comprar ou Oficeá-lo e sintonizá-lo. Um tal simbolo normalmente custa pelo menos 1 prata, e a sintonizacao leva 10 minutos de oracao. Você tambem pode sintonizar um simbolo religioso diferente com a mesma quantidade de tempo, mas você perde o beneficio do simbolo religioso anterior.</p>"
+      "description": "<p>Você carrega um pequeno simbolo de proteção de um local sagrado para sua fe. Você ganha um simbolo religioso de madeira para sua divindade de graça. Enquanto este simbolo religioso estiver em sua posse, quando você desempateta o teste de iniciativa de um adversario, você vai primeiro.</p>\n<p>Se você perder este simbolo religioso, você deve comprar ou Oficeá-lo e sintonizá-lo. Um tal simbolo normalmente custa pelo menos 1 prata, e a sintonização leva 10 minutos de oração. Você também pode sintonizar um simbolo religioso diferente com a mesma quantidade de tempo, mas você perde o beneficio do simbolo religioso anterior.</p>"
     },
     "UXuD4brkjgHrxd2w": {
       "name": "Confecção de Armadilhas",
@@ -1044,7 +1044,7 @@
     "V1TqOG3Wd9SrsGo6": {
       "name": "Ler Shibolotas",
       "sourceHash": "4195e9d791a63dc248534d747af9d37b9a8fa1bb",
-      "description": "<p>Toda comunicacao e preenchida com pequenos sinais e marcas. Se voce interage com alguem por pelo menos 10 minutos, suas palavras regionais, mudancas de pronuncia, e pistas nao-verbais lhe fornecem um fato menor sobre seu ambiente social, como sua cidade natal ou certos grupos aos quais podem pertencer.</p>\n<p>Se um alvo dessa habilidade esta sendo enganoso sobre seu ambiente social, como um plebeu fingindo ser nobre, ele deve tentar uma verificacao de Enganacao, Sociedade, ou Conhecimento apropriado contra sua CD de Sociedade, fornecendo-lhe um fato menor falso consistente com sua identidade assumida com sucesso.</p>\n<p>Uma vez que voce tenha descoberto um ou mais fatos menores verdadeiros sobre uma pessoa, voce pode entao incorporar esses maneirismos em sua fala para se apresentar de uma maneira que lhes seja familiar. Isto lhe concede um bonus de circunstancia +1 para suas verificacoes de Diplomacia e Enganacao com eles.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Read Shibboleths]</p>"
+      "description": "<p>Toda comunicação e preenchida com pequenos sinais e marcas. Se você interage com alguem por pelo menos 10 minutos, suas palavras regionais, mudancas de pronúncia, e pistas não-verbais lhe fornecem um fato menor sobre seu ambiente social, como sua cidade natal ou certos grupos aos quais podem pertencer.</p>\n<p>Se um alvo dessa habilidade esta sendo enganoso sobre seu ambiente social, como um plebeu fingindo ser nobre, ele deve tentar uma verificação de Enganação, Sociedade, ou Conhecimento apropriado contra sua CD de Sociedade, fornecendo-lhe um fato menor falso consistente com sua identidade assumida com sucesso.</p>\n<p>Uma vez que você tenha descoberto um ou mais fatos menores verdadeiros sobre uma pessoa, você pode então incorporar esses maneirismos em sua fala para se apresentar de uma maneira que lhes seja familiar. Isto lhe concede um bonus de circunstância +1 para suas verificações de Diplomacia e Enganação com eles.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Read Shibboleths]</p>"
     },
     "V5lN8DOWN0OmFWv7": {
       "name": "Predador de Dossel",
@@ -1059,7 +1059,7 @@
     "VUxWZ74VDXJ44bh5": {
       "name": "Bolsas Bucais",
       "sourceHash": "503a1077270fca10f9cec9471d97233040c8d196",
-      "description": "<p>Suas bochechas sao esticaveis e voce pode armazenar ate quatro itens de volume leve ou menor nessas bolsas bucais. Nenhum desses itens pode ter uma dimensao maior que 1 pe. Enquanto voce tiver pelo menos um item em suas bolsas bucais, sua fala e notavelmente dificil de compreender. Colocar um item em sua bolsa bucal ou recuperar um e uma acao de Interagir. Voce pode esvaziar sua boca com uma unica acao, fazendo com que tudo que voce havia armazenado em suas bolsas bucais caia no chao em seu quadrado.</p>"
+      "description": "<p>Suas bochechas sao esticaveis e você pode armazenar até quatro itens de volume leve ou menor nessas bolsas bucais. Nenhum desses itens pode ter uma dimensao maior que 1 pe. Enquanto você tiver pelo menos um item em suas bolsas bucais, sua fala e notavelmente difícil de compreender. Colocar um item em sua bolsa bucal ou recuperar um e uma ação de Interagir. Você pode esvaziar sua boca com uma única ação, fazendo com que tudo que você havia armazenado em suas bolsas bucais caia no chao em seu quadrado.</p>"
     },
     "VZM0bfEAobUbVqsy": {
       "name": "Tônico Abençoado",
@@ -1074,17 +1074,17 @@
     "VtWDrnIQy1z6MQuY": {
       "name": "Convocar o Enxame",
       "sourceHash": "ab8cf6a32cc008e4c9775676bf6ec856095a7e89",
-      "description": "<p><strong>Frequencia</strong> uma vez por dia</p><hr /><p>Voce da um apito estridente e aponta, e um enxame massivo de ratos vaza do terreno circundante para preencher uma @Template[burst|distance:30] dentro de 120 pes. Os ratos correm sobre o chao e sobem em paredes e superficies, mordendo e arranhando enquanto causam dano de @Damage[6d8[piercing]|options:area-damage] perfuracao a todos os inimigos na area. Os ratos continuam a enxamear na area nos proximos minuto, causando dano de @Damage[3d8[piercing]|options:area-damage] perfuracao a qualquer inimigo que termine seu turno na area e transformando a area em terreno dificil (embora os ratos permitam que voce e seus aliados passem normalmente). Voce pode Dispensar o efeito.</p>"
+      "description": "<p><strong>Frequência</strong> uma vez por dia</p><hr /><p>Você da um apito estridente e aponta, e um enxame massivo de ratos vaza do terreno circundante para preencher uma @Template[burst|distance:30] dentro de 120 pes. Os ratos correm sobre o chao e sobem em paredes e superficies, mordendo e arranhando enquanto causam dano de @Damage[6d8[piercing]|options:area-damage] perfuração a todos os inimigos na área. Os ratos continuam a enxamear na área nos proximos minuto, causando dano de @Damage[3d8[piercing]|options:area-damage] perfuração a qualquer inimigo que termine seu turno na área e transformando a área em terreno difícil (embora os ratos permitam que você e seus aliados passem normalmente). Você pode Dispensar o efeito.</p>"
     },
     "VyXyGPSdm3RQ8eSn": {
-      "name": "Resistencia Assustadora",
+      "name": "Resistência Assustadora",
       "sourceHash": "f50a171acd576916903df5f77627d2ab974a4c17",
-      "description": "<p>As magias daqueles que voce @UUID[Compendium.pf2e.actionspf2e.Item.Demoralize] sao menos eficazes contra voce. Se obtiver sucesso ao Desmoralizar uma criatura, pelos proximos 24 horas voce ganha um bonus de circunstancia de +1 em testes de resistencia contra magias dessa criatura.</p>"
+      "description": "<p>As magias daqueles que você @UUID[Compendium.pf2e.actionspf2e.Item.Demoralize] sao menos eficazes contra você. Se obtiver sucesso ao Desmoralizar uma criatura, pelos proximos 24 horas você ganha um bonus de circunstância de +1 em testes de resistência contra magias dessa criatura.</p>"
     },
     "W0kOSjQH88VmgUtk": {
       "name": "Descanso Final",
       "sourceHash": "2b758c114e7ef98ef08553cbb0decd4aed30c35a",
-      "description": "<p>Tao obstinado na morte quanto voce e na vida, voce faz voto que nunca auxiliara seus inimigos odiados. Voce nao pode ser transformado em um morto-vivo, exceto por efeitos que originam de um artefato ou divindade. Criaturas morto-vivas que tocam seu cadaver sofrem @Damage[1[vitality]] dano cada vez que o fazem, ou @Damage[1d6[vitality]] dano cada vez que se expem ao seu cadaver de maneira mais minuciosa, como mordendo ou carregando seu cadaver.</p>"
+      "description": "<p>Tao obstinado na morte quanto você e na vida, você faz voto que nunca auxiliara seus inimigos odiados. Você não pode ser transformado em um morto-vivo, exceto por efeitos que originam de um artefato ou divindade. Criaturas morto-vivas que tocam seu cadaver sofrem @Damage[1[vitality]] dano cada vez que o fazem, ou @Damage[1d6[vitality]] dano cada vez que se expem ao seu cadaver de maneira mais minuciosa, como mordendo ou carregando seu cadaver.</p>"
     },
     "WAP9K6hMoeGitii6": {
       "name": "Primeiros Socorros Avançados",
@@ -1102,24 +1102,24 @@
       "description": "<p>Você consegue manter seu equilíbrio facilmente, mesmo em condições adversas. Sempre que você rolar um sucesso usando a ação @UUID[Compendium.pf2e.actionspf2e.Item.Balance], você obtém um acerto crítico em vez disso. Você não fica @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] enquanto tenta Equilibrar em superfícies estreitas e terreno desigual.</p>"
     },
     "WceAQJdbO16D7TAS": {
-      "name": "Vasodilatacao",
+      "name": "Vasodilatação",
       "sourceHash": "08096093f4315ca7d19f7239d6950f9e99ebbb28",
-      "description": "<p>Usando o poder de seu proprio sangue, voce encoraja o aumento do fluxo sanguineo para nutrir tecido danificado ou sufoca o fluxo para coagular feridas ou prevenir a disseminacao de veneno e doenca. Voce nao requer mais um kit de medico para @UUID[Compendium.pf2e.actionspf2e.Item.Administer First Aid], @UUID[Compendium.pf2e.actionspf2e.Item.Treat Disease], @UUID[Compendium.pf2e.actionspf2e.Item.Treat Poison], ou @UUID[Compendium.pf2e.actionspf2e.Item.Treat Wounds], embora sofra @Damage[1[untyped]] dano cada vez que toma uma dessas acoes sem as ferramentas apropriadas do consumo de seu sangue. Voce nao pode reduzir ou prevenir este dano.</p>\n<p>Voce ganha um bonus de item de +1 ao executar essas acoes usando seu sangue, que aumenta para +2 se for mestre em Medicina e +3 se for lendario.</p>"
+      "description": "<p>Usando o poder de seu próprio sangue, você encoraja o aumento do fluxo sanguineo para nutrir tecido danificado ou sufoca o fluxo para coagular feridas ou prevenir a disseminação de veneno e doença. Você não requer mais um kit de medico para @UUID[Compendium.pf2e.actionspf2e.Item.Administer First Aid], @UUID[Compendium.pf2e.actionspf2e.Item.Treat Disease], @UUID[Compendium.pf2e.actionspf2e.Item.Treat Poison], ou @UUID[Compendium.pf2e.actionspf2e.Item.Treat Wounds], embora sofra @Damage[1[untyped]] dano cada vez que toma uma dessas ações sem as ferramentas apropriadas do consumo de seu sangue. Você não pode reduzir ou prevenir este dano.</p>\n<p>Você ganha um bonus de item de +1 ao executar essas ações usando seu sangue, que aumenta para +2 se for mestre em Medicina e +3 se for lendario.</p>"
     },
     "WkCFG0egwahXdITO": {
       "name": "Tomo Protegido",
       "sourceHash": "24a924b68c113ddcc8d151a3fcc88f09ac0c9d17",
-      "description": "<p>Durante suas preparacoes diarias, voce pode fundir magicamente um escudo em seu livro favorito, onde ele aparece como um marcador de pagina elaborado. Enquanto os dois estiverem fundidos, o livro compartilha a Dureza, Pontos de Vida e Limiar de Quebra do escudo, e pode ser usado para @UUID[Compendium.pf2e.feats-srd.Item.Shield Block] se voce tiver essa reacao, com um requisito de \"Voce Elevou o Tomo\" ao inves dos requisitos habituais.</p>\n<p>Voce pode mudar a forma do item fundido de um livro para um escudo com motivo de livro como uma acao unica, que tem o traco concentracao. Quando o item esta em forma de livro, voce pode ler o livro e Elevar o Tomo, e quando esta em forma de escudo, voce pode Elevar o Escudo, Ativar e ganhar qualquer outro beneficio ou efeito que o escudo normalmente tem (como um bonus de @UUID[Compendium.pf2e.equipment-srd.Item.Spellguard Shield]{Escudo Protetor contra Magia} em testes de resistencia contra magia).</p>\n<p>A fusao dura ate suas proximas preparacoes diarias.</p>"
+      "description": "<p>Durante suas preparações diarias, você pode fundir magicamente um escudo em seu livro favorito, onde ele aparece como um marcador de pagina elaborado. Enquanto os dois estiverem fundidos, o livro compartilha a Dureza, Pontos de Vida e Limiar de Quebra do escudo, e pode ser usado para @UUID[Compendium.pf2e.feats-srd.Item.Shield Block] se você tiver essa reação, com um requisito de \"Você Elevou o Tomo\" ao inves dos requisitos habituais.</p>\n<p>Você pode mudar a forma do item fundido de um livro para um escudo com motivo de livro como uma ação única, que tem o traco concentração. Quando o item esta em forma de livro, você pode ler o livro e Elevar o Tomo, e quando esta em forma de escudo, você pode Elevar o Escudo, Ativar e ganhar qualquer outro beneficio ou efeito que o escudo normalmente tem (como um bonus de @UUID[Compendium.pf2e.equipment-srd.Item.Spellguard Shield]{Escudo Protetor contra Magia} em testes de resistência contra magia).</p>\n<p>A fusao dura até suas proximas preparações diarias.</p>"
     },
     "Wp5a9POd3DWp4xTS": {
-      "name": "O Diabo que Voce Conhece",
+      "name": "O Diabo que Você Conhece",
       "sourceHash": "8b15ab070becbac2c08dc9ea057d3d9dfc31c54e",
-      "description": "<p>Seu conhecimento de seus inimigos lhe da uma vantagem contra eles, concedendo-lhe uma reacao rapida para sua astacia. Se voce sabe que esta enfrentando diabos ou Cavaleiros do Inferno no inicio de um combate, voce pode rolar a pericia de Conhecimento respectiva para sua rolagem de iniciativa.</p>\n<p>Alem disso, sempre que voce rememorar conhecimento com sucesso sobre uma criatura usando Conhecimento de Diabos ou Conhecimento de Cavaleiros do Inferno, voce ganha um bonus de circunstancia +1 para sua proxima verificacao de pericia contra essa criatura antes do fim de seu proximo turno. Se voce e mestre em Conhecimento de Diabos ou Conhecimento de Cavaleiros do Inferno, o bonus aumenta para +2.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Devil You Know]</p>"
+      "description": "<p>Seu conhecimento de seus inimigos lhe da uma vantagem contra eles, concedendo-lhe uma reação rápida para sua astacia. Se você sabe que esta enfrentando diabos ou Cavaleiros do Inferno no inicio de um combate, você pode rolar a pericia de Conhecimento respectiva para sua rolagem de iniciativa.</p>\n<p>Além disso, sempre que você rememorar conhecimento com sucesso sobre uma criatura usando Conhecimento de Diabos ou Conhecimento de Cavaleiros do Inferno, você ganha um bonus de circunstância +1 para sua próxima verificação de pericia contra essa criatura antes do fim de seu próximo turno. Se você e mestre em Conhecimento de Diabos ou Conhecimento de Cavaleiros do Inferno, o bonus aumenta para +2.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Devil You Know]</p>"
     },
     "WzUwd3mdtL7iYFI6": {
       "name": "Conhecimento Inconfundivel",
       "sourceHash": "fd1a56f1923508f6c0ad27be95879bfb0264b167",
-      "description": "<p>Voce nunca obtem informacoes sobre suas areas de expertise incorretas. Quando Rememorar Conhecimento usando qualquer subcategoria de Conhecimento na qual eh treinado, se rolar uma falha critica, obtem uma falha no seu lugar. Se for mestre em uma subcategoria de Conhecimento, em um sucesso critico, ganha ainda mais informacao ou contexto do que usual.</p>"
+      "description": "<p>Você nunca obtem informações sobre suas áreas de expertise incorretas. Quando Rememorar Conhecimento usando qualquer subcategoria de Conhecimento na qual eh treinado, se rolar uma falha crítica, obtem uma falha no seu lugar. Se for mestre em uma subcategoria de Conhecimento, em um sucesso crítico, ganha ainda mais informação ou contexto do que usual.</p>"
     },
     "X1znV8S80lAheipN": {
       "name": "Linguagem de Sinais",
@@ -1129,7 +1129,7 @@
     "XDJiA6uOOFdhtpvn": {
       "name": "Familiar Aprimorado",
       "sourceHash": "ab3b2754a77c6499651fc373be2830708850ba0c",
-      "description": "<p><strong>Animista</strong> Voce consegue materializar mais da essencia da aparicao atunada, criando um vaso mais poderoso para ela habitar e ajuda-lo.</p>\n<p><strong>Druida</strong> Voce infunde seu familiar com energia primal adicional, aumentando suas capacidades.</p>\n<p><strong>Magus</strong> Voce infunde seu familiar com mais energia magica.</p>\n<p><strong>Feiticeiro, Mago, Bruxo</strong> Voce infunde seu familiar com energia magica adicional.</p>\n<p><strong>Taumaturgo</strong> Ao aplicar o melhor de multiplas tradicoes de magia, voce descobriu uma forma mais eficiente para seu familiar armazenar sua energia.</p><hr /><p>Voce pode selecionar quatro capacidades familiares ou mestres cada dia, ao inves de duas.</p><hr /><p><strong>Especial</strong> Adicione as capacidades familiares bonus que voce ganha por ser um bruxo a este montante. Se seu acervo arcano for @UUID[Compendium.pf2e.classfeatures.Item.Improved Familiar Attunement], o numero base de capacidades familiares de seu familiar, antes de adicionar qualquer capacidade extra do acervo arcano, e quatro.</p>"
+      "description": "<p><strong>Animista</strong> Você consegue materializar mais da essência da aparição atunada, criando um vaso mais poderoso para ela habitar e ajuda-lo.</p>\n<p><strong>Druida</strong> Você infunde seu familiar com energia primal adicional, aumentando suas capacidades.</p>\n<p><strong>Magus</strong> Você infunde seu familiar com mais energia mágica.</p>\n<p><strong>Feiticeiro, Mago, Bruxo</strong> Você infunde seu familiar com energia mágica adicional.</p>\n<p><strong>Taumaturgo</strong> Ao aplicar o melhor de multiplas tradições de magia, você descobriu uma forma mais eficiente para seu familiar armazenar sua energia.</p><hr /><p>Você pode selecionar quatro capacidades familiares ou mestres cada dia, ao inves de duas.</p><hr /><p><strong>Especial</strong> Adicione as capacidades familiares bonus que você ganha por ser um bruxo a este montante. Se seu acervo arcano for @UUID[Compendium.pf2e.classfeatures.Item.Improved Familiar Attunement], o número base de capacidades familiares de seu familiar, antes de adicionar qualquer capacidade extra do acervo arcano, e quatro.</p>"
     },
     "XLRfu3yWkGo9w1YE": {
       "name": "Entrada Forçada",
@@ -1157,9 +1157,9 @@
       "description": "<p>Você pode canalizar todo o reino de possibilidades de seu grimório para um ataque.</p>\n<p>Uma vez durante seus preparativos diários, você pode usar um espaço de magia para manter esse potencial infinito, em vez de usá-lo para preparar uma magia. Quando você faz um Golpe de Magia, você pode gastar esse espaço de magia especial para preparar e conjurar imediatamente uma magia de seu grimório em 2 níveis abaixo do nível do espaço. (Como normal para preparar magias, você pode usar uma magia de nível ainda mais baixo, elevando-a adequadamente.)</p>\n<p>Você não tem nenhuma magia preparada naquele espaço até conjurar daquele espaço.</p>"
     },
     "XYl5EGv380wkqSe8": {
-      "name": "Identificacao de Raridade",
+      "name": "Identificação de Raridade",
       "sourceHash": "a3b583fe3f681394471b583689e023dc3b35a59c",
-      "description": "<p>Quando você se torna ciente de um efeito magico ou vê uma magia sendo conjurada, você pode imediatamente determinar se ela contorce mentes (com o traco mental), luta contra a sorte (com o traco sorte ou azar), ou revela segredos (com os tracos deteccao, previsao, revelacao, ou videncia). A discreto do MJ, efeitos similares podem também cair nestas categorias. Quando você [[/act identify-magic skill=occultism]] ou [[/act recall-knowledge skill=occultism]] para aprender mais sobre estes efeitos, você pode sempre usar Ocultismo sem penalidade e ganha um bonus de circunstancia +2.</p>"
+      "description": "<p>Quando você se torna ciente de um efeito mágico ou vê uma magia sendo conjurada, você pode imediatamente determinar se ela contorce mentes (com o traco mental), luta contra a sorte (com o traco sorte ou azar), ou revela segredos (com os tracos detecção, previsao, revelação, ou vidência). A discreto do MJ, efeitos similares podem também cair nestas categorias. Quando você [[/act identify-magic skill=occultism]] ou [[/act recall-knowledge skill=occultism]] para aprender mais sobre estes efeitos, você pode sempre usar Ocultismo sem penalidade e ganha um bonus de circunstância +2.</p>"
     },
     "Xejnl3dUcozlt2si": {
       "name": "Predispor Assentamento",
@@ -1169,7 +1169,7 @@
     "XfpAROrZTOFgZdy2": {
       "name": "Analisar Idioleto",
       "sourceHash": "28171010d0ea68eeb5697ce5776a18bd51082280",
-      "description": "<p>Voce decompoe o idioleto especifico de um individuo, memorizando seus habitos e maneirismos de fala.</p>\n<p>Se voce interage com alguem por pelo menos 10 minutos, quando voce depois tentar @UUID[Compendium.pf2e.actionspf2e.Item.Impersonate] esse individuo, voce ganha um bonus de circunstancia +4 para suas verificacoes de Enganacao e CDs. Devido ao intenso estudo de personagem necessario, voce nao pode rememorar mais de um idioleto por vez.</p>"
+      "description": "<p>Você decompoe o idioleto específico de um individuo, memorizando seus hábitos e maneirismos de fala.</p>\n<p>Se você interage com alguem por pelo menos 10 minutos, quando você depois tentar @UUID[Compendium.pf2e.actionspf2e.Item.Impersonate] esse individuo, você ganha um bonus de circunstância +4 para suas verificações de Enganação e CDs. Devido ao intenso estudo de personagem necessario, você não pode rememorar mais de um idioleto por vez.</p>"
     },
     "XmEhBgF6NmxGop9J": {
       "name": "Profissional Experiente",
@@ -1179,7 +1179,7 @@
     "XwHE2wqAp5SuvRey": {
       "name": "Rede Subterranea",
       "sourceHash": "0265df4f2c08b806611771cf7e15427526360d88",
-      "description": "<p>Voce eh conectado a grupos que sabem o que esta acontecendo nas ruas, e pode obter informacoes deles rapidamente. Quando usa Sociedade para @UUID[Compendium.pf2e.actionspf2e.Item.Gather Information] em uma area onde tem uma rede (normalmente uma assentamento onde passou pelo menos uma semana ou gastou um dia de tempo livre para construir uma rede mais rapido), voce pode contatar um membro desses grupos para obter informacoes diretamente deles. Isto normalmente leva cerca de uma hora, e nao atrai tanta atencao como Colher Informacoes em publico pode. O teste e informacao obtida seguem caso contrario as regras normais para Colher Informacoes.</p>\n<p>Alem disso, se consultou com sucesso a rede subterranea, voce obtem um bonus de circunstancia de +1 no proximo teste para @UUID[Compendium.pf2e.actionspf2e.Item.Recall Knowledge] que tenta sobre o assunto sobre o qual estava Colhendo Informacoes, ou um bonus de circunstancia de +2 se estiver usando Conhecimento do Submundo para o teste. O GM pode mudar a pericia de Conhecimento relacionada a rede dependendo de sua localizacao ou especificidades da rede que esta exploitando.</p>"
+      "description": "<p>Você eh conectado a grupos que sabem o que esta acontecendo nas ruas, e pode obter informações deles rapidamente. Quando usa Sociedade para @UUID[Compendium.pf2e.actionspf2e.Item.Gather Information] em uma área onde tem uma rede (normalmente uma assentamento onde passou pelo menos uma semana ou gastou um dia de tempo livre para construir uma rede mais rápido), você pode contatar um membro desses grupos para obter informações diretamente deles. Isto normalmente leva cerca de uma hora, e não atrai tanta atenção como Colher Informações em público pode. O teste e informação obtida seguem caso contrario as regras normais para Colher Informações.</p>\n<p>Além disso, se consultou com sucesso a rede subterranea, você obtem um bonus de circunstância de +1 no próximo teste para @UUID[Compendium.pf2e.actionspf2e.Item.Recall Knowledge] que tenta sobre o assunto sobre o qual estava Colhendo Informações, ou um bonus de circunstância de +2 se estiver usando Conhecimento do Submundo para o teste. O GM pode mudar a pericia de Conhecimento relacionada a rede dependendo de sua localização ou especificidades da rede que esta exploitando.</p>"
     },
     "Y6soCVLSt7t1WzNu": {
       "name": "Consultar os Espíritos",
@@ -1214,7 +1214,7 @@
     "ZtXtqMxa3sZvhZ4m": {
       "name": "Rastreador de Cranios",
       "sourceHash": "102199c5c6b34099dd8f533bc1bce4ea5052fd7f",
-      "description": "<p>Voce usa cranios para desmoralizar inimigos. Voce se torna treinado em Intimidacao e ganha o talento de pericia @UUID[Compendium.pf2e.feats-srd.Item.Intimidating Glare]. Se ja estava treinado em Intimidacao, voce se torna treinado em uma pericia de sua escolha. Se voce pagar 50 po por uma @UUID[Compendium.pf2e.equipment-srd.Item.Splendid Skull Mask], a mascara concede um bonus de item +1 em Intimidacao; seu uso e vestiario (mascara).</p>"
+      "description": "<p>Você usa cranios para desmoralizar inimigos. Você se torna treinado em Intimidação e ganha o talento de pericia @UUID[Compendium.pf2e.feats-srd.Item.Intimidating Glare]. Se ja estava treinado em Intimidação, você se torna treinado em uma pericia de sua escolha. Se você pagar 50 po por uma @UUID[Compendium.pf2e.equipment-srd.Item.Splendid Skull Mask], a mascara concede um bonus de item +1 em Intimidação; seu uso e vestiario (mascara).</p>"
     },
     "ZyAMwMuM3vbW9ThF": {
       "name": "Paladar Apurado",
@@ -1222,9 +1222,9 @@
       "description": "<p>Você apurou seu paladar e tem um sentido de gosto aguçado que pode detectar anormalidades no sabor e textura de comida e bebidas. Ao comer comida ou beber uma bebida, você automaticamente tenta identificar os ingredientes, o que pode alertá-lo para a presença de alterações ou aditivos, como venenos. O Mestre faz um teste secreto de Percepção contra uma CD determinada pelo nível do veneno; se a comida ou bebida está envenenada, em sucesso, você aprende que a comida ou bebida foi envenenada, mas não o veneno específico usado. Se você detectar com sucesso que a comida ou bebida foi envenenada, você pode cuspir a comida ou bebida a tempo de não ser exposto àquela instância do veneno (a menos que você retome comer ou beber a comida ou bebida envenenada).</p>\n<p>Se você lamber ou provar algo enquanto Investiga ou tenta Rememorar Conhecimento para identificar algo, e se o gosto forneceria informações adicionais relevantes (a critério do Mestre), você ganha um +2 bônus de circunstância em seu teste.</p>"
     },
     "ZzCjndBvfC2tywCi": {
-      "name": "Habituacao aos Ramos Esmeraldas",
+      "name": "Habituação aos Ramos Esmeraldas",
       "sourceHash": "5762bab86cd9b23c3e90df2b7dd0c81f885c095b",
-      "description": "<p>Voce esta confortavel e socialmente capaz em quase qualquer contexto cultural. Quando voce usa a pericia de Sociedade para Subsistir, se voce rola uma falha critica, voce tem uma falha em vez disso; se voce rola um sucesso, voce tem um sucesso critico em vez disso; e se voce rola um sucesso critico, voce pode prover para outra criatura adicional. Alem disso, quando voce tenta uma verificacao de Sociedade para Rememorar Conhecimento sobre praticas culturais e rola uma falha critica, voce tem uma falha em vez disso.</p>"
+      "description": "<p>Você esta confortavel e socialmente capaz em quase qualquer contexto cultural. Quando você usa a pericia de Sociedade para Subsistir, se você rola uma falha crítica, você tem uma falha em vez disso; se você rola um sucesso, você tem um sucesso crítico em vez disso; e se você rola um sucesso crítico, você pode prover para outra criatura adicional. Além disso, quando você tenta uma verificação de Sociedade para Rememorar Conhecimento sobre práticas culturais e rola uma falha crítica, você tem uma falha em vez disso.</p>"
     },
     "a7BOlH0rCdHFFW84": {
       "name": "Exortar os Fiéis",
@@ -1264,7 +1264,7 @@
     "bSFtJGopw1BPINO6": {
       "name": "Erudito do Bastao",
       "sourceHash": "964389a5cb0bb2f932dc0dc748eb200799f0b859",
-      "description": "<p>Voce estudou o bastao extensivamente para aprender as capacidades ocultas de sua arma escolhida. Quando voce acerta criticamente em uma rolagem de ataque usando um bastao, voce aplica o efeito de especializacao critica do grupo clava. Enquanto voce esta em postura @UUID[Compendium.pf2e.actionspf2e.Item.Arcane Cascade], seu bastao ganha o traco letal d6, com o dano do dado letal sendo o mesmo tipo de dano do dano extra de Cascata Arcana.</p>\n<p>Alem disso, voce pode colocar runas de propriedade em um bastao magico que voce prepara, mesmo que um bastao magico normalmente nao possa conter runas de propriedade. Voce deve primeiro inscrever as runas de propriedade em seu grimorio, usando o mesmo processo de transferencia de runa. A runa assume a forma de um diagrama especializado em seu grimorio, ocupando uma pagina. Voce nao pode inscrever runas que nao possam ser colocadas em um bastao nao-magico, nem pode inscrever a runa @UUID[Compendium.pf2e.equipment-srd.Item.Shifting]. Quando voce prepara um bastao, voce pode conferir qualquer numero de runas de propriedade de seu grimorio ao bastao, ate o limite imposto pela runa de <em>potencia da arma</em> do bastao.</p>"
+      "description": "<p>Você estudou o bastao extensivamente para aprender as capacidades ocultas de sua arma escolhida. Quando você acerta criticamente em uma rolagem de ataque usando um bastao, você aplica o efeito de especialização crítica do grupo clava. Enquanto você esta em postura @UUID[Compendium.pf2e.actionspf2e.Item.Arcane Cascade], seu bastao ganha o traco letal d6, com o dano do dado letal sendo o mesmo tipo de dano do dano extra de Cascata Arcana.</p>\n<p>Além disso, você pode colocar runas de propriedade em um bastao mágico que você prepara, mesmo que um bastao mágico normalmente não possa conter runas de propriedade. Você deve primeiro inscrever as runas de propriedade em seu grimorio, usando o mesmo processo de transferência de runa. A runa assume a forma de um diagrama especializado em seu grimorio, ocupando uma pagina. Você não pode inscrever runas que não possam ser colocadas em um bastao não-mágico, nem pode inscrever a runa @UUID[Compendium.pf2e.equipment-srd.Item.Shifting]. Quando você prepara um bastao, você pode conferir qualquer número de runas de propriedade de seu grimorio ao bastao, até o limite imposto pela runa de <em>potência da arma</em> do bastao.</p>"
     },
     "bdFSgx188h6oEI9w": {
       "name": "Explorador Eficiente",
@@ -1279,7 +1279,7 @@
     "buZsz8luQZawZ4zF": {
       "name": "Maior que a Soma",
       "sourceHash": "7e2db8c91ddf24678ccd2fee52a498ae05a20142",
-      "description": "<p>Voce invoca os lacos familiares que compartilha com seus aliados e outros ratkin para se tornar uma forca opressora no combate. Voce pode conjurar @UUID[Compendium.pf2e.spells-srd.Item.Enlarge] como uma magia inata primal de 6º rango uma vez por dia.</p>"
+      "description": "<p>Você invoca os lacos familiares que compartilha com seus aliados e outros ratkin para se tornar uma forca opressora no combate. Você pode conjurar @UUID[Compendium.pf2e.spells-srd.Item.Enlarge] como uma magia inata primal de 6º rango uma vez por dia.</p>"
     },
     "bwO34GUw5SUp37Rd": {
       "name": "Escalada Rápida",
@@ -1299,7 +1299,7 @@
     "cfsqqWDMVVkrgxSh": {
       "name": "Medico de Enfermaria",
       "sourceHash": "4c5985866aff0ce9888ad32c9a427192326b084e",
-      "description": "<p>Voce estudou em grandes enfermarias medicas, tratando varios pacientes de uma vez e atendendo a todas as suas necessidades. Quando usa @UUID[Compendium.pf2e.actionspf2e.Item.Treat Disease] ou @UUID[Compendium.pf2e.actionspf2e.Item.Treat Wounds], pode tratar ate dois alvos. Se for mestre em Medicina, pode tratar ate quatro alvos, e se for lendario, pode tratar ate oito alvos.</p>"
+      "description": "<p>Você estudou em grandes enfermarias medicas, tratando varios pacientes de uma vez e atendendo a todas as suas necessidades. Quando usa @UUID[Compendium.pf2e.actionspf2e.Item.Treat Disease] ou @UUID[Compendium.pf2e.actionspf2e.Item.Treat Wounds], pode tratar até dois alvos. Se for mestre em Medicina, pode tratar até quatro alvos, e se for lendario, pode tratar até oito alvos.</p>"
     },
     "cghO51lnNruRKOT6": {
       "name": "Motorista Expresso",
@@ -1314,7 +1314,7 @@
     "czrafodwDK3z6LCH": {
       "name": "Familiar Ratkin",
       "sourceHash": "0883b62819b15c56cc8dc1fab4921e4ce396bd7f",
-      "description": "<p>Voce tem um rato de estimacao que se tornou magicamente ligado a voce. Voce ganha um familiar, e esse familiar deve ser um rato. Ele ainda recebe os beneficios das habilidades de familiar, mas sua forma basica permanece um rato.</p>"
+      "description": "<p>Você tem um rato de estimação que se tornou magicamente ligado a você. Você ganha um familiar, e esse familiar deve ser um rato. Ele ainda recebe os beneficios das habilidades de familiar, mas sua forma básica permanece um rato.</p>"
     },
     "d16PjUrrWDEUoQ3M": {
       "name": "Fortificação Energética",
@@ -1334,7 +1334,7 @@
     "dUtCiHdEotSEYoup": {
       "name": "Improvisar Ferramenta",
       "sourceHash": "0ddca1ac10c61d74c372c32724f433e63812d6cd",
-      "description": "<p>Você pode improvisar solucoes quando você não tem as ferramentas apropriadas à mão. Você pode tentar @UUID[Compendium.pf2e.actionspf2e.Item.Repair] itens danificados sem um kit de reparo.</p>\n<p>Se você tem os materiais brutos disponíveis, você pode @UUID[Compendium.pf2e.actionspf2e.Item.Craft] um @UUID[Compendium.pf2e.equipment-srd.Item.Caltrops]{Caltrops} basico, @UUID[Compendium.pf2e.equipment-srd.Item.Candle]{Vela}, @UUID[Compendium.pf2e.equipment-srd.Item.Compass]{Bussola}, @UUID[Compendium.pf2e.equipment-srd.Item.Crowbar]{Pé-de-Cabra}, @UUID[Compendium.pf2e.equipment-srd.Item.Fishing Tackle]{Equipamento de Pesca}, @UUID[Compendium.pf2e.equipment-srd.Item.Flint and Steel]{Pederneira e Aco}, @UUID[Compendium.pf2e.equipment-srd.Item.Hammer]{Martelo}, @UUID[Compendium.pf2e.equipment-srd.Item.Ladder (10-foot)]{Escada}, @UUID[Compendium.pf2e.equipment-srd.Item.Piton]{Pino}, @UUID[Compendium.pf2e.equipment-srd.Item.Rope]{Corda}, @UUID[Compendium.pf2e.equipment-srd.Item.Ten-Foot Pole]{Vara de Dez Pes}, @UUID[Compendium.pf2e.equipment-srd.Item.Thieves' Toolkit (Replacement Picks)]{Pincas de Ladino Substitutas}, @UUID[Compendium.pf2e.equipment-srd.Item.Tool (Long)]{Ferramenta Longa} ou @UUID[Compendium.pf2e.equipment-srd.Item.Tool (Short)]{Ferramenta Curta}, ou @UUID[Compendium.pf2e.equipment-srd.Item.Torch]{Tocha} como se você tivesse suas formulas.</p>"
+      "description": "<p>Você pode improvisar soluções quando você não tem as ferramentas apropriadas à mão. Você pode tentar @UUID[Compendium.pf2e.actionspf2e.Item.Repair] itens danificados sem um kit de reparo.</p>\n<p>Se você tem os materiais brutos disponíveis, você pode @UUID[Compendium.pf2e.actionspf2e.Item.Craft] um @UUID[Compendium.pf2e.equipment-srd.Item.Caltrops]{Caltrops} básico, @UUID[Compendium.pf2e.equipment-srd.Item.Candle]{Vela}, @UUID[Compendium.pf2e.equipment-srd.Item.Compass]{Bussola}, @UUID[Compendium.pf2e.equipment-srd.Item.Crowbar]{Pé-de-Cabra}, @UUID[Compendium.pf2e.equipment-srd.Item.Fishing Tackle]{Equipamento de Pesca}, @UUID[Compendium.pf2e.equipment-srd.Item.Flint and Steel]{Pederneira e Aco}, @UUID[Compendium.pf2e.equipment-srd.Item.Hammer]{Martelo}, @UUID[Compendium.pf2e.equipment-srd.Item.Ladder (10-foot)]{Escada}, @UUID[Compendium.pf2e.equipment-srd.Item.Piton]{Pino}, @UUID[Compendium.pf2e.equipment-srd.Item.Rope]{Corda}, @UUID[Compendium.pf2e.equipment-srd.Item.Ten-Foot Pole]{Vara de Dez Pes}, @UUID[Compendium.pf2e.equipment-srd.Item.Thieves' Toolkit (Replacement Picks)]{Pincas de Ladino Substitutas}, @UUID[Compendium.pf2e.equipment-srd.Item.Tool (Long)]{Ferramenta Longa} ou @UUID[Compendium.pf2e.equipment-srd.Item.Tool (Short)]{Ferramenta Curta}, ou @UUID[Compendium.pf2e.equipment-srd.Item.Torch]{Tocha} como se você tivesse suas formulas.</p>"
     },
     "ddlRobPWSmje97sK": {
       "name": "Avançar Rapidamente",
@@ -1354,7 +1354,7 @@
     "ekAM67UiWicjPFWZ": {
       "name": "Tratamento do Artista",
       "sourceHash": "cab9cb650481955795f4d87a43352f8771155792",
-      "description": "<p>Com sua experiência como artista, você pode manter um conjunto de ferramentas médicas à mão em todos os momentos. Você pode usar um kit de curador como parte de qualquer fantasia ou disfarce. As criaturas geralmente só notarão o kit se usarem uma ação de @UUID[Compendium.pf2e.actionspf2e.Item.Seek] e tiverem sucesso em uma rolagem de @Check[perception|against:performance|traits:secret] contra sua CD de Atuação. Além disso, você pode perceber no último momento quando deve apenas fingir para evitar fazer qualquer dano permanente.</p>\n<p>Quando você falha criticamente em uma rolagem de Medicina para Prestar Primeiros Socorros, @UUID[Compendium.pf2e.actionspf2e.Item.Treat Disease], @UUID[Compendium.pf2e.actionspf2e.Item.Treat Poison], ou @UUID[Compendium.pf2e.actionspf2e.Item.Treat Wounds], você pode tentar uma rolagem de @Check[performance|against:perception] contra a CD de Percepcao do paciente. Em um sucesso, sua falha crítica na rolagem de Medicina vira uma falha.</p>"
+      "description": "<p>Com sua experiência como artista, você pode manter um conjunto de ferramentas médicas à mão em todos os momentos. Você pode usar um kit de curador como parte de qualquer fantasia ou disfarce. As criaturas geralmente só notarão o kit se usarem uma ação de @UUID[Compendium.pf2e.actionspf2e.Item.Seek] e tiverem sucesso em uma rolagem de @Check[perception|against:performance|traits:secret] contra sua CD de Atuação. Além disso, você pode perceber no último momento quando deve apenas fingir para evitar fazer qualquer dano permanente.</p>\n<p>Quando você falha criticamente em uma rolagem de Medicina para Prestar Primeiros Socorros, @UUID[Compendium.pf2e.actionspf2e.Item.Treat Disease], @UUID[Compendium.pf2e.actionspf2e.Item.Treat Poison], ou @UUID[Compendium.pf2e.actionspf2e.Item.Treat Wounds], você pode tentar uma rolagem de @Check[performance|against:perception] contra a CD de Percepção do paciente. Em um sucesso, sua falha crítica na rolagem de Medicina vira uma falha.</p>"
     },
     "el9QeVTHMkpx08XG": {
       "name": "Inventor",
@@ -1377,9 +1377,9 @@
       "description": "<p>Você dominou a colocação de hélices mecânicas em suas armadilhas rápidas de implantação diárias que usam engrenagens. Isto permite que você coloque suas armadilhas no ar ou debaixo da água, onde elas permanecem em lugar por até 10 minutos, após o que a hélice fica sem energia e elas caem ou afundam. A menos que você use precauções adicionais para ocultá-la, a localização de uma armadilha de hélice é geralmente óbvia.</p>"
     },
     "fYzvFBs9GAUP6afd": {
-      "name": "Apresentacao Impressionante",
+      "name": "Apresentação Impressionante",
       "sourceHash": "3d78eafd3292faeb80115f516650e8de0c391a7e",
-      "description": "<p>Suas apresentacoes inspiram admiracao e ganham você fas. Você pode [[/act make-an-impression skill=performance]] usar Atuacao em vez de Diplomacia. Se você gasta pelo menos 10 minutos apresentando diante de uma audiencia, você pode Fazer uma Impressao focando até 10 membros da audiencia que estavam lá para toda a apresentacao, sem tomar a penalidade normal. O número de alvos aumenta para 20 para uma apresentacao de 1 hora e 50 para uma apresentacao de 2 horas.</p>"
+      "description": "<p>Suas apresentações inspiram admiração e ganham você fas. Você pode [[/act make-an-impression skill=performance]] usar Atuação em vez de Diplomacia. Se você gasta pelo menos 10 minutos apresentando diante de uma audiência, você pode Fazer uma Impressao focando até 10 membros da audiência que estavam lá para toda a apresentação, sem tomar a penalidade normal. O número de alvos aumenta para 20 para uma apresentação de 1 hora e 50 para uma apresentação de 2 horas.</p>"
     },
     "fhZKrY5Lm8fQauOo": {
       "name": "Olhos da Cidade",
@@ -1397,9 +1397,9 @@
       "description": "<p>Seus talismãs protegem contra magia vil. Durante seus preparativos diários, você pode montar um pequeno saco com pedaços de ervas, cabelo, óleos sagrados e outros ingredientes rituais, que você dá a um aliado; o aliado não pode ser você mesmo. A primeira vez naquele dia que o aliado tenta um teste de resistência contra uma magia ou assombração, ele ganha um bonus de circunstância +1 na rolagem. Este bonus aumenta para +2 se você é perito em Ocultismo ou +3 se você é lendário.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Root Magic]</p>"
     },
     "gAftl5A042RKcykA": {
-      "name": "Distracao Prolongada",
+      "name": "Distração Prolongada",
       "sourceHash": "19ce4063509bbd09322b43fe6d3b138cbaeee07c",
-      "description": "<p>Quando você critica com sucesso @UUID[Compendium.pf2e.actionspf2e.Item.Create a Diversion], você continua a permanecer @UUID[Compendium.pf2e.conditionitems.Item.Hidden] apos o final de seu turno. Este efeito dura por uma quantidade de tempo que depende da distracao e situacao, conforme determinado pelo MJ (minimo 1 rodada adicional).</p>"
+      "description": "<p>Quando você critica com sucesso @UUID[Compendium.pf2e.actionspf2e.Item.Create a Diversion], você continua a permanecer @UUID[Compendium.pf2e.conditionitems.Item.Hidden] após o final de seu turno. Este efeito dura por uma quantidade de tempo que depende da distração e situação, conforme determinado pelo MJ (mínimo 1 rodada adicional).</p>"
     },
     "gHkXpnlNOGLU1YAn": {
       "name": "Saqueador Subaquático",
@@ -1429,7 +1429,7 @@
     "gWsZYGWw8btyYALn": {
       "name": "Preparar Medicina Elemental",
       "sourceHash": "17d94b86bd39d0e2858d477c0391f5949c6d2440",
-      "description": "<p><strong>Acesso</strong> origem Tian Xia</p><hr /><p>Você diagnostica seu paciente, então prepara e administra uma dose de medicina elemental para uma criatura. @UUID[Compendium.pf2e.equipment-srd.Item.Healer's Toolkit]{Ferramentas de curador} contem ingredientes basicos para craftar medicina elemental, embora você talvez também precise reunir ingredientes mais potentes de seu ambiente. Os efeitos da medicina duram 24 horas, e nenhum personagem pode se beneficiar de mais de uma medicina elemental ao mesmo tempo. Tente um teste @Check[crafting] de Oficio, @Check[herbalism-lore] de Conhecimento de Herbalismo, ou @Check[medicine] de Medicina contra uma CD padrao do nivel do recipiente (no caso de aflicoes especialmente conhecidas ou obscuras, o MJ deveria aplicar um ajuste para abaixar ou aumentar a CD, respectivamente). Conforme as qualidades minutas da condicao do paciente podem mudar dia-a-dia, você deve tentar um novo teste para preparar medicina elemental cada dia que você trata um paciente, mesmo se a aflicao que você esta tratando não muda. Você pode diagnosticar e tratar até 6 criaturas durante seus preparos diarios, fazendo um teste separado para cada paciente.</p><hr />\n<p><strong>Sucesso Critico</strong> Você diagnostica precisamente seu paciente. O MJ decide o desbalanço elemental causando os sintomas do paciente (quais elementos, assim como se esta em excesso ou deficiencia) e entao, usando as informacoes da tabela Associacoes Elementais Pei Zing, notifica você qual elemento de medicina é necessario para remediar isso. Com esta informacao, você entao precisamente identifica a propriedade elemental de um dado ingrediente, e entao usa para preparar uma medicina elemental excelente que concede ao recipiente um bonus de circunstancia +2 para testes de resistencia contra a aflicao.</p>\n<p><strong>Sucesso</strong> Como sucesso critico, mas o bonus é +1.</p>\n<p><strong>Falha</strong> Você falha em diagnosticar seu paciente. O MJ não diz qual desbalanço elemental está causando os sintomas do paciente, e portanto, você não pode preparar uma medicina elemental.</p>\n<p><strong>Falha Critica</strong> Você desdiagnostica seu paciente. O MJ decide o desbalanço elemental causando os sintomas do paciente e entao diz a você um diagnostico diferente, falso ou notifica que o ingrediente elemental que você está tentando tratar os sintomas com é realmente incorreto. De qualquer forma, seu tratamento errado impoe uma penalidade de circunstancia –1 para testes de resistencia contra a aflicao.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Prepare Elemental Medicine]</p>"
+      "description": "<p><strong>Acesso</strong> origem Tian Xia</p><hr /><p>Você diagnostica seu paciente, então prepara e administra uma dose de medicina elemental para uma criatura. @UUID[Compendium.pf2e.equipment-srd.Item.Healer's Toolkit]{Ferramentas de curador} contem ingredientes basicos para craftar medicina elemental, embora você talvez também precise reunir ingredientes mais potentes de seu ambiente. Os efeitos da medicina duram 24 horas, e nenhum personagem pode se beneficiar de mais de uma medicina elemental ao mesmo tempo. Tente um teste @Check[crafting] de Oficio, @Check[herbalism-lore] de Conhecimento de Herbalismo, ou @Check[medicine] de Medicina contra uma CD padrao do nível do recipiente (no caso de aflições especialmente conhecidas ou obscuras, o MJ deveria aplicar um ajuste para abaixar ou aumentar a CD, respectivamente). Conforme as qualidades minutas da condição do paciente podem mudar dia-a-dia, você deve tentar um novo teste para preparar medicina elemental cada dia que você trata um paciente, mesmo se a aflição que você esta tratando não muda. Você pode diagnosticar e tratar até 6 criaturas durante seus preparos diarios, fazendo um teste separado para cada paciente.</p><hr />\n<p><strong>Sucesso Crítico</strong> Você diagnostica precisamente seu paciente. O MJ decide o desbalanço elemental causando os sintomas do paciente (quais elementos, assim como se esta em excesso ou deficiência) e então, usando as informações da tabela Associações Elementais Pei Zing, notifica você qual elemento de medicina é necessario para remediar isso. Com esta informação, você então precisamente identifica a propriedade elemental de um dado ingrediente, e então usa para preparar uma medicina elemental excelente que concede ao recipiente um bonus de circunstância +2 para testes de resistência contra a aflição.</p>\n<p><strong>Sucesso</strong> Como sucesso crítico, mas o bonus é +1.</p>\n<p><strong>Falha</strong> Você falha em diagnosticar seu paciente. O MJ não diz qual desbalanço elemental está causando os sintomas do paciente, e portanto, você não pode preparar uma medicina elemental.</p>\n<p><strong>Falha Crítica</strong> Você desdiagnostica seu paciente. O MJ decide o desbalanço elemental causando os sintomas do paciente e então diz a você um diagnostico diferente, falso ou notifica que o ingrediente elemental que você está tentando tratar os sintomas com é realmente incorreto. De qualquer forma, seu tratamento errado impoe uma penalidade de circunstância –1 para testes de resistência contra a aflição.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Prepare Elemental Medicine]</p>"
     },
     "gWzVGtHvzAA0UoqL": {
       "name": "Domestica Animal Ação",
@@ -1444,7 +1444,7 @@
     "ghMWd3McfZzxEizN": {
       "name": "Andar Firme",
       "sourceHash": "1848db9daf7e622c22c85e06639081f7a7d10142",
-      "description": "<p>Voce conhece os segredos de se mover em seu @UUID[Compendium.pf2e.feats-srd.Item.Favored Terrain]. Voce ganha um bonus de circunstancia +2 para verificacoes de pericia para se mover dentro de seu terreno favorito, como verificacoes de Acrobacia para @UUID[Compendium.pf2e.actionspf2e.Item.Balance] no gelo, verificacoes de Atletismo para @UUID[Compendium.pf2e.actionspf2e.Item.Swim] em agua agitada, verificacoes de Acrobacia para @UUID[Compendium.pf2e.actionspf2e.Item.Fly] em condicoes de vento, e assim por diante.</p>"
+      "description": "<p>Você conhece os segredos de se mover em seu @UUID[Compendium.pf2e.feats-srd.Item.Favored Terrain]. Você ganha um bonus de circunstância +2 para verificações de pericia para se mover dentro de seu terreno favorito, como verificações de Acrobacia para @UUID[Compendium.pf2e.actionspf2e.Item.Balance] no gelo, verificações de Atletismo para @UUID[Compendium.pf2e.actionspf2e.Item.Swim] em água agitada, verificações de Acrobacia para @UUID[Compendium.pf2e.actionspf2e.Item.Fly] em condições de vento, e assim por diante.</p>"
     },
     "grmE795EQ9WB65IS": {
       "name": "Recuperação Rápida",
@@ -1459,7 +1459,7 @@
     "h59G7bSg4ugO4HEt": {
       "name": "Golpe Reativo",
       "sourceHash": "6f4243fa671120e75ce111c96c49610e0bfd2e79",
-      "description": "<p><strong>Gatilho</strong> Uma criatura dentro de seu alcance usa uma acao de manipulacao ou uma acao de movimento, faz um ataque a distancia, ou sai de um quadrado durante uma acao de movimento que esta usando.</p>\n<hr />\n<p>Voce golpeia um inimigo que deixa uma abertura. Faca um Golpe de combate contra a criatura que disparou o gatilho. Se seu ataque e um acerto critico e o gatilho foi uma acao de manipulacao, voce interrompe essa acao. Este Golpe nao conta em sua penalidade por ataque multiplo, e sua penalidade por ataque multiplo nao se aplica a este Golpe.</p>"
+      "description": "<p><strong>Gatilho</strong> Uma criatura dentro de seu alcance usa uma ação de manipulação ou uma ação de movimento, faz um ataque a distância, ou sai de um quadrado durante uma ação de movimento que esta usando.</p>\n<hr />\n<p>Você golpeia um inimigo que deixa uma abertura. Faca um Golpe de combate contra a criatura que disparou o gatilho. Se seu ataque e um acerto crítico e o gatilho foi uma ação de manipulação, você interrompe essa ação. Este Golpe não conta em sua penalidade por ataque multiplo, e sua penalidade por ataque multiplo não se aplica a este Golpe.</p>"
     },
     "h5IrnmUcfRC0bAPV": {
       "name": "Assalto Acelerado",
@@ -1552,9 +1552,9 @@
       "description": "<p>Você pode fazer Malabarismo com itens e ainda usar suas mãos entre arremessos. Você pode usar a ação Malabarismo de várias maneiras.</p>\n<p>Você pode começar a fazer Malabarismo com um item armazenado, um item que estava carregando, ou um item desatendido dentro de seu alcance. O item deve ter volume leve ou negligenciável. Você faz Malabarismo com o item até o final de seu próximo turno, a menos que use este talento novamente no próximo turno para continuar fazendo Malabarismo (veja abaixo). Enquanto você está fazendo Malabarismo, você pode usar esta ação novamente para adicionar outro item ao Malabarismo, que deve atender aos mesmos requisitos. Você pode fazer Malabarismo com um número de itens igual a um a mais que o número de mãos que está usando para Malabarismo.</p>\n<p>Você também pode usar esta ação para continuar fazendo Malabarismo desde que não esteja fatigado. Quando fizer isso, você continua fazendo Malabarismo até o final de seu próximo turno. Se você não continuar fazendo Malabarismo até o final de seu turno, você para de fazer Malabarismo e deixa cair todos os itens. Você fica fatigado se continuar fazendo Malabarismo por mais de 10 minutos (60 rodadas) no decorrer de uma hora.</p>\n<p>Desde que esteja fazendo Malabarismo com menos que o seu número máximo de itens, você tem uma mão livre. Você pode usar armas que está fazendo Malabarismo (mas não escudos ou outros itens) desde que possam ser usadas em uma mão. Por exemplo, enquanto você faz Malabarismo com um punhal em uma mão e usa um escudo na outra, você está usando o punhal mas ainda tem uma mão livre para Conjurar uma Magia com um componente material. Fazer Malabarismo com duas ou mais armas com uma mão não permite que você use talentos que exigem duas armas cada uma segurada em uma mão diferente.</p>"
     },
     "k4TrazqG59I6KsPj": {
-      "name": "Jactancia Triunfante",
+      "name": "Jactância Triunfante",
       "sourceHash": "a1a8d67e4135f409630646af915facf75f9152e5",
-      "description": "<p>Voce relata um conto alto e impressionante de seu triunfo sobre um inimigo formidavel. Quando @UUID[Compendium.pf2e.actionspf2e.Item.Perform], escolhe um alvo unico dentro de 30 pes de voce e compara o resultado de seu teste de Atuacao contra a CD de Vontade do observador. Se for mestre em Atuacao, pode escolher ate quatro alvos, e se for lendario, pode escolher qualquer numero de alvos. Se obter sucesso, qualquer tentativa feita por voce para @UUID[Compendium.pf2e.actionspf2e.Item.Demoralize] essa criatura nos proximos 24 horas ganha um bonus de circunstancia de +1. Se seu modificador de Carisma eh +5 ou superior e voce eh mestre em Atuacao, este bonus aumenta para +2. Uma vez que uma criatura eh vangloriadaesta forma, ela se torna temporariamente imune a outras Jaciancias Triunfantes por 24 horas.</p>"
+      "description": "<p>Você relata um conto alto e impressionante de seu triunfo sobre um inimigo formidavel. Quando @UUID[Compendium.pf2e.actionspf2e.Item.Perform], escolhe um alvo único dentro de 30 pes de você e compara o resultado de seu teste de Atuação contra a CD de Vontade do observador. Se for mestre em Atuação, pode escolher até quatro alvos, e se for lendario, pode escolher qualquer número de alvos. Se obter sucesso, qualquer tentativa feita por você para @UUID[Compendium.pf2e.actionspf2e.Item.Demoralize] essa criatura nos proximos 24 horas ganha um bonus de circunstância de +1. Se seu modificador de Carisma eh +5 ou superior e você eh mestre em Atuação, este bonus aumenta para +2. Uma vez que uma criatura eh vangloriadaesta forma, ela se torna temporariamente imune a outras Jactâncias Triunfantes por 24 horas.</p>"
     },
     "kFgYf7r1ZcwQ7nq5": {
       "name": "Grito de Guerra",
@@ -1567,14 +1567,14 @@
       "description": "<p><strong>Requisitos</strong> Você tem uma ou mais mãos livres.</p>\n<hr />\n<p>Você infunde poder mágico em seu corpo ou armamentos para aparar tanto assaltos físicos quanto mágicos.</p>\n<p>Você ergue sua guarda, ganhando um bônus de circunstância +1 à CA e aos testes de resistência contra magias que o têm como alvo até o início de seu próximo turno, contanto que você continue cumprindo os requisitos.</p>"
     },
     "kSzj4nJVYGh7PIjo": {
-      "name": "Desativacao Cautelosa",
+      "name": "Desativação Cautelosa",
       "sourceHash": "c4b6746acb95e33e210706bb1d684b398c8f4491",
-      "description": "<p>Se aciona um dispositivo ou dispara uma armadilha enquanto a desativa, voce ganha um bonus de circunstancia de +2 em sua classe de armadura ou teste de resistencia contra o dispositivo ou armadilha. Isto se aplica apenas aos ataques ou efeitos disparados por sua tentativa falhada, nao a quaisquer posteriores, como ataques adicionais de uma armadilha complexa.</p>"
+      "description": "<p>Se aciona um dispositivo ou dispara uma armadilha enquanto a desativa, você ganha um bonus de circunstância de +2 em sua classe de armadura ou teste de resistência contra o dispositivo ou armadilha. Isto se aplica apenas aos ataques ou efeitos disparados por sua tentativa falhada, não a quaisquer posteriores, como ataques adicionais de uma armadilha complexa.</p>"
     },
     "kevZCBGfSkET7SvD": {
       "name": "Capturar Magia",
       "sourceHash": "708b8feead5f0b49e4caf7f6ebae4e7c6fb0ac1e",
-      "description": "<p><strong>Gatilho</strong> Voce sucede em seu teste de resistencia contra uma magia prejudicial de um inimigo, ou um inimigo falha em uma rolagem de ataque de magia contra voce de uma magia prejudicial.</p>\n<hr />\n<p>Quando voce resiste a uma magia, voce captura um pouco de sua magia para seu proprio uso. Voce entra em sua postura Cascata Arcana, usando a magia que disparou o gatilho para determinar qual tipo de dano sua Cascata Arcana causa.</p>\n<p>Alternativamente, se voce ja esta em Cascata Arcana, voce pode ampliar temporariamente seus efeitos. Ate o final de seu proximo turno, voce ganha um bonus de condicao +2 ao dano de sua Cascata Arcana.</p>"
+      "description": "<p><strong>Gatilho</strong> Você sucede em seu teste de resistência contra uma magia prejudicial de um inimigo, ou um inimigo falha em uma rolagem de ataque de magia contra você de uma magia prejudicial.</p>\n<hr />\n<p>Quando você resiste a uma magia, você captura um pouco de sua magia para seu próprio uso. Você entra em sua postura Cascata Arcana, usando a magia que disparou o gatilho para determinar qual tipo de dano sua Cascata Arcana causa.</p>\n<p>Alternativamente, se você ja esta em Cascata Arcana, você pode ampliar temporariamente seus efeitos. Até o final de seu próximo turno, você ganha um bonus de condição +2 ao dano de sua Cascata Arcana.</p>"
     },
     "kjCVNnmgSoE7FvvZ": {
       "name": "Influenciador do Bairro da Hera",
@@ -1594,12 +1594,12 @@
     "koc6X0wxy6mKenAl": {
       "name": "Cuidado Holistico",
       "sourceHash": "f41eda91a14adb6c6b7f1009529fec700f086c40",
-      "description": "<p>Voce fornece cuidado emocional e espiritual. Adicione @UUID[Compendium.pf2e.conditionitems.Item.Frightened], @UUID[Compendium.pf2e.conditionitems.Item.Stupefied], e @UUID[Compendium.pf2e.conditionitems.Item.Stunned] a lista de condicoes que voce pode reduzir com @UUID[Compendium.pf2e.feats-srd.Item.Treat Condition]. Se a condicao atordoado tem uma duracao em vez de um valor, voce nao pode usar Tratar Condicao para reduzi-la.</p>"
+      "description": "<p>Você fornece cuidado emocional e espiritual. Adicione @UUID[Compendium.pf2e.conditionitems.Item.Frightened], @UUID[Compendium.pf2e.conditionitems.Item.Stupefied], e @UUID[Compendium.pf2e.conditionitems.Item.Stunned] a lista de condições que você pode reduzir com @UUID[Compendium.pf2e.feats-srd.Item.Treat Condition]. Se a condição atordoado tem uma duração em vez de um valor, você não pode usar Tratar Condição para reduzi-la.</p>"
     },
     "l2HvRAkwwACip47y": {
       "name": "Frequentador",
       "sourceHash": "65800a9ea23164bad1080ec55dec0db115c0199d",
-      "description": "<p>Você é hábil em aprender informações através da conversa. A atividade de exploracao @UUID[Compendium.pf2e.actionspf2e.Item.Gather Information] leva você metade do tempo normal (tipicamente reduzindo o tempo para 1 hora). Se você é mestre em Diplomacia e faz uma falha critica para Reunir Informacoes, você obtém uma falha no lugar. Ainda não há garantia de que um boato que você aprende com Reunir Informacoes é preciso.</p>"
+      "description": "<p>Você é hábil em aprender informações através da conversa. A atividade de exploração @UUID[Compendium.pf2e.actionspf2e.Item.Gather Information] leva você metade do tempo normal (tipicamente reduzindo o tempo para 1 hora). Se você é mestre em Diplomacia e faz uma falha crítica para Reunir Informações, você obtém uma falha no lugar. Ainda não há garantia de que um boato que você aprende com Reunir Informações é preciso.</p>"
     },
     "lRNCZ4jB9UT0bpAt": {
       "name": "Magia do Redemoinho",
@@ -1624,7 +1624,7 @@
     "ldSlD0G3x2BvYtx6": {
       "name": "Compromisso com a Igualdade",
       "sourceHash": "6073fafaf1ba9b487262e054545e864849a91504",
-      "description": "<p>Você ajuda um aliado a se livrar de qualquer impedimento que daria a um inimigo uma vantagem injusta. Você anima uma criatura a até 30 pés na tentativa de reduzir sua condicao @UUID[Compendium.pf2e.conditionitems.Item.Frightened]{Amedrontado} ou @UUID[Compendium.pf2e.conditionitems.Item.Stupefied]{Estupidificado}. Se uma criatura tem múltiplas condições desta lista, escolha uma. Quando você é mestre em Diplomacia, adicione @UUID[Compendium.pf2e.conditionitems.Item.Clumsy]{Desajeitado} e @UUID[Compendium.pf2e.conditionitems.Item.Enfeebled]{Enfraquecido} à lista de condições. Quando você é lendário em Diplomacia, adicione @UUID[Compendium.pf2e.conditionitems.Item.Stunned]{Atordoado} à lista de condições; se a condicao atordoado tem uma duração em vez de um valor, você não pode usar Compromisso com a Igualdade para reduzi-lo.</p>\n<p>Tente um teste de @Check[diplomacy]{Diplomacia} contra a CD do teste de resistência do efeito que causou a condicao; se não houve CD de teste de resistência, use a CD difícil para o nível da criatura, perigo ou item que causou o efeito. Você não pode tratar uma condicao que veio de um artefato ou efeito acima do 20º nível a menos que seja lendário em Diplomacia; mesmo assim, a CD de anulação aumenta em 10. Você não pode tratar uma condicao que faz parte de uma maldição ou doença ou é um estado natural do alvo. Após tentar tratar a condicao de um alvo, aquele alvo é imune a futuras tentativas por 1 hora, independentemente do resultado.</p><hr /><p><strong>Sucesso Crítico</strong> Reduza o valor da condicao em 2.</p>\n<p><strong>Sucesso</strong> Reduza o valor da condicao em 1.</p>\n<p><strong>Falha Crítica</strong> Aumente o valor da condicao em 1.</p>"
+      "description": "<p>Você ajuda um aliado a se livrar de qualquer impedimento que daria a um inimigo uma vantagem injusta. Você anima uma criatura a até 30 pés na tentativa de reduzir sua condição @UUID[Compendium.pf2e.conditionitems.Item.Frightened]{Amedrontado} ou @UUID[Compendium.pf2e.conditionitems.Item.Stupefied]{Estupidificado}. Se uma criatura tem múltiplas condições desta lista, escolha uma. Quando você é mestre em Diplomacia, adicione @UUID[Compendium.pf2e.conditionitems.Item.Clumsy]{Desajeitado} e @UUID[Compendium.pf2e.conditionitems.Item.Enfeebled]{Enfraquecido} à lista de condições. Quando você é lendário em Diplomacia, adicione @UUID[Compendium.pf2e.conditionitems.Item.Stunned]{Atordoado} à lista de condições; se a condição atordoado tem uma duração em vez de um valor, você não pode usar Compromisso com a Igualdade para reduzi-lo.</p>\n<p>Tente um teste de @Check[diplomacy]{Diplomacia} contra a CD do teste de resistência do efeito que causou a condição; se não houve CD de teste de resistência, use a CD difícil para o nível da criatura, perigo ou item que causou o efeito. Você não pode tratar uma condição que veio de um artefato ou efeito acima do 20º nível a menos que seja lendário em Diplomacia; mesmo assim, a CD de anulação aumenta em 10. Você não pode tratar uma condição que faz parte de uma maldição ou doença ou é um estado natural do alvo. Após tentar tratar a condição de um alvo, aquele alvo é imune a futuras tentativas por 1 hora, independentemente do resultado.</p><hr /><p><strong>Sucesso Crítico</strong> Reduza o valor da condição em 2.</p>\n<p><strong>Sucesso</strong> Reduza o valor da condição em 1.</p>\n<p><strong>Falha Crítica</strong> Aumente o valor da condição em 1.</p>"
     },
     "lgNdPxUIhCrN86pj": {
       "name": "À Vista",
@@ -1639,17 +1639,17 @@
     "mHpdUR5DKZdDxNab": {
       "name": "Presa Escorregadia",
       "sourceHash": "7d7343483d871a1fefff34370eed0b2c91d3b052",
-      "description": "<p>Voce eh capaz de se libertar de amarras mais facilmente do que outros. Quando tenta @UUID[Compendium.pf2e.actionspf2e.Item.Escape] usando Acrobacia ou Atletismo, reduz a penalidade por ataque multiplo para tentativas repetidas para -4 e -8 se for treinado na pericia. A penalidade se torna -3 e -6 se for perito na pericia apropriada. Se for lendario na pericia, nao sofre penalidades para tentativas multiplas de Escapar no mesmo turno. Independentemente de seu treinamento, suas tentativas de Escapar continuam tendo o traco de ataque e incorrem em penalidade por ataque multiplo com outras acoes.</p>"
+      "description": "<p>Você eh capaz de se libertar de amarras mais facilmente do que outros. Quando tenta @UUID[Compendium.pf2e.actionspf2e.Item.Escape] usando Acrobacia ou Atletismo, reduz a penalidade por ataque multiplo para tentativas repetidas para -4 e -8 se for treinado na pericia. A penalidade se torna -3 e -6 se for perito na pericia apropriada. Se for lendario na pericia, não sofre penalidades para tentativas multiplas de Escapar no mesmo turno. Independentemente de seu treinamento, suas tentativas de Escapar continuam tendo o traco de ataque e incorrem em penalidade por ataque multiplo com outras ações.</p>"
     },
     "mIUvU2QkppE1L2jE": {
       "name": "Marca da Sombra",
       "sourceHash": "4f4eebdcbf67616061f42887b7703eb48e3893b9",
-      "description": "<p>Voce aprendeu truques especiais que o ajudam a seguir individuos sem que eles o notem.</p>\n<p>Quando tenta um teste de Furtividade para @UUID[Compendium.pf2e.actionspf2e.Item.Avoid Notice] enquanto segue um alvo especifico, o alvo sofre uma penalidade de circunstancia de -2 em sua CD de Percepcao. Se tiver proficiencia de mestre em Furtividade, a penalidade sera de -3 ou -4 se for lendario.</p>\n<p>Se iniciar um combate com o alvo enquanto o esgueira, o alvo sofre esta penalidade em sua rolagem de iniciativa e em sua CD de Percepcao para determinar se o nota, como normal para @UUID[Compendium.pf2e.actionspf2e.Item.Sneak].</p>"
+      "description": "<p>Você aprendeu truques especiais que o ajudam a seguir individuos sem que eles o notem.</p>\n<p>Quando tenta um teste de Furtividade para @UUID[Compendium.pf2e.actionspf2e.Item.Avoid Notice] enquanto segue um alvo específico, o alvo sofre uma penalidade de circunstância de -2 em sua CD de Percepção. Se tiver proficiência de mestre em Furtividade, a penalidade sera de -3 ou -4 se for lendario.</p>\n<p>Se iniciar um combate com o alvo enquanto o esgueira, o alvo sofre esta penalidade em sua rolagem de iniciativa e em sua CD de Percepção para determinar se o nota, como normal para @UUID[Compendium.pf2e.actionspf2e.Item.Sneak].</p>"
     },
     "mnGOD0QyxiuJQEtN": {
       "name": "Dedos Mecanicos",
       "sourceHash": "41c3d276cfa90ef10b4f3d2732679016bc6708bc",
-      "description": "<p>Voce e treinado em Oficio. Se voce e treinado em Oficio de outra fonte (de seu antecedente ou classe, por exemplo), voce se torna treinado em uma pericia de sua escolha. Voce pode @UUID[Compendium.pf2e.actionspf2e.Item.Repair] um item sem usar um kit de reparo sem sofrer a penalidade de circunstancia -2, improvisando ferramentas com o que tiver a mao. Voce ganha um bonus de circunstancia +1 em testes de Oficio para Reparar um item quando voce tem um kit de reparo.</p>"
+      "description": "<p>Você e treinado em Oficio. Se você e treinado em Oficio de outra fonte (de seu antecedente ou classe, por exemplo), você se torna treinado em uma pericia de sua escolha. Você pode @UUID[Compendium.pf2e.actionspf2e.Item.Repair] um item sem usar um kit de reparo sem sofrer a penalidade de circunstância -2, improvisando ferramentas com o que tiver a mao. Você ganha um bonus de circunstância +1 em testes de Oficio para Reparar um item quando você tem um kit de reparo.</p>"
     },
     "moJMfJokoxtrQs7e": {
       "name": "Conhecimento Perturbador",
@@ -1712,9 +1712,9 @@
       "description": "<p>Seu domínio ao sobreviver na natureza selvagem lhe concedeu uma espécie de sexto sentido quando se trata de notar criaturas que não fazem parte da ordem natural. Você ganha um bônus de circunstância +1 em todas as verificações de iniciativa no início de um combate no qual pelo menos um de seus inimigos é uma aberração, fada, mutante ou morto-vivo, ou se um de seus inimigos é de um plano diferente do Plano Material, desde que o combate ocorra em uma região selvagem. Em regiões selvagens, você também aumenta sua CD de Percepção em 1 contra esses tipos de criaturas para fins de resolver suas verificações de Furtividade. Se você for mestre em Sobrevivência, esse bônus de circunstância aumenta para +2.</p>\n<p>Se você conhece o ritual @UUID[Compendium.pf2e.spells-srd.Item.Commune], você pode usar Sobrevivência como uma verificação primária ou secundária para resolver esse ritual—se você fizer isso, você ganha um bônus de circunstância +2.</p>"
     },
     "oho1ScEzaC89KZqc": {
-      "name": "Inoculacao",
+      "name": "Inoculação",
       "sourceHash": "7c7dacf00c1529da045fc0a41ca976029ea469f0",
-      "description": "<p>Você tem prática combatendo praga, e seus pacientes têm menos probabilidade de sucumbir à mesma doença novamente por um tempo.</p>\n<p>Quando você com sucesso @UUID[Compendium.pf2e.actionspf2e.Item.Treat Disease]{Tratar uma Doenca} em alguém e eles se recuperam completamente da doenca, eles ganham um bonus de circunstancia +2 para testes de resistencia contra a mesma doenca por 1 semana.</p>"
+      "description": "<p>Você tem prática combatendo praga, e seus pacientes têm menos probabilidade de sucumbir à mesma doença novamente por um tempo.</p>\n<p>Quando você com sucesso @UUID[Compendium.pf2e.actionspf2e.Item.Treat Disease]{Tratar uma Doença} em alguém e eles se recuperam completamente da doença, eles ganham um bonus de circunstância +2 para testes de resistência contra a mesma doença por 1 semana.</p>"
     },
     "ojdEQPOjn3gFLUg0": {
       "name": "Identificação Erudita",
@@ -1739,7 +1739,7 @@
     "pP1ESEvFaPyF2OFM": {
       "name": "Ancestralidade Adotada",
       "sourceHash": "eb0c1323707161e0643020ef3b7b76a3e9c69bbd",
-      "description": "<p>Voce esta completamente imerso na cultura e tradicoes de outra ancestralidade, seja nascido nelas, ganho atraves de rito de passagem, ou vinculado atraves de uma profunda amizade ou romance. Escolha uma ancestralidade comum ou outra ancestralidade a qual voce tem acesso. Voce pode selecionar talentos de ancestralidade da ancestralidade que escolheu, alem dos talentos de ancestralidade de seu proprio personagem, contanto que os talentos de ancestralidade nao exijam nenhuma caracteristica fisiologica que voce nao tem, conforme determinado pelo Mestre do Jogo.</p>"
+      "description": "<p>Você esta completamente imerso na cultura e tradições de outra ancestralidade, seja nascido nelas, ganho através de rito de passagem, ou vinculado através de uma profunda amizade ou romance. Escolha uma ancestralidade comum ou outra ancestralidade a qual você tem acesso. Você pode selecionar talentos de ancestralidade da ancestralidade que escolheu, além dos talentos de ancestralidade de seu próprio personagem, contanto que os talentos de ancestralidade não exijam nenhuma caracteristica fisiologica que você não tem, conforme determinado pelo Mestre do Jogo.</p>"
     },
     "pYjFKNMU1KdK3z1t": {
       "name": "Fortaleça sua Determinação",
@@ -1784,17 +1784,17 @@
     "rCGSTlsBxfE2qzyf": {
       "name": "Roer",
       "sourceHash": "1e93eded260fc17ba0bb43413740ea980c621db7",
-      "description": "<p>Com tempo e determinacao suficientes, voce pode roer quase qualquer coisa. Voce causa o dobro de seu dano de mandibulas a um objeto inanimado desacompanhado.</p>"
+      "description": "<p>Com tempo e determinação suficientes, você pode roer quase qualquer coisa. Você causa o dobro de seu dano de mandibulas a um objeto inanimado desacompanhado.</p>"
     },
     "rYkpGihUodbYUN2P": {
-      "name": "Puxao de Redemoinho",
+      "name": "Puxão de Redemoinho",
       "sourceHash": "5d650fba6141f8250925588687665b758ab0bdb3",
-      "description": "<p>Voce brevemente conjura um tentaculo de agua que permite que voce pegue uma arma improvizada e depois absorva essa agua para alimentar sua magia. Voce Interage para pegar um objeto desatendido dentro de 15 pes que voce poderia usar como uma arma improvizada e entao Conjura uma Magia que e um truque ou magia de foco que leva 1 acao para conjurar.</p>"
+      "description": "<p>Você brevemente conjura um tentaculo de água que permite que você pegue uma arma improvizada e depois absorva essa água para alimentar sua magia. Você Interage para pegar um objeto desatendido dentro de 15 pes que você poderia usar como uma arma improvizada e então Conjura uma Magia que e um truque ou magia de foco que leva 1 ação para conjurar.</p>"
     },
     "rsE4lZmZcEebGl18": {
       "name": "Nenhuma Causa para Alarme",
       "sourceHash": "ac770770b5bd3b76a49f58994c8130903e235156",
-      "description": "<p>Você tenta reduzir panico. Tente um teste @Check[diplomacy] de Diplomacia, comparando para a CD de Vontade de criaturas em uma @Template[emanation|distance:10] emanacao ao seu redor que são @UUID[Compendium.pf2e.conditionitems.Item.Frightened] amedrontadas. Cada uma delas é temporariamente imune por 1 hora.</p>\n<hr />\n<p><strong>Sucesso Critico</strong> Reduza o valor amedrontado da criatura por 2.</p>\n<p><strong>Sucesso</strong> Reduza o valor amedrontado da criatura por 1.</p>"
+      "description": "<p>Você tenta reduzir panico. Tente um teste @Check[diplomacy] de Diplomacia, comparando para a CD de Vontade de criaturas em uma @Template[emanation|distance:10] emanação ao seu redor que são @UUID[Compendium.pf2e.conditionitems.Item.Frightened] amedrontadas. Cada uma delas é temporariamente imune por 1 hora.</p>\n<hr />\n<p><strong>Sucesso Crítico</strong> Reduza o valor amedrontado da criatura por 2.</p>\n<p><strong>Sucesso</strong> Reduza o valor amedrontado da criatura por 1.</p>"
     },
     "rxysfm02Q8Nw1XKa": {
       "name": "Cura Cristalina",
@@ -1809,7 +1809,7 @@
     "s5wi40PJLzjdykgX": {
       "name": "Apoio Bem-Vindo",
       "sourceHash": "16f410b1c9882b641ea3c01c74a67e7abb8a0a32",
-      "description": "<p>Voce frequentemente confia na populacao local para provisoes e abrigo. Uma vez por dia, voce pode tentar uma verificacao para [[/act request]] ou [[/act coerce]] contra uma CD facil para seu nivel ao falar com alguem que e um residente nao-hostil e de longo prazo de seu local favorito. Com sucesso, escolha um dos seguintes para obter.</p><ul><li>Um item nao-magico de seu nivel ou inferior</li><li>Um local seguro para se abrigar por 24 horas</li><li>Provisoes para 3 dias para voce e ate 5 aliados</li></ul>"
+      "description": "<p>Você frequentemente confia na população local para provisoes e abrigo. Uma vez por dia, você pode tentar uma verificação para [[/act request]] ou [[/act coerce]] contra uma CD fácil para seu nível ao falar com alguem que e um residente não-hostil e de longo prazo de seu local favorito. Com sucesso, escolha um dos seguintes para obter.</p><ul><li>Um item não-mágico de seu nível ou inferior</li><li>Um local seguro para se abrigar por 24 horas</li><li>Provisoes para 3 dias para você e até 5 aliados</li></ul>"
     },
     "sCZqWwK9iJvt1kSJ": {
       "name": "Elogio Relutante",
@@ -1824,7 +1824,7 @@
     "sVhxFfBbZqcEoEMC": {
       "name": "Narrativa Uzunjati",
       "sourceHash": "219a51eed1032aa3014821ef934015500c8b2b1b",
-      "description": "<p>Voce conta uma historia rapida ou comeca a contar uma tale mais longa. Isto e mais util quando voce quer provar sua credibilidade erudicao ou impressionar alguem rapidamente. Role uma verificacao com uma pericia que pode ser usada para Rememorar Conhecimento na qual voce tem proficiencia perita, usando a entrada de resultado para a acao Atuar. Como Atuacao, Narrativa raramente tem um efeito por si mesma, mas pode influenciar as CDs de verificacoes de Diplomacia subsequentes contra os observadores—ou ate mudar suas atitudes—se o MJ vir adequado. Esta acao nao e uma Atuacao e nao pode ser usada em lugar de qualquer coisa que exija voce Atuar.</p>"
+      "description": "<p>Você conta uma história rápida ou comeca a contar uma tale mais longa. Isto e mais útil quando você quer provar sua credibilidade erudição ou impressionar alguem rapidamente. Role uma verificação com uma pericia que pode ser usada para Rememorar Conhecimento na qual você tem proficiência perita, usando a entrada de resultado para a ação Atuar. Como Atuação, Narrativa raramente tem um efeito por si mesma, mas pode influenciar as CDs de verificações de Diplomacia subsequentes contra os observadores—ou até mudar suas atitudes—se o MJ vir adequado. Esta ação não e uma Atuação e não pode ser usada em lugar de qualquer coisa que exija você Atuar.</p>"
     },
     "sWx9VRw2sa4SQixP": {
       "name": "Fios Vermelho-Sangue",
@@ -1849,7 +1849,7 @@
     "sgqC3nNQZhuobaNi": {
       "name": "Familiar",
       "sourceHash": "ddd24c066d662f48fda0db27fa917fdbd138acef",
-      "description": "<p><strong>Magus, Feiticeiro</strong> Um animal o serve e auxilia sua conjuracao de magia.</p>\n<p><strong>Mago</strong> Voce faz um pacto com uma criatura que o serve e auxilia sua conjuracao de magia.</p>\n<p><strong>Taumaturgo</strong> Seja seguindo rituais oculos, reunindo fragmentos de teoria arcana, ou algum outro metodo, voce invocou uma criatura que agora serve como seu companheiro constante em seus estudos do sobrenatural.</p>\n<hr />\n<p>Voce ganha um familiar.</p>"
+      "description": "<p><strong>Magus, Feiticeiro</strong> Um animal o serve e auxilia sua conjuração de magia.</p>\n<p><strong>Mago</strong> Você faz um pacto com uma criatura que o serve e auxilia sua conjuração de magia.</p>\n<p><strong>Taumaturgo</strong> Seja seguindo rituais oculos, reunindo fragmentos de teoria arcana, ou algum outro metodo, você invocou uma criatura que agora serve como seu companheiro constante em seus estudos do sobrenatural.</p>\n<hr />\n<p>Você ganha um familiar.</p>"
     },
     "skZ1WMidP1mjHbQh": {
       "name": "Charlatão",
@@ -1869,7 +1869,7 @@
     "t6BMoesJuBbRlDrt": {
       "name": "Conhecimento e Poder",
       "sourceHash": "cb6cc2adffcd3c2e52584ef5708857c208252bf8",
-      "description": "<p>Quando voce acerta criticamente em um teste de Rememorar Conhecimento sobre uma criatura, voce ganha um bonus de circunstancia +1 em sua proxima rolagem de ataque contra a criatura, em sua classe de armadura contra sua proxima rolagem de ataque e em seu teste de resistencia contra seu proximo efeito que exige um teste de resistencia.</p>\n<p>Se voce compartilha esta informacao com seus aliados, eles tambem ganham os bonus. Se nao utilizados, estes bonus terminam apos 1 minuto.</p>"
+      "description": "<p>Quando você acerta criticamente em um teste de Rememorar Conhecimento sobre uma criatura, você ganha um bonus de circunstância +1 em sua próxima rolagem de ataque contra a criatura, em sua classe de armadura contra sua próxima rolagem de ataque e em seu teste de resistência contra seu próximo efeito que exige um teste de resistência.</p>\n<p>Se você compartilha esta informação com seus aliados, eles também ganham os bonus. Se não utilizados, estes bonus terminam após 1 minuto.</p>"
     },
     "t9f2C5aImE9dseMH": {
       "name": "Mimetismo Muscular",
@@ -1924,7 +1924,7 @@
     "vGLUMJEa5jyU6OzI": {
       "name": "Furia Acuada",
       "sourceHash": "bcb63ffb462b2fc36b412a44d3b6c4d8af84d948",
-      "description": "<p>Se um inimigo maior que voce acerta criticamente e o danifica, esse inimigo e @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] para voce por 1 rodada.</p>"
+      "description": "<p>Se um inimigo maior que você acerta criticamente e o danifica, esse inimigo e @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] para você por 1 rodada.</p>"
     },
     "vGui7YDcFPxpIC81": {
       "name": "Comando Experiente",
@@ -1944,7 +1944,7 @@
     "vuTjZS9xbSH9AQc2": {
       "name": "Cifra Multilingue",
       "sourceHash": "a489f7d925959a6870ebc4aeaa8f74f98beb372e",
-      "description": "<p>Voce usa multiplas linguagens para criar e quebrar codigos. Voce ganha um bonus de circunstancia +1 para @UUID[Compendium.pf2e.actionspf2e.Item.Decipher Writing].</p>\n<p>Se outra criatura tentar Decifrar Escrita que voce codificou, ela sofre uma penalidade de circunstancia -2 a menos que fale todas as linguagens que voce usou quando criou a escrita.</p>"
+      "description": "<p>Você usa multiplas linguagens para criar e quebrar codigos. Você ganha um bonus de circunstância +1 para @UUID[Compendium.pf2e.actionspf2e.Item.Decipher Writing].</p>\n<p>Se outra criatura tentar Decifrar Escrita que você codificou, ela sofre uma penalidade de circunstância -2 a menos que fale todas as linguagens que você usou quando criou a escrita.</p>"
     },
     "vxPRqY5S7CiWSIoQ": {
       "name": "Quebrar Maldição",
@@ -1984,7 +1984,7 @@
     "wkwXXYU7a61r0Qlz": {
       "name": "Trabalho em Equipe Acrobatico",
       "sourceHash": "e0751d6103b7a833ffbb95540b57b077ff855919",
-      "description": "<p>Seu acrobacia distrai um inimigo o bastante para criar uma vantagem para um de seus aliados. Quando @UUID[Compendium.pf2e.actionspf2e.Item.Tumble Through] com sucesso no espaco de um inimigo, um aliado que eh adjacente a esse inimigo pode Passo como uma reacao, mas deve permanecer adjacente a esse inimigo.</p>"
+      "description": "<p>Seu acrobacia distrai um inimigo o bastante para criar uma vantagem para um de seus aliados. Quando @UUID[Compendium.pf2e.actionspf2e.Item.Tumble Through] com sucesso no espaco de um inimigo, um aliado que eh adjacente a esse inimigo pode Passo como uma reação, mas deve permanecer adjacente a esse inimigo.</p>"
     },
     "x1ehAUl2uCf23bfd": {
       "name": "Animal de Estimação",
@@ -2002,9 +2002,9 @@
       "description": "<p>Você pode se adaptar rapidamente a climas e ajudar outros a fazer o mesmo. Após uma hora em um ambiente, você e até cinco aliados podem considerar os efeitos naturais de temperatura do ambiente como um grau menos severo (tratar frio extremo como frio severo ou calor extremo como calor severo, por exemplo). Essa redução de severidade é cumulativa com qualquer equipamento (como roupas de clima frio) ou magias (como resistência ambiental). Se você for lendário em Sobrevivência, pode proteger a si mesmo e até cinco aliados, e trata efeitos de temperatura como dois graus menos severos.</p>"
     },
     "xa2dnIb910GDffJB": {
-      "name": "Varredura Magica",
+      "name": "Varredura Mágica",
       "sourceHash": "32b21ea85e2b843fb7478f227e5f4eb7b3d22c4d",
-      "description": "<p><strong>Requisitos</strong> Seu Golpe Magico esta carregado.</p>\n<hr />\n<p>Voce ataca em um arco e executa sua magia contra todos que voce acerta. Faca um Golpe Magico, mas role Golpes separados para atacar duas criaturas, cada uma devendo estar dentro de seu alcance natural de combate e adjacente uma a outra. Se sua magia pudesse afetar dois ou mais alvos, sua magia afeta quaisquer inimigos que voce acertou, nao apenas o primeiro alvo; caso contrario, escolha um alvo para afetar com a magia. Uma Varredura Magica conta como dois ataques para sua penalidade por ataque multiplo, mas a penalidade nao aumenta ate apos voce fazer ambos os ataques.</p>\n<p>Se voce esta usando uma arma que tem o traco varredura, seu bonus de circunstancia se aplica contra ambos os alvos. Voce pode usar esta atividade apenas com Golpes de combate, mesmo se voce tiver o estudo hibrido extensao estrelada ou capacidade similar.</p>\n<p>Se voce usa Golpe Magico Expansivo para Golpe Magico com uma magia de area, aplique a area conforme descrito em Golpe Magico Expansivo, escolhendo uma das criaturas que voce Golpeia para determinar a area e se a magia falha devido a um Golpe falhado criticamente. Se voce usa Golpe Magico Expansivo para Golpe Magico com uma magia alvo, a magia e perdida completamente apenas se ambos os Golpes sao falhas criticas.</p>"
+      "description": "<p><strong>Requisitos</strong> Seu Golpe Mágico esta carregado.</p>\n<hr />\n<p>Você ataca em um arco e executa sua magia contra todos que você acerta. Faca um Golpe Mágico, mas role Golpes separados para atacar duas criaturas, cada uma devendo estar dentro de seu alcance natural de combate e adjacente uma a outra. Se sua magia pudesse afetar dois ou mais alvos, sua magia afeta quaisquer inimigos que você acertou, não apenas o primeiro alvo; caso contrario, escolha um alvo para afetar com a magia. Uma Varredura Mágica conta como dois ataques para sua penalidade por ataque multiplo, mas a penalidade não aumenta até após você fazer ambos os ataques.</p>\n<p>Se você esta usando uma arma que tem o traco varredura, seu bonus de circunstância se aplica contra ambos os alvos. Você pode usar esta atividade apenas com Golpes de combate, mesmo se você tiver o estudo hibrido extensao estrelada ou capacidade similar.</p>\n<p>Se você usa Golpe Mágico Expansivo para Golpe Mágico com uma magia de área, aplique a área conforme descrito em Golpe Mágico Expansivo, escolhendo uma das criaturas que você Golpeia para determinar a área e se a magia falha devido a um Golpe falhado criticamente. Se você usa Golpe Mágico Expansivo para Golpe Mágico com uma magia alvo, a magia e perdida completamente apenas se ambos os Golpes sao falhas criticas.</p>"
     },
     "xhoWcWN82veiOTsV": {
       "name": "Estamos na Lista",
@@ -2019,7 +2019,7 @@
     "yEMCjUlbCt1jXyMF": {
       "name": "Olho dos Lordes do Arco",
       "sourceHash": "b636b16c22f20eae86d751e90aba9618cd563932",
-      "description": "<p><strong>Frequência</strong> uma vez por dia</p>\n<p><strong>Acesso</strong> Você é um membro dos Lordes do Arco de Nex.</p>\n<hr />\n<p>Você abre um terceiro olho incandescente em sua testa.</p>\n<p>O olho pode permanecer aberto por 1 minuto, e pode fechá-lo antes com uma ação única com o traco de concentração. Pode permanecer aberto por 2 minutos se você é mestre em Arcanismo, ou 5 minutos se é lendário.</p>\n<p>Enquanto o olho está aberto, você ganha os seguintes benefícios:</p>\n<ul>\n<li>você ganha os efeitos do truque arcano inato de magia detectar de seu Sentido Arcano no início de cada um de seus turnos sem precisar conjurar a magia;</li>\n<li>você ganha visão no escuro;</li>\n<li>você ganha um bônus de condicao +2 às verificações de Percepção para Investigar criaturas não detectadas e escondidas e à sua CD de Percepção contra Esconder e Esgueirar.</li>\n</ul>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Eye of the Arclords]</p>\n<p>Após seu terceiro olho fechar, você fica ofuscado por um período de tempo igual ao tempo que o manteve aberto.</p>"
+      "description": "<p><strong>Frequência</strong> uma vez por dia</p>\n<p><strong>Acesso</strong> Você é um membro dos Lordes do Arco de Nex.</p>\n<hr />\n<p>Você abre um terceiro olho incandescente em sua testa.</p>\n<p>O olho pode permanecer aberto por 1 minuto, e pode fechá-lo antes com uma ação única com o traco de concentração. Pode permanecer aberto por 2 minutos se você é mestre em Arcanismo, ou 5 minutos se é lendário.</p>\n<p>Enquanto o olho está aberto, você ganha os seguintes benefícios:</p>\n<ul>\n<li>você ganha os efeitos do truque arcano inato de magia detectar de seu Sentido Arcano no início de cada um de seus turnos sem precisar conjurar a magia;</li>\n<li>você ganha visão no escuro;</li>\n<li>você ganha um bônus de condição +2 às verificações de Percepção para Investigar criaturas não detectadas e escondidas e à sua CD de Percepção contra Esconder e Esgueirar.</li>\n</ul>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Eye of the Arclords]</p>\n<p>Após seu terceiro olho fechar, você fica ofuscado por um período de tempo igual ao tempo que o manteve aberto.</p>"
     },
     "yGQpAYLBZGC1KkNd": {
       "name": "Captura em Movimento",
@@ -2059,12 +2059,12 @@
     "zBGykV80C24CRdxi": {
       "name": "Voz Fria como a Morte",
       "sourceHash": "6ce8b6e7fe617e65fc9afbb45e6bdf401cda07c3",
-      "description": "<p><strong>Requisitos</strong> Voce nao esta @UUID[Compendium.pf2e.conditionitems.Item.Fatigued].</p>\n<hr />\n<p>Canalizando a energia do Pacto Carmesim em sua voz, voce pronuncia uma ameaca em um tom tao gelido que congela o sangue. Tente uma verificacao de Intimidacao para @UUID[Compendium.pf2e.actionspf2e.Item.Demoralize]; voce nao sofre penalidade se o alvo nao entender a linguagem que voce esta falando, mas isto funciona de outra forma como normal. Voce nao pode usar Intimidacao Perturbadora ou qualquer outro efeito que causaria sua tentativa de Desmoralizar perder o traco auditivo como parte de usar este talento. Se voce tem sucesso critico em sua verificacao de Intimidacao, o alvo se torna @UUID[Compendium.pf2e.conditionitems.Item.Stunned]{Atordoado 1}, ou @UUID[Compendium.pf2e.conditionitems.Item.Stunned]{Atordoado 2} se o alvo e um morto-vivo. Apos usar este talento, voce esta fatigado ate o fim de seu proximo turno, e voce nao pode usar este talento novamente ate o fim de seu proximo turno.</p>"
+      "description": "<p><strong>Requisitos</strong> Você não esta @UUID[Compendium.pf2e.conditionitems.Item.Fatigued].</p>\n<hr />\n<p>Canalizando a energia do Pacto Carmesim em sua voz, você pronúncia uma ameaca em um tom tao gelido que congela o sangue. Tente uma verificação de Intimidação para @UUID[Compendium.pf2e.actionspf2e.Item.Demoralize]; você não sofre penalidade se o alvo não entender a linguagem que você esta falando, mas isto funciona de outra forma como normal. Você não pode usar Intimidação Perturbadora ou qualquer outro efeito que causaria sua tentativa de Desmoralizar perder o traco auditivo como parte de usar este talento. Se você tem sucesso crítico em sua verificação de Intimidação, o alvo se torna @UUID[Compendium.pf2e.conditionitems.Item.Stunned]{Atordoado 1}, ou @UUID[Compendium.pf2e.conditionitems.Item.Stunned]{Atordoado 2} se o alvo e um morto-vivo. Após usar este talento, você esta fatigado até o fim de seu próximo turno, e você não pode usar este talento novamente até o fim de seu próximo turno.</p>"
     },
     "zOt8gFaRu0aXwxOP": {
       "name": "Veterinario de Megafauna",
       "sourceHash": "98f8489905cee5d9503cd2c9bf410c404531bb6f",
-      "description": "<p>Ao obedecer os conselhos sabios de ancioes em seu sequito—e auxiliado pela sua propria experiencia—voce aprendeu como fornecer cuidados medicos para a megafauna dos sequitos do Senhor Mamute. Voce pode tentar uma verificacao de Natureza em lugar de uma verificacao de Medicina para qualquer um dos usos treinado e destreinado de Medicina, desde que o sujeito de seu cuidado medico seja uma megafauna. Se voce esta tentando uma acao que exige um grau de proficiencia particular em Medicina (como @UUID[Compendium.pf2e.actionspf2e.Item.Treat Wounds]), use seu grau de proficiencia em Natureza em vez disso. Se o sujeito de seu cuidado e sua megafauna e voce rola um sucesso em sua verificacao, voce tem um sucesso critico em vez disso.</p>"
+      "description": "<p>Ao obedecer os conselhos sabios de ancioes em seu sequito—e auxiliado pela sua própria experiência—você aprendeu como fornecer cuidados medicos para a megafauna dos sequitos do Senhor Mamute. Você pode tentar uma verificação de Natureza em lugar de uma verificação de Medicina para qualquer um dos usos treinado e destreinado de Medicina, desde que o sujeito de seu cuidado medico seja uma megafauna. Se você esta tentando uma ação que exige um grau de proficiência particular em Medicina (como @UUID[Compendium.pf2e.actionspf2e.Item.Treat Wounds]), use seu grau de proficiência em Natureza em vez disso. Se o sujeito de seu cuidado e sua megafauna e você rola um sucesso em sua verificação, você tem um sucesso crítico em vez disso.</p>"
     },
     "zQDco1LAbsgoJIik": {
       "name": "Desespero de Devastação",
@@ -2084,7 +2084,7 @@
     "zctkoieUAMcgyeBI": {
       "name": "Linguagem dos Senhores Mamute",
       "sourceHash": "fabe7653ca1f616c8596f74f246efaba33bcfe7d",
-      "description": "<p>Voce aprendeu a antiga lingua falada pelas criaturas do norte distante. Voce pode fazer perguntas de, receber respostas de, usar a pericia de Diplomacia com, e @UUID[Compendium.pf2e.actionspf2e.Item.Coerce] megafauna. Na maioria dos casos, megafauna do Reino dos Senhores Mamute o ouvirá.</p>"
+      "description": "<p>Você aprendeu a antiga lingua falada pelas criaturas do norte distante. Você pode fazer perguntas de, receber respostas de, usar a pericia de Diplomacia com, e @UUID[Compendium.pf2e.actionspf2e.Item.Coerce] megafauna. Na maioria dos casos, megafauna do Reino dos Senhores Mamute o ouvirá.</p>"
     },
     "zryMJ9Kf8KBOWoRx": {
       "name": "Que Foi Por Pouco, Né?",
