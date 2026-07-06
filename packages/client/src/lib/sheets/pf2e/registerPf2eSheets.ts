@@ -31,10 +31,12 @@ import { sheetRegistry } from "../sheetRegistry.js";
 export async function registerPf2eSheets(): Promise<void> {
   // Dynamic imports keep the sheet code in separate bundles (code-split) and
   // avoid requiring Svelte at module-init time (which breaks Node tests).
-  const [{ default: CharacterSheet }, { default: NpcSheet }] = await Promise.all([
-    import("../../../components/sheets/pf2e/CharacterSheet.svelte"),
-    import("../../../components/sheets/pf2e/NpcSheet.svelte"),
-  ]);
+  const [{ default: CharacterSheet }, { default: NpcSheet }, { default: FamiliarSheet }] =
+    await Promise.all([
+      import("../../../components/sheets/pf2e/CharacterSheet.svelte"),
+      import("../../../components/sheets/pf2e/NpcSheet.svelte"),
+      import("../../../components/sheets/pf2e/pets/FamiliarSheet.svelte"),
+    ]);
 
   // Character sheet — primary PC sheet (REQ-PF2-110)
   sheetRegistry.register("Actor", "character", CharacterSheet, {
@@ -59,6 +61,14 @@ export async function registerPf2eSheets(): Promise<void> {
   // REQ-PF2-112: loot sheet = inventory only
   sheetRegistry.register("Actor", "loot", NpcSheet, {
     defaultSize: { width: 440, height: 400 },
+    makeDefault: true,
+  });
+
+  // Familiar / companion sheet — lean statblock with a link back to the master
+  // (spec 29 REQ-PET-055). Creation + ability budget are driven from the
+  // master's Pets tab; this window is the standalone view.
+  sheetRegistry.register("Actor", "familiar", FamiliarSheet, {
+    defaultSize: { width: 420, height: 460 },
     makeDefault: true,
   });
 }

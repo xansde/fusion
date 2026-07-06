@@ -32,6 +32,8 @@
   import ActionsTab from "./ActionsTab.svelte";
   import ProficiencyBadge from "./ProficiencyBadge.svelte";
   import PlanColumn from "./plan/PlanColumn.svelte";
+  import PetsTab from "./pets/PetsTab.svelte";
+  import { detectFamiliarGrant, linkedFamiliars } from "$lib/sheets/pf2e/petsVM.js";
   import { t } from "$lib/i18n/i18n.js";
 
   // ---------------------------------------------------------------------------
@@ -88,18 +90,39 @@
   // Tab state
   // ---------------------------------------------------------------------------
 
-  let activeTab = $state<CharacterSheetTab>("main");
+  // Local tab id widened with "pets" (r16-G4). The shared CharacterSheetTab
+  // type lives in characterSheetVM.ts (owned by another workstream this round);
+  // the Pets tab is a pure sheet-render concern, so the id is widened here
+  // rather than editing the VM. Follow-up: fold "pets" into CharacterSheetTab.
+  type SheetTabId = CharacterSheetTab | "pets";
+  let activeTab = $state<SheetTabId>("main");
+
+  // Pets tab visibility (REQ-PET-050): shown when the character already has a
+  // linked familiar OR has a feat that grants one. worldMirror gives the live
+  // actor list so linked familiars are detected reactively.
+  let allActors = $state<Array<Record<string, unknown>>>([]);
+  $effect(() => {
+    const unsub = worldMirror.subscribe<Record<string, unknown>>("Actor", (docs) => {
+      allActors = docs;
+    });
+    return unsub;
+  });
+  const showPetsTab = $derived(
+    detectFamiliarGrant(liveDoc).canHaveFamiliar ||
+      linkedFamiliars(allActors, actorId).length > 0,
+  );
 
   // Rendered tabs (r14 #8 pt-BR labels; r14 #16: "feats" REMOVED — the Plan
   // column covers everything the Feats tab showed, at the correct levels).
-  const SHEET_TABS: ReadonlyArray<{ id: CharacterSheetTab; labelKey: string }> = [
+  const SHEET_TABS: ReadonlyArray<{ id: SheetTabId; labelKey: string }> = $derived([
     { id: "main", labelKey: "FUSION.Sheet.Tabs.Main" },
     { id: "skills", labelKey: "FUSION.Sheet.Tabs.Skills" },
     { id: "actions", labelKey: "FUSION.Sheet.Tabs.Actions" },
     { id: "spells", labelKey: "FUSION.Sheet.Tabs.Spells" },
+    ...(showPetsTab ? [{ id: "pets" as const, labelKey: "FUSION.Sheet.Tabs.Pets" }] : []),
     { id: "inventory", labelKey: "FUSION.Sheet.Tabs.Inventory" },
     { id: "bio", labelKey: "FUSION.Sheet.Tabs.Bio" },
-  ];
+  ]);
 
   // ---------------------------------------------------------------------------
   // Play / Edit mode toggle (REQ-UIF-023) — local UI state, does not persist.
@@ -794,6 +817,25 @@
       class="tab-panel tab-panel--spells"
     >
       <SpellsTab {vm} sendOpFn={(op) => sendOpFn(op as ChatRollPayload | DocOpPayload)} />
+    </section>
+
+  <!-- PETS tab (spec 29 / REQ-PET-050) -->
+  {:else if activeTab === "pets"}
+    <section
+      id="tab-panel-pets"
+      role="tabpanel"
+      aria-labelledby="tab-pets"
+      class="tab-panel tab-panel--pets"
+    >
+      <PetsTab
+        masterDoc={liveDoc}
+        masterId={actorId}
+        editable={vm.editable}
+        {userId}
+        {isGm}
+        {ownership}
+        {worldId}
+      />
     </section>
 
   <!-- INVENTORY tab -->
