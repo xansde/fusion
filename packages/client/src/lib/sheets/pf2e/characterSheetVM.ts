@@ -145,6 +145,33 @@ function spellSystemHasAttack(system: Record<string, unknown>): boolean {
   return defense?.["spellAttack"] === true;
 }
 
+/** ◆ glyphs for an action cost value 1/2/3, reaction, or free. */
+const SPELL_COST_GLYPHS: Record<string, string> = {
+  "1": "◆",
+  "2": "◆◆",
+  "3": "◆◆◆",
+  reaction: "⟳",
+  free: "◇",
+};
+
+/**
+ * Action-cost glyphs for a spell's cast time (r16). Reads `system.time.value`
+ * (e.g. "1", "2", "2 to 2 rounds") and returns the ◆ glyph string, matching the
+ * Actions tab (COST_GLYPHS). Ranges like "2 to 2 rounds" take the leading
+ * number. Non-action casts (minutes/hours/blank) return "" (no glyphs shown).
+ */
+function spellActionGlyphs(system: Record<string, unknown>): string {
+  const time = system["time"] as { value?: unknown } | undefined;
+  const raw = typeof time?.["value"] === "string" ? (time["value"] as string).trim() : "";
+  if (!raw) return "";
+  const lower = raw.toLowerCase();
+  if (lower.startsWith("reaction")) return SPELL_COST_GLYPHS["reaction"] ?? "";
+  if (lower.startsWith("free")) return SPELL_COST_GLYPHS["free"] ?? "";
+  const lead = /^(\d)/.exec(raw);
+  if (lead) return SPELL_COST_GLYPHS[lead[1]!] ?? "";
+  return "";
+}
+
 // ---------------------------------------------------------------------------
 // Ability names
 // ---------------------------------------------------------------------------
@@ -1422,6 +1449,74 @@ export class CharacterSheetVM {
     return this._buildChatRoll(heightened.rollFormula, label);
   }
 
+  /**
+   * Build the chat card(s) for CASTING a spell (r16 verificação viva). Returns:
+   *   - `announcement`: a plain-text chat:send (speaker = this actor) naming the
+   *     spell in pt-BR, its effective rank, the action-cost glyphs (◆/◆◆/…), and
+   *     — for save spells — the DC + save ("CD 19, Reflexos básico"). Display
+   *     only; no roll.
+   *   - `attack`: the spell-attack roll (via {@link rollSpellAttack}) when the
+   *     spell carries the "attack" trait, else null — so one "Lançar" click both
+   *     announces and rolls the attack. Damage stays on the separate Dano button.
+   *
+   * `entryId` locates the spell's spellcasting entry for the DC/attack lookup.
+   * Returns null only when the spell id resolves to no embedded spell.
+   */
+  castSpell(
+    spellItemId: string,
+    entryId: string,
+    surface: SpellSurface,
+    slotRank?: number,
+  ): { announcement: ChatRollPayload; attack: ChatRollPayload | null } | null {
+    const sys = this._readSpellSystem(spellItemId);
+    if (!sys) return null;
+
+    const rawLevel = sys["level"];
+    const baseRank = typeof rawLevel === "number" ? rawLevel : 0;
+    const eff = effectiveSpellRank(surface, this.level, baseRank, slotRank);
+
+    const name = this._embeddedSpellDisplayName(spellItemId);
+    const glyphs = spellActionGlyphs(sys);
+    const heightened = eff > Math.max(1, baseRank);
+    const base = heightened
+      ? t("FUSION.Sheet.Chat.SpellCastHeightened", { name, rank: String(eff) })
+      : t("FUSION.Sheet.Chat.SpellCast", { name });
+
+    // Save line (display only) for spells that call for a save.
+    const saveLine = this._spellSaveLine(sys, entryId);
+    const parts = [base];
+    if (glyphs) parts.push(glyphs);
+    if (saveLine) parts.push(`(${saveLine})`);
+    const content = parts.join(" ");
+
+    const announcement: ChatRollPayload = {
+      type: "chat:send",
+      content,
+      worldId: this._worldId,
+      rollMode: "public",
+      speakerActorId: this._actorId,
+    };
+
+    const attack = spellSystemHasAttack(sys) ? this.rollSpellAttack(entryId) : null;
+    return { announcement, attack };
+  }
+
+  /**
+   * Build the "CD <dc>, <save>[ básico]" fragment for a spell that calls for a
+   * save (reads the healed `system.defense.save`), or null when the spell has
+   * no save. The DC comes from derived.spellcasting[entryId].dc.
+   */
+  private _spellSaveLine(sys: Record<string, unknown>, entryId: string): string | null {
+    const defense = sys["defense"] as Record<string, unknown> | undefined;
+    const save = defense?.["save"] as Record<string, unknown> | undefined;
+    const statistic = typeof save?.["statistic"] === "string" ? (save["statistic"] as string) : "";
+    if (!statistic) return null;
+    const dc = this._derived?.spellcasting?.[entryId]?.dc ?? 10;
+    const saveName = t(`FUSION.Sheet.Chat.SaveName.${statistic}`);
+    const basic = save?.["basic"] === true ? t("FUSION.Sheet.Chat.SpellCastSaveBasic") : "";
+    return t("FUSION.Sheet.Chat.SpellCastSave", { dc: String(dc), save: saveName, basic });
+  }
+
   /** Translated display name of an embedded spell item by id (fallback: generic). */
   private _embeddedSpellDisplayName(spellItemId: string): string {
     const items = this._doc["items"] as Array<Record<string, unknown>> | undefined;
@@ -2026,15 +2121,30 @@ export class CharacterSheetVM {
    * returns an empty array so callers can skip the "nothing changed" no-op
    * network round-trip.
    *
-   * Deliberately does NOT restore HP — PF2e's rest rules heal
-   * Constitution-modifier × level HP per night, which requires the
-   * character's CON mod and level and isn't implemented here. Documented as
-   * a follow-up (see BUILD-LOG r11); resting only clears spell slots and
-   * focus points in this MVP.
+   * Restores HP per the remaster night's-rest rule: Constitution modifier ×
+   * level, minimum 1 × level (a 0-or-negative CON mod still heals level HP),
+   * clamped to max HP (r16 verificação viva). Uses the DERIVED CON mod (r11
+   * build-driven scores) and the doc's level. Emits a `chat:send` summary card
+   * (speaker = the actor) so the player sees what was recovered.
    */
-  restAll(): DocOpPayload[] {
+  restAll(): Array<DocOpPayload | ChatRollPayload> {
     if (!this.editable) return [];
-    const ops: DocOpPayload[] = [];
+    const ops: Array<DocOpPayload | ChatRollPayload> = [];
+
+    // --- HP recovery (CON mod × level, min 1 × level, clamp to max) ---------
+    const hpBefore = this.hpCurrent;
+    const hpRecovered = this.restHpRecovery();
+    if (hpRecovered > 0) {
+      const newHp = Math.min(hpBefore + hpRecovered, this.hpMax);
+      if (newHp !== hpBefore) {
+        ops.push({
+          type: "doc:update",
+          documentType: "Actor",
+          id: this._actorId,
+          diff: { "system.attributes.hp.value": newHp },
+        });
+      }
+    }
 
     for (const entry of this.spellcastingEntries) {
       for (const slot of entry.slots) {
@@ -2079,7 +2189,52 @@ export class CharacterSheetVM {
       if (op) ops.push(op);
     }
 
+    // --- Rest summary card (chat) — only when something actually happened ----
+    const actuallyRecovered = Math.min(hpRecovered, Math.max(0, this.hpMax - hpBefore));
+    if (ops.length > 0) {
+      ops.push(this._buildRestSummary(actuallyRecovered));
+    }
+
     return ops;
+  }
+
+  /** The actor's derived Constitution modifier (r11 build-driven scores). */
+  private _conMod(): number {
+    const con = this.abilities.find((a) => a.slug === "con");
+    return con?.mod ?? 0;
+  }
+
+  /**
+   * HP recovered by a night's rest (remaster): CON modifier × level, but at
+   * least 1 × level (a 0-or-negative CON mod still heals level HP). Never
+   * exceeds the HP actually missing (so a full-HP actor recovers 0).
+   */
+  restHpRecovery(): number {
+    const level = Math.max(1, this.level);
+    const perLevel = Math.max(1, this._conMod());
+    const potential = perLevel * level;
+    const missing = Math.max(0, this.hpMax - this.hpCurrent);
+    return Math.min(potential, missing);
+  }
+
+  /**
+   * Build the rest-summary chat card: "Tobias descansou: +6 HP, magias e foco
+   * restaurados" (plain-text chat:send, speaker = the actor). `hpRecovered` is
+   * the HP actually restored (0 when already full — the card then omits the HP
+   * clause).
+   */
+  private _buildRestSummary(hpRecovered: number): ChatRollPayload {
+    const content =
+      hpRecovered > 0
+        ? t("FUSION.Sheet.Rest.SummaryHp", { name: this.name, hp: String(hpRecovered) })
+        : t("FUSION.Sheet.Rest.Summary", { name: this.name });
+    return {
+      type: "chat:send",
+      content,
+      worldId: this._worldId,
+      rollMode: "public",
+      speakerActorId: this._actorId,
+    };
   }
 }
 

@@ -115,7 +115,10 @@ function hasTraits(system: Record<string, unknown>): boolean {
  *                     keys aligned so the extra dice actually apply.
  *   - `traits`      → pack's when the embedded `traits.value` is empty (restores
  *                     the "attack"/"focus" traits the surface/attack logic reads).
- *   - `defense`     → pack's when the embedded has none (spell-attack flag).
+ *   - `defense`     → pack's when the embedded has none (save block: basic +
+ *                     statistic — the cast announcement shows CD + salvaguarda).
+ *   - `time`        → pack's when the embedded has none (cast-time action cost,
+ *                     rendered as ◆ glyphs in the cast announcement).
  *
  * `level` (base rank) is intentionally NOT healed: the sheet groups spells into
  * slot ranks by the embedded `system.level` (absent = 0 = cantrip bucket), and
@@ -156,6 +159,11 @@ export function healSpellSystem(
   // defense: the save block (statistic + basic) the sheet reads for saves.
   if (!isRecord(embedded["defense"]) && isRecord(packSystem["defense"])) {
     healed["defense"] = packSystem["defense"];
+  }
+
+  // time: the cast-time action cost (rendered as ◆ glyphs in the announcement).
+  if (!isRecord(embedded["time"]) && isRecord(packSystem["time"])) {
+    healed["time"] = packSystem["time"];
   }
 
   return healed;

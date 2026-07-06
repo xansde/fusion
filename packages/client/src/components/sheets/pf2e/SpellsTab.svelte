@@ -581,12 +581,15 @@
   function castSpell(entry: SpellcastingEntryRow, rank: number, slotIndex: number, spellId: string, spellName: string): void {
     const preparedOp = vm.toggleSlotExpended(entry.entryId, rank, slotIndex);
     if (preparedOp) sendOpFn(preparedOp);
-    // Roll cast: no dedicated "cast" roll exists yet beyond spell attack —
-    // spell attack rolls are available from the header "Attack" stat; a bare
-    // "cast" click just marks the slot expended for now (feedback item 5:
-    // preparing/expending, not a full cast automation, which is out of scope).
-    void spellId;
+    // r16: announce the cast in chat (pt-BR name + effective rank + ◆ glyphs +
+    // save line) with Tobias as speaker; if it's an attack spell, also fire the
+    // spell-attack roll (one click = announcement + attack). Damage stays on Dano.
     void spellName;
+    const cast = vm.castSpell(spellId, entry.entryId, "prepared", rank);
+    if (cast) {
+      sendOpFn(cast.announcement);
+      if (cast.attack) sendOpFn(cast.attack);
+    }
   }
 
   /**
@@ -626,10 +629,32 @@
     if (op) sendOpFn(op);
   }
 
-  /** Casting a focus spell spends one Focus Point (min 0). */
-  function castFocusSpell(): void {
+  /**
+   * Cast a cantrip (r16): no slot to spend — just announce it in chat (+ fire
+   * the spell-attack roll for attack cantrips like Ignition). Cantrips
+   * auto-heighten to ceil(level/2); the VM resolves the entry for DC/attack.
+   */
+  function castCantrip(entry: SpellcastingEntryRow, spellId: string): void {
+    const cast = vm.castSpell(spellId, entry.entryId, "cantrip");
+    if (cast) {
+      sendOpFn(cast.announcement);
+      if (cast.attack) sendOpFn(cast.attack);
+    }
+  }
+
+  /** Casting a focus spell spends one Focus Point (min 0) and announces it. */
+  function castFocusSpell(spellId?: string): void {
     const op = vm.setFocusPoints(Math.max(0, vm.focusPoints.value - 1));
     if (op) sendOpFn(op);
+    // r16: chat announcement (+ attack roll for attack focus spells). Focus
+    // spells auto-heighten to ceil(level/2); the VM resolves the entry for DC.
+    if (spellId && vm.focusEntryId) {
+      const cast = vm.castSpell(spellId, vm.focusEntryId, "focus");
+      if (cast) {
+        sendOpFn(cast.announcement);
+        if (cast.attack) sendOpFn(cast.attack);
+      }
+    }
   }
 
   /** Open the picker to add a focus spell to the focus-pool entry. */
@@ -798,6 +823,13 @@
                   <div class="spell-chip">
                     {@render spellNameButton(cName, cantrip.id, "spell-chip__name")}
                     {@render heightenChrome(cantrip.heightening, cantrip.id, "cantrip", undefined, cName)}
+                    {#if vm.editable}
+                      <button
+                        type="button"
+                        class="spell-btn spell-btn--primary spell-chip__cast"
+                        onclick={() => castCantrip(entry, cantrip.id)}
+                      >{t("FUSION.Sheet.Spells.Cast")}</button>
+                    {/if}
                   </div>
                 {/each}
               </div>
@@ -982,7 +1014,7 @@
                   class="spell-btn spell-btn--primary"
                   disabled={vm.focusPoints.value <= 0}
                   title={vm.focusPoints.value <= 0 ? t("FUSION.Sheet.Spells.NoFocusPoints") : ""}
-                  onclick={() => castFocusSpell()}
+                  onclick={() => castFocusSpell(spell.id)}
                 >
                   {t("FUSION.Sheet.Spells.Cast")}
                 </button>
