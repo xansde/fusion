@@ -196,6 +196,21 @@ Follow-ups r14: subtítulo EN suprimido quando idêntico na aba Ações/details 
 
 **Exe final r14** (2026-07-06): 127,7 MB, sha256 `416593efe9bf7eee590a496ed2c196f854f2824652e9c4f24df5805e601f423d`, smoke §5.2 **PASSED** (11 packs pf2e embutidos servidos).
 
+## Rodada r15 — popup pt-BR + ícones de ação + conflux grants + acentos (2026-07-06, dia)
+
+Feedback do usuário testando o exe r14 (rodada interativa, 3 batches paralelos + verificação viva):
+
+| Commits | Entrega |
+| ------- | ------- |
+| `44f93c8`+`928e08e` | **A3 — acentuação pt-BR restaurada** (defeito sistêmico de ondas de tradução r13): script determinístico `fix-missing-accents.mjs` (whole-word case-preserving; regra -ção/-ções; advérbios -mente nunca acentuados — "críticamente" em 47 docs; ambíguos como está/esta e crítica-verbo intocados; NUNCA altera parte estrutural de enricher) → **675 docs corrigidos** em 6 packs |
+| `c17f081`+`2fbba65` | **A1 — popup de detalhes 100% pt-BR**: rótulos i18n (Conjuração/Alcance/Alvo/Dano (base)/Elevação...), valores por token ("varia", "1 criatura", tipos de dano), traits via mapa gerado do glossário com acentos corrigidos (`traitNames.ts`, EN no tooltip); **ícones de custo de ação** ◆/◆◆/◆◆◆/◇/⟳ com faixas "◆ a ◆◆◆" (`formatActionCost`; o "2 to 2 rounds" do print era DADO SUJO do vendor em 3 magias — colapsado para "◆◆ 2 ações"); **CD com nome da classe** ("CD MAGUS 19", fallback "CD DE MAGIA") |
+| `1ac5f40`+`48e07d3`+`2f84d5c` | **A2 — conflux grants curados + chips de tudo**: vendor do Starlit Span tem `rules: []` — o grant só existe na descrição (`**Conflux Spell** @UUID[...]`); extração curada por padrão → **8 grants fixed-item** no `mechanics.json` do class-features-core (5 hybrid studies do Magus + 3); materializer consome `doc.mechanics.grants` (o server JÁ anexava mechanics no getDocument — zero mudança de server); **adoção anti-duplicação** (item pré-existente sem grantedBy é adotado por sourceId/nome — a Shooting Star manual do Tobias NUNCA duplica); chips de cadeado para TODO grant (feat/ação/magia) aninhados ao granter; subtítulo EN idêntico SUPRIMIDO no Plano (decisão do usuário) |
+| `1f310a6`+`36d0c2d` | fixes da verificação viva: tradutor de nomes do Plano sem actions-core (chip "Quick Alchemy" cru); extensão do reparo de acentos (-são/-sões, ço/ç, "Faça…" com "faca"=knife protegido) — +361 substituições em 152 docs |
+
+**Verificação viva (playwright, Jogador dono, cópia fresca): 7/7 PASS** — popup "◆◆ 2 ações" tudo pt-BR, 1 única Estrela Cadente adotada e aninhada ao Alcance Luminoso (idempotente), Alquimia Rápida/Criação Alquímica como chips 🔒 da Dedicação, "CD MAGUS (STARLIT SPAN) 19", Bon Mot sem duplicata, regressões zero (client 1.657 verde). Follow-ups r15: slugs internos de enrichers expandidos em EN no popup ("electricity", "10-foot emanation"); traits da aba Ações em EN (popup de magia já traduz); `worldSync.test.ts` flaky sob carga (passa isolado).
+
+**Exe r15**: (pendente — aguardando janela do servidor do usuário fechar para regenerar).
+
 ## Registro por batch
 
 ### M6-B5 — Auto-update headless — ✅ M6 HEADLESS COMPLETO (2026-07-03)
