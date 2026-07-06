@@ -2185,6 +2185,90 @@ export interface PlanIndexEntryLike {
   uuid: string;
 }
 
+// ---------------------------------------------------------------------------
+// Content-name translation (B1 r14 — pt-BR display for embedded pack content)
+//
+// Embedded actor items (feats, class features, ABC docs) are EN of birth and
+// carry NO `system.slug` (undefined on BOTH the embedded item and the pack
+// doc — the reliable index-side join is the NORMALIZED NAME, exactly like
+// `buildSpellNameTranslator` in characterSheetVM.ts). The compendium index a
+// pack ships carries `namePt` (denormalized pt-BR overlay) per entry; loading
+// the relevant packs (feats-core / class-features-core / ancestries-core /
+// heritages-core / backgrounds-core / spells-core) once lets the Plano column
+// resolve every embedded item's display name to `{ namePt, nameEn }`.
+//
+// USER RULE (r14): pt-BR is ALWAYS the main line + EN is ALWAYS the subtitle,
+// even when identical (Bon Mot / Bon Mot) — so this returns BOTH parts and the
+// component always renders the EN subtitle (unlike `localizedNameParts`, which
+// suppresses the subtitle when the two match).
+// ---------------------------------------------------------------------------
+
+/** Minimal index-entry shape the content-name translator consumes (subset of PackIndexEntry). */
+export interface PlanNameIndexEntry {
+  name: string;
+  namePt?: string | undefined;
+  i18n?: { ptBR?: { name?: string | undefined } | undefined } | undefined;
+}
+
+/** Bilingual display parts for a piece of pack content: pt-BR main + EN subtitle (always present). */
+export interface ContentNameParts {
+  /** pt-BR display name when a translation exists, else the EN name. */
+  namePt: string;
+  /** The EN source-of-truth name (always present, shown as the subtitle). */
+  nameEn: string;
+}
+
+/** Resolve an embedded item's stored (EN or pt-BR) name to its bilingual display parts. */
+export type ContentNameTranslator = (storedName: string) => ContentNameParts;
+
+/** Read the pt-BR overlay name off an index entry — flat `namePt` first, then nested `i18n.ptBR.name`. */
+function entryPtName(entry: PlanNameIndexEntry): string | undefined {
+  const flat = entry.namePt;
+  if (typeof flat === "string" && flat.trim()) return flat.trim();
+  const nested = entry.i18n?.ptBR?.name;
+  return typeof nested === "string" && nested.trim() ? nested.trim() : undefined;
+}
+
+/**
+ * buildContentNameTranslator — EN/pt-BR → `{ namePt, nameEn }` map built from
+ * one or more packs' index entries, joined by NORMALIZED NAME (the only
+ * reliable key: `system.slug` is undefined everywhere, and the pack index does
+ * NOT expose `flags.fusion.sourceId`). Mirrors `buildSpellNameTranslator`'s
+ * shape: the index is keyed by the normalized EN name AND the normalized pt-BR
+ * name (both point at the same `{ namePt, nameEn }`), so it resolves whether
+ * the actor's embedded item name was copied in EN or pt-BR. First write wins
+ * per key (deterministic given a stable index order).
+ *
+ * Names with no matching pack entry return `{ namePt: stored, nameEn: stored }`
+ * — an EN-only fallback that still lets the caller render the "always both"
+ * layout (identical main/subtitle) without crashing on unknown content.
+ */
+export function buildContentNameTranslator(
+  entriesByPack: PlanNameIndexEntry[][],
+): ContentNameTranslator {
+  const map = new Map<string, ContentNameParts>();
+  for (const entries of entriesByPack) {
+    for (const entry of entries) {
+      const nameEn = entry.name;
+      if (!nameEn) continue;
+      const namePt = entryPtName(entry) ?? nameEn;
+      const parts: ContentNameParts = { namePt, nameEn };
+      const enKey = normalizeName(nameEn);
+      const ptKey = normalizeName(namePt);
+      if (enKey && !map.has(enKey)) map.set(enKey, parts);
+      if (ptKey && !map.has(ptKey)) map.set(ptKey, parts);
+    }
+  }
+  return (storedName: string): ContentNameParts => {
+    const fallback: ContentNameParts = { namePt: storedName, nameEn: storedName };
+    if (!storedName) return fallback;
+    return map.get(normalizeName(storedName)) ?? fallback;
+  };
+}
+
+/** EN slot-type labels, exported for use as the ALWAYS-shown EN subtitle beside the pt-BR i18n label (r14 rule). */
+export const SLOT_TYPE_LABELS_EN: Record<PlanSlotType, string> = SLOT_TYPE_LABELS;
+
 /**
  * A request to open the details panel for a Plan item: which pack to search
  * and the item name to match. `level`/`rank` are display-only extras the

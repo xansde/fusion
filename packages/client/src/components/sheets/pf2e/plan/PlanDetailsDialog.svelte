@@ -37,7 +37,7 @@
   import { findEntryUuidByName, type PlanDetailsRequest } from "../../../../lib/sheets/pf2e/planVM.js";
   import DocumentDetailsPanel from "../DocumentDetailsPanel.svelte";
   import { session, getSocket } from "../../../../lib/session.svelte.js";
-  import { t } from "../../../../lib/i18n/i18n.js";
+  import { t, i18n } from "../../../../lib/i18n/i18n.js";
 
   interface Props {
     /** Which pack to search + the item name to resolve. */
@@ -52,9 +52,22 @@
   // "not-found" = pack loaded but no entry matched the name; "load" = socket/
   // fetch failure. Both surface a retry; "not-found" gets its own copy.
   let errorKind = $state<"not-found" | "load" | null>(null);
+  // The matched pack entry's pt-BR name (r14 #3) — used as the dialog title so
+  // the header matches the pt-BR body/description, with the EN name (request.
+  // name) as the always-shown subtitle. null until resolved / when untranslated.
+  let resolvedNamePt = $state<string | null>(null);
 
   const systemId = $derived(session.worldInfo?.systemId ?? "pf2e");
   const detailsCache = new DocumentDetailsCache();
+
+  // Title parts (r14 #3): pt-BR main + EN subtitle, always both on pt-BR locale.
+  // Falls back to the EN request name alone before resolution / on the en locale.
+  const titleMain = $derived(
+    i18n.locale === "pt-BR" && resolvedNamePt ? resolvedNamePt : request.name,
+  );
+  const titleSubEn = $derived(
+    i18n.locale === "pt-BR" && resolvedNamePt ? request.name : null,
+  );
 
   $effect(() => {
     void resolveAndLoad();
@@ -64,6 +77,7 @@
     loading = true;
     errorKind = null;
     detailsDoc = null;
+    resolvedNamePt = null;
     try {
       const sock = requireConnectedSocket(getSocket());
       const { packs } = await listPacks(sock, { systemId, documentType: "Item" });
@@ -78,6 +92,10 @@
         errorKind = "not-found";
         return;
       }
+      // Capture the matched entry's pt-BR name for the header (r14 #3).
+      const matched = (entries as PackIndexEntry[]).find((e) => e.uuid === uuid);
+      const pt = matched?.namePt ?? matched?.i18n?.ptBR?.name;
+      resolvedNamePt = typeof pt === "string" && pt.trim() ? pt.trim() : null;
       const cached = detailsCache.get(uuid);
       if (cached) {
         detailsDoc = cached;
@@ -109,7 +127,10 @@
     onkeydown={(e) => { if (e.key === "Escape") onClose(); }}
   >
     <div class="details-modal__header">
-      <h2 class="details-modal__title">{request.name}</h2>
+      <h2 class="details-modal__title">
+        {titleMain}
+        {#if titleSubEn}<span class="details-modal__title-en">{titleSubEn}</span>{/if}
+      </h2>
       <button type="button" class="details-modal__close" onclick={onClose} aria-label={t("FUSION.Dialog.Close")}>
         &times;
       </button>
@@ -180,6 +201,14 @@
     font-weight: 600;
     margin: 0;
     color: var(--fusion-text);
+  }
+
+  /* EN subtitle beside the pt-BR dialog title (r14 #3). */
+  .details-modal__title-en {
+    margin-left: 8px;
+    font-size: 11.5px;
+    font-weight: 400;
+    color: var(--fusion-text-subtle);
   }
 
   .details-modal__close {

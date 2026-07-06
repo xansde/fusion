@@ -27,13 +27,17 @@
   interface Props {
     name: string;
     type: string;
+    /** EN subtitle for the content name — always rendered when present (r14: pt-BR main + EN sub, even when identical). */
+    subName?: string | undefined;
+    /** EN subtitle for the slot-type label — always rendered when present (r14). */
+    subType?: string | undefined;
     onRemove?: (() => void) | undefined;
     onEdit?: (() => void) | undefined;
     onDetails?: (() => void) | undefined;
     badge?: Snippet | undefined;
   }
 
-  let { name, type, onRemove, onEdit, onDetails, badge }: Props = $props();
+  let { name, type, subName, subType, onRemove, onEdit, onDetails, badge }: Props = $props();
 
   // Edit is the primary body action when available (ability boosts / skill
   // trainings); details is the fallback for non-editable filled slots (feats).
@@ -54,9 +58,12 @@
       <span class="plan-slot__main">
         <span class="plan-slot__name">
           {name}
+          {#if subName}<span class="plan-slot__name-en">{subName}</span>{/if}
           {#if badge}{@render badge()}{/if}
         </span>
-        <span class="plan-slot__type">{type}</span>
+        <span class="plan-slot__type">
+          {type}{#if subType}<span class="plan-slot__type-en">{subType}</span>{/if}
+        </span>
       </span>
       <span class="plan-slot__edit" aria-hidden="true">{bodyIsEdit ? "✎" : "ⓘ"}</span>
     </button>
@@ -65,9 +72,12 @@
     <div class="plan-slot__main">
       <div class="plan-slot__name">
         {name}
+        {#if subName}<span class="plan-slot__name-en">{subName}</span>{/if}
         {#if badge}{@render badge()}{/if}
       </div>
-      <div class="plan-slot__type">{type}</div>
+      <div class="plan-slot__type">
+        {type}{#if subType}<span class="plan-slot__type-en">{subType}</span>{/if}
+      </div>
     </div>
   {/if}
   {#if onRemove}
@@ -150,9 +160,25 @@
     color: var(--fusion-text);
   }
 
+  /* EN subtitle beside the pt-BR content name (r14: always shown, even when identical). */
+  .plan-slot__name-en {
+    margin-left: 6px;
+    font-size: 10.5px;
+    font-weight: 400;
+    color: var(--fusion-text-subtle);
+  }
+
   .plan-slot__type {
     font-size: 10px;
     color: var(--fusion-text-subtle);
+  }
+
+  /* EN subtitle beside the pt-BR slot-type label (r14). */
+  .plan-slot__type-en {
+    margin-left: 5px;
+    font-size: 9px;
+    color: var(--fusion-text-subtle);
+    opacity: 0.75;
   }
 
   .plan-slot__remove {

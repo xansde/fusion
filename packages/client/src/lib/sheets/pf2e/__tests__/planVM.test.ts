@@ -45,10 +45,12 @@ import {
   detailsRequestForAutoFeature,
   findEntryUuidByName,
   pickDefaultEntryUuid,
+  buildContentNameTranslator,
   type PlanOpBuilderContext,
   type PlanSlotModel,
   type FeatDocLike,
   type PlanIndexEntryLike,
+  type PlanNameIndexEntry,
 } from "../planVM.js";
 import type { DocUpdatePayload } from "../characterSheetVM.js";
 import { DocCreatePayloadSchema, DocUpdatePayloadSchema, DocDeletePayloadSchema } from "@fusion/shared";
@@ -2672,5 +2674,86 @@ describe("pickDefaultEntryUuid", () => {
 
   it("returns null for an empty list", () => {
     expect(pickDefaultEntryUuid([])).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildContentNameTranslator (B1 r14) — pt-BR display for embedded pack content
+// ---------------------------------------------------------------------------
+
+describe("buildContentNameTranslator", () => {
+  // Real-shaped index entries (feats-core / class-features-core), matching the
+  // exact server-attached namePt overlays for the Tobias audit items.
+  const feats: PlanNameIndexEntry[] = [
+    { name: "Magus's Analysis", namePt: "Análise do Magus" },
+    { name: "Fleet", namePt: "Veloz" },
+    { name: "Rat Familiar", namePt: "Familiar Ratkin" },
+    // Bon Mot: pt-BR overlay identical to EN (r14 rule: still show BOTH).
+    { name: "Bon Mot", namePt: "Bon Mot" },
+    // Untranslated pack entry (no namePt) — should EN-fallback.
+    { name: "Some Untranslated Feat" },
+  ];
+  const classFeatures: PlanNameIndexEntry[] = [
+    // Nested i18n bag form (no flat namePt) — must be read from i18n.ptBR.name.
+    { name: "Starlit Span", i18n: { ptBR: { name: "Alcance Luminoso" } } },
+  ];
+
+  it("resolves an embedded EN name to its pt-BR name + keeps the EN as the subtitle", () => {
+    const translate = buildContentNameTranslator([feats]);
+    expect(translate("Magus's Analysis")).toEqual({
+      namePt: "Análise do Magus",
+      nameEn: "Magus's Analysis",
+    });
+    expect(translate("Fleet")).toEqual({ namePt: "Veloz", nameEn: "Fleet" });
+  });
+
+  it("joins by normalized name, so a pt-BR-copied stored name still resolves", () => {
+    const translate = buildContentNameTranslator([feats]);
+    // Stored name copied in pt-BR (accent/case-insensitive) still maps to the
+    // same bilingual parts — the index is keyed by BOTH EN and pt-BR names.
+    expect(translate("analise do magus")).toEqual({
+      namePt: "Análise do Magus",
+      nameEn: "Magus's Analysis",
+    });
+  });
+
+  it("returns both parts even when pt-BR equals EN (Bon Mot) — r14 always-both rule", () => {
+    const translate = buildContentNameTranslator([feats]);
+    expect(translate("Bon Mot")).toEqual({ namePt: "Bon Mot", nameEn: "Bon Mot" });
+  });
+
+  it("reads the nested i18n.ptBR.name overlay when no flat namePt is present", () => {
+    const translate = buildContentNameTranslator([classFeatures]);
+    expect(translate("Starlit Span")).toEqual({
+      namePt: "Alcance Luminoso",
+      nameEn: "Starlit Span",
+    });
+  });
+
+  it("EN-falls back for an untranslated pack entry (namePt === EN name)", () => {
+    const translate = buildContentNameTranslator([feats]);
+    expect(translate("Some Untranslated Feat")).toEqual({
+      namePt: "Some Untranslated Feat",
+      nameEn: "Some Untranslated Feat",
+    });
+  });
+
+  it("EN-falls back for a name absent from every pack index", () => {
+    const translate = buildContentNameTranslator([feats]);
+    expect(translate("Totally Unknown Thing")).toEqual({
+      namePt: "Totally Unknown Thing",
+      nameEn: "Totally Unknown Thing",
+    });
+  });
+
+  it("indexes across multiple packs at once", () => {
+    const translate = buildContentNameTranslator([feats, classFeatures]);
+    expect(translate("Fleet").namePt).toBe("Veloz");
+    expect(translate("Starlit Span").namePt).toBe("Alcance Luminoso");
+  });
+
+  it("returns the stored name unchanged for an empty string", () => {
+    const translate = buildContentNameTranslator([feats]);
+    expect(translate("")).toEqual({ namePt: "", nameEn: "" });
   });
 });

@@ -13,13 +13,15 @@
   interface Props {
     typeLabel: string;
     name?: string | undefined;
+    /** EN subtitle beside the pt-BR name — always shown when present (r14). */
+    subName?: string | undefined;
     subLine?: string | undefined;
     filled: boolean;
     editable: boolean;
     onClick: () => void;
   }
 
-  let { typeLabel, name, subLine, filled, editable, onClick }: Props = $props();
+  let { typeLabel, name, subName, subLine, filled, editable, onClick }: Props = $props();
 </script>
 
 <button
@@ -34,7 +36,10 @@
   </span>
   <span class="abc-card__body">
     <span class="abc-card__label">{typeLabel}</span>
-    <span class="abc-card__name">{name ?? "—"}</span>
+    <span class="abc-card__name">
+      {name ?? "—"}
+      {#if subName}<span class="abc-card__name-en">{subName}</span>{/if}
+    </span>
     {#if subLine}<span class="abc-card__subline">{subLine}</span>{/if}
   </span>
 </button>
@@ -102,6 +107,14 @@
     font-size: 13px;
     font-weight: 600;
     color: var(--fusion-text);
+  }
+
+  /* EN subtitle beside the pt-BR ABC name (r14). */
+  .abc-card__name-en {
+    margin-left: 6px;
+    font-size: 10.5px;
+    font-weight: 400;
+    color: var(--fusion-text-subtle);
   }
 
   .abc-card__subline {

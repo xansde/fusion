@@ -20,10 +20,12 @@
 
   interface Props {
     name: string;
+    /** EN subtitle beside the pt-BR chip name — always shown when present (r14). */
+    subName?: string | undefined;
     onClick?: (() => void) | undefined;
   }
 
-  let { name, onClick }: Props = $props();
+  let { name, subName, onClick }: Props = $props();
 
   const hint = $derived(t("FUSION.Sheet.Plan.Details.ChipHint", { name }));
 </script>
@@ -38,11 +40,13 @@
   >
     <span class="plan-auto-chip__lock" aria-hidden="true">&#128274;</span>
     {name}
+    {#if subName}<span class="plan-auto-chip__en">{subName}</span>{/if}
   </button>
 {:else}
   <div class="plan-auto-chip">
     <span class="plan-auto-chip__lock" aria-hidden="true">&#128274;</span>
     {name}
+    {#if subName}<span class="plan-auto-chip__en">{subName}</span>{/if}
   </div>
 {/if}
 
@@ -75,5 +79,13 @@
   .plan-auto-chip__lock {
     font-size: 9px;
     color: var(--fusion-text-subtle);
+  }
+
+  /* EN subtitle beside the pt-BR chip name (r14). */
+  .plan-auto-chip__en {
+    font-size: 9.5px;
+    font-weight: 400;
+    color: var(--fusion-text-subtle);
+    opacity: 0.75;
   }
 </style>

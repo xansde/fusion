@@ -48,6 +48,8 @@
     addLoreSkill,
     detailsRequestForSlot,
     detailsRequestForAutoFeature,
+    buildContentNameTranslator,
+    SLOT_TYPE_LABELS_EN,
     type PlanSlotModel,
     type PlanSlotType,
     type PlanOpBuilderContext,
@@ -55,15 +57,24 @@
     type SkillTrainingDialogKind,
     type PlanDetailsRequest,
     type AutoFeatureModel,
+    type ContentNameTranslator,
+    type PlanNameIndexEntry,
   } from "../../../../lib/sheets/pf2e/planVM.js";
   import type { DocOpPayload } from "../../../../lib/sheets/pf2e/characterSheetVM.js";
   import ABCCard from "./ABCCard.svelte";
   import LevelCard from "./LevelCard.svelte";
+  import type { SlotDisplay, AutoFeatureDisplay } from "./LevelCard.svelte";
   import CompendiumPickerDialog from "./CompendiumPickerDialog.svelte";
   import PlanDetailsDialog from "./PlanDetailsDialog.svelte";
   import AbilityBoostsDialog from "./AbilityBoostsDialog.svelte";
   import SkillTrainingDialog from "./SkillTrainingDialog.svelte";
-  import { t } from "../../../../lib/i18n/i18n.js";
+  import { t, i18n } from "../../../../lib/i18n/i18n.js";
+  import { session, getSocket } from "../../../../lib/session.svelte.js";
+  import {
+    listPacks,
+    searchPack,
+    requireConnectedSocket,
+  } from "../../../../lib/compendium/compendiumApi.js";
 
   interface Props {
     doc: Record<string, unknown>;
@@ -82,6 +93,100 @@
   function sendAll(ops: DocOpPayload | DocOpPayload[] | null): void {
     if (!ops) return;
     for (const op of Array.isArray(ops) ? ops : [ops]) sendOpFn(op);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Content-name translation (B1 r14) — resolve every embedded pack item's
+  // display name to pt-BR (main) + EN (subtitle), joining by normalized name
+  // against the packs' compendium indexes (feats/class-features/ABC/spells).
+  // Loaded once on demand via the LIVE socket (same lazy contract as SpellsTab/
+  // ActionsTab); null until loaded → names render as stored (EN fallback).
+  // ---------------------------------------------------------------------------
+
+  const CONTENT_NAME_PACK_SLUGS = [
+    "feats-core",
+    "class-features-core",
+    "ancestries-core",
+    "heritages-core",
+    "backgrounds-core",
+    "spells-core",
+  ];
+
+  let contentTranslator = $state<ContentNameTranslator | null>(null);
+  const systemId = $derived(session.worldInfo?.systemId ?? "pf2e");
+
+  $effect(() => {
+    void systemId;
+    void loadContentTranslator();
+  });
+
+  async function loadContentTranslator(): Promise<void> {
+    try {
+      const sock = requireConnectedSocket(getSocket());
+      const { packs } = await listPacks(sock, { systemId, documentType: "Item" });
+      const entriesByPack: PlanNameIndexEntry[][] = [];
+      for (const slug of CONTENT_NAME_PACK_SLUGS) {
+        const pack = packs.find((p) => p.id.endsWith(`.${slug}`));
+        if (!pack) continue;
+        const { entries } = await searchPack(sock, { packId: pack.id });
+        entriesByPack.push(entries as PlanNameIndexEntry[]);
+      }
+      contentTranslator = buildContentNameTranslator(entriesByPack);
+    } catch {
+      // Offline / no socket / no pack: leave the translator null → names render
+      // as stored (EN). Never blocks the column.
+    }
+  }
+
+  /**
+   * Resolve a stored (embedded) content name to its bilingual display parts,
+   * honoring the active locale. On the "en" locale (or before the translator
+   * loads) the EN name is shown alone (no redundant subtitle). On pt-BR the
+   * translator yields `{ namePt, nameEn }` and BOTH are shown — even when
+   * identical (r14 user rule).
+   */
+  function contentNameParts(stored: string): { name: string; subName?: string } {
+    if (i18n.locale !== "pt-BR" || !contentTranslator) return { name: stored };
+    const parts = contentTranslator(stored);
+    return { name: parts.namePt, subName: parts.nameEn };
+  }
+
+  /** The pt-BR slot-type label (via i18n) + its EN counterpart as the always-shown subtitle (r14). */
+  function slotTypeParts(slot: PlanSlotModel): { type: string; subType?: string } {
+    const key = slot.grantFilter?.labelKey ?? `FUSION.Sheet.Plan.SlotLabel.${slot.type}`;
+    const pt = t(key);
+    // EN subtitle: for a normal slot type use SLOT_TYPE_LABELS_EN; a grantedFeat
+    // sub-slot has no single EN type word, so fall back to its model label.
+    const en = SLOT_TYPE_LABELS_EN[slot.type] ?? slot.label;
+    if (i18n.locale !== "pt-BR" || !pt || pt === en) return { type: pt || en };
+    return { type: pt, subType: en };
+  }
+
+  /** Bilingual name + type parts for a FILLED slot (passed to LevelCard → PlanSlot). */
+  function slotDisplay(slot: PlanSlotModel): SlotDisplay {
+    const nameParts = contentNameParts(slot.choiceName ?? slot.label);
+    const typeParts = slotTypeParts(slot);
+    return {
+      name: nameParts.name,
+      ...(nameParts.subName !== undefined ? { subName: nameParts.subName } : {}),
+      type: typeParts.type,
+      ...(typeParts.subType !== undefined ? { subType: typeParts.subType } : {}),
+    };
+  }
+
+  /** Bilingual parts for a locked auto-feature chip. */
+  function autoFeatureDisplay(feature: AutoFeatureModel): AutoFeatureDisplay {
+    const parts = contentNameParts(feature.name);
+    return {
+      name: parts.name,
+      ...(parts.subName !== undefined ? { subName: parts.subName } : {}),
+    };
+  }
+
+  /** Bilingual name parts for an ABC card (ancestry/heritage/background/class). */
+  function abcNameParts(name: string | undefined): { name: string | undefined; subName?: string } {
+    if (name === undefined) return { name: undefined };
+    return contentNameParts(name);
   }
 
   // ---------------------------------------------------------------------------
@@ -369,7 +474,8 @@
   <div class="plan-column__abc">
     <ABCCard
       typeLabel={abcTypeLabel("ancestry")}
-      name={plan.abc[0]?.name}
+      name={abcNameParts(plan.abc[0]?.name).name}
+      subName={abcNameParts(plan.abc[0]?.name).subName}
       subLine={plan.abc[0]?.subLine}
       filled={plan.abc[0]?.filled ?? false}
       {editable}
@@ -377,7 +483,8 @@
     />
     <ABCCard
       typeLabel={abcTypeLabel("heritage")}
-      name={plan.abc[1]?.name}
+      name={abcNameParts(plan.abc[1]?.name).name}
+      subName={abcNameParts(plan.abc[1]?.name).subName}
       subLine={plan.abc[1]?.subLine}
       filled={plan.abc[1]?.filled ?? false}
       {editable}
@@ -385,7 +492,8 @@
     />
     <ABCCard
       typeLabel={abcTypeLabel("background")}
-      name={plan.abc[2]?.name}
+      name={abcNameParts(plan.abc[2]?.name).name}
+      subName={abcNameParts(plan.abc[2]?.name).subName}
       subLine={plan.abc[2]?.subLine}
       filled={plan.abc[2]?.filled ?? false}
       {editable}
@@ -393,7 +501,8 @@
     />
     <ABCCard
       typeLabel={abcTypeLabel("class")}
-      name={plan.abc[3]?.name}
+      name={abcNameParts(plan.abc[3]?.name).name}
+      subName={abcNameParts(plan.abc[3]?.name).subName}
       subLine={plan.abc[3]?.subLine}
       filled={plan.abc[3]?.filled ?? false}
       {editable}
@@ -424,6 +533,8 @@
           {levelPlan}
           {editable}
           {slotLabel}
+          {slotDisplay}
+          {autoFeatureDisplay}
           onSlotClick={(slot) => handleSlotClick(levelPlan.level, slot)}
           onSlotRemove={(slot) => handleSlotRemove(levelPlan.level, slot)}
           onSlotDetails={handleSlotDetails}

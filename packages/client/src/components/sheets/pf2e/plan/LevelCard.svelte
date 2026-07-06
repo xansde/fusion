@@ -16,10 +16,28 @@
   import PlanOptionalBadge from "./PlanOptionalBadge.svelte";
   import { t } from "../../../../lib/i18n/i18n.js";
 
+  /** Bilingual display parts for a filled slot (r14: pt-BR main + EN subtitle for both name and type). */
+  export interface SlotDisplay {
+    name: string;
+    subName?: string | undefined;
+    type: string;
+    subType?: string | undefined;
+  }
+
+  /** Bilingual display parts for a locked auto-feature chip (r14). */
+  export interface AutoFeatureDisplay {
+    name: string;
+    subName?: string | undefined;
+  }
+
   interface Props {
     levelPlan: LevelPlanModel;
     editable: boolean;
     slotLabel: (slot: PlanSlotModel) => string;
+    /** Resolve a FILLED slot's bilingual name + type parts (r14). */
+    slotDisplay: (slot: PlanSlotModel) => SlotDisplay;
+    /** Resolve a locked auto-feature chip's bilingual parts (r14). */
+    autoFeatureDisplay: (feature: AutoFeatureModel) => AutoFeatureDisplay;
     onSlotClick: (slot: PlanSlotModel) => void;
     onSlotRemove: (slot: PlanSlotModel) => void;
     /** Open the read-only details dialog for a filled feat/hybrid-study slot (R12). */
@@ -28,8 +46,17 @@
     onAutoFeatureClick: (feature: AutoFeatureModel) => void;
   }
 
-  let { levelPlan, editable, slotLabel, onSlotClick, onSlotRemove, onSlotDetails, onAutoFeatureClick }: Props =
-    $props();
+  let {
+    levelPlan,
+    editable,
+    slotLabel,
+    slotDisplay,
+    autoFeatureDisplay,
+    onSlotClick,
+    onSlotRemove,
+    onSlotDetails,
+    onAutoFeatureClick,
+  }: Props = $props();
 
   // R12 item 1: which filled slot types support in-place re-editing (re-open
   // the same dialog pre-populated). Ability boosts read straight from the live
@@ -68,9 +95,12 @@
       -->
       <div class="level-card__slot" class:level-card__slot--nested={slot.parentSlotId !== undefined}>
         {#if slot.filled}
+          {@const display = slotDisplay(slot)}
           <PlanSlot
-            name={slot.choiceName ?? slot.label}
-            type={slot.label}
+            name={display.name}
+            subName={display.subName}
+            type={display.type}
+            subType={display.subType}
             onRemove={editable ? () => onSlotRemove(slot) : undefined}
             onEdit={canEdit(slot) ? () => onSlotClick(slot) : undefined}
             onDetails={hasDetails(slot) ? () => onSlotDetails(slot) : undefined}
@@ -88,7 +118,8 @@
     {#if levelPlan.autoFeatures.length > 0}
       <div class="level-card__auto">
         {#each levelPlan.autoFeatures as feature (feature.name)}
-          <PlanAutoChip name={feature.name} onClick={() => onAutoFeatureClick(feature)} />
+          {@const chip = autoFeatureDisplay(feature)}
+          <PlanAutoChip name={chip.name} subName={chip.subName} onClick={() => onAutoFeatureClick(feature)} />
         {/each}
       </div>
     {/if}
