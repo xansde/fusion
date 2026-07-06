@@ -2875,27 +2875,38 @@ function tobiasWithMaterializedGrantsDoc(): Record<string, unknown> {
   };
 }
 
-describe("derivePlan — fixed-grant chips (B2 r14)", () => {
-  it("surfaces the granted FEAT (Alchemical Crafting) as a locked nested chip under the granter, but NOT the action grant", () => {
+describe("derivePlan — fixed-grant chips (B2 r14 + r15 A2)", () => {
+  it("surfaces BOTH the granted FEAT and the granted ACTION as locked nested chips under the granter (r15 A2: everything conceded is visible)", () => {
     const doc = tobiasWithMaterializedGrantsDoc();
     const plan = derivePlan(doc);
     const l2 = plan.levels.find((l) => l.level === 2)!;
     const grantChips = l2.slots.filter((s) => s.lockedGrant);
-    // Only the feat is a Plan chip; the action lives in the Actions tab.
-    expect(grantChips).toHaveLength(1);
-    const chip = grantChips[0]!;
-    expect(chip.choiceName).toBe("Alchemical Crafting");
-    expect(chip.parentSlotId).toBe("archetypeFeat-2");
-    expect(chip.filled).toBe(true);
-    expect(chip.itemId).toBe("item-granted-crafting");
-    expect(chip.detailsPackSlug).toBe("feats-core");
+    // r15 A2: feat AND action BOTH render as Plan chips now (the action ALSO
+    // stays in the Actions tab — the two surfaces are independent).
+    expect(grantChips).toHaveLength(2);
+    const byName = new Map(grantChips.map((c) => [c.choiceName, c]));
+
+    const craftingChip = byName.get("Alchemical Crafting")!;
+    expect(craftingChip.parentSlotId).toBe("archetypeFeat-2");
+    expect(craftingChip.filled).toBe(true);
+    expect(craftingChip.itemId).toBe("item-granted-crafting");
+    expect(craftingChip.detailsPackSlug).toBe("feats-core");
+
+    const quickAlchemyChip = byName.get("Quick Alchemy")!;
+    expect(quickAlchemyChip.parentSlotId).toBe("archetypeFeat-2");
+    expect(quickAlchemyChip.lockedGrant).toBe(true);
+    expect(quickAlchemyChip.itemId).toBe("item-granted-quick-alchemy");
+    expect(quickAlchemyChip.detailsPackSlug).toBe("actions-core");
   });
 
-  it("routes the locked-grant chip's details to feats-core (feat) via detailsRequestForSlot", () => {
+  it("routes each locked-grant chip's details to the right pack (feat→feats-core, action→actions-core)", () => {
     const doc = tobiasWithMaterializedGrantsDoc();
     const plan = derivePlan(doc);
-    const chip = plan.levels.find((l) => l.level === 2)!.slots.find((s) => s.lockedGrant)!;
-    expect(detailsRequestForSlot(chip)).toEqual({ packSlug: "feats-core", name: "Alchemical Crafting" });
+    const chips = plan.levels.find((l) => l.level === 2)!.slots.filter((s) => s.lockedGrant);
+    const feat = chips.find((c) => c.choiceName === "Alchemical Crafting")!;
+    const action = chips.find((c) => c.choiceName === "Quick Alchemy")!;
+    expect(detailsRequestForSlot(feat)).toEqual({ packSlug: "feats-core", name: "Alchemical Crafting" });
+    expect(detailsRequestForSlot(action)).toEqual({ packSlug: "actions-core", name: "Quick Alchemy" });
   });
 
   it("does not surface a grant chip when the granter carries no fusion.sourceId", () => {
@@ -2905,6 +2916,70 @@ describe("derivePlan — fixed-grant chips (B2 r14)", () => {
     const plan = derivePlan(doc);
     const grantChips = plan.levels.find((l) => l.level === 2)!.slots.filter((s) => s.lockedGrant);
     expect(grantChips).toHaveLength(0);
+  });
+});
+
+describe("derivePlan — conflux spell chip under the hybrid study (r15 A2)", () => {
+  /**
+   * Tobias level 1 whose Starlit Span (hybridStudy-1) has materialized its
+   * conflux spell (Shooting Star, focus pool) as a grant, tagged by Starlit
+   * Span's sourceId. The chip must render nested under the hybridStudy-1 slot.
+   */
+  function tobiasWithConfluxSpellDoc(): Record<string, unknown> {
+    return {
+      _id: "actor-tobias",
+      name: "Tobias",
+      type: "character",
+      items: [
+        { ...magusClassDoc(), _id: "item-class" },
+        {
+          ...starlitSpanHybridStudyDoc(),
+          _id: "item-hybrid-study-1",
+          flags: { fusion: { sourceId: "Pew7duAozEeAemif", build: { level: 1, slot: "hybridStudy-1" } } },
+        },
+        {
+          _id: "item-granted-shooting-star",
+          name: "Shooting Star",
+          type: "spell",
+          location: "focus-entry",
+          system: { traits: { value: ["focus", "magus"] } },
+          flags: { fusion: { sourceId: "SHOOT_SID", grantedBy: "Pew7duAozEeAemif", grantedSlot: "hybridStudy-1" } },
+        },
+      ],
+      system: {
+        level: { value: 1 },
+        details: {},
+        build: {
+          abilities: {
+            ancestryBoosts: [], ancestryFlaws: [], ancestryFree: [],
+            backgroundBoosts: [], classBoost: ["int"], levelledBoosts: {},
+          },
+          choices: [{ level: 1, slot: "hybridStudy-1", type: "hybridStudy" }],
+        },
+      },
+    };
+  }
+
+  it("surfaces Shooting Star as a locked spell chip nested under hybridStudy-1", () => {
+    const plan = derivePlan(tobiasWithConfluxSpellDoc());
+    const l1 = plan.levels.find((l) => l.level === 1)!;
+    const chip = l1.slots.find((s) => s.lockedGrant && s.choiceName === "Shooting Star")!;
+    expect(chip).toBeDefined();
+    expect(chip.parentSlotId).toBe("hybridStudy-1");
+    expect(chip.detailsPackSlug).toBe("spells-core");
+    expect(chip.itemId).toBe("item-granted-shooting-star");
+    // Details route to spells-core so the popup resolves the spell doc.
+    expect(detailsRequestForSlot(chip)).toEqual({ packSlug: "spells-core", name: "Shooting Star" });
+  });
+
+  it("removeChoice on the hybrid study cascades to the granted conflux spell", () => {
+    const doc = tobiasWithConfluxSpellDoc();
+    const plan = derivePlan(doc);
+    const hybridSlot = plan.levels.find((l) => l.level === 1)!.slots.find((s) => s.slotId === "hybridStudy-1")!;
+    const ops = removeChoice(ctx(doc), hybridSlot);
+    const deleteIds = ops.filter((op) => op.type === "doc:delete").map((op) => (op as { id: string }).id);
+    expect(deleteIds).toContain("item-hybrid-study-1");
+    expect(deleteIds).toContain("item-granted-shooting-star");
   });
 });
 

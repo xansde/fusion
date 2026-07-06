@@ -60,13 +60,20 @@
   const systemId = $derived(session.worldInfo?.systemId ?? "pf2e");
   const detailsCache = new DocumentDetailsCache();
 
-  // Title parts (r14 #3): pt-BR main + EN subtitle, always both on pt-BR locale.
-  // Falls back to the EN request name alone before resolution / on the en locale.
+  // Title parts (r14 #3): pt-BR main + EN subtitle on pt-BR locale. r15 A2: the
+  // EN subtitle is SUPPRESSED when it's identical to the pt-BR name (case/trim-
+  // insensitive) — no redundant "Bon Mot / Bon Mot" (matches the Plan slots'
+  // and Actions tab's behavior). Falls back to the EN request name alone before
+  // resolution / on the en locale.
   const titleMain = $derived(
     i18n.locale === "pt-BR" && resolvedNamePt ? resolvedNamePt : request.name,
   );
   const titleSubEn = $derived(
-    i18n.locale === "pt-BR" && resolvedNamePt ? request.name : null,
+    i18n.locale === "pt-BR" &&
+      resolvedNamePt &&
+      resolvedNamePt.trim().toLowerCase() !== request.name.trim().toLowerCase()
+      ? request.name
+      : null,
   );
 
   $effect(() => {

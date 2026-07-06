@@ -153,13 +153,21 @@
    * Resolve a stored (embedded) content name to its bilingual display parts,
    * honoring the active locale. On the "en" locale (or before the translator
    * loads) the EN name is shown alone (no redundant subtitle). On pt-BR the
-   * translator yields `{ namePt, nameEn }` and BOTH are shown — even when
-   * identical (r14 user rule).
+   * translator yields `{ namePt, nameEn }` and both are shown — EXCEPT when the
+   * pt-BR and EN names are identical (case/trim-insensitive), where the EN
+   * subtitle is SUPPRESSED (r15 user decision: no redundant "Bon Mot / Bon Mot"
+   * — aligns the Plan with the Actions tab's behavior).
    */
   function contentNameParts(stored: string): { name: string; subName?: string } {
     if (i18n.locale !== "pt-BR" || !contentTranslator) return { name: stored };
     const parts = contentTranslator(stored);
+    if (sameName(parts.namePt, parts.nameEn)) return { name: parts.namePt };
     return { name: parts.namePt, subName: parts.nameEn };
+  }
+
+  /** True when two display names are equal ignoring case + surrounding whitespace. */
+  function sameName(a: string, b: string): boolean {
+    return a.trim().toLowerCase() === b.trim().toLowerCase();
   }
 
   // ---------------------------------------------------------------------------

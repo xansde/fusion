@@ -668,7 +668,12 @@ function buildLevelPlan(
   // only offers it when the class actually has hybrid-study features).
   if (level === 1) {
     slots.push(resolveAbilityBoostsSlot(`abilityBoosts-1`, level, doc));
-    slots.push(resolveSlot("hybridStudy", `hybridStudy-1`, level, choices, items));
+    const hybridStudySlot = resolveSlot("hybridStudy", `hybridStudy-1`, level, choices, items);
+    slots.push(hybridStudySlot);
+    // r15 A2: the chosen hybrid study grants its conflux spell as a fixed grant
+    // (Starlit Span → Shooting Star) — surface it as a locked nested chip under
+    // the study, same as feat grants.
+    pushFixedGrantChips(slots, hybridStudySlot, items);
   }
 
   // Levelled ability boosts (5/10/15/20 by default, or the class's own set).
@@ -798,18 +803,22 @@ function pushFeatSlotWithGrant(
 }
 
 /**
- * pushFixedGrantChips — for a FILLED feat/feature slot, surface every
- * feat/classFeature the actor holds that was materialized as a FIXED grant of
- * this slot's item (B2 r14 — `flags.fusion.grantedBy === granterSourceId`).
- * Each becomes a LOCKED nested chip (details-only, no remove) indented under
- * the granter, mirroring the `grantedFeat` sub-slot layout but for automatic
- * grants (Alchemist Dedication → Alchemical Crafting).
+ * pushFixedGrantChips — for a FILLED feat/feature slot, surface EVERY item the
+ * actor holds that was materialized as a FIXED grant of this slot's item
+ * (B2 r14 + r15 A2 — `flags.fusion.grantedBy === granterSourceId`). Each
+ * becomes a LOCKED nested chip (details-only, no remove) indented under the
+ * granter, mirroring the `grantedFeat` sub-slot layout.
  *
- * Only feat/classFeature grants render here — action/spell grants live in the
- * Actions/Spells tabs (their embedded items carry the same grantedBy marker
- * but no Plan-column chip). Matched on the granter's `flags.fusion.sourceId`
- * (+ build slot when present) so two copies of the same granting feat in
- * different slots each own their own grants.
+ * r15 A2: ALL granted item types render a chip now — feat/classFeature (e.g.
+ * Alchemist Dedication → Alchemical Crafting), ACTION (→ Quick Alchemy) and
+ * SPELL (Starlit Span → Shooting Star) — so the "Talento concedido" surface
+ * shows everything that was conceded, nested to its granter. Each chip's
+ * `detailsPackSlug` routes the details panel to the right pack. The Actions/
+ * Spells tabs keep showing the same items independently (unchanged).
+ *
+ * Matched on the granter's `flags.fusion.sourceId` (+ build slot when present)
+ * so two copies of the same granting feat in different slots each own their
+ * own grants.
  */
 function pushFixedGrantChips(
   slots: PlanSlotModel[],
@@ -828,12 +837,12 @@ function pushFixedGrantChips(
     const fusion = itemFusion(it);
     if (fusion["grantedBy"] !== granterSourceId) return false;
     const type = it["type"];
-    return type === "feat" || type === "classFeature";
+    return type === "feat" || type === "classFeature" || type === "action" || type === "spell";
   });
 
   for (const item of granted) {
     const itemId = item["_id"];
-    const detailsPackSlug = item["type"] === "classFeature" ? "class-features-core" : "feats-core";
+    const detailsPackSlug = grantedItemPackSlug(item["type"]);
     slots.push({
       slotId: `${parentSlot.slotId}:grant:${typeof itemId === "string" ? itemId : itemName(item) ?? "?"}`,
       type: "grantedFeat",
@@ -845,6 +854,20 @@ function pushFixedGrantChips(
       ...withOptional("choiceName", itemName(item)),
       ...withOptional("itemId", typeof itemId === "string" ? itemId : undefined),
     });
+  }
+}
+
+/** The Fusion pack a granted item's description lives in, by embedded item type. */
+function grantedItemPackSlug(type: unknown): string {
+  switch (type) {
+    case "classFeature":
+      return "class-features-core";
+    case "action":
+      return "actions-core";
+    case "spell":
+      return "spells-core";
+    default:
+      return "feats-core";
   }
 }
 
