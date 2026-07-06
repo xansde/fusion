@@ -765,34 +765,6 @@ describe("CharacterSheetVM — updateLevel", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Feats tab
-// ---------------------------------------------------------------------------
-
-describe("CharacterSheetVM — feats", () => {
-  it("collects feat/ancestry/background/class/heritage items", () => {
-    const vm = makeVM();
-    const feats = vm.feats;
-    const names = feats.map((f) => f.name);
-    expect(names).toContain("Toughness");
-    expect(names).toContain("Human");
-  });
-
-  it("reads level from feat system.level (number)", () => {
-    const vm = makeVM();
-    const toughness = vm.feats.find((f) => f.name === "Toughness")!;
-    expect(toughness.level).toBe(1);
-    expect(toughness.subtype).toBe("feat");
-  });
-
-  it("reads level from ancestry system.level.value shape", () => {
-    const vm = makeVM();
-    const human = vm.feats.find((f) => f.name === "Human")!;
-    expect(human.level).toBe(0);
-    expect(human.subtype).toBe("ancestry");
-  });
-});
-
-// ---------------------------------------------------------------------------
 // Bio tab
 // ---------------------------------------------------------------------------
 

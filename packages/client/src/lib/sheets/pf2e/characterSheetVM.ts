@@ -155,7 +155,6 @@ export type CharacterSheetTab =
   | "actions"
   | "spells"
   | "inventory"
-  | "feats"
   | "bio";
 
 // ---------------------------------------------------------------------------
@@ -307,13 +306,6 @@ export interface SpellTabRow {
   label: string;
   kind: "entry" | "focus" | "rituals";
   entries: SpellcastingEntryRow[];
-}
-
-export interface FeatRow {
-  id: string;
-  name: string;
-  subtype: string;
-  level: number | null;
 }
 
 export interface DetailsInfo {
@@ -1277,52 +1269,6 @@ export class CharacterSheetVM {
       });
     }
     return map;
-  }
-
-  // -------------------------------------------------------------------------
-  // Feats tab
-  // -------------------------------------------------------------------------
-
-  private static readonly FEAT_TYPES = new Set([
-    "feat",
-    "ancestry",
-    "background",
-    "class",
-    "heritage",
-  ]);
-
-  get feats(): FeatRow[] {
-    const items = this._doc["items"] as Array<Record<string, unknown>> | undefined;
-    if (!items) return [];
-
-    return items
-      .filter((item) => {
-        const t = item["type"];
-        return typeof t === "string" && CharacterSheetVM.FEAT_TYPES.has(t);
-      })
-      .map((item) => {
-        const sys =
-          typeof item["system"] === "object" && item["system"] !== null
-            ? (item["system"] as Record<string, unknown>)
-            : {};
-        const rawId = item["_id"];
-        const rawName = item["name"];
-        const rawType = item["type"];
-        const rawLevel = sys["level"];
-        let level: number | null = null;
-        if (typeof rawLevel === "number") {
-          level = rawLevel;
-        } else if (typeof rawLevel === "object" && rawLevel !== null) {
-          const v = (rawLevel as Record<string, unknown>)["value"];
-          level = typeof v === "number" ? v : null;
-        }
-        return {
-          id: typeof rawId === "string" ? rawId : "",
-          name: typeof rawName === "string" ? rawName : "",
-          subtype: typeof rawType === "string" ? rawType : "",
-          level,
-        };
-      });
   }
 
   // -------------------------------------------------------------------------
