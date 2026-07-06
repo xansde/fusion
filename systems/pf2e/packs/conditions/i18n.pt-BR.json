@@ -29,7 +29,7 @@
     "6dq8lX4m2PnuPtWw": {
       "name": "Imobilizado",
       "sourceHash": "2d58a1b79b839f461bedb23b637d3b3e7dfa4f4e",
-      "description": "<p>Você é incapaz de se mover. Você não pode usar nenhuma ação que tenha o traco de movimento. Se você foi imobilizado por algo que o mantém em seu espaco e uma forca externa o moveria para fora de seu espaco, essa forca deve obter sucesso em um teste contra a CD do efeito que o mantém em lugar ou a defesa relevante (geralmente CD de Fortitude) da criatura que o mantém em lugar.</p>"
+      "description": "<p>Você é incapaz de se mover. Você não pode usar nenhuma ação que tenha o traco de movimento. Se você foi imobilizado por algo que o mantém em seu espaço e uma força externa o moveria para fora de seu espaço, essa força deve obter sucesso em um teste contra a CD do efeito que o mantém em lugar ou a defesa relevante (geralmente CD de Fortitude) da criatura que o mantém em lugar.</p>"
     },
     "7IAauDiq6a1BuOmx": {
       "name": "Ferido",
@@ -64,7 +64,7 @@
     "GPlZxO8I86OvOFQq": {
       "name": "Caído",
       "sourceHash": "4f309918c86c42343a657eef1c10c3a21a0934b6",
-      "description": "<p>Você esta deitado no chao. Você esta @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] e recebe uma penalidade de circunstância -2 em rolagens de ataque. As únicas ações de movimento que você pode usar enquanto esta caído sao @UUID[Compendium.pf2e.actionspf2e.Item.Crawl] e @UUID[Compendium.pf2e.actionspf2e.Item.Stand]. Se levantar termina a condição caído. Você pode @UUID[Compendium.pf2e.actionspf2e.Item.Take Cover] enquanto caído para se agachar e obter cobertura maior contra ataques a distância, mesmo que não tenha um objeto atras do qual se colocar, o que concede um bonus de circunstância +4 em sua CD contra ataques a distância (mas você permanece desprevenido).</p>\n<p>Se você seria derrubado enquanto esta @UUID[Compendium.pf2e.actionspf2e.Item.Climb]{Climbing} ou @UUID[Compendium.pf2e.actionspf2e.Item.Fly]{Flying}, você cai. Você não pode ser derrubado quando @UUID[Compendium.pf2e.actionspf2e.Item.Swim]{Swimming}.</p>"
+      "description": "<p>Você esta deitado no chão. Você esta @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] e recebe uma penalidade de circunstância -2 em rolagens de ataque. As únicas ações de movimento que você pode usar enquanto esta caído são @UUID[Compendium.pf2e.actionspf2e.Item.Crawl] e @UUID[Compendium.pf2e.actionspf2e.Item.Stand]. Se levantar termina a condição caído. Você pode @UUID[Compendium.pf2e.actionspf2e.Item.Take Cover] enquanto caído para se agachar e obter cobertura maior contra ataques a distância, mesmo que não tenha um objeto atras do qual se colocar, o que concede um bonus de circunstância +4 em sua CD contra ataques a distância (mas você permanece desprevenido).</p>\n<p>Se você seria derrubado enquanto esta @UUID[Compendium.pf2e.actionspf2e.Item.Climb]{Climbing} ou @UUID[Compendium.pf2e.actionspf2e.Item.Fly]{Flying}, você cai. Você não pode ser derrubado quando @UUID[Compendium.pf2e.actionspf2e.Item.Swim]{Swimming}.</p>"
     },
     "HhpjgQIvKpmv5eTa": {
       "name": "Enfraquecido",
@@ -104,7 +104,7 @@
     "UxSQ92wponpzKFZ5": {
       "name": "Não Detectado",
       "sourceHash": "8a7063c5c616b312dd95713cac73e677c53ce563",
-      "description": "<p>Quando você não é detectado por uma criatura, essa criatura não consegue vê-lo de forma nenhuma, não tem ideia de qual espaco você ocupa, e não pode alvo-o, embora você ainda possa ser afetado por habilidades que visam uma área. Quando você não é detectado por uma criatura, essa criatura é @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] em relação a você.</p>\n<p>Uma criatura por qual você não é detectado pode adivinhar qual quadraculo você esta para tentar atingi-lo. Ela deve escolher um quadraculo e tentar um ataque. Isso funciona como visar uma criatura @UUID[Compendium.pf2e.conditionitems.Item.Hidden] (requerendo um @Check[flat|showDC:all|dc:11|traits:secret]), mas o teste simples e a rolagem de ataque sao rolados em segredo pelo M, que não revela se o ataque errou por falhar no teste simples, falhar na rolagem de ataque, ou escolher o quadraculo errado. Eles podem @UUID[Compendium.pf2e.actionspf2e.Item.Seek] para tentar encontrá-lo.</p>"
+      "description": "<p>Quando você não é detectado por uma criatura, essa criatura não consegue vê-lo de forma nenhuma, não tem ideia de qual espaço você ocupa, e não pode alvo-o, embora você ainda possa ser afetado por habilidades que visam uma área. Quando você não é detectado por uma criatura, essa criatura é @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] em relação a você.</p>\n<p>Uma criatura por qual você não é detectado pode adivinhar qual quadraculo você esta para tentar atingi-lo. Ela deve escolher um quadraculo e tentar um ataque. Isso funciona como visar uma criatura @UUID[Compendium.pf2e.conditionitems.Item.Hidden] (requerendo um @Check[flat|showDC:all|dc:11|traits:secret]), mas o teste simples e a rolagem de ataque são rolados em segredo pelo M, que não revela se o ataque errou por falhar no teste simples, falhar na rolagem de ataque, ou escolher o quadraculo errado. Eles podem @UUID[Compendium.pf2e.actionspf2e.Item.Seek] para tentar encontrá-lo.</p>"
     },
     "VaeC5MfBHCuL6Gil": {
       "name": "Fugindo",
@@ -149,7 +149,7 @@
     "k4SqZtccnqMvpPNA": {
       "name": "Escondido",
       "sourceHash": "d507a052b060be1d620f6ea4c27d3556adb9a587",
-      "description": "<p>Enquanto você esta escondido de uma criatura, essa criatura conhece o espaco em que você esta mas não consegue determinar com precisao onde você se encontra. Você geralmente se torna escondido ao usar Furtividade para @UUID[Compendium.pf2e.actionspf2e.Item.Hide]. Ao @UUID[Compendium.pf2e.actionspf2e.Item.Seek]{Seeking} uma criatura utilizando apenas sentidos imprecisos, ela permanece escondida, ao invés de @UUID[Compendium.pf2e.conditionitems.Item.Observed]. Uma criatura de qual você esta escondido esta @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] em relação a você, e ela deve obter sucesso em um @Check[flat|showDC:all|dc:11] ao tentar atingi-lo com um ataque, magia ou outro efeito ou ela falha em afetá-lo. Efeitos de área não estao sujeitos a esse teste simples.</p>\n<p>Uma criatura pode ser capaz de usar a ação Investigar para tentar observá-lo.</p>"
+      "description": "<p>Enquanto você esta escondido de uma criatura, essa criatura conhece o espaço em que você esta mas não consegue determinar com precisão onde você se encontra. Você geralmente se torna escondido ao usar Furtividade para @UUID[Compendium.pf2e.actionspf2e.Item.Hide]. Ao @UUID[Compendium.pf2e.actionspf2e.Item.Seek]{Seeking} uma criatura utilizando apenas sentidos imprecisos, ela permanece escondida, ao invés de @UUID[Compendium.pf2e.conditionitems.Item.Observed]. Uma criatura de qual você esta escondido esta @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] em relação a você, e ela deve obter sucesso em um @Check[flat|showDC:all|dc:11] ao tentar atingi-lo com um ataque, magia ou outro efeito ou ela falha em afetá-lo. Efeitos de área não estao sujeitos a esse teste simples.</p>\n<p>Uma criatura pode ser capaz de usar a ação Investigar para tentar observá-lo.</p>"
     },
     "kGowL6DUCNHiuVXh": {
       "name": "Amedrontado",
@@ -194,7 +194,7 @@
     "tFUVQ9sCMmrN1wFC": {
       "name": "Dano Persistente",
       "sourceHash": "29f210611a77606c1deb97e42cf1ce5c8634df2e",
-      "description": "<p>Você esta recebendo dano de um efeito contínuo, como estar em chamas. Isso aparece como \"X dano [tipo] persistente,\" onde \"X\" é a quantidade de dano causado e \"[tipo]\" é o tipo de dano. Como dano normal, pode ser dobrado ou reduzido pela metade com base nos resultados de uma rolagem de ataque ou teste de resistência. Ao invés de receber dano persistente imediatamente, você o recebe ao final de cada um de seus turnos enquanto você tem a condição, relançando qualquer dado de dano a cada vez. Depois que você recebe dano persistente, faca um @Check[flat|showDC:all|dc:15] para ver se você se recupera do dano persistente. Se obter sucesso, a condição termina.</p>"
+      "description": "<p>Você esta recebendo dano de um efeito contínuo, como estar em chamas. Isso aparece como \"X dano [tipo] persistente,\" onde \"X\" é a quantidade de dano causado e \"[tipo]\" é o tipo de dano. Como dano normal, pode ser dobrado ou reduzido pela metade com base nos resultados de uma rolagem de ataque ou teste de resistência. Ao invés de receber dano persistente imediatamente, você o recebe ao final de cada um de seus turnos enquanto você tem a condição, relançando qualquer dado de dano a cada vez. Depois que você recebe dano persistente, faça um @Check[flat|showDC:all|dc:15] para ver se você se recupera do dano persistente. Se obter sucesso, a condição termina.</p>"
     },
     "tVU2nlySKBJfRgHJ": {
       "name": "Fatigado",

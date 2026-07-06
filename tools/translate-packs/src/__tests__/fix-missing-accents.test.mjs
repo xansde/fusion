@@ -119,10 +119,44 @@ test("DOES fix the fixed rules-terminology phrase 'sucesso critico' / 'falha cri
 });
 
 // ===========================================================================
+// 3b. r15 verification-round additions: -são suffix, ço/ção nouns, "Faça".
+// ===========================================================================
+test("applies the -sao/-soes suffix rule (explosao, concussao, versao, mansoes)", () => {
+  const { text } = fixText("A explosao de concussao muda de versao entre as mansoes.");
+  assert.match(text, /explosão/);
+  assert.match(text, /concussão/);
+  assert.match(text, /versão/);
+  assert.match(text, /mansões/);
+});
+
+test("fixes whole-word 'sao' (verb) and ço/ç nouns (chao, espaco, forca, pedaco)", () => {
+  const { text } = fixText("Elas sao presas: a forca abre um espaco no chao e arranca um pedaco.");
+  assert.match(text, /Elas são presas/);
+  assert.match(text, /a força abre/);
+  assert.match(text, /um espaço/);
+  assert.match(text, /no chão/);
+  assert.match(text, /um pedaço/);
+});
+
+test("fixes the verb collocation 'Faca uma' -> 'Faça uma' (imperative of fazer)", () => {
+  const { text } = fixText("Faca uma rolagem de ataque de magia a distância.");
+  assert.match(text, /Faça uma rolagem/);
+});
+
+test("does NOT corrupt the knife noun 'faca' outside the verb collocations", () => {
+  const { text, count } = fixText("A lâmina desta faca corta como uma faca afiada.");
+  assert.match(text, /desta faca corta/);
+  assert.match(text, /uma faca afiada/);
+  assert.doesNotMatch(text, /faça/);
+  assert.equal(count, 0);
+});
+
+// ===========================================================================
 // 4. Idempotency.
 // ===========================================================================
 test("re-applying fixText to already-fixed text is a no-op", () => {
-  const input = "Voce nao pode gastar acoes magicas a distancia critica ate o proximo nivel.";
+  const input =
+    "Voce nao pode gastar acoes magicas a distancia critica ate o proximo nivel; a explosao no chao abre um espaco. Faca uma rolagem.";
   const first = fixText(input);
   const second = fixText(first.text);
   assert.equal(second.count, 0, "second pass must find nothing left to fix");

@@ -154,7 +154,7 @@
     "3mMUvlcq3rZOhdfa": {
       "name": "Acumulador Nato",
       "sourceHash": "7be058ed1be8d3b11579c44f7123570cfdd424ca",
-      "description": "<p>Você aprendeu como empacotar quantidades imensas em espacos pequenos. Você pode encaixar um volume adicional de 50% da capacidade de volume listada em recipientes de armazenamento mundano ou veiculos. Por exemplo, você pode encaixar 6 volumes em uma mochila ou 12 volumes em um bau. Isso não altera o volume dos itens nem muda quanto você pode armazenar em um espaco mágico ou extradimensional, como uma <em>bolsa espaciosa</em>.</p>"
+      "description": "<p>Você aprendeu como empacotar quantidades imensas em espaços pequenos. Você pode encaixar um volume adicional de 50% da capacidade de volume listada em recipientes de armazenamento mundano ou veiculos. Por exemplo, você pode encaixar 6 volumes em uma mochila ou 12 volumes em um bau. Isso não altera o volume dos itens nem muda quanto você pode armazenar em um espaço mágico ou extradimensional, como uma <em>bolsa espaciosa</em>.</p>"
     },
     "3o7yzBV6jJbPu6xp": {
       "name": "Mestre do Aprendiz",
@@ -187,7 +187,7 @@
       "description": "<p>Você entende os principios que subjazem todas as palavras escritas, permitindo que você leia quase qualquer texto. Você pode tentar [[/act decipher-writing skill=loremaster-lore]] usando Conhecimento de Mestre dos Conhecimentos em lugar da pericia necessaria.</p>"
     },
     "4ITWx9lOm78peghZ": {
-      "name": "Impressao Runica",
+      "name": "Impressão Runica",
       "sourceHash": "d72c36d691b4bfe12b104795c61d42b9735a9daf",
       "description": "<p>Você pode replicar temporariamente os efeitos de uma runa de propriedade para sua arma ou ataques desarmados. Você aprende a magia de foco @UUID[Compendium.pf2e.spells-srd.Item.Runic Impression].</p>\n<p>Aumente o número de Pontos de Foco em sua reserva de foco por 1.</p>"
     },
@@ -274,7 +274,7 @@
     "6r7EC6ScZd5KmIYF": {
       "name": "Bastao Fundido",
       "sourceHash": "74fadf02dbff55be921dde4bc687ddbb679a6d08",
-      "description": "<p>Quando você prepara um bastao, você pode erque-lo junto a uma arma para fundir os dois itens. Você pode mudar a forma do item fundido da arma para o bastao ou vice-versa como uma ação única, que tem o traco concentração. Quando o item esta em forma de bastao, você pode Conjurar as Magias do bastao e se beneficia de qualquer outra capacidade que o bastao concede. O bastao e a arma compartilham suas runas fundamentais, usando qualquer que seja a runa de <em>potência da arma</em> e qualquer que seja a runa de <em>golpe</em> de nível mais alto. Eles não compartilham nenhuma outra runa ou capacidades específicas.</p>\n<p>Você pode Conjurar Magias do bastao como parte de um Golpe Mágico mesmo quando o bastao esta em forma de arma. Caso contrario, você não pode conjurar as magias do bastao enquanto ele esta em forma de arma.</p>\n<p>A fusao dura até suas proximas preparações diarias, embora você possa gastar 10 minutos para separar os dois itens e fundir o bastao em uma arma diferente. A fusao funciona apenas para você. Um portador diferente pode usar o bastao em sua forma atual mas não pode transforma-lo, obter o beneficio das runas compartilhadas, ou usar suas magias para um Golpe Mágico se estiver em forma de arma.</p>"
+      "description": "<p>Quando você prepara um bastao, você pode erque-lo junto a uma arma para fundir os dois itens. Você pode mudar a forma do item fundido da arma para o bastao ou vice-versa como uma ação única, que tem o traco concentração. Quando o item esta em forma de bastao, você pode Conjurar as Magias do bastao e se beneficia de qualquer outra capacidade que o bastao concede. O bastao e a arma compartilham suas runas fundamentais, usando qualquer que seja a runa de <em>potência da arma</em> e qualquer que seja a runa de <em>golpe</em> de nível mais alto. Eles não compartilham nenhuma outra runa ou capacidades específicas.</p>\n<p>Você pode Conjurar Magias do bastao como parte de um Golpe Mágico mesmo quando o bastao esta em forma de arma. Caso contrario, você não pode conjurar as magias do bastao enquanto ele esta em forma de arma.</p>\n<p>A fusão dura até suas proximas preparações diarias, embora você possa gastar 10 minutos para separar os dois itens e fundir o bastao em uma arma diferente. A fusão funciona apenas para você. Um portador diferente pode usar o bastao em sua forma atual mas não pode transforma-lo, obter o beneficio das runas compartilhadas, ou usar suas magias para um Golpe Mágico se estiver em forma de arma.</p>"
     },
     "72VGaIJDzSPhx6P7": {
       "name": "Ajuste de Temperatura",
@@ -524,7 +524,7 @@
     "EYbnXG5urqY29YkG": {
       "name": "Acuidade Precavida",
       "sourceHash": "aba93dc7ea9ff389c98be5674b0e775f1dab8d57",
-      "description": "<p>Sua evasao ou observação esta além do alcance da maioria em sua profissao. Escolha testes de resistência de Fortitude, testes de resistência de Reflexos, testes de resistência de Vontade, ou Percepção. Você se torna perito em sua escolha. No nível 17, você se torna mestre em sua escolha.</p>"
+      "description": "<p>Sua evasão ou observação esta além do alcance da maioria em sua profissão. Escolha testes de resistência de Fortitude, testes de resistência de Reflexos, testes de resistência de Vontade, ou Percepção. Você se torna perito em sua escolha. No nível 17, você se torna mestre em sua escolha.</p>"
     },
     "EZFEUyyaXNdF28YU": {
       "name": "Ofício Cooperativo",
@@ -634,7 +634,7 @@
     "IjVETRVq9eN8td3j": {
       "name": "Espeto de Canelas",
       "sourceHash": "2b21938df9fb5822190fec81ded397d1a73c4a67",
-      "description": "<p>Enquanto você e pequeno ou menor, você pode encerrar seu movimento no mesmo quadrado que um aliado de qualquer tamanho. Apenas duas criaturas no total podem compartilhar o mesmo espaco quando usam essa habilidade ou uma similar.</p>"
+      "description": "<p>Enquanto você e pequeno ou menor, você pode encerrar seu movimento no mesmo quadrado que um aliado de qualquer tamanho. Apenas duas criaturas no total podem compartilhar o mesmo espaço quando usam essa habilidade ou uma similar.</p>"
     },
     "InsAJv7piTNQKyc5": {
       "name": "Palavras de Encorajamento",
@@ -657,7 +657,7 @@
       "description": "<p><strong>Frequência</strong> uma vez por rodada</p>\n<p><strong>Gatilho</strong> Você rememorou com sucesso o conhecimento sobre uma criatura que você consegue ver, usando uma pericia na qual você é mestre.</p>\n<hr />\n<p>Seu treinamento Pathfinder permite que você avalie rapidamente numerosas ameaças. Tente Rememorar Conhecimento contra um tipo diferente de criatura que você consegue ver usando a mesma pericia. Você ainda deve atender aos requisitos para tentar este teste.</p>"
     },
     "JBcRCbPY8TQYUTGh": {
-      "name": "Expansao de Truques",
+      "name": "Expansão de Truques",
       "sourceHash": "05649d49a03e454dd01f7fb21b90a388654b90ae",
       "description": "<p><strong>Bardo, Oraculo, Feiticeiro</strong> O estudo amplia sua gama de magias simples.</p>\n<p><strong>Clerigo</strong> Você estuda uma gama mais ampla de magias simples.</p>\n<p><strong>Magus, Mago</strong> O estudo dedicado permite que você prepare uma gama mais ampla de magias simples para toda situação.</p>\n<p><strong>Psiquico</strong> Você expande o que sua mente pode realizar.</p>\n<p><strong>Bruxo</strong> Seu padroeiro reconhece sua necessidade de flexibilidade e versatilidade, e lhe concede o poder de preparar uma gama mais ampla de magias simples.</p>\n<hr />\n<p><strong>Preparada</strong> Você pode preparar dois truques adicionais cada dia.</p>\n<p><strong>Espontanea</strong> Adicione dois truques adicionais de sua lista de magia ao seu repertorio.</p>"
     },
@@ -794,7 +794,7 @@
     "NKibpnH1UKvvlX1W": {
       "name": "Magia em Espera",
       "sourceHash": "b3238b57e8e94260cc94f6206de68346f66af887",
-      "description": "<p>Você aperfeicoou uma magia como sua tecnica favorita de combate, e você a praticou o suficiente para não precisar mais prepara-la para conjura-la. Escolha uma magia em seu grimorio que você poderia usar com Golpe Mágico e que tem um nível não superior ao espaco de magia de magus de nível mais alto que você tem. Você pode Conjurar esta Magia sem tê-la preparado antecipadamente expend endo um espaco de magia de nível suficiente para conjurar sua magia escolhida. Você pode mudar esta magia sempre que você adiciona novas magias ao seu grimorio, ou estudando seu grimorio por 1 hora.</p>"
+      "description": "<p>Você aperfeicoou uma magia como sua tecnica favorita de combate, e você a praticou o suficiente para não precisar mais prepara-la para conjura-la. Escolha uma magia em seu grimorio que você poderia usar com Golpe Mágico e que tem um nível não superior ao espaço de magia de magus de nível mais alto que você tem. Você pode Conjurar esta Magia sem tê-la preparado antecipadamente expend endo um espaço de magia de nível suficiente para conjurar sua magia escolhida. Você pode mudar esta magia sempre que você adiciona novas magias ao seu grimorio, ou estudando seu grimorio por 1 hora.</p>"
     },
     "NQDRKElc67wuZL8R": {
       "name": "Preparação Rápida",
@@ -889,7 +889,7 @@
     "PrEy99jH37K2HXgB": {
       "name": "Treinamento Fonetico",
       "sourceHash": "05e5e1cf925fd9b58e7ea0a9f4b511778f0421e3",
-      "description": "<p>Você pode pronunciar e repetir palavras com precisao quase perfeita mesmo que não compreenda seu significado, e você pode escreve-las em um script fonetico que permite que você ou outra criatura com Treinamento Fonetico as leia depois. Mesmo que as palavras estejam em uma linguagem com sons que você não pode pronunciar, você pode transcreve-las fielmente. Memorizar longas sequências de palavras permanece tao difícil quanto normalmente.</p>"
+      "description": "<p>Você pode pronunciar e repetir palavras com precisão quase perfeita mesmo que não compreenda seu significado, e você pode escreve-las em um script fonetico que permite que você ou outra criatura com Treinamento Fonetico as leia depois. Mesmo que as palavras estejam em uma linguagem com sons que você não pode pronunciar, você pode transcreve-las fielmente. Memorizar longas sequências de palavras permanece tao difícil quanto normalmente.</p>"
     },
     "Pv7fhhpTyrbIbcLC": {
       "name": "Coerção Duradoura",
@@ -927,9 +927,9 @@
       "description": "<p>Seus relatórios são minuciosos e informativos, e colocar seus pensamentos no papel o ajuda a reter as informações. Acompanhe cada tipo de criatura que você identificou com sucesso com @UUID[Compendium.pf2e.actionspf2e.Item.Recall Knowledge]. Ao tentar testes de Rememorar Conhecimento contra criaturas em sua lista em combates posteriores, você ganha um bônus de circunstância +2, e você aprende um fato adicional sobre tais criaturas em um sucesso.</p>"
     },
     "RsOTyiT66ruiwZ7d": {
-      "name": "Tensao Superficial",
+      "name": "Tensão Superficial",
       "sourceHash": "c7b47dda79cd01d8c12d3aa1fd0454188b06af36",
-      "description": "<p><strong>Requisitos</strong> Você esta empunhando uma arma quebrada.</p><hr /><p>Você envolve os pedacos de sua arma quebrada com água que você puxa do ambiente circundante. A condição quebrada da arma e temporariamente suprimida, e a arma causa uma quantidade adicional de dano de concussao igual ao dobro do número de dados de dano da arma; este dano não pode ser alterado para nenhum outro tipo. A arma também ganha o traco letal d8; se a arma ja tinha o traco letal, o dado de dano aumenta por um passo ou para d8, o que for maior. A primeira vez que você usa esta arma para Golpe Mágico ou consegue um acerto crítico com ela, a arma e completamente destruida.</p>\n<p>Se a arma tem Dureza maior que seu nível, ou se e um artefato, item amaldicoado ou outro item que e difícil de quebrar ou destruir, ele não e destruido, e esta capacidade dura apenas até o final de seu turno.</p>"
+      "description": "<p><strong>Requisitos</strong> Você esta empunhando uma arma quebrada.</p><hr /><p>Você envolve os pedaços de sua arma quebrada com água que você puxa do ambiente circundante. A condição quebrada da arma e temporariamente suprimida, e a arma causa uma quantidade adicional de dano de concussão igual ao dobro do número de dados de dano da arma; este dano não pode ser alterado para nenhum outro tipo. A arma também ganha o traco letal d8; se a arma ja tinha o traco letal, o dado de dano aumenta por um passo ou para d8, o que for maior. A primeira vez que você usa esta arma para Golpe Mágico ou consegue um acerto crítico com ela, a arma e completamente destruida.</p>\n<p>Se a arma tem Dureza maior que seu nível, ou se e um artefato, item amaldicoado ou outro item que e difícil de quebrar ou destruir, ele não e destruido, e esta capacidade dura apenas até o final de seu turno.</p>"
     },
     "S2cGfwXwkPcUh2RJ": {
       "name": "Montar",
@@ -999,7 +999,7 @@
     "TeyFjizqGY8giKRI": {
       "name": "Cazador de Mitos",
       "sourceHash": "74efd77e0e2a935ff206a24305f1ceda57b50919",
-      "description": "<p><strong>Gatilho</strong> Você com sucesso @UUID[Compendium.pf2e.actionspf2e.Item.Recall Knowledge] identifica uma criatura que tem o traco mitico.</p>\n<p><strong>Frequência</strong> uma vez por 10 minutos</p><hr /><p>Seus ancestrais confrontaram e venceram bestas miticas de antiguidade Iblydan. Através de uma combinação de ouvir estas historias e canalizando um toque do poder mitico daqueles guerreiros, você desenvolveu uma destreza para contornar as defesas lendarias de uma criatura mitica. A próxima vez que você com sucesso Golpeia a criatura desencadeadora, seu Golpe trata sua resistência mitica como 2 inferior. Você trata sua resistência como 4 inferior se sua proficiência de Conhecimento de Deus-Heroi ou Conhecimento de Besta Lendaria é perito, 6 inferior se sua proficiência é mestre, e 8 inferior se sua proficiência é lendario.</p>\n<p>Se seu Golpe ja ignoraria resistência mitica (porque você é um personagem mitico ou empunha uma arma mitica), seu próximo Golpe bem-sucedido contra a criatura ao inves disso causa um dano de precisao adicional de 1d6. Este dano adicional aumenta para 1d8 se sua proficiência de Conhecimento de Deus-Heroi ou Conhecimento de Besta Lendaria é perito, 1d10 se sua proficiência é mestre, ou 1d12 se sua proficiência é lendario.</p>"
+      "description": "<p><strong>Gatilho</strong> Você com sucesso @UUID[Compendium.pf2e.actionspf2e.Item.Recall Knowledge] identifica uma criatura que tem o traco mitico.</p>\n<p><strong>Frequência</strong> uma vez por 10 minutos</p><hr /><p>Seus ancestrais confrontaram e venceram bestas miticas de antiguidade Iblydan. Através de uma combinação de ouvir estas historias e canalizando um toque do poder mitico daqueles guerreiros, você desenvolveu uma destreza para contornar as defesas lendarias de uma criatura mitica. A próxima vez que você com sucesso Golpeia a criatura desencadeadora, seu Golpe trata sua resistência mitica como 2 inferior. Você trata sua resistência como 4 inferior se sua proficiência de Conhecimento de Deus-Heroi ou Conhecimento de Besta Lendaria é perito, 6 inferior se sua proficiência é mestre, e 8 inferior se sua proficiência é lendario.</p>\n<p>Se seu Golpe ja ignoraria resistência mitica (porque você é um personagem mitico ou empunha uma arma mitica), seu próximo Golpe bem-sucedido contra a criatura ao inves disso causa um dano de precisão adicional de 1d6. Este dano adicional aumenta para 1d8 se sua proficiência de Conhecimento de Deus-Heroi ou Conhecimento de Besta Lendaria é perito, 1d10 se sua proficiência é mestre, ou 1d12 se sua proficiência é lendario.</p>"
     },
     "TvAVsEIKpmGWIQ9n": {
       "name": "Segurança",
@@ -1059,7 +1059,7 @@
     "VUxWZ74VDXJ44bh5": {
       "name": "Bolsas Bucais",
       "sourceHash": "503a1077270fca10f9cec9471d97233040c8d196",
-      "description": "<p>Suas bochechas sao esticaveis e você pode armazenar até quatro itens de volume leve ou menor nessas bolsas bucais. Nenhum desses itens pode ter uma dimensao maior que 1 pe. Enquanto você tiver pelo menos um item em suas bolsas bucais, sua fala e notavelmente difícil de compreender. Colocar um item em sua bolsa bucal ou recuperar um e uma ação de Interagir. Você pode esvaziar sua boca com uma única ação, fazendo com que tudo que você havia armazenado em suas bolsas bucais caia no chao em seu quadrado.</p>"
+      "description": "<p>Suas bochechas são esticaveis e você pode armazenar até quatro itens de volume leve ou menor nessas bolsas bucais. Nenhum desses itens pode ter uma dimensão maior que 1 pe. Enquanto você tiver pelo menos um item em suas bolsas bucais, sua fala e notavelmente difícil de compreender. Colocar um item em sua bolsa bucal ou recuperar um e uma ação de Interagir. Você pode esvaziar sua boca com uma única ação, fazendo com que tudo que você havia armazenado em suas bolsas bucais caia no chão em seu quadrado.</p>"
     },
     "VZM0bfEAobUbVqsy": {
       "name": "Tônico Abençoado",
@@ -1074,12 +1074,12 @@
     "VtWDrnIQy1z6MQuY": {
       "name": "Convocar o Enxame",
       "sourceHash": "ab8cf6a32cc008e4c9775676bf6ec856095a7e89",
-      "description": "<p><strong>Frequência</strong> uma vez por dia</p><hr /><p>Você da um apito estridente e aponta, e um enxame massivo de ratos vaza do terreno circundante para preencher uma @Template[burst|distance:30] dentro de 120 pes. Os ratos correm sobre o chao e sobem em paredes e superficies, mordendo e arranhando enquanto causam dano de @Damage[6d8[piercing]|options:area-damage] perfuração a todos os inimigos na área. Os ratos continuam a enxamear na área nos proximos minuto, causando dano de @Damage[3d8[piercing]|options:area-damage] perfuração a qualquer inimigo que termine seu turno na área e transformando a área em terreno difícil (embora os ratos permitam que você e seus aliados passem normalmente). Você pode Dispensar o efeito.</p>"
+      "description": "<p><strong>Frequência</strong> uma vez por dia</p><hr /><p>Você da um apito estridente e aponta, e um enxame massivo de ratos vaza do terreno circundante para preencher uma @Template[burst|distance:30] dentro de 120 pes. Os ratos correm sobre o chão e sobem em paredes e superficies, mordendo e arranhando enquanto causam dano de @Damage[6d8[piercing]|options:area-damage] perfuração a todos os inimigos na área. Os ratos continuam a enxamear na área nos proximos minuto, causando dano de @Damage[3d8[piercing]|options:area-damage] perfuração a qualquer inimigo que termine seu turno na área e transformando a área em terreno difícil (embora os ratos permitam que você e seus aliados passem normalmente). Você pode Dispensar o efeito.</p>"
     },
     "VyXyGPSdm3RQ8eSn": {
       "name": "Resistência Assustadora",
       "sourceHash": "f50a171acd576916903df5f77627d2ab974a4c17",
-      "description": "<p>As magias daqueles que você @UUID[Compendium.pf2e.actionspf2e.Item.Demoralize] sao menos eficazes contra você. Se obtiver sucesso ao Desmoralizar uma criatura, pelos proximos 24 horas você ganha um bonus de circunstância de +1 em testes de resistência contra magias dessa criatura.</p>"
+      "description": "<p>As magias daqueles que você @UUID[Compendium.pf2e.actionspf2e.Item.Demoralize] são menos eficazes contra você. Se obtiver sucesso ao Desmoralizar uma criatura, pelos proximos 24 horas você ganha um bonus de circunstância de +1 em testes de resistência contra magias dessa criatura.</p>"
     },
     "W0kOSjQH88VmgUtk": {
       "name": "Descanso Final",
@@ -1109,7 +1109,7 @@
     "WkCFG0egwahXdITO": {
       "name": "Tomo Protegido",
       "sourceHash": "24a924b68c113ddcc8d151a3fcc88f09ac0c9d17",
-      "description": "<p>Durante suas preparações diarias, você pode fundir magicamente um escudo em seu livro favorito, onde ele aparece como um marcador de pagina elaborado. Enquanto os dois estiverem fundidos, o livro compartilha a Dureza, Pontos de Vida e Limiar de Quebra do escudo, e pode ser usado para @UUID[Compendium.pf2e.feats-srd.Item.Shield Block] se você tiver essa reação, com um requisito de \"Você Elevou o Tomo\" ao inves dos requisitos habituais.</p>\n<p>Você pode mudar a forma do item fundido de um livro para um escudo com motivo de livro como uma ação única, que tem o traco concentração. Quando o item esta em forma de livro, você pode ler o livro e Elevar o Tomo, e quando esta em forma de escudo, você pode Elevar o Escudo, Ativar e ganhar qualquer outro beneficio ou efeito que o escudo normalmente tem (como um bonus de @UUID[Compendium.pf2e.equipment-srd.Item.Spellguard Shield]{Escudo Protetor contra Magia} em testes de resistência contra magia).</p>\n<p>A fusao dura até suas proximas preparações diarias.</p>"
+      "description": "<p>Durante suas preparações diarias, você pode fundir magicamente um escudo em seu livro favorito, onde ele aparece como um marcador de pagina elaborado. Enquanto os dois estiverem fundidos, o livro compartilha a Dureza, Pontos de Vida e Limiar de Quebra do escudo, e pode ser usado para @UUID[Compendium.pf2e.feats-srd.Item.Shield Block] se você tiver essa reação, com um requisito de \"Você Elevou o Tomo\" ao inves dos requisitos habituais.</p>\n<p>Você pode mudar a forma do item fundido de um livro para um escudo com motivo de livro como uma ação única, que tem o traco concentração. Quando o item esta em forma de livro, você pode ler o livro e Elevar o Tomo, e quando esta em forma de escudo, você pode Elevar o Escudo, Ativar e ganhar qualquer outro beneficio ou efeito que o escudo normalmente tem (como um bonus de @UUID[Compendium.pf2e.equipment-srd.Item.Spellguard Shield]{Escudo Protetor contra Magia} em testes de resistência contra magia).</p>\n<p>A fusão dura até suas proximas preparações diarias.</p>"
     },
     "Wp5a9POd3DWp4xTS": {
       "name": "O Diabo que Você Conhece",
@@ -1159,7 +1159,7 @@
     "XYl5EGv380wkqSe8": {
       "name": "Identificação de Raridade",
       "sourceHash": "a3b583fe3f681394471b583689e023dc3b35a59c",
-      "description": "<p>Quando você se torna ciente de um efeito mágico ou vê uma magia sendo conjurada, você pode imediatamente determinar se ela contorce mentes (com o traco mental), luta contra a sorte (com o traco sorte ou azar), ou revela segredos (com os tracos detecção, previsao, revelação, ou vidência). A discreto do MJ, efeitos similares podem também cair nestas categorias. Quando você [[/act identify-magic skill=occultism]] ou [[/act recall-knowledge skill=occultism]] para aprender mais sobre estes efeitos, você pode sempre usar Ocultismo sem penalidade e ganha um bonus de circunstância +2.</p>"
+      "description": "<p>Quando você se torna ciente de um efeito mágico ou vê uma magia sendo conjurada, você pode imediatamente determinar se ela contorce mentes (com o traco mental), luta contra a sorte (com o traco sorte ou azar), ou revela segredos (com os tracos detecção, previsão, revelação, ou vidência). A discreto do MJ, efeitos similares podem também cair nestas categorias. Quando você [[/act identify-magic skill=occultism]] ou [[/act recall-knowledge skill=occultism]] para aprender mais sobre estes efeitos, você pode sempre usar Ocultismo sem penalidade e ganha um bonus de circunstância +2.</p>"
     },
     "Xejnl3dUcozlt2si": {
       "name": "Predispor Assentamento",
@@ -1279,7 +1279,7 @@
     "buZsz8luQZawZ4zF": {
       "name": "Maior que a Soma",
       "sourceHash": "7e2db8c91ddf24678ccd2fee52a498ae05a20142",
-      "description": "<p>Você invoca os lacos familiares que compartilha com seus aliados e outros ratkin para se tornar uma forca opressora no combate. Você pode conjurar @UUID[Compendium.pf2e.spells-srd.Item.Enlarge] como uma magia inata primal de 6º rango uma vez por dia.</p>"
+      "description": "<p>Você invoca os lacos familiares que compartilha com seus aliados e outros ratkin para se tornar uma força opressora no combate. Você pode conjurar @UUID[Compendium.pf2e.spells-srd.Item.Enlarge] como uma magia inata primal de 6º rango uma vez por dia.</p>"
     },
     "bwO34GUw5SUp37Rd": {
       "name": "Escalada Rápida",
@@ -1379,7 +1379,7 @@
     "fYzvFBs9GAUP6afd": {
       "name": "Apresentação Impressionante",
       "sourceHash": "3d78eafd3292faeb80115f516650e8de0c391a7e",
-      "description": "<p>Suas apresentações inspiram admiração e ganham você fas. Você pode [[/act make-an-impression skill=performance]] usar Atuação em vez de Diplomacia. Se você gasta pelo menos 10 minutos apresentando diante de uma audiência, você pode Fazer uma Impressao focando até 10 membros da audiência que estavam lá para toda a apresentação, sem tomar a penalidade normal. O número de alvos aumenta para 20 para uma apresentação de 1 hora e 50 para uma apresentação de 2 horas.</p>"
+      "description": "<p>Suas apresentações inspiram admiração e ganham você fas. Você pode [[/act make-an-impression skill=performance]] usar Atuação em vez de Diplomacia. Se você gasta pelo menos 10 minutos apresentando diante de uma audiência, você pode Fazer uma Impressão focando até 10 membros da audiência que estavam lá para toda a apresentação, sem tomar a penalidade normal. O número de alvos aumenta para 20 para uma apresentação de 1 hora e 50 para uma apresentação de 2 horas.</p>"
     },
     "fhZKrY5Lm8fQauOo": {
       "name": "Olhos da Cidade",
@@ -1459,7 +1459,7 @@
     "h59G7bSg4ugO4HEt": {
       "name": "Golpe Reativo",
       "sourceHash": "6f4243fa671120e75ce111c96c49610e0bfd2e79",
-      "description": "<p><strong>Gatilho</strong> Uma criatura dentro de seu alcance usa uma ação de manipulação ou uma ação de movimento, faz um ataque a distância, ou sai de um quadrado durante uma ação de movimento que esta usando.</p>\n<hr />\n<p>Você golpeia um inimigo que deixa uma abertura. Faca um Golpe de combate contra a criatura que disparou o gatilho. Se seu ataque e um acerto crítico e o gatilho foi uma ação de manipulação, você interrompe essa ação. Este Golpe não conta em sua penalidade por ataque multiplo, e sua penalidade por ataque multiplo não se aplica a este Golpe.</p>"
+      "description": "<p><strong>Gatilho</strong> Uma criatura dentro de seu alcance usa uma ação de manipulação ou uma ação de movimento, faz um ataque a distância, ou sai de um quadrado durante uma ação de movimento que esta usando.</p>\n<hr />\n<p>Você golpeia um inimigo que deixa uma abertura. Faça um Golpe de combate contra a criatura que disparou o gatilho. Se seu ataque e um acerto crítico e o gatilho foi uma ação de manipulação, você interrompe essa ação. Este Golpe não conta em sua penalidade por ataque multiplo, e sua penalidade por ataque multiplo não se aplica a este Golpe.</p>"
     },
     "h5IrnmUcfRC0bAPV": {
       "name": "Assalto Acelerado",
@@ -1747,7 +1747,7 @@
       "description": "<p><strong>Custo</strong> 1 Ponto de Determinação</p>\n<hr />\n<p>Recupere Pontos de Vigor igual a metade do máximo.</p>\n<p>@UUID[Compendium.pf2e.action-macros.Macro.Steel Your Resolve]</p>"
     },
     "pZhPrNrXmQEH1E4r": {
-      "name": "Impressao de Grupo",
+      "name": "Impressão de Grupo",
       "sourceHash": "e031c964bebef56d5f33327726d5ed5bdf3adda9",
       "description": "<p>Quando você @UUID[Compendium.pf2e.actionspf2e.Item.Make an Impression], você pode comparar seu resultado de teste de Diplomacia para os CDs de Vontade de até 10 alvos que você conversou com, sem penalidade. O número de alvos aumenta para 20 se você é perito, 50 se você é mestre, e 100 se você é lendário.</p>"
     },
@@ -1809,7 +1809,7 @@
     "s5wi40PJLzjdykgX": {
       "name": "Apoio Bem-Vindo",
       "sourceHash": "16f410b1c9882b641ea3c01c74a67e7abb8a0a32",
-      "description": "<p>Você frequentemente confia na população local para provisoes e abrigo. Uma vez por dia, você pode tentar uma verificação para [[/act request]] ou [[/act coerce]] contra uma CD fácil para seu nível ao falar com alguem que e um residente não-hostil e de longo prazo de seu local favorito. Com sucesso, escolha um dos seguintes para obter.</p><ul><li>Um item não-mágico de seu nível ou inferior</li><li>Um local seguro para se abrigar por 24 horas</li><li>Provisoes para 3 dias para você e até 5 aliados</li></ul>"
+      "description": "<p>Você frequentemente confia na população local para provisões e abrigo. Uma vez por dia, você pode tentar uma verificação para [[/act request]] ou [[/act coerce]] contra uma CD fácil para seu nível ao falar com alguem que e um residente não-hostil e de longo prazo de seu local favorito. Com sucesso, escolha um dos seguintes para obter.</p><ul><li>Um item não-mágico de seu nível ou inferior</li><li>Um local seguro para se abrigar por 24 horas</li><li>Provisões para 3 dias para você e até 5 aliados</li></ul>"
     },
     "sCZqWwK9iJvt1kSJ": {
       "name": "Elogio Relutante",
@@ -1984,7 +1984,7 @@
     "wkwXXYU7a61r0Qlz": {
       "name": "Trabalho em Equipe Acrobatico",
       "sourceHash": "e0751d6103b7a833ffbb95540b57b077ff855919",
-      "description": "<p>Seu acrobacia distrai um inimigo o bastante para criar uma vantagem para um de seus aliados. Quando @UUID[Compendium.pf2e.actionspf2e.Item.Tumble Through] com sucesso no espaco de um inimigo, um aliado que eh adjacente a esse inimigo pode Passo como uma reação, mas deve permanecer adjacente a esse inimigo.</p>"
+      "description": "<p>Seu acrobacia distrai um inimigo o bastante para criar uma vantagem para um de seus aliados. Quando @UUID[Compendium.pf2e.actionspf2e.Item.Tumble Through] com sucesso no espaço de um inimigo, um aliado que eh adjacente a esse inimigo pode Passo como uma reação, mas deve permanecer adjacente a esse inimigo.</p>"
     },
     "x1ehAUl2uCf23bfd": {
       "name": "Animal de Estimação",
@@ -2004,7 +2004,7 @@
     "xa2dnIb910GDffJB": {
       "name": "Varredura Mágica",
       "sourceHash": "32b21ea85e2b843fb7478f227e5f4eb7b3d22c4d",
-      "description": "<p><strong>Requisitos</strong> Seu Golpe Mágico esta carregado.</p>\n<hr />\n<p>Você ataca em um arco e executa sua magia contra todos que você acerta. Faca um Golpe Mágico, mas role Golpes separados para atacar duas criaturas, cada uma devendo estar dentro de seu alcance natural de combate e adjacente uma a outra. Se sua magia pudesse afetar dois ou mais alvos, sua magia afeta quaisquer inimigos que você acertou, não apenas o primeiro alvo; caso contrario, escolha um alvo para afetar com a magia. Uma Varredura Mágica conta como dois ataques para sua penalidade por ataque multiplo, mas a penalidade não aumenta até após você fazer ambos os ataques.</p>\n<p>Se você esta usando uma arma que tem o traco varredura, seu bonus de circunstância se aplica contra ambos os alvos. Você pode usar esta atividade apenas com Golpes de combate, mesmo se você tiver o estudo hibrido extensao estrelada ou capacidade similar.</p>\n<p>Se você usa Golpe Mágico Expansivo para Golpe Mágico com uma magia de área, aplique a área conforme descrito em Golpe Mágico Expansivo, escolhendo uma das criaturas que você Golpeia para determinar a área e se a magia falha devido a um Golpe falhado criticamente. Se você usa Golpe Mágico Expansivo para Golpe Mágico com uma magia alvo, a magia e perdida completamente apenas se ambos os Golpes sao falhas criticas.</p>"
+      "description": "<p><strong>Requisitos</strong> Seu Golpe Mágico esta carregado.</p>\n<hr />\n<p>Você ataca em um arco e executa sua magia contra todos que você acerta. Faça um Golpe Mágico, mas role Golpes separados para atacar duas criaturas, cada uma devendo estar dentro de seu alcance natural de combate e adjacente uma a outra. Se sua magia pudesse afetar dois ou mais alvos, sua magia afeta quaisquer inimigos que você acertou, não apenas o primeiro alvo; caso contrario, escolha um alvo para afetar com a magia. Uma Varredura Mágica conta como dois ataques para sua penalidade por ataque multiplo, mas a penalidade não aumenta até após você fazer ambos os ataques.</p>\n<p>Se você esta usando uma arma que tem o traco varredura, seu bonus de circunstância se aplica contra ambos os alvos. Você pode usar esta atividade apenas com Golpes de combate, mesmo se você tiver o estudo hibrido extensão estrelada ou capacidade similar.</p>\n<p>Se você usa Golpe Mágico Expansivo para Golpe Mágico com uma magia de área, aplique a área conforme descrito em Golpe Mágico Expansivo, escolhendo uma das criaturas que você Golpeia para determinar a área e se a magia falha devido a um Golpe falhado criticamente. Se você usa Golpe Mágico Expansivo para Golpe Mágico com uma magia alvo, a magia e perdida completamente apenas se ambos os Golpes são falhas criticas.</p>"
     },
     "xhoWcWN82veiOTsV": {
       "name": "Estamos na Lista",

@@ -58,6 +58,18 @@ export const DICTIONARY = {
   // pronoun / core grammar
   voce: "você",
   nao: "não",
+  sao: "são", // 3rd-person plural of "ser" — always accented; never a valid bare word here (the noun "São"/saint only appears as part of proper compounds, matched by the -sao SUFFIX_RULE, not whole-word)
+
+  // -ço/-ção nouns whose bare form is NEVER a distinct valid pt-BR word in this
+  // corpus (verified: every "forca" occurrence is "força"/strength, never the
+  // gallows noun; "espaco"/"chao"/"pedaco" have no unaccented homograph).
+  chao: "chão",
+  espaco: "espaço",
+  espacos: "espaços",
+  forca: "força",
+  forcas: "forças",
+  pedaco: "pedaço",
+  pedacos: "pedaços",
 
   // irregular / short high-frequency forms not covered by the suffix rules below
   distancia: "distância",
@@ -252,6 +264,13 @@ export const DICTIONARY = {
 const SUFFIX_RULES = [
   { pattern: /^([a-z]+)cao$/i, replace: (m) => `${m[1]}ção` },
   { pattern: /^([a-z]+)coes$/i, replace: (m) => `${m[1]}ções` },
+  // -são/-sões is equally unambiguous: a word ending in "-sao"/"-soes" with a
+  // preceding stem (explosao, concussao, versao, mansao, prisao, tensao,
+  // impressao, dimensao, …) is never valid without the tilde. Verified against
+  // the full pack corpus — every "-sao"-suffixed token is an "-são" noun, none
+  // is a distinct bare word. (Whole-word "sao"→"são" is handled in DICTIONARY.)
+  { pattern: /^([a-z]+)sao$/i, replace: (m) => `${m[1]}são` },
+  { pattern: /^([a-z]+)soes$/i, replace: (m) => `${m[1]}sões` },
 ];
 
 /** Looks up a lowercase word in DICTIONARY, falling back to SUFFIX_RULES. Returns null if no rule applies. */
@@ -315,6 +334,18 @@ const WRONG_ACCENT_FIXES = [
   ["críticamente", "criticamente"],
   ["Críticamente", "Criticamente"],
   ["informação critica", "informação crítica"],
+  // "faca" is ambiguous whole-word (the knife noun "faca" is valid unaccented —
+  // "a lâmina desta faca", "cortar como uma faca"), so it is NOT in DICTIONARY.
+  // But the specific 2-word collocations below are ALWAYS the verb "fazer"
+  // (imperative "Faça …") in this corpus — verified: every "Faca uma"/"faca
+  // ambos"/"faca isso" is spell/action prose ("Faça uma rolagem de ataque").
+  // Matched \b-delimited so they never touch the knife noun.
+  ["Faca uma", "Faça uma"],
+  ["faca uma", "faça uma"],
+  ["Faca um", "Faça um"],
+  ["faca um", "faça um"],
+  ["faca ambos", "faça ambos"],
+  ["faca isso", "faça isso"],
 ];
 
 function escapeRegExp(s) {
