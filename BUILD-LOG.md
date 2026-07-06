@@ -155,6 +155,47 @@ Feedback do usuário (8 itens, prints Pathbuilder/ficha) + 3 itens mid-round. **
 
 Lições operacionais: cadeia de agentes-narradores em background (4 níveis, cada um só delegava) — playbook: stand-down por SendMessage pedindo delação do filho + TaskStop no id da folha; folha parada deixou edição parcial que o worker autorizado reconciliou. Suítes ao fechar: client 1495, pf2e 424, sf2e 129, importer 194, server verde (3073+ no root). Follow-ups: sub-aba fantasma "arcane Spells" (entry vazia duplicada pré-r11 no doc do Tobias), pt-BR de conteúdo, /api/auth/refresh 400 benigno, "save save" cosmético no humanizador de @Check.
 
+## Rodada r13 — tradução pt-BR dos packs + mecânicas extraídas (2026-07-05/06)
+
+Pedido do usuário: "Gostaria muito que fosse tudo em pt-br" + "faça com subagentes" (sem API externa) + extração de mecânicas junto da tradução ("Se eu pegar 'Adopted ancestry', eu libero um novo feat? de que tipo e com que filtros?"). **Arquitetura**: overlays `i18n.pt-BR.json` por pack (docId → `{name, description, sourceHash}` — retradução incremental por hash da fonte; fallback EN) + `mechanics.json` (grants/unlocks; rule elements têm precedência sobre extração LLM; denylist para alucinações). Servidor anexa i18n no serve (`index.namePt`, `doc.i18n.ptBR`); client prefere pt-BR por locale com EN de subtítulo; busca bilíngue sem acento; overlays embarcam no exe automaticamente. **Regra de enricher**: a parte estrutural `@Tag[...]` fica verbatim EN; só o `{label}` traduz. NUNCA copiar a tradução oficial brasileira (copyright de terceiros) — tradução própria com glossário curado (177 traits, 43 conditions, 144 termos de prosa; DC→CD, off-guard→desprevenido, ratfolk→ratkin; nomes cunhados mantidos EN por decisão).
+
+Pipeline `tools/translate-packs/` (extract/apply/qa/grants-from-rules/fix-enricher-structural/merge+apply-mechanics; 89 testes `node --test`). **11 packs, 2.311 docs traduzidos por ondas de subagentes (~7,2M tokens), zero request externo.**
+
+| Commit | Entrega |
+| ------ | ------- |
+| `d4e38d7` | T1 — infra do pipeline + glossário + schemas Zod (PackI18nOverlay/PackMechanicsOverlay) + server anexando i18n + client bilíngue |
+| `98b0d2e` | T2a — packs pequenos (94 docs: conditions/ancestries/heritages/backgrounds/classes) |
+| `03c291b` | T2c — spells-core completo (1.252) |
+| `5c80855` | T2b — actions-core (521) + class-features + `mechanics.json` do feats-core |
+| `5fca89e` | feats-core (418) |
+| `c9c2f7a`/`7a9afbf`/`706007d` | r13.1 — ações bilíngues na ficha; compendium browser bilíngue + `svelte:boundary` (each_key_duplicate no preview do Confused = spinner eterno) + heal de spells embutidas |
+| `100c952`+`21c4632` | QA estrutural: checker compara só a parte estrutural do enricher (304 falso-positivos eliminados), glossary-applied vira warning não-fatal com normalização NFD; **34 spells reparadas** via `fix-enricher-structural.mjs` (restauração posicional EN preservando labels PT; Grim Tendrils manual — tradutor inventou enricher e perdeu "2d4") |
+
+Lições: tradutores corrompem partes estruturais de enrichers (55 casos em 34 spells — quebrariam templates/resistências em runtime) e invertem sentido ("Hustle metade" vs EN "double") — QA automatizada é obrigatória, humana não escala; spells não têm `system.slug` (0/1252) → todo join é por nome normalizado; agentes morrem em silêncio (`parallel()`→null, 0 bytes) — verificação de cobertura (418 esperados vs 398 entregues) pega; validar testes ANTES do commit na mesma chain (100c952 entrou com 1 teste vermelho, consertado em 21c4632). Exe r13: 127,5 MB, sha256 `41a9705c…`, smoke PASSED.
+
+## Rodada r14 — auditoria da ficha + pt-BR em todo lugar + grants automáticos (2026-07-06, madrugada)
+
+Feedback do usuário (7 itens; ele montou a ficha do Tobias "exatamente como será") + execução AUTÔNOMA noturna: plano descrito no chat e salvo no Obsidian ANTES de executar; início só com ordem explícita ("iniciar"); zero mensagens de progresso; relatório final .md no chat; desligar o PC ao concluir (autorizado). **ORDEM revisada pelo usuário: a AUDITORIA veio PRIMEIRO** (Fase 0) e enriqueceu os prompts dos batches. Plano: `.fusion-build/r14-plan.md`; auditoria: `.fusion-build/r14-audit.md` (16 gaps, tabela §3 com causa raiz arquivo:linha).
+
+| Commit | Entrega |
+| ------ | ------- |
+| `16f4a71` | **Fase 0 — auditoria item a item** da ficha real do Tobias (cópia do mundo em 33100, login dono via playwright, seleções extraídas do DB via better-sqlite3, regras esperadas dos REs dos packs). 16 gaps priorizados e roteados por batch; rolagens 100% OK. **Descoberta central: `system.slug` é `undefined` em TODOS os itens (embutidos e de pack)** — join confiável = nome normalizado (+ `flags.fusion.sourceId` no lado embutido; o índice de compêndio NÃO expõe sourceId) |
+| `17eb80d` | **B5 — spec 29** (pets/animal companions/familiars): 27 REQ-PET; modelo proposto = Actor próprio (`companionKind` + `masterActorId`) com derivação cross-actor no engine-2e; Foundry usa actor type `familiar` único (sem type para animal companion) |
+| `f8e2bc6` | **B1a — Plano em pt-BR**: `buildContentNameTranslator` (6 packs via compendium API, cache on-demand), `SLOT_TYPE_LABELS` pt-BR (Talento de Classe, Estudo Híbrido...), título do PlanDetailsDialog pt-BR + EN subtítulo. REGRA r14: pt-BR SEMPRE principal + EN SEMPRE subtítulo, mesmo idênticos |
+| `19c8e5e` | **B4 — nome de magia clicável** nas 4 superfícies (truques/preparadas/grimório/foco) → popup DocumentDetailsPanel pt-BR (botão real, stopPropagation; Lançar/Trocar/Preparar intactos) |
+| `c173179` | **B1b — aba Ações**: `loadActionEntries` só carregava actions-core; feats do personagem (Magus's Analysis, Bon Mot) agora resolvem `namePt`+`fallbackUuid` de feats-core por nome normalizado |
+| `1506ef6` | **B1c** — grid de boosts 3×2 (líquido por atributo, ordem FOR/DES/CON/INT/SAB/CAR) + **REMOÇÃO da aba Feats** (autorizada; Plano cobre 100% — e a aba mostrava níveis errados) + abas/header/perícias pt-BR (`skillNames.ts`) |
+| `3409b63` | **R1a — flavors de rolagem pt-BR** ("Salvaguarda de Fortitude", "— Dano", "Ataque de Magia (...)"; MAP mantido como termo) |
+| `5af88a7` | **R1b** — poda de `vm.feats`/`FeatRow` mortos |
+| `ea5fb19` | **B2 — grants fixos automáticos**: materialização de `GrantItem` de UUID fixo ao aplicar feat/feature no builder (feat→chip concedido, ação/magia embutidas; mapa vendor→pack; profundidade 3 anti-ciclo; `grantedBy` = sourceId do granter — o server regenera `_id` no create), cascata no removeChoice, **HEAL on-open** (dono/GM; materializa ausentes) + limpeza estreita de entry fantasma ("<tradition> Spells" vazia com gêmea não-vazia). Starlit Span NÃO concede Shooting Star (REs vazios no pack) — no-op correto |
+| `90f2f85` | fix da verificação viva: painel da aba Ações só buscava doc do pack quando a descrição embutida era vazia — agora busca quando há tradução pt-BR disponível |
+
+**Verificação viva final (playwright, Jogador dono, cópia fresca): 8/8 PASS** — heal materializou "Criação Alquímica" + "Alquimia Rápida" na ficha real do Tobias e removeu a entry fantasma "arcane Spells"; idempotente após reload. Suítes: client **1.622**, monorepo **3.304** (1 falha única re-rodada isolada = verde; flakiness de infra conhecida). Achado de regra: **"CD Alquimista 19" está CORRETO** (proficiência inclui nível) — o "16" esperado no plano era fórmula sem nível.
+
+Follow-ups r14: subtítulo EN suprimido quando idêntico na aba Ações/details vs duplicado no Plano (unificar após decisão do usuário); grant materializado aparece como slot "Talento Concedido" (não chip 🔒 aninhado — apresentação); @UUID clicável dentro de descrições; implementação da tela de Pets (spec 29 pronta); cards de chat antigos permanecem EN (histórico gravado); chave i18n órfã `FUSION.Sheet.Tabs.Features`.
+
+**Exe final r14** (2026-07-06): 127,7 MB, sha256 `416593efe9bf7eee590a496ed2c196f854f2824652e9c4f24df5805e601f423d`, smoke §5.2 **PASSED** (11 packs pf2e embutidos servidos).
+
 ## Registro por batch
 
 ### M6-B5 — Auto-update headless — ✅ M6 HEADLESS COMPLETO (2026-07-03)
