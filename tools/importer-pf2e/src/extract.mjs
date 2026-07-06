@@ -59,6 +59,7 @@ const DEFAULT_TARGET_PACKS_BY_SYSTEM = {
     'ancestries',
     'heritages',
     'backgrounds',
+    'familiar-abilities',
   ],
   // sf2e: sem pack "conditions" mecânico útil isoladamente (só 3 docs, tipo
   // "effect" — ver analysis/08-sf2e-import.md); bestiary/equipment/spells

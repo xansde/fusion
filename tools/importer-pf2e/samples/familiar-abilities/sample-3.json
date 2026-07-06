@@ -1,0 +1,41 @@
+{
+  "_id": "Amzezp93MZckBYRZ",
+  "pf2eSourceId": "Amzezp93MZckBYRZ",
+  "type": "action",
+  "name": "Wavesense",
+  "img": "icons/placeholder/feat.svg",
+  "originalImgRef": "Passive.webp",
+  "system": {
+    "actionType": {
+      "value": "passive"
+    },
+    "actions": {
+      "value": null
+    },
+    "category": "familiar",
+    "description": {
+      "value": "<p>Your familiar can sense vibrations in the water. It gains imprecise wavesense with a range of 30 feet.</p>"
+    },
+    "publication": {
+      "license": "OGL",
+      "remaster": false,
+      "title": "Pathfinder Lost Omens The Grand Bazaar"
+    },
+    "rules": [
+      {
+        "acuity": "imprecise",
+        "key": "Sense",
+        "range": "30",
+        "selector": "wavesense"
+      }
+    ],
+    "traits": {
+      "rarity": "common",
+      "value": []
+    }
+  },
+  "_fusion": {
+    "normalizedAt": "2026-07-06T14:44:24.489Z",
+    "removedFields": []
+  }
+}

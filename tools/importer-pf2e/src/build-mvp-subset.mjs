@@ -334,6 +334,36 @@ const PACK_MANIFESTS = {
     },
     schemaVersion: 1,
   },
+  // -------------------------------------------------------------------------
+  // G4 (Pets tab, r16) — pf2e.familiar-abilities-core. The FULL vendor
+  // `familiar-abilities/` pack (type "action" / category "familiar") — every
+  // ability is a candidate for the sheet's daily-ability picker, so no
+  // curation predicate is applied. Same ORC clean-room policy as every other
+  // -core pack (stripFlavorProse gates description prose on
+  // publication.license; placeholders only, never Paizo art). Spec 29
+  // REQ-PET-020.
+  // -------------------------------------------------------------------------
+  'familiar-abilities-core': {
+    id: 'pf2e.familiar-abilities-core',
+    label: 'PF2e Core Familiar Abilities',
+    documentType: 'Item',
+    systemId: 'pf2e',
+    indexFields: ['name', 'system.actionType', 'system.category', 'system.traits.value'],
+    license: {
+      license: 'ORC',
+      attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',
+      reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
+      sourceRepo: 'github.com/foundryvtt/pf2e',
+      sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
+    },
+    source: {
+      repo: 'github.com/foundryvtt/pf2e',
+      version: SOURCE_VERSION,
+      importerVersion: IMPORTER_VERSION,
+    },
+    schemaVersion: 1,
+  },
 };
 
 /**
@@ -911,6 +941,22 @@ async function buildPf2eSubset() {
     const index = buildIndex(manifest.id, docs, manifest.indexFields);
     writeFileSync(join(PACKS_OUT_DIR, 'actions-core', 'index.json'), JSON.stringify(index, null, 2), 'utf8');
     report.packs.push({ packId: manifest.id, slug: 'actions-core', documentCount: docs.length });
+  }
+
+  // --- 12. Familiar abilities core (G4, r16 — Pets tab picker) ---
+  // The whole vendor familiar-abilities pack; no curation predicate (every
+  // ability is a valid daily pick). Spec 29 REQ-PET-020.
+  {
+    console.log('[build-mvp] === Pack: familiar-abilities-core ===');
+    const all = loadTransformed('familiar-abilities');
+    const docs = all;
+    console.log(`[build-mvp] familiar-abilities-core: ${docs.length} habilidades de familiar`);
+
+    const manifest = PACK_MANIFESTS['familiar-abilities-core'];
+    writePack('familiar-abilities-core', docs, manifest);
+    const index = buildIndex(manifest.id, docs, manifest.indexFields);
+    writeFileSync(join(PACKS_OUT_DIR, 'familiar-abilities-core', 'index.json'), JSON.stringify(index, null, 2), 'utf8');
+    report.packs.push({ packId: manifest.id, slug: 'familiar-abilities-core', documentCount: docs.length });
   }
 
   // Write build report

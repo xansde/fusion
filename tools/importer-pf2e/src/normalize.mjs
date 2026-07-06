@@ -71,6 +71,7 @@ const DEFAULT_TARGET_PACKS_BY_SYSTEM = {
     "heritages",
     "backgrounds",
     "actions",
+    "familiar-abilities",
   ],
   sf2e: ["equipment", "spells", "conditions", "alien-core-bestiary", "rulebook-bestiaries"],
 };

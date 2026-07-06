@@ -1,0 +1,1482 @@
+[
+  {
+    "_id": "mSl3wozhFe30XWTf",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.mSl3wozhFe30XWTf",
+    "name": "Absorb Familiar",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Absorb Familiar",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "TU3F0mIX0ZORRYz3",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.TU3F0mIX0ZORRYz3",
+    "name": "Accompanist",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Accompanist",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "FA9qg2XRSAYWqX9i",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.FA9qg2XRSAYWqX9i",
+    "name": "Alchemical Gut",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Alchemical Gut",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "KHIMK38Bdj7RahBU",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.KHIMK38Bdj7RahBU",
+    "name": "Ambassador",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Ambassador",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "fhmF7rt2dw79PLaC",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.fhmF7rt2dw79PLaC",
+    "name": "Amphibious",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Amphibious",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "b1Q8pBaLjHfC5JEs",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.b1Q8pBaLjHfC5JEs",
+    "name": "Animated",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Animated",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "U2NB6WjqPTc1GIlg",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.U2NB6WjqPTc1GIlg",
+    "name": "Augury",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Augury",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "0CxrgGWP4ze7gmqS",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.0CxrgGWP4ze7gmqS",
+    "name": "Burrower",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Burrower",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "S85TvUo1gh8Cx56I",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.S85TvUo1gh8Cx56I",
+    "name": "Cantrip Connection",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Cantrip Connection",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "xoeZFCtoLi4lWccD",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.xoeZFCtoLi4lWccD",
+    "name": "Climber",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Climber",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "bMS3QZt9XvHjivQL",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.bMS3QZt9XvHjivQL",
+    "name": "Construct",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Construct",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "1eEOaDTYJGPYY3GG",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.1eEOaDTYJGPYY3GG",
+    "name": "Damage Avoidance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Damage Avoidance",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "br9L7lsai3hWFgrM",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.br9L7lsai3hWFgrM",
+    "name": "Darkeater",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Darkeater",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "89aUqrpHB1ieNbqH",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.89aUqrpHB1ieNbqH",
+    "name": "Darkvision",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Darkvision",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "cNoeGaimD2fIhGRv",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.cNoeGaimD2fIhGRv",
+    "name": "Dragon",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Dragon",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "Krr9cnhwjUvVr5B4",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.Krr9cnhwjUvVr5B4",
+    "name": "Echolocation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Echolocation",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "y3iNiVr1HQap9F7s",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.y3iNiVr1HQap9F7s",
+    "name": "Elemental Familiar (Air)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Elemental Familiar (Air)",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": [
+        "air"
+      ]
+    }
+  },
+  {
+    "_id": "v3GUwT2eXoiKlO20",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.v3GUwT2eXoiKlO20",
+    "name": "Elemental Familiar (Earth)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Elemental Familiar (Earth)",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": [
+        "earth"
+      ]
+    }
+  },
+  {
+    "_id": "lMP8HJ9q5IHiH1Cd",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.lMP8HJ9q5IHiH1Cd",
+    "name": "Elemental Familiar (Fire)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Elemental Familiar (Fire)",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": [
+        "fire"
+      ]
+    }
+  },
+  {
+    "_id": "3XNSq2wC8zZXNkPM",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.3XNSq2wC8zZXNkPM",
+    "name": "Elemental Familiar (Metal)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Elemental Familiar (Metal)",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": [
+        "metal"
+      ]
+    }
+  },
+  {
+    "_id": "fvKITwhMU8qqE243",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.fvKITwhMU8qqE243",
+    "name": "Elemental Familiar (Water)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Elemental Familiar (Water)",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": [
+        "water"
+      ]
+    }
+  },
+  {
+    "_id": "IJQO3gp60NOBCcUM",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.IJQO3gp60NOBCcUM",
+    "name": "Elemental Familiar (Wood)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Elemental Familiar (Wood)",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": [
+        "wood"
+      ]
+    }
+  },
+  {
+    "_id": "OtF52sOyIXje1DSk",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.OtF52sOyIXje1DSk",
+    "name": "Elemental",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Elemental",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "j3wMU8RYJVlnwFBs",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.j3wMU8RYJVlnwFBs",
+    "name": "Erudite",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Erudite",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "G3YD8TPB6qfMvnma",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.G3YD8TPB6qfMvnma",
+    "name": "Extra Alchemy",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Extra Alchemy",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "YOAPcGI7g8pT62IX",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.YOAPcGI7g8pT62IX",
+    "name": "Extra Vial",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Extra Vial",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "60ozUKqXYBOqzZbc",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.60ozUKqXYBOqzZbc",
+    "name": "Familiar Focus",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Familiar Focus",
+      "system.actionType": "action",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "QwVHnXsw9de10Ava",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.QwVHnXsw9de10Ava",
+    "name": "Familiar of Balanced Luck",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Familiar of Balanced Luck",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "v3twjFfrfigOOgJe",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.v3twjFfrfigOOgJe",
+    "name": "Familiar of Bolstering Aid",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Familiar of Bolstering Aid",
+      "system.actionType": "action",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "bxkhRbxGFblPtAgT",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.bxkhRbxGFblPtAgT",
+    "name": "Familiar of Enticing Negotiation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Familiar of Enticing Negotiation",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "VLld4niOwsL7QnsZ",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.VLld4niOwsL7QnsZ",
+    "name": "Familiar of Flowing Script",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Familiar of Flowing Script",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "pStedsfBWO6bxmGO",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.pStedsfBWO6bxmGO",
+    "name": "Familiar of Freezing Rime",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Familiar of Freezing Rime",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "UH4Sht4xyM7ccVSx",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.UH4Sht4xyM7ccVSx",
+    "name": "Familiar of Insightful Observation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Familiar of Insightful Observation",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "PG506p215XGBQy96",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.PG506p215XGBQy96",
+    "name": "Familiar of Keen Senses",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Familiar of Keen Senses",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "JR9angJOlt85BmrF",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.JR9angJOlt85BmrF",
+    "name": "Familiar of Nimble Flight",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Familiar of Nimble Flight",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "n0HkWO1zqu3gAFjn",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.n0HkWO1zqu3gAFjn",
+    "name": "Familiar of Obscuring Snowfall",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Familiar of Obscuring Snowfall",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "t3hVIt8BUjG5u5mN",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.t3hVIt8BUjG5u5mN",
+    "name": "Familiar of Ongoing Misery",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Familiar of Ongoing Misery",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "VGiQTyMHsMrl9Ikr",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.VGiQTyMHsMrl9Ikr",
+    "name": "Familiar of Overwhelming Tides",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Familiar of Overwhelming Tides",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "7TYVJCZPzrcP4q7F",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.7TYVJCZPzrcP4q7F",
+    "name": "Familiar of Paired Perplexity",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Familiar of Paired Perplexity",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "H4W96QeEd7mJXwE9",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.H4W96QeEd7mJXwE9",
+    "name": "Familiar of Parasitic Might",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Familiar of Parasitic Might",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "Hce3UfL2Rt18OYW0",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.Hce3UfL2Rt18OYW0",
+    "name": "Familiar of Restored Spirit",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Familiar of Restored Spirit",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "U12JEhDS3sw6wv5q",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.U12JEhDS3sw6wv5q",
+    "name": "Familiar of Stalking Night",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Familiar of Stalking Night",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "ab3EhgOVhOgW83dJ",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.ab3EhgOVhOgW83dJ",
+    "name": "Familiar of Swarm's Heart",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Familiar of Swarm's Heart",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "xHWGBUS3YLKfPT0T",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.xHWGBUS3YLKfPT0T",
+    "name": "Fast Movement",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Fast Movement",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "7EhB6bFhN6eOX4D2",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.7EhB6bFhN6eOX4D2",
+    "name": "Flier",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Flier",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "U52LC31wdHW65Ly0",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.U52LC31wdHW65Ly0",
+    "name": "Focused Rejuvenation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Focused Rejuvenation",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "8HTuoWA84fi5KVYT",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.8HTuoWA84fi5KVYT",
+    "name": "Fungus",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Fungus",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "xw5BfRLeaDxt0Zr9",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.xw5BfRLeaDxt0Zr9",
+    "name": "Gills",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Gills",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "Xgb8zapWFd1D1J8N",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.Xgb8zapWFd1D1J8N",
+    "name": "Grasping Tendrils",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Grasping Tendrils",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "Iwz057HPIsVsjkn0",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.Iwz057HPIsVsjkn0",
+    "name": "Greater Resistance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Greater Resistance",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "YEB0cxNohDEbNv3G",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.YEB0cxNohDEbNv3G",
+    "name": "Independent",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Independent",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "0CR08c8CtUCLFcz4",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.0CR08c8CtUCLFcz4",
+    "name": "Innate Surge",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Innate Surge",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "bOBKHZD0kgDpNydc",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.bOBKHZD0kgDpNydc",
+    "name": "Item Delivery",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Item Delivery",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "r0OEyMtu3gai4QMs",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.r0OEyMtu3gai4QMs",
+    "name": "Jet",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Jet",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "9UnPqv4m3yRsKzL1",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.9UnPqv4m3yRsKzL1",
+    "name": "Kindling",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Kindling",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "RTktSQReefdtAo5d",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.RTktSQReefdtAo5d",
+    "name": "Kinspeech",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Kinspeech",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "Q2rx3txernux3Rnn",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.Q2rx3txernux3Rnn",
+    "name": "Lab Assistant",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Lab Assistant",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "7pLHLZmY6uCwgIf6",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.7pLHLZmY6uCwgIf6",
+    "name": "Levitator",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Levitator",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "MYoRTw6zLYatPw0F",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.MYoRTw6zLYatPw0F",
+    "name": "Lifelink",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Lifelink",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "gNhwCrbxwHOhEIA8",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.gNhwCrbxwHOhEIA8",
+    "name": "Lightning Armillary",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Lightning Armillary",
+      "system.actionType": "action",
+      "system.category": "familiar",
+      "system.traits.value": [
+        "electricity"
+      ]
+    }
+  },
+  {
+    "_id": "wsBPhyNcl0uyd1XM",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.wsBPhyNcl0uyd1XM",
+    "name": "Lightning Needles",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Lightning Needles",
+      "system.actionType": "action",
+      "system.category": "familiar",
+      "system.traits.value": [
+        "electricity"
+      ]
+    }
+  },
+  {
+    "_id": "MLIwn1wvNsaycG2o",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.MLIwn1wvNsaycG2o",
+    "name": "Luminous",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Luminous",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "QrQlit5M605SujWL",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.QrQlit5M605SujWL",
+    "name": "Major Resistance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Major Resistance",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "mUlufJuZ0qDD2a7Z",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.mUlufJuZ0qDD2a7Z",
+    "name": "Manual Dexterity",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Manual Dexterity",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "SDW5wEUNpsA31OiQ",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.SDW5wEUNpsA31OiQ",
+    "name": "Mask Freeze",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Mask Freeze",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "K7Mxi3e3j9xgpfOw",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.K7Mxi3e3j9xgpfOw",
+    "name": "Master's Form",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Master's Form",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "baMLF5VxBE1F5StW",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.baMLF5VxBE1F5StW",
+    "name": "Medic",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Medic",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "J96XZHSGFRxctpiq",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.J96XZHSGFRxctpiq",
+    "name": "Partner in Crime",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Partner in Crime",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "MgPmtWh5PI9MEkyP",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.MgPmtWh5PI9MEkyP",
+    "name": "Path of the Tempest",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Path of the Tempest",
+      "system.actionType": "action",
+      "system.category": "familiar",
+      "system.traits.value": [
+        "air"
+      ]
+    }
+  },
+  {
+    "_id": "ksBKSlhcrY2THT7A",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.ksBKSlhcrY2THT7A",
+    "name": "Plant Form",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Plant Form",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "qbUG7kbwXcGP0Xtz",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.qbUG7kbwXcGP0Xtz",
+    "name": "Plant",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Plant",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "kOSEF3Umxzr5Wnea",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.kOSEF3Umxzr5Wnea",
+    "name": "Play Dead",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Play Dead",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "mIJizOf4OKHsiSGf",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.mIJizOf4OKHsiSGf",
+    "name": "Poison Reservoir",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Poison Reservoir",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "sLGDRMZayjcvlwsv",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.sLGDRMZayjcvlwsv",
+    "name": "Purify Air",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Purify Air",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "NaVjX6k3E68ueI46",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.NaVjX6k3E68ueI46",
+    "name": "Radiant",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Radiant",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "qsGWTo8sdNryLn3W",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.qsGWTo8sdNryLn3W",
+    "name": "Recall Familiar",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Recall Familiar",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "EE8dSSjmlcN8oEuk",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.EE8dSSjmlcN8oEuk",
+    "name": "Resistance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Resistance",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "U6og2YhRIyos6YOv",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.U6og2YhRIyos6YOv",
+    "name": "Restorative Familiar",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Restorative Familiar",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "oTGZX6jVVIwU6EXn",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.oTGZX6jVVIwU6EXn",
+    "name": "Scent",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Scent",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "ft12z1nnm5avpbNk",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.ft12z1nnm5avpbNk",
+    "name": "Second Opinion",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Second Opinion",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "94YOLt3dvV6Z3txJ",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.94YOLt3dvV6Z3txJ",
+    "name": "Shadow Step",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Shadow Step",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "WiSuMXdooDcBICYh",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.WiSuMXdooDcBICYh",
+    "name": "Share Senses",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Share Senses",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "OSmJwZyUXHYEI186",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.OSmJwZyUXHYEI186",
+    "name": "Skilled",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Skilled",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "gHCySOOQ3wGevtDl",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.gHCySOOQ3wGevtDl",
+    "name": "Snoop",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Snoop",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "cX8gK3e9YR8Let4i",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.cX8gK3e9YR8Let4i",
+    "name": "Soul Sight",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Soul Sight",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "0gPQ9lp8WQtwt3Bz",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.0gPQ9lp8WQtwt3Bz",
+    "name": "Dazzling Show",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Dazzling Show",
+      "system.actionType": "action",
+      "system.category": "familiar",
+      "system.traits.value": [
+        "move",
+        "visual"
+      ]
+    }
+  },
+  {
+    "_id": "BZBXv31QyOUMdsqX",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.BZBXv31QyOUMdsqX",
+    "name": "Flatten",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Flatten",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "l7olkLviLEwzHVxq",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.l7olkLviLEwzHVxq",
+    "name": "Kick Up Dust",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Kick Up Dust",
+      "system.actionType": "action",
+      "system.category": "familiar",
+      "system.traits.value": [
+        "manipulate"
+      ]
+    }
+  },
+  {
+    "_id": "ohAMRQna9PPQ9UMW",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.ohAMRQna9PPQ9UMW",
+    "name": "Mass-Produced",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Mass-Produced",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "ifmESaIH7u6wtsi0",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.ifmESaIH7u6wtsi0",
+    "name": "Pot of Tea",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Pot of Tea",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": [
+        "healing"
+      ]
+    }
+  },
+  {
+    "_id": "EYspOTggNWLDYise",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.EYspOTggNWLDYise",
+    "name": "Seal-Bearer",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Seal-Bearer",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "EjhFRdsqE8sFqYiv",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.EjhFRdsqE8sFqYiv",
+    "name": "Shadow Projection",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Shadow Projection",
+      "system.actionType": "action",
+      "system.category": "familiar",
+      "system.traits.value": [
+        "shadow"
+      ]
+    }
+  },
+  {
+    "_id": "8ScFUQTO8q4lCnZJ",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.8ScFUQTO8q4lCnZJ",
+    "name": "Soul Bond",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Soul Bond",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "bylMx4TiJ3Vd4S4M",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.bylMx4TiJ3Vd4S4M",
+    "name": "Stunning Flare",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Stunning Flare",
+      "system.actionType": "action",
+      "system.category": "familiar",
+      "system.traits.value": [
+        "fire",
+        "light",
+        "magical"
+      ]
+    }
+  },
+  {
+    "_id": "wv7RnNGbHANPh1n8",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.wv7RnNGbHANPh1n8",
+    "name": "Vina Song",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Vina Song",
+      "system.actionType": "action",
+      "system.category": "familiar",
+      "system.traits.value": [
+        "auditory",
+        "concentrate",
+        "divine",
+        "incapacitation",
+        "mental"
+      ]
+    }
+  },
+  {
+    "_id": "WZJFGS0wX21SRohY",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.WZJFGS0wX21SRohY",
+    "name": "Speech",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Speech",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "LJS0qCGiJk21BORa",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.LJS0qCGiJk21BORa",
+    "name": "Spell Battery",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Spell Battery",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "TSd95Agn6sl2SRvW",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.TSd95Agn6sl2SRvW",
+    "name": "Spell Delivery",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Spell Delivery",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "X7iOOT4dKLaz8f9S",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.X7iOOT4dKLaz8f9S",
+    "name": "Spellcasting",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Spellcasting",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "d7ViN3uHuuACVq1m",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.d7ViN3uHuuACVq1m",
+    "name": "Spirit Touch",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Spirit Touch",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "72MWyd8Zr8NsZKiE",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.72MWyd8Zr8NsZKiE",
+    "name": "Synchronize Spirit",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Synchronize Spirit",
+      "system.actionType": "action",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "ydFvK9kNlZQ5WINe",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.ydFvK9kNlZQ5WINe",
+    "name": "Tattoo Transformation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Tattoo Transformation",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "MxqIobI3vIP9CLGE",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.MxqIobI3vIP9CLGE",
+    "name": "Threat Display",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Threat Display",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "Or9TnU1OdKXLFi0S",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.Or9TnU1OdKXLFi0S",
+    "name": "Toolbearer",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Toolbearer",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "phS6jA9srZpKyxAY",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.phS6jA9srZpKyxAY",
+    "name": "Touch Telepathy",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Touch Telepathy",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "dV6DgwvgABGTs07a",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.dV6DgwvgABGTs07a",
+    "name": "Tough",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Tough",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "Wvxbr1lCxnlYah5D",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.Wvxbr1lCxnlYah5D",
+    "name": "Tremorsense",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Tremorsense",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "pnSw4D2rlHCqVUzB",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.pnSw4D2rlHCqVUzB",
+    "name": "Valet",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Valet",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "YR9NJxwQDTuTSzvA",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.YR9NJxwQDTuTSzvA",
+    "name": "Verdant Burst",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Verdant Burst",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "Ff06CLMhU8BRqTto",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.Ff06CLMhU8BRqTto",
+    "name": "Versatile Form",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Versatile Form",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "t0M64Qel3bogTdAu",
+    "uuid": "Compendium.pf2e.familiar-abilities-core.Item.t0M64Qel3bogTdAu",
+    "name": "Wavesense",
+    "img": "icons/placeholder/feat.svg",
+    "type": "action",
+    "index": {
+      "name": "Wavesense",
+      "system.actionType": "passive",
+      "system.category": "familiar",
+      "system.traits.value": []
+    }
+  }
+]

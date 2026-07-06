@@ -1,0 +1,34 @@
+{
+  "_id": "qTxH8mSOvc4PMzrP",
+  "pf2eSourceId": "qTxH8mSOvc4PMzrP",
+  "type": "action",
+  "name": "Kinspeech",
+  "img": "icons/placeholder/feat.svg",
+  "originalImgRef": "Passive.webp",
+  "system": {
+    "actionType": {
+      "value": "passive"
+    },
+    "actions": {
+      "value": null
+    },
+    "category": "familiar",
+    "description": {
+      "value": "<p>It can understand and speak with animals of the same species. To select this, your familiar must be an animal, it must have the speech ability, and you must be at least 6th level.</p>"
+    },
+    "publication": {
+      "license": "ORC",
+      "remaster": true,
+      "title": "Pathfinder Player Core"
+    },
+    "rules": [],
+    "traits": {
+      "rarity": "common",
+      "value": []
+    }
+  },
+  "_fusion": {
+    "normalizedAt": "2026-07-06T14:44:24.487Z",
+    "removedFields": []
+  }
+}
