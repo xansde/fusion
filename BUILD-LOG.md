@@ -209,7 +209,7 @@ Feedback do usuário testando o exe r14 (rodada interativa, 3 batches paralelos 
 
 **Verificação viva (playwright, Jogador dono, cópia fresca): 7/7 PASS** — popup "◆◆ 2 ações" tudo pt-BR, 1 única Estrela Cadente adotada e aninhada ao Alcance Luminoso (idempotente), Alquimia Rápida/Criação Alquímica como chips 🔒 da Dedicação, "CD MAGUS (STARLIT SPAN) 19", Bon Mot sem duplicata, regressões zero (client 1.657 verde). Follow-ups r15: slugs internos de enrichers expandidos em EN no popup ("electricity", "10-foot emanation"); traits da aba Ações em EN (popup de magia já traduz); `worldSync.test.ts` flaky sob carga (passa isolado).
 
-**Exe r15**: (pendente — aguardando janela do servidor do usuário fechar para regenerar).
+**Exe final r15** (2026-07-06): 127,7 MB, sha256 `9cc6594a31b3958264870cc698e8af6faf63028eb584c493944786dc033d005b`, smoke §5.2 **PASSED** (11 packs). Autorização permanente registrada: no fechamento de rodada, encerrar o processo do exe do usuário para regenerar é permitido.
 
 ## Registro por batch
 
