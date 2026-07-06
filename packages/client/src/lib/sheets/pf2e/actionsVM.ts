@@ -62,6 +62,14 @@ import {
 
 export const ACTIONS_PACK_SLUG = "actions-core";
 
+/**
+ * Supplementary packs whose entries enrich embedded action rows with pt-BR
+ * names + description-fallback uuids (B1 r14 #4/#5). Character feats that ARE
+ * actions live here, not in actions-core — without loading them, Magus's
+ * Analysis / Bon Mot show raw EN name + description in the Actions tab.
+ */
+export const ACTION_NAME_INDEX_PACK_SLUGS = ["feats-core"];
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -375,6 +383,39 @@ export function rowFromEmbeddedItem(item: Record<string, unknown>): ActionRow | 
 }
 
 /**
+ * A minimal enrichment record for an embedded action whose translation +
+ * description live in a pack the Actions tab does NOT list as rows (feats-core).
+ * Keyed by name-slug (`slugFromName`). B1 r14 #4/#5: character feats that ARE
+ * actions (Magus's Analysis, Bon Mot) live in `feats-core`, not `actions-core`,
+ * so there is no same-slug actions-core row to inherit `namePt`/`fallbackUuid`
+ * from — the panel then falls back to the embedded item's EN description.
+ */
+export interface ActionNameEnrichment {
+  namePt: string | null;
+  fallbackUuid: string | null;
+}
+
+/**
+ * Build a slug→enrichment index from supplementary pack entries (feats-core),
+ * so `mergeActionRows` can resolve an embedded action's pt-BR name and
+ * description-fallback uuid WITHOUT turning every feat into an action row. Join
+ * key is the name-slug (`slugFromName`), matching how embedded rows derive
+ * their own slug (system.slug is undefined everywhere — see B1 investigation).
+ * First entry per slug wins (deterministic given a stable index order).
+ */
+export function buildActionNameIndex(
+  supplementalEntries: PackIndexEntry[],
+): Map<string, ActionNameEnrichment> {
+  const index = new Map<string, ActionNameEnrichment>();
+  for (const entry of supplementalEntries) {
+    const slug = slugFromName(entry.name);
+    if (!slug || index.has(slug)) continue;
+    index.set(slug, { namePt: entryNamePt(entry), fallbackUuid: entry.uuid });
+  }
+  return index;
+}
+
+/**
  * Merge pack rows with the actor's embedded action rows, deduped by slug:
  * an embedded (character) row WINS over a same-slug pack row. Rows without a
  * slug are never deduped against each other (kept as-is).
@@ -385,10 +426,18 @@ export function rowFromEmbeddedItem(item: Record<string, unknown>): ActionRow | 
  * fetching the pack doc (r11 ORC/OGL descriptions live in the pack, not on
  * items embedded before that policy). Embedded rows with no pack counterpart
  * keep `fallbackUuid: null`.
+ *
+ * `nameIndex` (B1 r14 #4/#5) enriches embedded rows whose slug matched NO
+ * actions-core pack row with a `namePt`/`fallbackUuid` resolved from a
+ * supplementary index (feats-core) — so character feats that are actions
+ * (Magus's Analysis, Bon Mot) show their pt-BR name AND their ORC/OGL
+ * description (fetched via fallbackUuid) instead of raw EN. The actions-core
+ * pack row (if any) still takes precedence for both fields.
  */
 export function mergeActionRows(
   packEntries: PackIndexEntry[],
   embeddedItems: Array<Record<string, unknown>>,
+  nameIndex?: Map<string, ActionNameEnrichment>,
 ): ActionRow[] {
   const bySlug = new Map<string, ActionRow>();
   const noSlug: ActionRow[] = [];
@@ -411,6 +460,13 @@ export function mergeActionRows(
       const packRow = bySlug.get(row.slug);
       if (packRow?.uuid) row.fallbackUuid = packRow.uuid;
       if (packRow?.namePt) row.namePt = packRow.namePt;
+      // Supplementary enrichment (feats-core) — only fills gaps the actions-core
+      // pack row didn't provide, so a real same-slug action still wins.
+      const enrich = nameIndex?.get(row.slug);
+      if (enrich) {
+        if (row.fallbackUuid === null && enrich.fallbackUuid) row.fallbackUuid = enrich.fallbackUuid;
+        if (row.namePt === null && enrich.namePt) row.namePt = enrich.namePt;
+      }
       bySlug.set(row.slug, row);
     } else {
       noSlug.push(row);
@@ -777,6 +833,31 @@ export async function loadActionEntries(
   if (!pack) return [];
   const { entries } = await searchPack(sock, { packId: pack.id });
   return entries;
+}
+
+/**
+ * Load the supplementary name-index pack entries (feats-core) used to enrich
+ * embedded action rows with pt-BR names + description-fallback uuids (B1 r14
+ * #4/#5). Best-effort: returns an empty array if a pack is missing. Uses the
+ * same live-socket contract as loadActionEntries. Callers should tolerate an
+ * empty result (rows just stay EN, exactly as before this enrichment existed).
+ */
+export async function loadActionNameIndexEntries(
+  getSocketFn: () => Socket | null | undefined,
+  systemId = "pf2e",
+): Promise<PackIndexEntry[]> {
+  const sock = requireConnectedSocket(getSocketFn());
+  const { packs } = await listPacks(sock, { systemId, documentType: "Item" });
+  const out: PackIndexEntry[] = [];
+  for (const slug of ACTION_NAME_INDEX_PACK_SLUGS) {
+    const pack =
+      packs.find((p) => p.id === `${systemId}.${slug}`) ??
+      packs.find((p) => p.id.endsWith(`.${slug}`));
+    if (!pack) continue;
+    const { entries } = await searchPack(sock, { packId: pack.id });
+    out.push(...entries);
+  }
+  return out;
 }
 
 /** Discriminate the not-connected error kind from any other load failure. */

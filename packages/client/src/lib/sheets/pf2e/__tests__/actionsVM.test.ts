@@ -22,6 +22,7 @@ import {
   rowFromEmbeddedItem,
   actionRowNameParts,
   mergeActionRows,
+  buildActionNameIndex,
   filterActionRows,
   filterRelevantRows,
   deriveCharacterProfile,
@@ -400,6 +401,116 @@ describe("mergeActionRows()", () => {
     ];
     const merged = mergeActionRows([packBonMot], embedded);
     expect(merged.find((r) => r.slug === "bon-mot")?.namePt).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildActionNameIndex + mergeActionRows enrichment (B1 r14 #4/#5) — character
+// feats that ARE actions live in feats-core, not actions-core, so they need a
+// supplementary index to resolve pt-BR name + description-fallback uuid.
+// ---------------------------------------------------------------------------
+
+/** A feats-core-shaped index entry (uuid points at feats-core, not actions-core). */
+function featsPackEntry(name: string, namePt?: string): PackIndexEntry {
+  return {
+    _id: slugFromName(name),
+    uuid: `Compendium.pf2e.feats-core.Item.${slugFromName(name)}`,
+    name,
+    img: null,
+    type: "feat",
+    index: {},
+    ...(namePt !== undefined ? { namePt, i18n: { ptBR: { name: namePt } } } : {}),
+  };
+}
+
+describe("buildActionNameIndex()", () => {
+  it("indexes supplementary entries by name-slug with namePt + uuid", () => {
+    const index = buildActionNameIndex([
+      featsPackEntry("Magus's Analysis", "Análise do Magus"),
+      featsPackEntry("Bon Mot", "Bon Mot"),
+    ]);
+    expect(index.get("magus-s-analysis")).toEqual({
+      namePt: "Análise do Magus",
+      fallbackUuid: "Compendium.pf2e.feats-core.Item.magus-s-analysis",
+    });
+    expect(index.get("bon-mot")?.namePt).toBe("Bon Mot");
+  });
+
+  it("leaves namePt null for an untranslated supplementary entry", () => {
+    const index = buildActionNameIndex([featsPackEntry("Sudden Charge")]);
+    expect(index.get("sudden-charge")).toEqual({
+      namePt: null,
+      fallbackUuid: "Compendium.pf2e.feats-core.Item.sudden-charge",
+    });
+  });
+
+  it("first entry per slug wins (deterministic)", () => {
+    const index = buildActionNameIndex([
+      featsPackEntry("Bon Mot", "Primeira"),
+      featsPackEntry("Bon Mot", "Segunda"),
+    ]);
+    expect(index.get("bon-mot")?.namePt).toBe("Primeira");
+  });
+});
+
+describe("mergeActionRows() with feats-core enrichment", () => {
+  // The real Tobias scenario: the embedded feat has NO system.slug (undefined),
+  // so its slug is derived from the name; there is NO actions-core pack row for
+  // it; the feats-core index supplies namePt + fallbackUuid.
+  it("enriches a character feat (no actions-core row) with feats-core namePt + fallbackUuid", () => {
+    const embedded = [
+      { _id: "ma1", type: "feat", name: "Magus's Analysis", system: { actionType: "action", actions: 1 } },
+    ];
+    const nameIndex = buildActionNameIndex([featsPackEntry("Magus's Analysis", "Análise do Magus")]);
+    const merged = mergeActionRows(
+      [packEntry("Seek", { "system.actionType": "action", "system.actions": 1 })],
+      embedded,
+      nameIndex,
+    );
+    const analysis = merged.find((r) => r.fromCharacter);
+    expect(analysis?.name).toBe("Magus's Analysis");
+    expect(analysis?.namePt).toBe("Análise do Magus");
+    expect(analysis?.fallbackUuid).toBe("Compendium.pf2e.feats-core.Item.magus-s-analysis");
+  });
+
+  it("still shows the EN subtitle for an identical pt-BR name (Bon Mot) via enrichment", () => {
+    const embedded = [
+      { _id: "bm1", type: "feat", name: "Bon Mot", system: { actionType: "action", actions: 1 } },
+    ];
+    const nameIndex = buildActionNameIndex([featsPackEntry("Bon Mot", "Bon Mot")]);
+    const merged = mergeActionRows([], embedded, nameIndex);
+    const bonMot = merged.find((r) => r.fromCharacter);
+    expect(bonMot?.namePt).toBe("Bon Mot");
+    expect(bonMot?.nameEn).toBe("Bon Mot");
+    // A namePt (even identical) drives the "always both" render via actionRowNameParts.
+    expect(bonMot?.fallbackUuid).toBe("Compendium.pf2e.feats-core.Item.bon-mot");
+  });
+
+  it("does NOT override an actions-core pack row's namePt/fallbackUuid (pack wins)", () => {
+    const packBonMot = packEntry(
+      "Bon Mot",
+      { "system.actionType": "action", "system.actions": 1 },
+      "Pack pt-BR",
+    );
+    const embedded = [
+      { _id: "bm1", type: "feat", name: "Bon Mot", system: { actionType: "action", actions: 1 } },
+    ];
+    const nameIndex = buildActionNameIndex([featsPackEntry("Bon Mot", "Feats pt-BR")]);
+    const merged = mergeActionRows([packBonMot], embedded, nameIndex);
+    const bonMot = merged.find((r) => r.slug === "bon-mot");
+    // actions-core row wins for BOTH fields.
+    expect(bonMot?.namePt).toBe("Pack pt-BR");
+    expect(bonMot?.fallbackUuid).toBe(packBonMot.uuid);
+  });
+
+  it("is a no-op when no nameIndex is passed (prior behavior preserved)", () => {
+    const embedded = [
+      { _id: "ma1", type: "feat", name: "Magus's Analysis", system: { actionType: "action", actions: 1 } },
+    ];
+    const merged = mergeActionRows([], embedded);
+    const analysis = merged.find((r) => r.fromCharacter);
+    expect(analysis?.namePt).toBeNull();
+    expect(analysis?.fallbackUuid).toBeNull();
   });
 });
 

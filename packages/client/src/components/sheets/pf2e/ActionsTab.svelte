@@ -36,6 +36,8 @@
   import { DocumentDetailsCache } from "../../../lib/compendium/documentDetails.js";
   import {
     loadActionEntries,
+    loadActionNameIndexEntries,
+    buildActionNameIndex,
     classifyLoadError,
     mergeActionRows,
     filterActionRows,
@@ -74,6 +76,11 @@
   let loading = $state(true);
   let errorKind = $state<ActionsLoadError>(null);
   let packEntries = $state<PackIndexEntry[]>([]);
+  // Supplementary feats-core index for enriching embedded action rows with
+  // pt-BR names + description-fallback uuids (B1 r14 #4/#5). Best-effort: a
+  // failed/empty load simply leaves character-feat actions in EN (prior
+  // behavior), never blocks the tab.
+  let nameIndexEntries = $state<PackIndexEntry[]>([]);
 
   // --- Filter state ---------------------------------------------------------
   // Runes can't hold a Set reactively across mutation the way we want without a
@@ -120,6 +127,14 @@
     } finally {
       loading = false;
     }
+    // Load the supplementary name index separately — its failure must NOT
+    // surface as an Actions load error (the main pack already loaded); worst
+    // case, character feats stay EN.
+    try {
+      nameIndexEntries = await loadActionNameIndexEntries(getSocket, systemId);
+    } catch {
+      nameIndexEntries = [];
+    }
   }
 
   const embeddedItems = $derived.by((): Array<Record<string, unknown>> => {
@@ -139,7 +154,8 @@
     return map;
   });
 
-  const allRows = $derived(mergeActionRows(packEntries, embeddedItems));
+  const nameIndex = $derived(buildActionNameIndex(nameIndexEntries));
+  const allRows = $derived(mergeActionRows(packEntries, embeddedItems, nameIndex));
 
   // The character's class/ancestry/archetype identity, for the relevance filter.
   const profile = $derived(deriveCharacterProfile(embeddedItems));
