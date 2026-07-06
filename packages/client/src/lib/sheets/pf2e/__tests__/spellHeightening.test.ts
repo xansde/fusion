@@ -159,7 +159,8 @@ describe("computeHeightenedSpell — no heightening", () => {
   it("degrades gracefully on malformed system", () => {
     const r = computeHeightenedSpell(null, 0, 2);
     expect(r.rollFormula).toBeNull();
-    expect(r.baseRank).toBe(0);
+    // base 0 (cantrip-like) is normalized to the rank-1 casting baseline.
+    expect(r.baseRank).toBe(1);
     expect(r.effectiveRank).toBe(2);
   });
 });

@@ -41,11 +41,16 @@ export interface HeightenedDamageComponent {
 
 /** Result of applying heightening to a spell for a given effective rank. */
 export interface HeightenedSpell {
-  /** The spell's own base rank (system.level; 0 = cantrip). */
+  /**
+   * Heightening baseline rank — the rank at which the base damage formula holds.
+   * Equals system.level for ranked spells; normalized to 1 for cantrips
+   * (system.level 0, cast at rank >= 1). The UI compares effectiveRank against
+   * this to decide whether to show a heightened badge.
+   */
   baseRank: number;
   /** Effective rank the spell is being cast at (>= baseRank). */
   effectiveRank: number;
-  /** How many ranks above base (effectiveRank - baseRank; 0 = not heightened). */
+  /** How many ranks above the baseline (effectiveRank - baseRank; 0 = not heightened). */
   heightenedBy: number;
   /** Damage components with effective-rank formulas (empty for non-damage spells). */
   components: HeightenedDamageComponent[];
@@ -205,7 +210,12 @@ export function computeHeightenedSpell(
   effectiveRank: number,
 ): HeightenedSpell {
   const system = isRecord(spellSystem) ? spellSystem : {};
-  const base = num(baseRank) ?? 0;
+  const rawBase = num(baseRank) ?? 0;
+  // Cantrips carry system.level 0 but are always CAST at a real rank >= 1: their
+  // damage formula is the rank-1 baseline, and each rank above 1 heightens once.
+  // Normalize the base to 1 so a level-3 caster's cantrip (rank 2) heightens by
+  // exactly 1 step — not 2 (which counting from 0 would give). (r16-G3)
+  const base = Math.max(1, rawBase);
   const eff = Math.max(base, num(effectiveRank) ?? base);
   const heightenedBy = Math.max(0, eff - base);
 

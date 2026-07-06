@@ -2196,3 +2196,223 @@ describe("resolveInitialTradition", () => {
     expect(sorted.map((e) => e.name)).toEqual(["Alpha", "Beta", "Zeta"]);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Spell heightening on the sheet (r16-G3)
+// ---------------------------------------------------------------------------
+
+/**
+ * Build a caster with one arcane entry, a damaging cantrip (interval +1d4),
+ * a damaging rank-1 spell (interval +2d6) prepared into a rank-3 slot, and a
+ * focus spell (interval +1d6). `level` overrides the actor level.
+ */
+function makeCaster(level: number, extraItems: Record<string, unknown>[] = []): Record<string, unknown> {
+  return {
+    _id: "actor-caster",
+    name: "Tobias",
+    type: "character",
+    items: [
+      {
+        _id: "entry-arcane",
+        name: "Arcane Spells",
+        type: "spellcastingEntry",
+        system: {
+          tradition: "arcane",
+          prepared: "prepared",
+          ability: "int",
+          slots: {
+            "0": { value: 0, max: 0 },
+            "3": { value: 1, max: 1, prepared: [{ id: "spell-fireball", expended: false }] },
+          },
+        },
+      },
+      {
+        // Ignition-like cantrip: base 2d4 fire, +1d4 every +1 rank.
+        _id: "spell-ignition",
+        name: "Ignition",
+        type: "spell",
+        location: "entry-arcane",
+        system: {
+          level: 0,
+          defense: { spellAttack: true },
+          castTime: "2A",
+          damage: { cQD: { formula: "2d4", type: "fire", category: null } },
+          heightening: { type: "interval", interval: 1, damage: { cQD: "1d4" } },
+        },
+      },
+      {
+        // Fireball-like rank-1 (for test) spell: base 6d6 fire, +2d6 every +1.
+        _id: "spell-fireball",
+        name: "Fireball",
+        type: "spell",
+        location: "entry-arcane",
+        system: {
+          level: 1,
+          defense: { spellAttack: false },
+          castTime: "2A",
+          damage: { "0": { formula: "6d6", type: "fire", category: null } },
+          heightening: { type: "interval", interval: 1, damage: { "0": "2d6" } },
+        },
+      },
+      {
+        _id: "entry-focus",
+        name: "Focus",
+        type: "spellcastingEntry",
+        system: { tradition: "arcane", ability: "int", isFocusPool: true, slots: {} },
+      },
+      {
+        // Focus spell: base 2d6 mental, +1d6 every +1 rank.
+        _id: "spell-phase-bolt",
+        name: "Phase Bolt",
+        type: "spell",
+        location: "entry-focus",
+        system: {
+          level: 1,
+          traits: { value: ["focus"] },
+          defense: { spellAttack: true },
+          damage: { "0": { formula: "2d6", type: "mental", category: null } },
+          heightening: { type: "interval", interval: 1, damage: { "0": "1d6" } },
+        },
+      },
+      ...extraItems,
+    ],
+    system: {
+      level: { value: level },
+      abilities: { int: { value: 18, mod: 4 } },
+      attributes: { hp: { value: 20, max: 20, temp: 0 } },
+      speed: { value: 25 },
+      resources: { focusPoints: { value: 1, max: 1 } },
+      details: {},
+    },
+  };
+}
+
+function makeCasterVM(level: number, extraItems: Record<string, unknown>[] = []): CharacterSheetVM {
+  return new CharacterSheetVM({
+    doc: makeCaster(level, extraItems),
+    actorId: "actor-caster",
+    ownership: OwnershipLevel.OWNER,
+    userId: "user-gm",
+    isGm: true,
+    worldId: "world-001",
+  });
+}
+
+describe("cantrip auto-heightening by actor level", () => {
+  function cantripView(vm: CharacterSheetVM) {
+    const entry = vm.spellcastingEntries.find((e) => e.entryId === "entry-arcane");
+    const cantrip = entry?.slots.find((s) => s.isCantrip)?.spells.find((sp) => sp.id === "spell-ignition");
+    return cantrip?.heightening ?? null;
+  }
+
+  it("level 1 → cantrip at rank 1 (base, unchanged 2d4)", () => {
+    const h = cantripView(makeCasterVM(1));
+    expect(h?.effectiveRank).toBe(1);
+    expect(h?.rollFormula).toBe("2d4");
+  });
+
+  it("level 3 → cantrip at rank 2 (2d4+1d4) — Tobias case", () => {
+    const h = cantripView(makeCasterVM(3));
+    expect(h?.effectiveRank).toBe(2);
+    expect(h?.rollFormula).toBe("2d4+1d4");
+    expect(h?.heightenedBy).toBe(1);
+  });
+
+  it("level 5 → cantrip at rank 3 (2d4+1d4+1d4)", () => {
+    const h = cantripView(makeCasterVM(5));
+    expect(h?.effectiveRank).toBe(3);
+    expect(h?.rollFormula).toBe("2d4+1d4+1d4");
+  });
+});
+
+describe("focus spell auto-heightening", () => {
+  it("level 5 → focus spell at rank 3 (2d6+1d6+1d6)", () => {
+    const vm = makeCasterVM(5);
+    const focus = vm.focusSpells.find((s) => s.id === "spell-phase-bolt");
+    expect(focus?.heightening?.effectiveRank).toBe(3);
+    expect(focus?.heightening?.rollFormula).toBe("2d6+1d6+1d6");
+  });
+});
+
+describe("prepared spell heightening by slot rank", () => {
+  it("a rank-1 spell prepared in a rank-3 slot heightens to rank 3", () => {
+    const vm = makeCasterVM(3);
+    const h = vm.heightenedSpell("spell-fireball", "prepared", 3);
+    expect(h?.effectiveRank).toBe(3);
+    expect(h?.heightenedBy).toBe(2);
+    // 6d6 + 2d6 (rank 2) + 2d6 (rank 3)
+    expect(h?.rollFormula).toBe("6d6+2d6+2d6");
+  });
+
+  it("grimoire surface keeps the base rank", () => {
+    const vm = makeCasterVM(3);
+    const h = vm.heightenedSpell("spell-fireball", "grimoire");
+    expect(h?.effectiveRank).toBe(1);
+    expect(h?.rollFormula).toBe("6d6");
+  });
+
+  it("returns null for an unknown spell id", () => {
+    expect(makeCasterVM(3).heightenedSpell("nope", "prepared", 3)).toBeNull();
+  });
+});
+
+describe("rollSpellDamage — heightened roll formula and flavor", () => {
+  it("emits the heightened formula with a rank-labeled pt-BR flavor", () => {
+    const vm = makeCasterVM(3);
+    const op = vm.rollSpellDamage("spell-fireball", "prepared", 3);
+    expect(op).not.toBeNull();
+    expect(op?.type).toBe("chat:send");
+    // "/r 6d6+2d6+2d6 # Fireball (nível 3) — Dano"
+    expect(op?.content.startsWith("/r 6d6+2d6+2d6 #")).toBe(true);
+    expect(op?.content).toContain("(nível 3)");
+  });
+
+  it("emits the base formula (no rank suffix) when cast at base rank", () => {
+    const vm = makeCasterVM(3);
+    const op = vm.rollSpellDamage("spell-fireball", "grimoire");
+    expect(op?.content.startsWith("/r 6d6 #")).toBe(true);
+    expect(op?.content).not.toContain("(nível");
+  });
+
+  it("cantrip damage roll heightens with actor level", () => {
+    const op = makeCasterVM(5).rollSpellDamage("spell-ignition", "cantrip");
+    expect(op?.content.startsWith("/r 2d4+1d4+1d4 #")).toBe(true);
+  });
+
+  it("returns null for a spell with no rollable damage", () => {
+    const noDmg = [
+      {
+        _id: "spell-mage-armor",
+        name: "Mage Armor",
+        type: "spell",
+        location: "entry-arcane",
+        system: { level: 1, defense: { spellAttack: false }, damage: {} },
+      },
+    ];
+    const vm = makeCasterVM(3, noDmg);
+    expect(vm.rollSpellDamage("spell-mage-armor", "grimoire")).toBeNull();
+  });
+});
+
+describe("speed getter (r16-G1 handoff)", () => {
+  it("prefers derived.speed.value (Ratfolk 25 + Fleet +5 = 30)", () => {
+    const doc = makeCaster(3);
+    (doc["system"] as Record<string, unknown>)["derived"] = {
+      speed: { value: 30, base: 25, modifiers: [{ label: "Fleet", value: 5 }], otherSpeeds: [] },
+    };
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-caster",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+      worldId: "w",
+    });
+    expect(vm.speed).toBe(30);
+  });
+
+  it("falls back to raw system.speed.value when no derived speed", () => {
+    // makeCaster sets system.speed.value = 25, no derived block.
+    expect(makeCasterVM(3).speed).toBe(25);
+  });
+});

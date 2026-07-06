@@ -25,6 +25,12 @@ import type {
 } from "./derivedTypes.js";
 import { t } from "../../i18n/index.js";
 import { skillNamePt } from "./skillNames.js";
+import {
+  effectiveSpellRank,
+  computeHeightenedSpell,
+  type SpellSurface,
+  type HeightenedSpell,
+} from "./spellHeightening.js";
 
 // ---------------------------------------------------------------------------
 // Re-export derived types for consumers
@@ -248,6 +254,35 @@ export interface SpellRow {
   level: number;
   hasAttack: boolean;
   castTime: string | null;
+  /**
+   * Automatic heightening at the rank this surface casts the spell (r16-G3).
+   * Present for cantrips (auto → ceil(level/2)) and focus spells (idem); absent
+   * (undefined) for grimoire rows, where the row is shown at its own base rank
+   * and prepared-slot heightening is computed per-slot via
+   * {@link CharacterSheetVM.heightenedSpell}. `null` fields when the spell has
+   * no damage/heightening data.
+   */
+  heightening?: SpellHeighteningView;
+}
+
+/**
+ * The sheet-facing slice of a spell's heightened state at a given effective
+ * rank (r16-G3) — a thin projection of {@link HeightenedSpell} carrying only
+ * what the row/roll need, so the component never re-derives the math.
+ */
+export interface SpellHeighteningView {
+  /** Effective casting rank (>= base). */
+  effectiveRank: number;
+  /** Base rank baseline (system.level, or 1 for cantrips). */
+  baseRank: number;
+  /** Ranks above base (0 = not heightened). */
+  heightenedBy: number;
+  /** Combined roll formula at the effective rank, or null when the spell deals no damage. */
+  rollFormula: string | null;
+  /** Short damage display (e.g. "3d6+2d6 electricity"), or null. */
+  damageDisplay: string | null;
+  /** True when a fixed heightening changes target/range/area (badge only, no formula change). */
+  hasComplexHeightening: boolean;
 }
 
 /**
@@ -581,9 +616,19 @@ export class CharacterSheetVM {
   // -------------------------------------------------------------------------
 
   get speed(): number {
+    // r16-G1: prefer server-derived land speed (base + land-speed FlatModifiers
+    // from feats like Fleet — stepCharSpeed writes system.derived.speed), same
+    // derived-first-with-raw-fallback posture as abilityScores (r11). The raw
+    // schema stores land speed at system.speed.value (NOT system.attributes.speed
+    // — the old path never matched and always fell through to the 25 default).
+    const derivedSpeed = this._derived?.speed;
+    if (typeof derivedSpeed?.value === "number") return derivedSpeed.value;
+    const s = this._system["speed"] as Record<string, unknown> | undefined;
+    if (typeof s?.["value"] === "number") return s["value"] as number;
+    // Legacy fallback: some hand-authored docs nested it under attributes.
     const attrs = this._system["attributes"] as Record<string, unknown> | undefined;
-    const s = attrs?.["speed"] as Record<string, unknown> | undefined;
-    return Number(s?.["value"] ?? 25);
+    const legacy = attrs?.["speed"] as Record<string, unknown> | undefined;
+    return Number(legacy?.["value"] ?? 25);
   }
 
   // -------------------------------------------------------------------------
@@ -990,6 +1035,12 @@ export class CharacterSheetVM {
             level: spLevel,
             hasAttack,
             castTime: typeof rawCastTime === "string" ? rawCastTime : null,
+            // Cantrips (level 0) auto-heighten to the highest castable rank
+            // (ceil(level/2)); ranked grimoire rows carry no auto-heightening
+            // here — prepared-slot scaling is resolved per-slot in the UI via
+            // heightenedSpell(). (r16-G3)
+            heightening:
+              spLevel === 0 ? this._heighteningView(spSys, spLevel, "cantrip") : undefined,
           };
 
           const bucket = spellsByRank.get(spLevel);
@@ -1141,12 +1192,15 @@ export class CharacterSheetVM {
       const rawLevel = sys["level"];
       const defense = sys["defense"] as Record<string, unknown> | undefined;
       const rawCastTime = sys["castTime"];
+      const spLevel = typeof rawLevel === "number" ? rawLevel : 0;
       rows.push({
         id,
         name: this._translateSpellName(typeof rawName === "string" ? rawName : ""),
-        level: typeof rawLevel === "number" ? rawLevel : 0,
+        level: spLevel,
         hasAttack: defense?.["spellAttack"] === true,
         castTime: typeof rawCastTime === "string" ? rawCastTime : null,
+        // Focus spells auto-heighten to the highest rank you can cast (ceil/2).
+        heightening: this._heighteningView(sys, spLevel, "focus"),
       });
     }
 
@@ -1210,6 +1264,112 @@ export class CharacterSheetVM {
 
     // Dangling reference — no embedded spell matches this id.
     return null;
+  }
+
+  // -------------------------------------------------------------------------
+  // Spell heightening (r16-G3) — automatic level scaling on the sheet
+  // -------------------------------------------------------------------------
+
+  /** Read an embedded spell item's `system` object by item id (or null). */
+  private _readSpellSystem(spellItemId: string): Record<string, unknown> | null {
+    if (!spellItemId) return null;
+    const items = this._doc["items"] as Array<Record<string, unknown>> | undefined;
+    if (!items) return null;
+    for (const item of items) {
+      if (item["type"] !== "spell" || item["_id"] !== spellItemId) continue;
+      const sys = item["system"];
+      return typeof sys === "object" && sys !== null ? (sys as Record<string, unknown>) : {};
+    }
+    return null;
+  }
+
+  /**
+   * Project a spell's `system` + surface into the sheet-facing heightening view
+   * at the effective rank for that surface. Pure delegation to the
+   * spellHeightening helper — the VM only supplies the actor level.
+   */
+  private _heighteningView(
+    spellSystem: Record<string, unknown>,
+    baseRank: number,
+    surface: SpellSurface,
+    slotRank?: number,
+  ): SpellHeighteningView {
+    const eff = effectiveSpellRank(surface, this.level, baseRank, slotRank);
+    return CharacterSheetVM._toHeighteningView(computeHeightenedSpell(spellSystem, baseRank, eff));
+  }
+
+  private static _toHeighteningView(h: HeightenedSpell): SpellHeighteningView {
+    return {
+      effectiveRank: h.effectiveRank,
+      baseRank: h.baseRank,
+      heightenedBy: h.heightenedBy,
+      rollFormula: h.rollFormula,
+      damageDisplay: h.damageDisplay,
+      hasComplexHeightening: h.hasComplexHeightening,
+    };
+  }
+
+  /**
+   * Heightened view of an embedded spell for a given casting surface (r16-G3).
+   * The Spells tab calls this for PREPARED slots (surface "prepared", passing
+   * the slot's rank) — cantrip/focus rows already carry their view on the
+   * SpellRow. Returns null when the id matches no embedded spell.
+   */
+  heightenedSpell(
+    spellItemId: string,
+    surface: SpellSurface,
+    slotRank?: number,
+  ): SpellHeighteningView | null {
+    const sys = this._readSpellSystem(spellItemId);
+    if (!sys) return null;
+    const rawLevel = sys["level"];
+    const baseRank = typeof rawLevel === "number" ? rawLevel : 0;
+    return this._heighteningView(sys, baseRank, surface, slotRank);
+  }
+
+  /**
+   * Build a chat:send op for a spell's DAMAGE roll at its effective rank
+   * (r16-G3). Reads the embedded spell's damage/heightening, applies the
+   * heightening for `surface`/`slotRank`, and emits "/r <formula> # <flavor>"
+   * where the flavor names the spell and its effective rank in pt-BR
+   * ("Ignição (nível 2)"). Returns null when the spell has no rollable damage
+   * (non-damage spell, or a complex-only heightening) so the UI hides the button.
+   */
+  rollSpellDamage(
+    spellItemId: string,
+    surface: SpellSurface,
+    slotRank?: number,
+  ): ChatRollPayload | null {
+    const sys = this._readSpellSystem(spellItemId);
+    if (!sys) return null;
+    const rawLevel = sys["level"];
+    const baseRank = typeof rawLevel === "number" ? rawLevel : 0;
+    const eff = effectiveSpellRank(surface, this.level, baseRank, slotRank);
+    const heightened = computeHeightenedSpell(sys, baseRank, eff);
+    if (!heightened.rollFormula) return null;
+
+    const spellName = this._embeddedSpellDisplayName(spellItemId);
+    const label =
+      heightened.effectiveRank > heightened.baseRank
+        ? t("FUSION.Sheet.Chat.SpellDamageHeightened", {
+            name: spellName,
+            rank: String(heightened.effectiveRank),
+          })
+        : t("FUSION.Sheet.Chat.SpellDamage", { name: spellName });
+    return this._buildChatRoll(heightened.rollFormula, label);
+  }
+
+  /** Translated display name of an embedded spell item by id (fallback: generic). */
+  private _embeddedSpellDisplayName(spellItemId: string): string {
+    const items = this._doc["items"] as Array<Record<string, unknown>> | undefined;
+    if (items) {
+      for (const item of items) {
+        if (item["type"] !== "spell" || item["_id"] !== spellItemId) continue;
+        const raw = item["name"];
+        if (typeof raw === "string" && raw.length > 0) return this._translateSpellName(raw);
+      }
+    }
+    return t("FUSION.Sheet.Chat.SpellDamage.fallback");
   }
 
   /**

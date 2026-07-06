@@ -153,6 +153,19 @@ export interface CharacterDerived {
       readonly rank: number;
     }
   >;
+
+  /**
+   * Derived land speed (r16-G1): base system.speed.value plus any land-speed
+   * FlatModifiers from embedded feats (Fleet, ancestry feats, …). Manual mirror
+   * of stepCharSpeed's system.derived.speed. Optional: absent on pre-r16 derived
+   * data — the speed getter falls back to the raw system.speed.value.
+   */
+  readonly speed?: {
+    readonly value: number;
+    readonly base: number;
+    readonly modifiers: ModifierBreakdown[];
+    readonly otherSpeeds?: unknown[];
+  };
 }
 
 // ---------------------------------------------------------------------------
