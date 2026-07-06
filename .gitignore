@@ -26,6 +26,9 @@ systems/*/src/**/*.map
 .DS_Store
 Thumbs.db
 
+# Data-dir descartável de auditoria (cópia do mundo real; nunca commitar)
+.fusion-build/r14-audit-data/
+
 # Claude agent worktrees
 .claude/worktrees/
 
