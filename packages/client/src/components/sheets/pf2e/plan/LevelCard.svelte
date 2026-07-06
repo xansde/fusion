@@ -8,7 +8,7 @@
    * (.fusion-build/r10-design/claude-design/components/plan/LevelCard.jsx).
    */
 
-  import type { LevelPlanModel, PlanSlotModel, AutoFeatureModel } from "../../../../lib/sheets/pf2e/planVM.js";
+  import type { LevelPlanModel, PlanSlotModel, AutoFeatureModel, AbilityGridCell } from "../../../../lib/sheets/pf2e/planVM.js";
   import { detailsRequestForSlot } from "../../../../lib/sheets/pf2e/planVM.js";
   import PlanSlot from "./PlanSlot.svelte";
   import PlanEmptySlot from "./PlanEmptySlot.svelte";
@@ -22,6 +22,10 @@
     subName?: string | undefined;
     type: string;
     subType?: string | undefined;
+    /** For a filled abilityBoosts slot (r14 #6): the 3×2 net-per-ability grid to render instead of `name`. */
+    grid?: AbilityGridCell[] | undefined;
+    /** pt-BR ability short-labels keyed by slug (FOR/DES/CON/INT/SAB/CAR) for the grid header. */
+    gridLabels?: Record<string, string> | undefined;
   }
 
   /** Bilingual display parts for a locked auto-feature chip (r14). */
@@ -101,6 +105,8 @@
             subName={display.subName}
             type={display.type}
             subType={display.subType}
+            grid={display.grid}
+            gridLabels={display.gridLabels}
             onRemove={editable ? () => onSlotRemove(slot) : undefined}
             onEdit={canEdit(slot) ? () => onSlotClick(slot) : undefined}
             onDetails={hasDetails(slot) ? () => onSlotDetails(slot) : undefined}

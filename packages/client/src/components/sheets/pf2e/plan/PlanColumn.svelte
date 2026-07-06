@@ -49,6 +49,7 @@
     detailsRequestForSlot,
     detailsRequestForAutoFeature,
     buildContentNameTranslator,
+    abilityBoostsGrid,
     SLOT_TYPE_LABELS_EN,
     type PlanSlotModel,
     type PlanSlotType,
@@ -162,10 +163,39 @@
     return { type: pt, subType: en };
   }
 
+  // pt-BR short ability labels for the abilityBoosts grid (r14 #6). Kept inline
+  // (Plan-territory content, like the boost dialog's other pt-BR literals).
+  const ABILITY_SHORT_LABELS_PT: Record<string, string> = {
+    str: "FOR",
+    dex: "DES",
+    con: "CON",
+    int: "INT",
+    wis: "SAB",
+    cha: "CAR",
+  };
+
+  /** Parse the level a slot id encodes (`<type>-<level>[-...]`), defaulting to the char level. */
+  function levelOfSlot(slot: PlanSlotModel): number {
+    const m = /-(\d+)/.exec(slot.slotId);
+    return m ? Number(m[1]) : ctx.level;
+  }
+
   /** Bilingual name + type parts for a FILLED slot (passed to LevelCard → PlanSlot). */
   function slotDisplay(slot: PlanSlotModel): SlotDisplay {
-    const nameParts = contentNameParts(slot.choiceName ?? slot.label);
     const typeParts = slotTypeParts(slot);
+    // Ability boosts render a 3×2 net-per-ability grid instead of a raw name
+    // string (r14 #6) — the pick list "con, dex, int, …" is replaced by the
+    // resulting modifiers (FOR/DES/CON/INT/SAB/CAR).
+    if (slot.type === "abilityBoosts") {
+      return {
+        name: slot.choiceName ?? slot.label,
+        type: typeParts.type,
+        ...(typeParts.subType !== undefined ? { subType: typeParts.subType } : {}),
+        grid: abilityBoostsGrid(doc, levelOfSlot(slot)),
+        gridLabels: ABILITY_SHORT_LABELS_PT,
+      };
+    }
+    const nameParts = contentNameParts(slot.choiceName ?? slot.label);
     return {
       name: nameParts.name,
       ...(nameParts.subName !== undefined ? { subName: nameParts.subName } : {}),

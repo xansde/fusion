@@ -26,6 +26,7 @@
 
   import { CharacterSheetVM } from "$lib/sheets/pf2e/characterSheetVM.js";
   import type { ChatRollPayload, DocUpdatePayload, DocOpPayload, CharacterSheetTab } from "$lib/sheets/pf2e/characterSheetVM.js";
+  import { skillNamePt } from "$lib/sheets/pf2e/skillNames.js";
   import { worldMirror } from "$lib/docs/worldSync.js";
   import SpellsTab from "./SpellsTab.svelte";
   import ActionsTab from "./ActionsTab.svelte";
@@ -88,6 +89,17 @@
   // ---------------------------------------------------------------------------
 
   let activeTab = $state<CharacterSheetTab>("main");
+
+  // Rendered tabs (r14 #8 pt-BR labels; r14 #16: "feats" REMOVED — the Plan
+  // column covers everything the Feats tab showed, at the correct levels).
+  const SHEET_TABS: ReadonlyArray<{ id: CharacterSheetTab; labelKey: string }> = [
+    { id: "main", labelKey: "FUSION.Sheet.Tabs.Main" },
+    { id: "skills", labelKey: "FUSION.Sheet.Tabs.Skills" },
+    { id: "actions", labelKey: "FUSION.Sheet.Tabs.Actions" },
+    { id: "spells", labelKey: "FUSION.Sheet.Tabs.Spells" },
+    { id: "inventory", labelKey: "FUSION.Sheet.Tabs.Inventory" },
+    { id: "bio", labelKey: "FUSION.Sheet.Tabs.Bio" },
+  ];
 
   // ---------------------------------------------------------------------------
   // Play / Edit mode toggle (REQ-UIF-023) — local UI state, does not persist.
@@ -325,7 +337,7 @@
         {vm.ancestryLabel}
         {#if vm.ancestryLabel && vm.classLabel} · {/if}
         {vm.classLabel}
-        Level {vm.level}
+        {t("FUSION.Sheet.Header.Level", { level: String(vm.level) })}
       </div>
     </div>
 
@@ -505,18 +517,23 @@
   {/if}
 
   <!-- ---- Tab bar ---- -->
+  <!--
+    r14 #8: labels em pt-BR (Principal/Perícias/Ações/Magias/Inventário/Bio).
+    r14 #16: a aba "Feats" foi REMOVIDA — o Plano cobre 100% do que ela mostrava
+    (e mostrava níveis errados). Ver auditoria r14 §4.
+  -->
   <div class="tab-bar" role="tablist" aria-label="Character sheet sections">
-    {#each (["main", "skills", "actions", "spells", "inventory", "feats", "bio"] as const) as tab}
+    {#each SHEET_TABS as tab (tab.id)}
       <button
         class="tab-btn"
-        class:tab-btn--active={activeTab === tab}
+        class:tab-btn--active={activeTab === tab.id}
         role="tab"
-        aria-selected={activeTab === tab}
-        aria-controls="tab-panel-{tab}"
-        id="tab-{tab}"
-        onclick={() => { activeTab = tab; }}
+        aria-selected={activeTab === tab.id}
+        aria-controls="tab-panel-{tab.id}"
+        id="tab-{tab.id}"
+        onclick={() => { activeTab = tab.id; }}
       >
-        {tab.charAt(0).toUpperCase() + tab.slice(1)}
+        {t(tab.labelKey)}
       </button>
     {/each}
   </div>
@@ -653,7 +670,10 @@
         <ul class="skill-list" aria-label="Skills">
           {#each vm.skills as skill (skill.slug)}
             <li class="skill-row skill-row--edit">
-              <span class="skill-row__name">{skill.label}</span>
+              <span class="skill-row__name">
+                {skillNamePt(skill.slug)}
+                <span class="skill-row__name-en">{skill.label}</span>
+              </span>
               <select
                 aria-label="{skill.label} rank"
                 value={skill.rank}
@@ -680,7 +700,8 @@
                 onclick={() => rollSkill(skill.slug)}
                 aria-label="Roll {skill.label} ({skill.totalFormatted})"
               >
-                {skill.label}
+                {skillNamePt(skill.slug)}
+                <span class="skill-row__name-en">{skill.label}</span>
               </button>
               <span class="skill-row__ability">{skill.abilityLabel}</span>
               <span class="skill-row__total">{skill.totalFormatted}</span>
@@ -801,31 +822,6 @@
         </ul>
       {:else}
         <p class="empty-state">Empty inventory.</p>
-      {/if}
-    </section>
-
-  <!-- FEATS tab -->
-  {:else if activeTab === "feats"}
-    <section
-      id="tab-panel-feats"
-      role="tabpanel"
-      aria-labelledby="tab-feats"
-      class="tab-panel tab-panel--feats"
-    >
-      {#if vm.feats.length > 0}
-        <ul class="feat-list" aria-label="Feats">
-          {#each vm.feats as feat (feat.id)}
-            <li class="feat-row">
-              <span class="feat-row__name">{feat.name}</span>
-              <span class="trait-badge">{feat.subtype}</span>
-              {#if feat.level != null}
-                <span class="feat-row__level">Lvl {feat.level}</span>
-              {/if}
-            </li>
-          {/each}
-        </ul>
-      {:else}
-        <p class="empty-state">No feats.</p>
       {/if}
     </section>
 
@@ -1356,6 +1352,14 @@
     outline: 2px solid var(--fusion-color-focus, #5b8dee);
   }
 
+  /* EN subtitle beside the pt-BR skill name (r14 #7). */
+  .skill-row__name-en {
+    margin-left: 6px;
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--fusion-color-text-muted, #9999cc);
+  }
+
   .skill-row__ability {
     font-size: 10px;
     color: var(--fusion-color-text-muted, #9999cc);
@@ -1658,37 +1662,6 @@
 
   .map-btn--crit .map-btn__label {
     color: var(--fusion-color-warning, #ffcc00);
-  }
-
-  /* ---- Feats tab ---- */
-  .feat-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .feat-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 5px 8px;
-    background: var(--fusion-color-surface-raised, #16213e);
-    border: 1px solid var(--fusion-color-border, #3a3a5c);
-    border-radius: var(--fusion-radius-sm, 4px);
-  }
-
-  .feat-row__name {
-    flex: 1;
-    font-size: 12px;
-    font-weight: 600;
-  }
-
-  .feat-row__level {
-    font-size: 11px;
-    color: var(--fusion-color-text-muted, #9999cc);
   }
 
   /* ---- Bio tab ---- */

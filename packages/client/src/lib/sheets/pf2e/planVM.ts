@@ -898,6 +898,55 @@ function resolveAbilityBoostsSlot(
   };
 }
 
+// ---------------------------------------------------------------------------
+// Ability-boosts grid (B1 r14 #6) — the filled abilityBoosts slot renders a
+// 3×2 grid of the NET per-ability outcome instead of a raw slug string
+// ("con, dex, int, ..."). For the level-1 boost step (which folds ancestry +
+// background + class + level-1 boosts AND ancestry flaws) the "net" is the
+// final ability MODIFIER per attribute — the number the sheet shows (Tobias:
+// STR 8 → -1, DEX 16 → +3, CON 14 → +2, INT 18 → +4, WIS 10 → +0, CHA 12 → +1),
+// computed from the same ledger `computeAbilityScores` uses so the grid always
+// matches the header. A levelled milestone slot (5/10/15/20) shows the running
+// modifier at that level too (its own 4 boosts are already folded in).
+// ---------------------------------------------------------------------------
+
+/** Display order for the ability grid (PF2e sheet order: STR/DEX/CON/INT/WIS/CHA). */
+export const ABILITY_GRID_ORDER: readonly AbilitySlug[] = [
+  "str",
+  "dex",
+  "con",
+  "int",
+  "wis",
+  "cha",
+] as const;
+
+export interface AbilityGridCell {
+  slug: AbilitySlug;
+  /** Net ability modifier at this level (floor((score-10)/2)). */
+  mod: number;
+  /** Signed modifier string, always with a sign ("+4", "-1", "+0"). */
+  modFormatted: string;
+}
+
+/**
+ * abilityBoostsGrid — the 3×2 net-per-ability grid for a FILLED abilityBoosts
+ * slot (B1 r14 #6). Returns the six abilities in `ABILITY_GRID_ORDER` with the
+ * final modifier each has at `level` (the ledger up to and including this
+ * level's boosts), so the Plan renders "FOR +0 · DES +3 …" instead of the raw
+ * "con, dex, int, …" pick list. Pure — reuses `computeAbilityScores`.
+ */
+export function abilityBoostsGrid(
+  doc: Record<string, unknown>,
+  level: number,
+): AbilityGridCell[] {
+  const abilities = getBuildAbilities(getSystem(doc));
+  const scores = computeAbilityScores(abilities, level);
+  return ABILITY_GRID_ORDER.map((slug) => {
+    const mod = abilityMod(scores[slug]);
+    return { slug, mod, modFormatted: mod >= 0 ? `+${String(mod)}` : String(mod) };
+  });
+}
+
 /**
  * trainedSkillCount — level-1 free skill-training slot count (issue #4 /
  * audit r10 final #4): `trainedSkills.additional` PLUS the Int modifier

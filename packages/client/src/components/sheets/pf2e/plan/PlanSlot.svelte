@@ -23,6 +23,7 @@
    */
 
   import type { Snippet } from "svelte";
+  import type { AbilityGridCell } from "../../../../lib/sheets/pf2e/planVM.js";
 
   interface Props {
     name: string;
@@ -31,13 +32,21 @@
     subName?: string | undefined;
     /** EN subtitle for the slot-type label — always rendered when present (r14). */
     subType?: string | undefined;
+    /** When set, render a 3×2 net-per-ability grid instead of `name` (filled abilityBoosts slot, r14 #6). */
+    grid?: AbilityGridCell[] | undefined;
+    /** pt-BR ability short-labels keyed by slug, for the grid. */
+    gridLabels?: Record<string, string> | undefined;
     onRemove?: (() => void) | undefined;
     onEdit?: (() => void) | undefined;
     onDetails?: (() => void) | undefined;
     badge?: Snippet | undefined;
   }
 
-  let { name, type, subName, subType, onRemove, onEdit, onDetails, badge }: Props = $props();
+  let { name, type, subName, subType, grid, gridLabels, onRemove, onEdit, onDetails, badge }: Props = $props();
+
+  function gridLabel(slug: string): string {
+    return gridLabels?.[slug] ?? slug.toUpperCase();
+  }
 
   // Edit is the primary body action when available (ability boosts / skill
   // trainings); details is the fallback for non-editable filled slots (feats).
@@ -56,11 +65,22 @@
     >
       <span class="plan-slot__check" aria-hidden="true">&#10003;</span>
       <span class="plan-slot__main">
-        <span class="plan-slot__name">
-          {name}
-          {#if subName}<span class="plan-slot__name-en">{subName}</span>{/if}
-          {#if badge}{@render badge()}{/if}
-        </span>
+        {#if grid}
+          <span class="plan-slot__grid" aria-label={name}>
+            {#each grid as cell (cell.slug)}
+              <span class="plan-slot__grid-cell">
+                <span class="plan-slot__grid-ability">{gridLabel(cell.slug)}</span>
+                <span class="plan-slot__grid-mod">{cell.modFormatted}</span>
+              </span>
+            {/each}
+          </span>
+        {:else}
+          <span class="plan-slot__name">
+            {name}
+            {#if subName}<span class="plan-slot__name-en">{subName}</span>{/if}
+            {#if badge}{@render badge()}{/if}
+          </span>
+        {/if}
         <span class="plan-slot__type">
           {type}{#if subType}<span class="plan-slot__type-en">{subType}</span>{/if}
         </span>
@@ -70,11 +90,22 @@
   {:else}
     <span class="plan-slot__check" aria-hidden="true">&#10003;</span>
     <div class="plan-slot__main">
-      <div class="plan-slot__name">
-        {name}
-        {#if subName}<span class="plan-slot__name-en">{subName}</span>{/if}
-        {#if badge}{@render badge()}{/if}
-      </div>
+      {#if grid}
+        <div class="plan-slot__grid" aria-label={name}>
+          {#each grid as cell (cell.slug)}
+            <span class="plan-slot__grid-cell">
+              <span class="plan-slot__grid-ability">{gridLabel(cell.slug)}</span>
+              <span class="plan-slot__grid-mod">{cell.modFormatted}</span>
+            </span>
+          {/each}
+        </div>
+      {:else}
+        <div class="plan-slot__name">
+          {name}
+          {#if subName}<span class="plan-slot__name-en">{subName}</span>{/if}
+          {#if badge}{@render badge()}{/if}
+        </div>
+      {/if}
       <div class="plan-slot__type">
         {type}{#if subType}<span class="plan-slot__type-en">{subType}</span>{/if}
       </div>
@@ -171,6 +202,39 @@
   .plan-slot__type {
     font-size: 10px;
     color: var(--fusion-text-subtle);
+  }
+
+  /* 3×2 net-per-ability grid for a filled abilityBoosts slot (r14 #6). */
+  .plan-slot__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3px 6px;
+    margin: 2px 0 1px;
+  }
+
+  .plan-slot__grid-cell {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px;
+    padding: 1px 5px;
+    border-radius: var(--fusion-radius-sm);
+    background: var(--fusion-surface);
+    border: 1px solid var(--fusion-border);
+  }
+
+  .plan-slot__grid-ability {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--fusion-text-subtle);
+  }
+
+  .plan-slot__grid-mod {
+    font-size: 11px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--fusion-text);
   }
 
   /* EN subtitle beside the pt-BR slot-type label (r14). */

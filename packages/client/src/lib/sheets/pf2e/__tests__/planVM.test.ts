@@ -46,6 +46,8 @@ import {
   findEntryUuidByName,
   pickDefaultEntryUuid,
   buildContentNameTranslator,
+  abilityBoostsGrid,
+  ABILITY_GRID_ORDER,
   type PlanOpBuilderContext,
   type PlanSlotModel,
   type FeatDocLike,
@@ -2755,5 +2757,66 @@ describe("buildContentNameTranslator", () => {
   it("returns the stored name unchanged for an empty string", () => {
     const translate = buildContentNameTranslator([feats]);
     expect(translate("")).toEqual({ namePt: "", nameEn: "" });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// abilityBoostsGrid (B1 r14 #6) — 3×2 net-per-ability grid for a filled slot
+// ---------------------------------------------------------------------------
+
+describe("abilityBoostsGrid", () => {
+  it("returns the six abilities in FOR/DES/CON/INT/SAB/CAR order", () => {
+    const grid = abilityBoostsGrid(tobiasLevel3DocComplete(), 1);
+    expect(grid.map((c) => c.slug)).toEqual(["str", "dex", "con", "int", "wis", "cha"]);
+    expect(ABILITY_GRID_ORDER).toEqual(["str", "dex", "con", "int", "wis", "cha"]);
+  });
+
+  it("computes the NET modifier per ability from the full boost+flaw ledger", () => {
+    // Fixture scores: str 10, dex 16, con 12, int 16, wis 10, cha 14
+    // → mods FOR +0, DES +3, CON +1, INT +3, SAB +0, CAR +2. STR carries an
+    // ancestry FLAW (str) yet its net is still +0 (10) — the grid shows the
+    // real outcome, not the raw boost count.
+    const grid = abilityBoostsGrid(tobiasLevel3DocComplete(), 1);
+    const bySlug = Object.fromEntries(grid.map((c) => [c.slug, c.modFormatted]));
+    expect(bySlug["str"]).toBe("+0");
+    expect(bySlug["dex"]).toBe("+3");
+    expect(bySlug["con"]).toBe("+1");
+    expect(bySlug["int"]).toBe("+3");
+    expect(bySlug["wis"]).toBe("+0");
+    expect(bySlug["cha"]).toBe("+2");
+  });
+
+  it("formats a negative net modifier with a minus sign (flaw-dominated ability)", () => {
+    // A doc with a lone STR flaw and no STR boost → score 8 → mod -1.
+    const doc: Record<string, unknown> = {
+      system: {
+        level: { value: 1 },
+        build: {
+          abilities: {
+            ancestryBoosts: [],
+            ancestryFlaws: ["str"],
+            ancestryFree: [],
+            backgroundBoosts: [],
+            backgroundFree: [],
+            classBoost: [],
+            levelledBoosts: {},
+          },
+        },
+      },
+      items: [],
+    };
+    const grid = abilityBoostsGrid(doc, 1);
+    const str = grid.find((c) => c.slug === "str");
+    expect(str?.mod).toBe(-1);
+    expect(str?.modFormatted).toBe("-1");
+  });
+
+  it("always signs +0 for an untouched ability", () => {
+    const doc: Record<string, unknown> = {
+      system: { level: { value: 1 }, build: { abilities: {} } },
+      items: [],
+    };
+    const grid = abilityBoostsGrid(doc, 1);
+    expect(grid.every((c) => c.modFormatted === "+0")).toBe(true);
   });
 });

@@ -39,6 +39,11 @@
   "FUSION.Sheet.Tabs.Biography": "Biography",
   "FUSION.Sheet.Tabs.Notes": "Notes",
   "FUSION.Sheet.Tabs.Effects": "Effects",
+  "FUSION.Sheet.Tabs.Main": "Main",
+  "FUSION.Sheet.Tabs.Skills": "Skills",
+  "FUSION.Sheet.Tabs.Actions": "Actions",
+  "FUSION.Sheet.Tabs.Bio": "Bio",
+  "FUSION.Sheet.Header.Level": "Level {{level}}",
 
   "FUSION.Sheet.Labels.HP": "HP",
   "FUSION.Sheet.Labels.AC": "AC",
