@@ -230,6 +230,23 @@ Feedback do usuário testando o exe r15 (rodada interativa; ele reportou 5 itens
 
 **Exe final r16** (2026-07-06, PRIMEIRO gerado no fluxo fusion-release): 128,2 MB, sha256 `26a4dbe7b1c6d747d1ccd38300f7064b7a2dab429d409781a0d74f3d75a8dd47`, smoke §5.2 **PASSED** (12 packs, familiar-abilities-core incluso). Exe intermediário `0c1fcb27` (gerado mid-round no repo de trabalho) descartado/superado.
 
+## Rodada r17 + r17.1 — familiar sem GM, cards interativos, graus de sucesso (2026-07-06, tarde)
+
+Pedidos do usuário pós-r16 ("Deu tudo certo nessa leva!"): (1) jogador criar o próprio familiar sem GM; (2) card de magia no chat com "Fazer teste de resistência" e "Rolar dano"; (r17.1, via chip) graus de sucesso REQ-PF2-113.
+
+| Commits | Entrega |
+| ------- | ------- |
+| `e3a6737`+`93a9176` | **P1 — familiar sem GM**: gate ESCOPADO no server (`doc-handlers`) — PLAYER cria Actor SÓ quando: payload é companion (`companionKind`+`masterActorId`), requisitante é OWNER do mestre (`testOwnership`, predicado único), mestre tem feat que concede familiar (`systems/pf2e/src/familiar-grant.ts` — fonte única importada pelo server), e mestre sem familiar (1 por mestre). Ownership do familiar FORÇADA à do mestre (nunca do payload). Delete do próprio companion liberado. **11 testes negativos anti-forja.** Erros pt-BR amigáveis no card |
+| `a573447`+`b48c5cf`+`a0c2595`+`498ede9` | **P2 — card de magia interativo**: flag estruturada `spellCast` no `chat:send` (Zod no server; caster deve ser o speaker; **CD conferida contra o derived do caster — CD forjada é dropada**); botões "Fazer teste de resistência" (alvo rola com o PRÓPRIO ator; seletor quando controla vários) e "Rolar dano" (dono do caster/GM; fórmula JÁ elevada r16) |
+| `ccd37bf` | fix(pets): 3 erros de lint pré-existentes em petsVM (type guards reais) |
+| `baa36e5`+`058cbfb`+`f1b4513`+`674e543` | **r17.1 — DoS na salvaguarda (REQ-PF2-113)**: flag `checkContext` (union discriminada `kind:"save"`, aberta p/ attack/skill) validada no server; grau computado NO SERVER no chat-handler pós-roll reusando `calculateDegreeOfSuccess` do engine-2e (≥CD+10/≥CD/≤CD−10 + nat 20 sobe / nat 1 desce, d20 natural lido da ESTRUTURA de terms, nunca parse de string); badge pt-BR colorido no card + dica do save básico (crítico→nenhum, sucesso→metade, falha→integral, falha crítica→dobro). Sem aplicação automática de dano em HP (sem targeting — futuro) |
+
+**Verificação viva r17: 19/19 PASS, zero fixes** (duas sessões de browser Jogador+GM; Bigode criado/deletado/recriado pelo Jogador; 2º familiar → erro pt-BR; save do GM com Sylas saiu com mod +5 conferido na ficha; dano 2d4+1d4 elevado; regressões CA19/HP36/Speed30/Descansar intactas). Verificação r17.1 em seção própria abaixo do exe.
+
+Lição operacional da rodada: agentes paralelos na MESMA working tree arrastam arquivos não-commitados uns dos outros no stage (aconteceu 2× — i18n do P2 no commit do P1; snapshot intermediário) — mitigação atual é stage seletivo por arquivo + commits imediatos; considerar `isolation: worktree` para batches paralelos futuros. O fluxo fusion-release (exe só de código commitado) já elimina o risco no artefato.
+
+**Exe r17** (2026-07-06): 128,3 MB, sha256 `0b3bbcdb075fc3c463f5eed1032fc7a051b58072455d8480e14e7c4afcd6221b`, smoke PASSED (12 packs). **Verificação viva r17.1: 4/4 PASS, zero fixes** — 21 rolagens conferidas à mão cobrindo os 4 graus, nat 20 (sobe p/ Sucesso Crítico), nat 1, e as bordas margin 0/−1/−10; rolagens sem contexto seguem sem badge. **Exe final r17.1**: 128,3 MB, sha256 `f0f9743aa477e1cf0f55390d982582075a33e02d0cc4b7ff83ba502fc867f94c`, smoke PASSED. (Warning pré-existente registrado: dado 3D loga "Roll notation is missing sides" em algumas fórmulas compostas — degradação graciosa, follow-up.)
+
 ## Registro por batch
 
 ### M6-B5 — Auto-update headless — ✅ M6 HEADLESS COMPLETO (2026-07-03)
