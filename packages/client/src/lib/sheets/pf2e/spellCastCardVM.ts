@@ -40,11 +40,14 @@ export interface SpellCastChatOp {
   rollMode: "public";
   speakerActorId: string;
   /**
-   * Optional structured flags carried to the server (r17.1). The save button
-   * attaches `{ checkContext: { kind:"save", dcValue, saveType, basicSave? } }`
-   * so the server can grade the roll's degree of success AUTHORITATIVELY. The
-   * client never compares the total to the DC — it only forwards the (already
-   * coherence-checked) DC + save metadata.
+   * Optional structured flags carried to the server (r17.1 / r18-N1). The save
+   * button attaches `{ checkContext: { kind:"save", dcValue, saveType,
+   * basicSave? } }` so the server grades the roll's degree of success
+   * AUTHORITATIVELY (the client never compares the total to the DC — it only
+   * forwards the already coherence-checked DC + save metadata). Both the save
+   * and damage buttons ALSO attach `parentMessageId` = the id of the card's own
+   * chat message (r18-N1), so the resulting roll nests INSIDE the spell-cast
+   * card instead of appearing as a loose message.
    */
   flags?: ChatSendFlags;
 }
@@ -176,6 +179,7 @@ export function buildSaveRollOp(
   targetActor: ActorDocLike,
   saveTypeLabel: string,
   worldId: string,
+  parentMessageId?: string,
 ): SpellCastChatOp | null {
   if (card.saveType === undefined || card.dcValue === undefined) return null;
   const targetId = actorId(targetActor);
@@ -185,11 +189,15 @@ export function buildSaveRollOp(
   // Attach the structured save checkContext (r17.1) so the SERVER grades the
   // degree of success against the DC. The DC on the card was already
   // coherence-checked server-side when the card was created; we only forward it.
-  const checkContext: NonNullable<ChatSendFlags["checkContext"]> = {
-    kind: "save",
-    dcValue: card.dcValue,
-    saveType: card.saveType,
-    ...(card.basicSave !== undefined ? { basicSave: card.basicSave } : {}),
+  // parentMessageId (r18-N1) nests this save under the card's own message.
+  const flags: ChatSendFlags = {
+    checkContext: {
+      kind: "save",
+      dcValue: card.dcValue,
+      saveType: card.saveType,
+      ...(card.basicSave !== undefined ? { basicSave: card.basicSave } : {}),
+    },
+    ...(parentMessageId ? { parentMessageId } : {}),
   };
   return {
     type: "chat:send",
@@ -197,7 +205,7 @@ export function buildSaveRollOp(
     worldId,
     rollMode: "public",
     speakerActorId: targetId,
-    flags: { checkContext },
+    flags,
   };
 }
 
@@ -211,6 +219,7 @@ export function buildDamageRollOp(
   card: SpellCastCard,
   worldId: string,
   flavorPrefix: string,
+  parentMessageId?: string,
 ): SpellCastChatOp | null {
   if (!card.damageFormula) return null;
   const typeSuffix = card.damageType ? ` ${card.damageType}` : "";
@@ -221,6 +230,8 @@ export function buildDamageRollOp(
     worldId,
     rollMode: "public",
     speakerActorId: card.casterActorId,
+    // parentMessageId (r18-N1) nests the damage roll under the card's message.
+    ...(parentMessageId ? { flags: { parentMessageId } } : {}),
   };
 }
 

@@ -183,6 +183,26 @@ describe("buildSaveRollOp", () => {
     });
     expect(op.flags?.checkContext).not.toHaveProperty("basicSave");
   });
+
+  // parentMessageId — r18-N1 (nest the save under the card's own message)
+  it("attaches parentMessageId alongside the checkContext when provided", () => {
+    const target = actor("target", "Hero", { default: 0, alice: 3 }, { reflex: 11 });
+    const op = buildSaveRollOp(SAVE_CARD, target, "Reflexos", "world-1", "msg-parent-1")!;
+    expect(op.flags?.parentMessageId).toBe("msg-parent-1");
+    // The graded save context still rides on the same flags object.
+    expect(op.flags?.checkContext).toEqual({
+      kind: "save",
+      dcValue: 19,
+      saveType: "reflex",
+      basicSave: true,
+    });
+  });
+
+  it("omits parentMessageId when not provided (orphan-safe)", () => {
+    const target = actor("target", "Hero", { default: 0, alice: 3 }, { reflex: 11 });
+    const op = buildSaveRollOp(SAVE_CARD, target, "Reflexos", "world-1")!;
+    expect(op.flags).not.toHaveProperty("parentMessageId");
+  });
 });
 
 describe("buildDamageRollOp", () => {
@@ -196,6 +216,17 @@ describe("buildDamageRollOp", () => {
   it("returns null when the card has no damage", () => {
     const { damageFormula: _f, ...noDmg } = SAVE_CARD;
     expect(buildDamageRollOp(noDmg as SpellCastCard, "w", "x")).toBeNull();
+  });
+
+  // parentMessageId — r18-N1 (nest the damage roll under the card's own message)
+  it("attaches parentMessageId when provided", () => {
+    const op = buildDamageRollOp(SAVE_CARD, "world-1", "Arco Elétrico — Dano", "msg-parent-2")!;
+    expect(op.flags?.parentMessageId).toBe("msg-parent-2");
+  });
+
+  it("carries no flags when parentMessageId is not provided (compat)", () => {
+    const op = buildDamageRollOp(SAVE_CARD, "world-1", "Arco Elétrico — Dano")!;
+    expect(op.flags).toBeUndefined();
   });
 });
 

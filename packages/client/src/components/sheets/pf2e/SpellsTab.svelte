@@ -38,6 +38,8 @@
   import { getDocument, requireConnectedSocket, listPacks, searchPack } from "../../../lib/compendium/compendiumApi.js";
   import { pickLocalizedName, DocumentDetailsCache } from "../../../lib/compendium/documentDetails.js";
   import { getSocket, session } from "../../../lib/session.svelte.js";
+  import { sendChatOpForId } from "../../../lib/docs/sendOp.js";
+  import type { ChatRollPayload } from "../../../lib/sheets/pf2e/characterSheetVM.js";
   import { t, i18n } from "../../../lib/i18n/i18n.js";
 
   interface Props {
@@ -578,18 +580,57 @@
     slotChoice = null;
   }
 
+  /**
+   * Emit a cast's announcement + optional attack roll, NESTING the attack under
+   * the announcement (r18-N1). When the spell has an attack, we need the
+   * announcement's server id to set `flags.parentMessageId` on the attack so the
+   * chat groups them into ONE card. We therefore send the announcement over a
+   * LIVE socket awaiting its ack (sendChatOpForId), then fire the attack with the
+   * parent id. On any failure (no socket / ack error) we fall back to the old
+   * un-nested fire-and-forget via sendOpFn so a roll is NEVER lost — it just
+   * renders as separate top-level messages, exactly as before r18-N1.
+   *
+   * No-attack casts keep the original single fire-and-forget path (nothing to
+   * nest), preserving the optimistic-echo behavior of sendOpFn.
+   */
+  function emitCast(cast: { announcement: ChatRollPayload; attack: ChatRollPayload | null }): void {
+    if (!cast.attack) {
+      sendOpFn(cast.announcement);
+      return;
+    }
+    const attack = cast.attack;
+    const sock = getSocket();
+    if (!sock) {
+      // No live socket — fall back to un-nested delivery (never drop the rolls).
+      sendOpFn(cast.announcement);
+      sendOpFn(attack);
+      return;
+    }
+    void (async () => {
+      try {
+        const parentId = await sendChatOpForId(sock, cast.announcement);
+        const nested: ChatRollPayload = parentId
+          ? { ...attack, flags: { ...attack.flags, parentMessageId: parentId } }
+          : attack;
+        sendOpFn(nested);
+      } catch {
+        // Announcement ack failed — deliver both un-nested rather than lose them.
+        sendOpFn(cast.announcement);
+        sendOpFn(attack);
+      }
+    })();
+  }
+
   function castSpell(entry: SpellcastingEntryRow, rank: number, slotIndex: number, spellId: string, spellName: string): void {
     const preparedOp = vm.toggleSlotExpended(entry.entryId, rank, slotIndex);
     if (preparedOp) sendOpFn(preparedOp);
     // r16: announce the cast in chat (pt-BR name + effective rank + ◆ glyphs +
     // save line) with Tobias as speaker; if it's an attack spell, also fire the
-    // spell-attack roll (one click = announcement + attack). Damage stays on Dano.
+    // spell-attack roll (one click = announcement + attack). r18-N1: the attack
+    // now nests under the announcement (emitCast). Damage stays on Dano.
     void spellName;
     const cast = vm.castSpell(spellId, entry.entryId, "prepared", rank);
-    if (cast) {
-      sendOpFn(cast.announcement);
-      if (cast.attack) sendOpFn(cast.attack);
-    }
+    if (cast) emitCast(cast);
   }
 
   /**
@@ -636,10 +677,7 @@
    */
   function castCantrip(entry: SpellcastingEntryRow, spellId: string): void {
     const cast = vm.castSpell(spellId, entry.entryId, "cantrip");
-    if (cast) {
-      sendOpFn(cast.announcement);
-      if (cast.attack) sendOpFn(cast.attack);
-    }
+    if (cast) emitCast(cast);
   }
 
   /** Casting a focus spell spends one Focus Point (min 0) and announces it. */
@@ -650,10 +688,7 @@
     // spells auto-heighten to ceil(level/2); the VM resolves the entry for DC.
     if (spellId && vm.focusEntryId) {
       const cast = vm.castSpell(spellId, vm.focusEntryId, "focus");
-      if (cast) {
-        sendOpFn(cast.announcement);
-        if (cast.attack) sendOpFn(cast.attack);
-      }
+      if (cast) emitCast(cast);
     }
   }
 

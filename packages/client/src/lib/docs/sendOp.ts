@@ -10,7 +10,7 @@
  */
 
 import type { Socket } from "socket.io-client";
-import type { Envelope, Ack, ErrorCode } from "@fusion/shared";
+import type { Envelope, Ack, ErrorCode, ChatMessage } from "@fusion/shared";
 import { createDocumentId } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
@@ -94,6 +94,39 @@ export function sendOp<R = unknown>(
       }
     });
   });
+}
+
+// ---------------------------------------------------------------------------
+// sendChatOpForId — flat chat:send op → resolves the canonical message id
+// ---------------------------------------------------------------------------
+
+/**
+ * Send a flat `chat:send` op and resolve the CANONICAL message `_id` the server
+ * assigned (r18-N1). Every chat:send branch returns `{ result: { message } }`
+ * (see chat-handler.ts), so the id is already on the ack — no wire change.
+ *
+ * Used by the spell-cast flow (SpellsTab) to chain the spell-attack roll under
+ * its announcement: send the announcement here, then send the attack with
+ * `flags.parentMessageId` = the returned id, so the chat nests them into ONE
+ * card instead of two loose messages. Returns null when the ack carries no
+ * message (defensive — should not happen for chat:send).
+ *
+ * Throws {@link OpError} on ack failure / timeout, exactly like sendOp(); the
+ * caller decides whether to still fire the child un-nested (the fallback is a
+ * top-level roll, never a lost roll).
+ */
+export async function sendChatOpForId(
+  socket: Socket,
+  op: { readonly type: "chat:send" } & Record<string, unknown>,
+  options: SendOpOptions = {},
+): Promise<string | null> {
+  const { type, ...payload } = op;
+  const result = await sendOp<{ message?: ChatMessage }>(
+    socket,
+    { type: type as Envelope["type"], payload },
+    options,
+  );
+  return result?.message?._id ?? null;
 }
 
 // ---------------------------------------------------------------------------

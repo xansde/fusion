@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { sendOp, OpError, makeSendOpFn } from "../sendOp.js";
+import { sendOp, OpError, makeSendOpFn, sendChatOpForId } from "../sendOp.js";
 import type { Socket } from "socket.io-client";
 import {
   DocUpdatePayloadSchema,
@@ -373,5 +373,75 @@ describe("makeSendOpFn — doc:* payload normalization (protocol-validated)", ()
       documentType: "Actor",
       updates: [{ _id: "a1", diff: { name: "X" } }],
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// sendChatOpForId — resolves the canonical message id from a chat:send ack
+// (r18-N1). The spell-cast flow uses it to chain the attack under the
+// announcement.
+// ---------------------------------------------------------------------------
+
+describe("sendChatOpForId", () => {
+  beforeEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("splits the flat op into { type, payload } and emits chat:send", async () => {
+    const { socket, triggerAck } = makeMockSocket();
+    const p = sendChatOpForId(socket, {
+      type: "chat:send",
+      content: "lança Arco Elétrico",
+      worldId: "w1",
+      speakerActorId: "caster",
+    });
+    triggerAck({ ok: true, result: { message: { _id: "srv-123" } } });
+    await p;
+
+    const [event, envelope] = (socket.emit as ReturnType<typeof vi.fn>).mock.calls[0] as [
+      string,
+      { type: string; payload: Record<string, unknown> },
+    ];
+    expect(event).toBe("op");
+    expect(envelope.type).toBe("chat:send");
+    // The `type` field is stripped from the forwarded payload.
+    expect(envelope.payload).not.toHaveProperty("type");
+    expect(envelope.payload).toMatchObject({ content: "lança Arco Elétrico", worldId: "w1" });
+  });
+
+  it("resolves the canonical message._id the child roll nests under", async () => {
+    const { socket, triggerAck } = makeMockSocket();
+    const p = sendChatOpForId(socket, {
+      type: "chat:send",
+      content: "announce",
+      worldId: "w1",
+      speakerActorId: "caster",
+    });
+    triggerAck({ ok: true, result: { message: { _id: "parent-abc" } } });
+    await expect(p).resolves.toBe("parent-abc");
+  });
+
+  it("resolves null when the ack carries no message (defensive)", async () => {
+    const { socket, triggerAck } = makeMockSocket();
+    const p = sendChatOpForId(socket, {
+      type: "chat:send",
+      content: "announce",
+      worldId: "w1",
+      speakerActorId: "caster",
+    });
+    triggerAck({ ok: true, result: {} });
+    await expect(p).resolves.toBeNull();
+  });
+
+  it("rejects with OpError on ack failure (caller falls back to un-nested)", async () => {
+    const { socket, triggerAck } = makeMockSocket();
+    const p = sendChatOpForId(socket, {
+      type: "chat:send",
+      content: "announce",
+      worldId: "w1",
+      speakerActorId: "caster",
+    });
+    triggerAck({ ok: false, code: "VALIDATION_FAILED", message: "bad" });
+    await expect(p).rejects.toThrow(OpError);
   });
 });

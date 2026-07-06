@@ -44,13 +44,15 @@
 
   interface Props {
     card: SpellCastCard;
+    /** Id of the chat message this card renders (r18-N1) — nests save/damage rolls under it. */
+    messageId?: string;
     worldId: string;
     socket?: Socket | undefined;
     isGm?: boolean;
     userId?: string;
   }
 
-  const { card, worldId, socket, isGm = false, userId = "" }: Props = $props();
+  const { card, messageId, worldId, socket, isGm = false, userId = "" }: Props = $props();
 
   let pending = $state(false);
   let errorMsg = $state<string | null>(null);
@@ -191,7 +193,8 @@
   async function rollSaveWith(actorId: string): Promise<void> {
     const actor = worldMirror.getDoc<ActorDocLike>("Actor", actorId);
     if (!actor) return;
-    const op = buildSaveRollOp(card, actor, saveTypeLabel, worldId);
+    // r18-N1: nest the save under this card's own message so the chat groups it.
+    const op = buildSaveRollOp(card, actor, saveTypeLabel, worldId, messageId);
     if (op) await emit(op);
     selectorOpen = false;
   }
@@ -206,7 +209,8 @@
   }
 
   async function handleDamageClick(): Promise<void> {
-    const op = buildDamageRollOp(card, worldId, damageFlavorPrefix);
+    // r18-N1: nest the damage roll under this card's own message.
+    const op = buildDamageRollOp(card, worldId, damageFlavorPrefix, messageId);
     if (op) await emit(op);
   }
 </script>

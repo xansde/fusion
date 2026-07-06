@@ -220,7 +220,7 @@
     {#if message.content}
       <p class="msg__content">{message.content}</p>
     {/if}
-    <SpellCastCard card={spellCastCard} {worldId} {socket} {isGm} {userId} />
+    <SpellCastCard card={spellCastCard} messageId={message._id} {worldId} {socket} {isGm} {userId} />
   {:else}
     <!-- text / whisper / system (no card) -->
     <p class="msg__content">{message.content}</p>

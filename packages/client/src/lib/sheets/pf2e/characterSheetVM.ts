@@ -23,7 +23,7 @@ import type {
   DerivedStrike,
   ArchetypeClassDC,
 } from "./derivedTypes.js";
-import type { SpellCastCard, SpellSaveType } from "@fusion/shared";
+import type { SpellCastCard, SpellSaveType, ChatSendFlags } from "@fusion/shared";
 import { t } from "../../i18n/index.js";
 import { skillNamePt } from "./skillNames.js";
 import {
@@ -492,13 +492,18 @@ export interface ChatRollPayload {
   rollMode: "public";
   speakerActorId: string;
   /**
-   * Optional namespaced flags to attach to the resulting ChatMessage (r17-P2).
-   * Only `pf2e.spellCast` is whitelisted server-side (interactive spell-cast
-   * card). Present on the cast announcement; absent on plain rolls. The wire
-   * schema (ChatSendFlagsSchema) validates the shape and the server never
-   * trusts the DC (coherence-checked against the caster's derived DC).
+   * Optional namespaced flags to attach to the resulting ChatMessage
+   * (r17-P2 / r18-N1). Whitelisted server-side:
+   *   - `pf2e.spellCast` — interactive spell-cast card, present on the cast
+   *     announcement; absent on plain rolls (server never trusts the DC, which
+   *     is coherence-checked against the caster's derived DC);
+   *   - `parentMessageId` — set on the spell-attack roll so it nests under its
+   *     announcement (r18-N1); the SpellsTab fills it from the announcement's
+   *     ack id.
+   * Typed as the shared ChatSendFlags so both paths are covered without a
+   * bespoke union.
    */
-  flags?: { pf2e: { spellCast: SpellCastCard } };
+  flags?: ChatSendFlags;
 }
 
 // ---------------------------------------------------------------------------
