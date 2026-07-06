@@ -28,6 +28,7 @@ Thumbs.db
 
 # Data-dir descartável de auditoria (cópia do mundo real; nunca commitar)
 .fusion-build/r14-audit-data/
+.fusion-build/r14-verify-data/
 
 # Claude agent worktrees
 .claude/worktrees/

@@ -231,11 +231,21 @@
     // item's OWN description directly (no fetch). Key is "embedded:<_id>".
     const itemId = rowItem.key.startsWith("embedded:") ? rowItem.key.slice("embedded:".length) : "";
     const embeddedDoc = localizeEmbeddedDoc(rowItem, buildEmbeddedDetailsDoc(embeddedById.get(itemId)));
-    // Heal-on-read: items embedded before the r11 ORC/OGL policy carry an empty
-    // description. When the embedded description is empty AND the row deduped a
-    // pack doc (fallbackUuid), fetch that pack doc and splice in its
-    // description, keeping the embedded identity (name / "Do personagem" badge).
-    if (rowItem.fallbackUuid && needsFallbackDescription(embeddedDoc)) {
+    // Prefer the pack doc's description over the embedded prose when a
+    // fallbackUuid resolved, in two cases:
+    //   (a) the embedded description is empty — heal-on-read for items embedded
+    //       before the r11 ORC/OGL policy (they carry an empty description);
+    //   (b) the active locale is pt-BR AND a pt-BR translation exists for this
+    //       row (signaled by namePt !== null — the feats-core name enrichment
+    //       sets namePt and fallbackUuid together, r14 #5). Embedded character
+    //       feats (Magus's Analysis, Bon Mot) carry EN-only prose in their own
+    //       system.description, so without this the panel would show EN even
+    //       though the pack doc has i18n.ptBR.description. withFallbackDescription
+    //       is locale-aware and falls back to EN when the pack has no
+    //       translation, so this never regresses untranslated actions.
+    // Either way the embedded identity (name / "Do personagem" badge) is kept.
+    const wantsLocalizedFallback = i18n.locale === "pt-BR" && rowItem.namePt !== null;
+    if (rowItem.fallbackUuid && (needsFallbackDescription(embeddedDoc) || wantsLocalizedFallback)) {
       void loadEmbeddedFallback(rowItem.key, rowItem.fallbackUuid, embeddedDoc);
       return;
     }
