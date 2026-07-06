@@ -24,7 +24,7 @@
 
   import { worldMirror } from "$lib/docs/worldSync.js";
   import { session, getSocket } from "$lib/session.svelte.js";
-  import { sendOp } from "$lib/docs/sendOp.js";
+  import { sendOp, toEnvelope } from "$lib/docs/sendOp.js";
   import { requireConnectedSocket } from "$lib/compendium/compendiumApi.js";
   import { t } from "$lib/i18n/i18n.js";
   import { openActorSheet } from "$lib/sheets/pf2e/registerPf2eSheets.js";
@@ -91,7 +91,10 @@
 
   async function emitOp(op: FamiliarOp): Promise<void> {
     const sock = requireConnectedSocket(getSocket());
-    await sendOp(sock, { type: op.type, payload: op as never });
+    // toEnvelope normalizes the flat op into the wire shape (doc:create's `data`
+    // becomes an array — the server's DocCreatePayloadSchema rejects an object;
+    // r16 pets bug) and strips the redundant `type` field from the payload.
+    await sendOp(sock, toEnvelope(op));
   }
 
   async function createFamiliar(): Promise<void> {

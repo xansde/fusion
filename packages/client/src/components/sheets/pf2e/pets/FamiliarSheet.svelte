@@ -15,7 +15,7 @@
 
   import { worldMirror } from "$lib/docs/worldSync.js";
   import { session, getSocket } from "$lib/session.svelte.js";
-  import { sendOp } from "$lib/docs/sendOp.js";
+  import { sendOp, toEnvelope } from "$lib/docs/sendOp.js";
   import { requireConnectedSocket } from "$lib/compendium/compendiumApi.js";
   import { t, i18n } from "$lib/i18n/i18n.js";
   import { openActorSheet } from "$lib/sheets/pf2e/registerPf2eSheets.js";
@@ -103,7 +103,9 @@
     try {
       const sock = requireConnectedSocket(getSocket());
       const op = buildSetHpOp(familiar, raw);
-      await sendOp(sock, { type: op.type, payload: op as never });
+      // toEnvelope normalizes the flat doc:update into `{ updates: [{ _id, diff }] }`
+      // (the server's DocUpdatePayloadSchema rejects the flat `{ id, diff }`).
+      await sendOp(sock, toEnvelope(op));
     } catch (err) {
       console.error("[FamiliarSheet] HP update failed:", err);
     }

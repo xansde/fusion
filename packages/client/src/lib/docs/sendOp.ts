@@ -219,3 +219,28 @@ function normalizeDocDelete(payload: Record<string, unknown>): Record<string, un
   const { id: _drop, ...rest } = payload;
   return { ...rest, ids: [id] };
 }
+
+/**
+ * Split a flat op `{ type, ...fields }` into the `{ type, payload }` envelope
+ * shape `sendOp()` expects, applying the same doc:create/update/delete wire
+ * normalization `makeSendOpFn` does. Callers that need the ack promise (e.g.
+ * PetsTab awaits familiar creation to surface errors) go through `sendOp`
+ * directly and must normalize with THIS — otherwise the flat op is sent
+ * verbatim (with a redundant `type` field and an object `data`), which the
+ * server's DocCreatePayloadSchema rejects with "Expected array, received
+ * object" (r16 pets bug). A payload already in wire shape passes through.
+ */
+export function toEnvelope(op: { readonly type: string }): {
+  type: Envelope["type"];
+  payload: Record<string, unknown>;
+} {
+  // Accept any typed op interface (CreateFamiliarOp, UpdateFamiliarOp, …) —
+  // they don't carry an index signature, so widen to a record for the
+  // rest-destructure. Every op is a plain object with a `type` discriminator.
+  const { type, ...payload } = op as { type: string } & Record<string, unknown>;
+  let normalizedPayload: Record<string, unknown> = payload;
+  if (type === "doc:update") normalizedPayload = normalizeDocUpdate(payload);
+  else if (type === "doc:create") normalizedPayload = normalizeDocCreate(payload);
+  else if (type === "doc:delete") normalizedPayload = normalizeDocDelete(payload);
+  return { type: type as Envelope["type"], payload: normalizedPayload };
+}
