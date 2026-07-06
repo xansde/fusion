@@ -26,7 +26,21 @@ import {
   pickEnName,
   localizedNameParts,
   pickLocalizedDescription,
+  formatActionCost,
+  traitDisplayName,
+  rarityDisplayName,
+  translateValueTokens,
+  translateDamageType,
 } from "../documentDetails.js";
+import { TRAIT_NAMES_PT } from "../traitNames.js";
+
+/**
+ * Field-shape helper: existing EN assertions predate the labelKey addition
+ * (r15-A1). This strips labelKey so the historic `{label,value}` assertions
+ * stay readable; dedicated pt-BR tests below assert labelKey explicitly.
+ */
+const noKey = (fields: Array<{ labelKey: string; label: string; value: string }>) =>
+  fields.map(({ label, value }) => ({ label, value }));
 
 describe("sanitizeDescriptionToText", () => {
   it("returns an empty array for null/undefined/empty input", () => {
@@ -338,7 +352,7 @@ describe("sanitizeDescriptionHtml", () => {
   });
 });
 
-describe("buildSpellFields", () => {
+describe("buildSpellFields (EN, default locale)", () => {
   it("extracts cast time, range, target, and requirements", () => {
     const fields = buildSpellFields({
       castTime: "2",
@@ -346,9 +360,9 @@ describe("buildSpellFields", () => {
       target: "1 creature",
       requirements: "You're benefitting from Arcane Cascade",
     });
-    expect(fields).toEqual(
+    expect(noKey(fields)).toEqual(
       expect.arrayContaining([
-        { label: "Cast", value: "2 actions" },
+        { label: "Cast", value: "◆◆ 2 actions" },
         { label: "Range", value: "30 feet" },
         { label: "Target", value: "1 creature" },
         { label: "Requirements", value: "You're benefitting from Arcane Cascade" },
@@ -357,88 +371,132 @@ describe("buildSpellFields", () => {
   });
 
   it("formats a reaction/free cast time distinctly from numbered actions", () => {
-    expect(buildSpellFields({ castTime: "reaction" })).toEqual([{ label: "Cast", value: "Reaction" }]);
-    expect(buildSpellFields({ castTime: "free" })).toEqual([{ label: "Cast", value: "Free Action" }]);
-    expect(buildSpellFields({ castTime: "1" })).toEqual([{ label: "Cast", value: "1 action" }]);
+    expect(noKey(buildSpellFields({ castTime: "reaction" }))).toEqual([{ label: "Cast", value: "⟳ reaction" }]);
+    expect(noKey(buildSpellFields({ castTime: "free" }))).toEqual([{ label: "Cast", value: "◇ free action" }]);
+    expect(noKey(buildSpellFields({ castTime: "1" }))).toEqual([{ label: "Cast", value: "◆ 1 action" }]);
   });
 
   it("extracts area with type and value", () => {
     const fields = buildSpellFields({ area: { type: "burst", value: 20 } });
-    expect(fields).toEqual([{ label: "Area", value: "20-foot burst" }]);
+    expect(noKey(fields)).toEqual([{ label: "Area", value: "20-foot burst" }]);
   });
 
   it("extracts a basic save with the (basic) suffix", () => {
     const fields = buildSpellFields({
       defense: { save: { statistic: "reflex", basic: true } },
     });
-    expect(fields).toEqual([{ label: "Save", value: "Reflex (basic)" }]);
+    expect(noKey(fields)).toEqual([{ label: "Save", value: "Reflex (basic)" }]);
   });
 
   it("extracts a non-basic save without the suffix", () => {
     const fields = buildSpellFields({
       defense: { save: { statistic: "fortitude", basic: false } },
     });
-    expect(fields).toEqual([{ label: "Save", value: "Fortitude" }]);
+    expect(noKey(fields)).toEqual([{ label: "Save", value: "Fortitude" }]);
   });
 
   it("extracts spellAttack defense", () => {
     const fields = buildSpellFields({ defense: { spellAttack: true } });
-    expect(fields).toEqual([{ label: "Save", value: "Spell attack" }]);
+    expect(noKey(fields)).toEqual([{ label: "Save", value: "Spell attack" }]);
   });
 
   it("extracts passive defense (e.g. AC)", () => {
     const fields = buildSpellFields({ defense: { passive: { statistic: "ac" } } });
-    expect(fields).toEqual([{ label: "Defense", value: "AC" }]);
+    expect(noKey(fields)).toEqual([{ label: "Defense", value: "AC" }]);
   });
 
   it("extracts damage entries keyed by rank, with type appended", () => {
     const fields = buildSpellFields({
       damage: { "0": { formula: "6d6", type: "fire" } },
     });
-    expect(fields).toEqual([{ label: "Damage (Base)", value: "6d6 fire" }]);
+    expect(noKey(fields)).toEqual([{ label: "Damage (Base)", value: "6d6 fire" }]);
   });
 
   it("extracts duration, marking sustained spells", () => {
     const fields = buildSpellFields({
       duration: { value: "1 minute", sustained: true },
     });
-    expect(fields).toEqual([{ label: "Duration", value: "1 minute (sustained)" }]);
+    expect(noKey(fields)).toEqual([{ label: "Duration", value: "1 minute (sustained)" }]);
   });
 
   it("extracts interval heightening with the +N delta", () => {
     const fields = buildSpellFields({ heightening: { type: "interval", interval: 2 } });
-    expect(fields).toEqual([{ label: "Heightened", value: "+2" }]);
+    expect(noKey(fields)).toEqual([{ label: "Heightened", value: "+2" }]);
   });
 
   it("extracts fixed heightening with the rank list", () => {
     const fields = buildSpellFields({ heightening: { type: "fixed", levels: { "5": {}, "9": {} } } });
-    expect(fields).toEqual([{ label: "Heightened", value: "Rank 5, 9" }]);
+    expect(noKey(fields)).toEqual([{ label: "Heightened", value: "Rank 5, 9" }]);
   });
 
   it("returns an empty array for a system with no recognizable fields", () => {
     expect(buildSpellFields({})).toEqual([]);
   });
+
+  it("always carries a labelKey alongside the EN label", () => {
+    const [cast] = buildSpellFields({ castTime: "2" });
+    expect(cast?.labelKey).toBe("FUSION.Sheet.Details.Field.Cast");
+    expect(cast?.label).toBe("Cast");
+  });
 });
 
-describe("buildFeatFields", () => {
+describe("buildSpellFields (pt-BR)", () => {
+  it("translates labels, cast icons, enumerable values and damage type", () => {
+    const fields = buildSpellFields(
+      {
+        castTime: "2 to 2 rounds", // the Horizon Thunder Sphere vendor value
+        range: "varies",
+        target: "1 creature",
+        duration: { value: "1 minute", sustained: false },
+        damage: { "0": { formula: "3d6", type: "electricity" } },
+        defense: { save: { statistic: "reflex", basic: true } },
+      },
+      "pt-BR",
+    );
+    expect(fields).toEqual([
+      { labelKey: "FUSION.Sheet.Details.Field.Cast", label: "Conjuração", value: "◆◆ 2 ações" },
+      { labelKey: "FUSION.Sheet.Details.Field.Range", label: "Alcance", value: "varia" },
+      { labelKey: "FUSION.Sheet.Details.Field.Target", label: "Alvo", value: "1 criatura" },
+      { labelKey: "FUSION.Sheet.Details.Field.Duration", label: "Duração", value: "1 minuto" },
+      { labelKey: "FUSION.Sheet.Details.Field.Save", label: "Salvaguarda", value: "Reflexos (básica)" },
+      { labelKey: "FUSION.Sheet.Details.Field.DamageBase", label: "Dano (base)", value: "3d6 eletricidade" },
+    ]);
+  });
+
+  it("translates area shape and units to pt-BR", () => {
+    const fields = buildSpellFields({ area: { type: "burst", value: 20 } }, "pt-BR");
+    expect(fields).toEqual([
+      { labelKey: "FUSION.Sheet.Details.Field.Area", label: "Área", value: "20 pés de explosão" },
+    ]);
+  });
+
+  it("never renders 'X to X' — collapses the degenerate range to a single cost", () => {
+    const [cast] = buildSpellFields({ castTime: "2 to 2 rounds" }, "pt-BR");
+    expect(cast?.value).toBe("◆◆ 2 ações");
+    expect(cast?.value).not.toContain(" to ");
+    expect(cast?.value).not.toContain(" a ");
+  });
+});
+
+describe("buildFeatFields (EN, default locale)", () => {
   it("extracts prerequisites joined by semicolons", () => {
     const fields = buildFeatFields({
       prerequisites: [{ value: "Trained in Acrobatics" }, { value: "level 5" }],
     });
-    expect(fields).toEqual([{ label: "Prerequisites", value: "Trained in Acrobatics; level 5" }]);
+    expect(noKey(fields)).toEqual([{ label: "Prerequisites", value: "Trained in Acrobatics; level 5" }]);
   });
 
   it("extracts frequency as 'max per unit'", () => {
     const fields = buildFeatFields({ frequency: { max: 1, per: "day" } });
-    expect(fields).toEqual([{ label: "Frequency", value: "1 per day" }]);
+    expect(noKey(fields)).toEqual([{ label: "Frequency", value: "1 per day" }]);
   });
 
-  it("extracts action cost for action/reaction/free feats", () => {
-    expect(buildFeatFields({ actionType: "action", actions: 2 })).toEqual([
-      { label: "Cast", value: "2 actions" },
+  it("extracts action cost with icons for action/reaction/free feats", () => {
+    expect(noKey(buildFeatFields({ actionType: "action", actions: 2 }))).toEqual([
+      { label: "Cast", value: "◆◆ 2 actions" },
     ]);
-    expect(buildFeatFields({ actionType: "reaction" })).toEqual([{ label: "Cast", value: "Reaction" }]);
-    expect(buildFeatFields({ actionType: "free" })).toEqual([{ label: "Cast", value: "Free Action" }]);
+    expect(noKey(buildFeatFields({ actionType: "reaction" }))).toEqual([{ label: "Cast", value: "⟳ reaction" }]);
+    expect(noKey(buildFeatFields({ actionType: "free" }))).toEqual([{ label: "Cast", value: "◇ free action" }]);
   });
 
   it("omits the cast field for passive feats", () => {
@@ -446,16 +504,33 @@ describe("buildFeatFields", () => {
   });
 });
 
+describe("buildFeatFields (pt-BR)", () => {
+  it("translates frequency and action cost", () => {
+    expect(buildFeatFields({ frequency: { max: 1, per: "day" } }, "pt-BR")).toEqual([
+      { labelKey: "FUSION.Sheet.Details.Field.Frequency", label: "Frequência", value: "1 por dia" },
+    ]);
+    expect(buildFeatFields({ actionType: "action", actions: 1 }, "pt-BR")).toEqual([
+      { labelKey: "FUSION.Sheet.Details.Field.Cast", label: "Conjuração", value: "◆ 1 ação" },
+    ]);
+  });
+});
+
 describe("buildClassFeatureFields", () => {
-  it("extracts the level field", () => {
-    expect(buildClassFeatureFields({ level: 5 })).toEqual([{ label: "Level", value: "5" }]);
+  it("extracts the level field (EN)", () => {
+    expect(noKey(buildClassFeatureFields({ level: 5 }))).toEqual([{ label: "Level", value: "5" }]);
   });
 
-  it("extracts prerequisites alongside level", () => {
+  it("extracts prerequisites alongside level (EN)", () => {
     const fields = buildClassFeatureFields({ level: 9, prerequisites: [{ value: "Hybrid Study" }] });
-    expect(fields).toEqual([
+    expect(noKey(fields)).toEqual([
       { label: "Level", value: "9" },
       { label: "Prerequisites", value: "Hybrid Study" },
+    ]);
+  });
+
+  it("translates the level label in pt-BR", () => {
+    expect(buildClassFeatureFields({ level: 3 }, "pt-BR")).toEqual([
+      { labelKey: "FUSION.Sheet.Details.Field.Level", label: "Nível", value: "3" },
     ]);
   });
 });
@@ -463,17 +538,24 @@ describe("buildClassFeatureFields", () => {
 describe("buildMechanicalFields (dispatch)", () => {
   it("dispatches to buildSpellFields for type 'spell'", () => {
     const fields = buildMechanicalFields({ type: "spell", system: { range: "touch" } });
-    expect(fields).toEqual([{ label: "Range", value: "touch" }]);
+    expect(noKey(fields)).toEqual([{ label: "Range", value: "touch" }]);
+  });
+
+  it("threads the locale through to the sub-builder", () => {
+    const fields = buildMechanicalFields({ type: "spell", system: { range: "touch" } }, "pt-BR");
+    expect(fields).toEqual([
+      { labelKey: "FUSION.Sheet.Details.Field.Range", label: "Alcance", value: "toque" },
+    ]);
   });
 
   it("dispatches to buildFeatFields for type 'feat'", () => {
     const fields = buildMechanicalFields({ type: "feat", system: { frequency: { max: 1, per: "day" } } });
-    expect(fields).toEqual([{ label: "Frequency", value: "1 per day" }]);
+    expect(noKey(fields)).toEqual([{ label: "Frequency", value: "1 per day" }]);
   });
 
   it("dispatches to buildClassFeatureFields for type 'classFeature'", () => {
     const fields = buildMechanicalFields({ type: "classFeature", system: { level: 3 } });
-    expect(fields).toEqual([{ label: "Level", value: "3" }]);
+    expect(noKey(fields)).toEqual([{ label: "Level", value: "3" }]);
   });
 
   it("returns an empty array for unrecognized types", () => {
@@ -483,6 +565,122 @@ describe("buildMechanicalFields (dispatch)", () => {
   it("returns an empty array when system is missing or not an object", () => {
     expect(buildMechanicalFields({ type: "spell" })).toEqual([]);
     expect(buildMechanicalFields({ type: "spell", system: "not-an-object" })).toEqual([]);
+  });
+});
+
+describe("formatActionCost (r15-A1)", () => {
+  it("maps 1/2/3 to action glyphs + pt-BR label", () => {
+    expect(formatActionCost("1", "pt-BR")).toEqual({ icons: "◆", label: "1 ação", isText: false });
+    expect(formatActionCost("2", "pt-BR")).toEqual({ icons: "◆◆", label: "2 ações", isText: false });
+    expect(formatActionCost("3", "pt-BR")).toEqual({ icons: "◆◆◆", label: "3 ações", isText: false });
+  });
+
+  it("maps free/reaction to their glyphs", () => {
+    expect(formatActionCost("free", "pt-BR")).toEqual({ icons: "◇", label: "ação livre", isText: false });
+    expect(formatActionCost("reaction", "pt-BR")).toEqual({ icons: "⟳", label: "reação", isText: false });
+  });
+
+  it("renders action ranges (1 to 3 / 2 or 3) with a glyph range, never 'X to X'", () => {
+    expect(formatActionCost("1 to 3", "pt-BR")).toEqual({ icons: "◆ a ◆◆◆", label: "1 a 3 ações", isText: false });
+    expect(formatActionCost("2 or 3", "pt-BR")).toEqual({ icons: "◆◆ a ◆◆◆", label: "2 a 3 ações", isText: false });
+    expect(formatActionCost("1 or 2", "pt-BR")).toEqual({ icons: "◆ a ◆◆", label: "1 a 2 ações", isText: false });
+  });
+
+  it("collapses the degenerate '2 to 2 rounds' vendor value to a single cost", () => {
+    const c = formatActionCost("2 to 2 rounds", "pt-BR");
+    expect(c).toEqual({ icons: "◆◆", label: "2 ações", isText: false });
+    expect(c.label).not.toContain(" to ");
+    expect(`${c.icons} ${c.label}`).not.toContain("rounds");
+  });
+
+  it("keeps long/textual times as translated text with no glyphs", () => {
+    expect(formatActionCost("1 minute", "pt-BR")).toEqual({ icons: "", label: "1 minuto", isText: true });
+    expect(formatActionCost("10 minutes", "pt-BR")).toEqual({ icons: "", label: "10 minutos", isText: true });
+    expect(formatActionCost("1 hour", "pt-BR")).toEqual({ icons: "", label: "1 hora", isText: true });
+  });
+
+  it("preserves EN output on the en locale", () => {
+    expect(formatActionCost("2", "en")).toEqual({ icons: "◆◆", label: "2 actions", isText: false });
+    expect(formatActionCost("1 to 3", "en")).toEqual({ icons: "◆ to ◆◆◆", label: "1 to 3 actions", isText: false });
+    expect(formatActionCost("1 minute", "en")).toEqual({ icons: "", label: "1 minute", isText: true });
+  });
+
+  it("handles empty/undefined input safely", () => {
+    expect(formatActionCost("", "pt-BR")).toEqual({ icons: "", label: "", isText: true });
+    expect(formatActionCost(null, "pt-BR")).toEqual({ icons: "", label: "", isText: true });
+    expect(formatActionCost(undefined, "pt-BR")).toEqual({ icons: "", label: "", isText: true });
+  });
+});
+
+describe("value translation helpers (r15-A1)", () => {
+  it("translateValueTokens handles common range/target/duration phrases", () => {
+    expect(translateValueTokens("1 creature", "pt-BR")).toBe("1 criatura");
+    expect(translateValueTokens("1 willing creature", "pt-BR")).toBe("1 criatura disposta");
+    expect(translateValueTokens("30 feet", "pt-BR")).toBe("30 pés");
+    expect(translateValueTokens("touch", "pt-BR")).toBe("toque");
+    expect(translateValueTokens("varies", "pt-BR")).toBe("varia");
+    expect(translateValueTokens("up to 5 creatures", "pt-BR")).toBe("até 5 criaturas");
+  });
+
+  it("translateValueTokens leaves numbers and dice untouched", () => {
+    expect(translateValueTokens("120 feet", "pt-BR")).toBe("120 pés");
+    expect(translateValueTokens("3d6", "pt-BR")).toBe("3d6");
+  });
+
+  it("translateValueTokens is a no-op on en", () => {
+    expect(translateValueTokens("1 creature", "en")).toBe("1 creature");
+  });
+
+  it("translateDamageType maps damage slugs", () => {
+    expect(translateDamageType("electricity", "pt-BR")).toBe("eletricidade");
+    expect(translateDamageType("fire", "pt-BR")).toBe("fogo");
+    expect(translateDamageType("bludgeoning", "pt-BR")).toBe("concussão");
+    expect(translateDamageType("fire", "en")).toBe("fire");
+    expect(translateDamageType("unknownType", "pt-BR")).toBe("unknownType");
+  });
+});
+
+describe("trait/rarity display names (r15-A1)", () => {
+  it("translates known trait slugs to accented pt-BR", () => {
+    expect(traitDisplayName("attack", "pt-BR")).toBe("ataque");
+    expect(traitDisplayName("concentrate", "pt-BR")).toBe("concentração");
+    expect(traitDisplayName("electricity", "pt-BR")).toBe("eletricidade");
+    expect(traitDisplayName("manipulate", "pt-BR")).toBe("manipulação");
+  });
+
+  it("keeps coined names in English (magus)", () => {
+    expect(traitDisplayName("magus", "pt-BR")).toBe("magus");
+  });
+
+  it("returns the raw slug on the en locale", () => {
+    expect(traitDisplayName("attack", "en")).toBe("attack");
+  });
+
+  it("falls back to a humanized slug for an unknown trait", () => {
+    expect(traitDisplayName("some-new-trait", "pt-BR")).toBe("some new trait");
+  });
+
+  it("covers all 177 glossary traits with a non-empty accented value", () => {
+    const keys = Object.keys(TRAIT_NAMES_PT);
+    expect(keys.length).toBe(177);
+    for (const slug of keys) {
+      const pt = traitDisplayName(slug, "pt-BR");
+      expect(pt.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("has no ASCII-folded leftovers where an accent is required (spot checks)", () => {
+    // These specific slugs were unaccented in the raw glossary and must be fixed.
+    expect(TRAIT_NAMES_PT["acid"]).toBe("ácido");
+    expect(TRAIT_NAMES_PT["consumable"]).toBe("consumível");
+    expect(TRAIT_NAMES_PT["skill"]).toBe("perícia");
+    expect(TRAIT_NAMES_PT["water"]).toBe("água");
+  });
+
+  it("translates rarity slugs", () => {
+    expect(rarityDisplayName("uncommon", "pt-BR")).toBe("Incomum");
+    expect(rarityDisplayName("rare", "pt-BR")).toBe("Raro");
+    expect(rarityDisplayName("rare", "en")).toBe("rare");
   });
 });
 

@@ -32,6 +32,13 @@
  */
 
 import type { SupportedLocale } from "../i18n/i18n.js";
+import {
+  TRAIT_NAMES_PT,
+  DAMAGE_TYPE_NAMES_PT,
+  TRADITION_NAMES_PT,
+  RARITY_NAMES_PT,
+  AREA_SHAPE_NAMES_PT,
+} from "./traitNames.js";
 
 // ---------------------------------------------------------------------------
 // Localization overlay picking (T1)
@@ -535,10 +542,205 @@ export function sanitizeDescriptionHtml(html: string | null | undefined): string
 }
 
 // ---------------------------------------------------------------------------
+// Locale-aware display translation (r15-A1)
+// ---------------------------------------------------------------------------
+
+/** Humanize a kebab/underscore slug into spaced Title-ish text as a last resort. */
+function humanizeSlug(slug: string): string {
+  return slug
+    .split(/[-_]/)
+    .filter((w) => w.length > 0)
+    .join(" ");
+}
+
+/**
+ * Display label for a single trait slug in the active locale. On "pt-BR" the
+ * generated {@link TRAIT_NAMES_PT} map wins; an unknown slug falls back to a
+ * humanized form of the slug. On "en" the raw slug is returned unchanged (the
+ * chip's own uppercase CSS renders it as "ATTACK"). r15-A1.
+ */
+export function traitDisplayName(slug: string, locale: SupportedLocale): string {
+  if (locale !== "pt-BR") return slug;
+  return TRAIT_NAMES_PT[slug] ?? humanizeSlug(slug);
+}
+
+/** Display label for a rarity slug (never shown for "common"). r15-A1. */
+export function rarityDisplayName(slug: string, locale: SupportedLocale): string {
+  if (locale !== "pt-BR") return slug;
+  return RARITY_NAMES_PT[slug] ?? humanizeSlug(slug);
+}
+
+/**
+ * Word-boundary substitution map for enumerable field VALUES (range/target/
+ * duration/area free-text) EN→pt-BR. Applied token-wise so mixed phrases like
+ * "1 willing creature" → "1 criatura disposta" and "30 feet" → "30 pés"
+ * translate without a full phrase table. Numbers, dice formulas and unknown
+ * words pass through untouched. Multi-word keys are replaced before single
+ * words (see {@link translateValueTokens}). r15-A1.
+ */
+const VALUE_TERMS_PT: ReadonlyArray<readonly [RegExp, string]> = [
+  // multi-word first (longest match wins)
+  [/\bwilling creatures\b/gi, "criaturas dispostas"],
+  [/\bwilling creature\b/gi, "criatura disposta"],
+  [/\bliving creatures\b/gi, "criaturas vivas"],
+  [/\bliving creature\b/gi, "criatura viva"],
+  [/\bdying creature\b/gi, "criatura morrendo"],
+  [/\bcorporeal creature\b/gi, "criatura corpórea"],
+  [/\byour Speed\b/gi, "seu Deslocamento"],
+  [/\bsee text\b/gi, "ver texto"],
+  [/\bsee below\b/gi, "ver abaixo"],
+  [/\buntil the end of your next turn\b/gi, "até o fim do seu próximo turno"],
+  [/\buntil the start of your next turn\b/gi, "até o início do seu próximo turno"],
+  [/\buntil the end of your turn\b/gi, "até o fim do seu turno"],
+  [/\bup to\b/gi, "até"],
+  // single words
+  [/\bcreatures\b/gi, "criaturas"],
+  [/\bcreature\b/gi, "criatura"],
+  [/\benemies\b/gi, "inimigos"],
+  [/\benemy\b/gi, "inimigo"],
+  [/\ballies\b/gi, "aliados"],
+  [/\bally\b/gi, "aliado"],
+  [/\bobjects\b/gi, "objetos"],
+  [/\bobject\b/gi, "objeto"],
+  [/\bcorpse\b/gi, "cadáver"],
+  [/\banimals\b/gi, "animais"],
+  [/\banimal\b/gi, "animal"],
+  [/\bwilling\b/gi, "disposta"],
+  [/\bfeet\b/gi, "pés"],
+  [/\bfoot\b/gi, "pés"],
+  [/\btouch\b/gi, "toque"],
+  [/\bself\b/gi, "você mesmo"],
+  [/\bplanetary\b/gi, "planetário"],
+  [/\bmiles\b/gi, "milhas"],
+  [/\bmile\b/gi, "milha"],
+  [/\bvaries\b/gi, "varia"],
+  [/\bunlimited\b/gi, "ilimitada"],
+  [/\bminutes\b/gi, "minutos"],
+  [/\bminute\b/gi, "minuto"],
+  [/\bhours\b/gi, "horas"],
+  [/\bhour\b/gi, "hora"],
+  [/\brounds\b/gi, "rodadas"],
+  [/\bround\b/gi, "rodada"],
+  [/\bdays\b/gi, "dias"],
+  [/\bday\b/gi, "dia"],
+  [/\bsustained\b/gi, "sustentada"],
+];
+
+/**
+ * Translate an enumerable field value's recurring EN tokens to pt-BR
+ * (range/target/duration). No-op on "en". Never touches digits or dice.
+ * r15-A1.
+ */
+export function translateValueTokens(value: string, locale: SupportedLocale): string {
+  if (locale !== "pt-BR") return value;
+  let out = value;
+  for (const [pattern, replacement] of VALUE_TERMS_PT) out = out.replace(pattern, replacement);
+  return out;
+}
+
+/** Damage-type token → pt-BR (e.g. "electricity" → "eletricidade"). r15-A1. */
+export function translateDamageType(type: string, locale: SupportedLocale): string {
+  if (locale !== "pt-BR") return type;
+  return DAMAGE_TYPE_NAMES_PT[type.toLowerCase()] ?? type;
+}
+
+// ---------------------------------------------------------------------------
+// Action-cost formatting (r15-A1, feedback: "2 to 2 rounds" is illegible)
+// ---------------------------------------------------------------------------
+
+/** Action-count glyphs: ◆ per action, ◇ free action, ⟳ reaction. */
+const ACTION_GLYPH = "◆";
+const FREE_GLYPH = "◇";
+const REACTION_GLYPH = "⟳";
+
+export interface ActionCost {
+  /** Glyph string for a numbered/ranged action cost ("◆◆", "◆◆ a ◆◆◆", "◇", "⟳"), or "" for text-only times. */
+  icons: string;
+  /** Human label in the active locale ("2 ações", "◆◆ a ◆◆◆" collapses to a range label, "1 minuto"). */
+  label: string;
+  /** True when the cost is a long/textual time (minutes/hours) with no glyphs. */
+  isText: boolean;
+}
+
+/** "◆".repeat(n) with a guard for n<=0. */
+function actionGlyphs(n: number): string {
+  return n >= 1 ? ACTION_GLYPH.repeat(n) : "";
+}
+
+/** pt-BR / en label for a plain action count. */
+function actionCountLabel(n: number, locale: SupportedLocale): string {
+  if (locale === "pt-BR") return n === 1 ? "1 ação" : `${n} ações`;
+  return n === 1 ? "1 action" : `${n} actions`;
+}
+
+/**
+ * Format a raw spell/action `time.value` (the flattened `system.castTime`)
+ * into action-cost icons + a readable label. Never renders "X to X".
+ *
+ *   "1" / "2" / "3"      → { icons: "◆◆", label: "2 ações" }
+ *   "free"               → { icons: "◇", label: "ação livre" }
+ *   "reaction"           → { icons: "⟳", label: "reação" }
+ *   "1 to 3" / "2 or 3"  → { icons: "◆ a ◆◆◆", label: "1 a 3 ações" } (range)
+ *   "2 to 2 rounds"      → collapses the degenerate N..N range to a single
+ *                          "◆◆ / 2 ações" (vendor lists Horizon Thunder Sphere
+ *                          as "2 to 2 rounds"; the leading count IS the cast).
+ *   "1 minute" / "1 hour"→ { icons: "", label: "1 minuto", isText: true }
+ *
+ * Unknown/empty input → { icons: "", label: raw, isText: true }. r15-A1.
+ */
+export function formatActionCost(timeValue: string | null | undefined, locale: SupportedLocale = "pt-BR"): ActionCost {
+  const raw = (timeValue ?? "").trim();
+  if (!raw) return { icons: "", label: "", isText: true };
+
+  const lower = raw.toLowerCase();
+
+  if (lower === "free" || lower === "free action") {
+    return { icons: FREE_GLYPH, label: locale === "pt-BR" ? "ação livre" : "free action", isText: false };
+  }
+  if (lower === "reaction") {
+    return { icons: REACTION_GLYPH, label: locale === "pt-BR" ? "reação" : "reaction", isText: false };
+  }
+
+  // Plain single action count "1".."3" (allow up to a sane cap of 4).
+  const single = /^(\d)$/.exec(lower);
+  if (single) {
+    const n = Number(single[1]);
+    if (n >= 1 && n <= 4) return { icons: actionGlyphs(n), label: actionCountLabel(n, locale), isText: false };
+  }
+
+  // Action range: "N to M", "N or M", "N-M" — optionally trailed by a bogus
+  // unit ("2 to 2 rounds"). The two bounds are action counts.
+  const range = /^(\d)\s*(?:to|or|-|a|ou|até)\s*(\d)(?:\s+\w+)?$/.exec(lower);
+  if (range) {
+    const min = Number(range[1]);
+    const max = Number(range[2]);
+    if (min >= 1 && min <= 4 && max >= 1 && max <= 4) {
+      if (min === max) {
+        // Degenerate range (e.g. "2 to 2 rounds") → single cost.
+        return { icons: actionGlyphs(min), label: actionCountLabel(min, locale), isText: false };
+      }
+      const icons = `${actionGlyphs(min)} ${locale === "pt-BR" ? "a" : "to"} ${actionGlyphs(max)}`;
+      const label =
+        locale === "pt-BR" ? `${min} a ${max} ações` : `${min} to ${max} actions`;
+      return { icons, label, isText: false };
+    }
+  }
+
+  // Long/textual time (minutes, hours, days, "varies"…): no glyphs, translated.
+  return { icons: "", label: translateValueTokens(raw, locale), isText: true };
+}
+
+// ---------------------------------------------------------------------------
 // Mechanical fields extraction
 // ---------------------------------------------------------------------------
 
 export interface MechanicalField {
+  /**
+   * i18n key for the field's label, resolved by the panel via t() (r15-A1).
+   * Always present; the panel prefers it over {@link MechanicalField.label}.
+   */
+  labelKey: string;
+  /** EN label (backward-compatible fallback when a bundle lacks the key). */
   label: string;
   value: string;
 }
@@ -549,6 +751,36 @@ const SAVE_LABELS: Record<string, string> = {
   will: "Will",
 };
 
+/** pt-BR names for saving-throw statistics (chip/value display). */
+const SAVE_LABELS_PT: Record<string, string> = {
+  fortitude: "Fortitude",
+  reflex: "Reflexos",
+  will: "Vontade",
+};
+
+/**
+ * i18n keys for each mechanical-field label. The panel resolves these via
+ * t(); `label` on the field stays the EN fallback for callers that don't
+ * translate (and for the headless tests). r15-A1.
+ */
+const FIELD_KEYS = {
+  cast: "FUSION.Sheet.Details.Field.Cast",
+  range: "FUSION.Sheet.Details.Field.Range",
+  area: "FUSION.Sheet.Details.Field.Area",
+  target: "FUSION.Sheet.Details.Field.Target",
+  duration: "FUSION.Sheet.Details.Field.Duration",
+  save: "FUSION.Sheet.Details.Field.Save",
+  defense: "FUSION.Sheet.Details.Field.Defense",
+  damageBase: "FUSION.Sheet.Details.Field.DamageBase",
+  damageRank: "FUSION.Sheet.Details.Field.DamageRank",
+  heightened: "FUSION.Sheet.Details.Field.Heightened",
+  cost: "FUSION.Sheet.Details.Field.Cost",
+  requirements: "FUSION.Sheet.Details.Field.Requirements",
+  prerequisites: "FUSION.Sheet.Details.Field.Prerequisites",
+  frequency: "FUSION.Sheet.Details.Field.Frequency",
+  level: "FUSION.Sheet.Details.Field.Level",
+} as const;
+
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
 }
@@ -557,17 +789,12 @@ function str(v: unknown): string | null {
   return typeof v === "string" && v.trim() ? v.trim() : null;
 }
 
-function actionCostLabel(system: Record<string, unknown>): string | null {
-  const castTime = str(system["castTime"]) ?? str((system["time"] as Record<string, unknown> | undefined)?.["value"]);
-  if (!castTime) return null;
-  if (castTime === "reaction") return "Reaction";
-  if (castTime === "free") return "Free Action";
-  const n = Number(castTime);
-  if (Number.isFinite(n) && n >= 1 && n <= 3) return n === 1 ? "1 action" : `${n} actions`;
-  return castTime;
+/** Small constructor keeping `labelKey`/`label`/`value` in sync at each call site. */
+function field(labelKey: string, label: string, value: string): MechanicalField {
+  return { labelKey, label, value };
 }
 
-function damageFields(system: Record<string, unknown>): MechanicalField[] {
+function damageFields(system: Record<string, unknown>, locale: SupportedLocale): MechanicalField[] {
   const damage = system["damage"];
   if (!isRecord(damage)) return [];
   const fields: MechanicalField[] = [];
@@ -576,155 +803,222 @@ function damageFields(system: Record<string, unknown>): MechanicalField[] {
     const formula = str(entry["formula"]);
     const type = str(entry["type"]);
     if (!formula) continue;
-    const rankLabel = rank === "0" ? "Base" : `Rank ${rank}`;
-    fields.push({ label: `Damage (${rankLabel})`, value: type ? `${formula} ${type}` : formula });
+    const displayType = type ? translateDamageType(type, locale) : null;
+    const value = displayType ? `${formula} ${displayType}` : formula;
+    if (rank === "0") {
+      const label = locale === "pt-BR" ? "Dano (base)" : "Damage (Base)";
+      fields.push(field(FIELD_KEYS.damageBase, label, value));
+    } else {
+      const label = locale === "pt-BR" ? `Dano (elevação ${rank})` : `Damage (Rank ${rank})`;
+      fields.push(field(FIELD_KEYS.damageRank, label, value));
+    }
   }
   return fields;
 }
 
-function saveField(system: Record<string, unknown>): MechanicalField | null {
+function saveField(system: Record<string, unknown>, locale: SupportedLocale): MechanicalField | null {
   const defense = system["defense"];
   if (!isRecord(defense)) return null;
+  const isPt = locale === "pt-BR";
+  const saveLabel = isPt ? "Salvaguarda" : "Save";
   const save = defense["save"];
   if (isRecord(save)) {
     const statistic = str(save["statistic"]);
     if (statistic) {
-      const label = SAVE_LABELS[statistic] ?? statistic;
-      return { label: "Save", value: save["basic"] === true ? `${label} (basic)` : label };
+      const stat = isPt
+        ? SAVE_LABELS_PT[statistic] ?? statistic
+        : SAVE_LABELS[statistic] ?? statistic;
+      const basicSuffix = isPt ? " (básica)" : " (basic)";
+      const value = save["basic"] === true ? `${stat}${basicSuffix}` : stat;
+      return field(FIELD_KEYS.save, saveLabel, value);
     }
   }
-  if (defense["spellAttack"] === true) return { label: "Save", value: "Spell attack" };
+  if (defense["spellAttack"] === true) {
+    return field(FIELD_KEYS.save, saveLabel, isPt ? "Ataque de magia" : "Spell attack");
+  }
   const passive = defense["passive"];
   if (isRecord(passive)) {
     const statistic = str(passive["statistic"]);
-    if (statistic) return { label: "Defense", value: statistic.toUpperCase() };
+    if (statistic) {
+      return field(FIELD_KEYS.defense, isPt ? "Defesa" : "Defense", statistic.toUpperCase());
+    }
   }
   return null;
 }
 
-function heightenField(system: Record<string, unknown>): MechanicalField | null {
+function heightenField(system: Record<string, unknown>, locale: SupportedLocale): MechanicalField | null {
   const heightening = system["heightening"];
   if (!isRecord(heightening)) return null;
+  const isPt = locale === "pt-BR";
+  const label = isPt ? "Elevação" : "Heightened";
+  const yes = isPt ? "sim" : "yes";
   const type = str(heightening["type"]);
   if (type === "interval") {
     const interval = heightening["interval"];
-    return {
-      label: "Heightened",
-      value: typeof interval === "number" ? `+${interval}` : "yes",
-    };
+    return field(FIELD_KEYS.heightened, label, typeof interval === "number" ? `+${interval}` : yes);
   }
   if (type === "fixed") {
     const levels = heightening["levels"];
     const ranks = isRecord(levels) ? Object.keys(levels).sort() : [];
-    return { label: "Heightened", value: ranks.length > 0 ? `Rank ${ranks.join(", ")}` : "yes" };
+    const value =
+      ranks.length > 0 ? `${isPt ? "Elevação" : "Rank"} ${ranks.join(", ")}` : yes;
+    return field(FIELD_KEYS.heightened, label, value);
   }
   return null;
 }
 
 /**
  * Build the spell-specific mechanical fields: time/range/area/target/
- * duration/save/damage/heighten (task item 1).
+ * duration/save/damage/heighten. When `locale` is "pt-BR", labels and
+ * enumerable VALUES are translated and the cast time is rendered as
+ * action-cost icons + label (r15-A1); "en" (the default) preserves the
+ * original EN output.
  */
-export function buildSpellFields(system: Record<string, unknown>): MechanicalField[] {
+export function buildSpellFields(
+  system: Record<string, unknown>,
+  locale: SupportedLocale = "en",
+): MechanicalField[] {
   const fields: MechanicalField[] = [];
+  const isPt = locale === "pt-BR";
 
-  const time = actionCostLabel(system);
-  if (time) fields.push({ label: "Cast", value: time });
+  const castRaw = str(system["castTime"]) ?? str((system["time"] as Record<string, unknown> | undefined)?.["value"]);
+  if (castRaw) {
+    const cost = formatActionCost(castRaw, locale);
+    // Icons + label when we recognized an action cost; plain translated text
+    // for long/textual times ("1 minuto"). Never "X to X".
+    const value = cost.isText ? cost.label : cost.icons ? `${cost.icons} ${cost.label}` : cost.label;
+    fields.push(field(FIELD_KEYS.cast, isPt ? "Conjuração" : "Cast", value));
+  }
 
   const range = str(system["range"]);
-  if (range) fields.push({ label: "Range", value: range });
+  if (range) {
+    fields.push(field(FIELD_KEYS.range, isPt ? "Alcance" : "Range", translateValueTokens(range, locale)));
+  }
 
   const area = system["area"];
   if (isRecord(area)) {
     const type = str(area["type"]);
     const value = area["value"];
-    if (type && typeof value === "number") fields.push({ label: "Area", value: `${value}-foot ${type}` });
+    if (type && typeof value === "number") {
+      const shape = isPt ? AREA_SHAPE_NAMES_PT[type] ?? type : type;
+      const areaValue = isPt ? `${value} pés de ${shape}` : `${value}-foot ${type}`;
+      fields.push(field(FIELD_KEYS.area, isPt ? "Área" : "Area", areaValue));
+    }
   }
 
   const target = str(system["target"]);
-  if (target) fields.push({ label: "Target", value: target });
+  if (target) {
+    fields.push(field(FIELD_KEYS.target, isPt ? "Alvo" : "Target", translateValueTokens(target, locale)));
+  }
 
   const duration = system["duration"];
   if (isRecord(duration)) {
     const value = str(duration["value"]);
     if (value) {
-      fields.push({
-        label: "Duration",
-        value: duration["sustained"] === true ? `${value} (sustained)` : value,
-      });
+      const translated = translateValueTokens(value, locale);
+      const sustained = duration["sustained"] === true;
+      const durValue = sustained
+        ? `${translated} ${isPt ? "(sustentada)" : "(sustained)"}`
+        : translated;
+      fields.push(field(FIELD_KEYS.duration, isPt ? "Duração" : "Duration", durValue));
     }
   }
 
-  const save = saveField(system);
+  const save = saveField(system, locale);
   if (save) fields.push(save);
 
-  fields.push(...damageFields(system));
+  fields.push(...damageFields(system, locale));
 
-  const heighten = heightenField(system);
+  const heighten = heightenField(system, locale);
   if (heighten) fields.push(heighten);
 
   const cost = str(system["cost"]);
-  if (cost) fields.push({ label: "Cost", value: cost });
+  if (cost) fields.push(field(FIELD_KEYS.cost, isPt ? "Custo" : "Cost", cost));
 
   const requirements = str(system["requirements"]);
-  if (requirements) fields.push({ label: "Requirements", value: requirements });
+  if (requirements) {
+    fields.push(field(FIELD_KEYS.requirements, isPt ? "Requisitos" : "Requirements", requirements));
+  }
 
   return fields;
 }
 
-/**
- * Build the feat-specific mechanical fields: prerequisites/frequency
- * (task item 1).
- */
-export function buildFeatFields(system: Record<string, unknown>): MechanicalField[] {
-  const fields: MechanicalField[] = [];
-
+/** Prerequisites field shared by feats/class features. */
+function prerequisitesField(
+  system: Record<string, unknown>,
+  locale: SupportedLocale,
+): MechanicalField | null {
   const prerequisites = system["prerequisites"];
-  if (Array.isArray(prerequisites) && prerequisites.length > 0) {
-    const values = prerequisites
-      .map((p) => (isRecord(p) ? str(p["value"]) : null))
-      .filter((v): v is string => v !== null);
-    if (values.length > 0) fields.push({ label: "Prerequisites", value: values.join("; ") });
-  }
+  if (!Array.isArray(prerequisites) || prerequisites.length === 0) return null;
+  const values = prerequisites
+    .map((p) => (isRecord(p) ? str(p["value"]) : null))
+    .filter((v): v is string => v !== null);
+  if (values.length === 0) return null;
+  const label = locale === "pt-BR" ? "Pré-requisitos" : "Prerequisites";
+  return field(FIELD_KEYS.prerequisites, label, values.join("; "));
+}
+
+/**
+ * Build the feat-specific mechanical fields: prerequisites/frequency/action
+ * cost. Locale-aware (see {@link buildSpellFields}); default "en".
+ */
+export function buildFeatFields(
+  system: Record<string, unknown>,
+  locale: SupportedLocale = "en",
+): MechanicalField[] {
+  const fields: MechanicalField[] = [];
+  const isPt = locale === "pt-BR";
+
+  const prereq = prerequisitesField(system, locale);
+  if (prereq) fields.push(prereq);
 
   const frequency = system["frequency"];
   if (isRecord(frequency)) {
     const max = frequency["max"];
     const per = str(frequency["per"]);
     if (typeof max === "number" && per) {
-      fields.push({ label: "Frequency", value: `${max} per ${per}` });
+      const perPt = translateValueTokens(per, locale);
+      const value = isPt ? `${max} por ${perPt}` : `${max} per ${per}`;
+      fields.push(field(FIELD_KEYS.frequency, isPt ? "Frequência" : "Frequency", value));
     }
   }
 
   const actionType = str(system["actionType"]);
   const actions = system["actions"];
+  const castLabel = isPt ? "Conjuração" : "Cast";
   if (actionType === "action" && typeof actions === "number") {
-    fields.push({ label: "Cast", value: actions === 1 ? "1 action" : `${actions} actions` });
+    const cost = formatActionCost(String(actions), locale);
+    const value = cost.icons ? `${cost.icons} ${cost.label}` : cost.label;
+    fields.push(field(FIELD_KEYS.cast, castLabel, value));
   } else if (actionType === "reaction") {
-    fields.push({ label: "Cast", value: "Reaction" });
+    const cost = formatActionCost("reaction", locale);
+    fields.push(field(FIELD_KEYS.cast, castLabel, `${cost.icons} ${cost.label}`));
   } else if (actionType === "free") {
-    fields.push({ label: "Cast", value: "Free Action" });
+    const cost = formatActionCost("free", locale);
+    fields.push(field(FIELD_KEYS.cast, castLabel, `${cost.icons} ${cost.label}`));
   }
 
   return fields;
 }
 
 /**
- * Build the classFeature-specific mechanical fields: level (task item 1).
+ * Build the classFeature-specific mechanical fields: level + prerequisites.
+ * Locale-aware; default "en".
  */
-export function buildClassFeatureFields(system: Record<string, unknown>): MechanicalField[] {
+export function buildClassFeatureFields(
+  system: Record<string, unknown>,
+  locale: SupportedLocale = "en",
+): MechanicalField[] {
   const fields: MechanicalField[] = [];
+  const isPt = locale === "pt-BR";
 
   const level = system["level"];
-  if (typeof level === "number") fields.push({ label: "Level", value: String(level) });
-
-  const prerequisites = system["prerequisites"];
-  if (Array.isArray(prerequisites) && prerequisites.length > 0) {
-    const values = prerequisites
-      .map((p) => (isRecord(p) ? str(p["value"]) : null))
-      .filter((v): v is string => v !== null);
-    if (values.length > 0) fields.push({ label: "Prerequisites", value: values.join("; ") });
+  if (typeof level === "number") {
+    fields.push(field(FIELD_KEYS.level, isPt ? "Nível" : "Level", String(level)));
   }
+
+  const prereq = prerequisitesField(system, locale);
+  if (prereq) fields.push(prereq);
 
   return fields;
 }
@@ -732,20 +1026,25 @@ export function buildClassFeatureFields(system: Record<string, unknown>): Mechan
 /**
  * Dispatch to the right per-type field builder based on the document's
  * `type` (falls back to an empty list for unrecognized types — the panel
- * still shows name/traits/description).
+ * still shows name/traits/description). `locale` threads through so the
+ * fields render in the active language (default "en" preserves existing
+ * headless-test behaviour). r15-A1.
  */
-export function buildMechanicalFields(doc: Record<string, unknown>): MechanicalField[] {
+export function buildMechanicalFields(
+  doc: Record<string, unknown>,
+  locale: SupportedLocale = "en",
+): MechanicalField[] {
   const type = str(doc["type"]);
   const system = doc["system"];
   if (!isRecord(system)) return [];
 
   switch (type) {
     case "spell":
-      return buildSpellFields(system);
+      return buildSpellFields(system, locale);
     case "feat":
-      return buildFeatFields(system);
+      return buildFeatFields(system, locale);
     case "classFeature":
-      return buildClassFeatureFields(system);
+      return buildClassFeatureFields(system, locale);
     default:
       return [];
   }

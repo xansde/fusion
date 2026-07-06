@@ -28,6 +28,8 @@
     buildMechanicalFields,
     buildDetailsHeader,
     pickLocalizedDescription,
+    traitDisplayName,
+    rarityDisplayName,
   } from "../../../lib/compendium/documentDetails.js";
   import { t, i18n } from "../../../lib/i18n/i18n.js";
 
@@ -63,7 +65,7 @@
   }: Props = $props();
 
   const header = $derived(doc ? buildDetailsHeader(doc, i18n.locale) : null);
-  const mechanicalFields = $derived(doc ? buildMechanicalFields(doc) : []);
+  const mechanicalFields = $derived(doc ? buildMechanicalFields(doc, i18n.locale) : []);
   const descriptionHtml = $derived.by(() => {
     if (!doc) return "";
     // Prefer the pt-BR translation when the active locale is pt-BR and the
@@ -102,19 +104,23 @@
     {#if header.traits.length > 0 || header.rarity}
       <div class="details-panel__traits">
         {#if header.rarity && header.rarity !== "common"}
-          <span class="details-panel__trait details-panel__trait--rarity">{header.rarity}</span>
+          <span
+            class="details-panel__trait details-panel__trait--rarity"
+            title={header.rarity}
+          >{rarityDisplayName(header.rarity, i18n.locale)}</span>
         {/if}
         {#each header.traits as trait (trait)}
-          <span class="details-panel__trait">{trait}</span>
+          <!-- pt-BR chip text, EN slug kept in the tooltip for cross-reference. -->
+          <span class="details-panel__trait" title={trait}>{traitDisplayName(trait, i18n.locale)}</span>
         {/each}
       </div>
     {/if}
 
     {#if mechanicalFields.length > 0}
       <dl class="details-panel__fields">
-        {#each mechanicalFields as field (field.label + field.value)}
+        {#each mechanicalFields as field (field.labelKey + field.value)}
           <div class="details-panel__field">
-            <dt>{field.label}</dt>
+            <dt>{t(field.labelKey)}</dt>
             <dd>{field.value}</dd>
           </div>
         {/each}

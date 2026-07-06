@@ -372,6 +372,20 @@
     return resolved === key ? fallback : resolved;
   }
 
+  /**
+   * Main spellcasting DC label, naming the class so it's distinguishable from
+   * an archetype's DC (feedback r15: "não tenho distinguido o CD Magus —
+   * deveria indicar qual classe é"). Renders "CD MAGUS" when the character has
+   * a class; falls back to the generic "CD DE MAGIA" otherwise. The class name
+   * comes from the character's class item (kept in English for coined class
+   * names like Magus — see glossary keepEnglish).
+   */
+  function spellDCLabel(): string {
+    const className = vm.classLabel.trim();
+    if (className.length === 0) return t("FUSION.Sheet.Spells.DC");
+    return t("FUSION.Sheet.Spells.DCWithClass", { class: className });
+  }
+
   function findEntry(entryId: string): SpellcastingEntryRow | null {
     return tabs.flatMap((tb) => tb.entries).find((e) => e.entryId === entryId) ?? null;
   }
@@ -698,7 +712,7 @@
         <div class="spells-entry">
           <div class="spells-statsbar">
             <div class="spells-stat">
-              <span class="spells-stat__label">{t("FUSION.Sheet.Spells.DC")}</span>
+              <span class="spells-stat__label">{spellDCLabel()}</span>
               <span class="spells-stat__value">{entry.spellDC}</span>
             </div>
             <button
