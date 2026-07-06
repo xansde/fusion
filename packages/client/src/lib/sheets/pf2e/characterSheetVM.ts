@@ -263,6 +263,38 @@ export interface SpellRow {
 export type SpellNameTranslator = (enName: string) => string;
 
 /**
+ * Raw (untranslated) view of one embedded `type: "spell"` item on the actor,
+ * keyed by its `_id` (r14-B4). The Spells tab uses this to open a spell's
+ * details popup when the player clicks its name: `name` is the join key against
+ * the spells-core pack index (RAW EN/pt-BR as stored, never a display value),
+ * `sourceId` is the original Foundry id (`flags.fusion.sourceId`) kept as a
+ * secondary join key, and `item` is the whole embedded record so the popup can
+ * fall back to the spell's OWN embedded description when no pack doc matches.
+ */
+export interface EmbeddedSpellRef {
+  /** Raw stored name (EN or pt-BR as copied) — the pack-index join key. */
+  name: string;
+  /** Original Foundry id from `flags.fusion.sourceId`, when present. */
+  sourceId: string | null;
+  /** The full embedded spell item (for the no-pack-match description fallback). */
+  item: Record<string, unknown>;
+}
+
+/**
+ * Resolve a clicked spell to the Compendium UUID of its matching spells-core
+ * pack document, so the details popup can fetch the full (localized)
+ * description (r14-B4). Built by {@link buildSpellDetailsResolver} from the
+ * pack index the Spells tab already loads for the name translator.
+ *
+ * Called with the spell's RAW name (EN or pt-BR) and its optional `sourceId`;
+ * returns the pack `uuid` on a match, or `null` when the spell has no pack
+ * counterpart (an embedded-only / homebrew spell) — the caller then renders
+ * the spell's own embedded description instead. Pure: the VM/component owns the
+ * socket; this only maps identifiers to a uuid string.
+ */
+export type SpellDetailsResolver = (rawName: string, sourceId?: string | null) => string | null;
+
+/**
  * One sub-tab within the Spells tab (DEC-R10-03): a non-focus spellcasting
  * entry gets its own tab (kind "entry"), all focus-pool entries + focus
  * spells collapse into a single "Foco" tab (kind "focus"), and a "Rituais"
@@ -1207,6 +1239,44 @@ export class CharacterSheetVM {
     return Array.from(seen);
   }
 
+  /**
+   * Lookup of every embedded `type: "spell"` item on the actor keyed by its
+   * `_id` (r14-B4). The Spells tab uses it to resolve a clicked spell's details
+   * popup: from the row's item id it recovers the RAW name (pack-index join
+   * key), the `flags.fusion.sourceId` (secondary join key), and the whole
+   * embedded item (description fallback when the spell has no pack counterpart).
+   *
+   * Names/ids are read RAW (never routed through the translator) — the value is
+   * a resolution key, not a display string. Returns a fresh Map each read (the
+   * VM is stateless by design); the component builds it once per doc snapshot.
+   */
+  get embeddedSpellById(): Map<string, EmbeddedSpellRef> {
+    const map = new Map<string, EmbeddedSpellRef>();
+    const items = this._doc["items"] as Array<Record<string, unknown>> | undefined;
+    if (!items) return map;
+    for (const item of items) {
+      if (item["type"] !== "spell") continue;
+      const rawId = item["_id"];
+      if (typeof rawId !== "string" || rawId.length === 0) continue;
+      const rawName = item["name"];
+      const flags =
+        typeof item["flags"] === "object" && item["flags"] !== null
+          ? (item["flags"] as Record<string, unknown>)
+          : {};
+      const fusionFlags =
+        typeof flags["fusion"] === "object" && flags["fusion"] !== null
+          ? (flags["fusion"] as Record<string, unknown>)
+          : {};
+      const sourceIdRaw = fusionFlags["sourceId"];
+      map.set(rawId, {
+        name: typeof rawName === "string" ? rawName : "",
+        sourceId: typeof sourceIdRaw === "string" && sourceIdRaw.length > 0 ? sourceIdRaw : null,
+        item,
+      });
+    }
+    return map;
+  }
+
   // -------------------------------------------------------------------------
   // Feats tab
   // -------------------------------------------------------------------------
@@ -1930,6 +2000,64 @@ export function buildSpellNameTranslator(entries: SpellPickerEntry[]): SpellName
   return (enName: string): string => {
     if (!enName) return enName;
     return map.get(normalizePickerText(enName)) ?? enName;
+  };
+}
+
+/**
+ * A pack index entry carrying enough to resolve a details-panel doc: the
+ * Compendium `uuid` plus the EN `name` and optional pt-BR `namePt` join keys
+ * (r14-B4). Structural superset of {@link SpellPickerEntry} — the spells-core
+ * `searchPack` result (PackIndexEntry[]) satisfies it directly. `index` is
+ * kept optional so a `flags.fusion.sourceId` join can be added later without a
+ * signature change (the pack index does not carry sourceId today).
+ */
+export interface SpellDetailsIndexEntry {
+  uuid: string;
+  name: string;
+  namePt?: string | undefined;
+  index?: Record<string, unknown> | undefined;
+}
+
+/**
+ * Build a resolver from spells-core pack index entries that maps a clicked
+ * spell (by its RAW name — EN or pt-BR — and optional `sourceId`) to the pack
+ * document's Compendium UUID (r14-B4). The Spells tab feeds the returned uuid
+ * to `getDocument` to render the full localized description in the details
+ * popup; a `null` result means the spell has no pack counterpart and the popup
+ * shows its embedded description instead.
+ *
+ * Matching mirrors {@link buildSpellNameTranslator}: the name index is keyed by
+ * BOTH the normalized EN name and the normalized pt-BR name (accent/case
+ * insensitive), so a spell copied in either language still resolves. A
+ * `sourceId` index is also built when entries expose `flags.fusion.sourceId`
+ * (via the optional `index` bag) — a stronger key than name when present.
+ * First write wins per key (deterministic given a stable index order).
+ */
+export function buildSpellDetailsResolver(
+  entries: SpellDetailsIndexEntry[],
+): SpellDetailsResolver {
+  const byName = new Map<string, string>();
+  const bySourceId = new Map<string, string>();
+  for (const entry of entries) {
+    if (!entry.uuid) continue;
+    const enKey = normalizePickerText(entry.name);
+    if (enKey && !byName.has(enKey)) byName.set(enKey, entry.uuid);
+    if (entry.namePt !== undefined && entry.namePt.length > 0) {
+      const ptKey = normalizePickerText(entry.namePt);
+      if (ptKey && !byName.has(ptKey)) byName.set(ptKey, entry.uuid);
+    }
+    const sourceId = entry.index?.["flags.fusion.sourceId"];
+    if (typeof sourceId === "string" && sourceId.length > 0 && !bySourceId.has(sourceId)) {
+      bySourceId.set(sourceId, entry.uuid);
+    }
+  }
+  return (rawName: string, sourceId?: string | null): string | null => {
+    if (sourceId) {
+      const bySrc = bySourceId.get(sourceId);
+      if (bySrc) return bySrc;
+    }
+    if (!rawName) return null;
+    return byName.get(normalizePickerText(rawName)) ?? null;
   };
 }
 

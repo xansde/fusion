@@ -284,6 +284,8 @@
   "FUSION.Sheet.Spells.Picker.Details.LoadError": "Could not load this spell's details.",
   "FUSION.Sheet.Spells.Picker.Details.Retry": "Try again",
   "FUSION.Sheet.Spells.Picker.Details.NoDescription": "No description available.",
+  "FUSION.Sheet.Spells.SpellDetailsTitle": "Spell details",
+  "FUSION.Sheet.Spells.SpellDetailsOpen": "View details for {{name}}",
   "FUSION.Sheet.Spells.Picker.TraitSearchPlaceholder": "Search traits…",
   "FUSION.Sheet.Spells.Picker.NoTraitsFound": "No traits match your search.",
   "FUSION.Sheet.TraitGroups.RarityAffinity": "Rarity & affinity",

@@ -284,6 +284,8 @@
   "FUSION.Sheet.Spells.Picker.Details.LoadError": "Não foi possível carregar os detalhes desta magia.",
   "FUSION.Sheet.Spells.Picker.Details.Retry": "Tentar novamente",
   "FUSION.Sheet.Spells.Picker.Details.NoDescription": "Nenhuma descrição disponível.",
+  "FUSION.Sheet.Spells.SpellDetailsTitle": "Detalhes da magia",
+  "FUSION.Sheet.Spells.SpellDetailsOpen": "Ver detalhes de {{name}}",
   "FUSION.Sheet.Spells.Picker.TraitSearchPlaceholder": "Buscar traits…",
   "FUSION.Sheet.Spells.Picker.NoTraitsFound": "Nenhum trait encontrado com essa busca.",
   "FUSION.Sheet.TraitGroups.RarityAffinity": "Raridade e afinidade",

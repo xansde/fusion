@@ -30,12 +30,13 @@
    *     the item id only exists after the server ack + mirror broadcast).
    */
 
-  import type { CharacterSheetVM, SpellTabRow, SpellcastingEntryRow, SpellNameTranslator } from "../../../lib/sheets/pf2e/characterSheetVM.js";
-  import { buildSpellNameTranslator } from "../../../lib/sheets/pf2e/characterSheetVM.js";
+  import type { CharacterSheetVM, SpellTabRow, SpellcastingEntryRow, SpellNameTranslator, SpellDetailsResolver } from "../../../lib/sheets/pf2e/characterSheetVM.js";
+  import { buildSpellNameTranslator, buildSpellDetailsResolver } from "../../../lib/sheets/pf2e/characterSheetVM.js";
   import ProficiencyBadge from "./ProficiencyBadge.svelte";
   import SpellPickerDialog from "./SpellPickerDialog.svelte";
+  import DocumentDetailsPanel from "./DocumentDetailsPanel.svelte";
   import { getDocument, requireConnectedSocket, listPacks, searchPack } from "../../../lib/compendium/compendiumApi.js";
-  import { pickLocalizedName } from "../../../lib/compendium/documentDetails.js";
+  import { pickLocalizedName, DocumentDetailsCache } from "../../../lib/compendium/documentDetails.js";
   import { getSocket, session } from "../../../lib/session.svelte.js";
   import { t, i18n } from "../../../lib/i18n/i18n.js";
 
@@ -176,6 +177,9 @@
   // match), independent of how the actor data was copied. Display-time only —
   // never mutates the actor. Names with no pack match stay EN.
   let spellNameTranslator = $state<SpellNameTranslator | null>(null);
+  // Name/sourceId → pack UUID resolver for the details popup (r14-B4). Built
+  // from the SAME spells-core index load as the translator (one round-trip).
+  let spellDetailsResolver = $state<SpellDetailsResolver | null>(null);
   const systemId = $derived(session.worldInfo?.systemId ?? "pf2e");
 
   $effect(() => {
@@ -195,10 +199,144 @@
       if (!spellPack) return;
       const { entries } = await searchPack(sock, { packId: spellPack.id });
       spellNameTranslator = buildSpellNameTranslator(entries);
+      // Same index feeds the details resolver: a clicked spell name resolves to
+      // its pack doc uuid (by raw name / sourceId) so the popup can fetch the
+      // full localized description. r14-B4.
+      spellDetailsResolver = buildSpellDetailsResolver(entries);
     } catch {
-      // Offline / no socket / no pack: leave the translator null → names render
-      // EN (or whatever the actor stored). Never blocks the tab.
+      // Offline / no socket / no pack: leave the translator/resolver null →
+      // names render EN and the popup falls back to embedded descriptions.
+      // Never blocks the tab.
     }
+  }
+
+  // --- Spell details popup (r14-B4) -----------------------------------------
+  // Clicking a spell's NAME (cantrip, prepared slot, grimoire row, focus spell)
+  // opens a modal reusing the shared DocumentDetailsPanel — the same UX as the
+  // Actions tab and the pickers. Resolution: embedded spell item id → pack doc
+  // uuid (via spellDetailsResolver, by raw name / flags.fusion.sourceId) →
+  // getDocument fetch (cached). No pack match → the spell's OWN embedded
+  // description is shown. Fetch failures fall back to the embedded doc so the
+  // popup is never an endless spinner. ESC / click-outside close.
+  const detailsCache = new DocumentDetailsCache();
+  let detailsOpen = $state(false);
+  let detailsDoc = $state<Record<string, unknown> | null>(null);
+  let detailsLoading = $state(false);
+  let detailsError = $state(false);
+  let detailsFetchId = 0; // guards against a stale fetch resolving after reopen
+
+  /** Lookup of embedded spell items by _id — raw name, sourceId, fallback doc. */
+  const embeddedSpellById = $derived(vm.embeddedSpellById);
+
+  /**
+   * Build a details-panel doc from an embedded spell item so DocumentDetailsPanel
+   * can render the spell's OWN description without a compendium fetch (homebrew
+   * / no-pack-match). Normalizes system.description to a flat HTML string
+   * (vendor items wrap it as { value }); the panel sanitizes it identically to
+   * pack docs. Kept local to avoid coupling to actionsVM (edited by another
+   * batch in parallel). Returns null for a non-record item.
+   */
+  function buildEmbeddedSpellDoc(
+    item: Record<string, unknown> | null | undefined,
+  ): Record<string, unknown> | null {
+    if (typeof item !== "object" || item === null) return null;
+    const rawSystem = item["system"];
+    const system: Record<string, unknown> =
+      typeof rawSystem === "object" && rawSystem !== null
+        ? { ...(rawSystem as Record<string, unknown>) }
+        : {};
+    const rawDesc = system["description"];
+    let descHtml = "";
+    if (typeof rawDesc === "string") {
+      descHtml = rawDesc;
+    } else if (typeof rawDesc === "object" && rawDesc !== null) {
+      const value = (rawDesc as Record<string, unknown>)["value"];
+      if (typeof value === "string") descHtml = value;
+    }
+    system["description"] = descHtml;
+    const rawName = item["name"];
+    const rawType = item["type"];
+    return {
+      name: typeof rawName === "string" ? rawName : "",
+      type: typeof rawType === "string" ? rawType : "spell",
+      system,
+      flags: typeof item["flags"] === "object" && item["flags"] !== null ? item["flags"] : {},
+    };
+  }
+
+  /**
+   * Open the details popup for a clicked spell. `spellItemId` is the embedded
+   * item's _id (the id the row already carries). Resolves the pack doc by the
+   * item's RAW name / sourceId; on no match (or offline) renders the embedded
+   * item's own description.
+   */
+  function openSpellDetails(spellItemId: string): void {
+    const ref = embeddedSpellById.get(spellItemId) ?? null;
+    detailsOpen = true;
+    detailsError = false;
+    const embeddedDoc = ref ? buildEmbeddedSpellDoc(ref.item) : null;
+    const uuid = ref && spellDetailsResolver ? spellDetailsResolver(ref.name, ref.sourceId) : null;
+
+    if (!uuid) {
+      // Homebrew / no-pack-match / resolver not loaded: show the embedded
+      // description immediately (no fetch). Never leaves the popup empty.
+      detailsDoc = embeddedDoc;
+      detailsLoading = false;
+      return;
+    }
+    void loadSpellDetails(uuid, embeddedDoc);
+  }
+
+  async function loadSpellDetails(
+    uuid: string,
+    embeddedFallback: Record<string, unknown> | null,
+  ): Promise<void> {
+    const fetchId = ++detailsFetchId;
+    const cached = detailsCache.get(uuid);
+    if (cached) {
+      detailsDoc = cached;
+      detailsLoading = false;
+      detailsError = false;
+      return;
+    }
+    detailsLoading = true;
+    detailsError = false;
+    try {
+      const sock = requireConnectedSocket(getSocket());
+      const { document } = await getDocument(sock, uuid);
+      detailsCache.set(uuid, document);
+      if (fetchId === detailsFetchId) detailsDoc = document;
+    } catch {
+      // Fetch failed (offline / missing doc): degrade to the embedded
+      // description rather than a dead error state, when one exists.
+      if (fetchId === detailsFetchId) {
+        if (embeddedFallback) {
+          detailsDoc = embeddedFallback;
+          detailsError = false;
+        } else {
+          detailsError = true;
+          detailsDoc = null;
+        }
+      }
+    } finally {
+      if (fetchId === detailsFetchId) detailsLoading = false;
+    }
+  }
+
+  function closeSpellDetails(): void {
+    detailsOpen = false;
+    detailsDoc = null;
+    detailsLoading = false;
+    detailsError = false;
+    detailsFetchId++; // invalidate any in-flight fetch
+  }
+
+  function retrySpellDetails(): void {
+    // Retry is only reachable when a uuid fetch errored with no fallback; the
+    // panel's onRetry re-issues nothing actionable without the uuid, so simply
+    // clearing the error lets the user re-click the name. Kept as a no-op-safe
+    // reset so DocumentDetailsPanel always has a valid onRetry.
+    detailsError = false;
   }
 
   /**
@@ -506,6 +644,23 @@
   }
 </script>
 
+<!--
+  Clickable spell name (r14-B4): opens the details popup. Rendered as a real
+  <button> for keyboard/AT semantics (Enter/Space fire the click natively;
+  cursor:pointer + hover accent signal it's actionable). `stopPropagation`
+  keeps a name click from also triggering the enclosing slot/card handlers
+  (Lançar/Trocar/Preparar live in separate buttons). `extraClass` lets each
+  surface keep its own typographic style (chip / slot / focus row).
+-->
+{#snippet spellNameButton(displayName: string, spellItemId: string, extraClass: string)}
+  <button
+    type="button"
+    class={`spell-name-btn ${extraClass}`}
+    aria-label={t("FUSION.Sheet.Spells.SpellDetailsOpen", { name: displayName })}
+    onclick={(e) => { e.stopPropagation(); openSpellDetails(spellItemId); }}
+  >{displayName}</button>
+{/snippet}
+
 <div class="spells-tab">
   {#if tabs.length === 0}
     <p class="spells-empty">{t("FUSION.Sheet.Spells.NoEntries")}</p>
@@ -577,7 +732,7 @@
               <div class="spells-chips">
                 {#each cantrips(entry) as cantrip (cantrip.id)}
                   <div class="spell-chip">
-                    <span class="spell-chip__name">{cantrip.name}</span>
+                    {@render spellNameButton(cantrip.name, cantrip.id, "spell-chip__name")}
                   </div>
                 {/each}
               </div>
@@ -618,7 +773,7 @@
                     <div class="spell-slot-card" class:spell-slot-card--expended={prepared.expended}>
                       <div class="spell-slot-card__main">
                         <span class="spell-slot-card__name">
-                          {resolvedName}
+                          {@render spellNameButton(resolvedName, prepared.id, "spell-slot-card__name-text")}
                           {#if !prepared.expended}
                             <span class="spell-slot-card__dot" title={t("FUSION.Sheet.Spells.SlotAvailable")}></span>
                           {/if}
@@ -688,7 +843,7 @@
                     class="spell-chip spell-chip--row"
                     class:spell-chip--new={spell.name === recentlyAddedDisplayName}
                   >
-                    <span class="spell-chip__name">{spell.name}</span>
+                    {@render spellNameButton(spell.name, spell.id, "spell-chip__name")}
                     {#if vm.editable}
                       <button type="button" class="spell-btn spell-btn--ghost" onclick={() => removeFromGrimoire(spell.id)}>
                         {t("FUSION.Sheet.Spells.Remove")}
@@ -750,7 +905,7 @@
           {#each vm.focusSpells as spell (spell.id)}
             <div class="focus-spell-row" class:spell-chip--new={translateName(spell.name) === recentlyAddedDisplayName}>
               <div class="focus-spell-row__main">
-                <div class="focus-spell-row__name">{translateName(spell.name)}</div>
+                {@render spellNameButton(translateName(spell.name), spell.id, "focus-spell-row__name")}
               </div>
               {#if vm.editable}
                 <button
@@ -888,6 +1043,46 @@
       aria-label={t("FUSION.Dialog.Close")}
       onclick={() => { toast = null; }}
     >&times;</button>
+  </div>
+{/if}
+
+<!-- Spell details popup (r14-B4): the clicked spell's full description, reusing
+     the shared DocumentDetailsPanel. ESC / click-outside close, consistent with
+     the other sheet popups (mini-backdrop pattern). -->
+{#if detailsOpen}
+  <div
+    class="mini-backdrop"
+    role="presentation"
+    onclick={closeSpellDetails}
+    onkeydown={(e) => { if (e.key === "Escape") closeSpellDetails(); }}
+  >
+    <div
+      class="spell-details-modal"
+      role="dialog"
+      aria-modal="true"
+      tabindex="-1"
+      aria-label={t("FUSION.Sheet.Spells.SpellDetailsTitle")}
+      onclick={(e) => e.stopPropagation()}
+      onkeydown={(e) => { if (e.key === "Escape") closeSpellDetails(); }}
+    >
+      <button
+        type="button"
+        class="spell-details-modal__close"
+        aria-label={t("FUSION.Dialog.Close")}
+        onclick={closeSpellDetails}
+      >&times;</button>
+      <DocumentDetailsPanel
+        document={detailsDoc}
+        loading={detailsLoading}
+        error={detailsError}
+        onRetry={retrySpellDetails}
+        loadingKey="FUSION.Sheet.Spells.Picker.Details.Loading"
+        loadErrorKey="FUSION.Sheet.Spells.Picker.Details.LoadError"
+        retryKey="FUSION.Sheet.Spells.Picker.Details.Retry"
+        selectHintKey="FUSION.Sheet.Spells.Picker.Details.SelectHint"
+        noDescriptionKey="FUSION.Sheet.Spells.Picker.Details.NoDescription"
+      />
+    </div>
   </div>
 {/if}
 
@@ -1040,6 +1235,42 @@
 
   .spell-chip__name {
     font-size: 12.5px;
+    font-weight: 600;
+    color: var(--fusion-text);
+  }
+
+  /*
+   * Clickable spell name (r14-B4). A real <button> reset to read as inline
+   * name text: no button chrome, inherits the surface's typography via the
+   * extraClass (spell-chip__name / spell-slot-card__name-text /
+   * focus-spell-row__name). The hover accent + underline + cursor signal it
+   * opens the details popup, without shouting over the row's own layout.
+   */
+  .spell-name-btn {
+    display: inline;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    font-family: var(--fusion-font);
+    text-align: left;
+    cursor: pointer;
+    color: inherit;
+    transition: color 0.12s;
+  }
+
+  .spell-name-btn:hover,
+  .spell-name-btn:focus-visible {
+    color: var(--fusion-accent-hover);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    outline: none;
+  }
+
+  /* Slot name variant: same typography as .spell-slot-card__name so the button
+     is visually indistinguishable from the previous static text. */
+  .spell-slot-card__name-text {
+    font-size: 13px;
     font-weight: 600;
     color: var(--fusion-text);
   }
@@ -1479,5 +1710,40 @@
 
   .mini-menu__link:hover {
     color: var(--fusion-accent-hover);
+  }
+
+  /* Spell details popup (r14-B4) — wider than the mini-menus so the full
+     description reads comfortably; reuses .mini-backdrop for ESC/click-out. */
+  .spell-details-modal {
+    position: relative;
+    width: 440px;
+    max-width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    background: var(--fusion-surface);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-lg);
+    box-shadow: var(--fusion-shadow-modal);
+  }
+
+  .spell-details-modal__close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 1;
+    background: transparent;
+    border: none;
+    color: var(--fusion-text-muted);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: var(--fusion-radius-sm);
+    font-family: var(--fusion-font);
+  }
+
+  .spell-details-modal__close:hover {
+    color: var(--fusion-text);
+    background: var(--fusion-surface-alt);
   }
 </style>

@@ -16,7 +16,9 @@ import {
   sortSpellPickerEntries,
   resolveInitialTradition,
   buildSpellNameTranslator,
+  buildSpellDetailsResolver,
   type SpellPickerEntry,
+  type SpellDetailsIndexEntry,
 } from "../characterSheetVM.js";
 import {
   OwnershipLevel,
@@ -1676,6 +1678,122 @@ describe("buildSpellNameTranslator (T1 r13)", () => {
       entry("Light", "Iluminar"),
     ]);
     expect(translate("Light")).toBe("Luz");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildSpellDetailsResolver (r14-B4) — name/sourceId → pack UUID resolver for
+// the clickable-spell-name details popup. Pure resolver from pack index entries.
+// ---------------------------------------------------------------------------
+
+describe("buildSpellDetailsResolver (r14-B4)", () => {
+  function packEntry(
+    name: string,
+    uuid: string,
+    namePt?: string,
+    sourceId?: string,
+  ): SpellDetailsIndexEntry {
+    return {
+      name,
+      uuid,
+      ...(namePt !== undefined ? { namePt } : {}),
+      ...(sourceId !== undefined ? { index: { "flags.fusion.sourceId": sourceId } } : {}),
+    };
+  }
+
+  it("resolves a uuid by the EN name (accent/case-insensitive)", () => {
+    const resolve = buildSpellDetailsResolver([
+      packEntry("Shooting Star", "Compendium.pf2e.spells-core.Item.abc", "Estrela Cadente"),
+    ]);
+    expect(resolve("shooting star")).toBe("Compendium.pf2e.spells-core.Item.abc");
+  });
+
+  it("resolves a uuid by the pt-BR name (spell copied already translated)", () => {
+    const resolve = buildSpellDetailsResolver([
+      packEntry("Shooting Star", "Compendium.pf2e.spells-core.Item.abc", "Estrela Cadente"),
+    ]);
+    expect(resolve("Estrela Cadente")).toBe("Compendium.pf2e.spells-core.Item.abc");
+  });
+
+  it("prefers a sourceId match over the name when both are present", () => {
+    const resolve = buildSpellDetailsResolver([
+      packEntry("Renamed Spell", "Compendium.pf2e.spells-core.Item.byid", "Renomeada", "srcABC"),
+    ]);
+    // Name does not match anything, but the sourceId does.
+    expect(resolve("Totally Different Name", "srcABC")).toBe("Compendium.pf2e.spells-core.Item.byid");
+  });
+
+  it("returns null when the spell has no pack counterpart (embedded-only fallback)", () => {
+    const resolve = buildSpellDetailsResolver([
+      packEntry("Shield", "Compendium.pf2e.spells-core.Item.shield", "Escudo"),
+    ]);
+    expect(resolve("Homebrew Bolt")).toBeNull();
+    expect(resolve("Homebrew Bolt", "unknown-src")).toBeNull();
+  });
+
+  it("first write wins for a duplicated name key (deterministic)", () => {
+    const resolve = buildSpellDetailsResolver([
+      packEntry("Light", "Compendium.pf2e.spells-core.Item.first", "Luz"),
+      packEntry("Light", "Compendium.pf2e.spells-core.Item.second", "Iluminar"),
+    ]);
+    expect(resolve("Light")).toBe("Compendium.pf2e.spells-core.Item.first");
+  });
+
+  it("ignores entries without a uuid and returns null for an empty name", () => {
+    const resolve = buildSpellDetailsResolver([packEntry("Ghost", "", "Fantasma")]);
+    expect(resolve("Ghost")).toBeNull();
+    expect(resolve("")).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// embeddedSpellById (r14-B4) — raw name / sourceId / item lookup by _id, the
+// join surface the Spells tab uses to open a clicked spell's details popup.
+// ---------------------------------------------------------------------------
+
+describe("CharacterSheetVM — embeddedSpellById (r14-B4)", () => {
+  it("maps every embedded spell item by its _id with the RAW (untranslated) name", () => {
+    const translator = buildSpellNameTranslator([
+      { name: "Magic Missile", index: {}, namePt: "Mísseis Mágicos" },
+    ]);
+    const vm = makeVM({}, { spellNameTranslator: translator });
+    const map = vm.embeddedSpellById;
+    expect(map.get("spell-magic-missile")?.name).toBe("Magic Missile"); // raw, never translated
+    expect(map.get("spell-shield")?.name).toBe("Shield");
+    // Only spell items — the feat/ancestry/weapon are excluded.
+    expect(map.has("feat-toughness")).toBe(false);
+    expect(map.has("item-longsword")).toBe(false);
+  });
+
+  it("exposes flags.fusion.sourceId when present, null otherwise", () => {
+    const doc = makeCharacter();
+    const items = doc["items"] as Array<Record<string, unknown>>;
+    items.push({
+      _id: "spell-shooting-star",
+      name: "Shooting Star",
+      type: "spell",
+      location: "entry-arcane",
+      flags: { fusion: { sourceId: "nVfP43Xbs6I1PO8v" } },
+      system: { level: 4, traits: { value: ["focus"] } },
+    });
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    const map = vm.embeddedSpellById;
+    expect(map.get("spell-shooting-star")?.sourceId).toBe("nVfP43Xbs6I1PO8v");
+    expect(map.get("spell-shield")?.sourceId).toBeNull(); // no flags
+  });
+
+  it("carries the whole embedded item for the description fallback", () => {
+    const vm = makeVM();
+    const ref = vm.embeddedSpellById.get("spell-shield");
+    expect(ref?.item).toBeDefined();
+    expect(ref?.item["type"]).toBe("spell");
+    expect(ref?.item["_id"]).toBe("spell-shield");
   });
 });
 
