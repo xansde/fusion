@@ -36,6 +36,7 @@ import {
 } from "./pack-io.mjs";
 import { extractMechanicsForPack } from "./mechanics-overlay.mjs";
 import { applyLabelKeys } from "./calibration.mjs";
+import { extractConfluxGrantsForPack, mergeConfluxIntoEntries } from "./conflux-grants.mjs";
 
 function parseArgs(argv) {
   const args = { packs: null, outDir: "out/mechanics", packsRoot: null };
@@ -63,6 +64,12 @@ export function runGrantsFromRules({ packsRoot, packs, outDir }) {
     const packId = resolvePackId(packsRoot, slug);
     const { entries } = extractMechanicsForPack(docs);
     applyLabelKeys(entries, docs);
+
+    // Curated fixed-item grants from class-feature descriptions (the Magus
+    // hybrid studies' "Conflux Spell", r15 A2). Merged additively into the
+    // rule-element entries — a no-op for packs without the prose pattern.
+    const confluxEntries = extractConfluxGrantsForPack(docs);
+    mergeConfluxIntoEntries(entries, confluxEntries);
 
     let grantCount = 0;
     let unlockCount = 0;

@@ -367,6 +367,43 @@ describe("CompendiumService — mechanics overlay", () => {
     rmSync(packsRoot, { recursive: true, force: true });
   });
 
+  it("attaches a fixed-item grant (Conflux Spell, r15 A2) — the discriminated union validates it", () => {
+    const overlay = {
+      schemaVersion: 1,
+      packId: PACK_ID,
+      generatedAt: "2026-01-01T00:00:00.000Z",
+      generator: "test",
+      entries: {
+        [DOC_BASIC._id]: {
+          sourceHash: "irrelevant-for-runtime",
+          grants: [
+            {
+              kind: "fixed-item",
+              vendor: "spells-srd",
+              name: "Shooting Star",
+              uuid: "Compendium.pf2e.spells-srd.Item.Shooting Star",
+              source: "curated",
+              confidence: 1.0,
+            },
+          ],
+          unlocks: [],
+        },
+      },
+    };
+    const { packsRoot } = setupPack({ mechanics: overlay });
+    const svc = new CompendiumService();
+    svc.discoverPacks(packsRoot, "pf2e");
+
+    const doc = svc.getDocument(UUID_BASIC);
+    const mechanics = doc!["mechanics"] as { grants: Array<Record<string, unknown>> };
+    expect(mechanics.grants).toHaveLength(1);
+    expect(mechanics.grants[0]["kind"]).toBe("fixed-item");
+    expect(mechanics.grants[0]["name"]).toBe("Shooting Star");
+    expect(mechanics.grants[0]["vendor"]).toBe("spells-srd");
+
+    rmSync(packsRoot, { recursive: true, force: true });
+  });
+
   it("tolerates a corrupt mechanics overlay (ignored)", () => {
     const { packsRoot } = setupPack({ mechanics: { entries: "nope" } });
     const svc = new CompendiumService();

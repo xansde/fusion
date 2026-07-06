@@ -95,7 +95,7 @@ export type GrantFilters = z.infer<typeof GrantFiltersSchema>;
  * A grant of a feat-choice: this feat lets the character choose `count` feats
  * of `category`, narrowed by `filters`.
  */
-export const GrantSchema = z.object({
+export const FeatChoiceGrantSchema = z.object({
   kind: z.literal("feat-choice"),
   category: GrantCategorySchema,
   /** How many feats the choice grants (defaults to 1). */
@@ -107,6 +107,53 @@ export const GrantSchema = z.object({
   /** 1.0 when every predicate is literal; reduced when dynamic predicates remain. */
   confidence: z.number().min(0).max(1),
 });
+
+export type FeatChoiceGrant = z.infer<typeof FeatChoiceGrantSchema>;
+
+// ---------------------------------------------------------------------------
+// Fixed-item grant — a SPECIFIC document conceded outright (r15 A2)
+//
+// Unlike a feat-choice (the player picks a feat matching a filter), a
+// fixed-item grant names ONE concrete vendor document to materialize
+// automatically — the same shape a Foundry `GrantItem` rule element carries in
+// `system.rules`, but recovered here for grants that live ONLY in a document's
+// prose. The concrete case: the Magus hybrid studies declare their "Conflux
+// Spell" (Starlit Span → Shooting Star, etc.) as
+// `<strong>Conflux Spell</strong> @UUID[Compendium.pf2e.spells-srd.Item.<Name>]`
+// in the description, with an EMPTY `system.rules` — Foundry itself does not
+// automate it. tools/translate-packs extracts the pattern (source: "curated")
+// so the client materializer can place the spell in the focus pool.
+//
+// `vendor`/`name` mirror ParsedGrant in the client's grantMaterializer: the
+// materializer maps `vendor` → a Fusion pack slug and resolves `name` there
+// (accent/case-insensitive), so a fixed-item grant flows through the SAME
+// resolver + idempotency path as a `system.rules` GrantItem.
+// ---------------------------------------------------------------------------
+
+export const FixedItemGrantSchema = z.object({
+  kind: z.literal("fixed-item"),
+  /** Vendor pack segment of the source uuid, e.g. "spells-srd" / "feats-srd". */
+  vendor: z.string(),
+  /** The referenced document NAME (resolved in the mapped Fusion pack). */
+  name: z.string(),
+  /** The original @UUID reference, kept for diagnostics/regeneration. */
+  uuid: z.string().optional(),
+  source: MechanicsSourceSchema,
+  /** 1.0 for a literal @UUID reference (the pattern is unambiguous). */
+  confidence: z.number().min(0).max(1),
+});
+
+export type FixedItemGrant = z.infer<typeof FixedItemGrantSchema>;
+
+/**
+ * A grant is either a feat-CHOICE (player picks) or a FIXED-item (a specific
+ * document conceded outright). Discriminated on `kind` — existing `feat-choice`
+ * entries validate unchanged, so the overlay stays backward-compatible.
+ */
+export const GrantSchema = z.discriminatedUnion("kind", [
+  FeatChoiceGrantSchema,
+  FixedItemGrantSchema,
+]);
 
 export type Grant = z.infer<typeof GrantSchema>;
 
