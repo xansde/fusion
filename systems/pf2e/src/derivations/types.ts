@@ -222,6 +222,22 @@ export interface CharacterDerived {
   readonly dyingMax: number;
 
   /**
+   * Land speed after applying FlatModifiers carried by embedded feats,
+   * heritages, class features, and ancestry items (e.g. Fleet's +5 land
+   * speed) — PF2e stacking applied (r16-G1). `base` is the raw
+   * `system.speed.value` before modifiers; `otherSpeeds` is passed through
+   * unmodified (climb/swim/fly/burrow are out of this batch's scope).
+   * Optional: docs derived before r16 lack it (clients fall back to the raw
+   * `system.speed.value`).
+   */
+  readonly speed?: {
+    readonly value: number;
+    readonly base: number;
+    readonly modifiers: ModifierBreakdown[];
+    readonly otherSpeeds: unknown[];
+  };
+
+  /**
    * Spellcasting DC/attack per spellcastingEntry item id (CONTRACT 2).
    * `attack` already includes synthetics modifiers; `dc = 10 + attack`.
    * Optional: absent for characters with no spellcasting entries (some
