@@ -121,6 +121,10 @@
     "heritages-core",
     "backgrounds-core",
     "spells-core",
+    // r15 A2 surfaced ACTION grants (e.g. Alchemist Dedication → Quick Alchemy)
+    // as nested chips; their names must translate too, else the chip renders the
+    // raw EN name ("Quick Alchemy" instead of "Alquimia Rápida").
+    "actions-core",
   ];
 
   let contentTranslator = $state<ContentNameTranslator | null>(null);
