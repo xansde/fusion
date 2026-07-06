@@ -113,6 +113,62 @@ export interface DerivedStrike {
 }
 
 // ---------------------------------------------------------------------------
+// Elemental Blast (Kineticist — Rage of Elements)
+// ---------------------------------------------------------------------------
+
+/**
+ * A single Kineticist Elemental Blast, one per gate element (r18-N2b).
+ *
+ * The impulse attack roll uses the SAME proficiency + attribute modifier as
+ * the kineticist class DC (CON), per Rage of Elements p.14 ("Your impulse
+ * attack roll uses the same proficiency and attribute modifier as your
+ * kineticist class DC"). Damage die/type/range come from the element.
+ *
+ * `attackBonus` is the MAP-0 total (level + impulse proficiency + CON + any
+ * `impulse-attack-roll` item bonus, e.g. Gate Attenuator +1). MAP variants
+ * mirror a strike (impulses are NOT agile: −5 / −10).
+ *
+ * `damageRoll` is a PURE rollable formula for `@dice-roller/rpg-dice-roller`
+ * (no damage type in the text) — CONTRACT 3, matching DerivedStrike. The
+ * 2-action CON status bonus is exposed via `twoActionDamageBonus` but NOT
+ * baked into the base 1-action ranged roll (the sheet applies it when the
+ * player rolls the 2-action variant; a melee blast likewise adds STR).
+ */
+export interface DerivedElementalBlast {
+  /** Gate element slug ("air", "metal", "fire", …). */
+  readonly element: string;
+  /** Display label (e.g. "Elemental Blast (Air)"). */
+  readonly label: string;
+  /** Chosen/primary damage type for this element (e.g. "electricity"). */
+  readonly damageType: string;
+  /** All damage-type options this element allows (e.g. ["electricity","slashing"]). */
+  readonly damageTypeOptions: string[];
+  /** Whether this blast is being used at range (element's ranged option). */
+  readonly isRanged: boolean;
+  /** Ranged range in feet (null for a purely melee blast). */
+  readonly range: number | null;
+  /** Attack bonus at MAP 0 (without the d20). */
+  readonly attackBonus: number;
+  /** All three MAP variants (0 / −5 / −10 — impulses are never agile). */
+  readonly variants: [StrikeVariant, StrikeVariant, StrikeVariant];
+  /** Number of damage dice at the character's level. */
+  readonly damageDice: number;
+  /** Damage die size ("d6", "d8", …). */
+  readonly damageDie: string;
+  /** Pure rollable 1-action damage formula (no type), e.g. "1d6". CONTRACT 3. */
+  readonly damageRoll: string;
+  /** Display damage formula, e.g. "1d6 electricity". */
+  readonly damageFormula: string;
+  /**
+   * Status bonus to damage for a 2-action blast (= CON mod). The sheet adds
+   * this when the player rolls the 2-action variant.
+   */
+  readonly twoActionDamageBonus: number;
+  /** Item bonus applied to the attack (e.g. Gate Attenuator +1); 0 if none. */
+  readonly itemAttackBonus: number;
+}
+
+// ---------------------------------------------------------------------------
 // Archetype class DC (dedication-granted, DEC-R12-04)
 // ---------------------------------------------------------------------------
 
@@ -217,6 +273,13 @@ export interface CharacterDerived {
 
   /** Derived strikes from equipped weapons. REQ-PF2-030 */
   readonly strikes: DerivedStrike[];
+
+  /**
+   * Kineticist Elemental Blasts, one per gate element (r18-N2b). Empty/absent
+   * for non-kineticists. Optional: docs derived before r18 lack it (clients
+   * treat absent as `[]`).
+   */
+  readonly elementalBlasts?: DerivedElementalBlast[];
 
   /** Dying max adjusted for doomed. REQ-PF2-074 */
   readonly dyingMax: number;

@@ -45,9 +45,8 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 
 import type { DeriveStep } from "@fusion/system-api";
-import { resolveStacking, type Modifier } from "@fusion/engine-2e";
 import type { CharacterSystem } from "../schemas/actor-character.js";
-import type { ModifierBreakdown } from "./types.js";
+import { collectEmbeddedModifiers, stackEmbeddedModifiers } from "./embeddedModifiers.js";
 
 function getSystem(doc: Record<string, unknown>): Record<string, unknown> {
   return (doc["system"] as Record<string, unknown>) ?? {};
@@ -55,6 +54,11 @@ function getSystem(doc: Record<string, unknown>): Record<string, unknown> {
 
 function getCharSystem(doc: Record<string, unknown>): CharacterSystem {
   return getSystem(doc) as unknown as CharacterSystem;
+}
+
+function getLevel(sys: CharacterSystem): number {
+  const level = sys.level as { value?: number } | undefined;
+  return level?.value ?? 1;
 }
 
 function getDerived(doc: Record<string, unknown>): Record<string, unknown> {
@@ -65,116 +69,13 @@ function getDerived(doc: Record<string, unknown>): Record<string, unknown> {
   return sys["derived"] as Record<string, unknown>;
 }
 
-// ---------------------------------------------------------------------------
-// Embedded-item rule scanning
-// ---------------------------------------------------------------------------
-
-/** Item types that may carry `system.rules[]` and are embedded (not equipment). */
-const RULE_CARRYING_EMBEDDED_TYPES = new Set(["feat", "heritage", "classFeature", "ancestry"]);
-
-/** One resolved FlatModifier extracted from an embedded item's rules. */
-interface SpeedModifierSource {
-  readonly slug: string;
-  readonly label: string;
-  readonly type: string;
-  readonly value: number;
-}
-
 /**
- * A single raw rule entry as persisted on an item's `system.rules[]`.
- *
- * Real pack docs use `kind` (kebab-case, importer's ModifierDescriptor shape
- * — spec 16). `type` (camelCase) is tolerated for hand-authored EffectRule
- * fixtures (schemas-item.test.ts style) that predate the importer's `kind`
- * convention (see schema-primitives.ts EffectRuleSchema docstring).
+ * Selectors this step cares about: the specific "land-speed" and the broad
+ * "speed". Extraction/stacking is delegated to the generalized embedded-item
+ * scanner (embeddedModifiers.ts) — the same one Toughness's `hp` FlatModifier
+ * uses (r18-N2b).
  */
-interface RawRule {
-  readonly kind?: unknown;
-  readonly type?: unknown;
-  readonly selector?: unknown;
-  readonly value?: unknown;
-  readonly mode?: unknown;
-  readonly modifierType?: unknown;
-  readonly slug?: unknown;
-  readonly label?: unknown;
-}
-
-function isFlatModifierRule(rule: RawRule): boolean {
-  return rule.kind === "flat-modifier" || rule.type === "flatModifier";
-}
-
-/** Selectors this step cares about: the specific "land-speed" and the broad "speed". */
 const SPEED_SELECTORS = new Set(["land-speed", "speed"]);
-
-function matchesSpeedSelector(selector: unknown): boolean {
-  if (typeof selector === "string") return SPEED_SELECTORS.has(selector);
-  if (Array.isArray(selector)) {
-    return selector.some((s) => typeof s === "string" && SPEED_SELECTORS.has(s));
-  }
-  return false;
-}
-
-/**
- * Extract land-speed/speed FlatModifiers from one embedded item's
- * `system.rules[]`.
- *
- * Guarded like every other embedded-item reader in this package (r11
- * malformed-input posture): a feat authored outside the schema (missing
- * `rules`, non-array `rules`, a rule missing `value`) degrades to "no
- * modifiers from this item" instead of throwing mid-derive.
- */
-function speedModifiersFromItem(item: Record<string, unknown>): SpeedModifierSource[] {
-  const itemSys = item["system"] as Record<string, unknown> | undefined;
-  const rawRules = itemSys?.["rules"];
-  if (!Array.isArray(rawRules)) return [];
-
-  const itemName = typeof item["name"] === "string" ? item["name"] : "Speed Modifier";
-  const itemId = typeof item["_id"] === "string" ? item["_id"] : itemName;
-
-  const results: SpeedModifierSource[] = [];
-  let index = 0;
-  for (const raw of rawRules as RawRule[]) {
-    index += 1;
-    if (!raw || typeof raw !== "object") continue;
-    if (!isFlatModifierRule(raw)) continue;
-    if (!matchesSpeedSelector(raw.selector)) continue;
-
-    const value = typeof raw.value === "number" ? raw.value : 0;
-    if (value === 0) continue;
-
-    const modType =
-      typeof raw.modifierType === "string"
-        ? raw.modifierType
-        : typeof raw.type === "string" && raw.type !== "flatModifier"
-          ? raw.type
-          : "untyped";
-
-    const slug =
-      typeof raw.slug === "string" && raw.slug.length > 0 ? raw.slug : `${itemId}-${String(index)}`;
-    const label = typeof raw.label === "string" && raw.label.length > 0 ? raw.label : itemName;
-
-    results.push({ slug, label, type: modType, value });
-  }
-  return results;
-}
-
-/**
- * Scan `doc.items` for feat/heritage/classFeature/ancestry items and collect
- * every land-speed/speed FlatModifier they carry.
- */
-function collectSpeedModifiers(doc: Record<string, unknown>): SpeedModifierSource[] {
-  const rawItems = doc["items"];
-  if (!Array.isArray(rawItems)) return [];
-
-  const results: SpeedModifierSource[] = [];
-  for (const raw of rawItems) {
-    if (!raw || typeof raw !== "object") continue;
-    const item = raw as Record<string, unknown>;
-    if (!RULE_CARRYING_EMBEDDED_TYPES.has(item["type"] as string)) continue;
-    results.push(...speedModifiersFromItem(item));
-  }
-  return results;
-}
 
 // ---------------------------------------------------------------------------
 // STEP (derived phase): land speed + other movement types
@@ -231,20 +132,9 @@ export const stepCharSpeed: DeriveStep = {
         ? speedBlock.otherSpeeds
         : [];
 
-    const sources = collectSpeedModifiers(doc);
-    const asModifiers: Modifier[] = sources.map((s) => ({
-      slug: s.slug,
-      type: s.type,
-      value: s.value,
-    }));
-    const modSum = resolveStacking(asModifiers);
-
-    const modifiers: ModifierBreakdown[] = sources.map((s) => ({
-      slug: s.slug,
-      label: s.label,
-      type: s.type,
-      value: s.value,
-    }));
+    const level = getLevel(sys);
+    const sources = collectEmbeddedModifiers(doc, SPEED_SELECTORS, { level }, "Speed Modifier");
+    const { sum: modSum, modifiers } = stackEmbeddedModifiers(sources);
 
     derived["speed"] = {
       value: baseValue + modSum,

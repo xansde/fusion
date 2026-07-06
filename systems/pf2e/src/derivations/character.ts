@@ -35,6 +35,8 @@ import { ARCHETYPE_KEY_ABILITY, ARCHETYPE_LABEL, titleCaseSlug } from "./archety
 import { stepCharCollectEquipment } from "./equipment.js";
 import { stepCharSpellcasting } from "./spellcasting.js";
 import { stepCharSpeed } from "./speed.js";
+import { stepCharToughness } from "./hp.js";
+import { stepCharElementalBlasts } from "./elementalBlast.js";
 import {
   stepCharBuildAbilities,
   stepCharApplyClass,
@@ -1051,6 +1053,7 @@ export const CHARACTER_DERIVE_STEPS: DeriveStep[] = [
   stepCharAbilityMods,
   stepCharCollectEquipment,
   stepCharHp,
+  stepCharToughness,
   stepCharFocusClamp,
   stepCharDyingMax,
   stepCharAc,
@@ -1063,4 +1066,5 @@ export const CHARACTER_DERIVE_STEPS: DeriveStep[] = [
   stepCharStrikes,
   stepCharSpellcasting,
   stepCharSpeed,
+  stepCharElementalBlasts,
 ];

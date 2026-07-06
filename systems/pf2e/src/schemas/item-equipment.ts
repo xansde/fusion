@@ -439,6 +439,13 @@ export const ClassSystemSchema = z
     attacks: z.record(z.string(), ProficiencyRankSchema).default({}),
     /** Class DC proficiency rank at level 1. */
     classDC: ProficiencyRankSchema.default(0),
+    /**
+     * Impulse-attack proficiency rank at level 1 (Kineticist; the impulse
+     * attack roll uses this rank + the class's key ability — Rage of Elements
+     * p.14). Default 0 for classes without impulses. Upgraded over levels via
+     * `proficiencyUpgrades` with `stat: "impulse"`.
+     */
+    impulse: ProficiencyRankSchema.default(0),
     /** Feat slot levels by category (ancestry/class/general/skill). */
     featLevels: ClassFeatLevelsSchema,
     /** Levels at which the class grants a free skill increase. */
