@@ -599,6 +599,10 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
     // the batch, or a companion that fails a condition, falls back to the
     // GM-only denial.
     const forcedOwnership = new Map<number, Ownership>();
+    // True once the batch is fully authorized as a player companion create —
+    // it then bypasses the generic TRUSTED role floor below (the companion gate
+    // is a strictly stronger check: OWNER of a granting master, no duplicate).
+    let authorizedCompanionBatch = false;
     if (GM_ONLY_CREATE_DELETE.has(documentType) && !isPrivileged(ctx.role)) {
       if (documentType !== "Actor") {
         return ackError("PERMISSION_DENIED", `Only GM/Assistant can create ${documentType}`);
@@ -616,11 +620,15 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
         // Force the familiar's ownership to mirror the master's owners.
         forcedOwnership.set(i, getOwnershipFromDoc(auth.master));
       }
+      authorizedCompanionBatch = data.length > 0;
     }
 
     // Non-privileged users can create their own documents for allowed types
-    // (e.g., Actor requires ACTOR_CREATE permission — simplified here to TRUSTED+)
+    // (e.g., Actor requires ACTOR_CREATE permission — simplified here to
+    // TRUSTED+). Skipped for an already-authorized player companion batch
+    // (r17-P1): a plain PLAYER owning a granting master is authorized above.
     if (
+      !authorizedCompanionBatch &&
       !isPrivileged(ctx.role) && // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
       ctx.role < UserRole.TRUSTED
     ) {

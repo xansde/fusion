@@ -349,6 +349,16 @@ export {
 } from "./schemas/actor-familiar.js";
 export type { FamiliarSystem, CompanionKind } from "./schemas/actor-familiar.js";
 
+// Familiar-grant detection (shared server + client — r17-P1)
+export {
+  detectFamiliarGrant,
+  masterItems,
+  isFamiliarAbilitiesRule,
+  FAMILIAR_GRANTING_FEATS,
+  FAMILIAR_ABILITY_BASE,
+} from "./familiar-grant.js";
+export type { FamiliarGrant } from "./familiar-grant.js";
+
 // Item schemas
 export { WeaponSystemSchema, parseWeaponSystem } from "./schemas/item-weapon.js";
 export type { WeaponSystem } from "./schemas/item-weapon.js";

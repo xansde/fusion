@@ -53,6 +53,15 @@ export const FAMILIAR_ABILITY_BASE = 2;
  * familiar via GrantItem alone (the base "Familiar" class feat delegates the
  * counter to the granted "Pet" item) still needs to enable the tab — hence the
  * curated fallback list. Names are matched case-insensitively and exactly.
+ *
+ * SOURCE OF TRUTH (r17-P1): the authoritative copy of this detection lives in
+ * `systems/pf2e/src/familiar-grant.ts` (`FAMILIAR_GRANTING_FEATS`,
+ * `detectFamiliarGrant`, `isFamiliarAbilitiesRule`, `masterItems`) and the
+ * SERVER imports it to authorize a PLAYER creating their own familiar without a
+ * GM (doc:create gate, doc-handlers.ts). The client cannot import
+ * `@fusion/system-pf2e` (arch boundary REQ-ARQ-005 — see planVM.ts docstring),
+ * so this VM mirrors the same pure logic here for the CTA. Keep the two in
+ * sync: any change to the grant rule must be applied to both files.
  */
 export const FAMILIAR_GRANTING_FEATS: ReadonlySet<string> = new Set([
   "familiar",
@@ -477,6 +486,44 @@ export function buildToggleAbilityOp(
 /** Delete a familiar Actor. */
 export function buildDeleteOp(familiar: LinkedFamiliar): DeleteFamiliarOp {
   return { type: "doc:delete", documentType: "Actor", id: familiar.id };
+}
+
+// ---------------------------------------------------------------------------
+// Error mapping (server ack → friendly pt-BR i18n key)
+// ---------------------------------------------------------------------------
+
+/**
+ * Map a familiar-create failure (an OpError thrown by sendOp, carrying the
+ * server's `code` + `message`) to a friendly i18n key. The server's messages
+ * are technical English (e.g. "You do not own the master actor") — never shown
+ * raw. The specific PERMISSION_DENIED reasons are disambiguated by matching the
+ * exact server message (authorizePlayerCompanionCreate in doc-handlers.ts);
+ * anything unrecognized falls back to a generic key.
+ *
+ * Kept string-based (not importing OpError) so this stays a pure, testable
+ * helper: it reads `code`/`message` off any error-shaped value.
+ */
+export function familiarCreateErrorKey(err: unknown): string {
+  const e = (err ?? {}) as { code?: unknown; message?: unknown };
+  const code = typeof e.code === "string" ? e.code : "";
+  const message = typeof e.message === "string" ? e.message.toLowerCase() : "";
+
+  if (code === "NOT_FOUND" || message.includes("master actor not found")) {
+    return "FUSION.Sheet.Pets.Error.NotFound";
+  }
+  if (message.includes("already has a familiar")) {
+    return "FUSION.Sheet.Pets.Error.Duplicate";
+  }
+  if (message.includes("do not own the master")) {
+    return "FUSION.Sheet.Pets.Error.NotOwner";
+  }
+  if (message.includes("no feat that grants a familiar")) {
+    return "FUSION.Sheet.Pets.Error.NoGrant";
+  }
+  if (code === "PERMISSION_DENIED") {
+    return "FUSION.Sheet.Pets.Error.Permission";
+  }
+  return "FUSION.Sheet.Pets.Error.Generic";
 }
 
 // ---------------------------------------------------------------------------

@@ -20,6 +20,7 @@ import {
   linkedFamiliars,
   readFamiliar,
   filterAbilityRows,
+  familiarCreateErrorKey,
   FAMILIAR_ABILITY_BASE,
   type AbilityRow,
 } from "../petsVM.js";
@@ -316,5 +317,51 @@ describe("filterAbilityRows", () => {
   it("returns all rows sorted by display name when the query is empty", () => {
     // "Visão no Escuro" < "Voador" (Vi < Vo), so darkvision sorts first.
     expect(filterAbilityRows(rows, "").map((r) => r.slug)).toEqual(["darkvision", "flier"]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// familiarCreateErrorKey — server ack → friendly i18n key (r17-P1)
+// ---------------------------------------------------------------------------
+
+describe("familiarCreateErrorKey", () => {
+  // Messages mirror authorizePlayerCompanionCreate in the server's doc-handlers.
+  it("maps 'not owner' to the NotOwner key", () => {
+    expect(
+      familiarCreateErrorKey({ code: "PERMISSION_DENIED", message: "You do not own the master actor" }),
+    ).toBe("FUSION.Sheet.Pets.Error.NotOwner");
+  });
+
+  it("maps 'no granting feat' to the NoGrant key", () => {
+    expect(
+      familiarCreateErrorKey({
+        code: "PERMISSION_DENIED",
+        message: "Master has no feat that grants a familiar",
+      }),
+    ).toBe("FUSION.Sheet.Pets.Error.NoGrant");
+  });
+
+  it("maps the duplicate (already has a familiar) to the Duplicate key", () => {
+    expect(
+      familiarCreateErrorKey({ code: "VALIDATION_FAILED", message: "Master already has a familiar" }),
+    ).toBe("FUSION.Sheet.Pets.Error.Duplicate");
+  });
+
+  it("maps a NOT_FOUND / missing master to the NotFound key", () => {
+    expect(
+      familiarCreateErrorKey({ code: "NOT_FOUND", message: "Master actor not found: abc" }),
+    ).toBe("FUSION.Sheet.Pets.Error.NotFound");
+  });
+
+  it("maps an unrecognized PERMISSION_DENIED to the generic Permission key", () => {
+    expect(
+      familiarCreateErrorKey({ code: "PERMISSION_DENIED", message: "Only GM/Assistant can create Actor" }),
+    ).toBe("FUSION.Sheet.Pets.Error.Permission");
+  });
+
+  it("falls back to Generic for an unknown error shape", () => {
+    expect(familiarCreateErrorKey(new Error("boom"))).toBe("FUSION.Sheet.Pets.Error.Generic");
+    expect(familiarCreateErrorKey(null)).toBe("FUSION.Sheet.Pets.Error.Generic");
+    expect(familiarCreateErrorKey(undefined)).toBe("FUSION.Sheet.Pets.Error.Generic");
   });
 });

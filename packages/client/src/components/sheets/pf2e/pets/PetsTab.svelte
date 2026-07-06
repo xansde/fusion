@@ -34,6 +34,7 @@
     buildCreateFamiliarOp,
     buildMasterRefreshOp,
     buildDeleteOp,
+    familiarCreateErrorKey,
     type LinkedFamiliar,
     type CreateFamiliarOp,
     type UpdateFamiliarOp,
@@ -121,19 +122,25 @@
       newAppearance = "";
       showCreate = false;
     } catch (err) {
-      createError = err instanceof Error ? err.message : String(err);
+      // Server acks carry technical English messages — map to a friendly pt-BR
+      // string via the i18n key (never surface the raw message/JSON, r17-P1).
+      createError = t(familiarCreateErrorKey(err));
     } finally {
       creating = false;
     }
   }
 
+  let removeError = $state<string | null>(null);
+
   async function removeFamiliar(fam: LinkedFamiliar): Promise<void> {
     const confirmed = confirm(t("FUSION.Sheet.Pets.RemoveConfirm", { name: fam.name }));
     if (!confirmed) return;
+    removeError = null;
     try {
       await emitOp(buildDeleteOp(fam));
     } catch (err) {
       console.error("[PetsTab] remove failed:", err);
+      removeError = t("FUSION.Sheet.Pets.Error.RemoveFailed");
     }
   }
 
@@ -162,6 +169,10 @@
           />
         {/each}
       </div>
+    {/if}
+
+    {#if removeError}
+      <p class="pets-create__error">{removeError}</p>
     {/if}
 
     <!-- Create call-to-action (shown when the master has a grant). -->
