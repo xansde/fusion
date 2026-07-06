@@ -12,6 +12,8 @@ import {
   RollModeSchema,
   DiceResultSchema,
   RollTermResultSchema,
+  ChatSendFlagsSchema,
+  CheckContextSchema,
 } from "../chat/types.js";
 import {
   validateFormula,
@@ -186,6 +188,98 @@ describe("RollResultDataSchema", () => {
       warnings: ["Unresolved @str.mod — substituted with 0"],
     });
     expect(r.warnings).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// CheckContext / ChatSendFlags schema — r17.1 (save degree-of-success wire)
+// ---------------------------------------------------------------------------
+
+describe("CheckContextSchema (r17.1 save context)", () => {
+  it("accepts a minimal save context", () => {
+    const ctx = CheckContextSchema.parse({ kind: "save", dcValue: 19, saveType: "reflex" });
+    expect(ctx.kind).toBe("save");
+    expect(ctx.dcValue).toBe(19);
+    expect(ctx.saveType).toBe("reflex");
+  });
+
+  it("accepts a basic save context", () => {
+    const ctx = CheckContextSchema.parse({
+      kind: "save",
+      dcValue: 22,
+      saveType: "fortitude",
+      basicSave: true,
+    });
+    expect(ctx.basicSave).toBe(true);
+  });
+
+  it("rejects an unknown kind", () => {
+    expect(() =>
+      CheckContextSchema.parse({ kind: "attack", dcValue: 19, saveType: "reflex" }),
+    ).toThrow();
+  });
+
+  it("rejects a missing dcValue", () => {
+    expect(() => CheckContextSchema.parse({ kind: "save", saveType: "reflex" })).toThrow();
+  });
+
+  it("rejects a non-integer dcValue", () => {
+    expect(() =>
+      CheckContextSchema.parse({ kind: "save", dcValue: 19.5, saveType: "reflex" }),
+    ).toThrow();
+  });
+
+  it("rejects a dcValue out of bounds", () => {
+    expect(() =>
+      CheckContextSchema.parse({ kind: "save", dcValue: 0, saveType: "reflex" }),
+    ).toThrow();
+    expect(() =>
+      CheckContextSchema.parse({ kind: "save", dcValue: 61, saveType: "reflex" }),
+    ).toThrow();
+  });
+
+  it("rejects an invalid saveType", () => {
+    expect(() =>
+      CheckContextSchema.parse({ kind: "save", dcValue: 19, saveType: "arcane" }),
+    ).toThrow();
+  });
+});
+
+describe("ChatSendFlagsSchema (r17.1 checkContext path)", () => {
+  it("accepts flags carrying a save checkContext", () => {
+    const flags = ChatSendFlagsSchema.parse({
+      checkContext: { kind: "save", dcValue: 19, saveType: "will", basicSave: true },
+    });
+    expect(flags.checkContext?.kind).toBe("save");
+    expect(flags.checkContext?.dcValue).toBe(19);
+  });
+
+  it("accepts flags with BOTH spellCast and checkContext", () => {
+    const flags = ChatSendFlagsSchema.parse({
+      pf2e: {
+        spellCast: {
+          casterActorId: "caster-1",
+          spellName: "Arco Elétrico",
+          rank: 2,
+          dcValue: 19,
+          saveType: "reflex",
+        },
+      },
+      checkContext: { kind: "save", dcValue: 19, saveType: "reflex" },
+    });
+    expect(flags.pf2e?.spellCast?.spellName).toBe("Arco Elétrico");
+    expect(flags.checkContext?.saveType).toBe("reflex");
+  });
+
+  it("accepts empty flags (no checkContext)", () => {
+    const flags = ChatSendFlagsSchema.parse({});
+    expect(flags.checkContext).toBeUndefined();
+  });
+
+  it("rejects flags whose checkContext is malformed", () => {
+    expect(() =>
+      ChatSendFlagsSchema.parse({ checkContext: { kind: "save", saveType: "reflex" } }),
+    ).toThrow();
   });
 });
 

@@ -219,10 +219,49 @@ export const SpellCastCardSchema = z.object({
 export type SpellCastCard = z.infer<typeof SpellCastCardSchema>;
 
 /**
- * Flags a client may attach to a chat:send payload (r17-P2). The ONLY
- * permitted namespaced flag is `pf2e.spellCast`; every other key is stripped
- * server-side (this schema is `.strict()`-free but the server reads only the
- * whitelisted path, so a forged/foreign flag never reaches the stored doc).
+ * Structured, server-validated context for a check roll attached to a
+ * `chat:send` (r17.1). When present with `kind:"save"`, the server computes the
+ * PF2e degree of success (DoS) against `dcValue` AUTHORITATIVELY — the client
+ * never compares totals to the DC; it only supplies the (already coherence-
+ * checked) DC + save metadata so the server can grade the roll.
+ *
+ * SECURITY: the shape is Zod-validated on `chat:send`; a forged/malformed
+ * checkContext rejects the send (defense in depth). The `dcValue` itself is a
+ * plain number here — coherence against the caster's derived DC is enforced by
+ * the SpellCastCard flag pipeline (sanitizeSpellCastCard) that emitted the card
+ * this save button belongs to; the save roll simply grades the total the server
+ * itself rolled.
+ */
+export const SaveCheckContextSchema = z.object({
+  /** Discriminator — only "save" is supported today (attack/skill are future). */
+  kind: z.literal("save"),
+  /** DC to grade the total against. Same bounds as the card's `dcValue`. */
+  dcValue: z.number().int().min(1).max(60),
+  /** Which save statistic was rolled (display + audit). */
+  saveType: SpellSaveTypeSchema,
+  /** True when the save is a basic save (drives the per-degree damage hint). */
+  basicSave: z.boolean().optional(),
+});
+
+export type SaveCheckContext = z.infer<typeof SaveCheckContextSchema>;
+
+/**
+ * Discriminated union of check contexts a `chat:send` may carry (r17.1). Only
+ * `save` exists today; `kind` keeps the shape open for attack/skill checks
+ * without a breaking change.
+ */
+export const CheckContextSchema = z.discriminatedUnion("kind", [SaveCheckContextSchema]);
+
+export type CheckContext = z.infer<typeof CheckContextSchema>;
+
+/**
+ * Flags a client may attach to a chat:send payload (r17-P2 / r17.1). Two
+ * whitelisted paths:
+ *   - `pf2e.spellCast` — the interactive spell-cast card (r17-P2);
+ *   - `checkContext`   — structured save-check metadata the server uses to grade
+ *     a roll's degree of success (r17.1).
+ * Every other key is ignored: the server reads only these whitelisted paths, so
+ * a forged/foreign flag never reaches the stored doc.
  */
 export const ChatSendFlagsSchema = z.object({
   pf2e: z
@@ -230,6 +269,8 @@ export const ChatSendFlagsSchema = z.object({
       spellCast: SpellCastCardSchema.optional(),
     })
     .optional(),
+  /** Structured check context (r17.1) — grades the roll server-side. */
+  checkContext: CheckContextSchema.optional(),
 });
 
 export type ChatSendFlags = z.infer<typeof ChatSendFlagsSchema>;
