@@ -1,9 +1,28 @@
 {
   "schemaVersion": 1,
   "packId": "pf2e.class-features-core",
-  "generatedAt": "2026-07-06T11:56:18.258Z",
+  "generatedAt": "2026-07-06T23:33:27.304Z",
   "generator": "tools/translate-packs@0.1.0",
   "entries": {
+    "2K4xQnGRqtCwjRoU": {
+      "sourceHash": "f4e3c245f6bc031e3b514a118042d73b8f06ffbb",
+      "grants": [
+        {
+          "kind": "feat-choice",
+          "category": "general",
+          "count": 1,
+          "filters": {
+            "traits": [
+              "impulse"
+            ],
+            "maxLevel": 9
+          },
+          "source": "rule-element",
+          "confidence": 0.6
+        }
+      ],
+      "unlocks": []
+    },
     "5iAgApzCdVQlJd7p": {
       "sourceHash": "21579cf0eb5d71ad18ad9c57b4dac2452f000ce5",
       "grants": [
@@ -74,6 +93,25 @@
       ],
       "unlocks": []
     },
+    "RqBETppduK38w0zx": {
+      "sourceHash": "d169e9b38f4095119a8f214825f90c1c7654d926",
+      "grants": [
+        {
+          "kind": "feat-choice",
+          "category": "general",
+          "count": 1,
+          "filters": {
+            "traits": [
+              "impulse"
+            ],
+            "maxLevel": 17
+          },
+          "source": "rule-element",
+          "confidence": 0.6
+        }
+      ],
+      "unlocks": []
+    },
     "W2TtTf4vbOLuac4K": {
       "sourceHash": "62fd54c8c26bc9c2563b7c56cbcee1224e41f2bd",
       "grants": [
@@ -84,6 +122,44 @@
           "uuid": "Compendium.pf2e.spells-srd.Item.Sky Laughs at Waves",
           "source": "curated",
           "confidence": 1
+        }
+      ],
+      "unlocks": []
+    },
+    "h6aJkvglqVbjB2oK": {
+      "sourceHash": "88e2e0ec26e4ce29d5bb4856d23a2d0945dca31e",
+      "grants": [
+        {
+          "kind": "feat-choice",
+          "category": "general",
+          "count": 1,
+          "filters": {
+            "traits": [
+              "impulse"
+            ],
+            "maxLevel": 13
+          },
+          "source": "rule-element",
+          "confidence": 0.6
+        }
+      ],
+      "unlocks": []
+    },
+    "hYxkutfYKZfTlJb5": {
+      "sourceHash": "5b9a3770a834a272aa13f3c9b854541fb040ef53",
+      "grants": [
+        {
+          "kind": "feat-choice",
+          "category": "general",
+          "count": 1,
+          "filters": {
+            "traits": [
+              "impulse"
+            ],
+            "maxLevel": 5
+          },
+          "source": "rule-element",
+          "confidence": 0.6
         }
       ],
       "unlocks": []

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "packId": "pf2e.ancestries-core",
   "locale": "pt-BR",
-  "generatedAt": "2026-07-05T22:10:15.396Z",
+  "generatedAt": "2026-07-06T23:33:27.331Z",
   "generator": "tools/translate-packs@0.1.0",
   "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
   "entries": {
@@ -10,6 +10,11 @@
       "name": "Ratfolk",
       "sourceHash": "e7e7b626942416092fa3580d26ef1029589743d9",
       "description": "<p><em>Ysoki são seres que a maioria dos humanoides habitantes da superfície chama de \"ratfolk\". Eles são um povo comunitário que prefere condições apertadas, com até 100 indivíduos vivendo em uma mesma moradia. Se não conseguem encontrar casas na cidade, os ratfolk podem viver em cavernas e complexos de cavernas, pois estes oferecem ótimo armazenamento para os diversos bens que trazem de volta de expedições comerciais.</em></p>\n<p>@UUID[Compendium.pf2e.journals.JournalEntry.45SK8rdbbxvEHfMn.JournalEntryPage.zoSkNev57C8OEDYL]{Ratfolk}</p>"
+    },
+    "mIPhGOdhzDGvbu5m": {
+      "name": "Fleshwarp",
+      "sourceHash": "395b7138d6f03cc19549f668a8205c70620028d1",
+      "description": "<p><em>Fleshwarps são pessoas cujas formas foram criadas ou radicalmente transformadas por magia, alquimia ou energias antinaturais. Sua aparência heterodoxa pode dificultar que encontrem um lugar para si mesmas no mundo.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.45SK8rdbbxvEHfMn.JournalEntryPage.vTB1bTYVE4onyyy1]{Fleshwarp}</em></p>"
     }
   }
 }

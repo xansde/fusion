@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "packId": "pf2e.heritages-core",
   "locale": "pt-BR",
-  "generatedAt": "2026-07-05T22:11:49.721Z",
+  "generatedAt": "2026-07-06T23:33:27.334Z",
   "generator": "tools/translate-packs@0.1.0",
   "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
   "entries": {
@@ -40,6 +40,11 @@
       "name": "Rato do Túnel",
       "sourceHash": "7c82ec3029975577711a66b4c43ffe186df66ba4",
       "description": "<p>Você pode facilmente comprimir seu corpo e se espremer por aberturas. Você ganha o talento @UUID[Compendium.pf2e.feats-srd.Item.Quick Squeeze] como talento bônus, mesmo que você não esteja treinado em Acrobacia. Espaços apertados não suficientemente apertados para exigir a ação @UUID[Compendium.pf2e.actionspf2e.Item.Squeeze] não são terreno difícil para você.</p>"
+    },
+    "uMYunHHMgAR6hgvz": {
+      "name": "Sílfide",
+      "sourceHash": "6f8b2eb65e610be771d09e4167268fd68183906a",
+      "description": "<p>Você descende de elementais do ar ou nasceu sob a influência do elemento. Você ganha o traço silfide, além dos traços da sua ancestralidade. Você também ganha visão na penumbra ou visão no escuro, caso a sua ancestralidade já tenha visão na penumbra. Você pode escolher entre talentos de silfide e talentos da sua ancestralidade sempre que ganhar um talento de ancestralidade.</p>"
     }
   }
 }

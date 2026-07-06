@@ -1,9 +1,27 @@
 {
   "schemaVersion": 1,
   "packId": "pf2e.feats-core",
-  "generatedAt": "2026-07-05T22:36:32.381Z",
+  "generatedAt": "2026-07-06T23:33:27.327Z",
   "generator": "tools/translate-packs@0.1.0",
   "entries": {
+    "Doi6p9WhOes6OrFS": {
+      "sourceHash": "dc955a973481d7ab268818b653f1f00b35f4e3a5",
+      "grants": [
+        {
+          "kind": "feat-choice",
+          "category": "general",
+          "count": 1,
+          "filters": {
+            "traits": [
+              "skill"
+            ]
+          },
+          "source": "rule-element",
+          "confidence": 0.6
+        }
+      ],
+      "unlocks": []
+    },
     "UfknkTVC2ks7AnzY": {
       "sourceHash": "e8e8c63b03863f35df3ed7f19e466179ae466999",
       "grants": [
@@ -70,6 +88,25 @@
           "confidence": 1
         }
       ]
+    },
+    "w0xOZvggBIM2sOsW": {
+      "sourceHash": "45b58d6bce91cca26be3de6af21f63a2206ef6d8",
+      "grants": [
+        {
+          "kind": "feat-choice",
+          "category": "class",
+          "count": 1,
+          "filters": {
+            "traits": [
+              "rogue"
+            ],
+            "maxLevel": 2
+          },
+          "source": "rule-element",
+          "confidence": 1
+        }
+      ],
+      "unlocks": []
     }
   }
 }
