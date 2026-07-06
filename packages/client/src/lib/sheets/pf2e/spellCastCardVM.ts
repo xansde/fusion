@@ -21,6 +21,7 @@
  */
 
 import type { SpellCastCard, SpellSaveType, ChatSendFlags } from "@fusion/shared";
+import type { SpellDetailsResolver } from "./characterSheetVM.js";
 
 /** OwnershipLevel.OWNER (documents/ownership) — mirrored locally (dep-free VM). */
 const OWNER = 3;
@@ -221,4 +222,30 @@ export function buildDamageRollOp(
     rollMode: "public",
     speakerActorId: card.casterActorId,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Spell-details popup resolution (r17.2 — clickable spell name on the card)
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolve the card's spell to a spells-core pack Compendium UUID for the
+ * details popup, trying BOTH names the card may carry: `spellNameEn` (the raw
+ * pack join key, when known — the more reliable match since it's untranslated)
+ * first, then `spellName` (pt-BR display name, or EN when no translation was
+ * available at cast time). Mirrors the sheet's SpellDetailsResolver matching
+ * (characterSheetVM.ts, r14-B4): both names normalize accent/case-insensitively
+ * inside the resolver, so this is just try-EN-then-display. Returns null when
+ * neither name matches (the popup then shows a "not found" message instead of
+ * spinning forever).
+ */
+export function resolveSpellCastUuid(
+  card: Pick<SpellCastCard, "spellName" | "spellNameEn">,
+  resolver: SpellDetailsResolver,
+): string | null {
+  if (card.spellNameEn) {
+    const byEn = resolver(card.spellNameEn);
+    if (byEn) return byEn;
+  }
+  return resolver(card.spellName);
 }

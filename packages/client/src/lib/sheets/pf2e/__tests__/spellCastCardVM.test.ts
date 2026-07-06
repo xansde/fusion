@@ -14,8 +14,10 @@ import {
   buildSaveRollOp,
   buildDamageRollOp,
   actorSaveMod,
+  resolveSpellCastUuid,
   type ActorDocLike,
 } from "../spellCastCardVM.js";
+import { buildSpellDetailsResolver, type SpellDetailsIndexEntry } from "../characterSheetVM.js";
 
 const SAVE_CARD: SpellCastCard = {
   casterActorId: "caster",
@@ -194,5 +196,55 @@ describe("buildDamageRollOp", () => {
   it("returns null when the card has no damage", () => {
     const { damageFormula: _f, ...noDmg } = SAVE_CARD;
     expect(buildDamageRollOp(noDmg as SpellCastCard, "w", "x")).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// resolveSpellCastUuid (r17.2 — chat card spell-name → details popup)
+// ---------------------------------------------------------------------------
+
+describe("resolveSpellCastUuid", () => {
+  const INDEX: SpellDetailsIndexEntry[] = [
+    { uuid: "Compendium.fusion.spells-core.Item.arco", name: "Electric Arc", namePt: "Arco Elétrico" },
+    { uuid: "Compendium.fusion.spells-core.Item.escudo", name: "Shield", namePt: "Escudo" },
+  ];
+
+  it("resolves via spellNameEn (the raw pack join key) when present", () => {
+    const resolver = buildSpellDetailsResolver(INDEX);
+    const card: Pick<SpellCastCard, "spellName" | "spellNameEn"> = {
+      spellName: "Arco Elétrico",
+      spellNameEn: "Electric Arc",
+    };
+    expect(resolveSpellCastUuid(card, resolver)).toBe("Compendium.fusion.spells-core.Item.arco");
+  });
+
+  it("falls back to spellName (pt-BR display) when spellNameEn is absent", () => {
+    const resolver = buildSpellDetailsResolver(INDEX);
+    const card: Pick<SpellCastCard, "spellName" | "spellNameEn"> = { spellName: "Escudo" };
+    expect(resolveSpellCastUuid(card, resolver)).toBe("Compendium.fusion.spells-core.Item.escudo");
+  });
+
+  it("falls back to spellName when spellNameEn doesn't match the pack index", () => {
+    const resolver = buildSpellDetailsResolver(INDEX);
+    const card: Pick<SpellCastCard, "spellName" | "spellNameEn"> = {
+      spellName: "Escudo",
+      spellNameEn: "Nonexistent Name",
+    };
+    expect(resolveSpellCastUuid(card, resolver)).toBe("Compendium.fusion.spells-core.Item.escudo");
+  });
+
+  it("is accent/case-insensitive on both names (mirrors the sheet's resolver)", () => {
+    const resolver = buildSpellDetailsResolver(INDEX);
+    const card: Pick<SpellCastCard, "spellName" | "spellNameEn"> = { spellName: "arco eletrico" };
+    expect(resolveSpellCastUuid(card, resolver)).toBe("Compendium.fusion.spells-core.Item.arco");
+  });
+
+  it("returns null when neither name matches any pack entry", () => {
+    const resolver = buildSpellDetailsResolver(INDEX);
+    const card: Pick<SpellCastCard, "spellName" | "spellNameEn"> = {
+      spellName: "Magia Homebrew",
+      spellNameEn: "Homebrew Spell",
+    };
+    expect(resolveSpellCastUuid(card, resolver)).toBeNull();
   });
 });

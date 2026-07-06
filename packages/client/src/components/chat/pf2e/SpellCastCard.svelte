@@ -25,12 +25,18 @@
   import { t } from "$lib/i18n/i18n.js";
   import { sendOp } from "$lib/docs/sendOp.js";
   import { worldMirror } from "$lib/docs/worldSync.js";
+  import { getSocket, session } from "$lib/session.svelte.js";
+  import { getDocument, requireConnectedSocket, listPacks, searchPack } from "$lib/compendium/compendiumApi.js";
+  import { DocumentDetailsCache } from "$lib/compendium/documentDetails.js";
+  import DocumentDetailsPanel from "../../sheets/pf2e/DocumentDetailsPanel.svelte";
+  import { buildSpellDetailsResolver, type SpellDetailsResolver } from "$lib/sheets/pf2e/characterSheetVM.js";
   import {
     resolveClickerActors,
     showSaveButton,
     canRollDamage,
     buildSaveRollOp,
     buildDamageRollOp,
+    resolveSpellCastUuid,
     type ClickerActorOption,
     type SpellCastChatOp,
     type ActorDocLike,
@@ -49,6 +55,98 @@
   let pending = $state(false);
   let errorMsg = $state<string | null>(null);
   let selectorOpen = $state(false);
+
+  // --- Spell details popup (r17.2) ------------------------------------------
+  // Clicking the spell NAME opens the same details popup as the Spells tab
+  // (r14-B4): resolve the card's spell (spellNameEn, then spellName) to a
+  // spells-core pack Compendium uuid, fetch + cache the full doc, and render
+  // it via the shared DocumentDetailsPanel. No pack match / offline → a
+  // discrete "not found" message instead of an endless spinner.
+  const detailsCache = new DocumentDetailsCache();
+  let spellDetailsResolver = $state<SpellDetailsResolver | null>(null);
+  let resolverLoaded = $state(false);
+  const systemId = $derived(session.worldInfo?.systemId ?? "pf2e");
+
+  let detailsOpen = $state(false);
+  let detailsDoc = $state<Record<string, unknown> | null>(null);
+  let detailsLoading = $state(false);
+  let detailsNotFound = $state(false);
+  let detailsFetchId = 0; // guards a stale fetch resolving after close/reopen
+
+  /**
+   * Load the spells-core pack index once (lazily, on first click) and build a
+   * name→uuid resolver via the SAME `buildSpellDetailsResolver` the Spells tab
+   * uses (characterSheetVM.ts, r14-B4) — identical bilingual (EN/pt-BR)
+   * accent/case-insensitive matching, imported rather than duplicated.
+   */
+  async function loadSpellDetailsResolver(): Promise<void> {
+    if (resolverLoaded) return;
+    try {
+      const sock = requireConnectedSocket(getSocket());
+      const { packs } = await listPacks(sock, { systemId, documentType: "Item" });
+      const spellPack = packs.find((p) => p.id.endsWith(".spells-core")) ?? packs[0];
+      if (!spellPack) return;
+      const { entries } = await searchPack(sock, { packId: spellPack.id });
+      spellDetailsResolver = buildSpellDetailsResolver(entries);
+    } catch {
+      // Offline / no socket / no pack: resolver stays null — the popup shows
+      // the "not found" message rather than blocking the card.
+    } finally {
+      resolverLoaded = true;
+    }
+  }
+
+  async function openSpellNameDetails(): Promise<void> {
+    detailsOpen = true;
+    detailsNotFound = false;
+    const fetchId = ++detailsFetchId;
+    await loadSpellDetailsResolver();
+    if (fetchId !== detailsFetchId) return; // closed/reopened while loading
+    const resolver = spellDetailsResolver;
+    if (!resolver) {
+      detailsNotFound = true;
+      return;
+    }
+    const uuid = resolveSpellCastUuid(card, resolver);
+    if (!uuid) {
+      detailsNotFound = true;
+      return;
+    }
+    await loadSpellDetailsDoc(uuid, fetchId);
+  }
+
+  async function loadSpellDetailsDoc(uuid: string, fetchId: number): Promise<void> {
+    const cached = detailsCache.get(uuid);
+    if (cached) {
+      detailsDoc = cached;
+      detailsLoading = false;
+      detailsNotFound = false;
+      return;
+    }
+    detailsLoading = true;
+    detailsNotFound = false;
+    try {
+      const sock = requireConnectedSocket(getSocket());
+      const { document } = await getDocument(sock, uuid);
+      detailsCache.set(uuid, document);
+      if (fetchId === detailsFetchId) detailsDoc = document;
+    } catch {
+      if (fetchId === detailsFetchId) {
+        detailsNotFound = true;
+        detailsDoc = null;
+      }
+    } finally {
+      if (fetchId === detailsFetchId) detailsLoading = false;
+    }
+  }
+
+  function closeSpellNameDetails(): void {
+    detailsOpen = false;
+    detailsDoc = null;
+    detailsLoading = false;
+    detailsNotFound = false;
+    detailsFetchId++; // invalidate any in-flight fetch/resolver load
+  }
 
   // The caster actor from the client's mirror (best-effort; may be undefined
   // for a player who cannot see the caster — the damage gate then needs GM).
@@ -117,7 +215,12 @@
   <!-- Header -->
   <div class="spell-card__header">
     <span class="spell-card__icon" aria-hidden="true">✦</span>
-    <span class="spell-card__title">{card.spellName}</span>
+    <button
+      type="button"
+      class="spell-card__title spell-name-btn"
+      aria-label={t("FUSION.Sheet.Spells.SpellDetailsOpen", { name: card.spellName })}
+      onclick={() => void openSpellNameDetails()}
+    >{card.spellName}</button>
     {#if card.actionCost}
       <span class="spell-card__cost" aria-hidden="true">{card.actionCost}</span>
     {/if}
@@ -199,6 +302,52 @@
   </div>
 </div>
 
+<!--
+  Spell details popup (r17.2): clicking the card's spell NAME opens the same
+  details UX as the Spells tab (DocumentDetailsPanel, r14-B4). Rendered as a
+  fixed-position overlay ABOVE the whole layout (z-index 110, matching the
+  sheet's spell-details-modal) so it works from the chat sidebar without
+  disturbing the log's scroll. ESC / click-outside close.
+-->
+{#if detailsOpen}
+  <div
+    class="spell-cast-details-backdrop"
+    role="presentation"
+    onclick={closeSpellNameDetails}
+    onkeydown={(e) => { if (e.key === "Escape") closeSpellNameDetails(); }}
+  >
+    <div
+      class="spell-cast-details-modal"
+      role="dialog"
+      aria-modal="true"
+      tabindex="-1"
+      aria-label={t("FUSION.Sheet.Spells.SpellDetailsTitle")}
+      onclick={(e) => e.stopPropagation()}
+      onkeydown={(e) => { if (e.key === "Escape") closeSpellNameDetails(); }}
+    >
+      <button
+        type="button"
+        class="spell-cast-details-modal__close"
+        aria-label={t("FUSION.Dialog.Close")}
+        onclick={closeSpellNameDetails}
+      >&times;</button>
+      {#if detailsNotFound}
+        <p class="spell-cast-details-modal__not-found">{t("FUSION.Chat.SpellCard.DetailsNotFound")}</p>
+      {:else}
+        <DocumentDetailsPanel
+          document={detailsDoc}
+          loading={detailsLoading}
+          error={false}
+          onRetry={() => {}}
+          loadingKey="FUSION.Sheet.Spells.Picker.Details.Loading"
+          selectHintKey="FUSION.Sheet.Spells.Picker.Details.SelectHint"
+          noDescriptionKey="FUSION.Sheet.Spells.Picker.Details.NoDescription"
+        />
+      {/if}
+    </div>
+  </div>
+{/if}
+
 <style>
   .spell-card {
     background: var(--fusion-surface-alt);
@@ -228,6 +377,31 @@
     font-weight: 600;
     font-size: 0.8125rem;
     color: var(--fusion-text);
+  }
+
+  /*
+   * Clickable spell name (r17.2) — same reset + hover accent as the sheet's
+   * .spell-name-btn (SpellsTab.svelte, r14-B4): a real <button> with no
+   * chrome, reading as inline title text until hovered/focused.
+   */
+  .spell-card__title.spell-name-btn {
+    display: inline;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    font-family: var(--fusion-font);
+    text-align: left;
+    cursor: pointer;
+    transition: color 0.12s;
+  }
+
+  .spell-card__title.spell-name-btn:hover,
+  .spell-card__title.spell-name-btn:focus-visible {
+    color: var(--fusion-accent-hover);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    outline: none;
   }
 
   .spell-card__cost {
@@ -338,5 +512,63 @@
     background: rgba(255, 92, 92, 0.12);
     border-color: var(--fusion-danger);
     color: var(--fusion-danger);
+  }
+
+  /*
+   * Spell details popup (r17.2) — fixed-position overlay ABOVE the whole
+   * layout (z-index 110, matching the sheet's .mini-backdrop /
+   * .spell-details-modal, SpellsTab.svelte r14-B4) so it renders correctly
+   * from the chat sidebar without disturbing the chat log's own scroll.
+   */
+  .spell-cast-details-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 110;
+  }
+
+  .spell-cast-details-modal {
+    position: relative;
+    width: 440px;
+    max-width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    background: var(--fusion-surface);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-lg);
+    box-shadow: var(--fusion-shadow-modal);
+  }
+
+  .spell-cast-details-modal__close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 1;
+    background: transparent;
+    border: none;
+    color: var(--fusion-text-muted);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: var(--fusion-radius-sm);
+    font-family: var(--fusion-font);
+  }
+
+  .spell-cast-details-modal__close:hover {
+    color: var(--fusion-text);
+    background: var(--fusion-surface-alt);
+  }
+
+  .spell-cast-details-modal__not-found {
+    padding: 32px 16px;
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--fusion-text-muted);
+    margin: 0;
   }
 </style>

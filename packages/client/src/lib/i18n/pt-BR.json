@@ -698,6 +698,7 @@
   "FUSION.Chat.SpellCard.RollDamage": "Rolar dano",
   "FUSION.Chat.SpellCard.PickActor": "Escolher personagem",
   "FUSION.Chat.SpellCard.NoActor": "Você não controla nenhum personagem para rolar a salvaguarda.",
+  "FUSION.Chat.SpellCard.DetailsNotFound": "Descrição não encontrada.",
   "FUSION.Chat.Degree.criticalSuccess": "Sucesso Crítico",
   "FUSION.Chat.Degree.success": "Sucesso",
   "FUSION.Chat.Degree.failure": "Falha",
