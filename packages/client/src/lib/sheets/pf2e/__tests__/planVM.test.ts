@@ -48,6 +48,9 @@ import {
   buildContentNameTranslator,
   abilityBoostsGrid,
   ABILITY_GRID_ORDER,
+  planGhostEntryCleanup,
+  healGranterRefs,
+  actorSpellEntries,
   type PlanOpBuilderContext,
   type PlanSlotModel,
   type FeatDocLike,
@@ -2818,5 +2821,230 @@ describe("abilityBoostsGrid", () => {
     };
     const grid = abilityBoostsGrid(doc, 1);
     expect(grid.every((c) => c.modFormatted === "+0")).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// B2 r14 — fixed-grant chips, cascade, ghost cleanup, heal input
+// ---------------------------------------------------------------------------
+
+/**
+ * Tobias level 2 with Alchemist Dedication at archetypeFeat-2 that has ALREADY
+ * materialized its two fixed grants: Alchemical Crafting (feat) + Quick Alchemy
+ * (action), each tagged `flags.fusion.grantedBy = <dedication sourceId>`.
+ */
+function tobiasWithMaterializedGrantsDoc(): Record<string, unknown> {
+  return {
+    _id: "actor-tobias",
+    name: "Tobias",
+    type: "character",
+    items: [
+      { ...magusClassDoc(), _id: "item-class" },
+      {
+        ...alchemistDedicationFeatDoc(),
+        _id: "item-archetype-feat-2",
+        flags: { fusion: { sourceId: "CJMkxlxHiHZQYDCz", build: { level: 2, slot: "archetypeFeat-2" } } },
+      },
+      {
+        _id: "item-granted-crafting",
+        name: "Alchemical Crafting",
+        type: "feat",
+        system: { category: "skill", level: 1, traits: { value: ["general", "skill"] } },
+        flags: { fusion: { sourceId: "is3Oz9wt11lNq62K", grantedBy: "CJMkxlxHiHZQYDCz", grantedSlot: "archetypeFeat-2" } },
+      },
+      {
+        _id: "item-granted-quick-alchemy",
+        name: "Quick Alchemy",
+        type: "action",
+        system: {},
+        flags: { fusion: { sourceId: "yzNJgwzV9XqEhKc6", grantedBy: "CJMkxlxHiHZQYDCz", grantedSlot: "archetypeFeat-2" } },
+      },
+    ],
+    system: {
+      level: { value: 2 },
+      details: {},
+      build: {
+        abilities: {
+          ancestryBoosts: [], ancestryFlaws: [], ancestryFree: [],
+          backgroundBoosts: [], classBoost: ["int"], levelledBoosts: {},
+        },
+        choices: [{ level: 2, slot: "archetypeFeat-2", type: "archetypeFeat" }],
+        freeArchetype: true,
+      },
+    },
+  };
+}
+
+describe("derivePlan — fixed-grant chips (B2 r14)", () => {
+  it("surfaces the granted FEAT (Alchemical Crafting) as a locked nested chip under the granter, but NOT the action grant", () => {
+    const doc = tobiasWithMaterializedGrantsDoc();
+    const plan = derivePlan(doc);
+    const l2 = plan.levels.find((l) => l.level === 2)!;
+    const grantChips = l2.slots.filter((s) => s.lockedGrant);
+    // Only the feat is a Plan chip; the action lives in the Actions tab.
+    expect(grantChips).toHaveLength(1);
+    const chip = grantChips[0]!;
+    expect(chip.choiceName).toBe("Alchemical Crafting");
+    expect(chip.parentSlotId).toBe("archetypeFeat-2");
+    expect(chip.filled).toBe(true);
+    expect(chip.itemId).toBe("item-granted-crafting");
+    expect(chip.detailsPackSlug).toBe("feats-core");
+  });
+
+  it("routes the locked-grant chip's details to feats-core (feat) via detailsRequestForSlot", () => {
+    const doc = tobiasWithMaterializedGrantsDoc();
+    const plan = derivePlan(doc);
+    const chip = plan.levels.find((l) => l.level === 2)!.slots.find((s) => s.lockedGrant)!;
+    expect(detailsRequestForSlot(chip)).toEqual({ packSlug: "feats-core", name: "Alchemical Crafting" });
+  });
+
+  it("does not surface a grant chip when the granter carries no fusion.sourceId", () => {
+    const doc = tobiasWithMaterializedGrantsDoc();
+    const granter = (doc["items"] as Array<Record<string, unknown>>).find((i) => i["_id"] === "item-archetype-feat-2")!;
+    (granter["flags"] as Record<string, Record<string, unknown>>)["fusion"] = { build: { level: 2, slot: "archetypeFeat-2" } };
+    const plan = derivePlan(doc);
+    const grantChips = plan.levels.find((l) => l.level === 2)!.slots.filter((s) => s.lockedGrant);
+    expect(grantChips).toHaveLength(0);
+  });
+});
+
+describe("removeChoice — cascades to fixed grants (B2 r14)", () => {
+  it("deletes the granter AND every grantedBy item (feat + action), in one op set", () => {
+    const doc = tobiasWithMaterializedGrantsDoc();
+    const plan = derivePlan(doc);
+    const parentSlot = plan.levels.find((l) => l.level === 2)!.slots.find((s) => s.slotId === "archetypeFeat-2")!;
+    expect(parentSlot.filled).toBe(true);
+
+    const ops = removeChoice(ctx(doc), parentSlot);
+    const deleteIds = ops.filter((op) => op.type === "doc:delete").map((op) => (op as { id: string }).id);
+    expect(deleteIds.sort()).toEqual(
+      ["item-archetype-feat-2", "item-granted-crafting", "item-granted-quick-alchemy"].sort(),
+    );
+    // Each delete is a valid wire payload.
+    for (const op of ops.filter((o) => o.type === "doc:delete")) {
+      const del = op as { documentType: string; id: string; parent: unknown };
+      expect(DocDeletePayloadSchema.safeParse({ documentType: del.documentType, ids: [del.id], parent: del.parent }).success).toBe(true);
+    }
+  });
+
+  it("returns [] when not editable", () => {
+    const doc = tobiasWithMaterializedGrantsDoc();
+    const plan = derivePlan(doc);
+    const parentSlot = plan.levels.find((l) => l.level === 2)!.slots.find((s) => s.slotId === "archetypeFeat-2")!;
+    expect(removeChoice(ctx(doc, false), parentSlot)).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Ghost spellcasting-entry cleanup (gap #12)
+// ---------------------------------------------------------------------------
+
+function ghostEntryWorldDoc(opts: { ghost?: boolean; twinNonEmpty?: boolean } = {}): Record<string, unknown> {
+  const { ghost = true, twinNonEmpty = true } = opts;
+  const items: Array<Record<string, unknown>> = [
+    { ...magusClassDoc(), _id: "item-class" },
+    {
+      _id: "BNyJ0gsmNlULtcai",
+      name: "Magias Arcanas",
+      type: "spellcastingEntry",
+      system: { tradition: { value: "arcane" }, prepared: { value: "prepared" }, isFocusPool: false, slots: {} },
+    },
+  ];
+  if (twinNonEmpty) {
+    // A real spell located in the non-ghost entry -> makes it non-empty.
+    items.push({ _id: "spell-1", name: "Shield", type: "spell", location: "BNyJ0gsmNlULtcai", system: { traits: { value: [] } } });
+  }
+  if (ghost) {
+    items.push({
+      _id: "sAbd2jdXSJVrTtkX",
+      name: "arcane Spells", // auto-generated "<tradition> Spells" pattern
+      type: "spellcastingEntry",
+      system: { tradition: { value: "arcane" }, prepared: { value: "prepared" }, isFocusPool: false, slots: {} },
+    });
+  }
+  return {
+    _id: "actor-tobias",
+    name: "Tobias",
+    type: "character",
+    items,
+    system: { level: { value: 3 }, details: {}, build: { choices: [] } },
+  };
+}
+
+describe("planGhostEntryCleanup (gap #12)", () => {
+  it("removes the empty auto-named duplicate when a non-empty twin exists", () => {
+    const ops = planGhostEntryCleanup(ctx(ghostEntryWorldDoc()));
+    expect(ops).toHaveLength(1);
+    expect(ops[0]!.id).toBe("sAbd2jdXSJVrTtkX");
+    expect(DocDeletePayloadSchema.safeParse({ documentType: ops[0]!.documentType, ids: [ops[0]!.id], parent: ops[0]!.parent }).success).toBe(true);
+  });
+
+  it("does NOT remove when the twin entry is itself empty (no clearly-canonical entry to keep)", () => {
+    const ops = planGhostEntryCleanup(ctx(ghostEntryWorldDoc({ twinNonEmpty: false })));
+    expect(ops).toEqual([]);
+  });
+
+  it("does NOT remove a ghost that has its own spells (not actually empty)", () => {
+    const doc = ghostEntryWorldDoc();
+    (doc["items"] as Array<Record<string, unknown>>).push({
+      _id: "spell-2", name: "Detect Magic", type: "spell", location: "sAbd2jdXSJVrTtkX", system: { traits: { value: [] } },
+    });
+    expect(planGhostEntryCleanup(ctx(doc))).toEqual([]);
+  });
+
+  it("does NOT remove an entry whose name is NOT the auto-generated pattern", () => {
+    const doc = ghostEntryWorldDoc();
+    const ghost = (doc["items"] as Array<Record<string, unknown>>).find((i) => i["_id"] === "sAbd2jdXSJVrTtkX")!;
+    ghost["name"] = "Magias de Backup"; // human-renamed -> keep
+    expect(planGhostEntryCleanup(ctx(doc))).toEqual([]);
+  });
+
+  it("never touches focus pools", () => {
+    const doc = ghostEntryWorldDoc({ ghost: false });
+    (doc["items"] as Array<Record<string, unknown>>).push({
+      _id: "focus", name: "arcane Spells", type: "spellcastingEntry",
+      system: { tradition: { value: "arcane" }, prepared: { value: "prepared" }, isFocusPool: true, slots: {} },
+    });
+    expect(planGhostEntryCleanup(ctx(doc))).toEqual([]);
+  });
+
+  it("is idempotent (running on a cleaned world yields [])", () => {
+    expect(planGhostEntryCleanup(ctx(ghostEntryWorldDoc({ ghost: false })))).toEqual([]);
+  });
+
+  it("returns [] when not editable", () => {
+    expect(planGhostEntryCleanup(ctx(ghostEntryWorldDoc(), false))).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Heal input planners
+// ---------------------------------------------------------------------------
+
+describe("healGranterRefs / actorSpellEntries (heal input)", () => {
+  it("lists applied feat/feature granters (with sourceId + name + pack), excluding items that are themselves grants", () => {
+    const refs = healGranterRefs(tobiasWithMaterializedGrantsDoc());
+    // The dedication is a granter; the two granted items are excluded (they carry grantedBy).
+    expect(refs.map((r) => r.name)).toEqual(["Alchemist Dedication"]);
+    const ded = refs[0]!;
+    expect(ded.sourceId).toBe("CJMkxlxHiHZQYDCz");
+    expect(ded.slot).toBe("archetypeFeat-2");
+    expect(ded.packSlug).toBe("feats-core");
+    expect(ded.itemId).toBe("item-archetype-feat-2");
+  });
+
+  it("routes a classFeature granter to class-features-core", () => {
+    const doc = tobiasWithMaterializedGrantsDoc();
+    (doc["items"] as Array<Record<string, unknown>>).push({
+      _id: "item-feature", name: "Some Feature", type: "classFeature",
+      flags: { fusion: { sourceId: "featureSrc" } }, system: {},
+    });
+    const ref = healGranterRefs(doc).find((r) => r.name === "Some Feature")!;
+    expect(ref.packSlug).toBe("class-features-core");
+  });
+
+  it("reads the actor's spellcasting entries (id/isFocusPool/tradition)", () => {
+    const entries = actorSpellEntries(ghostEntryWorldDoc({ ghost: false }));
+    expect(entries).toContainEqual({ id: "BNyJ0gsmNlULtcai", isFocusPool: false, tradition: "arcane" });
   });
 });

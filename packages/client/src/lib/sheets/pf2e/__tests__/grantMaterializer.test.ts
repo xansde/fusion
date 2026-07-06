@@ -1,0 +1,345 @@
+/**
+ * grantMaterializer.test.ts — unit tests for the pure fixed-`GrantItem`
+ * materializer (B2 r14). 100% headless: the async resolvers are mocked, so no
+ * socket/compendium is touched. Every generated create op is validated against
+ * the real wire Zod schema (DocCreatePayloadSchema).
+ *
+ * Acceptance cases (from .fusion-build/r14-plan.md Fase 2, B2):
+ *   - Alchemist Dedication → Alchemical Crafting (feat) + Quick Alchemy (action)
+ *   - idempotency: re-running with the grants present yields no ops
+ *   - nested grants resolve up to maxDepth without cycling
+ *   - Starlit Span (empty rules) → no-op
+ *   - granted spell placement: focus trait → focus pool; else tradition entry
+ */
+
+import { describe, it, expect } from "vitest";
+import {
+  parseGrantItems,
+  parseGrantUuid,
+  mapVendorToFusionPack,
+  materializeGrants,
+  pickSpellEntryId,
+  granterIdentity,
+  buildGrantCreateOp,
+  type MaterializeContext,
+  type GrantIndexEntry,
+} from "../grantMaterializer.js";
+import { DocCreatePayloadSchema } from "@fusion/shared";
+
+// ---------------------------------------------------------------------------
+// Fixtures — the exact shapes from systems/pf2e/packs/*-core/documents.json.
+// ---------------------------------------------------------------------------
+
+/** Alchemist Dedication's real system.rules (2 upgrades + 2 GrantItem). */
+function alchemistDedicationRules(): unknown[] {
+  return [
+    { kind: "set-property", selector: "system.skills.crafting.rank", value: 1, mode: "upgrade", raw: { key: "ActiveEffectLike", mode: "upgrade", path: "system.skills.crafting.rank", value: 1 } },
+    { kind: "set-property", selector: "system.proficiencies.attacks.weapon-base-alchemical-bomb.rank", value: 1, mode: "upgrade", raw: { key: "ActiveEffectLike" } },
+    { kind: "grant-item", uuid: "Compendium.pf2e.feats-srd.Item.Alchemical Crafting", inMemoryOnly: false, raw: { key: "GrantItem", uuid: "Compendium.pf2e.feats-srd.Item.Alchemical Crafting" } },
+    { kind: "grant-item", uuid: "Compendium.pf2e.actionspf2e.Item.Quick Alchemy", inMemoryOnly: false, raw: { allowDuplicate: false, key: "GrantItem", uuid: "Compendium.pf2e.actionspf2e.Item.Quick Alchemy" } },
+  ];
+}
+
+function alchemistDedicationDoc(): Record<string, unknown> {
+  return {
+    _id: "zbqmJqI5T5Q7fgMS",
+    name: "Alchemist Dedication",
+    type: "feat",
+    flags: { fusion: { sourceId: "CJMkxlxHiHZQYDCz" } },
+    system: { rules: alchemistDedicationRules() },
+  };
+}
+
+function alchemicalCraftingDoc(): Record<string, unknown> {
+  return {
+    _id: "841vrgW8uY2CFhgt",
+    name: "Alchemical Crafting",
+    type: "feat",
+    flags: { fusion: { sourceId: "is3Oz9wt11lNq62K" } },
+    system: { rules: [], traits: { value: ["general", "skill"] } },
+  };
+}
+
+function quickAlchemyDoc(): Record<string, unknown> {
+  return {
+    _id: "2z2zNhvnsFEHsAKY",
+    name: "Quick Alchemy",
+    type: "action",
+    flags: { fusion: { sourceId: "yzNJgwzV9XqEhKc6" } },
+    system: { rules: [] },
+  };
+}
+
+/** A resolver pair backed by an in-memory pack map. */
+function makeResolvers(byPack: Record<string, Record<string, unknown>[]>): {
+  resolveIndex: MaterializeContext["resolveIndex"];
+  resolveDoc: MaterializeContext["resolveDoc"];
+} {
+  const uuidToDoc = new Map<string, Record<string, unknown>>();
+  const indexByPack = new Map<string, GrantIndexEntry[]>();
+  for (const [pack, docs] of Object.entries(byPack)) {
+    const entries: GrantIndexEntry[] = docs.map((d) => {
+      const uuid = `Compendium.pf2e.${pack}.Item.${String(d["_id"])}`;
+      uuidToDoc.set(uuid, d);
+      return { name: String(d["name"]), uuid, ...(typeof d["type"] === "string" ? { type: d["type"] as string } : {}) };
+    });
+    indexByPack.set(pack, entries);
+  }
+  return {
+    resolveIndex: async (packSlug) => indexByPack.get(packSlug) ?? [],
+    resolveDoc: async (uuid) => uuidToDoc.get(uuid) ?? null,
+  };
+}
+
+function ctxFor(
+  byPack: Record<string, Record<string, unknown>[]>,
+  existingItems: Array<Record<string, unknown>> = [],
+  spellEntries: MaterializeContext["spellEntries"] = [],
+): MaterializeContext {
+  const { resolveIndex, resolveDoc } = makeResolvers(byPack);
+  return { actorId: "actor-1", existingItems, spellEntries, resolveIndex, resolveDoc };
+}
+
+// ---------------------------------------------------------------------------
+// parseGrantUuid / parseGrantItems / mapVendorToFusionPack
+// ---------------------------------------------------------------------------
+
+describe("parseGrantUuid", () => {
+  it("splits vendor + name from a compendium Item uuid", () => {
+    expect(parseGrantUuid("Compendium.pf2e.feats-srd.Item.Alchemical Crafting")).toEqual({
+      vendor: "feats-srd",
+      name: "Alchemical Crafting",
+      uuid: "Compendium.pf2e.feats-srd.Item.Alchemical Crafting",
+    });
+  });
+
+  it("keeps multi-word names intact", () => {
+    expect(parseGrantUuid("Compendium.pf2e.actionspf2e.Item.Quick Alchemy")?.name).toBe("Quick Alchemy");
+  });
+
+  it("rejects an in-memory ChoiceSet placeholder uuid", () => {
+    expect(parseGrantUuid("Compendium.pf2e.feats-srd.Item.{item|flags.system.rulesSelections.feat}")).toBeNull();
+  });
+
+  it("rejects a non-compendium / malformed uuid", () => {
+    expect(parseGrantUuid("Actor.abc.Item.def")).toBeNull();
+    expect(parseGrantUuid("garbage")).toBeNull();
+  });
+});
+
+describe("parseGrantItems", () => {
+  it("extracts only the GrantItem rules, ignoring upgrades", () => {
+    const grants = parseGrantItems(alchemistDedicationRules());
+    expect(grants.map((g) => g.name)).toEqual(["Alchemical Crafting", "Quick Alchemy"]);
+    expect(grants.map((g) => g.vendor)).toEqual(["feats-srd", "actionspf2e"]);
+  });
+
+  it("skips inMemoryOnly grants (ChoiceSet placeholders)", () => {
+    const grants = parseGrantItems([
+      { kind: "grant-item", uuid: "Compendium.pf2e.feats-srd.Item.{item|x}", inMemoryOnly: true },
+    ]);
+    expect(grants).toEqual([]);
+  });
+
+  it("recognizes the unconverted raw.key === 'GrantItem' shape", () => {
+    const grants = parseGrantItems([{ raw: { key: "GrantItem", uuid: "Compendium.pf2e.spells-srd.Item.Shield" } }]);
+    expect(grants).toEqual([{ vendor: "spells-srd", name: "Shield", uuid: "Compendium.pf2e.spells-srd.Item.Shield" }]);
+  });
+
+  it("returns [] for non-array / empty rules", () => {
+    expect(parseGrantItems(undefined)).toEqual([]);
+    expect(parseGrantItems([])).toEqual([]);
+  });
+});
+
+describe("mapVendorToFusionPack", () => {
+  it("maps the known vendors", () => {
+    expect(mapVendorToFusionPack("feats-srd")).toBe("feats-core");
+    expect(mapVendorToFusionPack("actionspf2e")).toBe("actions-core");
+    expect(mapVendorToFusionPack("spells-srd")).toBe("spells-core");
+    expect(mapVendorToFusionPack("classfeatures")).toBe("class-features-core");
+  });
+
+  it("returns undefined for an unknown vendor", () => {
+    expect(mapVendorToFusionPack("some-unknown-pack")).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// materializeGrants — the headline acceptance case
+// ---------------------------------------------------------------------------
+
+describe("materializeGrants — Alchemist Dedication", () => {
+  it("materializes Alchemical Crafting (feat) + Quick Alchemy (action), tagged by the granter", async () => {
+    const mctx = ctxFor({
+      "feats-core": [alchemicalCraftingDoc()],
+      "actions-core": [quickAlchemyDoc()],
+    });
+    const ops = await materializeGrants(alchemistDedicationDoc(), "CJMkxlxHiHZQYDCz", "archetypeFeat-2", mctx);
+    expect(ops).toHaveLength(2);
+
+    const names = ops.map((o) => o.data["name"]);
+    expect(names.sort()).toEqual(["Alchemical Crafting", "Quick Alchemy"]);
+
+    for (const op of ops) {
+      expect(op.data["_id"]).toBeUndefined();
+      const fusion = (op.data["flags"] as Record<string, unknown>)["fusion"] as Record<string, unknown>;
+      expect(fusion["grantedBy"]).toBe("CJMkxlxHiHZQYDCz");
+      expect(fusion["grantedSlot"]).toBe("archetypeFeat-2");
+      // sourceId preserved from the granted pack doc.
+      expect(typeof fusion["sourceId"]).toBe("string");
+      const wire = { documentType: op.documentType, data: [op.data], parent: op.parent };
+      expect(DocCreatePayloadSchema.safeParse(wire).success).toBe(true);
+    }
+  });
+
+  it("is idempotent — no ops when both grants already exist on the actor", async () => {
+    const existing = [
+      { _id: "e1", type: "feat", name: "Alchemical Crafting", flags: { fusion: { grantedBy: "CJMkxlxHiHZQYDCz", sourceId: "is3Oz9wt11lNq62K" } } },
+      { _id: "e2", type: "action", name: "Quick Alchemy", flags: { fusion: { grantedBy: "CJMkxlxHiHZQYDCz", sourceId: "yzNJgwzV9XqEhKc6" } } },
+    ];
+    const mctx = ctxFor(
+      { "feats-core": [alchemicalCraftingDoc()], "actions-core": [quickAlchemyDoc()] },
+      existing,
+    );
+    const ops = await materializeGrants(alchemistDedicationDoc(), "CJMkxlxHiHZQYDCz", "archetypeFeat-2", mctx);
+    expect(ops).toEqual([]);
+  });
+
+  it("materializes only the MISSING grant when one is already present (partial heal)", async () => {
+    const existing = [
+      { _id: "e1", type: "feat", name: "Alchemical Crafting", flags: { fusion: { grantedBy: "CJMkxlxHiHZQYDCz", sourceId: "is3Oz9wt11lNq62K" } } },
+    ];
+    const mctx = ctxFor(
+      { "feats-core": [alchemicalCraftingDoc()], "actions-core": [quickAlchemyDoc()] },
+      existing,
+    );
+    const ops = await materializeGrants(alchemistDedicationDoc(), "CJMkxlxHiHZQYDCz", "archetypeFeat-2", mctx);
+    expect(ops.map((o) => o.data["name"])).toEqual(["Quick Alchemy"]);
+  });
+
+  it("skips a grant whose vendor has no Fusion pack mapping", async () => {
+    const doc = {
+      name: "Weird Feat",
+      type: "feat",
+      flags: { fusion: { sourceId: "WEIRD" } },
+      system: { rules: [{ kind: "grant-item", uuid: "Compendium.pf2e.unknownpack.Item.Nope" }] },
+    };
+    const ops = await materializeGrants(doc, "WEIRD", undefined, ctxFor({}));
+    expect(ops).toEqual([]);
+  });
+
+  it("skips a grant whose named doc has no clean-room equivalent in the Fusion pack", async () => {
+    const doc = {
+      name: "Feat With Missing Grant",
+      type: "feat",
+      flags: { fusion: { sourceId: "MISS" } },
+      system: { rules: [{ kind: "grant-item", uuid: "Compendium.pf2e.feats-srd.Item.Nonexistent" }] },
+    };
+    const ops = await materializeGrants(doc, "MISS", undefined, ctxFor({ "feats-core": [alchemicalCraftingDoc()] }));
+    expect(ops).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Starlit Span — empty rules → no-op (audit note: does NOT grant Shooting Star)
+// ---------------------------------------------------------------------------
+
+describe("materializeGrants — Starlit Span (no grants)", () => {
+  it("returns no ops for a granter with empty system.rules", async () => {
+    const starlitSpan = {
+      _id: "starlit",
+      name: "Starlit Span",
+      type: "classFeature",
+      flags: { fusion: { sourceId: "Pew7duAozEeAemif" } },
+      system: { rules: [] },
+    };
+    const ops = await materializeGrants(starlitSpan, "Pew7duAozEeAemif", "hybridStudy-1", ctxFor({ "spells-core": [] }));
+    expect(ops).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Nested grants (depth-bounded)
+// ---------------------------------------------------------------------------
+
+describe("materializeGrants — nested grants", () => {
+  it("resolves a grant chain A → B → C up to depth", async () => {
+    const c = { _id: "C", name: "Feat C", type: "feat", flags: { fusion: { sourceId: "cid" } }, system: { rules: [] } };
+    const b = { _id: "B", name: "Feat B", type: "feat", flags: { fusion: { sourceId: "bid" } }, system: { rules: [{ kind: "grant-item", uuid: "Compendium.pf2e.feats-srd.Item.Feat C" }] } };
+    const a = { _id: "A", name: "Feat A", type: "feat", flags: { fusion: { sourceId: "aid" } }, system: { rules: [{ kind: "grant-item", uuid: "Compendium.pf2e.feats-srd.Item.Feat B" }] } };
+    const ops = await materializeGrants(a, "aid", "classFeat-2", ctxFor({ "feats-core": [b, c] }));
+    // Both B and C, all tagged by the ROOT granter (aid), so removeChoice on A cascades to both.
+    expect(ops.map((o) => o.data["name"]).sort()).toEqual(["Feat B", "Feat C"]);
+    for (const op of ops) {
+      expect(((op.data["flags"] as Record<string, unknown>)["fusion"] as Record<string, unknown>)["grantedBy"]).toBe("aid");
+    }
+  });
+
+  it("does not exceed maxDepth (breaks a self-referential cycle)", async () => {
+    const selfRef = {
+      _id: "S",
+      name: "Loop Feat",
+      type: "feat",
+      flags: { fusion: { sourceId: "sid" } },
+      system: { rules: [{ kind: "grant-item", uuid: "Compendium.pf2e.feats-srd.Item.Loop Feat" }] },
+    };
+    // Grants itself → without the `scheduled` guard + depth cap this would loop.
+    const ops = await materializeGrants(selfRef, "sid", undefined, ctxFor({ "feats-core": [selfRef] }), 3);
+    // Materialized once (the first level's grant); the guard prevents re-adding.
+    expect(ops).toHaveLength(1);
+    expect(ops[0]!.data["name"]).toBe("Loop Feat");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// pickSpellEntryId — granted spell placement
+// ---------------------------------------------------------------------------
+
+describe("pickSpellEntryId", () => {
+  const focus = { id: "focus-entry", isFocusPool: true, tradition: "arcane" };
+  const arcane = { id: "arcane-entry", isFocusPool: false, tradition: "arcane" };
+  const divine = { id: "divine-entry", isFocusPool: false, tradition: "divine" };
+
+  it("routes a focus-trait spell to the focus pool", () => {
+    const spell = { system: { traits: { value: ["focus", "magus"] } } };
+    expect(pickSpellEntryId(spell, [arcane, focus])).toBe("focus-entry");
+  });
+
+  it("routes a non-focus spell to the tradition-matching entry", () => {
+    const spell = { system: { traits: { value: [] }, traditions: ["divine"] } };
+    expect(pickSpellEntryId(spell, [arcane, divine])).toBe("divine-entry");
+  });
+
+  it("falls back to the first non-focus entry when no tradition matches", () => {
+    const spell = { system: { traits: { value: [] }, traditions: ["primal"] } };
+    expect(pickSpellEntryId(spell, [arcane, divine])).toBe("arcane-entry");
+  });
+
+  it("returns undefined when there is no suitable entry", () => {
+    const spell = { system: { traits: { value: ["focus"] } } };
+    expect(pickSpellEntryId(spell, [])).toBeUndefined();
+  });
+});
+
+describe("buildGrantCreateOp — spell placement", () => {
+  it("sets location to the focus entry for a focus spell", () => {
+    const spell = { _id: "sp", name: "Shooting Star", type: "spell", system: { traits: { value: ["focus", "magus"] } } };
+    const mctx = ctxFor({}, [], [{ id: "focus-entry", isFocusPool: true, tradition: "arcane" }]);
+    const op = buildGrantCreateOp(spell, { grantedBy: "g", sourceId: "s" }, mctx);
+    expect(op.data["location"]).toBe("focus-entry");
+    expect(op.data["_id"]).toBeUndefined();
+  });
+});
+
+describe("granterIdentity", () => {
+  it("reads sourceId + build slot off an embedded granter item", () => {
+    const item = { _id: "x", flags: { fusion: { sourceId: "sid", build: { level: 2, slot: "archetypeFeat-2" } } } };
+    expect(granterIdentity(item)).toEqual({ sourceId: "sid", slot: "archetypeFeat-2" });
+  });
+
+  it("tolerates a granter without a build slot", () => {
+    const item = { _id: "x", flags: { fusion: { sourceId: "sid" } } };
+    expect(granterIdentity(item)).toEqual({ sourceId: "sid" });
+  });
+});

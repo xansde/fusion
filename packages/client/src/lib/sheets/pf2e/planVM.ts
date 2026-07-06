@@ -393,6 +393,23 @@ export interface PlanSlotModel {
   parentSlotId?: string;
   /** The grant's declarative filter — carried on the sub-slot so the picker can apply it without re-deriving the parent's grant lookup. */
   grantFilter?: GrantedFeatFilter;
+  /**
+   * Present ONLY on a FIXED-grant chip (B2 r14 — a feat/class-feature
+   * materialized automatically by a `GrantItem` rule element, e.g. Alchemist
+   * Dedication → Alchemical Crafting). Rendered indented under its granter
+   * like a `grantedFeat` sub-slot, but LOCKED: no remove/edit affordance (its
+   * lifecycle follows the granter — removeChoice on the granter cascades to
+   * it), details-only. `parentSlotId` points at the granter slot for
+   * indentation.
+   */
+  lockedGrant?: true;
+  /**
+   * Present on a locked fixed-grant chip (B2 r14): the pack the granted item's
+   * description lives in ("feats-core" for a feat, "class-features-core" for a
+   * classFeature), so `detailsRequestForSlot` resolves it in the right pack
+   * rather than defaulting every `grantedFeat` slot to feats-core.
+   */
+  detailsPackSlug?: string;
 }
 
 export interface AutoFeatureModel {
@@ -684,6 +701,7 @@ function buildLevelPlan(
     slot.optional = true;
     slots.push(slot);
     pushGrantedFeatSubSlot(slots, slot, level, choices, items);
+    pushFixedGrantChips(slots, slot, items);
   }
 
   // Skill increases.
@@ -776,6 +794,70 @@ function pushFeatSlotWithGrant(
   const slot = resolveSlot(type, slotId, level, choices, items);
   slots.push(slot);
   pushGrantedFeatSubSlot(slots, slot, level, choices, items);
+  pushFixedGrantChips(slots, slot, items);
+}
+
+/**
+ * pushFixedGrantChips — for a FILLED feat/feature slot, surface every
+ * feat/classFeature the actor holds that was materialized as a FIXED grant of
+ * this slot's item (B2 r14 — `flags.fusion.grantedBy === granterSourceId`).
+ * Each becomes a LOCKED nested chip (details-only, no remove) indented under
+ * the granter, mirroring the `grantedFeat` sub-slot layout but for automatic
+ * grants (Alchemist Dedication → Alchemical Crafting).
+ *
+ * Only feat/classFeature grants render here — action/spell grants live in the
+ * Actions/Spells tabs (their embedded items carry the same grantedBy marker
+ * but no Plan-column chip). Matched on the granter's `flags.fusion.sourceId`
+ * (+ build slot when present) so two copies of the same granting feat in
+ * different slots each own their own grants.
+ */
+function pushFixedGrantChips(
+  slots: PlanSlotModel[],
+  parentSlot: PlanSlotModel,
+  items: Array<Record<string, unknown>>,
+): void {
+  if (!parentSlot.filled) return;
+  const granter = items.find(
+    (it) => typeof it["_id"] === "string" && it["_id"] === parentSlot.itemId,
+  );
+  if (!granter) return;
+  const granterSourceId = itemFusionSourceId(granter);
+  if (!granterSourceId) return;
+
+  const granted = items.filter((it) => {
+    const fusion = itemFusion(it);
+    if (fusion["grantedBy"] !== granterSourceId) return false;
+    const type = it["type"];
+    return type === "feat" || type === "classFeature";
+  });
+
+  for (const item of granted) {
+    const itemId = item["_id"];
+    const detailsPackSlug = item["type"] === "classFeature" ? "class-features-core" : "feats-core";
+    slots.push({
+      slotId: `${parentSlot.slotId}:grant:${typeof itemId === "string" ? itemId : itemName(item) ?? "?"}`,
+      type: "grantedFeat",
+      label: SLOT_TYPE_LABELS.grantedFeat,
+      filled: true,
+      parentSlotId: parentSlot.slotId,
+      lockedGrant: true,
+      detailsPackSlug,
+      ...withOptional("choiceName", itemName(item)),
+      ...withOptional("itemId", typeof itemId === "string" ? itemId : undefined),
+    });
+  }
+}
+
+/** Read `flags.fusion` off an embedded item (never null). */
+function itemFusion(item: Record<string, unknown>): Record<string, unknown> {
+  const flags = asRecord(item["flags"]);
+  return asRecord(flags["fusion"]);
+}
+
+/** Read `flags.fusion.sourceId` off an embedded item, if a string. */
+function itemFusionSourceId(item: Record<string, unknown>): string | undefined {
+  const sid = itemFusion(item)["sourceId"];
+  return typeof sid === "string" ? sid : undefined;
 }
 
 /**
@@ -2113,6 +2195,33 @@ export function removeChoice(ctx: PlanOpBuilderContext, slot: PlanSlotModel): Do
     }
   }
 
+  // Cascade (B2 r14): removing a granter also removes every FIXED grant it
+  // materialized — items tagged `flags.fusion.grantedBy === granterSourceId`
+  // (feats, actions, spells alike, incl. nested grants, since materializeGrants
+  // tags the whole subtree by the ROOT granter's sourceId). Idempotent with the
+  // W1-D cascade above: a grantedFeat sub-slot item is `flags.fusion.build`-
+  // tagged, not `grantedBy`-tagged, so the two never double-delete.
+  if (slot.itemId) {
+    const granter = getItems(ctx.doc).find(
+      (it) => typeof it["_id"] === "string" && it["_id"] === slot.itemId,
+    );
+    const granterSourceId = granter ? itemFusionSourceId(granter) : undefined;
+    if (granterSourceId) {
+      for (const it of getItems(ctx.doc)) {
+        if (itemFusion(it)["grantedBy"] !== granterSourceId) continue;
+        const id = it["_id"];
+        if (typeof id === "string") {
+          ops.push({
+            type: "doc:delete",
+            documentType: "Item",
+            id,
+            parent: { type: "Actor", id: ctx.actorId },
+          } satisfies DocDeleteEmbeddedPayload);
+        }
+      }
+    }
+  }
+
   const existingChoices = getBuildChoices(getSystem(ctx.doc));
   const remaining = existingChoices.filter(
     (c) => c.slot !== slot.slotId && c.slot !== grantedSlotId,
@@ -2173,6 +2282,191 @@ export function levelSet(ctx: PlanOpBuilderContext, newLevel: number): DocOpPayl
 
 export function levelUp(ctx: PlanOpBuilderContext): DocOpPayload[] {
   return levelSet(ctx, getLevel(ctx.doc) + 1);
+}
+
+// ---------------------------------------------------------------------------
+// Ghost spellcasting-entry cleanup (B2 r14, gap #12)
+//
+// Some pre-r11 imports left a DUPLICATE spellcasting entry with an auto-
+// generated name ("<tradition> Spells", e.g. "arcane Spells") alongside the
+// real, translated one ("Magias Arcanas"). The Tobias world has exactly this:
+// "arcane Spells" (id sAbd2jdXSJVrTtkX) is a zero-spell duplicate of "Magias
+// Arcanas" (id BNyJ0gsmNlULtcai), same tradition + prepared type.
+//
+// Removal criteria are DELIBERATELY NARROW (when in doubt, keep):
+//   (a) the entry holds zero spells and zero grimoire (no spell item's
+//       `location` points at it, and no prepared slot references a spell);
+//   (b) another NON-empty entry exists with the SAME tradition + SAME
+//       prepared type;
+//   (c) the ghost's name is the auto-generated `"<tradition> Spells"` pattern
+//       (case-sensitive lowercase tradition prefix — the real entry is renamed
+//       to pt-BR so it never matches this shape).
+// Focus pools are never touched. Log emitted by the caller.
+// ---------------------------------------------------------------------------
+
+function entrySpellCount(entryId: string, items: Array<Record<string, unknown>>): number {
+  let count = 0;
+  for (const it of items) {
+    if (it["type"] !== "spell") continue;
+    const location = it["location"] ?? it["spellcastingEntry"];
+    if (location === entryId) count++;
+  }
+  return count;
+}
+
+/** True if any prepared slot on the entry references a (non-empty) spell id. */
+function entryHasPreparedSpell(entry: Record<string, unknown>): boolean {
+  const sys = asRecord(entry["system"]);
+  const slots = asRecord(sys["slots"]);
+  for (const rank of Object.values(slots)) {
+    const prepared = asRecord(rank)["prepared"];
+    if (!Array.isArray(prepared)) continue;
+    for (const p of prepared) {
+      const id = asRecord(p)["id"];
+      if (typeof id === "string" && id.trim()) return true;
+    }
+  }
+  return false;
+}
+
+function entryTradition(entry: Record<string, unknown>): string {
+  const sys = asRecord(entry["system"]);
+  const trad = asRecord(sys["tradition"])["value"];
+  return typeof trad === "string" ? trad : typeof sys["tradition"] === "string" ? (sys["tradition"] as string) : "";
+}
+
+function entryPreparedType(entry: Record<string, unknown>): string {
+  const sys = asRecord(entry["system"]);
+  const prep = asRecord(sys["prepared"])["value"];
+  return typeof prep === "string" ? prep : typeof sys["prepared"] === "string" ? (sys["prepared"] as string) : "";
+}
+
+function isFocusEntry(entry: Record<string, unknown>): boolean {
+  return asRecord(entry["system"])["isFocusPool"] === true;
+}
+
+/**
+ * planGhostEntryCleanup — delete ops for every ghost spellcasting entry that
+ * meets ALL of criteria (a)/(b)/(c) above. Returns [] when nothing qualifies
+ * (the common case). Never touches focus pools. Read-only on `doc`.
+ */
+export function planGhostEntryCleanup(ctx: PlanOpBuilderContext): DocDeleteEmbeddedPayload[] {
+  if (!ctx.editable) return [];
+  const items = getItems(ctx.doc);
+  const entries = items.filter((it) => it["type"] === "spellcastingEntry" && !isFocusEntry(it));
+  const ops: DocDeleteEmbeddedPayload[] = [];
+
+  for (const entry of entries) {
+    const entryId = entry["_id"];
+    if (typeof entryId !== "string") continue;
+
+    // (a) empty: no spells located here and no prepared slot references a spell.
+    if (entrySpellCount(entryId, items) > 0) continue;
+    if (entryHasPreparedSpell(entry)) continue;
+
+    const tradition = entryTradition(entry);
+    const preparedType = entryPreparedType(entry);
+
+    // (c) auto-generated name pattern "<tradition> Spells".
+    const name = itemName(entry);
+    if (name !== `${tradition} Spells`) continue;
+
+    // (b) a DIFFERENT non-empty entry with same tradition + prepared type.
+    const hasNonEmptyTwin = entries.some((other) => {
+      if (other === entry) return false;
+      if (other["_id"] === entryId) return false;
+      if (entryTradition(other) !== tradition) return false;
+      if (entryPreparedType(other) !== preparedType) return false;
+      const otherId = other["_id"];
+      const nonEmpty =
+        (typeof otherId === "string" && entrySpellCount(otherId, items) > 0) || entryHasPreparedSpell(other);
+      return nonEmpty;
+    });
+    if (!hasNonEmptyTwin) continue;
+
+    ops.push({
+      type: "doc:delete",
+      documentType: "Item",
+      id: entryId,
+      parent: { type: "Actor", id: ctx.actorId },
+    });
+  }
+
+  return ops;
+}
+
+// ---------------------------------------------------------------------------
+// Grant heal — detecting already-applied granters missing their fixed grants
+// (B2 r14, gap #11 for sheets built before B2). The actual materialization is
+// async (needs the compendium socket to resolve granted docs by name) and
+// lives in grantMaterializer.ts; here we expose the pure INPUT: the list of
+// embedded granter items whose docs should be re-scanned for missing grants.
+// ---------------------------------------------------------------------------
+
+/** A granter embedded item to re-scan during the on-open heal. */
+export interface HealGranterRef {
+  /** The granter's embedded `_id`. */
+  itemId: string;
+  /** The granter's stable sourceId (the grant marker's `grantedBy`). */
+  sourceId: string;
+  /** The granter's build slot, if any (the grant marker's `grantedSlot`). */
+  slot?: string;
+  /** The granter's display name (for the compendium name→doc resolution + logging). */
+  name: string;
+  /** The pack the granter's doc lives in (feat → feats-core, classFeature → class-features-core). */
+  packSlug: string;
+}
+
+/**
+ * healGranterRefs — every embedded feat/classFeature that COULD declare fixed
+ * grants (has a sourceId + name), so the caller can re-fetch each one's pack
+ * doc and run `materializeGrants` for any that are missing. Cheap pure scan;
+ * the caller decides which actually declare grants (by inspecting the fetched
+ * doc's `system.rules`) — keeping this planner free of the pack data.
+ *
+ * Excludes items that are THEMSELVES grants (`flags.fusion.grantedBy` set) to
+ * avoid re-materializing a grant's own already-present nested grants as if the
+ * grant were a top-level granter (the recursion in materializeGrants already
+ * walks nested grants under their root).
+ */
+export function healGranterRefs(doc: Record<string, unknown>): HealGranterRef[] {
+  const refs: HealGranterRef[] = [];
+  for (const it of getItems(doc)) {
+    const type = it["type"];
+    if (type !== "feat" && type !== "classFeature") continue;
+    const fusion = itemFusion(it);
+    if (typeof fusion["grantedBy"] === "string") continue; // itself a grant
+    const sourceId = typeof fusion["sourceId"] === "string" ? (fusion["sourceId"] as string) : undefined;
+    if (!sourceId) continue;
+    const itemId = it["_id"];
+    if (typeof itemId !== "string") continue;
+    const name = itemName(it);
+    if (!name) continue;
+    const build = asRecord(fusion["build"]);
+    const slot = typeof build["slot"] === "string" ? (build["slot"] as string) : undefined;
+    refs.push({
+      itemId,
+      sourceId,
+      ...(slot !== undefined ? { slot } : {}),
+      name,
+      packSlug: type === "classFeature" ? "class-features-core" : "feats-core",
+    });
+  }
+  return refs;
+}
+
+/** The actor's spellcasting entries in the minimal shape grantMaterializer needs (for placing granted spells). */
+export function actorSpellEntries(
+  doc: Record<string, unknown>,
+): Array<{ id: string; isFocusPool: boolean; tradition: string }> {
+  const out: Array<{ id: string; isFocusPool: boolean; tradition: string }> = [];
+  for (const it of getItems(doc)) {
+    if (it["type"] !== "spellcastingEntry") continue;
+    const id = it["_id"];
+    if (typeof id !== "string") continue;
+    out.push({ id, isFocusPool: isFocusEntry(it), tradition: entryTradition(it) });
+  }
+  return out;
 }
 
 function syncSlotMaxOp(
@@ -2350,6 +2644,9 @@ function normalizeName(name: string): string {
 export function detailsRequestForSlot(slot: PlanSlotModel): PlanDetailsRequest | null {
   const name = slot.choiceName;
   if (!name || !slot.filled) return null;
+  // A locked fixed-grant chip (B2 r14) carries its own pack hint so a granted
+  // classFeature resolves in class-features-core, not the feats-core default.
+  if (slot.detailsPackSlug) return { packSlug: slot.detailsPackSlug, name };
   switch (slot.type) {
     case "hybridStudy":
       return { packSlug: "class-features-core", name };

@@ -75,6 +75,9 @@
   ]);
 
   function canEdit(slot: PlanSlotModel): boolean {
+    // A locked fixed-grant chip (B2 r14) is never editable — its lifecycle
+    // follows the granter (removeChoice on the granter cascades to it).
+    if (slot.lockedGrant) return false;
     return editable && EDITABLE_SLOT_TYPES.has(slot.type);
   }
 
@@ -82,6 +85,12 @@
   // (feats/hybrid study) and it's NOT already showing the edit affordance.
   function hasDetails(slot: PlanSlotModel): boolean {
     return !canEdit(slot) && detailsRequestForSlot(slot) !== null;
+  }
+
+  // A locked fixed-grant chip shows NO remove affordance (removed via its
+  // granter), unlike a normal filled slot which is removable when editable.
+  function canRemove(slot: PlanSlotModel): boolean {
+    return editable && !slot.lockedGrant;
   }
 </script>
 
@@ -107,7 +116,7 @@
             subType={display.subType}
             grid={display.grid}
             gridLabels={display.gridLabels}
-            onRemove={editable ? () => onSlotRemove(slot) : undefined}
+            onRemove={canRemove(slot) ? () => onSlotRemove(slot) : undefined}
             onEdit={canEdit(slot) ? () => onSlotClick(slot) : undefined}
             onDetails={hasDetails(slot) ? () => onSlotDetails(slot) : undefined}
           >

@@ -51,6 +51,9 @@
     buildContentNameTranslator,
     abilityBoostsGrid,
     SLOT_TYPE_LABELS_EN,
+    planGhostEntryCleanup,
+    healGranterRefs,
+    actorSpellEntries,
     type PlanSlotModel,
     type PlanSlotType,
     type PlanOpBuilderContext,
@@ -61,6 +64,11 @@
     type ContentNameTranslator,
     type PlanNameIndexEntry,
   } from "../../../../lib/sheets/pf2e/planVM.js";
+  import {
+    materializeGrants,
+    type GrantIndexEntry,
+    type MaterializeContext,
+  } from "../../../../lib/sheets/pf2e/grantMaterializer.js";
   import type { DocOpPayload } from "../../../../lib/sheets/pf2e/characterSheetVM.js";
   import ABCCard from "./ABCCard.svelte";
   import LevelCard from "./LevelCard.svelte";
@@ -74,8 +82,10 @@
   import {
     listPacks,
     searchPack,
+    getDocument,
     requireConnectedSocket,
   } from "../../../../lib/compendium/compendiumApi.js";
+  import type { PackIndexEntry } from "@fusion/shared";
 
   interface Props {
     doc: Record<string, unknown>;
@@ -150,6 +160,140 @@
     if (i18n.locale !== "pt-BR" || !contentTranslator) return { name: stored };
     const parts = contentTranslator(stored);
     return { name: parts.namePt, subName: parts.nameEn };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Fixed-grant materialization (B2 r14) — when a feat/feature is applied (or
+  // when the Plan opens for an owner/GM), read its pack doc's `GrantItem` rule
+  // elements and materialize each granted feat/action/spell as an embedded item
+  // tagged `flags.fusion.grantedBy`. Async (compendium socket) + idempotent.
+  // The pure engine lives in grantMaterializer.ts; here we inject the socket-
+  // backed resolvers and forward the resulting doc:create ops through sendOpFn.
+  // ---------------------------------------------------------------------------
+
+  /** Per-open cache of pack indexes (pack slug → entries) so a heal touches each pack once. */
+  const packIndexCache = new Map<string, GrantIndexEntry[]>();
+
+  async function resolvePackIndex(packSlug: string): Promise<GrantIndexEntry[]> {
+    const cached = packIndexCache.get(packSlug);
+    if (cached) return cached;
+    const sock = requireConnectedSocket(getSocket());
+    const { packs } = await listPacks(sock, { systemId, documentType: "Item" });
+    const pack = packs.find((p) => p.id.endsWith(`.${packSlug}`));
+    if (!pack) {
+      packIndexCache.set(packSlug, []);
+      return [];
+    }
+    const { entries } = await searchPack(sock, { packId: pack.id });
+    const mapped: GrantIndexEntry[] = (entries as PackIndexEntry[]).map((e) => ({
+      name: e.name,
+      uuid: e.uuid,
+      ...(typeof e.type === "string" ? { type: e.type } : {}),
+    }));
+    packIndexCache.set(packSlug, mapped);
+    return mapped;
+  }
+
+  async function resolveGrantDoc(uuid: string): Promise<Record<string, unknown> | null> {
+    try {
+      const sock = requireConnectedSocket(getSocket());
+      const { document } = await getDocument(sock, uuid);
+      return document;
+    } catch {
+      return null;
+    }
+  }
+
+  function materializeContext(): MaterializeContext {
+    return {
+      actorId,
+      existingItems: (doc["items"] as Array<Record<string, unknown>> | undefined) ?? [],
+      spellEntries: actorSpellEntries(doc),
+      resolveIndex: resolvePackIndex,
+      resolveDoc: resolveGrantDoc,
+    };
+  }
+
+  /**
+   * Materialize the fixed grants of a just-applied granter doc (from the
+   * picker) and send the resulting create ops. `granterSourceId`/`slot` come
+   * from the granter's `flags.fusion` (the picker doc carries the pack
+   * sourceId). Best-effort: any socket failure leaves the actor unchanged.
+   */
+  async function materializeAppliedGrants(
+    granterDoc: Record<string, unknown>,
+    slot: string | undefined,
+  ): Promise<void> {
+    if (!editable) return;
+    const fusion = ((granterDoc["flags"] as Record<string, unknown> | undefined)?.["fusion"] ?? {}) as Record<string, unknown>;
+    const sourceId = typeof fusion["sourceId"] === "string" ? fusion["sourceId"] : undefined;
+    if (!sourceId) return;
+    try {
+      const ops = await materializeGrants(granterDoc, sourceId, slot, materializeContext());
+      for (const op of ops) sendOpFn(op);
+    } catch {
+      // Offline / no socket: grants simply don't materialize now — the on-open
+      // heal will pick them up next time the owner opens the Plan.
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // On-open heal (B2 r14, gaps #11 + #12) — for an owner/GM, scan already-
+  // applied granters for missing fixed grants and materialize them, and remove
+  // the narrow ghost spellcasting-entry duplicate. Runs ONCE per opened actor
+  // (guarded by `healedActorId`), idempotent (re-running is a no-op).
+  // ---------------------------------------------------------------------------
+
+  let healedActorId = $state<string | null>(null);
+
+  $effect(() => {
+    void doc;
+    if (!editable) return;
+    if (healedActorId === actorId) return;
+    healedActorId = actorId;
+    void runHeal();
+  });
+
+  async function runHeal(): Promise<void> {
+    // Ghost entry cleanup first (pure, synchronous) — narrow criteria, logged.
+    const ghostOps = planGhostEntryCleanup(opCtx);
+    for (const op of ghostOps) {
+      // eslint-disable-next-line no-console
+      console.log("[Plan heal] removing ghost spellcasting entry", op.id);
+      sendOpFn(op);
+    }
+
+    // Grant heal: re-scan every applied granter's pack doc for missing grants.
+    try {
+      const refs = healGranterRefs(doc);
+      if (refs.length === 0) return;
+      const mctx = materializeContext();
+      let created = 0;
+      for (const ref of refs) {
+        const entries = await resolvePackIndex(ref.packSlug);
+        const target = normalizeForMatch(ref.name);
+        const entry = entries.find((e) => normalizeForMatch(e.name) === target);
+        if (!entry) continue;
+        const granterDoc = await resolveGrantDoc(entry.uuid);
+        if (!granterDoc) continue;
+        const ops = await materializeGrants(granterDoc, ref.sourceId, ref.slot, mctx);
+        for (const op of ops) {
+          sendOpFn(op);
+          created++;
+        }
+      }
+      if (created > 0 || ghostOps.length > 0) {
+        // eslint-disable-next-line no-console
+        console.log(`[Plan heal] materialized ${String(created)} missing grant(s), removed ${String(ghostOps.length)} ghost entrie(s)`);
+      }
+    } catch {
+      // Offline / no socket: nothing to heal now; retried on next open.
+    }
+  }
+
+  /** Accent/case-insensitive name normalize (mirrors planVM's normalizeName). */
+  function normalizeForMatch(name: string): string {
+    return name.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
   }
 
   /** The pt-BR slot-type label (via i18n) + its EN counterpart as the always-shown subtitle (r14). */
@@ -401,6 +545,10 @@
     } else {
       sendAll(chooseFeat(opCtx, slot, level, selectedDoc));
     }
+    // Materialize any FIXED grants the picked feat/feature declares (B2 r14):
+    // the picker doc already carries `system.rules` + `flags.fusion.sourceId`,
+    // so this reads the grants and sends the granted items' create ops.
+    void materializeAppliedGrants(selectedDoc, slot.slotId);
     slotPicker = null;
   }
 
