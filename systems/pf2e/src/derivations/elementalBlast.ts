@@ -280,10 +280,13 @@ export const stepCharElementalBlasts: DeriveStep = {
     const conMod = abilityMods?.["con"] ?? 0;
 
     const impulseRank = effectiveImpulseRank(classSystem, level);
+    // proficiencyBonus already folds in the character level (rank*2 + level for
+    // trained+), so the attack is keyMod + proficiencyBonus + item bonus — the
+    // SAME shape saves/AC/class-DC use. (Do NOT add `level` again here.)
     const profBonus = proficiencyBonus(impulseRank, level);
     const { sum: itemBonus } = impulseAttackItemBonus(doc);
 
-    const attackBonus = level + profBonus + keyMod + itemBonus;
+    const attackBonus = keyMod + profBonus + itemBonus;
     const [m0, m1, m2] = mapPenalties(false); // impulses are never agile
     const makeVariant = (mapPenalty: number): StrikeVariant => ({
       mapPenalty,

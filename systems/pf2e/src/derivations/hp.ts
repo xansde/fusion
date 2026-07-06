@@ -11,25 +11,28 @@
  * `stepCharSpeed` closed for `land-speed` (r16-G1). r18-N2b reuses the SAME
  * generalized embedded-item scanner (embeddedModifiers.ts) here for `hp`.
  *
- * Ordering: this step runs in the BASE phase, reading `system.derived.hp`
- * (written by stepCharHp, also base) and writing it back with the Toughness
- * bonus folded into `max` and `value` (a fresh full-HP character shows the
- * boosted total). Running in the base phase — before the derived-phase
- * `stepCharDrainedHp` reads `system.derived.hp` — means drained's temporary
- * reduction correctly applies ON TOP of the Toughness-boosted max (PF2e RAW:
- * Toughness is a permanent max-HP increase; drained is a temporary reduction
- * of the current max). Keeping both writers of `system.derived.hp` (stepCharHp
- * and this step) in the same phase lets topoSort order them by the
- * stepCharHp.writes → stepCharToughness.reads edge (stepCharToughness never
- * writes anything stepCharHp reads, so there is no cycle). stepCharDrainedHp is
- * a separate phase and is never compared against these two.
+ * Ordering: this step runs in the BASE phase and folds the Toughness bonus into
+ * `system.attributes.hp.max` — the SAME raw path `stepCharBuildHp` writes and
+ * `stepCharHp` reads. topoSort therefore orders it strictly between them:
+ *   stepCharBuildHp.writes(attributes.hp) → stepCharToughness.reads(attributes.hp)
+ *   stepCharToughness.writes(attributes.hp) → stepCharHp.reads(attributes.hp)
+ * This "write upstream, let the existing consumer read normally" injection
+ * (identical to how stepCharBuildAbilities/stepCharBuildHp inject) means the
+ * downstream derived-phase steps (stepCharHp → stepCharDrainedHp) need zero
+ * changes and there is NO reads/writes cycle: this step never touches
+ * `system.derived.hp`, so it can never form an edge with the derived-phase
+ * drainedHp step. Applying Toughness to the raw max BEFORE drained is also
+ * correct RAW: Toughness permanently raises the max; drained temporarily
+ * reduces the (already Toughness-boosted) max.
  *
- * Stacking: HP bonuses from multiple sources stack per PF2e RAW (there is no
- * "highest untyped bonus wins" rule for HP the way there is for skill/speed
- * bonuses — HP-max increases are simply additive). We therefore SUM every
- * matched `hp` FlatModifier rather than routing through resolveStacking's
- * highest-wins table; the MVP only ever has one (Toughness), but summing is the
- * correct general behavior.
+ * Stacking: HP-max bonuses are additive per PF2e RAW (there is no
+ * "highest-untyped-wins" rule for HP the way there is for skill/speed bonuses).
+ * We therefore SUM every matched `hp` FlatModifier rather than routing through
+ * resolveStacking's highest-wins table; the MVP only ever has one (Toughness),
+ * but summing is the correct general behavior.
+ *
+ * Gate: only fires when there is at least one matching `hp` FlatModifier — a
+ * character with no Toughness-like feat is left completely untouched.
  *
  * Clean-room: ORC/OGL mechanics only. No Foundry code copied.
  * REQ-PF2-021.
@@ -53,46 +56,36 @@ function getLevel(sys: CharacterSystem): number {
   return level?.value ?? 1;
 }
 
-function getDerived(doc: Record<string, unknown>): Record<string, unknown> {
-  const sys = getSystem(doc);
-  if (!sys["derived"] || typeof sys["derived"] !== "object") {
-    sys["derived"] = {};
-  }
-  return sys["derived"] as Record<string, unknown>;
-}
-
 /** Selector this step cares about: `hp` (max-HP FlatModifiers, e.g. Toughness). */
 const HP_SELECTORS = new Set(["hp"]);
 
 /**
  * Fold `hp` FlatModifiers from embedded feats/heritages/classFeatures/
- * ancestries into `system.derived.hp.max` (and bump `.value` by the same
+ * ancestries into `system.attributes.hp.max` (bumping `.value` by the same
  * amount when the character is at full HP, so a freshly built Toughness
  * character shows the boosted total rather than sitting "below max").
  *
- * Reads:  system.derived.hp, system.level, doc.items
- * Writes: system.derived.hp
+ * Runs AFTER stepCharBuildHp (which sets attributes.hp.max from the class/
+ * ancestry table) and BEFORE stepCharHp (which copies attributes.hp into
+ * derived.hp). No-op when no `hp` FlatModifier is present.
+ *
+ * Reads:  system.attributes.hp, system.level, doc.items
+ * Writes: system.attributes.hp
  */
 export const stepCharToughness: DeriveStep = {
   id: "pf2e.character.base.toughnessHp",
   documentType: "Actor",
   subtypes: ["character"],
   phase: "base",
-  // "system.derived.hp" must match stepCharHp.writes' exact string so this
-  // step is ordered AFTER it (topo-sort edges are exact-string membership
-  // tests — see packages/system-api/src/derive.ts topoSort()).
-  reads: ["system.derived.hp", "system.level"],
-  writes: ["system.derived.hp"],
+  // "system.attributes.hp" must match stepCharBuildHp.writes / stepCharHp.reads
+  // exact strings so topoSort orders this strictly between them (edges are
+  // exact-string membership tests — see packages/system-api/src/derive.ts).
+  reads: ["system.attributes.hp", "system.level"],
+  writes: ["system.attributes.hp"],
 
   run(doc) {
     const sys = getCharSystem(doc);
-    const derived = getDerived(doc);
     const level = getLevel(sys);
-
-    const existingHp = derived["hp"] as
-      | { value: number; max: number; temp: number; drainedHpReduction: number }
-      | undefined;
-    if (!existingHp) return; // stepCharHp did not run — nothing to boost.
 
     const sources = collectEmbeddedModifiers(doc, HP_SELECTORS, { level }, "HP Bonus");
     if (sources.length === 0) return;
@@ -101,13 +94,21 @@ export const stepCharToughness: DeriveStep = {
     const bonus = sources.reduce((acc, s) => acc + s.value, 0);
     if (bonus === 0) return;
 
-    const wasFull = existingHp.value >= existingHp.max;
-    const newMax = existingHp.max + bonus;
-    derived["hp"] = {
-      value: wasFull ? newMax : existingHp.value,
+    if (!sys.attributes || typeof sys.attributes !== "object") {
+      (sys as unknown as Record<string, unknown>)["attributes"] = {};
+    }
+    const hp = sys.attributes.hp as
+      | { value?: number; max?: number; temp?: number }
+      | undefined;
+    const currentMax = hp?.max ?? 0;
+    const currentValue = hp?.value ?? currentMax;
+    const wasFull = currentValue >= currentMax;
+    const newMax = currentMax + bonus;
+
+    sys.attributes.hp = {
+      value: wasFull ? newMax : currentValue,
       max: newMax,
-      temp: existingHp.temp,
-      drainedHpReduction: existingHp.drainedHpReduction,
+      temp: hp?.temp ?? 0,
     };
   },
 };
