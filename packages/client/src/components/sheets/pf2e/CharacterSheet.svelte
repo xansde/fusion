@@ -135,12 +135,8 @@
   // Tab state
   // ---------------------------------------------------------------------------
 
-  // Local tab id widened with "pets" (r16-G4). The shared CharacterSheetTab
-  // type lives in characterSheetVM.ts (owned by another workstream this round);
-  // the Pets tab is a pure sheet-render concern, so the id is widened here
-  // rather than editing the VM. Follow-up: fold "pets" into CharacterSheetTab.
-  type SheetTabId = CharacterSheetTab | "pets";
-  let activeTab = $state<SheetTabId>("main");
+  // "pets" is now a canonical CharacterSheetTab (folded into the VM type, r16).
+  let activeTab = $state<CharacterSheetTab>("main");
 
   // Pets tab visibility (REQ-PET-050): shown when the character already has a
   // linked familiar OR has a feat that grants one. worldMirror gives the live
@@ -164,7 +160,7 @@
 
   // Rendered tabs (r14 #8 pt-BR labels; r14 #16: "feats" REMOVED — the Plan
   // column covers everything the Feats tab showed, at the correct levels).
-  const SHEET_TABS: ReadonlyArray<{ id: SheetTabId; labelKey: string }> = $derived([
+  const SHEET_TABS: ReadonlyArray<{ id: CharacterSheetTab; labelKey: string }> = $derived([
     { id: "main", labelKey: "FUSION.Sheet.Tabs.Main" },
     { id: "skills", labelKey: "FUSION.Sheet.Tabs.Skills" },
     { id: "actions", labelKey: "FUSION.Sheet.Tabs.Actions" },

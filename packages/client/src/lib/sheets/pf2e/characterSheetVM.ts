@@ -203,6 +203,7 @@ export type CharacterSheetTab =
   | "skills"
   | "actions"
   | "spells"
+  | "pets"
   | "inventory"
   | "bio";
 
