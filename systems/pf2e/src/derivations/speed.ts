@@ -206,19 +206,30 @@ export const stepCharSpeed: DeriveStep = {
   documentType: "Actor",
   subtypes: ["character"],
   phase: "derived",
-  reads: ["system.speed"],
+  reads: ["system.attributes.speed", "system.speed"],
   writes: ["system.derived.speed"],
 
   run(doc) {
     const sys = getCharSystem(doc);
     const derived = getDerived(doc);
 
-    // ROBUSTNESS (audit issue 1 posture): system.speed may be absent on a
-    // minimal-but-schema-valid doc. Default to 0 land speed / no other speeds
-    // rather than throwing.
+    // ROBUSTNESS (audit issue 1 posture): the base land speed may live at
+    // `system.attributes.speed` (the real Argiburgo/pack shape — verified in the
+    // world DB: Tobias has system.attributes.speed.value = 25 and NO
+    // system.speed) OR at `system.speed` (hand-authored/schema fixtures). Prefer
+    // attributes.speed, fall back to system.speed, then 0 — reading only
+    // system.speed made a Ratfolk's 25 vanish, leaving just the +5 Fleet
+    // modifier (sheet showed "5 ft" — r16-G1 verificação viva bug).
+    const attrsBlock = (sys["attributes"] as Record<string, unknown> | undefined)?.["speed"] as
+      | { value?: number; otherSpeeds?: unknown }
+      | undefined;
     const speedBlock = sys["speed"] as { value?: number; otherSpeeds?: unknown } | undefined;
-    const baseValue = speedBlock?.value ?? 0;
-    const otherSpeeds = Array.isArray(speedBlock?.otherSpeeds) ? speedBlock.otherSpeeds : [];
+    const baseValue = attrsBlock?.value ?? speedBlock?.value ?? 0;
+    const otherSpeeds = Array.isArray(attrsBlock?.otherSpeeds)
+      ? attrsBlock.otherSpeeds
+      : Array.isArray(speedBlock?.otherSpeeds)
+        ? speedBlock.otherSpeeds
+        : [];
 
     const sources = collectSpeedModifiers(doc);
     const asModifiers: Modifier[] = sources.map((s) => ({

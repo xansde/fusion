@@ -127,6 +127,23 @@ describe("stepCharSpeed (r16-G1 — Fleet +5 land speed)", () => {
     expect(speed.modifiers[0]).toMatchObject({ label: "Fleet", type: "untyped", value: 5 });
   });
 
+  it("REAL Argiburgo shape: base at system.attributes.speed (no system.speed) → Tobias 25+5=30", () => {
+    // The live world DB stores Tobias's base land speed at
+    // system.attributes.speed.value (25) with NO system.speed block at all —
+    // the shape the original fix's fixtures missed, so the sheet showed "5 ft".
+    // This pins the real data shape (verificação viva r16-G1).
+    const doc = makeRatfolkDoc([FLEET_ITEM]);
+    const sys = doc["system"] as Record<string, unknown>;
+    delete sys["speed"];
+    (sys["attributes"] as Record<string, unknown>)["speed"] = { value: 25, otherSpeeds: [] };
+    runCharacterPipeline(doc);
+
+    const derived = sys["derived"] as Record<string, unknown>;
+    const speed = derived["speed"] as { value: number; base: number };
+    expect(speed.base).toBe(25);
+    expect(speed.value).toBe(30);
+  });
+
   it("two untyped Speed feats SUM only up to the stacking rule (untyped bonuses: highest-only, PF2e RAW)", () => {
     // Two independent +5 untyped land-speed FlatModifiers — PF2e RAW says
     // untyped BONUSES don't stack (highest wins), unlike untyped penalties
