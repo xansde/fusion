@@ -234,9 +234,8 @@
 
   // ---------------------------------------------------------------------------
   // Rest (header "Descansar" button — Pathbuilder "Rest" reference).
-  // Recovers every expended spell slot + refills Focus Points. Does NOT heal
-  // HP (PF2e's rest rules heal CON-mod × level, which needs data this VM
-  // doesn't derive yet — documented follow-up, not implemented here).
+  // Recovers every expended spell slot, refills Focus Points, and heals HP
+  // (CON mod × level, min 1 × level — r16). Emits a chat summary card.
   // ---------------------------------------------------------------------------
 
   function rest(): void {

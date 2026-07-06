@@ -1361,9 +1361,13 @@ describe("CharacterSheetVM — restAll", () => {
     });
 
     const ops = vm.restAll();
-    // Two ranks had at least one expended slot → 2 doc:update ops (no focus
-    // points on this fixture, so no third op).
-    expect(ops.length).toBe(2);
+    // Two ranks had at least one expended slot → 2 slot doc:update ops. restAll
+    // also heals HP (fixture is 62/75, CON +3 × level 5 → +13) and emits a chat
+    // summary, so filter to the slot ops for this slot-focused assertion (r16).
+    const slotOps = ops.filter(
+      (op) => "diff" in op && Object.keys((op as { diff: Record<string, unknown> }).diff).some((k) => k.startsWith("system.slots.")),
+    );
+    expect(slotOps.length).toBe(2);
 
     const rank1Op = ops.find((op) => "diff" in op && "system.slots.1.prepared" in (op as { diff: Record<string, unknown> }).diff);
     expect(rank1Op).toBeDefined();
@@ -1380,8 +1384,10 @@ describe("CharacterSheetVM — restAll", () => {
       "system.slots.2.prepared": [{ id: "spell-y", expended: false }],
     });
 
-    // Every emitted op validates against the real wire schema.
+    // Every emitted doc:update op validates against the real wire schema (the
+    // chat summary is a chat:send, validated elsewhere).
     for (const op of ops) {
+      if (op.type !== "doc:update") continue;
       const u = op as { documentType: string; id: string; diff: Record<string, unknown>; embedded?: { type: string; id: string } };
       const wirePayload = { documentType: u.documentType, updates: [{ _id: u.id, diff: u.diff, embedded: u.embedded }] };
       expect(DocUpdatePayloadSchema.safeParse(wirePayload).success).toBe(true);
@@ -1420,6 +1426,10 @@ describe("CharacterSheetVM — restAll", () => {
       heroPoints: { value: 1, max: 3 },
       focusPoints: { value: 2, max: 2 },
     };
+    // Full HP so the r16 HP heal has nothing to recover either.
+    ((doc["system"] as Record<string, unknown>)["derived"] as Record<string, unknown>)["hp"] = {
+      value: 75, max: 75, temp: 0, drainedHpReduction: 0,
+    };
     const vm = new CharacterSheetVM({
       doc,
       actorId: "actor-001",
@@ -1453,6 +1463,14 @@ describe("CharacterSheetVM — restAll", () => {
     const entry = items.find((i) => i["_id"] === "entry-arcane")!;
     (entry["system"] as Record<string, unknown>)["slots"] = {
       "0": { value: 0, max: 0, prepared: [{ id: "spell-shield", expended: true }] },
+    };
+    (doc["system"] as Record<string, unknown>)["resources"] = {
+      heroPoints: { value: 1, max: 3 },
+      focusPoints: { value: 0, max: 0 },
+    };
+    // Full HP so the r16 HP heal has nothing to recover either.
+    ((doc["system"] as Record<string, unknown>)["derived"] as Record<string, unknown>)["hp"] = {
+      value: 75, max: 75, temp: 0, drainedHpReduction: 0,
     };
     const vm = new CharacterSheetVM({
       doc,
