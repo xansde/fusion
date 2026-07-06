@@ -129,6 +129,37 @@ describe("ChatSendFlagsSchema", () => {
     const parsed = ChatSendFlagsSchema.parse({ evil: { hack: true } } as Record<string, unknown>);
     expect(parsed).not.toHaveProperty("evil");
   });
+
+  // parentMessageId — r18-N1 (nested rolls under a spell-cast card)
+  it("accepts a plain parentMessageId", () => {
+    const r = ChatSendFlagsSchema.safeParse({ parentMessageId: "msg-abc123" });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.parentMessageId).toBe("msg-abc123");
+  });
+
+  it("accepts parentMessageId alongside a checkContext (save nesting)", () => {
+    const r = ChatSendFlagsSchema.safeParse({
+      parentMessageId: "msg-abc123",
+      checkContext: { kind: "save", dcValue: 19, saveType: "reflex", basicSave: true },
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it("rejects an empty parentMessageId", () => {
+    expect(ChatSendFlagsSchema.safeParse({ parentMessageId: "" }).success).toBe(false);
+  });
+
+  it("rejects an over-long parentMessageId (bound guard)", () => {
+    expect(
+      ChatSendFlagsSchema.safeParse({ parentMessageId: "x".repeat(200) }).success,
+    ).toBe(false);
+  });
+
+  it("rejects a non-string parentMessageId", () => {
+    expect(
+      ChatSendFlagsSchema.safeParse({ parentMessageId: 123 } as Record<string, unknown>).success,
+    ).toBe(false);
+  });
 });
 
 describe("ChatSendPayloadSchema with flags", () => {

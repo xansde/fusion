@@ -255,11 +255,17 @@ export const CheckContextSchema = z.discriminatedUnion("kind", [SaveCheckContext
 export type CheckContext = z.infer<typeof CheckContextSchema>;
 
 /**
- * Flags a client may attach to a chat:send payload (r17-P2 / r17.1). Two
- * whitelisted paths:
- *   - `pf2e.spellCast` — the interactive spell-cast card (r17-P2);
- *   - `checkContext`   — structured save-check metadata the server uses to grade
- *     a roll's degree of success (r17.1).
+ * Flags a client may attach to a chat:send payload (r17-P2 / r17.1 / r18-N1).
+ * Whitelisted paths:
+ *   - `pf2e.spellCast`    — the interactive spell-cast card (r17-P2);
+ *   - `checkContext`      — structured save-check metadata the server uses to
+ *     grade a roll's degree of success (r17.1);
+ *   - `parentMessageId`   — the id of the chat message this roll is a CHILD of
+ *     (r18-N1): a spell-cast announcement groups its attack / damage / save
+ *     rolls under itself so the chat shows ONE card per conjuration instead of
+ *     several loose messages. The server validates it is a plain id string and
+ *     that a message with that id exists in the store; a dangling parent is
+ *     DROPPED (the message is still delivered as a normal top-level roll).
  * Every other key is ignored: the server reads only these whitelisted paths, so
  * a forged/foreign flag never reaches the stored doc.
  */
@@ -271,6 +277,12 @@ export const ChatSendFlagsSchema = z.object({
     .optional(),
   /** Structured check context (r17.1) — grades the roll server-side. */
   checkContext: CheckContextSchema.optional(),
+  /**
+   * Id of the parent chat message this roll nests under (r18-N1). Bounded to a
+   * plain, reasonable-length id string; existence is checked server-side (a
+   * dangling parent is dropped, never a hard failure).
+   */
+  parentMessageId: z.string().min(1).max(120).optional(),
 });
 
 export type ChatSendFlags = z.infer<typeof ChatSendFlagsSchema>;
