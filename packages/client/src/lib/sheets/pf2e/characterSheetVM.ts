@@ -1038,9 +1038,11 @@ export class CharacterSheetVM {
             // Cantrips (level 0) auto-heighten to the highest castable rank
             // (ceil(level/2)); ranked grimoire rows carry no auto-heightening
             // here — prepared-slot scaling is resolved per-slot in the UI via
-            // heightenedSpell(). (r16-G3)
-            heightening:
-              spLevel === 0 ? this._heighteningView(spSys, spLevel, "cantrip") : undefined,
+            // heightenedSpell(). (r16-G3) Key omitted (not set to undefined) for
+            // non-cantrips — exactOptionalPropertyTypes forbids explicit undefined.
+            ...(spLevel === 0
+              ? { heightening: this._heighteningView(spSys, spLevel, "cantrip") }
+              : {}),
           };
 
           const bucket = spellsByRank.get(spLevel);

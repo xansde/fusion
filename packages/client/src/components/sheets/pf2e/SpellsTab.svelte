@@ -30,7 +30,7 @@
    *     the item id only exists after the server ack + mirror broadcast).
    */
 
-  import type { CharacterSheetVM, SpellTabRow, SpellcastingEntryRow, SpellNameTranslator, SpellDetailsResolver } from "../../../lib/sheets/pf2e/characterSheetVM.js";
+  import type { CharacterSheetVM, SpellTabRow, SpellcastingEntryRow, SpellRow, SpellNameTranslator, SpellDetailsResolver } from "../../../lib/sheets/pf2e/characterSheetVM.js";
   import { buildSpellNameTranslator, buildSpellDetailsResolver } from "../../../lib/sheets/pf2e/characterSheetVM.js";
   import ProficiencyBadge from "./ProficiencyBadge.svelte";
   import SpellPickerDialog from "./SpellPickerDialog.svelte";
@@ -590,6 +590,17 @@
   }
 
   /**
+   * Roll a spell's DAMAGE at its effective rank (r16-G3). `surface` selects the
+   * heightening rule; `slotRank` is only used for prepared spells. The VM reads
+   * the embedded spell's damage/heightening and emits "/r <formula> # <flavor>".
+   * No-op (button hidden by the template) when the spell has no rollable damage.
+   */
+  function rollSpellDamage(spellId: string, surface: "cantrip" | "focus" | "prepared" | "grimoire", slotRank?: number): void {
+    const op = vm.rollSpellDamage(spellId, surface, slotRank);
+    if (op) sendOpFn(op);
+  }
+
+  /**
    * Inverse of castSpell — recover an already-expended slot without waiting
    * for a full Rest (feedback: "Ao usar uma magia, não consigo recuperar os
    * slots dela" — the UI previously had no button that flipped `expended`
@@ -652,9 +663,9 @@
     return out;
   }
 
-  function cantrips(entry: SpellcastingEntryRow): Array<{ id: string; name: string }> {
+  function cantrips(entry: SpellcastingEntryRow): SpellRow[] {
     const slot = entry.slots.find((s) => s.isCantrip);
-    return slot?.spells.map((sp) => ({ id: sp.id, name: translateName(sp.name) })) ?? [];
+    return slot?.spells ?? [];
   }
 </script>
 
@@ -673,6 +684,44 @@
     aria-label={t("FUSION.Sheet.Spells.SpellDetailsOpen", { name: displayName })}
     onclick={(e) => { e.stopPropagation(); openSpellDetails(spellItemId); }}
   >{displayName}</button>
+{/snippet}
+
+<!--
+  Heightening chrome for a spell row (r16-G3): a discrete "elevated" badge shown
+  only when the effective rank differs from the spell's base, the auto-scaled
+  damage formula, a "Dano" roll button (heightened formula), and — for fixed
+  heightenings that change target/range/area — a "complex" badge routing to the
+  details popup. `h` is the SpellHeighteningView; `spellId`/`surface`/`slotRank`
+  drive the roll. All parts are conditional so plain spells render nothing extra.
+-->
+{#snippet heightenChrome(h: import("../../../lib/sheets/pf2e/characterSheetVM.js").SpellHeighteningView | null | undefined, spellId: string, surface: "cantrip" | "focus" | "prepared" | "grimoire", slotRank?: number, displayName?: string)}
+  {#if h}
+    {#if h.effectiveRank > h.baseRank}
+      <span
+        class="spell-heighten-badge"
+        title={t("FUSION.Sheet.Spells.HeightenedBadgeTitle", { rank: String(h.effectiveRank), base: String(h.baseRank) })}
+      >{t("FUSION.Sheet.Spells.HeightenedBadge", { rank: String(h.effectiveRank) })}</span>
+    {/if}
+    {#if h.rollFormula}
+      <span class="spell-damage-chip">{h.damageDisplay ?? h.rollFormula}</span>
+      {#if vm.editable}
+        <button
+          type="button"
+          class="spell-btn spell-btn--damage"
+          aria-label={t("FUSION.Sheet.Spells.RollDamageAria", { name: displayName ?? "", formula: h.rollFormula })}
+          onclick={() => rollSpellDamage(spellId, surface, slotRank)}
+        >{t("FUSION.Sheet.Spells.RollDamage")}</button>
+      {/if}
+    {/if}
+    {#if h.hasComplexHeightening}
+      <button
+        type="button"
+        class="spell-complex-badge"
+        title={t("FUSION.Sheet.Spells.ComplexHeightenTitle")}
+        onclick={(e) => { e.stopPropagation(); openSpellDetails(spellId); }}
+      >{t("FUSION.Sheet.Spells.ComplexHeightenBadge", { rank: String(h.effectiveRank) })}</button>
+    {/if}
+  {/if}
 {/snippet}
 
 <div class="spells-tab">
@@ -745,8 +794,10 @@
               </h3>
               <div class="spells-chips">
                 {#each cantrips(entry) as cantrip (cantrip.id)}
+                  {@const cName = translateName(cantrip.name)}
                   <div class="spell-chip">
-                    {@render spellNameButton(cantrip.name, cantrip.id, "spell-chip__name")}
+                    {@render spellNameButton(cName, cantrip.id, "spell-chip__name")}
+                    {@render heightenChrome(cantrip.heightening, cantrip.id, "cantrip", undefined, cName)}
                   </div>
                 {/each}
               </div>
@@ -784,6 +835,7 @@
                         </div>
                       </div>
                     {:else}
+                    {@const preparedHeighten = vm.heightenedSpell(prepared.id, "prepared", slot.rank)}
                     <div class="spell-slot-card" class:spell-slot-card--expended={prepared.expended}>
                       <div class="spell-slot-card__main">
                         <span class="spell-slot-card__name">
@@ -792,6 +844,7 @@
                             <span class="spell-slot-card__dot" title={t("FUSION.Sheet.Spells.SlotAvailable")}></span>
                           {/if}
                         </span>
+                        {@render heightenChrome(preparedHeighten, prepared.id, "prepared", slot.rank, resolvedName)}
                       </div>
                       <div class="spell-slot-card__actions">
                         {#if vm.editable}
@@ -917,9 +970,11 @@
           <p class="spells-empty spells-empty--inline">{t("FUSION.Sheet.Spells.NoFocusSpells")}</p>
         {:else}
           {#each vm.focusSpells as spell (spell.id)}
-            <div class="focus-spell-row" class:spell-chip--new={translateName(spell.name) === recentlyAddedDisplayName}>
+            {@const focusName = translateName(spell.name)}
+            <div class="focus-spell-row" class:spell-chip--new={focusName === recentlyAddedDisplayName}>
               <div class="focus-spell-row__main">
-                {@render spellNameButton(translateName(spell.name), spell.id, "focus-spell-row__name")}
+                {@render spellNameButton(focusName, spell.id, "focus-spell-row__name")}
+                {@render heightenChrome(spell.heightening, spell.id, "focus", undefined, focusName)}
               </div>
               {#if vm.editable}
                 <button
@@ -1418,6 +1473,67 @@
   .spell-btn--recover:hover {
     background: var(--fusion-success);
     color: var(--fusion-on-accent);
+  }
+
+  /* Heightening chrome (r16-G3) --------------------------------------------- */
+
+  /* "Patamar N" badge — shown only when the effective rank exceeds the base. */
+  .spell-heighten-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 1px 7px;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.6;
+    border-radius: var(--fusion-radius-pill);
+    background: var(--fusion-accent-dim);
+    color: var(--fusion-accent);
+    border: 1px solid var(--fusion-accent);
+    vertical-align: middle;
+  }
+
+  /* Auto-scaled damage formula, monospaced so dice read clearly. */
+  .spell-damage-chip {
+    display: inline-block;
+    margin-left: 8px;
+    font-family: var(--fusion-font-mono);
+    font-size: 11px;
+    color: var(--fusion-text-muted);
+    vertical-align: middle;
+  }
+
+  /* "Dano" roll button — reuses the ghost look with a warm accent on hover. */
+  .spell-btn--damage {
+    background: transparent;
+    border: 1px solid var(--fusion-border);
+    color: var(--fusion-text-muted);
+    margin-left: 8px;
+  }
+
+  .spell-btn--damage:hover {
+    border-color: var(--fusion-accent);
+    color: var(--fusion-accent-hover);
+  }
+
+  /* Complex fixed-heightening badge — clickable, routes to the details popup. */
+  .spell-complex-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 1px 7px;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.6;
+    border-radius: var(--fusion-radius-pill);
+    background: transparent;
+    color: var(--fusion-text-subtle);
+    border: 1px dashed var(--fusion-border);
+    cursor: pointer;
+    vertical-align: middle;
+  }
+
+  .spell-complex-badge:hover {
+    border-color: var(--fusion-accent);
+    color: var(--fusion-accent);
   }
 
   .focus-spell-row {
