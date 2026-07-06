@@ -22,6 +22,7 @@
 import type { Namespace, Socket } from "socket.io";
 import type { Database as Db } from "better-sqlite3";
 import { createDocumentId, defaultStats } from "@fusion/shared";
+import { calculateDegreeOfSuccess } from "@fusion/engine-2e";
 import type { Envelope } from "@fusion/shared";
 import {
   parseChatCommand,
@@ -35,11 +36,13 @@ import {
 import type {
   ChatMessage,
   RollResultData,
+  RollTermResult,
   RollMode,
   ChatSpeaker,
   InlineRollSpan,
   ChatSendPayload,
   SpellCastCard,
+  SaveCheckContext,
 } from "@fusion/shared";
 
 import type { HandlerFn, HandlerContext } from "../net/handler-registry.js";
@@ -449,6 +452,18 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
         throw err;
       }
 
+      // --- Degree of success (r17.1) ---
+      // When the client attached a validated save checkContext, grade the roll
+      // AUTHORITATIVELY here (never on the client). The DC came from the card's
+      // coherence-checked spellcasting DC; the total was rolled by the server.
+      const checkContext = payload.flags?.checkContext;
+      if (checkContext?.kind === "save") {
+        const degree = computeSaveDegree(rollResult, checkContext);
+        if (degree !== null) {
+          rollResult = { ...rollResult, degreeOfSuccess: degree };
+        }
+      }
+
       const msg = buildRollMessage(
         deps.db,
         deps.worldId,
@@ -822,6 +837,66 @@ function buildRollMessage(
   msg.blind = blind;
   msg.rolls = [rollResult];
   return msg;
+}
+
+// ---------------------------------------------------------------------------
+// Degree of success — save checkContext (r17.1)
+// ---------------------------------------------------------------------------
+
+/**
+ * PF2e degree-of-success strings, aligned with the engine-2e enum values.
+ * Stored verbatim in `RollResultData.degreeOfSuccess` (D7 spec-08: generic
+ * string, not a fixed schema enum). The client maps these to localized badges.
+ */
+const DEGREE_OF_SUCCESS = {
+  criticalSuccess: "criticalSuccess",
+  success: "success",
+  failure: "failure",
+  criticalFailure: "criticalFailure",
+} as const;
+
+/** engine-2e DegreeOfSuccess → the string persisted on the roll. */
+const ENGINE_DEGREE_TO_STRING: Record<string, string> = {
+  CriticalSuccess: DEGREE_OF_SUCCESS.criticalSuccess,
+  Success: DEGREE_OF_SUCCESS.success,
+  Failure: DEGREE_OF_SUCCESS.failure,
+  CriticalFailure: DEGREE_OF_SUCCESS.criticalFailure,
+};
+
+/**
+ * Read the natural (unmodified) d20 face from a roll's structured terms — never
+ * by parsing a string. Scans for the first `dice` term with 20 faces and takes
+ * its first ACTIVE die's `result`. Returns null when the roll has no d20 (then
+ * no nat20/nat1 adjustment applies and grading is skipped).
+ *
+ * A save roll is always `1d20 + <mod>`, so the first active d20 face is THE
+ * check die. Keep-highest/lowest fortune/misfortune (e.g. `2d20kh1`) would keep
+ * the active die here too, which is the correct check die by construction.
+ */
+export function readNaturalD20(terms: readonly RollTermResult[]): number | null {
+  for (const term of terms) {
+    if (term.type !== "dice" || term.faces !== 20 || !Array.isArray(term.results)) continue;
+    const active = term.results.find((d) => d.active) ?? term.results[0];
+    if (active && typeof active.result === "number") return active.result;
+  }
+  return null;
+}
+
+/**
+ * Grade a save roll's degree of success AUTHORITATIVELY on the server (r17.1).
+ *
+ * The total was rolled by the server (anti-cheat); we compare it to the DC from
+ * the (already coherence-checked) checkContext and apply the PF2e nat20/nat1
+ * degree shift using the natural d20 face read from the structured terms. The
+ * grading itself reuses engine-2e's `calculateDegreeOfSuccess` (single source of
+ * truth for the 2e mechanic). Returns the degree string, or null when the roll
+ * carries no d20 to grade (defensive — a save is always 1d20+mod).
+ */
+export function computeSaveDegree(roll: RollResultData, ctx: SaveCheckContext): string | null {
+  const natural = readNaturalD20(roll.terms);
+  if (natural === null) return null;
+  const degree = calculateDegreeOfSuccess(roll.total, ctx.dcValue, natural);
+  return ENGINE_DEGREE_TO_STRING[degree] ?? null;
 }
 
 // ---------------------------------------------------------------------------
