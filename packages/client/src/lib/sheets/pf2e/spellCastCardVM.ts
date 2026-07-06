@@ -20,7 +20,7 @@
  * ownership (REQ-CHT-022). These getters only decide what to SHOW/BUILD.
  */
 
-import type { SpellCastCard, SpellSaveType } from "@fusion/shared";
+import type { SpellCastCard, SpellSaveType, ChatSendFlags } from "@fusion/shared";
 
 /** OwnershipLevel.OWNER (documents/ownership) — mirrored locally (dep-free VM). */
 const OWNER = 3;
@@ -38,6 +38,14 @@ export interface SpellCastChatOp {
   worldId: string;
   rollMode: "public";
   speakerActorId: string;
+  /**
+   * Optional structured flags carried to the server (r17.1). The save button
+   * attaches `{ checkContext: { kind:"save", dcValue, saveType, basicSave? } }`
+   * so the server can grade the roll's degree of success AUTHORITATIVELY. The
+   * client never compares the total to the DC — it only forwards the (already
+   * coherence-checked) DC + save metadata.
+   */
+  flags?: ChatSendFlags;
 }
 
 /** Minimal actor doc shape the VM reads (structural typing). */
@@ -173,12 +181,22 @@ export function buildSaveRollOp(
   if (!targetId) return null;
   const mod = actorSaveMod(targetActor, card.saveType);
   const flavor = `Salvaguarda de ${saveTypeLabel} (CD ${String(card.dcValue)})`;
+  // Attach the structured save checkContext (r17.1) so the SERVER grades the
+  // degree of success against the DC. The DC on the card was already
+  // coherence-checked server-side when the card was created; we only forward it.
+  const checkContext: NonNullable<ChatSendFlags["checkContext"]> = {
+    kind: "save",
+    dcValue: card.dcValue,
+    saveType: card.saveType,
+    ...(card.basicSave !== undefined ? { basicSave: card.basicSave } : {}),
+  };
   return {
     type: "chat:send",
     content: `/r 1d20${fmtMod(mod)} # ${flavor}`,
     worldId,
     rollMode: "public",
     speakerActorId: targetId,
+    flags: { checkContext },
   };
 }
 

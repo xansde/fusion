@@ -158,6 +158,29 @@ describe("buildSaveRollOp", () => {
     const target = actor("t", "T", { default: 0 });
     expect(buildSaveRollOp(noSave as SpellCastCard, target, "Reflexos", "w")).toBeNull();
   });
+
+  it("attaches a save checkContext flag (r17.1) with DC, save type and basicSave", () => {
+    const target = actor("target", "Hero", { default: 0, alice: 3 }, { reflex: 11 });
+    const op = buildSaveRollOp(SAVE_CARD, target, "Reflexos", "world-1")!;
+    expect(op.flags?.checkContext).toEqual({
+      kind: "save",
+      dcValue: 19,
+      saveType: "reflex",
+      basicSave: true,
+    });
+  });
+
+  it("omits basicSave from the checkContext when the card is not a basic save", () => {
+    const { basicSave: _b, ...nonBasic } = SAVE_CARD;
+    const target = actor("t", "T", { default: 0 }, { reflex: 3 });
+    const op = buildSaveRollOp(nonBasic as SpellCastCard, target, "Reflexos", "w")!;
+    expect(op.flags?.checkContext).toEqual({
+      kind: "save",
+      dcValue: 19,
+      saveType: "reflex",
+    });
+    expect(op.flags?.checkContext).not.toHaveProperty("basicSave");
+  });
 });
 
 describe("buildDamageRollOp", () => {
