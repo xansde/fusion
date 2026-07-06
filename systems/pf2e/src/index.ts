@@ -22,6 +22,7 @@ import { CharacterSystemSchema } from "./schemas/actor-character.js";
 import { NpcSystemSchema } from "./schemas/actor-npc.js";
 import { HazardSystemSchema } from "./schemas/actor-hazard.js";
 import { LootSystemSchema } from "./schemas/actor-loot.js";
+import { FamiliarSystemSchema } from "./schemas/actor-familiar.js";
 
 // Schemas — items
 import { WeaponSystemSchema } from "./schemas/item-weapon.js";
@@ -67,7 +68,7 @@ export const pf2eSystem = defineSystem(
     engineCompat: ">=0.1.0",
     authors: [{ name: "Fusion Engine Team" }],
     documentTypes: {
-      Actor: ["character", "npc", "hazard", "loot"],
+      Actor: ["character", "npc", "hazard", "loot", "familiar"],
       Item: [
         "weapon",
         "armor",
@@ -125,6 +126,12 @@ export const pf2eSystem = defineSystem(
       documentType: "Actor",
       subtype: "loot",
       schema: LootSystemSchema,
+    });
+
+    registrar.defineModel({
+      documentType: "Actor",
+      subtype: "familiar",
+      schema: FamiliarSystemSchema,
     });
 
     // -----------------------------------------------------------------------
@@ -333,6 +340,14 @@ export type { HazardSystem } from "./schemas/actor-hazard.js";
 
 export { LootSystemSchema, parseLootSystem } from "./schemas/actor-loot.js";
 export type { LootSystem } from "./schemas/actor-loot.js";
+
+export {
+  FamiliarSystemSchema,
+  parseFamiliarSystem,
+  CompanionKindSchema,
+  COMPANION_KINDS,
+} from "./schemas/actor-familiar.js";
+export type { FamiliarSystem, CompanionKind } from "./schemas/actor-familiar.js";
 
 // Item schemas
 export { WeaponSystemSchema, parseWeaponSystem } from "./schemas/item-weapon.js";

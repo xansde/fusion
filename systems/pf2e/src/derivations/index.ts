@@ -15,15 +15,18 @@ export * from "./speed.js";
 export * from "./build.js";
 export * from "./character.js";
 export * from "./npc.js";
+export * from "./familiar.js";
 
 import type { DeriveStep } from "@fusion/system-api";
 import { CHARACTER_DERIVE_STEPS } from "./character.js";
 import { NPC_DERIVE_STEPS } from "./npc.js";
+import { FAMILIAR_DERIVE_STEPS } from "./familiar.js";
 
-/** All PF2e derivation steps (character + NPC). */
+/** All PF2e derivation steps (character + NPC + familiar). */
 export const ALL_PF2E_DERIVE_STEPS: readonly DeriveStep[] = [
   ...CHARACTER_DERIVE_STEPS,
   ...NPC_DERIVE_STEPS,
+  ...FAMILIAR_DERIVE_STEPS,
 ];
 
 /**
