@@ -42,6 +42,7 @@ Estas specs foram geradas a partir da pesquisa em [`docs/research/`](../docs/res
 | 25  | [Testes e Qualidade](25-testes-e-qualidade.md)                       | Pirâmide de testes, golden tests 2e, CI        |
 | 26  | [Licenças e Legal](26-licencas-e-legal.md)                           | Clean-room, ORC/OGL, marcas, Etmos             |
 | 27  | [Roadmap e Milestones](27-roadmap-e-milestones.md)                   | Fases, dependências, definition of done        |
+| 29  | [Pets, Companions e Familiars](29-pets-companions-familiars.md)     | Familiars, animal companions, pets, mounts     |
 
 ## Stack fixada
 
