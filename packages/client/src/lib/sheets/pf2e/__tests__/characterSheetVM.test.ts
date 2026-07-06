@@ -411,7 +411,7 @@ describe("CharacterSheetVM — strikes", () => {
     const vm = makeVM();
     const op = vm.rollStrike("item-longsword", 0);
     expect(op.type).toBe("chat:send");
-    expect(op.content).toBe("/r 1d20+13 # Longsword (MAP 0)");
+    expect(op.content).toBe("/r 1d20+13 # Longsword (MAP 0)"); // MAP stays a technical term (R14 gap #15)
     expect(op.worldId).toBe("world-001");
     expect(op.rollMode).toBe("public");
     expect(op.speakerActorId).toBe("actor-001");
@@ -433,14 +433,15 @@ describe("CharacterSheetVM — rollStrikeDamage", () => {
     const vm = makeVM();
     const op = vm.rollStrikeDamage("item-longsword", false);
     expect(op).not.toBeNull();
-    expect(op!.content).toBe("/r 1d8+4 # Longsword — Damage");
+    // pt-BR flavor suffix (R14 gap #15) — strike name stays as authored.
+    expect(op!.content).toBe("/r 1d8+4 # Longsword — Dano");
   });
 
   it("returns crit damage roll chat:send op when critDamageRoll is present", () => {
     const vm = makeVM();
     const op = vm.rollStrikeDamage("item-longsword", true);
     expect(op).not.toBeNull();
-    expect(op!.content).toBe("/r (1d8+4)*2 # Longsword — Critical");
+    expect(op!.content).toBe("/r (1d8+4)*2 # Longsword — Crítico");
   });
 
   it("returns null when the strike has no damageRoll (older data)", () => {
@@ -478,7 +479,8 @@ describe("CharacterSheetVM — rollSpellAttack", () => {
     const vm = makeVM();
     const op = vm.rollSpellAttack("entry-arcane");
     expect(op).not.toBeNull();
-    expect(op!.content).toBe("/r 1d20+9 # Spell Attack (Arcane Spells)");
+    // pt-BR flavor prefix (R14 gap #15) — entry name stays as authored.
+    expect(op!.content).toBe("/r 1d20+9 # Ataque de Magia (Arcane Spells)");
   });
 
   it("returns null when derived.spellcasting entry is missing", () => {
@@ -530,7 +532,8 @@ describe("CharacterSheetVM — roll ops", () => {
     const vm = makeVM();
     const op = vm.rollPerception();
     expect(op.type).toBe("chat:send");
-    expect(op.content).toBe("/r 1d20+8 # Perception");
+    // pt-BR flavor (R14 gap #15) — formula untouched.
+    expect(op.content).toBe("/r 1d20+8 # Percepção");
     expect(op.worldId).toBe("world-001");
     expect(op.rollMode).toBe("public");
     expect(op.speakerActorId).toBe("actor-001");
@@ -539,13 +542,13 @@ describe("CharacterSheetVM — roll ops", () => {
   it("rollSave fortitude returns correct chat:send op", () => {
     const vm = makeVM();
     const op = vm.rollSave("fortitude");
-    expect(op.content).toBe("/r 1d20+11 # Fortitude Save");
+    expect(op.content).toBe("/r 1d20+11 # Salvaguarda de Fortitude");
   });
 
   it("rollSkill athletics returns correct chat:send op", () => {
     const vm = makeVM();
     const op = vm.rollSkill("athletics");
-    expect(op.content).toBe("/r 1d20+11 # Athletics");
+    expect(op.content).toBe("/r 1d20+11 # Atletismo");
   });
 
   it("formats a negative total without a double sign (never '1d20+-1')", () => {
@@ -563,7 +566,7 @@ describe("CharacterSheetVM — roll ops", () => {
       isGm: true,
       worldId: "world-001",
     });
-    expect(vm.rollPerception().content).toBe("/r 1d20-1 # Perception");
+    expect(vm.rollPerception().content).toBe("/r 1d20-1 # Percepção");
   });
 });
 
@@ -1016,8 +1019,9 @@ describe("CharacterSheetVM — skills (canonical 16 + lore)", () => {
     expect(arcana.totalFormatted).toBe("+0");
 
     // rollSkill works for an untrained skill (uses derived.skills total).
+    // Flavor is the pt-BR skill name (R14 gap #15), via skillNamePt.
     const op = vm.rollSkill("arcana");
-    expect(op.content).toBe("/r 1d20+0 # Arcana");
+    expect(op.content).toBe("/r 1d20+0 # Arcanismo");
 
     // Lore skill present with generated label.
     const lore = skills.find((s) => s.slug === "lore-warfare")!;

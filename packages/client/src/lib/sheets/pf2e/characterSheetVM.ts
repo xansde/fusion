@@ -23,6 +23,8 @@ import type {
   DerivedStrike,
   ArchetypeClassDC,
 } from "./derivedTypes.js";
+import { t } from "../../i18n/index.js";
+import { skillNamePt } from "./skillNames.js";
 
 // ---------------------------------------------------------------------------
 // Re-export derived types for consumers
@@ -1399,48 +1401,52 @@ export class CharacterSheetVM {
 
   /**
    * Build a chat:send op (contract 5) for a skill check.
-   * "/r 1d20+9 # Acrobatics"
+   * "/r 1d20+9 # Acrobacia" (pt-BR flavor via skillNamePt — R14 gap #15)
    */
   rollSkill(skillSlug: string): ChatRollPayload {
     const skillStat = this._derived?.skills[skillSlug];
     const total = skillStat?.total ?? 0;
-    const label = CharacterSheetVM.SKILL_LABELS[skillSlug] ?? skillSlug;
+    const label = skillNamePt(skillSlug);
     return this._buildChatRoll(CharacterSheetVM._fmtRollFormula("1d20", total), label);
   }
 
   /**
    * Build a chat:send op for a saving throw.
-   * "/r 1d20+11 # Fortitude Save"
+   * "/r 1d20+11 # Salvaguarda de Fortitude" (pt-BR flavor — R14 gap #15)
    */
   rollSave(saveName: "fortitude" | "reflex" | "will"): ChatRollPayload {
     const derivedSave = this._derived?.saves[saveName];
     const total = derivedSave?.total ?? 0;
-    const label = saveName.charAt(0).toUpperCase() + saveName.slice(1) + " Save";
+    const label = t(`FUSION.Sheet.Chat.SaveFlavor.${saveName}`);
     return this._buildChatRoll(CharacterSheetVM._fmtRollFormula("1d20", total), label);
   }
 
   /**
    * Build a chat:send op for Perception.
-   * "/r 1d20+8 # Perception"
+   * "/r 1d20+8 # Percepção" (pt-BR flavor — R14 gap #15)
    */
   rollPerception(): ChatRollPayload {
     const total = this._derived?.perception.total ?? 0;
-    return this._buildChatRoll(CharacterSheetVM._fmtRollFormula("1d20", total), "Perception");
+    const label = t("FUSION.Sheet.Chat.Perception");
+    return this._buildChatRoll(CharacterSheetVM._fmtRollFormula("1d20", total), label);
   }
 
   /**
    * Build a chat:send op for a strike (attack roll).
-   * "/r 1d20+13 # Longsword (MAP 0)"
+   * "/r 1d20+13 # Longsword (MAP 0)" — strike name stays as authored on the
+   * item (often EN, from pack content); "MAP" stays a technical term
+   * (R14 gap #15 — untranslated by design).
    * @param strikeSourceId  The sourceId from the StrikeRow.
    * @param mapIndex        0 = first attack, 1 = second, 2 = third.
    */
   rollStrike(strikeSourceId: string, mapIndex: 0 | 1 | 2): ChatRollPayload {
     const strike = this._derived?.strikes.find((s) => s.sourceId === strikeSourceId);
     if (!strike) {
-      return this._buildChatRoll("1d20", `Strike (MAP ${String(mapIndex)})`);
+      const label = t("FUSION.Sheet.Chat.StrikeMap", { label: "Strike", map: mapIndex });
+      return this._buildChatRoll("1d20", label);
     }
     const variant = strike.variants[mapIndex];
-    const label = `${strike.label} (MAP ${String(mapIndex)})`;
+    const label = t("FUSION.Sheet.Chat.StrikeMap", { label: strike.label, map: mapIndex });
     // variant.formula is already a full "1d20 + N" style formula from derived
     // data — reuse it verbatim as the roll formula.
     return this._buildChatRoll(variant.formula.replace(/\s+/g, ""), label);
@@ -1450,25 +1456,33 @@ export class CharacterSheetVM {
    * Build a chat:send op for a strike's damage roll (new — contract 3).
    * Returns null when the derived strike lacks damageRoll/critDamageRoll
    * (older/pre-migration data) so the component can hide the button.
+   * Flavor suffix is pt-BR ("Dano" / "Crítico" — R14 gap #15); the formula
+   * itself is untouched.
    */
   rollStrikeDamage(strikeSourceId: string, crit: boolean): ChatRollPayload | null {
     const strike = this._derived?.strikes.find((s) => s.sourceId === strikeSourceId);
     if (!strike) return null;
     const formula = crit ? strike.critDamageRoll : strike.damageRoll;
     if (!formula) return null;
-    const label = `${strike.label} — ${crit ? "Critical" : "Damage"}`;
+    const label = t(
+      crit ? "FUSION.Sheet.Chat.StrikeCritical" : "FUSION.Sheet.Chat.StrikeDamage",
+      { label: strike.label },
+    );
     return this._buildChatRoll(formula, label);
   }
 
   /**
    * Build a chat:send op for a spell attack roll (new).
    * Returns null when derived.spellcasting[entryId] is unavailable.
+   * "/r 1d20+9 # Ataque de Magia (Magias Arcanas)" (pt-BR flavor — R14 gap #15;
+   * the entry name itself is whatever the actor's document already has).
    */
   rollSpellAttack(entryId: string): ChatRollPayload | null {
     const derivedEntry = this._derived?.spellcasting?.[entryId];
     if (!derivedEntry) return null;
     const entry = this.spellcastingEntries.find((e) => e.entryId === entryId);
-    const label = `Spell Attack (${entry?.label ?? "Spellcasting"})`;
+    const entryLabel = entry?.label ?? t("FUSION.Sheet.Chat.SpellAttack.fallback");
+    const label = t("FUSION.Sheet.Chat.SpellAttack", { entry: entryLabel });
     return this._buildChatRoll(
       CharacterSheetVM._fmtRollFormula("1d20", derivedEntry.attack),
       label,
