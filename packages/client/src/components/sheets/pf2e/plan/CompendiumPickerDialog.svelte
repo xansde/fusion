@@ -41,6 +41,7 @@
     DocumentDetailsCache,
     localizedNameParts,
     pickLocalizedName,
+    traitDisplayName,
   } from "../../../../lib/compendium/documentDetails.js";
   import { pickDefaultEntryUuid } from "../../../../lib/sheets/pf2e/planVM.js";
   import DocumentDetailsPanel from "../DocumentDetailsPanel.svelte";
@@ -260,7 +261,7 @@
               class:picker-chip--active={traitFilter === trait}
               onclick={() => { traitFilter = traitFilter === trait ? null : trait; }}
             >
-              {trait}
+              {traitDisplayName(trait, i18n.locale)}
             </button>
           {/each}
         </div>
@@ -308,7 +309,7 @@
                 {#if traitsOf(entry).length > 0}
                   <div class="picker-row__traits">
                     {#each traitsOf(entry) as trait (trait)}
-                      <span class="picker-row__trait">{trait}</span>
+                      <span class="picker-row__trait">{traitDisplayName(trait, i18n.locale)}</span>
                     {/each}
                   </div>
                 {/if}
