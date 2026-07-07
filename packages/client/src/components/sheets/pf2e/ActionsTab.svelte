@@ -38,7 +38,7 @@
     traitDisplayName,
     translateDamageType,
   } from "../../../lib/compendium/documentDetails.js";
-  import { makeSendOpFn } from "../../../lib/docs/sendOp.js";
+  import { makeSendOpFn, sendChatOpForId } from "../../../lib/docs/sendOp.js";
   import {
     loadActionEntries,
     loadActionNameIndexEntries,
@@ -55,14 +55,16 @@
     withFallbackDescription,
     descriptionHtmlOf,
     parseImpulseSaveCue,
+    parseImpulseDamage,
     kineticistClassDc,
-    buildImpulseUseAnnouncement,
+    buildImpulseCard,
     readElementalBlasts,
-    buildElementalBlastAttackOp,
+    buildElementalBlastCard,
     paginate,
     ACTIONS_PAGE_SIZE,
     GROUP_ORDER,
     type ActionRow,
+    type ActionChatOp,
     type BlastRowVM,
     type ActionCostFilter,
     type ActionsLoadError,
@@ -368,16 +370,21 @@
     const parts = actionRowNameParts(rowItem, i18n.locale);
     const traitLabels = rowItem.traits.map((tr) => traitDisplayName(tr, i18n.locale));
 
-    // Optional save line, only for impulses that call for a save AND a known DC.
-    let saveLine: string | null = null;
+    // Resolve the impulse's own description (embedded item) for the save + damage
+    // automation cues.
     const itemId = rowItem.key.startsWith("embedded:") ? rowItem.key.slice("embedded:".length) : "";
     const embItem = embeddedById.get(itemId);
     const sys =
       embItem && typeof embItem["system"] === "object" && embItem["system"] !== null
         ? (embItem["system"] as Record<string, unknown>)
         : {};
-    const cue = parseImpulseSaveCue(descriptionHtmlOf(sys));
+    const descriptionHtml = descriptionHtmlOf(sys);
+    const cue = parseImpulseSaveCue(descriptionHtml);
+    const damage = parseImpulseDamage(descriptionHtml);
     const dc = kineticistClassDc(doc);
+
+    // Optional save line (text, old clients), only for save impulses with a DC.
+    let saveLine: string | null = null;
     if (cue && dc !== null) {
       const saveLabel = t(
         `FUSION.Sheet.Actions.Save.${cue.save.charAt(0).toUpperCase()}${cue.save.slice(1)}`,
@@ -388,12 +395,20 @@
       });
     }
 
-    const op = buildImpulseUseAnnouncement({
+    // Build the interactive impulse card (r20-X1). Save/damage buttons on the
+    // card nest under the announcement via its own message id (fire-and-forget
+    // is fine — there is no auto-attack to chain).
+    const op = buildImpulseCard({
       verb: t("FUSION.Sheet.Actions.UseVerb"),
       displayName: parts.display,
+      nameEn: rowItem.nameEn,
       glyphs: rowItem.cost.glyphs,
       traitLabels,
+      traitSlugs: rowItem.traits,
+      saveCue: cue,
+      classDc: dc,
       saveLine,
+      damage,
       worldId,
       speakerActorId,
     });
@@ -418,17 +433,45 @@
    */
   function rollBlast(blast: BlastRowVM): void {
     if (!speakerActorId) return;
-    const flavor = t("FUSION.Sheet.Chat.BlastMap", {
-      label: t("FUSION.Sheet.Chat.BlastFlavor", { element: blastElementLabel(blast.element) }),
-      map: 0,
-    });
-    const op = buildElementalBlastAttackOp({
-      attackFormula: blast.attackFormula,
-      flavor,
+    const cardName = t("FUSION.Sheet.Chat.BlastFlavor", { element: blastElementLabel(blast.element) });
+    const attackFlavor = t("FUSION.Sheet.Chat.BlastMap", { label: cardName, map: 0 });
+    const built = buildElementalBlastCard({
+      blast,
+      cardName,
+      attackFlavor,
       worldId,
       speakerActorId,
     });
-    if (op) sendOpFn(op);
+    if (built) emitBlast(built);
+  }
+
+  /**
+   * Emit a Rajada card announcement + its MAP-0 attack, NESTING the attack under
+   * the announcement (r20-X1) so attack + (card) damage read as ONE card. Sends
+   * the announcement over a live socket awaiting its ack (sendChatOpForId), then
+   * fires the attack with `parentMessageId`. On any failure (no socket / ack
+   * error) falls back to un-nested delivery so a roll is NEVER lost. Mirrors the
+   * spell-cast emitCast (SpellsTab.svelte).
+   */
+  function emitBlast(built: { announcement: ActionChatOp; attack: ActionChatOp }): void {
+    const sock = getSocket();
+    if (!sock) {
+      sendOpFn(built.announcement);
+      sendOpFn(built.attack);
+      return;
+    }
+    void (async () => {
+      try {
+        const parentId = await sendChatOpForId(sock, built.announcement);
+        const nested: ActionChatOp = parentId
+          ? { ...built.attack, flags: { ...built.attack.flags, parentMessageId: parentId } }
+          : built.attack;
+        sendOpFn(nested);
+      } catch {
+        sendOpFn(built.announcement);
+        sendOpFn(built.attack);
+      }
+    })();
   }
 
   function groupBadgeLabel(group: ActionGroup): string {

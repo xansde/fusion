@@ -77,7 +77,8 @@ function actorName(actor: ActorDocLike): string {
   return typeof raw === "string" && raw.length > 0 ? raw : "?";
 }
 
-function actorId(actor: ActorDocLike): string {
+/** The actor doc's `_id`, or "" when missing. Shared with abilityCardVM. */
+export function actorId(actor: ActorDocLike): string {
   const raw = actor["_id"];
   return typeof raw === "string" ? raw : "";
 }

@@ -39,7 +39,7 @@
  */
 
 import type { Socket } from "socket.io-client";
-import type { PackIndexEntry } from "@fusion/shared";
+import type { PackIndexEntry, AbilityCard, ChatSendFlags } from "@fusion/shared";
 import { normalizeSearchText } from "@fusion/shared";
 import type { SupportedLocale } from "../../i18n/i18n.js";
 import {
@@ -623,6 +623,12 @@ export interface ActionChatOp {
   worldId: string;
   rollMode: "public";
   speakerActorId: string;
+  /**
+   * Optional namespaced flags (r20-X1): the impulse / blast announcement
+   * carries `pf2e.abilityCard` (an interactive AbilityCard); a nested attack
+   * carries `parentMessageId`. Absent on a plain (loose) roll.
+   */
+  flags?: ChatSendFlags;
 }
 
 /** A saving-throw cue parsed from an impulse's `@Check[...]` automation token. */
@@ -699,6 +705,145 @@ export function buildImpulseUseAnnouncement(params: {
   };
 }
 
+/** A rollable damage parsed from an impulse's `@Damage[...]` automation token. */
+export interface ImpulseDamage {
+  /** A clean, server-rollable dice formula (e.g. "2d6", "(1d4+2)"). */
+  formula: string;
+  /** Damage type slug (e.g. "fire", "bludgeoning"), or null when unstated. */
+  damageType: string | null;
+}
+
+/**
+ * Find the index of the `]` that closes the `[` at `openIdx`, tracking nested
+ * `[...]`. Returns -1 if unbalanced. Local mirror of documentDetails' helper so
+ * the parser stays dependency-free/testable.
+ */
+function findMatchingBracket(text: string, openIdx: number): number {
+  let depth = 0;
+  for (let i = openIdx; i < text.length; i++) {
+    if (text[i] === "[") depth++;
+    else if (text[i] === "]") {
+      depth--;
+      if (depth === 0) return i;
+    }
+  }
+  return -1;
+}
+
+/** Damage-category markers that precede the real damage type inside `[...]`. */
+const DAMAGE_MARKERS = new Set(["persistent", "precision", "splash"]);
+
+/**
+ * Parse the FIRST `@Damage[...]` token of an impulse's description into a
+ * server-ROLLABLE damage (r20-X1). Kineticist impulse damage frequently scales
+ * with `@actor.level` / `ternary(...)` / `ceil(...)`, which the chat:send roll
+ * path CANNOT resolve (it threads no actor rollData) — so this deliberately
+ * returns a formula ONLY when it is "clean": dice/number arithmetic with no
+ * `@`-references and no function names. Level-scaled impulses (the common case)
+ * yield null → the card simply shows the save with no damage button, which is
+ * exactly the intended behavior ("parseado quando existir"). Returns null when
+ * the description carries no `@Damage`, or the formula is not cleanly rollable.
+ */
+export function parseImpulseDamage(descriptionHtml: string | null | undefined): ImpulseDamage | null {
+  if (!descriptionHtml) return null;
+  const marker = "@Damage[";
+  const start = descriptionHtml.indexOf(marker);
+  if (start < 0) return null;
+  const openIdx = start + marker.length - 1; // index of the '['
+  const closeIdx = findMatchingBracket(descriptionHtml, openIdx);
+  if (closeIdx < 0) return null;
+  let body = descriptionHtml.slice(openIdx + 1, closeIdx);
+
+  // Drop trailing `|options:...` / `|traits:...` flag segments (a bare `|` never
+  // appears inside the formula itself).
+  const pipeIdx = body.indexOf("|");
+  if (pipeIdx >= 0) body = body.slice(0, pipeIdx);
+
+  // The damage TYPE is the last top-level `[...]`; the formula is what precedes.
+  let damageType: string | null = null;
+  let formula = body;
+  const typeOpen = body.lastIndexOf("[");
+  if (typeOpen >= 0) {
+    const typeClose = findMatchingBracket(body, typeOpen);
+    if (typeClose > typeOpen) {
+      const typeBody = body.slice(typeOpen + 1, typeClose);
+      formula = body.slice(0, typeOpen);
+      const parts = typeBody
+        .split(",")
+        .map((s) => s.trim().toLowerCase())
+        .filter((s) => s.length > 0 && !DAMAGE_MARKERS.has(s));
+      damageType = parts[0] ?? null;
+    }
+  }
+
+  formula = formula.trim();
+  // Strip a single wrapping pair of parens for the clean-check ("(1d4+2)" is OK).
+  const inner = /^\((.*)\)$/.test(formula) ? formula.slice(1, -1) : formula;
+  // Clean = dice/number arithmetic only (d + digits + + - * / ( ) . space). No
+  // `@` refs, no function names (ceil/max/floor/ternary carry other letters).
+  const clean = /^[0-9dD+\-*/().\s]+$/.test(inner) && /\d/.test(inner) && !inner.includes("@");
+  if (!clean) return null;
+  return { formula, damageType };
+}
+
+/**
+ * Assemble the "Usar" announcement op for an impulse as an interactive
+ * AbilityCard (r20-X1) — the impulse counterpart of the spell-cast card. The
+ * `content` text (for old clients) mirrors {@link buildImpulseUseAnnouncement};
+ * the `flags.pf2e.abilityCard` payload carries the save (statistic + class DC +
+ * basic) and, when a clean @Damage was parsed, the damage formula/type, so the
+ * card renders "Fazer teste de resistência" and/or "Rolar dano" whose rolls
+ * nest under the announcement. Returns null without a speaker actor.
+ */
+export function buildImpulseCard(params: {
+  verb: string;
+  displayName: string;
+  nameEn?: string | null;
+  glyphs: string;
+  traitLabels: readonly string[];
+  traitSlugs: readonly string[];
+  saveCue: ImpulseSaveCue | null;
+  classDc: number | null;
+  saveLine?: string | null;
+  damage: ImpulseDamage | null;
+  worldId: string;
+  speakerActorId: string;
+}): ActionChatOp | null {
+  if (!params.speakerActorId) return null;
+
+  let content = `${params.verb} ${params.displayName}`.trim();
+  if (params.glyphs) content += ` ${params.glyphs}`;
+  if (params.traitLabels.length > 0) content += ` (${params.traitLabels.join(", ")})`;
+  if (params.saveLine) content += ` — ${params.saveLine}`;
+
+  const card: AbilityCard = {
+    kind: "impulse",
+    casterActorId: params.speakerActorId,
+    name: params.displayName,
+  };
+  if (params.nameEn && params.nameEn !== params.displayName) card.nameEn = params.nameEn;
+  if (params.glyphs) card.actionCost = params.glyphs;
+  if (params.saveCue && params.classDc !== null) {
+    card.saveType = params.saveCue.save;
+    card.dcValue = params.classDc;
+    if (params.saveCue.basic) card.basicSave = true;
+  }
+  if (params.damage) {
+    card.damageFormula = params.damage.formula;
+    if (params.damage.damageType) card.damageType = params.damage.damageType;
+  }
+  if (params.traitSlugs.length > 0) card.traits = [...params.traitSlugs];
+
+  return {
+    type: "chat:send",
+    content,
+    worldId: params.worldId,
+    rollMode: "public",
+    speakerActorId: params.speakerActorId,
+    flags: { pf2e: { abilityCard: card } },
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Elemental Blast shortcut rows (r19-W3, item 2)
 // ---------------------------------------------------------------------------
@@ -720,6 +865,14 @@ export interface BlastRowVM {
   attackFormula: string;
   /** Damage roll formula, shown read-only (roll it on the Main tab). */
   damageFormula: string;
+  /**
+   * Pure server-rollable damage formula (no type text), e.g. "2d6+4" (r20-X1).
+   * Feeds the Rajada card's "Rolar dano" button. "" when absent on the derived
+   * data (older pre-migration shape) — the card then omits the damage button.
+   */
+  damageRoll: string;
+  /** 2-action variant CON status bonus (kept for the Main-tab loose roll). */
+  twoActionDamageBonus: number;
   isRanged: boolean;
   range: number | null;
 }
@@ -756,6 +909,9 @@ export function readElementalBlasts(doc: Record<string, unknown>): BlastRowVM[] 
       attackTotal,
       attackFormula: str(v0["formula"]) ?? "",
       damageFormula: str(b["damageFormula"]) ?? "",
+      damageRoll: str(b["damageRoll"]) ?? "",
+      twoActionDamageBonus:
+        typeof b["twoActionDamageBonus"] === "number" ? (b["twoActionDamageBonus"] as number) : 0,
       isRanged: b["isRanged"] === true,
       range: typeof b["range"] === "number" ? (b["range"] as number) : null,
     });
@@ -785,6 +941,50 @@ export function buildElementalBlastAttackOp(params: {
     rollMode: "public",
     speakerActorId: params.speakerActorId,
   };
+}
+
+/**
+ * Build the Elemental Blast as an interactive Rajada card (r20-X1): an
+ * announcement carrying `flags.pf2e.abilityCard` (kind:"impulse", damage from
+ * the derived `damageRoll`) PLUS the MAP-0 attack roll to nest under it. The
+ * caller sends the announcement over a live socket, awaits its id, then fires
+ * the attack with `parentMessageId` so attack + (card) damage group into ONE
+ * Rajada card. Returns null when the attack formula or speaker is missing.
+ */
+export function buildElementalBlastCard(params: {
+  blast: BlastRowVM;
+  cardName: string;
+  attackFlavor: string;
+  worldId: string;
+  speakerActorId: string;
+}): { announcement: ActionChatOp; attack: ActionChatOp } | null {
+  const attackFormula = params.blast.attackFormula.replace(/\s+/g, "");
+  if (!attackFormula || !params.speakerActorId) return null;
+
+  const card: AbilityCard = {
+    kind: "impulse",
+    casterActorId: params.speakerActorId,
+    name: params.cardName,
+  };
+  if (params.blast.damageRoll) card.damageFormula = params.blast.damageRoll;
+  if (params.blast.damageType) card.damageType = params.blast.damageType;
+
+  const announcement: ActionChatOp = {
+    type: "chat:send",
+    content: params.cardName,
+    worldId: params.worldId,
+    rollMode: "public",
+    speakerActorId: params.speakerActorId,
+    flags: { pf2e: { abilityCard: card } },
+  };
+  const attack: ActionChatOp = {
+    type: "chat:send",
+    content: `/r ${attackFormula} # ${params.attackFlavor}`,
+    worldId: params.worldId,
+    rollMode: "public",
+    speakerActorId: params.speakerActorId,
+  };
+  return { announcement, attack };
 }
 
 // ---------------------------------------------------------------------------

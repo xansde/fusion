@@ -1,27 +1,31 @@
 <script lang="ts">
   /**
-   * SpellCastCard.svelte — interactive PF2e spell-cast chat card (r17-P2).
+   * AbilityCard.svelte — generalized interactive PF2e ability chat card
+   * (r20-X1). The GENERALIZATION of SpellCastCard.svelte: it renders
+   * `flags.pf2e.abilityCard` (AbilityCard, @fusion/shared) for spells,
+   * Kineticist impulses AND weapon strikes, mounted by ChatMessage.svelte in
+   * place of the plain text body. Legacy `flags.pf2e.spellCast` messages are
+   * adapted to an AbilityCard on read (ChatMessage.svelte) so old chat renders
+   * through this same component.
    *
-   * Renders `flags.pf2e.spellCast` (SpellCastCard, @fusion/shared) mounted by
-   * ChatMessage.svelte in place of the plain text body. NOT a `message.card`
-   * (CardData) declarative card — it mirrors the Etmos ConjuracaoCard pattern:
-   * a namespaced flag with its own component + pure VM.
-   *
-   * Two actions:
+   * Actions (driven by which fields the card carries, not rigidly by kind):
    *   - "Fazer teste de resistência" (save type + DC present): ANY player may
    *     click — it is the TARGET who rolls. Resolves the clicker's actor
    *     (1 owned → auto; N owned or GM → mini-selector) and emits a chat:send
    *     `/r 1d20+<mod> # Salvaguarda...` with speaker = the chosen actor.
-   *   - "Rolar dano" (damage formula present): visible only to the caster's
-   *     owner / GM — emits a chat:send `/r <heightened formula> # <spell> — Dano`
-   *     with speaker = the caster.
+   *   - "Rolar dano" / "Rolar dano crítico" (damage / crit formula present):
+   *     visible only to the user's owner / GM — emits a chat:send
+   *     `/r <formula> # <flavor>` with speaker = the caster.
+   * The ATTACK roll (spell-attack / strike / blast attack) is NOT a card button:
+   * it is fired at announce time and nested under the card (r18-N1), so it shows
+   * as a compact roll line above these buttons.
    *
    * All rolls run on the SERVER (RNG server-side, anti-cheat). This component
    * only decides which buttons to show and builds the ops via the pure VM.
    */
 
   import type { Socket } from "socket.io-client";
-  import type { SpellCastCard } from "@fusion/shared";
+  import type { AbilityCard } from "@fusion/shared";
   import { t } from "$lib/i18n/i18n.js";
   import { sendOp } from "$lib/docs/sendOp.js";
   import { worldMirror } from "$lib/docs/worldSync.js";
@@ -33,17 +37,19 @@
   import {
     resolveClickerActors,
     showSaveButton,
+    hasDamage,
+    hasCritDamage,
     canRollDamage,
     buildSaveRollOp,
     buildDamageRollOp,
-    resolveSpellCastUuid,
+    resolveAbilityUuid,
     type ClickerActorOption,
-    type SpellCastChatOp,
+    type AbilityChatOp,
     type ActorDocLike,
-  } from "$lib/sheets/pf2e/spellCastCardVM.js";
+  } from "$lib/sheets/pf2e/abilityCardVM.js";
 
   interface Props {
-    card: SpellCastCard;
+    card: AbilityCard;
     /** Id of the chat message this card renders (r18-N1) — nests save/damage rolls under it. */
     messageId?: string;
     worldId: string;
@@ -58,12 +64,20 @@
   let errorMsg = $state<string | null>(null);
   let selectorOpen = $state(false);
 
-  // --- Spell details popup (r17.2) ------------------------------------------
-  // Clicking the spell NAME opens the same details popup as the Spells tab
-  // (r14-B4): resolve the card's spell (spellNameEn, then spellName) to a
-  // spells-core pack Compendium uuid, fetch + cache the full doc, and render
-  // it via the shared DocumentDetailsPanel. No pack match / offline → a
-  // discrete "not found" message instead of an endless spinner.
+  // Per-kind header treatment (icon + accessible title). Damage/save buttons are
+  // driven by the card's fields, not by kind.
+  const KIND_ICON: Record<AbilityCard["kind"], string> = {
+    spell: "✦",
+    impulse: "◈",
+    strike: "⚔",
+  };
+  const kindIcon = $derived(KIND_ICON[card.kind]);
+  const cardTitle = $derived(t(`FUSION.Chat.AbilityCard.Title.${card.kind}`));
+  // The ability NAME opens a compendium details popup ONLY for spells (the
+  // resolver indexes the spells-core pack); impulse/strike names are plain text.
+  const nameClickable = $derived(card.kind === "spell");
+
+  // --- Spell details popup (r17.2, spells only) -----------------------------
   const detailsCache = new DocumentDetailsCache();
   let spellDetailsResolver = $state<SpellDetailsResolver | null>(null);
   let resolverLoaded = $state(false);
@@ -75,12 +89,6 @@
   let detailsNotFound = $state(false);
   let detailsFetchId = 0; // guards a stale fetch resolving after close/reopen
 
-  /**
-   * Load the spells-core pack index once (lazily, on first click) and build a
-   * name→uuid resolver via the SAME `buildSpellDetailsResolver` the Spells tab
-   * uses (characterSheetVM.ts, r14-B4) — identical bilingual (EN/pt-BR)
-   * accent/case-insensitive matching, imported rather than duplicated.
-   */
   async function loadSpellDetailsResolver(): Promise<void> {
     if (resolverLoaded) return;
     try {
@@ -98,7 +106,8 @@
     }
   }
 
-  async function openSpellNameDetails(): Promise<void> {
+  async function openNameDetails(): Promise<void> {
+    if (!nameClickable) return;
     detailsOpen = true;
     detailsNotFound = false;
     const fetchId = ++detailsFetchId;
@@ -109,7 +118,7 @@
       detailsNotFound = true;
       return;
     }
-    const uuid = resolveSpellCastUuid(card, resolver);
+    const uuid = resolveAbilityUuid(card, resolver);
     if (!uuid) {
       detailsNotFound = true;
       return;
@@ -142,7 +151,7 @@
     }
   }
 
-  function closeSpellNameDetails(): void {
+  function closeNameDetails(): void {
     detailsOpen = false;
     detailsDoc = null;
     detailsLoading = false;
@@ -162,20 +171,39 @@
   );
 
   const canSave = $derived(showSaveButton(card));
-  const canDamage = $derived(canRollDamage(card, casterActor, userId, isGm));
+  const controllable = $derived(canRollDamage(card, casterActor, userId, isGm));
+  const canDamage = $derived(controllable && hasDamage(card));
+  const canCrit = $derived(controllable && hasCritDamage(card));
 
   const saveTypeLabel = $derived(
     card.saveType ? t(`FUSION.Sheet.Chat.SaveName.${card.saveType}`) : "",
   );
-  const damageFlavorPrefix = $derived(
-    card.rank > 0
-      ? t("FUSION.Sheet.Chat.SpellDamageHeightened", { name: card.spellName, rank: String(card.rank) })
-      : t("FUSION.Sheet.Chat.SpellDamage", { name: card.spellName }),
-  );
 
-  async function emit(op: SpellCastChatOp): Promise<void> {
+  // Damage-roll flavor prefix (the VM appends nothing extra — we pass the full
+  // flavor). Spells keep the rank-aware "Ignição (nível 2)" phrasing; impulses
+  // and strikes use the generic "<name> — Dano" / "— Crítico".
+  const damageFlavor = $derived.by(() => {
+    const dtype = card.damageType ? ` ${card.damageType}` : "";
+    if (card.kind === "spell") {
+      const prefix =
+        (card.rank ?? 0) > 0
+          ? t("FUSION.Sheet.Chat.SpellDamageHeightened", {
+              name: card.name,
+              rank: String(card.rank ?? 0),
+            })
+          : t("FUSION.Sheet.Chat.SpellDamage", { name: card.name });
+      return `${prefix}${dtype}`;
+    }
+    return `${t("FUSION.Chat.AbilityCard.DamageFlavor", { name: card.name })}${dtype}`;
+  });
+  const critFlavor = $derived.by(() => {
+    const dtype = card.damageType ? ` ${card.damageType}` : "";
+    return `${t("FUSION.Chat.AbilityCard.CritFlavor", { name: card.name })}${dtype}`;
+  });
+
+  async function emit(op: AbilityChatOp): Promise<void> {
     if (!socket) {
-      console.warn("[SpellCastCard] no socket — cannot emit", op.type);
+      console.warn("[AbilityCard] no socket — cannot emit", op.type);
       return;
     }
     pending = true;
@@ -209,33 +237,41 @@
   }
 
   async function handleDamageClick(): Promise<void> {
-    // r18-N1: nest the damage roll under this card's own message.
-    const op = buildDamageRollOp(card, worldId, damageFlavorPrefix, messageId);
+    const op = buildDamageRollOp(card, card.damageFormula, worldId, damageFlavor, messageId);
+    if (op) await emit(op);
+  }
+
+  async function handleCritClick(): Promise<void> {
+    const op = buildDamageRollOp(card, card.critDamageFormula, worldId, critFlavor, messageId);
     if (op) await emit(op);
   }
 </script>
 
-<div class="spell-card" aria-label={t("FUSION.Chat.SpellCard.Title")}>
+<div class="ability-card" aria-label={cardTitle}>
   <!-- Header -->
-  <div class="spell-card__header">
-    <span class="spell-card__icon" aria-hidden="true">✦</span>
-    <button
-      type="button"
-      class="spell-card__title spell-name-btn"
-      aria-label={t("FUSION.Sheet.Spells.SpellDetailsOpen", { name: card.spellName })}
-      onclick={() => void openSpellNameDetails()}
-    >{card.spellName}</button>
-    {#if card.actionCost}
-      <span class="spell-card__cost" aria-hidden="true">{card.actionCost}</span>
+  <div class="ability-card__header">
+    <span class="ability-card__icon ability-card__icon--{card.kind}" aria-hidden="true">{kindIcon}</span>
+    {#if nameClickable}
+      <button
+        type="button"
+        class="ability-card__title ability-name-btn"
+        aria-label={t("FUSION.Sheet.Spells.SpellDetailsOpen", { name: card.name })}
+        onclick={() => void openNameDetails()}
+      >{card.name}</button>
+    {:else}
+      <span class="ability-card__title">{card.name}</span>
     {/if}
-    {#if card.rank > 0}
-      <span class="spell-card__rank">{t("FUSION.Chat.SpellCard.Rank", { rank: String(card.rank) })}</span>
+    {#if card.actionCost}
+      <span class="ability-card__cost" aria-hidden="true">{card.actionCost}</span>
+    {/if}
+    {#if card.kind === "spell" && (card.rank ?? 0) > 0}
+      <span class="ability-card__rank">{t("FUSION.Chat.SpellCard.Rank", { rank: String(card.rank ?? 0) })}</span>
     {/if}
   </div>
 
   <!-- Save / DC line -->
   {#if canSave}
-    <div class="spell-card__save">
+    <div class="ability-card__save">
       {t("FUSION.Sheet.Chat.SpellCastSave", {
         dc: String(card.dcValue),
         save: saveTypeLabel,
@@ -246,31 +282,31 @@
 
   <!-- Damage line (display) -->
   {#if card.damageFormula}
-    <div class="spell-card__damage">
-      {card.damageFormula}{#if card.damageType}<span class="spell-card__dtype"> {card.damageType}</span>{/if}
+    <div class="ability-card__damage">
+      {card.damageFormula}{#if card.damageType}<span class="ability-card__dtype"> {card.damageType}</span>{/if}
     </div>
   {/if}
 
   <!-- Traits -->
   {#if card.traits && card.traits.length > 0}
-    <div class="spell-card__traits">
+    <div class="ability-card__traits">
       {#each card.traits as trait (trait)}
-        <span class="spell-card__trait">{trait}</span>
+        <span class="ability-card__trait">{trait}</span>
       {/each}
     </div>
   {/if}
 
   {#if errorMsg}
-    <p class="spell-card__error" role="alert">{errorMsg}</p>
+    <p class="ability-card__error" role="alert">{errorMsg}</p>
   {/if}
 
   <!-- Actor selector (N controllable actors) -->
   {#if selectorOpen && clickerActors.length > 1}
-    <div class="spell-card__selector" role="group" aria-label={t("FUSION.Chat.SpellCard.PickActor")}>
+    <div class="ability-card__selector" role="group" aria-label={t("FUSION.Chat.SpellCard.PickActor")}>
       {#each clickerActors as opt (opt.id)}
         <button
           type="button"
-          class="spell-card__btn spell-card__btn--ghost"
+          class="ability-card__btn ability-card__btn--ghost"
           onclick={() => rollSaveWith(opt.id)}
           disabled={pending}
         >
@@ -281,62 +317,73 @@
   {/if}
 
   <!-- Actions -->
-  <div class="spell-card__actions">
-    {#if canSave}
-      <button
-        type="button"
-        class="spell-card__btn spell-card__btn--primary"
-        onclick={handleSaveClick}
-        disabled={pending || clickerActors.length === 0}
-        title={clickerActors.length === 0 ? t("FUSION.Chat.SpellCard.NoActor") : ""}
-      >
-        {t("FUSION.Chat.SpellCard.RollSave")}
-      </button>
-    {/if}
-    {#if canDamage}
-      <button
-        type="button"
-        class="spell-card__btn spell-card__btn--danger"
-        onclick={handleDamageClick}
-        disabled={pending}
-      >
-        {t("FUSION.Chat.SpellCard.RollDamage")}
-      </button>
-    {/if}
-  </div>
+  {#if canSave || canDamage || canCrit}
+    <div class="ability-card__actions">
+      {#if canSave}
+        <button
+          type="button"
+          class="ability-card__btn ability-card__btn--primary"
+          onclick={handleSaveClick}
+          disabled={pending || clickerActors.length === 0}
+          title={clickerActors.length === 0 ? t("FUSION.Chat.SpellCard.NoActor") : ""}
+        >
+          {t("FUSION.Chat.SpellCard.RollSave")}
+        </button>
+      {/if}
+      {#if canDamage}
+        <button
+          type="button"
+          class="ability-card__btn ability-card__btn--danger"
+          onclick={handleDamageClick}
+          disabled={pending}
+        >
+          {t("FUSION.Chat.SpellCard.RollDamage")}
+        </button>
+      {/if}
+      {#if canCrit}
+        <button
+          type="button"
+          class="ability-card__btn ability-card__btn--danger"
+          onclick={handleCritClick}
+          disabled={pending}
+        >
+          {t("FUSION.Chat.AbilityCard.RollCritDamage")}
+        </button>
+      {/if}
+    </div>
+  {/if}
 </div>
 
 <!--
-  Spell details popup (r17.2): clicking the card's spell NAME opens the same
-  details UX as the Spells tab (DocumentDetailsPanel, r14-B4). Rendered as a
-  fixed-position overlay ABOVE the whole layout (z-index 110, matching the
-  sheet's spell-details-modal) so it works from the chat sidebar without
-  disturbing the log's scroll. ESC / click-outside close.
+  Ability details popup (spells only): clicking a spell card's NAME opens the
+  same details UX as the Spells tab (DocumentDetailsPanel, r14-B4). Rendered as
+  a fixed-position overlay ABOVE the whole layout so it works from the chat
+  sidebar without disturbing the log's scroll. ESC / click-outside close.
 -->
 {#if detailsOpen}
   <div
-    class="spell-cast-details-backdrop"
+    class="ability-details-backdrop"
     role="presentation"
-    onclick={closeSpellNameDetails}
-    onkeydown={(e) => { if (e.key === "Escape") closeSpellNameDetails(); }}
+    onclick={closeNameDetails}
+    onkeydown={(e) => { if (e.key === "Escape") closeNameDetails(); }}
   >
     <div
-      class="spell-cast-details-modal"
+      class="ability-details-modal"
       role="dialog"
       aria-modal="true"
       tabindex="-1"
       aria-label={t("FUSION.Sheet.Spells.SpellDetailsTitle")}
       onclick={(e) => e.stopPropagation()}
-      onkeydown={(e) => { if (e.key === "Escape") closeSpellNameDetails(); }}
+      onkeydown={(e) => { if (e.key === "Escape") closeNameDetails(); }}
     >
       <button
         type="button"
-        class="spell-cast-details-modal__close"
+        class="ability-details-modal__close"
         aria-label={t("FUSION.Dialog.Close")}
-        onclick={closeSpellNameDetails}
+        onclick={closeNameDetails}
       >&times;</button>
       {#if detailsNotFound}
-        <p class="spell-cast-details-modal__not-found">{t("FUSION.Chat.SpellCard.DetailsNotFound")}</p>
+        <p class="ability-details-modal__not-found">{t("FUSION.Chat.SpellCard.DetailsNotFound")}</p>
       {:else}
         <DocumentDetailsPanel
           document={detailsDoc}
@@ -353,7 +400,7 @@
 {/if}
 
 <style>
-  .spell-card {
+  .ability-card {
     background: var(--fusion-surface-alt);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius);
@@ -366,29 +413,31 @@
     gap: 6px;
   }
 
-  .spell-card__header {
+  .ability-card__header {
     display: flex;
     align-items: center;
     gap: 6px;
   }
 
-  .spell-card__icon {
+  .ability-card__icon--spell {
     color: #7c5cfc;
   }
+  .ability-card__icon--impulse {
+    color: #3ddc84;
+  }
+  .ability-card__icon--strike {
+    color: #ff9f43;
+  }
 
-  .spell-card__title {
+  .ability-card__title {
     flex: 1;
     font-weight: 600;
     font-size: 0.8125rem;
     color: var(--fusion-text);
   }
 
-  /*
-   * Clickable spell name (r17.2) — same reset + hover accent as the sheet's
-   * .spell-name-btn (SpellsTab.svelte, r14-B4): a real <button> with no
-   * chrome, reading as inline title text until hovered/focused.
-   */
-  .spell-card__title.spell-name-btn {
+  /* Clickable ability name (spells) — a real <button> with no chrome. */
+  .ability-card__title.ability-name-btn {
     display: inline;
     margin: 0;
     padding: 0;
@@ -400,22 +449,22 @@
     transition: color 0.12s;
   }
 
-  .spell-card__title.spell-name-btn:hover,
-  .spell-card__title.spell-name-btn:focus-visible {
+  .ability-card__title.ability-name-btn:hover,
+  .ability-card__title.ability-name-btn:focus-visible {
     color: var(--fusion-accent-hover);
     text-decoration: underline;
     text-underline-offset: 2px;
     outline: none;
   }
 
-  .spell-card__cost {
+  .ability-card__cost {
     font-family: var(--fusion-font-mono);
     color: var(--fusion-accent);
     font-size: 0.85rem;
     letter-spacing: 1px;
   }
 
-  .spell-card__rank {
+  .ability-card__rank {
     font-size: 0.65rem;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -426,28 +475,28 @@
     color: var(--fusion-text-muted);
   }
 
-  .spell-card__save {
+  .ability-card__save {
     font-size: 0.75rem;
     color: var(--fusion-text-muted);
   }
 
-  .spell-card__damage {
+  .ability-card__damage {
     font-family: var(--fusion-font-mono);
     font-size: 0.8rem;
     color: var(--fusion-text);
   }
 
-  .spell-card__dtype {
+  .ability-card__dtype {
     color: var(--fusion-text-muted);
   }
 
-  .spell-card__traits {
+  .ability-card__traits {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
   }
 
-  .spell-card__trait {
+  .ability-card__trait {
     font-size: 0.62rem;
     text-transform: uppercase;
     letter-spacing: 0.03em;
@@ -458,13 +507,13 @@
     color: var(--fusion-text-muted);
   }
 
-  .spell-card__error {
+  .ability-card__error {
     font-size: 0.7rem;
     color: var(--fusion-danger);
     margin: 0;
   }
 
-  .spell-card__selector {
+  .ability-card__selector {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
@@ -474,7 +523,7 @@
     border: 1px dashed var(--fusion-accent-dim);
   }
 
-  .spell-card__actions {
+  .ability-card__actions {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
@@ -482,7 +531,7 @@
     border-top: 1px solid var(--fusion-border);
   }
 
-  .spell-card__btn {
+  .ability-card__btn {
     border: 1px solid transparent;
     border-radius: var(--fusion-radius-sm);
     cursor: pointer;
@@ -492,39 +541,33 @@
     padding: 0.3rem 0.65rem;
   }
 
-  .spell-card__btn:disabled {
+  .ability-card__btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
   }
 
-  .spell-card__btn--primary {
+  .ability-card__btn--primary {
     background: var(--fusion-accent);
     color: #fff;
   }
 
-  .spell-card__btn--primary:not(:disabled):hover {
+  .ability-card__btn--primary:not(:disabled):hover {
     background: var(--fusion-accent-hover);
   }
 
-  .spell-card__btn--ghost {
+  .ability-card__btn--ghost {
     background: transparent;
     border-color: var(--fusion-border);
     color: var(--fusion-text);
   }
 
-  .spell-card__btn--danger {
+  .ability-card__btn--danger {
     background: rgba(255, 92, 92, 0.12);
     border-color: var(--fusion-danger);
     color: var(--fusion-danger);
   }
 
-  /*
-   * Spell details popup (r17.2) — fixed-position overlay ABOVE the whole
-   * layout (z-index 110, matching the sheet's .mini-backdrop /
-   * .spell-details-modal, SpellsTab.svelte r14-B4) so it renders correctly
-   * from the chat sidebar without disturbing the chat log's own scroll.
-   */
-  .spell-cast-details-backdrop {
+  .ability-details-backdrop {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.45);
@@ -535,7 +578,7 @@
     z-index: 110;
   }
 
-  .spell-cast-details-modal {
+  .ability-details-modal {
     position: relative;
     width: 440px;
     max-width: 100%;
@@ -547,7 +590,7 @@
     box-shadow: var(--fusion-shadow-modal);
   }
 
-  .spell-cast-details-modal__close {
+  .ability-details-modal__close {
     position: absolute;
     top: 8px;
     right: 8px;
@@ -563,12 +606,12 @@
     font-family: var(--fusion-font);
   }
 
-  .spell-cast-details-modal__close:hover {
+  .ability-details-modal__close:hover {
     color: var(--fusion-text);
     background: var(--fusion-surface-alt);
   }
 
-  .spell-cast-details-modal__not-found {
+  .ability-details-modal__not-found {
     padding: 32px 16px;
     text-align: center;
     font-size: 12.5px;

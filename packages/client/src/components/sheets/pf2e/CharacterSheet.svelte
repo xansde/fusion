@@ -29,6 +29,7 @@
   import { buildSpellHealResolver } from "$lib/sheets/pf2e/spellHeal.js";
   import { skillNamePt } from "$lib/sheets/pf2e/skillNames.js";
   import { getSocket, session } from "$lib/session.svelte.js";
+  import { sendChatOpForId } from "$lib/docs/sendOp.js";
   import { worldMirror } from "$lib/docs/worldSync.js";
   import SpellsTab from "./SpellsTab.svelte";
   import ActionsTab from "./ActionsTab.svelte";
@@ -224,8 +225,41 @@
     sendOpFn(vm.rollPerception());
   }
 
+  /**
+   * Emit an ability announcement (card) + its attack, NESTING the attack under
+   * the announcement (r20-X1) so attack + (card) damage read as ONE card. Sends
+   * the announcement over a live socket awaiting its ack (sendChatOpForId), then
+   * fires the attack with `parentMessageId`. On any failure falls back to
+   * un-nested delivery so a roll is NEVER lost. Mirrors SpellsTab.emitCast.
+   */
+  function emitAbility(built: { announcement: ChatRollPayload; attack: ChatRollPayload }): void {
+    const sock = getSocket();
+    if (!sock) {
+      sendOpFn(built.announcement);
+      sendOpFn(built.attack);
+      return;
+    }
+    void (async () => {
+      try {
+        const parentId = await sendChatOpForId(sock, built.announcement);
+        const nested: ChatRollPayload = parentId
+          ? { ...built.attack, flags: { ...built.attack.flags, parentMessageId: parentId } }
+          : built.attack;
+        sendOpFn(nested);
+      } catch {
+        sendOpFn(built.announcement);
+        sendOpFn(built.attack);
+      }
+    })();
+  }
+
   function rollStrike(sourceId: string, mapIndex: 0 | 1 | 2): void {
-    sendOpFn(vm.rollStrike(sourceId, mapIndex));
+    // r20-X1: rolling an attack posts a strike card with the attack nested + a
+    // "Rolar dano" button. Falls back to a loose attack roll if the derived
+    // strike is unavailable (defensive).
+    const built = vm.strikeCard(sourceId, mapIndex);
+    if (built) emitAbility(built);
+    else sendOpFn(vm.rollStrike(sourceId, mapIndex));
   }
 
   function rollStrikeDamage(sourceId: string, crit: boolean): void {
@@ -234,8 +268,9 @@
   }
 
   function rollBlast(element: string, mapIndex: 0 | 1 | 2): void {
-    const op = vm.rollElementalBlast(element, mapIndex);
-    if (op) sendOpFn(op);
+    // r20-X1: rolling a blast attack posts a Rajada card with the attack nested.
+    const built = vm.blastCard(element, mapIndex);
+    if (built) emitAbility(built);
   }
 
   function rollBlastDamage(element: string, twoAction: boolean): void {

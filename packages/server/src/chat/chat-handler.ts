@@ -42,6 +42,7 @@ import type {
   InlineRollSpan,
   ChatSendPayload,
   SpellCastCard,
+  AbilityCard,
   SaveCheckContext,
 } from "@fusion/shared";
 
@@ -577,6 +578,26 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
         }
       }
 
+      // Attach a validated generalized ability card flag (r20-X1). Same
+      // pipeline as spellCast: the Zod shape was already validated by
+      // ChatSendPayloadSchema; sanitizeAbilityCard adds caster=speaker + a
+      // by-kind DC coherence check (spellcasting DC for spells, class DC for
+      // impulses; strikes carry no DC). Merged into the pf2e namespace WITHOUT
+      // clobbering a coexisting spellCast (defensive — a client sends one card).
+      const abilityCard = payload.flags?.pf2e?.abilityCard;
+      if (abilityCard) {
+        const sanitized = sanitizeAbilityCard(deps.db, abilityCard, payload.speakerActorId);
+        if (sanitized) {
+          msg.flags = {
+            ...msg.flags,
+            [SPELLCAST_FLAG_NAMESPACE]: {
+              ...(msg.flags?.[SPELLCAST_FLAG_NAMESPACE] as Record<string, unknown> | undefined),
+              [ABILITY_CARD_FLAG_KEY]: sanitized,
+            },
+          };
+        }
+      }
+
       // Parent linkage (r18-N1) — symmetric with the roll branch. A cast
       // announcement is a PARENT and carries no parentMessageId, so this is a
       // no-op for it; it only matters for a hypothetical nested text child.
@@ -934,6 +955,8 @@ export function computeSaveDegree(roll: RollResultData, ctx: SaveCheckContext): 
 
 const SPELLCAST_FLAG_NAMESPACE = "pf2e" as const;
 const SPELLCAST_FLAG_KEY = "spellCast" as const;
+/** flags.pf2e.abilityCard — the generalized ability card (r20-X1). */
+const ABILITY_CARD_FLAG_KEY = "abilityCard" as const;
 /** flags.pf2e.checkContext — the graded save context, for the render's basic hint (r17.1). */
 const CHECK_CONTEXT_FLAG_KEY = "checkContext" as const;
 /** flags.fusion.parentMessageId — id of the message this roll nests under (r18-N1). */
@@ -1043,6 +1066,80 @@ function sanitizeSpellCastCard(
     if (knownDCs.length > 0 && !knownDCs.includes(card.dcValue)) {
       console.warn(
         `[chat] spellCast DC ${String(card.dcValue)} for actor ${card.casterActorId} matches no derived spell DC (${knownDCs.join(",")}); dropping DC.`,
+      );
+      const { dcValue: _drop, ...rest } = card;
+      return rest;
+    }
+  }
+
+  return card;
+}
+
+/**
+ * Read the actor's derived Kineticist class DC (`system.derived.classDC.dc`),
+ * plus any archetype class DCs (`system.derived.archetypeClassDCs[].dc`), as the
+ * set of DCs a Kineticist impulse's saving throw may legitimately use. Returns
+ * an empty array when the actor is unknown or carries no derived class DC — the
+ * caller then skips the coherence check (best-effort log, never a hard gate).
+ */
+function readCasterClassDCs(db: Db, actorId: string): number[] {
+  try {
+    const row = db.prepare(`SELECT data FROM actors WHERE id = ?`).get(actorId) as
+      | { data: string }
+      | undefined;
+    if (!row) return [];
+    const doc = JSON.parse(row.data) as Record<string, unknown>;
+    const system = doc["system"] as Record<string, unknown> | undefined;
+    const derived = system?.["derived"] as Record<string, unknown> | undefined;
+    const dcs: number[] = [];
+    const classDC = derived?.["classDC"] as { dc?: unknown } | undefined;
+    if (typeof classDC?.dc === "number") dcs.push(classDC.dc);
+    const archetypeDCs = derived?.["archetypeClassDCs"];
+    if (Array.isArray(archetypeDCs)) {
+      for (const entry of archetypeDCs) {
+        const dc = (entry as { dc?: unknown } | null)?.dc;
+        if (typeof dc === "number") dcs.push(dc);
+      }
+    }
+    return dcs;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Validate a client-provided AbilityCard flag before it is attached to a
+ * ChatMessage (r20-X1) — the generalization of {@link sanitizeSpellCastCard}.
+ * The shape is already Zod-validated by ChatSendPayloadSchema; here we add:
+ *   - caster=speaker: `casterActorId` must equal the message's resolved speaker
+ *     actor (a forged card naming another actor as user is rejected — clearing
+ *     the flag), so the damage button's speaker=caster server gate holds;
+ *   - DC coherence by kind: the client is NEVER trusted for the DC — if the
+ *     actor has derived DCs, `dcValue` must match one (spellcasting DCs for
+ *     `spell`, class DCs for `impulse`), otherwise the DC is dropped (the save
+ *     button falls back to display-only) and a warning is logged. Strikes carry
+ *     no DC, so the coherence check is skipped for them.
+ */
+function sanitizeAbilityCard(
+  db: Db,
+  card: AbilityCard,
+  speakerActorId: string | undefined,
+): AbilityCard | null {
+  if (!speakerActorId || card.casterActorId !== speakerActorId) {
+    console.warn(
+      `[chat] abilityCard rejected: casterActorId "${card.casterActorId}" != speaker "${speakerActorId ?? "<none>"}"`,
+    );
+    return null;
+  }
+
+  if (card.dcValue !== undefined && card.kind !== "strike") {
+    const knownDCs =
+      card.kind === "impulse"
+        ? readCasterClassDCs(db, card.casterActorId)
+        : readCasterSpellDCs(db, card.casterActorId);
+    if (knownDCs.length > 0 && !knownDCs.includes(card.dcValue)) {
+      console.warn(
+        `[chat] abilityCard (${card.kind}) DC ${String(card.dcValue)} for actor ${card.casterActorId} matches no derived DC (${knownDCs.join(",")}); dropping DC.`,
       );
       const { dcValue: _drop, ...rest } = card;
       return rest;

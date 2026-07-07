@@ -9,7 +9,7 @@
 
 import { describe, it, expect } from "vitest";
 import { CharacterSheetVM, type SpellHealResolver } from "../characterSheetVM.js";
-import { ChatSendPayloadSchema, SpellCastCardSchema } from "@fusion/shared";
+import { ChatSendPayloadSchema, AbilityCardSchema } from "@fusion/shared";
 
 // Tobias-like caster: level 3 Magus, one arcane entry, Ignition (attack cantrip)
 // and Electric Arc (save cantrip). Embedded copies are STRIPPED (no heightening/
@@ -115,14 +115,15 @@ describe("castSpell — announcement", () => {
   });
 });
 
-describe("castSpell — interactive card payload (r17-P2)", () => {
+describe("castSpell — interactive card payload (r20-X1, generalized from r17-P2)", () => {
   it("attack cantrip (Ignition): card has damage (heightened), no save", () => {
     const vm = makeVM();
     const { announcement } = vm.castSpell("sp-ignition", "entry-arcane", "cantrip")!;
-    const card = announcement.flags?.pf2e?.spellCast;
+    const card = announcement.flags?.pf2e?.abilityCard;
     expect(card).toBeDefined();
-    // Card is a valid SpellCastCard.
-    expect(SpellCastCardSchema.safeParse(card).success).toBe(true);
+    // Card is a valid AbilityCard of kind "spell".
+    expect(AbilityCardSchema.safeParse(card).success).toBe(true);
+    expect(card!.kind).toBe("spell");
     expect(card!.casterActorId).toBe("tobias");
     expect(card!.rank).toBe(2); // L3 cantrip → effective rank 2
     expect(card!.actionCost).toBe("◆◆");
@@ -138,8 +139,9 @@ describe("castSpell — interactive card payload (r17-P2)", () => {
   it("save cantrip (Electric Arc): card has save (DC + basic) AND damage", () => {
     const vm = makeVM();
     const { announcement } = vm.castSpell("sp-arc", "entry-arcane", "cantrip")!;
-    const card = announcement.flags?.pf2e?.spellCast;
+    const card = announcement.flags?.pf2e?.abilityCard;
     expect(card).toBeDefined();
+    expect(card!.kind).toBe("spell");
     expect(card!.saveType).toBe("reflex");
     expect(card!.dcValue).toBe(19); // derived spellcasting DC
     expect(card!.basicSave).toBe(true);
@@ -151,7 +153,7 @@ describe("castSpell — interactive card payload (r17-P2)", () => {
     const vm = makeVM();
     // Ignition prepared in a rank-3 slot → +2 interval steps over base rank 1.
     const { announcement } = vm.castSpell("sp-ignition", "entry-arcane", "prepared", 3)!;
-    const card = announcement.flags?.pf2e?.spellCast;
+    const card = announcement.flags?.pf2e?.abilityCard;
     expect(card!.rank).toBe(3);
     expect(card!.damageFormula).toBe("2d4+1d4+1d4"); // base 2d4 + 2 interval steps
   });
