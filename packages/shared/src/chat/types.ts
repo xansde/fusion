@@ -218,6 +218,109 @@ export const SpellCastCardSchema = z.object({
 
 export type SpellCastCard = z.infer<typeof SpellCastCardSchema>;
 
+// ---------------------------------------------------------------------------
+// AbilityCard — generalized interactive ability card (r20-X1)
+// ---------------------------------------------------------------------------
+
+/**
+ * The three kinds of interactive ability card. All render through the SAME
+ * <AbilityCard> component + abilityCardVM, differing only in the header
+ * icon/label and the flavor prefixes:
+ *   - `spell`   — a cast spell (the r17-P2 SpellCastCard, generalized): save
+ *     and/or spell-attack + damage. DC comes from the caster's derived
+ *     spellcasting DC.
+ *   - `impulse` — a Kineticist impulse (r20-X1): a save impulse (Four Winds →
+ *     save + damage) OR an attack impulse (Elemental Blast → attack + damage).
+ *     DC comes from the caster's derived class DC.
+ *   - `strike`  — a weapon strike (r20-X1): attack + damage (+ crit). No DC.
+ */
+export const AbilityKindSchema = z.enum(["spell", "impulse", "strike"]);
+export type AbilityKind = z.infer<typeof AbilityKindSchema>;
+
+/**
+ * Structured payload for an interactive ability chat card (r20-X1) — the
+ * GENERALIZATION of {@link SpellCastCard} that unifies spells, Kineticist
+ * impulses and weapon strikes under one schema + one renderer.
+ *
+ * Stored under `flags.pf2e.abilityCard` of a ChatMessage (mirroring the older
+ * `flags.pf2e.spellCast`). Rendered by <AbilityCard>, which shows, driven by
+ * which fields are present (NOT rigidly by `kind`):
+ *   - "Fazer teste de resistência" when {saveType + dcValue} are present — any
+ *     player may click; the TARGET rolls the save with THEIR actor;
+ *   - "Rolar dano" when {damageFormula} is present — visible only to the user's
+ *     owner / GM; rolls the (already-resolved) formula with the caster as
+ *     speaker;
+ *   - "Rolar dano crítico" when {critDamageFormula} is present (strikes) — same
+ *     ownership gate.
+ * An attack roll (spell-attack / strike / blast attack) is NOT a card button:
+ * it is fired at announce time and nested under the card, exactly like the
+ * spell-attack path (r18-N1).
+ *
+ * READ COMPAT: messages persisted before r20-X1 carry `flags.pf2e.spellCast`
+ * (a SpellCastCard). The client adapts them on read via
+ * {@link adaptSpellCastToAbilityCard} — no migration of stored data is needed.
+ *
+ * SECURITY: the server (chat-handler) re-validates this shape with Zod on
+ * chat:send, enforces caster=speaker, and DC-coherence-checks `dcValue` against
+ * the caster's derived DC by kind (spellcasting DC for `spell`, class DC for
+ * `impulse`). Strikes never carry a DC.
+ */
+export const AbilityCardSchema = z.object({
+  /** Discriminates the header/flavor treatment + server DC-coherence source. */
+  kind: AbilityKindSchema,
+  /** Actor id of the ability's user (speaker + damage-roll ownership gate). */
+  casterActorId: z.string().min(1),
+  /** Display name (pt-BR or EN as shown on the sheet). */
+  name: z.string().min(1).max(200),
+  /** Raw EN name (pack join key), when known — display uses `name`. */
+  nameEn: z.string().max(200).optional(),
+  /** Effective spell rank (spell only; >= base). Absent for impulse/strike. */
+  rank: z.number().int().min(0).max(10).optional(),
+  /** Action-cost glyphs for display (e.g. "◆◆", "⟳", "◇"), when applicable. */
+  actionCost: z.string().max(8).optional(),
+  /** Save DC (spell: derived spellcasting DC; impulse: derived class DC). */
+  dcValue: z.number().int().min(1).max(60).optional(),
+  /** Save statistic the ability calls for. */
+  saveType: SpellSaveTypeSchema.optional(),
+  /** True when the save is a basic save. */
+  basicSave: z.boolean().optional(),
+  /** Primary damage formula, ALREADY resolved (spell: heightened; impulse:
+   * parsed @Damage; strike/blast: derived rollable formula). */
+  damageFormula: z.string().max(200).optional(),
+  /** Critical damage formula (strike only) — the "Rolar dano crítico" button. */
+  critDamageFormula: z.string().max(200).optional(),
+  /** Damage type (e.g. "fire", "electricity"). */
+  damageType: z.string().max(40).optional(),
+  /** Traits (display only). */
+  traits: z.array(z.string().max(40)).max(30).optional(),
+});
+
+export type AbilityCard = z.infer<typeof AbilityCardSchema>;
+
+/**
+ * Adapt a legacy {@link SpellCastCard} (persisted under `flags.pf2e.spellCast`
+ * before r20-X1) to an {@link AbilityCard} of `kind:"spell"`, so old chat
+ * messages keep rendering through the unified <AbilityCard> renderer without
+ * any stored-data migration. A pure field remap — spells never carry a crit
+ * damage formula.
+ */
+export function adaptSpellCastToAbilityCard(card: SpellCastCard): AbilityCard {
+  return {
+    kind: "spell",
+    casterActorId: card.casterActorId,
+    name: card.spellName,
+    rank: card.rank,
+    ...(card.spellNameEn !== undefined ? { nameEn: card.spellNameEn } : {}),
+    ...(card.actionCost !== undefined ? { actionCost: card.actionCost } : {}),
+    ...(card.dcValue !== undefined ? { dcValue: card.dcValue } : {}),
+    ...(card.saveType !== undefined ? { saveType: card.saveType } : {}),
+    ...(card.basicSave !== undefined ? { basicSave: card.basicSave } : {}),
+    ...(card.damageFormula !== undefined ? { damageFormula: card.damageFormula } : {}),
+    ...(card.damageType !== undefined ? { damageType: card.damageType } : {}),
+    ...(card.traits !== undefined ? { traits: card.traits } : {}),
+  };
+}
+
 /**
  * Structured, server-validated context for a check roll attached to a
  * `chat:send` (r17.1). When present with `kind:"save"`, the server computes the
@@ -272,7 +375,10 @@ export type CheckContext = z.infer<typeof CheckContextSchema>;
 export const ChatSendFlagsSchema = z.object({
   pf2e: z
     .object({
+      /** Legacy spell-cast card (r17-P2). Still accepted for old clients. */
       spellCast: SpellCastCardSchema.optional(),
+      /** Generalized ability card (r20-X1) — spell / impulse / strike. */
+      abilityCard: AbilityCardSchema.optional(),
     })
     .optional(),
   /** Structured check context (r17.1) — grades the roll server-side. */
