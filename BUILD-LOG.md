@@ -304,7 +304,9 @@ Feedback do usuário (encantado com o card de magia e comparando com o Pathbuild
 
 HEAD final `7894518` validado: pf2e **484** · client **1.956** · importer **206** · svelte-check **0 erros** (lição: `shared/dist` stale no diretório principal dava 25 erros fantasmas — rebuild resolve). Follow-ups r20→r21: label de lore mostra slug ("piloting-lore" → "Pilotagem"); colisão de nome global feature×spell resolvida por ordenação first-wins (join por pack seria mais robusto); NpcSheet ainda com rolagens soltas (sem card).
 
-**Exe final r20** (fusion-release): 129,1 MB, sha256 `3be0c3c175f74a906dca461c81d5e4f155cfd0d7848b8c7ef82f3d3b124fcae1`, smoke PASSED — **14 packs** (ancestry-features-core incluso).
+**Exe r20** (fusion-release): 129,1 MB, sha256 `3be0c3c175f74a906dca461c81d5e4f155cfd0d7848b8c7ef82f3d3b124fcae1`, smoke PASSED — **14 packs** (ancestry-features-core incluso).
+
+**r20-X6 — custo de ação na aba Magias** (`1c14ac2`, seguimento do feedback do usuário): o X2 cobriu os pickers mas não a lista da aba Magias; agora as 4 superfícies (truques/preparadas/grimório/foco) mostram ◆/◆◆/◆◆◆/◇/⟳ (ou texto p/ tempo longo) junto do nome, reusando `formatIndexActionCost` (mesmo helper dos pickers, zero duplicação; novo `resolveSpellCastTime` 3-layer no VM). Verificado ao vivo contra a VM real com os dados do Tobias (Ignição ◆◆, Sure Strike ◇, Horizon Thunder Sphere ◆◆◆). Client 1.962 · svelte-check 0 erros. **Exe final r20** (fusion-release): 129,1 MB, sha256 `93f50583f2a2ecf7b44e5004ef847bb320fbd6aac1f2ed202f660b43efa1b79c`, smoke PASSED — 14 packs.
 
 ## Registro por batch
 
