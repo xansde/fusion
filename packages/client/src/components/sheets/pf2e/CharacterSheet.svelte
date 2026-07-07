@@ -228,6 +228,16 @@
     if (op) sendOpFn(op);
   }
 
+  function rollBlast(element: string, mapIndex: 0 | 1 | 2): void {
+    const op = vm.rollElementalBlast(element, mapIndex);
+    if (op) sendOpFn(op);
+  }
+
+  function rollBlastDamage(element: string, twoAction: boolean): void {
+    const op = vm.rollElementalBlastDamage(element, twoAction);
+    if (op) sendOpFn(op);
+  }
+
   function toggleCondition(slug: string): void {
     const op = vm.toggleCondition(slug);
     if (op) sendOpFn(op);
@@ -847,6 +857,54 @@
         </ul>
       {:else}
         <p class="empty-state">No strikes available. Equip a weapon.</p>
+      {/if}
+
+      {#if vm.elementalBlasts.length > 0}
+        <h3 class="section-header">{t("FUSION.Sheet.Blasts.Header")}</h3>
+        <ul class="strike-list" aria-label={t("FUSION.Sheet.Blasts.Header")}>
+          {#each vm.elementalBlasts as blast (blast.element)}
+            <li class="strike-row">
+              <div class="strike-row__header">
+                <span class="strike-row__name">{blast.label}</span>
+                {#if blast.isRanged && blast.range !== null}
+                  <span class="trait-badge">{t("FUSION.Sheet.Blasts.RangeFeet", { range: String(blast.range) })}</span>
+                {/if}
+                <span class="trait-badge">impulse</span>
+              </div>
+              <div class="strike-row__variants" role="group" aria-label="Attack rolls for {blast.label}">
+                {#each blast.variants as variant, i}
+                  <button
+                    class="map-btn"
+                    onclick={() => rollBlast(blast.element, i as 0 | 1 | 2)}
+                    aria-label="Roll {blast.label} at MAP {String(i)} ({variant.totalFormatted})"
+                  >
+                    <span class="map-btn__total">{variant.totalFormatted}</span>
+                    <span class="map-btn__label">MAP {String(i)}</span>
+                  </button>
+                {/each}
+                <button
+                  class="map-btn map-btn--damage"
+                  onclick={() => rollBlastDamage(blast.element, false)}
+                  aria-label="Roll {blast.label} damage"
+                >
+                  <span class="map-btn__label">Damage</span>
+                </button>
+                {#if blast.twoActionDamageBonus !== 0}
+                  <button
+                    class="map-btn map-btn--crit"
+                    onclick={() => rollBlastDamage(blast.element, true)}
+                    aria-label="Roll {blast.label} 2-action damage"
+                  >
+                    <span class="map-btn__label">{t("FUSION.Sheet.Blasts.TwoAction")}</span>
+                  </button>
+                {/if}
+              </div>
+              <div class="strike-row__damage">
+                Damage: <span class="damage-formula">{blast.damageFormula}</span>
+              </div>
+            </li>
+          {/each}
+        </ul>
       {/if}
 
       <h3 class="section-header">{t("FUSION.Sheet.Actions.Title")}</h3>

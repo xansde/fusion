@@ -425,6 +425,132 @@ describe("CharacterSheetVM — strikes", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Elemental Blasts (Kineticist, r18-N2c)
+// ---------------------------------------------------------------------------
+
+/** A derived block carrying two blasts (Air + Metal), matching Finn's gates. */
+function blastDerivedOverride(): Record<string, unknown> {
+  const airVariants = [
+    { mapPenalty: 0, total: 9, formula: "1d20 + 9" },
+    { mapPenalty: -5, total: 4, formula: "1d20 + 4" },
+    { mapPenalty: -10, total: -1, formula: "1d20 + -1" },
+  ];
+  const metalVariants = [
+    { mapPenalty: 0, total: 9, formula: "1d20 + 9" },
+    { mapPenalty: -5, total: 4, formula: "1d20 + 4" },
+    { mapPenalty: -10, total: -1, formula: "1d20 + -1" },
+  ];
+  return {
+    elementalBlasts: [
+      {
+        element: "air",
+        label: "Elemental Blast (Air)",
+        damageType: "electricity",
+        damageTypeOptions: ["electricity", "slashing"],
+        isRanged: true,
+        range: 60,
+        attackBonus: 9,
+        variants: airVariants,
+        damageDice: 1,
+        damageDie: "d6",
+        damageRoll: "1d6",
+        damageFormula: "1d6 electricity",
+        twoActionDamageBonus: 4,
+        itemAttackBonus: 0,
+      },
+      {
+        element: "metal",
+        label: "Elemental Blast (Metal)",
+        damageType: "piercing",
+        damageTypeOptions: ["piercing", "slashing"],
+        isRanged: true,
+        range: 30,
+        attackBonus: 9,
+        variants: metalVariants,
+        damageDice: 1,
+        damageDie: "d8",
+        damageRoll: "1d8",
+        damageFormula: "1d8 piercing",
+        twoActionDamageBonus: 4,
+        itemAttackBonus: 0,
+      },
+    ],
+  };
+}
+
+function vmWithBlasts(): CharacterSheetVM {
+  // makeVM's default derived has no elementalBlasts; override the whole derived
+  // block with the minimal fields the getters need + two blasts.
+  return makeVM({
+    system: {
+      level: { value: 3 },
+      derived: {
+        abilityMods: { str: 0, dex: 3, con: 4, int: 1, wis: 1, cha: 0 },
+        hp: { value: 49, max: 49, temp: 0, drainedHpReduction: 0 },
+        ac: { slug: "ac", base: 18, modifiers: [], total: 20, dc: 30 },
+        saves: {
+          fortitude: { slug: "fortitude", base: 11, modifiers: [], total: 11, dc: 21 },
+          reflex: { slug: "reflex", base: 10, modifiers: [], total: 10, dc: 20 },
+          will: { slug: "will", base: 8, modifiers: [], total: 8, dc: 18 },
+        },
+        perception: { slug: "perception", base: 6, modifiers: [], total: 6, dc: 16 },
+        skills: {},
+        classDC: { total: 19, dc: 19, modifiers: [] },
+        strikes: [],
+        dyingMax: 4,
+        ...blastDerivedOverride(),
+      },
+    },
+  });
+}
+
+describe("CharacterSheetVM — elementalBlasts", () => {
+  it("returns [] for a non-kineticist (no elementalBlasts in derived)", () => {
+    expect(makeVM().elementalBlasts).toEqual([]);
+  });
+
+  it("exposes one row per gate element with formatted MAP variants", () => {
+    const blasts = vmWithBlasts().elementalBlasts;
+    expect(blasts).toHaveLength(2);
+    const air = blasts.find((b) => b.element === "air")!;
+    expect(air.label).toBe("Elemental Blast (Air)");
+    expect(air.damageType).toBe("electricity");
+    expect(air.range).toBe(60);
+    expect(air.damageFormula).toBe("1d6 electricity");
+    expect(air.variants[0]!.totalFormatted).toBe("+9");
+    expect(air.variants[1]!.totalFormatted).toBe("+4");
+    expect(air.variants[2]!.totalFormatted).toBe("-1");
+  });
+
+  it("rollElementalBlast builds a chat:send op with pt-BR flavor and MAP", () => {
+    const op = vmWithBlasts().rollElementalBlast("air", 0);
+    expect(op).not.toBeNull();
+    expect(op!.type).toBe("chat:send");
+    expect(op!.content).toBe("/r 1d20+9 # Rajada Elemental (Ar) (MAP 0)");
+  });
+
+  it("rollElementalBlast at MAP 1 uses the MAP-1 variant", () => {
+    const op = vmWithBlasts().rollElementalBlast("metal", 1);
+    expect(op!.content).toBe("/r 1d20+4 # Rajada Elemental (Metal) (MAP 1)");
+  });
+
+  it("rollElementalBlastDamage (1 action) rolls the base formula, pt-BR flavor", () => {
+    const op = vmWithBlasts().rollElementalBlastDamage("air", false);
+    expect(op!.content).toBe("/r 1d6 # Rajada Elemental (Ar) — Dano");
+  });
+
+  it("rollElementalBlastDamage (2 actions) adds the CON status bonus", () => {
+    const op = vmWithBlasts().rollElementalBlastDamage("air", true);
+    expect(op!.content).toBe("/r 1d6+4 # Rajada Elemental (Ar) — Dano");
+  });
+
+  it("returns null for an unknown element", () => {
+    expect(vmWithBlasts().rollElementalBlast("fire", 0)).toBeNull();
+    expect(vmWithBlasts().rollElementalBlastDamage("fire", false)).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Strike damage rolls (contract 3)
 // ---------------------------------------------------------------------------
 

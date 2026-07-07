@@ -21,6 +21,7 @@ import type {
   CharacterDerived,
   DerivedStatistic,
   DerivedStrike,
+  DerivedElementalBlast,
   ArchetypeClassDC,
 } from "./derivedTypes.js";
 import type { SpellCastCard, SpellSaveType, ChatSendFlags } from "@fusion/shared";
@@ -38,7 +39,13 @@ import {
 // Re-export derived types for consumers
 // ---------------------------------------------------------------------------
 
-export type { CharacterDerived, DerivedStatistic, DerivedStrike, ArchetypeClassDC };
+export type {
+  CharacterDerived,
+  DerivedStatistic,
+  DerivedStrike,
+  DerivedElementalBlast,
+  ArchetypeClassDC,
+};
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -267,6 +274,30 @@ export interface ConditionRow {
   value?: number;
   /** Item _id in the embedded items array — needed for remove op. */
   itemId: string;
+}
+
+/**
+ * A Kineticist Elemental Blast row for the sheet (r18-N2c). Rendered on the
+ * Main tab next to strikes: attack with MAP variants + a damage button, same
+ * affordance as StrikeRow. `element` keys the roll methods (there's one blast
+ * per gate element). `damageRoll` is a pure rollable formula (no type text).
+ */
+export interface ElementalBlastRow {
+  element: string;
+  label: string;
+  damageType: string;
+  isRanged: boolean;
+  range: number | null;
+  damageFormula: string;
+  damageRoll: string;
+  /** 2-action variant adds CON to damage (status bonus). */
+  twoActionDamageBonus: number;
+  variants: Array<{
+    mapPenalty: number;
+    total: number;
+    totalFormatted: string;
+    formula: string;
+  }>;
 }
 
 export interface SpellcastingEntryRow {
@@ -975,6 +1006,70 @@ export class CharacterSheetVM {
         formula: v.formula,
       })),
     }));
+  }
+
+  /**
+   * Kineticist Elemental Blasts (r18-N2c), one per gate element, derived by
+   * stepCharElementalBlasts (r18-N2b). Empty for non-kineticists. Rendered on
+   * the Main tab beside strikes.
+   */
+  get elementalBlasts(): ElementalBlastRow[] {
+    const blasts = this._derived?.elementalBlasts ?? [];
+    return blasts.map((b) => ({
+      element: b.element,
+      label: b.label,
+      damageType: b.damageType,
+      isRanged: b.isRanged,
+      range: b.range,
+      damageFormula: b.damageFormula,
+      damageRoll: b.damageRoll,
+      twoActionDamageBonus: b.twoActionDamageBonus,
+      variants: b.variants.map((v) => ({
+        mapPenalty: v.mapPenalty,
+        total: v.total,
+        totalFormatted: fmtMod(v.total),
+        formula: v.formula,
+      })),
+    }));
+  }
+
+  private _findBlast(element: string): DerivedElementalBlast | undefined {
+    return this._derived?.elementalBlasts?.find((b) => b.element === element);
+  }
+
+  /**
+   * Build a chat:send op for an Elemental Blast attack roll (r18-N2c).
+   * Mirrors rollStrike: "/r 1d20+9 # Rajada Elemental (Ar) (MAP 0)".
+   */
+  rollElementalBlast(element: string, mapIndex: 0 | 1 | 2): ChatRollPayload | null {
+    const blast = this._findBlast(element);
+    if (!blast) return null;
+    const variant = blast.variants[mapIndex];
+    const label = t("FUSION.Sheet.Chat.BlastMap", {
+      label: this._blastFlavor(element),
+      map: mapIndex,
+    });
+    return this._buildChatRoll(variant.formula.replace(/\s+/g, ""), label);
+  }
+
+  /**
+   * Build a chat:send op for an Elemental Blast damage roll (r18-N2c).
+   * `twoAction` adds the CON status bonus (2-action blast). Flavor pt-BR
+   * "Rajada Elemental (Ar) — Dano".
+   */
+  rollElementalBlastDamage(element: string, twoAction: boolean): ChatRollPayload | null {
+    const blast = this._findBlast(element);
+    if (!blast) return null;
+    const bonus = twoAction && blast.twoActionDamageBonus !== 0 ? blast.twoActionDamageBonus : 0;
+    const formula = bonus !== 0 ? `${blast.damageRoll}${bonus > 0 ? "+" : ""}${String(bonus)}` : blast.damageRoll;
+    const label = t("FUSION.Sheet.Chat.BlastDamage", { label: this._blastFlavor(element) });
+    return this._buildChatRoll(formula, label);
+  }
+
+  /** pt-BR flavor for a blast, e.g. "Rajada Elemental (Ar)". */
+  private _blastFlavor(element: string): string {
+    const elementLabel = t(`FUSION.Sheet.Plan.KineticGate.Element.${element}`);
+    return t("FUSION.Sheet.Chat.BlastFlavor", { element: elementLabel });
   }
 
   // -------------------------------------------------------------------------

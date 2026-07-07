@@ -72,6 +72,36 @@ export interface DerivedStrike {
 }
 
 // ---------------------------------------------------------------------------
+// Elemental Blast (Kineticist — Rage of Elements, r18-N2b)
+// ---------------------------------------------------------------------------
+
+/**
+ * A single Kineticist Elemental Blast, one per gate element. Manual mirror of
+ * systems/pf2e derivations/types.ts DerivedElementalBlast — MUST stay in sync.
+ *
+ * The impulse attack uses the same proficiency + attribute (CON) as the
+ * kineticist class DC. `damageRoll` is a pure rollable formula (no type in the
+ * text) matching DerivedStrike (CONTRACT 3). The 2-action CON status bonus is
+ * exposed via `twoActionDamageBonus` but NOT baked into the 1-action roll.
+ */
+export interface DerivedElementalBlast {
+  readonly element: string;
+  readonly label: string;
+  readonly damageType: string;
+  readonly damageTypeOptions: string[];
+  readonly isRanged: boolean;
+  readonly range: number | null;
+  readonly attackBonus: number;
+  readonly variants: [StrikeVariant, StrikeVariant, StrikeVariant];
+  readonly damageDice: number;
+  readonly damageDie: string;
+  readonly damageRoll: string;
+  readonly damageFormula: string;
+  readonly twoActionDamageBonus: number;
+  readonly itemAttackBonus: number;
+}
+
+// ---------------------------------------------------------------------------
 // Archetype class DC (dedication-granted, DEC-R12-04)
 // ---------------------------------------------------------------------------
 
@@ -136,6 +166,13 @@ export interface CharacterDerived {
   readonly archetypeClassDCs?: ArchetypeClassDC[];
 
   readonly strikes: DerivedStrike[];
+
+  /**
+   * Kineticist Elemental Blasts, one per gate element (r18-N2b). Manual mirror
+   * — server contract. Optional: absent on non-kineticist / pre-r18 derived
+   * data — the blasts getter treats it as [].
+   */
+  readonly elementalBlasts?: DerivedElementalBlast[];
 
   readonly dyingMax: number;
 
