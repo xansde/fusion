@@ -286,6 +286,26 @@ HEAD integrado validado: client **1.895/1.895** + svelte-check **0 erros**; pf2e
 
 **Exe r19** (fusion-release): 128,8 MB, sha256 `678f43055813047e3c00269c1a1612958dd8f819234d68e8c41b5be2c3f42344`, smoke PASSED (13 packs).
 
+## Rodada r20 — cards para tudo, custo nas listas, chips completos, Cineticista (2026-07-07)
+
+Feedback do usuário (encantado com o card de magia e comparando com o Pathbuilder como gabarito) + regra de processo NOVA: **relatório ÚNICO no fechamento com o exe pronto** (sem reports intermediários, valendo também para rodadas diurnas). Batches em **worktrees isolados** (padrão novo pós-r19) integrados por merge do orquestrador (zero conflitos; X2 rebaseou sobre X3 por coordenação via SendMessage).
+
+| Branch/commits | Entrega |
+| -------------- | ------- |
+| `r20/x1-ability-cards` (5 commits, merge `bee62f1`) | **Card estruturado UNIFICADO `AbilityCard`** (kind spell/impulse/strike): impulsos ("Usar") e strikes de arma ganham o mesmo tratamento das magias — ataque nasce aninhado, botões de salvaguarda (CD de CLASSE p/ impulso, conferida no server; forjada é dropada) e "Rolar dano" aninham no card; compat de LEITURA com as mensagens `spellCast` já gravadas (adapter, sem migração). Verificação viva própria 18/18 |
+| `r20/x2-picker-cost` (merge `32ac3cd`, contém X3) | **Custo de ações nas LISTAS de seleção**: `index.actionCost` derivado no server (lazy/cache por pack) + glyphs ◆/◇/⟳ (ou "1 minuto") nas rows de SpellPicker, CompendiumPicker (feats/impulsos/inventário) e FamiliarAbilityPicker. Achado: Sussurro ao Vento é ◆ (o "sem custo" era o picker quebrado) |
+| `r20/x3-terminologia` (2 commits) | **"Cineticista" unificado** (sweep 18 substituições em actions-core, script idempotente protegendo enrichers) + **causa real dos chips crus**: pickers renderizavam `{trait}` slug ignorando o traitDisplayName — corrigido nos 2 dialogs |
+| `08eef0b` (direto) | traitNames sincronizado com o glossário (+13 traits Rage of Elements; acentos corrigidos na revisão palavra a palavra: aberração, poção, talismã, oréade) |
+| `r20/x4-auto-chips` (4 commits, merge `4025fc9`) | **Cobertura completa de chips 🔒** guiada pelo Pathbuilder: mapa `system.items` dos ABC (Sharp Teeth, Unusual Anatomy) + escalares (Size/Vision como chips informativos), free feats do antecedente (Fascinating Performance materializada), **LORE do antecedente treinada** (bug: reader ignorava `trainedSkills.lore` — Fireworks +9, Pilotagem +6), ações concedidas pelas features de classe (Channel Elements/Base Kinesis/Elemental Blast/Spellstrike/Arcane Cascade) com dedup (fix `each_key_duplicate`); **heal on-open completou as fichas REAIS de Tobias e Finn** (idempotente, números derivados intactos byte-a-byte) |
+
+**Verificação viva INTEGRADA (2 sessões): 14/14 PASS após 1 fix** — e o "fix" revelou um incidente sério de processo: os fixes W0 da r19 (Toughness/Boots → PV 49/speed 30) **nunca chegaram à build/app** (o rebase do W4 descartou o merge do orquestrador; o `git branch -d` "bem-sucedido" mascarou a perda — o exe r19 saiu com PV 46/desloc 25 apesar do relatório dizer 49/30). Refeitos de verdade em `df744df` com testes nos SHAPES REAIS (Toughness `@actor.details.level.value` do compêndio + Boots equipadas, gear guardado = no-op) e re-verificados ao vivo: **PV 49 / 30 pés**. LIÇÃO: pós-integração, verificar PRESENÇA DO CONTEÚDO na branch (grep do código), não só a mecânica de merge.
+
+| `r20/x5-ancestry-features` (merge `7894518`) | **14º pack `ancestry-features-core`** (55 docs, 29 ORC + 26 OGL, pt-BR, qa 0 falhas): Unusual Anatomy/Sharp Teeth/Darkvision etc. agora clicáveis e materializáveis; `mapVendorToFusionPack` roteia `ancestryfeatures` pro pack certo (matava o falso positivo do SPELL "Unusual Anatomy"); heal re-resolve ABC stale do pack atual. **Aeronaut conferido no VENDOR**: doc vem genuinamente vazio; a descrição concede SÓ **Assurance (Piloting Lore)** — curado com fonte; **Powerful Leap NÃO é grant do antecedente** (o dossiê/Pathbuilder o tinha como skill feat próprio — regra correta preservada). Spellbook/Spellstrike Specifics: representados de outra forma (entry/feature), sem docs artificiais |
+
+HEAD final `7894518` validado: pf2e **484** · client **1.956** · importer **206** · svelte-check **0 erros** (lição: `shared/dist` stale no diretório principal dava 25 erros fantasmas — rebuild resolve). Follow-ups r20→r21: label de lore mostra slug ("piloting-lore" → "Pilotagem"); colisão de nome global feature×spell resolvida por ordenação first-wins (join por pack seria mais robusto); NpcSheet ainda com rolagens soltas (sem card).
+
+**Exe final r20** (fusion-release): 129,1 MB, sha256 `3be0c3c175f74a906dca461c81d5e4f155cfd0d7848b8c7ef82f3d3b124fcae1`, smoke PASSED — **14 packs** (ancestry-features-core incluso).
+
 ## Registro por batch
 
 ### M6-B5 — Auto-update headless — ✅ M6 HEADLESS COMPLETO (2026-07-03)
