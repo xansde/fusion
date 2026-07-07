@@ -267,6 +267,25 @@ Suítes no fechamento do trilho N2: client 1.839 · pf2e 471 · importer 206 · 
 
 **Exe r18** (estado commitado, fluxo fusion-release): 128,7 MB, sha256 `16a3590a7f5f783e7040f12ed7e735004faf992415e6023e109e8f1915de8942`, smoke PASSED — **13 packs** (equipment-core incluso).
 
+## Rodada r19 — chat aninhado no ar, retratos, impulsos utilizáveis, builder data-driven (2026-07-07)
+
+Feedback do usuário testando o Finn recém-criado no mundo real (5 achados) + fixes perdidos em DUAS quedas do processo Claude (playbook de retomada pagou: nada commitado se perdeu; o que estava só em memória foi relançado).
+
+| Commits | Entrega |
+| ------- | ------- |
+| `3c20c5c`+`db68579` (via merge `2b2ef0e`) | **W0** (relançado após a queda): Toughness resolve `@actor.details.level.value` (o pack normaliza assim — a fixture hardcodava `@actor.level` e passava vaziamente) → **PV 49**; scanner de modificadores embutidos inclui equipment/armor EQUIPADOS (`isEquippedFlag`) → Boots of Bounding dão **deslocamento 30**. Fixture do Finn alinhada aos shapes REAIS dos packs |
+| `a9b976c`+merge `35c2883` | **W1 — chat aninhado NO AR** (o "parcial" estava completo de código; faltava validação): ataque/dano renderizam DENTRO do card de conjuração, seção "Salvaguardas" (speaker + total + badge de grau + dica do básico) no mesmo card, órfão degrada, unread conta filhos. Verificado ao vivo em 2 sessões (Ignição: card único com ataque 25 + dano 8 aninhados; Sylas: `18 | Falha | Dano integral`) |
+| (no-op) | **W2a**: features L1 do Kineticist JÁ completas nos packs (Channel Elements/Base Kinesis/Elemental Blast entram como grants automáticos das features) — a lacuna era de exibição (W2b) |
+| `e152484`+`07d47cd` | **W2b — builder data-driven**: `CLASS_CHOICE_SLOTS` (placeholder de featuresByLevel → slot); fim do hardcode — Estudo Híbrido só para quem tem, slot fantasma do Kineticist eliminado; **gate concede sub-slots de impulso por elemento** (single=1/dual=1 por elemento, fonte AoN citada; derivado do ESTADO — o Plano do Finn real ganha "Impulso de Ar"/"Impulso de Metal" preenchíveis); applyAncestry grava speed-base do ator |
+| `6132a1f`+`3cc4352` | **W3 — impulsos na aba Ações**: badge "Impulso" (surfaça impulse feats mesmo sem actionType — causa do "Quatro Ventos não aparece"), custo em ícones, botão **"Usar"** posta no chat com CD/save do `@Check` quando houver; seção-atalho "Rajada Elemental" por elemento com ataque MAP-0 rolável |
+| `6aa6b03`..`7fc0945` (merge `2b2ef0e`) | **W4 — retratos circulares**: `ActorPortrait` com fallback de iniciais coloridas determinísticas (paths-stub de placeholder vão direto ao fallback — causa raiz do retrato quebrado do Finn); header da ficha editável via FilePicker (dono/GM) + remoção; diretório de atores, NPC, PetCard, mini-ficha do familiar |
+| `6c473a1` | fix(i18n): "Base Kinesis" → **"Cinesia Básica"** (nas 2 superfícies) |
+| `8234130` | fix svelte-check herdado (guard de grupo de regex no parseImpulseSaveCue) |
+
+HEAD integrado validado: client **1.895/1.895** + svelte-check **0 erros**; pf2e 477 (W0). Lições operacionais da rodada: (1) **worktrees isolados viram PADRÃO para batches paralelos** — agentes fazendo checkout no diretório compartilhado apagaram trabalho uns dos outros duas vezes; (2) **cláusula anti-espera** nos prompts (3 agentes encerraram turno "aguardando notificação" de job — retomados via SendMessage); (3) branches relíquia da fase BUILD descobertas (`fix/ownership-unification`, `fix/divida-m2b-m3b` — dívidas M2-B/M3-B/M5-C pagas e nunca mergeadas; avaliar na próxima rodada). Follow-ups r19: unificar terminologia cinetista/cineticista nos overlays; ordenação mista da janela inicial do chat (pré-existente); cache de asset-token por instância do ActorPortrait se pesar; erro de declaração @3d-dice/dice-box.
+
+**Exe r19** (fusion-release): 128,8 MB, sha256 `678f43055813047e3c00269c1a1612958dd8f819234d68e8c41b5be2c3f42344`, smoke PASSED (13 packs).
+
 ## Registro por batch
 
 ### M6-B5 — Auto-update headless — ✅ M6 HEADLESS COMPLETO (2026-07-03)
