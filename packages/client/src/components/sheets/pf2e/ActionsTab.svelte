@@ -33,7 +33,12 @@
   import type { PackIndexEntry } from "@fusion/shared";
   import DocumentDetailsPanel from "./DocumentDetailsPanel.svelte";
   import { getDocument, requireConnectedSocket } from "../../../lib/compendium/compendiumApi.js";
-  import { DocumentDetailsCache } from "../../../lib/compendium/documentDetails.js";
+  import {
+    DocumentDetailsCache,
+    traitDisplayName,
+    translateDamageType,
+  } from "../../../lib/compendium/documentDetails.js";
+  import { makeSendOpFn } from "../../../lib/docs/sendOp.js";
   import {
     loadActionEntries,
     loadActionNameIndexEntries,
@@ -48,10 +53,17 @@
     buildEmbeddedDetailsDoc,
     needsFallbackDescription,
     withFallbackDescription,
+    descriptionHtmlOf,
+    parseImpulseSaveCue,
+    kineticistClassDc,
+    buildImpulseUseAnnouncement,
+    readElementalBlasts,
+    buildElementalBlastAttackOp,
     paginate,
     ACTIONS_PAGE_SIZE,
     GROUP_ORDER,
     type ActionRow,
+    type BlastRowVM,
     type ActionCostFilter,
     type ActionsLoadError,
   } from "../../../lib/sheets/pf2e/actionsVM.js";
@@ -71,6 +83,17 @@
   let { doc }: Props = $props();
 
   const systemId = $derived(session.worldInfo?.systemId ?? "pf2e");
+
+  // The active world + this actor, for the "Usar" impulse chat announcement
+  // (r19-W3). worldId MUST equal the connected world's id — the server rejects a
+  // chat:send whose payload.worldId differs (chat-handler.ts). session.worldInfo.id
+  // is the SAME source the spell-cast flow uses (ActorDirectory → CharacterSheet).
+  const worldId = $derived(session.worldInfo?.id ?? "");
+  const speakerActorId = $derived(typeof doc["_id"] === "string" ? (doc["_id"] as string) : "");
+  // Lazy live-socket sender (frozen-socket safe, r10 lesson): resolves getSocket()
+  // on every op. Fire-and-forget — a disconnected socket logs and drops (the tab
+  // already shows its own not-connected state for the pack load).
+  const sendOpFn = makeSendOpFn(getSocket);
 
   // --- Load state -----------------------------------------------------------
   let loading = $state(true);
@@ -159,6 +182,10 @@
 
   // The character's class/ancestry/archetype identity, for the relevance filter.
   const profile = $derived(deriveCharacterProfile(embeddedItems));
+
+  // Kineticist Elemental Blast shortcut rows, read from the actor's server-derived
+  // system.derived.elementalBlasts (r19-W3 item 2). Empty for non-kineticists.
+  const blastRows = $derived(readElementalBlasts(doc));
 
   // Rows surviving the character-relevance pre-filter (all rows when showAll).
   // Group counts derive from THIS set so each checkbox reflects the relevance
@@ -328,6 +355,82 @@
     }
   }
 
+  /**
+   * Announce an impulse use in chat (r19-W3): a plain-text chat:send message
+   * ("<verb> <name> <glyphs> (<traits pt-BR>)[ — CD X, <save>]") spoken by this
+   * actor. NO structured card (that territory is the chat feature). When the
+   * impulse's description carries an @Check save AND the actor has a derived
+   * Kineticist class DC, a save line is appended (Shard Strike → "CD 19,
+   * Reflexos básico"). Fire-and-forget via the live-socket sender.
+   */
+  function useImpulse(rowItem: ActionRow): void {
+    if (!speakerActorId) return;
+    const parts = actionRowNameParts(rowItem, i18n.locale);
+    const traitLabels = rowItem.traits.map((tr) => traitDisplayName(tr, i18n.locale));
+
+    // Optional save line, only for impulses that call for a save AND a known DC.
+    let saveLine: string | null = null;
+    const itemId = rowItem.key.startsWith("embedded:") ? rowItem.key.slice("embedded:".length) : "";
+    const embItem = embeddedById.get(itemId);
+    const sys =
+      embItem && typeof embItem["system"] === "object" && embItem["system"] !== null
+        ? (embItem["system"] as Record<string, unknown>)
+        : {};
+    const cue = parseImpulseSaveCue(descriptionHtmlOf(sys));
+    const dc = kineticistClassDc(doc);
+    if (cue && dc !== null) {
+      const saveLabel = t(
+        `FUSION.Sheet.Actions.Save.${cue.save.charAt(0).toUpperCase()}${cue.save.slice(1)}`,
+      );
+      saveLine = t(cue.basic ? "FUSION.Sheet.Actions.UseSaveBasic" : "FUSION.Sheet.Actions.UseSave", {
+        dc,
+        save: saveLabel,
+      });
+    }
+
+    const op = buildImpulseUseAnnouncement({
+      verb: t("FUSION.Sheet.Actions.UseVerb"),
+      displayName: parts.display,
+      glyphs: rowItem.cost.glyphs,
+      traitLabels,
+      saveLine,
+      worldId,
+      speakerActorId,
+    });
+    if (op) sendOpFn(op);
+  }
+
+  /** Localized element label for a blast row ("Ar", "Metal", …), slug fallback. */
+  function blastElementLabel(element: string): string {
+    return t(`FUSION.Sheet.Plan.KineticGate.Element.${element}`) || element;
+  }
+
+  /** Format an attack modifier with an explicit sign (+9 / -1 / +0). */
+  function fmtSign(n: number): string {
+    return n >= 0 ? `+${n}` : `${n}`;
+  }
+
+  /**
+   * Roll an Elemental Blast's MAP-0 attack in chat (r19-W3 item 2) using the
+   * SERVER-DERIVED formula from doc.system.derived.elementalBlasts — no roll
+   * logic is re-derived here (the RNG runs on the server). MAP variants + damage
+   * live on the Main tab; this is the shortcut's single attack button.
+   */
+  function rollBlast(blast: BlastRowVM): void {
+    if (!speakerActorId) return;
+    const flavor = t("FUSION.Sheet.Chat.BlastMap", {
+      label: t("FUSION.Sheet.Chat.BlastFlavor", { element: blastElementLabel(blast.element) }),
+      map: 0,
+    });
+    const op = buildElementalBlastAttackOp({
+      attackFormula: blast.attackFormula,
+      flavor,
+      worldId,
+      speakerActorId,
+    });
+    if (op) sendOpFn(op);
+  }
+
   function groupBadgeLabel(group: ActionGroup): string {
     return t(groupLabelKey(group)) || ACTION_GROUP_LABELS[group];
   }
@@ -335,6 +438,46 @@
 
 <div class="actions-browser">
   <div class="actions-browser__main">
+    <!-- Elemental Blast shortcut (Kineticist) — points to the Main tab for the
+         full attack (MAP variants) + damage; offers a quick MAP-0 attack roll. -->
+    {#if blastRows.length > 0}
+      <div class="actions-blasts" aria-label={t("FUSION.Sheet.Actions.Blast.Title")}>
+        <div class="actions-blasts__header">
+          <span class="actions-blasts__title">{t("FUSION.Sheet.Actions.Blast.Title")}</span>
+          <span class="actions-blasts__hint">{t("FUSION.Sheet.Actions.Blast.MainTabHint")}</span>
+        </div>
+        {#each blastRows as blast (blast.element)}
+          <div class="actions-blast-row">
+            <div class="actions-blast-row__main">
+              <span class="actions-blast-row__name">
+                {t("FUSION.Sheet.Chat.BlastFlavor", { element: blastElementLabel(blast.element) })}
+              </span>
+              <div class="actions-blast-row__meta">
+                {#if blast.damageType}
+                  <span class="actions-blast-row__chip">{translateDamageType(blast.damageType, i18n.locale)}</span>
+                {/if}
+                {#if blast.attackFormula}
+                  <span class="actions-blast-row__stat">
+                    {t("FUSION.Sheet.Actions.Blast.Attack", { bonus: fmtSign(blast.attackTotal) })}
+                  </span>
+                {/if}
+                {#if blast.damageFormula}
+                  <span class="actions-blast-row__stat">
+                    {t("FUSION.Sheet.Actions.Blast.Damage", { formula: blast.damageFormula })}
+                  </span>
+                {/if}
+              </div>
+            </div>
+            {#if blast.attackFormula}
+              <button type="button" class="actions-row__use" onclick={() => rollBlast(blast)}>
+                {t("FUSION.Sheet.Actions.Blast.Roll")}
+              </button>
+            {/if}
+          </div>
+        {/each}
+      </div>
+    {/if}
+
     <!-- Group filter grid -->
     <div class="actions-filters" role="group" aria-label={t("FUSION.Sheet.Actions.GroupsLabel")}>
       {#each GROUP_ORDER as group (group)}
@@ -435,6 +578,18 @@
                 </div>
               {/if}
             </div>
+            {#if rowItem.isImpulse}
+              <button
+                type="button"
+                class="actions-row__use"
+                aria-label={t("FUSION.Sheet.Actions.Use")}
+                title={t("FUSION.Sheet.Actions.Use")}
+                onclick={(e) => { e.stopPropagation(); useImpulse(rowItem); }}
+                onkeydown={(e) => e.stopPropagation()}
+              >
+                {t("FUSION.Sheet.Actions.Use")}
+              </button>
+            {/if}
             <div class="actions-row__badges">
               {#if rowItem.isImpulse}
                 <span class="actions-badge actions-badge--impulse">
@@ -520,6 +675,85 @@
       border-top: 1px solid var(--fusion-border);
       max-height: 260px;
     }
+  }
+
+  .actions-blasts {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px;
+    border: 1px solid var(--fusion-warning);
+    background: var(--fusion-warning-dim);
+    border-radius: var(--fusion-radius);
+  }
+
+  .actions-blasts__header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .actions-blasts__title {
+    font-family: var(--fusion-font);
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--fusion-warning);
+  }
+
+  .actions-blasts__hint {
+    font-size: 10.5px;
+    color: var(--fusion-text-subtle);
+  }
+
+  .actions-blast-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px;
+    border-radius: var(--fusion-radius-sm);
+    background: var(--fusion-surface);
+    border: 1px solid var(--fusion-border);
+  }
+
+  .actions-blast-row__main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .actions-blast-row__name {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--fusion-text);
+  }
+
+  .actions-blast-row__meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 3px;
+    flex-wrap: wrap;
+  }
+
+  .actions-blast-row__chip {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--fusion-text-subtle);
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    padding: 1px 6px;
+    border-radius: var(--fusion-radius-sm);
+  }
+
+  .actions-blast-row__stat {
+    font-size: 10.5px;
+    font-family: var(--fusion-font-mono);
+    color: var(--fusion-text-muted);
   }
 
   .actions-filters {
@@ -798,6 +1032,26 @@
     border: 1px solid var(--fusion-border);
     padding: 1px 6px;
     border-radius: var(--fusion-radius-sm);
+  }
+
+  .actions-row__use {
+    flex-shrink: 0;
+    font-family: var(--fusion-font);
+    font-weight: 700;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    padding: 3px 10px;
+    border-radius: var(--fusion-radius-pill);
+    background: var(--fusion-accent);
+    color: var(--fusion-on-accent);
+    border: 1px solid var(--fusion-accent);
+    transition: filter 0.12s;
+  }
+
+  .actions-row__use:hover {
+    filter: brightness(1.08);
   }
 
   .actions-row__badges {

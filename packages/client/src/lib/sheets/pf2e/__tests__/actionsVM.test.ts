@@ -36,6 +36,11 @@ import {
   descriptionHtmlOf,
   needsFallbackDescription,
   withFallbackDescription,
+  parseImpulseSaveCue,
+  kineticistClassDc,
+  buildImpulseUseAnnouncement,
+  readElementalBlasts,
+  buildElementalBlastAttackOp,
   ACTIONS_PAGE_SIZE,
   type ActionRow,
   type ActionCostFilter,
@@ -365,6 +370,206 @@ describe("impulse rows (rowFromEmbeddedItem / rowFromIndexEntry)", () => {
       "system.traits.value": ["impulse", "kineticist"],
     });
     expect(rowFromIndexEntry(entry).isImpulse).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// "Usar" impulse announcement (r19-W3) — @Check parse, class DC, chat:send op
+// ---------------------------------------------------------------------------
+
+describe("parseImpulseSaveCue()", () => {
+  it("extracts save + basic from a save @Check (Shard Strike)", () => {
+    const desc = "<p>…@Check[reflex|against:kineticist|basic|options:area-effect]…</p>";
+    expect(parseImpulseSaveCue(desc)).toEqual({ save: "reflex", basic: true });
+  });
+
+  it("extracts a non-basic save", () => {
+    expect(parseImpulseSaveCue("@Check[fortitude|against:kineticist]")).toEqual({
+      save: "fortitude",
+      basic: false,
+    });
+  });
+
+  it("returns null for an attack @Check (defense:ac) and for no @Check", () => {
+    expect(parseImpulseSaveCue("Make ranged @Check[impulse|defense:ac]{impulse attack} rolls")).toBeNull();
+    expect(parseImpulseSaveCue("<p>Four willing creatures Stride.</p>")).toBeNull();
+    expect(parseImpulseSaveCue("")).toBeNull();
+    expect(parseImpulseSaveCue(null)).toBeNull();
+  });
+
+  it("takes the first save @Check when several are present", () => {
+    expect(parseImpulseSaveCue("@Check[will|basic] then @Check[reflex]")).toEqual({
+      save: "will",
+      basic: true,
+    });
+  });
+});
+
+describe("kineticistClassDc()", () => {
+  it("reads system.derived.classDC.dc", () => {
+    expect(kineticistClassDc({ system: { derived: { classDC: { dc: 19 } } } })).toBe(19);
+  });
+
+  it("returns null when absent", () => {
+    expect(kineticistClassDc({})).toBeNull();
+    expect(kineticistClassDc({ system: {} })).toBeNull();
+    expect(kineticistClassDc({ system: { derived: { classDC: {} } } })).toBeNull();
+  });
+});
+
+describe("buildImpulseUseAnnouncement()", () => {
+  const base = { worldId: "w1", speakerActorId: "a1" };
+
+  it("assembles verb + name + glyphs + pt-BR traits (Four Winds)", () => {
+    const op = buildImpulseUseAnnouncement({
+      verb: "usa",
+      displayName: "Quatro Ventos",
+      glyphs: "◆◆",
+      traitLabels: ["ar", "impulso", "cineticista", "primal"],
+      ...base,
+    });
+    expect(op).toEqual({
+      type: "chat:send",
+      content: "usa Quatro Ventos ◆◆ (ar, impulso, cineticista, primal)",
+      worldId: "w1",
+      rollMode: "public",
+      speakerActorId: "a1",
+    });
+  });
+
+  it("appends the save line when present (Shard Strike)", () => {
+    const op = buildImpulseUseAnnouncement({
+      verb: "usa",
+      displayName: "Shard Strike",
+      glyphs: "◆◆",
+      traitLabels: ["impulso", "cineticista", "metal"],
+      saveLine: "CD 19, Reflexos básico",
+      ...base,
+    });
+    expect(op?.content).toBe(
+      "usa Shard Strike ◆◆ (impulso, cineticista, metal) — CD 19, Reflexos básico",
+    );
+  });
+
+  it("omits glyphs and traits when empty", () => {
+    const op = buildImpulseUseAnnouncement({
+      verb: "usa",
+      displayName: "X",
+      glyphs: "",
+      traitLabels: [],
+      ...base,
+    });
+    expect(op?.content).toBe("usa X");
+  });
+
+  it("returns null without a speaker actor", () => {
+    expect(
+      buildImpulseUseAnnouncement({
+        verb: "usa",
+        displayName: "X",
+        glyphs: "◆",
+        traitLabels: [],
+        worldId: "w1",
+        speakerActorId: "",
+      }),
+    ).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Elemental Blast shortcut rows (r19-W3 item 2) — read from derived, roll MAP-0
+// ---------------------------------------------------------------------------
+
+describe("readElementalBlasts()", () => {
+  const doc = {
+    system: {
+      derived: {
+        elementalBlasts: [
+          {
+            element: "air",
+            damageType: "electricity",
+            attackBonus: 9,
+            damageFormula: "1d6+4",
+            isRanged: true,
+            range: 60,
+            variants: [
+              { mapPenalty: 0, total: 9, formula: "1d20 + 9" },
+              { mapPenalty: -5, total: 4, formula: "1d20 + 4" },
+              { mapPenalty: -10, total: -1, formula: "1d20 - 1" },
+            ],
+          },
+          {
+            element: "metal",
+            damageType: "slashing",
+            attackBonus: 9,
+            damageFormula: "1d8+4",
+            isRanged: false,
+            range: null,
+            variants: [{ total: 9, formula: "1d20+9" }, {}, {}],
+          },
+        ],
+      },
+    },
+  };
+
+  it("reads one row per gate element with the MAP-0 attack + damage", () => {
+    const rows = readElementalBlasts(doc);
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({
+      element: "air",
+      damageType: "electricity",
+      attackTotal: 9,
+      attackFormula: "1d20 + 9",
+      damageFormula: "1d6+4",
+      isRanged: true,
+      range: 60,
+    });
+    expect(rows[1]?.element).toBe("metal");
+    expect(rows[1]?.isRanged).toBe(false);
+    expect(rows[1]?.range).toBeNull();
+  });
+
+  it("returns [] for a non-kineticist / missing derived", () => {
+    expect(readElementalBlasts({})).toEqual([]);
+    expect(readElementalBlasts({ system: {} })).toEqual([]);
+    expect(readElementalBlasts({ system: { derived: {} } })).toEqual([]);
+    expect(readElementalBlasts({ system: { derived: { elementalBlasts: [] } } })).toEqual([]);
+  });
+
+  it("skips malformed blast entries but keeps the valid ones", () => {
+    const partial = {
+      system: { derived: { elementalBlasts: [null, { element: "fire", variants: [] }, "x"] } },
+    };
+    const rows = readElementalBlasts(partial);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.element).toBe("fire");
+    expect(rows[0]?.attackFormula).toBe(""); // no MAP-0 variant → inert roll button
+  });
+});
+
+describe("buildElementalBlastAttackOp()", () => {
+  const base = { worldId: "w1", speakerActorId: "a1" };
+
+  it("builds a /r attack op, stripping whitespace from the derived formula", () => {
+    const op = buildElementalBlastAttackOp({
+      attackFormula: "1d20 + 9",
+      flavor: "Rajada Elemental (Ar) (MAP 0)",
+      ...base,
+    });
+    expect(op).toEqual({
+      type: "chat:send",
+      content: "/r 1d20+9 # Rajada Elemental (Ar) (MAP 0)",
+      worldId: "w1",
+      rollMode: "public",
+      speakerActorId: "a1",
+    });
+  });
+
+  it("returns null when the formula or speaker is empty", () => {
+    expect(buildElementalBlastAttackOp({ attackFormula: "", flavor: "x", ...base })).toBeNull();
+    expect(
+      buildElementalBlastAttackOp({ attackFormula: "1d20+9", flavor: "x", worldId: "w1", speakerActorId: "" }),
+    ).toBeNull();
   });
 });
 

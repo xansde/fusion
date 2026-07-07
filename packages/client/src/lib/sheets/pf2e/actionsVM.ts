@@ -608,6 +608,184 @@ export function withFallbackDescription(
 }
 
 // ---------------------------------------------------------------------------
+// Chat announcements — the "Usar" impulse button (r19-W3)
+// ---------------------------------------------------------------------------
+
+/**
+ * A flat `chat:send` op emitted by the Actions tab (mirrors the spell-cast
+ * announcement, spellCastCardVM.SpellCastChatOp, minus any structured card
+ * flags — the interactive-card territory belongs to the chat feature, not this
+ * tab). Consumed by makeSendOpFn / sendOp, which split `type` from the payload.
+ */
+export interface ActionChatOp {
+  type: "chat:send";
+  content: string;
+  worldId: string;
+  rollMode: "public";
+  speakerActorId: string;
+}
+
+/** A saving-throw cue parsed from an impulse's `@Check[...]` automation token. */
+export interface ImpulseSaveCue {
+  save: "fortitude" | "reflex" | "will";
+  basic: boolean;
+}
+
+const SAVE_SLUGS = new Set(["fortitude", "reflex", "will"]);
+
+/**
+ * Parse the FIRST `@Check[<save>|…]` token in an impulse's description, returning
+ * the save type + whether it is a basic save. Kineticist impulses that call for a
+ * save encode it as e.g. `@Check[reflex|against:kineticist|basic|options:area-effect]`.
+ * Returns null when the description carries no save `@Check` (attack/utility
+ * impulses like Four Winds). Pure/dependency-free so the "Usar" announcement is
+ * unit-testable.
+ */
+export function parseImpulseSaveCue(descriptionHtml: string | null | undefined): ImpulseSaveCue | null {
+  if (!descriptionHtml) return null;
+  const re = /@Check\[([^\]]+)\]/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(descriptionHtml)) !== null) {
+    const parts = m[1].split("|").map((p) => p.trim().toLowerCase());
+    const save = parts.find((p) => SAVE_SLUGS.has(p));
+    if (save) return { save: save as ImpulseSaveCue["save"], basic: parts.includes("basic") };
+  }
+  return null;
+}
+
+/**
+ * Read the actor's derived Kineticist class DC (`system.derived.classDC.dc`) —
+ * the DC an impulse's saving throw is rolled against. Returns null when absent
+ * (non-kineticist / pre-derived data) so the announcement simply omits the DC.
+ */
+export function kineticistClassDc(doc: Record<string, unknown>): number | null {
+  const system = isRecord(doc["system"]) ? (doc["system"] as Record<string, unknown>) : null;
+  const derived = system && isRecord(system["derived"]) ? (system["derived"] as Record<string, unknown>) : null;
+  const classDC = derived && isRecord(derived["classDC"]) ? (derived["classDC"] as Record<string, unknown>) : null;
+  const dc = classDC?.["dc"];
+  return typeof dc === "number" ? dc : null;
+}
+
+/**
+ * Assemble the plain-text "Usar" announcement op for an impulse row (r19-W3).
+ * content = "<verb> <name> <glyphs> (<traits>)[ — <saveLine>]" — plain text +
+ * action glyphs, NO structured card (that territory is the chat feature). The
+ * component supplies already-localized fragments (verb, display name, pt-BR trait
+ * labels, optional save line) so this stays dependency-free/testable. Returns
+ * null without a speaker actor (nothing to attribute the message to).
+ */
+export function buildImpulseUseAnnouncement(params: {
+  verb: string;
+  displayName: string;
+  glyphs: string;
+  traitLabels: readonly string[];
+  saveLine?: string | null;
+  worldId: string;
+  speakerActorId: string;
+}): ActionChatOp | null {
+  if (!params.speakerActorId) return null;
+  let content = `${params.verb} ${params.displayName}`.trim();
+  if (params.glyphs) content += ` ${params.glyphs}`;
+  if (params.traitLabels.length > 0) content += ` (${params.traitLabels.join(", ")})`;
+  if (params.saveLine) content += ` — ${params.saveLine}`;
+  return {
+    type: "chat:send",
+    content,
+    worldId: params.worldId,
+    rollMode: "public",
+    speakerActorId: params.speakerActorId,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Elemental Blast shortcut rows (r19-W3, item 2)
+// ---------------------------------------------------------------------------
+
+/**
+ * A Kineticist Elemental Blast surfaced as a shortcut row in the Actions tab.
+ * Read straight from the actor's SERVER-DERIVED `system.derived.elementalBlasts`
+ * (one per gate element) — the derivation itself lives server-side (r18-N2b), so
+ * this only reformats already-computed values. The full attack (MAP variants) +
+ * damage rolls live on the Main tab; this row is a discovery shortcut with a
+ * single MAP-0 attack button.
+ */
+export interface BlastRowVM {
+  element: string;
+  damageType: string;
+  /** MAP-0 attack total, for the "+N" display. */
+  attackTotal: number;
+  /** MAP-0 attack roll formula (server-derived), for the "Rolar ataque" button. */
+  attackFormula: string;
+  /** Damage roll formula, shown read-only (roll it on the Main tab). */
+  damageFormula: string;
+  isRanged: boolean;
+  range: number | null;
+}
+
+/**
+ * Extract the Kineticist Elemental Blast shortcut rows from an actor doc's
+ * `system.derived.elementalBlasts`. Returns [] for non-kineticists / pre-derived
+ * data. Reads defensively (structural) so a partial derived shape never throws —
+ * a blast with no MAP-0 variant simply yields an empty attack formula (the row
+ * still shows, its roll button is inert).
+ */
+export function readElementalBlasts(doc: Record<string, unknown>): BlastRowVM[] {
+  const system = isRecord(doc["system"]) ? (doc["system"] as Record<string, unknown>) : null;
+  const derived = system && isRecord(system["derived"]) ? (system["derived"] as Record<string, unknown>) : null;
+  const blasts = derived?.["elementalBlasts"];
+  if (!Array.isArray(blasts)) return [];
+
+  const out: BlastRowVM[] = [];
+  for (const b of blasts) {
+    if (!isRecord(b)) continue;
+    const element = str(b["element"]);
+    if (!element) continue;
+    const variants = Array.isArray(b["variants"]) ? b["variants"] : [];
+    const v0 = isRecord(variants[0]) ? (variants[0] as Record<string, unknown>) : {};
+    const attackTotal =
+      typeof v0["total"] === "number"
+        ? (v0["total"] as number)
+        : typeof b["attackBonus"] === "number"
+          ? (b["attackBonus"] as number)
+          : 0;
+    out.push({
+      element,
+      damageType: str(b["damageType"]) ?? "",
+      attackTotal,
+      attackFormula: str(v0["formula"]) ?? "",
+      damageFormula: str(b["damageFormula"]) ?? "",
+      isRanged: b["isRanged"] === true,
+      range: typeof b["range"] === "number" ? (b["range"] as number) : null,
+    });
+  }
+  return out;
+}
+
+/**
+ * Build the MAP-0 attack-roll chat:send op for an Elemental Blast (r19-W3). The
+ * formula is the SERVER-DERIVED `variants[0].formula` (whitespace-stripped);
+ * this does NOT re-derive anything — the RNG still runs on the server. `flavor`
+ * is the localized "Rajada Elemental (Ar) (MAP 0)" line built by the component.
+ * Returns null when the formula or speaker is missing.
+ */
+export function buildElementalBlastAttackOp(params: {
+  attackFormula: string;
+  flavor: string;
+  worldId: string;
+  speakerActorId: string;
+}): ActionChatOp | null {
+  const formula = params.attackFormula.replace(/\s+/g, "");
+  if (!formula || !params.speakerActorId) return null;
+  return {
+    type: "chat:send",
+    content: `/r ${formula} # ${params.flavor}`,
+    worldId: params.worldId,
+    rollMode: "public",
+    speakerActorId: params.speakerActorId,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Pagination
 // ---------------------------------------------------------------------------
 
