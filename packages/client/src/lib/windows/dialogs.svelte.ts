@@ -1,5 +1,5 @@
 /**
- * dialogs.ts — Modal dialog helpers (Promise-based).
+ * dialogs.svelte.ts — Modal dialog helpers (Promise-based).
  *
  * Implements REQ-UIF-027..030 from spec 11-ui-framework-e-fichas.md.
  *
@@ -12,8 +12,14 @@
  *
  * The actual DOM is managed by ConfirmDialog.svelte / PromptDialog.svelte.
  * This module only holds the imperative bridge: it pushes a "pending dialog"
- * onto the reactive store so the host can mount the component, and the
+ * onto the reactive queue so the host can mount the component, and the
  * component resolves/rejects the promise when the user acts.
+ *
+ * Reactivity (r21-Y1): `pendingDialogs` is a Svelte 5 `$state` array, so
+ * WindowHost re-renders the modal layer the instant a dialog is pushed or
+ * removed — no rAF polling. `$state` is a compiler rune, hence the `.svelte.ts`
+ * extension. The array is never reassigned (only mutated via push/splice), so
+ * exporting it is allowed.
  */
 
 // ---------------------------------------------------------------------------
@@ -48,7 +54,7 @@ export type PendingDialog = PendingConfirm | PendingPrompt;
  * External code should NOT mutate this directly; use the `confirm` / `prompt`
  * functions below.
  */
-export const pendingDialogs: PendingDialog[] = [];
+export const pendingDialogs: PendingDialog[] = $state([]);
 
 /**
  * Remove a resolved dialog from the queue.

@@ -6,50 +6,40 @@
    * Implements REQ-UIF-009 (registry), REQ-UIF-016 (modais).
    *
    * Mounted once inside TableScreen (M3-C). It:
-   *  - Tracks windowManager.windows reactively via $state
+   *  - Tracks windowManager.windows reactively (SvelteMap → $derived)
    *  - Renders one <Window> per entry; mounts the dynamic sheet component
    *    (WindowEntry.component) when present (REQ-UIF-019)
    *  - Listens to viewport resize and forwards to windowManager
    *  - Renders pending modals (ConfirmDialog / PromptDialog)
    *
-   * TODO (next batch): migrate windowManager to expose a Svelte $state so the
-   * rAF-based polling loop can be replaced with proper reactive subscriptions.
+   * r21-Y1: the old rAF-based polling loop is gone. `windowManager.windows` is
+   * a `SvelteMap` and `pendingDialogs` is a `$state` array, so the two derived
+   * lists below re-compute automatically on open/close/focus/move/minimize and
+   * on dialog push/remove — instantly and independent of `requestAnimationFrame`
+   * / tab visibility (headless browsers where `document.hidden === true` never
+   * fire rAF used to leave newly-opened windows stuck out of the DOM).
    */
 
   import { onMount } from "svelte";
   import { windowManager } from "$lib/windows/window-manager.js";
-  import { pendingDialogs, removePendingDialog } from "$lib/windows/dialogs.js";
+  import { pendingDialogs, removePendingDialog } from "$lib/windows/dialogs.svelte.js";
   import Window from "./Window.svelte";
   import ConfirmDialog from "./ConfirmDialog.svelte";
   import PromptDialog from "./PromptDialog.svelte";
 
   // -------------------------------------------------------------------------
-  // Reactive mirror of the windowManager registry.
+  // Reactive views over the manager state.
   //
-  // WindowManager.windows is a plain Map mutated in place. To make Svelte 5
-  // react to it we keep a reactive version by observing a tick counter that
-  // increments whenever the manager mutates the map. In a full integration the
-  // manager would store a Svelte $state directly; here we bridge the plain
-  // object to Svelte reactivity with a minimal approach that avoids modifying
-  // the pure manager.
-  //
-  // We expose two reactive arrays: `openWindows` (sorted by zIndex) and
-  // `dialogs` (from pendingDialogs).
+  // Reading `windowManager.windows.values()` inside a $derived subscribes to
+  // the SvelteMap; any set()/delete() (open/close/focus/move/minimize) re-runs
+  // it. Reading `pendingDialogs` subscribes to the $state array; push/splice
+  // (confirm/prompt/remove) re-runs it. No polling.
   // -------------------------------------------------------------------------
 
-  // $state snapshots
-  let windowEntries = $state([...windowManager.windows.values()]);
-  let dialogs = $state([...pendingDialogs]);
-
-  // Sync on every animation frame — lightweight for typical window counts (<20)
-  // A proper integration would hook into a Svelte store or use $state in the manager.
-  let rafId: number;
-
-  function syncState() {
-    windowEntries = [...windowManager.windows.values()].sort((a, b) => a.zIndex - b.zIndex);
-    dialogs = [...pendingDialogs];
-    rafId = requestAnimationFrame(syncState);
-  }
+  const windowEntries = $derived(
+    [...windowManager.windows.values()].sort((a, b) => a.zIndex - b.zIndex),
+  );
+  const dialogs = $derived([...pendingDialogs]);
 
   /**
    * Push the current viewport size into windowManager, guarding against a
@@ -71,14 +61,11 @@
   }
 
   onMount(() => {
-    rafId = requestAnimationFrame(syncState);
-
-    // Viewport resize
+    // Viewport resize — pushed once on mount, then on every window resize.
     pushViewportSize();
     window.addEventListener("resize", pushViewportSize);
 
     return () => {
-      cancelAnimationFrame(rafId);
       window.removeEventListener("resize", pushViewportSize);
     };
   });

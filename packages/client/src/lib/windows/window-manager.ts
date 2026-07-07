@@ -12,9 +12,23 @@
  *  - Persistence of geometry + minimized state per window-id via localStorage
  *    (client-side UI preferences — DEC-UIF-10; NEVER tokens/credentials)
  *
- * All state is held in plain reactive $state runes so WindowHost.svelte can
- * iterate the registry. The module exports a singleton `windowManager`.
+ * Reactivity (r21-Y1): the registry is a `SvelteMap` from `svelte/reactivity`,
+ * so any component that iterates `windowManager.windows` inside an `$effect`/
+ * `$derived`/template re-runs automatically when a window is opened, closed,
+ * focused, moved or minimized — no polling. `SvelteMap` is a runtime primitive
+ * (no compiler/runes needed), so this module stays a plain `.ts` file and its
+ * pure logic remains fully unit-testable under Vitest in a node environment.
+ *
+ * Because a `SvelteMap` only tracks structural changes (add/delete) and per-key
+ * value *identity* — not deep mutation of a stored value object — every method
+ * that changes a window's fields REPLACES the entry with a fresh object via
+ * `windows.set(id, { ...entry, ...changes })` (immutable update). Re-setting the
+ * same key with a new reference is exactly what makes `.values()`/iteration
+ * subscribers (WindowHost) re-render. The module exports a singleton
+ * `windowManager`.
  */
+
+import { SvelteMap } from "svelte/reactivity";
 
 // ---------------------------------------------------------------------------
 // Types (re-exported so callers import from this module)
@@ -208,18 +222,22 @@ function nextId(): WindowId {
 // ---------------------------------------------------------------------------
 
 /**
- * Pure window manager. Holds state as plain objects so Svelte 5 $state runes
- * in WindowHost can subscribe reactively.
+ * Reactive window manager. Holds open windows in a `SvelteMap` so Svelte
+ * components can iterate the registry inside `$derived`/templates and re-render
+ * reactively on open/close/focus/move/minimize — no rAF polling.
  *
- * Intentionally free of Svelte imports so logic is fully testable in Vitest
- * without a DOM/browser environment.
+ * The only Svelte dependency is `SvelteMap` (a runtime reactive primitive), so
+ * the logic stays fully testable in Vitest under a node environment.
  */
 export class WindowManager {
   /**
-   * Mutable map of open windows. Svelte components should wrap this in
-   * `$state` — see WindowHost.svelte.
+   * Reactive registry of open windows. Structural changes (open/close) and
+   * per-entry replacements (focus/move/minimize) trigger subscribers that read
+   * `windows.values()` / iterate the map — see WindowHost.svelte. Entries are
+   * treated as immutable: mutating methods replace the object rather than
+   * editing it in place (a `SvelteMap` does not deep-track stored values).
    */
-  readonly windows: Map<WindowId, WindowEntry> = new Map();
+  readonly windows: SvelteMap<WindowId, WindowEntry> = new SvelteMap();
 
   activeWindowId: WindowId | null = null;
 
@@ -319,7 +337,8 @@ export class WindowManager {
     if (!entry) return;
 
     this._highestZ += 1;
-    entry.zIndex = this._highestZ;
+    // Immutable replacement so SvelteMap subscribers (z-order) re-render.
+    this.windows.set(id, { ...entry, zIndex: this._highestZ });
     this.activeWindowId = id;
   }
 
@@ -330,15 +349,17 @@ export class WindowManager {
   minimize(id: WindowId): void {
     const entry = this.windows.get(id);
     if (!entry || !entry.minimizable) return;
-    entry.minimized = true;
-    this._persist(entry);
+    const updated: WindowEntry = { ...entry, minimized: true };
+    this.windows.set(id, updated);
+    this._persist(updated);
   }
 
   restore(id: WindowId): void {
     const entry = this.windows.get(id);
     if (!entry) return;
-    entry.minimized = false;
-    this._persist(entry);
+    const updated: WindowEntry = { ...entry, minimized: false };
+    this.windows.set(id, updated);
+    this._persist(updated);
     this.focus(id);
   }
 
@@ -367,12 +388,17 @@ export class WindowManager {
       entry.minHeight,
     );
 
-    entry.top = next.top;
-    entry.left = next.left;
-    entry.width = next.width;
-    entry.height = next.height;
+    // Immutable replacement so SvelteMap subscribers (position/size) re-render.
+    const updated: WindowEntry = {
+      ...entry,
+      top: next.top,
+      left: next.left,
+      width: next.width,
+      height: next.height,
+    };
+    this.windows.set(id, updated);
 
-    this._persist(entry);
+    this._persist(updated);
   }
 
   // -------------------------------------------------------------------------
@@ -423,7 +449,8 @@ export class WindowManager {
    */
   onViewportResize(viewport: ViewportSize): void {
     this.viewport = viewport;
-    for (const entry of this.windows.values()) {
+    // Snapshot first: we re-set entries while iterating (immutable replacement).
+    for (const entry of [...this.windows.values()]) {
       const clamped = clampToViewport(
         { top: entry.top, left: entry.left, width: entry.width, height: entry.height },
         viewport,
@@ -431,10 +458,13 @@ export class WindowManager {
         entry.minWidth,
         entry.minHeight,
       );
-      entry.top = clamped.top;
-      entry.left = clamped.left;
-      entry.width = clamped.width;
-      entry.height = clamped.height;
+      this.windows.set(entry.id, {
+        ...entry,
+        top: clamped.top,
+        left: clamped.left,
+        width: clamped.width,
+        height: clamped.height,
+      });
     }
   }
 

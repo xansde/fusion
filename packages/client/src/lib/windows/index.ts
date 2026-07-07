@@ -23,7 +23,7 @@ export type {
   ViewportSize,
 } from "./window-manager.js";
 
-export { Dialog, confirm, prompt, pendingDialogs, removePendingDialog } from "./dialogs.js";
+export { Dialog, confirm, prompt, pendingDialogs, removePendingDialog } from "./dialogs.svelte.js";
 
 export type {
   PendingDialog,
@@ -31,4 +31,4 @@ export type {
   PendingPrompt,
   ConfirmOptions,
   PromptOptions,
-} from "./dialogs.js";
+} from "./dialogs.svelte.js";

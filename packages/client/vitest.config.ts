@@ -1,4 +1,5 @@
 import { defineConfig } from "vitest/config";
+import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -9,6 +10,11 @@ import { fileURLToPath } from "node:url";
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
+  // The Svelte plugin is required so `.svelte.ts` rune modules (e.g. the reactive
+  // window-manager / dialogs stores) compile their `$state` runes under Vitest.
+  // Runtime primitives from `svelte/reactivity` (SvelteMap) work without it, but
+  // `$state` is a compiler macro and needs this transform.
+  plugins: [svelte()],
   resolve: {
     alias: {
       "@fusion/shared": resolve(__dirname, "../shared/src/index.ts"),

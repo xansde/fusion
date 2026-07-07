@@ -8,7 +8,7 @@
    * Uses <dialog>.showModal() — free focus trap, Escape, backdrop (DEC-UIF-02).
    */
 
-  import type { PendingPrompt } from "$lib/windows/dialogs.js";
+  import type { PendingPrompt } from "$lib/windows/dialogs.svelte.js";
   import { onMount } from "svelte";
 
   interface Props {

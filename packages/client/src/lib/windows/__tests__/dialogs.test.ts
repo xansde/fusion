@@ -1,12 +1,12 @@
 /**
- * dialogs.test.ts — Unit tests for the dialog bridge (dialogs.ts).
+ * dialogs.test.ts — Unit tests for the dialog bridge (dialogs.svelte.ts).
  *
  * Tests that confirm() / prompt() correctly push pending dialogs to the queue
  * and that resolving them cleans up the queue.
  */
 
 import { describe, it, expect, beforeEach } from "vitest";
-import { confirm, prompt, pendingDialogs, removePendingDialog, Dialog } from "../dialogs.js";
+import { confirm, prompt, pendingDialogs, removePendingDialog, Dialog } from "../dialogs.svelte.js";
 
 // ---------------------------------------------------------------------------
 // Helpers to drain the pendingDialogs array between tests

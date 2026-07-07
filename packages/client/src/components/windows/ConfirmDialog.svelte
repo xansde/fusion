@@ -13,7 +13,7 @@
    *  - onSettled: () => void — called after resolve so host can remove it
    */
 
-  import type { PendingConfirm } from "$lib/windows/dialogs.js";
+  import type { PendingConfirm } from "$lib/windows/dialogs.svelte.js";
   import { onMount } from "svelte";
 
   interface Props {
