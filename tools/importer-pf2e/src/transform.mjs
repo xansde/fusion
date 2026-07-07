@@ -1754,6 +1754,33 @@ function flattenAncestryBoostGroups(groupMap) {
   });
 }
 
+// Ancestry/heritage/background feature-grant placeholder — these embedded
+// `system.items` entries represent granted feats (ancestryfeatures compendium
+// entries), matching the same fusion type used for feats/classFeature docs.
+const ANCESTRY_ITEM_GRANT_PLACEHOLDER_IMG = 'icons/placeholder/feat.svg';
+
+/**
+ * Sanitizes the vendor's `system.items` keyed map (ancestry/heritage/
+ * background feature grants — e.g. Ratfolk's "Sharp Teeth", Fleshwarp's
+ * "Unusual Anatomy"). Unlike normalizeClassSystem (which drops `items`
+ * entirely because it is fully superseded by `featuresByLevel`), these packs
+ * have no Fusion-shaped equivalent for the grant list yet, so the map itself
+ * (uuid/name/level — data future grants may consume) is preserved. Only the
+ * vendor's raw `img` is replaced: those paths point straight at Paizo/Foundry
+ * art (e.g. "systems/pf2e/icons/default-icons/feat.svg") that never went
+ * through normalize.mjs's placeholder substitution, since that pass only
+ * rewrites the DOCUMENT's own top-level `img`, not arbitrary nested maps
+ * inside `system.*` (clean-room / REQ-LEG art policy).
+ */
+function sanitizeItemGrantsMap(itemsMap) {
+  if (!itemsMap || typeof itemsMap !== 'object') return itemsMap;
+  const sanitized = {};
+  for (const [key, entry] of Object.entries(itemsMap)) {
+    sanitized[key] = { ...entry, img: ANCESTRY_ITEM_GRANT_PLACEHOLDER_IMG };
+  }
+  return sanitized;
+}
+
 function normalizeAncestrySystem(system, src) {
   return {
     ...system,
@@ -1764,6 +1791,7 @@ function normalizeAncestrySystem(system, src) {
     flaws: flattenAncestryBoostGroups(src.flaws),
     languages: { value: src.languages?.value ?? [] },
     vision: src.vision ?? system.vision ?? 'normal',
+    items: sanitizeItemGrantsMap(src.items ?? system.items),
     description: src.description?.value ?? src.description ?? system.description ?? '',
     publication: src.publication ?? system.publication,
     traits: src.traits ?? system.traits ?? { rarity: 'common', value: [] },
@@ -1779,6 +1807,7 @@ function normalizeAncestrySystem(system, src) {
 function normalizeHeritageSystem(system, src) {
   return {
     ...system,
+    items: sanitizeItemGrantsMap(src.items ?? system.items),
     description: src.description?.value ?? src.description ?? system.description ?? '',
     publication: src.publication ?? system.publication,
     traits: src.traits ?? system.traits ?? { rarity: 'common', value: [] },
@@ -1805,6 +1834,7 @@ function normalizeBackgroundSystem(system, src) {
     ...system,
     boosts: flattenAncestryBoostGroups(src.boosts),
     skills,
+    items: sanitizeItemGrantsMap(src.items ?? system.items),
     description: src.description?.value ?? src.description ?? system.description ?? '',
     publication: src.publication ?? system.publication,
     traits: src.traits ?? system.traits ?? { rarity: 'common', value: [] },
