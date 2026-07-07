@@ -450,6 +450,45 @@ const SLOT_TYPE_LABELS: Record<PlanSlotType, string> = {
 };
 
 // ---------------------------------------------------------------------------
+// Class-declared CHOICE slots (r19-W2b — end of the Magus/hybridStudy hardcode)
+//
+// Some classes declare a level-1 (or later) CHOICE POINT as a placeholder
+// entry in their `featuresByLevel` table: the Magus's "Hybrid Study", the
+// Kineticist's "Kinetic Gate". Those become a pickable Plan slot instead of a
+// locked auto-feature chip. This map is the SINGLE declarative source of truth
+// for "which class-feature placeholder name materializes which slot type" —
+// 100% fed by the pack's own featuresByLevel data (the class doc carries only
+// `{level, uuid, name}` per feature, so the reliable structural key is the
+// placeholder NAME the pack author wrote, exactly as `classHasKineticGate`
+// already keyed on it in r18-N2c). Adding a new choice-driven class feature =
+// one entry here + its picker wiring in PlanColumn; NEVER an `if (className ===
+// "magus")` branch. A class gets the hybridStudy slot ONLY when its
+// featuresByLevel declares "Hybrid Study" — so a Kineticist (Finn) no longer
+// shows a phantom Estudo Híbrido, and any future class lights up its own
+// choice slots just by shipping the right pack data.
+// ---------------------------------------------------------------------------
+
+export const CLASS_CHOICE_SLOTS: Record<string, PlanSlotType> = {
+  "Hybrid Study": "hybridStudy",
+  "Kinetic Gate": "kineticGate",
+};
+
+/**
+ * The choice-slot types a class declares at `level`, read from its
+ * `featuresByLevel` via CLASS_CHOICE_SLOTS (in declaration order). Pure — the
+ * only signal is the class doc's own data, never the class name.
+ */
+function classChoiceSlotsAtLevel(classSystem: ClassSystemLike, level: number): PlanSlotType[] {
+  const out: PlanSlotType[] = [];
+  for (const feature of classSystem.featuresByLevel ?? []) {
+    if (feature.level !== level) continue;
+    const slotType = CLASS_CHOICE_SLOTS[feature.name];
+    if (slotType) out.push(slotType);
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------
 // Granted feat choices (W1-D) — feats that grant a NESTED feat choice via the
 // vendor's ChoiceSet+GrantItem rule pair (unconverted — see
 // systems/pf2e/packs/feats-core's `flags.fusion.unconvertedRules`, e.g. Basic
@@ -665,22 +704,27 @@ function buildLevelPlan(
   const slots: PlanSlotModel[] = [];
   const featLevels = classSystem.featLevels ?? {};
 
-  // Level 1: 4 ability boosts (fixed PF2e Remaster rule) + hybrid study
-  // (Magus-specific, but slotted generically as "hybridStudy" — the picker
-  // only offers it when the class actually has hybrid-study features).
+  // Level 1: 4 ability boosts (fixed PF2e Remaster rule).
   if (level === 1) {
     slots.push(resolveAbilityBoostsSlot(`abilityBoosts-1`, level, doc));
-    const hybridStudySlot = resolveSlot("hybridStudy", `hybridStudy-1`, level, choices, items);
-    slots.push(hybridStudySlot);
-    // r15 A2: the chosen hybrid study grants its conflux spell as a fixed grant
-    // (Starlit Span → Shooting Star) — surface it as a locked nested chip under
-    // the study, same as feat grants.
-    pushFixedGrantChips(slots, hybridStudySlot, items);
-    // Kineticist: a level-1 Kinetic Gate choice slot (single/dual gate →
-    // element(s) → damage type). Only offered when the class actually grants
-    // a kinetic gate (Kineticist), same generic gating as hybrid study.
-    if (classHasKineticGate(classSystem)) {
-      slots.push(resolveSlot("kineticGate", `kineticGate-1`, level, choices, items));
+  }
+
+  // Class-declared CHOICE slots (hybrid study, kinetic gate, …) — 100% DATA-
+  // DRIVEN from featuresByLevel via CLASS_CHOICE_SLOTS (r19-W2b: no
+  // `if (className === "magus")`). A class gets the hybridStudy slot ONLY when
+  // it declares a "Hybrid Study" placeholder, the kineticGate slot ONLY when it
+  // declares "Kinetic Gate", etc. Emitted at whatever level the placeholder is
+  // declared (both are level 1 in the current packs, but this is level-agnostic).
+  for (const choiceType of classChoiceSlotsAtLevel(classSystem, level)) {
+    const choiceSlot = resolveSlot(choiceType, `${choiceType}-${String(level)}`, level, choices, items);
+    slots.push(choiceSlot);
+    // r15 A2: a filled study/feature may materialize fixed grants (Starlit Span
+    // → Shooting Star) — surface them as locked nested chips under the choice.
+    pushFixedGrantChips(slots, choiceSlot, items);
+    // r19-W2b: a chosen Kinetic Gate grants impulse sub-slots — one per gate
+    // element — Pathbuilder-style nested picks filtered to that element.
+    if (choiceType === "kineticGate") {
+      pushGateImpulseSubSlots(slots, choiceSlot, level, choices, items, doc);
     }
   }
 
@@ -781,14 +825,14 @@ function collapseSkillSlotGroups(slots: PlanSlotModel[]): PlanSlotModel[] {
 }
 
 /**
- * Class features that are actually a CHOICE slot (Hybrid Study) must not
- * also appear as a locked auto-feature chip — they're represented by the
- * `hybridStudy` slot instead. Identified by name for the MVP (the vendor's
- * own "Hybrid Study" placeholder entry in featuresByLevel represents the
- * choice point, not a concrete feature).
+ * Class features that are actually a CHOICE slot (Hybrid Study, Kinetic Gate)
+ * must not ALSO appear as a locked auto-feature chip — they're represented by
+ * their own choice slot instead. Derived from CLASS_CHOICE_SLOTS (r19-W2b) so
+ * the "is this a choice placeholder?" test and the "which slot does it
+ * materialize?" map can never drift.
  */
 function isChoiceFeature(ref: ClassFeatureRef): boolean {
-  return ref.name === "Hybrid Study" || ref.name === "Kinetic Gate";
+  return ref.name in CLASS_CHOICE_SLOTS;
 }
 
 /**
@@ -1256,16 +1300,105 @@ export interface KineticGatePick {
 }
 
 /**
- * True when this class has the "Kinetic Gate" choice feature at level 1 — the
- * signal that a level-1 `kineticGate` slot must be offered. Read from the
- * class's own `featuresByLevel` (the Kineticist pack carries `{level:1, name:
- * "Kinetic Gate"}`), so any future class that grants a kinetic gate lights up
- * the slot without a name special-case here.
+ * True when this class declares a "Kinetic Gate" choice feature — the signal
+ * that a `kineticGate` slot must be offered. Read from the class's own
+ * `featuresByLevel` via CLASS_CHOICE_SLOTS (r19-W2b), so any future class that
+ * grants a kinetic gate lights up the slot with no name special-case here.
  */
 export function classHasKineticGate(classSystem: ClassSystemLike): boolean {
   return (classSystem.featuresByLevel ?? []).some(
-    (f) => f.level === 1 && f.name === "Kinetic Gate",
+    (f) => CLASS_CHOICE_SLOTS[f.name] === "kineticGate",
   );
+}
+
+// ---------------------------------------------------------------------------
+// Kinetic Gate impulse sub-slots (r19-W2b)
+//
+// SOURCE — Kinetic Gate (PF2e Rage of Elements; Archives of Nethys, Kineticist
+// class, https://2e.aonprd.com/Classes.aspx?ID=23):
+//   - Single Gate: choose ONE element; you select TWO 1st-level impulse feats
+//     with that element's trait, and gain that element's impulse junction.
+//   - Dual Gate: choose TWO elements; you select TWO 1st-level impulse feats,
+//     one with the trait of each element, and gain NO impulse junction at
+//     level 1 (you can pick one up later via Gate's Threshold at 5th level).
+//
+// FUSION MODEL (Pathbuilder/dossiê the user builds against): the gate's
+// impulse feats are surfaced as nested sub-slots DISTINCT from the level-1
+// `classFeat-1` pick — ONE impulse sub-slot per chosen gate element (single →
+// 1 element → 1 sub-slot; dual → 2 elements → 2 sub-slots). Combined with the
+// normal level-1 class feat this yields the Pathbuilder counts the user
+// expects: single = classFeat + 1 same-element impulse (= AoN's two impulse
+// feats of the one element); dual = classFeat + one impulse PER element (Finn:
+// Four Winds in classFeat-1, plus an Air sub-slot for Aerial Boomerang and a
+// Metal sub-slot for Magnetic Pinions). The impulse junction is a passive
+// benefit (not a pickable slot) and is documented here rather than modeled as
+// a slot.
+//
+// Each sub-slot reuses the W1-D granted-sub-slot machinery (grantedFeat type +
+// `grantFilter` + `parentSlotId`): rendered indented under the gate, its picker
+// filtered to `impulse` + the element trait + 1st-level feats, and its
+// lifecycle cascaded by removeChoice's prefix rule when the gate is removed.
+// CRUCIALLY it is DERIVED FROM STATE (readGateElements on the embedded Kinetic
+// Gate feature), so the sub-slots appear the moment Finn's already-saved
+// dual gate is loaded — not only through the choose-gate flow.
+// ---------------------------------------------------------------------------
+
+/** English fallback labels for the per-element impulse sub-slot (i18n via `grantFilter.labelKey`). */
+const GATE_IMPULSE_FALLBACK_LABELS: Record<KineticElement, string> = {
+  air: "Air Impulse",
+  earth: "Earth Impulse",
+  fire: "Fire Impulse",
+  metal: "Metal Impulse",
+  water: "Water Impulse",
+  wood: "Wood Impulse",
+};
+
+/**
+ * The declarative picker filter for an element's impulse sub-slot: a 1st-level
+ * feat carrying BOTH the `impulse` trait and the element's own trait. Reuses
+ * `GrantedFeatFilter`/`matchesGrantedFeatFilter` (same shape PlanColumn already
+ * runs against the pack index), so the picker offers exactly that element's
+ * 1st-level impulses (Air → Aerial Boomerang/Four Winds; Metal → Magnetic
+ * Pinions; …) and nothing else.
+ */
+export function impulseGateFilter(element: KineticElement): GrantedFeatFilter {
+  return {
+    labelKey: `FUSION.Sheet.Plan.SlotLabel.impulseGate.${element}`,
+    predicates: [
+      { kind: "trait", value: "impulse" },
+      { kind: "trait", value: element },
+      { kind: "levelAtMost", value: 1 },
+    ],
+  };
+}
+
+/**
+ * pushGateImpulseSubSlots — for a FILLED kineticGate slot, push one impulse
+ * sub-slot per chosen gate element (read from the embedded gate feature's
+ * `system.kineticGates` via readGateElements). Each is a `grantedFeat` sub-slot
+ * (item-backed via `flags.fusion.build.slot = "<gateSlotId>:impulse:<element>"`)
+ * so `resolveSlot`'s own item lookup fills it, and the extra
+ * `parentSlotId`/`grantFilter`/`label` fields drive indentation + the
+ * element-filtered picker. Derived from state (not the choose flow), so a
+ * saved gate surfaces its impulse picks on open.
+ */
+function pushGateImpulseSubSlots(
+  slots: PlanSlotModel[],
+  gateSlot: PlanSlotModel,
+  level: number,
+  choices: BuildChoice[],
+  items: Array<Record<string, unknown>>,
+  doc: Record<string, unknown>,
+): void {
+  if (!gateSlot.filled) return;
+  for (const element of readGateElements(doc)) {
+    const subSlotId = `${gateSlot.slotId}:impulse:${element}`;
+    const subSlot = resolveSlot("grantedFeat", subSlotId, level, choices, items);
+    subSlot.parentSlotId = gateSlot.slotId;
+    subSlot.grantFilter = impulseGateFilter(element);
+    subSlot.label = GATE_IMPULSE_FALLBACK_LABELS[element];
+    slots.push(subSlot);
+  }
 }
 
 /**
@@ -1469,6 +1602,7 @@ export function applyAncestry(
   ];
 
   const existing = getBuildAbilities(getSystem(ctx.doc));
+  const speedValue = sys["speed"];
   ops.push({
     type: "doc:update",
     documentType: "Actor",
@@ -1482,6 +1616,17 @@ export function applyAncestry(
       // (re-applying); otherwise reset (a new ancestry invalidates old picks).
       "system.build.abilities.ancestryFree":
         existing.ancestryFree.length === freeCount ? existing.ancestryFree : [],
+      // The ancestry item carries its base land speed at `system.speed` (a raw
+      // number — Ratfolk 25); the speed derivation reads the ACTOR's
+      // `system.attributes.speed.value` (falling back to `system.speed`, then
+      // 0 — see systems/pf2e/src/derivations/speed.ts), so applying OR changing
+      // an ancestry must stamp that value onto the actor. r19-W2b bug fix:
+      // applyAncestry wrote the boosts but never the speed, so a freshly-built
+      // character's sheet showed 0 ft. Set on every apply → covers first pick
+      // AND swap (a new ancestry overwrites the prior speed).
+      ...(typeof speedValue === "number"
+        ? { "system.attributes.speed.value": speedValue }
+        : {}),
     },
   } satisfies DocUpdatePayload);
 
@@ -2349,21 +2494,23 @@ export function removeChoice(ctx: PlanOpBuilderContext, slot: PlanSlotModel): Do
     } satisfies DocDeleteEmbeddedPayload);
   }
 
-  // Cascade: removing a granting feat must also remove its nested
-  // `grantedFeat` sub-slot (W1-D item 3) — find the embedded item tagged
-  // `flags.fusion.build.slot === "<slot.slotId>:granted"` (there is at most
-  // one, since a feat only grants one nested choice in the current model)
-  // and delete it too, so the sub-slot's own `resolveSlot` lookup naturally
-  // reports unfilled/absent afterward.
-  const grantedSlotId = `${slot.slotId}:granted`;
-  const grantedItem = getItems(ctx.doc).find((it) => getItemBuildFlag(it)?.slot === grantedSlotId);
-  if (grantedItem) {
-    const grantedItemId = grantedItem["_id"];
-    if (typeof grantedItemId === "string") {
+  // Cascade: removing a slot must also remove every NESTED sub-slot item whose
+  // `flags.fusion.build.slot` is prefixed by `<slot.slotId>:` — covers the
+  // W1-D `:granted` feat sub-slot (Basic Concoction → nested alchemist feat)
+  // AND the Kinetic Gate's `:impulse:<element>` sub-slots (r19-W2b: one per
+  // gate element). A single prefix rule handles any current or future nested
+  // convention, so a sub-slot's own `resolveSlot` lookup reports unfilled/
+  // absent after the parent (or gate) is removed.
+  const subSlotPrefix = `${slot.slotId}:`;
+  for (const it of getItems(ctx.doc)) {
+    const flagSlot = getItemBuildFlag(it)?.slot;
+    if (flagSlot === undefined || !flagSlot.startsWith(subSlotPrefix)) continue;
+    const subItemId = it["_id"];
+    if (typeof subItemId === "string") {
       ops.push({
         type: "doc:delete",
         documentType: "Item",
-        id: grantedItemId,
+        id: subItemId,
         parent: { type: "Actor", id: ctx.actorId },
       } satisfies DocDeleteEmbeddedPayload);
     }
@@ -2398,7 +2545,7 @@ export function removeChoice(ctx: PlanOpBuilderContext, slot: PlanSlotModel): Do
 
   const existingChoices = getBuildChoices(getSystem(ctx.doc));
   const remaining = existingChoices.filter(
-    (c) => c.slot !== slot.slotId && c.slot !== grantedSlotId,
+    (c) => c.slot !== slot.slotId && !c.slot.startsWith(subSlotPrefix),
   );
   if (remaining.length !== existingChoices.length) {
     ops.push({

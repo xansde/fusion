@@ -543,6 +543,12 @@
   "FUSION.Sheet.Plan.SkillTraining.Done": "Concluído",
   "FUSION.Sheet.Plan.SlotLabel.grantedFeat": "Talento Concedido",
   "FUSION.Sheet.Plan.SlotLabel.grantedFeat.basicConcoction": "Talento de Alquimista (Nível 1-2)",
+  "FUSION.Sheet.Plan.SlotLabel.impulseGate.air": "Impulso de Ar",
+  "FUSION.Sheet.Plan.SlotLabel.impulseGate.earth": "Impulso de Terra",
+  "FUSION.Sheet.Plan.SlotLabel.impulseGate.fire": "Impulso de Fogo",
+  "FUSION.Sheet.Plan.SlotLabel.impulseGate.metal": "Impulso de Metal",
+  "FUSION.Sheet.Plan.SlotLabel.impulseGate.water": "Impulso de Água",
+  "FUSION.Sheet.Plan.SlotLabel.impulseGate.wood": "Impulso de Madeira",
 
   "ETMOS.Orador.Tabs.Principal": "Principal",
   "ETMOS.Orador.Tabs.Grimorio": "Grimório",

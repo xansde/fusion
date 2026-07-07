@@ -543,6 +543,12 @@
   "FUSION.Sheet.Plan.SkillTraining.Done": "Done",
   "FUSION.Sheet.Plan.SlotLabel.grantedFeat": "Granted Feat",
   "FUSION.Sheet.Plan.SlotLabel.grantedFeat.basicConcoction": "Alchemist Feat (1st-2nd Level)",
+  "FUSION.Sheet.Plan.SlotLabel.impulseGate.air": "Air Impulse",
+  "FUSION.Sheet.Plan.SlotLabel.impulseGate.earth": "Earth Impulse",
+  "FUSION.Sheet.Plan.SlotLabel.impulseGate.fire": "Fire Impulse",
+  "FUSION.Sheet.Plan.SlotLabel.impulseGate.metal": "Metal Impulse",
+  "FUSION.Sheet.Plan.SlotLabel.impulseGate.water": "Water Impulse",
+  "FUSION.Sheet.Plan.SlotLabel.impulseGate.wood": "Wood Impulse",
 
   "ETMOS.Orador.Tabs.Principal": "Main",
   "ETMOS.Orador.Tabs.Grimorio": "Grimoire",
