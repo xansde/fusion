@@ -1813,6 +1813,100 @@ describe("CharacterSheetVM — resolveSpellName (DEC-R12-05)", () => {
 });
 
 // ---------------------------------------------------------------------------
+// resolveSpellCastTime — prepared-slot cast-time resolution across the same
+// 3 embedded layers as resolveSpellName (r20-X6, feedback: "Faltou adicionar
+// o custo de ações na aba de magias"). Feeds formatIndexActionCost so a
+// prepared slot shows the same ◆/◇/⟳ badge as cantrips/grimoire/focus rows.
+// ---------------------------------------------------------------------------
+
+describe("CharacterSheetVM — resolveSpellCastTime (r20-X6)", () => {
+  it("layer 1: resolves the cast time of a spell grouped under the given entry", () => {
+    const vm = makeVM();
+    // Magic Missile is embedded with location=entry-arcane, castTime "2A".
+    expect(vm.resolveSpellCastTime("entry-arcane", "spell-magic-missile")).toBe("2A");
+  });
+
+  it("layer 2: resolves the cast time of a spell that belongs to a DIFFERENT entry", () => {
+    const doc = makeCharacter();
+    const items = doc["items"] as Array<Record<string, unknown>>;
+    items.push({
+      _id: "entry-divine",
+      name: "Divine",
+      type: "spellcastingEntry",
+      system: { tradition: "divine", prepared: "prepared", ability: "wis", slots: {} },
+    });
+    items.push({
+      _id: "spell-heal",
+      name: "Heal",
+      type: "spell",
+      location: "entry-divine",
+      system: { level: 1, castTime: "1" },
+    });
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    // Asked for it under entry-arcane, but it lives under entry-divine — still found.
+    expect(vm.resolveSpellCastTime("entry-arcane", "spell-heal")).toBe("1");
+  });
+
+  it("layer 3: resolves the cast time of an embedded spell whose location link is stale/wrong", () => {
+    const doc = makeCharacter();
+    const items = doc["items"] as Array<Record<string, unknown>>;
+    items.push({
+      _id: "spell-orphan-link",
+      name: "Mislinked Spell",
+      type: "spell",
+      location: "entry-does-not-exist",
+      system: { level: 2, castTime: "reaction" },
+    });
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    // Not grouped under any entry (layers 1-2 miss), but the embedded item
+    // exists (layer 3 recovers it by id, location-agnostic).
+    expect(vm.resolveSpellCastTime("entry-arcane", "spell-orphan-link")).toBe("reaction");
+  });
+
+  it("returns null for a dangling reference (id matches no embedded spell)", () => {
+    const vm = makeVM();
+    expect(vm.resolveSpellCastTime("entry-arcane", "QM1xJwDDsAEYA3uJ")).toBeNull();
+  });
+
+  it("returns null for an empty/blank id (unprepared-slot sentinel)", () => {
+    const vm = makeVM();
+    expect(vm.resolveSpellCastTime("entry-arcane", "")).toBeNull();
+  });
+
+  it("returns null when the matched spell has no castTime at all (e.g. passive/no time data)", () => {
+    const doc = makeCharacter();
+    const items = doc["items"] as Array<Record<string, unknown>>;
+    items.push({
+      _id: "spell-no-time",
+      name: "Timeless Spell",
+      type: "spell",
+      location: "entry-arcane",
+      system: { level: 1 },
+    });
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    expect(vm.resolveSpellCastTime("entry-arcane", "spell-no-time")).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Spell-name translation (T1 r13) — bilingual display via the pack overlay.
 // The actor's embedded spell items were copied with EN names; a translator
 // (built from the spells-core index's namePt) resolves them to pt-BR for

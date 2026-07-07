@@ -1558,6 +1558,57 @@ export class CharacterSheetVM {
     return null;
   }
 
+  /**
+   * Resolve a prepared-slot spell id to its raw cast-time token (r20-X6,
+   * feedback: "Faltou adicionar o custo de ações na aba de magias"), mirroring
+   * {@link resolveSpellName}'s three-layer lookup so a prepared slot can show
+   * the SAME action-cost badge (via the canonical `formatIndexActionCost`
+   * helper, r20-X2) as cantrips/grimoire/focus rows — those already carry
+   * `SpellRow.castTime` directly.
+   *
+   * Returns the flattened `system.castTime` token (e.g. "2", "reaction",
+   * "free", "1 minute"), healed against the pack for layer 3 so a heal-only
+   * cast time still surfaces. `null` when the id matches no embedded spell
+   * (dangling reference — caller renders no badge, same as a missing name).
+   */
+  resolveSpellCastTime(entryId: string, spellItemId: string): string | null {
+    if (!spellItemId) return null;
+
+    // Layer 1: within the entry's grouped spells (already healed SpellRows).
+    const entry = this.spellcastingEntries.find((e) => e.entryId === entryId);
+    if (entry) {
+      for (const slot of entry.slots) {
+        const hit = slot.spells.find((sp) => sp.id === spellItemId);
+        if (hit) return hit.castTime;
+      }
+    }
+
+    // Layer 2: across every entry's grouped spells.
+    for (const other of this.spellcastingEntries) {
+      if (other.entryId === entryId) continue;
+      for (const slot of other.slots) {
+        const hit = slot.spells.find((sp) => sp.id === spellItemId);
+        if (hit) return hit.castTime;
+      }
+    }
+
+    // Layer 3: any embedded spell item on the actor (location-agnostic),
+    // healed against the pack so a pack-only time.value still surfaces.
+    const items = this._doc["items"] as Array<Record<string, unknown>> | undefined;
+    if (items) {
+      for (const item of items) {
+        if (item["type"] !== "spell") continue;
+        if (item["_id"] !== spellItemId) continue;
+        const sys = this._healSpellSystem(item);
+        const rawCastTime = sys["castTime"];
+        return typeof rawCastTime === "string" ? rawCastTime : null;
+      }
+    }
+
+    // Dangling reference — no embedded spell matches this id.
+    return null;
+  }
+
   // -------------------------------------------------------------------------
   // Spell heightening (r16-G3) — automatic level scaling on the sheet
   // -------------------------------------------------------------------------

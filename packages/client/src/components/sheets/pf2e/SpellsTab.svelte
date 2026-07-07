@@ -36,7 +36,8 @@
   import SpellPickerDialog from "./SpellPickerDialog.svelte";
   import DocumentDetailsPanel from "./DocumentDetailsPanel.svelte";
   import { getDocument, requireConnectedSocket, listPacks, searchPack } from "../../../lib/compendium/compendiumApi.js";
-  import { pickLocalizedName, DocumentDetailsCache } from "../../../lib/compendium/documentDetails.js";
+  import { pickLocalizedName, DocumentDetailsCache, formatIndexActionCost } from "../../../lib/compendium/documentDetails.js";
+  import type { RowActionCost } from "../../../lib/compendium/documentDetails.js";
   import { getSocket, session } from "../../../lib/session.svelte.js";
   import { sendChatOpForId } from "../../../lib/docs/sendOp.js";
   import type { ChatRollPayload } from "../../../lib/sheets/pf2e/characterSheetVM.js";
@@ -714,11 +715,15 @@
   }
 
   /** Every known spell across all ranks for an entry — used for the Grimório section. */
-  function grimoireSpells(entry: SpellcastingEntryRow): Array<{ id: string; name: string; rank: number }> {
-    const out: Array<{ id: string; name: string; rank: number }> = [];
+  function grimoireSpells(
+    entry: SpellcastingEntryRow,
+  ): Array<{ id: string; name: string; rank: number; castTime: string | null }> {
+    const out: Array<{ id: string; name: string; rank: number; castTime: string | null }> = [];
     for (const slot of entry.slots) {
       if (slot.isCantrip) continue;
-      for (const sp of slot.spells) out.push({ id: sp.id, name: translateName(sp.name), rank: slot.rank });
+      for (const sp of slot.spells) {
+        out.push({ id: sp.id, name: translateName(sp.name), rank: slot.rank, castTime: sp.castTime });
+      }
     }
     return out;
   }
@@ -736,14 +741,22 @@
   keeps a name click from also triggering the enclosing slot/card handlers
   (Lançar/Trocar/Preparar live in separate buttons). `extraClass` lets each
   surface keep its own typographic style (chip / slot / focus row).
+
+  `cost` (r20-X6, feedback: "Faltou adicionar o custo de ações na aba de
+  magias") renders the same ◆/◇/⟳ badge the compendium pickers show (r20-X2,
+  {@link formatIndexActionCost}) right after the name — null (passive/no cost
+  data) renders nothing, keeping the row clean.
 -->
-{#snippet spellNameButton(displayName: string, spellItemId: string, extraClass: string)}
+{#snippet spellNameButton(displayName: string, spellItemId: string, extraClass: string, cost: RowActionCost | null)}
   <button
     type="button"
     class={`spell-name-btn ${extraClass}`}
     aria-label={t("FUSION.Sheet.Spells.SpellDetailsOpen", { name: displayName })}
     onclick={(e) => { e.stopPropagation(); openSpellDetails(spellItemId); }}
   >{displayName}</button>
+  {#if cost}
+    <span class="spell-cost-badge" class:spell-cost-badge--text={cost.isText} title={cost.title}>{cost.display}</span>
+  {/if}
 {/snippet}
 
 <!--
@@ -855,8 +868,9 @@
               <div class="spells-chips">
                 {#each cantrips(entry) as cantrip (cantrip.id)}
                   {@const cName = translateName(cantrip.name)}
+                  {@const cCost = formatIndexActionCost(cantrip.castTime, i18n.locale)}
                   <div class="spell-chip">
-                    {@render spellNameButton(cName, cantrip.id, "spell-chip__name")}
+                    {@render spellNameButton(cName, cantrip.id, "spell-chip__name", cCost)}
                     {@render heightenChrome(cantrip.heightening, cantrip.id, "cantrip", undefined, cName)}
                     {#if vm.editable}
                       <button
@@ -903,10 +917,11 @@
                       </div>
                     {:else}
                     {@const preparedHeighten = vm.heightenedSpell(prepared.id, "prepared", slot.rank)}
+                    {@const preparedCost = formatIndexActionCost(vm.resolveSpellCastTime(entry.entryId, prepared.id), i18n.locale)}
                     <div class="spell-slot-card" class:spell-slot-card--expended={prepared.expended}>
                       <div class="spell-slot-card__main">
                         <span class="spell-slot-card__name">
-                          {@render spellNameButton(resolvedName, prepared.id, "spell-slot-card__name-text")}
+                          {@render spellNameButton(resolvedName, prepared.id, "spell-slot-card__name-text", preparedCost)}
                           {#if !prepared.expended}
                             <span class="spell-slot-card__dot" title={t("FUSION.Sheet.Spells.SlotAvailable")}></span>
                           {/if}
@@ -973,11 +988,12 @@
             {:else}
               <div class="spells-grimoire">
                 {#each grimoireSpells(entry) as spell (spell.id)}
+                  {@const gCost = formatIndexActionCost(spell.castTime, i18n.locale)}
                   <div
                     class="spell-chip spell-chip--row"
                     class:spell-chip--new={spell.name === recentlyAddedDisplayName}
                   >
-                    {@render spellNameButton(spell.name, spell.id, "spell-chip__name")}
+                    {@render spellNameButton(spell.name, spell.id, "spell-chip__name", gCost)}
                     {#if vm.editable}
                       <button type="button" class="spell-btn spell-btn--ghost" onclick={() => removeFromGrimoire(spell.id)}>
                         {t("FUSION.Sheet.Spells.Remove")}
@@ -1038,9 +1054,10 @@
         {:else}
           {#each vm.focusSpells as spell (spell.id)}
             {@const focusName = translateName(spell.name)}
+            {@const focusCost = formatIndexActionCost(spell.castTime, i18n.locale)}
             <div class="focus-spell-row" class:spell-chip--new={focusName === recentlyAddedDisplayName}>
               <div class="focus-spell-row__main">
-                {@render spellNameButton(focusName, spell.id, "focus-spell-row__name")}
+                {@render spellNameButton(focusName, spell.id, "focus-spell-row__name", focusCost)}
                 {@render heightenChrome(spell.heightening, spell.id, "focus", undefined, focusName)}
               </div>
               {#if vm.editable}
@@ -1401,6 +1418,31 @@
     text-decoration: underline;
     text-underline-offset: 2px;
     outline: none;
+  }
+
+  /*
+   * Action-cost badge (r20-X6, feedback: "Faltou adicionar o custo de ações na
+   * aba de magias"): ◆/◆◆/◆◆◆/◇/⟳ glyphs (or a short text label for long
+   * casts, e.g. "1 minuto") right after the spell name — same visual weight
+   * and color as the compendium picker's row badge (r20-X2,
+   * .picker-row__cost in SpellPickerDialog.svelte) for consistency.
+   */
+  .spell-cost-badge {
+    display: inline-block;
+    margin-left: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--fusion-accent);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+
+  .spell-cost-badge--text {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--fusion-text-subtle);
+    letter-spacing: 0;
   }
 
   /* Slot name variant: same typography as .spell-slot-card__name so the button
