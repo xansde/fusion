@@ -1249,7 +1249,26 @@ describe("classFeatureGrantRefs + classGrantedActionChips (r20-X4)", () => {
     }
   });
 
-  it("surfaces a materialized class-granted action as a locked chip at its feature's level", () => {
+  it("surfaces a materialized class-granted action with a NEW name as a locked chip at its feature's level", () => {
+    const base = tobiasLevel3Doc();
+    const classItem = (base["items"] as Array<Record<string, unknown>>).find((i) => i["type"] === "class")!;
+    const classSid = (((classItem["flags"] as Record<string, unknown>)["fusion"]) as Record<string, unknown>)["sourceId"] as string;
+    const doc = {
+      ...base,
+      items: [
+        ...(base["items"] as Array<Record<string, unknown>>),
+        // A name NOT present in Magus featuresByLevel (mirrors Kineticist's Base
+        // Kinesis) → a distinct chip routed to actions-core.
+        { _id: "granted-mystrike", name: "Mystic Strike", type: "action", flags: { fusion: { sourceId: "MS_ACT", grantedBy: classSid, grantedSlot: classGrantSlot(1, "Spellstrike") } }, system: {} },
+      ],
+    };
+    const plan = derivePlan(doc);
+    const lvl1 = plan.levels.find((l) => l.level === 1)!;
+    const chip = lvl1.autoFeatures.find((f) => f.name === "Mystic Strike" && f.detailsPackSlug === "actions-core");
+    expect(chip).toBeDefined();
+  });
+
+  it("DEDUPES a granted action whose name matches a class feature (Magus Spellstrike) — one chip, no duplicate render key", () => {
     const base = tobiasLevel3Doc();
     const classItem = (base["items"] as Array<Record<string, unknown>>).find((i) => i["type"] === "class")!;
     const classSid = (((classItem["flags"] as Record<string, unknown>)["fusion"]) as Record<string, unknown>)["sourceId"] as string;
@@ -1262,8 +1281,11 @@ describe("classFeatureGrantRefs + classGrantedActionChips (r20-X4)", () => {
     };
     const plan = derivePlan(doc);
     const lvl1 = plan.levels.find((l) => l.level === 1)!;
-    const chip = lvl1.autoFeatures.find((f) => f.name === "Spellstrike" && f.detailsPackSlug === "actions-core");
-    expect(chip).toBeDefined();
+    const spellstrikeChips = lvl1.autoFeatures.filter((f) => f.name === "Spellstrike");
+    expect(spellstrikeChips).toHaveLength(1); // the feature chip; the action is deduped
+    // Every chip name at the level is unique (the LevelCard #each key is the name).
+    const names = lvl1.autoFeatures.map((f) => f.name);
+    expect(new Set(names).size).toBe(names.length);
   });
 });
 

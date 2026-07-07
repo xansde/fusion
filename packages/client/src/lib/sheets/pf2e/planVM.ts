@@ -904,20 +904,28 @@ function buildLevelPlan(
     }
   }
 
-  const autoFeatures: AutoFeatureModel[] = [
-    // Class features named directly by featuresByLevel (Impulses, Kinetic Aura,
-    // Spellstrike, Arcane Cascade, Conflux Spells…) — locked NAME chips.
-    ...(classSystem.featuresByLevel ?? [])
-      .filter((f) => f.level === level)
-      .filter((f) => !isChoiceFeature(f))
-      .map((f) => ({ name: f.name, locked: true as const })),
-    // Actions those features CONCEDE via GrantItem (r20-X4 — Elemental Blast +
-    // Base Kinesis from Impulses, Channel Elements from Kinetic Aura, Spellstrike
-    // from Spellstrike, Arcane Cascade from Arcane Cascade) — materialized as
-    // embedded `action` items tagged grantedBy=<classSourceId>, surfaced here as
-    // locked chips at the granting feature's level.
-    ...classGrantedActionChips(doc, level),
-  ];
+  // Class features named directly by featuresByLevel (Impulses, Kinetic Aura,
+  // Spellstrike, Arcane Cascade, Conflux Spells…) — locked NAME chips — PLUS the
+  // actions those features concede via GrantItem (r20-X4 — Elemental Blast +
+  // Base Kinesis from Impulses, Channel Elements from Kinetic Aura). A conceded
+  // action whose NAME matches a feature already listed (Magus's Spellstrike
+  // feature vs the Spellstrike action) is skipped so the strip carries no
+  // duplicate chip (a duplicate would also collide on the render key).
+  const autoFeatures: AutoFeatureModel[] = [];
+  const autoSeen = new Set<string>();
+  for (const f of classSystem.featuresByLevel ?? []) {
+    if (f.level !== level || isChoiceFeature(f)) continue;
+    const norm = normalizeName(f.name);
+    if (autoSeen.has(norm)) continue;
+    autoSeen.add(norm);
+    autoFeatures.push({ name: f.name, locked: true });
+  }
+  for (const chip of classGrantedActionChips(doc, level)) {
+    const norm = normalizeName(chip.name);
+    if (autoSeen.has(norm)) continue;
+    autoSeen.add(norm);
+    autoFeatures.push(chip);
+  }
 
   return { level, slots: collapseSkillSlotGroups(slots), autoFeatures };
 }
