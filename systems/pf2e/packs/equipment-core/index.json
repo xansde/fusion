@@ -1,0 +1,282 @@
+[
+  {
+    "_id": "feTezAwAv03uzsH0",
+    "uuid": "Compendium.pf2e.equipment-core.Item.feTezAwAv03uzsH0",
+    "name": "Antivenom Potion",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Antivenom Potion",
+      "system.level": 2,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand"
+    }
+  },
+  {
+    "_id": "JdLG5ZTQO3VGjAVL",
+    "uuid": "Compendium.pf2e.equipment-core.Item.JdLG5ZTQO3VGjAVL",
+    "name": "Bedroll",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Bedroll",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "other"
+    }
+  },
+  {
+    "_id": "dkABCIPaVAox3OWl",
+    "uuid": "Compendium.pf2e.equipment-core.Item.dkABCIPaVAox3OWl",
+    "name": "Boots of Bounding",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Boots of Bounding",
+      "system.level": 7,
+      "system.traits.value": [
+        "invested",
+        "magical"
+      ],
+      "system.usage": "wornshoes"
+    }
+  },
+  {
+    "_id": "W4dClGQV1PEpaJ4B",
+    "uuid": "Compendium.pf2e.equipment-core.Item.W4dClGQV1PEpaJ4B",
+    "name": "Cantrip Deck (Full Pack)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Cantrip Deck (Full Pack)",
+      "system.level": 1,
+      "system.traits.value": [
+        "magical"
+      ],
+      "system.category": "other",
+      "system.usage": "held-in-one-hand"
+    }
+  },
+  {
+    "_id": "5wzdXtfXwsdaxbIc",
+    "uuid": "Compendium.pf2e.equipment-core.Item.5wzdXtfXwsdaxbIc",
+    "name": "Elven Chain (Standard-Grade)",
+    "img": "icons/placeholder/armor.svg",
+    "type": "armor",
+    "index": {
+      "name": "Elven Chain (Standard-Grade)",
+      "system.level": 13,
+      "system.traits.value": [
+        "flexible"
+      ],
+      "system.category": "light"
+    }
+  },
+  {
+    "_id": "kEtCYnK8bLNETMPx",
+    "uuid": "Compendium.pf2e.equipment-core.Item.kEtCYnK8bLNETMPx",
+    "name": "Everlight Crystal",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Everlight Crystal",
+      "system.level": 1,
+      "system.traits.value": [
+        "light",
+        "magical"
+      ],
+      "system.usage": "held-in-one-hand"
+    }
+  },
+  {
+    "_id": "os59XTocWsMvVpMJ",
+    "uuid": "Compendium.pf2e.equipment-core.Item.os59XTocWsMvVpMJ",
+    "name": "Flint and Steel",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Flint and Steel",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands"
+    }
+  },
+  {
+    "_id": "HZc3f7EqvKrdIIRF",
+    "uuid": "Compendium.pf2e.equipment-core.Item.HZc3f7EqvKrdIIRF",
+    "name": "Gate Attenuator",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Gate Attenuator",
+      "system.level": 3,
+      "system.traits.value": [
+        "invested",
+        "magical"
+      ],
+      "system.usage": "worn"
+    }
+  },
+  {
+    "_id": "PebhZCo647KRbAdd",
+    "uuid": "Compendium.pf2e.equipment-core.Item.PebhZCo647KRbAdd",
+    "name": "Healing Potion (Lesser)",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Healing Potion (Lesser)",
+      "system.level": 3,
+      "system.traits.value": [
+        "consumable",
+        "healing",
+        "magical",
+        "potion",
+        "vitality"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand"
+    }
+  },
+  {
+    "_id": "kOjq18mSS4SHRadj",
+    "uuid": "Compendium.pf2e.equipment-core.Item.kOjq18mSS4SHRadj",
+    "name": "Purifying Spoon (Teaspoon)",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Purifying Spoon (Teaspoon)",
+      "system.level": 1,
+      "system.traits.value": [
+        "magical",
+        "wood"
+      ],
+      "system.usage": "held-in-one-hand"
+    }
+  },
+  {
+    "_id": "kbNb52BE0VDHDJQL",
+    "uuid": "Compendium.pf2e.equipment-core.Item.kbNb52BE0VDHDJQL",
+    "name": "Rations",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Rations",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.category": "other",
+      "system.usage": "held-in-one-hand"
+    }
+  },
+  {
+    "_id": "6lBj55XeT3rAC3Ge",
+    "uuid": "Compendium.pf2e.equipment-core.Item.6lBj55XeT3rAC3Ge",
+    "name": "Rhythm Bone",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Rhythm Bone",
+      "system.level": 1,
+      "system.traits.value": [
+        "auditory",
+        "magical"
+      ],
+      "system.usage": "held-in-one-hand"
+    }
+  },
+  {
+    "_id": "cAbDdzcaSqJ0MNYG",
+    "uuid": "Compendium.pf2e.equipment-core.Item.cAbDdzcaSqJ0MNYG",
+    "name": "Rope",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Rope",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-two-hands"
+    }
+  },
+  {
+    "_id": "W7EUali1nHLgtQXV",
+    "uuid": "Compendium.pf2e.equipment-core.Item.W7EUali1nHLgtQXV",
+    "name": "Sanitizing Pin",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Sanitizing Pin",
+      "system.level": 2,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "talisman"
+      ],
+      "system.category": "talisman",
+      "system.usage": "affixed-to-armor"
+    }
+  },
+  {
+    "_id": "7Ons6DIeurQjfDOk",
+    "uuid": "Compendium.pf2e.equipment-core.Item.7Ons6DIeurQjfDOk",
+    "name": "Serum of Sex Shift",
+    "img": "icons/placeholder/consumable.svg",
+    "type": "consumable",
+    "index": {
+      "name": "Serum of Sex Shift",
+      "system.level": 7,
+      "system.traits.value": [
+        "consumable",
+        "magical",
+        "potion"
+      ],
+      "system.category": "potion",
+      "system.usage": "held-in-one-hand"
+    }
+  },
+  {
+    "_id": "GtGoIc0oY8hQGjzj",
+    "uuid": "Compendium.pf2e.equipment-core.Item.GtGoIc0oY8hQGjzj",
+    "name": "Spacious Pouch (Type I)",
+    "img": "icons/placeholder/item.svg",
+    "type": "container",
+    "index": {
+      "name": "Spacious Pouch (Type I)",
+      "system.level": 4,
+      "system.traits.value": [
+        "extradimensional",
+        "magical"
+      ],
+      "system.usage": "held-in-two-hands"
+    }
+  },
+  {
+    "_id": "xHtscw4I2ztIg0r5",
+    "uuid": "Compendium.pf2e.equipment-core.Item.xHtscw4I2ztIg0r5",
+    "name": "Torch",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Torch",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand"
+    }
+  },
+  {
+    "_id": "VUff0oTLrwPZPR6Q",
+    "uuid": "Compendium.pf2e.equipment-core.Item.VUff0oTLrwPZPR6Q",
+    "name": "Waterskin",
+    "img": "icons/placeholder/item.svg",
+    "type": "equipment",
+    "index": {
+      "name": "Waterskin",
+      "system.level": 0,
+      "system.traits.value": [],
+      "system.usage": "held-in-one-hand"
+    }
+  }
+]

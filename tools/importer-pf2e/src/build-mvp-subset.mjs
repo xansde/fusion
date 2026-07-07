@@ -364,6 +364,35 @@ const PACK_MANIFESTS = {
     },
     schemaVersion: 1,
   },
+  // -------------------------------------------------------------------------
+  // r18-N2d — pf2e.equipment-core. Physical gear for Finn (Kineticist 3):
+  // his named magic items/consumables plus a lean adventurer's-gear subset.
+  // Fixed source-id list (same pattern as MVP_WEAPON_PF2E_IDS above), curated
+  // from out/equipment/transformed.json. Mixed document types (armor,
+  // equipment, consumable, container) — every type has a Zod schema in
+  // systems/pf2e/src/schemas/item-armor.ts / item-equipment.ts.
+  // -------------------------------------------------------------------------
+  'equipment-core': {
+    id: 'pf2e.equipment-core',
+    label: 'PF2e Core Equipment',
+    documentType: 'Item',
+    systemId: 'pf2e',
+    indexFields: ['name', 'system.level', 'system.traits.value', 'system.category', 'system.usage'],
+    license: {
+      license: 'ORC',
+      attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',
+      reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
+      sourceRepo: 'github.com/foundryvtt/pf2e',
+      sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
+    },
+    source: {
+      repo: 'github.com/foundryvtt/pf2e',
+      version: SOURCE_VERSION,
+      importerVersion: IMPORTER_VERSION,
+    },
+    schemaVersion: 1,
+  },
 };
 
 /**
@@ -468,6 +497,60 @@ const MVP_SPELL_PF2E_IDS = new Set([
   'KqvqNAfGIE5a9wSv', // Heroism (L3)
   // Level 4
   'A2JfEKe6BZcTG1S8', // Fly (L4)
+]);
+
+/**
+ * pf2eSourceIds do equipamento curado do Finn (r18-N2d) — pf2e.equipment-core.
+ * Fonte: vendor/pf2e/packs/pf2e/equipment/*.json (out/equipment/transformed.json
+ * após o fix do normalizer de armor/backpack — ver normalizeArmorSystem /
+ * normalizeEquipmentSystem em transform.mjs).
+ *
+ * Itens do dossiê:
+ *   - Elven Chain (Standard-Grade): type "armor" — REs: nenhuma (item passivo,
+ *     AC bonus via acBonus/runes).
+ *   - Gate Attenuator: type "equipment" — RE FlatModifier(+1, impulse-attack-roll,
+ *     predicate class:kineticist|feat:kineticist-dedication) PRESERVADA.
+ *     Finn tem 2 (quantity ajustada na curadoria, não duas tiers diferentes).
+ *   - Boots of Bounding: type "equipment" — REs FlatModifier(+5, land-speed) +
+ *     FlatModifier(+2, athletics, predicate high-jump|long-jump) PRESERVADAS
+ *     (provável origem do deslocamento 30 do Finn).
+ *   - Cantrip Deck (Full Pack): type "consumable".
+ *   - Everlight Crystal: type "equipment".
+ *   - Spacious Pouch (Type I): type "backpack" -> Fusion "container" (bugfix).
+ *   - Healing Potion (Lesser): type "consumable".
+ *   - Antivenom Potion: type "consumable" (nome exato do vendor; dossiê dizia
+ *     "Antivenom").
+ *   - Purifying Spoon (Teaspoon): type "equipment" — variante base (nível 1);
+ *     o dossiê não especifica ladle/tablespoon/teaspoon, teaspoon é a mais barata.
+ *   - Rhythm Bone: type "equipment" — variante base (não "greater").
+ *   - Sanitizing Pin: type "consumable".
+ *   - Serum of Sex Shift: type "consumable".
+ * Subset de aventureiro (ORC, vendor/pf2e/packs/pf2e/equipment/):
+ *   Rope, Torch, Rations, Waterskin, Bedroll, Flint and Steel — todos type
+ *   "equipment"/"consumable" já suportados. "Adventurer's Pack" NÃO incluído:
+ *   vendor type "kit" (bundle de itens aninhados) não tem schema/normalizer
+ *   Fusion ainda — fora do escopo deste batch (armor/backpack apenas).
+ */
+const MVP_EQUIPMENT_PF2E_IDS = new Set([
+  'peAvz7u35GEfTXxp', // Elven Chain (Standard-Grade) — armor
+  'ioiMUDqv85BI4shY', // Gate Attenuator — equipment (impulse-attack-roll +1)
+  'ecqz1iUGtyQEkZwy', // Boots of Bounding — equipment (land-speed +5, athletics +2)
+  'xTdrhiLqFYUllrpK', // Cantrip Deck (Full Pack) — consumable
+  'mRz8Jmk4Q06SsZpC', // Everlight Crystal — equipment
+  'jaEEvuQ32GjAa8jy', // Spacious Pouch (Type I) — backpack -> container
+  'e0vSAQfxhHauiAoD', // Healing Potion (Lesser) — consumable
+  'N3jcmW5XzEJZQVtJ', // Antivenom Potion — consumable
+  'nbRNjXYEx6T0G8AW', // Purifying Spoon (Teaspoon, base variant) — equipment [see note below]
+  'geAAUwfmOc5U0qOE', // Rhythm Bone (base) — equipment
+  'gi1zuwWrwcW7OKlK', // Sanitizing Pin — consumable
+  '9ignmYCACjfzkxDQ', // Serum of Sex Shift — consumable
+  // Adventurer's-gear subset (obvious, ORC-licensed loose items)
+  'fyYnQf1NAx9fWFaS', // Rope — equipment
+  '8Jdw4yAzWYylGePS', // Torch — equipment
+  'L9ZV076913otGtiB', // Rations — consumable
+  'VnPh324pKwd2ZB66', // Waterskin — equipment
+  'fagzYdmfYyMQ6J77', // Bedroll — equipment
+  'UlIxxLm71UdRgCFE', // Flint and Steel — equipment
 ]);
 
 /** pf2eSourceIds dos monstros selecionados para o MVP. */
@@ -1020,6 +1103,29 @@ async function buildPf2eSubset() {
     const index = buildIndex(manifest.id, docs, manifest.indexFields);
     writeFileSync(join(PACKS_OUT_DIR, 'familiar-abilities-core', 'index.json'), JSON.stringify(index, null, 2), 'utf8');
     report.packs.push({ packId: manifest.id, slug: 'familiar-abilities-core', documentCount: docs.length });
+  }
+
+  // --- 13. Equipment core (r18-N2d — Finn's physical gear) ---
+  // Fixed source-id list (same pattern as weapons-core); see
+  // MVP_EQUIPMENT_PF2E_IDS docstring for the full item-by-item breakdown.
+  {
+    console.log('[build-mvp] === Pack: equipment-core ===');
+    const all = loadTransformed('equipment');
+    const docs = filterToMvpSubset(all, MVP_EQUIPMENT_PF2E_IDS);
+    // Finn owns 2 Gate Attenuators (same item, not a higher tier) — the
+    // curated doc's system.quantity is bumped to reflect that.
+    for (const doc of docs) {
+      if (doc.flags?.fusion?.sourceId === 'ioiMUDqv85BI4shY') {
+        doc.system.quantity = 2;
+      }
+    }
+    console.log(`[build-mvp] equipment-core: ${docs.length} itens selecionados de ${MVP_EQUIPMENT_PF2E_IDS.size} ids curados (${all.length} totais no pack equipment)`);
+
+    const manifest = PACK_MANIFESTS['equipment-core'];
+    writePack('equipment-core', docs, manifest);
+    const index = buildIndex(manifest.id, docs, manifest.indexFields);
+    writeFileSync(join(PACKS_OUT_DIR, 'equipment-core', 'index.json'), JSON.stringify(index, null, 2), 'utf8');
+    report.packs.push({ packId: manifest.id, slug: 'equipment-core', documentCount: docs.length });
   }
 
   // Write build report
