@@ -758,7 +758,7 @@ function abcChipsFor(
       chips.push({
         key: `grant:${typeof it["_id"] === "string" ? (it["_id"] as string) : norm}`,
         name,
-        detailsPackSlug: grantedItemPackSlug(it["type"]),
+        detailsPackSlug: grantedItemPackSlug(it),
       });
     }
   }
@@ -966,7 +966,7 @@ function classGrantedActionChips(
     const norm = normalizeName(name);
     if (seen.has(norm)) continue;
     seen.add(norm);
-    out.push({ name, locked: true, detailsPackSlug: grantedItemPackSlug(it["type"]) });
+    out.push({ name, locked: true, detailsPackSlug: grantedItemPackSlug(it) });
   }
   return out;
 }
@@ -1077,7 +1077,7 @@ function pushFixedGrantChips(
 
   for (const item of granted) {
     const itemId = item["_id"];
-    const detailsPackSlug = grantedItemPackSlug(item["type"]);
+    const detailsPackSlug = grantedItemPackSlug(item);
     slots.push({
       slotId: `${parentSlot.slotId}:grant:${typeof itemId === "string" ? itemId : itemName(item) ?? "?"}`,
       type: "grantedFeat",
@@ -1092,15 +1092,27 @@ function pushFixedGrantChips(
   }
 }
 
-/** The Fusion pack a granted item's description lives in, by embedded item type. */
-function grantedItemPackSlug(type: unknown): string {
-  switch (type) {
+/**
+ * The Fusion pack a granted item's description lives in, by embedded item
+ * type (and, for feats, category). Takes the whole item because an ancestry
+ * FEATURE (r20-X5 — Unusual Anatomy, Sharp Teeth) is `type: "feat"` just like a
+ * selectable feat, but lives in ancestry-features-core, not feats-core; the
+ * `system.category === "ancestryfeature"` marker is the only way to tell them
+ * apart. Routing to the wrong pack makes the details dialog resolve the name in
+ * a pack that doesn't hold it (empty panel).
+ */
+function grantedItemPackSlug(item: Record<string, unknown>): string {
+  switch (item["type"]) {
     case "classFeature":
       return "class-features-core";
     case "action":
       return "actions-core";
     case "spell":
       return "spells-core";
+    case "feat":
+      return asRecord(item["system"])["category"] === "ancestryfeature"
+        ? "ancestry-features-core"
+        : "feats-core";
     default:
       return "feats-core";
   }

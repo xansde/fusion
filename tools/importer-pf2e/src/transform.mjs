@@ -2287,7 +2287,7 @@ async function main() {
   const DEFAULT_PACKS_BY_SYSTEM = {
     pf2e: [
       'conditions', 'equipment', 'spells', 'pathfinder-monster-core',
-      'classes', 'class-features', 'feats', 'ancestries', 'heritages', 'backgrounds',
+      'classes', 'class-features', 'feats', 'ancestries', 'ancestry-features', 'heritages', 'backgrounds',
       'actions',
     ],
     sf2e: ['conditions', 'equipment', 'spells', 'alien-core-bestiary', 'rulebook-bestiaries'],

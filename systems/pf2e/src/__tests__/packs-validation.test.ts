@@ -495,6 +495,84 @@ describe("packs-validation: r10 domain invariants", () => {
 });
 
 // ---------------------------------------------------------------------------
+// 2g. r20-X5 — ancestry-features-core + Aeronaut free-feat grant
+// ---------------------------------------------------------------------------
+
+describe("packs-validation: r20-X5 ancestry features + Aeronaut grant", () => {
+  const ancestryFeatures = loadDocuments("ancestry-features-core");
+
+  it("ancestry-features-core is non-empty (whole vendor pack; actual count 55 at r20-X5)", () => {
+    // Resilient: assert a lower bound, not the exact number — a vendor bump may
+    // add/remove ancestry features without this test needing an edit.
+    expect(ancestryFeatures.length).toBeGreaterThanOrEqual(50);
+  });
+
+  it("every ancestry feature is type 'feat' with category 'ancestryfeature'", () => {
+    const offenders = ancestryFeatures
+      .filter((d) => d.type !== "feat" || d.system.category !== "ancestryfeature")
+      .map((d) => `${d.name} (type=${d.type}, category=${String(d.system.category)})`);
+    expect(offenders, offenders.join("\n")).toEqual([]);
+  });
+
+  it("contains the features referenced by ancestries-core's system.items maps (Unusual Anatomy, Sharp Teeth)", () => {
+    // These are the two auto-conceded features the committed ancestries
+    // (Fleshwarp, Ratfolk) reference — the whole point of the pack. Nominal
+    // existence check (resilient to id churn).
+    const names = new Set(ancestryFeatures.map((d) => d.name));
+    for (const feature of ["Unusual Anatomy", "Sharp Teeth"]) {
+      expect(names.has(feature), `ancestry-features-core missing "${feature}"`).toBe(true);
+    }
+  });
+
+  it("every ancestries-core system.items feature resolves to a doc in ancestry-features-core (no dangling grants)", () => {
+    // The client materializes each ABC system.items entry against
+    // ancestry-features-core by NAME; a referenced feature with no matching
+    // doc would render as a non-clickable informative chip (the bug this pack
+    // fixes). Guard that every referenced ancestry feature is present.
+    const featureNames = new Set(ancestryFeatures.map((d) => normalize(d.name)));
+    const missing: string[] = [];
+    for (const ancestry of loadDocuments("ancestries-core")) {
+      const items = (ancestry.system as { items?: Record<string, { uuid?: string; name?: string }> }).items ?? {};
+      for (const entry of Object.values(items)) {
+        const uuid = entry.uuid ?? "";
+        // Only ancestry-feature grants live in this pack; skip other vendors.
+        if (!uuid.includes(".ancestryfeatures.")) continue;
+        const name = entry.name ?? uuid.split(".Item.")[1] ?? "";
+        if (name && !featureNames.has(normalize(name))) {
+          missing.push(`${ancestry.name} → "${name}"`);
+        }
+      }
+    }
+    expect(missing, `dangling ancestry-feature grants: ${missing.join(", ")}`).toEqual([]);
+  });
+
+  it("Aeronaut background grants Assurance via system.items (r20-X5 curated free feat)", () => {
+    // The vendor Aeronaut ships an empty system.items; r20-X5 injects the
+    // Assurance grant its own description @UUID names (with Piloting Lore). NOT
+    // Powerful Leap — that is a level-based skill-feat slot in Finn's build, not
+    // a background benefit (official Battlecry! text grants only Assurance).
+    const aeronaut = loadDocuments("backgrounds-core").find((d) => d.name === "Aeronaut");
+    expect(aeronaut, "backgrounds-core missing Aeronaut").toBeDefined();
+    const items = (aeronaut!.system as { items?: Record<string, { uuid?: string; name?: string }> }).items ?? {};
+    const grantedNames = Object.values(items).map((e) => e.name);
+    expect(grantedNames).toContain("Assurance");
+    const assurance = Object.values(items).find((e) => e.name === "Assurance");
+    expect(assurance?.uuid).toBe("Compendium.pf2e.feats-srd.Item.Assurance");
+  });
+
+  it("Assurance resolves in feats-core (so the Aeronaut grant materializes)", () => {
+    // The grant's uuid targets feats-srd → feats-core; the feat must be present
+    // there for the client to materialize it as a clickable chip.
+    const feats = loadDocuments("feats-core");
+    expect(feats.map((f) => f.name)).toContain("Assurance");
+  });
+});
+
+function normalize(name: string): string {
+  return name.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+}
+
+// ---------------------------------------------------------------------------
 // 3. pf2e.actions-core domain invariants (W2, r11-follow-up)
 // ---------------------------------------------------------------------------
 

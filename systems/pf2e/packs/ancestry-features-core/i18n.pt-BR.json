@@ -1,0 +1,285 @@
+{
+  "schemaVersion": 1,
+  "packId": "pf2e.ancestry-features-core",
+  "locale": "pt-BR",
+  "generatedAt": "2026-07-07T18:12:58.751Z",
+  "generator": "tools/translate-packs@0.1.0",
+  "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
+  "entries": {
+    "0vuOPvd1YnOGNLWU": {
+      "name": "Olhos Aguçados",
+      "sourceHash": "e7847c994dd62a5b0b7ffb16306cbc554ada0967",
+      "description": "<p>Seus olhos são aguçados, permitindo que você distinga pequenos detalhes sobre criaturas @UUID[Compendium.pf2e.conditionitems.Item.Concealed] ou mesmo @UUID[Compendium.pf2e.conditionitems.Item.Invisible] que outros poderiam não notar. Você ganha um bônus de circunstância +2 ao usar a ação @UUID[Compendium.pf2e.actionspf2e.Item.Seek] para encontrar criaturas @UUID[Compendium.pf2e.conditionitems.Item.Hidden] ou @UUID[Compendium.pf2e.conditionitems.Item.Undetected] a até 9 metros de você. Quando você tem como alvo um oponente que está oculto ou escondido de você, reduza a CD do teste simples para 3 para um alvo oculto ou 9 para um escondido.</p>"
+    },
+    "1kPlx4QykGMZSZZx": {
+      "name": "Núcleo de Autômato",
+      "sourceHash": "64e91b4faa36e8441ccd696f7d0808f09ce3139d",
+      "description": "<p>Seu corpo contém um núcleo de autômato infundido com quintessência planar que lhe concede poder para realizar diversas tarefas e abriga sua alma e energia vital. Essa energia vital flui através de você de forma muito parecida com o sangue dos humanoides. Como resultado, você é uma criatura viva. Você não possui as imunidades típicas de constructo, pode ser afetado por efeitos que têm como alvo uma criatura viva e pode recuperar Pontos de Vida normalmente por meio de energia vital. Além disso, você não é destruído ao ser reduzido a 0 Pontos de Vida. Em vez disso, sua energia vital tenta mantê-lo ativo mesmo em situações extremas; você fica inconsciente e começa a morrer ao ser reduzido a 0 Pontos de Vida.</p>"
+    },
+    "3846X2UxzYeBjfAj": {
+      "name": "Dentes Afiados",
+      "sourceHash": "50fefac44a51ca960f55091c271f141342f53811",
+      "description": "<p>Seus incisivos proeminentes oferecem uma alternativa aos punhos que outros humanoides usam em uma luta. Você tem um ataque desarmado de mandíbulas que causa 1d4 de dano perfurante, pertence ao grupo de briga e tem os traços ágil e precisão.</p>"
+    },
+    "39xZ2DNLLkXEbRn0": {
+      "name": "Forma Desperta",
+      "sourceHash": "e863c9fa7520d998a634f021c49a85003978215c",
+      "description": "<p>O despertar alterou sua forma, permitindo que você fale verbalmente e fique de pé sobre duas pernas. Você pode vestir, segurar, empunhar e usar itens. Quais membros você usa para manipular itens e quantos são determinados por você e seu Mestre, mas para as regras você funciona como um humanoide com duas mãos.</p>"
+    },
+    "4tVVSzhieulQjWfU": {
+      "name": "Criptomnésia",
+      "sourceHash": "f00d56217c8d7a794cbb0e3c5d476ea5821161d7",
+      "description": "<p>Você retém fragmentos de conhecimento de suas vidas anteriores. Você ganha um bônus de circunstância +1 em testes de perícia não treinados.</p>"
+    },
+    "5j86L7eHUZsArjLh": {
+      "name": "Tecelagem Iivlar",
+      "sourceHash": "271de1f6422392c6fd040404b4b821455f53904c",
+      "description": "<p>Fio planar produzido por criaturas chamadas iivlars está entrelaçado à sua pele. Esse fio brilha com luz fraca em uma emanação de 3 metros. Você pode Sustentar para extinguir, reativar ou ajustar a coloração dessa luz.</p>"
+    },
+    "66UDl9oJrJimCNTX": {
+      "name": "Robusto",
+      "sourceHash": "e22404a5c0f6c0ff255b3695c188ccf7009754b1",
+      "description": "<p>Você aumenta seus limites máximo e de sobrecarga de Volume em 2.</p>"
+    },
+    "75yylJxgN47Aqh1H": {
+      "name": "Olhos nas Costas",
+      "sourceHash": "a72379e7e5e5967f30d09eda68fd2366666e7424",
+      "description": "<p>Você tem olhos que apontam para várias direções diferentes e instintivamente percebem movimento na periferia da sua visão. Quando você usa a ação básica Procurar, você pode procurar criaturas em duas áreas em vez de uma. Se for necessária precisão, você pode selecionar dois @Template[cone|distance:30]s ou @Template[burst|distance:15]s dentro da linha de visão em vez de um.</p>"
+    },
+    "900Qof4n2vGG3dAb": {
+      "name": "Exemplar Dracônico",
+      "sourceHash": "a21e3b293dbcf6cbea4156efaa27218c34bcedd7",
+      "description": "<p>Você extrai poderes menores do seu exemplar dracônico. Escolha um tipo de dragão cromático ou metálico para ser seu exemplar. Isso determina a cor e a aparência de suas escamas, e dragões às vezes olham com mais benevolência para os kobolds que se parecem com eles, a critério do Mestre. Seu exemplar também pode determinar detalhes de outras habilidades que você tem, usando a tabela Exemplares Dracônicos.</p><h3><strong>Tabela 1-1 Exemplares Dracônicos</strong></h3><table class=\"pf2e remaster\"><thead><tr><th>Dragon</th><th>Breath Weapon Shape</th><th>Damage Type</th><th>Saving Throw</th></tr></thead><tbody><tr><td>Black</td><td>Line</td><td>Acid</td><td>Reflex</td></tr><tr><td>Blue</td><td>Line</td><td>Electricity</td><td>Reflex</td></tr><tr><td>Green</td><td>Cone</td><td>Poison</td><td>Fortitude</td></tr><tr><td>Red</td><td>Cone</td><td>Fire</td><td>Reflex</td></tr><tr><td>White</td><td>Cone</td><td>Cold</td><td>Reflex</td></tr><tr><td>Brass</td><td>Line</td><td>Fire</td><td>Reflex</td></tr><tr><td>Bronze</td><td>Line</td><td>Electricity</td><td>Reflex</td></tr><tr><td>Copper</td><td>Line</td><td>Acid</td><td>Reflex</td></tr><tr><td>Gold</td><td>Cone</td><td>Fire</td><td>Reflex</td></tr><tr><td>Silver</td><td>Cone</td><td>Cold</td><td>Reflex</td></tr></tbody></table>"
+    },
+    "B0kLGhhqPEqGh7eH": {
+      "name": "Cura pela Luz Solar",
+      "sourceHash": "60bf2fffe596896f6986856377d373538fcf81fd",
+      "description": "<p>Um conrasu pode entrar em um estado meditativo de cura como uma atividade de 10 minutos quando exposto à luz solar direta, caso em que recupera @Damage[(max(1,(ceil(@actor.level/2))))d8[healing]] Pontos de Vida. No 3º nível, e a cada 2 níveis depois disso, essa cura aumenta em 1d8.</p>\n<p>Uma vez que um conrasu tenha recuperado Pontos de Vida dessa forma, ele fica temporariamente imune a novos usos de Cura pela Luz Solar por 1 dia.</p>"
+    },
+    "BYzO7TE8T7ozQpM7": {
+      "name": "Gema da Cabeça",
+      "sourceHash": "7153b30bcfff0a9283ebfaecc97e39536e4b69b8",
+      "description": "<p>Sobre sua testa há uma gema que abriga sua alma. Ao conjurar qualquer magia ou ritual para trazê-lo de volta à vida, sua @UUID[Compendium.pf2e.equipment-srd.Item.Head Gem] intacta pode ser substituída pelo seu corpo. Embora você possa remover livremente sua gema da cabeça, normalmente é impossível para outra criatura remover à força ou destruir sua gema da cabeça a menos que você seja morto ou permanentemente incapacitado antes; a critério do Mestre, magia ou habilidades poderosas podem contornar essa restrição. Se sua gema da cabeça for removida ou destruída, ela pode ser regenerada usando um ritual que dura um dia. Quando isso ocorre, quaisquer restos da gema anterior imediatamente se desfazem em pó.</p>"
+    },
+    "CmJ4LYLU3F3eVqdZ": {
+      "name": "Bico Afiado",
+      "sourceHash": "d8743ee9088dc4d032d28956b30ed6a6ed9aa75e",
+      "description": "<p>Com seu bico afiado, você nunca está sem uma arma. Você tem um ataque desarmado de bico que causa 1d6 de dano perfurante. Seu bico pertence ao grupo de armas de briga e tem os traços precisão e desarmado.</p>"
+    },
+    "EEw29qzieBy7VpjO": {
+      "name": "Hidratação",
+      "sourceHash": "b9e2561af8c059d13f118f00a1957cd6dc34a775",
+      "description": "<p>Embora você seja um ser anfíbio igualmente capaz em terra e na água, seu corpo exige que você retorne a ambientes aquáticos pelo menos uma vez a cada período de 24 horas. Você deve submergir na água para reidratar sua pele aclimatada à água.</p>\n<p>Se você não fizer isso, sua pele começa a rachar e suas guelras ficam doloridas. Após as primeiras 24 horas fora da água, você sofre uma penalidade de condição -1 em testes de resistência de Fortitude. Após 48 horas, você tem dificuldade para respirar ar e começa a sufocar até retornar à água.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Dehydrated]</p>"
+    },
+    "EfwgM52vAQthqcgu": {
+      "name": "Ataque Animal",
+      "sourceHash": "101500384e22ae1e27877b144a8636e9720f39f0",
+      "description": "<p>Sua herança lhe concede um ataque desarmado especial no lugar do ataque desarmado de punho que humanoides normalmente ganham. Esse ataque pertence ao grupo de armas de briga. Trabalhe com seu Mestre para determinar qual você possui, usando o tipo de animal que você é e as sugestões de sua herança como orientação. Por exemplo, você pode escolher um bico, garra ou asa para uma águia, um punho ou cauda para um macaco, ou uma língua ou mandíbulas para um sapo.</p><table class=\"pf2-table remaster\"><thead><tr><th>Ataque Desarmado</th><th>Dano</th><th>Traços</th></tr></thead><tbody><tr><td><strong>Galhada</strong></td><td>1d6 P</td><td>Precisão, desarmado</td></tr><tr><td><strong>Bico</strong></td><td>1d6 P</td><td>Precisão, desarmado</td></tr><tr><td><strong>Garra</strong></td><td>1d4 S</td><td>Ágil, precisão, desarmado</td></tr><tr><td><strong>Presas</strong></td><td>1d6 P</td><td>Precisão, desarmado</td></tr><tr><td><strong>Punho</strong></td><td>1d4 B</td><td>Ágil, precisão, não letal, desarmado</td></tr><tr><td><strong>Chifre</strong></td><td>1d6 P</td><td>Precisão, desarmado</td></tr><tr><td><strong>Mandíbulas</strong></td><td>1d6 P</td><td>Precisão, desarmado</td></tr><tr><td><strong>Cauda</strong></td><td>1d6 B</td><td>Precisão, derrubar, desarmado</td></tr><tr><td><strong>Talão</strong></td><td>1d4 P</td><td>Ágil, precisão, desarmado</td></tr><tr><td><strong>Língua</strong></td><td>1d6 B</td><td>Precisão, desarmado</td></tr><tr><td><strong>Asa</strong></td><td>1d4 B</td><td>Ágil, precisão, desarmado</td></tr></tbody></table>"
+    },
+    "EwJoXptWZhKhVkqd": {
+      "name": "Dentes Grandes e Afiados",
+      "sourceHash": "0aaa0f91823b7d9d94af1a9f877995c6ec0387bf",
+      "description": "<p>Sua boca está repleta de dentes afiados como navalhas. Você ganha um ataque desarmado de mandíbulas que causa 1d4 de dano perfurante. Suas mandíbulas pertencem ao grupo de briga e têm os traços precisão e desarmado.</p>"
+    },
+    "FLfaP7V9ZUq9ROGB": {
+      "name": "Golpes Mágicos",
+      "sourceHash": "8b64b19c8014a4421119763c5009a90ce75642ca",
+      "description": "<p>Sua magia inerente permeia todo o seu ser. Todos os seus Golpes são mágicos, seja com ataques desarmados ou armas.</p>"
+    },
+    "FS5XXfBxprVUxN4U": {
+      "name": "Presas (Nagaji)",
+      "sourceHash": "0fc9cf2641c1304c721037ae16fe39e46be7ecb8",
+      "description": "<p>Sua boca contém fileiras de dentes curvos e afiados como agulhas ou um par de presas viperinas cruéis. Você ganha um ataque desarmado de presas que causa 1d6 de dano perfurante. Suas presas pertencem ao grupo de briga e têm os traços precisão e desarmado.</p>"
+    },
+    "GCITp1rcVzrRJZa0": {
+      "name": "Benefícios de Morto-Vivo Avançados",
+      "sourceHash": "ca0abaa1c47ee69b6ac1d4abb11c3b4978e554ca",
+      "description": "<p><strong>Visão no Escuro:</strong> Você ganha visão no escuro se ainda não a tiver.</p>\n<p><strong>Proteção Aprimorada contra Doença e Veneno:</strong> Seu bônus contra doença e veneno aumenta para +2. Você ganha resistência a veneno igual à metade do seu nível.</p>\n<p><strong>Proteção contra Paralisia e Sono:</strong> Você ganha um bônus de circunstância +1 em testes de resistência (ou qualquer outra defesa) contra efeitos que o deixariam @UUID[Compendium.pf2e.conditionitems.Item.Paralyzed] ou que tenham o traço sono.</p>"
+    },
+    "GUS1EO7Ypo62tuGJ": {
+      "name": "Mente Desperta",
+      "sourceHash": "cebc781ea458f551a0aa1f45fb8492f81d252bc1",
+      "description": "<p>O despertar alterou sua mente. Você não é mais um animal, mas ainda pode fazer perguntas a, receber respostas de e usar a perícia Diplomacia com animais da sua espécie. Ao relembrar seus instintos, você pode permitir-se ser afetado por magias e outros efeitos como se fosse um animal.</p>"
+    },
+    "I8OAUE8OyeIPMtMB": {
+      "name": "Escalador Nato",
+      "sourceHash": "79f9bca53e128840586249a9078ba276d37f9e4c",
+      "description": "<p>Você ganha um bônus de circunstância +2 em testes de Atletismo para Escalar.</p>"
+    },
+    "JKLRNNNof8uihdpc": {
+      "name": "Construído",
+      "sourceHash": "ccac89e8e9bda6c4baaa78efd6344ff87ad9f699",
+      "description": "<p>Seu corpo sintético resiste a males melhor do que os de organismos puramente biológicos. Você ganha um bônus de circunstância +1 em testes de resistência contra doenças, venenos e radiação.</p>"
+    },
+    "JPTroF2Vn8ecxLvJ": {
+      "name": "Graça Aquática",
+      "sourceHash": "deeef39ca17357112cc6a551a0162ddf298afa7d",
+      "description": "<p>Quando você obtém um sucesso em um teste de resistência contra um efeito de água, você obtém um sucesso crítico em vez disso.</p>"
+    },
+    "JRYWHFkbGOhFArhs": {
+      "name": "Adaga do Clã",
+      "sourceHash": "3e7838080f558d6981477d85d1a82dd34f29fb34",
+      "description": "<p>Você recebe uma @UUID[Compendium.pf2e.equipment-srd.Item.Clan Dagger] do seu clã gratuitamente, pois ela lhe foi dada ao nascer. Vender essa adaga é um tabu terrível e lhe rende o desprezo de outros anões.</p>"
+    },
+    "N27iaWX53wHLUr99": {
+      "name": "Inflamável",
+      "sourceHash": "0a7ba899bc37616347f0f30be4a8abd82de166b2",
+      "description": "<p>Você tem vulnerabilidade a dano de fogo igual a um terço do seu nível (mínimo 1).</p>"
+    },
+    "OGCokvAQokz7nxA2": {
+      "name": "Alma Errante",
+      "sourceHash": "3ad5782cff3a62b779453c69a38f06c7c975ff97",
+      "description": "<p>Sua alma é especialmente capaz de retornar ao ciclo de reencarnação. Quando você é alvo de @UUID[Compendium.pf2e.spells-srd.Item.Raise Dead], @UUID[Compendium.pf2e.spells-srd.Item.Reincarnate] ou de um ritual semelhante que o traria de volta à vida, o conjurador principal usa o resultado um grau de sucesso melhor que o resultado do teste dele. Você sempre retorna à vida como um samsaran, mesmo que o ritual o reencarnasse em um corpo de uma ancestralidade diferente.</p>"
+    },
+    "OehL2Ysm3IG3fBjc": {
+      "name": "Fotossíntese",
+      "sourceHash": "da599a829b8205376af83bbde4d1537f1eb65a3a",
+      "description": "<p>Você obtém nutrição por fotossíntese. Normalmente você não precisa pagar por comida. Se você ficar sem luz solar por 1 semana, você começa a passar fome. Você pode obter nutrição de garrafas de luz solar alquímica especialmente formuladas em vez de luz solar natural, mas essas garrafas custam 10 vezes mais que rações padrão (40 pp).</p>"
+    },
+    "OszmcxELEaEBYy47": {
+      "name": "Anatomia Incomum",
+      "sourceHash": "9a9f56759c6f046ccb892813fe26984d8721d568",
+      "description": "<p>Seu corpo heterodoxo resiste a aflições físicas destinadas a outras criaturas. Você ganha um bônus de circunstância +1 em testes de resistência contra doenças e venenos.</p>"
+    },
+    "PBPm5GbTLHLLMION": {
+      "name": "Mudar de Forma",
+      "sourceHash": "7243e12a1f6b421399e652fefad1861e5e420052",
+      "description": "<p>Como um kitsune, você ganha a habilidade @UUID[Compendium.pf2e.actionspf2e.Item.Change Shape].</p>"
+    },
+    "Q0WdCaIhM0vILscs": {
+      "name": "Asas (Dragonete)",
+      "sourceHash": "47d3276ae265130004350abc695b7baba6fa265e",
+      "description": "<p>Suas asas podem não ser tão fortes quanto as de outros dragonetes, mas ainda podem impedir quedas descontroladas. Você não sofre dano de queda, independentemente da distância que caia.</p>"
+    },
+    "R2lkduLphGhYhJSA": {
+      "name": "Garras",
+      "sourceHash": "80e8432061565b2bc101fbef2133af4f6d21eb2a",
+      "description": "<p>Suas garras afiadas oferecem uma alternativa aos punhos que outros humanoides usam em uma luta. Você tem um ataque desarmado de garra que causa 1d4 de dano cortante e tem os traços ágil e precisão.</p>"
+    },
+    "R51lr6AabCwKLFP3": {
+      "name": "Adaptação Aquática",
+      "sourceHash": "8bc8eb89a25ad837860af52fa630e892d812c483",
+      "description": "<p>Sua biologia reptiliana permite que você prenda a respiração por muito tempo. Você ganha o talento geral @UUID[Compendium.pf2e.feats-srd.Item.Breath Control] como um talento bônus.</p>"
+    },
+    "RunKU737ImLRXKOu": {
+      "name": "Sentido Empático",
+      "sourceHash": "64062027564501dcb4803e784726ba0cd0082433",
+      "description": "<p>Os kashrishi conseguem ter uma noção vaga do estado emocional atual de outros a até 4,5 metros deles. Isso se manifesta como uma sensação geral de felicidade, raiva ou medo, sem quaisquer detalhes específicos. Para aqueles com quem os kashrishi têm uma conexão emocional, o toque físico pode intensificar esse sentido para graus maiores de detalhe e compreensão, aumentando com a força de seu vínculo. Isso também funciona como um sentido impreciso que o alerta para a presença, mas não a localização exata, de criaturas não-amentes dentro da área. Você ganha um bônus de circunstância +2 em testes de Percepção para @UUID[Compendium.pf2e.actionspf2e.Item.Sense Motive] contra criaturas não-amentes dentro da área do seu sentido empático.</p>"
+    },
+    "RzWfKMpfVQYcBWzf": {
+      "name": "Chifre Reluzente",
+      "sourceHash": "bc19bda70bf21843b33e0ae89e7662750f20304a",
+      "description": "<p>Seu chifre reage à energia psíquica com um brilho suave. O chifre emana luz fraca em uma @Template[emanation|distance:10] até o início do seu próximo turno sempre que você usa uma ação oculta que ganhou de um talento de ancestralidade, conjura uma magia oculta inata ou Conjura uma Magia que tenha o traço mental.</p>"
+    },
+    "TCBHf4FRDr20hO2b": {
+      "name": "Chifres (Minotauro)",
+      "sourceHash": "182ab01ad8245aa66a66581cc460dff740ca482a",
+      "description": "<p>Seus chifres afiados são tão letais quanto lanças. Você tem um ataque desarmado de chifres que causa 1d8 de dano perfurante. Seus chifres pertencem ao grupo de briga e têm o traço desarmado.</p>"
+    },
+    "UhL1HHQznxka2ozd": {
+      "name": "Veneno Inato",
+      "sourceHash": "2a04dbbc460e91060fcf11e2dcf85b110c74fb32",
+      "description": "<p>Seu sangue carrega toxinas mortais para todos, exceto você mesmo. Você ganha a ação @UUID[Compendium.pf2e.actionspf2e.Item.Envenom], que pode aplicar um veneno vishkanyano menor. A CD do teste de resistência do seu veneno é igual à maior entre sua CD de classe ou CD de magia.</p>"
+    },
+    "WXqek4sqvkm60aO9": {
+      "name": "Benefícios Básicos de Morto-Vivo",
+      "sourceHash": "0fe0cd4280b164d9fafd41ef2229caa8bba4b4ce",
+      "description": "<p><strong>Necril:</strong> Você conhece o idioma Necril.</p>\n<p><strong>Visão de Morto-Vivo:</strong> Você ganha visão na penumbra, ou ganha visão no escuro se sua ancestralidade já tiver visão na penumbra.</p>\n<p><strong>Cura do Vazio:</strong> Você é ferido por dano vital e não é curado por efeitos de cura vital. Você não sofre dano do vazio e é curado por efeitos do vazio que curam mortos-vivos.</p>\n<p><strong>Sobrevivência do Vazio:</strong> Ao contrário dos mortos-vivos normais, você não é destruído ao ser reduzido a 0 Pontos de Vida. Em vez disso, a poderosa energia do vazio tenta impedir que você seja destruído mesmo em situações extremas. Você fica inconsciente e começa a morrer ao ser reduzido a 0 Pontos de Vida. Por ser um morto-vivo, muitos métodos de trazer alguém de volta do estado de morte, como @UUID[Compendium.pf2e.spells-srd.Item.Stabilize], não beneficiam você. Quando você morreria, você é destruído em vez de morto, assim como os outros mortos-vivos.</p>\n<p><strong>Imunidade a Efeitos de Morte:</strong> Você é imune a efeitos de morte. Isso impede que você seja morto automaticamente ou que seu valor de morrendo aumente automaticamente, mas não o torna imune a outras partes da magia ou efeito. Por exemplo, você ainda pode sofrer dano mental e ficar apavorado por um @UUID[Compendium.pf2e.spells-srd.Item.Phantasmal Killer], apenas não morre instantaneamente por causa dele.</p>\n<p><strong>Proteção contra Doença e Veneno:</strong> Você ganha um bônus de circunstância +1 em testes de resistência (ou qualquer outra defesa) contra doença e veneno.</p>\n<p><strong>Fome de Morto-Vivo:</strong> Embora você não coma ou beba a mesma comida que os humanoides, geralmente tem sedes e fomes relacionadas ao seu estado de morto-vivo, como a fome de um carniçal por carne de humanoides, o desejo de um zumbi por cérebros e o anseio de um vampiro por sangue. Além disso, embora você não durma, entra em um estado de quiescência por pelo menos 4 horas por dia para se recuperar, o que permite que sua carne morta se reconstitua e recupere naturalmente. Muitos mortos-vivos escolhem descansar quando o sol está a pino.</p>"
+    },
+    "ZF2KAgGCuFkC5e73": {
+      "name": "Luz Solar",
+      "sourceHash": "44b291940c9abcaf68a01b61201fdf2db2efe60a",
+      "description": "<p>Se exposto à luz solar direta, você imediatamente fica @UUID[Compendium.pf2e.conditionitems.Item.Slowed]{Lentidão 1}. O valor de lentidão aumenta em 1 cada vez que você termina seu turno sob luz solar. Se você perder todas as suas ações dessa forma, você é destruído. Devido à sua aversão sobrenatural à luz, você não projeta sombras nem mostra reflexo em espelhos.</p>"
+    },
+    "ZqFf7QY0qKYKhRgM": {
+      "name": "Chifres (Sarangay)",
+      "sourceHash": "36acce9059b74f029e26a5719ba2c0af2fc56ee3",
+      "description": "<p>Seus chifres poderosos são armas formidáveis. Você tem um ataque desarmado de chifres que causa 1d6 de dano perfurante e tem o traço empurrar. Seus chifres pertencem ao grupo de briga.</p>"
+    },
+    "akGBgr9JBHp4rFAK": {
+      "name": "Construído (Marionete)",
+      "sourceHash": "436dc0ef2ebd1dde268cf1e148ef576bb00c3083",
+      "description": "<p>Os materiais do seu corpo resistem a males que assolam a carne. Você ganha um bônus de circunstância +1 em testes de resistência contra efeitos de morte, doença e veneno, bem como em testes de resistência contra efeitos que lhe dariam as condições @UUID[Compendium.pf2e.conditionitems.Item.Drained], @UUID[Compendium.pf2e.conditionitems.Item.Paralyzed] ou @UUID[Compendium.pf2e.conditionitems.Item.Sickened]. Sua centelha de vida significa que você é uma criatura viva, e pode ser curado por energia vital e ferido por energia do vazio normalmente.</p>"
+    },
+    "cVnqTrrIBFD6V0Jl": {
+      "name": "Corpo Construído",
+      "sourceHash": "bc285eddf711b51d42e9856e288f6060ee433614",
+      "description": "<p>Suas necessidades fisiológicas são diferentes das de criaturas vivas. Você não precisa comer ou beber. Você não precisa dormir, mas ainda precisa de um período diário de descanso. Durante esse período de descanso, você deve entrar em um estado de espera recuperador por 2 horas, semelhante a dormir, exceto que você está ciente do que o cerca e não sofre penalidades por estar @UUID[Compendium.pf2e.conditionitems.Item.Unconscious]. Assim como com o sono, se você passar tempo demais sem entrar no seu estado de espera, você fica @UUID[Compendium.pf2e.conditionitems.Item.Fatigued] e não pode se recuperar até entrar em espera por 2 horas.</p>"
+    },
+    "divIRGtXqwqyjW9s": {
+      "name": "Presas",
+      "sourceHash": "985964d2826f214dc583fd32c32ba33175eabee9",
+      "description": "<p>Você nasceu com um meio natural para caça e autodefesa. Você ganha um ataque desarmado de presas que causa 1d6 de dano perfurante. Suas presas pertencem ao grupo de briga e têm os traços precisão e desarmado.</p>"
+    },
+    "iZIK8Mp1HorqtCME": {
+      "name": "Cair de Pé",
+      "sourceHash": "8e2b20da23fbfbc5a6933b2ed3d4d008f216378a",
+      "description": "<p>Quando você cai, você sofre apenas metade do dano normal e não termina @UUID[Compendium.pf2e.conditionitems.Item.Prone].</p>"
+    },
+    "lwImsAu5ScL2VvRA": {
+      "name": "Mordida",
+      "sourceHash": "04542df53862d195f875b0d56865fb92745368d8",
+      "description": "<p>Seus dentes afiados e mandíbulas poderosas são armas temíveis. Você tem um ataque desarmado de mandíbulas que causa 1d6 de dano perfurante. Suas mandíbulas pertencem ao grupo de briga.</p>"
+    },
+    "nAxnGYGkofGy2CMh": {
+      "name": "Focinho Rombudo",
+      "sourceHash": "b88c678582a54c7629e14d3e0e2bad5b0c7aa9de",
+      "description": "<p>Seu focinho pequeno e rombudo e seu sistema sinusal labiríntico o tornam resistente a fenômenos que atacam o nariz. Quando você faz um teste de resistência contra ameaças inaladas (como venenos inalados) e efeitos olfativos (como o fedor de xulgath), você obtém o resultado um grau de sucesso melhor do que o resultado do seu teste.</p>"
+    },
+    "nf7jUzoouy0VXoC7": {
+      "name": "Cauda Preênsil",
+      "sourceHash": "b320127a1c588b7bd939bf9513923bf869ec0e2e",
+      "description": "<p>Você pode usar sua cauda longa e flexível para realizar ações Interagir que exijam uma mão livre, mesmo que ambas as mãos estejam ocupadas. Sua cauda não pode realizar ações que exijam dedos ou destreza manual significativa, incluindo qualquer ação que exija um teste para ser realizada, e você não pode usá-la para segurar itens.</p>"
+    },
+    "pK63y8558qL0oFDi": {
+      "name": "Montaria",
+      "sourceHash": "dff9612314f287c17615bfe48177795b595e080a",
+      "description": "<p>Seu corpo equino é bem adequado para carregar aliados de confiança. Um personagem pode montar em você se for uma categoria de tamanho menor que você (tamanho Médio, para a maioria dos centauros), em vez de precisar ser duas categorias de tamanho menor.</p>"
+    },
+    "sb6TOxqX4hS3mRQS": {
+      "name": "Benfeitor Dracônico",
+      "sourceHash": "4a635619cdd79e756cd8ba97998f18e84b39cc1c",
+      "description": "<p>Algumas habilidades fazem referência ao seu benfeitor dracônico, exemplar dracônico ou a um instinto dracônico, que é um tipo específico de dragão do qual você extrai seus poderes dracônicos — normalmente o tipo de dragão que você serve ou cujo sangue corre em suas veias. Você pode escolher seu exemplar ao criar seu personagem, mas só é obrigado a escolher um quando seleciona um talento ou outra opção que exija que você tenha um (como Sopro do Dragão). Isso significa que seu poder dracônico pode permanecer um mistério para você por algum tempo, revelando sua verdadeira natureza apenas conforme você ganha experiência.</p>\n<p>A tabela abaixo pode ser usada para determinar os benefícios da sua conexão dracônica ou os benefícios que você ganha ao usar forma de dragão e efeitos semelhantes. Se você escolher um dragão de uma fonte diferente, trabalhe com seu Mestre para determinar se você tem acesso a ele e quais opções esse dragão lhe concede.</p><h2>Benfeitores Dracônicos</h2><table border=\"1\" class=\"pf2e lost-omens\"><thead><tr style=\"text-align:right\"><th>Dragon</th><th>Tradition</th><th>Speeds</th><th>Dragon Breath</th><th>Saving Throw</th></tr></thead><tbody><tr><td>Adamantine</td><td>Primal</td><td>Burrow</td><td>Cone of bludgeoning</td><td>Reflex</td></tr><tr><td>Barrage</td><td>Arcane</td><td>—</td><td>Cone of force</td><td>Reflex</td></tr><tr><td>Bog</td><td>Primal</td><td>Swim</td><td>Cone of acid</td><td>Reflex</td></tr><tr><td>Brine</td><td>Primal</td><td>Swim</td><td>Line of bludgeoning</td><td>Reflex</td></tr><tr><td>Cinder</td><td>Primal</td><td>—</td><td>Cone of fire</td><td>Reflex</td></tr><tr><td>Cloud</td><td>Primal</td><td>—</td><td>Cone of electricity</td><td>Reflex</td></tr><tr><td>Conspirator</td><td>Occult</td><td>Climb</td><td>Cone of poison</td><td>Fortitude</td></tr><tr><td>Coral</td><td>Primal</td><td>Swim</td><td>Line of bludgeoning</td><td>Reflex</td></tr><tr><td>Crystal</td><td>Primal</td><td>—</td><td>Cone of piercing</td><td>Reflex</td></tr><tr><td>Delight</td><td>Divine</td><td>—</td><td>Cone of spirit</td><td>Reflex</td></tr><tr><td>Despair</td><td>Occult</td><td>—</td><td>Cone of sonic</td><td>Will</td></tr><tr><td>Diabolic</td><td>Divine</td><td>—</td><td>Cone of fire</td><td>Reflex</td></tr><tr><td>Empyreal</td><td>Divine</td><td>—</td><td>Cone of spirit</td><td>Reflex</td></tr><tr><td>Executor</td><td>Divine</td><td>—</td><td>Cone of sonic</td><td>Reflex</td></tr><tr><td>Forest</td><td>Primal</td><td>—</td><td>Cone of piercing</td><td>Reflex</td></tr><tr><td>Fortune</td><td>Arcane</td><td>—</td><td>Cone of force</td><td>Reflex</td></tr><tr><td>Horned</td><td>Primal</td><td>Swim</td><td>Cone of poison</td><td>Fortitude</td></tr><tr><td>Magma</td><td>Primal</td><td>Burrow</td><td>Cone of fire</td><td>Reflex</td></tr><tr><td>Mirage</td><td>Arcane</td><td>Climb</td><td>Cone of mental</td><td>Will</td></tr><tr><td>Mocking</td><td>Occult</td><td>—</td><td>Cone of bludgeoning</td><td>Reflex</td></tr><tr><td>Oath</td><td>Divine</td><td>—</td><td>Cone of spirit</td><td>Will</td></tr><tr><td>Omen</td><td>Occult</td><td>—</td><td>Cone of mental</td><td>Will</td></tr><tr><td>Phase</td><td>Arcane</td><td>—</td><td>Cone of force</td><td>Reflex</td></tr><tr><td>Requiem</td><td>Divine</td><td>Swim</td><td>Line of spirit</td><td>Will</td></tr><tr><td>Resurrection</td><td>Divine</td><td>—</td><td>Cone of void</td><td>Fortitude</td></tr><tr><td>Rime</td><td>Primal</td><td>Swim</td><td>Cone of cold</td><td>Reflex</td></tr><tr><td>Rune</td><td>Arcane</td><td>—</td><td>Cone of fire</td><td>Reflex</td></tr><tr><td>Sage</td><td>Occult</td><td>—</td><td>Cone of mental</td><td>Will</td></tr><tr><td>Sea</td><td>Arcane</td><td>Swim</td><td>Cone of bludgeoning</td><td>Reflex</td></tr><tr><td>Sky</td><td>Divine</td><td>—</td><td>Cone of electricity</td><td>Reflex</td></tr><tr><td>Sovereign</td><td>Occult</td><td>—</td><td>Cone of mental</td><td>Will</td></tr><tr><td>Stormcrown</td><td>Primal</td><td>—</td><td>Line of electricity</td><td>Reflex</td></tr><tr><td>Time</td><td>Arcane</td><td>—</td><td>Cone of force</td><td>Will</td></tr><tr><td>Umbral</td><td>Occult</td><td>—</td><td>Cone of void</td><td>Reflex</td></tr><tr><td>Underworld</td><td>Arcane</td><td>Burrow</td><td>Cone of fire</td><td>Reflex</td></tr><tr><td>Vizier</td><td>Occult</td><td>Swim</td><td>Cone of fire</td><td>Reflex</td></tr><tr><td>Vorpal</td><td>Arcane</td><td>—</td><td>Cone of void</td><td>Will</td></tr><tr><td>Wailing</td><td>Arcane</td><td>—</td><td>Cone of sonic</td><td>Fortitude</td></tr><tr><td>Whisper</td><td>Occult</td><td>—</td><td>Cone of mental</td><td>Will</td></tr><tr><td>Wish</td><td>Arcane</td><td>Climb</td><td>Cone of mental</td><td>Will</td></tr></tbody></table>"
+    },
+    "sfzuBNck6GpHTwza": {
+      "name": "Hidratação (Sereiano)",
+      "sourceHash": "bbae814abb753c9cd36e58f18a9f1fd0518edc72",
+      "description": "<p>Seu corpo exige que você retorne a ambientes aquáticos pelo menos uma vez a cada período de 24 horas. Após as primeiras 24 horas fora da água, você sofre uma penalidade de condição –1 em testes de resistência de Fortitude. Após 48 horas, você tem dificuldade para respirar ar e começa a sufocar até retornar à água.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Dehydrated]</p>"
+    },
+    "srVs7QQGuF6OjxGc": {
+      "name": "Asas",
+      "sourceHash": "bb4af022297390907fd48fdf21b9f06df15ddace",
+      "description": "<p>Todos os strix possuem asas poderosas. Embora nem todos os strix se concentrem em aperfeiçoar suas habilidades de voo, um forte bater de asas permite que os strix percorram distâncias maiores ao saltar.</p>\n<p>Ao @UUID[Compendium.pf2e.actionspf2e.Item.Leap]{Saltar} horizontalmente, você se move 1,5 metro adicional. Você não falha automaticamente em seus testes de @UUID[Compendium.pf2e.actionspf2e.Item.High Jump] ou @UUID[Compendium.pf2e.actionspf2e.Item.Long Jump] se não Deslocar-se pelo menos 3 metros antes. Além disso, quando você faz um Salto em Distância, você pode saltar uma distância de até 3 metros a mais que o resultado do seu teste de Atletismo, ainda com o máximo normal do seu Deslocamento. Adicionalmente, você não sofre dano de queda, não importa a distância que caia.</p>"
+    },
+    "t6LhDOd5TRYCmOJq": {
+      "name": "Repulsa",
+      "sourceHash": "c905648c192f16ea758a95b588a816ba73a4efe0",
+      "description": "<p>Você não pode voluntariamente chegar a 3 metros de alho brandido ou de um símbolo religioso de uma divindade não maligna. Uma criatura deve Interagir para brandir alho ou um símbolo religioso por 1 rodada (semelhante a Erguer um Escudo). Se você involuntariamente chegar a 3 metros de um objeto de sua repulsa, você ganha a condição @UUID[Compendium.pf2e.conditionitems.Item.Fleeing], fugindo do objeto de sua repulsa até terminar uma ação a mais de 3 metros dele. Após 1 rodada de exposição ao objeto de sua repulsa, você pode tentar um teste de resistência @Check[will|dc:25] como uma única ação, que tem o traço concentração. Em um sucesso, você supera suas repulsas por [[/r 1d6 #Overcome Revulsion Duration]]{1d6 rounds}, ou 1 hora em um sucesso crítico.</p>"
+    },
+    "uD65TD4MXO5kvDoY": {
+      "name": "Nutrição Vegetal",
+      "sourceHash": "4311e097ec876bb09f50db65f58af6a7969829a3",
+      "description": "<p>Você obtém nutrição da mesma forma que as plantas ou fungos que correspondem ao seu tipo de corpo normalmente o fazem, por meio de alguma combinação de fotossíntese, absorção de minerais com suas raízes ou coleta de matéria em decomposição. Normalmente você não precisa pagar por comida. Se você normalmente depende de fotossíntese e fica sem luz solar por 1 semana, você começa a passar fome. Você pode obter nutrição de garrafas de luz solar especialmente formuladas em vez de luz solar natural, mas essas garrafas custam 10 vezes mais que rações padrão (ou 40 pp).</p>"
+    },
+    "vVwZuELQuvQHnicC": {
+      "name": "Nadar",
+      "sourceHash": "3285a1bee6e86e97b71e0ca6730c5c8968b2bf2d",
+      "description": "<p>Os azarketi ganham um deslocamento de natação base de 9 metros.</p>"
+    },
+    "xzc16Y1W7KizBo0V": {
+      "name": "Emocionalmente Alheio",
+      "sourceHash": "4da25bcc0883425384dcb99c95c454196b8ee37f",
+      "description": "<p>Você acha difícil compreender e expressar emoções complexas. Você sofre uma penalidade de circunstância -1 em testes de Diplomacia e Atuação, e em testes de Percepção para @UUID[Compendium.pf2e.actionspf2e.Item.Sense Motive].</p>"
+    },
+    "yBIBV4dloza4LuFj": {
+      "name": "Magiófago",
+      "sourceHash": "e99c3103d13b4d5cec4649d8d5dd233277e4428c",
+      "description": "<p>Os diversos nódulos por todo o seu corpo atraem magia latente do mundo ao seu redor. Você não precisa comer ou beber, a menos que esteja em um ambiente especialmente pobre em magia (como os Ermos de Mana). Escolha qual tradição de magia você mais consumiu quando larva; esse tipo de magia se tornou tão enraizado em seu corpo que altera a tradição de todas as magias e ações mágicas surki para aquela tradição.</p>"
+    },
+    "zhUu9vo5wME7MHXo": {
+      "name": "Visão no Escuro Superior",
+      "sourceHash": "0d1052d53e214410b09ff19c97b4e0ee1ab26ae0",
+      "description": "<p>Você enxerga na escuridão e na luz fraca tão bem quanto enxerga sob luz intensa, embora sua visão na escuridão seja em preto e branco. Algumas formas de escuridão mágica, como uma magia @UUID[Compendium.pf2e.spells-srd.Item.Darkness] de 4º nível, bloqueiam a visão no escuro normal. Você, no entanto, consegue enxergar mesmo através dessas formas de escuridão mágica.</p>"
+    }
+  }
+}

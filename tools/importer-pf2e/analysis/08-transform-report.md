@@ -1,6 +1,6 @@
 # 08 — Relatório de Transformação PF2E → Fusion
 
-> Gerado em: 2026-07-05
+> Gerado em: 2026-07-07
 > Script: `src/transform.mjs --system pf2e` v0.1.0
 > Fonte: vendor/pf2e packs/pf2e branch v14-dev
 
@@ -10,22 +10,29 @@
 
 | Pack | Total | Transformados | Excluídos | Parciais | Completos | Substituições de arte |
 |---|---|---|---|---|---|---|
-| **spells** | 1796 | 1796 | 0 | 5 | 1791 | 1796 |
-| **TOTAL** | **1796** | **1796** | **0** | **5** | **1791** | **1796** |
+| **familiar-abilities** | 111 | 111 | 0 | 17 | 94 | 111 |
+| **TOTAL** | **111** | **111** | **0** | **17** | **94** | **111** |
 
 ---
 
 ## 2. Cobertura de Rule Elements
 
-**Cobertura total:** 8/18 (44.4% suportadas integralmente)
+**Cobertura total:** 27/48 (56.3% suportadas integralmente)
 
 | Rule Key | Total | Suportadas | Parciais | Não suportadas | Status |
 |---|---|---|---|---|---|
-| `DamageAlteration` | 7 | 0 | 0 | 7 | ❌ não suportada |
-| `DamageDice` | 7 | 7 | 0 | 0 | ✅ suportada |
-| `ItemAlteration` | 2 | 0 | 2 | 0 | ⚠️ parcial |
+| `ActorTraits` | 12 | 0 | 0 | 12 | ❌ não suportada |
+| `BaseSpeed` | 7 | 7 | 0 | 0 | ✅ suportada |
+| `Resistance` | 7 | 7 | 0 | 0 | ✅ suportada |
+| `ChoiceSet` | 6 | 0 | 0 | 6 | ❌ não suportada |
+| `Sense` | 6 | 6 | 0 | 0 | ✅ suportada |
+| `TokenLight` | 2 | 0 | 0 | 2 | ❌ não suportada |
+| `ActiveEffectLike` | 2 | 2 | 0 | 0 | ✅ suportada |
+| `FlatModifier` | 2 | 2 | 0 | 0 | ✅ suportada |
+| `Note` | 1 | 1 | 0 | 0 | ✅ suportada |
+| `Immunity` | 1 | 0 | 1 | 0 | ⚠️ parcial |
 | `RollOption` | 1 | 1 | 0 | 0 | ✅ suportada |
-| `EphemeralEffect` | 1 | 0 | 0 | 1 | ❌ não suportada |
+| `GrantItem` | 1 | 1 | 0 | 0 | ✅ suportada |
 
 ---
 
@@ -53,8 +60,8 @@ Nenhum arquivo de imagem do repositório pf2e é incluído.
 
 | Pack | Substituições totais |
 |---|---|
-| spells | 1796 |
-| **TOTAL** | **1796** |
+| familiar-abilities | 111 |
+| **TOTAL** | **111** |
 
 ---
 

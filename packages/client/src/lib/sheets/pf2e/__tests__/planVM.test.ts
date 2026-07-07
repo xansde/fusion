@@ -1206,9 +1206,37 @@ describe("ABC card chips (r20-X4)", () => {
     expect(names).toContain("Sharp Teeth");
     expect(names).toContain("Small");
     expect(names).toContain("Low-Light Vision");
-    // Sharp Teeth is unresolved (ancestryfeatures has no pack) → informative.
+    // Sharp Teeth is NOT materialized in this doc (only the ABC system.items
+    // map is present, no embedded grant) → informative chip, not clickable.
     const sharp = ancestry.chips!.find((c) => c.name === "Sharp Teeth")!;
     expect(detailsRequestForAbcChip(sharp)).toBeNull();
+  });
+
+  it("renders a MATERIALIZED ancestry feature as a clickable chip routed to ancestry-features-core (r20-X5)", () => {
+    const doc = baseCharacterDoc({
+      items: [
+        {
+          ...ratfolkAncestryDoc(),
+          _id: "item-ancestry",
+          flags: { fusion: { sourceId: "P6PcVnCkh4XMdefw" } },
+          system: {
+            ...(ratfolkAncestryDoc()["system"] as Record<string, unknown>),
+            items: { jkllM: { level: 1, name: "Sharp Teeth", uuid: "Compendium.pf2e.ancestryfeatures.Item.Sharp Teeth" } },
+          },
+        },
+        // The embedded, materialized ancestry feature: type "feat" with the
+        // distinguishing category "ancestryfeature" (routes details to
+        // ancestry-features-core, NOT feats-core).
+        { _id: "granted-sharp", name: "Sharp Teeth", type: "feat", flags: { fusion: { sourceId: "SharpTeethSrc001", grantedBy: "P6PcVnCkh4XMdefw" } }, system: { category: "ancestryfeature", rules: [] } },
+      ],
+    });
+    const plan = derivePlan(doc);
+    const ancestry = plan.abc.find((c) => c.kind === "ancestry")!;
+    const sharp = ancestry.chips!.find((c: AbcChip) => c.name === "Sharp Teeth")!;
+    expect(sharp.detailsPackSlug).toBe("ancestry-features-core");
+    expect(detailsRequestForAbcChip(sharp)).toEqual({ packSlug: "ancestry-features-core", name: "Sharp Teeth" });
+    // Materialized + map entry dedupe to a single chip.
+    expect(ancestry.chips!.filter((c) => c.name === "Sharp Teeth")).toHaveLength(1);
   });
 
   it("renders a MATERIALIZED background free feat as a clickable chip", () => {

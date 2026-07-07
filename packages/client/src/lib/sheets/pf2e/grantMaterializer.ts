@@ -211,7 +211,14 @@ export function mapVendorToFusionPack(vendor: string): string | undefined {
     case "class-features":
       return "class-features-core";
     case "ancestryfeatures":
-      return "class-features-core";
+    case "ancestry-features":
+      // r20-X5: the auto-conceded ancestry/heritage FEATURES (Unusual Anatomy,
+      // Sharp Teeth, …) live in their own clean-room pack now — NOT
+      // class-features-core (which never held them, so these grants silently
+      // no-op'd and rendered as informative-only chips). Resolution is
+      // pack-scoped by name, so the SPELL also named "Unusual Anatomy" (in
+      // spells-core) can never be a false-positive match here.
+      return "ancestry-features-core";
     case "equipment-srd":
     case "equipment":
       return "weapons-core"; // best-effort; unresolved names simply skip
