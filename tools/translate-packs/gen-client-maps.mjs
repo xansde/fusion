@@ -43,6 +43,7 @@ const glossary = JSON.parse(readFileSync(glossaryPath, "utf-8"));
  */
 const ACCENT_FIXES = {
   // traits
+  aberration: "aberração",
   acid: "ácido",
   agile: "ágil",
   alchemist: "alquimista",
@@ -82,7 +83,9 @@ const ACCENT_FIXES = {
   misfortune: "azar",
   monk: "monge",
   morph: "metamorfose",
+  oread: "oréade",
   polymorph: "transmutação",
+  potion: "poção",
   prediction: "previsão",
   psyche: "psique",
   psychic: "psíquico",
@@ -94,6 +97,7 @@ const ACCENT_FIXES = {
   spellshape: "moldar-magia",
   summon: "convocação",
   summoner: "conjurador",
+  talisman: "talismã",
   teleportation: "teleporte",
   thaumaturge: "taumaturgo",
   transcendence: "transcendência",
