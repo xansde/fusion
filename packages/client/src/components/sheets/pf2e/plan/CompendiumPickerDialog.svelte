@@ -41,6 +41,7 @@
     DocumentDetailsCache,
     localizedNameParts,
     pickLocalizedName,
+    formatIndexActionCost,
     traitDisplayName,
   } from "../../../../lib/compendium/documentDetails.js";
   import { pickDefaultEntryUuid } from "../../../../lib/sheets/pf2e/planVM.js";
@@ -288,6 +289,7 @@
         {:else}
           {#each filtered as entry (entry.uuid)}
             {@const nameParts = localizedNameParts(entry, i18n.locale)}
+            {@const cost = formatIndexActionCost(entry.index["actionCost"], i18n.locale)}
             <div
               class="picker-row"
               class:picker-row--selected={selectedUuid === entry.uuid}
@@ -301,7 +303,10 @@
               {/if}
               <div class="picker-row__main">
                 <div class="picker-row__name">
-                  {nameParts.display}
+                  <span class="picker-row__name-text">{nameParts.display}</span>
+                  {#if cost}
+                    <span class="picker-row__cost" class:picker-row__cost--text={cost.isText} title={cost.title}>{cost.display}</span>
+                  {/if}
                   {#if nameParts.subtitleEn}
                     <span class="picker-row__name-en">{nameParts.subtitleEn}</span>
                   {/if}
@@ -610,6 +615,22 @@
     font-size: 12.5px;
     font-weight: 600;
     color: var(--fusion-text);
+  }
+
+  .picker-row__cost {
+    margin-left: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--fusion-accent);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .picker-row__cost--text {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--fusion-text-subtle);
+    letter-spacing: 0;
   }
 
   .picker-row__name-en {

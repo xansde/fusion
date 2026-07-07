@@ -27,6 +27,7 @@ import {
   localizedNameParts,
   pickLocalizedDescription,
   formatActionCost,
+  formatIndexActionCost,
   traitDisplayName,
   rarityDisplayName,
   translateValueTokens,
@@ -761,6 +762,79 @@ describe("formatActionCost (r15-A1)", () => {
     expect(formatActionCost("", "pt-BR")).toEqual({ icons: "", label: "", isText: true });
     expect(formatActionCost(null, "pt-BR")).toEqual({ icons: "", label: "", isText: true });
     expect(formatActionCost(undefined, "pt-BR")).toEqual({ icons: "", label: "", isText: true });
+  });
+});
+
+describe("formatIndexActionCost (r20-X2 picker-row badge)", () => {
+  it("renders action-count glyphs with a pt-BR tooltip", () => {
+    expect(formatIndexActionCost("2", "pt-BR")).toEqual({
+      icons: "◆◆",
+      display: "◆◆",
+      title: "2 ações",
+      isText: false,
+    });
+    expect(formatIndexActionCost("1", "pt-BR")).toEqual({
+      icons: "◆",
+      display: "◆",
+      title: "1 ação",
+      isText: false,
+    });
+  });
+
+  it("renders reaction and free glyphs", () => {
+    expect(formatIndexActionCost("reaction", "pt-BR")).toEqual({
+      icons: "⟳",
+      display: "⟳",
+      title: "reação",
+      isText: false,
+    });
+    expect(formatIndexActionCost("free", "pt-BR")).toEqual({
+      icons: "◇",
+      display: "◇",
+      title: "ação livre",
+      isText: false,
+    });
+  });
+
+  it("renders spell action ranges", () => {
+    expect(formatIndexActionCost("1 to 3", "pt-BR")).toEqual({
+      icons: "◆ a ◆◆◆",
+      display: "◆ a ◆◆◆",
+      title: "1 a 3 ações",
+      isText: false,
+    });
+  });
+
+  it("shows short text (no glyphs) for long/textual cast times", () => {
+    expect(formatIndexActionCost("1 minute", "pt-BR")).toEqual({
+      icons: "",
+      display: "1 minuto",
+      title: "1 minuto",
+      isText: true,
+    });
+    expect(formatIndexActionCost("10 minutes", "pt-BR")).toEqual({
+      icons: "",
+      display: "10 minutos",
+      title: "10 minutos",
+      isText: true,
+    });
+  });
+
+  it("returns null for passive / absent cost (no badge)", () => {
+    expect(formatIndexActionCost(undefined, "pt-BR")).toBeNull();
+    expect(formatIndexActionCost(null, "pt-BR")).toBeNull();
+    expect(formatIndexActionCost("", "pt-BR")).toBeNull();
+    expect(formatIndexActionCost("   ", "pt-BR")).toBeNull();
+    expect(formatIndexActionCost(42 as unknown, "pt-BR")).toBeNull();
+  });
+
+  it("preserves EN glyph labels on the en locale", () => {
+    expect(formatIndexActionCost("2", "en")).toEqual({
+      icons: "◆◆",
+      display: "◆◆",
+      title: "2 actions",
+      isText: false,
+    });
   });
 });
 

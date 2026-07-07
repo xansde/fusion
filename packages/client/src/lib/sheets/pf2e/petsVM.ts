@@ -39,7 +39,11 @@ import {
   requireConnectedSocket,
   SocketUnavailableError,
 } from "../../compendium/compendiumApi.js";
-import { localizedNameParts } from "../../compendium/documentDetails.js";
+import {
+  localizedNameParts,
+  formatIndexActionCost,
+  type RowActionCost,
+} from "../../compendium/documentDetails.js";
 import type { SupportedLocale } from "../../i18n/i18n.js";
 
 export const FAMILIAR_ABILITIES_PACK_SLUG = "familiar-abilities-core";
@@ -546,6 +550,11 @@ export interface AbilityRow {
   subtitleEn: string | null;
   /** Compendium UUID (for the details fetch), or null. */
   uuid: string | null;
+  /**
+   * Action-cost badge (◆/⟳/short text) from the server-derived
+   * `index.actionCost`, or null for passive/cost-less abilities (r20-X2).
+   */
+  actionCost: RowActionCost | null;
   /** Search haystack (normalized name, both locales). */
   searchText: string;
 }
@@ -569,6 +578,7 @@ export function toAbilityRow(entry: PackIndexEntry, locale: SupportedLocale): Ab
     name: parts.display,
     subtitleEn: parts.subtitleEn,
     uuid: typeof entry.uuid === "string" ? entry.uuid : null,
+    actionCost: formatIndexActionCost(entry.index["actionCost"], locale),
     searchText: normalizeSearchText(`${enName} ${ptName}`),
   };
 }
