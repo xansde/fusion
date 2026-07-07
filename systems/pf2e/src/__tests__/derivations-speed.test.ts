@@ -305,3 +305,114 @@ describe("stepCharSpeed (r16-G1 — Fleet +5 land speed)", () => {
     expect(speed.value).toBe(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// r19-W0: equipped equipment/armor FlatModifiers (Boots of Bounding)
+// ---------------------------------------------------------------------------
+
+/**
+ * Boots of Bounding's real on-disk pack shape (equipment-core/documents.json,
+ * verified live): +5 ITEM bonus to land-speed, `type:"equipment"`. `equipped`
+ * toggles the r19-W0 equip-gate.
+ */
+function bootsOfBoundingItem(equipped: boolean): Record<string, unknown> {
+  return {
+    _id: "dkABCIPaVAox3OWl",
+    name: "Boots of Bounding",
+    type: "equipment",
+    system: {
+      equipped,
+      rules: [
+        {
+          kind: "flat-modifier",
+          slug: null,
+          label: null,
+          selector: "land-speed",
+          value: 5,
+          mode: "add",
+          type: "item",
+          predicate: null,
+          priority: null,
+          raw: { key: "FlatModifier", selector: "land-speed", type: "item", value: 5 },
+        },
+      ],
+    },
+  };
+}
+
+describe("stepCharSpeed (r19-W0 — equipped equipment/armor FlatModifiers)", () => {
+  // BUG (r19-W0, pre-fix): RULE_CARRYING_EMBEDDED_TYPES only covered
+  // feat/heritage/classFeature/ancestry, so an EQUIPPED Boots of Bounding's
+  // land-speed FlatModifier was silently dropped (speed stayed at base 25
+  // instead of 30). The tests below pin the FIXED behavior.
+
+  it("Ratfolk WITH Boots of Bounding EQUIPPED: derived speed becomes 30 (25 base + 5 item)", () => {
+    const doc = makeRatfolkDoc([bootsOfBoundingItem(true)]);
+    runCharacterPipeline(doc);
+
+    const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<
+      string,
+      unknown
+    >;
+    const speed = derived["speed"] as {
+      value: number;
+      base: number;
+      modifiers: { slug: string; label: string; type: string; value: number }[];
+    };
+    expect(speed.base).toBe(25);
+    expect(speed.value).toBe(30);
+    expect(speed.modifiers).toHaveLength(1);
+    expect(speed.modifiers[0]).toMatchObject({
+      label: "Boots of Bounding",
+      type: "item",
+      value: 5,
+    });
+  });
+
+  it("Ratfolk WITH Boots of Bounding STOWED (not equipped): derived speed stays at base 25", () => {
+    const doc = makeRatfolkDoc([bootsOfBoundingItem(false)]);
+    runCharacterPipeline(doc);
+
+    const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<
+      string,
+      unknown
+    >;
+    const speed = derived["speed"] as { value: number; base: number };
+    expect(speed.base).toBe(25);
+    expect(speed.value).toBe(25);
+  });
+
+  it("Boots of Bounding (item, equipped) + Fleet (untyped) DO stack — different types sum: 25+5+5=35", () => {
+    // Regression check ("stacking untyped mantido"): adding equipment to the
+    // scanned item types must NOT disturb the existing untyped-vs-typed
+    // stacking table — an item bonus and an untyped bonus are different types
+    // and both apply, exactly like the pre-existing status-vs-untyped case.
+    const doc = makeRatfolkDoc([FLEET_ITEM, bootsOfBoundingItem(true)]);
+    runCharacterPipeline(doc);
+
+    const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<
+      string,
+      unknown
+    >;
+    const speed = derived["speed"] as { value: number };
+    expect(speed.value).toBe(35);
+  });
+
+  it("unequipped equipment item with NO rules array still degrades safely (no throw)", () => {
+    const bareBoots: Record<string, unknown> = {
+      _id: "bare-boots",
+      name: "Bare Boots",
+      type: "equipment",
+      system: { equipped: true },
+    };
+    const doc = makeRatfolkDoc([bareBoots]);
+    expect(() => runCharacterPipeline(doc)).not.toThrow();
+
+    const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<
+      string,
+      unknown
+    >;
+    const speed = derived["speed"] as { value: number };
+    expect(speed.value).toBe(25);
+  });
+});

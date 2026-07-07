@@ -19,7 +19,7 @@
  *   Blast atk +9 = 3 + Trained impulse (2) + CON 4   (Rage of Elements p.14:
  *                  impulse uses the class-DC proficiency + attribute = CON)
  *                  → +10 with Gate Attenuator (+1 item bonus)
- *   Speed 30 = 25 (Fleshwarp) + 5 (Fleet feat, land-speed flat-modifier)
+ *   Speed 30 = 25 (Fleshwarp) + 5 (Boots of Bounding, land-speed item bonus)
  *
  * SOURCE NOTES:
  *   - vendor classes/kineticist.json: hp 8, keyAbility [con], perception 1,
@@ -34,6 +34,8 @@
  *   - vendor feats-core/documents.json Toughness: FlatModifier hp
  *     @actor.details.level.value (r19-W0: the REAL normalized shape, replacing
  *     the shorter @actor.level the fixture previously hardcoded).
+ *   - vendor equipment-core/documents.json Boots of Bounding: FlatModifier
+ *     land-speed +5 (item), only while equipped (r19-W0 equipment scanner).
  *   - AoN Elements: air 1d6 electricity/slashing 60 ft (ID=1); metal 1d8
  *     piercing/slashing 30 ft (ID=5).
  *
@@ -171,17 +173,22 @@ function toughnessFeat(): Record<string, unknown> {
   };
 }
 
-/** Fleet feat: +5 land speed (vendor Fleet shape, r16-G1). */
-function fleetFeat(): Record<string, unknown> {
+/**
+ * Boots of Bounding: +5 item bonus to land speed, only while equipped (REAL
+ * vendor pack shape, verified live in
+ * systems/pf2e/packs/equipment-core/documents.json). `equipped` toggles the
+ * r19-W0 equip-gate on the embedded-modifier scanner.
+ */
+function bootsOfBounding(equipped = true): Record<string, unknown> {
   return {
-    _id: "feat-fleet",
-    name: "Fleet",
-    type: "feat",
+    _id: "boots-of-bounding-1",
+    name: "Boots of Bounding",
+    type: "equipment",
     system: {
-      category: "general",
-      level: 1,
-      rules: [{ kind: "flat-modifier", selector: "land-speed", value: 5, mode: "add", type: "untyped" }],
-      traits: { rarity: "common", value: ["general"] },
+      equipped,
+      rules: [
+        { kind: "flat-modifier", selector: "land-speed", value: 5, mode: "add", type: "item" },
+      ],
     },
   };
 }
@@ -226,20 +233,25 @@ function rogueDedication(): Record<string, unknown> {
  * convention as the Tobias-by-build fixture).
  */
 function makeFinnDoc(
-  opts: { withToughness?: boolean; level?: number } = {},
+  opts: { withToughness?: boolean; level?: number; bootsEquipped?: boolean | null } = {},
 ): Record<string, unknown> {
   const withToughness = opts.withToughness ?? true;
   const level = opts.level ?? 3;
+  // `null` omits the boots item entirely; `true`/`false` (default `true`)
+  // includes it equipped/stowed (r19-W0 equipment-scanner fixtures). NOTE:
+  // `??` treats `null` as nullish too, so an explicit `undefined` check is
+  // required here to keep `bootsEquipped: null` distinct from "unset".
+  const bootsEquipped = opts.bootsEquipped === undefined ? true : opts.bootsEquipped;
 
   const items: Record<string, unknown>[] = [
     fleshwarpAncestry(),
     kineticistClass(),
     elvenChain(),
     gateAttenuator(),
-    fleetFeat(),
     kineticGate(),
     rogueDedication(),
   ];
+  if (bootsEquipped !== null) items.push(bootsOfBounding(bootsEquipped));
   if (withToughness) items.push(toughnessFeat());
 
   return {
@@ -356,7 +368,7 @@ describe("Finn-by-build — Fleshwarp Kineticist 3, Dual Gate Air+Metal (r18-N2b
     expect(classDC.dc).toBe(19);
   });
 
-  it("Speed = 30  (Fleshwarp 25 + Fleet +5)", () => {
+  it("Speed = 30  (Fleshwarp 25 + Boots of Bounding +5 item, equipped)", () => {
     const doc = makeFinnDoc();
     runCharacterPipeline(doc);
     const derived = (doc.system as Record<string, unknown>)["derived"] as Record<string, unknown>;
@@ -454,13 +466,31 @@ describe("Finn — Elemental Blast derivation (Air + Metal, Gate Attenuator +1)"
 // Negative fixtures
 // ---------------------------------------------------------------------------
 
-describe("Finn — negative fixtures (Toughness / level)", () => {
+describe("Finn — negative fixtures (Toughness / level / equipment)", () => {
   it("WITHOUT Toughness: HP = 46 (no +level bonus)", () => {
     const doc = makeFinnDoc({ withToughness: false });
     runCharacterPipeline(doc);
     const derived = (doc.system as Record<string, unknown>)["derived"] as Record<string, unknown>;
     const hp = derived["hp"] as { max: number };
     expect(hp.max).toBe(46);
+  });
+
+  it("Boots of Bounding STOWED (not equipped): Speed stays at base 25 (r19-W0 equip-gate)", () => {
+    const doc = makeFinnDoc({ bootsEquipped: false });
+    runCharacterPipeline(doc);
+    const derived = (doc.system as Record<string, unknown>)["derived"] as Record<string, unknown>;
+    const speed = derived["speed"] as { value: number; base: number };
+    expect(speed.base).toBe(25);
+    expect(speed.value).toBe(25);
+  });
+
+  it("WITHOUT Boots of Bounding item at all: Speed stays at base 25", () => {
+    const doc = makeFinnDoc({ bootsEquipped: null });
+    runCharacterPipeline(doc);
+    const derived = (doc.system as Record<string, unknown>)["derived"] as Record<string, unknown>;
+    const speed = derived["speed"] as { value: number; base: number };
+    expect(speed.base).toBe(25);
+    expect(speed.value).toBe(25);
   });
 
   it("at level 1: Will is only Trained (Will Expertise@3 not yet active)", () => {

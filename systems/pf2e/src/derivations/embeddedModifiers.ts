@@ -31,6 +31,14 @@
  * (skipped) rather than being mis-evaluated — a conservative posture matching
  * the rest of this package's malformed-input handling (r11).
  *
+ * Item scope: r19-W0 also extends the scanned item types beyond the four
+ * "always active" embedded types (feat/heritage/classFeature/ancestry) to
+ * EQUIPPED `equipment`/`armor` items (e.g. Boots of Bounding's `land-speed`
+ * item bonus) — mirroring the equipped-check `elementalBlast.ts` already
+ * applies to Gate Attenuator via the shared `isEquippedFlag` predicate
+ * (equipment.ts). Unequipped gear contributes nothing, matching RAW (a Boots
+ * of Bounding sitting in a backpack grants no Speed bonus).
+ *
  * Clean-room: ORC/OGL mechanics only (the stacking table + selector semantics
  * are facts of the rule system, already implemented in engine-2e). No Foundry
  * code copied.
@@ -40,14 +48,24 @@
 
 import { resolveStacking, type Modifier } from "@fusion/engine-2e";
 import type { ModifierBreakdown } from "./types.js";
+import { isEquippedFlag } from "./equipment.js";
 
-/** Item types that may carry `system.rules[]` and are embedded (not equipment). */
+/**
+ * Item types that may carry `system.rules[]` and are always "active" once
+ * embedded on the actor (no equip state to check).
+ */
 export const RULE_CARRYING_EMBEDDED_TYPES = new Set([
   "feat",
   "heritage",
   "classFeature",
   "ancestry",
 ]);
+
+/**
+ * Item types that may carry `system.rules[]` but only contribute while
+ * equipped/worn (r19-W0). Checked via the shared `isEquippedFlag` predicate.
+ */
+export const RULE_CARRYING_EQUIPPED_TYPES = new Set(["equipment", "armor"]);
 
 /** One resolved FlatModifier extracted from an embedded item's rules. */
 export interface EmbeddedModifierSource {
@@ -176,8 +194,9 @@ function modifiersFromItem(
 }
 
 /**
- * Scan `doc.items` for feat/heritage/classFeature/ancestry items and collect
- * every FlatModifier they carry whose `selector` is one of `selectors`.
+ * Scan `doc.items` for feat/heritage/classFeature/ancestry items (always
+ * active) plus EQUIPPED equipment/armor items (r19-W0), and collect every
+ * FlatModifier they carry whose `selector` is one of `selectors`.
  *
  * @param doc         The actor document.
  * @param selectors   The selector strings to match (e.g. `["hp"]`, or
@@ -199,7 +218,17 @@ export function collectEmbeddedModifiers(
   for (const raw of rawItems) {
     if (!raw || typeof raw !== "object") continue;
     const item = raw as Record<string, unknown>;
-    if (!RULE_CARRYING_EMBEDDED_TYPES.has(item["type"] as string)) continue;
+    const itemType = item["type"] as string;
+
+    if (RULE_CARRYING_EQUIPPED_TYPES.has(itemType)) {
+      // Equipment/armor only contribute while equipped/worn (RAW: a Boots of
+      // Bounding stowed in a backpack grants no Speed bonus) — r19-W0.
+      const itemSys = item["system"] as Record<string, unknown> | undefined;
+      if (!isEquippedFlag(itemSys)) continue;
+    } else if (!RULE_CARRYING_EMBEDDED_TYPES.has(itemType)) {
+      continue;
+    }
+
     results.push(...modifiersFromItem(item, selectors, context, fallbackLabel));
   }
   return results;
