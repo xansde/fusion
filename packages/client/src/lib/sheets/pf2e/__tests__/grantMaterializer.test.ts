@@ -17,6 +17,7 @@ import {
   parseGrantItems,
   parseGrantUuid,
   parseMechanicsGrants,
+  parseSystemItemsGrants,
   mapVendorToFusionPack,
   materializeGrants,
   pickSpellEntryId,
@@ -412,6 +413,96 @@ describe("parseMechanicsGrants", () => {
     expect(parseMechanicsGrants(undefined)).toEqual([]);
     expect(parseMechanicsGrants({})).toEqual([]);
     expect(parseMechanicsGrants({ grants: "nope" })).toEqual([]);
+  });
+});
+
+describe("parseSystemItemsGrants (r20-X4 — ABC system.items map)", () => {
+  it("extracts every uuid-bearing entry from the system.items map", () => {
+    const system = {
+      items: {
+        wr9b9: { img: "x.webp", level: 1, name: "Fascinating Performance", uuid: "Compendium.pf2e.feats-srd.Item.Fascinating Performance" },
+        jkllM: { img: "y.webp", level: 1, name: "Sharp Teeth", uuid: "Compendium.pf2e.ancestryfeatures.Item.Sharp Teeth" },
+      },
+    };
+    expect(parseSystemItemsGrants(system)).toEqual([
+      { vendor: "feats-srd", name: "Fascinating Performance", uuid: "Compendium.pf2e.feats-srd.Item.Fascinating Performance" },
+      { vendor: "ancestryfeatures", name: "Sharp Teeth", uuid: "Compendium.pf2e.ancestryfeatures.Item.Sharp Teeth" },
+    ]);
+  });
+
+  it("returns [] for an empty / absent / malformed items map", () => {
+    expect(parseSystemItemsGrants({ items: {} })).toEqual([]);
+    expect(parseSystemItemsGrants({})).toEqual([]);
+    expect(parseSystemItemsGrants(undefined)).toEqual([]);
+    expect(parseSystemItemsGrants({ items: "nope" })).toEqual([]);
+    expect(parseSystemItemsGrants({ items: { bad: { name: "no uuid" } } })).toEqual([]);
+  });
+});
+
+describe("materializeGrants — ABC system.items map (r20-X4)", () => {
+  function ratfolkDoc(): Record<string, unknown> {
+    return {
+      _id: "anc-ratfolk",
+      name: "Ratfolk",
+      type: "ancestry",
+      flags: { fusion: { sourceId: "P6PcVnCkh4XMdefw" } },
+      system: {
+        size: "sm",
+        vision: "low-light-vision",
+        rules: [],
+        items: { jkllM: { level: 1, name: "Sharp Teeth", uuid: "Compendium.pf2e.ancestryfeatures.Item.Sharp Teeth" } },
+      },
+    };
+  }
+  function fireworksPerformerDoc(): Record<string, unknown> {
+    return {
+      _id: "bg-fireworks",
+      name: "Fireworks Performer",
+      type: "background",
+      flags: { fusion: { sourceId: "2lk5NOcu1aUglUdK" } },
+      system: {
+        rules: [],
+        items: { wr9b9: { level: 1, name: "Fascinating Performance", uuid: "Compendium.pf2e.feats-srd.Item.Fascinating Performance" } },
+      },
+    };
+  }
+  function fascinatingPerformanceDoc(): Record<string, unknown> {
+    return {
+      _id: "feat-fasc",
+      name: "Fascinating Performance",
+      type: "feat",
+      flags: { fusion: { sourceId: "7LB00jkh6JaJr3vS" } },
+      system: { rules: [], traits: { value: ["skill"] } },
+    };
+  }
+
+  it("materializes a resolvable background free feat, tagged by the background", async () => {
+    const mctx = ctxFor({ "feats-core": [fascinatingPerformanceDoc()] });
+    const ops = await materializeGrants(fireworksPerformerDoc(), "2lk5NOcu1aUglUdK", undefined, mctx);
+    expect(ops).toHaveLength(1);
+    const op = ops[0]!;
+    if (op.type !== "doc:create") throw new Error("expected create");
+    expect(op.data["name"]).toBe("Fascinating Performance");
+    const fusion = (op.data["flags"] as Record<string, unknown>)["fusion"] as Record<string, unknown>;
+    expect(fusion["grantedBy"]).toBe("2lk5NOcu1aUglUdK");
+    expect(fusion["grantedSlot"]).toBeUndefined();
+  });
+
+  it("skips an ancestry feature with no clean-room pack (ancestryfeatures) without crashing", async () => {
+    // No pack holds "Sharp Teeth" → nothing materializes, no throw (informative
+    // chip is derived separately in the VM from the map metadata).
+    const mctx = ctxFor({ "class-features-core": [] });
+    const ops = await materializeGrants(ratfolkDoc(), "P6PcVnCkh4XMdefw", undefined, mctx);
+    expect(ops).toEqual([]);
+  });
+
+  it("is idempotent — a re-run with the feat already granted produces no op", async () => {
+    const existing = [
+      { _id: "e1", name: "Fascinating Performance", type: "feat", flags: { fusion: { sourceId: "7LB00jkh6JaJr3vS", grantedBy: "2lk5NOcu1aUglUdK" } } },
+    ];
+    const mctx = ctxFor({ "feats-core": [fascinatingPerformanceDoc()] }, existing);
+    const ops = await materializeGrants(fireworksPerformerDoc(), "2lk5NOcu1aUglUdK", undefined, mctx);
+    expect(ops).toEqual([]);
   });
 });
 
