@@ -25,6 +25,7 @@ import {
   DocUpdatePayloadSchema,
   DocCreatePayloadSchema,
   DocDeletePayloadSchema,
+  AbilityCardSchema,
 } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
@@ -425,6 +426,41 @@ describe("CharacterSheetVM — strikes", () => {
 });
 
 // ---------------------------------------------------------------------------
+// strikeCard — strike as an interactive AbilityCard (r20-X1)
+// ---------------------------------------------------------------------------
+
+describe("CharacterSheetVM — strikeCard", () => {
+  it("builds an announcement (strike card) + the MAP-0 attack to nest", () => {
+    const built = makeVM().strikeCard("item-longsword", 0);
+    expect(built).not.toBeNull();
+    // Announcement text (old clients) names the strike + MAP.
+    expect(built!.announcement.content).toBe("Longsword (MAP 0)");
+    // The attack roll to be nested under the announcement.
+    expect(built!.attack.content).toBe("/r 1d20+13 # Longsword (MAP 0)");
+    expect(built!.attack.speakerActorId).toBe("actor-001");
+    // The interactive strike card with rollable damage + crit.
+    const card = built!.announcement.flags?.pf2e?.abilityCard;
+    expect(AbilityCardSchema.safeParse(card).success).toBe(true);
+    expect(card!.kind).toBe("strike");
+    expect(card!.name).toBe("Longsword");
+    expect(card!.damageFormula).toBe("1d8+4");
+    expect(card!.critDamageFormula).toBe("(1d8+4)*2");
+    expect(card!.damageType).toBe("slashing");
+    expect(card!.traits).toEqual(["versatile-p"]);
+    expect(card!.saveType).toBeUndefined();
+  });
+
+  it("uses the chosen MAP variant for the attack", () => {
+    const built = makeVM().strikeCard("item-longsword", 2);
+    expect(built!.attack.content).toBe("/r 1d20+3 # Longsword (MAP 2)");
+  });
+
+  it("returns null for an unknown strike", () => {
+    expect(makeVM().strikeCard("nope", 0)).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Elemental Blasts (Kineticist, r18-N2c)
 // ---------------------------------------------------------------------------
 
@@ -547,6 +583,32 @@ describe("CharacterSheetVM — elementalBlasts", () => {
   it("returns null for an unknown element", () => {
     expect(vmWithBlasts().rollElementalBlast("fire", 0)).toBeNull();
     expect(vmWithBlasts().rollElementalBlastDamage("fire", false)).toBeNull();
+  });
+
+  // -------------------------------------------------------------------------
+  // blastCard — Elemental Blast as an interactive Rajada card (r20-X1)
+  // -------------------------------------------------------------------------
+
+  it("blastCard builds a Rajada announcement (card) + the MAP-0 attack", () => {
+    const built = vmWithBlasts().blastCard("air", 0);
+    expect(built).not.toBeNull();
+    expect(built!.announcement.content).toBe("Rajada Elemental (Ar) (MAP 0)");
+    expect(built!.attack.content).toBe("/r 1d20+9 # Rajada Elemental (Ar) (MAP 0)");
+    const card = built!.announcement.flags?.pf2e?.abilityCard;
+    expect(AbilityCardSchema.safeParse(card).success).toBe(true);
+    expect(card!.kind).toBe("impulse");
+    expect(card!.name).toBe("Rajada Elemental (Ar)");
+    expect(card!.damageFormula).toBe("1d6");
+    expect(card!.damageType).toBe("electricity");
+  });
+
+  it("blastCard uses the chosen MAP variant for the attack", () => {
+    const built = vmWithBlasts().blastCard("metal", 1);
+    expect(built!.attack.content).toBe("/r 1d20+4 # Rajada Elemental (Metal) (MAP 1)");
+  });
+
+  it("blastCard returns null for an unknown element", () => {
+    expect(vmWithBlasts().blastCard("fire", 0)).toBeNull();
   });
 });
 

@@ -24,7 +24,7 @@ import type {
   DerivedElementalBlast,
   ArchetypeClassDC,
 } from "./derivedTypes.js";
-import type { SpellCastCard, SpellSaveType, ChatSendFlags } from "@fusion/shared";
+import type { SpellSaveType, ChatSendFlags, AbilityCard } from "@fusion/shared";
 import { t } from "../../i18n/index.js";
 import { skillNamePt } from "./skillNames.js";
 import {
@@ -1066,6 +1066,44 @@ export class CharacterSheetVM {
     return this._buildChatRoll(formula, label);
   }
 
+  /**
+   * Build an Elemental Blast as an interactive Rajada card (r20-X1): an
+   * announcement carrying `flags.pf2e.abilityCard` (kind:"impulse", damage from
+   * the derived `damageRoll`) PLUS the attack roll for the chosen MAP variant, so
+   * attack + (card) damage nest into ONE Rajada card (same chaining as strikes).
+   * The 2-action CON-bonus variant stays on the sheet's own damage buttons.
+   * Returns null when the blast or its attack variant is unavailable.
+   */
+  blastCard(
+    element: string,
+    mapIndex: 0 | 1 | 2,
+  ): { announcement: ChatRollPayload; attack: ChatRollPayload } | null {
+    const blast = this._findBlast(element);
+    if (!blast) return null;
+    const attack = this.rollElementalBlast(element, mapIndex);
+    if (!attack) return null;
+
+    const cardName = this._blastFlavor(element);
+    const card: AbilityCard = {
+      kind: "impulse",
+      casterActorId: this._actorId,
+      name: cardName,
+    };
+    if (blast.damageRoll) card.damageFormula = blast.damageRoll;
+    if (blast.damageType) card.damageType = blast.damageType;
+
+    const content = t("FUSION.Sheet.Chat.BlastMap", { label: cardName, map: mapIndex });
+    const announcement: ChatRollPayload = {
+      type: "chat:send",
+      content,
+      worldId: this._worldId,
+      rollMode: "public",
+      speakerActorId: this._actorId,
+      flags: { pf2e: { abilityCard: card } },
+    };
+    return { announcement, attack };
+  }
+
   /** pt-BR flavor for a blast, e.g. "Rajada Elemental (Ar)". */
   private _blastFlavor(element: string): string {
     const elementLabel = t(`FUSION.Sheet.Plan.KineticGate.Element.${element}`);
@@ -1666,7 +1704,7 @@ export class CharacterSheetVM {
       worldId: this._worldId,
       rollMode: "public",
       speakerActorId: this._actorId,
-      flags: { pf2e: { spellCast: card } },
+      flags: { pf2e: { abilityCard: card } },
     };
 
     const attack = spellSystemHasAttack(sys) ? this.rollSpellAttack(entryId) : null;
@@ -1674,11 +1712,12 @@ export class CharacterSheetVM {
   }
 
   /**
-   * Assemble the {@link SpellCastCard} payload for the interactive chat card
-   * (r17-P2). Populates save (statistic/DC/basic from `system.defense` +
-   * derived DC) and damage (ALREADY heightened to `eff` via the heightening
-   * helper — never re-derived on the client render) so the card's two buttons
-   * ("Fazer teste de resistência" / "Rolar dano") have everything they need.
+   * Assemble the {@link AbilityCard} payload for the interactive spell-cast chat
+   * card (r20-X1, generalized from r17-P2). Populates save (statistic/DC/basic
+   * from `system.defense` + derived DC) and damage (ALREADY heightened to `eff`
+   * via the heightening helper — never re-derived on the client render) so the
+   * card's buttons ("Fazer teste de resistência" / "Rolar dano") have everything
+   * they need.
    *
    * `dcValue`/`saveType`/`basicSave` are present only for save spells;
    * `damageFormula`/`damageType` only when the heightened spell deals damage.
@@ -1691,17 +1730,18 @@ export class CharacterSheetVM {
     glyphs: string,
     displayName: string,
     spellItemId: string,
-  ): SpellCastCard {
-    const card: SpellCastCard = {
+  ): AbilityCard {
+    const card: AbilityCard = {
+      kind: "spell",
       casterActorId: this._actorId,
-      spellName: displayName,
+      name: displayName,
       rank: eff,
     };
     if (glyphs) card.actionCost = glyphs;
 
     // Raw EN name (pack join key) — the untranslated stored name, when present.
     const enName = this._rawSpellName(spellItemId);
-    if (enName && enName !== displayName) card.spellNameEn = enName;
+    if (enName && enName !== displayName) card.nameEn = enName;
 
     // Save (statistic + DC + basic) from the healed defense block.
     const defense = sys["defense"] as Record<string, unknown> | undefined;
@@ -1997,6 +2037,46 @@ export class CharacterSheetVM {
       { label: strike.label },
     );
     return this._buildChatRoll(formula, label);
+  }
+
+  /**
+   * Build a strike as an interactive AbilityCard (r20-X1): an announcement
+   * carrying `flags.pf2e.abilityCard` (kind:"strike", damage + crit from the
+   * derived rollable formulas) PLUS the attack roll for the chosen MAP variant.
+   * The caller sends the announcement, awaits its id, then fires the attack with
+   * `parentMessageId` so the attack nests under the card and the card's
+   * "Rolar dano" / "Rolar dano crítico" buttons roll INTO the same card. The MAP
+   * variant is chosen on the sheet (unchanged) — no crit automation is invented.
+   * Returns null when the derived strike is unavailable.
+   */
+  strikeCard(
+    strikeSourceId: string,
+    mapIndex: 0 | 1 | 2,
+  ): { announcement: ChatRollPayload; attack: ChatRollPayload } | null {
+    const strike = this._derived?.strikes.find((s) => s.sourceId === strikeSourceId);
+    if (!strike) return null;
+    const attack = this.rollStrike(strikeSourceId, mapIndex);
+
+    const card: AbilityCard = {
+      kind: "strike",
+      casterActorId: this._actorId,
+      name: strike.label,
+    };
+    if (strike.damageRoll) card.damageFormula = strike.damageRoll;
+    if (strike.critDamageRoll) card.critDamageFormula = strike.critDamageRoll;
+    if (strike.damageType) card.damageType = strike.damageType;
+    if (strike.traits.length > 0) card.traits = [...strike.traits];
+
+    const content = t("FUSION.Sheet.Chat.StrikeMap", { label: strike.label, map: mapIndex });
+    const announcement: ChatRollPayload = {
+      type: "chat:send",
+      content,
+      worldId: this._worldId,
+      rollMode: "public",
+      speakerActorId: this._actorId,
+      flags: { pf2e: { abilityCard: card } },
+    };
+    return { announcement, attack };
   }
 
   /**
