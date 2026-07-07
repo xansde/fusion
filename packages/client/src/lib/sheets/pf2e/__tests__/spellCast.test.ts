@@ -119,7 +119,7 @@ describe("castSpell — interactive card payload (r17-P2)", () => {
   it("attack cantrip (Ignition): card has damage (heightened), no save", () => {
     const vm = makeVM();
     const { announcement } = vm.castSpell("sp-ignition", "entry-arcane", "cantrip")!;
-    const card = announcement.flags?.pf2e.spellCast;
+    const card = announcement.flags?.pf2e?.spellCast;
     expect(card).toBeDefined();
     // Card is a valid SpellCastCard.
     expect(SpellCastCardSchema.safeParse(card).success).toBe(true);
@@ -138,7 +138,7 @@ describe("castSpell — interactive card payload (r17-P2)", () => {
   it("save cantrip (Electric Arc): card has save (DC + basic) AND damage", () => {
     const vm = makeVM();
     const { announcement } = vm.castSpell("sp-arc", "entry-arcane", "cantrip")!;
-    const card = announcement.flags?.pf2e.spellCast;
+    const card = announcement.flags?.pf2e?.spellCast;
     expect(card).toBeDefined();
     expect(card!.saveType).toBe("reflex");
     expect(card!.dcValue).toBe(19); // derived spellcasting DC
@@ -151,7 +151,7 @@ describe("castSpell — interactive card payload (r17-P2)", () => {
     const vm = makeVM();
     // Ignition prepared in a rank-3 slot → +2 interval steps over base rank 1.
     const { announcement } = vm.castSpell("sp-ignition", "entry-arcane", "prepared", 3)!;
-    const card = announcement.flags?.pf2e.spellCast;
+    const card = announcement.flags?.pf2e?.spellCast;
     expect(card!.rank).toBe(3);
     expect(card!.damageFormula).toBe("2d4+1d4+1d4"); // base 2d4 + 2 interval steps
   });

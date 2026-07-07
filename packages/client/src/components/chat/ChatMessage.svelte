@@ -26,18 +26,27 @@
     basicSaveHintKey,
     type FormattedRoll,
   } from "../../lib/chat/messageFormatter.js";
+  import { classifyNestedChildren } from "../../lib/chat/chatNestedRender.js";
   import ChatCard from "./ChatCard.svelte";
   import ConjuracaoCard from "./etmos/ConjuracaoCard.svelte";
   import SpellCastCard from "./pf2e/SpellCastCard.svelte";
 
   const {
     message,
+    children = [],
     socket,
     isGm = false,
     userId = "",
     worldId = "",
   }: {
     message: ChatMessageType;
+    /**
+     * Nested child rolls (r18-N1) grouped under this message by ChatLog —
+     * attack/damage/save rolls of a spell-cast card. Empty for a normal
+     * message. Rendered inline (compact roll lines + a "Salvaguardas" section)
+     * so one card shows the whole conjuration instead of loose messages.
+     */
+    children?: ChatMessageType[];
     /** Optional — only required to render system cards with actionable buttons (e.g. Etmos ConjuracaoCard). */
     socket?: Socket;
     isGm?: boolean;
@@ -45,6 +54,21 @@
     /** World id — required for the PF2e SpellCastCard's chat:send roll ops (r17-P2). */
     worldId?: string;
   } = $props();
+
+  // Classify nested children into compact roll lines (attack/damage) + graded
+  // save lines (r18-N1). Empty buckets when there are no children.
+  const nested = $derived(classifyNestedChildren(children));
+
+  // Collapse the saves section past a threshold (design: >4 → "ver todas"),
+  // never hiding content during initial streaming (details/summary pattern).
+  const SAVES_COLLAPSE_THRESHOLD = 4;
+  let savesExpanded = $state(false);
+  const savesCollapsible = $derived(nested.saves.length > SAVES_COLLAPSE_THRESHOLD);
+  const visibleSaves = $derived(
+    savesCollapsible && !savesExpanded
+      ? nested.saves.slice(0, SAVES_COLLAPSE_THRESHOLD)
+      : nested.saves,
+  );
 
   const meta = $derived(getMessageDisplayMeta(message));
 
@@ -224,6 +248,61 @@
   {:else}
     <!-- text / whisper / system (no card) -->
     <p class="msg__content">{message.content}</p>
+  {/if}
+
+  <!-- ---- Nested child rolls (r18-N1) ---- -->
+  <!--
+    Attack / damage / save rolls spawned by this spell-cast card, grouped here
+    by ChatLog so the conjuration reads as ONE card. Compact roll lines for the
+    caster's attack/damage; a "Salvaguardas" section (collapsible past 4) for
+    the targets' graded saves. Empty for a normal message.
+  -->
+  {#if nested.rolls.length > 0 || nested.saves.length > 0}
+    <div class="nested" role="group" aria-label={t("FUSION.Chat.SpellCard.Title")}>
+      {#each nested.rolls as line (line.messageId)}
+        <div class="nested-roll">
+          <span class="nested-roll__label">
+            {line.flavor ?? line.formula}
+          </span>
+          <span class="nested-roll__total nested-roll__total--{line.totalClass || 'normal'}">
+            {line.total}
+          </span>
+        </div>
+      {/each}
+
+      {#if nested.saves.length > 0}
+        <div class="nested-saves">
+          <div class="nested-saves__title">{t("FUSION.Chat.SpellCard.SavesSection")}</div>
+          {#each visibleSaves as save (save.messageId)}
+            {@const dk = save.degree}
+            <div class="nested-save">
+              <span class="nested-save__alias">{save.alias}</span>
+              <span class="nested-save__total">{save.total}</span>
+              {#if dk}
+                <span class="nested-save__badge {degreeCssClass(dk)}">{t(degreeLabelKey(dk))}</span>
+                {#if save.basicSave}
+                  <span class="nested-save__hint">{t(basicSaveHintKey(dk))}</span>
+                {/if}
+              {:else}
+                <span class="nested-save__badge">{save.degreeRaw}</span>
+              {/if}
+            </div>
+          {/each}
+          {#if savesCollapsible}
+            <button
+              type="button"
+              class="nested-saves__toggle"
+              onclick={() => (savesExpanded = !savesExpanded)}
+              aria-expanded={savesExpanded}
+            >
+              {savesExpanded
+                ? t("FUSION.Chat.SpellCard.HideSaves")
+                : t("FUSION.Chat.SpellCard.ShowAllSaves", { count: String(nested.saves.length) })}
+            </button>
+          {/if}
+        </div>
+      {/if}
+    </div>
   {/if}
 </div>
 
@@ -509,5 +588,125 @@
 
   .die--failure {
     border-color: var(--fusion-danger);
+  }
+
+  /* ---- Nested child rolls (r18-N1) ---- */
+  .nested {
+    margin-top: 0.35rem;
+    padding-left: 0.6rem;
+    border-left: 2px solid var(--fusion-accent-dim);
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    max-width: 340px;
+  }
+
+  .nested-roll {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+  }
+
+  .nested-roll__label {
+    color: var(--fusion-text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .nested-roll__total {
+    font-family: var(--fusion-font-mono);
+    font-weight: 700;
+    color: var(--fusion-text);
+    flex-shrink: 0;
+  }
+
+  .nested-roll__total--crit {
+    color: var(--fusion-success);
+  }
+
+  .nested-roll__total--fumble {
+    color: var(--fusion-danger);
+  }
+
+  .nested-saves {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding-top: 0.15rem;
+  }
+
+  .nested-saves__title {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--fusion-text-subtle);
+    margin-bottom: 0.1rem;
+  }
+
+  .nested-save {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    font-size: 0.76rem;
+    flex-wrap: wrap;
+  }
+
+  .nested-save__alias {
+    color: var(--fusion-text);
+    font-weight: 600;
+  }
+
+  .nested-save__total {
+    font-family: var(--fusion-font-mono);
+    color: var(--fusion-text-muted);
+  }
+
+  .nested-save__badge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--fusion-accent);
+  }
+
+  /* Degree badge colors — reuse the roll-card degree palette (r17.1). */
+  .nested-save__badge.dos--crit-success {
+    color: var(--fusion-success);
+  }
+  .nested-save__badge.dos--success {
+    color: var(--fusion-success);
+  }
+  .nested-save__badge.dos--failure {
+    color: var(--fusion-danger);
+  }
+  .nested-save__badge.dos--crit-failure {
+    color: var(--fusion-danger);
+  }
+
+  .nested-save__hint {
+    font-size: 0.68rem;
+    font-style: italic;
+    color: var(--fusion-text-subtle);
+  }
+
+  .nested-saves__toggle {
+    align-self: flex-start;
+    margin-top: 0.15rem;
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--fusion-accent);
+    cursor: pointer;
+    font-family: var(--fusion-font);
+    font-size: 0.7rem;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .nested-saves__toggle:hover {
+    color: var(--fusion-accent-hover);
   }
 </style>

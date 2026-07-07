@@ -18,6 +18,7 @@
   import type { ChatMessage } from "@fusion/shared";
   import { chatStore, loadMoreHistory } from "../../lib/chat/chatStore.svelte.js";
   import { ScrollStateManager } from "../../lib/chat/scrollState.js";
+  import { groupChatMessages } from "../../lib/chat/chatGrouping.js";
   import ChatMessageComponent from "./ChatMessage.svelte";
 
   const {
@@ -37,6 +38,15 @@
 
   let logEl: HTMLElement | null = $state(null);
   let showIndicator = $state(false);
+
+  // ---- Nested-roll grouping (r18-N1) ----
+  // Spell-cast rolls (attack/damage/save) carry flags.fusion.parentMessageId;
+  // group them so the log renders ONE card per conjuration (children nested
+  // inside their parent). An orphan (parent scrolled out / not yet paginated)
+  // degrades to a normal top-level card — see groupChatMessages. Unread count
+  // and 3D dice remain per-message (handled in chatStore/chatMessageSync,
+  // which are unchanged and count/animate every incoming message).
+  const grouped = $derived(groupChatMessages(chatStore.messages));
 
   // ---- Scroll state machine ----
 
@@ -118,8 +128,15 @@
     {:else if chatStore.messages.length === 0}
       <p class="chat-log__empty">No messages yet. Say something!</p>
     {:else}
-      {#each chatStore.messages as msg (msg._id)}
-        <ChatMessageComponent message={msg} {socket} {isGm} {userId} {worldId} />
+      {#each grouped.topLevel as msg (msg._id)}
+        <ChatMessageComponent
+          message={msg}
+          children={grouped.childrenByParent.get(msg._id) ?? []}
+          {socket}
+          {isGm}
+          {userId}
+          {worldId}
+        />
       {/each}
     {/if}
 

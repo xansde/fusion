@@ -115,12 +115,17 @@ export function sendOp<R = unknown>(
  * caller decides whether to still fire the child un-nested (the fallback is a
  * top-level roll, never a lost roll).
  */
-export async function sendChatOpForId(
+export async function sendChatOpForId<T extends { readonly type: "chat:send" }>(
   socket: Socket,
-  op: { readonly type: "chat:send" } & Record<string, unknown>,
+  // Accept any flat chat:send op object (an inline literal OR a nominal
+  // interface like ChatRollPayload, which lacks an index signature and so isn't
+  // assignable to `Record<string, unknown>`). Generic over the op shape so
+  // excess-property checks on literals still pass. We only split `type` off and
+  // forward the rest as the payload.
+  op: T,
   options: SendOpOptions = {},
 ): Promise<string | null> {
-  const { type, ...payload } = op;
+  const { type, ...payload } = op as { type: "chat:send" } & Record<string, unknown>;
   const result = await sendOp<{ message?: ChatMessage }>(
     socket,
     { type: type as Envelope["type"], payload },
