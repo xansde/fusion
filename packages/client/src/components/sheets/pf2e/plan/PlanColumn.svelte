@@ -51,12 +51,18 @@
     addLoreSkill,
     detailsRequestForSlot,
     detailsRequestForAutoFeature,
+    detailsRequestForAbcChip,
     buildContentNameTranslator,
     abilityBoostsGrid,
     SLOT_TYPE_LABELS_EN,
     planGhostEntryCleanup,
     healGranterRefs,
+    classFeatureGrantRefs,
+    classGrantRefsFromClassDoc,
+    backgroundLoreHealOps,
     actorSpellEntries,
+    type AbcChip,
+    type ClassGrantRef,
     type PlanSlotModel,
     type PlanSlotType,
     type PlanOpBuilderContext,
@@ -74,6 +80,7 @@
   } from "../../../../lib/sheets/pf2e/grantMaterializer.js";
   import type { DocOpPayload } from "../../../../lib/sheets/pf2e/characterSheetVM.js";
   import ABCCard from "./ABCCard.svelte";
+  import type { AbcChipDisplay } from "./ABCCard.svelte";
   import LevelCard from "./LevelCard.svelte";
   import type { SlotDisplay, AutoFeatureDisplay } from "./LevelCard.svelte";
   import CompendiumPickerDialog from "./CompendiumPickerDialog.svelte";
@@ -253,6 +260,53 @@
     }
   }
 
+  /** Resolve a granter's full pack doc by name within a Fusion pack, or null. */
+  async function resolveGranterByName(packSlug: string, name: string): Promise<Record<string, unknown> | null> {
+    const entries = await resolvePackIndex(packSlug);
+    const target = normalizeForMatch(name);
+    const entry = entries.find((e) => normalizeForMatch(e.name) === target);
+    if (!entry) return null;
+    return resolveGrantDoc(entry.uuid);
+  }
+
+  /**
+   * Materialize the ACTIONS a class's features concede (r20-X4). The class's
+   * features (Impulses, Kinetic Aura, Spellstrike, Arcane Cascade…) are NOT
+   * embedded on the actor — they're named by the class doc — so we resolve each
+   * feature's own pack doc and run materializeGrants on it, tagging every
+   * conceded action with the CLASS as root granter (grantedBy=<classSourceId>,
+   * grantedSlot=`classFeature:<level>:<name>`). Idempotent + best-effort.
+   */
+  async function materializeClassGrants(classDoc: Record<string, unknown>): Promise<void> {
+    if (!editable) return;
+    const fusion = ((classDoc["flags"] as Record<string, unknown> | undefined)?.["fusion"] ?? {}) as Record<string, unknown>;
+    const classSourceId = typeof fusion["sourceId"] === "string" ? fusion["sourceId"] : undefined;
+    if (!classSourceId) return;
+    const refs = classGrantRefsFromClassDoc(classDoc["system"], classSourceId, ctx.level);
+    await runClassGrantRefs(refs);
+  }
+
+  /** Shared: resolve each class-feature ref's doc and materialize its conceded actions. */
+  async function runClassGrantRefs(refs: ClassGrantRef[]): Promise<number> {
+    if (refs.length === 0) return 0;
+    const mctx = materializeContext();
+    let created = 0;
+    for (const ref of refs) {
+      try {
+        const featureDoc = await resolveGranterByName(ref.packSlug, ref.name);
+        if (!featureDoc) continue;
+        const ops = await materializeGrants(featureDoc, ref.classSourceId, ref.slot, mctx);
+        for (const op of ops) {
+          sendOpFn(op);
+          created++;
+        }
+      } catch {
+        // best-effort per feature; a socket failure just defers to next open.
+      }
+    }
+    return created;
+  }
+
   // ---------------------------------------------------------------------------
   // On-open heal (B2 r14, gaps #11 + #12) — for an owner/GM, scan already-
   // applied granters for missing fixed grants and materialize them, and remove
@@ -279,31 +333,58 @@
       sendOpFn(op);
     }
 
-    // Grant heal: re-scan every applied granter's pack doc for missing grants.
+    let created = 0;
+    const mctx = materializeContext();
+
+    // (1) Feat/classFeature granters — re-scan each applied granter's pack doc
+    // for missing fixed grants (B2 r14).
     try {
-      const refs = healGranterRefs(doc);
-      if (refs.length === 0) return;
-      const mctx = materializeContext();
-      let created = 0;
-      for (const ref of refs) {
-        const entries = await resolvePackIndex(ref.packSlug);
-        const target = normalizeForMatch(ref.name);
-        const entry = entries.find((e) => normalizeForMatch(e.name) === target);
-        if (!entry) continue;
-        const granterDoc = await resolveGrantDoc(entry.uuid);
+      for (const ref of healGranterRefs(doc)) {
+        const granterDoc = await resolveGranterByName(ref.packSlug, ref.name);
         if (!granterDoc) continue;
         const ops = await materializeGrants(granterDoc, ref.sourceId, ref.slot, mctx);
-        for (const op of ops) {
-          sendOpFn(op);
-          created++;
-        }
+        for (const op of ops) { sendOpFn(op); created++; }
       }
-      if (created > 0 || ghostOps.length > 0) {
-        // eslint-disable-next-line no-console
-        console.log(`[Plan heal] materialized ${String(created)} missing grant(s), removed ${String(ghostOps.length)} ghost entrie(s)`);
+    } catch { /* deferred to next open */ }
+
+    // (2) ABC feature grants (r20-X4) — the embedded ancestry/heritage/background
+    // items carry a `system.items` feature map + a stable sourceId, so run the
+    // materializer straight off the embedded doc. Resolvable features (feats)
+    // materialize; unresolved ones (no clean-room pack) skip → informative chip.
+    try {
+      for (const kind of ["ancestry", "heritage", "background"] as const) {
+        const abcItem = (doc["items"] as Array<Record<string, unknown>> | undefined)?.find((i) => i["type"] === kind);
+        if (!abcItem) continue;
+        const sid = ((abcItem["flags"] as Record<string, unknown> | undefined)?.["fusion"] as Record<string, unknown> | undefined)?.["sourceId"];
+        if (typeof sid !== "string") continue;
+        const ops = await materializeGrants(abcItem, sid, undefined, mctx);
+        for (const op of ops) { sendOpFn(op); created++; }
       }
-    } catch {
-      // Offline / no socket: nothing to heal now; retried on next open.
+    } catch { /* deferred */ }
+
+    // (3) Background LORE heal (r20-X4) — the real Finn/Tobias were built before
+    // the lore branch, so their Piloting/Fireworks Lore was never trained.
+    // Re-resolve the background from the CURRENT pack (its embedded copy may be
+    // a stale import) and add the missing lore training. Idempotent.
+    try {
+      const bgItem = (doc["items"] as Array<Record<string, unknown>> | undefined)?.find((i) => i["type"] === "background");
+      const bgName = bgItem ? (typeof bgItem["name"] === "string" ? bgItem["name"] : undefined) : undefined;
+      if (bgName) {
+        const bgDoc = (await resolveGranterByName("backgrounds-core", bgName)) ?? bgItem!;
+        for (const op of backgroundLoreHealOps(opCtx, bgDoc)) { sendOpFn(op); created++; }
+      }
+    } catch { /* deferred */ }
+
+    // (4) Class action grants (r20-X4) — materialize the actions the class's
+    // non-choice features concede (Elemental Blast/Base Kinesis/Channel
+    // Elements/Spellstrike/Arcane Cascade), tagged by the class.
+    try {
+      created += await runClassGrantRefs(classFeatureGrantRefs(doc));
+    } catch { /* deferred */ }
+
+    if (created > 0 || ghostOps.length > 0) {
+      // eslint-disable-next-line no-console
+      console.log(`[Plan heal] materialized ${String(created)} missing grant(s), removed ${String(ghostOps.length)} ghost entrie(s)`);
     }
   }
 
@@ -379,6 +460,25 @@
     return contentNameParts(name);
   }
 
+  /**
+   * The locked chips (bilingual, clickable when resolvable) shown under an ABC
+   * card (r20-X4). A chip that maps to a compendium doc opens the read-only
+   * details dialog; an informative chip (scalar / unresolved feature) is static.
+   */
+  function abcChipDisplays(chips: AbcChip[] | undefined): AbcChipDisplay[] {
+    if (!chips) return [];
+    return chips.map((chip) => {
+      const parts = contentNameParts(chip.name);
+      const req = detailsRequestForAbcChip(chip);
+      return {
+        key: chip.key,
+        name: parts.name,
+        ...(parts.subName !== undefined ? { subName: parts.subName } : {}),
+        ...(req ? { onClick: () => { detailsRequest = req; } } : {}),
+      };
+    });
+  }
+
   // ---------------------------------------------------------------------------
   // ABC cards — Ancestry / Heritage / Background / Class pickers
   // ---------------------------------------------------------------------------
@@ -422,18 +522,28 @@
     switch (abcPicker) {
       case "ancestry":
         sendAll(applyAncestry(opCtx, doc2));
+        // Materialize the ancestry's system.items feature grants (r20-X4 — e.g.
+        // Fascinating Performance-style feats). Unresolved features (no clean-
+        // room pack) simply skip; the ABC card still shows an informative chip.
+        void materializeAppliedGrants(doc2, undefined);
         break;
       case "heritage":
         sendAll(applyHeritage(opCtx, doc2));
+        void materializeAppliedGrants(doc2, undefined);
         break;
       case "background":
         sendAll(applyBackground(opCtx, doc2));
+        void materializeAppliedGrants(doc2, undefined);
         break;
       case "class":
         // The key-ability CHOICE is made in the "Dádivas de Atributo"
         // dialog's class group (build.abilities.classBoost) — the embedded
         // class item keeps the full keyAbility option list (r11 fix).
         sendAll(applyClass(opCtx, doc2));
+        // Materialize the actions the class's features concede (r20-X4 —
+        // Elemental Blast/Base Kinesis via Impulses, Channel Elements via
+        // Kinetic Aura, Spellstrike, Arcane Cascade).
+        void materializeClassGrants(doc2);
         break;
     }
     abcPicker = null;
@@ -693,6 +803,7 @@
       subName={abcNameParts(plan.abc[0]?.name).subName}
       subLine={plan.abc[0]?.subLine}
       filled={plan.abc[0]?.filled ?? false}
+      chips={abcChipDisplays(plan.abc[0]?.chips)}
       {editable}
       onClick={() => openAbcPicker("ancestry")}
     />
@@ -702,6 +813,7 @@
       subName={abcNameParts(plan.abc[1]?.name).subName}
       subLine={plan.abc[1]?.subLine}
       filled={plan.abc[1]?.filled ?? false}
+      chips={abcChipDisplays(plan.abc[1]?.chips)}
       {editable}
       onClick={() => openAbcPicker("heritage")}
     />
@@ -711,6 +823,7 @@
       subName={abcNameParts(plan.abc[2]?.name).subName}
       subLine={plan.abc[2]?.subLine}
       filled={plan.abc[2]?.filled ?? false}
+      chips={abcChipDisplays(plan.abc[2]?.chips)}
       {editable}
       onClick={() => openAbcPicker("background")}
     />

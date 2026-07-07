@@ -343,11 +343,35 @@ export function spellSlotsForLevel(
 
 export type AbcKind = "ancestry" | "heritage" | "background" | "class";
 
+/**
+ * A locked chip rendered under an ABC card (r20-X4): an auto-conceded feature
+ * from the ABC doc's `system.items` map (Unusual Anatomy, Sharp Teeth,
+ * Fascinating Performance…) OR an informative scalar derived from the doc
+ * (ancestry Size / Vision). Mirrors the level cards' locked auto-feature chips.
+ */
+export interface AbcChip {
+  /** Stable key for the `#each` block. */
+  key: string;
+  /** Display name (source/EN name; the component adds the pt-BR bilingual split). */
+  name: string;
+  /** Feature level from the `system.items` map (undefined for scalar chips). */
+  level?: number;
+  /**
+   * When the chip maps to a resolvable compendium doc (a MATERIALIZED grant on
+   * the actor), the pack its description lives in — makes the chip clickable
+   * (opens PlanDetailsDialog). Absent for an informative chip (scalar, or a
+   * feature whose vendor has no clean-room pack yet).
+   */
+  detailsPackSlug?: string;
+}
+
 export interface AbcCardModel {
   kind: AbcKind;
   filled: boolean;
   name?: string;
   subLine?: string;
+  /** Locked chips (auto-conceded features + informative scalars) — r20-X4. */
+  chips?: AbcChip[];
 }
 
 export type PlanSlotType =
@@ -416,6 +440,14 @@ export interface PlanSlotModel {
 export interface AutoFeatureModel {
   name: string;
   locked: true;
+  /**
+   * Pack the chip's description lives in. Defaults to class-features-core (a
+   * class feature named by `featuresByLevel`); a class-granted ACTION chip
+   * (r20-X4 — Elemental Blast / Base Kinesis / Channel Elements / Spellstrike /
+   * Arcane Cascade materialized from a class feature's GrantItem) sets
+   * "actions-core" so the details panel resolves it in the right pack.
+   */
+  detailsPackSlug?: string;
 }
 
 export interface LevelPlanModel {
@@ -633,12 +665,14 @@ export function derivePlan(doc: Record<string, unknown>): PlanModel {
 
 function buildAbcCards(doc: Record<string, unknown>): AbcCardModel[] {
   const cards: AbcCardModel[] = [];
+  const items = getItems(doc);
 
   const ancestry = findFirstItemByType(doc, "ancestry");
   cards.push({
     kind: "ancestry",
     filled: ancestry !== undefined,
     ...withOptional("name", itemName(ancestry)),
+    ...withOptional("chips", abcChipsFor(ancestry, items, "ancestry")),
   });
 
   const heritage = findFirstItemByType(doc, "heritage");
@@ -646,6 +680,7 @@ function buildAbcCards(doc: Record<string, unknown>): AbcCardModel[] {
     kind: "heritage",
     filled: heritage !== undefined,
     ...withOptional("name", itemName(heritage)),
+    ...withOptional("chips", abcChipsFor(heritage, items, "heritage")),
   });
 
   const background = findFirstItemByType(doc, "background");
@@ -653,6 +688,7 @@ function buildAbcCards(doc: Record<string, unknown>): AbcCardModel[] {
     kind: "background",
     filled: background !== undefined,
     ...withOptional("name", itemName(background)),
+    ...withOptional("chips", abcChipsFor(background, items, "background")),
   });
 
   const classItem = findFirstItemByType(doc, "class");
@@ -665,6 +701,94 @@ function buildAbcCards(doc: Record<string, unknown>): AbcCardModel[] {
   });
 
   return cards;
+}
+
+/** English display labels for PF2e size codes (informative ancestry chip). */
+const SIZE_LABELS: Record<string, string> = {
+  tiny: "Tiny",
+  sm: "Small",
+  med: "Medium",
+  lg: "Large",
+  huge: "Huge",
+  grg: "Gargantuan",
+};
+
+/** English display labels for the ancestry `system.vision` scalar. */
+const VISION_LABELS: Record<string, string> = {
+  "low-light-vision": "Low-Light Vision",
+  darkvision: "Darkvision",
+  "greater-darkvision": "Greater Darkvision",
+  normal: "Normal Vision",
+};
+
+/**
+ * abcChipsFor — the locked chips shown under an ABC card (r20-X4). Two sources:
+ *
+ *  1. The ABC item's `system.items` map of auto-conceded features. A feature
+ *     that MATERIALIZED (an embedded item tagged `grantedBy === <abcSourceId>`,
+ *     matched by normalized name) becomes a CLICKABLE chip routed to that
+ *     item's pack; an unresolved feature (no clean-room pack, e.g. Unusual
+ *     Anatomy / Sharp Teeth) becomes an INFORMATIVE chip from the map metadata.
+ *  2. For ancestry only: informative scalar chips for Size + Vision.
+ *
+ * Deduplicated by normalized name so a materialized feature and its map entry
+ * never both render. Returns undefined (not an empty array) when there are no
+ * chips, so `withOptional` omits the field on cards that have none.
+ */
+function abcChipsFor(
+  abcItem: Record<string, unknown> | undefined,
+  items: Array<Record<string, unknown>>,
+  kind: AbcKind,
+): AbcChip[] | undefined {
+  if (!abcItem) return undefined;
+  const chips: AbcChip[] = [];
+  const seen = new Set<string>();
+  const sys = asRecord(abcItem["system"]);
+  const abcSourceId = itemFusionSourceId(abcItem);
+
+  // Materialized grants of THIS ABC (embedded items tagged grantedBy=abcSourceId).
+  if (abcSourceId) {
+    for (const it of items) {
+      if (itemFusion(it)["grantedBy"] !== abcSourceId) continue;
+      const name = itemName(it);
+      if (!name) continue;
+      const norm = normalizeName(name);
+      if (seen.has(norm)) continue;
+      seen.add(norm);
+      chips.push({
+        key: `grant:${typeof it["_id"] === "string" ? (it["_id"] as string) : norm}`,
+        name,
+        detailsPackSlug: grantedItemPackSlug(it["type"]),
+      });
+    }
+  }
+
+  // Remaining `system.items` map entries that did NOT materialize → informative.
+  const map = asRecord(sys["items"]);
+  for (const [mapKey, raw] of Object.entries(map)) {
+    const entry = asRecord(raw);
+    const name = typeof entry["name"] === "string" ? entry["name"] : undefined;
+    if (!name) continue;
+    const norm = normalizeName(name);
+    if (seen.has(norm)) continue;
+    seen.add(norm);
+    const level = typeof entry["level"] === "number" ? entry["level"] : undefined;
+    chips.push({ key: `item:${mapKey}`, name, ...withOptional("level", level) });
+  }
+
+  // Ancestry-only informative scalars: Size + Vision.
+  if (kind === "ancestry") {
+    const size = sys["size"];
+    if (typeof size === "string") {
+      chips.push({ key: "scalar:size", name: SIZE_LABELS[size] ?? `Size: ${size}` });
+    }
+    const vision = sys["vision"];
+    if (typeof vision === "string" && vision !== "normal") {
+      chips.push({ key: "scalar:vision", name: VISION_LABELS[vision] ?? vision });
+    }
+  }
+
+  return chips.length > 0 ? chips : undefined;
 }
 
 function findHybridStudyChoiceName(doc: Record<string, unknown>): string | undefined {
@@ -780,12 +904,71 @@ function buildLevelPlan(
     }
   }
 
-  const autoFeatures: AutoFeatureModel[] = (classSystem.featuresByLevel ?? [])
-    .filter((f) => f.level === level)
-    .filter((f) => !isChoiceFeature(f))
-    .map((f) => ({ name: f.name, locked: true as const }));
+  // Class features named directly by featuresByLevel (Impulses, Kinetic Aura,
+  // Spellstrike, Arcane Cascade, Conflux Spells…) — locked NAME chips — PLUS the
+  // actions those features concede via GrantItem (r20-X4 — Elemental Blast +
+  // Base Kinesis from Impulses, Channel Elements from Kinetic Aura). A conceded
+  // action whose NAME matches a feature already listed (Magus's Spellstrike
+  // feature vs the Spellstrike action) is skipped so the strip carries no
+  // duplicate chip (a duplicate would also collide on the render key).
+  const autoFeatures: AutoFeatureModel[] = [];
+  const autoSeen = new Set<string>();
+  for (const f of classSystem.featuresByLevel ?? []) {
+    if (f.level !== level || isChoiceFeature(f)) continue;
+    const norm = normalizeName(f.name);
+    if (autoSeen.has(norm)) continue;
+    autoSeen.add(norm);
+    autoFeatures.push({ name: f.name, locked: true });
+  }
+  for (const chip of classGrantedActionChips(doc, level)) {
+    const norm = normalizeName(chip.name);
+    if (autoSeen.has(norm)) continue;
+    autoSeen.add(norm);
+    autoFeatures.push(chip);
+  }
 
   return { level, slots: collapseSkillSlotGroups(slots), autoFeatures };
+}
+
+/**
+ * classGrantSlot — the `flags.fusion.grantedSlot` marker stamped on an action
+ * conceded by a class feature (r20-X4). Encodes the granting feature's LEVEL +
+ * normalized name so the Plan can nest the chip at the right level card and the
+ * heal stays idempotent. Format: `classFeature:<level>:<normName>`.
+ */
+export function classGrantSlot(level: number, featureName: string): string {
+  return `classFeature:${String(level)}:${normalizeName(featureName)}`;
+}
+
+/**
+ * classGrantedActionChips — locked chips for the actions a class's features
+ * concede at `level` (materialized as embedded items tagged
+ * grantedBy=<classSourceId>, grantedSlot=`classFeature:<level>:…`). Deduped by
+ * normalized name. Empty for a class whose features grant no fixed actions.
+ */
+function classGrantedActionChips(
+  doc: Record<string, unknown>,
+  level: number,
+): AutoFeatureModel[] {
+  const classItem = findFirstItemByType(doc, "class");
+  const classSourceId = classItem ? itemFusionSourceId(classItem) : undefined;
+  if (!classSourceId) return [];
+  const out: AutoFeatureModel[] = [];
+  const seen = new Set<string>();
+  for (const it of getItems(doc)) {
+    const fusion = itemFusion(it);
+    if (fusion["grantedBy"] !== classSourceId) continue;
+    const slot = fusion["grantedSlot"];
+    if (typeof slot !== "string" || !slot.startsWith("classFeature:")) continue;
+    if (Number(slot.split(":")[1]) !== level) continue;
+    const name = itemName(it);
+    if (!name) continue;
+    const norm = normalizeName(name);
+    if (seen.has(norm)) continue;
+    seen.add(norm);
+    out.push({ name, locked: true, detailsPackSlug: grantedItemPackSlug(it["type"]) });
+  }
+  return out;
 }
 
 /**
@@ -1690,25 +1873,111 @@ export function applyBackground(
   } satisfies DocUpdatePayload);
 
   // Background-granted skill proficiencies (e.g. Fireworks Performer →
-  // Performance trained) apply as a level-1 skillTraining build choice so
-  // stepCharBuildSkills picks them up uniformly with other training sources.
-  const skills = asRecord(sys["skills"]);
-  const skillChoices = Object.entries(skills)
-    .map(([slug, val]) => {
-      const rank = asRecord(val)["value"];
-      return typeof rank === "number" ? { slug, rank } : null;
-    })
-    .filter((s): s is { slug: string; rank: number } => s !== null);
+  // Performance trained AND Fireworks Lore trained) apply as level-1
+  // skillTraining build choices so stepCharBuildSkills picks them up uniformly
+  // with other training sources. r20-X4: the Lore branch was previously DROPPED
+  // — the pack shape is `system.trainedSkills = {value:["performance"],
+  // lore:["Fireworks Lore"]}` but the old reader only understood the normalized
+  // `system.skills = {performance:{value:1}}` shape and never trained the lore.
+  const trainings = readBackgroundTrainings(sys);
+  const buildSkillOps = backgroundTrainingOps(ctx, trainings);
+  ops.push(...buildSkillOps);
 
-  if (skillChoices.length > 0) {
+  return ops;
+}
+
+/** A background's granted skill/lore proficiencies, normalized across pack shapes. */
+export interface BackgroundTrainings {
+  /** Canonical skill slugs trained at rank 1 (e.g. "athletics", "performance"). */
+  skills: string[];
+  /** Lore proficiencies: a slug + a human label (e.g. { slug:"piloting-lore", label:"Piloting Lore" }). */
+  lores: Array<{ slug: string; label: string }>;
+}
+
+/**
+ * readBackgroundTrainings — extract a background's granted skills + lores from
+ * EITHER pack shape:
+ *   - `system.trainedSkills = { value:[skill…], lore:[loreName…] }` (raw vendor
+ *     shape carried by the importer, r20-X4 — the shape that has the LORE);
+ *   - `system.skills = { <slug>: { value:rank } }` (older normalized shape) as a
+ *     fallback for skills (no lore in that shape).
+ * The two are unioned (deduped) so a re-imported pack that carries both never
+ * double-counts. Malformed entries degrade to "none" (r11 posture).
+ */
+export function readBackgroundTrainings(sys: Record<string, unknown>): BackgroundTrainings {
+  const skills = new Set<string>();
+  const lores = new Map<string, string>(); // slug → label
+
+  const trained = asRecord(sys["trainedSkills"]);
+  for (const s of asStringArray(trained["value"])) skills.add(s);
+  for (const loreName of asStringArray(trained["lore"])) {
+    const label = loreName.trim();
+    if (label) lores.set(loreSlug(label), label);
+  }
+
+  // Fallback: the normalized `system.skills` map (skills only; no lore there).
+  const normalized = asRecord(sys["skills"]);
+  for (const [slug, val] of Object.entries(normalized)) {
+    if (typeof asRecord(val)["value"] === "number") skills.add(slug);
+  }
+
+  return {
+    skills: [...skills],
+    lores: [...lores].map(([slug, label]) => ({ slug, label })),
+  };
+}
+
+/**
+ * loreSlug — a stable skill slug for a lore proficiency. Strips a trailing
+ * "Lore" word, slugifies the rest, and re-appends "-lore" (matching the
+ * "<topic>-lore" convention the character derivation already recognizes for
+ * persisted Lore skills). "Piloting Lore" → "piloting-lore".
+ */
+export function loreSlug(name: string): string {
+  const base = name
+    .trim()
+    .replace(/\s*lore\s*$/i, "")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return base ? `${base}-lore` : "lore";
+}
+
+/**
+ * backgroundTrainingOps — the `doc:update` ops that train a background's skills
+ * + lores. Skills become `backgroundSkill-N` build choices; each lore ALSO gets
+ * a `system.skills.<slug>` entry stamped `lore:true` (so the derivation treats
+ * it as an INT-based custom Lore) plus a `backgroundLore-N` build choice at rank
+ * 1. Idempotent inputs — the heal filters out already-present trainings before
+ * calling — so re-applying never duplicates a choice.
+ */
+function backgroundTrainingOps(
+  ctx: PlanOpBuilderContext,
+  trainings: BackgroundTrainings,
+): DocOpPayload[] {
+  const ops: DocOpPayload[] = [];
+  const newChoices: BuildChoice[] = [];
+
+  trainings.skills.forEach((slug, i) => {
+    newChoices.push({ level: 1, slot: `backgroundSkill-${String(i)}`, type: "skillTraining", skill: slug, rank: 1 });
+  });
+
+  // Each lore needs its persisted `system.skills` entry (lore:true) so the
+  // character derivation surfaces it; the build choice raises it to trained.
+  const loreEntries: Record<string, unknown> = {};
+  trainings.lores.forEach((lore, i) => {
+    loreEntries[`system.skills.${lore.slug}`] = { rank: 0, lore: true, label: lore.label };
+    newChoices.push({ level: 1, slot: `backgroundLore-${String(i)}`, type: "skillTraining", skill: lore.slug, rank: 1 });
+  });
+
+  if (Object.keys(loreEntries).length > 0) {
+    ops.push({ type: "doc:update", documentType: "Actor", id: ctx.actorId, diff: loreEntries } satisfies DocUpdatePayload);
+  }
+
+  if (newChoices.length > 0) {
     const existingChoices = getBuildChoices(getSystem(ctx.doc));
-    const newChoices: BuildChoice[] = skillChoices.map((s, i) => ({
-      level: 1,
-      slot: `backgroundSkill-${String(i)}`,
-      type: "skillTraining",
-      skill: s.slug,
-      rank: s.rank,
-    }));
     ops.push({
       type: "doc:update",
       documentType: "Actor",
@@ -1718,6 +1987,57 @@ export function applyBackground(
   }
 
   return ops;
+}
+
+/**
+ * backgroundLoreHealOps — for an ALREADY-applied background missing its lore
+ * training (r20-X4 heal: the real Finn/Tobias were built before the lore branch
+ * existed), emit the ops to add each missing lore's `system.skills` entry + a
+ * `backgroundLore-N` build choice. Idempotent: a lore already present (a build
+ * choice targeting its slug, OR a `system.skills.<slug>` entry) is skipped, so
+ * re-running the heal is a no-op. Skills already handled by the original apply
+ * are NOT re-added here (this heal is lore-only — the historical gap).
+ */
+export function backgroundLoreHealOps(
+  ctx: PlanOpBuilderContext,
+  backgroundDoc: Record<string, unknown>,
+): DocOpPayload[] {
+  if (!ctx.editable) return [];
+  const sys = asRecord(backgroundDoc["system"]);
+  const trainings = readBackgroundTrainings(sys);
+  if (trainings.lores.length === 0) return [];
+
+  const actorSys = getSystem(ctx.doc);
+  const existingChoices = getBuildChoices(actorSys);
+  const existingSkills = asRecord(actorSys["skills"]);
+  const trainedSlugs = new Set(existingChoices.map((c) => c.skill).filter((s): s is string => typeof s === "string"));
+
+  const missing = trainings.lores.filter(
+    (lore) => !trainedSlugs.has(lore.slug) && !existingSkills[lore.slug],
+  );
+  if (missing.length === 0) return [];
+
+  const loreEntries: Record<string, unknown> = {};
+  const newChoices: BuildChoice[] = [];
+  // Continue the backgroundLore-N numbering past any that already exist.
+  const usedLoreSlots = new Set(existingChoices.map((c) => c.slot));
+  let n = 0;
+  for (const lore of missing) {
+    loreEntries[`system.skills.${lore.slug}`] = { rank: 0, lore: true, label: lore.label };
+    while (usedLoreSlots.has(`backgroundLore-${String(n)}`)) n++;
+    usedLoreSlots.add(`backgroundLore-${String(n)}`);
+    newChoices.push({ level: 1, slot: `backgroundLore-${String(n)}`, type: "skillTraining", skill: lore.slug, rank: 1 });
+  }
+
+  return [
+    { type: "doc:update", documentType: "Actor", id: ctx.actorId, diff: loreEntries } satisfies DocUpdatePayload,
+    {
+      type: "doc:update",
+      documentType: "Actor",
+      id: ctx.actorId,
+      diff: { "system.build.choices": [...existingChoices, ...newChoices] },
+    } satisfies DocUpdatePayload,
+  ];
 }
 
 /**
@@ -2776,6 +3096,72 @@ export function healGranterRefs(doc: Record<string, unknown>): HealGranterRef[] 
   return refs;
 }
 
+/**
+ * A class feature to re-scan for the actions it concedes (r20-X4). Unlike
+ * `healGranterRefs` (embedded feat/classFeature granters), the class's
+ * `featuresByLevel` features are NOT embedded on the actor — they're named by
+ * the class doc — so the heal must resolve each feature's own pack doc and run
+ * `materializeGrants` on it, tagging every conceded action with the CLASS as
+ * the root granter (so removing the class cascades to them).
+ */
+export interface ClassGrantRef {
+  /** The class feature's display name (resolve in class-features-core). */
+  name: string;
+  /** Pack the feature doc lives in (always class-features-core). */
+  packSlug: string;
+  /** The CLASS item's sourceId — root grantedBy for every conceded action. */
+  classSourceId: string;
+  /** The grantedSlot marker (encodes feature level + name). */
+  slot: string;
+  /** The feature's level (diagnostics). */
+  level: number;
+}
+
+/**
+ * classFeatureGrantRefs — every non-CHOICE class feature at or below the
+ * character level whose pack doc should be re-scanned for conceded actions.
+ * Choice features (Hybrid Study, Kinetic Gate) are excluded — they're picked
+ * via their own slots and their grants materialize through that path.
+ */
+export function classFeatureGrantRefs(doc: Record<string, unknown>): ClassGrantRef[] {
+  const classItem = findFirstItemByType(doc, "class");
+  if (!classItem) return [];
+  const classSourceId = itemFusionSourceId(classItem);
+  if (!classSourceId) return [];
+  return classGrantRefsFromClassDoc(classItem["system"], classSourceId, getLevel(doc));
+}
+
+/**
+ * classGrantRefsFromClassDoc — the pure core of `classFeatureGrantRefs`, taking
+ * an explicit class `system` block + sourceId + char level. Used on FRESH apply
+ * (the class item isn't embedded on the actor yet, so the picker's class doc is
+ * the only source) as well as by `classFeatureGrantRefs` (embedded path).
+ */
+export function classGrantRefsFromClassDoc(
+  classSystemRaw: unknown,
+  classSourceId: string,
+  charLevel: number,
+): ClassGrantRef[] {
+  const classSystem = asRecord(classSystemRaw) as unknown as ClassSystemLike;
+  const refs: ClassGrantRef[] = [];
+  const seen = new Set<string>();
+  for (const f of classSystem.featuresByLevel ?? []) {
+    if (f.level > charLevel) continue;
+    if (isChoiceFeature(f)) continue;
+    const norm = normalizeName(f.name);
+    if (seen.has(norm)) continue;
+    seen.add(norm);
+    refs.push({
+      name: f.name,
+      packSlug: "class-features-core",
+      classSourceId,
+      slot: classGrantSlot(f.level, f.name),
+      level: f.level,
+    });
+  }
+  return refs;
+}
+
 /** The actor's spellcasting entries in the minimal shape grantMaterializer needs (for placing granted spells). */
 export function actorSpellEntries(
   doc: Record<string, unknown>,
@@ -2986,7 +3372,17 @@ export function detailsRequestForSlot(slot: PlanSlotModel): PlanDetailsRequest |
 
 /** The pack a locked auto-feature chip's description lives in (always a class feature). */
 export function detailsRequestForAutoFeature(feature: AutoFeatureModel): PlanDetailsRequest {
-  return { packSlug: "class-features-core", name: feature.name };
+  return { packSlug: feature.detailsPackSlug ?? "class-features-core", name: feature.name };
+}
+
+/**
+ * The details request for a locked ABC chip (r20-X4), or null when the chip is
+ * INFORMATIVE (a scalar, or an unresolved feature with no clean-room pack) — the
+ * caller renders those non-clickable.
+ */
+export function detailsRequestForAbcChip(chip: AbcChip): PlanDetailsRequest | null {
+  if (!chip.detailsPackSlug) return null;
+  return { packSlug: chip.detailsPackSlug, name: chip.name };
 }
 
 /**

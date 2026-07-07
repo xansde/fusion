@@ -8,7 +8,24 @@
    * (.fusion-build/r10-design/claude-design/components/plan/ABCCard.jsx).
    * Clicking an unfilled card (or an editable filled one) opens the matching
    * compendium picker — the caller decides via `onClick`.
+   *
+   * r20-X4: an ABC card can carry a strip of LOCKED chips below it — the
+   * auto-conceded features from the doc's `system.items` map (Unusual Anatomy,
+   * Sharp Teeth, Fascinating Performance…) plus informative ancestry scalars
+   * (Size, Vision). Rendered as siblings BELOW the card button (never nested,
+   * to keep valid button markup). A chip with an `onClick` is clickable
+   * (opens the read-only details dialog); informative chips are static.
    */
+
+  import PlanAutoChip from "./PlanAutoChip.svelte";
+
+  /** A locked chip shown under the card (already bilingual-split by the caller). */
+  export interface AbcChipDisplay {
+    key: string;
+    name: string;
+    subName?: string | undefined;
+    onClick?: (() => void) | undefined;
+  }
 
   interface Props {
     typeLabel: string;
@@ -19,32 +36,50 @@
     filled: boolean;
     editable: boolean;
     onClick: () => void;
+    /** Locked auto-feature / scalar chips shown under the card (r20-X4). */
+    chips?: AbcChipDisplay[] | undefined;
   }
 
-  let { typeLabel, name, subName, subLine, filled, editable, onClick }: Props = $props();
+  let { typeLabel, name, subName, subLine, filled, editable, onClick, chips }: Props = $props();
 </script>
 
-<button
-  type="button"
-  class="abc-card"
-  class:abc-card--clickable={editable}
-  disabled={!editable}
-  onclick={onClick}
->
-  <span class="abc-card__badge" class:abc-card__badge--done={filled} aria-hidden="true">
-    {#if filled}&#10003;{/if}
-  </span>
-  <span class="abc-card__body">
-    <span class="abc-card__label">{typeLabel}</span>
-    <span class="abc-card__name">
-      {name ?? "—"}
-      {#if subName}<span class="abc-card__name-en">{subName}</span>{/if}
+<div class="abc-card-wrap">
+  <button
+    type="button"
+    class="abc-card"
+    class:abc-card--clickable={editable}
+    class:abc-card--has-chips={chips && chips.length > 0}
+    disabled={!editable}
+    onclick={onClick}
+  >
+    <span class="abc-card__badge" class:abc-card__badge--done={filled} aria-hidden="true">
+      {#if filled}&#10003;{/if}
     </span>
-    {#if subLine}<span class="abc-card__subline">{subLine}</span>{/if}
-  </span>
-</button>
+    <span class="abc-card__body">
+      <span class="abc-card__label">{typeLabel}</span>
+      <span class="abc-card__name">
+        {name ?? "—"}
+        {#if subName}<span class="abc-card__name-en">{subName}</span>{/if}
+      </span>
+      {#if subLine}<span class="abc-card__subline">{subLine}</span>{/if}
+    </span>
+  </button>
+
+  {#if chips && chips.length > 0}
+    <div class="abc-card__chips">
+      {#each chips as chip (chip.key)}
+        <PlanAutoChip name={chip.name} subName={chip.subName} onClick={chip.onClick} />
+      {/each}
+    </div>
+  {/if}
+</div>
 
 <style>
+  .abc-card-wrap {
+    display: flex;
+    flex-direction: column;
+  }
+
   .abc-card {
     background: var(--fusion-surface-alt);
     border: 1px solid var(--fusion-border);
@@ -57,6 +92,26 @@
     text-align: left;
     font-family: var(--fusion-font);
     cursor: default;
+  }
+
+  /* When chips hang below, square off the card's bottom corners so the strip
+     reads as one block with the card. */
+  .abc-card--has-chips {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom: none;
+  }
+
+  .abc-card__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 10px;
+    background: var(--fusion-surface);
+    border: 1px solid var(--fusion-border);
+    border-top: 1px dashed var(--fusion-border);
+    border-bottom-left-radius: var(--fusion-radius);
+    border-bottom-right-radius: var(--fusion-radius);
   }
 
   .abc-card--clickable {

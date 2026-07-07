@@ -131,6 +131,39 @@ export function parseMechanicsGrants(mechanics: unknown): ParsedGrant[] {
 }
 
 /**
+ * Extract every grant declared by an ABC (ancestry/heritage/background) or class
+ * doc's `system.items` MAP (r20-X4). Foundry-shaped ABC docs carry their
+ * automatically-conceded features/feats as a map keyed by a short id:
+ *
+ *   system.items = { "31xm9": { uuid, name, level, img } , ... }
+ *
+ * — e.g. Ratfolk → Sharp Teeth, Fleshwarp → Unusual Anatomy, Fireworks
+ * Performer → Fascinating Performance. This is the SAME clean-room map the r18
+ * pack fix preserved (uuid/name/level). Each entry's `uuid` is a compendium
+ * reference parsed exactly like a `GrantItem` uuid; entries whose uuid is an
+ * in-memory placeholder / malformed are skipped (they can't be materialized).
+ *
+ * NOTE: some ABC-feature vendors (`ancestryfeatures`) have no clean-room Fusion
+ * pack yet, so `mapVendorToFusionPack` returns a pack that doesn't hold the
+ * doc → the grant simply doesn't materialize (the caller renders an INFORMATIVE
+ * chip from the map metadata instead). This parser never throws on that.
+ */
+export function parseSystemItemsGrants(system: unknown): ParsedGrant[] {
+  if (!system || typeof system !== "object") return [];
+  const items = (system as Record<string, unknown>)["items"];
+  if (!items || typeof items !== "object") return [];
+  const out: ParsedGrant[] = [];
+  for (const entry of Object.values(items as Record<string, unknown>)) {
+    if (!entry || typeof entry !== "object") continue;
+    const uuid = (entry as Record<string, unknown>)["uuid"];
+    if (typeof uuid !== "string") continue;
+    const parsed = parseGrantUuid(uuid);
+    if (parsed) out.push(parsed);
+  }
+  return out;
+}
+
+/**
  * Parse a vendor grant uuid `Compendium.<system>.<vendor>.Item.<Name>` into
  * `{ vendor, name }`. The docId segment for these grants is the document NAME
  * (may contain spaces), so everything after ".Item." is the name. Returns null
@@ -369,7 +402,15 @@ export async function materializeGrants(
     // latter arrives on the served doc via the CompendiumService overlay.
     const system = doc["system"];
     const rules = system && typeof system === "object" ? (system as Record<string, unknown>)["rules"] : undefined;
-    const grants = [...parseGrantItems(rules), ...parseMechanicsGrants(doc["mechanics"])];
+    // Three grant sources, processed uniformly: `system.rules` GrantItem
+    // elements (Foundry-shaped), `mechanics.grants` of kind "fixed-item"
+    // (curated from prose), and the ABC/class `system.items` MAP of
+    // auto-conceded features (r20-X4 — ancestry/heritage/background/class).
+    const grants = [
+      ...parseGrantItems(rules),
+      ...parseMechanicsGrants(doc["mechanics"]),
+      ...parseSystemItemsGrants(system),
+    ];
     for (const grant of grants) {
       const packSlug = mapVendorToFusionPack(grant.vendor);
       if (!packSlug) continue; // unknown vendor → skip (caller may log)

@@ -51,7 +51,14 @@ import {
   planGhostEntryCleanup,
   healGranterRefs,
   actorSpellEntries,
+  classFeatureGrantRefs,
+  classGrantSlot,
+  backgroundLoreHealOps,
+  readBackgroundTrainings,
+  loreSlug,
+  detailsRequestForAbcChip,
   type PlanOpBuilderContext,
+  type AbcChip,
   type PlanSlotModel,
   type FeatDocLike,
   type PlanIndexEntryLike,
@@ -121,7 +128,7 @@ function magusClassDoc(): Record<string, unknown> {
         { level: 5, uuid: "LVADu3YwnAamOx70", name: "Weapon Expertise" },
       ],
     },
-    flags: { fusion: { conversion: "full" } },
+    flags: { fusion: { conversion: "full", sourceId: "HQBA9Yx2s8ycvz3C" } },
   };
 }
 
@@ -924,31 +931,44 @@ describe("applyBackground", () => {
     );
   });
 
-  it("creates the background item, resets backgroundFree (fresh apply), and appends its skill(s) as level-1 skillTraining build choices", () => {
+  it("creates the background item, resets backgroundFree (fresh apply), and trains its skill AND lore as level-1 skillTraining build choices (r20-X4)", () => {
     const ops = applyBackground(ctx(baseCharacterDoc()), fireworksPerformerBackgroundDoc());
     const createOp = ops[0]!;
     if (createOp.type !== "doc:create") throw new Error("expected doc:create");
     const wire = { documentType: createOp.documentType, data: [createOp.data], parent: createOp.parent };
     expect(DocCreatePayloadSchema.safeParse(wire).success).toBe(true);
 
-    // Fireworks Performer's boosts are ["free","free"] (no fixed boosts) —
-    // the abilities op still fires (to reset/seed backgroundFree), plus the
-    // skill op: 3 ops total.
-    expect(ops).toHaveLength(3);
+    // Fireworks Performer's boosts are ["free","free"] (no fixed boosts) — the
+    // abilities op still fires (reset/seed backgroundFree), plus the lore-entry
+    // op AND the build-choices op: 4 ops total (r20-X4 added the lore branch).
+    expect(ops).toHaveLength(4);
     const abilitiesOp = ops[1]!;
     if (abilitiesOp.type !== "doc:update") throw new Error("expected doc:update");
     expect(abilitiesOp.diff["system.build.abilities.backgroundBoosts"]).toEqual([]);
     expect(abilitiesOp.diff["system.build.abilities.backgroundFree"]).toEqual([]);
 
-    const skillOp = ops[2]!;
+    // The lore-entry op stamps the custom Lore skill (lore:true) so the
+    // derivation treats it as an INT-based Lore.
+    const loreEntryOp = ops[2]!;
+    if (loreEntryOp.type !== "doc:update") throw new Error("expected doc:update");
+    expect(loreEntryOp.diff["system.skills.fireworks-lore"]).toMatchObject({ rank: 0, lore: true, label: "Fireworks Lore" });
+
+    const skillOp = ops[3]!;
     if (skillOp.type !== "doc:update") throw new Error("expected doc:update");
     const choices = skillOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
-    expect(choices).toHaveLength(1);
+    expect(choices).toHaveLength(2);
     expect(choices[0]).toMatchObject({
       level: 1,
       slot: "backgroundSkill-0",
       type: "skillTraining",
       skill: "performance",
+      rank: 1,
+    });
+    expect(choices[1]).toMatchObject({
+      level: 1,
+      slot: "backgroundLore-0",
+      type: "skillTraining",
+      skill: "fireworks-lore",
       rank: 1,
     });
 
@@ -1053,12 +1073,219 @@ describe("applyBackground", () => {
       },
     });
     const ops = applyBackground(ctx(doc), fireworksPerformerBackgroundDoc());
-    const skillOp = ops[2]!;
+    // ops: [create, abilities, loreEntries, choices] — the choices op is last.
+    const skillOp = ops[ops.length - 1]!;
     if (skillOp.type !== "doc:update") throw new Error("expected doc:update");
     const choices = skillOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
-    expect(choices).toHaveLength(2);
+    // Pre-existing abilityBoosts-1 + the background's skill (performance) + lore.
+    expect(choices).toHaveLength(3);
     expect(choices[0]).toMatchObject({ slot: "abilityBoosts-1" });
-    expect(choices[1]).toMatchObject({ slot: "backgroundSkill-0" });
+    expect(choices[1]).toMatchObject({ slot: "backgroundSkill-0", skill: "performance" });
+    expect(choices[2]).toMatchObject({ slot: "backgroundLore-0", skill: "fireworks-lore" });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// r20-X4 — ABC auto-chips, lore training, class action grants
+// ---------------------------------------------------------------------------
+
+describe("readBackgroundTrainings + loreSlug (r20-X4)", () => {
+  it("unions trainedSkills.value + normalized skills, and extracts lores", () => {
+    const t = readBackgroundTrainings({
+      trainedSkills: { value: ["performance"], lore: ["Fireworks Lore"] },
+      skills: { performance: { value: 1 } },
+    });
+    expect(t.skills).toEqual(["performance"]); // deduped across both shapes
+    expect(t.lores).toEqual([{ slug: "fireworks-lore", label: "Fireworks Lore" }]);
+  });
+
+  it("reads the Aeronaut shape (Piloting Lore) even when normalized skills only has athletics", () => {
+    const t = readBackgroundTrainings({
+      trainedSkills: { value: ["athletics"], lore: ["Piloting Lore"] },
+      skills: { athletics: { value: 1 } },
+    });
+    expect(t.skills).toEqual(["athletics"]);
+    expect(t.lores).toEqual([{ slug: "piloting-lore", label: "Piloting Lore" }]);
+  });
+
+  it("loreSlug strips the trailing Lore word and appends -lore", () => {
+    expect(loreSlug("Piloting Lore")).toBe("piloting-lore");
+    expect(loreSlug("Fireworks Lore")).toBe("fireworks-lore");
+    expect(loreSlug("Underworld")).toBe("underworld-lore");
+  });
+});
+
+describe("applyBackground — Aeronaut lore (r20-X4)", () => {
+  function aeronautBackgroundDoc(): Record<string, unknown> {
+    return {
+      _id: "bg-aeronaut",
+      name: "Aeronaut",
+      type: "background",
+      flags: { fusion: { sourceId: "PutqlPJTPUBkMmSn" } },
+      system: {
+        boosts: ["free", "free"],
+        trainedSkills: { value: ["athletics"], lore: ["Piloting Lore"] },
+        skills: { athletics: { value: 1 } },
+        items: {},
+      },
+    };
+  }
+
+  it("trains athletics AND the Piloting Lore", () => {
+    const ops = applyBackground(ctx(baseCharacterDoc()), aeronautBackgroundDoc());
+    const loreEntryOp = ops.find(
+      (o) => o.type === "doc:update" && "system.skills.piloting-lore" in o.diff,
+    );
+    expect(loreEntryOp).toBeDefined();
+    const choicesOp = ops[ops.length - 1]!;
+    if (choicesOp.type !== "doc:update") throw new Error("expected update");
+    const choices = choicesOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
+    expect(choices.map((c) => c["skill"])).toEqual(["athletics", "piloting-lore"]);
+  });
+});
+
+describe("backgroundLoreHealOps (r20-X4)", () => {
+  function aeronautDoc(): Record<string, unknown> {
+    return {
+      name: "Aeronaut",
+      type: "background",
+      system: { trainedSkills: { value: ["athletics"], lore: ["Piloting Lore"] }, skills: { athletics: { value: 1 } } },
+    };
+  }
+
+  it("adds the missing lore entry + build choice for an already-applied background", () => {
+    // Simulates the real Finn: athletics trained, Piloting Lore absent.
+    const doc = baseCharacterDoc({
+      system: {
+        level: { value: 3 },
+        details: {},
+        skills: { athletics: { rank: 1 } },
+        build: { abilities: { ancestryBoosts: [], ancestryFlaws: [], ancestryFree: [], backgroundBoosts: [], backgroundFree: [], classBoost: [], levelledBoosts: {} }, choices: [{ level: 1, slot: "backgroundSkill-0", type: "skillTraining", skill: "athletics", rank: 1 }], bonusHp: 0, bonusHpPerLevel: 0, freeArchetype: false },
+      },
+    });
+    const ops = backgroundLoreHealOps(ctx(doc), aeronautDoc());
+    const loreEntryOp = ops.find((o) => o.type === "doc:update" && "system.skills.piloting-lore" in o.diff);
+    expect(loreEntryOp).toBeDefined();
+    const choicesOp = ops.find((o) => o.type === "doc:update" && "system.build.choices" in o.diff)!;
+    if (choicesOp.type !== "doc:update") throw new Error("expected update");
+    const choices = choicesOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
+    expect(choices.some((c) => c["skill"] === "piloting-lore")).toBe(true);
+  });
+
+  it("is idempotent — no ops when the lore is already trained", () => {
+    const doc = baseCharacterDoc({
+      system: {
+        level: { value: 3 },
+        details: {},
+        skills: { "piloting-lore": { rank: 1, lore: true } },
+        build: { abilities: { ancestryBoosts: [], ancestryFlaws: [], ancestryFree: [], backgroundBoosts: [], backgroundFree: [], classBoost: [], levelledBoosts: {} }, choices: [{ level: 1, slot: "backgroundLore-0", type: "skillTraining", skill: "piloting-lore", rank: 1 }], bonusHp: 0, bonusHpPerLevel: 0, freeArchetype: false },
+      },
+    });
+    expect(backgroundLoreHealOps(ctx(doc), aeronautDoc())).toEqual([]);
+  });
+});
+
+describe("ABC card chips (r20-X4)", () => {
+  it("renders informative Size + Vision + feature chips under the ancestry card", () => {
+    const doc = baseCharacterDoc({
+      items: [
+        {
+          ...ratfolkAncestryDoc(),
+          _id: "item-ancestry",
+          flags: { fusion: { sourceId: "P6PcVnCkh4XMdefw" } },
+          system: {
+            ...(ratfolkAncestryDoc()["system"] as Record<string, unknown>),
+            items: { jkllM: { level: 1, name: "Sharp Teeth", uuid: "Compendium.pf2e.ancestryfeatures.Item.Sharp Teeth" } },
+          },
+        },
+      ],
+    });
+    const plan = derivePlan(doc);
+    const ancestry = plan.abc.find((c) => c.kind === "ancestry")!;
+    const names = (ancestry.chips ?? []).map((c) => c.name);
+    expect(names).toContain("Sharp Teeth");
+    expect(names).toContain("Small");
+    expect(names).toContain("Low-Light Vision");
+    // Sharp Teeth is unresolved (ancestryfeatures has no pack) → informative.
+    const sharp = ancestry.chips!.find((c) => c.name === "Sharp Teeth")!;
+    expect(detailsRequestForAbcChip(sharp)).toBeNull();
+  });
+
+  it("renders a MATERIALIZED background free feat as a clickable chip", () => {
+    const doc = baseCharacterDoc({
+      items: [
+        { ...fireworksPerformerBackgroundDoc(), _id: "item-bg", type: "background", flags: { fusion: { sourceId: "2lk5NOcu1aUglUdK" } }, system: { ...(fireworksPerformerBackgroundDoc()["system"] as Record<string, unknown>), items: { wr9b9: { level: 1, name: "Fascinating Performance", uuid: "Compendium.pf2e.feats-srd.Item.Fascinating Performance" } } } },
+        { _id: "granted-fasc", name: "Fascinating Performance", type: "feat", flags: { fusion: { sourceId: "7LB00jkh6JaJr3vS", grantedBy: "2lk5NOcu1aUglUdK" } }, system: { rules: [] } },
+      ],
+    });
+    const plan = derivePlan(doc);
+    const bg = plan.abc.find((c) => c.kind === "background")!;
+    const fasc = bg.chips!.find((c: AbcChip) => c.name === "Fascinating Performance")!;
+    expect(fasc.detailsPackSlug).toBe("feats-core");
+    expect(detailsRequestForAbcChip(fasc)).toEqual({ packSlug: "feats-core", name: "Fascinating Performance" });
+    // No duplicate informative chip for the same feature.
+    expect(bg.chips!.filter((c) => c.name === "Fascinating Performance")).toHaveLength(1);
+  });
+});
+
+describe("classFeatureGrantRefs + classGrantedActionChips (r20-X4)", () => {
+  it("classGrantSlot encodes level + normalized feature name", () => {
+    expect(classGrantSlot(1, "Kinetic Aura")).toBe("classFeature:1:kinetic aura");
+  });
+
+  it("lists non-choice class features to re-scan, tagged by the class sourceId", () => {
+    const doc = tobiasLevel3Doc();
+    const refs = classFeatureGrantRefs(doc);
+    const names = refs.map((r) => r.name);
+    // Magus featuresByLevel non-choice: Arcane Spellcasting, Arcane Cascade, Spellstrike, Conflux Spells.
+    expect(names).toContain("Spellstrike");
+    expect(names).toContain("Arcane Cascade");
+    // Hybrid Study is a CHOICE feature → excluded.
+    expect(names).not.toContain("Hybrid Study");
+    // Every ref is tagged by the class item's sourceId.
+    for (const r of refs) {
+      expect(r.classSourceId).toBeTruthy();
+      expect(r.packSlug).toBe("class-features-core");
+    }
+  });
+
+  it("surfaces a materialized class-granted action with a NEW name as a locked chip at its feature's level", () => {
+    const base = tobiasLevel3Doc();
+    const classItem = (base["items"] as Array<Record<string, unknown>>).find((i) => i["type"] === "class")!;
+    const classSid = (((classItem["flags"] as Record<string, unknown>)["fusion"]) as Record<string, unknown>)["sourceId"] as string;
+    const doc = {
+      ...base,
+      items: [
+        ...(base["items"] as Array<Record<string, unknown>>),
+        // A name NOT present in Magus featuresByLevel (mirrors Kineticist's Base
+        // Kinesis) → a distinct chip routed to actions-core.
+        { _id: "granted-mystrike", name: "Mystic Strike", type: "action", flags: { fusion: { sourceId: "MS_ACT", grantedBy: classSid, grantedSlot: classGrantSlot(1, "Spellstrike") } }, system: {} },
+      ],
+    };
+    const plan = derivePlan(doc);
+    const lvl1 = plan.levels.find((l) => l.level === 1)!;
+    const chip = lvl1.autoFeatures.find((f) => f.name === "Mystic Strike" && f.detailsPackSlug === "actions-core");
+    expect(chip).toBeDefined();
+  });
+
+  it("DEDUPES a granted action whose name matches a class feature (Magus Spellstrike) — one chip, no duplicate render key", () => {
+    const base = tobiasLevel3Doc();
+    const classItem = (base["items"] as Array<Record<string, unknown>>).find((i) => i["type"] === "class")!;
+    const classSid = (((classItem["flags"] as Record<string, unknown>)["fusion"]) as Record<string, unknown>)["sourceId"] as string;
+    const doc = {
+      ...base,
+      items: [
+        ...(base["items"] as Array<Record<string, unknown>>),
+        { _id: "granted-spellstrike", name: "Spellstrike", type: "action", flags: { fusion: { sourceId: "SS_ACT", grantedBy: classSid, grantedSlot: classGrantSlot(1, "Spellstrike") } }, system: {} },
+      ],
+    };
+    const plan = derivePlan(doc);
+    const lvl1 = plan.levels.find((l) => l.level === 1)!;
+    const spellstrikeChips = lvl1.autoFeatures.filter((f) => f.name === "Spellstrike");
+    expect(spellstrikeChips).toHaveLength(1); // the feature chip; the action is deduped
+    // Every chip name at the level is unique (the LevelCard #each key is the name).
+    const names = lvl1.autoFeatures.map((f) => f.name);
+    expect(new Set(names).size).toBe(names.length);
   });
 });
 
