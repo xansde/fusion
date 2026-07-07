@@ -37,14 +37,19 @@ import {
   needsFallbackDescription,
   withFallbackDescription,
   parseImpulseSaveCue,
+  parseImpulseDamage,
   kineticistClassDc,
   buildImpulseUseAnnouncement,
+  buildImpulseCard,
   readElementalBlasts,
   buildElementalBlastAttackOp,
+  buildElementalBlastCard,
   ACTIONS_PAGE_SIZE,
   type ActionRow,
+  type BlastRowVM,
   type ActionCostFilter,
 } from "../actionsVM.js";
+import { AbilityCardSchema } from "@fusion/shared";
 import type { ActionGroup } from "../actionCategories.js";
 
 // ---------------------------------------------------------------------------
@@ -569,6 +574,177 @@ describe("buildElementalBlastAttackOp()", () => {
     expect(buildElementalBlastAttackOp({ attackFormula: "", flavor: "x", ...base })).toBeNull();
     expect(
       buildElementalBlastAttackOp({ attackFormula: "1d20+9", flavor: "x", worldId: "w1", speakerActorId: "" }),
+    ).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// parseImpulseDamage — @Damage → rollable formula (r20-X1)
+// ---------------------------------------------------------------------------
+
+describe("parseImpulseDamage()", () => {
+  it("parses a clean dice formula + type", () => {
+    expect(parseImpulseDamage("<p>@Damage[2d6[bludgeoning]]</p>")).toEqual({
+      formula: "2d6",
+      damageType: "bludgeoning",
+    });
+  });
+
+  it("keeps a parenthesized clean formula and skips category markers", () => {
+    expect(parseImpulseDamage("deals @Damage[(1d4+2)[persistent,fire]]")).toEqual({
+      formula: "(1d4+2)",
+      damageType: "fire",
+    });
+  });
+
+  it("drops trailing |options flags", () => {
+    expect(parseImpulseDamage("@Damage[3d6[cold]|options:area-damage]")).toEqual({
+      formula: "3d6",
+      damageType: "cold",
+    });
+  });
+
+  it("returns null for level-scaled formulas (chat:send cannot resolve @actor)", () => {
+    expect(parseImpulseDamage("@Damage[ceil(@actor.level/2)d6[fire]]")).toBeNull();
+    expect(
+      parseImpulseDamage("@Damage[ternary(gte(@actor.level,18),7,5)d6[acid]]"),
+    ).toBeNull();
+  });
+
+  it("returns null when there is no @Damage token", () => {
+    expect(parseImpulseDamage("<p>Push targets with @Check[reflex|basic]</p>")).toBeNull();
+    expect(parseImpulseDamage(null)).toBeNull();
+    expect(parseImpulseDamage("")).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildImpulseCard — impulse "Usar" as an interactive AbilityCard (r20-X1)
+// ---------------------------------------------------------------------------
+
+describe("buildImpulseCard()", () => {
+  const base = {
+    verb: "usa",
+    displayName: "Quatro Ventos",
+    glyphs: "◆◆",
+    traitLabels: ["ar", "impulso"],
+    traitSlugs: ["air", "impulse"],
+    worldId: "w1",
+    speakerActorId: "finn",
+  };
+
+  it("builds a save impulse card (class DC) with text content + flag", () => {
+    const op = buildImpulseCard({
+      ...base,
+      saveCue: { save: "reflex", basic: true },
+      classDc: 21,
+      saveLine: "CD 21, Reflexos básico",
+      damage: null,
+    });
+    expect(op).not.toBeNull();
+    expect(op!.content).toBe("usa Quatro Ventos ◆◆ (ar, impulso) — CD 21, Reflexos básico");
+    const card = op!.flags?.pf2e?.abilityCard;
+    expect(card).toBeDefined();
+    expect(AbilityCardSchema.safeParse(card).success).toBe(true);
+    expect(card!.kind).toBe("impulse");
+    expect(card!.dcValue).toBe(21);
+    expect(card!.saveType).toBe("reflex");
+    expect(card!.basicSave).toBe(true);
+    expect(card!.damageFormula).toBeUndefined();
+    expect(card!.traits).toEqual(["air", "impulse"]);
+  });
+
+  it("includes a clean damage formula when present", () => {
+    const op = buildImpulseCard({
+      ...base,
+      displayName: "Estilhaço",
+      saveCue: null,
+      classDc: 21,
+      saveLine: null,
+      damage: { formula: "2d6", damageType: "piercing" },
+    });
+    const card = op!.flags?.pf2e?.abilityCard;
+    expect(card!.damageFormula).toBe("2d6");
+    expect(card!.damageType).toBe("piercing");
+    expect(card!.saveType).toBeUndefined();
+  });
+
+  it("omits the DC when the class DC is unknown (save display-only)", () => {
+    const op = buildImpulseCard({
+      ...base,
+      saveCue: { save: "reflex", basic: false },
+      classDc: null,
+      saveLine: null,
+      damage: null,
+    });
+    const card = op!.flags?.pf2e?.abilityCard;
+    expect(card!.dcValue).toBeUndefined();
+    expect(card!.saveType).toBeUndefined();
+  });
+
+  it("returns null without a speaker actor", () => {
+    expect(
+      buildImpulseCard({ ...base, speakerActorId: "", saveCue: null, classDc: null, damage: null }),
+    ).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildElementalBlastCard — Rajada as attack + damage card (r20-X1)
+// ---------------------------------------------------------------------------
+
+describe("buildElementalBlastCard()", () => {
+  const blast: BlastRowVM = {
+    element: "air",
+    damageType: "electricity",
+    attackTotal: 9,
+    attackFormula: "1d20 + 9",
+    damageFormula: "1d6+4 electricity",
+    damageRoll: "1d6+4",
+    twoActionDamageBonus: 3,
+    isRanged: true,
+    range: 60,
+  };
+
+  it("builds an announcement (card) + a nested-able MAP-0 attack", () => {
+    const built = buildElementalBlastCard({
+      blast,
+      cardName: "Rajada Elemental (Ar)",
+      attackFlavor: "Rajada Elemental (Ar) (MAP 0)",
+      worldId: "w1",
+      speakerActorId: "finn",
+    });
+    expect(built).not.toBeNull();
+    // Attack op is a plain roll (whitespace stripped) — nested by the caller.
+    expect(built!.attack.content).toBe("/r 1d20+9 # Rajada Elemental (Ar) (MAP 0)");
+    expect(built!.attack.flags).toBeUndefined();
+    // Announcement carries the impulse card with rollable damage.
+    const card = built!.announcement.flags?.pf2e?.abilityCard;
+    expect(AbilityCardSchema.safeParse(card).success).toBe(true);
+    expect(card!.kind).toBe("impulse");
+    expect(card!.name).toBe("Rajada Elemental (Ar)");
+    expect(card!.damageFormula).toBe("1d6+4");
+    expect(card!.damageType).toBe("electricity");
+  });
+
+  it("returns null when the attack formula or speaker is missing", () => {
+    expect(
+      buildElementalBlastCard({
+        blast: { ...blast, attackFormula: "" },
+        cardName: "x",
+        attackFlavor: "x",
+        worldId: "w1",
+        speakerActorId: "finn",
+      }),
+    ).toBeNull();
+    expect(
+      buildElementalBlastCard({
+        blast,
+        cardName: "x",
+        attackFlavor: "x",
+        worldId: "w1",
+        speakerActorId: "",
+      }),
     ).toBeNull();
   });
 });
