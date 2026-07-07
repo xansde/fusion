@@ -17,6 +17,7 @@ import {
   resolveActionCost,
   resolveActionGroup,
   fusionCategoryOf,
+  hasImpulseTrait,
   slugFromName,
   rowFromIndexEntry,
   rowFromEmbeddedItem,
@@ -300,6 +301,70 @@ describe("rowFromEmbeddedItem()", () => {
   it("derives a slug from the name when system.slug is absent", () => {
     const item = { _id: "x", type: "action", name: "Raise a Shield", system: { actionType: "action", actions: 1 } };
     expect(rowFromEmbeddedItem(item)?.slug).toBe("raise-a-shield");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Impulse detection + surfacing (r19-W3) — Kineticist impulses are activities
+// that must always appear as character rows with an "Impulso" flag.
+// ---------------------------------------------------------------------------
+
+describe("hasImpulseTrait()", () => {
+  it("detects the impulse trait case-insensitively", () => {
+    expect(hasImpulseTrait(["air", "impulse", "kineticist", "primal"])).toBe(true);
+    expect(hasImpulseTrait(["IMPULSE"])).toBe(true);
+    expect(hasImpulseTrait(["air", "kineticist"])).toBe(false);
+    expect(hasImpulseTrait([])).toBe(false);
+  });
+});
+
+describe("impulse rows (rowFromEmbeddedItem / rowFromIndexEntry)", () => {
+  it("flags an embedded impulse feat (Four Winds) as isImpulse", () => {
+    const item = {
+      _id: "fw1",
+      type: "feat",
+      name: "Four Winds",
+      system: { actionType: "action", actions: 2, traits: { value: ["air", "impulse", "kineticist", "primal"] } },
+    };
+    const row = rowFromEmbeddedItem(item);
+    expect(row?.isImpulse).toBe(true);
+    expect(row?.fromCharacter).toBe(true);
+    expect(row?.cost.kind).toBe("2");
+    expect(row?.cost.glyphs).toBe("◆◆");
+  });
+
+  it("still surfaces an impulse feat even if actionType was not preserved (never vanishes)", () => {
+    // Belt-and-suspenders: a mis-imported impulse with no usable actionType must
+    // still show (the user's report: 'Como Quatro Ventos … não mostram na ficha').
+    const item = {
+      _id: "sw1",
+      type: "feat",
+      name: "Solar Shield",
+      system: { traits: { value: ["impulse", "kineticist", "fire"] } },
+    };
+    const row = rowFromEmbeddedItem(item);
+    expect(row).not.toBeNull();
+    expect(row?.isImpulse).toBe(true);
+    expect(row?.cost.kind).toBe("unknown"); // no glyphs, but the row is present
+  });
+
+  it("leaves a normal (non-impulse) action row isImpulse false", () => {
+    const item = { _id: "s1", type: "action", name: "Seek", system: { actionType: "action", actions: 1 } };
+    expect(rowFromEmbeddedItem(item)?.isImpulse).toBe(false);
+  });
+
+  it("still returns null for a non-impulse passive feat (Toughness unchanged)", () => {
+    const item = { _id: "t1", type: "feat", name: "Toughness", system: { actionType: "passive", traits: { value: ["general"] } } };
+    expect(rowFromEmbeddedItem(item)).toBeNull();
+  });
+
+  it("flags a pack index row carrying the impulse trait", () => {
+    const entry = packEntry("Elemental Blast", {
+      "system.actionType": "action",
+      "system.actions": 1,
+      "system.traits.value": ["impulse", "kineticist"],
+    });
+    expect(rowFromIndexEntry(entry).isImpulse).toBe(true);
   });
 });
 
@@ -782,6 +847,7 @@ function row(partial: Partial<ActionRow> & { name: string; slug: string; group: 
     traits: partial.traits ?? [],
     fusionCategory: partial.fusionCategory ?? null,
     fromCharacter: partial.fromCharacter ?? false,
+    isImpulse: partial.isImpulse ?? false,
   };
 }
 
@@ -1032,6 +1098,23 @@ describe("isActionRelevant()", () => {
       const r = packRow({ name: `Hidden ${fc}`, group: "other", fusionCategory: fc });
       expect(isActionRelevant(r, profile)).toBe(false);
     }
+  });
+
+  it("shows an impulse row to a Kineticist, but not to a non-Kineticist (r19-W3)", () => {
+    const kineticistProfile = deriveCharacterProfile([
+      { _id: "k", type: "class", name: "Kineticist", system: {} },
+    ]);
+    const impulseRow = packRow({
+      name: "Aerial Boomerang",
+      group: "class",
+      fusionCategory: "class",
+      traits: ["air", "impulse", "kineticist", "primal"],
+      isImpulse: true,
+    });
+    expect(isActionRelevant(impulseRow, kineticistProfile)).toBe(true);
+    // The Magus (magusRatfolkItems profile) has no kineticist class and the row
+    // carries no magus trait, so the impulse clause does not fire.
+    expect(isActionRelevant(impulseRow, profile)).toBe(false);
   });
 });
 

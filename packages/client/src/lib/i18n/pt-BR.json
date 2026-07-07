@@ -402,6 +402,7 @@
   "FUSION.Sheet.Actions.NoResults": "Nenhuma ação encontrada com esses filtros.",
   "FUSION.Sheet.Actions.NoResultsHint": "A busca aceita o nome em português ou inglês (ex.: Erguer Escudo / Raise a Shield).",
   "FUSION.Sheet.Actions.FromCharacter": "Do personagem",
+  "FUSION.Sheet.Actions.Impulse": "Impulso",
   "FUSION.Sheet.Actions.ShowAll": "Mostrar todas",
   "FUSION.Sheet.Actions.ShowAllHint": "Incluir ações de outras classes, ancestralidades e arquétipos que o personagem não possui.",
   "FUSION.Sheet.Actions.ShowMore": "Ver mais ({{count}})",

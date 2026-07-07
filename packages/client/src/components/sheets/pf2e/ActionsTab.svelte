@@ -436,6 +436,11 @@
               {/if}
             </div>
             <div class="actions-row__badges">
+              {#if rowItem.isImpulse}
+                <span class="actions-badge actions-badge--impulse">
+                  {t("FUSION.Sheet.Actions.Impulse")}
+                </span>
+              {/if}
               {#if rowItem.fromCharacter}
                 <span class="actions-badge actions-badge--character">
                   {t("FUSION.Sheet.Actions.FromCharacter")}
@@ -822,6 +827,12 @@
     color: var(--fusion-accent);
     background: var(--fusion-accent-dim);
     border: 1px solid var(--fusion-accent);
+  }
+
+  .actions-badge--impulse {
+    color: var(--fusion-warning);
+    background: var(--fusion-warning-dim);
+    border: 1px solid var(--fusion-warning);
   }
 
   .actions-showmore {

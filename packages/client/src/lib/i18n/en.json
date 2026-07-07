@@ -402,6 +402,7 @@
   "FUSION.Sheet.Actions.NoResults": "No actions found with these filters.",
   "FUSION.Sheet.Actions.NoResultsHint": "Search accepts the Portuguese or English name (e.g., Erguer Escudo / Raise a Shield).",
   "FUSION.Sheet.Actions.FromCharacter": "From character",
+  "FUSION.Sheet.Actions.Impulse": "Impulse",
   "FUSION.Sheet.Actions.ShowAll": "Show all",
   "FUSION.Sheet.Actions.ShowAllHint": "Include actions from other classes, ancestries, and archetypes the character does not have.",
   "FUSION.Sheet.Actions.ShowMore": "Show more ({{count}})",

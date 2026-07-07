@@ -134,6 +134,13 @@ export interface ActionRow {
   fusionCategory: string | null;
   /** True when this action comes from an embedded actor item ("do personagem"). */
   fromCharacter: boolean;
+  /**
+   * True when the row carries the Kineticist `impulse` trait (r19-W3). Impulse
+   * rows get a distinct "Impulso" badge in the Actions tab, are always surfaced
+   * for their owner even if the embedded item's actionType wasn't preserved, and
+   * expose a "Usar" button that announces the impulse in chat.
+   */
+  isImpulse: boolean;
 }
 
 export interface ActionFilterState {
@@ -257,6 +264,15 @@ function traitsOf(system: Record<string, unknown>): string[] {
   return value.filter((v): v is string => typeof v === "string");
 }
 
+/**
+ * True when a trait list carries the Kineticist `impulse` trait (r19-W3).
+ * Case-insensitive. Used to flag impulse rows for the "Impulso" badge and the
+ * always-surface / "Usar" affordances.
+ */
+export function hasImpulseTrait(traits: readonly string[]): boolean {
+  return traits.some((tr) => tr.toLowerCase() === "impulse");
+}
+
 /** Kebab-case slug derived from a name (accent-insensitive), for dedupe. */
 export function slugFromName(name: string): string {
   return normalizeSearchText(name)
@@ -298,6 +314,7 @@ export function rowFromIndexEntry(entry: PackIndexEntry): ActionRow {
     actionFolder: idx["system.actionFolder"] ?? idx["flags.fusion.actionFolder"],
   };
   const docLike: Record<string, unknown> = { name: entry.name, system, flags: {} };
+  const traits = traitsOf(system);
 
   return {
     key: entry.uuid,
@@ -309,9 +326,10 @@ export function rowFromIndexEntry(entry: PackIndexEntry): ActionRow {
     namePt: entryNamePt(entry),
     group: resolveActionGroup(docLike),
     cost: resolveActionCost(system),
-    traits: traitsOf(system),
+    traits,
     fusionCategory: fusionCategoryOf(docLike),
     fromCharacter: false,
+    isImpulse: hasImpulseTrait(traits),
   };
 }
 
@@ -357,8 +375,15 @@ export function rowFromEmbeddedItem(item: Record<string, unknown>): ActionRow | 
   if (!type || !ACTION_BEARING_TYPES.has(type)) return null;
 
   const system = isRecord(item["system"]) ? (item["system"] as Record<string, unknown>) : {};
+  const traits = traitsOf(system);
+  const impulse = hasImpulseTrait(traits);
   const actionType = str(system["actionType"]);
-  if (!actionType || !GRANTED_ACTION_TYPES.has(actionType)) return null;
+  // A Kineticist impulse is always an activity: surface it even when the
+  // embedded item's actionType wasn't preserved/recognized (r19-W3), so a
+  // Kineticist's impulses (Four Winds, Shard Strike, …) never silently vanish
+  // from the Actions tab. Other embedded items must still declare an
+  // action/reaction/free cost to appear (unchanged behavior).
+  if (!impulse && (!actionType || !GRANTED_ACTION_TYPES.has(actionType))) return null;
 
   const name = str(item["name"]) ?? "Action";
   const itemId = str(item["_id"]) ?? slugFromName(name);
@@ -376,9 +401,10 @@ export function rowFromEmbeddedItem(item: Record<string, unknown>): ActionRow | 
     namePt: null,
     group: resolveActionGroup(item),
     cost: resolveActionCost(system),
-    traits: traitsOf(system),
+    traits,
     fusionCategory: fusionCategoryOf(item),
     fromCharacter: true,
+    isImpulse: impulse,
   };
 }
 
@@ -719,6 +745,11 @@ function traitsMatchAny(row: ActionRow, slugs: Set<string>): boolean {
  */
 export function isActionRelevant(row: ActionRow, profile: CharacterActionProfile): boolean {
   if (row.fromCharacter) return true;
+
+  // Kineticist impulses are always relevant to a Kineticist (r19-W3). Embedded
+  // impulses already pass via `fromCharacter` above; this covers any pack-sourced
+  // impulse row so a Kineticist sees their impulses without "Mostrar todas".
+  if (row.isImpulse && profile.classSlugs.has("kineticist")) return true;
 
   const category = row.fusionCategory;
   if (category && UNIVERSAL_CATEGORIES.has(category)) return true;
