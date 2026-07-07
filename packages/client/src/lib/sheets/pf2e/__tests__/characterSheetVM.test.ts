@@ -787,6 +787,73 @@ describe("CharacterSheetVM — inventory", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Inventory mutations — add from compendium / equip toggle / remove (r18-N2c)
+// ---------------------------------------------------------------------------
+
+describe("CharacterSheetVM — inventory mutations", () => {
+  const elvenChainDoc = {
+    _id: "compendium-elven-chain",
+    name: "Elven Chain",
+    type: "armor",
+    system: { category: "light", acBonus: 2, dexCap: 3, bulk: 1 },
+  };
+
+  it("addInventoryItem builds a doc:create op, strips _id, keeps the data", () => {
+    const op = makeVM().addInventoryItem(elvenChainDoc);
+    expect(op).not.toBeNull();
+    expect(op!.type).toBe("doc:create");
+    expect(op!.documentType).toBe("Item");
+    expect(op!.data["_id"]).toBeUndefined();
+    expect(op!.data["name"]).toBe("Elven Chain");
+    expect(op!.data["type"]).toBe("armor");
+    expect(op!.parent).toEqual({ type: "Actor", id: "actor-001" });
+  });
+
+  it("addInventoryItem returns null when not editable", () => {
+    const vm = makeVM({}, { ownership: OwnershipLevel.LIMITED, isGm: false });
+    expect(vm.addInventoryItem(elvenChainDoc)).toBeNull();
+  });
+
+  it("toggleEquipItem flips an equipped item to unequipped", () => {
+    // item-longsword starts equipped ({ inSlot: true }).
+    const op = makeVM().toggleEquipItem("item-longsword");
+    expect(op).not.toBeNull();
+    expect(op!.type).toBe("doc:update");
+    expect(op!.documentType).toBe("Item");
+    expect(op!.id).toBe("item-longsword");
+    expect(op!.embedded).toEqual({ type: "Item", id: "actor-001" });
+    expect(op!.diff["system.equipped"]).toEqual({ value: false });
+  });
+
+  it("toggleEquipItem flips an unequipped item to equipped", () => {
+    const doc = makeCharacter();
+    const items = doc["items"] as Array<Record<string, unknown>>;
+    (items[0]!["system"] as Record<string, unknown>)["equipped"] = { value: false };
+    const vm = new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+    });
+    const op = vm.toggleEquipItem("item-longsword");
+    expect(op!.diff["system.equipped"]).toEqual({ value: true });
+  });
+
+  it("toggleEquipItem returns null for an unknown item id", () => {
+    expect(makeVM().toggleEquipItem("does-not-exist")).toBeNull();
+  });
+
+  it("removeInventoryItem builds a doc:delete op targeting the item", () => {
+    const op = makeVM().removeInventoryItem("item-longsword");
+    expect(op).not.toBeNull();
+    expect(op!.type).toBe("doc:delete");
+    expect(op!.id).toBe("item-longsword");
+    expect(op!.parent).toEqual({ type: "Actor", id: "actor-001" });
+  });
+});
+
+// ---------------------------------------------------------------------------
 // isEquippedFlag (contract 1)
 // ---------------------------------------------------------------------------
 

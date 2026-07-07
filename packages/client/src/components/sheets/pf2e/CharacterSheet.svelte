@@ -35,6 +35,7 @@
   import ProficiencyBadge from "./ProficiencyBadge.svelte";
   import PlanColumn from "./plan/PlanColumn.svelte";
   import PetsTab from "./pets/PetsTab.svelte";
+  import CompendiumPickerDialog from "./plan/CompendiumPickerDialog.svelte";
   import { detectFamiliarGrant, linkedFamiliars } from "$lib/sheets/pf2e/petsVM.js";
   import { t } from "$lib/i18n/i18n.js";
 
@@ -235,6 +236,26 @@
 
   function rollBlastDamage(element: string, twoAction: boolean): void {
     const op = vm.rollElementalBlastDamage(element, twoAction);
+    if (op) sendOpFn(op);
+  }
+
+  // Inventory — add from compendium (r18-N2c). One picker, selectable pack
+  // (equipment vs weapons); the chosen doc is added UNEQUIPPED.
+  let inventoryPickerPack = $state<string | null>(null);
+
+  function handleInventoryPick(itemDoc: Record<string, unknown>): void {
+    const op = vm.addInventoryItem(itemDoc);
+    if (op) sendOpFn(op);
+    inventoryPickerPack = null;
+  }
+
+  function toggleEquip(itemId: string): void {
+    const op = vm.toggleEquipItem(itemId);
+    if (op) sendOpFn(op);
+  }
+
+  function removeInventoryItem(itemId: string): void {
+    const op = vm.removeInventoryItem(itemId);
     if (op) sendOpFn(op);
   }
 
@@ -949,6 +970,16 @@
       aria-labelledby="tab-inventory"
       class="tab-panel tab-panel--inventory"
     >
+      {#if editMode}
+        <div class="inventory-actions">
+          <button type="button" class="inventory-add-btn" onclick={() => { inventoryPickerPack = "equipment-core"; }}>
+            {t("FUSION.Sheet.Inventory.AddEquipment")}
+          </button>
+          <button type="button" class="inventory-add-btn" onclick={() => { inventoryPickerPack = "weapons-core"; }}>
+            {t("FUSION.Sheet.Inventory.AddWeapon")}
+          </button>
+        </div>
+      {/if}
       {#if vm.inventory.length > 0}
         <ul class="inventory-list" aria-label="Inventory">
           {#each vm.inventory as item (item.id)}
@@ -959,8 +990,28 @@
               <span class="inventory-row__name">{item.name}</span>
               <span class="inventory-row__qty">×{item.quantity}</span>
               <span class="inventory-row__bulk">Bulk {String(item.bulk)}</span>
-              {#if item.equipped}
-                <span class="inventory-row__equipped" aria-label="Equipped">E</span>
+              <button
+                type="button"
+                class="inventory-row__equip"
+                class:inventory-row__equip--on={item.equipped}
+                disabled={!editMode}
+                onclick={() => toggleEquip(item.id)}
+                aria-pressed={item.equipped}
+                aria-label={item.equipped
+                  ? t("FUSION.Sheet.Inventory.Unequip", { name: item.name })
+                  : t("FUSION.Sheet.Inventory.Equip", { name: item.name })}
+              >
+                {item.equipped ? t("FUSION.Sheet.Inventory.Equipped") : t("FUSION.Sheet.Inventory.Unequipped")}
+              </button>
+              {#if editMode}
+                <button
+                  type="button"
+                  class="inventory-row__remove"
+                  onclick={() => removeInventoryItem(item.id)}
+                  aria-label={t("FUSION.Sheet.Inventory.Remove", { name: item.name })}
+                >
+                  &times;
+                </button>
               {/if}
             </li>
           {/each}
@@ -990,6 +1041,16 @@
 
   </div>
 </div>
+
+{#if inventoryPickerPack}
+  <CompendiumPickerDialog
+    packSlug={inventoryPickerPack}
+    title={t("FUSION.Sheet.Inventory.PickerTitle")}
+    showTraitFilter={true}
+    onClose={() => { inventoryPickerPack = null; }}
+    onSelect={handleInventoryPick}
+  />
+{/if}
 
 <style>
   /* ---- Shell: Plan column + sheet body side by side (DEC-R10-05) ---- */
@@ -1668,11 +1729,63 @@
     text-align: right;
   }
 
-  .inventory-row__equipped {
+  .inventory-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .inventory-add-btn {
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid var(--fusion-border, #444);
+    border-radius: var(--fusion-radius-sm, 4px);
+    background: transparent;
+    color: var(--fusion-text, #ddd);
+    cursor: pointer;
+  }
+
+  .inventory-add-btn:hover {
+    border-color: var(--fusion-accent, #7a7aff);
+    color: var(--fusion-accent, #7a7aff);
+  }
+
+  .inventory-row__equip {
     font-size: 10px;
     font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--fusion-border, #444);
+    background: transparent;
+    color: var(--fusion-color-text-muted, #9999cc);
+    cursor: pointer;
+  }
+
+  .inventory-row__equip--on {
+    border-color: var(--fusion-color-success, #44cc88);
     color: var(--fusion-color-success, #44cc88);
-    min-width: 12px;
+  }
+
+  .inventory-row__equip:disabled {
+    cursor: default;
+    opacity: 0.7;
+  }
+
+  .inventory-row__remove {
+    font-size: 14px;
+    line-height: 1;
+    padding: 0 6px;
+    border: 1px solid var(--fusion-border, #444);
+    border-radius: var(--fusion-radius-sm, 4px);
+    background: transparent;
+    color: var(--fusion-text-muted, #999);
+    cursor: pointer;
+  }
+
+  .inventory-row__remove:hover {
+    border-color: var(--fusion-danger, #cc4444);
+    color: var(--fusion-danger, #cc4444);
   }
 
   /* Empty state */

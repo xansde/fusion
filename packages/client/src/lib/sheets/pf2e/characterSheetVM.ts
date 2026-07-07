@@ -1155,6 +1155,63 @@ export class CharacterSheetVM {
       });
   }
 
+  /**
+   * Add a compendium equipment doc (weapon/armor/equipment/consumable/…) to
+   * this actor's inventory (r18-N2c — the Inventory tab had no add flow, r8
+   * "drag without drop handler"). `itemDoc` is the compendium document from
+   * the picker; its `_id` is stripped so the server assigns a fresh one.
+   * Items start UNEQUIPPED (the player toggles them on via toggleEquipItem —
+   * matches Foundry: dragging Elven Chain into inventory does not auto-don it).
+   */
+  addInventoryItem(itemDoc: Record<string, unknown>): DocCreateEmbeddedPayload | null {
+    if (!this.editable) return null;
+    const { _id: _drop, ...rest } = itemDoc;
+    return {
+      type: "doc:create",
+      documentType: "Item",
+      data: rest,
+      parent: { type: "Actor", id: this._actorId },
+    };
+  }
+
+  /** Remove an inventory Item from this actor. */
+  removeInventoryItem(itemId: string): DocDeleteEmbeddedPayload | null {
+    if (!this.editable) return null;
+    return {
+      type: "doc:delete",
+      documentType: "Item",
+      id: itemId,
+      parent: { type: "Actor", id: this._actorId },
+    };
+  }
+
+  /**
+   * Toggle an inventory item's equipped state (r18-N2c). Writes
+   * `system.equipped` as `{ value: boolean }` — the object shape
+   * `isEquippedFlag` reads (and the equipment collector on the server, which
+   * feeds AC/strikes: donning Elven Chain must flip the derived AC). The
+   * update targets the EMBEDDED item; `embedded.id` is the parent Actor's id.
+   * Unarmed weapons can't be unequipped and are simply left alone by the UI.
+   */
+  toggleEquipItem(itemId: string): DocUpdatePayload | null {
+    if (!this.editable) return null;
+    const items = this._doc["items"] as Array<Record<string, unknown>> | undefined;
+    const item = items?.find((it) => it["_id"] === itemId);
+    if (!item) return null;
+    const sys =
+      typeof item["system"] === "object" && item["system"] !== null
+        ? (item["system"] as Record<string, unknown>)
+        : {};
+    const currentlyEquipped = isEquippedFlag(sys);
+    return {
+      type: "doc:update",
+      documentType: "Item",
+      id: itemId,
+      diff: { "system.equipped": { value: !currentlyEquipped } },
+      embedded: { type: "Item", id: this._actorId },
+    };
+  }
+
   // -------------------------------------------------------------------------
   // Spells tab
   // -------------------------------------------------------------------------
