@@ -862,6 +862,35 @@ describe("applyAncestry", () => {
     if (updateOp.type !== "doc:update") throw new Error("expected doc:update");
     expect(updateOp.diff["system.build.abilities.ancestryFree"]).toEqual([]);
   });
+
+  // r19-W2b speed bug: applyAncestry wrote the boost ledger but never the base
+  // land speed, so a freshly-built character's sheet showed 0 ft (the speed
+  // derivation reads the actor's `system.attributes.speed.value`, but the
+  // ancestry item carries the number at `system.speed`).
+  it("stamps the ancestry's land speed onto system.attributes.speed.value (r19-W2b)", () => {
+    const ops = applyAncestry(ctx(baseCharacterDoc()), ratfolkAncestryDoc());
+    const updateOp = ops.find((o) => o.type === "doc:update");
+    if (!updateOp || updateOp.type !== "doc:update") throw new Error("expected doc:update");
+    expect(updateOp.diff["system.attributes.speed.value"]).toBe(25);
+    const wire = { documentType: updateOp.documentType, updates: [{ _id: updateOp.id, diff: updateOp.diff }] };
+    expect(DocUpdatePayloadSchema.safeParse(wire).success).toBe(true);
+  });
+
+  it("overwrites the speed when SWAPPING to a slower ancestry (setar ao trocar)", () => {
+    const dwarf = {
+      ...ratfolkAncestryDoc(),
+      _id: "anc-dwarf",
+      name: "Dwarf",
+      system: {
+        ...(ratfolkAncestryDoc()["system"] as Record<string, unknown>),
+        speed: 20,
+      },
+    };
+    const ops = applyAncestry(ctx(baseCharacterDoc()), dwarf);
+    const updateOp = ops.find((o) => o.type === "doc:update");
+    if (!updateOp || updateOp.type !== "doc:update") throw new Error("expected doc:update");
+    expect(updateOp.diff["system.attributes.speed.value"]).toBe(20);
+  });
 });
 
 // ---------------------------------------------------------------------------

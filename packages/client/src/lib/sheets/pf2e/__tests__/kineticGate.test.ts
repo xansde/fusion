@@ -26,12 +26,18 @@ import { describe, it, expect } from "vitest";
 import {
   derivePlan,
   chooseKineticGate,
+  chooseFeat,
+  removeChoice,
   readGateElements,
   classHasKineticGate,
   isFeatEligible,
+  impulseGateFilter,
+  matchesGrantedFeatFilter,
+  CLASS_CHOICE_SLOTS,
   KINETIC_ELEMENTS,
   KINETIC_ELEMENT_DAMAGE_TYPES,
   type PlanOpBuilderContext,
+  type PlanSlotModel,
   type ClassSystemLike,
   type FeatDocLike,
 } from "../planVM.js";
@@ -344,5 +350,215 @@ describe("damage-type table sync with the derivation", () => {
     for (const el of KINETIC_ELEMENTS) {
       expect(KINETIC_ELEMENT_DAMAGE_TYPES[el]).toEqual(DERIVATION_TABLE[el]);
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// r19-W2b — data-driven class choice slots + gate impulse sub-slots
+// ---------------------------------------------------------------------------
+
+describe("CLASS_CHOICE_SLOTS — declarative class-feature → slot map (r19-W2b)", () => {
+  it("maps the class-feature placeholder NAMES to their slot types (fed by pack featuresByLevel)", () => {
+    expect(CLASS_CHOICE_SLOTS["Hybrid Study"]).toBe("hybridStudy");
+    expect(CLASS_CHOICE_SLOTS["Kinetic Gate"]).toBe("kineticGate");
+  });
+});
+
+describe("derivePlan — hybridStudy is data-driven, not hardcoded (Finn bug, r19-W2b)", () => {
+  it("shows a hybridStudy slot for the Magus but NOT for the Kineticist", () => {
+    const magusL1 = derivePlan(actorDoc(magusClassDoc())).levels.find((l) => l.level === 1)!;
+    const kineL1 = derivePlan(actorDoc(kineticistClassDoc())).levels.find((l) => l.level === 1)!;
+    expect(magusL1.slots.some((s) => s.type === "hybridStudy")).toBe(true);
+    expect(kineL1.slots.some((s) => s.type === "hybridStudy")).toBe(false);
+  });
+
+  it("shows a kineticGate slot for the Kineticist but NOT for the Magus (mirror check)", () => {
+    const magusL1 = derivePlan(actorDoc(magusClassDoc())).levels.find((l) => l.level === 1)!;
+    const kineL1 = derivePlan(actorDoc(kineticistClassDoc())).levels.find((l) => l.level === 1)!;
+    expect(magusL1.slots.some((s) => s.type === "kineticGate")).toBe(false); // Magus has no kineticGate
+    expect(kineL1.slots.some((s) => s.type === "kineticGate")).toBe(true);
+  });
+});
+
+describe("impulseGateFilter (r19-W2b)", () => {
+  it("matches a 1st-level impulse feat carrying the element trait", () => {
+    expect(matchesGrantedFeatFilter(impulseFeatDoc("Aerial Boomerang", "air"), impulseGateFilter("air"))).toBe(true);
+    expect(matchesGrantedFeatFilter(impulseFeatDoc("Magnetic Pinions", "metal"), impulseGateFilter("metal"))).toBe(true);
+  });
+
+  it("rejects an impulse of a different element", () => {
+    expect(matchesGrantedFeatFilter(impulseFeatDoc("Blazing Wave", "fire"), impulseGateFilter("air"))).toBe(false);
+  });
+
+  it("rejects a non-impulse feat even when it carries the element trait", () => {
+    const nonImpulse: FeatDocLike = {
+      system: { category: "class", level: 1, traits: { value: ["air", "kineticist"] } },
+    };
+    expect(matchesGrantedFeatFilter(nonImpulse, impulseGateFilter("air"))).toBe(false);
+  });
+
+  it("rejects an impulse above 1st level (the gate grants 1st-level impulse feats)", () => {
+    const highLevel: FeatDocLike = {
+      system: { category: "class", level: 4, traits: { value: ["air", "impulse", "kineticist"] } },
+    };
+    expect(matchesGrantedFeatFilter(highLevel, impulseGateFilter("air"))).toBe(false);
+  });
+});
+
+describe("derivePlan — gate impulse sub-slots (r19-W2b)", () => {
+  /** A Kineticist actor whose dual gate (Air + Metal) is already saved (Finn's world state). */
+  function dualGateActor(extraItems: Array<Record<string, unknown>> = []): Record<string, unknown> {
+    const gateItem = {
+      ...kineticGateFeatureDoc(),
+      _id: "item-gate",
+      system: {
+        ...(kineticGateFeatureDoc()["system"] as object),
+        kineticGates: [
+          { element: "air", damageType: "electricity" },
+          { element: "metal", damageType: "piercing" },
+        ],
+      },
+      flags: { fusion: { build: { level: 1, slot: "kineticGate-1" } } },
+    };
+    return actorDoc(kineticistClassDoc(), [gateItem, ...extraItems]);
+  }
+
+  it("derives ONE impulse sub-slot per gate element from a SAVED dual gate (2 sub-slots, air+metal)", () => {
+    const l1 = derivePlan(dualGateActor()).levels.find((l) => l.level === 1)!;
+    const subs = l1.slots.filter((s) => s.parentSlotId === "kineticGate-1");
+    expect(subs.map((s) => s.slotId)).toEqual([
+      "kineticGate-1:impulse:air",
+      "kineticGate-1:impulse:metal",
+    ]);
+    expect(subs.every((s) => s.type === "grantedFeat")).toBe(true);
+    const air = subs.find((s) => s.slotId.endsWith(":air"))!;
+    expect(air.grantFilter?.predicates).toContainEqual({ kind: "trait", value: "impulse" });
+    expect(air.grantFilter?.predicates).toContainEqual({ kind: "trait", value: "air" });
+    expect(air.grantFilter?.labelKey).toBe("FUSION.Sheet.Plan.SlotLabel.impulseGate.air");
+  });
+
+  it("keeps the normal level-1 classFeat slot ALONGSIDE the 2 gate sub-slots (3 impulse picks total for dual)", () => {
+    const l1 = derivePlan(dualGateActor()).levels.find((l) => l.level === 1)!;
+    expect(l1.slots.some((s) => s.slotId === "classFeat-1" && s.type === "classFeat")).toBe(true);
+    expect(l1.slots.filter((s) => s.parentSlotId === "kineticGate-1")).toHaveLength(2);
+  });
+
+  it("single gate derives exactly ONE impulse sub-slot for its element", () => {
+    const gateItem = {
+      ...kineticGateFeatureDoc(),
+      _id: "item-gate",
+      system: {
+        ...(kineticGateFeatureDoc()["system"] as object),
+        kineticGates: [{ element: "fire", damageType: "fire" }],
+      },
+      flags: { fusion: { build: { level: 1, slot: "kineticGate-1" } } },
+    };
+    const l1 = derivePlan(actorDoc(kineticistClassDoc(), [gateItem])).levels.find((l) => l.level === 1)!;
+    const subs = l1.slots.filter((s) => s.parentSlotId === "kineticGate-1");
+    expect(subs.map((s) => s.slotId)).toEqual(["kineticGate-1:impulse:fire"]);
+  });
+
+  it("marks an impulse sub-slot FILLED when its impulse feat is embedded (Finn → Aerial Boomerang)", () => {
+    const impulseItem = {
+      _id: "item-aerial",
+      name: "Aerial Boomerang",
+      type: "feat",
+      system: { category: "class", level: 1, traits: { value: ["air", "impulse", "kineticist"] } },
+      flags: { fusion: { build: { level: 1, slot: "kineticGate-1:impulse:air" } } },
+    };
+    const l1 = derivePlan(dualGateActor([impulseItem])).levels.find((l) => l.level === 1)!;
+    const air = l1.slots.find((s) => s.slotId === "kineticGate-1:impulse:air")!;
+    expect(air.filled).toBe(true);
+    expect(air.choiceName).toBe("Aerial Boomerang");
+    // the metal sub-slot stays open for Magnetic Pinions
+    const metal = l1.slots.find((s) => s.slotId === "kineticGate-1:impulse:metal")!;
+    expect(metal.filled).toBe(false);
+  });
+
+  it("surfaces NO impulse sub-slots when the gate is unchosen", () => {
+    const l1 = derivePlan(actorDoc(kineticistClassDoc())).levels.find((l) => l.level === 1)!;
+    expect(l1.slots.some((s) => s.parentSlotId === "kineticGate-1")).toBe(false);
+  });
+
+  it("chooseFeat on an impulse sub-slot records the element-scoped build flag", () => {
+    const subSlot: PlanSlotModel = {
+      slotId: "kineticGate-1:impulse:metal",
+      type: "grantedFeat",
+      label: "Metal Impulse",
+      filled: false,
+    };
+    const magneticPinions = {
+      _id: "src-magnetic",
+      name: "Magnetic Pinions",
+      type: "feat",
+      system: { category: "class", level: 1, traits: { value: ["metal", "impulse", "kineticist"] } },
+    };
+    const ops = chooseFeat(ctx(dualGateActor()), subSlot, 1, magneticPinions);
+    const createOp = ops.find((o) => o.type === "doc:create")!;
+    if (createOp.type !== "doc:create") throw new Error("expected doc:create");
+    const flags = createOp.data["flags"] as { fusion?: { build?: unknown } };
+    expect(flags.fusion?.build).toEqual({ level: 1, slot: "kineticGate-1:impulse:metal" });
+    const createWire = { documentType: createOp.documentType, data: [createOp.data], parent: createOp.parent };
+    expect(DocCreatePayloadSchema.safeParse(createWire).success).toBe(true);
+  });
+});
+
+describe("removeChoice — removing the gate cascades to its impulse sub-slots (r19-W2b)", () => {
+  it("deletes the gate item + both impulse feat items + strips all their choices", () => {
+    const gateItem = {
+      ...kineticGateFeatureDoc(),
+      _id: "item-gate",
+      system: {
+        ...(kineticGateFeatureDoc()["system"] as object),
+        kineticGates: [{ element: "air" }, { element: "metal" }],
+      },
+      flags: { fusion: { build: { level: 1, slot: "kineticGate-1" } } },
+    };
+    const airImpulse = {
+      _id: "item-air-impulse",
+      name: "Aerial Boomerang",
+      type: "feat",
+      system: { category: "class", level: 1, traits: { value: ["air", "impulse"] } },
+      flags: { fusion: { build: { level: 1, slot: "kineticGate-1:impulse:air" } } },
+    };
+    const metalImpulse = {
+      _id: "item-metal-impulse",
+      name: "Magnetic Pinions",
+      type: "feat",
+      system: { category: "class", level: 1, traits: { value: ["metal", "impulse"] } },
+      flags: { fusion: { build: { level: 1, slot: "kineticGate-1:impulse:metal" } } },
+    };
+    const doc = {
+      _id: "actor-finn",
+      type: "character",
+      system: {
+        level: { value: 3 },
+        build: {
+          choices: [
+            { level: 1, slot: "kineticGate-1", type: "kineticGate" },
+            { level: 1, slot: "kineticGate-1:impulse:air", type: "grantedFeat" },
+            { level: 1, slot: "kineticGate-1:impulse:metal", type: "grantedFeat" },
+          ],
+        },
+      },
+      items: [{ ...kineticistClassDoc(), _id: "item-class" }, gateItem, airImpulse, metalImpulse],
+    };
+
+    const gateSlot = derivePlan(doc)
+      .levels.find((l) => l.level === 1)!
+      .slots.find((s) => s.slotId === "kineticGate-1")!;
+    const ops = removeChoice(ctx(doc), gateSlot);
+
+    const deletedIds = ops
+      .filter((o) => o.type === "doc:delete")
+      .map((o) => (o as { id: string }).id);
+    expect(deletedIds).toEqual(
+      expect.arrayContaining(["item-gate", "item-air-impulse", "item-metal-impulse"]),
+    );
+
+    const updateOp = ops.find((o) => o.type === "doc:update");
+    if (!updateOp || updateOp.type !== "doc:update") throw new Error("expected doc:update");
+    const remaining = updateOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
+    expect(remaining).toEqual([]);
   });
 });
