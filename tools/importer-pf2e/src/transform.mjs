@@ -1493,19 +1493,34 @@ const MAGUS_PROFICIENCY_UPGRADES = [
  * Impulse-slot features (no proficiency-rank subfeature).
  * Acceptance anchor (Finn, level 3, Pathbuilder): Will Expertise makes Will
  * EXPERT at L3 (will:2) — the single upgrade that lands by level 3.
+ *
+ * r18-N2c fix: each `classDC` upgrade below is mirrored by an `impulse`
+ * upgrade at the SAME level/rank. Rage of Elements p.14 ("Your impulse
+ * attack roll uses the same proficiency and attribute modifier as your
+ * kineticist class DC") means impulse and classDC are the SAME rank at
+ * every level, not just at level 1 — Kinetic Expertise (L7), Kinetic
+ * Mastery (L15) and Kinetic Legend (L19) upgrade both together. The
+ * elemental-blast derivation (elementalBlast.ts effectiveImpulseRank) reads
+ * `stat === "impulse"` specifically — it does NOT fall back to `classDC` —
+ * so without the mirrored entries the Elemental Blast attack stays frozen
+ * at Trained past level 7 even though the class DC (and the sheet's
+ * class-DC display) correctly upgrades.
  */
 const KINETICIST_PROFICIENCY_UPGRADES = [
   { level: 3, stat: 'will', rank: 2 },
   { level: 7, stat: 'fortitude', rank: 3 },
   { level: 7, stat: 'classDC', rank: 2 },
+  { level: 7, stat: 'impulse', rank: 2 },
   { level: 9, stat: 'perception', rank: 2 },
   { level: 11, stat: 'weapons.simple', rank: 2 },
   { level: 11, stat: 'weapons.unarmed', rank: 2 },
   { level: 13, stat: 'armor.light', rank: 2 },
   { level: 13, stat: 'armor.unarmored', rank: 2 },
   { level: 15, stat: 'classDC', rank: 3 },
+  { level: 15, stat: 'impulse', rank: 3 },
   { level: 15, stat: 'fortitude', rank: 4 },
   { level: 19, stat: 'classDC', rank: 4 },
+  { level: 19, stat: 'impulse', rank: 4 },
   { level: 19, stat: 'armor.light', rank: 3 },
   { level: 19, stat: 'armor.unarmored', rank: 3 },
 ];
@@ -1719,6 +1734,13 @@ function normalizeClassSystem(system, src, docName) {
     // the old `?? 0` default shipped every class untrained, and
     // stepCharApplyClass would overwrite the manual rank with it).
     classDC: src.classDC ?? system.classDC ?? 1,
+    // Impulse-attack proficiency rank at level 1 (Kineticist only; r18-N2c
+    // fix). Rage of Elements p.14: "Your impulse attack roll uses the same
+    // proficiency and attribute modifier as your kineticist class DC" — so
+    // impulse starts Trained (rank 1) at level 1, same as classDC above, and
+    // is NOT a vendor field either (same gap as classDC's own comment).
+    // Every other class defaults to 0 (no impulses) via the schema default.
+    ...(slug === 'kineticist' ? { impulse: src.impulse ?? system.impulse ?? 1 } : {}),
     featLevels,
     skillIncreaseLevels: src.skillIncreaseLevels?.value ?? [],
     trainedSkills,

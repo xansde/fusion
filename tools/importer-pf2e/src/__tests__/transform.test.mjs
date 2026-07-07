@@ -581,6 +581,45 @@ describe('MVP packs', () => {
     }
   });
 
+  it('classes-core Kineticist is Trained in impulse attacks at level 1 with upgrades mirroring classDC (r18-N2c)', () => {
+    // Rage of Elements p.14: "Your impulse attack roll uses the same
+    // proficiency and attribute modifier as your kineticist class DC" — so
+    // system.impulse must start at 1 (Trained) and every classDC upgrade
+    // (Kinetic Expertise L7, Kinetic Mastery L15, Kinetic Legend L19) must be
+    // mirrored by an equal-rank impulse upgrade. Without this, the
+    // elementalBlast derivation (which reads `stat: "impulse"` specifically,
+    // not "classDC") freezes the Elemental Blast attack at Trained forever.
+    const classes = loadJson(join(PACKS_DIR, 'classes-core', 'documents.json'));
+    const kineticist = classes.find(d => d.name === 'Kineticist');
+    assert.ok(kineticist, 'Kineticist class doc missing');
+    assert.equal(kineticist.system.impulse, 1, 'Kineticist should be Trained (rank 1) in impulse attacks at level 1');
+
+    // Non-kineticist classes get no `impulse` field at all in the raw pack
+    // doc (the Zod schema's `.default(0)` only applies when the class item
+    // is parsed at runtime, e.g. embedding it on a character) — so the
+    // absence of the field, not a literal 0, is the correct static-pack
+    // expectation here.
+    const magus = classes.find(d => d.name === 'Magus');
+    assert.equal(magus.system.impulse, undefined, 'Magus (no impulses) should not carry a raw impulse field in the pack');
+
+    const upgrades = kineticist.system.proficiencyUpgrades;
+    const classDcUpgrades = upgrades.filter(u => u.stat === 'classDC');
+    const impulseUpgrades = upgrades.filter(u => u.stat === 'impulse');
+    assert.deepEqual(
+      impulseUpgrades.map(({ level, rank }) => ({ level, rank })),
+      classDcUpgrades.map(({ level, rank }) => ({ level, rank })),
+      'every classDC proficiency upgrade must be mirrored by an impulse upgrade at the same level/rank',
+    );
+    assert.deepEqual(
+      impulseUpgrades.map(({ level, rank }) => ({ level, rank })),
+      [
+        { level: 7, rank: 2 },
+        { level: 15, rank: 3 },
+        { level: 19, rank: 4 },
+      ],
+    );
+  });
+
   it('feats-core contains every acceptance-criterion feat from the Tobias + Finn builds (DEC-R10-06, R18-N2a)', () => {
     const docs = loadJson(join(PACKS_DIR, 'feats-core', 'documents.json'));
     assert.equal(docs.length, 459);

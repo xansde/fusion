@@ -56,6 +56,7 @@
         "value": []
       },
       "classDC": 1,
+      "impulse": 1,
       "featLevels": {
         "ancestry": [
           1,
@@ -114,6 +115,11 @@
           "rank": 2
         },
         {
+          "level": 7,
+          "stat": "impulse",
+          "rank": 2
+        },
+        {
           "level": 9,
           "stat": "perception",
           "rank": 2
@@ -145,12 +151,22 @@
         },
         {
           "level": 15,
+          "stat": "impulse",
+          "rank": 3
+        },
+        {
+          "level": 15,
           "stat": "fortitude",
           "rank": 4
         },
         {
           "level": 19,
           "stat": "classDC",
+          "rank": 4
+        },
+        {
+          "level": 19,
+          "stat": "impulse",
           "rank": 4
         },
         {
