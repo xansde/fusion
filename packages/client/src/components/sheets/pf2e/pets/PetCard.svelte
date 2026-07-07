@@ -26,17 +26,20 @@
     type UpdateFamiliarOp,
   } from "$lib/sheets/pf2e/petsVM.js";
   import FamiliarAbilityPicker from "./FamiliarAbilityPicker.svelte";
+  import ActorPortrait from "../../../common/ActorPortrait.svelte";
 
   interface Props {
     familiar: LinkedFamiliar;
     editable: boolean;
     systemId: string;
+    /** Raw img path from the familiar Actor doc (LinkedFamiliar omits it). */
+    img?: string | null;
     onOpenSheet: () => void;
     onRemove: () => void;
     onOp: (op: UpdateFamiliarOp) => void;
   }
 
-  let { familiar, editable, systemId, onOpenSheet, onRemove, onOp }: Props = $props();
+  let { familiar, editable, systemId, img = null, onOpenSheet, onRemove, onOp }: Props = $props();
 
   let editingName = $state(false);
   let nameDraft = $state("");
@@ -107,7 +110,9 @@
 
 <div class="pet-card" class:pet-card--orphan={familiar.orphaned}>
   <header class="pet-card__header">
-    <div class="pet-card__title">
+    <div class="pet-card__ident">
+      <ActorPortrait {img} name={familiar.name} size={40} />
+      <div class="pet-card__title">
       {#if editingName && editable}
         <!-- svelte-ignore a11y_autofocus -->
         <input
@@ -130,6 +135,7 @@
         </button>
       {/if}
       <span class="pet-card__kind">{t(`FUSION.Sheet.Pets.Kind.${familiar.companionKind}`)}</span>
+      </div>
     </div>
     <div class="pet-card__actions">
       <button class="pet-icon-btn" onclick={onOpenSheet} title={t("FUSION.Sheet.Pets.OpenSheet")}>
@@ -279,6 +285,13 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 10px;
+  }
+
+  .pet-card__ident {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
   }
 
   .pet-card__title {

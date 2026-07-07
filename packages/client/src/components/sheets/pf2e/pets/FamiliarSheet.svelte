@@ -27,6 +27,7 @@
     type AbilityRow,
   } from "$lib/sheets/pf2e/petsVM.js";
   import { getUserLevel, type Ownership } from "@fusion/shared";
+  import ActorPortrait from "../../../common/ActorPortrait.svelte";
 
   interface Props {
     doc: Record<string, unknown>;
@@ -117,18 +118,31 @@
     const lvl = getUserLevel(own, userId);
     openActorSheet(masterId, masterDoc, { userId, ownership: isGm ? 3 : lvl, isGm, worldId });
   }
+
+  // Portrait from the familiar's raw Actor doc (r19-W4).
+  const famImg = $derived(typeof liveDoc["img"] === "string" ? (liveDoc["img"] as string) : null);
 </script>
 
 <div class="fam-sheet">
   <header class="fam-sheet__header">
-    <h2 class="fam-sheet__name">{familiar.name}</h2>
-    <div class="fam-sheet__belongs">
-      {t("FUSION.Sheet.Pets.BelongsTo")}
-      {#if masterDoc}
-        <button class="fam-sheet__master-link" onclick={openMaster}>{masterName}</button>
-      {:else}
-        <span class="fam-sheet__master">{masterName}</span>
-      {/if}
+    <div class="fam-sheet__ident">
+      <ActorPortrait
+        img={famImg}
+        name={familiar.name}
+        size={48}
+        label={t("FUSION.Sheet.Portrait.Alt", { name: familiar.name })}
+      />
+      <div class="fam-sheet__headings">
+        <h2 class="fam-sheet__name">{familiar.name}</h2>
+        <div class="fam-sheet__belongs">
+          {t("FUSION.Sheet.Pets.BelongsTo")}
+          {#if masterDoc}
+            <button class="fam-sheet__master-link" onclick={openMaster}>{masterName}</button>
+          {:else}
+            <span class="fam-sheet__master">{masterName}</span>
+          {/if}
+        </div>
+      </div>
     </div>
     {#if familiar.appearance}
       <p class="fam-sheet__appearance">{familiar.appearance}</p>
@@ -191,6 +205,20 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
+  }
+
+  .fam-sheet__ident {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .fam-sheet__headings {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
   }
 
   .fam-sheet__name {
