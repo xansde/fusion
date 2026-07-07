@@ -216,11 +216,14 @@ export class CompendiumService {
     if (!loaded) return null;
 
     if (!loaded._index) {
-      // Build the base (EN) index, then overlay pt-BR names when a translation
-      // overlay exists. The enrichment is applied ONCE here and cached in
-      // `_index`, so subsequent index/search calls reuse the enriched entries.
+      // Build the base (EN) index, then enrich: (1) the compact per-entry
+      // `index.actionCost` (r20-X2) derived from the full documents, then
+      // (2) overlay pt-BR names when a translation overlay exists. Enrichment
+      // is applied ONCE here and cached in `_index`, so subsequent
+      // index/search calls reuse the enriched entries.
       const base = this._buildIndex(loaded);
-      loaded._index = this._applyI18nToIndex(loaded, base);
+      const withCost = this._applyActionCostToIndex(loaded, base);
+      loaded._index = this._applyI18nToIndex(loaded, withCost);
     }
 
     return { packId, entries: loaded._index };
@@ -580,6 +583,69 @@ export class CompendiumService {
   }
 
   // ---------------------------------------------------------------------------
+  // Private helpers — action-cost index enrichment (r20-X2)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Overlay the compact `index.actionCost` field onto the base index entries.
+   * The value is a raw, locale-agnostic action-cost token derived from the FULL
+   * document (see {@link computeActionCost}) — spells → `system.time.value`
+   * ("2", "reaction", "1 minute", …); feats/actions/familiar abilities →
+   * `system.actionType` + `system.actions` ("2", "reaction", "free"). Passive /
+   * cost-less docs get NO `actionCost` key at all, so their serialized shape
+   * stays byte-identical to the pre-X2 index and the picker rows render no glyph.
+   *
+   * Why derive from documents.json rather than the pre-built index.json: the
+   * committed index.json (and the manifests' `indexFields`) do NOT carry the
+   * action-economy fields for spells/feats — spells-core indexes only level/
+   * traits/traditions, feats-core only name/level/category/traits, and
+   * familiar-abilities-core has `actionType` but not `actions`. Reading the full
+   * documents here is the single reliable source, and it mirrors the existing
+   * i18n staleness gate ({@link _buildEnSourceHashes}) which already reads
+   * documents.json. The client turns the token into ◆/◇/⟳/text via
+   * `formatActionCost` (locale stays on the client).
+   */
+  private _applyActionCostToIndex(loaded: LoadedPack, base: PackIndexEntry[]): PackIndexEntry[] {
+    const costs = this._buildActionCosts(loaded);
+    if (costs.size === 0) return base;
+
+    return base.map((entry) => {
+      const cost = costs.get(entry._id);
+      if (cost === undefined) return entry;
+      return { ...entry, index: { ...entry.index, actionCost: cost } };
+    });
+  }
+
+  /**
+   * Compute the compact action-cost token for every doc in a pack, keyed by
+   * `_id`. Docs with no meaningful cost (passive, or a type without an
+   * action-economy/time field) are simply absent from the map. Tolerant of a
+   * missing/corrupt documents.json — returns an empty Map and logs.
+   */
+  private _buildActionCosts(loaded: LoadedPack): Map<string, string> {
+    const costs = new Map<string, string>();
+    let docs: unknown[];
+    try {
+      docs = JSON.parse(readFileSync(loaded.docsPath, "utf8")) as unknown[];
+    } catch (err) {
+      this.logger?.warn(
+        { err, packId: loaded.manifest.id },
+        "Failed to read documents.json for action-cost index",
+      );
+      return costs;
+    }
+    for (const raw of docs) {
+      if (typeof raw !== "object" || raw === null) continue;
+      const doc = raw as Record<string, unknown>;
+      const id = doc["_id"];
+      if (typeof id !== "string") continue;
+      const cost = computeActionCost(doc);
+      if (cost !== undefined) costs.set(id, cost);
+    }
+    return costs;
+  }
+
+  // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------
 
@@ -711,6 +777,70 @@ export function computeI18nSourceHash(doc: Record<string, unknown>): string {
       : undefined;
   const descStr = typeof description === "string" ? description : "";
   return createHash("sha1").update(name + I18N_HASH_SEP + descStr).digest("hex");
+}
+
+/**
+ * Unwrap a possibly-`{ value }`-wrapped scalar. pf2e ships `system.actionType`
+ * as a bare string and `system.actions` as a bare number in the committed
+ * packs, but other systems (or future data) may nest them under `.value`;
+ * accept both shapes so the action-cost derivation is robust.
+ */
+function unwrapScalar(v: unknown): unknown {
+  if (v !== null && typeof v === "object" && !Array.isArray(v) && "value" in v) {
+    return (v as Record<string, unknown>)["value"];
+  }
+  return v;
+}
+
+/**
+ * Derive the compact action-cost token for a compendium document (r20-X2),
+ * consumed by the client's `formatActionCost` to render ◆/◇/⟳/short-text.
+ *
+ * Precedence:
+ *   1. Action-economy fields (feats, actions, familiar abilities):
+ *      `system.actionType` = "action" → the `system.actions` count as a string
+ *      ("1".."4"); "reaction" → "reaction"; "free" → "free"; "passive" (or an
+ *      "action" with no valid count) → undefined (no cost badge).
+ *   2. Spells: `system.time.value` (or the flattened `system.castTime`) verbatim
+ *      — e.g. "2", "reaction", "1 to 3", "1 minute". The client formats long
+ *      textual times as short text instead of glyphs.
+ *
+ * Returns undefined when no cost can be determined (the entry then carries no
+ * `index.actionCost` key at all).
+ */
+export function computeActionCost(doc: Record<string, unknown>): string | undefined {
+  const system = doc["system"];
+  if (system === null || typeof system !== "object" || Array.isArray(system)) return undefined;
+  const sys = system as Record<string, unknown>;
+
+  const actionType = unwrapScalar(sys["actionType"]);
+  if (typeof actionType === "string") {
+    switch (actionType) {
+      case "action": {
+        const actions = unwrapScalar(sys["actions"]);
+        if (typeof actions === "number" && Number.isInteger(actions) && actions >= 1 && actions <= 4) {
+          return String(actions);
+        }
+        return undefined; // action with no/invalid count → omit
+      }
+      case "reaction":
+        return "reaction";
+      case "free":
+        return "free";
+      default:
+        return undefined; // "passive" / unknown → no cost badge
+    }
+  }
+
+  const time = sys["time"];
+  if (time !== null && typeof time === "object" && !Array.isArray(time)) {
+    const value = (time as Record<string, unknown>)["value"];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  const castTime = sys["castTime"];
+  if (typeof castTime === "string" && castTime.trim()) return castTime.trim();
+
+  return undefined;
 }
 
 /**
