@@ -2,14 +2,19 @@
  * @fusion/system-pf2e — HP FlatModifier derivation (Toughness & friends).
  *
  * PF2e feats like Toughness raise the character's HP maximum via a
- * FlatModifier on the `hp` selector:
+ * FlatModifier on the `hp` selector. The real on-disk pack normalizes the
+ * value to `"@actor.details.level.value"` (feats-core/documents.json); the
+ * shorter `"@actor.level"` also appears in hand-authored fixtures:
  *   { key:"FlatModifier", selector:"hp", value:"@actor.level" }   (Toughness)
  * The generic EffectSource/Synthetics pipeline never visits embedded
  * feat/heritage/classFeature/ancestry items (only `type:"condition"` items
  * become EffectSources — derive-runner.ts materializeEffectSources), so these
  * `hp` FlatModifiers were silently dropped — exactly the same gap
  * `stepCharSpeed` closed for `land-speed` (r16-G1). r18-N2b reuses the SAME
- * generalized embedded-item scanner (embeddedModifiers.ts) here for `hp`.
+ * generalized embedded-item scanner (embeddedModifiers.ts) here for `hp`;
+ * r19-W0 fixed that scanner to recognize BOTH level-expression forms (it
+ * previously only matched the short form, so Toughness's bonus against the
+ * real pack shape silently resolved to 0).
  *
  * Ordering: this step runs in the BASE phase and folds the Toughness bonus into
  * `system.attributes.hp.max` — the SAME raw path `stepCharBuildHp` writes and

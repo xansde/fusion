@@ -18,12 +18,18 @@
  *   { kind:"flat-modifier", selector:"hp", value:"@actor.level" }
  * rule (HP max +level), which must reach `system.derived.hp.max`.
  *
- * Value expressions: the pack shape allows string expressions like
- * `@actor.level`. This scanner resolves the small, closed set the MVP feats
- * actually use (`@actor.level` → the character level passed by the caller);
- * any other non-numeric expression degrades to 0 (skipped) rather than being
- * mis-evaluated — a conservative posture matching the rest of this package's
- * malformed-input handling (r11).
+ * Value expressions: the pack shape allows string expressions for "character
+ * level". The REAL on-disk importer output normalizes Toughness's value to
+ * `"@actor.details.level.value"` (verified live in
+ * systems/pf2e/packs/feats-core/documents.json) while the raw vendor
+ * `raw.value` field (kept for provenance, unused by this scanner) and some
+ * hand-authored EffectRule fixtures instead use the shorter `"@actor.level"`.
+ * r19-W0 BUG: this scanner only recognized the short form, so Toughness's
+ * bonus silently resolved to 0 against the real pack shape — HP stayed at the
+ * base total (PV 46) instead of +level (PV 49). Both forms now resolve to
+ * `context.level`; any other non-numeric expression still degrades to 0
+ * (skipped) rather than being mis-evaluated — a conservative posture matching
+ * the rest of this package's malformed-input handling (r11).
  *
  * Clean-room: ORC/OGL mechanics only (the stacking table + selector semantics
  * are facts of the rule system, already implemented in engine-2e). No Foundry
@@ -83,17 +89,27 @@ function isFlatModifierRule(rule: RawRule): boolean {
 }
 
 /**
- * Resolve a rule's `value` into a number. Numeric values pass through;
- * `@actor.level` resolves to the character `level`; any other string
- * expression (an unsupported `@actor.*` path or arithmetic) degrades to 0 so a
- * feat we don't fully model can't inject a wrong bonus. `context.level` is the
- * only actor field the MVP feats reference.
+ * The known "character level" value expressions across pack shapes:
+ *   - `@actor.details.level.value` — the real importer-normalized shape
+ *     (systems/pf2e/packs/feats-core/documents.json Toughness rule, r19-W0).
+ *   - `@actor.level` — the shorter hand-authored EffectRule fixture shape
+ *     that predates the importer's normalization (still tolerated).
+ */
+const LEVEL_VALUE_EXPRESSIONS = new Set(["@actor.details.level.value", "@actor.level"]);
+
+/**
+ * Resolve a rule's `value` into a number. Numeric values pass through; either
+ * known level expression (see `LEVEL_VALUE_EXPRESSIONS`) resolves to the
+ * character `level`; any other string expression (an unsupported `@actor.*`
+ * path or arithmetic) degrades to 0 so a feat we don't fully model can't
+ * inject a wrong bonus. `context.level` is the only actor field the MVP feats
+ * reference.
  */
 function resolveRuleValue(raw: unknown, context: { level: number }): number {
   if (typeof raw === "number") return raw;
   if (typeof raw === "string") {
     const trimmed = raw.trim();
-    if (trimmed === "@actor.level") return context.level;
+    if (LEVEL_VALUE_EXPRESSIONS.has(trimmed)) return context.level;
     const asNumber = Number(trimmed);
     if (!Number.isNaN(asNumber)) return asNumber;
   }
@@ -166,7 +182,8 @@ function modifiersFromItem(
  * @param doc         The actor document.
  * @param selectors   The selector strings to match (e.g. `["hp"]`, or
  *                    `["land-speed", "speed"]`).
- * @param context     `{ level }` for resolving `@actor.level` value expressions.
+ * @param context     `{ level }` for resolving level value expressions (see
+ *                    `LEVEL_VALUE_EXPRESSIONS`).
  * @param fallbackLabel Display label when an item/rule carries no name/label.
  */
 export function collectEmbeddedModifiers(

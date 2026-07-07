@@ -31,7 +31,9 @@
  *     acBonus 2, dexCap 3.
  *   - vendor equipment/gate-attenuator.json: FlatModifier impulse-attack-roll
  *     +1 (item).
- *   - vendor feats/general/level-1/toughness.json: FlatModifier hp @actor.level.
+ *   - vendor feats-core/documents.json Toughness: FlatModifier hp
+ *     @actor.details.level.value (r19-W0: the REAL normalized shape, replacing
+ *     the shorter @actor.level the fixture previously hardcoded).
  *   - AoN Elements: air 1d6 electricity/slashing 60 ft (ID=1); metal 1d8
  *     piercing/slashing 30 ft (ID=5).
  *
@@ -142,7 +144,11 @@ function gateAttenuator(): Record<string, unknown> {
   };
 }
 
-/** Toughness feat: HP max += level (vendor toughness.json FlatModifier). */
+/**
+ * Toughness feat: HP max += level (REAL vendor pack shape, verified live in
+ * systems/pf2e/packs/feats-core/documents.json — the importer normalizes the
+ * value to `@actor.details.level.value`, NOT the shorter `@actor.level`).
+ */
 function toughnessFeat(): Record<string, unknown> {
   return {
     _id: "feat-toughness",
@@ -151,7 +157,15 @@ function toughnessFeat(): Record<string, unknown> {
     system: {
       category: "general",
       level: 1,
-      rules: [{ key: "FlatModifier", selector: "hp", value: "@actor.level" }],
+      rules: [
+        {
+          kind: "flat-modifier",
+          selector: "hp",
+          value: "@actor.details.level.value",
+          mode: "add",
+          type: "untyped",
+        },
+      ],
       traits: { rarity: "common", value: ["general"] },
     },
   };
