@@ -15,6 +15,8 @@
   import { NpcSheetVM } from "$lib/sheets/pf2e/npcSheetVM.js";
   import type { DocUpdatePayload, RollCheckPayload } from "$lib/sheets/pf2e/npcSheetVM.js";
   import { worldMirror } from "$lib/docs/worldSync.js";
+  import { t } from "$lib/i18n/i18n.js";
+  import ActorPortrait from "../../common/ActorPortrait.svelte";
 
   // ---------------------------------------------------------------------------
   // Props
@@ -121,15 +123,13 @@
 
   <!-- ---- Header ---- -->
   <header class="npc-header">
-    {#if vm.img}
-      <img
-        class="npc-portrait"
-        src={vm.img}
-        alt="Portrait of {vm.name}"
-        width="48"
-        height="48"
-      />
-    {/if}
+    <!-- Portrait (r19-W4): circular, with an initials fallback. -->
+    <ActorPortrait
+      img={vm.img}
+      name={vm.name}
+      size={48}
+      label={t("FUSION.Sheet.Portrait.Alt", { name: vm.name })}
+    />
 
     <div class="npc-header__info">
       <h2 class="npc-header__name">{vm.name}</h2>
@@ -318,15 +318,6 @@
     padding: 10px 12px;
     background: var(--fusion-color-surface-raised, #16213e);
     border-bottom: 1px solid var(--fusion-color-border, #3a3a5c);
-    flex-shrink: 0;
-  }
-
-  .npc-portrait {
-    width: 48px;
-    height: 48px;
-    object-fit: cover;
-    border-radius: var(--fusion-radius-sm, 4px);
-    border: 1px solid var(--fusion-color-border, #3a3a5c);
     flex-shrink: 0;
   }
 
