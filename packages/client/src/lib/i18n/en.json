@@ -94,6 +94,9 @@
   "FUSION.Sheet.Pets.Kind.animalCompanion": "Animal companion",
   "FUSION.Sheet.Pets.Kind.mount": "Mount",
   "FUSION.Sheet.Header.Level": "Level {{level}}",
+  "FUSION.Sheet.Portrait.Change": "Change portrait",
+  "FUSION.Sheet.Portrait.Remove": "Remove portrait",
+  "FUSION.Sheet.Portrait.Alt": "Portrait of {{name}}",
 
   "FUSION.Sheet.Labels.HP": "HP",
   "FUSION.Sheet.Labels.AC": "AC",

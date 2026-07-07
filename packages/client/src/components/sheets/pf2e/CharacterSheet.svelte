@@ -36,7 +36,11 @@
   import PlanColumn from "./plan/PlanColumn.svelte";
   import PetsTab from "./pets/PetsTab.svelte";
   import CompendiumPickerDialog from "./plan/CompendiumPickerDialog.svelte";
+  import FilePicker from "../../assets/FilePicker.svelte";
+  import ActorPortrait from "../../common/ActorPortrait.svelte";
   import { detectFamiliarGrant, linkedFamiliars } from "$lib/sheets/pf2e/petsVM.js";
+  import { isPortraitPlaceholder } from "$lib/common/portrait.js";
+  import { fusionApi } from "$lib/api.js";
   import { t } from "$lib/i18n/i18n.js";
 
   // ---------------------------------------------------------------------------
@@ -265,6 +269,25 @@
   }
 
   // ---------------------------------------------------------------------------
+  // Portrait (r19-W4) — owner/GM can swap the actor's img via the shared asset
+  // FilePicker/upload or remove it (back to the initials fallback). Persisted
+  // as `doc.img` through the standard debounced doc:update (vm.fieldUpdate,
+  // normalized to the wire's { updates:[{ _id, diff }] } by sendOp). Gated by
+  // vm.editable (ownership), independent of the Play/Edit toggle.
+  // ---------------------------------------------------------------------------
+
+  let showPortraitPicker = $state(false);
+
+  function handlePortraitSelect(path: string): void {
+    scheduleUpdate(vm.fieldUpdate("img", path));
+    showPortraitPicker = false;
+  }
+
+  function removePortrait(): void {
+    scheduleUpdate(vm.fieldUpdate("img", ""));
+  }
+
+  // ---------------------------------------------------------------------------
   // Rest (header "Descansar" button — Pathbuilder "Rest" reference).
   // Recovers every expended spell slot, refills Focus Points, and heals HP
   // (CON mod × level, min 1 × level — r16). Emits a chat summary card.
@@ -420,15 +443,39 @@
         {t("FUSION.Sheet.Plan.Show")}
       </button>
     {/if}
-    {#if vm.img}
-      <img
-        class="sheet-portrait"
-        src={vm.img}
-        alt="Portrait of {vm.name}"
-        width="64"
-        height="64"
-      />
-    {/if}
+    <!-- Portrait (r19-W4): circular, with an initials fallback. Owner/GM can
+         click to swap via the FilePicker, or remove (back to fallback). -->
+    <div class="sheet-portrait-wrap">
+      {#if vm.editable}
+        <button
+          type="button"
+          class="sheet-portrait-edit"
+          style="width:56px;height:56px;"
+          onclick={() => { showPortraitPicker = true; }}
+          title={t("FUSION.Sheet.Portrait.Change")}
+          aria-label={t("FUSION.Sheet.Portrait.Change")}
+        >
+          <ActorPortrait img={vm.img} name={vm.name} size={56} />
+          <span class="sheet-portrait-edit__overlay" aria-hidden="true">✎</span>
+        </button>
+        {#if !isPortraitPlaceholder(vm.img)}
+          <button
+            type="button"
+            class="sheet-portrait-remove"
+            onclick={removePortrait}
+            title={t("FUSION.Sheet.Portrait.Remove")}
+            aria-label={t("FUSION.Sheet.Portrait.Remove")}
+          >×</button>
+        {/if}
+      {:else}
+        <ActorPortrait
+          img={vm.img}
+          name={vm.name}
+          size={56}
+          label={t("FUSION.Sheet.Portrait.Alt", { name: vm.name })}
+        />
+      {/if}
+    </div>
 
     <div class="sheet-header__info">
       <h2 class="sheet-header__name">{vm.name}</h2>
@@ -1052,6 +1099,14 @@
   />
 {/if}
 
+{#if showPortraitPicker}
+  <FilePicker
+    token={fusionApi.getToken() ?? ""}
+    onSelect={handlePortraitSelect}
+    onClose={() => { showPortraitPicker = false; }}
+  />
+{/if}
+
 <style>
   /* ---- Shell: Plan column + sheet body side by side (DEC-R10-05) ---- */
   .pf2e-sheet-shell {
@@ -1104,12 +1159,81 @@
     flex-shrink: 0;
   }
 
-  .sheet-portrait {
+  /* Portrait (r19-W4) — circular, with an owner/GM edit affordance. */
+  .sheet-portrait-wrap {
+    position: relative;
+    flex-shrink: 0;
     width: 56px;
     height: 56px;
-    object-fit: cover;
-    border-radius: var(--fusion-radius-sm, 4px);
+  }
+
+  .sheet-portrait-edit {
+    position: relative;
+    display: block;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    line-height: 0;
+  }
+
+  .sheet-portrait-edit__overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    font-size: 16px;
+    opacity: 0;
+    transition: opacity 0.15s;
+    pointer-events: none;
+  }
+
+  .sheet-portrait-edit:hover .sheet-portrait-edit__overlay,
+  .sheet-portrait-edit:focus-visible .sheet-portrait-edit__overlay {
+    opacity: 1;
+  }
+
+  .sheet-portrait-edit:focus-visible {
+    outline: 2px solid var(--fusion-color-focus, #5b8dee);
+    outline-offset: 2px;
+  }
+
+  .sheet-portrait-remove {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 50%;
     border: 1px solid var(--fusion-color-border, #3a3a5c);
+    background: var(--fusion-color-surface, #1a1a2e);
+    color: var(--fusion-color-text-secondary, #b0b0cc);
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s, color 0.15s, border-color 0.15s;
+  }
+
+  .sheet-portrait-wrap:hover .sheet-portrait-remove,
+  .sheet-portrait-wrap:focus-within .sheet-portrait-remove {
+    opacity: 1;
+  }
+
+  .sheet-portrait-remove:hover,
+  .sheet-portrait-remove:focus-visible {
+    color: #ff8080;
+    border-color: #ff8080;
+    outline: none;
   }
 
   .sheet-header__info {

@@ -26,6 +26,7 @@
   import { sendOp, OpError, makeSendOpFn } from "../../lib/docs/sendOp.js";
   import { session, getSocket } from "../../lib/session.svelte.js";
   import { t } from "../../lib/i18n/i18n.js";
+  import ActorPortrait from "../common/ActorPortrait.svelte";
 
   /**
    * Default Actor subtype per game system (bug fix — REQ-UIF-002).
@@ -279,16 +280,8 @@
             ondblclick={() => openSheet(actor)}
             title={t("FUSION.Sidebar.Actors.DragHint")}
           >
-            <!-- Actor portrait -->
-            <div class="actor-row__img" aria-hidden="true">
-              {#if actor.img}
-                <img src={actor.img} alt="" class="actor-row__portrait" loading="lazy" />
-              {:else}
-                <span class="actor-row__portrait-placeholder">
-                  {(actor.name ?? "?").charAt(0).toUpperCase()}
-                </span>
-              {/if}
-            </div>
+            <!-- Actor portrait (r19-W4): circular, with an initials fallback. -->
+            <ActorPortrait img={actor.img} name={actor.name} size={32} />
 
             <!-- Name + type -->
             <div class="actor-row__info">
@@ -420,33 +413,6 @@
 
   .actor-row:active {
     cursor: grabbing;
-  }
-
-  .actor-row__img {
-    flex-shrink: 0;
-    height: 2rem;
-    width: 2rem;
-  }
-
-  .actor-row__portrait {
-    border-radius: var(--fusion-radius-sm);
-    height: 100%;
-    object-fit: cover;
-    width: 100%;
-  }
-
-  .actor-row__portrait-placeholder {
-    align-items: center;
-    background: var(--fusion-surface-alt);
-    border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
-    color: var(--fusion-text-muted);
-    display: flex;
-    font-size: 0.9rem;
-    font-weight: 600;
-    height: 100%;
-    justify-content: center;
-    width: 100%;
   }
 
   .actor-row__info {

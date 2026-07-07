@@ -149,6 +149,14 @@
     if (!doc) return;
     openActorSheet(fam.id, doc, { userId, ownership, isGm, worldId });
   }
+
+  // The familiar's portrait lives on its raw Actor doc; LinkedFamiliar (the
+  // derived view PetCard receives) omits img, so read it here for the card.
+  function familiarImg(id: string): string | null {
+    const doc = allActors.find((a) => (a as { _id?: unknown })._id === id);
+    const raw = doc?.["img"];
+    return typeof raw === "string" ? raw : null;
+  }
 </script>
 
 <div class="pets-tab">
@@ -163,6 +171,7 @@
             familiar={fam}
             {editable}
             {systemId}
+            img={familiarImg(fam.id)}
             onOpenSheet={() => openFamiliarSheet(fam)}
             onRemove={() => void removeFamiliar(fam)}
             onOp={(op) => void emitOp(op)}
