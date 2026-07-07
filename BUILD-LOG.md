@@ -247,6 +247,26 @@ Lição operacional da rodada: agentes paralelos na MESMA working tree arrastam 
 
 **Exe r17** (2026-07-06): 128,3 MB, sha256 `0b3bbcdb075fc3c463f5eed1032fc7a051b58072455d8480e14e7c4afcd6221b`, smoke PASSED (12 packs). **Verificação viva r17.1: 4/4 PASS, zero fixes** — 21 rolagens conferidas à mão cobrindo os 4 graus, nat 20 (sobe p/ Sucesso Crítico), nat 1, e as bordas margin 0/−1/−10; rolagens sem contexto seguem sem badge. **Exe final r17.1**: 128,3 MB, sha256 `f0f9743aa477e1cf0f55390d982582075a33e02d0cc4b7ff83ba502fc867f94c`, smoke PASSED. (Warning pré-existente registrado: dado 3D loga "Roll notation is missing sides" em algumas fórmulas compostas — degradação graciosa, follow-up.)
 
+## Rodada r18 — rolagens aninhadas (parcial) + Kineticist completo para o Finn (2026-07-06, noite)
+
+Dois trilhos: (1) prioridade nº 1 do usuário — rolagens aninhadas no card de conjuração; (2) segundo PC do grupo — **Finn D. Vortex Argiburgo (Fleshwarp/Sylph · Kineticist 3 Dual Gate Ar+Metal · Aeronaut · FA Rogue Dedication)**, dossiê Pathbuilder como aceitação.
+
+**N1 — rolagens aninhadas (3/4 fatias no ar; render agrupado PAUSADO)**: `b008a87` flag `parentMessageId` no ChatSendFlags; `ff6fee2` server valida/persiste (parent inexistente → flag dropada sem falhar envio); `b3687a8` filhos carregam o parent (castSpell encadeia id via ack; save/dano usam o id do card). A 4ª fatia (chat agrupando filhos dentro do card + seção Salvaguardas) sobreviveu a uma queda do processo (playbook: 3 fatias já estavam pushadas — entregas pequenas pagou de novo) e ficou PARCIAL no working tree; o worker de conclusão foi interrompido pelo usuário — aguardando decisão (retomar/estacionar). Sem efeito visível ao usuário até lá (a flag viaja, o chat ainda renderiza solto).
+
+**N2 — Kineticist/Finn (COMPLETO, 12 commits)**:
+| Commits | Entrega |
+| ------- | ------- |
+| `35d7d3d`+`fd7f0a4` | **N2-A packs**: Kineticist (progressão 1–20 transcrita do vendor; Will Expertise@3), 21 features, 14 impulsos Ar/Metal ≤4, Fleshwarp/Sylph/Aeronaut, +66 traduções pt-BR (QA zero falhas), ids antigos byte-estáveis. Achados: "Cantrip Deck" é ITEM (não feat); menor poção = Lesser; Aeronaut concede Athletics + Piloting Lore |
+| `fbc0903`+`b8196b9` | **N2-B derivação**: fixture Finn crava PV 49/CA 20/Fort+11/Ref+10/Will+8/Perc+6/CD 19; **blast +9 pela regra oficial (o +8 do dossiê estava ERRADO — impulse attack = proficiência+CON do class DC, RoE p.14)**; scanner GENÉRICO de flat-modifiers de itens embutidos (`embeddedModifiers.ts` — Toughness +nível no HP via RE, generalização do padrão Fleet r16); `derived.elementalBlasts[]` data-driven por `system.kineticGates` |
+| `1e44d5a`+`4a51e43`+`e35468c` | **N2-D equipment-core** (13º pack, 18 docs ORC/OGL): Elven Chain, 2× Gate Attenuator (`+1 impulse-attack` RE), Boots of Bounding (`+5 land-speed` RE — a origem do deslocamento 30 do Finn), Cantrip Deck etc. + fixes do importer (armor `baseItem:null`, backpack não achatado) + parsers armor/equipment/consumable/container na validação |
+| `50b3e9a`+`e9e7ed7`+`7ccb93c`+`4e612fb` | **N2-C builder+ficha**: slot "Portão Cinético" no nível 1 (único/duplo → elementos → tipo de dano → grava `system.kineticGates`), slots de impulso filtram por trait ∩ elementos dos gates, Rajadas Elementais na aba Principal (MAP + dano, flavor pt-BR), **Inventário ganhou "Adicionar do compêndio" + equipar** (CA 13→15 ao vivo com a Cota Élfica). Verificação viva do pipeline completo |
+| `3d5af85`+`86d7796` | fix clean-room REAL: `system.items[*].img` de ancestry/heritage/background vazava paths de arte do vendor (normalizers com spread cru; sanitizado preservando uuid/name/level) + teste endurecido varrendo `system.items[*].img` em TODOS os packs; asserções do importer atualizadas para a união Magus+Kineticist (206/206; "Surprise Attack" é class feature nativa, não feat) |
+| `623f8f6` | fix: Kineticist popula `impulse: 1` + upgrades L7/15/19 espelhando classDC (a derivação lê `stat==="impulse"`) — blast +9 confirmado com o pack real |
+
+Suítes no fechamento do trilho N2: client 1.839 · pf2e 471 · importer 206 · svelte-check 0 erros. Lições: dossiês de personagem também erram (blast +8→+9 pela regra primária); `systems/pf2e/dist` fica stale — rebuildar antes de verificação viva de derivações; testes que pegam `docs[0]` quebram quando a curadoria cresce — localizar por nome.
+
+**Exe r18** (estado commitado, fluxo fusion-release): 128,7 MB, sha256 `16a3590a7f5f783e7040f12ed7e735004faf992415e6023e109e8f1915de8942`, smoke PASSED — **13 packs** (equipment-core incluso).
+
 ## Registro por batch
 
 ### M6-B5 — Auto-update headless — ✅ M6 HEADLESS COMPLETO (2026-07-03)
