@@ -278,8 +278,14 @@ describe("FeatSystemSchema", () => {
     expect(FeatSystemSchema.safeParse(withGrantItem).success).toBe(true);
   });
 
-  it("rejects feat level < 1", () => {
-    expect(FeatSystemSchema.safeParse({ ...powerAttack, level: 0 }).success).toBe(false);
+  it("accepts feat level 0 (ancestry features are auto-conceded, level 0 — r20-X5)", () => {
+    // Ancestry FEATURES (category "ancestryfeature", ancestry-features-core)
+    // carry level 0 in the vendor data; the schema floor is 0, not 1.
+    expect(FeatSystemSchema.safeParse({ ...powerAttack, level: 0 }).success).toBe(true);
+  });
+
+  it("rejects negative feat level", () => {
+    expect(FeatSystemSchema.safeParse({ ...powerAttack, level: -1 }).success).toBe(false);
   });
 
   it("rejects invalid actionType", () => {

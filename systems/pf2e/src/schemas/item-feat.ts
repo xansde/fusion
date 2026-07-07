@@ -14,8 +14,14 @@ import { EffectRuleSchema, PublicationSchema, TraitsBlockSchema } from "../schem
 export const FeatSystemSchema = z
   .object({
     systemVersion: z.string().default("0.1.0"),
-    /** Feat level (minimum level to take). */
-    level: z.number().int().min(1),
+    /**
+     * Feat level (minimum level to take). Selectable feats are level >= 1, but
+     * ANCESTRY FEATURES (category "ancestryfeature" — Sharp Teeth, Unusual
+     * Anatomy, Darkvision, …) are auto-conceded with no level requirement and
+     * carry level 0 in the vendor data (r20-X5, ancestry-features-core). Floor
+     * is therefore 0, not 1.
+     */
+    level: z.number().int().min(0),
     /** Category slug (e.g. "skill", "ancestry", "class", "general", "archetype"). */
     category: z.string().default("general"),
     /** Action type: "passive", "action", "reaction", "free". */

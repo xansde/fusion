@@ -1,31 +1,67 @@
 {
   "importerVersion": "0.1.0",
   "sourceVersion": "v14-dev",
-  "generatedAt": "2026-07-05T19:48:23.501Z",
+  "generatedAt": "2026-07-07T17:59:36.047Z",
   "packs": [
     {
-      "packId": "pf2e.spells",
-      "total": 1796,
-      "transformed": 1796,
+      "packId": "pf2e.familiar-abilities",
+      "total": 111,
+      "transformed": 111,
       "invalidExcluded": [],
       "ruleCoverage": {
-        "totalRules": 18,
+        "totalRules": 48,
         "byState": {
-          "supported": 8,
-          "partial": 2,
-          "unsupported": 8
+          "supported": 27,
+          "partial": 1,
+          "unsupported": 20
         },
         "byKey": {
-          "DamageAlteration": {
-            "total": 7,
-            "supported": 0,
-            "partial": 0,
-            "unsupported": 7
-          },
-          "DamageDice": {
+          "BaseSpeed": {
             "total": 7,
             "supported": 7,
             "partial": 0,
+            "unsupported": 0
+          },
+          "ActorTraits": {
+            "total": 12,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 12
+          },
+          "ChoiceSet": {
+            "total": 6,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 6
+          },
+          "Note": {
+            "total": 1,
+            "supported": 1,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "Sense": {
+            "total": 6,
+            "supported": 6,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "Resistance": {
+            "total": 7,
+            "supported": 7,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "TokenLight": {
+            "total": 2,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 2
+          },
+          "Immunity": {
+            "total": 1,
+            "supported": 0,
+            "partial": 1,
             "unsupported": 0
           },
           "RollOption": {
@@ -34,30 +70,36 @@
             "partial": 0,
             "unsupported": 0
           },
-          "ItemAlteration": {
-            "total": 2,
-            "supported": 0,
-            "partial": 2,
+          "GrantItem": {
+            "total": 1,
+            "supported": 1,
+            "partial": 0,
             "unsupported": 0
           },
-          "EphemeralEffect": {
-            "total": 1,
-            "supported": 0,
+          "ActiveEffectLike": {
+            "total": 2,
+            "supported": 2,
             "partial": 0,
-            "unsupported": 1
+            "unsupported": 0
+          },
+          "FlatModifier": {
+            "total": 2,
+            "supported": 2,
+            "partial": 0,
+            "unsupported": 0
           }
         },
-        "coveragePct": "44.4"
+        "coveragePct": "56.3"
       },
-      "assetSubstitutions": 1796
+      "assetSubstitutions": 111
     }
   ],
   "aggregate": {
-    "totalRules": 18,
-    "supportedRules": 8,
-    "partialRules": 2,
-    "unsupportedRules": 8,
-    "coveragePct": "44.4"
+    "totalRules": 48,
+    "supportedRules": 27,
+    "partialRules": 1,
+    "unsupportedRules": 20,
+    "coveragePct": "56.3"
   },
   "failed": false
 }

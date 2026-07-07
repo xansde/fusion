@@ -168,6 +168,15 @@ describe("mapVendorToFusionPack", () => {
     expect(mapVendorToFusionPack("classfeatures")).toBe("class-features-core");
   });
 
+  it("maps ancestryfeatures to ancestry-features-core (r20-X5), not class-features-core", () => {
+    // Before r20-X5 this vendor pointed at class-features-core (which never
+    // holds ancestry features) so grants silently no-op'd. Both the vendor
+    // compendium id (ancestryfeatures) and the pack folder name
+    // (ancestry-features) resolve to the new clean-room pack.
+    expect(mapVendorToFusionPack("ancestryfeatures")).toBe("ancestry-features-core");
+    expect(mapVendorToFusionPack("ancestry-features")).toBe("ancestry-features-core");
+  });
+
   it("returns undefined for an unknown vendor", () => {
     expect(mapVendorToFusionPack("some-unknown-pack")).toBeUndefined();
   });
@@ -488,10 +497,32 @@ describe("materializeGrants — ABC system.items map (r20-X4)", () => {
     expect(fusion["grantedSlot"]).toBeUndefined();
   });
 
-  it("skips an ancestry feature with no clean-room pack (ancestryfeatures) without crashing", async () => {
-    // No pack holds "Sharp Teeth" → nothing materializes, no throw (informative
-    // chip is derived separately in the VM from the map metadata).
-    const mctx = ctxFor({ "class-features-core": [] });
+  function sharpTeethDoc(): Record<string, unknown> {
+    return {
+      _id: "af-sharp-teeth",
+      name: "Sharp Teeth",
+      type: "feat",
+      flags: { fusion: { sourceId: "SharpTeethSrc001" } },
+      system: { category: "ancestryfeature", rules: [], traits: { value: ["ratfolk"] } },
+    };
+  }
+
+  it("materializes an ancestry feature from ancestry-features-core, tagged by the ancestry (r20-X5)", async () => {
+    // Ratfolk → Sharp Teeth now resolves in ancestry-features-core (the vendor
+    // ancestryfeatures uuid maps there) → a real grant, not just an informative
+    // chip. This is the core r20-X5 fix.
+    const mctx = ctxFor({ "ancestry-features-core": [sharpTeethDoc()] });
+    const ops = await materializeGrants(ratfolkDoc(), "P6PcVnCkh4XMdefw", undefined, mctx);
+    expect(ops).toHaveLength(1);
+    const op = ops[0]!;
+    if (op.type !== "doc:create") throw new Error("expected create");
+    expect(op.data["name"]).toBe("Sharp Teeth");
+    const fusion = (op.data["flags"] as Record<string, unknown>)["fusion"] as Record<string, unknown>;
+    expect(fusion["grantedBy"]).toBe("P6PcVnCkh4XMdefw");
+  });
+
+  it("skips gracefully when ancestry-features-core lacks the referenced feature (no throw)", async () => {
+    const mctx = ctxFor({ "ancestry-features-core": [] });
     const ops = await materializeGrants(ratfolkDoc(), "P6PcVnCkh4XMdefw", undefined, mctx);
     expect(ops).toEqual([]);
   });

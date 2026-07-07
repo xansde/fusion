@@ -131,6 +131,13 @@
     "ancestries-core",
     "heritages-core",
     "backgrounds-core",
+    // r20-X5: materialized ancestry FEATURES (Sharp Teeth, Unusual Anatomy…)
+    // need their pt-BR chip labels too, else the chip renders raw EN. Placed
+    // BEFORE spells-core because the translator is first-wins and the SPELL
+    // "Unusual Anatomy" (spells-core, "Anatomia Inusitada") shares the feature's
+    // EN name — the feature's pt-BR ("Anatomia Incomum") must win here so the
+    // chip label matches the details dialog (which resolves in this pack).
+    "ancestry-features-core",
     "spells-core",
     // r15 A2 surfaced ACTION grants (e.g. Alchemist Dedication → Quick Alchemy)
     // as nested chips; their names must translate too, else the chip renders the
@@ -347,17 +354,30 @@
       }
     } catch { /* deferred to next open */ }
 
-    // (2) ABC feature grants (r20-X4) — the embedded ancestry/heritage/background
-    // items carry a `system.items` feature map + a stable sourceId, so run the
-    // materializer straight off the embedded doc. Resolvable features (feats)
-    // materialize; unresolved ones (no clean-room pack) skip → informative chip.
+    // (2) ABC feature grants (r20-X4/X5) — the embedded ancestry/heritage/
+    // background items carry a `system.items` feature map + a stable sourceId.
+    // We re-resolve each ABC from its CURRENT pack before materializing, because
+    // an actor built before a pack update has a STALE embedded copy: e.g. the
+    // real Finn's embedded Aeronaut predates r20-X5's Assurance grant (empty
+    // `system.items`), and every embedded ABC predated ancestry-features-core.
+    // Falling back to the embedded item keeps homebrew / unresolvable ABCs
+    // working. The granter sourceId stays the EMBEDDED one (grants are tagged/
+    // matched by it in abcChipsFor); the pack doc only supplies system.items.
+    // Resolvable features materialize; unresolved ones skip → informative chip.
+    const ABC_PACK_SLUG: Record<"ancestry" | "heritage" | "background", string> = {
+      ancestry: "ancestries-core",
+      heritage: "heritages-core",
+      background: "backgrounds-core",
+    };
     try {
       for (const kind of ["ancestry", "heritage", "background"] as const) {
         const abcItem = (doc["items"] as Array<Record<string, unknown>> | undefined)?.find((i) => i["type"] === kind);
         if (!abcItem) continue;
         const sid = ((abcItem["flags"] as Record<string, unknown> | undefined)?.["fusion"] as Record<string, unknown> | undefined)?.["sourceId"];
         if (typeof sid !== "string") continue;
-        const ops = await materializeGrants(abcItem, sid, undefined, mctx);
+        const abcName = typeof abcItem["name"] === "string" ? abcItem["name"] : undefined;
+        const abcDoc = (abcName ? await resolveGranterByName(ABC_PACK_SLUG[kind], abcName) : null) ?? abcItem;
+        const ops = await materializeGrants(abcDoc, sid, undefined, mctx);
         for (const op of ops) { sendOpFn(op); created++; }
       }
     } catch { /* deferred */ }

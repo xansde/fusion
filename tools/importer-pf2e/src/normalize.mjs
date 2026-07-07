@@ -68,6 +68,7 @@ const DEFAULT_TARGET_PACKS_BY_SYSTEM = {
     "class-features",
     "feats",
     "ancestries",
+    "ancestry-features",
     "heritages",
     "backgrounds",
     "actions",

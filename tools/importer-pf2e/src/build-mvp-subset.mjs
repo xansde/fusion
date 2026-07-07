@@ -393,6 +393,85 @@ const PACK_MANIFESTS = {
     },
     schemaVersion: 1,
   },
+  // -------------------------------------------------------------------------
+  // r20-X5 — pf2e.ancestry-features-core. The FULL vendor `ancestry-features/`
+  // pack (55 docs, every one `type: "feat"` with `system.category:
+  // "ancestryfeature"` and an ORC or OGL publication). These are the
+  // auto-conceded ancestry/heritage FEATURES referenced by an ABC doc's
+  // `system.items` map — e.g. Fleshwarp → Unusual Anatomy, Ratfolk → Sharp
+  // Teeth. Before this pack existed those chips could not materialize (the
+  // client's mapVendorToFusionPack pointed `ancestryfeatures` at
+  // class-features-core, which never holds them), so they rendered as
+  // informative-only chips with no description/mechanics.
+  //
+  // No curation predicate (whole pack, same philosophy as
+  // familiar-abilities-core): every ancestry feature is a candidate grant for
+  // some ancestry/heritage, all 55 are cheap and cleanly ORC/OGL-licensed, and
+  // shipping the whole pack means any future ancestry added to ancestries-core
+  // resolves its features for free. Same clean-room policy as every other
+  // -core pack (stripFlavorProse gates description prose on publication.license;
+  // placeholders only, never Paizo art). Type "feat" → parseFeatSystem
+  // validates it in packs-validation (no new parser needed).
+  // -------------------------------------------------------------------------
+  'ancestry-features-core': {
+    id: 'pf2e.ancestry-features-core',
+    label: 'PF2e Core Ancestry Features',
+    documentType: 'Item',
+    systemId: 'pf2e',
+    indexFields: ['name', 'system.category', 'system.traits.value'],
+    license: {
+      license: 'ORC',
+      attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',
+      reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
+      sourceRepo: 'github.com/foundryvtt/pf2e',
+      sourceVersion: SOURCE_VERSION,
+      textAttribution: TEXT_ATTRIBUTION,
+    },
+    source: {
+      repo: 'github.com/foundryvtt/pf2e',
+      version: SOURCE_VERSION,
+      importerVersion: IMPORTER_VERSION,
+    },
+    schemaVersion: 1,
+  },
+};
+
+/**
+ * r20-X5 — Aeronaut background free-feat curation (Lacuna 2).
+ *
+ * The vendor Aeronaut background (backgrounds/aeronaut.json, Pathfinder
+ * Battlecry!, ORC) ships `system.items: {}` and `system.rules: []` — genuinely
+ * EMPTY, so the importer is not dropping anything (verified against the raw
+ * vendor doc). But the same doc's own `system.description` explicitly grants a
+ * feat via a Foundry enricher:
+ *
+ *   "You gain the @UUID[Compendium.pf2e.feats-srd.Item.Assurance] skill feat
+ *    with Piloting Lore."
+ *
+ * That @UUID is the authoritative source for the ONE feat this background
+ * concedes — Assurance (feats-srd, skill, level 1, ORC), the SAME shape as
+ * Fireworks Performer → Fascinating Performance (the correct comparison). We
+ * inject exactly that entry into the transformed doc's `system.items` map so
+ * the client's r20-X4 grant materializer (parseSystemItemsGrants →
+ * mapVendorToFusionPack("feats-srd") → feats-core) concedes it automatically.
+ *
+ * NOT added: "Powerful Leap". Despite appearing in the user's Pathbuilder
+ * export for Finn, it is NOT a benefit of the Aeronaut background — the
+ * official Battlecry! text (and this vendor description) grant only Assurance.
+ * Powerful Leap is a level-based skill-feat SELECTION in Finn's build (a normal
+ * skill-feat slot), not an ABC auto-grant; adding it here would incorrectly
+ * concede it to every Aeronaut character. See r20-X5 report.
+ */
+const AERONAUT_CURATED_ITEMS = {
+  // Short vendor-style map key (arbitrary, matches the {5-char} shape Foundry
+  // uses for the Fireworks Performer entry). The uuid is the authoritative
+  // grant target read from the vendor Aeronaut description's @UUID enricher.
+  assur: {
+    img: 'icons/placeholder/feat.svg',
+    level: 1,
+    name: 'Assurance',
+    uuid: 'Compendium.pf2e.feats-srd.Item.Assurance',
+  },
 };
 
 /**
@@ -1066,6 +1145,22 @@ async function buildPf2eSubset() {
     console.log('[build-mvp] === Pack: backgrounds-core ===');
     const all = loadTransformed('backgrounds');
     const docs = all.filter(isBackgroundsCoreDoc);
+
+    // r20-X5 (Lacuna 2): the Aeronaut background comes from the vendor with an
+    // EMPTY system.items map, but its own description @UUID grants Assurance
+    // (with Piloting Lore). Inject that curated grant so the client's r20-X4
+    // materializer concedes it — only when the map is still empty (idempotent;
+    // if a future vendor snapshot populates it, this is a no-op). See
+    // AERONAUT_CURATED_ITEMS for the full rationale.
+    const aeronaut = docs.find((d) => d.name === 'Aeronaut');
+    if (aeronaut) {
+      const existing = aeronaut.system.items ?? {};
+      if (Object.keys(existing).length === 0) {
+        aeronaut.system.items = { ...AERONAUT_CURATED_ITEMS };
+        console.log('[build-mvp] backgrounds-core: injected Assurance free-feat grant into Aeronaut (vendor items{} was empty)');
+      }
+    }
+
     console.log(`[build-mvp] backgrounds-core: ${docs.length} background(s) selecionado(s) de ${all.length} totais`);
 
     const manifest = PACK_MANIFESTS['backgrounds-core'];
@@ -1126,6 +1221,23 @@ async function buildPf2eSubset() {
     const index = buildIndex(manifest.id, docs, manifest.indexFields);
     writeFileSync(join(PACKS_OUT_DIR, 'equipment-core', 'index.json'), JSON.stringify(index, null, 2), 'utf8');
     report.packs.push({ packId: manifest.id, slug: 'equipment-core', documentCount: docs.length });
+  }
+
+  // --- 14. Ancestry features core (r20-X5 — auto-conceded ABC features) ---
+  // The whole vendor ancestry-features pack; no curation predicate (every
+  // feature is a valid grant target for some ancestry/heritage's system.items
+  // map). See the ancestry-features-core manifest docstring for the rationale.
+  {
+    console.log('[build-mvp] === Pack: ancestry-features-core ===');
+    const all = loadTransformed('ancestry-features');
+    const docs = all;
+    console.log(`[build-mvp] ancestry-features-core: ${docs.length} ancestry features`);
+
+    const manifest = PACK_MANIFESTS['ancestry-features-core'];
+    writePack('ancestry-features-core', docs, manifest);
+    const index = buildIndex(manifest.id, docs, manifest.indexFields);
+    writeFileSync(join(PACKS_OUT_DIR, 'ancestry-features-core', 'index.json'), JSON.stringify(index, null, 2), 'utf8');
+    report.packs.push({ packId: manifest.id, slug: 'ancestry-features-core', documentCount: docs.length });
   }
 
   // Write build report
