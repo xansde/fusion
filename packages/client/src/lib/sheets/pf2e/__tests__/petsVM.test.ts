@@ -305,8 +305,8 @@ function diffHp(op: { diff: Record<string, unknown> }): number {
 
 describe("filterAbilityRows", () => {
   const rows: AbilityRow[] = [
-    { slug: "darkvision", name: "Visão no Escuro", subtitleEn: "Darkvision", uuid: "u1", searchText: "darkvision visao no escuro" },
-    { slug: "flier", name: "Voador", subtitleEn: "Flier", uuid: "u2", searchText: "flier voador" },
+    { slug: "darkvision", name: "Visão no Escuro", subtitleEn: "Darkvision", uuid: "u1", actionCost: null, searchText: "darkvision visao no escuro" },
+    { slug: "flier", name: "Voador", subtitleEn: "Flier", uuid: "u2", actionCost: null, searchText: "flier voador" },
   ];
 
   it("matches accent-insensitively across locales", () => {

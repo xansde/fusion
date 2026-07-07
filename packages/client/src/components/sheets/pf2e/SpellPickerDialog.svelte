@@ -59,6 +59,8 @@
   import {
     DocumentDetailsCache,
     localizedNameParts,
+    formatIndexActionCost,
+    traitDisplayName,
   } from "../../../lib/compendium/documentDetails.js";
   import DocumentDetailsPanel from "./DocumentDetailsPanel.svelte";
   import {
@@ -208,13 +210,6 @@
   function traitsOf(e: PackIndexEntry): string[] {
     const raw = e.index["system.traits.value"];
     return Array.isArray(raw) ? raw.filter((v): v is string => typeof v === "string") : [];
-  }
-
-  function actionCostOf(e: PackIndexEntry): string | null {
-    // castTime isn't in indexFields for spells-core — no per-row action-cost
-    // badge is available from the index alone; omit rather than guess.
-    void e;
-    return null;
   }
 
   function selectRow(e: PackIndexEntry): void {
@@ -381,7 +376,7 @@
                           class:picker-chip--active={traitFilter === trait}
                           onclick={() => { traitFilter = traitFilter === trait ? null : trait; }}
                         >
-                          {trait}
+                          {traitDisplayName(trait, i18n.locale)}
                         </button>
                       {/each}
                     </div>
@@ -415,6 +410,7 @@
         {:else}
           {#each filtered as entry (entry.uuid)}
             {@const nameParts = localizedNameParts(entry, i18n.locale)}
+            {@const cost = formatIndexActionCost(entry.index["actionCost"], i18n.locale)}
             <div
               class="picker-row"
               class:picker-row--selected={selectedUuid === entry.uuid}
@@ -424,12 +420,12 @@
               onkeydown={(e) => { if (e.key === "Enter" || e.key === " ") selectRow(entry); }}
             >
               <span class="picker-row__rank">{rankOf(entry)}</span>
-              {#if actionCostOf(entry)}
-                <span class="picker-row__cost">{actionCostOf(entry)}</span>
-              {/if}
               <div class="picker-row__main">
                 <div class="picker-row__name">
-                  {nameParts.display}
+                  <span class="picker-row__name-text">{nameParts.display}</span>
+                  {#if cost}
+                    <span class="picker-row__cost" class:picker-row__cost--text={cost.isText} title={cost.title}>{cost.display}</span>
+                  {/if}
                   {#if nameParts.subtitleEn}
                     <span class="picker-row__name-en">{nameParts.subtitleEn}</span>
                   {/if}
@@ -437,7 +433,7 @@
                 {#if traitsOf(entry).length > 0}
                   <div class="picker-row__traits">
                     {#each traitsOf(entry) as trait (trait)}
-                      <span class="picker-row__trait">{trait}</span>
+                      <span class="picker-row__trait">{traitDisplayName(trait, i18n.locale)}</span>
                     {/each}
                   </div>
                 {/if}
@@ -789,21 +785,6 @@
     color: var(--fusion-accent);
   }
 
-  .picker-row__cost {
-    width: 20px;
-    height: 20px;
-    flex-shrink: 0;
-    border-radius: 50%;
-    border: 1px solid var(--fusion-border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 9px;
-    font-weight: 700;
-    color: var(--fusion-text-subtle);
-    font-family: var(--fusion-font-mono);
-  }
-
   .picker-row__main {
     flex: 1;
     min-width: 0;
@@ -813,6 +794,22 @@
     font-size: 12.5px;
     font-weight: 600;
     color: var(--fusion-text);
+  }
+
+  .picker-row__cost {
+    margin-left: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--fusion-accent);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .picker-row__cost--text {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--fusion-text-subtle);
+    letter-spacing: 0;
   }
 
   .picker-row__name-en {

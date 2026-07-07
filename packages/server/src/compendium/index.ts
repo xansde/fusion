@@ -10,6 +10,7 @@ export {
   findMonorepoRoot,
   resolveSystemPacksDir,
   computeI18nSourceHash,
+  computeActionCost,
 } from "./service.js";
 export {
   buildCompendiumListHandler,

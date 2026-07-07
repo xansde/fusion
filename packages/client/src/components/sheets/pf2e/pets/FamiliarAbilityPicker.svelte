@@ -82,6 +82,13 @@
           />
           <span class="fam-row__name">
             {row.name}
+            {#if row.actionCost}
+              <span
+                class="fam-row__cost"
+                class:fam-row__cost--text={row.actionCost.isText}
+                title={row.actionCost.title}
+              >{row.actionCost.display}</span>
+            {/if}
             {#if row.subtitleEn}
               <span class="fam-row__en">{row.subtitleEn}</span>
             {/if}
@@ -200,6 +207,22 @@
     font-size: 12.5px;
     font-weight: 600;
     color: var(--fusion-text);
+  }
+
+  .fam-row__cost {
+    margin-left: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--fusion-accent);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .fam-row__cost--text {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--fusion-text-subtle);
+    letter-spacing: 0;
   }
 
   .fam-row__en {

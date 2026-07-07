@@ -875,6 +875,52 @@ export function formatActionCost(timeValue: string | null | undefined, locale: S
 }
 
 // ---------------------------------------------------------------------------
+// Picker-row action-cost badge (r20-X2)
+// ---------------------------------------------------------------------------
+
+export interface RowActionCost {
+  /** Glyph string (◆◆ / ⟳ / ◇), or "" for a long/textual time. */
+  icons: string;
+  /** What the row renders: the glyphs, or the short time label ("1 minuto"). */
+  display: string;
+  /** Tooltip label in the active locale ("2 ações", "reação", "1 minuto"). */
+  title: string;
+  /** True when `display` is a textual time (no glyphs) — lets the row style it differently. */
+  isText: boolean;
+}
+
+/**
+ * Turn the server-derived compact `index.actionCost` token into a picker-row
+ * badge (r20-X2, feedback: "tenha o custo em ações junto do nome"). The token
+ * is the same shape `formatActionCost` consumes — spells' `system.time.value`
+ * or feats/actions' derived actionType/actions.
+ *
+ *   "2"          → { icons: "◆◆", display: "◆◆", title: "2 ações" }
+ *   "reaction"   → { icons: "⟳",  display: "⟳",  title: "reação" }
+ *   "free"       → { icons: "◇",  display: "◇",  title: "ação livre" }
+ *   "1 to 3"     → { icons: "◆ a ◆◆◆", display: "◆ a ◆◆◆", title: "1 a 3 ações" }
+ *   "1 minute"   → { icons: "", display: "1 minuto", title: "1 minuto", isText: true }
+ *
+ * Passive / cost-less entries (no `actionCost` token at all) → null, so the row
+ * renders NO badge (clean, as the feedback describes for passive abilities).
+ */
+export function formatIndexActionCost(
+  raw: unknown,
+  locale: SupportedLocale = "pt-BR",
+): RowActionCost | null {
+  if (typeof raw !== "string" || !raw.trim()) return null;
+  const cost = formatActionCost(raw, locale);
+  if (cost.isText) {
+    // Long/textual time — show the short label, no glyphs (e.g. "1 minuto").
+    return cost.label
+      ? { icons: "", display: cost.label, title: cost.label, isText: true }
+      : null;
+  }
+  if (!cost.icons) return null;
+  return { icons: cost.icons, display: cost.icons, title: cost.label, isText: false };
+}
+
+// ---------------------------------------------------------------------------
 // Mechanical fields extraction
 // ---------------------------------------------------------------------------
 

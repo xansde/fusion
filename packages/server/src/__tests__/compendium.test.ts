@@ -39,7 +39,7 @@ import { Role } from "../auth/user-store.js";
 import { loadOrCreateSecret } from "../auth/crypto.js";
 import { registerAuthRoutes } from "../auth/routes.js";
 import { SocketManager } from "../net/socket-manager.js";
-import { CompendiumService } from "../compendium/index.js";
+import { CompendiumService, computeActionCost } from "../compendium/index.js";
 import { PROTOCOL_VERSION } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
@@ -452,6 +452,123 @@ describe("CompendiumService — unit", () => {
     // Should not throw
     expect(() => svc.discoverPacks(packsDir)).not.toThrow();
     expect(svc.listPacks()).toHaveLength(0);
+
+    rmSync(packsDir, { recursive: true, force: true });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Unit tests: action-cost index enrichment (r20-X2)
+// ---------------------------------------------------------------------------
+
+describe("computeActionCost", () => {
+  const cost = (system: unknown): string | undefined =>
+    computeActionCost({ system } as Record<string, unknown>);
+
+  it("derives feat/action action-economy costs", () => {
+    expect(cost({ actionType: "action", actions: 2 })).toBe("2");
+    expect(cost({ actionType: "action", actions: 1 })).toBe("1");
+    expect(cost({ actionType: "reaction", actions: null })).toBe("reaction");
+    expect(cost({ actionType: "free", actions: null })).toBe("free");
+  });
+
+  it("omits passive and malformed action entries (no badge)", () => {
+    expect(cost({ actionType: "passive", actions: null })).toBeUndefined();
+    // "action" with no valid count → omit rather than guess.
+    expect(cost({ actionType: "action", actions: null })).toBeUndefined();
+    expect(cost({ actionType: "action", actions: 0 })).toBeUndefined();
+    expect(cost({ actionType: "action", actions: 99 })).toBeUndefined();
+  });
+
+  it("derives spell costs from system.time.value (incl. long/textual times)", () => {
+    expect(cost({ time: { value: "2" } })).toBe("2");
+    expect(cost({ time: { value: "reaction" } })).toBe("reaction");
+    expect(cost({ time: { value: "1 to 3" } })).toBe("1 to 3");
+    expect(cost({ time: { value: "1 minute" } })).toBe("1 minute");
+  });
+
+  it("accepts the flattened system.castTime and { value }-wrapped shapes", () => {
+    expect(cost({ castTime: "3" })).toBe("3");
+    expect(cost({ actionType: { value: "action" }, actions: { value: 3 } })).toBe("3");
+  });
+
+  it("returns undefined for cost-less shapes", () => {
+    expect(cost({})).toBeUndefined();
+    expect(cost(null)).toBeUndefined();
+    expect(computeActionCost({} as Record<string, unknown>)).toBeUndefined();
+  });
+});
+
+describe("getPackIndex — action-cost enrichment", () => {
+  const ACTION_PACK_ID = "pf2e.action-cost-pack";
+  const ACTION_MANIFEST = {
+    ...TEST_MANIFEST,
+    id: ACTION_PACK_ID,
+    // indexFields deliberately WITHOUT actionType/actions/time — mirrors the
+    // real feats/spells packs, proving actionCost comes from the full docs.
+    indexFields: ["name", "system.traits.value"],
+    documentCount: 6,
+  };
+  const ACTION_DOCS = [
+    { _id: "f2", name: "Aerial Boomerang", type: "feat", img: null, system: { actionType: "action", actions: 2, traits: { value: ["air"] } } },
+    { _id: "fr", name: "Air Cushion", type: "feat", img: null, system: { actionType: "reaction", actions: null, traits: { value: ["air"] } } },
+    { _id: "fp", name: "Cheek Pouches", type: "feat", img: null, system: { actionType: "passive", actions: null, traits: { value: [] } } },
+    { _id: "s2", name: "Fireball", type: "spell", img: null, system: { time: { value: "2" }, traits: { value: ["fire"] } } },
+    { _id: "sm", name: "Whisper on the Wind", type: "spell", img: null, system: { time: { value: "1 minute" }, traits: { value: ["air"] } } },
+    { _id: "af", name: "Free Thing", type: "action", img: null, system: { actionType: "free", actions: null, traits: { value: [] } } },
+  ];
+
+  function setupActionPack(): string {
+    const packsDir = makeTempDir();
+    const packDir = join(packsDir, "action-cost-pack");
+    mkdirSync(packDir, { recursive: true });
+    writeFileSync(join(packDir, "pack.json"), JSON.stringify(ACTION_MANIFEST));
+    writeFileSync(join(packDir, "documents.json"), JSON.stringify(ACTION_DOCS));
+    // Pre-built index.json WITHOUT actionCost — the enrichment must add it.
+    const idx = ACTION_DOCS.map((d) => ({
+      _id: d._id,
+      uuid: `Compendium.${ACTION_PACK_ID}.Item.${d._id}`,
+      name: d.name,
+      img: d.img,
+      type: d.type,
+      index: { "system.traits.value": d.system.traits?.value ?? [] },
+    }));
+    writeFileSync(join(packDir, "index.json"), JSON.stringify(idx));
+    return packsDir;
+  }
+
+  it("adds index.actionCost from the full documents, even when index.json omits it", () => {
+    const packsDir = setupActionPack();
+    const svc = new CompendiumService();
+    svc.discoverPacks(packsDir);
+
+    const idx = svc.getPackIndex(ACTION_PACK_ID);
+    expect(idx).not.toBeNull();
+    const byId = new Map(idx!.entries.map((e) => [e._id, e]));
+
+    expect(byId.get("f2")!.index["actionCost"]).toBe("2");
+    expect(byId.get("fr")!.index["actionCost"]).toBe("reaction");
+    expect(byId.get("s2")!.index["actionCost"]).toBe("2");
+    expect(byId.get("sm")!.index["actionCost"]).toBe("1 minute");
+    expect(byId.get("af")!.index["actionCost"]).toBe("free");
+
+    // Passive → NO actionCost key at all (clean row, no badge).
+    expect("actionCost" in byId.get("fp")!.index).toBe(false);
+
+    rmSync(packsDir, { recursive: true, force: true });
+  });
+
+  it("leaves the index unchanged for a pack with no action-cost docs", () => {
+    const packsDir = makeTempDir();
+    setupPackDir(packsDir); // Longsword/Fireball/Ice Shield — no actionType/time
+    const svc = new CompendiumService();
+    svc.discoverPacks(packsDir);
+
+    const idx = svc.getPackIndex(PACK_ID);
+    expect(idx).not.toBeNull();
+    for (const e of idx!.entries) {
+      expect("actionCost" in e.index).toBe(false);
+    }
 
     rmSync(packsDir, { recursive: true, force: true });
   });
