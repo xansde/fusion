@@ -473,6 +473,29 @@ describe('MVP packs', () => {
         const docs = loadJson(join(packDir, 'documents.json'));
         const str = JSON.stringify(docs);
         assert.ok(!str.includes('"systems/pf2e/'), `Paizo art found in ${slug}`);
+        assert.ok(!str.includes('"systems/sf2e/'), `Paizo art found in ${slug}`);
+      });
+
+      // Gap that let a real leak through (r18): normalize.mjs only rewrites a
+      // document's own top-level `img` — nested vendor img refs buried inside
+      // `system.items` (ancestry/heritage/background embedded feature grants,
+      // e.g. Fleshwarp's "Unusual Anatomy") slipped past the string check
+      // above whenever the leaked path didn't start with "systems/pf2e/"
+      // (e.g. a raw Foundry-core icon path from the vendor feat). Assert
+      // every embedded item img is an actual placeholder, not just "not
+      // Paizo" — matches the sanitizeItemGrantsMap() policy in transform.mjs.
+      it('every embedded system.items[].img is a placeholder (clean-room, r18)', () => {
+        const docs = loadJson(join(packDir, 'documents.json'));
+        for (const doc of docs) {
+          const itemsMap = doc.system?.items;
+          if (!itemsMap || typeof itemsMap !== 'object') continue;
+          for (const [key, entry] of Object.entries(itemsMap)) {
+            assert.ok(
+              typeof entry.img === 'string' && entry.img.startsWith('icons/placeholder'),
+              `${slug}/${doc.name} embedded item "${key}" (${entry.name}) has non-placeholder img: ${entry.img}`,
+            );
+          }
+        }
       });
     });
   }
@@ -508,40 +531,62 @@ describe('MVP packs', () => {
   // R10-B (DEC-R10-06) — new curated packs for the Magus builder MVP.
   // -------------------------------------------------------------------------
 
-  it('classes-core has exactly Magus', () => {
+  it('classes-core has exactly Magus and Kineticist', () => {
+    // R18-N2a added the Kineticist builder alongside the original R10-B Magus.
     const docs = loadJson(join(PACKS_DIR, 'classes-core', 'documents.json'));
-    assert.equal(docs.length, 1);
-    assert.equal(docs[0].name, 'Magus');
-    assert.equal(docs[0].type, 'class');
+    assert.equal(docs.length, 2);
+    const byName = Object.fromEntries(docs.map(d => [d.name, d]));
+    assert.ok(byName['Magus'], 'Magus class doc missing');
+    assert.ok(byName['Kineticist'], 'Kineticist class doc missing');
+    assert.equal(byName['Magus'].type, 'class');
+    assert.equal(byName['Kineticist'].type, 'class');
   });
 
-  it('class-features-core has the 19 items{}-map features + 8 hybrid studies (27 total)', () => {
+  it('class-features-core has Magus (19) + Kineticist (21) items{}-map features + 8 hybrid studies (48 total)', () => {
+    // R18-N2a added the Kineticist's own class features on top of the R10-B Magus set.
     const docs = loadJson(join(PACKS_DIR, 'class-features-core', 'documents.json'));
-    assert.equal(docs.length, 27);
+    assert.equal(docs.length, 48);
     assert.ok(docs.every(d => d.type === 'classFeature'));
     const hybridStudies = docs.filter(d => d.system.category === 'hybridStudy');
     assert.equal(hybridStudies.length, 8, 'Expected all 8 Magus Hybrid Studies');
     assert.ok(docs.some(d => d.name === 'Starlit Span'), 'Starlit Span hybrid study missing');
+    const plainFeatures = docs.filter(d => d.system.category === 'classfeature');
+    assert.equal(plainFeatures.length, 40, 'Expected 40 non-hybrid-study class features (Magus + Kineticist combined)');
   });
 
-  it('classes-core Magus featuresByLevel[].uuid all resolve to a real class-features-core _id', () => {
-    const magus = loadJson(join(PACKS_DIR, 'classes-core', 'documents.json'))[0];
+  it('classes-core Magus + Kineticist featuresByLevel[].uuid all resolve to a real class-features-core _id', () => {
+    // Locate by name — docs[] order is not guaranteed once Kineticist joined the pack (R18-N2a).
+    const classes = loadJson(join(PACKS_DIR, 'classes-core', 'documents.json'));
+    const magus = classes.find(d => d.name === 'Magus');
+    const kineticist = classes.find(d => d.name === 'Kineticist');
+    assert.ok(magus, 'Magus class doc missing');
+    assert.ok(kineticist, 'Kineticist class doc missing');
     const classFeatures = loadJson(join(PACKS_DIR, 'class-features-core', 'documents.json'));
     const classFeatureIds = new Set(classFeatures.map(d => d._id));
+
     assert.equal(magus.system.featuresByLevel.length, 19);
     for (const ref of magus.system.featuresByLevel) {
       assert.ok(
         classFeatureIds.has(ref.uuid),
-        `featuresByLevel ref "${ref.name}" (uuid ${ref.uuid}) does not resolve to a class-features-core doc`,
+        `Magus featuresByLevel ref "${ref.name}" (uuid ${ref.uuid}) does not resolve to a class-features-core doc`,
+      );
+    }
+
+    assert.equal(kineticist.system.featuresByLevel.length, 23);
+    for (const ref of kineticist.system.featuresByLevel) {
+      assert.ok(
+        classFeatureIds.has(ref.uuid),
+        `Kineticist featuresByLevel ref "${ref.name}" (uuid ${ref.uuid}) does not resolve to a class-features-core doc`,
       );
     }
   });
 
-  it('feats-core contains every acceptance-criterion feat from the Tobias build (DEC-R10-06)', () => {
+  it('feats-core contains every acceptance-criterion feat from the Tobias + Finn builds (DEC-R10-06, R18-N2a)', () => {
     const docs = loadJson(join(PACKS_DIR, 'feats-core', 'documents.json'));
-    assert.equal(docs.length, 418);
+    assert.equal(docs.length, 459);
     const names = docs.map(d => d.name);
     for (const n of [
+      // Tobias build (Magus, DEC-R10-06)
       "Magus's Analysis",
       'Impressive Performance',
       'Read Lips',
@@ -549,6 +594,17 @@ describe('MVP packs', () => {
       'Alchemical Crafting',
       'Fascinating Performance',
       'Alchemist Dedication',
+      // Finn build (Kineticist, R18-N2a)
+      'Aerial Boomerang',
+      'Four Winds',
+      'Magnetic Pinions',
+      'Flashforge',
+      'Toughness',
+      'Cat Fall',
+      'Rogue Dedication',
+      'Dirty Trick',
+      // Note: "Surprise Attack" is a native level-1 Rogue class feature (auto-granted),
+      // not a selectable feat — it correctly lives in class-features-core, not here.
     ]) {
       assert.ok(names.includes(n), `Required feat "${n}" missing from feats-core`);
     }
@@ -563,22 +619,29 @@ describe('MVP packs', () => {
     }
   });
 
-  it('ancestries-core has exactly Ratfolk', () => {
+  it('ancestries-core has exactly Ratfolk and Fleshwarp', () => {
+    // R18-N2a added the Kineticist builder's Fleshwarp ancestry alongside the R10-B Ratfolk.
     const docs = loadJson(join(PACKS_DIR, 'ancestries-core', 'documents.json'));
-    assert.equal(docs.length, 1);
-    assert.equal(docs[0].name, 'Ratfolk');
+    assert.equal(docs.length, 2);
+    const names = docs.map(d => d.name);
+    assert.ok(names.includes('Ratfolk'), 'Ratfolk ancestry missing');
+    assert.ok(names.includes('Fleshwarp'), 'Fleshwarp ancestry missing');
   });
 
-  it('heritages-core has exactly the 7 Ratfolk heritages (including Snow Rat)', () => {
+  it('heritages-core has the 7 Ratfolk heritages (including Snow Rat) plus Sylph (Fleshwarp/Kineticist, R18-N2a)', () => {
     const docs = loadJson(join(PACKS_DIR, 'heritages-core', 'documents.json'));
-    assert.equal(docs.length, 7);
+    assert.equal(docs.length, 8);
     assert.ok(docs.some(d => d.name === 'Snow Rat'));
+    assert.ok(docs.some(d => d.name === 'Sylph'), 'Sylph heritage missing');
   });
 
-  it('backgrounds-core has exactly Fireworks Performer', () => {
+  it('backgrounds-core has exactly Fireworks Performer and Aeronaut', () => {
+    // R18-N2a added the Kineticist builder's Aeronaut background alongside the R10-B Fireworks Performer.
     const docs = loadJson(join(PACKS_DIR, 'backgrounds-core', 'documents.json'));
-    assert.equal(docs.length, 1);
-    assert.equal(docs[0].name, 'Fireworks Performer');
+    assert.equal(docs.length, 2);
+    const names = docs.map(d => d.name);
+    assert.ok(names.includes('Fireworks Performer'), 'Fireworks Performer background missing');
+    assert.ok(names.includes('Aeronaut'), 'Aeronaut background missing');
   });
 
   it('no committed R10-B pack document.json exceeds ~15 MB', () => {
