@@ -25,6 +25,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { parseWeaponSystem } from "../schemas/item-weapon.js";
+import { parseArmorSystem } from "../schemas/item-armor.js";
 import { parseConditionSystem } from "../schemas/item-condition.js";
 import { parseSpellSystem } from "../schemas/item-spell.js";
 import { parseFeatSystem } from "../schemas/item-feat.js";
@@ -36,6 +37,9 @@ import {
   parseHeritageSystem,
   parseBackgroundSystem,
   parseActionSystem,
+  parseEquipmentSystem,
+  parseConsumableSystem,
+  parseContainerSystem,
 } from "../schemas/item-equipment.js";
 import { spellSlotsForLevel } from "../derivations/build.js";
 import type { ClassSystem } from "../schemas/item-equipment.js";
@@ -105,6 +109,14 @@ const PARSERS_BY_TYPE: Record<string, (data: unknown) => unknown> = {
   // shape produced by transform.mjs normalizeActorSystem, so we validate the
   // full schema here rather than a minimal shape-only check.
   npc: parseNpcSystem,
+  // Physical item types (r18-N2d, pf2e.equipment-core — Finn's gear).
+  // "backpack" isn't listed here: transform.mjs's resolveFusionType() remaps
+  // the vendor's "backpack" type to Fusion's "container" before the doc is
+  // written, so committed packs never carry a literal type "backpack".
+  armor: parseArmorSystem,
+  equipment: parseEquipmentSystem,
+  consumable: parseConsumableSystem,
+  container: parseContainerSystem,
 };
 
 function summarizeZodError(err: unknown): string {

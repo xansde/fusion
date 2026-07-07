@@ -698,13 +698,27 @@ function transformDoc(normDoc, packName, stats, fusionIdPackKey = packName, pipe
  * `system.category: "classfeature"` (there is no dedicated vendor item
  * type) — the Fusion schema instead models them as their own item type
  * `classFeature` (systems/pf2e/src/schemas/item-class-feature.ts, R10-A).
+ *
+ * The vendor also has a dedicated `type: "backpack"` for container items
+ * (Backpack, Spacious Pouch, etc.) while Fusion models every item that
+ * holds other items — including the vendor's own `type: "container"`
+ * (Chest, etc.) — as the single `container` type (ContainerSystemSchema,
+ * systems/pf2e/src/schemas/item-equipment.ts). Without this mapping,
+ * `buildSystem`'s switch never matches `"backpack"` and falls through to
+ * the passthrough default, leaving `bulk`/`level`/`description` as raw
+ * `{value: ...}` wrapper objects instead of flattened primitives (r18-N2d
+ * bugfix — Spacious Pouch).
+ *
  * Every other vendor type maps 1:1 to the same Fusion type name.
  *
- * R10-B (DEC-R10-06).
+ * R10-B (DEC-R10-06); r18-N2d (backpack → container).
  */
 function resolveFusionType(normDoc) {
   if (normDoc.type === 'feat' && normDoc.system?.category === 'classfeature') {
     return 'classFeature';
+  }
+  if (normDoc.type === 'backpack') {
+    return 'container';
   }
   return normDoc.type;
 }
@@ -1037,6 +1051,13 @@ function normalizeArmorSystem(system, src) {
       ? { grade: rawMaterial.grade ?? undefined, type: rawMaterial.type ?? undefined }
       : undefined;
 
+  // `baseItem` is `null` on vendor armor that isn't a runed/precious variant
+  // of a base item (e.g. Elven Chain — r18-N2d bugfix). Same bug class as
+  // `material` above: ArmorSystemSchema's `baseItem: z.string().optional()`
+  // accepts a string or `undefined` but rejects an explicit `null`.
+  const rawBaseItem = src.baseItem ?? system.baseItem;
+  const baseItem = typeof rawBaseItem === 'string' ? rawBaseItem : undefined;
+
   return {
     ...system,
     category: src.category ?? system.category ?? 'unarmored',
@@ -1049,6 +1070,7 @@ function normalizeArmorSystem(system, src) {
     level: src.level?.value ?? src.level ?? system.level ?? 0,
     price: src.price?.value ?? src.price ?? system.price ?? {},
     material,
+    baseItem,
     description: src.description?.value ?? src.description ?? system.description ?? '',
     publication: src.publication ?? system.publication,
     traits: src.traits ?? system.traits ?? { rarity: 'common', value: [] },
@@ -1831,9 +1853,29 @@ function normalizeEquipmentSystem(system, src) {
       ? { grade: rawMaterial.grade ?? undefined, type: rawMaterial.type ?? undefined }
       : undefined;
 
+  // `baseItem` is `null` on most vendor equipment (only precious-material/
+  // runed variants of a base item set it to a string) — r18-N2d bugfix, same
+  // bug class as `material`: keep the field consistent (string or undefined,
+  // never a bare `null`) across weapon/armor/equipment normalizers.
+  const rawBaseItem = src.baseItem ?? system.baseItem;
+  const baseItem = typeof rawBaseItem === 'string' ? rawBaseItem : undefined;
+
+  // Vendor `bulk` on container-shaped items (backpack, and any "equipment"/
+  // "container" doc that holds other items) carries extra keys beyond the
+  // common `{value}` wrapper — `capacity` (max Bulk it can hold) and
+  // `ignored`/`heldOrStowed` (Bulk exempted from the wearer's own limit,
+  // i.e. ContainerSystemSchema's `bulkReduction`) — see Spacious Pouch /
+  // Backpack vendor docs (r18-N2d bugfix). Only derived when present so
+  // ordinary non-container equipment (bulk as a bare `{value}` or a plain
+  // number) is unaffected.
+  const rawBulk = src.bulk ?? system.bulk;
+  const hasContainerBulkShape = rawBulk && typeof rawBulk === 'object' && 'capacity' in rawBulk;
+  const capacity = hasContainerBulkShape ? rawBulk.capacity ?? 0 : undefined;
+  const bulkReduction = hasContainerBulkShape ? rawBulk.ignored ?? 0 : undefined;
+
   const out = {
     ...system,
-    bulk: src.bulk?.value ?? src.bulk ?? system.bulk ?? 0,
+    bulk: rawBulk?.value ?? rawBulk ?? 0,
     level: src.level?.value ?? src.level ?? system.level ?? 0,
     price: src.price?.value ?? src.price ?? system.price ?? {},
     quantity: src.quantity ?? system.quantity ?? 1,
@@ -1845,8 +1887,13 @@ function normalizeEquipmentSystem(system, src) {
     description: src.description?.value ?? src.description ?? system.description ?? '',
     publication: src.publication ?? system.publication,
     traits,
-    baseItem: src.baseItem ?? system.baseItem ?? null,
+    baseItem,
   };
+
+  if (hasContainerBulkShape) {
+    out.capacity = capacity;
+    out.bulkReduction = bulkReduction;
+  }
 
   if (usage === 'implanted') {
     const augType = (traits.value ?? []).find(t => SF2E_AUGMENTATION_TYPE_TRAITS.has(t));
