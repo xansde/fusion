@@ -646,7 +646,9 @@ export function parseImpulseSaveCue(descriptionHtml: string | null | undefined):
   const re = /@Check\[([^\]]+)\]/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(descriptionHtml)) !== null) {
-    const parts = m[1].split("|").map((p) => p.trim().toLowerCase());
+    const args = m[1];
+    if (!args) continue;
+    const parts = args.split("|").map((p) => p.trim().toLowerCase());
     const save = parts.find((p) => SAVE_SLUGS.has(p));
     if (save) return { save: save as ImpulseSaveCue["save"], basic: parts.includes("basic") };
   }
