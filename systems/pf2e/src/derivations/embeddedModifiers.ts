@@ -34,6 +34,7 @@
 
 import { resolveStacking, type Modifier } from "@fusion/engine-2e";
 import type { ModifierBreakdown } from "./types.js";
+import { isEquippedFlag } from "./equipment.js";
 
 /** Item types that may carry `system.rules[]` and are embedded (not equipment). */
 export const RULE_CARRYING_EMBEDDED_TYPES = new Set([
@@ -83,17 +84,36 @@ function isFlatModifierRule(rule: RawRule): boolean {
 }
 
 /**
- * Resolve a rule's `value` into a number. Numeric values pass through;
- * `@actor.level` resolves to the character `level`; any other string
- * expression (an unsupported `@actor.*` path or arithmetic) degrades to 0 so a
- * feat we don't fully model can't inject a wrong bonus. `context.level` is the
- * only actor field the MVP feats reference.
+ * Level value expressions the vendor packs / importer use interchangeably for
+ * "the character's level". The raw vendor shape is `@actor.level`; the importer
+ * normalizes it to the full actor-data path `@actor.details.level.value` (each
+ * rule's `raw.value` preserves the original `@actor.level`). Both — plus the
+ * intermediate `@actor.level.value` — must resolve to the character level.
+ *
+ * r20 verificação viva: a compendium-materialized Toughness carried the
+ * normalized `@actor.details.level.value`, which the resolver did not recognize,
+ * so its `hp` FlatModifier silently degraded to +0 and Finn's HP stuck at 46
+ * instead of 49. The hand-authored fixtures only ever used `@actor.level`, so
+ * the unit tests never caught the divergence.
+ */
+const LEVEL_VALUE_EXPRESSIONS: ReadonlySet<string> = new Set([
+  "@actor.level",
+  "@actor.level.value",
+  "@actor.details.level.value",
+]);
+
+/**
+ * Resolve a rule's `value` into a number. Numeric values pass through; the
+ * closed set of level expressions in {@link LEVEL_VALUE_EXPRESSIONS} resolves to
+ * the character `level`; any other string expression (an unsupported `@actor.*`
+ * path or arithmetic) degrades to 0 so a feat we don't fully model can't inject
+ * a wrong bonus. `context.level` is the only actor field the MVP feats reference.
  */
 function resolveRuleValue(raw: unknown, context: { level: number }): number {
   if (typeof raw === "number") return raw;
   if (typeof raw === "string") {
     const trimmed = raw.trim();
-    if (trimmed === "@actor.level") return context.level;
+    if (LEVEL_VALUE_EXPRESSIONS.has(trimmed)) return context.level;
     const asNumber = Number(trimmed);
     if (!Number.isNaN(asNumber)) return asNumber;
   }
@@ -183,6 +203,53 @@ export function collectEmbeddedModifiers(
     if (!raw || typeof raw !== "object") continue;
     const item = raw as Record<string, unknown>;
     if (!RULE_CARRYING_EMBEDDED_TYPES.has(item["type"] as string)) continue;
+    results.push(...modifiersFromItem(item, selectors, context, fallbackLabel));
+  }
+  return results;
+}
+
+/**
+ * Scan `doc.items` for EQUIPPED physical gear (anything NOT in
+ * {@link RULE_CARRYING_EMBEDDED_TYPES} — i.e. equipment / weapon / armor /
+ * shield / consumable / treasure — that passes {@link isEquippedFlag}) and
+ * collect every FlatModifier it carries whose `selector` is one of `selectors`.
+ *
+ * Complements {@link collectEmbeddedModifiers}: feats/heritages/classFeatures/
+ * ancestries are never "equipped", and worn/held gear is never one of those
+ * embedded types, so the two scans cover disjoint item sets and can be summed
+ * without double-counting. This is how a worn magic item (e.g. Boots of
+ * Bounding: a +5-foot land-speed item bonus) reaches a derived statistic —
+ * mirroring how stepCharAc reads the equipped armor's bonus.
+ *
+ * r20 verificação viva: Finn's Speed stuck at 25 instead of 30 because the
+ * +5 land-speed came from Boots of Bounding (type `equipment`), which the
+ * feat-only scan skipped. Guarded on `isEquippedFlag` so unequipped gear
+ * contributes nothing — the same equipped predicate the AC/strikes collector
+ * uses (investiture is not modelled in the MVP; `equipped` is the only state).
+ *
+ * @param doc         The actor document.
+ * @param selectors   The selector strings to match (e.g. `["land-speed", "speed"]`).
+ * @param context     `{ level }` for resolving `@actor.level`-style value expressions.
+ * @param fallbackLabel Display label when an item/rule carries no name/label.
+ */
+export function collectEquippedEquipmentModifiers(
+  doc: Record<string, unknown>,
+  selectors: ReadonlySet<string>,
+  context: { level: number },
+  fallbackLabel = "Modifier",
+): EmbeddedModifierSource[] {
+  const rawItems = doc["items"];
+  if (!Array.isArray(rawItems)) return [];
+
+  const results: EmbeddedModifierSource[] = [];
+  for (const raw of rawItems) {
+    if (!raw || typeof raw !== "object") continue;
+    const item = raw as Record<string, unknown>;
+    // Embedded rule-bearing items are the OTHER scan's territory; skip them so
+    // the two callers never see the same source twice.
+    if (RULE_CARRYING_EMBEDDED_TYPES.has(item["type"] as string)) continue;
+    const itemSys = item["system"] as Record<string, unknown> | undefined;
+    if (!isEquippedFlag(itemSys)) continue;
     results.push(...modifiersFromItem(item, selectors, context, fallbackLabel));
   }
   return results;

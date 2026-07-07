@@ -46,7 +46,11 @@
 
 import type { DeriveStep } from "@fusion/system-api";
 import type { CharacterSystem } from "../schemas/actor-character.js";
-import { collectEmbeddedModifiers, stackEmbeddedModifiers } from "./embeddedModifiers.js";
+import {
+  collectEmbeddedModifiers,
+  collectEquippedEquipmentModifiers,
+  stackEmbeddedModifiers,
+} from "./embeddedModifiers.js";
 
 function getSystem(doc: Record<string, unknown>): Record<string, unknown> {
   return (doc["system"] as Record<string, unknown>) ?? {};
@@ -133,8 +137,18 @@ export const stepCharSpeed: DeriveStep = {
         : [];
 
     const level = getLevel(sys);
-    const sources = collectEmbeddedModifiers(doc, SPEED_SELECTORS, { level }, "Speed Modifier");
-    const { sum: modSum, modifiers } = stackEmbeddedModifiers(sources);
+    // Feats/heritages/classFeatures/ancestries (e.g. Fleet) AND equipped gear
+    // (e.g. Boots of Bounding's +5-foot land-speed item bonus) both feed land
+    // speed. The two scans cover disjoint item sets, so concatenating them
+    // before stacking cannot double-count.
+    const featSources = collectEmbeddedModifiers(doc, SPEED_SELECTORS, { level }, "Speed Modifier");
+    const gearSources = collectEquippedEquipmentModifiers(
+      doc,
+      SPEED_SELECTORS,
+      { level },
+      "Speed Modifier",
+    );
+    const { sum: modSum, modifiers } = stackEmbeddedModifiers([...featSources, ...gearSources]);
 
     derived["speed"] = {
       value: baseValue + modSum,

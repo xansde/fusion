@@ -473,3 +473,104 @@ describe("Finn — negative fixtures (Toughness / level)", () => {
     expect(derived["elementalBlasts"]).toEqual([]);
   });
 });
+
+// ---------------------------------------------------------------------------
+// r20 verificação viva — REAL compendium/world data forms (regression guard)
+//
+// The fixtures above use the hand-authored shapes the derivation always handled
+// (`@actor.level` Toughness; a Fleet FEAT for speed). Finn as he actually exists
+// in the Argiburgo world carries the COMPENDIUM-materialized shapes instead —
+// Toughness with the normalized `@actor.details.level.value`, and the +5 speed
+// on a worn `equipment` item (Boots of Bounding). Those forms slipped past the
+// derivation (HP 46 not 49, Speed 25 not 30) until the r20/verify-fixes patch.
+// ---------------------------------------------------------------------------
+
+describe("Finn — real compendium/world data forms (r20 fix)", () => {
+  /** Toughness exactly as materialized from the compendium pack: the level
+   *  bonus is the NORMALIZED path `@actor.details.level.value` (raw preserves
+   *  the vendor `@actor.level`). */
+  function toughnessCompendiumForm(): Record<string, unknown> {
+    return {
+      _id: "feat-toughness-compendium",
+      name: "Toughness",
+      type: "feat",
+      system: {
+        category: "general",
+        level: 1,
+        rules: [
+          {
+            kind: "flat-modifier",
+            type: "untyped",
+            selector: "hp",
+            value: "@actor.details.level.value",
+            mode: "add",
+            raw: { key: "FlatModifier", selector: "hp", value: "@actor.level" },
+          },
+        ],
+        traits: { rarity: "common", value: ["general"] },
+      },
+    };
+  }
+
+  /** Boots of Bounding: an EQUIPPED `equipment` item granting a +5-foot
+   *  land-speed item bonus (real Argiburgo world shape). */
+  function bootsOfBounding(): Record<string, unknown> {
+    return {
+      _id: "eq-boots-of-bounding",
+      name: "Boots of Bounding",
+      type: "equipment",
+      system: {
+        equipped: true,
+        usage: "wornshoes",
+        traits: { rarity: "common", value: ["invested", "magical"] },
+        rules: [
+          { kind: "flat-modifier", type: "item", selector: "land-speed", value: 5, mode: "add" },
+        ],
+      },
+    };
+  }
+
+  /** Finn as he actually exists in the world: Toughness in compendium form and
+   *  a worn Boots of Bounding — NO hand-authored Fleet/@actor.level fixtures. */
+  function makeFinnRealForms(): Record<string, unknown> {
+    const doc = makeFinnDoc({ withToughness: false });
+    doc["items"] = [
+      fleshwarpAncestry(),
+      kineticistClass(),
+      elvenChain(),
+      gateAttenuator(),
+      kineticGate(),
+      rogueDedication(),
+      toughnessCompendiumForm(),
+      bootsOfBounding(),
+    ];
+    return doc;
+  }
+
+  it("HP = 49 with Toughness authored in compendium form (@actor.details.level.value)", () => {
+    const doc = makeFinnRealForms();
+    runCharacterPipeline(doc);
+    const derived = (doc.system as Record<string, unknown>)["derived"] as Record<string, unknown>;
+    expect((derived["hp"] as { max: number }).max).toBe(49);
+  });
+
+  it("Speed = 30 from an equipped Boots of Bounding land-speed item bonus", () => {
+    const doc = makeFinnRealForms();
+    runCharacterPipeline(doc);
+    const derived = (doc.system as Record<string, unknown>)["derived"] as Record<string, unknown>;
+    const speed = derived["speed"] as { value: number; base: number };
+    expect(speed.base).toBe(25);
+    expect(speed.value).toBe(30);
+  });
+
+  it("an UNEQUIPPED Boots of Bounding contributes no speed bonus", () => {
+    const doc = makeFinnRealForms();
+    const boots = (doc["items"] as Record<string, unknown>[]).find(
+      (i) => i["_id"] === "eq-boots-of-bounding",
+    );
+    (boots?.["system"] as Record<string, unknown>)["equipped"] = false;
+    runCharacterPipeline(doc);
+    const derived = (doc.system as Record<string, unknown>)["derived"] as Record<string, unknown>;
+    expect((derived["speed"] as { value: number }).value).toBe(25);
+  });
+});
