@@ -94,6 +94,9 @@
   "FUSION.Sheet.Pets.Kind.animalCompanion": "Companheiro animal",
   "FUSION.Sheet.Pets.Kind.mount": "Montaria",
   "FUSION.Sheet.Header.Level": "Nível {{level}}",
+  "FUSION.Sheet.Portrait.Change": "Trocar retrato",
+  "FUSION.Sheet.Portrait.Remove": "Remover retrato",
+  "FUSION.Sheet.Portrait.Alt": "Retrato de {{name}}",
 
   "FUSION.Sheet.Labels.HP": "PV",
   "FUSION.Sheet.Labels.AC": "CA",
