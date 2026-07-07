@@ -3120,12 +3120,25 @@ export function classFeatureGrantRefs(doc: Record<string, unknown>): ClassGrantR
   if (!classItem) return [];
   const classSourceId = itemFusionSourceId(classItem);
   if (!classSourceId) return [];
-  const classSystem = readClassSystem(doc);
-  const level = getLevel(doc);
+  return classGrantRefsFromClassDoc(classItem["system"], classSourceId, getLevel(doc));
+}
+
+/**
+ * classGrantRefsFromClassDoc — the pure core of `classFeatureGrantRefs`, taking
+ * an explicit class `system` block + sourceId + char level. Used on FRESH apply
+ * (the class item isn't embedded on the actor yet, so the picker's class doc is
+ * the only source) as well as by `classFeatureGrantRefs` (embedded path).
+ */
+export function classGrantRefsFromClassDoc(
+  classSystemRaw: unknown,
+  classSourceId: string,
+  charLevel: number,
+): ClassGrantRef[] {
+  const classSystem = asRecord(classSystemRaw) as unknown as ClassSystemLike;
   const refs: ClassGrantRef[] = [];
   const seen = new Set<string>();
-  for (const f of classSystem?.featuresByLevel ?? []) {
-    if (f.level > level) continue;
+  for (const f of classSystem.featuresByLevel ?? []) {
+    if (f.level > charLevel) continue;
     if (isChoiceFeature(f)) continue;
     const norm = normalizeName(f.name);
     if (seen.has(norm)) continue;
