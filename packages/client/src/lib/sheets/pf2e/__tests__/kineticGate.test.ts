@@ -148,8 +148,8 @@ function ctx(doc: Record<string, unknown>, editable = true): PlanOpBuilderContex
 
 describe("Kinetic Gate — slot presence", () => {
   it("classHasKineticGate is true for Kineticist, false for Magus", () => {
-    expect(classHasKineticGate(kineticistClassDoc().system as unknown as ClassSystemLike)).toBe(true);
-    expect(classHasKineticGate(magusClassDoc().system as unknown as ClassSystemLike)).toBe(false);
+    expect(classHasKineticGate(kineticistClassDoc()["system"] as unknown as ClassSystemLike)).toBe(true);
+    expect(classHasKineticGate(magusClassDoc()["system"] as unknown as ClassSystemLike)).toBe(false);
   });
 
   it("adds a level-1 kineticGate slot for a Kineticist actor", () => {
@@ -171,7 +171,7 @@ describe("Kinetic Gate — slot presence", () => {
     const gateItem = {
       ...kineticGateFeatureDoc(),
       _id: "item-gate",
-      system: { ...(kineticGateFeatureDoc().system as object), kineticGates: [{ element: "air", damageType: "electricity" }] },
+      system: { ...(kineticGateFeatureDoc()["system"] as object), kineticGates: [{ element: "air", damageType: "electricity" }] },
       flags: { fusion: { build: { level: 1, slot: "kineticGate-1" } } },
     };
     const plan = derivePlan(actorDoc(kineticistClassDoc(), [gateItem]));
@@ -267,7 +267,7 @@ describe("readGateElements", () => {
       ...kineticGateFeatureDoc(),
       _id: "item-gate",
       system: {
-        ...(kineticGateFeatureDoc().system as object),
+        ...(kineticGateFeatureDoc()["system"] as object),
         kineticGates: [
           { element: "air", damageType: "electricity" },
           { element: "metal", damageType: "piercing" },
@@ -286,7 +286,7 @@ describe("readGateElements", () => {
     const gateItem = {
       ...kineticGateFeatureDoc(),
       _id: "item-gate",
-      system: { ...(kineticGateFeatureDoc().system as object), kineticGates: [{ element: "plasma" }, { element: "fire" }] },
+      system: { ...(kineticGateFeatureDoc()["system"] as object), kineticGates: [{ element: "plasma" }, { element: "fire" }] },
     };
     expect(readGateElements(actorDoc(kineticistClassDoc(), [gateItem]))).toEqual(["fire"]);
   });
