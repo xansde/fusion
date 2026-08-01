@@ -6,3 +6,9 @@
 tools/importer-pf2e/out/**
 pnpm-lock.yaml
 docs/etmos-fontes/
+
+# Third-party dice-box assets: rewritten by the package's postinstall on every
+# install, so formatting them makes the format check non-deterministic (green
+# locally, red on CI right after a fresh install).
+public/assets/**
+packages/client/public/dice-assets/**
