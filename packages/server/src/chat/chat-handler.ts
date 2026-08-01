@@ -484,7 +484,7 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
         msg.flags = {
           ...msg.flags,
           [SPELLCAST_FLAG_NAMESPACE]: {
-            ...(msg.flags?.[SPELLCAST_FLAG_NAMESPACE] as Record<string, unknown> | undefined),
+            ...msg.flags[SPELLCAST_FLAG_NAMESPACE],
             [CHECK_CONTEXT_FLAG_KEY]: gradedSave,
           },
         };
@@ -591,7 +591,7 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
           msg.flags = {
             ...msg.flags,
             [SPELLCAST_FLAG_NAMESPACE]: {
-              ...(msg.flags?.[SPELLCAST_FLAG_NAMESPACE] as Record<string, unknown> | undefined),
+              ...msg.flags[SPELLCAST_FLAG_NAMESPACE],
               [ABILITY_CARD_FLAG_KEY]: sanitized,
             },
           };
@@ -997,7 +997,7 @@ function attachParentFlag(msg: ChatMessage, parentId: string | undefined): void 
   msg.flags = {
     ...msg.flags,
     [PARENT_FLAG_NAMESPACE]: {
-      ...(msg.flags?.[PARENT_FLAG_NAMESPACE] as Record<string, unknown> | undefined),
+      ...msg.flags[PARENT_FLAG_NAMESPACE],
       [PARENT_MESSAGE_ID_FLAG_KEY]: parentId,
     },
   };
@@ -1018,7 +1018,9 @@ function readCasterSpellDCs(db: Db, actorId: string): number[] {
     const doc = JSON.parse(row.data) as Record<string, unknown>;
     const system = doc["system"] as Record<string, unknown> | undefined;
     const derived = system?.["derived"] as Record<string, unknown> | undefined;
-    const spellcasting = derived?.["spellcasting"] as Record<string, { dc?: unknown }> | undefined;
+    const spellcasting = derived?.["spellcasting"] as
+      | Record<string, { dc?: unknown } | undefined>
+      | undefined;
     if (!spellcasting) return [];
     const dcs: number[] = [];
     for (const entry of Object.values(spellcasting)) {

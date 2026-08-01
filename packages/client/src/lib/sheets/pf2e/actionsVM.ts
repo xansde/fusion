@@ -210,9 +210,9 @@ export function resolveActionCost(system: Record<string, unknown>): ActionCost {
  * (re-injected fields), then the mechanical category axis, then "other".
  */
 export function resolveActionGroup(doc: Record<string, unknown>): ActionGroup {
-  const system = isRecord(doc["system"]) ? (doc["system"] as Record<string, unknown>) : {};
-  const flags = isRecord(doc["flags"]) ? (doc["flags"] as Record<string, unknown>) : {};
-  const fusionFlags = isRecord(flags["fusion"]) ? (flags["fusion"] as Record<string, unknown>) : {};
+  const system = isRecord(doc["system"]) ? doc["system"] : {};
+  const flags = isRecord(doc["flags"]) ? doc["flags"] : {};
+  const fusionFlags = isRecord(flags["fusion"]) ? flags["fusion"] : {};
 
   // Folder axis — several plausible re-injection sites the importer might use.
   // system.fusionCategory is the actual field the importer (agent A) writes.
@@ -242,9 +242,9 @@ export function resolveActionGroup(doc: Record<string, unknown>): ActionGroup {
  * system.actionFolder), lower-cased and trimmed. Returns null when absent.
  */
 export function fusionCategoryOf(doc: Record<string, unknown>): string | null {
-  const system = isRecord(doc["system"]) ? (doc["system"] as Record<string, unknown>) : {};
-  const flags = isRecord(doc["flags"]) ? (doc["flags"] as Record<string, unknown>) : {};
-  const fusionFlags = isRecord(flags["fusion"]) ? (flags["fusion"] as Record<string, unknown>) : {};
+  const system = isRecord(doc["system"]) ? doc["system"] : {};
+  const flags = isRecord(doc["flags"]) ? doc["flags"] : {};
+  const fusionFlags = isRecord(flags["fusion"]) ? flags["fusion"] : {};
   const raw =
     str(system["fusionCategory"]) ??
     str(fusionFlags["actionFolder"]) ??
@@ -301,7 +301,7 @@ const GRANTED_ACTION_TYPES = new Set(["action", "reaction", "free"]);
 export function rowFromIndexEntry(entry: PackIndexEntry): ActionRow {
   // Reconstruct a system-like record from the flat index map so the shared
   // readers work uniformly. Index keys are dot-paths (e.g. "system.category").
-  const idx = entry.index ?? {};
+  const idx = entry.index;
   const system: Record<string, unknown> = {
     actionType: idx["system.actionType.value"] ?? idx["system.actionType"],
     actions: idx["system.actions.value"] ?? idx["system.actions"],
@@ -371,7 +371,7 @@ export function rowFromEmbeddedItem(item: Record<string, unknown>): ActionRow | 
   const type = str(item["type"]);
   if (!type || !ACTION_BEARING_TYPES.has(type)) return null;
 
-  const system = isRecord(item["system"]) ? (item["system"] as Record<string, unknown>) : {};
+  const system = isRecord(item["system"]) ? item["system"] : {};
   const traits = traitsOf(system);
   const impulse = hasImpulseTrait(traits);
   const actionType = str(system["actionType"]);
@@ -524,7 +524,7 @@ export function buildEmbeddedDetailsDoc(
   item: Record<string, unknown> | null | undefined,
 ): Record<string, unknown> | null {
   if (!isRecord(item)) return null;
-  const system = isRecord(item["system"]) ? { ...(item["system"] as Record<string, unknown>) } : {};
+  const system = isRecord(item["system"]) ? { ...item["system"] } : {};
   system["description"] = descriptionHtmlOf(system);
   return {
     name: str(item["name"]) ?? "Action",
@@ -592,15 +592,9 @@ export function withFallbackDescription(
   const localized = isRecord(packDoc) ? pickLocalizedDescription(packDoc, locale) : null;
   const packDescription =
     (typeof localized === "string" && localized.trim() ? localized : null) ??
-    descriptionHtmlOf(
-      isRecord(packDoc) && isRecord(packDoc["system"])
-        ? (packDoc["system"] as Record<string, unknown>)
-        : {},
-    );
+    descriptionHtmlOf(isRecord(packDoc) && isRecord(packDoc["system"]) ? packDoc["system"] : {});
   if (!packDescription) return embeddedDoc;
-  const system = isRecord(embeddedDoc["system"])
-    ? { ...(embeddedDoc["system"] as Record<string, unknown>) }
-    : {};
+  const system = isRecord(embeddedDoc["system"]) ? { ...embeddedDoc["system"] } : {};
   system["description"] = packDescription;
   return { ...embeddedDoc, system };
 }
@@ -667,13 +661,9 @@ export function parseImpulseSaveCue(
  * (non-kineticist / pre-derived data) so the announcement simply omits the DC.
  */
 export function kineticistClassDc(doc: Record<string, unknown>): number | null {
-  const system = isRecord(doc["system"]) ? (doc["system"] as Record<string, unknown>) : null;
-  const derived =
-    system && isRecord(system["derived"]) ? (system["derived"] as Record<string, unknown>) : null;
-  const classDC =
-    derived && isRecord(derived["classDC"])
-      ? (derived["classDC"] as Record<string, unknown>)
-      : null;
+  const system = isRecord(doc["system"]) ? doc["system"] : null;
+  const derived = system && isRecord(system["derived"]) ? system["derived"] : null;
+  const classDC = derived && isRecord(derived["classDC"]) ? derived["classDC"] : null;
   const dc = classDC?.["dc"];
   return typeof dc === "number" ? dc : null;
 }
@@ -891,9 +881,8 @@ export interface BlastRowVM {
  * still shows, its roll button is inert).
  */
 export function readElementalBlasts(doc: Record<string, unknown>): BlastRowVM[] {
-  const system = isRecord(doc["system"]) ? (doc["system"] as Record<string, unknown>) : null;
-  const derived =
-    system && isRecord(system["derived"]) ? (system["derived"] as Record<string, unknown>) : null;
+  const system = isRecord(doc["system"]) ? doc["system"] : null;
+  const derived = system && isRecord(system["derived"]) ? system["derived"] : null;
   const blasts = derived?.["elementalBlasts"];
   if (!Array.isArray(blasts)) return [];
 
@@ -903,12 +892,12 @@ export function readElementalBlasts(doc: Record<string, unknown>): BlastRowVM[] 
     const element = str(b["element"]);
     if (!element) continue;
     const variants = Array.isArray(b["variants"]) ? b["variants"] : [];
-    const v0 = isRecord(variants[0]) ? (variants[0] as Record<string, unknown>) : {};
+    const v0 = isRecord(variants[0]) ? variants[0] : {};
     const attackTotal =
       typeof v0["total"] === "number"
-        ? (v0["total"] as number)
+        ? v0["total"]
         : typeof b["attackBonus"] === "number"
-          ? (b["attackBonus"] as number)
+          ? b["attackBonus"]
           : 0;
     out.push({
       element,
@@ -918,9 +907,9 @@ export function readElementalBlasts(doc: Record<string, unknown>): BlastRowVM[] 
       damageFormula: str(b["damageFormula"]) ?? "",
       damageRoll: str(b["damageRoll"]) ?? "",
       twoActionDamageBonus:
-        typeof b["twoActionDamageBonus"] === "number" ? (b["twoActionDamageBonus"] as number) : 0,
+        typeof b["twoActionDamageBonus"] === "number" ? b["twoActionDamageBonus"] : 0,
       isRanged: b["isRanged"] === true,
-      range: typeof b["range"] === "number" ? (b["range"] as number) : null,
+      range: typeof b["range"] === "number" ? b["range"] : null,
     });
   }
   return out;
@@ -1074,7 +1063,7 @@ function nameSlug(item: Record<string, unknown>): string | null {
  */
 function archetypeSlugFromDedication(item: Record<string, unknown>): string | null {
   if (str(item["type"]) !== "feat") return null;
-  const system = isRecord(item["system"]) ? (item["system"] as Record<string, unknown>) : {};
+  const system = isRecord(item["system"]) ? item["system"] : {};
   const traits = traitsOf(system);
   if (!traits.includes("dedication")) return null;
   const name = str(item["name"]);
@@ -1204,7 +1193,7 @@ export function filterActionRows(rows: ActionRow[], filter: ActionFilterState): 
     if (filter.costs.size > 0) {
       // Only rows with a known, filterable cost kind can match a cost filter.
       if (row.cost.kind === "passive" || row.cost.kind === "unknown") return false;
-      if (!filter.costs.has(row.cost.kind as ActionCostFilter)) return false;
+      if (!filter.costs.has(row.cost.kind)) return false;
     }
 
     if (searchNorm && !rowMatchesSearch(row, searchNorm)) return false;

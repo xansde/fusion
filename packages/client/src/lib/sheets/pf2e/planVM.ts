@@ -758,7 +758,7 @@ function abcChipsFor(
       if (seen.has(norm)) continue;
       seen.add(norm);
       chips.push({
-        key: `grant:${typeof it["_id"] === "string" ? (it["_id"] as string) : norm}`,
+        key: `grant:${typeof it["_id"] === "string" ? it["_id"] : norm}`,
         name,
         detailsPackSlug: grantedItemPackSlug(it),
       });
@@ -1019,11 +1019,12 @@ function collapseSkillSlotGroups(slots: PlanSlotModel[]): PlanSlotModel[] {
   const groups: PlanSlotModel[] = [];
   for (const groupType of ["skillTraining", "skillIncrease"] as const) {
     const members = slots.filter((s) => s.type === groupType);
-    if (members.length === 0) continue;
+    const head = members[0];
+    if (head === undefined) continue;
     const filledCount = members.filter((s) => s.filled).length;
     const totalCount = members.length;
     groups.push({
-      slotId: members[0]!.slotId,
+      slotId: head.slotId,
       type: groupType,
       label: SLOT_TYPE_LABELS[groupType],
       filled: filledCount === totalCount,
@@ -1409,11 +1410,12 @@ export function isFeatEligible(
       // element is one of the character's chosen gates. Impulses with no
       // element trait, and non-impulse class feats, are unaffected. Only
       // applied when the caller supplies `gateElements` (a kineticist actor).
-      if (opts.gateElements && traits.includes("impulse")) {
+      const gateElements = opts.gateElements;
+      if (gateElements && traits.includes("impulse")) {
         const featElements = traits.filter((t) =>
           (KINETIC_ELEMENTS as readonly string[]).includes(t),
         );
-        if (featElements.length > 0 && !featElements.some((e) => opts.gateElements!.includes(e))) {
+        if (featElements.length > 0 && !featElements.some((e) => gateElements.includes(e))) {
           return false;
         }
       }
@@ -3072,7 +3074,7 @@ function entryTradition(entry: Record<string, unknown>): string {
   return typeof trad === "string"
     ? trad
     : typeof sys["tradition"] === "string"
-      ? (sys["tradition"] as string)
+      ? sys["tradition"]
       : "";
 }
 
@@ -3082,7 +3084,7 @@ function entryPreparedType(entry: Record<string, unknown>): string {
   return typeof prep === "string"
     ? prep
     : typeof sys["prepared"] === "string"
-      ? (sys["prepared"] as string)
+      ? sys["prepared"]
       : "";
 }
 
@@ -3182,15 +3184,14 @@ export function healGranterRefs(doc: Record<string, unknown>): HealGranterRef[] 
     if (type !== "feat" && type !== "classFeature") continue;
     const fusion = itemFusion(it);
     if (typeof fusion["grantedBy"] === "string") continue; // itself a grant
-    const sourceId =
-      typeof fusion["sourceId"] === "string" ? (fusion["sourceId"] as string) : undefined;
+    const sourceId = typeof fusion["sourceId"] === "string" ? fusion["sourceId"] : undefined;
     if (!sourceId) continue;
     const itemId = it["_id"];
     if (typeof itemId !== "string") continue;
     const name = itemName(it);
     if (!name) continue;
     const build = asRecord(fusion["build"]);
-    const slot = typeof build["slot"] === "string" ? (build["slot"] as string) : undefined;
+    const slot = typeof build["slot"] === "string" ? build["slot"] : undefined;
     refs.push({
       itemId,
       sourceId,
@@ -3499,7 +3500,7 @@ export function findEntryUuidByName(entries: PlanIndexEntryLike[], name: string)
   const exact = entries.find((e) => normalizeName(e.name) === target);
   if (exact) return exact.uuid;
   const prefixed = entries.filter((e) => normalizeName(e.name).startsWith(target));
-  return prefixed.length === 1 ? prefixed[0]!.uuid : null;
+  return prefixed.length === 1 ? (prefixed[0]?.uuid ?? null) : null;
 }
 
 /**
@@ -3508,7 +3509,7 @@ export function findEntryUuidByName(entries: PlanIndexEntryLike[], name: string)
  * null for an empty list.
  */
 export function pickDefaultEntryUuid(entries: PlanIndexEntryLike[]): string | null {
-  return entries.length > 0 ? entries[0]!.uuid : null;
+  return entries[0]?.uuid ?? null;
 }
 
 // ---------------------------------------------------------------------------

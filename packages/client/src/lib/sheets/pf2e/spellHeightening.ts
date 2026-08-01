@@ -321,9 +321,7 @@ export function computeHeightenedSpell(
 
     if (type === "interval" && heightenedBy > 0) {
       const interval = num(heightening["interval"]);
-      const incMap = isRecord(heightening["damage"])
-        ? (heightening["damage"] as Record<string, unknown>)
-        : {};
+      const incMap = isRecord(heightening["damage"]) ? heightening["damage"] : {};
       if (interval && interval > 0) {
         const steps = Math.floor(heightenedBy / interval);
         if (steps > 0) {
@@ -338,9 +336,7 @@ export function computeHeightenedSpell(
         }
       }
     } else if (type === "fixed") {
-      const levels = isRecord(heightening["levels"])
-        ? (heightening["levels"] as Record<string, unknown>)
-        : {};
+      const levels = isRecord(heightening["levels"]) ? heightening["levels"] : {};
       const override = fixedDamageOverride(levels, eff);
       if (override) components = override;
       hasComplexHeightening = hasComplexFixedChange(levels, eff);

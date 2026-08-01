@@ -58,7 +58,7 @@ function readI18nBag(source: Record<string, unknown> | null | undefined): Locali
   if (!source) return null;
   const bag = source["i18n"];
   if (bag === null || typeof bag !== "object" || Array.isArray(bag)) return null;
-  return bag as LocalizedBag;
+  return bag;
 }
 
 /**
@@ -151,8 +151,8 @@ function actionGlyphs(n: number): string {
 
 /** pt-BR / en label for a plain action count. */
 function actionCountLabel(n: number, locale: SupportedLocale): string {
-  if (locale === "pt-BR") return n === 1 ? "1 ação" : `${n} ações`;
-  return n === 1 ? "1 action" : `${n} actions`;
+  if (locale === "pt-BR") return n === 1 ? "1 ação" : `${String(n)} ações`;
+  return n === 1 ? "1 action" : `${String(n)} actions`;
 }
 
 /**
@@ -177,7 +177,7 @@ const SAVE_STATISTICS = new Set(["fortitude", "reflex", "will"]);
 
 /** Title-case a lowercase system slug for display, e.g. "fortitude" → "Fortitude". */
 function capitalize(word: string): string {
-  return word.length > 0 ? word[0]!.toUpperCase() + word.slice(1) : word;
+  return word.length > 0 ? (word[0] ?? "").toUpperCase() + word.slice(1) : word;
 }
 
 /**
@@ -221,9 +221,9 @@ function humanizeDamage(bracketBody: string): string {
   // (rare) don't win over the trailing type tag.
   const typeMatch = /^(.*)\[([^\]]*)]\s*$/.exec(core);
   if (typeMatch) {
-    const formula = humanizeRollData(typeMatch[1]!.trim());
+    const formula = humanizeRollData((typeMatch[1] ?? "").trim());
     // Damage type may itself be a list ("persistent,acid") or a roll-data ref.
-    const damageType = humanizeRollData(typeMatch[2]!.trim()).replace(/,/g, " ");
+    const damageType = humanizeRollData((typeMatch[2] ?? "").trim()).replace(/,/g, " ");
     return damageType ? `${formula} ${damageType}`.trim() : formula;
   }
 
@@ -326,8 +326,8 @@ function convertActionGlyphValue(
 
   const range = /^(\S+)\s*(?:-|to|or|a|ou|até)\s*(\S+)$/i.exec(trimmed);
   if (range) {
-    const lo = singleActionGlyph(range[1]!, locale);
-    const hi = singleActionGlyph(range[2]!, locale);
+    const lo = singleActionGlyph(range[1] ?? "", locale);
+    const hi = singleActionGlyph(range[2] ?? "", locale);
     if (lo !== null && hi !== null) {
       return { icons: `${lo.icons}${joiner}${hi.icons}`, title: rawValue };
     }
@@ -445,8 +445,8 @@ function humanizeInlineRoll(body: string): string | null {
   const macroMatch = /^\/([a-z]+)\s+([\s\S]*)$/i.exec(trimmed);
   if (!macroMatch) return null;
 
-  const kind = macroMatch[1]!.toLowerCase();
-  let rest = macroMatch[2]!.trim();
+  const kind = (macroMatch[1] ?? "").toLowerCase();
+  let rest = (macroMatch[2] ?? "").trim();
 
   // Action macro: [[/act climb skill=warfare-lore]] → "Climb". Show only the
   // action slug (first token), title-cased and de-kebabed; drop key=value args.
@@ -685,7 +685,7 @@ export function sanitizeDescriptionHtml(
     /<span title="([^"]*)">([^<]*)<\/span>/g,
     (_whole, title: string, icons: string) => {
       const index = glyphSpans.push(`<span title="${title}">${icons}</span>`) - 1;
-      return `\u{E000}${index}\u{E001}`;
+      return `\u{E000}${String(index)}\u{E001}`;
     },
   );
 
@@ -880,7 +880,10 @@ export function formatActionCost(
         return { icons: actionGlyphs(min), label: actionCountLabel(min, locale), isText: false };
       }
       const icons = `${actionGlyphs(min)} ${locale === "pt-BR" ? "a" : "to"} ${actionGlyphs(max)}`;
-      const label = locale === "pt-BR" ? `${min} a ${max} ações` : `${min} to ${max} actions`;
+      const label =
+        locale === "pt-BR"
+          ? `${String(min)} a ${String(max)} ações`
+          : `${String(min)} to ${String(max)} actions`;
       return { icons, label, isText: false };
     }
   }
@@ -1064,7 +1067,11 @@ function heightenField(
   const type = str(heightening["type"]);
   if (type === "interval") {
     const interval = heightening["interval"];
-    return field(FIELD_KEYS.heightened, label, typeof interval === "number" ? `+${interval}` : yes);
+    return field(
+      FIELD_KEYS.heightened,
+      label,
+      typeof interval === "number" ? `+${String(interval)}` : yes,
+    );
   }
   if (type === "fixed") {
     const levels = heightening["levels"];
@@ -1117,7 +1124,7 @@ export function buildSpellFields(
     const value = area["value"];
     if (type && typeof value === "number") {
       const shape = isPt ? (AREA_SHAPE_NAMES_PT[type] ?? type) : type;
-      const areaValue = isPt ? `${value} pés de ${shape}` : `${value}-foot ${type}`;
+      const areaValue = isPt ? `${String(value)} pés de ${shape}` : `${String(value)}-foot ${type}`;
       fields.push(field(FIELD_KEYS.area, isPt ? "Área" : "Area", areaValue));
     }
   }
@@ -1196,7 +1203,7 @@ export function buildFeatFields(
     const per = str(frequency["per"]);
     if (typeof max === "number" && per) {
       const perPt = translateValueTokens(per, locale);
-      const value = isPt ? `${max} por ${perPt}` : `${max} per ${per}`;
+      const value = isPt ? `${String(max)} por ${perPt}` : `${String(max)} per ${per}`;
       fields.push(field(FIELD_KEYS.frequency, isPt ? "Frequência" : "Frequency", value));
     }
   }

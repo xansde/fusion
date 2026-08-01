@@ -99,7 +99,7 @@ export function parseGrantItems(rules: unknown): ParsedGrant[] {
       typeof r["uuid"] === "string"
         ? r["uuid"]
         : typeof raw["uuid"] === "string"
-          ? (raw["uuid"] as string)
+          ? raw["uuid"]
           : undefined;
     if (!uuid) continue;
     const parsed = parseGrantUuid(uuid);
@@ -297,8 +297,7 @@ export function granterIdentity(granterItem: Record<string, unknown>): {
   slot?: string;
 } {
   const fusion = itemFusionFlags(granterItem);
-  const sourceId =
-    typeof fusion["sourceId"] === "string" ? (fusion["sourceId"] as string) : undefined;
+  const sourceId = typeof fusion["sourceId"] === "string" ? fusion["sourceId"] : undefined;
   const build = fusion["build"];
   const slot =
     build && typeof build === "object" ? (build as Record<string, unknown>)["slot"] : undefined;

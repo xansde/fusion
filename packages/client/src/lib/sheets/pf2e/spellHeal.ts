@@ -71,7 +71,7 @@ export async function buildSpellHealResolver(
         const ptKey = normalizeSearchText(entry.namePt);
         if (ptKey && !uuidByName.has(ptKey)) uuidByName.set(ptKey, entry.uuid);
       }
-      const src = entry.index?.["flags.fusion.sourceId"];
+      const src = entry.index["flags.fusion.sourceId"];
       if (typeof src === "string" && src.length > 0 && !uuidBySourceId.has(src)) {
         uuidBySourceId.set(src, entry.uuid);
       }

@@ -43,10 +43,10 @@ export function portraitInitials(name: string | null | undefined): string {
     .filter((w) => w.length > 0);
   if (words.length === 0) return "?";
   if (words.length === 1) {
-    return words[0]!.slice(0, 2).toUpperCase();
+    return (words[0] ?? "").slice(0, 2).toUpperCase();
   }
-  const first = words[0]![0] ?? "";
-  const last = words[words.length - 1]![0] ?? "";
+  const first = words[0]?.[0] ?? "";
+  const last = words[words.length - 1]?.[0] ?? "";
   return (first + last).toUpperCase();
 }
 
@@ -57,14 +57,14 @@ export function portraitInitials(name: string | null | undefined): string {
  */
 export function portraitColor(name: string | null | undefined): string {
   const key = (name ?? "").trim();
-  if (key === "") return PORTRAIT_PALETTE[0]!;
+  if (key === "") return PORTRAIT_PALETTE[0] ?? "";
   // Simple, stable string hash (djb2-ish, kept in 32-bit range).
   let hash = 0;
   for (let i = 0; i < key.length; i++) {
     hash = (hash * 31 + key.charCodeAt(i)) | 0;
   }
   const idx = Math.abs(hash) % PORTRAIT_PALETTE.length;
-  return PORTRAIT_PALETTE[idx]!;
+  return PORTRAIT_PALETTE[idx] ?? "";
 }
 
 /**

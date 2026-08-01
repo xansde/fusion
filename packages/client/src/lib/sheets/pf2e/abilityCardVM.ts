@@ -27,9 +27,7 @@ import {
   actorId as readActorId,
   actorSaveMod,
   ownsActor,
-  resolveClickerActors,
   type ActorDocLike,
-  type ClickerActorOption,
 } from "./spellCastCardVM.js";
 
 // Re-export the shared actor/ownership helpers so the component imports them

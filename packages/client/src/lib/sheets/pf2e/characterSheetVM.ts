@@ -170,13 +170,13 @@ const SPELL_COST_GLYPHS: Record<string, string> = {
  */
 function spellActionGlyphs(system: Record<string, unknown>): string {
   const time = system["time"] as { value?: unknown } | undefined;
-  const raw = typeof time?.["value"] === "string" ? (time["value"] as string).trim() : "";
+  const raw = typeof time?.["value"] === "string" ? time["value"].trim() : "";
   if (!raw) return "";
   const lower = raw.toLowerCase();
   if (lower.startsWith("reaction")) return SPELL_COST_GLYPHS["reaction"] ?? "";
   if (lower.startsWith("free")) return SPELL_COST_GLYPHS["free"] ?? "";
   const lead = /^(\d)/.exec(raw);
-  if (lead) return SPELL_COST_GLYPHS[lead[1]!] ?? "";
+  if (lead) return SPELL_COST_GLYPHS[lead[1] ?? ""] ?? "";
   return "";
 }
 
@@ -613,8 +613,7 @@ export class CharacterSheetVM {
     const name = typeof rawName === "string" ? rawName : "";
     const flags = item["flags"] as Record<string, unknown> | undefined;
     const fusion = flags?.["fusion"] as Record<string, unknown> | undefined;
-    const sourceId =
-      typeof fusion?.["sourceId"] === "string" ? (fusion["sourceId"] as string) : null;
+    const sourceId = typeof fusion?.["sourceId"] === "string" ? fusion["sourceId"] : null;
     const packSystem = this._spellHeal(name, sourceId);
     return healSpellSystem(embedded, packSystem);
   }
@@ -761,7 +760,7 @@ export class CharacterSheetVM {
     const derivedSpeed = this._derived?.speed;
     if (typeof derivedSpeed?.value === "number") return derivedSpeed.value;
     const s = this._system["speed"] as Record<string, unknown> | undefined;
-    if (typeof s?.["value"] === "number") return s["value"] as number;
+    if (typeof s?.["value"] === "number") return s["value"];
     // Legacy fallback: some hand-authored docs nested it under attributes.
     const attrs = this._system["attributes"] as Record<string, unknown> | undefined;
     const legacy = attrs?.["speed"] as Record<string, unknown> | undefined;
@@ -1801,7 +1800,7 @@ export class CharacterSheetVM {
     // Save (statistic + DC + basic) from the healed defense block.
     const defense = sys["defense"] as Record<string, unknown> | undefined;
     const save = defense?.["save"] as Record<string, unknown> | undefined;
-    const statistic = typeof save?.["statistic"] === "string" ? (save["statistic"] as string) : "";
+    const statistic = typeof save?.["statistic"] === "string" ? save["statistic"] : "";
     if (statistic === "fortitude" || statistic === "reflex" || statistic === "will") {
       card.saveType = statistic satisfies SpellSaveType;
       card.dcValue = this._derived?.spellcasting?.[entryId]?.dc ?? 10;
@@ -1868,7 +1867,7 @@ export class CharacterSheetVM {
   private _spellSaveLine(sys: Record<string, unknown>, entryId: string): string | null {
     const defense = sys["defense"] as Record<string, unknown> | undefined;
     const save = defense?.["save"] as Record<string, unknown> | undefined;
-    const statistic = typeof save?.["statistic"] === "string" ? (save["statistic"] as string) : "";
+    const statistic = typeof save?.["statistic"] === "string" ? save["statistic"] : "";
     if (!statistic) return null;
     const dc = this._derived?.spellcasting?.[entryId]?.dc ?? 10;
     const saveName = t(`FUSION.Sheet.Chat.SaveName.${statistic}`);

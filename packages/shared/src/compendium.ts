@@ -17,7 +17,6 @@
  */
 
 import { z } from "zod";
-import { DocMechanicsSchema } from "./mechanics.js";
 
 // ---------------------------------------------------------------------------
 // License kinds

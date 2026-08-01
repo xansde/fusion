@@ -38,7 +38,7 @@ import type { FamiliarSystem } from "../schemas/actor-familiar.js";
 // ---------------------------------------------------------------------------
 
 function getFamiliarSystem(doc: Record<string, unknown>): FamiliarSystem {
-  return doc["system"] as Record<string, unknown> as unknown as FamiliarSystem;
+  return doc["system"] as FamiliarSystem;
 }
 
 function getDerived(doc: Record<string, unknown>): Record<string, unknown> {

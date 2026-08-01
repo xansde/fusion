@@ -115,6 +115,9 @@ export function sendOp<R = unknown>(
  * caller decides whether to still fire the child un-nested (the fallback is a
  * top-level roll, never a lost roll).
  */
+// T exists so object literals keep excess-property checking; a non-generic
+// parameter type would silently accept extra keys.
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 export async function sendChatOpForId<T extends { readonly type: "chat:send" }>(
   socket: Socket,
   // Accept any flat chat:send op object (an inline literal OR a nominal
@@ -126,12 +129,8 @@ export async function sendChatOpForId<T extends { readonly type: "chat:send" }>(
   options: SendOpOptions = {},
 ): Promise<string | null> {
   const { type, ...payload } = op as { type: "chat:send" } & Record<string, unknown>;
-  const result = await sendOp<{ message?: ChatMessage }>(
-    socket,
-    { type: type as Envelope["type"], payload },
-    options,
-  );
-  return result?.message?._id ?? null;
+  const result = await sendOp<{ message?: ChatMessage }>(socket, { type: type, payload }, options);
+  return result.message?._id ?? null;
 }
 
 // ---------------------------------------------------------------------------

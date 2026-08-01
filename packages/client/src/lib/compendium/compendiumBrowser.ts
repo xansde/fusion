@@ -391,7 +391,11 @@ export function buildDocumentPreview(
     // Unique each-key per field: label + index. Guards against duplicate labels
     // (multiple rules mapping to the same pt-BR label) that would otherwise
     // throw `each_key_duplicate` and abort the preview render.
-    fields: fields.map((f, i) => ({ key: `${f.label}#${i}`, label: f.label, value: f.value })),
+    fields: fields.map((f, i) => ({
+      key: `${f.label}#${String(i)}`,
+      label: f.label,
+      value: f.value,
+    })),
     licenseLabel,
   };
 }
@@ -399,8 +403,8 @@ export function buildDocumentPreview(
 /** Read the doc-level pt-BR overlay name (`i18n.ptBR.name`), if present. */
 function docPtBRName(doc: Record<string, unknown>): string | undefined {
   const bag = readDocI18nPtBR(doc);
-  if (bag && typeof bag["name"] === "string" && (bag["name"] as string).length > 0) {
-    return bag["name"] as string;
+  if (bag && typeof bag["name"] === "string" && bag["name"].length > 0) {
+    return bag["name"];
   }
   return undefined;
 }
