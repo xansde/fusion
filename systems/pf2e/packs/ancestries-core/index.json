@@ -7,10 +7,7 @@
     "type": "ancestry",
     "index": {
       "name": "Fleshwarp",
-      "system.traits.value": [
-        "aberration",
-        "humanoid"
-      ],
+      "system.traits.value": ["aberration", "humanoid"],
       "system.size": "med"
     }
   },
@@ -22,10 +19,7 @@
     "type": "ancestry",
     "index": {
       "name": "Ratfolk",
-      "system.traits.value": [
-        "humanoid",
-        "ratfolk"
-      ],
+      "system.traits.value": ["humanoid", "ratfolk"],
       "system.size": "sm"
     }
   }

@@ -254,9 +254,10 @@ describe("packs-validation: r10 domain invariants", () => {
     expect(unresolved, JSON.stringify(unresolved)).toEqual([]);
 
     for (const ref of system.featuresByLevel) {
-      expect(idsInPack.has(ref.uuid), `featuresByLevel uuid "${ref.uuid}" (${ref.name}) not found in class-features-core`).toBe(
-        true,
-      );
+      expect(
+        idsInPack.has(ref.uuid),
+        `featuresByLevel uuid "${ref.uuid}" (${ref.name}) not found in class-features-core`,
+      ).toBe(true);
     }
   });
 
@@ -532,7 +533,9 @@ describe("packs-validation: r20-X5 ancestry features + Aeronaut grant", () => {
     const featureNames = new Set(ancestryFeatures.map((d) => normalize(d.name)));
     const missing: string[] = [];
     for (const ancestry of loadDocuments("ancestries-core")) {
-      const items = (ancestry.system as { items?: Record<string, { uuid?: string; name?: string }> }).items ?? {};
+      const items =
+        (ancestry.system as { items?: Record<string, { uuid?: string; name?: string }> }).items ??
+        {};
       for (const entry of Object.values(items)) {
         const uuid = entry.uuid ?? "";
         // Only ancestry-feature grants live in this pack; skip other vendors.
@@ -553,7 +556,9 @@ describe("packs-validation: r20-X5 ancestry features + Aeronaut grant", () => {
     // a background benefit (official Battlecry! text grants only Assurance).
     const aeronaut = loadDocuments("backgrounds-core").find((d) => d.name === "Aeronaut");
     expect(aeronaut, "backgrounds-core missing Aeronaut").toBeDefined();
-    const items = (aeronaut!.system as { items?: Record<string, { uuid?: string; name?: string }> }).items ?? {};
+    const items =
+      (aeronaut!.system as { items?: Record<string, { uuid?: string; name?: string }> }).items ??
+      {};
     const grantedNames = Object.values(items).map((e) => e.name);
     expect(grantedNames).toContain("Assurance");
     const assurance = Object.values(items).find((e) => e.name === "Assurance");
@@ -625,12 +630,16 @@ describe("packs-validation: actions-core domain invariants", () => {
       const actions = sys["actions"];
       if (actionType === "action") {
         if (typeof actions !== "number" || actions < 1 || actions > 3) {
-          offenders.push(`"${doc.name}": actionType="action" but system.actions = ${JSON.stringify(actions)}`);
+          offenders.push(
+            `"${doc.name}": actionType="action" but system.actions = ${JSON.stringify(actions)}`,
+          );
         }
       } else if (actions !== null && actions !== 1) {
         // Reactions/free actions occasionally carry actions:1 in the vendor
         // data (e.g. some free actions); passive/reaction never carry 2-3.
-        offenders.push(`"${doc.name}": actionType="${String(actionType)}" but system.actions = ${JSON.stringify(actions)}`);
+        offenders.push(
+          `"${doc.name}": actionType="${String(actionType)}" but system.actions = ${JSON.stringify(actions)}`,
+        );
       }
     }
     expect(offenders, offenders.join("\n")).toEqual([]);
@@ -650,7 +659,9 @@ describe("packs-validation: actions-core domain invariants", () => {
   it("excludes subsystems/vehicles/aftermath/campaign noise categories entirely", () => {
     const excluded = new Set(["subsystems", "vehicles", "aftermath", "campaign"]);
     const offenders = docs
-      .filter((d) => excluded.has((d.system as Record<string, unknown>)["fusionCategory"] as string))
+      .filter((d) =>
+        excluded.has((d.system as Record<string, unknown>)["fusionCategory"] as string),
+      )
       .map((d) => d.name);
     expect(offenders, offenders.join("\n")).toEqual([]);
   });

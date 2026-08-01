@@ -1,4 +1,4 @@
-# 05 — Compatibilidade de _ids PF2E ↔ Fusion
+# 05 — Compatibilidade de \_ids PF2E ↔ Fusion
 
 > Gerado em: 2026-07-07
 > Script: `src/extract.mjs --system pf2e`
@@ -8,31 +8,32 @@
 
 ## 1. Resultado global — packs alvo
 
-| Pack | Total docs | _ids válidos | _ids inválidos | % válidos |
-|---|---|---|---|---|
-| **ancestry-features** | 55 | 55 | 0 | 100.0% |
+| Pack                  | Total docs | \_ids válidos | \_ids inválidos | % válidos |
+| --------------------- | ---------- | ------------- | --------------- | --------- |
+| **ancestry-features** | 55         | 55            | 0               | 100.0%    |
 
 **Subtotal packs alvo:**
+
 - Total documentos: **55**
-- _ids válidos (Fusion): **55** (100.00%)
-- _ids inválidos: **0**
+- \_ids válidos (Fusion): **55** (100.00%)
+- \_ids inválidos: **0**
 
 ---
 
 ## 2. Resultado global — TODOS os packs pf2e
 
-| Métrica | Valor |
-|---|---|
-| Total documentos escaneados | **28498** |
-| _ids válidos (Fusion `^[A-Za-z0-9]{16}$`) | **28498** (100.00%) |
-| _ids inválidos | **0** |
-| Comprimentos de _id encontrados | 16 chars: 28498 docs |
+| Métrica                                    | Valor                |
+| ------------------------------------------ | -------------------- |
+| Total documentos escaneados                | **28498**            |
+| \_ids válidos (Fusion `^[A-Za-z0-9]{16}$`) | **28498** (100.00%)  |
+| \_ids inválidos                            | **0**                |
+| Comprimentos de \_id encontrados           | 16 chars: 28498 docs |
 
 ---
 
-## 3. Análise de formato dos _ids PF2E
+## 3. Análise de formato dos \_ids PF2E
 
-Os _ids do repositório pf2e são gerados pelo Foundry VTT como strings de
+Os \_ids do repositório pf2e são gerados pelo Foundry VTT como strings de
 **16 caracteres Base62** (`[A-Za-z0-9]`), idênticas ao padrão `^[A-Za-z0-9]{16}$`
 definido no Fusion para document IDs.
 
@@ -41,14 +42,14 @@ definido no Fusion para document IDs.
 - Comprimento: sempre exatamente 16 caracteres
 - Charset: A-Z, a-z, 0-9 (Base62 Foundry)
 - Unicidade: garantida dentro de cada pack (Foundry impede colisão)
-- Colisão cross-pack: **possível** — packs diferentes podem ter o mesmo _id
-  (ex: `equipment` e `spells` podem ambos ter um documento com _id `ABCdef012345GHij`)
+- Colisão cross-pack: **possível** — packs diferentes podem ter o mesmo \_id
+  (ex: `equipment` e `spells` podem ambos ter um documento com \_id `ABCdef012345GHij`)
 
 ---
 
 ## 4. Veredito de compatibilidade
 
-> **COMPATÍVEL — 100% dos _ids pf2e já satisfazem o formato Fusion.**
+> **COMPATÍVEL — 100% dos \_ids pf2e já satisfazem o formato Fusion.**
 
 Todos os **28498** documentos escaneados em todos os packs
 possuem `_id` de exatamente 16 caracteres alfanuméricos, satisfazendo
@@ -59,17 +60,17 @@ de formato é necessário.
 
 ## 5. Política de remapeamento recomendada
 
-Embora o **formato** seja compatível, o _id PF2E **não deve ser reutilizado
+Embora o **formato** seja compatível, o \_id PF2E **não deve ser reutilizado
 diretamente** como UUID Fusion. Motivos:
 
-1. **Colisão cross-pack**: o mesmo _id `XYZ...` pode existir em `equipment`
+1. **Colisão cross-pack**: o mesmo \_id `XYZ...` pode existir em `equipment`
    E em `spells`. O Fusion usa um namespace global de UUIDs.
 
 2. **Estabilidade e idempotência**: o importer deve produzir o mesmo UUID
    Fusion para o mesmo documento pf2e em todas as runs. O UUID derivado
    deve sobreviver a re-importações e upgrades do repositório pf2e.
 
-3. **Rastreabilidade**: manter a referência ao _id original facilita
+3. **Rastreabilidade**: manter a referência ao \_id original facilita
    debugging e diff entre versões.
 
 ### Política recomendada: UUID derivado por hash
@@ -97,5 +98,5 @@ ocorre no estágio TRANSFORM (M3-D), que também constrói o mapa de UUIDs.
 ### ancestry-features
 
 | Tipo | Quantidade |
-|---|---|
-| feat | 55 |
+| ---- | ---------- |
+| feat | 55         |

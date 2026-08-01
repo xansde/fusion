@@ -30,11 +30,7 @@
       "size": "med",
       "traits": {
         "rarity": "common",
-        "value": [
-          "consumable",
-          "magical",
-          "potion"
-        ]
+        "value": ["consumable", "magical", "potion"]
       },
       "usage": "held-in-one-hand",
       "uses": {
@@ -165,10 +161,7 @@
           "type": "item",
           "predicate": [
             {
-              "or": [
-                "action:high-jump",
-                "action:long-jump"
-              ]
+              "or": ["action:high-jump", "action:long-jump"]
             }
           ],
           "priority": null,
@@ -176,10 +169,7 @@
             "key": "FlatModifier",
             "predicate": [
               {
-                "or": [
-                  "action:high-jump",
-                  "action:long-jump"
-                ]
+                "or": ["action:high-jump", "action:long-jump"]
               }
             ],
             "selector": "athletics",
@@ -191,10 +181,7 @@
       "size": "med",
       "traits": {
         "rarity": "common",
-        "value": [
-          "invested",
-          "magical"
-        ]
+        "value": ["invested", "magical"]
       },
       "usage": "wornshoes"
     },
@@ -247,9 +234,7 @@
       "size": "med",
       "traits": {
         "rarity": "common",
-        "value": [
-          "magical"
-        ]
+        "value": ["magical"]
       },
       "usage": "held-in-one-hand",
       "uses": {
@@ -321,9 +306,7 @@
       "strength": 1,
       "traits": {
         "rarity": "uncommon",
-        "value": [
-          "flexible"
-        ]
+        "value": ["flexible"]
       },
       "armorType": null
     },
@@ -374,10 +357,7 @@
       "size": "med",
       "traits": {
         "rarity": "common",
-        "value": [
-          "light",
-          "magical"
-        ]
+        "value": ["light", "magical"]
       },
       "usage": "held-in-one-hand"
     },
@@ -507,10 +487,7 @@
           "type": "item",
           "predicate": [
             {
-              "or": [
-                "class:kineticist",
-                "feat:kineticist-dedication"
-              ]
+              "or": ["class:kineticist", "feat:kineticist-dedication"]
             }
           ],
           "priority": null,
@@ -518,10 +495,7 @@
             "key": "FlatModifier",
             "predicate": [
               {
-                "or": [
-                  "class:kineticist",
-                  "feat:kineticist-dedication"
-                ]
+                "or": ["class:kineticist", "feat:kineticist-dedication"]
               }
             ],
             "selector": "impulse-attack-roll",
@@ -533,10 +507,7 @@
       "size": "med",
       "traits": {
         "rarity": "common",
-        "value": [
-          "invested",
-          "magical"
-        ]
+        "value": ["invested", "magical"]
       },
       "usage": "worn"
     },
@@ -593,13 +564,7 @@
       "size": "med",
       "traits": {
         "rarity": "common",
-        "value": [
-          "consumable",
-          "healing",
-          "magical",
-          "potion",
-          "vitality"
-        ]
+        "value": ["consumable", "healing", "magical", "potion", "vitality"]
       },
       "usage": "held-in-one-hand",
       "uses": {
@@ -655,10 +620,7 @@
       "size": "med",
       "traits": {
         "rarity": "common",
-        "value": [
-          "magical",
-          "wood"
-        ]
+        "value": ["magical", "wood"]
       },
       "usage": "held-in-one-hand"
     },
@@ -767,10 +729,7 @@
       "size": "med",
       "traits": {
         "rarity": "uncommon",
-        "value": [
-          "auditory",
-          "magical"
-        ]
+        "value": ["auditory", "magical"]
       },
       "usage": "held-in-one-hand"
     },
@@ -874,11 +833,7 @@
       "size": "med",
       "traits": {
         "rarity": "uncommon",
-        "value": [
-          "consumable",
-          "magical",
-          "talisman"
-        ]
+        "value": ["consumable", "magical", "talisman"]
       },
       "usage": "affixed-to-armor",
       "uses": {
@@ -936,11 +891,7 @@
       "size": "med",
       "traits": {
         "rarity": "common",
-        "value": [
-          "consumable",
-          "magical",
-          "potion"
-        ]
+        "value": ["consumable", "magical", "potion"]
       },
       "usage": "held-in-one-hand",
       "uses": {
@@ -998,10 +949,7 @@
       "stowing": true,
       "traits": {
         "rarity": "common",
-        "value": [
-          "extradimensional",
-          "magical"
-        ]
+        "value": ["extradimensional", "magical"]
       },
       "usage": "held-in-two-hands",
       "capacity": 25,
@@ -1059,16 +1007,12 @@
           "value": 1,
           "mode": "add",
           "type": "untyped",
-          "predicate": [
-            "lit-torch"
-          ],
+          "predicate": ["lit-torch"],
           "priority": null,
           "raw": {
             "damageType": "fire",
             "key": "FlatModifier",
-            "predicate": [
-              "lit-torch"
-            ],
+            "predicate": ["lit-torch"],
             "selector": "{item|_id}-damage",
             "value": 1
           }
@@ -1106,9 +1050,7 @@
         "unconvertedRules": [
           {
             "key": "TokenLight",
-            "predicate": [
-              "lit-torch"
-            ],
+            "predicate": ["lit-torch"],
             "value": {
               "alpha": 0.3,
               "animation": {
@@ -1134,9 +1076,7 @@
               }
             },
             "key": "Strike",
-            "otherTags": [
-              "improvised"
-            ],
+            "otherTags": ["improvised"],
             "predicate": [
               {
                 "not": "lit-torch"
@@ -1155,19 +1095,13 @@
             },
             "img": "icons/sundries/lights/torch-brown-lit.webp",
             "key": "Strike",
-            "otherTags": [
-              "improvised"
-            ],
-            "predicate": [
-              "lit-torch"
-            ],
+            "otherTags": ["improvised"],
+            "predicate": ["lit-torch"],
             "_conversionState": "unsupported"
           },
           {
             "key": "TokenEffectIcon",
-            "predicate": [
-              "lit-torch"
-            ],
+            "predicate": ["lit-torch"],
             "value": "icons/sundries/lights/torch-brown-lit.webp",
             "_conversionState": "unsupported"
           }

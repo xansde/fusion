@@ -199,9 +199,7 @@ describe("resolveAbilityUuid (spell name popup)", () => {
     name === "Electric Arc" ? "Compendium.pf2e.spells-core.Item.arc" : null;
 
   it("prefers nameEn (untranslated join key) over the display name", () => {
-    expect(resolveAbilityUuid(SPELL_CARD, resolver)).toBe(
-      "Compendium.pf2e.spells-core.Item.arc",
-    );
+    expect(resolveAbilityUuid(SPELL_CARD, resolver)).toBe("Compendium.pf2e.spells-core.Item.arc");
   });
 
   it("returns null when neither name matches", () => {

@@ -166,7 +166,9 @@ function fleetFeat(): Record<string, unknown> {
     system: {
       category: "general",
       level: 1,
-      rules: [{ kind: "flat-modifier", selector: "land-speed", value: 5, mode: "add", type: "untyped" }],
+      rules: [
+        { kind: "flat-modifier", selector: "land-speed", value: 5, mode: "add", type: "untyped" },
+      ],
       traits: { rarity: "common", value: ["general"] },
     },
   };

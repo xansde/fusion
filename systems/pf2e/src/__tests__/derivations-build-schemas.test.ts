@@ -356,9 +356,9 @@ describe("Tobias-por-build (full fixture) — level 3 Magus, all plan skills", (
 
   it("focus points: persisted max 5 (bypassing schema) is clamped to 3 by the derivation guard", () => {
     doc = makeDoc();
-    (
-      (doc.system as Record<string, unknown>)["resources"] as Record<string, unknown>
-    )["focusPoints"] = { value: 5, max: 5 };
+    ((doc.system as Record<string, unknown>)["resources"] as Record<string, unknown>)[
+      "focusPoints"
+    ] = { value: 5, max: 5 };
     runCharacterPipeline(doc);
     const sys = doc.system as unknown as {
       resources: { focusPoints: { value: number; max: number } };

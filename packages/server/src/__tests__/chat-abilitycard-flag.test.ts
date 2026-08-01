@@ -80,7 +80,12 @@ function makeHarness(spellDc = 19, classDc = 21): Harness {
   applyMigrations(fusionDb.raw, dbPath);
   seedCaster(fusionDb.raw, spellDc, classDc);
   const seqStore = new SeqStore(fusionDb.raw);
-  const handler = buildChatSendHandler({ db: fusionDb.raw, ns: fakeNs(), seqStore, worldId: WORLD_ID });
+  const handler = buildChatSendHandler({
+    db: fusionDb.raw,
+    ns: fakeNs(),
+    seqStore,
+    worldId: WORLD_ID,
+  });
   return { handler };
 }
 

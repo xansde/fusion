@@ -8,24 +8,10 @@
   "system": {
     "boosts": {
       "0": {
-        "value": [
-          "cha",
-          "con",
-          "dex",
-          "int",
-          "str",
-          "wis"
-        ]
+        "value": ["cha", "con", "dex", "int", "str", "wis"]
       },
       "1": {
-        "value": [
-          "cha",
-          "con",
-          "dex",
-          "int",
-          "str",
-          "wis"
-        ]
+        "value": ["cha", "con", "dex", "int", "str", "wis"]
       }
     },
     "description": {
@@ -39,9 +25,7 @@
     },
     "rules": [],
     "trainedSkills": {
-      "lore": [
-        "Astrology Lore"
-      ],
+      "lore": ["Astrology Lore"],
       "value": []
     },
     "traits": {

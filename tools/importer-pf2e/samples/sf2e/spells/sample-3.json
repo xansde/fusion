@@ -44,22 +44,12 @@
     },
     "traits": {
       "rarity": "common",
-      "traditions": [
-        "arcane",
-        "occult"
-      ],
-      "value": [
-        "attack",
-        "concentrate",
-        "force",
-        "manipulate"
-      ]
+      "traditions": ["arcane", "occult"],
+      "value": ["attack", "concentrate", "force", "manipulate"]
     }
   },
   "_fusion": {
     "normalizedAt": "2026-07-05T15:03:52.721Z",
-    "removedFields": [
-      "folder"
-    ]
+    "removedFields": ["folder"]
   }
 }

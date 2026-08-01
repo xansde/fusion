@@ -7,13 +7,7 @@
   "originalImgRef": "wizard.webp",
   "system": {
     "ancestryFeatLevels": {
-      "value": [
-        1,
-        5,
-        9,
-        13,
-        17
-      ]
+      "value": [1, 5, 9, 13, 17]
     },
     "attacks": {
       "advanced": 0,
@@ -26,18 +20,7 @@
       "unarmed": 1
     },
     "classFeatLevels": {
-      "value": [
-        2,
-        4,
-        6,
-        8,
-        10,
-        12,
-        14,
-        16,
-        18,
-        20
-      ]
+      "value": [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
     },
     "defenses": {
       "heavy": 0,
@@ -49,13 +32,7 @@
       "value": "<p><em>You are an eternal student of the secrets of the universe, using your mastery of magic to cast powerful spells. You treat magic like a science, cross-referencing the latest texts on practical spellcraft with ancient tomes to discover and understand arcane magic. Yet magical theory is vast, and there's no way you can study it all. Most wizards learn through formal schooling, with their curriculum informing a specific rubric, although particularly driven researchers sometimes piece together their own theories.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.wDukeO3euLEGn6FA]{Wizard}</em></p>"
     },
     "generalFeatLevels": {
-      "value": [
-        3,
-        7,
-        11,
-        15,
-        19
-      ]
+      "value": [3, 7, 11, 15, 19]
     },
     "hp": 6,
     "items": {
@@ -151,9 +128,7 @@
       }
     },
     "keyAbility": {
-      "value": [
-        "int"
-      ]
+      "value": ["int"]
     },
     "perception": 1,
     "publication": {
@@ -168,38 +143,15 @@
       "will": 2
     },
     "skillFeatLevels": {
-      "value": [
-        2,
-        4,
-        6,
-        8,
-        10,
-        12,
-        14,
-        16,
-        18,
-        20
-      ]
+      "value": [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
     },
     "skillIncreaseLevels": {
-      "value": [
-        3,
-        5,
-        7,
-        9,
-        11,
-        13,
-        15,
-        17,
-        19
-      ]
+      "value": [3, 5, 7, 9, 11, 13, 15, 17, 19]
     },
     "spellcasting": 1,
     "trainedSkills": {
       "additional": 2,
-      "value": [
-        "arcana"
-      ]
+      "value": ["arcana"]
     },
     "traits": {
       "rarity": "common",

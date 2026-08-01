@@ -224,7 +224,8 @@ function readBaseComponents(
 ): Array<{ key: string; formula: string; type: string | null; category: string | null }> {
   const damage = system["damage"];
   if (!isRecord(damage)) return [];
-  const out: Array<{ key: string; formula: string; type: string | null; category: string | null }> = [];
+  const out: Array<{ key: string; formula: string; type: string | null; category: string | null }> =
+    [];
   for (const [key, raw] of Object.entries(damage)) {
     if (!isRecord(raw)) continue;
     const formula = str(raw["formula"]);
@@ -261,7 +262,8 @@ function fixedDamageOverride(
     }
   }
   if (!bestDamage) return null;
-  const out: Array<{ key: string; formula: string; type: string | null; category: string | null }> = [];
+  const out: Array<{ key: string; formula: string; type: string | null; category: string | null }> =
+    [];
   for (const [key, raw] of Object.entries(bestDamage)) {
     if (!isRecord(raw)) continue;
     const formula = str(raw["formula"]);
@@ -319,7 +321,9 @@ export function computeHeightenedSpell(
 
     if (type === "interval" && heightenedBy > 0) {
       const interval = num(heightening["interval"]);
-      const incMap = isRecord(heightening["damage"]) ? (heightening["damage"] as Record<string, unknown>) : {};
+      const incMap = isRecord(heightening["damage"])
+        ? (heightening["damage"] as Record<string, unknown>)
+        : {};
       if (interval && interval > 0) {
         const steps = Math.floor(heightenedBy / interval);
         if (steps > 0) {
@@ -334,7 +338,9 @@ export function computeHeightenedSpell(
         }
       }
     } else if (type === "fixed") {
-      const levels = isRecord(heightening["levels"]) ? (heightening["levels"] as Record<string, unknown>) : {};
+      const levels = isRecord(heightening["levels"])
+        ? (heightening["levels"] as Record<string, unknown>)
+        : {};
       const override = fixedDamageOverride(levels, eff);
       if (override) components = override;
       hasComplexHeightening = hasComplexFixedChange(levels, eff);
@@ -344,14 +350,20 @@ export function computeHeightenedSpell(
   const rollFormula = components.length > 0 ? components.map((c) => c.formula).join("+") : null;
   const damageDisplay =
     components.length > 0
-      ? components.map((c) => c.formula).join("+") + (components[0]?.type ? ` ${components[0].type}` : "")
+      ? components.map((c) => c.formula).join("+") +
+        (components[0]?.type ? ` ${components[0].type}` : "")
       : null;
 
   return {
     baseRank: base,
     effectiveRank: eff,
     heightenedBy,
-    components: components.map((c) => ({ key: c.key, formula: c.formula, type: c.type, category: c.category })),
+    components: components.map((c) => ({
+      key: c.key,
+      formula: c.formula,
+      type: c.type,
+      category: c.category,
+    })),
     rollFormula,
     damageDisplay,
     hasComplexHeightening,

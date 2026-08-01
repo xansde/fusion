@@ -3,10 +3,7 @@
   "label": "SF2e Conditions",
   "documentType": "Item",
   "systemId": "sf2e",
-  "indexFields": [
-    "system.duration",
-    "system.badge"
-  ],
+  "indexFields": ["system.duration", "system.badge"],
   "license": {
     "license": "ORC",
     "attribution": "Starfinder Player Core © 2025 Paizo Inc. Licensed under the ORC License.",

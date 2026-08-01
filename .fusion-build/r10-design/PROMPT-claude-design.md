@@ -23,6 +23,7 @@ HP 33/33, CA 19 (armadura de couro). Fort +8, Ref +8, Will +7, Percepção +5, I
 Atributos: FOR +0, DES +3, CON +1, INT +3, SAB +0, CAR +2. Heroísmo 1/3. Foco 1 de máx 3.
 
 Telas a projetar:
+
 1. Ficha completa: coluna "Plano" colapsável à esquerda (montagem nível a nível estilo
    Pathbuilder) + corpo central com stats sempre visíveis + as 17 perícias (todas visíveis,
    inclusive as destreinadas, cada linha rolável) + abas Principal/Perícias/Ações/Magias/

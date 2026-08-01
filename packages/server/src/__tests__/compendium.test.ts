@@ -510,12 +510,48 @@ describe("getPackIndex — action-cost enrichment", () => {
     documentCount: 6,
   };
   const ACTION_DOCS = [
-    { _id: "f2", name: "Aerial Boomerang", type: "feat", img: null, system: { actionType: "action", actions: 2, traits: { value: ["air"] } } },
-    { _id: "fr", name: "Air Cushion", type: "feat", img: null, system: { actionType: "reaction", actions: null, traits: { value: ["air"] } } },
-    { _id: "fp", name: "Cheek Pouches", type: "feat", img: null, system: { actionType: "passive", actions: null, traits: { value: [] } } },
-    { _id: "s2", name: "Fireball", type: "spell", img: null, system: { time: { value: "2" }, traits: { value: ["fire"] } } },
-    { _id: "sm", name: "Whisper on the Wind", type: "spell", img: null, system: { time: { value: "1 minute" }, traits: { value: ["air"] } } },
-    { _id: "af", name: "Free Thing", type: "action", img: null, system: { actionType: "free", actions: null, traits: { value: [] } } },
+    {
+      _id: "f2",
+      name: "Aerial Boomerang",
+      type: "feat",
+      img: null,
+      system: { actionType: "action", actions: 2, traits: { value: ["air"] } },
+    },
+    {
+      _id: "fr",
+      name: "Air Cushion",
+      type: "feat",
+      img: null,
+      system: { actionType: "reaction", actions: null, traits: { value: ["air"] } },
+    },
+    {
+      _id: "fp",
+      name: "Cheek Pouches",
+      type: "feat",
+      img: null,
+      system: { actionType: "passive", actions: null, traits: { value: [] } },
+    },
+    {
+      _id: "s2",
+      name: "Fireball",
+      type: "spell",
+      img: null,
+      system: { time: { value: "2" }, traits: { value: ["fire"] } },
+    },
+    {
+      _id: "sm",
+      name: "Whisper on the Wind",
+      type: "spell",
+      img: null,
+      system: { time: { value: "1 minute" }, traits: { value: ["air"] } },
+    },
+    {
+      _id: "af",
+      name: "Free Thing",
+      type: "action",
+      img: null,
+      system: { actionType: "free", actions: null, traits: { value: [] } },
+    },
   ];
 
   function setupActionPack(): string {

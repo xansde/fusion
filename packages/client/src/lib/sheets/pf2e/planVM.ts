@@ -657,7 +657,9 @@ export function derivePlan(doc: Record<string, unknown>): PlanModel {
 
   const levels: LevelPlanModel[] = [];
   for (let lvl = 1; lvl <= level; lvl++) {
-    levels.push(buildLevelPlan(lvl, classSystem, choices, items, freeArchetype, doc, abilities, level));
+    levels.push(
+      buildLevelPlan(lvl, classSystem, choices, items, freeArchetype, doc, abilities, level),
+    );
   }
 
   return { abc, levels, needsClass: false };
@@ -840,7 +842,13 @@ function buildLevelPlan(
   // declares "Kinetic Gate", etc. Emitted at whatever level the placeholder is
   // declared (both are level 1 in the current packs, but this is level-agnostic).
   for (const choiceType of classChoiceSlotsAtLevel(classSystem, level)) {
-    const choiceSlot = resolveSlot(choiceType, `${choiceType}-${String(level)}`, level, choices, items);
+    const choiceSlot = resolveSlot(
+      choiceType,
+      `${choiceType}-${String(level)}`,
+      level,
+      choices,
+      items,
+    );
     slots.push(choiceSlot);
     // r15 A2: a filled study/feature may materialize fixed grants (Starlit Span
     // → Shooting Star) — surface them as locked nested chips under the choice.
@@ -864,13 +872,27 @@ function buildLevelPlan(
   // sub-slot adjacent in `slots[]` is what lets LevelCard render the sub-slot
   // indented directly under its parent without a second pass.
   if ((featLevels.ancestry ?? []).includes(level)) {
-    pushFeatSlotWithGrant(slots, "ancestryFeat", `ancestryFeat-${String(level)}`, level, choices, items);
+    pushFeatSlotWithGrant(
+      slots,
+      "ancestryFeat",
+      `ancestryFeat-${String(level)}`,
+      level,
+      choices,
+      items,
+    );
   }
   if ((featLevels.class ?? []).includes(level)) {
     pushFeatSlotWithGrant(slots, "classFeat", `classFeat-${String(level)}`, level, choices, items);
   }
   if ((featLevels.general ?? []).includes(level)) {
-    pushFeatSlotWithGrant(slots, "generalFeat", `generalFeat-${String(level)}`, level, choices, items);
+    pushFeatSlotWithGrant(
+      slots,
+      "generalFeat",
+      `generalFeat-${String(level)}`,
+      level,
+      choices,
+      items,
+    );
   }
   if ((featLevels.skill ?? []).includes(level)) {
     pushFeatSlotWithGrant(slots, "skillFeat", `skillFeat-${String(level)}`, level, choices, items);
@@ -878,7 +900,13 @@ function buildLevelPlan(
 
   // Free Archetype: an extra archetype feat slot on even levels.
   if (freeArchetype && level % 2 === 0) {
-    const slot = resolveSlot("archetypeFeat", `archetypeFeat-${String(level)}`, level, choices, items);
+    const slot = resolveSlot(
+      "archetypeFeat",
+      `archetypeFeat-${String(level)}`,
+      level,
+      choices,
+      items,
+    );
     slot.optional = true;
     slots.push(slot);
     pushGrantedFeatSubSlot(slots, slot, level, choices, items);
@@ -887,7 +915,9 @@ function buildLevelPlan(
 
   // Skill increases.
   if ((classSystem.skillIncreaseLevels ?? []).includes(level)) {
-    slots.push(resolveSlot("skillIncrease", `skillIncrease-${String(level)}`, level, choices, items));
+    slots.push(
+      resolveSlot("skillIncrease", `skillIncrease-${String(level)}`, level, choices, items),
+    );
   }
 
   // Level 1: trained-skill free choices — trainedSkills.additional PLUS the
@@ -900,7 +930,9 @@ function buildLevelPlan(
     const additional = classSystem.trainedSkills?.additional ?? 0;
     const total = trainedSkillCount(additional, abilities, charLevel);
     for (let i = 0; i < total; i++) {
-      slots.push(resolveSlot("skillTraining", `skillTraining-1-${String(i)}`, level, choices, items));
+      slots.push(
+        resolveSlot("skillTraining", `skillTraining-1-${String(i)}`, level, choices, items),
+      );
     }
   }
 
@@ -946,10 +978,7 @@ export function classGrantSlot(level: number, featureName: string): string {
  * grantedBy=<classSourceId>, grantedSlot=`classFeature:<level>:…`). Deduped by
  * normalized name. Empty for a class whose features grant no fixed actions.
  */
-function classGrantedActionChips(
-  doc: Record<string, unknown>,
-  level: number,
-): AutoFeatureModel[] {
+function classGrantedActionChips(doc: Record<string, unknown>, level: number): AutoFeatureModel[] {
   const classItem = findFirstItemByType(doc, "class");
   const classSourceId = classItem ? itemFusionSourceId(classItem) : undefined;
   if (!classSourceId) return [];
@@ -1079,7 +1108,7 @@ function pushFixedGrantChips(
     const itemId = item["_id"];
     const detailsPackSlug = grantedItemPackSlug(item);
     slots.push({
-      slotId: `${parentSlot.slotId}:grant:${typeof itemId === "string" ? itemId : itemName(item) ?? "?"}`,
+      slotId: `${parentSlot.slotId}:grant:${typeof itemId === "string" ? itemId : (itemName(item) ?? "?")}`,
       type: "grantedFeat",
       label: SLOT_TYPE_LABELS.grantedFeat,
       filled: true,
@@ -1246,7 +1275,10 @@ function resolveAbilityBoostsSlot(
     type: "abilityBoosts",
     label: SLOT_TYPE_LABELS.abilityBoosts,
     filled,
-    ...withOptional("choiceName", filled && pickedSlugs.length > 0 ? pickedSlugs.join(", ") : undefined),
+    ...withOptional(
+      "choiceName",
+      filled && pickedSlugs.length > 0 ? pickedSlugs.join(", ") : undefined,
+    ),
   };
 }
 
@@ -1287,10 +1319,7 @@ export interface AbilityGridCell {
  * level's boosts), so the Plan renders "FOR +0 · DES +3 …" instead of the raw
  * "con, dex, int, …" pick list. Pure — reuses `computeAbilityScores`.
  */
-export function abilityBoostsGrid(
-  doc: Record<string, unknown>,
-  level: number,
-): AbilityGridCell[] {
+export function abilityBoostsGrid(doc: Record<string, unknown>, level: number): AbilityGridCell[] {
   const abilities = getBuildAbilities(getSystem(doc));
   const scores = computeAbilityScores(abilities, level);
   return ABILITY_GRID_ORDER.map((slug) => {
@@ -1307,7 +1336,11 @@ export function abilityBoostsGrid(
  * slots — PF2e Remaster rule: `max(0, intMod)` extra trained skills at
  * character creation).
  */
-function trainedSkillCount(additional: number, abilities: BuildAbilities, charLevel: number): number {
+function trainedSkillCount(
+  additional: number,
+  abilities: BuildAbilities,
+  charLevel: number,
+): number {
   const scores = computeAbilityScores(abilities, charLevel);
   const intMod = abilityMod(scores.int);
   return additional + Math.max(0, intMod);
@@ -1613,7 +1646,10 @@ export function readGateElements(doc: Record<string, unknown>): KineticElement[]
     if (!Array.isArray(gates)) continue;
     for (const g of gates) {
       const element = asRecord(g)["element"];
-      if (typeof element === "string" && (KINETIC_ELEMENTS as readonly string[]).includes(element)) {
+      if (
+        typeof element === "string" &&
+        (KINETIC_ELEMENTS as readonly string[]).includes(element)
+      ) {
         out.push(element as KineticElement);
       }
     }
@@ -1743,7 +1779,10 @@ function hasFocusFeature(classSystem: ClassSystemLike): boolean {
 function buildSlotsMap(
   slotsByRank: Record<string, number>,
   cantripsKnown: number,
-): Record<string, { value: number; max: number; prepared: Array<{ id: string; expended: boolean }> }> {
+): Record<
+  string,
+  { value: number; max: number; prepared: Array<{ id: string; expended: boolean }> }
+> {
   const slots: Record<
     string,
     { value: number; max: number; prepared: Array<{ id: string; expended: boolean }> }
@@ -1819,9 +1858,7 @@ export function applyAncestry(
       // applyAncestry wrote the boosts but never the speed, so a freshly-built
       // character's sheet showed 0 ft. Set on every apply → covers first pick
       // AND swap (a new ancestry overwrites the prior speed).
-      ...(typeof speedValue === "number"
-        ? { "system.attributes.speed.value": speedValue }
-        : {}),
+      ...(typeof speedValue === "number" ? { "system.attributes.speed.value": speedValue } : {}),
     },
   } satisfies DocUpdatePayload);
 
@@ -1973,7 +2010,13 @@ function backgroundTrainingOps(
   const newChoices: BuildChoice[] = [];
 
   trainings.skills.forEach((slug, i) => {
-    newChoices.push({ level: 1, slot: `backgroundSkill-${String(i)}`, type: "skillTraining", skill: slug, rank: 1 });
+    newChoices.push({
+      level: 1,
+      slot: `backgroundSkill-${String(i)}`,
+      type: "skillTraining",
+      skill: slug,
+      rank: 1,
+    });
   });
 
   // Each lore needs its persisted `system.skills` entry (lore:true) so the
@@ -1981,11 +2024,22 @@ function backgroundTrainingOps(
   const loreEntries: Record<string, unknown> = {};
   trainings.lores.forEach((lore, i) => {
     loreEntries[`system.skills.${lore.slug}`] = { rank: 0, lore: true, label: lore.label };
-    newChoices.push({ level: 1, slot: `backgroundLore-${String(i)}`, type: "skillTraining", skill: lore.slug, rank: 1 });
+    newChoices.push({
+      level: 1,
+      slot: `backgroundLore-${String(i)}`,
+      type: "skillTraining",
+      skill: lore.slug,
+      rank: 1,
+    });
   });
 
   if (Object.keys(loreEntries).length > 0) {
-    ops.push({ type: "doc:update", documentType: "Actor", id: ctx.actorId, diff: loreEntries } satisfies DocUpdatePayload);
+    ops.push({
+      type: "doc:update",
+      documentType: "Actor",
+      id: ctx.actorId,
+      diff: loreEntries,
+    } satisfies DocUpdatePayload);
   }
 
   if (newChoices.length > 0) {
@@ -2022,7 +2076,9 @@ export function backgroundLoreHealOps(
   const actorSys = getSystem(ctx.doc);
   const existingChoices = getBuildChoices(actorSys);
   const existingSkills = asRecord(actorSys["skills"]);
-  const trainedSlugs = new Set(existingChoices.map((c) => c.skill).filter((s): s is string => typeof s === "string"));
+  const trainedSlugs = new Set(
+    existingChoices.map((c) => c.skill).filter((s): s is string => typeof s === "string"),
+  );
 
   const missing = trainings.lores.filter(
     (lore) => !trainedSlugs.has(lore.slug) && !existingSkills[lore.slug],
@@ -2038,11 +2094,22 @@ export function backgroundLoreHealOps(
     loreEntries[`system.skills.${lore.slug}`] = { rank: 0, lore: true, label: lore.label };
     while (usedLoreSlots.has(`backgroundLore-${String(n)}`)) n++;
     usedLoreSlots.add(`backgroundLore-${String(n)}`);
-    newChoices.push({ level: 1, slot: `backgroundLore-${String(n)}`, type: "skillTraining", skill: lore.slug, rank: 1 });
+    newChoices.push({
+      level: 1,
+      slot: `backgroundLore-${String(n)}`,
+      type: "skillTraining",
+      skill: lore.slug,
+      rank: 1,
+    });
   }
 
   return [
-    { type: "doc:update", documentType: "Actor", id: ctx.actorId, diff: loreEntries } satisfies DocUpdatePayload,
+    {
+      type: "doc:update",
+      documentType: "Actor",
+      id: ctx.actorId,
+      diff: loreEntries,
+    } satisfies DocUpdatePayload,
     {
       type: "doc:update",
       documentType: "Actor",
@@ -2092,7 +2159,12 @@ export function chooseHybridStudy(
   level: number,
   featureDoc: Record<string, unknown>,
 ): DocOpPayload[] {
-  return chooseFeat(ctx, { slotId: "hybridStudy-1", type: "hybridStudy" } as PlanSlotModel, level, featureDoc);
+  return chooseFeat(
+    ctx,
+    { slotId: "hybridStudy-1", type: "hybridStudy" } as PlanSlotModel,
+    level,
+    featureDoc,
+  );
 }
 
 /**
@@ -2120,8 +2192,7 @@ export function chooseKineticGate(
     .filter((p) => (KINETIC_ELEMENTS as readonly string[]).includes(p.element))
     .map((p) => {
       const valid = KINETIC_ELEMENT_DAMAGE_TYPES[p.element];
-      const damageType =
-        p.damageType && valid.includes(p.damageType) ? p.damageType : valid[0];
+      const damageType = p.damageType && valid.includes(p.damageType) ? p.damageType : valid[0];
       return { element: p.element, damageType };
     });
 
@@ -2274,7 +2345,12 @@ function effectiveSkillRank(
   }
 
   const choices = getBuildChoices(sys)
-    .filter((c) => (c.type === "skillTraining" || c.type === "skillIncrease") && c.level <= charLevel && c.skill === slug)
+    .filter(
+      (c) =>
+        (c.type === "skillTraining" || c.type === "skillIncrease") &&
+        c.level <= charLevel &&
+        c.skill === slug,
+    )
     .filter((c) => !ignoreSlotIds?.has(c.slot))
     .sort((a, b) => a.level - b.level);
   for (const choice of choices) {
@@ -2469,7 +2545,13 @@ export function confirmSkillTraining(
     if (!slotId || !skillSlug) continue;
     const row = rowBySlug.get(skillSlug);
     const rank = row?.targetRank ?? (dialogCtx.kind === "skillTraining" ? 1 : 2);
-    newChoices.push({ level: dialogCtx.level, slot: slotId, type: dialogCtx.kind, skill: skillSlug, rank });
+    newChoices.push({
+      level: dialogCtx.level,
+      slot: slotId,
+      type: dialogCtx.kind,
+      skill: skillSlug,
+      rank,
+    });
   }
 
   // Drop EVERY prior choice occupying one of this group's slot ids (whether it
@@ -2497,7 +2579,10 @@ export function addLoreSkill(ctx: PlanOpBuilderContext, name: string): DocUpdate
   if (!ctx.editable) return null;
   const trimmed = name.trim();
   if (!trimmed) return null;
-  const slug = `lore-${trimmed.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}`;
+  const slug = `lore-${trimmed
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")}`;
   if (!slug || slug === "lore-") return null;
   const sys = getSystem(ctx.doc);
   const skills = asRecord(sys["skills"]);
@@ -2703,10 +2788,7 @@ export function abilityBoostsSlotContext(
         freeCount: findFirstItemByType(doc, "class") ? 1 : 0,
         initialFreeSlugs: abilities.classBoost,
         excludedSlugs: [],
-        ...withOptional(
-          "allowedSlugs",
-          classKeyAbilityOptions(findFirstItemByType(doc, "class")),
-        ),
+        ...withOptional("allowedSlugs", classKeyAbilityOptions(findFirstItemByType(doc, "class"))),
       },
       {
         origin: "levelled",
@@ -2791,7 +2873,9 @@ export function previewAbilityScores(
  * dialog for real.
  */
 export function isAbilityBoostsSlotFilled(slotCtx: AbilityBoostsSlotContext): boolean {
-  return slotCtx.groups.every((g) => g.freeCount === 0 || g.initialFreeSlugs.length === g.freeCount);
+  return slotCtx.groups.every(
+    (g) => g.freeCount === 0 || g.initialFreeSlugs.length === g.freeCount,
+  );
 }
 
 /** setFreeArchetype — toggle the Free Archetype variant rule. */
@@ -2985,13 +3069,21 @@ function entryHasPreparedSpell(entry: Record<string, unknown>): boolean {
 function entryTradition(entry: Record<string, unknown>): string {
   const sys = asRecord(entry["system"]);
   const trad = asRecord(sys["tradition"])["value"];
-  return typeof trad === "string" ? trad : typeof sys["tradition"] === "string" ? (sys["tradition"] as string) : "";
+  return typeof trad === "string"
+    ? trad
+    : typeof sys["tradition"] === "string"
+      ? (sys["tradition"] as string)
+      : "";
 }
 
 function entryPreparedType(entry: Record<string, unknown>): string {
   const sys = asRecord(entry["system"]);
   const prep = asRecord(sys["prepared"])["value"];
-  return typeof prep === "string" ? prep : typeof sys["prepared"] === "string" ? (sys["prepared"] as string) : "";
+  return typeof prep === "string"
+    ? prep
+    : typeof sys["prepared"] === "string"
+      ? (sys["prepared"] as string)
+      : "";
 }
 
 function isFocusEntry(entry: Record<string, unknown>): boolean {
@@ -3032,7 +3124,8 @@ export function planGhostEntryCleanup(ctx: PlanOpBuilderContext): DocDeleteEmbed
       if (entryPreparedType(other) !== preparedType) return false;
       const otherId = other["_id"];
       const nonEmpty =
-        (typeof otherId === "string" && entrySpellCount(otherId, items) > 0) || entryHasPreparedSpell(other);
+        (typeof otherId === "string" && entrySpellCount(otherId, items) > 0) ||
+        entryHasPreparedSpell(other);
       return nonEmpty;
     });
     if (!hasNonEmptyTwin) continue;
@@ -3089,7 +3182,8 @@ export function healGranterRefs(doc: Record<string, unknown>): HealGranterRef[] 
     if (type !== "feat" && type !== "classFeature") continue;
     const fusion = itemFusion(it);
     if (typeof fusion["grantedBy"] === "string") continue; // itself a grant
-    const sourceId = typeof fusion["sourceId"] === "string" ? (fusion["sourceId"] as string) : undefined;
+    const sourceId =
+      typeof fusion["sourceId"] === "string" ? (fusion["sourceId"] as string) : undefined;
     if (!sourceId) continue;
     const itemId = it["_id"];
     if (typeof itemId !== "string") continue;
@@ -3202,12 +3296,10 @@ function syncSlotMaxOp(
     ? (currentSlot["prepared"] as unknown[])
     : [];
 
-  const nextPrepared = currentPrepared
-    .slice(0, newMax)
-    .map((e) => {
-      const el = asRecord(e);
-      return { id: typeof el["id"] === "string" ? el["id"] : "", expended: el["expended"] === true };
-    });
+  const nextPrepared = currentPrepared.slice(0, newMax).map((e) => {
+    const el = asRecord(e);
+    return { id: typeof el["id"] === "string" ? el["id"] : "", expended: el["expended"] === true };
+  });
   while (nextPrepared.length < newMax) {
     nextPrepared.push({ id: "", expended: false });
   }
@@ -3345,11 +3437,7 @@ export interface PlanDetailsRequest {
 
 /** Normalize a name for matching — mirrors normalizeSearchText (accent/case-fold). */
 function normalizeName(name: string): string {
-  return name
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .trim();
+  return name.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
 }
 
 /**

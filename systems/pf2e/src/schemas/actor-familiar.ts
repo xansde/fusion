@@ -175,9 +175,7 @@ export const FamiliarSystemSchema = z
      */
     progression: z
       .object({
-        stage: z
-          .enum(["young", "mature", "incredible", "nimble", "savage"])
-          .default("young"),
+        stage: z.enum(["young", "mature", "incredible", "nimble", "savage"]).default("young"),
       })
       .default({ stage: "young" }),
   })

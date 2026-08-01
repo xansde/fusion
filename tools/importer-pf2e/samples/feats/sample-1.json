@@ -43,15 +43,11 @@
     ],
     "traits": {
       "rarity": "common",
-      "value": [
-        "anadi"
-      ]
+      "value": ["anadi"]
     }
   },
   "_fusion": {
     "normalizedAt": "2026-07-05T18:45:12.919Z",
-    "removedFields": [
-      "folder"
-    ]
+    "removedFields": ["folder"]
   }
 }

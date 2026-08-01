@@ -8,10 +8,7 @@
     "index": {
       "system.level": 0,
       "system.category": "light",
-      "system.traits.value": [
-        "exposed",
-        "tech"
-      ]
+      "system.traits.value": ["exposed", "tech"]
     }
   },
   {
@@ -23,10 +20,7 @@
     "index": {
       "system.level": 0,
       "system.category": "heavy",
-      "system.traits.value": [
-        "bulwark",
-        "tech"
-      ]
+      "system.traits.value": ["bulwark", "tech"]
     }
   },
   {
@@ -38,11 +32,7 @@
     "index": {
       "system.level": 0,
       "system.category": "light",
-      "system.traits.value": [
-        "comfort",
-        "flexible",
-        "tech"
-      ]
+      "system.traits.value": ["comfort", "flexible", "tech"]
     }
   },
   {
@@ -54,9 +44,7 @@
     "index": {
       "system.level": 0,
       "system.category": "light",
-      "system.traits.value": [
-        "tech"
-      ]
+      "system.traits.value": ["tech"]
     }
   },
   {
@@ -68,11 +56,7 @@
     "index": {
       "system.level": 0,
       "system.category": "light",
-      "system.traits.value": [
-        "comfort",
-        "flexible",
-        "tech"
-      ]
+      "system.traits.value": ["comfort", "flexible", "tech"]
     }
   },
   {
@@ -84,9 +68,7 @@
     "index": {
       "system.level": 0,
       "system.category": "medium",
-      "system.traits.value": [
-        "tech"
-      ]
+      "system.traits.value": ["tech"]
     }
   },
   {
@@ -98,11 +80,7 @@
     "index": {
       "system.level": 0,
       "system.category": "light",
-      "system.traits.value": [
-        "flexible",
-        "noisy",
-        "tech"
-      ]
+      "system.traits.value": ["flexible", "noisy", "tech"]
     }
   },
   {
@@ -114,10 +92,7 @@
     "index": {
       "system.level": 0,
       "system.category": "heavy",
-      "system.traits.value": [
-        "bulwark",
-        "tech"
-      ]
+      "system.traits.value": ["bulwark", "tech"]
     }
   },
   {
@@ -129,10 +104,7 @@
     "index": {
       "system.level": 0,
       "system.category": "light",
-      "system.traits.value": [
-        "comfort",
-        "tech"
-      ]
+      "system.traits.value": ["comfort", "tech"]
     }
   },
   {
@@ -144,9 +116,7 @@
     "index": {
       "system.level": 0,
       "system.category": "medium",
-      "system.traits.value": [
-        "tech"
-      ]
+      "system.traits.value": ["tech"]
     }
   }
 ]

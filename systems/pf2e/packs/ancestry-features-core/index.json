@@ -8,9 +8,7 @@
     "index": {
       "name": "Fangs",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "anadi"
-      ]
+      "system.traits.value": ["anadi"]
     }
   },
   {
@@ -22,9 +20,7 @@
     "index": {
       "name": "Constructed",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "android"
-      ]
+      "system.traits.value": ["android"]
     }
   },
   {
@@ -36,9 +32,7 @@
     "index": {
       "name": "Emotionally Unaware",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "android"
-      ]
+      "system.traits.value": ["android"]
     }
   },
   {
@@ -50,9 +44,7 @@
     "index": {
       "name": "Automaton Core",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "automaton"
-      ]
+      "system.traits.value": ["automaton"]
     }
   },
   {
@@ -64,9 +56,7 @@
     "index": {
       "name": "Constructed Body",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "automaton"
-      ]
+      "system.traits.value": ["automaton"]
     }
   },
   {
@@ -114,9 +104,7 @@
     "index": {
       "name": "Hydration",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "azarketi"
-      ]
+      "system.traits.value": ["azarketi"]
     }
   },
   {
@@ -128,9 +116,7 @@
     "index": {
       "name": "Swim",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "azarketi"
-      ]
+      "system.traits.value": ["azarketi"]
     }
   },
   {
@@ -142,9 +128,7 @@
     "index": {
       "name": "Land on Your Feet",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "catfolk"
-      ]
+      "system.traits.value": ["catfolk"]
     }
   },
   {
@@ -156,9 +140,7 @@
     "index": {
       "name": "Mount",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "centaur"
-      ]
+      "system.traits.value": ["centaur"]
     }
   },
   {
@@ -170,9 +152,7 @@
     "index": {
       "name": "Robust",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "centaur"
-      ]
+      "system.traits.value": ["centaur"]
     }
   },
   {
@@ -184,9 +164,7 @@
     "index": {
       "name": "Sunlight Healing",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "conrasu"
-      ]
+      "system.traits.value": ["conrasu"]
     }
   },
   {
@@ -198,9 +176,7 @@
     "index": {
       "name": "Big Sharp Teeth",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "dragonet"
-      ]
+      "system.traits.value": ["dragonet"]
     }
   },
   {
@@ -212,9 +188,7 @@
     "index": {
       "name": "Wings (Dragonet)",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "dragonet"
-      ]
+      "system.traits.value": ["dragonet"]
     }
   },
   {
@@ -226,9 +200,7 @@
     "index": {
       "name": "Clan Dagger",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "dwarf"
-      ]
+      "system.traits.value": ["dwarf"]
     }
   },
   {
@@ -240,9 +212,7 @@
     "index": {
       "name": "Unusual Anatomy",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "fleshwarp"
-      ]
+      "system.traits.value": ["fleshwarp"]
     }
   },
   {
@@ -266,9 +236,7 @@
     "index": {
       "name": "Eyes in Back",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "goloma"
-      ]
+      "system.traits.value": ["goloma"]
     }
   },
   {
@@ -280,9 +248,7 @@
     "index": {
       "name": "Keen Eyes",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "halfling"
-      ]
+      "system.traits.value": ["halfling"]
     }
   },
   {
@@ -294,9 +260,7 @@
     "index": {
       "name": "Iivlar Weaving",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "jotunborn"
-      ]
+      "system.traits.value": ["jotunborn"]
     }
   },
   {
@@ -332,9 +296,7 @@
     "index": {
       "name": "Bite",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "kholo"
-      ]
+      "system.traits.value": ["kholo"]
     }
   },
   {
@@ -370,9 +332,7 @@
     "index": {
       "name": "Draconic Exemplar",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "kobold"
-      ]
+      "system.traits.value": ["kobold"]
     }
   },
   {
@@ -384,9 +344,7 @@
     "index": {
       "name": "Plant Nourishment",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "leshy"
-      ]
+      "system.traits.value": ["leshy"]
     }
   },
   {
@@ -398,9 +356,7 @@
     "index": {
       "name": "Aquatic Adaptation",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "lizardfolk"
-      ]
+      "system.traits.value": ["lizardfolk"]
     }
   },
   {
@@ -412,9 +368,7 @@
     "index": {
       "name": "Claws",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "lizardfolk"
-      ]
+      "system.traits.value": ["lizardfolk"]
     }
   },
   {
@@ -450,9 +404,7 @@
     "index": {
       "name": "Horns (Minotaur)",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "minotaur"
-      ]
+      "system.traits.value": ["minotaur"]
     }
   },
   {
@@ -476,9 +428,7 @@
     "index": {
       "name": "Constructed (Poppet)",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "poppet"
-      ]
+      "system.traits.value": ["poppet"]
     }
   },
   {
@@ -502,9 +452,7 @@
     "index": {
       "name": "Sharp Teeth",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "ratfolk"
-      ]
+      "system.traits.value": ["ratfolk"]
     }
   },
   {
@@ -516,9 +464,7 @@
     "index": {
       "name": "Cryptomnesia",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "samsaran"
-      ]
+      "system.traits.value": ["samsaran"]
     }
   },
   {
@@ -530,9 +476,7 @@
     "index": {
       "name": "Wanderer's Soul",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "samsaran"
-      ]
+      "system.traits.value": ["samsaran"]
     }
   },
   {
@@ -544,9 +488,7 @@
     "index": {
       "name": "Head Gem",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "sarangay"
-      ]
+      "system.traits.value": ["sarangay"]
     }
   },
   {
@@ -558,9 +500,7 @@
     "index": {
       "name": "Horns (Sarangay)",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "sarangay"
-      ]
+      "system.traits.value": ["sarangay"]
     }
   },
   {
@@ -584,9 +524,7 @@
     "index": {
       "name": "Blunt Snout",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "shoony"
-      ]
+      "system.traits.value": ["shoony"]
     }
   },
   {
@@ -598,9 +536,7 @@
     "index": {
       "name": "Magical Strikes",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "sprite"
-      ]
+      "system.traits.value": ["sprite"]
     }
   },
   {
@@ -612,9 +548,7 @@
     "index": {
       "name": "Wings",
       "system.category": "ancestryfeature",
-      "system.traits.value": [
-        "strix"
-      ]
+      "system.traits.value": ["strix"]
     }
   },
   {

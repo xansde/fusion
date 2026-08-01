@@ -3,7 +3,11 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { mapRollToDiceBoxNotations, normalizeAssetPath, DEFAULT_ASSET_PATH } from "../diceBoxBridge.js";
+import {
+  mapRollToDiceBoxNotations,
+  normalizeAssetPath,
+  DEFAULT_ASSET_PATH,
+} from "../diceBoxBridge.js";
 import type { RollResultData } from "@fusion/shared";
 
 const makeRoll = (overrides: Partial<RollResultData> = {}): RollResultData => ({

@@ -29,13 +29,9 @@
     },
     "rules": [],
     "traits": {
-      "otherTags": [
-        "witch-lesson"
-      ],
+      "otherTags": ["witch-lesson"],
       "rarity": "uncommon",
-      "value": [
-        "witch"
-      ]
+      "value": ["witch"]
     }
   },
   "_fusion": {

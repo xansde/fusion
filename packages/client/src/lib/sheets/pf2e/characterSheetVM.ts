@@ -606,13 +606,15 @@ export class CharacterSheetVM {
    */
   private _healSpellSystem(item: Record<string, unknown>): Record<string, unknown> {
     const rawSys = item["system"];
-    const embedded = typeof rawSys === "object" && rawSys !== null ? (rawSys as Record<string, unknown>) : {};
+    const embedded =
+      typeof rawSys === "object" && rawSys !== null ? (rawSys as Record<string, unknown>) : {};
     if (!this._spellHeal) return embedded;
     const rawName = item["name"];
     const name = typeof rawName === "string" ? rawName : "";
     const flags = item["flags"] as Record<string, unknown> | undefined;
     const fusion = flags?.["fusion"] as Record<string, unknown> | undefined;
-    const sourceId = typeof fusion?.["sourceId"] === "string" ? (fusion["sourceId"] as string) : null;
+    const sourceId =
+      typeof fusion?.["sourceId"] === "string" ? (fusion["sourceId"] as string) : null;
     const packSystem = this._spellHeal(name, sourceId);
     return healSpellSystem(embedded, packSystem);
   }
@@ -1061,7 +1063,8 @@ export class CharacterSheetVM {
     const blast = this._findBlast(element);
     if (!blast) return null;
     const bonus = twoAction && blast.twoActionDamageBonus !== 0 ? blast.twoActionDamageBonus : 0;
-    const formula = bonus !== 0 ? `${blast.damageRoll}${bonus > 0 ? "+" : ""}${String(bonus)}` : blast.damageRoll;
+    const formula =
+      bonus !== 0 ? `${blast.damageRoll}${bonus > 0 ? "+" : ""}${String(bonus)}` : blast.damageRoll;
     const label = t("FUSION.Sheet.Chat.BlastDamage", { label: this._blastFlavor(element) });
     return this._buildChatRoll(formula, label);
   }
@@ -1296,7 +1299,8 @@ export class CharacterSheetVM {
         // document's system.proficiency.value (SpellcastingEntrySystemSchema).
         const rawProficiency = sys["proficiency"] as Record<string, unknown> | undefined;
         const proficiencyRank =
-          derivedEntry?.rank ?? (typeof rawProficiency?.["value"] === "number" ? rawProficiency["value"] : 0);
+          derivedEntry?.rank ??
+          (typeof rawProficiency?.["value"] === "number" ? rawProficiency["value"] : 0);
 
         // Slots — contract 4: keys are "0".."10", NOT "slot0".."slot10".
         const slotsRaw = sys["slots"] as
@@ -2083,10 +2087,9 @@ export class CharacterSheetVM {
     if (!strike) return null;
     const formula = crit ? strike.critDamageRoll : strike.damageRoll;
     if (!formula) return null;
-    const label = t(
-      crit ? "FUSION.Sheet.Chat.StrikeCritical" : "FUSION.Sheet.Chat.StrikeDamage",
-      { label: strike.label },
-    );
+    const label = t(crit ? "FUSION.Sheet.Chat.StrikeCritical" : "FUSION.Sheet.Chat.StrikeDamage", {
+      label: strike.label,
+    });
     return this._buildChatRoll(formula, label);
   }
 
@@ -2367,10 +2370,15 @@ export class CharacterSheetVM {
       id: entryId,
       embedded: { type: "Item", id: this._actorId },
       diff: {
-        [`system.slots.${String(rank)}.prepared`]: this._preparedArrayWith(entryId, rank, slotIndex, {
-          id: spellItemId,
-          expended: false,
-        }),
+        [`system.slots.${String(rank)}.prepared`]: this._preparedArrayWith(
+          entryId,
+          rank,
+          slotIndex,
+          {
+            id: spellItemId,
+            expended: false,
+          },
+        ),
       },
     };
   }
@@ -2392,10 +2400,15 @@ export class CharacterSheetVM {
       id: entryId,
       embedded: { type: "Item", id: this._actorId },
       diff: {
-        [`system.slots.${String(rank)}.prepared`]: this._preparedArrayWith(entryId, rank, slotIndex, {
-          id: "",
-          expended: false,
-        }),
+        [`system.slots.${String(rank)}.prepared`]: this._preparedArrayWith(
+          entryId,
+          rank,
+          slotIndex,
+          {
+            id: "",
+            expended: false,
+          },
+        ),
       },
     };
   }
@@ -2413,10 +2426,15 @@ export class CharacterSheetVM {
       id: entryId,
       embedded: { type: "Item", id: this._actorId },
       diff: {
-        [`system.slots.${String(rank)}.prepared`]: this._preparedArrayWith(entryId, rank, slotIndex, {
-          id: current?.id ?? "",
-          expended: !(current?.expended ?? false),
-        }),
+        [`system.slots.${String(rank)}.prepared`]: this._preparedArrayWith(
+          entryId,
+          rank,
+          slotIndex,
+          {
+            id: current?.id ?? "",
+            expended: !(current?.expended ?? false),
+          },
+        ),
       },
     };
   }
@@ -2555,7 +2573,10 @@ export class CharacterSheetVM {
         if (!Array.isArray(rawPrepared) || rawPrepared.length === 0) continue;
 
         const hasExpended = rawPrepared.some(
-          (e) => typeof e === "object" && e !== null && (e as Record<string, unknown>)["expended"] === true,
+          (e) =>
+            typeof e === "object" &&
+            e !== null &&
+            (e as Record<string, unknown>)["expended"] === true,
         );
         if (!hasExpended) continue;
 
@@ -2683,10 +2704,7 @@ function pickerSpellTraditions(entry: SpellPickerEntry): string[] {
  * normalizeSearchText in packages/shared/src/compendium.ts (REQ-CMP-013).
  */
 function normalizePickerText(text: string): string {
-  return text
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase();
+  return text.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 }
 
 /**
@@ -2766,9 +2784,7 @@ export interface SpellDetailsIndexEntry {
  * (via the optional `index` bag) — a stronger key than name when present.
  * First write wins per key (deterministic given a stable index order).
  */
-export function buildSpellDetailsResolver(
-  entries: SpellDetailsIndexEntry[],
-): SpellDetailsResolver {
+export function buildSpellDetailsResolver(entries: SpellDetailsIndexEntry[]): SpellDetailsResolver {
   const byName = new Map<string, string>();
   const bySourceId = new Map<string, string>();
   for (const entry of entries) {

@@ -7,13 +7,7 @@
   "originalImgRef": "alchemist.webp",
   "system": {
     "ancestryFeatLevels": {
-      "value": [
-        1,
-        5,
-        9,
-        13,
-        17
-      ]
+      "value": [1, 5, 9, 13, 17]
     },
     "attacks": {
       "advanced": 0,
@@ -26,19 +20,7 @@
       "unarmed": 1
     },
     "classFeatLevels": {
-      "value": [
-        1,
-        2,
-        4,
-        6,
-        8,
-        10,
-        12,
-        14,
-        16,
-        18,
-        20
-      ]
+      "value": [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
     },
     "defenses": {
       "heavy": 0,
@@ -50,13 +32,7 @@
       "value": "<p><em>There's no sight more beautiful to you than a strange brew bubbling in a beaker, and you consume your ingenious elixirs with abandon. You're fascinated by uncovering the secrets of science and the natural world, and you're constantly experimenting in your lab or on the go with inventive concoctions for every eventuality. You are fearless in the face of risk, hurling explosive or toxic creations at your foes. Your unique path toward greatness is lined with alchemical brews that push your mind and body to their limits.</em></p>\n<p>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.Om4e4tsgNWrComie]{Alchemist}</p>"
     },
     "generalFeatLevels": {
-      "value": [
-        3,
-        7,
-        11,
-        15,
-        19
-      ]
+      "value": [3, 7, 11, 15, 19]
     },
     "hp": 8,
     "items": {
@@ -176,9 +152,7 @@
       }
     },
     "keyAbility": {
-      "value": [
-        "int"
-      ]
+      "value": ["int"]
     },
     "perception": 1,
     "publication": {
@@ -200,38 +174,15 @@
       "will": 1
     },
     "skillFeatLevels": {
-      "value": [
-        2,
-        4,
-        6,
-        8,
-        10,
-        12,
-        14,
-        16,
-        18,
-        20
-      ]
+      "value": [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
     },
     "skillIncreaseLevels": {
-      "value": [
-        3,
-        5,
-        7,
-        9,
-        11,
-        13,
-        15,
-        17,
-        19
-      ]
+      "value": [3, 5, 7, 9, 11, 13, 15, 17, 19]
     },
     "spellcasting": 0,
     "trainedSkills": {
       "additional": 3,
-      "value": [
-        "crafting"
-      ]
+      "value": ["crafting"]
     },
     "traits": {
       "rarity": "common",

@@ -8,24 +8,11 @@
       "additionalLanguages": {
         "count": 0,
         "custom": "",
-        "value": [
-          "aklo",
-          "draconic",
-          "dwarven",
-          "elven",
-          "goblin",
-          "sakvroth"
-        ]
+        "value": ["aklo", "draconic", "dwarven", "elven", "goblin", "sakvroth"]
       },
-      "boosts": [
-        "con",
-        "free",
-        "free"
-      ],
+      "boosts": ["con", "free", "free"],
       "description": "<p><em>Fleshwarps are people whose forms were created or radically transformed by magic, alchemy, or unnatural energies. Their unorthodox appearance can make it difficult for them to find a place for themselves in the world.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.45SK8rdbbxvEHfMn.JournalEntryPage.vTB1bTYVE4onyyy1]{Fleshwarp}</em></p>",
-      "flaws": [
-        "free"
-      ],
+      "flaws": ["free"],
       "hands": 2,
       "hp": 10,
       "items": {
@@ -37,9 +24,7 @@
         }
       },
       "languages": {
-        "value": [
-          "common"
-        ]
+        "value": ["common"]
       },
       "publication": {
         "license": "OGL",
@@ -52,10 +37,7 @@
       "speed": 25,
       "traits": {
         "rarity": "rare",
-        "value": [
-          "aberration",
-          "humanoid"
-        ]
+        "value": ["aberration", "humanoid"]
       },
       "vision": "low-light-vision"
     },
@@ -121,15 +103,9 @@
           "sakvroth"
         ]
       },
-      "boosts": [
-        "dex",
-        "int",
-        "free"
-      ],
+      "boosts": ["dex", "int", "free"],
       "description": "<p><em>Ysoki are beings that most surface-dwelling humanoids refer to as \"ratfolk.\" They are a communal people who prefer cramped conditions, with up to 100 individuals living in a given home. If they can't find homes in town, ratfolk may instead live in caves and cavern complexes, as these provide great storage for the many and varied goods they bring back from trading expeditions.</em></p>\n<p>@UUID[Compendium.pf2e.journals.JournalEntry.45SK8rdbbxvEHfMn.JournalEntryPage.zoSkNev57C8OEDYL]{Ratfolk}</p>",
-      "flaws": [
-        "str"
-      ],
+      "flaws": ["str"],
       "hands": 2,
       "hp": 6,
       "items": {
@@ -141,10 +117,7 @@
         }
       },
       "languages": {
-        "value": [
-          "common",
-          "ysoki"
-        ]
+        "value": ["common", "ysoki"]
       },
       "publication": {
         "license": "ORC",
@@ -157,10 +130,7 @@
       "speed": 25,
       "traits": {
         "rarity": "uncommon",
-        "value": [
-          "humanoid",
-          "ratfolk"
-        ]
+        "value": ["humanoid", "ratfolk"]
       },
       "vision": "low-light-vision"
     },

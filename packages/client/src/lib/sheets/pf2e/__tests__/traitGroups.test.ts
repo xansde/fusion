@@ -128,7 +128,10 @@ describe("Live pack coverage (spells-core, feats-core, class-features-core)", ()
       for (const t of loadPackTraits(`${pack}/documents.json`)) distinct.add(t);
     }
 
-    expect(distinct.size, "expected the packs to expose a non-trivial trait vocabulary").toBeGreaterThan(50);
+    expect(
+      distinct.size,
+      "expected the packs to expose a non-trivial trait vocabulary",
+    ).toBeGreaterThan(50);
 
     const grouped = groupTraits([...distinct]);
     const other = grouped.find((g) => g.key === GROUP_OTHER_KEY);

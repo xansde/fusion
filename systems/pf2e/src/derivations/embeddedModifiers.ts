@@ -77,9 +77,7 @@ function isFlatModifierRule(rule: RawRule): boolean {
   // EffectRule fixtures; `key:"FlatModifier"` = the raw vendor pack shape (as
   // used by the Toughness feat straight from vendor JSON, unnormalized).
   return (
-    rule.kind === "flat-modifier" ||
-    rule.type === "flatModifier" ||
-    rule.key === "FlatModifier"
+    rule.kind === "flat-modifier" || rule.type === "flatModifier" || rule.key === "FlatModifier"
   );
 }
 
@@ -169,9 +167,7 @@ function modifiersFromItem(
           : "untyped";
 
     const slug =
-      typeof raw.slug === "string" && raw.slug.length > 0
-        ? raw.slug
-        : `${itemId}-${String(index)}`;
+      typeof raw.slug === "string" && raw.slug.length > 0 ? raw.slug : `${itemId}-${String(index)}`;
     const label = typeof raw.label === "string" && raw.label.length > 0 ? raw.label : itemName;
 
     results.push({ slug, label, type: modType, value });

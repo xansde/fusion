@@ -57,10 +57,7 @@
       "size": {
         "value": "lg"
       },
-      "value": [
-        "tech",
-        "trap"
-      ]
+      "value": ["tech", "trap"]
     }
   },
   "items": [
@@ -89,17 +86,13 @@
         "rules": [],
         "slug": null,
         "traits": {
-          "value": [
-            "force"
-          ]
+          "value": ["force"]
         }
       }
     }
   ],
   "_fusion": {
     "normalizedAt": "2026-07-05T15:03:53.049Z",
-    "removedFields": [
-      "folder"
-    ]
+    "removedFields": ["folder"]
   }
 }

@@ -34,15 +34,11 @@
     "rules": [],
     "traits": {
       "rarity": "common",
-      "value": [
-        "archetype"
-      ]
+      "value": ["archetype"]
     }
   },
   "_fusion": {
     "normalizedAt": "2026-07-05T18:45:12.978Z",
-    "removedFields": [
-      "folder"
-    ]
+    "removedFields": ["folder"]
   }
 }

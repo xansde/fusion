@@ -5,10 +5,12 @@ Modal — centered dialog on a dimmed backdrop; header with title + × close, sc
   title="Adicionar magia — Magus (Arcana)"
   onClose={close}
   footerNote="Dados mecânicos ORC — prosa não incluída (clean-room)"
-  footer={<>
-    <Button variant="secondary">Cancelar</Button>
-    <Button variant="primary">Adicionar ao grimório</Button>
-  </>}
+  footer={
+    <>
+      <Button variant="secondary">Cancelar</Button>
+      <Button variant="primary">Adicionar ao grimório</Button>
+    </>
+  }
 >
   <SearchBox /> …filters… …results…
 </Modal>

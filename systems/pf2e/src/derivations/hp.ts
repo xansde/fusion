@@ -97,9 +97,7 @@ export const stepCharToughness: DeriveStep = {
     if (!sys.attributes || typeof sys.attributes !== "object") {
       (sys as unknown as Record<string, unknown>)["attributes"] = {};
     }
-    const hp = sys.attributes.hp as
-      | { value?: number; max?: number; temp?: number }
-      | undefined;
+    const hp = sys.attributes.hp as { value?: number; max?: number; temp?: number } | undefined;
     const currentMax = hp?.max ?? 0;
     const currentValue = hp?.value ?? currentMax;
     const wasFull = currentValue >= currentMax;

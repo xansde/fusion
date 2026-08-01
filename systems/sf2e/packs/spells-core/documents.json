@@ -29,12 +29,7 @@
       "traits": {
         "rarity": "uncommon",
         "traditions": [],
-        "value": [
-          "concentrate",
-          "focus",
-          "manipulate",
-          "mystic"
-        ]
+        "value": ["concentrate", "focus", "manipulate", "mystic"]
       },
       "castTime": "1"
     },
@@ -90,14 +85,7 @@
       "traits": {
         "rarity": "uncommon",
         "traditions": [],
-        "value": [
-          "concentrate",
-          "emotion",
-          "focus",
-          "manipulate",
-          "mental",
-          "mystic"
-        ]
+        "value": ["concentrate", "emotion", "focus", "manipulate", "mental", "mystic"]
       },
       "castTime": "1"
     },
@@ -149,12 +137,7 @@
       "traits": {
         "rarity": "uncommon",
         "traditions": [],
-        "value": [
-          "concentrate",
-          "focus",
-          "manipulate",
-          "mystic"
-        ]
+        "value": ["concentrate", "focus", "manipulate", "mystic"]
       },
       "castTime": "2"
     },
@@ -189,9 +172,7 @@
           "applyMod": false,
           "category": null,
           "formula": "2d6",
-          "kinds": [
-            "damage"
-          ],
+          "kinds": ["damage"],
           "materials": [],
           "type": "mental"
         }
@@ -224,17 +205,8 @@
       },
       "traits": {
         "rarity": "common",
-        "traditions": [
-          "divine",
-          "occult"
-        ],
-        "value": [
-          "attack",
-          "cantrip",
-          "concentrate",
-          "manipulate",
-          "mental"
-        ]
+        "traditions": ["divine", "occult"],
+        "value": ["attack", "cantrip", "concentrate", "manipulate", "mental"]
       },
       "castTime": "2"
     },
@@ -285,15 +257,8 @@
       },
       "traits": {
         "rarity": "common",
-        "traditions": [
-          "arcane",
-          "occult"
-        ],
-        "value": [
-          "cantrip",
-          "concentrate",
-          "manipulate"
-        ]
+        "traditions": ["arcane", "occult"],
+        "value": ["cantrip", "concentrate", "manipulate"]
       },
       "castTime": "2"
     },
@@ -365,16 +330,8 @@
       },
       "traits": {
         "rarity": "common",
-        "traditions": [
-          "arcane",
-          "primal"
-        ],
-        "value": [
-          "cold",
-          "concentrate",
-          "manipulate",
-          "mental"
-        ]
+        "traditions": ["arcane", "primal"],
+        "value": ["cold", "concentrate", "manipulate", "mental"]
       },
       "castTime": "2"
     },
@@ -425,14 +382,8 @@
       },
       "traits": {
         "rarity": "common",
-        "traditions": [
-          "arcane",
-          "occult"
-        ],
-        "value": [
-          "concentrate",
-          "manipulate"
-        ]
+        "traditions": ["arcane", "occult"],
+        "value": ["concentrate", "manipulate"]
       },
       "castTime": "2"
     },
@@ -483,16 +434,8 @@
       },
       "traits": {
         "rarity": "common",
-        "traditions": [
-          "arcane",
-          "divine",
-          "occult",
-          "primal"
-        ],
-        "value": [
-          "concentrate",
-          "manipulate"
-        ]
+        "traditions": ["arcane", "divine", "occult", "primal"],
+        "value": ["concentrate", "manipulate"]
       },
       "castTime": "2"
     },
@@ -527,9 +470,7 @@
           "applyMod": false,
           "category": null,
           "formula": "2d6",
-          "kinds": [
-            "damage"
-          ],
+          "kinds": ["damage"],
           "materials": [],
           "type": "mental"
         }
@@ -568,15 +509,8 @@
       },
       "traits": {
         "rarity": "common",
-        "traditions": [
-          "divine",
-          "occult"
-        ],
-        "value": [
-          "concentrate",
-          "manipulate",
-          "mental"
-        ]
+        "traditions": ["divine", "occult"],
+        "value": ["concentrate", "manipulate", "mental"]
       },
       "castTime": "2"
     },
@@ -611,9 +545,7 @@
           "applyMod": false,
           "category": null,
           "formula": "2d6",
-          "kinds": [
-            "damage"
-          ],
+          "kinds": ["damage"],
           "materials": [],
           "type": "fire"
         }
@@ -652,15 +584,8 @@
       },
       "traits": {
         "rarity": "common",
-        "traditions": [
-          "arcane",
-          "primal"
-        ],
-        "value": [
-          "concentrate",
-          "fire",
-          "manipulate"
-        ]
+        "traditions": ["arcane", "primal"],
+        "value": ["concentrate", "fire", "manipulate"]
       },
       "castTime": "2"
     },

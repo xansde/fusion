@@ -74,7 +74,10 @@ function alchemistDedication(
     system: {
       category: overrides.category ?? "class",
       level: 2,
-      traits: { rarity: "common", value: overrides.traits ?? ["archetype", "dedication", "multiclass"] },
+      traits: {
+        rarity: "common",
+        value: overrides.traits ?? ["archetype", "dedication", "multiclass"],
+      },
       subfeatures:
         "subfeatures" in overrides
           ? overrides.subfeatures

@@ -9,11 +9,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import {
-  SpellCastCardSchema,
-  SpellSaveTypeSchema,
-  ChatSendFlagsSchema,
-} from "../chat/types.js";
+import { SpellCastCardSchema, SpellSaveTypeSchema, ChatSendFlagsSchema } from "../chat/types.js";
 import { ChatSendPayloadSchema } from "../chat/protocol.js";
 
 const FULL = {
@@ -102,9 +98,9 @@ describe("SpellCastCardSchema — rejects", () => {
   });
 
   it("rejects an over-long damage formula (injection guard)", () => {
-    expect(
-      SpellCastCardSchema.safeParse({ ...FULL, damageFormula: "1".repeat(500) }).success,
-    ).toBe(false);
+    expect(SpellCastCardSchema.safeParse({ ...FULL, damageFormula: "1".repeat(500) }).success).toBe(
+      false,
+    );
   });
 });
 
@@ -118,9 +114,7 @@ describe("ChatSendFlagsSchema", () => {
   });
 
   it("rejects a malformed spellCast inside the whitelist", () => {
-    expect(
-      ChatSendFlagsSchema.safeParse({ pf2e: { spellCast: { rank: 2 } } }).success,
-    ).toBe(false);
+    expect(ChatSendFlagsSchema.safeParse({ pf2e: { spellCast: { rank: 2 } } }).success).toBe(false);
   });
 
   it("ignores foreign namespaces (stripped, not stored)", () => {
@@ -150,9 +144,7 @@ describe("ChatSendFlagsSchema", () => {
   });
 
   it("rejects an over-long parentMessageId (bound guard)", () => {
-    expect(
-      ChatSendFlagsSchema.safeParse({ parentMessageId: "x".repeat(200) }).success,
-    ).toBe(false);
+    expect(ChatSendFlagsSchema.safeParse({ parentMessageId: "x".repeat(200) }).success).toBe(false);
   });
 
   it("rejects a non-string parentMessageId", () => {

@@ -372,18 +372,19 @@ function singleActionGlyph(
  * that pass is immaterial; this is called first for clarity.
  */
 function convertActionGlyphs(html: string, locale: SupportedLocale): string {
-  return html.replace(
-    /<span class="action-glyph">([^<]*)<\/span>/g,
-    (_whole, rawValue: string) => {
-      const { icons, title } = convertActionGlyphValue(rawValue, locale);
-      return title ? `<span title="${escapeHtmlAttr(title)}">${icons}</span>` : icons;
-    },
-  );
+  return html.replace(/<span class="action-glyph">([^<]*)<\/span>/g, (_whole, rawValue: string) => {
+    const { icons, title } = convertActionGlyphValue(rawValue, locale);
+    return title ? `<span title="${escapeHtmlAttr(title)}">${icons}</span>` : icons;
+  });
 }
 
 /** Escape a string for safe use inside a double-quoted HTML attribute. */
 function escapeHtmlAttr(text: string): string {
-  return text.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 /**
@@ -451,7 +452,10 @@ function humanizeInlineRoll(body: string): string | null {
   // action slug (first token), title-cased and de-kebabed; drop key=value args.
   if (kind === "act") {
     const slug = rest.split(/\s+/)[0] ?? "";
-    const words = slug.split("-").filter((w) => w.length > 0).map(capitalize);
+    const words = slug
+      .split("-")
+      .filter((w) => w.length > 0)
+      .map(capitalize);
     return words.length > 0 ? words.join(" ") : rest;
   }
 
@@ -832,24 +836,36 @@ export interface ActionCost {
  *
  * Unknown/empty input → { icons: "", label: raw, isText: true }. r15-A1.
  */
-export function formatActionCost(timeValue: string | null | undefined, locale: SupportedLocale = "pt-BR"): ActionCost {
+export function formatActionCost(
+  timeValue: string | null | undefined,
+  locale: SupportedLocale = "pt-BR",
+): ActionCost {
   const raw = (timeValue ?? "").trim();
   if (!raw) return { icons: "", label: "", isText: true };
 
   const lower = raw.toLowerCase();
 
   if (lower === "free" || lower === "free action") {
-    return { icons: FREE_GLYPH, label: locale === "pt-BR" ? "ação livre" : "free action", isText: false };
+    return {
+      icons: FREE_GLYPH,
+      label: locale === "pt-BR" ? "ação livre" : "free action",
+      isText: false,
+    };
   }
   if (lower === "reaction") {
-    return { icons: REACTION_GLYPH, label: locale === "pt-BR" ? "reação" : "reaction", isText: false };
+    return {
+      icons: REACTION_GLYPH,
+      label: locale === "pt-BR" ? "reação" : "reaction",
+      isText: false,
+    };
   }
 
   // Plain single action count "1".."3" (allow up to a sane cap of 4).
   const single = /^(\d)$/.exec(lower);
   if (single) {
     const n = Number(single[1]);
-    if (n >= 1 && n <= 4) return { icons: actionGlyphs(n), label: actionCountLabel(n, locale), isText: false };
+    if (n >= 1 && n <= 4)
+      return { icons: actionGlyphs(n), label: actionCountLabel(n, locale), isText: false };
   }
 
   // Action range: "N to M", "N or M", "N-M" — optionally trailed by a bogus
@@ -864,8 +880,7 @@ export function formatActionCost(timeValue: string | null | undefined, locale: S
         return { icons: actionGlyphs(min), label: actionCountLabel(min, locale), isText: false };
       }
       const icons = `${actionGlyphs(min)} ${locale === "pt-BR" ? "a" : "to"} ${actionGlyphs(max)}`;
-      const label =
-        locale === "pt-BR" ? `${min} a ${max} ações` : `${min} to ${max} actions`;
+      const label = locale === "pt-BR" ? `${min} a ${max} ações` : `${min} to ${max} actions`;
       return { icons, label, isText: false };
     }
   }
@@ -912,9 +927,7 @@ export function formatIndexActionCost(
   const cost = formatActionCost(raw, locale);
   if (cost.isText) {
     // Long/textual time — show the short label, no glyphs (e.g. "1 minuto").
-    return cost.label
-      ? { icons: "", display: cost.label, title: cost.label, isText: true }
-      : null;
+    return cost.label ? { icons: "", display: cost.label, title: cost.label, isText: true } : null;
   }
   if (!cost.icons) return null;
   return { icons: cost.icons, display: cost.icons, title: cost.label, isText: false };
@@ -1006,7 +1019,10 @@ function damageFields(system: Record<string, unknown>, locale: SupportedLocale):
   return fields;
 }
 
-function saveField(system: Record<string, unknown>, locale: SupportedLocale): MechanicalField | null {
+function saveField(
+  system: Record<string, unknown>,
+  locale: SupportedLocale,
+): MechanicalField | null {
   const defense = system["defense"];
   if (!isRecord(defense)) return null;
   const isPt = locale === "pt-BR";
@@ -1016,8 +1032,8 @@ function saveField(system: Record<string, unknown>, locale: SupportedLocale): Me
     const statistic = str(save["statistic"]);
     if (statistic) {
       const stat = isPt
-        ? SAVE_LABELS_PT[statistic] ?? statistic
-        : SAVE_LABELS[statistic] ?? statistic;
+        ? (SAVE_LABELS_PT[statistic] ?? statistic)
+        : (SAVE_LABELS[statistic] ?? statistic);
       const basicSuffix = isPt ? " (básica)" : " (basic)";
       const value = save["basic"] === true ? `${stat}${basicSuffix}` : stat;
       return field(FIELD_KEYS.save, saveLabel, value);
@@ -1036,7 +1052,10 @@ function saveField(system: Record<string, unknown>, locale: SupportedLocale): Me
   return null;
 }
 
-function heightenField(system: Record<string, unknown>, locale: SupportedLocale): MechanicalField | null {
+function heightenField(
+  system: Record<string, unknown>,
+  locale: SupportedLocale,
+): MechanicalField | null {
   const heightening = system["heightening"];
   if (!isRecord(heightening)) return null;
   const isPt = locale === "pt-BR";
@@ -1050,8 +1069,7 @@ function heightenField(system: Record<string, unknown>, locale: SupportedLocale)
   if (type === "fixed") {
     const levels = heightening["levels"];
     const ranks = isRecord(levels) ? Object.keys(levels).sort() : [];
-    const value =
-      ranks.length > 0 ? `${isPt ? "Elevação" : "Rank"} ${ranks.join(", ")}` : yes;
+    const value = ranks.length > 0 ? `${isPt ? "Elevação" : "Rank"} ${ranks.join(", ")}` : yes;
     return field(FIELD_KEYS.heightened, label, value);
   }
   return null;
@@ -1071,18 +1089,26 @@ export function buildSpellFields(
   const fields: MechanicalField[] = [];
   const isPt = locale === "pt-BR";
 
-  const castRaw = str(system["castTime"]) ?? str((system["time"] as Record<string, unknown> | undefined)?.["value"]);
+  const castRaw =
+    str(system["castTime"]) ??
+    str((system["time"] as Record<string, unknown> | undefined)?.["value"]);
   if (castRaw) {
     const cost = formatActionCost(castRaw, locale);
     // Icons + label when we recognized an action cost; plain translated text
     // for long/textual times ("1 minuto"). Never "X to X".
-    const value = cost.isText ? cost.label : cost.icons ? `${cost.icons} ${cost.label}` : cost.label;
+    const value = cost.isText
+      ? cost.label
+      : cost.icons
+        ? `${cost.icons} ${cost.label}`
+        : cost.label;
     fields.push(field(FIELD_KEYS.cast, isPt ? "Conjuração" : "Cast", value));
   }
 
   const range = str(system["range"]);
   if (range) {
-    fields.push(field(FIELD_KEYS.range, isPt ? "Alcance" : "Range", translateValueTokens(range, locale)));
+    fields.push(
+      field(FIELD_KEYS.range, isPt ? "Alcance" : "Range", translateValueTokens(range, locale)),
+    );
   }
 
   const area = system["area"];
@@ -1090,7 +1116,7 @@ export function buildSpellFields(
     const type = str(area["type"]);
     const value = area["value"];
     if (type && typeof value === "number") {
-      const shape = isPt ? AREA_SHAPE_NAMES_PT[type] ?? type : type;
+      const shape = isPt ? (AREA_SHAPE_NAMES_PT[type] ?? type) : type;
       const areaValue = isPt ? `${value} pés de ${shape}` : `${value}-foot ${type}`;
       fields.push(field(FIELD_KEYS.area, isPt ? "Área" : "Area", areaValue));
     }
@@ -1098,7 +1124,9 @@ export function buildSpellFields(
 
   const target = str(system["target"]);
   if (target) {
-    fields.push(field(FIELD_KEYS.target, isPt ? "Alvo" : "Target", translateValueTokens(target, locale)));
+    fields.push(
+      field(FIELD_KEYS.target, isPt ? "Alvo" : "Target", translateValueTokens(target, locale)),
+    );
   }
 
   const duration = system["duration"];

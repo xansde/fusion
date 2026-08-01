@@ -11,6 +11,7 @@ If creating visual artifacts (slides, mocks, throwaway prototypes, etc), copy as
 If the user invokes this skill without any other guidance, ask them what they want to build or design, ask some questions, and act as an expert designer who outputs HTML artifacts _or_ production code, depending on the need.
 
 Key facts:
+
 - Dark-first tool aesthetic. Violet accent `#7c5cfc` on interactive/active elements ONLY — never decorative fill, never gradients.
 - Surfaces `#0e0e12 / #18181f / #1f1f2a`, border `#2e2e3d`; text `#e8e8f0 / #8888a0 / #55556a`.
 - Semantics distinct from accent: success `#3ddc84`, warning `#ffc857`, danger `#ff5c5c`.

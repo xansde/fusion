@@ -35,7 +35,10 @@ const USER_ID = "user000000000001";
 let tempDirs: string[] = [];
 
 function makeTempDir(): string {
-  const dir = join(tmpdir(), `fusion-spellcast-${String(Date.now())}-${Math.random().toString(36).slice(2)}`);
+  const dir = join(
+    tmpdir(),
+    `fusion-spellcast-${String(Date.now())}-${Math.random().toString(36).slice(2)}`,
+  );
   mkdirSync(dir, { recursive: true });
   tempDirs.push(dir);
   return dir;
@@ -145,7 +148,12 @@ describe("chat:send spellCast flag (r17-P2)", () => {
     // The card claims a DIFFERENT actor as caster than the message speaker.
     const msg = sendCast(
       handler,
-      { casterActorId: "someoneelse00001", spellName: "Bola de Fogo", rank: 3, damageFormula: "6d6" },
+      {
+        casterActorId: "someoneelse00001",
+        spellName: "Bola de Fogo",
+        rank: 3,
+        damageFormula: "6d6",
+      },
       CASTER_ID,
     );
     expect(msg).not.toBeNull();

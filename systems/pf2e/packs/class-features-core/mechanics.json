@@ -12,9 +12,7 @@
           "category": "general",
           "count": 1,
           "filters": {
-            "traits": [
-              "impulse"
-            ],
+            "traits": ["impulse"],
             "maxLevel": 9
           },
           "source": "rule-element",
@@ -101,9 +99,7 @@
           "category": "general",
           "count": 1,
           "filters": {
-            "traits": [
-              "impulse"
-            ],
+            "traits": ["impulse"],
             "maxLevel": 17
           },
           "source": "rule-element",
@@ -134,9 +130,7 @@
           "category": "general",
           "count": 1,
           "filters": {
-            "traits": [
-              "impulse"
-            ],
+            "traits": ["impulse"],
             "maxLevel": 13
           },
           "source": "rule-element",
@@ -153,9 +147,7 @@
           "category": "general",
           "count": 1,
           "filters": {
-            "traits": [
-              "impulse"
-            ],
+            "traits": ["impulse"],
             "maxLevel": 5
           },
           "source": "rule-element",

@@ -38,9 +38,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "archetype"
-        ]
+        "value": ["archetype"]
       }
     },
     "flags": {
@@ -58,10 +56,7 @@
                 "item:category:class",
                 "item:trait:alchemist",
                 {
-                  "lte": [
-                    "item:level",
-                    2
-                  ]
+                  "lte": ["item:level", 2]
                 }
               ],
               "itemType": "feat"
@@ -117,9 +112,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "general"
-        ]
+        "value": ["general"]
       }
     },
     "flags": {
@@ -219,9 +212,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "general"
-        ]
+        "value": ["general"]
       }
     },
     "flags": {
@@ -352,11 +343,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "archetype",
-          "dedication",
-          "multiclass"
-        ]
+        "value": ["archetype", "dedication", "multiclass"]
       }
     },
     "flags": {
@@ -377,10 +364,7 @@
             "_conversionState": "unsupported"
           },
           {
-            "craftableItems": [
-              "item:trait:alchemical",
-              "item:trait:consumable"
-            ],
+            "craftableItems": ["item:trait:alchemical", "item:trait:consumable"],
             "key": "CraftingAbility",
             "slug": "quick-alchemy",
             "_conversionState": "unsupported"
@@ -421,10 +405,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "general",
-          "skill"
-        ]
+        "value": ["general", "skill"]
       }
     },
     "flags": {

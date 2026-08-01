@@ -65,7 +65,11 @@ import {
   type PlanNameIndexEntry,
 } from "../planVM.js";
 import type { DocUpdatePayload } from "../characterSheetVM.js";
-import { DocCreatePayloadSchema, DocUpdatePayloadSchema, DocDeletePayloadSchema } from "@fusion/shared";
+import {
+  DocCreatePayloadSchema,
+  DocUpdatePayloadSchema,
+  DocDeletePayloadSchema,
+} from "@fusion/shared";
 import {
   ABILITY_HELP,
   SKILL_HELP,
@@ -340,7 +344,9 @@ function ineligibleGeneralFeatDoc(): Record<string, unknown> {
 
 /** Narrow a compendium fixture doc's `system` block down to the minimal FeatDocLike shape `matchesGrantedFeatFilter`/`isFeatEligible` consume — cast is safe, every fixture in this file fully populates category/level/traits. */
 function asFeatDocLike(doc: Record<string, unknown>): FeatDocLike {
-  return { system: doc["system"] as { category: string; level: number; traits: { value: string[] } } };
+  return {
+    system: doc["system"] as { category: string; level: number; traits: { value: string[] } },
+  };
 }
 
 function starlitSpanHybridStudyDoc(): Record<string, unknown> {
@@ -408,7 +414,10 @@ function tobiasLevel3Doc(): Record<string, unknown> {
       {
         ...speedrunStratsSkillFeatDoc(),
         _id: "item-skill-feat-2",
-        system: { ...(speedrunStratsSkillFeatDoc()["system"] as Record<string, unknown>), level: 2 },
+        system: {
+          ...(speedrunStratsSkillFeatDoc()["system"] as Record<string, unknown>),
+          level: 2,
+        },
         flags: { fusion: { build: { level: 2, slot: "skillFeat-2" } } },
       },
       {
@@ -441,7 +450,13 @@ function tobiasLevel3Doc(): Record<string, unknown> {
         choices: [
           { level: 1, slot: "abilityBoosts-1", type: "abilityBoosts" },
           { level: 1, slot: "skillTraining-1-0", type: "skillTraining", skill: "stealth", rank: 1 },
-          { level: 1, slot: "skillTraining-1-1", type: "skillTraining", skill: "thievery", rank: 1 },
+          {
+            level: 1,
+            slot: "skillTraining-1-1",
+            type: "skillTraining",
+            skill: "thievery",
+            rank: 1,
+          },
           { level: 3, slot: "skillIncrease-3", type: "skillIncrease", skill: "stealth", rank: 2 },
         ],
         bonusHp: 0,
@@ -578,7 +593,12 @@ describe("derivePlan — Tobias level 3 (Magus, real fixture)", () => {
     const l1 = plan.levels.find((l) => l.level === 1)!;
     const names = l1.autoFeatures.map((f) => f.name);
     expect(names).toEqual(
-      expect.arrayContaining(["Arcane Spellcasting (Magus)", "Arcane Cascade", "Spellstrike", "Conflux Spells"]),
+      expect.arrayContaining([
+        "Arcane Spellcasting (Magus)",
+        "Arcane Cascade",
+        "Spellstrike",
+        "Conflux Spells",
+      ]),
     );
     expect(names).not.toContain("Hybrid Study");
     expect(l1.autoFeatures.every((f) => f.locked)).toBe(true);
@@ -713,10 +733,17 @@ describe("applyClass", () => {
     expect(classOp.type).toBe("doc:create");
     if (classOp.type !== "doc:create") throw new Error("expected doc:create");
     expect(classOp.data["_id"]).toBeUndefined();
-    expect((classOp.data["system"] as Record<string, unknown>)["keyAbility"]).toEqual(["dex", "str"]);
+    expect((classOp.data["system"] as Record<string, unknown>)["keyAbility"]).toEqual([
+      "dex",
+      "str",
+    ]);
     expect(classOp.parent).toEqual({ type: "Actor", id: "actor-tobias" });
 
-    const wire = { documentType: classOp.documentType, data: [classOp.data], parent: classOp.parent };
+    const wire = {
+      documentType: classOp.documentType,
+      data: [classOp.data],
+      parent: classOp.parent,
+    };
     expect(DocCreatePayloadSchema.safeParse(wire).success).toBe(true);
   });
 
@@ -736,7 +763,11 @@ describe("applyClass", () => {
     expect(slots["1"]!.prepared).toHaveLength(1);
     expect(slots["0"]!.max).toBe(5); // cantripsKnown at level 1
 
-    const wire = { documentType: entryOp.documentType, data: [entryOp.data], parent: entryOp.parent };
+    const wire = {
+      documentType: entryOp.documentType,
+      data: [entryOp.data],
+      parent: entryOp.parent,
+    };
     expect(DocCreatePayloadSchema.safeParse(wire).success).toBe(true);
   });
 
@@ -766,7 +797,11 @@ describe("applyClass", () => {
     expect(sys["isFocusPool"]).toBe(true);
     expect((sys["ability"] as Record<string, unknown>)["value"]).toBe("int");
 
-    const wire = { documentType: focusOp.documentType, data: [focusOp.data], parent: focusOp.parent };
+    const wire = {
+      documentType: focusOp.documentType,
+      data: [focusOp.data],
+      parent: focusOp.parent,
+    };
     expect(DocCreatePayloadSchema.safeParse(wire).success).toBe(true);
   });
 
@@ -802,7 +837,11 @@ describe("applyAncestry", () => {
     const createOp = ops[0]!;
     expect(createOp.type).toBe("doc:create");
     if (createOp.type !== "doc:create") throw new Error("expected doc:create");
-    const wire = { documentType: createOp.documentType, data: [createOp.data], parent: createOp.parent };
+    const wire = {
+      documentType: createOp.documentType,
+      data: [createOp.data],
+      parent: createOp.parent,
+    };
     expect(DocCreatePayloadSchema.safeParse(wire).success).toBe(true);
 
     const updateOp = ops[1]!;
@@ -812,7 +851,10 @@ describe("applyAncestry", () => {
     expect(updateOp.diff["system.build.abilities.ancestryFlaws"]).toEqual(["str"]);
     expect(updateOp.diff["system.build.abilities.ancestryFree"]).toEqual([]);
 
-    const wireUpdate = { documentType: updateOp.documentType, updates: [{ _id: updateOp.id, diff: updateOp.diff }] };
+    const wireUpdate = {
+      documentType: updateOp.documentType,
+      updates: [{ _id: updateOp.id, diff: updateOp.diff }],
+    };
     expect(DocUpdatePayloadSchema.safeParse(wireUpdate).success).toBe(true);
   });
 
@@ -879,7 +921,10 @@ describe("applyAncestry", () => {
     const updateOp = ops.find((o) => o.type === "doc:update");
     if (!updateOp || updateOp.type !== "doc:update") throw new Error("expected doc:update");
     expect(updateOp.diff["system.attributes.speed.value"]).toBe(25);
-    const wire = { documentType: updateOp.documentType, updates: [{ _id: updateOp.id, diff: updateOp.diff }] };
+    const wire = {
+      documentType: updateOp.documentType,
+      updates: [{ _id: updateOp.id, diff: updateOp.diff }],
+    };
     expect(DocUpdatePayloadSchema.safeParse(wire).success).toBe(true);
   });
 
@@ -926,16 +971,20 @@ describe("applyHeritage", () => {
 
 describe("applyBackground", () => {
   it("returns [] when not editable", () => {
-    expect(applyBackground(ctx(baseCharacterDoc(), false), fireworksPerformerBackgroundDoc())).toEqual(
-      [],
-    );
+    expect(
+      applyBackground(ctx(baseCharacterDoc(), false), fireworksPerformerBackgroundDoc()),
+    ).toEqual([]);
   });
 
   it("creates the background item, resets backgroundFree (fresh apply), and trains its skill AND lore as level-1 skillTraining build choices (r20-X4)", () => {
     const ops = applyBackground(ctx(baseCharacterDoc()), fireworksPerformerBackgroundDoc());
     const createOp = ops[0]!;
     if (createOp.type !== "doc:create") throw new Error("expected doc:create");
-    const wire = { documentType: createOp.documentType, data: [createOp.data], parent: createOp.parent };
+    const wire = {
+      documentType: createOp.documentType,
+      data: [createOp.data],
+      parent: createOp.parent,
+    };
     expect(DocCreatePayloadSchema.safeParse(wire).success).toBe(true);
 
     // Fireworks Performer's boosts are ["free","free"] (no fixed boosts) — the
@@ -951,7 +1000,11 @@ describe("applyBackground", () => {
     // derivation treats it as an INT-based Lore.
     const loreEntryOp = ops[2]!;
     if (loreEntryOp.type !== "doc:update") throw new Error("expected doc:update");
-    expect(loreEntryOp.diff["system.skills.fireworks-lore"]).toMatchObject({ rank: 0, lore: true, label: "Fireworks Lore" });
+    expect(loreEntryOp.diff["system.skills.fireworks-lore"]).toMatchObject({
+      rank: 0,
+      lore: true,
+      label: "Fireworks Lore",
+    });
 
     const skillOp = ops[3]!;
     if (skillOp.type !== "doc:update") throw new Error("expected doc:update");
@@ -972,7 +1025,10 @@ describe("applyBackground", () => {
       rank: 1,
     });
 
-    const wireUpdate = { documentType: skillOp.documentType, updates: [{ _id: skillOp.id, diff: skillOp.diff }] };
+    const wireUpdate = {
+      documentType: skillOp.documentType,
+      updates: [{ _id: skillOp.id, diff: skillOp.diff }],
+    };
     expect(DocUpdatePayloadSchema.safeParse(wireUpdate).success).toBe(true);
   });
 
@@ -1149,7 +1205,10 @@ describe("backgroundLoreHealOps (r20-X4)", () => {
     return {
       name: "Aeronaut",
       type: "background",
-      system: { trainedSkills: { value: ["athletics"], lore: ["Piloting Lore"] }, skills: { athletics: { value: 1 } } },
+      system: {
+        trainedSkills: { value: ["athletics"], lore: ["Piloting Lore"] },
+        skills: { athletics: { value: 1 } },
+      },
     };
   }
 
@@ -1160,11 +1219,35 @@ describe("backgroundLoreHealOps (r20-X4)", () => {
         level: { value: 3 },
         details: {},
         skills: { athletics: { rank: 1 } },
-        build: { abilities: { ancestryBoosts: [], ancestryFlaws: [], ancestryFree: [], backgroundBoosts: [], backgroundFree: [], classBoost: [], levelledBoosts: {} }, choices: [{ level: 1, slot: "backgroundSkill-0", type: "skillTraining", skill: "athletics", rank: 1 }], bonusHp: 0, bonusHpPerLevel: 0, freeArchetype: false },
+        build: {
+          abilities: {
+            ancestryBoosts: [],
+            ancestryFlaws: [],
+            ancestryFree: [],
+            backgroundBoosts: [],
+            backgroundFree: [],
+            classBoost: [],
+            levelledBoosts: {},
+          },
+          choices: [
+            {
+              level: 1,
+              slot: "backgroundSkill-0",
+              type: "skillTraining",
+              skill: "athletics",
+              rank: 1,
+            },
+          ],
+          bonusHp: 0,
+          bonusHpPerLevel: 0,
+          freeArchetype: false,
+        },
       },
     });
     const ops = backgroundLoreHealOps(ctx(doc), aeronautDoc());
-    const loreEntryOp = ops.find((o) => o.type === "doc:update" && "system.skills.piloting-lore" in o.diff);
+    const loreEntryOp = ops.find(
+      (o) => o.type === "doc:update" && "system.skills.piloting-lore" in o.diff,
+    );
     expect(loreEntryOp).toBeDefined();
     const choicesOp = ops.find((o) => o.type === "doc:update" && "system.build.choices" in o.diff)!;
     if (choicesOp.type !== "doc:update") throw new Error("expected update");
@@ -1178,7 +1261,29 @@ describe("backgroundLoreHealOps (r20-X4)", () => {
         level: { value: 3 },
         details: {},
         skills: { "piloting-lore": { rank: 1, lore: true } },
-        build: { abilities: { ancestryBoosts: [], ancestryFlaws: [], ancestryFree: [], backgroundBoosts: [], backgroundFree: [], classBoost: [], levelledBoosts: {} }, choices: [{ level: 1, slot: "backgroundLore-0", type: "skillTraining", skill: "piloting-lore", rank: 1 }], bonusHp: 0, bonusHpPerLevel: 0, freeArchetype: false },
+        build: {
+          abilities: {
+            ancestryBoosts: [],
+            ancestryFlaws: [],
+            ancestryFree: [],
+            backgroundBoosts: [],
+            backgroundFree: [],
+            classBoost: [],
+            levelledBoosts: {},
+          },
+          choices: [
+            {
+              level: 1,
+              slot: "backgroundLore-0",
+              type: "skillTraining",
+              skill: "piloting-lore",
+              rank: 1,
+            },
+          ],
+          bonusHp: 0,
+          bonusHpPerLevel: 0,
+          freeArchetype: false,
+        },
       },
     });
     expect(backgroundLoreHealOps(ctx(doc), aeronautDoc())).toEqual([]);
@@ -1195,7 +1300,13 @@ describe("ABC card chips (r20-X4)", () => {
           flags: { fusion: { sourceId: "P6PcVnCkh4XMdefw" } },
           system: {
             ...(ratfolkAncestryDoc()["system"] as Record<string, unknown>),
-            items: { jkllM: { level: 1, name: "Sharp Teeth", uuid: "Compendium.pf2e.ancestryfeatures.Item.Sharp Teeth" } },
+            items: {
+              jkllM: {
+                level: 1,
+                name: "Sharp Teeth",
+                uuid: "Compendium.pf2e.ancestryfeatures.Item.Sharp Teeth",
+              },
+            },
           },
         },
       ],
@@ -1221,20 +1332,35 @@ describe("ABC card chips (r20-X4)", () => {
           flags: { fusion: { sourceId: "P6PcVnCkh4XMdefw" } },
           system: {
             ...(ratfolkAncestryDoc()["system"] as Record<string, unknown>),
-            items: { jkllM: { level: 1, name: "Sharp Teeth", uuid: "Compendium.pf2e.ancestryfeatures.Item.Sharp Teeth" } },
+            items: {
+              jkllM: {
+                level: 1,
+                name: "Sharp Teeth",
+                uuid: "Compendium.pf2e.ancestryfeatures.Item.Sharp Teeth",
+              },
+            },
           },
         },
         // The embedded, materialized ancestry feature: type "feat" with the
         // distinguishing category "ancestryfeature" (routes details to
         // ancestry-features-core, NOT feats-core).
-        { _id: "granted-sharp", name: "Sharp Teeth", type: "feat", flags: { fusion: { sourceId: "SharpTeethSrc001", grantedBy: "P6PcVnCkh4XMdefw" } }, system: { category: "ancestryfeature", rules: [] } },
+        {
+          _id: "granted-sharp",
+          name: "Sharp Teeth",
+          type: "feat",
+          flags: { fusion: { sourceId: "SharpTeethSrc001", grantedBy: "P6PcVnCkh4XMdefw" } },
+          system: { category: "ancestryfeature", rules: [] },
+        },
       ],
     });
     const plan = derivePlan(doc);
     const ancestry = plan.abc.find((c) => c.kind === "ancestry")!;
     const sharp = ancestry.chips!.find((c: AbcChip) => c.name === "Sharp Teeth")!;
     expect(sharp.detailsPackSlug).toBe("ancestry-features-core");
-    expect(detailsRequestForAbcChip(sharp)).toEqual({ packSlug: "ancestry-features-core", name: "Sharp Teeth" });
+    expect(detailsRequestForAbcChip(sharp)).toEqual({
+      packSlug: "ancestry-features-core",
+      name: "Sharp Teeth",
+    });
     // Materialized + map entry dedupe to a single chip.
     expect(ancestry.chips!.filter((c) => c.name === "Sharp Teeth")).toHaveLength(1);
   });
@@ -1242,15 +1368,39 @@ describe("ABC card chips (r20-X4)", () => {
   it("renders a MATERIALIZED background free feat as a clickable chip", () => {
     const doc = baseCharacterDoc({
       items: [
-        { ...fireworksPerformerBackgroundDoc(), _id: "item-bg", type: "background", flags: { fusion: { sourceId: "2lk5NOcu1aUglUdK" } }, system: { ...(fireworksPerformerBackgroundDoc()["system"] as Record<string, unknown>), items: { wr9b9: { level: 1, name: "Fascinating Performance", uuid: "Compendium.pf2e.feats-srd.Item.Fascinating Performance" } } } },
-        { _id: "granted-fasc", name: "Fascinating Performance", type: "feat", flags: { fusion: { sourceId: "7LB00jkh6JaJr3vS", grantedBy: "2lk5NOcu1aUglUdK" } }, system: { rules: [] } },
+        {
+          ...fireworksPerformerBackgroundDoc(),
+          _id: "item-bg",
+          type: "background",
+          flags: { fusion: { sourceId: "2lk5NOcu1aUglUdK" } },
+          system: {
+            ...(fireworksPerformerBackgroundDoc()["system"] as Record<string, unknown>),
+            items: {
+              wr9b9: {
+                level: 1,
+                name: "Fascinating Performance",
+                uuid: "Compendium.pf2e.feats-srd.Item.Fascinating Performance",
+              },
+            },
+          },
+        },
+        {
+          _id: "granted-fasc",
+          name: "Fascinating Performance",
+          type: "feat",
+          flags: { fusion: { sourceId: "7LB00jkh6JaJr3vS", grantedBy: "2lk5NOcu1aUglUdK" } },
+          system: { rules: [] },
+        },
       ],
     });
     const plan = derivePlan(doc);
     const bg = plan.abc.find((c) => c.kind === "background")!;
     const fasc = bg.chips!.find((c: AbcChip) => c.name === "Fascinating Performance")!;
     expect(fasc.detailsPackSlug).toBe("feats-core");
-    expect(detailsRequestForAbcChip(fasc)).toEqual({ packSlug: "feats-core", name: "Fascinating Performance" });
+    expect(detailsRequestForAbcChip(fasc)).toEqual({
+      packSlug: "feats-core",
+      name: "Fascinating Performance",
+    });
     // No duplicate informative chip for the same feature.
     expect(bg.chips!.filter((c) => c.name === "Fascinating Performance")).toHaveLength(1);
   });
@@ -1279,32 +1429,66 @@ describe("classFeatureGrantRefs + classGrantedActionChips (r20-X4)", () => {
 
   it("surfaces a materialized class-granted action with a NEW name as a locked chip at its feature's level", () => {
     const base = tobiasLevel3Doc();
-    const classItem = (base["items"] as Array<Record<string, unknown>>).find((i) => i["type"] === "class")!;
-    const classSid = (((classItem["flags"] as Record<string, unknown>)["fusion"]) as Record<string, unknown>)["sourceId"] as string;
+    const classItem = (base["items"] as Array<Record<string, unknown>>).find(
+      (i) => i["type"] === "class",
+    )!;
+    const classSid = (
+      (classItem["flags"] as Record<string, unknown>)["fusion"] as Record<string, unknown>
+    )["sourceId"] as string;
     const doc = {
       ...base,
       items: [
         ...(base["items"] as Array<Record<string, unknown>>),
         // A name NOT present in Magus featuresByLevel (mirrors Kineticist's Base
         // Kinesis) → a distinct chip routed to actions-core.
-        { _id: "granted-mystrike", name: "Mystic Strike", type: "action", flags: { fusion: { sourceId: "MS_ACT", grantedBy: classSid, grantedSlot: classGrantSlot(1, "Spellstrike") } }, system: {} },
+        {
+          _id: "granted-mystrike",
+          name: "Mystic Strike",
+          type: "action",
+          flags: {
+            fusion: {
+              sourceId: "MS_ACT",
+              grantedBy: classSid,
+              grantedSlot: classGrantSlot(1, "Spellstrike"),
+            },
+          },
+          system: {},
+        },
       ],
     };
     const plan = derivePlan(doc);
     const lvl1 = plan.levels.find((l) => l.level === 1)!;
-    const chip = lvl1.autoFeatures.find((f) => f.name === "Mystic Strike" && f.detailsPackSlug === "actions-core");
+    const chip = lvl1.autoFeatures.find(
+      (f) => f.name === "Mystic Strike" && f.detailsPackSlug === "actions-core",
+    );
     expect(chip).toBeDefined();
   });
 
   it("DEDUPES a granted action whose name matches a class feature (Magus Spellstrike) — one chip, no duplicate render key", () => {
     const base = tobiasLevel3Doc();
-    const classItem = (base["items"] as Array<Record<string, unknown>>).find((i) => i["type"] === "class")!;
-    const classSid = (((classItem["flags"] as Record<string, unknown>)["fusion"]) as Record<string, unknown>)["sourceId"] as string;
+    const classItem = (base["items"] as Array<Record<string, unknown>>).find(
+      (i) => i["type"] === "class",
+    )!;
+    const classSid = (
+      (classItem["flags"] as Record<string, unknown>)["fusion"] as Record<string, unknown>
+    )["sourceId"] as string;
     const doc = {
       ...base,
       items: [
         ...(base["items"] as Array<Record<string, unknown>>),
-        { _id: "granted-spellstrike", name: "Spellstrike", type: "action", flags: { fusion: { sourceId: "SS_ACT", grantedBy: classSid, grantedSlot: classGrantSlot(1, "Spellstrike") } }, system: {} },
+        {
+          _id: "granted-spellstrike",
+          name: "Spellstrike",
+          type: "action",
+          flags: {
+            fusion: {
+              sourceId: "SS_ACT",
+              grantedBy: classSid,
+              grantedSlot: classGrantSlot(1, "Spellstrike"),
+            },
+          },
+          system: {},
+        },
       ],
     };
     const plan = derivePlan(doc);
@@ -1345,14 +1529,21 @@ describe("chooseFeat", () => {
       level: 2,
       slot: "classFeat-2",
     });
-    const wire = { documentType: createOp.documentType, data: [createOp.data], parent: createOp.parent };
+    const wire = {
+      documentType: createOp.documentType,
+      data: [createOp.data],
+      parent: createOp.parent,
+    };
     expect(DocCreatePayloadSchema.safeParse(wire).success).toBe(true);
 
     const updateOp = ops[1]!;
     if (updateOp.type !== "doc:update") throw new Error("expected doc:update");
     const choices = updateOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
     expect(choices).toEqual([{ level: 2, slot: "classFeat-2", type: "classFeat" }]);
-    const wireUpdate = { documentType: updateOp.documentType, updates: [{ _id: updateOp.id, diff: updateOp.diff }] };
+    const wireUpdate = {
+      documentType: updateOp.documentType,
+      updates: [{ _id: updateOp.id, diff: updateOp.diff }],
+    };
     expect(DocUpdatePayloadSchema.safeParse(wireUpdate).success).toBe(true);
   });
 
@@ -1402,7 +1593,9 @@ describe("chooseSkillTraining", () => {
     const op = chooseSkillTraining(ctx(baseCharacterDoc()), slot, 1, "stealth");
     expect(op).not.toBeNull();
     const choices = op!.diff["system.build.choices"] as Array<Record<string, unknown>>;
-    expect(choices).toEqual([{ level: 1, slot: "skillTraining-1-0", type: "skillTraining", skill: "stealth", rank: 1 }]);
+    expect(choices).toEqual([
+      { level: 1, slot: "skillTraining-1-0", type: "skillTraining", skill: "stealth", rank: 1 },
+    ]);
     const wire = { documentType: op!.documentType, updates: [{ _id: op!.id, diff: op!.diff }] };
     expect(DocUpdatePayloadSchema.safeParse(wire).success).toBe(true);
   });
@@ -1421,7 +1614,15 @@ describe("chooseSkillTraining", () => {
             classBoost: [],
             levelledBoosts: {},
           },
-          choices: [{ level: 1, slot: "skillTraining-1-0", type: "skillTraining", skill: "acrobatics", rank: 1 }],
+          choices: [
+            {
+              level: 1,
+              slot: "skillTraining-1-0",
+              type: "skillTraining",
+              skill: "acrobatics",
+              rank: 1,
+            },
+          ],
           bonusHp: 0,
           bonusHpPerLevel: 0,
           freeArchetype: false,
@@ -1513,7 +1714,9 @@ describe("setAbilityBoosts", () => {
 
 describe("markAbilityBoostsChoice", () => {
   it("returns null when not editable", () => {
-    expect(markAbilityBoostsChoice(ctx(baseCharacterDoc(), false), "abilityBoosts-1", 1)).toBeNull();
+    expect(
+      markAbilityBoostsChoice(ctx(baseCharacterDoc(), false), "abilityBoosts-1", 1),
+    ).toBeNull();
   });
 
   it("upserts a choices entry with type abilityBoosts for the given slot/level", () => {
@@ -1765,7 +1968,11 @@ describe("removeChoice", () => {
     expect(deleteOp.id).toBe("item-ancestry-feat-1");
     expect(deleteOp.parent).toEqual({ type: "Actor", id: "actor-tobias" });
 
-    const wire = { documentType: deleteOp.documentType, ids: [deleteOp.id], parent: deleteOp.parent };
+    const wire = {
+      documentType: deleteOp.documentType,
+      ids: [deleteOp.id],
+      parent: deleteOp.parent,
+    };
     expect(DocDeletePayloadSchema.safeParse(wire).success).toBe(true);
   });
 
@@ -1841,7 +2048,10 @@ describe("levelSet", () => {
     if (levelOp.type !== "doc:update") throw new Error("expected doc:update");
     expect(levelOp.diff["system.level.value"]).toBe(4);
     expect(levelOp.diff["system.details.level"]).toBe(4);
-    const wire = { documentType: levelOp.documentType, updates: [{ _id: levelOp.id, diff: levelOp.diff }] };
+    const wire = {
+      documentType: levelOp.documentType,
+      updates: [{ _id: levelOp.id, diff: levelOp.diff }],
+    };
     expect(DocUpdatePayloadSchema.safeParse(wire).success).toBe(true);
   });
 
@@ -1869,7 +2079,14 @@ describe("levelSet", () => {
         proficiency: { value: 1 },
         isFocusPool: false,
         slots: {
-          "1": { value: 2, max: 2, prepared: [{ id: "spell-a", expended: false }, { id: "spell-b", expended: true }] },
+          "1": {
+            value: 2,
+            max: 2,
+            prepared: [
+              { id: "spell-a", expended: false },
+              { id: "spell-b", expended: true },
+            ],
+          },
           "2": { value: 1, max: 1, prepared: [{ id: "spell-c", expended: false }] },
         },
       },
@@ -1900,7 +2117,10 @@ describe("levelSet", () => {
     for (const op of entryOps) {
       expect(op.id).toBe("entry-arcane");
       expect(op.embedded).toEqual({ type: "Item", id: "actor-tobias" });
-      const wire = { documentType: op.documentType, updates: [{ _id: op.id, diff: op.diff, embedded: op.embedded }] };
+      const wire = {
+        documentType: op.documentType,
+        updates: [{ _id: op.id, diff: op.diff, embedded: op.embedded }],
+      };
       expect(DocUpdatePayloadSchema.safeParse(wire).success).toBe(true);
     }
 
@@ -1990,7 +2210,10 @@ describe("levelSet", () => {
     const items = doc["items"] as Array<Record<string, unknown>>;
     const noCastingClass = {
       ...magusClassDoc(),
-      system: { ...(magusClassDoc()["system"] as Record<string, unknown>), spellcasting: undefined },
+      system: {
+        ...(magusClassDoc()["system"] as Record<string, unknown>),
+        spellcasting: undefined,
+      },
     };
     items.push({ ...noCastingClass, _id: "item-class" });
     const ops = levelSet(ctx(doc), 2);
@@ -2032,7 +2255,9 @@ describe("isFeatEligible", () => {
   });
 
   it("classFeat: rejects a feat above the character's level", () => {
-    const highLevelFeat = { system: { category: "class", level: 10, traits: { value: ["magus"] } } };
+    const highLevelFeat = {
+      system: { category: "class", level: 10, traits: { value: ["magus"] } },
+    };
     expect(isFeatEligible(highLevelFeat, "classFeat", 2, opts)).toBe(false);
   });
 
@@ -2098,7 +2323,9 @@ describe("isHybridStudyOption", () => {
   });
 
   it("returns false when otherTags doesn't include the hybrid-study tag", () => {
-    expect(isHybridStudyOption({ system: { traits: { otherTags: ["something-else"] } } })).toBe(false);
+    expect(isHybridStudyOption({ system: { traits: { otherTags: ["something-else"] } } })).toBe(
+      false,
+    );
   });
 
   it("returns false for a non-hybrid-study classFeature (e.g. Arcane Cascade)", () => {
@@ -2321,7 +2548,11 @@ describe("skillTrainingDialogContext", () => {
     // Tobias complete: additional(2) + Int mod(+3) = 5 total; 2 already
     // filled via choices (stealth, thievery) -> 3 still empty.
     expect(dctx.totalSlots).toBe(5);
-    expect(dctx.emptySlotIds).toEqual(["skillTraining-1-2", "skillTraining-1-3", "skillTraining-1-4"]);
+    expect(dctx.emptySlotIds).toEqual([
+      "skillTraining-1-2",
+      "skillTraining-1-3",
+      "skillTraining-1-4",
+    ]);
 
     // Tobias is level 3, so effectiveSkillRank folds in BOTH the level-1
     // skillTraining choice (stealth -> 1) and the level-3 skillIncrease
@@ -2416,7 +2647,9 @@ describe("skillTrainingDialogContext", () => {
 describe("confirmSkillTraining", () => {
   it("returns null when not editable", () => {
     const dctx = skillTrainingDialogContext(tobiasLevel3DocComplete(), 1, "skillTraining");
-    expect(confirmSkillTraining(ctx(tobiasLevel3DocComplete(), false), dctx, ["arcana"])).toBeNull();
+    expect(
+      confirmSkillTraining(ctx(tobiasLevel3DocComplete(), false), dctx, ["arcana"]),
+    ).toBeNull();
   });
 
   it("persists ALL picks in ONE doc:update carrying the whole choices array (lesson r10: never index arrays)", () => {
@@ -2439,8 +2672,12 @@ describe("confirmSkillTraining", () => {
 
     const choices = op!.diff["system.build.choices"] as Array<Record<string, unknown>>;
     // Pre-existing choices (stealth/thievery) survive on their own slot ids.
-    expect(choices.some((c) => c["skill"] === "stealth" && c["slot"] === "skillTraining-1-0")).toBe(true);
-    expect(choices.some((c) => c["skill"] === "thievery" && c["slot"] === "skillTraining-1-1")).toBe(true);
+    expect(choices.some((c) => c["skill"] === "stealth" && c["slot"] === "skillTraining-1-0")).toBe(
+      true,
+    );
+    expect(
+      choices.some((c) => c["skill"] === "thievery" && c["slot"] === "skillTraining-1-1"),
+    ).toBe(true);
     // New picks land on the previously-empty slot ids, in order.
     expect(choices).toEqual(
       expect.arrayContaining([
@@ -2451,7 +2688,9 @@ describe("confirmSkillTraining", () => {
     );
     // The unrelated skillIncrease-3 choice is byte-preserved (only this
     // level+kind group is reconciled).
-    expect(choices.some((c) => c["slot"] === "skillIncrease-3" && c["skill"] === "stealth")).toBe(true);
+    expect(choices.some((c) => c["slot"] === "skillIncrease-3" && c["skill"] === "stealth")).toBe(
+      true,
+    );
   });
 
   it("ignores picks beyond the number of group slots (defensive)", () => {
@@ -2554,14 +2793,14 @@ describe("confirmSkillTraining — re-edit substitutes the group ledger (R12 ite
     expect(DocUpdatePayloadSchema.safeParse(wire).success).toBe(true);
 
     const choices = op!.diff["system.build.choices"] as Array<Record<string, unknown>>;
-    const level1Training = choices.filter(
-      (c) => c["type"] === "skillTraining" && c["level"] === 1,
-    );
+    const level1Training = choices.filter((c) => c["type"] === "skillTraining" && c["level"] === 1);
     // Exactly 5 level-1 training choices, one per group slot — no orphaned
     // thievery entry, no duplicate slot.
     expect(level1Training).toHaveLength(5);
     expect(level1Training.some((c) => c["skill"] === "thievery")).toBe(false);
-    expect(level1Training.some((c) => c["skill"] === "medicine" && c["slot"] === "skillTraining-1-1")).toBe(true);
+    expect(
+      level1Training.some((c) => c["skill"] === "medicine" && c["slot"] === "skillTraining-1-1"),
+    ).toBe(true);
     const slotIds = level1Training.map((c) => c["slot"]);
     expect(new Set(slotIds).size).toBe(5); // all distinct
   });
@@ -2572,9 +2811,7 @@ describe("confirmSkillTraining — re-edit substitutes the group ledger (R12 ite
     // Player keeps only stealth (deselects thievery, adds nothing).
     const op = confirmSkillTraining(ctx(doc), dctx, ["stealth"]);
     const choices = op!.diff["system.build.choices"] as Array<Record<string, unknown>>;
-    const level1Training = choices.filter(
-      (c) => c["type"] === "skillTraining" && c["level"] === 1,
-    );
+    const level1Training = choices.filter((c) => c["type"] === "skillTraining" && c["level"] === 1);
     expect(level1Training).toHaveLength(1);
     expect(level1Training[0]!["skill"]).toBe("stealth");
     expect(level1Training[0]!["slot"]).toBe("skillTraining-1-0");
@@ -2585,11 +2822,21 @@ describe("confirmSkillTraining — re-edit substitutes the group ledger (R12 ite
   it("re-editing one level's group never disturbs another level/kind's choices", () => {
     const doc = tobiasLevel3DocComplete();
     const dctx = skillTrainingDialogContext(doc, 1, "skillTraining");
-    const op = confirmSkillTraining(ctx(doc), dctx, ["stealth", "thievery", "arcana", "athletics", "society"]);
+    const op = confirmSkillTraining(ctx(doc), dctx, [
+      "stealth",
+      "thievery",
+      "arcana",
+      "athletics",
+      "society",
+    ]);
     const choices = op!.diff["system.build.choices"] as Array<Record<string, unknown>>;
     // The level-3 skillIncrease and the abilityBoosts-1 marker are untouched.
-    expect(choices.some((c) => c["slot"] === "skillIncrease-3" && c["type"] === "skillIncrease")).toBe(true);
-    expect(choices.some((c) => c["slot"] === "abilityBoosts-1" && c["type"] === "abilityBoosts")).toBe(true);
+    expect(
+      choices.some((c) => c["slot"] === "skillIncrease-3" && c["type"] === "skillIncrease"),
+    ).toBe(true);
+    expect(
+      choices.some((c) => c["slot"] === "abilityBoosts-1" && c["type"] === "abilityBoosts"),
+    ).toBe(true);
   });
 });
 
@@ -2704,14 +2951,22 @@ describe("addLoreSkill", () => {
   it("creates a slugified lore-<name> entry at rank 0, valid against DocUpdatePayloadSchema", () => {
     const op = addLoreSkill(ctx(baseCharacterDoc()), "Nature Lore");
     expect(op).not.toBeNull();
-    expect(op!.diff["system.skills.lore-nature-lore"]).toEqual({ rank: 0, lore: true, label: "Nature Lore" });
+    expect(op!.diff["system.skills.lore-nature-lore"]).toEqual({
+      rank: 0,
+      lore: true,
+      label: "Nature Lore",
+    });
     const wire = { documentType: op!.documentType, updates: [{ _id: op!.id, diff: op!.diff }] };
     expect(DocUpdatePayloadSchema.safeParse(wire).success).toBe(true);
   });
 
   it("returns null when a lore with the same slug already exists", () => {
     const doc = baseCharacterDoc({
-      system: { level: { value: 1 }, details: {}, skills: { "lore-nature-lore": { rank: 1, lore: true } } },
+      system: {
+        level: { value: 1 },
+        details: {},
+        skills: { "lore-nature-lore": { rank: 1, lore: true } },
+      },
     });
     expect(addLoreSkill(ctx(doc), "Nature Lore")).toBeNull();
   });
@@ -2774,7 +3029,11 @@ describe("grantedFeatChoiceFor / matchesGrantedFeatFilter", () => {
 
   it("rejects a class feat of the right trait but ABOVE the level cap", () => {
     const grant = grantedFeatChoiceFor("Basic Concoction")!;
-    const tooHigh: FeatDocLike["system"] = { category: "class", level: 3, traits: { value: ["alchemist"] } };
+    const tooHigh: FeatDocLike["system"] = {
+      category: "class",
+      level: 3,
+      traits: { value: ["alchemist"] },
+    };
     expect(matchesGrantedFeatFilter({ system: tooHigh }, grant)).toBe(false);
   });
 });
@@ -2792,7 +3051,9 @@ describe("derivePlan — granted feat sub-slot (Basic Concoction, real fixture)"
     expect(sub.type).toBe("grantedFeat");
     expect(sub.filled).toBe(false);
     expect(sub.parentSlotId).toBe("archetypeFeat-4");
-    expect(sub.grantFilter?.labelKey).toBe("FUSION.Sheet.Plan.SlotLabel.grantedFeat.basicConcoction");
+    expect(sub.grantFilter?.labelKey).toBe(
+      "FUSION.Sheet.Plan.SlotLabel.grantedFeat.basicConcoction",
+    );
   });
 
   it("reports the sub-slot filled once the granted alchemist feat is embedded", () => {
@@ -2832,13 +3093,17 @@ describe("chooseFeat — filling a grantedFeat sub-slot", () => {
     expect(ops).toHaveLength(2);
 
     const createOp = ops[0] as { data: Record<string, unknown> };
-    expect((createOp.data["flags"] as Record<string, unknown>)).toMatchObject({
+    expect(createOp.data["flags"] as Record<string, unknown>).toMatchObject({
       fusion: { build: { level: 4, slot: "archetypeFeat-4:granted" } },
     });
 
     const updateOp = ops[1] as DocUpdatePayload;
     const choices = updateOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
-    expect(choices).toContainEqual({ level: 4, slot: "archetypeFeat-4:granted", type: "grantedFeat" });
+    expect(choices).toContainEqual({
+      level: 4,
+      slot: "archetypeFeat-4:granted",
+      type: "grantedFeat",
+    });
   });
 });
 
@@ -2859,10 +3124,14 @@ describe("removeChoice — cascades to a filled grantedFeat sub-slot", () => {
 
     const ops = removeChoice(ctx(doc), parentSlot);
     const deleteOps = ops.filter((op) => op.type === "doc:delete") as Array<{ id: string }>;
-    expect(deleteOps.map((op) => op.id).sort()).toEqual(["item-archetype-feat-4", "item-granted-feat"].sort());
+    expect(deleteOps.map((op) => op.id).sort()).toEqual(
+      ["item-archetype-feat-4", "item-granted-feat"].sort(),
+    );
 
     const updateOp = ops.find((op) => op.type === "doc:update") as DocUpdatePayload;
-    const remainingChoices = updateOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
+    const remainingChoices = updateOp.diff["system.build.choices"] as Array<
+      Record<string, unknown>
+    >;
     expect(remainingChoices.some((c) => c["slot"] === "archetypeFeat-4")).toBe(false);
     expect(remainingChoices.some((c) => c["slot"] === "archetypeFeat-4:granted")).toBe(false);
   });
@@ -2886,7 +3155,14 @@ describe("removeChoice — cascades to a filled grantedFeat sub-slot", () => {
 
 describe("detailsRequestForSlot", () => {
   function slot(overrides: Partial<PlanSlotModel>): PlanSlotModel {
-    return { slotId: "s", type: "classFeat", label: "Class Feat", filled: true, choiceName: "Sudden Charge", ...overrides };
+    return {
+      slotId: "s",
+      type: "classFeat",
+      label: "Class Feat",
+      filled: true,
+      choiceName: "Sudden Charge",
+      ...overrides,
+    };
   }
 
   it("routes a filled hybrid-study slot to class-features-core", () => {
@@ -2895,14 +3171,23 @@ describe("detailsRequestForSlot", () => {
   });
 
   it("routes every filled feat-family slot to feats-core", () => {
-    for (const type of ["ancestryFeat", "classFeat", "generalFeat", "skillFeat", "archetypeFeat", "grantedFeat"] as const) {
+    for (const type of [
+      "ancestryFeat",
+      "classFeat",
+      "generalFeat",
+      "skillFeat",
+      "archetypeFeat",
+      "grantedFeat",
+    ] as const) {
       const req = detailsRequestForSlot(slot({ type, choiceName: "Some Feat" }));
       expect(req).toEqual({ packSlug: "feats-core", name: "Some Feat" });
     }
   });
 
   it("returns null for slot types with no single compendium document", () => {
-    expect(detailsRequestForSlot(slot({ type: "abilityBoosts", choiceName: "str, dex" }))).toBeNull();
+    expect(
+      detailsRequestForSlot(slot({ type: "abilityBoosts", choiceName: "str, dex" })),
+    ).toBeNull();
     expect(detailsRequestForSlot(slot({ type: "skillTraining", choiceName: "2/4" }))).toBeNull();
     expect(detailsRequestForSlot(slot({ type: "skillIncrease", choiceName: "1/1" }))).toBeNull();
   });
@@ -2911,7 +3196,12 @@ describe("detailsRequestForSlot", () => {
     expect(detailsRequestForSlot(slot({ filled: false }))).toBeNull();
     // A filled slot missing choiceName entirely (not "choiceName: undefined",
     // which exactOptionalPropertyTypes rejects) also yields no request.
-    const noName: PlanSlotModel = { slotId: "s", type: "classFeat", label: "Class Feat", filled: true };
+    const noName: PlanSlotModel = {
+      slotId: "s",
+      type: "classFeat",
+      label: "Class Feat",
+      filled: true,
+    };
     expect(detailsRequestForSlot(noName)).toBeNull();
   });
 });
@@ -2937,12 +3227,16 @@ describe("findEntryUuidByName", () => {
   });
 
   it("is accent- and case-insensitive", () => {
-    expect(findEntryUuidByName(entries, "spellstrike")).toBe("Compendium.pf2e.class-features-core.Item.b2");
+    expect(findEntryUuidByName(entries, "spellstrike")).toBe(
+      "Compendium.pf2e.class-features-core.Item.b2",
+    );
     expect(findEntryUuidByName([{ name: "Estratégia", uuid: "u" }], "estrategia")).toBe("u");
   });
 
   it("falls back to a UNIQUE prefix match when there is no exact match", () => {
-    expect(findEntryUuidByName(entries, "Conflux")).toBe("Compendium.pf2e.class-features-core.Item.c3");
+    expect(findEntryUuidByName(entries, "Conflux")).toBe(
+      "Compendium.pf2e.class-features-core.Item.c3",
+    );
   });
 
   it("returns null on no match, empty name, or an ambiguous prefix", () => {
@@ -2958,7 +3252,12 @@ describe("findEntryUuidByName", () => {
 
 describe("pickDefaultEntryUuid", () => {
   it("returns the first entry's uuid so the picker's details panel is never empty", () => {
-    expect(pickDefaultEntryUuid([{ name: "A", uuid: "u-a" }, { name: "B", uuid: "u-b" }])).toBe("u-a");
+    expect(
+      pickDefaultEntryUuid([
+        { name: "A", uuid: "u-a" },
+        { name: "B", uuid: "u-b" },
+      ]),
+    ).toBe("u-a");
   });
 
   it("returns null for an empty list", () => {
@@ -3127,21 +3426,35 @@ function tobiasWithMaterializedGrantsDoc(): Record<string, unknown> {
       {
         ...alchemistDedicationFeatDoc(),
         _id: "item-archetype-feat-2",
-        flags: { fusion: { sourceId: "CJMkxlxHiHZQYDCz", build: { level: 2, slot: "archetypeFeat-2" } } },
+        flags: {
+          fusion: { sourceId: "CJMkxlxHiHZQYDCz", build: { level: 2, slot: "archetypeFeat-2" } },
+        },
       },
       {
         _id: "item-granted-crafting",
         name: "Alchemical Crafting",
         type: "feat",
         system: { category: "skill", level: 1, traits: { value: ["general", "skill"] } },
-        flags: { fusion: { sourceId: "is3Oz9wt11lNq62K", grantedBy: "CJMkxlxHiHZQYDCz", grantedSlot: "archetypeFeat-2" } },
+        flags: {
+          fusion: {
+            sourceId: "is3Oz9wt11lNq62K",
+            grantedBy: "CJMkxlxHiHZQYDCz",
+            grantedSlot: "archetypeFeat-2",
+          },
+        },
       },
       {
         _id: "item-granted-quick-alchemy",
         name: "Quick Alchemy",
         type: "action",
         system: {},
-        flags: { fusion: { sourceId: "yzNJgwzV9XqEhKc6", grantedBy: "CJMkxlxHiHZQYDCz", grantedSlot: "archetypeFeat-2" } },
+        flags: {
+          fusion: {
+            sourceId: "yzNJgwzV9XqEhKc6",
+            grantedBy: "CJMkxlxHiHZQYDCz",
+            grantedSlot: "archetypeFeat-2",
+          },
+        },
       },
     ],
     system: {
@@ -3149,8 +3462,12 @@ function tobiasWithMaterializedGrantsDoc(): Record<string, unknown> {
       details: {},
       build: {
         abilities: {
-          ancestryBoosts: [], ancestryFlaws: [], ancestryFree: [],
-          backgroundBoosts: [], classBoost: ["int"], levelledBoosts: {},
+          ancestryBoosts: [],
+          ancestryFlaws: [],
+          ancestryFree: [],
+          backgroundBoosts: [],
+          classBoost: ["int"],
+          levelledBoosts: {},
         },
         choices: [{ level: 2, slot: "archetypeFeat-2", type: "archetypeFeat" }],
         freeArchetype: true,
@@ -3189,14 +3506,24 @@ describe("derivePlan — fixed-grant chips (B2 r14 + r15 A2)", () => {
     const chips = plan.levels.find((l) => l.level === 2)!.slots.filter((s) => s.lockedGrant);
     const feat = chips.find((c) => c.choiceName === "Alchemical Crafting")!;
     const action = chips.find((c) => c.choiceName === "Quick Alchemy")!;
-    expect(detailsRequestForSlot(feat)).toEqual({ packSlug: "feats-core", name: "Alchemical Crafting" });
-    expect(detailsRequestForSlot(action)).toEqual({ packSlug: "actions-core", name: "Quick Alchemy" });
+    expect(detailsRequestForSlot(feat)).toEqual({
+      packSlug: "feats-core",
+      name: "Alchemical Crafting",
+    });
+    expect(detailsRequestForSlot(action)).toEqual({
+      packSlug: "actions-core",
+      name: "Quick Alchemy",
+    });
   });
 
   it("does not surface a grant chip when the granter carries no fusion.sourceId", () => {
     const doc = tobiasWithMaterializedGrantsDoc();
-    const granter = (doc["items"] as Array<Record<string, unknown>>).find((i) => i["_id"] === "item-archetype-feat-2")!;
-    (granter["flags"] as Record<string, Record<string, unknown>>)["fusion"] = { build: { level: 2, slot: "archetypeFeat-2" } };
+    const granter = (doc["items"] as Array<Record<string, unknown>>).find(
+      (i) => i["_id"] === "item-archetype-feat-2",
+    )!;
+    (granter["flags"] as Record<string, Record<string, unknown>>)["fusion"] = {
+      build: { level: 2, slot: "archetypeFeat-2" },
+    };
     const plan = derivePlan(doc);
     const grantChips = plan.levels.find((l) => l.level === 2)!.slots.filter((s) => s.lockedGrant);
     expect(grantChips).toHaveLength(0);
@@ -3219,7 +3546,9 @@ describe("derivePlan — conflux spell chip under the hybrid study (r15 A2)", ()
         {
           ...starlitSpanHybridStudyDoc(),
           _id: "item-hybrid-study-1",
-          flags: { fusion: { sourceId: "Pew7duAozEeAemif", build: { level: 1, slot: "hybridStudy-1" } } },
+          flags: {
+            fusion: { sourceId: "Pew7duAozEeAemif", build: { level: 1, slot: "hybridStudy-1" } },
+          },
         },
         {
           _id: "item-granted-shooting-star",
@@ -3227,7 +3556,13 @@ describe("derivePlan — conflux spell chip under the hybrid study (r15 A2)", ()
           type: "spell",
           location: "focus-entry",
           system: { traits: { value: ["focus", "magus"] } },
-          flags: { fusion: { sourceId: "SHOOT_SID", grantedBy: "Pew7duAozEeAemif", grantedSlot: "hybridStudy-1" } },
+          flags: {
+            fusion: {
+              sourceId: "SHOOT_SID",
+              grantedBy: "Pew7duAozEeAemif",
+              grantedSlot: "hybridStudy-1",
+            },
+          },
         },
       ],
       system: {
@@ -3235,8 +3570,12 @@ describe("derivePlan — conflux spell chip under the hybrid study (r15 A2)", ()
         details: {},
         build: {
           abilities: {
-            ancestryBoosts: [], ancestryFlaws: [], ancestryFree: [],
-            backgroundBoosts: [], classBoost: ["int"], levelledBoosts: {},
+            ancestryBoosts: [],
+            ancestryFlaws: [],
+            ancestryFree: [],
+            backgroundBoosts: [],
+            classBoost: ["int"],
+            levelledBoosts: {},
           },
           choices: [{ level: 1, slot: "hybridStudy-1", type: "hybridStudy" }],
         },
@@ -3259,9 +3598,13 @@ describe("derivePlan — conflux spell chip under the hybrid study (r15 A2)", ()
   it("removeChoice on the hybrid study cascades to the granted conflux spell", () => {
     const doc = tobiasWithConfluxSpellDoc();
     const plan = derivePlan(doc);
-    const hybridSlot = plan.levels.find((l) => l.level === 1)!.slots.find((s) => s.slotId === "hybridStudy-1")!;
+    const hybridSlot = plan.levels
+      .find((l) => l.level === 1)!
+      .slots.find((s) => s.slotId === "hybridStudy-1")!;
     const ops = removeChoice(ctx(doc), hybridSlot);
-    const deleteIds = ops.filter((op) => op.type === "doc:delete").map((op) => (op as { id: string }).id);
+    const deleteIds = ops
+      .filter((op) => op.type === "doc:delete")
+      .map((op) => (op as { id: string }).id);
     expect(deleteIds).toContain("item-hybrid-study-1");
     expect(deleteIds).toContain("item-granted-shooting-star");
   });
@@ -3271,25 +3614,37 @@ describe("removeChoice — cascades to fixed grants (B2 r14)", () => {
   it("deletes the granter AND every grantedBy item (feat + action), in one op set", () => {
     const doc = tobiasWithMaterializedGrantsDoc();
     const plan = derivePlan(doc);
-    const parentSlot = plan.levels.find((l) => l.level === 2)!.slots.find((s) => s.slotId === "archetypeFeat-2")!;
+    const parentSlot = plan.levels
+      .find((l) => l.level === 2)!
+      .slots.find((s) => s.slotId === "archetypeFeat-2")!;
     expect(parentSlot.filled).toBe(true);
 
     const ops = removeChoice(ctx(doc), parentSlot);
-    const deleteIds = ops.filter((op) => op.type === "doc:delete").map((op) => (op as { id: string }).id);
+    const deleteIds = ops
+      .filter((op) => op.type === "doc:delete")
+      .map((op) => (op as { id: string }).id);
     expect(deleteIds.sort()).toEqual(
       ["item-archetype-feat-2", "item-granted-crafting", "item-granted-quick-alchemy"].sort(),
     );
     // Each delete is a valid wire payload.
     for (const op of ops.filter((o) => o.type === "doc:delete")) {
       const del = op as { documentType: string; id: string; parent: unknown };
-      expect(DocDeletePayloadSchema.safeParse({ documentType: del.documentType, ids: [del.id], parent: del.parent }).success).toBe(true);
+      expect(
+        DocDeletePayloadSchema.safeParse({
+          documentType: del.documentType,
+          ids: [del.id],
+          parent: del.parent,
+        }).success,
+      ).toBe(true);
     }
   });
 
   it("returns [] when not editable", () => {
     const doc = tobiasWithMaterializedGrantsDoc();
     const plan = derivePlan(doc);
-    const parentSlot = plan.levels.find((l) => l.level === 2)!.slots.find((s) => s.slotId === "archetypeFeat-2")!;
+    const parentSlot = plan.levels
+      .find((l) => l.level === 2)!
+      .slots.find((s) => s.slotId === "archetypeFeat-2")!;
     expect(removeChoice(ctx(doc, false), parentSlot)).toEqual([]);
   });
 });
@@ -3298,7 +3653,9 @@ describe("removeChoice — cascades to fixed grants (B2 r14)", () => {
 // Ghost spellcasting-entry cleanup (gap #12)
 // ---------------------------------------------------------------------------
 
-function ghostEntryWorldDoc(opts: { ghost?: boolean; twinNonEmpty?: boolean } = {}): Record<string, unknown> {
+function ghostEntryWorldDoc(
+  opts: { ghost?: boolean; twinNonEmpty?: boolean } = {},
+): Record<string, unknown> {
   const { ghost = true, twinNonEmpty = true } = opts;
   const items: Array<Record<string, unknown>> = [
     { ...magusClassDoc(), _id: "item-class" },
@@ -3306,19 +3663,35 @@ function ghostEntryWorldDoc(opts: { ghost?: boolean; twinNonEmpty?: boolean } = 
       _id: "BNyJ0gsmNlULtcai",
       name: "Magias Arcanas",
       type: "spellcastingEntry",
-      system: { tradition: { value: "arcane" }, prepared: { value: "prepared" }, isFocusPool: false, slots: {} },
+      system: {
+        tradition: { value: "arcane" },
+        prepared: { value: "prepared" },
+        isFocusPool: false,
+        slots: {},
+      },
     },
   ];
   if (twinNonEmpty) {
     // A real spell located in the non-ghost entry -> makes it non-empty.
-    items.push({ _id: "spell-1", name: "Shield", type: "spell", location: "BNyJ0gsmNlULtcai", system: { traits: { value: [] } } });
+    items.push({
+      _id: "spell-1",
+      name: "Shield",
+      type: "spell",
+      location: "BNyJ0gsmNlULtcai",
+      system: { traits: { value: [] } },
+    });
   }
   if (ghost) {
     items.push({
       _id: "sAbd2jdXSJVrTtkX",
       name: "arcane Spells", // auto-generated "<tradition> Spells" pattern
       type: "spellcastingEntry",
-      system: { tradition: { value: "arcane" }, prepared: { value: "prepared" }, isFocusPool: false, slots: {} },
+      system: {
+        tradition: { value: "arcane" },
+        prepared: { value: "prepared" },
+        isFocusPool: false,
+        slots: {},
+      },
     });
   }
   return {
@@ -3335,7 +3708,13 @@ describe("planGhostEntryCleanup (gap #12)", () => {
     const ops = planGhostEntryCleanup(ctx(ghostEntryWorldDoc()));
     expect(ops).toHaveLength(1);
     expect(ops[0]!.id).toBe("sAbd2jdXSJVrTtkX");
-    expect(DocDeletePayloadSchema.safeParse({ documentType: ops[0]!.documentType, ids: [ops[0]!.id], parent: ops[0]!.parent }).success).toBe(true);
+    expect(
+      DocDeletePayloadSchema.safeParse({
+        documentType: ops[0]!.documentType,
+        ids: [ops[0]!.id],
+        parent: ops[0]!.parent,
+      }).success,
+    ).toBe(true);
   });
 
   it("does NOT remove when the twin entry is itself empty (no clearly-canonical entry to keep)", () => {
@@ -3346,14 +3725,20 @@ describe("planGhostEntryCleanup (gap #12)", () => {
   it("does NOT remove a ghost that has its own spells (not actually empty)", () => {
     const doc = ghostEntryWorldDoc();
     (doc["items"] as Array<Record<string, unknown>>).push({
-      _id: "spell-2", name: "Detect Magic", type: "spell", location: "sAbd2jdXSJVrTtkX", system: { traits: { value: [] } },
+      _id: "spell-2",
+      name: "Detect Magic",
+      type: "spell",
+      location: "sAbd2jdXSJVrTtkX",
+      system: { traits: { value: [] } },
     });
     expect(planGhostEntryCleanup(ctx(doc))).toEqual([]);
   });
 
   it("does NOT remove an entry whose name is NOT the auto-generated pattern", () => {
     const doc = ghostEntryWorldDoc();
-    const ghost = (doc["items"] as Array<Record<string, unknown>>).find((i) => i["_id"] === "sAbd2jdXSJVrTtkX")!;
+    const ghost = (doc["items"] as Array<Record<string, unknown>>).find(
+      (i) => i["_id"] === "sAbd2jdXSJVrTtkX",
+    )!;
     ghost["name"] = "Magias de Backup"; // human-renamed -> keep
     expect(planGhostEntryCleanup(ctx(doc))).toEqual([]);
   });
@@ -3361,8 +3746,15 @@ describe("planGhostEntryCleanup (gap #12)", () => {
   it("never touches focus pools", () => {
     const doc = ghostEntryWorldDoc({ ghost: false });
     (doc["items"] as Array<Record<string, unknown>>).push({
-      _id: "focus", name: "arcane Spells", type: "spellcastingEntry",
-      system: { tradition: { value: "arcane" }, prepared: { value: "prepared" }, isFocusPool: true, slots: {} },
+      _id: "focus",
+      name: "arcane Spells",
+      type: "spellcastingEntry",
+      system: {
+        tradition: { value: "arcane" },
+        prepared: { value: "prepared" },
+        isFocusPool: true,
+        slots: {},
+      },
     });
     expect(planGhostEntryCleanup(ctx(doc))).toEqual([]);
   });
@@ -3395,8 +3787,11 @@ describe("healGranterRefs / actorSpellEntries (heal input)", () => {
   it("routes a classFeature granter to class-features-core", () => {
     const doc = tobiasWithMaterializedGrantsDoc();
     (doc["items"] as Array<Record<string, unknown>>).push({
-      _id: "item-feature", name: "Some Feature", type: "classFeature",
-      flags: { fusion: { sourceId: "featureSrc" } }, system: {},
+      _id: "item-feature",
+      name: "Some Feature",
+      type: "classFeature",
+      flags: { fusion: { sourceId: "featureSrc" } },
+      system: {},
     });
     const ref = healGranterRefs(doc).find((r) => r.name === "Some Feature")!;
     expect(ref.packSlug).toBe("class-features-core");
@@ -3404,6 +3799,10 @@ describe("healGranterRefs / actorSpellEntries (heal input)", () => {
 
   it("reads the actor's spellcasting entries (id/isFocusPool/tradition)", () => {
     const entries = actorSpellEntries(ghostEntryWorldDoc({ ghost: false }));
-    expect(entries).toContainEqual({ id: "BNyJ0gsmNlULtcai", isFocusPool: false, tradition: "arcane" });
+    expect(entries).toContainEqual({
+      id: "BNyJ0gsmNlULtcai",
+      isFocusPool: false,
+      tradition: "arcane",
+    });
   });
 });

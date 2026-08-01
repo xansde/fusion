@@ -53,10 +53,7 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": [
-          "arc",
-          "tech"
-        ]
+        "value": ["arc", "tech"]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "shock"
@@ -133,10 +130,7 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": [
-          "arc",
-          "tech"
-        ]
+        "value": ["arc", "tech"]
       },
       "usage": "held-in-two-hands",
       "weaponGroup": "shock"
@@ -213,10 +207,7 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": [
-          "analog",
-          "automatic"
-        ]
+        "value": ["analog", "automatic"]
       },
       "usage": "held-in-two-hands",
       "weaponGroup": "projectile"
@@ -289,12 +280,7 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": [
-          "analog",
-          "finesse",
-          "nonlethal",
-          "parry"
-        ]
+        "value": ["analog", "finesse", "nonlethal", "parry"]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "club"
@@ -370,13 +356,7 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": [
-          "boost-1d10",
-          "kickback",
-          "tech",
-          "unwieldy",
-          "volley-30"
-        ]
+        "value": ["boost-1d10", "kickback", "tech", "unwieldy", "volley-30"]
       },
       "usage": "held-in-two-hands",
       "weaponGroup": "sniper",
@@ -454,9 +434,7 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": [
-          "analog"
-        ]
+        "value": ["analog"]
       },
       "usage": "held-in-two-hands",
       "weaponGroup": "crossbow"
@@ -529,10 +507,7 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": [
-          "analog",
-          "versatile-p"
-        ]
+        "value": ["analog", "versatile-p"]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "sword"
@@ -609,11 +584,7 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": [
-          "area-cone",
-          "tech",
-          "unwieldy"
-        ]
+        "value": ["area-cone", "tech", "unwieldy"]
       },
       "usage": "held-in-two-hands",
       "weaponGroup": "flame"
@@ -686,11 +657,7 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": [
-          "analog",
-          "professional-crafting",
-          "shove"
-        ]
+        "value": ["analog", "professional-crafting", "shove"]
       },
       "usage": "held-in-two-hands",
       "weaponGroup": "hammer"
@@ -763,13 +730,7 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": [
-          "agile",
-          "analog",
-          "finesse",
-          "thrown-10",
-          "versatile-s"
-        ]
+        "value": ["agile", "analog", "finesse", "thrown-10", "versatile-s"]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "knife"
@@ -846,9 +807,7 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": [
-          "tech"
-        ]
+        "value": ["tech"]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "laser"
@@ -925,9 +884,7 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": [
-          "tech"
-        ]
+        "value": ["tech"]
       },
       "usage": "held-in-two-hands",
       "weaponGroup": "laser"
@@ -1004,10 +961,7 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": [
-          "analog",
-          "automatic"
-        ]
+        "value": ["analog", "automatic"]
       },
       "usage": "held-in-two-hands",
       "weaponGroup": "projectile"
@@ -1080,11 +1034,7 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": [
-          "critical-plasma",
-          "powered",
-          "tech"
-        ]
+        "value": ["critical-plasma", "powered", "tech"]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "sword"
@@ -1161,10 +1111,7 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": [
-          "nonlethal",
-          "tech"
-        ]
+        "value": ["nonlethal", "tech"]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "shock"
@@ -1241,9 +1188,7 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": [
-          "analog"
-        ]
+        "value": ["analog"]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "projectile"
@@ -1316,12 +1261,7 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": [
-          "agile",
-          "free-hand",
-          "powered",
-          "tech"
-        ]
+        "value": ["agile", "free-hand", "powered", "tech"]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "shock"
@@ -1397,25 +1337,16 @@
           "modular": [
             {
               "damageType": "electricity",
-              "traits": [
-                "arc"
-              ]
+              "traits": ["arc"]
             },
             {
               "damageType": "electricity",
-              "traits": [
-                "nonlethal"
-              ]
+              "traits": ["nonlethal"]
             }
           ]
         },
         "rarity": "common",
-        "value": [
-          "disarm",
-          "modular",
-          "powered",
-          "tech"
-        ]
+        "value": ["disarm", "modular", "powered", "tech"]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "club"
@@ -1488,14 +1419,7 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": [
-          "agile",
-          "analog",
-          "deadly-d6",
-          "finesse",
-          "thrown-20",
-          "versatile-s"
-        ]
+        "value": ["agile", "analog", "deadly-d6", "finesse", "thrown-20", "versatile-s"]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "knife"
@@ -1572,9 +1496,7 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": [
-          "tech"
-        ]
+        "value": ["tech"]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "cryo"

@@ -69,12 +69,7 @@
     },
     "traits": {
       "rarity": "uncommon",
-      "value": [
-        "deadly-d8",
-        "disarm",
-        "sweep",
-        "versatile-p"
-      ]
+      "value": ["deadly-d8", "disarm", "sweep", "versatile-p"]
     },
     "usage": {
       "value": "held-in-one-hand"

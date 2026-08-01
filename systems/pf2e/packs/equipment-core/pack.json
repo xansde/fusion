@@ -3,13 +3,7 @@
   "label": "PF2e Core Equipment",
   "documentType": "Item",
   "systemId": "pf2e",
-  "indexFields": [
-    "name",
-    "system.level",
-    "system.traits.value",
-    "system.category",
-    "system.usage"
-  ],
+  "indexFields": ["name", "system.level", "system.traits.value", "system.category", "system.usage"],
   "license": {
     "license": "ORC",
     "attribution": "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",

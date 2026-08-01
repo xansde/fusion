@@ -9,9 +9,7 @@
       "name": "Alertness",
       "system.level": 3,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -24,12 +22,8 @@
       "name": "Aloof Firmament",
       "system.level": 1,
       "system.category": "hybridStudy",
-      "system.traits.value": [
-        "magus"
-      ],
-      "system.traits.otherTags": [
-        "magus-hybrid-study"
-      ]
+      "system.traits.value": ["magus"],
+      "system.traits.otherTags": ["magus-hybrid-study"]
     }
   },
   {
@@ -42,9 +36,7 @@
       "name": "Arcane Cascade",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -57,9 +49,7 @@
       "name": "Arcane Spellcasting (Magus)",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -72,9 +62,7 @@
       "name": "Conflux Spells",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -87,9 +75,7 @@
       "name": "Double Reflow",
       "system.level": 17,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "kineticist"
-      ]
+      "system.traits.value": ["kineticist"]
     }
   },
   {
@@ -102,9 +88,7 @@
       "name": "Double Spellstrike",
       "system.level": 19,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -141,9 +125,7 @@
       "name": "Extract Element",
       "system.level": 3,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "kineticist"
-      ]
+      "system.traits.value": ["kineticist"]
     }
   },
   {
@@ -156,9 +138,7 @@
       "name": "Final Gate",
       "system.level": 19,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "kineticist"
-      ]
+      "system.traits.value": ["kineticist"]
     }
   },
   {
@@ -171,9 +151,7 @@
       "name": "Fourth Gate's Threshold",
       "system.level": 17,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "kineticist"
-      ]
+      "system.traits.value": ["kineticist"]
     }
   },
   {
@@ -186,9 +164,7 @@
       "name": "Gate's Threshold",
       "system.level": 5,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "kineticist"
-      ]
+      "system.traits.value": ["kineticist"]
     }
   },
   {
@@ -201,9 +177,7 @@
       "name": "Greater Kinetic Durability",
       "system.level": 15,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "kineticist"
-      ]
+      "system.traits.value": ["kineticist"]
     }
   },
   {
@@ -242,9 +216,7 @@
       "name": "Hybrid Study",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -257,9 +229,7 @@
       "name": "Impulses",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "kineticist"
-      ]
+      "system.traits.value": ["kineticist"]
     }
   },
   {
@@ -272,12 +242,8 @@
       "name": "Inexorable Iron",
       "system.level": 1,
       "system.category": "hybridStudy",
-      "system.traits.value": [
-        "magus"
-      ],
-      "system.traits.otherTags": [
-        "magus-hybrid-study"
-      ]
+      "system.traits.value": ["magus"],
+      "system.traits.otherTags": ["magus-hybrid-study"]
     }
   },
   {
@@ -290,10 +256,7 @@
       "name": "Juggernaut",
       "system.level": 7,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "barbarian",
-        "magus"
-      ]
+      "system.traits.value": ["barbarian", "magus"]
     }
   },
   {
@@ -306,9 +269,7 @@
       "name": "Kinetic Aura",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "kineticist"
-      ]
+      "system.traits.value": ["kineticist"]
     }
   },
   {
@@ -321,9 +282,7 @@
       "name": "Kinetic Durability",
       "system.level": 7,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "kineticist"
-      ]
+      "system.traits.value": ["kineticist"]
     }
   },
   {
@@ -336,9 +295,7 @@
       "name": "Kinetic Expertise",
       "system.level": 7,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "kineticist"
-      ]
+      "system.traits.value": ["kineticist"]
     }
   },
   {
@@ -351,9 +308,7 @@
       "name": "Kinetic Gate",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "kineticist"
-      ]
+      "system.traits.value": ["kineticist"]
     }
   },
   {
@@ -366,9 +321,7 @@
       "name": "Kinetic Legend",
       "system.level": 19,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "kineticist"
-      ]
+      "system.traits.value": ["kineticist"]
     }
   },
   {
@@ -381,9 +334,7 @@
       "name": "Kinetic Mastery",
       "system.level": 15,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "kineticist"
-      ]
+      "system.traits.value": ["kineticist"]
     }
   },
   {
@@ -396,9 +347,7 @@
       "name": "Kinetic Quickness",
       "system.level": 11,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "kineticist"
-      ]
+      "system.traits.value": ["kineticist"]
     }
   },
   {
@@ -411,12 +360,8 @@
       "name": "Laughing Shadow",
       "system.level": 1,
       "system.category": "hybridStudy",
-      "system.traits.value": [
-        "magus"
-      ],
-      "system.traits.otherTags": [
-        "magus-hybrid-study"
-      ]
+      "system.traits.value": ["magus"],
+      "system.traits.otherTags": ["magus-hybrid-study"]
     }
   },
   {
@@ -449,12 +394,7 @@
       "name": "Light Armor Mastery",
       "system.level": 19,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "investigator",
-        "kineticist",
-        "rogue",
-        "swashbuckler"
-      ]
+      "system.traits.value": ["investigator", "kineticist", "rogue", "swashbuckler"]
     }
   },
   {
@@ -581,9 +521,7 @@
       "name": "Reflow Elements",
       "system.level": 11,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "kineticist"
-      ]
+      "system.traits.value": ["kineticist"]
     }
   },
   {
@@ -596,9 +534,7 @@
       "name": "Resolve",
       "system.level": 7,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -611,12 +547,8 @@
       "name": "Resurgent Maelstrom",
       "system.level": 1,
       "system.category": "hybridStudy",
-      "system.traits.value": [
-        "magus"
-      ],
-      "system.traits.otherTags": [
-        "magus-hybrid-study"
-      ]
+      "system.traits.value": ["magus"],
+      "system.traits.otherTags": ["magus-hybrid-study"]
     }
   },
   {
@@ -629,9 +561,7 @@
       "name": "Second Gate's Threshold",
       "system.level": 9,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "kineticist"
-      ]
+      "system.traits.value": ["kineticist"]
     }
   },
   {
@@ -644,12 +574,8 @@
       "name": "Sparkling Targe",
       "system.level": 1,
       "system.category": "hybridStudy",
-      "system.traits.value": [
-        "magus"
-      ],
-      "system.traits.otherTags": [
-        "magus-hybrid-study"
-      ]
+      "system.traits.value": ["magus"],
+      "system.traits.otherTags": ["magus-hybrid-study"]
     }
   },
   {
@@ -662,9 +588,7 @@
       "name": "Spellstrike",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -677,12 +601,8 @@
       "name": "Starlit Span",
       "system.level": 1,
       "system.category": "hybridStudy",
-      "system.traits.value": [
-        "magus"
-      ],
-      "system.traits.otherTags": [
-        "magus-hybrid-study"
-      ]
+      "system.traits.value": ["magus"],
+      "system.traits.otherTags": ["magus-hybrid-study"]
     }
   },
   {
@@ -695,9 +615,7 @@
       "name": "Studious Spells",
       "system.level": 7,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -710,9 +628,7 @@
       "name": "Third Gate's Threshold",
       "system.level": 13,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "kineticist"
-      ]
+      "system.traits.value": ["kineticist"]
     }
   },
   {
@@ -725,12 +641,8 @@
       "name": "Twisting Tree",
       "system.level": 1,
       "system.category": "hybridStudy",
-      "system.traits.value": [
-        "magus"
-      ],
-      "system.traits.otherTags": [
-        "magus-hybrid-study"
-      ]
+      "system.traits.value": ["magus"],
+      "system.traits.otherTags": ["magus-hybrid-study"]
     }
   },
   {
@@ -743,12 +655,8 @@
       "name": "Unfurling Brocade",
       "system.level": 1,
       "system.category": "hybridStudy",
-      "system.traits.value": [
-        "magus"
-      ],
-      "system.traits.otherTags": [
-        "magus-hybrid-study"
-      ]
+      "system.traits.value": ["magus"],
+      "system.traits.otherTags": ["magus-hybrid-study"]
     }
   },
   {
@@ -789,13 +697,7 @@
       "name": "Weapon Mastery",
       "system.level": 13,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "barbarian",
-        "commander",
-        "guardian",
-        "magus",
-        "thaumaturge"
-      ]
+      "system.traits.value": ["barbarian", "commander", "guardian", "magus", "thaumaturge"]
     }
   },
   {
@@ -841,11 +743,7 @@
       "name": "Will Expertise",
       "system.level": 3,
       "system.category": "classfeature",
-      "system.traits.value": [
-        "alchemist",
-        "kineticist",
-        "ranger"
-      ]
+      "system.traits.value": ["alchemist", "kineticist", "ranger"]
     }
   }
 ]

@@ -300,7 +300,12 @@ export const stepCharApplyClass: DeriveStep = {
     }
 
     // Perception.
-    const perceptionRank = effectiveRank(classSystem.perception ?? 0, "perception", upgrades, level);
+    const perceptionRank = effectiveRank(
+      classSystem.perception ?? 0,
+      "perception",
+      upgrades,
+      level,
+    );
     if (!sys.perception || typeof sys.perception !== "object") {
       (sys as unknown as Record<string, unknown>)["perception"] = { rank: 0, senses: [] };
     }
@@ -317,7 +322,12 @@ export const stepCharApplyClass: DeriveStep = {
     for (const save of ["fortitude", "reflex", "will"] as const) {
       const initial = classSystem.savingThrows?.[save] ?? 0;
       sys.saves[save] = {
-        rank: effectiveRank(initial, save, upgrades, level) as CharacterSystem["saves"]["fortitude"]["rank"],
+        rank: effectiveRank(
+          initial,
+          save,
+          upgrades,
+          level,
+        ) as CharacterSystem["saves"]["fortitude"]["rank"],
       };
     }
 
@@ -437,9 +447,7 @@ export const stepCharBuildSkills: DeriveStep = {
     const skillChoices = choices
       .filter(
         (c) =>
-          (c.type === "skillTraining" || c.type === "skillIncrease") &&
-          c.level <= level &&
-          c.skill,
+          (c.type === "skillTraining" || c.type === "skillIncrease") && c.level <= level && c.skill,
       )
       .sort((a, b) => a.level - b.level);
 
@@ -517,7 +525,10 @@ export const stepCharBuildHp: DeriveStep = {
     const bonusHpPerLevel = sys.build?.bonusHpPerLevel ?? 0;
 
     const hpMax =
-      (ancestryHp ?? 0) + ((classSystem.hp ?? 0) + conMod) * level + bonusHp + bonusHpPerLevel * level;
+      (ancestryHp ?? 0) +
+      ((classSystem.hp ?? 0) + conMod) * level +
+      bonusHp +
+      bonusHpPerLevel * level;
 
     if (!sys.attributes || typeof sys.attributes !== "object") {
       (sys as unknown as Record<string, unknown>)["attributes"] = {};

@@ -42,10 +42,7 @@
       "strength": 0,
       "traits": {
         "rarity": "common",
-        "value": [
-          "exposed",
-          "tech"
-        ]
+        "value": ["exposed", "tech"]
       },
       "armorType": null
     },
@@ -110,10 +107,7 @@
       "strength": 3,
       "traits": {
         "rarity": "common",
-        "value": [
-          "bulwark",
-          "tech"
-        ]
+        "value": ["bulwark", "tech"]
       },
       "armorType": null
     },
@@ -178,11 +172,7 @@
       "strength": 2,
       "traits": {
         "rarity": "common",
-        "value": [
-          "comfort",
-          "flexible",
-          "tech"
-        ]
+        "value": ["comfort", "flexible", "tech"]
       },
       "armorType": null
     },
@@ -247,9 +237,7 @@
       "strength": 0,
       "traits": {
         "rarity": "common",
-        "value": [
-          "tech"
-        ]
+        "value": ["tech"]
       },
       "armorType": null
     },
@@ -314,11 +302,7 @@
       "strength": 1,
       "traits": {
         "rarity": "common",
-        "value": [
-          "comfort",
-          "flexible",
-          "tech"
-        ]
+        "value": ["comfort", "flexible", "tech"]
       },
       "armorType": null
     },
@@ -383,9 +367,7 @@
       "strength": 3,
       "traits": {
         "rarity": "common",
-        "value": [
-          "tech"
-        ]
+        "value": ["tech"]
       },
       "armorType": null
     },
@@ -450,11 +432,7 @@
       "strength": 1,
       "traits": {
         "rarity": "common",
-        "value": [
-          "flexible",
-          "noisy",
-          "tech"
-        ]
+        "value": ["flexible", "noisy", "tech"]
       },
       "armorType": null
     },
@@ -519,10 +497,7 @@
       "strength": 4,
       "traits": {
         "rarity": "common",
-        "value": [
-          "bulwark",
-          "tech"
-        ]
+        "value": ["bulwark", "tech"]
       },
       "armorType": null
     },
@@ -587,10 +562,7 @@
       "strength": 1,
       "traits": {
         "rarity": "common",
-        "value": [
-          "comfort",
-          "tech"
-        ]
+        "value": ["comfort", "tech"]
       },
       "armorType": null
     },
@@ -655,9 +627,7 @@
       "strength": 2,
       "traits": {
         "rarity": "common",
-        "value": [
-          "tech"
-        ]
+        "value": ["tech"]
       },
       "armorType": null
     },

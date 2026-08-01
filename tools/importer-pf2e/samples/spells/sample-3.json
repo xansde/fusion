@@ -58,22 +58,12 @@
     },
     "traits": {
       "rarity": "common",
-      "traditions": [
-        "primal"
-      ],
-      "value": [
-        "air",
-        "cold",
-        "concentrate",
-        "electricity",
-        "manipulate"
-      ]
+      "traditions": ["primal"],
+      "value": ["air", "cold", "concentrate", "electricity", "manipulate"]
     }
   },
   "_fusion": {
     "normalizedAt": "2026-07-05T19:48:18.076Z",
-    "removedFields": [
-      "folder"
-    ]
+    "removedFields": ["folder"]
   }
 }

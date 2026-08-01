@@ -708,7 +708,14 @@ describe("Partial build.abilities ledger derives without throwing", () => {
           },
         },
       },
-      items: [{ _id: "cls1", type: "class", name: "Magus", system: { hp: 8, keyAbility: ["dex", "str"] } }],
+      items: [
+        {
+          _id: "cls1",
+          type: "class",
+          name: "Magus",
+          system: { hp: 8, keyAbility: ["dex", "str"] },
+        },
+      ],
     };
 
     expect(() => runCharacterPipeline(doc)).not.toThrow();

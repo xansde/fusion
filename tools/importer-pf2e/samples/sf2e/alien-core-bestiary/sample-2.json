@@ -73,10 +73,7 @@
       "blurb": "",
       "languages": {
         "details": "",
-        "value": [
-          "common",
-          "draconic"
-        ]
+        "value": ["common", "draconic"]
       },
       "level": {
         "value": 7
@@ -151,11 +148,7 @@
       "size": {
         "value": "lg"
       },
-      "value": [
-        "cosmic",
-        "dragon",
-        "primal"
-      ]
+      "value": ["cosmic", "dragon", "primal"]
     }
   },
   "items": [
@@ -314,15 +307,8 @@
         },
         "traits": {
           "rarity": "common",
-          "traditions": [
-            "arcane",
-            "primal"
-          ],
-          "value": [
-            "concentrate",
-            "earth",
-            "manipulate"
-          ]
+          "traditions": ["arcane", "primal"],
+          "value": ["concentrate", "earth", "manipulate"]
         }
       }
     },
@@ -372,13 +358,8 @@
         },
         "traits": {
           "rarity": "common",
-          "traditions": [
-            "divine",
-            "primal"
-          ],
-          "value": [
-            "concentrate"
-          ]
+          "traditions": ["divine", "primal"],
+          "value": ["concentrate"]
         }
       }
     },
@@ -433,15 +414,8 @@
         },
         "traits": {
           "rarity": "common",
-          "traditions": [
-            "arcane",
-            "primal"
-          ],
-          "value": [
-            "air",
-            "concentrate",
-            "manipulate"
-          ]
+          "traditions": ["arcane", "primal"],
+          "value": ["air", "concentrate", "manipulate"]
         }
       }
     },
@@ -500,16 +474,8 @@
         },
         "traits": {
           "rarity": "common",
-          "traditions": [
-            "arcane",
-            "primal"
-          ],
-          "value": [
-            "concentrate",
-            "manipulate",
-            "plant",
-            "wood"
-          ]
+          "traditions": ["arcane", "primal"],
+          "value": ["concentrate", "manipulate", "plant", "wood"]
         }
       }
     },
@@ -559,15 +525,8 @@
         },
         "traits": {
           "rarity": "common",
-          "traditions": [
-            "arcane",
-            "divine",
-            "primal"
-          ],
-          "value": [
-            "concentrate",
-            "manipulate"
-          ]
+          "traditions": ["arcane", "divine", "primal"],
+          "value": ["concentrate", "manipulate"]
         }
       }
     },
@@ -617,13 +576,8 @@
         },
         "traits": {
           "rarity": "common",
-          "traditions": [
-            "primal"
-          ],
-          "value": [
-            "concentrate",
-            "manipulate"
-          ]
+          "traditions": ["primal"],
+          "value": ["concentrate", "manipulate"]
         }
       }
     },
@@ -673,16 +627,8 @@
         },
         "traits": {
           "rarity": "common",
-          "traditions": [
-            "arcane",
-            "divine",
-            "primal"
-          ],
-          "value": [
-            "concentrate",
-            "manipulate",
-            "water"
-          ]
+          "traditions": ["arcane", "divine", "primal"],
+          "value": ["concentrate", "manipulate", "water"]
         }
       }
     },
@@ -732,14 +678,8 @@
         },
         "traits": {
           "rarity": "common",
-          "traditions": [
-            "arcane",
-            "primal"
-          ],
-          "value": [
-            "concentrate",
-            "manipulate"
-          ]
+          "traditions": ["arcane", "primal"],
+          "value": ["concentrate", "manipulate"]
         }
       }
     },
@@ -763,9 +703,7 @@
             "applyMod": false,
             "category": null,
             "formula": "1d8",
-            "kinds": [
-              "damage"
-            ],
+            "kinds": ["damage"],
             "materials": [],
             "type": "acid"
           }
@@ -816,16 +754,8 @@
         },
         "traits": {
           "rarity": "common",
-          "traditions": [
-            "arcane",
-            "primal"
-          ],
-          "value": [
-            "acid",
-            "cantrip",
-            "concentrate",
-            "manipulate"
-          ]
+          "traditions": ["arcane", "primal"],
+          "value": ["acid", "cantrip", "concentrate", "manipulate"]
         }
       }
     },
@@ -878,18 +808,8 @@
         },
         "traits": {
           "rarity": "common",
-          "traditions": [
-            "arcane",
-            "divine",
-            "occult",
-            "primal"
-          ],
-          "value": [
-            "cantrip",
-            "concentrate",
-            "detection",
-            "manipulate"
-          ]
+          "traditions": ["arcane", "divine", "occult", "primal"],
+          "value": ["cantrip", "concentrate", "detection", "manipulate"]
         }
       }
     },
@@ -939,15 +859,8 @@
         },
         "traits": {
           "rarity": "uncommon",
-          "traditions": [
-            "divine",
-            "primal"
-          ],
-          "value": [
-            "concentrate",
-            "detection",
-            "manipulate"
-          ]
+          "traditions": ["divine", "primal"],
+          "value": ["concentrate", "detection", "manipulate"]
         }
       }
     },
@@ -1012,19 +925,8 @@
         },
         "traits": {
           "rarity": "common",
-          "traditions": [
-            "arcane",
-            "divine",
-            "occult",
-            "primal"
-          ],
-          "value": [
-            "concentrate",
-            "emotion",
-            "fear",
-            "manipulate",
-            "mental"
-          ]
+          "traditions": ["arcane", "divine", "occult", "primal"],
+          "value": ["concentrate", "emotion", "fear", "manipulate", "mental"]
         }
       }
     },
@@ -1074,16 +976,8 @@
         },
         "traits": {
           "rarity": "common",
-          "traditions": [
-            "divine",
-            "occult",
-            "primal"
-          ],
-          "value": [
-            "cantrip",
-            "concentrate",
-            "manipulate"
-          ]
+          "traditions": ["divine", "occult", "primal"],
+          "value": ["cantrip", "concentrate", "manipulate"]
         }
       }
     },
@@ -1138,15 +1032,8 @@
         },
         "traits": {
           "rarity": "common",
-          "traditions": [
-            "arcane",
-            "primal"
-          ],
-          "value": [
-            "cantrip",
-            "concentrate",
-            "manipulate"
-          ]
+          "traditions": ["arcane", "primal"],
+          "value": ["cantrip", "concentrate", "manipulate"]
         }
       }
     },
@@ -1196,18 +1083,8 @@
         },
         "traits": {
           "rarity": "common",
-          "traditions": [
-            "arcane",
-            "primal"
-          ],
-          "value": [
-            "attack",
-            "cantrip",
-            "concentrate",
-            "manipulate",
-            "plant",
-            "wood"
-          ]
+          "traditions": ["arcane", "primal"],
+          "value": ["attack", "cantrip", "concentrate", "manipulate", "plant", "wood"]
         }
       }
     },
@@ -1221,10 +1098,7 @@
         "action": "strike",
         "area": null,
         "attackEffects": {
-          "value": [
-            "excruciating-bites",
-            "grab"
-          ]
+          "value": ["excruciating-bites", "grab"]
         },
         "bonus": {
           "value": 18
@@ -1247,10 +1121,7 @@
         "rules": [],
         "slug": null,
         "traits": {
-          "value": [
-            "magical",
-            "reach-10"
-          ]
+          "value": ["magical", "reach-10"]
         }
       }
     },
@@ -1287,10 +1158,7 @@
         "rules": [],
         "slug": null,
         "traits": {
-          "value": [
-            "agile",
-            "magical"
-          ]
+          "value": ["agile", "magical"]
         }
       }
     },
@@ -1304,9 +1172,7 @@
         "action": "strike",
         "area": null,
         "attackEffects": {
-          "value": [
-            "knockdown"
-          ]
+          "value": ["knockdown"]
         },
         "bonus": {
           "value": 16
@@ -1329,10 +1195,7 @@
         "rules": [],
         "slug": null,
         "traits": {
-          "value": [
-            "magical",
-            "reach-15"
-          ]
+          "value": ["magical", "reach-15"]
         }
       }
     },
@@ -1392,21 +1255,12 @@
             "key": "Aura",
             "radius": 90,
             "slug": "frightful-presence",
-            "traits": [
-              "emotion",
-              "fear",
-              "mental"
-            ]
+            "traits": ["emotion", "fear", "mental"]
           }
         ],
         "slug": "frightful-presence",
         "traits": {
-          "value": [
-            "aura",
-            "emotion",
-            "fear",
-            "mental"
-          ]
+          "value": ["aura", "emotion", "fear", "mental"]
         }
       }
     },
@@ -1435,9 +1289,7 @@
         "rules": [
           {
             "key": "FlatModifier",
-            "predicate": [
-              "item:trait:mentail"
-            ],
+            "predicate": ["item:trait:mentail"],
             "selector": "saving-throw",
             "type": "status",
             "value": 2
@@ -1474,9 +1326,7 @@
         "rules": [],
         "slug": null,
         "traits": {
-          "value": [
-            "primal"
-          ]
+          "value": ["primal"]
         }
       }
     },
@@ -1534,9 +1384,7 @@
         "rules": [],
         "slug": "swallow-whole",
         "traits": {
-          "value": [
-            "attack"
-          ]
+          "value": ["attack"]
         }
       }
     },
@@ -1565,9 +1413,7 @@
         "rules": [],
         "slug": null,
         "traits": {
-          "value": [
-            "primal"
-          ]
+          "value": ["primal"]
         }
       }
     }

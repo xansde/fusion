@@ -9,7 +9,7 @@ The UI language is **pt-BR**. Only mechanical ORC data is shown in compendium vi
 - **Codebase (read-only, mounted):** `r10-design/` — five reference HTML mockups from the app's r10 sheet-redesign round: `tokens.html`, `ficha-overview.html`, `plano-coluna.html`, `magias-abas.html`, `spell-picker.html`, plus `PROMPT-claude-design.md` (the design brief with real token values and the reference character). Every token and interaction in this system is lifted directly from those files.
 - **Reference character:** Tobias — Ratfolk (Snow Rat) Magus 3, Fireworks Performer. Used verbatim across the specimen cards and UI kit.
 
-No logo or brand mark exists in the sources — see *Iconography*. No custom webfonts — the sheet uses the native `system-ui` stack.
+No logo or brand mark exists in the sources — see _Iconography_. No custom webfonts — the sheet uses the native `system-ui` stack.
 
 ---
 
@@ -19,7 +19,7 @@ No logo or brand mark exists in the sources — see *Iconography*. No custom web
 - **Casing:** Sentence case for prose and button labels ("Adicionar magia", "Subir de nível"). UPPERCASE + wide tracking only for micro section labels ("SUPERFÍCIES", "PATAMAR 1", stat captions "FORT", "DES").
 - **Voice:** Second-person, terse, functional — a tool talking, not a narrator. Tooltips explain state precisely ("Além do seu máximo atual de Pontos de Foco (1)"). No marketing tone, no exclamation.
 - **Numbers:** Always signed modifiers ("+8", "+0"), monospace for anything rollable (modifiers, CD, dice, action costs). Ranges written "1/3", "33 / 33".
-- **Emoji:** None in product copy. A few Unicode glyphs act as icons (see *Iconography*).
+- **Emoji:** None in product copy. A few Unicode glyphs act as icons (see _Iconography_).
 - **Disclaimers:** Clean-room note appears in compendium footers verbatim: "Dados mecânicos ORC — prosa não incluída (clean-room)".
 - **Examples:** "Preparar magia…", "+ Adicionar magia", "Ocultar plano", "Trocar magia preparada — Slot Patamar 1", "Refocus: recupere 1 Ponto de Foco após 10 minutos de descanso…".
 

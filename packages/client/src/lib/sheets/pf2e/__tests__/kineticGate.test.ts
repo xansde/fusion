@@ -154,8 +154,12 @@ function ctx(doc: Record<string, unknown>, editable = true): PlanOpBuilderContex
 
 describe("Kinetic Gate — slot presence", () => {
   it("classHasKineticGate is true for Kineticist, false for Magus", () => {
-    expect(classHasKineticGate(kineticistClassDoc()["system"] as unknown as ClassSystemLike)).toBe(true);
-    expect(classHasKineticGate(magusClassDoc()["system"] as unknown as ClassSystemLike)).toBe(false);
+    expect(classHasKineticGate(kineticistClassDoc()["system"] as unknown as ClassSystemLike)).toBe(
+      true,
+    );
+    expect(classHasKineticGate(magusClassDoc()["system"] as unknown as ClassSystemLike)).toBe(
+      false,
+    );
   });
 
   it("adds a level-1 kineticGate slot for a Kineticist actor", () => {
@@ -177,11 +181,16 @@ describe("Kinetic Gate — slot presence", () => {
     const gateItem = {
       ...kineticGateFeatureDoc(),
       _id: "item-gate",
-      system: { ...(kineticGateFeatureDoc()["system"] as object), kineticGates: [{ element: "air", damageType: "electricity" }] },
+      system: {
+        ...(kineticGateFeatureDoc()["system"] as object),
+        kineticGates: [{ element: "air", damageType: "electricity" }],
+      },
       flags: { fusion: { build: { level: 1, slot: "kineticGate-1" } } },
     };
     const plan = derivePlan(actorDoc(kineticistClassDoc(), [gateItem]));
-    const gate = plan.levels.find((l) => l.level === 1)!.slots.find((s) => s.type === "kineticGate")!;
+    const gate = plan.levels
+      .find((l) => l.level === 1)!
+      .slots.find((s) => s.type === "kineticGate")!;
     expect(gate.filled).toBe(true);
     expect(gate.choiceName).toBe("Kinetic Gate");
   });
@@ -205,7 +214,11 @@ describe("chooseKineticGate — op emission", () => {
 
     const createOp = ops.find((o) => o.type === "doc:create")!;
     if (createOp.type !== "doc:create") throw new Error("expected doc:create");
-    const createWire = { documentType: createOp.documentType, data: [createOp.data], parent: createOp.parent };
+    const createWire = {
+      documentType: createOp.documentType,
+      data: [createOp.data],
+      parent: createOp.parent,
+    };
     expect(DocCreatePayloadSchema.safeParse(createWire).success).toBe(true);
     const data = createOp.data;
     expect(data["type"]).toBe("classFeature");
@@ -223,7 +236,10 @@ describe("chooseKineticGate — op emission", () => {
 
     const updateOp = ops.find((o) => o.type === "doc:update")!;
     if (updateOp.type !== "doc:update") throw new Error("expected doc:update");
-    const updateWire = { documentType: updateOp.documentType, updates: [{ _id: updateOp.id, diff: updateOp.diff }] };
+    const updateWire = {
+      documentType: updateOp.documentType,
+      updates: [{ _id: updateOp.id, diff: updateOp.diff }],
+    };
     expect(DocUpdatePayloadSchema.safeParse(updateWire).success).toBe(true);
     const choices = updateOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
     expect(choices).toContainEqual({ level: 1, slot: "kineticGate-1", type: "kineticGate" });
@@ -234,7 +250,8 @@ describe("chooseKineticGate — op emission", () => {
     const ops = chooseKineticGate(ctx(doc), 1, kineticGateFeatureDoc(), [
       { element: "fire", damageType: "fire" },
     ]);
-    const data = (ops.find((o) => o.type === "doc:create") as { data: Record<string, unknown> }).data;
+    const data = (ops.find((o) => o.type === "doc:create") as { data: Record<string, unknown> })
+      .data;
     const sys = data["system"] as Record<string, unknown>;
     expect(sys["kineticGates"]).toEqual([{ element: "fire", damageType: "fire" }]);
   });
@@ -244,8 +261,11 @@ describe("chooseKineticGate — op emission", () => {
     const ops = chooseKineticGate(ctx(doc), 1, kineticGateFeatureDoc(), [
       { element: "air", damageType: "cold" }, // cold is not valid for air
     ]);
-    const data = (ops.find((o) => o.type === "doc:create") as { data: Record<string, unknown> }).data;
-    const gates = (data["system"] as Record<string, unknown>)["kineticGates"] as Array<Record<string, unknown>>;
+    const data = (ops.find((o) => o.type === "doc:create") as { data: Record<string, unknown> })
+      .data;
+    const gates = (data["system"] as Record<string, unknown>)["kineticGates"] as Array<
+      Record<string, unknown>
+    >;
     expect(gates[0]!["damageType"]).toBe("electricity"); // first valid air option
   });
 
@@ -255,15 +275,20 @@ describe("chooseKineticGate — op emission", () => {
       { element: "air", damageType: "slashing" },
       { element: "plasma" as never, damageType: "fire" },
     ]);
-    const data = (ops.find((o) => o.type === "doc:create") as { data: Record<string, unknown> }).data;
-    const gates = (data["system"] as Record<string, unknown>)["kineticGates"] as Array<Record<string, unknown>>;
+    const data = (ops.find((o) => o.type === "doc:create") as { data: Record<string, unknown> })
+      .data;
+    const gates = (data["system"] as Record<string, unknown>)["kineticGates"] as Array<
+      Record<string, unknown>
+    >;
     expect(gates).toHaveLength(1);
     expect(gates[0]!["element"]).toBe("air");
   });
 
   it("returns no ops when not editable", () => {
     const doc = actorDoc(kineticistClassDoc());
-    expect(chooseKineticGate(ctx(doc, false), 1, kineticGateFeatureDoc(), [{ element: "air" }])).toEqual([]);
+    expect(
+      chooseKineticGate(ctx(doc, false), 1, kineticGateFeatureDoc(), [{ element: "air" }]),
+    ).toEqual([]);
   });
 });
 
@@ -292,7 +317,10 @@ describe("readGateElements", () => {
     const gateItem = {
       ...kineticGateFeatureDoc(),
       _id: "item-gate",
-      system: { ...(kineticGateFeatureDoc()["system"] as object), kineticGates: [{ element: "plasma" }, { element: "fire" }] },
+      system: {
+        ...(kineticGateFeatureDoc()["system"] as object),
+        kineticGates: [{ element: "plasma" }, { element: "fire" }],
+      },
     };
     expect(readGateElements(actorDoc(kineticistClassDoc(), [gateItem]))).toEqual(["fire"]);
   });
@@ -302,31 +330,59 @@ describe("impulse filter — isFeatEligible with gateElements", () => {
   const gates = ["air", "metal"] as const;
 
   it("allows an impulse of a gate element", () => {
-    expect(isFeatEligible(impulseFeatDoc("Aerial Boomerang", "air"), "classFeat", 3, { classSlug: "kineticist", gateElements: gates })).toBe(true);
-    expect(isFeatEligible(impulseFeatDoc("Magnetic Pinions", "metal"), "classFeat", 3, { classSlug: "kineticist", gateElements: gates })).toBe(true);
+    expect(
+      isFeatEligible(impulseFeatDoc("Aerial Boomerang", "air"), "classFeat", 3, {
+        classSlug: "kineticist",
+        gateElements: gates,
+      }),
+    ).toBe(true);
+    expect(
+      isFeatEligible(impulseFeatDoc("Magnetic Pinions", "metal"), "classFeat", 3, {
+        classSlug: "kineticist",
+        gateElements: gates,
+      }),
+    ).toBe(true);
   });
 
   it("rejects an impulse of a non-gate element", () => {
-    expect(isFeatEligible(impulseFeatDoc("Blazing Wave", "fire"), "classFeat", 3, { classSlug: "kineticist", gateElements: gates })).toBe(false);
-    expect(isFeatEligible(impulseFeatDoc("Hardwood Palisade", "wood"), "classFeat", 3, { classSlug: "kineticist", gateElements: gates })).toBe(false);
+    expect(
+      isFeatEligible(impulseFeatDoc("Blazing Wave", "fire"), "classFeat", 3, {
+        classSlug: "kineticist",
+        gateElements: gates,
+      }),
+    ).toBe(false);
+    expect(
+      isFeatEligible(impulseFeatDoc("Hardwood Palisade", "wood"), "classFeat", 3, {
+        classSlug: "kineticist",
+        gateElements: gates,
+      }),
+    ).toBe(false);
   });
 
   it("does not gate impulses when the character has no gates (filter is opt-in)", () => {
-    expect(isFeatEligible(impulseFeatDoc("Blazing Wave", "fire"), "classFeat", 3, { classSlug: "kineticist" })).toBe(true);
+    expect(
+      isFeatEligible(impulseFeatDoc("Blazing Wave", "fire"), "classFeat", 3, {
+        classSlug: "kineticist",
+      }),
+    ).toBe(true);
   });
 
   it("leaves non-impulse class feats unaffected by the element filter", () => {
     const nonImpulse: FeatDocLike = {
       system: { category: "class", level: 1, traits: { value: ["kineticist"] } },
     };
-    expect(isFeatEligible(nonImpulse, "classFeat", 3, { classSlug: "kineticist", gateElements: gates })).toBe(true);
+    expect(
+      isFeatEligible(nonImpulse, "classFeat", 3, { classSlug: "kineticist", gateElements: gates }),
+    ).toBe(true);
   });
 
   it("allows an impulse with no element trait (element-agnostic impulses)", () => {
     const agnostic: FeatDocLike = {
       system: { category: "class", level: 1, traits: { value: ["impulse", "kineticist"] } },
     };
-    expect(isFeatEligible(agnostic, "classFeat", 3, { classSlug: "kineticist", gateElements: gates })).toBe(true);
+    expect(
+      isFeatEligible(agnostic, "classFeat", 3, { classSlug: "kineticist", gateElements: gates }),
+    ).toBe(true);
   });
 });
 
@@ -382,12 +438,21 @@ describe("derivePlan — hybridStudy is data-driven, not hardcoded (Finn bug, r1
 
 describe("impulseGateFilter (r19-W2b)", () => {
   it("matches a 1st-level impulse feat carrying the element trait", () => {
-    expect(matchesGrantedFeatFilter(impulseFeatDoc("Aerial Boomerang", "air"), impulseGateFilter("air"))).toBe(true);
-    expect(matchesGrantedFeatFilter(impulseFeatDoc("Magnetic Pinions", "metal"), impulseGateFilter("metal"))).toBe(true);
+    expect(
+      matchesGrantedFeatFilter(impulseFeatDoc("Aerial Boomerang", "air"), impulseGateFilter("air")),
+    ).toBe(true);
+    expect(
+      matchesGrantedFeatFilter(
+        impulseFeatDoc("Magnetic Pinions", "metal"),
+        impulseGateFilter("metal"),
+      ),
+    ).toBe(true);
   });
 
   it("rejects an impulse of a different element", () => {
-    expect(matchesGrantedFeatFilter(impulseFeatDoc("Blazing Wave", "fire"), impulseGateFilter("air"))).toBe(false);
+    expect(
+      matchesGrantedFeatFilter(impulseFeatDoc("Blazing Wave", "fire"), impulseGateFilter("air")),
+    ).toBe(false);
   });
 
   it("rejects a non-impulse feat even when it carries the element trait", () => {
@@ -453,7 +518,9 @@ describe("derivePlan — gate impulse sub-slots (r19-W2b)", () => {
       },
       flags: { fusion: { build: { level: 1, slot: "kineticGate-1" } } },
     };
-    const l1 = derivePlan(actorDoc(kineticistClassDoc(), [gateItem])).levels.find((l) => l.level === 1)!;
+    const l1 = derivePlan(actorDoc(kineticistClassDoc(), [gateItem])).levels.find(
+      (l) => l.level === 1,
+    )!;
     const subs = l1.slots.filter((s) => s.parentSlotId === "kineticGate-1");
     expect(subs.map((s) => s.slotId)).toEqual(["kineticGate-1:impulse:fire"]);
   });
@@ -491,14 +558,22 @@ describe("derivePlan — gate impulse sub-slots (r19-W2b)", () => {
       _id: "src-magnetic",
       name: "Magnetic Pinions",
       type: "feat",
-      system: { category: "class", level: 1, traits: { value: ["metal", "impulse", "kineticist"] } },
+      system: {
+        category: "class",
+        level: 1,
+        traits: { value: ["metal", "impulse", "kineticist"] },
+      },
     };
     const ops = chooseFeat(ctx(dualGateActor()), subSlot, 1, magneticPinions);
     const createOp = ops.find((o) => o.type === "doc:create")!;
     if (createOp.type !== "doc:create") throw new Error("expected doc:create");
     const flags = createOp.data["flags"] as { fusion?: { build?: unknown } };
     expect(flags.fusion?.build).toEqual({ level: 1, slot: "kineticGate-1:impulse:metal" });
-    const createWire = { documentType: createOp.documentType, data: [createOp.data], parent: createOp.parent };
+    const createWire = {
+      documentType: createOp.documentType,
+      data: [createOp.data],
+      parent: createOp.parent,
+    };
     expect(DocCreatePayloadSchema.safeParse(createWire).success).toBe(true);
   });
 });

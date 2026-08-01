@@ -78,7 +78,8 @@ describe("sanitizeDescriptionToText", () => {
   });
 
   it("rewrites @UUID[...]{Label} to the label text", () => {
-    const html = "<p>Adjust your @UUID[Compendium.pf2e.actionspf2e.Item.Arcane Cascade]{Arcane Cascade}.</p>";
+    const html =
+      "<p>Adjust your @UUID[Compendium.pf2e.actionspf2e.Item.Arcane Cascade]{Arcane Cascade}.</p>";
     expect(sanitizeDescriptionToText(html)[0]).toBe("Adjust your Arcane Cascade.");
   });
 
@@ -135,7 +136,9 @@ describe("Foundry enricher humanization (via sanitizeDescriptionToText)", () => 
     });
 
     it("simplifies @actor.level roll-data to 'level' with no leading @", () => {
-      const out = humanize("@Damage[max(16,(2*(floor(@actor.level/2))))d6[fire]|options:area-damage]");
+      const out = humanize(
+        "@Damage[max(16,(2*(floor(@actor.level/2))))d6[fire]|options:area-damage]",
+      );
       expect(out).toBe("max(16,(2*(floor(level/2))))d6 fire");
       expect(out).not.toContain("@");
     });
@@ -155,7 +158,9 @@ describe("Foundry enricher humanization (via sanitizeDescriptionToText)", () => 
     });
 
     it("prefers an explicit {label} over the computed formula", () => {
-      expect(humanize("@Damage[(8d6+@actor.abilities.str.mod)[bludgeoning]|options:area-damage]{8d6}")).toBe("8d6");
+      expect(
+        humanize("@Damage[(8d6+@actor.abilities.str.mod)[bludgeoning]|options:area-damage]{8d6}"),
+      ).toBe("8d6");
     });
   });
 
@@ -189,7 +194,9 @@ describe("Foundry enricher humanization (via sanitizeDescriptionToText)", () => 
     });
 
     it("prefixes 'basic' for basic saves and drops other flags", () => {
-      expect(humanize("@Check[fortitude|against:spell|basic|options:area-effect]")).toBe("basic Fortitude save");
+      expect(humanize("@Check[fortitude|against:spell|basic|options:area-effect]")).toBe(
+        "basic Fortitude save",
+      );
     });
 
     it("renders reflex/will saves without a DC", () => {
@@ -261,7 +268,9 @@ describe("Foundry enricher humanization (via sanitizeDescriptionToText)", () => 
     });
 
     it("humanizes an [[/act slug]] action macro to a title-cased name", () => {
-      expect(humanize("[[/act administer-first-aid variant=stabilize]]")).toBe("Administer First Aid");
+      expect(humanize("[[/act administer-first-aid variant=stabilize]]")).toBe(
+        "Administer First Aid",
+      );
       expect(humanize("[[/act climb skill=warfare-lore]]")).toBe("Climb");
     });
 
@@ -332,7 +341,9 @@ describe("sanitizeDescriptionHtml", () => {
 
   it("preserves strong/em/ul/li structure", () => {
     const html = "<ul><li><strong>Cook</strong> some food.</li></ul>";
-    expect(sanitizeDescriptionHtml(html)).toBe("<ul><li><strong>Cook</strong> some food.</li></ul>");
+    expect(sanitizeDescriptionHtml(html)).toBe(
+      "<ul><li><strong>Cook</strong> some food.</li></ul>",
+    );
   });
 
   it("rewrites @UUID[...]{Label} references to plain label text inside the sanitized HTML", () => {
@@ -341,7 +352,7 @@ describe("sanitizeDescriptionHtml", () => {
   });
 
   it("never re-introduces executable markup via a rewritten label", () => {
-    const html = '<p>@UUID[Compendium.pf2e.x.Item.y]{<img src=x onerror=alert(1)>}</p>';
+    const html = "<p>@UUID[Compendium.pf2e.x.Item.y]{<img src=x onerror=alert(1)>}</p>";
     const out = sanitizeDescriptionHtml(html);
     // The rewritten label itself is plain text substituted in-place; any
     // tag-looking content inside it must still be stripped by the
@@ -364,15 +375,15 @@ describe("action-glyph inline icon conversion (r16-G2)", () => {
 
   describe("sanitizeDescriptionHtml — single-action-count glyphs", () => {
     it("converts 1/2/3 to the matching number of ◆ icons", () => {
-      expect(sanitizeDescriptionHtml('<p><span class="action-glyph">1</span> One action.</p>')).toBe(
-        '<p><span title="1 ação">◆</span> One action.</p>',
-      );
-      expect(sanitizeDescriptionHtml('<p><span class="action-glyph">2</span> Two actions.</p>')).toBe(
-        '<p><span title="2 ações">◆◆</span> Two actions.</p>',
-      );
-      expect(sanitizeDescriptionHtml('<p><span class="action-glyph">3</span> Three actions.</p>')).toBe(
-        '<p><span title="3 ações">◆◆◆</span> Three actions.</p>',
-      );
+      expect(
+        sanitizeDescriptionHtml('<p><span class="action-glyph">1</span> One action.</p>'),
+      ).toBe('<p><span title="1 ação">◆</span> One action.</p>');
+      expect(
+        sanitizeDescriptionHtml('<p><span class="action-glyph">2</span> Two actions.</p>'),
+      ).toBe('<p><span title="2 ações">◆◆</span> Two actions.</p>');
+      expect(
+        sanitizeDescriptionHtml('<p><span class="action-glyph">3</span> Three actions.</p>'),
+      ).toBe('<p><span title="3 ações">◆◆◆</span> Three actions.</p>');
     });
 
     it("uses the EN label when locale is en", () => {
@@ -393,15 +404,18 @@ describe("action-glyph inline icon conversion (r16-G2)", () => {
       expect(sanitizeDescriptionHtml('{item|name} <span class="action-glyph">R</span>')).toBe(
         '{item|name} <span title="reação">⟳</span>',
       );
-      expect(sanitizeDescriptionHtml('<p><strong>Rewrite Possibility</strong> <span class="action-glyph">r</span></p>')).toBe(
-        '<p><strong>Rewrite Possibility</strong> <span title="reação">⟳</span></p>',
-      );
+      expect(
+        sanitizeDescriptionHtml(
+          '<p><strong>Rewrite Possibility</strong> <span class="action-glyph">r</span></p>',
+        ),
+      ).toBe('<p><strong>Rewrite Possibility</strong> <span title="reação">⟳</span></p>');
     });
   });
 
   describe("sanitizeDescriptionHtml — summon-creature attack glyph (a)", () => {
     it("converts the lowercase 'a' attack-cost glyph to a single ◆ (same weight as '1')", () => {
-      const html = '<p><strong>Melee</strong> <span class="action-glyph">a</span> fangs, <strong>Damage</strong> 2d8 piercing.</p>';
+      const html =
+        '<p><strong>Melee</strong> <span class="action-glyph">a</span> fangs, <strong>Damage</strong> 2d8 piercing.</p>';
       expect(sanitizeDescriptionHtml(html)).toBe(
         '<p><strong>Melee</strong> <span title="1 ação">◆</span> fangs, <strong>Damage</strong> 2d8 piercing.</p>',
       );
@@ -488,9 +502,7 @@ describe("action-glyph inline icon conversion (r16-G2)", () => {
     it("pt-BR: renders ◆◆/◆◆◆ icons instead of a bare '2'/'3' in the HTML pipeline (the reported bug)", () => {
       const out = sanitizeDescriptionHtml(PT_HTML, "pt-BR");
       expect(out).toContain('<span title="2 ações">◆◆</span> Esta magia tem alcance de 9 metros.');
-      expect(out).toContain(
-        '<span title="3 ações">◆◆◆</span> Esta magia tem alcance de 18 metros',
-      );
+      expect(out).toContain('<span title="3 ações">◆◆◆</span> Esta magia tem alcance de 18 metros');
       // The exact bug reported: a bare leading digit followed by the sentence.
       expect(out).not.toMatch(/<p>\s*2\s+Esta magia/);
       expect(out).not.toMatch(/<p>\s*3\s+Esta magia/);
@@ -499,7 +511,9 @@ describe("action-glyph inline icon conversion (r16-G2)", () => {
     it("pt-BR: the plain-text pipeline also reads as icons, not bare digits", () => {
       const blocks = sanitizeDescriptionToText(PT_HTML, "pt-BR");
       expect(blocks.some((b) => b.startsWith("◆◆ Esta magia tem alcance de 9 metros."))).toBe(true);
-      expect(blocks.some((b) => b.startsWith("◆◆◆ Esta magia tem alcance de 18 metros"))).toBe(true);
+      expect(blocks.some((b) => b.startsWith("◆◆◆ Esta magia tem alcance de 18 metros"))).toBe(
+        true,
+      );
       expect(blocks.some((b) => /^\d/.test(b))).toBe(false);
     });
   });
@@ -524,9 +538,15 @@ describe("buildSpellFields (EN, default locale)", () => {
   });
 
   it("formats a reaction/free cast time distinctly from numbered actions", () => {
-    expect(noKey(buildSpellFields({ castTime: "reaction" }))).toEqual([{ label: "Cast", value: "⟳ reaction" }]);
-    expect(noKey(buildSpellFields({ castTime: "free" }))).toEqual([{ label: "Cast", value: "◇ free action" }]);
-    expect(noKey(buildSpellFields({ castTime: "1" }))).toEqual([{ label: "Cast", value: "◆ 1 action" }]);
+    expect(noKey(buildSpellFields({ castTime: "reaction" }))).toEqual([
+      { label: "Cast", value: "⟳ reaction" },
+    ]);
+    expect(noKey(buildSpellFields({ castTime: "free" }))).toEqual([
+      { label: "Cast", value: "◇ free action" },
+    ]);
+    expect(noKey(buildSpellFields({ castTime: "1" }))).toEqual([
+      { label: "Cast", value: "◆ 1 action" },
+    ]);
   });
 
   it("extracts area with type and value", () => {
@@ -578,7 +598,9 @@ describe("buildSpellFields (EN, default locale)", () => {
   });
 
   it("extracts fixed heightening with the rank list", () => {
-    const fields = buildSpellFields({ heightening: { type: "fixed", levels: { "5": {}, "9": {} } } });
+    const fields = buildSpellFields({
+      heightening: { type: "fixed", levels: { "5": {}, "9": {} } },
+    });
     expect(noKey(fields)).toEqual([{ label: "Heightened", value: "Rank 5, 9" }]);
   });
 
@@ -611,8 +633,16 @@ describe("buildSpellFields (pt-BR)", () => {
       { labelKey: "FUSION.Sheet.Details.Field.Range", label: "Alcance", value: "varia" },
       { labelKey: "FUSION.Sheet.Details.Field.Target", label: "Alvo", value: "1 criatura" },
       { labelKey: "FUSION.Sheet.Details.Field.Duration", label: "Duração", value: "1 minuto" },
-      { labelKey: "FUSION.Sheet.Details.Field.Save", label: "Salvaguarda", value: "Reflexos (básica)" },
-      { labelKey: "FUSION.Sheet.Details.Field.DamageBase", label: "Dano (base)", value: "3d6 eletricidade" },
+      {
+        labelKey: "FUSION.Sheet.Details.Field.Save",
+        label: "Salvaguarda",
+        value: "Reflexos (básica)",
+      },
+      {
+        labelKey: "FUSION.Sheet.Details.Field.DamageBase",
+        label: "Dano (base)",
+        value: "3d6 eletricidade",
+      },
     ]);
   });
 
@@ -636,7 +666,9 @@ describe("buildFeatFields (EN, default locale)", () => {
     const fields = buildFeatFields({
       prerequisites: [{ value: "Trained in Acrobatics" }, { value: "level 5" }],
     });
-    expect(noKey(fields)).toEqual([{ label: "Prerequisites", value: "Trained in Acrobatics; level 5" }]);
+    expect(noKey(fields)).toEqual([
+      { label: "Prerequisites", value: "Trained in Acrobatics; level 5" },
+    ]);
   });
 
   it("extracts frequency as 'max per unit'", () => {
@@ -648,8 +680,12 @@ describe("buildFeatFields (EN, default locale)", () => {
     expect(noKey(buildFeatFields({ actionType: "action", actions: 2 }))).toEqual([
       { label: "Cast", value: "◆◆ 2 actions" },
     ]);
-    expect(noKey(buildFeatFields({ actionType: "reaction" }))).toEqual([{ label: "Cast", value: "⟳ reaction" }]);
-    expect(noKey(buildFeatFields({ actionType: "free" }))).toEqual([{ label: "Cast", value: "◇ free action" }]);
+    expect(noKey(buildFeatFields({ actionType: "reaction" }))).toEqual([
+      { label: "Cast", value: "⟳ reaction" },
+    ]);
+    expect(noKey(buildFeatFields({ actionType: "free" }))).toEqual([
+      { label: "Cast", value: "◇ free action" },
+    ]);
   });
 
   it("omits the cast field for passive feats", () => {
@@ -674,7 +710,10 @@ describe("buildClassFeatureFields", () => {
   });
 
   it("extracts prerequisites alongside level (EN)", () => {
-    const fields = buildClassFeatureFields({ level: 9, prerequisites: [{ value: "Hybrid Study" }] });
+    const fields = buildClassFeatureFields({
+      level: 9,
+      prerequisites: [{ value: "Hybrid Study" }],
+    });
     expect(noKey(fields)).toEqual([
       { label: "Level", value: "9" },
       { label: "Prerequisites", value: "Hybrid Study" },
@@ -702,7 +741,10 @@ describe("buildMechanicalFields (dispatch)", () => {
   });
 
   it("dispatches to buildFeatFields for type 'feat'", () => {
-    const fields = buildMechanicalFields({ type: "feat", system: { frequency: { max: 1, per: "day" } } });
+    const fields = buildMechanicalFields({
+      type: "feat",
+      system: { frequency: { max: 1, per: "day" } },
+    });
     expect(noKey(fields)).toEqual([{ label: "Frequency", value: "1 per day" }]);
   });
 
@@ -724,19 +766,47 @@ describe("buildMechanicalFields (dispatch)", () => {
 describe("formatActionCost (r15-A1)", () => {
   it("maps 1/2/3 to action glyphs + pt-BR label", () => {
     expect(formatActionCost("1", "pt-BR")).toEqual({ icons: "◆", label: "1 ação", isText: false });
-    expect(formatActionCost("2", "pt-BR")).toEqual({ icons: "◆◆", label: "2 ações", isText: false });
-    expect(formatActionCost("3", "pt-BR")).toEqual({ icons: "◆◆◆", label: "3 ações", isText: false });
+    expect(formatActionCost("2", "pt-BR")).toEqual({
+      icons: "◆◆",
+      label: "2 ações",
+      isText: false,
+    });
+    expect(formatActionCost("3", "pt-BR")).toEqual({
+      icons: "◆◆◆",
+      label: "3 ações",
+      isText: false,
+    });
   });
 
   it("maps free/reaction to their glyphs", () => {
-    expect(formatActionCost("free", "pt-BR")).toEqual({ icons: "◇", label: "ação livre", isText: false });
-    expect(formatActionCost("reaction", "pt-BR")).toEqual({ icons: "⟳", label: "reação", isText: false });
+    expect(formatActionCost("free", "pt-BR")).toEqual({
+      icons: "◇",
+      label: "ação livre",
+      isText: false,
+    });
+    expect(formatActionCost("reaction", "pt-BR")).toEqual({
+      icons: "⟳",
+      label: "reação",
+      isText: false,
+    });
   });
 
   it("renders action ranges (1 to 3 / 2 or 3) with a glyph range, never 'X to X'", () => {
-    expect(formatActionCost("1 to 3", "pt-BR")).toEqual({ icons: "◆ a ◆◆◆", label: "1 a 3 ações", isText: false });
-    expect(formatActionCost("2 or 3", "pt-BR")).toEqual({ icons: "◆◆ a ◆◆◆", label: "2 a 3 ações", isText: false });
-    expect(formatActionCost("1 or 2", "pt-BR")).toEqual({ icons: "◆ a ◆◆", label: "1 a 2 ações", isText: false });
+    expect(formatActionCost("1 to 3", "pt-BR")).toEqual({
+      icons: "◆ a ◆◆◆",
+      label: "1 a 3 ações",
+      isText: false,
+    });
+    expect(formatActionCost("2 or 3", "pt-BR")).toEqual({
+      icons: "◆◆ a ◆◆◆",
+      label: "2 a 3 ações",
+      isText: false,
+    });
+    expect(formatActionCost("1 or 2", "pt-BR")).toEqual({
+      icons: "◆ a ◆◆",
+      label: "1 a 2 ações",
+      isText: false,
+    });
   });
 
   it("collapses the degenerate '2 to 2 rounds' vendor value to a single cost", () => {
@@ -747,15 +817,35 @@ describe("formatActionCost (r15-A1)", () => {
   });
 
   it("keeps long/textual times as translated text with no glyphs", () => {
-    expect(formatActionCost("1 minute", "pt-BR")).toEqual({ icons: "", label: "1 minuto", isText: true });
-    expect(formatActionCost("10 minutes", "pt-BR")).toEqual({ icons: "", label: "10 minutos", isText: true });
-    expect(formatActionCost("1 hour", "pt-BR")).toEqual({ icons: "", label: "1 hora", isText: true });
+    expect(formatActionCost("1 minute", "pt-BR")).toEqual({
+      icons: "",
+      label: "1 minuto",
+      isText: true,
+    });
+    expect(formatActionCost("10 minutes", "pt-BR")).toEqual({
+      icons: "",
+      label: "10 minutos",
+      isText: true,
+    });
+    expect(formatActionCost("1 hour", "pt-BR")).toEqual({
+      icons: "",
+      label: "1 hora",
+      isText: true,
+    });
   });
 
   it("preserves EN output on the en locale", () => {
     expect(formatActionCost("2", "en")).toEqual({ icons: "◆◆", label: "2 actions", isText: false });
-    expect(formatActionCost("1 to 3", "en")).toEqual({ icons: "◆ to ◆◆◆", label: "1 to 3 actions", isText: false });
-    expect(formatActionCost("1 minute", "en")).toEqual({ icons: "", label: "1 minute", isText: true });
+    expect(formatActionCost("1 to 3", "en")).toEqual({
+      icons: "◆ to ◆◆◆",
+      label: "1 to 3 actions",
+      isText: false,
+    });
+    expect(formatActionCost("1 minute", "en")).toEqual({
+      icons: "",
+      label: "1 minute",
+      isText: true,
+    });
   });
 
   it("handles empty/undefined input safely", () => {

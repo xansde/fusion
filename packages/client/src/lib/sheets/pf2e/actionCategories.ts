@@ -180,7 +180,9 @@ export function groupFromFolder(folder: string | null | undefined): ActionGroup 
  * (offensive/interaction/defensive/precision). Returns null for unknown
  * values (incl. "classfeature", ability categories, etc.).
  */
-export function groupFromMechanicalCategory(category: string | null | undefined): ActionGroup | null {
+export function groupFromMechanicalCategory(
+  category: string | null | undefined,
+): ActionGroup | null {
   if (typeof category !== "string") return null;
   const key = category.trim().toLowerCase();
   return MECHANICAL_CATEGORY_TO_GROUP[key] ?? null;

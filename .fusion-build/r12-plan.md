@@ -23,11 +23,11 @@ Feedback do usuário (prints Pathbuilder aba Actions + ficha Fusion). 8 itens �
 
 ## Territórios
 
-| WS | Pode editar | Proibido |
-|---|---|---|
-| W1 builder-ux | `planVM.ts`, `components/sheets/pf2e/plan/**`, testes do plan | characterSheetVM, CharacterSheet.svelte, SpellsTab, i18n, importer/packs |
-| W2 actions | importer (normalize/transform), `systems/pf2e/packs/actions-core` (gerado), schema de action se preciso, NOVOS arquivos client (ActionsTab.svelte, actionsVM.ts, actionCategories), bloco da aba actions em CharacterSheet.svelte (Edit), i18n namespace `FUSION.Sheet.Actions.*` (Edit) | planVM/plan dialogs, SpellsTab, characterSheetVM, header do CharacterSheet |
-| W3 spells+hero | `characterSheetVM.ts`, `SpellsTab.svelte`, `systems/pf2e/src/derivations/**`, bloco do header (hero points) em CharacterSheet.svelte (Edit), i18n namespaces Spells/HeroPoints (Edit) | planVM/plan dialogs, aba actions, importer |
+| WS             | Pode editar                                                                                                                                                                                                                                                                              | Proibido                                                                   |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| W1 builder-ux  | `planVM.ts`, `components/sheets/pf2e/plan/**`, testes do plan                                                                                                                                                                                                                            | characterSheetVM, CharacterSheet.svelte, SpellsTab, i18n, importer/packs   |
+| W2 actions     | importer (normalize/transform), `systems/pf2e/packs/actions-core` (gerado), schema de action se preciso, NOVOS arquivos client (ActionsTab.svelte, actionsVM.ts, actionCategories), bloco da aba actions em CharacterSheet.svelte (Edit), i18n namespace `FUSION.Sheet.Actions.*` (Edit) | planVM/plan dialogs, SpellsTab, characterSheetVM, header do CharacterSheet |
+| W3 spells+hero | `characterSheetVM.ts`, `SpellsTab.svelte`, `systems/pf2e/src/derivations/**`, bloco do header (hero points) em CharacterSheet.svelte (Edit), i18n namespaces Spells/HeroPoints (Edit)                                                                                                    | planVM/plan dialogs, aba actions, importer                                 |
 
 ## Decisões
 

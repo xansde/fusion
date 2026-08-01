@@ -37,7 +37,10 @@ export const PORTRAIT_PALETTE: readonly string[] = [
  */
 export function portraitInitials(name: string | null | undefined): string {
   if (!name) return "?";
-  const words = name.trim().split(/\s+/).filter((w) => w.length > 0);
+  const words = name
+    .trim()
+    .split(/\s+/)
+    .filter((w) => w.length > 0);
   if (words.length === 0) return "?";
   if (words.length === 1) {
     return words[0]!.slice(0, 2).toUpperCase();

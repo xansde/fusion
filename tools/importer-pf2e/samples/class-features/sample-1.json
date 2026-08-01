@@ -30,9 +30,7 @@
     "rules": [],
     "traits": {
       "rarity": "common",
-      "value": [
-        "summoner"
-      ]
+      "value": ["summoner"]
     }
   },
   "_fusion": {

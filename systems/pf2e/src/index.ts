@@ -384,10 +384,7 @@ export {
 } from "./schemas/item-spellcasting-entry.js";
 export type { SpellcastingEntrySystem } from "./schemas/item-spellcasting-entry.js";
 
-export {
-  ClassFeatureSystemSchema,
-  parseClassFeatureSystem,
-} from "./schemas/item-class-feature.js";
+export { ClassFeatureSystemSchema, parseClassFeatureSystem } from "./schemas/item-class-feature.js";
 export type { ClassFeatureSystem } from "./schemas/item-class-feature.js";
 
 export {

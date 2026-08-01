@@ -103,10 +103,7 @@ export function entryDisplayName(entry: PackIndexEntry, locale: SupportedLocale)
  * display name already equals the EN name (untranslated / non-pt-BR locale),
  * so the UI never renders a redundant "Name (Name)".
  */
-export function entrySecondaryName(
-  entry: PackIndexEntry,
-  locale: SupportedLocale,
-): string | null {
+export function entrySecondaryName(entry: PackIndexEntry, locale: SupportedLocale): string | null {
   const display = entryDisplayName(entry, locale);
   return display !== entry.name && entry.name.length > 0 ? entry.name : null;
 }

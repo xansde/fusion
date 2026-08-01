@@ -28,15 +28,15 @@ antecipou por decisão de produto na r10 — registrar no BUILD-LOG; specs/ de m
 
 - **DEC-R10-01 (modelo do build)**: escolhas de progressão = itens embedded (class,
   ancestry, heritage, background, feat, classFeature) com `flags.fusion.build = {level, slot}`
-  + bloco `system.build` no character para o que não é item: boosts de atributo por origem
-  (`ancestryBoosts/ancestryFlaws/ancestryFree/backgroundBoosts/classBoost/levelledBoosts{lvl:[...]}`),
-  skill choices (`{level, slot, skill, rank}`), `freeArchetype: boolean`. Derivação continua
-  a fonte de verdade dos números. **Compat r9**: derive steps build-driven (abilities, HP,
-  proficiências de classe, skills treinadas) SÓ ativam quando existe item `type:'class'`
-  embedded; sem ele, comportamento manual r9 intocado (Tobias atual segue válido até ser
-  reconstruído via builder).
+  - bloco `system.build` no character para o que não é item: boosts de atributo por origem
+    (`ancestryBoosts/ancestryFlaws/ancestryFree/backgroundBoosts/classBoost/levelledBoosts{lvl:[...]}`),
+    skill choices (`{level, slot, skill, rank}`), `freeArchetype: boolean`. Derivação continua
+    a fonte de verdade dos números. **Compat r9**: derive steps build-driven (abilities, HP,
+    proficiências de classe, skills treinadas) SÓ ativam quando existe item `type:'class'`
+    embedded; sem ele, comportamento manual r9 intocado (Tobias atual segue válido até ser
+    reconstruído via builder).
 - **DEC-R10-02 (focus 3)**: `focusPoints.max` com teto 3 (REQ-PF2-083) — clamp na derivação
-  + limite na UI; pips até max.
+  - limite na UI; pips até max.
 - **DEC-R10-03 (abas de magia)**: dentro da aba Spells, sub-abas: uma por spellcastingEntry
   não-focus (label = nome da entry), + "Focus" (entries isFocusPool + pips de focus + focus
   spells), + "Rituais" apenas se existirem itens ritual (REQ-PF2-087 é V2 — aba condicional).
@@ -80,6 +80,7 @@ antecipou por decisão de produto na r10 — registrar no BUILD-LOG; specs/ de m
 ## Batches
 
 ### R10-A — Fundação: schemas & derivação (systems/pf2e, engine-2e)
+
 1. `ClassSystemSchema` += progressão estruturada (featLevels por categoria, skillIncreaseLevels,
    trainedSkills{value,additional}, spellcasting table por nível, proficiency upgrades, featuresByLevel).
 2. Novo item type `classFeature` (schema + registro em documentTypes.Item + exports).
@@ -91,9 +92,10 @@ antecipou por decisão de produto na r10 — registrar no BUILD-LOG; specs/ de m
 6. Testes: fixture "Tobias por build" reproduzindo o JSON do Pathbuilder →
    AC 19 (couro +1 item, dexCap), HP 33, saves +8/+8/+7, DC 18/atk +8, skills idênticas,
    focus 1/1 (max exibível 3).
-Aceitação: doc com class magus + build do Tobias deriva números idênticos ao Pathbuilder.
+   Aceitação: doc com class magus + build do Tobias deriva números idênticos ao Pathbuilder.
 
 ### R10-B — Packs do Magus (tools/importer-pf2e)
+
 1. Normalizers no transform.mjs p/ class/classFeature/ancestry/heritage/background/feat
    (preservar progressão; prosa strippada; ChoiceSet segue unconvertedRules).
 2. Tabela `progression` do magus autorada e validada contra o items{} map do vendor.
@@ -101,19 +103,21 @@ Aceitação: doc com class magus + build do Tobias deriva números idênticos ao
    (category, level, traits).
 4. Rodar pipeline e commitar packs em systems/pf2e/packs/.
 5. Testes: pipeline + validação de TODOS os docs gerados contra os schemas do R10-A.
-Aceitação: packs descobertos pelo CompendiumService; contagens no build-report.
+   Aceitação: packs descobertos pelo CompendiumService; contagens no build-report.
 
 ### R10-C — Gestão de spells + abas + skills/focus na ficha (itens 2,3,4,5)
+
 1. Server: `EMBEDDED_PARENT_MAP` Item→Actor + validação Zod de Item embedded pf2e + testes.
 2. Client `sendOp`: propagar `embedded`/`parent`; novos tipos de op na VM/props da sheet.
 3. VM/UI: skills todas (16+lores, roláveis untrained); focus pips com teto 3.
 4. VM/UI: sub-abas de magia por entry + Focus (+Rituais condicional) (DEC-R10-03).
 5. Spell picker (search/get) + add/remove spell; preparar/trocar por slot; expend/restore.
 6. i18n pt-BR/en + testes VM/component.
-Aceitação: na ficha do Tobias — todas as skills aparecem e rolam; abas Magus/Focus;
-adicionar spell arcana, preparar num slot rank 1, trocar e expend funcionam ponta a ponta.
+   Aceitação: na ficha do Tobias — todas as skills aparecem e rolam; abas Magus/Focus;
+   adicionar spell arcana, preparar num slot rank 1, trocar e expend funcionam ponta a ponta.
 
 ### R10-D — Builder nível a nível estilo Pathbuilder (itens 1,6)
+
 1. Coluna "Plano" colapsável com cards ABC + cards por nível (DEC-R10-05).
 2. Seleção de classe (picker classes-core) → aplica class item + entries (Magus arcane
    prepared + Conflux focus) + trained skills iniciais (arcana + N adicionais à escolha).
@@ -125,10 +129,12 @@ adicionar spell arcana, preparar num slot rank 1, trocar e expend funcionam pont
 6. Level-up: mudar nível revela/remove cards; escolhas de níveis acima do atual ficam ocultas
    mas preservadas.
 7. i18n + testes (lógica pura da VM do builder + component).
-Aceitação: montar o Tobias DO ZERO só pela UI (Ratfolk/Snow Rat/Fireworks Performer/Magus 3
-+ escolhas do JSON) → números batem com o Pathbuilder.
+   Aceitação: montar o Tobias DO ZERO só pela UI (Ratfolk/Snow Rat/Fireworks Performer/Magus 3
+
+- escolhas do JSON) → números batem com o Pathbuilder.
 
 ### R10-E — Integração, validação viva e entrega
+
 1. Suíte completa do monorepo (build, typecheck, lint, boundaries, testes; forks=4;
    flakiness re-rodar isolado).
 2. Sonda headless (ui-probe) + Claude Preview: recriar Tobias via builder na UI real,

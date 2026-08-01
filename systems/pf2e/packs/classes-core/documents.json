@@ -19,9 +19,7 @@
       },
       "description": "<p><em>The power of the elements flows from within you. Roaring fire pure water, fleeting air, steadfast earth, twisting wood, slicing metal. A kinetic gate inextricably tied to your body channels power directly from the elemental planes, causing elements to leap to your hand, whirl around your body, and blast foes at your whim. As your connection to the planes grows, you attain true mastery over your chosen elements.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.lNWQPwgT4vhYCOT7]{Kineticist}</em></p>",
       "hp": 8,
-      "keyAbility": [
-        "con"
-      ],
+      "keyAbility": ["con"],
       "perception": 1,
       "publication": {
         "license": "OGL",
@@ -34,21 +32,9 @@
         "reflex": 2,
         "will": 1
       },
-      "skillIncreaseLevels": [
-        3,
-        5,
-        7,
-        9,
-        11,
-        13,
-        15,
-        17,
-        19
-      ],
+      "skillIncreaseLevels": [3, 5, 7, 9, 11, 13, 15, 17, 19],
       "trainedSkills": {
-        "value": [
-          "nature"
-        ],
+        "value": ["nature"],
         "additional": 3
       },
       "traits": {
@@ -58,45 +44,10 @@
       "classDC": 1,
       "impulse": 1,
       "featLevels": {
-        "ancestry": [
-          1,
-          5,
-          9,
-          13,
-          17
-        ],
-        "class": [
-          1,
-          2,
-          4,
-          6,
-          8,
-          10,
-          12,
-          14,
-          16,
-          18,
-          20
-        ],
-        "general": [
-          3,
-          7,
-          11,
-          15,
-          19
-        ],
-        "skill": [
-          2,
-          4,
-          6,
-          8,
-          10,
-          12,
-          14,
-          16,
-          18,
-          20
-        ]
+        "ancestry": [1, 5, 9, 13, 17],
+        "class": [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20],
+        "general": [3, 7, 11, 15, 19],
+        "skill": [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
       },
       "proficiencyUpgrades": [
         {
@@ -336,10 +287,7 @@
       },
       "description": "<p><em>Combining the physicality and technique of a warrior with the ability to cast arcane magic, you seek to perfect the art of fusing spell and strike. While the hefty tome you carry reflects hours conducting arcane research, your enemies need no reminder of your training. They recognize it as you take them down.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.YVoyzV9v4QyP2UIC]{Magus}</em></p>",
       "hp": 8,
-      "keyAbility": [
-        "dex",
-        "str"
-      ],
+      "keyAbility": ["dex", "str"],
       "perception": 1,
       "publication": {
         "license": "OGL",
@@ -352,17 +300,7 @@
         "reflex": 1,
         "will": 2
       },
-      "skillIncreaseLevels": [
-        3,
-        5,
-        7,
-        9,
-        11,
-        13,
-        15,
-        17,
-        19
-      ],
+      "skillIncreaseLevels": [3, 5, 7, 9, 11, 13, 15, 17, 19],
       "spellcasting": {
         "tradition": "arcane",
         "type": "prepared",
@@ -591,9 +529,7 @@
         ]
       },
       "trainedSkills": {
-        "value": [
-          "arcana"
-        ],
+        "value": ["arcana"],
         "additional": 2
       },
       "traits": {
@@ -602,44 +538,10 @@
       },
       "classDC": 1,
       "featLevels": {
-        "ancestry": [
-          1,
-          5,
-          9,
-          13,
-          17
-        ],
-        "class": [
-          2,
-          4,
-          6,
-          8,
-          10,
-          12,
-          14,
-          16,
-          18,
-          20
-        ],
-        "general": [
-          3,
-          7,
-          11,
-          15,
-          19
-        ],
-        "skill": [
-          2,
-          4,
-          6,
-          8,
-          10,
-          12,
-          14,
-          16,
-          18,
-          20
-        ]
+        "ancestry": [1, 5, 9, 13, 17],
+        "class": [2, 4, 6, 8, 10, 12, 14, 16, 18, 20],
+        "general": [3, 7, 11, 15, 19],
+        "skill": [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
       },
       "proficiencyUpgrades": [
         {

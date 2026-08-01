@@ -116,24 +116,18 @@
         "itemType": "feat",
         "key": "ItemAlteration",
         "mode": "add",
-        "predicate": [
-          "item:slug:kobold-breath"
-        ],
+        "predicate": ["item:slug:kobold-breath"],
         "property": "traits",
         "value": "{item|flags.system.rulesSelections.draconicExemplar.damageType}"
       }
     ],
     "traits": {
       "rarity": "common",
-      "value": [
-        "kobold"
-      ]
+      "value": ["kobold"]
     }
   },
   "_fusion": {
     "normalizedAt": "2026-07-07T17:58:44.718Z",
-    "removedFields": [
-      "folder"
-    ]
+    "removedFields": ["folder"]
   }
 }

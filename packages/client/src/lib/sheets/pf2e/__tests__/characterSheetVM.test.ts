@@ -1192,7 +1192,13 @@ describe("CharacterSheetVM — skills (canonical 16 + lore)", () => {
     (system["skills"] as Record<string, unknown>)["lore-warfare"] = { rank: 2, lore: true };
     const derived = system["derived"] as Record<string, unknown>;
     const derivedSkills = derived["skills"] as Record<string, unknown>;
-    derivedSkills["lore-warfare"] = { slug: "lore-warfare", base: 9, modifiers: [], total: 9, dc: 19 };
+    derivedSkills["lore-warfare"] = {
+      slug: "lore-warfare",
+      base: 9,
+      modifiers: [],
+      total: 9,
+      dc: 19,
+    };
     // Fill out the remaining canonical skills so derived.skills is "complete"
     // (mirrors the R10-A guarantee that the server always derives all 16).
     const allCanonical = [
@@ -1620,11 +1626,18 @@ describe("CharacterSheetVM — restAll", () => {
     // also heals HP (fixture is 62/75, CON +3 × level 5 → +13) and emits a chat
     // summary, so filter to the slot ops for this slot-focused assertion (r16).
     const slotOps = ops.filter(
-      (op) => "diff" in op && Object.keys((op as { diff: Record<string, unknown> }).diff).some((k) => k.startsWith("system.slots.")),
+      (op) =>
+        "diff" in op &&
+        Object.keys((op as { diff: Record<string, unknown> }).diff).some((k) =>
+          k.startsWith("system.slots."),
+        ),
     );
     expect(slotOps.length).toBe(2);
 
-    const rank1Op = ops.find((op) => "diff" in op && "system.slots.1.prepared" in (op as { diff: Record<string, unknown> }).diff);
+    const rank1Op = ops.find(
+      (op) =>
+        "diff" in op && "system.slots.1.prepared" in (op as { diff: Record<string, unknown> }).diff,
+    );
     expect(rank1Op).toBeDefined();
     expect((rank1Op as { diff: Record<string, unknown> }).diff).toEqual({
       "system.slots.1.prepared": [
@@ -1634,7 +1647,10 @@ describe("CharacterSheetVM — restAll", () => {
     });
     expect((rank1Op as { embedded?: unknown }).embedded).toEqual({ type: "Item", id: "actor-001" });
 
-    const rank2Op = ops.find((op) => "diff" in op && "system.slots.2.prepared" in (op as { diff: Record<string, unknown> }).diff);
+    const rank2Op = ops.find(
+      (op) =>
+        "diff" in op && "system.slots.2.prepared" in (op as { diff: Record<string, unknown> }).diff,
+    );
     expect((rank2Op as { diff: Record<string, unknown> }).diff).toEqual({
       "system.slots.2.prepared": [{ id: "spell-y", expended: false }],
     });
@@ -1643,8 +1659,16 @@ describe("CharacterSheetVM — restAll", () => {
     // chat summary is a chat:send, validated elsewhere).
     for (const op of ops) {
       if (op.type !== "doc:update") continue;
-      const u = op as { documentType: string; id: string; diff: Record<string, unknown>; embedded?: { type: string; id: string } };
-      const wirePayload = { documentType: u.documentType, updates: [{ _id: u.id, diff: u.diff, embedded: u.embedded }] };
+      const u = op as {
+        documentType: string;
+        id: string;
+        diff: Record<string, unknown>;
+        embedded?: { type: string; id: string };
+      };
+      const wirePayload = {
+        documentType: u.documentType,
+        updates: [{ _id: u.id, diff: u.diff, embedded: u.embedded }],
+      };
       expect(DocUpdatePayloadSchema.safeParse(wirePayload).success).toBe(true);
     }
   });
@@ -1664,10 +1688,14 @@ describe("CharacterSheetVM — restAll", () => {
     });
     const ops = vm.restAll();
     const focusOp = ops.find(
-      (op) => "diff" in op && "system.resources.focusPoints.value" in (op as { diff: Record<string, unknown> }).diff,
+      (op) =>
+        "diff" in op &&
+        "system.resources.focusPoints.value" in (op as { diff: Record<string, unknown> }).diff,
     );
     expect(focusOp).toBeDefined();
-    expect((focusOp as { diff: Record<string, unknown> }).diff["system.resources.focusPoints.value"]).toBe(3);
+    expect(
+      (focusOp as { diff: Record<string, unknown> }).diff["system.resources.focusPoints.value"],
+    ).toBe(3);
   });
 
   it("returns an empty array when nothing is expended and focus points are full", () => {
@@ -1683,7 +1711,10 @@ describe("CharacterSheetVM — restAll", () => {
     };
     // Full HP so the r16 HP heal has nothing to recover either.
     ((doc["system"] as Record<string, unknown>)["derived"] as Record<string, unknown>)["hp"] = {
-      value: 75, max: 75, temp: 0, drainedHpReduction: 0,
+      value: 75,
+      max: 75,
+      temp: 0,
+      drainedHpReduction: 0,
     };
     const vm = new CharacterSheetVM({
       doc,
@@ -1725,7 +1756,10 @@ describe("CharacterSheetVM — restAll", () => {
     };
     // Full HP so the r16 HP heal has nothing to recover either.
     ((doc["system"] as Record<string, unknown>)["derived"] as Record<string, unknown>)["hp"] = {
-      value: 75, max: 75, temp: 0, drainedHpReduction: 0,
+      value: 75,
+      max: 75,
+      temp: 0,
+      drainedHpReduction: 0,
     };
     const vm = new CharacterSheetVM({
       doc,
@@ -2016,10 +2050,7 @@ describe("buildSpellNameTranslator (T1 r13)", () => {
   });
 
   it("first write wins for a duplicated key (deterministic)", () => {
-    const translate = buildSpellNameTranslator([
-      entry("Light", "Luz"),
-      entry("Light", "Iluminar"),
-    ]);
+    const translate = buildSpellNameTranslator([entry("Light", "Luz"), entry("Light", "Iluminar")]);
     expect(translate("Light")).toBe("Luz");
   });
 });
@@ -2063,7 +2094,9 @@ describe("buildSpellDetailsResolver (r14-B4)", () => {
       packEntry("Renamed Spell", "Compendium.pf2e.spells-core.Item.byid", "Renomeada", "srcABC"),
     ]);
     // Name does not match anything, but the sourceId does.
-    expect(resolve("Totally Different Name", "srcABC")).toBe("Compendium.pf2e.spells-core.Item.byid");
+    expect(resolve("Totally Different Name", "srcABC")).toBe(
+      "Compendium.pf2e.spells-core.Item.byid",
+    );
   });
 
   it("returns null when the spell has no pack counterpart (embedded-only fallback)", () => {
@@ -2154,7 +2187,13 @@ describe("CharacterSheetVM — focusSpells / focusEntryId", () => {
       _id: "entry-focus",
       name: "Focus Spells",
       type: "spellcastingEntry",
-      system: { tradition: "arcane", prepared: "focus", ability: "int", isFocusPool: true, slots: {} },
+      system: {
+        tradition: "arcane",
+        prepared: "focus",
+        ability: "int",
+        isFocusPool: true,
+        slots: {},
+      },
     });
     return doc;
   }
@@ -2484,12 +2523,7 @@ describe("sortSpellPickerEntries", () => {
   }
 
   it("sorts by rank ascending, then name ascending", () => {
-    const entries = [
-      entry("Zephyr", 1),
-      entry("Fireball", 3),
-      entry("Aid", 1),
-      entry("Shield", 0),
-    ];
+    const entries = [entry("Zephyr", 1), entry("Fireball", 3), entry("Aid", 1), entry("Shield", 0)];
     const result = sortSpellPickerEntries(entries);
     expect(result.map((e) => e.name)).toEqual(["Shield", "Aid", "Zephyr", "Fireball"]);
   });
@@ -2573,7 +2607,10 @@ describe("resolveInitialTradition", () => {
  * a damaging rank-1 spell (interval +2d6) prepared into a rank-3 slot, and a
  * focus spell (interval +1d6). `level` overrides the actor level.
  */
-function makeCaster(level: number, extraItems: Record<string, unknown>[] = []): Record<string, unknown> {
+function makeCaster(
+  level: number,
+  extraItems: Record<string, unknown>[] = [],
+): Record<string, unknown> {
   return {
     _id: "actor-caster",
     name: "Tobias",
@@ -2668,7 +2705,9 @@ function makeCasterVM(level: number, extraItems: Record<string, unknown>[] = [])
 describe("cantrip auto-heightening by actor level", () => {
   function cantripView(vm: CharacterSheetVM) {
     const entry = vm.spellcastingEntries.find((e) => e.entryId === "entry-arcane");
-    const cantrip = entry?.slots.find((s) => s.isCantrip)?.spells.find((sp) => sp.id === "spell-ignition");
+    const cantrip = entry?.slots
+      .find((s) => s.isCantrip)
+      ?.spells.find((sp) => sp.id === "spell-ignition");
     return cantrip?.heightening ?? null;
   }
 

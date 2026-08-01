@@ -973,9 +973,9 @@ const PARENT_MESSAGE_ID_FLAG_KEY = "parentMessageId" as const;
  */
 function resolveParentMessageId(db: Db, parentMessageId: string | undefined): string | undefined {
   if (!parentMessageId) return undefined;
-  const row = db
-    .prepare(`SELECT id FROM chat_messages WHERE id = ?`)
-    .get(parentMessageId) as { id: string } | undefined;
+  const row = db.prepare(`SELECT id FROM chat_messages WHERE id = ?`).get(parentMessageId) as
+    | { id: string }
+    | undefined;
   if (!row) {
     console.warn(
       `[chat] parentMessageId "${parentMessageId}" not found in store; dropping nesting flag (message delivered as top-level).`,
@@ -1018,9 +1018,7 @@ function readCasterSpellDCs(db: Db, actorId: string): number[] {
     const doc = JSON.parse(row.data) as Record<string, unknown>;
     const system = doc["system"] as Record<string, unknown> | undefined;
     const derived = system?.["derived"] as Record<string, unknown> | undefined;
-    const spellcasting = derived?.["spellcasting"] as
-      | Record<string, { dc?: unknown }>
-      | undefined;
+    const spellcasting = derived?.["spellcasting"] as Record<string, { dc?: unknown }> | undefined;
     if (!spellcasting) return [];
     const dcs: number[] = [];
     for (const entry of Object.values(spellcasting)) {

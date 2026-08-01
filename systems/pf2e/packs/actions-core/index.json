@@ -11,9 +11,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "anadi"
-      ]
+      "system.traits.value": ["anadi"]
     }
   },
   {
@@ -28,9 +26,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "misfortune"
-      ]
+      "system.traits.value": ["misfortune"]
     }
   },
   {
@@ -60,9 +56,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "automaton"
-      ]
+      "system.traits.value": ["automaton"]
     }
   },
   {
@@ -92,10 +86,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "fortune",
-        "mental"
-      ]
+      "system.traits.value": ["fortune", "mental"]
     }
   },
   {
@@ -110,9 +101,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "fortune"
-      ]
+      "system.traits.value": ["fortune"]
     }
   },
   {
@@ -157,9 +146,7 @@
       "system.actions": 2,
       "system.category": "interaction",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -189,9 +176,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "primal"
-      ]
+      "system.traits.value": ["primal"]
     }
   },
   {
@@ -206,9 +191,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -238,10 +221,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "curse",
-        "occult"
-      ]
+      "system.traits.value": ["curse", "occult"]
     }
   },
   {
@@ -301,10 +281,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "kobold",
-        "poison"
-      ]
+      "system.traits.value": ["kobold", "poison"]
     }
   },
   {
@@ -319,9 +296,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "leshy"
-      ]
+      "system.traits.value": ["leshy"]
     }
   },
   {
@@ -351,10 +326,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "primal",
-        "water"
-      ]
+      "system.traits.value": ["primal", "water"]
     }
   },
   {
@@ -369,10 +341,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "divine",
-        "earth"
-      ]
+      "system.traits.value": ["divine", "earth"]
     }
   },
   {
@@ -417,9 +386,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -434,12 +401,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "concentrate",
-        "illusion",
-        "occult",
-        "visual"
-      ]
+      "system.traits.value": ["concentrate", "illusion", "occult", "visual"]
     }
   },
   {
@@ -454,9 +416,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "fortune"
-      ]
+      "system.traits.value": ["fortune"]
     }
   },
   {
@@ -471,10 +431,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "concentrate",
-        "polymorph"
-      ]
+      "system.traits.value": ["concentrate", "polymorph"]
     }
   },
   {
@@ -489,9 +446,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "shisk"
-      ]
+      "system.traits.value": ["shisk"]
     }
   },
   {
@@ -506,9 +461,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "manipulate"
-      ]
+      "system.traits.value": ["manipulate"]
     }
   },
   {
@@ -523,9 +476,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "magical"
-      ]
+      "system.traits.value": ["magical"]
     }
   },
   {
@@ -540,11 +491,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "fire",
-        "light",
-        "magical"
-      ]
+      "system.traits.value": ["fire", "light", "magical"]
     }
   },
   {
@@ -559,11 +506,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "light",
-        "magical",
-        "visual"
-      ]
+      "system.traits.value": ["light", "magical", "visual"]
     }
   },
   {
@@ -578,10 +521,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "auditory",
-        "magical"
-      ]
+      "system.traits.value": ["auditory", "magical"]
     }
   },
   {
@@ -611,11 +551,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "emotion",
-        "fear",
-        "mental"
-      ]
+      "system.traits.value": ["emotion", "fear", "mental"]
     }
   },
   {
@@ -630,11 +566,7 @@
       "system.actions": 2,
       "system.category": "interaction",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "morph",
-        "primal",
-        "tengu"
-      ]
+      "system.traits.value": ["morph", "primal", "tengu"]
     }
   },
   {
@@ -649,10 +581,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "poison",
-        "tripkee"
-      ]
+      "system.traits.value": ["poison", "tripkee"]
     }
   },
   {
@@ -667,9 +596,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "manipulate"
-      ]
+      "system.traits.value": ["manipulate"]
     }
   },
   {
@@ -699,10 +626,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": [
-        "occult",
-        "shadow"
-      ]
+      "system.traits.value": ["occult", "shadow"]
     }
   },
   {
@@ -717,9 +641,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "move"
-      ]
+      "system.traits.value": ["move"]
     }
   },
   {
@@ -734,10 +656,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "exploration"
-      ]
+      "system.traits.value": ["concentrate", "exploration"]
     }
   },
   {
@@ -752,9 +671,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -769,9 +686,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -786,11 +701,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "exploration",
-        "mythic"
-      ]
+      "system.traits.value": ["concentrate", "exploration", "mythic"]
     }
   },
   {
@@ -805,11 +716,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "divine",
-        "manipulate"
-      ]
+      "system.traits.value": ["concentrate", "divine", "manipulate"]
     }
   },
   {
@@ -824,9 +731,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -841,9 +746,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -858,12 +761,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "divine",
-        "fortune",
-        "mythic"
-      ]
+      "system.traits.value": ["concentrate", "divine", "fortune", "mythic"]
     }
   },
   {
@@ -893,9 +791,7 @@
       "system.actions": 3,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -910,11 +806,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "arcane",
-        "manipulate",
-        "teleportation"
-      ]
+      "system.traits.value": ["arcane", "manipulate", "teleportation"]
     }
   },
   {
@@ -929,9 +821,7 @@
       "system.actions": 3,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "manipulate"
-      ]
+      "system.traits.value": ["manipulate"]
     }
   },
   {
@@ -946,11 +836,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "manipulate",
-        "teleportation"
-      ]
+      "system.traits.value": ["concentrate", "manipulate", "teleportation"]
     }
   },
   {
@@ -965,10 +851,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "arcane",
-        "concentrate"
-      ]
+      "system.traits.value": ["arcane", "concentrate"]
     }
   },
   {
@@ -998,9 +881,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "attack"
-      ]
+      "system.traits.value": ["attack"]
     }
   },
   {
@@ -1015,9 +896,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "exploration"
-      ]
+      "system.traits.value": ["exploration"]
     }
   },
   {
@@ -1047,12 +926,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "auditory",
-        "linguistic",
-        "mental",
-        "mythic"
-      ]
+      "system.traits.value": ["auditory", "linguistic", "mental", "mythic"]
     }
   },
   {
@@ -1067,9 +941,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "stance"
-      ]
+      "system.traits.value": ["stance"]
     }
   },
   {
@@ -1084,13 +956,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "auditory",
-        "concentrate",
-        "divine",
-        "linguistic",
-        "mental"
-      ]
+      "system.traits.value": ["auditory", "concentrate", "divine", "linguistic", "mental"]
     }
   },
   {
@@ -1105,9 +971,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "exploration"
-      ]
+      "system.traits.value": ["exploration"]
     }
   },
   {
@@ -1122,9 +986,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -1139,11 +1001,7 @@
       "system.actions": null,
       "system.category": null,
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "emotion",
-        "mental"
-      ]
+      "system.traits.value": ["concentrate", "emotion", "mental"]
     }
   },
   {
@@ -1158,11 +1016,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "emotion",
-        "mental"
-      ]
+      "system.traits.value": ["concentrate", "emotion", "mental"]
     }
   },
   {
@@ -1207,9 +1061,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "stance"
-      ]
+      "system.traits.value": ["stance"]
     }
   },
   {
@@ -1224,9 +1076,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "stance"
-      ]
+      "system.traits.value": ["stance"]
     }
   },
   {
@@ -1241,9 +1091,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "flourish"
-      ]
+      "system.traits.value": ["flourish"]
     }
   },
   {
@@ -1273,10 +1121,7 @@
       "system.actions": 1,
       "system.category": null,
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "curse",
-        "occult"
-      ]
+      "system.traits.value": ["curse", "occult"]
     }
   },
   {
@@ -1291,9 +1136,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "downtime"
-      ]
+      "system.traits.value": ["downtime"]
     }
   },
   {
@@ -1308,9 +1151,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "fortune"
-      ]
+      "system.traits.value": ["fortune"]
     }
   },
   {
@@ -1325,9 +1166,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -1342,9 +1181,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -1359,10 +1196,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "fortune"
-      ]
+      "system.traits.value": ["concentrate", "fortune"]
     }
   },
   {
@@ -1407,9 +1241,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "mythic"
-      ]
+      "system.traits.value": ["mythic"]
     }
   },
   {
@@ -1424,10 +1256,7 @@
       "system.actions": 3,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "manipulate"
-      ]
+      "system.traits.value": ["concentrate", "manipulate"]
     }
   },
   {
@@ -1457,12 +1286,7 @@
       "system.actions": 3,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "fire",
-        "healing",
-        "light",
-        "visual"
-      ]
+      "system.traits.value": ["fire", "healing", "light", "visual"]
     }
   },
   {
@@ -1477,10 +1301,7 @@
       "system.actions": 2,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "manipulate"
-      ]
+      "system.traits.value": ["concentrate", "manipulate"]
     }
   },
   {
@@ -1495,10 +1316,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "exploration",
-        "secret"
-      ]
+      "system.traits.value": ["exploration", "secret"]
     }
   },
   {
@@ -1543,11 +1361,7 @@
       "system.actions": 3,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "fire",
-        "sonic",
-        "visual"
-      ]
+      "system.traits.value": ["fire", "sonic", "visual"]
     }
   },
   {
@@ -1577,9 +1391,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "manipulate"
-      ]
+      "system.traits.value": ["manipulate"]
     }
   },
   {
@@ -1609,10 +1421,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "auditory",
-        "linguistic"
-      ]
+      "system.traits.value": ["auditory", "linguistic"]
     }
   },
   {
@@ -1627,9 +1436,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "manipulate"
-      ]
+      "system.traits.value": ["manipulate"]
     }
   },
   {
@@ -1644,9 +1451,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "manipulate"
-      ]
+      "system.traits.value": ["manipulate"]
     }
   },
   {
@@ -1661,11 +1466,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "divine",
-        "spellshape"
-      ]
+      "system.traits.value": ["concentrate", "divine", "spellshape"]
     }
   },
   {
@@ -1695,9 +1496,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "fortune"
-      ]
+      "system.traits.value": ["fortune"]
     }
   },
   {
@@ -1712,9 +1511,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "holy"
-      ]
+      "system.traits.value": ["holy"]
     }
   },
   {
@@ -1804,10 +1601,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "spellshape"
-      ]
+      "system.traits.value": ["concentrate", "spellshape"]
     }
   },
   {
@@ -1837,9 +1631,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -1854,11 +1646,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "magical",
-        "manipulate"
-      ]
+      "system.traits.value": ["concentrate", "magical", "manipulate"]
     }
   },
   {
@@ -1873,9 +1661,7 @@
       "system.actions": 1,
       "system.category": "defensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "healing"
-      ]
+      "system.traits.value": ["healing"]
     }
   },
   {
@@ -1890,9 +1676,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -1907,9 +1691,7 @@
       "system.actions": 1,
       "system.category": "defensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "illusion"
-      ]
+      "system.traits.value": ["illusion"]
     }
   },
   {
@@ -1924,9 +1706,7 @@
       "system.actions": 1,
       "system.category": "defensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -1941,10 +1721,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "magical"
-      ]
+      "system.traits.value": ["concentrate", "magical"]
     }
   },
   {
@@ -1959,9 +1736,7 @@
       "system.actions": 1,
       "system.category": "defensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -1976,11 +1751,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "auditory",
-        "concentrate",
-        "occult"
-      ]
+      "system.traits.value": ["auditory", "concentrate", "occult"]
     }
   },
   {
@@ -2010,10 +1781,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "fortune"
-      ]
+      "system.traits.value": ["concentrate", "fortune"]
     }
   },
   {
@@ -2028,11 +1796,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "primal",
-        "teleportation"
-      ]
+      "system.traits.value": ["concentrate", "primal", "teleportation"]
     }
   },
   {
@@ -2047,9 +1811,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -2079,10 +1841,7 @@
       "system.actions": null,
       "system.category": null,
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "magical"
-      ]
+      "system.traits.value": ["concentrate", "magical"]
     }
   },
   {
@@ -2097,9 +1856,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "flourish"
-      ]
+      "system.traits.value": ["flourish"]
     }
   },
   {
@@ -2129,12 +1886,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "exploration",
-        "linguistic",
-        "mental"
-      ]
+      "system.traits.value": ["concentrate", "exploration", "linguistic", "mental"]
     }
   },
   {
@@ -2149,9 +1901,7 @@
       "system.actions": 1,
       "system.category": "defensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "manipulate"
-      ]
+      "system.traits.value": ["manipulate"]
     }
   },
   {
@@ -2166,10 +1916,7 @@
       "system.actions": null,
       "system.category": null,
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "exploration"
-      ]
+      "system.traits.value": ["concentrate", "exploration"]
     }
   },
   {
@@ -2184,11 +1931,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "divine",
-        "mental"
-      ]
+      "system.traits.value": ["concentrate", "divine", "mental"]
     }
   },
   {
@@ -2218,9 +1961,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "exploration"
-      ]
+      "system.traits.value": ["exploration"]
     }
   },
   {
@@ -2250,10 +1991,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "auditory",
-        "spellshape"
-      ]
+      "system.traits.value": ["auditory", "spellshape"]
     }
   },
   {
@@ -2268,10 +2006,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "auditory",
-        "linguistic"
-      ]
+      "system.traits.value": ["auditory", "linguistic"]
     }
   },
   {
@@ -2301,10 +2036,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "mental",
-        "occult"
-      ]
+      "system.traits.value": ["mental", "occult"]
     }
   },
   {
@@ -2319,9 +2051,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "exploration"
-      ]
+      "system.traits.value": ["exploration"]
     }
   },
   {
@@ -2351,11 +2081,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "divine",
-        "extradimensional"
-      ]
+      "system.traits.value": ["concentrate", "divine", "extradimensional"]
     }
   },
   {
@@ -2370,9 +2096,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "magical"
-      ]
+      "system.traits.value": ["magical"]
     }
   },
   {
@@ -2387,9 +2111,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "magical"
-      ]
+      "system.traits.value": ["magical"]
     }
   },
   {
@@ -2404,10 +2126,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "magical",
-        "spellshot"
-      ]
+      "system.traits.value": ["magical", "spellshot"]
     }
   },
   {
@@ -2422,10 +2141,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "magical",
-        "spellshot"
-      ]
+      "system.traits.value": ["magical", "spellshot"]
     }
   },
   {
@@ -2440,11 +2156,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "magical",
-        "spellshot",
-        "teleportation"
-      ]
+      "system.traits.value": ["magical", "spellshot", "teleportation"]
     }
   },
   {
@@ -2489,9 +2201,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "flourish"
-      ]
+      "system.traits.value": ["flourish"]
     }
   },
   {
@@ -2506,9 +2216,7 @@
       "system.actions": 1,
       "system.category": "defensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "stance"
-      ]
+      "system.traits.value": ["stance"]
     }
   },
   {
@@ -2523,9 +2231,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "arcane"
-      ]
+      "system.traits.value": ["arcane"]
     }
   },
   {
@@ -2540,10 +2246,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "divine",
-        "fortune"
-      ]
+      "system.traits.value": ["divine", "fortune"]
     }
   },
   {
@@ -2558,9 +2261,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -2605,11 +2306,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "auditory",
-        "flourish",
-        "mental"
-      ]
+      "system.traits.value": ["auditory", "flourish", "mental"]
     }
   },
   {
@@ -2624,9 +2321,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -2641,9 +2336,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "finisher"
-      ]
+      "system.traits.value": ["finisher"]
     }
   },
   {
@@ -2658,11 +2351,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "healing",
-        "mythic"
-      ]
+      "system.traits.value": ["concentrate", "healing", "mythic"]
     }
   },
   {
@@ -2677,10 +2366,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "mythic",
-        "occult"
-      ]
+      "system.traits.value": ["mythic", "occult"]
     }
   },
   {
@@ -2695,11 +2381,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "occult",
-        "teleportation"
-      ]
+      "system.traits.value": ["concentrate", "occult", "teleportation"]
     }
   },
   {
@@ -2714,11 +2396,7 @@
       "system.actions": 3,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "illusion",
-        "occult"
-      ]
+      "system.traits.value": ["concentrate", "illusion", "occult"]
     }
   },
   {
@@ -2733,11 +2411,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "illusion",
-        "occult"
-      ]
+      "system.traits.value": ["concentrate", "illusion", "occult"]
     }
   },
   {
@@ -2782,9 +2456,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "fortune"
-      ]
+      "system.traits.value": ["fortune"]
     }
   },
   {
@@ -2799,9 +2471,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "divine"
-      ]
+      "system.traits.value": ["divine"]
     }
   },
   {
@@ -2816,10 +2486,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "arcane",
-        "concentrate"
-      ]
+      "system.traits.value": ["arcane", "concentrate"]
     }
   },
   {
@@ -2834,10 +2501,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "arcane",
-        "concentrate"
-      ]
+      "system.traits.value": ["arcane", "concentrate"]
     }
   },
   {
@@ -2852,10 +2516,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "arcane",
-        "concentrate"
-      ]
+      "system.traits.value": ["arcane", "concentrate"]
     }
   },
   {
@@ -2870,10 +2531,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "arcane",
-        "concentrate"
-      ]
+      "system.traits.value": ["arcane", "concentrate"]
     }
   },
   {
@@ -2888,11 +2546,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "arcane",
-        "concentrate",
-        "healing"
-      ]
+      "system.traits.value": ["arcane", "concentrate", "healing"]
     }
   },
   {
@@ -2907,10 +2561,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "arcane",
-        "concentrate"
-      ]
+      "system.traits.value": ["arcane", "concentrate"]
     }
   },
   {
@@ -2940,11 +2591,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "magical",
-        "manipulate",
-        "teleportation"
-      ]
+      "system.traits.value": ["magical", "manipulate", "teleportation"]
     }
   },
   {
@@ -2959,10 +2606,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "concentrate",
-        "magical"
-      ]
+      "system.traits.value": ["concentrate", "magical"]
     }
   },
   {
@@ -2977,10 +2621,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": [
-        "fortune",
-        "primal"
-      ]
+      "system.traits.value": ["fortune", "primal"]
     }
   },
   {
@@ -3010,9 +2651,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "background",
-      "system.traits.value": [
-        "fortune"
-      ]
+      "system.traits.value": ["fortune"]
     }
   },
   {
@@ -3027,9 +2666,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "background",
-      "system.traits.value": [
-        "occult"
-      ]
+      "system.traits.value": ["occult"]
     }
   },
   {
@@ -3059,9 +2696,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "background",
-      "system.traits.value": [
-        "fortune"
-      ]
+      "system.traits.value": ["fortune"]
     }
   },
   {
@@ -3076,9 +2711,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "background",
-      "system.traits.value": [
-        "fortune"
-      ]
+      "system.traits.value": ["fortune"]
     }
   },
   {
@@ -3093,9 +2726,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "background",
-      "system.traits.value": [
-        "fortune"
-      ]
+      "system.traits.value": ["fortune"]
     }
   },
   {
@@ -3110,10 +2741,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "background",
-      "system.traits.value": [
-        "concentrate",
-        "fortune"
-      ]
+      "system.traits.value": ["concentrate", "fortune"]
     }
   },
   {
@@ -3143,9 +2771,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "background",
-      "system.traits.value": [
-        "fortune"
-      ]
+      "system.traits.value": ["fortune"]
     }
   },
   {
@@ -3160,10 +2786,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "background",
-      "system.traits.value": [
-        "exploration",
-        "occult"
-      ]
+      "system.traits.value": ["exploration", "occult"]
     }
   },
   {
@@ -3178,9 +2801,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "background",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -3240,9 +2861,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "background",
-      "system.traits.value": [
-        "fortune"
-      ]
+      "system.traits.value": ["fortune"]
     }
   },
   {
@@ -3287,10 +2906,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "background",
-      "system.traits.value": [
-        "auditory",
-        "fortune"
-      ]
+      "system.traits.value": ["auditory", "fortune"]
     }
   },
   {
@@ -3305,11 +2921,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "background",
-      "system.traits.value": [
-        "auditory",
-        "linguistic",
-        "mental"
-      ]
+      "system.traits.value": ["auditory", "linguistic", "mental"]
     }
   },
   {
@@ -3324,10 +2936,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "background",
-      "system.traits.value": [
-        "divine",
-        "fortune"
-      ]
+      "system.traits.value": ["divine", "fortune"]
     }
   },
   {
@@ -3342,9 +2951,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "background",
-      "system.traits.value": [
-        "fortune"
-      ]
+      "system.traits.value": ["fortune"]
     }
   },
   {
@@ -3359,9 +2966,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "background",
-      "system.traits.value": [
-        "occult"
-      ]
+      "system.traits.value": ["occult"]
     }
   },
   {
@@ -3376,9 +2981,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "background",
-      "system.traits.value": [
-        "healing"
-      ]
+      "system.traits.value": ["healing"]
     }
   },
   {
@@ -3393,10 +2996,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "background",
-      "system.traits.value": [
-        "misfortune",
-        "occult"
-      ]
+      "system.traits.value": ["misfortune", "occult"]
     }
   },
   {
@@ -3411,9 +3011,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "background",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -3428,11 +3026,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "background",
-      "system.traits.value": [
-        "arcane",
-        "auditory",
-        "fortune"
-      ]
+      "system.traits.value": ["arcane", "auditory", "fortune"]
     }
   },
   {
@@ -3447,9 +3041,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "basic",
-      "system.traits.value": [
-        "manipulate"
-      ]
+      "system.traits.value": ["manipulate"]
     }
   },
   {
@@ -3464,10 +3056,7 @@
       "system.actions": null,
       "system.category": null,
       "system.fusionCategory": "basic",
-      "system.traits.value": [
-        "exploration",
-        "manipulate"
-      ]
+      "system.traits.value": ["exploration", "manipulate"]
     }
   },
   {
@@ -3527,9 +3116,7 @@
       "system.actions": 1,
       "system.category": null,
       "system.fusionCategory": "basic",
-      "system.traits.value": [
-        "move"
-      ]
+      "system.traits.value": ["move"]
     }
   },
   {
@@ -3559,9 +3146,7 @@
       "system.actions": 1,
       "system.category": "defensive",
       "system.fusionCategory": "basic",
-      "system.traits.value": [
-        "move"
-      ]
+      "system.traits.value": ["move"]
     }
   },
   {
@@ -3591,9 +3176,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "basic",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -3608,9 +3191,7 @@
       "system.actions": 1,
       "system.category": "defensive",
       "system.fusionCategory": "basic",
-      "system.traits.value": [
-        "move"
-      ]
+      "system.traits.value": ["move"]
     }
   },
   {
@@ -3625,9 +3206,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "basic",
-      "system.traits.value": [
-        "attack"
-      ]
+      "system.traits.value": ["attack"]
     }
   },
   {
@@ -3642,9 +3221,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "basic",
-      "system.traits.value": [
-        "move"
-      ]
+      "system.traits.value": ["move"]
     }
   },
   {
@@ -3659,9 +3236,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "basic",
-      "system.traits.value": [
-        "manipulate"
-      ]
+      "system.traits.value": ["manipulate"]
     }
   },
   {
@@ -3676,9 +3251,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "basic",
-      "system.traits.value": [
-        "manipulate"
-      ]
+      "system.traits.value": ["manipulate"]
     }
   },
   {
@@ -3708,9 +3281,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "basic",
-      "system.traits.value": [
-        "move"
-      ]
+      "system.traits.value": ["move"]
     }
   },
   {
@@ -3725,9 +3296,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "basic",
-      "system.traits.value": [
-        "move"
-      ]
+      "system.traits.value": ["move"]
     }
   },
   {
@@ -3742,11 +3311,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "basic",
-      "system.traits.value": [
-        "auditory",
-        "manipulate",
-        "visual"
-      ]
+      "system.traits.value": ["auditory", "manipulate", "visual"]
     }
   },
   {
@@ -3776,9 +3341,7 @@
       "system.actions": 2,
       "system.category": "interaction",
       "system.fusionCategory": "basic",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -3793,9 +3356,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "basic",
-      "system.traits.value": [
-        "manipulate"
-      ]
+      "system.traits.value": ["manipulate"]
     }
   },
   {
@@ -3810,10 +3371,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "basic",
-      "system.traits.value": [
-        "concentrate",
-        "secret"
-      ]
+      "system.traits.value": ["concentrate", "secret"]
     }
   },
   {
@@ -3828,10 +3386,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "basic",
-      "system.traits.value": [
-        "concentrate",
-        "secret"
-      ]
+      "system.traits.value": ["concentrate", "secret"]
     }
   },
   {
@@ -3846,9 +3401,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "basic",
-      "system.traits.value": [
-        "move"
-      ]
+      "system.traits.value": ["move"]
     }
   },
   {
@@ -3863,9 +3416,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "basic",
-      "system.traits.value": [
-        "move"
-      ]
+      "system.traits.value": ["move"]
     }
   },
   {
@@ -3880,9 +3431,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "basic",
-      "system.traits.value": [
-        "move"
-      ]
+      "system.traits.value": ["move"]
     }
   },
   {
@@ -3897,9 +3446,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "basic",
-      "system.traits.value": [
-        "attack"
-      ]
+      "system.traits.value": ["attack"]
     }
   },
   {
@@ -3914,9 +3461,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "basic",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -3961,10 +3506,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "alchemist",
-        "manipulate"
-      ]
+      "system.traits.value": ["alchemist", "manipulate"]
     }
   },
   {
@@ -3979,10 +3521,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "alchemist",
-        "manipulate"
-      ]
+      "system.traits.value": ["alchemist", "manipulate"]
     }
   },
   {
@@ -3997,9 +3536,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "barbarian"
-      ]
+      "system.traits.value": ["barbarian"]
     }
   },
   {
@@ -4014,9 +3551,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "barbarian"
-      ]
+      "system.traits.value": ["barbarian"]
     }
   },
   {
@@ -4031,12 +3566,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "barbarian",
-        "concentrate",
-        "emotion",
-        "mental"
-      ]
+      "system.traits.value": ["barbarian", "concentrate", "emotion", "mental"]
     }
   },
   {
@@ -4051,10 +3581,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "champion",
-        "divine"
-      ]
+      "system.traits.value": ["champion", "divine"]
     }
   },
   {
@@ -4069,10 +3596,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "champion",
-        "divine"
-      ]
+      "system.traits.value": ["champion", "divine"]
     }
   },
   {
@@ -4087,10 +3611,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "champion",
-        "divine"
-      ]
+      "system.traits.value": ["champion", "divine"]
     }
   },
   {
@@ -4105,12 +3626,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "champion",
-        "divine",
-        "emotion",
-        "mental"
-      ]
+      "system.traits.value": ["champion", "divine", "emotion", "mental"]
     }
   },
   {
@@ -4125,9 +3641,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "champion"
-      ]
+      "system.traits.value": ["champion"]
     }
   },
   {
@@ -4142,10 +3656,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "champion",
-        "divine"
-      ]
+      "system.traits.value": ["champion", "divine"]
     }
   },
   {
@@ -4160,10 +3671,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "champion",
-        "divine"
-      ]
+      "system.traits.value": ["champion", "divine"]
     }
   },
   {
@@ -4178,10 +3686,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["commander", "tactic"]
     }
   },
   {
@@ -4196,10 +3701,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["commander", "tactic"]
     }
   },
   {
@@ -4214,11 +3716,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "brandish",
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["brandish", "commander", "tactic"]
     }
   },
   {
@@ -4233,11 +3731,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "brandish",
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["brandish", "commander", "tactic"]
     }
   },
   {
@@ -4252,10 +3746,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["commander", "tactic"]
     }
   },
   {
@@ -4270,11 +3761,7 @@
       "system.actions": 3,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "brandish",
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["brandish", "commander", "tactic"]
     }
   },
   {
@@ -4289,11 +3776,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "brandish",
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["brandish", "commander", "tactic"]
     }
   },
   {
@@ -4308,11 +3791,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "brandish",
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["brandish", "commander", "tactic"]
     }
   },
   {
@@ -4327,10 +3806,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["commander", "tactic"]
     }
   },
   {
@@ -4345,12 +3821,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "brandish",
-        "commander",
-        "incapacitation",
-        "tactic"
-      ]
+      "system.traits.value": ["brandish", "commander", "incapacitation", "tactic"]
     }
   },
   {
@@ -4365,10 +3836,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["commander", "tactic"]
     }
   },
   {
@@ -4383,11 +3851,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "brandish",
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["brandish", "commander", "tactic"]
     }
   },
   {
@@ -4402,10 +3866,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["commander", "tactic"]
     }
   },
   {
@@ -4420,11 +3881,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "brandish",
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["brandish", "commander", "tactic"]
     }
   },
   {
@@ -4439,11 +3896,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "commander",
-        "tactic",
-        "visual"
-      ]
+      "system.traits.value": ["commander", "tactic", "visual"]
     }
   },
   {
@@ -4458,10 +3911,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["commander", "tactic"]
     }
   },
   {
@@ -4476,10 +3926,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["commander", "tactic"]
     }
   },
   {
@@ -4494,10 +3941,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["commander", "tactic"]
     }
   },
   {
@@ -4512,10 +3956,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["commander", "tactic"]
     }
   },
   {
@@ -4530,10 +3971,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["commander", "tactic"]
     }
   },
   {
@@ -4548,11 +3986,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "brandish",
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["brandish", "commander", "tactic"]
     }
   },
   {
@@ -4567,11 +4001,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "brandish",
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["brandish", "commander", "tactic"]
     }
   },
   {
@@ -4586,11 +4016,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "brandish",
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["brandish", "commander", "tactic"]
     }
   },
   {
@@ -4605,10 +4031,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["commander", "tactic"]
     }
   },
   {
@@ -4623,10 +4046,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["commander", "tactic"]
     }
   },
   {
@@ -4641,10 +4061,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["commander", "tactic"]
     }
   },
   {
@@ -4659,10 +4076,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["commander", "tactic"]
     }
   },
   {
@@ -4677,10 +4091,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["commander", "tactic"]
     }
   },
   {
@@ -4695,10 +4106,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["commander", "tactic"]
     }
   },
   {
@@ -4713,10 +4121,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "divine",
-        "exemplar"
-      ]
+      "system.traits.value": ["divine", "exemplar"]
     }
   },
   {
@@ -4731,10 +4136,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["commander", "tactic"]
     }
   },
   {
@@ -4749,11 +4151,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "brandish",
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["brandish", "commander", "tactic"]
     }
   },
   {
@@ -4768,10 +4166,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["commander", "tactic"]
     }
   },
   {
@@ -4786,10 +4181,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["commander", "tactic"]
     }
   },
   {
@@ -4804,10 +4196,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["commander", "tactic"]
     }
   },
   {
@@ -4822,11 +4211,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "brandish",
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["brandish", "commander", "tactic"]
     }
   },
   {
@@ -4841,11 +4226,7 @@
       "system.actions": 3,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "brandish",
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["brandish", "commander", "tactic"]
     }
   },
   {
@@ -4860,10 +4241,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "commander",
-        "tactic"
-      ]
+      "system.traits.value": ["commander", "tactic"]
     }
   },
   {
@@ -4878,10 +4256,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "primal",
-        "sonic"
-      ]
+      "system.traits.value": ["primal", "sonic"]
     }
   },
   {
@@ -4896,9 +4271,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -4913,9 +4286,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -4930,12 +4301,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate",
-        "mental",
-        "spirit",
-        "transcendence"
-      ]
+      "system.traits.value": ["concentrate", "mental", "spirit", "transcendence"]
     }
   },
   {
@@ -4950,11 +4316,7 @@
       "system.actions": 1,
       "system.category": null,
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate",
-        "prediction",
-        "transcendence"
-      ]
+      "system.traits.value": ["concentrate", "prediction", "transcendence"]
     }
   },
   {
@@ -4969,9 +4331,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "transcendence"
-      ]
+      "system.traits.value": ["transcendence"]
     }
   },
   {
@@ -4986,9 +4346,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "transcendence"
-      ]
+      "system.traits.value": ["transcendence"]
     }
   },
   {
@@ -5003,9 +4361,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "transcendence"
-      ]
+      "system.traits.value": ["transcendence"]
     }
   },
   {
@@ -5020,11 +4376,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "earth",
-        "transcendence",
-        "visual"
-      ]
+      "system.traits.value": ["earth", "transcendence", "visual"]
     }
   },
   {
@@ -5039,9 +4391,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "transcendence"
-      ]
+      "system.traits.value": ["transcendence"]
     }
   },
   {
@@ -5056,12 +4406,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "cold",
-        "concentrate",
-        "darkness",
-        "transcendence"
-      ]
+      "system.traits.value": ["cold", "concentrate", "darkness", "transcendence"]
     }
   },
   {
@@ -5076,11 +4421,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "spirit",
-        "transcendence",
-        "void"
-      ]
+      "system.traits.value": ["spirit", "transcendence", "void"]
     }
   },
   {
@@ -5095,13 +4436,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate",
-        "emotion",
-        "mental",
-        "transcendence",
-        "visual"
-      ]
+      "system.traits.value": ["concentrate", "emotion", "mental", "transcendence", "visual"]
     }
   },
   {
@@ -5131,9 +4466,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "transcendence"
-      ]
+      "system.traits.value": ["transcendence"]
     }
   },
   {
@@ -5148,11 +4481,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "healing",
-        "transcendence",
-        "vitality"
-      ]
+      "system.traits.value": ["healing", "transcendence", "vitality"]
     }
   },
   {
@@ -5167,11 +4496,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "mental",
-        "spirit",
-        "transcendence"
-      ]
+      "system.traits.value": ["mental", "spirit", "transcendence"]
     }
   },
   {
@@ -5186,9 +4511,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "transcendence"
-      ]
+      "system.traits.value": ["transcendence"]
     }
   },
   {
@@ -5203,10 +4526,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "spirit",
-        "transcendence"
-      ]
+      "system.traits.value": ["spirit", "transcendence"]
     }
   },
   {
@@ -5221,12 +4541,7 @@
       "system.actions": 3,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "light",
-        "spirit",
-        "teleportation",
-        "transcendence"
-      ]
+      "system.traits.value": ["light", "spirit", "teleportation", "transcendence"]
     }
   },
   {
@@ -5241,10 +4556,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "spirit",
-        "transcendence"
-      ]
+      "system.traits.value": ["spirit", "transcendence"]
     }
   },
   {
@@ -5259,10 +4571,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "spirit",
-        "transcendence"
-      ]
+      "system.traits.value": ["spirit", "transcendence"]
     }
   },
   {
@@ -5277,10 +4586,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "spirit",
-        "transcendence"
-      ]
+      "system.traits.value": ["spirit", "transcendence"]
     }
   },
   {
@@ -5295,9 +4601,7 @@
       "system.actions": 3,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "transcendence"
-      ]
+      "system.traits.value": ["transcendence"]
     }
   },
   {
@@ -5312,12 +4616,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate",
-        "mental",
-        "spirit",
-        "transcendence"
-      ]
+      "system.traits.value": ["concentrate", "mental", "spirit", "transcendence"]
     }
   },
   {
@@ -5332,10 +4631,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "spirit",
-        "transcendence"
-      ]
+      "system.traits.value": ["spirit", "transcendence"]
     }
   },
   {
@@ -5350,9 +4646,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "transcendence"
-      ]
+      "system.traits.value": ["transcendence"]
     }
   },
   {
@@ -5367,9 +4661,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "transcendence"
-      ]
+      "system.traits.value": ["transcendence"]
     }
   },
   {
@@ -5384,12 +4676,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate",
-        "healing",
-        "transcendence",
-        "vitality"
-      ]
+      "system.traits.value": ["concentrate", "healing", "transcendence", "vitality"]
     }
   },
   {
@@ -5404,12 +4691,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate",
-        "emotion",
-        "mental",
-        "transcendence"
-      ]
+      "system.traits.value": ["concentrate", "emotion", "mental", "transcendence"]
     }
   },
   {
@@ -5424,10 +4706,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate",
-        "transcendence"
-      ]
+      "system.traits.value": ["concentrate", "transcendence"]
     }
   },
   {
@@ -5442,10 +4721,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "death",
-        "transcendence"
-      ]
+      "system.traits.value": ["death", "transcendence"]
     }
   },
   {
@@ -5460,10 +4736,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate",
-        "transcendence"
-      ]
+      "system.traits.value": ["concentrate", "transcendence"]
     }
   },
   {
@@ -5478,10 +4751,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "force",
-        "transcendence"
-      ]
+      "system.traits.value": ["force", "transcendence"]
     }
   },
   {
@@ -5496,9 +4766,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "transcendence"
-      ]
+      "system.traits.value": ["transcendence"]
     }
   },
   {
@@ -5513,9 +4781,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "transcendence"
-      ]
+      "system.traits.value": ["transcendence"]
     }
   },
   {
@@ -5530,11 +4796,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "sonic",
-        "spirit",
-        "transcendence"
-      ]
+      "system.traits.value": ["sonic", "spirit", "transcendence"]
     }
   },
   {
@@ -5549,9 +4811,7 @@
       "system.actions": 3,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "transcendence"
-      ]
+      "system.traits.value": ["transcendence"]
     }
   },
   {
@@ -5566,12 +4826,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "healing",
-        "light",
-        "transcendence",
-        "vitality"
-      ]
+      "system.traits.value": ["healing", "light", "transcendence", "vitality"]
     }
   },
   {
@@ -5586,12 +4841,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate",
-        "illusion",
-        "incapacitation",
-        "transcendence"
-      ]
+      "system.traits.value": ["concentrate", "illusion", "incapacitation", "transcendence"]
     }
   },
   {
@@ -5606,9 +4856,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "transcendence"
-      ]
+      "system.traits.value": ["transcendence"]
     }
   },
   {
@@ -5623,10 +4871,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "spirit",
-        "transcendence"
-      ]
+      "system.traits.value": ["spirit", "transcendence"]
     }
   },
   {
@@ -5641,11 +4886,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "aura",
-        "manipulate",
-        "transcendence"
-      ]
+      "system.traits.value": ["aura", "manipulate", "transcendence"]
     }
   },
   {
@@ -5660,11 +4901,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "auditory",
-        "mental",
-        "transcendence"
-      ]
+      "system.traits.value": ["auditory", "mental", "transcendence"]
     }
   },
   {
@@ -5679,9 +4916,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "transcendence"
-      ]
+      "system.traits.value": ["transcendence"]
     }
   },
   {
@@ -5696,10 +4931,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "fortune",
-        "transcendence"
-      ]
+      "system.traits.value": ["fortune", "transcendence"]
     }
   },
   {
@@ -5714,9 +4946,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "guardian"
-      ]
+      "system.traits.value": ["guardian"]
     }
   },
   {
@@ -5731,10 +4961,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate",
-        "guardian"
-      ]
+      "system.traits.value": ["concentrate", "guardian"]
     }
   },
   {
@@ -5749,9 +4976,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "gunslinger"
-      ]
+      "system.traits.value": ["gunslinger"]
     }
   },
   {
@@ -5766,9 +4991,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "gunslinger"
-      ]
+      "system.traits.value": ["gunslinger"]
     }
   },
   {
@@ -5783,9 +5006,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "gunslinger"
-      ]
+      "system.traits.value": ["gunslinger"]
     }
   },
   {
@@ -5800,9 +5021,7 @@
       "system.actions": 3,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "gunslinger"
-      ]
+      "system.traits.value": ["gunslinger"]
     }
   },
   {
@@ -5817,9 +5036,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "gunslinger"
-      ]
+      "system.traits.value": ["gunslinger"]
     }
   },
   {
@@ -5834,10 +5051,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "flourish",
-        "gunslinger"
-      ]
+      "system.traits.value": ["flourish", "gunslinger"]
     }
   },
   {
@@ -5852,14 +5066,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "auditory",
-        "emotion",
-        "fear",
-        "gunslinger",
-        "linguistic",
-        "mental"
-      ]
+      "system.traits.value": ["auditory", "emotion", "fear", "gunslinger", "linguistic", "mental"]
     }
   },
   {
@@ -5874,9 +5081,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "gunslinger"
-      ]
+      "system.traits.value": ["gunslinger"]
     }
   },
   {
@@ -5891,9 +5096,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "gunslinger"
-      ]
+      "system.traits.value": ["gunslinger"]
     }
   },
   {
@@ -5908,9 +5111,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "gunslinger"
-      ]
+      "system.traits.value": ["gunslinger"]
     }
   },
   {
@@ -5925,9 +5126,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "gunslinger"
-      ]
+      "system.traits.value": ["gunslinger"]
     }
   },
   {
@@ -5942,9 +5141,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "gunslinger"
-      ]
+      "system.traits.value": ["gunslinger"]
     }
   },
   {
@@ -5959,9 +5156,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "gunslinger"
-      ]
+      "system.traits.value": ["gunslinger"]
     }
   },
   {
@@ -5976,9 +5171,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "gunslinger"
-      ]
+      "system.traits.value": ["gunslinger"]
     }
   },
   {
@@ -5993,9 +5186,7 @@
       "system.actions": 3,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "gunslinger"
-      ]
+      "system.traits.value": ["gunslinger"]
     }
   },
   {
@@ -6010,9 +5201,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "gunslinger"
-      ]
+      "system.traits.value": ["gunslinger"]
     }
   },
   {
@@ -6027,9 +5216,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "gunslinger"
-      ]
+      "system.traits.value": ["gunslinger"]
     }
   },
   {
@@ -6044,9 +5231,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "gunslinger"
-      ]
+      "system.traits.value": ["gunslinger"]
     }
   },
   {
@@ -6061,9 +5246,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "gunslinger"
-      ]
+      "system.traits.value": ["gunslinger"]
     }
   },
   {
@@ -6078,9 +5261,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "gunslinger"
-      ]
+      "system.traits.value": ["gunslinger"]
     }
   },
   {
@@ -6095,9 +5276,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "gunslinger"
-      ]
+      "system.traits.value": ["gunslinger"]
     }
   },
   {
@@ -6112,10 +5291,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "auditory",
-        "concentrate"
-      ]
+      "system.traits.value": ["auditory", "concentrate"]
     }
   },
   {
@@ -6130,12 +5306,7 @@
       "system.actions": 2,
       "system.category": "interaction",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "fire",
-        "inventor",
-        "manipulate",
-        "unstable"
-      ]
+      "system.traits.value": ["fire", "inventor", "manipulate", "unstable"]
     }
   },
   {
@@ -6150,10 +5321,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "inventor",
-        "manipulate"
-      ]
+      "system.traits.value": ["inventor", "manipulate"]
     }
   },
   {
@@ -6168,11 +5336,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate",
-        "exploration",
-        "investigator"
-      ]
+      "system.traits.value": ["concentrate", "exploration", "investigator"]
     }
   },
   {
@@ -6187,10 +5351,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate",
-        "investigator"
-      ]
+      "system.traits.value": ["concentrate", "investigator"]
     }
   },
   {
@@ -6205,10 +5366,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate",
-        "investigator"
-      ]
+      "system.traits.value": ["concentrate", "investigator"]
     }
   },
   {
@@ -6223,9 +5381,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "investigator"
-      ]
+      "system.traits.value": ["investigator"]
     }
   },
   {
@@ -6240,13 +5396,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "auditory",
-        "concentrate",
-        "investigator",
-        "linguistic",
-        "mental"
-      ]
+      "system.traits.value": ["auditory", "concentrate", "investigator", "linguistic", "mental"]
     }
   },
   {
@@ -6261,10 +5411,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "investigator",
-        "manipulate"
-      ]
+      "system.traits.value": ["investigator", "manipulate"]
     }
   },
   {
@@ -6279,11 +5426,7 @@
       "system.actions": 2,
       "system.category": "interaction",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "impulse",
-        "kineticist",
-        "primal"
-      ]
+      "system.traits.value": ["impulse", "kineticist", "primal"]
     }
   },
   {
@@ -6298,11 +5441,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "aura",
-        "kineticist",
-        "primal"
-      ]
+      "system.traits.value": ["aura", "kineticist", "primal"]
     }
   },
   {
@@ -6317,12 +5456,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "attack",
-        "impulse",
-        "kineticist",
-        "primal"
-      ]
+      "system.traits.value": ["attack", "impulse", "kineticist", "primal"]
     }
   },
   {
@@ -6337,11 +5471,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "impulse",
-        "kineticist",
-        "primal"
-      ]
+      "system.traits.value": ["impulse", "kineticist", "primal"]
     }
   },
   {
@@ -6356,9 +5486,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "infusion"
-      ]
+      "system.traits.value": ["infusion"]
     }
   },
   {
@@ -6373,11 +5501,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate",
-        "magus",
-        "stance"
-      ]
+      "system.traits.value": ["concentrate", "magus", "stance"]
     }
   },
   {
@@ -6407,10 +5531,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "flourish",
-        "monk"
-      ]
+      "system.traits.value": ["flourish", "monk"]
     }
   },
   {
@@ -6425,12 +5546,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "curse",
-        "divine",
-        "emotion",
-        "mental"
-      ]
+      "system.traits.value": ["curse", "divine", "emotion", "mental"]
     }
   },
   {
@@ -6445,11 +5561,7 @@
       "system.actions": 1,
       "system.category": "defensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "mental",
-        "psyche",
-        "psychic"
-      ]
+      "system.traits.value": ["mental", "psyche", "psychic"]
     }
   },
   {
@@ -6464,11 +5576,7 @@
       "system.actions": 1,
       "system.category": "defensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "illusion",
-        "psyche",
-        "psychic"
-      ]
+      "system.traits.value": ["illusion", "psyche", "psychic"]
     }
   },
   {
@@ -6483,11 +5591,7 @@
       "system.actions": 1,
       "system.category": "defensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "occult",
-        "psyche",
-        "psychic"
-      ]
+      "system.traits.value": ["occult", "psyche", "psychic"]
     }
   },
   {
@@ -6502,13 +5606,7 @@
       "system.actions": 1,
       "system.category": null,
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "emotion",
-        "healing",
-        "mental",
-        "psyche",
-        "psychic"
-      ]
+      "system.traits.value": ["emotion", "healing", "mental", "psyche", "psychic"]
     }
   },
   {
@@ -6523,9 +5621,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "psychic"
-      ]
+      "system.traits.value": ["psychic"]
     }
   },
   {
@@ -6540,10 +5636,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate",
-        "ranger"
-      ]
+      "system.traits.value": ["concentrate", "ranger"]
     }
   },
   {
@@ -6558,9 +5651,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "rogue"
-      ]
+      "system.traits.value": ["rogue"]
     }
   },
   {
@@ -6575,10 +5666,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "fortune",
-        "linguistic"
-      ]
+      "system.traits.value": ["fortune", "linguistic"]
     }
   },
   {
@@ -6593,10 +5681,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "incapacitation",
-        "rogue"
-      ]
+      "system.traits.value": ["incapacitation", "rogue"]
     }
   },
   {
@@ -6626,10 +5711,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "summoner",
-        "tandem"
-      ]
+      "system.traits.value": ["summoner", "tandem"]
     }
   },
   {
@@ -6644,9 +5726,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "eidolon"
-      ]
+      "system.traits.value": ["eidolon"]
     }
   },
   {
@@ -6661,10 +5741,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "arcane",
-        "eidolon"
-      ]
+      "system.traits.value": ["arcane", "eidolon"]
     }
   },
   {
@@ -6679,9 +5756,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "eidolon"
-      ]
+      "system.traits.value": ["eidolon"]
     }
   },
   {
@@ -6696,11 +5771,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "divine",
-        "eidolon",
-        "void"
-      ]
+      "system.traits.value": ["divine", "eidolon", "void"]
     }
   },
   {
@@ -6715,10 +5786,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "eidolon",
-        "occult"
-      ]
+      "system.traits.value": ["eidolon", "occult"]
     }
   },
   {
@@ -6733,10 +5801,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate",
-        "eidolon"
-      ]
+      "system.traits.value": ["concentrate", "eidolon"]
     }
   },
   {
@@ -6751,9 +5816,7 @@
       "system.actions": 3,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "eidolon"
-      ]
+      "system.traits.value": ["eidolon"]
     }
   },
   {
@@ -6768,9 +5831,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "eidolon"
-      ]
+      "system.traits.value": ["eidolon"]
     }
   },
   {
@@ -6785,9 +5846,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "eidolon"
-      ]
+      "system.traits.value": ["eidolon"]
     }
   },
   {
@@ -6802,12 +5861,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate",
-        "eidolon",
-        "manipulate",
-        "visual"
-      ]
+      "system.traits.value": ["concentrate", "eidolon", "manipulate", "visual"]
     }
   },
   {
@@ -6822,12 +5876,7 @@
       "system.actions": 3,
       "system.category": "interaction",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate",
-        "manipulate",
-        "summoner",
-        "teleportation"
-      ]
+      "system.traits.value": ["concentrate", "manipulate", "summoner", "teleportation"]
     }
   },
   {
@@ -6842,10 +5891,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "auditory",
-        "eidolon"
-      ]
+      "system.traits.value": ["auditory", "eidolon"]
     }
   },
   {
@@ -6860,9 +5906,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "eidolon"
-      ]
+      "system.traits.value": ["eidolon"]
     }
   },
   {
@@ -6877,12 +5921,7 @@
       "system.actions": 1,
       "system.category": "defensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate",
-        "eidolon",
-        "emotion",
-        "mental"
-      ]
+      "system.traits.value": ["concentrate", "eidolon", "emotion", "mental"]
     }
   },
   {
@@ -6897,9 +5936,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -6914,11 +5951,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate",
-        "scrying",
-        "summoner"
-      ]
+      "system.traits.value": ["concentrate", "scrying", "summoner"]
     }
   },
   {
@@ -6933,10 +5966,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate",
-        "eidolon"
-      ]
+      "system.traits.value": ["concentrate", "eidolon"]
     }
   },
   {
@@ -6951,9 +5981,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "eidolon"
-      ]
+      "system.traits.value": ["eidolon"]
     }
   },
   {
@@ -6968,9 +5996,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "eidolon"
-      ]
+      "system.traits.value": ["eidolon"]
     }
   },
   {
@@ -6985,12 +6011,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "divine",
-        "eidolon",
-        "emotion",
-        "mental"
-      ]
+      "system.traits.value": ["divine", "eidolon", "emotion", "mental"]
     }
   },
   {
@@ -7005,9 +6026,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "eidolon"
-      ]
+      "system.traits.value": ["eidolon"]
     }
   },
   {
@@ -7022,10 +6041,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate",
-        "eidolon"
-      ]
+      "system.traits.value": ["concentrate", "eidolon"]
     }
   },
   {
@@ -7040,9 +6056,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "finisher"
-      ]
+      "system.traits.value": ["finisher"]
     }
   },
   {
@@ -7057,10 +6071,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "bravado",
-        "swashbuckler"
-      ]
+      "system.traits.value": ["bravado", "swashbuckler"]
     }
   },
   {
@@ -7075,11 +6086,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "magical",
-        "manipulate",
-        "thaumaturge"
-      ]
+      "system.traits.value": ["magical", "manipulate", "thaumaturge"]
     }
   },
   {
@@ -7094,11 +6101,7 @@
       "system.actions": 1,
       "system.category": "defensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "magical",
-        "manipulate",
-        "thaumaturge"
-      ]
+      "system.traits.value": ["magical", "manipulate", "thaumaturge"]
     }
   },
   {
@@ -7113,11 +6116,7 @@
       "system.actions": 1,
       "system.category": null,
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "esoterica",
-        "manipulate",
-        "thaumaturge"
-      ]
+      "system.traits.value": ["esoterica", "manipulate", "thaumaturge"]
     }
   },
   {
@@ -7132,12 +6131,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate",
-        "magical",
-        "manipulate",
-        "thaumaturge"
-      ]
+      "system.traits.value": ["concentrate", "magical", "manipulate", "thaumaturge"]
     }
   },
   {
@@ -7152,10 +6146,7 @@
       "system.actions": 1,
       "system.category": null,
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "esoterica",
-        "manipulate"
-      ]
+      "system.traits.value": ["esoterica", "manipulate"]
     }
   },
   {
@@ -7170,10 +6161,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "magical",
-        "thaumaturge"
-      ]
+      "system.traits.value": ["magical", "thaumaturge"]
     }
   },
   {
@@ -7188,12 +6176,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "concentrate",
-        "esoterica",
-        "magical",
-        "thaumaturge"
-      ]
+      "system.traits.value": ["concentrate", "esoterica", "magical", "thaumaturge"]
     }
   },
   {
@@ -7208,12 +6191,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "illusion",
-        "magical",
-        "manipulate",
-        "thaumaturge"
-      ]
+      "system.traits.value": ["illusion", "magical", "manipulate", "thaumaturge"]
     }
   },
   {
@@ -7228,13 +6206,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "auditory",
-        "magical",
-        "manipulate",
-        "sonic",
-        "thaumaturge"
-      ]
+      "system.traits.value": ["auditory", "magical", "manipulate", "sonic", "thaumaturge"]
     }
   },
   {
@@ -7264,9 +6236,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "aura"
-      ]
+      "system.traits.value": ["aura"]
     }
   },
   {
@@ -7311,10 +6281,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "class",
-      "system.traits.value": [
-        "arcane",
-        "wizard"
-      ]
+      "system.traits.value": ["arcane", "wizard"]
     }
   },
   {
@@ -7329,10 +6296,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "downtime",
-      "system.traits.value": [
-        "downtime",
-        "manipulate"
-      ]
+      "system.traits.value": ["downtime", "manipulate"]
     }
   },
   {
@@ -7347,10 +6311,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "downtime",
-      "system.traits.value": [
-        "downtime",
-        "secret"
-      ]
+      "system.traits.value": ["downtime", "secret"]
     }
   },
   {
@@ -7365,9 +6326,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "downtime",
-      "system.traits.value": [
-        "downtime"
-      ]
+      "system.traits.value": ["downtime"]
     }
   },
   {
@@ -7382,9 +6341,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "downtime",
-      "system.traits.value": [
-        "downtime"
-      ]
+      "system.traits.value": ["downtime"]
     }
   },
   {
@@ -7414,9 +6371,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "equipment",
-      "system.traits.value": [
-        "electricity"
-      ]
+      "system.traits.value": ["electricity"]
     }
   },
   {
@@ -7491,9 +6446,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "equipment",
-      "system.traits.value": [
-        "magical"
-      ]
+      "system.traits.value": ["magical"]
     }
   },
   {
@@ -7508,9 +6461,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "exploration",
-      "system.traits.value": [
-        "exploration"
-      ]
+      "system.traits.value": ["exploration"]
     }
   },
   {
@@ -7525,10 +6476,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "exploration",
-      "system.traits.value": [
-        "exploration",
-        "manipulate"
-      ]
+      "system.traits.value": ["exploration", "manipulate"]
     }
   },
   {
@@ -7543,9 +6491,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "exploration",
-      "system.traits.value": [
-        "exploration"
-      ]
+      "system.traits.value": ["exploration"]
     }
   },
   {
@@ -7560,10 +6506,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "exploration",
-      "system.traits.value": [
-        "concentrate",
-        "exploration"
-      ]
+      "system.traits.value": ["concentrate", "exploration"]
     }
   },
   {
@@ -7578,12 +6521,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "exploration",
-      "system.traits.value": [
-        "auditory",
-        "concentrate",
-        "exploration",
-        "visual"
-      ]
+      "system.traits.value": ["auditory", "concentrate", "exploration", "visual"]
     }
   },
   {
@@ -7598,10 +6536,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "exploration",
-      "system.traits.value": [
-        "exploration",
-        "move"
-      ]
+      "system.traits.value": ["exploration", "move"]
     }
   },
   {
@@ -7616,10 +6551,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "exploration",
-      "system.traits.value": [
-        "concentrate",
-        "exploration"
-      ]
+      "system.traits.value": ["concentrate", "exploration"]
     }
   },
   {
@@ -7634,10 +6566,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "exploration",
-      "system.traits.value": [
-        "concentrate",
-        "exploration"
-      ]
+      "system.traits.value": ["concentrate", "exploration"]
     }
   },
   {
@@ -7652,10 +6581,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "exploration",
-      "system.traits.value": [
-        "concentrate",
-        "exploration"
-      ]
+      "system.traits.value": ["concentrate", "exploration"]
     }
   },
   {
@@ -7670,10 +6596,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "exploration",
-      "system.traits.value": [
-        "concentrate",
-        "exploration"
-      ]
+      "system.traits.value": ["concentrate", "exploration"]
     }
   },
   {
@@ -7688,10 +6611,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "exploration",
-      "system.traits.value": [
-        "concentrate",
-        "exploration"
-      ]
+      "system.traits.value": ["concentrate", "exploration"]
     }
   },
   {
@@ -7706,10 +6626,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "exploration",
-      "system.traits.value": [
-        "concentrate",
-        "exploration"
-      ]
+      "system.traits.value": ["concentrate", "exploration"]
     }
   },
   {
@@ -7724,10 +6641,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "exploration",
-      "system.traits.value": [
-        "concentrate",
-        "exploration"
-      ]
+      "system.traits.value": ["concentrate", "exploration"]
     }
   },
   {
@@ -7742,10 +6656,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "familiar",
-      "system.traits.value": [
-        "shadow",
-        "teleportation"
-      ]
+      "system.traits.value": ["shadow", "teleportation"]
     }
   },
   {
@@ -7760,10 +6671,7 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "heritage",
-      "system.traits.value": [
-        "primal",
-        "void"
-      ]
+      "system.traits.value": ["primal", "void"]
     }
   },
   {
@@ -7793,9 +6701,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "heritage",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -7810,9 +6716,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "heritage",
-      "system.traits.value": [
-        "sylph"
-      ]
+      "system.traits.value": ["sylph"]
     }
   },
   {
@@ -7827,9 +6731,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "heritage",
-      "system.traits.value": [
-        "poison"
-      ]
+      "system.traits.value": ["poison"]
     }
   },
   {
@@ -7844,9 +6746,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "heritage",
-      "system.traits.value": [
-        "undine"
-      ]
+      "system.traits.value": ["undine"]
     }
   },
   {
@@ -7861,9 +6761,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "heritage",
-      "system.traits.value": [
-        "undine"
-      ]
+      "system.traits.value": ["undine"]
     }
   },
   {
@@ -7878,10 +6776,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "mythic",
-      "system.traits.value": [
-        "fortune",
-        "mythic"
-      ]
+      "system.traits.value": ["fortune", "mythic"]
     }
   },
   {
@@ -7896,9 +6791,7 @@
       "system.actions": 2,
       "system.category": null,
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "manipulate"
-      ]
+      "system.traits.value": ["manipulate"]
     }
   },
   {
@@ -7913,9 +6806,7 @@
       "system.actions": 1,
       "system.category": null,
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "move"
-      ]
+      "system.traits.value": ["move"]
     }
   },
   {
@@ -7930,10 +6821,7 @@
       "system.actions": null,
       "system.category": null,
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "concentrate",
-        "exploration"
-      ]
+      "system.traits.value": ["concentrate", "exploration"]
     }
   },
   {
@@ -7948,9 +6836,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "move"
-      ]
+      "system.traits.value": ["move"]
     }
   },
   {
@@ -7987,10 +6873,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "auditory",
-        "concentrate"
-      ]
+      "system.traits.value": ["auditory", "concentrate"]
     }
   },
   {
@@ -8005,10 +6888,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "manipulate",
-        "secret"
-      ]
+      "system.traits.value": ["manipulate", "secret"]
     }
   },
   {
@@ -8023,11 +6903,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "concentrate",
-        "exploration",
-        "move"
-      ]
+      "system.traits.value": ["concentrate", "exploration", "move"]
     }
   },
   {
@@ -8042,10 +6918,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "downtime",
-        "manipulate"
-      ]
+      "system.traits.value": ["downtime", "manipulate"]
     }
   },
   {
@@ -8060,9 +6933,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "mental"
-      ]
+      "system.traits.value": ["mental"]
     }
   },
   {
@@ -8077,10 +6948,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "downtime",
-        "secret"
-      ]
+      "system.traits.value": ["downtime", "secret"]
     }
   },
   {
@@ -8095,11 +6963,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "concentrate",
-        "exploration",
-        "secret"
-      ]
+      "system.traits.value": ["concentrate", "exploration", "secret"]
     }
   },
   {
@@ -8114,9 +6978,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "downtime"
-      ]
+      "system.traits.value": ["downtime"]
     }
   },
   {
@@ -8131,13 +6993,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "auditory",
-        "concentrate",
-        "emotion",
-        "fear",
-        "mental"
-      ]
+      "system.traits.value": ["auditory", "concentrate", "emotion", "fear", "mental"]
     }
   },
   {
@@ -8152,9 +7008,7 @@
       "system.actions": 2,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "manipulate"
-      ]
+      "system.traits.value": ["manipulate"]
     }
   },
   {
@@ -8169,9 +7023,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "attack"
-      ]
+      "system.traits.value": ["attack"]
     }
   },
   {
@@ -8186,9 +7038,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "downtime"
-      ]
+      "system.traits.value": ["downtime"]
     }
   },
   {
@@ -8203,9 +7053,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "mental"
-      ]
+      "system.traits.value": ["mental"]
     }
   },
   {
@@ -8220,9 +7068,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "attack"
-      ]
+      "system.traits.value": ["attack"]
     }
   },
   {
@@ -8252,10 +7098,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "exploration",
-        "secret"
-      ]
+      "system.traits.value": ["exploration", "secret"]
     }
   },
   {
@@ -8270,9 +7113,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "attack"
-      ]
+      "system.traits.value": ["attack"]
     }
   },
   {
@@ -8287,9 +7128,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "secret"
-      ]
+      "system.traits.value": ["secret"]
     }
   },
   {
@@ -8304,9 +7143,7 @@
       "system.actions": 2,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "move"
-      ]
+      "system.traits.value": ["move"]
     }
   },
   {
@@ -8321,11 +7158,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "concentrate",
-        "exploration",
-        "secret"
-      ]
+      "system.traits.value": ["concentrate", "exploration", "secret"]
     }
   },
   {
@@ -8340,11 +7173,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "concentrate",
-        "exploration",
-        "secret"
-      ]
+      "system.traits.value": ["concentrate", "exploration", "secret"]
     }
   },
   {
@@ -8359,12 +7188,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "concentrate",
-        "exploration",
-        "manipulate",
-        "secret"
-      ]
+      "system.traits.value": ["concentrate", "exploration", "manipulate", "secret"]
     }
   },
   {
@@ -8379,10 +7203,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "concentrate",
-        "exploration"
-      ]
+      "system.traits.value": ["concentrate", "exploration"]
     }
   },
   {
@@ -8397,13 +7218,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "auditory",
-        "concentrate",
-        "linguistic",
-        "mental",
-        "secret"
-      ]
+      "system.traits.value": ["auditory", "concentrate", "linguistic", "mental", "secret"]
     }
   },
   {
@@ -8418,9 +7233,7 @@
       "system.actions": 2,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "move"
-      ]
+      "system.traits.value": ["move"]
     }
   },
   {
@@ -8435,13 +7248,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "auditory",
-        "concentrate",
-        "exploration",
-        "linguistic",
-        "mental"
-      ]
+      "system.traits.value": ["auditory", "concentrate", "exploration", "linguistic", "mental"]
     }
   },
   {
@@ -8456,9 +7263,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "move"
-      ]
+      "system.traits.value": ["move"]
     }
   },
   {
@@ -8473,9 +7278,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "manipulate"
-      ]
+      "system.traits.value": ["manipulate"]
     }
   },
   {
@@ -8490,9 +7293,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -8507,9 +7308,7 @@
       "system.actions": 2,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "manipulate"
-      ]
+      "system.traits.value": ["manipulate"]
     }
   },
   {
@@ -8539,13 +7338,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "concentrate",
-        "emotion",
-        "exploration",
-        "mental",
-        "occult"
-      ]
+      "system.traits.value": ["concentrate", "emotion", "exploration", "mental", "occult"]
     }
   },
   {
@@ -8560,10 +7353,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "concentrate",
-        "secret"
-      ]
+      "system.traits.value": ["concentrate", "secret"]
     }
   },
   {
@@ -8578,10 +7368,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "exploration",
-        "manipulate"
-      ]
+      "system.traits.value": ["exploration", "manipulate"]
     }
   },
   {
@@ -8596,9 +7383,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "attack"
-      ]
+      "system.traits.value": ["attack"]
     }
   },
   {
@@ -8613,12 +7398,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "auditory",
-        "concentrate",
-        "linguistic",
-        "mental"
-      ]
+      "system.traits.value": ["auditory", "concentrate", "linguistic", "mental"]
     }
   },
   {
@@ -8633,10 +7413,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "exploration",
-        "secret"
-      ]
+      "system.traits.value": ["exploration", "secret"]
     }
   },
   {
@@ -8651,9 +7428,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "attack"
-      ]
+      "system.traits.value": ["attack"]
     }
   },
   {
@@ -8668,10 +7443,7 @@
       "system.actions": 1,
       "system.category": "defensive",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "move",
-        "secret"
-      ]
+      "system.traits.value": ["move", "secret"]
     }
   },
   {
@@ -8686,10 +7458,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "exploration",
-        "move"
-      ]
+      "system.traits.value": ["exploration", "move"]
     }
   },
   {
@@ -8704,9 +7473,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "manipulate"
-      ]
+      "system.traits.value": ["manipulate"]
     }
   },
   {
@@ -8721,9 +7488,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "downtime"
-      ]
+      "system.traits.value": ["downtime"]
     }
   },
   {
@@ -8738,9 +7503,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "move"
-      ]
+      "system.traits.value": ["move"]
     }
   },
   {
@@ -8755,11 +7518,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "concentrate",
-        "exploration",
-        "move"
-      ]
+      "system.traits.value": ["concentrate", "exploration", "move"]
     }
   },
   {
@@ -8774,10 +7533,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "downtime",
-        "manipulate"
-      ]
+      "system.traits.value": ["downtime", "manipulate"]
     }
   },
   {
@@ -8792,9 +7548,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "manipulate"
-      ]
+      "system.traits.value": ["manipulate"]
     }
   },
   {
@@ -8809,11 +7563,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "exploration",
-        "healing",
-        "manipulate"
-      ]
+      "system.traits.value": ["exploration", "healing", "manipulate"]
     }
   },
   {
@@ -8828,9 +7578,7 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "attack"
-      ]
+      "system.traits.value": ["attack"]
     }
   },
   {
@@ -8845,9 +7593,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": [
-        "move"
-      ]
+      "system.traits.value": ["move"]
     }
   },
   {
@@ -8862,9 +7608,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "spells",
-      "system.traits.value": [
-        "manipulate"
-      ]
+      "system.traits.value": ["manipulate"]
     }
   },
   {
@@ -8879,9 +7623,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "spells",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -8911,11 +7653,7 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "spells",
-      "system.traits.value": [
-        "concentrate",
-        "sanctified",
-        "spirit"
-      ]
+      "system.traits.value": ["concentrate", "sanctified", "spirit"]
     }
   },
   {
@@ -8945,12 +7683,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "spells",
-      "system.traits.value": [
-        "concentrate",
-        "emotion",
-        "fear",
-        "mental"
-      ]
+      "system.traits.value": ["concentrate", "emotion", "fear", "mental"]
     }
   },
   {
@@ -8995,9 +7728,7 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "spells",
-      "system.traits.value": [
-        "concentrate"
-      ]
+      "system.traits.value": ["concentrate"]
     }
   },
   {
@@ -9012,9 +7743,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "spells",
-      "system.traits.value": [
-        "fortune"
-      ]
+      "system.traits.value": ["fortune"]
     }
   },
   {
@@ -9052,11 +7781,7 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "stamina",
-      "system.traits.value": [
-        "auditory",
-        "linguistic",
-        "mental"
-      ]
+      "system.traits.value": ["auditory", "linguistic", "mental"]
     }
   },
   {
@@ -9071,13 +7796,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "stamina",
-      "system.traits.value": [
-        "auditory",
-        "emotion",
-        "exploration",
-        "linguistic",
-        "mental"
-      ]
+      "system.traits.value": ["auditory", "emotion", "exploration", "linguistic", "mental"]
     }
   },
   {
@@ -9107,10 +7826,7 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "stamina",
-      "system.traits.value": [
-        "exploration",
-        "stamina"
-      ]
+      "system.traits.value": ["exploration", "stamina"]
     }
   }
 ]

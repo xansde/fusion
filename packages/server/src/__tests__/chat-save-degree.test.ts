@@ -23,13 +23,15 @@ import type { Database as Db } from "better-sqlite3";
 import { openDatabase, applyMigrations } from "../db/index.js";
 import type { FusionDatabase } from "../db/index.js";
 import { SeqStore } from "../net/seq-store.js";
-import {
-  buildChatSendHandler,
-  computeSaveDegree,
-  readNaturalD20,
-} from "../chat/chat-handler.js";
+import { buildChatSendHandler, computeSaveDegree, readNaturalD20 } from "../chat/chat-handler.js";
 import type { HandlerContext } from "../net/handler-registry.js";
-import type { Ack, ChatMessage, RollResultData, RollTermResult, SaveCheckContext } from "@fusion/shared";
+import type {
+  Ack,
+  ChatMessage,
+  RollResultData,
+  RollTermResult,
+  SaveCheckContext,
+} from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
 // Unit — readNaturalD20
@@ -309,9 +311,9 @@ describe("chat:send save degree-of-success wire (r17.1)", () => {
     expect(roll!.degreeOfSuccess).toBe("criticalFailure");
     // The graded save context is persisted on the message flags so the render
     // can show the per-degree basic-save damage hint (r17.1).
-    const flagCtx = (ack.result?.message?.flags as Record<string, Record<string, unknown>>)["pf2e"]?.[
-      "checkContext"
-    ] as Record<string, unknown> | undefined;
+    const flagCtx = (ack.result?.message?.flags as Record<string, Record<string, unknown>>)[
+      "pf2e"
+    ]?.["checkContext"] as Record<string, unknown> | undefined;
     expect(flagCtx).toEqual({ kind: "save", dcValue: 10, saveType: "reflex", basicSave: true });
   });
 

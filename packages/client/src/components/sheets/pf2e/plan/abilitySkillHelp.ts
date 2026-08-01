@@ -59,10 +59,7 @@ export const ABILITY_HELP: Record<AbilityHelpSlug, AbilityHelp> = {
     name: "Constituição",
     summary:
       "Mede vigor e resistência. Determina quantos Pontos de Vida você tem e o quanto aguenta veneno e fadiga.",
-    affects: [
-      "Pontos de Vida (por nível)",
-      "Testes de resistência de Fortitude",
-    ],
+    affects: ["Pontos de Vida (por nível)", "Testes de resistência de Fortitude"],
   },
   int: {
     name: "Inteligência",
@@ -77,8 +74,7 @@ export const ABILITY_HELP: Record<AbilityHelpSlug, AbilityHelp> = {
   },
   wis: {
     name: "Sabedoria",
-    summary:
-      "Mede percepção e força de vontade. Sustenta a Percepção, a defesa mental e a cura.",
+    summary: "Mede percepção e força de vontade. Sustenta a Percepção, a defesa mental e a cura.",
     affects: [
       "Percepção (e iniciativa por padrão)",
       "Testes de resistência de Vontade",

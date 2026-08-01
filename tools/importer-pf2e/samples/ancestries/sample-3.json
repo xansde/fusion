@@ -23,24 +23,13 @@
     },
     "boosts": {
       "0": {
-        "value": [
-          "cha"
-        ]
+        "value": ["cha"]
       },
       "1": {
-        "value": [
-          "con"
-        ]
+        "value": ["con"]
       },
       "2": {
-        "value": [
-          "str",
-          "dex",
-          "con",
-          "int",
-          "wis",
-          "cha"
-        ]
+        "value": ["str", "dex", "con", "int", "wis", "cha"]
       }
     },
     "description": {
@@ -48,9 +37,7 @@
     },
     "flaws": {
       "0": {
-        "value": [
-          "int"
-        ]
+        "value": ["int"]
       }
     },
     "hands": 2,
@@ -58,9 +45,7 @@
     "items": {},
     "languages": {
       "custom": "",
-      "value": [
-        "common"
-      ]
+      "value": ["common"]
     },
     "publication": {
       "license": "ORC",
@@ -87,9 +72,7 @@
         "itemType": "action",
         "key": "ItemAlteration",
         "mode": "override",
-        "predicate": [
-          "item:slug:change-shape"
-        ],
+        "predicate": ["item:slug:change-shape"],
         "property": "description",
         "value": [
           {
@@ -101,9 +84,7 @@
         "itemType": "action",
         "key": "ItemAlteration",
         "mode": "add",
-        "predicate": [
-          "item:slug:change-shape"
-        ],
+        "predicate": ["item:slug:change-shape"],
         "property": "traits",
         "value": "occult"
       },
@@ -111,9 +92,7 @@
         "itemType": "action",
         "key": "ItemAlteration",
         "mode": "add",
-        "predicate": [
-          "item:slug:change-shape"
-        ],
+        "predicate": ["item:slug:change-shape"],
         "property": "traits",
         "value": "yaoguai"
       },
@@ -126,10 +105,7 @@
     "speed": 25,
     "traits": {
       "rarity": "rare",
-      "value": [
-        "humanoid",
-        "yaoguai"
-      ]
+      "value": ["humanoid", "yaoguai"]
     },
     "vision": "normal"
   },

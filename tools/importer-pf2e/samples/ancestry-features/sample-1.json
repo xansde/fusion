@@ -42,41 +42,29 @@
         "label": "PF2E.BattleForm.Attack.Fangs",
         "predicate": [
           {
-            "or": [
-              "change-shape:hybrid",
-              "change-shape:spider"
-            ]
+            "or": ["change-shape:hybrid", "change-shape:spider"]
           }
         ],
         "range": null,
         "slug": "fangs",
-        "traits": [
-          "finesse",
-          "unarmed"
-        ]
+        "traits": ["finesse", "unarmed"]
       },
       {
         "itemType": "weapon",
         "key": "ItemAlteration",
         "mode": "add",
-        "predicate": [
-          "item:id:{item|id}"
-        ],
+        "predicate": ["item:id:{item|id}"],
         "property": "other-tags",
         "value": "anadi-fangs"
       }
     ],
     "traits": {
       "rarity": "common",
-      "value": [
-        "anadi"
-      ]
+      "value": ["anadi"]
     }
   },
   "_fusion": {
     "normalizedAt": "2026-07-07T17:58:44.717Z",
-    "removedFields": [
-      "folder"
-    ]
+    "removedFields": ["folder"]
   }
 }

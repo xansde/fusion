@@ -9,9 +9,7 @@
       "name": "Cheek Pouches",
       "system.level": 1,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ratfolk"
-      ]
+      "system.traits.value": ["ratfolk"]
     }
   },
   {
@@ -24,9 +22,7 @@
       "name": "Pack Rat",
       "system.level": 1,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ratfolk"
-      ]
+      "system.traits.value": ["ratfolk"]
     }
   },
   {
@@ -39,9 +35,7 @@
       "name": "Rat Familiar",
       "system.level": 1,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ratfolk"
-      ]
+      "system.traits.value": ["ratfolk"]
     }
   },
   {
@@ -54,9 +48,7 @@
       "name": "Ratfolk Lore",
       "system.level": 1,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ratfolk"
-      ]
+      "system.traits.value": ["ratfolk"]
     }
   },
   {
@@ -69,9 +61,7 @@
       "name": "Ratspeak",
       "system.level": 1,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ratfolk"
-      ]
+      "system.traits.value": ["ratfolk"]
     }
   },
   {
@@ -84,9 +74,7 @@
       "name": "Skull Creeper",
       "system.level": 1,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ratfolk"
-      ]
+      "system.traits.value": ["ratfolk"]
     }
   },
   {
@@ -99,9 +87,7 @@
       "name": "Tinkering Fingers",
       "system.level": 1,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ratfolk"
-      ]
+      "system.traits.value": ["ratfolk"]
     }
   },
   {
@@ -114,9 +100,7 @@
       "name": "Vicious Incisors",
       "system.level": 1,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ratfolk"
-      ]
+      "system.traits.value": ["ratfolk"]
     }
   },
   {
@@ -129,10 +113,7 @@
       "name": "Warren Friend",
       "system.level": 1,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "downtime",
-        "ratfolk"
-      ]
+      "system.traits.value": ["downtime", "ratfolk"]
     }
   },
   {
@@ -145,9 +126,7 @@
       "name": "Warren Navigator",
       "system.level": 1,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ratfolk"
-      ]
+      "system.traits.value": ["ratfolk"]
     }
   },
   {
@@ -160,9 +139,7 @@
       "name": "Shinstabber",
       "system.level": 13,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ratfolk"
-      ]
+      "system.traits.value": ["ratfolk"]
     }
   },
   {
@@ -175,9 +152,7 @@
       "name": "Skittering Sneak",
       "system.level": 13,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ratfolk"
-      ]
+      "system.traits.value": ["ratfolk"]
     }
   },
   {
@@ -190,9 +165,7 @@
       "name": "Warren Digger",
       "system.level": 13,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ratfolk"
-      ]
+      "system.traits.value": ["ratfolk"]
     }
   },
   {
@@ -205,9 +178,7 @@
       "name": "Call the Swarm",
       "system.level": 17,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ratfolk"
-      ]
+      "system.traits.value": ["ratfolk"]
     }
   },
   {
@@ -220,9 +191,7 @@
       "name": "Greater than the Sum",
       "system.level": 17,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ratfolk"
-      ]
+      "system.traits.value": ["ratfolk"]
     }
   },
   {
@@ -235,9 +204,7 @@
       "name": "Cornered Fury",
       "system.level": 5,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ratfolk"
-      ]
+      "system.traits.value": ["ratfolk"]
     }
   },
   {
@@ -250,9 +217,7 @@
       "name": "Gnaw",
       "system.level": 5,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ratfolk"
-      ]
+      "system.traits.value": ["ratfolk"]
     }
   },
   {
@@ -265,9 +230,7 @@
       "name": "Lab Rat",
       "system.level": 5,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ratfolk"
-      ]
+      "system.traits.value": ["ratfolk"]
     }
   },
   {
@@ -280,9 +243,7 @@
       "name": "Plague Sniffer",
       "system.level": 5,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ratfolk"
-      ]
+      "system.traits.value": ["ratfolk"]
     }
   },
   {
@@ -295,9 +256,7 @@
       "name": "Quick Stow (Ratfolk)",
       "system.level": 5,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ratfolk"
-      ]
+      "system.traits.value": ["ratfolk"]
     }
   },
   {
@@ -310,9 +269,7 @@
       "name": "Rat Magic",
       "system.level": 5,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ratfolk"
-      ]
+      "system.traits.value": ["ratfolk"]
     }
   },
   {
@@ -325,10 +282,7 @@
       "name": "Ratfolk Roll",
       "system.level": 5,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "move",
-        "ratfolk"
-      ]
+      "system.traits.value": ["move", "ratfolk"]
     }
   },
   {
@@ -341,9 +295,7 @@
       "name": "Big Mouth",
       "system.level": 9,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ratfolk"
-      ]
+      "system.traits.value": ["ratfolk"]
     }
   },
   {
@@ -356,9 +308,7 @@
       "name": "Overcrowd",
       "system.level": 9,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ratfolk"
-      ]
+      "system.traits.value": ["ratfolk"]
     }
   },
   {
@@ -371,12 +321,7 @@
       "name": "Rat Form",
       "system.level": 9,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "concentrate",
-        "polymorph",
-        "primal",
-        "ratfolk"
-      ]
+      "system.traits.value": ["concentrate", "polymorph", "primal", "ratfolk"]
     }
   },
   {
@@ -389,9 +334,7 @@
       "name": "Uncanny Cheeks",
       "system.level": 9,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ratfolk"
-      ]
+      "system.traits.value": ["ratfolk"]
     }
   },
   {
@@ -404,15 +347,7 @@
       "name": "Elemental Eyes",
       "system.level": 1,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ardande",
-        "naari",
-        "oread",
-        "suli",
-        "sylph",
-        "talos",
-        "undine"
-      ]
+      "system.traits.value": ["ardande", "naari", "oread", "suli", "sylph", "talos", "undine"]
     }
   },
   {
@@ -425,15 +360,7 @@
       "name": "Elemental Lore",
       "system.level": 1,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ardande",
-        "naari",
-        "oread",
-        "suli",
-        "sylph",
-        "talos",
-        "undine"
-      ]
+      "system.traits.value": ["ardande", "naari", "oread", "suli", "sylph", "talos", "undine"]
     }
   },
   {
@@ -446,15 +373,7 @@
       "name": "Genie Weapon Familiarity",
       "system.level": 1,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ardande",
-        "naari",
-        "oread",
-        "suli",
-        "sylph",
-        "talos",
-        "undine"
-      ]
+      "system.traits.value": ["ardande", "naari", "oread", "suli", "sylph", "talos", "undine"]
     }
   },
   {
@@ -467,15 +386,7 @@
       "name": "Genie Weapon Expertise",
       "system.level": 13,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ardande",
-        "naari",
-        "oread",
-        "suli",
-        "sylph",
-        "talos",
-        "undine"
-      ]
+      "system.traits.value": ["ardande", "naari", "oread", "suli", "sylph", "talos", "undine"]
     }
   },
   {
@@ -511,15 +422,7 @@
       "name": "Genie Weapon Flourish",
       "system.level": 5,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ardande",
-        "naari",
-        "oread",
-        "suli",
-        "sylph",
-        "talos",
-        "undine"
-      ]
+      "system.traits.value": ["ardande", "naari", "oread", "suli", "sylph", "talos", "undine"]
     }
   },
   {
@@ -532,15 +435,7 @@
       "name": "Noble Resolve",
       "system.level": 5,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "ardande",
-        "naari",
-        "oread",
-        "suli",
-        "sylph",
-        "talos",
-        "undine"
-      ]
+      "system.traits.value": ["ardande", "naari", "oread", "suli", "sylph", "talos", "undine"]
     }
   },
   {
@@ -598,9 +493,7 @@
       "name": "Airy Step",
       "system.level": 13,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "sylph"
-      ]
+      "system.traits.value": ["sylph"]
     }
   },
   {
@@ -613,9 +506,7 @@
       "name": "Cloud Gazer",
       "system.level": 5,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "sylph"
-      ]
+      "system.traits.value": ["sylph"]
     }
   },
   {
@@ -628,9 +519,7 @@
       "name": "Djinni Magic",
       "system.level": 9,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "sylph"
-      ]
+      "system.traits.value": ["sylph"]
     }
   },
   {
@@ -643,9 +532,7 @@
       "name": "Eternal Wings (Sylph)",
       "system.level": 17,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "sylph"
-      ]
+      "system.traits.value": ["sylph"]
     }
   },
   {
@@ -658,10 +545,7 @@
       "name": "Fumesoul",
       "system.level": 1,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "lineage",
-        "sylph"
-      ]
+      "system.traits.value": ["lineage", "sylph"]
     }
   },
   {
@@ -674,9 +558,7 @@
       "name": "Inner Breath",
       "system.level": 9,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "sylph"
-      ]
+      "system.traits.value": ["sylph"]
     }
   },
   {
@@ -689,9 +571,7 @@
       "name": "Slip with the Breeze",
       "system.level": 5,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "sylph"
-      ]
+      "system.traits.value": ["sylph"]
     }
   },
   {
@@ -704,10 +584,7 @@
       "name": "Smokesoul",
       "system.level": 1,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "lineage",
-        "sylph"
-      ]
+      "system.traits.value": ["lineage", "sylph"]
     }
   },
   {
@@ -720,9 +597,7 @@
       "name": "Storm Form",
       "system.level": 17,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "sylph"
-      ]
+      "system.traits.value": ["sylph"]
     }
   },
   {
@@ -735,10 +610,7 @@
       "name": "Stormsoul",
       "system.level": 1,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "lineage",
-        "sylph"
-      ]
+      "system.traits.value": ["lineage", "sylph"]
     }
   },
   {
@@ -751,9 +623,7 @@
       "name": "Summon Air Elemental",
       "system.level": 13,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "sylph"
-      ]
+      "system.traits.value": ["sylph"]
     }
   },
   {
@@ -766,9 +636,7 @@
       "name": "Swift",
       "system.level": 1,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "sylph"
-      ]
+      "system.traits.value": ["sylph"]
     }
   },
   {
@@ -781,9 +649,7 @@
       "name": "Wind Pillow",
       "system.level": 1,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "sylph"
-      ]
+      "system.traits.value": ["sylph"]
     }
   },
   {
@@ -796,9 +662,7 @@
       "name": "Wind Tempered",
       "system.level": 1,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "sylph"
-      ]
+      "system.traits.value": ["sylph"]
     }
   },
   {
@@ -811,11 +675,7 @@
       "name": "Wings of Air",
       "system.level": 9,
       "system.category": "ancestry",
-      "system.traits.value": [
-        "morph",
-        "primal",
-        "sylph"
-      ]
+      "system.traits.value": ["morph", "primal", "sylph"]
     }
   },
   {
@@ -828,10 +688,7 @@
       "name": "Graceful Leaper",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -844,11 +701,7 @@
       "name": "Alchemist Dedication",
       "system.level": 2,
       "system.category": "class",
-      "system.traits.value": [
-        "archetype",
-        "dedication",
-        "multiclass"
-      ]
+      "system.traits.value": ["archetype", "dedication", "multiclass"]
     }
   },
   {
@@ -861,9 +714,7 @@
       "name": "Advanced Alchemy",
       "system.level": 4,
       "system.category": "class",
-      "system.traits.value": [
-        "archetype"
-      ]
+      "system.traits.value": ["archetype"]
     }
   },
   {
@@ -876,9 +727,7 @@
       "name": "Basic Concoction",
       "system.level": 4,
       "system.category": "class",
-      "system.traits.value": [
-        "archetype"
-      ]
+      "system.traits.value": ["archetype"]
     }
   },
   {
@@ -891,10 +740,7 @@
       "name": "Dueling Acumen",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -907,10 +753,7 @@
       "name": "Prepare Papers",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -923,10 +766,7 @@
       "name": "We're on the List",
       "system.level": 3,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -939,10 +779,7 @@
       "name": "Change of Face",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -955,10 +792,7 @@
       "name": "In Plain Sight",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -971,11 +805,7 @@
       "name": "Muscle Mimicry",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "concentrate",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "concentrate", "skill"]
     }
   },
   {
@@ -988,10 +818,7 @@
       "name": "Insistent Command",
       "system.level": 8,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1004,10 +831,7 @@
       "name": "Settlement Scholastics",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1020,10 +844,7 @@
       "name": "Scholastic Identification",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1036,9 +857,7 @@
       "name": "Named Artillery",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype"
-      ]
+      "system.traits.value": ["archetype"]
     }
   },
   {
@@ -1051,10 +870,7 @@
       "name": "Eclipsed Vitality",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1067,10 +883,7 @@
       "name": "Cadre",
       "system.level": 6,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1083,10 +896,7 @@
       "name": "Cushion Landing",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1099,10 +909,7 @@
       "name": "Mounting Leap",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1115,10 +922,7 @@
       "name": "Quick Mount",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1131,10 +935,7 @@
       "name": "Dashing Pickup",
       "system.level": 6,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1147,11 +948,7 @@
       "name": "Grudging Compliment",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "linguistic",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "linguistic", "skill"]
     }
   },
   {
@@ -1164,10 +961,7 @@
       "name": "Familiar Oddities",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1180,10 +974,7 @@
       "name": "Ivy District Influencer",
       "system.level": 3,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1196,10 +987,7 @@
       "name": "Distracting Flattery",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1212,10 +1000,7 @@
       "name": "Fabricated Connections",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1228,10 +1013,7 @@
       "name": "Party Crasher",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1244,10 +1026,7 @@
       "name": "Petal District Socialite",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1260,12 +1039,7 @@
       "name": "Commitment to Equality",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "auditory",
-        "mental",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "auditory", "mental", "skill"]
     }
   },
   {
@@ -1278,10 +1052,7 @@
       "name": "Fluttering Misdirection",
       "system.level": 6,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1294,10 +1065,7 @@
       "name": "Solo Dancer",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1310,10 +1078,7 @@
       "name": "Twirl Through",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1326,11 +1091,7 @@
       "name": "Predispose Settlement",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "downtime",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "downtime", "skill"]
     }
   },
   {
@@ -1343,10 +1104,7 @@
       "name": "Fancy Moves",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1359,12 +1117,7 @@
       "name": "Commitment to Protection",
       "system.level": 6,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "auditory",
-        "mental",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "auditory", "mental", "skill"]
     }
   },
   {
@@ -1377,10 +1130,7 @@
       "name": "Rally Support",
       "system.level": 8,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1393,10 +1143,7 @@
       "name": "Devil You Know",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1409,10 +1156,7 @@
       "name": "Diabolic Certitude",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1425,10 +1169,7 @@
       "name": "Fresh Ingredients",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1441,10 +1182,7 @@
       "name": "Sure Foot",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1457,11 +1195,7 @@
       "name": "Ashen Veil",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "manipulate",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "manipulate", "skill"]
     }
   },
   {
@@ -1495,10 +1229,7 @@
       "name": "Familiar Foe",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1511,10 +1242,7 @@
       "name": "Final Rest",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1527,12 +1255,7 @@
       "name": "Beautiful Knifework",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "exploration",
-        "manipulate",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "exploration", "manipulate", "skill"]
     }
   },
   {
@@ -1545,10 +1268,7 @@
       "name": "Analyze Idiolect",
       "system.level": 6,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1561,10 +1281,7 @@
       "name": "Multilingual Cipher",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1577,10 +1294,7 @@
       "name": "Phonetic Training",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1593,11 +1307,7 @@
       "name": "Read Shibboleths",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "linguistic",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "linguistic", "skill"]
     }
   },
   {
@@ -1610,10 +1320,7 @@
       "name": "Orthographic Mastery",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1626,10 +1333,7 @@
       "name": "Emerald Boughs Accustomation",
       "system.level": 6,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1642,11 +1346,7 @@
       "name": "Uzunjati Storytelling",
       "system.level": 6,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "concentrate",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "concentrate", "skill"]
     }
   },
   {
@@ -1659,10 +1359,7 @@
       "name": "Megafauna Veterinarian",
       "system.level": 6,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1675,10 +1372,7 @@
       "name": "Speech of the Mammoth Lords",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1691,10 +1385,7 @@
       "name": "Holistic Care",
       "system.level": 6,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1707,12 +1398,7 @@
       "name": "Treat Condition",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "healing",
-        "manipulate",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "healing", "manipulate", "skill"]
     }
   },
   {
@@ -1725,10 +1411,7 @@
       "name": "Malleable Movement",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1741,10 +1424,7 @@
       "name": "Hideous Ululation",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1757,10 +1437,7 @@
       "name": "Sociable Vow",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1773,10 +1450,7 @@
       "name": "Text Decoder",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1789,10 +1463,7 @@
       "name": "Craft Facsimile",
       "system.level": 6,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1805,11 +1476,7 @@
       "name": "Dead Reckoning",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "concentrate",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "concentrate", "skill"]
     }
   },
   {
@@ -1822,10 +1489,7 @@
       "name": "Diverse Recognition",
       "system.level": 8,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1838,10 +1502,7 @@
       "name": "Forced Entry",
       "system.level": 6,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1854,10 +1515,7 @@
       "name": "Recognize Threat",
       "system.level": 8,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1870,10 +1528,7 @@
       "name": "Snap Out of It! (Pathfinder Agent)",
       "system.level": 8,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1886,10 +1541,7 @@
       "name": "Thorough Reports",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1902,10 +1554,7 @@
       "name": "Cutting Flattery",
       "system.level": 5,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1918,10 +1567,7 @@
       "name": "Rope Runner",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1934,10 +1580,7 @@
       "name": "Resourceful Ritualist",
       "system.level": 6,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -1950,9 +1593,7 @@
       "name": "Basic Trickery",
       "system.level": 4,
       "system.category": "class",
-      "system.traits.value": [
-        "archetype"
-      ]
+      "system.traits.value": ["archetype"]
     }
   },
   {
@@ -1965,11 +1606,7 @@
       "name": "Rogue Dedication",
       "system.level": 2,
       "system.category": "class",
-      "system.traits.value": [
-        "archetype",
-        "dedication",
-        "multiclass"
-      ]
+      "system.traits.value": ["archetype", "dedication", "multiclass"]
     }
   },
   {
@@ -1982,9 +1619,7 @@
       "name": "Sneak Attacker",
       "system.level": 4,
       "system.category": "class",
-      "system.traits.value": [
-        "archetype"
-      ]
+      "system.traits.value": ["archetype"]
     }
   },
   {
@@ -1997,11 +1632,7 @@
       "name": "Embed Aeon Stone",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "downtime",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "downtime", "skill"]
     }
   },
   {
@@ -2014,10 +1645,7 @@
       "name": "Unravel Mysteries",
       "system.level": 8,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -2030,10 +1658,7 @@
       "name": "Expert Disassembly",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -2046,10 +1671,7 @@
       "name": "Reverse Engineering",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -2062,10 +1684,7 @@
       "name": "Steel Skin",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -2078,12 +1697,7 @@
       "name": "Improvised Crafting",
       "system.level": 8,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "exploration",
-        "manipulate",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "exploration", "manipulate", "skill"]
     }
   },
   {
@@ -2096,10 +1710,7 @@
       "name": "Chronocognizance",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -2112,9 +1723,7 @@
       "name": "Gear Gnash",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype"
-      ]
+      "system.traits.value": ["archetype"]
     }
   },
   {
@@ -2127,9 +1736,7 @@
       "name": "Propeller Attachment",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype"
-      ]
+      "system.traits.value": ["archetype"]
     }
   },
   {
@@ -2142,10 +1749,7 @@
       "name": "Express Driver",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "exploration"
-      ]
+      "system.traits.value": ["archetype", "exploration"]
     }
   },
   {
@@ -2158,11 +1762,7 @@
       "name": "Power Slide",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "move",
-        "reckless"
-      ]
+      "system.traits.value": ["archetype", "move", "reckless"]
     }
   },
   {
@@ -2175,9 +1775,7 @@
       "name": "Push It",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype"
-      ]
+      "system.traits.value": ["archetype"]
     }
   },
   {
@@ -2190,10 +1788,7 @@
       "name": "Ilverani Purist",
       "system.level": 8,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -2206,10 +1801,7 @@
       "name": "Fabricated Credentials",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -2222,11 +1814,7 @@
       "name": "Blessed Medicine",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "fortune",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "fortune", "skill"]
     }
   },
   {
@@ -2239,10 +1827,7 @@
       "name": "Slippery As An Eel",
       "system.level": 6,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -2255,10 +1840,7 @@
       "name": "Stealthy As An Octopus",
       "system.level": 6,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -2271,10 +1853,7 @@
       "name": "Boarding Party",
       "system.level": 8,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -2287,10 +1866,7 @@
       "name": "That Was a Close One, Huh?",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -2303,9 +1879,7 @@
       "name": "Efficient Controls",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype"
-      ]
+      "system.traits.value": ["archetype"]
     }
   },
   {
@@ -2318,9 +1892,7 @@
       "name": "Engine Bay",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype"
-      ]
+      "system.traits.value": ["archetype"]
     }
   },
   {
@@ -2333,9 +1905,7 @@
       "name": "Canopy Predator",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype"
-      ]
+      "system.traits.value": ["archetype"]
     }
   },
   {
@@ -2348,10 +1918,7 @@
       "name": "Hidden Magic",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -2364,11 +1931,7 @@
       "name": "Minion Guise",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill",
-        "social"
-      ]
+      "system.traits.value": ["archetype", "skill", "social"]
     }
   },
   {
@@ -2381,10 +1944,7 @@
       "name": "Subjective Truth",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -2397,10 +1957,7 @@
       "name": "Know the Beat",
       "system.level": 3,
       "system.category": "skill",
-      "system.traits.value": [
-        "archetype",
-        "skill"
-      ]
+      "system.traits.value": ["archetype", "skill"]
     }
   },
   {
@@ -2413,12 +1970,7 @@
       "name": "Aerial Boomerang",
       "system.level": 1,
       "system.category": "class",
-      "system.traits.value": [
-        "air",
-        "impulse",
-        "kineticist",
-        "primal"
-      ]
+      "system.traits.value": ["air", "impulse", "kineticist", "primal"]
     }
   },
   {
@@ -2431,12 +1983,7 @@
       "name": "Air Cushion",
       "system.level": 1,
       "system.category": "class",
-      "system.traits.value": [
-        "air",
-        "impulse",
-        "kineticist",
-        "primal"
-      ]
+      "system.traits.value": ["air", "impulse", "kineticist", "primal"]
     }
   },
   {
@@ -2449,12 +1996,7 @@
       "name": "Flashforge",
       "system.level": 1,
       "system.category": "class",
-      "system.traits.value": [
-        "impulse",
-        "kineticist",
-        "metal",
-        "primal"
-      ]
+      "system.traits.value": ["impulse", "kineticist", "metal", "primal"]
     }
   },
   {
@@ -2467,12 +2009,7 @@
       "name": "Four Winds",
       "system.level": 1,
       "system.category": "class",
-      "system.traits.value": [
-        "air",
-        "impulse",
-        "kineticist",
-        "primal"
-      ]
+      "system.traits.value": ["air", "impulse", "kineticist", "primal"]
     }
   },
   {
@@ -2485,14 +2022,7 @@
       "name": "Magnetic Pinions",
       "system.level": 1,
       "system.category": "class",
-      "system.traits.value": [
-        "attack",
-        "impulse",
-        "kineticist",
-        "metal",
-        "overflow",
-        "primal"
-      ]
+      "system.traits.value": ["attack", "impulse", "kineticist", "metal", "overflow", "primal"]
     }
   },
   {
@@ -2505,12 +2035,7 @@
       "name": "Metal Carapace",
       "system.level": 1,
       "system.category": "class",
-      "system.traits.value": [
-        "impulse",
-        "kineticist",
-        "metal",
-        "primal"
-      ]
+      "system.traits.value": ["impulse", "kineticist", "metal", "primal"]
     }
   },
   {
@@ -2523,12 +2048,7 @@
       "name": "Shard Strike",
       "system.level": 1,
       "system.category": "class",
-      "system.traits.value": [
-        "impulse",
-        "kineticist",
-        "metal",
-        "primal"
-      ]
+      "system.traits.value": ["impulse", "kineticist", "metal", "primal"]
     }
   },
   {
@@ -2562,13 +2082,7 @@
       "name": "Air Shroud",
       "system.level": 4,
       "system.category": "class",
-      "system.traits.value": [
-        "air",
-        "impulse",
-        "kineticist",
-        "primal",
-        "stance"
-      ]
+      "system.traits.value": ["air", "impulse", "kineticist", "primal", "stance"]
     }
   },
   {
@@ -2603,13 +2117,7 @@
       "name": "Magnetic Field",
       "system.level": 4,
       "system.category": "class",
-      "system.traits.value": [
-        "impulse",
-        "kineticist",
-        "metal",
-        "primal",
-        "stance"
-      ]
+      "system.traits.value": ["impulse", "kineticist", "metal", "primal", "stance"]
     }
   },
   {
@@ -2622,12 +2130,7 @@
       "name": "Plate in Treasure",
       "system.level": 4,
       "system.category": "class",
-      "system.traits.value": [
-        "impulse",
-        "kineticist",
-        "metal",
-        "primal"
-      ]
+      "system.traits.value": ["impulse", "kineticist", "metal", "primal"]
     }
   },
   {
@@ -2640,14 +2143,7 @@
       "name": "Rain of Rust",
       "system.level": 4,
       "system.category": "class",
-      "system.traits.value": [
-        "composite",
-        "impulse",
-        "kineticist",
-        "metal",
-        "primal",
-        "water"
-      ]
+      "system.traits.value": ["composite", "impulse", "kineticist", "metal", "primal", "water"]
     }
   },
   {
@@ -2681,9 +2177,7 @@
       "name": "Arcane Fists",
       "system.level": 1,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -2696,9 +2190,7 @@
       "name": "Magus's Analysis",
       "system.level": 1,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -2711,9 +2203,7 @@
       "name": "Raise a Tome",
       "system.level": 1,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -2726,10 +2216,7 @@
       "name": "Cascading Ray",
       "system.level": 10,
       "system.category": "class",
-      "system.traits.value": [
-        "attack",
-        "magus"
-      ]
+      "system.traits.value": ["attack", "magus"]
     }
   },
   {
@@ -2742,11 +2229,7 @@
       "name": "Dazzling Block",
       "system.level": 10,
       "system.category": "class",
-      "system.traits.value": [
-        "light",
-        "magus",
-        "visual"
-      ]
+      "system.traits.value": ["light", "magus", "visual"]
     }
   },
   {
@@ -2759,9 +2242,7 @@
       "name": "Dimensional Disappearance",
       "system.level": 10,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -2774,10 +2255,7 @@
       "name": "Lunging Spellstrike",
       "system.level": 10,
       "system.category": "class",
-      "system.traits.value": [
-        "arcane",
-        "magus"
-      ]
+      "system.traits.value": ["arcane", "magus"]
     }
   },
   {
@@ -2790,9 +2268,7 @@
       "name": "Maelstrom Flow",
       "system.level": 10,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -2805,10 +2281,7 @@
       "name": "Meteoric Spellstrike",
       "system.level": 10,
       "system.category": "class",
-      "system.traits.value": [
-        "arcane",
-        "magus"
-      ]
+      "system.traits.value": ["arcane", "magus"]
     }
   },
   {
@@ -2821,9 +2294,7 @@
       "name": "Rapid Recharge",
       "system.level": 10,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -2836,12 +2307,7 @@
       "name": "Sustaining Steel",
       "system.level": 10,
       "system.category": "class",
-      "system.traits.value": [
-        "arcane",
-        "healing",
-        "magus",
-        "vitality"
-      ]
+      "system.traits.value": ["arcane", "healing", "magus", "vitality"]
     }
   },
   {
@@ -2854,11 +2320,7 @@
       "name": "Unsheathing the Sword-Light",
       "system.level": 10,
       "system.category": "class",
-      "system.traits.value": [
-        "arcane",
-        "light",
-        "magus"
-      ]
+      "system.traits.value": ["arcane", "light", "magus"]
     }
   },
   {
@@ -2871,10 +2333,7 @@
       "name": "Vermillion Threads",
       "system.level": 10,
       "system.category": "class",
-      "system.traits.value": [
-        "arcane",
-        "magus"
-      ]
+      "system.traits.value": ["arcane", "magus"]
     }
   },
   {
@@ -2887,9 +2346,7 @@
       "name": "Conflux Focus",
       "system.level": 12,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -2902,11 +2359,7 @@
       "name": "Magic Sense (Magus)",
       "system.level": 12,
       "system.category": "class",
-      "system.traits.value": [
-        "arcane",
-        "detection",
-        "magus"
-      ]
+      "system.traits.value": ["arcane", "detection", "magus"]
     }
   },
   {
@@ -2919,9 +2372,7 @@
       "name": "Overwhelming Spellstrike",
       "system.level": 12,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -2934,10 +2385,7 @@
       "name": "Arcane Shroud",
       "system.level": 14,
       "system.category": "class",
-      "system.traits.value": [
-        "concentrate",
-        "magus"
-      ]
+      "system.traits.value": ["concentrate", "magus"]
     }
   },
   {
@@ -2950,9 +2398,7 @@
       "name": "Hasted Assault",
       "system.level": 14,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -2965,9 +2411,7 @@
       "name": "Preternatural Parry",
       "system.level": 14,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -2980,9 +2424,7 @@
       "name": "Dispelling Spellstrike",
       "system.level": 16,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -2995,9 +2437,7 @@
       "name": "Resounding Cascade",
       "system.level": 16,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -3010,9 +2450,7 @@
       "name": "Conflux Wellspring",
       "system.level": 18,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -3025,9 +2463,7 @@
       "name": "Versatile Spellstrike",
       "system.level": 18,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -3040,10 +2476,7 @@
       "name": "Convergent Tides",
       "system.level": 2,
       "system.category": "class",
-      "system.traits.value": [
-        "magus",
-        "water"
-      ]
+      "system.traits.value": ["magus", "water"]
     }
   },
   {
@@ -3056,9 +2489,7 @@
       "name": "Expansive Spellstrike",
       "system.level": 2,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -3071,9 +2502,7 @@
       "name": "Force Fang",
       "system.level": 2,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -3086,9 +2515,7 @@
       "name": "Spell Parry",
       "system.level": 2,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -3101,11 +2528,7 @@
       "name": "Spirit Sheath",
       "system.level": 2,
       "system.category": "class",
-      "system.traits.value": [
-        "arcane",
-        "extradimensional",
-        "magus"
-      ]
+      "system.traits.value": ["arcane", "extradimensional", "magus"]
     }
   },
   {
@@ -3118,9 +2541,7 @@
       "name": "Supreme Spellstrike",
       "system.level": 20,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -3133,9 +2554,7 @@
       "name": "Whirlwind Spell",
       "system.level": 20,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -3148,9 +2567,7 @@
       "name": "Devastating Spellstrike",
       "system.level": 4,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -3163,10 +2580,7 @@
       "name": "Distant Waterbird's Poise",
       "system.level": 4,
       "system.category": "class",
-      "system.traits.value": [
-        "arcane",
-        "magus"
-      ]
+      "system.traits.value": ["arcane", "magus"]
     }
   },
   {
@@ -3179,9 +2593,7 @@
       "name": "Distracting Spellstrike",
       "system.level": 4,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -3194,9 +2606,7 @@
       "name": "Emergency Targe",
       "system.level": 4,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -3209,11 +2619,7 @@
       "name": "Heaven-Earth Encompassing Sleeves",
       "system.level": 4,
       "system.category": "class",
-      "system.traits.value": [
-        "arcane",
-        "extradimensional",
-        "magus"
-      ]
+      "system.traits.value": ["arcane", "extradimensional", "magus"]
     }
   },
   {
@@ -3226,10 +2632,7 @@
       "name": "Shattering Spellstrike",
       "system.level": 4,
       "system.category": "class",
-      "system.traits.value": [
-        "force",
-        "magus"
-      ]
+      "system.traits.value": ["force", "magus"]
     }
   },
   {
@@ -3242,9 +2645,7 @@
       "name": "Starlit Eyes",
       "system.level": 4,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -3257,9 +2658,7 @@
       "name": "Steady Spellcasting (Magus)",
       "system.level": 4,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -3272,9 +2671,7 @@
       "name": "Striker's Scroll",
       "system.level": 4,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -3287,9 +2684,7 @@
       "name": "Student of the Staff",
       "system.level": 4,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -3302,9 +2697,7 @@
       "name": "Cascade Countermeasure",
       "system.level": 6,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -3317,9 +2710,7 @@
       "name": "Knowledge is Power",
       "system.level": 6,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -3332,10 +2723,7 @@
       "name": "Shielded Tome",
       "system.level": 6,
       "system.category": "class",
-      "system.traits.value": [
-        "arcane",
-        "magus"
-      ]
+      "system.traits.value": ["arcane", "magus"]
     }
   },
   {
@@ -3348,10 +2736,7 @@
       "name": "Surface Tension",
       "system.level": 6,
       "system.category": "class",
-      "system.traits.value": [
-        "magus",
-        "water"
-      ]
+      "system.traits.value": ["magus", "water"]
     }
   },
   {
@@ -3364,9 +2749,7 @@
       "name": "Capture Magic",
       "system.level": 8,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -3379,10 +2762,7 @@
       "name": "Crosscurrent Counter",
       "system.level": 8,
       "system.category": "class",
-      "system.traits.value": [
-        "magus",
-        "water"
-      ]
+      "system.traits.value": ["magus", "water"]
     }
   },
   {
@@ -3395,10 +2775,7 @@
       "name": "Fused Staff",
       "system.level": 8,
       "system.category": "class",
-      "system.traits.value": [
-        "arcane",
-        "magus"
-      ]
+      "system.traits.value": ["arcane", "magus"]
     }
   },
   {
@@ -3411,9 +2788,7 @@
       "name": "Runic Impression",
       "system.level": 8,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -3426,9 +2801,7 @@
       "name": "Spell Swipe",
       "system.level": 8,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -3441,9 +2814,7 @@
       "name": "Standby Spell",
       "system.level": 8,
       "system.category": "class",
-      "system.traits.value": [
-        "magus"
-      ]
+      "system.traits.value": ["magus"]
     }
   },
   {
@@ -3456,10 +2827,7 @@
       "name": "Whirlpool's Pull",
       "system.level": 8,
       "system.category": "class",
-      "system.traits.value": [
-        "concentrate",
-        "magus"
-      ]
+      "system.traits.value": ["concentrate", "magus"]
     }
   },
   {
@@ -3472,12 +2840,7 @@
       "name": "Familiar",
       "system.level": 1,
       "system.category": "class",
-      "system.traits.value": [
-        "magus",
-        "sorcerer",
-        "thaumaturge",
-        "wizard"
-      ]
+      "system.traits.value": ["magus", "sorcerer", "thaumaturge", "wizard"]
     }
   },
   {
@@ -3554,9 +2917,7 @@
       "name": "Adopted Ancestry",
       "system.level": 1,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3569,9 +2930,7 @@
       "name": "Armor Proficiency",
       "system.level": 1,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3584,9 +2943,7 @@
       "name": "Breath Control",
       "system.level": 1,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3599,9 +2956,7 @@
       "name": "Canny Acumen",
       "system.level": 1,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3614,9 +2969,7 @@
       "name": "Diehard",
       "system.level": 1,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3629,9 +2982,7 @@
       "name": "Different Worlds",
       "system.level": 1,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3644,9 +2995,7 @@
       "name": "Fast Recovery",
       "system.level": 1,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3659,9 +3008,7 @@
       "name": "Feather Step",
       "system.level": 1,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3674,9 +3021,7 @@
       "name": "Fleet",
       "system.level": 1,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3689,9 +3034,7 @@
       "name": "Incredible Initiative",
       "system.level": 1,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3704,9 +3047,7 @@
       "name": "Pet",
       "system.level": 1,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3719,9 +3060,7 @@
       "name": "Ride",
       "system.level": 1,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3734,9 +3073,7 @@
       "name": "Shield Block",
       "system.level": 1,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3762,9 +3099,7 @@
       "name": "Toughness",
       "system.level": 1,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3777,9 +3112,7 @@
       "name": "Weapon Proficiency",
       "system.level": 1,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3792,10 +3125,7 @@
       "name": "Additional Circus Trick",
       "system.level": 3,
       "system.category": "general",
-      "system.traits.value": [
-        "circus",
-        "general"
-      ]
+      "system.traits.value": ["circus", "general"]
     }
   },
   {
@@ -3808,9 +3138,7 @@
       "name": "Ancestral Paragon",
       "system.level": 3,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3823,9 +3151,7 @@
       "name": "Hireling Manager",
       "system.level": 3,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3838,9 +3164,7 @@
       "name": "Improvised Repair",
       "system.level": 3,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3853,9 +3177,7 @@
       "name": "Keen Follower",
       "system.level": 3,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3868,9 +3190,7 @@
       "name": "Pick up the Pace",
       "system.level": 3,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3883,9 +3203,7 @@
       "name": "Prescient Planner",
       "system.level": 3,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3898,9 +3216,7 @@
       "name": "Robust Health",
       "system.level": 3,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3913,9 +3229,7 @@
       "name": "Skitter",
       "system.level": 3,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3928,10 +3242,7 @@
       "name": "Steel Your Resolve",
       "system.level": 3,
       "system.category": "general",
-      "system.traits.value": [
-        "general",
-        "stamina"
-      ]
+      "system.traits.value": ["general", "stamina"]
     }
   },
   {
@@ -3944,9 +3255,7 @@
       "name": "Thorough Search",
       "system.level": 3,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3959,9 +3268,7 @@
       "name": "Untrained Improvisation",
       "system.level": 3,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -3987,9 +3294,7 @@
       "name": "Expeditious Search",
       "system.level": 7,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -4002,9 +3307,7 @@
       "name": "Numb to Death",
       "system.level": 7,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -4017,9 +3320,7 @@
       "name": "Prescient Consumable",
       "system.level": 7,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -4032,9 +3333,7 @@
       "name": "Supertaster",
       "system.level": 7,
       "system.category": "general",
-      "system.traits.value": [
-        "general"
-      ]
+      "system.traits.value": ["general"]
     }
   },
   {
@@ -4047,10 +3346,7 @@
       "name": "Acrobatic Performer",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4063,10 +3359,7 @@
       "name": "Acupuncturist",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "downtime",
-        "manipulate"
-      ]
+      "system.traits.value": ["downtime", "manipulate"]
     }
   },
   {
@@ -4079,10 +3372,7 @@
       "name": "Additional Lore",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4095,10 +3385,7 @@
       "name": "Alchemical Crafting",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4111,10 +3398,7 @@
       "name": "All of the Animal",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4127,10 +3411,7 @@
       "name": "Arcane Sense",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4143,10 +3424,7 @@
       "name": "Armor Assist",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4159,11 +3437,7 @@
       "name": "Assurance",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "fortune",
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["fortune", "general", "skill"]
     }
   },
   {
@@ -4176,10 +3450,7 @@
       "name": "Bargain Hunter",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4192,12 +3463,7 @@
       "name": "Battle Medicine",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "healing",
-        "manipulate",
-        "skill"
-      ]
+      "system.traits.value": ["general", "healing", "manipulate", "skill"]
     }
   },
   {
@@ -4231,10 +3497,7 @@
       "name": "Cat Fall",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4247,10 +3510,7 @@
       "name": "Charlatan",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4263,10 +3523,7 @@
       "name": "Charming Liar",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4279,10 +3536,7 @@
       "name": "Combat Climber",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4295,10 +3549,7 @@
       "name": "Concealing Legerdemain",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4311,10 +3562,7 @@
       "name": "Contract Negotiator",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4327,10 +3575,7 @@
       "name": "Courtly Graces",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4343,10 +3588,7 @@
       "name": "Crafter's Appraisal",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4359,12 +3601,7 @@
       "name": "Crystal Healing",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "healing",
-        "manipulate",
-        "skill"
-      ]
+      "system.traits.value": ["general", "healing", "manipulate", "skill"]
     }
   },
   {
@@ -4377,10 +3614,7 @@
       "name": "Deceptive Worship",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4393,12 +3627,7 @@
       "name": "Dirty Trick",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "attack",
-        "general",
-        "manipulate",
-        "skill"
-      ]
+      "system.traits.value": ["attack", "general", "manipulate", "skill"]
     }
   },
   {
@@ -4411,10 +3640,7 @@
       "name": "Dubious Knowledge",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4427,10 +3653,7 @@
       "name": "Experienced Professional",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4443,10 +3666,7 @@
       "name": "Experienced Smuggler",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4459,10 +3679,7 @@
       "name": "Experienced Tracker",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4475,11 +3692,7 @@
       "name": "Express Rider",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "exploration",
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["exploration", "general", "skill"]
     }
   },
   {
@@ -4492,10 +3705,7 @@
       "name": "Eye for Numbers",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4508,10 +3718,7 @@
       "name": "Fascinating Performance",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4524,10 +3731,7 @@
       "name": "Forager",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4540,10 +3744,7 @@
       "name": "Forensic Acumen",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4556,10 +3757,7 @@
       "name": "Glean Contents",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4572,10 +3770,7 @@
       "name": "Group Coercion",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4588,10 +3783,7 @@
       "name": "Group Impression",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4604,10 +3796,7 @@
       "name": "Hefty Hauler",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4620,10 +3809,7 @@
       "name": "Hobnobber",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4636,10 +3822,7 @@
       "name": "Impressive Performance",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4652,10 +3835,7 @@
       "name": "Improvise Tool",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4668,11 +3848,7 @@
       "name": "Inoculation",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "healing",
-        "skill"
-      ]
+      "system.traits.value": ["general", "healing", "skill"]
     }
   },
   {
@@ -4685,10 +3861,7 @@
       "name": "Intimidating Glare",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4701,10 +3874,7 @@
       "name": "Lengthy Diversion",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4717,10 +3887,7 @@
       "name": "Lie to Me",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4733,10 +3900,7 @@
       "name": "Medical Researcher",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4749,10 +3913,7 @@
       "name": "Multilingual",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4778,10 +3939,7 @@
       "name": "Natural Medicine",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4815,10 +3973,7 @@
       "name": "Oddity Identification",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4831,10 +3986,7 @@
       "name": "Pickpocket",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4847,10 +3999,7 @@
       "name": "Pilgrim's Token",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4863,11 +4012,7 @@
       "name": "Prepare Elemental Medicine",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "exploration",
-        "manipulate",
-        "secret"
-      ]
+      "system.traits.value": ["exploration", "manipulate", "secret"]
     }
   },
   {
@@ -4880,10 +4025,7 @@
       "name": "Quick Coercion",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4896,10 +4038,7 @@
       "name": "Quick Identification",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4912,10 +4051,7 @@
       "name": "Quick Jump",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4928,10 +4064,7 @@
       "name": "Quick Repair",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4944,10 +4077,7 @@
       "name": "Quick Squeeze",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4960,10 +4090,7 @@
       "name": "Ravening's Desperation",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -4976,10 +4103,7 @@
       "name": "Read Lips",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5013,11 +4137,7 @@
       "name": "Recognize Spell",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "secret",
-        "skill"
-      ]
+      "system.traits.value": ["general", "secret", "skill"]
     }
   },
   {
@@ -5051,10 +4171,7 @@
       "name": "Risky Surgery",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5067,10 +4184,7 @@
       "name": "Root Magic",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5083,10 +4197,7 @@
       "name": "Schooled in Secrets",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5099,10 +4210,7 @@
       "name": "Seasoned",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5115,10 +4223,7 @@
       "name": "Secret Speech",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5131,10 +4236,7 @@
       "name": "Sign Language",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5147,10 +4249,7 @@
       "name": "Skill Training",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5163,10 +4262,7 @@
       "name": "Snare Crafting",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5179,10 +4275,7 @@
       "name": "Specialty Crafting",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5195,10 +4288,7 @@
       "name": "Steady Balance",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5211,10 +4301,7 @@
       "name": "Stifle Flames",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5227,10 +4314,7 @@
       "name": "Stitch Flesh",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5243,10 +4327,7 @@
       "name": "Streetwise",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5259,10 +4340,7 @@
       "name": "Student of the Canon",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5275,10 +4353,7 @@
       "name": "Subtle Theft",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5291,10 +4366,7 @@
       "name": "Survey Wildlife",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5307,11 +4379,7 @@
       "name": "Tame Animal",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "exploration",
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["exploration", "general", "skill"]
     }
   },
   {
@@ -5324,10 +4392,7 @@
       "name": "Terrain Expertise",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5340,10 +4405,7 @@
       "name": "Terrain Stalker",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5356,10 +4418,7 @@
       "name": "Titan Wrestler",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5372,12 +4431,7 @@
       "name": "Train Animal",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "downtime",
-        "general",
-        "manipulate",
-        "skill"
-      ]
+      "system.traits.value": ["downtime", "general", "manipulate", "skill"]
     }
   },
   {
@@ -5390,11 +4444,7 @@
       "name": "Trick Magic Item",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "manipulate",
-        "skill"
-      ]
+      "system.traits.value": ["general", "manipulate", "skill"]
     }
   },
   {
@@ -5407,10 +4457,7 @@
       "name": "Underwater Marauder",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5423,10 +4470,7 @@
       "name": "Vicious Critique",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5439,10 +4483,7 @@
       "name": "Virtuosic Performer",
       "system.level": 1,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5455,10 +4496,7 @@
       "name": "Armored Stealth",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5471,10 +4509,7 @@
       "name": "Assured Identification",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5487,13 +4522,7 @@
       "name": "Aura Sight",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "concentrate",
-        "exploration",
-        "general",
-        "secret",
-        "skill"
-      ]
+      "system.traits.value": ["concentrate", "exploration", "general", "secret", "skill"]
     }
   },
   {
@@ -5506,10 +4535,7 @@
       "name": "Automatic Knowledge",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5522,13 +4548,7 @@
       "name": "Automatic Writing",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "concentrate",
-        "exploration",
-        "general",
-        "manipulate",
-        "skill"
-      ]
+      "system.traits.value": ["concentrate", "exploration", "general", "manipulate", "skill"]
     }
   },
   {
@@ -5541,10 +4561,7 @@
       "name": "Backup Disguise",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5557,10 +4574,7 @@
       "name": "Battle Planner",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5573,11 +4587,7 @@
       "name": "Bonded Animal",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "downtime",
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["downtime", "general", "skill"]
     }
   },
   {
@@ -5590,12 +4600,7 @@
       "name": "Chromotherapy",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "healing",
-        "manipulate",
-        "skill"
-      ]
+      "system.traits.value": ["general", "healing", "manipulate", "skill"]
     }
   },
   {
@@ -5608,10 +4613,7 @@
       "name": "Communal Crafting",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5624,10 +4626,7 @@
       "name": "Confabulator",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5640,10 +4639,7 @@
       "name": "Continual Recovery",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5656,10 +4652,7 @@
       "name": "Cooperative Crafting",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5672,10 +4665,7 @@
       "name": "Criminal Connections",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5688,10 +4678,7 @@
       "name": "Discreet Inquiry",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5704,10 +4691,7 @@
       "name": "Distracting Performance",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5720,14 +4704,7 @@
       "name": "Encouraging Words",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "auditory",
-        "general",
-        "linguistic",
-        "mental",
-        "skill",
-        "stamina"
-      ]
+      "system.traits.value": ["auditory", "general", "linguistic", "mental", "skill", "stamina"]
     }
   },
   {
@@ -5753,10 +4730,7 @@
       "name": "Exhort the Faithful",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5769,10 +4743,7 @@
       "name": "Eye of the Arclords",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5785,10 +4756,7 @@
       "name": "Eyes of the City",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5801,10 +4769,7 @@
       "name": "Fleeing Diversion",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5817,10 +4782,7 @@
       "name": "Glad-Hand",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5846,10 +4808,7 @@
       "name": "Half-Truths",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5862,10 +4821,7 @@
       "name": "Intimidating Prowess",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5878,11 +4834,7 @@
       "name": "Inventor",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "downtime",
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["downtime", "general", "skill"]
     }
   },
   {
@@ -5895,12 +4847,7 @@
       "name": "Juggle",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "concentrate",
-        "general",
-        "manipulate",
-        "skill"
-      ]
+      "system.traits.value": ["concentrate", "general", "manipulate", "skill"]
     }
   },
   {
@@ -5913,10 +4860,7 @@
       "name": "Lasting Coercion",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5929,10 +4873,7 @@
       "name": "Lead Climber",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5945,10 +4886,7 @@
       "name": "Leverage Connections",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5961,10 +4899,7 @@
       "name": "Magical Crafting",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5977,10 +4912,7 @@
       "name": "Magical Shorthand",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -5993,10 +4925,7 @@
       "name": "Mortal Healing",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6009,10 +4938,7 @@
       "name": "Nimble Crawl",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6038,10 +4964,7 @@
       "name": "Performer's Treatment",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6054,10 +4977,7 @@
       "name": "Powerful Leap",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6070,11 +4990,7 @@
       "name": "Predict Weather",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "secret",
-        "skill"
-      ]
+      "system.traits.value": ["general", "secret", "skill"]
     }
   },
   {
@@ -6087,10 +5003,7 @@
       "name": "Quick Contacts",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6103,10 +5016,7 @@
       "name": "Quick Disguise",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6119,10 +5029,7 @@
       "name": "Quiet Allies",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6135,10 +5042,7 @@
       "name": "Rapid Mantel",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6151,10 +5055,7 @@
       "name": "Robust Recovery",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6167,10 +5068,7 @@
       "name": "Rolling Landing",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6183,10 +5081,7 @@
       "name": "Sanctify Water",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6199,10 +5094,7 @@
       "name": "Shadow Mark",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6215,10 +5107,7 @@
       "name": "Slippery Prey",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6231,11 +5120,7 @@
       "name": "Sow Rumor",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "secret",
-        "skill"
-      ]
+      "system.traits.value": ["general", "secret", "skill"]
     }
   },
   {
@@ -6248,11 +5133,7 @@
       "name": "Spirit Speaker",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "secret",
-        "skill"
-      ]
+      "system.traits.value": ["general", "secret", "skill"]
     }
   },
   {
@@ -6265,10 +5146,7 @@
       "name": "Tactical Acumen",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6281,10 +5159,7 @@
       "name": "Tattoo Artist",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6297,10 +5172,7 @@
       "name": "Terrifying Resistance",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6313,10 +5185,7 @@
       "name": "Triumphant Boast",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6329,10 +5198,7 @@
       "name": "Tumbling Teamwork",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6345,10 +5211,7 @@
       "name": "Tweak Appearances",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6361,10 +5224,7 @@
       "name": "Underground Network",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6377,10 +5237,7 @@
       "name": "Unmistakable Lore",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6393,10 +5250,7 @@
       "name": "Unusual Treatment",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6422,10 +5276,7 @@
       "name": "Ward Medic",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6438,10 +5289,7 @@
       "name": "Wary Disarmament",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6454,10 +5302,7 @@
       "name": "What's That up Your Sleeve",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6470,10 +5315,7 @@
       "name": "Wilderness Spotter",
       "system.level": 2,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6486,9 +5328,7 @@
       "name": "Aurochs-Headed",
       "system.level": 3,
       "system.category": "skill",
-      "system.traits.value": [
-        "skill"
-      ]
+      "system.traits.value": ["skill"]
     }
   },
   {
@@ -6501,10 +5341,7 @@
       "name": "Folk Dowsing",
       "system.level": 3,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6517,10 +5354,7 @@
       "name": "Graft Technician",
       "system.level": 3,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6533,10 +5367,7 @@
       "name": "Ambush Tactics",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6549,10 +5380,7 @@
       "name": "Efficient Explorer",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6565,10 +5393,7 @@
       "name": "Fane's Escape",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6581,10 +5406,7 @@
       "name": "Kreighton's Cognitive Crossover",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6597,10 +5419,7 @@
       "name": "That's Not Natural!",
       "system.level": 4,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6613,10 +5432,7 @@
       "name": "Say That Again!",
       "system.level": 6,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6629,12 +5445,7 @@
       "name": "Advanced First Aid",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "healing",
-        "manipulate",
-        "skill"
-      ]
+      "system.traits.value": ["general", "healing", "manipulate", "skill"]
     }
   },
   {
@@ -6647,10 +5458,7 @@
       "name": "Adventurous Outfitter",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6663,10 +5471,7 @@
       "name": "Aerobatics Mastery",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6679,10 +5484,7 @@
       "name": "As On the Board, So On the Battlefield",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6695,10 +5497,7 @@
       "name": "Battle Cry",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6711,11 +5510,7 @@
       "name": "Battle Prayer",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "divine",
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["divine", "general", "skill"]
     }
   },
   {
@@ -6728,11 +5523,7 @@
       "name": "Biographical Eye",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "secret",
-        "skill"
-      ]
+      "system.traits.value": ["general", "secret", "skill"]
     }
   },
   {
@@ -6745,10 +5536,7 @@
       "name": "Bizarre Magic",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6761,11 +5549,7 @@
       "name": "Bless Tonic",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill",
-        "vitality"
-      ]
+      "system.traits.value": ["general", "skill", "vitality"]
     }
   },
   {
@@ -6778,11 +5562,7 @@
       "name": "Bless Toxin",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill",
-        "void"
-      ]
+      "system.traits.value": ["general", "skill", "void"]
     }
   },
   {
@@ -6795,12 +5575,7 @@
       "name": "Break Curse",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "concentrate",
-        "exploration",
-        "healing",
-        "skill"
-      ]
+      "system.traits.value": ["concentrate", "exploration", "healing", "skill"]
     }
   },
   {
@@ -6813,11 +5588,7 @@
       "name": "Consult the Spirits",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "secret",
-        "skill"
-      ]
+      "system.traits.value": ["general", "secret", "skill"]
     }
   },
   {
@@ -6830,13 +5601,7 @@
       "name": "Disturbing Knowledge",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "emotion",
-        "fear",
-        "general",
-        "mental",
-        "skill"
-      ]
+      "system.traits.value": ["emotion", "fear", "general", "mental", "skill"]
     }
   },
   {
@@ -6849,10 +5614,7 @@
       "name": "Doublespeak",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6865,10 +5627,7 @@
       "name": "Entourage",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6881,10 +5640,7 @@
       "name": "Environmental Guide",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6897,13 +5653,7 @@
       "name": "Evangelize",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "auditory",
-        "general",
-        "linguistic",
-        "mental",
-        "skill"
-      ]
+      "system.traits.value": ["auditory", "general", "linguistic", "mental", "skill"]
     }
   },
   {
@@ -6916,10 +5666,7 @@
       "name": "Foil Senses",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6932,11 +5679,7 @@
       "name": "Go with the Flow",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "secret",
-        "skill"
-      ]
+      "system.traits.value": ["general", "secret", "skill"]
     }
   },
   {
@@ -6949,10 +5692,7 @@
       "name": "Impeccable Crafting",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -6965,13 +5705,7 @@
       "name": "Improvise Strategy",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "bravado",
-        "concentrate",
-        "general",
-        "mental",
-        "skill"
-      ]
+      "system.traits.value": ["bravado", "concentrate", "general", "mental", "skill"]
     }
   },
   {
@@ -6984,10 +5718,7 @@
       "name": "Inflame Crowd",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -7000,11 +5731,7 @@
       "name": "Influence Nature",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "downtime",
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["downtime", "general", "skill"]
     }
   },
   {
@@ -7017,10 +5744,7 @@
       "name": "Kip Up",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -7033,10 +5757,7 @@
       "name": "Master of Apprentice",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -7049,9 +5770,7 @@
       "name": "Monster Crafting",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "skill"
-      ]
+      "system.traits.value": ["skill"]
     }
   },
   {
@@ -7064,13 +5783,7 @@
       "name": "Morphic Manipulation",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "exploration",
-        "general",
-        "primal",
-        "skill",
-        "vitality"
-      ]
+      "system.traits.value": ["exploration", "general", "primal", "skill", "vitality"]
     }
   },
   {
@@ -7083,10 +5796,7 @@
       "name": "Paragon Battle Medicine",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -7099,10 +5809,7 @@
       "name": "Planar Survival",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -7115,10 +5822,7 @@
       "name": "Quick Climb",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -7131,10 +5835,7 @@
       "name": "Quick Recognition",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -7147,10 +5848,7 @@
       "name": "Quick Setup",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -7163,10 +5861,7 @@
       "name": "Quick Swim",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -7179,10 +5874,7 @@
       "name": "Quick Unlock",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -7195,10 +5887,7 @@
       "name": "Rapid Affixture",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -7211,11 +5900,7 @@
       "name": "Sacred Defense",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "divine",
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["divine", "general", "skill"]
     }
   },
   {
@@ -7228,12 +5913,7 @@
       "name": "Seasoned Command",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "auditory",
-        "concentrate",
-        "linguistic",
-        "mental"
-      ]
+      "system.traits.value": ["auditory", "concentrate", "linguistic", "mental"]
     }
   },
   {
@@ -7246,10 +5926,7 @@
       "name": "Shameless Request",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -7262,10 +5939,7 @@
       "name": "Signature Crafting",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -7278,10 +5952,7 @@
       "name": "Skeptic's Defense",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -7294,10 +5965,7 @@
       "name": "Slippery Secrets",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -7310,10 +5978,7 @@
       "name": "Swift Sneak",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -7326,10 +5991,7 @@
       "name": "Talent Envy",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -7355,10 +6017,7 @@
       "name": "Terrified Retreat",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -7371,10 +6030,7 @@
       "name": "Tumbling Theft",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -7387,10 +6043,7 @@
       "name": "Vanish Into the Land",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -7403,10 +6056,7 @@
       "name": "Wall Jump",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -7419,10 +6069,7 @@
       "name": "Water Sprint",
       "system.level": 7,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   },
   {
@@ -7435,10 +6082,7 @@
       "name": "Calm and Centered",
       "system.level": 8,
       "system.category": "skill",
-      "system.traits.value": [
-        "general",
-        "skill"
-      ]
+      "system.traits.value": ["general", "skill"]
     }
   }
 ]

@@ -67,18 +67,18 @@ reference and manual inspection but is not wired to the pnpm test pipeline.
 
 ## Committed packs (`systems/pf2e/packs/`)
 
-| Pack                   | Docs | Curation                                                                                                  |
-| ---------------------- | ---: | ----------------------------------------------------------------------------------------------------------- |
-| `conditions`            |   43 | All PF2e conditions.                                                                                       |
-| `weapons-core`          |   30 | Hand-curated simple/martial/ranged spread.                                                                 |
-| `bestiary-core`         |   10 | Level -1..3 ORC monsters.                                                                                  |
-| `spells-core`           |  806 | Original 22 hand-picked spells + every spell with `arcane` in `traits.traditions` (all ranks/cantrips) + every Magus focus spell (R10-B, DEC-R10-06). No rituals exist in the vendor `spells` pack. |
-| `classes-core`          |    1 | Magus only (R10-B).                                                                                        |
-| `class-features-core`   |   27 | The 19 class-features referenced by the Magus's vendor `items{}` map + all 8 Magus Hybrid Studies (R10-B). |
-| `feats-core`            |  418 | Magus class feats (55, incl. shared-class-feats it's eligible for) + Ratfolk ancestry feats (26) + skill feats level ≤8 + general feats level ≤8 + Alchemist Dedication + its 2 level-4 archetype feats (R10-B). |
-| `ancestries-core`       |    1 | Ratfolk only (R10-B).                                                                                      |
-| `heritages-core`        |    7 | The 7 Ratfolk heritages, incl. Snow Rat (R10-B).                                                            |
-| `backgrounds-core`      |    1 | Fireworks Performer only (R10-B).                                                                          |
+| Pack                  | Docs | Curation                                                                                                                                                                                                         |
+| --------------------- | ---: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `conditions`          |   43 | All PF2e conditions.                                                                                                                                                                                             |
+| `weapons-core`        |   30 | Hand-curated simple/martial/ranged spread.                                                                                                                                                                       |
+| `bestiary-core`       |   10 | Level -1..3 ORC monsters.                                                                                                                                                                                        |
+| `spells-core`         |  806 | Original 22 hand-picked spells + every spell with `arcane` in `traits.traditions` (all ranks/cantrips) + every Magus focus spell (R10-B, DEC-R10-06). No rituals exist in the vendor `spells` pack.              |
+| `classes-core`        |    1 | Magus only (R10-B).                                                                                                                                                                                              |
+| `class-features-core` |   27 | The 19 class-features referenced by the Magus's vendor `items{}` map + all 8 Magus Hybrid Studies (R10-B).                                                                                                       |
+| `feats-core`          |  418 | Magus class feats (55, incl. shared-class-feats it's eligible for) + Ratfolk ancestry feats (26) + skill feats level ≤8 + general feats level ≤8 + Alchemist Dedication + its 2 level-4 archetype feats (R10-B). |
+| `ancestries-core`     |    1 | Ratfolk only (R10-B).                                                                                                                                                                                            |
+| `heritages-core`      |    7 | The 7 Ratfolk heritages, incl. Snow Rat (R10-B).                                                                                                                                                                 |
+| `backgrounds-core`    |    1 | Fireworks Performer only (R10-B).                                                                                                                                                                                |
 
 R10-B curation rules (classes/class-features/feats/ancestries/heritages/backgrounds)
 are implemented as **declarative predicates** over transformed Fusion docs

@@ -66,11 +66,20 @@ function child(
 
 describe("classifyNestedChildren", () => {
   it("classifies an attack roll (no degree) as a roll line", () => {
-    const atk = child("atk", "Tobias", rollData({ formula: "1d20+9", total: 22, flavor: "Ataque" }));
+    const atk = child(
+      "atk",
+      "Tobias",
+      rollData({ formula: "1d20+9", total: 22, flavor: "Ataque" }),
+    );
     const { rolls, saves } = classifyNestedChildren([atk]);
     expect(saves).toHaveLength(0);
     expect(rolls).toHaveLength(1);
-    expect(rolls[0]).toMatchObject({ messageId: "atk", formula: "1d20+9", total: 22, flavor: "Ataque" });
+    expect(rolls[0]).toMatchObject({
+      messageId: "atk",
+      formula: "1d20+9",
+      total: 22,
+      flavor: "Ataque",
+    });
   });
 
   it("classifies a damage roll (no degree, no d20) as a roll line with no crit class", () => {
@@ -127,7 +136,10 @@ describe("classifyNestedChildren", () => {
       "save",
       "Bruenor",
       rollData({ formula: "1d20+8", total: 18, degreeOfSuccess: "success" }),
-      { fusion: { parentMessageId: "p1" }, pf2e: { checkContext: { kind: "save", basicSave: true } } },
+      {
+        fusion: { parentMessageId: "p1" },
+        pf2e: { checkContext: { kind: "save", basicSave: true } },
+      },
     );
     const { rolls, saves } = classifyNestedChildren([save]);
     expect(rolls).toHaveLength(0);
@@ -142,12 +154,10 @@ describe("classifyNestedChildren", () => {
   });
 
   it("keeps degreeRaw and null degree when the grade is unknown", () => {
-    const save = child(
-      "save",
-      "X",
-      rollData({ degreeOfSuccess: "weirdGrade" }),
-      { fusion: { parentMessageId: "p1" }, pf2e: { checkContext: { kind: "save" } } },
-    );
+    const save = child("save", "X", rollData({ degreeOfSuccess: "weirdGrade" }), {
+      fusion: { parentMessageId: "p1" },
+      pf2e: { checkContext: { kind: "save" } },
+    });
     const { saves } = classifyNestedChildren([save]);
     expect(saves[0]?.degree).toBeNull();
     expect(saves[0]?.degreeRaw).toBe("weirdGrade");

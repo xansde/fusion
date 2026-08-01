@@ -226,7 +226,13 @@ function familiarPayload(masterId: string, name = "Tobias"): Record<string, unkn
     system: {
       companionKind: "familiar",
       masterActorId: masterId,
-      master: { level: 3, abilityMod: 4, ac: 18, saves: { fortitude: 1, reflex: 1, will: 1 }, perception: 1 },
+      master: {
+        level: 3,
+        abilityMod: 4,
+        ac: 18,
+        saves: { fortitude: 1, reflex: 1, will: 1 },
+        perception: 1,
+      },
       attributes: { hp: { value: 15, max: 15, temp: 0 } },
       abilitiesBudget: { value: 2, max: 2 },
       selectedAbilities: [],
@@ -277,7 +283,8 @@ describe("Player-owned familiar create/delete gate (pf2e, r17-P1)", () => {
       data: [masterWithoutFeat(ctx.ownerUserId)],
     });
     expect(noFeatAck["ok"]).toBe(true);
-    masterNoFeatId = (noFeatAck["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
+    masterNoFeatId = (noFeatAck["result"] as { documents: Array<{ _id: string }> }).documents[0]!
+      ._id;
 
     const npcAck = await sendOp(gm, "doc:create", {
       documentType: "Actor",

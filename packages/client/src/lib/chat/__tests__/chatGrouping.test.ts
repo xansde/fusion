@@ -52,14 +52,18 @@ describe("readParentMessageId", () => {
   });
 
   it("returns null for an empty / non-string parent id (malformed guard)", () => {
-    expect(readParentMessageId(msg("m1", { flags: { fusion: { parentMessageId: "" } } }))).toBeNull();
+    expect(
+      readParentMessageId(msg("m1", { flags: { fusion: { parentMessageId: "" } } })),
+    ).toBeNull();
     expect(
       readParentMessageId(msg("m1", { flags: { fusion: { parentMessageId: 42 } } as never })),
     ).toBeNull();
   });
 
   it("ignores a foreign namespace", () => {
-    expect(readParentMessageId(msg("m1", { flags: { evil: { parentMessageId: "p1" } } }))).toBeNull();
+    expect(
+      readParentMessageId(msg("m1", { flags: { evil: { parentMessageId: "p1" } } })),
+    ).toBeNull();
   });
 });
 
@@ -79,12 +83,7 @@ describe("groupChatMessages", () => {
   });
 
   it("preserves chronological order of children (input order)", () => {
-    const list = [
-      msg("p1"),
-      child("save-1", "p1"),
-      child("save-2", "p1"),
-      child("save-3", "p1"),
-    ];
+    const list = [msg("p1"), child("save-1", "p1"), child("save-2", "p1"), child("save-3", "p1")];
     const g = groupChatMessages(list);
     expect(g.childrenByParent.get("p1")?.map((m) => m._id)).toEqual(["save-1", "save-2", "save-3"]);
   });

@@ -122,9 +122,7 @@
       "size": {
         "value": "med"
       },
-      "value": [
-        "animal"
-      ]
+      "value": ["animal"]
     }
   },
   "items": [
@@ -205,9 +203,7 @@
         "rules": [],
         "slug": null,
         "traits": {
-          "value": [
-            "acid"
-          ]
+          "value": ["acid"]
         }
       }
     },
@@ -302,9 +298,7 @@
         "rules": [],
         "slug": null,
         "traits": {
-          "value": [
-            "concentrate"
-          ]
+          "value": ["concentrate"]
         }
       }
     },
@@ -371,35 +365,23 @@
           },
           {
             "key": "FlatModifier",
-            "predicate": [
-              "still-a-corpse"
-            ],
-            "selector": [
-              "deception-dc",
-              "deception"
-            ],
+            "predicate": ["still-a-corpse"],
+            "selector": ["deception-dc", "deception"],
             "slug": "still-a-corpse-bonus",
             "value": 13
           },
           {
             "key": "SubstituteRoll",
-            "predicate": [
-              "still-a-corpse"
-            ],
+            "predicate": ["still-a-corpse"],
             "required": true,
-            "selectors": [
-              "deception-dc",
-              "deception"
-            ],
+            "selectors": ["deception-dc", "deception"],
             "slug": "still-a-corpse-bonus",
             "value": 10
           }
         ],
         "slug": null,
         "traits": {
-          "value": [
-            "concentrate"
-          ]
+          "value": ["concentrate"]
         }
       }
     }

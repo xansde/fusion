@@ -8,11 +8,7 @@
     "index": {
       "name": "Antivenom Potion",
       "system.level": 2,
-      "system.traits.value": [
-        "consumable",
-        "magical",
-        "potion"
-      ],
+      "system.traits.value": ["consumable", "magical", "potion"],
       "system.category": "potion",
       "system.usage": "held-in-one-hand"
     }
@@ -39,10 +35,7 @@
     "index": {
       "name": "Boots of Bounding",
       "system.level": 7,
-      "system.traits.value": [
-        "invested",
-        "magical"
-      ],
+      "system.traits.value": ["invested", "magical"],
       "system.usage": "wornshoes"
     }
   },
@@ -55,9 +48,7 @@
     "index": {
       "name": "Cantrip Deck (Full Pack)",
       "system.level": 1,
-      "system.traits.value": [
-        "magical"
-      ],
+      "system.traits.value": ["magical"],
       "system.category": "other",
       "system.usage": "held-in-one-hand"
     }
@@ -71,9 +62,7 @@
     "index": {
       "name": "Elven Chain (Standard-Grade)",
       "system.level": 13,
-      "system.traits.value": [
-        "flexible"
-      ],
+      "system.traits.value": ["flexible"],
       "system.category": "light"
     }
   },
@@ -86,10 +75,7 @@
     "index": {
       "name": "Everlight Crystal",
       "system.level": 1,
-      "system.traits.value": [
-        "light",
-        "magical"
-      ],
+      "system.traits.value": ["light", "magical"],
       "system.usage": "held-in-one-hand"
     }
   },
@@ -115,10 +101,7 @@
     "index": {
       "name": "Gate Attenuator",
       "system.level": 3,
-      "system.traits.value": [
-        "invested",
-        "magical"
-      ],
+      "system.traits.value": ["invested", "magical"],
       "system.usage": "worn"
     }
   },
@@ -131,13 +114,7 @@
     "index": {
       "name": "Healing Potion (Lesser)",
       "system.level": 3,
-      "system.traits.value": [
-        "consumable",
-        "healing",
-        "magical",
-        "potion",
-        "vitality"
-      ],
+      "system.traits.value": ["consumable", "healing", "magical", "potion", "vitality"],
       "system.category": "potion",
       "system.usage": "held-in-one-hand"
     }
@@ -151,10 +128,7 @@
     "index": {
       "name": "Purifying Spoon (Teaspoon)",
       "system.level": 1,
-      "system.traits.value": [
-        "magical",
-        "wood"
-      ],
+      "system.traits.value": ["magical", "wood"],
       "system.usage": "held-in-one-hand"
     }
   },
@@ -181,10 +155,7 @@
     "index": {
       "name": "Rhythm Bone",
       "system.level": 1,
-      "system.traits.value": [
-        "auditory",
-        "magical"
-      ],
+      "system.traits.value": ["auditory", "magical"],
       "system.usage": "held-in-one-hand"
     }
   },
@@ -210,11 +181,7 @@
     "index": {
       "name": "Sanitizing Pin",
       "system.level": 2,
-      "system.traits.value": [
-        "consumable",
-        "magical",
-        "talisman"
-      ],
+      "system.traits.value": ["consumable", "magical", "talisman"],
       "system.category": "talisman",
       "system.usage": "affixed-to-armor"
     }
@@ -228,11 +195,7 @@
     "index": {
       "name": "Serum of Sex Shift",
       "system.level": 7,
-      "system.traits.value": [
-        "consumable",
-        "magical",
-        "potion"
-      ],
+      "system.traits.value": ["consumable", "magical", "potion"],
       "system.category": "potion",
       "system.usage": "held-in-one-hand"
     }
@@ -246,10 +209,7 @@
     "index": {
       "name": "Spacious Pouch (Type I)",
       "system.level": 4,
-      "system.traits.value": [
-        "extradimensional",
-        "magical"
-      ],
+      "system.traits.value": ["extradimensional", "magical"],
       "system.usage": "held-in-two-hands"
     }
   },

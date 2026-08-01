@@ -28,7 +28,11 @@
  * Spec: 17-sistema-pf2e.md; .fusion-build/r14-plan.md (Fase 2, B2).
  */
 
-import type { DocCreateEmbeddedPayload, DocOpPayload, DocUpdatePayload } from "./characterSheetVM.js";
+import type {
+  DocCreateEmbeddedPayload,
+  DocOpPayload,
+  DocUpdatePayload,
+} from "./characterSheetVM.js";
 
 // ---------------------------------------------------------------------------
 // Grant markers on materialized items (flags.fusion.*)
@@ -86,11 +90,17 @@ export function parseGrantItems(rules: unknown): ParsedGrant[] {
   for (const rule of rules) {
     if (!rule || typeof rule !== "object") continue;
     const r = rule as Record<string, unknown>;
-    const raw = (r["raw"] && typeof r["raw"] === "object" ? (r["raw"] as Record<string, unknown>) : {});
+    const raw =
+      r["raw"] && typeof r["raw"] === "object" ? (r["raw"] as Record<string, unknown>) : {};
     const isGrant = r["kind"] === "grant-item" || raw["key"] === "GrantItem";
     if (!isGrant) continue;
     if (r["inMemoryOnly"] === true) continue;
-    const uuid = typeof r["uuid"] === "string" ? r["uuid"] : typeof raw["uuid"] === "string" ? (raw["uuid"] as string) : undefined;
+    const uuid =
+      typeof r["uuid"] === "string"
+        ? r["uuid"]
+        : typeof raw["uuid"] === "string"
+          ? (raw["uuid"] as string)
+          : undefined;
     if (!uuid) continue;
     const parsed = parseGrantUuid(uuid);
     if (parsed) grants.push(parsed);
@@ -124,7 +134,8 @@ export function parseMechanicsGrants(mechanics: unknown): ParsedGrant[] {
     const vendor = typeof grant["vendor"] === "string" ? grant["vendor"] : undefined;
     const name = typeof grant["name"] === "string" ? grant["name"].trim() : undefined;
     if (!vendor || !name) continue;
-    const uuid = typeof grant["uuid"] === "string" ? grant["uuid"] : `Compendium.pf2e.${vendor}.Item.${name}`;
+    const uuid =
+      typeof grant["uuid"] === "string" ? grant["uuid"] : `Compendium.pf2e.${vendor}.Item.${name}`;
     out.push({ vendor, name, uuid });
   }
   return out;
@@ -281,11 +292,16 @@ function itemSourceId(item: Record<string, unknown>): string | undefined {
 }
 
 /** Read a granter's `{ sourceId, slot }` identity off its embedded item (used to tag its grants). */
-export function granterIdentity(granterItem: Record<string, unknown>): { sourceId?: string; slot?: string } {
+export function granterIdentity(granterItem: Record<string, unknown>): {
+  sourceId?: string;
+  slot?: string;
+} {
   const fusion = itemFusionFlags(granterItem);
-  const sourceId = typeof fusion["sourceId"] === "string" ? (fusion["sourceId"] as string) : undefined;
+  const sourceId =
+    typeof fusion["sourceId"] === "string" ? (fusion["sourceId"] as string) : undefined;
   const build = fusion["build"];
-  const slot = build && typeof build === "object" ? (build as Record<string, unknown>)["slot"] : undefined;
+  const slot =
+    build && typeof build === "object" ? (build as Record<string, unknown>)["slot"] : undefined;
   return {
     ...(sourceId !== undefined ? { sourceId } : {}),
     ...(typeof slot === "string" ? { slot } : {}),
@@ -309,11 +325,7 @@ function alreadyGranted(
 }
 
 function normalizeName(name: string): string {
-  return name
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .trim();
+  return name.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
 }
 
 /**
@@ -334,7 +346,8 @@ function findAdoptableItem(
   grantedDoc: Record<string, unknown>,
   grantedSourceId: string,
 ): Record<string, unknown> | undefined {
-  const grantedName = typeof grantedDoc["name"] === "string" ? normalizeName(grantedDoc["name"]) : undefined;
+  const grantedName =
+    typeof grantedDoc["name"] === "string" ? normalizeName(grantedDoc["name"]) : undefined;
   const grantedType = grantedDoc["type"];
   return existingItems.find((it) => {
     const fusion = itemFusionFlags(it);
@@ -408,7 +421,10 @@ export async function materializeGrants(
     // kind "fixed-item" (curated from prose, e.g. the Magus conflux spell). The
     // latter arrives on the served doc via the CompendiumService overlay.
     const system = doc["system"];
-    const rules = system && typeof system === "object" ? (system as Record<string, unknown>)["rules"] : undefined;
+    const rules =
+      system && typeof system === "object"
+        ? (system as Record<string, unknown>)["rules"]
+        : undefined;
     // Three grant sources, processed uniformly: `system.rules` GrantItem
     // elements (Foundry-shaped), `mechanics.grants` of kind "fixed-item"
     // (curated from prose), and the ABC/class `system.items` MAP of
@@ -480,8 +496,14 @@ export function buildGrantCreateOp(
   mctx: MaterializeContext,
 ): DocCreateEmbeddedPayload {
   const { _id: _drop, ...rest } = grantedDoc;
-  const existingFlags = rest["flags"] && typeof rest["flags"] === "object" ? (rest["flags"] as Record<string, unknown>) : {};
-  const existingFusion = existingFlags["fusion"] && typeof existingFlags["fusion"] === "object" ? (existingFlags["fusion"] as Record<string, unknown>) : {};
+  const existingFlags =
+    rest["flags"] && typeof rest["flags"] === "object"
+      ? (rest["flags"] as Record<string, unknown>)
+      : {};
+  const existingFusion =
+    existingFlags["fusion"] && typeof existingFlags["fusion"] === "object"
+      ? (existingFlags["fusion"] as Record<string, unknown>)
+      : {};
 
   const data: Record<string, unknown> = {
     ...rest,
@@ -522,9 +544,14 @@ export function pickSpellEntryId(
   const system = spellDoc["system"];
   const sys = system && typeof system === "object" ? (system as Record<string, unknown>) : {};
   const traitsObj = sys["traits"];
-  const traits = traitsObj && typeof traitsObj === "object" && Array.isArray((traitsObj as Record<string, unknown>)["value"])
-    ? ((traitsObj as Record<string, unknown>)["value"] as unknown[]).filter((v): v is string => typeof v === "string")
-    : [];
+  const traits =
+    traitsObj &&
+    typeof traitsObj === "object" &&
+    Array.isArray((traitsObj as Record<string, unknown>)["value"])
+      ? ((traitsObj as Record<string, unknown>)["value"] as unknown[]).filter(
+          (v): v is string => typeof v === "string",
+        )
+      : [];
   const traditionObj = sys["traditions"] ?? sys["tradition"];
   const spellTraditions = Array.isArray(traditionObj)
     ? traditionObj.filter((v): v is string => typeof v === "string")

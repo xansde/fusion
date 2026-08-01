@@ -7,9 +7,7 @@
     "type": "class",
     "index": {
       "name": "Kineticist",
-      "system.keyAbility": [
-        "con"
-      ],
+      "system.keyAbility": ["con"],
       "system.traits.value": []
     }
   },
@@ -21,10 +19,7 @@
     "type": "class",
     "index": {
       "name": "Magus",
-      "system.keyAbility": [
-        "dex",
-        "str"
-      ],
+      "system.keyAbility": ["dex", "str"],
       "system.traits.value": []
     }
   }

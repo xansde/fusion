@@ -42,7 +42,10 @@ export const SKILL_NAMES_PT: Record<string, string> = {
  */
 export function skillNamePt(slug: string): string {
   if (slug.startsWith("lore-")) {
-    const subject = slug.replace(/^lore-/, "").replace(/-+/g, " ").trim();
+    const subject = slug
+      .replace(/^lore-/, "")
+      .replace(/-+/g, " ")
+      .trim();
     const titled = subject ? subject.charAt(0).toUpperCase() + subject.slice(1) : subject;
     return titled ? `Saber (${titled})` : "Saber";
   }

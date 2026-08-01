@@ -35,9 +35,7 @@
     "rules": [
       {
         "key": "FlatModifier",
-        "predicate": [
-          "glitching-failure"
-        ],
+        "predicate": ["glitching-failure"],
         "selector": "all",
         "type": "item",
         "value": "-@item.badge.value"

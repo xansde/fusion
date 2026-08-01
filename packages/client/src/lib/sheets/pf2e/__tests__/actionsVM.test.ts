@@ -67,10 +67,12 @@ describe("resolveActionCost()", () => {
   });
 
   it("reads the nested {value} vendor wrapper shape", () => {
-    expect(resolveActionCost({ actionType: { value: "action" }, actions: { value: 2 } }).kind).toBe("2");
-    expect(resolveActionCost({ actionType: { value: "reaction" }, actions: { value: null } }).kind).toBe(
-      "reaction",
+    expect(resolveActionCost({ actionType: { value: "action" }, actions: { value: 2 } }).kind).toBe(
+      "2",
     );
+    expect(
+      resolveActionCost({ actionType: { value: "reaction" }, actions: { value: null } }).kind,
+    ).toBe("reaction");
   });
 
   it("maps kinds to the expected glyphs", () => {
@@ -100,19 +102,37 @@ describe("resolveActionGroup()", () => {
 
   it("maps every fusionCategory value the actions-core pack actually ships", () => {
     expect(resolveActionGroup({ system: { fusionCategory: "class" } })).toBe<ActionGroup>("class");
-    expect(resolveActionGroup({ system: { fusionCategory: "archetype" } })).toBe<ActionGroup>("archetype");
-    expect(resolveActionGroup({ system: { fusionCategory: "ancestry" } })).toBe<ActionGroup>("ancestry");
-    expect(resolveActionGroup({ system: { fusionCategory: "heritage" } })).toBe<ActionGroup>("ancestry");
-    expect(resolveActionGroup({ system: { fusionCategory: "background" } })).toBe<ActionGroup>("background");
+    expect(resolveActionGroup({ system: { fusionCategory: "archetype" } })).toBe<ActionGroup>(
+      "archetype",
+    );
+    expect(resolveActionGroup({ system: { fusionCategory: "ancestry" } })).toBe<ActionGroup>(
+      "ancestry",
+    );
+    expect(resolveActionGroup({ system: { fusionCategory: "heritage" } })).toBe<ActionGroup>(
+      "ancestry",
+    );
+    expect(resolveActionGroup({ system: { fusionCategory: "background" } })).toBe<ActionGroup>(
+      "background",
+    );
     expect(resolveActionGroup({ system: { fusionCategory: "basic" } })).toBe<ActionGroup>("basic");
     expect(resolveActionGroup({ system: { fusionCategory: "skill" } })).toBe<ActionGroup>("skill");
-    expect(resolveActionGroup({ system: { fusionCategory: "equipment" } })).toBe<ActionGroup>("equipment");
-    expect(resolveActionGroup({ system: { fusionCategory: "exploration" } })).toBe<ActionGroup>("exploration");
-    expect(resolveActionGroup({ system: { fusionCategory: "downtime" } })).toBe<ActionGroup>("downtime");
+    expect(resolveActionGroup({ system: { fusionCategory: "equipment" } })).toBe<ActionGroup>(
+      "equipment",
+    );
+    expect(resolveActionGroup({ system: { fusionCategory: "exploration" } })).toBe<ActionGroup>(
+      "exploration",
+    );
+    expect(resolveActionGroup({ system: { fusionCategory: "downtime" } })).toBe<ActionGroup>(
+      "downtime",
+    );
     expect(resolveActionGroup({ system: { fusionCategory: "spells" } })).toBe<ActionGroup>("other");
-    expect(resolveActionGroup({ system: { fusionCategory: "stamina" } })).toBe<ActionGroup>("other");
+    expect(resolveActionGroup({ system: { fusionCategory: "stamina" } })).toBe<ActionGroup>(
+      "other",
+    );
     expect(resolveActionGroup({ system: { fusionCategory: "mythic" } })).toBe<ActionGroup>("other");
-    expect(resolveActionGroup({ system: { fusionCategory: "familiar" } })).toBe<ActionGroup>("other");
+    expect(resolveActionGroup({ system: { fusionCategory: "familiar" } })).toBe<ActionGroup>(
+      "other",
+    );
   });
 
   it("falls back to a re-injected legacy folder field (flags.fusion.actionFolder)", () => {
@@ -155,11 +175,7 @@ describe("slugFromName()", () => {
 // rowFromIndexEntry
 // ---------------------------------------------------------------------------
 
-function packEntry(
-  name: string,
-  index: Record<string, unknown>,
-  namePt?: string,
-): PackIndexEntry {
+function packEntry(name: string, index: Record<string, unknown>, namePt?: string): PackIndexEntry {
   return {
     _id: slugFromName(name),
     uuid: `Compendium.pf2e.actions-core.Item.${slugFromName(name)}`,
@@ -167,9 +183,7 @@ function packEntry(
     img: null,
     type: "action",
     index,
-    ...(namePt !== undefined
-      ? { namePt, i18n: { ptBR: { name: namePt } } }
-      : {}),
+    ...(namePt !== undefined ? { namePt, i18n: { ptBR: { name: namePt } } } : {}),
   };
 }
 
@@ -246,7 +260,12 @@ describe("rowFromIndexEntry()", () => {
 
 describe("actionRowNameParts()", () => {
   it("shows the pt-BR name with the EN name as subtitle on the pt-BR locale", () => {
-    const r = row({ name: "Raise a Shield", slug: "raise-a-shield", group: "basic", namePt: "Erguer Escudo" });
+    const r = row({
+      name: "Raise a Shield",
+      slug: "raise-a-shield",
+      group: "basic",
+      namePt: "Erguer Escudo",
+    });
     const parts = actionRowNameParts(r, "pt-BR");
     expect(parts.display).toBe("Erguer Escudo");
     expect(parts.subtitleEn).toBe("Raise a Shield");
@@ -260,7 +279,12 @@ describe("actionRowNameParts()", () => {
   });
 
   it("shows the EN name and no subtitle on the 'en' locale even when translated", () => {
-    const r = row({ name: "Raise a Shield", slug: "raise-a-shield", group: "basic", namePt: "Erguer Escudo" });
+    const r = row({
+      name: "Raise a Shield",
+      slug: "raise-a-shield",
+      group: "basic",
+      namePt: "Erguer Escudo",
+    });
     const parts = actionRowNameParts(r, "en");
     expect(parts.display).toBe("Raise a Shield");
     expect(parts.subtitleEn).toBeNull();
@@ -277,7 +301,12 @@ describe("rowFromEmbeddedItem()", () => {
       _id: "abc123",
       type: "feat",
       name: "Bon Mot",
-      system: { actionType: "action", actions: 1, slug: "bon-mot", traits: { value: ["auditory"] } },
+      system: {
+        actionType: "action",
+        actions: 1,
+        slug: "bon-mot",
+        traits: { value: ["auditory"] },
+      },
     };
     const row = rowFromEmbeddedItem(item);
     expect(row).not.toBeNull();
@@ -309,7 +338,12 @@ describe("rowFromEmbeddedItem()", () => {
   });
 
   it("derives a slug from the name when system.slug is absent", () => {
-    const item = { _id: "x", type: "action", name: "Raise a Shield", system: { actionType: "action", actions: 1 } };
+    const item = {
+      _id: "x",
+      type: "action",
+      name: "Raise a Shield",
+      system: { actionType: "action", actions: 1 },
+    };
     expect(rowFromEmbeddedItem(item)?.slug).toBe("raise-a-shield");
   });
 });
@@ -334,7 +368,11 @@ describe("impulse rows (rowFromEmbeddedItem / rowFromIndexEntry)", () => {
       _id: "fw1",
       type: "feat",
       name: "Four Winds",
-      system: { actionType: "action", actions: 2, traits: { value: ["air", "impulse", "kineticist", "primal"] } },
+      system: {
+        actionType: "action",
+        actions: 2,
+        traits: { value: ["air", "impulse", "kineticist", "primal"] },
+      },
     };
     const row = rowFromEmbeddedItem(item);
     expect(row?.isImpulse).toBe(true);
@@ -359,12 +397,22 @@ describe("impulse rows (rowFromEmbeddedItem / rowFromIndexEntry)", () => {
   });
 
   it("leaves a normal (non-impulse) action row isImpulse false", () => {
-    const item = { _id: "s1", type: "action", name: "Seek", system: { actionType: "action", actions: 1 } };
+    const item = {
+      _id: "s1",
+      type: "action",
+      name: "Seek",
+      system: { actionType: "action", actions: 1 },
+    };
     expect(rowFromEmbeddedItem(item)?.isImpulse).toBe(false);
   });
 
   it("still returns null for a non-impulse passive feat (Toughness unchanged)", () => {
-    const item = { _id: "t1", type: "feat", name: "Toughness", system: { actionType: "passive", traits: { value: ["general"] } } };
+    const item = {
+      _id: "t1",
+      type: "feat",
+      name: "Toughness",
+      system: { actionType: "passive", traits: { value: ["general"] } },
+    };
     expect(rowFromEmbeddedItem(item)).toBeNull();
   });
 
@@ -396,7 +444,9 @@ describe("parseImpulseSaveCue()", () => {
   });
 
   it("returns null for an attack @Check (defense:ac) and for no @Check", () => {
-    expect(parseImpulseSaveCue("Make ranged @Check[impulse|defense:ac]{impulse attack} rolls")).toBeNull();
+    expect(
+      parseImpulseSaveCue("Make ranged @Check[impulse|defense:ac]{impulse attack} rolls"),
+    ).toBeNull();
     expect(parseImpulseSaveCue("<p>Four willing creatures Stride.</p>")).toBeNull();
     expect(parseImpulseSaveCue("")).toBeNull();
     expect(parseImpulseSaveCue(null)).toBeNull();
@@ -573,7 +623,12 @@ describe("buildElementalBlastAttackOp()", () => {
   it("returns null when the formula or speaker is empty", () => {
     expect(buildElementalBlastAttackOp({ attackFormula: "", flavor: "x", ...base })).toBeNull();
     expect(
-      buildElementalBlastAttackOp({ attackFormula: "1d20+9", flavor: "x", worldId: "w1", speakerActorId: "" }),
+      buildElementalBlastAttackOp({
+        attackFormula: "1d20+9",
+        flavor: "x",
+        worldId: "w1",
+        speakerActorId: "",
+      }),
     ).toBeNull();
   });
 });
@@ -606,9 +661,7 @@ describe("parseImpulseDamage()", () => {
 
   it("returns null for level-scaled formulas (chat:send cannot resolve @actor)", () => {
     expect(parseImpulseDamage("@Damage[ceil(@actor.level/2)d6[fire]]")).toBeNull();
-    expect(
-      parseImpulseDamage("@Damage[ternary(gte(@actor.level,18),7,5)d6[acid]]"),
-    ).toBeNull();
+    expect(parseImpulseDamage("@Damage[ternary(gte(@actor.level,18),7,5)d6[acid]]")).toBeNull();
   });
 
   it("returns null when there is no @Damage token", () => {
@@ -777,15 +830,25 @@ describe("mergeActionRows()", () => {
   });
 
   it("ignores embedded items that are not actions", () => {
-    const embedded = [{ _id: "t", type: "feat", name: "Toughness", system: { actionType: "passive" } }];
-    const merged = mergeActionRows([packEntry("Seek", { "system.actionType": "action", "system.actions": 1 })], embedded);
+    const embedded = [
+      { _id: "t", type: "feat", name: "Toughness", system: { actionType: "passive" } },
+    ];
+    const merged = mergeActionRows(
+      [packEntry("Seek", { "system.actionType": "action", "system.actions": 1 })],
+      embedded,
+    );
     expect(merged).toHaveLength(1);
     expect(merged[0]?.name).toBe("Seek");
   });
 
   it("keeps a character-only action with no matching pack row", () => {
     const embedded = [
-      { _id: "s1", type: "feat", name: "Spellstrike", system: { actionType: "action", actions: 2, slug: "spellstrike" } },
+      {
+        _id: "s1",
+        type: "feat",
+        name: "Spellstrike",
+        system: { actionType: "action", actions: 2, slug: "spellstrike" },
+      },
     ];
     const merged = mergeActionRows([], embedded);
     expect(merged).toHaveLength(1);
@@ -798,7 +861,12 @@ describe("mergeActionRows()", () => {
     // the same-slug action with the ORC/OGL description behind its uuid.
     const packBonMot = packEntry("Bon Mot", { "system.actionType": "action", "system.actions": 1 });
     const embedded = [
-      { _id: "bm1", type: "feat", name: "Bon Mot", system: { actionType: "action", actions: 1, slug: "bon-mot", description: "" } },
+      {
+        _id: "bm1",
+        type: "feat",
+        name: "Bon Mot",
+        system: { actionType: "action", actions: 1, slug: "bon-mot", description: "" },
+      },
     ];
     const merged = mergeActionRows([packBonMot], embedded);
     const bonMot = merged.find((r) => r.slug === "bon-mot");
@@ -809,15 +877,26 @@ describe("mergeActionRows()", () => {
 
   it("leaves fallbackUuid null for an embedded row with no matching pack row", () => {
     const embedded = [
-      { _id: "ma1", type: "feat", name: "Magus's Analysis", system: { actionType: "action", actions: 1, slug: "maguss-analysis" } },
+      {
+        _id: "ma1",
+        type: "feat",
+        name: "Magus's Analysis",
+        system: { actionType: "action", actions: 1, slug: "maguss-analysis" },
+      },
     ];
-    const merged = mergeActionRows([packEntry("Seek", { "system.actionType": "action", "system.actions": 1 })], embedded);
+    const merged = mergeActionRows(
+      [packEntry("Seek", { "system.actionType": "action", "system.actions": 1 })],
+      embedded,
+    );
     const analysis = merged.find((r) => r.fromCharacter);
     expect(analysis?.fallbackUuid).toBeNull();
   });
 
   it("leaves fallbackUuid null on plain pack rows (they already carry uuid)", () => {
-    const merged = mergeActionRows([packEntry("Seek", { "system.actionType": "action", "system.actions": 1 })], []);
+    const merged = mergeActionRows(
+      [packEntry("Seek", { "system.actionType": "action", "system.actions": 1 })],
+      [],
+    );
     expect(merged[0]?.fallbackUuid).toBeNull();
     expect(merged[0]?.uuid).not.toBeNull();
   });
@@ -831,7 +910,12 @@ describe("mergeActionRows()", () => {
       "Bom Mot",
     );
     const embedded = [
-      { _id: "bm1", type: "feat", name: "Bon Mot", system: { actionType: "action", actions: 1, slug: "bon-mot" } },
+      {
+        _id: "bm1",
+        type: "feat",
+        name: "Bon Mot",
+        system: { actionType: "action", actions: 1, slug: "bon-mot" },
+      },
     ];
     const merged = mergeActionRows([packBonMot], embedded);
     const bonMot = merged.find((r) => r.slug === "bon-mot");
@@ -843,7 +927,12 @@ describe("mergeActionRows()", () => {
   it("leaves the character row's namePt null when the deduped pack row is untranslated", () => {
     const packBonMot = packEntry("Bon Mot", { "system.actionType": "action", "system.actions": 1 });
     const embedded = [
-      { _id: "bm1", type: "feat", name: "Bon Mot", system: { actionType: "action", actions: 1, slug: "bon-mot" } },
+      {
+        _id: "bm1",
+        type: "feat",
+        name: "Bon Mot",
+        system: { actionType: "action", actions: 1, slug: "bon-mot" },
+      },
     ];
     const merged = mergeActionRows([packBonMot], embedded);
     expect(merged.find((r) => r.slug === "bon-mot")?.namePt).toBeNull();
@@ -905,9 +994,16 @@ describe("mergeActionRows() with feats-core enrichment", () => {
   // it; the feats-core index supplies namePt + fallbackUuid.
   it("enriches a character feat (no actions-core row) with feats-core namePt + fallbackUuid", () => {
     const embedded = [
-      { _id: "ma1", type: "feat", name: "Magus's Analysis", system: { actionType: "action", actions: 1 } },
+      {
+        _id: "ma1",
+        type: "feat",
+        name: "Magus's Analysis",
+        system: { actionType: "action", actions: 1 },
+      },
     ];
-    const nameIndex = buildActionNameIndex([featsPackEntry("Magus's Analysis", "Análise do Magus")]);
+    const nameIndex = buildActionNameIndex([
+      featsPackEntry("Magus's Analysis", "Análise do Magus"),
+    ]);
     const merged = mergeActionRows(
       [packEntry("Seek", { "system.actionType": "action", "system.actions": 1 })],
       embedded,
@@ -951,7 +1047,12 @@ describe("mergeActionRows() with feats-core enrichment", () => {
 
   it("is a no-op when no nameIndex is passed (prior behavior preserved)", () => {
     const embedded = [
-      { _id: "ma1", type: "feat", name: "Magus's Analysis", system: { actionType: "action", actions: 1 } },
+      {
+        _id: "ma1",
+        type: "feat",
+        name: "Magus's Analysis",
+        system: { actionType: "action", actions: 1 },
+      },
     ];
     const merged = mergeActionRows([], embedded);
     const analysis = merged.find((r) => r.fromCharacter);
@@ -1028,7 +1129,9 @@ describe("descriptionHtmlOf()", () => {
   });
 
   it("unwraps the vendor {value} description wrapper", () => {
-    expect(descriptionHtmlOf({ description: { value: "<p>Cast it.</p>" } })).toBe("<p>Cast it.</p>");
+    expect(descriptionHtmlOf({ description: { value: "<p>Cast it.</p>" } })).toBe(
+      "<p>Cast it.</p>",
+    );
   });
 
   it("returns empty string when the description is missing or non-textual", () => {
@@ -1067,11 +1170,18 @@ describe("buildEmbeddedDetailsDoc()", () => {
       name: "Spellstrike",
       system: { description: { value: "<p>Channel a spell.</p>" } },
     });
-    expect((doc?.["system"] as Record<string, unknown>)["description"]).toBe("<p>Channel a spell.</p>");
+    expect((doc?.["system"] as Record<string, unknown>)["description"]).toBe(
+      "<p>Channel a spell.</p>",
+    );
   });
 
   it("does not mutate the original item's system object", () => {
-    const item = { _id: "y", type: "action", name: "Foo", system: { description: { value: "<p>x</p>" } } };
+    const item = {
+      _id: "y",
+      type: "action",
+      name: "Foo",
+      system: { description: { value: "<p>x</p>" } },
+    };
     buildEmbeddedDetailsDoc(item);
     // Original wrapper is untouched (we clone system before normalizing).
     expect(item.system.description).toEqual({ value: "<p>x</p>" });
@@ -1094,7 +1204,9 @@ describe("buildEmbeddedDetailsDoc()", () => {
 
 describe("needsFallbackDescription()", () => {
   it("is true when the details doc has no/empty/whitespace description", () => {
-    expect(needsFallbackDescription(buildEmbeddedDetailsDoc({ _id: "a", type: "action", name: "Bare" }))).toBe(true);
+    expect(
+      needsFallbackDescription(buildEmbeddedDetailsDoc({ _id: "a", type: "action", name: "Bare" })),
+    ).toBe(true);
     expect(needsFallbackDescription({ system: { description: "" } })).toBe(true);
     expect(needsFallbackDescription({ system: { description: "   \n  " } })).toBe(true);
     // Bare markup with no text content counts as empty.
@@ -1109,7 +1221,9 @@ describe("needsFallbackDescription()", () => {
   });
 
   it("is false when the description has real text content", () => {
-    expect(needsFallbackDescription({ system: { description: "<p>Sling an insult.</p>" } })).toBe(false);
+    expect(needsFallbackDescription({ system: { description: "<p>Sling an insult.</p>" } })).toBe(
+      false,
+    );
     expect(needsFallbackDescription({ system: { description: "Plain text" } })).toBe(false);
   });
 });
@@ -1124,9 +1238,18 @@ describe("withFallbackDescription()", () => {
       _id: "bm",
       type: "feat",
       name: "Bon Mot",
-      system: { actionType: "action", actions: 1, description: "", traits: { value: ["auditory"] } },
+      system: {
+        actionType: "action",
+        actions: 1,
+        description: "",
+        traits: { value: ["auditory"] },
+      },
     });
-    const packDoc = { name: "Bon Mot", type: "action", system: { description: "<p>Sling an insult.</p>" } };
+    const packDoc = {
+      name: "Bon Mot",
+      type: "action",
+      system: { description: "<p>Sling an insult.</p>" },
+    };
     const merged = withFallbackDescription(embedded, packDoc);
     expect(merged?.["name"]).toBe("Bon Mot"); // embedded identity kept
     expect(merged?.["type"]).toBe("feat");
@@ -1136,20 +1259,35 @@ describe("withFallbackDescription()", () => {
   });
 
   it("unwraps a {value}-wrapped pack description", () => {
-    const embedded = buildEmbeddedDetailsDoc({ _id: "x", type: "action", name: "Foo", system: { description: "" } });
+    const embedded = buildEmbeddedDetailsDoc({
+      _id: "x",
+      type: "action",
+      name: "Foo",
+      system: { description: "" },
+    });
     const packDoc = { system: { description: { value: "<p>Wrapped.</p>" } } };
     const merged = withFallbackDescription(embedded, packDoc);
     expect((merged?.["system"] as Record<string, unknown>)["description"]).toBe("<p>Wrapped.</p>");
   });
 
   it("returns the embedded doc unchanged when the pack doc has no description", () => {
-    const embedded = buildEmbeddedDetailsDoc({ _id: "y", type: "action", name: "Foo", system: { description: "" } });
+    const embedded = buildEmbeddedDetailsDoc({
+      _id: "y",
+      type: "action",
+      name: "Foo",
+      system: { description: "" },
+    });
     expect(withFallbackDescription(embedded, { system: {} })).toBe(embedded);
     expect(withFallbackDescription(embedded, null)).toBe(embedded);
   });
 
   it("does not mutate the embedded doc's system", () => {
-    const embedded = buildEmbeddedDetailsDoc({ _id: "z", type: "action", name: "Foo", system: { description: "" } });
+    const embedded = buildEmbeddedDetailsDoc({
+      _id: "z",
+      type: "action",
+      name: "Foo",
+      system: { description: "" },
+    });
     const before = (embedded?.["system"] as Record<string, unknown>)["description"];
     withFallbackDescription(embedded, { system: { description: "<p>new</p>" } });
     expect((embedded?.["system"] as Record<string, unknown>)["description"]).toBe(before);
@@ -1160,7 +1298,12 @@ describe("withFallbackDescription()", () => {
   });
 
   it("prefers the pack doc's pt-BR description on the pt-BR locale (T1)", () => {
-    const embedded = buildEmbeddedDetailsDoc({ _id: "bm", type: "feat", name: "Bon Mot", system: { description: "" } });
+    const embedded = buildEmbeddedDetailsDoc({
+      _id: "bm",
+      type: "feat",
+      name: "Bon Mot",
+      system: { description: "" },
+    });
     const packDoc = {
       name: "Bon Mot",
       type: "action",
@@ -1168,24 +1311,40 @@ describe("withFallbackDescription()", () => {
       i18n: { ptBR: { name: "Bom Mot", description: "<p>Lance um insulto.</p>" } },
     };
     const merged = withFallbackDescription(embedded, packDoc, "pt-BR");
-    expect((merged?.["system"] as Record<string, unknown>)["description"]).toBe("<p>Lance um insulto.</p>");
+    expect((merged?.["system"] as Record<string, unknown>)["description"]).toBe(
+      "<p>Lance um insulto.</p>",
+    );
   });
 
   it("uses the EN pack description on the 'en' locale even when a pt-BR translation exists", () => {
-    const embedded = buildEmbeddedDetailsDoc({ _id: "bm", type: "feat", name: "Bon Mot", system: { description: "" } });
+    const embedded = buildEmbeddedDetailsDoc({
+      _id: "bm",
+      type: "feat",
+      name: "Bon Mot",
+      system: { description: "" },
+    });
     const packDoc = {
       system: { description: "<p>Sling an insult.</p>" },
       i18n: { ptBR: { description: "<p>Lance um insulto.</p>" } },
     };
     const merged = withFallbackDescription(embedded, packDoc, "en");
-    expect((merged?.["system"] as Record<string, unknown>)["description"]).toBe("<p>Sling an insult.</p>");
+    expect((merged?.["system"] as Record<string, unknown>)["description"]).toBe(
+      "<p>Sling an insult.</p>",
+    );
   });
 
   it("falls back to the EN pack description when no pt-BR translation exists (pt-BR locale)", () => {
-    const embedded = buildEmbeddedDetailsDoc({ _id: "bm", type: "feat", name: "Bon Mot", system: { description: "" } });
+    const embedded = buildEmbeddedDetailsDoc({
+      _id: "bm",
+      type: "feat",
+      name: "Bon Mot",
+      system: { description: "" },
+    });
     const packDoc = { system: { description: "<p>Sling an insult.</p>" } };
     const merged = withFallbackDescription(embedded, packDoc, "pt-BR");
-    expect((merged?.["system"] as Record<string, unknown>)["description"]).toBe("<p>Sling an insult.</p>");
+    expect((merged?.["system"] as Record<string, unknown>)["description"]).toBe(
+      "<p>Sling an insult.</p>",
+    );
   });
 });
 
@@ -1200,7 +1359,9 @@ describe("fusionCategoryOf()", () => {
   });
 
   it("falls back to legacy re-injection sites", () => {
-    expect(fusionCategoryOf({ flags: { fusion: { actionFolder: "archetype" } } })).toBe("archetype");
+    expect(fusionCategoryOf({ flags: { fusion: { actionFolder: "archetype" } } })).toBe(
+      "archetype",
+    );
     expect(fusionCategoryOf({ system: { actionFolder: "skill" } })).toBe("skill");
   });
 
@@ -1214,7 +1375,9 @@ describe("fusionCategoryOf()", () => {
 // filterActionRows
 // ---------------------------------------------------------------------------
 
-function row(partial: Partial<ActionRow> & { name: string; slug: string; group: ActionGroup }): ActionRow {
+function row(
+  partial: Partial<ActionRow> & { name: string; slug: string; group: ActionGroup },
+): ActionRow {
   return {
     key: partial.key ?? partial.slug,
     uuid: partial.uuid ?? null,
@@ -1235,10 +1398,25 @@ function row(partial: Partial<ActionRow> & { name: string; slug: string; group: 
 describe("filterActionRows()", () => {
   const rows: ActionRow[] = [
     row({ name: "Seek", slug: "seek", group: "basic", cost: { kind: "1", glyphs: "◆" } }),
-    row({ name: "Demoralize", slug: "demoralize", group: "skill", cost: { kind: "1", glyphs: "◆" } }),
+    row({
+      name: "Demoralize",
+      slug: "demoralize",
+      group: "skill",
+      cost: { kind: "1", glyphs: "◆" },
+    }),
     row({ name: "Aid", slug: "aid", group: "basic", cost: { kind: "reaction", glyphs: "⟳" } }),
-    row({ name: "Battle Medicine", slug: "battle-medicine", group: "skill", cost: { kind: "1", glyphs: "◆" } }),
-    row({ name: "Investigate", slug: "investigate", group: "exploration", cost: { kind: "unknown", glyphs: "" } }),
+    row({
+      name: "Battle Medicine",
+      slug: "battle-medicine",
+      group: "skill",
+      cost: { kind: "1", glyphs: "◆" },
+    }),
+    row({
+      name: "Investigate",
+      slug: "investigate",
+      group: "exploration",
+      cost: { kind: "unknown", glyphs: "" },
+    }),
   ];
 
   it("shows all rows with the default filter state", () => {
@@ -1278,7 +1456,12 @@ describe("filterActionRows()", () => {
 
   it("matches the pt-BR name as well as the EN name (bilingual search, T1)", () => {
     const bilingual: ActionRow[] = [
-      row({ name: "Raise a Shield", slug: "raise-a-shield", group: "basic", namePt: "Erguer Escudo" }),
+      row({
+        name: "Raise a Shield",
+        slug: "raise-a-shield",
+        group: "basic",
+        namePt: "Erguer Escudo",
+      }),
       row({ name: "Seek", slug: "seek", group: "basic" }),
     ];
     // Portuguese query hits the pt-BR name...
@@ -1377,7 +1560,11 @@ describe("isActionRelevant()", () => {
   const profile = deriveCharacterProfile(magusRatfolkItems);
 
   const packRow = (
-    partial: Partial<ActionRow> & { name: string; group: ActionGroup; fusionCategory: string | null },
+    partial: Partial<ActionRow> & {
+      name: string;
+      group: ActionGroup;
+      fusionCategory: string | null;
+    },
   ): ActionRow => row({ slug: slugFromName(partial.name), ...partial });
 
   it("always shows embedded character actions (Magus's Analysis)", () => {
@@ -1504,8 +1691,20 @@ describe("filterRelevantRows()", () => {
 
   const rows: ActionRow[] = [
     row({ name: "Seek", slug: "seek", group: "basic", fusionCategory: "basic" }),
-    row({ name: "Arcane Cascade", slug: "arcane-cascade", group: "class", fusionCategory: "class", traits: ["magus"] }),
-    row({ name: "Mighty Rage", slug: "mighty-rage", group: "class", fusionCategory: "class", traits: ["barbarian"] }),
+    row({
+      name: "Arcane Cascade",
+      slug: "arcane-cascade",
+      group: "class",
+      fusionCategory: "class",
+      traits: ["magus"],
+    }),
+    row({
+      name: "Mighty Rage",
+      slug: "mighty-rage",
+      group: "class",
+      fusionCategory: "class",
+      traits: ["barbarian"],
+    }),
     row({
       name: "Blazing Conflagration",
       slug: "blazing-conflagration",

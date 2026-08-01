@@ -120,7 +120,11 @@ describe("matchesTextSearch", () => {
   // --- Bilingual search (T1): match EN name OR pt-BR namePt ---
 
   it("matches the pt-BR namePt when present (accent-insensitive)", () => {
-    const translated: PackIndexEntry = { ...entry, name: "Basic Concoction", namePt: "Concocção Básica" };
+    const translated: PackIndexEntry = {
+      ...entry,
+      name: "Basic Concoction",
+      namePt: "Concocção Básica",
+    };
     // pt-BR term (typed without diacritics) hits the namePt overlay
     expect(matchesTextSearch(translated, "concoccao")).toBe(true);
     // EN term still hits the EN name
@@ -474,7 +478,13 @@ describe("PackMechanicsOverlaySchema", () => {
         x: {
           sourceHash: "h",
           grants: [
-            { kind: "feat-choice", category: "bogus", filters: {}, source: "rule-element", confidence: 1 },
+            {
+              kind: "feat-choice",
+              category: "bogus",
+              filters: {},
+              source: "rule-element",
+              confidence: 1,
+            },
           ],
         },
       },

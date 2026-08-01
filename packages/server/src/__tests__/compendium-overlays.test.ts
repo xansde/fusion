@@ -92,10 +92,7 @@ function makeTempDir(): string {
  * Write a pack directory with pack.json + documents.json, plus optional
  * i18n.pt-BR.json / mechanics.json overlays. Returns the packs ROOT.
  */
-function setupPack(opts?: {
-  i18n?: unknown;
-  mechanics?: unknown;
-}): { packsRoot: string } {
+function setupPack(opts?: { i18n?: unknown; mechanics?: unknown }): { packsRoot: string } {
   const packsRoot = makeTempDir();
   const packDir = join(packsRoot, PACK_SLUG);
   mkdirSync(packDir, { recursive: true });

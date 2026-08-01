@@ -24,12 +24,12 @@ implements.
 
 ## Pipeline stages
 
-| Stage | Script                    | Output                                             |
-| ----- | ------------------------- | --------------------------------------------------- |
-| 1     | `src/extract.mjs`         | `out/translate/<pack>/chunk-NNN.json` (work units)  |
-| 2     | `src/grants-from-rules.mjs` | `out/mechanics/<pack>.rules.json` (deterministic)  |
-| 3     | `src/apply.mjs`           | `systems/pf2e/packs/<pack>/{i18n.pt-BR.json,mechanics.json}` |
-| 4     | `src/qa.mjs`              | `out/qa-report.json` (pass/fail per translated doc) |
+| Stage | Script                      | Output                                                       |
+| ----- | --------------------------- | ------------------------------------------------------------ |
+| 1     | `src/extract.mjs`           | `out/translate/<pack>/chunk-NNN.json` (work units)           |
+| 2     | `src/grants-from-rules.mjs` | `out/mechanics/<pack>.rules.json` (deterministic)            |
+| 3     | `src/apply.mjs`             | `systems/pf2e/packs/<pack>/{i18n.pt-BR.json,mechanics.json}` |
+| 4     | `src/qa.mjs`                | `out/qa-report.json` (pass/fail per translated doc)          |
 
 ### 1. `extract.mjs` — work-unit generation
 
@@ -90,12 +90,12 @@ e.g. `spells-core`, `conditions`, `weapons-core`).
 **Calibration (mandatory)** — asserted against the live `feats-core` pack in
 `src/__tests__/mechanics-parity.test.mjs` and `normalize-rules.test.mjs`:
 
-| Feat                    | Result                                                                                     |
-| ----------------------- | -------------------------------------------------------------------------------------------- |
-| Basic Concoction        | grant `{category:"class", filters:{traits:["alchemist"],maxLevel:2}, confidence:1.0}` — **must match `GRANTED_FEAT_CHOICES["basic concoction"]` in `packages/client/src/lib/sheets/pf2e/planVM.ts` exactly** (category/trait/maxLevel/labelKey) |
-| Ancestral Paragon       | grant `{category:"ancestry", filters:{levelExpr:"item:level:1"}, confidence:0.6}` (dynamic trait predicates not literalized) |
-| Adopted Ancestry        | unlock `{mechanism:"adopted-ancestry", filters:{excludeOwnAncestry:true}, confidence:1.0}`  |
-| Alchemist Dedication    | no entry (its `grant-item`s target fixed items, not a `ChoiceSet`-driven choice)             |
+| Feat                 | Result                                                                                                                                                                                                                                          |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Basic Concoction     | grant `{category:"class", filters:{traits:["alchemist"],maxLevel:2}, confidence:1.0}` — **must match `GRANTED_FEAT_CHOICES["basic concoction"]` in `packages/client/src/lib/sheets/pf2e/planVM.ts` exactly** (category/trait/maxLevel/labelKey) |
+| Ancestral Paragon    | grant `{category:"ancestry", filters:{levelExpr:"item:level:1"}, confidence:0.6}` (dynamic trait predicates not literalized)                                                                                                                    |
+| Adopted Ancestry     | unlock `{mechanism:"adopted-ancestry", filters:{excludeOwnAncestry:true}, confidence:1.0}`                                                                                                                                                      |
+| Alchemist Dedication | no entry (its `grant-item`s target fixed items, not a `ChoiceSet`-driven choice)                                                                                                                                                                |
 
 `src/calibration.mjs` stamps `labelKey` onto known granting feats (currently
 just Basic Concoction) so the overlay can eventually replace the client's
@@ -147,13 +147,13 @@ Runs 5 automated checks on every translated doc in a pack's
 node src/qa.mjs [--packs pack1,pack2] [--out out/qa-report.json]
 ```
 
-| Check               | Failure condition                                                             |
-| -------------------- | ------------------------------------------------------------------------------ |
-| `dice-formulas`      | the set of `\d+d\d+([+-]\d+)?` patterns differs between EN and PT (dice math must never drift) |
-| `balanced-tags`      | PT's HTML tag multiset differs from EN's (a tag was dropped or added)          |
-| `glossary-applied`   | EN has recognizable glossary terms (see `glossary.pt-BR.json`) but none of them appear translated in PT (skipped when EN has zero recognized terms) |
-| `length-ratio`       | `len(PT) / len(EN)` (plain text, tags stripped) falls outside `[0.5, 2.0]`     |
-| `no-new-enrichers`   | PT introduces an `@Tag[...]` enricher not present verbatim in EN — translation must only touch prose/labels, never enricher syntax |
+| Check              | Failure condition                                                                                                                                   |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dice-formulas`    | the set of `\d+d\d+([+-]\d+)?` patterns differs between EN and PT (dice math must never drift)                                                      |
+| `balanced-tags`    | PT's HTML tag multiset differs from EN's (a tag was dropped or added)                                                                               |
+| `glossary-applied` | EN has recognizable glossary terms (see `glossary.pt-BR.json`) but none of them appear translated in PT (skipped when EN has zero recognized terms) |
+| `length-ratio`     | `len(PT) / len(EN)` (plain text, tags stripped) falls outside `[0.5, 2.0]`                                                                          |
+| `no-new-enrichers` | PT introduces an `@Tag[...]` enricher not present verbatim in EN — translation must only touch prose/labels, never enricher syntax                  |
 
 A failing doc should go back for retranslation. Exit code is non-zero when
 any doc fails any check (CI-gateable). The JSON report lists every checked

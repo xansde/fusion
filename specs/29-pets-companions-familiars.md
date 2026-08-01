@@ -78,7 +78,7 @@ Nenhum código é alterado; o entregável é este documento (mais a entrada no
   spec propõe como o **subtype** `familiar` (e sua generalização) se encaixa
   nesse contrato, sem redefini-lo.
 - O framework de sheets (window manager, autosave, tabs) — `ver
-  11-ui-framework-e-fichas.md`; esta spec propõe o **conteúdo** da aba, não o
+11-ui-framework-e-fichas.md`; esta spec propõe o **conteúdo** da aba, não o
   mecanismo de abas em si.
 - O motor de effects/rule-elements completo — `ver 15-api-de-sistemas.md` /
   `17-sistema-pf2e.md` DEC-PF2-04; esta spec assume que o motor MVP reduzido
@@ -89,17 +89,17 @@ Nenhum código é alterado; o entregável é este documento (mais a entrada no
 
 ## Conceitos e terminologia
 
-| Termo                    | Definição                                                                                                                                                                                             |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Familiar**              | Criatura Tiny que assiste um conjurador (Wizard/Witch/Sorcerer/Magus/Thaumaturge); concedida pelo feat de classe "Familiar"; ganha "familiar abilities" de uma lista compartilhada.                    |
+| Termo                     | Definição                                                                                                                                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Familiar**              | Criatura Tiny que assiste um conjurador (Wizard/Witch/Sorcerer/Magus/Thaumaturge); concedida pelo feat de classe "Familiar"; ganha "familiar abilities" de uma lista compartilhada.                                         |
 | **Animal Companion**      | Criatura maior que acompanha Druid (Animal Order) ou Ranger (feat "Animal Companion"); progride por feats (Mature/Incredible/Nimble/Savage) e é comandada via a ação Command an Animal ou age sozinha em níveis mais altos. |
-| **Pet (archetype)**       | Variante genérica do familiar concedida pelo feat geral "Pet" (nível 1) ou pelo dedication "Beastmaster"; usa o mesmo contador de "familiar/pet abilities" do familiar clássico.                        |
-| **Master / mestre**        | O Actor (`character`, tipicamente) dono do companion; muitos atributos do companion derivam do nível/estatísticas do mestre.                                                                          |
-| **Familiar/Pet ability**  | Habilidade escolhida de uma lista compartilhada (voar, ver no escuro, falar, etc.); número de escolhas controlado por um contador (`familiarAbilities.value` no vendor).                              |
-| **Companion progression** | Feats de nível fixo (Druid: 1/4/8; Ranger: 1(dedication)/6/10) que aumentam a independência e o poder do animal companion, sem trocar de Actor.                                                        |
-| **Mount**                 | Criatura montada para fins de deslocamento/combate montado; pode ser um animal companion "cavalgável" ou uma criatura separada; regras próprias de Mounted Combat.                                    |
-| **Eidolon**               | Actor fundido ao Summoner (compartilha turno, HP e ações com o PC); mecanicamente muito diferente de um pet — **fora de escopo** desta spec.                                                          |
-| **`engine-2e`**           | Núcleo de regras 2e compartilhado PF2e/SF2e (`ver 17-sistema-pf2e.md` DEC-PF2-01); os derivados de companion (saves/mods "iguais ao mestre") são um caso de uso natural desse núcleo.                  |
+| **Pet (archetype)**       | Variante genérica do familiar concedida pelo feat geral "Pet" (nível 1) ou pelo dedication "Beastmaster"; usa o mesmo contador de "familiar/pet abilities" do familiar clássico.                                            |
+| **Master / mestre**       | O Actor (`character`, tipicamente) dono do companion; muitos atributos do companion derivam do nível/estatísticas do mestre.                                                                                                |
+| **Familiar/Pet ability**  | Habilidade escolhida de uma lista compartilhada (voar, ver no escuro, falar, etc.); número de escolhas controlado por um contador (`familiarAbilities.value` no vendor).                                                    |
+| **Companion progression** | Feats de nível fixo (Druid: 1/4/8; Ranger: 1(dedication)/6/10) que aumentam a independência e o poder do animal companion, sem trocar de Actor.                                                                             |
+| **Mount**                 | Criatura montada para fins de deslocamento/combate montado; pode ser um animal companion "cavalgável" ou uma criatura separada; regras próprias de Mounted Combat.                                                          |
+| **Eidolon**               | Actor fundido ao Summoner (compartilha turno, HP e ações com o PC); mecanicamente muito diferente de um pet — **fora de escopo** desta spec.                                                                                |
+| **`engine-2e`**           | Núcleo de regras 2e compartilhado PF2e/SF2e (`ver 17-sistema-pf2e.md` DEC-PF2-01); os derivados de companion (saves/mods "iguais ao mestre") são um caso de uso natural desse núcleo.                                       |
 
 ---
 
@@ -416,8 +416,7 @@ Companion/familiar se encaixam **exatamente** nesse padrão já existente:
 - **Animal Companion** (feat "Animal Companion" concedido pela classfeature
   "Animal Order" do Druid via `GrantItem`, ou escolhido como feat de Ranger)
   → mesmo padrão: sub-slot `companion-animalCompanion-1`, que ao preencher
-  pede o **tipo de criatura base** (compendium de companion types, REQ-PET-
-  040) e cria o Actor vinculado com `companionKind: "animalCompanion"`,
+  pede o **tipo de criatura base** (compendium de companion types, REQ-PET- 040) e cria o Actor vinculado com `companionKind: "animalCompanion"`,
   `progression.stage: "young"`.
 - **Progressão** (Mature/Incredible Companion, Enhanced/Incredible Familiar)
   → feats normais do Plano em níveis fixos (Druid 4/8, Ranger 6/10, Wizard-
@@ -462,11 +461,11 @@ Companion/familiar se encaixam **exatamente** nesse padrão já existente:
 - **REQ-PET-006** [MVP] O sistema DEVE suportar `abilitiesBudget.{value,max}`
   no companion, incrementável por effects declarados em feats do **mestre**
   (ex.: Enhanced Familiar) — exigindo que o motor de effects (`17-sistema-
-  pf2e.md` DEC-PF2-04) suporte um effect cujo alvo é um Actor vinculado, não
+pf2e.md` DEC-PF2-04) suporte um effect cujo alvo é um Actor vinculado, não
   o próprio Actor portador do item (extensão registrada em Q-PET-01).
 - **REQ-PET-007** [MVP] `selectedAbilities` do companion DEVEM ser Items
   embedded no Actor companion (subtype `action`/`ability`, `category:
-  "familiarAbility"`), cada um com seus próprios effects (`Sense`-like,
+"familiarAbility"`), cada um com seus próprios effects (`Sense`-like,
   `BaseSpeed`-like), replicando o padrão observado no vendor (§2) sem copiar
   seu texto.
 - **REQ-PET-008** [V2] O motor de effects DEVE ganhar (ou confirmar que já
@@ -522,7 +521,7 @@ Companion/familiar se encaixam **exatamente** nesse padrão já existente:
 - **REQ-PET-070** [MVP] O feat "Familiar" (Wizard/Witch/Sorcerer/Magus/
   Thaumaturge, nível 1) e o feat geral "Pet" (nível 1, qualquer classe),
   quando preenchidos no Plano, DEVEM gerar um sub-slot `companion-<kind>-
-  <level>` seguindo a mesma convenção de sub-slot de `grantedFeat` já
+<level>` seguindo a mesma convenção de sub-slot de `grantedFeat` já
   implementada em `planVM.ts`.
 - **REQ-PET-071** [MVP] Preencher o sub-slot de companion DEVE criar (ou
   vincular, se já existir um companion "solto" compatível) o Actor
@@ -568,8 +567,8 @@ Companion/familiar se encaixam **exatamente** nesse padrão já existente:
   com caminhos de arquivo como evidência, sem cópia de texto/código.
   proprietário.
 - **CA-PET-03** O modelo de dados proposto (Actor próprio + `masterActorId`
-  + derivação cross-actor) está justificado contra pelo menos uma alternativa
-  rejeitada, e é consistente com DEC-PF2-03/DEC-PF2-04 de `17-sistema-pf2e.md`.
+  - derivação cross-actor) está justificado contra pelo menos uma alternativa
+    rejeitada, e é consistente com DEC-PF2-03/DEC-PF2-04 de `17-sistema-pf2e.md`.
 - **CA-PET-04** A UI de "tela de Pets" está descrita como aba na ficha do
   dono + mini-ficha reaproveitando componentes existentes (não introduz UI
   paralela desnecessária).
@@ -633,7 +632,7 @@ Companion/familiar se encaixam **exatamente** nesse padrão já existente:
   `feats/class/shared-class-feats/*.json`, `feats/class/druid/*.json`,
   `feats/class/ranger/*.json`, `feats/general/level-1/pet.json`,
   `feats/archetype/familiar-master/*.json`, `class-features/animal-
-  order.json`, `class-features/familiar-witch.json`,
+order.json`, `class-features/familiar-witch.json`,
   `actions/archetype/beastmaster/call-companion.json`,
   `actions/skill/command-an-animal.json`) foram usados como **evidência de
   modelagem de dados** (estrutura de campos, rule elements), não copiados

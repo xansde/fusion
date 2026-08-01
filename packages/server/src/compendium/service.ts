@@ -776,7 +776,9 @@ export function computeI18nSourceHash(doc: Record<string, unknown>): string {
       ? (system as Record<string, unknown>)["description"]
       : undefined;
   const descStr = typeof description === "string" ? description : "";
-  return createHash("sha1").update(name + I18N_HASH_SEP + descStr).digest("hex");
+  return createHash("sha1")
+    .update(name + I18N_HASH_SEP + descStr)
+    .digest("hex");
 }
 
 /**
@@ -818,7 +820,12 @@ export function computeActionCost(doc: Record<string, unknown>): string | undefi
     switch (actionType) {
       case "action": {
         const actions = unwrapScalar(sys["actions"]);
-        if (typeof actions === "number" && Number.isInteger(actions) && actions >= 1 && actions <= 4) {
+        if (
+          typeof actions === "number" &&
+          Number.isInteger(actions) &&
+          actions >= 1 &&
+          actions <= 4
+        ) {
           return String(actions);
         }
         return undefined; // action with no/invalid count → omit

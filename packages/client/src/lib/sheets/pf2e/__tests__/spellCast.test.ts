@@ -28,9 +28,38 @@ function makeCaster(): Record<string, unknown> {
       },
     },
     items: [
-      { _id: "entry-arcane", name: "Arcane Spells", type: "spellcastingEntry", system: { prepared: { value: "prepared" }, tradition: { value: "arcane" }, ability: { value: "int" } } },
-      { _id: "sp-ignition", name: "Ignition", type: "spell", location: "entry-arcane", system: { level: 0, damage: { "0": { formula: "2d4", type: "fire" } }, traits: { value: [] } } },
-      { _id: "sp-arc", name: "Electric Arc", type: "spell", location: "entry-arcane", system: { level: 0, damage: { "0": { formula: "2d4", type: "electricity" } }, traits: { value: [] } } },
+      {
+        _id: "entry-arcane",
+        name: "Arcane Spells",
+        type: "spellcastingEntry",
+        system: {
+          prepared: { value: "prepared" },
+          tradition: { value: "arcane" },
+          ability: { value: "int" },
+        },
+      },
+      {
+        _id: "sp-ignition",
+        name: "Ignition",
+        type: "spell",
+        location: "entry-arcane",
+        system: {
+          level: 0,
+          damage: { "0": { formula: "2d4", type: "fire" } },
+          traits: { value: [] },
+        },
+      },
+      {
+        _id: "sp-arc",
+        name: "Electric Arc",
+        type: "spell",
+        location: "entry-arcane",
+        system: {
+          level: 0,
+          damage: { "0": { formula: "2d4", type: "electricity" } },
+          traits: { value: [] },
+        },
+      },
     ],
   };
 }

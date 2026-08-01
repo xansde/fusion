@@ -130,13 +130,29 @@ describe("detectFamiliarGrant", () => {
           _id: "a",
           type: "feat",
           name: "Rat Familiar",
-          system: { rules: [{ kind: "set-property", selector: "system.attributes.familiarAbilities.value", value: 2 }] },
+          system: {
+            rules: [
+              {
+                kind: "set-property",
+                selector: "system.attributes.familiarAbilities.value",
+                value: 2,
+              },
+            ],
+          },
         },
         {
           _id: "b",
           type: "feat",
           name: "Enhanced Familiar",
-          system: { rules: [{ kind: "set-property", selector: "system.attributes.familiarAbilities.value", value: 4 }] },
+          system: {
+            rules: [
+              {
+                kind: "set-property",
+                selector: "system.attributes.familiarAbilities.value",
+                value: 4,
+              },
+            ],
+          },
         },
       ],
     };
@@ -305,8 +321,22 @@ function diffHp(op: { diff: Record<string, unknown> }): number {
 
 describe("filterAbilityRows", () => {
   const rows: AbilityRow[] = [
-    { slug: "darkvision", name: "Visão no Escuro", subtitleEn: "Darkvision", uuid: "u1", actionCost: null, searchText: "darkvision visao no escuro" },
-    { slug: "flier", name: "Voador", subtitleEn: "Flier", uuid: "u2", actionCost: null, searchText: "flier voador" },
+    {
+      slug: "darkvision",
+      name: "Visão no Escuro",
+      subtitleEn: "Darkvision",
+      uuid: "u1",
+      actionCost: null,
+      searchText: "darkvision visao no escuro",
+    },
+    {
+      slug: "flier",
+      name: "Voador",
+      subtitleEn: "Flier",
+      uuid: "u2",
+      actionCost: null,
+      searchText: "flier voador",
+    },
   ];
 
   it("matches accent-insensitively across locales", () => {
@@ -328,7 +358,10 @@ describe("familiarCreateErrorKey", () => {
   // Messages mirror authorizePlayerCompanionCreate in the server's doc-handlers.
   it("maps 'not owner' to the NotOwner key", () => {
     expect(
-      familiarCreateErrorKey({ code: "PERMISSION_DENIED", message: "You do not own the master actor" }),
+      familiarCreateErrorKey({
+        code: "PERMISSION_DENIED",
+        message: "You do not own the master actor",
+      }),
     ).toBe("FUSION.Sheet.Pets.Error.NotOwner");
   });
 
@@ -343,7 +376,10 @@ describe("familiarCreateErrorKey", () => {
 
   it("maps the duplicate (already has a familiar) to the Duplicate key", () => {
     expect(
-      familiarCreateErrorKey({ code: "VALIDATION_FAILED", message: "Master already has a familiar" }),
+      familiarCreateErrorKey({
+        code: "VALIDATION_FAILED",
+        message: "Master already has a familiar",
+      }),
     ).toBe("FUSION.Sheet.Pets.Error.Duplicate");
   });
 
@@ -355,7 +391,10 @@ describe("familiarCreateErrorKey", () => {
 
   it("maps an unrecognized PERMISSION_DENIED to the generic Permission key", () => {
     expect(
-      familiarCreateErrorKey({ code: "PERMISSION_DENIED", message: "Only GM/Assistant can create Actor" }),
+      familiarCreateErrorKey({
+        code: "PERMISSION_DENIED",
+        message: "Only GM/Assistant can create Actor",
+      }),
     ).toBe("FUSION.Sheet.Pets.Error.Permission");
   });
 

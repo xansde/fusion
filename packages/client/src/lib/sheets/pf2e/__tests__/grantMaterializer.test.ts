@@ -41,10 +41,41 @@ function createOps(ops: DocOpPayload[]): DocCreateEmbeddedPayload[] {
 /** Alchemist Dedication's real system.rules (2 upgrades + 2 GrantItem). */
 function alchemistDedicationRules(): unknown[] {
   return [
-    { kind: "set-property", selector: "system.skills.crafting.rank", value: 1, mode: "upgrade", raw: { key: "ActiveEffectLike", mode: "upgrade", path: "system.skills.crafting.rank", value: 1 } },
-    { kind: "set-property", selector: "system.proficiencies.attacks.weapon-base-alchemical-bomb.rank", value: 1, mode: "upgrade", raw: { key: "ActiveEffectLike" } },
-    { kind: "grant-item", uuid: "Compendium.pf2e.feats-srd.Item.Alchemical Crafting", inMemoryOnly: false, raw: { key: "GrantItem", uuid: "Compendium.pf2e.feats-srd.Item.Alchemical Crafting" } },
-    { kind: "grant-item", uuid: "Compendium.pf2e.actionspf2e.Item.Quick Alchemy", inMemoryOnly: false, raw: { allowDuplicate: false, key: "GrantItem", uuid: "Compendium.pf2e.actionspf2e.Item.Quick Alchemy" } },
+    {
+      kind: "set-property",
+      selector: "system.skills.crafting.rank",
+      value: 1,
+      mode: "upgrade",
+      raw: {
+        key: "ActiveEffectLike",
+        mode: "upgrade",
+        path: "system.skills.crafting.rank",
+        value: 1,
+      },
+    },
+    {
+      kind: "set-property",
+      selector: "system.proficiencies.attacks.weapon-base-alchemical-bomb.rank",
+      value: 1,
+      mode: "upgrade",
+      raw: { key: "ActiveEffectLike" },
+    },
+    {
+      kind: "grant-item",
+      uuid: "Compendium.pf2e.feats-srd.Item.Alchemical Crafting",
+      inMemoryOnly: false,
+      raw: { key: "GrantItem", uuid: "Compendium.pf2e.feats-srd.Item.Alchemical Crafting" },
+    },
+    {
+      kind: "grant-item",
+      uuid: "Compendium.pf2e.actionspf2e.Item.Quick Alchemy",
+      inMemoryOnly: false,
+      raw: {
+        allowDuplicate: false,
+        key: "GrantItem",
+        uuid: "Compendium.pf2e.actionspf2e.Item.Quick Alchemy",
+      },
+    },
   ];
 }
 
@@ -89,7 +120,11 @@ function makeResolvers(byPack: Record<string, Record<string, unknown>[]>): {
     const entries: GrantIndexEntry[] = docs.map((d) => {
       const uuid = `Compendium.pf2e.${pack}.Item.${String(d["_id"])}`;
       uuidToDoc.set(uuid, d);
-      return { name: String(d["name"]), uuid, ...(typeof d["type"] === "string" ? { type: d["type"] as string } : {}) };
+      return {
+        name: String(d["name"]),
+        uuid,
+        ...(typeof d["type"] === "string" ? { type: d["type"] as string } : {}),
+      };
     });
     indexByPack.set(pack, entries);
   }
@@ -122,11 +157,15 @@ describe("parseGrantUuid", () => {
   });
 
   it("keeps multi-word names intact", () => {
-    expect(parseGrantUuid("Compendium.pf2e.actionspf2e.Item.Quick Alchemy")?.name).toBe("Quick Alchemy");
+    expect(parseGrantUuid("Compendium.pf2e.actionspf2e.Item.Quick Alchemy")?.name).toBe(
+      "Quick Alchemy",
+    );
   });
 
   it("rejects an in-memory ChoiceSet placeholder uuid", () => {
-    expect(parseGrantUuid("Compendium.pf2e.feats-srd.Item.{item|flags.system.rulesSelections.feat}")).toBeNull();
+    expect(
+      parseGrantUuid("Compendium.pf2e.feats-srd.Item.{item|flags.system.rulesSelections.feat}"),
+    ).toBeNull();
   });
 
   it("rejects a non-compendium / malformed uuid", () => {
@@ -150,8 +189,12 @@ describe("parseGrantItems", () => {
   });
 
   it("recognizes the unconverted raw.key === 'GrantItem' shape", () => {
-    const grants = parseGrantItems([{ raw: { key: "GrantItem", uuid: "Compendium.pf2e.spells-srd.Item.Shield" } }]);
-    expect(grants).toEqual([{ vendor: "spells-srd", name: "Shield", uuid: "Compendium.pf2e.spells-srd.Item.Shield" }]);
+    const grants = parseGrantItems([
+      { raw: { key: "GrantItem", uuid: "Compendium.pf2e.spells-srd.Item.Shield" } },
+    ]);
+    expect(grants).toEqual([
+      { vendor: "spells-srd", name: "Shield", uuid: "Compendium.pf2e.spells-srd.Item.Shield" },
+    ]);
   });
 
   it("returns [] for non-array / empty rules", () => {
@@ -192,7 +235,14 @@ describe("materializeGrants — Alchemist Dedication", () => {
       "feats-core": [alchemicalCraftingDoc()],
       "actions-core": [quickAlchemyDoc()],
     });
-    const ops = createOps(await materializeGrants(alchemistDedicationDoc(), "CJMkxlxHiHZQYDCz", "archetypeFeat-2", mctx));
+    const ops = createOps(
+      await materializeGrants(
+        alchemistDedicationDoc(),
+        "CJMkxlxHiHZQYDCz",
+        "archetypeFeat-2",
+        mctx,
+      ),
+    );
     expect(ops).toHaveLength(2);
 
     const names = ops.map((o) => o.data["name"]);
@@ -200,7 +250,10 @@ describe("materializeGrants — Alchemist Dedication", () => {
 
     for (const op of ops) {
       expect(op.data["_id"]).toBeUndefined();
-      const fusion = (op.data["flags"] as Record<string, unknown>)["fusion"] as Record<string, unknown>;
+      const fusion = (op.data["flags"] as Record<string, unknown>)["fusion"] as Record<
+        string,
+        unknown
+      >;
       expect(fusion["grantedBy"]).toBe("CJMkxlxHiHZQYDCz");
       expect(fusion["grantedSlot"]).toBe("archetypeFeat-2");
       // sourceId preserved from the granted pack doc.
@@ -212,26 +265,53 @@ describe("materializeGrants — Alchemist Dedication", () => {
 
   it("is idempotent — no ops when both grants already exist on the actor", async () => {
     const existing = [
-      { _id: "e1", type: "feat", name: "Alchemical Crafting", flags: { fusion: { grantedBy: "CJMkxlxHiHZQYDCz", sourceId: "is3Oz9wt11lNq62K" } } },
-      { _id: "e2", type: "action", name: "Quick Alchemy", flags: { fusion: { grantedBy: "CJMkxlxHiHZQYDCz", sourceId: "yzNJgwzV9XqEhKc6" } } },
+      {
+        _id: "e1",
+        type: "feat",
+        name: "Alchemical Crafting",
+        flags: { fusion: { grantedBy: "CJMkxlxHiHZQYDCz", sourceId: "is3Oz9wt11lNq62K" } },
+      },
+      {
+        _id: "e2",
+        type: "action",
+        name: "Quick Alchemy",
+        flags: { fusion: { grantedBy: "CJMkxlxHiHZQYDCz", sourceId: "yzNJgwzV9XqEhKc6" } },
+      },
     ];
     const mctx = ctxFor(
       { "feats-core": [alchemicalCraftingDoc()], "actions-core": [quickAlchemyDoc()] },
       existing,
     );
-    const ops = await materializeGrants(alchemistDedicationDoc(), "CJMkxlxHiHZQYDCz", "archetypeFeat-2", mctx);
+    const ops = await materializeGrants(
+      alchemistDedicationDoc(),
+      "CJMkxlxHiHZQYDCz",
+      "archetypeFeat-2",
+      mctx,
+    );
     expect(ops).toEqual([]);
   });
 
   it("materializes only the MISSING grant when one is already present (partial heal)", async () => {
     const existing = [
-      { _id: "e1", type: "feat", name: "Alchemical Crafting", flags: { fusion: { grantedBy: "CJMkxlxHiHZQYDCz", sourceId: "is3Oz9wt11lNq62K" } } },
+      {
+        _id: "e1",
+        type: "feat",
+        name: "Alchemical Crafting",
+        flags: { fusion: { grantedBy: "CJMkxlxHiHZQYDCz", sourceId: "is3Oz9wt11lNq62K" } },
+      },
     ];
     const mctx = ctxFor(
       { "feats-core": [alchemicalCraftingDoc()], "actions-core": [quickAlchemyDoc()] },
       existing,
     );
-    const ops = createOps(await materializeGrants(alchemistDedicationDoc(), "CJMkxlxHiHZQYDCz", "archetypeFeat-2", mctx));
+    const ops = createOps(
+      await materializeGrants(
+        alchemistDedicationDoc(),
+        "CJMkxlxHiHZQYDCz",
+        "archetypeFeat-2",
+        mctx,
+      ),
+    );
     expect(ops.map((o) => o.data["name"])).toEqual(["Quick Alchemy"]);
   });
 
@@ -251,9 +331,16 @@ describe("materializeGrants — Alchemist Dedication", () => {
       name: "Feat With Missing Grant",
       type: "feat",
       flags: { fusion: { sourceId: "MISS" } },
-      system: { rules: [{ kind: "grant-item", uuid: "Compendium.pf2e.feats-srd.Item.Nonexistent" }] },
+      system: {
+        rules: [{ kind: "grant-item", uuid: "Compendium.pf2e.feats-srd.Item.Nonexistent" }],
+      },
     };
-    const ops = await materializeGrants(doc, "MISS", undefined, ctxFor({ "feats-core": [alchemicalCraftingDoc()] }));
+    const ops = await materializeGrants(
+      doc,
+      "MISS",
+      undefined,
+      ctxFor({ "feats-core": [alchemicalCraftingDoc()] }),
+    );
     expect(ops).toEqual([]);
   });
 });
@@ -271,7 +358,12 @@ describe("materializeGrants — Starlit Span (no grants)", () => {
       flags: { fusion: { sourceId: "Pew7duAozEeAemif" } },
       system: { rules: [] },
     };
-    const ops = await materializeGrants(starlitSpan, "Pew7duAozEeAemif", "hybridStudy-1", ctxFor({ "spells-core": [] }));
+    const ops = await materializeGrants(
+      starlitSpan,
+      "Pew7duAozEeAemif",
+      "hybridStudy-1",
+      ctxFor({ "spells-core": [] }),
+    );
     expect(ops).toEqual([]);
   });
 });
@@ -282,14 +374,38 @@ describe("materializeGrants — Starlit Span (no grants)", () => {
 
 describe("materializeGrants — nested grants", () => {
   it("resolves a grant chain A → B → C up to depth", async () => {
-    const c = { _id: "C", name: "Feat C", type: "feat", flags: { fusion: { sourceId: "cid" } }, system: { rules: [] } };
-    const b = { _id: "B", name: "Feat B", type: "feat", flags: { fusion: { sourceId: "bid" } }, system: { rules: [{ kind: "grant-item", uuid: "Compendium.pf2e.feats-srd.Item.Feat C" }] } };
-    const a = { _id: "A", name: "Feat A", type: "feat", flags: { fusion: { sourceId: "aid" } }, system: { rules: [{ kind: "grant-item", uuid: "Compendium.pf2e.feats-srd.Item.Feat B" }] } };
-    const ops = createOps(await materializeGrants(a, "aid", "classFeat-2", ctxFor({ "feats-core": [b, c] })));
+    const c = {
+      _id: "C",
+      name: "Feat C",
+      type: "feat",
+      flags: { fusion: { sourceId: "cid" } },
+      system: { rules: [] },
+    };
+    const b = {
+      _id: "B",
+      name: "Feat B",
+      type: "feat",
+      flags: { fusion: { sourceId: "bid" } },
+      system: { rules: [{ kind: "grant-item", uuid: "Compendium.pf2e.feats-srd.Item.Feat C" }] },
+    };
+    const a = {
+      _id: "A",
+      name: "Feat A",
+      type: "feat",
+      flags: { fusion: { sourceId: "aid" } },
+      system: { rules: [{ kind: "grant-item", uuid: "Compendium.pf2e.feats-srd.Item.Feat B" }] },
+    };
+    const ops = createOps(
+      await materializeGrants(a, "aid", "classFeat-2", ctxFor({ "feats-core": [b, c] })),
+    );
     // Both B and C, all tagged by the ROOT granter (aid), so removeChoice on A cascades to both.
     expect(ops.map((o) => o.data["name"]).sort()).toEqual(["Feat B", "Feat C"]);
     for (const op of ops) {
-      expect(((op.data["flags"] as Record<string, unknown>)["fusion"] as Record<string, unknown>)["grantedBy"]).toBe("aid");
+      expect(
+        ((op.data["flags"] as Record<string, unknown>)["fusion"] as Record<string, unknown>)[
+          "grantedBy"
+        ],
+      ).toBe("aid");
     }
   });
 
@@ -302,7 +418,9 @@ describe("materializeGrants — nested grants", () => {
       system: { rules: [{ kind: "grant-item", uuid: "Compendium.pf2e.feats-srd.Item.Loop Feat" }] },
     };
     // Grants itself → without the `scheduled` guard + depth cap this would loop.
-    const ops = createOps(await materializeGrants(selfRef, "sid", undefined, ctxFor({ "feats-core": [selfRef] }), 3));
+    const ops = createOps(
+      await materializeGrants(selfRef, "sid", undefined, ctxFor({ "feats-core": [selfRef] }), 3),
+    );
     // Materialized once (the first level's grant); the guard prevents re-adding.
     expect(ops).toHaveLength(1);
     expect(ops[0]!.data["name"]).toBe("Loop Feat");
@@ -341,7 +459,12 @@ describe("pickSpellEntryId", () => {
 
 describe("buildGrantCreateOp — spell placement", () => {
   it("sets location to the focus entry for a focus spell", () => {
-    const spell = { _id: "sp", name: "Shooting Star", type: "spell", system: { traits: { value: ["focus", "magus"] } } };
+    const spell = {
+      _id: "sp",
+      name: "Shooting Star",
+      type: "spell",
+      system: { traits: { value: ["focus", "magus"] } },
+    };
     const mctx = ctxFor({}, [], [{ id: "focus-entry", isFocusPool: true, tradition: "arcane" }]);
     const op = buildGrantCreateOp(spell, { grantedBy: "g", sourceId: "s" }, mctx);
     expect(op.data["location"]).toBe("focus-entry");
@@ -351,7 +474,10 @@ describe("buildGrantCreateOp — spell placement", () => {
 
 describe("granterIdentity", () => {
   it("reads sourceId + build slot off an embedded granter item", () => {
-    const item = { _id: "x", flags: { fusion: { sourceId: "sid", build: { level: 2, slot: "archetypeFeat-2" } } } };
+    const item = {
+      _id: "x",
+      flags: { fusion: { sourceId: "sid", build: { level: 2, slot: "archetypeFeat-2" } } },
+    };
     expect(granterIdentity(item)).toEqual({ sourceId: "sid", slot: "archetypeFeat-2" });
   });
 
@@ -405,16 +531,27 @@ describe("parseMechanicsGrants", () => {
     const mechanics = {
       grants: [
         { kind: "feat-choice", category: "class", filters: {} },
-        { kind: "fixed-item", vendor: "spells-srd", name: "Shooting Star", uuid: "Compendium.pf2e.spells-srd.Item.Shooting Star" },
+        {
+          kind: "fixed-item",
+          vendor: "spells-srd",
+          name: "Shooting Star",
+          uuid: "Compendium.pf2e.spells-srd.Item.Shooting Star",
+        },
       ],
     };
     expect(parseMechanicsGrants(mechanics)).toEqual([
-      { vendor: "spells-srd", name: "Shooting Star", uuid: "Compendium.pf2e.spells-srd.Item.Shooting Star" },
+      {
+        vendor: "spells-srd",
+        name: "Shooting Star",
+        uuid: "Compendium.pf2e.spells-srd.Item.Shooting Star",
+      },
     ]);
   });
 
   it("synthesizes a uuid when the grant omits one", () => {
-    const grants = parseMechanicsGrants({ grants: [{ kind: "fixed-item", vendor: "spells-srd", name: "Spinning Staff" }] });
+    const grants = parseMechanicsGrants({
+      grants: [{ kind: "fixed-item", vendor: "spells-srd", name: "Spinning Staff" }],
+    });
     expect(grants[0]!.uuid).toBe("Compendium.pf2e.spells-srd.Item.Spinning Staff");
   });
 
@@ -429,13 +566,31 @@ describe("parseSystemItemsGrants (r20-X4 — ABC system.items map)", () => {
   it("extracts every uuid-bearing entry from the system.items map", () => {
     const system = {
       items: {
-        wr9b9: { img: "x.webp", level: 1, name: "Fascinating Performance", uuid: "Compendium.pf2e.feats-srd.Item.Fascinating Performance" },
-        jkllM: { img: "y.webp", level: 1, name: "Sharp Teeth", uuid: "Compendium.pf2e.ancestryfeatures.Item.Sharp Teeth" },
+        wr9b9: {
+          img: "x.webp",
+          level: 1,
+          name: "Fascinating Performance",
+          uuid: "Compendium.pf2e.feats-srd.Item.Fascinating Performance",
+        },
+        jkllM: {
+          img: "y.webp",
+          level: 1,
+          name: "Sharp Teeth",
+          uuid: "Compendium.pf2e.ancestryfeatures.Item.Sharp Teeth",
+        },
       },
     };
     expect(parseSystemItemsGrants(system)).toEqual([
-      { vendor: "feats-srd", name: "Fascinating Performance", uuid: "Compendium.pf2e.feats-srd.Item.Fascinating Performance" },
-      { vendor: "ancestryfeatures", name: "Sharp Teeth", uuid: "Compendium.pf2e.ancestryfeatures.Item.Sharp Teeth" },
+      {
+        vendor: "feats-srd",
+        name: "Fascinating Performance",
+        uuid: "Compendium.pf2e.feats-srd.Item.Fascinating Performance",
+      },
+      {
+        vendor: "ancestryfeatures",
+        name: "Sharp Teeth",
+        uuid: "Compendium.pf2e.ancestryfeatures.Item.Sharp Teeth",
+      },
     ]);
   });
 
@@ -459,7 +614,13 @@ describe("materializeGrants — ABC system.items map (r20-X4)", () => {
         size: "sm",
         vision: "low-light-vision",
         rules: [],
-        items: { jkllM: { level: 1, name: "Sharp Teeth", uuid: "Compendium.pf2e.ancestryfeatures.Item.Sharp Teeth" } },
+        items: {
+          jkllM: {
+            level: 1,
+            name: "Sharp Teeth",
+            uuid: "Compendium.pf2e.ancestryfeatures.Item.Sharp Teeth",
+          },
+        },
       },
     };
   }
@@ -471,7 +632,13 @@ describe("materializeGrants — ABC system.items map (r20-X4)", () => {
       flags: { fusion: { sourceId: "2lk5NOcu1aUglUdK" } },
       system: {
         rules: [],
-        items: { wr9b9: { level: 1, name: "Fascinating Performance", uuid: "Compendium.pf2e.feats-srd.Item.Fascinating Performance" } },
+        items: {
+          wr9b9: {
+            level: 1,
+            name: "Fascinating Performance",
+            uuid: "Compendium.pf2e.feats-srd.Item.Fascinating Performance",
+          },
+        },
       },
     };
   }
@@ -487,12 +654,20 @@ describe("materializeGrants — ABC system.items map (r20-X4)", () => {
 
   it("materializes a resolvable background free feat, tagged by the background", async () => {
     const mctx = ctxFor({ "feats-core": [fascinatingPerformanceDoc()] });
-    const ops = await materializeGrants(fireworksPerformerDoc(), "2lk5NOcu1aUglUdK", undefined, mctx);
+    const ops = await materializeGrants(
+      fireworksPerformerDoc(),
+      "2lk5NOcu1aUglUdK",
+      undefined,
+      mctx,
+    );
     expect(ops).toHaveLength(1);
     const op = ops[0]!;
     if (op.type !== "doc:create") throw new Error("expected create");
     expect(op.data["name"]).toBe("Fascinating Performance");
-    const fusion = (op.data["flags"] as Record<string, unknown>)["fusion"] as Record<string, unknown>;
+    const fusion = (op.data["flags"] as Record<string, unknown>)["fusion"] as Record<
+      string,
+      unknown
+    >;
     expect(fusion["grantedBy"]).toBe("2lk5NOcu1aUglUdK");
     expect(fusion["grantedSlot"]).toBeUndefined();
   });
@@ -517,7 +692,10 @@ describe("materializeGrants — ABC system.items map (r20-X4)", () => {
     const op = ops[0]!;
     if (op.type !== "doc:create") throw new Error("expected create");
     expect(op.data["name"]).toBe("Sharp Teeth");
-    const fusion = (op.data["flags"] as Record<string, unknown>)["fusion"] as Record<string, unknown>;
+    const fusion = (op.data["flags"] as Record<string, unknown>)["fusion"] as Record<
+      string,
+      unknown
+    >;
     expect(fusion["grantedBy"]).toBe("P6PcVnCkh4XMdefw");
   });
 
@@ -529,10 +707,20 @@ describe("materializeGrants — ABC system.items map (r20-X4)", () => {
 
   it("is idempotent — a re-run with the feat already granted produces no op", async () => {
     const existing = [
-      { _id: "e1", name: "Fascinating Performance", type: "feat", flags: { fusion: { sourceId: "7LB00jkh6JaJr3vS", grantedBy: "2lk5NOcu1aUglUdK" } } },
+      {
+        _id: "e1",
+        name: "Fascinating Performance",
+        type: "feat",
+        flags: { fusion: { sourceId: "7LB00jkh6JaJr3vS", grantedBy: "2lk5NOcu1aUglUdK" } },
+      },
     ];
     const mctx = ctxFor({ "feats-core": [fascinatingPerformanceDoc()] }, existing);
-    const ops = await materializeGrants(fireworksPerformerDoc(), "2lk5NOcu1aUglUdK", undefined, mctx);
+    const ops = await materializeGrants(
+      fireworksPerformerDoc(),
+      "2lk5NOcu1aUglUdK",
+      undefined,
+      mctx,
+    );
     expect(ops).toEqual([]);
   });
 });
@@ -544,17 +732,31 @@ describe("materializeGrants — Starlit Span conflux spell (fixed-item from mech
       [],
       [{ id: "focus-entry", isFocusPool: true, tradition: "arcane" }],
     );
-    const ops = await materializeGrants(starlitSpanWithMechanics(), "Pew7duAozEeAemif", "hybridStudy-1", mctx);
+    const ops = await materializeGrants(
+      starlitSpanWithMechanics(),
+      "Pew7duAozEeAemif",
+      "hybridStudy-1",
+      mctx,
+    );
     expect(ops).toHaveLength(1);
     const op = ops[0]!;
     expect(op.type).toBe("doc:create");
     if (op.type !== "doc:create") throw new Error("expected create");
     expect(op.data["name"]).toBe("Shooting Star");
     expect(op.data["location"]).toBe("focus-entry");
-    const fusion = (op.data["flags"] as Record<string, unknown>)["fusion"] as Record<string, unknown>;
+    const fusion = (op.data["flags"] as Record<string, unknown>)["fusion"] as Record<
+      string,
+      unknown
+    >;
     expect(fusion["grantedBy"]).toBe("Pew7duAozEeAemif");
     expect(fusion["grantedSlot"]).toBe("hybridStudy-1");
-    expect(DocCreatePayloadSchema.safeParse({ documentType: op.documentType, data: [op.data], parent: op.parent }).success).toBe(true);
+    expect(
+      DocCreatePayloadSchema.safeParse({
+        documentType: op.documentType,
+        data: [op.data],
+        parent: op.parent,
+      }).success,
+    ).toBe(true);
   });
 
   it("ADOPTS a manually-added Shooting Star (no grantedBy) instead of duplicating (critical)", async () => {
@@ -568,12 +770,15 @@ describe("materializeGrants — Starlit Span conflux spell (fixed-item from mech
         flags: { fusion: { sourceId: "SHOOT_SID" } }, // NO grantedBy — a manual add
       },
     ];
-    const mctx = ctxFor(
-      { "spells-core": [shootingStarDoc()] },
-      existing,
-      [{ id: "focus-entry", isFocusPool: true, tradition: "arcane" }],
+    const mctx = ctxFor({ "spells-core": [shootingStarDoc()] }, existing, [
+      { id: "focus-entry", isFocusPool: true, tradition: "arcane" },
+    ]);
+    const ops = await materializeGrants(
+      starlitSpanWithMechanics(),
+      "Pew7duAozEeAemif",
+      "hybridStudy-1",
+      mctx,
     );
-    const ops = await materializeGrants(starlitSpanWithMechanics(), "Pew7duAozEeAemif", "hybridStudy-1", mctx);
     // No duplicate create — a single ADOPT update stamping grantedBy on the existing item.
     expect(ops).toHaveLength(1);
     const op = ops[0]!;
@@ -589,30 +794,52 @@ describe("materializeGrants — Starlit Span conflux spell (fixed-item from mech
     const existing = [
       { _id: "manual", name: "shooting star", type: "spell", flags: {} }, // no sourceId, different case
     ];
-    const mctx = ctxFor(
-      { "spells-core": [shootingStarDoc()] },
-      existing,
-      [{ id: "focus-entry", isFocusPool: true, tradition: "arcane" }],
+    const mctx = ctxFor({ "spells-core": [shootingStarDoc()] }, existing, [
+      { id: "focus-entry", isFocusPool: true, tradition: "arcane" },
+    ]);
+    const ops = await materializeGrants(
+      starlitSpanWithMechanics(),
+      "Pew7duAozEeAemif",
+      "hybridStudy-1",
+      mctx,
     );
-    const ops = await materializeGrants(starlitSpanWithMechanics(), "Pew7duAozEeAemif", "hybridStudy-1", mctx);
     expect(ops).toHaveLength(1);
     expect(ops[0]!.type).toBe("doc:update");
   });
 
   it("is idempotent once Shooting Star is already a grant of Starlit Span", async () => {
     const existing = [
-      { _id: "g1", name: "Shooting Star", type: "spell", flags: { fusion: { grantedBy: "Pew7duAozEeAemif", sourceId: "SHOOT_SID" } } },
+      {
+        _id: "g1",
+        name: "Shooting Star",
+        type: "spell",
+        flags: { fusion: { grantedBy: "Pew7duAozEeAemif", sourceId: "SHOOT_SID" } },
+      },
     ];
-    const mctx = ctxFor({ "spells-core": [shootingStarDoc()] }, existing, [{ id: "focus-entry", isFocusPool: true, tradition: "arcane" }]);
-    const ops = await materializeGrants(starlitSpanWithMechanics(), "Pew7duAozEeAemif", "hybridStudy-1", mctx);
+    const mctx = ctxFor({ "spells-core": [shootingStarDoc()] }, existing, [
+      { id: "focus-entry", isFocusPool: true, tradition: "arcane" },
+    ]);
+    const ops = await materializeGrants(
+      starlitSpanWithMechanics(),
+      "Pew7duAozEeAemif",
+      "hybridStudy-1",
+      mctx,
+    );
     expect(ops).toEqual([]);
   });
 
   it("does NOT adopt an unrelated item of a different type with the same name", async () => {
     // A feat named "Shooting Star" must not be adopted for a spell grant.
     const existing = [{ _id: "wrongtype", name: "Shooting Star", type: "feat", flags: {} }];
-    const mctx = ctxFor({ "spells-core": [shootingStarDoc()] }, existing, [{ id: "focus-entry", isFocusPool: true, tradition: "arcane" }]);
-    const ops = await materializeGrants(starlitSpanWithMechanics(), "Pew7duAozEeAemif", "hybridStudy-1", mctx);
+    const mctx = ctxFor({ "spells-core": [shootingStarDoc()] }, existing, [
+      { id: "focus-entry", isFocusPool: true, tradition: "arcane" },
+    ]);
+    const ops = await materializeGrants(
+      starlitSpanWithMechanics(),
+      "Pew7duAozEeAemif",
+      "hybridStudy-1",
+      mctx,
+    );
     // Creates a new spell (type mismatch blocks adoption of the feat).
     expect(ops).toHaveLength(1);
     expect(ops[0]!.type).toBe("doc:create");

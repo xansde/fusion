@@ -81,15 +81,11 @@
           "value": 5,
           "mode": "add",
           "type": "untyped",
-          "predicate": [
-            "hands-free:2"
-          ],
+          "predicate": ["hands-free:2"],
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "predicate": [
-              "hands-free:2"
-            ],
+            "predicate": ["hands-free:2"],
             "selector": "land-speed",
             "value": 5
           }
@@ -163,10 +159,7 @@
           "predicate": [
             "action:seek",
             {
-              "lte": [
-                "target:distance",
-                30
-              ]
+              "lte": ["target:distance", 30]
             }
           ],
           "priority": null,
@@ -175,10 +168,7 @@
             "predicate": [
               "action:seek",
               {
-                "lte": [
-                  "target:distance",
-                  30
-                ]
+                "lte": ["target:distance", 30]
               }
             ],
             "selector": "perception",
@@ -238,10 +228,7 @@
           "type": "circumstance",
           "predicate": [
             {
-              "or": [
-                "item:trait:disease",
-                "item:trait:poison"
-              ]
+              "or": ["item:trait:disease", "item:trait:poison"]
             }
           ],
           "priority": null,
@@ -249,10 +236,7 @@
             "key": "FlatModifier",
             "predicate": [
               {
-                "or": [
-                  "item:trait:disease",
-                  "item:trait:poison"
-                ]
+                "or": ["item:trait:disease", "item:trait:poison"]
               }
             ],
             "selector": "saving-throw",
@@ -281,10 +265,7 @@
             "key": "AdjustDegreeOfSuccess",
             "predicate": [
               {
-                "or": [
-                  "item:trait:disease",
-                  "item:trait:poison"
-                ]
+                "or": ["item:trait:disease", "item:trait:poison"]
               }
             ],
             "selector": "saving-throw",
@@ -508,24 +489,18 @@
           "senseType": null,
           "acuity": "precise",
           "range": null,
-          "predicate": [
-            "self:low-light-vision:from-ancestry"
-          ],
+          "predicate": ["self:low-light-vision:from-ancestry"],
           "priority": null,
           "raw": {
             "key": "Sense",
-            "predicate": [
-              "self:low-light-vision:from-ancestry"
-            ],
+            "predicate": ["self:low-light-vision:from-ancestry"],
             "selector": "darkvision"
           }
         }
       ],
       "traits": {
         "rarity": "uncommon",
-        "value": [
-          "sylph"
-        ]
+        "value": ["sylph"]
       }
     },
     "flags": {

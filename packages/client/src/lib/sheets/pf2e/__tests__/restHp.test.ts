@@ -77,12 +77,17 @@ describe("restAll — HP op + summary card", () => {
     const vm = makeCaster({ level: 3, conScore: 14, hpValue: 10, hpMax: 36 });
     const ops = vm.restAll();
     const hpOp = ops.find(
-      (o) => o.type === "doc:update" && "diff" in o && (o.diff as Record<string, unknown>)["system.attributes.hp.value"] !== undefined,
+      (o) =>
+        o.type === "doc:update" &&
+        "diff" in o &&
+        (o.diff as Record<string, unknown>)["system.attributes.hp.value"] !== undefined,
     ) as { diff: Record<string, unknown> } | undefined;
     expect(hpOp).toBeDefined();
     expect(hpOp!.diff["system.attributes.hp.value"]).toBe(16); // 10 + 6
 
-    const summary = ops.find((o) => o.type === "chat:send") as { content: string; speakerActorId: string } | undefined;
+    const summary = ops.find((o) => o.type === "chat:send") as
+      | { content: string; speakerActorId: string }
+      | undefined;
     expect(summary).toBeDefined();
     expect(summary!.speakerActorId).toBe("hero");
     expect(summary!.content).toContain("+6 PV");

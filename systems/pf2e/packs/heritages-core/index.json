@@ -91,9 +91,7 @@
     "type": "heritage",
     "index": {
       "name": "Sylph",
-      "system.traits.value": [
-        "sylph"
-      ]
+      "system.traits.value": ["sylph"]
     }
   }
 ]

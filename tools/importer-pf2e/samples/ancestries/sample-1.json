@@ -9,35 +9,17 @@
     "additionalLanguages": {
       "count": 0,
       "custom": "",
-      "value": [
-        "draconic",
-        "elven",
-        "fey",
-        "iruxi",
-        "kholo",
-        "orcish"
-      ]
+      "value": ["draconic", "elven", "fey", "iruxi", "kholo", "orcish"]
     },
     "boosts": {
       "0": {
-        "value": [
-          "dex"
-        ]
+        "value": ["dex"]
       },
       "1": {
-        "value": [
-          "wis"
-        ]
+        "value": ["wis"]
       },
       "2": {
-        "value": [
-          "str",
-          "dex",
-          "con",
-          "int",
-          "wis",
-          "cha"
-        ]
+        "value": ["str", "dex", "con", "int", "wis", "cha"]
       }
     },
     "description": {
@@ -45,9 +27,7 @@
     },
     "flaws": {
       "0": {
-        "value": [
-          "con"
-        ]
+        "value": ["con"]
       }
     },
     "hands": 2,
@@ -62,10 +42,7 @@
     },
     "languages": {
       "custom": "",
-      "value": [
-        "anadi",
-        "mwangi"
-      ]
+      "value": ["anadi", "mwangi"]
     },
     "publication": {
       "license": "OGL",
@@ -101,9 +78,7 @@
         "itemType": "action",
         "key": "ItemAlteration",
         "mode": "override",
-        "predicate": [
-          "item:slug:change-shape"
-        ],
+        "predicate": ["item:slug:change-shape"],
         "property": "description",
         "value": [
           {
@@ -127,10 +102,7 @@
     "speed": 25,
     "traits": {
       "rarity": "rare",
-      "value": [
-        "anadi",
-        "humanoid"
-      ]
+      "value": ["anadi", "humanoid"]
     },
     "vision": "normal"
   },

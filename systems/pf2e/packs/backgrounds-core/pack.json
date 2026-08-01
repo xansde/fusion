@@ -3,10 +3,7 @@
   "label": "PF2e Core Backgrounds",
   "documentType": "Item",
   "systemId": "pf2e",
-  "indexFields": [
-    "name",
-    "system.traits.value"
-  ],
+  "indexFields": ["name", "system.traits.value"],
   "license": {
     "license": "ORC",
     "attribution": "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",

@@ -41,13 +41,7 @@ import { z } from "zod";
  * The category of feat that a grant lets the user choose. Mirrors the pf2e
  * `item:category:*` predicate used in the vendor's ChoiceSet filters.
  */
-export const GrantCategorySchema = z.enum([
-  "class",
-  "ancestry",
-  "skill",
-  "general",
-  "archetype",
-]);
+export const GrantCategorySchema = z.enum(["class", "ancestry", "skill", "general", "archetype"]);
 
 export type GrantCategory = z.infer<typeof GrantCategorySchema>;
 

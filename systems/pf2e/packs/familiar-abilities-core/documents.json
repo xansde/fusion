@@ -222,9 +222,7 @@
         "packName": "familiar-abilities",
         "unconvertedRules": [
           {
-            "add": [
-              "amphibious"
-            ],
+            "add": ["amphibious"],
             "key": "ActorTraits",
             "_conversionState": "unsupported"
           }
@@ -519,9 +517,7 @@
         "packName": "familiar-abilities",
         "unconvertedRules": [
           {
-            "add": [
-              "construct"
-            ],
+            "add": ["construct"],
             "key": "ActorTraits",
             "_conversionState": "unsupported"
           }
@@ -557,20 +553,14 @@
           "slug": null,
           "label": null,
           "selector": "{item|flags.system.rulesSelections.save}",
-          "outcome": [
-            "success",
-            "criticalSuccess"
-          ],
+          "outcome": ["success", "criticalSuccess"],
           "text": "",
           "title": "{item|name}",
           "predicate": null,
           "priority": null,
           "raw": {
             "key": "Note",
-            "outcome": [
-              "success",
-              "criticalSuccess"
-            ],
+            "outcome": ["success", "criticalSuccess"],
             "selector": "{item|flags.system.rulesSelections.save}",
             "text": "",
             "title": "{item|name}"
@@ -751,9 +741,7 @@
         "packName": "familiar-abilities",
         "unconvertedRules": [
           {
-            "add": [
-              "dragon"
-            ],
+            "add": ["dragon"],
             "key": "ActorTraits",
             "_conversionState": "unsupported"
           }
@@ -842,9 +830,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "air"
-        ]
+        "value": ["air"]
       },
       "level": 1,
       "prerequisites": []
@@ -858,9 +844,7 @@
         "packName": "familiar-abilities",
         "unconvertedRules": [
           {
-            "add": [
-              "air"
-            ],
+            "add": ["air"],
             "key": "ActorTraits",
             "_conversionState": "unsupported"
           }
@@ -898,15 +882,11 @@
           "label": null,
           "damageType": "physical",
           "value": null,
-          "exceptions": [
-            "adamantine"
-          ],
+          "exceptions": ["adamantine"],
           "predicate": null,
           "priority": null,
           "raw": {
-            "exceptions": [
-              "adamantine"
-            ],
+            "exceptions": ["adamantine"],
             "key": "Resistance",
             "type": "physical",
             "value": "floor(@actor.level/2)"
@@ -914,9 +894,7 @@
         }
       ],
       "traits": {
-        "value": [
-          "earth"
-        ]
+        "value": ["earth"]
       },
       "level": 1,
       "prerequisites": []
@@ -930,9 +908,7 @@
         "packName": "familiar-abilities",
         "unconvertedRules": [
           {
-            "add": [
-              "earth"
-            ],
+            "add": ["earth"],
             "key": "ActorTraits",
             "_conversionState": "unsupported"
           }
@@ -964,9 +940,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "fire"
-        ]
+        "value": ["fire"]
       },
       "level": 1,
       "prerequisites": []
@@ -995,9 +969,7 @@
             "_conversionState": "unsupported"
           },
           {
-            "add": [
-              "fire"
-            ],
+            "add": ["fire"],
             "key": "ActorTraits",
             "_conversionState": "unsupported"
           }
@@ -1029,9 +1001,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "metal"
-        ]
+        "value": ["metal"]
       },
       "level": 1,
       "prerequisites": []
@@ -1045,9 +1015,7 @@
         "packName": "familiar-abilities",
         "unconvertedRules": [
           {
-            "add": [
-              "metal"
-            ],
+            "add": ["metal"],
             "key": "ActorTraits",
             "_conversionState": "unsupported"
           }
@@ -1079,9 +1047,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "water"
-        ]
+        "value": ["water"]
       },
       "level": 1,
       "prerequisites": []
@@ -1095,9 +1061,7 @@
         "packName": "familiar-abilities",
         "unconvertedRules": [
           {
-            "add": [
-              "water"
-            ],
+            "add": ["water"],
             "key": "ActorTraits",
             "_conversionState": "unsupported"
           }
@@ -1129,9 +1093,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "wood"
-        ]
+        "value": ["wood"]
       },
       "level": 1,
       "prerequisites": []
@@ -1145,9 +1107,7 @@
         "packName": "familiar-abilities",
         "unconvertedRules": [
           {
-            "add": [
-              "wood"
-            ],
+            "add": ["wood"],
             "key": "ActorTraits",
             "_conversionState": "unsupported"
           }
@@ -1251,14 +1211,9 @@
             "_conversionState": "unsupported"
           },
           {
-            "add": [
-              "elemental",
-              "{item|flags.system.rulesSelections.element}"
-            ],
+            "add": ["elemental", "{item|flags.system.rulesSelections.element}"],
             "key": "ActorTraits",
-            "remove": [
-              "animal"
-            ],
+            "remove": ["animal"],
             "_conversionState": "unsupported"
           },
           {
@@ -2140,30 +2095,22 @@
             "choices": [
               {
                 "label": "PF2E.Actor.Speed.Type.Climb",
-                "predicate": [
-                  "speed:climb"
-                ],
+                "predicate": ["speed:climb"],
                 "value": "climb"
               },
               {
                 "label": "PF2E.Actor.Speed.Type.Fly",
-                "predicate": [
-                  "speed:fly"
-                ],
+                "predicate": ["speed:fly"],
                 "value": "fly"
               },
               {
                 "label": "PF2E.Actor.Speed.Type.Land",
-                "predicate": [
-                  "speed:land"
-                ],
+                "predicate": ["speed:land"],
                 "value": "land"
               },
               {
                 "label": "PF2E.Actor.Speed.Type.Swim",
-                "predicate": [
-                  "speed:swim"
-                ],
+                "predicate": ["speed:swim"],
                 "value": "swim"
               }
             ],
@@ -2311,9 +2258,7 @@
         "packName": "familiar-abilities",
         "unconvertedRules": [
           {
-            "add": [
-              "fungus"
-            ],
+            "add": ["fungus"],
             "key": "ActorTraits",
             "_conversionState": "unsupported"
           }
@@ -2866,9 +2811,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "electricity"
-        ]
+        "value": ["electricity"]
       },
       "level": 1,
       "prerequisites": []
@@ -2908,9 +2851,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "electricity"
-        ]
+        "value": ["electricity"]
       },
       "level": 1,
       "prerequisites": []
@@ -2981,9 +2922,7 @@
         "unconvertedRules": [
           {
             "key": "TokenLight",
-            "predicate": [
-              "luminous"
-            ],
+            "predicate": ["luminous"],
             "value": {
               "animation": {
                 "intensity": 4,
@@ -3323,9 +3262,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "air"
-        ]
+        "value": ["air"]
       },
       "level": 1,
       "prerequisites": []
@@ -3420,9 +3357,7 @@
         "packName": "familiar-abilities",
         "unconvertedRules": [
           {
-            "add": [
-              "plant"
-            ],
+            "add": ["plant"],
             "key": "ActorTraits",
             "_conversionState": "unsupported"
           }
@@ -4307,10 +4242,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "move",
-          "visual"
-        ]
+        "value": ["move", "visual"]
       },
       "level": 1,
       "prerequisites": []
@@ -4394,9 +4326,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "manipulate"
-        ]
+        "value": ["manipulate"]
       },
       "level": 1,
       "prerequisites": []
@@ -4476,9 +4406,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "healing"
-        ]
+        "value": ["healing"]
       },
       "level": 1,
       "prerequisites": []
@@ -4558,9 +4486,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "shadow"
-        ]
+        "value": ["shadow"]
       },
       "level": 1,
       "prerequisites": []
@@ -4644,11 +4570,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "fire",
-          "light",
-          "magical"
-        ]
+        "value": ["fire", "light", "magical"]
       },
       "level": 1,
       "prerequisites": []
@@ -4692,13 +4614,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "auditory",
-          "concentrate",
-          "divine",
-          "incapacitation",
-          "mental"
-        ]
+        "value": ["auditory", "concentrate", "divine", "incapacitation", "mental"]
       },
       "level": 1,
       "prerequisites": []

@@ -110,9 +110,7 @@ function getDerived(doc: Record<string, unknown>): Record<string, unknown> {
 export function masterItems(masterDoc: Record<string, unknown>): Array<Record<string, unknown>> {
   const items = masterDoc["items"];
   if (!Array.isArray(items)) return [];
-  return items.filter(
-    (it): it is Record<string, unknown> => typeof it === "object" && it !== null,
-  );
+  return items.filter((it): it is Record<string, unknown> => typeof it === "object" && it !== null);
 }
 
 /**
@@ -149,9 +147,7 @@ export function buildMasterSnapshot(masterDoc: Record<string, unknown>): MasterS
     | undefined;
   const ac = num(acDerived?.total, num(acRaw?.value, 10));
 
-  const savesDerived = derived["saves"] as
-    | Record<string, { total?: unknown }>
-    | undefined;
+  const savesDerived = derived["saves"] as Record<string, { total?: unknown }> | undefined;
   const saveOf = (k: string): number => num(savesDerived?.[k]?.total, 0);
 
   const percDerived = derived["perception"] as { total?: unknown } | undefined;
@@ -276,9 +272,7 @@ export function readFamiliar(
   const derPerc = derived["perception"] as { total?: unknown } | undefined;
   const derSaves = derived["saves"] as Record<string, { total?: unknown }> | undefined;
   const derAttack = derived["attack"] as { total?: unknown } | undefined;
-  const derSpeed = derived["speed"] as
-    | { value?: unknown; otherSpeeds?: unknown }
-    | undefined;
+  const derSpeed = derived["speed"] as { value?: unknown; otherSpeeds?: unknown } | undefined;
   const budget = sys["abilitiesBudget"] as { value?: unknown; max?: unknown } | undefined;
   const selected = sys["selectedAbilities"];
   const rawName = doc["name"];
@@ -290,7 +284,10 @@ export function readFamiliar(
     name: typeof rawName === "string" ? rawName : "Familiar",
     companionKind: typeof sys["companionKind"] === "string" ? sys["companionKind"] : "familiar",
     appearance: typeof sys["appearance"] === "string" ? sys["appearance"] : "",
-    hp: { value: num(derHp?.value, num(rawHp?.value, 0)), max: num(derHp?.max, num(rawHp?.max, 0)) },
+    hp: {
+      value: num(derHp?.value, num(rawHp?.value, 0)),
+      max: num(derHp?.max, num(rawHp?.max, 0)),
+    },
     ac: num(derAc?.total, 10),
     perception: num(derPerc?.total, 0),
     saves: {
@@ -309,7 +306,10 @@ export function readFamiliar(
             typeof (s as { value?: unknown }).value === "number",
         )
       : [],
-    abilitiesBudget: { value: num(budget?.value, FAMILIAR_ABILITY_BASE), max: num(budget?.max, FAMILIAR_ABILITY_BASE) },
+    abilitiesBudget: {
+      value: num(budget?.value, FAMILIAR_ABILITY_BASE),
+      max: num(budget?.max, FAMILIAR_ABILITY_BASE),
+    },
     selectedAbilities: Array.isArray(selected)
       ? (selected as unknown[]).filter((s): s is string => typeof s === "string")
       : [],

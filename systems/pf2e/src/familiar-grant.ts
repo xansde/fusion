@@ -52,14 +52,10 @@ export interface FamiliarGrant {
  * The master's embedded items array (feats/heritages/etc.), narrowed to plain
  * objects. Tolerates a master doc with no `items` (returns []).
  */
-export function masterItems(
-  masterDoc: Record<string, unknown>,
-): Array<Record<string, unknown>> {
+export function masterItems(masterDoc: Record<string, unknown>): Array<Record<string, unknown>> {
   const items = masterDoc["items"];
   if (!Array.isArray(items)) return [];
-  return items.filter(
-    (it): it is Record<string, unknown> => typeof it === "object" && it !== null,
-  );
+  return items.filter((it): it is Record<string, unknown> => typeof it === "object" && it !== null);
 }
 
 /** True when a rule element bumps `system.attributes.familiarAbilities.value`. */

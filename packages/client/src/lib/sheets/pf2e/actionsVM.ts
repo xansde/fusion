@@ -42,10 +42,7 @@ import type { Socket } from "socket.io-client";
 import type { PackIndexEntry, AbilityCard, ChatSendFlags } from "@fusion/shared";
 import { normalizeSearchText } from "@fusion/shared";
 import type { SupportedLocale } from "../../i18n/i18n.js";
-import {
-  localizedNameParts,
-  pickLocalizedDescription,
-} from "../../compendium/documentDetails.js";
+import { localizedNameParts, pickLocalizedDescription } from "../../compendium/documentDetails.js";
 import {
   listPacks,
   searchPack,
@@ -490,7 +487,8 @@ export function mergeActionRows(
       // pack row didn't provide, so a real same-slug action still wins.
       const enrich = nameIndex?.get(row.slug);
       if (enrich) {
-        if (row.fallbackUuid === null && enrich.fallbackUuid) row.fallbackUuid = enrich.fallbackUuid;
+        if (row.fallbackUuid === null && enrich.fallbackUuid)
+          row.fallbackUuid = enrich.fallbackUuid;
         if (row.namePt === null && enrich.namePt) row.namePt = enrich.namePt;
       }
       bySlug.set(row.slug, row);
@@ -647,7 +645,9 @@ const SAVE_SLUGS = new Set(["fortitude", "reflex", "will"]);
  * impulses like Four Winds). Pure/dependency-free so the "Usar" announcement is
  * unit-testable.
  */
-export function parseImpulseSaveCue(descriptionHtml: string | null | undefined): ImpulseSaveCue | null {
+export function parseImpulseSaveCue(
+  descriptionHtml: string | null | undefined,
+): ImpulseSaveCue | null {
   if (!descriptionHtml) return null;
   const re = /@Check\[([^\]]+)\]/g;
   let m: RegExpExecArray | null;
@@ -668,8 +668,12 @@ export function parseImpulseSaveCue(descriptionHtml: string | null | undefined):
  */
 export function kineticistClassDc(doc: Record<string, unknown>): number | null {
   const system = isRecord(doc["system"]) ? (doc["system"] as Record<string, unknown>) : null;
-  const derived = system && isRecord(system["derived"]) ? (system["derived"] as Record<string, unknown>) : null;
-  const classDC = derived && isRecord(derived["classDC"]) ? (derived["classDC"] as Record<string, unknown>) : null;
+  const derived =
+    system && isRecord(system["derived"]) ? (system["derived"] as Record<string, unknown>) : null;
+  const classDC =
+    derived && isRecord(derived["classDC"])
+      ? (derived["classDC"] as Record<string, unknown>)
+      : null;
   const dc = classDC?.["dc"];
   return typeof dc === "number" ? dc : null;
 }
@@ -744,7 +748,9 @@ const DAMAGE_MARKERS = new Set(["persistent", "precision", "splash"]);
  * exactly the intended behavior ("parseado quando existir"). Returns null when
  * the description carries no `@Damage`, or the formula is not cleanly rollable.
  */
-export function parseImpulseDamage(descriptionHtml: string | null | undefined): ImpulseDamage | null {
+export function parseImpulseDamage(
+  descriptionHtml: string | null | undefined,
+): ImpulseDamage | null {
   if (!descriptionHtml) return null;
   const marker = "@Damage[";
   const start = descriptionHtml.indexOf(marker);
@@ -886,7 +892,8 @@ export interface BlastRowVM {
  */
 export function readElementalBlasts(doc: Record<string, unknown>): BlastRowVM[] {
   const system = isRecord(doc["system"]) ? (doc["system"] as Record<string, unknown>) : null;
-  const derived = system && isRecord(system["derived"]) ? (system["derived"] as Record<string, unknown>) : null;
+  const derived =
+    system && isRecord(system["derived"]) ? (system["derived"] as Record<string, unknown>) : null;
   const blasts = derived?.["elementalBlasts"];
   if (!Array.isArray(blasts)) return [];
 
@@ -1072,7 +1079,10 @@ function archetypeSlugFromDedication(item: Record<string, unknown>): string | nu
   if (!traits.includes("dedication")) return null;
   const name = str(item["name"]);
   if (!name) return null;
-  const slug = name.toLowerCase().replace(/\s+dedication$/, "").trim();
+  const slug = name
+    .toLowerCase()
+    .replace(/\s+dedication$/, "")
+    .trim();
   return slug || null;
 }
 

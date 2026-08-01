@@ -334,7 +334,11 @@ function authorizePlayerCompanionDelete(
   } catch (err) {
     if (err instanceof DocumentNotFoundError) {
       // Orphan companion (dangling master) — only a GM may delete it.
-      return { ok: false, code: "PERMISSION_DENIED", message: "Only GM/Assistant can delete Actor" };
+      return {
+        ok: false,
+        code: "PERMISSION_DENIED",
+        message: "Only GM/Assistant can delete Actor",
+      };
     }
     throw err;
   }

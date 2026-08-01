@@ -236,7 +236,11 @@ describe("buildDamageRollOp", () => {
 
 describe("resolveSpellCastUuid", () => {
   const INDEX: SpellDetailsIndexEntry[] = [
-    { uuid: "Compendium.fusion.spells-core.Item.arco", name: "Electric Arc", namePt: "Arco Elétrico" },
+    {
+      uuid: "Compendium.fusion.spells-core.Item.arco",
+      name: "Electric Arc",
+      namePt: "Arco Elétrico",
+    },
     { uuid: "Compendium.fusion.spells-core.Item.escudo", name: "Shield", namePt: "Escudo" },
   ];
 

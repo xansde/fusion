@@ -30,9 +30,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "magus"
-        ]
+        "value": ["magus"]
       }
     },
     "flags": {
@@ -100,10 +98,7 @@
           "predicate": [
             "aloof-flew-or-jumped",
             {
-              "gte": [
-                "hands-free:but-really",
-                1
-              ]
+              "gte": ["hands-free:but-really", 1]
             }
           ],
           "priority": null,
@@ -114,10 +109,7 @@
             "predicate": [
               "aloof-flew-or-jumped",
               {
-                "gte": [
-                  "hands-free:but-really",
-                  1
-                ]
+                "gte": ["hands-free:but-really", 1]
               }
             ],
             "selector": "strike-damage",
@@ -137,10 +129,7 @@
             "feature:weapon-specialization",
             "aloof-flew-or-jumped",
             {
-              "gte": [
-                "hands-free:but-really",
-                1
-              ]
+              "gte": ["hands-free:but-really", 1]
             }
           ],
           "priority": null,
@@ -152,10 +141,7 @@
               "feature:weapon-specialization",
               "aloof-flew-or-jumped",
               {
-                "gte": [
-                  "hands-free:but-really",
-                  1
-                ]
+                "gte": ["hands-free:but-really", 1]
               }
             ],
             "selector": "strike-damage",
@@ -175,10 +161,7 @@
             "feature:greater-weapon-specialization",
             "aloof-flew-or-jumped",
             {
-              "gte": [
-                "hands-free:but-really",
-                1
-              ]
+              "gte": ["hands-free:but-really", 1]
             }
           ],
           "priority": null,
@@ -190,10 +173,7 @@
               "feature:greater-weapon-specialization",
               "aloof-flew-or-jumped",
               {
-                "gte": [
-                  "hands-free:but-really",
-                  1
-                ]
+                "gte": ["hands-free:but-really", 1]
               }
             ],
             "selector": "strike-damage",
@@ -207,29 +187,21 @@
           "label": "PF2E.SpecificRule.Magus.ArcaneCascade.IncreaseDamage",
           "toggleable": true,
           "domain": "all",
-          "predicate": [
-            "self:effect:arcane-cascade"
-          ],
+          "predicate": ["self:effect:arcane-cascade"],
           "priority": null,
           "raw": {
             "key": "RollOption",
             "label": "PF2E.SpecificRule.Magus.ArcaneCascade.IncreaseDamage",
             "option": "aloof-flew-or-jumped",
-            "predicate": [
-              "self:effect:arcane-cascade"
-            ],
+            "predicate": ["self:effect:arcane-cascade"],
             "toggleable": true
           }
         }
       ],
       "traits": {
-        "otherTags": [
-          "magus-hybrid-study"
-        ],
+        "otherTags": ["magus-hybrid-study"],
         "rarity": "uncommon",
-        "value": [
-          "magus"
-        ]
+        "value": ["magus"]
       }
     },
     "flags": {
@@ -246,10 +218,7 @@
             "predicate": [
               "aloof-flew-or-jumped",
               {
-                "gte": [
-                  "hands-free:but-really",
-                  1
-                ]
+                "gte": ["hands-free:but-really", 1]
               }
             ],
             "selector": "strike-damage",
@@ -264,10 +233,7 @@
               "feature:weapon-specialization",
               "aloof-flew-or-jumped",
               {
-                "gte": [
-                  "hands-free:but-really",
-                  1
-                ]
+                "gte": ["hands-free:but-really", 1]
               }
             ],
             "selector": "strike-damage",
@@ -282,10 +248,7 @@
               "feature:greater-weapon-specialization",
               "aloof-flew-or-jumped",
               {
-                "gte": [
-                  "hands-free:but-really",
-                  1
-                ]
+                "gte": ["hands-free:but-really", 1]
               }
             ],
             "selector": "strike-damage",
@@ -360,9 +323,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "magus"
-        ]
+        "value": ["magus"]
       }
     },
     "flags": {
@@ -408,9 +369,7 @@
       "traits": {
         "rarity": "common",
         "selected": {},
-        "value": [
-          "magus"
-        ]
+        "value": ["magus"]
       }
     },
     "flags": {
@@ -455,9 +414,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "magus"
-        ]
+        "value": ["magus"]
       }
     },
     "flags": {
@@ -502,9 +459,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "kineticist"
-        ]
+        "value": ["kineticist"]
       }
     },
     "flags": {
@@ -549,9 +504,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "magus"
-        ]
+        "value": ["magus"]
       }
     },
     "flags": {
@@ -739,9 +692,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "kineticist"
-        ]
+        "value": ["kineticist"]
       }
     },
     "flags": {
@@ -786,9 +737,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "kineticist"
-        ]
+        "value": ["kineticist"]
       }
     },
     "flags": {
@@ -837,16 +786,12 @@
           "label": null,
           "uuid": "Compendium.pf2e.classfeatures.Item.Gate Junction",
           "inMemoryOnly": false,
-          "predicate": [
-            "kinetic-gate:fourth-threshold:expand"
-          ],
+          "predicate": ["kinetic-gate:fourth-threshold:expand"],
           "alterations": [],
           "priority": null,
           "raw": {
             "key": "GrantItem",
-            "predicate": [
-              "kinetic-gate:fourth-threshold:expand"
-            ],
+            "predicate": ["kinetic-gate:fourth-threshold:expand"],
             "preselectChoices": {
               "element": "{item|flags.system.rulesSelections.element}"
             },
@@ -886,9 +831,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "kineticist"
-        ]
+        "value": ["kineticist"]
       }
     },
     "flags": {
@@ -920,24 +863,18 @@
             "choices": "flags.system.kineticist.elements",
             "flag": "element",
             "key": "ChoiceSet",
-            "predicate": [
-              "kinetic-gate:fourth-threshold:expand"
-            ],
+            "predicate": ["kinetic-gate:fourth-threshold:expand"],
             "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.ExpandElement",
             "_conversionState": "unsupported"
           },
           {
             "adjustName": "PF2E.SpecificRule.Kineticist.KineticGate.ForkThePath.Rename",
             "choices": {
-              "filter": [
-                "item:tag:kineticist-kinetic-gate"
-              ]
+              "filter": ["item:tag:kineticist-kinetic-gate"]
             },
             "flag": "elementFork",
             "key": "ChoiceSet",
-            "predicate": [
-              "kinetic-gate:fourth-threshold:fork"
-            ],
+            "predicate": ["kinetic-gate:fourth-threshold:fork"],
             "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Element",
             "_conversionState": "unsupported"
           },
@@ -948,10 +885,7 @@
                 "item:rarity:common",
                 "item:trait:impulse",
                 {
-                  "lte": [
-                    "item:level",
-                    17
-                  ]
+                  "lte": ["item:level", 17]
                 },
                 {
                   "or": [
@@ -1005,9 +939,7 @@
             },
             "flag": "impulseExpand",
             "key": "ChoiceSet",
-            "predicate": [
-              "kinetic-gate:fourth-threshold:expand"
-            ],
+            "predicate": ["kinetic-gate:fourth-threshold:expand"],
             "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Impulse",
             "_conversionState": "unsupported"
           }
@@ -1050,16 +982,12 @@
           "label": null,
           "uuid": "Compendium.pf2e.classfeatures.Item.Gate Junction",
           "inMemoryOnly": false,
-          "predicate": [
-            "kinetic-gate:first-threshold:expand"
-          ],
+          "predicate": ["kinetic-gate:first-threshold:expand"],
           "alterations": [],
           "priority": null,
           "raw": {
             "key": "GrantItem",
-            "predicate": [
-              "kinetic-gate:first-threshold:expand"
-            ],
+            "predicate": ["kinetic-gate:first-threshold:expand"],
             "preselectChoices": {
               "element": "{item|flags.system.rulesSelections.element}"
             },
@@ -1099,9 +1027,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "kineticist"
-        ]
+        "value": ["kineticist"]
       }
     },
     "flags": {
@@ -1133,24 +1059,18 @@
             "choices": "flags.system.kineticist.elements",
             "flag": "element",
             "key": "ChoiceSet",
-            "predicate": [
-              "kinetic-gate:first-threshold:expand"
-            ],
+            "predicate": ["kinetic-gate:first-threshold:expand"],
             "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.ExpandElement",
             "_conversionState": "unsupported"
           },
           {
             "adjustName": "PF2E.SpecificRule.Kineticist.KineticGate.ForkThePath.Rename",
             "choices": {
-              "filter": [
-                "item:tag:kineticist-kinetic-gate"
-              ]
+              "filter": ["item:tag:kineticist-kinetic-gate"]
             },
             "flag": "elementFork",
             "key": "ChoiceSet",
-            "predicate": [
-              "kinetic-gate:first-threshold:fork"
-            ],
+            "predicate": ["kinetic-gate:first-threshold:fork"],
             "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Element",
             "_conversionState": "unsupported"
           },
@@ -1161,10 +1081,7 @@
                 "item:rarity:common",
                 "item:trait:impulse",
                 {
-                  "lte": [
-                    "item:level",
-                    5
-                  ]
+                  "lte": ["item:level", 5]
                 },
                 {
                   "or": [
@@ -1218,9 +1135,7 @@
             },
             "flag": "impulseExpand",
             "key": "ChoiceSet",
-            "predicate": [
-              "kinetic-gate:first-threshold:expand"
-            ],
+            "predicate": ["kinetic-gate:first-threshold:expand"],
             "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Impulse",
             "_conversionState": "unsupported"
           }
@@ -1262,23 +1177,15 @@
           "slug": null,
           "label": null,
           "selector": "fortitude",
-          "outcome": [
-            "failure"
-          ],
+          "outcome": ["failure"],
           "text": "",
           "title": "{item|name}",
-          "predicate": [
-            "damaging-effect"
-          ],
+          "predicate": ["damaging-effect"],
           "priority": null,
           "raw": {
             "key": "Note",
-            "outcome": [
-              "failure"
-            ],
-            "predicate": [
-              "damaging-effect"
-            ],
+            "outcome": ["failure"],
+            "predicate": ["damaging-effect"],
             "selector": "fortitude",
             "text": "",
             "title": "{item|name}"
@@ -1295,9 +1202,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "kineticist"
-        ]
+        "value": ["kineticist"]
       }
     },
     "flags": {
@@ -1364,10 +1269,7 @@
             "key": "AdjustModifier",
             "mode": "multiply",
             "relabel": "PF2E.GreaterWeaponSpecialization",
-            "selectors": [
-              "unarmed-damage",
-              "weapon-damage"
-            ],
+            "selectors": ["unarmed-damage", "weapon-damage"],
             "slug": "weapon-specialization",
             "value": 2
           }
@@ -1403,10 +1305,7 @@
             "key": "AdjustModifier",
             "mode": "multiply",
             "relabel": "PF2E.GreaterWeaponSpecialization",
-            "selectors": [
-              "unarmed-damage",
-              "weapon-damage"
-            ],
+            "selectors": ["unarmed-damage", "weapon-damage"],
             "slug": "weapon-specialization",
             "value": 2,
             "_conversionState": "partial"
@@ -1461,9 +1360,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "magus"
-        ]
+        "value": ["magus"]
       }
     },
     "flags": {
@@ -1477,9 +1374,7 @@
           {
             "adjustName": false,
             "choices": {
-              "filter": [
-                "item:tag:magus-hybrid-study"
-              ]
+              "filter": ["item:tag:magus-hybrid-study"]
             },
             "flag": "hybridStudy",
             "key": "ChoiceSet",
@@ -1539,25 +1434,19 @@
           "label": null,
           "uuid": "Compendium.pf2e.actionspf2e.Item.Base Kinesis",
           "inMemoryOnly": false,
-          "predicate": [
-            "class:kineticist"
-          ],
+          "predicate": ["class:kineticist"],
           "alterations": [],
           "priority": null,
           "raw": {
             "key": "GrantItem",
-            "predicate": [
-              "class:kineticist"
-            ],
+            "predicate": ["class:kineticist"],
             "uuid": "Compendium.pf2e.actionspf2e.Item.Base Kinesis"
           }
         }
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "kineticist"
-        ]
+        "value": ["kineticist"]
       }
     },
     "flags": {
@@ -1610,13 +1499,9 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "magus-hybrid-study"
-        ],
+        "otherTags": ["magus-hybrid-study"],
         "rarity": "common",
-        "value": [
-          "magus"
-        ]
+        "value": ["magus"]
       }
     },
     "flags": {
@@ -1710,10 +1595,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "barbarian",
-          "magus"
-        ]
+        "value": ["barbarian", "magus"]
       }
     },
     "flags": {
@@ -1809,17 +1691,13 @@
           "selector": "description",
           "value": null,
           "mode": "add",
-          "predicate": [
-            "item:trait:overflow"
-          ],
+          "predicate": ["item:trait:overflow"],
           "priority": null,
           "raw": {
             "itemType": "feat",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:trait:overflow"
-            ],
+            "predicate": ["item:trait:overflow"],
             "property": "description",
             "value": [
               {
@@ -1833,9 +1711,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "kineticist"
-        ]
+        "value": ["kineticist"]
       }
     },
     "flags": {
@@ -1850,9 +1726,7 @@
             "itemType": "feat",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:trait:overflow"
-            ],
+            "predicate": ["item:trait:overflow"],
             "property": "description",
             "value": [
               {
@@ -1905,9 +1779,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "kineticist"
-        ]
+        "value": ["kineticist"]
       }
     },
     "flags": {
@@ -1969,9 +1841,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "kineticist"
-        ]
+        "value": ["kineticist"]
       }
     },
     "flags": {
@@ -2045,9 +1915,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "kineticist"
-        ]
+        "value": ["kineticist"]
       }
     },
     "flags": {
@@ -2101,9 +1969,7 @@
           {
             "adjustName": false,
             "choices": {
-              "filter": [
-                "item:tag:kineticist-kinetic-gate"
-              ]
+              "filter": ["item:tag:kineticist-kinetic-gate"]
             },
             "flag": "elementOne",
             "key": "ChoiceSet",
@@ -2114,15 +1980,11 @@
           {
             "adjustName": false,
             "choices": {
-              "filter": [
-                "item:tag:kineticist-kinetic-gate"
-              ]
+              "filter": ["item:tag:kineticist-kinetic-gate"]
             },
             "flag": "elementTwo",
             "key": "ChoiceSet",
-            "predicate": [
-              "kinetic-gate:initial:dual-gate"
-            ],
+            "predicate": ["kinetic-gate:initial:dual-gate"],
             "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Element",
             "rollOption": "kinetic-gate:second-element",
             "_conversionState": "unsupported"
@@ -2170,9 +2032,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "kineticist"
-        ]
+        "value": ["kineticist"]
       }
     },
     "flags": {
@@ -2225,9 +2085,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "kineticist"
-        ]
+        "value": ["kineticist"]
       }
     },
     "flags": {
@@ -2279,9 +2137,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "kineticist"
-        ]
+        "value": ["kineticist"]
       }
     },
     "flags": {
@@ -2341,17 +2197,11 @@
           "value": 5,
           "mode": "add",
           "type": "status",
-          "predicate": [
-            "self:armored",
-            "self:effect:arcane-cascade"
-          ],
+          "predicate": ["self:armored", "self:effect:arcane-cascade"],
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "predicate": [
-              "self:armored",
-              "self:effect:arcane-cascade"
-            ],
+            "predicate": ["self:armored", "self:effect:arcane-cascade"],
             "selector": "speed",
             "slug": "laughing-shadow-armored-movement",
             "type": "status",
@@ -2398,10 +2248,7 @@
           "predicate": [
             "target:condition:off-guard",
             {
-              "gte": [
-                "hands-free:but-really",
-                1
-              ]
+              "gte": ["hands-free:but-really", 1]
             }
           ],
           "priority": null,
@@ -2412,10 +2259,7 @@
             "predicate": [
               "target:condition:off-guard",
               {
-                "gte": [
-                  "hands-free:but-really",
-                  1
-                ]
+                "gte": ["hands-free:but-really", 1]
               }
             ],
             "selector": "strike-damage",
@@ -2435,10 +2279,7 @@
             "feature:weapon-specialization",
             "target:condition:off-guard",
             {
-              "gte": [
-                "hands-free:but-really",
-                1
-              ]
+              "gte": ["hands-free:but-really", 1]
             }
           ],
           "priority": null,
@@ -2450,10 +2291,7 @@
               "feature:weapon-specialization",
               "target:condition:off-guard",
               {
-                "gte": [
-                  "hands-free:but-really",
-                  1
-                ]
+                "gte": ["hands-free:but-really", 1]
               }
             ],
             "selector": "strike-damage",
@@ -2473,10 +2311,7 @@
             "feature:greater-weapon-specialization",
             "target:condition:off-guard",
             {
-              "gte": [
-                "hands-free:but-really",
-                1
-              ]
+              "gte": ["hands-free:but-really", 1]
             }
           ],
           "priority": null,
@@ -2488,10 +2323,7 @@
               "feature:greater-weapon-specialization",
               "target:condition:off-guard",
               {
-                "gte": [
-                  "hands-free:but-really",
-                  1
-                ]
+                "gte": ["hands-free:but-really", 1]
               }
             ],
             "selector": "strike-damage",
@@ -2516,13 +2348,9 @@
         }
       ],
       "traits": {
-        "otherTags": [
-          "magus-hybrid-study"
-        ],
+        "otherTags": ["magus-hybrid-study"],
         "rarity": "common",
-        "value": [
-          "magus"
-        ]
+        "value": ["magus"]
       }
     },
     "flags": {
@@ -2539,10 +2367,7 @@
             "predicate": [
               "target:condition:off-guard",
               {
-                "gte": [
-                  "hands-free:but-really",
-                  1
-                ]
+                "gte": ["hands-free:but-really", 1]
               }
             ],
             "selector": "strike-damage",
@@ -2557,10 +2382,7 @@
               "feature:weapon-specialization",
               "target:condition:off-guard",
               {
-                "gte": [
-                  "hands-free:but-really",
-                  1
-                ]
+                "gte": ["hands-free:but-really", 1]
               }
             ],
             "selector": "strike-damage",
@@ -2575,10 +2397,7 @@
               "feature:greater-weapon-specialization",
               "target:condition:off-guard",
               {
-                "gte": [
-                  "hands-free:but-really",
-                  1
-                ]
+                "gte": ["hands-free:but-really", 1]
               }
             ],
             "selector": "strike-damage",
@@ -2631,14 +2450,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "bard",
-          "investigator",
-          "kineticist",
-          "oracle",
-          "rogue",
-          "swashbuckler"
-        ]
+        "value": ["bard", "investigator", "kineticist", "oracle", "rogue", "swashbuckler"]
       }
     },
     "flags": {
@@ -2693,12 +2505,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "investigator",
-          "kineticist",
-          "rogue",
-          "swashbuckler"
-        ]
+        "value": ["investigator", "kineticist", "rogue", "swashbuckler"]
       }
     },
     "flags": {
@@ -2883,15 +2690,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "alchemist",
-          "barbarian",
-          "druid",
-          "gunslinger",
-          "magus",
-          "ranger",
-          "thaumaturge"
-        ]
+        "value": ["alchemist", "barbarian", "druid", "gunslinger", "magus", "ranger", "thaumaturge"]
       }
     },
     "flags": {
@@ -2949,14 +2748,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "alchemist",
-          "gunslinger",
-          "inventor",
-          "magus",
-          "ranger",
-          "thaumaturge"
-        ]
+        "value": ["alchemist", "gunslinger", "inventor", "magus", "ranger", "thaumaturge"]
       }
     },
     "flags": {
@@ -3128,9 +2920,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "kineticist"
-        ]
+        "value": ["kineticist"]
       }
     },
     "flags": {
@@ -3182,9 +2972,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "magus"
-        ]
+        "value": ["magus"]
       }
     },
     "flags": {
@@ -3242,13 +3030,9 @@
         "suppressedFeatures": []
       },
       "traits": {
-        "otherTags": [
-          "magus-hybrid-study"
-        ],
+        "otherTags": ["magus-hybrid-study"],
         "rarity": "uncommon",
-        "value": [
-          "magus"
-        ]
+        "value": ["magus"]
       }
     },
     "flags": {
@@ -3297,16 +3081,12 @@
           "label": null,
           "uuid": "Compendium.pf2e.classfeatures.Item.Gate Junction",
           "inMemoryOnly": false,
-          "predicate": [
-            "kinetic-gate:second-threshold:expand"
-          ],
+          "predicate": ["kinetic-gate:second-threshold:expand"],
           "alterations": [],
           "priority": null,
           "raw": {
             "key": "GrantItem",
-            "predicate": [
-              "kinetic-gate:second-threshold:expand"
-            ],
+            "predicate": ["kinetic-gate:second-threshold:expand"],
             "preselectChoices": {
               "element": "{item|flags.system.rulesSelections.element}"
             },
@@ -3346,9 +3126,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "kineticist"
-        ]
+        "value": ["kineticist"]
       }
     },
     "flags": {
@@ -3381,24 +3159,18 @@
             "choices": "flags.system.kineticist.elements",
             "flag": "element",
             "key": "ChoiceSet",
-            "predicate": [
-              "kinetic-gate:second-threshold:expand"
-            ],
+            "predicate": ["kinetic-gate:second-threshold:expand"],
             "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.ExpandElement",
             "_conversionState": "unsupported"
           },
           {
             "adjustName": "PF2E.SpecificRule.Kineticist.KineticGate.ForkThePath.Rename",
             "choices": {
-              "filter": [
-                "item:tag:kineticist-kinetic-gate"
-              ]
+              "filter": ["item:tag:kineticist-kinetic-gate"]
             },
             "flag": "elementFork",
             "key": "ChoiceSet",
-            "predicate": [
-              "kinetic-gate:second-threshold:fork"
-            ],
+            "predicate": ["kinetic-gate:second-threshold:fork"],
             "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Element",
             "_conversionState": "unsupported"
           },
@@ -3409,10 +3181,7 @@
                 "item:rarity:common",
                 "item:trait:impulse",
                 {
-                  "lte": [
-                    "item:level",
-                    9
-                  ]
+                  "lte": ["item:level", 9]
                 },
                 {
                   "or": [
@@ -3466,9 +3235,7 @@
             },
             "flag": "impulseExpand",
             "key": "ChoiceSet",
-            "predicate": [
-              "kinetic-gate:second-threshold:expand"
-            ],
+            "predicate": ["kinetic-gate:second-threshold:expand"],
             "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Impulse",
             "_conversionState": "unsupported"
           }
@@ -3511,17 +3278,13 @@
           "label": "PF2E.SpecificRule.Magus.SparklingTarge.DefendingLabel",
           "toggleable": true,
           "domain": "all",
-          "predicate": [
-            "self:effect:arcane-cascade"
-          ],
+          "predicate": ["self:effect:arcane-cascade"],
           "priority": null,
           "raw": {
             "key": "RollOption",
             "label": "PF2E.SpecificRule.Magus.SparklingTarge.DefendingLabel",
             "option": "defend-against-magic",
-            "predicate": [
-              "self:effect:arcane-cascade"
-            ],
+            "predicate": ["self:effect:arcane-cascade"],
             "toggleable": true
           }
         },
@@ -3536,10 +3299,7 @@
           "predicate": [
             "item:equipped",
             {
-              "or": [
-                "item:magical",
-                "defend-against-magic"
-              ]
+              "or": ["item:magical", "defend-against-magic"]
             },
             "self:effect:arcane-cascade",
             "self:effect:raise-a-shield",
@@ -3555,10 +3315,7 @@
             "predicate": [
               "item:equipped",
               {
-                "or": [
-                  "item:magical",
-                  "defend-against-magic"
-                ]
+                "or": ["item:magical", "defend-against-magic"]
               },
               "self:effect:arcane-cascade",
               "self:effect:raise-a-shield",
@@ -3581,10 +3338,7 @@
           "predicate": [
             "item:equipped",
             {
-              "or": [
-                "item:magical",
-                "defend-against-magic"
-              ]
+              "or": ["item:magical", "defend-against-magic"]
             },
             "self:effect:arcane-cascade",
             "self:effect:raise-a-shield",
@@ -3601,10 +3355,7 @@
             "predicate": [
               "item:equipped",
               {
-                "or": [
-                  "item:magical",
-                  "defend-against-magic"
-                ]
+                "or": ["item:magical", "defend-against-magic"]
               },
               "self:effect:arcane-cascade",
               "self:effect:raise-a-shield",
@@ -3628,10 +3379,7 @@
           "predicate": [
             "item:equipped",
             {
-              "or": [
-                "item:magical",
-                "defend-against-magic"
-              ]
+              "or": ["item:magical", "defend-against-magic"]
             },
             "self:effect:arcane-cascade",
             "self:effect:raise-a-shield",
@@ -3645,10 +3393,7 @@
             "predicate": [
               "item:equipped",
               {
-                "or": [
-                  "item:magical",
-                  "defend-against-magic"
-                ]
+                "or": ["item:magical", "defend-against-magic"]
               },
               "self:effect:arcane-cascade",
               "self:effect:raise-a-shield",
@@ -3670,10 +3415,7 @@
             "self:shield:raised",
             "self:effect:arcane-cascade",
             {
-              "or": [
-                "item:magical",
-                "defend-against-magic"
-              ]
+              "or": ["item:magical", "defend-against-magic"]
             }
           ],
           "priority": null,
@@ -3683,10 +3425,7 @@
               "self:shield:raised",
               "self:effect:arcane-cascade",
               {
-                "or": [
-                  "item:magical",
-                  "defend-against-magic"
-                ]
+                "or": ["item:magical", "defend-against-magic"]
               }
             ],
             "selector": "saving-throw",
@@ -3711,13 +3450,9 @@
         }
       ],
       "traits": {
-        "otherTags": [
-          "magus-hybrid-study"
-        ],
+        "otherTags": ["magus-hybrid-study"],
         "rarity": "common",
-        "value": [
-          "magus"
-        ]
+        "value": ["magus"]
       }
     },
     "flags": {
@@ -3735,10 +3470,7 @@
             "predicate": [
               "item:equipped",
               {
-                "or": [
-                  "item:magical",
-                  "defend-against-magic"
-                ]
+                "or": ["item:magical", "defend-against-magic"]
               },
               "self:effect:arcane-cascade",
               "self:effect:raise-a-shield",
@@ -3757,10 +3489,7 @@
             "predicate": [
               "item:equipped",
               {
-                "or": [
-                  "item:magical",
-                  "defend-against-magic"
-                ]
+                "or": ["item:magical", "defend-against-magic"]
               },
               "self:effect:arcane-cascade",
               "self:effect:raise-a-shield",
@@ -3780,10 +3509,7 @@
             "predicate": [
               "item:equipped",
               {
-                "or": [
-                  "item:magical",
-                  "defend-against-magic"
-                ]
+                "or": ["item:magical", "defend-against-magic"]
               },
               "self:effect:arcane-cascade",
               "self:effect:raise-a-shield",
@@ -3843,9 +3569,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "magus"
-        ]
+        "value": ["magus"]
       }
     },
     "flags": {
@@ -3889,13 +3613,9 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "magus-hybrid-study"
-        ],
+        "otherTags": ["magus-hybrid-study"],
         "rarity": "common",
-        "value": [
-          "magus"
-        ]
+        "value": ["magus"]
       }
     },
     "flags": {
@@ -3940,9 +3660,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "magus"
-        ]
+        "value": ["magus"]
       }
     },
     "flags": {
@@ -3991,16 +3709,12 @@
           "label": null,
           "uuid": "Compendium.pf2e.classfeatures.Item.Gate Junction",
           "inMemoryOnly": false,
-          "predicate": [
-            "kinetic-gate:third-threshold:expand"
-          ],
+          "predicate": ["kinetic-gate:third-threshold:expand"],
           "alterations": [],
           "priority": null,
           "raw": {
             "key": "GrantItem",
-            "predicate": [
-              "kinetic-gate:third-threshold:expand"
-            ],
+            "predicate": ["kinetic-gate:third-threshold:expand"],
             "preselectChoices": {
               "element": "{item|flags.system.rulesSelections.element}"
             },
@@ -4040,9 +3754,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "kineticist"
-        ]
+        "value": ["kineticist"]
       }
     },
     "flags": {
@@ -4074,24 +3786,18 @@
             "choices": "flags.system.kineticist.elements",
             "flag": "element",
             "key": "ChoiceSet",
-            "predicate": [
-              "kinetic-gate:third-threshold:expand"
-            ],
+            "predicate": ["kinetic-gate:third-threshold:expand"],
             "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.ExpandElement",
             "_conversionState": "unsupported"
           },
           {
             "adjustName": "PF2E.SpecificRule.Kineticist.KineticGate.ForkThePath.Rename",
             "choices": {
-              "filter": [
-                "item:tag:kineticist-kinetic-gate"
-              ]
+              "filter": ["item:tag:kineticist-kinetic-gate"]
             },
             "flag": "elementFork",
             "key": "ChoiceSet",
-            "predicate": [
-              "kinetic-gate:third-threshold:fork"
-            ],
+            "predicate": ["kinetic-gate:third-threshold:fork"],
             "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Element",
             "_conversionState": "unsupported"
           },
@@ -4102,10 +3808,7 @@
                 "item:rarity:common",
                 "item:trait:impulse",
                 {
-                  "lte": [
-                    "item:level",
-                    13
-                  ]
+                  "lte": ["item:level", 13]
                 },
                 {
                   "or": [
@@ -4159,9 +3862,7 @@
             },
             "flag": "impulseExpand",
             "key": "ChoiceSet",
-            "predicate": [
-              "kinetic-gate:third-threshold:expand"
-            ],
+            "predicate": ["kinetic-gate:third-threshold:expand"],
             "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Impulse",
             "_conversionState": "unsupported"
           }
@@ -4208,22 +3909,14 @@
           "dieSize": "d6",
           "damageType": null,
           "category": null,
-          "predicate": [
-            "item:base:staff",
-            "item:damage:die:faces:4",
-            "item:hands-held:1"
-          ],
+          "predicate": ["item:base:staff", "item:damage:die:faces:4", "item:hands-held:1"],
           "priority": null,
           "raw": {
             "key": "DamageDice",
             "override": {
               "upgrade": true
             },
-            "predicate": [
-              "item:base:staff",
-              "item:damage:die:faces:4",
-              "item:hands-held:1"
-            ],
+            "predicate": ["item:base:staff", "item:damage:die:faces:4", "item:hands-held:1"],
             "selector": "strike-damage"
           }
         },
@@ -4235,19 +3928,13 @@
           "selector": "traits",
           "value": "agile",
           "mode": "add",
-          "predicate": [
-            "item:base:staff",
-            "item:hands-held:1"
-          ],
+          "predicate": ["item:base:staff", "item:hands-held:1"],
           "priority": null,
           "raw": {
             "itemType": "weapon",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:base:staff",
-              "item:hands-held:1"
-            ],
+            "predicate": ["item:base:staff", "item:hands-held:1"],
             "property": "traits",
             "value": "agile"
           }
@@ -4260,19 +3947,13 @@
           "selector": "traits",
           "value": "parry",
           "mode": "add",
-          "predicate": [
-            "item:base:staff",
-            "item:hands-held:2"
-          ],
+          "predicate": ["item:base:staff", "item:hands-held:2"],
           "priority": null,
           "raw": {
             "itemType": "weapon",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:base:staff",
-              "item:hands-held:2"
-            ],
+            "predicate": ["item:base:staff", "item:hands-held:2"],
             "property": "traits",
             "value": "parry"
           }
@@ -4285,19 +3966,13 @@
           "selector": "traits",
           "value": "reach",
           "mode": "add",
-          "predicate": [
-            "item:base:staff",
-            "item:hands-held:2"
-          ],
+          "predicate": ["item:base:staff", "item:hands-held:2"],
           "priority": null,
           "raw": {
             "itemType": "weapon",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:base:staff",
-              "item:hands-held:2"
-            ],
+            "predicate": ["item:base:staff", "item:hands-held:2"],
             "property": "traits",
             "value": "reach"
           }
@@ -4310,32 +3985,22 @@
           "selector": "traits",
           "value": "trip",
           "mode": "add",
-          "predicate": [
-            "item:base:staff",
-            "item:hands-held:2"
-          ],
+          "predicate": ["item:base:staff", "item:hands-held:2"],
           "priority": null,
           "raw": {
             "itemType": "weapon",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:base:staff",
-              "item:hands-held:2"
-            ],
+            "predicate": ["item:base:staff", "item:hands-held:2"],
             "property": "traits",
             "value": "trip"
           }
         }
       ],
       "traits": {
-        "otherTags": [
-          "magus-hybrid-study"
-        ],
+        "otherTags": ["magus-hybrid-study"],
         "rarity": "common",
-        "value": [
-          "magus"
-        ]
+        "value": ["magus"]
       }
     },
     "flags": {
@@ -4350,10 +4015,7 @@
             "itemType": "weapon",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:base:staff",
-              "item:hands-held:1"
-            ],
+            "predicate": ["item:base:staff", "item:hands-held:1"],
             "property": "traits",
             "value": "agile",
             "_conversionState": "partial"
@@ -4362,10 +4024,7 @@
             "itemType": "weapon",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:base:staff",
-              "item:hands-held:2"
-            ],
+            "predicate": ["item:base:staff", "item:hands-held:2"],
             "property": "traits",
             "value": "parry",
             "_conversionState": "partial"
@@ -4374,10 +4033,7 @@
             "itemType": "weapon",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:base:staff",
-              "item:hands-held:2"
-            ],
+            "predicate": ["item:base:staff", "item:hands-held:2"],
             "property": "traits",
             "value": "reach",
             "_conversionState": "partial"
@@ -4386,10 +4042,7 @@
             "itemType": "weapon",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:base:staff",
-              "item:hands-held:2"
-            ],
+            "predicate": ["item:base:staff", "item:hands-held:2"],
             "property": "traits",
             "value": "trip",
             "_conversionState": "partial"
@@ -4471,13 +4124,9 @@
         }
       ],
       "traits": {
-        "otherTags": [
-          "magus-hybrid-study"
-        ],
+        "otherTags": ["magus-hybrid-study"],
         "rarity": "uncommon",
-        "value": [
-          "magus"
-        ]
+        "value": ["magus"]
       }
     },
     "flags": {
@@ -4659,10 +4308,7 @@
             "key": "CriticalSpecialization",
             "predicate": [
               {
-                "gte": [
-                  "item:proficiency:rank",
-                  2
-                ]
+                "gte": ["item:proficiency:rank", 2]
               },
               "class:swashbuckler",
               {
@@ -4740,13 +4386,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "barbarian",
-          "commander",
-          "guardian",
-          "magus",
-          "thaumaturge"
-        ]
+        "value": ["barbarian", "commander", "guardian", "magus", "thaumaturge"]
       }
     },
     "flags": {
@@ -4793,19 +4433,13 @@
           "kind": "flat-modifier",
           "slug": "weapon-specialization",
           "label": "PF2E.WeaponSpecialization",
-          "selector": [
-            "unarmed-damage",
-            "weapon-damage"
-          ],
+          "selector": ["unarmed-damage", "weapon-damage"],
           "value": 2,
           "mode": "add",
           "type": "untyped",
           "predicate": [
             {
-              "gte": [
-                "item:proficiency:rank",
-                2
-              ]
+              "gte": ["item:proficiency:rank", 2]
             }
           ],
           "priority": null,
@@ -4815,16 +4449,10 @@
             "label": "PF2E.WeaponSpecialization",
             "predicate": [
               {
-                "gte": [
-                  "item:proficiency:rank",
-                  2
-                ]
+                "gte": ["item:proficiency:rank", 2]
               }
             ],
-            "selector": [
-              "unarmed-damage",
-              "weapon-damage"
-            ],
+            "selector": ["unarmed-damage", "weapon-damage"],
             "slug": "weapon-specialization",
             "value": 2
           }
@@ -4837,22 +4465,15 @@
           "selector": null,
           "value": 3,
           "mode": "add",
-          "predicate": [
-            "item:proficiency:rank:3"
-          ],
+          "predicate": ["item:proficiency:rank:3"],
           "priority": 0,
           "notes": "AdjustModifier — partial conversion; capping/floor not applied",
           "raw": {
             "key": "AdjustModifier",
             "mode": "upgrade",
-            "predicate": [
-              "item:proficiency:rank:3"
-            ],
+            "predicate": ["item:proficiency:rank:3"],
             "priority": 0,
-            "selectors": [
-              "unarmed-damage",
-              "weapon-damage"
-            ],
+            "selectors": ["unarmed-damage", "weapon-damage"],
             "slug": "weapon-specialization",
             "value": 3
           }
@@ -4865,22 +4486,15 @@
           "selector": null,
           "value": 4,
           "mode": "add",
-          "predicate": [
-            "item:proficiency:rank:4"
-          ],
+          "predicate": ["item:proficiency:rank:4"],
           "priority": 0,
           "notes": "AdjustModifier — partial conversion; capping/floor not applied",
           "raw": {
             "key": "AdjustModifier",
             "mode": "upgrade",
-            "predicate": [
-              "item:proficiency:rank:4"
-            ],
+            "predicate": ["item:proficiency:rank:4"],
             "priority": 0,
-            "selectors": [
-              "unarmed-damage",
-              "weapon-damage"
-            ],
+            "selectors": ["unarmed-damage", "weapon-damage"],
             "slug": "weapon-specialization",
             "value": 4
           }
@@ -4922,14 +4536,9 @@
           {
             "key": "AdjustModifier",
             "mode": "upgrade",
-            "predicate": [
-              "item:proficiency:rank:3"
-            ],
+            "predicate": ["item:proficiency:rank:3"],
             "priority": 0,
-            "selectors": [
-              "unarmed-damage",
-              "weapon-damage"
-            ],
+            "selectors": ["unarmed-damage", "weapon-damage"],
             "slug": "weapon-specialization",
             "value": 3,
             "_conversionState": "partial"
@@ -4937,14 +4546,9 @@
           {
             "key": "AdjustModifier",
             "mode": "upgrade",
-            "predicate": [
-              "item:proficiency:rank:4"
-            ],
+            "predicate": ["item:proficiency:rank:4"],
             "priority": 0,
-            "selectors": [
-              "unarmed-damage",
-              "weapon-damage"
-            ],
+            "selectors": ["unarmed-damage", "weapon-damage"],
             "slug": "weapon-specialization",
             "value": 4,
             "_conversionState": "partial"
@@ -4991,11 +4595,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "alchemist",
-          "kineticist",
-          "ranger"
-        ]
+        "value": ["alchemist", "kineticist", "ranger"]
       }
     },
     "flags": {

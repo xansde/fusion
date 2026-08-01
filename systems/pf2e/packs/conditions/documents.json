@@ -12,9 +12,7 @@
         "value": 0
       },
       "group": "senses",
-      "overrides": [
-        "dazzled"
-      ],
+      "overrides": ["dazzled"],
       "publication": {
         "license": "ORC",
         "remaster": true,
@@ -342,10 +340,7 @@
           "title": "{item|name}",
           "predicate": [
             {
-              "or": [
-                "item:type:spell",
-                "origin:action:trait:attack"
-              ]
+              "or": ["item:type:spell", "origin:action:trait:attack"]
             }
           ],
           "priority": null,
@@ -353,10 +348,7 @@
             "key": "Note",
             "predicate": [
               {
-                "or": [
-                  "item:type:spell",
-                  "origin:action:trait:attack"
-                ]
+                "or": ["item:type:spell", "origin:action:trait:attack"]
               }
             ],
             "selector": "damage-received",
@@ -583,10 +575,7 @@
           "kind": "flat-modifier",
           "slug": "deafened",
           "label": null,
-          "selector": [
-            "perception",
-            "skill-check"
-          ],
+          "selector": ["perception", "skill-check"],
           "value": -2,
           "mode": "add",
           "type": "status",
@@ -594,16 +583,10 @@
             {
               "or": [
                 {
-                  "and": [
-                    "check:type:skill",
-                    "item:trait:auditory"
-                  ]
+                  "and": ["check:type:skill", "item:trait:auditory"]
                 },
                 {
-                  "and": [
-                    "check:statistic:base:perception",
-                    "check:statistic:initiative"
-                  ]
+                  "and": ["check:statistic:base:perception", "check:statistic:initiative"]
                 }
               ]
             }
@@ -615,24 +598,15 @@
               {
                 "or": [
                   {
-                    "and": [
-                      "check:type:skill",
-                      "item:trait:auditory"
-                    ]
+                    "and": ["check:type:skill", "item:trait:auditory"]
                   },
                   {
-                    "and": [
-                      "check:statistic:base:perception",
-                      "check:statistic:initiative"
-                    ]
+                    "and": ["check:statistic:base:perception", "check:statistic:initiative"]
                   }
                 ]
               }
             ],
-            "selector": [
-              "perception",
-              "skill-check"
-            ],
+            "selector": ["perception", "skill-check"],
             "slug": "deafened",
             "type": "status",
             "value": -2
@@ -659,17 +633,13 @@
           "selector": "description",
           "value": null,
           "mode": "add",
-          "predicate": [
-            "item:trait:auditory"
-          ],
+          "predicate": ["item:trait:auditory"],
           "priority": null,
           "raw": {
             "itemType": "action",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:trait:auditory"
-            ],
+            "predicate": ["item:trait:auditory"],
             "property": "description",
             "value": [
               {
@@ -687,17 +657,13 @@
           "selector": "description",
           "value": null,
           "mode": "add",
-          "predicate": [
-            "item:trait:auditory"
-          ],
+          "predicate": ["item:trait:auditory"],
           "priority": null,
           "raw": {
             "itemType": "feat",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:trait:auditory"
-            ],
+            "predicate": ["item:trait:auditory"],
             "property": "description",
             "value": [
               {
@@ -762,9 +728,7 @@
             "itemType": "action",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:trait:auditory"
-            ],
+            "predicate": ["item:trait:auditory"],
             "property": "description",
             "value": [
               {
@@ -778,9 +742,7 @@
             "itemType": "feat",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:trait:auditory"
-            ],
+            "predicate": ["item:trait:auditory"],
             "property": "description",
             "value": [
               {
@@ -813,9 +775,7 @@
               "all": "to-critical-failure"
             },
             "key": "AdjustDegreeOfSuccess",
-            "predicate": [
-              "item:trait:auditory"
-            ],
+            "predicate": ["item:trait:auditory"],
             "selector": "perception",
             "_conversionState": "unsupported"
           }
@@ -1162,10 +1122,7 @@
           "kind": "flat-modifier",
           "slug": "enfeebled",
           "label": null,
-          "selector": [
-            "str-based",
-            "str-damage"
-          ],
+          "selector": ["str-based", "str-damage"],
           "value": "-@item.badge.value",
           "mode": "add",
           "type": "status",
@@ -1173,10 +1130,7 @@
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "selector": [
-              "str-based",
-              "str-damage"
-            ],
+            "selector": ["str-based", "str-damage"],
             "slug": "enfeebled",
             "type": "status",
             "value": "-@item.badge.value"
@@ -1241,10 +1195,7 @@
           "kind": "flat-modifier",
           "slug": "fascinated",
           "label": null,
-          "selector": [
-            "perception",
-            "skill-check"
-          ],
+          "selector": ["perception", "skill-check"],
           "value": -2,
           "mode": "add",
           "type": "status",
@@ -1252,10 +1203,7 @@
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "selector": [
-              "perception",
-              "skill-check"
-            ],
+            "selector": ["perception", "skill-check"],
             "slug": "fascinated",
             "type": "status",
             "value": -2
@@ -1315,10 +1263,7 @@
           "kind": "flat-modifier",
           "slug": "fatigued",
           "label": null,
-          "selector": [
-            "ac",
-            "saving-throw"
-          ],
+          "selector": ["ac", "saving-throw"],
           "value": -1,
           "mode": "add",
           "type": "status",
@@ -1326,10 +1271,7 @@
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "selector": [
-              "ac",
-              "saving-throw"
-            ],
+            "selector": ["ac", "saving-throw"],
             "slug": "fatigued",
             "type": "status",
             "value": -1
@@ -1425,12 +1367,7 @@
         "value": 0
       },
       "group": "attitudes",
-      "overrides": [
-        "helpful",
-        "indifferent",
-        "unfriendly",
-        "hostile"
-      ],
+      "overrides": ["helpful", "indifferent", "unfriendly", "hostile"],
       "publication": {
         "license": "ORC",
         "remaster": true,
@@ -1603,17 +1540,13 @@
           "selector": "description",
           "value": null,
           "mode": "add",
-          "predicate": [
-            "item:trait:manipulate"
-          ],
+          "predicate": ["item:trait:manipulate"],
           "priority": null,
           "raw": {
             "itemType": "action",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:trait:manipulate"
-            ],
+            "predicate": ["item:trait:manipulate"],
             "property": "description",
             "value": [
               {
@@ -1631,17 +1564,13 @@
           "selector": "description",
           "value": null,
           "mode": "add",
-          "predicate": [
-            "item:trait:manipulate"
-          ],
+          "predicate": ["item:trait:manipulate"],
           "priority": null,
           "raw": {
             "itemType": "feat",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:trait:manipulate"
-            ],
+            "predicate": ["item:trait:manipulate"],
             "property": "description",
             "value": [
               {
@@ -1659,17 +1588,13 @@
           "selector": "description",
           "value": null,
           "mode": "add",
-          "predicate": [
-            "item:trait:manipulate"
-          ],
+          "predicate": ["item:trait:manipulate"],
           "priority": null,
           "raw": {
             "itemType": "spell",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:trait:manipulate"
-            ],
+            "predicate": ["item:trait:manipulate"],
             "property": "description",
             "value": [
               {
@@ -1697,9 +1622,7 @@
             "itemType": "action",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:trait:manipulate"
-            ],
+            "predicate": ["item:trait:manipulate"],
             "property": "description",
             "value": [
               {
@@ -1713,9 +1636,7 @@
             "itemType": "feat",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:trait:manipulate"
-            ],
+            "predicate": ["item:trait:manipulate"],
             "property": "description",
             "value": [
               {
@@ -1729,9 +1650,7 @@
             "itemType": "spell",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:trait:manipulate"
-            ],
+            "predicate": ["item:trait:manipulate"],
             "property": "description",
             "value": [
               {
@@ -1765,12 +1684,7 @@
         "value": 0
       },
       "group": "attitudes",
-      "overrides": [
-        "friendly",
-        "indifferent",
-        "unfriendly",
-        "hostile"
-      ],
+      "overrides": ["friendly", "indifferent", "unfriendly", "hostile"],
       "publication": {
         "license": "ORC",
         "remaster": true,
@@ -1868,12 +1782,7 @@
         "value": 0
       },
       "group": "attitudes",
-      "overrides": [
-        "helpful",
-        "friendly",
-        "indifferent",
-        "unfriendly"
-      ],
+      "overrides": ["helpful", "friendly", "indifferent", "unfriendly"],
       "publication": {
         "license": "ORC",
         "remaster": true,
@@ -1975,12 +1884,7 @@
         "value": 0
       },
       "group": "attitudes",
-      "overrides": [
-        "helpful",
-        "friendly",
-        "unfriendly",
-        "hostile"
-      ],
+      "overrides": ["helpful", "friendly", "unfriendly", "hostile"],
       "publication": {
         "license": "ORC",
         "remaster": true,
@@ -2514,9 +2418,7 @@
         "value": 0
       },
       "group": null,
-      "overrides": [
-        "grabbed"
-      ],
+      "overrides": ["grabbed"],
       "publication": {
         "license": "ORC",
         "remaster": true,
@@ -2567,17 +2469,13 @@
           "selector": "description",
           "value": null,
           "mode": "add",
-          "predicate": [
-            "item:trait:manipulate"
-          ],
+          "predicate": ["item:trait:manipulate"],
           "priority": null,
           "raw": {
             "itemType": "action",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:trait:manipulate"
-            ],
+            "predicate": ["item:trait:manipulate"],
             "property": "description",
             "value": [
               {
@@ -2595,17 +2493,13 @@
           "selector": "description",
           "value": null,
           "mode": "add",
-          "predicate": [
-            "item:trait:manipulate"
-          ],
+          "predicate": ["item:trait:manipulate"],
           "priority": null,
           "raw": {
             "itemType": "feat",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:trait:manipulate"
-            ],
+            "predicate": ["item:trait:manipulate"],
             "property": "description",
             "value": [
               {
@@ -2623,17 +2517,13 @@
           "selector": "description",
           "value": null,
           "mode": "add",
-          "predicate": [
-            "item:trait:manipulate"
-          ],
+          "predicate": ["item:trait:manipulate"],
           "priority": null,
           "raw": {
             "itemType": "spell",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:trait:manipulate"
-            ],
+            "predicate": ["item:trait:manipulate"],
             "property": "description",
             "value": [
               {
@@ -2647,19 +2537,13 @@
           "kind": "roll-note",
           "slug": null,
           "label": null,
-          "selector": [
-            "attack",
-            "skill-check"
-          ],
+          "selector": ["attack", "skill-check"],
           "outcome": null,
           "text": "",
           "title": "{item|name}",
           "predicate": [
             {
-              "nor": [
-                "action:escape",
-                "action:force-open"
-              ]
+              "nor": ["action:escape", "action:force-open"]
             }
           ],
           "priority": null,
@@ -2667,16 +2551,10 @@
             "key": "Note",
             "predicate": [
               {
-                "nor": [
-                  "action:escape",
-                  "action:force-open"
-                ]
+                "nor": ["action:escape", "action:force-open"]
               }
             ],
-            "selector": [
-              "attack",
-              "skill-check"
-            ],
+            "selector": ["attack", "skill-check"],
             "text": "",
             "title": "{item|name}"
           },
@@ -2707,9 +2585,7 @@
             "itemType": "action",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:trait:manipulate"
-            ],
+            "predicate": ["item:trait:manipulate"],
             "property": "description",
             "value": [
               {
@@ -2723,9 +2599,7 @@
             "itemType": "feat",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:trait:manipulate"
-            ],
+            "predicate": ["item:trait:manipulate"],
             "property": "description",
             "value": [
               {
@@ -2739,9 +2613,7 @@
             "itemType": "spell",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:trait:manipulate"
-            ],
+            "predicate": ["item:trait:manipulate"],
             "property": "description",
             "value": [
               {
@@ -2965,9 +2837,7 @@
         "value": 0
       },
       "group": null,
-      "overrides": [
-        "slowed"
-      ],
+      "overrides": ["slowed"],
       "publication": {
         "license": "ORC",
         "remaster": true,
@@ -3038,11 +2908,7 @@
           "kind": "flat-modifier",
           "slug": "stupefied",
           "label": null,
-          "selector": [
-            "cha-based",
-            "int-based",
-            "wis-based"
-          ],
+          "selector": ["cha-based", "int-based", "wis-based"],
           "value": "-@item.badge.value",
           "mode": "add",
           "type": "status",
@@ -3050,11 +2916,7 @@
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "selector": [
-              "cha-based",
-              "int-based",
-              "wis-based"
-            ],
+            "selector": ["cha-based", "int-based", "wis-based"],
             "slug": "stupefied",
             "type": "status",
             "value": "-@item.badge.value"
@@ -3152,11 +3014,7 @@
           "kind": "flat-modifier",
           "slug": "unconscious",
           "label": null,
-          "selector": [
-            "ac",
-            "perception",
-            "reflex"
-          ],
+          "selector": ["ac", "perception", "reflex"],
           "value": -4,
           "mode": "add",
           "type": "status",
@@ -3164,11 +3022,7 @@
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "selector": [
-              "ac",
-              "perception",
-              "reflex"
-            ],
+            "selector": ["ac", "perception", "reflex"],
             "slug": "unconscious",
             "type": "status",
             "value": -4
@@ -3311,12 +3165,7 @@
         "value": 0
       },
       "group": "attitudes",
-      "overrides": [
-        "helpful",
-        "friendly",
-        "indifferent",
-        "hostile"
-      ],
+      "overrides": ["helpful", "friendly", "indifferent", "hostile"],
       "publication": {
         "license": "ORC",
         "remaster": true,

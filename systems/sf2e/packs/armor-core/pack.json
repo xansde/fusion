@@ -3,11 +3,7 @@
   "label": "SF2e Core Armor",
   "documentType": "Item",
   "systemId": "sf2e",
-  "indexFields": [
-    "system.level",
-    "system.category",
-    "system.traits.value"
-  ],
+  "indexFields": ["system.level", "system.category", "system.traits.value"],
   "license": {
     "license": "ORC",
     "attribution": "Starfinder Player Core © 2025 Paizo Inc. Licensed under the ORC License.",

@@ -8,9 +8,7 @@
     "index": {
       "system.level": 0,
       "system.category": "martial",
-      "system.traits.value": [
-        "two-hand-d12"
-      ],
+      "system.traits.value": ["two-hand-d12"],
       "system.damage": {
         "damageType": "slashing",
         "dice": 1,
@@ -27,9 +25,7 @@
     "index": {
       "system.level": 0,
       "system.category": "martial",
-      "system.traits.value": [
-        "sweep"
-      ],
+      "system.traits.value": ["sweep"],
       "system.damage": {
         "damageType": "slashing",
         "dice": 1,
@@ -46,12 +42,7 @@
     "index": {
       "system.level": 0,
       "system.category": "martial",
-      "system.traits.value": [
-        "monk",
-        "parry",
-        "reach",
-        "trip"
-      ],
+      "system.traits.value": ["monk", "parry", "reach", "trip"],
       "system.damage": {
         "damageType": "bludgeoning",
         "dice": 1,
@@ -68,9 +59,7 @@
     "index": {
       "system.level": 0,
       "system.category": "simple",
-      "system.traits.value": [
-        "thrown-10"
-      ],
+      "system.traits.value": ["thrown-10"],
       "system.damage": {
         "damageType": "bludgeoning",
         "dice": 1,
@@ -87,11 +76,7 @@
     "index": {
       "system.level": 1,
       "system.category": "martial",
-      "system.traits.value": [
-        "deadly-d10",
-        "propulsive",
-        "volley-30"
-      ],
+      "system.traits.value": ["deadly-d10", "propulsive", "volley-30"],
       "system.damage": {
         "damageType": "piercing",
         "dice": 1,
@@ -108,10 +93,7 @@
     "index": {
       "system.level": 1,
       "system.category": "martial",
-      "system.traits.value": [
-        "deadly-d10",
-        "propulsive"
-      ],
+      "system.traits.value": ["deadly-d10", "propulsive"],
       "system.damage": {
         "damageType": "piercing",
         "dice": 1,
@@ -145,12 +127,7 @@
     "index": {
       "system.level": 0,
       "system.category": "simple",
-      "system.traits.value": [
-        "agile",
-        "finesse",
-        "thrown-10",
-        "versatile-s"
-      ],
+      "system.traits.value": ["agile", "finesse", "thrown-10", "versatile-s"],
       "system.damage": {
         "damageType": "piercing",
         "dice": 1,
@@ -167,10 +144,7 @@
     "index": {
       "system.level": 0,
       "system.category": "simple",
-      "system.traits.value": [
-        "agile",
-        "thrown"
-      ],
+      "system.traits.value": ["agile", "thrown"],
       "system.damage": {
         "damageType": "piercing",
         "dice": 1,
@@ -187,11 +161,7 @@
     "index": {
       "system.level": 0,
       "system.category": "martial",
-      "system.traits.value": [
-        "disarm",
-        "sweep",
-        "trip"
-      ],
+      "system.traits.value": ["disarm", "sweep", "trip"],
       "system.damage": {
         "damageType": "bludgeoning",
         "dice": 1,
@@ -208,11 +178,7 @@
     "index": {
       "system.level": 0,
       "system.category": "advanced",
-      "system.traits.value": [
-        "gnome",
-        "reach",
-        "sweep"
-      ],
+      "system.traits.value": ["gnome", "reach", "sweep"],
       "system.damage": {
         "damageType": "bludgeoning",
         "dice": 1,
@@ -229,9 +195,7 @@
     "index": {
       "system.level": 0,
       "system.category": "martial",
-      "system.traits.value": [
-        "sweep"
-      ],
+      "system.traits.value": ["sweep"],
       "system.damage": {
         "damageType": "slashing",
         "dice": 1,
@@ -248,9 +212,7 @@
     "index": {
       "system.level": 0,
       "system.category": "martial",
-      "system.traits.value": [
-        "versatile-p"
-      ],
+      "system.traits.value": ["versatile-p"],
       "system.damage": {
         "damageType": "slashing",
         "dice": 1,
@@ -284,11 +246,7 @@
     "index": {
       "system.level": 0,
       "system.category": "martial",
-      "system.traits.value": [
-        "agile",
-        "sweep",
-        "thrown-10"
-      ],
+      "system.traits.value": ["agile", "sweep", "thrown-10"],
       "system.damage": {
         "damageType": "slashing",
         "dice": 1,
@@ -305,9 +263,7 @@
     "index": {
       "system.level": 0,
       "system.category": "simple",
-      "system.traits.value": [
-        "thrown"
-      ],
+      "system.traits.value": ["thrown"],
       "system.damage": {
         "damageType": "piercing",
         "dice": 1,
@@ -324,11 +280,7 @@
     "index": {
       "system.level": 0,
       "system.category": "martial",
-      "system.traits.value": [
-        "agile",
-        "finesse",
-        "trip"
-      ],
+      "system.traits.value": ["agile", "finesse", "trip"],
       "system.damage": {
         "damageType": "slashing",
         "dice": 1,
@@ -345,10 +297,7 @@
     "index": {
       "system.level": 0,
       "system.category": "martial",
-      "system.traits.value": [
-        "deadly-d10",
-        "volley-30"
-      ],
+      "system.traits.value": ["deadly-d10", "volley-30"],
       "system.damage": {
         "damageType": "piercing",
         "dice": 1,
@@ -365,9 +314,7 @@
     "index": {
       "system.level": 0,
       "system.category": "martial",
-      "system.traits.value": [
-        "versatile-p"
-      ],
+      "system.traits.value": ["versatile-p"],
       "system.damage": {
         "damageType": "slashing",
         "dice": 1,
@@ -384,9 +331,7 @@
     "index": {
       "system.level": 0,
       "system.category": "martial",
-      "system.traits.value": [
-        "shove"
-      ],
+      "system.traits.value": ["shove"],
       "system.damage": {
         "damageType": "bludgeoning",
         "dice": 1,
@@ -403,9 +348,7 @@
     "index": {
       "system.level": 0,
       "system.category": "simple",
-      "system.traits.value": [
-        "versatile-p"
-      ],
+      "system.traits.value": ["versatile-p"],
       "system.damage": {
         "damageType": "bludgeoning",
         "dice": 1,
@@ -422,11 +365,7 @@
     "index": {
       "system.level": 0,
       "system.category": "martial",
-      "system.traits.value": [
-        "deadly-d8",
-        "disarm",
-        "finesse"
-      ],
+      "system.traits.value": ["deadly-d8", "disarm", "finesse"],
       "system.damage": {
         "damageType": "piercing",
         "dice": 1,
@@ -443,9 +382,7 @@
     "index": {
       "system.level": 0,
       "system.category": "martial",
-      "system.traits.value": [
-        "deadly-d10"
-      ],
+      "system.traits.value": ["deadly-d10"],
       "system.damage": {
         "damageType": "piercing",
         "dice": 1,
@@ -462,11 +399,7 @@
     "index": {
       "system.level": 0,
       "system.category": "martial",
-      "system.traits.value": [
-        "agile",
-        "finesse",
-        "versatile-s"
-      ],
+      "system.traits.value": ["agile", "finesse", "versatile-s"],
       "system.damage": {
         "damageType": "piercing",
         "dice": 1,
@@ -483,9 +416,7 @@
     "index": {
       "system.level": 0,
       "system.category": "simple",
-      "system.traits.value": [
-        "propulsive"
-      ],
+      "system.traits.value": ["propulsive"],
       "system.damage": {
         "damageType": "bludgeoning",
         "dice": 1,
@@ -502,10 +433,7 @@
     "index": {
       "system.level": 0,
       "system.category": "simple",
-      "system.traits.value": [
-        "monk",
-        "thrown-20"
-      ],
+      "system.traits.value": ["monk", "thrown-20"],
       "system.damage": {
         "damageType": "piercing",
         "dice": 1,
@@ -522,10 +450,7 @@
     "index": {
       "system.level": 0,
       "system.category": "simple",
-      "system.traits.value": [
-        "monk",
-        "two-hand-d8"
-      ],
+      "system.traits.value": ["monk", "two-hand-d8"],
       "system.damage": {
         "damageType": "bludgeoning",
         "dice": 1,
@@ -542,9 +467,7 @@
     "index": {
       "system.level": 0,
       "system.category": "martial",
-      "system.traits.value": [
-        "thrown-20"
-      ],
+      "system.traits.value": ["thrown-20"],
       "system.damage": {
         "damageType": "piercing",
         "dice": 1,
@@ -561,9 +484,7 @@
     "index": {
       "system.level": 0,
       "system.category": "martial",
-      "system.traits.value": [
-        "shove"
-      ],
+      "system.traits.value": ["shove"],
       "system.damage": {
         "damageType": "bludgeoning",
         "dice": 1,
@@ -580,13 +501,7 @@
     "index": {
       "system.level": 0,
       "system.category": "martial",
-      "system.traits.value": [
-        "disarm",
-        "finesse",
-        "nonlethal",
-        "reach",
-        "trip"
-      ],
+      "system.traits.value": ["disarm", "finesse", "nonlethal", "reach", "trip"],
       "system.damage": {
         "damageType": "slashing",
         "dice": 1,

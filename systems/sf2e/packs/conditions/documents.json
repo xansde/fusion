@@ -32,15 +32,11 @@
           "value": "-@item.badge.value",
           "mode": "add",
           "type": "item",
-          "predicate": [
-            "glitching-failure"
-          ],
+          "predicate": ["glitching-failure"],
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "predicate": [
-              "glitching-failure"
-            ],
+            "predicate": ["glitching-failure"],
             "selector": "all",
             "type": "item",
             "value": "-@item.badge.value"

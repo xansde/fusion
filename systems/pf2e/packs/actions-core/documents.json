@@ -27,17 +27,13 @@
           "selector": "frequency-max",
           "value": "@actor.details.level.value",
           "mode": "upgrade",
-          "predicate": [
-            "item:id:{item|id}"
-          ],
+          "predicate": ["item:id:{item|id}"],
           "priority": null,
           "raw": {
             "itemType": "action",
             "key": "ItemAlteration",
             "mode": "upgrade",
-            "predicate": [
-              "item:id:{item|id}"
-            ],
+            "predicate": ["item:id:{item|id}"],
             "property": "frequency-max",
             "value": "@actor.level"
           }
@@ -49,9 +45,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "anadi"
-        ]
+        "value": ["anadi"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -69,9 +63,7 @@
             "itemType": "action",
             "key": "ItemAlteration",
             "mode": "upgrade",
-            "predicate": [
-              "item:id:{item|id}"
-            ],
+            "predicate": ["item:id:{item|id}"],
             "property": "frequency-max",
             "value": "@actor.level",
             "_conversionState": "partial"
@@ -104,9 +96,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "misfortune"
-        ]
+        "value": ["misfortune"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -190,9 +180,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "automaton"
-        ]
+        "value": ["automaton"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -254,17 +242,11 @@
           "value": 1,
           "mode": "add",
           "type": "circumstance",
-          "predicate": [
-            "resist-magic",
-            "item:magical"
-          ],
+          "predicate": ["resist-magic", "item:magical"],
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "predicate": [
-              "resist-magic",
-              "item:magical"
-            ],
+            "predicate": ["resist-magic", "item:magical"],
             "selector": "saving-throw",
             "type": "circumstance",
             "value": 1
@@ -292,10 +274,7 @@
               "success": "one-degree-better"
             },
             "key": "AdjustDegreeOfSuccess",
-            "predicate": [
-              "resist-magic",
-              "item:trait:arcane"
-            ],
+            "predicate": ["resist-magic", "item:trait:arcane"],
             "selector": "saving-throw",
             "_conversionState": "unsupported"
           }
@@ -331,10 +310,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "fortune",
-          "mental"
-        ]
+        "value": ["fortune", "mental"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -380,9 +356,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "fortune"
-        ]
+        "value": ["fortune"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -493,15 +467,11 @@
           "damageType": "bludgeoning",
           "value": null,
           "exceptions": [],
-          "predicate": [
-            "bounce-away"
-          ],
+          "predicate": ["bounce-away"],
           "priority": null,
           "raw": {
             "key": "Resistance",
-            "predicate": [
-              "bounce-away"
-            ],
+            "predicate": ["bounce-away"],
             "type": "bludgeoning",
             "value": "@actor.level"
           }
@@ -549,9 +519,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -599,17 +567,11 @@
           "value": 1,
           "mode": "add",
           "type": "circumstance",
-          "predicate": [
-            "call-on-ancient-blood",
-            "item:magical"
-          ],
+          "predicate": ["call-on-ancient-blood", "item:magical"],
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "predicate": [
-              "call-on-ancient-blood",
-              "item:magical"
-            ],
+            "predicate": ["call-on-ancient-blood", "item:magical"],
             "selector": "saving-throw",
             "type": "circumstance",
             "value": 1
@@ -677,9 +639,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "primal"
-        ]
+        "value": ["primal"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -724,9 +684,7 @@
         "selected": {
           "concentrate": "Concentrate"
         },
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -818,10 +776,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "curse",
-          "occult"
-        ]
+        "value": ["curse", "occult"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -872,12 +827,7 @@
           "predicate": [
             "resist-elf-magic",
             {
-              "or": [
-                "magical",
-                "divine",
-                "primal",
-                "occult"
-              ]
+              "or": ["magical", "divine", "primal", "occult"]
             }
           ],
           "priority": null,
@@ -886,12 +836,7 @@
             "predicate": [
               "resist-elf-magic",
               {
-                "or": [
-                  "magical",
-                  "divine",
-                  "primal",
-                  "occult"
-                ]
+                "or": ["magical", "divine", "primal", "occult"]
               }
             ],
             "selector": "saving-throw",
@@ -908,17 +853,13 @@
           "selector": "saving-throw",
           "value": 1,
           "mode": "add",
-          "predicate": [
-            "item:trait:arcane"
-          ],
+          "predicate": ["item:trait:arcane"],
           "priority": null,
           "notes": "AdjustModifier — partial conversion; capping/floor not applied",
           "raw": {
             "key": "AdjustModifier",
             "mode": "add",
-            "predicate": [
-              "item:trait:arcane"
-            ],
+            "predicate": ["item:trait:arcane"],
             "selector": "saving-throw",
             "slug": "resist-elf-magic",
             "value": 1
@@ -959,9 +900,7 @@
           {
             "key": "AdjustModifier",
             "mode": "add",
-            "predicate": [
-              "item:trait:arcane"
-            ],
+            "predicate": ["item:trait:arcane"],
             "selector": "saving-throw",
             "slug": "resist-elf-magic",
             "value": 1,
@@ -1048,17 +987,11 @@
           "value": 1,
           "mode": "add",
           "type": "circumstance",
-          "predicate": [
-            "item:trait:divine",
-            "celestial-privilege"
-          ],
+          "predicate": ["item:trait:divine", "celestial-privilege"],
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "predicate": [
-              "item:trait:divine",
-              "celestial-privilege"
-            ],
+            "predicate": ["item:trait:divine", "celestial-privilege"],
             "selector": "saving-throw",
             "type": "circumstance",
             "value": 1
@@ -1131,10 +1064,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "kobold",
-          "poison"
-        ]
+        "value": ["kobold", "poison"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -1234,17 +1164,13 @@
           "selector": "saving-throw",
           "value": 2,
           "mode": "add",
-          "predicate": [
-            "heritage:root-leshy"
-          ],
+          "predicate": ["heritage:root-leshy"],
           "priority": null,
           "notes": "AdjustModifier — partial conversion; capping/floor not applied",
           "raw": {
             "key": "AdjustModifier",
             "mode": "add",
-            "predicate": [
-              "heritage:root-leshy"
-            ],
+            "predicate": ["heritage:root-leshy"],
             "selector": "saving-throw",
             "slug": "anchor",
             "value": 2
@@ -1253,9 +1179,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "leshy"
-        ]
+        "value": ["leshy"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -1272,9 +1196,7 @@
           {
             "key": "AdjustModifier",
             "mode": "add",
-            "predicate": [
-              "heritage:root-leshy"
-            ],
+            "predicate": ["heritage:root-leshy"],
             "selector": "saving-throw",
             "slug": "anchor",
             "value": 2,
@@ -1354,10 +1276,7 @@
         "uuid": "Compendium.pf2e.feat-effects.Item.Effect: Shielding Wave"
       },
       "traits": {
-        "value": [
-          "primal",
-          "water"
-        ]
+        "value": ["primal", "water"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -1402,10 +1321,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "divine",
-          "earth"
-        ]
+        "value": ["divine", "earth"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -1555,15 +1471,11 @@
           "value": 2,
           "mode": "add",
           "type": "circumstance",
-          "predicate": [
-            "empty-vessel"
-          ],
+          "predicate": ["empty-vessel"],
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "predicate": [
-              "empty-vessel"
-            ],
+            "predicate": ["empty-vessel"],
             "selector": "will",
             "type": "circumstance",
             "value": 2
@@ -1577,15 +1489,11 @@
           "damageType": "mental",
           "value": null,
           "exceptions": [],
-          "predicate": [
-            "empty-vessel"
-          ],
+          "predicate": ["empty-vessel"],
           "priority": null,
           "raw": {
             "key": "Resistance",
-            "predicate": [
-              "empty-vessel"
-            ],
+            "predicate": ["empty-vessel"],
             "type": "mental",
             "value": "@actor.level"
           }
@@ -1593,9 +1501,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -1641,12 +1547,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "illusion",
-          "occult",
-          "visual"
-        ]
+        "value": ["concentrate", "illusion", "occult", "visual"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -1695,9 +1596,7 @@
         "uuid": "Compendium.pf2e.feat-effects.Item.Effect: Tap the Past"
       },
       "traits": {
-        "value": [
-          "fortune"
-        ]
+        "value": ["fortune"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -1768,10 +1667,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "polymorph"
-        ]
+        "value": ["concentrate", "polymorph"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -1817,9 +1713,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "shisk"
-        ]
+        "value": ["shisk"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -1886,9 +1780,7 @@
         }
       ],
       "traits": {
-        "value": [
-          "manipulate"
-        ]
+        "value": ["manipulate"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -1939,9 +1831,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "magical"
-        ]
+        "value": ["magical"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -1982,11 +1872,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "fire",
-          "light",
-          "magical"
-        ]
+        "value": ["fire", "light", "magical"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -2031,11 +1917,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "light",
-          "magical",
-          "visual"
-        ]
+        "value": ["light", "magical", "visual"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -2080,10 +1962,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "auditory",
-          "magical"
-        ]
+        "value": ["auditory", "magical"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -2169,11 +2048,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "emotion",
-          "fear",
-          "mental"
-        ]
+        "value": ["emotion", "fear", "mental"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -2225,11 +2100,7 @@
           "tengu": "tengu",
           "transmutation": "Transmutation"
         },
-        "value": [
-          "morph",
-          "primal",
-          "tengu"
-        ]
+        "value": ["morph", "primal", "tengu"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -2275,10 +2146,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "poison",
-          "tripkee"
-        ]
+        "value": ["poison", "tripkee"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -2324,9 +2192,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "manipulate"
-        ]
+        "value": ["manipulate"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -2409,10 +2275,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "occult",
-          "shadow"
-        ]
+        "value": ["occult", "shadow"]
       },
       "fusionCategory": "ancestry",
       "level": 1,
@@ -2475,15 +2338,11 @@
           "value": 3,
           "mode": "add",
           "type": "circumstance",
-          "predicate": [
-            "dancing-dodge"
-          ],
+          "predicate": ["dancing-dodge"],
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "predicate": [
-              "dancing-dodge"
-            ],
+            "predicate": ["dancing-dodge"],
             "selector": "ac",
             "type": "circumstance",
             "value": 3
@@ -2491,9 +2350,7 @@
         }
       ],
       "traits": {
-        "value": [
-          "move"
-        ]
+        "value": ["move"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -2535,10 +2392,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "exploration"
-        ]
+        "value": ["concentrate", "exploration"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -2579,9 +2433,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -2626,9 +2478,7 @@
         "uuid": "Compendium.pf2e.feat-effects.Item.Effect: Drain Realm"
       },
       "traits": {
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -2669,11 +2519,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "exploration",
-          "mythic"
-        ]
+        "value": ["concentrate", "exploration", "mythic"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -2718,11 +2564,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "divine",
-          "manipulate"
-        ]
+        "value": ["concentrate", "divine", "manipulate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -2763,9 +2605,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -2806,9 +2646,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -2853,12 +2691,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "divine",
-          "fortune",
-          "mythic"
-        ]
+        "value": ["concentrate", "divine", "fortune", "mythic"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -2958,20 +2791,14 @@
           "kind": "flat-modifier",
           "slug": "mark-for-death-skill",
           "label": "PF2E.SpecificRule.MarkForDeath.TargetMark",
-          "selector": [
-            "perception",
-            "deception"
-          ],
+          "selector": ["perception", "deception"],
           "value": 2,
           "mode": "add",
           "type": "circumstance",
           "predicate": [
             "marked-for-death",
             {
-              "or": [
-                "action:feint",
-                "action:seek"
-              ]
+              "or": ["action:feint", "action:seek"]
             }
           ],
           "priority": null,
@@ -2981,16 +2808,10 @@
             "predicate": [
               "marked-for-death",
               {
-                "or": [
-                  "action:feint",
-                  "action:seek"
-                ]
+                "or": ["action:feint", "action:seek"]
               }
             ],
-            "selector": [
-              "perception",
-              "deception"
-            ],
+            "selector": ["perception", "deception"],
             "slug": "mark-for-death-skill",
             "type": "circumstance",
             "value": 2
@@ -3090,9 +2911,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -3115,16 +2934,11 @@
                 "not": "feature:sneak-attack"
               },
               {
-                "gte": [
-                  "self:level",
-                  6
-                ]
+                "gte": ["self:level", 6]
               }
             ],
             "property": "dice-faces",
-            "selectors": [
-              "strike-damage"
-            ],
+            "selectors": ["strike-damage"],
             "value": 6,
             "_conversionState": "unsupported"
           }
@@ -3156,11 +2970,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "arcane",
-          "manipulate",
-          "teleportation"
-        ]
+        "value": ["arcane", "manipulate", "teleportation"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -3205,9 +3015,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "manipulate"
-        ]
+        "value": ["manipulate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -3248,11 +3056,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "manipulate",
-          "teleportation"
-        ]
+        "value": ["concentrate", "manipulate", "teleportation"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -3293,10 +3097,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "arcane",
-          "concentrate"
-        ]
+        "value": ["arcane", "concentrate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -3379,9 +3180,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "attack"
-        ]
+        "value": ["attack"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -3423,9 +3222,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "exploration"
-        ]
+        "value": ["exploration"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -3515,12 +3312,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "auditory",
-          "linguistic",
-          "mental",
-          "mythic"
-        ]
+        "value": ["auditory", "linguistic", "mental", "mythic"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -3566,9 +3358,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "stance"
-        ]
+        "value": ["stance"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -3610,13 +3400,7 @@
       "rules": [],
       "selfEffect": null,
       "traits": {
-        "value": [
-          "auditory",
-          "concentrate",
-          "divine",
-          "linguistic",
-          "mental"
-        ]
+        "value": ["auditory", "concentrate", "divine", "linguistic", "mental"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -3657,9 +3441,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "exploration"
-        ]
+        "value": ["exploration"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -3700,9 +3482,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -3744,11 +3524,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "emotion",
-          "mental"
-        ]
+        "value": ["concentrate", "emotion", "mental"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -3790,11 +3566,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "emotion",
-          "mental"
-        ]
+        "value": ["concentrate", "emotion", "mental"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -3922,9 +3694,7 @@
         "uuid": "Compendium.pf2e.feat-effects.Item.Stance: Claw Stance"
       },
       "traits": {
-        "value": [
-          "stance"
-        ]
+        "value": ["stance"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -3969,9 +3739,7 @@
         "uuid": "Compendium.pf2e.feat-effects.Item.Stance: Talon Stance"
       },
       "traits": {
-        "value": [
-          "stance"
-        ]
+        "value": ["stance"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -4012,9 +3780,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "flourish"
-        ]
+        "value": ["flourish"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -4101,10 +3867,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "curse",
-          "occult"
-        ]
+        "value": ["curse", "occult"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -4145,9 +3908,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "downtime"
-        ]
+        "value": ["downtime"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -4213,15 +3974,11 @@
           "value": 2,
           "mode": "add",
           "type": "status",
-          "predicate": [
-            "reactive-falsehood"
-          ],
+          "predicate": ["reactive-falsehood"],
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "predicate": [
-              "reactive-falsehood"
-            ],
+            "predicate": ["reactive-falsehood"],
             "selector": "deception",
             "type": "status",
             "value": 2
@@ -4229,9 +3986,7 @@
         }
       ],
       "traits": {
-        "value": [
-          "fortune"
-        ]
+        "value": ["fortune"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -4273,9 +4028,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -4339,9 +4092,7 @@
         "uuid": "Compendium.pf2e.feat-effects.Item.Effect: Channel Draconic Essence"
       },
       "traits": {
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -4410,10 +4161,7 @@
         }
       ],
       "traits": {
-        "value": [
-          "concentrate",
-          "fortune"
-        ]
+        "value": ["concentrate", "fortune"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -4550,9 +4298,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "mythic"
-        ]
+        "value": ["mythic"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -4594,10 +4340,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "manipulate"
-        ]
+        "value": ["concentrate", "manipulate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -4684,12 +4427,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "fire",
-          "healing",
-          "light",
-          "visual"
-        ]
+        "value": ["fire", "healing", "light", "visual"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -4734,10 +4472,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "manipulate"
-        ]
+        "value": ["concentrate", "manipulate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -4778,10 +4513,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "exploration",
-          "secret"
-        ]
+        "value": ["exploration", "secret"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -4923,11 +4655,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "fire",
-          "sonic",
-          "visual"
-        ]
+        "value": ["fire", "sonic", "visual"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -4943,13 +4671,9 @@
         "unconvertedRules": [
           {
             "key": "DamageAlteration",
-            "predicate": [
-              "goblin-jubilee-upgrade"
-            ],
+            "predicate": ["goblin-jubilee-upgrade"],
             "property": "dice-number",
-            "selectors": [
-              "{item|id}-inline-damage"
-            ],
+            "selectors": ["{item|id}-inline-damage"],
             "value": "ternary(gte(@actor.level,16),2,1)",
             "_conversionState": "unsupported"
           }
@@ -5024,9 +4748,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "manipulate"
-        ]
+        "value": ["manipulate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -5113,10 +4835,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "auditory",
-          "linguistic"
-        ]
+        "value": ["auditory", "linguistic"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -5157,9 +4876,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "manipulate"
-        ]
+        "value": ["manipulate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -5201,9 +4918,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "manipulate"
-        ]
+        "value": ["manipulate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -5248,11 +4963,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "divine",
-          "spellshape"
-        ]
+        "value": ["concentrate", "divine", "spellshape"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -5338,9 +5049,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "fortune"
-        ]
+        "value": ["fortune"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -5404,27 +5113,21 @@
           "dieSize": "d8",
           "damageType": "spirit",
           "category": null,
-          "predicate": [
-            "hellbreaker-strike"
-          ],
+          "predicate": ["hellbreaker-strike"],
           "priority": null,
           "raw": {
             "damageType": "spirit",
             "diceNumber": 2,
             "dieSize": "d8",
             "key": "DamageDice",
-            "predicate": [
-              "hellbreaker-strike"
-            ],
+            "predicate": ["hellbreaker-strike"],
             "selector": "strike-damage",
             "slug": "hellbreaker-strike"
           }
         }
       ],
       "traits": {
-        "value": [
-          "holy"
-        ]
+        "value": ["holy"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -5442,16 +5145,11 @@
             "key": "DamageAlteration",
             "predicate": [
               {
-                "gte": [
-                  "self:level",
-                  18
-                ]
+                "gte": ["self:level", 18]
               }
             ],
             "property": "dice-number",
-            "selectors": [
-              "strike-damage"
-            ],
+            "selectors": ["strike-damage"],
             "slug": "hellbreaker-strike",
             "value": 1,
             "_conversionState": "unsupported"
@@ -5469,9 +5167,7 @@
             ],
             "key": "AdjustStrike",
             "mode": "add",
-            "predicate": [
-              "hellbreaker-strike"
-            ],
+            "predicate": ["hellbreaker-strike"],
             "property": "traits",
             "value": "holy",
             "_conversionState": "unsupported"
@@ -5715,10 +5411,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "spellshape"
-        ]
+        "value": ["concentrate", "spellshape"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -5804,9 +5497,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -5851,11 +5542,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "magical",
-          "manipulate"
-        ]
+        "value": ["concentrate", "magical", "manipulate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -5900,9 +5587,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "healing"
-        ]
+        "value": ["healing"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -5947,9 +5632,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -5994,9 +5677,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "illusion"
-        ]
+        "value": ["illusion"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -6041,9 +5722,7 @@
         "uuid": "Compendium.pf2e.feat-effects.Item.Effect: Repel Ambient Magic"
       },
       "traits": {
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -6088,10 +5767,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "magical"
-        ]
+        "value": ["concentrate", "magical"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -6136,9 +5812,7 @@
         "uuid": "Compendium.pf2e.feat-effects.Item.Effect: Turn Aside Ambient Magic"
       },
       "traits": {
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -6186,9 +5860,7 @@
           "kind": "flat-modifier",
           "slug": null,
           "label": null,
-          "selector": [
-            "skill-check"
-          ],
+          "selector": ["skill-check"],
           "value": 1,
           "mode": "add",
           "type": "circumstance",
@@ -6237,9 +5909,7 @@
                 ]
               }
             ],
-            "selector": [
-              "skill-check"
-            ],
+            "selector": ["skill-check"],
             "type": "circumstance",
             "value": 1
           }
@@ -6247,11 +5917,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "auditory",
-          "concentrate",
-          "occult"
-        ]
+        "value": ["auditory", "concentrate", "occult"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -6342,10 +6008,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "fortune"
-        ]
+        "value": ["concentrate", "fortune"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -6390,11 +6053,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "primal",
-          "teleportation"
-        ]
+        "value": ["concentrate", "primal", "teleportation"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -6439,9 +6098,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -6553,25 +6210,18 @@
           "damageType": "all-damage",
           "value": null,
           "exceptions": [],
-          "predicate": [
-            "mystic-aegis"
-          ],
+          "predicate": ["mystic-aegis"],
           "priority": null,
           "raw": {
             "key": "Resistance",
-            "predicate": [
-              "mystic-aegis"
-            ],
+            "predicate": ["mystic-aegis"],
             "type": "all-damage",
             "value": "2 + ceil(@actor.level/2)"
           }
         }
       ],
       "traits": {
-        "value": [
-          "concentrate",
-          "magical"
-        ]
+        "value": ["concentrate", "magical"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -6613,9 +6263,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "flourish"
-        ]
+        "value": ["flourish"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -6697,12 +6345,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "exploration",
-          "linguistic",
-          "mental"
-        ]
+        "value": ["concentrate", "exploration", "linguistic", "mental"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -6747,9 +6390,7 @@
         "uuid": "Compendium.pf2e.feat-effects.Item.Effect: Crimson Shroud (AC)"
       },
       "traits": {
-        "value": [
-          "manipulate"
-        ]
+        "value": ["manipulate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -6790,10 +6431,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "exploration"
-        ]
+        "value": ["concentrate", "exploration"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -6838,11 +6476,7 @@
         "uuid": "Compendium.pf2e.feat-effects.Item.Effect: Enter Spirit Trance"
       },
       "traits": {
-        "value": [
-          "concentrate",
-          "divine",
-          "mental"
-        ]
+        "value": ["concentrate", "divine", "mental"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -6917,9 +6551,7 @@
               "success": "one-degree-better"
             },
             "key": "AdjustDegreeOfSuccess",
-            "predicate": [
-              "spiritual-aid"
-            ],
+            "predicate": ["spiritual-aid"],
             "selector": "reflex",
             "_conversionState": "unsupported"
           },
@@ -6928,9 +6560,7 @@
               "success": "one-degree-better"
             },
             "key": "AdjustDegreeOfSuccess",
-            "predicate": [
-              "spiritual-aid"
-            ],
+            "predicate": ["spiritual-aid"],
             "selector": "will",
             "_conversionState": "unsupported"
           }
@@ -6962,9 +6592,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "exploration"
-        ]
+        "value": ["exploration"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -7057,19 +6685,13 @@
           "selector": "description",
           "value": null,
           "mode": "add",
-          "predicate": [
-            "item:trait:auditory",
-            "spellshape:pitch-perfect-projection"
-          ],
+          "predicate": ["item:trait:auditory", "spellshape:pitch-perfect-projection"],
           "priority": null,
           "raw": {
             "itemType": "spell",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:trait:auditory",
-              "spellshape:pitch-perfect-projection"
-            ],
+            "predicate": ["item:trait:auditory", "spellshape:pitch-perfect-projection"],
             "property": "description",
             "value": [
               {
@@ -7104,10 +6726,7 @@
         }
       ],
       "traits": {
-        "value": [
-          "auditory",
-          "spellshape"
-        ]
+        "value": ["auditory", "spellshape"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -7125,10 +6744,7 @@
             "itemType": "spell",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:trait:auditory",
-              "spellshape:pitch-perfect-projection"
-            ],
+            "predicate": ["item:trait:auditory", "spellshape:pitch-perfect-projection"],
             "property": "description",
             "value": [
               {
@@ -7166,10 +6782,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "auditory",
-          "linguistic"
-        ]
+        "value": ["auditory", "linguistic"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -7256,10 +6869,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "mental",
-          "occult"
-        ]
+        "value": ["mental", "occult"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -7301,9 +6911,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "exploration"
-        ]
+        "value": ["exploration"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -7386,11 +6994,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "divine",
-          "extradimensional"
-        ]
+        "value": ["concentrate", "divine", "extradimensional"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -7432,9 +7036,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "magical"
-        ]
+        "value": ["magical"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -7480,9 +7082,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "magical"
-        ]
+        "value": ["magical"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -7524,10 +7124,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "magical",
-          "spellshot"
-        ]
+        "value": ["magical", "spellshot"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -7588,10 +7185,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "magical",
-          "spellshot"
-        ]
+        "value": ["magical", "spellshot"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -7633,11 +7227,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "magical",
-          "spellshot",
-          "teleportation"
-        ]
+        "value": ["magical", "spellshot", "teleportation"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -7740,17 +7330,11 @@
           "value": 2,
           "mode": "add",
           "type": "status",
-          "predicate": [
-            "action:disarm",
-            "disarming-interception"
-          ],
+          "predicate": ["action:disarm", "disarming-interception"],
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "predicate": [
-              "action:disarm",
-              "disarming-interception"
-            ],
+            "predicate": ["action:disarm", "disarming-interception"],
             "selector": "athletics",
             "type": "status",
             "value": 2
@@ -7804,24 +7388,18 @@
           "label": null,
           "toggleable": true,
           "domain": "all",
-          "predicate": [
-            "feat:kaiju-defense-oath"
-          ],
+          "predicate": ["feat:kaiju-defense-oath"],
           "priority": null,
           "raw": {
             "key": "RollOption",
             "option": "overwhelming-combination",
-            "predicate": [
-              "feat:kaiju-defense-oath"
-            ],
+            "predicate": ["feat:kaiju-defense-oath"],
             "toggleable": true
           }
         }
       ],
       "traits": {
-        "value": [
-          "flourish"
-        ]
+        "value": ["flourish"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -7866,9 +7444,7 @@
         "uuid": "Compendium.pf2e.feat-effects.Item.Stance: Tenacious Stance"
       },
       "traits": {
-        "value": [
-          "stance"
-        ]
+        "value": ["stance"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -7917,9 +7493,7 @@
         "uuid": "Compendium.pf2e.feat-effects.Item.Effect: Starlit Transformation"
       },
       "traits": {
-        "value": [
-          "arcane"
-        ]
+        "value": ["arcane"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -7964,10 +7538,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "divine",
-          "fortune"
-        ]
+        "value": ["divine", "fortune"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -8012,9 +7583,7 @@
         "uuid": "Compendium.pf2e.feat-effects.Item.Effect: Size Up"
       },
       "traits": {
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -8141,11 +7710,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "auditory",
-          "flourish",
-          "mental"
-        ]
+        "value": ["auditory", "flourish", "mental"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -8186,9 +7751,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -8259,9 +7822,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "finisher"
-        ]
+        "value": ["finisher"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -8306,11 +7867,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "healing",
-          "mythic"
-        ]
+        "value": ["concentrate", "healing", "mythic"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -8351,10 +7908,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "mythic",
-          "occult"
-        ]
+        "value": ["mythic", "occult"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -8395,11 +7949,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "occult",
-          "teleportation"
-        ]
+        "value": ["concentrate", "occult", "teleportation"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -8444,11 +7994,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "illusion",
-          "occult"
-        ]
+        "value": ["concentrate", "illusion", "occult"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -8489,11 +8035,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "illusion",
-          "occult"
-        ]
+        "value": ["concentrate", "illusion", "occult"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -8622,9 +8164,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "fortune"
-        ]
+        "value": ["fortune"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -8666,9 +8206,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "divine"
-        ]
+        "value": ["divine"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -8713,10 +8251,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "arcane",
-          "concentrate"
-        ]
+        "value": ["arcane", "concentrate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -8761,10 +8296,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "arcane",
-          "concentrate"
-        ]
+        "value": ["arcane", "concentrate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -8809,10 +8341,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "arcane",
-          "concentrate"
-        ]
+        "value": ["arcane", "concentrate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -8857,10 +8386,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "arcane",
-          "concentrate"
-        ]
+        "value": ["arcane", "concentrate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -8905,11 +8431,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "arcane",
-          "concentrate",
-          "healing"
-        ]
+        "value": ["arcane", "concentrate", "healing"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -8954,10 +8476,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "arcane",
-          "concentrate"
-        ]
+        "value": ["arcane", "concentrate"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -9039,11 +8558,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "magical",
-          "manipulate",
-          "teleportation"
-        ]
+        "value": ["magical", "manipulate", "teleportation"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -9088,10 +8603,7 @@
         "uuid": "Compendium.pf2e.feat-effects.Item.Effect: Weaponsight"
       },
       "traits": {
-        "value": [
-          "concentrate",
-          "magical"
-        ]
+        "value": ["concentrate", "magical"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -9136,10 +8648,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "fortune",
-          "primal"
-        ]
+        "value": ["fortune", "primal"]
       },
       "fusionCategory": "archetype",
       "level": 1,
@@ -9226,9 +8735,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "fortune"
-        ]
+        "value": ["fortune"]
       },
       "fusionCategory": "background",
       "level": 1,
@@ -9274,9 +8781,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "occult"
-        ]
+        "value": ["occult"]
       },
       "fusionCategory": "background",
       "level": 1,
@@ -9328,15 +8833,11 @@
           "value": 2,
           "mode": "add",
           "type": "circumstance",
-          "predicate": [
-            "bestial-clarity"
-          ],
+          "predicate": ["bestial-clarity"],
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "predicate": [
-              "bestial-clarity"
-            ],
+            "predicate": ["bestial-clarity"],
             "selector": "saving-throw",
             "type": "circumstance",
             "value": 2
@@ -9403,9 +8904,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "fortune"
-        ]
+        "value": ["fortune"]
       },
       "fusionCategory": "background",
       "level": 1,
@@ -9450,9 +8949,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "fortune"
-        ]
+        "value": ["fortune"]
       },
       "fusionCategory": "background",
       "level": 1,
@@ -9497,9 +8994,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "fortune"
-        ]
+        "value": ["fortune"]
       },
       "fusionCategory": "background",
       "level": 1,
@@ -9546,10 +9041,7 @@
       "traits": {
         "rarity": "common",
         "selected": {},
-        "value": [
-          "concentrate",
-          "fortune"
-        ]
+        "value": ["concentrate", "fortune"]
       },
       "fusionCategory": "background",
       "level": 1,
@@ -9640,9 +9132,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "fortune"
-        ]
+        "value": ["fortune"]
       },
       "fusionCategory": "background",
       "level": 1,
@@ -9688,10 +9178,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "exploration",
-          "occult"
-        ]
+        "value": ["exploration", "occult"]
       },
       "fusionCategory": "background",
       "level": 1,
@@ -9740,9 +9227,7 @@
         "uuid": "Compendium.pf2e.feat-effects.Item.Effect: Hunt Runelord"
       },
       "traits": {
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "background",
       "level": 1,
@@ -9898,15 +9383,11 @@
           "damageType": "all-damage",
           "value": null,
           "exceptions": [],
-          "predicate": [
-            "inured-to-death"
-          ],
+          "predicate": ["inured-to-death"],
           "priority": null,
           "raw": {
             "key": "Resistance",
-            "predicate": [
-              "inured-to-death"
-            ],
+            "predicate": ["inured-to-death"],
             "type": "all-damage",
             "value": "max(1,floor(@actor.level/2))"
           }
@@ -9979,15 +9460,11 @@
           "value": 4,
           "mode": "add",
           "type": "status",
-          "predicate": [
-            "lucky-break"
-          ],
+          "predicate": ["lucky-break"],
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "predicate": [
-              "lucky-break"
-            ],
+            "predicate": ["lucky-break"],
             "selector": "skill-check",
             "type": "status",
             "value": 4
@@ -9995,9 +9472,7 @@
         }
       ],
       "traits": {
-        "value": [
-          "fortune"
-        ]
+        "value": ["fortune"]
       },
       "fusionCategory": "background",
       "level": 1,
@@ -10131,30 +9606,16 @@
           "kind": "roll-note",
           "slug": null,
           "label": null,
-          "selector": [
-            "deception",
-            "diplomacy",
-            "intimidation",
-            "society"
-          ],
-          "outcome": [
-            "criticalFailure"
-          ],
+          "selector": ["deception", "diplomacy", "intimidation", "society"],
+          "outcome": ["criticalFailure"],
           "text": "",
           "title": "{item|name} <span class=\"action-glyph\">R</span>",
           "predicate": null,
           "priority": null,
           "raw": {
             "key": "Note",
-            "outcome": [
-              "criticalFailure"
-            ],
-            "selector": [
-              "deception",
-              "diplomacy",
-              "intimidation",
-              "society"
-            ],
+            "outcome": ["criticalFailure"],
+            "selector": ["deception", "diplomacy", "intimidation", "society"],
             "text": "",
             "title": "{item|name} <span class=\"action-glyph\">R</span>"
           },
@@ -10162,10 +9623,7 @@
         }
       ],
       "traits": {
-        "value": [
-          "auditory",
-          "fortune"
-        ]
+        "value": ["auditory", "fortune"]
       },
       "fusionCategory": "background",
       "level": 1,
@@ -10206,11 +9664,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "auditory",
-          "linguistic",
-          "mental"
-        ]
+        "value": ["auditory", "linguistic", "mental"]
       },
       "fusionCategory": "background",
       "level": 1,
@@ -10252,10 +9706,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "divine",
-          "fortune"
-        ]
+        "value": ["divine", "fortune"]
       },
       "fusionCategory": "background",
       "level": 1,
@@ -10304,9 +9755,7 @@
         "uuid": "Compendium.pf2e.feat-effects.Item.Effect: Recall Under Pressure"
       },
       "traits": {
-        "value": [
-          "fortune"
-        ]
+        "value": ["fortune"]
       },
       "fusionCategory": "background",
       "level": 1,
@@ -10352,9 +9801,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "occult"
-        ]
+        "value": ["occult"]
       },
       "fusionCategory": "background",
       "level": 1,
@@ -10395,9 +9842,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "healing"
-        ]
+        "value": ["healing"]
       },
       "fusionCategory": "background",
       "level": 1,
@@ -10443,10 +9888,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "misfortune",
-          "occult"
-        ]
+        "value": ["misfortune", "occult"]
       },
       "fusionCategory": "background",
       "level": 1,
@@ -10489,9 +9931,7 @@
       "traits": {
         "rarity": "common",
         "selected": {},
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "background",
       "level": 1,
@@ -10541,11 +9981,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "arcane",
-          "auditory",
-          "fortune"
-        ]
+        "value": ["arcane", "auditory", "fortune"]
       },
       "fusionCategory": "background",
       "level": 1,
@@ -10587,9 +10023,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "manipulate"
-        ]
+        "value": ["manipulate"]
       },
       "fusionCategory": "basic",
       "level": 1,
@@ -10631,10 +10065,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "exploration",
-          "manipulate"
-        ]
+        "value": ["exploration", "manipulate"]
       },
       "fusionCategory": "basic",
       "level": 1,
@@ -10806,9 +10237,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "move"
-        ]
+        "value": ["move"]
       },
       "fusionCategory": "basic",
       "level": 1,
@@ -10892,9 +10321,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "move"
-        ]
+        "value": ["move"]
       },
       "fusionCategory": "basic",
       "level": 1,
@@ -10978,9 +10405,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "basic",
       "level": 1,
@@ -11022,9 +10447,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "move"
-        ]
+        "value": ["move"]
       },
       "fusionCategory": "basic",
       "level": 1,
@@ -11066,9 +10489,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "attack"
-        ]
+        "value": ["attack"]
       },
       "fusionCategory": "basic",
       "level": 1,
@@ -11110,9 +10531,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "move"
-        ]
+        "value": ["move"]
       },
       "fusionCategory": "basic",
       "level": 1,
@@ -11154,9 +10573,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "manipulate"
-        ]
+        "value": ["manipulate"]
       },
       "fusionCategory": "basic",
       "level": 1,
@@ -11198,9 +10615,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "manipulate"
-        ]
+        "value": ["manipulate"]
       },
       "fusionCategory": "basic",
       "level": 1,
@@ -11284,9 +10699,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "move"
-        ]
+        "value": ["move"]
       },
       "fusionCategory": "basic",
       "level": 1,
@@ -11328,9 +10741,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "move"
-        ]
+        "value": ["move"]
       },
       "fusionCategory": "basic",
       "level": 1,
@@ -11372,11 +10783,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "auditory",
-          "manipulate",
-          "visual"
-        ]
+        "value": ["auditory", "manipulate", "visual"]
       },
       "fusionCategory": "basic",
       "level": 1,
@@ -11464,9 +10871,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "basic",
       "level": 1,
@@ -11508,9 +10913,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "manipulate"
-        ]
+        "value": ["manipulate"]
       },
       "fusionCategory": "basic",
       "level": 1,
@@ -11552,10 +10955,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "secret"
-        ]
+        "value": ["concentrate", "secret"]
       },
       "fusionCategory": "basic",
       "level": 1,
@@ -11597,10 +10997,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "secret"
-        ]
+        "value": ["concentrate", "secret"]
       },
       "fusionCategory": "basic",
       "level": 1,
@@ -11642,9 +11039,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "move"
-        ]
+        "value": ["move"]
       },
       "fusionCategory": "basic",
       "level": 1,
@@ -11686,9 +11081,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "move"
-        ]
+        "value": ["move"]
       },
       "fusionCategory": "basic",
       "level": 1,
@@ -11730,9 +11123,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "move"
-        ]
+        "value": ["move"]
       },
       "fusionCategory": "basic",
       "level": 1,
@@ -11774,9 +11165,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "attack"
-        ]
+        "value": ["attack"]
       },
       "fusionCategory": "basic",
       "level": 1,
@@ -11818,9 +11207,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "basic",
       "level": 1,
@@ -11954,10 +11341,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "alchemist",
-          "manipulate"
-        ]
+        "value": ["alchemist", "manipulate"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -11999,10 +11383,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "alchemist",
-          "manipulate"
-        ]
+        "value": ["alchemist", "manipulate"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -12052,9 +11433,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "barbarian"
-        ]
+        "value": ["barbarian"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -12143,9 +11522,7 @@
         "uuid": "Compendium.pf2e.feat-effects.Item.Effect: Rage"
       },
       "traits": {
-        "value": [
-          "barbarian"
-        ]
+        "value": ["barbarian"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -12201,10 +11578,7 @@
                   "not": "item:ranged"
                 },
                 {
-                  "and": [
-                    "feat:raging-thrower",
-                    "item:thrown"
-                  ]
+                  "and": ["feat:raging-thrower", "item:thrown"]
                 }
               ]
             }
@@ -12221,10 +11595,7 @@
                     "not": "item:ranged"
                   },
                   {
-                    "and": [
-                      "feat:raging-thrower",
-                      "item:thrown"
-                    ]
+                    "and": ["feat:raging-thrower", "item:thrown"]
                   }
                 ]
               }
@@ -12242,17 +11613,13 @@
           "selector": "strike-damage",
           "value": 0.5,
           "mode": "add",
-          "predicate": [
-            "item:trait:agile"
-          ],
+          "predicate": ["item:trait:agile"],
           "priority": 95,
           "notes": "AdjustModifier — partial conversion; capping/floor not applied",
           "raw": {
             "key": "AdjustModifier",
             "mode": "multiply",
-            "predicate": [
-              "item:trait:agile"
-            ],
+            "predicate": ["item:trait:agile"],
             "priority": 95,
             "selector": "strike-damage",
             "slug": "rage",
@@ -12266,12 +11633,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "barbarian",
-          "concentrate",
-          "emotion",
-          "mental"
-        ]
+        "value": ["barbarian", "concentrate", "emotion", "mental"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -12288,9 +11650,7 @@
           {
             "key": "AdjustModifier",
             "mode": "multiply",
-            "predicate": [
-              "item:trait:agile"
-            ],
+            "predicate": ["item:trait:agile"],
             "priority": 95,
             "selector": "strike-damage",
             "slug": "rage",
@@ -12326,10 +11686,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "champion",
-          "divine"
-        ]
+        "value": ["champion", "divine"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -12395,10 +11752,7 @@
         }
       ],
       "traits": {
-        "value": [
-          "champion",
-          "divine"
-        ]
+        "value": ["champion", "divine"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -12455,10 +11809,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "champion",
-          "divine"
-        ]
+        "value": ["champion", "divine"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -12500,12 +11851,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "champion",
-          "divine",
-          "emotion",
-          "mental"
-        ]
+        "value": ["champion", "divine", "emotion", "mental"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -12547,9 +11893,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "champion"
-        ]
+        "value": ["champion"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -12627,10 +11971,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "champion",
-          "divine"
-        ]
+        "value": ["champion", "divine"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -12672,10 +12013,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "champion",
-          "divine"
-        ]
+        "value": ["champion", "divine"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -12716,13 +12054,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-expert-tactic"
-        ],
-        "value": [
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-expert-tactic"],
+        "value": ["commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -12767,13 +12100,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-master-tactic"
-        ],
-        "value": [
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-master-tactic"],
+        "value": ["commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -12814,14 +12142,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-expert-tactic"
-        ],
-        "value": [
-          "brandish",
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-expert-tactic"],
+        "value": ["brandish", "commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -12862,14 +12184,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-mobility-tactic"
-        ],
-        "value": [
-          "brandish",
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-mobility-tactic"],
+        "value": ["brandish", "commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -12914,10 +12230,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "commander",
-          "tactic"
-        ]
+        "value": ["commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -12985,10 +12298,7 @@
                 "label": "PF2E.SpecificRule.Numbers.Two",
                 "predicate": [
                   {
-                    "gte": [
-                      "attribute:int:mod",
-                      0
-                    ]
+                    "gte": ["attribute:int:mod", 0]
                   }
                 ],
                 "value": "2"
@@ -12997,10 +12307,7 @@
                 "label": "PF2E.SpecificRule.Numbers.Three",
                 "predicate": [
                   {
-                    "gte": [
-                      "attribute:int:mod",
-                      1
-                    ]
+                    "gte": ["attribute:int:mod", 1]
                   }
                 ],
                 "value": "3"
@@ -13009,10 +12316,7 @@
                 "label": "PF2E.SpecificRule.Numbers.Four",
                 "predicate": [
                   {
-                    "gte": [
-                      "attribute:int:mod",
-                      2
-                    ]
+                    "gte": ["attribute:int:mod", 2]
                   }
                 ],
                 "value": "4"
@@ -13021,10 +12325,7 @@
                 "label": "PF2E.SpecificRule.Numbers.Five",
                 "predicate": [
                   {
-                    "gte": [
-                      "attribute:int:mod",
-                      3
-                    ]
+                    "gte": ["attribute:int:mod", 3]
                   }
                 ],
                 "value": "5"
@@ -13033,10 +12334,7 @@
                 "label": "PF2E.SpecificRule.Numbers.Six",
                 "predicate": [
                   {
-                    "gte": [
-                      "attribute:int:mod",
-                      4
-                    ]
+                    "gte": ["attribute:int:mod", 4]
                   }
                 ],
                 "value": "6"
@@ -13045,10 +12343,7 @@
                 "label": "PF2E.SpecificRule.Numbers.Seven",
                 "predicate": [
                   {
-                    "gte": [
-                      "attribute:int:mod",
-                      5
-                    ]
+                    "gte": ["attribute:int:mod", 5]
                   }
                 ],
                 "value": "7"
@@ -13057,10 +12352,7 @@
                 "label": "PF2E.SpecificRule.Numbers.Eight",
                 "predicate": [
                   {
-                    "gte": [
-                      "attribute:int:mod",
-                      6
-                    ]
+                    "gte": ["attribute:int:mod", 6]
                   }
                 ],
                 "value": "8"
@@ -13069,10 +12361,7 @@
                 "label": "PF2E.SpecificRule.Numbers.Nine",
                 "predicate": [
                   {
-                    "gte": [
-                      "attribute:int:mod",
-                      7
-                    ]
+                    "gte": ["attribute:int:mod", 7]
                   }
                 ],
                 "value": "9"
@@ -13084,14 +12373,8 @@
         }
       ],
       "traits": {
-        "otherTags": [
-          "commander-legendary-tactic"
-        ],
-        "value": [
-          "brandish",
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-legendary-tactic"],
+        "value": ["brandish", "commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -13111,16 +12394,11 @@
             "predicate": [
               "cry-havoc",
               {
-                "or": [
-                  "damage:type:bludgeoning",
-                  "damage:type:sonic"
-                ]
+                "or": ["damage:type:bludgeoning", "damage:type:sonic"]
               }
             ],
             "property": "dice-number",
-            "selectors": [
-              "{item|id}-inline-damage"
-            ],
+            "selectors": ["{item|id}-inline-damage"],
             "value": "2*@item.flags.system.rulesSelections.cryHavoc",
             "_conversionState": "unsupported"
           }
@@ -13152,14 +12430,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-mobility-tactic"
-        ],
-        "value": [
-          "brandish",
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-mobility-tactic"],
+        "value": ["brandish", "commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -13200,14 +12472,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-expert-tactic"
-        ],
-        "value": [
-          "brandish",
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-expert-tactic"],
+        "value": ["brandish", "commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -13248,13 +12514,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-offensive-tactic"
-        ],
-        "value": [
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-offensive-tactic"],
+        "value": ["commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -13295,15 +12556,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-offensive-tactic"
-        ],
-        "value": [
-          "brandish",
-          "commander",
-          "incapacitation",
-          "tactic"
-        ]
+        "otherTags": ["commander-offensive-tactic"],
+        "value": ["brandish", "commander", "incapacitation", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -13348,13 +12602,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-legendary-tactic"
-        ],
-        "value": [
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-legendary-tactic"],
+        "value": ["commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -13399,11 +12648,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "brandish",
-          "commander",
-          "tactic"
-        ]
+        "value": ["brandish", "commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -13444,13 +12689,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-mobility-tactic"
-        ],
-        "value": [
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-mobility-tactic"],
+        "value": ["commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -13495,14 +12735,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-legendary-tactic"
-        ],
-        "value": [
-          "brandish",
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-legendary-tactic"],
+        "value": ["brandish", "commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -13547,14 +12781,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-master-tactic"
-        ],
-        "value": [
-          "commander",
-          "tactic",
-          "visual"
-        ]
+        "otherTags": ["commander-master-tactic"],
+        "value": ["commander", "tactic", "visual"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -13595,13 +12823,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-mobility-tactic"
-        ],
-        "value": [
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-mobility-tactic"],
+        "value": ["commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -13642,13 +12865,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-mobility-tactic"
-        ],
-        "value": [
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-mobility-tactic"],
+        "value": ["commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -13689,13 +12907,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-mobility-tactic"
-        ],
-        "value": [
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-mobility-tactic"],
+        "value": ["commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -13736,13 +12949,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-offensive-tactic"
-        ],
-        "value": [
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-offensive-tactic"],
+        "value": ["commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -13787,13 +12995,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-master-tactic"
-        ],
-        "value": [
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-master-tactic"],
+        "value": ["commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -13838,14 +13041,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-master-tactic"
-        ],
-        "value": [
-          "brandish",
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-master-tactic"],
+        "value": ["brandish", "commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -13886,14 +13083,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-mobility-tactic"
-        ],
-        "value": [
-          "brandish",
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-mobility-tactic"],
+        "value": ["brandish", "commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -13938,14 +13129,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "vcommander-master-tactic"
-        ],
-        "value": [
-          "brandish",
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["vcommander-master-tactic"],
+        "value": ["brandish", "commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -13986,13 +13171,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-offensive-tactic"
-        ],
-        "value": [
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-offensive-tactic"],
+        "value": ["commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -14037,13 +13217,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-master-tactic"
-        ],
-        "value": [
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-master-tactic"],
+        "value": ["commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -14088,13 +13263,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-legendary-tactic"
-        ],
-        "value": [
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-legendary-tactic"],
+        "value": ["commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -14139,10 +13309,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "commander",
-          "tactic"
-        ]
+        "value": ["commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -14183,10 +13350,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "commander",
-          "tactic"
-        ]
+        "value": ["commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -14227,13 +13391,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-offensive-tactic"
-        ],
-        "value": [
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-offensive-tactic"],
+        "value": ["commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -14297,10 +13456,7 @@
         }
       ],
       "traits": {
-        "value": [
-          "divine",
-          "exemplar"
-        ]
+        "value": ["divine", "exemplar"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -14341,13 +13497,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-expert-tactic"
-        ],
-        "value": [
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-expert-tactic"],
+        "value": ["commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -14388,14 +13539,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-offensive-tactic"
-        ],
-        "value": [
-          "brandish",
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-offensive-tactic"],
+        "value": ["brandish", "commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -14436,13 +13581,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-expert-tactic"
-        ],
-        "value": [
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-expert-tactic"],
+        "value": ["commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -14483,13 +13623,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-offensive-tactic"
-        ],
-        "value": [
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-offensive-tactic"],
+        "value": ["commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -14530,13 +13665,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-expert-tactic"
-        ],
-        "value": [
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-expert-tactic"],
+        "value": ["commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -14577,14 +13707,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-expert-tactic"
-        ],
-        "value": [
-          "brandish",
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-expert-tactic"],
+        "value": ["brandish", "commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -14629,14 +13753,8 @@
       },
       "rules": [],
       "traits": {
-        "otherTags": [
-          "commander-legendary-tactic"
-        ],
-        "value": [
-          "brandish",
-          "commander",
-          "tactic"
-        ]
+        "otherTags": ["commander-legendary-tactic"],
+        "value": ["brandish", "commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -14677,10 +13795,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "commander",
-          "tactic"
-        ]
+        "value": ["commander", "tactic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -14725,10 +13840,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "primal",
-          "sonic"
-        ]
+        "value": ["primal", "sonic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -14773,9 +13885,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -14820,9 +13930,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -14863,12 +13971,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "mental",
-          "spirit",
-          "transcendence"
-        ]
+        "value": ["concentrate", "mental", "spirit", "transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -14932,28 +14035,20 @@
           "dieSize": "d6",
           "damageType": null,
           "category": "precision",
-          "predicate": [
-            "a-moment-unending"
-          ],
+          "predicate": ["a-moment-unending"],
           "priority": null,
           "raw": {
             "category": "precision",
             "diceNumber": "ternary(gte(@actor.level,18),3,ternary(gte(@actor.level,10),2,1))",
             "dieSize": "d6",
             "key": "DamageDice",
-            "predicate": [
-              "a-moment-unending"
-            ],
+            "predicate": ["a-moment-unending"],
             "selector": "strike-damage"
           }
         }
       ],
       "traits": {
-        "value": [
-          "concentrate",
-          "prediction",
-          "transcendence"
-        ]
+        "value": ["concentrate", "prediction", "transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -14994,9 +14089,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "transcendence"
-        ]
+        "value": ["transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -15037,9 +14130,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "transcendence"
-        ]
+        "value": ["transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -15080,9 +14171,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "transcendence"
-        ]
+        "value": ["transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -15123,11 +14212,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "earth",
-          "transcendence",
-          "visual"
-        ]
+        "value": ["earth", "transcendence", "visual"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -15192,39 +14277,23 @@
           "kind": "flat-modifier",
           "slug": null,
           "label": null,
-          "selector": [
-            "athletics",
-            "acrobatics",
-            "unarmed-attack-roll"
-          ],
+          "selector": ["athletics", "acrobatics", "unarmed-attack-roll"],
           "value": 2,
           "mode": "add",
           "type": "status",
-          "predicate": [
-            "action:escape",
-            "break-free"
-          ],
+          "predicate": ["action:escape", "break-free"],
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "predicate": [
-              "action:escape",
-              "break-free"
-            ],
-            "selector": [
-              "athletics",
-              "acrobatics",
-              "unarmed-attack-roll"
-            ],
+            "predicate": ["action:escape", "break-free"],
+            "selector": ["athletics", "acrobatics", "unarmed-attack-roll"],
             "type": "status",
             "value": 2
           }
         }
       ],
       "traits": {
-        "value": [
-          "transcendence"
-        ]
+        "value": ["transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -15265,12 +14334,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "cold",
-          "concentrate",
-          "darkness",
-          "transcendence"
-        ]
+        "value": ["cold", "concentrate", "darkness", "transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -15311,11 +14375,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "spirit",
-          "transcendence",
-          "void"
-        ]
+        "value": ["spirit", "transcendence", "void"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -15356,13 +14416,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "emotion",
-          "mental",
-          "transcendence",
-          "visual"
-        ]
+        "value": ["concentrate", "emotion", "mental", "transcendence", "visual"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -15448,9 +14502,7 @@
         "uuid": "Compendium.pf2e.feat-effects.Item.Effect: Crash Against Me"
       },
       "traits": {
-        "value": [
-          "transcendence"
-        ]
+        "value": ["transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -15491,11 +14543,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "healing",
-          "transcendence",
-          "vitality"
-        ]
+        "value": ["healing", "transcendence", "vitality"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -15536,11 +14584,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "mental",
-          "spirit",
-          "transcendence"
-        ]
+        "value": ["mental", "spirit", "transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -15581,9 +14625,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "transcendence"
-        ]
+        "value": ["transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -15624,10 +14666,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "spirit",
-          "transcendence"
-        ]
+        "value": ["spirit", "transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -15687,12 +14726,7 @@
         }
       ],
       "traits": {
-        "value": [
-          "light",
-          "spirit",
-          "teleportation",
-          "transcendence"
-        ]
+        "value": ["light", "spirit", "teleportation", "transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -15807,24 +14841,17 @@
           "label": null,
           "toggleable": false,
           "domain": "all",
-          "predicate": [
-            "flowing-spirit-strike"
-          ],
+          "predicate": ["flowing-spirit-strike"],
           "priority": null,
           "raw": {
             "key": "RollOption",
             "option": "exemplar-spirit-damage",
-            "predicate": [
-              "flowing-spirit-strike"
-            ]
+            "predicate": ["flowing-spirit-strike"]
           }
         }
       ],
       "traits": {
-        "value": [
-          "spirit",
-          "transcendence"
-        ]
+        "value": ["spirit", "transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -15841,28 +14868,18 @@
           {
             "key": "DamageAlteration",
             "mode": "override",
-            "predicate": [
-              "flowing-spirit-strike",
-              "item:tag:physical-ikon:gleaming-blade"
-            ],
+            "predicate": ["flowing-spirit-strike", "item:tag:physical-ikon:gleaming-blade"],
             "property": "damage-type",
-            "selectors": [
-              "strike-damage"
-            ],
+            "selectors": ["strike-damage"],
             "value": "spirit",
             "_conversionState": "unsupported"
           },
           {
             "key": "DamageAlteration",
             "mode": "add",
-            "predicate": [
-              "flowing-spirit-strike",
-              "item:tag:physical-ikon:gleaming-blade"
-            ],
+            "predicate": ["flowing-spirit-strike", "item:tag:physical-ikon:gleaming-blade"],
             "property": "tags",
-            "selectors": [
-              "strike-damage"
-            ],
+            "selectors": ["strike-damage"],
             "value": "exemplar",
             "_conversionState": "unsupported"
           }
@@ -15922,17 +14939,13 @@
           "selector": "strike-damage",
           "value": "ternary(gte(@actor.level,18),8,ternary(gte(@actor.level,10),6,4))",
           "mode": "add",
-          "predicate": [
-            "fracture-mountains"
-          ],
+          "predicate": ["fracture-mountains"],
           "priority": null,
           "notes": "AdjustModifier — partial conversion; capping/floor not applied",
           "raw": {
             "key": "AdjustModifier",
             "mode": "override",
-            "predicate": [
-              "fracture-mountains"
-            ],
+            "predicate": ["fracture-mountains"],
             "relabel": "{item|name}",
             "selector": "strike-damage",
             "slug": "titans-breaker-immanence",
@@ -15949,31 +14962,20 @@
           "dieSize": "d6",
           "damageType": "spirit",
           "category": null,
-          "predicate": [
-            "fracture-mountains",
-            "item:tag:physical-ikon:titans-breaker"
-          ],
+          "predicate": ["fracture-mountains", "item:tag:physical-ikon:titans-breaker"],
           "priority": null,
           "raw": {
             "damageType": "spirit",
             "diceNumber": "ternary(gte(@actor.level,18),3,ternary(gte(@actor.level,10),2,1))",
             "key": "DamageDice",
-            "predicate": [
-              "fracture-mountains",
-              "item:tag:physical-ikon:titans-breaker"
-            ],
+            "predicate": ["fracture-mountains", "item:tag:physical-ikon:titans-breaker"],
             "selector": "strike-damage",
-            "tags": [
-              "exemplar"
-            ]
+            "tags": ["exemplar"]
           }
         }
       ],
       "traits": {
-        "value": [
-          "spirit",
-          "transcendence"
-        ]
+        "value": ["spirit", "transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -15990,9 +14992,7 @@
           {
             "key": "AdjustModifier",
             "mode": "override",
-            "predicate": [
-              "fracture-mountains"
-            ],
+            "predicate": ["fracture-mountains"],
             "relabel": "{item|name}",
             "selector": "strike-damage",
             "slug": "titans-breaker-immanence",
@@ -16027,10 +15027,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "spirit",
-          "transcendence"
-        ]
+        "value": ["spirit", "transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -16071,9 +15068,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "transcendence"
-        ]
+        "value": ["transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -16133,12 +15128,7 @@
         }
       ],
       "traits": {
-        "value": [
-          "concentrate",
-          "mental",
-          "spirit",
-          "transcendence"
-        ]
+        "value": ["concentrate", "mental", "spirit", "transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -16210,10 +15200,7 @@
         }
       ],
       "traits": {
-        "value": [
-          "spirit",
-          "transcendence"
-        ]
+        "value": ["spirit", "transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -16229,14 +15216,8 @@
         "unconvertedRules": [
           {
             "key": "EphemeralEffect",
-            "predicate": [
-              "liars-hidden-blade",
-              "item:tag:physical-ikon:shadow-sheath"
-            ],
-            "selectors": [
-              "weapon-damage",
-              "weapon-attack-roll"
-            ],
+            "predicate": ["liars-hidden-blade", "item:tag:physical-ikon:shadow-sheath"],
+            "selectors": ["weapon-damage", "weapon-attack-roll"],
             "uuid": "Compendium.pf2e.conditionitems.Item.Off-Guard",
             "_conversionState": "unsupported"
           }
@@ -16268,9 +15249,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "transcendence"
-        ]
+        "value": ["transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -16311,9 +15290,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "transcendence"
-        ]
+        "value": ["transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -16354,12 +15331,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "healing",
-          "transcendence",
-          "vitality"
-        ]
+        "value": ["concentrate", "healing", "transcendence", "vitality"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -16400,12 +15372,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "emotion",
-          "mental",
-          "transcendence"
-        ]
+        "value": ["concentrate", "emotion", "mental", "transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -16446,10 +15413,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "transcendence"
-        ]
+        "value": ["concentrate", "transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -16490,10 +15454,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "death",
-          "transcendence"
-        ]
+        "value": ["death", "transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -16538,10 +15499,7 @@
         "uuid": "Compendium.pf2e.feat-effects.Item.Effect: Race the Skies"
       },
       "traits": {
-        "value": [
-          "concentrate",
-          "transcendence"
-        ]
+        "value": ["concentrate", "transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -16582,10 +15540,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "force",
-          "transcendence"
-        ]
+        "value": ["force", "transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -16626,9 +15581,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "transcendence"
-        ]
+        "value": ["transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -16669,9 +15622,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "transcendence"
-        ]
+        "value": ["transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -16731,11 +15682,7 @@
         }
       ],
       "traits": {
-        "value": [
-          "sonic",
-          "spirit",
-          "transcendence"
-        ]
+        "value": ["sonic", "spirit", "transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -16785,9 +15732,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "transcendence"
-        ]
+        "value": ["transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -16828,12 +15773,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "healing",
-          "light",
-          "transcendence",
-          "vitality"
-        ]
+        "value": ["healing", "light", "transcendence", "vitality"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -16874,12 +15814,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "illusion",
-          "incapacitation",
-          "transcendence"
-        ]
+        "value": ["concentrate", "illusion", "incapacitation", "transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -16920,9 +15855,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "transcendence"
-        ]
+        "value": ["transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -16963,10 +15896,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "spirit",
-          "transcendence"
-        ]
+        "value": ["spirit", "transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -17011,11 +15941,7 @@
         "uuid": "Compendium.pf2e.feat-effects.Item.Effect: Survive the Wilds"
       },
       "traits": {
-        "value": [
-          "aura",
-          "manipulate",
-          "transcendence"
-        ]
+        "value": ["aura", "manipulate", "transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -17056,11 +15982,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "auditory",
-          "mental",
-          "transcendence"
-        ]
+        "value": ["auditory", "mental", "transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -17101,9 +16023,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "transcendence"
-        ]
+        "value": ["transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -17144,10 +16064,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "fortune",
-          "transcendence"
-        ]
+        "value": ["fortune", "transcendence"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -17188,9 +16105,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "guardian"
-        ]
+        "value": ["guardian"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -17231,10 +16146,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "guardian"
-        ]
+        "value": ["concentrate", "guardian"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -17276,9 +16188,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "gunslinger"
-        ]
+        "value": ["gunslinger"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -17320,9 +16230,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "gunslinger"
-        ]
+        "value": ["gunslinger"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -17364,9 +16272,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "gunslinger"
-        ]
+        "value": ["gunslinger"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -17408,9 +16314,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "gunslinger"
-        ]
+        "value": ["gunslinger"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -17452,9 +16356,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "gunslinger"
-        ]
+        "value": ["gunslinger"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -17496,10 +16398,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "flourish",
-          "gunslinger"
-        ]
+        "value": ["flourish", "gunslinger"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -17541,14 +16440,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "auditory",
-          "emotion",
-          "fear",
-          "gunslinger",
-          "linguistic",
-          "mental"
-        ]
+        "value": ["auditory", "emotion", "fear", "gunslinger", "linguistic", "mental"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -17609,9 +16501,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "gunslinger"
-        ]
+        "value": ["gunslinger"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -17655,9 +16545,7 @@
           "kind": "roll-note",
           "slug": null,
           "label": null,
-          "selector": [
-            "initiative"
-          ],
+          "selector": ["initiative"],
           "outcome": null,
           "text": "",
           "title": "<span class=\"action-glyph\">F</span> {item|name}",
@@ -17665,9 +16553,7 @@
           "priority": null,
           "raw": {
             "key": "Note",
-            "selector": [
-              "initiative"
-            ],
+            "selector": ["initiative"],
             "text": "",
             "title": "<span class=\"action-glyph\">F</span> {item|name}"
           },
@@ -17680,9 +16566,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "gunslinger"
-        ]
+        "value": ["gunslinger"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -17750,10 +16634,7 @@
           "predicate": [
             "one-shot-one-kill",
             {
-              "or": [
-                "item:group:firearm",
-                "item:group:crossbow"
-              ]
+              "or": ["item:group:firearm", "item:group:crossbow"]
             }
           ],
           "priority": null,
@@ -17765,10 +16646,7 @@
             "predicate": [
               "one-shot-one-kill",
               {
-                "or": [
-                  "item:group:firearm",
-                  "item:group:crossbow"
-                ]
+                "or": ["item:group:firearm", "item:group:crossbow"]
               }
             ],
             "selector": "strike-damage"
@@ -17782,15 +16660,11 @@
           "outcome": null,
           "text": "",
           "title": "<span class=\"action-glyph\">F</span> {item|name}",
-          "predicate": [
-            "check:statistic:base:stealth"
-          ],
+          "predicate": ["check:statistic:base:stealth"],
           "priority": null,
           "raw": {
             "key": "Note",
-            "predicate": [
-              "check:statistic:base:stealth"
-            ],
+            "predicate": ["check:statistic:base:stealth"],
             "selector": "initiative",
             "text": "",
             "title": "<span class=\"action-glyph\">F</span> {item|name}"
@@ -17800,9 +16674,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "gunslinger"
-        ]
+        "value": ["gunslinger"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -17844,9 +16716,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "gunslinger"
-        ]
+        "value": ["gunslinger"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -17888,9 +16758,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "gunslinger"
-        ]
+        "value": ["gunslinger"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -17932,9 +16800,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "gunslinger"
-        ]
+        "value": ["gunslinger"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -17993,10 +16859,7 @@
           "subkind": "damage-dice",
           "slug": null,
           "label": null,
-          "selector": [
-            "firearm-weapon-group-damage",
-            "crossbow-weapon-group-damage"
-          ],
+          "selector": ["firearm-weapon-group-damage", "crossbow-weapon-group-damage"],
           "diceNumber": 3,
           "dieSize": "d8",
           "damageType": null,
@@ -18009,18 +16872,12 @@
                   "and": [
                     "item:group:firearm",
                     {
-                      "or": [
-                        "item:trait:scatter",
-                        "item:trait:kickback"
-                      ]
+                      "or": ["item:trait:scatter", "item:trait:kickback"]
                     }
                   ]
                 },
                 {
-                  "and": [
-                    "item:group:crossbow",
-                    "item:usage:hands:2"
-                  ]
+                  "and": ["item:group:crossbow", "item:usage:hands:2"]
                 }
               ]
             }
@@ -18038,34 +16895,23 @@
                     "and": [
                       "item:group:firearm",
                       {
-                        "or": [
-                          "item:trait:scatter",
-                          "item:trait:kickback"
-                        ]
+                        "or": ["item:trait:scatter", "item:trait:kickback"]
                       }
                     ]
                   },
                   {
-                    "and": [
-                      "item:group:crossbow",
-                      "item:usage:hands:2"
-                    ]
+                    "and": ["item:group:crossbow", "item:usage:hands:2"]
                   }
                 ]
               }
             ],
-            "selector": [
-              "firearm-weapon-group-damage",
-              "crossbow-weapon-group-damage"
-            ]
+            "selector": ["firearm-weapon-group-damage", "crossbow-weapon-group-damage"]
           }
         }
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "gunslinger"
-        ]
+        "value": ["gunslinger"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -18107,9 +16953,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "gunslinger"
-        ]
+        "value": ["gunslinger"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -18170,9 +17014,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "gunslinger"
-        ]
+        "value": ["gunslinger"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -18235,15 +17077,11 @@
           "value": 2,
           "mode": "add",
           "type": "circumstance",
-          "predicate": [
-            "ten-paces"
-          ],
+          "predicate": ["ten-paces"],
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "predicate": [
-              "ten-paces"
-            ],
+            "predicate": ["ten-paces"],
             "selector": "initiative",
             "type": "circumstance",
             "value": 2
@@ -18270,9 +17108,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "gunslinger"
-        ]
+        "value": ["gunslinger"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -18314,9 +17150,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "gunslinger"
-        ]
+        "value": ["gunslinger"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -18358,9 +17192,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "gunslinger"
-        ]
+        "value": ["gunslinger"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -18424,18 +17256,12 @@
           "dieSize": "d6",
           "damageType": null,
           "category": null,
-          "predicate": [
-            "vital-shot",
-            "target:condition:off-guard"
-          ],
+          "predicate": ["vital-shot", "target:condition:off-guard"],
           "priority": null,
           "raw": {
             "diceNumber": 1,
             "key": "DamageDice",
-            "predicate": [
-              "vital-shot",
-              "target:condition:off-guard"
-            ],
+            "predicate": ["vital-shot", "target:condition:off-guard"],
             "selector": "ranged-strike-damage"
           }
         },
@@ -18449,29 +17275,21 @@
           "dieSize": "d6",
           "damageType": "bleed",
           "category": null,
-          "predicate": [
-            "vital-shot",
-            "target:condition:off-guard"
-          ],
+          "predicate": ["vital-shot", "target:condition:off-guard"],
           "priority": null,
           "raw": {
             "damageType": "bleed",
             "diceNumber": "ternary(gte(@actor.level,15),3,ternary(gte(@actor.level,9),2,1))",
             "dieSize": "d6",
             "key": "DamageDice",
-            "predicate": [
-              "vital-shot",
-              "target:condition:off-guard"
-            ],
+            "predicate": ["vital-shot", "target:condition:off-guard"],
             "selector": "ranged-strike-damage"
           }
         }
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "gunslinger"
-        ]
+        "value": ["gunslinger"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -18513,9 +17331,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "gunslinger"
-        ]
+        "value": ["gunslinger"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -18556,10 +17372,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "auditory",
-          "concentrate"
-        ]
+        "value": ["auditory", "concentrate"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -18601,12 +17414,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "fire",
-          "inventor",
-          "manipulate",
-          "unstable"
-        ]
+        "value": ["fire", "inventor", "manipulate", "unstable"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -18655,23 +17463,15 @@
           "slug": null,
           "label": null,
           "selector": "crafting",
-          "outcome": [
-            "criticalSuccess"
-          ],
+          "outcome": ["criticalSuccess"],
           "text": "",
           "title": "PF2E.Check.Result.Degree.Check.criticalSuccess",
-          "predicate": [
-            "self:action:slug:overdrive"
-          ],
+          "predicate": ["self:action:slug:overdrive"],
           "priority": null,
           "raw": {
             "key": "Note",
-            "outcome": [
-              "criticalSuccess"
-            ],
-            "predicate": [
-              "self:action:slug:overdrive"
-            ],
+            "outcome": ["criticalSuccess"],
+            "predicate": ["self:action:slug:overdrive"],
             "selector": "crafting",
             "text": "",
             "title": "PF2E.Check.Result.Degree.Check.criticalSuccess"
@@ -18683,23 +17483,15 @@
           "slug": null,
           "label": null,
           "selector": "crafting",
-          "outcome": [
-            "success"
-          ],
+          "outcome": ["success"],
           "text": "",
           "title": "PF2E.Check.Result.Degree.Check.success",
-          "predicate": [
-            "self:action:slug:overdrive"
-          ],
+          "predicate": ["self:action:slug:overdrive"],
           "priority": null,
           "raw": {
             "key": "Note",
-            "outcome": [
-              "success"
-            ],
-            "predicate": [
-              "self:action:slug:overdrive"
-            ],
+            "outcome": ["success"],
+            "predicate": ["self:action:slug:overdrive"],
             "selector": "crafting",
             "text": "",
             "title": "PF2E.Check.Result.Degree.Check.success"
@@ -18711,23 +17503,15 @@
           "slug": null,
           "label": null,
           "selector": "crafting",
-          "outcome": [
-            "failure"
-          ],
+          "outcome": ["failure"],
           "text": "",
           "title": "PF2E.Check.Result.Degree.Check.failure",
-          "predicate": [
-            "self:action:slug:overdrive"
-          ],
+          "predicate": ["self:action:slug:overdrive"],
           "priority": null,
           "raw": {
             "key": "Note",
-            "outcome": [
-              "failure"
-            ],
-            "predicate": [
-              "self:action:slug:overdrive"
-            ],
+            "outcome": ["failure"],
+            "predicate": ["self:action:slug:overdrive"],
             "selector": "crafting",
             "text": "",
             "title": "PF2E.Check.Result.Degree.Check.failure"
@@ -18739,23 +17523,15 @@
           "slug": null,
           "label": null,
           "selector": "crafting",
-          "outcome": [
-            "criticalFailure"
-          ],
+          "outcome": ["criticalFailure"],
           "text": "",
           "title": "PF2E.Check.Result.Degree.Check.criticalFailure",
-          "predicate": [
-            "self:action:slug:overdrive"
-          ],
+          "predicate": ["self:action:slug:overdrive"],
           "priority": null,
           "raw": {
             "key": "Note",
-            "outcome": [
-              "criticalFailure"
-            ],
-            "predicate": [
-              "self:action:slug:overdrive"
-            ],
+            "outcome": ["criticalFailure"],
+            "predicate": ["self:action:slug:overdrive"],
             "selector": "crafting",
             "text": "",
             "title": "PF2E.Check.Result.Degree.Check.criticalFailure"
@@ -18765,10 +17541,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "inventor",
-          "manipulate"
-        ]
+        "value": ["inventor", "manipulate"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -18831,26 +17604,16 @@
           "kind": "flat-modifier",
           "slug": "pursue-a-lead",
           "label": null,
-          "selector": [
-            "perception",
-            "skill-check"
-          ],
+          "selector": ["perception", "skill-check"],
           "value": 1,
           "mode": "add",
           "type": "circumstance",
-          "predicate": [
-            "pursue-a-lead"
-          ],
+          "predicate": ["pursue-a-lead"],
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "predicate": [
-              "pursue-a-lead"
-            ],
-            "selector": [
-              "perception",
-              "skill-check"
-            ],
+            "predicate": ["pursue-a-lead"],
+            "selector": ["perception", "skill-check"],
             "slug": "pursue-a-lead",
             "type": "circumstance",
             "value": 1
@@ -18858,11 +17621,7 @@
         }
       ],
       "traits": {
-        "value": [
-          "concentrate",
-          "exploration",
-          "investigator"
-        ]
+        "value": ["concentrate", "exploration", "investigator"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -18908,10 +17667,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "investigator"
-        ]
+        "value": ["concentrate", "investigator"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -18984,10 +17740,7 @@
                 "item:trait:agile",
                 "item:trait:finesse",
                 {
-                  "nor": [
-                    "item:melee",
-                    "item:thrown"
-                  ]
+                  "nor": ["item:melee", "item:thrown"]
                 }
               ]
             }
@@ -19004,10 +17757,7 @@
                   "item:trait:agile",
                   "item:trait:finesse",
                   {
-                    "nor": [
-                      "item:melee",
-                      "item:thrown"
-                    ]
+                    "nor": ["item:melee", "item:thrown"]
                   }
                 ]
               }
@@ -19023,10 +17773,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "investigator"
-        ]
+        "value": ["concentrate", "investigator"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -19072,9 +17819,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "investigator"
-        ]
+        "value": ["investigator"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -19116,13 +17861,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "auditory",
-          "concentrate",
-          "investigator",
-          "linguistic",
-          "mental"
-        ]
+        "value": ["auditory", "concentrate", "investigator", "linguistic", "mental"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -19164,10 +17903,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "investigator",
-          "manipulate"
-        ]
+        "value": ["investigator", "manipulate"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -19186,10 +17922,7 @@
               "item:trait:alchemical",
               "item:trait:consumable",
               {
-                "or": [
-                  "item:trait:elixir",
-                  "item:tag:alchemical-tool"
-                ]
+                "or": ["item:trait:elixir", "item:tag:alchemical-tool"]
               }
             ],
             "key": "CraftingAbility",
@@ -19225,11 +17958,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "impulse",
-          "kineticist",
-          "primal"
-        ]
+        "value": ["impulse", "kineticist", "primal"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -19274,11 +18003,7 @@
         "uuid": "Compendium.pf2e.feat-effects.Item.Effect: Kinetic Aura"
       },
       "traits": {
-        "value": [
-          "aura",
-          "kineticist",
-          "primal"
-        ]
+        "value": ["aura", "kineticist", "primal"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -19324,18 +18049,14 @@
           "label": null,
           "toggleable": true,
           "domain": "elemental-blast",
-          "predicate": [
-            "self:effect:kinetic-aura"
-          ],
+          "predicate": ["self:effect:kinetic-aura"],
           "priority": 49,
           "raw": {
             "alwaysActive": true,
             "domain": "elemental-blast",
             "key": "RollOption",
             "option": "action-cost",
-            "predicate": [
-              "self:effect:kinetic-aura"
-            ],
+            "predicate": ["self:effect:kinetic-aura"],
             "priority": 49,
             "suboptions": [
               {
@@ -19358,18 +18079,12 @@
           "value": "@actor.abilities.con.mod",
           "mode": "add",
           "type": "status",
-          "predicate": [
-            "self:action:slug:elemental-blast",
-            "self:action:cost:2"
-          ],
+          "predicate": ["self:action:slug:elemental-blast", "self:action:cost:2"],
           "priority": null,
           "raw": {
             "key": "FlatModifier",
             "label": "PF2E.SpecificRule.Kineticist.Impulse.ElementalBlast.TwoActionBonus",
-            "predicate": [
-              "self:action:slug:elemental-blast",
-              "self:action:cost:2"
-            ],
+            "predicate": ["self:action:slug:elemental-blast", "self:action:cost:2"],
             "selector": "elemental-blast-damage",
             "slug": "two-action-elemental-blast",
             "type": "status",
@@ -19383,18 +18098,12 @@
           "selector": "elemental-blast-damage",
           "mode": "add",
           "type": "ability",
-          "predicate": [
-            "self:action:slug:elemental-blast",
-            "item:melee"
-          ],
+          "predicate": ["self:action:slug:elemental-blast", "item:melee"],
           "priority": null,
           "raw": {
             "ability": "str",
             "key": "FlatModifier",
-            "predicate": [
-              "self:action:slug:elemental-blast",
-              "item:melee"
-            ],
+            "predicate": ["self:action:slug:elemental-blast", "item:melee"],
             "selector": "elemental-blast-damage",
             "slug": "melee-elemental-blast",
             "type": "ability"
@@ -19402,12 +18111,7 @@
         }
       ],
       "traits": {
-        "value": [
-          "attack",
-          "impulse",
-          "kineticist",
-          "primal"
-        ]
+        "value": ["attack", "impulse", "kineticist", "primal"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -19424,13 +18128,9 @@
           {
             "key": "DamageAlteration",
             "mode": "override",
-            "predicate": [
-              "class:kineticist"
-            ],
+            "predicate": ["class:kineticist"],
             "property": "dice-number",
-            "selectors": [
-              "elemental-blast-damage"
-            ],
+            "selectors": ["elemental-blast-damage"],
             "slug": "base",
             "value": "max(1 + floor((@actor.level - 1) / 4), 1)",
             "_conversionState": "unsupported"
@@ -19463,11 +18163,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "impulse",
-          "kineticist",
-          "primal"
-        ]
+        "value": ["impulse", "kineticist", "primal"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -19508,9 +18204,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "infusion"
-        ]
+        "value": ["infusion"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -19556,11 +18250,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "magus",
-          "stance"
-        ]
+        "value": ["concentrate", "magus", "stance"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -19610,10 +18300,7 @@
           "mode": "add",
           "predicate": [
             {
-              "gte": [
-                "item:cast:actions",
-                1
-              ]
+              "gte": ["item:cast:actions", 1]
             },
             "item:trait:focus",
             "item:trait:magus"
@@ -19625,10 +18312,7 @@
             "mode": "add",
             "predicate": [
               {
-                "gte": [
-                  "item:cast:actions",
-                  1
-                ]
+                "gte": ["item:cast:actions", 1]
               },
               "item:trait:focus",
               "item:trait:magus"
@@ -19665,10 +18349,7 @@
             "mode": "add",
             "predicate": [
               {
-                "gte": [
-                  "item:cast:actions",
-                  1
-                ]
+                "gte": ["item:cast:actions", 1]
               },
               "item:trait:focus",
               "item:trait:magus"
@@ -19711,10 +18392,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "flourish",
-          "monk"
-        ]
+        "value": ["flourish", "monk"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -19755,12 +18433,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "curse",
-          "divine",
-          "emotion",
-          "mental"
-        ]
+        "value": ["curse", "divine", "emotion", "mental"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -19806,11 +18479,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "mental",
-          "psyche",
-          "psychic"
-        ]
+        "value": ["mental", "psyche", "psychic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -19852,11 +18521,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "illusion",
-          "psyche",
-          "psychic"
-        ]
+        "value": ["illusion", "psyche", "psychic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -19898,11 +18563,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "occult",
-          "psyche",
-          "psychic"
-        ]
+        "value": ["occult", "psyche", "psychic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -19944,13 +18605,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "emotion",
-          "healing",
-          "mental",
-          "psyche",
-          "psychic"
-        ]
+        "value": ["emotion", "healing", "mental", "psyche", "psychic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -19996,9 +18651,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "psychic"
-        ]
+        "value": ["psychic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -20046,18 +18699,12 @@
           "value": 2,
           "mode": "add",
           "type": "circumstance",
-          "predicate": [
-            "action:seek",
-            "target:mark:hunted-prey"
-          ],
+          "predicate": ["action:seek", "target:mark:hunted-prey"],
           "priority": null,
           "raw": {
             "key": "FlatModifier",
             "label": "PF2E.SpecificRule.HuntPrey.SeekHuntedPrey",
-            "predicate": [
-              "action:seek",
-              "target:mark:hunted-prey"
-            ],
+            "predicate": ["action:seek", "target:mark:hunted-prey"],
             "selector": "perception",
             "type": "circumstance",
             "value": 2
@@ -20071,18 +18718,12 @@
           "value": 2,
           "mode": "add",
           "type": "circumstance",
-          "predicate": [
-            "action:track",
-            "target:mark:hunted-prey"
-          ],
+          "predicate": ["action:track", "target:mark:hunted-prey"],
           "priority": null,
           "raw": {
             "key": "FlatModifier",
             "label": "PF2E.SpecificRule.HuntPrey.TrackHuntedPrey",
-            "predicate": [
-              "action:track",
-              "target:mark:hunted-prey"
-            ],
+            "predicate": ["action:track", "target:mark:hunted-prey"],
             "selector": "survival",
             "type": "circumstance",
             "value": 2
@@ -20094,17 +18735,13 @@
           "label": null,
           "toggleable": false,
           "domain": "ranged-attack-roll",
-          "predicate": [
-            "target:mark:hunted-prey"
-          ],
+          "predicate": ["target:mark:hunted-prey"],
           "priority": null,
           "raw": {
             "domain": "ranged-attack-roll",
             "key": "RollOption",
             "option": "ignore-range-penalty:2",
-            "predicate": [
-              "target:mark:hunted-prey"
-            ]
+            "predicate": ["target:mark:hunted-prey"]
           }
         }
       ],
@@ -20114,10 +18751,7 @@
       },
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "ranger"
-        ]
+        "value": ["concentrate", "ranger"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -20159,9 +18793,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "rogue"
-        ]
+        "value": ["rogue"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -20206,10 +18838,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "fortune",
-          "linguistic"
-        ]
+        "value": ["fortune", "linguistic"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -20251,10 +18880,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "incapacitation",
-          "rogue"
-        ]
+        "value": ["incapacitation", "rogue"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -20342,10 +18968,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "summoner",
-          "tandem"
-        ]
+        "value": ["summoner", "tandem"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -20387,9 +19010,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "eidolon"
-        ]
+        "value": ["eidolon"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -20459,15 +19080,11 @@
             "property": "description",
             "value": [
               {
-                "predicate": [
-                  "breath-shape:cone"
-                ],
+                "predicate": ["breath-shape:cone"],
                 "text": ""
               },
               {
-                "predicate": [
-                  "breath-shape:line"
-                ],
+                "predicate": ["breath-shape:line"],
                 "text": ""
               },
               {
@@ -20498,10 +19115,7 @@
         }
       ],
       "traits": {
-        "value": [
-          "arcane",
-          "eidolon"
-        ]
+        "value": ["arcane", "eidolon"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -20572,15 +19186,11 @@
             "property": "description",
             "value": [
               {
-                "predicate": [
-                  "breath-shape:cone"
-                ],
+                "predicate": ["breath-shape:cone"],
                 "text": ""
               },
               {
-                "predicate": [
-                  "breath-shape:line"
-                ],
+                "predicate": ["breath-shape:line"],
                 "text": ""
               },
               {
@@ -20622,9 +19232,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "eidolon"
-        ]
+        "value": ["eidolon"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -20666,11 +19274,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "divine",
-          "eidolon",
-          "void"
-        ]
+        "value": ["divine", "eidolon", "void"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -20712,10 +19316,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "eidolon",
-          "occult"
-        ]
+        "value": ["eidolon", "occult"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -20760,10 +19361,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "eidolon"
-        ]
+        "value": ["concentrate", "eidolon"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -20804,9 +19402,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "eidolon"
-        ]
+        "value": ["eidolon"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -20848,9 +19444,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "eidolon"
-        ]
+        "value": ["eidolon"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -20913,15 +19507,11 @@
           "value": "ternary(gte(@actor.level,18),3,ternary(gte(@actor.level,10),2,1))",
           "mode": "add",
           "type": "circumstance",
-          "predicate": [
-            "furious-strike"
-          ],
+          "predicate": ["furious-strike"],
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "predicate": [
-              "furious-strike"
-            ],
+            "predicate": ["furious-strike"],
             "selector": "melee-strike-damage",
             "type": "circumstance",
             "value": "ternary(gte(@actor.level,18),3,ternary(gte(@actor.level,10),2,1))"
@@ -20937,25 +19527,19 @@
           "dieSize": "d6",
           "damageType": null,
           "category": null,
-          "predicate": [
-            "furious-strike"
-          ],
+          "predicate": ["furious-strike"],
           "priority": null,
           "raw": {
             "diceNumber": "ternary(gte(@actor.level,18),3,ternary(gte(@actor.level,10),2,1))",
             "key": "DamageDice",
-            "predicate": [
-              "furious-strike"
-            ],
+            "predicate": ["furious-strike"],
             "selector": "melee-strike-damage"
           }
         }
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "eidolon"
-        ]
+        "value": ["eidolon"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -20996,12 +19580,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "eidolon",
-          "manipulate",
-          "visual"
-        ]
+        "value": ["concentrate", "eidolon", "manipulate", "visual"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -21043,12 +19622,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "manipulate",
-          "summoner",
-          "teleportation"
-        ]
+        "value": ["concentrate", "manipulate", "summoner", "teleportation"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -21090,10 +19664,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "auditory",
-          "eidolon"
-        ]
+        "value": ["auditory", "eidolon"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -21138,9 +19709,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "eidolon"
-        ]
+        "value": ["eidolon"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -21182,12 +19751,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "eidolon",
-          "emotion",
-          "mental"
-        ]
+        "value": ["concentrate", "eidolon", "emotion", "mental"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -21229,9 +19793,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -21273,11 +19835,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "scrying",
-          "summoner"
-        ]
+        "value": ["concentrate", "scrying", "summoner"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -21339,19 +19897,13 @@
           "selector": "description",
           "value": null,
           "mode": "add",
-          "predicate": [
-            "item:slug:swarming-assault",
-            "sickening-assault"
-          ],
+          "predicate": ["item:slug:swarming-assault", "sickening-assault"],
           "priority": null,
           "raw": {
             "itemType": "action",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:slug:swarming-assault",
-              "sickening-assault"
-            ],
+            "predicate": ["item:slug:swarming-assault", "sickening-assault"],
             "property": "description",
             "value": [
               {
@@ -21363,10 +19915,7 @@
         }
       ],
       "traits": {
-        "value": [
-          "concentrate",
-          "eidolon"
-        ]
+        "value": ["concentrate", "eidolon"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -21384,10 +19933,7 @@
             "itemType": "action",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": [
-              "item:slug:swarming-assault",
-              "sickening-assault"
-            ],
+            "predicate": ["item:slug:swarming-assault", "sickening-assault"],
             "property": "description",
             "value": [
               {
@@ -21400,13 +19946,9 @@
           {
             "key": "DamageAlteration",
             "mode": "multiply",
-            "predicate": [
-              "sickening-assault"
-            ],
+            "predicate": ["sickening-assault"],
             "property": "dice-number",
-            "selectors": [
-              "swarming-assault-inline-damage"
-            ],
+            "selectors": ["swarming-assault-inline-damage"],
             "value": 2,
             "_conversionState": "unsupported"
           }
@@ -21464,9 +20006,7 @@
         }
       ],
       "traits": {
-        "value": [
-          "eidolon"
-        ]
+        "value": ["eidolon"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -21484,9 +20024,7 @@
             "key": "DamageAlteration",
             "mode": "override",
             "property": "damage-type",
-            "selectors": [
-              "{item|id}-inline-damage"
-            ],
+            "selectors": ["{item|id}-inline-damage"],
             "value": "{item|flags.system.rulesSelections.swarmingAssault}",
             "_conversionState": "unsupported"
           }
@@ -21519,9 +20057,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "eidolon"
-        ]
+        "value": ["eidolon"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -21567,12 +20103,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "divine",
-          "eidolon",
-          "emotion",
-          "mental"
-        ]
+        "value": ["divine", "eidolon", "emotion", "mental"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -21614,9 +20145,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "eidolon"
-        ]
+        "value": ["eidolon"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -21658,10 +20187,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "eidolon"
-        ]
+        "value": ["concentrate", "eidolon"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -21734,17 +20260,12 @@
           "slug": null,
           "label": null,
           "selector": "strike-attack-roll",
-          "outcome": [
-            "failure"
-          ],
+          "outcome": ["failure"],
           "text": "",
           "title": "{item|name}",
           "predicate": [
             {
-              "or": [
-                "finisher:confident",
-                "eternal-confidence"
-              ]
+              "or": ["finisher:confident", "eternal-confidence"]
             },
             {
               "or": [
@@ -21760,10 +20281,7 @@
                           "and": [
                             "finisher:twirling-throw",
                             {
-                              "lte": [
-                                "target:range-increment",
-                                3
-                              ]
+                              "lte": ["target:range-increment", 3]
                             }
                           ]
                         }
@@ -21774,10 +20292,7 @@
               ]
             },
             {
-              "or": [
-                "item:trait:agile",
-                "item:trait:finesse"
-              ]
+              "or": ["item:trait:agile", "item:trait:finesse"]
             },
             {
               "not": "feat:precise-finisher"
@@ -21786,15 +20301,10 @@
           "priority": null,
           "raw": {
             "key": "Note",
-            "outcome": [
-              "failure"
-            ],
+            "outcome": ["failure"],
             "predicate": [
               {
-                "or": [
-                  "finisher:confident",
-                  "eternal-confidence"
-                ]
+                "or": ["finisher:confident", "eternal-confidence"]
               },
               {
                 "or": [
@@ -21810,10 +20320,7 @@
                             "and": [
                               "finisher:twirling-throw",
                               {
-                                "lte": [
-                                  "target:range-increment",
-                                  3
-                                ]
+                                "lte": ["target:range-increment", 3]
                               }
                             ]
                           }
@@ -21824,10 +20331,7 @@
                 ]
               },
               {
-                "or": [
-                  "item:trait:agile",
-                  "item:trait:finesse"
-                ]
+                "or": ["item:trait:agile", "item:trait:finesse"]
               },
               {
                 "not": "feat:precise-finisher"
@@ -21842,9 +20346,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "finisher"
-        ]
+        "value": ["finisher"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -21904,28 +20406,19 @@
           "label": null,
           "toggleable": false,
           "domain": "all",
-          "predicate": [
-            "opportune-riposte",
-            "action:disarm"
-          ],
+          "predicate": ["opportune-riposte", "action:disarm"],
           "priority": 51,
           "raw": {
             "key": "RollOption",
             "option": "item:trait:bravado",
-            "predicate": [
-              "opportune-riposte",
-              "action:disarm"
-            ],
+            "predicate": ["opportune-riposte", "action:disarm"],
             "priority": 51
           }
         }
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "bravado",
-          "swashbuckler"
-        ]
+        "value": ["bravado", "swashbuckler"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -21940,14 +20433,10 @@
         "packName": "actions",
         "unconvertedRules": [
           {
-            "definition": [
-              "item:melee"
-            ],
+            "definition": ["item:melee"],
             "key": "AdjustStrike",
             "mode": "add",
-            "predicate": [
-              "opportune-riposte"
-            ],
+            "predicate": ["opportune-riposte"],
             "property": "traits",
             "value": "bravado",
             "_conversionState": "unsupported"
@@ -21981,11 +20470,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "magical",
-          "manipulate",
-          "thaumaturge"
-        ]
+        "value": ["magical", "manipulate", "thaumaturge"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -22031,11 +20516,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "magical",
-          "manipulate",
-          "thaumaturge"
-        ]
+        "value": ["magical", "manipulate", "thaumaturge"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -22081,11 +20562,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "esoterica",
-          "manipulate",
-          "thaumaturge"
-        ]
+        "value": ["esoterica", "manipulate", "thaumaturge"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -22202,12 +20679,7 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "magical",
-          "manipulate",
-          "thaumaturge"
-        ]
+        "value": ["concentrate", "magical", "manipulate", "thaumaturge"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -22225,9 +20697,7 @@
             "key": "DamageAlteration",
             "mode": "override",
             "property": "damage-type",
-            "selectors": [
-              "{item|id}-inline-damage"
-            ],
+            "selectors": ["{item|id}-inline-damage"],
             "value": "{item|flags.system.rulesSelections.wandDamageType}",
             "_conversionState": "unsupported"
           },
@@ -22272,10 +20742,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "esoterica",
-          "manipulate"
-        ]
+        "value": ["esoterica", "manipulate"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -22321,26 +20788,19 @@
           "label": null,
           "toggleable": true,
           "domain": "all",
-          "predicate": [
-            "feature:adept-benefit-weapon"
-          ],
+          "predicate": ["feature:adept-benefit-weapon"],
           "priority": null,
           "raw": {
             "key": "RollOption",
             "option": "implements-interruption",
-            "predicate": [
-              "feature:adept-benefit-weapon"
-            ],
+            "predicate": ["feature:adept-benefit-weapon"],
             "toggleable": true
           }
         }
       ],
       "traits": {
         "rarity": "common",
-        "value": [
-          "magical",
-          "thaumaturge"
-        ]
+        "value": ["magical", "thaumaturge"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -22386,12 +20846,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "esoterica",
-          "magical",
-          "thaumaturge"
-        ]
+        "value": ["concentrate", "esoterica", "magical", "thaumaturge"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -22433,12 +20888,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "illusion",
-          "magical",
-          "manipulate",
-          "thaumaturge"
-        ]
+        "value": ["illusion", "magical", "manipulate", "thaumaturge"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -22480,13 +20930,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "auditory",
-          "magical",
-          "manipulate",
-          "sonic",
-          "thaumaturge"
-        ]
+        "value": ["auditory", "magical", "manipulate", "sonic", "thaumaturge"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -22576,9 +21020,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "aura"
-        ]
+        "value": ["aura"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -22714,10 +21156,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "arcane",
-          "wizard"
-        ]
+        "value": ["arcane", "wizard"]
       },
       "fusionCategory": "class",
       "level": 1,
@@ -22758,10 +21197,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "downtime",
-          "manipulate"
-        ]
+        "value": ["downtime", "manipulate"]
       },
       "fusionCategory": "downtime",
       "level": 1,
@@ -22803,10 +21239,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "downtime",
-          "secret"
-        ]
+        "value": ["downtime", "secret"]
       },
       "fusionCategory": "downtime",
       "level": 1,
@@ -22848,9 +21281,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "downtime"
-        ]
+        "value": ["downtime"]
       },
       "fusionCategory": "downtime",
       "level": 1,
@@ -22892,9 +21323,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "downtime"
-        ]
+        "value": ["downtime"]
       },
       "fusionCategory": "downtime",
       "level": 1,
@@ -22978,9 +21407,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "electricity"
-        ]
+        "value": ["electricity"]
       },
       "fusionCategory": "equipment",
       "level": 1,
@@ -23168,15 +21595,11 @@
           "value": 1,
           "mode": "add",
           "type": "circumstance",
-          "predicate": [
-            "timely-dodge"
-          ],
+          "predicate": ["timely-dodge"],
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "predicate": [
-              "timely-dodge"
-            ],
+            "predicate": ["timely-dodge"],
             "selector": "ac",
             "slug": "timely-dodge",
             "type": "circumstance",
@@ -23191,17 +21614,13 @@
           "selector": "ac",
           "value": 2,
           "mode": "add",
-          "predicate": [
-            "parent:granter:slug:effect-prey-mutagen-moderate"
-          ],
+          "predicate": ["parent:granter:slug:effect-prey-mutagen-moderate"],
           "priority": null,
           "notes": "AdjustModifier — partial conversion; capping/floor not applied",
           "raw": {
             "key": "AdjustModifier",
             "mode": "upgrade",
-            "predicate": [
-              "parent:granter:slug:effect-prey-mutagen-moderate"
-            ],
+            "predicate": ["parent:granter:slug:effect-prey-mutagen-moderate"],
             "selector": "ac",
             "slug": "timely-dodge",
             "value": 2
@@ -23215,17 +21634,13 @@
           "selector": "ac",
           "value": 3,
           "mode": "add",
-          "predicate": [
-            "parent:granter:prey-mutagen:prey-mutagen-greater"
-          ],
+          "predicate": ["parent:granter:prey-mutagen:prey-mutagen-greater"],
           "priority": null,
           "notes": "AdjustModifier — partial conversion; capping/floor not applied",
           "raw": {
             "key": "AdjustModifier",
             "mode": "upgrade",
-            "predicate": [
-              "parent:granter:prey-mutagen:prey-mutagen-greater"
-            ],
+            "predicate": ["parent:granter:prey-mutagen:prey-mutagen-greater"],
             "selector": "ac",
             "slug": "timely-dodge",
             "value": 3
@@ -23239,17 +21654,13 @@
           "selector": "ac",
           "value": 4,
           "mode": "add",
-          "predicate": [
-            "parent:granter:prey-mutagen:prey-mutagen-major"
-          ],
+          "predicate": ["parent:granter:prey-mutagen:prey-mutagen-major"],
           "priority": null,
           "notes": "AdjustModifier — partial conversion; capping/floor not applied",
           "raw": {
             "key": "AdjustModifier",
             "mode": "upgrade",
-            "predicate": [
-              "parent:granter:prey-mutagen:prey-mutagen-major"
-            ],
+            "predicate": ["parent:granter:prey-mutagen:prey-mutagen-major"],
             "selector": "ac",
             "slug": "timely-dodge",
             "value": 4
@@ -23274,9 +21685,7 @@
           {
             "key": "AdjustModifier",
             "mode": "upgrade",
-            "predicate": [
-              "parent:granter:slug:effect-prey-mutagen-moderate"
-            ],
+            "predicate": ["parent:granter:slug:effect-prey-mutagen-moderate"],
             "selector": "ac",
             "slug": "timely-dodge",
             "value": 2,
@@ -23285,9 +21694,7 @@
           {
             "key": "AdjustModifier",
             "mode": "upgrade",
-            "predicate": [
-              "parent:granter:prey-mutagen:prey-mutagen-greater"
-            ],
+            "predicate": ["parent:granter:prey-mutagen:prey-mutagen-greater"],
             "selector": "ac",
             "slug": "timely-dodge",
             "value": 3,
@@ -23296,9 +21703,7 @@
           {
             "key": "AdjustModifier",
             "mode": "upgrade",
-            "predicate": [
-              "parent:granter:prey-mutagen:prey-mutagen-major"
-            ],
+            "predicate": ["parent:granter:prey-mutagen:prey-mutagen-major"],
             "selector": "ac",
             "slug": "timely-dodge",
             "value": 4,
@@ -23336,9 +21741,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "magical"
-        ]
+        "value": ["magical"]
       },
       "fusionCategory": "equipment",
       "level": 1,
@@ -23380,9 +21783,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "exploration"
-        ]
+        "value": ["exploration"]
       },
       "fusionCategory": "exploration",
       "level": 1,
@@ -23423,10 +21824,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "exploration",
-          "manipulate"
-        ]
+        "value": ["exploration", "manipulate"]
       },
       "fusionCategory": "exploration",
       "level": 1,
@@ -23468,9 +21866,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "exploration"
-        ]
+        "value": ["exploration"]
       },
       "fusionCategory": "exploration",
       "level": 1,
@@ -23512,10 +21908,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "exploration"
-        ]
+        "value": ["concentrate", "exploration"]
       },
       "fusionCategory": "exploration",
       "level": 1,
@@ -23557,12 +21950,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "auditory",
-          "concentrate",
-          "exploration",
-          "visual"
-        ]
+        "value": ["auditory", "concentrate", "exploration", "visual"]
       },
       "fusionCategory": "exploration",
       "level": 1,
@@ -23604,10 +21992,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "exploration",
-          "move"
-        ]
+        "value": ["exploration", "move"]
       },
       "fusionCategory": "exploration",
       "level": 1,
@@ -23649,10 +22034,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "exploration"
-        ]
+        "value": ["concentrate", "exploration"]
       },
       "fusionCategory": "exploration",
       "level": 1,
@@ -23698,10 +22080,7 @@
           "concentrate": "Concentrate",
           "exploration": "Exploration"
         },
-        "value": [
-          "concentrate",
-          "exploration"
-        ]
+        "value": ["concentrate", "exploration"]
       },
       "fusionCategory": "exploration",
       "level": 1,
@@ -23743,10 +22122,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "exploration"
-        ]
+        "value": ["concentrate", "exploration"]
       },
       "fusionCategory": "exploration",
       "level": 1,
@@ -23788,10 +22164,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "exploration"
-        ]
+        "value": ["concentrate", "exploration"]
       },
       "fusionCategory": "exploration",
       "level": 1,
@@ -23833,10 +22206,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "exploration"
-        ]
+        "value": ["concentrate", "exploration"]
       },
       "fusionCategory": "exploration",
       "level": 1,
@@ -23878,10 +22248,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "exploration"
-        ]
+        "value": ["concentrate", "exploration"]
       },
       "fusionCategory": "exploration",
       "level": 1,
@@ -23922,10 +22289,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "exploration"
-        ]
+        "value": ["concentrate", "exploration"]
       },
       "fusionCategory": "exploration",
       "level": 1,
@@ -23967,10 +22331,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "shadow",
-          "teleportation"
-        ]
+        "value": ["shadow", "teleportation"]
       },
       "fusionCategory": "familiar",
       "level": 1,
@@ -24015,10 +22376,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "primal",
-          "void"
-        ]
+        "value": ["primal", "void"]
       },
       "fusionCategory": "heritage",
       "level": 1,
@@ -24080,15 +22438,11 @@
           "value": 1,
           "mode": "add",
           "type": "circumstance",
-          "predicate": [
-            "unwavering-resilience"
-          ],
+          "predicate": ["unwavering-resilience"],
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "predicate": [
-              "unwavering-resilience"
-            ],
+            "predicate": ["unwavering-resilience"],
             "selector": "saving-throw",
             "type": "circumstance",
             "value": 1
@@ -24142,9 +22496,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "heritage",
       "level": 1,
@@ -24186,9 +22538,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "sylph"
-        ]
+        "value": ["sylph"]
       },
       "fusionCategory": "heritage",
       "level": 1,
@@ -24233,9 +22583,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "poison"
-        ]
+        "value": ["poison"]
       },
       "fusionCategory": "heritage",
       "level": 1,
@@ -24277,9 +22625,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "undine"
-        ]
+        "value": ["undine"]
       },
       "fusionCategory": "heritage",
       "level": 1,
@@ -24325,9 +22671,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "undine"
-        ]
+        "value": ["undine"]
       },
       "fusionCategory": "heritage",
       "level": 1,
@@ -24368,10 +22712,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "fortune",
-          "mythic"
-        ]
+        "value": ["fortune", "mythic"]
       },
       "fusionCategory": "mythic",
       "level": 1,
@@ -24413,9 +22754,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "manipulate"
-        ]
+        "value": ["manipulate"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -24457,9 +22796,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "move"
-        ]
+        "value": ["move"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -24501,10 +22838,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "exploration"
-        ]
+        "value": ["concentrate", "exploration"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -24546,9 +22880,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "move"
-        ]
+        "value": ["move"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -24590,14 +22922,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "auditory",
-          "concentrate",
-          "emotion",
-          "exploration",
-          "linguistic",
-          "mental"
-        ]
+        "value": ["auditory", "concentrate", "emotion", "exploration", "linguistic", "mental"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -24639,10 +22964,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "auditory",
-          "concentrate"
-        ]
+        "value": ["auditory", "concentrate"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -24684,10 +23006,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "manipulate",
-          "secret"
-        ]
+        "value": ["manipulate", "secret"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -24729,11 +23048,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "exploration",
-          "move"
-        ]
+        "value": ["concentrate", "exploration", "move"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -24775,10 +23090,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "downtime",
-          "manipulate"
-        ]
+        "value": ["downtime", "manipulate"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -24820,9 +23132,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "mental"
-        ]
+        "value": ["mental"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -24864,10 +23174,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "downtime",
-          "secret"
-        ]
+        "value": ["downtime", "secret"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -24909,11 +23216,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "exploration",
-          "secret"
-        ]
+        "value": ["concentrate", "exploration", "secret"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -24954,9 +23257,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "downtime"
-        ]
+        "value": ["downtime"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -24998,13 +23299,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "auditory",
-          "concentrate",
-          "emotion",
-          "fear",
-          "mental"
-        ]
+        "value": ["auditory", "concentrate", "emotion", "fear", "mental"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -25046,9 +23341,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "manipulate"
-        ]
+        "value": ["manipulate"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -25090,9 +23383,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "attack"
-        ]
+        "value": ["attack"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -25134,9 +23425,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "downtime"
-        ]
+        "value": ["downtime"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -25178,9 +23467,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "mental"
-        ]
+        "value": ["mental"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -25222,9 +23509,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "attack"
-        ]
+        "value": ["attack"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -25308,10 +23593,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "exploration",
-          "secret"
-        ]
+        "value": ["exploration", "secret"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -25353,9 +23635,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "attack"
-        ]
+        "value": ["attack"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -25397,9 +23677,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "secret"
-        ]
+        "value": ["secret"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -25441,9 +23719,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "move"
-        ]
+        "value": ["move"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -25485,11 +23761,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "exploration",
-          "secret"
-        ]
+        "value": ["concentrate", "exploration", "secret"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -25531,11 +23803,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "exploration",
-          "secret"
-        ]
+        "value": ["concentrate", "exploration", "secret"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -25577,12 +23845,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "exploration",
-          "manipulate",
-          "secret"
-        ]
+        "value": ["concentrate", "exploration", "manipulate", "secret"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -25624,10 +23887,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "exploration"
-        ]
+        "value": ["concentrate", "exploration"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -25669,13 +23929,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "auditory",
-          "concentrate",
-          "linguistic",
-          "mental",
-          "secret"
-        ]
+        "value": ["auditory", "concentrate", "linguistic", "mental", "secret"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -25717,9 +23971,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "move"
-        ]
+        "value": ["move"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -25761,13 +24013,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "auditory",
-          "concentrate",
-          "exploration",
-          "linguistic",
-          "mental"
-        ]
+        "value": ["auditory", "concentrate", "exploration", "linguistic", "mental"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -25809,9 +24055,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "move"
-        ]
+        "value": ["move"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -25853,9 +24097,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "manipulate"
-        ]
+        "value": ["manipulate"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -25897,9 +24139,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -25941,9 +24181,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "manipulate"
-        ]
+        "value": ["manipulate"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -26026,13 +24264,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "emotion",
-          "exploration",
-          "mental",
-          "occult"
-        ]
+        "value": ["concentrate", "emotion", "exploration", "mental", "occult"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -26074,10 +24306,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "secret"
-        ]
+        "value": ["concentrate", "secret"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -26119,10 +24348,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "exploration",
-          "manipulate"
-        ]
+        "value": ["exploration", "manipulate"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -26163,9 +24389,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "attack"
-        ]
+        "value": ["attack"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -26207,12 +24431,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "auditory",
-          "concentrate",
-          "linguistic",
-          "mental"
-        ]
+        "value": ["auditory", "concentrate", "linguistic", "mental"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -26254,10 +24473,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "exploration",
-          "secret"
-        ]
+        "value": ["exploration", "secret"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -26299,9 +24515,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "attack"
-        ]
+        "value": ["attack"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -26343,10 +24557,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "move",
-          "secret"
-        ]
+        "value": ["move", "secret"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -26388,10 +24599,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "exploration",
-          "move"
-        ]
+        "value": ["exploration", "move"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -26433,9 +24641,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "manipulate"
-        ]
+        "value": ["manipulate"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -26477,9 +24683,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "downtime"
-        ]
+        "value": ["downtime"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -26521,9 +24725,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "move"
-        ]
+        "value": ["move"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -26565,11 +24767,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "exploration",
-          "move"
-        ]
+        "value": ["concentrate", "exploration", "move"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -26611,10 +24809,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "downtime",
-          "manipulate"
-        ]
+        "value": ["downtime", "manipulate"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -26656,9 +24851,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "manipulate"
-        ]
+        "value": ["manipulate"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -26700,11 +24893,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "exploration",
-          "healing",
-          "manipulate"
-        ]
+        "value": ["exploration", "healing", "manipulate"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -26746,9 +24935,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "attack"
-        ]
+        "value": ["attack"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -26790,9 +24977,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "move"
-        ]
+        "value": ["move"]
       },
       "fusionCategory": "skill",
       "level": 1,
@@ -26834,9 +25019,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "manipulate"
-        ]
+        "value": ["manipulate"]
       },
       "fusionCategory": "spells",
       "level": 1,
@@ -26878,9 +25061,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "spells",
       "level": 1,
@@ -26962,11 +25143,7 @@
       },
       "rules": [],
       "traits": {
-        "value": [
-          "concentrate",
-          "sanctified",
-          "spirit"
-        ]
+        "value": ["concentrate", "sanctified", "spirit"]
       },
       "fusionCategory": "spells",
       "level": 1,
@@ -27049,12 +25226,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate",
-          "emotion",
-          "fear",
-          "mental"
-        ]
+        "value": ["concentrate", "emotion", "fear", "mental"]
       },
       "fusionCategory": "spells",
       "level": 1,
@@ -27180,9 +25352,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "concentrate"
-        ]
+        "value": ["concentrate"]
       },
       "fusionCategory": "spells",
       "level": 1,
@@ -27224,9 +25394,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "fortune"
-        ]
+        "value": ["fortune"]
       },
       "fusionCategory": "spells",
       "level": 1,
@@ -27268,15 +25436,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "auditory",
-          "concentrate",
-          "emotion",
-          "fear",
-          "flourish",
-          "mental",
-          "sonic"
-        ]
+        "value": ["auditory", "concentrate", "emotion", "fear", "flourish", "mental", "sonic"]
       },
       "fusionCategory": "spells",
       "level": 1,
@@ -27325,11 +25485,7 @@
           "mental": "Mental",
           "skill": "Skill"
         },
-        "value": [
-          "auditory",
-          "linguistic",
-          "mental"
-        ]
+        "value": ["auditory", "linguistic", "mental"]
       },
       "fusionCategory": "stamina",
       "level": 1,
@@ -27378,13 +25534,7 @@
           "linguistic": "Linguistic",
           "mental": "Mental"
         },
-        "value": [
-          "auditory",
-          "emotion",
-          "exploration",
-          "linguistic",
-          "mental"
-        ]
+        "value": ["auditory", "emotion", "exploration", "linguistic", "mental"]
       },
       "fusionCategory": "stamina",
       "level": 1,
@@ -27471,10 +25621,7 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": [
-          "exploration",
-          "stamina"
-        ]
+        "value": ["exploration", "stamina"]
       },
       "fusionCategory": "stamina",
       "level": 1,

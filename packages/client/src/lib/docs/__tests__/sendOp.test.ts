@@ -210,7 +210,9 @@ describe("makeSendOpFn", () => {
     const fn = makeSendOpFn(() => null);
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
-    expect(() => fn({ type: "doc:update", documentType: "Actor", id: "a1", diff: {} })).not.toThrow();
+    expect(() =>
+      fn({ type: "doc:update", documentType: "Actor", id: "a1", diff: {} }),
+    ).not.toThrow();
     expect(socket.emit).not.toHaveBeenCalled();
     expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("no live socket"));
 
