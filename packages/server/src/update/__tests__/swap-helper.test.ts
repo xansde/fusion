@@ -36,6 +36,14 @@ import {
   POST_SWAP_WATCH_MS,
 } from "../swap-helper.js";
 
+/**
+ * Windows-only test. The packaged Fusion binary only ships for Windows, and
+ * the cases below assert Windows-specific semantics (path separators,
+ * synchronous spawn failures, applyUpdate's platform gate), which cannot hold
+ * on POSIX — the CI runner is Linux.
+ */
+const itWin = it.skipIf(process.platform !== "win32");
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const FAKE_EXE = join(__dirname, "fixtures", "fake-exe.mjs");
 
@@ -306,81 +314,85 @@ describe("buildSwapHelperScript + scheduleSwap (dev-mode invocation)", () => {
     expect(logContent).toContain("rollback complete");
   }, 20000);
 
-  it("rolls back when the new binary throws SYNCHRONOUSLY on spawn (Windows spawn UNKNOWN/EACCES, REQ-DST-024)", async () => {
-    // Reproduces the reported bug: on Windows, spawn() of an
-    // invalid/non-executable file throws SYNCHRONOUSLY (not just an async
-    // "error" event) — e.g. "spawn UNKNOWN" or EACCES. Without a try/catch
-    // around the first relaunch() call, that throw propagates out of
-    // main(), only main().catch's FATAL log runs, and the helper dies
-    // BEFORE reaching the watch-window/rollback logic — leaving the broken
-    // binary swapped into currentExePath and the .bak orphaned.
-    //
-    // We reproduce the synchronous-throw condition by omitting
-    // relaunchCommand (so relaunch() spawns currentExePath DIRECTLY, the
-    // real production shape) while the "new" binary swapped into place is
-    // not something Windows can execute directly (a plain .mjs file with no
-    // registered file-type association) — spawn() throws EFTYPE/UNKNOWN
-    // synchronously for this on Windows, same failure class as a
-    // corrupt/blocked exe.
-    const dir = makeTempDir();
-    const currentExePath = join(dir, "current-exe.mjs");
-    const newExePath = join(dir, "new-exe-unspawnable.mjs");
-    const backupExePath = join(dir, "current-exe.mjs.bak");
+  itWin(
+    "rolls back when the new binary throws SYNCHRONOUSLY on spawn (Windows spawn UNKNOWN/EACCES, REQ-DST-024)",
+    async () => {
+      // Reproduces the reported bug: on Windows, spawn() of an
+      // invalid/non-executable file throws SYNCHRONOUSLY (not just an async
+      // "error" event) — e.g. "spawn UNKNOWN" or EACCES. Without a try/catch
+      // around the first relaunch() call, that throw propagates out of
+      // main(), only main().catch's FATAL log runs, and the helper dies
+      // BEFORE reaching the watch-window/rollback logic — leaving the broken
+      // binary swapped into currentExePath and the .bak orphaned.
+      //
+      // We reproduce the synchronous-throw condition by omitting
+      // relaunchCommand (so relaunch() spawns currentExePath DIRECTLY, the
+      // real production shape) while the "new" binary swapped into place is
+      // not something Windows can execute directly (a plain .mjs file with no
+      // registered file-type association) — spawn() throws EFTYPE/UNKNOWN
+      // synchronously for this on Windows, same failure class as a
+      // corrupt/blocked exe.
+      const dir = makeTempDir();
+      const currentExePath = join(dir, "current-exe.mjs");
+      const newExePath = join(dir, "new-exe-unspawnable.mjs");
+      const backupExePath = join(dir, "current-exe.mjs.bak");
 
-    copyFileSync(FAKE_EXE, currentExePath);
-    copyFileSync(FAKE_EXE, newExePath);
+      copyFileSync(FAKE_EXE, currentExePath);
+      copyFileSync(FAKE_EXE, newExePath);
 
-    const mainProcess = spawnFakeMainProcess();
+      const mainProcess = spawnFakeMainProcess();
 
-    const plan: SwapPlan = {
-      mainPid: mainProcess.pid ?? -1,
-      currentExePath,
-      newExePath,
-      backupExePath,
-      relaunchArgs: [],
-      cwd: dir,
-      logPath: join(dir, "swap-helper.log"),
-      // Deliberately NO relaunchCommand override here — this is what makes
-      // relaunch() spawn currentExePath directly (production shape) instead
-      // of via `node <script>`, reproducing the synchronous-throw path.
-    };
+      const plan: SwapPlan = {
+        mainPid: mainProcess.pid ?? -1,
+        currentExePath,
+        newExePath,
+        backupExePath,
+        relaunchArgs: [],
+        cwd: dir,
+        logPath: join(dir, "swap-helper.log"),
+        // Deliberately NO relaunchCommand override here — this is what makes
+        // relaunch() spawn currentExePath directly (production shape) instead
+        // of via `node <script>`, reproducing the synchronous-throw path.
+      };
 
-    const { scriptPath } = scheduleSwap({
-      plan,
-      runtimeDir: dir,
-      spawnImpl: ((cmd: string, args: readonly string[], opts: unknown) => {
-        const child = nodeSpawn(cmd, args as string[], opts as never);
-        spawnedChildren.push(child);
-        return child;
-      }) as typeof nodeSpawn,
-      invocation: { execPath: process.execPath, seaFlag: false },
-    });
+      const { scriptPath } = scheduleSwap({
+        plan,
+        runtimeDir: dir,
+        spawnImpl: ((cmd: string, args: readonly string[], opts: unknown) => {
+          const child = nodeSpawn(cmd, args as string[], opts as never);
+          spawnedChildren.push(child);
+          return child;
+        }) as typeof nodeSpawn,
+        invocation: { execPath: process.execPath, seaFlag: false },
+      });
 
-    expect(existsSync(scriptPath)).toBe(true);
+      expect(existsSync(scriptPath)).toBe(true);
 
-    mainProcess.kill();
+      mainProcess.kill();
 
-    const logPath = join(dir, "swap-helper.log");
+      const logPath = join(dir, "swap-helper.log");
 
-    // Load-bearing assertion: the helper must reach the rollback branch
-    // (not die silently on an uncaught synchronous spawn throw).
-    await waitFor(
-      () => existsSync(logPath) && readFileSync(logPath, "utf8").includes("rolling back"),
-      10000,
-    );
+      // Load-bearing assertion: the helper must reach the rollback branch
+      // (not die silently on an uncaught synchronous spawn throw).
+      await waitFor(
+        () => existsSync(logPath) && readFileSync(logPath, "utf8").includes("rolling back"),
+        10000,
+      );
 
-    await sleep(500);
+      await sleep(500);
 
-    // After rollback: backupExePath must be gone (restored onto
-    // currentExePath) and currentExePath must exist again — no orphaned
-    // .bak, no broken binary left in place (REQ-DST-024).
-    expect(existsSync(backupExePath)).toBe(false);
-    expect(existsSync(currentExePath)).toBe(true);
+      // After rollback: backupExePath must be gone (restored onto
+      // currentExePath) and currentExePath must exist again — no orphaned
+      // .bak, no broken binary left in place (REQ-DST-024).
+      expect(existsSync(backupExePath)).toBe(false);
+      expect(existsSync(currentExePath)).toBe(true);
 
-    const logContent = readFileSync(logPath, "utf8");
-    expect(logContent).toContain("failed to spawn synchronously");
-    expect(logContent).toContain("rollback complete");
-  }, 20000);
+      const logContent = readFileSync(logPath, "utf8");
+      expect(logContent).toContain("failed to spawn synchronously");
+      expect(logContent).toContain("rollback complete");
+    },
+    20000,
+  );
 
   it("never swaps if the main pid does not exit (safety: leaves current binary untouched)", async () => {
     const dir = makeTempDir();

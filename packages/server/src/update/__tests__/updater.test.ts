@@ -25,6 +25,14 @@ import { startMockUpdateServer, sha256Of, type MockUpdateServer } from "./mock-u
 import type { UpdateManifest } from "../manifest-client.js";
 import { currentPlatformKey } from "../manifest-client.js";
 
+/**
+ * Windows-only test. The packaged Fusion binary only ships for Windows, and
+ * the cases below assert Windows-specific semantics (path separators,
+ * synchronous spawn failures, applyUpdate's platform gate), which cannot hold
+ * on POSIX — the CI runner is Linux.
+ */
+const itWin = it.skipIf(process.platform !== "win32");
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const FAKE_EXE = join(__dirname, "fixtures", "fake-exe.mjs");
 
@@ -239,165 +247,174 @@ describe("applyUpdate", () => {
     }
   });
 
-  it("aborts with HASH_MISMATCH and leaves no tmp file when the download's SHA-256 diverges (CA-DST-07)", async () => {
-    const dataDir = makeTempDir();
-    const wm = new WorldManager({ dataDir });
-    const bytes = Buffer.from("fake-new-binary-bytes");
-    const platformKey = currentPlatformKey();
-    const manifest: UpdateManifest = {
-      version: "9.9.9",
-      releaseDate: "",
-      releaseNotes: "",
-      channel: "stable",
-      platforms: {
-        [platformKey]: {
-          url: "", // filled below once server is up
-          sha256: "0".repeat(64), // deliberately wrong
-          size: bytes.length,
+  itWin(
+    "aborts with HASH_MISMATCH and leaves no tmp file when the download's SHA-256 diverges (CA-DST-07)",
+    async () => {
+      const dataDir = makeTempDir();
+      const wm = new WorldManager({ dataDir });
+      const bytes = Buffer.from("fake-new-binary-bytes");
+      const platformKey = currentPlatformKey();
+      const manifest: UpdateManifest = {
+        version: "9.9.9",
+        releaseDate: "",
+        releaseNotes: "",
+        channel: "stable",
+        platforms: {
+          [platformKey]: {
+            url: "", // filled below once server is up
+            sha256: "0".repeat(64), // deliberately wrong
+            size: bytes.length,
+          },
         },
-      },
-    };
-    server = await startMockUpdateServer({ manifest, artifacts: { "fusion.exe": bytes } });
-    manifest.platforms[platformKey] = {
-      ...manifest.platforms[platformKey]!,
-      url: `${server.baseUrl}/artifacts/fusion.exe`,
-    };
+      };
+      server = await startMockUpdateServer({ manifest, artifacts: { "fusion.exe": bytes } });
+      manifest.platforms[platformKey] = {
+        ...manifest.platforms[platformKey]!,
+        url: `${server.baseUrl}/artifacts/fusion.exe`,
+      };
 
-    copyFileSync(FAKE_EXE, join(dataDir, "current-exe.mjs"));
+      copyFileSync(FAKE_EXE, join(dataDir, "current-exe.mjs"));
 
-    const result = await applyUpdate({
-      currentVersion: "1.0.0",
-      channel: "stable",
-      manifestUrl: server.manifestUrl,
-      openWorldSlugs: [],
-      worldManager: wm,
-      currentExePath: join(dataDir, "current-exe.mjs"),
-      dataDir,
-      relaunchArgs: [],
-      isSeaOverride: true,
-    });
+      const result = await applyUpdate({
+        currentVersion: "1.0.0",
+        channel: "stable",
+        manifestUrl: server.manifestUrl,
+        openWorldSlugs: [],
+        worldManager: wm,
+        currentExePath: join(dataDir, "current-exe.mjs"),
+        dataDir,
+        relaunchArgs: [],
+        isSeaOverride: true,
+      });
 
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.code).toBe("HASH_MISMATCH");
-    // Current binary must be untouched — still present, no .bak created.
-    expect(existsSync(join(dataDir, "current-exe.mjs"))).toBe(true);
-    expect(existsSync(join(dataDir, "current-exe.mjs.bak"))).toBe(false);
-    expect(existsSync(join(dataDir, "runtime", "fusion-update-9.9.9.tmp"))).toBe(false);
-  });
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.code).toBe("HASH_MISMATCH");
+      // Current binary must be untouched — still present, no .bak created.
+      expect(existsSync(join(dataDir, "current-exe.mjs"))).toBe(true);
+      expect(existsSync(join(dataDir, "current-exe.mjs.bak"))).toBe(false);
+      expect(existsSync(join(dataDir, "runtime", "fusion-update-9.9.9.tmp"))).toBe(false);
+    },
+  );
 
-  it("creates a real pre-update backup of the open world before downloading (REQ-DST-022)", async () => {
-    const dataDir = makeTempDir();
-    const wm = new WorldManager({ dataDir });
-    wm.create({ title: "Update Flow World", system: "pf2e", slug: "upd_flow" });
-    wm.open("upd_flow");
+  itWin(
+    "creates a real pre-update backup of the open world before downloading (REQ-DST-022)",
+    async () => {
+      const dataDir = makeTempDir();
+      const wm = new WorldManager({ dataDir });
+      wm.create({ title: "Update Flow World", system: "pf2e", slug: "upd_flow" });
+      wm.open("upd_flow");
 
-    const bytes = Buffer.from("fake-new-binary-bytes-for-backup-test");
-    const platformKey = currentPlatformKey();
-    const manifest: UpdateManifest = {
-      version: "9.9.9",
-      releaseDate: "",
-      releaseNotes: "notes",
-      channel: "stable",
-      platforms: { [platformKey]: { url: "", sha256: sha256Of(bytes), size: bytes.length } },
-    };
-    server = await startMockUpdateServer({ manifest, artifacts: { "fusion.exe": bytes } });
-    manifest.platforms[platformKey] = {
-      ...manifest.platforms[platformKey]!,
-      url: `${server.baseUrl}/artifacts/fusion.exe`,
-    };
+      const bytes = Buffer.from("fake-new-binary-bytes-for-backup-test");
+      const platformKey = currentPlatformKey();
+      const manifest: UpdateManifest = {
+        version: "9.9.9",
+        releaseDate: "",
+        releaseNotes: "notes",
+        channel: "stable",
+        platforms: { [platformKey]: { url: "", sha256: sha256Of(bytes), size: bytes.length } },
+      };
+      server = await startMockUpdateServer({ manifest, artifacts: { "fusion.exe": bytes } });
+      manifest.platforms[platformKey] = {
+        ...manifest.platforms[platformKey]!,
+        url: `${server.baseUrl}/artifacts/fusion.exe`,
+      };
 
-    copyFileSync(FAKE_EXE, join(dataDir, "current-exe.mjs"));
-    const markerPath = join(dataDir, "marker.log");
+      copyFileSync(FAKE_EXE, join(dataDir, "current-exe.mjs"));
+      const markerPath = join(dataDir, "marker.log");
 
-    const result = await applyUpdate({
-      currentVersion: "1.0.0",
-      channel: "stable",
-      manifestUrl: server.manifestUrl,
-      openWorldSlugs: ["upd_flow"],
-      worldManager: wm,
-      currentExePath: join(dataDir, "current-exe.mjs"),
-      dataDir,
-      relaunchArgs: [markerPath, "stay-alive"],
-      isSeaOverride: true,
-      spawnImpl: trackedSpawn as unknown as typeof nodeSpawn,
-      swapInvocationOverride: { execPath: process.execPath, seaFlag: false },
-      relaunchCommandOverride: process.execPath,
-    });
+      const result = await applyUpdate({
+        currentVersion: "1.0.0",
+        channel: "stable",
+        manifestUrl: server.manifestUrl,
+        openWorldSlugs: ["upd_flow"],
+        worldManager: wm,
+        currentExePath: join(dataDir, "current-exe.mjs"),
+        dataDir,
+        relaunchArgs: [markerPath, "stay-alive"],
+        isSeaOverride: true,
+        spawnImpl: trackedSpawn as unknown as typeof nodeSpawn,
+        swapInvocationOverride: { execPath: process.execPath, seaFlag: false },
+        relaunchCommandOverride: process.execPath,
+      });
 
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.toVersion).toBe("9.9.9");
-      expect(result.backups).toHaveLength(1);
-      expect(result.backups[0]?.type).toBe("pre-update");
-      expect(existsSync(result.backups[0]!.path)).toBe(true);
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.toVersion).toBe("9.9.9");
+        expect(result.backups).toHaveLength(1);
+        expect(result.backups[0]?.type).toBe("pre-update");
+        expect(existsSync(result.backups[0]!.path)).toBe(true);
 
-      // Verify against WorldManager's own listBackups too.
-      const backups = wm.listBackups("upd_flow");
-      expect(backups.some((b) => b.type === "pre-update")).toBe(true);
-    }
+        // Verify against WorldManager's own listBackups too.
+        const backups = wm.listBackups("upd_flow");
+        expect(backups.some((b) => b.type === "pre-update")).toBe(true);
+      }
 
-    wm.close("upd_flow");
-  });
+      wm.close("upd_flow");
+    },
+  );
 
-  it("schedules a real swap that ends with the new binary running (end-to-end, dev-mode relaunch)", async () => {
-    const dataDir = makeTempDir();
-    const wm = new WorldManager({ dataDir });
+  itWin(
+    "schedules a real swap that ends with the new binary running (end-to-end, dev-mode relaunch)",
+    async () => {
+      const dataDir = makeTempDir();
+      const wm = new WorldManager({ dataDir });
 
-    const bytes = readFileSync(FAKE_EXE); // the "new binary" IS fake-exe.mjs's own bytes
-    const platformKey = currentPlatformKey();
-    const manifest: UpdateManifest = {
-      version: "9.9.9",
-      releaseDate: "",
-      releaseNotes: "",
-      channel: "stable",
-      platforms: { [platformKey]: { url: "", sha256: sha256Of(bytes), size: bytes.length } },
-    };
-    server = await startMockUpdateServer({ manifest, artifacts: { "fusion.exe": bytes } });
-    manifest.platforms[platformKey] = {
-      ...manifest.platforms[platformKey]!,
-      url: `${server.baseUrl}/artifacts/fusion.exe`,
-    };
+      const bytes = readFileSync(FAKE_EXE); // the "new binary" IS fake-exe.mjs's own bytes
+      const platformKey = currentPlatformKey();
+      const manifest: UpdateManifest = {
+        version: "9.9.9",
+        releaseDate: "",
+        releaseNotes: "",
+        channel: "stable",
+        platforms: { [platformKey]: { url: "", sha256: sha256Of(bytes), size: bytes.length } },
+      };
+      server = await startMockUpdateServer({ manifest, artifacts: { "fusion.exe": bytes } });
+      manifest.platforms[platformKey] = {
+        ...manifest.platforms[platformKey]!,
+        url: `${server.baseUrl}/artifacts/fusion.exe`,
+      };
 
-    const currentExePath = join(dataDir, "current-exe.mjs");
-    copyFileSync(FAKE_EXE, currentExePath);
-    const markerPath = join(dataDir, "marker.log");
-    const backupExePath = `${currentExePath}.bak`;
+      const currentExePath = join(dataDir, "current-exe.mjs");
+      copyFileSync(FAKE_EXE, currentExePath);
+      const markerPath = join(dataDir, "marker.log");
+      const backupExePath = `${currentExePath}.bak`;
 
-    // swapInvocationOverride/relaunchCommandOverride: currentExePath here is
-    // a .mjs test fixture, not a real directly-executable binary (Windows
-    // `spawn` EFTYPE) — see their doc comments in updater.ts. This is the
-    // ONLY difference from the production invocation shape; everything else
-    // (plan construction, backup, download, hash-verify, scheduleSwap call)
-    // runs through the exact same applyUpdate code path production uses.
-    const result = await applyUpdate({
-      currentVersion: "1.0.0",
-      channel: "stable",
-      manifestUrl: server.manifestUrl,
-      openWorldSlugs: [],
-      worldManager: wm,
-      currentExePath,
-      dataDir,
-      relaunchArgs: [markerPath, "stay-alive"],
-      isSeaOverride: true,
-      spawnImpl: trackedSpawn as unknown as typeof nodeSpawn,
-      swapInvocationOverride: { execPath: process.execPath, seaFlag: false },
-      relaunchCommandOverride: process.execPath,
-    });
+      // swapInvocationOverride/relaunchCommandOverride: currentExePath here is
+      // a .mjs test fixture, not a real directly-executable binary (Windows
+      // `spawn` EFTYPE) — see their doc comments in updater.ts. This is the
+      // ONLY difference from the production invocation shape; everything else
+      // (plan construction, backup, download, hash-verify, scheduleSwap call)
+      // runs through the exact same applyUpdate code path production uses.
+      const result = await applyUpdate({
+        currentVersion: "1.0.0",
+        channel: "stable",
+        manifestUrl: server.manifestUrl,
+        openWorldSlugs: [],
+        worldManager: wm,
+        currentExePath,
+        dataDir,
+        relaunchArgs: [markerPath, "stay-alive"],
+        isSeaOverride: true,
+        spawnImpl: trackedSpawn as unknown as typeof nodeSpawn,
+        swapInvocationOverride: { execPath: process.execPath, seaFlag: false },
+        relaunchCommandOverride: process.execPath,
+      });
 
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
 
-    expect(existsSync(result.swapScriptPath)).toBe(true);
-    const scriptContent = readFileSync(result.swapScriptPath, "utf8");
-    expect(scriptContent).toContain(JSON.stringify(currentExePath));
-    expect(scriptContent).toContain(JSON.stringify(backupExePath));
+      expect(existsSync(result.swapScriptPath)).toBe(true);
+      const scriptContent = readFileSync(result.swapScriptPath, "utf8");
+      expect(scriptContent).toContain(JSON.stringify(currentExePath));
+      expect(scriptContent).toContain(JSON.stringify(backupExePath));
 
-    // Main process here is THIS test process itself (applyUpdate's plan
-    // always uses process.pid as mainPid) — the swap-helper is now polling
-    // for OUR exit, which will never happen inside the test. So this test
-    // asserts up to "the swap was correctly scheduled" rather than waiting
-    // for an actual file-swap (that full end-to-end relaunch mechanics are
-    // covered by swap-helper.test.ts against a controllable fake main pid).
-    expect(existsSync(backupExePath)).toBe(false);
-  });
+      // Main process here is THIS test process itself (applyUpdate's plan
+      // always uses process.pid as mainPid) — the swap-helper is now polling
+      // for OUR exit, which will never happen inside the test. So this test
+      // asserts up to "the swap was correctly scheduled" rather than waiting
+      // for an actual file-swap (that full end-to-end relaunch mechanics are
+      // covered by swap-helper.test.ts against a controllable fake main pid).
+      expect(existsSync(backupExePath)).toBe(false);
+    },
+  );
 });

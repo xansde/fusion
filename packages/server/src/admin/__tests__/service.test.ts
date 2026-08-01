@@ -34,6 +34,14 @@ import {
   isFirstRun,
 } from "../service.js";
 
+/**
+ * Windows-only test. The packaged Fusion binary only ships for Windows, and
+ * the cases below assert Windows-specific semantics (path separators,
+ * synchronous spawn failures, applyUpdate's platform gate), which cannot hold
+ * on POSIX — the CI runner is Linux.
+ */
+const itWin = it.skipIf(process.platform !== "win32");
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -183,7 +191,7 @@ describe("detectLanIpv4Addresses / buildLanInviteUrls", () => {
 // ---------------------------------------------------------------------------
 
 describe("resolvePortableDataDir", () => {
-  it("joins the exe's own directory with FusionVTT-Data", () => {
+  itWin("joins the exe's own directory with FusionVTT-Data", () => {
     const result = resolvePortableDataDir("C:\\Program Files\\Fusion\\fusion-server.exe");
     expect(result).toBe(join("C:\\Program Files\\Fusion", "FusionVTT-Data"));
   });
