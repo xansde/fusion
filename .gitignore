@@ -17,6 +17,9 @@ systems/*/src/**/*.js
 systems/*/src/**/*.d.ts
 systems/*/src/**/*.map
 
+# Exception: hand-written ambient declarations, not build output
+!packages/client/src/global.d.ts
+
 # Ambiente e segredos
 .env
 .env.*
