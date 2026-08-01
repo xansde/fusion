@@ -396,6 +396,10 @@ e todo o pipeline de tradução. Um documento não enriquecido continua válido.
   `traits` sem divergência real.
 - **REQ-BC-054** [BC] O termo legado normalizado DEVE ser preservado num campo de
   alias; nada é descartado.
+- **REQ-BC-055** [BC] Documento enriquecido pela base canônica DEVE registrar a
+  **atribuição** ao projeto de origem (Wayfinder, de Igor) em
+  `flags.fusion.prov`, e o `NOTICE` do repositório DEVE citá-lo. O uso está
+  autorizado pelo autor (2026-08-01); a atribuição é a contrapartida.
 
 ### 6.6 Portões de qualidade
 
@@ -467,10 +471,10 @@ O build de packs **falha** quando:
 
 ## 9. Questões em aberto
 
-- **Q-BC-01** **Acordo sobre a base.** A base canônica é trabalho autoral de
-  terceiro sobre dados ORC/OGL. Usá-la no Fusion exige acordo explícito de uso da
-  base derivada (Q-WF-01 da pesquisa 16). É bloqueante para a implementação, não
-  para a spec.
+- **Q-BC-01** ~~Acordo sobre a base.~~ **Resolvido em 2026-08-01:** a base
+  canônica é do **Igor** (projeto Wayfinder) e o uso está **autorizado** — os dois
+  projetos evoluem em conversa. Permanece a obrigação de **atribuir** ao
+  Wayfinder/Igor nos artefatos derivados (`REQ-BC-055`).
 - **Q-BC-02** **Licença do `Pf2eToolsOrg/Pf2eTools`**, que alimenta o `requires`
   da base canônica. Se incompatível, `requires` é re-derivado do vendor — a perda
   seria pequena, porque o gate de nível já é derivado por trait (Q-WF-02).

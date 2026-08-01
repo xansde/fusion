@@ -2,7 +2,7 @@
 
 - **Tipo:** pesquisa/avaliação (insumo de spec)
 - **Data:** 2026-08-01
-- **Objeto avaliado:** `C:\Users\xansd\pessoal\wayfinder` (projeto "Waybuilder", autoria do Donel Dev/Igor), estado de 2026-08-01
+- **Objeto avaliado:** `C:\Users\xansd\pessoal\wayfinder` (projeto "Waybuilder", de autoria do **Igor**), estado de 2026-08-01. Uso autorizado pelo autor (2026-08-01); os dois projetos evoluem em conversa.
 - **Pergunta:** o que o Wayfinder tem que o Fusion não tem — (a) como base de conhecimento de PF2e e (b) como mecânica e balanceamento de multiclasse — e o que disso é aproveitável aqui
 - **Saída:** `specs/30-multiclasse-por-niveis.md` e `specs/31-base-canonica-de-conteudo.md`
 
@@ -393,10 +393,11 @@ e a decisão de "Free Archetype sempre ligado" (no Fusion é toggle).
 
 ## 7. Questões em aberto
 
-- **Q-WF-01** O Wayfinder é repositório de terceiro (Donel Dev/Igor). Ingerir a
-  base dele no Fusion exige acordo explícito sobre licença/uso da **base
-  derivada** (o dado de origem é ORC/OGL, mas o trabalho de reconciliação é
-  autoral). Decisão de produto, não técnica.
+- **Q-WF-01** ~~Acordo de uso da base.~~ **Resolvido em 2026-08-01:** o Wayfinder
+  é do Igor, amigo do autor do Fusion, e os dois projetos evoluem em conversa;
+  **o uso da base está autorizado**. Fica só a disciplina de **atribuição** ao
+  Wayfinder/Igor nos artefatos derivados, e a checagem de licença da terceira
+  fonte que alimenta a base (Q-WF-02) caso o Fusion vire distribuição pública.
 - **Q-WF-02** Licença do `Pf2eToolsOrg/Pf2eTools`, que alimenta `requires`.
   Se não for compatível, `requires` precisa ser re-derivado do vendor (o gate de
   nível já é derivado por trait, então a perda seria pequena).

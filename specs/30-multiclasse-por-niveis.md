@@ -10,9 +10,9 @@
 
 > **Aviso clean-room.** Esta spec descreve uma **regra de casa** (houserule) que
 > se aplica sobre as regras do PF2e Remaster (ORC/OGL). As fórmulas de PF2e
-> citadas são fato de regra publicada; a houserule é design original do projeto
-> Wayfinder, incorporada aqui com atribuição. Nenhum código ou texto proprietário
-> é reproduzido.
+> citadas são fato de regra publicada; a houserule é design original do **Igor**
+> (projeto Wayfinder), incorporada aqui **com autorização do autor** (2026-08-01)
+> e com atribuição. Nenhum código ou texto proprietário é reproduzido.
 
 ---
 
@@ -565,8 +565,9 @@ reclamar, não antes.
 - `11-ui-framework-e-fichas.md` — Plano e ficha (REQ-MCL-080..082), i18n.
 - `25-testes-e-qualidade.md` — a varredura dos 204 pares é um golden test 2e.
 - `29-pets-companions-familiars.md` — Q-MCL-03.
-- `26-licencas-e-legal.md` — postura clean-room; a houserule é design de
-  terceiro incorporado com atribuição (Q-WF-01).
+- `26-licencas-e-legal.md` — postura clean-room; a houserule é design do **Igor**
+  (projeto Wayfinder), incorporado **com autorização do autor** (2026-08-01) e
+  com atribuição obrigatória.
 
 ---
 
