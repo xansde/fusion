@@ -89,6 +89,13 @@ explicitamente **[V2]**.
 - **SF2e** (classes, armas tech, gravidade, naves) — `ver 18-sistema-sf2e.md`.
 - **Motor completo de rule-elements-like** (GrantItem/ChoiceSet/Aura/BattleForm
   equivalentes), **exploração/downtime/crafting/kingmaker** — todos **[V2]**.
+- A **regra variante de multiclasse por níveis de classe** (níveis divididos ao
+  estilo 5e, com o par `class_level`/`character_level`) —
+  `ver 30-multiclasse-por-niveis.md`. Esta spec descreve o PF2e **RAW**, em que os
+  dois números são sempre iguais e multiclasse se faz por arquétipo de dedicação.
+- A **ampliação da base de conteúdo** (as 27 classes, ABC completo, eixos de
+  sub-escolha como dado) — `ver 31-base-canonica-de-conteudo.md`. Esta spec define
+  os _schemas_; aquela define de onde vem o _conteúdo_ que os preenche.
 
 ---
 

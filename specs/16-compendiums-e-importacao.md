@@ -74,6 +74,12 @@ e os sistemas de jogo (`ver 17-`, `18-`, `19-`).
 - O **motor de modifiers / rule elements** em runtime (como um modifier é avaliado
   num roll) — `ver 08-motor-de-rolagens.md` e `ver 15-api-de-sistemas.md`. Esta spec
   define apenas o **formato-alvo** do mapeamento e a **tabela de cobertura**.
+- A **segunda fonte de conteúdo** (base canônica externa usada para ampliar
+  cobertura, trazer eixos de sub-escolha como dado, predicado `requires`,
+  proveniência por campo e portões de qualidade) —
+  `ver 31-base-canonica-de-conteudo.md`. Aquela spec **estende** este pipeline com
+  um estágio de enriquecimento entre `transform` e `build-mvp-subset`; tudo o que
+  está aqui continua valendo sem ela.
 - O **subsistema de arquivos/assets** (upload, dedup, thumbnails, serving) —
   `ver 20-assets-e-midia.md`. Esta spec define apenas a _política_ de quais assets
   importar e o catálogo de placeholders.

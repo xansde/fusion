@@ -43,6 +43,8 @@ Estas specs foram geradas a partir da pesquisa em [`docs/research/`](../docs/res
 | 26  | [Licenças e Legal](26-licencas-e-legal.md)                           | Clean-room, ORC/OGL, marcas, Etmos             |
 | 27  | [Roadmap e Milestones](27-roadmap-e-milestones.md)                   | Fases, dependências, definition of done        |
 | 29  | [Pets, Companions e Familiars](29-pets-companions-familiars.md)      | Familiars, animal companions, pets, mounts     |
+| 30  | [Multiclasse por Níveis](30-multiclasse-por-niveis.md)               | Regra variante: níveis de classe divididos     |
+| 31  | [Base Canônica de Conteúdo](31-base-canonica-de-conteudo.md)         | Segunda fonte, eixos de sub-escolha, portões   |
 
 ## Stack fixada
 
