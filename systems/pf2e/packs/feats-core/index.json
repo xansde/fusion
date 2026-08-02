@@ -1948,6 +1948,32 @@
     }
   },
   {
+    "_id": "3XbJdDOAYiyFb8rd",
+    "uuid": "Compendium.pf2e.feats-core.Item.3XbJdDOAYiyFb8rd",
+    "name": "Needle in the Gods' Eyes",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Needle in the Gods' Eyes",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "2cI7TLrf5L1LnjGl",
+    "uuid": "Compendium.pf2e.feats-core.Item.2cI7TLrf5L1LnjGl",
+    "name": "Spear Dancer",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Spear Dancer",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
     "_id": "f1Qr5aEPiT24ntPh",
     "uuid": "Compendium.pf2e.feats-core.Item.f1Qr5aEPiT24ntPh",
     "name": "Know the Beat",
@@ -1958,6 +1984,1989 @@
       "system.level": 3,
       "system.category": "skill",
       "system.traits.value": ["archetype", "skill"]
+    }
+  },
+  {
+    "_id": "81jXNeSu35NHRMpm",
+    "uuid": "Compendium.pf2e.feats-core.Item.81jXNeSu35NHRMpm",
+    "name": "Acute Vision",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Acute Vision",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "oMPSp7mWqxD2GAQh",
+    "uuid": "Compendium.pf2e.feats-core.Item.oMPSp7mWqxD2GAQh",
+    "name": "Adrenaline Rush",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Adrenaline Rush",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "cgQgbXodw4NGFVPy",
+    "uuid": "Compendium.pf2e.feats-core.Item.cgQgbXodw4NGFVPy",
+    "name": "Draconic Arrogance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Draconic Arrogance",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "f5DfeAlLvRHXjjgb",
+    "uuid": "Compendium.pf2e.feats-core.Item.f5DfeAlLvRHXjjgb",
+    "name": "Moment of Clarity",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Moment of Clarity",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "concentrate", "rage"]
+    }
+  },
+  {
+    "_id": "1BEOrrg6gcFjeR7p",
+    "uuid": "Compendium.pf2e.feats-core.Item.1BEOrrg6gcFjeR7p",
+    "name": "Raging Intimidation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Raging Intimidation",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "734i1PgPZgGDWK4f",
+    "uuid": "Compendium.pf2e.feats-core.Item.734i1PgPZgGDWK4f",
+    "name": "Raging Thrower",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Raging Thrower",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "Cx4nqxcI5LhfqN2B",
+    "uuid": "Compendium.pf2e.feats-core.Item.Cx4nqxcI5LhfqN2B",
+    "name": "Come and Get Me",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Come and Get Me",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "concentrate", "rage"]
+    }
+  },
+  {
+    "_id": "hYSN5zjB7nVubnHP",
+    "uuid": "Compendium.pf2e.feats-core.Item.hYSN5zjB7nVubnHP",
+    "name": "Determined Dash",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Determined Dash",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "bxrL48pDPJ4cZPGk",
+    "uuid": "Compendium.pf2e.feats-core.Item.bxrL48pDPJ4cZPGk",
+    "name": "Furious Sprint",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Furious Sprint",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "hrwiiVN986E8Nvyw",
+    "uuid": "Compendium.pf2e.feats-core.Item.hrwiiVN986E8Nvyw",
+    "name": "Great Cleave",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Great Cleave",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "D74KZz30XttdUSXO",
+    "uuid": "Compendium.pf2e.feats-core.Item.D74KZz30XttdUSXO",
+    "name": "Impressive Landing",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Impressive Landing",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "KkXEcl5U75Qs8Q5T",
+    "uuid": "Compendium.pf2e.feats-core.Item.KkXEcl5U75Qs8Q5T",
+    "name": "Knockback",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Knockback",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "0pLh2NoJQQeD2UBU",
+    "uuid": "Compendium.pf2e.feats-core.Item.0pLh2NoJQQeD2UBU",
+    "name": "Resounding Blow",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Resounding Blow",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "O8OoGUWrrYqahDSx",
+    "uuid": "Compendium.pf2e.feats-core.Item.O8OoGUWrrYqahDSx",
+    "name": "Silencing Strike",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Silencing Strike",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "incapacitation", "rage"]
+    }
+  },
+  {
+    "_id": "Sm8KVDCHJ5w9ZUW5",
+    "uuid": "Compendium.pf2e.feats-core.Item.Sm8KVDCHJ5w9ZUW5",
+    "name": "Tangle of Battle",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Tangle of Battle",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "dZ57DC0kxilXz1od",
+    "uuid": "Compendium.pf2e.feats-core.Item.dZ57DC0kxilXz1od",
+    "name": "Terrifying Howl",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Terrifying Howl",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["auditory", "barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "Nu7dtNijZxhADfVc",
+    "uuid": "Compendium.pf2e.feats-core.Item.Nu7dtNijZxhADfVc",
+    "name": "Dragon's Rage Wings",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dragon's Rage Wings",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "morph", "rage"]
+    }
+  },
+  {
+    "_id": "KnZmvg9lHUSkku50",
+    "uuid": "Compendium.pf2e.feats-core.Item.KnZmvg9lHUSkku50",
+    "name": "Embrace the Pain",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Embrace the Pain",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "oW4HJ66eNguCqbQQ",
+    "uuid": "Compendium.pf2e.feats-core.Item.oW4HJ66eNguCqbQQ",
+    "name": "Furious Grab",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Furious Grab",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "KsfQ2olSohS0NyR5",
+    "uuid": "Compendium.pf2e.feats-core.Item.KsfQ2olSohS0NyR5",
+    "name": "Predator's Pounce",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Predator's Pounce",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "flourish", "rage"]
+    }
+  },
+  {
+    "_id": "otEI9f7NsTlyjPGr",
+    "uuid": "Compendium.pf2e.feats-core.Item.otEI9f7NsTlyjPGr",
+    "name": "Spirit's Wrath",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Spirit's Wrath",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["attack", "barbarian", "concentrate", "rage"]
+    }
+  },
+  {
+    "_id": "LAlYVJVEHZFGKi8l",
+    "uuid": "Compendium.pf2e.feats-core.Item.LAlYVJVEHZFGKi8l",
+    "name": "Sunder Spell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sunder Spell",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["attack", "barbarian", "concentrate", "rage"]
+    }
+  },
+  {
+    "_id": "XVlYGCVFO89xzLIr",
+    "uuid": "Compendium.pf2e.feats-core.Item.XVlYGCVFO89xzLIr",
+    "name": "Titan's Stature",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Titan's Stature",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "Hckvry40tkAiBGbX",
+    "uuid": "Compendium.pf2e.feats-core.Item.Hckvry40tkAiBGbX",
+    "name": "Unbalancing Sweep",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Unbalancing Sweep",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "flourish"]
+    }
+  },
+  {
+    "_id": "oOZMejtE8UdAnUpe",
+    "uuid": "Compendium.pf2e.feats-core.Item.oOZMejtE8UdAnUpe",
+    "name": "Awesome Blow",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Awesome Blow",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "concentrate", "rage"]
+    }
+  },
+  {
+    "_id": "WX2RKvPiit964n3z",
+    "uuid": "Compendium.pf2e.feats-core.Item.WX2RKvPiit964n3z",
+    "name": "Giant's Lunge",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Giant's Lunge",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "concentrate", "rage"]
+    }
+  },
+  {
+    "_id": "veEqyFQyFxMyGJwi",
+    "uuid": "Compendium.pf2e.feats-core.Item.veEqyFQyFxMyGJwi",
+    "name": "Impaling Thrust",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Impaling Thrust",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "ZxMTOhkUAQnv2HlK",
+    "uuid": "Compendium.pf2e.feats-core.Item.ZxMTOhkUAQnv2HlK",
+    "name": "Meditate on This!",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Meditate on This!",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": [
+        "barbarian",
+        "concentrate",
+        "emotion",
+        "incapacitation",
+        "mental",
+        "rage"
+      ]
+    }
+  },
+  {
+    "_id": "ZjsYsgyjgY56Aw5H",
+    "uuid": "Compendium.pf2e.feats-core.Item.ZjsYsgyjgY56Aw5H",
+    "name": "Sunder Enchantment",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sunder Enchantment",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "g02jpxjT5QsyW7qy",
+    "uuid": "Compendium.pf2e.feats-core.Item.g02jpxjT5QsyW7qy",
+    "name": "Vengeful Strike",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Vengeful Strike",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "N8QYhdZPsRTpGGVk",
+    "uuid": "Compendium.pf2e.feats-core.Item.N8QYhdZPsRTpGGVk",
+    "name": "Collateral Thrash",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Collateral Thrash",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "wi0ooImn2nNqtkH3",
+    "uuid": "Compendium.pf2e.feats-core.Item.wi0ooImn2nNqtkH3",
+    "name": "Desperate Wrath",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Desperate Wrath",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "pktCB7ihJYZU4nSp",
+    "uuid": "Compendium.pf2e.feats-core.Item.pktCB7ihJYZU4nSp",
+    "name": "Dragon Transformation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dragon Transformation",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "concentrate", "polymorph", "primal", "rage"]
+    }
+  },
+  {
+    "_id": "gSezdxa8ibXdSb5V",
+    "uuid": "Compendium.pf2e.feats-core.Item.gSezdxa8ibXdSb5V",
+    "name": "Furious Vengeance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Furious Vengeance",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "9v73RaDm9pstl0Yg",
+    "uuid": "Compendium.pf2e.feats-core.Item.9v73RaDm9pstl0Yg",
+    "name": "Penetrating Projectile",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Penetrating Projectile",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "flourish", "rage"]
+    }
+  },
+  {
+    "_id": "sXeMb6GVl8BYyuwW",
+    "uuid": "Compendium.pf2e.feats-core.Item.sXeMb6GVl8BYyuwW",
+    "name": "Shattering Blows",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Shattering Blows",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "xYisO1YpdijFswZq",
+    "uuid": "Compendium.pf2e.feats-core.Item.xYisO1YpdijFswZq",
+    "name": "Brutal Critical",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Brutal Critical",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "B7T8rZicHpqGUfoD",
+    "uuid": "Compendium.pf2e.feats-core.Item.B7T8rZicHpqGUfoD",
+    "name": "Perfect Clarity",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Perfect Clarity",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "concentrate", "fortune", "rage"]
+    }
+  },
+  {
+    "_id": "NfSqAvNZnAysHZWV",
+    "uuid": "Compendium.pf2e.feats-core.Item.NfSqAvNZnAysHZWV",
+    "name": "Vicious Evisceration",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Vicious Evisceration",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "OCY6n4zCvqfI2baX",
+    "uuid": "Compendium.pf2e.feats-core.Item.OCY6n4zCvqfI2baX",
+    "name": "Whirlwind Toss",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Whirlwind Toss",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "wTakUalOPfRwpvLO",
+    "uuid": "Compendium.pf2e.feats-core.Item.wTakUalOPfRwpvLO",
+    "name": "Acute Scent",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Acute Scent",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "x0dltNZYM5tH2YuN",
+    "uuid": "Compendium.pf2e.feats-core.Item.x0dltNZYM5tH2YuN",
+    "name": "Bashing Charge",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Bashing Charge",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "flourish"]
+    }
+  },
+  {
+    "_id": "9XyLZfGU2TbIjWkZ",
+    "uuid": "Compendium.pf2e.feats-core.Item.9XyLZfGU2TbIjWkZ",
+    "name": "Elemental Evolution",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Elemental Evolution",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "po8cuUTVVJjQmJRW",
+    "uuid": "Compendium.pf2e.feats-core.Item.po8cuUTVVJjQmJRW",
+    "name": "Furious Finish",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Furious Finish",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "2NYgvuXPkh9MGM92",
+    "uuid": "Compendium.pf2e.feats-core.Item.2NYgvuXPkh9MGM92",
+    "name": "No Escape",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "No Escape",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "QEBVrgQFpWGEIBrP",
+    "uuid": "Compendium.pf2e.feats-core.Item.QEBVrgQFpWGEIBrP",
+    "name": "Second Wind",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Second Wind",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "BVMfjE8oBALnutRA",
+    "uuid": "Compendium.pf2e.feats-core.Item.BVMfjE8oBALnutRA",
+    "name": "Shake it Off",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Shake it Off",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "concentrate", "rage"]
+    }
+  },
+  {
+    "_id": "WWeEhMenvmj6QzVi",
+    "uuid": "Compendium.pf2e.feats-core.Item.WWeEhMenvmj6QzVi",
+    "name": "Annihilating Swing",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Annihilating Swing",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "xfOpl6puGHGTuRRG",
+    "uuid": "Compendium.pf2e.feats-core.Item.xfOpl6puGHGTuRRG",
+    "name": "Contagious Rage",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Contagious Rage",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["auditory", "barbarian", "rage", "visual"]
+    }
+  },
+  {
+    "_id": "PdXvVcitsO1imZlY",
+    "uuid": "Compendium.pf2e.feats-core.Item.PdXvVcitsO1imZlY",
+    "name": "Quaking Stomp",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Quaking Stomp",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "manipulate", "rage"]
+    }
+  },
+  {
+    "_id": "upjXR9ppQSfmoN0Q",
+    "uuid": "Compendium.pf2e.feats-core.Item.upjXR9ppQSfmoN0Q",
+    "name": "Unstoppable Juggernaut",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Unstoppable Juggernaut",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "9WTPYtNFYwIOrc54",
+    "uuid": "Compendium.pf2e.feats-core.Item.9WTPYtNFYwIOrc54",
+    "name": "Ghost Wrangler",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ghost Wrangler",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "divine", "rage"]
+    }
+  },
+  {
+    "_id": "Rf7sRGh8uMlCHYco",
+    "uuid": "Compendium.pf2e.feats-core.Item.Rf7sRGh8uMlCHYco",
+    "name": "Oversized Throw",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Oversized Throw",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "5kZXM0N8YCBxiJ1Y",
+    "uuid": "Compendium.pf2e.feats-core.Item.5kZXM0N8YCBxiJ1Y",
+    "name": "Raging Athlete",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Raging Athlete",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "zzvXSm1t9CxUQEdf",
+    "uuid": "Compendium.pf2e.feats-core.Item.zzvXSm1t9CxUQEdf",
+    "name": "Scars of Steel",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Scars of Steel",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "n81Qi8J8Nb4DbM0O",
+    "uuid": "Compendium.pf2e.feats-core.Item.n81Qi8J8Nb4DbM0O",
+    "name": "Spiritual Guides",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Spiritual Guides",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "concentrate", "fortune"]
+    }
+  },
+  {
+    "_id": "1OH5TWa1RN54POJT",
+    "uuid": "Compendium.pf2e.feats-core.Item.1OH5TWa1RN54POJT",
+    "name": "Supernatural Senses",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Supernatural Senses",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "s2KcYQDg1XEVm0L9",
+    "uuid": "Compendium.pf2e.feats-core.Item.s2KcYQDg1XEVm0L9",
+    "name": "Wounded Rage",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Wounded Rage",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "zxScauWCV6PNrmJw",
+    "uuid": "Compendium.pf2e.feats-core.Item.zxScauWCV6PNrmJw",
+    "name": "Animal Skin",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Animal Skin",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "morph", "primal"]
+    }
+  },
+  {
+    "_id": "6qVrUISJcmfHfMBU",
+    "uuid": "Compendium.pf2e.feats-core.Item.6qVrUISJcmfHfMBU",
+    "name": "Brutal Bully",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Brutal Bully",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "t55WINqqd73h20kz",
+    "uuid": "Compendium.pf2e.feats-core.Item.t55WINqqd73h20kz",
+    "name": "Cleave",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Cleave",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "uM3YBxsXUES0TkT0",
+    "uuid": "Compendium.pf2e.feats-core.Item.uM3YBxsXUES0TkT0",
+    "name": "Dragon's Rage Breath",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dragon's Rage Breath",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "concentrate", "rage"]
+    }
+  },
+  {
+    "_id": "syXcxs8AlrVtHeps",
+    "uuid": "Compendium.pf2e.feats-core.Item.syXcxs8AlrVtHeps",
+    "name": "Elemental Explosion",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Elemental Explosion",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "concentrate", "primal", "rage"]
+    }
+  },
+  {
+    "_id": "gh9sywkuOHmxY3cL",
+    "uuid": "Compendium.pf2e.feats-core.Item.gh9sywkuOHmxY3cL",
+    "name": "Giant's Stature",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Giant's Stature",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "polymorph", "primal", "rage"]
+    }
+  },
+  {
+    "_id": "sqlMlLnvDSbKTPDu",
+    "uuid": "Compendium.pf2e.feats-core.Item.sqlMlLnvDSbKTPDu",
+    "name": "Inner Strength",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Inner Strength",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "concentrate", "rage"]
+    }
+  },
+  {
+    "_id": "ZPMkYuglxTNS31XL",
+    "uuid": "Compendium.pf2e.feats-core.Item.ZPMkYuglxTNS31XL",
+    "name": "Mage Hunter",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Mage Hunter",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "RrcWZ7CEC8wVxmNT",
+    "uuid": "Compendium.pf2e.feats-core.Item.RrcWZ7CEC8wVxmNT",
+    "name": "Nocturnal Senses",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Nocturnal Senses",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "3CLf1eeqTgloIQ48",
+    "uuid": "Compendium.pf2e.feats-core.Item.3CLf1eeqTgloIQ48",
+    "name": "Scouring Rage",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Scouring Rage",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "rbKBmMI2DwoY7Ovc",
+    "uuid": "Compendium.pf2e.feats-core.Item.rbKBmMI2DwoY7Ovc",
+    "name": "Spirits' Interference",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Spirits' Interference",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "divine", "rage"]
+    }
+  },
+  {
+    "_id": "EqlELee8eO9JgeRh",
+    "uuid": "Compendium.pf2e.feats-core.Item.EqlELee8eO9JgeRh",
+    "name": "Animal Rage",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Animal Rage",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "concentrate", "polymorph", "primal", "rage"]
+    }
+  },
+  {
+    "_id": "CvGK3tqvo4WWHSP6",
+    "uuid": "Compendium.pf2e.feats-core.Item.CvGK3tqvo4WWHSP6",
+    "name": "Animalistic Brutality",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Animalistic Brutality",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "concentrate", "morph", "primal", "rage"]
+    }
+  },
+  {
+    "_id": "GgB1M9zAQTb2pxQG",
+    "uuid": "Compendium.pf2e.feats-core.Item.GgB1M9zAQTb2pxQG",
+    "name": "Disarming Assault",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Disarming Assault",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "flourish", "rage"]
+    }
+  },
+  {
+    "_id": "kVZgc7QbwdvWT5SF",
+    "uuid": "Compendium.pf2e.feats-core.Item.kVZgc7QbwdvWT5SF",
+    "name": "Follow-Up Assault",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Follow-Up Assault",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "y3VHi3RYx9vAlley",
+    "uuid": "Compendium.pf2e.feats-core.Item.y3VHi3RYx9vAlley",
+    "name": "Friendly Toss",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Friendly Toss",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "manipulate", "rage"]
+    }
+  },
+  {
+    "_id": "YEoZoCqwcpZxySRC",
+    "uuid": "Compendium.pf2e.feats-core.Item.YEoZoCqwcpZxySRC",
+    "name": "Furious Bully",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Furious Bully",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "4aisuuOISjcRPiAt",
+    "uuid": "Compendium.pf2e.feats-core.Item.4aisuuOISjcRPiAt",
+    "name": "Instinctive Strike",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Instinctive Strike",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "BqJExXZ5iIkxXwck",
+    "uuid": "Compendium.pf2e.feats-core.Item.BqJExXZ5iIkxXwck",
+    "name": "Invulnerable Rager",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Invulnerable Rager",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "YWNfuMDRy9JmZsm5",
+    "uuid": "Compendium.pf2e.feats-core.Item.YWNfuMDRy9JmZsm5",
+    "name": "Renewed Vigor",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Renewed Vigor",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "concentrate", "rage"]
+    }
+  },
+  {
+    "_id": "5ZYSAhOkJyPQmSeC",
+    "uuid": "Compendium.pf2e.feats-core.Item.5ZYSAhOkJyPQmSeC",
+    "name": "Share Rage",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Share Rage",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["auditory", "barbarian", "rage", "visual"]
+    }
+  },
+  {
+    "_id": "PY0SO3OctAvTjPqL",
+    "uuid": "Compendium.pf2e.feats-core.Item.PY0SO3OctAvTjPqL",
+    "name": "Thrash",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Thrash",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "rage"]
+    }
+  },
+  {
+    "_id": "aRfIff3LxNOv7hcr",
+    "uuid": "Compendium.pf2e.feats-core.Item.aRfIff3LxNOv7hcr",
+    "name": "Double Slice",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Double Slice",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "oqTBvRdvz8g6XjJu",
+    "uuid": "Compendium.pf2e.feats-core.Item.oqTBvRdvz8g6XjJu",
+    "name": "Exacting Strike",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Exacting Strike",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "press"]
+    }
+  },
+  {
+    "_id": "RSx1z9MFpb6I61Nv",
+    "uuid": "Compendium.pf2e.feats-core.Item.RSx1z9MFpb6I61Nv",
+    "name": "Point Blank Stance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Point Blank Stance",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "stance"]
+    }
+  },
+  {
+    "_id": "Gld5HJrp7mqgF5x0",
+    "uuid": "Compendium.pf2e.feats-core.Item.Gld5HJrp7mqgF5x0",
+    "name": "Snagging Strike",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Snagging Strike",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "oBalFZEuU3aWvxmc",
+    "uuid": "Compendium.pf2e.feats-core.Item.oBalFZEuU3aWvxmc",
+    "name": "Vicious Swing",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Vicious Swing",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "flourish"]
+    }
+  },
+  {
+    "_id": "p1VsQZhTMjptjRPd",
+    "uuid": "Compendium.pf2e.feats-core.Item.p1VsQZhTMjptjRPd",
+    "name": "Agile Grace",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Agile Grace",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "zp6ZZ9lwcKacQHtv",
+    "uuid": "Compendium.pf2e.feats-core.Item.zp6ZZ9lwcKacQHtv",
+    "name": "Certain Strike",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Certain Strike",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "press"]
+    }
+  },
+  {
+    "_id": "ee5ppKhinOAzR2Yd",
+    "uuid": "Compendium.pf2e.feats-core.Item.ee5ppKhinOAzR2Yd",
+    "name": "Crashing Slam",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Crashing Slam",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "oH7osnZVjwlSgM7D",
+    "uuid": "Compendium.pf2e.feats-core.Item.oH7osnZVjwlSgM7D",
+    "name": "Cut From the Air",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Cut From the Air",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "TaNQ6TPgVwiKECd7",
+    "uuid": "Compendium.pf2e.feats-core.Item.TaNQ6TPgVwiKECd7",
+    "name": "Debilitating Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Debilitating Shot",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "flourish"]
+    }
+  },
+  {
+    "_id": "cYuq09TIWlEm3xEf",
+    "uuid": "Compendium.pf2e.feats-core.Item.cYuq09TIWlEm3xEf",
+    "name": "Disarming Twist",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Disarming Twist",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "press"]
+    }
+  },
+  {
+    "_id": "9eeuVPF8LXhqpAVw",
+    "uuid": "Compendium.pf2e.feats-core.Item.9eeuVPF8LXhqpAVw",
+    "name": "Disruptive Stance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Disruptive Stance",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "stance"]
+    }
+  },
+  {
+    "_id": "Nin7677AChx21hIP",
+    "uuid": "Compendium.pf2e.feats-core.Item.Nin7677AChx21hIP",
+    "name": "Fearsome Brute",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Fearsome Brute",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "7jQyOfzQtZPvwhfq",
+    "uuid": "Compendium.pf2e.feats-core.Item.7jQyOfzQtZPvwhfq",
+    "name": "Flinging Charge",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Flinging Charge",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "flourish"]
+    }
+  },
+  {
+    "_id": "AsAglUNlkP0i8Q1x",
+    "uuid": "Compendium.pf2e.feats-core.Item.AsAglUNlkP0i8Q1x",
+    "name": "Mirror Shield",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Mirror Shield",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "OUqH5EiEj63evSkF",
+    "uuid": "Compendium.pf2e.feats-core.Item.OUqH5EiEj63evSkF",
+    "name": "Tactical Reflexes",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Tactical Reflexes",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "fGWzUy9yb8eiK6Pc",
+    "uuid": "Compendium.pf2e.feats-core.Item.fGWzUy9yb8eiK6Pc",
+    "name": "Brutal Finish",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Brutal Finish",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "press"]
+    }
+  },
+  {
+    "_id": "5tf88SFn5RkslPaO",
+    "uuid": "Compendium.pf2e.feats-core.Item.5tf88SFn5RkslPaO",
+    "name": "Dashing Strike",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dashing Strike",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "press"]
+    }
+  },
+  {
+    "_id": "yiGj0q6UhSYkq9vy",
+    "uuid": "Compendium.pf2e.feats-core.Item.yiGj0q6UhSYkq9vy",
+    "name": "Dueling Dance (Fighter)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dueling Dance (Fighter)",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "stance"]
+    }
+  },
+  {
+    "_id": "tM490buTo5xBMdDT",
+    "uuid": "Compendium.pf2e.feats-core.Item.tM490buTo5xBMdDT",
+    "name": "Flinging Shove",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Flinging Shove",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "AdJ7esOwhvpuNKQq",
+    "uuid": "Compendium.pf2e.feats-core.Item.AdJ7esOwhvpuNKQq",
+    "name": "Improved Dueling Riposte",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Improved Dueling Riposte",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "selXu90SrbYI3mkm",
+    "uuid": "Compendium.pf2e.feats-core.Item.selXu90SrbYI3mkm",
+    "name": "Incredible Ricochet",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Incredible Ricochet",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["concentrate", "fighter", "press"]
+    }
+  },
+  {
+    "_id": "yKVHqZZ4TDETd6XS",
+    "uuid": "Compendium.pf2e.feats-core.Item.yKVHqZZ4TDETd6XS",
+    "name": "Lunging Stance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Lunging Stance",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "stance"]
+    }
+  },
+  {
+    "_id": "bZOgR6I6bH9dGTiW",
+    "uuid": "Compendium.pf2e.feats-core.Item.bZOgR6I6bH9dGTiW",
+    "name": "Desperate Finisher",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Desperate Finisher",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "press"]
+    }
+  },
+  {
+    "_id": "7WnaVxJewlo2Us9G",
+    "uuid": "Compendium.pf2e.feats-core.Item.7WnaVxJewlo2Us9G",
+    "name": "Determination",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Determination",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["concentrate", "fighter"]
+    }
+  },
+  {
+    "_id": "SlAyRny4PV7PxCXc",
+    "uuid": "Compendium.pf2e.feats-core.Item.SlAyRny4PV7PxCXc",
+    "name": "Guiding Finish",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Guiding Finish",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "press"]
+    }
+  },
+  {
+    "_id": "PHqaReaiGUkM1xRm",
+    "uuid": "Compendium.pf2e.feats-core.Item.PHqaReaiGUkM1xRm",
+    "name": "Guiding Riposte",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Guiding Riposte",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "pgUOXycrVn8PaWHC",
+    "uuid": "Compendium.pf2e.feats-core.Item.pgUOXycrVn8PaWHC",
+    "name": "Improved Twin Riposte (Fighter)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Improved Twin Riposte (Fighter)",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "57hW5VoDTz5LUb4n",
+    "uuid": "Compendium.pf2e.feats-core.Item.57hW5VoDTz5LUb4n",
+    "name": "Two-Weapon Flurry",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Two-Weapon Flurry",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "flourish", "press"]
+    }
+  },
+  {
+    "_id": "0FSoBfbb16GhaAxG",
+    "uuid": "Compendium.pf2e.feats-core.Item.0FSoBfbb16GhaAxG",
+    "name": "Graceful Poise",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Graceful Poise",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "stance"]
+    }
+  },
+  {
+    "_id": "nq616ldx5Ax1arEt",
+    "uuid": "Compendium.pf2e.feats-core.Item.nq616ldx5Ax1arEt",
+    "name": "Multishot Stance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Multishot Stance",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "stance"]
+    }
+  },
+  {
+    "_id": "U9EUPUCrGGmH5CrP",
+    "uuid": "Compendium.pf2e.feats-core.Item.U9EUPUCrGGmH5CrP",
+    "name": "Overwhelming Blow",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Overwhelming Blow",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "Fh0qCrC7fzOAHzkl",
+    "uuid": "Compendium.pf2e.feats-core.Item.Fh0qCrC7fzOAHzkl",
+    "name": "Twinned Defense (Fighter)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Twinned Defense (Fighter)",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "stance"]
+    }
+  },
+  {
+    "_id": "uRxUhtN2EkuNjk52",
+    "uuid": "Compendium.pf2e.feats-core.Item.uRxUhtN2EkuNjk52",
+    "name": "Savage Critical",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Savage Critical",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "aCDvEcZfXzdAUMcE",
+    "uuid": "Compendium.pf2e.feats-core.Item.aCDvEcZfXzdAUMcE",
+    "name": "Smash from the Air",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Smash from the Air",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "LQ2MaFIcV5moeBGg",
+    "uuid": "Compendium.pf2e.feats-core.Item.LQ2MaFIcV5moeBGg",
+    "name": "Assisting Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Assisting Shot",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "press"]
+    }
+  },
+  {
+    "_id": "XYiqJB4N0PWpdqgj",
+    "uuid": "Compendium.pf2e.feats-core.Item.XYiqJB4N0PWpdqgj",
+    "name": "Blade Brake",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Blade Brake",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "manipulate"]
+    }
+  },
+  {
+    "_id": "wAoERIOcxQKeT1ns",
+    "uuid": "Compendium.pf2e.feats-core.Item.wAoERIOcxQKeT1ns",
+    "name": "Brutish Shove",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Brutish Shove",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "press"]
+    }
+  },
+  {
+    "_id": "fiOnrdPsn53j1wPM",
+    "uuid": "Compendium.pf2e.feats-core.Item.fiOnrdPsn53j1wPM",
+    "name": "Combat Grab",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Combat Grab",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "press"]
+    }
+  },
+  {
+    "_id": "69PhoZOpzfzeyuBu",
+    "uuid": "Compendium.pf2e.feats-core.Item.69PhoZOpzfzeyuBu",
+    "name": "Dragging Strike",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dragging Strike",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "press"]
+    }
+  },
+  {
+    "_id": "S2Kcfz6mDycVrfo4",
+    "uuid": "Compendium.pf2e.feats-core.Item.S2Kcfz6mDycVrfo4",
+    "name": "Dueling Parry",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dueling Parry",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "67Z7zAXdUlQ1HCmK",
+    "uuid": "Compendium.pf2e.feats-core.Item.67Z7zAXdUlQ1HCmK",
+    "name": "Lunge",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Lunge",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "oGOe6IhR1BiBaHL8",
+    "uuid": "Compendium.pf2e.feats-core.Item.oGOe6IhR1BiBaHL8",
+    "name": "Rebounding Toss",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Rebounding Toss",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "flourish"]
+    }
+  },
+  {
+    "_id": "CeqJNzXP5cpJ8nOo",
+    "uuid": "Compendium.pf2e.feats-core.Item.CeqJNzXP5cpJ8nOo",
+    "name": "Sleek Reposition",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sleek Reposition",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "press"]
+    }
+  },
+  {
+    "_id": "KNFgOXCXl9a7gdIF",
+    "uuid": "Compendium.pf2e.feats-core.Item.KNFgOXCXl9a7gdIF",
+    "name": "Reflecting Riposte",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Reflecting Riposte",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "qh0oVBcwOjzat6tp",
+    "uuid": "Compendium.pf2e.feats-core.Item.qh0oVBcwOjzat6tp",
+    "name": "Sever Space",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sever Space",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "flourish", "teleportation"]
+    }
+  },
+  {
+    "_id": "rtkT80Jq0CUbMhK8",
+    "uuid": "Compendium.pf2e.feats-core.Item.rtkT80Jq0CUbMhK8",
+    "name": "Ultimate Flexibility",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ultimate Flexibility",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "ld4uvlcQPwJqYFTR",
+    "uuid": "Compendium.pf2e.feats-core.Item.ld4uvlcQPwJqYFTR",
+    "name": "Weapon Supremacy",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Weapon Supremacy",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "XeQoF0VTzupKQdyQ",
+    "uuid": "Compendium.pf2e.feats-core.Item.XeQoF0VTzupKQdyQ",
+    "name": "Double Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Double Shot",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "flourish"]
+    }
+  },
+  {
+    "_id": "1adIXEg9Ywk4OZhL",
+    "uuid": "Compendium.pf2e.feats-core.Item.1adIXEg9Ywk4OZhL",
+    "name": "Dual-Handed Assault",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dual-Handed Assault",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "flourish"]
+    }
+  },
+  {
+    "_id": "mG5Rsnk2paliMd2J",
+    "uuid": "Compendium.pf2e.feats-core.Item.mG5Rsnk2paliMd2J",
+    "name": "Parting Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Parting Shot",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "zGPwgP4hhIzRrcQe",
+    "uuid": "Compendium.pf2e.feats-core.Item.zGPwgP4hhIzRrcQe",
+    "name": "Powerful Shove",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Powerful Shove",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "h4xCS3If1X0IZLMn",
+    "uuid": "Compendium.pf2e.feats-core.Item.h4xCS3If1X0IZLMn",
+    "name": "Quick Reversal",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Quick Reversal",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "flourish", "press"]
+    }
+  },
+  {
+    "_id": "QHQyOBOph5szWrYs",
+    "uuid": "Compendium.pf2e.feats-core.Item.QHQyOBOph5szWrYs",
+    "name": "Shielded Stride",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Shielded Stride",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "HNf0D1D6quKYzUqn",
+    "uuid": "Compendium.pf2e.feats-core.Item.HNf0D1D6quKYzUqn",
+    "name": "Slam Down",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Slam Down",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "flourish"]
+    }
+  },
+  {
+    "_id": "YjG0hLSuCtPKSCnt",
+    "uuid": "Compendium.pf2e.feats-core.Item.YjG0hLSuCtPKSCnt",
+    "name": "Advanced Weapon Training",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Advanced Weapon Training",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "YGyqty28x2GCzyqt",
+    "uuid": "Compendium.pf2e.feats-core.Item.YGyqty28x2GCzyqt",
+    "name": "Advantageous Assault",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Advantageous Assault",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "press"]
+    }
+  },
+  {
+    "_id": "VxCjIXnDKskJm3BX",
+    "uuid": "Compendium.pf2e.feats-core.Item.VxCjIXnDKskJm3BX",
+    "name": "Dazing Blow",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dazing Blow",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "press"]
+    }
+  },
+  {
+    "_id": "MUeOVoP0kR1cKzfG",
+    "uuid": "Compendium.pf2e.feats-core.Item.MUeOVoP0kR1cKzfG",
+    "name": "Disarming Stance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Disarming Stance",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "stance"]
+    }
+  },
+  {
+    "_id": "xU1rmLAXMDWbpN2q",
+    "uuid": "Compendium.pf2e.feats-core.Item.xU1rmLAXMDWbpN2q",
+    "name": "Furious Focus",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Furious Focus",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "nNooiG8ykRH1Rjr1",
+    "uuid": "Compendium.pf2e.feats-core.Item.nNooiG8ykRH1Rjr1",
+    "name": "Guardian's Deflection (Fighter)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Guardian's Deflection (Fighter)",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "UbROzw7YDmWGwD3r",
+    "uuid": "Compendium.pf2e.feats-core.Item.UbROzw7YDmWGwD3r",
+    "name": "Revealing Stab",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Revealing Stab",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "HqaVCEjshxRRosbn",
+    "uuid": "Compendium.pf2e.feats-core.Item.HqaVCEjshxRRosbn",
+    "name": "Ricochet Stance (Fighter)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ricochet Stance (Fighter)",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "stance"]
+    }
+  },
+  {
+    "_id": "qbvPrRyn3ijfZb6H",
+    "uuid": "Compendium.pf2e.feats-core.Item.qbvPrRyn3ijfZb6H",
+    "name": "Shatter Defenses",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Shatter Defenses",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "press"]
+    }
+  },
+  {
+    "_id": "LPlk66Yy83zgEJRD",
+    "uuid": "Compendium.pf2e.feats-core.Item.LPlk66Yy83zgEJRD",
+    "name": "Triple Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Triple Shot",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "utEwk5hAsGDiUPky",
+    "uuid": "Compendium.pf2e.feats-core.Item.utEwk5hAsGDiUPky",
+    "name": "Disorienting Opening",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Disorienting Opening",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "ApJJ3dyBeZHpNoiT",
+    "uuid": "Compendium.pf2e.feats-core.Item.ApJJ3dyBeZHpNoiT",
+    "name": "Dueling Riposte",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dueling Riposte",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "VZrhnmMTQRQPbkUb",
+    "uuid": "Compendium.pf2e.feats-core.Item.VZrhnmMTQRQPbkUb",
+    "name": "Felling Strike",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Felling Strike",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "5DmAtwAeG8Dh0bL9",
+    "uuid": "Compendium.pf2e.feats-core.Item.5DmAtwAeG8Dh0bL9",
+    "name": "Incredible Aim",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Incredible Aim",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["concentrate", "fighter"]
+    }
+  },
+  {
+    "_id": "jvJupwaKDbUtx7oS",
+    "uuid": "Compendium.pf2e.feats-core.Item.jvJupwaKDbUtx7oS",
+    "name": "Mobile Shot Stance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Mobile Shot Stance",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "stance"]
+    }
+  },
+  {
+    "_id": "3MKFuRKulcQgXO0h",
+    "uuid": "Compendium.pf2e.feats-core.Item.3MKFuRKulcQgXO0h",
+    "name": "Positioning Assault",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Positioning Assault",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "flourish"]
+    }
+  },
+  {
+    "_id": "IorFPX9GqBvnd6le",
+    "uuid": "Compendium.pf2e.feats-core.Item.IorFPX9GqBvnd6le",
+    "name": "Resounding Bravery",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Resounding Bravery",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["fighter"]
     }
   },
   {
@@ -2831,6 +4840,2203 @@
     }
   },
   {
+    "_id": "LIJH61VJ6RmmMwjK",
+    "uuid": "Compendium.pf2e.feats-core.Item.LIJH61VJ6RmmMwjK",
+    "name": "Animal Companion (Ranger)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Animal Companion (Ranger)",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "0No4JXfAKwjXtWNw",
+    "uuid": "Compendium.pf2e.feats-core.Item.0No4JXfAKwjXtWNw",
+    "name": "Crossbow Ace",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Crossbow Ace",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "Mt0hq71SKHzxrJxz",
+    "uuid": "Compendium.pf2e.feats-core.Item.Mt0hq71SKHzxrJxz",
+    "name": "Heal Companion",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Heal Companion",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "ckUI1BVnp4NeCFCs",
+    "uuid": "Compendium.pf2e.feats-core.Item.ckUI1BVnp4NeCFCs",
+    "name": "Hunted Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Hunted Shot",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["flourish", "ranger"]
+    }
+  },
+  {
+    "_id": "vfAvXNrJ87pRVIs4",
+    "uuid": "Compendium.pf2e.feats-core.Item.vfAvXNrJ87pRVIs4",
+    "name": "Initiate Warden",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Initiate Warden",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "fJiAugQFtzODTrba",
+    "uuid": "Compendium.pf2e.feats-core.Item.fJiAugQFtzODTrba",
+    "name": "Monster Hunter",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Monster Hunter",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "wapVtS30yW8LLECx",
+    "uuid": "Compendium.pf2e.feats-core.Item.wapVtS30yW8LLECx",
+    "name": "Twin Takedown",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Twin Takedown",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["flourish", "ranger"]
+    }
+  },
+  {
+    "_id": "bNRbyeOqG4A8rGDJ",
+    "uuid": "Compendium.pf2e.feats-core.Item.bNRbyeOqG4A8rGDJ",
+    "name": "Camouflage",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Camouflage",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "2OnCtvkBhF3If8LQ",
+    "uuid": "Compendium.pf2e.feats-core.Item.2OnCtvkBhF3If8LQ",
+    "name": "Incredible Companion (Ranger)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Incredible Companion (Ranger)",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "uT8Yzfb0Q9kh0Cxo",
+    "uuid": "Compendium.pf2e.feats-core.Item.uT8Yzfb0Q9kh0Cxo",
+    "name": "Master Monster Hunter",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Master Monster Hunter",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "U8xp7rVX1772txLg",
+    "uuid": "Compendium.pf2e.feats-core.Item.U8xp7rVX1772txLg",
+    "name": "Peerless Warden",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Peerless Warden",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "qCzZWruLqcnfhcUh",
+    "uuid": "Compendium.pf2e.feats-core.Item.qCzZWruLqcnfhcUh",
+    "name": "Penetrating Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Penetrating Shot",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "NoxFHHg0acNle12D",
+    "uuid": "Compendium.pf2e.feats-core.Item.NoxFHHg0acNle12D",
+    "name": "Warden's Step",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Warden's Step",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "rFK9TToxx6FcK4lR",
+    "uuid": "Compendium.pf2e.feats-core.Item.rFK9TToxx6FcK4lR",
+    "name": "Distracting Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Distracting Shot",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "8wlnF0OH3huI1VSL",
+    "uuid": "Compendium.pf2e.feats-core.Item.8wlnF0OH3huI1VSL",
+    "name": "Double Prey",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Double Prey",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "2swNJLcoVrT1iDBr",
+    "uuid": "Compendium.pf2e.feats-core.Item.2swNJLcoVrT1iDBr",
+    "name": "Obscured Emergence",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Obscured Emergence",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "Z4Px8Ll43HXJJgSy",
+    "uuid": "Compendium.pf2e.feats-core.Item.Z4Px8Ll43HXJJgSy",
+    "name": "Roll with it (Kingmaker)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Roll with it (Kingmaker)",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "Or0mTehPEaKbUQDz",
+    "uuid": "Compendium.pf2e.feats-core.Item.Or0mTehPEaKbUQDz",
+    "name": "Second Sting",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Second Sting",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["press", "ranger"]
+    }
+  },
+  {
+    "_id": "dzhovMyaX8iiIkMd",
+    "uuid": "Compendium.pf2e.feats-core.Item.dzhovMyaX8iiIkMd",
+    "name": "Side by Side (Ranger)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Side by Side (Ranger)",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "L3oKbux58LXblht4",
+    "uuid": "Compendium.pf2e.feats-core.Item.L3oKbux58LXblht4",
+    "name": "Warden's Focus",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Warden's Focus",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "pdunK24HC05KhuvM",
+    "uuid": "Compendium.pf2e.feats-core.Item.pdunK24HC05KhuvM",
+    "name": "Shared Prey",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Shared Prey",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "F1gg6HXBFTHHTQ2o",
+    "uuid": "Compendium.pf2e.feats-core.Item.F1gg6HXBFTHHTQ2o",
+    "name": "Stealthy Companion",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Stealthy Companion",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "JYV0iiJYDPa5mgFK",
+    "uuid": "Compendium.pf2e.feats-core.Item.JYV0iiJYDPa5mgFK",
+    "name": "Targeting Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Targeting Shot",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["concentrate", "press", "ranger"]
+    }
+  },
+  {
+    "_id": "GNCv6kfnHtnDt0sI",
+    "uuid": "Compendium.pf2e.feats-core.Item.GNCv6kfnHtnDt0sI",
+    "name": "Warden's Guidance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Warden's Guidance",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "lGO7gSSTF4zqyZeU",
+    "uuid": "Compendium.pf2e.feats-core.Item.lGO7gSSTF4zqyZeU",
+    "name": "Giant Slayer",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Giant Slayer",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "rsYReubqQpp7XPZj",
+    "uuid": "Compendium.pf2e.feats-core.Item.rsYReubqQpp7XPZj",
+    "name": "Greater Distracting Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Greater Distracting Shot",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "qg2Ow4pPMeb4F7VJ",
+    "uuid": "Compendium.pf2e.feats-core.Item.qg2Ow4pPMeb4F7VJ",
+    "name": "Improved Twin Riposte (Ranger)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Improved Twin Riposte (Ranger)",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "r7NFg7lOJnqMs4sI",
+    "uuid": "Compendium.pf2e.feats-core.Item.r7NFg7lOJnqMs4sI",
+    "name": "Legendary Monster Hunter",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Legendary Monster Hunter",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "7zhohaym3SqR0lUq",
+    "uuid": "Compendium.pf2e.feats-core.Item.7zhohaym3SqR0lUq",
+    "name": "Specialized Companion (Ranger)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Specialized Companion (Ranger)",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "EDt9iXpKTKkyfpQ5",
+    "uuid": "Compendium.pf2e.feats-core.Item.EDt9iXpKTKkyfpQ5",
+    "name": "Ubiquitous Snares",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ubiquitous Snares",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "hhNJ7GR7h5Hgc9gn",
+    "uuid": "Compendium.pf2e.feats-core.Item.hhNJ7GR7h5Hgc9gn",
+    "name": "Warden's Reload",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Warden's Reload",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "JcbUsTJTzB7yXiKW",
+    "uuid": "Compendium.pf2e.feats-core.Item.JcbUsTJTzB7yXiKW",
+    "name": "Impossible Flurry",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Impossible Flurry",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["flourish", "ranger"]
+    }
+  },
+  {
+    "_id": "cPtqmfAwFXs3uSTo",
+    "uuid": "Compendium.pf2e.feats-core.Item.cPtqmfAwFXs3uSTo",
+    "name": "Manifold Edge",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Manifold Edge",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "TvOIUpMTeXSw4gXN",
+    "uuid": "Compendium.pf2e.feats-core.Item.TvOIUpMTeXSw4gXN",
+    "name": "Masterful Companion",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Masterful Companion",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "W1W7iDjgVWhtmUJj",
+    "uuid": "Compendium.pf2e.feats-core.Item.W1W7iDjgVWhtmUJj",
+    "name": "Perfect Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Perfect Shot",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["flourish", "ranger"]
+    }
+  },
+  {
+    "_id": "romxZwXLWunohiKC",
+    "uuid": "Compendium.pf2e.feats-core.Item.romxZwXLWunohiKC",
+    "name": "Shadow Hunter",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Shadow Hunter",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "9YTz1hfzXOp67fV6",
+    "uuid": "Compendium.pf2e.feats-core.Item.9YTz1hfzXOp67fV6",
+    "name": "Animal Empathy (Ranger)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Animal Empathy (Ranger)",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "cHsipa0v0xmaZLUf",
+    "uuid": "Compendium.pf2e.feats-core.Item.cHsipa0v0xmaZLUf",
+    "name": "Favored Terrain",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Favored Terrain",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "glbIluF3jzDbxERe",
+    "uuid": "Compendium.pf2e.feats-core.Item.glbIluF3jzDbxERe",
+    "name": "Hunter's Aim",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Hunter's Aim",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["concentrate", "ranger"]
+    }
+  },
+  {
+    "_id": "lDL34Guf347x830J",
+    "uuid": "Compendium.pf2e.feats-core.Item.lDL34Guf347x830J",
+    "name": "Magic Hide",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Magic Hide",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "FdjSYo5H6okOAwp1",
+    "uuid": "Compendium.pf2e.feats-core.Item.FdjSYo5H6okOAwp1",
+    "name": "Monster Warden",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Monster Warden",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "7QLAedGhEOdKBrx4",
+    "uuid": "Compendium.pf2e.feats-core.Item.7QLAedGhEOdKBrx4",
+    "name": "Relentless Stalker",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Relentless Stalker",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["move", "ranger"]
+    }
+  },
+  {
+    "_id": "BAZZS1Ft4Vf2RVdX",
+    "uuid": "Compendium.pf2e.feats-core.Item.BAZZS1Ft4Vf2RVdX",
+    "name": "Snare Hopping",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Snare Hopping",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "2QsbzvM6hO1jMWx1",
+    "uuid": "Compendium.pf2e.feats-core.Item.2QsbzvM6hO1jMWx1",
+    "name": "Accurate Flurry",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Accurate Flurry",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "L76hplXBqb6hO3TB",
+    "uuid": "Compendium.pf2e.feats-core.Item.L76hplXBqb6hO3TB",
+    "name": "Impossible Snares",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Impossible Snares",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "B9TxtNqfdpW5JJ5d",
+    "uuid": "Compendium.pf2e.feats-core.Item.B9TxtNqfdpW5JJ5d",
+    "name": "Legendary Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Legendary Shot",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "sfNNjPwopfItKZfA",
+    "uuid": "Compendium.pf2e.feats-core.Item.sfNNjPwopfItKZfA",
+    "name": "Mimic Protections",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Mimic Protections",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "Z3t9kw0GleeeQvfs",
+    "uuid": "Compendium.pf2e.feats-core.Item.Z3t9kw0GleeeQvfs",
+    "name": "Superior Sight",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Superior Sight",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "YoFgiyi7lmREj1FM",
+    "uuid": "Compendium.pf2e.feats-core.Item.YoFgiyi7lmREj1FM",
+    "name": "Time Dilation Cascade",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Time Dilation Cascade",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["flourish", "ranger"]
+    }
+  },
+  {
+    "_id": "9VSwNUvdVZxOcCnd",
+    "uuid": "Compendium.pf2e.feats-core.Item.9VSwNUvdVZxOcCnd",
+    "name": "To the Ends of the Earth",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "To the Ends of the Earth",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "q8PImEQZoTRS5GfJ",
+    "uuid": "Compendium.pf2e.feats-core.Item.q8PImEQZoTRS5GfJ",
+    "name": "Triple Threat",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Triple Threat",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "uTuTzfwWhq4EPGBA",
+    "uuid": "Compendium.pf2e.feats-core.Item.uTuTzfwWhq4EPGBA",
+    "name": "Ultimate Skirmisher",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ultimate Skirmisher",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "xHYgcGIeJwvI59Ae",
+    "uuid": "Compendium.pf2e.feats-core.Item.xHYgcGIeJwvI59Ae",
+    "name": "Advanced Warden",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Advanced Warden",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "qV0IJOVadyF2albA",
+    "uuid": "Compendium.pf2e.feats-core.Item.qV0IJOVadyF2albA",
+    "name": "Companion's Cry",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Companion's Cry",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "qWdJGZ6UgUldi7mW",
+    "uuid": "Compendium.pf2e.feats-core.Item.qWdJGZ6UgUldi7mW",
+    "name": "Disrupt Prey",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Disrupt Prey",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "c53VoEjX2sJ1xEW3",
+    "uuid": "Compendium.pf2e.feats-core.Item.c53VoEjX2sJ1xEW3",
+    "name": "Far Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Far Shot",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "CVpWNto4paYw5a8H",
+    "uuid": "Compendium.pf2e.feats-core.Item.CVpWNto4paYw5a8H",
+    "name": "Favored Prey",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Favored Prey",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "7zvZHengD578Epl5",
+    "uuid": "Compendium.pf2e.feats-core.Item.7zvZHengD578Epl5",
+    "name": "Giant Hunter",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Giant Hunter",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "Wfb8jBPwtwI40z7w",
+    "uuid": "Compendium.pf2e.feats-core.Item.Wfb8jBPwtwI40z7w",
+    "name": "Natural Conduit",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Natural Conduit",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["concentrate", "ranger", "spellshape"]
+    }
+  },
+  {
+    "_id": "F76UcYG952gDG91M",
+    "uuid": "Compendium.pf2e.feats-core.Item.F76UcYG952gDG91M",
+    "name": "Snare Specialist",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Snare Specialist",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "QeNHzJsi3cQyAvvr",
+    "uuid": "Compendium.pf2e.feats-core.Item.QeNHzJsi3cQyAvvr",
+    "name": "Wolf in Sheep's Clothing",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Wolf in Sheep's Clothing",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "jRkjBwZRUqB47XX8",
+    "uuid": "Compendium.pf2e.feats-core.Item.jRkjBwZRUqB47XX8",
+    "name": "Additional Recollection",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Additional Recollection",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "Jy2LzTeuD9CnQ9jX",
+    "uuid": "Compendium.pf2e.feats-core.Item.Jy2LzTeuD9CnQ9jX",
+    "name": "Animal Strength",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Animal Strength",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "qbGa5uAC9YNFdMk2",
+    "uuid": "Compendium.pf2e.feats-core.Item.qbGa5uAC9YNFdMk2",
+    "name": "Masterful Warden",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Masterful Warden",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "jZxg7nE1k9ndVgoU",
+    "uuid": "Compendium.pf2e.feats-core.Item.jZxg7nE1k9ndVgoU",
+    "name": "Mature Animal Companion (Ranger)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Mature Animal Companion (Ranger)",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "UiTTdaiugVfnOWdm",
+    "uuid": "Compendium.pf2e.feats-core.Item.UiTTdaiugVfnOWdm",
+    "name": "Nature Prowler",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Nature Prowler",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "6cwaTWzvdAY8XFcF",
+    "uuid": "Compendium.pf2e.feats-core.Item.6cwaTWzvdAY8XFcF",
+    "name": "Quick Snares",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Quick Snares",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "xjrGCLNAaMXECsHc",
+    "uuid": "Compendium.pf2e.feats-core.Item.xjrGCLNAaMXECsHc",
+    "name": "Ranger's Bramble",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ranger's Bramble",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "SxbBjV7IL1SIC4Dw",
+    "uuid": "Compendium.pf2e.feats-core.Item.SxbBjV7IL1SIC4Dw",
+    "name": "Snap Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Snap Shot",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "SD1hpFwVh3RpBc37",
+    "uuid": "Compendium.pf2e.feats-core.Item.SD1hpFwVh3RpBc37",
+    "name": "Swift Tracker",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Swift Tracker",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "j5QuqrRG6g48XYdT",
+    "uuid": "Compendium.pf2e.feats-core.Item.j5QuqrRG6g48XYdT",
+    "name": "Deadly Aim",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Deadly Aim",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["flourish", "ranger"]
+    }
+  },
+  {
+    "_id": "RMWZqI42a2BHzLzQ",
+    "uuid": "Compendium.pf2e.feats-core.Item.RMWZqI42a2BHzLzQ",
+    "name": "Enlarge Companion",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Enlarge Companion",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "z1UKmgz5GiRkWW6a",
+    "uuid": "Compendium.pf2e.feats-core.Item.z1UKmgz5GiRkWW6a",
+    "name": "Hamstringing Strike",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Hamstringing Strike",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "Bm9ySnoVJwl9bE5z",
+    "uuid": "Compendium.pf2e.feats-core.Item.Bm9ySnoVJwl9bE5z",
+    "name": "Hazard Finder",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Hazard Finder",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "GQCLp9m81BqvYJTP",
+    "uuid": "Compendium.pf2e.feats-core.Item.GQCLp9m81BqvYJTP",
+    "name": "Powerful Snares",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Powerful Snares",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "bXzaWLJMdjEdraC4",
+    "uuid": "Compendium.pf2e.feats-core.Item.bXzaWLJMdjEdraC4",
+    "name": "Terrain Master",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Terrain Master",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "Qas1wdaWAHmhGTXi",
+    "uuid": "Compendium.pf2e.feats-core.Item.Qas1wdaWAHmhGTXi",
+    "name": "The Harder They Fall (Kingmaker)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "The Harder They Fall (Kingmaker)",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "f8gBni7Fhzn3ZS4d",
+    "uuid": "Compendium.pf2e.feats-core.Item.f8gBni7Fhzn3ZS4d",
+    "name": "Warden's Boon",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Warden's Boon",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "7VWiYUu21muH3xKY",
+    "uuid": "Compendium.pf2e.feats-core.Item.7VWiYUu21muH3xKY",
+    "name": "Nimble Dodge",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Nimble Dodge",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "rF4BCV3sNAx8kjHQ",
+    "uuid": "Compendium.pf2e.feats-core.Item.rF4BCV3sNAx8kjHQ",
+    "name": "Overextending Feint",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Overextending Feint",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "jbXjaJ9wekBCwayp",
+    "uuid": "Compendium.pf2e.feats-core.Item.jbXjaJ9wekBCwayp",
+    "name": "Plant Evidence",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Plant Evidence",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "vb48WTr1HSxh7LUf",
+    "uuid": "Compendium.pf2e.feats-core.Item.vb48WTr1HSxh7LUf",
+    "name": "Tumble Behind (Rogue)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Tumble Behind (Rogue)",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "ogAmETgQqo0IAnn1",
+    "uuid": "Compendium.pf2e.feats-core.Item.ogAmETgQqo0IAnn1",
+    "name": "Twin Feint",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Twin Feint",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "h32T24EMyGcf5KvQ",
+    "uuid": "Compendium.pf2e.feats-core.Item.h32T24EMyGcf5KvQ",
+    "name": "Deny Support",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Deny Support",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "cJYThRM44LevJjFf",
+    "uuid": "Compendium.pf2e.feats-core.Item.cJYThRM44LevJjFf",
+    "name": "Eldritch Debilitations",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Eldritch Debilitations",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "30hcZfOrvguIxp1h",
+    "uuid": "Compendium.pf2e.feats-core.Item.30hcZfOrvguIxp1h",
+    "name": "Methodical Debilitations",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Methodical Debilitations",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "VyfEidq9uEijBTQq",
+    "uuid": "Compendium.pf2e.feats-core.Item.VyfEidq9uEijBTQq",
+    "name": "Nimble Strike",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Nimble Strike",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "0h67scS7hTR8lidF",
+    "uuid": "Compendium.pf2e.feats-core.Item.0h67scS7hTR8lidF",
+    "name": "Precise Debilitations",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Precise Debilitations",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "4B72OlPE4u6nfcqO",
+    "uuid": "Compendium.pf2e.feats-core.Item.4B72OlPE4u6nfcqO",
+    "name": "Sneak Adept",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sneak Adept",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "6q3ezpwM2Y17Ge4n",
+    "uuid": "Compendium.pf2e.feats-core.Item.6q3ezpwM2Y17Ge4n",
+    "name": "Tactical Debilitations",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Tactical Debilitations",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "nVVrUcoP7lEX4ZWa",
+    "uuid": "Compendium.pf2e.feats-core.Item.nVVrUcoP7lEX4ZWa",
+    "name": "Vicious Debilitations",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Vicious Debilitations",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "f3hPCRLBCoThld7N",
+    "uuid": "Compendium.pf2e.feats-core.Item.f3hPCRLBCoThld7N",
+    "name": "Bloody Debilitation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Bloody Debilitation",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "sXfgPa1Uj7xZzJQU",
+    "uuid": "Compendium.pf2e.feats-core.Item.sXfgPa1Uj7xZzJQU",
+    "name": "Coordinated Distraction",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Coordinated Distraction",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["concentrate", "rogue"]
+    }
+  },
+  {
+    "_id": "feXBf45d9uCXs6aH",
+    "uuid": "Compendium.pf2e.feats-core.Item.feXBf45d9uCXs6aH",
+    "name": "Critical Debilitation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Critical Debilitation",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["incapacitation", "rogue"]
+    }
+  },
+  {
+    "_id": "Mav9cgD2JkS5XEll",
+    "uuid": "Compendium.pf2e.feats-core.Item.Mav9cgD2JkS5XEll",
+    "name": "Deadly Poison Weapon",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Deadly Poison Weapon",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "Z81pQUNCHWnfC6FA",
+    "uuid": "Compendium.pf2e.feats-core.Item.Z81pQUNCHWnfC6FA",
+    "name": "Fantastic Leap",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Fantastic Leap",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "0e5EuMGEzAzeoqc6",
+    "uuid": "Compendium.pf2e.feats-core.Item.0e5EuMGEzAzeoqc6",
+    "name": "Felling Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Felling Shot",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "c5t8aIHPn86J1T0X",
+    "uuid": "Compendium.pf2e.feats-core.Item.c5t8aIHPn86J1T0X",
+    "name": "Preparation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Preparation",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["flourish", "rogue"]
+    }
+  },
+  {
+    "_id": "q7sVlqJSs3NrnYrj",
+    "uuid": "Compendium.pf2e.feats-core.Item.q7sVlqJSs3NrnYrj",
+    "name": "Ricochet Feint",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ricochet Feint",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "wJrYFC2jrQp5C0Zd",
+    "uuid": "Compendium.pf2e.feats-core.Item.wJrYFC2jrQp5C0Zd",
+    "name": "Spring from the Shadows",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Spring from the Shadows",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["flourish", "rogue"]
+    }
+  },
+  {
+    "_id": "whux5aAVtG04R35t",
+    "uuid": "Compendium.pf2e.feats-core.Item.whux5aAVtG04R35t",
+    "name": "Defensive Roll",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Defensive Roll",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "WuG7TBQ7qJPUSeJH",
+    "uuid": "Compendium.pf2e.feats-core.Item.WuG7TBQ7qJPUSeJH",
+    "name": "Instant Opening",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Instant Opening",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["concentrate", "rogue"]
+    }
+  },
+  {
+    "_id": "oaCuRldm5yCoFamL",
+    "uuid": "Compendium.pf2e.feats-core.Item.oaCuRldm5yCoFamL",
+    "name": "Leave an Opening",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Leave an Opening",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "rj9e5Ozd1SUGUMMM",
+    "uuid": "Compendium.pf2e.feats-core.Item.rj9e5Ozd1SUGUMMM",
+    "name": "Stay Down!",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Stay Down!",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "iqju1Z3JXUJb4OcU",
+    "uuid": "Compendium.pf2e.feats-core.Item.iqju1Z3JXUJb4OcU",
+    "name": "Blank Slate",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Blank Slate",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "2R21mp1VINSYRCPJ",
+    "uuid": "Compendium.pf2e.feats-core.Item.2R21mp1VINSYRCPJ",
+    "name": "Cloud Step",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Cloud Step",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "dDeSLYssmyl4pdXG",
+    "uuid": "Compendium.pf2e.feats-core.Item.dDeSLYssmyl4pdXG",
+    "name": "Cognitive Loophole",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Cognitive Loophole",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "3srKvbqMUpe0rc9Y",
+    "uuid": "Compendium.pf2e.feats-core.Item.3srKvbqMUpe0rc9Y",
+    "name": "Dispelling Slice",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dispelling Slice",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "n4CR9fdA0TdQVDD7",
+    "uuid": "Compendium.pf2e.feats-core.Item.n4CR9fdA0TdQVDD7",
+    "name": "Perfect Distraction",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Perfect Distraction",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "tYkVTj9Puk8mJtBF",
+    "uuid": "Compendium.pf2e.feats-core.Item.tYkVTj9Puk8mJtBF",
+    "name": "Steal Spell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Steal Spell",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["magical", "rogue"]
+    }
+  },
+  {
+    "_id": "ENEu1foKQWQyatcy",
+    "uuid": "Compendium.pf2e.feats-core.Item.ENEu1foKQWQyatcy",
+    "name": "Swift Elusion",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Swift Elusion",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "5JyWXnpvWVB9jz8D",
+    "uuid": "Compendium.pf2e.feats-core.Item.5JyWXnpvWVB9jz8D",
+    "name": "Implausible Infiltration",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Implausible Infiltration",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["magical", "move", "rogue"]
+    }
+  },
+  {
+    "_id": "HO2AUuJ8YKjtNdgU",
+    "uuid": "Compendium.pf2e.feats-core.Item.HO2AUuJ8YKjtNdgU",
+    "name": "Implausible Purchase (Rogue)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Implausible Purchase (Rogue)",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "AXljkO4eEIIchUvW",
+    "uuid": "Compendium.pf2e.feats-core.Item.AXljkO4eEIIchUvW",
+    "name": "Powerful Sneak",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Powerful Sneak",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "MvekUkjMj4Zdv9no",
+    "uuid": "Compendium.pf2e.feats-core.Item.MvekUkjMj4Zdv9no",
+    "name": "Brutal Beating",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Brutal Beating",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["emotion", "fear", "mental", "rogue"]
+    }
+  },
+  {
+    "_id": "nlIlk7HN6Sb1fNzC",
+    "uuid": "Compendium.pf2e.feats-core.Item.nlIlk7HN6Sb1fNzC",
+    "name": "Clever Gambit",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Clever Gambit",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "Oitcrn5ID7RTaugy",
+    "uuid": "Compendium.pf2e.feats-core.Item.Oitcrn5ID7RTaugy",
+    "name": "Distracting Feint",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Distracting Feint",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "yl4gS25mY4IXtgqM",
+    "uuid": "Compendium.pf2e.feats-core.Item.yl4gS25mY4IXtgqM",
+    "name": "Minor Magic",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Minor Magic",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "pbfbSaGYImBWI3bD",
+    "uuid": "Compendium.pf2e.feats-core.Item.pbfbSaGYImBWI3bD",
+    "name": "Mobility",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Mobility",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "OErUgSvnYfyZXRX2",
+    "uuid": "Compendium.pf2e.feats-core.Item.OErUgSvnYfyZXRX2",
+    "name": "Strong Arm",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Strong Arm",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "3ia65kpwYt0nZxwF",
+    "uuid": "Compendium.pf2e.feats-core.Item.3ia65kpwYt0nZxwF",
+    "name": "Unbalancing Blow",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Unbalancing Blow",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "7aFzd5KK41RY5BWo",
+    "uuid": "Compendium.pf2e.feats-core.Item.7aFzd5KK41RY5BWo",
+    "name": "Underhanded Assault",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Underhanded Assault",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "miOgdv3O36wX2gwA",
+    "uuid": "Compendium.pf2e.feats-core.Item.miOgdv3O36wX2gwA",
+    "name": "Enduring Debilitation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Enduring Debilitation",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "mbJ5qpuZ8KV5Eccj",
+    "uuid": "Compendium.pf2e.feats-core.Item.mbJ5qpuZ8KV5Eccj",
+    "name": "Extradimensional Stash",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Extradimensional Stash",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["extradimensional", "rogue"]
+    }
+  },
+  {
+    "_id": "8cDGDpSMW02uoGPl",
+    "uuid": "Compendium.pf2e.feats-core.Item.8cDGDpSMW02uoGPl",
+    "name": "Hidden Paragon",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Hidden Paragon",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "GPQCMD46wVtkO2nM",
+    "uuid": "Compendium.pf2e.feats-core.Item.GPQCMD46wVtkO2nM",
+    "name": "Impossible Striker",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Impossible Striker",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "cPYLlaPHYi4e7Urn",
+    "uuid": "Compendium.pf2e.feats-core.Item.cPYLlaPHYi4e7Urn",
+    "name": "Reactive Distraction",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Reactive Distraction",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["concentrate", "manipulate", "rogue"]
+    }
+  },
+  {
+    "_id": "usWmugQ5zNRVR0VL",
+    "uuid": "Compendium.pf2e.feats-core.Item.usWmugQ5zNRVR0VL",
+    "name": "Steal Essence",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Steal Essence",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "DXOVSufvUdO2D8BI",
+    "uuid": "Compendium.pf2e.feats-core.Item.DXOVSufvUdO2D8BI",
+    "name": "Battle Assessment",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Battle Assessment",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["rogue", "secret"]
+    }
+  },
+  {
+    "_id": "h7fex42BeNKsZSgF",
+    "uuid": "Compendium.pf2e.feats-core.Item.h7fex42BeNKsZSgF",
+    "name": "Dread Striker",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dread Striker",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "dcwTUKyYcR1fD7jC",
+    "uuid": "Compendium.pf2e.feats-core.Item.dcwTUKyYcR1fD7jC",
+    "name": "Head Stomp",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Head Stomp",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "3IZRGQWpf66bAanZ",
+    "uuid": "Compendium.pf2e.feats-core.Item.3IZRGQWpf66bAanZ",
+    "name": "Magical Trickster",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Magical Trickster",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "VJFEXRJwTxwqrrjl",
+    "uuid": "Compendium.pf2e.feats-core.Item.VJFEXRJwTxwqrrjl",
+    "name": "Mug",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Mug",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "65QqIyBfVJA7nm99",
+    "uuid": "Compendium.pf2e.feats-core.Item.65QqIyBfVJA7nm99",
+    "name": "Poison Weapon",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Poison Weapon",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["manipulate", "rogue"]
+    }
+  },
+  {
+    "_id": "yBYWEUud9xYvwJ1L",
+    "uuid": "Compendium.pf2e.feats-core.Item.yBYWEUud9xYvwJ1L",
+    "name": "Predictable!",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Predictable!",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "BTJhWVjelgf0Narb",
+    "uuid": "Compendium.pf2e.feats-core.Item.BTJhWVjelgf0Narb",
+    "name": "Reactive Pursuit",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Reactive Pursuit",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "jvP8DFtj3WcW2CH3",
+    "uuid": "Compendium.pf2e.feats-core.Item.jvP8DFtj3WcW2CH3",
+    "name": "Sabotage",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sabotage",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["incapacitation", "rogue"]
+    }
+  },
+  {
+    "_id": "blWfKWzzFGOy73VU",
+    "uuid": "Compendium.pf2e.feats-core.Item.blWfKWzzFGOy73VU",
+    "name": "Scoundrel's Surprise",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Scoundrel's Surprise",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "Kbp4Ml6tHG3x5WeD",
+    "uuid": "Compendium.pf2e.feats-core.Item.Kbp4Ml6tHG3x5WeD",
+    "name": "The Harder They Fall",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "The Harder They Fall",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "eFDigV5ZpeXYR7i1",
+    "uuid": "Compendium.pf2e.feats-core.Item.eFDigV5ZpeXYR7i1",
+    "name": "Twin Distraction",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Twin Distraction",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "HezkEwrHJYPy2jSn",
+    "uuid": "Compendium.pf2e.feats-core.Item.HezkEwrHJYPy2jSn",
+    "name": "Analyze Weakness",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Analyze Weakness",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "sZDktXz9JmFxOLsw",
+    "uuid": "Compendium.pf2e.feats-core.Item.sZDktXz9JmFxOLsw",
+    "name": "Anticipate Ambush",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Anticipate Ambush",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["exploration", "rogue"]
+    }
+  },
+  {
+    "_id": "OzUpwYclva2d2CLx",
+    "uuid": "Compendium.pf2e.feats-core.Item.OzUpwYclva2d2CLx",
+    "name": "Far Throw",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Far Throw",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "VJcpLTdVslbz8wsl",
+    "uuid": "Compendium.pf2e.feats-core.Item.VJcpLTdVslbz8wsl",
+    "name": "Gang Up",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Gang Up",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "QsYHiTnIWvOvBuWV",
+    "uuid": "Compendium.pf2e.feats-core.Item.QsYHiTnIWvOvBuWV",
+    "name": "Light Step",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Light Step",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "bMIaGaD4NlKU6JhS",
+    "uuid": "Compendium.pf2e.feats-core.Item.bMIaGaD4NlKU6JhS",
+    "name": "Shove Down",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Shove Down",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "GGA6K639IJsbkC1g",
+    "uuid": "Compendium.pf2e.feats-core.Item.GGA6K639IJsbkC1g",
+    "name": "Slice and Swipe",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Slice and Swipe",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["flourish", "manipulate", "rogue"]
+    }
+  },
+  {
+    "_id": "MFSYACrGWRhJ0pga",
+    "uuid": "Compendium.pf2e.feats-core.Item.MFSYACrGWRhJ0pga",
+    "name": "Sly Disarm",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sly Disarm",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "2x0E2bAXmhAZVexx",
+    "uuid": "Compendium.pf2e.feats-core.Item.2x0E2bAXmhAZVexx",
+    "name": "Twist the Knife",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Twist the Knife",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "XDcKCrNQWyDnn8jE",
+    "uuid": "Compendium.pf2e.feats-core.Item.XDcKCrNQWyDnn8jE",
+    "name": "Watch Your Back",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Watch Your Back",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["emotion", "fear", "mental", "rogue"]
+    }
+  },
+  {
+    "_id": "7RjSUrFDSP2YL9qN",
+    "uuid": "Compendium.pf2e.feats-core.Item.7RjSUrFDSP2YL9qN",
+    "name": "Ambushing Knockdown",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ambushing Knockdown",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "hLILaJsckEJhnwBq",
+    "uuid": "Compendium.pf2e.feats-core.Item.hLILaJsckEJhnwBq",
+    "name": "Bullseye",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Bullseye",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "1tkqzxUDbHULurHd",
+    "uuid": "Compendium.pf2e.feats-core.Item.1tkqzxUDbHULurHd",
+    "name": "Delay Trap",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Delay Trap",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "qGK3uT7mG9FNSF3E",
+    "uuid": "Compendium.pf2e.feats-core.Item.qGK3uT7mG9FNSF3E",
+    "name": "Improved Poison Weapon",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Improved Poison Weapon",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "9GUpMsEpdGBnKrnD",
+    "uuid": "Compendium.pf2e.feats-core.Item.9GUpMsEpdGBnKrnD",
+    "name": "Inspired Stratagem",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Inspired Stratagem",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "ta2j5YY7BxfXzb6g",
+    "uuid": "Compendium.pf2e.feats-core.Item.ta2j5YY7BxfXzb6g",
+    "name": "Loaner Spell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Loaner Spell",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "gDRMMqCJ3J1HvDT6",
+    "uuid": "Compendium.pf2e.feats-core.Item.gDRMMqCJ3J1HvDT6",
+    "name": "Nimble Roll",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Nimble Roll",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "amhXHyVtBmNlEVgN",
+    "uuid": "Compendium.pf2e.feats-core.Item.amhXHyVtBmNlEVgN",
+    "name": "Opportune Backstab",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Opportune Backstab",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "WvKzCmJWntNi9UPZ",
+    "uuid": "Compendium.pf2e.feats-core.Item.WvKzCmJWntNi9UPZ",
+    "name": "Predictive Purchase (Rogue)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Predictive Purchase (Rogue)",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "przH0nLfnvXBP0MW",
+    "uuid": "Compendium.pf2e.feats-core.Item.przH0nLfnvXBP0MW",
+    "name": "Ricochet Stance (Rogue)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ricochet Stance (Rogue)",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["rogue", "stance"]
+    }
+  },
+  {
+    "_id": "kyHiiR8IMCwxrlpH",
+    "uuid": "Compendium.pf2e.feats-core.Item.kyHiiR8IMCwxrlpH",
+    "name": "Sidestep",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sidestep",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "AyYcVkN3sKIRfrbW",
+    "uuid": "Compendium.pf2e.feats-core.Item.AyYcVkN3sKIRfrbW",
+    "name": "Sly Striker",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sly Striker",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "XrWVrQjDnbFrSGuP",
+    "uuid": "Compendium.pf2e.feats-core.Item.XrWVrQjDnbFrSGuP",
+    "name": "Subtle Shank",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Subtle Shank",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["flourish", "rogue"]
+    }
+  },
+  {
+    "_id": "Uv7URv5R3b9cEm7C",
+    "uuid": "Compendium.pf2e.feats-core.Item.Uv7URv5R3b9cEm7C",
+    "name": "Swipe Souvenir",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Swipe Souvenir",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "3xlV4dEUI7aXMHMU",
+    "uuid": "Compendium.pf2e.feats-core.Item.3xlV4dEUI7aXMHMU",
+    "name": "Tactical Entry",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Tactical Entry",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "lEHRkLJuSKK3GXwt",
+    "uuid": "Compendium.pf2e.feats-core.Item.lEHRkLJuSKK3GXwt",
+    "name": "Agile Shield Grip",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Agile Shield Grip",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["champion", "fighter"]
+    }
+  },
+  {
+    "_id": "Hsg0J5va78JPo1Vc",
+    "uuid": "Compendium.pf2e.feats-core.Item.Hsg0J5va78JPo1Vc",
+    "name": "Combat Assessment",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Combat Assessment",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["commander", "fighter"]
+    }
+  },
+  {
+    "_id": "uAKx08iQ7GEOY0C6",
+    "uuid": "Compendium.pf2e.feats-core.Item.uAKx08iQ7GEOY0C6",
+    "name": "Counterspell (Prepared)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Counterspell (Prepared)",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["witch", "wizard"]
+    }
+  },
+  {
+    "_id": "0XHhSZ8csvu4wsiJ",
+    "uuid": "Compendium.pf2e.feats-core.Item.0XHhSZ8csvu4wsiJ",
+    "name": "Everstand Stance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Everstand Stance",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["champion", "fighter", "stance"]
+    }
+  },
+  {
     "_id": "sgqC3nNQZhuobaNi",
     "uuid": "Compendium.pf2e.feats-core.Item.sgqC3nNQZhuobaNi",
     "name": "Familiar",
@@ -2841,6 +7047,470 @@
       "system.level": 1,
       "system.category": "class",
       "system.traits.value": ["magus", "sorcerer", "thaumaturge", "wizard"]
+    }
+  },
+  {
+    "_id": "azvE7DO4C6uymrnS",
+    "uuid": "Compendium.pf2e.feats-core.Item.azvE7DO4C6uymrnS",
+    "name": "Reach Spell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Reach Spell",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "bard",
+        "cleric",
+        "concentrate",
+        "druid",
+        "oracle",
+        "sorcerer",
+        "spellshape",
+        "witch",
+        "wizard"
+      ]
+    }
+  },
+  {
+    "_id": "mGrmJdOYQhV2ltV5",
+    "uuid": "Compendium.pf2e.feats-core.Item.mGrmJdOYQhV2ltV5",
+    "name": "Reactive Shield",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Reactive Shield",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "guardian"]
+    }
+  },
+  {
+    "_id": "nBNA1os0mYQEMKTO",
+    "uuid": "Compendium.pf2e.feats-core.Item.nBNA1os0mYQEMKTO",
+    "name": "Sudden Charge",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sudden Charge",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "fighter", "flourish"]
+    }
+  },
+  {
+    "_id": "2GIxxwLabBrNmWH2",
+    "uuid": "Compendium.pf2e.feats-core.Item.2GIxxwLabBrNmWH2",
+    "name": "Trap Finder",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Trap Finder",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["investigator", "rogue"]
+    }
+  },
+  {
+    "_id": "FTdTP8o4NXu4zVxj",
+    "uuid": "Compendium.pf2e.feats-core.Item.FTdTP8o4NXu4zVxj",
+    "name": "Widen Spell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Widen Spell",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "druid",
+        "manipulate",
+        "oracle",
+        "sorcerer",
+        "spellshape",
+        "witch",
+        "wizard"
+      ]
+    }
+  },
+  {
+    "_id": "oun4NCr5V8GiTvkN",
+    "uuid": "Compendium.pf2e.feats-core.Item.oun4NCr5V8GiTvkN",
+    "name": "You're Next",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "You're Next",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["emotion", "fear", "mental", "rogue", "swashbuckler"]
+    }
+  },
+  {
+    "_id": "mIwiFREmQzYA3ftZ",
+    "uuid": "Compendium.pf2e.feats-core.Item.mIwiFREmQzYA3ftZ",
+    "name": "Corpse-Killer's Defiance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Corpse-Killer's Defiance",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "swashbuckler"]
+    }
+  },
+  {
+    "_id": "epQo2wYvkcnH4Xew",
+    "uuid": "Compendium.pf2e.feats-core.Item.epQo2wYvkcnH4Xew",
+    "name": "Dazzling Display",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dazzling Display",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "ranger", "rogue", "swashbuckler"]
+    }
+  },
+  {
+    "_id": "Oy5rbQPiAiQh71DR",
+    "uuid": "Compendium.pf2e.feats-core.Item.Oy5rbQPiAiQh71DR",
+    "name": "Eerie Proclamation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Eerie Proclamation",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": [
+        "auditory",
+        "concentrate",
+        "curse",
+        "druid",
+        "linguistic",
+        "manipulate",
+        "primal",
+        "ranger"
+      ]
+    }
+  },
+  {
+    "_id": "8JnZVwNrB4HI7X5K",
+    "uuid": "Compendium.pf2e.feats-core.Item.8JnZVwNrB4HI7X5K",
+    "name": "Greenwatcher",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Greenwatcher",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["gunslinger", "investigator", "ranger"]
+    }
+  },
+  {
+    "_id": "Apfez6ZlGmM3RhaF",
+    "uuid": "Compendium.pf2e.feats-core.Item.Apfez6ZlGmM3RhaF",
+    "name": "Haft Beatdown",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Haft Beatdown",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "ranger", "rogue"]
+    }
+  },
+  {
+    "_id": "0FioNr7LFpuzGSGf",
+    "uuid": "Compendium.pf2e.feats-core.Item.0FioNr7LFpuzGSGf",
+    "name": "Overpowering Charge",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Overpowering Charge",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "fighter"]
+    }
+  },
+  {
+    "_id": "2IYfzogNxxBK2utv",
+    "uuid": "Compendium.pf2e.feats-core.Item.2IYfzogNxxBK2utv",
+    "name": "Overwhelming Energy",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Overwhelming Energy",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["druid", "manipulate", "sorcerer", "spellshape", "wizard"]
+    }
+  },
+  {
+    "_id": "lmqhdGcG64ahbVLH",
+    "uuid": "Compendium.pf2e.feats-core.Item.lmqhdGcG64ahbVLH",
+    "name": "Quickened Casting",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Quickened Casting",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": [
+        "bard",
+        "concentrate",
+        "oracle",
+        "sorcerer",
+        "spellshape",
+        "witch",
+        "wizard"
+      ]
+    }
+  },
+  {
+    "_id": "Ted1ILmsUgbISuWN",
+    "uuid": "Compendium.pf2e.feats-core.Item.Ted1ILmsUgbISuWN",
+    "name": "Twin Riposte",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Twin Riposte",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "ranger"]
+    }
+  },
+  {
+    "_id": "Qbg2XU9yJxFjFOKM",
+    "uuid": "Compendium.pf2e.feats-core.Item.Qbg2XU9yJxFjFOKM",
+    "name": "Magic Sense",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Magic Sense",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["detection", "oracle", "sorcerer", "wizard"]
+    }
+  },
+  {
+    "_id": "c9NNYr2SsdrR3WLd",
+    "uuid": "Compendium.pf2e.feats-core.Item.c9NNYr2SsdrR3WLd",
+    "name": "Necromancer's Visage",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Necromancer's Visage",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["cleric", "oracle", "wizard"]
+    }
+  },
+  {
+    "_id": "1edUD7HAvVGVz64R",
+    "uuid": "Compendium.pf2e.feats-core.Item.1edUD7HAvVGVz64R",
+    "name": "Paragon's Guard",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Paragon's Guard",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "guardian", "stance"]
+    }
+  },
+  {
+    "_id": "9yBvT7B8ZSp4Bmot",
+    "uuid": "Compendium.pf2e.feats-core.Item.9yBvT7B8ZSp4Bmot",
+    "name": "Reactive Interference",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Reactive Interference",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["commander", "rogue"]
+    }
+  },
+  {
+    "_id": "54F7gAiGH4F3WGqe",
+    "uuid": "Compendium.pf2e.feats-core.Item.54F7gAiGH4F3WGqe",
+    "name": "Opening Stance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Opening Stance",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "guardian"]
+    }
+  },
+  {
+    "_id": "iKskuqhoa8zRaU6W",
+    "uuid": "Compendium.pf2e.feats-core.Item.iKskuqhoa8zRaU6W",
+    "name": "Reflect Spell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Reflect Spell",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["sorcerer", "witch", "wizard"]
+    }
+  },
+  {
+    "_id": "YDSbCn8jTphuyemk",
+    "uuid": "Compendium.pf2e.feats-core.Item.YDSbCn8jTphuyemk",
+    "name": "Sense the Unseen",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sense the Unseen",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["investigator", "ranger", "rogue"]
+    }
+  },
+  {
+    "_id": "AdeF4rB6tY0i1Q9d",
+    "uuid": "Compendium.pf2e.feats-core.Item.AdeF4rB6tY0i1Q9d",
+    "name": "Sepulchral Sublimation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sepulchral Sublimation",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["cleric", "concentrate", "oracle", "spellshape", "wizard"]
+    }
+  },
+  {
+    "_id": "Dg6AcG6iU2WEcyqM",
+    "uuid": "Compendium.pf2e.feats-core.Item.Dg6AcG6iU2WEcyqM",
+    "name": "Towering Transformation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Towering Transformation",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "druid", "emotion", "fear", "mental", "rage", "visual"]
+    }
+  },
+  {
+    "_id": "JEM7wa6HY2gs6sOq",
+    "uuid": "Compendium.pf2e.feats-core.Item.JEM7wa6HY2gs6sOq",
+    "name": "Whirlwind Strike",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Whirlwind Strike",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "fighter", "flourish"]
+    }
+  },
+  {
+    "_id": "0O3uCownvMI7E215",
+    "uuid": "Compendium.pf2e.feats-core.Item.0O3uCownvMI7E215",
+    "name": "Effortless Concentration",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Effortless Concentration",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["bard", "druid", "sorcerer", "summoner", "witch", "wizard"]
+    }
+  },
+  {
+    "_id": "SNJCF1DvwkDQrP0l",
+    "uuid": "Compendium.pf2e.feats-core.Item.SNJCF1DvwkDQrP0l",
+    "name": "Improved Reflexive Shield",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Improved Reflexive Shield",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "guardian"]
+    }
+  },
+  {
+    "_id": "2fHqeRzyFqtIcbFG",
+    "uuid": "Compendium.pf2e.feats-core.Item.2fHqeRzyFqtIcbFG",
+    "name": "Master of Many Styles",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Master of Many Styles",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "monk"]
+    }
+  },
+  {
+    "_id": "vgvtnPSnbQqpV1Qw",
+    "uuid": "Compendium.pf2e.feats-core.Item.vgvtnPSnbQqpV1Qw",
+    "name": "Reconstruct the Scene",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Reconstruct the Scene",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["concentrate", "investigator", "rogue"]
+    }
+  },
+  {
+    "_id": "QUFU2dwCcPrv6ThF",
+    "uuid": "Compendium.pf2e.feats-core.Item.QUFU2dwCcPrv6ThF",
+    "name": "Scintillating Spell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Scintillating Spell",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["concentrate", "light", "sorcerer", "spellshape", "wizard"]
+    }
+  },
+  {
+    "_id": "Xq6XlSTRyiEarG8z",
+    "uuid": "Compendium.pf2e.feats-core.Item.Xq6XlSTRyiEarG8z",
+    "name": "Impossible Volley",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Impossible Volley",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "flourish", "ranger"]
+    }
+  },
+  {
+    "_id": "2rmspjzI6h5b2QZY",
+    "uuid": "Compendium.pf2e.feats-core.Item.2rmspjzI6h5b2QZY",
+    "name": "Trickster's Ace",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Trickster's Ace",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["concentrate", "investigator", "rogue"]
+    }
+  },
+  {
+    "_id": "CJs0NmWLAQvXuWig",
+    "uuid": "Compendium.pf2e.feats-core.Item.CJs0NmWLAQvXuWig",
+    "name": "Aggressive Block",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Aggressive Block",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "guardian"]
     }
   },
   {
@@ -2866,6 +7536,32 @@
     }
   },
   {
+    "_id": "Uz7dhtQOdVnKkdTE",
+    "uuid": "Compendium.pf2e.feats-core.Item.Uz7dhtQOdVnKkdTE",
+    "name": "Conceal Spell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Conceal Spell",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["animist", "concentrate", "spellshape", "witch", "wizard"]
+    }
+  },
+  {
+    "_id": "ISnU6iW5dAw7vluP",
+    "uuid": "Compendium.pf2e.feats-core.Item.ISnU6iW5dAw7vluP",
+    "name": "Devoted Guardian",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Devoted Guardian",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["champion", "fighter"]
+    }
+  },
+  {
     "_id": "XDJiA6uOOFdhtpvn",
     "uuid": "Compendium.pf2e.feats-core.Item.XDJiA6uOOFdhtpvn",
     "name": "Enhanced Familiar",
@@ -2887,6 +7583,417 @@
     }
   },
   {
+    "_id": "bXTwcc0yXribQaSq",
+    "uuid": "Compendium.pf2e.feats-core.Item.bXTwcc0yXribQaSq",
+    "name": "Fane's Fourberie",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Fane's Fourberie",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["rogue", "stance", "swashbuckler"]
+    }
+  },
+  {
+    "_id": "UDS2cyJEP98Gbnfh",
+    "uuid": "Compendium.pf2e.feats-core.Item.UDS2cyJEP98Gbnfh",
+    "name": "Intimidating Strike",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Intimidating Strike",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "emotion", "fear", "fighter", "mental"]
+    }
+  },
+  {
+    "_id": "UZFxUWk8uP3Z1VLY",
+    "uuid": "Compendium.pf2e.feats-core.Item.UZFxUWk8uP3Z1VLY",
+    "name": "Lightning Swap",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Lightning Swap",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["exemplar", "fighter", "flourish"]
+    }
+  },
+  {
+    "_id": "QR0GcDn6wXu1SRHw",
+    "uuid": "Compendium.pf2e.feats-core.Item.QR0GcDn6wXu1SRHw",
+    "name": "Quick Draw",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Quick Draw",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["gunslinger", "ranger", "rogue"]
+    }
+  },
+  {
+    "_id": "NQzex9tEjRHu5Dle",
+    "uuid": "Compendium.pf2e.feats-core.Item.NQzex9tEjRHu5Dle",
+    "name": "United Assault",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "United Assault",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "flourish", "ranger"]
+    }
+  },
+  {
+    "_id": "Wzx6qGq6cWnwEBHd",
+    "uuid": "Compendium.pf2e.feats-core.Item.Wzx6qGq6cWnwEBHd",
+    "name": "Boundless Reprisals",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Boundless Reprisals",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "guardian"]
+    }
+  },
+  {
+    "_id": "VPvNzrDP80Pvpqxs",
+    "uuid": "Compendium.pf2e.feats-core.Item.VPvNzrDP80Pvpqxs",
+    "name": "Spellshape Mastery",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Spellshape Mastery",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["sorcerer", "wizard"]
+    }
+  },
+  {
+    "_id": "6pRDeRYwZqDDaxlX",
+    "uuid": "Compendium.pf2e.feats-core.Item.6pRDeRYwZqDDaxlX",
+    "name": "Barreling Charge",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Barreling Charge",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "fighter", "flourish"]
+    }
+  },
+  {
+    "_id": "jccOM6STn5ZFMlei",
+    "uuid": "Compendium.pf2e.feats-core.Item.jccOM6STn5ZFMlei",
+    "name": "Bespell Strikes",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Bespell Strikes",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["oracle", "sorcerer", "wizard"]
+    }
+  },
+  {
+    "_id": "cvg7lHYAzRYHzFcg",
+    "uuid": "Compendium.pf2e.feats-core.Item.cvg7lHYAzRYHzFcg",
+    "name": "Brutal Crush",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Brutal Crush",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "druid", "mental"]
+    }
+  },
+  {
+    "_id": "In8Q9v6ACDWndRQF",
+    "uuid": "Compendium.pf2e.feats-core.Item.In8Q9v6ACDWndRQF",
+    "name": "Creature Comforts",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Creature Comforts",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "druid"]
+    }
+  },
+  {
+    "_id": "kvcfwLSaACV0QZBO",
+    "uuid": "Compendium.pf2e.feats-core.Item.kvcfwLSaACV0QZBO",
+    "name": "Devrin's Dazzling Diversion",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Devrin's Dazzling Diversion",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["rogue", "swashbuckler"]
+    }
+  },
+  {
+    "_id": "36EtMqSU7yUxwKHM",
+    "uuid": "Compendium.pf2e.feats-core.Item.36EtMqSU7yUxwKHM",
+    "name": "Everstand Strike",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Everstand Strike",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["champion", "fighter", "press"]
+    }
+  },
+  {
+    "_id": "NAp8WnclQ8XCxH3t",
+    "uuid": "Compendium.pf2e.feats-core.Item.NAp8WnclQ8XCxH3t",
+    "name": "Farabellus Flip",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Farabellus Flip",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "fighter", "ranger"]
+    }
+  },
+  {
+    "_id": "BmBXTXTU1r9UjEql",
+    "uuid": "Compendium.pf2e.feats-core.Item.BmBXTXTU1r9UjEql",
+    "name": "Greenwatch Initiate",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Greenwatch Initiate",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["gunslinger", "investigator", "ranger"]
+    }
+  },
+  {
+    "_id": "bZxbqmfytzWJJCPF",
+    "uuid": "Compendium.pf2e.feats-core.Item.bZxbqmfytzWJJCPF",
+    "name": "Haft Striker Stance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Haft Striker Stance",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "ranger", "rogue", "stance"]
+    }
+  },
+  {
+    "_id": "hXVvJ5IbZDrY9gfp",
+    "uuid": "Compendium.pf2e.feats-core.Item.hXVvJ5IbZDrY9gfp",
+    "name": "Inured to Alchemy",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Inured to Alchemy",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["alchemist", "barbarian", "fighter"]
+    }
+  },
+  {
+    "_id": "QcvZlc4u8WEWseoy",
+    "uuid": "Compendium.pf2e.feats-core.Item.QcvZlc4u8WEWseoy",
+    "name": "Knock Sense",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Knock Sense",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["champion", "fighter"]
+    }
+  },
+  {
+    "_id": "lYaRW5TMovE5fOWA",
+    "uuid": "Compendium.pf2e.feats-core.Item.lYaRW5TMovE5fOWA",
+    "name": "Masquerade of Seasons Stance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Masquerade of Seasons Stance",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["bard", "rogue", "stance", "swashbuckler"]
+    }
+  },
+  {
+    "_id": "6F4hVxkKdxU5HPXB",
+    "uuid": "Compendium.pf2e.feats-core.Item.6F4hVxkKdxU5HPXB",
+    "name": "Rip and Tear",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Rip and Tear",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "druid"]
+    }
+  },
+  {
+    "_id": "eqKhg75ojcnH8gxi",
+    "uuid": "Compendium.pf2e.feats-core.Item.eqKhg75ojcnH8gxi",
+    "name": "Running Reload",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Running Reload",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["gunslinger", "ranger"]
+    }
+  },
+  {
+    "_id": "0TKrIr2s3ZbIgIvH",
+    "uuid": "Compendium.pf2e.feats-core.Item.0TKrIr2s3ZbIgIvH",
+    "name": "Scout's Warning",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Scout's Warning",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["ranger", "rogue"]
+    }
+  },
+  {
+    "_id": "P1Ik7AOerpczbc8p",
+    "uuid": "Compendium.pf2e.feats-core.Item.P1Ik7AOerpczbc8p",
+    "name": "Swipe",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Swipe",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "fighter", "flourish"]
+    }
+  },
+  {
+    "_id": "K1r0JuJ9fpl2JmiJ",
+    "uuid": "Compendium.pf2e.feats-core.Item.K1r0JuJ9fpl2JmiJ",
+    "name": "Twin Parry",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Twin Parry",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "ranger"]
+    }
+  },
+  {
+    "_id": "GlUgpTTLGnVSWYN6",
+    "uuid": "Compendium.pf2e.feats-core.Item.GlUgpTTLGnVSWYN6",
+    "name": "Undying Conviction",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Undying Conviction",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["aura", "cleric", "oracle", "wizard"]
+    }
+  },
+  {
+    "_id": "7qqIHh56BaifNJ13",
+    "uuid": "Compendium.pf2e.feats-core.Item.7qqIHh56BaifNJ13",
+    "name": "Defy Fey",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Defy Fey",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["gunslinger", "investigator", "ranger"]
+    }
+  },
+  {
+    "_id": "CoxkPrOHQ2NHXwjU",
+    "uuid": "Compendium.pf2e.feats-core.Item.CoxkPrOHQ2NHXwjU",
+    "name": "Detonating Spell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Detonating Spell",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "cleric",
+        "concentrate",
+        "oracle",
+        "sorcerer",
+        "spellshape",
+        "witch",
+        "wizard"
+      ]
+    }
+  },
+  {
+    "_id": "ZS38x347dwyaAuNV",
+    "uuid": "Compendium.pf2e.feats-core.Item.ZS38x347dwyaAuNV",
+    "name": "Fey Tracker",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Fey Tracker",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["gunslinger", "investigator", "ranger"]
+    }
+  },
+  {
+    "_id": "ZtrE7TSRIRGfj3Ph",
+    "uuid": "Compendium.pf2e.feats-core.Item.ZtrE7TSRIRGfj3Ph",
+    "name": "Intensified Element Stance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Intensified Element Stance",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["druid", "ranger", "stance"]
+    }
+  },
+  {
+    "_id": "RNQ6rSilq3nVTt6W",
+    "uuid": "Compendium.pf2e.feats-core.Item.RNQ6rSilq3nVTt6W",
+    "name": "Pain Tolerance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Pain Tolerance",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "fighter"]
+    }
+  },
+  {
+    "_id": "f5wgtagUVAsnSAVd",
+    "uuid": "Compendium.pf2e.feats-core.Item.f5wgtagUVAsnSAVd",
+    "name": "Pirouette",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Pirouette",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["bard", "rogue", "swashbuckler"]
+    }
+  },
+  {
     "_id": "h59G7bSg4ugO4HEt",
     "uuid": "Compendium.pf2e.feats-core.Item.h59G7bSg4ugO4HEt",
     "name": "Reactive Strike",
@@ -2905,6 +8012,673 @@
         "magus",
         "swashbuckler"
       ]
+    }
+  },
+  {
+    "_id": "ZtVAwVueu68K09bN",
+    "uuid": "Compendium.pf2e.feats-core.Item.ZtVAwVueu68K09bN",
+    "name": "Reflexive Shield",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Reflexive Shield",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "guardian"]
+    }
+  },
+  {
+    "_id": "Sq66UGJQVyzGBcFq",
+    "uuid": "Compendium.pf2e.feats-core.Item.Sq66UGJQVyzGBcFq",
+    "name": "Shield Wall",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Shield Wall",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["champion", "fighter"]
+    }
+  },
+  {
+    "_id": "KILHyxcGLxzdNHi8",
+    "uuid": "Compendium.pf2e.feats-core.Item.KILHyxcGLxzdNHi8",
+    "name": "Shield Warden",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Shield Warden",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["champion", "commander", "fighter"]
+    }
+  },
+  {
+    "_id": "xGqvSBcn5h3UPsDo",
+    "uuid": "Compendium.pf2e.feats-core.Item.xGqvSBcn5h3UPsDo",
+    "name": "Skirmish Strike",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Skirmish Strike",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["flourish", "ranger", "rogue"]
+    }
+  },
+  {
+    "_id": "JnJ9XGY44YPt4HBD",
+    "uuid": "Compendium.pf2e.feats-core.Item.JnJ9XGY44YPt4HBD",
+    "name": "Steady Spellcasting",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Steady Spellcasting",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "bard",
+        "cleric",
+        "druid",
+        "oracle",
+        "psychic",
+        "sorcerer",
+        "witch",
+        "wizard"
+      ]
+    }
+  },
+  {
+    "_id": "mBdIdG9ff2DWTHbC",
+    "uuid": "Compendium.pf2e.feats-core.Item.mBdIdG9ff2DWTHbC",
+    "name": "Stella's Stab and Snag",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Stella's Stab and Snag",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["rogue", "swashbuckler"]
+    }
+  },
+  {
+    "_id": "uxND21AxJj1wAP8I",
+    "uuid": "Compendium.pf2e.feats-core.Item.uxND21AxJj1wAP8I",
+    "name": "Blind-Fight",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Blind-Fight",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "investigator", "ranger", "rogue"]
+    }
+  },
+  {
+    "_id": "TLwh1TPyNlIjtIlT",
+    "uuid": "Compendium.pf2e.feats-core.Item.TLwh1TPyNlIjtIlT",
+    "name": "Can't You See?",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Can't You See?",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["druid", "ranger"]
+    }
+  },
+  {
+    "_id": "gyrRXC27RpQnSYWE",
+    "uuid": "Compendium.pf2e.feats-core.Item.gyrRXC27RpQnSYWE",
+    "name": "Chaotic Spell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Chaotic Spell",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "bard",
+        "manipulate",
+        "oracle",
+        "sorcerer",
+        "spellshape",
+        "witch",
+        "wizard"
+      ]
+    }
+  },
+  {
+    "_id": "ec1Nkpf5Qmr50nLT",
+    "uuid": "Compendium.pf2e.feats-core.Item.ec1Nkpf5Qmr50nLT",
+    "name": "Eerie Environs",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Eerie Environs",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["druid", "ranger"]
+    }
+  },
+  {
+    "_id": "RTqGnbn5Xfv3zuCx",
+    "uuid": "Compendium.pf2e.feats-core.Item.RTqGnbn5Xfv3zuCx",
+    "name": "Eerie Traces",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Eerie Traces",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["concentrate", "druid", "exploration", "move", "ranger"]
+    }
+  },
+  {
+    "_id": "mzUzuf8EQ4j3PiQ1",
+    "uuid": "Compendium.pf2e.feats-core.Item.mzUzuf8EQ4j3PiQ1",
+    "name": "Grand Dance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Grand Dance",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["bard", "rogue", "swashbuckler"]
+    }
+  },
+  {
+    "_id": "21N02dgzd9nssaVR",
+    "uuid": "Compendium.pf2e.feats-core.Item.21N02dgzd9nssaVR",
+    "name": "Greenwatch Veteran",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Greenwatch Veteran",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["gunslinger", "investigator", "ranger"]
+    }
+  },
+  {
+    "_id": "uxZxVbVu4nsSeTk7",
+    "uuid": "Compendium.pf2e.feats-core.Item.uxZxVbVu4nsSeTk7",
+    "name": "Helt's Spelldance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Helt's Spelldance",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["bard", "sorcerer", "witch", "wizard"]
+    }
+  },
+  {
+    "_id": "RnLPJTqyPPAWFBBO",
+    "uuid": "Compendium.pf2e.feats-core.Item.RnLPJTqyPPAWFBBO",
+    "name": "Impassable Wall Stance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Impassable Wall Stance",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["champion", "fighter", "stance"]
+    }
+  },
+  {
+    "_id": "XXsJFqjZQ1JgPxHD",
+    "uuid": "Compendium.pf2e.feats-core.Item.XXsJFqjZQ1JgPxHD",
+    "name": "Knight's Retaliation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Knight's Retaliation",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["fighter", "swashbuckler"]
+    }
+  },
+  {
+    "_id": "TypxOQhkVJ4ICsrQ",
+    "uuid": "Compendium.pf2e.feats-core.Item.TypxOQhkVJ4ICsrQ",
+    "name": "Quick Shield Block",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Quick Shield Block",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["champion", "fighter"]
+    }
+  },
+  {
+    "_id": "Xfc73ZY4H5El16AV",
+    "uuid": "Compendium.pf2e.feats-core.Item.Xfc73ZY4H5El16AV",
+    "name": "Sudden Leap",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sudden Leap",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["barbarian", "fighter"]
+    }
+  },
+  {
+    "_id": "GVTfzNOe4pgrK9St",
+    "uuid": "Compendium.pf2e.feats-core.Item.GVTfzNOe4pgrK9St",
+    "name": "Unseen Passage",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Unseen Passage",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["gunslinger", "investigator", "ranger"]
+    }
+  },
+  {
+    "_id": "fPMkDCaAZ73HPrEV",
+    "uuid": "Compendium.pf2e.feats-core.Item.fPMkDCaAZ73HPrEV",
+    "name": "Spellbook Prodigy",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Spellbook Prodigy",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["wizard"]
+    }
+  },
+  {
+    "_id": "HjPxMRT8dfD3Hmva",
+    "uuid": "Compendium.pf2e.feats-core.Item.HjPxMRT8dfD3Hmva",
+    "name": "Scroll Adept",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Scroll Adept",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["wizard"]
+    }
+  },
+  {
+    "_id": "LKvbMeCGJp28yLft",
+    "uuid": "Compendium.pf2e.feats-core.Item.LKvbMeCGJp28yLft",
+    "name": "Clever Counterspell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Clever Counterspell",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["wizard"]
+    }
+  },
+  {
+    "_id": "5A4qL1dpMILgVc65",
+    "uuid": "Compendium.pf2e.feats-core.Item.5A4qL1dpMILgVc65",
+    "name": "Forcible Energy",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Forcible Energy",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["manipulate", "spellshape", "wizard"]
+    }
+  },
+  {
+    "_id": "90n7oqq1U9ue7w9C",
+    "uuid": "Compendium.pf2e.feats-core.Item.90n7oqq1U9ue7w9C",
+    "name": "Keen Magical Detection",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Keen Magical Detection",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["fortune", "wizard"]
+    }
+  },
+  {
+    "_id": "oeWVK1V0Sa4XAsyv",
+    "uuid": "Compendium.pf2e.feats-core.Item.oeWVK1V0Sa4XAsyv",
+    "name": "Bonded Focus",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Bonded Focus",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["wizard"]
+    }
+  },
+  {
+    "_id": "LZ2OIA64FPDh088H",
+    "uuid": "Compendium.pf2e.feats-core.Item.LZ2OIA64FPDh088H",
+    "name": "Secondary Detonation Array",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Secondary Detonation Array",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["manipulate", "spellshape", "wizard"]
+    }
+  },
+  {
+    "_id": "nXnNwoZldgnH9XyQ",
+    "uuid": "Compendium.pf2e.feats-core.Item.nXnNwoZldgnH9XyQ",
+    "name": "Shift Spell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Shift Spell",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["wizard"]
+    }
+  },
+  {
+    "_id": "41FPFrMw98fGflJR",
+    "uuid": "Compendium.pf2e.feats-core.Item.41FPFrMw98fGflJR",
+    "name": "Superior Bond",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Superior Bond",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["wizard"]
+    }
+  },
+  {
+    "_id": "wAoUSMypBi7OjVJS",
+    "uuid": "Compendium.pf2e.feats-core.Item.wAoUSMypBi7OjVJS",
+    "name": "Spell Tinker",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Spell Tinker",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["concentrate", "wizard"]
+    }
+  },
+  {
+    "_id": "0fha7ZBrl6TANDX7",
+    "uuid": "Compendium.pf2e.feats-core.Item.0fha7ZBrl6TANDX7",
+    "name": "Infinite Possibilities",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Infinite Possibilities",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["wizard"]
+    }
+  },
+  {
+    "_id": "mamniUJGmO9isvcY",
+    "uuid": "Compendium.pf2e.feats-core.Item.mamniUJGmO9isvcY",
+    "name": "Reprepare Spell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Reprepare Spell",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["wizard"]
+    }
+  },
+  {
+    "_id": "WZzhSMK2nrXC1rrV",
+    "uuid": "Compendium.pf2e.feats-core.Item.WZzhSMK2nrXC1rrV",
+    "name": "Second Thoughts",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Second Thoughts",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["concentrate", "mental", "wizard"]
+    }
+  },
+  {
+    "_id": "SFpRALNj03poIfI6",
+    "uuid": "Compendium.pf2e.feats-core.Item.SFpRALNj03poIfI6",
+    "name": "Energy Ablation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Energy Ablation",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["spellshape", "wizard"]
+    }
+  },
+  {
+    "_id": "dIj2R91cJrLSnOab",
+    "uuid": "Compendium.pf2e.feats-core.Item.dIj2R91cJrLSnOab",
+    "name": "Nonlethal Spell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Nonlethal Spell",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["manipulate", "spellshape", "wizard"]
+    }
+  },
+  {
+    "_id": "t9i5lziSRoYKX7YU",
+    "uuid": "Compendium.pf2e.feats-core.Item.t9i5lziSRoYKX7YU",
+    "name": "Archwizard's Might",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Archwizard's Might",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["wizard"]
+    }
+  },
+  {
+    "_id": "kCXiWlmz3nsSSkgE",
+    "uuid": "Compendium.pf2e.feats-core.Item.kCXiWlmz3nsSSkgE",
+    "name": "Reclaim Spell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Reclaim Spell",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["wizard"]
+    }
+  },
+  {
+    "_id": "Tw1hxVkV8rSf6dGC",
+    "uuid": "Compendium.pf2e.feats-core.Item.Tw1hxVkV8rSf6dGC",
+    "name": "Spell Combination",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Spell Combination",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["wizard"]
+    }
+  },
+  {
+    "_id": "HdksBoZPE6sVhaWf",
+    "uuid": "Compendium.pf2e.feats-core.Item.HdksBoZPE6sVhaWf",
+    "name": "Spell Mastery",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Spell Mastery",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["wizard"]
+    }
+  },
+  {
+    "_id": "fobDDGZLrPK4meXH",
+    "uuid": "Compendium.pf2e.feats-core.Item.fobDDGZLrPK4meXH",
+    "name": "Worldsphere Gravity",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Worldsphere Gravity",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["spellshape", "wizard"]
+    }
+  },
+  {
+    "_id": "klYinLLMXrguOj8G",
+    "uuid": "Compendium.pf2e.feats-core.Item.klYinLLMXrguOj8G",
+    "name": "Call Wizardly Tools",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Call Wizardly Tools",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["concentrate", "teleportation", "wizard"]
+    }
+  },
+  {
+    "_id": "iNUq7lzKjjy1rqP2",
+    "uuid": "Compendium.pf2e.feats-core.Item.iNUq7lzKjjy1rqP2",
+    "name": "Linked Focus",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Linked Focus",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["wizard"]
+    }
+  },
+  {
+    "_id": "ALiI72Lxovcnn2JN",
+    "uuid": "Compendium.pf2e.feats-core.Item.ALiI72Lxovcnn2JN",
+    "name": "Spell Protection Array",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Spell Protection Array",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["arcane", "manipulate", "wizard"]
+    }
+  },
+  {
+    "_id": "t0v4asUJEkz88pPh",
+    "uuid": "Compendium.pf2e.feats-core.Item.t0v4asUJEkz88pPh",
+    "name": "Convincing Illusion",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Convincing Illusion",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["wizard"]
+    }
+  },
+  {
+    "_id": "ruFOaTsDBE5A9Bh3",
+    "uuid": "Compendium.pf2e.feats-core.Item.ruFOaTsDBE5A9Bh3",
+    "name": "Explosive Arrival",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Explosive Arrival",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["concentrate", "manipulate", "spellshape", "wizard"]
+    }
+  },
+  {
+    "_id": "vydlKsY0nudPEzzN",
+    "uuid": "Compendium.pf2e.feats-core.Item.vydlKsY0nudPEzzN",
+    "name": "Irresistible Magic",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Irresistible Magic",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["wizard"]
+    }
+  },
+  {
+    "_id": "WpJMPFMH4KoCqNkn",
+    "uuid": "Compendium.pf2e.feats-core.Item.WpJMPFMH4KoCqNkn",
+    "name": "Split Slot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Split Slot",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["wizard"]
+    }
+  },
+  {
+    "_id": "z0ecJnZ2Zfa7qF9u",
+    "uuid": "Compendium.pf2e.feats-core.Item.z0ecJnZ2Zfa7qF9u",
+    "name": "Advanced School Spell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Advanced School Spell",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["wizard"]
+    }
+  },
+  {
+    "_id": "EEQAEMK6b8GeAoe8",
+    "uuid": "Compendium.pf2e.feats-core.Item.EEQAEMK6b8GeAoe8",
+    "name": "Bond Conservation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Bond Conservation",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["manipulate", "spellshape", "wizard"]
+    }
+  },
+  {
+    "_id": "wigrhYhyAZlwfZTA",
+    "uuid": "Compendium.pf2e.feats-core.Item.wigrhYhyAZlwfZTA",
+    "name": "Form Retention",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Form Retention",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["wizard"]
+    }
+  },
+  {
+    "_id": "EBsaCl3Ph1aAOF9u",
+    "uuid": "Compendium.pf2e.feats-core.Item.EBsaCl3Ph1aAOF9u",
+    "name": "Knowledge is Power (Wizard)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Knowledge is Power (Wizard)",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["wizard"]
     }
   },
   {

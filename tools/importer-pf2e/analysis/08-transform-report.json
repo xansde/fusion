@@ -1,7 +1,7 @@
 {
   "importerVersion": "0.1.0",
   "sourceVersion": "v14-dev",
-  "generatedAt": "2026-07-07T17:59:36.047Z",
+  "generatedAt": "2026-08-02T00:15:41.668Z",
   "packs": [
     {
       "packId": "pf2e.familiar-abilities",
@@ -92,14 +92,122 @@
         "coveragePct": "56.3"
       },
       "assetSubstitutions": 111
+    },
+    {
+      "packId": "pf2e.ancestry-features",
+      "total": 55,
+      "transformed": 55,
+      "invalidExcluded": [],
+      "ruleCoverage": {
+        "totalRules": 69,
+        "byState": {
+          "supported": 33,
+          "partial": 6,
+          "unsupported": 30
+        },
+        "byKey": {
+          "Strike": {
+            "total": 20,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 20
+          },
+          "ItemAlteration": {
+            "total": 4,
+            "supported": 0,
+            "partial": 4,
+            "unsupported": 0
+          },
+          "FlatModifier": {
+            "total": 12,
+            "supported": 12,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "ChoiceSet": {
+            "total": 5,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 5
+          },
+          "BaseSpeed": {
+            "total": 1,
+            "supported": 1,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "ActiveEffectLike": {
+            "total": 4,
+            "supported": 3,
+            "partial": 1,
+            "unsupported": 0
+          },
+          "RollOption": {
+            "total": 9,
+            "supported": 9,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "GrantItem": {
+            "total": 6,
+            "supported": 6,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "TokenLight": {
+            "total": 1,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 1
+          },
+          "AdjustDegreeOfSuccess": {
+            "total": 2,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 2
+          },
+          "Weakness": {
+            "total": 1,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 1
+          },
+          "AdjustStrike": {
+            "total": 1,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 1
+          },
+          "Sense": {
+            "total": 1,
+            "supported": 1,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "Resistance": {
+            "total": 1,
+            "supported": 1,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "Immunity": {
+            "total": 1,
+            "supported": 0,
+            "partial": 1,
+            "unsupported": 0
+          }
+        },
+        "coveragePct": "47.8"
+      },
+      "assetSubstitutions": 55
     }
   ],
   "aggregate": {
-    "totalRules": 48,
-    "supportedRules": 27,
-    "partialRules": 1,
-    "unsupportedRules": 20,
-    "coveragePct": "56.3"
+    "totalRules": 117,
+    "supportedRules": 60,
+    "partialRules": 7,
+    "unsupportedRules": 50,
+    "coveragePct": "51.3"
   },
   "failed": false
 }

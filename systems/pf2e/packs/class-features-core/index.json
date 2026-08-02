@@ -1,5 +1,18 @@
 [
   {
+    "_id": "mRLd1vgm5NpYMpD7",
+    "uuid": "Compendium.pf2e.class-features-core.Item.mRLd1vgm5NpYMpD7",
+    "name": "Agile Mind",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Agile Mind",
+      "system.level": 17,
+      "system.category": "classfeature",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
     "_id": "X9sJnNpTtf1p2nbI",
     "uuid": "Compendium.pf2e.class-features-core.Item.X9sJnNpTtf1p2nbI",
     "name": "Alertness",
@@ -27,6 +40,33 @@
     }
   },
   {
+    "_id": "oqbnOYq8BmDDXWid",
+    "uuid": "Compendium.pf2e.class-features-core.Item.oqbnOYq8BmDDXWid",
+    "name": "Animal Instinct",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Animal Instinct",
+      "system.level": 1,
+      "system.category": "instinct",
+      "system.traits.value": ["barbarian"],
+      "system.traits.otherTags": ["barbarian-instinct"]
+    }
+  },
+  {
+    "_id": "43cBGyCAMSl8qJaN",
+    "uuid": "Compendium.pf2e.class-features-core.Item.43cBGyCAMSl8qJaN",
+    "name": "Arcane Bond",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Arcane Bond",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": ["wizard"]
+    }
+  },
+  {
     "_id": "pf6KyAB13Qf5GQ9Q",
     "uuid": "Compendium.pf2e.class-features-core.Item.pf6KyAB13Qf5GQ9Q",
     "name": "Arcane Cascade",
@@ -37,6 +77,19 @@
       "system.level": 1,
       "system.category": "classfeature",
       "system.traits.value": ["magus"]
+    }
+  },
+  {
+    "_id": "tn019aFJzq8HZoqF",
+    "uuid": "Compendium.pf2e.class-features-core.Item.tn019aFJzq8HZoqF",
+    "name": "Arcane School",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Arcane School",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": ["wizard"]
     }
   },
   {
@@ -53,6 +106,151 @@
     }
   },
   {
+    "_id": "kpaU3PWMOsGmNnGB",
+    "uuid": "Compendium.pf2e.class-features-core.Item.kpaU3PWMOsGmNnGB",
+    "name": "Arcane Thesis",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Arcane Thesis",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": ["wizard"]
+    }
+  },
+  {
+    "_id": "dYhgA64ZW6luX4Bb",
+    "uuid": "Compendium.pf2e.class-features-core.Item.dYhgA64ZW6luX4Bb",
+    "name": "Archwizard's Spellcraft",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Archwizard's Spellcraft",
+      "system.level": 19,
+      "system.category": "classfeature",
+      "system.traits.value": ["wizard"]
+    }
+  },
+  {
+    "_id": "e7XksR8zXy3vmWID",
+    "uuid": "Compendium.pf2e.class-features-core.Item.e7XksR8zXy3vmWID",
+    "name": "Armor Expertise",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Armor Expertise",
+      "system.level": 7,
+      "system.category": "classfeature",
+      "system.traits.value": ["champion", "commander", "fighter"]
+    }
+  },
+  {
+    "_id": "0bEpfnxfGVCC0MkH",
+    "uuid": "Compendium.pf2e.class-features-core.Item.0bEpfnxfGVCC0MkH",
+    "name": "Armor Mastery",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Armor Mastery",
+      "system.level": 13,
+      "system.category": "classfeature",
+      "system.traits.value": ["barbarian", "champion", "commander", "fighter"]
+    }
+  },
+  {
+    "_id": "1lY4cPdWJRz7gZeO",
+    "uuid": "Compendium.pf2e.class-features-core.Item.1lY4cPdWJRz7gZeO",
+    "name": "Avenger",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Avenger",
+      "system.level": 1,
+      "system.category": "racket",
+      "system.traits.value": ["rogue"],
+      "system.traits.otherTags": ["class-archetype", "rogue-racket"]
+    }
+  },
+  {
+    "_id": "VkO2is6M3jSHMmcB",
+    "uuid": "Compendium.pf2e.class-features-core.Item.VkO2is6M3jSHMmcB",
+    "name": "Battle Hardened",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Battle Hardened",
+      "system.level": 9,
+      "system.category": "classfeature",
+      "system.traits.value": ["fighter", "guardian"]
+    }
+  },
+  {
+    "_id": "9UxhxcrzluPnEZR5",
+    "uuid": "Compendium.pf2e.class-features-core.Item.9UxhxcrzluPnEZR5",
+    "name": "Battlefield Surveyor",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Battlefield Surveyor",
+      "system.level": 7,
+      "system.category": "classfeature",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "TqbPGroaqsb5vqWa",
+    "uuid": "Compendium.pf2e.class-features-core.Item.TqbPGroaqsb5vqWa",
+    "name": "Bloodrager",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Bloodrager",
+      "system.level": 1,
+      "system.category": "instinct",
+      "system.traits.value": ["barbarian"],
+      "system.traits.otherTags": ["barbarian-instinct", "class-archetype"]
+    }
+  },
+  {
+    "_id": "9nuwMiszzx1knylD",
+    "uuid": "Compendium.pf2e.class-features-core.Item.9nuwMiszzx1knylD",
+    "name": "Bravery",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Bravery",
+      "system.level": 3,
+      "system.category": "classfeature",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "GxqYyngLaOWAD4XE",
+    "uuid": "Compendium.pf2e.class-features-core.Item.GxqYyngLaOWAD4XE",
+    "name": "Brutality",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Brutality",
+      "system.level": 5,
+      "system.category": "classfeature",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "EUWhu9k5SyqF4b3o",
+    "uuid": "Compendium.pf2e.class-features-core.Item.EUWhu9k5SyqF4b3o",
+    "name": "Combat Flexibility",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Combat Flexibility",
+      "system.level": 9,
+      "system.category": "classfeature",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
     "_id": "4TibtVUC1A4nu3lj",
     "uuid": "Compendium.pf2e.class-features-core.Item.4TibtVUC1A4nu3lj",
     "name": "Conflux Spells",
@@ -63,6 +261,85 @@
       "system.level": 1,
       "system.category": "classfeature",
       "system.traits.value": ["magus"]
+    }
+  },
+  {
+    "_id": "mGyRcs5k6sRE1fVm",
+    "uuid": "Compendium.pf2e.class-features-core.Item.mGyRcs5k6sRE1fVm",
+    "name": "Debilitating Strike",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Debilitating Strike",
+      "system.level": 9,
+      "system.category": "classfeature",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "czSFAoqERcVtJ7WY",
+    "uuid": "Compendium.pf2e.class-features-core.Item.czSFAoqERcVtJ7WY",
+    "name": "Decay Instinct",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Decay Instinct",
+      "system.level": 1,
+      "system.category": "instinct",
+      "system.traits.value": ["barbarian"],
+      "system.traits.otherTags": ["barbarian-instinct"]
+    }
+  },
+  {
+    "_id": "ujHgj7E0eFOmHsjj",
+    "uuid": "Compendium.pf2e.class-features-core.Item.ujHgj7E0eFOmHsjj",
+    "name": "Defensive Robes",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Defensive Robes",
+      "system.level": 13,
+      "system.category": "classfeature",
+      "system.traits.value": ["sorcerer", "summoner", "witch", "wizard"]
+    }
+  },
+  {
+    "_id": "00oGcsrK5SwnCoP5",
+    "uuid": "Compendium.pf2e.class-features-core.Item.00oGcsrK5SwnCoP5",
+    "name": "Deny Advantage",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Deny Advantage",
+      "system.level": 3,
+      "system.category": "classfeature",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "iMu4xqbkkjWD0LNs",
+    "uuid": "Compendium.pf2e.class-features-core.Item.iMu4xqbkkjWD0LNs",
+    "name": "Devastator",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Devastator",
+      "system.level": 19,
+      "system.category": "classfeature",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "GsP5d7tMjUvrLUMu",
+    "uuid": "Compendium.pf2e.class-features-core.Item.GsP5d7tMjUvrLUMu",
+    "name": "Double Debilitation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Double Debilitation",
+      "system.level": 15,
+      "system.category": "classfeature",
+      "system.traits.value": ["rogue"]
     }
   },
   {
@@ -89,6 +366,75 @@
       "system.level": 19,
       "system.category": "classfeature",
       "system.traits.value": ["magus"]
+    }
+  },
+  {
+    "_id": "mgxli7XtX5qYnJmX",
+    "uuid": "Compendium.pf2e.class-features-core.Item.mgxli7XtX5qYnJmX",
+    "name": "Dragon Instinct",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Dragon Instinct",
+      "system.level": 1,
+      "system.category": "instinct",
+      "system.traits.value": ["barbarian"],
+      "system.traits.otherTags": ["barbarian-instinct"]
+    }
+  },
+  {
+    "_id": "IWh85cirQmPjmrDr",
+    "uuid": "Compendium.pf2e.class-features-core.Item.IWh85cirQmPjmrDr",
+    "name": "Eldritch Trickster",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Eldritch Trickster",
+      "system.level": 1,
+      "system.category": "racket",
+      "system.traits.value": ["rogue"],
+      "system.traits.otherTags": ["rogue-racket"]
+    }
+  },
+  {
+    "_id": "uFO4ijSHv40D0G7M",
+    "uuid": "Compendium.pf2e.class-features-core.Item.uFO4ijSHv40D0G7M",
+    "name": "Elemental Instinct",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Elemental Instinct",
+      "system.level": 1,
+      "system.category": "instinct",
+      "system.traits.value": ["barbarian"],
+      "system.traits.otherTags": ["barbarian-instinct"]
+    }
+  },
+  {
+    "_id": "p3d74Rt5Nfi8ZqtK",
+    "uuid": "Compendium.pf2e.class-features-core.Item.p3d74Rt5Nfi8ZqtK",
+    "name": "Evasive Reflexes",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Evasive Reflexes",
+      "system.level": 7,
+      "system.category": "classfeature",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "3kVnSraayseCTyqW",
+    "uuid": "Compendium.pf2e.class-features-core.Item.3kVnSraayseCTyqW",
+    "name": "Experimental Spellshaping",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Experimental Spellshaping",
+      "system.level": 1,
+      "system.category": "arcaneThesis",
+      "system.traits.value": ["wizard"],
+      "system.traits.otherTags": ["wizard-arcane-thesis"]
     }
   },
   {
@@ -129,6 +475,32 @@
     }
   },
   {
+    "_id": "8HvcepETp5pS8Mk8",
+    "uuid": "Compendium.pf2e.class-features-core.Item.8HvcepETp5pS8Mk8",
+    "name": "Fighter Expertise",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Fighter Expertise",
+      "system.level": 11,
+      "system.category": "classfeature",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "5ETItJAxZIZAGA4o",
+    "uuid": "Compendium.pf2e.class-features-core.Item.5ETItJAxZIZAGA4o",
+    "name": "Fighter Weapon Mastery",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Fighter Weapon Mastery",
+      "system.level": 5,
+      "system.category": "classfeature",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
     "_id": "phFV9ukpsGR9yCFY",
     "uuid": "Compendium.pf2e.class-features-core.Item.phFV9ukpsGR9yCFY",
     "name": "Final Gate",
@@ -139,6 +511,20 @@
       "system.level": 19,
       "system.category": "classfeature",
       "system.traits.value": ["kineticist"]
+    }
+  },
+  {
+    "_id": "PwUXRaUJwVQJn6mK",
+    "uuid": "Compendium.pf2e.class-features-core.Item.PwUXRaUJwVQJn6mK",
+    "name": "Flurry",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Flurry",
+      "system.level": 1,
+      "system.category": "huntersEdge",
+      "system.traits.value": ["ranger"],
+      "system.traits.otherTags": ["ranger-hunters-edge"]
     }
   },
   {
@@ -155,6 +541,33 @@
     }
   },
   {
+    "_id": "xIbUjeUIOsopXLq7",
+    "uuid": "Compendium.pf2e.class-features-core.Item.xIbUjeUIOsopXLq7",
+    "name": "Furious Footfalls",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Furious Footfalls",
+      "system.level": 3,
+      "system.category": "classfeature",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "ySaLalaR1yMdkqlL",
+    "uuid": "Compendium.pf2e.class-features-core.Item.ySaLalaR1yMdkqlL",
+    "name": "Fury Instinct",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Fury Instinct",
+      "system.level": 1,
+      "system.category": "instinct",
+      "system.traits.value": ["barbarian"],
+      "system.traits.otherTags": ["barbarian-instinct"]
+    }
+  },
+  {
     "_id": "hYxkutfYKZfTlJb5",
     "uuid": "Compendium.pf2e.class-features-core.Item.hYxkutfYKZfTlJb5",
     "name": "Gate's Threshold",
@@ -168,6 +581,33 @@
     }
   },
   {
+    "_id": "GjQbLNUBD82eOW61",
+    "uuid": "Compendium.pf2e.class-features-core.Item.GjQbLNUBD82eOW61",
+    "name": "Giant Instinct",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Giant Instinct",
+      "system.level": 1,
+      "system.category": "instinct",
+      "system.traits.value": ["barbarian"],
+      "system.traits.otherTags": ["barbarian-instinct"]
+    }
+  },
+  {
+    "_id": "AquKnYKME2Bg09m4",
+    "uuid": "Compendium.pf2e.class-features-core.Item.AquKnYKME2Bg09m4",
+    "name": "Greater Juggernaut",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Greater Juggernaut",
+      "system.level": 13,
+      "system.category": "classfeature",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
     "_id": "YFDgTLc4gyZOGzK0",
     "uuid": "Compendium.pf2e.class-features-core.Item.YFDgTLc4gyZOGzK0",
     "name": "Greater Kinetic Durability",
@@ -178,6 +618,45 @@
       "system.level": 15,
       "system.category": "classfeature",
       "system.traits.value": ["kineticist"]
+    }
+  },
+  {
+    "_id": "TVGLZkpHhd1apWCl",
+    "uuid": "Compendium.pf2e.class-features-core.Item.TVGLZkpHhd1apWCl",
+    "name": "Greater Natural Reflexes",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Greater Natural Reflexes",
+      "system.level": 15,
+      "system.category": "classfeature",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "wFpQ8XP25u7l47Dx",
+    "uuid": "Compendium.pf2e.class-features-core.Item.wFpQ8XP25u7l47Dx",
+    "name": "Greater Rogue Reflexes",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Greater Rogue Reflexes",
+      "system.level": 13,
+      "system.category": "classfeature",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "QACo7ORm1m5eT8rO",
+    "uuid": "Compendium.pf2e.class-features-core.Item.QACo7ORm1m5eT8rO",
+    "name": "Greater Weapon Specialization (Barbarian)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Greater Weapon Specialization (Barbarian)",
+      "system.level": 15,
+      "system.category": "classfeature",
+      "system.traits.value": ["barbarian"]
     }
   },
   {
@@ -207,6 +686,32 @@
     }
   },
   {
+    "_id": "msuzrLPXOC194scV",
+    "uuid": "Compendium.pf2e.class-features-core.Item.msuzrLPXOC194scV",
+    "name": "Hunt Prey",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Hunt Prey",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "2N47XW5w8GSh8CEG",
+    "uuid": "Compendium.pf2e.class-features-core.Item.2N47XW5w8GSh8CEG",
+    "name": "Hunter's Edge",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Hunter's Edge",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
     "_id": "YQVqWitPCozoffq5",
     "uuid": "Compendium.pf2e.class-features-core.Item.YQVqWitPCozoffq5",
     "name": "Hybrid Study",
@@ -217,6 +722,33 @@
       "system.level": 1,
       "system.category": "classfeature",
       "system.traits.value": ["magus"]
+    }
+  },
+  {
+    "_id": "5tmDVegLinuUP9ko",
+    "uuid": "Compendium.pf2e.class-features-core.Item.5tmDVegLinuUP9ko",
+    "name": "Improved Familiar Attunement",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Improved Familiar Attunement",
+      "system.level": 1,
+      "system.category": "arcaneThesis",
+      "system.traits.value": ["wizard"],
+      "system.traits.otherTags": ["wizard-arcane-thesis"]
+    }
+  },
+  {
+    "_id": "ETInvMyBeigMlTrA",
+    "uuid": "Compendium.pf2e.class-features-core.Item.ETInvMyBeigMlTrA",
+    "name": "Improved Flexibility",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Improved Flexibility",
+      "system.level": 15,
+      "system.category": "classfeature",
+      "system.traits.value": ["fighter"]
     }
   },
   {
@@ -233,6 +765,19 @@
     }
   },
   {
+    "_id": "M2SKz26bYBV83ywT",
+    "uuid": "Compendium.pf2e.class-features-core.Item.M2SKz26bYBV83ywT",
+    "name": "Indomitable Will",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Indomitable Will",
+      "system.level": 15,
+      "system.category": "classfeature",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
     "_id": "o6Oc3e0GSFurrogA",
     "uuid": "Compendium.pf2e.class-features-core.Item.o6Oc3e0GSFurrogA",
     "name": "Inexorable Iron",
@@ -244,6 +789,19 @@
       "system.category": "hybridStudy",
       "system.traits.value": ["magus"],
       "system.traits.otherTags": ["magus-hybrid-study"]
+    }
+  },
+  {
+    "_id": "cQdtouC7aLBqMKBC",
+    "uuid": "Compendium.pf2e.class-features-core.Item.cQdtouC7aLBqMKBC",
+    "name": "Instinct",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Instinct",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": ["barbarian"]
     }
   },
   {
@@ -365,6 +923,28 @@
     }
   },
   {
+    "_id": "Qb6mPsJUxA73nPlp",
+    "uuid": "Compendium.pf2e.class-features-core.Item.Qb6mPsJUxA73nPlp",
+    "name": "Legendary Spellcaster",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Legendary Spellcaster",
+      "system.level": 19,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "animist",
+        "bard",
+        "druid",
+        "oracle",
+        "psychic",
+        "sorcerer",
+        "witch",
+        "wizard"
+      ]
+    }
+  },
+  {
     "_id": "AVh4glubbzygKbI8",
     "uuid": "Compendium.pf2e.class-features-core.Item.AVh4glubbzygKbI8",
     "name": "Light Armor Expertise",
@@ -398,6 +978,46 @@
     }
   },
   {
+    "_id": "J5O5LCmCJ4eppkYk",
+    "uuid": "Compendium.pf2e.class-features-core.Item.J5O5LCmCJ4eppkYk",
+    "name": "Ligneous Instinct",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Ligneous Instinct",
+      "system.level": 1,
+      "system.category": "instinct",
+      "system.traits.value": ["barbarian"],
+      "system.traits.otherTags": ["barbarian-instinct"]
+    }
+  },
+  {
+    "_id": "RHNT0Hqaw8blOiu7",
+    "uuid": "Compendium.pf2e.class-features-core.Item.RHNT0Hqaw8blOiu7",
+    "name": "Magical Fortitude",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Magical Fortitude",
+      "system.level": 5,
+      "system.category": "classfeature",
+      "system.traits.value": ["oracle", "sorcerer", "witch", "wizard"]
+    }
+  },
+  {
+    "_id": "ZzWD1IY5kAnQ8a65",
+    "uuid": "Compendium.pf2e.class-features-core.Item.ZzWD1IY5kAnQ8a65",
+    "name": "Martial Weapon Mastery",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Martial Weapon Mastery",
+      "system.level": 13,
+      "system.category": "classfeature",
+      "system.traits.value": ["champion", "investigator", "ranger", "swashbuckler"]
+    }
+  },
+  {
     "_id": "qm5rjGcbeMbHRQ79",
     "uuid": "Compendium.pf2e.class-features-core.Item.qm5rjGcbeMbHRQ79",
     "name": "Master Spellcaster",
@@ -419,6 +1039,59 @@
         "witch",
         "wizard"
       ]
+    }
+  },
+  {
+    "_id": "zz7BrvQR7RNFPgN7",
+    "uuid": "Compendium.pf2e.class-features-core.Item.zz7BrvQR7RNFPgN7",
+    "name": "Master Strike",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Master Strike",
+      "system.level": 19,
+      "system.category": "classfeature",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "oSMLCBMXrEeuRoOS",
+    "uuid": "Compendium.pf2e.class-features-core.Item.oSMLCBMXrEeuRoOS",
+    "name": "Master Tricks",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Master Tricks",
+      "system.level": 13,
+      "system.category": "classfeature",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "CfXjubA6aeQTozJe",
+    "uuid": "Compendium.pf2e.class-features-core.Item.CfXjubA6aeQTozJe",
+    "name": "Masterful Hunter",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Masterful Hunter",
+      "system.level": 17,
+      "system.category": "classfeature",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "l9DwoPxOz09qZTNH",
+    "uuid": "Compendium.pf2e.class-features-core.Item.l9DwoPxOz09qZTNH",
+    "name": "Mastermind",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Mastermind",
+      "system.level": 1,
+      "system.category": "racket",
+      "system.traits.value": ["rogue"],
+      "system.traits.otherTags": ["rogue-racket"]
     }
   },
   {
@@ -463,6 +1136,59 @@
     }
   },
   {
+    "_id": "O3rac2kRtEjwCHC0",
+    "uuid": "Compendium.pf2e.class-features-core.Item.O3rac2kRtEjwCHC0",
+    "name": "Mighty Rage",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Mighty Rage",
+      "system.level": 11,
+      "system.category": "classfeature",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "3KjbcMT4TFczJxR0",
+    "uuid": "Compendium.pf2e.class-features-core.Item.3KjbcMT4TFczJxR0",
+    "name": "Natural Reflexes",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Natural Reflexes",
+      "system.level": 7,
+      "system.category": "classfeature",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "UTCSBZnzYPwRfjpC",
+    "uuid": "Compendium.pf2e.class-features-core.Item.UTCSBZnzYPwRfjpC",
+    "name": "Nature's Edge",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Nature's Edge",
+      "system.level": 9,
+      "system.category": "classfeature",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "LWdm6BK2AZh5NuF2",
+    "uuid": "Compendium.pf2e.class-features-core.Item.LWdm6BK2AZh5NuF2",
+    "name": "Outwit",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Outwit",
+      "system.level": 1,
+      "system.category": "huntersEdge",
+      "system.traits.value": ["ranger"],
+      "system.traits.otherTags": ["ranger-hunters-edge"]
+    }
+  },
+  {
     "_id": "lq2hF5SquDtGyQjd",
     "uuid": "Compendium.pf2e.class-features-core.Item.lq2hF5SquDtGyQjd",
     "name": "Perception Expertise",
@@ -485,6 +1211,162 @@
         "witch",
         "wizard"
       ]
+    }
+  },
+  {
+    "_id": "goMuPizfdUMG7iVu",
+    "uuid": "Compendium.pf2e.class-features-core.Item.goMuPizfdUMG7iVu",
+    "name": "Perception Legend",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Perception Legend",
+      "system.level": 13,
+      "system.category": "classfeature",
+      "system.traits.value": ["gunslinger", "ranger", "rogue"]
+    }
+  },
+  {
+    "_id": "a1x0l48GmQCZqIYw",
+    "uuid": "Compendium.pf2e.class-features-core.Item.a1x0l48GmQCZqIYw",
+    "name": "Perception Mastery",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Perception Mastery",
+      "system.level": 7,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "barbarian",
+        "bard",
+        "commander",
+        "exemplar",
+        "gunslinger",
+        "investigator",
+        "ranger",
+        "rogue",
+        "swashbuckler",
+        "thaumaturge"
+      ]
+    }
+  },
+  {
+    "_id": "rkGtWFGsR3fOlHV6",
+    "uuid": "Compendium.pf2e.class-features-core.Item.rkGtWFGsR3fOlHV6",
+    "name": "Precision",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Precision",
+      "system.level": 1,
+      "system.category": "huntersEdge",
+      "system.traits.value": ["ranger"],
+      "system.traits.otherTags": ["ranger-hunters-edge"]
+    }
+  },
+  {
+    "_id": "q5U9JtyjBIro75z5",
+    "uuid": "Compendium.pf2e.class-features-core.Item.q5U9JtyjBIro75z5",
+    "name": "Prodigious Will",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Prodigious Will",
+      "system.level": 17,
+      "system.category": "classfeature",
+      "system.traits.value": ["wizard"]
+    }
+  },
+  {
+    "_id": "WMrcHrDh9vNDteMb",
+    "uuid": "Compendium.pf2e.class-features-core.Item.WMrcHrDh9vNDteMb",
+    "name": "Quick-Tempered",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Quick-Tempered",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "TNl7mpUpn5Jl2pFY",
+    "uuid": "Compendium.pf2e.class-features-core.Item.TNl7mpUpn5Jl2pFY",
+    "name": "Rage",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Rage",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "9PCCevlsNphbxSlz",
+    "uuid": "Compendium.pf2e.class-features-core.Item.9PCCevlsNphbxSlz",
+    "name": "Raging Resistance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Raging Resistance",
+      "system.level": 9,
+      "system.category": "classfeature",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "1gLNhDwqDBZXZgW7",
+    "uuid": "Compendium.pf2e.class-features-core.Item.1gLNhDwqDBZXZgW7",
+    "name": "Ranger Expertise",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Ranger Expertise",
+      "system.level": 9,
+      "system.category": "classfeature",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "RZrtQozcziZYl1EY",
+    "uuid": "Compendium.pf2e.class-features-core.Item.RZrtQozcziZYl1EY",
+    "name": "Ranger Weapon Expertise",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Ranger Weapon Expertise",
+      "system.level": 5,
+      "system.category": "classfeature",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "03xfNAYhem6UaSiI",
+    "uuid": "Compendium.pf2e.class-features-core.Item.03xfNAYhem6UaSiI",
+    "name": "Reactive Strike",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Reactive Strike",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "Wqar2meUrPVJe74b",
+    "uuid": "Compendium.pf2e.class-features-core.Item.Wqar2meUrPVJe74b",
+    "name": "Red Mantis Magic School",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Red Mantis Magic School",
+      "system.level": 1,
+      "system.category": "arcaneSchool",
+      "system.traits.value": ["wizard"],
+      "system.traits.otherTags": ["wizard-arcane-school"]
     }
   },
   {
@@ -552,6 +1434,268 @@
     }
   },
   {
+    "_id": "A56kTnAVZ0NJmdp0",
+    "uuid": "Compendium.pf2e.class-features-core.Item.A56kTnAVZ0NJmdp0",
+    "name": "Revitalizing Rage",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Revitalizing Rage",
+      "system.level": 17,
+      "system.category": "classfeature",
+      "system.traits.value": ["barbarian"]
+    }
+  },
+  {
+    "_id": "04tKZ1FJoMSOFQsO",
+    "uuid": "Compendium.pf2e.class-features-core.Item.04tKZ1FJoMSOFQsO",
+    "name": "Rogue Expertise",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Rogue Expertise",
+      "system.level": 11,
+      "system.category": "classfeature",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "4TIleUhqTLVdrnvJ",
+    "uuid": "Compendium.pf2e.class-features-core.Item.4TIleUhqTLVdrnvJ",
+    "name": "Rogue Resilience",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Rogue Resilience",
+      "system.level": 9,
+      "system.category": "classfeature",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "xn0WbSFhQxiLUPD9",
+    "uuid": "Compendium.pf2e.class-features-core.Item.xn0WbSFhQxiLUPD9",
+    "name": "Rogue's Racket",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Rogue's Racket",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "koRsoGmKdcwSv7Sg",
+    "uuid": "Compendium.pf2e.class-features-core.Item.koRsoGmKdcwSv7Sg",
+    "name": "Ruffian",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Ruffian",
+      "system.level": 1,
+      "system.category": "racket",
+      "system.traits.value": ["rogue"],
+      "system.traits.otherTags": ["rogue-racket"]
+    }
+  },
+  {
+    "_id": "PAiLtScmWbxnIf4V",
+    "uuid": "Compendium.pf2e.class-features-core.Item.PAiLtScmWbxnIf4V",
+    "name": "Runelord",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Runelord",
+      "system.level": 1,
+      "system.category": "arcaneSchool",
+      "system.traits.value": ["wizard"],
+      "system.traits.otherTags": ["class-archetype", "wizard-arcane-school"]
+    }
+  },
+  {
+    "_id": "RaWM2QHaY7fPFOHj",
+    "uuid": "Compendium.pf2e.class-features-core.Item.RaWM2QHaY7fPFOHj",
+    "name": "School of Ars Grammatica",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "School of Ars Grammatica",
+      "system.level": 1,
+      "system.category": "arcaneSchool",
+      "system.traits.value": ["wizard"],
+      "system.traits.otherTags": ["wizard-arcane-school"]
+    }
+  },
+  {
+    "_id": "IF3HM3OiA20rpyCG",
+    "uuid": "Compendium.pf2e.class-features-core.Item.IF3HM3OiA20rpyCG",
+    "name": "School of Battle Magic",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "School of Battle Magic",
+      "system.level": 1,
+      "system.category": "arcaneSchool",
+      "system.traits.value": ["wizard"],
+      "system.traits.otherTags": ["wizard-arcane-school"]
+    }
+  },
+  {
+    "_id": "7y4VNaiFqDRS5hlL",
+    "uuid": "Compendium.pf2e.class-features-core.Item.7y4VNaiFqDRS5hlL",
+    "name": "School of Civic Wizardry",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "School of Civic Wizardry",
+      "system.level": 1,
+      "system.category": "arcaneSchool",
+      "system.traits.value": ["wizard"],
+      "system.traits.otherTags": ["wizard-arcane-school"]
+    }
+  },
+  {
+    "_id": "mJl9itb5NCCreo0B",
+    "uuid": "Compendium.pf2e.class-features-core.Item.mJl9itb5NCCreo0B",
+    "name": "School of Gates",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "School of Gates",
+      "system.level": 1,
+      "system.category": "arcaneSchool",
+      "system.traits.value": ["wizard"],
+      "system.traits.otherTags": ["wizard-arcane-school"]
+    }
+  },
+  {
+    "_id": "lCXK8iLJXL1yXbX5",
+    "uuid": "Compendium.pf2e.class-features-core.Item.lCXK8iLJXL1yXbX5",
+    "name": "School of Kalistrade",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "School of Kalistrade",
+      "system.level": 1,
+      "system.category": "arcaneSchool",
+      "system.traits.value": ["wizard"],
+      "system.traits.otherTags": ["wizard-arcane-school"]
+    }
+  },
+  {
+    "_id": "A65LAAYwsyYu0oNN",
+    "uuid": "Compendium.pf2e.class-features-core.Item.A65LAAYwsyYu0oNN",
+    "name": "School of Magical Technologies",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "School of Magical Technologies",
+      "system.level": 1,
+      "system.category": "arcaneSchool",
+      "system.traits.value": ["wizard"],
+      "system.traits.otherTags": ["wizard-arcane-school"]
+    }
+  },
+  {
+    "_id": "L5MeQs8KBchhdUmY",
+    "uuid": "Compendium.pf2e.class-features-core.Item.L5MeQs8KBchhdUmY",
+    "name": "School of Mentalism",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "School of Mentalism",
+      "system.level": 1,
+      "system.category": "arcaneSchool",
+      "system.traits.value": ["wizard"],
+      "system.traits.otherTags": ["wizard-arcane-school"]
+    }
+  },
+  {
+    "_id": "51RMGlN4XOf0kc5f",
+    "uuid": "Compendium.pf2e.class-features-core.Item.51RMGlN4XOf0kc5f",
+    "name": "School of Protean Form",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "School of Protean Form",
+      "system.level": 1,
+      "system.category": "arcaneSchool",
+      "system.traits.value": ["wizard"],
+      "system.traits.otherTags": ["wizard-arcane-school"]
+    }
+  },
+  {
+    "_id": "s5u2qecuC8288FDf",
+    "uuid": "Compendium.pf2e.class-features-core.Item.s5u2qecuC8288FDf",
+    "name": "School of Rooted Wisdom",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "School of Rooted Wisdom",
+      "system.level": 1,
+      "system.category": "arcaneSchool",
+      "system.traits.value": ["wizard"],
+      "system.traits.otherTags": ["wizard-arcane-school"]
+    }
+  },
+  {
+    "_id": "JNfWhGAcWSbjofiy",
+    "uuid": "Compendium.pf2e.class-features-core.Item.JNfWhGAcWSbjofiy",
+    "name": "School of the Boundary",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "School of the Boundary",
+      "system.level": 1,
+      "system.category": "arcaneSchool",
+      "system.traits.value": ["wizard"],
+      "system.traits.otherTags": ["wizard-arcane-school"]
+    }
+  },
+  {
+    "_id": "ua1IlvYNXdoD7pke",
+    "uuid": "Compendium.pf2e.class-features-core.Item.ua1IlvYNXdoD7pke",
+    "name": "School of the Reclamation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "School of the Reclamation",
+      "system.level": 1,
+      "system.category": "arcaneSchool",
+      "system.traits.value": ["wizard"],
+      "system.traits.otherTags": ["wizard-arcane-school"]
+    }
+  },
+  {
+    "_id": "k4cWZ1uo7KDeKuKw",
+    "uuid": "Compendium.pf2e.class-features-core.Item.k4cWZ1uo7KDeKuKw",
+    "name": "School of Unified Magical Theory",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "School of Unified Magical Theory",
+      "system.level": 1,
+      "system.category": "arcaneSchool",
+      "system.traits.value": ["wizard"],
+      "system.traits.otherTags": ["wizard-arcane-school", "wizard-elemental-school"]
+    }
+  },
+  {
+    "_id": "iONtIFZho1PewQsX",
+    "uuid": "Compendium.pf2e.class-features-core.Item.iONtIFZho1PewQsX",
+    "name": "Scoundrel",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Scoundrel",
+      "system.level": 1,
+      "system.category": "racket",
+      "system.traits.value": ["rogue"],
+      "system.traits.otherTags": ["rogue-racket"]
+    }
+  },
+  {
     "_id": "2K4xQnGRqtCwjRoU",
     "uuid": "Compendium.pf2e.class-features-core.Item.2K4xQnGRqtCwjRoU",
     "name": "Second Gate's Threshold",
@@ -562,6 +1706,40 @@
       "system.level": 9,
       "system.category": "classfeature",
       "system.traits.value": ["kineticist"]
+    }
+  },
+  {
+    "_id": "MbMJIRm8Ecdwk7pi",
+    "uuid": "Compendium.pf2e.class-features-core.Item.MbMJIRm8Ecdwk7pi",
+    "name": "Shield Block",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Shield Block",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "champion",
+        "commander",
+        "druid",
+        "exemplar",
+        "fighter",
+        "guardian",
+        "inventor"
+      ]
+    }
+  },
+  {
+    "_id": "IAshNRcsNkceSbdx",
+    "uuid": "Compendium.pf2e.class-features-core.Item.IAshNRcsNkceSbdx",
+    "name": "Sneak Attack",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Sneak Attack",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": ["rogue"]
     }
   },
   {
@@ -579,6 +1757,34 @@
     }
   },
   {
+    "_id": "HaAJrkLWj2MSmuok",
+    "uuid": "Compendium.pf2e.class-features-core.Item.HaAJrkLWj2MSmuok",
+    "name": "Spell Blending",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Spell Blending",
+      "system.level": 1,
+      "system.category": "arcaneThesis",
+      "system.traits.value": ["wizard"],
+      "system.traits.otherTags": ["wizard-arcane-thesis"]
+    }
+  },
+  {
+    "_id": "5QWGWqdtJ2DvxYfZ",
+    "uuid": "Compendium.pf2e.class-features-core.Item.5QWGWqdtJ2DvxYfZ",
+    "name": "Spell Substitution",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Spell Substitution",
+      "system.level": 1,
+      "system.category": "arcaneThesis",
+      "system.traits.value": ["wizard"],
+      "system.traits.otherTags": ["wizard-arcane-thesis"]
+    }
+  },
+  {
     "_id": "sy7rtPbt8x4XsYkp",
     "uuid": "Compendium.pf2e.class-features-core.Item.sy7rtPbt8x4XsYkp",
     "name": "Spellstrike",
@@ -589,6 +1795,34 @@
       "system.level": 1,
       "system.category": "classfeature",
       "system.traits.value": ["magus"]
+    }
+  },
+  {
+    "_id": "h6ORq6QXG5nbPD8P",
+    "uuid": "Compendium.pf2e.class-features-core.Item.h6ORq6QXG5nbPD8P",
+    "name": "Spirit Instinct",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Spirit Instinct",
+      "system.level": 1,
+      "system.category": "instinct",
+      "system.traits.value": ["barbarian"],
+      "system.traits.otherTags": ["barbarian-instinct"]
+    }
+  },
+  {
+    "_id": "fs8vce7CnfjA7OU4",
+    "uuid": "Compendium.pf2e.class-features-core.Item.fs8vce7CnfjA7OU4",
+    "name": "Staff Nexus",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Staff Nexus",
+      "system.level": 1,
+      "system.category": "arcaneThesis",
+      "system.traits.value": ["wizard"],
+      "system.traits.otherTags": ["wizard-arcane-thesis"]
     }
   },
   {
@@ -619,6 +1853,73 @@
     }
   },
   {
+    "_id": "VCzAtC6H3t2QdGAL",
+    "uuid": "Compendium.pf2e.class-features-core.Item.VCzAtC6H3t2QdGAL",
+    "name": "Superstition Instinct",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Superstition Instinct",
+      "system.level": 1,
+      "system.category": "instinct",
+      "system.traits.value": ["barbarian"],
+      "system.traits.otherTags": ["barbarian-instinct"]
+    }
+  },
+  {
+    "_id": "x6ZWfOA5GIGMqLlO",
+    "uuid": "Compendium.pf2e.class-features-core.Item.x6ZWfOA5GIGMqLlO",
+    "name": "Surprise Attack",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Surprise Attack",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
+    "_id": "Vd5RA2rki1nlHaSt",
+    "uuid": "Compendium.pf2e.class-features-core.Item.Vd5RA2rki1nlHaSt",
+    "name": "Swift Prey",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Swift Prey",
+      "system.level": 19,
+      "system.category": "classfeature",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "c0XQ1ICQyYuUQN3h",
+    "uuid": "Compendium.pf2e.class-features-core.Item.c0XQ1ICQyYuUQN3h",
+    "name": "Tempered Reflexes",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Tempered Reflexes",
+      "system.level": 15,
+      "system.category": "classfeature",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "C4Yp9RGRAVoJafLK",
+    "uuid": "Compendium.pf2e.class-features-core.Item.C4Yp9RGRAVoJafLK",
+    "name": "Thief",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Thief",
+      "system.level": 1,
+      "system.category": "racket",
+      "system.traits.value": ["rogue"],
+      "system.traits.otherTags": ["rogue-racket"]
+    }
+  },
+  {
     "_id": "h6aJkvglqVbjB2oK",
     "uuid": "Compendium.pf2e.class-features-core.Item.h6aJkvglqVbjB2oK",
     "name": "Third Gate's Threshold",
@@ -629,6 +1930,19 @@
       "system.level": 13,
       "system.category": "classfeature",
       "system.traits.value": ["kineticist"]
+    }
+  },
+  {
+    "_id": "xcNVeityWdQwcAGn",
+    "uuid": "Compendium.pf2e.class-features-core.Item.xcNVeityWdQwcAGn",
+    "name": "Trackless Journey",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Trackless Journey",
+      "system.level": 5,
+      "system.category": "classfeature",
+      "system.traits.value": ["ranger"]
     }
   },
   {
@@ -660,6 +1974,59 @@
     }
   },
   {
+    "_id": "WbUuEKV4vY0Jhlyw",
+    "uuid": "Compendium.pf2e.class-features-core.Item.WbUuEKV4vY0Jhlyw",
+    "name": "Unimpeded Journey",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Unimpeded Journey",
+      "system.level": 11,
+      "system.category": "classfeature",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
+    "_id": "j2TPXfKvF7IhZYtc",
+    "uuid": "Compendium.pf2e.class-features-core.Item.j2TPXfKvF7IhZYtc",
+    "name": "Versatile Legend",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Versatile Legend",
+      "system.level": 19,
+      "system.category": "classfeature",
+      "system.traits.value": ["fighter"]
+    }
+  },
+  {
+    "_id": "HnyInzdkCKkAulXa",
+    "uuid": "Compendium.pf2e.class-features-core.Item.HnyInzdkCKkAulXa",
+    "name": "Vindicator",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Vindicator",
+      "system.level": 1,
+      "system.category": "huntersEdge",
+      "system.traits.value": ["ranger"],
+      "system.traits.otherTags": ["class-archetype", "ranger-hunters-edge"]
+    }
+  },
+  {
+    "_id": "wkOoYxQ0i6yV7NS8",
+    "uuid": "Compendium.pf2e.class-features-core.Item.wkOoYxQ0i6yV7NS8",
+    "name": "Warden's Endurance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Warden's Endurance",
+      "system.level": 11,
+      "system.category": "classfeature",
+      "system.traits.value": ["ranger"]
+    }
+  },
+  {
     "_id": "LVADu3YwnAamOx70",
     "uuid": "Compendium.pf2e.class-features-core.Item.LVADu3YwnAamOx70",
     "name": "Weapon Expertise",
@@ -685,6 +2052,19 @@
         "witch",
         "wizard"
       ]
+    }
+  },
+  {
+    "_id": "WLnR6FInbhyx2tOR",
+    "uuid": "Compendium.pf2e.class-features-core.Item.WLnR6FInbhyx2tOR",
+    "name": "Weapon Legend",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Weapon Legend",
+      "system.level": 13,
+      "system.category": "classfeature",
+      "system.traits.value": ["fighter"]
     }
   },
   {
@@ -734,6 +2114,19 @@
     }
   },
   {
+    "_id": "jUnz5VqnXQiOmOud",
+    "uuid": "Compendium.pf2e.class-features-core.Item.jUnz5VqnXQiOmOud",
+    "name": "Weapon Tricks",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Weapon Tricks",
+      "system.level": 5,
+      "system.category": "classfeature",
+      "system.traits.value": ["rogue"]
+    }
+  },
+  {
     "_id": "m9zzP0MZI5sIP1ia",
     "uuid": "Compendium.pf2e.class-features-core.Item.m9zzP0MZI5sIP1ia",
     "name": "Will Expertise",
@@ -744,6 +2137,19 @@
       "system.level": 3,
       "system.category": "classfeature",
       "system.traits.value": ["alchemist", "kineticist", "ranger"]
+    }
+  },
+  {
+    "_id": "jtfq8PAVxw3RYys1",
+    "uuid": "Compendium.pf2e.class-features-core.Item.jtfq8PAVxw3RYys1",
+    "name": "Wizard Spellcasting",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Wizard Spellcasting",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": ["wizard"]
     }
   }
 ]

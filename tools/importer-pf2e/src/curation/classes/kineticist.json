@@ -9,6 +9,8 @@
     "trait": "kineticist",
     "includeSharedClassFeats": true,
     "levelMax": 4,
+    "requireTraitsAll": ["impulse"],
+    "requireTraitsAny": ["air", "metal"],
     "extraNames": [],
     "excludeNames": []
   },

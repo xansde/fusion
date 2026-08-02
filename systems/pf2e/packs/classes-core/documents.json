@@ -1,5 +1,564 @@
 [
   {
+    "_id": "GpVXOuB995Kz1fHI",
+    "name": "Barbarian",
+    "type": "class",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "attacks": {
+        "advanced": 0,
+        "martial": 1,
+        "simple": 1,
+        "unarmed": 1
+      },
+      "defenses": {
+        "heavy": 0,
+        "light": 1,
+        "medium": 1,
+        "unarmored": 1
+      },
+      "description": "<p><em>Rage consumes you in battle. You delight in wreaking havoc and using powerful weapons to carve through your enemies, relying on astonishing durability without needing complicated techniques or rigid training. Your rages draw upon a vicious instinct, which you might associate with an animal, a spirit, or some part of yourself. To many barbarians, brute force is a hammer and every problem looks like a nail, whereas others try to hold back the storm of emotions inside them and release their rage only when it matters most.</em></p>\n<p>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.lvuutBI9BSCU6cWe]{Barbarian}</p>",
+      "hp": 12,
+      "keyAbility": ["str"],
+      "perception": 2,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "savingThrows": {
+        "fortitude": 2,
+        "reflex": 1,
+        "will": 2
+      },
+      "skillIncreaseLevels": [3, 5, 7, 9, 11, 13, 15, 17, 19],
+      "trainedSkills": {
+        "value": ["athletics"],
+        "additional": 3
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "classDC": 1,
+      "featLevels": {
+        "ancestry": [1, 5, 9, 13, 17],
+        "class": [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20],
+        "general": [3, 7, 11, 15, 19],
+        "skill": [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+      },
+      "proficiencyUpgrades": [
+        {
+          "level": 5,
+          "stat": "weapons.martial",
+          "rank": 2
+        },
+        {
+          "level": 5,
+          "stat": "weapons.simple",
+          "rank": 2
+        },
+        {
+          "level": 5,
+          "stat": "weapons.unarmed",
+          "rank": 2
+        },
+        {
+          "level": 7,
+          "stat": "fortitude",
+          "rank": 3
+        },
+        {
+          "level": 9,
+          "stat": "reflex",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "classDC",
+          "rank": 2
+        },
+        {
+          "level": 13,
+          "stat": "armor.light",
+          "rank": 2
+        },
+        {
+          "level": 13,
+          "stat": "armor.medium",
+          "rank": 2
+        },
+        {
+          "level": 13,
+          "stat": "armor.unarmored",
+          "rank": 2
+        },
+        {
+          "level": 13,
+          "stat": "fortitude",
+          "rank": 4
+        },
+        {
+          "level": 13,
+          "stat": "weapons.martial",
+          "rank": 3
+        },
+        {
+          "level": 13,
+          "stat": "weapons.simple",
+          "rank": 3
+        },
+        {
+          "level": 13,
+          "stat": "weapons.unarmed",
+          "rank": 3
+        },
+        {
+          "level": 15,
+          "stat": "will",
+          "rank": 3
+        },
+        {
+          "level": 17,
+          "stat": "perception",
+          "rank": 3
+        },
+        {
+          "level": 19,
+          "stat": "armor.light",
+          "rank": 3
+        },
+        {
+          "level": 19,
+          "stat": "armor.medium",
+          "rank": 3
+        },
+        {
+          "level": 19,
+          "stat": "armor.unarmored",
+          "rank": 3
+        },
+        {
+          "level": 19,
+          "stat": "classDC",
+          "rank": 3
+        }
+      ],
+      "featuresByLevel": [
+        {
+          "level": 1,
+          "uuid": "cQdtouC7aLBqMKBC",
+          "name": "Instinct"
+        },
+        {
+          "level": 1,
+          "uuid": "TNl7mpUpn5Jl2pFY",
+          "name": "Rage"
+        },
+        {
+          "level": 1,
+          "uuid": "WMrcHrDh9vNDteMb",
+          "name": "Quick-Tempered"
+        },
+        {
+          "level": 3,
+          "uuid": "xIbUjeUIOsopXLq7",
+          "name": "Furious Footfalls"
+        },
+        {
+          "level": 5,
+          "uuid": "GxqYyngLaOWAD4XE",
+          "name": "Brutality"
+        },
+        {
+          "level": 7,
+          "uuid": "pdx0rwjDYMVqctIw",
+          "name": "Juggernaut"
+        },
+        {
+          "level": 7,
+          "uuid": "J9FT6XRcaEhYUHnV",
+          "name": "Weapon Specialization"
+        },
+        {
+          "level": 9,
+          "uuid": "BIuU56P6JTTJz7oI",
+          "name": "Reflex Expertise"
+        },
+        {
+          "level": 9,
+          "uuid": "9PCCevlsNphbxSlz",
+          "name": "Raging Resistance"
+        },
+        {
+          "level": 11,
+          "uuid": "O3rac2kRtEjwCHC0",
+          "name": "Mighty Rage"
+        },
+        {
+          "level": 13,
+          "uuid": "AquKnYKME2Bg09m4",
+          "name": "Greater Juggernaut"
+        },
+        {
+          "level": 13,
+          "uuid": "j125sa25OAnogfDh",
+          "name": "Medium Armor Expertise"
+        },
+        {
+          "level": 13,
+          "uuid": "UXAihglkf3UssC8V",
+          "name": "Weapon Mastery"
+        },
+        {
+          "level": 15,
+          "uuid": "M2SKz26bYBV83ywT",
+          "name": "Indomitable Will"
+        },
+        {
+          "level": 15,
+          "uuid": "QACo7ORm1m5eT8rO",
+          "name": "Greater Weapon Specialization (Barbarian)"
+        },
+        {
+          "level": 17,
+          "uuid": "a1x0l48GmQCZqIYw",
+          "name": "Perception Mastery"
+        },
+        {
+          "level": 17,
+          "uuid": "A56kTnAVZ0NJmdp0",
+          "name": "Revitalizing Rage"
+        },
+        {
+          "level": 19,
+          "uuid": "iMu4xqbkkjWD0LNs",
+          "name": "Devastator"
+        },
+        {
+          "level": 19,
+          "uuid": "0bEpfnxfGVCC0MkH",
+          "name": "Armor Mastery"
+        }
+      ]
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "YDRiP7uVvr9WRhOI",
+        "packName": "classes",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "barbarian.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "1VFFHH43BOrf82SB",
+    "name": "Fighter",
+    "type": "class",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "attacks": {
+        "advanced": 1,
+        "martial": 2,
+        "simple": 2,
+        "unarmed": 2
+      },
+      "defenses": {
+        "heavy": 1,
+        "light": 1,
+        "medium": 1,
+        "unarmored": 1
+      },
+      "description": "<p><em>Fighting for honor, greed, loyalty, or simply the thrill of battle, you are an undisputed master of weaponry and combat techniques. You combine your actions through clever combinations of opening moves, finishing strikes, and counterattacks whenever your foes are unwise enough to drop their guard. Whether you are a knight, mercenary, sharpshooter, or blade master, you have honed your martial skills into an art form and perform devastating critical attacks on your enemies.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.HZbrRRVzW7w17L2W]{Fighter}</em></p>",
+      "hp": 10,
+      "keyAbility": ["dex", "str"],
+      "perception": 2,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.skills.{item|flags.system.rulesSelections.fighterSkill}.rank",
+          "value": 1,
+          "mode": "upgrade",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.skills.{item|flags.system.rulesSelections.fighterSkill}.rank",
+            "value": 1
+          }
+        }
+      ],
+      "savingThrows": {
+        "fortitude": 2,
+        "reflex": 2,
+        "will": 1
+      },
+      "skillIncreaseLevels": [3, 5, 7, 9, 11, 13, 15, 17, 19],
+      "trainedSkills": {
+        "value": [],
+        "additional": 3
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "classDC": 1,
+      "featLevels": {
+        "ancestry": [1, 5, 9, 13, 17],
+        "class": [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20],
+        "general": [3, 7, 11, 15, 19],
+        "skill": [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+      },
+      "proficiencyUpgrades": [
+        {
+          "level": 3,
+          "stat": "will",
+          "rank": 2
+        },
+        {
+          "level": 7,
+          "stat": "perception",
+          "rank": 3
+        },
+        {
+          "level": 9,
+          "stat": "fortitude",
+          "rank": 3
+        },
+        {
+          "level": 11,
+          "stat": "armor.heavy",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "armor.light",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "armor.medium",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "armor.unarmored",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "classDC",
+          "rank": 2
+        },
+        {
+          "level": 13,
+          "stat": "weapons.advanced",
+          "rank": 2
+        },
+        {
+          "level": 13,
+          "stat": "weapons.martial",
+          "rank": 3
+        },
+        {
+          "level": 13,
+          "stat": "weapons.simple",
+          "rank": 3
+        },
+        {
+          "level": 13,
+          "stat": "weapons.unarmed",
+          "rank": 3
+        },
+        {
+          "level": 15,
+          "stat": "reflex",
+          "rank": 3
+        },
+        {
+          "level": 17,
+          "stat": "armor.heavy",
+          "rank": 3
+        },
+        {
+          "level": 17,
+          "stat": "armor.light",
+          "rank": 3
+        },
+        {
+          "level": 17,
+          "stat": "armor.medium",
+          "rank": 3
+        },
+        {
+          "level": 17,
+          "stat": "armor.unarmored",
+          "rank": 3
+        },
+        {
+          "level": 19,
+          "stat": "classDC",
+          "rank": 3
+        },
+        {
+          "level": 19,
+          "stat": "weapons.advanced",
+          "rank": 3
+        },
+        {
+          "level": 19,
+          "stat": "weapons.martial",
+          "rank": 4
+        },
+        {
+          "level": 19,
+          "stat": "weapons.simple",
+          "rank": 4
+        },
+        {
+          "level": 19,
+          "stat": "weapons.unarmed",
+          "rank": 4
+        }
+      ],
+      "featuresByLevel": [
+        {
+          "level": 1,
+          "uuid": "03xfNAYhem6UaSiI",
+          "name": "Reactive Strike"
+        },
+        {
+          "level": 1,
+          "uuid": "MbMJIRm8Ecdwk7pi",
+          "name": "Shield Block"
+        },
+        {
+          "level": 3,
+          "uuid": "9nuwMiszzx1knylD",
+          "name": "Bravery"
+        },
+        {
+          "level": 5,
+          "uuid": "5ETItJAxZIZAGA4o",
+          "name": "Fighter Weapon Mastery"
+        },
+        {
+          "level": 7,
+          "uuid": "9UxhxcrzluPnEZR5",
+          "name": "Battlefield Surveyor"
+        },
+        {
+          "level": 7,
+          "uuid": "J9FT6XRcaEhYUHnV",
+          "name": "Weapon Specialization"
+        },
+        {
+          "level": 9,
+          "uuid": "VkO2is6M3jSHMmcB",
+          "name": "Battle Hardened"
+        },
+        {
+          "level": 9,
+          "uuid": "EUWhu9k5SyqF4b3o",
+          "name": "Combat Flexibility"
+        },
+        {
+          "level": 11,
+          "uuid": "8HvcepETp5pS8Mk8",
+          "name": "Fighter Expertise"
+        },
+        {
+          "level": 11,
+          "uuid": "e7XksR8zXy3vmWID",
+          "name": "Armor Expertise"
+        },
+        {
+          "level": 13,
+          "uuid": "WLnR6FInbhyx2tOR",
+          "name": "Weapon Legend"
+        },
+        {
+          "level": 15,
+          "uuid": "c0XQ1ICQyYuUQN3h",
+          "name": "Tempered Reflexes"
+        },
+        {
+          "level": 15,
+          "uuid": "ETInvMyBeigMlTrA",
+          "name": "Improved Flexibility"
+        },
+        {
+          "level": 15,
+          "uuid": "08FZP49WC5QReus0",
+          "name": "Greater Weapon Specialization"
+        },
+        {
+          "level": 17,
+          "uuid": "0bEpfnxfGVCC0MkH",
+          "name": "Armor Mastery"
+        },
+        {
+          "level": 19,
+          "uuid": "j2TPXfKvF7IhZYtc",
+          "name": "Versatile Legend"
+        }
+      ]
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "8zn3cD6GSmoo1LW4",
+        "packName": "classes",
+        "unconvertedRules": [
+          {
+            "adjustName": false,
+            "choices": [
+              {
+                "label": "PF2E.Skill.Acrobatics",
+                "value": "acrobatics"
+              },
+              {
+                "label": "PF2E.Skill.Athletics",
+                "value": "athletics"
+              }
+            ],
+            "flag": "fighterSkill",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Prompt.Skill",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "fighter.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "ZuJDBnRwp0YQ9IoP",
     "name": "Kineticist",
     "type": "class",
@@ -57,13 +616,13 @@
         },
         {
           "level": 7,
-          "stat": "fortitude",
-          "rank": 3
+          "stat": "classDC",
+          "rank": 2
         },
         {
           "level": 7,
-          "stat": "classDC",
-          "rank": 2
+          "stat": "fortitude",
+          "rank": 3
         },
         {
           "level": 7,
@@ -74,6 +633,11 @@
           "level": 9,
           "stat": "perception",
           "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "reflex",
+          "rank": 3
         },
         {
           "level": 11,
@@ -102,23 +666,13 @@
         },
         {
           "level": 15,
-          "stat": "impulse",
-          "rank": 3
-        },
-        {
-          "level": 15,
           "stat": "fortitude",
           "rank": 4
         },
         {
-          "level": 19,
-          "stat": "classDC",
-          "rank": 4
-        },
-        {
-          "level": 19,
+          "level": 15,
           "stat": "impulse",
-          "rank": 4
+          "rank": 3
         },
         {
           "level": 19,
@@ -129,6 +683,16 @@
           "level": 19,
           "stat": "armor.unarmored",
           "rank": 3
+        },
+        {
+          "level": 19,
+          "stat": "classDC",
+          "rank": 4
+        },
+        {
+          "level": 19,
+          "stat": "impulse",
+          "rank": 4
         }
       ],
       "featuresByLevel": [
@@ -546,6 +1110,11 @@
       "proficiencyUpgrades": [
         {
           "level": 5,
+          "stat": "reflex",
+          "rank": 2
+        },
+        {
+          "level": 5,
           "stat": "weapons.martial",
           "rank": 2
         },
@@ -557,11 +1126,6 @@
         {
           "level": 5,
           "stat": "weapons.unarmed",
-          "rank": 2
-        },
-        {
-          "level": 5,
-          "stat": "reflex",
           "rank": 2
         },
         {
@@ -596,12 +1160,12 @@
         },
         {
           "level": 13,
-          "stat": "weapons.simple",
+          "stat": "weapons.martial",
           "rank": 3
         },
         {
           "level": 13,
-          "stat": "weapons.martial",
+          "stat": "weapons.simple",
           "rank": 3
         },
         {
@@ -612,11 +1176,6 @@
         {
           "level": 15,
           "stat": "fortitude",
-          "rank": 3
-        },
-        {
-          "level": 17,
-          "stat": "spellcasting",
           "rank": 3
         },
         {
@@ -632,6 +1191,11 @@
         {
           "level": 17,
           "stat": "armor.unarmored",
+          "rank": 3
+        },
+        {
+          "level": 17,
+          "stat": "spellcasting",
           "rank": 3
         }
       ],
@@ -745,6 +1309,1062 @@
           {
             "field": "img",
             "original": "magus.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "3n6wLJBsZgaZvGXo",
+    "name": "Ranger",
+    "type": "class",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "attacks": {
+        "advanced": 0,
+        "martial": 1,
+        "simple": 1,
+        "unarmed": 1
+      },
+      "defenses": {
+        "heavy": 0,
+        "light": 1,
+        "medium": 1,
+        "unarmored": 1
+      },
+      "description": "<p><em>Some rangers believe civilization wears down the soul, but still needs to be protected from wild creatures. Others say nature needs to be protected from the greedy, who wish to tame its beauty and plunder its treasures. You could champion either goal, or both. You might be a scout, tracker, or hunter of fugitives or beasts, haunting the edge of civilization or exploring the wilds. You know how to live off the land and are skilled at spotting and taking down both opportune prey and hated enemies.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.gdEmPPRYhRai7I1N]{Ranger}</em></p>",
+      "hp": 10,
+      "keyAbility": ["dex", "str"],
+      "perception": 2,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.skills.nature.rank",
+          "value": 1,
+          "mode": "upgrade",
+          "predicate": [
+            {
+              "not": "feature:vindicator"
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.skills.nature.rank",
+            "predicate": [
+              {
+                "not": "feature:vindicator"
+              }
+            ],
+            "value": 1
+          }
+        }
+      ],
+      "savingThrows": {
+        "fortitude": 2,
+        "reflex": 2,
+        "will": 1
+      },
+      "skillIncreaseLevels": [3, 5, 7, 9, 11, 13, 15, 17, 19],
+      "trainedSkills": {
+        "value": ["survival"],
+        "additional": 4
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "classDC": 1,
+      "featLevels": {
+        "ancestry": [1, 5, 9, 13, 17],
+        "class": [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20],
+        "general": [3, 7, 11, 15, 19],
+        "skill": [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+      },
+      "proficiencyUpgrades": [
+        {
+          "level": 3,
+          "stat": "will",
+          "rank": 2
+        },
+        {
+          "level": 5,
+          "stat": "weapons.martial",
+          "rank": 2
+        },
+        {
+          "level": 5,
+          "stat": "weapons.simple",
+          "rank": 2
+        },
+        {
+          "level": 5,
+          "stat": "weapons.unarmed",
+          "rank": 2
+        },
+        {
+          "level": 7,
+          "stat": "perception",
+          "rank": 3
+        },
+        {
+          "level": 7,
+          "stat": "reflex",
+          "rank": 3
+        },
+        {
+          "level": 9,
+          "stat": "classDC",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "armor.light",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "armor.medium",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "armor.unarmored",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "fortitude",
+          "rank": 3
+        },
+        {
+          "level": 13,
+          "stat": "weapons.martial",
+          "rank": 3
+        },
+        {
+          "level": 13,
+          "stat": "weapons.simple",
+          "rank": 3
+        },
+        {
+          "level": 13,
+          "stat": "weapons.unarmed",
+          "rank": 3
+        },
+        {
+          "level": 15,
+          "stat": "perception",
+          "rank": 4
+        },
+        {
+          "level": 15,
+          "stat": "reflex",
+          "rank": 4
+        },
+        {
+          "level": 17,
+          "stat": "classDC",
+          "rank": 3
+        },
+        {
+          "level": 19,
+          "stat": "armor.light",
+          "rank": 3
+        },
+        {
+          "level": 19,
+          "stat": "armor.medium",
+          "rank": 3
+        },
+        {
+          "level": 19,
+          "stat": "armor.unarmored",
+          "rank": 3
+        }
+      ],
+      "featuresByLevel": [
+        {
+          "level": 1,
+          "uuid": "2N47XW5w8GSh8CEG",
+          "name": "Hunter's Edge"
+        },
+        {
+          "level": 1,
+          "uuid": "msuzrLPXOC194scV",
+          "name": "Hunt Prey"
+        },
+        {
+          "level": 3,
+          "uuid": "m9zzP0MZI5sIP1ia",
+          "name": "Will Expertise"
+        },
+        {
+          "level": 5,
+          "uuid": "xcNVeityWdQwcAGn",
+          "name": "Trackless Journey"
+        },
+        {
+          "level": 5,
+          "uuid": "RZrtQozcziZYl1EY",
+          "name": "Ranger Weapon Expertise"
+        },
+        {
+          "level": 7,
+          "uuid": "J9FT6XRcaEhYUHnV",
+          "name": "Weapon Specialization"
+        },
+        {
+          "level": 7,
+          "uuid": "3KjbcMT4TFczJxR0",
+          "name": "Natural Reflexes"
+        },
+        {
+          "level": 7,
+          "uuid": "a1x0l48GmQCZqIYw",
+          "name": "Perception Mastery"
+        },
+        {
+          "level": 9,
+          "uuid": "UTCSBZnzYPwRfjpC",
+          "name": "Nature's Edge"
+        },
+        {
+          "level": 9,
+          "uuid": "1gLNhDwqDBZXZgW7",
+          "name": "Ranger Expertise"
+        },
+        {
+          "level": 11,
+          "uuid": "j125sa25OAnogfDh",
+          "name": "Medium Armor Expertise"
+        },
+        {
+          "level": 11,
+          "uuid": "wkOoYxQ0i6yV7NS8",
+          "name": "Warden's Endurance"
+        },
+        {
+          "level": 11,
+          "uuid": "WbUuEKV4vY0Jhlyw",
+          "name": "Unimpeded Journey"
+        },
+        {
+          "level": 13,
+          "uuid": "ZzWD1IY5kAnQ8a65",
+          "name": "Weapon Mastery"
+        },
+        {
+          "level": 15,
+          "uuid": "TVGLZkpHhd1apWCl",
+          "name": "Greater Natural Reflexes"
+        },
+        {
+          "level": 15,
+          "uuid": "08FZP49WC5QReus0",
+          "name": "Greater Weapon Specialization"
+        },
+        {
+          "level": 15,
+          "uuid": "goMuPizfdUMG7iVu",
+          "name": "Perception Legend"
+        },
+        {
+          "level": 17,
+          "uuid": "CfXjubA6aeQTozJe",
+          "name": "Masterful Hunter"
+        },
+        {
+          "level": 19,
+          "uuid": "ZI7nywEZnJF0CMiw",
+          "name": "Medium Armor Mastery"
+        },
+        {
+          "level": 19,
+          "uuid": "Vd5RA2rki1nlHaSt",
+          "name": "Swift Prey"
+        }
+      ]
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Yix76sfxrIlltSTJ",
+        "packName": "classes",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "ranger.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "nvLkRf5OdaAq9zgU",
+    "name": "Rogue",
+    "type": "class",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "attacks": {
+        "advanced": 0,
+        "martial": 1,
+        "simple": 1,
+        "unarmed": 1
+      },
+      "defenses": {
+        "heavy": 0,
+        "light": 1,
+        "medium": 0,
+        "unarmored": 1
+      },
+      "description": "<p><em>You are skilled and opportunistic. Using your sharp wits and quick reactions, you take advantage of your opponents' missteps and strike where it hurts most. You play a dangerous game, seeking thrills and testing your skills, and likely don't care much for any laws that happen to get in your way. While the path of every rogue is unique and riddled with danger, the one thing you all share in common is the breadth and depth of your skills.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.u4qPrDRBagxG9wj8]{Rogue}</em></p>",
+      "hp": 8,
+      "keyAbility": ["dex"],
+      "perception": 2,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "savingThrows": {
+        "fortitude": 1,
+        "reflex": 2,
+        "will": 2
+      },
+      "skillIncreaseLevels": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+      "trainedSkills": {
+        "value": ["stealth"],
+        "additional": 7
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "classDC": 1,
+      "featLevels": {
+        "ancestry": [1, 5, 9, 13, 17],
+        "class": [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20],
+        "general": [3, 7, 11, 15, 19],
+        "skill": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+      },
+      "proficiencyUpgrades": [
+        {
+          "level": 5,
+          "stat": "weapons.martial",
+          "rank": 2
+        },
+        {
+          "level": 5,
+          "stat": "weapons.simple",
+          "rank": 2
+        },
+        {
+          "level": 5,
+          "stat": "weapons.unarmed",
+          "rank": 2
+        },
+        {
+          "level": 7,
+          "stat": "perception",
+          "rank": 3
+        },
+        {
+          "level": 7,
+          "stat": "reflex",
+          "rank": 3
+        },
+        {
+          "level": 9,
+          "stat": "fortitude",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "classDC",
+          "rank": 2
+        },
+        {
+          "level": 13,
+          "stat": "armor.light",
+          "rank": 2
+        },
+        {
+          "level": 13,
+          "stat": "armor.unarmored",
+          "rank": 2
+        },
+        {
+          "level": 13,
+          "stat": "perception",
+          "rank": 4
+        },
+        {
+          "level": 13,
+          "stat": "reflex",
+          "rank": 4
+        },
+        {
+          "level": 13,
+          "stat": "weapons.martial",
+          "rank": 3
+        },
+        {
+          "level": 13,
+          "stat": "weapons.simple",
+          "rank": 3
+        },
+        {
+          "level": 13,
+          "stat": "weapons.unarmed",
+          "rank": 3
+        },
+        {
+          "level": 17,
+          "stat": "will",
+          "rank": 3
+        },
+        {
+          "level": 19,
+          "stat": "armor.light",
+          "rank": 3
+        },
+        {
+          "level": 19,
+          "stat": "armor.unarmored",
+          "rank": 3
+        },
+        {
+          "level": 19,
+          "stat": "classDC",
+          "rank": 3
+        }
+      ],
+      "featuresByLevel": [
+        {
+          "level": 1,
+          "uuid": "xn0WbSFhQxiLUPD9",
+          "name": "Rogue's Racket"
+        },
+        {
+          "level": 1,
+          "uuid": "IAshNRcsNkceSbdx",
+          "name": "Sneak Attack"
+        },
+        {
+          "level": 1,
+          "uuid": "x6ZWfOA5GIGMqLlO",
+          "name": "Surprise Attack"
+        },
+        {
+          "level": 3,
+          "uuid": "00oGcsrK5SwnCoP5",
+          "name": "Deny Advantage"
+        },
+        {
+          "level": 5,
+          "uuid": "jUnz5VqnXQiOmOud",
+          "name": "Weapon Tricks"
+        },
+        {
+          "level": 7,
+          "uuid": "J9FT6XRcaEhYUHnV",
+          "name": "Weapon Specialization"
+        },
+        {
+          "level": 7,
+          "uuid": "a1x0l48GmQCZqIYw",
+          "name": "Perception Mastery"
+        },
+        {
+          "level": 7,
+          "uuid": "p3d74Rt5Nfi8ZqtK",
+          "name": "Evasive Reflexes"
+        },
+        {
+          "level": 9,
+          "uuid": "4TIleUhqTLVdrnvJ",
+          "name": "Rogue Resilience"
+        },
+        {
+          "level": 9,
+          "uuid": "mGyRcs5k6sRE1fVm",
+          "name": "Debilitating Strikes"
+        },
+        {
+          "level": 11,
+          "uuid": "04tKZ1FJoMSOFQsO",
+          "name": "Rogue Expertise"
+        },
+        {
+          "level": 13,
+          "uuid": "oSMLCBMXrEeuRoOS",
+          "name": "Master Tricks"
+        },
+        {
+          "level": 13,
+          "uuid": "AVh4glubbzygKbI8",
+          "name": "Light Armor Expertise"
+        },
+        {
+          "level": 13,
+          "uuid": "wFpQ8XP25u7l47Dx",
+          "name": "Greater Rogue Reflexes"
+        },
+        {
+          "level": 13,
+          "uuid": "goMuPizfdUMG7iVu",
+          "name": "Perception Legend"
+        },
+        {
+          "level": 15,
+          "uuid": "08FZP49WC5QReus0",
+          "name": "Greater Weapon Specialization"
+        },
+        {
+          "level": 15,
+          "uuid": "GsP5d7tMjUvrLUMu",
+          "name": "Double Debilitation"
+        },
+        {
+          "level": 17,
+          "uuid": "mRLd1vgm5NpYMpD7",
+          "name": "Agile Mind"
+        },
+        {
+          "level": 19,
+          "uuid": "5RREuzrz80kpHqFf",
+          "name": "Light Armor Mastery"
+        },
+        {
+          "level": 19,
+          "uuid": "zz7BrvQR7RNFPgN7",
+          "name": "Master Strike"
+        }
+      ]
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "LO9STvskJemPkiAI",
+        "packName": "classes",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "rogue.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "LkcgfNS2xs7MhCGl",
+    "name": "Wizard",
+    "type": "class",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "attacks": {
+        "advanced": 0,
+        "martial": 0,
+        "simple": 1,
+        "unarmed": 1
+      },
+      "defenses": {
+        "heavy": 0,
+        "light": 0,
+        "medium": 0,
+        "unarmored": 1
+      },
+      "description": "<p><em>You are an eternal student of the secrets of the universe, using your mastery of magic to cast powerful spells. You treat magic like a science, cross-referencing the latest texts on practical spellcraft with ancient tomes to discover and understand arcane magic. Yet magical theory is vast, and there's no way you can study it all. Most wizards learn through formal schooling, with their curriculum informing a specific rubric, although particularly driven researchers sometimes piece together their own theories.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.wDukeO3euLEGn6FA]{Wizard}</em></p>",
+      "hp": 6,
+      "keyAbility": ["int"],
+      "perception": 1,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "savingThrows": {
+        "fortitude": 1,
+        "reflex": 1,
+        "will": 2
+      },
+      "skillIncreaseLevels": [3, 5, 7, 9, 11, 13, 15, 17, 19],
+      "spellcasting": {
+        "tradition": "arcane",
+        "type": "prepared",
+        "ability": "int",
+        "cantripsKnown": [
+          {
+            "level": 1,
+            "count": 5
+          },
+          {
+            "level": 2,
+            "count": 5
+          },
+          {
+            "level": 3,
+            "count": 5
+          },
+          {
+            "level": 4,
+            "count": 5
+          },
+          {
+            "level": 5,
+            "count": 5
+          },
+          {
+            "level": 6,
+            "count": 5
+          },
+          {
+            "level": 7,
+            "count": 5
+          },
+          {
+            "level": 8,
+            "count": 5
+          },
+          {
+            "level": 9,
+            "count": 5
+          },
+          {
+            "level": 10,
+            "count": 5
+          },
+          {
+            "level": 11,
+            "count": 5
+          },
+          {
+            "level": 12,
+            "count": 5
+          },
+          {
+            "level": 13,
+            "count": 5
+          },
+          {
+            "level": 14,
+            "count": 5
+          },
+          {
+            "level": 15,
+            "count": 5
+          },
+          {
+            "level": 16,
+            "count": 5
+          },
+          {
+            "level": 17,
+            "count": 5
+          },
+          {
+            "level": 18,
+            "count": 5
+          },
+          {
+            "level": 19,
+            "count": 5
+          },
+          {
+            "level": 20,
+            "count": 5
+          }
+        ],
+        "slots": [
+          {
+            "level": 1,
+            "slots": {
+              "1": 2
+            }
+          },
+          {
+            "level": 2,
+            "slots": {
+              "1": 3
+            }
+          },
+          {
+            "level": 3,
+            "slots": {
+              "1": 3,
+              "2": 2
+            }
+          },
+          {
+            "level": 4,
+            "slots": {
+              "1": 3,
+              "2": 3
+            }
+          },
+          {
+            "level": 5,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 2
+            }
+          },
+          {
+            "level": 6,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3
+            }
+          },
+          {
+            "level": 7,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 2
+            }
+          },
+          {
+            "level": 8,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3
+            }
+          },
+          {
+            "level": 9,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 2
+            }
+          },
+          {
+            "level": 10,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3
+            }
+          },
+          {
+            "level": 11,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 2
+            }
+          },
+          {
+            "level": 12,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3
+            }
+          },
+          {
+            "level": 13,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 2
+            }
+          },
+          {
+            "level": 14,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3
+            }
+          },
+          {
+            "level": 15,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3,
+              "8": 2
+            }
+          },
+          {
+            "level": 16,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3,
+              "8": 3
+            }
+          },
+          {
+            "level": 17,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3,
+              "8": 3,
+              "9": 2
+            }
+          },
+          {
+            "level": 18,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3,
+              "8": 3,
+              "9": 3
+            }
+          },
+          {
+            "level": 19,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3,
+              "8": 3,
+              "9": 3,
+              "10": 1
+            }
+          },
+          {
+            "level": 20,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3,
+              "8": 3,
+              "9": 3,
+              "10": 1
+            }
+          }
+        ]
+      },
+      "trainedSkills": {
+        "value": ["arcana"],
+        "additional": 2
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "classDC": 1,
+      "featLevels": {
+        "ancestry": [1, 5, 9, 13, 17],
+        "class": [2, 4, 6, 8, 10, 12, 14, 16, 18, 20],
+        "general": [3, 7, 11, 15, 19],
+        "skill": [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+      },
+      "proficiencyUpgrades": [
+        {
+          "level": 5,
+          "stat": "reflex",
+          "rank": 2
+        },
+        {
+          "level": 7,
+          "stat": "spellcasting",
+          "rank": 2
+        },
+        {
+          "level": 9,
+          "stat": "fortitude",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "perception",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "weapons.simple",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "weapons.unarmed",
+          "rank": 2
+        },
+        {
+          "level": 13,
+          "stat": "armor.unarmored",
+          "rank": 2
+        },
+        {
+          "level": 15,
+          "stat": "spellcasting",
+          "rank": 3
+        },
+        {
+          "level": 17,
+          "stat": "will",
+          "rank": 3
+        },
+        {
+          "level": 19,
+          "stat": "spellcasting",
+          "rank": 4
+        }
+      ],
+      "featuresByLevel": [
+        {
+          "level": 1,
+          "uuid": "jtfq8PAVxw3RYys1",
+          "name": "Wizard Spellcasting"
+        },
+        {
+          "level": 1,
+          "uuid": "tn019aFJzq8HZoqF",
+          "name": "Arcane School"
+        },
+        {
+          "level": 1,
+          "uuid": "43cBGyCAMSl8qJaN",
+          "name": "Arcane Bond"
+        },
+        {
+          "level": 1,
+          "uuid": "kpaU3PWMOsGmNnGB",
+          "name": "Arcane Thesis"
+        },
+        {
+          "level": 5,
+          "uuid": "BIuU56P6JTTJz7oI",
+          "name": "Reflex Expertise"
+        },
+        {
+          "level": 7,
+          "uuid": "HBkLN3XV5QAcSEaH",
+          "name": "Expert Spellcaster"
+        },
+        {
+          "level": 9,
+          "uuid": "RHNT0Hqaw8blOiu7",
+          "name": "Magical Fortitude"
+        },
+        {
+          "level": 11,
+          "uuid": "lq2hF5SquDtGyQjd",
+          "name": "Perception Expertise"
+        },
+        {
+          "level": 11,
+          "uuid": "LVADu3YwnAamOx70",
+          "name": "Weapon Expertise"
+        },
+        {
+          "level": 13,
+          "uuid": "J9FT6XRcaEhYUHnV",
+          "name": "Weapon Specialization"
+        },
+        {
+          "level": 13,
+          "uuid": "ujHgj7E0eFOmHsjj",
+          "name": "Defensive Robes"
+        },
+        {
+          "level": 15,
+          "uuid": "qm5rjGcbeMbHRQ79",
+          "name": "Master Spellcaster"
+        },
+        {
+          "level": 17,
+          "uuid": "q5U9JtyjBIro75z5",
+          "name": "Prodigious Will"
+        },
+        {
+          "level": 19,
+          "uuid": "Qb6mPsJUxA73nPlp",
+          "name": "Legendary Spellcaster"
+        },
+        {
+          "level": 19,
+          "uuid": "dYhgA64ZW6luX4Bb",
+          "name": "Archwizard's Spellcraft"
+        }
+      ]
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "RwjIZzIxzPpUglnK",
+        "packName": "classes",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "wizard.webp",
             "placeholder": "icons/placeholder/feat.svg"
           }
         ]

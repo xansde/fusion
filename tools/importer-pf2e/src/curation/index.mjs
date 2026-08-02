@@ -119,6 +119,12 @@ export function validateClassCuration(cfg, file) {
       trait: cfg.classFeats.trait,
       includeSharedClassFeats: cfg.classFeats.includeSharedClassFeats ?? true,
       levelMax: cfg.classFeats.levelMax ?? 20,
+      // Recorte adicional por trait, para curadoria estreita. Existe porque a
+      // r18 trouxe do Kineticist apenas os impulsos de Ar e Metal até o nível
+      // 4 (a janela do Finn) — sem isto, migrar aquela curadoria para dado
+      // mudaria o pack em vez de reproduzi-lo.
+      requireTraitsAll: cfg.classFeats.requireTraitsAll ?? [],
+      requireTraitsAny: cfg.classFeats.requireTraitsAny ?? [],
       extraNames: cfg.classFeats.extraNames ?? [],
       excludeNames: cfg.classFeats.excludeNames ?? [],
     },

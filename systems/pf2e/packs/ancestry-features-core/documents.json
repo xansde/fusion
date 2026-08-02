@@ -417,7 +417,7 @@
               }
             },
             "group": "brawling",
-            "img": "systems/pf2e/icons/unarmed-attacks/antler.webp",
+            "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Antler",
             "predicate": ["animal-attack:antler"],
@@ -435,7 +435,7 @@
               }
             },
             "group": "brawling",
-            "img": "systems/pf2e/icons/unarmed-attacks/beak.webp",
+            "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Beak",
             "predicate": ["animal-attack:beak"],
@@ -454,7 +454,7 @@
               }
             },
             "group": "brawling",
-            "img": "systems/pf2e/icons/unarmed-attacks/claw.webp",
+            "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Claw",
             "predicate": ["animal-attack:claw"],
@@ -472,7 +472,7 @@
               }
             },
             "group": "brawling",
-            "img": "systems/pf2e/icons/unarmed-attacks/fangs.webp",
+            "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Fangs",
             "predicate": ["animal-attack:fangs"],
@@ -496,7 +496,7 @@
               }
             },
             "group": "brawling",
-            "img": "systems/pf2e/icons/unarmed-attacks/horn.webp",
+            "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Horn",
             "predicate": ["animal-attack:horn"],
@@ -515,7 +515,7 @@
               }
             },
             "group": "brawling",
-            "img": "systems/pf2e/icons/unarmed-attacks/jaws.webp",
+            "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Jaws",
             "predicate": ["animal-attack:jaws"],
@@ -533,7 +533,7 @@
               }
             },
             "group": "brawling",
-            "img": "systems/pf2e/icons/unarmed-attacks/tail.webp",
+            "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Tail",
             "predicate": ["animal-attack:tail"],
@@ -551,7 +551,7 @@
               }
             },
             "group": "brawling",
-            "img": "systems/pf2e/icons/unarmed-attacks/talon.webp",
+            "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Talon",
             "predicate": ["animal-attack:talon"],
@@ -569,7 +569,7 @@
               }
             },
             "group": "brawling",
-            "img": "systems/pf2e/icons/unarmed-attacks/tongue.webp",
+            "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Tongue",
             "predicate": ["animal-attack:tongue"],
@@ -587,7 +587,7 @@
               }
             },
             "group": "brawling",
-            "img": "systems/pf2e/icons/unarmed-attacks/wing.webp",
+            "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Wing",
             "predicate": ["animal-attack:wing"],
@@ -1032,7 +1032,7 @@
               }
             },
             "group": "brawling",
-            "img": "icons/creatures/abilities/mouth-teeth-rows-red.webp",
+            "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Jaws",
             "range": null,
@@ -1182,12 +1182,12 @@
             },
             "choices": [
               {
-                "img": "systems/pf2e/icons/equipment/weapons/clan-dagger.webp",
+                "img": "icons/placeholder/feat.svg",
                 "label": "PF2E.Weapon.Base.clan-dagger",
                 "value": "clan-dagger"
               },
               {
-                "img": "systems/pf2e/icons/equipment/weapons/clan-pistol.webp",
+                "img": "icons/placeholder/feat.svg",
                 "label": "PF2E.SpecificRule.ClanWeapon.ClanPistol",
                 "value": "clan-pistol"
               }
@@ -1714,7 +1714,7 @@
               }
             },
             "group": "brawling",
-            "img": "icons/creatures/abilities/mouth-teeth-long-red.webp",
+            "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.Weapon.Base.jaws",
             "range": null,
@@ -3269,7 +3269,7 @@
               }
             },
             "group": "brawling",
-            "img": "systems/pf2e/icons/unarmed-attacks/horn.webp",
+            "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Horns",
             "slug": "horns",
@@ -3530,7 +3530,7 @@
               }
             },
             "group": "brawling",
-            "img": "systems/pf2e/icons/unarmed-attacks/jaws.webp",
+            "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.Weapon.Base.jaws",
             "range": null,
@@ -3766,7 +3766,7 @@
               }
             },
             "group": "brawling",
-            "img": "systems/pf2e/icons/unarmed-attacks/horn.webp",
+            "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Horns",
             "slug": "horns",
@@ -4104,7 +4104,7 @@
               }
             },
             "group": "brawling",
-            "img": "systems/pf2e/icons/unarmed-attacks/beak.webp",
+            "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Beak",
             "range": null,

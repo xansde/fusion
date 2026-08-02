@@ -11,7 +11,7 @@
       "featureNameInItemsMap": "Hunter's Edge",
       "level": 1,
       "choose": 1,
-      "optionCount": 3,
+      "optionCount": 4,
       "optionNames": ["Flurry", "Outwit", "Precision"],
       "slotType": "hunters-edge",
       "notes": "O otherTag ranger-hunters-edge tem 4 documentos no vendor (Flurry, Outwit, Precision, Vindicator), mas Vindicator carrega tambem otherTag class-archetype e nao aparece no items{} de NENHUMA classe (busca nos 27 classes/*.json). Vindicator e concedido pelo arquetipo Vindicator (feats/archetype/vindicator/vindicator-dedication.json), fora do escopo desta rodada (arquetipos de multiclasse excluidos pelo plano r21 secao 1). Nao ha Masterful Hunter (Vindicator) correspondente em class-features/ (so existem masterful-hunter-flurry.json, masterful-hunter-outwit.json, masterful-hunter-precision.json), confirmando que Vindicator nao e opcao nativa do Ranger base. optionCount medido para o eixo NATIVO da classe = 3, nao 4."
@@ -226,6 +226,7 @@
     "Ranger concede Animal Companion via feat (Animal Companion (Ranger), nivel 1), nao via items{} da classe — nao ha 'Animal Companion' na progressao 1..20 do doc de classe.",
     "featLevels.skill do vendor (skillFeatLevels) e identico ao padrao PF2e (par, 2..20); nao ha nivel de skill feat exclusivo do Ranger.",
     "Nome remaster: o vendor usa 'Trackless Journey', nao 'Trackless Step' (nome legado/pre-remaster citado no plano). Idem outros nomes legados citados no plano (Juggernaut, Second Skin, Incredible Senses, Iron Will) NAO aparecem no items{} do Ranger remaster atual — sao nomes de edicoes anteriores; a feature equivalente e Will Expertise (nao ha Juggernaut/Second Skin no Ranger — essas sao features de Fighter/outras classes).",
-    "r21 (integracao): removidos desta curadoria os campos que apenas ESPELHAVAM o doc de classe do vendor (attacks, defenses, featLevels, perception, savingThrows, skillIncreaseLevels, trainedSkills, vendorClassSourceId, requiresDerivation) — o pipeline le esses valores direto da fonte; duplicar aqui cria dado que envelhece em silencio."
+    "r21 (integracao): removidos desta curadoria os campos que apenas ESPELHAVAM o doc de classe do vendor (attacks, defenses, featLevels, perception, savingThrows, skillIncreaseLevels, trainedSkills, vendorClassSourceId, requiresDerivation) — o pipeline le esses valores direto da fonte; duplicar aqui cria dado que envelhece em silencio.",
+    "r21 (integracao): optionCount corrigido de 3 para 4 — o vendor marca 4 docs com a otherTag 'ranger-hunters-edge'. Todas entram (principio: nada e descartado; requisito sugere, nunca bloqueia)."
   ]
 }

@@ -386,7 +386,7 @@
           },
           {
             "key": "TokenEffectIcon",
-            "value": "systems/pf2e/icons/equipment/held-items/everburning-torch.webp",
+            "value": "icons/placeholder/feat.svg",
             "_conversionState": "unsupported"
           }
         ],
@@ -1093,7 +1093,7 @@
                 "die": "d4"
               }
             },
-            "img": "icons/sundries/lights/torch-brown-lit.webp",
+            "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "otherTags": ["improvised"],
             "predicate": ["lit-torch"],

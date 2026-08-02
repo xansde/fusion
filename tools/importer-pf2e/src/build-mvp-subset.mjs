@@ -37,21 +37,30 @@
  * Zero dependências externas — Node 22 ESM puro.
  */
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+// r21: a curadoria de classe é DADO (curation/classes/*.json), não predicado
+// escrito à mão aqui. Ver curation/index.mjs e .fusion-build/r21-plan.md.
+import {
+  axisCategoryByOtherTag,
+  curatedClassDisplayNames,
+  curatedClassFeatureNames,
+  loadClassCuration,
+} from "./curation/index.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const IMPORTER_ROOT = join(__dirname, '..');
-const OUT_DIR       = join(IMPORTER_ROOT, 'out');
-const SYSTEMS_ROOT  = join(IMPORTER_ROOT, '..', '..', 'systems');
-const PACKS_OUT_DIR = join(SYSTEMS_ROOT, 'pf2e', 'packs');
-const SF2E_PACKS_OUT_DIR = join(SYSTEMS_ROOT, 'sf2e', 'packs');
+const IMPORTER_ROOT = join(__dirname, "..");
+const OUT_DIR = join(IMPORTER_ROOT, "out");
+const SYSTEMS_ROOT = join(IMPORTER_ROOT, "..", "..", "systems");
+const PACKS_OUT_DIR = join(SYSTEMS_ROOT, "pf2e", "packs");
+const SF2E_PACKS_OUT_DIR = join(SYSTEMS_ROOT, "sf2e", "packs");
 /** Vendor pf2e packs root — used by R10-B to read magus.json's items{} map directly. */
-const VENDOR_ROOT_FOR_MVP = join(IMPORTER_ROOT, 'vendor', 'pf2e', 'packs', 'pf2e');
+const VENDOR_ROOT_FOR_MVP = join(IMPORTER_ROOT, "vendor", "pf2e", "packs", "pf2e");
 
-const IMPORTER_VERSION = '0.1.0';
-const SOURCE_VERSION   = 'v14-dev';
+const IMPORTER_VERSION = "0.1.0";
+const SOURCE_VERSION = "v14-dev";
 
 /**
  * textAttribution (W2-C1, follow-up #10 of the clean-room audit, REQ-LEG-010):
@@ -64,11 +73,11 @@ const SOURCE_VERSION   = 'v14-dev';
  * Apache-2.0 attribution for the source repo the importer itself reads.
  */
 const TEXT_ATTRIBUTION =
-  'Item/spell/feat/class descriptions in this pack are reproduced from Paizo ' +
-  'rules text under the license declared in each document\'s system.publication.license ' +
+  "Item/spell/feat/class descriptions in this pack are reproduced from Paizo " +
+  "rules text under the license declared in each document's system.publication.license " +
   '("ORC" or "OGL" only — see the Paizo Community Use Policy for the relevant license); ' +
-  'documents without an ORC/OGL publication keep an empty description. The importer ' +
-  'pipeline itself is derived from github.com/foundryvtt/pf2e (Apache License 2.0).';
+  "documents without an ORC/OGL publication keep an empty description. The importer " +
+  "pipeline itself is derived from github.com/foundryvtt/pf2e (Apache License 2.0).";
 
 // ---------------------------------------------------------------------------
 // Pack manifests (REQ-CMP-003/004/040)
@@ -76,85 +85,94 @@ const TEXT_ATTRIBUTION =
 
 /** @type {Record<string, import('../types.js').PackManifest>} */
 const PACK_MANIFESTS = {
-  'weapons-core': {
-    id: 'pf2e.weapons-core',
-    label: 'PF2e Core Weapons',
-    documentType: 'Item',
-    systemId: 'pf2e',
-    indexFields: ['system.level', 'system.category', 'system.traits.value', 'system.damage'],
+  "weapons-core": {
+    id: "pf2e.weapons-core",
+    label: "PF2e Core Weapons",
+    documentType: "Item",
+    systemId: "pf2e",
+    indexFields: ["system.level", "system.category", "system.traits.value", "system.damage"],
     license: {
-      license: 'ORC',
-      attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',
-      reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
-      sourceRepo: 'github.com/foundryvtt/pf2e',
+      license: "ORC",
+      attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
       sourceVersion: SOURCE_VERSION,
       textAttribution: TEXT_ATTRIBUTION,
     },
     source: {
-      repo: 'github.com/foundryvtt/pf2e',
+      repo: "github.com/foundryvtt/pf2e",
       version: SOURCE_VERSION,
       importerVersion: IMPORTER_VERSION,
     },
     schemaVersion: 1,
   },
-  'conditions': {
-    id: 'pf2e.conditions',
-    label: 'PF2e Conditions',
-    documentType: 'Item',
-    systemId: 'pf2e',
-    indexFields: ['system.group', 'system.value.isValued'],
+  conditions: {
+    id: "pf2e.conditions",
+    label: "PF2e Conditions",
+    documentType: "Item",
+    systemId: "pf2e",
+    indexFields: ["system.group", "system.value.isValued"],
     license: {
-      license: 'ORC',
-      attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',
-      reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
-      sourceRepo: 'github.com/foundryvtt/pf2e',
+      license: "ORC",
+      attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
       sourceVersion: SOURCE_VERSION,
       textAttribution: TEXT_ATTRIBUTION,
     },
     source: {
-      repo: 'github.com/foundryvtt/pf2e',
+      repo: "github.com/foundryvtt/pf2e",
       version: SOURCE_VERSION,
       importerVersion: IMPORTER_VERSION,
     },
     schemaVersion: 1,
   },
-  'bestiary-core': {
-    id: 'pf2e.bestiary-core',
-    label: 'PF2e Core Bestiary',
-    documentType: 'Actor',
-    systemId: 'pf2e',
-    indexFields: ['system.details.level.value', 'system.traits.value', 'system.attributes.hp.max'],
+  "bestiary-core": {
+    id: "pf2e.bestiary-core",
+    label: "PF2e Core Bestiary",
+    documentType: "Actor",
+    systemId: "pf2e",
+    indexFields: ["system.details.level.value", "system.traits.value", "system.attributes.hp.max"],
     license: {
-      license: 'ORC',
-      attribution: 'Pathfinder Monster Core © 2024 Paizo Inc. Licensed under the ORC License.',
-      reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
-      sourceRepo: 'github.com/foundryvtt/pf2e',
+      license: "ORC",
+      attribution: "Pathfinder Monster Core © 2024 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
       sourceVersion: SOURCE_VERSION,
       textAttribution: TEXT_ATTRIBUTION,
     },
     source: {
-      repo: 'github.com/foundryvtt/pf2e',
+      repo: "github.com/foundryvtt/pf2e",
       version: SOURCE_VERSION,
       importerVersion: IMPORTER_VERSION,
     },
     schemaVersion: 1,
   },
-  'spells-core': {
-    id: 'pf2e.spells-core',
-    label: 'PF2e Core Spells',
-    documentType: 'Item',
-    systemId: 'pf2e',
-    indexFields: ['system.level', 'system.traits.value', 'system.traits.traditions', 'system.traits.rarity'],
+  "spells-core": {
+    id: "pf2e.spells-core",
+    label: "PF2e Core Spells",
+    documentType: "Item",
+    systemId: "pf2e",
+    indexFields: [
+      "system.level",
+      "system.traits.value",
+      "system.traits.traditions",
+      "system.traits.rarity",
+    ],
     license: {
-      license: 'ORC',
-      attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',
-      reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
-      sourceRepo: 'github.com/foundryvtt/pf2e',
+      license: "ORC",
+      attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
       sourceVersion: SOURCE_VERSION,
       textAttribution: TEXT_ATTRIBUTION,
     },
     source: {
-      repo: 'github.com/foundryvtt/pf2e',
+      repo: "github.com/foundryvtt/pf2e",
       version: SOURCE_VERSION,
       importerVersion: IMPORTER_VERSION,
     },
@@ -166,132 +184,144 @@ const PACK_MANIFESTS = {
   // data only (prosa strippada via stripFlavorProse in transform.mjs), art
   // replaced by placeholders (normalize.mjs, policy-wide).
   // -------------------------------------------------------------------------
-  'classes-core': {
-    id: 'pf2e.classes-core',
-    label: 'PF2e Core Classes',
-    documentType: 'Item',
-    systemId: 'pf2e',
-    indexFields: ['name', 'system.keyAbility', 'system.traits.value'],
+  "classes-core": {
+    id: "pf2e.classes-core",
+    label: "PF2e Core Classes",
+    documentType: "Item",
+    systemId: "pf2e",
+    indexFields: ["name", "system.keyAbility", "system.traits.value"],
     license: {
-      license: 'ORC',
-      attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',
-      reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
-      sourceRepo: 'github.com/foundryvtt/pf2e',
+      license: "ORC",
+      attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
       sourceVersion: SOURCE_VERSION,
       textAttribution: TEXT_ATTRIBUTION,
     },
     source: {
-      repo: 'github.com/foundryvtt/pf2e',
+      repo: "github.com/foundryvtt/pf2e",
       version: SOURCE_VERSION,
       importerVersion: IMPORTER_VERSION,
     },
     schemaVersion: 1,
   },
-  'class-features-core': {
-    id: 'pf2e.class-features-core',
-    label: 'PF2e Core Class Features',
-    documentType: 'Item',
-    systemId: 'pf2e',
+  "class-features-core": {
+    id: "pf2e.class-features-core",
+    label: "PF2e Core Class Features",
+    documentType: "Item",
+    systemId: "pf2e",
     // 'system.traits.otherTags' is indexed so the Plan column's Hybrid
     // Study picker (R10-D item D2) can filter the compendium SEARCH INDEX
     // (PackIndexEntry.index) for the "magus-hybrid-study" marker without a
     // full getDocument() round-trip per candidate — see
     // characterSheetVM-sibling planVM.ts's isHybridStudyOption().
-    indexFields: ['name', 'system.level', 'system.category', 'system.traits.value', 'system.traits.otherTags'],
+    indexFields: [
+      "name",
+      "system.level",
+      "system.category",
+      "system.traits.value",
+      "system.traits.otherTags",
+    ],
     license: {
-      license: 'ORC',
-      attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',
-      reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
-      sourceRepo: 'github.com/foundryvtt/pf2e',
+      license: "ORC",
+      attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
       sourceVersion: SOURCE_VERSION,
       textAttribution: TEXT_ATTRIBUTION,
     },
     source: {
-      repo: 'github.com/foundryvtt/pf2e',
+      repo: "github.com/foundryvtt/pf2e",
       version: SOURCE_VERSION,
       importerVersion: IMPORTER_VERSION,
     },
     schemaVersion: 1,
   },
-  'feats-core': {
-    id: 'pf2e.feats-core',
-    label: 'PF2e Core Feats',
-    documentType: 'Item',
-    systemId: 'pf2e',
-    indexFields: ['name', 'system.level', 'system.category', 'system.traits.value'],
+  "feats-core": {
+    id: "pf2e.feats-core",
+    label: "PF2e Core Feats",
+    documentType: "Item",
+    systemId: "pf2e",
+    indexFields: ["name", "system.level", "system.category", "system.traits.value"],
     license: {
-      license: 'ORC',
-      attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',
-      reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
-      sourceRepo: 'github.com/foundryvtt/pf2e',
+      license: "ORC",
+      attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
       sourceVersion: SOURCE_VERSION,
       textAttribution: TEXT_ATTRIBUTION,
     },
     source: {
-      repo: 'github.com/foundryvtt/pf2e',
+      repo: "github.com/foundryvtt/pf2e",
       version: SOURCE_VERSION,
       importerVersion: IMPORTER_VERSION,
     },
     schemaVersion: 1,
   },
-  'ancestries-core': {
-    id: 'pf2e.ancestries-core',
-    label: 'PF2e Core Ancestries',
-    documentType: 'Item',
-    systemId: 'pf2e',
-    indexFields: ['name', 'system.traits.value', 'system.size'],
+  "ancestries-core": {
+    id: "pf2e.ancestries-core",
+    label: "PF2e Core Ancestries",
+    documentType: "Item",
+    systemId: "pf2e",
+    indexFields: ["name", "system.traits.value", "system.size"],
     license: {
-      license: 'ORC',
-      attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',
-      reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
-      sourceRepo: 'github.com/foundryvtt/pf2e',
+      license: "ORC",
+      attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
       sourceVersion: SOURCE_VERSION,
       textAttribution: TEXT_ATTRIBUTION,
     },
     source: {
-      repo: 'github.com/foundryvtt/pf2e',
+      repo: "github.com/foundryvtt/pf2e",
       version: SOURCE_VERSION,
       importerVersion: IMPORTER_VERSION,
     },
     schemaVersion: 1,
   },
-  'heritages-core': {
-    id: 'pf2e.heritages-core',
-    label: 'PF2e Core Heritages',
-    documentType: 'Item',
-    systemId: 'pf2e',
-    indexFields: ['name', 'system.ancestry.slug', 'system.traits.value'],
+  "heritages-core": {
+    id: "pf2e.heritages-core",
+    label: "PF2e Core Heritages",
+    documentType: "Item",
+    systemId: "pf2e",
+    indexFields: ["name", "system.ancestry.slug", "system.traits.value"],
     license: {
-      license: 'ORC',
-      attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',
-      reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
-      sourceRepo: 'github.com/foundryvtt/pf2e',
+      license: "ORC",
+      attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
       sourceVersion: SOURCE_VERSION,
       textAttribution: TEXT_ATTRIBUTION,
     },
     source: {
-      repo: 'github.com/foundryvtt/pf2e',
+      repo: "github.com/foundryvtt/pf2e",
       version: SOURCE_VERSION,
       importerVersion: IMPORTER_VERSION,
     },
     schemaVersion: 1,
   },
-  'backgrounds-core': {
-    id: 'pf2e.backgrounds-core',
-    label: 'PF2e Core Backgrounds',
-    documentType: 'Item',
-    systemId: 'pf2e',
-    indexFields: ['name', 'system.traits.value'],
+  "backgrounds-core": {
+    id: "pf2e.backgrounds-core",
+    label: "PF2e Core Backgrounds",
+    documentType: "Item",
+    systemId: "pf2e",
+    indexFields: ["name", "system.traits.value"],
     license: {
-      license: 'ORC',
-      attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',
-      reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
-      sourceRepo: 'github.com/foundryvtt/pf2e',
+      license: "ORC",
+      attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
       sourceVersion: SOURCE_VERSION,
       textAttribution: TEXT_ATTRIBUTION,
     },
     source: {
-      repo: 'github.com/foundryvtt/pf2e',
+      repo: "github.com/foundryvtt/pf2e",
       version: SOURCE_VERSION,
       importerVersion: IMPORTER_VERSION,
     },
@@ -306,29 +336,30 @@ const PACK_MANIFESTS = {
   // policy as every other -core pack (stripFlavorProse/stripRuleProse in
   // transform.mjs; placeholders only, never Paizo art).
   // -------------------------------------------------------------------------
-  'actions-core': {
-    id: 'pf2e.actions-core',
-    label: 'PF2e Core Actions',
-    documentType: 'Item',
-    systemId: 'pf2e',
+  "actions-core": {
+    id: "pf2e.actions-core",
+    label: "PF2e Core Actions",
+    documentType: "Item",
+    systemId: "pf2e",
     indexFields: [
-      'name',
-      'system.actionType',
-      'system.actions',
-      'system.category',
-      'system.fusionCategory',
-      'system.traits.value',
+      "name",
+      "system.actionType",
+      "system.actions",
+      "system.category",
+      "system.fusionCategory",
+      "system.traits.value",
     ],
     license: {
-      license: 'ORC',
-      attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',
-      reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
-      sourceRepo: 'github.com/foundryvtt/pf2e',
+      license: "ORC",
+      attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
       sourceVersion: SOURCE_VERSION,
       textAttribution: TEXT_ATTRIBUTION,
     },
     source: {
-      repo: 'github.com/foundryvtt/pf2e',
+      repo: "github.com/foundryvtt/pf2e",
       version: SOURCE_VERSION,
       importerVersion: IMPORTER_VERSION,
     },
@@ -343,22 +374,23 @@ const PACK_MANIFESTS = {
   // publication.license; placeholders only, never Paizo art). Spec 29
   // REQ-PET-020.
   // -------------------------------------------------------------------------
-  'familiar-abilities-core': {
-    id: 'pf2e.familiar-abilities-core',
-    label: 'PF2e Core Familiar Abilities',
-    documentType: 'Item',
-    systemId: 'pf2e',
-    indexFields: ['name', 'system.actionType', 'system.category', 'system.traits.value'],
+  "familiar-abilities-core": {
+    id: "pf2e.familiar-abilities-core",
+    label: "PF2e Core Familiar Abilities",
+    documentType: "Item",
+    systemId: "pf2e",
+    indexFields: ["name", "system.actionType", "system.category", "system.traits.value"],
     license: {
-      license: 'ORC',
-      attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',
-      reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
-      sourceRepo: 'github.com/foundryvtt/pf2e',
+      license: "ORC",
+      attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
       sourceVersion: SOURCE_VERSION,
       textAttribution: TEXT_ATTRIBUTION,
     },
     source: {
-      repo: 'github.com/foundryvtt/pf2e',
+      repo: "github.com/foundryvtt/pf2e",
       version: SOURCE_VERSION,
       importerVersion: IMPORTER_VERSION,
     },
@@ -372,22 +404,23 @@ const PACK_MANIFESTS = {
   // equipment, consumable, container) — every type has a Zod schema in
   // systems/pf2e/src/schemas/item-armor.ts / item-equipment.ts.
   // -------------------------------------------------------------------------
-  'equipment-core': {
-    id: 'pf2e.equipment-core',
-    label: 'PF2e Core Equipment',
-    documentType: 'Item',
-    systemId: 'pf2e',
-    indexFields: ['name', 'system.level', 'system.traits.value', 'system.category', 'system.usage'],
+  "equipment-core": {
+    id: "pf2e.equipment-core",
+    label: "PF2e Core Equipment",
+    documentType: "Item",
+    systemId: "pf2e",
+    indexFields: ["name", "system.level", "system.traits.value", "system.category", "system.usage"],
     license: {
-      license: 'ORC',
-      attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',
-      reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
-      sourceRepo: 'github.com/foundryvtt/pf2e',
+      license: "ORC",
+      attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
       sourceVersion: SOURCE_VERSION,
       textAttribution: TEXT_ATTRIBUTION,
     },
     source: {
-      repo: 'github.com/foundryvtt/pf2e',
+      repo: "github.com/foundryvtt/pf2e",
       version: SOURCE_VERSION,
       importerVersion: IMPORTER_VERSION,
     },
@@ -413,22 +446,23 @@ const PACK_MANIFESTS = {
   // placeholders only, never Paizo art). Type "feat" → parseFeatSystem
   // validates it in packs-validation (no new parser needed).
   // -------------------------------------------------------------------------
-  'ancestry-features-core': {
-    id: 'pf2e.ancestry-features-core',
-    label: 'PF2e Core Ancestry Features',
-    documentType: 'Item',
-    systemId: 'pf2e',
-    indexFields: ['name', 'system.category', 'system.traits.value'],
+  "ancestry-features-core": {
+    id: "pf2e.ancestry-features-core",
+    label: "PF2e Core Ancestry Features",
+    documentType: "Item",
+    systemId: "pf2e",
+    indexFields: ["name", "system.category", "system.traits.value"],
     license: {
-      license: 'ORC',
-      attribution: 'Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.',
-      reservedNotice: 'Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
-      sourceRepo: 'github.com/foundryvtt/pf2e',
+      license: "ORC",
+      attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Pathfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
       sourceVersion: SOURCE_VERSION,
       textAttribution: TEXT_ATTRIBUTION,
     },
     source: {
-      repo: 'github.com/foundryvtt/pf2e',
+      repo: "github.com/foundryvtt/pf2e",
       version: SOURCE_VERSION,
       importerVersion: IMPORTER_VERSION,
     },
@@ -467,10 +501,10 @@ const AERONAUT_CURATED_ITEMS = {
   // uses for the Fireworks Performer entry). The uuid is the authoritative
   // grant target read from the vendor Aeronaut description's @UUID enricher.
   assur: {
-    img: 'icons/placeholder/feat.svg',
+    img: "icons/placeholder/feat.svg",
     level: 1,
-    name: 'Assurance',
-    uuid: 'Compendium.pf2e.feats-srd.Item.Assurance',
+    name: "Assurance",
+    uuid: "Compendium.pf2e.feats-srd.Item.Assurance",
   },
 };
 
@@ -482,20 +516,20 @@ const AERONAUT_CURATED_ITEMS = {
  * and adventure-specific actions — noise for a general-purpose Actions tab).
  */
 const ACTIONS_CORE_INCLUDED_CATEGORIES = new Set([
-  'basic',
-  'skill',
-  'exploration',
-  'downtime',
-  'class',
-  'equipment',
-  'ancestry',
-  'archetype',
-  'background',
-  'familiar',
-  'heritage',
-  'spells',
-  'stamina',
-  'mythic',
+  "basic",
+  "skill",
+  "exploration",
+  "downtime",
+  "class",
+  "equipment",
+  "ancestry",
+  "archetype",
+  "background",
+  "familiar",
+  "heritage",
+  "spells",
+  "stamina",
+  "mythic",
 ]);
 
 /** True when a transformed action doc's fusionCategory is in the curated set. */
@@ -512,70 +546,70 @@ function isActionsCoreDoc(doc) {
 /** pf2eSourceIds das armas selecionadas para o MVP (curadas da análise). */
 const MVP_WEAPON_PF2E_IDS = new Set([
   // Simple weapons — melee
-  'rQWaJhI5Bko5x14Z', // Dagger
-  'c58wczIzH2gzeXQL', // Club
-  'tOhoGvmCMw4JpWcS', // Spear
-  '5fu6dCtqhdBnHNqh', // Morningstar
-  'LGgvev6AV0So8tP9', // Hatchet
-  'JNt7GmLCCVz5BiEI', // Javelin
-  'Tt4Qw64fwrxhr5gT', // Dart
-  'UCH4myuFnokGv0vF', // Sling
-  'FVjTuBCIefAgloUU', // Staff
+  "rQWaJhI5Bko5x14Z", // Dagger
+  "c58wczIzH2gzeXQL", // Club
+  "tOhoGvmCMw4JpWcS", // Spear
+  "5fu6dCtqhdBnHNqh", // Morningstar
+  "LGgvev6AV0So8tP9", // Hatchet
+  "JNt7GmLCCVz5BiEI", // Javelin
+  "Tt4Qw64fwrxhr5gT", // Dart
+  "UCH4myuFnokGv0vF", // Sling
+  "FVjTuBCIefAgloUU", // Staff
   // Martial weapons — melee
-  'LJdbVTOZog39EEbi', // Longsword
-  '7tKkkF8eZ4iCLJtp', // Shortsword
-  'tH5GirEy7YB3ZgCk', // Rapier
-  't5FbyZtRL4qV0V7k', // Flail
-  'rXt4629QSg7KDTgJ', // Warhammer
-  'mlrmkpOlwpnGkw4I', // Maul
-  '8COlYvHe6hKCXY8x', // Greataxe
-  'UX71GkWBL9g41VwM', // Greatsword
-  'War0uyLBx1jA0Ge7', // Battle Axe
-  'FJrsDoaIXksVjld9', // Trident
-  'hMYdSFmMWzidzHih', // Bo Staff
-  'TDrO7Xdyn7juFy3c', // Kukri
-  'f1gwoTkf3Nn0v3PN', // Whip
-  '6KWYmeRMxsQfWhhJ', // Bastard Sword
+  "LJdbVTOZog39EEbi", // Longsword
+  "7tKkkF8eZ4iCLJtp", // Shortsword
+  "tH5GirEy7YB3ZgCk", // Rapier
+  "t5FbyZtRL4qV0V7k", // Flail
+  "rXt4629QSg7KDTgJ", // Warhammer
+  "mlrmkpOlwpnGkw4I", // Maul
+  "8COlYvHe6hKCXY8x", // Greataxe
+  "UX71GkWBL9g41VwM", // Greatsword
+  "War0uyLBx1jA0Ge7", // Battle Axe
+  "FJrsDoaIXksVjld9", // Trident
+  "hMYdSFmMWzidzHih", // Bo Staff
+  "TDrO7Xdyn7juFy3c", // Kukri
+  "f1gwoTkf3Nn0v3PN", // Whip
+  "6KWYmeRMxsQfWhhJ", // Bastard Sword
   // Ranged
-  'hIgqLgH3YcLZBeoT', // Shortbow
-  'MVAWttmT0QDa7LsV', // Longbow
-  '62nnVQvGhoVLLl2K', // Crossbow
-  'e4NwsnPnpQKbDZ9F', // Composite Shortbow
-  'dUC8Fsa6FZtVikS3', // Composite Longbow
-  'XyA6PKV46aNlLXOd', // Hand Crossbow
+  "hIgqLgH3YcLZBeoT", // Shortbow
+  "MVAWttmT0QDa7LsV", // Longbow
+  "62nnVQvGhoVLLl2K", // Crossbow
+  "e4NwsnPnpQKbDZ9F", // Composite Shortbow
+  "dUC8Fsa6FZtVikS3", // Composite Longbow
+  "XyA6PKV46aNlLXOd", // Hand Crossbow
   // Unarmed / natural
   // (include one advanced to round out)
-  'oSQET5hKn9q4xlrl', // Gnome Flickmace (advanced)
+  "oSQET5hKn9q4xlrl", // Gnome Flickmace (advanced)
 ]);
 
 /** pf2eSourceIds das magias selecionadas para o MVP. */
 const MVP_SPELL_PF2E_IDS = new Set([
   // Level 1 cantrips / rank 1
-  'kBhaPuzLUSwS6vVf', // Electric Arc (L1)
-  'gpzpAAAJ1Lza2JVl', // Detect Magic (L1)
-  'izcxFQFwf3woCnFs', // Guidance (L1)
-  'WBmvzNDfpwka3qT4', // Light (L1)
-  'TVKNbcgTee19PXZR', // Shield (L1)
-  '4gBIw4IDrSfFHik4', // Daze (L1)
-  'SnjhtQYexDtNDdEg', // Stabilize (L1)
-  'rfZpqmj0AIIdkVIs', // Heal (L1)
-  'wdA52JJnsuQWeyqz', // Harm (L1)
-  '4koZzrnMXhhosn0D', // Fear (L1)
-  'jfVCuOpzC6mUrf6f', // Hydraulic Push (L1)
-  'IxhGEKl63R4QBvkj', // Frostbite (L1)
-  '6DfLZBl8wKIV03Iq', // Ignition (L1)
+  "kBhaPuzLUSwS6vVf", // Electric Arc (L1)
+  "gpzpAAAJ1Lza2JVl", // Detect Magic (L1)
+  "izcxFQFwf3woCnFs", // Guidance (L1)
+  "WBmvzNDfpwka3qT4", // Light (L1)
+  "TVKNbcgTee19PXZR", // Shield (L1)
+  "4gBIw4IDrSfFHik4", // Daze (L1)
+  "SnjhtQYexDtNDdEg", // Stabilize (L1)
+  "rfZpqmj0AIIdkVIs", // Heal (L1)
+  "wdA52JJnsuQWeyqz", // Harm (L1)
+  "4koZzrnMXhhosn0D", // Fear (L1)
+  "jfVCuOpzC6mUrf6f", // Hydraulic Push (L1)
+  "IxhGEKl63R4QBvkj", // Frostbite (L1)
+  "6DfLZBl8wKIV03Iq", // Ignition (L1)
   // Level 2
-  'XXqE1eY3w3z6xJCB', // Invisibility (L2)
-  '4GE2ZdODgIQtg51c', // Darkness (L2)
-  '9HpwDN4MYQJnW0LG', // Dispel Magic (L2)
+  "XXqE1eY3w3z6xJCB", // Invisibility (L2)
+  "4GE2ZdODgIQtg51c", // Darkness (L2)
+  "9HpwDN4MYQJnW0LG", // Dispel Magic (L2)
   // Level 3
-  'sxQZ6yqTn0czJxVd', // Fireball (L3)
-  '9AAkVUCwF6WVNNY2', // Lightning Bolt (L3)
-  'o6YCGx4lycsYpww4', // Haste (L3)
-  'WsUwpfmhKrKwoIe3', // Slow (L3)
-  'KqvqNAfGIE5a9wSv', // Heroism (L3)
+  "sxQZ6yqTn0czJxVd", // Fireball (L3)
+  "9AAkVUCwF6WVNNY2", // Lightning Bolt (L3)
+  "o6YCGx4lycsYpww4", // Haste (L3)
+  "WsUwpfmhKrKwoIe3", // Slow (L3)
+  "KqvqNAfGIE5a9wSv", // Heroism (L3)
   // Level 4
-  'A2JfEKe6BZcTG1S8', // Fly (L4)
+  "A2JfEKe6BZcTG1S8", // Fly (L4)
 ]);
 
 /**
@@ -611,41 +645,41 @@ const MVP_SPELL_PF2E_IDS = new Set([
  *   Fusion ainda — fora do escopo deste batch (armor/backpack apenas).
  */
 const MVP_EQUIPMENT_PF2E_IDS = new Set([
-  'peAvz7u35GEfTXxp', // Elven Chain (Standard-Grade) — armor
-  'ioiMUDqv85BI4shY', // Gate Attenuator — equipment (impulse-attack-roll +1)
-  'ecqz1iUGtyQEkZwy', // Boots of Bounding — equipment (land-speed +5, athletics +2)
-  'xTdrhiLqFYUllrpK', // Cantrip Deck (Full Pack) — consumable
-  'mRz8Jmk4Q06SsZpC', // Everlight Crystal — equipment
-  'jaEEvuQ32GjAa8jy', // Spacious Pouch (Type I) — backpack -> container
-  'e0vSAQfxhHauiAoD', // Healing Potion (Lesser) — consumable
-  'N3jcmW5XzEJZQVtJ', // Antivenom Potion — consumable
-  'nbRNjXYEx6T0G8AW', // Purifying Spoon (Teaspoon, base variant) — equipment [see note below]
-  'geAAUwfmOc5U0qOE', // Rhythm Bone (base) — equipment
-  'gi1zuwWrwcW7OKlK', // Sanitizing Pin — consumable
-  '9ignmYCACjfzkxDQ', // Serum of Sex Shift — consumable
+  "peAvz7u35GEfTXxp", // Elven Chain (Standard-Grade) — armor
+  "ioiMUDqv85BI4shY", // Gate Attenuator — equipment (impulse-attack-roll +1)
+  "ecqz1iUGtyQEkZwy", // Boots of Bounding — equipment (land-speed +5, athletics +2)
+  "xTdrhiLqFYUllrpK", // Cantrip Deck (Full Pack) — consumable
+  "mRz8Jmk4Q06SsZpC", // Everlight Crystal — equipment
+  "jaEEvuQ32GjAa8jy", // Spacious Pouch (Type I) — backpack -> container
+  "e0vSAQfxhHauiAoD", // Healing Potion (Lesser) — consumable
+  "N3jcmW5XzEJZQVtJ", // Antivenom Potion — consumable
+  "nbRNjXYEx6T0G8AW", // Purifying Spoon (Teaspoon, base variant) — equipment [see note below]
+  "geAAUwfmOc5U0qOE", // Rhythm Bone (base) — equipment
+  "gi1zuwWrwcW7OKlK", // Sanitizing Pin — consumable
+  "9ignmYCACjfzkxDQ", // Serum of Sex Shift — consumable
   // Adventurer's-gear subset (obvious, ORC-licensed loose items)
-  'fyYnQf1NAx9fWFaS', // Rope — equipment
-  '8Jdw4yAzWYylGePS', // Torch — equipment
-  'L9ZV076913otGtiB', // Rations — consumable
-  'VnPh324pKwd2ZB66', // Waterskin — equipment
-  'fagzYdmfYyMQ6J77', // Bedroll — equipment
-  'UlIxxLm71UdRgCFE', // Flint and Steel — equipment
+  "fyYnQf1NAx9fWFaS", // Rope — equipment
+  "8Jdw4yAzWYylGePS", // Torch — equipment
+  "L9ZV076913otGtiB", // Rations — consumable
+  "VnPh324pKwd2ZB66", // Waterskin — equipment
+  "fagzYdmfYyMQ6J77", // Bedroll — equipment
+  "UlIxxLm71UdRgCFE", // Flint and Steel — equipment
 ]);
 
 /** pf2eSourceIds dos monstros selecionados para o MVP. */
 const MVP_MONSTER_PF2E_IDS = new Set([
   // Level -1 (starter encounters)
-  'trchDxbDR2TiPMxT', // Skeleton Guard
-  'fLLKuOXwPq1Iq0U4', // Goblin Warrior
-  'KHTYbQgR5hnFZdGL', // Guard Dog
-  'BIZfjoz8DZt75EDn', // Kobold Warrior
-  'iIJPJcDT8wlJ8z5M', // Giant Rat
-  'Xo4IGzw28hivgMmM', // Zombie Shambler
-  'WBPEvEqIGvxeQKlp', // Eagle
+  "trchDxbDR2TiPMxT", // Skeleton Guard
+  "fLLKuOXwPq1Iq0U4", // Goblin Warrior
+  "KHTYbQgR5hnFZdGL", // Guard Dog
+  "BIZfjoz8DZt75EDn", // Kobold Warrior
+  "iIJPJcDT8wlJ8z5M", // Giant Rat
+  "Xo4IGzw28hivgMmM", // Zombie Shambler
+  "WBPEvEqIGvxeQKlp", // Eagle
   // Level 0
-  'YReM6QbqwUz3UTP7', // Orc Scrapper
-  'v1UK3IwCB8wCbL3L', // Leaf Leshy
-  'Ytp0kRaG8iexmPfN', // Hryngar Sharpshooter
+  "YReM6QbqwUz3UTP7", // Orc Scrapper
+  "v1UK3IwCB8wCbL3L", // Leaf Leshy
+  "Ytp0kRaG8iexmPfN", // Hryngar Sharpshooter
   // Level 1+
   // (add a few more interesting ones from L1-3)
 ]);
@@ -672,7 +706,10 @@ function hasTrait(doc, trait) {
 
 /** True when a Fusion doc's system.traits.traditions array contains `tradition`. */
 function hasTradition(doc, tradition) {
-  return Array.isArray(doc.system?.traits?.traditions) && doc.system.traits.traditions.includes(tradition);
+  return (
+    Array.isArray(doc.system?.traits?.traditions) &&
+    doc.system.traits.traditions.includes(tradition)
+  );
 }
 
 /**
@@ -697,46 +734,51 @@ function hasTradition(doc, tradition) {
  * its own special-case.
  */
 function isFeatsCoreDoc(doc) {
-  if (doc.type !== 'feat') return false;
+  if (doc.type !== "feat") return false;
   const category = doc.system?.category;
   const level = doc.system?.level ?? 0;
 
-  if (category === 'class' && hasTrait(doc, 'magus')) return true;
-  if (category === 'ancestry' && hasTrait(doc, 'ratfolk')) return true;
-  if (category === 'skill' && level <= 8) return true;
-  if (category === 'general' && level <= 8) return true;
-  if (doc.name === 'Alchemist Dedication') return true;
-  if (hasTrait(doc, 'archetype') && level <= 4) {
-    const prereqText = JSON.stringify(doc.system?.prerequisites ?? []).toLowerCase();
-    if (prereqText.includes('alchemist')) return true;
+  // --- r21: class feats das classes CURADAS (dado, não código) ---
+  // Um doc que satisfaça duas classes entra UMA vez (isto é um filtro sobre
+  // um único array; satisfazer dois ramos não duplica o documento). Feat de
+  // shared-class-feats carrega o trait de várias classes — é o mesmo doc.
+  if (category === "class") {
+    for (const cfg of loadClassCuration().values()) {
+      const rule = cfg.classFeats;
+      if (!hasTrait(doc, rule.trait)) continue;
+      if (level > rule.levelMax) continue;
+      if (rule.requireTraitsAll.length > 0 && !rule.requireTraitsAll.every((t) => hasTrait(doc, t)))
+        continue;
+      if (rule.requireTraitsAny.length > 0 && !rule.requireTraitsAny.some((t) => hasTrait(doc, t)))
+        continue;
+      if (rule.excludeNames.includes(doc.name)) continue;
+      return true;
+    }
   }
 
-  // --- r18-N2a: Finn (Kineticist Ar+Metal / Sylph / Rogue FA dedication) ---
-  // Every Air OR Metal Kineticist impulse feat at level <= 4 (category
-  // "class", traits kineticist+impulse+<element>). The dossiê picks Aerial
-  // Boomerang, Four Winds, Magnetic Pinions, Flashforge, Wind Pillow; the
-  // <=4 window gives the user margin to swap element impulses at char build
-  // (Air: 6 feats, Metal: 8 feats — 14 total, no overlap with Magus feats).
-  if (
-    category === 'class' &&
-    level <= 4 &&
-    hasTrait(doc, 'kineticist') &&
-    hasTrait(doc, 'impulse') &&
-    (hasTrait(doc, 'air') || hasTrait(doc, 'metal'))
-  ) {
-    return true;
+  if (category === "ancestry" && hasTrait(doc, "ratfolk")) return true;
+  if (category === "skill" && level <= 8) return true;
+  if (category === "general" && level <= 8) return true;
+  if (doc.name === "Alchemist Dedication") return true;
+  if (hasTrait(doc, "archetype") && level <= 4) {
+    const prereqText = JSON.stringify(doc.system?.prerequisites ?? []).toLowerCase();
+    if (prereqText.includes("alchemist")) return true;
   }
+
+  // (r18-N2a: a janela de impulsos Ar+Metal ≤4 do Kineticist migrou para
+  // `curation/classes/kineticist.json` — requireTraitsAll/Any — e é aplicada
+  // pelo laço de classes curadas acima.)
   // Sylph versatile-heritage ancestry feats (trait "sylph"), e.g. Wind Pillow.
-  if (category === 'ancestry' && hasTrait(doc, 'sylph')) return true;
+  if (category === "ancestry" && hasTrait(doc, "sylph")) return true;
   // Rogue Free-Archetype dedication chain: the dedication itself plus its
   // level<=4 follow-up archetype feats (Surprise Attack etc.), identified by a
   // "Rogue Dedication" prerequisite (dedication feats file under category
   // "class" and don't carry the class name as a trait — same shape as the
   // Alchemist branch above).
-  if (doc.name === 'Rogue Dedication') return true;
-  if (hasTrait(doc, 'archetype') && level <= 4) {
+  if (doc.name === "Rogue Dedication") return true;
+  if (hasTrait(doc, "archetype") && level <= 4) {
     const prereqText = JSON.stringify(doc.system?.prerequisites ?? []).toLowerCase();
-    if (prereqText.includes('rogue dedication')) return true;
+    if (prereqText.includes("rogue dedication")) return true;
   }
   return false;
 }
@@ -771,8 +813,8 @@ function isFeatsCoreDoc(doc) {
 function isSpellsCoreDoc(doc, existingSourceIds) {
   const sourceId = doc.flags?.fusion?.sourceId;
   if (sourceId && existingSourceIds.has(sourceId)) return true;
-  if (hasTradition(doc, 'arcane')) return true;
-  if (hasTrait(doc, 'focus')) return true;
+  if (hasTradition(doc, "arcane")) return true;
+  if (hasTrait(doc, "focus")) return true;
   return false;
 }
 
@@ -786,52 +828,27 @@ function isSpellsCoreDoc(doc, existingSourceIds) {
  * vendor's traits.otherTags:["magus-hybrid-study"] marker).
  */
 function buildClassFeatureNameSet() {
-  const magusJsonPath = join(VENDOR_ROOT_FOR_MVP, 'classes', 'magus.json');
-  const magusJson = JSON.parse(readFileSync(magusJsonPath, 'utf8'));
-  const itemsMap = magusJson.system.items ?? {};
-  const uuidMarker = 'Compendium.pf2e.classfeatures.Item.';
-  return new Set(
-    Object.values(itemsMap).map((entry) =>
-      typeof entry.uuid === 'string' && entry.uuid.startsWith(uuidMarker)
-        ? entry.uuid.slice(uuidMarker.length)
-        : entry.name,
-    ),
-  );
+  // r21: união dos `items{}` de TODAS as classes curadas. Feature
+  // compartilhada (Shield Block em 7 classes, Weapon Specialization em 25)
+  // entra uma vez só — é um Set. Ver curation/index.mjs.
+  return curatedClassFeatureNames(join(VENDOR_ROOT_FOR_MVP, "classes"));
 }
 
-/**
- * Kineticist class-feature name set (r18-N2a, item 2): every class-feature
- * referenced by the Kineticist's own vendor items{} map (23 features —
- * Kinetic Gate, Kinetic Aura, Will Expertise, Extract Element, the four
- * Gate's Threshold tiers, the expertise/mastery ladder, etc.), resolved by
- * display name via the same uuid-trailing-segment convention as the Magus set
- * above. Same source-of-truth rule (the class's own items{} map, not the
- * generic class-feature file's level).
- */
-function buildKineticistClassFeatureNameSet() {
-  const kineticistJsonPath = join(VENDOR_ROOT_FOR_MVP, 'classes', 'kineticist.json');
-  const kineticistJson = JSON.parse(readFileSync(kineticistJsonPath, 'utf8'));
-  const itemsMap = kineticistJson.system.items ?? {};
-  const uuidMarker = 'Compendium.pf2e.classfeatures.Item.';
-  return new Set(
-    Object.values(itemsMap).map((entry) =>
-      typeof entry.uuid === 'string' && entry.uuid.startsWith(uuidMarker)
-        ? entry.uuid.slice(uuidMarker.length)
-        : entry.name,
-    ),
-  );
-}
-
-function isClassFeaturesCoreDoc(doc, classFeatureNames) {
-  if (doc.type !== 'classFeature') return false;
+function isClassFeaturesCoreDoc(doc, classFeatureNames, axisCategories) {
+  if (doc.type !== "classFeature") return false;
   if (classFeatureNames.has(doc.name)) return true;
-  if (doc.system?.category === 'hybridStudy') return true;
+  // r21: as opções de eixo de sub-escolha (Instinct, Racket, Hunter's Edge,
+  // Arcane Thesis/School, Hybrid Study) NÃO estão no items{} da classe — o
+  // vendor as marca por traits.otherTags e o ChoiceSet as resolve em runtime.
+  // Sem este ramo, a classe entra com o chip da escolha e NENHUMA opção para
+  // escolher. As categorias vêm da curadoria, não de lista escrita à mão.
+  if (axisCategories.has(doc.system?.category)) return true;
   return false;
 }
 
 /** ancestries-core (DEC-R10-06 item 4; r18-N2a): Ratfolk (Magus) + Fleshwarp (Finn). */
 function isAncestriesCoreDoc(doc) {
-  return doc.type === 'ancestry' && (doc.name === 'Ratfolk' || doc.name === 'Fleshwarp');
+  return doc.type === "ancestry" && (doc.name === "Ratfolk" || doc.name === "Fleshwarp");
 }
 
 /**
@@ -843,23 +860,22 @@ function isAncestriesCoreDoc(doc) {
  * trait matching their own name, so they're selected here by explicit name.
  */
 function isHeritagesCoreDoc(doc) {
-  if (doc.type !== 'heritage') return false;
-  if (doc.system?.ancestry?.slug === 'ratfolk') return true;
-  if (doc.name === 'Sylph') return true;
+  if (doc.type !== "heritage") return false;
+  if (doc.system?.ancestry?.slug === "ratfolk") return true;
+  if (doc.name === "Sylph") return true;
   return false;
 }
 
 /** backgrounds-core (DEC-R10-06 item 4; r18-N2a): Fireworks Performer (Magus) + Aeronaut (Finn). */
 function isBackgroundsCoreDoc(doc) {
   return (
-    doc.type === 'background' &&
-    (doc.name === 'Fireworks Performer' || doc.name === 'Aeronaut')
+    doc.type === "background" && (doc.name === "Fireworks Performer" || doc.name === "Aeronaut")
   );
 }
 
 /** classes-core (DEC-R10-06 item 1; r18-N2a): Magus (r10-B) + Kineticist (Finn). */
 function isClassesCoreDoc(doc) {
-  return doc.type === 'class' && (doc.name === 'Magus' || doc.name === 'Kineticist');
+  return doc.type === "class" && curatedClassDisplayNames().has(doc.name);
 }
 
 // ---------------------------------------------------------------------------
@@ -870,13 +886,15 @@ function isClassesCoreDoc(doc) {
  * @param {string} packName
  * @param {'pf2e'|'sf2e'} [system]
  */
-function loadTransformed(packName, system = 'pf2e') {
-  const base = system === 'pf2e' ? OUT_DIR : join(OUT_DIR, system);
-  const path = join(base, packName, 'transformed.json');
+function loadTransformed(packName, system = "pf2e") {
+  const base = system === "pf2e" ? OUT_DIR : join(OUT_DIR, system);
+  const path = join(base, packName, "transformed.json");
   if (!existsSync(path)) {
-    throw new Error(`transformed.json not found for pack "${packName}" (system: ${system}). Run transform.mjs first.`);
+    throw new Error(
+      `transformed.json not found for pack "${packName}" (system: ${system}). Run transform.mjs first.`,
+    );
   }
-  return JSON.parse(readFileSync(path, 'utf8'));
+  return JSON.parse(readFileSync(path, "utf8"));
 }
 
 /**
@@ -884,7 +902,7 @@ function loadTransformed(packName, system = 'pf2e') {
  * Uses flags.fusion.sourceId to match original pf2e/sf2e IDs.
  */
 function filterToMvpSubset(docs, selectedPf2eIds) {
-  return docs.filter(doc => {
+  return docs.filter((doc) => {
     const sourceId = doc.flags?.fusion?.sourceId;
     return sourceId && selectedPf2eIds.has(sourceId);
   });
@@ -910,14 +928,14 @@ function writePack(slug, docs, manifest, packsOutDir = PACKS_OUT_DIR) {
   };
 
   // Write pack.json (REQ-CMP-003)
-  writeFileSync(join(packDir, 'pack.json'), JSON.stringify(finalManifest, null, 2), 'utf8');
+  writeFileSync(join(packDir, "pack.json"), JSON.stringify(finalManifest, null, 2), "utf8");
 
   // Write documents.json (commitável — formato JSON array)
   // In the full pipeline this would be a pack.db (SQLite), but for the MVP
   // commitável subset we use JSON. The server loads this via PackLoader.
-  writeFileSync(join(packDir, 'documents.json'), JSON.stringify(docs, null, 2), 'utf8');
+  writeFileSync(join(packDir, "documents.json"), JSON.stringify(docs, null, 2), "utf8");
 
-  const relBase = packsOutDir === SF2E_PACKS_OUT_DIR ? 'systems/sf2e/packs' : 'systems/pf2e/packs';
+  const relBase = packsOutDir === SF2E_PACKS_OUT_DIR ? "systems/sf2e/packs" : "systems/pf2e/packs";
   console.log(`[build-mvp] ${slug}: ${docs.length} docs → ${relBase}/${slug}/`);
   return finalManifest;
 }
@@ -927,11 +945,11 @@ function writePack(slug, docs, manifest, packsOutDir = PACKS_OUT_DIR) {
  * REQ-CMP-007.
  */
 function buildIndex(packId, docs, indexFields) {
-  return docs.map(doc => {
+  return docs.map((doc) => {
     const indexData = {};
     for (const field of indexFields) {
       // Resolve nested path like "system.level"
-      const parts = field.split('.');
+      const parts = field.split(".");
       let value = doc;
       for (const part of parts) {
         value = value?.[part];
@@ -941,7 +959,7 @@ function buildIndex(packId, docs, indexFields) {
     }
     return {
       _id: doc._id,
-      uuid: `Compendium.${packId}.${doc.type === 'npc' ? 'Actor' : 'Item'}.${doc._id}`,
+      uuid: `Compendium.${packId}.${doc.type === "npc" ? "Actor" : "Item"}.${doc._id}`,
       name: doc.name,
       img: doc.img ?? null,
       type: doc.type ?? null,
@@ -955,7 +973,7 @@ function buildIndex(packId, docs, indexFields) {
 // ---------------------------------------------------------------------------
 
 async function buildPf2eSubset() {
-  console.log('[build-mvp] Gerando subconjunto MVP de packs Fusion (pf2e)...\n');
+  console.log("[build-mvp] Gerando subconjunto MVP de packs Fusion (pf2e)...\n");
   mkdirSync(PACKS_OUT_DIR, { recursive: true });
 
   const report = {
@@ -967,76 +985,78 @@ async function buildPf2eSubset() {
 
   // --- 1. Conditions (all 43) ---
   {
-    console.log('[build-mvp] === Pack: conditions ===');
-    const all = loadTransformed('conditions');
+    console.log("[build-mvp] === Pack: conditions ===");
+    const all = loadTransformed("conditions");
     const docs = all; // All conditions included
-    const manifest = PACK_MANIFESTS['conditions'];
-    const finalManifest = writePack('conditions', docs, manifest);
+    const manifest = PACK_MANIFESTS["conditions"];
+    const finalManifest = writePack("conditions", docs, manifest);
 
     const index = buildIndex(manifest.id, docs, manifest.indexFields);
     writeFileSync(
-      join(PACKS_OUT_DIR, 'conditions', 'index.json'),
+      join(PACKS_OUT_DIR, "conditions", "index.json"),
       JSON.stringify(index, null, 2),
-      'utf8',
+      "utf8",
     );
 
-    report.packs.push({ packId: manifest.id, slug: 'conditions', documentCount: docs.length });
+    report.packs.push({ packId: manifest.id, slug: "conditions", documentCount: docs.length });
   }
 
   // --- 2. Weapons core (~30 curadas) ---
   {
-    console.log('[build-mvp] === Pack: weapons-core ===');
-    const all = loadTransformed('equipment');
-    const weapons = all.filter(d => d.type === 'weapon');
+    console.log("[build-mvp] === Pack: weapons-core ===");
+    const all = loadTransformed("equipment");
+    const weapons = all.filter((d) => d.type === "weapon");
     const docs = filterToMvpSubset(weapons, MVP_WEAPON_PF2E_IDS);
     console.log(`[build-mvp] weapons-core: ${docs.length} selecionadas de ${weapons.length} armas`);
 
-    const manifest = PACK_MANIFESTS['weapons-core'];
-    const finalManifest = writePack('weapons-core', docs, manifest);
+    const manifest = PACK_MANIFESTS["weapons-core"];
+    const finalManifest = writePack("weapons-core", docs, manifest);
 
     const index = buildIndex(manifest.id, docs, manifest.indexFields);
     writeFileSync(
-      join(PACKS_OUT_DIR, 'weapons-core', 'index.json'),
+      join(PACKS_OUT_DIR, "weapons-core", "index.json"),
       JSON.stringify(index, null, 2),
-      'utf8',
+      "utf8",
     );
 
-    report.packs.push({ packId: manifest.id, slug: 'weapons-core', documentCount: docs.length });
+    report.packs.push({ packId: manifest.id, slug: "weapons-core", documentCount: docs.length });
   }
 
   // --- 3. Core Bestiary (~10 monstros) ---
   {
-    console.log('[build-mvp] === Pack: bestiary-core ===');
-    const all = loadTransformed('pathfinder-monster-core');
-    const monsters = all.filter(d => d.type === 'npc');
+    console.log("[build-mvp] === Pack: bestiary-core ===");
+    const all = loadTransformed("pathfinder-monster-core");
+    const monsters = all.filter((d) => d.type === "npc");
     const curated = filterToMvpSubset(monsters, MVP_MONSTER_PF2E_IDS);
 
     // Supplement with additional L1-3 ORC monsters to reach ~10 total
-    const alreadySelected = new Set(curated.map(d => d._id));
+    const alreadySelected = new Set(curated.map((d) => d._id));
     const supplemental = monsters
-      .filter(m => !alreadySelected.has(m._id))
-      .filter(m => {
+      .filter((m) => !alreadySelected.has(m._id))
+      .filter((m) => {
         const level = m.system?.details?.level?.value ?? 0;
         const pub = m.system?.details?.publication?.license;
-        return pub === 'ORC' && level >= 1 && level <= 3;
+        return pub === "ORC" && level >= 1 && level <= 3;
       })
-      .sort((a, b) => (a.system?.details?.level?.value ?? 0) - (b.system?.details?.level?.value ?? 0))
+      .sort(
+        (a, b) => (a.system?.details?.level?.value ?? 0) - (b.system?.details?.level?.value ?? 0),
+      )
       .slice(0, Math.max(0, 10 - curated.length));
 
     const docs = [...curated, ...supplemental];
     console.log(`[build-mvp] bestiary-core: ${docs.length} monstros selecionados`);
 
-    const manifest = PACK_MANIFESTS['bestiary-core'];
-    const finalManifest = writePack('bestiary-core', docs, manifest);
+    const manifest = PACK_MANIFESTS["bestiary-core"];
+    const finalManifest = writePack("bestiary-core", docs, manifest);
 
     const index = buildIndex(manifest.id, docs, manifest.indexFields);
     writeFileSync(
-      join(PACKS_OUT_DIR, 'bestiary-core', 'index.json'),
+      join(PACKS_OUT_DIR, "bestiary-core", "index.json"),
       JSON.stringify(index, null, 2),
-      'utf8',
+      "utf8",
     );
 
-    report.packs.push({ packId: manifest.id, slug: 'bestiary-core', documentCount: docs.length });
+    report.packs.push({ packId: manifest.id, slug: "bestiary-core", documentCount: docs.length });
   }
 
   // --- 4. Core Spells — EXPANDED (R10-B, DEC-R10-06 item 5) ---
@@ -1044,106 +1064,142 @@ async function buildPf2eSubset() {
   // ranks + cantrips) UNION every Magus focus spell. Same pack id as the
   // pre-R10 MVP curation (no doc duplication across packs).
   {
-    console.log('[build-mvp] === Pack: spells-core (expandido — R10-B) ===');
-    const all = loadTransformed('spells');
+    console.log("[build-mvp] === Pack: spells-core (expandido — R10-B) ===");
+    const all = loadTransformed("spells");
     const original22 = filterToMvpSubset(all, MVP_SPELL_PF2E_IDS);
-    const existingSourceIds = new Set(original22.map(d => d.flags.fusion.sourceId));
-    const docs = all.filter(d => isSpellsCoreDoc(d, existingSourceIds));
-    const focusCount = docs.filter((d) => Array.isArray(d.system?.traits?.value) && d.system.traits.value.includes('focus')).length;
-    console.log(`[build-mvp] spells-core: ${docs.length} magias selecionadas (22 originais + arcane + ${focusCount} focus) de ${all.length} totais`);
+    const existingSourceIds = new Set(original22.map((d) => d.flags.fusion.sourceId));
+    const docs = all.filter((d) => isSpellsCoreDoc(d, existingSourceIds));
+    const focusCount = docs.filter(
+      (d) => Array.isArray(d.system?.traits?.value) && d.system.traits.value.includes("focus"),
+    ).length;
+    console.log(
+      `[build-mvp] spells-core: ${docs.length} magias selecionadas (22 originais + arcane + ${focusCount} focus) de ${all.length} totais`,
+    );
 
-    const manifest = PACK_MANIFESTS['spells-core'];
-    writePack('spells-core', docs, manifest);
+    const manifest = PACK_MANIFESTS["spells-core"];
+    writePack("spells-core", docs, manifest);
 
     const index = buildIndex(manifest.id, docs, manifest.indexFields);
     writeFileSync(
-      join(PACKS_OUT_DIR, 'spells-core', 'index.json'),
+      join(PACKS_OUT_DIR, "spells-core", "index.json"),
       JSON.stringify(index, null, 2),
-      'utf8',
+      "utf8",
     );
 
-    report.packs.push({ packId: manifest.id, slug: 'spells-core', documentCount: docs.length });
+    report.packs.push({ packId: manifest.id, slug: "spells-core", documentCount: docs.length });
   }
 
   // --- 5. Classes core (R10-B, DEC-R10-06 item 1: Magus only) ---
   {
-    console.log('[build-mvp] === Pack: classes-core ===');
-    const all = loadTransformed('classes');
+    console.log("[build-mvp] === Pack: classes-core ===");
+    const all = loadTransformed("classes");
     const docs = all.filter(isClassesCoreDoc);
-    console.log(`[build-mvp] classes-core: ${docs.length} classe(s) selecionada(s) de ${all.length} totais`);
+    console.log(
+      `[build-mvp] classes-core: ${docs.length} classe(s) selecionada(s) de ${all.length} totais`,
+    );
 
-    const manifest = PACK_MANIFESTS['classes-core'];
-    writePack('classes-core', docs, manifest);
+    const manifest = PACK_MANIFESTS["classes-core"];
+    writePack("classes-core", docs, manifest);
     const index = buildIndex(manifest.id, docs, manifest.indexFields);
-    writeFileSync(join(PACKS_OUT_DIR, 'classes-core', 'index.json'), JSON.stringify(index, null, 2), 'utf8');
-    report.packs.push({ packId: manifest.id, slug: 'classes-core', documentCount: docs.length });
+    writeFileSync(
+      join(PACKS_OUT_DIR, "classes-core", "index.json"),
+      JSON.stringify(index, null, 2),
+      "utf8",
+    );
+    report.packs.push({ packId: manifest.id, slug: "classes-core", documentCount: docs.length });
   }
 
   // --- 6. Class features core (R10-B, DEC-R10-06 item 2) ---
   {
-    console.log('[build-mvp] === Pack: class-features-core ===');
-    const all = loadTransformed('class-features');
+    console.log("[build-mvp] === Pack: class-features-core ===");
+    const all = loadTransformed("class-features");
     // Union of Magus (r10-B) and Kineticist (r18-N2a) items{} map features.
-    const classFeatureNames = new Set([
-      ...buildClassFeatureNameSet(),
-      ...buildKineticistClassFeatureNameSet(),
-    ]);
-    const docs = all.filter(d => isClassFeaturesCoreDoc(d, classFeatureNames));
-    console.log(`[build-mvp] class-features-core: ${docs.length} features selecionadas (items{} map + hybrid studies) de ${all.length} totais`);
+    const classFeatureNames = buildClassFeatureNameSet();
+    const axisCategories = new Set(axisCategoryByOtherTag().values());
+    const docs = all.filter((d) => isClassFeaturesCoreDoc(d, classFeatureNames, axisCategories));
+    console.log(
+      `[build-mvp] class-features-core: ${docs.length} features selecionadas (items{} map + hybrid studies) de ${all.length} totais`,
+    );
 
-    const manifest = PACK_MANIFESTS['class-features-core'];
-    writePack('class-features-core', docs, manifest);
+    const manifest = PACK_MANIFESTS["class-features-core"];
+    writePack("class-features-core", docs, manifest);
     const index = buildIndex(manifest.id, docs, manifest.indexFields);
-    writeFileSync(join(PACKS_OUT_DIR, 'class-features-core', 'index.json'), JSON.stringify(index, null, 2), 'utf8');
-    report.packs.push({ packId: manifest.id, slug: 'class-features-core', documentCount: docs.length });
+    writeFileSync(
+      join(PACKS_OUT_DIR, "class-features-core", "index.json"),
+      JSON.stringify(index, null, 2),
+      "utf8",
+    );
+    report.packs.push({
+      packId: manifest.id,
+      slug: "class-features-core",
+      documentCount: docs.length,
+    });
   }
 
   // --- 7. Feats core (R10-B, DEC-R10-06 item 3) ---
   {
-    console.log('[build-mvp] === Pack: feats-core ===');
-    const all = loadTransformed('feats');
+    console.log("[build-mvp] === Pack: feats-core ===");
+    const all = loadTransformed("feats");
     const docs = all.filter(isFeatsCoreDoc);
-    console.log(`[build-mvp] feats-core: ${docs.length} feats selecionados de ${all.length} totais`);
+    console.log(
+      `[build-mvp] feats-core: ${docs.length} feats selecionados de ${all.length} totais`,
+    );
 
-    const manifest = PACK_MANIFESTS['feats-core'];
-    writePack('feats-core', docs, manifest);
+    const manifest = PACK_MANIFESTS["feats-core"];
+    writePack("feats-core", docs, manifest);
     const index = buildIndex(manifest.id, docs, manifest.indexFields);
-    writeFileSync(join(PACKS_OUT_DIR, 'feats-core', 'index.json'), JSON.stringify(index, null, 2), 'utf8');
-    report.packs.push({ packId: manifest.id, slug: 'feats-core', documentCount: docs.length });
+    writeFileSync(
+      join(PACKS_OUT_DIR, "feats-core", "index.json"),
+      JSON.stringify(index, null, 2),
+      "utf8",
+    );
+    report.packs.push({ packId: manifest.id, slug: "feats-core", documentCount: docs.length });
   }
 
   // --- 8. Ancestries core (R10-B, DEC-R10-06 item 4: Ratfolk) ---
   {
-    console.log('[build-mvp] === Pack: ancestries-core ===');
-    const all = loadTransformed('ancestries');
+    console.log("[build-mvp] === Pack: ancestries-core ===");
+    const all = loadTransformed("ancestries");
     const docs = all.filter(isAncestriesCoreDoc);
-    console.log(`[build-mvp] ancestries-core: ${docs.length} ancestralidade(s) selecionada(s) de ${all.length} totais`);
+    console.log(
+      `[build-mvp] ancestries-core: ${docs.length} ancestralidade(s) selecionada(s) de ${all.length} totais`,
+    );
 
-    const manifest = PACK_MANIFESTS['ancestries-core'];
-    writePack('ancestries-core', docs, manifest);
+    const manifest = PACK_MANIFESTS["ancestries-core"];
+    writePack("ancestries-core", docs, manifest);
     const index = buildIndex(manifest.id, docs, manifest.indexFields);
-    writeFileSync(join(PACKS_OUT_DIR, 'ancestries-core', 'index.json'), JSON.stringify(index, null, 2), 'utf8');
-    report.packs.push({ packId: manifest.id, slug: 'ancestries-core', documentCount: docs.length });
+    writeFileSync(
+      join(PACKS_OUT_DIR, "ancestries-core", "index.json"),
+      JSON.stringify(index, null, 2),
+      "utf8",
+    );
+    report.packs.push({ packId: manifest.id, slug: "ancestries-core", documentCount: docs.length });
   }
 
   // --- 9. Heritages core (R10-B, DEC-R10-06 item 4: 7 heranças do ratfolk) ---
   {
-    console.log('[build-mvp] === Pack: heritages-core ===');
-    const all = loadTransformed('heritages');
+    console.log("[build-mvp] === Pack: heritages-core ===");
+    const all = loadTransformed("heritages");
     const docs = all.filter(isHeritagesCoreDoc);
-    console.log(`[build-mvp] heritages-core: ${docs.length} heranças selecionadas de ${all.length} totais`);
+    console.log(
+      `[build-mvp] heritages-core: ${docs.length} heranças selecionadas de ${all.length} totais`,
+    );
 
-    const manifest = PACK_MANIFESTS['heritages-core'];
-    writePack('heritages-core', docs, manifest);
+    const manifest = PACK_MANIFESTS["heritages-core"];
+    writePack("heritages-core", docs, manifest);
     const index = buildIndex(manifest.id, docs, manifest.indexFields);
-    writeFileSync(join(PACKS_OUT_DIR, 'heritages-core', 'index.json'), JSON.stringify(index, null, 2), 'utf8');
-    report.packs.push({ packId: manifest.id, slug: 'heritages-core', documentCount: docs.length });
+    writeFileSync(
+      join(PACKS_OUT_DIR, "heritages-core", "index.json"),
+      JSON.stringify(index, null, 2),
+      "utf8",
+    );
+    report.packs.push({ packId: manifest.id, slug: "heritages-core", documentCount: docs.length });
   }
 
   // --- 10. Backgrounds core (R10-B, DEC-R10-06 item 4: Fireworks Performer) ---
   {
-    console.log('[build-mvp] === Pack: backgrounds-core ===');
-    const all = loadTransformed('backgrounds');
+    console.log("[build-mvp] === Pack: backgrounds-core ===");
+    const all = loadTransformed("backgrounds");
     const docs = all.filter(isBackgroundsCoreDoc);
 
     // r20-X5 (Lacuna 2): the Aeronaut background comes from the vendor with an
@@ -1152,75 +1208,107 @@ async function buildPf2eSubset() {
     // materializer concedes it — only when the map is still empty (idempotent;
     // if a future vendor snapshot populates it, this is a no-op). See
     // AERONAUT_CURATED_ITEMS for the full rationale.
-    const aeronaut = docs.find((d) => d.name === 'Aeronaut');
+    const aeronaut = docs.find((d) => d.name === "Aeronaut");
     if (aeronaut) {
       const existing = aeronaut.system.items ?? {};
       if (Object.keys(existing).length === 0) {
         aeronaut.system.items = { ...AERONAUT_CURATED_ITEMS };
-        console.log('[build-mvp] backgrounds-core: injected Assurance free-feat grant into Aeronaut (vendor items{} was empty)');
+        console.log(
+          "[build-mvp] backgrounds-core: injected Assurance free-feat grant into Aeronaut (vendor items{} was empty)",
+        );
       }
     }
 
-    console.log(`[build-mvp] backgrounds-core: ${docs.length} background(s) selecionado(s) de ${all.length} totais`);
+    console.log(
+      `[build-mvp] backgrounds-core: ${docs.length} background(s) selecionado(s) de ${all.length} totais`,
+    );
 
-    const manifest = PACK_MANIFESTS['backgrounds-core'];
-    writePack('backgrounds-core', docs, manifest);
+    const manifest = PACK_MANIFESTS["backgrounds-core"];
+    writePack("backgrounds-core", docs, manifest);
     const index = buildIndex(manifest.id, docs, manifest.indexFields);
-    writeFileSync(join(PACKS_OUT_DIR, 'backgrounds-core', 'index.json'), JSON.stringify(index, null, 2), 'utf8');
-    report.packs.push({ packId: manifest.id, slug: 'backgrounds-core', documentCount: docs.length });
+    writeFileSync(
+      join(PACKS_OUT_DIR, "backgrounds-core", "index.json"),
+      JSON.stringify(index, null, 2),
+      "utf8",
+    );
+    report.packs.push({
+      packId: manifest.id,
+      slug: "backgrounds-core",
+      documentCount: docs.length,
+    });
   }
 
   // --- 11. Actions core (W2, r11-follow-up) ---
   {
-    console.log('[build-mvp] === Pack: actions-core ===');
-    const all = loadTransformed('actions');
+    console.log("[build-mvp] === Pack: actions-core ===");
+    const all = loadTransformed("actions");
     const docs = all.filter(isActionsCoreDoc);
-    console.log(`[build-mvp] actions-core: ${docs.length} ações selecionadas de ${all.length} totais`);
+    console.log(
+      `[build-mvp] actions-core: ${docs.length} ações selecionadas de ${all.length} totais`,
+    );
 
-    const manifest = PACK_MANIFESTS['actions-core'];
-    writePack('actions-core', docs, manifest);
+    const manifest = PACK_MANIFESTS["actions-core"];
+    writePack("actions-core", docs, manifest);
     const index = buildIndex(manifest.id, docs, manifest.indexFields);
-    writeFileSync(join(PACKS_OUT_DIR, 'actions-core', 'index.json'), JSON.stringify(index, null, 2), 'utf8');
-    report.packs.push({ packId: manifest.id, slug: 'actions-core', documentCount: docs.length });
+    writeFileSync(
+      join(PACKS_OUT_DIR, "actions-core", "index.json"),
+      JSON.stringify(index, null, 2),
+      "utf8",
+    );
+    report.packs.push({ packId: manifest.id, slug: "actions-core", documentCount: docs.length });
   }
 
   // --- 12. Familiar abilities core (G4, r16 — Pets tab picker) ---
   // The whole vendor familiar-abilities pack; no curation predicate (every
   // ability is a valid daily pick). Spec 29 REQ-PET-020.
   {
-    console.log('[build-mvp] === Pack: familiar-abilities-core ===');
-    const all = loadTransformed('familiar-abilities');
+    console.log("[build-mvp] === Pack: familiar-abilities-core ===");
+    const all = loadTransformed("familiar-abilities");
     const docs = all;
     console.log(`[build-mvp] familiar-abilities-core: ${docs.length} habilidades de familiar`);
 
-    const manifest = PACK_MANIFESTS['familiar-abilities-core'];
-    writePack('familiar-abilities-core', docs, manifest);
+    const manifest = PACK_MANIFESTS["familiar-abilities-core"];
+    writePack("familiar-abilities-core", docs, manifest);
     const index = buildIndex(manifest.id, docs, manifest.indexFields);
-    writeFileSync(join(PACKS_OUT_DIR, 'familiar-abilities-core', 'index.json'), JSON.stringify(index, null, 2), 'utf8');
-    report.packs.push({ packId: manifest.id, slug: 'familiar-abilities-core', documentCount: docs.length });
+    writeFileSync(
+      join(PACKS_OUT_DIR, "familiar-abilities-core", "index.json"),
+      JSON.stringify(index, null, 2),
+      "utf8",
+    );
+    report.packs.push({
+      packId: manifest.id,
+      slug: "familiar-abilities-core",
+      documentCount: docs.length,
+    });
   }
 
   // --- 13. Equipment core (r18-N2d — Finn's physical gear) ---
   // Fixed source-id list (same pattern as weapons-core); see
   // MVP_EQUIPMENT_PF2E_IDS docstring for the full item-by-item breakdown.
   {
-    console.log('[build-mvp] === Pack: equipment-core ===');
-    const all = loadTransformed('equipment');
+    console.log("[build-mvp] === Pack: equipment-core ===");
+    const all = loadTransformed("equipment");
     const docs = filterToMvpSubset(all, MVP_EQUIPMENT_PF2E_IDS);
     // Finn owns 2 Gate Attenuators (same item, not a higher tier) — the
     // curated doc's system.quantity is bumped to reflect that.
     for (const doc of docs) {
-      if (doc.flags?.fusion?.sourceId === 'ioiMUDqv85BI4shY') {
+      if (doc.flags?.fusion?.sourceId === "ioiMUDqv85BI4shY") {
         doc.system.quantity = 2;
       }
     }
-    console.log(`[build-mvp] equipment-core: ${docs.length} itens selecionados de ${MVP_EQUIPMENT_PF2E_IDS.size} ids curados (${all.length} totais no pack equipment)`);
+    console.log(
+      `[build-mvp] equipment-core: ${docs.length} itens selecionados de ${MVP_EQUIPMENT_PF2E_IDS.size} ids curados (${all.length} totais no pack equipment)`,
+    );
 
-    const manifest = PACK_MANIFESTS['equipment-core'];
-    writePack('equipment-core', docs, manifest);
+    const manifest = PACK_MANIFESTS["equipment-core"];
+    writePack("equipment-core", docs, manifest);
     const index = buildIndex(manifest.id, docs, manifest.indexFields);
-    writeFileSync(join(PACKS_OUT_DIR, 'equipment-core', 'index.json'), JSON.stringify(index, null, 2), 'utf8');
-    report.packs.push({ packId: manifest.id, slug: 'equipment-core', documentCount: docs.length });
+    writeFileSync(
+      join(PACKS_OUT_DIR, "equipment-core", "index.json"),
+      JSON.stringify(index, null, 2),
+      "utf8",
+    );
+    report.packs.push({ packId: manifest.id, slug: "equipment-core", documentCount: docs.length });
   }
 
   // --- 14. Ancestry features core (r20-X5 — auto-conceded ABC features) ---
@@ -1228,23 +1316,31 @@ async function buildPf2eSubset() {
   // feature is a valid grant target for some ancestry/heritage's system.items
   // map). See the ancestry-features-core manifest docstring for the rationale.
   {
-    console.log('[build-mvp] === Pack: ancestry-features-core ===');
-    const all = loadTransformed('ancestry-features');
+    console.log("[build-mvp] === Pack: ancestry-features-core ===");
+    const all = loadTransformed("ancestry-features");
     const docs = all;
     console.log(`[build-mvp] ancestry-features-core: ${docs.length} ancestry features`);
 
-    const manifest = PACK_MANIFESTS['ancestry-features-core'];
-    writePack('ancestry-features-core', docs, manifest);
+    const manifest = PACK_MANIFESTS["ancestry-features-core"];
+    writePack("ancestry-features-core", docs, manifest);
     const index = buildIndex(manifest.id, docs, manifest.indexFields);
-    writeFileSync(join(PACKS_OUT_DIR, 'ancestry-features-core', 'index.json'), JSON.stringify(index, null, 2), 'utf8');
-    report.packs.push({ packId: manifest.id, slug: 'ancestry-features-core', documentCount: docs.length });
+    writeFileSync(
+      join(PACKS_OUT_DIR, "ancestry-features-core", "index.json"),
+      JSON.stringify(index, null, 2),
+      "utf8",
+    );
+    report.packs.push({
+      packId: manifest.id,
+      slug: "ancestry-features-core",
+      documentCount: docs.length,
+    });
   }
 
   // Write build report
-  const reportPath = join(PACKS_OUT_DIR, 'build-report.json');
-  writeFileSync(reportPath, JSON.stringify(report, null, 2), 'utf8');
+  const reportPath = join(PACKS_OUT_DIR, "build-report.json");
+  writeFileSync(reportPath, JSON.stringify(report, null, 2), "utf8");
 
-  console.log('\n[build-mvp] === SUMÁRIO ===');
+  console.log("\n[build-mvp] === SUMÁRIO ===");
   for (const p of report.packs) {
     console.log(`  ${p.packId}: ${p.documentCount} documentos`);
   }
@@ -1258,106 +1354,147 @@ async function buildPf2eSubset() {
 
 /** sf2e MVP pack manifests, mirroring PACK_MANIFESTS' shape (spec 18). */
 const SF2E_PACK_MANIFESTS = {
-  'weapons-core': {
-    id: 'sf2e.weapons-core',
-    label: 'SF2e Core Weapons',
-    documentType: 'Item',
-    systemId: 'sf2e',
-    indexFields: ['system.level', 'system.category', 'system.traits.value', 'system.damage', 'system.grade'],
+  "weapons-core": {
+    id: "sf2e.weapons-core",
+    label: "SF2e Core Weapons",
+    documentType: "Item",
+    systemId: "sf2e",
+    indexFields: [
+      "system.level",
+      "system.category",
+      "system.traits.value",
+      "system.damage",
+      "system.grade",
+    ],
     license: {
-      license: 'ORC',
-      attribution: 'Starfinder Player Core © 2025 Paizo Inc. Licensed under the ORC License.',
-      reservedNotice: 'Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
-      sourceRepo: 'github.com/foundryvtt/pf2e',
+      license: "ORC",
+      attribution: "Starfinder Player Core © 2025 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
       sourceVersion: SOURCE_VERSION,
       textAttribution: TEXT_ATTRIBUTION,
     },
-    source: { repo: 'github.com/foundryvtt/pf2e', version: SOURCE_VERSION, importerVersion: IMPORTER_VERSION },
+    source: {
+      repo: "github.com/foundryvtt/pf2e",
+      version: SOURCE_VERSION,
+      importerVersion: IMPORTER_VERSION,
+    },
     schemaVersion: 1,
   },
-  'armor-core': {
-    id: 'sf2e.armor-core',
-    label: 'SF2e Core Armor',
-    documentType: 'Item',
-    systemId: 'sf2e',
-    indexFields: ['system.level', 'system.category', 'system.traits.value'],
+  "armor-core": {
+    id: "sf2e.armor-core",
+    label: "SF2e Core Armor",
+    documentType: "Item",
+    systemId: "sf2e",
+    indexFields: ["system.level", "system.category", "system.traits.value"],
     license: {
-      license: 'ORC',
-      attribution: 'Starfinder Player Core © 2025 Paizo Inc. Licensed under the ORC License.',
-      reservedNotice: 'Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
-      sourceRepo: 'github.com/foundryvtt/pf2e',
+      license: "ORC",
+      attribution: "Starfinder Player Core © 2025 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
       sourceVersion: SOURCE_VERSION,
       textAttribution: TEXT_ATTRIBUTION,
     },
-    source: { repo: 'github.com/foundryvtt/pf2e', version: SOURCE_VERSION, importerVersion: IMPORTER_VERSION },
+    source: {
+      repo: "github.com/foundryvtt/pf2e",
+      version: SOURCE_VERSION,
+      importerVersion: IMPORTER_VERSION,
+    },
     schemaVersion: 1,
   },
-  'augmentations-core': {
-    id: 'sf2e.augmentations-core',
-    label: 'SF2e Core Augmentations',
-    documentType: 'Item',
-    systemId: 'sf2e',
-    indexFields: ['system.level', 'system.traits.value', 'system.usage'],
+  "augmentations-core": {
+    id: "sf2e.augmentations-core",
+    label: "SF2e Core Augmentations",
+    documentType: "Item",
+    systemId: "sf2e",
+    indexFields: ["system.level", "system.traits.value", "system.usage"],
     license: {
-      license: 'ORC',
-      attribution: 'Starfinder Player Core © 2025 Paizo Inc. Licensed under the ORC License.',
-      reservedNotice: 'Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
-      sourceRepo: 'github.com/foundryvtt/pf2e',
+      license: "ORC",
+      attribution: "Starfinder Player Core © 2025 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
       sourceVersion: SOURCE_VERSION,
       textAttribution: TEXT_ATTRIBUTION,
     },
-    source: { repo: 'github.com/foundryvtt/pf2e', version: SOURCE_VERSION, importerVersion: IMPORTER_VERSION },
+    source: {
+      repo: "github.com/foundryvtt/pf2e",
+      version: SOURCE_VERSION,
+      importerVersion: IMPORTER_VERSION,
+    },
     schemaVersion: 1,
   },
-  'conditions': {
-    id: 'sf2e.conditions',
-    label: 'SF2e Conditions',
-    documentType: 'Item',
-    systemId: 'sf2e',
-    indexFields: ['system.duration', 'system.badge'],
+  conditions: {
+    id: "sf2e.conditions",
+    label: "SF2e Conditions",
+    documentType: "Item",
+    systemId: "sf2e",
+    indexFields: ["system.duration", "system.badge"],
     license: {
-      license: 'ORC',
-      attribution: 'Starfinder Player Core © 2025 Paizo Inc. Licensed under the ORC License.',
-      reservedNotice: 'Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
-      sourceRepo: 'github.com/foundryvtt/pf2e',
+      license: "ORC",
+      attribution: "Starfinder Player Core © 2025 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
       sourceVersion: SOURCE_VERSION,
       textAttribution: TEXT_ATTRIBUTION,
     },
-    source: { repo: 'github.com/foundryvtt/pf2e', version: SOURCE_VERSION, importerVersion: IMPORTER_VERSION },
+    source: {
+      repo: "github.com/foundryvtt/pf2e",
+      version: SOURCE_VERSION,
+      importerVersion: IMPORTER_VERSION,
+    },
     schemaVersion: 1,
   },
-  'bestiary-core': {
-    id: 'sf2e.bestiary-core',
-    label: 'SF2e Core Bestiary',
-    documentType: 'Actor',
-    systemId: 'sf2e',
-    indexFields: ['system.details.level.value', 'system.traits.value', 'system.attributes.hp.max'],
+  "bestiary-core": {
+    id: "sf2e.bestiary-core",
+    label: "SF2e Core Bestiary",
+    documentType: "Actor",
+    systemId: "sf2e",
+    indexFields: ["system.details.level.value", "system.traits.value", "system.attributes.hp.max"],
     license: {
-      license: 'ORC',
-      attribution: 'Starfinder Alien Core © 2025 Paizo Inc. Licensed under the ORC License.',
-      reservedNotice: 'Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
-      sourceRepo: 'github.com/foundryvtt/pf2e',
+      license: "ORC",
+      attribution: "Starfinder Alien Core © 2025 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
       sourceVersion: SOURCE_VERSION,
       textAttribution: TEXT_ATTRIBUTION,
     },
-    source: { repo: 'github.com/foundryvtt/pf2e', version: SOURCE_VERSION, importerVersion: IMPORTER_VERSION },
+    source: {
+      repo: "github.com/foundryvtt/pf2e",
+      version: SOURCE_VERSION,
+      importerVersion: IMPORTER_VERSION,
+    },
     schemaVersion: 1,
   },
-  'spells-core': {
-    id: 'sf2e.spells-core',
-    label: 'SF2e Core Spells',
-    documentType: 'Item',
-    systemId: 'sf2e',
-    indexFields: ['system.level', 'system.traits.value', 'system.traits.traditions', 'system.traits.rarity'],
+  "spells-core": {
+    id: "sf2e.spells-core",
+    label: "SF2e Core Spells",
+    documentType: "Item",
+    systemId: "sf2e",
+    indexFields: [
+      "system.level",
+      "system.traits.value",
+      "system.traits.traditions",
+      "system.traits.rarity",
+    ],
     license: {
-      license: 'ORC',
-      attribution: 'Starfinder Player Core © 2025 Paizo Inc. Licensed under the ORC License.',
-      reservedNotice: 'Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.',
-      sourceRepo: 'github.com/foundryvtt/pf2e',
+      license: "ORC",
+      attribution: "Starfinder Player Core © 2025 Paizo Inc. Licensed under the ORC License.",
+      reservedNotice:
+        "Starfinder, Paizo Inc., and their respective logos are trademarks of Paizo Inc.",
+      sourceRepo: "github.com/foundryvtt/pf2e",
       sourceVersion: SOURCE_VERSION,
       textAttribution: TEXT_ATTRIBUTION,
     },
-    source: { repo: 'github.com/foundryvtt/pf2e', version: SOURCE_VERSION, importerVersion: IMPORTER_VERSION },
+    source: {
+      repo: "github.com/foundryvtt/pf2e",
+      version: SOURCE_VERSION,
+      importerVersion: IMPORTER_VERSION,
+    },
     schemaVersion: 1,
   },
 };
@@ -1369,40 +1506,40 @@ const SF2E_PACK_MANIFESTS = {
  * (analysis/08-sf2e-import.md tem o detalhamento por arma).
  */
 const SF2E_WEAPON_SOURCE_IDS = new Set([
-  'M0PsUbGLkBk878YZ', // Arc Pistol (tech, arc)
-  'TAgaAiDMPGnF87Vv', // Arc Rifle (tech, arc)
-  'qIgcUV22LaDCzmb2', // Laser Pistol (tech)
-  '0TSUahGsoVnDZ6kv', // Laser Rifle (tech)
-  'O3QRrXVfhNpF0XyY', // Zero Pistol (tech)
-  'jLiackiAHgru9OY0', // Plasma Sword (tech, powered)
-  'ST6R4rRFf50vzSdJ', // Shock Truncheon (tech, powered, modular)
-  '3yWQhmBrAXnBhYaF', // Flamethrower (tech, area-cone, unwieldy)
-  'EnufuFPBa1U2pPDn', // Machine Gun (analog, automatic)
-  'dxkmvJZOblZ8oImW', // Autotarget Rifle (analog, automatic)
-  'V0LgOSOvkNvs2i0x', // Knife (analog, agile, finesse)
-  'D4KuxPi9gqFkvZ3h', // Baton (analog, finesse, nonlethal)
-  'K0xFwEC6Zv7ghVFa', // Semi-Auto Pistol (analog)
-  '8nvXQmFxd5eCkD9v', // Hammer (analog)
-  'a2e5svVQ20WrzRTK', // Dueling Sword (analog, versatile-p)
-  'gwVhd31nGDXo5HAa', // Crossbolter (analog)
-  'sTe6qQmJ1lC1xDfC', // Shock Pad (tech, powered, agile)
-  'vpjJYIgYZab0UZFa', // Pulsecaster Pistol (tech, nonlethal)
-  'V7epvZwIrMLMYI97', // Coil Rifle (tech, kickback, unwieldy)
-  'wbKiBgYY120RyoGg', // Shooting Starknife (analog, thrown-20)
+  "M0PsUbGLkBk878YZ", // Arc Pistol (tech, arc)
+  "TAgaAiDMPGnF87Vv", // Arc Rifle (tech, arc)
+  "qIgcUV22LaDCzmb2", // Laser Pistol (tech)
+  "0TSUahGsoVnDZ6kv", // Laser Rifle (tech)
+  "O3QRrXVfhNpF0XyY", // Zero Pistol (tech)
+  "jLiackiAHgru9OY0", // Plasma Sword (tech, powered)
+  "ST6R4rRFf50vzSdJ", // Shock Truncheon (tech, powered, modular)
+  "3yWQhmBrAXnBhYaF", // Flamethrower (tech, area-cone, unwieldy)
+  "EnufuFPBa1U2pPDn", // Machine Gun (analog, automatic)
+  "dxkmvJZOblZ8oImW", // Autotarget Rifle (analog, automatic)
+  "V0LgOSOvkNvs2i0x", // Knife (analog, agile, finesse)
+  "D4KuxPi9gqFkvZ3h", // Baton (analog, finesse, nonlethal)
+  "K0xFwEC6Zv7ghVFa", // Semi-Auto Pistol (analog)
+  "8nvXQmFxd5eCkD9v", // Hammer (analog)
+  "a2e5svVQ20WrzRTK", // Dueling Sword (analog, versatile-p)
+  "gwVhd31nGDXo5HAa", // Crossbolter (analog)
+  "sTe6qQmJ1lC1xDfC", // Shock Pad (tech, powered, agile)
+  "vpjJYIgYZab0UZFa", // Pulsecaster Pistol (tech, nonlethal)
+  "V7epvZwIrMLMYI97", // Coil Rifle (tech, kickback, unwieldy)
+  "wbKiBgYY120RyoGg", // Shooting Starknife (analog, thrown-20)
 ]);
 
 /** sourceIds curados de armaduras nível 0 (analysis/08-sf2e-import.md). */
 const SF2E_ARMOR_SOURCE_IDS = new Set([
-  'ehsCl5WJTANTlzBy', // Abadarcorp Travel Suit (light)
-  'mkMWda6ivlhnXq4d', // Armored Coat (light)
-  'aNoSZiPBfxVJYvap', // Carbon Skin (light)
-  'FySX3VPYY1YkdBZg', // Estex Suit (light)
-  'pcPU3BjbNclch4lS', // Hardlight Series (light)
-  '9UiGMq93t13HEz90', // Quilted Armor (light)
-  'plBUD8dy3M3gGiHK', // Freebooter Armor (medium)
-  'eU5n2fP7DvnFyqov', // Shotalashu Armor (medium)
-  'E9MKSSJCOk9ceLKc', // Aegis Series (heavy)
-  'wnJTyjfupLw4Cy7G', // Hidden Soldier Armor (heavy)
+  "ehsCl5WJTANTlzBy", // Abadarcorp Travel Suit (light)
+  "mkMWda6ivlhnXq4d", // Armored Coat (light)
+  "aNoSZiPBfxVJYvap", // Carbon Skin (light)
+  "FySX3VPYY1YkdBZg", // Estex Suit (light)
+  "pcPU3BjbNclch4lS", // Hardlight Series (light)
+  "9UiGMq93t13HEz90", // Quilted Armor (light)
+  "plBUD8dy3M3gGiHK", // Freebooter Armor (medium)
+  "eU5n2fP7DvnFyqov", // Shotalashu Armor (medium)
+  "E9MKSSJCOk9ceLKc", // Aegis Series (heavy)
+  "wnJTyjfupLw4Cy7G", // Hidden Soldier Armor (heavy)
 ]);
 
 /**
@@ -1413,32 +1550,32 @@ const SF2E_ARMOR_SOURCE_IDS = new Set([
  * AUGMENTATION_TYPES).
  */
 const SF2E_AUGMENTATION_SOURCE_IDS = new Set([
-  'GBtIO5fqFGD9Dzk1', // Autorecognition Lens (tech)
-  'uxJScsvafT7Nqwhj', // Hearing Aid (tech)
-  '3TQ2WCBNaFwEUDHo', // Datajack (Commercial) (tech)
-  'j66fZJrm1nECG3UM', // Dermal Plating (Commercial) (tech)
-  'PJaarOSEHTLje8sT', // Retinal Reflectors (tech)
-  'ejsPnjUVXf2TJgeD', // Dragon Gland (Commercial) (biotech)
-  'zyrPSFBAwL58wCUB', // Gill Sheath (biotech)
-  'VYtnxv13EtkyggD4', // Moodskin (magitech)
-  'Dmwb9DcWLf9y8JmC', // Telepathy Node (magitech)
-  'CBFbt7Xg5YP856ld', // Necrolung (Commercial) (necrograft)
+  "GBtIO5fqFGD9Dzk1", // Autorecognition Lens (tech)
+  "uxJScsvafT7Nqwhj", // Hearing Aid (tech)
+  "3TQ2WCBNaFwEUDHo", // Datajack (Commercial) (tech)
+  "j66fZJrm1nECG3UM", // Dermal Plating (Commercial) (tech)
+  "PJaarOSEHTLje8sT", // Retinal Reflectors (tech)
+  "ejsPnjUVXf2TJgeD", // Dragon Gland (Commercial) (biotech)
+  "zyrPSFBAwL58wCUB", // Gill Sheath (biotech)
+  "VYtnxv13EtkyggD4", // Moodskin (magitech)
+  "Dmwb9DcWLf9y8JmC", // Telepathy Node (magitech)
+  "CBFbt7Xg5YP856ld", // Necrolung (Commercial) (necrograft)
 ]);
 
 /**
  * sourceIds curados de magias nível 1-3 (analog aos pf2e cantrips/rank-1).
  */
 const SF2E_SPELL_SOURCE_IDS = new Set([
-  'FEaM1B4WuiqFO7Uk', // Eldritch Lance (L1)
-  'JIAIyvj4PV84tnFk', // Chill Gaze (L1)
-  'yXD9uU8w8uFD2OBQ', // Delete (L1)
-  'd5dmu4HZ3YyrwcaF', // Elemental Weapon (L1)
-  'ahXTkKpQtOTAQOFm', // Enhance Weapon (L1)
-  'ZBeKxBcUOsXrfMRo', // Implant Data (L1)
-  'uBo6g5aW087cLSJR', // Mind Skewer (L1)
-  'wOjoJjl2ndZKTuFJ', // Overheat (L1)
-  'mAu69GVbFKYzQM5a', // Akashic Fount (L1)
-  'smCC1LNhMb7Z1lrU', // Anthem (L1)
+  "FEaM1B4WuiqFO7Uk", // Eldritch Lance (L1)
+  "JIAIyvj4PV84tnFk", // Chill Gaze (L1)
+  "yXD9uU8w8uFD2OBQ", // Delete (L1)
+  "d5dmu4HZ3YyrwcaF", // Elemental Weapon (L1)
+  "ahXTkKpQtOTAQOFm", // Enhance Weapon (L1)
+  "ZBeKxBcUOsXrfMRo", // Implant Data (L1)
+  "uBo6g5aW087cLSJR", // Mind Skewer (L1)
+  "wOjoJjl2ndZKTuFJ", // Overheat (L1)
+  "mAu69GVbFKYzQM5a", // Akashic Fount (L1)
+  "smCC1LNhMb7Z1lrU", // Anthem (L1)
 ]);
 
 /**
@@ -1446,16 +1583,16 @@ const SF2E_SPELL_SOURCE_IDS = new Set([
  * allowlist de traits SF-exclusivos (REQ-SF2-047; analysis/04 §6 item 2).
  */
 const SF2E_MONSTER_SOURCE_IDS = new Set([
-  'rl5p1LLCpKh16viU', // Repair-Class Security Robot (robot, construct, tech) L-1
-  'H53Dsx2DYmd9hBIn', // Botnib (fey, gremlin, tech) L-1
-  'dxbr3LNg0R66Aj1n', // Cybernetic Zombie (tech, undead) L-1
-  'MnOrSqYS5w8tAPXM', // Ordinance-Class Civil Robot (robot, construct, tech) L0
-  'pjh2PB4JwYlgMTwj', // Cyanoscum (elemental, plant) L0
-  'yhCFz4PyGPpFRr1O', // Akata (aberration) L1
+  "rl5p1LLCpKh16viU", // Repair-Class Security Robot (robot, construct, tech) L-1
+  "H53Dsx2DYmd9hBIn", // Botnib (fey, gremlin, tech) L-1
+  "dxbr3LNg0R66Aj1n", // Cybernetic Zombie (tech, undead) L-1
+  "MnOrSqYS5w8tAPXM", // Ordinance-Class Civil Robot (robot, construct, tech) L0
+  "pjh2PB4JwYlgMTwj", // Cyanoscum (elemental, plant) L0
+  "yhCFz4PyGPpFRr1O", // Akata (aberration) L1
 ]);
 
 async function buildSf2eSubset() {
-  console.log('[build-mvp] Gerando subconjunto MVP de packs Fusion (sf2e)...\n');
+  console.log("[build-mvp] Gerando subconjunto MVP de packs Fusion (sf2e)...\n");
   mkdirSync(SF2E_PACKS_OUT_DIR, { recursive: true });
 
   const report = {
@@ -1463,16 +1600,16 @@ async function buildSf2eSubset() {
     generatedAt: new Date().toISOString(),
     importerVersion: IMPORTER_VERSION,
     sourceVersion: SOURCE_VERSION,
-    system: 'sf2e',
+    system: "sf2e",
   };
 
   const writeSf2ePack = (slug, docs, manifest) => {
     const finalManifest = writePack(slug, docs, manifest, SF2E_PACKS_OUT_DIR);
     const index = buildIndex(manifest.id, docs, manifest.indexFields);
     writeFileSync(
-      join(SF2E_PACKS_OUT_DIR, slug, 'index.json'),
+      join(SF2E_PACKS_OUT_DIR, slug, "index.json"),
       JSON.stringify(index, null, 2),
-      'utf8',
+      "utf8",
     );
     report.packs.push({ packId: manifest.id, slug, documentCount: docs.length });
     return finalManifest;
@@ -1480,80 +1617,86 @@ async function buildSf2eSubset() {
 
   // --- 1. Conditions (all 3 SF-exclusive: glitching, suppressed, untethered) ---
   {
-    console.log('[build-mvp] === Pack: conditions (sf2e) ===');
-    const docs = loadTransformed('conditions', 'sf2e');
+    console.log("[build-mvp] === Pack: conditions (sf2e) ===");
+    const docs = loadTransformed("conditions", "sf2e");
     console.log(`[build-mvp] conditions: ${docs.length} condições sf2e-exclusivas`);
-    writeSf2ePack('conditions', docs, SF2E_PACK_MANIFESTS['conditions']);
+    writeSf2ePack("conditions", docs, SF2E_PACK_MANIFESTS["conditions"]);
   }
 
   // --- 2. Weapons core (~20 curadas, spread analog/tech) ---
   {
-    console.log('[build-mvp] === Pack: weapons-core (sf2e) ===');
-    const all = loadTransformed('equipment', 'sf2e');
-    const weapons = all.filter(d => d.type === 'weapon');
+    console.log("[build-mvp] === Pack: weapons-core (sf2e) ===");
+    const all = loadTransformed("equipment", "sf2e");
+    const weapons = all.filter((d) => d.type === "weapon");
     const docs = filterToMvpSubset(weapons, SF2E_WEAPON_SOURCE_IDS);
     console.log(`[build-mvp] weapons-core: ${docs.length} selecionadas de ${weapons.length} armas`);
-    writeSf2ePack('weapons-core', docs, SF2E_PACK_MANIFESTS['weapons-core']);
+    writeSf2ePack("weapons-core", docs, SF2E_PACK_MANIFESTS["weapons-core"]);
   }
 
   // --- 3. Armor core (~10 curadas) ---
   {
-    console.log('[build-mvp] === Pack: armor-core (sf2e) ===');
-    const all = loadTransformed('equipment', 'sf2e');
-    const armor = all.filter(d => d.type === 'armor');
+    console.log("[build-mvp] === Pack: armor-core (sf2e) ===");
+    const all = loadTransformed("equipment", "sf2e");
+    const armor = all.filter((d) => d.type === "armor");
     const docs = filterToMvpSubset(armor, SF2E_ARMOR_SOURCE_IDS);
     console.log(`[build-mvp] armor-core: ${docs.length} selecionadas de ${armor.length} armaduras`);
-    writeSf2ePack('armor-core', docs, SF2E_PACK_MANIFESTS['armor-core']);
+    writeSf2ePack("armor-core", docs, SF2E_PACK_MANIFESTS["armor-core"]);
   }
 
   // --- 4. Augmentations core (D-SF2-03) ---
   {
-    console.log('[build-mvp] === Pack: augmentations-core (sf2e) ===');
-    const all = loadTransformed('equipment', 'sf2e');
-    const augmentations = all.filter(d => d.type === 'equipment' && d.system?.usage === 'implanted');
+    console.log("[build-mvp] === Pack: augmentations-core (sf2e) ===");
+    const all = loadTransformed("equipment", "sf2e");
+    const augmentations = all.filter(
+      (d) => d.type === "equipment" && d.system?.usage === "implanted",
+    );
     const docs = filterToMvpSubset(augmentations, SF2E_AUGMENTATION_SOURCE_IDS);
-    console.log(`[build-mvp] augmentations-core: ${docs.length} selecionadas de ${augmentations.length} augmentações`);
-    writeSf2ePack('augmentations-core', docs, SF2E_PACK_MANIFESTS['augmentations-core']);
+    console.log(
+      `[build-mvp] augmentations-core: ${docs.length} selecionadas de ${augmentations.length} augmentações`,
+    );
+    writeSf2ePack("augmentations-core", docs, SF2E_PACK_MANIFESTS["augmentations-core"]);
   }
 
   // --- 5. Bestiary core (~10, incl. robots/aliens p/ allowlist de traits) ---
   {
-    console.log('[build-mvp] === Pack: bestiary-core (sf2e) ===');
-    const all = loadTransformed('alien-core-bestiary', 'sf2e');
-    const monsters = all.filter(d => d.type === 'npc');
+    console.log("[build-mvp] === Pack: bestiary-core (sf2e) ===");
+    const all = loadTransformed("alien-core-bestiary", "sf2e");
+    const monsters = all.filter((d) => d.type === "npc");
     const curated = filterToMvpSubset(monsters, SF2E_MONSTER_SOURCE_IDS);
 
     // Supplement with additional L-1..L3 ORC monsters to reach ~10 total
-    const alreadySelected = new Set(curated.map(d => d._id));
+    const alreadySelected = new Set(curated.map((d) => d._id));
     const supplemental = monsters
-      .filter(m => !alreadySelected.has(m._id))
-      .filter(m => {
+      .filter((m) => !alreadySelected.has(m._id))
+      .filter((m) => {
         const level = m.system?.details?.level?.value ?? 0;
         const pub = m.system?.details?.publication?.license;
-        return pub === 'ORC' && level >= -1 && level <= 3;
+        return pub === "ORC" && level >= -1 && level <= 3;
       })
-      .sort((a, b) => (a.system?.details?.level?.value ?? 0) - (b.system?.details?.level?.value ?? 0))
+      .sort(
+        (a, b) => (a.system?.details?.level?.value ?? 0) - (b.system?.details?.level?.value ?? 0),
+      )
       .slice(0, Math.max(0, 10 - curated.length));
 
     const docs = [...curated, ...supplemental];
     console.log(`[build-mvp] bestiary-core: ${docs.length} criaturas selecionadas`);
-    writeSf2ePack('bestiary-core', docs, SF2E_PACK_MANIFESTS['bestiary-core']);
+    writeSf2ePack("bestiary-core", docs, SF2E_PACK_MANIFESTS["bestiary-core"]);
   }
 
   // --- 6. Spells core (~10 curadas) ---
   {
-    console.log('[build-mvp] === Pack: spells-core (sf2e) ===');
-    const all = loadTransformed('spells', 'sf2e');
+    console.log("[build-mvp] === Pack: spells-core (sf2e) ===");
+    const all = loadTransformed("spells", "sf2e");
     const docs = filterToMvpSubset(all, SF2E_SPELL_SOURCE_IDS);
     console.log(`[build-mvp] spells-core: ${docs.length} magias selecionadas`);
-    writeSf2ePack('spells-core', docs, SF2E_PACK_MANIFESTS['spells-core']);
+    writeSf2ePack("spells-core", docs, SF2E_PACK_MANIFESTS["spells-core"]);
   }
 
   // Write build report
-  const reportPath = join(SF2E_PACKS_OUT_DIR, 'build-report.json');
-  writeFileSync(reportPath, JSON.stringify(report, null, 2), 'utf8');
+  const reportPath = join(SF2E_PACKS_OUT_DIR, "build-report.json");
+  writeFileSync(reportPath, JSON.stringify(report, null, 2), "utf8");
 
-  console.log('\n[build-mvp] === SUMÁRIO (sf2e) ===');
+  console.log("\n[build-mvp] === SUMÁRIO (sf2e) ===");
   for (const p of report.packs) {
     console.log(`  ${p.packId}: ${p.documentCount} documentos`);
   }
@@ -1567,21 +1710,23 @@ async function buildSf2eSubset() {
 
 async function main() {
   const args = process.argv.slice(2);
-  const systemEq  = args.find(a => a.startsWith('--system='));
-  const systemIdx = args.indexOf('--system');
+  const systemEq = args.find((a) => a.startsWith("--system="));
+  const systemIdx = args.indexOf("--system");
   const systemFlag = systemEq
-    ? systemEq.split('=')[1]
-    : (systemIdx !== -1 ? args[systemIdx + 1] : null);
-  const system = systemFlag === 'sf2e' ? 'sf2e' : 'pf2e';
+    ? systemEq.split("=")[1]
+    : systemIdx !== -1
+      ? args[systemIdx + 1]
+      : null;
+  const system = systemFlag === "sf2e" ? "sf2e" : "pf2e";
 
-  if (system === 'sf2e') {
+  if (system === "sf2e") {
     await buildSf2eSubset();
   } else {
     await buildPf2eSubset();
   }
 }
 
-main().catch(err => {
-  console.error('[build-mvp] FATAL:', err);
+main().catch((err) => {
+  console.error("[build-mvp] FATAL:", err);
   process.exit(1);
 });

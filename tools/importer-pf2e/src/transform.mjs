@@ -38,29 +38,35 @@
  * Zero dependências externas — Node 22 ESM + crypto nativo.
  */
 
-import { createHash } from 'node:crypto';
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { createHash } from "node:crypto";
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+// r21: progressão de classe vem de DADO (curation/classes/*.json) + derivação
+// sobre o vendor, não de tabela escrita à mão. Ver curation/index.mjs e
+// curation/proficiency-upgrades.mjs.
+import { axisCategoryByOtherTag, classItemsMap, loadClassCuration } from "./curation/index.mjs";
+import { deriveProficiencyUpgrades } from "./curation/proficiency-upgrades.mjs";
 
 // ---------------------------------------------------------------------------
 // Paths
 // ---------------------------------------------------------------------------
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const IMPORTER_ROOT = join(__dirname, '..');
-const OUT_DIR       = join(IMPORTER_ROOT, 'out');
-const ANALYSIS_DIR  = join(IMPORTER_ROOT, 'analysis');
+const IMPORTER_ROOT = join(__dirname, "..");
+const OUT_DIR = join(IMPORTER_ROOT, "out");
+const ANALYSIS_DIR = join(IMPORTER_ROOT, "analysis");
 
 /** Resolves the out/ base dir for a given system ("pf2e" uses out/ directly, legacy path). */
 function outBaseFor(system) {
-  return system === 'pf2e' ? OUT_DIR : join(OUT_DIR, system);
+  return system === "pf2e" ? OUT_DIR : join(OUT_DIR, system);
 }
 
 // ---------------------------------------------------------------------------
 // Version metadata
 // ---------------------------------------------------------------------------
-const IMPORTER_VERSION = '0.1.0';
-const SOURCE_VERSION   = 'v14-dev'; // branch clonada do vendor/pf2e
+const IMPORTER_VERSION = "0.1.0";
+const SOURCE_VERSION = "v14-dev"; // branch clonada do vendor/pf2e
 
 // ---------------------------------------------------------------------------
 // fusionId derivation
@@ -68,7 +74,7 @@ const SOURCE_VERSION   = 'v14-dev'; // branch clonada do vendor/pf2e
 // Analysis 05-id-compat.md §5.
 // ---------------------------------------------------------------------------
 
-const BASE62 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+const BASE62 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
 /**
  * Converts an arbitrary-length buffer to a base62 string of `length` chars.
@@ -76,14 +82,14 @@ const BASE62 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
  */
 function bufToBase62(buf, length) {
   // Convert sha1 bytes to BigInt
-  let n = BigInt('0x' + buf.toString('hex'));
+  let n = BigInt("0x" + buf.toString("hex"));
   const result = [];
   const base = BigInt(62);
   for (let i = 0; i < length; i++) {
     result.push(BASE62[Number(n % base)]);
     n = n / base;
   }
-  return result.reverse().join('');
+  return result.reverse().join("");
 }
 
 /**
@@ -94,7 +100,7 @@ function bufToBase62(buf, length) {
  */
 function deriveFusionId(packName, pf2eSourceId) {
   const input = `${packName}:${pf2eSourceId}`;
-  const hash = createHash('sha1').update(input, 'utf8').digest();
+  const hash = createHash("sha1").update(input, "utf8").digest();
   return bufToBase62(hash, 16);
 }
 
@@ -106,47 +112,47 @@ function deriveFusionId(packName, pf2eSourceId) {
 /** @type {Record<string, 'supported' | 'partial' | 'unsupported'>} */
 const RE_COVERAGE = {
   // Tier 1 — supported
-  FlatModifier:        'supported',
-  ActiveEffectLike:    'supported',
-  RollOption:          'supported',
-  Note:                'supported',
-  DamageDice:          'supported',
-  Resistance:          'supported',
+  FlatModifier: "supported",
+  ActiveEffectLike: "supported",
+  RollOption: "supported",
+  Note: "supported",
+  DamageDice: "supported",
+  Resistance: "supported",
   // Tier 2 — supported (spec REQ-CMP-035 list)
-  GrantItem:           'supported',
-  Sense:               'supported',
-  BaseSpeed:           'supported',
-  TempHP:              'supported',
-  MartialProficiency:  'supported',
+  GrantItem: "supported",
+  Sense: "supported",
+  BaseSpeed: "supported",
+  TempHP: "supported",
+  MartialProficiency: "supported",
   // Partial — handled but with limitations
-  ItemAlteration:      'partial',  // property add/override only
-  AdjustModifier:      'partial',  // maps to flat-modifier w/ notes
-  Immunity:            'partial',  // maps to IWR entry, not full predicate support
+  ItemAlteration: "partial", // property add/override only
+  AdjustModifier: "partial", // maps to flat-modifier w/ notes
+  Immunity: "partial", // maps to IWR entry, not full predicate support
   // Unsupported — preserved verbatim in flags.fusion.unconvertedRules
-  ChoiceSet:           'unsupported',
-  Aura:                'unsupported',
-  AdjustDegreeOfSuccess: 'unsupported',
-  Strike:              'unsupported',
-  AdjustStrike:        'unsupported',
-  DamageAlteration:    'unsupported',
-  Weakness:            'unsupported',  // handled via IWR but separately
-  FastHealing:         'unsupported',
-  TokenLight:          'unsupported',
-  CreatureSize:        'unsupported',
-  CriticalSpecialization: 'unsupported',
-  BattleForm:          'unsupported',
-  TokenMark:           'unsupported',
-  ActorTraits:         'unsupported',
-  RollTwice:           'unsupported',
-  EphemeralEffect:     'unsupported',
-  TokenEffectIcon:     'unsupported',
-  CraftingAbility:     'unsupported',
-  DexterityModifierCap: 'unsupported',
-  SubstituteRoll:      'unsupported',
-  SpecialStatistic:    'unsupported',
-  MultipleAttackPenalty: 'unsupported',
-  LoseHitPoints:       'unsupported',
-  SpecialResource:     'unsupported',
+  ChoiceSet: "unsupported",
+  Aura: "unsupported",
+  AdjustDegreeOfSuccess: "unsupported",
+  Strike: "unsupported",
+  AdjustStrike: "unsupported",
+  DamageAlteration: "unsupported",
+  Weakness: "unsupported", // handled via IWR but separately
+  FastHealing: "unsupported",
+  TokenLight: "unsupported",
+  CreatureSize: "unsupported",
+  CriticalSpecialization: "unsupported",
+  BattleForm: "unsupported",
+  TokenMark: "unsupported",
+  ActorTraits: "unsupported",
+  RollTwice: "unsupported",
+  EphemeralEffect: "unsupported",
+  TokenEffectIcon: "unsupported",
+  CraftingAbility: "unsupported",
+  DexterityModifierCap: "unsupported",
+  SubstituteRoll: "unsupported",
+  SpecialStatistic: "unsupported",
+  MultipleAttackPenalty: "unsupported",
+  LoseHitPoints: "unsupported",
+  SpecialResource: "unsupported",
 };
 
 // ---------------------------------------------------------------------------
@@ -165,17 +171,17 @@ const RE_COVERAGE = {
  */
 function translateValueExpr(value) {
   if (value === undefined || value === null) return value;
-  if (typeof value === 'number') return value;
-  if (typeof value !== 'string') return null; // object expression — unsupported
+  if (typeof value === "number") return value;
+  if (typeof value !== "string") return null; // object expression — unsupported
 
   // Simple numeric string
   if (/^-?\d+(\.\d+)?$/.test(value)) return Number(value);
 
   // Direct @actor.level → @actor.details.level.value (Fusion path)
-  if (value === '@actor.level') return '@actor.details.level.value';
+  if (value === "@actor.level") return "@actor.details.level.value";
 
   // @item.level → @item.system.level.value
-  if (value === '@item.level') return '@item.system.level.value';
+  if (value === "@item.level") return "@item.system.level.value";
 
   // floor(@actor.level / N) → floor(@actor.details.level.value / N)
   const floorMatch = value.match(/^floor\(@actor\.level\s*\/\s*(\d+)\)$/);
@@ -208,13 +214,13 @@ function convertFlatModifier(re) {
   if (translatedValue === null) return null; // unparseable value → partial
 
   return {
-    kind: 'flat-modifier',
+    kind: "flat-modifier",
     slug: re.slug ?? null,
     label: re.label ?? null,
     selector: re.selector,
     value: translatedValue,
-    mode: 'add',
-    type: re.type ?? 'untyped', // item | status | circumstance | untyped
+    mode: "add",
+    type: re.type ?? "untyped", // item | status | circumstance | untyped
     predicate: re.predicate ?? null,
     priority: re.priority ?? null,
     raw: re,
@@ -230,21 +236,21 @@ function convertActiveEffectLike(re) {
   if (translatedValue === null) return null;
 
   const modeMap = {
-    add: 'add',
-    subtract: 'subtract',
-    multiply: 'multiply',
-    upgrade: 'upgrade',
-    downgrade: 'downgrade',
-    override: 'override',
+    add: "add",
+    subtract: "subtract",
+    multiply: "multiply",
+    upgrade: "upgrade",
+    downgrade: "downgrade",
+    override: "override",
   };
 
   return {
-    kind: 'set-property',
+    kind: "set-property",
     slug: re.slug ?? null,
     label: re.label ?? null,
     selector: re.path ?? null,
     value: translatedValue,
-    mode: modeMap[re.mode] ?? 'override',
+    mode: modeMap[re.mode] ?? "override",
     predicate: re.predicate ?? null,
     priority: re.priority ?? null,
     raw: re,
@@ -257,11 +263,11 @@ function convertActiveEffectLike(re) {
  */
 function convertRollOption(re) {
   return {
-    kind: 'roll-option',
+    kind: "roll-option",
     slug: re.option ?? re.slug ?? null,
     label: re.label ?? null,
     toggleable: re.toggleable ?? false,
-    domain: re.domain ?? 'all',
+    domain: re.domain ?? "all",
     predicate: re.predicate ?? null,
     priority: re.priority ?? null,
     raw: re,
@@ -276,7 +282,7 @@ function convertRollOption(re) {
  */
 function convertGrantItem(re) {
   return {
-    kind: 'grant-item',
+    kind: "grant-item",
     slug: re.slug ?? null,
     label: re.label ?? null,
     uuid: re.uuid ?? null, // pf2e UUID — rewritten in UUID post-pass
@@ -294,7 +300,7 @@ function convertGrantItem(re) {
  */
 function convertNote(re) {
   return {
-    kind: 'roll-note',
+    kind: "roll-note",
     slug: re.slug ?? null,
     label: re.label ?? null,
     selector: re.selector ?? null,
@@ -313,13 +319,13 @@ function convertNote(re) {
  */
 function convertDamageDice(re) {
   return {
-    kind: 'flat-modifier',
-    subkind: 'damage-dice',
+    kind: "flat-modifier",
+    subkind: "damage-dice",
     slug: re.slug ?? null,
     label: re.label ?? null,
-    selector: re.selector ?? 'strike-damage',
+    selector: re.selector ?? "strike-damage",
     diceNumber: re.diceNumber ?? 1,
-    dieSize: re.dieSize ?? 'd6',
+    dieSize: re.dieSize ?? "d6",
     damageType: re.damageType ?? null,
     category: re.category ?? null,
     predicate: re.predicate ?? null,
@@ -333,12 +339,10 @@ function convertDamageDice(re) {
  * REQ-CMP-035: supported.
  */
 function convertResistance(re) {
-  const value = typeof re.value === 'number' ? re.value
-    : re.value === 'half' ? 'half'
-    : null;
+  const value = typeof re.value === "number" ? re.value : re.value === "half" ? "half" : null;
   return {
-    kind: 'flat-modifier',
-    subkind: 'resistance',
+    kind: "flat-modifier",
+    subkind: "resistance",
     slug: re.slug ?? null,
     label: re.label ?? null,
     damageType: re.type ?? null,
@@ -356,8 +360,8 @@ function convertResistance(re) {
  */
 function convertImmunity(re) {
   return {
-    kind: 'flat-modifier',
-    subkind: 'immunity',
+    kind: "flat-modifier",
+    subkind: "immunity",
     slug: re.slug ?? null,
     label: re.label ?? null,
     damageType: re.type ?? null,
@@ -373,11 +377,11 @@ function convertImmunity(re) {
  */
 function convertSense(re) {
   return {
-    kind: 'sense',
+    kind: "sense",
     slug: re.slug ?? null,
     label: re.label ?? null,
     senseType: re.type ?? null,
-    acuity: re.acuity ?? 'precise',
+    acuity: re.acuity ?? "precise",
     range: re.range ?? null,
     predicate: re.predicate ?? null,
     priority: re.priority ?? null,
@@ -392,10 +396,10 @@ function convertSense(re) {
 function convertBaseSpeed(re) {
   const translatedValue = translateValueExpr(re.value);
   return {
-    kind: 'base-speed',
+    kind: "base-speed",
     slug: re.slug ?? null,
     label: re.label ?? null,
-    selector: re.selector ?? 'land-speed',
+    selector: re.selector ?? "land-speed",
     value: translatedValue,
     predicate: re.predicate ?? null,
     priority: re.priority ?? null,
@@ -411,7 +415,7 @@ function convertTempHP(re) {
   const translatedValue = translateValueExpr(re.value);
   if (translatedValue === null) return null;
   return {
-    kind: 'temp-hp',
+    kind: "temp-hp",
     slug: re.slug ?? null,
     label: re.label ?? null,
     value: translatedValue,
@@ -427,7 +431,7 @@ function convertTempHP(re) {
  */
 function convertMartialProficiency(re) {
   return {
-    kind: 'proficiency',
+    kind: "proficiency",
     slug: re.slug ?? null,
     label: re.label ?? null,
     selector: re.selector ?? null,
@@ -443,11 +447,11 @@ function convertMartialProficiency(re) {
  * REQ-CMP-035: partial — only add/override on non-lore properties.
  */
 function convertItemAlteration(re) {
-  if (!['add', 'override', 'upgrade', 'downgrade'].includes(re.mode)) return null;
+  if (!["add", "override", "upgrade", "downgrade"].includes(re.mode)) return null;
   const translatedValue = translateValueExpr(re.value);
   return {
-    kind: 'set-property',
-    subkind: 'item-alteration',
+    kind: "set-property",
+    subkind: "item-alteration",
     slug: re.slug ?? null,
     label: re.label ?? null,
     selector: re.property ?? null,
@@ -465,16 +469,16 @@ function convertItemAlteration(re) {
  */
 function convertAdjustModifier(re) {
   return {
-    kind: 'flat-modifier',
-    subkind: 'adjust-modifier',
+    kind: "flat-modifier",
+    subkind: "adjust-modifier",
     slug: re.slug ?? null,
     label: re.label ?? null,
     selector: re.selector ?? null,
     value: translateValueExpr(re.value),
-    mode: 'add',
+    mode: "add",
     predicate: re.predicate ?? null,
     priority: re.priority ?? null,
-    notes: 'AdjustModifier — partial conversion; capping/floor not applied',
+    notes: "AdjustModifier — partial conversion; capping/floor not applied",
     raw: re,
   };
 }
@@ -496,41 +500,69 @@ function convertAdjustModifier(re) {
  */
 function convertRuleElement(re) {
   const key = re?.key;
-  if (!key) return { descriptor: null, state: 'unsupported' };
+  if (!key) return { descriptor: null, state: "unsupported" };
 
-  const coverage = RE_COVERAGE[key] ?? 'unsupported';
+  const coverage = RE_COVERAGE[key] ?? "unsupported";
 
   try {
     let descriptor = null;
 
     switch (key) {
-      case 'FlatModifier':       descriptor = convertFlatModifier(re);    break;
-      case 'ActiveEffectLike':   descriptor = convertActiveEffectLike(re);break;
-      case 'RollOption':         descriptor = convertRollOption(re);       break;
-      case 'GrantItem':          descriptor = convertGrantItem(re);        break;
-      case 'Note':               descriptor = convertNote(re);             break;
-      case 'DamageDice':         descriptor = convertDamageDice(re);       break;
-      case 'Resistance':         descriptor = convertResistance(re);       break;
-      case 'Immunity':           descriptor = convertImmunity(re);         break;
-      case 'Sense':              descriptor = convertSense(re);            break;
-      case 'BaseSpeed':          descriptor = convertBaseSpeed(re);        break;
-      case 'TempHP':             descriptor = convertTempHP(re);           break;
-      case 'MartialProficiency': descriptor = convertMartialProficiency(re); break;
-      case 'ItemAlteration':     descriptor = convertItemAlteration(re);  break;
-      case 'AdjustModifier':     descriptor = convertAdjustModifier(re);  break;
+      case "FlatModifier":
+        descriptor = convertFlatModifier(re);
+        break;
+      case "ActiveEffectLike":
+        descriptor = convertActiveEffectLike(re);
+        break;
+      case "RollOption":
+        descriptor = convertRollOption(re);
+        break;
+      case "GrantItem":
+        descriptor = convertGrantItem(re);
+        break;
+      case "Note":
+        descriptor = convertNote(re);
+        break;
+      case "DamageDice":
+        descriptor = convertDamageDice(re);
+        break;
+      case "Resistance":
+        descriptor = convertResistance(re);
+        break;
+      case "Immunity":
+        descriptor = convertImmunity(re);
+        break;
+      case "Sense":
+        descriptor = convertSense(re);
+        break;
+      case "BaseSpeed":
+        descriptor = convertBaseSpeed(re);
+        break;
+      case "TempHP":
+        descriptor = convertTempHP(re);
+        break;
+      case "MartialProficiency":
+        descriptor = convertMartialProficiency(re);
+        break;
+      case "ItemAlteration":
+        descriptor = convertItemAlteration(re);
+        break;
+      case "AdjustModifier":
+        descriptor = convertAdjustModifier(re);
+        break;
       default:
-        return { descriptor: null, state: 'unsupported' };
+        return { descriptor: null, state: "unsupported" };
     }
 
     if (descriptor === null) {
       // Converter returned null → unparseable expression → partial
-      return { descriptor: null, state: 'partial' };
+      return { descriptor: null, state: "partial" };
     }
 
     return { descriptor, state: coverage };
   } catch (err) {
     // Any error in conversion → partial fallback
-    return { descriptor: null, state: 'partial' };
+    return { descriptor: null, state: "partial" };
   }
 }
 
@@ -551,7 +583,13 @@ function convertRuleElement(re) {
  *   and source _id never collide on fusionId (REQ-SF2-048).
  * @returns {{ fusionDoc: object, pf2eId: string, fusionId: string }}
  */
-function transformDoc(normDoc, packName, stats, fusionIdPackKey = packName, pipelineSystem = 'pf2e') {
+function transformDoc(
+  normDoc,
+  packName,
+  stats,
+  fusionIdPackKey = packName,
+  pipelineSystem = "pf2e",
+) {
   const pf2eId = normDoc.pf2eSourceId ?? normDoc._id;
   const fusionId = deriveFusionId(fusionIdPackKey, pf2eId);
   const fusionType = resolveFusionType(normDoc);
@@ -563,27 +601,27 @@ function transformDoc(normDoc, packName, stats, fusionIdPackKey = packName, pipe
   let hasPartial = false;
 
   for (const re of rawRules) {
-    const key = re?.key ?? '(unknown)';
+    const key = re?.key ?? "(unknown)";
     stats.byKey[key] = stats.byKey[key] ?? { total: 0, supported: 0, partial: 0, unsupported: 0 };
     stats.byKey[key].total++;
     stats.totalRules++;
 
     const { descriptor, state } = convertRuleElement(re);
 
-    if (state === 'supported' && descriptor !== null) {
+    if (state === "supported" && descriptor !== null) {
       convertedRules.push(descriptor);
       stats.byKey[key].supported++;
       stats.supportedRules++;
-    } else if (state === 'partial') {
+    } else if (state === "partial") {
       // Partially converted — preserve original
-      unconvertedRules.push({ ...re, _conversionState: 'partial' });
+      unconvertedRules.push({ ...re, _conversionState: "partial" });
       if (descriptor !== null) convertedRules.push(descriptor);
       stats.byKey[key].partial++;
       stats.partialRules++;
       hasPartial = true;
     } else {
       // Unsupported — preserve verbatim
-      unconvertedRules.push({ ...re, _conversionState: 'unsupported' });
+      unconvertedRules.push({ ...re, _conversionState: "unsupported" });
       stats.byKey[key].unsupported++;
       stats.unsupportedRules++;
       hasPartial = true;
@@ -595,14 +633,14 @@ function transformDoc(normDoc, packName, stats, fusionIdPackKey = packName, pipe
   const assetSubstitutions = [];
   if (normDoc.originalImgRef) {
     assetSubstitutions.push({
-      field: 'img',
+      field: "img",
       original: normDoc.originalImgRef,
       placeholder: normDoc.img,
     });
   }
 
   // Check items[] for substitutions
-  for (const item of (normDoc.items ?? [])) {
+  for (const item of normDoc.items ?? []) {
     if (item.originalImgRef) {
       assetSubstitutions.push({
         field: `items[${item._id}].img`,
@@ -614,7 +652,7 @@ function transformDoc(normDoc, packName, stats, fusionIdPackKey = packName, pipe
 
   // --- Build fusion flags ---
   const fusionFlags = {
-    conversion: hasPartial ? 'partial' : 'full',
+    conversion: hasPartial ? "partial" : "full",
     importerVersion: IMPORTER_VERSION,
     sourceVersion: SOURCE_VERSION,
     sourceId: pf2eId,
@@ -627,7 +665,7 @@ function transformDoc(normDoc, packName, stats, fusionIdPackKey = packName, pipe
   const system = buildSystem(normDoc, convertedRules, packName, fusionType, pipelineSystem);
 
   // --- Build items[] (embedded) with fusionId for each ---
-  const embeddedItems = (normDoc.items ?? []).map(item => {
+  const embeddedItems = (normDoc.items ?? []).map((item) => {
     const embeddedFusionId = deriveFusionId(`${fusionIdPackKey}:embedded`, item._id);
     const itemRaws = item.system?.rules ?? [];
     const itemConverted = [];
@@ -635,18 +673,23 @@ function transformDoc(normDoc, packName, stats, fusionIdPackKey = packName, pipe
 
     for (const re of itemRaws) {
       const { descriptor, state } = convertRuleElement(re);
-      const key = re?.key ?? '(unknown)';
+      const key = re?.key ?? "(unknown)";
       stats.byKey[key] = stats.byKey[key] ?? { total: 0, supported: 0, partial: 0, unsupported: 0 };
       stats.byKey[key].total++;
       stats.totalRules++;
-      if (state === 'supported' && descriptor !== null) {
+      if (state === "supported" && descriptor !== null) {
         itemConverted.push(descriptor);
         stats.byKey[key].supported++;
         stats.supportedRules++;
       } else {
         itemUnconverted.push({ ...re, _conversionState: state });
-        if (state === 'partial') { stats.byKey[key].partial++; stats.partialRules++; }
-        else { stats.byKey[key].unsupported++; stats.unsupportedRules++; }
+        if (state === "partial") {
+          stats.byKey[key].partial++;
+          stats.partialRules++;
+        } else {
+          stats.byKey[key].unsupported++;
+          stats.unsupportedRules++;
+        }
         if (descriptor !== null) itemConverted.push(descriptor);
       }
     }
@@ -665,10 +708,10 @@ function transformDoc(normDoc, packName, stats, fusionIdPackKey = packName, pipe
       },
       flags: {
         fusion: {
-          conversion: itemUnconverted.length > 0 ? 'partial' : 'full',
+          conversion: itemUnconverted.length > 0 ? "partial" : "full",
           unconvertedRules: stripRuleProse(itemUnconverted),
           assetSubstitutions: item.originalImgRef
-            ? [{ field: 'img', original: item.originalImgRef, placeholder: item.img }]
+            ? [{ field: "img", original: item.originalImgRef, placeholder: item.img }]
             : [],
         },
       },
@@ -714,11 +757,11 @@ function transformDoc(normDoc, packName, stats, fusionIdPackKey = packName, pipe
  * R10-B (DEC-R10-06); r18-N2d (backpack → container).
  */
 function resolveFusionType(normDoc) {
-  if (normDoc.type === 'feat' && normDoc.system?.category === 'classfeature') {
-    return 'classFeature';
+  if (normDoc.type === "feat" && normDoc.system?.category === "classfeature") {
+    return "classFeature";
   }
-  if (normDoc.type === 'backpack') {
-    return 'container';
+  if (normDoc.type === "backpack") {
+    return "container";
   }
   return normDoc.type;
 }
@@ -728,7 +771,13 @@ function resolveFusionType(normDoc) {
  * Maps pf2e system fields to Fusion system fields per document type.
  * REQ-CMP-027/027a.
  */
-function buildSystem(normDoc, convertedRules, packName, fusionType = normDoc.type, pipelineSystem = 'pf2e') {
+function buildSystem(
+  normDoc,
+  convertedRules,
+  packName,
+  fusionType = normDoc.type,
+  pipelineSystem = "pf2e",
+) {
   const src = normDoc.system ?? {};
   const stripped = stripNormalizationMeta(src);
 
@@ -740,34 +789,34 @@ function buildSystem(normDoc, convertedRules, packName, fusionType = normDoc.typ
   // copyrighted description prose (REQ-LEG-010, spec 26 §D4). Actor types keep
   // their own targeted prose stripping inside normalizeActorSystem.
   switch (fusionType) {
-    case 'weapon':
+    case "weapon":
       return stripFlavorProse(normalizeWeaponSystem(system, src, pipelineSystem));
-    case 'armor':
-    case 'shield':
+    case "armor":
+    case "shield":
       return stripFlavorProse(normalizeArmorSystem(system, src));
-    case 'spell':
+    case "spell":
       return stripFlavorProse(normalizeSpellSystem(system, src));
-    case 'classFeature':
+    case "classFeature":
       return stripFlavorProse(normalizeClassFeatureSystem(system, src));
-    case 'feat':
-    case 'action':
+    case "feat":
+    case "action":
       return stripFlavorProse(normalizeFeatSystem(system, src));
-    case 'condition':
+    case "condition":
       return stripFlavorProse(normalizeConditionSystem(system, src, normDoc.name));
-    case 'npc':
-    case 'character':
-    case 'hazard':
-    case 'loot':
+    case "npc":
+    case "character":
+    case "hazard":
+    case "loot":
       return normalizeActorSystem(system, src, fusionType);
-    case 'effect':
+    case "effect":
       return stripFlavorProse(normalizeEffectSystem(system, src));
-    case 'melee':
-    case 'ranged':
+    case "melee":
+    case "ranged":
       return normalizeMeleeSystem(system, src);
-    case 'equipment':
-    case 'consumable':
-    case 'treasure':
-    case 'container':
+    case "equipment":
+    case "consumable":
+    case "treasure":
+    case "container":
       // Generic equipment (incl. SF2e augmentations, which the real
       // compendium models as type "equipment" with usage.value:"implanted" —
       // see systems/sf2e/src/schemas/item-augmentation.ts docstring).
@@ -775,13 +824,13 @@ function buildSystem(normDoc, convertedRules, packName, fusionType = normDoc.typ
       // strips flavor prose so curated MVP subsets built from this type
       // never carry Reserved Material (REQ-LEG-010).
       return stripFlavorProse(normalizeEquipmentSystem(system, src));
-    case 'class':
+    case "class":
       return stripFlavorProse(normalizeClassSystem(system, src, normDoc.name));
-    case 'ancestry':
+    case "ancestry":
       return stripFlavorProse(normalizeAncestrySystem(system, src));
-    case 'heritage':
+    case "heritage":
       return stripFlavorProse(normalizeHeritageSystem(system, src));
-    case 'background':
+    case "background":
       return stripFlavorProse(normalizeBackgroundSystem(system, src));
     default:
       // Passthrough — preserve all system fields for unknown types
@@ -828,10 +877,10 @@ function stripNormalizationMeta(sys) {
 // ---------------------------------------------------------------------------
 
 /** Licenses under which vendor `system.description` prose may be redistributed (with attribution). */
-const REDISTRIBUTABLE_DESCRIPTION_LICENSES = new Set(['ORC', 'OGL']);
+const REDISTRIBUTABLE_DESCRIPTION_LICENSES = new Set(["ORC", "OGL"]);
 
 /** Names of system.* prose fields that are GM/publisher-only flavor and must always be cleared. */
-const ALWAYS_STRIPPED_PROSE_FIELDS = ['gmNotes', 'publicNotes', 'privateNotes'];
+const ALWAYS_STRIPPED_PROSE_FIELDS = ["gmNotes", "publicNotes", "privateNotes"];
 
 /**
  * Returns a copy of an item system object with GM/publisher-only flavor
@@ -846,10 +895,10 @@ function stripFlavorProse(system) {
   for (const field of ALWAYS_STRIPPED_PROSE_FIELDS) {
     if (field in out) {
       // Preserve the field key (schema may expect it) but blank the prose.
-      out[field] = '';
+      out[field] = "";
     }
   }
-  if ('description' in out) {
+  if ("description" in out) {
     const license = out.publication?.license;
     if (!REDISTRIBUTABLE_DESCRIPTION_LICENSES.has(license)) {
       // Blank in whichever shape the field currently has — most normalizers
@@ -858,9 +907,9 @@ function stripFlavorProse(system) {
       // system.* through unnormalized, where description is still the
       // vendor's `{value: string}` wrapper.
       out.description =
-        out.description && typeof out.description === 'object' && 'value' in out.description
-          ? { ...out.description, value: '' }
-          : '';
+        out.description && typeof out.description === "object" && "value" in out.description
+          ? { ...out.description, value: "" }
+          : "";
     }
     // else: ORC/OGL — keep out.description as-is (preserved verbatim,
     // whichever shape it arrived in).
@@ -887,8 +936,8 @@ function stripFlavorProse(system) {
  * legitimate mechanical target phrase observed in the vendor data.
  */
 function capSpellTarget(target) {
-  if (typeof target !== 'string') return '';
-  return target.length > 60 ? '' : target;
+  if (typeof target !== "string") return "";
+  return target.length > 60 ? "" : target;
 }
 
 /**
@@ -923,15 +972,15 @@ function deepStripText(node) {
 }
 
 function deepStripTextInner(node) {
-  if (node === null || typeof node !== 'object') return [node, false];
+  if (node === null || typeof node !== "object") return [node, false];
   if (Array.isArray(node)) return deepStripText(node);
   let stripped = false;
   const out = {};
   for (const [k, v] of Object.entries(node)) {
-    if (k === 'text' && typeof v === 'string' && v.length > 0) {
-      out[k] = '';
+    if (k === "text" && typeof v === "string" && v.length > 0) {
+      out[k] = "";
       stripped = true;
-    } else if (v !== null && typeof v === 'object') {
+    } else if (v !== null && typeof v === "object") {
       const [next, didStrip] = deepStripText(v);
       out[k] = next;
       if (didStrip) stripped = true;
@@ -944,11 +993,53 @@ function deepStripTextInner(node) {
 
 function stripRuleProse(rules) {
   return (rules ?? []).map((rule) => {
-    if (!rule || typeof rule !== 'object') return rule;
+    if (!rule || typeof rule !== "object") return rule;
     const [stripped, didStrip] = deepStripTextInner(rule);
     if (didStrip) stripped.textStripped = true;
-    return stripped;
+    return deepSanitizeImg(stripped);
   });
+}
+
+/** Placeholder usado para qualquer referência de arte ANINHADA. */
+const NESTED_IMG_PLACEHOLDER = "icons/placeholder/feat.svg";
+
+/**
+ * Troca por placeholder qualquer chave `img` em QUALQUER profundidade
+ * (r21, REQ-LEG-011/014).
+ *
+ * O normalize só reescreve o `img` de topo do documento, e o transform já
+ * cobria o `items{}` dos ABC (`sanitizeItemGrantsMap`, r18). Ficou de fora um
+ * terceiro caminho: `rules[]`. Achado real desta rodada — o class-feature
+ * "Animal Instinct" (Barbarian) carrega 15 Strike rule elements, cada um com
+ * o `img` do ataque desarmado da forma animal (`systems/pf2e/icons/
+ * unarmed-attacks/*.webp`). Eles atravessaram o pipeline inteiro e só o
+ * portão de arte do teste pegou.
+ *
+ * Política igual à do `items{}`: aninhado vira placeholder SEMPRE, não só
+ * quando o caminho é reconhecidamente da Paizo — arte de terceiro não é
+ * nossa, venha de onde vier.
+ */
+function deepSanitizeImg(node) {
+  if (Array.isArray(node)) return node.map(deepSanitizeImg);
+  if (!node || typeof node !== "object") return node;
+  const out = {};
+  for (const [key, value] of Object.entries(node)) {
+    if (key === "img" && typeof value === "string") {
+      out[key] = NESTED_IMG_PLACEHOLDER;
+      continue;
+    }
+    // Caminho de arte que NÃO se chama `img`: `TokenEffectIcon` guarda o ícone
+    // em `value` (achado em equipment-core/"Everlight Crystal", que carregava
+    // `systems/pf2e/icons/equipment/held-items/everburning-torch.webp`).
+    // Qualquer string que aponte para a árvore de arte de um sistema da Paizo
+    // vira placeholder, esteja em que chave estiver.
+    if (typeof value === "string" && /^systems\/(pf2e|sf2e)\//.test(value)) {
+      out[key] = NESTED_IMG_PLACEHOLDER;
+      continue;
+    }
+    out[key] = deepSanitizeImg(value);
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -956,7 +1047,7 @@ function stripRuleProse(rules) {
 // Analysis 02-schema-actor-item.md, spec 17.
 // ---------------------------------------------------------------------------
 
-function normalizeWeaponSystem(system, src, pipelineSystem = 'pf2e') {
+function normalizeWeaponSystem(system, src, pipelineSystem = "pf2e") {
   // FIX (R10-B3 packs-validation): several vendor `{value: ...}` wrapper
   // fields carry an explicit `null` payload (reload, splashDamage) for the
   // vast majority of weapons — verified against every doc in
@@ -969,7 +1060,9 @@ function normalizeWeaponSystem(system, src, pipelineSystem = 'pf2e') {
   // normalizeFeatSystem.actions (see hasValueWrapper below) — unwrap
   // explicitly and only fall through to `src.x` when it ISN'T the wrapper
   // shape.
-  const reload = hasValueWrapper(src.reload) ? (src.reload.value ?? '-') : (src.reload ?? system.reload ?? '-');
+  const reload = hasValueWrapper(src.reload)
+    ? (src.reload.value ?? "-")
+    : (src.reload ?? system.reload ?? "-");
   const splashDamage = hasValueWrapper(src.splashDamage)
     ? (src.splashDamage.value ?? undefined)
     : (src.splashDamage ?? system.splashDamage ?? undefined);
@@ -980,7 +1073,7 @@ function normalizeWeaponSystem(system, src, pipelineSystem = 'pf2e') {
   // become `undefined` rather than being passed through as `null`.
   const rawMaterial = src.material ?? system.material;
   const material =
-    rawMaterial && typeof rawMaterial === 'object'
+    rawMaterial && typeof rawMaterial === "object"
       ? { grade: rawMaterial.grade ?? undefined, type: rawMaterial.type ?? undefined }
       : undefined;
 
@@ -1002,9 +1095,9 @@ function normalizeWeaponSystem(system, src, pipelineSystem = 'pf2e') {
   //     "no ammo tracking" and the whole field must fall back to `null`.
   const rawAmmo = src.ammo ?? system.ammo;
   let ammo;
-  if (pipelineSystem === 'sf2e') {
+  if (pipelineSystem === "sf2e") {
     ammo =
-      rawAmmo && typeof rawAmmo === 'object' && rawAmmo.baseType != null
+      rawAmmo && typeof rawAmmo === "object" && rawAmmo.baseType != null
         ? {
             baseType: rawAmmo.baseType,
             builtIn: rawAmmo.builtIn ?? false,
@@ -1012,14 +1105,14 @@ function normalizeWeaponSystem(system, src, pipelineSystem = 'pf2e') {
           }
         : null;
   } else {
-    ammo = rawAmmo && typeof rawAmmo === 'object' ? (rawAmmo.baseType ?? null) : (rawAmmo ?? null);
+    ammo = rawAmmo && typeof rawAmmo === "object" ? (rawAmmo.baseType ?? null) : (rawAmmo ?? null);
   }
 
   return {
     ...system,
     // Flatten nested pf2e fields to Fusion format
     damage: src.damage ?? system.damage,
-    category: src.category ?? system.category ?? 'simple',
+    category: src.category ?? system.category ?? "simple",
     weaponGroup: src.group ?? system.weaponGroup ?? null, // pf2e uses "group"
     range: src.range ?? system.range ?? null,
     reload,
@@ -1027,16 +1120,16 @@ function normalizeWeaponSystem(system, src, pipelineSystem = 'pf2e') {
     price: src.price?.value ?? src.price ?? system.price ?? {},
     quantity: src.quantity ?? system.quantity ?? 1,
     level: src.level?.value ?? src.level ?? system.level ?? 0,
-    usage: src.usage?.value ?? src.usage ?? system.usage ?? 'held-in-one-hand',
-    size: src.size ?? system.size ?? 'med',
+    usage: src.usage?.value ?? src.usage ?? system.usage ?? "held-in-one-hand",
+    size: src.size ?? system.size ?? "med",
     bonus: src.bonus?.value ?? src.bonus ?? system.bonus ?? 0,
     bonusDamage: src.bonusDamage?.value ?? src.bonusDamage ?? system.bonusDamage ?? 0,
     material,
     ammo,
     splashDamage,
-    description: src.description?.value ?? src.description ?? system.description ?? '',
+    description: src.description?.value ?? src.description ?? system.description ?? "",
     publication: src.publication ?? system.publication,
-    traits: src.traits ?? system.traits ?? { rarity: 'common', value: [] },
+    traits: src.traits ?? system.traits ?? { rarity: "common", value: [] },
   };
 }
 
@@ -1047,7 +1140,7 @@ function normalizeArmorSystem(system, src) {
   // nulls must become `undefined`, not pass through as `null`.
   const rawMaterial = src.material ?? system.material;
   const material =
-    rawMaterial && typeof rawMaterial === 'object'
+    rawMaterial && typeof rawMaterial === "object"
       ? { grade: rawMaterial.grade ?? undefined, type: rawMaterial.type ?? undefined }
       : undefined;
 
@@ -1056,11 +1149,11 @@ function normalizeArmorSystem(system, src) {
   // `material` above: ArmorSystemSchema's `baseItem: z.string().optional()`
   // accepts a string or `undefined` but rejects an explicit `null`.
   const rawBaseItem = src.baseItem ?? system.baseItem;
-  const baseItem = typeof rawBaseItem === 'string' ? rawBaseItem : undefined;
+  const baseItem = typeof rawBaseItem === "string" ? rawBaseItem : undefined;
 
   return {
     ...system,
-    category: src.category ?? system.category ?? 'unarmored',
+    category: src.category ?? system.category ?? "unarmored",
     armorType: src.armorType ?? system.armorType ?? null,
     dexCap: src.dexCap?.value ?? src.dexCap ?? system.dexCap ?? null,
     checkPenalty: src.checkPenalty?.value ?? src.checkPenalty ?? system.checkPenalty ?? 0,
@@ -1071,9 +1164,9 @@ function normalizeArmorSystem(system, src) {
     price: src.price?.value ?? src.price ?? system.price ?? {},
     material,
     baseItem,
-    description: src.description?.value ?? src.description ?? system.description ?? '',
+    description: src.description?.value ?? src.description ?? system.description ?? "",
     publication: src.publication ?? system.publication,
-    traits: src.traits ?? system.traits ?? { rarity: 'common', value: [] },
+    traits: src.traits ?? system.traits ?? { rarity: "common", value: [] },
   };
 }
 
@@ -1081,8 +1174,8 @@ function normalizeSpellSystem(system, src) {
   return {
     ...system,
     level: src.level?.value ?? src.level ?? system.level ?? 1,
-    castTime: src.time?.value ?? src.castTime ?? system.castTime ?? '2',
-    range: src.range?.value ?? src.range ?? system.range ?? '',
+    castTime: src.time?.value ?? src.castTime ?? system.castTime ?? "2",
+    range: src.range?.value ?? src.range ?? system.range ?? "",
     // FIX (R10-B3 packs-validation): area/duration/defense/heightening are
     // all `.optional()` in SpellSystemSchema (absent when the spell has
     // none), but the vendor stores "none" as an explicit `null` on ~88% of
@@ -1096,16 +1189,16 @@ function normalizeSpellSystem(system, src) {
     // mechanical phrases ("1 creature"), but a few carry a verbatim book
     // sentence (e.g. Magnetic Dominion, ~110 chars from Rage of Elements).
     // Anything longer than a mechanical shorthand is blanked (REQ-LEG-010).
-    target: capSpellTarget(src.target?.value ?? src.target ?? system.target ?? ''),
+    target: capSpellTarget(src.target?.value ?? src.target ?? system.target ?? ""),
     defense: normalizeSpellDefense(src.defense ?? system.defense),
     damage: src.damage ?? system.damage ?? {},
     heightening: normalizeSpellHeightening(src.heightening ?? system.heightening),
-    description: src.description?.value ?? src.description ?? system.description ?? '',
+    description: src.description?.value ?? src.description ?? system.description ?? "",
     publication: src.publication ?? system.publication,
-    traits: src.traits ?? system.traits ?? { rarity: 'common', value: [], traditions: [] },
-    requirements: src.requirements ?? system.requirements ?? '',
+    traits: src.traits ?? system.traits ?? { rarity: "common", value: [], traditions: [] },
+    requirements: src.requirements ?? system.requirements ?? "",
     counteraction: src.counteraction ?? system.counteraction ?? false,
-    cost: src.cost?.value ?? src.cost ?? system.cost ?? '',
+    cost: src.cost?.value ?? src.cost ?? system.cost ?? "",
   };
 }
 
@@ -1123,7 +1216,7 @@ function normalizeSpellArea(area) {
  * `Expected object, received null`.
  */
 function normalizeSpellDefense(defense) {
-  if (!defense || typeof defense !== 'object') return undefined;
+  if (!defense || typeof defense !== "object") return undefined;
   return {
     ...defense,
     save: defense.save ?? undefined,
@@ -1141,8 +1234,8 @@ function normalizeSpellDefense(defense) {
  * would fail Fusion's own schema without adding any information.
  */
 function normalizeSpellHeightening(heightening) {
-  if (!heightening || typeof heightening !== 'object') return undefined;
-  if (heightening.type !== 'interval' && heightening.type !== 'fixed') return undefined;
+  if (!heightening || typeof heightening !== "object") return undefined;
+  if (heightening.type !== "interval" && heightening.type !== "fixed") return undefined;
   return heightening;
 }
 
@@ -1166,16 +1259,16 @@ function normalizeFeatSystem(system, src) {
       : (src.actions ?? system.actions ?? null),
     category: src.category ?? system.category ?? null,
     frequency: normalizeFrequency(src.frequency ?? system.frequency),
-    description: src.description?.value ?? src.description ?? system.description ?? '',
+    description: src.description?.value ?? src.description ?? system.description ?? "",
     prerequisites: src.prerequisites?.value ?? src.prerequisites ?? system.prerequisites ?? [],
     publication: src.publication ?? system.publication,
-    traits: src.traits ?? system.traits ?? { rarity: 'common', value: [] },
+    traits: src.traits ?? system.traits ?? { rarity: "common", value: [] },
   };
 }
 
 /** True when `val` is a plain `{value: ...}` wrapper object (vendor Foundry field shape). */
 function hasValueWrapper(val) {
-  return val !== null && typeof val === 'object' && !Array.isArray(val) && 'value' in val;
+  return val !== null && typeof val === "object" && !Array.isArray(val) && "value" in val;
 }
 
 /**
@@ -1193,11 +1286,11 @@ function hasValueWrapper(val) {
  * that fail Fusion's own schema.
  */
 function normalizeFrequency(frequency) {
-  if (!frequency || typeof frequency !== 'object') return undefined;
-  const ISO_DURATION_TO_UNIT = { PT1H: 'hour', PT10M: 'minute' };
+  if (!frequency || typeof frequency !== "object") return undefined;
+  const ISO_DURATION_TO_UNIT = { PT1H: "hour", PT10M: "minute" };
   const per = ISO_DURATION_TO_UNIT[frequency.per] ?? frequency.per;
-  const VALID_PER = new Set(['day', 'encounter', 'hour', 'minute', 'round', 'turn']);
-  if (!VALID_PER.has(per) || typeof frequency.max !== 'number') return undefined;
+  const VALID_PER = new Set(["day", "encounter", "hour", "minute", "round", "turn"]);
+  if (!VALID_PER.has(per) || typeof frequency.max !== "number") return undefined;
   return { max: frequency.max, per };
 }
 
@@ -1228,25 +1321,29 @@ function normalizeConditionSystem(system, src, docName) {
   const slug = src.slug ?? system.slug ?? classSlugFromName(docName);
   const rawValue = src.value ?? system.value;
   const value =
-    rawValue && typeof rawValue === 'object' && 'isValued' in rawValue
-      ? (rawValue.isValued ? (rawValue.value ?? undefined) : undefined)
-      : (typeof rawValue === 'number' ? rawValue : undefined);
+    rawValue && typeof rawValue === "object" && "isValued" in rawValue
+      ? rawValue.isValued
+        ? (rawValue.value ?? undefined)
+        : undefined
+      : typeof rawValue === "number"
+        ? rawValue
+        : undefined;
 
   return {
     ...system,
     slug,
     overrides: src.overrides ?? system.overrides ?? [],
-    duration: src.duration ?? system.duration ?? { unit: 'unlimited', value: 0, expiry: null },
+    duration: src.duration ?? system.duration ?? { unit: "unlimited", value: 0, expiry: null },
     group: src.group ?? system.group ?? null,
     value,
-    description: src.description?.value ?? src.description ?? system.description ?? '',
+    description: src.description?.value ?? src.description ?? system.description ?? "",
     publication: src.publication ?? system.publication,
     traits: src.traits ?? system.traits ?? { value: [] },
   };
 }
 
 function normalizeActorSystem(system, src, type) {
-  if (type === 'npc') {
+  if (type === "npc") {
     return {
       ...system,
       abilities: src.abilities ?? system.abilities ?? {},
@@ -1257,18 +1354,18 @@ function normalizeActorSystem(system, src, type) {
         // publicNotes: Paizo bestiary prose (setting/flavor) — must be discarded.
         // blurb: subtitle flavor text — also Reserved Material.
         // privateNotes: GM-only editor content — not game data.
-        publicNotes: '',
-        blurb: '',
-        privateNotes: '',
+        publicNotes: "",
+        blurb: "",
+        privateNotes: "",
         level: {
           value: src.details?.level?.value ?? system.details?.level?.value ?? 0,
         },
       },
-      initiative: src.initiative ?? system.initiative ?? { statistic: 'perception' },
+      initiative: src.initiative ?? system.initiative ?? { statistic: "perception" },
       perception: src.perception ?? system.perception ?? { mod: 0 },
       saves: src.saves ?? system.saves ?? {},
       skills: src.skills ?? system.skills ?? {},
-      traits: src.traits ?? system.traits ?? { rarity: 'common', value: [] },
+      traits: src.traits ?? system.traits ?? { rarity: "common", value: [] },
     };
   }
   // character, hazard, loot — passthrough
@@ -1287,7 +1384,7 @@ function normalizeEffectSystem(system, src) {
   // with what actually survives validation.
   const rawBadge = src.badge ?? system.badge;
   const badge =
-    rawBadge && typeof rawBadge === 'object'
+    rawBadge && typeof rawBadge === "object"
       ? { type: rawBadge.type, value: rawBadge.value, max: rawBadge.max ?? undefined }
       : undefined;
 
@@ -1296,9 +1393,9 @@ function normalizeEffectSystem(system, src) {
     level: src.level?.value ?? src.level ?? system.level ?? 1,
     duration: src.duration ?? system.duration ?? null,
     badge,
-    description: src.description?.value ?? src.description ?? system.description ?? '',
+    description: src.description?.value ?? src.description ?? system.description ?? "",
     publication: src.publication ?? system.publication,
-    traits: src.traits ?? system.traits ?? { rarity: 'common', value: [] },
+    traits: src.traits ?? system.traits ?? { rarity: "common", value: [] },
   };
 }
 
@@ -1307,7 +1404,7 @@ function normalizeMeleeSystem(system, src) {
     ...system,
     bonus: src.bonus?.value ?? src.bonus ?? system.bonus ?? 0,
     damageRolls: src.damageRolls ?? system.damageRolls ?? {},
-    traits: src.traits ?? system.traits ?? { rarity: 'common', value: [] },
+    traits: src.traits ?? system.traits ?? { rarity: "common", value: [] },
     range: src.range ?? system.range ?? null,
     publication: src.publication ?? system.publication,
   };
@@ -1326,20 +1423,27 @@ function normalizeMeleeSystem(system, src) {
 // ---------------------------------------------------------------------------
 
 /** otherTags marker the vendor uses for Magus Hybrid Study feature choices. */
-const HYBRID_STUDY_TAG = 'magus-hybrid-study';
+const HYBRID_STUDY_TAG = "magus-hybrid-study";
 
 function normalizeClassFeatureSystem(system, src) {
   const otherTags = src.traits?.otherTags ?? system.traits?.otherTags ?? [];
-  const isHybridStudy = Array.isArray(otherTags) && otherTags.includes(HYBRID_STUDY_TAG);
+  // r21: qualquer eixo de sub-escolha DECLARADO na curadoria vira category
+  // própria, pelo mesmo mecanismo que já produzia "hybridStudy" para o Magus
+  // (otherTag "magus-hybrid-study"). Instinct, Racket, Hunter's Edge, Arcane
+  // Thesis e Arcane School entram assim — sem ramo por classe.
+  const axisCategories = axisCategoryByOtherTag();
+  const axisCategory = Array.isArray(otherTags)
+    ? otherTags.map((t) => axisCategories.get(t)).find(Boolean)
+    : undefined;
 
   return {
     ...system,
     level: src.level?.value ?? src.level ?? system.level ?? 1,
-    category: isHybridStudy ? 'hybridStudy' : (src.category ?? system.category ?? 'classfeature'),
+    category: axisCategory ?? src.category ?? system.category ?? "classfeature",
     prerequisites: src.prerequisites?.value ?? src.prerequisites ?? system.prerequisites ?? [],
-    description: src.description?.value ?? src.description ?? system.description ?? '',
+    description: src.description?.value ?? src.description ?? system.description ?? "",
     publication: src.publication ?? system.publication,
-    traits: src.traits ?? system.traits ?? { rarity: 'common', value: [] },
+    traits: src.traits ?? system.traits ?? { rarity: "common", value: [] },
   };
 }
 
@@ -1387,26 +1491,26 @@ function normalizeClassFeatureSystem(system, src) {
  * Rank 2 slot at level 3); L5 → {"2":2,"3":2}; L19/L20 → {"8":2,"9":2}.
  */
 const MAGUS_SPELLCASTING_TABLE = [
-  { level: 1, cantrips: 5, slots: { '1': 1 } },
-  { level: 2, cantrips: 5, slots: { '1': 2 } },
-  { level: 3, cantrips: 5, slots: { '1': 2, '2': 1 } },
-  { level: 4, cantrips: 5, slots: { '1': 2, '2': 2 } },
-  { level: 5, cantrips: 5, slots: { '2': 2, '3': 2 } },
-  { level: 6, cantrips: 5, slots: { '2': 2, '3': 2 } },
-  { level: 7, cantrips: 5, slots: { '3': 2, '4': 2 } },
-  { level: 8, cantrips: 5, slots: { '3': 2, '4': 2 } },
-  { level: 9, cantrips: 5, slots: { '4': 2, '5': 2 } },
-  { level: 10, cantrips: 5, slots: { '4': 2, '5': 2 } },
-  { level: 11, cantrips: 5, slots: { '5': 2, '6': 2 } },
-  { level: 12, cantrips: 5, slots: { '5': 2, '6': 2 } },
-  { level: 13, cantrips: 5, slots: { '6': 2, '7': 2 } },
-  { level: 14, cantrips: 5, slots: { '6': 2, '7': 2 } },
-  { level: 15, cantrips: 5, slots: { '7': 2, '8': 2 } },
-  { level: 16, cantrips: 5, slots: { '7': 2, '8': 2 } },
-  { level: 17, cantrips: 5, slots: { '8': 2, '9': 2 } },
-  { level: 18, cantrips: 5, slots: { '8': 2, '9': 2 } },
-  { level: 19, cantrips: 5, slots: { '8': 2, '9': 2 } },
-  { level: 20, cantrips: 5, slots: { '8': 2, '9': 2 } },
+  { level: 1, cantrips: 5, slots: { 1: 1 } },
+  { level: 2, cantrips: 5, slots: { 1: 2 } },
+  { level: 3, cantrips: 5, slots: { 1: 2, 2: 1 } },
+  { level: 4, cantrips: 5, slots: { 1: 2, 2: 2 } },
+  { level: 5, cantrips: 5, slots: { 2: 2, 3: 2 } },
+  { level: 6, cantrips: 5, slots: { 2: 2, 3: 2 } },
+  { level: 7, cantrips: 5, slots: { 3: 2, 4: 2 } },
+  { level: 8, cantrips: 5, slots: { 3: 2, 4: 2 } },
+  { level: 9, cantrips: 5, slots: { 4: 2, 5: 2 } },
+  { level: 10, cantrips: 5, slots: { 4: 2, 5: 2 } },
+  { level: 11, cantrips: 5, slots: { 5: 2, 6: 2 } },
+  { level: 12, cantrips: 5, slots: { 5: 2, 6: 2 } },
+  { level: 13, cantrips: 5, slots: { 6: 2, 7: 2 } },
+  { level: 14, cantrips: 5, slots: { 6: 2, 7: 2 } },
+  { level: 15, cantrips: 5, slots: { 7: 2, 8: 2 } },
+  { level: 16, cantrips: 5, slots: { 7: 2, 8: 2 } },
+  { level: 17, cantrips: 5, slots: { 8: 2, 9: 2 } },
+  { level: 18, cantrips: 5, slots: { 8: 2, 9: 2 } },
+  { level: 19, cantrips: 5, slots: { 8: 2, 9: 2 } },
+  { level: 20, cantrips: 5, slots: { 8: 2, 9: 2 } },
 ];
 
 /**
@@ -1443,24 +1547,24 @@ const MAGUS_SPELLCASTING_TABLE = [
  * — it is not a proficiency upgrade and is intentionally absent here.)
  */
 const MAGUS_PROFICIENCY_UPGRADES = [
-  { level: 5, stat: 'weapons.martial', rank: 2 },
-  { level: 5, stat: 'weapons.simple', rank: 2 },
-  { level: 5, stat: 'weapons.unarmed', rank: 2 },
-  { level: 5, stat: 'reflex', rank: 2 },
-  { level: 9, stat: 'perception', rank: 2 },
-  { level: 9, stat: 'spellcasting', rank: 2 },
-  { level: 9, stat: 'will', rank: 3 },
-  { level: 11, stat: 'armor.light', rank: 2 },
-  { level: 11, stat: 'armor.medium', rank: 2 },
-  { level: 11, stat: 'armor.unarmored', rank: 2 },
-  { level: 13, stat: 'weapons.simple', rank: 3 },
-  { level: 13, stat: 'weapons.martial', rank: 3 },
-  { level: 13, stat: 'weapons.unarmed', rank: 3 },
-  { level: 15, stat: 'fortitude', rank: 3 },
-  { level: 17, stat: 'spellcasting', rank: 3 },
-  { level: 17, stat: 'armor.light', rank: 3 },
-  { level: 17, stat: 'armor.medium', rank: 3 },
-  { level: 17, stat: 'armor.unarmored', rank: 3 },
+  { level: 5, stat: "weapons.martial", rank: 2 },
+  { level: 5, stat: "weapons.simple", rank: 2 },
+  { level: 5, stat: "weapons.unarmed", rank: 2 },
+  { level: 5, stat: "reflex", rank: 2 },
+  { level: 9, stat: "perception", rank: 2 },
+  { level: 9, stat: "spellcasting", rank: 2 },
+  { level: 9, stat: "will", rank: 3 },
+  { level: 11, stat: "armor.light", rank: 2 },
+  { level: 11, stat: "armor.medium", rank: 2 },
+  { level: 11, stat: "armor.unarmored", rank: 2 },
+  { level: 13, stat: "weapons.simple", rank: 3 },
+  { level: 13, stat: "weapons.martial", rank: 3 },
+  { level: 13, stat: "weapons.unarmed", rank: 3 },
+  { level: 15, stat: "fortitude", rank: 3 },
+  { level: 17, stat: "spellcasting", rank: 3 },
+  { level: 17, stat: "armor.light", rank: 3 },
+  { level: 17, stat: "armor.medium", rank: 3 },
+  { level: 17, stat: "armor.unarmored", rank: 3 },
 ];
 
 /**
@@ -1507,22 +1611,22 @@ const MAGUS_PROFICIENCY_UPGRADES = [
  * class-DC display) correctly upgrades.
  */
 const KINETICIST_PROFICIENCY_UPGRADES = [
-  { level: 3, stat: 'will', rank: 2 },
-  { level: 7, stat: 'fortitude', rank: 3 },
-  { level: 7, stat: 'classDC', rank: 2 },
-  { level: 7, stat: 'impulse', rank: 2 },
-  { level: 9, stat: 'perception', rank: 2 },
-  { level: 11, stat: 'weapons.simple', rank: 2 },
-  { level: 11, stat: 'weapons.unarmed', rank: 2 },
-  { level: 13, stat: 'armor.light', rank: 2 },
-  { level: 13, stat: 'armor.unarmored', rank: 2 },
-  { level: 15, stat: 'classDC', rank: 3 },
-  { level: 15, stat: 'impulse', rank: 3 },
-  { level: 15, stat: 'fortitude', rank: 4 },
-  { level: 19, stat: 'classDC', rank: 4 },
-  { level: 19, stat: 'impulse', rank: 4 },
-  { level: 19, stat: 'armor.light', rank: 3 },
-  { level: 19, stat: 'armor.unarmored', rank: 3 },
+  { level: 3, stat: "will", rank: 2 },
+  { level: 7, stat: "fortitude", rank: 3 },
+  { level: 7, stat: "classDC", rank: 2 },
+  { level: 7, stat: "impulse", rank: 2 },
+  { level: 9, stat: "perception", rank: 2 },
+  { level: 11, stat: "weapons.simple", rank: 2 },
+  { level: 11, stat: "weapons.unarmed", rank: 2 },
+  { level: 13, stat: "armor.light", rank: 2 },
+  { level: 13, stat: "armor.unarmored", rank: 2 },
+  { level: 15, stat: "classDC", rank: 3 },
+  { level: 15, stat: "impulse", rank: 3 },
+  { level: 15, stat: "fortitude", rank: 4 },
+  { level: 19, stat: "classDC", rank: 4 },
+  { level: 19, stat: "impulse", rank: 4 },
+  { level: 19, stat: "armor.light", rank: 3 },
+  { level: 19, stat: "armor.unarmored", rank: 3 },
 ];
 
 /**
@@ -1541,17 +1645,114 @@ const CLASS_PROFICIENCY_UPGRADES = {
  */
 const CLASS_SPELLCASTING_TABLES = {
   magus: {
-    tradition: 'arcane',
-    type: 'prepared',
-    ability: 'int',
-    cantripsKnown: MAGUS_SPELLCASTING_TABLE.map(({ level, cantrips }) => ({ level, count: cantrips })),
+    tradition: "arcane",
+    type: "prepared",
+    ability: "int",
+    cantripsKnown: MAGUS_SPELLCASTING_TABLE.map(({ level, cantrips }) => ({
+      level,
+      count: cantrips,
+    })),
     slots: MAGUS_SPELLCASTING_TABLE.map(({ level, slots }) => ({ level, slots })),
   },
 };
 
+// ---------------------------------------------------------------------------
+// r21 — progressão de classe derivada da curadoria + do vendor
+//
+// `proficiencyUpgrades` e `spellcasting` eram tabelas escritas à mão por slug
+// (só magus e kineticist). Classe sem entrada saía com `[]` e `undefined`,
+// validava no Zod (ClassSystemSchema exige só hp e keyAbility) e produzia um
+// personagem que nunca vira Expert em nada — falha muda, e cara. Agora:
+//
+//   proficiencyUpgrades → derivado (subfeatures + ActiveEffectLike da classe)
+//   spellcasting        → declarado na curadoria, com fonte citada
+//
+// Classe curada SEM tabela derivável FALHA o build, em vez de sair vazia.
+// ---------------------------------------------------------------------------
+
+/** Cache dos docs normalizados de class-features, por nome canônico. */
+let classFeatureDocCache = null;
+function classFeatureDocByName(name) {
+  if (classFeatureDocCache === null) {
+    classFeatureDocCache = new Map();
+    const path = join(OUT_DIR, "class-features", "normalized.json");
+    if (existsSync(path)) {
+      try {
+        for (const doc of JSON.parse(readFileSync(path, "utf8"))) {
+          classFeatureDocCache.set(doc.name, doc);
+        }
+      } catch {
+        /* cache vazio: proficiencyUpgradesFor devolve [] e avisa abaixo */
+      }
+    }
+  }
+  return classFeatureDocCache.get(name);
+}
+
+const VENDOR_CLASSES_DIR = join(IMPORTER_ROOT, "vendor", "pf2e", "packs", "pf2e", "classes");
+
+/** Upgrades de proficiência de uma classe curada; `[]` para classe não curada. */
+function proficiencyUpgradesFor(slug) {
+  const cfg = loadClassCuration().get(slug);
+  if (!cfg) return [];
+  if (classFeatureDocCache === null) classFeatureDocByName("");
+  if (classFeatureDocCache.size === 0) {
+    throw new Error(
+      `[transform] out/class-features/normalized.json ausente ou vazio: a progressão de ` +
+        `"${slug}" sairia vazia em silêncio. Rode transform com classes E class-features no MESMO --packs.`,
+    );
+  }
+  const items = classItemsMap(VENDOR_CLASSES_DIR, slug);
+  const { upgrades, missing, ignoredRules } = deriveProficiencyUpgrades(
+    items,
+    classFeatureDocByName,
+    cfg,
+    slug,
+  );
+  if (missing.length > 0) {
+    console.warn(`[transform] ${slug}: features do items{} sem doc: ${missing.join(", ")}`);
+  }
+  for (const ig of ignoredRules) {
+    console.warn(
+      `[transform] ${slug}: rule de proficiência não interpretado em "${ig.doc}" (${ig.stat}): ${ig.reasons.join("; ")}`,
+    );
+  }
+  if (upgrades.length === 0) {
+    console.warn(
+      `[transform] ${slug}: nenhum upgrade de proficiência derivado — confira a curadoria.`,
+    );
+  }
+  return upgrades;
+}
+
+/** Tabela de conjuração declarada na curadoria, no formato do ClassSystemSchema. */
+function spellcastingFor(slug) {
+  const cfg = loadClassCuration().get(slug);
+  const sc = cfg?.spellcasting;
+  if (!sc) return undefined;
+  // Dois formatos aceitos, porque as curadorias vieram de mãos diferentes:
+  //  - `table: [{level, cantrips, slots}]`  (uma linha por nível — mais legível)
+  //  - `cantripsKnown` + `slots` já na forma final do ClassSystemSchema
+  const out = Array.isArray(sc.table)
+    ? {
+        cantripsKnown: sc.table.map(({ level, cantrips }) => ({ level, count: cantrips })),
+        slots: sc.table.map(({ level, slots }) => ({ level, slots })),
+      }
+    : { cantripsKnown: sc.cantripsKnown, slots: sc.slots };
+  if (!Array.isArray(out.cantripsKnown) || !Array.isArray(out.slots)) {
+    throw new Error(
+      `[transform] curadoria de "${slug}": spellcasting precisa de "table" OU de "cantripsKnown"+"slots".`,
+    );
+  }
+  return { tradition: sc.tradition, type: sc.type, ability: sc.ability, ...out };
+}
+
 /** Derives a class slug from its Fusion document name (lowercase, ascii). */
 function classSlugFromName(name) {
-  return String(name ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  return String(name ?? "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 }
 
 /**
@@ -1591,14 +1792,16 @@ let classFeatureNameToIdCache = null;
 function resolveClassFeatureSourceId(name) {
   if (classFeatureNameToIdCache === null) {
     classFeatureNameToIdCache = {};
-    const path = join(OUT_DIR, 'class-features', 'normalized.json');
+    const path = join(OUT_DIR, "class-features", "normalized.json");
     if (existsSync(path)) {
       try {
-        const docs = JSON.parse(readFileSync(path, 'utf8'));
+        const docs = JSON.parse(readFileSync(path, "utf8"));
         for (const doc of docs) {
           classFeatureNameToIdCache[doc.name] = doc.pf2eSourceId ?? doc._id;
         }
-      } catch { /* leave cache empty — resolveClassFeatureSourceId returns null below */ }
+      } catch {
+        /* leave cache empty — resolveClassFeatureSourceId returns null below */
+      }
     }
   }
   return classFeatureNameToIdCache[name] ?? null;
@@ -1618,8 +1821,8 @@ function resolveClassFeatureSourceId(name) {
  * as the Fusion ref's display `name` (the class-specific label).
  */
 function classFeatureNameFromUuid(uuid) {
-  const marker = 'Compendium.pf2e.classfeatures.Item.';
-  return typeof uuid === 'string' && uuid.startsWith(marker) ? uuid.slice(marker.length) : null;
+  const marker = "Compendium.pf2e.classfeatures.Item.";
+  return typeof uuid === "string" && uuid.startsWith(marker) ? uuid.slice(marker.length) : null;
 }
 
 /**
@@ -1653,7 +1856,9 @@ function classFeatureRefsFromItemsMap(itemsMap, classFeaturesPackKey) {
       const sourceId = resolveClassFeatureSourceId(realName);
       return {
         level: entry.level,
-        uuid: sourceId ? deriveFusionId(classFeaturesPackKey, sourceId) : `unresolved:${entry.name}`,
+        uuid: sourceId
+          ? deriveFusionId(classFeaturesPackKey, sourceId)
+          : `unresolved:${entry.name}`,
         name: entry.name,
       };
     })
@@ -1671,7 +1876,7 @@ function normalizeClassSystem(system, src, docName) {
   // Namespace for deriveFusionId — MUST be the vendor input pack name
   // ("class-features"), matching what processPack() uses as fusionIdPackKey
   // when it later transforms that pack's own docs (see docstring above).
-  const classFeaturesPackKey = 'class-features';
+  const classFeaturesPackKey = "class-features";
 
   const featLevels = {
     ancestry: src.ancestryFeatLevels?.value ?? [],
@@ -1686,7 +1891,8 @@ function normalizeClassSystem(system, src, docName) {
   };
 
   const savingThrows = {};
-  if (src.savingThrows?.fortitude !== undefined) savingThrows.fortitude = src.savingThrows.fortitude;
+  if (src.savingThrows?.fortitude !== undefined)
+    savingThrows.fortitude = src.savingThrows.fortitude;
   if (src.savingThrows?.reflex !== undefined) savingThrows.reflex = src.savingThrows.reflex;
   if (src.savingThrows?.will !== undefined) savingThrows.will = src.savingThrows.will;
 
@@ -1697,7 +1903,7 @@ function normalizeClassSystem(system, src, docName) {
 
   const attacks = {};
   for (const [key, val] of Object.entries(src.attacks ?? {})) {
-    if (key === 'other') continue; // vendor "other" is a {name, rank} custom-category slot — not a fixed Fusion stat
+    if (key === "other") continue; // vendor "other" is a {name, rank} custom-category slot — not a fixed Fusion stat
     attacks[key] = val;
   }
 
@@ -1740,16 +1946,16 @@ function normalizeClassSystem(system, src, docName) {
     // impulse starts Trained (rank 1) at level 1, same as classDC above, and
     // is NOT a vendor field either (same gap as classDC's own comment).
     // Every other class defaults to 0 (no impulses) via the schema default.
-    ...(slug === 'kineticist' ? { impulse: src.impulse ?? system.impulse ?? 1 } : {}),
+    ...(slug === "kineticist" ? { impulse: src.impulse ?? system.impulse ?? 1 } : {}),
     featLevels,
     skillIncreaseLevels: src.skillIncreaseLevels?.value ?? [],
     trainedSkills,
-    proficiencyUpgrades: CLASS_PROFICIENCY_UPGRADES[slug] ?? [],
-    spellcasting: CLASS_SPELLCASTING_TABLES[slug],
+    proficiencyUpgrades: proficiencyUpgradesFor(slug),
+    spellcasting: spellcastingFor(slug),
     featuresByLevel: classFeatureRefsFromItemsMap(src.items, classFeaturesPackKey),
-    description: src.description?.value ?? src.description ?? system.description ?? '',
+    description: src.description?.value ?? src.description ?? system.description ?? "",
     publication: src.publication ?? system.publication,
-    traits: src.traits ?? system.traits ?? { rarity: 'common', value: [] },
+    traits: src.traits ?? system.traits ?? { rarity: "common", value: [] },
   };
 }
 
@@ -1772,14 +1978,14 @@ function flattenAncestryBoostGroups(groupMap) {
     const options = group?.value ?? [];
     // A single fixed ability boost (e.g. ["dex"]) resolves to that slug;
     // a group with multiple options (player choice) resolves to "free".
-    return options.length === 1 ? options[0] : 'free';
+    return options.length === 1 ? options[0] : "free";
   });
 }
 
 // Ancestry/heritage/background feature-grant placeholder — these embedded
 // `system.items` entries represent granted feats (ancestryfeatures compendium
 // entries), matching the same fusion type used for feats/classFeature docs.
-const ANCESTRY_ITEM_GRANT_PLACEHOLDER_IMG = 'icons/placeholder/feat.svg';
+const ANCESTRY_ITEM_GRANT_PLACEHOLDER_IMG = "icons/placeholder/feat.svg";
 
 /**
  * Sanitizes the vendor's `system.items` keyed map (ancestry/heritage/
@@ -1795,7 +2001,7 @@ const ANCESTRY_ITEM_GRANT_PLACEHOLDER_IMG = 'icons/placeholder/feat.svg';
  * inside `system.*` (clean-room / REQ-LEG art policy).
  */
 function sanitizeItemGrantsMap(itemsMap) {
-  if (!itemsMap || typeof itemsMap !== 'object') return itemsMap;
+  if (!itemsMap || typeof itemsMap !== "object") return itemsMap;
   const sanitized = {};
   for (const [key, entry] of Object.entries(itemsMap)) {
     sanitized[key] = { ...entry, img: ANCESTRY_ITEM_GRANT_PLACEHOLDER_IMG };
@@ -1808,15 +2014,15 @@ function normalizeAncestrySystem(system, src) {
     ...system,
     hp: src.hp ?? system.hp,
     speed: src.speed ?? system.speed ?? 25,
-    size: src.size ?? system.size ?? 'med',
+    size: src.size ?? system.size ?? "med",
     boosts: flattenAncestryBoostGroups(src.boosts),
     flaws: flattenAncestryBoostGroups(src.flaws),
     languages: { value: src.languages?.value ?? [] },
-    vision: src.vision ?? system.vision ?? 'normal',
+    vision: src.vision ?? system.vision ?? "normal",
     items: sanitizeItemGrantsMap(src.items ?? system.items),
-    description: src.description?.value ?? src.description ?? system.description ?? '',
+    description: src.description?.value ?? src.description ?? system.description ?? "",
     publication: src.publication ?? system.publication,
-    traits: src.traits ?? system.traits ?? { rarity: 'common', value: [] },
+    traits: src.traits ?? system.traits ?? { rarity: "common", value: [] },
   };
 }
 
@@ -1830,9 +2036,9 @@ function normalizeHeritageSystem(system, src) {
   return {
     ...system,
     items: sanitizeItemGrantsMap(src.items ?? system.items),
-    description: src.description?.value ?? src.description ?? system.description ?? '',
+    description: src.description?.value ?? src.description ?? system.description ?? "",
     publication: src.publication ?? system.publication,
-    traits: src.traits ?? system.traits ?? { rarity: 'common', value: [] },
+    traits: src.traits ?? system.traits ?? { rarity: "common", value: [] },
   };
 }
 
@@ -1857,9 +2063,9 @@ function normalizeBackgroundSystem(system, src) {
     boosts: flattenAncestryBoostGroups(src.boosts),
     skills,
     items: sanitizeItemGrantsMap(src.items ?? system.items),
-    description: src.description?.value ?? src.description ?? system.description ?? '',
+    description: src.description?.value ?? src.description ?? system.description ?? "",
     publication: src.publication ?? system.publication,
-    traits: src.traits ?? system.traits ?? { rarity: 'common', value: [] },
+    traits: src.traits ?? system.traits ?? { rarity: "common", value: [] },
   };
 }
 
@@ -1872,7 +2078,13 @@ function normalizeBackgroundSystem(system, src) {
  * normalizeEquipmentSystem to derive `augType` for the sf2e schema
  * (systems/sf2e/src/schemas/item-augmentation.ts).
  */
-const SF2E_AUGMENTATION_TYPE_TRAITS = new Set(['apex', 'biotech', 'magitech', 'necrograft', 'tech']);
+const SF2E_AUGMENTATION_TYPE_TRAITS = new Set([
+  "apex",
+  "biotech",
+  "magitech",
+  "necrograft",
+  "tech",
+]);
 
 /**
  * Normalizes generic equipment/consumable/treasure/container systems.
@@ -1889,7 +2101,7 @@ const SF2E_AUGMENTATION_TYPE_TRAITS = new Set(['apex', 'biotech', 'magitech', 'n
  * change (REQ-SF2-023).
  */
 function normalizeEquipmentSystem(system, src) {
-  const traits = src.traits ?? system.traits ?? { rarity: 'common', value: [] };
+  const traits = src.traits ?? system.traits ?? { rarity: "common", value: [] };
   const usage = src.usage?.value ?? src.usage ?? system.usage ?? null;
 
   // `material` is present on vendor generic equipment (incl. SF2e
@@ -1901,7 +2113,7 @@ function normalizeEquipmentSystem(system, src) {
   // weapon/armor.
   const rawMaterial = src.material ?? system.material;
   const material =
-    rawMaterial && typeof rawMaterial === 'object'
+    rawMaterial && typeof rawMaterial === "object"
       ? { grade: rawMaterial.grade ?? undefined, type: rawMaterial.type ?? undefined }
       : undefined;
 
@@ -1910,7 +2122,7 @@ function normalizeEquipmentSystem(system, src) {
   // bug class as `material`: keep the field consistent (string or undefined,
   // never a bare `null`) across weapon/armor/equipment normalizers.
   const rawBaseItem = src.baseItem ?? system.baseItem;
-  const baseItem = typeof rawBaseItem === 'string' ? rawBaseItem : undefined;
+  const baseItem = typeof rawBaseItem === "string" ? rawBaseItem : undefined;
 
   // Vendor `bulk` on container-shaped items (backpack, and any "equipment"/
   // "container" doc that holds other items) carries extra keys beyond the
@@ -1921,9 +2133,9 @@ function normalizeEquipmentSystem(system, src) {
   // ordinary non-container equipment (bulk as a bare `{value}` or a plain
   // number) is unaffected.
   const rawBulk = src.bulk ?? system.bulk;
-  const hasContainerBulkShape = rawBulk && typeof rawBulk === 'object' && 'capacity' in rawBulk;
-  const capacity = hasContainerBulkShape ? rawBulk.capacity ?? 0 : undefined;
-  const bulkReduction = hasContainerBulkShape ? rawBulk.ignored ?? 0 : undefined;
+  const hasContainerBulkShape = rawBulk && typeof rawBulk === "object" && "capacity" in rawBulk;
+  const capacity = hasContainerBulkShape ? (rawBulk.capacity ?? 0) : undefined;
+  const bulkReduction = hasContainerBulkShape ? (rawBulk.ignored ?? 0) : undefined;
 
   const out = {
     ...system,
@@ -1932,11 +2144,11 @@ function normalizeEquipmentSystem(system, src) {
     price: src.price?.value ?? src.price ?? system.price ?? {},
     quantity: src.quantity ?? system.quantity ?? 1,
     usage,
-    size: src.size ?? system.size ?? 'med',
+    size: src.size ?? system.size ?? "med",
     hp: src.hp ?? system.hp,
     hardness: src.hardness ?? system.hardness,
     material,
-    description: src.description?.value ?? src.description ?? system.description ?? '',
+    description: src.description?.value ?? src.description ?? system.description ?? "",
     publication: src.publication ?? system.publication,
     traits,
     baseItem,
@@ -1947,8 +2159,8 @@ function normalizeEquipmentSystem(system, src) {
     out.bulkReduction = bulkReduction;
   }
 
-  if (usage === 'implanted') {
-    const augType = (traits.value ?? []).find(t => SF2E_AUGMENTATION_TYPE_TRAITS.has(t));
+  if (usage === "implanted") {
+    const augType = (traits.value ?? []).find((t) => SF2E_AUGMENTATION_TYPE_TRAITS.has(t));
     if (augType) out.augType = augType;
   }
 
@@ -1965,17 +2177,17 @@ function normalizeEquipmentSystem(system, src) {
  * Returns { valid: true } or { valid: false, reason: string }.
  */
 function validateFusionDoc(doc) {
-  if (!doc._id || typeof doc._id !== 'string' || !/^[A-Za-z0-9]{16}$/.test(doc._id)) {
+  if (!doc._id || typeof doc._id !== "string" || !/^[A-Za-z0-9]{16}$/.test(doc._id)) {
     return { valid: false, reason: `Invalid _id: "${doc._id}"` };
   }
-  if (!doc.name || typeof doc.name !== 'string') {
-    return { valid: false, reason: 'Missing or invalid name' };
+  if (!doc.name || typeof doc.name !== "string") {
+    return { valid: false, reason: "Missing or invalid name" };
   }
-  if (!doc.type || typeof doc.type !== 'string') {
-    return { valid: false, reason: 'Missing or invalid type' };
+  if (!doc.type || typeof doc.type !== "string") {
+    return { valid: false, reason: "Missing or invalid type" };
   }
-  if (!doc.system || typeof doc.system !== 'object') {
-    return { valid: false, reason: 'Missing system object' };
+  if (!doc.system || typeof doc.system !== "object") {
+    return { valid: false, reason: "Missing system object" };
   }
   return { valid: true };
 }
@@ -1990,14 +2202,16 @@ function validateFusionDoc(doc) {
  * @param {string} packName
  * @param {'pf2e'|'sf2e'} system
  */
-function processPack(packName, system = 'pf2e') {
+function processPack(packName, system = "pf2e") {
   const outBase = outBaseFor(system);
-  const normalizedPath = join(outBase, packName, 'normalized.json');
+  const normalizedPath = join(outBase, packName, "normalized.json");
   if (!existsSync(normalizedPath)) {
-    throw new Error(`normalized.json not found for pack "${packName}" (system: ${system}). Run normalize.mjs first.`);
+    throw new Error(
+      `normalized.json not found for pack "${packName}" (system: ${system}). Run normalize.mjs first.`,
+    );
   }
 
-  const normalizedDocs = JSON.parse(readFileSync(normalizedPath, 'utf8'));
+  const normalizedDocs = JSON.parse(readFileSync(normalizedPath, "utf8"));
   console.log(`[transform] ${packName}: ${normalizedDocs.length} normalized docs`);
 
   const stats = {
@@ -2019,11 +2233,17 @@ function processPack(packName, system = 'pf2e') {
   const uuidMap = {}; // sourceId → fusionId for this pack
   // sf2e fusionIds are namespaced ("sf2e:<pack>") to never collide with a
   // pf2e pack of the same name sharing a source _id (REQ-SF2-048).
-  const fusionIdPackKey = system === 'pf2e' ? packName : `${system}:${packName}`;
+  const fusionIdPackKey = system === "pf2e" ? packName : `${system}:${packName}`;
 
   for (const normDoc of normalizedDocs) {
     try {
-      const { fusionDoc, pf2eId, fusionId } = transformDoc(normDoc, packName, stats, fusionIdPackKey, system);
+      const { fusionDoc, pf2eId, fusionId } = transformDoc(
+        normDoc,
+        packName,
+        stats,
+        fusionIdPackKey,
+        system,
+      );
 
       // Validate
       const validation = validateFusionDoc(fusionDoc);
@@ -2038,7 +2258,7 @@ function processPack(packName, system = 'pf2e') {
       stats.transformed++;
       stats.assetSubstitutionsTotal += fusionDoc.flags?.fusion?.assetSubstitutions?.length ?? 0;
 
-      if (fusionDoc.flags?.fusion?.conversion === 'partial') {
+      if (fusionDoc.flags?.fusion?.conversion === "partial") {
         stats.partialConversionDocs++;
       } else {
         stats.fullConversionDocs++;
@@ -2052,10 +2272,12 @@ function processPack(packName, system = 'pf2e') {
   // Write transformed docs
   const outDir = join(outBase, packName);
   mkdirSync(outDir, { recursive: true });
-  const transformedPath = join(outDir, 'transformed.json');
-  writeFileSync(transformedPath, JSON.stringify(fusionDocs, null, 2), 'utf8');
-  const label = system === 'pf2e' ? packName : `${system}/${packName}`;
-  console.log(`[transform] ${packName}: wrote ${fusionDocs.length} docs → out/${label}/transformed.json`);
+  const transformedPath = join(outDir, "transformed.json");
+  writeFileSync(transformedPath, JSON.stringify(fusionDocs, null, 2), "utf8");
+  const label = system === "pf2e" ? packName : `${system}/${packName}`;
+  console.log(
+    `[transform] ${packName}: wrote ${fusionDocs.length} docs → out/${label}/transformed.json`,
+  );
 
   return { stats, fusionDocs, uuidMap };
 }
@@ -2064,20 +2286,24 @@ function processPack(packName, system = 'pf2e') {
 // UUID map merge + write
 // ---------------------------------------------------------------------------
 
-function loadUuidMap(system = 'pf2e') {
-  const mapPath = join(outBaseFor(system), 'fusion-uuid-map.json');
+function loadUuidMap(system = "pf2e") {
+  const mapPath = join(outBaseFor(system), "fusion-uuid-map.json");
   if (existsSync(mapPath)) {
-    try { return JSON.parse(readFileSync(mapPath, 'utf8')); } catch { /* */ }
+    try {
+      return JSON.parse(readFileSync(mapPath, "utf8"));
+    } catch {
+      /* */
+    }
   }
   return {};
 }
 
-function saveUuidMap(map, system = 'pf2e') {
+function saveUuidMap(map, system = "pf2e") {
   const outBase = outBaseFor(system);
-  const mapPath = join(outBase, 'fusion-uuid-map.json');
+  const mapPath = join(outBase, "fusion-uuid-map.json");
   mkdirSync(outBase, { recursive: true });
-  writeFileSync(mapPath, JSON.stringify(map, null, 2), 'utf8');
-  const label = system === 'pf2e' ? '' : `${system}/`;
+  writeFileSync(mapPath, JSON.stringify(map, null, 2), "utf8");
+  const label = system === "pf2e" ? "" : `${system}/`;
   console.log(`[transform] out/${label}fusion-uuid-map.json — ${Object.keys(map).length} packs`);
 }
 
@@ -2086,56 +2312,66 @@ function saveUuidMap(map, system = 'pf2e') {
 // analysis/08-transform-report.md — REQ-CMP-038/042/043
 // ---------------------------------------------------------------------------
 
-function writeTransformReport(packResults, system = 'pf2e') {
+function writeTransformReport(packResults, system = "pf2e") {
   const lines = [];
   const systemLabel = system.toUpperCase();
   lines.push(`# 08 — Relatório de Transformação ${systemLabel} → Fusion`);
-  lines.push('');
-  lines.push(`> Gerado em: ${new Date().toISOString().split('T')[0]}`);
+  lines.push("");
+  lines.push(`> Gerado em: ${new Date().toISOString().split("T")[0]}`);
   lines.push(`> Script: \`src/transform.mjs --system ${system}\` v${IMPORTER_VERSION}`);
   lines.push(`> Fonte: vendor/pf2e packs/${system} branch ${SOURCE_VERSION}`);
-  lines.push('');
-  lines.push('---');
-  lines.push('');
+  lines.push("");
+  lines.push("---");
+  lines.push("");
 
   // Sumário por pack
-  lines.push('## 1. Sumário por pack');
-  lines.push('');
-  lines.push('| Pack | Total | Transformados | Excluídos | Parciais | Completos | Substituições de arte |');
-  lines.push('|---|---|---|---|---|---|---|');
+  lines.push("## 1. Sumário por pack");
+  lines.push("");
+  lines.push(
+    "| Pack | Total | Transformados | Excluídos | Parciais | Completos | Substituições de arte |",
+  );
+  lines.push("|---|---|---|---|---|---|---|");
 
-  let grandTotal = 0, grandTransformed = 0, grandExcluded = 0;
-  let grandPartial = 0, grandFull = 0, grandAssets = 0;
+  let grandTotal = 0,
+    grandTransformed = 0,
+    grandExcluded = 0;
+  let grandPartial = 0,
+    grandFull = 0,
+    grandAssets = 0;
 
   for (const { stats } of packResults) {
-    grandTotal       += stats.total;
+    grandTotal += stats.total;
     grandTransformed += stats.transformed;
-    grandExcluded    += stats.invalidExcluded.length;
-    grandPartial     += stats.partialConversionDocs;
-    grandFull        += stats.fullConversionDocs;
-    grandAssets      += stats.assetSubstitutionsTotal;
+    grandExcluded += stats.invalidExcluded.length;
+    grandPartial += stats.partialConversionDocs;
+    grandFull += stats.fullConversionDocs;
+    grandAssets += stats.assetSubstitutionsTotal;
 
-    lines.push(`| **${stats.packName}** | ${stats.total} | ${stats.transformed} | ${stats.invalidExcluded.length} | ${stats.partialConversionDocs} | ${stats.fullConversionDocs} | ${stats.assetSubstitutionsTotal} |`);
+    lines.push(
+      `| **${stats.packName}** | ${stats.total} | ${stats.transformed} | ${stats.invalidExcluded.length} | ${stats.partialConversionDocs} | ${stats.fullConversionDocs} | ${stats.assetSubstitutionsTotal} |`,
+    );
   }
 
-  lines.push(`| **TOTAL** | **${grandTotal}** | **${grandTransformed}** | **${grandExcluded}** | **${grandPartial}** | **${grandFull}** | **${grandAssets}** |`);
-  lines.push('');
+  lines.push(
+    `| **TOTAL** | **${grandTotal}** | **${grandTransformed}** | **${grandExcluded}** | **${grandPartial}** | **${grandFull}** | **${grandAssets}** |`,
+  );
+  lines.push("");
 
   // Cobertura de Rule Elements
-  lines.push('---');
-  lines.push('');
-  lines.push('## 2. Cobertura de Rule Elements');
-  lines.push('');
+  lines.push("---");
+  lines.push("");
+  lines.push("## 2. Cobertura de Rule Elements");
+  lines.push("");
 
   // Aggregate byKey across all packs
   const allByKey = {};
   for (const { stats } of packResults) {
     for (const [key, data] of Object.entries(stats.byKey)) {
       if (!allByKey[key]) allByKey[key] = { total: 0, supported: 0, partial: 0, unsupported: 0 };
-      allByKey[key].total      += data.total;
-      allByKey[key].supported  += data.supported;
-      allByKey[key].partial    += data.partial;
-      allByKey[key].unsupported+= data.unsupported;
+      allByKey[key].total += data.total;
+      allByKey[key].supported += data.supported;
+      allByKey[key].partial += data.partial;
+      allByKey[key].unsupported += data.unsupported;
     }
   }
 
@@ -2143,93 +2379,107 @@ function writeTransformReport(packResults, system = 'pf2e') {
   const totalSupported = Object.values(allByKey).reduce((s, d) => s + d.supported, 0);
   const totalPartial = Object.values(allByKey).reduce((s, d) => s + d.partial, 0);
   const totalUnsupported = Object.values(allByKey).reduce((s, d) => s + d.unsupported, 0);
-  const coveragePct = totalRules > 0 ? ((totalSupported / totalRules) * 100).toFixed(1) : '0.0';
+  const coveragePct = totalRules > 0 ? ((totalSupported / totalRules) * 100).toFixed(1) : "0.0";
 
-  lines.push(`**Cobertura total:** ${totalSupported}/${totalRules} (${coveragePct}% suportadas integralmente)`);
-  lines.push('');
-  lines.push('| Rule Key | Total | Suportadas | Parciais | Não suportadas | Status |');
-  lines.push('|---|---|---|---|---|---|');
+  lines.push(
+    `**Cobertura total:** ${totalSupported}/${totalRules} (${coveragePct}% suportadas integralmente)`,
+  );
+  lines.push("");
+  lines.push("| Rule Key | Total | Suportadas | Parciais | Não suportadas | Status |");
+  lines.push("|---|---|---|---|---|---|");
 
   // Sort by total descending
-  const sorted = Object.entries(allByKey).sort(([,a],[,b]) => b.total - a.total);
+  const sorted = Object.entries(allByKey).sort(([, a], [, b]) => b.total - a.total);
   for (const [key, data] of sorted) {
-    const state = RE_COVERAGE[key] ?? 'unsupported';
-    const stateLabel = state === 'supported' ? '✅ suportada' : state === 'partial' ? '⚠️ parcial' : '❌ não suportada';
-    lines.push(`| \`${key}\` | ${data.total} | ${data.supported} | ${data.partial} | ${data.unsupported} | ${stateLabel} |`);
+    const state = RE_COVERAGE[key] ?? "unsupported";
+    const stateLabel =
+      state === "supported"
+        ? "✅ suportada"
+        : state === "partial"
+          ? "⚠️ parcial"
+          : "❌ não suportada";
+    lines.push(
+      `| \`${key}\` | ${data.total} | ${data.supported} | ${data.partial} | ${data.unsupported} | ${stateLabel} |`,
+    );
   }
 
-  lines.push('');
+  lines.push("");
 
   // Flavor-prose policy (clean-room)
-  lines.push('---');
-  lines.push('');
-  lines.push('## 2.1 Política de prosa de flavor (clean-room)');
-  lines.push('');
-  lines.push('Nomes de itens e campos **mecânicos** estruturados (`system.damage`, `traits`,');
-  lines.push('`level`, `price`, `category`, `rules[]`, etc.) são Open Game Content (ORC) e');
-  lines.push('**permanecem** nos packs. A **prosa** de `system.description` (e notas de flavor:');
-  lines.push('`gmNotes`, `publicNotes`, `privateNotes`) é Reserved Material sob copyright da');
-  lines.push('Paizo e é **descartada** (zerada) em todos os normalizadores de item, espelhando');
-  lines.push('o tratamento já aplicado a `details.publicNotes`/`blurb` em NPCs.');
-  lines.push('');
-  lines.push('Para condições, o efeito mecânico vive em `rules[]`; apenas a prosa sai.');
-  lines.push('Itens embarcados (ataques/equipamento de NPC) recebem o mesmo strip.');
-  lines.push('');
-  lines.push('Referências: spec 26 §D4, REQ-LEG-010. Guarda de regressão:');
-  lines.push('`src/__tests__/transform.test.mjs` (nenhum `system.description` de prosa nos packs).');
-  lines.push('');
+  lines.push("---");
+  lines.push("");
+  lines.push("## 2.1 Política de prosa de flavor (clean-room)");
+  lines.push("");
+  lines.push("Nomes de itens e campos **mecânicos** estruturados (`system.damage`, `traits`,");
+  lines.push("`level`, `price`, `category`, `rules[]`, etc.) são Open Game Content (ORC) e");
+  lines.push("**permanecem** nos packs. A **prosa** de `system.description` (e notas de flavor:");
+  lines.push("`gmNotes`, `publicNotes`, `privateNotes`) é Reserved Material sob copyright da");
+  lines.push("Paizo e é **descartada** (zerada) em todos os normalizadores de item, espelhando");
+  lines.push("o tratamento já aplicado a `details.publicNotes`/`blurb` em NPCs.");
+  lines.push("");
+  lines.push("Para condições, o efeito mecânico vive em `rules[]`; apenas a prosa sai.");
+  lines.push("Itens embarcados (ataques/equipamento de NPC) recebem o mesmo strip.");
+  lines.push("");
+  lines.push("Referências: spec 26 §D4, REQ-LEG-010. Guarda de regressão:");
+  lines.push(
+    "`src/__tests__/transform.test.mjs` (nenhum `system.description` de prosa nos packs).",
+  );
+  lines.push("");
 
   // Asset substitutions report
-  lines.push('---');
-  lines.push('');
-  lines.push('## 3. Placeholders de arte aplicados');
-  lines.push('');
-  lines.push('Todos os campos de arte foram substituídos por placeholders livres.');
-  lines.push('Nenhum arquivo de imagem do repositório pf2e é incluído.');
-  lines.push('');
-  lines.push('| Pack | Substituições totais |');
-  lines.push('|---|---|');
+  lines.push("---");
+  lines.push("");
+  lines.push("## 3. Placeholders de arte aplicados");
+  lines.push("");
+  lines.push("Todos os campos de arte foram substituídos por placeholders livres.");
+  lines.push("Nenhum arquivo de imagem do repositório pf2e é incluído.");
+  lines.push("");
+  lines.push("| Pack | Substituições totais |");
+  lines.push("|---|---|");
   for (const { stats } of packResults) {
     lines.push(`| ${stats.packName} | ${stats.assetSubstitutionsTotal} |`);
   }
   lines.push(`| **TOTAL** | **${grandAssets}** |`);
-  lines.push('');
+  lines.push("");
 
   // Excluded docs
-  const allExcluded = packResults.flatMap(r => r.stats.invalidExcluded.map(e => ({ pack: r.stats.packName, ...e })));
+  const allExcluded = packResults.flatMap((r) =>
+    r.stats.invalidExcluded.map((e) => ({ pack: r.stats.packName, ...e })),
+  );
   if (allExcluded.length > 0) {
-    lines.push('---');
-    lines.push('');
-    lines.push('## 4. Documentos excluídos (falha na validação)');
-    lines.push('');
-    lines.push('| Pack | pf2eId | Motivo |');
-    lines.push('|---|---|---|');
+    lines.push("---");
+    lines.push("");
+    lines.push("## 4. Documentos excluídos (falha na validação)");
+    lines.push("");
+    lines.push("| Pack | pf2eId | Motivo |");
+    lines.push("|---|---|---|");
     for (const exc of allExcluded) {
       lines.push(`| ${exc.pack} | \`${exc.pf2eId}\` | ${exc.reason} |`);
     }
-    lines.push('');
+    lines.push("");
   }
 
   // Coverage table by state (REQ-CMP-035)
-  lines.push('---');
-  lines.push('');
-  lines.push('## 5. Tabela de cobertura declarativa');
-  lines.push('');
-  lines.push('| Rule Key | Estado | Conversor |');
-  lines.push('|---|---|---|');
+  lines.push("---");
+  lines.push("");
+  lines.push("## 5. Tabela de cobertura declarativa");
+  lines.push("");
+  lines.push("| Rule Key | Estado | Conversor |");
+  lines.push("|---|---|---|");
   for (const [key, state] of Object.entries(RE_COVERAGE)) {
-    const icon = state === 'supported' ? '✅' : state === 'partial' ? '⚠️' : '❌';
-    const conversor = state !== 'unsupported' ? `convert${key}` : '—';
+    const icon = state === "supported" ? "✅" : state === "partial" ? "⚠️" : "❌";
+    const conversor = state !== "unsupported" ? `convert${key}` : "—";
     lines.push(`| \`${key}\` | ${icon} ${state} | \`${conversor}\` |`);
   }
-  lines.push('');
+  lines.push("");
 
-  const reportMdName = system === 'pf2e' ? '08-transform-report.md' : '08-transform-report-sf2e.md';
-  const reportJsonName = system === 'pf2e' ? '08-transform-report.json' : '08-transform-report-sf2e.json';
+  const reportMdName = system === "pf2e" ? "08-transform-report.md" : "08-transform-report-sf2e.md";
+  const reportJsonName =
+    system === "pf2e" ? "08-transform-report.json" : "08-transform-report-sf2e.json";
 
   const reportPath = join(ANALYSIS_DIR, reportMdName);
   mkdirSync(ANALYSIS_DIR, { recursive: true });
-  writeFileSync(reportPath, lines.join('\n'), 'utf8');
+  writeFileSync(reportPath, lines.join("\n"), "utf8");
   console.log(`[transform] analysis/${reportMdName} escrito`);
 
   // JSON report (REQ-CMP-043)
@@ -2250,9 +2500,10 @@ function writeTransformReport(packResults, system = 'pf2e') {
           unsupported: stats.unsupportedRules,
         },
         byKey: stats.byKey,
-        coveragePct: stats.totalRules > 0
-          ? (stats.supportedRules / stats.totalRules * 100).toFixed(1)
-          : '0.0',
+        coveragePct:
+          stats.totalRules > 0
+            ? ((stats.supportedRules / stats.totalRules) * 100).toFixed(1)
+            : "0.0",
       },
       assetSubstitutions: stats.assetSubstitutionsTotal,
     })),
@@ -2267,7 +2518,7 @@ function writeTransformReport(packResults, system = 'pf2e') {
   };
 
   const jsonReportPath = join(ANALYSIS_DIR, reportJsonName);
-  writeFileSync(jsonReportPath, JSON.stringify(jsonReport, null, 2), 'utf8');
+  writeFileSync(jsonReportPath, JSON.stringify(jsonReport, null, 2), "utf8");
   console.log(`[transform] analysis/${reportJsonName} escrito`);
 
   return { totalRules, totalSupported, coveragePct };
@@ -2286,36 +2537,51 @@ async function main() {
   // out/<pack>/transformed.json for feats/classes/etc. in the next build.
   const DEFAULT_PACKS_BY_SYSTEM = {
     pf2e: [
-      'conditions', 'equipment', 'spells', 'pathfinder-monster-core',
-      'classes', 'class-features', 'feats', 'ancestries', 'ancestry-features', 'heritages', 'backgrounds',
-      'actions',
+      "conditions",
+      "equipment",
+      "spells",
+      "pathfinder-monster-core",
+      "classes",
+      "class-features",
+      "feats",
+      "ancestries",
+      "ancestry-features",
+      "heritages",
+      "backgrounds",
+      "actions",
     ],
-    sf2e: ['conditions', 'equipment', 'spells', 'alien-core-bestiary', 'rulebook-bestiaries'],
+    sf2e: ["conditions", "equipment", "spells", "alien-core-bestiary", "rulebook-bestiaries"],
   };
 
-  const systemEq  = args.find(a => a.startsWith('--system='));
-  const systemIdx = args.indexOf('--system');
+  const systemEq = args.find((a) => a.startsWith("--system="));
+  const systemIdx = args.indexOf("--system");
   const systemFlag = systemEq
-    ? systemEq.split('=')[1]
-    : (systemIdx !== -1 ? args[systemIdx + 1] : null);
-  const system = systemFlag === 'sf2e' ? 'sf2e' : 'pf2e';
+    ? systemEq.split("=")[1]
+    : systemIdx !== -1
+      ? args[systemIdx + 1]
+      : null;
+  const system = systemFlag === "sf2e" ? "sf2e" : "pf2e";
 
-  const packArg = args.find(a => a.startsWith('--packs=')) ?? args.find(a => a.startsWith('--pack='));
-  const packIdx = args.indexOf('--packs') !== -1 ? args.indexOf('--packs') : args.indexOf('--pack');
+  const packArg =
+    args.find((a) => a.startsWith("--packs=")) ?? args.find((a) => a.startsWith("--pack="));
+  const packIdx = args.indexOf("--packs") !== -1 ? args.indexOf("--packs") : args.indexOf("--pack");
 
   let packs;
   if (packArg) {
-    packs = packArg.split('=')[1].split(',').map(p => p.trim());
+    packs = packArg
+      .split("=")[1]
+      .split(",")
+      .map((p) => p.trim());
   } else if (packIdx !== -1 && args[packIdx + 1]) {
-    packs = args[packIdx + 1].split(',').map(p => p.trim());
+    packs = args[packIdx + 1].split(",").map((p) => p.trim());
   } else {
     packs = DEFAULT_PACKS_BY_SYSTEM[system];
   }
 
-  packs = packs.filter(p => !p.startsWith('--'));
+  packs = packs.filter((p) => !p.startsWith("--"));
 
   console.log(`[transform] Sistema: ${system}`);
-  console.log(`[transform] Packs alvo: ${packs.join(', ')}`);
+  console.log(`[transform] Packs alvo: ${packs.join(", ")}`);
 
   const packResults = [];
   const globalUuidMap = loadUuidMap(system);
@@ -2326,7 +2592,9 @@ async function main() {
       const { stats, fusionDocs, uuidMap } = processPack(packName, system);
       packResults.push({ stats, fusionDocs });
       globalUuidMap[packName] = uuidMap;
-      console.log(`[transform] ${packName}: rules ${stats.supportedRules} suportadas / ${stats.partialRules} parciais / ${stats.unsupportedRules} não suportadas`);
+      console.log(
+        `[transform] ${packName}: rules ${stats.supportedRules} suportadas / ${stats.partialRules} parciais / ${stats.unsupportedRules} não suportadas`,
+      );
     } catch (err) {
       console.error(`[transform] ERRO em ${packName}: ${err.message}`);
     }
@@ -2335,13 +2603,15 @@ async function main() {
   saveUuidMap(globalUuidMap, system);
   const { totalRules, totalSupported, coveragePct } = writeTransformReport(packResults, system);
 
-  console.log('\n[transform] === SUMÁRIO FINAL ===');
+  console.log("\n[transform] === SUMÁRIO FINAL ===");
   console.log(`Packs processados: ${packResults.length}`);
   console.log(`Total rules: ${totalRules} | Suportadas: ${totalSupported} (${coveragePct}%)`);
-  console.log(`Relatório: analysis/${system === 'pf2e' ? '08-transform-report.md' : '08-transform-report-sf2e.md'}`);
+  console.log(
+    `Relatório: analysis/${system === "pf2e" ? "08-transform-report.md" : "08-transform-report-sf2e.md"}`,
+  );
 }
 
-main().catch(err => {
-  console.error('[transform] FATAL:', err);
+main().catch((err) => {
+  console.error("[transform] FATAL:", err);
   process.exit(1);
 });

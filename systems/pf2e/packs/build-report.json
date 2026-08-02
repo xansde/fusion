@@ -23,17 +23,17 @@
     {
       "packId": "pf2e.classes-core",
       "slug": "classes-core",
-      "documentCount": 2
+      "documentCount": 7
     },
     {
       "packId": "pf2e.class-features-core",
       "slug": "class-features-core",
-      "documentCount": 48
+      "documentCount": 151
     },
     {
       "packId": "pf2e.feats-core",
       "slug": "feats-core",
-      "documentCount": 459
+      "documentCount": 898
     },
     {
       "packId": "pf2e.ancestries-core",
@@ -71,7 +71,7 @@
       "documentCount": 55
     }
   ],
-  "generatedAt": "2026-07-07T17:59:36.469Z",
+  "generatedAt": "2026-08-02T00:15:41.733Z",
   "importerVersion": "0.1.0",
   "sourceVersion": "v14-dev"
 }

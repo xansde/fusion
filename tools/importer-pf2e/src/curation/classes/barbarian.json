@@ -11,7 +11,7 @@
       "featureNameInItemsMap": "Instinct",
       "level": 1,
       "choose": 1,
-      "optionCount": 9,
+      "optionCount": 10,
       "slotType": "instinct"
     }
   ],
@@ -59,7 +59,10 @@
     ]
   },
   "spellcasting": null,
-  "focusSpells": { "names": [], "alreadyInPacks": [] },
+  "focusSpells": {
+    "names": [],
+    "alreadyInPacks": []
+  },
   "prerequisites": {
     "internalChains": [
       ["Great Cleave", "Cleave"],
@@ -91,6 +94,8 @@
     "Nenhum focus spell e concedido pelo Barbarian (classDoc.system.spellcasting=0; 0 arquivos em spells/focus com trait barbarian).",
     "9 opcoes validas no eixo barbarian-instinct: Animal, Decay, Dragon, Elemental, Fury, Giant, Ligneous, Spirit, Superstition Instinct. Bloodrager (10a opcao no vendor) foi excluida - ver dedupe.collisionsDetected.",
     "16 shared-class-feats carregam o trait barbarian; todos tem 2+ traits de classe simultaneos (ex.: Sudden Charge = barbarian+fighter, Reactive Strike = 7 classes). Isso torna a derivacao de class_level AMBIGUA sob a preparacao de multiclasse (secao 4.1 do plano) - relatorio tem a lista completa e a decisao proposta.",
-    "9 class feats do Barbarian tem prerequisito de pericia/sentido em texto livre (ex.: 'expert in Athletics', 'Acute Scent or scent') sem match nominal contra feat/feature/instinct do proprio conjunto - nao mecanizaveis como aresta, ficam como atributo textual do no."
+    "9 class feats do Barbarian tem prerequisito de pericia/sentido em texto livre (ex.: 'expert in Athletics', 'Acute Scent or scent') sem match nominal contra feat/feature/instinct do proprio conjunto - nao mecanizaveis como aresta, ficam como atributo textual do no.",
+    "r21 (integracao): optionCount corrigido de 9 para 10 — o vendor marca 10 docs com a otherTag 'barbarian-instinct' (Animal, Bloodrager, Decay, Dragon, Elemental, Fury, Giant, Ligneous, Spirit, Superstition). Todas entram: o principio da base e 'nada e descartado', e requisito sugere, nunca bloqueia.",
+    "Bloodrager concede Bloodrager Dedication por GrantItem — arquetipo que NAO esta nos packs. O grant fica pendurado (o materializador pula alvo ausente). Registrado como pendencia, nao como motivo para excluir a opcao."
   ]
 }
