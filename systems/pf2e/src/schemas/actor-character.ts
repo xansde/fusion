@@ -19,6 +19,7 @@ import {
   SkillSlugSchema,
   SpeedSchema,
 } from "../schema-primitives.js";
+import { MAX_CHARACTER_LEVEL } from "../variants/classLevels/params.js";
 
 // ---------------------------------------------------------------------------
 // Ability score block
@@ -233,9 +234,16 @@ export type BuildAbilities = z.infer<typeof BuildAbilitiesSchema>;
  *   - "skillTraining" | "skillIncrease"
  *   - "hybridStudy"
  *   - "abilityBoosts"
+ *   - "classLevel" — which class received this character level, under the
+ *     class-levels multiclass variant (specs/30, DEC-MCL-02). `ref` points at
+ *     the class; `slot` is "classLevel-<N>". Four entries make a Barbarian 3 /
+ *     Rogue 1. Storing the DECISION per level (rather than an aggregate map
+ *     `{barbarian: 3, rogue: 1}`) is what keeps ORDER — the first class is a
+ *     rule-bearing fact (REQ-MCL-013) — and the level↔class correspondence
+ *     that per-level HP needs (REQ-MCL-033).
  */
 const BuildChoiceSchema = z.object({
-  level: z.number().int().min(1).max(20),
+  level: z.number().int().min(1).max(MAX_CHARACTER_LEVEL),
   slot: z.string().min(1),
   type: z.string().min(1),
   /** Compendium UUID reference, when the choice targets a compendium doc. */
@@ -249,6 +257,36 @@ const BuildChoiceSchema = z.object({
 });
 export type BuildChoice = z.infer<typeof BuildChoiceSchema>;
 
+/**
+ * Optional variant rules, off by default.
+ *
+ * A variant belongs to the ACTOR, not to the world: a sheet is exported,
+ * imported and read by other worlds, and these toggles change what the
+ * document MEANS. A sheet that cannot be interpreted in isolation is a sheet
+ * that derives differently depending on where it is opened (DEC-MCL-01).
+ */
+const VariantRulesSchema = z
+  .object({
+    /**
+     * Multiclass by splitting class levels (specs/30) — `Fighter 3 / Wizard 2`
+     * instead of a dedication archetype.
+     *
+     * Default `false`, and with it false NOTHING in this spec runs: no new
+     * field is read, no migration happens, and derivation is byte-for-byte
+     * what it was before the variant existed (REQ-MCL-002). The pf2e system
+     * ships publicly; one table's house rule must never become everyone's
+     * default.
+     *
+     * Independent of `freeArchetype` (Q-MCL-01, decided 2026-08-02): the two
+     * toggles compose freely, and the balance invariant keeps measuring
+     * against the FREE dedication route regardless — the conservative choice,
+     * which can only ever make the variant look weak, never overtuned.
+     */
+    classLevels: z.boolean().default(false),
+  })
+  .default({});
+export type VariantRules = z.infer<typeof VariantRulesSchema>;
+
 const CharacterBuildSchema = z
   .object({
     abilities: BuildAbilitiesSchema,
@@ -259,6 +297,8 @@ const CharacterBuildSchema = z
     bonusHpPerLevel: z.number().int().min(0).default(0),
     /** Free Archetype variant rule toggle — grants archetype feat slots on even levels. */
     freeArchetype: z.boolean().default(false),
+    /** Opt-in variant rules (specs/30). Default: all off. */
+    variantRules: VariantRulesSchema,
   })
   .default({});
 export type CharacterBuild = z.infer<typeof CharacterBuildSchema>;
@@ -272,8 +312,17 @@ export const CharacterSystemSchema = z
   .object({
     /** System schema version for migrations. REQ-PF2-205 */
     systemVersion: z.string().default("0.1.0"),
-    /** Character level. REQ-PF2-011 */
-    level: z.object({ value: z.number().int().min(1).max(20) }).default({ value: 1 }),
+    /**
+     * Character level. REQ-PF2-011.
+     *
+     * Under the class-levels variant this stays the CHARACTER level — the sum
+     * of the class levels, never one class's level (REQ-MCL-012). The cap is
+     * the variant's parameter so that a table opening levels past 20 changes
+     * one number instead of hunting literals (Q-MCL-02).
+     */
+    level: z
+      .object({ value: z.number().int().min(1).max(MAX_CHARACTER_LEVEL) })
+      .default({ value: 1 }),
     abilities: CharacterAbilitiesSchema,
     attributes: CharacterAttributesSchema,
     saves: SavesSchema,
@@ -298,7 +347,61 @@ export const CharacterSystemSchema = z
       })
       .default({}),
   })
-  .passthrough(); // REQ-PF2-204: extra fields from importer are allowed
+  .passthrough() // REQ-PF2-204: extra fields from importer are allowed
+  /**
+   * REQ-MCL-012 — the character level and the class-level split must agree.
+   *
+   * Only enforced when the variant is ON: with it off there are no
+   * `classLevel` choices and this refinement is inert, which is what keeps
+   * REQ-MCL-002 (byte-identical behaviour) true.
+   *
+   * Divergence is an ERROR, never a silent repair. Quietly rewriting
+   * `level.value` to match the sum (or vice versa) would resolve the symptom
+   * by picking a winner at random — and the wrong pick silently rewrites the
+   * character's whole progression. A sheet that disagrees with itself needs a
+   * human, not a guess.
+   */
+  .superRefine((sys, ctx) => {
+    const build = sys.build;
+    if (!build?.variantRules?.classLevels) return;
+
+    const classLevelChoices = build.choices.filter((choice) => choice.type === "classLevel");
+    // No split recorded yet: a sheet that just turned the toggle on is read as
+    // "every level in the current class" and keeps deriving as before
+    // (REQ-MCL-003) — it is not an inconsistency.
+    if (classLevelChoices.length === 0) return;
+
+    if (classLevelChoices.length !== sys.level.value) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["build", "choices"],
+        message:
+          `class level split has ${String(classLevelChoices.length)} entries but the character ` +
+          `is level ${String(sys.level.value)} — every character level must be assigned to ` +
+          `exactly one class (REQ-MCL-010/012)`,
+      });
+    }
+
+    // Each character level from 1..level must appear exactly once. Catches
+    // both a duplicated level and a hole in the middle, which a bare count
+    // check would let through in pairs.
+    const seen = new Map<number, number>();
+    for (const choice of classLevelChoices) {
+      seen.set(choice.level, (seen.get(choice.level) ?? 0) + 1);
+    }
+    for (let level = 1; level <= sys.level.value; level++) {
+      const count = seen.get(level) ?? 0;
+      if (count !== 1) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["build", "choices"],
+          message:
+            `character level ${String(level)} is assigned to ${String(count)} classes — ` +
+            `it must be assigned to exactly one (REQ-MCL-010)`,
+        });
+      }
+    }
+  });
 
 export type CharacterSystem = z.infer<typeof CharacterSystemSchema>;
 
