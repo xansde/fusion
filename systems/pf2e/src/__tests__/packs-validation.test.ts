@@ -821,3 +821,94 @@ describe("packs-validation: sourceId is resolvable from the index (issue #41)", 
     expect(offenders).toEqual([]);
   });
 });
+
+// ---------------------------------------------------------------------------
+// 3. issue #1 — Player Core ancestries/backgrounds/heritages
+//
+// Before this fix, ancestries-core/backgrounds-core/heritages-core only
+// carried the two hand-picked docs needed by the Magus/Finn fixtures
+// (Ratfolk+Fleshwarp, Fireworks Performer+Aeronaut, 7 Ratfolk heritages +
+// Sylph) — every OTHER PF2e sheet (Fighter, Cleric, ...) had ZERO playable
+// ancestry to pick, so Speed stayed 0 ft and ancestry HP never applied
+// (evidence: only 2 options in the "Escolher Ancestralidade" dialog).
+// This block asserts the 8 Player Core ancestries are present, each with a
+// mechanically valid ancestry (hp/speed/boosts) and at least one
+// corresponding heritage in heritages-core — plus a regression guard that
+// the pre-existing Magus/Finn fixtures were not dropped.
+// ---------------------------------------------------------------------------
+
+describe("packs-validation: issue #1 — Player Core ancestries/backgrounds/heritages", () => {
+  const PLAYER_CORE_ANCESTRY_NAMES = [
+    "Dwarf",
+    "Elf",
+    "Gnome",
+    "Goblin",
+    "Halfling",
+    "Human",
+    "Leshy",
+    "Orc",
+  ];
+
+  const ancestries = loadDocuments("ancestries-core");
+  const heritages = loadDocuments("heritages-core");
+  const backgrounds = loadDocuments("backgrounds-core");
+
+  it("ancestries-core contains all 8 Player Core ancestries, each with valid hp/speed/boosts", () => {
+    const byName = new Map(ancestries.map((a) => [a.name, a]));
+    const missing = PLAYER_CORE_ANCESTRY_NAMES.filter((name) => !byName.has(name));
+    expect(
+      missing,
+      `ancestries-core missing Player Core ancestries: ${missing.join(", ")}`,
+    ).toEqual([]);
+
+    for (const name of PLAYER_CORE_ANCESTRY_NAMES) {
+      const system = parseAncestrySystem(byName.get(name)!.system);
+      expect(system.hp, `${name}: ancestry hp must be > 0`).toBeGreaterThan(0);
+      expect(system.speed, `${name}: ancestry speed must be > 0`).toBeGreaterThan(0);
+      expect(
+        system.boosts.length,
+        `${name}: ancestry must grant at least one boost slot`,
+      ).toBeGreaterThan(0);
+    }
+  });
+
+  it("every Player Core ancestry has at least one corresponding heritage in heritages-core", () => {
+    const missing: string[] = [];
+    for (const name of PLAYER_CORE_ANCESTRY_NAMES) {
+      const slug = name.toLowerCase();
+      const own = heritages.filter(
+        (h) => (h.system as { ancestry?: { slug?: string } }).ancestry?.slug === slug,
+      );
+      if (own.length === 0) missing.push(name);
+    }
+    expect(missing, `ancestries with no heritage in heritages-core: ${missing.join(", ")}`).toEqual(
+      [],
+    );
+  });
+
+  it("backgrounds-core contains the 40 Player Core backgrounds", () => {
+    const playerCoreCount = backgrounds.filter(
+      (b) =>
+        (b.system as { publication?: { title?: string } }).publication?.title ===
+        "Pathfinder Player Core",
+    ).length;
+    expect(playerCoreCount).toBe(40);
+  });
+
+  it("regression guard: the pre-existing Magus/Finn fixtures are still present", () => {
+    expect(ancestries.map((a) => a.name)).toEqual(expect.arrayContaining(["Ratfolk", "Fleshwarp"]));
+    expect(backgrounds.map((b) => b.name)).toEqual(
+      expect.arrayContaining(["Fireworks Performer", "Aeronaut"]),
+    );
+    expect(heritages.map((h) => h.name)).toEqual(expect.arrayContaining(["Snow Rat", "Sylph"]));
+  });
+
+  it("no ancestry/background/heritage doc leaks Paizo art (placeholder img only)", () => {
+    for (const doc of [...ancestries, ...backgrounds, ...heritages]) {
+      expect(
+        typeof doc.img === "string" && doc.img.startsWith("icons/placeholder"),
+        `${doc.name} (${doc.type}) has non-placeholder img: ${String(doc.img)}`,
+      ).toBe(true);
+    }
+  });
+});

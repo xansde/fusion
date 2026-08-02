@@ -1,5 +1,590 @@
 [
   {
+    "_id": "yAJKJ43MtxkqhD1m",
+    "uuid": "Compendium.pf2e.heritages-core.Item.yAJKJ43MtxkqhD1m",
+    "name": "Ancient-Blooded Dwarf",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Ancient-Blooded Dwarf",
+      "system.ancestry.slug": "dwarf",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "yL6944LrPo2HNdEJ"
+    }
+  },
+  {
+    "_id": "BvPRpyfy4WYZ82Dg",
+    "uuid": "Compendium.pf2e.heritages-core.Item.BvPRpyfy4WYZ82Dg",
+    "name": "Death Warden Dwarf",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Death Warden Dwarf",
+      "system.ancestry.slug": "dwarf",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "VTtXwBxrfRUXSL38"
+    }
+  },
+  {
+    "_id": "iKvRp24y6Yh9SmIA",
+    "uuid": "Compendium.pf2e.heritages-core.Item.iKvRp24y6Yh9SmIA",
+    "name": "Forge Dwarf",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Forge Dwarf",
+      "system.ancestry.slug": "dwarf",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "5CqsBKCZuGON53Hk"
+    }
+  },
+  {
+    "_id": "ZABIAw7vMDK39pFt",
+    "uuid": "Compendium.pf2e.heritages-core.Item.ZABIAw7vMDK39pFt",
+    "name": "Rock Dwarf",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Rock Dwarf",
+      "system.ancestry.slug": "dwarf",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "VSyOvtgJ1ZNpIVgC"
+    }
+  },
+  {
+    "_id": "AaIOLHzPr2pli8vf",
+    "uuid": "Compendium.pf2e.heritages-core.Item.AaIOLHzPr2pli8vf",
+    "name": "Strong-Blooded Dwarf",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Strong-Blooded Dwarf",
+      "system.ancestry.slug": "dwarf",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "UV2sABrTC5teOXTE"
+    }
+  },
+  {
+    "_id": "W5S2RLn2VuFTNwEX",
+    "uuid": "Compendium.pf2e.heritages-core.Item.W5S2RLn2VuFTNwEX",
+    "name": "Ancient Elf",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Ancient Elf",
+      "system.ancestry.slug": "elf",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "Nd9hdX8rdYyRozw8"
+    }
+  },
+  {
+    "_id": "H2WGNpBMzCzobJ1T",
+    "uuid": "Compendium.pf2e.heritages-core.Item.H2WGNpBMzCzobJ1T",
+    "name": "Arctic Elf",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Arctic Elf",
+      "system.ancestry.slug": "elf",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "1dYDucCIaZpCJqBc"
+    }
+  },
+  {
+    "_id": "LEFlryu9X5JIb5c5",
+    "uuid": "Compendium.pf2e.heritages-core.Item.LEFlryu9X5JIb5c5",
+    "name": "Cavern Elf",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Cavern Elf",
+      "system.ancestry.slug": "elf",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "NfIAGatB1KIzt8G7"
+    }
+  },
+  {
+    "_id": "YDwpFLkqQMb5O5dM",
+    "uuid": "Compendium.pf2e.heritages-core.Item.YDwpFLkqQMb5O5dM",
+    "name": "Seer Elf",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Seer Elf",
+      "system.ancestry.slug": "elf",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "jEtVesbqYcWGbBYk"
+    }
+  },
+  {
+    "_id": "f1wFqLQYFFyQF25S",
+    "uuid": "Compendium.pf2e.heritages-core.Item.f1wFqLQYFFyQF25S",
+    "name": "Whisper Elf",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Whisper Elf",
+      "system.ancestry.slug": "elf",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "1wVDYY9Wue0G5R9Q"
+    }
+  },
+  {
+    "_id": "IuMZkHg9XfJoqrMY",
+    "uuid": "Compendium.pf2e.heritages-core.Item.IuMZkHg9XfJoqrMY",
+    "name": "Woodland Elf",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Woodland Elf",
+      "system.ancestry.slug": "elf",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "nW1gi13E62Feto2w"
+    }
+  },
+  {
+    "_id": "qzbpEorZsxVZ82uO",
+    "uuid": "Compendium.pf2e.heritages-core.Item.qzbpEorZsxVZ82uO",
+    "name": "Chameleon Gnome",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Chameleon Gnome",
+      "system.ancestry.slug": "gnome",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "XeXWsvcWU3Zaj5WC"
+    }
+  },
+  {
+    "_id": "Op6IzaEnVYu45U0N",
+    "uuid": "Compendium.pf2e.heritages-core.Item.Op6IzaEnVYu45U0N",
+    "name": "Fey-Touched Gnome",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Fey-Touched Gnome",
+      "system.ancestry.slug": "gnome",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "D3hTAqgwSank8OyO"
+    }
+  },
+  {
+    "_id": "EZtMRq3LqMfQzNv8",
+    "uuid": "Compendium.pf2e.heritages-core.Item.EZtMRq3LqMfQzNv8",
+    "name": "Sensate Gnome",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Sensate Gnome",
+      "system.ancestry.slug": "gnome",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "tXC5Gwn9D5x0ouJh"
+    }
+  },
+  {
+    "_id": "vmV9XelJgTVIekG8",
+    "uuid": "Compendium.pf2e.heritages-core.Item.vmV9XelJgTVIekG8",
+    "name": "Umbral Gnome",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Umbral Gnome",
+      "system.ancestry.slug": "gnome",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "d0bNxgGqvaCkFlhN"
+    }
+  },
+  {
+    "_id": "zCjOWbCxNuzBIDt0",
+    "uuid": "Compendium.pf2e.heritages-core.Item.zCjOWbCxNuzBIDt0",
+    "name": "Wellspring Gnome",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Wellspring Gnome",
+      "system.ancestry.slug": "gnome",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "etkuQkjkNLPLnjkA"
+    }
+  },
+  {
+    "_id": "0wGxgLJChudOIPr6",
+    "uuid": "Compendium.pf2e.heritages-core.Item.0wGxgLJChudOIPr6",
+    "name": "Charhide Goblin",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Charhide Goblin",
+      "system.ancestry.slug": "goblin",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "32oX6hHUY6K8N70Q"
+    }
+  },
+  {
+    "_id": "M95t6NrhPbYRG0vk",
+    "uuid": "Compendium.pf2e.heritages-core.Item.M95t6NrhPbYRG0vk",
+    "name": "Irongut Goblin",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Irongut Goblin",
+      "system.ancestry.slug": "goblin",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "gyoN45SVfRZwHMkk"
+    }
+  },
+  {
+    "_id": "xsJccUkxibIEL5p8",
+    "uuid": "Compendium.pf2e.heritages-core.Item.xsJccUkxibIEL5p8",
+    "name": "Razortooth Goblin",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Razortooth Goblin",
+      "system.ancestry.slug": "goblin",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "a6F2WjYU8D0suT8T"
+    }
+  },
+  {
+    "_id": "TMN3R8RuP8uYqQ9x",
+    "uuid": "Compendium.pf2e.heritages-core.Item.TMN3R8RuP8uYqQ9x",
+    "name": "Snow Goblin",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Snow Goblin",
+      "system.ancestry.slug": "goblin",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "gQyPU441J3rGt8mD"
+    }
+  },
+  {
+    "_id": "0QhPSBkfcbClOvmo",
+    "uuid": "Compendium.pf2e.heritages-core.Item.0QhPSBkfcbClOvmo",
+    "name": "Unbreakable Goblin",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Unbreakable Goblin",
+      "system.ancestry.slug": "goblin",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "ULj56ZoW7dWdnBvu"
+    }
+  },
+  {
+    "_id": "xg0bG1UbApCuNnoT",
+    "uuid": "Compendium.pf2e.heritages-core.Item.xg0bG1UbApCuNnoT",
+    "name": "Gutsy Halfling",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Gutsy Halfling",
+      "system.ancestry.slug": "halfling",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "Eq42wZ5OTweJLnLU"
+    }
+  },
+  {
+    "_id": "SJeqWHuhtvafKM0V",
+    "uuid": "Compendium.pf2e.heritages-core.Item.SJeqWHuhtvafKM0V",
+    "name": "Hillock Halfling",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Hillock Halfling",
+      "system.ancestry.slug": "halfling",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "Mj7uHxxVkRUlOFwJ"
+    }
+  },
+  {
+    "_id": "uTT4diwX9io7S096",
+    "uuid": "Compendium.pf2e.heritages-core.Item.uTT4diwX9io7S096",
+    "name": "Jinxed Halfling",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Jinxed Halfling",
+      "system.ancestry.slug": "halfling",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "G9Gwfi8ZIva52uGp"
+    }
+  },
+  {
+    "_id": "OOMD3lY7ntuDv8CP",
+    "uuid": "Compendium.pf2e.heritages-core.Item.OOMD3lY7ntuDv8CP",
+    "name": "Nomadic Halfling",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Nomadic Halfling",
+      "system.ancestry.slug": "halfling",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "idGDjqi1q3Ft8bAZ"
+    }
+  },
+  {
+    "_id": "CfL5Gq0Pc9T4yqsN",
+    "uuid": "Compendium.pf2e.heritages-core.Item.CfL5Gq0Pc9T4yqsN",
+    "name": "Twilight Halfling",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Twilight Halfling",
+      "system.ancestry.slug": "halfling",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "cCy8vsZENlwiAyZ6"
+    }
+  },
+  {
+    "_id": "cvhoIv1zMnBGTYcI",
+    "uuid": "Compendium.pf2e.heritages-core.Item.cvhoIv1zMnBGTYcI",
+    "name": "Wildwood Halfling",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Wildwood Halfling",
+      "system.ancestry.slug": "halfling",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "xtRIYizCjLg9qe1Z"
+    }
+  },
+  {
+    "_id": "LEnqH6OXD9A2TjKy",
+    "uuid": "Compendium.pf2e.heritages-core.Item.LEnqH6OXD9A2TjKy",
+    "name": "Skilled Human",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Skilled Human",
+      "system.ancestry.slug": "human",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "zVf0Hlp5xG0Q7kmc"
+    }
+  },
+  {
+    "_id": "fhxYlZ3RuyRFvafU",
+    "uuid": "Compendium.pf2e.heritages-core.Item.fhxYlZ3RuyRFvafU",
+    "name": "Versatile Human",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Versatile Human",
+      "system.ancestry.slug": "human",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "hFBwsVcSnNCJoimo"
+    }
+  },
+  {
+    "_id": "dDw6FSLL79DI7uAv",
+    "uuid": "Compendium.pf2e.heritages-core.Item.dDw6FSLL79DI7uAv",
+    "name": "Cactus Leshy",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Cactus Leshy",
+      "system.ancestry.slug": "leshy",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "2cii5ZkBsJ4DYdd2"
+    }
+  },
+  {
+    "_id": "MvlfITxKYpoOstUW",
+    "uuid": "Compendium.pf2e.heritages-core.Item.MvlfITxKYpoOstUW",
+    "name": "Fruit Leshy",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Fruit Leshy",
+      "system.ancestry.slug": "leshy",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "L6zfGzLMDLHbZ7VV"
+    }
+  },
+  {
+    "_id": "dwZgfT9raJhXFEWX",
+    "uuid": "Compendium.pf2e.heritages-core.Item.dwZgfT9raJhXFEWX",
+    "name": "Fungus Leshy",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Fungus Leshy",
+      "system.ancestry.slug": "leshy",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "87h0jepQuzIbN7jN"
+    }
+  },
+  {
+    "_id": "J1JGdxn0XQgV7g4a",
+    "uuid": "Compendium.pf2e.heritages-core.Item.J1JGdxn0XQgV7g4a",
+    "name": "Gourd Leshy",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Gourd Leshy",
+      "system.ancestry.slug": "leshy",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "wNnsjird4OQe0s6p"
+    }
+  },
+  {
+    "_id": "9YDeXYLc7Se5NhxP",
+    "uuid": "Compendium.pf2e.heritages-core.Item.9YDeXYLc7Se5NhxP",
+    "name": "Leaf Leshy",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Leaf Leshy",
+      "system.ancestry.slug": "leshy",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "dQqurQys37aJYb26"
+    }
+  },
+  {
+    "_id": "xYK9Joc7E3vjlYsi",
+    "uuid": "Compendium.pf2e.heritages-core.Item.xYK9Joc7E3vjlYsi",
+    "name": "Lotus Leshy",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Lotus Leshy",
+      "system.ancestry.slug": "leshy",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "ievKYUc53q0mroGp"
+    }
+  },
+  {
+    "_id": "2o4Y9pu8sQiYyYq9",
+    "uuid": "Compendium.pf2e.heritages-core.Item.2o4Y9pu8sQiYyYq9",
+    "name": "Root Leshy",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Root Leshy",
+      "system.ancestry.slug": "leshy",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "CZx9HMmoOwcpkLY8"
+    }
+  },
+  {
+    "_id": "phKaCKZGaWBGRKzF",
+    "uuid": "Compendium.pf2e.heritages-core.Item.phKaCKZGaWBGRKzF",
+    "name": "Seaweed Leshy",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Seaweed Leshy",
+      "system.ancestry.slug": "leshy",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "hTl3uc6y1kTuo9ac"
+    }
+  },
+  {
+    "_id": "zx2v8EENQxFXuu3q",
+    "uuid": "Compendium.pf2e.heritages-core.Item.zx2v8EENQxFXuu3q",
+    "name": "Vine Leshy",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Vine Leshy",
+      "system.ancestry.slug": "leshy",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "evXJISqyhl3fHE9u"
+    }
+  },
+  {
+    "_id": "7lhqu5JgNWLpDKrG",
+    "uuid": "Compendium.pf2e.heritages-core.Item.7lhqu5JgNWLpDKrG",
+    "name": "Badlands Orc",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Badlands Orc",
+      "system.ancestry.slug": "orc",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "8Gsa8KFsHizEwSHU"
+    }
+  },
+  {
+    "_id": "9cw0GAvKDqU6gs4f",
+    "uuid": "Compendium.pf2e.heritages-core.Item.9cw0GAvKDqU6gs4f",
+    "name": "Battle-Ready Orc",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Battle-Ready Orc",
+      "system.ancestry.slug": "orc",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "nXQxlmjH24Eb8h2Q"
+    }
+  },
+  {
+    "_id": "cX24Zry7fPf59BTo",
+    "uuid": "Compendium.pf2e.heritages-core.Item.cX24Zry7fPf59BTo",
+    "name": "Deep Orc",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Deep Orc",
+      "system.ancestry.slug": "orc",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "wn4EbYk1QN3tyFhh"
+    }
+  },
+  {
+    "_id": "GFDLACU02E4wsele",
+    "uuid": "Compendium.pf2e.heritages-core.Item.GFDLACU02E4wsele",
+    "name": "Grave Orc",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Grave Orc",
+      "system.ancestry.slug": "orc",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "VvEAFoxuddYNBmNc"
+    }
+  },
+  {
+    "_id": "qnpKVRG7PqwPMFty",
+    "uuid": "Compendium.pf2e.heritages-core.Item.qnpKVRG7PqwPMFty",
+    "name": "Hold-Scarred Orc",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Hold-Scarred Orc",
+      "system.ancestry.slug": "orc",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "MTTU2t7x6TjvUDnE"
+    }
+  },
+  {
+    "_id": "ApT8TFDZ4VlXDH50",
+    "uuid": "Compendium.pf2e.heritages-core.Item.ApT8TFDZ4VlXDH50",
+    "name": "Rainfall Orc",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Rainfall Orc",
+      "system.ancestry.slug": "orc",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "dwKCwwtWetvPmJks"
+    }
+  },
+  {
+    "_id": "g6mrzJ3ntIOFDY2s",
+    "uuid": "Compendium.pf2e.heritages-core.Item.g6mrzJ3ntIOFDY2s",
+    "name": "Winter Orc",
+    "img": "icons/placeholder/feat.svg",
+    "type": "heritage",
+    "index": {
+      "name": "Winter Orc",
+      "system.ancestry.slug": "orc",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "pZ1u2ScWrBXSaAqQ"
+    }
+  },
+  {
     "_id": "azDELWXz1ds3XeL0",
     "uuid": "Compendium.pf2e.heritages-core.Item.azDELWXz1ds3XeL0",
     "name": "Deep Rat",

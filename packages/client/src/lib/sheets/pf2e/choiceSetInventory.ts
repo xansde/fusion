@@ -65,6 +65,15 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   "ancestry-features-core/Draconic Benefactor/draconicBenefactor": "pendente",
   "ancestry-features-core/Draconic Exemplar/draconicExemplar": "pendente",
   "ancestry-features-core/Magiphage/-": "pendente",
+  // issue #1: the 4 Player Core backgrounds below let the player choose
+  // BETWEEN two trained skills (e.g. Hermit: "Nature or Occultism") via an
+  // ActiveEffectLike rule keyed off `{item|flags.system.rulesSelections.skill}`
+  // — same unresolved-choice shape as the class-features/feats "pendente"
+  // entries below; `system.skills` stays empty until the player picks.
+  "backgrounds-core/Hermit/skill": "pendente",
+  "backgrounds-core/Martial Disciple/skill": "pendente",
+  "backgrounds-core/Scholar/skill": "pendente",
+  "backgrounds-core/Teacher/skill": "pendente",
   "class-features-core/Animal Instinct/-": "pendente",
   "class-features-core/Arcane School/arcaneSchool": "eixo",
   "class-features-core/Arcane Thesis/arcaneThesis": "eixo",
@@ -203,6 +212,34 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   "feats-core/Terrain Stalker/-": "pendente",
   "feats-core/Virtuosic Performer/performanceType": "pendente",
   "feats-core/Wilderness Spotter/terrain": "pendente",
+  // issue #1 — ancestry feats of the 8 newly curated Player Core ancestries
+  // (Dwarf/Elf/Gnome/Goblin/Halfling/Human/Leshy/Orc) that themselves
+  // parameterize a further choice (a skill, a cantrip, a weapon group, a
+  // second heritage/clan/element...) — same "pendente" shape as the other
+  // single-parameter feats above; none of these is offered by the builder.
+  "feats-core/Advanced General Training/advancedGeneralTraining": "pendente",
+  "feats-core/Arcane Tattoos/cantrip": "pendente",
+  "feats-core/Beast Trainer/feat": "pendente",
+  "feats-core/Chosen of Lamashtu/heritage": "pendente",
+  "feats-core/Clan Lore/clan": "pendente",
+  "feats-core/Cultural Adaptability/feat": "pendente",
+  "feats-core/Dragon Spit/cantrip": "pendente",
+  "feats-core/Elemental Wrath/element": "pendente",
+  "feats-core/General Training/feat": "pendente",
+  "feats-core/Hold Mark/holdMark": "pendente",
+  "feats-core/Multitalented/multitalented": "pendente",
+  "feats-core/Natural Ambition/naturalAmbition": "pendente",
+  "feats-core/Natural Skill/skillOne": "pendente",
+  "feats-core/Natural Skill/skillTwo": "pendente",
+  "feats-core/Viking Shieldbearer/weapon": "pendente",
+  // issue #1 — heritage-level parameterized choices for the 8 core
+  // ancestries (Ancient Elf picks an elf-lineage bonus feat; Skilled Human
+  // picks a trained skill; Versatile Human picks a general-feat-eligible
+  // bonus feat) — same unresolved-ChoiceSet shape as Skilled Human's
+  // background cousins above.
+  "heritages-core/Ancient Elf/ancientElf": "pendente",
+  "heritages-core/Skilled Human/skill": "pendente",
+  "heritages-core/Versatile Human/versatileHeritage": "pendente",
 };
 
 /** Escolhas que o jogador deveria poder fazer e que o builder ainda não oferece. */

@@ -776,8 +776,27 @@ function hasTradition(doc, tradition) {
  * Derivado do que JA esta em ancestries-core/heritages-core: trazer a
  * ancestralidade sem os feats dela deixa o slot de talento de ancestralidade
  * vazio na ficha.
+ *
+ * issue #1: as 8 ancestralidades do Player Core (ver CORE_ANCESTRY_SLUGS /
+ * isAncestriesCoreDoc) entraram em ancestries-core sem os feats delas — sem
+ * este ramo, o slot de talento de ancestralidade de nível 5 abriria vazio
+ * para qualquer uma delas (pego pelo diagnóstico data-driven em
+ * packages/client/.../varredura-classes.test.ts:307, "tem ancestry feats no
+ * pack", que itera TODA ancestralidade presente em ancestries-core).
  */
-const CURATED_ANCESTRY_TRAITS = ["ratfolk", "fleshwarp", "sylph"];
+const CURATED_ANCESTRY_TRAITS = [
+  "ratfolk",
+  "fleshwarp",
+  "sylph",
+  "dwarf",
+  "elf",
+  "gnome",
+  "goblin",
+  "halfling",
+  "human",
+  "leshy",
+  "orc",
+];
 
 function isFeatsCoreDoc(doc) {
   if (doc.type !== "feat") return false;
@@ -905,31 +924,90 @@ function isClassFeaturesCoreDoc(doc, classFeatureNames, axisCategories) {
   return false;
 }
 
-/** ancestries-core (DEC-R10-06 item 4; r18-N2a): Ratfolk (Magus) + Fleshwarp (Finn). */
-function isAncestriesCoreDoc(doc) {
-  return doc.type === "ancestry" && (doc.name === "Ratfolk" || doc.name === "Fleshwarp");
+/**
+ * Título de `system.publication.title` que identifica o livro Pathfinder
+ * Player Core (issue #1). Confirmado nos dados transformados: os outros
+ * livros de personagem (Player Core 2, Lost Omens Ancestry Guide, Guns &
+ * Gears, ...) preenchem esse campo com o próprio título deles, então a
+ * igualdade estrita já separa "Player Core" do resto sem precisar de lista
+ * de nomes — e todo doc com esse título mede `publication.license === "ORC"`,
+ * então a curadoria por título também respeita a política de licença do
+ * projeto (ver TEXT_ATTRIBUTION acima).
+ */
+const PLAYER_CORE_PUBLICATION_TITLE = "Pathfinder Player Core";
+
+/** True when a Fusion doc's `system.publication.title` is the Player Core book. */
+function isPlayerCoreDoc(doc) {
+  return doc.system?.publication?.title === PLAYER_CORE_PUBLICATION_TITLE;
 }
 
 /**
- * heritages-core (DEC-R10-06 item 4; r18-N2a): the 7 Ratfolk heritages
- * (identified by `system.ancestry.slug === 'ratfolk'` — the real vendor
- * linkage field; heritage names alone don't carry a "ratfolk" trait) PLUS the
- * Sylph versatile heritage (Finn). Versatile heritages carry NO ancestry
- * linkage (`system.ancestry === null`) and are keyed by the ancestry-agnostic
- * trait matching their own name, so they're selected here by explicit name.
+ * ancestries-core (issue #1; supersedes DEC-R10-06 item 4/r18-N2a): the 8
+ * Player Core ancestries (Anão/Dwarf, Elfo/Elf, Gnomo/Gnome, Goblin, Halfling,
+ * Humano/Human, Leshy, Orc — measured in `out/ancestries/transformed.json` by
+ * `isPlayerCoreDoc`) UNION Ratfolk + Fleshwarp, curated before this issue
+ * (R10-B/r18-N2a) for the Magus and Finn characters and kept for backward
+ * compatibility — removing them would break the RATFOLK fixture in
+ * packages/client's classBuildHarness.ts and the Adopted-Ancestry routing
+ * test in planVM.test.ts (both reference these two docs by name).
+ */
+const LEGACY_CURATED_ANCESTRY_NAMES = ["Ratfolk", "Fleshwarp"];
+
+function isAncestriesCoreDoc(doc) {
+  if (doc.type !== "ancestry") return false;
+  if (isPlayerCoreDoc(doc)) return true;
+  return LEGACY_CURATED_ANCESTRY_NAMES.includes(doc.name);
+}
+
+/**
+ * Ancestry slugs of the 8 Player Core ancestries curated above — used to pull
+ * in their corresponding heritages (issue #1).
+ */
+const CORE_ANCESTRY_SLUGS = [
+  "dwarf",
+  "elf",
+  "gnome",
+  "goblin",
+  "halfling",
+  "human",
+  "leshy",
+  "orc",
+];
+
+/**
+ * heritages-core (issue #1; supersedes DEC-R10-06 item 4/r18-N2a): every
+ * Player Core heritage (`isPlayerCoreDoc`) linked to one of the 8 core
+ * ancestries above via `system.ancestry.slug` (the real vendor linkage field;
+ * heritage names alone don't carry an ancestry trait) UNION the 7 Ratfolk
+ * heritages + the Sylph versatile heritage, curated before this issue
+ * (R10-B/r18-N2a) for Magus/Finn and kept for backward compatibility (same
+ * fixtures as LEGACY_CURATED_ANCESTRY_NAMES above). Versatile heritages carry
+ * NO ancestry linkage (`system.ancestry === null`), so Sylph stays selected
+ * by explicit name.
  */
 function isHeritagesCoreDoc(doc) {
   if (doc.type !== "heritage") return false;
+  if (isPlayerCoreDoc(doc) && CORE_ANCESTRY_SLUGS.includes(doc.system?.ancestry?.slug)) {
+    return true;
+  }
   if (doc.system?.ancestry?.slug === "ratfolk") return true;
   if (doc.name === "Sylph") return true;
   return false;
 }
 
-/** backgrounds-core (DEC-R10-06 item 4; r18-N2a): Fireworks Performer (Magus) + Aeronaut (Finn). */
+/**
+ * backgrounds-core (issue #1; supersedes DEC-R10-06 item 4/r18-N2a): the 40
+ * Player Core backgrounds (`isPlayerCoreDoc`) UNION Fireworks Performer +
+ * Aeronaut, curated before this issue (R10-B/r18-N2a) for Magus/Finn and kept
+ * for backward compatibility (Aeronaut also gets a curated free-feat grant
+ * injected further down — see AERONAUT_CURATED_ITEMS).
+ */
+const LEGACY_CURATED_BACKGROUND_NAMES = ["Fireworks Performer", "Aeronaut"];
+
 function isBackgroundsCoreDoc(doc) {
-  return (
-    doc.type === "background" && (doc.name === "Fireworks Performer" || doc.name === "Aeronaut")
-  );
+  if (doc.type !== "background") return false;
+  if (isPlayerCoreDoc(doc)) return true;
+  return LEGACY_CURATED_BACKGROUND_NAMES.includes(doc.name);
 }
 
 /** classes-core (DEC-R10-06 item 1; r18-N2a): Magus (r10-B) + Kineticist (Finn). */
