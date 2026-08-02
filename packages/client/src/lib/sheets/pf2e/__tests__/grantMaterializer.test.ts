@@ -913,9 +913,10 @@ describe("grant failure reporting", () => {
     };
   }
 
-  function collectingCtx(
-    byPack: Record<string, Record<string, unknown>[]> = {},
-  ): { mctx: MaterializeContext; failures: GrantFailure[] } {
+  function collectingCtx(byPack: Record<string, Record<string, unknown>[]> = {}): {
+    mctx: MaterializeContext;
+    failures: GrantFailure[];
+  } {
     const failures: GrantFailure[] = [];
     const base = ctxFor(byPack);
     return { mctx: { ...base, onGrantFailure: (f) => failures.push(f) }, failures };

@@ -89,8 +89,19 @@ describe("DEC-MCL-02 — the split rides on the existing open `choices` type", (
         variantRules: { classLevels: true },
         choices: [
           ...fighter3Wizard2,
-          { level: 2, slot: "classFeat-2", type: "classFeat", ref: "Compendium.feats.sudden-charge" },
-          { level: 1, slot: "skillTraining-1a", type: "skillTraining", skill: "acrobatics", rank: 1 },
+          {
+            level: 2,
+            slot: "classFeat-2",
+            type: "classFeat",
+            ref: "Compendium.feats.sudden-charge",
+          },
+          {
+            level: 1,
+            slot: "skillTraining-1a",
+            type: "skillTraining",
+            skill: "acrobatics",
+            rank: 1,
+          },
         ],
       }),
     );
