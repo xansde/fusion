@@ -13,6 +13,15 @@
       "choose": 1,
       "optionCount": 7,
       "slotType": "cause"
+    },
+    {
+      "otherTag": "blessing-of-the-devoted",
+      "featureNameInItemsMap": "Blessing of the Devoted",
+      "level": 3,
+      "choose": 1,
+      "optionCount": 3,
+      "slotType": "blessing",
+      "notes": "issue #25: unlike champion-cause, the vendor's otherTag here has NO 'champion-' prefix (confirmed against vendor/pf2e/packs/pf2e/class-features/blessed-{armament,shield,swiftness}.json — otherTags is literally ['blessing-of-the-devoted']), so the 3 real option docs (Blessed Armament/Shield/Swiftness) were never pulled into class-features-core even though they exist in the vendor exactly like the 7 Cause options do. planVM.ts's CLASS_CHOICE_SLOT_OPTIONS.blessing declares an explicit requiredClass: 'champion' override for the same reason (the category string alone doesn't encode the owning class)."
     }
   ],
   "classFeats": {

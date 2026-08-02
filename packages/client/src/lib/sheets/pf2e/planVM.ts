@@ -425,6 +425,7 @@ export type PlanSlotType =
   | "muse"
   | "cause"
   | "doctrine"
+  | "blessing"
   | "skillTraining"
   | "skillIncrease"
   | "grantedFeat"
@@ -562,6 +563,7 @@ const SLOT_TYPE_LABELS: Record<PlanSlotType, string> = {
   muse: "Muse",
   cause: "Cause",
   doctrine: "Doctrine",
+  blessing: "Blessing of the Devoted",
   skillTraining: "Skill Training",
   skillIncrease: "Skill Increase",
   grantedFeat: "Granted Feat",
@@ -804,6 +806,7 @@ export const CLASS_CHOICE_SLOTS: Record<string, PlanSlotType> = {
   Muses: "muse",
   Cause: "cause",
   Doctrine: "doctrine",
+  "Blessing of the Devoted": "blessing",
 };
 
 /**
@@ -1988,9 +1991,18 @@ const KNOWN_CLASS_TRAITS = new Set([
  * data). `kineticGate` is deliberately ABSENT: its "options" aren't a tagged
  * doc list but a single element/damage-type dialog (chooseKineticGate) — see
  * the Kinetic Gate section below.
+ *
+ * `requiredClass` (issue #25): every entry's `category` follows the
+ * `<classSlug>-...` convention CHOICE_SLOT_REQUIRED_CLASS derives from below
+ * — EXCEPT "blessing", whose vendor otherTags value is the bare
+ * "blessing-of-the-devoted" (no "champion-" prefix; confirmed against
+ * vendor/pf2e/packs/pf2e/class-features/blessed-{armament,shield,swiftness}
+ * .json, unlike every other axis's otherTag). Declaring it explicitly here
+ * keeps the derivation below correct without special-casing "blessing" in
+ * the derivation itself.
  */
 export const CLASS_CHOICE_SLOT_OPTIONS: Partial<
-  Record<PlanSlotType, { packSlug: string; category: string }>
+  Record<PlanSlotType, { packSlug: string; category: string; requiredClass?: string }>
 > = {
   hybridStudy: { packSlug: "class-features-core", category: "magus-hybrid-study" },
   instinct: { packSlug: "class-features-core", category: "barbarian-instinct" },
@@ -2002,6 +2014,11 @@ export const CLASS_CHOICE_SLOT_OPTIONS: Partial<
   muse: { packSlug: "class-features-core", category: "bard-muse" },
   cause: { packSlug: "class-features-core", category: "champion-cause" },
   doctrine: { packSlug: "class-features-core", category: "cleric-doctrine" },
+  blessing: {
+    packSlug: "class-features-core",
+    category: "blessing-of-the-devoted",
+    requiredClass: "champion",
+  },
 };
 
 /**
@@ -2041,15 +2058,17 @@ function capitalizeSlug(slug: string): string {
 }
 
 /**
- * The class a CLASS_CHOICE_SLOT_OPTIONS slot type requires, derived from its
- * category tag's `<classSlug>-...` prefix (e.g. "magus-hybrid-study" →
- * "magus") — every current entry follows this convention (see
+ * The class a CLASS_CHOICE_SLOT_OPTIONS slot type requires, taken from its
+ * OWN explicit `requiredClass` when declared (issue #25 — "blessing"'s
+ * category doesn't carry a class-slug prefix to derive from), else derived
+ * from its category tag's `<classSlug>-...` prefix (e.g. "magus-hybrid-study"
+ * → "magus") — every other entry follows this convention (see
  * CLASS_CHOICE_SLOT_OPTIONS's own doc comment for the full list). Computed
  * once at module load, not per-call.
  */
 const CHOICE_SLOT_REQUIRED_CLASS: Partial<Record<PlanSlotType, string>> = Object.fromEntries(
   Object.entries(CLASS_CHOICE_SLOT_OPTIONS).map(([slotType, opt]) => {
-    const requiredClass = opt.category.split("-")[0] ?? opt.category;
+    const requiredClass = opt.requiredClass ?? opt.category.split("-")[0] ?? opt.category;
     return [slotType, requiredClass];
   }),
 );

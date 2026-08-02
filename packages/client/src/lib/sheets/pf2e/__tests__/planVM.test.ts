@@ -65,6 +65,8 @@ import {
   detailsRequestForAbcChip,
   checkFeatPrerequisites,
   _knownPossessedNamesForTests,
+  CLASS_CHOICE_SLOTS,
+  CLASS_CHOICE_SLOT_OPTIONS,
   type PlanOpBuilderContext,
   type AbcChip,
   type PlanSlotModel,
@@ -1164,6 +1166,95 @@ describe("derivePlan — system.prerequisites marking (A1)", () => {
 
   it("checkFeatPrerequisites: no system.prerequisites → undefined (no issue)", () => {
     expect(checkFeatPrerequisites(arcaneFistsFeatDoc(), [], undefined, 5)).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// derivePlan — Champion "Blessing of the Devoted" choice axis (issue #25)
+//
+// The vendor's Blessing of the Devoted (level 3 class-feature placeholder)
+// carries an unconverted ChoiceSet whose 3 real options (Blessed Armament/
+// Shield/Swiftness) were never imported — same omission pattern the "Cause"
+// axis already had a fix for. 6 higher-level feats (Radiant Armament, Shield
+// of Reckoning, Spectral Advance, Armament Paragon, Shield Paragon, Swift
+// Paragon) cite the chosen blessing by name and could never resolve.
+// ---------------------------------------------------------------------------
+
+describe("derivePlan — Champion 'Blessing of the Devoted' choice axis (issue #25)", () => {
+  function championBlessingClassDoc(): Record<string, unknown> {
+    return {
+      _id: "class-champion-blessing",
+      name: "Champion",
+      type: "class",
+      system: {
+        keyAbility: ["str", "dex"],
+        featuresByLevel: [
+          { level: 1, uuid: "uuid-cause", name: "Cause" },
+          { level: 3, uuid: "uuid-blessing", name: "Blessing of the Devoted" },
+        ],
+        featLevels: { ancestry: [], class: [2, 4, 10], general: [], skill: [] },
+      },
+    };
+  }
+
+  it("CLASS_CHOICE_SLOTS maps 'Blessing of the Devoted' to slot type 'blessing'", () => {
+    expect(CLASS_CHOICE_SLOTS["Blessing of the Devoted"]).toBe("blessing");
+  });
+
+  it("CLASS_CHOICE_SLOT_OPTIONS declares blessing's pack + otherTags category + required class", () => {
+    expect(CLASS_CHOICE_SLOT_OPTIONS.blessing).toEqual({
+      packSlug: "class-features-core",
+      category: "blessing-of-the-devoted",
+      requiredClass: "champion",
+    });
+  });
+
+  it("derivePlan emits an (unfilled) 'blessing' slot at level 3 for a Champion", () => {
+    const doc = baseCharacterDoc({
+      items: [{ ...championBlessingClassDoc(), _id: "item-class" }],
+      system: { level: { value: 3 }, details: {} },
+    });
+    const plan = derivePlan(doc);
+    const l3 = plan.levels.find((l) => l.level === 3)!;
+    const slot = l3.slots.find((s) => s.slotId === "blessing-3");
+    expect(slot).toBeDefined();
+    expect(slot!.type).toBe("blessing");
+    expect(slot!.filled).toBe(false);
+  });
+
+  it("once 'Blessed Armament' is picked, Radiant Armament's prerequisite ('blessed armament') resolves as MET — no false block on the OTHER 5 feats' exact pattern", () => {
+    const blessedArmamentItem: Record<string, unknown> = {
+      _id: "item-blessed-armament",
+      name: "Blessed Armament",
+      type: "classFeature",
+      system: { traits: { otherTags: ["blessing-of-the-devoted"], value: ["champion"] } },
+      flags: { fusion: { build: { level: 3, slot: "blessing-3" } } },
+    };
+    const radiantArmamentFeat: Record<string, unknown> = {
+      _id: "item-radiant-armament",
+      name: "Radiant Armament",
+      type: "feat",
+      system: {
+        category: "class",
+        level: 10,
+        traits: { rarity: "common", value: ["champion"] },
+        prerequisites: [{ value: "blessed armament" }],
+      },
+      flags: { fusion: { build: { level: 10, slot: "classFeat-10" } } },
+    };
+    const doc = baseCharacterDoc({
+      items: [
+        { ...championBlessingClassDoc(), _id: "item-class" },
+        blessedArmamentItem,
+        radiantArmamentFeat,
+      ],
+      system: { level: { value: 10 }, details: {} },
+    });
+    const plan = derivePlan(doc);
+    const l10 = plan.levels.find((l) => l.level === 10)!;
+    const slot = l10.slots.find((s) => s.slotId === "classFeat-10")!;
+    expect(slot.filled).toBe(true);
+    expect(slot.requirementIssue).toBeUndefined();
   });
 });
 

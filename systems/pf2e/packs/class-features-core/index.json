@@ -308,6 +308,63 @@
     }
   },
   {
+    "_id": "IDQ2uKdJvhXxK0zv",
+    "uuid": "Compendium.pf2e.class-features-core.Item.IDQ2uKdJvhXxK0zv",
+    "name": "Blessed Armament",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Blessed Armament",
+      "system.level": 0,
+      "system.category": "blessingOfTheDevoted",
+      "system.traits.value": [
+        "champion"
+      ],
+      "system.traits.otherTags": [
+        "blessing-of-the-devoted"
+      ],
+      "flags.fusion.sourceId": "EtltLdiy9kNfHU0c"
+    }
+  },
+  {
+    "_id": "w1bsPZkn0DgZIxop",
+    "uuid": "Compendium.pf2e.class-features-core.Item.w1bsPZkn0DgZIxop",
+    "name": "Blessed Shield",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Blessed Shield",
+      "system.level": 0,
+      "system.category": "blessingOfTheDevoted",
+      "system.traits.value": [
+        "champion"
+      ],
+      "system.traits.otherTags": [
+        "blessing-of-the-devoted"
+      ],
+      "flags.fusion.sourceId": "QQP0mu0cyWIwNUh9"
+    }
+  },
+  {
+    "_id": "8HggHhZ2vtCqxCQ3",
+    "uuid": "Compendium.pf2e.class-features-core.Item.8HggHhZ2vtCqxCQ3",
+    "name": "Blessed Swiftness",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Blessed Swiftness",
+      "system.level": 3,
+      "system.category": "blessingOfTheDevoted",
+      "system.traits.value": [
+        "champion"
+      ],
+      "system.traits.otherTags": [
+        "blessing-of-the-devoted"
+      ],
+      "flags.fusion.sourceId": "Z6E1O8X7CFcyczB1"
+    }
+  },
+  {
     "_id": "rkX4fo0J36e2qAbG",
     "uuid": "Compendium.pf2e.class-features-core.Item.rkX4fo0J36e2qAbG",
     "name": "Blessing of the Devoted",

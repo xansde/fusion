@@ -3463,6 +3463,195 @@
     }
   },
   {
+    "_id": "IDQ2uKdJvhXxK0zv",
+    "name": "Blessed Armament",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "blessingOfTheDevoted",
+      "description": "<p>Select one weapon or handwraps of mighty blows. You gain that armament's critical specialization effect, and you grant the armament a property rune of your choice from the following list: @UUID[Compendium.pf2e.equipment-srd.Item.Fearsome], @UUID[Compendium.pf2e.equipment-srd.Item.Ghost Touch], @UUID[Compendium.pf2e.equipment-srd.Item.Returning], @UUID[Compendium.pf2e.equipment-srd.Item.Shifting], or @UUID[Compendium.pf2e.equipment-srd.Item.Vitalizing]. During your daily preparations, you can change the spirit to inhabit a different armament, grant a different rune, or both.</p>\n<p>This rune doesn't count toward the weapon's number of property runes. It can be used even if the weapon already has its maximum number of property runes.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Blessed Armament]</p>",
+      "level": 0,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "traits": {
+        "otherTags": [
+          "blessing-of-the-devoted"
+        ],
+        "rarity": "common",
+        "value": [
+          "champion"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "EtltLdiy9kNfHU0c",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "blade-ally.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "w1bsPZkn0DgZIxop",
+    "name": "Blessed Shield",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "blessingOfTheDevoted",
+      "description": "<p>In your hands, a shield gains the minor @UUID[Compendium.pf2e.equipment-srd.Item.Reinforcing Rune (Minor)]{Reinforcing} rune. As you go up in level, the shield gains the reinforcing rune of your level (lesser at 7th level, moderate at 10th level, greater at 13th level, major at 16th level, and supreme at 19th level). If your shield already has the appropriate reinforcing rune for your level, or if it's a @UUID[Compendium.pf2e.equipment-srd.Item.Sturdy Shield (Minor)]{Sturdy Shield} of the same level as the appropriate reinforcing rune, the shield's Hardness instead increases by 1.</p>",
+      "level": 0,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "traits": {
+        "otherTags": [
+          "blessing-of-the-devoted"
+        ],
+        "rarity": "common",
+        "value": [
+          "champion"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "QQP0mu0cyWIwNUh9",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "shield-ally.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "8HggHhZ2vtCqxCQ3",
+    "name": "Blessed Swiftness",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "blessingOfTheDevoted",
+      "description": "<p>You gain a +5-foot status bonus to Speed. If you're mounted, your mount gains the bonus instead. In addition, when the movement of one of your allies triggers an enemy's reaction while the ally is in your champion's aura, the ally gains a +2 status bonus to all defenses against that reaction.</p>",
+      "level": 3,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": "blessed-swiftness",
+          "label": null,
+          "selector": "land-speed",
+          "value": 5,
+          "mode": "add",
+          "type": "status",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "selector": "land-speed",
+            "slug": "blessed-swiftness",
+            "type": "status",
+            "value": 5
+          }
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "blessing-of-the-devoted"
+        ],
+        "rarity": "common",
+        "value": [
+          "champion"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Z6E1O8X7CFcyczB1",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "effects": [
+              {
+                "affects": "allies",
+                "includesSelf": false,
+                "uuid": "Compendium.pf2e.feat-effects.Item.Effect: Blessed Swiftness"
+              }
+            ],
+            "key": "Aura",
+            "predicate": [
+              "champions-aura",
+              {
+                "not": "self:condition:unconscious"
+              }
+            ],
+            "radius": "@actor.flags.system.champion.aura",
+            "slug": "champions-aura",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "trail-streak-zigzag-teal.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "rkX4fo0J36e2qAbG",
     "name": "Blessing of the Devoted",
     "type": "classFeature",
