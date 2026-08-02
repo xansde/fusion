@@ -224,6 +224,127 @@ function fighterClassDoc(): Record<string, unknown> {
   };
 }
 
+/**
+ * Real Bard class doc (systems/pf2e/packs/classes-core/documents.json,
+ * verbatim level-1 featuresByLevel + spellcasting table) — used to cover
+ * defect 1 (Bard's "Composition Spells" level-1 feature must grant a focus
+ * pool, occult tradition/cha ability, same as its own `spellcasting` block).
+ */
+function bardClassDoc(): Record<string, unknown> {
+  return {
+    _id: "RtdtWLmWtoAnurXp",
+    name: "Bard",
+    type: "class",
+    system: {
+      keyAbility: ["cha"],
+      spellcasting: {
+        tradition: "occult",
+        type: "spontaneous",
+        ability: "cha",
+        cantripsKnown: [{ level: 1, count: 5 }],
+        slots: [{ level: 1, slots: { "1": 2 } }],
+      },
+      featuresByLevel: [
+        { level: 1, uuid: "IPkRrReHUSAhWrb3", name: "Spell Repertoire" },
+        { level: 1, uuid: "Kj1d35aAxgbTMvMH", name: "Composition Spells" },
+        { level: 1, uuid: "7eBIHN2oYLJ81B4I", name: "Muses" },
+        { level: 1, uuid: "PXvWhbENzMQMijDB", name: "Occult Spellcasting" },
+      ],
+    },
+  };
+}
+
+/**
+ * Real Champion class doc — has NO `spellcasting` block at all (verified
+ * against the vendor pack + curation/classes/champion.json's deliberate
+ * `"spellcasting": null`), yet grants a focus pool via the level-1
+ * "Devotion Spells" feature (divine tradition, Charisma ability — core
+ * rules text). Covers defect 1's second, harder half: `hasFocusFeature`
+ * finding the feature is not enough on its own when there's no
+ * `spellcasting.tradition` to gate on.
+ */
+function championClassDoc(): Record<string, unknown> {
+  return {
+    _id: "YPn8O9OwbqDx8bRa",
+    name: "Champion",
+    type: "class",
+    system: {
+      keyAbility: ["dex", "str"],
+      featuresByLevel: [
+        { level: 1, uuid: "2zmRjnSK4X2ScHWJ", name: "Deity (Champion)" },
+        { level: 1, uuid: "G95Xci9mfJ6PTALk", name: "Cause" },
+        { level: 1, uuid: "wBba2TDXECeWhXXn", name: "Devotion Spells" },
+        { level: 1, uuid: "MbMJIRm8Ecdwk7pi", name: "Shield Block" },
+      ],
+    },
+  };
+}
+
+/**
+ * Real Sorcerer class doc — `spellcasting.tradition` is `null` (bloodline-
+ * deferred, r22) and `traditionByBloodline` carries all 18 real lineages
+ * verbatim from the vendor pack, `draconic: null` included (the one lineage
+ * with no resolved tradition in the data — falls back to "arcane", see
+ * `resolveBloodlineTradition`).
+ */
+function sorcererClassDoc(): Record<string, unknown> {
+  return {
+    _id: "Gj4x9YABawAwNRrp",
+    name: "Sorcerer",
+    type: "class",
+    system: {
+      keyAbility: ["cha"],
+      spellcasting: {
+        tradition: null,
+        type: "spontaneous",
+        ability: "cha",
+        cantripsKnown: [{ level: 1, count: 5 }],
+        slots: [{ level: 1, slots: { "1": 2 } }],
+        traditionByBloodline: {
+          aberrant: "occult",
+          aesir: "divine",
+          angelic: "divine",
+          demonic: "divine",
+          diabolic: "divine",
+          draconic: null,
+          elemental: "primal",
+          fey: "primal",
+          genie: "arcane",
+          hag: "occult",
+          harrow: "occult",
+          imperial: "arcane",
+          nymph: "primal",
+          phoenix: "primal",
+          psychopomp: "divine",
+          shadow: "occult",
+          undead: "divine",
+          wyrmblessed: "divine",
+        },
+      },
+      featuresByLevel: [
+        { level: 1, uuid: "IPkRrReHUSAhWrb3", name: "Spell Repertoire" },
+        { level: 1, uuid: "jAAzTvbs12s8pHtT", name: "Sorcerous Potency" },
+        { level: 1, uuid: "FMCbwY7W87AHaS48", name: "Sorcerer Spellcasting" },
+        { level: 1, uuid: "LsAiWeNtI6QMpBqZ", name: "Bloodline" },
+        { level: 1, uuid: "J6Cm1EsbCKXRHMW2", name: "Bloodline Spells" },
+      ],
+    },
+  };
+}
+
+/** A "Bloodline: <Name>" classFeature doc (class-features-core shape) for `chooseClassChoice(ctx, "bloodline", 1, doc)`. */
+function bloodlineFeatureDoc(name: string): Record<string, unknown> {
+  return {
+    _id: `bloodline-${name.toLowerCase()}`,
+    name: `Bloodline: ${name}`,
+    type: "classFeature",
+    system: {
+      category: "classfeature",
+      traits: { rarity: "common", value: ["sorcerer"] },
+    },
+  };
+}
+
 function ratfolkAncestryDoc(): Record<string, unknown> {
   return {
     _id: "3FBntMsNiVE09eEx",
@@ -1351,6 +1472,223 @@ describe("applyClass", () => {
         new Set(["item-class", "item-arcane-spells", "item-focus-spells"]),
       );
       expect(deletedIds.has("item-unrelated-spells")).toBe(false);
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Focus pools for classes previously missed by hasFocusFeature's narrow name
+// match (defect 1 — Bard's "Composition Spells" and Champion's "Devotion
+// Spells" never matched "Conflux"/"focus"/"Bloodline Spells", and the r22
+// guard additionally required `spellcasting?.tradition`, which Champion
+// (no `spellcasting` block at all) can never satisfy).
+// ---------------------------------------------------------------------------
+
+describe("applyClass — focus pools beyond Magus/Sorcerer (defect 1)", () => {
+  it("Bard's Composition Spells (level 1) grants an occult/cha focus pool", () => {
+    const ops = applyClass(ctx(baseCharacterDoc()), bardClassDoc());
+    const focusOp = ops.find(
+      (o) => o.type === "doc:create" && (o.data["name"] as string) === "Focus Spells",
+    );
+    expect(focusOp, "Bard must get a Focus Spells entry (Composition Spells)").toBeDefined();
+    if (!focusOp || focusOp.type !== "doc:create") throw new Error("expected doc:create");
+    const sys = focusOp.data["system"] as Record<string, unknown>;
+    expect(sys["isFocusPool"]).toBe(true);
+    expect((sys["tradition"] as Record<string, unknown>)["value"]).toBe("occult");
+    expect((sys["ability"] as Record<string, unknown>)["value"]).toBe("cha");
+
+    const wire = {
+      documentType: focusOp.documentType,
+      data: [focusOp.data],
+      parent: focusOp.parent,
+    };
+    expect(DocCreatePayloadSchema.safeParse(wire).success).toBe(true);
+  });
+
+  it("Champion's Devotion Spells (level 1, class has NO spellcasting block) still grants a divine/cha focus pool", () => {
+    const classDoc = championClassDoc();
+    expect(
+      (classDoc["system"] as Record<string, unknown>)["spellcasting"],
+      "fixture must faithfully have no spellcasting block, like the real pack doc",
+    ).toBeUndefined();
+
+    const ops = applyClass(ctx(baseCharacterDoc()), classDoc);
+    // No non-focus spellcasting entry — Champion isn't a spellcaster.
+    const spellEntryOp = ops.find(
+      (o) =>
+        o.type === "doc:create" &&
+        (o.data["type"] as string) === "spellcastingEntry" &&
+        ((o.data["system"] as Record<string, unknown>)["isFocusPool"] as boolean) === false,
+    );
+    expect(spellEntryOp).toBeUndefined();
+
+    const focusOp = ops.find(
+      (o) => o.type === "doc:create" && (o.data["name"] as string) === "Focus Spells",
+    );
+    expect(focusOp, "Champion must get a Focus Spells entry (Devotion Spells)").toBeDefined();
+    if (!focusOp || focusOp.type !== "doc:create") throw new Error("expected doc:create");
+    const sys = focusOp.data["system"] as Record<string, unknown>;
+    expect(sys["isFocusPool"]).toBe(true);
+    expect((sys["tradition"] as Record<string, unknown>)["value"]).toBe("divine");
+    expect((sys["ability"] as Record<string, unknown>)["value"]).toBe("cha");
+
+    const wire = {
+      documentType: focusOp.documentType,
+      data: [focusOp.data],
+      parent: focusOp.parent,
+    };
+    expect(DocCreatePayloadSchema.safeParse(wire).success).toBe(true);
+  });
+
+  it("Sorcerer (tradition deferred to bloodline) does NOT get a focus entry from applyClass alone", () => {
+    const ops = applyClass(ctx(baseCharacterDoc()), sorcererClassDoc());
+    const focusOp = ops.find(
+      (o) => o.type === "doc:create" && (o.data["name"] as string) === "Focus Spells",
+    );
+    expect(focusOp).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Sorcerer bloodline → tradition resolution (defect 3 — zero prior coverage).
+// Every lineage in the real `traditionByBloodline` table, `draconic`'s
+// documented null-falls-back-to-arcane case included.
+// ---------------------------------------------------------------------------
+
+describe("chooseClassChoice(bloodline) — tradition resolution per lineage", () => {
+  const EXPECTED_TRADITION: Record<string, string> = {
+    Aberrant: "occult",
+    Aesir: "divine",
+    Angelic: "divine",
+    Demonic: "divine",
+    Diabolic: "divine",
+    Draconic: "arcane", // null in the data — falls back to arcane (r22 documented default)
+    Elemental: "primal",
+    Fey: "primal",
+    Genie: "arcane",
+    Hag: "occult",
+    Harrow: "occult",
+    Imperial: "arcane",
+    Nymph: "primal",
+    Phoenix: "primal",
+    Psychopomp: "divine",
+    Shadow: "occult",
+    Undead: "divine",
+    Wyrmblessed: "divine",
+  };
+
+  function sorcererDocWithClassApplied(): Record<string, unknown> {
+    const doc = baseCharacterDoc();
+    return {
+      ...doc,
+      items: [
+        {
+          ...sorcererClassDoc(),
+          _id: "item-class",
+          flags: { fusion: { build: { level: 1, slot: "class" } } },
+        },
+      ],
+    };
+  }
+
+  it.each(Object.entries(EXPECTED_TRADITION))(
+    "Bloodline: %s resolves to tradition %s (first pick, builds both entries)",
+    (bloodlineName, expectedTradition) => {
+      const doc = sorcererDocWithClassApplied();
+      const ops = chooseClassChoice(ctx(doc), "bloodline", 1, bloodlineFeatureDoc(bloodlineName));
+
+      const spellOp = ops.find(
+        (o) => o.type === "doc:create" && (o.data["name"] as string) === `${expectedTradition} Spells`,
+      );
+      expect(
+        spellOp,
+        `Bloodline ${bloodlineName}: expected a "${expectedTradition} Spells" entry, ops: ${JSON.stringify(ops)}`,
+      ).toBeDefined();
+      if (!spellOp || spellOp.type !== "doc:create") throw new Error("expected doc:create");
+      const sys = spellOp.data["system"] as Record<string, unknown>;
+      expect((sys["tradition"] as Record<string, unknown>)["value"]).toBe(expectedTradition);
+      expect(sys["isFocusPool"]).toBe(false);
+
+      const focusOp = ops.find(
+        (o) => o.type === "doc:create" && (o.data["name"] as string) === "Focus Spells",
+      );
+      expect(focusOp, `Bloodline ${bloodlineName}: expected a Focus Spells entry`).toBeDefined();
+      if (!focusOp || focusOp.type !== "doc:create") throw new Error("expected doc:create");
+      const focusSys = focusOp.data["system"] as Record<string, unknown>;
+      expect((focusSys["tradition"] as Record<string, unknown>)["value"]).toBe(expectedTradition);
+      expect(focusSys["isFocusPool"]).toBe(true);
+
+      const wire = {
+        documentType: spellOp.documentType,
+        data: [spellOp.data],
+        parent: spellOp.parent,
+      };
+      expect(DocCreatePayloadSchema.safeParse(wire).success).toBe(true);
+    },
+  );
+
+  // Defect 2: swapping bloodlines must re-stamp BOTH the tradition value AND
+  // the "class:spellcasting" entry's NAME (created as `${tradition} Spells`)
+  // — restamping only `system.tradition.value` left a stale "occult Spells"
+  // name on a divine bloodline's sheet.
+  describe("swapping bloodlines (defect 2 — stale entry name)", () => {
+    function sorcererDocWithBloodline(tradition: string): Record<string, unknown> {
+      const doc = sorcererDocWithClassApplied();
+      return {
+        ...doc,
+        items: [
+          ...(doc["items"] as Array<Record<string, unknown>>),
+          {
+            name: `${tradition} Spells`,
+            type: "spellcastingEntry",
+            _id: "item-sorc-spells",
+            system: { isFocusPool: false, tradition: { value: tradition } },
+            flags: { fusion: { build: { level: 1, slot: "class:spellcasting" } } },
+          },
+          {
+            name: "Focus Spells",
+            type: "spellcastingEntry",
+            _id: "item-sorc-focus",
+            system: { isFocusPool: true, tradition: { value: tradition } },
+            flags: { fusion: { build: { level: 1, slot: "class:focus" } } },
+          },
+        ],
+      };
+    }
+
+    it('re-stamps BOTH system.tradition.value AND name ("occult Spells" -> "divine Spells") when Aberrant is swapped for Angelic', () => {
+      const doc = sorcererDocWithBloodline("occult"); // Aberrant
+      const ops = chooseClassChoice(ctx(doc), "bloodline", 1, bloodlineFeatureDoc("Angelic"));
+
+      const spellUpdateOp = ops.find(
+        (o) => o.type === "doc:update" && o.id === "item-sorc-spells",
+      ) as DocUpdatePayload | undefined;
+      expect(spellUpdateOp, `expected a doc:update on item-sorc-spells, ops: ${JSON.stringify(ops)}`).toBeDefined();
+      expect(spellUpdateOp!.diff["system.tradition.value"]).toBe("divine");
+      expect(spellUpdateOp!.diff["name"]).toBe("divine Spells");
+
+      const wireUpdate = {
+        documentType: spellUpdateOp!.documentType,
+        updates: [
+          { _id: spellUpdateOp!.id, diff: spellUpdateOp!.diff, embedded: spellUpdateOp!.embedded },
+        ],
+      };
+      expect(DocUpdatePayloadSchema.safeParse(wireUpdate).success).toBe(true);
+
+      // The focus entry is re-stamped too (tradition only — its name is
+      // always the fixed "Focus Spells", never tradition-suffixed).
+      const focusUpdateOp = ops.find(
+        (o) => o.type === "doc:update" && o.id === "item-sorc-focus",
+      ) as DocUpdatePayload | undefined;
+      expect(focusUpdateOp).toBeDefined();
+      expect(focusUpdateOp!.diff["system.tradition.value"]).toBe("divine");
+      expect(focusUpdateOp!.diff["name"]).toBeUndefined();
+
+      // No accidental doc:create — this is a RESTAMP of the existing items,
+      // not a fresh pair of entries.
+      const createOps = ops.filter((o) => o.type === "doc:create");
+      const entryCreates = createOps.filter((o) => (o.data["type"] as string) === "spellcastingEntry");
+      expect(entryCreates).toHaveLength(0);
     });
   });
 });

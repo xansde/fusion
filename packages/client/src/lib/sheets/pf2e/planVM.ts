@@ -2448,12 +2448,46 @@ export function applyClass(
     );
   }
 
-  if (classSystem.spellcasting?.tradition && hasFocusFeature(classSystem)) {
-    ops.push(buildFocusEntryOp(ctx, classSystem.spellcasting, classSystem.spellcasting.tradition));
+  // Focus pool: derived from `classSystem.spellcasting` (Bard/Magus — a
+  // spellcasting class whose focus feature shares the class's own
+  // tradition/ability) when present. Champion has NO `spellcasting` block at
+  // all (Devotion Spells are divine spells cast with Charisma, per fixed
+  // class rules text — not player-chosen data, so there's nothing in the
+  // pack to derive it from) — `NON_SPELLCASTER_FOCUS_TRADITION` covers that
+  // narrow case WITHOUT fabricating a fake `spellcasting` table on the class
+  // (see the doc comment there). Sorcerer (spellcasting present but
+  // `tradition: null`, bloodline-deferred) falls into neither branch here —
+  // `bloodlineSpellcastingOps` builds its focus entry once the bloodline
+  // choice resolves the tradition.
+  if (hasFocusFeature(classSystem)) {
+    if (classSystem.spellcasting?.tradition) {
+      ops.push(buildFocusEntryOp(ctx, classSystem.spellcasting.ability, classSystem.spellcasting.tradition));
+    } else if (!classSystem.spellcasting) {
+      const fallback = NON_SPELLCASTER_FOCUS_TRADITION[itemName(classDoc) ?? ""];
+      if (fallback) {
+        ops.push(buildFocusEntryOp(ctx, fallback.ability, fallback.tradition));
+      }
+    }
   }
 
   return ops;
 }
+
+/**
+ * Fixed tradition/ability for a class's focus pool when the class has NO
+ * `spellcasting` block at all — Champion's "Devotion Spells" classFeature
+ * (system/pf2e/packs/class-features-core, level 1) grants divine focus
+ * spells cast with Charisma; that's core rules text, not a build-time
+ * choice, and the compiled class doc carries no structured field for it
+ * (curation/classes/champion.json even stamps `"spellcasting": null`
+ * deliberately — verified against the pack). Keyed by the class item's
+ * display `name` (compiled docs carry no stable slug field). Every OTHER
+ * class with a level-1 focus feature (Bard, Magus, Sorcerer) HAS a
+ * `spellcasting` block and never consults this map.
+ */
+const NON_SPELLCASTER_FOCUS_TRADITION: Record<string, { tradition: string; ability: string }> = {
+  Champion: { tradition: "divine", ability: "cha" },
+};
 
 /** Builds the doc:create op for the class's non-focus ("class:spellcasting") entry — factored out so `chooseBloodline`-style deferred creation (r22) can build the identical shape once the tradition is resolved from a chosen axis option. */
 function buildSpellcastingEntryOp(
@@ -2483,10 +2517,16 @@ function buildSpellcastingEntryOp(
   } satisfies DocCreateEmbeddedPayload;
 }
 
-/** Builds the doc:create op for the class's focus ("class:focus") entry — see `buildSpellcastingEntryOp`. */
+/**
+ * Builds the doc:create op for the class's focus ("class:focus") entry —
+ * see `buildSpellcastingEntryOp`. Takes `ability`/`tradition` directly
+ * (rather than a `ClassSpellcastingTable`) so a class with no spellcasting
+ * table of its own (Champion) can still build its focus entry without a
+ * fabricated stand-in table — see `NON_SPELLCASTER_FOCUS_TRADITION`.
+ */
 function buildFocusEntryOp(
   ctx: PlanOpBuilderContext,
-  spellcasting: ClassSpellcastingTable,
+  ability: string,
   tradition: string,
 ): DocCreateEmbeddedPayload {
   return {
@@ -2502,7 +2542,7 @@ function buildFocusEntryOp(
         // Focus spells cast with the class's SPELLCASTING ability (Magus
         // conflux = INT), not the key ability (r11 fix — Pathbuilder's
         // focus block confirms int for Tobias).
-        ability: { value: spellcasting.ability ?? "int" },
+        ability: { value: ability ?? "int" },
         proficiency: { value: 1 },
         slots: {},
         isFocusPool: true,
@@ -2512,14 +2552,22 @@ function buildFocusEntryOp(
   } satisfies DocCreateEmbeddedPayload;
 }
 
-/** Does the class grant a focus pool at level 1 (e.g. Magus's Conflux Spells, Sorcerer's Bloodline Spells)? */
+/**
+ * Does the class grant a focus pool at level 1? PF2e's own naming
+ * convention names every level-1 focus-granting classFeature "<X> Spells"
+ * (Composition Spells [Bard], Devotion Spells [Champion], Conflux Spells
+ * [Magus], Bloodline Spells [Sorcerer]) — distinct from a class's MAIN
+ * spellcasting feature, always named "<X> Spellcasting" (e.g. "Occult
+ * Spellcasting", "Wizard Spellcasting"), so the suffix never collides.
+ * Verified against all 12 classes in classes-core (r22 audit): exactly
+ * these 4 level-1 features end in " Spells", and no non-focus level-1
+ * feature does. Preferred over a hardcoded per-class name list — a future
+ * class shipping a "<X> Spells" feature is picked up automatically, no
+ * planVM.ts change needed.
+ */
 function hasFocusFeature(classSystem: ClassSystemLike): boolean {
   return (classSystem.featuresByLevel ?? []).some(
-    (f) =>
-      f.level === 1 &&
-      (f.name.includes("Conflux") ||
-        f.name.toLowerCase().includes("focus") ||
-        f.name === "Bloodline Spells"),
+    (f) => f.level === 1 && f.name.endsWith(" Spells"),
   );
 }
 
@@ -3148,16 +3196,27 @@ function bloodlineSpellcastingOps(
   const items = getItems(ctx.doc);
   const ops: DocOpPayload[] = [];
 
+  // Defect fix: swapping bloodlines (e.g. Aberrant → Angelic) re-stamps
+  // `system.tradition.value`, but the "class:spellcasting" entry was CREATED
+  // with `name: \`${tradition} Spells\`` (buildSpellcastingEntryOp) — leaving
+  // the diff at just the tradition value left the entry's NAME stale ("occult
+  // Spells" surviving a switch to a divine bloodline). The focus entry's name
+  // is fixed ("Focus Spells", never tradition-suffixed — see
+  // buildFocusEntryOp), so only the spellcasting slot needs the rename.
   const restamp = (slot: "class:spellcasting" | "class:focus"): boolean => {
     const existing = items.find((it) => getItemBuildFlag(it)?.slot === slot);
     const id = existing?.["_id"];
     if (typeof id !== "string") return false;
+    const diff: Record<string, unknown> = { "system.tradition.value": tradition };
+    if (slot === "class:spellcasting") {
+      diff["name"] = `${tradition} Spells`;
+    }
     ops.push({
       type: "doc:update",
       documentType: "Item",
       id,
       embedded: { type: "Item", id: ctx.actorId },
-      diff: { "system.tradition.value": tradition },
+      diff,
     } satisfies DocUpdatePayload);
     return true;
   };
@@ -3167,7 +3226,7 @@ function bloodlineSpellcastingOps(
   }
   if (hasFocusFeature(classSystem)) {
     if (!restamp("class:focus")) {
-      ops.push(buildFocusEntryOp(ctx, spellcasting, tradition));
+      ops.push(buildFocusEntryOp(ctx, spellcasting.ability, tradition));
     }
   }
   return ops;
