@@ -260,25 +260,31 @@ export function parseGrantUuid(uuid: string): ParsedGrant | null {
 // ---------------------------------------------------------------------------
 
 /**
- * Map a vendor pack segment (from a grant uuid) to the Fusion pack slug that
- * holds the clean-room equivalent. Extend as new grant vendors appear in the
- * packs. Unknown vendors return undefined → the grant is skipped (logged by
- * the caller), never crashes.
+ * Map a vendor pack segment (from a grant uuid) to the Fusion pack slug(s) that
+ * may hold the clean-room equivalent, in search order. Extend as new grant
+ * vendors appear in the packs. An unknown vendor returns an empty list → the
+ * grant is skipped and reported, never crashes.
+ *
+ * The result is a LIST because one vendor compendium can be split across more
+ * than one clean-room pack: the vendor lumps every carried object into
+ * `equipment-srd`, while Fusion separates weapons from the rest (issue #47).
+ * Resolution stays pack-scoped and stops at the first pack that has the name,
+ * so a homonym in a later pack can never win over an earlier match.
  */
-export function mapVendorToFusionPack(vendor: string): string | undefined {
+export function mapVendorToFusionPack(vendor: string): string[] {
   switch (vendor) {
     case "feats-srd":
     case "feats":
-      return "feats-core";
+      return ["feats-core"];
     case "actionspf2e":
     case "actions":
-      return "actions-core";
+      return ["actions-core"];
     case "spells-srd":
     case "spells":
-      return "spells-core";
+      return ["spells-core"];
     case "classfeatures":
     case "class-features":
-      return "class-features-core";
+      return ["class-features-core"];
     case "ancestryfeatures":
     case "ancestry-features":
       // r20-X5: the auto-conceded ancestry/heritage FEATURES (Unusual Anatomy,
@@ -287,12 +293,22 @@ export function mapVendorToFusionPack(vendor: string): string | undefined {
       // no-op'd and rendered as informative-only chips). Resolution is
       // pack-scoped by name, so the SPELL also named "Unusual Anatomy" (in
       // spells-core) can never be a false-positive match here.
-      return "ancestry-features-core";
+      return ["ancestry-features-core"];
+    case "conditionitems":
+    case "conditions":
+      // issue #47: 18 grants across the packs point here (Off-Guard,
+      // Unconscious, Clumsy, Immobilized, Blinded, Prone, Quickened) and the
+      // vendor had NO entry at all, so every one of them failed as an unknown
+      // vendor — while `conditions` holds all seven.
+      return ["conditions"];
     case "equipment-srd":
     case "equipment":
-      return "weapons-core"; // best-effort; unresolved names simply skip
+      // issue #47: this used to return weapons-core alone ("best-effort"), so
+      // the 18-document equipment-core pack was never consulted and any
+      // non-weapon equipment grant was unsolvable by construction.
+      return ["weapons-core", "equipment-core"];
     default:
-      return undefined;
+      return [];
   }
 }
 
@@ -510,8 +526,8 @@ export async function materializeGrants(
       ...parseSystemItemsGrants(system, onUnparsed),
     ];
     for (const grant of grants) {
-      const packSlug = mapVendorToFusionPack(grant.vendor);
-      if (!packSlug) {
+      const packSlugs = mapVendorToFusionPack(grant.vendor);
+      if (packSlugs.length === 0) {
         report({
           reason: "unknown-vendor",
           uuid: grant.uuid,
@@ -520,14 +536,20 @@ export async function materializeGrants(
         });
         continue;
       }
-      const grantedDoc = await resolveByName(packSlug, grant.name, mctx);
+      // Search the candidate packs in order and stop at the first hit, so a
+      // homonym in a later pack can never shadow an earlier match (#47).
+      let grantedDoc: Record<string, unknown> | null = null;
+      for (const packSlug of packSlugs) {
+        grantedDoc = await resolveByName(packSlug, grant.name, mctx);
+        if (grantedDoc) break;
+      }
       if (!grantedDoc) {
         report({
           reason: "target-not-found",
           uuid: grant.uuid,
           vendor: grant.vendor,
           name: grant.name,
-          packSlug,
+          packSlug: packSlugs.join(", "),
         });
         continue; // no clean-room equivalent → skip, but no longer in silence
       }

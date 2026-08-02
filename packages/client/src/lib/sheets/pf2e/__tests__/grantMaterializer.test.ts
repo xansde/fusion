@@ -206,10 +206,10 @@ describe("parseGrantItems", () => {
 
 describe("mapVendorToFusionPack", () => {
   it("maps the known vendors", () => {
-    expect(mapVendorToFusionPack("feats-srd")).toBe("feats-core");
-    expect(mapVendorToFusionPack("actionspf2e")).toBe("actions-core");
-    expect(mapVendorToFusionPack("spells-srd")).toBe("spells-core");
-    expect(mapVendorToFusionPack("classfeatures")).toBe("class-features-core");
+    expect(mapVendorToFusionPack("feats-srd")).toEqual(["feats-core"]);
+    expect(mapVendorToFusionPack("actionspf2e")).toEqual(["actions-core"]);
+    expect(mapVendorToFusionPack("spells-srd")).toEqual(["spells-core"]);
+    expect(mapVendorToFusionPack("classfeatures")).toEqual(["class-features-core"]);
   });
 
   it("maps ancestryfeatures to ancestry-features-core (r20-X5), not class-features-core", () => {
@@ -217,12 +217,92 @@ describe("mapVendorToFusionPack", () => {
     // holds ancestry features) so grants silently no-op'd. Both the vendor
     // compendium id (ancestryfeatures) and the pack folder name
     // (ancestry-features) resolve to the new clean-room pack.
-    expect(mapVendorToFusionPack("ancestryfeatures")).toBe("ancestry-features-core");
-    expect(mapVendorToFusionPack("ancestry-features")).toBe("ancestry-features-core");
+    expect(mapVendorToFusionPack("ancestryfeatures")).toEqual(["ancestry-features-core"]);
+    expect(mapVendorToFusionPack("ancestry-features")).toEqual(["ancestry-features-core"]);
   });
 
-  it("returns undefined for an unknown vendor", () => {
-    expect(mapVendorToFusionPack("some-unknown-pack")).toBeUndefined();
+  it("returns an empty list for an unknown vendor", () => {
+    expect(mapVendorToFusionPack("some-unknown-pack")).toEqual([]);
+  });
+
+  // -------------------------------------------------------------------------
+  // issue #47
+  // -------------------------------------------------------------------------
+
+  it("maps conditionitems to the conditions pack", () => {
+    // 18 grants across the packs point at `conditionitems` (Off-Guard,
+    // Unconscious, Clumsy, Immobilized, Blinded, Prone, Quickened) and the
+    // vendor had no switch entry at all, so every one failed as unknown-vendor
+    // even though `conditions` holds all seven.
+    expect(mapVendorToFusionPack("conditionitems")).toEqual(["conditions"]);
+    expect(mapVendorToFusionPack("conditions")).toEqual(["conditions"]);
+  });
+
+  it("searches BOTH weapons-core and equipment-core for an equipment grant", () => {
+    // equipment-srd pointed only at weapons-core ("best-effort"), so the
+    // 18-document equipment-core pack was never consulted and any non-weapon
+    // equipment grant was unsolvable by construction.
+    expect(mapVendorToFusionPack("equipment-srd")).toEqual(["weapons-core", "equipment-core"]);
+    expect(mapVendorToFusionPack("equipment")).toEqual(["weapons-core", "equipment-core"]);
+  });
+
+  it("falls through to the second candidate pack when the first has no match", async () => {
+    const equipmentOnlyDoc = {
+      _id: "eq-1",
+      name: "Everlight Crystal",
+      type: "equipment",
+      flags: { fusion: { sourceId: "EVERLIGHT" } },
+      system: { rules: [] },
+    };
+    const granter = {
+      _id: "granter-eq",
+      name: "Equipment Granter",
+      type: "feat",
+      flags: { fusion: { sourceId: "SRC-EQ" } },
+      system: {
+        rules: [
+          {
+            kind: "grant-item",
+            uuid: "Compendium.pf2e.equipment-srd.Item.Everlight Crystal",
+            inMemoryOnly: false,
+          },
+        ],
+      },
+    };
+    // weapons-core is searched first and is empty; equipment-core has it.
+    const mctx = ctxFor({ "weapons-core": [], "equipment-core": [equipmentOnlyDoc] });
+    const ops = createOps(await materializeGrants(granter, "SRC-EQ", undefined, mctx));
+
+    expect(ops).toHaveLength(1);
+    expect((ops[0]?.data as Record<string, unknown>)["name"]).toBe("Everlight Crystal");
+  });
+
+  it("reports target-not-found once, listing every pack searched", async () => {
+    const granter = {
+      _id: "granter-eq2",
+      name: "Equipment Granter",
+      type: "feat",
+      flags: { fusion: { sourceId: "SRC-EQ2" } },
+      system: {
+        rules: [
+          {
+            kind: "grant-item",
+            uuid: "Compendium.pf2e.equipment-srd.Item.Clan Dagger",
+            inMemoryOnly: false,
+          },
+        ],
+      },
+    };
+    const failures: GrantFailure[] = [];
+    const base = ctxFor({ "weapons-core": [], "equipment-core": [] });
+    await materializeGrants(granter, "SRC-EQ2", undefined, {
+      ...base,
+      onGrantFailure: (f) => failures.push(f),
+    });
+
+    expect(failures).toHaveLength(1);
+    expect(failures[0]?.reason).toBe("target-not-found");
+    expect(failures[0]?.packSlug).toBe("weapons-core, equipment-core");
   });
 });
 
