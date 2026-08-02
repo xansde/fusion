@@ -528,6 +528,7 @@
   "FUSION.Sheet.Plan.Picker.Loading": "Carregando compêndio…",
   "FUSION.Sheet.Plan.Picker.LoadError": "Não foi possível carregar o compêndio.",
   "FUSION.Sheet.Plan.Picker.NoResults": "Nenhum resultado encontrado com esses filtros.",
+  "FUSION.Sheet.Plan.Picker.AlreadyChosen": "Este talento já foi escolhido e não pode ser repetido.",
   "FUSION.Sheet.Plan.Picker.Confirm": "Confirmar",
   "FUSION.Sheet.Plan.Picker.NotConnected": "Sem conexão com o servidor — verifique a conexão e tente de novo.",
   "FUSION.Sheet.Plan.Picker.Retry": "Tentar de novo",
