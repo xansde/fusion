@@ -10,6 +10,11 @@ export default tseslint.config(
       ".fusion-build/**",
       "tools/importer-pf2e/out/**",
       "**/node_modules/**",
+      // Worktrees são CÓPIAS de trabalho (agentes em paralelo), não código do
+      // repo: lintá-las duplica todo achado e transforma sobra de uma rodada
+      // antiga em vermelho numa rodada nova. Achado na r21, com 3 worktrees
+      // já mergeadas ainda em disco.
+      ".claude/worktrees/**",
       "**/*.d.ts",
       "**/*.svelte",
       ".dependency-cruiser.cjs",

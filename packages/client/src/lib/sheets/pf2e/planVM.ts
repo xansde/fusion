@@ -682,7 +682,9 @@ export const ANCESTRY_CHOICE_GRANTS: Record<string, AncestryChoiceGrant> = {
 };
 
 /** Look up a granting feat's adopted-ancestry sub-slot config by its (embedded item) name. */
-export function ancestryChoiceGrantFor(featName: string | undefined): AncestryChoiceGrant | undefined {
+export function ancestryChoiceGrantFor(
+  featName: string | undefined,
+): AncestryChoiceGrant | undefined {
   const slug = nameToSlug(featName);
   return slug ? ANCESTRY_CHOICE_GRANTS[slug] : undefined;
 }
@@ -2097,7 +2099,8 @@ function replaceAbcItem(
     // The class's own auxiliary items (arcane/focus spellcasting entries)
     // aren't `grantedBy`-tagged — they're tagged with a `class:`-prefixed
     // build-flag slot (see applyClass) so this same cascade catches them too.
-    const isClassAux = itemType === "class" && (getItemBuildFlag(it)?.slot.startsWith("class:") ?? false);
+    const isClassAux =
+      itemType === "class" && (getItemBuildFlag(it)?.slot.startsWith("class:") ?? false);
     if (!isGrant && !isClassAux) continue;
     const id = it["_id"];
     if (typeof id === "string") {
@@ -2688,7 +2691,11 @@ export function chooseFeat(
   // Teto de repetição (frente 1), medido DEPOIS de saber quem sai: o item que
   // está sendo trocado neste mesmo slot não conta contra o teto.
   if (
-    isFeatAtRepeatCap(ctx.doc, featDoc, typeof existingItemId === "string" ? existingItemId : undefined)
+    isFeatAtRepeatCap(
+      ctx.doc,
+      featDoc,
+      typeof existingItemId === "string" ? existingItemId : undefined,
+    )
   ) {
     return [];
   }

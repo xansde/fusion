@@ -1111,15 +1111,19 @@ describe("applyClass", () => {
     // the real pack doc) survive alongside the new build flag — replaceAbcItem
     // needs that sourceId later to find this class's grantedBy items on a
     // future swap (see embeddedItemPayload's merge, not overwrite).
-    expect((classOp.data["flags"] as Record<string, unknown>)).toEqual({
-      fusion: { conversion: "full", sourceId: "HQBA9Yx2s8ycvz3C", build: { level: 1, slot: "class" } },
+    expect(classOp.data["flags"] as Record<string, unknown>).toEqual({
+      fusion: {
+        conversion: "full",
+        sourceId: "HQBA9Yx2s8ycvz3C",
+        build: { level: 1, slot: "class" },
+      },
     });
 
     const spellOp = ops.find(
       (o) => o.type === "doc:create" && (o.data["name"] as string) === "arcane Spells",
     );
     if (!spellOp || spellOp.type !== "doc:create") throw new Error("expected doc:create");
-    expect((spellOp.data["flags"] as Record<string, unknown>)).toEqual({
+    expect(spellOp.data["flags"] as Record<string, unknown>).toEqual({
       fusion: { build: { level: 1, slot: "class:spellcasting" } },
     });
 
@@ -1127,7 +1131,7 @@ describe("applyClass", () => {
       (o) => o.type === "doc:create" && (o.data["name"] as string) === "Focus Spells",
     );
     if (!focusOp || focusOp.type !== "doc:create") throw new Error("expected doc:create");
-    expect((focusOp.data["flags"] as Record<string, unknown>)).toEqual({
+    expect(focusOp.data["flags"] as Record<string, unknown>).toEqual({
       fusion: { build: { level: 1, slot: "class:focus" } },
     });
   });
@@ -1185,7 +1189,11 @@ describe("applyClass", () => {
         name: "X",
         type: "character",
         items: [
-          { ...magusClassDoc(), _id: "item-class", flags: { fusion: { build: { level: 1, slot: "class" } } } },
+          {
+            ...magusClassDoc(),
+            _id: "item-class",
+            flags: { fusion: { build: { level: 1, slot: "class" } } },
+          },
           {
             name: "arcane Spells",
             type: "spellcastingEntry",
@@ -2056,7 +2064,9 @@ describe("chooseFeat — repeat cap (W2 frente 1: non-repeatable feat picked twi
 
   it("isFeatAtRepeatCap: true once a non-repeatable feat has been chosen once (by sourceId)", () => {
     const doc = baseCharacterDoc({
-      items: [embeddedFeatItem(acupuncturistFeatDoc(), "item-1", { level: 2, slot: "skillFeat-2" })],
+      items: [
+        embeddedFeatItem(acupuncturistFeatDoc(), "item-1", { level: 2, slot: "skillFeat-2" }),
+      ],
     });
     expect(isFeatAtRepeatCap(doc, acupuncturistFeatDoc())).toBe(true);
   });
@@ -2068,7 +2078,9 @@ describe("chooseFeat — repeat cap (W2 frente 1: non-repeatable feat picked twi
 
   it("chooseFeat: REJECTS a second pick of the same non-repeatable feat in a DIFFERENT slot (the reported defect)", () => {
     const doc = baseCharacterDoc({
-      items: [embeddedFeatItem(acupuncturistFeatDoc(), "item-1", { level: 2, slot: "skillFeat-2" })],
+      items: [
+        embeddedFeatItem(acupuncturistFeatDoc(), "item-1", { level: 2, slot: "skillFeat-2" }),
+      ],
     });
     const ops = chooseFeat(ctx(doc), slotB, 4, acupuncturistFeatDoc());
     expect(ops).toEqual([]);
@@ -2083,11 +2095,15 @@ describe("chooseFeat — repeat cap (W2 frente 1: non-repeatable feat picked twi
 
   it("chooseFeat: a REPEATABLE feat (maxTakable: 3, real 'Armor Proficiency' data) can be picked up to its cap", () => {
     // 0 taken -> pick 1 accepted.
-    expect(chooseFeat(ctx(baseCharacterDoc()), slotA, 1, armorProficiencyFeatDoc())).toHaveLength(2);
+    expect(chooseFeat(ctx(baseCharacterDoc()), slotA, 1, armorProficiencyFeatDoc())).toHaveLength(
+      2,
+    );
 
     // 1 taken -> pick 2 accepted.
     const doc1 = baseCharacterDoc({
-      items: [embeddedFeatItem(armorProficiencyFeatDoc(), "item-1", { level: 1, slot: "generalFeat-1" })],
+      items: [
+        embeddedFeatItem(armorProficiencyFeatDoc(), "item-1", { level: 1, slot: "generalFeat-1" }),
+      ],
     });
     expect(chooseFeat(ctx(doc1), slotB, 5, armorProficiencyFeatDoc())).toHaveLength(2);
 
@@ -2098,9 +2114,9 @@ describe("chooseFeat — repeat cap (W2 frente 1: non-repeatable feat picked twi
         embeddedFeatItem(armorProficiencyFeatDoc(), "item-2", { level: 5, slot: "generalFeat-5" }),
       ],
     });
-    expect(chooseFeat(ctx(doc2), { ...slotB, slotId: "generalFeat-9" }, 9, armorProficiencyFeatDoc())).toHaveLength(
-      2,
-    );
+    expect(
+      chooseFeat(ctx(doc2), { ...slotB, slotId: "generalFeat-9" }, 9, armorProficiencyFeatDoc()),
+    ).toHaveLength(2);
   });
 
   it("chooseFeat: REJECTS the 4th pick of a maxTakable:3 feat", () => {
@@ -2112,7 +2128,12 @@ describe("chooseFeat — repeat cap (W2 frente 1: non-repeatable feat picked twi
       ],
     });
     expect(isFeatAtRepeatCap(doc3, armorProficiencyFeatDoc())).toBe(true);
-    const ops = chooseFeat(ctx(doc3), { ...slotB, slotId: "generalFeat-13" }, 13, armorProficiencyFeatDoc());
+    const ops = chooseFeat(
+      ctx(doc3),
+      { ...slotB, slotId: "generalFeat-13" },
+      13,
+      armorProficiencyFeatDoc(),
+    );
     expect(ops).toEqual([]);
   });
 
@@ -2893,9 +2914,9 @@ describe("isFeatEligible", () => {
   });
 
   it("ancestryFeat: without adoptedAncestrySlug, the adopted ancestry's feat is NOT eligible (baseline unchanged)", () => {
-    expect(
-      isFeatEligible(fleshwarpUnusualAnatomyAncestryFeatDoc(), "ancestryFeat", 1, opts),
-    ).toBe(false);
+    expect(isFeatEligible(fleshwarpUnusualAnatomyAncestryFeatDoc(), "ancestryFeat", 1, opts)).toBe(
+      false,
+    );
   });
 
   it("generalFeat: accepts category general regardless of traits", () => {
@@ -4028,7 +4049,9 @@ describe("detailsRequestForSlot", () => {
   });
 
   it("routes a filled adoptedAncestryChoice sub-slot to ancestries-core", () => {
-    const req = detailsRequestForSlot(slot({ type: "adoptedAncestryChoice", choiceName: "Fleshwarp" }));
+    const req = detailsRequestForSlot(
+      slot({ type: "adoptedAncestryChoice", choiceName: "Fleshwarp" }),
+    );
     expect(req).toEqual({ packSlug: "ancestries-core", name: "Fleshwarp" });
   });
 

@@ -59,7 +59,6 @@ import {
   type PlanSlotModel,
   type FeatDocLike,
   type BuildAbilities,
-  type AbilitySlug,
 } from "../planVM.js";
 import type { DocOpPayload } from "../characterSheetVM.js";
 
