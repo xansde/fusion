@@ -29,6 +29,12 @@ import type { DeriveStep } from "@fusion/system-api";
 import type { CharacterSystem } from "../schemas/actor-character.js";
 import type { ClassSystem, ClassSpellcasting } from "../schemas/item-equipment.js";
 import { ABILITY_SLUGS, type AbilitySlug } from "../types.js";
+import {
+  findClassItems,
+  resolveClassLevels,
+  type EmbeddedClass,
+  type ResolvedClassLevels,
+} from "../variants/classLevels/levels.js";
 
 function getSystem(doc: Record<string, unknown>): Record<string, unknown> {
   return (doc["system"] as Record<string, unknown>) ?? {};
@@ -55,21 +61,36 @@ interface RawItem {
 }
 
 /**
- * Find the first embedded `type: 'class'` item on the document.
+ * Find the PRIMARY embedded `type: 'class'` item — the one whose presence
+ * gates every build-driven step (a doc without a class item is an r9
+ * manual-entry actor and must stay untouched).
  *
- * The builder model (DEC-R10-01) supports at most one class item per
- * character for the MVP (multiclass archetypes are represented as feats,
- * not a second class item).
+ * Under the class-levels variant an actor carries one class item per
+ * distinct class (REQ-MCL-011); use `findClassItems` when you need them all
+ * and `resolveClassLevels` when you need to know which level went where.
  */
 function findClassItem(doc: Record<string, unknown>): ClassSystem | undefined {
-  const rawItems = doc["items"];
-  if (!Array.isArray(rawItems)) return undefined;
-  for (const raw of rawItems as RawItem[]) {
-    if (raw && typeof raw === "object" && raw.type === "class") {
-      return (raw.system ?? {}) as unknown as ClassSystem;
-    }
+  return findClassItems(doc)[0]?.system;
+}
+
+/**
+ * Get the level split for this document.
+ *
+ * With the variant off this returns a single-class context whose class level
+ * equals the character level, so every formula below collapses to exactly
+ * what it computed before the variant existed (REQ-MCL-002).
+ */
+function levelsOf(doc: Record<string, unknown>, sys: CharacterSystem): ResolvedClassLevels {
+  return resolveClassLevels(doc, getLevel(sys));
+}
+
+/** Write a value under `system.derived`, creating the block when absent. */
+function setDerived(sys: CharacterSystem, key: string, value: unknown): void {
+  const target = sys as unknown as Record<string, unknown>;
+  if (!target["derived"] || typeof target["derived"] !== "object") {
+    target["derived"] = {};
   }
-  return undefined;
+  (target["derived"] as Record<string, unknown>)[key] = value;
 }
 
 /** Find the first embedded `type: 'ancestry'` item's HP grant, if any. */
@@ -276,22 +297,54 @@ export const stepCharApplyClass: DeriveStep = {
 
   run(doc) {
     const sys = getCharSystem(doc);
-    const classSystem = findClassItem(doc);
-    if (!classSystem) return;
+    const levels = levelsOf(doc, sys);
+    const classes = [...levels.classes.values()];
+    if (classes.length === 0) return;
 
-    const level = getLevel(sys);
-    const upgrades = classSystem.proficiencyUpgrades ?? [];
+    // Every class is evaluated at ITS OWN class level, and the results are
+    // reduced by `max` (REQ-MCL-021, DEC-MCL-04). Two properties follow:
+    // the best rank wins rather than the last one processed, and `max` being
+    // commutative means the order of items on the actor cannot change the
+    // result (REQ-MCL-203) — a whole class of order-dependent bugs simply
+    // cannot occur.
+    const origin: Record<string, { rank: number; from: string }> = {};
 
-    // Key ability: the player's pick lives in build.abilities.classBoost
-    // (chosen in the builder's boosts dialog — r11); the class item keeps
-    // its FULL keyAbility option list, so keyAbility[0] is only the
-    // fallback for docs without a recorded choice.
-    // All classSystem.* sub-object reads below are guarded (`?.`/`??`):
-    // findClassItem() casts raw.system without a Zod parse, so a class item
-    // authored outside the schema (e.g. {system:{hp:8}}) must degrade to
-    // rank-0 defaults instead of throwing mid-derive.
+    /** Best rank for `stat` across all classes, recording who won. */
+    const bestRank = (stat: string, initialOf: (entry: EmbeddedClass) => number): number => {
+      let best = 0;
+      let winner = "";
+      for (const entry of classes) {
+        const classLevel = levels.ctx.classLevels[entry.key] ?? 0;
+        if (classLevel <= 0) continue;
+        const rank = effectiveRank(
+          initialOf(entry),
+          stat,
+          entry.system.proficiencyUpgrades ?? [],
+          classLevel,
+        );
+        if (rank > best || winner === "") {
+          best = rank;
+          winner = entry.key;
+        }
+      }
+      if (winner !== "") origin[stat] = { rank: best, from: winner };
+      return best;
+    };
+
+    // Key ability comes from the FIRST class only (REQ-MCL-031) — a dip
+    // never re-keys the character. The player's pick lives in
+    // build.abilities.classBoost (r11 builder dialog); the class item keeps
+    // its full keyAbility option list, so keyAbility[0] is just the fallback
+    // for docs with no recorded choice.
+    //
+    // All entry.system.* reads are guarded (`?.`/`??`): class items are cast
+    // without a Zod parse, so one authored outside the schema (e.g.
+    // {system:{hp:8}}) must degrade to rank-0 defaults, never throw.
+    const firstClass = levels.firstClass
+      ? levels.classes.get(levels.firstClass)
+      : (classes[0] ?? undefined);
     const classBoostPick = sys.build?.abilities?.classBoost?.[0];
-    const keyAbility = classBoostPick ?? classSystem.keyAbility?.[0];
+    const keyAbility = classBoostPick ?? firstClass?.system.keyAbility?.[0];
     if (keyAbility) {
       if (!sys.details || typeof sys.details !== "object") {
         (sys as unknown as Record<string, unknown>)["details"] = {};
@@ -300,16 +353,13 @@ export const stepCharApplyClass: DeriveStep = {
     }
 
     // Perception.
-    const perceptionRank = effectiveRank(
-      classSystem.perception ?? 0,
-      "perception",
-      upgrades,
-      level,
-    );
     if (!sys.perception || typeof sys.perception !== "object") {
       (sys as unknown as Record<string, unknown>)["perception"] = { rank: 0, senses: [] };
     }
-    sys.perception.rank = perceptionRank as CharacterSystem["perception"]["rank"];
+    sys.perception.rank = bestRank(
+      "perception",
+      (entry) => entry.system.perception ?? 0,
+    ) as CharacterSystem["perception"]["rank"];
 
     // Saving throws.
     if (!sys.saves || typeof sys.saves !== "object") {
@@ -320,24 +370,26 @@ export const stepCharApplyClass: DeriveStep = {
       };
     }
     for (const save of ["fortitude", "reflex", "will"] as const) {
-      const initial = classSystem.savingThrows?.[save] ?? 0;
       sys.saves[save] = {
-        rank: effectiveRank(
-          initial,
+        rank: bestRank(
           save,
-          upgrades,
-          level,
+          (entry) => entry.system.savingThrows?.[save] ?? 0,
         ) as CharacterSystem["saves"]["fortitude"]["rank"],
       };
     }
 
-    // Class DC.
+    // Class DC. `system.proficiencies.classDC` holds the BEST rank — that is
+    // what an effect saying "your class DC" without naming one must use
+    // (REQ-MCL-022). The per-class breakdown is derived downstream, where
+    // ability mods are available.
     if (!sys.proficiencies || typeof sys.proficiencies !== "object") {
       (sys as unknown as Record<string, unknown>)["proficiencies"] = {};
     }
-    const classDcRank = effectiveRank(classSystem.classDC ?? 0, "classDC", upgrades, level);
     sys.proficiencies.classDC = {
-      rank: classDcRank as CharacterSystem["proficiencies"]["classDC"]["rank"],
+      rank: bestRank(
+        "classDC",
+        (entry) => entry.system.classDC ?? 0,
+      ) as CharacterSystem["proficiencies"]["classDC"]["rank"],
     };
 
     // Weapon category proficiencies (class `attacks` map = initial ranks).
@@ -350,12 +402,14 @@ export const stepCharApplyClass: DeriveStep = {
     };
     const weapons = { ...existingWeapons };
     for (const category of weaponCategories) {
-      const initial = classSystem.attacks?.[category] ?? existingWeapons[category] ?? 0;
-      weapons[category] = effectiveRank(
-        initial,
+      // NB: the manual rank is the per-class FALLBACK initial (as before the
+      // variant), NOT an extra max() around the result — folding it in would
+      // let a manually-authored rank survive a class that legitimately
+      // lowers it, which is a behaviour change for single-class actors and
+      // would break REQ-MCL-002.
+      weapons[category] = bestRank(
         `weapons.${category}`,
-        upgrades,
-        level,
+        (entry) => entry.system.attacks?.[category] ?? existingWeapons[category] ?? 0,
       ) as CharacterSystem["proficiencies"]["weapons"]["unarmed"];
     }
     sys.proficiencies.weapons = weapons;
@@ -370,15 +424,23 @@ export const stepCharApplyClass: DeriveStep = {
     };
     const armor = { ...existingArmor };
     for (const category of armorCategories) {
-      const initial = classSystem.defenses?.[category] ?? existingArmor[category] ?? 0;
-      armor[category] = effectiveRank(
-        initial,
+      armor[category] = bestRank(
         `armor.${category}`,
-        upgrades,
-        level,
+        (entry) => entry.system.defenses?.[category] ?? existingArmor[category] ?? 0,
       ) as CharacterSystem["proficiencies"]["armor"]["unarmored"];
     }
     sys.proficiencies.armor = armor;
+
+    // REQ-MCL-082/212: every rank the variant touched records WHERE it came
+    // from, so the sheet can explain a number instead of asserting it.
+    setDerived(sys, "proficiencyOrigin", origin);
+    setDerived(sys, "classLevels", {
+      variantActive: levels.variantActive,
+      characterLevel: levels.ctx.characterLevel,
+      classLevels: { ...levels.ctx.classLevels },
+      firstClass: levels.firstClass ?? null,
+      classNames: Object.fromEntries([...levels.classes].map(([key, e]) => [key, e.name])),
+    });
   },
 };
 
@@ -421,8 +483,8 @@ export const stepCharBuildSkills: DeriveStep = {
 
   run(doc) {
     const sys = getCharSystem(doc);
-    const classSystem = findClassItem(doc);
-    if (!classSystem) return;
+    const levels = levelsOf(doc, sys);
+    if (levels.classes.size === 0) return;
 
     const level = getLevel(sys);
     if (!sys.skills || typeof sys.skills !== "object") {
@@ -436,9 +498,18 @@ export const stepCharBuildSkills: DeriveStep = {
       sys.skills[slug] = { rank: effective, ...(existing?.lore ? { lore: true } : {}) };
     };
 
-    // Level-1 trained skills granted directly by the class.
-    for (const slug of classSystem.trainedSkills?.value ?? []) {
-      setFloor(slug, 1);
+    // Level-1 trained skills granted directly by each class. REQ-MCL-034:
+    // a class's AUTOMATIC skills are identity, so every class the character
+    // takes grants its own — they are never traded against the free-skill
+    // budget, on either side of the ledger. The free choices themselves
+    // arrive as concrete `skillTraining` choices below; their per-class
+    // budget (REQ-MCL-035) is the builder's arithmetic, not this step's.
+    for (const entry of levels.classes.values()) {
+      const classLevel = levels.ctx.classLevels[entry.key] ?? 0;
+      if (classLevel <= 0) continue;
+      for (const slug of entry.system.trainedSkills?.value ?? []) {
+        setFloor(slug, 1);
+      }
     }
 
     // Build choices: skillTraining (untrained → trained) / skillIncrease
@@ -511,8 +582,8 @@ export const stepCharBuildHp: DeriveStep = {
 
   run(doc) {
     const sys = getCharSystem(doc);
-    const classSystem = findClassItem(doc);
-    if (!classSystem) return;
+    const levels = levelsOf(doc, sys);
+    if (levels.classes.size === 0) return;
 
     const ancestryHp = findAncestryHp(doc);
     if (ancestryHp === undefined && !sys.build) return;
@@ -524,11 +595,30 @@ export const stepCharBuildHp: DeriveStep = {
     const bonusHp = sys.build?.bonusHp ?? 0;
     const bonusHpPerLevel = sys.build?.bonusHpPerLevel ?? 0;
 
-    const hpMax =
-      (ancestryHp ?? 0) +
-      ((classSystem.hp ?? 0) + conMod) * level +
-      bonusHp +
-      bonusHpPerLevel * level;
+    // REQ-MCL-033: HP is summed PER LEVEL, each level paying the HP of the
+    // class that received it — not `classHp * level`, which silently applies
+    // the first class's die to levels another class bought. Ancestry HP
+    // enters once. For a single-class character every term is the same class,
+    // so the sum collapses to the old product exactly (REQ-MCL-002).
+    const hpByLevel: Array<{ level: number; class: string; hp: number; con: number }> = [];
+    let classHpTotal = 0;
+    for (const assignment of levels.assignments) {
+      const entry = levels.classes.get(assignment.classKey);
+      const classHp = entry?.system.hp ?? 0;
+      classHpTotal += classHp + conMod;
+      hpByLevel.push({
+        level: assignment.characterLevel,
+        class: assignment.classKey,
+        hp: classHp,
+        con: conMod,
+      });
+    }
+
+    const hpMax = (ancestryHp ?? 0) + classHpTotal + bonusHp + bonusHpPerLevel * level;
+
+    // REQ-MCL-082: the sheet must be able to explain the HP total level by
+    // level, not just print it.
+    setDerived(sys, "hpByLevel", hpByLevel);
 
     if (!sys.attributes || typeof sys.attributes !== "object") {
       (sys as unknown as Record<string, unknown>)["attributes"] = {};
