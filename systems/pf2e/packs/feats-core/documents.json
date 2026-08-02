@@ -92369,10 +92369,7 @@
       "level": 16,
       "prerequisites": [
         {
-          "value": "Opening Stance (Fighter)"
-        },
-        {
-          "value": "Reflexive Stance (Monk)"
+          "value": "Opening Stance (Fighter) or Reflexive Stance (Monk)"
         }
       ],
       "publication": {

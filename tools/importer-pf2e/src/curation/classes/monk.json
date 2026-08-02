@@ -164,6 +164,13 @@
       "from": "Stunning fist",
       "to": "Stunning Blows",
       "reason": "issue #26: 'Stunning fist' matches no document (case-insensitive, accent-insensitive) in any pack; 'Stunning Blows' (trait monk, level 2 — see internalChains above) is the only Monk feat this capstone's own prerequisite chain could plausibly mean."
+    },
+    {
+      "featName": "Master of Many Styles",
+      "kind": "merge",
+      "replaceEntries": ["Opening Stance (Fighter)", "Reflexive Stance (Monk)"],
+      "with": "Opening Stance (Fighter) or Reflexive Stance (Monk)",
+      "reason": "issue #30: the vendor modeled this as TWO SEPARATE prerequisites entries, which every consumer (grafo-de-feats.mjs, planVM.ts's checkFeatPrerequisites) reads as AND — but a Monk who only ever gets Reflexive Stance (their own class feat, trait monk) can never ALSO get Opening Stance (trait fighter+guardian, blocked from a Monk's classFeat slot by isFeatEligible), so AND makes this capstone permanently unreachable for a pure Monk despite the vendor clearly intending 'whichever your build's stance-swap route gives you'. Merged into ONE 'A or B' entry, the same convention the vendor itself uses elsewhere in this pack (e.g. 'Deflect Projectile or Monastic Archer Stance'). Not confirmed against an official errata — a reasonable, minimal reading of intent, not a guess: it's the ONLY modeling under which either build path can ever satisfy this feat at all. Unblocks Qi Center@18 and Immortal Techniques@20, whose own prerequisite chain runs through Master of Many Styles."
     }
   ],
   "dedupe": {

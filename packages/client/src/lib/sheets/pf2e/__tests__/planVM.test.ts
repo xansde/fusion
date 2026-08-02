@@ -1259,6 +1259,45 @@ describe("derivePlan — Champion 'Blessing of the Devoted' choice axis (issue #
 });
 
 /**
+ * issue #30: "Master of Many Styles" prerequisite is now ONE merged "A or B"
+ * entry (see monk.json's prerequisiteFixes) instead of two separate AND'd
+ * entries. A pure Monk with Reflexive Stance (their own class feat) but
+ * WITHOUT Opening Stance (Fighter-trait, unreachable via a Monk's classFeat
+ * slot) must show no requirement issue either way — proving the merge
+ * didn't regress the one satisfiable path.
+ */
+describe("checkFeatPrerequisites — Master of Many Styles merged OR entry (issue #30)", () => {
+  it("Reflexive Stance alone satisfies the merged 'A or B' entry — no mark", () => {
+    const reflexiveStanceItem: Record<string, unknown> = {
+      _id: "item-reflexive-stance",
+      name: "Reflexive Stance",
+      type: "feat",
+      system: { category: "class", level: 12, traits: { rarity: "common", value: ["monk"] } },
+      flags: { fusion: { build: { level: 12, slot: "classFeat-12" } } },
+    };
+    const masterOfManyStylesFeat: Record<string, unknown> = {
+      _id: "item-master-of-many-styles",
+      name: "Master of Many Styles",
+      type: "feat",
+      system: {
+        category: "class",
+        level: 16,
+        traits: { rarity: "common", value: ["fighter", "monk"] },
+        prerequisites: [{ value: "Opening Stance (Fighter) or Reflexive Stance (Monk)" }],
+      },
+      flags: { fusion: { build: { level: 16, slot: "classFeat-16" } } },
+    };
+    const issue = checkFeatPrerequisites(
+      masterOfManyStylesFeat,
+      [reflexiveStanceItem, masterOfManyStylesFeat],
+      undefined,
+      16,
+    );
+    expect(issue).toBeUndefined();
+  });
+});
+
+/**
  * knownPossessedNames only counts type "feat"/"classFeature" items — spells
  * are DELIBERATELY excluded (see the function's own doc comment). Issue #44
  * evidence #4: "Rallying Anthem" is a genuine homonym in the Bard universe —

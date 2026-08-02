@@ -35,7 +35,14 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { construirGrafo } from "../curation/grafo-de-feats.mjs";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const PACKS = join(__dirname, "..", "..", "..", "..", "systems", "pf2e", "packs");
 
 const grafo = construirGrafo();
 
@@ -181,6 +188,52 @@ describe("construirGrafo — Champion prerequisite name reconciliation (issue #2
       const entrada = champion.naoResolvidos.find((n) => n.nome === nome);
       assert.ok(entrada, `${nome} deve aparecer em naoResolvidos`);
       assert.equal(entrada.requisito, "Fiendsbane Oath");
+    }
+  });
+});
+
+/**
+ * issue #30: "Master of Many Styles" vinha do vendor como DUAS entradas
+ * separadas de prerequisites ("Opening Stance (Fighter)" e "Reflexive
+ * Stance (Monk)"), lidas como CONJUNÇÃO (AND) por todo consumidor — mas um
+ * Monge puro nunca consegue "Opening Stance" (trait fighter+guardian, fora
+ * do alcance do slot de talento de classe de Monge) e um Lutador puro nunca
+ * consegue "Reflexive Stance" (trait monk) sem dedicação de arquétipo, então
+ * AND torna o capstone permanentemente inalcançável para os dois lados.
+ * monk.json's prerequisiteFixes funde as 2 entradas numa só "A or B" — o
+ * MESMO padrão que o vendor já usa em outros talentos do próprio pack.
+ */
+describe("construirGrafo — Master of Many Styles como alternativa OR (issue #30)", () => {
+  it("o pack tem UMA única entrada de prerequisito combinada com ' or '", () => {
+    const feats = JSON.parse(readFileSync(join(PACKS, "feats-core", "documents.json"), "utf8"));
+    const doc = feats.find((d) => d.name === "Master of Many Styles");
+    assert.ok(doc, "Master of Many Styles deve existir em feats-core");
+    assert.deepEqual(doc.system.prerequisites, [
+      { value: "Opening Stance (Fighter) or Reflexive Stance (Monk)" },
+    ]);
+  });
+
+  it("o grafo continua resolvendo AMBAS as alternativas como aresta (interna e externa)", () => {
+    const monk = grafo.classes["Monk"];
+    const no = monk.nos.find((n) => n.nome === "Master of Many Styles");
+    assert.ok(no, "nó Master of Many Styles deve existir no universo do Monk");
+    const incoming = monk.arestas.filter((a) => a.para === no.id);
+    const rotulos = incoming.map((a) => a.rotulo);
+    assert.deepEqual(new Set(rotulos), new Set(["Opening Stance (Fighter)", "Reflexive Stance (Monk)"]));
+    const reflexiva = incoming.find((a) => a.rotulo === "Reflexive Stance (Monk)");
+    assert.equal(reflexiva.externa, false, "Reflexive Stance é um nó interno do Monk");
+    const opening = incoming.find((a) => a.rotulo === "Opening Stance (Fighter)");
+    assert.equal(opening.externa, true, "Opening Stance é externa (trait fighter)");
+  });
+
+  it("Qi Center e Immortal Techniques continuam com aresta a partir de Master of Many Styles", () => {
+    const monk = grafo.classes["Monk"];
+    const mms = monk.nos.find((n) => n.nome === "Master of Many Styles");
+    for (const nome of ["Qi Center", "Immortal Techniques"]) {
+      const no = monk.nos.find((n) => n.nome === nome);
+      assert.ok(no, `nó ${nome} deve existir`);
+      const aresta = monk.arestas.find((a) => a.de === mms.id && a.para === no.id);
+      assert.ok(aresta, `${nome} deve ter aresta vinda de Master of Many Styles`);
     }
   });
 });

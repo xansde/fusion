@@ -62,6 +62,33 @@ describe("applyPrerequisiteFixes — rename kind", () => {
   });
 });
 
+describe("applyPrerequisiteFixes — merge kind (issue #30)", () => {
+  it("collapses N separate entries into ONE 'A or B' entry when they match replaceEntries exactly", () => {
+    const docs = [
+      {
+        name: "Master of Many Styles",
+        system: {
+          prerequisites: [{ value: "Opening Stance (Fighter)" }, { value: "Reflexive Stance (Monk)" }],
+        },
+      },
+    ];
+    applyPrerequisiteFixes(docs);
+    assert.deepEqual(docs[0].system.prerequisites, [
+      { value: "Opening Stance (Fighter) or Reflexive Stance (Monk)" },
+    ]);
+  });
+
+  it("throws when the current entries don't match replaceEntries exactly (stale merge guard)", () => {
+    const docs = [
+      {
+        name: "Master of Many Styles",
+        system: { prerequisites: [{ value: "Opening Stance (Fighter)" }] },
+      },
+    ];
+    assert.throws(() => applyPrerequisiteFixes(docs), /não batem com replaceEntries/);
+  });
+});
+
 describe("applyPrerequisiteFixes — validation", () => {
   it("kind 'rename' requires from/to", () => {
     assert.throws(
