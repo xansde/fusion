@@ -110,6 +110,22 @@ export interface DerivedElementalBlast {
  * from the base-class classDC. Manual mirror of systems/pf2e
  * derivations/types.ts ArchetypeClassDC — MUST stay in sync.
  */
+/**
+ * Mirror of systems/pf2e derivations/types.ts ClassDCEntry — MUST stay in sync.
+ *
+ * One entry per class the character has, each ranked at its own class level
+ * (multiclass variant, specs/30). A single-class sheet has exactly one.
+ */
+export interface ClassDCEntry {
+  readonly classKey: string;
+  readonly label: string;
+  readonly classLevel: number;
+  readonly ability: string;
+  readonly rank: number;
+  readonly total: number;
+  readonly dc: number;
+}
+
 export interface ArchetypeClassDC {
   readonly slug: string;
   readonly label: string;
@@ -164,6 +180,20 @@ export interface CharacterDerived {
    * Optional: absent on pre-r12 derived data — callers treat as [].
    */
   readonly archetypeClassDCs?: ArchetypeClassDC[];
+  /** One class DC per class the character has (REQ-MCL-022). */
+  readonly classDCs?: ClassDCEntry[];
+  /** Per spellcasting entry: class level, native/effective rank, elevation. */
+  readonly spellcastingLevels?: Record<
+    string,
+    {
+      readonly classKey: string | null;
+      readonly classLevel: number;
+      readonly nativeRank: number;
+      readonly effectiveRank: number;
+      readonly elevation: number;
+      readonly fromArchetype: boolean;
+    }
+  >;
 
   readonly strikes: DerivedStrike[];
 

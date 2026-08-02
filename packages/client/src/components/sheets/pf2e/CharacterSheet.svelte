@@ -217,6 +217,17 @@
     sendOpFn(vm.rollSkill(slug));
   }
 
+  /**
+   * Localized tradition name, used to qualify a spell DC when the server could
+   * not attribute the entry to a class (two casting classes, no `classKey`).
+   * Mirrors SpellsTab's own helper — same key space, same fallback.
+   */
+  function traditionLabel(tradition: string): string {
+    const key = `FUSION.Sheet.Spells.Tradition.${tradition}`;
+    const resolved = t(key);
+    return resolved === key ? tradition : resolved;
+  }
+
   function rollSave(name: "fortitude" | "reflex" | "will"): void {
     sendOpFn(vm.rollSave(name));
   }
@@ -677,6 +688,26 @@
         <span class="save-block__rank" aria-label="Rank: {save.rankLabel}">{save.rankLabel}</span>
       </button>
     {/each}
+
+    <!--
+      Multiclass strip: one block per class, sharing the saves row so the
+      division is always on screen without costing vertical space. Only shown
+      when there IS a division — a single-class sheet already says its class in
+      the header and would just get a redundant box.
+    -->
+    {#if vm.classLevelSummary.length > 1}
+      {#each vm.classLevelSummary as klass (klass.label)}
+        <div
+          class="save-block save-block--class"
+          role="listitem"
+          title="{klass.label} {klass.classLevel} — CD de classe {klass.dc}"
+        >
+          <span class="save-block__mod">{klass.dc}</span>
+          <span class="save-block__label">{klass.label} {klass.classLevel}</span>
+          <span class="save-block__rank">CD</span>
+        </div>
+      {/each}
+    {/if}
   </div>
 
   <!-- ---- Active Conditions ---- -->
@@ -821,14 +852,35 @@
           </div>
           <div class="stat-block">
             <span class="stat-block__value">{vm.classDC.dc}</span>
-            <span class="stat-block__label">Class DC</span>
+            <!-- With more than one class this number is the HIGHEST of them —
+                 what an effect saying "your class DC" without naming one uses.
+                 Saying so beats printing an unqualified number the player
+                 cannot reconcile with the per-class strip above. -->
+            <span class="stat-block__label">
+              {vm.classLevelSummary.length > 1
+                ? t("FUSION.Sheet.Labels.ClassDCBest")
+                : t("FUSION.Sheet.Labels.ClassDC")}
+            </span>
           </div>
-          {#if vm.spellcastingEntries.length > 0}
+          <!-- One block per casting entry, each labelled with the class that
+               owns it: a single unlabelled "Spell DC" is ambiguous the moment
+               a character casts from two classes. -->
+          {#each vm.spellcastingEntries.filter((e) => !e.isFocusPool) as entry (entry.entryId)}
             <div class="stat-block">
-              <span class="stat-block__value">{vm.spellcastingEntries[0]!.spellDC}</span>
-              <span class="stat-block__label">Spell DC</span>
+              <span class="stat-block__value">{entry.spellDC}</span>
+              <!-- Class first; tradition as the fallback qualifier. Two blocks
+                   both reading just "CD de Magia" is the confusion this
+                   replaces — and the tradition is always on the entry even
+                   when the server declined to attribute the class. -->
+              <span class="stat-block__label">
+                {entry.ownerClassLabel
+                  ? t("FUSION.Sheet.Labels.SpellDCOf", { class: entry.ownerClassLabel })
+                  : entry.tradition
+                    ? t("FUSION.Sheet.Labels.SpellDCOf", { class: traditionLabel(entry.tradition) })
+                    : t("FUSION.Sheet.Labels.SpellDC")}
+              </span>
             </div>
-          {/if}
+          {/each}
         </div>
         {#if vm.senses.length > 0}
           <div class="senses-row" aria-label="Senses">
@@ -1531,6 +1583,19 @@
     border: 1px solid var(--fusion-color-border, #3a3a5c);
     cursor: pointer;
     transition: background 0.15s;
+  }
+
+  /* Class DC blocks sit in the same row but are read-only — no pointer, no
+     hover affordance, and a left rule so the eye separates "my saves" from
+     "my classes" without a second row. */
+  .save-block--class {
+    cursor: default;
+    border-left: 3px solid var(--fusion-color-accent, #5b8dee);
+  }
+
+  .save-block--class:hover {
+    background: var(--fusion-color-surface-raised, #16213e);
+    outline: none;
   }
 
   .save-block:hover,

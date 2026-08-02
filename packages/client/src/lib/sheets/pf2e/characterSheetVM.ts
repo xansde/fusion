@@ -23,6 +23,7 @@ import type {
   DerivedStrike,
   DerivedElementalBlast,
   ArchetypeClassDC,
+  ClassDCEntry,
 } from "./derivedTypes.js";
 import type { SpellSaveType, ChatSendFlags, AbilityCard } from "@fusion/shared";
 import { t } from "../../i18n/index.js";
@@ -45,6 +46,7 @@ export type {
   DerivedStrike,
   DerivedElementalBlast,
   ArchetypeClassDC,
+  ClassDCEntry,
 };
 
 // ---------------------------------------------------------------------------
@@ -307,6 +309,19 @@ export interface SpellcastingEntryRow {
   prepared: string;
   ability: string;
   spellDC: number;
+  /**
+   * Name of the class this entry belongs to, when the server could attribute
+   * it (`derived.spellcastingLevels[entryId].classKey`). Undefined for an
+   * entry the server declined to attribute — with two casting classes and no
+   * `classKey` flag it refuses to guess, and a wrong label is worse than none.
+   */
+  ownerClassLabel?: string;
+  /** Levels in that class — what the entry's slot table is indexed by. */
+  ownerClassLevel?: number;
+  /** Rank spells from this entry are actually cast at (multiclass variant). */
+  effectiveRank?: number;
+  /** How much the variant lifted the entry above its class's native rank. */
+  rankElevation?: number;
   spellAttack: number;
   spellAttackFormatted: string;
   /** True for focus-spell entries (isFocusPool — REQ-PF2-083); grouped into the "Focus" spellTab. */
@@ -1293,6 +1308,12 @@ export class CharacterSheetVM {
         // fallback to 10/0 when derived data is absent (older doc / pre-migration).
         const derivedEntry = spellcastingDerived?.[entryId];
         const spellDC = derivedEntry?.dc ?? 10;
+        // Multiclass: who owns this entry, and at which class level. Comes
+        // from the server's own attribution — the client never re-guesses.
+        const entryLevels = this._derived?.spellcastingLevels?.[entryId];
+        const ownerClassLabel = entryLevels?.classKey
+          ? (this._derived?.classDCs ?? []).find((c) => c.classKey === entryLevels.classKey)?.label
+          : undefined;
         const spellAttack = derivedEntry?.attack ?? 0;
         // Proficiency rank (0-4, TEML) — prefer derived; fall back to the raw
         // document's system.proficiency.value (SpellcastingEntrySystemSchema).
@@ -1369,6 +1390,12 @@ export class CharacterSheetVM {
           prepared,
           ability,
           spellDC,
+          ...(ownerClassLabel !== undefined ? { ownerClassLabel } : {}),
+          ...(entryLevels?.classLevel !== undefined ? { ownerClassLevel: entryLevels.classLevel } : {}),
+          ...(entryLevels?.effectiveRank !== undefined
+            ? { effectiveRank: entryLevels.effectiveRank }
+            : {}),
+          ...(entryLevels?.elevation !== undefined ? { rankElevation: entryLevels.elevation } : {}),
           spellAttack,
           spellAttackFormatted: fmtMod(spellAttack),
           isFocusPool,
@@ -1987,6 +2014,26 @@ export class CharacterSheetVM {
    */
   get archetypeClassDCs(): ArchetypeClassDC[] {
     return this._derived?.archetypeClassDCs ?? [];
+  }
+
+  /**
+   * One class DC per class the character has (REQ-MCL-022).
+   *
+   * Single-class sheets get a one-entry array; the sheet only surfaces the
+   * per-class strip when there is more than one, so nothing changes for a
+   * character that never touched the variant.
+   */
+  get classDCs(): ClassDCEntry[] {
+    return this._derived?.classDCs ?? [];
+  }
+
+  /** Levels per class, best-first — the "Guerreiro 3 / Magus 3" strip. */
+  get classLevelSummary(): Array<{ label: string; classLevel: number; dc: number }> {
+    return this.classDCs.map((entry) => ({
+      label: entry.label,
+      classLevel: entry.classLevel,
+      dc: entry.dc,
+    }));
   }
 
   // -------------------------------------------------------------------------
