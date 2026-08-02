@@ -81,6 +81,29 @@ proficiências de arma marcial e armadura média que definem o arquétipo.
 medida aqui é o **tamanho** do buraco (12 linhas) e a confirmação de que a
 varredura não o acusa.
 
+**O impacto real é pior do que "faltam proficiências" sugere** (medido por uma
+segunda frente, independente): o Cleric tem hoje 4 linhas de progressão, e entre
+as que faltam estão duas que doem toda sessão —
+
+- **Fortitude trava em Treinado do nível 1 ao 20.** Deveria ser perito no 3
+  (Cloistered) ou já no 1 (Warpriest).
+- **A conjuração divina trava em Treinado do 1 ao 20.** Deveria chegar a perito
+  no 7, mestre no 15 e lendário no 19 (Cloistered).
+
+Consequência na mesa: **a CD de magia do clérigo fica sistematicamente baixa
+demais a vida inteira**, e ele rola Fortitude com metade do bônus esperado. Não é
+lacuna cosmética — é a classe jogando errado em todas as sessões.
+
+Os números das duas doutrinas **já estão medidos** no bloco `notes` de
+`tools/importer-pf2e/src/curation/classes/cleric.json`, sob um parágrafo
+intitulado "O QUE A DERIVACAO ATUAL NAO CONSEGUE". Nunca foram aplicados na
+integração. Quem for corrigir não precisa remedir nada.
+
+**Achado menor, mesma classe:** `attacks.other` do vendor (a arma favorita da
+divindade) não é modelada em lugar nenhum. Hoje é inofensivo (rank 1, igual a
+simples), mas vira relevante quando existir pack de divindades e a arma favorita
+for marcial ou avançada.
+
 ### P-03 — Cineticista trava no elemento do nível 1
 
 **Gravidade: alta. 1/12 classes, em 4 dos 5 eixos de decisão pós-nível-1.**
@@ -270,6 +293,29 @@ Registrado porque saber o que está certo vale tanto quanto saber o que falha:
 > falsos "defasados"**. Use `String.fromCharCode(0)`. O agente só percebeu porque
 > uma taxa de 100% defasado num pack de 2 documentos era implausível demais para
 > ser real.
+
+---
+
+## Números derivados: o que foi CONFIRMADO CERTO
+
+Contra fonte externa, não contra nós mesmos — é o antídoto do V-01.
+
+- **HP bate com as fichas pregen oficiais da Paizo em 11 das 12 classes**, nos
+  níveis 1, 3 e 5: Amiri, Lem, Seelah (incluindo o talento Toughness pego no
+  nível 3), Kyra, Valeros, Yoon, Harsk, Merisiel, Seoni, Sajan e Ezren. O Magus
+  não tem pregen oficial no pack — é lacuna de cobertura de dado, não defeito.
+- **Proficiências das 12 classes** conferidas contra o texto RAW de cada
+  class-feature do vendor. Todo "diff" inicial do parser era falso positivo dele
+  próprio (variação de fraseado, nome de exibição divergindo do slug real) e foi
+  lido à mão até confirmar. O Fighter fechou com zero divergência de primeira.
+- **CA**, **bônus de proficiência** (`rank*2 + nível`), **atributo-chave** (1:1
+  com o vendor nas 12, inclusive nas que oferecem escolha) e **perícias treinadas
+  iniciais** (`base + Int` mais as fixas): corretos.
+- **Kineticist**: a proficiência "impulse" separada, que espelha o CD de classe,
+  **não é bug** — é intencional e citada no código com a fonte
+  (Rage of Elements p.14).
+- Nenhuma outra curadoria tem nota de lacuna estrutural equivalente à do Cleric.
+  O problema de proficiência é **isolado a uma classe**, não sistêmico.
 
 ---
 
