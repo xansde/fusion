@@ -8,7 +8,8 @@
     "system.level",
     "system.category",
     "system.traits.value",
-    "flags.fusion.sourceId"
+    "flags.fusion.sourceId",
+    "system.maxTakable"
   ],
   "license": {
     "license": "ORC",

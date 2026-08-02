@@ -767,6 +767,30 @@
     };
   }
 
+  /**
+   * Rebuild the shape `isFeatAtRepeatCap` needs from an index entry (issue
+   * #57): its identity (sourceId/name) plus the repeat cap. The picker filters
+   * from the INDEX, so without `system.maxTakable` published there an
+   * exhausted feat stayed on the list and was only refused after the click.
+   *
+   * `maxTakable` is forwarded VERBATIM — `null` is a meaningful value in the
+   * pack (it means unlimited), so it must not be normalized away here.
+   */
+  function repeatCapDocFromIndex(e: {
+    name: string;
+    index: Record<string, unknown>;
+  }): Record<string, unknown> {
+    const sourceId = e.index["flags.fusion.sourceId"];
+    const system: Record<string, unknown> = {};
+    if ("system.maxTakable" in e.index) system["maxTakable"] = e.index["system.maxTakable"];
+    return {
+      name: e.name,
+      type: "feat",
+      system,
+      ...(typeof sourceId === "string" ? { flags: { fusion: { sourceId } } } : {}),
+    };
+  }
+
   function pickerConfigFor(slot: PlanSlotModel): { packSlug: string; title: string; filterFn?: (e: { name: string; index: Record<string, unknown> }) => boolean } {
     const level = slotPicker?.level ?? ctx.level;
     // Class-declared choice slots (hybridStudy, instinct, racket, huntersEdge,
@@ -818,6 +842,9 @@
       packSlug: "feats-core",
       title: t(`FUSION.Sheet.Plan.SlotLabel.${slot.type}`),
       filterFn: (e) => {
+        // Already taken as many times as it allows → off the list, instead of
+        // being listed and refused only after the click (issue #57).
+        if (isFeatAtRepeatCap(doc, repeatCapDocFromIndex(e))) return false;
         const featDoc = featDocFromIndex(e);
         return isFeatEligible(featDoc, slot.type, level, {
           ...(ctx.classSlug ? { classSlug: ctx.classSlug } : {}),

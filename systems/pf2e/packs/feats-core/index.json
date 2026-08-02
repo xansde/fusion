@@ -60,7 +60,8 @@
       "system.traits.value": [
         "fleshwarp"
       ],
-      "flags.fusion.sourceId": "zi84Xt4dTsLeJ3uD"
+      "flags.fusion.sourceId": "zi84Xt4dTsLeJ3uD",
+      "system.maxTakable": null
     }
   },
   {
@@ -1390,7 +1391,8 @@
         "archetype",
         "skill"
       ],
-      "flags.fusion.sourceId": "R7BO8br4BjCmpjit"
+      "flags.fusion.sourceId": "R7BO8br4BjCmpjit",
+      "system.maxTakable": null
     }
   },
   {
@@ -4986,7 +4988,8 @@
       "system.traits.value": [
         "bard"
       ],
-      "flags.fusion.sourceId": "a898miJnjgD93ZsX"
+      "flags.fusion.sourceId": "a898miJnjgD93ZsX",
+      "system.maxTakable": 3
     }
   },
   {
@@ -6588,7 +6591,8 @@
       "system.traits.value": [
         "champion"
       ],
-      "flags.fusion.sourceId": "zilwynzk8lIujgZo"
+      "flags.fusion.sourceId": "zilwynzk8lIujgZo",
+      "system.maxTakable": 3
     }
   },
   {
@@ -6879,7 +6883,8 @@
       "system.traits.value": [
         "cleric"
       ],
-      "flags.fusion.sourceId": "hT4INKGtly4QY8KN"
+      "flags.fusion.sourceId": "hT4INKGtly4QY8KN",
+      "system.maxTakable": null
     }
   },
   {
@@ -7919,7 +7924,8 @@
       "system.traits.value": [
         "cleric"
       ],
-      "flags.fusion.sourceId": "uR44wELN9OlU68cL"
+      "flags.fusion.sourceId": "uR44wELN9OlU68cL",
+      "system.maxTakable": null
     }
   },
   {
@@ -11709,7 +11715,8 @@
       "system.traits.value": [
         "kineticist"
       ],
-      "flags.fusion.sourceId": "mIL5Qw3mBgvNggZ0"
+      "flags.fusion.sourceId": "mIL5Qw3mBgvNggZ0",
+      "system.maxTakable": null
     }
   },
   {
@@ -12868,7 +12875,8 @@
       "system.traits.value": [
         "monk"
       ],
-      "flags.fusion.sourceId": "yA9tsWT9uzL2REnw"
+      "flags.fusion.sourceId": "yA9tsWT9uzL2REnw",
+      "system.maxTakable": null
     }
   },
   {
@@ -13670,7 +13678,8 @@
       "system.traits.value": [
         "monk"
       ],
-      "flags.fusion.sourceId": "DAFF7zJphhDPcAws"
+      "flags.fusion.sourceId": "DAFF7zJphhDPcAws",
+      "system.maxTakable": null
     }
   },
   {
@@ -13750,7 +13759,8 @@
       "system.traits.value": [
         "monk"
       ],
-      "flags.fusion.sourceId": "6GUl9WG7OKvfVQo4"
+      "flags.fusion.sourceId": "6GUl9WG7OKvfVQo4",
+      "system.maxTakable": null
     }
   },
   {
@@ -14307,7 +14317,8 @@
       "system.traits.value": [
         "monk"
       ],
-      "flags.fusion.sourceId": "10DbphslCihq8mxQ"
+      "flags.fusion.sourceId": "10DbphslCihq8mxQ",
+      "system.maxTakable": null
     }
   },
   {
@@ -14908,7 +14919,8 @@
       "system.traits.value": [
         "ranger"
       ],
-      "flags.fusion.sourceId": "iT39wlCEC1aWaSx7"
+      "flags.fusion.sourceId": "iT39wlCEC1aWaSx7",
+      "system.maxTakable": null
     }
   },
   {
@@ -15005,7 +15017,8 @@
       "system.traits.value": [
         "ranger"
       ],
-      "flags.fusion.sourceId": "W7aT1UJOVFkYdQti"
+      "flags.fusion.sourceId": "W7aT1UJOVFkYdQti",
+      "system.maxTakable": null
     }
   },
   {
@@ -15685,7 +15698,8 @@
       "system.traits.value": [
         "ranger"
       ],
-      "flags.fusion.sourceId": "it2i6OXfGIizokpg"
+      "flags.fusion.sourceId": "it2i6OXfGIizokpg",
+      "system.maxTakable": null
     }
   },
   {
@@ -15863,7 +15877,8 @@
       "system.traits.value": [
         "ranger"
       ],
-      "flags.fusion.sourceId": "BBN5G6epRWXGwZHv"
+      "flags.fusion.sourceId": "BBN5G6epRWXGwZHv",
+      "system.maxTakable": null
     }
   },
   {
@@ -20899,7 +20914,8 @@
       "system.traits.value": [
         "general"
       ],
-      "flags.fusion.sourceId": "BStw1cANwx5baL6d"
+      "flags.fusion.sourceId": "BStw1cANwx5baL6d",
+      "system.maxTakable": 3
     }
   },
   {
@@ -21121,7 +21137,8 @@
       "system.traits.value": [
         "general"
       ],
-      "flags.fusion.sourceId": "x9wxQ61HNkAVbDHr"
+      "flags.fusion.sourceId": "x9wxQ61HNkAVbDHr",
+      "system.maxTakable": null
     }
   },
   {
@@ -21444,7 +21461,8 @@
         "general",
         "skill"
       ],
-      "flags.fusion.sourceId": "BocFD2KV0qgUC76x"
+      "flags.fusion.sourceId": "BocFD2KV0qgUC76x",
+      "system.maxTakable": null
     }
   },
   {
@@ -21530,7 +21548,8 @@
         "general",
         "skill"
       ],
-      "flags.fusion.sourceId": "W6Gl9ePmItfDHji0"
+      "flags.fusion.sourceId": "W6Gl9ePmItfDHji0",
+      "system.maxTakable": null
     }
   },
   {
@@ -22155,7 +22174,8 @@
         "general",
         "skill"
       ],
-      "flags.fusion.sourceId": "P9HCz0uR6xPHuw72"
+      "flags.fusion.sourceId": "P9HCz0uR6xPHuw72",
+      "system.maxTakable": null
     }
   },
   {
@@ -22577,7 +22597,8 @@
         "general",
         "skill"
       ],
-      "flags.fusion.sourceId": "P6icK2DbRoZ3H6kc"
+      "flags.fusion.sourceId": "P6icK2DbRoZ3H6kc",
+      "system.maxTakable": null
     }
   },
   {
@@ -22765,7 +22786,8 @@
         "general",
         "skill"
       ],
-      "flags.fusion.sourceId": "4tTkRyOQ0VuRBac3"
+      "flags.fusion.sourceId": "4tTkRyOQ0VuRBac3",
+      "system.maxTakable": null
     }
   },
   {
@@ -22782,7 +22804,8 @@
         "general",
         "skill"
       ],
-      "flags.fusion.sourceId": "beyw5bdA5hkQbmaG"
+      "flags.fusion.sourceId": "beyw5bdA5hkQbmaG",
+      "system.maxTakable": null
     }
   },
   {
@@ -22958,7 +22981,8 @@
         "general",
         "skill"
       ],
-      "flags.fusion.sourceId": "H3I2X0f7v4EzwxuN"
+      "flags.fusion.sourceId": "H3I2X0f7v4EzwxuN",
+      "system.maxTakable": null
     }
   },
   {
@@ -23982,7 +24006,8 @@
         "general",
         "skill"
       ],
-      "flags.fusion.sourceId": "BV5jpSifVJsTwoO7"
+      "flags.fusion.sourceId": "BV5jpSifVJsTwoO7",
+      "system.maxTakable": null
     }
   },
   {
@@ -24347,7 +24372,8 @@
         "secret",
         "skill"
       ],
-      "flags.fusion.sourceId": "fvYwsHM9O1twQa5N"
+      "flags.fusion.sourceId": "fvYwsHM9O1twQa5N",
+      "system.maxTakable": 3
     }
   },
   {

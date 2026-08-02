@@ -263,6 +263,10 @@ const PACK_MANIFESTS = {
       "system.level",
       "system.category",
       "system.traits.value",
+      // The picker filters candidates from the INDEX, so the repeat cap has to
+      // be published here or an exhausted feat is only refused after the click
+      // (issue #57). `null` is meaningful — it means unlimited.
+      "system.maxTakable",
       "flags.fusion.sourceId",
     ],
     license: {

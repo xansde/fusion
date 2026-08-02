@@ -2959,15 +2959,23 @@ function featIdentity(featDoc: Record<string, unknown>): string | undefined {
 }
 
 /**
- * featMaxTakable — normalized repeat cap for a feat doc: `system.maxTakable`
- * when it's a number > 1, else 1 (not repeatable). Mirrors feats-core's
- * vendor convention (W2 frente 1 diagnosis): the field is present ONLY on
- * feats that may be taken more than once (e.g. "Armor Proficiency" →
- * maxTakable: 3); absent — or a non-positive/non-numeric value — means
- * "once".
+ * featMaxTakable — normalized repeat cap for a feat doc, mirroring feats-core's
+ * vendor convention. Three cases, and the middle one is easy to get wrong:
+ *
+ *   - field ABSENT → 1. The overwhelming majority; taking it twice is illegal.
+ *   - `maxTakable: null` → **unlimited**. 22 feats in the pack declare this —
+ *     Assurance, Additional Lore, Multilingual, Skill Training, Domain
+ *     Initiate, Terrain Expertise, Weapon Proficiency… — and every one of them
+ *     is legitimately taken many times, once per skill/language/domain. This
+ *     used to collapse to 1 along with every other non-number, so the second
+ *     pick was refused (issue #57).
+ *   - `maxTakable: N > 1` → N (e.g. "Armor Proficiency" → 3).
  */
 function featMaxTakable(featDoc: Record<string, unknown>): number {
-  const raw = asRecord(featDoc["system"])["maxTakable"];
+  const system = asRecord(featDoc["system"]);
+  if (!("maxTakable" in system)) return 1;
+  const raw = system["maxTakable"];
+  if (raw === null) return Number.POSITIVE_INFINITY;
   return typeof raw === "number" && raw > 1 ? raw : 1;
 }
 

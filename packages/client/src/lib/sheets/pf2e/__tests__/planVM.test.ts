@@ -5135,3 +5135,76 @@ describe("healGranterRefs / actorSpellEntries (heal input)", () => {
     });
   });
 });
+
+// ---------------------------------------------------------------------------
+// maxTakable: null means UNLIMITED, not once (issue #57)
+//
+// 22 feats in feats-core carry `system.maxTakable: null` — Assurance,
+// Additional Lore, Multilingual, Skill Training, Domain Initiate, Terrain
+// Expertise, Weapon Proficiency… All of them are legitimately taken many
+// times (one per skill / language / domain). `featMaxTakable` collapsed any
+// non-number to 1, so the second pick was refused.
+//
+// This only became visible when #57 published `system.maxTakable` to the pack
+// index: with the field in the index, the picker's filter would have HIDDEN
+// those 22 feats after the first pick.
+// ---------------------------------------------------------------------------
+
+/** "Assurance" — real feats-core skill feat with `system.maxTakable: null`. */
+function assuranceFeatDoc(): Record<string, unknown> {
+  return {
+    _id: "3yZFHMS8CTAqTHUS",
+    name: "Assurance",
+    type: "feat",
+    system: {
+      category: "skill",
+      level: 1,
+      maxTakable: null,
+      prerequisites: [{ value: "trained in at least one skill" }],
+      traits: { rarity: "common", value: ["fortune", "general", "skill"] },
+    },
+    flags: { fusion: { sourceId: "ULn3jrPHnPYyRO2H" } },
+  };
+}
+
+describe("repeat cap — maxTakable: null (issue #57)", () => {
+  it("does not cap a feat declared maxTakable: null, however many times it was taken", () => {
+    const taken = (n: number): Record<string, unknown> =>
+      baseCharacterDoc({
+        items: Array.from({ length: n }, (_, i) =>
+          embeddedFeatItem(assuranceFeatDoc(), `item-${String(i)}`, {
+            level: 2,
+            slot: `skillFeat-${String(i)}`,
+          }),
+        ),
+      });
+
+    expect(isFeatAtRepeatCap(taken(0), assuranceFeatDoc())).toBe(false);
+    expect(isFeatAtRepeatCap(taken(1), assuranceFeatDoc())).toBe(false);
+    expect(isFeatAtRepeatCap(taken(7), assuranceFeatDoc())).toBe(false);
+  });
+
+  it("still caps a feat with no maxTakable field at one", () => {
+    const doc = baseCharacterDoc({
+      items: [
+        embeddedFeatItem(acupuncturistFeatDoc(), "item-1", { level: 2, slot: "skillFeat-2" }),
+      ],
+    });
+    expect(isFeatAtRepeatCap(doc, acupuncturistFeatDoc())).toBe(true);
+  });
+
+  it("still caps a numeric maxTakable at its declared value", () => {
+    const armor = armorProficiencyFeatDoc();
+    const taken = (n: number): Record<string, unknown> =>
+      baseCharacterDoc({
+        items: Array.from({ length: n }, (_, i) =>
+          embeddedFeatItem(armor, `item-${String(i)}`, {
+            level: 3,
+            slot: `generalFeat-${String(i)}`,
+          }),
+        ),
+      });
+    expect(isFeatAtRepeatCap(taken(2), armor)).toBe(false);
+    expect(isFeatAtRepeatCap(taken(3), armor)).toBe(true);
+  });
+});
