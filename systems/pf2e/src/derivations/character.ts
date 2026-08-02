@@ -30,11 +30,13 @@ import type {
   DerivedStrike,
   ModifierBreakdown,
   ArchetypeClassDC,
+  ClassDCEntry,
 } from "./types.js";
 import { ARCHETYPE_KEY_ABILITY, ARCHETYPE_LABEL, titleCaseSlug } from "./archetypes.js";
 import { stepCharCollectEquipment } from "./equipment.js";
 import { stepCharSpellcasting } from "./spellcasting.js";
 import { stepCharSpellcastingLevels } from "./spellcastingLevels.js";
+import { resolveClassLevels, type EmbeddedClass } from "../variants/classLevels/levels.js";
 import { stepCharSpeed } from "./speed.js";
 import { stepCharToughness } from "./hp.js";
 import { stepCharElementalBlasts } from "./elementalBlast.js";
@@ -541,6 +543,87 @@ export const stepCharClassDC: DeriveStep = {
     };
   },
 };
+
+// ---------------------------------------------------------------------------
+// STEP 8a2 (derived phase): per-class Class DCs (REQ-MCL-022)
+// ---------------------------------------------------------------------------
+
+/**
+ * Derive one class DC PER CLASS the character has.
+ *
+ * Each is ranked at its OWN class level, and keyed off that class's own key
+ * ability — a Fighter 3 / Magus 3 has a STR-based fighter DC and an INT-based
+ * magus DC, and they are different numbers. `derived.classDC` keeps holding
+ * the best of them (that is what an unqualified "your class DC" means), so
+ * nothing downstream changes; this step ADDS the breakdown the sheet needs to
+ * stop showing one unlabelled number.
+ *
+ * With a single class the array has one entry equal to `derived.classDC` —
+ * the RAW case is unchanged (REQ-MCL-202).
+ *
+ * Reads:  system.derived.abilityMods, system.derived.classLevels, system.level,
+ *         doc.items (class items)
+ * Writes: system.derived.classDCs
+ */
+export const stepCharClassDCsByClass: DeriveStep = {
+  id: "pf2e.character.derived.classDCsByClass",
+  documentType: "Actor",
+  subtypes: ["character"],
+  phase: "derived",
+  reads: ["system.derived.abilityMods", "system.level", "system.build"],
+  writes: ["system.derived.classDCs"],
+
+  run(doc) {
+    const sys = getCharSystem(doc);
+    const derived = getDerived(doc);
+    const abilityMods = derived["abilityMods"] as Record<string, number> | undefined;
+    const characterLevel = getLevel(sys);
+    const levels = resolveClassLevels(doc, characterLevel);
+    if (levels.classes.size === 0) return;
+
+    // The player's key-ability pick applies to the FIRST class only; every
+    // other class uses its own declared key ability (REQ-MCL-031).
+    const classBoostPick = sys.build?.abilities?.classBoost?.[0];
+
+    const entries: ClassDCEntry[] = [];
+    for (const [key, entry] of levels.classes) {
+      const classLevel = levels.ctx.classLevels[key] ?? 0;
+      if (classLevel <= 0) continue;
+
+      const isFirst = key === levels.firstClass;
+      const ability =
+        (isFirst ? classBoostPick : undefined) ?? entry.system.keyAbility?.[0] ?? "str";
+      const rank = effectiveClassDcRank(entry, classLevel);
+      const total = (abilityMods?.[ability] ?? 0) + proficiencyBonus(rank, characterLevel);
+
+      entries.push({
+        classKey: key,
+        label: entry.nameLocalized ?? entry.name,
+        classLevel,
+        ability,
+        rank,
+        total,
+        dc: 10 + total,
+      });
+    }
+
+    // Highest first: the sheet reads top-down and the best DC is the one an
+    // unqualified effect uses.
+    entries.sort((a, b) => b.dc - a.dc || a.label.localeCompare(b.label));
+    derived["classDCs"] = entries;
+  },
+};
+
+/** Class-DC rank for a class at its own class level, applying its upgrades. */
+function effectiveClassDcRank(entry: EmbeddedClass, classLevel: number): number {
+  let rank = entry.system.classDC ?? 0;
+  for (const upgrade of entry.system.proficiencyUpgrades ?? []) {
+    if (upgrade.stat === "classDC" && upgrade.level <= classLevel && upgrade.rank > rank) {
+      rank = upgrade.rank;
+    }
+  }
+  return rank;
+}
 
 // ---------------------------------------------------------------------------
 // STEP 8b (derived phase): Archetype (dedication) class DCs
@@ -1067,6 +1150,7 @@ export const CHARACTER_DERIVE_STEPS: DeriveStep[] = [
   stepCharStrikes,
   stepCharSpellcasting,
   stepCharSpellcastingLevels,
+  stepCharClassDCsByClass,
   stepCharSpeed,
   stepCharElementalBlasts,
 ];

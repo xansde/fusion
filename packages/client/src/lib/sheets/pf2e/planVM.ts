@@ -418,7 +418,9 @@ export type PlanSlotType =
   | "skillTraining"
   | "skillIncrease"
   | "grantedFeat"
-  | "adoptedAncestryChoice";
+  | "adoptedAncestryChoice"
+  /** Which class received this character level — multiclass variant (specs/30). */
+  | "classLevel";
 
 export interface PlanSlotModel {
   slotId: string;
@@ -524,7 +526,212 @@ const SLOT_TYPE_LABELS: Record<PlanSlotType, string> = {
   skillIncrease: "Skill Increase",
   grantedFeat: "Granted Feat",
   adoptedAncestryChoice: "Adopted Ancestry",
+  classLevel: "Class Level",
 };
+
+// ---------------------------------------------------------------------------
+// Multiclass by class levels — the variant's Plan surface (specs/30)
+// ---------------------------------------------------------------------------
+
+/** Is the class-levels variant on for this actor? */
+export function getClassLevelsVariant(sys: Record<string, unknown>): boolean {
+  const build = asRecord(sys["build"]);
+  const variantRules = asRecord(build["variantRules"]);
+  return variantRules["classLevels"] === true;
+}
+
+/** A class the character already has on the sheet. */
+export interface SheetClassOption {
+  /** Stable identity — `flags.fusion.sourceId`, never the name. */
+  sourceId: string;
+  name: string;
+  itemId: string | undefined;
+}
+
+/** Every embedded `type: 'class'` item, in sheet order. */
+export function classesOnSheet(doc: Record<string, unknown>): SheetClassOption[] {
+  const out: SheetClassOption[] = [];
+  const seen = new Set<string>();
+  for (const item of getItems(doc)) {
+    if (item["type"] !== "class") continue;
+    const fusion = asRecord(asRecord(item["flags"])["fusion"]);
+    const sourceId = typeof fusion["sourceId"] === "string" ? fusion["sourceId"] : undefined;
+    const itemId = typeof item["_id"] === "string" ? item["_id"] : undefined;
+    const key = sourceId ?? itemId;
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push({ sourceId: key, name: itemName(item) ?? "", itemId });
+  }
+  return out;
+}
+
+/**
+ * Can a BRAND NEW class be taken at this character level?
+ *
+ * House rule of this table: a new class enters only at level 1 (the first
+ * class) or at an EVEN level — the same cadence as the class feat, so picking
+ * up a class costs the level where the class would have paid you a feat.
+ * Odd levels must continue a class the character already has.
+ *
+ * Deliberately a pure function of the level: it is a rule, not a lookup, and
+ * the Plan, the picker and the op builder all have to agree on it.
+ */
+export function canTakeNewClassAt(level: number): boolean {
+  return level === 1 || level % 2 === 0;
+}
+
+/**
+ * The classes offerable at `level`: everything when a new class may enter,
+ * only the ones already on the sheet otherwise.
+ *
+ * Returns `null` for "no restriction" (any class from the compendium is
+ * allowed); an array restricts the picker to those sourceIds.
+ */
+export function classOptionsAt(
+  doc: Record<string, unknown>,
+  level: number,
+): SheetClassOption[] | null {
+  if (canTakeNewClassAt(level)) return null;
+  return classesOnSheet(doc);
+}
+
+/** The `classLevel` choice recorded for a character level, if any. */
+function classLevelChoiceAt(choices: BuildChoice[], level: number): BuildChoice | undefined {
+  return choices.find((c) => c.type === "classLevel" && c.level === level);
+}
+
+/**
+ * Resolve a choice's `ref` to a class on the sheet.
+ *
+ * `ref` may be the bare sourceId (what `chooseClassLevel` writes) or a full
+ * compendium uuid ending in it (what an import or a hand-authored sheet may
+ * carry). The SERVER already matches tolerantly — `resolveClassLevels` in
+ * systems/pf2e uses `ref.includes(key)` — so the client has to as well, or the
+ * same sheet reads as "Guerreiro 1" on one side and as a raw uuid on the
+ * other.
+ */
+export function resolveClassRef(
+  ref: string | undefined,
+  sheetClasses: SheetClassOption[],
+): SheetClassOption | undefined {
+  if (!ref) return undefined;
+  return (
+    sheetClasses.find((c) => c.sourceId === ref) ??
+    sheetClasses.find((c) => ref.includes(c.sourceId)) ??
+    sheetClasses.find((c) => c.itemId !== undefined && ref.includes(c.itemId))
+  );
+}
+
+/**
+ * How many levels the character has in each class, counting only up to
+ * `upTo` — the running tally the Plan shows as "Guerreiro 3".
+ */
+export function classLevelTally(
+  choices: BuildChoice[],
+  upTo: number,
+  sheetClasses: SheetClassOption[] = [],
+): Map<string, number> {
+  const tally = new Map<string, number>();
+  for (let lvl = 1; lvl <= upTo; lvl++) {
+    const choice = classLevelChoiceAt(choices, lvl);
+    const ref = choice?.ref;
+    if (!ref) continue;
+    // Normalize to the sheet's own identity so a uuid ref and a bare sourceId
+    // ref for the SAME class count as one class, not two.
+    const key = resolveClassRef(ref, sheetClasses)?.sourceId ?? ref;
+    tally.set(key, (tally.get(key) ?? 0) + 1);
+  }
+  return tally;
+}
+
+/** The build choices recorded on a document (convenience for callers holding a doc). */
+export function buildChoicesOf(doc: Record<string, unknown>): BuildChoice[] {
+  return getBuildChoices(getSystem(doc));
+}
+
+/** The class that bought a character level, plus that class's own level there. */
+export interface ClassLevelOwner {
+  sourceId: string;
+  name: string;
+  system: ClassSystemLike;
+  /** Nth level IN that class — what its features and feats are indexed by. */
+  classLevel: number;
+}
+
+/**
+ * Which class bought `level`, and its class level there.
+ *
+ * Returns undefined when no class is assigned to the level yet — the caller
+ * falls back to the sheet's primary class so an unfilled level still shows a
+ * plausible plan instead of going blank.
+ */
+export function classOwnerAt(
+  doc: Record<string, unknown>,
+  choices: BuildChoice[],
+  level: number,
+): ClassLevelOwner | undefined {
+  const choice = classLevelChoiceAt(choices, level);
+  if (!choice?.ref) return undefined;
+  const sheetClasses = classesOnSheet(doc);
+  const resolved = resolveClassRef(choice.ref, sheetClasses);
+  if (!resolved) return undefined;
+
+  const item = getItems(doc).find((it) => {
+    if (it["type"] !== "class") return false;
+    const fusion = asRecord(asRecord(it["flags"])["fusion"]);
+    const sourceId = typeof fusion["sourceId"] === "string" ? fusion["sourceId"] : undefined;
+    return (sourceId ?? it["_id"]) === resolved.sourceId;
+  });
+  if (!item) return undefined;
+
+  const classLevel = classLevelTally(choices, level, sheetClasses).get(resolved.sourceId) ?? 1;
+  return {
+    sourceId: resolved.sourceId,
+    name: resolved.name,
+    system: asRecord(item["system"]) as unknown as ClassSystemLike,
+    classLevel,
+  };
+}
+
+/**
+ * The "Nível de classe" slot for one character level.
+ *
+ * Label carries the running class level ("Guerreiro 3") because that number —
+ * not the character level — is what gates this class's features and feats.
+ */
+function resolveClassLevelSlot(
+  level: number,
+  choices: BuildChoice[],
+  doc: Record<string, unknown>,
+): PlanSlotModel {
+  const slotId = `classLevel-${String(level)}`;
+  const choice = classLevelChoiceAt(choices, level);
+  const sheetClasses = classesOnSheet(doc);
+  const chosen = resolveClassRef(choice?.ref, sheetClasses);
+
+  if (!choice?.ref) {
+    return {
+      slotId,
+      type: "classLevel",
+      label: SLOT_TYPE_LABELS.classLevel,
+      filled: false,
+    };
+  }
+
+  const tally = classLevelTally(choices, level, sheetClasses);
+  const classLevel = tally.get(chosen?.sourceId ?? choice.ref) ?? 1;
+  // Falling back to the raw ref would print a uuid at the player; when the
+  // class cannot be resolved the slot says so instead of pretending.
+  const name = chosen?.name ?? "?";
+
+  return {
+    slotId,
+    type: "classLevel",
+    label: SLOT_TYPE_LABELS.classLevel,
+    filled: true,
+    choiceName: `${name} ${String(classLevel)}`,
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Class-declared CHOICE slots (r19-W2b — end of the Magus/hybridStudy hardcode)
@@ -1001,7 +1208,27 @@ function buildLevelPlan(
   charLevel: number,
 ): LevelPlanModel {
   const slots: PlanSlotModel[] = [];
-  const featLevels = classSystem.featLevels ?? {};
+
+  // Multiclass variant: FIRST slot of every level is "which class bought it".
+  // It comes first because every other slot in the level is downstream of the
+  // answer — the class decides which features and feats this level offers.
+  const variantOn = getClassLevelsVariant(getSystem(doc));
+  if (variantOn) {
+    slots.push(resolveClassLevelSlot(level, choices, doc));
+  }
+
+  // Under the variant, the CLASS side of this level (features, class-choice
+  // slots, class feat) belongs to whichever class bought the level, read at
+  // ITS OWN class level — taking the 1st level of Magus at character level 3
+  // grants Magus's level-1 package, not Magus's level-3 one.
+  //
+  // The CHARACTER side (ancestry/general/skill feats, ability boosts, skill
+  // increases) is deliberately NOT rerouted: that cadence follows the
+  // character level and does not change with the split (REQ-MCL-042).
+  const levelOwner = variantOn ? classOwnerAt(doc, choices, level) : undefined;
+  const classSource = levelOwner?.system ?? classSystem;
+  const classSourceLevel = levelOwner?.classLevel ?? level;
+  const featLevels = classSource.featLevels ?? {};
 
   // Level 1: 4 ability boosts (fixed PF2e Remaster rule).
   if (level === 1) {
@@ -1014,7 +1241,7 @@ function buildLevelPlan(
   // it declares a "Hybrid Study" placeholder, the kineticGate slot ONLY when it
   // declares "Kinetic Gate", etc. Emitted at whatever level the placeholder is
   // declared (both are level 1 in the current packs, but this is level-agnostic).
-  for (const choiceType of classChoiceSlotsAtLevel(classSystem, level)) {
+  for (const choiceType of classChoiceSlotsAtLevel(classSource, classSourceLevel)) {
     const choiceSlot = resolveSlot(
       choiceType,
       `${choiceType}-${String(level)}`,
@@ -1054,7 +1281,14 @@ function buildLevelPlan(
       items,
     );
   }
-  if ((featLevels.class ?? []).includes(level)) {
+  // Class feat: the CADENCE stays on the character level (a class feat at 1
+  // and on every even level — REQ-MCL-040), because rerouting it to the class
+  // level would hand out an extra feat every time a new class enters. What the
+  // class of this level decides is WHICH feats are offerable, not how many.
+  const classFeatHere = variantOn
+    ? level === 1 || level % 2 === 0
+    : (featLevels.class ?? []).includes(level);
+  if (classFeatHere) {
     pushFeatSlotWithGrant(slots, "classFeat", `classFeat-${String(level)}`, level, choices, items);
   }
   if ((featLevels.general ?? []).includes(level)) {
@@ -1118,8 +1352,8 @@ function buildLevelPlan(
   // duplicate chip (a duplicate would also collide on the render key).
   const autoFeatures: AutoFeatureModel[] = [];
   const autoSeen = new Set<string>();
-  for (const f of classSystem.featuresByLevel ?? []) {
-    if (f.level !== level || isChoiceFeature(f)) continue;
+  for (const f of classSource.featuresByLevel ?? []) {
+    if (f.level !== classSourceLevel || isChoiceFeature(f)) continue;
     const norm = normalizeName(f.name);
     if (autoSeen.has(norm)) continue;
     autoSeen.add(norm);
@@ -3955,6 +4189,129 @@ export function setFreeArchetype(ctx: PlanOpBuilderContext, on: boolean): DocUpd
     id: ctx.actorId,
     diff: { "system.build.freeArchetype": on },
   };
+}
+
+/**
+ * setClassLevelsVariant — turn the multiclass-by-class-levels variant on/off
+ * (specs/30 REQ-MCL-001, REQ-MCL-004).
+ *
+ * Turning it ON seeds the split with "every level so far in the class that is
+ * already on the sheet" (REQ-MCL-003): an existing character must keep
+ * deriving exactly what it derived before, and an empty split would read as
+ * "no class bought any level".
+ *
+ * Turning it OFF leaves the `classLevel` choices in place rather than deleting
+ * them — the server ignores them entirely while the toggle is false, and
+ * keeping them means flipping the switch back does not lose the plan.
+ */
+export function setClassLevelsVariant(
+  ctx: PlanOpBuilderContext,
+  on: boolean,
+): DocUpdatePayload | null {
+  if (!ctx.editable) return null;
+
+  const diff: Record<string, unknown> = { "system.build.variantRules.classLevels": on };
+
+  if (on) {
+    const sys = getSystem(ctx.doc);
+    const choices = getBuildChoices(sys);
+    const alreadySplit = choices.some((c) => c.type === "classLevel");
+    const primary = classesOnSheet(ctx.doc)[0];
+    if (!alreadySplit && primary) {
+      const level = getLevel(ctx.doc);
+      const seeded: BuildChoice[] = [];
+      for (let lvl = 1; lvl <= level; lvl++) {
+        seeded.push({
+          level: lvl,
+          slot: `classLevel-${String(lvl)}`,
+          type: "classLevel",
+          ref: primary.sourceId,
+        });
+      }
+      diff["system.build.choices"] = [...choices, ...seeded];
+    }
+  }
+
+  return { type: "doc:update", documentType: "Actor", id: ctx.actorId, diff };
+}
+
+/**
+ * chooseClassLevel — assign a character level to a class.
+ *
+ * Two things can happen:
+ *   - the class is already on the sheet → only the choice is recorded;
+ *   - the class is NEW → its `type: 'class'` item is materialized too, so the
+ *     server sees one item per distinct class (REQ-MCL-011) and can derive
+ *     proficiencies, HP and spell slots from it.
+ *
+ * The new-class case is gated by the table's rule (`canTakeNewClassAt`): a new
+ * class enters at level 1 or at an even level. The gate lives here as well as
+ * in the picker because an op builder that trusts the UI to have filtered
+ * correctly is one bug away from writing an illegal build.
+ */
+export function chooseClassLevel(
+  ctx: PlanOpBuilderContext,
+  level: number,
+  classDoc: Record<string, unknown>,
+): DocOpPayload[] {
+  if (!ctx.editable) return [];
+
+  const fusion = asRecord(asRecord(classDoc["flags"])["fusion"]);
+  const sourceId = typeof fusion["sourceId"] === "string" ? fusion["sourceId"] : undefined;
+  if (!sourceId) return [];
+
+  const sheetClasses = classesOnSheet(ctx.doc);
+  const isNew = !sheetClasses.some((c) => c.sourceId === sourceId);
+  if (isNew && !canTakeNewClassAt(level)) return [];
+
+  // Idempotence guard: the class may already be on the sheet even though this
+  // snapshot of `ctx.doc` does not show it — two picks in quick succession
+  // share the same stale doc, and the second one would create a SECOND item
+  // for a class the character already has. Seen live: a duplicated Cleric.
+  const alreadyRecorded = getBuildChoices(getSystem(ctx.doc)).some(
+    (c) => c.type === "classLevel" && c.ref !== undefined && c.ref.includes(sourceId),
+  );
+  const shouldCreateItem = isNew && !alreadyRecorded;
+
+  const ops: DocOpPayload[] = [];
+  const slotId = `classLevel-${String(level)}`;
+
+  if (shouldCreateItem) {
+    // A second class item — NOT a replacement. `applyClass` would swap the
+    // existing class out (that is its job, for re-picking a single class);
+    // here both classes must coexist.
+    ops.push({
+      type: "doc:create",
+      documentType: "Item",
+      data: embeddedItemPayload(classDoc, { level, slot: `class:${sourceId}` }),
+      parent: { type: "Actor", id: ctx.actorId },
+    } satisfies DocCreateEmbeddedPayload);
+
+    // Its spellcasting entry, when the class casts and its tradition is fixed.
+    // `classKey` is what lets the server attribute the entry to THIS class —
+    // with two casting classes and no flag it refuses to guess.
+    const classSystem = asRecord(classDoc["system"]) as unknown as ClassSystemLike;
+    const spellcasting = classSystem.spellcasting;
+    if (spellcasting?.tradition) {
+      const entryOp = buildSpellcastingEntryOp(ctx, spellcasting, spellcasting.tradition, level);
+      const data = asRecord(entryOp.data);
+      const flags = asRecord(data["flags"]);
+      const fusionFlags = asRecord(flags["fusion"]);
+      data["flags"] = { ...flags, fusion: { ...fusionFlags, classKey: sourceId } };
+      ops.push(entryOp);
+    }
+  }
+
+  const existingChoices = getBuildChoices(getSystem(ctx.doc)).filter((c) => c.slot !== slotId);
+  const newChoice: BuildChoice = { level, slot: slotId, type: "classLevel", ref: sourceId };
+  ops.push({
+    type: "doc:update",
+    documentType: "Actor",
+    id: ctx.actorId,
+    diff: { "system.build.choices": [...existingChoices, newChoice] },
+  } satisfies DocUpdatePayload);
+
+  return ops;
 }
 
 /**
