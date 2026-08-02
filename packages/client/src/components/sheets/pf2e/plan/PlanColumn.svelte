@@ -135,6 +135,13 @@
     "ancestries-core",
     "heritages-core",
     "backgrounds-core",
+    // A3 (r21 achados-do-usuario): the CLASS ABC card shares abcNameParts()
+    // with ancestry/heritage/background, but the "classes-core" pack was
+    // never in this list — class names rendered raw EN (e.g. "Barbarian")
+    // even though systems/pf2e/packs/classes-core/i18n.pt-BR.json has the
+    // pt-BR translations. Must load before "class-features-core" is fine
+    // (different pack, no name collisions expected with class FEATURES).
+    "classes-core",
     // r20-X5: materialized ancestry FEATURES (Sharp Teeth, Unusual Anatomy…)
     // need their pt-BR chip labels too, else the chip renders raw EN. Placed
     // BEFORE spells-core because the translator is first-wins and the SPELL

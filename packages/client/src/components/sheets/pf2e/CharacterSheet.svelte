@@ -901,17 +901,17 @@
       class="tab-panel tab-panel--actions"
     >
       {#if vm.strikes.length > 0}
-        <h3 class="section-header">Strikes</h3>
-        <ul class="strike-list" aria-label="Strikes">
+        <h3 class="section-header">{t("FUSION.Sheet.Actions.Strikes.Header")}</h3>
+        <ul class="strike-list" aria-label={t("FUSION.Sheet.Actions.Strikes.Header")}>
           {#each vm.strikes as strike (strike.sourceId)}
             <li class="strike-row">
               <div class="strike-row__header">
                 <span class="strike-row__name">{strike.label}</span>
                 {#if strike.isRanged}
-                  <span class="trait-badge">ranged</span>
+                  <span class="trait-badge">{t("FUSION.Sheet.Actions.Strikes.Ranged")}</span>
                 {/if}
                 {#if strike.isAgile}
-                  <span class="trait-badge">agile</span>
+                  <span class="trait-badge">{t("FUSION.Sheet.Actions.Strikes.Agile")}</span>
                 {/if}
               </div>
               <div class="strike-row__variants" role="group" aria-label="Attack rolls for {strike.label}">
@@ -931,7 +931,7 @@
                     onclick={() => rollStrikeDamage(strike.sourceId, false)}
                     aria-label="Roll {strike.label} damage"
                   >
-                    <span class="map-btn__label">Damage</span>
+                    <span class="map-btn__label">{t("FUSION.Sheet.Actions.Strikes.DamageLabel")}</span>
                   </button>
                 {/if}
                 {#if vm.rollStrikeDamage(strike.sourceId, true)}
@@ -940,13 +940,13 @@
                     onclick={() => rollStrikeDamage(strike.sourceId, true)}
                     aria-label="Roll {strike.label} critical damage"
                   >
-                    <span class="map-btn__label">Crit</span>
+                    <span class="map-btn__label">{t("FUSION.Sheet.Actions.Strikes.CritLabel")}</span>
                   </button>
                 {/if}
               </div>
               <div class="strike-row__damage">
                 <!-- damageFormula already ends with the damage type word -->
-                Damage: <span class="damage-formula">{strike.damageFormula}</span>
+                {t("FUSION.Sheet.Actions.Strikes.DamagePrefix")} <span class="damage-formula">{strike.damageFormula}</span>
               </div>
               {#if strike.traits.length > 0}
                 <div class="strike-row__traits">
@@ -959,7 +959,7 @@
           {/each}
         </ul>
       {:else}
-        <p class="empty-state">No strikes available. Equip a weapon.</p>
+        <p class="empty-state">{t("FUSION.Sheet.Actions.Strikes.Empty")}</p>
       {/if}
 
       {#if vm.elementalBlasts.length > 0}
@@ -972,7 +972,7 @@
                 {#if blast.isRanged && blast.range !== null}
                   <span class="trait-badge">{t("FUSION.Sheet.Blasts.RangeFeet", { range: String(blast.range) })}</span>
                 {/if}
-                <span class="trait-badge">impulse</span>
+                <span class="trait-badge">{t("FUSION.Sheet.Actions.Impulse")}</span>
               </div>
               <div class="strike-row__variants" role="group" aria-label="Attack rolls for {blast.label}">
                 {#each blast.variants as variant, i}
@@ -990,7 +990,7 @@
                   onclick={() => rollBlastDamage(blast.element, false)}
                   aria-label="Roll {blast.label} damage"
                 >
-                  <span class="map-btn__label">Damage</span>
+                  <span class="map-btn__label">{t("FUSION.Sheet.Actions.Strikes.DamageLabel")}</span>
                 </button>
                 {#if blast.twoActionDamageBonus !== 0}
                   <button
@@ -1003,7 +1003,7 @@
                 {/if}
               </div>
               <div class="strike-row__damage">
-                Damage: <span class="damage-formula">{blast.damageFormula}</span>
+                {t("FUSION.Sheet.Actions.Strikes.DamagePrefix")} <span class="damage-formula">{blast.damageFormula}</span>
               </div>
             </li>
           {/each}
