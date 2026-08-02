@@ -101,3 +101,42 @@ describe("construirGrafo — marcação de ambiguidade (issue #44)", () => {
     assert.equal(totalAmbiguas, 61);
   });
 });
+
+/**
+ * issue #26: 4 Monk prerequisites named something no pack document carries —
+ * "Inner Upheaval" (a focus SPELL name, not the feat that grants qi spells),
+ * "Stunning fist" (case-mismatched typo of no real doc), "Wholeness of Body"
+ * (no equivalent in any pack, genuinely un-fixable). The first two are
+ * reconciled by monk.json's `prerequisiteFixes` (applied by
+ * applyPrerequisiteFixes before feats-core is written) — this suite proves
+ * the reconciled text now resolves as a real edge in the committed pack, and
+ * that the un-fixable one is STILL unresolved (not silently dropped).
+ */
+describe("construirGrafo — Monk prerequisite name reconciliation (issue #26)", () => {
+  const monk = grafo.classes["Monk"];
+
+  function incomingRotulos(featName) {
+    const no = monk.nos.find((n) => n.nome === featName);
+    assert.ok(no, `nó "${featName}" deve existir no universo do Monk`);
+    return monk.arestas.filter((a) => a.para === no.id).map((a) => a.rotulo);
+  }
+
+  it("Elemental Fist resolve para 'Qi Spells' (não mais 'Inner Upheaval')", () => {
+    assert.deepEqual(incomingRotulos("Elemental Fist"), ["Qi Spells"]);
+  });
+
+  it("Ki Cutting Sight resolve para 'Qi Spells' (não mais 'Inner Upheaval')", () => {
+    assert.deepEqual(incomingRotulos("Ki Cutting Sight"), ["Qi Spells"]);
+  });
+
+  it("Vitality-Manipulating Stance resolve para 'Stunning Blows' (não mais 'Stunning fist')", () => {
+    assert.deepEqual(incomingRotulos("Vitality-Manipulating Stance"), ["Stunning Blows"]);
+  });
+
+  it("Endurance of the Rooted Tree PERMANECE não-resolvido ('Wholeness of Body' não tem alvo no vendor)", () => {
+    assert.deepEqual(incomingRotulos("Endurance of the Rooted Tree"), []);
+    const entrada = monk.naoResolvidos.find((n) => n.nome === "Endurance of the Rooted Tree");
+    assert.ok(entrada, "deve aparecer em naoResolvidos, não desaparecer silenciosamente");
+    assert.equal(entrada.requisito, "Wholeness of Body");
+  });
+});

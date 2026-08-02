@@ -76181,7 +76181,7 @@
       "level": 2,
       "prerequisites": [
         {
-          "value": "Inner Upheaval"
+          "value": "Qi Spells"
         }
       ],
       "publication": {
@@ -77041,7 +77041,7 @@
       "level": 20,
       "prerequisites": [
         {
-          "value": "Stunning fist"
+          "value": "Stunning Blows"
         }
       ],
       "publication": {
@@ -78418,7 +78418,7 @@
       "level": 6,
       "prerequisites": [
         {
-          "value": "Inner Upheaval"
+          "value": "Qi Spells"
         }
       ],
       "publication": {

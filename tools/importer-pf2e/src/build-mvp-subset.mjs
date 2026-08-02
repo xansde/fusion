@@ -45,6 +45,8 @@ import { fileURLToPath } from "node:url";
 // escrito à mão aqui. Ver curation/index.mjs e .fusion-build/r21-plan.md.
 import { acharDuplicatas, formatarErroDeDuplicata } from "./curation/duplicata.mjs";
 import {
+  applyPrerequisiteFixes,
+  assertAllPrerequisiteFixesApplied,
   axisCategoryByOtherTag,
   curatedClassDisplayNames,
   curatedClassFeatureNames,
@@ -1354,6 +1356,7 @@ async function buildPf2eSubset() {
   }
 
   // --- 6. Class features core (R10-B, DEC-R10-06 item 2) ---
+  let touchedFixesInClassFeatures;
   {
     console.log("[build-mvp] === Pack: class-features-core ===");
     const all = loadTransformed("class-features");
@@ -1364,6 +1367,11 @@ async function buildPf2eSubset() {
     console.log(
       `[build-mvp] class-features-core: ${docs.length} features selecionadas (items{} map + hybrid studies) de ${all.length} totais`,
     );
+    // issues #26/#28/#30/#46: reconcile prerequisite text (legacy names,
+    // vendor typos, AND-that-should-be-OR) DECLARED per-class in curation/
+    // classes/*.json, never hand-patched into documents.json. See
+    // applyPrerequisiteFixes's own doc comment.
+    touchedFixesInClassFeatures = applyPrerequisiteFixes(docs);
 
     const manifest = PACK_MANIFESTS["class-features-core"];
     writePack("class-features-core", docs, manifest);
@@ -1388,6 +1396,12 @@ async function buildPf2eSubset() {
     console.log(
       `[build-mvp] feats-core: ${docs.length} feats selecionados de ${all.length} totais`,
     );
+    // issues #26/#28/#30/#46 — see the class-features-core block above.
+    const touchedFixesInFeats = applyPrerequisiteFixes(docs);
+    // A fix declared for a feat neither pack contains is a stale fix (typo'd
+    // featName, or the vendor renamed/removed the target) — fail loudly
+    // instead of silently doing nothing (see the function's own doc comment).
+    assertAllPrerequisiteFixesApplied([touchedFixesInClassFeatures, touchedFixesInFeats]);
 
     const manifest = PACK_MANIFESTS["feats-core"];
     writePack("feats-core", docs, manifest);
