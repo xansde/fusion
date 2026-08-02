@@ -17,13 +17,14 @@
    * so a shared class-features-core document's divergent static level
    * (issue #58) doesn't leak into the panel.
    *
-   * Why resolve by NAME and not uuid: the chips come from the class item's
-   * `featuresByLevel[].uuid`, which is a bare Foundry id (e.g.
-   * "xvC1jNDkNdNtZQiF"), NOT a "Compendium.<pack>.Item.<id>" uuid, so it
-   * cannot feed compendium:get. Filled slots only know the embedded item's
-   * name, and that item's own description may be empty (pre-r11 imports).
-   * Name resolution against the pack (which always has the r11 ORC/OGL
-   * description) is the one path that works for every case.
+   * Resolution PREFERS an exact id match over name (issue #44 — a
+   * document's identity is its id, never its name; PF2e homonyms are the
+   * norm, e.g. "Unusual Anatomy" exists as both a spell and an ancestry
+   * feature with distinct ids). `request.docId`/`request.sourceId`, when the
+   * caller knows them, are matched against the pack index's own `_id` /
+   * `flags.fusion.sourceId` (`resolveDetailsEntryUuid`); name matching
+   * (`findEntryUuidByName`) is the fallback for the residual cases with no id
+   * at all — a choice-backed slot with no embedded item, or homebrew data.
    *
    * SOCKET: resolved LIVE via getSocket() per operation — never held as a
    * prop (frozen-socket rationale — see SpellPickerDialog.svelte docstring).
@@ -37,7 +38,7 @@
     requireConnectedSocket,
   } from "../../../../lib/compendium/compendiumApi.js";
   import { DocumentDetailsCache } from "../../../../lib/compendium/documentDetails.js";
-  import { findEntryUuidByName, type PlanDetailsRequest } from "../../../../lib/sheets/pf2e/planVM.js";
+  import { resolveDetailsEntryUuid, type PlanDetailsRequest } from "../../../../lib/sheets/pf2e/planVM.js";
   import DocumentDetailsPanel from "../DocumentDetailsPanel.svelte";
   import { session, getSocket } from "../../../../lib/session.svelte.js";
   import { t, i18n } from "../../../../lib/i18n/i18n.js";
@@ -97,7 +98,7 @@
         return;
       }
       const { entries } = await searchPack(sock, { packId: pack.id });
-      const uuid = findEntryUuidByName(entries as PackIndexEntry[], request.name);
+      const uuid = resolveDetailsEntryUuid(entries as PackIndexEntry[], request);
       if (!uuid) {
         errorKind = "not-found";
         return;
