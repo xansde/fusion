@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "packId": "pf2e.classes-core",
   "locale": "pt-BR",
-  "generatedAt": "2026-08-02T01:04:59.142Z",
+  "generatedAt": "2026-08-02T03:59:58.311Z",
   "generator": "tools/translate-packs@0.1.0",
   "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
   "entries": {
@@ -16,6 +16,16 @@
       "sourceHash": "c0b1f498bd0914f2e03482838153c6a1e0726b65",
       "description": "<p><em>Alguns patrulheiros acreditam que a civilização corrói a alma, mas ainda assim precisa ser protegida de criaturas selvagens. Outros dizem que a natureza precisa ser protegida dos gananciosos, que desejam domar sua beleza e saquear seus tesouros. Você pode defender qualquer um dos objetivos, ou os dois. Você pode ser um batedor, rastreador ou caçador de fugitivos ou feras, rondando os limites da civilização ou explorando terras selvagens. Você sabe como viver da terra e é habilidoso em localizar e derrubar tanto presas oportunas quanto inimigos odiados.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.gdEmPPRYhRai7I1N]{Patrulheiro}</em></p>"
     },
+    "6GhN5PnstY0pPOCL": {
+      "name": "Monge",
+      "sourceHash": "efba402c7025ab105ff912579d360d560637d4ae",
+      "description": ""
+    },
+    "Gj4x9YABawAwNRrp": {
+      "name": "Feiticeiro",
+      "sourceHash": "fb87cb5a0792014d4c810d831eff12e3ea8d6b3e",
+      "description": ""
+    },
     "GpVXOuB995Kz1fHI": {
       "name": "Bárbaro",
       "sourceHash": "657aeb5a40adeabcf04ad99ef77e0aa41eff02df",
@@ -25,6 +35,21 @@
       "name": "Mago",
       "sourceHash": "32da0050074c1e03399b93e6c109c86d815c2e0c",
       "description": "<p><em>Você é um eterno estudante dos segredos do universo, usando seu domínio da magia para conjurar magias poderosas. Você trata a magia como uma ciência, cruzando os textos mais recentes sobre a prática da arte arcana com tomos antigos para descobrir e compreender a magia arcana. No entanto, a teoria mágica é vasta, e não há como estudá-la por completo. A maioria dos magos aprende por meio de uma formação acadêmica formal, com um currículo que segue uma matriz específica, embora pesquisadores particularmente dedicados às vezes reúnam suas próprias teorias.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.wDukeO3euLEGn6FA]{Mago}</em></p>"
+    },
+    "Mw9Rk7cLRQahvou2": {
+      "name": "Clérigo",
+      "sourceHash": "ea30cd88b5cce88cd6756a6c1958c8c6bd807d78",
+      "description": ""
+    },
+    "RtdtWLmWtoAnurXp": {
+      "name": "Bardo",
+      "sourceHash": "d1e756e3f4cef1957e688b08d7212178b740eee7",
+      "description": ""
+    },
+    "YPn8O9OwbqDx8bRa": {
+      "name": "Campeão",
+      "sourceHash": "a0baeb5b18d4cce55767c305b94182c3d566868b",
+      "description": ""
     },
     "ZuJDBnRwp0YQ9IoP": {
       "name": "Cineticista",

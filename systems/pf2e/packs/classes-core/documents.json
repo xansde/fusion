@@ -19,7 +19,9 @@
       },
       "description": "<p><em>Rage consumes you in battle. You delight in wreaking havoc and using powerful weapons to carve through your enemies, relying on astonishing durability without needing complicated techniques or rigid training. Your rages draw upon a vicious instinct, which you might associate with an animal, a spirit, or some part of yourself. To many barbarians, brute force is a hammer and every problem looks like a nail, whereas others try to hold back the storm of emotions inside them and release their rage only when it matters most.</em></p>\n<p>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.lvuutBI9BSCU6cWe]{Barbarian}</p>",
       "hp": 12,
-      "keyAbility": ["str"],
+      "keyAbility": [
+        "str"
+      ],
       "perception": 2,
       "publication": {
         "license": "ORC",
@@ -32,9 +34,21 @@
         "reflex": 1,
         "will": 2
       },
-      "skillIncreaseLevels": [3, 5, 7, 9, 11, 13, 15, 17, 19],
+      "skillIncreaseLevels": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19
+      ],
       "trainedSkills": {
-        "value": ["athletics"],
+        "value": [
+          "athletics"
+        ],
         "additional": 3
       },
       "traits": {
@@ -43,10 +57,45 @@
       },
       "classDC": 1,
       "featLevels": {
-        "ancestry": [1, 5, 9, 13, 17],
-        "class": [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20],
-        "general": [3, 7, 11, 15, 19],
-        "skill": [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+        "ancestry": [
+          1,
+          5,
+          9,
+          13,
+          17
+        ],
+        "class": [
+          1,
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ],
+        "general": [
+          3,
+          7,
+          11,
+          15,
+          19
+        ],
+        "skill": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ]
       },
       "proficiencyUpgrades": [
         {
@@ -262,6 +311,1452 @@
     }
   },
   {
+    "_id": "RtdtWLmWtoAnurXp",
+    "name": "Bard",
+    "type": "class",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "attacks": {
+        "advanced": 0,
+        "martial": 1,
+        "simple": 1,
+        "unarmed": 1
+      },
+      "defenses": {
+        "heavy": 0,
+        "light": 1,
+        "medium": 0,
+        "unarmored": 1
+      },
+      "description": "<p><em>You are a master of artistry, a scholar of hidden secrets, and a captivating persuader. Using powerful performances, you influence minds and elevate souls to new levels of heroics. You might use your powers to become a charismatic leader, or perhaps you might instead be a counselor, manipulator, scholar, scoundrel, or virtuoso. While your versatility leads some to consider you a beguiling ne'er-do-well and a jack-of-all-trades, it's dangerous to dismiss you as a master of none.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.Tz0NWVqhZyt8EyUV]{Bard}</em></p>",
+      "hp": 8,
+      "keyAbility": [
+        "cha"
+      ],
+      "perception": 2,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "savingThrows": {
+        "fortitude": 1,
+        "reflex": 1,
+        "will": 2
+      },
+      "skillIncreaseLevels": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19
+      ],
+      "spellcasting": {
+        "tradition": "occult",
+        "type": "spontaneous",
+        "ability": "cha",
+        "cantripsKnown": [
+          {
+            "level": 1,
+            "count": 5
+          },
+          {
+            "level": 2,
+            "count": 5
+          },
+          {
+            "level": 3,
+            "count": 5
+          },
+          {
+            "level": 4,
+            "count": 5
+          },
+          {
+            "level": 5,
+            "count": 5
+          },
+          {
+            "level": 6,
+            "count": 5
+          },
+          {
+            "level": 7,
+            "count": 5
+          },
+          {
+            "level": 8,
+            "count": 5
+          },
+          {
+            "level": 9,
+            "count": 5
+          },
+          {
+            "level": 10,
+            "count": 5
+          },
+          {
+            "level": 11,
+            "count": 5
+          },
+          {
+            "level": 12,
+            "count": 5
+          },
+          {
+            "level": 13,
+            "count": 5
+          },
+          {
+            "level": 14,
+            "count": 5
+          },
+          {
+            "level": 15,
+            "count": 5
+          },
+          {
+            "level": 16,
+            "count": 5
+          },
+          {
+            "level": 17,
+            "count": 5
+          },
+          {
+            "level": 18,
+            "count": 5
+          },
+          {
+            "level": 19,
+            "count": 5
+          },
+          {
+            "level": 20,
+            "count": 5
+          }
+        ],
+        "slots": [
+          {
+            "level": 1,
+            "slots": {
+              "1": 2
+            }
+          },
+          {
+            "level": 2,
+            "slots": {
+              "1": 3
+            }
+          },
+          {
+            "level": 3,
+            "slots": {
+              "1": 3,
+              "2": 2
+            }
+          },
+          {
+            "level": 4,
+            "slots": {
+              "1": 3,
+              "2": 3
+            }
+          },
+          {
+            "level": 5,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 2
+            }
+          },
+          {
+            "level": 6,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3
+            }
+          },
+          {
+            "level": 7,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 2
+            }
+          },
+          {
+            "level": 8,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3
+            }
+          },
+          {
+            "level": 9,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 2
+            }
+          },
+          {
+            "level": 10,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3
+            }
+          },
+          {
+            "level": 11,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 2
+            }
+          },
+          {
+            "level": 12,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3
+            }
+          },
+          {
+            "level": 13,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 2
+            }
+          },
+          {
+            "level": 14,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3
+            }
+          },
+          {
+            "level": 15,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3,
+              "8": 2
+            }
+          },
+          {
+            "level": 16,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3,
+              "8": 3
+            }
+          },
+          {
+            "level": 17,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3,
+              "8": 3,
+              "9": 2
+            }
+          },
+          {
+            "level": 18,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3,
+              "8": 3,
+              "9": 3
+            }
+          },
+          {
+            "level": 19,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3,
+              "8": 3,
+              "9": 3,
+              "10": 1
+            }
+          },
+          {
+            "level": 20,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3,
+              "8": 3,
+              "9": 3,
+              "10": 1
+            }
+          }
+        ]
+      },
+      "trainedSkills": {
+        "value": [
+          "occultism",
+          "performance"
+        ],
+        "additional": 4
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "classDC": 1,
+      "featLevels": {
+        "ancestry": [
+          1,
+          5,
+          9,
+          13,
+          17
+        ],
+        "class": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ],
+        "general": [
+          3,
+          7,
+          11,
+          15,
+          19
+        ],
+        "skill": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ]
+      },
+      "proficiencyUpgrades": [
+        {
+          "level": 3,
+          "stat": "reflex",
+          "rank": 2
+        },
+        {
+          "level": 7,
+          "stat": "spellcasting",
+          "rank": 2
+        },
+        {
+          "level": 9,
+          "stat": "fortitude",
+          "rank": 2
+        },
+        {
+          "level": 9,
+          "stat": "will",
+          "rank": 3
+        },
+        {
+          "level": 11,
+          "stat": "perception",
+          "rank": 3
+        },
+        {
+          "level": 11,
+          "stat": "weapons.martial",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "weapons.simple",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "weapons.unarmed",
+          "rank": 2
+        },
+        {
+          "level": 13,
+          "stat": "armor.light",
+          "rank": 2
+        },
+        {
+          "level": 13,
+          "stat": "armor.unarmored",
+          "rank": 2
+        },
+        {
+          "level": 15,
+          "stat": "spellcasting",
+          "rank": 3
+        },
+        {
+          "level": 17,
+          "stat": "will",
+          "rank": 4
+        },
+        {
+          "level": 19,
+          "stat": "spellcasting",
+          "rank": 4
+        }
+      ],
+      "featuresByLevel": [
+        {
+          "level": 1,
+          "uuid": "IPkRrReHUSAhWrb3",
+          "name": "Spell Repertoire"
+        },
+        {
+          "level": 1,
+          "uuid": "Kj1d35aAxgbTMvMH",
+          "name": "Composition Spells"
+        },
+        {
+          "level": 1,
+          "uuid": "7eBIHN2oYLJ81B4I",
+          "name": "Muses"
+        },
+        {
+          "level": 1,
+          "uuid": "PXvWhbENzMQMijDB",
+          "name": "Occult Spellcasting"
+        },
+        {
+          "level": 3,
+          "uuid": "BIuU56P6JTTJz7oI",
+          "name": "Reflex Expertise"
+        },
+        {
+          "level": 3,
+          "uuid": "QMx05Uer8dWp7K75",
+          "name": "Signature Spells"
+        },
+        {
+          "level": 7,
+          "uuid": "HBkLN3XV5QAcSEaH",
+          "name": "Expert Spellcaster"
+        },
+        {
+          "level": 9,
+          "uuid": "lvapOWnP0q5P7fjr",
+          "name": "Performer's Heart"
+        },
+        {
+          "level": 9,
+          "uuid": "BKAFVXNFDrdPg8fB",
+          "name": "Fortitude Expertise"
+        },
+        {
+          "level": 11,
+          "uuid": "a1x0l48GmQCZqIYw",
+          "name": "Perception Mastery"
+        },
+        {
+          "level": 11,
+          "uuid": "xDtG0WYbAHeEsNBd",
+          "name": "Bard Weapon Expertise"
+        },
+        {
+          "level": 13,
+          "uuid": "J9FT6XRcaEhYUHnV",
+          "name": "Weapon Specialization"
+        },
+        {
+          "level": 13,
+          "uuid": "AVh4glubbzygKbI8",
+          "name": "Light Armor Expertise"
+        },
+        {
+          "level": 15,
+          "uuid": "qm5rjGcbeMbHRQ79",
+          "name": "Master Spellcaster"
+        },
+        {
+          "level": 17,
+          "uuid": "0Znipy3VhMSYEjol",
+          "name": "Greater Performer's Heart"
+        },
+        {
+          "level": 19,
+          "uuid": "IJ3Dsad3qTTqIhMG",
+          "name": "Magnum Opus"
+        },
+        {
+          "level": 19,
+          "uuid": "Qb6mPsJUxA73nPlp",
+          "name": "Legendary Spellcaster"
+        }
+      ]
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "3gweRQ5gn7szIWAv",
+        "packName": "classes",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "bard.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "YPn8O9OwbqDx8bRa",
+    "name": "Champion",
+    "type": "class",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "attacks": {
+        "advanced": 0,
+        "martial": 1,
+        "simple": 1,
+        "unarmed": 1
+      },
+      "defenses": {
+        "heavy": 1,
+        "light": 1,
+        "medium": 1,
+        "unarmored": 1
+      },
+      "description": "<p><em>You are an emissary of a deity, a devoted servant who has taken up a weighty mantle, and you adhere to a code that holds you apart from those around you. While champions exist for every alignment, as a champion of good, you provide certainty and hope to the innocent. You have powerful defenses that you share freely with your allies and innocent bystanders, as well as holy power you use to end the threat of evil. Your devotion even attracts the attention of holy spirits who aid you on your journey.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.rebppVgBVi8J6TT2]{Champion}</em></p>",
+      "hp": 10,
+      "keyAbility": [
+        "dex",
+        "str"
+      ],
+      "perception": 1,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "savingThrows": {
+        "fortitude": 2,
+        "reflex": 1,
+        "will": 2
+      },
+      "skillIncreaseLevels": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19
+      ],
+      "trainedSkills": {
+        "value": [
+          "religion"
+        ],
+        "additional": 2
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "classDC": 1,
+      "featLevels": {
+        "ancestry": [
+          1,
+          5,
+          9,
+          13,
+          17
+        ],
+        "class": [
+          1,
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ],
+        "general": [
+          3,
+          7,
+          11,
+          15,
+          19
+        ],
+        "skill": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ]
+      },
+      "proficiencyUpgrades": [
+        {
+          "level": 5,
+          "stat": "weapons.martial",
+          "rank": 2
+        },
+        {
+          "level": 5,
+          "stat": "weapons.simple",
+          "rank": 2
+        },
+        {
+          "level": 5,
+          "stat": "weapons.unarmed",
+          "rank": 2
+        },
+        {
+          "level": 7,
+          "stat": "armor.heavy",
+          "rank": 2
+        },
+        {
+          "level": 7,
+          "stat": "armor.light",
+          "rank": 2
+        },
+        {
+          "level": 7,
+          "stat": "armor.medium",
+          "rank": 2
+        },
+        {
+          "level": 7,
+          "stat": "armor.unarmored",
+          "rank": 2
+        },
+        {
+          "level": 9,
+          "stat": "classDC",
+          "rank": 2
+        },
+        {
+          "level": 9,
+          "stat": "fortitude",
+          "rank": 3
+        },
+        {
+          "level": 9,
+          "stat": "reflex",
+          "rank": 2
+        },
+        {
+          "level": 9,
+          "stat": "spellcasting",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "perception",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "will",
+          "rank": 3
+        },
+        {
+          "level": 13,
+          "stat": "armor.heavy",
+          "rank": 3
+        },
+        {
+          "level": 13,
+          "stat": "armor.light",
+          "rank": 3
+        },
+        {
+          "level": 13,
+          "stat": "armor.medium",
+          "rank": 3
+        },
+        {
+          "level": 13,
+          "stat": "armor.unarmored",
+          "rank": 3
+        },
+        {
+          "level": 13,
+          "stat": "weapons.martial",
+          "rank": 3
+        },
+        {
+          "level": 13,
+          "stat": "weapons.simple",
+          "rank": 3
+        },
+        {
+          "level": 13,
+          "stat": "weapons.unarmed",
+          "rank": 3
+        },
+        {
+          "level": 17,
+          "stat": "armor.heavy",
+          "rank": 4
+        },
+        {
+          "level": 17,
+          "stat": "armor.light",
+          "rank": 4
+        },
+        {
+          "level": 17,
+          "stat": "armor.medium",
+          "rank": 4
+        },
+        {
+          "level": 17,
+          "stat": "armor.unarmored",
+          "rank": 4
+        },
+        {
+          "level": 17,
+          "stat": "classDC",
+          "rank": 3
+        },
+        {
+          "level": 17,
+          "stat": "spellcasting",
+          "rank": 3
+        }
+      ],
+      "featuresByLevel": [
+        {
+          "level": 1,
+          "uuid": "2zmRjnSK4X2ScHWJ",
+          "name": "Deity (Champion)"
+        },
+        {
+          "level": 1,
+          "uuid": "G95Xci9mfJ6PTALk",
+          "name": "Cause"
+        },
+        {
+          "level": 1,
+          "uuid": "wBba2TDXECeWhXXn",
+          "name": "Devotion Spells"
+        },
+        {
+          "level": 1,
+          "uuid": "MbMJIRm8Ecdwk7pi",
+          "name": "Shield Block"
+        },
+        {
+          "level": 3,
+          "uuid": "rkX4fo0J36e2qAbG",
+          "name": "Blessing of the Devoted"
+        },
+        {
+          "level": 5,
+          "uuid": "LVADu3YwnAamOx70",
+          "name": "Weapon Expertise"
+        },
+        {
+          "level": 7,
+          "uuid": "e7XksR8zXy3vmWID",
+          "name": "Armor Expertise"
+        },
+        {
+          "level": 7,
+          "uuid": "J9FT6XRcaEhYUHnV",
+          "name": "Weapon Specialization"
+        },
+        {
+          "level": 9,
+          "uuid": "wHqM8E3f5nPThvY4",
+          "name": "Champion Expertise"
+        },
+        {
+          "level": 9,
+          "uuid": "BIuU56P6JTTJz7oI",
+          "name": "Reflex Expertise"
+        },
+        {
+          "level": 9,
+          "uuid": "dc9aMcoWGCk7tOJL",
+          "name": "Relentless Reaction"
+        },
+        {
+          "level": 9,
+          "uuid": "RH0lrrgfqrKwKuz2",
+          "name": "Sacred Body"
+        },
+        {
+          "level": 11,
+          "uuid": "K1tJyOpd6JHAPPaz",
+          "name": "Exalted Reaction"
+        },
+        {
+          "level": 11,
+          "uuid": "FUjXsopM5ajHSys7",
+          "name": "Divine Will"
+        },
+        {
+          "level": 11,
+          "uuid": "lq2hF5SquDtGyQjd",
+          "name": "Perception Expertise"
+        },
+        {
+          "level": 13,
+          "uuid": "0bEpfnxfGVCC0MkH",
+          "name": "Armor Mastery"
+        },
+        {
+          "level": 13,
+          "uuid": "ZzWD1IY5kAnQ8a65",
+          "name": "Weapon Mastery"
+        },
+        {
+          "level": 15,
+          "uuid": "08FZP49WC5QReus0",
+          "name": "Greater Weapon Specialization"
+        },
+        {
+          "level": 17,
+          "uuid": "bWGsG8zffEsLRfkL",
+          "name": "Champion Mastery"
+        },
+        {
+          "level": 17,
+          "uuid": "1tBpApILCv58X3Qo",
+          "name": "Legendary Armor"
+        },
+        {
+          "level": 19,
+          "uuid": "xSGqu3kKCuEb0eYp",
+          "name": "Hero's Defiance"
+        }
+      ]
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "x8iwnpdLbfcoZkHA",
+        "packName": "classes",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "champion.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Mw9Rk7cLRQahvou2",
+    "name": "Cleric",
+    "type": "class",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "attacks": {
+        "advanced": 0,
+        "martial": 0,
+        "simple": 1,
+        "unarmed": 1
+      },
+      "defenses": {
+        "heavy": 0,
+        "light": 0,
+        "medium": 0,
+        "unarmored": 1
+      },
+      "description": "<p><em>Deities work their will upon the world in infinite ways, and you serve as one of their most stalwart mortal servants. Blessed with divine magic, you live the ideals of your faith, adorn yourself with the symbols of your church, and train diligently to wield your deity's favored weapon. Your spells might protect and heal your allies, or they might punish foes and enemies of your faith, as your deity wills. Yours is a life of devotion, spreading the teachings of your faith through both word and deed.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.N4ABcd6CcCbqmw3x]{Cleric}</em></p>",
+      "hp": 8,
+      "keyAbility": [
+        "wis"
+      ],
+      "perception": 1,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "savingThrows": {
+        "fortitude": 1,
+        "reflex": 1,
+        "will": 2
+      },
+      "skillIncreaseLevels": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19
+      ],
+      "spellcasting": {
+        "tradition": "divine",
+        "type": "prepared",
+        "ability": "wis",
+        "cantripsKnown": [
+          {
+            "level": 1,
+            "count": 5
+          },
+          {
+            "level": 2,
+            "count": 5
+          },
+          {
+            "level": 3,
+            "count": 5
+          },
+          {
+            "level": 4,
+            "count": 5
+          },
+          {
+            "level": 5,
+            "count": 5
+          },
+          {
+            "level": 6,
+            "count": 5
+          },
+          {
+            "level": 7,
+            "count": 5
+          },
+          {
+            "level": 8,
+            "count": 5
+          },
+          {
+            "level": 9,
+            "count": 5
+          },
+          {
+            "level": 10,
+            "count": 5
+          },
+          {
+            "level": 11,
+            "count": 5
+          },
+          {
+            "level": 12,
+            "count": 5
+          },
+          {
+            "level": 13,
+            "count": 5
+          },
+          {
+            "level": 14,
+            "count": 5
+          },
+          {
+            "level": 15,
+            "count": 5
+          },
+          {
+            "level": 16,
+            "count": 5
+          },
+          {
+            "level": 17,
+            "count": 5
+          },
+          {
+            "level": 18,
+            "count": 5
+          },
+          {
+            "level": 19,
+            "count": 5
+          },
+          {
+            "level": 20,
+            "count": 5
+          }
+        ],
+        "slots": [
+          {
+            "level": 1,
+            "slots": {
+              "1": 2
+            }
+          },
+          {
+            "level": 2,
+            "slots": {
+              "1": 3
+            }
+          },
+          {
+            "level": 3,
+            "slots": {
+              "1": 3,
+              "2": 2
+            }
+          },
+          {
+            "level": 4,
+            "slots": {
+              "1": 3,
+              "2": 3
+            }
+          },
+          {
+            "level": 5,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 2
+            }
+          },
+          {
+            "level": 6,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3
+            }
+          },
+          {
+            "level": 7,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 2
+            }
+          },
+          {
+            "level": 8,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3
+            }
+          },
+          {
+            "level": 9,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 2
+            }
+          },
+          {
+            "level": 10,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3
+            }
+          },
+          {
+            "level": 11,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 2
+            }
+          },
+          {
+            "level": 12,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3
+            }
+          },
+          {
+            "level": 13,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 2
+            }
+          },
+          {
+            "level": 14,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3
+            }
+          },
+          {
+            "level": 15,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3,
+              "8": 2
+            }
+          },
+          {
+            "level": 16,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3,
+              "8": 3
+            }
+          },
+          {
+            "level": 17,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3,
+              "8": 3,
+              "9": 2
+            }
+          },
+          {
+            "level": 18,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3,
+              "8": 3,
+              "9": 3
+            }
+          },
+          {
+            "level": 19,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3,
+              "8": 3,
+              "9": 3,
+              "10": 1
+            }
+          },
+          {
+            "level": 20,
+            "slots": {
+              "1": 3,
+              "2": 3,
+              "3": 3,
+              "4": 3,
+              "5": 3,
+              "6": 3,
+              "7": 3,
+              "8": 3,
+              "9": 3,
+              "10": 1
+            }
+          }
+        ]
+      },
+      "trainedSkills": {
+        "value": [
+          "religion"
+        ],
+        "additional": 2
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "classDC": 1,
+      "featLevels": {
+        "ancestry": [
+          1,
+          5,
+          9,
+          13,
+          17
+        ],
+        "class": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ],
+        "general": [
+          3,
+          7,
+          11,
+          15,
+          19
+        ],
+        "skill": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ]
+      },
+      "proficiencyUpgrades": [
+        {
+          "level": 5,
+          "stat": "perception",
+          "rank": 2
+        },
+        {
+          "level": 9,
+          "stat": "will",
+          "rank": 3
+        },
+        {
+          "level": 11,
+          "stat": "reflex",
+          "rank": 2
+        },
+        {
+          "level": 13,
+          "stat": "armor.unarmored",
+          "rank": 2
+        }
+      ],
+      "featuresByLevel": [
+        {
+          "level": 1,
+          "uuid": "Z3bGaIq1FnCfsTrx",
+          "name": "Deity"
+        },
+        {
+          "level": 1,
+          "uuid": "w5ZmsIyNU0f66q8E",
+          "name": "Cleric Spellcasting"
+        },
+        {
+          "level": 1,
+          "uuid": "KmvpXx69oQUH2kfE",
+          "name": "Doctrine"
+        },
+        {
+          "level": 1,
+          "uuid": "cGbwex2mzwB9tKAf",
+          "name": "First Doctrine"
+        },
+        {
+          "level": 1,
+          "uuid": "xzqAQmsHPvZkBrAc",
+          "name": "Divine Font"
+        },
+        {
+          "level": 3,
+          "uuid": "9r3wfPji8msgL53W",
+          "name": "Second Doctrine"
+        },
+        {
+          "level": 5,
+          "uuid": "lq2hF5SquDtGyQjd",
+          "name": "Perception Expertise"
+        },
+        {
+          "level": 7,
+          "uuid": "gDngrAJywQFHy5gY",
+          "name": "Third Doctrine"
+        },
+        {
+          "level": 9,
+          "uuid": "apPhg0aKM4oFVxWn",
+          "name": "Resolute Faith"
+        },
+        {
+          "level": 11,
+          "uuid": "BIuU56P6JTTJz7oI",
+          "name": "Reflex Expertise"
+        },
+        {
+          "level": 11,
+          "uuid": "MIc3HI9FHCeiWIcT",
+          "name": "Fourth Doctrine"
+        },
+        {
+          "level": 13,
+          "uuid": "8bYjyje8l3BEKJ2c",
+          "name": "Divine Defense"
+        },
+        {
+          "level": 13,
+          "uuid": "J9FT6XRcaEhYUHnV",
+          "name": "Weapon Specialization"
+        },
+        {
+          "level": 15,
+          "uuid": "cju0wQRfzrQoF7SH",
+          "name": "Fifth Doctrine"
+        },
+        {
+          "level": 19,
+          "uuid": "u0nA0rMnKu6LYGUZ",
+          "name": "Final Doctrine"
+        },
+        {
+          "level": 19,
+          "uuid": "Y9i5eKFIhDqSpoD9",
+          "name": "Miraculous Spell"
+        }
+      ]
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "EizrWvUPMS67Pahd",
+        "packName": "classes",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "cleric.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "1VFFHH43BOrf82SB",
     "name": "Fighter",
     "type": "class",
@@ -281,7 +1776,10 @@
       },
       "description": "<p><em>Fighting for honor, greed, loyalty, or simply the thrill of battle, you are an undisputed master of weaponry and combat techniques. You combine your actions through clever combinations of opening moves, finishing strikes, and counterattacks whenever your foes are unwise enough to drop their guard. Whether you are a knight, mercenary, sharpshooter, or blade master, you have honed your martial skills into an art form and perform devastating critical attacks on your enemies.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.HZbrRRVzW7w17L2W]{Fighter}</em></p>",
       "hp": 10,
-      "keyAbility": ["dex", "str"],
+      "keyAbility": [
+        "dex",
+        "str"
+      ],
       "perception": 2,
       "publication": {
         "license": "ORC",
@@ -311,7 +1809,17 @@
         "reflex": 2,
         "will": 1
       },
-      "skillIncreaseLevels": [3, 5, 7, 9, 11, 13, 15, 17, 19],
+      "skillIncreaseLevels": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19
+      ],
       "trainedSkills": {
         "value": [],
         "additional": 3
@@ -322,10 +1830,45 @@
       },
       "classDC": 1,
       "featLevels": {
-        "ancestry": [1, 5, 9, 13, 17],
-        "class": [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20],
-        "general": [3, 7, 11, 15, 19],
-        "skill": [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+        "ancestry": [
+          1,
+          5,
+          9,
+          13,
+          17
+        ],
+        "class": [
+          1,
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ],
+        "general": [
+          3,
+          7,
+          11,
+          15,
+          19
+        ],
+        "skill": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ]
       },
       "proficiencyUpgrades": [
         {
@@ -578,7 +2121,9 @@
       },
       "description": "<p><em>The power of the elements flows from within you. Roaring fire pure water, fleeting air, steadfast earth, twisting wood, slicing metal. A kinetic gate inextricably tied to your body channels power directly from the elemental planes, causing elements to leap to your hand, whirl around your body, and blast foes at your whim. As your connection to the planes grows, you attain true mastery over your chosen elements.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.lNWQPwgT4vhYCOT7]{Kineticist}</em></p>",
       "hp": 8,
-      "keyAbility": ["con"],
+      "keyAbility": [
+        "con"
+      ],
       "perception": 1,
       "publication": {
         "license": "OGL",
@@ -591,9 +2136,21 @@
         "reflex": 2,
         "will": 1
       },
-      "skillIncreaseLevels": [3, 5, 7, 9, 11, 13, 15, 17, 19],
+      "skillIncreaseLevels": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19
+      ],
       "trainedSkills": {
-        "value": ["nature"],
+        "value": [
+          "nature"
+        ],
         "additional": 3
       },
       "traits": {
@@ -603,10 +2160,45 @@
       "classDC": 1,
       "impulse": 1,
       "featLevels": {
-        "ancestry": [1, 5, 9, 13, 17],
-        "class": [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20],
-        "general": [3, 7, 11, 15, 19],
-        "skill": [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+        "ancestry": [
+          1,
+          5,
+          9,
+          13,
+          17
+        ],
+        "class": [
+          1,
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ],
+        "general": [
+          3,
+          7,
+          11,
+          15,
+          19
+        ],
+        "skill": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ]
       },
       "proficiencyUpgrades": [
         {
@@ -851,7 +2443,10 @@
       },
       "description": "<p><em>Combining the physicality and technique of a warrior with the ability to cast arcane magic, you seek to perfect the art of fusing spell and strike. While the hefty tome you carry reflects hours conducting arcane research, your enemies need no reminder of your training. They recognize it as you take them down.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.YVoyzV9v4QyP2UIC]{Magus}</em></p>",
       "hp": 8,
-      "keyAbility": ["dex", "str"],
+      "keyAbility": [
+        "dex",
+        "str"
+      ],
       "perception": 1,
       "publication": {
         "license": "OGL",
@@ -864,7 +2459,17 @@
         "reflex": 1,
         "will": 2
       },
-      "skillIncreaseLevels": [3, 5, 7, 9, 11, 13, 15, 17, 19],
+      "skillIncreaseLevels": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19
+      ],
       "spellcasting": {
         "tradition": "arcane",
         "type": "prepared",
@@ -1093,7 +2698,9 @@
         ]
       },
       "trainedSkills": {
-        "value": ["arcana"],
+        "value": [
+          "arcana"
+        ],
         "additional": 2
       },
       "traits": {
@@ -1102,10 +2709,44 @@
       },
       "classDC": 1,
       "featLevels": {
-        "ancestry": [1, 5, 9, 13, 17],
-        "class": [2, 4, 6, 8, 10, 12, 14, 16, 18, 20],
-        "general": [3, 7, 11, 15, 19],
-        "skill": [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+        "ancestry": [
+          1,
+          5,
+          9,
+          13,
+          17
+        ],
+        "class": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ],
+        "general": [
+          3,
+          7,
+          11,
+          15,
+          19
+        ],
+        "skill": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ]
       },
       "proficiencyUpgrades": [
         {
@@ -1316,6 +2957,261 @@
     }
   },
   {
+    "_id": "6GhN5PnstY0pPOCL",
+    "name": "Monk",
+    "type": "class",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "attacks": {
+        "advanced": 0,
+        "martial": 0,
+        "simple": 1,
+        "unarmed": 1
+      },
+      "defenses": {
+        "heavy": 0,
+        "light": 0,
+        "medium": 0,
+        "unarmored": 2
+      },
+      "description": "<p><em>The strength of your fist flows from your mind and spirit. You seek perfection-honing your body into a flawless instrument and your mind into an orderly bastion of wisdom. You're a fierce combatant renowned for martial arts skills and combat stances that grant you unique fighting moves. While the challenge of mastering many fighting styles drives you to great heights, you also enjoy meditating on philosophical questions and discovering new ways to obtain peace and enlightenment.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.hGKd722Kn4ZxIOJs]{Monk}</em></p>",
+      "hp": 10,
+      "keyAbility": [
+        "dex",
+        "str"
+      ],
+      "perception": 1,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "savingThrows": {
+        "fortitude": 2,
+        "reflex": 2,
+        "will": 2
+      },
+      "skillIncreaseLevels": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19
+      ],
+      "trainedSkills": {
+        "value": [],
+        "additional": 4
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "classDC": 1,
+      "featLevels": {
+        "ancestry": [
+          1,
+          5,
+          9,
+          13,
+          17
+        ],
+        "class": [
+          1,
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ],
+        "general": [
+          3,
+          7,
+          11,
+          15,
+          19
+        ],
+        "skill": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ]
+      },
+      "proficiencyUpgrades": [
+        {
+          "level": 5,
+          "stat": "perception",
+          "rank": 2
+        },
+        {
+          "level": 5,
+          "stat": "weapons.simple",
+          "rank": 2
+        },
+        {
+          "level": 5,
+          "stat": "weapons.unarmed",
+          "rank": 2
+        },
+        {
+          "level": 9,
+          "stat": "classDC",
+          "rank": 2
+        },
+        {
+          "level": 13,
+          "stat": "armor.unarmored",
+          "rank": 3
+        },
+        {
+          "level": 13,
+          "stat": "weapons.simple",
+          "rank": 3
+        },
+        {
+          "level": 13,
+          "stat": "weapons.unarmed",
+          "rank": 3
+        },
+        {
+          "level": 17,
+          "stat": "armor.unarmored",
+          "rank": 4
+        },
+        {
+          "level": 17,
+          "stat": "classDC",
+          "rank": 3
+        }
+      ],
+      "featuresByLevel": [
+        {
+          "level": 1,
+          "uuid": "WsjMAdbmegii8Kqf",
+          "name": "Flurry of Blows"
+        },
+        {
+          "level": 1,
+          "uuid": "yoqnc3lhyUICfRSB",
+          "name": "Powerful Fist"
+        },
+        {
+          "level": 3,
+          "uuid": "JYQS4l6mn6OKQFFj",
+          "name": "Mystic Strikes"
+        },
+        {
+          "level": 3,
+          "uuid": "ftNUb4vgqUL5RuyY",
+          "name": "Incredible Movement"
+        },
+        {
+          "level": 5,
+          "uuid": "86SI1amhg3KRI7Y5",
+          "name": "Expert Strikes"
+        },
+        {
+          "level": 5,
+          "uuid": "lq2hF5SquDtGyQjd",
+          "name": "Perception Expertise"
+        },
+        {
+          "level": 7,
+          "uuid": "J9FT6XRcaEhYUHnV",
+          "name": "Weapon Specialization"
+        },
+        {
+          "level": 7,
+          "uuid": "stRfmuEklLEcWZgK",
+          "name": "Path to Perfection"
+        },
+        {
+          "level": 9,
+          "uuid": "5Szj5aQ8oBJN70II",
+          "name": "Monk Expertise"
+        },
+        {
+          "level": 9,
+          "uuid": "YSe3taJoihbLxjDB",
+          "name": "Metal Strikes"
+        },
+        {
+          "level": 11,
+          "uuid": "xVdEfXKh6CrTVj1h",
+          "name": "Second Path to Perfection"
+        },
+        {
+          "level": 13,
+          "uuid": "CyMp4KYHW8veGR0x",
+          "name": "Graceful Mastery"
+        },
+        {
+          "level": 13,
+          "uuid": "TCHC4ZSPQ9MVikD1",
+          "name": "Master Strikes"
+        },
+        {
+          "level": 15,
+          "uuid": "08FZP49WC5QReus0",
+          "name": "Greater Weapon Specialization (Level 15)"
+        },
+        {
+          "level": 15,
+          "uuid": "vRc9KYm0mKU5tANe",
+          "name": "Third Path to Perfection"
+        },
+        {
+          "level": 17,
+          "uuid": "njYDyHDE3ogHH7th",
+          "name": "Graceful Legend"
+        },
+        {
+          "level": 17,
+          "uuid": "QgTrrxofFPfcHT2U",
+          "name": "Adamantine Strikes"
+        },
+        {
+          "level": 19,
+          "uuid": "B1Cjbu0DIhPx4r1u",
+          "name": "Perfected Form"
+        }
+      ]
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "YPxpk9JbMnKjbNLc",
+        "packName": "classes",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "monk.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "3n6wLJBsZgaZvGXo",
     "name": "Ranger",
     "type": "class",
@@ -1335,7 +3231,10 @@
       },
       "description": "<p><em>Some rangers believe civilization wears down the soul, but still needs to be protected from wild creatures. Others say nature needs to be protected from the greedy, who wish to tame its beauty and plunder its treasures. You could champion either goal, or both. You might be a scout, tracker, or hunter of fugitives or beasts, haunting the edge of civilization or exploring the wilds. You know how to live off the land and are skilled at spotting and taking down both opportune prey and hated enemies.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.gdEmPPRYhRai7I1N]{Ranger}</em></p>",
       "hp": 10,
-      "keyAbility": ["dex", "str"],
+      "keyAbility": [
+        "dex",
+        "str"
+      ],
       "perception": 2,
       "publication": {
         "license": "ORC",
@@ -1374,9 +3273,21 @@
         "reflex": 2,
         "will": 1
       },
-      "skillIncreaseLevels": [3, 5, 7, 9, 11, 13, 15, 17, 19],
+      "skillIncreaseLevels": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19
+      ],
       "trainedSkills": {
-        "value": ["survival"],
+        "value": [
+          "survival"
+        ],
         "additional": 4
       },
       "traits": {
@@ -1385,10 +3296,45 @@
       },
       "classDC": 1,
       "featLevels": {
-        "ancestry": [1, 5, 9, 13, 17],
-        "class": [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20],
-        "general": [3, 7, 11, 15, 19],
-        "skill": [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+        "ancestry": [
+          1,
+          5,
+          9,
+          13,
+          17
+        ],
+        "class": [
+          1,
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ],
+        "general": [
+          3,
+          7,
+          11,
+          15,
+          19
+        ],
+        "skill": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ]
       },
       "proficiencyUpgrades": [
         {
@@ -1633,7 +3579,9 @@
       },
       "description": "<p><em>You are skilled and opportunistic. Using your sharp wits and quick reactions, you take advantage of your opponents' missteps and strike where it hurts most. You play a dangerous game, seeking thrills and testing your skills, and likely don't care much for any laws that happen to get in your way. While the path of every rogue is unique and riddled with danger, the one thing you all share in common is the breadth and depth of your skills.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.u4qPrDRBagxG9wj8]{Rogue}</em></p>",
       "hp": 8,
-      "keyAbility": ["dex"],
+      "keyAbility": [
+        "dex"
+      ],
       "perception": 2,
       "publication": {
         "license": "ORC",
@@ -1646,9 +3594,31 @@
         "reflex": 2,
         "will": 2
       },
-      "skillIncreaseLevels": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+      "skillIncreaseLevels": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ],
       "trainedSkills": {
-        "value": ["stealth"],
+        "value": [
+          "stealth"
+        ],
         "additional": 7
       },
       "traits": {
@@ -1657,10 +3627,55 @@
       },
       "classDC": 1,
       "featLevels": {
-        "ancestry": [1, 5, 9, 13, 17],
-        "class": [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20],
-        "general": [3, 7, 11, 15, 19],
-        "skill": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+        "ancestry": [
+          1,
+          5,
+          9,
+          13,
+          17
+        ],
+        "class": [
+          1,
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ],
+        "general": [
+          3,
+          7,
+          11,
+          15,
+          19
+        ],
+        "skill": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20
+        ]
       },
       "proficiencyUpgrades": [
         {
@@ -1876,6 +3891,578 @@
     }
   },
   {
+    "_id": "Gj4x9YABawAwNRrp",
+    "name": "Sorcerer",
+    "type": "class",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "attacks": {
+        "advanced": 0,
+        "martial": 0,
+        "simple": 1,
+        "unarmed": 1
+      },
+      "defenses": {
+        "heavy": 0,
+        "light": 0,
+        "medium": 0,
+        "unarmored": 1
+      },
+      "description": "<p><em>You didn't choose to become a spellcaster-you were born one. There's magic in your blood, whether a divinity touched one of your ancestors, a forebear communed with a primal creature, or a powerful occult ritual influenced your line. Self-reflection and study allow you to refine your inherent magical skills and unlock new, more powerful abilities. The power in your blood carries a risk, however, and you constantly face the choice of whether you'll rise to become a master spellcaster or fall into destruction.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.ixBx2wZpnf4qUoEv]{Sorcerer}</em></p>",
+      "hp": 6,
+      "keyAbility": [
+        "cha"
+      ],
+      "perception": 1,
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "savingThrows": {
+        "fortitude": 1,
+        "reflex": 1,
+        "will": 2
+      },
+      "skillIncreaseLevels": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19
+      ],
+      "spellcasting": {
+        "tradition": null,
+        "type": "spontaneous",
+        "ability": "cha",
+        "cantripsKnown": [
+          {
+            "level": 1,
+            "count": 5
+          },
+          {
+            "level": 2,
+            "count": 5
+          },
+          {
+            "level": 3,
+            "count": 5
+          },
+          {
+            "level": 4,
+            "count": 5
+          },
+          {
+            "level": 5,
+            "count": 5
+          },
+          {
+            "level": 6,
+            "count": 5
+          },
+          {
+            "level": 7,
+            "count": 5
+          },
+          {
+            "level": 8,
+            "count": 5
+          },
+          {
+            "level": 9,
+            "count": 5
+          },
+          {
+            "level": 10,
+            "count": 5
+          },
+          {
+            "level": 11,
+            "count": 5
+          },
+          {
+            "level": 12,
+            "count": 5
+          },
+          {
+            "level": 13,
+            "count": 5
+          },
+          {
+            "level": 14,
+            "count": 5
+          },
+          {
+            "level": 15,
+            "count": 5
+          },
+          {
+            "level": 16,
+            "count": 5
+          },
+          {
+            "level": 17,
+            "count": 5
+          },
+          {
+            "level": 18,
+            "count": 5
+          },
+          {
+            "level": 19,
+            "count": 5
+          },
+          {
+            "level": 20,
+            "count": 5
+          }
+        ],
+        "slots": [
+          {
+            "level": 1,
+            "slots": {
+              "1": 3
+            }
+          },
+          {
+            "level": 2,
+            "slots": {
+              "1": 4
+            }
+          },
+          {
+            "level": 3,
+            "slots": {
+              "1": 4,
+              "2": 3
+            }
+          },
+          {
+            "level": 4,
+            "slots": {
+              "1": 4,
+              "2": 4
+            }
+          },
+          {
+            "level": 5,
+            "slots": {
+              "1": 4,
+              "2": 4,
+              "3": 3
+            }
+          },
+          {
+            "level": 6,
+            "slots": {
+              "1": 4,
+              "2": 4,
+              "3": 4
+            }
+          },
+          {
+            "level": 7,
+            "slots": {
+              "1": 4,
+              "2": 4,
+              "3": 4,
+              "4": 3
+            }
+          },
+          {
+            "level": 8,
+            "slots": {
+              "1": 4,
+              "2": 4,
+              "3": 4,
+              "4": 4
+            }
+          },
+          {
+            "level": 9,
+            "slots": {
+              "1": 4,
+              "2": 4,
+              "3": 4,
+              "4": 4,
+              "5": 3
+            }
+          },
+          {
+            "level": 10,
+            "slots": {
+              "1": 4,
+              "2": 4,
+              "3": 4,
+              "4": 4,
+              "5": 4
+            }
+          },
+          {
+            "level": 11,
+            "slots": {
+              "1": 4,
+              "2": 4,
+              "3": 4,
+              "4": 4,
+              "5": 4,
+              "6": 3
+            }
+          },
+          {
+            "level": 12,
+            "slots": {
+              "1": 4,
+              "2": 4,
+              "3": 4,
+              "4": 4,
+              "5": 4,
+              "6": 4
+            }
+          },
+          {
+            "level": 13,
+            "slots": {
+              "1": 4,
+              "2": 4,
+              "3": 4,
+              "4": 4,
+              "5": 4,
+              "6": 4,
+              "7": 3
+            }
+          },
+          {
+            "level": 14,
+            "slots": {
+              "1": 4,
+              "2": 4,
+              "3": 4,
+              "4": 4,
+              "5": 4,
+              "6": 4,
+              "7": 4
+            }
+          },
+          {
+            "level": 15,
+            "slots": {
+              "1": 4,
+              "2": 4,
+              "3": 4,
+              "4": 4,
+              "5": 4,
+              "6": 4,
+              "7": 4,
+              "8": 3
+            }
+          },
+          {
+            "level": 16,
+            "slots": {
+              "1": 4,
+              "2": 4,
+              "3": 4,
+              "4": 4,
+              "5": 4,
+              "6": 4,
+              "7": 4,
+              "8": 4
+            }
+          },
+          {
+            "level": 17,
+            "slots": {
+              "1": 4,
+              "2": 4,
+              "3": 4,
+              "4": 4,
+              "5": 4,
+              "6": 4,
+              "7": 4,
+              "8": 4,
+              "9": 3
+            }
+          },
+          {
+            "level": 18,
+            "slots": {
+              "1": 4,
+              "2": 4,
+              "3": 4,
+              "4": 4,
+              "5": 4,
+              "6": 4,
+              "7": 4,
+              "8": 4,
+              "9": 4
+            }
+          },
+          {
+            "level": 19,
+            "slots": {
+              "1": 4,
+              "2": 4,
+              "3": 4,
+              "4": 4,
+              "5": 4,
+              "6": 4,
+              "7": 4,
+              "8": 4,
+              "9": 4,
+              "10": 1
+            }
+          },
+          {
+            "level": 20,
+            "slots": {
+              "1": 4,
+              "2": 4,
+              "3": 4,
+              "4": 4,
+              "5": 4,
+              "6": 4,
+              "7": 4,
+              "8": 4,
+              "9": 4,
+              "10": 1
+            }
+          }
+        ],
+        "traditionByBloodline": {
+          "aberrant": "occult",
+          "aesir": "divine",
+          "angelic": "divine",
+          "demonic": "divine",
+          "diabolic": "divine",
+          "draconic": null,
+          "elemental": "primal",
+          "fey": "primal",
+          "genie": "arcane",
+          "hag": "occult",
+          "harrow": "occult",
+          "imperial": "arcane",
+          "nymph": "primal",
+          "phoenix": "primal",
+          "psychopomp": "divine",
+          "shadow": "occult",
+          "undead": "divine",
+          "wyrmblessed": "divine"
+        }
+      },
+      "trainedSkills": {
+        "value": [],
+        "additional": 2
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "classDC": 1,
+      "featLevels": {
+        "ancestry": [
+          1,
+          5,
+          9,
+          13,
+          17
+        ],
+        "class": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ],
+        "general": [
+          3,
+          7,
+          11,
+          15,
+          19
+        ],
+        "skill": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ]
+      },
+      "proficiencyUpgrades": [
+        {
+          "level": 5,
+          "stat": "fortitude",
+          "rank": 2
+        },
+        {
+          "level": 7,
+          "stat": "spellcasting",
+          "rank": 2
+        },
+        {
+          "level": 9,
+          "stat": "reflex",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "perception",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "weapons.simple",
+          "rank": 2
+        },
+        {
+          "level": 11,
+          "stat": "weapons.unarmed",
+          "rank": 2
+        },
+        {
+          "level": 13,
+          "stat": "armor.unarmored",
+          "rank": 2
+        },
+        {
+          "level": 15,
+          "stat": "spellcasting",
+          "rank": 3
+        },
+        {
+          "level": 17,
+          "stat": "will",
+          "rank": 3
+        },
+        {
+          "level": 19,
+          "stat": "spellcasting",
+          "rank": 4
+        }
+      ],
+      "featuresByLevel": [
+        {
+          "level": 1,
+          "uuid": "IPkRrReHUSAhWrb3",
+          "name": "Spell Repertoire"
+        },
+        {
+          "level": 1,
+          "uuid": "jAAzTvbs12s8pHtT",
+          "name": "Sorcerous Potency"
+        },
+        {
+          "level": 1,
+          "uuid": "FMCbwY7W87AHaS48",
+          "name": "Sorcerer Spellcasting"
+        },
+        {
+          "level": 1,
+          "uuid": "LsAiWeNtI6QMpBqZ",
+          "name": "Bloodline"
+        },
+        {
+          "level": 1,
+          "uuid": "J6Cm1EsbCKXRHMW2",
+          "name": "Bloodline Spells"
+        },
+        {
+          "level": 3,
+          "uuid": "QMx05Uer8dWp7K75",
+          "name": "Signature Spells"
+        },
+        {
+          "level": 5,
+          "uuid": "RHNT0Hqaw8blOiu7",
+          "name": "Magical Fortitude"
+        },
+        {
+          "level": 7,
+          "uuid": "HBkLN3XV5QAcSEaH",
+          "name": "Expert Spellcaster"
+        },
+        {
+          "level": 9,
+          "uuid": "BIuU56P6JTTJz7oI",
+          "name": "Reflex Expertise"
+        },
+        {
+          "level": 11,
+          "uuid": "lq2hF5SquDtGyQjd",
+          "name": "Perception Expertise"
+        },
+        {
+          "level": 11,
+          "uuid": "LVADu3YwnAamOx70",
+          "name": "Weapon Expertise"
+        },
+        {
+          "level": 13,
+          "uuid": "J9FT6XRcaEhYUHnV",
+          "name": "Weapon Specialization"
+        },
+        {
+          "level": 13,
+          "uuid": "ujHgj7E0eFOmHsjj",
+          "name": "Defensive Robes"
+        },
+        {
+          "level": 15,
+          "uuid": "qm5rjGcbeMbHRQ79",
+          "name": "Master Spellcaster"
+        },
+        {
+          "level": 17,
+          "uuid": "LHeFECB54lAzubfO",
+          "name": "Majestic Will"
+        },
+        {
+          "level": 19,
+          "uuid": "sLcoOSRKL3pqgx8z",
+          "name": "Bloodline Paragon"
+        },
+        {
+          "level": 19,
+          "uuid": "Qb6mPsJUxA73nPlp",
+          "name": "Legendary Spellcaster"
+        }
+      ]
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "15Yc1r6s9CEhSTMe",
+        "packName": "classes",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "sorcerer.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "LkcgfNS2xs7MhCGl",
     "name": "Wizard",
     "type": "class",
@@ -1895,7 +4482,9 @@
       },
       "description": "<p><em>You are an eternal student of the secrets of the universe, using your mastery of magic to cast powerful spells. You treat magic like a science, cross-referencing the latest texts on practical spellcraft with ancient tomes to discover and understand arcane magic. Yet magical theory is vast, and there's no way you can study it all. Most wizards learn through formal schooling, with their curriculum informing a specific rubric, although particularly driven researchers sometimes piece together their own theories.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.wDukeO3euLEGn6FA]{Wizard}</em></p>",
       "hp": 6,
-      "keyAbility": ["int"],
+      "keyAbility": [
+        "int"
+      ],
       "perception": 1,
       "publication": {
         "license": "ORC",
@@ -1908,7 +4497,17 @@
         "reflex": 1,
         "will": 2
       },
-      "skillIncreaseLevels": [3, 5, 7, 9, 11, 13, 15, 17, 19],
+      "skillIncreaseLevels": [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19
+      ],
       "spellcasting": {
         "tradition": "arcane",
         "type": "prepared",
@@ -2209,7 +4808,9 @@
         ]
       },
       "trainedSkills": {
-        "value": ["arcana"],
+        "value": [
+          "arcana"
+        ],
         "additional": 2
       },
       "traits": {
@@ -2218,10 +4819,44 @@
       },
       "classDC": 1,
       "featLevels": {
-        "ancestry": [1, 5, 9, 13, 17],
-        "class": [2, 4, 6, 8, 10, 12, 14, 16, 18, 20],
-        "general": [3, 7, 11, 15, 19],
-        "skill": [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+        "ancestry": [
+          1,
+          5,
+          9,
+          13,
+          17
+        ],
+        "class": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ],
+        "general": [
+          3,
+          7,
+          11,
+          15,
+          19
+        ],
+        "skill": [
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ]
       },
       "proficiencyUpgrades": [
         {

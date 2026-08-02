@@ -1432,6 +1432,17 @@ function normalizeClassFeatureSystem(system, src) {
   // (otherTag "magus-hybrid-study"). Instinct, Racket, Hunter's Edge, Arcane
   // Thesis e Arcane School entram assim — sem ramo por classe.
   const axisCategories = axisCategoryByOtherTag();
+  // A doc can carry an axis otherTag (e.g. "cleric-doctrine") AND
+  // "class-archetype" at the same time (Battle Creed/Bloodrager/Runelord/
+  // Vindicator/Avenger — each is some OTHER archetype's dedication doctrine
+  // that happens to reuse a core class's axis otherTag). r21's established
+  // integration policy for this exact pattern (see barbarian.json/
+  // ranger.json's own "r21 (integração): optionCount corrigido... nada é
+  // descartado, requisito sugere, nunca bloqueia" notes) is to include it as
+  // a real pickable axis option, not exclude it — kept here for r22
+  // (Cleric's Battle Creed) for consistency; do NOT special-case by
+  // "class-archetype" even though a per-class levantamento may suggest
+  // otherwise (cleric.json's own note initially did — see optionCount there).
   const axisCategory = Array.isArray(otherTags)
     ? otherTags.map((t) => axisCategories.get(t)).find(Boolean)
     : undefined;
@@ -1744,7 +1755,16 @@ function spellcastingFor(slug) {
       `[transform] curadoria de "${slug}": spellcasting precisa de "table" OU de "cantripsKnown"+"slots".`,
     );
   }
-  return { tradition: sc.tradition, type: sc.type, ability: sc.ability, ...out };
+  return {
+    tradition: sc.tradition,
+    type: sc.type,
+    ability: sc.ability,
+    ...out,
+    // r22: Sorcerer-style "tradition determined by a choiceAxis option"
+    // (sc.tradition === null) carries the per-option map alongside — see
+    // ClassSpellcastingSchema's doc comment in item-equipment.ts.
+    ...(sc.traditionByBloodline ? { traditionByBloodline: sc.traditionByBloodline } : {}),
+  };
 }
 
 /** Derives a class slug from its Fusion document name (lowercase, ascii). */

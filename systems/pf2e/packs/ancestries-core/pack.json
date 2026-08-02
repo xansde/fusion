@@ -3,7 +3,11 @@
   "label": "PF2e Core Ancestries",
   "documentType": "Item",
   "systemId": "pf2e",
-  "indexFields": ["name", "system.traits.value", "system.size"],
+  "indexFields": [
+    "name",
+    "system.traits.value",
+    "system.size"
+  ],
   "license": {
     "license": "ORC",
     "attribution": "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -19,5 +23,5 @@
   },
   "schemaVersion": 1,
   "documentCount": 2,
-  "generatedAt": "2026-08-02T01:09:19.266Z"
+  "generatedAt": "2026-08-02T03:53:52.607Z"
 }

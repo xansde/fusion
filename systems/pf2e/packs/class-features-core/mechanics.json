@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "packId": "pf2e.class-features-core",
-  "generatedAt": "2026-08-02T01:04:59.138Z",
+  "generatedAt": "2026-08-02T03:59:58.306Z",
   "generator": "tools/translate-packs@0.1.0",
   "entries": {
     "2K4xQnGRqtCwjRoU": {
@@ -12,7 +12,9 @@
           "category": "general",
           "count": 1,
           "filters": {
-            "traits": ["impulse"],
+            "traits": [
+              "impulse"
+            ],
             "maxLevel": 9
           },
           "source": "rule-element",
@@ -99,7 +101,9 @@
           "category": "general",
           "count": 1,
           "filters": {
-            "traits": ["impulse"],
+            "traits": [
+              "impulse"
+            ],
             "maxLevel": 17
           },
           "source": "rule-element",
@@ -130,7 +134,9 @@
           "category": "general",
           "count": 1,
           "filters": {
-            "traits": ["impulse"],
+            "traits": [
+              "impulse"
+            ],
             "maxLevel": 13
           },
           "source": "rule-element",
@@ -147,7 +153,9 @@
           "category": "general",
           "count": 1,
           "filters": {
-            "traits": ["impulse"],
+            "traits": [
+              "impulse"
+            ],
             "maxLevel": 5
           },
           "source": "rule-element",

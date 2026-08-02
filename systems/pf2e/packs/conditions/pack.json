@@ -3,7 +3,10 @@
   "label": "PF2e Conditions",
   "documentType": "Item",
   "systemId": "pf2e",
-  "indexFields": ["system.group", "system.value.isValued"],
+  "indexFields": [
+    "system.group",
+    "system.value.isValued"
+  ],
   "license": {
     "license": "ORC",
     "attribution": "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -19,5 +22,5 @@
   },
   "schemaVersion": 1,
   "documentCount": 43,
-  "generatedAt": "2026-08-02T01:09:18.566Z"
+  "generatedAt": "2026-08-02T03:53:51.951Z"
 }

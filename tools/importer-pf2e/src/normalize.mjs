@@ -487,14 +487,65 @@ function deepClone(obj) {
  * pf2e) ou out/sf2e/<pack>/raw.json (sf2e), ou diretamente do vendor (walk
  * recursivo) caso contrário.
  */
+// Walks a vendor pack dir recursively. `category` tracks the pack's
+// first-level subfolder name (e.g. "basic", "skill", "class") as files are
+// visited — undefined at the pack root itself, set once entering a
+// first-level dir.
+function walkJsonFilesWithCategory(dir, acc = [], category) {
+  const entries = readdirSync(dir, { withFileTypes: true });
+  for (const e of entries) {
+    const full = join(dir, e.name);
+    if (e.isDirectory()) {
+      walkJsonFilesWithCategory(full, acc, category ?? e.name);
+    } else if (e.name.endsWith(".json") && e.name !== "_folders.json") {
+      acc.push({ path: full, category });
+    }
+  }
+  return acc;
+}
+
+/**
+ * `_id` → first-level vendor subfolder name, for CATEGORY_SUBFOLDER_PACKS
+ * (currently only "actions"). Built by walking the vendor dir directly —
+ * needed even on the `raw.json` fast path below, because extract.mjs's own
+ * raw.json has no subfolder info (it flattens the vendor tree into one
+ * array), so `__fusionCategory` can only be recovered by re-reading the
+ * vendor layout and joining on `_id`.
+ */
+function subfolderCategoryById(packDir) {
+  const byId = new Map();
+  for (const { path: f, category } of walkJsonFilesWithCategory(packDir)) {
+    if (!category) continue;
+    const doc = JSON.parse(readFileSync(f, "utf8"));
+    if (doc._id) byId.set(doc._id, category);
+  }
+  return byId;
+}
+
 function loadRawDocs(packName, skipExtract, system, vendorBase) {
+  const tagCategory = CATEGORY_SUBFOLDER_PACKS.has(packName);
+  const packDir = join(vendorBase, packName);
+
   if (skipExtract) {
     const rawPath =
       system === "pf2e"
         ? join(OUT_DIR, packName, "raw.json")
         : join(OUT_DIR, system, packName, "raw.json");
     if (existsSync(rawPath)) {
-      return JSON.parse(readFileSync(rawPath, "utf8"));
+      const docs = JSON.parse(readFileSync(rawPath, "utf8"));
+      // raw.json (extract.mjs) doesn't carry the vendor subfolder — recover
+      // it by `_id` from the vendor tree so `--skip-extract` runs tag
+      // __fusionCategory exactly like the from-vendor path below (bug found
+      // r22: silently produced 0-doc actions-core, since every raw.json-fed
+      // normalize run skipped __fusionCategory entirely).
+      if (tagCategory && existsSync(packDir)) {
+        const byId = subfolderCategoryById(packDir);
+        for (const doc of docs) {
+          const category = byId.get(doc._id);
+          if (category) doc.__fusionCategory = category;
+        }
+      }
+      return docs;
     }
     console.warn(
       `[normalize] raw.json não encontrado para ${packName}, lendo diretamente do vendor...`,
@@ -502,30 +553,11 @@ function loadRawDocs(packName, skipExtract, system, vendorBase) {
   }
 
   // Ler diretamente do vendor
-  const packDir = join(vendorBase, packName);
   if (!existsSync(packDir)) {
     throw new Error(`Pack não encontrado: ${packDir}`);
   }
 
-  const tagCategory = CATEGORY_SUBFOLDER_PACKS.has(packName);
-
-  // Walks the pack dir recursively. `category` tracks the pack's first-level
-  // subfolder name (e.g. "basic", "skill", "class") as files are visited —
-  // undefined at the pack root itself, set once entering a first-level dir.
-  function walkJsonFiles(dir, acc = [], category) {
-    const entries = readdirSync(dir, { withFileTypes: true });
-    for (const e of entries) {
-      const full = join(dir, e.name);
-      if (e.isDirectory()) {
-        walkJsonFiles(full, acc, category ?? e.name);
-      } else if (e.name.endsWith(".json") && e.name !== "_folders.json") {
-        acc.push({ path: full, category });
-      }
-    }
-    return acc;
-  }
-
-  return walkJsonFiles(packDir).map(({ path: f, category }) => {
+  return walkJsonFilesWithCategory(packDir).map(({ path: f, category }) => {
     const doc = JSON.parse(readFileSync(f, "utf8"));
     if (tagCategory && category) {
       doc.__fusionCategory = category;

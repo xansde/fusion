@@ -34,11 +34,16 @@
     "rules": [],
     "traits": {
       "rarity": "uncommon",
-      "value": ["general", "skill"]
+      "value": [
+        "general",
+        "skill"
+      ]
     }
   },
   "_fusion": {
-    "normalizedAt": "2026-07-05T18:45:13.024Z",
-    "removedFields": ["folder"]
+    "normalizedAt": "2026-08-02T03:12:56.796Z",
+    "removedFields": [
+      "folder"
+    ]
   }
 }

@@ -8,10 +8,20 @@
   "system": {
     "boosts": {
       "0": {
-        "value": ["cha", "int"]
+        "value": [
+          "cha",
+          "int"
+        ]
       },
       "1": {
-        "value": ["cha", "con", "dex", "int", "str", "wis"]
+        "value": [
+          "cha",
+          "con",
+          "dex",
+          "int",
+          "str",
+          "wis"
+        ]
       }
     },
     "description": {
@@ -32,8 +42,12 @@
     },
     "rules": [],
     "trainedSkills": {
-      "lore": ["Academia Lore"],
-      "value": ["arcana"]
+      "lore": [
+        "Academia Lore"
+      ],
+      "value": [
+        "arcana"
+      ]
     },
     "traits": {
       "rarity": "uncommon",
@@ -41,7 +55,7 @@
     }
   },
   "_fusion": {
-    "normalizedAt": "2026-07-05T18:45:14.073Z",
+    "normalizedAt": "2026-08-02T03:12:56.909Z",
     "removedFields": []
   }
 }

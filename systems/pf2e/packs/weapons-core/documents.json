@@ -49,7 +49,9 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["two-hand-d12"]
+        "value": [
+          "two-hand-d12"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "sword"
@@ -122,7 +124,9 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["sweep"]
+        "value": [
+          "sweep"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "axe"
@@ -195,7 +199,12 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["monk", "parry", "reach", "trip"]
+        "value": [
+          "monk",
+          "parry",
+          "reach",
+          "trip"
+        ]
       },
       "usage": "held-in-two-hands",
       "weaponGroup": "club"
@@ -266,7 +275,9 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["thrown-10"]
+        "value": [
+          "thrown-10"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "club"
@@ -339,7 +350,11 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["deadly-d10", "propulsive", "volley-30"]
+        "value": [
+          "deadly-d10",
+          "propulsive",
+          "volley-30"
+        ]
       },
       "usage": "held-in-one-plus-hands",
       "weaponGroup": "bow"
@@ -412,7 +427,10 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["deadly-d10", "propulsive"]
+        "value": [
+          "deadly-d10",
+          "propulsive"
+        ]
       },
       "usage": "held-in-one-plus-hands",
       "weaponGroup": "bow"
@@ -558,7 +576,12 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["agile", "finesse", "thrown-10", "versatile-s"]
+        "value": [
+          "agile",
+          "finesse",
+          "thrown-10",
+          "versatile-s"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "knife"
@@ -631,7 +654,10 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["agile", "thrown"]
+        "value": [
+          "agile",
+          "thrown"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "dart"
@@ -704,7 +730,11 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["disarm", "sweep", "trip"]
+        "value": [
+          "disarm",
+          "sweep",
+          "trip"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "flail"
@@ -777,7 +807,11 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "uncommon",
-        "value": ["gnome", "reach", "sweep"]
+        "value": [
+          "gnome",
+          "reach",
+          "sweep"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "flail"
@@ -850,7 +884,9 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["sweep"]
+        "value": [
+          "sweep"
+        ]
       },
       "usage": "held-in-two-hands",
       "weaponGroup": "axe"
@@ -923,7 +959,9 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["versatile-p"]
+        "value": [
+          "versatile-p"
+        ]
       },
       "usage": "held-in-two-hands",
       "weaponGroup": "sword"
@@ -1069,7 +1107,11 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["agile", "sweep", "thrown-10"]
+        "value": [
+          "agile",
+          "sweep",
+          "thrown-10"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "axe"
@@ -1142,7 +1184,9 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["thrown"]
+        "value": [
+          "thrown"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "dart"
@@ -1215,7 +1259,11 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "uncommon",
-        "value": ["agile", "finesse", "trip"]
+        "value": [
+          "agile",
+          "finesse",
+          "trip"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "knife"
@@ -1288,7 +1336,10 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["deadly-d10", "volley-30"]
+        "value": [
+          "deadly-d10",
+          "volley-30"
+        ]
       },
       "usage": "held-in-one-plus-hands",
       "weaponGroup": "bow"
@@ -1361,7 +1412,9 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["versatile-p"]
+        "value": [
+          "versatile-p"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "sword"
@@ -1434,7 +1487,9 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["shove"]
+        "value": [
+          "shove"
+        ]
       },
       "usage": "held-in-two-hands",
       "weaponGroup": "hammer"
@@ -1507,7 +1562,9 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["versatile-p"]
+        "value": [
+          "versatile-p"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "club"
@@ -1580,7 +1637,11 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["deadly-d8", "disarm", "finesse"]
+        "value": [
+          "deadly-d8",
+          "disarm",
+          "finesse"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "sword"
@@ -1653,7 +1714,9 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["deadly-d10"]
+        "value": [
+          "deadly-d10"
+        ]
       },
       "usage": "held-in-one-plus-hands",
       "weaponGroup": "bow"
@@ -1726,7 +1789,11 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["agile", "finesse", "versatile-s"]
+        "value": [
+          "agile",
+          "finesse",
+          "versatile-s"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "sword"
@@ -1797,7 +1864,9 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["propulsive"]
+        "value": [
+          "propulsive"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "sling"
@@ -1870,7 +1939,10 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["monk", "thrown-20"]
+        "value": [
+          "monk",
+          "thrown-20"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "spear"
@@ -1941,7 +2013,10 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["monk", "two-hand-d8"]
+        "value": [
+          "monk",
+          "two-hand-d8"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "club"
@@ -2014,7 +2089,9 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["thrown-20"]
+        "value": [
+          "thrown-20"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "spear"
@@ -2087,7 +2164,9 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["shove"]
+        "value": [
+          "shove"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "hammer"
@@ -2160,7 +2239,13 @@
       "splashDamage": 0,
       "traits": {
         "rarity": "common",
-        "value": ["disarm", "finesse", "nonlethal", "reach", "trip"]
+        "value": [
+          "disarm",
+          "finesse",
+          "nonlethal",
+          "reach",
+          "trip"
+        ]
       },
       "usage": "held-in-one-hand",
       "weaponGroup": "flail"

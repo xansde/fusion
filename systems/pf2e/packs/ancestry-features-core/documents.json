@@ -25,13 +25,17 @@
           "selector": "other-tags",
           "value": "anadi-fangs",
           "mode": "add",
-          "predicate": ["item:id:{item|id}"],
+          "predicate": [
+            "item:id:{item|id}"
+          ],
           "priority": null,
           "raw": {
             "itemType": "weapon",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": ["item:id:{item|id}"],
+            "predicate": [
+              "item:id:{item|id}"
+            ],
             "property": "other-tags",
             "value": "anadi-fangs"
           }
@@ -39,7 +43,9 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": ["anadi"]
+        "value": [
+          "anadi"
+        ]
       }
     },
     "flags": {
@@ -64,19 +70,27 @@
             "label": "PF2E.BattleForm.Attack.Fangs",
             "predicate": [
               {
-                "or": ["change-shape:hybrid", "change-shape:spider"]
+                "or": [
+                  "change-shape:hybrid",
+                  "change-shape:spider"
+                ]
               }
             ],
             "range": null,
             "slug": "fangs",
-            "traits": ["finesse", "unarmed"],
+            "traits": [
+              "finesse",
+              "unarmed"
+            ],
             "_conversionState": "unsupported"
           },
           {
             "itemType": "weapon",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": ["item:id:{item|id}"],
+            "predicate": [
+              "item:id:{item|id}"
+            ],
             "property": "other-tags",
             "value": "anadi-fangs",
             "_conversionState": "partial"
@@ -120,7 +134,11 @@
           "type": "circumstance",
           "predicate": [
             {
-              "or": ["item:trait:disease", "item:trait:poison", "item:trait:radiation"]
+              "or": [
+                "item:trait:disease",
+                "item:trait:poison",
+                "item:trait:radiation"
+              ]
             }
           ],
           "priority": null,
@@ -128,7 +146,11 @@
             "key": "FlatModifier",
             "predicate": [
               {
-                "or": ["item:trait:disease", "item:trait:poison", "item:trait:radiation"]
+                "or": [
+                  "item:trait:disease",
+                  "item:trait:poison",
+                  "item:trait:radiation"
+                ]
               }
             ],
             "selector": "saving-throw",
@@ -139,7 +161,9 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": ["android"]
+        "value": [
+          "android"
+        ]
       }
     },
     "flags": {
@@ -182,7 +206,10 @@
           "kind": "flat-modifier",
           "slug": "emotionally-unaware-diplomacy-performance-penalty",
           "label": null,
-          "selector": ["diplomacy", "performance"],
+          "selector": [
+            "diplomacy",
+            "performance"
+          ],
           "value": -1,
           "mode": "add",
           "type": "circumstance",
@@ -191,7 +218,10 @@
           "raw": {
             "hideIfDisabled": true,
             "key": "FlatModifier",
-            "selector": ["diplomacy", "performance"],
+            "selector": [
+              "diplomacy",
+              "performance"
+            ],
             "slug": "emotionally-unaware-diplomacy-performance-penalty",
             "type": "circumstance",
             "value": -1
@@ -201,17 +231,25 @@
           "kind": "flat-modifier",
           "slug": "emotionally-unaware-sense-motive-penalty",
           "label": null,
-          "selector": ["perception"],
+          "selector": [
+            "perception"
+          ],
           "value": -1,
           "mode": "add",
           "type": "circumstance",
-          "predicate": ["action:sense-motive"],
+          "predicate": [
+            "action:sense-motive"
+          ],
           "priority": null,
           "raw": {
             "hideIfDisabled": true,
             "key": "FlatModifier",
-            "predicate": ["action:sense-motive"],
-            "selector": ["perception"],
+            "predicate": [
+              "action:sense-motive"
+            ],
+            "selector": [
+              "perception"
+            ],
             "slug": "emotionally-unaware-sense-motive-penalty",
             "type": "circumstance",
             "value": -1
@@ -220,7 +258,9 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": ["android"]
+        "value": [
+          "android"
+        ]
       }
     },
     "flags": {
@@ -261,7 +301,9 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": ["automaton"]
+        "value": [
+          "automaton"
+        ]
       }
     },
     "flags": {
@@ -302,7 +344,9 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": ["automaton"]
+        "value": [
+          "automaton"
+        ]
       }
     },
     "flags": {
@@ -420,9 +464,14 @@
             "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Antler",
-            "predicate": ["animal-attack:antler"],
+            "predicate": [
+              "animal-attack:antler"
+            ],
             "slug": "antler",
-            "traits": ["finesse", "unarmed"],
+            "traits": [
+              "finesse",
+              "unarmed"
+            ],
             "_conversionState": "unsupported"
           },
           {
@@ -438,9 +487,14 @@
             "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Beak",
-            "predicate": ["animal-attack:beak"],
+            "predicate": [
+              "animal-attack:beak"
+            ],
             "slug": "beak",
-            "traits": ["finesse", "unarmed"],
+            "traits": [
+              "finesse",
+              "unarmed"
+            ],
             "_conversionState": "unsupported"
           },
           {
@@ -457,9 +511,15 @@
             "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Claw",
-            "predicate": ["animal-attack:claw"],
+            "predicate": [
+              "animal-attack:claw"
+            ],
             "slug": "claw",
-            "traits": ["agile", "finesse", "unarmed"],
+            "traits": [
+              "agile",
+              "finesse",
+              "unarmed"
+            ],
             "_conversionState": "unsupported"
           },
           {
@@ -475,15 +535,22 @@
             "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Fangs",
-            "predicate": ["animal-attack:fangs"],
+            "predicate": [
+              "animal-attack:fangs"
+            ],
             "slug": "fangs",
-            "traits": ["finesse", "unarmed"],
+            "traits": [
+              "finesse",
+              "unarmed"
+            ],
             "_conversionState": "unsupported"
           },
           {
             "fist": true,
             "key": "Strike",
-            "predicate": ["animal-attack:fist"],
+            "predicate": [
+              "animal-attack:fist"
+            ],
             "_conversionState": "unsupported"
           },
           {
@@ -499,9 +566,14 @@
             "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Horn",
-            "predicate": ["animal-attack:horn"],
+            "predicate": [
+              "animal-attack:horn"
+            ],
             "slug": "horn",
-            "traits": ["finesse", "unarmed"],
+            "traits": [
+              "finesse",
+              "unarmed"
+            ],
             "_conversionState": "unsupported"
           },
           {
@@ -518,9 +590,14 @@
             "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Jaws",
-            "predicate": ["animal-attack:jaws"],
+            "predicate": [
+              "animal-attack:jaws"
+            ],
             "slug": "jaws",
-            "traits": ["finesse", "unarmed"],
+            "traits": [
+              "finesse",
+              "unarmed"
+            ],
             "_conversionState": "unsupported"
           },
           {
@@ -536,9 +613,15 @@
             "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Tail",
-            "predicate": ["animal-attack:tail"],
+            "predicate": [
+              "animal-attack:tail"
+            ],
             "slug": "tail",
-            "traits": ["finesse", "trip", "unarmed"],
+            "traits": [
+              "finesse",
+              "trip",
+              "unarmed"
+            ],
             "_conversionState": "unsupported"
           },
           {
@@ -554,9 +637,15 @@
             "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Talon",
-            "predicate": ["animal-attack:talon"],
+            "predicate": [
+              "animal-attack:talon"
+            ],
             "slug": "talon",
-            "traits": ["agile", "finesse", "unarmed"],
+            "traits": [
+              "agile",
+              "finesse",
+              "unarmed"
+            ],
             "_conversionState": "unsupported"
           },
           {
@@ -572,9 +661,14 @@
             "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Tongue",
-            "predicate": ["animal-attack:tongue"],
+            "predicate": [
+              "animal-attack:tongue"
+            ],
             "slug": "tongue",
-            "traits": ["finesse", "unarmed"],
+            "traits": [
+              "finesse",
+              "unarmed"
+            ],
             "_conversionState": "unsupported"
           },
           {
@@ -590,9 +684,15 @@
             "img": "icons/placeholder/feat.svg",
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Wing",
-            "predicate": ["animal-attack:wing"],
+            "predicate": [
+              "animal-attack:wing"
+            ],
             "slug": "wing",
-            "traits": ["agile", "finesse", "unarmed"],
+            "traits": [
+              "agile",
+              "finesse",
+              "unarmed"
+            ],
             "_conversionState": "unsupported"
           }
         ],
@@ -708,7 +808,9 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": ["azarketi"]
+        "value": [
+          "azarketi"
+        ]
       }
     },
     "flags": {
@@ -764,7 +866,9 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": ["azarketi"]
+        "value": [
+          "azarketi"
+        ]
       }
     },
     "flags": {
@@ -808,7 +912,9 @@
         "selected": {
           "catfolk": "Catfolk"
         },
-        "value": ["catfolk"]
+        "value": [
+          "catfolk"
+        ]
       }
     },
     "flags": {
@@ -849,7 +955,9 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": ["centaur"]
+        "value": [
+          "centaur"
+        ]
       }
     },
     "flags": {
@@ -923,7 +1031,9 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": ["centaur"]
+        "value": [
+          "centaur"
+        ]
       }
     },
     "flags": {
@@ -964,7 +1074,9 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": ["conrasu"]
+        "value": [
+          "conrasu"
+        ]
       }
     },
     "flags": {
@@ -1010,7 +1122,9 @@
       },
       "traits": {
         "rarity": "common",
-        "value": ["dragonet"]
+        "value": [
+          "dragonet"
+        ]
       }
     },
     "flags": {
@@ -1037,7 +1151,10 @@
             "label": "PF2E.BattleForm.Attack.Jaws",
             "range": null,
             "slug": "jaws",
-            "traits": ["finesse", "unarmed"],
+            "traits": [
+              "finesse",
+              "unarmed"
+            ],
             "_conversionState": "unsupported"
           }
         ],
@@ -1076,7 +1193,9 @@
       },
       "traits": {
         "rarity": "common",
-        "value": ["dragonet"]
+        "value": [
+          "dragonet"
+        ]
       }
     },
     "flags": {
@@ -1135,12 +1254,16 @@
           "label": null,
           "uuid": "Compendium.pf2e.equipment-srd.Item.Clan Dagger",
           "inMemoryOnly": false,
-          "predicate": ["clan-dagger"],
+          "predicate": [
+            "clan-dagger"
+          ],
           "alterations": [],
           "priority": null,
           "raw": {
             "key": "GrantItem",
-            "predicate": ["clan-dagger"],
+            "predicate": [
+              "clan-dagger"
+            ],
             "uuid": "Compendium.pf2e.equipment-srd.Item.Clan Dagger"
           }
         },
@@ -1150,20 +1273,26 @@
           "label": null,
           "uuid": "Compendium.pf2e.feats-srd.Item.Clan Pistol",
           "inMemoryOnly": false,
-          "predicate": ["clan-pistol"],
+          "predicate": [
+            "clan-pistol"
+          ],
           "alterations": [],
           "priority": null,
           "raw": {
             "key": "GrantItem",
             "nestFeat": false,
-            "predicate": ["clan-pistol"],
+            "predicate": [
+              "clan-pistol"
+            ],
             "uuid": "Compendium.pf2e.feats-srd.Item.Clan Pistol"
           }
         }
       ],
       "traits": {
         "rarity": "common",
-        "value": ["dwarf"]
+        "value": [
+          "dwarf"
+        ]
       }
     },
     "flags": {
@@ -1178,7 +1307,11 @@
             "adjustName": false,
             "allowedDrops": {
               "label": "level-0 dwarf weapon",
-              "predicate": ["item:level:0", "item:trait:dwarf", "item:type:weapon"]
+              "predicate": [
+                "item:level:0",
+                "item:trait:dwarf",
+                "item:type:weapon"
+              ]
             },
             "choices": [
               {
@@ -1237,7 +1370,10 @@
           "type": "circumstance",
           "predicate": [
             {
-              "or": ["item:trait:disease", "item:trait:poison"]
+              "or": [
+                "item:trait:disease",
+                "item:trait:poison"
+              ]
             }
           ],
           "priority": null,
@@ -1245,7 +1381,10 @@
             "key": "FlatModifier",
             "predicate": [
               {
-                "or": ["item:trait:disease", "item:trait:poison"]
+                "or": [
+                  "item:trait:disease",
+                  "item:trait:poison"
+                ]
               }
             ],
             "selector": "fortitude",
@@ -1256,7 +1395,9 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": ["fleshwarp"]
+        "value": [
+          "fleshwarp"
+        ]
       }
     },
     "flags": {
@@ -1338,7 +1479,9 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": ["goloma"]
+        "value": [
+          "goloma"
+        ]
       }
     },
     "flags": {
@@ -1388,10 +1531,16 @@
           "predicate": [
             "action:seek",
             {
-              "lte": ["target:distance", 30]
+              "lte": [
+                "target:distance",
+                30
+              ]
             },
             {
-              "or": ["target:condition:hidden", "target:condition:undetected"]
+              "or": [
+                "target:condition:hidden",
+                "target:condition:undetected"
+              ]
             }
           ],
           "priority": null,
@@ -1400,10 +1549,16 @@
             "predicate": [
               "action:seek",
               {
-                "lte": ["target:distance", 30]
+                "lte": [
+                  "target:distance",
+                  30
+                ]
               },
               {
-                "or": ["target:condition:hidden", "target:condition:undetected"]
+                "or": [
+                  "target:condition:hidden",
+                  "target:condition:undetected"
+                ]
               }
             ],
             "selector": "perception",
@@ -1417,7 +1572,9 @@
         "selected": {
           "halfling": "Halfling"
         },
-        "value": ["halfling"]
+        "value": [
+          "halfling"
+        ]
       }
     },
     "flags": {
@@ -1520,7 +1677,9 @@
       },
       "traits": {
         "rarity": "common",
-        "value": ["jotunborn"]
+        "value": [
+          "jotunborn"
+        ]
       }
     },
     "flags": {
@@ -1533,7 +1692,9 @@
         "unconvertedRules": [
           {
             "key": "TokenLight",
-            "predicate": ["iivlar-weaving-lit"],
+            "predicate": [
+              "iivlar-weaving-lit"
+            ],
             "value": {
               "alpha": 0.1,
               "animation": {},
@@ -1584,7 +1745,10 @@
           "predicate": [
             "action:sense-motive",
             {
-              "lte": ["target:distance", 15]
+              "lte": [
+                "target:distance",
+                15
+              ]
             },
             {
               "not": "target:trait:mindless"
@@ -1596,7 +1760,10 @@
             "predicate": [
               "action:sense-motive",
               {
-                "lte": ["target:distance", 15]
+                "lte": [
+                  "target:distance",
+                  15
+                ]
               },
               {
                 "not": "target:trait:mindless"
@@ -1692,7 +1859,9 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": ["kholo"]
+        "value": [
+          "kholo"
+        ]
       }
     },
     "flags": {
@@ -1719,7 +1888,9 @@
             "label": "PF2E.Weapon.Base.jaws",
             "range": null,
             "slug": "jaws",
-            "traits": ["unarmed"],
+            "traits": [
+              "unarmed"
+            ],
             "_conversionState": "unsupported"
           }
         ],
@@ -2818,13 +2989,17 @@
           "selector": "traits",
           "value": "{item|flags.system.rulesSelections.draconicExemplar.damageType}",
           "mode": "add",
-          "predicate": ["item:slug:kobold-breath"],
+          "predicate": [
+            "item:slug:kobold-breath"
+          ],
           "priority": null,
           "raw": {
             "itemType": "feat",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": ["item:slug:kobold-breath"],
+            "predicate": [
+              "item:slug:kobold-breath"
+            ],
             "property": "traits",
             "value": "{item|flags.system.rulesSelections.draconicExemplar.damageType}"
           }
@@ -2832,7 +3007,9 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": ["kobold"]
+        "value": [
+          "kobold"
+        ]
       }
     },
     "flags": {
@@ -2926,7 +3103,9 @@
             "itemType": "feat",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": ["item:slug:kobold-breath"],
+            "predicate": [
+              "item:slug:kobold-breath"
+            ],
             "property": "traits",
             "value": "{item|flags.system.rulesSelections.draconicExemplar.damageType}",
             "_conversionState": "partial"
@@ -2962,7 +3141,9 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": ["leshy"]
+        "value": [
+          "leshy"
+        ]
       }
     },
     "flags": {
@@ -3021,7 +3202,9 @@
         "selected": {
           "lizardfolk": "Lizardfolk"
         },
-        "value": ["lizardfolk"]
+        "value": [
+          "lizardfolk"
+        ]
       }
     },
     "flags": {
@@ -3068,13 +3251,17 @@
           "selector": "other-tags",
           "value": "lizardfolk-claws",
           "mode": "add",
-          "predicate": ["item:id:{item|id}"],
+          "predicate": [
+            "item:id:{item|id}"
+          ],
           "priority": 119,
           "raw": {
             "itemType": "weapon",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": ["item:id:{item|id}"],
+            "predicate": [
+              "item:id:{item|id}"
+            ],
             "priority": 119,
             "property": "other-tags",
             "value": "lizardfolk-claws"
@@ -3086,7 +3273,9 @@
         "selected": {
           "lizardfolk": "Lizardfolk"
         },
-        "value": ["lizardfolk"]
+        "value": [
+          "lizardfolk"
+        ]
       }
     },
     "flags": {
@@ -3112,14 +3301,20 @@
             "label": "PF2E.Weapon.Base.claw",
             "range": null,
             "slug": "claw",
-            "traits": ["finesse", "agile", "unarmed"],
+            "traits": [
+              "finesse",
+              "agile",
+              "unarmed"
+            ],
             "_conversionState": "unsupported"
           },
           {
             "itemType": "weapon",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": ["item:id:{item|id}"],
+            "predicate": [
+              "item:id:{item|id}"
+            ],
             "priority": 119,
             "property": "other-tags",
             "value": "lizardfolk-claws",
@@ -3172,7 +3367,9 @@
               "success": "one-degree-better"
             },
             "key": "AdjustDegreeOfSuccess",
-            "predicate": ["water"],
+            "predicate": [
+              "water"
+            ],
             "selector": "saving-throw",
             "_conversionState": "unsupported"
           }
@@ -3248,7 +3445,9 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": ["minotaur"]
+        "value": [
+          "minotaur"
+        ]
       }
     },
     "flags": {
@@ -3273,7 +3472,9 @@
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Horns",
             "slug": "horns",
-            "traits": ["unarmed"],
+            "traits": [
+              "unarmed"
+            ],
             "_conversionState": "unsupported"
           }
         ],
@@ -3336,7 +3537,10 @@
               }
             ],
             "range": null,
-            "traits": ["finesse", "unarmed"],
+            "traits": [
+              "finesse",
+              "unarmed"
+            ],
             "_conversionState": "unsupported"
           }
         ],
@@ -3411,7 +3615,9 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": ["poppet"]
+        "value": [
+          "poppet"
+        ]
       }
     },
     "flags": {
@@ -3509,7 +3715,9 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": ["ratfolk"]
+        "value": [
+          "ratfolk"
+        ]
       }
     },
     "flags": {
@@ -3534,7 +3742,11 @@
             "key": "Strike",
             "label": "PF2E.Weapon.Base.jaws",
             "range": null,
-            "traits": ["unarmed", "agile", "finesse"],
+            "traits": [
+              "unarmed",
+              "agile",
+              "finesse"
+            ],
             "_conversionState": "unsupported"
           }
         ],
@@ -3574,11 +3786,15 @@
           "value": 1,
           "mode": "add",
           "type": "circumstance",
-          "predicate": ["proficiency:untrained"],
+          "predicate": [
+            "proficiency:untrained"
+          ],
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "predicate": ["proficiency:untrained"],
+            "predicate": [
+              "proficiency:untrained"
+            ],
             "selector": "skill-check",
             "type": "circumstance",
             "value": 1
@@ -3587,7 +3803,9 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": ["samsaran"]
+        "value": [
+          "samsaran"
+        ]
       }
     },
     "flags": {
@@ -3628,7 +3846,9 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": ["samsaran"]
+        "value": [
+          "samsaran"
+        ]
       }
     },
     "flags": {
@@ -3684,7 +3904,9 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": ["sarangay"]
+        "value": [
+          "sarangay"
+        ]
       }
     },
     "flags": {
@@ -3731,13 +3953,17 @@
           "selector": "other-tags",
           "value": "sarangay-horns",
           "mode": "add",
-          "predicate": ["item:id:{item|id}"],
+          "predicate": [
+            "item:id:{item|id}"
+          ],
           "priority": null,
           "raw": {
             "itemType": "weapon",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": ["item:id:{item|id}"],
+            "predicate": [
+              "item:id:{item|id}"
+            ],
             "property": "other-tags",
             "value": "sarangay-horns"
           }
@@ -3745,7 +3971,9 @@
       ],
       "traits": {
         "rarity": "common",
-        "value": ["sarangay"]
+        "value": [
+          "sarangay"
+        ]
       }
     },
     "flags": {
@@ -3770,14 +3998,19 @@
             "key": "Strike",
             "label": "PF2E.BattleForm.Attack.Horns",
             "slug": "horns",
-            "traits": ["unarmed", "shove"],
+            "traits": [
+              "unarmed",
+              "shove"
+            ],
             "_conversionState": "unsupported"
           },
           {
             "itemType": "weapon",
             "key": "ItemAlteration",
             "mode": "add",
-            "predicate": ["item:id:{item|id}"],
+            "predicate": [
+              "item:id:{item|id}"
+            ],
             "property": "other-tags",
             "value": "sarangay-horns",
             "_conversionState": "partial"
@@ -3857,7 +4090,9 @@
         "selected": {
           "shoony": "Shoony"
         },
-        "value": ["shoony"]
+        "value": [
+          "shoony"
+        ]
       }
     },
     "flags": {
@@ -3875,7 +4110,10 @@
             "key": "AdjustDegreeOfSuccess",
             "predicate": [
               {
-                "or": ["item:trait:olfactory", "item:trait:inhaled"]
+                "or": [
+                  "item:trait:olfactory",
+                  "item:trait:inhaled"
+                ]
               }
             ],
             "selector": "saving-throw",
@@ -3912,7 +4150,9 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": ["sprite"]
+        "value": [
+          "sprite"
+        ]
       }
     },
     "flags": {
@@ -3961,7 +4201,9 @@
       "rules": [],
       "traits": {
         "rarity": "common",
-        "value": ["strix"]
+        "value": [
+          "strix"
+        ]
       }
     },
     "flags": {
@@ -4109,7 +4351,10 @@
             "label": "PF2E.BattleForm.Attack.Beak",
             "range": null,
             "slug": "beak",
-            "traits": ["finesse", "unarmed"],
+            "traits": [
+              "finesse",
+              "unarmed"
+            ],
             "_conversionState": "unsupported"
           }
         ],
@@ -4149,11 +4394,15 @@
           "value": 2,
           "mode": "add",
           "type": "circumstance",
-          "predicate": ["action:climb"],
+          "predicate": [
+            "action:climb"
+          ],
           "priority": null,
           "raw": {
             "key": "FlatModifier",
-            "predicate": ["action:climb"],
+            "predicate": [
+              "action:climb"
+            ],
             "selector": "athletics",
             "type": "circumstance",
             "value": 2
@@ -4225,7 +4474,10 @@
           "type": "circumstance",
           "predicate": [
             {
-              "or": ["disease", "poison"]
+              "or": [
+                "disease",
+                "poison"
+              ]
             }
           ],
           "priority": null,
@@ -4233,7 +4485,10 @@
             "key": "FlatModifier",
             "predicate": [
               {
-                "or": ["disease", "poison"]
+                "or": [
+                  "disease",
+                  "poison"
+                ]
               }
             ],
             "selector": "saving-throw",
@@ -4252,7 +4507,10 @@
           "type": "circumstance",
           "predicate": [
             {
-              "or": ["inflicts:paralyzed", "sleep"]
+              "or": [
+                "inflicts:paralyzed",
+                "sleep"
+              ]
             }
           ],
           "priority": null,
@@ -4260,7 +4518,10 @@
             "key": "FlatModifier",
             "predicate": [
               {
-                "or": ["inflicts:paralyzed", "sleep"]
+                "or": [
+                  "inflicts:paralyzed",
+                  "sleep"
+                ]
               }
             ],
             "selector": "saving-throw",
@@ -4337,7 +4598,10 @@
           "type": "circumstance",
           "predicate": [
             {
-              "or": ["disease", "poison"]
+              "or": [
+                "disease",
+                "poison"
+              ]
             }
           ],
           "priority": null,
@@ -4345,7 +4609,10 @@
             "key": "FlatModifier",
             "predicate": [
               {
-                "or": ["disease", "poison"]
+                "or": [
+                  "disease",
+                  "poison"
+                ]
               }
             ],
             "selector": "saving-throw",
@@ -4369,7 +4636,9 @@
       ],
       "subfeatures": {
         "languages": {
-          "granted": ["necril"],
+          "granted": [
+            "necril"
+          ],
           "slots": 0
         },
         "senses": {

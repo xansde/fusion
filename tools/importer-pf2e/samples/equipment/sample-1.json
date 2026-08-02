@@ -43,7 +43,9 @@
     "size": "med",
     "traits": {
       "rarity": "uncommon",
-      "value": ["consumable"]
+      "value": [
+        "consumable"
+      ]
     },
     "uses": {
       "autoDestroy": true,
@@ -52,7 +54,7 @@
     }
   },
   "_fusion": {
-    "normalizedAt": "2026-07-05T18:44:56.641Z",
+    "normalizedAt": "2026-08-02T03:12:55.923Z",
     "removedFields": []
   }
 }

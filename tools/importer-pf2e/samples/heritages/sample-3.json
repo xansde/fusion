@@ -36,30 +36,43 @@
         "prompt": "PF2E.SpecificRule.Prompt.Trait"
       },
       {
-        "add": ["{item|flags.system.rulesSelections.trait}"],
+        "add": [
+          "{item|flags.system.rulesSelections.trait}"
+        ],
         "key": "ActorTraits"
       },
       {
         "key": "FlatModifier",
-        "predicate": ["action:administer-first-aid", "change-shape:humanoid"],
+        "predicate": [
+          "action:administer-first-aid",
+          "change-shape:humanoid"
+        ],
         "selector": "medicine",
         "type": "circumstance",
         "value": 1
       },
       {
         "key": "FlatModifier",
-        "predicate": ["action:treat-wounds", "change-shape:yaoguai", "check:statistic:medicine"],
+        "predicate": [
+          "action:treat-wounds",
+          "change-shape:yaoguai",
+          "check:statistic:medicine"
+        ],
         "selector": "healing-received",
         "value": "@actor.level"
       }
     ],
     "traits": {
       "rarity": "common",
-      "value": ["yaoguai"]
+      "value": [
+        "yaoguai"
+      ]
     }
   },
   "_fusion": {
-    "normalizedAt": "2026-07-05T18:45:13.532Z",
-    "removedFields": ["folder"]
+    "normalizedAt": "2026-08-02T03:12:56.883Z",
+    "removedFields": [
+      "folder"
+    ]
   }
 }

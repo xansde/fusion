@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "packId": "pf2e.spells-core",
   "locale": "pt-BR",
-  "generatedAt": "2026-08-02T01:04:59.383Z",
+  "generatedAt": "2026-08-02T03:59:58.475Z",
   "generator": "tools/translate-packs@0.1.0",
   "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
   "entries": {
@@ -150,6 +150,11 @@
       "name": "Contenção de Onda Inabalável",
       "sourceHash": "60acec252f3463bebef80857cddd2e7bdc0ff0c5",
       "description": "<p>Você envolve inimigos em quatro fios de água. Quando você conjura a magia, faça uma rolagem de ataque de magia contra os alvos. Em um sucesso, eles são @UUID[Compendium.pf2e.conditionitems.Item.Immobilized] até a magia terminar ou eles @UUID[Compendium.pf2e.actionspf2e.Item.Escape]; em um sucesso crítico, eles também são @UUID[Compendium.pf2e.conditionitems.Item.Restrained] até a magia terminar ou eles Escapam. Cada alvo que está imobilizado ou restringido também sofre 10d6 dano de concussão das ondas constritoras, com um teste de resistencia de Fortitude básico. A primeira vez cada rodada subsequente quando você sustenta a Magia, se nem todos os alvos estão imobilizados ou restringidos, faça uma rolagem de ataque de magia contra qualquer alvo que seja livre mas permaneça dentro do alcance, com os mesmos efeitos como quando você conjurou a magia, imobilizando ou restringindo-os dependendo da sua rolagem de ataque de magia. Criaturas que são imobilizadas ou restringidas sofrem 10d6 dano de concussão com um teste de resistencia de Fortitude básico.</p>"
+    },
+    "1X6ZMWfRQIDnDB5c": {
+      "name": "Canção da Força",
+      "sourceHash": "bf28d6cd6c07fa8676751adda5baa6aaa65414bb",
+      "description": ""
     },
     "1YJxFz8Cw7snbnBx": {
       "name": "Metais Noxios",
@@ -965,6 +970,11 @@
       "name": "Prisao Fantasmagórica",
       "sourceHash": "533c35535d312013dc6f9891c01037b9d01ef308",
       "description": "<p>Voce envolve completamente uma criatura Grande ou menor em paredes ilusorias imóveis, prendendo-a dentro de uma prisao falsa da qual nao pode escapar. Nenhuma outra criatura ve ou sente essas paredes, e o alvo nao pode ver nada fora das paredes ilusorias. O alvo pode tentar um teste de Vontade quando a magia e lancada, cada vez que tenta interagir com ou escapar das paredes, e cada vez que algo de fora das paredes o afeta. Ao ter sucesso, ele nega a ilusao e a magia termina.</p>\n<hr />\n<p><strong>Elevada (8a)</strong> Voce pode alvojo ate 5 criaturas.</p>"
+    },
+    "9vgmOlwNtW4onST3": {
+      "name": "Refrão de Silver",
+      "sourceHash": "edb62f236481311a7911d5885fbbbd152e658e1a",
+      "description": ""
     },
     "9wo1nMNdDwVA10tf": {
       "name": "Toque de Tempestade",
@@ -2691,6 +2701,11 @@
       "sourceHash": "0c152fe258d277ce8cd47a042e1ac2b370902628",
       "description": "<p>Você invoca sua musa para acalmar seus aliados. Escolha um dos três efeitos a seguir:</p>\n<ul>\n<li>A magia tenta anular efeitos de medo nos alvos.</li>\n<li>A magia tenta anular efeitos que impõem paralisia nos alvos.</li>\n<li>A magia restaura 7d8 Pontos de Vida aos alvos.</li>\n</ul>\n<hr />\n<p><strong>Elevada (+1)</strong> Quando usada para curar, balada calmante restaura 1d8 Pontos de Vida adicionais.</p>"
     },
+    "QreHVEpW0gbwRbz4": {
+      "name": "Hino de União",
+      "sourceHash": "a9a1423a558534e61c2cf632442347666e747b03",
+      "description": ""
+    },
     "QtjrhCXfteEFWoGz": {
       "name": "Armazena Tempo",
       "sourceHash": "91a5f39361259087190adbb9de5badb0bb639de6",
@@ -3886,6 +3901,11 @@
       "sourceHash": "d2c01d7d7d2dae69c689061610a4f3e4e9a31ae3",
       "description": "<p><strong>Gatilho</strong> Você ou um aliado dentro do alcance tenta um teste de resistência.</p>\n<hr />\n<p>Você distorce as forças do destino para tornar um momento terrível ou banal, sem meio termo. O alvo ganha um bônus de condicão +1 no teste de resistência disparador. Se o resultado do teste de resistência for um sucesso, ele se torna um sucesso crítico. Se for uma falha, ele se torna uma falha crítica, e a falha crítica não consegue ser reduzida por habilidades que normalmente reduzem falha crítica.</p>\n<p>Se a habilidade disparadora não tive tanto uma condição de sucesso crítico como falha crítica, <em>tenta sorte</em> falha, mas você não gasta o Ponto de Foco para Conjurar esta Magia.</p>\n<p>@UUID[Compendium.pf2e.spell-effects.Item.Spell Effect: Tempt Fate]</p>\n<hr />\n<p><strong>Elevada (8ª)</strong> O bônus no teste de resistência é +2.</p>"
     },
+    "cDSrmHsb49XRlZik": {
+      "name": "Tempo Triplo",
+      "sourceHash": "3982ea8a4b6550d1cd1a42e22e2684ea8719824a",
+      "description": ""
+    },
     "cIHL4DmjbBNcPzAZ": {
       "name": "Sugestão",
       "sourceHash": "04f57c449d84c430762587471fb0e9fd091e56f3",
@@ -4255,6 +4275,11 @@
       "name": "Criação",
       "sourceHash": "d2a02b34ca28f9a8906a683e245717a8d3146e6d",
       "description": "<p>Você conjura um objeto temporário a partir de energia mágica. Ele deve consistir em matéria terrena ou derivada de plantas (tal como madeira, papel, tijolo ou pedra) e ser 5 pés cúbicos ou menor. Ele não pode confiar em artesanato intrincado ou partes móveis complexas, nunca cumpre um custo ou similar, e não pode ser feito de materiais preciosos ou materiais com uma raridade incomum ou superior. Ele é obviamente temporariamente conjurado, e portanto não pode ser vendido ou passado como um item genuíno. A magia ganha o traco apropriado para o item criado, tipicamente terra, planta ou madeira.</p>\n<hr />\n<p><strong>Elevada (5º)</strong> O item é metal e pode incluir minerais comuns, como feldspato ou quartzo. A magia ganha o traco metal se usada para criar um objeto de metal</p>"
+    },
+    "gWBNZZPyRdR5IBk2": {
+      "name": "Allegro",
+      "sourceHash": "9276bd6201149980fe507adf9cb44b54d46813e5",
+      "description": ""
     },
     "gdGit9g6czhpedKs": {
       "name": "Armadura Instantânea",
@@ -5146,6 +5171,11 @@
       "sourceHash": "23cbd08570d983bf073bb93fa08798232b6f8dbc",
       "description": "<p>Você conjura uma prisão feita de osso. Criaturas no espaço onde você cria a gaiola podem tentar um teste de Reflexos; se falharem ou não tentarem o teste de resistencia, eles ficam presos dentro dela. A magia automaticamente falha se o espaço contém uma criatura maior que a área da magia.</p>\n<p>Uma criatura dentro da gaiola está @UUID[Compendium.pf2e.conditionitems.Item.Immobilized] até que Escape, use um efeito que possa passar através de objetos sólidos, ou destrua a gaiola. A gaiola tem CA 10, Dureza 5, e 10 Pontos de Vida, e é imune a acertos críticos e dano de precisao.</p>\n<p>A <em>gaiola óssea</em> fornece cobertura menor contra ataques que passam através da gaiola, de fora para dentro ou vice-versa.</p>\n<hr />\n<p><strong>Elevada (+2)</strong> A área da magia cresce 5 pés por lado e seus Pontos de Vida aumentam por 20.</p>"
     },
+    "otxXv6LPiIQaQLQd": {
+      "name": "Canto Fúnebre da Perdição",
+      "sourceHash": "56a5f1a5a904f65f6f37bf3fcf056717de8c334b",
+      "description": ""
+    },
     "ouEUvMLBTB77Z8DB": {
       "name": "Olfato Aguçado",
       "sourceHash": "14fb677619def1a40c9dc62c21d1aa129a5e6809",
@@ -5621,6 +5651,11 @@
       "sourceHash": "ff698d1314b24d8d96f6969739f52ecbac8d7fb6",
       "description": "<p>Você emite uma nuvem de fumaça tóxica que temporariamente obscurece você de vista. Cada criatura exceto você na área quando você Conjura a Magia recebe 1d6 de dano de veneno (teste de Fortitude básico). Uma criatura que falha criticamente no teste de resistência também fica @UUID[Compendium.pf2e.conditionitems.Item.Sickened]{Enjoada 1}. Todas as criaturas na área ficam @UUID[Compendium.pf2e.conditionitems.Item.Concealed], e todas as criaturas fora da fumaça ficam ocultadas para criaturas dentro dela. Esta fumaça pode ser dispersada por um vento forte.</p><hr /><p><strong>Elevada (+1)</strong> O dano aumenta em 1d6</p>"
     },
+    "tXWQIP6VOzsP44QW": {
+      "name": "Hino Corajoso",
+      "sourceHash": "683f0a22c219128b62c699ea982b5459a6f57e23",
+      "description": ""
+    },
     "tbVgr5dIir6kqL93": {
       "name": "Teia da Sombra",
       "sourceHash": "49496d9dda08ab7e5f5bef5c12c5bb0e8f8a5db5",
@@ -5751,6 +5786,11 @@
       "sourceHash": "122afa70db1696d29927fd684111b93432747fd8",
       "description": "<p>Você anula os sentidos olfatórios de um alvo, atraindo-o para um local específico através de aromas falsos tentadores. Selecione um único quadrado dentro do alcance que não seja perigoso ou ocupado por uma criatura. O alvo é atraído para o local selecionado, tornando-se eufórico ao chegar. O alvo deve fazer um teste de resistência de Vontade.</p>\n<hr />\n<p><strong>Sucesso Crítico</strong> O alvo não é afetado.</p>\n<p><strong>Sucesso</strong> O alvo é distraído pelos aromas tentadores, tornando-se @UUID[Compendium.pf2e.conditionitems.Item.Stupefied]{Estupidificado 1} por 1 rodada.</p>\n<p><strong>Falha</strong> O alvo é @UUID[Compendium.pf2e.conditionitems.Item.Stupefied]{Estupidificado 2} e se move em direção ao local selecionado pela rota mais direta possível por 1 rodada, contornando quaisquer perigos óbvios e inimigos no caminho.</p>\n<p><strong>Falha Crítica</strong> O alvo é @UUID[Compendium.pf2e.conditionitems.Item.Stupefied]{Estupidificado 4} e se move para o local selecionado pela rota mais direta possível por 1 rodada, contornando quaisquer perigos óbvios e inimigos no caminho. Se a criatura alcança o destino, ela deve permanecer naquele local por [[/r 1d4 #rodadas]]{1d4 rodadas} mas pode atuar normalmente.</p>\n<hr />\n<p><strong>Elevada (+2)</strong> Você tem como alvo 1 criatura adicional, selecionando um quadrado diferente dentro do alcance como seu destino.</p>"
     },
+    "v8uSd1SWEQ1sdpcX": {
+      "name": "Canção da Marcha",
+      "sourceHash": "4a10927e6a654754ddaaa8b139e424ec42ae130f",
+      "description": ""
+    },
     "vC4oGURjZD2RTDqJ": {
       "name": "Ampliar",
       "sourceHash": "cbfa01e41075d762f60c65e3661fa55864bacaea",
@@ -5780,6 +5820,11 @@
       "name": "Desafio do Herói",
       "sourceHash": "91e26f53530161b03c507d2f48e4fd5d9e16baa3",
       "description": "<p><strong>Gatilho</strong> Um ataque te levaria a 0 pontos de vida.</p><hr /><p>Você grita em desafio e é preenchido com um surto de cura. Imediatamente antes de aplicar o dano do ataque, você recupera 6d8+20 pontos de vida. Se isso for suficiente para impedir que o ataque te leve a 0 pontos de vida, você não se torna @UUID[Compendium.pf2e.conditionitems.Item.Unconscious] ou @UUID[Compendium.pf2e.conditionitems.Item.Dying]. De qualquer forma, enganar a morte é difícil, e você não pode usar <em>desafio do herói</em> novamente até você se Refocalisar ou fazer seus preparativos diários. <em>Desafio do herói</em> não pode ser usada contra efeitos com o traco de morte ou que deixariam nenhum resto, como desintegrar.</p>"
+    },
+    "vOu2a6TOlS0XwX5u": {
+      "name": "Casa de Paredes Imaginárias",
+      "sourceHash": "8e976f08a5a05453f641e32ed858f214101cdd2b",
+      "description": ""
     },
     "vQmS68XBrZFlHoZi": {
       "name": "Desintegração",
@@ -5880,6 +5925,11 @@
       "name": "Tempestade de Sombras",
       "sourceHash": "f0a75cb54cd70a343bdad21950d2c5528f4dbe41",
       "description": "<p>Você canaliza as forças da perdição para invocar brevemente uma amálgama dos mortos vingadores derrotados por seus inimigos e aliados. Essa amálgama se manifesta como um grande tornado de rostos insubstanciais e uivantes. Ocupa o espaço de uma criatura Enorme e tem uma Velocidade de 60 pés.</p>\n<p><strong>Chegada</strong> (negativo) <em>Vórtice da Morte</em> Cada criatura inimiga em uma emanação de 60 pés deve tentar um teste de Fortitude com os seguintes efeitos.</p><hr /><p><strong>Sucesso Crítico</strong> A criatura não é afetada</p>\n<p><strong>Sucesso</strong> A criatura é @UUID[Compendium.pf2e.conditionitems.Item.Drained]{Esgotada 1}.</p>\n<p><strong>Falha</strong> A criatura é @UUID[Compendium.pf2e.conditionitems.Item.Drained]{Esgotada 2}.</p>\n<p><strong>Falha Crítica</strong> A criatura é @UUID[Compendium.pf2e.conditionitems.Item.Drained]{Esgotada 3}.</p><hr /><p><strong>Partida</strong> (emoção, medo, mental) <em>Uivo da Eternidade</em> Os mortos vingadores soltam um grito angustiado. Todos seus inimigos em uma emanação de 100 pés devem tentar testes de @Check[will|name:Tempest of Shades Depart|traits:necromancy,emotion,fear,mental] com os seguintes efeitos.</p><hr /><p><strong>Sucesso Crítico</strong> A criatura não é afetada.</p>\n<p><strong>Sucesso</strong> A criatura é @UUID[Compendium.pf2e.conditionitems.Item.Frightened]{Amedrontada 1}.</p>\n<p><strong>Falha</strong> A criatura é @UUID[Compendium.pf2e.conditionitems.Item.Frightened]{Amedrontada 3}.</p>\n<p><strong>Falha Crítica</strong> A criatura é amedrontada 3. Também é @UUID[Compendium.pf2e.conditionitems.Item.Fleeing] por 1 rodada ou até deixar de estar amedrontada, o que vier primeiro.</p>"
+    },
+    "wQkY2Tcu1kgUHyqy": {
+      "name": "Abertura Inspiradora",
+      "sourceHash": "240166269330cf7a8957cd2dfd0b75581b1d7484",
+      "description": ""
     },
     "wWjy6qBecEzJ9AiJ": {
       "name": "Chuva de Força",

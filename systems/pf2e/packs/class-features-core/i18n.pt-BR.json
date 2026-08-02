@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "packId": "pf2e.class-features-core",
   "locale": "pt-BR",
-  "generatedAt": "2026-08-02T01:04:59.131Z",
+  "generatedAt": "2026-08-02T03:59:58.294Z",
   "generator": "tools/translate-packs@0.1.0",
   "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
   "entries": {
@@ -26,10 +26,20 @@
       "sourceHash": "1054ccd9d1de6a4ef837e4e8e3d9b7f783965566",
       "description": "<p>Seu dano da especialização com armas aumenta para 4 com armas e ataques desarmados nos quais você é perito, 6 se você é mestre, e 8 se você é lendário.</p>"
     },
+    "0Znipy3VhMSYEjol": {
+      "name": "Coração de Artista Superior",
+      "sourceHash": "8c20cf8175869ee9d05e03fa72e0d18493439300",
+      "description": ""
+    },
     "0bEpfnxfGVCC0MkH": {
       "name": "Maestria com Armaduras",
       "sourceHash": "9eddb655c101653ce3f1ce2160ab9ad3f242022e",
       "description": "<p><strong>Bárbaro</strong> Seu treinamento e sua fúria aprofundam sua conexão com sua armadura. Seus graus de proficiência em armadura leve, armadura média e defesa desarmada aumentam para mestre.</p><hr /><p><strong>Campeão, Comandante</strong> Sua habilidade com armaduras melhora, ajudando você a evitar mais golpes. Seus graus de proficiência em armaduras leves, médias e pesadas, bem como em defesa desarmada, aumentam para mestre.</p><hr /><p><strong>Guerreiro</strong> Sua habilidade com armaduras melhora ainda mais. Seus graus de proficiência em armaduras leves, médias e pesadas, bem como em defesa desarmada, aumentam para mestre.</p>"
+    },
+    "1Q9XEsrLEGizspNx": {
+      "name": "Quarta Doutrina (Sacerdote Guerreiro)",
+      "sourceHash": "02155024ecb233850bca7ed49fcaf9d9927e1364",
+      "description": ""
     },
     "1gLNhDwqDBZXZgW7": {
       "name": "Especialização de Patrulheiro",
@@ -41,6 +51,11 @@
       "sourceHash": "3222156af161fbc420a91257c0f2a42be00bfef8",
       "description": "<p>Treinado longe de olhos vigilantes, você usa furtividade, intimidação e trabalho mortal com lâminas para eliminar ameaças à sua igreja. Você deve escolher @UUID[Compendium.pf2e.feats-srd.Item.Avenger Dedication] como seu talento de classe de 2º nível.</p>\n<p><strong>Pré-requisitos:</strong> Você deve ser um ladino.</p>\n<p><strong>Ajustes do Vingador:</strong> Você deve escolher uma divindade da qual é seguidor.</p>\n<p>Você é treinado em Intimidação, Religião, Furtividade, na perícia divina concedida pela sua artimanha, e em um número de perícias adicionais igual a 3 mais seu modificador de Inteligência, em vez das suas proficiências iniciais normais em perícias.</p>\n<p>Você deve escolher a artimanha vingadora como a artimanha do seu ladino.</p>\n<p>Você não ganha a característica de classe @UUID[Compendium.pf2e.classfeatures.Item.Surprise Attack]. Você ganha a ação @UUID[Compendium.pf2e.actionspf2e.Item.Hunt Prey].</p><h2>Artimanha do Vingador</h2><p>Treinado para ser uma arma precisa, mas brutal, pelos sacerdotes de sua fé, você abandona a trapaça complexa em favor da eficiência rápida e mortal. Sutileza e engano têm sua utilidade, mas quando um sorriso falso falha, suas lâminas têm seu próprio jeito de encontrar a verdade.</p>\n<p>Você é treinado na arma favorita de sua divindade. Sempre que você ganhar uma característica de classe que conceda proficiência de perito ou superior em armas simples ou marciais, você também ganha esse grau de proficiência com a arma favorita de sua divindade.</p>\n<p>Você pode causar dano de ataque furtivo à sua presa com a arma favorita de sua divindade, além das armas listadas na característica de classe de ataque furtivo. Quando você obtém um sucesso crítico em uma rolagem de ataque usando a arma favorita de sua divindade e o alvo possui a condição @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard], você também aplica o efeito de especialização crítica da arma.</p>\n<p>Você é treinado na perícia divina de sua divindade e em armadura média; se você já for treinado na perícia divina de sua divindade, em vez disso você é treinado em outra perícia à sua escolha. Você pode escolher Força como seu modificador de atributo-chave. Quando você ganha perícia de perito com armadura leve, também ganha proficiência de perito em armadura média, e quando ganha maestria com armadura leve, também ganha proficiência de mestre em armadura média.</p>"
     },
+    "1tBpApILCv58X3Qo": {
+      "name": "Armadura Lendária",
+      "sourceHash": "75932387b0f70508fe6917c00e0c7ef34029014c",
+      "description": ""
+    },
     "2K4xQnGRqtCwjRoU": {
       "name": "Limiar do Segundo Portão",
       "sourceHash": "dbcab3197e0a118f44142c41d481646c0c882e1b",
@@ -51,6 +66,16 @@
       "sourceHash": "e4431bddfbb80d178d18e04bce340f9fac9fb8a6",
       "description": "<p>Você treinou para se tornar um caçador e rastreador habilidoso, ganhando um benefício extra quando Caça a Presa, dependendo do foco do seu treinamento. Escolha uma vantagem de caçador.</p>\n<ul>\n<li>@UUID[Compendium.pf2e.classfeatures.Item.Flurry]</li>\n<li>@UUID[Compendium.pf2e.classfeatures.Item.Outwit]</li>\n<li>@UUID[Compendium.pf2e.classfeatures.Item.Precision]</li>\n</ul>"
     },
+    "2d1VgeI3L0c046Ee": {
+      "name": "Aura do Campeão",
+      "sourceHash": "664c4d55ad8fa4bc32c263842d106bcc85e195b3",
+      "description": ""
+    },
+    "2zmRjnSK4X2ScHWJ": {
+      "name": "Divindade (Campeão)",
+      "sourceHash": "ea18ba990a75955d69268e1f9a82cdea0774df45",
+      "description": ""
+    },
     "3KjbcMT4TFczJxR0": {
       "name": "Reflexos Naturais",
       "sourceHash": "2e59aa2ab8be2e41bbf136fc1cf01c0ac792e277",
@@ -60,6 +85,11 @@
       "name": "Moldagem Experimental de Magias",
       "sourceHash": "3867dd008f6a4f35e34ea32202a1e28334d9f16f",
       "description": "<p>Sua tese sustenta que a prática mágica de moldagem de magias pode ser realizada de forma mais eficiente ao alterar variáveis e parâmetros durante a conjuração, imitando os magos de outrora que precisavam desenvolver suas próprias magias sozinhos. Isso proporciona a você acesso eficiente a diversos efeitos de moldagem de magias.</p>\n<p>Você ganha um talento de mago de moldagem de magias de 1º nível à sua escolha. A partir do 4º nível, durante suas preparações diárias, você pode ganhar um talento de mago de moldagem de magias à sua escolha que tenha um requisito de nível de no máximo metade do seu nível, que você pode usar até suas próximas preparações diárias.</p>"
+    },
+    "3ug7rtSzl5Z8xhr7": {
+      "name": "Linhagem: Imperial",
+      "sourceHash": "c7b01083a81102a2fbe0e48c78ab08ff604331a4",
+      "description": ""
     },
     "43cBGyCAMSl8qJaN": {
       "name": "Vínculo Arcano",
@@ -101,6 +131,11 @@
       "sourceHash": "ed7710df952d3cc3f850a1cc5b246ba302cabd87",
       "description": "<p>Sua habilidade com armadura leve melhora, aumentando sua capacidade de esquivar-se de golpes. Seus graus de proficiência em armadura leve e defesa sem armadura aumentam para mestre.</p>"
     },
+    "5Szj5aQ8oBJN70II": {
+      "name": "Especialização do Monge",
+      "sourceHash": "78879a06dd82e145f51609e9990d49e92502d100",
+      "description": ""
+    },
     "5iAgApzCdVQlJd7p": {
       "name": "Árvore Torcida",
       "sourceHash": "90d126fcd5bc8532be90025b565a45a38ff8a4ea",
@@ -111,25 +146,70 @@
       "sourceHash": "12c99939f34524c4e263445412d195a21428aec7",
       "description": "<p>Você sempre defendeu que o refinamento da magia que vincula um mago ao seu familiar pode melhorar a conexão mística e gerar resultados maiores, em comparação com o vínculo seguro, porém genérico, que a maioria dos magos usa atualmente. Você formou um pacto assim com seu familiar, obtendo mais vantagens dele do que a maioria dos magos. Você ganha o talento de mago @UUID[Compendium.pf2e.feats-srd.Item.Familiar]. Seu familiar ganha uma habilidade extra, e ganha uma habilidade extra adicional quando você atinge o 6º, o 12º e o 18º níveis.</p>\n<p>Sua conexão com seu familiar altera sua característica de classe de vínculo arcano, de modo que você armazena sua energia mágica em seu familiar, em vez de em um item que possui; você também ganha a ação livre Drenar Familiar em vez de @UUID[Compendium.pf2e.actionspf2e.Item.Drain Bonded Item]. Drenar Familiar pode ser usada sempre que uma habilidade permitiria usar Drenar Item Vinculado, e funciona de forma idêntica, exceto que você extrai magia do seu familiar em vez de um item.</p>"
     },
+    "6WjjeKhVK8Jas4aM": {
+      "name": "Arma Deífica",
+      "sourceHash": "98a5a5c21486be6e92a30ccbd73a31a452c119f4",
+      "description": ""
+    },
+    "7Pmrosxa3LNE19j2": {
+      "name": "Linhagem: Morto-Vivo",
+      "sourceHash": "cab4193d3194d41d97c8022fc8464360aee17a08",
+      "description": ""
+    },
+    "7eBIHN2oYLJ81B4I": {
+      "name": "Musas",
+      "sourceHash": "d33d075dac8a34c8bc4e6ec6040d6fec99c2a710",
+      "description": ""
+    },
     "7y4VNaiFqDRS5hlL": {
       "name": "Escola de Magia Cívica",
       "sourceHash": "d1ee125b1634d04ca214b27ccb7b4e6839bc89f2",
       "description": "<p>Seja você tenha estudado no Occularium de Manaket ou na Academia de Magia Aplicada, você aprendeu que os frutos dos estudos arcanos — como qualquer outro campo — devem, no fim das contas, ajudar o cidadão comum. Você aprendeu a humilde arte da construção, de encontrar pessoas e objetos perdidos, de se mover rapidamente entre prédios e fossos — ainda assim, essas mesmas artes podem ser voltadas para a demolição, e os constructos que você anima para construir pontes podem, com a mesma facilidade, derrubá-las.</p>\n<p><strong>Currículo</strong></p>\n<ul>\n<li><strong>truques:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Prestidigitation], @UUID[Compendium.pf2e.spells-srd.Item.Read Aura]</li>\n<li><strong>1º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Hydraulic Push], @UUID[Compendium.pf2e.spells-srd.Item.Pummeling Rubble], @UUID[Compendium.pf2e.spells-srd.Item.Summon Construct]</li>\n<li><strong>2º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Revealing Light], @UUID[Compendium.pf2e.spells-srd.Item.Water Walk]</li>\n<li><strong>3º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Cozy Cabin], @UUID[Compendium.pf2e.spells-srd.Item.Safe Passage]</li>\n<li><strong>4º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Creation], @UUID[Compendium.pf2e.spells-srd.Item.Unfettered Movement]</li>\n<li><strong>5º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Control Water], @UUID[Compendium.pf2e.spells-srd.Item.Wall of Stone]</li>\n<li><strong>6º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Disintegrate], @UUID[Compendium.pf2e.spells-srd.Item.Wall of Force]</li>\n<li><strong>7º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Planar Palace], @UUID[Compendium.pf2e.spells-srd.Item.Retrocognition]</li>\n<li><strong>8º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Earthquake], @UUID[Compendium.pf2e.spells-srd.Item.Pinpoint]</li>\n<li><strong>9º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Foresight]</li>\n</ul>\n<p><strong>Magias da Escola</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Earthworks]; avançada: @UUID[Compendium.pf2e.spells-srd.Item.Community Restoration]</p>"
+    },
+    "86SI1amhg3KRI7Y5": {
+      "name": "Golpes Peritos",
+      "sourceHash": "c9bd85a47e1697a9093fba9307e06de9b4e946bd",
+      "description": ""
     },
     "8HvcepETp5pS8Mk8": {
       "name": "Perícia de Guerreiro",
       "sourceHash": "69fc993fa9d4b8bef781e9bb225c3092c1c238d4",
       "description": "<p>Suas técnicas praticadas o tornaram ainda mais formidável. Seu grau de proficiência para a CD de classe de guerreiro aumenta para perito.</p>"
     },
+    "8JOUEhKzj63KugGw": {
+      "name": "Linhagem: Aesir",
+      "sourceHash": "ea2eb8081b141a9f4e1e74e808c83b3a7acdb0b2",
+      "description": ""
+    },
     "8WLs2Ful9QpO9lun": {
       "name": "Sombra Risonha",
       "sourceHash": "0d8343908db99eb42d655110227aa1938e812d03",
       "description": "<p>A magia é libertadora, um meio para seus fins, e você pode usá-la para ir onde deseja, fazer o que bem entender, e evitar as consequências. Você é uma sombra risonha de magia e lâmina, sempre um passo à frente de seus inimigos, sempre com um truque na manga.</p>\n<p>Enquanto na postura Cascata Arcana, você ganha um bônus de condicão de +5 pés para suas Velocidades, ou um bônus de +10 pés se estiver desarmado. Se você tiver uma mão livre enquanto na postura e estiver atacando uma criatura @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard], você aumenta o dano adicional para 3, para 5 se tiver especialização com armas, ou para 7 se tiver especialização maior com armas. Sua outra mão deve estar completamente livre; o dano adicional não se aplica se você tiver uma arma de mão livre ou outro item em aquela mão, mesmo que normalmente pudesse usar a mão para outras coisas.</p>\n<p><strong>Magia de Confluxo</strong> @UUID[Compendium.pf2e.spells-srd.Item.Dimensional Assault]</p>"
     },
+    "8bYjyje8l3BEKJ2c": {
+      "name": "Defesa Divina",
+      "sourceHash": "e60cabd700b202346b4d5f16026d9345d108959e",
+      "description": ""
+    },
+    "93kwwxx90ZmK5Kv7": {
+      "name": "Credo de Batalha",
+      "sourceHash": "24e0409881d2cbfc89ca73fe711c79e65e299dbd",
+      "description": ""
+    },
+    "9AY13hjNNXOnER71": {
+      "name": "Linhagem: Elemental",
+      "sourceHash": "2bfe55941a66bf5b600ed55ef0088c001bdcff15",
+      "description": ""
+    },
     "9PCCevlsNphbxSlz": {
       "name": "Resistência da Fúria",
       "sourceHash": "790bbfeda6fc258190ce685d9885ec5333a56985",
       "description": "<p>Exposição repetida e pele endurecida permitem que você se proteja contra dano. Enquanto estiver enfurecido, você ganha resistência igual a 3 + seu modificador de Constituição a tipos de dano baseados no seu instinto.</p>\n<p>Veja instintos específicos para mais informações.</p>"
+    },
+    "9PEowiHm3gg1PAZv": {
+      "name": "Linhagem: Psicopompo",
+      "sourceHash": "28541d4f5dddc4a703d6085b0569516526497983",
+      "description": ""
     },
     "9UxhxcrzluPnEZR5": {
       "name": "Observador de Campo de Batalha",
@@ -156,6 +236,11 @@
       "sourceHash": "5dc3796b3971d59c7f613cc5be37bf46dfdca465",
       "description": "<p>Você estudou as aplicações da magia, treinando a si mesmo para realizar não apenas manobras ofensivas mas também táticas defensivas. Quando a magia flui através de você, seu escudo pode bloquear coisas impossíveis, até mesmo o bafo de um dragão ou um míssil mágico.</p>\n<p>Você ganha o talento geral @UUID[Compendium.pf2e.feats-srd.Item.Shield Block].</p>\n<p>Quando você está na postura Cascata Arcana com seu escudo erguido, seu bônus de circunstância para CA de seu escudo também se aplica aos seus testes de resistência contra magias e outros efeitos mágicos. Além disso, dano que você sofre como resultado de uma magia ou efeito mágico enquanto estiver na Cascata Arcana pode disparar sua reação Bloquear Escudo, mesmo que o dano não seja físico. Ao bloquear dano desta forma, aumente a Dureza do seu escudo por um montante igual ao dano adicional de Cascata Arcana (tipicamente 1, mas 2 se você tiver especialização com armas, ou 3 se tiver especialização maior com armas). Esses benefícios se aplicam se estiver usando um escudo real, o truque escudo, ou algo semelhante que funciona como um escudo (como um tomo erguido se você tiver o talento Erguer um Tomo).</p>\n<p><strong>Magia de Confluxo</strong> @UUID[Compendium.pf2e.spells-srd.Item.Shielding Strike]</p>"
     },
+    "9r3wfPji8msgL53W": {
+      "name": "Segunda Doutrina",
+      "sourceHash": "447617420d5503fe496690073d99f85f3d6145e5",
+      "description": ""
+    },
     "A56kTnAVZ0NJmdp0": {
       "name": "Fúria Revigorante",
       "sourceHash": "e83ef22a487d2e7ed47e983f8130a19abdcabaaa",
@@ -165,6 +250,11 @@
       "name": "Escola de Tecnologias Mágicas",
       "sourceHash": "a5cb7d86628244186aa4c695a4c79369b220fad7",
       "description": "<p>No auge da antiga Azlant, o estudo das tecnologias mágicas — mais conhecidas como magitecnologia — era considerado uma das mais prestigiadas especializações arcanas, e seus praticantes eram tanto bem-vistos quanto bem pagos. Enquanto alguns especialistas em magitecnologia se formaram em academias ou como aprendizes, outros estudaram em claustros religiosos dedicados ao culto de Amaznen, um deus já morto da invenção e da magia. Hoje, os praticantes têm mais chances de aprender com fragmentos de grimórios antigos, saberes esquecidos desenterrados em ruínas Azlanti, ou com um formando deslocado no tempo como Anoreth Zorillen. Escolas modernas de magitecnologia existem hoje, dissociadas de suas origens Azlanti ancestrais, mas não menos prestigiadas, incluindo a famosa Catedral de Engrenagens em Absalom e templos de Brigh, deusa da relojoaria e da invenção.</p>\n<p>Como estudante das tecnologias mágicas, você aprendeu a arte de fundir magia com tecnologia mundana para criar algo verdadeiramente único.</p>\n<p><strong>Currículo</strong></p>\n<p><strong>truques:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Needle Darts], @UUID[Compendium.pf2e.spells-srd.Item.Shield]</p>\n<p><strong>1º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Mending], @UUID[Compendium.pf2e.spells-srd.Item.Runic Weapon], @UUID[Compendium.pf2e.spells-srd.Item.Summon Construct]</p>\n<p><strong>2º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Animated Assault], @UUID[Compendium.pf2e.spells-srd.Item.Dismantle]</p>\n<p><strong>3º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Shrink Item], @UUID[Compendium.pf2e.spells-srd.Item.Wooden Double]</p>\n<p><strong>4º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Creation], @UUID[Compendium.pf2e.spells-srd.Item.Weapon Storm]</p>\n<p><strong>5º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Impaling Spike], @UUID[Compendium.pf2e.spells-srd.Item.Wall of Stone]</p>\n<p><strong>6º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Field of Razors], @UUID[Compendium.pf2e.spells-srd.Item.Petrify]</p>\n<p><strong>7º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Beheading Buzz Saw], @UUID[Compendium.pf2e.spells-srd.Item.Lifewood Cage]</p>\n<p><strong>8º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Ferrous Form], @UUID[Compendium.pf2e.spells-srd.Item.Quandary]</p>\n<p><strong>9º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Resplendent Mansion]</p>\n<p><strong>Magias da Escola</strong> <em>inicial:</em> @UUID[Compendium.pf2e.spells-srd.Item.Augmented Body] <em>avançada:</em> @UUID[Compendium.pf2e.spells-srd.Item.Conjured Clockwork]</p>"
+    },
+    "AA05oph6wGzgEIuz": {
+      "name": "Iniquidade",
+      "sourceHash": "8a5c2d0d35a3fd24eaeb206b20c69a6aa4c7f2e4",
+      "description": ""
     },
     "AVh4glubbzygKbI8": {
       "name": "Perícia em Armadura Leve",
@@ -176,10 +266,20 @@
       "sourceHash": "02ee549f21306459d5719b56de77e0447568c0ec",
       "description": "<p>Você tem uma fisiologia inabalável. Seu grau de proficiência em testes de Fortitude aumenta para lendário. Quando você rola uma falha crítica em um teste de Fortitude, obtém uma falha em vez disso. Quando você rola uma falha em um teste de Fortitude contra um efeito que causa dano, você reduz pela metade o dano sofrido.</p>"
     },
+    "B1Cjbu0DIhPx4r1u": {
+      "name": "Forma Aperfeiçoada",
+      "sourceHash": "9da4d43fcaf7ff5de5e2ea427504e33339cb9f01",
+      "description": ""
+    },
     "BIuU56P6JTTJz7oI": {
       "name": "Perícia em Reflexos",
       "sourceHash": "d50f6236b9c1d5abd7e6804cbee36b54c58d06fd",
       "description": "<p>Você desenvolveu um talento para esquivar perigos. Seu grau de proficiência em testes de Reflexos aumenta para perito.</p>\n<p><strong>Guardião</strong> Mesmo nas armaduras mais pesadas, você pode se aprumar contra efeitos generalizados. Seu grau de proficiência em testes de Reflexos aumenta para perito.</p>"
+    },
+    "BKAFVXNFDrdPg8fB": {
+      "name": "Especialização em Fortitude",
+      "sourceHash": "44a9052bf1488f10bf5f329e7bf325d9e64a9345",
+      "description": ""
     },
     "BdnE00rTSkwOe3Or": {
       "name": "Maestria Cinética",
@@ -196,6 +296,16 @@
       "sourceHash": "6413e033606f32c0f743861d3fd02515819fee8c",
       "description": "<p>Você aperfeiçoou suas habilidades como caçador a níveis incríveis. Seu grau de proficiência para a CD de classe de patrulheiro aumenta para mestre. Se você tiver magias de guardião, seu grau de proficiência para ataques de magia e CDs de magia aumenta para mestre. Ao usar uma arma à distância na qual você tem proficiência mestre, você pode ignorar a penalidade se estiver atacando sua presa perseguida dentro do segundo e terceiro incrementos de alcance da arma.</p>\n<p>Se você tiver proficiência mestre em Percepção, ganha um bônus de circunstância de +4 em testes de Percepção quando você @UUID[Compendium.pf2e.actionspf2e.Item.Seek] sua presa, e se tiver proficiência mestre em Sobrevivência, ganha um bônus de circunstância de +4 em testes de Sobrevivência quando você @UUID[Compendium.pf2e.actionspf2e.Item.Track] sua presa. Você também ganha um benefício adicional dependendo da sua vantagem de caçador.</p>\n<p><strong>Rajada:</strong> Você pode combinar sua maestria com armas e uma mira habilidosa para realizar uma série de ataques precisos. Se você tiver proficiência mestre com sua arma, sua penalidade por ataque múltiplo para ataques contra sua presa perseguida é –2 (–1 com uma arma ágil) no seu segundo ataque do turno, e –4 (–2 com uma arma ágil) no seu terceiro ataque e nos seguintes do turno.</p>\n<p><strong>Astúcia:</strong> Sua maestria em perícias permite que você domine sua presa. Se você tiver proficiência mestre em Enganação, Intimidação, Furtividade, ou na perícia que usa para Rememorar Conhecimento sobre sua presa, aumente o bônus de circunstância contra a presa com aquela perícia de +2 para +4. Se você tiver proficiência mestre com sua armadura, aumente o bônus de circunstância à CA contra a presa de +1 para +2.</p>\n<p><strong>Precisão:</strong> Sua maestria com armas permite que você acerte as áreas vitais da sua presa múltiplas vezes. Na segunda vez em uma rodada que você acerta sua presa perseguida, você também causa 1d8 de dano de precisão adicional. No nível 19, seu segundo acerto em uma rodada contra sua presa perseguida causa 2d8 de dano de precisão, e seu terceiro acerto em uma rodada contra sua presa perseguida causa 1d8 de dano de precisão.</p>"
     },
+    "CyMp4KYHW8veGR0x": {
+      "name": "Maestria Graciosa",
+      "sourceHash": "a0b0419477f556ab3fa7da433e1565edb36a346e",
+      "description": ""
+    },
+    "EP3UYq5SLhlg7nRD": {
+      "name": "Doutrina Final (Clérigo Enclausurado)",
+      "sourceHash": "bd2cae932706f12aec01bc5a8aa3aa251ef3c14b",
+      "description": ""
+    },
     "ETInvMyBeigMlTrA": {
       "name": "Flexibilidade Aprimorada",
       "sourceHash": "08fdb30b8c067a93ad9a6ffea08447beeca8c6ad",
@@ -205,6 +315,21 @@
       "name": "Flexibilidade em Combate",
       "sourceHash": "89040bb9228770f05bb4a941568ce3ff4127c235",
       "description": "<p>Você pode preparar suas táticas para se adequar a diferentes situações. Quando faz suas preparações diárias, você ganha um talento de guerreiro de 8º nível ou inferior para o qual atenda aos pré-requisitos e que ainda não possua. Você pode usar esse talento até suas próximas preparações diárias.</p>"
+    },
+    "FMCbwY7W87AHaS48": {
+      "name": "Conjuração do Feiticeiro",
+      "sourceHash": "8ecd58ec2407dd86073424712235848a250e362d",
+      "description": ""
+    },
+    "FUjXsopM5ajHSys7": {
+      "name": "Vontade Divina",
+      "sourceHash": "f755a6ea1e28e245a71edda34f8f5cfa007a826a",
+      "description": ""
+    },
+    "G95Xci9mfJ6PTALk": {
+      "name": "Causa",
+      "sourceHash": "3f735ee95e6640821b7e182195ded72fa54365da",
+      "description": ""
     },
     "GFaalT8iDyFLANvS": {
       "name": "Resolução",
@@ -261,15 +386,35 @@
       "sourceHash": "8a7a96a9c4512cfa08aac6c7e17838982255ea18",
       "description": "<p>Magia é poder, e sempre há aqueles que usarão o poder para a arte da batalha. Você pode ter estudado nas forças militares de uma nação à beira da guerra — talvez Cheliax e Andoran, ou Geb e Nex. Você invoca energias turbilhonantes capazes de devastar tanto soldados quanto exércitos, sem deixar de lado contramedidas arcanas para complicações táticas comuns ou os escudos e defesas que mantêm os combatentes vivos no campo de batalha.</p>\n<p><strong>Currículo</strong></p>\n<ul>\n<li><strong>truques:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Shield], @UUID[Compendium.pf2e.spells-srd.Item.Telekinetic Projectile]</li>\n<li><strong>1º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Breathe Fire], @UUID[Compendium.pf2e.spells-srd.Item.Force Barrage], @UUID[Compendium.pf2e.spells-srd.Item.Mystic Armor]</li>\n<li><strong>2º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Mist], @UUID[Compendium.pf2e.spells-srd.Item.Resist Energy]</li>\n<li><strong>3º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Earthbind], @UUID[Compendium.pf2e.spells-srd.Item.Fireball]</li>\n<li><strong>4º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Wall of Fire], @UUID[Compendium.pf2e.spells-srd.Item.Weapon Storm]</li>\n<li><strong>5º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Howling Blizzard], @UUID[Compendium.pf2e.spells-srd.Item.Impaling Spike]</li>\n<li><strong>6º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Chain Lightning], @UUID[Compendium.pf2e.spells-srd.Item.Disintegrate]</li>\n<li><strong>7º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Energy Aegis], @UUID[Compendium.pf2e.spells-srd.Item.True Target]</li>\n<li><strong>8º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Arctic Rift], @UUID[Compendium.pf2e.spells-srd.Item.Desiccate]</li>\n<li><strong>9º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Falling Stars]</li>\n</ul>\n<p><strong>Magias da Escola</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Force Bolt]; avançada: @UUID[Compendium.pf2e.spells-srd.Item.Energy Absorption]</p>"
     },
+    "IJ3Dsad3qTTqIhMG": {
+      "name": "Magnum Opus",
+      "sourceHash": "8b8aed887fb78a5498e8587e4e1a5e6c1ba6b1fb",
+      "description": ""
+    },
+    "IPkRrReHUSAhWrb3": {
+      "name": "Repertório de Magias",
+      "sourceHash": "5847a6d5b892aabb7bc4a395966f9493b386bf7d",
+      "description": ""
+    },
     "IWh85cirQmPjmrDr": {
       "name": "Trapaceiro Sobrenatural",
       "sourceHash": "e16ecfdb58586684b43d951058530d291833b117",
       "description": "<p>Quando se trata de um grande roubo, todo ladino que se preze sabe que a magia pode transformar planos meticulosos em caos, seja na forma de proteções arcanas ou divinações incômodas.</p>\n<p>Você se aventura na magia apenas o suficiente para lidar com esses problemas, improvisando magias e lançando um pouco da sua própria magia na mistura. Você pode ser um ladrão solitário, realizando assaltos que não podem ser explicados apenas pela habilidade, ou um especialista chamado por outros ladinos para lidar com medidas de segurança mágicas. Você pode até estar do lado da lei, contratado para testar defesas mágicas ou até mesmo construí-las você mesmo.</p>\n<p>Escolha um arquétipo multiclasse que tenha um talento de conjuração básico, perito e mestre. Você ganha o talento de dedicação desse arquétipo como um talento bônus, mesmo que não atenda ao seu pré-requisito de nível, embora deva atender aos seus outros pré-requisitos. Para você, o talento de ladino @UUID[Compendium.pf2e.feats-srd.Item.Magical Trickster] tem um pré-requisito de 2º nível em vez de 4º nível. Você pode escolher o valor de atributo de conjuração do arquétipo multiclasse escolhido como seu atributo-chave.</p>"
     },
+    "IiaUAbejweA6JloA": {
+      "name": "Libertação",
+      "sourceHash": "b3c8ef90887fa7411a4074a1713908feeace7fb3",
+      "description": ""
+    },
     "J5O5LCmCJ4eppkYk": {
       "name": "Instinto Lenhoso",
       "sourceHash": "72d14b0faa9a376f7d50e3e6b58919265394ba94",
       "description": "<p>Sua fúria é alimentada pelo crescimento constante do mundo natural, desde o florescer das flores até o cultivo de vegetais e o poder imponente e majestoso das maiores árvores. Você pode descender de druidas ou dríades poderosos, ter sido exposto a magia primal poderosa, ou ter sido transformado pelo ressurgimento do Plano da Madeira. Ao desencadear sua fúria, sua carne fica coberta de crescimentos lenhosos, que se espalham como casca de árvore por todo o seu corpo.</p>\n<h2>Anátema</h2>\n<p>Devastar a natureza e matar plantas desnecessariamente é anátema para o seu instinto. Defender-se contra criaturas ou perigos vegetais não é.</p>\n<h2>Fúria Lenhosa (Habilidade de Instinto)</h2>\n<p>Enquanto estiver enfurecido, você pode aumentar o dano adicional de Fúria de 2 para 6. Se fizer isso, reduza seu Deslocamento em 10 pés, já que as placas de casca que cobrem seu corpo atrapalham a mobilidade. Essa redução de deslocamento não pode ser superada por nenhum meio, embora possa ser compensada por aumentos de deslocamento.</p>\n<h2>Habilidade de Especialização<span style=\"float:right\">Nível 7</span></h2>\n<p>Quando você usa fúria lenhosa, aumente o dano adicional de Fúria de 6 para 10. Se você tiver especialização em arma maior, em vez disso aumente o dano de Fúria ao usar fúria lenhosa de 10 para 18.</p>\n<h2>Resistência da Fúria<span style=\"float:right\">Nível 9</span></h2>\n<p>Você resiste a dano de perfuração e de corte, mas ganha vulnerabilidade a fogo igual a 3 + seu modificador de Constituição, já que sua carne semelhante a casca é altamente inflamável.</p>"
+    },
+    "J6Cm1EsbCKXRHMW2": {
+      "name": "Magias de Linhagem",
+      "sourceHash": "0e19291b72e38c214b7679ed2d2092b3f4fea4a4",
+      "description": ""
     },
     "J9FT6XRcaEhYUHnV": {
       "name": "Especialização em Armas",
@@ -281,10 +426,40 @@
       "sourceHash": "001b90ba90c1156f969fb4887cbc368af669cbdb",
       "description": "<p>Por que usar sua magia para afetar algo tão corriqueiro quanto o mundo físico? Seja você tenha estudado na Faculdade de Estudos Dimensionais em Katapesh ou em uma escola subterrânea na assombrada Ustalav, você voltou sua magia para além do Universo, rumo às forças de outros planos, invocando espíritos e sombras, manipulando dimensões e planos, e pisando em lugares não destinados a mortais.</p>\n<p><strong>Currículo</strong></p>\n<ul>\n<li><strong>truques:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Telekinetic Hand], @UUID[Compendium.pf2e.spells-srd.Item.Void Warp]</li>\n<li><strong>1º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Grim Tendrils], @UUID[Compendium.pf2e.spells-srd.Item.Phantasmal Minion], @UUID[Compendium.pf2e.spells-srd.Item.Summon Undead]</li>\n<li><strong>2º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Darkness], @UUID[Compendium.pf2e.spells-srd.Item.See the Unseen]</li>\n<li><strong>3º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Bind Undead], @UUID[Compendium.pf2e.spells-srd.Item.Ghostly Weapon]</li>\n<li><strong>4º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Flicker], @UUID[Compendium.pf2e.spells-srd.Item.Translocate]</li>\n<li><strong>5º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Banishment], @UUID[Compendium.pf2e.spells-srd.Item.Invoke Spirits]</li>\n<li><strong>6º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Teleport], @UUID[Compendium.pf2e.spells-srd.Item.Vampiric Exsanguination]</li>\n<li><strong>7º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Eclipse Burst], @UUID[Compendium.pf2e.spells-srd.Item.Interplanar Teleport]</li>\n<li><strong>8º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Quandary], @UUID[Compendium.pf2e.spells-srd.Item.Unrelenting Observation]</li>\n<li><strong>9º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Massacre]</li>\n</ul>\n<p><strong>Magias da Escola</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Fortify Summoning]; avançada: @UUID[Compendium.pf2e.spells-srd.Item.Spiral of Horrors]</p>"
     },
+    "JYQS4l6mn6OKQFFj": {
+      "name": "Golpes Místicos",
+      "sourceHash": "d5a28e12f27940d111c64020038e80bee7ca99df",
+      "description": ""
+    },
+    "Jlw5VvWR1sjgsi6e": {
+      "name": "Linhagem: Demoníaca",
+      "sourceHash": "c6d233a46347f539b9114c2089d142f382e3da34",
+      "description": ""
+    },
+    "K1tJyOpd6JHAPPaz": {
+      "name": "Reação Exaltada",
+      "sourceHash": "94b5e530f39d6c1ca4fc0a7e690600508dca2ac3",
+      "description": ""
+    },
+    "Kj1d35aAxgbTMvMH": {
+      "name": "Magias de Composição",
+      "sourceHash": "bc4990afd90c1cf2938bcb92ce64951b75dae655",
+      "description": ""
+    },
+    "KmvpXx69oQUH2kfE": {
+      "name": "Doutrina",
+      "sourceHash": "d432bd9972a4ee7c15d168ab67401eb070fa0077",
+      "description": ""
+    },
     "L5MeQs8KBchhdUmY": {
       "name": "Escola do Mentalismo",
       "sourceHash": "05aa112360a0082921ff302c17d5ae50dd8bc48d",
       "description": "<p>Como um erudito, você conhece muito bem a importância de uma mente sã. Assim, você frequentou uma escola — como a Torre do Vidente ou a Pedra dos Videntes — que ensinava as artes de confundir mentes inferiores com fantasmagorias e ilusões, ou implantar sensações e memórias.</p>\n<p><strong>Currículo</strong></p>\n<ul>\n<li><strong>truques:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Daze], @UUID[Compendium.pf2e.spells-srd.Item.Figment]</li>\n<li><strong>1º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Dizzying Colors], @UUID[Compendium.pf2e.spells-srd.Item.Sleep], @UUID[Compendium.pf2e.spells-srd.Item.Sure Strike]</li>\n<li><strong>2º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Illusory Creature], @UUID[Compendium.pf2e.spells-srd.Item.Stupefy]</li>\n<li><strong>3º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Dream Message], @UUID[Compendium.pf2e.spells-srd.Item.Mind Reading]</li>\n<li><strong>4º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Nightmare], @UUID[Compendium.pf2e.spells-srd.Item.Vision of Death]</li>\n<li><strong>5º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Hallucination], @UUID[Compendium.pf2e.spells-srd.Item.Illusory Scene]</li>\n<li><strong>6º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Never Mind], @UUID[Compendium.pf2e.spells-srd.Item.Phantasmal Calamity]</li>\n<li><strong>7º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Project Image], @UUID[Compendium.pf2e.spells-srd.Item.Warp Mind]</li>\n<li><strong>8º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Disappearance], @UUID[Compendium.pf2e.spells-srd.Item.Uncontrollable Dance]</li>\n<li><strong>9º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Phantasmagoria]</li>\n</ul>\n<p><strong>Magias da Escola</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Charming Push]; avançada: @UUID[Compendium.pf2e.spells-srd.Item.Invisibility Cloak]</p>"
+    },
+    "LHeFECB54lAzubfO": {
+      "name": "Vontade Majestosa",
+      "sourceHash": "a232cb468792e2968c44797797d8add10c094ae7",
+      "description": ""
     },
     "LVADu3YwnAamOx70": {
       "name": "Pericia com Armas",
@@ -296,15 +471,30 @@
       "sourceHash": "acac7274a1de643139c4638325a8b0f49852c0cb",
       "description": "<p>Você é talentoso em enganar sua presa. Você ganha um bônus de circunstância de +1 à CA contra os ataques de sua presa e um bônus de circunstância de +2 em testes de Enganação, testes de Intimidação, testes de Furtividade, e em quaisquer testes para Rememorar Conhecimento sobre a presa.</p>"
     },
+    "LsAiWeNtI6QMpBqZ": {
+      "name": "Linhagem",
+      "sourceHash": "a377995945ac653b0d00e8dc76ee0f08e472a74e",
+      "description": ""
+    },
     "M2SKz26bYBV83ywT": {
       "name": "Vontade Indomável",
       "sourceHash": "2f7b9d4cd012211bb624395efa4ce400511091fd",
       "description": "<p>Sua fúria torna difícil controlar você. Seu grau de proficiência em testes de resistência de Vontade aumenta para mestre. Quando você rola um sucesso em um teste de resistência de Vontade, você obtém um sucesso crítico em vez disso.</p>"
     },
+    "MIc3HI9FHCeiWIcT": {
+      "name": "Quarta Doutrina",
+      "sourceHash": "4f9c9fc127d492dab55621deda8e4ce49b631b1c",
+      "description": ""
+    },
     "MJMyOpvG6rbLdvUk": {
       "name": "Portão Cinético",
       "sourceHash": "661aebd5cd8969f7ba1047e3ea8a4e2ba89e9611",
       "description": "<p>Como cineticista, você despertou ou abriu um portão cinético, um conduto sobrenatural dentro do seu corpo que pode canalizar forças elementais diretamente dos planos elementais. Você pode escolher um portão único (um elemento) ou um portão duplo (dois elementos) no 1º nível.</p>\n<p>Ao selecionar um elemento para o seu portão cinético, você pode escolher entre seis elementos — ar, terra, fogo, metal, água e madeira. Os elementos que você pode canalizar são chamados de seus elementos cinéticos. Seus elementos cinéticos funcionam mesmo em ambientes onde normalmente não funcionariam. Por exemplo, você poderia usar ações de fogo debaixo d'água, ainda que isso normalmente não seja possível, e poderia criar ar no vácuo.</p>\n<p>Seu portão cinético concede talentos de impulso, ações mágicas que permitem moldar e controlar seus elementos de maneiras incríveis. Você pode selecionar mais talentos de impulso usando seus talentos de classe de cineticista, como descrito em Impulsos. Em níveis mais altos, a característica de classe limiar do portão concede mais talentos de impulso e permite escolher se você melhora com um elemento ou acessa novos elementos cinéticos.</p>\n<h3><strong>Portão Único</strong></h3>\n<p>Seu portão cinético liga-se a um único plano elemental, iniciando você com um único elemento, mas concedendo maior poder com ele. Escolha um elemento para ser seu elemento cinético e selecione dois talentos de impulso de 1º nível que tenham o traço daquele elemento.</p>\n<p>Além disso, você ganha uma junção de impulso, um benefício que ocorre quando você usa um impulso do elemento escolhido que leva 2 ações ou mais. Isso acontece antes dos outros efeitos do impulso, salvo indicação em contrário. Você só pode ganhar uma junção de impulso por rodada; elas são descritas em detalhe abaixo.</p>\n<p><strong>Ar</strong> Antes ou depois dos outros efeitos do impulso, você pode Deslocar-se até metade do seu Deslocamento ou dar um Passo. Se tiver um Deslocamento de voo, você pode Voar até metade do seu Deslocamento de voo em vez disso.</p>\n<p><strong>Terra</strong> Fragmentos de pedra flutuam ao seu redor, concedendo um bônus de circunstância +1 à CA até o início do seu próximo turno.</p>\n<p><strong>Fogo</strong> Aumente em um passo o tamanho do dado de dano do dano de fogo causado pelo impulso.</p>\n<p><strong>Metal</strong> Escolha ácido, eletricidade ou perfuração. Até o início do seu próximo turno, sempre que uma criatura tocar você ou causar dano a você com um ataque corpo a corpo desarmado ou uma arma corpo a corpo sem alcance, ela sofre dano do tipo escolhido igual a metade do seu nível (mínimo 1 de dano).</p>\n<p><strong>Água</strong> Após os outros efeitos do impulso, você pode mover uma criatura alvo do impulso ou em sua área 1,5 metro em qualquer direção, ou 3 metros se ela estiver em um corpo d'água. Isso não pode mover a criatura para o ar. Você só pode escolher uma criatura disposta a ser movida, que falhou em seu teste contra o impulso, ou contra a qual você teve sucesso em uma rolagem de ataque de impulso.</p>\n<p><strong>Madeira</strong> Você ganha Pontos de Vida temporários iguais ao seu nível que duram até o início do seu próximo turno.</p>\n<h3><strong>Portão Duplo</strong></h3>\n<p>Seu portão cinético é um conduto harmonioso entre dois planos, permitindo que você combine seus elementos para lhe dar um conjunto versátil de habilidades. Selecione dois elementos para serem seus elementos cinéticos. Em seguida, selecione dois talentos de impulso de 1º nível, um com o traço do primeiro elemento e um com o traço do outro.</p>"
+    },
+    "MVKpDONRKlcKoLsj": {
+      "name": "Linhagem: Ninfa",
+      "sourceHash": "5b4c223ca3078e03d53c7765fefbd51fe7dc1e55",
+      "description": ""
     },
     "MbMJIRm8Ecdwk7pi": {
       "name": "Bloqueio com Escudo",
@@ -316,15 +506,30 @@
       "sourceHash": "b7fa37e1e79920343a03c8680f81b7be649fda2a",
       "description": "<p>Seus elementos tornam-se quase impossíveis de resistir. Seu grau de proficiência na CD de classe do seu cineticista aumenta para lendário.</p>"
     },
+    "NGPPWbOwKgGEtC4z": {
+      "name": "Linhagem: Dracônica",
+      "sourceHash": "814009da48c6122ba97433a9b84aa10035937e54",
+      "description": ""
+    },
     "O3rac2kRtEjwCHC0": {
       "name": "Fúria Poderosa",
       "sourceHash": "f3dd78406c1a7b640ec5059936b22433f1bf9810",
       "description": "<p>Sua fúria se intensifica e permite que você acerte com mais força no início de um combate. Seu grau de proficiência para a CD de classe de bárbaro aumenta para perito. Além disso, quando você usa Estopim Curto, o primeiro Golpe que você faz durante seu primeiro turno causa dano adicional igual ao seu dano de @UUID[Compendium.pf2e.actionspf2e.Item.Rage].</p>"
     },
+    "OrPuwVgGwjCEz2nm": {
+      "name": "Polímata",
+      "sourceHash": "d38d4de8a0a163037af6c28ea8e87372c61411d8",
+      "description": ""
+    },
     "PAiLtScmWbxnIf4V": {
       "name": "Senhor das Runas",
       "sourceHash": "eb2af9926a854de3e152a458f376c4ba42574757",
       "description": "<p>Você extrai um poder incomensurável de runas, às vezes chamada de magia dos pecados. Você se associa a um dos sete pecados, também conhecidos como as sete recompensas do domínio: inveja, gula, avareza, luxúria, orgulho, preguiça e ira. Se você escolher este arquétipo de classe, deve selecionar @UUID[Compendium.pf2e.feats-srd.Item.Runelord Dedication] como seu talento de classe de nível 2.</p>\n<p><strong>Pré-requisitos:</strong> Você deve ser um mago.</p>\n<p><strong>Ajustes de Senhor das Runas:</strong> Você se torna treinado em lanças de haste marciais e lanças. Quando sua proficiência em armas simples aumenta, suas proficiências nessas armas aumentam também. Você aprende o idioma Thassiloniano.</p>\n<p>Em vez de uma tese arcana, você ganha uma runa pessoal. Sua runa pessoal também afeta seu vínculo arcano.</p>\n<p>Você deve selecionar a @UUID[Compendium.pf2e.classfeatures.Item.School of Thassilonian Rune Magic] como sua escola arcana, e deve escolher um pecado para se especializar. Quando você conjura qualquer magia de currículo ou magia de escola da Escola de Magia Rúnica Thassiloniana, você o faz simplesmente traçando runas de poder no ar. Isso elimina a necessidade de proferir encantamentos em voz alta. Quando você Refoca, o faz contemplando ou se entregando ao seu pecado.</p>\n<p>Cada pecado é oposto por dois outros. A incompatibilidade entre esses pecados significa que conjurar magia filosoficamente apropriada àqueles pecados opostos, conforme representado pelo anátema de cada escola, interrompe sua conexão com seu próprio pecado e runa pessoal. Se você violar o anátema do seu pecado, perde os benefícios de sua runa pessoal, e sempre que tentar conjurar uma magia de currículo ou magia de escola, deve obter sucesso em um @Check[flat|dc:15] ou a magia é perdida. Essa interrupção dura até que você complete um ritual de @UUID[Compendium.pf2e.spells-srd.Item.Atone]; diferente de um ritual de atonement normal, Arcanismo pode ser usado tanto para o teste primário quanto para o secundário. Suas magias de currículo (incluindo magias do seu próprio pecado) nunca violam esse anátema, às vezes fornecendo alternativas à magia proibida.</p>\n<p>Você ganha @UUID[Compendium.pf2e.feats-srd.Item.Advanced School Spell] como um talento bônus no nível 8, obtendo a magia de escola avançada da Escola de Magia Rúnica Thassiloniana; uma vez que você tenha iniciado seus estudos da magia dos pecados, não há como voltar atrás de seu fascínio.</p><h3>Escola de Magia Rúnica Thassiloniana</h3><p>@Embed[Compendium.pf2e.classfeatures.Item.aYWPtW5T4Lx07Occ inline]</p><h3><strong>Vínculo Arcano e Runa Pessoal</strong></h3><p>Os senhores das runas vêm de uma era em que até um erudito deveria ser capaz de se defender com armas se necessário, o que levou à prática de fixar uma lâmina ao típico cajado de mago. Você deve escolher uma lança de haste ou lança como seu vínculo arcano. Em vez de uma tese arcana, você tem uma runa pessoal, que aparece em sua arma vinculada. A arma funciona como um cajado que só você pode preparar e contém as magias de pecado do seu pecado até o grau mais alto de magia que você pode conjurar (incluindo seus truques). Sua runa pessoal não é uma runa de propriedade e não conta para o limite de tais runas da arma.</p>\n<p>Quando você prepara sua arma vinculada como um cajado, pode fundir fisicamente a ela outro cajado em sua posse, adicionando as magias do cajado à sua arma vinculada até suas próximas preparações diárias. Enquanto fundido, o cabo da arma assume aspectos estéticos do cajado.</p>"
+    },
+    "PXvWhbENzMQMijDB": {
+      "name": "Conjuração Oculta",
+      "sourceHash": "d6462ff85e5783b9e302c781d9b3e44d5e999006",
+      "description": ""
     },
     "PwUXRaUJwVQJn6mK": {
       "name": "Rajada",
@@ -336,15 +541,35 @@
       "sourceHash": "e6248359c175dbce56d96b95600347d04f2f7d6e",
       "description": "<p>As armas que você dominou se tornam verdadeiramente temíveis em suas mãos. Seu dano de especialização em arma aumenta para 4 com armas e ataques desarmados nos quais você é perito, 6 se é mestre, e 8 se é lendário.</p>\n<p>Você ganha um benefício maior da habilidade de especialização do seu instinto. Veja instintos específicos para mais informações.</p>"
     },
+    "QMx05Uer8dWp7K75": {
+      "name": "Magias Emblemáticas",
+      "sourceHash": "06c65e9e12790387dae2805c667404d8d2c2150e",
+      "description": ""
+    },
     "Qb6mPsJUxA73nPlp": {
       "name": "Conjurador Lendário",
       "sourceHash": "405bc5cca57d5690283828476dac9df25238703f",
       "description": "<p><strong>Animista</strong> Você é um canal quase perfeito para as energias mágicas dos reinos além. Seus graus de proficiência para o modificador de ataque de magia e a CD de magia aumentam para lendário.</p>\n<p><strong>Bardo</strong> Seu domínio da magia é digno de lendas. Seus graus de proficiência para modificadores de ataque de magia e CDs de magia aumentam para lendário.</p>\n<p><strong>Druida</strong> Você desenvolveu uma afinidade inigualável com a magia da natureza. Seus graus de proficiência para o modificador de ataque de magia e a CD de magia aumentam para lendário.</p>\n<p><strong>Oráculo</strong> Você consegue canalizar poder divino em um nível que poucos conseguem igualar. Seus graus de proficiência para rolagens de ataque de magia divina e CDs de magia aumentam para lendário.</p>\n<p><strong>Psíquico</strong> À medida que seu treinamento atinge seu ápice, você compreende não apenas sua própria mente, mas o inconsciente coletivo do qual todo poder psíquico se origina. Seus graus de proficiência para o modificador de ataque de magia oculta e a CD de magia aumentam para lendário.</p>\n<p><strong>Feiticeiro</strong> Você demonstra um talento prodigioso para a conjuração. Seus graus de proficiência para o modificador de ataque de magia e a CD de magia das magias da tradição de sua linhagem aumentam para lendário.</p>\n<p><strong>Bruxo</strong> Você aperfeiçoou seu domínio da magia que seu patrono provê. Seus graus de proficiência para o modificador de ataque de magia e a CD de magia aumentam para lendário.</p>\n<p><strong>Mago</strong> Você é um conjurador consumado, mesclando tanto a teoria arcana quanto a arte prática da magia. Seus graus de proficiência para o modificador de ataque de magia e a CD de magia aumentam para lendário.</p>"
     },
+    "QgTrrxofFPfcHT2U": {
+      "name": "Golpes de Adamante",
+      "sourceHash": "966502a2e178be251889c46c50201e01e6897414",
+      "description": ""
+    },
+    "Qv0aPBqTV924o7uU": {
+      "name": "Redenção",
+      "sourceHash": "4e0eb458637756ac2bc9b979e4dc8824cef2c07f",
+      "description": ""
+    },
     "RD63JAZ4zd2UvGQ4": {
       "name": "Alcance Luminoso",
       "sourceHash": "696a009d79065900c9795dc0fe18bfd4fe148312",
       "description": "<p>Com magia, o ceu e o limite, e você não pode ficar preso aos limites da proximidade física. Seu poder alcanca tao longe quanto seus sentidos conseguem perceber, transcendendo o espaço entre você e seu alvo mesmo com magias que normalmente exigem contato físico direto.</p>\n<p>Quando você usa Golpe Mágico, pode fazer um Golpe com arma a distância ou ataque desarmado a distância, contanto que o alvo esteja dentro do primeiro incremento de alcance de sua arma a distância ou ataque desarmado a distância. Você pode entregar a magia mesmo que seu alcance seja menor que o incremento de alcance de seu ataque a distância.</p>\n<p><strong>Magia de Confluência</strong> @UUID[Compendium.pf2e.spells-srd.Item.Shooting Star]</p>"
+    },
+    "RH0lrrgfqrKwKuz2": {
+      "name": "Corpo Sagrado",
+      "sourceHash": "a860d98deca582bea1b7af0ba1b420f1dee4207b",
+      "description": ""
     },
     "RHNT0Hqaw8blOiu7": {
       "name": "Fortitude Mágica",
@@ -371,6 +596,16 @@
       "sourceHash": "f496fda42c16fa71a4a7d65cb70d47cabd346bab",
       "description": "<p>Você alcança um novo marco na sua jornada rumo à sintonia com o seu portão cinético e deve decidir como expandir o poder do portão. No 5º nível e a cada 4 níveis depois disso, você escolhe expandir o portal ou bifurcar o caminho.</p>\n<ul>\n<li><strong>Expandir o Portal</strong>: Seu portão sintoniza-se com mais precisão a um de seus elementos. Ganhe um talento de impulso do seu nível ou inferior para um de seus elementos cinéticos; se tiver mais de um elemento, você pode escolher um impulso composto. Você também ganha uma junção de portão para um de seus elementos cinéticos. Se não tiver opções válidas para o talento — tipicamente por ter um único elemento cinético e ter dedicado seus talentos de classe a ganhar os impulsos daquele elemento — você pode em vez disso selecionar qualquer talento de classe de cineticista do seu nível ou inferior para o qual cumpra os pré-requisitos.</li>\n<li><strong>Bifurcar o Caminho</strong>: Seu portão alcança outro plano elemental. Adicione um novo elemento de sua escolha aos seus elementos cinéticos. Ganhe um talento de impulso do seu nível ou inferior com o traço daquele elemento. Você não pode selecionar um talento de impulso composto nesta seleção de talento. </li>\n</ul>"
     },
+    "TCHC4ZSPQ9MVikD1": {
+      "name": "Golpes Mestres",
+      "sourceHash": "de73198b261a28359599267464bc0ff998034fbc",
+      "description": ""
+    },
+    "TEWAYpJBTqbKtZrR": {
+      "name": "Linhagem: Aberrante",
+      "sourceHash": "f29f59da0a57e7dbb0e0e299d598c9d270527dac",
+      "description": ""
+    },
     "TNl7mpUpn5Jl2pFY": {
       "name": "Fúria",
       "sourceHash": "f9d089b840f2acb78988430532716a07a386dd98",
@@ -385,6 +620,11 @@
       "name": "Enfurecido pelo Sangue",
       "sourceHash": "d501040c162186e0d760f64e0132f5b688d70b41",
       "description": "<p>Você usa o poder do sangue ingerido para gerar poder mágico e alimentar-se em combate, transformando-se em um oponente horripilantemente temível. Você deve escolher Dedicação de Enfurecido pelo Sangue como seu talento de classe de 2º nível.</p>\n<p><strong>Pré-requisitos:</strong> Você deve ser um bárbaro.</p>\n<p><strong>Ajustes de Enfurecido pelo Sangue:</strong> Você é treinado em Atletismo, Medicina, e em um número de perícias adicionais igual a 2 mais seu modificador de Inteligência, em vez das suas proficiências iniciais normais em perícias. Você deve escolher o instinto enfurecido pelo sangue como o instinto do seu bárbaro.</p><h2>Instinto Enfurecido pelo Sangue</h2><p>Beber o potente sangue mágico de criaturas sobrenaturais mudou você e despertou um poder mágico em seu interior, junto com uma sede sinistra.</p>\n<p><strong>Fúria de Sangue (Habilidade de Instinto):</strong> Enquanto em fúria, seus ataques físicos causam dano de sangramento persistente extra igual à metade do seu dano adicional de Fúria. Quando você Conjura uma Magia que exige uma rolagem de ataque de magia enquanto está em fúria, aplique o dano adicional de Fúria a essa magia, mesmo em caso de falha.</p>\n<p><strong>Habilidade de Especialização:</strong> Ao usar a fúria de sangue, aumente o dano adicional de Fúria de 2 para 4. Se você tiver especialização em arma maior, em vez disso aumente o dano de 4 para 8.</p>\n<p><strong>Resistência de Fúria:</strong> Você resiste a dano de corte e a dano de sangramento persistente, assim como ao dano causado pela criatura cujo sangue você bebeu por último usando Colher Sangue (veja abaixo), independentemente do tipo de dano.</p>"
+    },
+    "USqlwIXnwtPWjiCL": {
+      "name": "Linhagem: Gênio",
+      "sourceHash": "4016cc010c4badf79992256c7f79fb771b2ddc74",
+      "description": ""
     },
     "UTCSBZnzYPwRfjpC": {
       "name": "Vantagem da Natureza",
@@ -421,6 +661,11 @@
       "sourceHash": "019f2de526e3abcff535522bf5e636da325163c3",
       "description": "<p>Você aprendeu técnicas de combate que se aplicam a todo tipo de armamento, e desenvolveu uma habilidade incomparável com suas armas favoritas. Seus graus de proficiência em armas simples, armas marciais e ataques desarmados aumentam para mestre. Seu grau de proficiência em armas avançadas aumenta para perito.</p>\n<p>Você pode selecionar um grupo de armas e aumentar seus graus de proficiência para lendário em todas as armas simples, armas marciais e ataques desarmados daquele grupo de armas, e para mestre em todas as armas avançadas daquele grupo de armas.</p>"
     },
+    "WMg4B9XcUnqntpFY": {
+      "name": "Quinta Doutrina (Sacerdote Guerreiro)",
+      "sourceHash": "7e67fdfd0904046c0907c448fb84f67c14427378",
+      "description": ""
+    },
     "WMrcHrDh9vNDteMb": {
       "name": "Estopim Curto",
       "sourceHash": "cb1dda1d241f5bee528bb66169b821cd67d32c4f",
@@ -436,10 +681,30 @@
       "sourceHash": "7359d5e3c6e83d66bb6f05f0155695acffbadf4c",
       "description": "<p>Enquanto qualquer capanga pode cometer um assassinato, um assassinato de verdade exige finesse e astúcia. Nas profundezas da Cidadela Carmesim, os assassinos da Mantis Vermelha desenvolveram uma seleção específica de magias que ensinam a todos os membros com capacidade mágica. Essas magias complementam os métodos clandestinos e letais dos assassinos.</p>\n<p><strong>Currículo</strong></p><ul><li><strong>truques:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Figment], @UUID[Compendium.pf2e.spells-srd.Item.Gouging Claw]</li><li><strong>1º</strong> @UUID[Compendium.pf2e.spells-srd.Item.Fleet Step], @UUID[Compendium.pf2e.spells-srd.Item.Illusory Disguise], @UUID[Compendium.pf2e.spells-srd.Item.Sure Strike]</li><li><strong>2º</strong> @UUID[Compendium.pf2e.spells-srd.Item.Invisibility], @UUID[Compendium.pf2e.spells-srd.Item.Mist]</li><li><strong>3º</strong> @UUID[Compendium.pf2e.spells-srd.Item.Clairaudience], @UUID[Compendium.pf2e.spells-srd.Item.Paralyze]</li><li><strong>4º</strong> @UUID[Compendium.pf2e.spells-srd.Item.Clairvoyance], @UUID[Compendium.pf2e.spells-srd.Item.Translocate]</li><li><strong>5º</strong> @UUID[Compendium.pf2e.spells-srd.Item.Hallucination], @UUID[Compendium.pf2e.spells-srd.Item.Illusory Scene]</li><li><strong>6º</strong> @UUID[Compendium.pf2e.spells-srd.Item.Mislead], @UUID[Compendium.pf2e.spells-srd.Item.Phantasmal Calamity]</li><li><strong>7º</strong> @UUID[Compendium.pf2e.spells-srd.Item.Duplicate Foe], @UUID[Compendium.pf2e.spells-srd.Item.Project Image]</li><li><strong>8º</strong> @UUID[Compendium.pf2e.spells-srd.Item.Disappearance], @UUID[Compendium.pf2e.spells-srd.Item.Unrelenting Observation]</li><li><strong>9º</strong> @UUID[Compendium.pf2e.spells-srd.Item.Phantasmagoria]</li></ul><p><strong>Magias da Escola</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Debilitating Terror]; avançada: @UUID[Compendium.pf2e.spells-srd.Item.Shroud of the Mantis]</p>"
     },
+    "WsjMAdbmegii8Kqf": {
+      "name": "Rajada de Golpes",
+      "sourceHash": "d130739fa99a6ccda11d5c949ddf29c5890e55da",
+      "description": ""
+    },
     "X9sJnNpTtf1p2nbI": {
       "name": "Vigilância",
       "sourceHash": "62deff58e76cbf9d54d8758d2139684d40bbfdb3",
       "description": "<p>A experiência o tornou cada vez mais ciente das ameaças ao seu redor, e você reage mais rapidamente ao perigo. Seu grau de proficiência em Percepção aumenta para perito.</p>"
+    },
+    "XMhDKOhwSXGmEBKk": {
+      "name": "Enigma",
+      "sourceHash": "1001a285ce5f070a1d7bb17c931d55fbc370dbb5",
+      "description": ""
+    },
+    "XoOqrgB4XivbPdcA": {
+      "name": "Terceira Doutrina (Sacerdote Guerreiro)",
+      "sourceHash": "3d2e152d7d4b3c142eccf5868ad2d755a7f2e0b8",
+      "description": ""
+    },
+    "Y9i5eKFIhDqSpoD9": {
+      "name": "Magia Milagrosa",
+      "sourceHash": "7fa0c607f9396e62eda03eecaeced9bc4b751174",
+      "description": ""
     },
     "YFDgTLc4gyZOGzK0": {
       "name": "Durabilidade Cinética Maior",
@@ -451,10 +716,30 @@
       "sourceHash": "2d4737bbe4d57ff2b26ebc97af3c6e5445337fc0",
       "description": "<p>Seu extenso treinamento físico e magia cuidadosamente escolhida se combinam para formar um estilo de luta único e perigoso que é mais do que a soma de suas partes. Você escolhe um campo de estudo híbrido para representar sua combinação particular de habilidades. Seu estudo híbrido lhe dá uma habilidade especial, geralmente ligada a @UUID[Compendium.pf2e.classfeatures.Item.Spellstrike] ou @UUID[Compendium.pf2e.classfeatures.Item.Arcane Cascade], e determina sua magia de confluxo inicial. Os estudos híbridos apresentados neste livro são os seguintes.</p><ul><li>@UUID[Compendium.pf2e.classfeatures.Item.Aloof Firmament]</li><li>@UUID[Compendium.pf2e.classfeatures.Item.Inexorable Iron]</li><li>@UUID[Compendium.pf2e.classfeatures.Item.Laughing Shadow]</li><li>@UUID[Compendium.pf2e.classfeatures.Item.Sparkling Targe]</li><li>@UUID[Compendium.pf2e.classfeatures.Item.Starlit Span]</li><li>@UUID[Compendium.pf2e.classfeatures.Item.Twisting Tree]</li><li>@UUID[Compendium.pf2e.classfeatures.Item.Unfurling Brocade]</li><li>@UUID[Compendium.pf2e.classfeatures.Item.Resurgent Maelstrom]</li></ul>"
     },
+    "YSe3taJoihbLxjDB": {
+      "name": "Golpes de Metal",
+      "sourceHash": "6955e13a0da40cc0c4098271ee36d6536ac2fbc3",
+      "description": ""
+    },
+    "YWHoIOVc0vK9llnF": {
+      "name": "Linhagem: Sombra",
+      "sourceHash": "ace1f7a1f18b4930131b0c83c9490cc0d71166c4",
+      "description": ""
+    },
+    "Z3bGaIq1FnCfsTrx": {
+      "name": "Divindade (Clérigo)",
+      "sourceHash": "9f7923de8fe08915852a720560daf6f4d59103df",
+      "description": ""
+    },
     "ZI7nywEZnJF0CMiw": {
       "name": "Domínio de Armadura Média",
       "sourceHash": "f62d50c291006709653dada82f547f9fe52c92a7",
       "description": "<p>Sua habilidade com armadura leve e média melhora, aumentando sua capacidade de evitar golpes. Seus graus de proficiência para armadura leve e média, assim como para defesa desarmada, aumentam para mestre.</p>"
+    },
+    "ZnYBamnAqVWx3gQR": {
+      "name": "Obediência",
+      "sourceHash": "f0de4e5fbfc5d5073c0e207a09f8f4e3d9a1683e",
+      "description": ""
     },
     "ZzWD1IY5kAnQ8a65": {
       "name": "Maestria em Armas Marciais",
@@ -466,10 +751,25 @@
       "sourceHash": "c00c12b43fd26f099e18057f98aa7b3c584a2bef",
       "description": "<p><strong>Bárbaro</strong> Seu instinto aguça ainda mais cada um dos seus sentidos. Seu grau de proficiência em Percepção aumenta para mestre.</p>\n<p><strong>Bardo, Pistoleiro, Ladino</strong> Você desenvolveu uma percepção aguçada e atenção aos detalhes. Seu grau de proficiência em Percepção aumenta para mestre.</p>\n<p><strong>Comandante</strong> Você desenvolveu a habilidade de enxergar um cenário por todos os ângulos. Seu grau de proficiência em Percepção aumenta para mestre.</p>\n<p><strong>Exemplar</strong> Através de suas aventuras, você desenvolveu uma percepção aguçada e atenção aos detalhes, para melhor vigiar seus protegidos e ficar de olho em monstros e outras ameaças. Seu grau de proficiência em Percepção aumenta para mestre.</p>\n<p><strong>Investigador, Espadachim, Taumaturgo</strong> Através de suas aventuras, você desenvolveu uma percepção aguçada e atenção aos detalhes. Seu grau de proficiência em Percepção aumenta para mestre.</p>\n<p><strong>Patrulheiro</strong> Você tem uma acuidade e atenção aos detalhes altamente desenvolvidas. Seu grau de proficiência em Percepção aumenta para mestre.</p>"
     },
+    "apPhg0aKM4oFVxWn": {
+      "name": "Fé Resoluta",
+      "sourceHash": "88c2f2728e2f1a0964dbd77420e2ccf6fa4d79ab",
+      "description": ""
+    },
+    "bWGsG8zffEsLRfkL": {
+      "name": "Maestria do Campeão",
+      "sourceHash": "880c0c41779c1f3f8ea1eeb3378cad48019bbd14",
+      "description": ""
+    },
     "c0XQ1ICQyYuUQN3h": {
       "name": "Reflexos Temperados",
       "sourceHash": "e94e92e0778bfdecfb6bbd9531436b0a4aa121a5",
       "description": "<p>Reflexos treinados permitem que você encontre segurança mesmo diante de explosões cataclísmicas. Seu grau de proficiência em testes de Reflexos aumenta para mestre. Quando você rola um sucesso em um teste de Reflexos, obtém um sucesso crítico em vez disso.</p>"
+    },
+    "cGbwex2mzwB9tKAf": {
+      "name": "Primeira Doutrina",
+      "sourceHash": "9220e6ce7ccadba16578bc9204acf02427b75fdd",
+      "description": ""
     },
     "cQdtouC7aLBqMKBC": {
       "name": "Instinto",
@@ -480,6 +780,11 @@
       "name": "Aura Cinética",
       "sourceHash": "4bf7da59dc3404a411b4512e168f5eed117a4214",
       "description": "<p>Por meio do seu portão cinético, elementos fluem de um plano elemental para orbitar sua pessoa. A forma e a aparência dessa aura cinética são únicas para você. Exemplos incluem um vento caótico orbitando o corpo, fragmentos de cascalho flutuante, coloridos pavios de estrelas de chama de metal puro sempre mudando de forma, flocos de neve flutuantes ou lascas dançando no ar. Se você puder canalizar mais de um elemento, pedaços de todos os seus elementos cinéticos aparecem na aura.</p>\n<p>Você tem a ação @UUID[Compendium.pf2e.actionspf2e.Item.Channel Elements], que permite ativar sua aura cinética.</p>"
+    },
+    "cju0wQRfzrQoF7SH": {
+      "name": "Quinta Doutrina",
+      "sourceHash": "713cffeb8adf353aaa966e4b3868ccab0fbf4206",
+      "description": ""
     },
     "czSFAoqERcVtJ7WY": {
       "name": "Instinto de Decomposição",
@@ -496,15 +801,35 @@
       "sourceHash": "5038362d0198222e09e19a6d3153559981b80139",
       "description": "<p>Você domina a magia arcana mais potente e pode conjurar uma magia de poder verdadeiramente incrível. Você ganha um único espaço de magia de grau 10 e pode preparar uma magia nesse espaço usando a conjuração de mago. Diferente de outros espaços de magia, você não pode usar espaços de grau 10 com habilidades que concedem mais espaços de magia ou que permitem conjurar magias sem gastar espaços de magia. Você não ganha mais magias de grau 10 conforme sobe de nível, mas pode escolher o talento @UUID[Compendium.pf2e.feats-srd.Item.Archwizard's Might] para ganhar um segundo espaço.</p>"
     },
+    "dc9aMcoWGCk7tOJL": {
+      "name": "Reação Implacável",
+      "sourceHash": "66d659de586981740640076f30e1ec4d87de3e06",
+      "description": ""
+    },
     "e7XksR8zXy3vmWID": {
       "name": "Perícia com Armaduras",
       "sourceHash": "7470a3042a308a37e44e7062212af5bfa439452e",
       "description": "<p>Você passou tanto tempo usando armadura que sabe como aproveitar ao máximo sua proteção. Seus graus de proficiência em armaduras leves, médias e pesadas, bem como em defesa desarmada, aumentam para perito. Você ganha os efeitos de especialização em armadura de armaduras médias e pesadas.</p>"
     },
+    "eGs3cJk5JRU9qs8v": {
+      "name": "Linhagem: Feérica",
+      "sourceHash": "a788f221ab3bcbceb7656ba6eea021f828a85367",
+      "description": ""
+    },
     "fs8vce7CnfjA7OU4": {
       "name": "Nexo de Cajado",
       "sourceHash": "2e3f1758c3bb0a0110ed054c28027ea9990a07d0",
       "description": "<p>Sua tese sustenta que a adoção precoce e intensa de cajados desde os primeiros dias de estudo pode criar um vínculo simbiótico entre conjurador e cajado, permitindo que criem magias notáveis juntos. Você formou essa conexão com um cajado improvisado que construiu, e está pronto para infundir qualquer cajado que encontrar com maior poder.</p>\n<p>Você começa o jogo com um cajado improvisado de sua própria invenção. Ele tem o traço mágico e contém um truque e uma magia de 1º grau, ambos do seu grimório. Durante suas preparações diárias, você pode gastar uma magia para conceder ao cajado uma quantidade de cargas igual ao grau daquela magia, que se dissipam após 24 horas. Enquanto estiver segurando o cajado, você pode Conjurar as Magias que ele contém. A magia de 1º grau consome 1 carga, mas o truque não requer cargas. Se seu cajado for destruído, você pode criar um novo ao longo de 1 hora, embora ele não tenha cargas.</p>\n<p>Durante suas preparações diárias, você pode fundir seu cajado improvisado com outro cajado em sua posse, adicionando as duas magias escolhidas a ele. Esse cajado ganha cargas ao ser preparado e ao gastar magias.</p>\n<p>No 8º nível, você pode gastar duas magias em vez de uma ao preparar qualquer cajado, adicionando cargas extras iguais à soma dos graus das magias gastas. No 16º nível, você pode gastar até um total de três magias para adicionar cargas ao cajado, adicionando cargas extras iguais à soma dos graus das três magias.</p>"
+    },
+    "ftNUb4vgqUL5RuyY": {
+      "name": "Movimento Incrível",
+      "sourceHash": "299955c152cb2bf8ca99d0f33ce534623839a5ce",
+      "description": ""
+    },
+    "gDngrAJywQFHy5gY": {
+      "name": "Terceira Doutrina",
+      "sourceHash": "1bf8bdae2b0ed7a122b12ee7eaf2dec108a2dfcd",
+      "description": ""
     },
     "goMuPizfdUMG7iVu": {
       "name": "Percepção Lendária",
@@ -536,6 +861,11 @@
       "sourceHash": "8e3bee2218af121ac9d51b1ab299a6bd5463cc7a",
       "description": "<p>Você usa lábia, bajulação e uma língua afiada para evitar perigos e escapar de situações complicadas. Você pode ser um vigarista ou golpista, ou pode usar suas habilidades em profissões respeitáveis, como advogado ou diplomata.</p>\n<p>Quando você tem sucesso ao @UUID[Compendium.pf2e.actionspf2e.Item.Feint], o alvo fica @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] contra seus ataques corpo a corpo até o final do seu próximo turno. Em um sucesso crítico, o alvo fica desprevenido contra todos os ataques corpo a corpo até o final do seu próximo turno, não apenas os seus.</p>\n<p>Se você Fintar enquanto empunha uma arma corpo a corpo ágil ou de precisão, você pode dar um Passo imediatamente após a Finta como uma ação livre. Você é treinado em Enganação e Diplomacia. Você pode escolher Carisma como seu atributo-chave.</p>"
     },
+    "ipv7jvgAEzBAtoPc": {
+      "name": "Linhagem: Angelical",
+      "sourceHash": "ee4eb059df0447fcaf2bad564bd592d7246b16c4",
+      "description": ""
+    },
     "j125sa25OAnogfDh": {
       "name": "Perícia em Armadura Média",
       "sourceHash": "23ba027be262377357136678ca078c0514658a0c",
@@ -546,6 +876,11 @@
       "sourceHash": "f4d1cf7cf2db3e0fc43d6e22cccad284b6e9156c",
       "description": "<p>Você é quase incomparável com qualquer arma. Seus graus de proficiência em armas simples, armas marciais e ataques desarmados aumentam para lendário, e seu grau de proficiência em armas avançadas aumenta para mestre. Seu grau de proficiência na sua CD de classe de guerreiro aumenta para mestre.</p>"
     },
+    "jAAzTvbs12s8pHtT": {
+      "name": "Potência Feiticeira",
+      "sourceHash": "ce11d6247b128e7acdcf2c71ec5e59aff421ceea",
+      "description": ""
+    },
     "jUnz5VqnXQiOmOud": {
       "name": "Truques de Arma",
       "sourceHash": "0a2d3c6a36761a4d82c07f1ccf483f9b823041ad",
@@ -555,6 +890,11 @@
       "name": "Conjuração de Mago",
       "sourceHash": "cadbe66246ccef415675c1077f9cf6f30dbef90d",
       "description": "<p>Por meio de estudo e prática dedicados, você consegue construir magias com rigor acadêmico ao moldar a magia arcana. Você é um conjurador e pode conjurar magias da tradição arcana usando a atividade Conjurar uma Magia. Como mago, quando você conjura magias, suas encantações provavelmente especificam exatamente quais forças você invoca e como moldá-las, e seus gestos moldam e direcionam sua magia com precisão enquanto círculos de runas arcanas ganham vida.</p>\n<p>No 1º nível, você pode preparar até duas magias de 1º grau e cinco truques a cada manhã, dentre as magias do seu grimório (veja abaixo), além de um truque extra de currículo e uma magia extra de currículo de cada grau que você consegue conjurar da sua escola arcana. As magias preparadas permanecem disponíveis até que você as conjure ou até que prepare suas magias novamente. O número de magias que você pode preparar é chamado de espaços de magia.</p>\n<p>Conforme você aumenta de nível como mago, o número de magias que você pode preparar por dia aumenta, assim como o maior grau de magia que você consegue conjurar, conforme mostrado na tabela Magias de Mago por Dia.</p>\n<p>Algumas das suas magias exigem que você tente uma rolagem de ataque de magia para ver o quão eficazes são, ou fazem seus inimigos rolarem contra sua CD de magia (normalmente tentando um teste de resistência). Como seu atributo-chave é Inteligência, seu modificador de ataque de magia e sua CD de magia usam seu modificador de Inteligência. Detalhes sobre como calcular essas estatísticas aparecem na página 403.</p><h3>Elevando Magias</h3><p>Quando você obtém espaços de magia de 2º grau ou superior, pode preencher esses espaços com versões mais fortes de magias de grau inferior. Isso aumenta o grau da magia, elevando-a para corresponder ao espaço de magia. Muitas magias têm melhorias específicas quando são elevadas a certos graus.</p><h3>Truques</h3><p>Algumas das suas magias são truques. Um truque é um tipo especial de magia que não usa espaços de magia. Você pode conjurar um truque à vontade, quantas vezes por dia quiser. Um truque é sempre automaticamente elevado à metade do seu nível arredondado para cima — isso normalmente equivale ao maior grau de espaço de magia de mago que você possui. Por exemplo, como mago de 1º nível, seus truques são magias de 1º grau, e como mago de 5º nível, seus truques são magias de 3º grau.</p><h3>Grimório</h3><p>Toda magia arcana tem uma versão escrita, que você registra no seu livro de magias personalizado. Você começa com um grimório no valor de 10 peças de prata ou menos, que recebe gratuitamente e deve estudar todos os dias para preparar suas magias. A forma e o nome do seu grimório ficam a seu critério. Pode ser um tomo mofado encadernado em couro ou um conjunto de discos metálicos finos conectados por um anel de latão; seu nome pode ser esotérico, como <em>O Tomo das Sombras Silenciosas</em>, ou algo mais acadêmico, como <em>Aplicações Piromânticas Avançadas da Teoria Elemental Jalmeri</em>.</p>\n<p>O grimório contém, à sua escolha, 10 truques arcanos e cinco magias arcanas de 1º grau. Você as escolhe dentre as magias comuns da lista de magias arcanas ou de outras magias arcanas às quais ganhe acesso. Você também adiciona duas magias de 1º grau do currículo da sua escola arcana (exceto no caso da escola da teoria mágica unificada, conforme descrito naquela escola).</p>\n<p>Toda vez que você ganha um nível, adiciona duas magias arcanas ao seu grimório, de qualquer grau de magia para o qual tenha espaços de magia, escolhidas dentre as magias comuns da sua tradição ou outras às quais ganhe acesso. Você também pode adicionar magias ao seu grimório com a atividade Aprender uma Magia. Quando você ganha espaços de magia de um novo grau, também adiciona uma magia adicional do currículo da sua escola (a menos que seja a escola da teoria mágica unificada).</p>"
+    },
+    "jvnq82PVH2N2MUfD": {
+      "name": "Segunda Doutrina (Clérigo Enclausurado)",
+      "sourceHash": "2c08ca618dc6e8f434a7df88031628875c4dfa0f",
+      "description": ""
     },
     "k4cWZ1uo7KDeKuKw": {
       "name": "Escola da Teoria Mágica Unificada",
@@ -586,10 +926,25 @@
       "sourceHash": "55bb3031a6b6b6cd590f78aeb44456dbfed0f490",
       "description": "<p>Você permanece alerta às ameaças ao seu redor. Seu grau de proficiência em Percepção aumenta para perito.</p>"
     },
+    "lvapOWnP0q5P7fjr": {
+      "name": "Coração de Artista",
+      "sourceHash": "bbee84bd674613fd8aba4a7c270647fb08c8720d",
+      "description": ""
+    },
+    "m4lEeG2qnIWQLWat": {
+      "name": "Linhagem: Fênix",
+      "sourceHash": "3fdc9e3c44a7303af31b8b577f956d7c00134fcf",
+      "description": ""
+    },
     "m9zzP0MZI5sIP1ia": {
       "name": "Perícia em Vontade",
       "sourceHash": "b34843a98fb1759b34e05604bb1233c0f89db8a2",
       "description": "<p>Suas defesas mentais crescem em força. Seu grau de proficiência em testes de resistência de Vontade aumenta para perito.</p>"
+    },
+    "mGMDAzP7yvSetA6Z": {
+      "name": "Zoofonia",
+      "sourceHash": "5c3bb38466e57a2494173e364a709042119fe961",
+      "description": ""
     },
     "mGyRcs5k6sRE1fVm": {
       "name": "Golpe Debilitante",
@@ -600,6 +955,11 @@
       "name": "Escola dos Portais",
       "sourceHash": "0e9d5e4d44cb5852c7d2272af72e520088e5700a",
       "description": "<p>Alguns se contentam em ficar parados e deixar que o mundo os molde, mas você prefere se mover em seu próprio ritmo. Você estudou os antigos <em>aiudara</em> e outras estruturas para aprender a magia da transposição, usando seu conhecimento para se deslocar por grandes distâncias e até mesmo entre planos. Com o conhecimento como seu caminho e a magia como sua chave, não há porta que você não possa abrir, nem mundo que você não vá explorar.</p>\n<p><strong>Currículo</strong></p><ul><li><strong>truques:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Message], @UUID[Compendium.pf2e.spells-srd.Item.Telekinetic Hand]</li><li><strong>1º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Fleet Step], @UUID[Compendium.pf2e.spells-srd.Item.Lock], @UUID[Compendium.pf2e.spells-srd.Item.Thoughtful Gift]</li><li><strong>2º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Knock], @UUID[Compendium.pf2e.spells-srd.Item.Warping Pull]</li><li><strong>3º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Echo Jump], @UUID[Compendium.pf2e.spells-srd.Item.Trade Items]</li><li><strong>4º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Flicker], @UUID[Compendium.pf2e.spells-srd.Item.Translocate]</li><li><strong>5º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.King's Castle], @UUID[Compendium.pf2e.spells-srd.Item.Magic Passage]</li><li><strong>6º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Collective Transposition], @UUID[Compendium.pf2e.spells-srd.Item.Teleport]</li><li><strong>7º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Interplanar Teleport], @UUID[Compendium.pf2e.spells-srd.Item.Planar Seal]</li><li><strong>8º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Quandary], @UUID[Compendium.pf2e.spells-srd.Item.Sudden Transposition]</li><li><strong>9º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Forest of Gates]</li></ul><p><strong>Magias da Escola</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Friendly Push]; avançada: @UUID[Compendium.pf2e.spells-srd.Item.Rapid Retreat]</p>"
+    },
+    "mMZ6viHgZXOkBjQ1": {
+      "name": "Linhagem: Megera",
+      "sourceHash": "d9b7b78f794f8bf245030712e48a2df1568ffc30",
+      "description": ""
     },
     "mRLd1vgm5NpYMpD7": {
       "name": "Mente Ágil",
@@ -616,20 +976,55 @@
       "sourceHash": "ccc362412b7f0d26463b12f297a6e5c447aa1400",
       "description": "<p>Quando você concentra sua atenção em um único inimigo, torna-se imparável em sua perseguição. Você ganha a ação @UUID[Compendium.pf2e.actionspf2e.Item.Hunt Prey].</p>"
     },
+    "nK6z25Z0ETR5J5Xz": {
+      "name": "Maestro",
+      "sourceHash": "6f377d457c0d293583ccd019b4c44c6f01423383",
+      "description": ""
+    },
+    "nVw20CuAcCpucJYO": {
+      "name": "Guerreiro",
+      "sourceHash": "5224e7058beebfeb415f64fc9eb2939f52d7aaef",
+      "description": ""
+    },
+    "njYDyHDE3ogHH7th": {
+      "name": "Lenda Graciosa",
+      "sourceHash": "70b4b16052441fe3ff3224d61cf2bb086439cc7a",
+      "description": ""
+    },
+    "nxwKUkpw2byexCMh": {
+      "name": "Linhagem: Abençoada pelo Wyrm",
+      "sourceHash": "9d7142bcdeb89c64761c3a46cf9d4bf09c8ed373",
+      "description": ""
+    },
     "o6Oc3e0GSFurrogA": {
       "name": "Ferro Inexorável",
       "sourceHash": "e8281e320ef00860f61947ddc53749848a7d4f56",
       "description": "<p>Uma vez que você começar por um caminho, nada pode impedi-lo de alcançar seu fim. Você transforma a massa de uma arma enorme em uma força irresistível para aumentar seu poder de golpe ou para mantê-lo em pé no campo de batalha.</p>\n<p>Quando você entra na postura Cascata Arcana e no início de cada um de seus turnos enquanto estiver naquela postura, se estiver empunhando uma arma corpo a corpo com as duas mãos, ganha pontos de vida temporários iguais à metade seu nível (mínimo 1 ponto de vida temporário).</p>\n<p><strong>Magia de Confluxo</strong> @UUID[Compendium.pf2e.spells-srd.Item.Thunderous Strike]</p>"
+    },
+    "oJOPZEreYjnSbgHP": {
+      "name": "Quinta Doutrina (Clérigo Enclausurado)",
+      "sourceHash": "fc11da548740d366a30d02ce9b7015d229f74acc",
+      "description": ""
     },
     "oSMLCBMXrEeuRoOS": {
       "name": "Truques Mestres",
       "sourceHash": "1dd348abbff0a3a75204264e9e4efc4192faac40",
       "description": "<p>Você dominou os movimentos de combate de um ladino. Seus graus de proficiência aumentam para mestre em todas as armas simples, armas marciais e ataques desarmados.</p>"
     },
+    "ocZyNsiv8LtCwvNc": {
+      "name": "Primeira Doutrina (Sacerdote Guerreiro)",
+      "sourceHash": "e8a33c6af2095487b3f58560a6026d5ca800af69",
+      "description": ""
+    },
     "oqbnOYq8BmDDXWid": {
       "name": "Instinto Animal",
       "sourceHash": "98d9185c977b0aab055da53ab1e4a4d24e35f66f",
       "description": "<p>A fúria de um predador selvagem toma conta de você quando entra em Fúria, concedendo ataques desarmados ferozes. Culturas que reverenciam animais ferozes (como macacos ou ursos) dão origem a bárbaros com esse instinto. Você também pode estar em guerra com um lado incontrolável e animalesco de sua personalidade, ou pode ser descendente de um lobisomem ou outra criatura licantrópica. Escolha um animal da tabela de Instintos Animais que melhor combine com o animal escolhido.</p>\n<p><strong>Habilidade de Instinto—Fúria Bestial</strong> Enquanto está em fúria, você ganha o ataque desarmado (ou ataques) do animal escolhido, mas não pode usar armas. O ataque específico obtido, o dano que causa e seus traços estão listados na tabela de Instintos Animais. Esses ataques pertencem ao grupo de luta livre. Sua ação de Fúria ganha os traços metamorfose e primal.</p>\n<p><strong>Habilidade de Especialização (7º)</strong> Aumente em um passo o tamanho do dado de dano dos ataques desarmados concedidos pelo seu animal escolhido, e aumente o dano adicional de Fúria de 2 para 5 para os ataques desarmados do seu animal escolhido. Se você tiver especialização em arma maior, aumente o dano de Fúria de 5 para 12 para os ataques desarmados do seu animal escolhido.</p>\n<p><strong>Resistência de Fúria (9º)</strong> Você resiste a dano de perfuração e corte.</p><h2>Instintos Animais</h2><table class=\"pf2e remaster\"><thead><tr><th>Animal</th><th>Ataque</th><th>Dano</th><th>Traços</th></tr></thead><tbody><tr><td>Anquilossauro</td><td>Cauda</td><td>1d10 B</td><td>Arrasador, desarmado</td></tr><tr><td>Formiga</td><td>Mandíbulas</td><td>1d10 P</td><td>Agarrar, desarmado</td></tr><tr><td>Macaco</td><td>Punho</td><td>1d10 B</td><td>Agarrar, desarmado</td></tr><tr><td rowspan=\"2\">Morcego</td><td>Presas</td><td>1d10 P</td><td>Desarmado</td></tr><tr><td>Asas</td><td>1d4 P</td><td>Aparar, desarmado</td></tr><tr><td rowspan=\"2\">Urso</td><td>Mandíbulas</td><td>1d10 P</td><td>Desarmado</td></tr><tr><td>Garra</td><td>1d6 S</td><td>Ágil, desarmado</td></tr><tr><td rowspan=\"2\">Ave</td><td>Bico</td><td>1d10 P</td><td>Desarmado</td></tr><tr><td>Garra</td><td>1d6 S</td><td>Ágil, desarmado</td></tr><tr><td>Brontossauro</td><td>Cauda</td><td>1d10 B</td><td>Derrubar, desarmado</td></tr><tr><td>Touro</td><td>Chifre</td><td>1d10 P</td><td>Empurrar, desarmado</td></tr><tr><td rowspan=\"2\">Gato</td><td>Mandíbulas</td><td>1d10 P</td><td>Desarmado</td></tr><tr><td>Garra</td><td>1d6 S</td><td>Ágil, desarmado</td></tr><tr><td rowspan=\"2\">Caranguejo</td><td>Garra</td><td>1d10 B</td><td>Arrasador, desarmado</td></tr><tr><td>Garra</td><td>1d4 S</td><td>Aparar, desarmado</td></tr><tr><td rowspan=\"2\">Crocodilo</td><td>Mandíbulas</td><td>1d10 P</td><td>Desarmado</td></tr><tr><td>Cauda</td><td>1d6 B</td><td>Ágil, desarmado</td></tr><tr><td>Cervo</td><td>Chifre</td><td>1d10 P</td><td>Agarrar, desarmado</td></tr><tr><td rowspan=\"2\">Sapo</td><td>Mandíbulas</td><td>1d10 B</td><td>Desarmado</td></tr><tr><td>Língua</td><td>1d6 B</td><td>Ágil, desarmado</td></tr><tr><td>Orca</td><td>Mandíbulas</td><td>1d8 P</td><td>Vigoroso, desarmado</td></tr><tr><td rowspan=\"2\">Escorpião</td><td>Ferrão</td><td>1d6 P</td><td>Alcance, desarmado, venenoso</td></tr><tr><td>Pinça</td><td>1d4 S</td><td>Aparar, desarmado</td></tr><tr><td>Foca</td><td>Mandíbulas</td><td>1d10 P</td><td>Agarrar, desarmado</td></tr><tr><td>Tubarão</td><td>Mandíbulas</td><td>1d10 P</td><td>Agarrar, desarmado</td></tr><tr><td>Serpente</td><td>Presas</td><td>1d10 P</td><td>Agarrar, desarmado</td></tr><tr><td rowspan=\"2\">Aranha</td><td>Presas</td><td>1d8 P</td><td>Agarrar, desarmado, venenoso</td></tr><tr><td>Teia</td><td>Especial*</td><td>Incremento de alcance de 15 pés</td></tr><tr><td rowspan=\"2\">Tiranossauro</td><td>Mandíbulas</td><td>1d8 P</td><td>Letal d12, desarmado</td></tr><tr><td>Cauda</td><td>1d6 B</td><td>Ágil, desarmado</td></tr><tr><td>Vespa</td><td>Ferrão</td><td>1d4 P</td><td>Traicoeiro, letal d8, desarmado, venenoso</td></tr><tr><td>Lobo</td><td>Mandíbulas</td><td>1d10 P</td><td>Derrubar, desarmado</td></tr></tbody></table><p>*O ataque de teia da aranha não causa dano, mas o alvo sofre uma penalidade de circunstância de –10 pés em suas Velocidades por 1 rodada em caso de acerto. Se um alvo for atingido uma segunda vez pelo ataque de teia do mesmo personagem enquanto tem essa penalidade, ele fica @UUID[Compendium.pf2e.conditionitems.Item.Immobilized] até que consiga escapar em um teste de @UUID[Compendium.pf2e.actionspf2e.Item.Escape] contra sua CD de classe.</p>"
+    },
+    "p1eJInj1rrT9MDgw": {
+      "name": "Grandeza",
+      "sourceHash": "5d61f22ad59d696fae3746ceb89e5c822b2d3574",
+      "description": ""
     },
     "p3d74Rt5Nfi8ZqtK": {
       "name": "Reflexos Evasivos",
@@ -656,6 +1051,11 @@
       "sourceHash": "426c44df1dfbd8c88d0158047d784ed0ef45357b",
       "description": "<p>Seu portão cinético alcança uma forma perfeita, cujo poder luta constantemente para ser liberado. Se a sua aura cinética estiver inativa, você automaticamente usa a primeira ação do seu turno para @UUID[Compendium.pf2e.actionspf2e.Item.Channel Elements] como uma ação livre. Você pode suprimir deliberadamente o efeito. Se você não puder agir, o portão final ainda funciona, mas você não pode usar o @UUID[Compendium.pf2e.actionspf2e.Item.Elemental Blast] ou o impulso de postura que normalmente usaria ao empregar Canalizar Elementos</p>"
     },
+    "piMoitan7z8yLHVC": {
+      "name": "Sacerdote Guerreiro",
+      "sourceHash": "27e204607315624362e6f01abe4824a8760db8d8",
+      "description": ""
+    },
     "q5U9JtyjBIro75z5": {
       "name": "Vontade Prodigiosa",
       "sourceHash": "b0f82965ea0e969ea59198362b50c13736927d48",
@@ -671,25 +1071,60 @@
       "sourceHash": "140bfc9b382ec58027be3e11030f2c3d4c55c12f",
       "description": "<p>Você desdenha a dependência de outros em contrivancas brutas de ferro, favorecendo em troca a elegância do tecido, com linha e brocado sendo seu armamento. Seu dominio de qigong permite que o tecido infundido de qi despedace carne, prenda laminas e perfure aco.</p>\n<p>Você pode criar uma arma especial, tecido infundido de qi, ao Interagir para agarrar um comprimento de pano de 1 volume ou menos e preenchê-lo com seu qi. Se você Interagir para desenhar o objeto, você pode fazer isso como parte dessa ação. Para a maioria dos magus do brocado desdobrado, esse item e um lencol, faixa, fita ou um artigo de roupa similarmente volumoso, como mangas longas. Você pode usar o tecido como um @UUID[Compendium.pf2e.equipment-srd.Item.Bladed Scarf]. Diferente de um lencol comum, você tem a opção de empunhar o tecido em uma mao em vez de duas. Seu dado de dano e d4 se mantido em uma mao. Se você estiver usando @UUID[Compendium.pf2e.equipment-srd.Item.Handwraps of Mighty Blows], você pode aplicar qualquer de suas runas ao tecido, contanto que essas runas pudessem ser adicionadas a um lencol. Isso comeca quando você empunha o tecido e termina quando você para de fazer isso.</p>\n<p>Enquanto em postura @UUID[Compendium.pf2e.actionspf2e.Item.Arcane Cascade], a energia mágica fluindo através de seu tecido o anima parcialmente para realizar um alcance ainda maior de truques.</p><ul><li>Se você alcancar sucesso crítico em um teste de Atletismo para @UUID[Compendium.pf2e.actionspf2e.Item.Disarm], você pode gastar uma única ação imediatamente após para chicotear seu tecido, causando o objeto desarmado cair no chão em seu espaço em vez do espaço de seu oponente.</li><li>Seu tecido ganha o traco agarrar. Se você alcancar sucesso em um teste de Atletismo para @UUID[Compendium.pf2e.actionspf2e.Item.Grapple] usando seu tecido, você pode gastar uma única ação imediatamente após para puxar a criatura 5 pes em sua direção.</li>\n<li>Quando você tenta @UUID[Compendium.pf2e.actionspf2e.Item.Trip] um inimigo usando seu tecido, o alvo pode ser duas categorias maior que você em vez de uma.</li></ul><p><strong>Magia de Confluência</strong> @UUID[Compendium.pf2e.spells-srd.Item.Home Among Mulberry Leaves]</p>"
     },
+    "r6hvcZm2ECp1KEhb": {
+      "name": "Segunda Doutrina (Sacerdote Guerreiro)",
+      "sourceHash": "c167781cecc9a441cb891262b76398300d4192de",
+      "description": ""
+    },
     "rkGtWFGsR3fOlHV6": {
       "name": "Precisão",
       "sourceHash": "06609db2056b308377d1556bf55432dbc30719ac",
       "description": "<p>Você treinou para mirar nos pontos fracos de sua presa. Na primeira vez que você acerta sua presa perseguida em uma rodada, você também causa 1d8 de dano de precisão adicional. (O dano de precisão aumenta o dano que você já causa, usando o mesmo tipo, mas é ineficaz contra criaturas que não possuem órgãos vitais ou pontos fracos.) No nível 11, o dano extra aumenta para 2d8 de dano de precisão, e no nível 19, o dano extra aumenta para 3d8 de dano de precisão.</p>"
+    },
+    "rkX4fo0J36e2qAbG": {
+      "name": "Bênção dos Devotos",
+      "sourceHash": "eda15eb603267e1bc1db0c57f3c27e8179698f82",
+      "description": ""
     },
     "s5u2qecuC8288FDf": {
       "name": "Escola da Sabedoria Enraizada",
       "sourceHash": "6ad842e968ee488feafab81d964ac6d438a732d0",
       "description": "<p>Você estudou na Magaambya ou sob um de seus professores viajantes, aprendendo a magia ancestral da academia mais antiga de Golarion. Seu currículo é autodirigido, permitindo que você escolha um ramo de estudo e personalize seu aprendizado. Se você escolher a Escola da Sabedoria Enraizada, ganha o currículo e as magias de escola abaixo.</p>\n<p><strong>Currículo</strong></p><ul><li><strong>truques:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Detect Magic]</li><li><strong>1º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Alarm]</li><li><strong>2º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Dispel Magic]</li><li><strong>3º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Safe Passage]</li><li><strong>4º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Mountain Resilience]</li><li><strong>5º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Control Water]</li><li><strong>6º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Truesight]</li><li><strong>7º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Energy Aegis]</li><li><strong>8º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Quandary]</li><li><strong>9º:</strong>—</li></ul><p><strong>Magias da Escola</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Halcyon Mists]; avançada: @UUID[Compendium.pf2e.spells-srd.Item.Call the Ten]</p>\n<p>Este é o seu tronco primário de estudo, ao qual você adiciona um dos cinco ramos secundários a seguir, concedendo magias de currículo adicionais.</p><ul><li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Cascade Bearers]</strong></li><li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Emerald Boughs]</strong></li><li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Rain-Scribes]</strong></li><li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Tempest-Sun Mages]</strong></li><li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Uzunjati]</strong></li></ul>"
     },
+    "sLcoOSRKL3pqgx8z": {
+      "name": "Paragão de Linhagem",
+      "sourceHash": "98093cbea66bb267475ab344b6023d03c795a7b6",
+      "description": ""
+    },
+    "stRfmuEklLEcWZgK": {
+      "name": "Caminho para a Perfeição",
+      "sourceHash": "ad8a1dc6d92f6c67f6f002dcbe86f085ea70e8c6",
+      "description": ""
+    },
     "sy7rtPbt8x4XsYkp": {
       "name": "Golpe de Magia",
       "sourceHash": "56eab07ea7e0ab2d9981bfcb5e43e06dd138aaf2",
       "description": "<p>Você aprendeu a técnica magus fundamental que permite combinar ataques mágicos e físicos juntos. Você ganha a atividade @UUID[Compendium.pf2e.actionspf2e.Item.Spellstrike].</p><h3>Especificidades de Golpe de Magia</h3><p>Embora as regras base de Golpe de Magia cubram a maioria das magias, várias modificações se aplicam a magias mais complicadas quando carregadas em seu punho, lâmina ou outro ataque.</p>\n<p><strong>Um Alvo</strong> A magia alveja apenas o alvo de seu Golpe, mesmo que normalmente permita mais alvos. Isso inclui magias de área, para as quais apenas o alvo tenta um teste de resistência. Quaisquer efeitos contínuos da área, como o terreno difícil de espargir cascalho, afetam apenas o espaço do alvo. Alguns talentos permitem que você afete mais criaturas.</p>\n<p><strong>Alcance Natural:</strong> A magia acoplada afeta o alvo usando o alcance natural da arma ou ataque desarmado que você faz seu Golpe de Magia. Por exemplo, garra escavando afetaria uma criatura além do alcance natural da sua mão se usasse uma arma com alcance natural, e mordida de gelo afetaria apenas uma criatura no alcance natural de sua arma, mesmo que o alcance da magia seja maior.</p>\n<p><strong>Efeitos Auxiliares</strong> Sua magia ainda tem quaisquer efeitos não-direcionados que possam afetar criaturas outras que o alvo, assim como quaisquer efeitos contínuos começando a partir do momento em que você acerta com o Golpe. Por exemplo, espargir cascalho ainda criaria terreno difícil no espaço do alvo (como mencionado acima) e a penalidade de circunstância de entrançar vinha duraria pelo tempo de duração normal. A magia entra em efeito após o Golpe causar dano; se o Golpe tem outros efeitos especiais, o GM determina se acontecem antes ou depois da magia.</p>\n<p><strong>Múltiplas Defesas</strong> Qualquer rolagem adicional após o ataque de magia inicial ainda acontece normalmente, como o teste de Fortitude tentado pelo alvo de uma magia desintegrar. Similarmente, uma magia que permite que você ataque com ela novamente em rodadas subsequentes combinaria apenas um Golpe com sua rolagem de ataque inicial, não com nenhuma posterior. Alvo Inválido ou Imune: Se o alvo que você acertou não seria um alvo válido para a magia, a magia ainda é gasta mas não afeta o alvo. Se o alvo é imune ao seu ataque mas não à magia, ainda pode ser afetado pela magia.</p>\n<p><strong>Ações Variáveis</strong> Algumas magias têm efeitos diferentes baseados no número de ações que você gasta para conjurá-las. Você escolhe se usa os efeitos da versão de 1 ou 2 ações da magia quando usa Golpe de Magia. Uma magia tem que levar exatamente 1 ou 2 ações; você não pode usar Golpe de Magia com uma magia que leva uma ação livre, reação, ou 3 ou mais ações.</p>\n<p><strong>Moldar Magia</strong> Você tipicamente não pode usar moldar magia com Golpe de Magia porque ações de moldar magia exigem que a próxima ação que você realize seja Conjurar uma Magia, e Golpe de Magia é uma atividade combinada que não se qualifica.</p>"
     },
+    "tLSGEEfStt5nueny": {
+      "name": "Terceira Doutrina (Clérigo Enclausurado)",
+      "sourceHash": "4518899896852686878724409c7a8cc4c3c3e285",
+      "description": ""
+    },
+    "tblooNAQTKQKet7p": {
+      "name": "Doutrina Final (Sacerdote Guerreiro)",
+      "sourceHash": "63d2baf83d61ad6fa508d678220031e0ca2cdba6",
+      "description": ""
+    },
     "tn019aFJzq8HZoqF": {
       "name": "Escola Arcana",
       "sourceHash": "db1715522e5a61a5fee234850ba539b9b1f921ae",
       "description": "<p>A maioria dos magos adquire seu conhecimento de magias em uma instituição educacional formal, como a Arcanamirium ou a Magaambya. No 1º nível, você escolhe sua @UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.wDukeO3euLEGn6FA#arcane-schools]{escola arcana}, que concede a você habilidades mágicas.</p>\n<p>Você ganha magias e espaços de magia adicionais de acordo com o currículo ensinado na escola que frequentou. Alguns magos seguem a escola da teoria mágica unificada, que tenta forjar uma nova escola estudando de forma independente e reunindo informações de uma infinidade de textos e tutores. Embora um mago com essa abordagem careça do foco de um treinamento formal, ele tem maior flexibilidade.</p>"
+    },
+    "u0nA0rMnKu6LYGUZ": {
+      "name": "Doutrina Final",
+      "sourceHash": "c5f3fab1a8a3a5c5dc506569ce3a476e7d06b517",
+      "description": ""
     },
     "uFO4ijSHv40D0G7M": {
       "name": "Instinto Elemental",
@@ -706,10 +1141,50 @@
       "sourceHash": "e27fc36a9af04046ba8e705d2af90c7506970f3c",
       "description": "<p>O fluxo da magia e seu treinamento defensivo se combinam para ajudá-lo a se esquivar antes de um ataque. Seu grau de proficiência em defesa desarmada aumenta para perito.</p>"
     },
+    "uvGoYJ27yZBsqsUD": {
+      "name": "Clérigo Enclausurado",
+      "sourceHash": "9ca4bda15e678ab1ea16a960877406a7b14011ae",
+      "description": ""
+    },
+    "vFK3jg5jfq5VYwnZ": {
+      "name": "Linhagem: Harrow",
+      "sourceHash": "1aa0e618d0721b828078ed0da8bb5b2771c9dc56",
+      "description": ""
+    },
+    "vRc9KYm0mKU5tANe": {
+      "name": "Terceiro Caminho para a Perfeição",
+      "sourceHash": "a9766b551e06e63ceaa6fa84a4dfb6a0eb2fed2f",
+      "description": ""
+    },
+    "w5ZmsIyNU0f66q8E": {
+      "name": "Conjuração do Clérigo",
+      "sourceHash": "f117fd96a338a2e260c118d02c879babbcd3f76f",
+      "description": ""
+    },
+    "wBUBpFO5QNycXjJB": {
+      "name": "Linhagem: Diabólica",
+      "sourceHash": "3691c4b37c6ec2d046ccb036aa7a3eeb7be9e464",
+      "description": ""
+    },
+    "wBba2TDXECeWhXXn": {
+      "name": "Magias de Devoção",
+      "sourceHash": "c5d5cce4eefa512472c454358f3ffab4878c7b61",
+      "description": ""
+    },
     "wFpQ8XP25u7l47Dx": {
       "name": "Reflexos de Ladino Maiores",
       "sourceHash": "40fcadecbf45ecc244de9f389a9b84b2e8f4fcb2",
       "description": "<p>Você elude o perigo em um grau que poucos conseguem igualar. Seu grau de proficiência em testes de Reflexos aumenta para lendário. Quando você rola uma falha crítica em um teste de Reflexos, obtém uma falha em vez disso. Quando você rola uma falha em um teste de Reflexos contra um efeito que causa dano, você sofre metade do dano.</p>"
+    },
+    "wHqM8E3f5nPThvY4": {
+      "name": "Especialização do Campeão",
+      "sourceHash": "dc45a311823de399f9c6a41a9a3a6689d11e1e7e",
+      "description": ""
+    },
+    "wHuEESk6LaQ2kq3v": {
+      "name": "Quarta Doutrina (Clérigo Enclausurado)",
+      "sourceHash": "040ce6933dd7130f729fb7328da70113608f475b",
+      "description": ""
     },
     "wkOoYxQ0i6yV7NS8": {
       "name": "Resistência do Guardião",
@@ -721,10 +1196,30 @@
       "sourceHash": "6d5fe87dea9c9f248c6250534bc171363027d0f5",
       "description": "<p>Você entra em combate mais rápido do que seus inimigos conseguem reagir. Na primeira rodada de combate, se você rolar Enganação ou Furtividade para iniciativa, as criaturas que ainda não agiram ficam @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] em relação a você.</p>"
     },
+    "xDtG0WYbAHeEsNBd": {
+      "name": "Especialização em Armas do Bardo",
+      "sourceHash": "5b23ae501a96c6c1d264869d0c28a3547a0ece21",
+      "description": ""
+    },
     "xIbUjeUIOsopXLq7": {
       "name": "Passos Furiosos",
       "sourceHash": "128ad8660619530cec90ec29f78fbddfbc814e54",
       "description": "<p>O impulso de lutar o move sempre para a frente. Você ganha um bônus de condição de +5 pés à sua Velocidade. Esse bônus aumenta para +10 pés enquanto você está em fúria.</p>"
+    },
+    "xSGqu3kKCuEb0eYp": {
+      "name": "Desafio do Herói",
+      "sourceHash": "e2ca28f2b8ea67bbf8aa07fac44a02c927ed4066",
+      "description": ""
+    },
+    "xVdEfXKh6CrTVj1h": {
+      "name": "Segundo Caminho para a Perfeição",
+      "sourceHash": "5c1a922f51e21ca6329fdc0d28d389681e883a85",
+      "description": ""
+    },
+    "xbrOL7KPjY5oLwWb": {
+      "name": "Justiça",
+      "sourceHash": "f053b4815ad3e4b80855e16c30a1ca1beded08b4",
+      "description": ""
     },
     "xcNVeityWdQwcAGn": {
       "name": "Jornada sem Rastro",
@@ -741,15 +1236,35 @@
       "sourceHash": "a783a1689abe269c27a20e7ad3bfbcff7413fac1",
       "description": "<p>O sustento do seu portão interior contraria o dano que viria ao seu corpo. Seu grau de proficiência em testes de resistência de Fortitude aumenta para mestre. Quando você obtém um sucesso em um teste de Fortitude, você obtém um sucesso crítico em vez disso.</p>"
     },
+    "xt6sILYpPH1Xrek3": {
+      "name": "Profanação",
+      "sourceHash": "23a020d0f1b5be8d8b93e7a800890fb102cf7b0b",
+      "description": ""
+    },
     "xvC1jNDkNdNtZQiF": {
       "name": "Conjuração Arcana (Magus)",
       "sourceHash": "2f8a27122a2c47ef121b0e18ffd52c913f0f4af7",
       "description": "<p>Você estuda magias para poder combiná-las com seus ataques ou resolver problemas que apenas a força dos braços não consegue. Você pode conjurar magias arcanas usando a atividade @UUID[Compendium.pf2e.actionspf2e.Item.Cast a Spell], e pode fornecer componentes materiais, somáticos e verbais ao conjurar magias.</p>\n<p>Como você é um magus, pode desenhar símbolos de reposição com a ponta de sua arma ou sua mão livre para magias que exigem componentes materiais, substituindo-os por componentes somáticos em vez de precisar de uma bolsa de componentes materiais.</p>\n<p>No 1º nível, você pode preparar uma magia de 1º círculo e cinco truques cada manhã a partir das magias em seu grimório. As magias preparadas permanecem disponíveis para você até que as conjure ou até que prepare suas magias novamente. O número de magias que você pode preparar é chamado de seus espaços de magia.</p>\n<p>Conforme você avança de nível como magus, o número de espaços de magia que você pode usar e o círculo mais alto de magias que você pode conjurar a partir de espaços de magia aumentam. Como você divide seu foco entre o treinamento físico e o estudo mágico, você não tem mais de dois espaços de magia de seu círculo mais alto e, se puder conjurar magias de 2º círculo ou superior, dois espaços de magia de 1 círculo menor que seu círculo de magia mais alto. Para qualquer coisa que exija a capacidade de conjurar magias de um certo círculo que seja menor que os espaços mais altos que você tem, você ainda se qualifica mesmo que não tenha mais espaços de magia naqueles círculos.</p>\n<p>Algumas de suas magias exigem que você faça uma rolagem de ataque de magia para ver o quão eficaz ela é, ou que seus inimigos façam testes contra sua CD de magia (normalmente tentando um teste de resistência). Suas rolagens de ataque de magia e CDs de magia usam seu modificador de Inteligência.</p><h3>Elevando Magias</h3><p>Quando você recebe espaços de magia de 2º círculo e superior, você pode preencher aqueles espaços com versões mais fortes de magias de círculo menor. Isso aumenta o círculo da magia, elevando-a para corresponder ao espaço de magia. Muitas magias têm melhorias específicas quando são elevadas para certos círculos.</p><h3>Truques</h3><p>Um truque é um tipo especial de magia que não usa espaços de magia. Você pode conjurar um truque à vontade, qualquer número de vezes por dia. Um truque é sempre automaticamente elevado para metade seu nível arredondado para cima—isso é geralmente igual ao círculo mais alto de magia que você pode conjurar como magus. Por exemplo, como um magus de 1º nível, seus truques são magias de 1º círculo, e como um magus de 5º nível, seus truques são magias de 3º círculo.</p><h3>Grimório</h3><p>Toda magia arcana tem uma versão escrita, geralmente registrada em um grimório. Você começa com um grimório no valor de 10 sp ou menos, que recebe gratuitamente e deve estudar para preparar suas magias cada dia. O grimório contém sua escolha de oito truques arcanos e quatro magias arcanas de 1º círculo. Você escolhe estes a partir das magias comuns da lista de magia arcana ou a partir de outras magias arcanas às quais você ganha acesso. A forma e o nome do seu grimório são de sua escolha. Pode ser qualquer coisa, desde um livro robusto com um fecho seguro intitulado Teses sobre os Estratagemas da Guerreia Sobrenatural até uma coleção esfarrapada de panfletos de treinamento com seu nome rabiscado na capa.</p>\n<p>Cada vez que você avança de nível, você adiciona mais duas magias arcanas ao seu grimório, de qualquer círculo de magia que você possa conjurar. Você também pode usar a pericia Arcanismo para adicionar outras magias que encontra em suas aventuras. Embora você perca alguns espaços de magia de círculo menor conforme avança de nível, você mantém as magias em seu grimório e pode prepará-las em seus espaços de círculo mais alto normalmente.</p>\n<p>Se você tiver um grimório de múltiplas fontes (como ser um magus com o talento de dedicação Aprendiz de Mago), você pode usar o mesmo grimório para todas as suas magias.</p>"
     },
+    "xzqAQmsHPvZkBrAc": {
+      "name": "Fonte Divina",
+      "sourceHash": "951cde3b0c075776c16b47aeb7d486dcedc6c2a1",
+      "description": ""
+    },
     "ySaLalaR1yMdkqlL": {
       "name": "Instinto de Fúria",
       "sourceHash": "ad3f9c299810f61e132aea9c702b7586c74d2c03",
       "description": "<p>Sua fúria vem de um poço profundo e puramente pessoal dentro de você. Você usa sua fúria como quiser.</p>\n<p><strong>Habilidade de Instinto—Frenesi Imparável</strong> Aumente o dano adicional de Fúria de 2 para 3. Você ganha um talento de bárbaro de 1º nível bônus.</p>\n<p><strong>Habilidade de Especialização (7º)</strong> Aumente o dano adicional de Fúria de 3 para 7. Se você tiver especialização em arma maior, em vez disso aumente o dano adicional de Fúria para 13.</p>\n<p><strong>Resistência de Fúria (9º)</strong> Você resiste a dano físico de arma, mas não a dano físico de outras fontes (como ataques desarmados).</p>"
+    },
+    "ylDOp0zIgaHPkQv0": {
+      "name": "Primeira Doutrina (Clérigo Enclausurado)",
+      "sourceHash": "337f416df4aefd28ef5540e2676c6ce3499731db",
+      "description": ""
+    },
+    "yoqnc3lhyUICfRSB": {
+      "name": "Punho Poderoso",
+      "sourceHash": "8168c030d6fca9f07b74b1ffed9167fd1b167218",
+      "description": ""
     },
     "zIp1kwKnaqtq9qB5": {
       "name": "Agilidade Cinética",

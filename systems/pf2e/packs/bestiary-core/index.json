@@ -7,7 +7,9 @@
     "type": "npc",
     "index": {
       "system.details.level.value": -1,
-      "system.traits.value": ["animal"],
+      "system.traits.value": [
+        "animal"
+      ],
       "system.attributes.hp.max": 6
     }
   },
@@ -19,7 +21,9 @@
     "type": "npc",
     "index": {
       "system.details.level.value": -1,
-      "system.traits.value": ["animal"],
+      "system.traits.value": [
+        "animal"
+      ],
       "system.attributes.hp.max": 8
     }
   },
@@ -31,7 +35,10 @@
     "type": "npc",
     "index": {
       "system.details.level.value": -1,
-      "system.traits.value": ["goblin", "humanoid"],
+      "system.traits.value": [
+        "goblin",
+        "humanoid"
+      ],
       "system.attributes.hp.max": 6
     }
   },
@@ -43,7 +50,9 @@
     "type": "npc",
     "index": {
       "system.details.level.value": -1,
-      "system.traits.value": ["animal"],
+      "system.traits.value": [
+        "animal"
+      ],
       "system.attributes.hp.max": 8
     }
   },
@@ -55,7 +64,11 @@
     "type": "npc",
     "index": {
       "system.details.level.value": 0,
-      "system.traits.value": ["duergar", "dwarf", "humanoid"],
+      "system.traits.value": [
+        "duergar",
+        "dwarf",
+        "humanoid"
+      ],
       "system.attributes.hp.max": 18
     }
   },
@@ -67,7 +80,10 @@
     "type": "npc",
     "index": {
       "system.details.level.value": -1,
-      "system.traits.value": ["humanoid", "kobold"],
+      "system.traits.value": [
+        "humanoid",
+        "kobold"
+      ],
       "system.attributes.hp.max": 7
     }
   },
@@ -79,7 +95,10 @@
     "type": "npc",
     "index": {
       "system.details.level.value": 0,
-      "system.traits.value": ["leshy", "plant"],
+      "system.traits.value": [
+        "leshy",
+        "plant"
+      ],
       "system.attributes.hp.max": 15
     }
   },
@@ -91,7 +110,10 @@
     "type": "npc",
     "index": {
       "system.details.level.value": 0,
-      "system.traits.value": ["humanoid", "orc"],
+      "system.traits.value": [
+        "humanoid",
+        "orc"
+      ],
       "system.attributes.hp.max": 18
     }
   },
@@ -103,7 +125,12 @@
     "type": "npc",
     "index": {
       "system.details.level.value": -1,
-      "system.traits.value": ["mindless", "skeleton", "undead", "unholy"],
+      "system.traits.value": [
+        "mindless",
+        "skeleton",
+        "undead",
+        "unholy"
+      ],
       "system.attributes.hp.max": 4
     }
   },
@@ -115,7 +142,12 @@
     "type": "npc",
     "index": {
       "system.details.level.value": -1,
-      "system.traits.value": ["mindless", "undead", "unholy", "zombie"],
+      "system.traits.value": [
+        "mindless",
+        "undead",
+        "unholy",
+        "zombie"
+      ],
       "system.attributes.hp.max": 20
     }
   }

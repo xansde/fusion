@@ -7,7 +7,52 @@
     "type": "class",
     "index": {
       "name": "Barbarian",
-      "system.keyAbility": ["str"],
+      "system.keyAbility": [
+        "str"
+      ],
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "RtdtWLmWtoAnurXp",
+    "uuid": "Compendium.pf2e.classes-core.Item.RtdtWLmWtoAnurXp",
+    "name": "Bard",
+    "img": "icons/placeholder/feat.svg",
+    "type": "class",
+    "index": {
+      "name": "Bard",
+      "system.keyAbility": [
+        "cha"
+      ],
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "YPn8O9OwbqDx8bRa",
+    "uuid": "Compendium.pf2e.classes-core.Item.YPn8O9OwbqDx8bRa",
+    "name": "Champion",
+    "img": "icons/placeholder/feat.svg",
+    "type": "class",
+    "index": {
+      "name": "Champion",
+      "system.keyAbility": [
+        "dex",
+        "str"
+      ],
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "Mw9Rk7cLRQahvou2",
+    "uuid": "Compendium.pf2e.classes-core.Item.Mw9Rk7cLRQahvou2",
+    "name": "Cleric",
+    "img": "icons/placeholder/feat.svg",
+    "type": "class",
+    "index": {
+      "name": "Cleric",
+      "system.keyAbility": [
+        "wis"
+      ],
       "system.traits.value": []
     }
   },
@@ -19,7 +64,10 @@
     "type": "class",
     "index": {
       "name": "Fighter",
-      "system.keyAbility": ["dex", "str"],
+      "system.keyAbility": [
+        "dex",
+        "str"
+      ],
       "system.traits.value": []
     }
   },
@@ -31,7 +79,9 @@
     "type": "class",
     "index": {
       "name": "Kineticist",
-      "system.keyAbility": ["con"],
+      "system.keyAbility": [
+        "con"
+      ],
       "system.traits.value": []
     }
   },
@@ -43,7 +93,25 @@
     "type": "class",
     "index": {
       "name": "Magus",
-      "system.keyAbility": ["dex", "str"],
+      "system.keyAbility": [
+        "dex",
+        "str"
+      ],
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "6GhN5PnstY0pPOCL",
+    "uuid": "Compendium.pf2e.classes-core.Item.6GhN5PnstY0pPOCL",
+    "name": "Monk",
+    "img": "icons/placeholder/feat.svg",
+    "type": "class",
+    "index": {
+      "name": "Monk",
+      "system.keyAbility": [
+        "dex",
+        "str"
+      ],
       "system.traits.value": []
     }
   },
@@ -55,7 +123,10 @@
     "type": "class",
     "index": {
       "name": "Ranger",
-      "system.keyAbility": ["dex", "str"],
+      "system.keyAbility": [
+        "dex",
+        "str"
+      ],
       "system.traits.value": []
     }
   },
@@ -67,7 +138,23 @@
     "type": "class",
     "index": {
       "name": "Rogue",
-      "system.keyAbility": ["dex"],
+      "system.keyAbility": [
+        "dex"
+      ],
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "Gj4x9YABawAwNRrp",
+    "uuid": "Compendium.pf2e.classes-core.Item.Gj4x9YABawAwNRrp",
+    "name": "Sorcerer",
+    "img": "icons/placeholder/feat.svg",
+    "type": "class",
+    "index": {
+      "name": "Sorcerer",
+      "system.keyAbility": [
+        "cha"
+      ],
       "system.traits.value": []
     }
   },
@@ -79,7 +166,9 @@
     "type": "class",
     "index": {
       "name": "Wizard",
-      "system.keyAbility": ["int"],
+      "system.keyAbility": [
+        "int"
+      ],
       "system.traits.value": []
     }
   }

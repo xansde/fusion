@@ -30,11 +30,13 @@
     "rules": [],
     "traits": {
       "rarity": "common",
-      "value": ["summoner"]
+      "value": [
+        "summoner"
+      ]
     }
   },
   "_fusion": {
-    "normalizedAt": "2026-07-05T18:45:05.739Z",
+    "normalizedAt": "2026-08-02T03:12:56.555Z",
     "removedFields": []
   }
 }

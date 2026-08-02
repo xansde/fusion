@@ -18,22 +18,22 @@
     {
       "packId": "pf2e.spells-core",
       "slug": "spells-core",
-      "documentCount": 1252
+      "documentCount": 1262
     },
     {
       "packId": "pf2e.classes-core",
       "slug": "classes-core",
-      "documentCount": 7
+      "documentCount": 12
     },
     {
       "packId": "pf2e.class-features-core",
       "slug": "class-features-core",
-      "documentCount": 151
+      "documentCount": 254
     },
     {
       "packId": "pf2e.feats-core",
       "slug": "feats-core",
-      "documentCount": 1037
+      "documentCount": 1459
     },
     {
       "packId": "pf2e.ancestries-core",
@@ -71,7 +71,7 @@
       "documentCount": 55
     }
   ],
-  "generatedAt": "2026-08-02T01:09:18.561Z",
+  "generatedAt": "2026-08-02T03:53:51.946Z",
   "importerVersion": "0.1.0",
   "sourceVersion": "v14-dev"
 }

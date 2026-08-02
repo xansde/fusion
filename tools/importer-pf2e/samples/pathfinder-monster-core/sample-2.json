@@ -104,7 +104,15 @@
       "blurb": "",
       "languages": {
         "details": "Truespeech",
-        "value": ["common", "muan", "petran", "pyric", "sussuran", "talican", "thalassic"]
+        "value": [
+          "common",
+          "muan",
+          "petran",
+          "pyric",
+          "sussuran",
+          "talican",
+          "thalassic"
+        ]
       },
       "level": {
         "value": 4
@@ -171,7 +179,16 @@
       "size": {
         "value": "med"
       },
-      "value": ["air", "earth", "elemental", "fire", "genie", "metal", "water", "wood"]
+      "value": [
+        "air",
+        "earth",
+        "elemental",
+        "fire",
+        "genie",
+        "metal",
+        "water",
+        "wood"
+      ]
     }
   },
   "items": [
@@ -264,8 +281,17 @@
         },
         "traits": {
           "rarity": "uncommon",
-          "traditions": ["arcane", "divine", "occult", "primal"],
-          "value": ["concentrate", "manipulate", "teleportation"]
+          "traditions": [
+            "arcane",
+            "divine",
+            "occult",
+            "primal"
+          ],
+          "value": [
+            "concentrate",
+            "manipulate",
+            "teleportation"
+          ]
         }
       }
     },
@@ -315,8 +341,15 @@
         },
         "traits": {
           "rarity": "uncommon",
-          "traditions": ["arcane", "divine", "occult"],
-          "value": ["concentrate", "manipulate"]
+          "traditions": [
+            "arcane",
+            "divine",
+            "occult"
+          ],
+          "value": [
+            "concentrate",
+            "manipulate"
+          ]
         }
       }
     },
@@ -366,8 +399,15 @@
         },
         "traits": {
           "rarity": "uncommon",
-          "traditions": ["divine", "occult"],
-          "value": ["concentrate", "manipulate", "prediction"]
+          "traditions": [
+            "divine",
+            "occult"
+          ],
+          "value": [
+            "concentrate",
+            "manipulate",
+            "prediction"
+          ]
         }
       }
     },
@@ -422,8 +462,15 @@
         },
         "traits": {
           "rarity": "common",
-          "traditions": ["arcane", "occult"],
-          "value": ["illusion", "manipulate", "subtle"]
+          "traditions": [
+            "arcane",
+            "occult"
+          ],
+          "value": [
+            "illusion",
+            "manipulate",
+            "subtle"
+          ]
         }
       }
     },
@@ -476,8 +523,18 @@
         },
         "traits": {
           "rarity": "common",
-          "traditions": ["arcane", "divine", "occult", "primal"],
-          "value": ["cantrip", "concentrate", "detection", "manipulate"]
+          "traditions": [
+            "arcane",
+            "divine",
+            "occult",
+            "primal"
+          ],
+          "value": [
+            "cantrip",
+            "concentrate",
+            "detection",
+            "manipulate"
+          ]
         }
       }
     },
@@ -527,8 +584,17 @@
         },
         "traits": {
           "rarity": "common",
-          "traditions": ["divine", "occult", "primal"],
-          "value": ["cantrip", "concentrate", "detection", "manipulate"]
+          "traditions": [
+            "divine",
+            "occult",
+            "primal"
+          ],
+          "value": [
+            "cantrip",
+            "concentrate",
+            "detection",
+            "manipulate"
+          ]
         }
       }
     },
@@ -611,7 +677,10 @@
         },
         "traits": {
           "rarity": "common",
-          "value": ["deadly-d10", "propulsive"]
+          "value": [
+            "deadly-d10",
+            "propulsive"
+          ]
         },
         "usage": {
           "value": "held-in-one-plus-hands"
@@ -692,7 +761,10 @@
         },
         "traits": {
           "rarity": "common",
-          "value": ["forceful", "sweep"]
+          "value": [
+            "forceful",
+            "sweep"
+          ]
         },
         "usage": {
           "value": "held-in-one-hand"
@@ -735,7 +807,9 @@
         "slug": "arrows",
         "traits": {
           "rarity": "common",
-          "value": ["consumable"]
+          "value": [
+            "consumable"
+          ]
         },
         "uses": {
           "autoDestroy": true,
@@ -756,7 +830,9 @@
         },
         "attackEffects": {
           "custom": "",
-          "value": ["all-made-one"]
+          "value": [
+            "all-made-one"
+          ]
         },
         "bonus": {
           "value": 14
@@ -780,7 +856,10 @@
         "slug": null,
         "traits": {
           "rarity": "common",
-          "value": ["forceful", "sweep"]
+          "value": [
+            "forceful",
+            "sweep"
+          ]
         }
       }
     },
@@ -796,7 +875,9 @@
         },
         "attackEffects": {
           "custom": "",
-          "value": ["all-made-one"]
+          "value": [
+            "all-made-one"
+          ]
         },
         "bonus": {
           "value": 14
@@ -820,7 +901,12 @@
         "slug": null,
         "traits": {
           "rarity": "common",
-          "value": ["agile", "magical", "nonlethal", "unarmed"]
+          "value": [
+            "agile",
+            "magical",
+            "nonlethal",
+            "unarmed"
+          ]
         }
       }
     },
@@ -836,7 +922,9 @@
         },
         "attackEffects": {
           "custom": "",
-          "value": ["all-made-one"]
+          "value": [
+            "all-made-one"
+          ]
         },
         "bonus": {
           "value": 12
@@ -863,7 +951,11 @@
         "slug": null,
         "traits": {
           "rarity": "common",
-          "value": ["deadly-d10", "propulsive", "reload-0"]
+          "value": [
+            "deadly-d10",
+            "propulsive",
+            "reload-0"
+          ]
         }
       }
     },
@@ -923,12 +1015,21 @@
           {
             "key": "Aura",
             "radius": 20,
-            "traits": ["emotion", "fear", "mental"]
+            "traits": [
+              "emotion",
+              "fear",
+              "mental"
+            ]
           }
         ],
         "slug": null,
         "traits": {
-          "value": ["aura", "emotion", "fear", "mental"]
+          "value": [
+            "aura",
+            "emotion",
+            "fear",
+            "mental"
+          ]
         }
       }
     },
@@ -989,7 +1090,9 @@
             "diceNumber": 1,
             "dieSize": "d4",
             "key": "DamageDice",
-            "predicate": ["all-made-one:air"],
+            "predicate": [
+              "all-made-one:air"
+            ],
             "selector": "strike-damage"
           },
           {
@@ -997,14 +1100,18 @@
             "diceNumber": 1,
             "dieSize": "d4",
             "key": "DamageDice",
-            "predicate": ["all-made-one:earth"],
+            "predicate": [
+              "all-made-one:earth"
+            ],
             "selector": "strike-damage"
           },
           {
             "damageType": "fire",
             "diceNumber": 1,
             "key": "DamageDice",
-            "predicate": ["all-made-one:fire"],
+            "predicate": [
+              "all-made-one:fire"
+            ],
             "selector": "strike-damage"
           },
           {
@@ -1012,7 +1119,9 @@
             "diceNumber": 1,
             "dieSize": "d4",
             "key": "DamageDice",
-            "predicate": ["all-made-one:metal"],
+            "predicate": [
+              "all-made-one:metal"
+            ],
             "selector": "strike-damage"
           },
           {
@@ -1020,7 +1129,9 @@
             "diceNumber": 1,
             "dieSize": "d4",
             "key": "DamageDice",
-            "predicate": ["all-made-one:water"],
+            "predicate": [
+              "all-made-one:water"
+            ],
             "selector": "strike-damage"
           },
           {
@@ -1028,7 +1139,9 @@
             "diceNumber": 1,
             "dieSize": "d4",
             "key": "DamageDice",
-            "predicate": ["all-made-one:wood"],
+            "predicate": [
+              "all-made-one:wood"
+            ],
             "selector": "strike-damage"
           },
           {
@@ -1118,14 +1231,20 @@
           },
           {
             "key": "CreatureSize",
-            "predicate": ["animal-small"],
+            "predicate": [
+              "animal-small"
+            ],
             "value": "small"
           }
         ],
         "slug": "change-shape",
         "traits": {
           "rarity": "common",
-          "value": ["arcane", "concentrate", "polymorph"]
+          "value": [
+            "arcane",
+            "concentrate",
+            "polymorph"
+          ]
         }
       }
     },
@@ -1164,7 +1283,7 @@
     }
   ],
   "_fusion": {
-    "normalizedAt": "2026-07-05T18:45:04.006Z",
+    "normalizedAt": "2026-08-02T03:12:56.387Z",
     "removedFields": []
   }
 }

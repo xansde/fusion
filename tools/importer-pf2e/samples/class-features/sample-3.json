@@ -34,13 +34,17 @@
       }
     ],
     "traits": {
-      "otherTags": ["bard-muse"],
+      "otherTags": [
+        "bard-muse"
+      ],
       "rarity": "common",
-      "value": ["bard"]
+      "value": [
+        "bard"
+      ]
     }
   },
   "_fusion": {
-    "normalizedAt": "2026-07-05T18:45:05.772Z",
+    "normalizedAt": "2026-08-02T03:12:56.577Z",
     "removedFields": []
   }
 }

@@ -1,8 +1,10 @@
 /**
  * varredura-classes.test.ts — headless sweep of every PF2e core class (r21,
- * W2): builds a level-1..20 character for EACH of the 7 classes shipped in
- * `classes-core` (Barbarian, Fighter, Kineticist, Magus, Ranger, Rogue,
- * Wizard), filling every slot the Plan opens with the real planVM.ts op
+ * W2; extended r22 to all 12): builds a level-1..20 character for EACH class
+ * shipped in `classes-core` (Barbarian, Bard, Champion, Cleric, Fighter,
+ * Kineticist, Magus, Monk, Ranger, Rogue, Sorcerer, Wizard — data-driven via
+ * `describe.each(CLASSES...)` below, so this list grows with the pack, no
+ * code change needed), filling every slot the Plan opens with the real planVM.ts op
  * builders (chooseFeat/chooseClassChoice/chooseKineticGate/
  * confirmSkillTraining/setAbilityBoosts), then runs the REAL server-side
  * derivation pipeline (`pf2eSystem` from systems/pf2e, reached by relative

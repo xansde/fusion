@@ -8,10 +8,20 @@
   "system": {
     "boosts": {
       "0": {
-        "value": ["cha", "con"]
+        "value": [
+          "cha",
+          "con"
+        ]
       },
       "1": {
-        "value": ["cha", "con", "dex", "int", "str", "wis"]
+        "value": [
+          "cha",
+          "con",
+          "dex",
+          "int",
+          "str",
+          "wis"
+        ]
       }
     },
     "description": {
@@ -34,7 +44,7 @@
     }
   },
   "_fusion": {
-    "normalizedAt": "2026-07-05T18:45:14.076Z",
+    "normalizedAt": "2026-08-02T03:12:56.913Z",
     "removedFields": []
   }
 }

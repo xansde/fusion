@@ -69,6 +69,36 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   "class-features-core/Arcane School/arcaneSchool": "eixo",
   "class-features-core/Arcane Thesis/arcaneThesis": "eixo",
   "class-features-core/Avenger/deity": "pendente",
+  // r22 — Blessing of the Devoted (Champion's "Blessed One"-style Cause pick)
+  // grants a domain-like Blessing spell; the sub-choice of WHICH blessing
+  // isn't offered by the builder yet (same family as Deity/Divine Font).
+  "class-features-core/Blessing of the Devoted/blessing": "pendente",
+  // r22 — the Sorcerer's Bloodline pick IS the new "bloodline" choiceAxis
+  // slot (mirrors Instinct/Hunter's Edge/...). The 4 entries below it are
+  // NESTED sub-choices inside individual bloodline docs (which dragon
+  // exemplar, which element/genie kind) — not modeled this round, same
+  // boundary as School of Rooted Wisdom's "branch" (Wizard).
+  "class-features-core/Bloodline/bloodline": "eixo",
+  "class-features-core/Bloodline: Draconic/dragonBloodline": "pendente",
+  "class-features-core/Bloodline: Elemental/elementalBloodline": "pendente",
+  "class-features-core/Bloodline: Genie/genie": "pendente",
+  "class-features-core/Bloodline: Wyrmblessed/dragonBloodline": "pendente",
+  // r22 — Champion's Cause is the new "cause" choiceAxis slot.
+  "class-features-core/Cause/cause": "eixo",
+  // r22 — Champion's own deity pick (name-based, no builder support yet —
+  // same family as Ranger's Avenger/Vindicator deity picks above).
+  "class-features-core/Deity (Champion)/-": "pendente",
+  "class-features-core/Deity (Champion)/deity": "pendente",
+  // r22 — Cleric's deity pick, same shape/limitation as Champion's above.
+  "class-features-core/Deity (Cleric)/-": "pendente",
+  "class-features-core/Deity (Cleric)/deity": "pendente",
+  // r22 — Cleric's Harm/Heal font choice (Divine Font) — not offered yet.
+  "class-features-core/Divine Font/divineFont": "pendente",
+  // r22 — Cleric's Doctrine is the new "doctrine" choiceAxis slot. The
+  // per-doctrine proficiency numbers stay UNAPPLIED either way (baseline +
+  // declared pendency — see curation/classes/cleric.json's notes and
+  // check-derivation.mjs), matching the class-integration policy.
+  "class-features-core/Doctrine/doctrine": "eixo",
   "class-features-core/Dragon Instinct/dragon": "pendente",
   "class-features-core/Eldritch Trickster/eldritchTrickster": "pendente",
   "class-features-core/Elemental Instinct/elementalInstinctDamage": "pendente",
@@ -92,6 +122,17 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   "class-features-core/Kinetic Gate/elementOne": "eixo",
   "class-features-core/Kinetic Gate/elementTwo": "eixo",
   "class-features-core/Mastermind/mastermind": "pendente",
+  // r22 — Muses is the new "muse" choiceAxis slot (Bard). The chosen muse's
+  // own GrantItem (level-1 free feat) already materializes via the existing
+  // generic grantMaterializer path — see PR notes; no builder gap here.
+  "class-features-core/Muses/muse": "eixo",
+  // r22 — Monk's 3 Path to Perfection saves-upgrade ChoiceSets are the
+  // documented Monk gap: the class ships with baseline proficiencies (no
+  // upgrade applied from any of the 3), and the CHOICE of which save to
+  // raise isn't offered by the builder — same policy as Doctrine above (see
+  // curation/classes/monk.json's notes and check-derivation.mjs's ignored
+  // "feat:qi-spells" predicate report for the companion Monk Expertise gap).
+  "class-features-core/Path to Perfection/pathToPerfection": "pendente",
   "class-features-core/Rogue's Racket/roguesRacket": "eixo",
   "class-features-core/School of Rooted Wisdom/branch": "pendente",
   "class-features-core/School of Unified Magical Theory/feat": "pendente",
@@ -99,11 +140,13 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   "class-features-core/Second Gate's Threshold/elementFork": "pendente",
   "class-features-core/Second Gate's Threshold/impulseExpand": "pendente",
   "class-features-core/Second Gate's Threshold/threshold": "pendente",
+  "class-features-core/Second Path to Perfection/pathToPerfection": "pendente",
   "class-features-core/Superstition Instinct/ragingResistance": "pendente",
   "class-features-core/Third Gate's Threshold/-": "pendente",
   "class-features-core/Third Gate's Threshold/element": "pendente",
   "class-features-core/Third Gate's Threshold/elementFork": "pendente",
   "class-features-core/Third Gate's Threshold/impulseExpand": "pendente",
+  "class-features-core/Third Path to Perfection/pathToPerfection": "pendente",
   "class-features-core/Vindicator/-": "pendente",
   "class-features-core/Vindicator/deity": "pendente",
   "class-features-core/Weapon Legend/weaponLegend": "pendente",
@@ -122,11 +165,38 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   "feats-core/Basic Concoction/basicConcoction": "sub-slot",
   "feats-core/Basic Trickery/basicTrickery": "pendente",
   "feats-core/Canny Acumen/cannyAcumen": "pendente",
+  // r22 — Sorcerer's "Bloodline Mutation" feat: 4 independent sub-choices
+  // parameterizing a picked feat (same shape as the pre-existing "Canny
+  // Acumen"/"Elemental Evolution" entries above) — none offered by the
+  // builder yet.
+  "feats-core/Bloodline Mutation/-": "pendente",
+  "feats-core/Bloodline Mutation/damageType": "pendente",
+  "feats-core/Bloodline Mutation/sense": "pendente",
+  "feats-core/Bloodline Mutation/traitOne": "pendente",
+  "feats-core/Bloodline Mutation/traitTwo": "pendente",
+  // r22 — Sorcerer's "Crossblooded Evolution" feat picks a SECOND bloodline
+  // (distinct from the character's primary one) — parameter not offered.
+  "feats-core/Crossblooded Evolution/bloodline": "pendente",
+  // r22 — Cleric's "Deity's Domain"/"Domain Initiate" feats pick a domain —
+  // same family as the class's own Deity/Divine Font gaps above.
+  "feats-core/Deity's Domain/deitysDomain": "pendente",
+  "feats-core/Domain Initiate/domainInitiate": "pendente",
   "feats-core/Elemental Evolution/damage": "pendente",
   "feats-core/Elemental Lore/elementalLore": "pendente",
+  // r22 — Monk's "Entwined Energy Ki" feat picks an energy type — not offered.
+  "feats-core/Entwined Energy Ki/entwinedEnergyKi": "pendente",
   "feats-core/Living Weapon/livingWeapon": "pendente",
+  // r22 — Champion's "Mercy" feat parameterizes the condition it removes.
+  "feats-core/Mercy/-": "pendente",
+  // r22 — Bard's "Multifarious Muse" feat picks a SECOND muse's level-1 free
+  // feat (mirrors Crossblooded Evolution above, muse instead of bloodline).
+  "feats-core/Multifarious Muse/feat": "pendente",
+  "feats-core/Multifarious Muse/muse": "pendente",
   "feats-core/Rogue Dedication/rogueDedication": "pendente",
   "feats-core/Rogue Dedication/skillFeat": "pendente",
+  // r22 — Cleric's "Second Blessing" feat (Blessed One-style) picks a
+  // blessing — same family as "Blessing of the Devoted" above.
+  "feats-core/Second Blessing/blessing": "pendente",
   "feats-core/Skill Training/skill": "pendente",
   "feats-core/Specialty Crafting/specialtyCrafting": "pendente",
   "feats-core/Terrain Expertise/terrain": "pendente",

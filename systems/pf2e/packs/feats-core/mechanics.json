@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "packId": "pf2e.feats-core",
-  "generatedAt": "2026-08-02T01:04:59.217Z",
+  "generatedAt": "2026-08-02T03:59:58.409Z",
   "generator": "tools/translate-packs@0.1.0",
   "entries": {
     "Doi6p9WhOes6OrFS": {
@@ -12,7 +12,9 @@
           "category": "general",
           "count": 1,
           "filters": {
-            "traits": ["skill"]
+            "traits": [
+              "skill"
+            ]
           },
           "source": "rule-element",
           "confidence": 0.6
@@ -44,7 +46,9 @@
           "category": "class",
           "count": 1,
           "filters": {
-            "traits": ["alchemist"],
+            "traits": [
+              "alchemist"
+            ],
             "maxLevel": 2
           },
           "source": "rule-element",
@@ -93,7 +97,9 @@
           "category": "class",
           "count": 1,
           "filters": {
-            "traits": ["rogue"],
+            "traits": [
+              "rogue"
+            ],
             "maxLevel": 2
           },
           "source": "rule-element",

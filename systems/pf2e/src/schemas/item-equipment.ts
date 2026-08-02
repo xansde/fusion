@@ -388,13 +388,24 @@ export type ClassSpellSlotsEntry = z.infer<typeof ClassSpellSlotsEntrySchema>;
 /**
  * Optional spellcasting progression table for the class (e.g. Magus arcane
  * prepared casting). Absent for non-casting classes.
+ *
+ * `tradition` is nullable: most classes fix it (Wizard → arcane), but the
+ * Sorcerer's tradition is determined by the chosen bloodline (r22) — the
+ * class doc carries `tradition: null` plus `traditionByBloodline` (bloodline
+ * slug → tradition) instead. `traditionByBloodline` values are ALSO nullable
+ * for a bloodline whose tradition can't be resolved statically (e.g.
+ * Draconic, whose tradition depends on a nested "Draconic Exemplars"
+ * sub-choice not modeled this round — same boundary as the Wizard's "School
+ * of Rooted Wisdom") — the client falls back to a documented default for
+ * those. Absent for classes with a fixed tradition.
  */
 export const ClassSpellcastingSchema = z.object({
-  tradition: SpellTraditionSchema,
+  tradition: SpellTraditionSchema.nullable(),
   type: z.enum(["prepared", "spontaneous"]),
   ability: AbilitySlugSchema,
   cantripsKnown: z.array(CantripsKnownEntrySchema).default([]),
   slots: z.array(ClassSpellSlotsEntrySchema).default([]),
+  traditionByBloodline: z.record(z.string(), SpellTraditionSchema.nullable()).optional(),
 });
 export type ClassSpellcasting = z.infer<typeof ClassSpellcastingSchema>;
 

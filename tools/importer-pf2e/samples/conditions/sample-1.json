@@ -15,7 +15,9 @@
       "value": 0
     },
     "group": "senses",
-    "overrides": ["dazzled"],
+    "overrides": [
+      "dazzled"
+    ],
     "publication": {
       "license": "ORC",
       "remaster": true,
@@ -49,7 +51,7 @@
     }
   },
   "_fusion": {
-    "normalizedAt": "2026-07-05T18:45:02.656Z",
+    "normalizedAt": "2026-08-02T03:12:56.214Z",
     "removedFields": []
   }
 }

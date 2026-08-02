@@ -828,6 +828,15 @@ function isSpellsCoreDoc(doc, existingSourceIds) {
   if (sourceId && existingSourceIds.has(sourceId)) return true;
   if (hasTradition(doc, "arcane")) return true;
   if (hasTrait(doc, "focus")) return true;
+  // r22 (Bard integration): the 10 "composition cantrips" (Allegro,
+  // Courageous Anthem, ...) are cast from the Bard's focus pool exactly like
+  // the other 10 compositions, but carry trait "cantrip" instead of "focus"
+  // (a PF2e remaster quirk — composition cantrips don't cost a focus point,
+  // see curation/classes/bard.json's "FOCUS POOL"/"Composition Spells" notes)
+  // — so the `hasTrait(doc, "focus")` branch above misses them. Selecting by
+  // the "composition" trait instead (all 20 compositions carry it) is a
+  // strict superset of the 10 already caught by "focus", so no doc doubles.
+  if (hasTrait(doc, "composition")) return true;
   return false;
 }
 

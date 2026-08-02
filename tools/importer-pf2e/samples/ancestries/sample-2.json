@@ -9,17 +9,37 @@
     "additionalLanguages": {
       "count": 0,
       "custom": "",
-      "value": ["aklo", "diabolic", "draconic", "dwarven", "empyrean", "fey", "gnomish", "petran"]
+      "value": [
+        "aklo",
+        "diabolic",
+        "draconic",
+        "dwarven",
+        "empyrean",
+        "fey",
+        "gnomish",
+        "petran"
+      ]
     },
     "boosts": {
       "0": {
-        "value": ["cha"]
+        "value": [
+          "cha"
+        ]
       },
       "1": {
-        "value": ["dex"]
+        "value": [
+          "dex"
+        ]
       },
       "2": {
-        "value": ["str", "dex", "con", "int", "wis", "cha"]
+        "value": [
+          "str",
+          "dex",
+          "con",
+          "int",
+          "wis",
+          "cha"
+        ]
       }
     },
     "description": {
@@ -27,7 +47,9 @@
     },
     "flaws": {
       "0": {
-        "value": ["con"]
+        "value": [
+          "con"
+        ]
       }
     },
     "hands": 2,
@@ -35,7 +57,10 @@
     "items": {},
     "languages": {
       "custom": "",
-      "value": ["common", "sakvroth"]
+      "value": [
+        "common",
+        "sakvroth"
+      ]
     },
     "publication": {
       "license": "ORC",
@@ -48,12 +73,15 @@
     "speed": 25,
     "traits": {
       "rarity": "uncommon",
-      "value": ["humanoid", "kobold"]
+      "value": [
+        "humanoid",
+        "kobold"
+      ]
     },
     "vision": "darkvision"
   },
   "_fusion": {
-    "normalizedAt": "2026-07-05T18:45:13.186Z",
+    "normalizedAt": "2026-08-02T03:12:56.871Z",
     "removedFields": []
   }
 }

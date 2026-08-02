@@ -1,6 +1,6 @@
 # 07 — Relatório de Normalização PF2E → Formato Intermediário Fusion
 
-> Gerado em: 2026-07-07
+> Gerado em: 2026-08-02
 > Script: `src/normalize.mjs --system pf2e`
 > Estágio: EXTRACT/NORMALIZE (M2-P)
 
@@ -8,85 +8,81 @@
 
 ## 1. Sumário por pack
 
-| Pack                        | Docs      | img substituídas | img Paizo | img FoundryCore | Docs c/ rules | Entradas rules | Itens embutidos |
-| --------------------------- | --------- | ---------------- | --------- | --------------- | ------------- | -------------- | --------------- |
-| **equipment**               | 5645      | 5645             | 2769      | 2876            | 1313          | 2276           | 0               |
-| **spells**                  | 1796      | 1796             | 755       | 1041            | 11            | 18             | 0               |
-| **conditions**              | 43        | 43               | 43        | 0               | 19            | 49             | 0               |
-| **pathfinder-monster-core** | 492       | 6695             | 5523      | 1172            | 771           | 1251           | 6203            |
-| **classes**                 | 27        | 27               | 27        | 0               | 5             | 11             | 0               |
-| **class-features**          | 841       | 841              | 199       | 642             | 584           | 2170           | 0               |
-| **feats**                   | 5987      | 5987             | 11        | 5976            | 2411          | 5112           | 0               |
-| **ancestries**              | 50        | 50               | 50        | 0               | 13            | 33             | 0               |
-| **ancestry-features**       | 55        | 55               | 19        | 36              | 35            | 69             | 0               |
-| **heritages**               | 322       | 322              | 95        | 227             | 282           | 535            | 0               |
-| **backgrounds**             | 495       | 495              | 495       | 0               | 135           | 315            | 0               |
-| **actions**                 | 559       | 559              | 559       | 0               | 69            | 146            | 0               |
-| **familiar-abilities**      | 111       | 111              | 111       | 0               | 31            | 48             | 0               |
-| **TOTAL**                   | **16423** | **22626**        | **10656** | **11970**       | **5679**      | **12033**      | **6203**        |
+| Pack | Docs | img substituídas | img Paizo | img FoundryCore | Docs c/ rules | Entradas rules | Itens embutidos |
+|---|---|---|---|---|---|---|---|
+| **equipment** | 5645 | 5645 | 2769 | 2876 | 1313 | 2276 | 0 |
+| **spells** | 1796 | 1796 | 755 | 1041 | 11 | 18 | 0 |
+| **conditions** | 43 | 43 | 43 | 0 | 19 | 49 | 0 |
+| **pathfinder-monster-core** | 492 | 6695 | 5523 | 1172 | 771 | 1251 | 6203 |
+| **classes** | 27 | 27 | 27 | 0 | 5 | 11 | 0 |
+| **class-features** | 841 | 841 | 199 | 642 | 584 | 2170 | 0 |
+| **feats** | 5987 | 5987 | 11 | 5976 | 2411 | 5112 | 0 |
+| **ancestries** | 50 | 50 | 50 | 0 | 13 | 33 | 0 |
+| **heritages** | 322 | 322 | 95 | 227 | 282 | 535 | 0 |
+| **backgrounds** | 495 | 495 | 495 | 0 | 135 | 315 | 0 |
+| **actions** | 559 | 559 | 559 | 0 | 69 | 146 | 0 |
+| **TOTAL** | **16257** | **22460** | **10526** | **11934** | **5613** | **11916** | **6203** |
 
 ---
 
 ## 2. Campos removidos por categoria
 
-| Categoria         | Campo                         | Política    | Motivo                                                                        |
-| ----------------- | ----------------------------- | ----------- | ----------------------------------------------------------------------------- |
-| Metadados Foundry | `_stats`                      | Removido    | Dados de sincronização de compendium (compendiumSource) — sem valor no Fusion |
-| Metadados Foundry | `flags`                       | Removido    | Flags de módulos pf2e (ex: `linkedWeapon`) — específicas do Foundry VTT       |
-| UI Foundry        | `sort`                        | Removido    | Ordem de exibição na UI do Foundry — irrelevante no Fusion                    |
-| UI Foundry        | `folder`                      | Removido    | ID de pasta no Foundry — estrutura não transportável                          |
-| Arte Paizo        | `img` (paths `systems/pf2e/`) | Substituído | Arte proprietária Paizo — proibida por specs/26                               |
-| Arte Foundry Core | `img` (paths `icons/`)        | Substituído | Política conservadora — substituir todos os imgs por placeholder              |
+| Categoria | Campo | Política | Motivo |
+|---|---|---|---|
+| Metadados Foundry | `_stats` | Removido | Dados de sincronização de compendium (compendiumSource) — sem valor no Fusion |
+| Metadados Foundry | `flags` | Removido | Flags de módulos pf2e (ex: `linkedWeapon`) — específicas do Foundry VTT |
+| UI Foundry | `sort` | Removido | Ordem de exibição na UI do Foundry — irrelevante no Fusion |
+| UI Foundry | `folder` | Removido | ID de pasta no Foundry — estrutura não transportável |
+| Arte Paizo | `img` (paths `systems/pf2e/`) | Substituído | Arte proprietária Paizo — proibida por specs/26 |
+| Arte Foundry Core | `img` (paths `icons/`) | Substituído | Política conservadora — substituir todos os imgs por placeholder |
 
 **Campos preservados:**
 
-| Campo            | Motivo                                                                    |
-| ---------------- | ------------------------------------------------------------------------- |
-| `_id`            | \_id original pf2e — rastreabilidade e derivação de fusionId no M3-D      |
-| `pf2eSourceId`   | Cópia explícita do \_id original para rastreabilidade                     |
-| `type`           | Tipo de documento — classificação fundamental                             |
-| `name`           | Nome canônico ORC/OGL                                                     |
-| `system.*`       | Todos os campos mecânicos — integralmente preservados                     |
-| `system.rules[]` | Rule Elements — preservados intactos para conversão no M3-D               |
-| `items[]`        | Itens embutidos em actors (NPC, character) — normalizados recursivamente  |
+| Campo | Motivo |
+|---|---|
+| `_id` | _id original pf2e — rastreabilidade e derivação de fusionId no M3-D |
+| `pf2eSourceId` | Cópia explícita do _id original para rastreabilidade |
+| `type` | Tipo de documento — classificação fundamental |
+| `name` | Nome canônico ORC/OGL |
+| `system.*` | Todos os campos mecânicos — integralmente preservados |
+| `system.rules[]` | Rule Elements — preservados intactos para conversão no M3-D |
+| `items[]` | Itens embutidos em actors (NPC, character) — normalizados recursivamente |
 | `originalImgRef` | Nome do arquivo img original (ex: `blinded.webp`) — apenas para auditoria |
 
 ---
 
 ## 3. Tamanhos estimados de output
 
-| Pack                    | Docs | Tamanho estimado normalized.json |
-| ----------------------- | ---- | -------------------------------- |
-| equipment               | 5645 | ~9.61 MB                         |
-| spells                  | 1796 | ~3.17 MB                         |
-| conditions              | 43   | ~0.05 MB                         |
-| pathfinder-monster-core | 492  | ~6.99 MB                         |
-| classes                 | 27   | ~0.13 MB                         |
-| class-features          | 841  | ~1.71 MB                         |
-| feats                   | 5987 | ~7.47 MB                         |
-| ancestries              | 50   | ~0.08 MB                         |
-| ancestry-features       | 55   | ~0.08 MB                         |
-| heritages               | 322  | ~0.36 MB                         |
-| backgrounds             | 495  | ~0.84 MB                         |
-| actions                 | 559  | ~0.69 MB                         |
-| familiar-abilities      | 111  | ~0.09 MB                         |
+| Pack | Docs | Tamanho estimado normalized.json |
+|---|---|---|
+| equipment | 5645 | ~9.61 MB |
+| spells | 1796 | ~3.17 MB |
+| conditions | 43 | ~0.05 MB |
+| pathfinder-monster-core | 492 | ~6.99 MB |
+| classes | 27 | ~0.13 MB |
+| class-features | 841 | ~1.71 MB |
+| feats | 5987 | ~7.47 MB |
+| ancestries | 50 | ~0.08 MB |
+| heritages | 322 | ~0.36 MB |
+| backgrounds | 495 | ~0.84 MB |
+| actions | 559 | ~0.69 MB |
 
 ---
 
 ## 4. Rule Elements — top 10 por frequência (packs alvo)
 
-| Rule Key                | Ocorrências |
-| ----------------------- | ----------- |
-| `FlatModifier`          | 2135        |
-| `ItemAlteration`        | 1558        |
-| `RollOption`            | 1457        |
-| `ActiveEffectLike`      | 1398        |
-| `GrantItem`             | 1260        |
-| `ChoiceSet`             | 633         |
-| `Note`                  | 629         |
-| `DamageDice`            | 397         |
-| `Resistance`            | 371         |
-| `AdjustDegreeOfSuccess` | 253         |
+| Rule Key | Ocorrências |
+|---|---|
+| `FlatModifier` | 2121 |
+| `ItemAlteration` | 1554 |
+| `RollOption` | 1447 |
+| `ActiveEffectLike` | 1392 |
+| `GrantItem` | 1253 |
+| `Note` | 628 |
+| `ChoiceSet` | 622 |
+| `DamageDice` | 397 |
+| `Resistance` | 363 |
+| `AdjustDegreeOfSuccess` | 251 |
 
 ---
 
@@ -94,89 +90,77 @@
 
 ### equipment
 
-| Tipo       | Docs |
-| ---------- | ---- |
-| equipment  | 2281 |
+| Tipo | Docs |
+|---|---|
+| equipment | 2281 |
 | consumable | 1666 |
-| weapon     | 975  |
-| ammo       | 203  |
-| armor      | 201  |
-| treasure   | 153  |
-| shield     | 118  |
-| backpack   | 46   |
-| kit        | 2    |
+| weapon | 975 |
+| ammo | 203 |
+| armor | 201 |
+| treasure | 153 |
+| shield | 118 |
+| backpack | 46 |
+| kit | 2 |
 
 ### spells
 
-| Tipo  | Docs |
-| ----- | ---- |
+| Tipo | Docs |
+|---|---|
 | spell | 1796 |
 
 ### conditions
 
-| Tipo      | Docs |
-| --------- | ---- |
-| condition | 43   |
+| Tipo | Docs |
+|---|---|
+| condition | 43 |
 
 ### pathfinder-monster-core
 
 | Tipo | Docs |
-| ---- | ---- |
-| npc  | 492  |
+|---|---|
+| npc | 492 |
 
 ### classes
 
-| Tipo  | Docs |
-| ----- | ---- |
-| class | 27   |
+| Tipo | Docs |
+|---|---|
+| class | 27 |
 
 ### class-features
 
 | Tipo | Docs |
-| ---- | ---- |
-| feat | 841  |
+|---|---|
+| feat | 841 |
 
 ### feats
 
 | Tipo | Docs |
-| ---- | ---- |
+|---|---|
 | feat | 5987 |
 
 ### ancestries
 
-| Tipo     | Docs |
-| -------- | ---- |
-| ancestry | 50   |
-
-### ancestry-features
-
 | Tipo | Docs |
-| ---- | ---- |
-| feat | 55   |
+|---|---|
+| ancestry | 50 |
 
 ### heritages
 
-| Tipo     | Docs |
-| -------- | ---- |
-| heritage | 322  |
+| Tipo | Docs |
+|---|---|
+| heritage | 322 |
 
 ### backgrounds
 
-| Tipo       | Docs |
-| ---------- | ---- |
-| background | 495  |
+| Tipo | Docs |
+|---|---|
+| background | 495 |
 
 ### actions
 
-| Tipo   | Docs |
-| ------ | ---- |
-| action | 559  |
-
-### familiar-abilities
-
-| Tipo   | Docs |
-| ------ | ---- |
-| action | 111  |
+| Tipo | Docs |
+|---|---|
+| action | 559 |
 
 ---
 
@@ -184,18 +168,18 @@
 
 As pendências abaixo NÃO são resolvidas neste estágio:
 
-| #   | Pendência                                                                                     | Responsável          |
-| --- | --------------------------------------------------------------------------------------------- | -------------------- |
-| 1   | **Derivação de UUID Fusion**: `fusionId = base62_16(sha1(packName + ":" + pf2eSourceId))`     | M3-D transform       |
-| 2   | **Mapa de UUIDs**: construção e persistência de `out/fusion-uuid-map.json`                    | M3-D transform       |
-| 3   | **Reescrita de UUIDs em rules[]**: `Compendium.pf2e.*` → UUIDs Fusion                         | M3-D patchUuids      |
-| 4   | **Marcação de Rule Elements não suportados**: `_unsupported: true` nos REs sem suporte Fusion | M3-D rules/          |
-| 5   | **Validação Zod**: schema completo de documento Fusion normalizado                            | M3-D schema/         |
-| 6   | **Serialização NDJSON**: conversão de normalized.json → documents.ndjson por pack             | M3-E pack            |
-| 7   | **pack.json**: geração de metadados de pack (docCount, licenses, sourceCommit)                | M3-E pack            |
-| 8   | **Strip de lore**: flag `--strip-lore` para remover texto narrativo proprietário              | M3-D transform       |
-| 9   | **system.description.value**: avaliar texto ORC vs. lore não reutilizável por documento       | M3-D + revisão legal |
-| 10  | **Itens embutidos (items[])**: fusionId dos itens embutidos em NPC actors                     | M3-D transform       |
+| # | Pendência | Responsável |
+|---|---|---|
+| 1 | **Derivação de UUID Fusion**: `fusionId = base62_16(sha1(packName + ":" + pf2eSourceId))` | M3-D transform |
+| 2 | **Mapa de UUIDs**: construção e persistência de `out/fusion-uuid-map.json` | M3-D transform |
+| 3 | **Reescrita de UUIDs em rules[]**: `Compendium.pf2e.*` → UUIDs Fusion | M3-D patchUuids |
+| 4 | **Marcação de Rule Elements não suportados**: `_unsupported: true` nos REs sem suporte Fusion | M3-D rules/ |
+| 5 | **Validação Zod**: schema completo de documento Fusion normalizado | M3-D schema/ |
+| 6 | **Serialização NDJSON**: conversão de normalized.json → documents.ndjson por pack | M3-E pack |
+| 7 | **pack.json**: geração de metadados de pack (docCount, licenses, sourceCommit) | M3-E pack |
+| 8 | **Strip de lore**: flag `--strip-lore` para remover texto narrativo proprietário | M3-D transform |
+| 9 | **system.description.value**: avaliar texto ORC vs. lore não reutilizável por documento | M3-D + revisão legal |
+| 10 | **Itens embutidos (items[])**: fusionId dos itens embutidos em NPC actors | M3-D transform |
 
 ---
 

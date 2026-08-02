@@ -3,7 +3,12 @@
   "label": "PF2e Core Weapons",
   "documentType": "Item",
   "systemId": "pf2e",
-  "indexFields": ["system.level", "system.category", "system.traits.value", "system.damage"],
+  "indexFields": [
+    "system.level",
+    "system.category",
+    "system.traits.value",
+    "system.damage"
+  ],
   "license": {
     "license": "ORC",
     "attribution": "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -19,5 +24,5 @@
   },
   "schemaVersion": 1,
   "documentCount": 30,
-  "generatedAt": "2026-08-02T01:09:18.731Z"
+  "generatedAt": "2026-08-02T03:53:52.081Z"
 }

@@ -1,5 +1,20 @@
 [
   {
+    "_id": "QgTrrxofFPfcHT2U",
+    "uuid": "Compendium.pf2e.class-features-core.Item.QgTrrxofFPfcHT2U",
+    "name": "Adamantine Strikes",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Adamantine Strikes",
+      "system.level": 17,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "monk"
+      ]
+    }
+  },
+  {
     "_id": "mRLd1vgm5NpYMpD7",
     "uuid": "Compendium.pf2e.class-features-core.Item.mRLd1vgm5NpYMpD7",
     "name": "Agile Mind",
@@ -9,7 +24,9 @@
       "name": "Agile Mind",
       "system.level": 17,
       "system.category": "classfeature",
-      "system.traits.value": ["rogue"]
+      "system.traits.value": [
+        "rogue"
+      ]
     }
   },
   {
@@ -22,7 +39,9 @@
       "name": "Alertness",
       "system.level": 3,
       "system.category": "classfeature",
-      "system.traits.value": ["magus"]
+      "system.traits.value": [
+        "magus"
+      ]
     }
   },
   {
@@ -35,8 +54,12 @@
       "name": "Aloof Firmament",
       "system.level": 1,
       "system.category": "hybridStudy",
-      "system.traits.value": ["magus"],
-      "system.traits.otherTags": ["magus-hybrid-study"]
+      "system.traits.value": [
+        "magus"
+      ],
+      "system.traits.otherTags": [
+        "magus-hybrid-study"
+      ]
     }
   },
   {
@@ -49,8 +72,12 @@
       "name": "Animal Instinct",
       "system.level": 1,
       "system.category": "instinct",
-      "system.traits.value": ["barbarian"],
-      "system.traits.otherTags": ["barbarian-instinct"]
+      "system.traits.value": [
+        "barbarian"
+      ],
+      "system.traits.otherTags": [
+        "barbarian-instinct"
+      ]
     }
   },
   {
@@ -63,7 +90,9 @@
       "name": "Arcane Bond",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": ["wizard"]
+      "system.traits.value": [
+        "wizard"
+      ]
     }
   },
   {
@@ -76,7 +105,9 @@
       "name": "Arcane Cascade",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": ["magus"]
+      "system.traits.value": [
+        "magus"
+      ]
     }
   },
   {
@@ -89,7 +120,9 @@
       "name": "Arcane School",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": ["wizard"]
+      "system.traits.value": [
+        "wizard"
+      ]
     }
   },
   {
@@ -102,7 +135,9 @@
       "name": "Arcane Spellcasting (Magus)",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": ["magus"]
+      "system.traits.value": [
+        "magus"
+      ]
     }
   },
   {
@@ -115,7 +150,9 @@
       "name": "Arcane Thesis",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": ["wizard"]
+      "system.traits.value": [
+        "wizard"
+      ]
     }
   },
   {
@@ -128,7 +165,9 @@
       "name": "Archwizard's Spellcraft",
       "system.level": 19,
       "system.category": "classfeature",
-      "system.traits.value": ["wizard"]
+      "system.traits.value": [
+        "wizard"
+      ]
     }
   },
   {
@@ -141,7 +180,11 @@
       "name": "Armor Expertise",
       "system.level": 7,
       "system.category": "classfeature",
-      "system.traits.value": ["champion", "commander", "fighter"]
+      "system.traits.value": [
+        "champion",
+        "commander",
+        "fighter"
+      ]
     }
   },
   {
@@ -154,7 +197,12 @@
       "name": "Armor Mastery",
       "system.level": 13,
       "system.category": "classfeature",
-      "system.traits.value": ["barbarian", "champion", "commander", "fighter"]
+      "system.traits.value": [
+        "barbarian",
+        "champion",
+        "commander",
+        "fighter"
+      ]
     }
   },
   {
@@ -167,8 +215,47 @@
       "name": "Avenger",
       "system.level": 1,
       "system.category": "racket",
-      "system.traits.value": ["rogue"],
-      "system.traits.otherTags": ["class-archetype", "rogue-racket"]
+      "system.traits.value": [
+        "rogue"
+      ],
+      "system.traits.otherTags": [
+        "class-archetype",
+        "rogue-racket"
+      ]
+    }
+  },
+  {
+    "_id": "xDtG0WYbAHeEsNBd",
+    "uuid": "Compendium.pf2e.class-features-core.Item.xDtG0WYbAHeEsNBd",
+    "name": "Bard Weapon Expertise",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Bard Weapon Expertise",
+      "system.level": 11,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "bard"
+      ]
+    }
+  },
+  {
+    "_id": "93kwwxx90ZmK5Kv7",
+    "uuid": "Compendium.pf2e.class-features-core.Item.93kwwxx90ZmK5Kv7",
+    "name": "Battle Creed",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Battle Creed",
+      "system.level": 1,
+      "system.category": "doctrine",
+      "system.traits.value": [
+        "cleric"
+      ],
+      "system.traits.otherTags": [
+        "class-archetype",
+        "cleric-doctrine"
+      ]
     }
   },
   {
@@ -181,7 +268,10 @@
       "name": "Battle Hardened",
       "system.level": 9,
       "system.category": "classfeature",
-      "system.traits.value": ["fighter", "guardian"]
+      "system.traits.value": [
+        "fighter",
+        "guardian"
+      ]
     }
   },
   {
@@ -194,7 +284,393 @@
       "name": "Battlefield Surveyor",
       "system.level": 7,
       "system.category": "classfeature",
-      "system.traits.value": ["fighter"]
+      "system.traits.value": [
+        "fighter"
+      ]
+    }
+  },
+  {
+    "_id": "rkX4fo0J36e2qAbG",
+    "uuid": "Compendium.pf2e.class-features-core.Item.rkX4fo0J36e2qAbG",
+    "name": "Blessing of the Devoted",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Blessing of the Devoted",
+      "system.level": 3,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "champion"
+      ]
+    }
+  },
+  {
+    "_id": "TEWAYpJBTqbKtZrR",
+    "uuid": "Compendium.pf2e.class-features-core.Item.TEWAYpJBTqbKtZrR",
+    "name": "Bloodline: Aberrant",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Bloodline: Aberrant",
+      "system.level": 1,
+      "system.category": "bloodline",
+      "system.traits.value": [
+        "sorcerer"
+      ],
+      "system.traits.otherTags": [
+        "sorcerer-bloodline"
+      ]
+    }
+  },
+  {
+    "_id": "8JOUEhKzj63KugGw",
+    "uuid": "Compendium.pf2e.class-features-core.Item.8JOUEhKzj63KugGw",
+    "name": "Bloodline: Aesir",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Bloodline: Aesir",
+      "system.level": 1,
+      "system.category": "bloodline",
+      "system.traits.value": [
+        "sorcerer"
+      ],
+      "system.traits.otherTags": [
+        "sorcerer-bloodline"
+      ]
+    }
+  },
+  {
+    "_id": "ipv7jvgAEzBAtoPc",
+    "uuid": "Compendium.pf2e.class-features-core.Item.ipv7jvgAEzBAtoPc",
+    "name": "Bloodline: Angelic",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Bloodline: Angelic",
+      "system.level": 1,
+      "system.category": "bloodline",
+      "system.traits.value": [
+        "sorcerer"
+      ],
+      "system.traits.otherTags": [
+        "sorcerer-bloodline"
+      ]
+    }
+  },
+  {
+    "_id": "Jlw5VvWR1sjgsi6e",
+    "uuid": "Compendium.pf2e.class-features-core.Item.Jlw5VvWR1sjgsi6e",
+    "name": "Bloodline: Demonic",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Bloodline: Demonic",
+      "system.level": 1,
+      "system.category": "bloodline",
+      "system.traits.value": [
+        "sorcerer"
+      ],
+      "system.traits.otherTags": [
+        "sorcerer-bloodline"
+      ]
+    }
+  },
+  {
+    "_id": "wBUBpFO5QNycXjJB",
+    "uuid": "Compendium.pf2e.class-features-core.Item.wBUBpFO5QNycXjJB",
+    "name": "Bloodline: Diabolic",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Bloodline: Diabolic",
+      "system.level": 1,
+      "system.category": "bloodline",
+      "system.traits.value": [
+        "sorcerer"
+      ],
+      "system.traits.otherTags": [
+        "sorcerer-bloodline"
+      ]
+    }
+  },
+  {
+    "_id": "NGPPWbOwKgGEtC4z",
+    "uuid": "Compendium.pf2e.class-features-core.Item.NGPPWbOwKgGEtC4z",
+    "name": "Bloodline: Draconic",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Bloodline: Draconic",
+      "system.level": 1,
+      "system.category": "bloodline",
+      "system.traits.value": [
+        "sorcerer"
+      ],
+      "system.traits.otherTags": [
+        "sorcerer-bloodline"
+      ]
+    }
+  },
+  {
+    "_id": "9AY13hjNNXOnER71",
+    "uuid": "Compendium.pf2e.class-features-core.Item.9AY13hjNNXOnER71",
+    "name": "Bloodline: Elemental",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Bloodline: Elemental",
+      "system.level": 1,
+      "system.category": "bloodline",
+      "system.traits.value": [
+        "sorcerer"
+      ],
+      "system.traits.otherTags": [
+        "sorcerer-bloodline"
+      ]
+    }
+  },
+  {
+    "_id": "eGs3cJk5JRU9qs8v",
+    "uuid": "Compendium.pf2e.class-features-core.Item.eGs3cJk5JRU9qs8v",
+    "name": "Bloodline: Fey",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Bloodline: Fey",
+      "system.level": 1,
+      "system.category": "bloodline",
+      "system.traits.value": [
+        "sorcerer"
+      ],
+      "system.traits.otherTags": [
+        "sorcerer-bloodline"
+      ]
+    }
+  },
+  {
+    "_id": "USqlwIXnwtPWjiCL",
+    "uuid": "Compendium.pf2e.class-features-core.Item.USqlwIXnwtPWjiCL",
+    "name": "Bloodline: Genie",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Bloodline: Genie",
+      "system.level": 1,
+      "system.category": "bloodline",
+      "system.traits.value": [
+        "sorcerer"
+      ],
+      "system.traits.otherTags": [
+        "sorcerer-bloodline"
+      ]
+    }
+  },
+  {
+    "_id": "mMZ6viHgZXOkBjQ1",
+    "uuid": "Compendium.pf2e.class-features-core.Item.mMZ6viHgZXOkBjQ1",
+    "name": "Bloodline: Hag",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Bloodline: Hag",
+      "system.level": 1,
+      "system.category": "bloodline",
+      "system.traits.value": [
+        "sorcerer"
+      ],
+      "system.traits.otherTags": [
+        "sorcerer-bloodline"
+      ]
+    }
+  },
+  {
+    "_id": "vFK3jg5jfq5VYwnZ",
+    "uuid": "Compendium.pf2e.class-features-core.Item.vFK3jg5jfq5VYwnZ",
+    "name": "Bloodline: Harrow",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Bloodline: Harrow",
+      "system.level": 1,
+      "system.category": "bloodline",
+      "system.traits.value": [
+        "sorcerer"
+      ],
+      "system.traits.otherTags": [
+        "sorcerer-bloodline"
+      ]
+    }
+  },
+  {
+    "_id": "3ug7rtSzl5Z8xhr7",
+    "uuid": "Compendium.pf2e.class-features-core.Item.3ug7rtSzl5Z8xhr7",
+    "name": "Bloodline: Imperial",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Bloodline: Imperial",
+      "system.level": 1,
+      "system.category": "bloodline",
+      "system.traits.value": [
+        "sorcerer"
+      ],
+      "system.traits.otherTags": [
+        "sorcerer-bloodline"
+      ]
+    }
+  },
+  {
+    "_id": "MVKpDONRKlcKoLsj",
+    "uuid": "Compendium.pf2e.class-features-core.Item.MVKpDONRKlcKoLsj",
+    "name": "Bloodline: Nymph",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Bloodline: Nymph",
+      "system.level": 1,
+      "system.category": "bloodline",
+      "system.traits.value": [
+        "sorcerer"
+      ],
+      "system.traits.otherTags": [
+        "sorcerer-bloodline"
+      ]
+    }
+  },
+  {
+    "_id": "sLcoOSRKL3pqgx8z",
+    "uuid": "Compendium.pf2e.class-features-core.Item.sLcoOSRKL3pqgx8z",
+    "name": "Bloodline Paragon",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Bloodline Paragon",
+      "system.level": 19,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "sorcerer"
+      ]
+    }
+  },
+  {
+    "_id": "m4lEeG2qnIWQLWat",
+    "uuid": "Compendium.pf2e.class-features-core.Item.m4lEeG2qnIWQLWat",
+    "name": "Bloodline: Phoenix",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Bloodline: Phoenix",
+      "system.level": 1,
+      "system.category": "bloodline",
+      "system.traits.value": [
+        "sorcerer"
+      ],
+      "system.traits.otherTags": [
+        "sorcerer-bloodline"
+      ]
+    }
+  },
+  {
+    "_id": "9PEowiHm3gg1PAZv",
+    "uuid": "Compendium.pf2e.class-features-core.Item.9PEowiHm3gg1PAZv",
+    "name": "Bloodline: Psychopomp",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Bloodline: Psychopomp",
+      "system.level": 1,
+      "system.category": "bloodline",
+      "system.traits.value": [
+        "sorcerer"
+      ],
+      "system.traits.otherTags": [
+        "sorcerer-bloodline"
+      ]
+    }
+  },
+  {
+    "_id": "YWHoIOVc0vK9llnF",
+    "uuid": "Compendium.pf2e.class-features-core.Item.YWHoIOVc0vK9llnF",
+    "name": "Bloodline: Shadow",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Bloodline: Shadow",
+      "system.level": 1,
+      "system.category": "bloodline",
+      "system.traits.value": [
+        "sorcerer"
+      ],
+      "system.traits.otherTags": [
+        "sorcerer-bloodline"
+      ]
+    }
+  },
+  {
+    "_id": "J6Cm1EsbCKXRHMW2",
+    "uuid": "Compendium.pf2e.class-features-core.Item.J6Cm1EsbCKXRHMW2",
+    "name": "Bloodline Spells",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Bloodline Spells",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "sorcerer"
+      ]
+    }
+  },
+  {
+    "_id": "7Pmrosxa3LNE19j2",
+    "uuid": "Compendium.pf2e.class-features-core.Item.7Pmrosxa3LNE19j2",
+    "name": "Bloodline: Undead",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Bloodline: Undead",
+      "system.level": 1,
+      "system.category": "bloodline",
+      "system.traits.value": [
+        "sorcerer"
+      ],
+      "system.traits.otherTags": [
+        "sorcerer-bloodline"
+      ]
+    }
+  },
+  {
+    "_id": "nxwKUkpw2byexCMh",
+    "uuid": "Compendium.pf2e.class-features-core.Item.nxwKUkpw2byexCMh",
+    "name": "Bloodline: Wyrmblessed",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Bloodline: Wyrmblessed",
+      "system.level": 1,
+      "system.category": "bloodline",
+      "system.traits.value": [
+        "sorcerer"
+      ],
+      "system.traits.otherTags": [
+        "sorcerer-bloodline"
+      ]
+    }
+  },
+  {
+    "_id": "LsAiWeNtI6QMpBqZ",
+    "uuid": "Compendium.pf2e.class-features-core.Item.LsAiWeNtI6QMpBqZ",
+    "name": "Bloodline",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Bloodline",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "sorcerer"
+      ]
     }
   },
   {
@@ -207,8 +683,13 @@
       "name": "Bloodrager",
       "system.level": 1,
       "system.category": "instinct",
-      "system.traits.value": ["barbarian"],
-      "system.traits.otherTags": ["barbarian-instinct", "class-archetype"]
+      "system.traits.value": [
+        "barbarian"
+      ],
+      "system.traits.otherTags": [
+        "barbarian-instinct",
+        "class-archetype"
+      ]
     }
   },
   {
@@ -221,7 +702,9 @@
       "name": "Bravery",
       "system.level": 3,
       "system.category": "classfeature",
-      "system.traits.value": ["fighter"]
+      "system.traits.value": [
+        "fighter"
+      ]
     }
   },
   {
@@ -234,7 +717,102 @@
       "name": "Brutality",
       "system.level": 5,
       "system.category": "classfeature",
-      "system.traits.value": ["barbarian"]
+      "system.traits.value": [
+        "barbarian"
+      ]
+    }
+  },
+  {
+    "_id": "G95Xci9mfJ6PTALk",
+    "uuid": "Compendium.pf2e.class-features-core.Item.G95Xci9mfJ6PTALk",
+    "name": "Cause",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Cause",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "champion"
+      ]
+    }
+  },
+  {
+    "_id": "wHqM8E3f5nPThvY4",
+    "uuid": "Compendium.pf2e.class-features-core.Item.wHqM8E3f5nPThvY4",
+    "name": "Champion Expertise",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Champion Expertise",
+      "system.level": 9,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "champion"
+      ]
+    }
+  },
+  {
+    "_id": "bWGsG8zffEsLRfkL",
+    "uuid": "Compendium.pf2e.class-features-core.Item.bWGsG8zffEsLRfkL",
+    "name": "Champion Mastery",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Champion Mastery",
+      "system.level": 17,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "champion"
+      ]
+    }
+  },
+  {
+    "_id": "2d1VgeI3L0c046Ee",
+    "uuid": "Compendium.pf2e.class-features-core.Item.2d1VgeI3L0c046Ee",
+    "name": "Champion's Aura",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Champion's Aura",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "champion"
+      ]
+    }
+  },
+  {
+    "_id": "w5ZmsIyNU0f66q8E",
+    "uuid": "Compendium.pf2e.class-features-core.Item.w5ZmsIyNU0f66q8E",
+    "name": "Cleric Spellcasting",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Cleric Spellcasting",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
+    }
+  },
+  {
+    "_id": "uvGoYJ27yZBsqsUD",
+    "uuid": "Compendium.pf2e.class-features-core.Item.uvGoYJ27yZBsqsUD",
+    "name": "Cloistered Cleric",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Cloistered Cleric",
+      "system.level": 1,
+      "system.category": "doctrine",
+      "system.traits.value": [
+        "cleric"
+      ],
+      "system.traits.otherTags": [
+        "cleric-doctrine"
+      ]
     }
   },
   {
@@ -247,7 +825,24 @@
       "name": "Combat Flexibility",
       "system.level": 9,
       "system.category": "classfeature",
-      "system.traits.value": ["fighter"]
+      "system.traits.value": [
+        "fighter"
+      ]
+    }
+  },
+  {
+    "_id": "Kj1d35aAxgbTMvMH",
+    "uuid": "Compendium.pf2e.class-features-core.Item.Kj1d35aAxgbTMvMH",
+    "name": "Composition Spells",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Composition Spells",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "bard"
+      ]
     }
   },
   {
@@ -260,7 +855,9 @@
       "name": "Conflux Spells",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": ["magus"]
+      "system.traits.value": [
+        "magus"
+      ]
     }
   },
   {
@@ -273,7 +870,9 @@
       "name": "Debilitating Strike",
       "system.level": 9,
       "system.category": "classfeature",
-      "system.traits.value": ["rogue"]
+      "system.traits.value": [
+        "rogue"
+      ]
     }
   },
   {
@@ -286,8 +885,12 @@
       "name": "Decay Instinct",
       "system.level": 1,
       "system.category": "instinct",
-      "system.traits.value": ["barbarian"],
-      "system.traits.otherTags": ["barbarian-instinct"]
+      "system.traits.value": [
+        "barbarian"
+      ],
+      "system.traits.otherTags": [
+        "barbarian-instinct"
+      ]
     }
   },
   {
@@ -300,7 +903,57 @@
       "name": "Defensive Robes",
       "system.level": 13,
       "system.category": "classfeature",
-      "system.traits.value": ["sorcerer", "summoner", "witch", "wizard"]
+      "system.traits.value": [
+        "sorcerer",
+        "summoner",
+        "witch",
+        "wizard"
+      ]
+    }
+  },
+  {
+    "_id": "6WjjeKhVK8Jas4aM",
+    "uuid": "Compendium.pf2e.class-features-core.Item.6WjjeKhVK8Jas4aM",
+    "name": "Deific Weapon",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Deific Weapon",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "champion"
+      ]
+    }
+  },
+  {
+    "_id": "2zmRjnSK4X2ScHWJ",
+    "uuid": "Compendium.pf2e.class-features-core.Item.2zmRjnSK4X2ScHWJ",
+    "name": "Deity (Champion)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Deity (Champion)",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "champion"
+      ]
+    }
+  },
+  {
+    "_id": "Z3bGaIq1FnCfsTrx",
+    "uuid": "Compendium.pf2e.class-features-core.Item.Z3bGaIq1FnCfsTrx",
+    "name": "Deity (Cleric)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Deity (Cleric)",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
     }
   },
   {
@@ -313,7 +966,28 @@
       "name": "Deny Advantage",
       "system.level": 3,
       "system.category": "classfeature",
-      "system.traits.value": ["rogue"]
+      "system.traits.value": [
+        "rogue"
+      ]
+    }
+  },
+  {
+    "_id": "xt6sILYpPH1Xrek3",
+    "uuid": "Compendium.pf2e.class-features-core.Item.xt6sILYpPH1Xrek3",
+    "name": "Desecration",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Desecration",
+      "system.level": 1,
+      "system.category": "cause",
+      "system.traits.value": [
+        "champion"
+      ],
+      "system.traits.otherTags": [
+        "champion-cause",
+        "unholy"
+      ]
     }
   },
   {
@@ -326,7 +1000,84 @@
       "name": "Devastator",
       "system.level": 19,
       "system.category": "classfeature",
-      "system.traits.value": ["barbarian"]
+      "system.traits.value": [
+        "barbarian"
+      ]
+    }
+  },
+  {
+    "_id": "wBba2TDXECeWhXXn",
+    "uuid": "Compendium.pf2e.class-features-core.Item.wBba2TDXECeWhXXn",
+    "name": "Devotion Spells",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Devotion Spells",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "champion"
+      ]
+    }
+  },
+  {
+    "_id": "8bYjyje8l3BEKJ2c",
+    "uuid": "Compendium.pf2e.class-features-core.Item.8bYjyje8l3BEKJ2c",
+    "name": "Divine Defense",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Divine Defense",
+      "system.level": 13,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
+    }
+  },
+  {
+    "_id": "xzqAQmsHPvZkBrAc",
+    "uuid": "Compendium.pf2e.class-features-core.Item.xzqAQmsHPvZkBrAc",
+    "name": "Divine Font",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Divine Font",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
+    }
+  },
+  {
+    "_id": "FUjXsopM5ajHSys7",
+    "uuid": "Compendium.pf2e.class-features-core.Item.FUjXsopM5ajHSys7",
+    "name": "Divine Will",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Divine Will",
+      "system.level": 11,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "champion"
+      ]
+    }
+  },
+  {
+    "_id": "KmvpXx69oQUH2kfE",
+    "uuid": "Compendium.pf2e.class-features-core.Item.KmvpXx69oQUH2kfE",
+    "name": "Doctrine",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Doctrine",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
     }
   },
   {
@@ -339,7 +1090,9 @@
       "name": "Double Debilitation",
       "system.level": 15,
       "system.category": "classfeature",
-      "system.traits.value": ["rogue"]
+      "system.traits.value": [
+        "rogue"
+      ]
     }
   },
   {
@@ -352,7 +1105,9 @@
       "name": "Double Reflow",
       "system.level": 17,
       "system.category": "classfeature",
-      "system.traits.value": ["kineticist"]
+      "system.traits.value": [
+        "kineticist"
+      ]
     }
   },
   {
@@ -365,7 +1120,9 @@
       "name": "Double Spellstrike",
       "system.level": 19,
       "system.category": "classfeature",
-      "system.traits.value": ["magus"]
+      "system.traits.value": [
+        "magus"
+      ]
     }
   },
   {
@@ -378,8 +1135,12 @@
       "name": "Dragon Instinct",
       "system.level": 1,
       "system.category": "instinct",
-      "system.traits.value": ["barbarian"],
-      "system.traits.otherTags": ["barbarian-instinct"]
+      "system.traits.value": [
+        "barbarian"
+      ],
+      "system.traits.otherTags": [
+        "barbarian-instinct"
+      ]
     }
   },
   {
@@ -392,8 +1153,12 @@
       "name": "Eldritch Trickster",
       "system.level": 1,
       "system.category": "racket",
-      "system.traits.value": ["rogue"],
-      "system.traits.otherTags": ["rogue-racket"]
+      "system.traits.value": [
+        "rogue"
+      ],
+      "system.traits.otherTags": [
+        "rogue-racket"
+      ]
     }
   },
   {
@@ -406,8 +1171,30 @@
       "name": "Elemental Instinct",
       "system.level": 1,
       "system.category": "instinct",
-      "system.traits.value": ["barbarian"],
-      "system.traits.otherTags": ["barbarian-instinct"]
+      "system.traits.value": [
+        "barbarian"
+      ],
+      "system.traits.otherTags": [
+        "barbarian-instinct"
+      ]
+    }
+  },
+  {
+    "_id": "XMhDKOhwSXGmEBKk",
+    "uuid": "Compendium.pf2e.class-features-core.Item.XMhDKOhwSXGmEBKk",
+    "name": "Enigma",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Enigma",
+      "system.level": 1,
+      "system.category": "muse",
+      "system.traits.value": [
+        "bard"
+      ],
+      "system.traits.otherTags": [
+        "bard-muse"
+      ]
     }
   },
   {
@@ -420,7 +1207,24 @@
       "name": "Evasive Reflexes",
       "system.level": 7,
       "system.category": "classfeature",
-      "system.traits.value": ["rogue"]
+      "system.traits.value": [
+        "rogue"
+      ]
+    }
+  },
+  {
+    "_id": "K1tJyOpd6JHAPPaz",
+    "uuid": "Compendium.pf2e.class-features-core.Item.K1tJyOpd6JHAPPaz",
+    "name": "Exalted Reaction",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Exalted Reaction",
+      "system.level": 11,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "champion"
+      ]
     }
   },
   {
@@ -433,8 +1237,12 @@
       "name": "Experimental Spellshaping",
       "system.level": 1,
       "system.category": "arcaneThesis",
-      "system.traits.value": ["wizard"],
-      "system.traits.otherTags": ["wizard-arcane-thesis"]
+      "system.traits.value": [
+        "wizard"
+      ],
+      "system.traits.otherTags": [
+        "wizard-arcane-thesis"
+      ]
     }
   },
   {
@@ -462,6 +1270,21 @@
     }
   },
   {
+    "_id": "86SI1amhg3KRI7Y5",
+    "uuid": "Compendium.pf2e.class-features-core.Item.86SI1amhg3KRI7Y5",
+    "name": "Expert Strikes",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Expert Strikes",
+      "system.level": 5,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "monk"
+      ]
+    }
+  },
+  {
     "_id": "H2LJjggIreLQ66Oy",
     "uuid": "Compendium.pf2e.class-features-core.Item.H2LJjggIreLQ66Oy",
     "name": "Extract Element",
@@ -471,7 +1294,54 @@
       "name": "Extract Element",
       "system.level": 3,
       "system.category": "classfeature",
-      "system.traits.value": ["kineticist"]
+      "system.traits.value": [
+        "kineticist"
+      ]
+    }
+  },
+  {
+    "_id": "oJOPZEreYjnSbgHP",
+    "uuid": "Compendium.pf2e.class-features-core.Item.oJOPZEreYjnSbgHP",
+    "name": "Fifth Doctrine (Cloistered Cleric)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Fifth Doctrine (Cloistered Cleric)",
+      "system.level": 15,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
+    }
+  },
+  {
+    "_id": "WMg4B9XcUnqntpFY",
+    "uuid": "Compendium.pf2e.class-features-core.Item.WMg4B9XcUnqntpFY",
+    "name": "Fifth Doctrine (Warpriest)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Fifth Doctrine (Warpriest)",
+      "system.level": 15,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
+    }
+  },
+  {
+    "_id": "cju0wQRfzrQoF7SH",
+    "uuid": "Compendium.pf2e.class-features-core.Item.cju0wQRfzrQoF7SH",
+    "name": "Fifth Doctrine",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Fifth Doctrine",
+      "system.level": 15,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
     }
   },
   {
@@ -484,7 +1354,9 @@
       "name": "Fighter Expertise",
       "system.level": 11,
       "system.category": "classfeature",
-      "system.traits.value": ["fighter"]
+      "system.traits.value": [
+        "fighter"
+      ]
     }
   },
   {
@@ -497,7 +1369,54 @@
       "name": "Fighter Weapon Mastery",
       "system.level": 5,
       "system.category": "classfeature",
-      "system.traits.value": ["fighter"]
+      "system.traits.value": [
+        "fighter"
+      ]
+    }
+  },
+  {
+    "_id": "EP3UYq5SLhlg7nRD",
+    "uuid": "Compendium.pf2e.class-features-core.Item.EP3UYq5SLhlg7nRD",
+    "name": "Final Doctrine (Cloistered Cleric)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Final Doctrine (Cloistered Cleric)",
+      "system.level": 19,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
+    }
+  },
+  {
+    "_id": "tblooNAQTKQKet7p",
+    "uuid": "Compendium.pf2e.class-features-core.Item.tblooNAQTKQKet7p",
+    "name": "Final Doctrine (Warpriest)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Final Doctrine (Warpriest)",
+      "system.level": 19,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
+    }
+  },
+  {
+    "_id": "u0nA0rMnKu6LYGUZ",
+    "uuid": "Compendium.pf2e.class-features-core.Item.u0nA0rMnKu6LYGUZ",
+    "name": "Final Doctrine",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Final Doctrine",
+      "system.level": 19,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
     }
   },
   {
@@ -510,7 +1429,70 @@
       "name": "Final Gate",
       "system.level": 19,
       "system.category": "classfeature",
-      "system.traits.value": ["kineticist"]
+      "system.traits.value": [
+        "kineticist"
+      ]
+    }
+  },
+  {
+    "_id": "ylDOp0zIgaHPkQv0",
+    "uuid": "Compendium.pf2e.class-features-core.Item.ylDOp0zIgaHPkQv0",
+    "name": "First Doctrine (Cloistered Cleric)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "First Doctrine (Cloistered Cleric)",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
+    }
+  },
+  {
+    "_id": "ocZyNsiv8LtCwvNc",
+    "uuid": "Compendium.pf2e.class-features-core.Item.ocZyNsiv8LtCwvNc",
+    "name": "First Doctrine (Warpriest)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "First Doctrine (Warpriest)",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
+    }
+  },
+  {
+    "_id": "cGbwex2mzwB9tKAf",
+    "uuid": "Compendium.pf2e.class-features-core.Item.cGbwex2mzwB9tKAf",
+    "name": "First Doctrine",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "First Doctrine",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
+    }
+  },
+  {
+    "_id": "WsjMAdbmegii8Kqf",
+    "uuid": "Compendium.pf2e.class-features-core.Item.WsjMAdbmegii8Kqf",
+    "name": "Flurry of Blows",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Flurry of Blows",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "flourish",
+        "monk"
+      ]
     }
   },
   {
@@ -523,8 +1505,78 @@
       "name": "Flurry",
       "system.level": 1,
       "system.category": "huntersEdge",
-      "system.traits.value": ["ranger"],
-      "system.traits.otherTags": ["ranger-hunters-edge"]
+      "system.traits.value": [
+        "ranger"
+      ],
+      "system.traits.otherTags": [
+        "ranger-hunters-edge"
+      ]
+    }
+  },
+  {
+    "_id": "BKAFVXNFDrdPg8fB",
+    "uuid": "Compendium.pf2e.class-features-core.Item.BKAFVXNFDrdPg8fB",
+    "name": "Fortitude Expertise",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Fortitude Expertise",
+      "system.level": 3,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "animist",
+        "bard",
+        "commander",
+        "druid",
+        "investigator",
+        "psychic",
+        "swashbuckler"
+      ]
+    }
+  },
+  {
+    "_id": "wHuEESk6LaQ2kq3v",
+    "uuid": "Compendium.pf2e.class-features-core.Item.wHuEESk6LaQ2kq3v",
+    "name": "Fourth Doctrine (Cloistered Cleric)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Fourth Doctrine (Cloistered Cleric)",
+      "system.level": 11,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
+    }
+  },
+  {
+    "_id": "1Q9XEsrLEGizspNx",
+    "uuid": "Compendium.pf2e.class-features-core.Item.1Q9XEsrLEGizspNx",
+    "name": "Fourth Doctrine (Warpriest)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Fourth Doctrine (Warpriest)",
+      "system.level": 11,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
+    }
+  },
+  {
+    "_id": "MIc3HI9FHCeiWIcT",
+    "uuid": "Compendium.pf2e.class-features-core.Item.MIc3HI9FHCeiWIcT",
+    "name": "Fourth Doctrine",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Fourth Doctrine",
+      "system.level": 11,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
     }
   },
   {
@@ -537,7 +1589,9 @@
       "name": "Fourth Gate's Threshold",
       "system.level": 17,
       "system.category": "classfeature",
-      "system.traits.value": ["kineticist"]
+      "system.traits.value": [
+        "kineticist"
+      ]
     }
   },
   {
@@ -550,7 +1604,9 @@
       "name": "Furious Footfalls",
       "system.level": 3,
       "system.category": "classfeature",
-      "system.traits.value": ["barbarian"]
+      "system.traits.value": [
+        "barbarian"
+      ]
     }
   },
   {
@@ -563,8 +1619,12 @@
       "name": "Fury Instinct",
       "system.level": 1,
       "system.category": "instinct",
-      "system.traits.value": ["barbarian"],
-      "system.traits.otherTags": ["barbarian-instinct"]
+      "system.traits.value": [
+        "barbarian"
+      ],
+      "system.traits.otherTags": [
+        "barbarian-instinct"
+      ]
     }
   },
   {
@@ -577,7 +1637,9 @@
       "name": "Gate's Threshold",
       "system.level": 5,
       "system.category": "classfeature",
-      "system.traits.value": ["kineticist"]
+      "system.traits.value": [
+        "kineticist"
+      ]
     }
   },
   {
@@ -590,8 +1652,61 @@
       "name": "Giant Instinct",
       "system.level": 1,
       "system.category": "instinct",
-      "system.traits.value": ["barbarian"],
-      "system.traits.otherTags": ["barbarian-instinct"]
+      "system.traits.value": [
+        "barbarian"
+      ],
+      "system.traits.otherTags": [
+        "barbarian-instinct"
+      ]
+    }
+  },
+  {
+    "_id": "njYDyHDE3ogHH7th",
+    "uuid": "Compendium.pf2e.class-features-core.Item.njYDyHDE3ogHH7th",
+    "name": "Graceful Legend",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Graceful Legend",
+      "system.level": 17,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "monk"
+      ]
+    }
+  },
+  {
+    "_id": "CyMp4KYHW8veGR0x",
+    "uuid": "Compendium.pf2e.class-features-core.Item.CyMp4KYHW8veGR0x",
+    "name": "Graceful Mastery",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Graceful Mastery",
+      "system.level": 13,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "monk"
+      ]
+    }
+  },
+  {
+    "_id": "p1eJInj1rrT9MDgw",
+    "uuid": "Compendium.pf2e.class-features-core.Item.p1eJInj1rrT9MDgw",
+    "name": "Grandeur",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Grandeur",
+      "system.level": 1,
+      "system.category": "cause",
+      "system.traits.value": [
+        "champion"
+      ],
+      "system.traits.otherTags": [
+        "champion-cause",
+        "holy"
+      ]
     }
   },
   {
@@ -604,7 +1719,9 @@
       "name": "Greater Juggernaut",
       "system.level": 13,
       "system.category": "classfeature",
-      "system.traits.value": ["barbarian"]
+      "system.traits.value": [
+        "barbarian"
+      ]
     }
   },
   {
@@ -617,7 +1734,9 @@
       "name": "Greater Kinetic Durability",
       "system.level": 15,
       "system.category": "classfeature",
-      "system.traits.value": ["kineticist"]
+      "system.traits.value": [
+        "kineticist"
+      ]
     }
   },
   {
@@ -630,7 +1749,24 @@
       "name": "Greater Natural Reflexes",
       "system.level": 15,
       "system.category": "classfeature",
-      "system.traits.value": ["ranger"]
+      "system.traits.value": [
+        "ranger"
+      ]
+    }
+  },
+  {
+    "_id": "0Znipy3VhMSYEjol",
+    "uuid": "Compendium.pf2e.class-features-core.Item.0Znipy3VhMSYEjol",
+    "name": "Greater Performer's Heart",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Greater Performer's Heart",
+      "system.level": 17,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "bard"
+      ]
     }
   },
   {
@@ -643,7 +1779,9 @@
       "name": "Greater Rogue Reflexes",
       "system.level": 13,
       "system.category": "classfeature",
-      "system.traits.value": ["rogue"]
+      "system.traits.value": [
+        "rogue"
+      ]
     }
   },
   {
@@ -656,7 +1794,9 @@
       "name": "Greater Weapon Specialization (Barbarian)",
       "system.level": 15,
       "system.category": "classfeature",
-      "system.traits.value": ["barbarian"]
+      "system.traits.value": [
+        "barbarian"
+      ]
     }
   },
   {
@@ -686,6 +1826,21 @@
     }
   },
   {
+    "_id": "xSGqu3kKCuEb0eYp",
+    "uuid": "Compendium.pf2e.class-features-core.Item.xSGqu3kKCuEb0eYp",
+    "name": "Hero's Defiance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Hero's Defiance",
+      "system.level": 19,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "champion"
+      ]
+    }
+  },
+  {
     "_id": "msuzrLPXOC194scV",
     "uuid": "Compendium.pf2e.class-features-core.Item.msuzrLPXOC194scV",
     "name": "Hunt Prey",
@@ -695,7 +1850,9 @@
       "name": "Hunt Prey",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": ["ranger"]
+      "system.traits.value": [
+        "ranger"
+      ]
     }
   },
   {
@@ -708,7 +1865,9 @@
       "name": "Hunter's Edge",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": ["ranger"]
+      "system.traits.value": [
+        "ranger"
+      ]
     }
   },
   {
@@ -721,7 +1880,9 @@
       "name": "Hybrid Study",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": ["magus"]
+      "system.traits.value": [
+        "magus"
+      ]
     }
   },
   {
@@ -734,8 +1895,12 @@
       "name": "Improved Familiar Attunement",
       "system.level": 1,
       "system.category": "arcaneThesis",
-      "system.traits.value": ["wizard"],
-      "system.traits.otherTags": ["wizard-arcane-thesis"]
+      "system.traits.value": [
+        "wizard"
+      ],
+      "system.traits.otherTags": [
+        "wizard-arcane-thesis"
+      ]
     }
   },
   {
@@ -748,7 +1913,9 @@
       "name": "Improved Flexibility",
       "system.level": 15,
       "system.category": "classfeature",
-      "system.traits.value": ["fighter"]
+      "system.traits.value": [
+        "fighter"
+      ]
     }
   },
   {
@@ -761,7 +1928,24 @@
       "name": "Impulses",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": ["kineticist"]
+      "system.traits.value": [
+        "kineticist"
+      ]
+    }
+  },
+  {
+    "_id": "ftNUb4vgqUL5RuyY",
+    "uuid": "Compendium.pf2e.class-features-core.Item.ftNUb4vgqUL5RuyY",
+    "name": "Incredible Movement",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Incredible Movement",
+      "system.level": 3,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "monk"
+      ]
     }
   },
   {
@@ -774,7 +1958,9 @@
       "name": "Indomitable Will",
       "system.level": 15,
       "system.category": "classfeature",
-      "system.traits.value": ["barbarian"]
+      "system.traits.value": [
+        "barbarian"
+      ]
     }
   },
   {
@@ -787,8 +1973,31 @@
       "name": "Inexorable Iron",
       "system.level": 1,
       "system.category": "hybridStudy",
-      "system.traits.value": ["magus"],
-      "system.traits.otherTags": ["magus-hybrid-study"]
+      "system.traits.value": [
+        "magus"
+      ],
+      "system.traits.otherTags": [
+        "magus-hybrid-study"
+      ]
+    }
+  },
+  {
+    "_id": "AA05oph6wGzgEIuz",
+    "uuid": "Compendium.pf2e.class-features-core.Item.AA05oph6wGzgEIuz",
+    "name": "Iniquity",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Iniquity",
+      "system.level": 1,
+      "system.category": "cause",
+      "system.traits.value": [
+        "champion"
+      ],
+      "system.traits.otherTags": [
+        "champion-cause",
+        "unholy"
+      ]
     }
   },
   {
@@ -801,7 +2010,9 @@
       "name": "Instinct",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": ["barbarian"]
+      "system.traits.value": [
+        "barbarian"
+      ]
     }
   },
   {
@@ -814,7 +2025,28 @@
       "name": "Juggernaut",
       "system.level": 7,
       "system.category": "classfeature",
-      "system.traits.value": ["barbarian", "magus"]
+      "system.traits.value": [
+        "barbarian",
+        "magus"
+      ]
+    }
+  },
+  {
+    "_id": "xbrOL7KPjY5oLwWb",
+    "uuid": "Compendium.pf2e.class-features-core.Item.xbrOL7KPjY5oLwWb",
+    "name": "Justice",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Justice",
+      "system.level": 1,
+      "system.category": "cause",
+      "system.traits.value": [
+        "champion"
+      ],
+      "system.traits.otherTags": [
+        "champion-cause"
+      ]
     }
   },
   {
@@ -827,7 +2059,9 @@
       "name": "Kinetic Aura",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": ["kineticist"]
+      "system.traits.value": [
+        "kineticist"
+      ]
     }
   },
   {
@@ -840,7 +2074,9 @@
       "name": "Kinetic Durability",
       "system.level": 7,
       "system.category": "classfeature",
-      "system.traits.value": ["kineticist"]
+      "system.traits.value": [
+        "kineticist"
+      ]
     }
   },
   {
@@ -853,7 +2089,9 @@
       "name": "Kinetic Expertise",
       "system.level": 7,
       "system.category": "classfeature",
-      "system.traits.value": ["kineticist"]
+      "system.traits.value": [
+        "kineticist"
+      ]
     }
   },
   {
@@ -866,7 +2104,9 @@
       "name": "Kinetic Gate",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": ["kineticist"]
+      "system.traits.value": [
+        "kineticist"
+      ]
     }
   },
   {
@@ -879,7 +2119,9 @@
       "name": "Kinetic Legend",
       "system.level": 19,
       "system.category": "classfeature",
-      "system.traits.value": ["kineticist"]
+      "system.traits.value": [
+        "kineticist"
+      ]
     }
   },
   {
@@ -892,7 +2134,9 @@
       "name": "Kinetic Mastery",
       "system.level": 15,
       "system.category": "classfeature",
-      "system.traits.value": ["kineticist"]
+      "system.traits.value": [
+        "kineticist"
+      ]
     }
   },
   {
@@ -905,7 +2149,9 @@
       "name": "Kinetic Quickness",
       "system.level": 11,
       "system.category": "classfeature",
-      "system.traits.value": ["kineticist"]
+      "system.traits.value": [
+        "kineticist"
+      ]
     }
   },
   {
@@ -918,8 +2164,27 @@
       "name": "Laughing Shadow",
       "system.level": 1,
       "system.category": "hybridStudy",
-      "system.traits.value": ["magus"],
-      "system.traits.otherTags": ["magus-hybrid-study"]
+      "system.traits.value": [
+        "magus"
+      ],
+      "system.traits.otherTags": [
+        "magus-hybrid-study"
+      ]
+    }
+  },
+  {
+    "_id": "1tBpApILCv58X3Qo",
+    "uuid": "Compendium.pf2e.class-features-core.Item.1tBpApILCv58X3Qo",
+    "name": "Legendary Armor",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Legendary Armor",
+      "system.level": 17,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "champion"
+      ]
     }
   },
   {
@@ -941,6 +2206,24 @@
         "sorcerer",
         "witch",
         "wizard"
+      ]
+    }
+  },
+  {
+    "_id": "IiaUAbejweA6JloA",
+    "uuid": "Compendium.pf2e.class-features-core.Item.IiaUAbejweA6JloA",
+    "name": "Liberation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Liberation",
+      "system.level": 1,
+      "system.category": "cause",
+      "system.traits.value": [
+        "champion"
+      ],
+      "system.traits.otherTags": [
+        "champion-cause"
       ]
     }
   },
@@ -974,7 +2257,12 @@
       "name": "Light Armor Mastery",
       "system.level": 19,
       "system.category": "classfeature",
-      "system.traits.value": ["investigator", "kineticist", "rogue", "swashbuckler"]
+      "system.traits.value": [
+        "investigator",
+        "kineticist",
+        "rogue",
+        "swashbuckler"
+      ]
     }
   },
   {
@@ -987,8 +2275,30 @@
       "name": "Ligneous Instinct",
       "system.level": 1,
       "system.category": "instinct",
-      "system.traits.value": ["barbarian"],
-      "system.traits.otherTags": ["barbarian-instinct"]
+      "system.traits.value": [
+        "barbarian"
+      ],
+      "system.traits.otherTags": [
+        "barbarian-instinct"
+      ]
+    }
+  },
+  {
+    "_id": "nK6z25Z0ETR5J5Xz",
+    "uuid": "Compendium.pf2e.class-features-core.Item.nK6z25Z0ETR5J5Xz",
+    "name": "Maestro",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Maestro",
+      "system.level": 1,
+      "system.category": "muse",
+      "system.traits.value": [
+        "bard"
+      ],
+      "system.traits.otherTags": [
+        "bard-muse"
+      ]
     }
   },
   {
@@ -1001,7 +2311,42 @@
       "name": "Magical Fortitude",
       "system.level": 5,
       "system.category": "classfeature",
-      "system.traits.value": ["oracle", "sorcerer", "witch", "wizard"]
+      "system.traits.value": [
+        "oracle",
+        "sorcerer",
+        "witch",
+        "wizard"
+      ]
+    }
+  },
+  {
+    "_id": "IJ3Dsad3qTTqIhMG",
+    "uuid": "Compendium.pf2e.class-features-core.Item.IJ3Dsad3qTTqIhMG",
+    "name": "Magnum Opus",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Magnum Opus",
+      "system.level": 19,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "bard"
+      ]
+    }
+  },
+  {
+    "_id": "LHeFECB54lAzubfO",
+    "uuid": "Compendium.pf2e.class-features-core.Item.LHeFECB54lAzubfO",
+    "name": "Majestic Will",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Majestic Will",
+      "system.level": 17,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "sorcerer"
+      ]
     }
   },
   {
@@ -1014,7 +2359,12 @@
       "name": "Martial Weapon Mastery",
       "system.level": 13,
       "system.category": "classfeature",
-      "system.traits.value": ["champion", "investigator", "ranger", "swashbuckler"]
+      "system.traits.value": [
+        "champion",
+        "investigator",
+        "ranger",
+        "swashbuckler"
+      ]
     }
   },
   {
@@ -1051,7 +2401,24 @@
       "name": "Master Strike",
       "system.level": 19,
       "system.category": "classfeature",
-      "system.traits.value": ["rogue"]
+      "system.traits.value": [
+        "rogue"
+      ]
+    }
+  },
+  {
+    "_id": "TCHC4ZSPQ9MVikD1",
+    "uuid": "Compendium.pf2e.class-features-core.Item.TCHC4ZSPQ9MVikD1",
+    "name": "Master Strikes",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Master Strikes",
+      "system.level": 13,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "monk"
+      ]
     }
   },
   {
@@ -1064,7 +2431,9 @@
       "name": "Master Tricks",
       "system.level": 13,
       "system.category": "classfeature",
-      "system.traits.value": ["rogue"]
+      "system.traits.value": [
+        "rogue"
+      ]
     }
   },
   {
@@ -1077,7 +2446,9 @@
       "name": "Masterful Hunter",
       "system.level": 17,
       "system.category": "classfeature",
-      "system.traits.value": ["ranger"]
+      "system.traits.value": [
+        "ranger"
+      ]
     }
   },
   {
@@ -1090,8 +2461,12 @@
       "name": "Mastermind",
       "system.level": 1,
       "system.category": "racket",
-      "system.traits.value": ["rogue"],
-      "system.traits.otherTags": ["rogue-racket"]
+      "system.traits.value": [
+        "rogue"
+      ],
+      "system.traits.otherTags": [
+        "rogue-racket"
+      ]
     }
   },
   {
@@ -1136,6 +2511,21 @@
     }
   },
   {
+    "_id": "YSe3taJoihbLxjDB",
+    "uuid": "Compendium.pf2e.class-features-core.Item.YSe3taJoihbLxjDB",
+    "name": "Metal Strikes",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Metal Strikes",
+      "system.level": 9,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "monk"
+      ]
+    }
+  },
+  {
     "_id": "O3rac2kRtEjwCHC0",
     "uuid": "Compendium.pf2e.class-features-core.Item.O3rac2kRtEjwCHC0",
     "name": "Mighty Rage",
@@ -1145,7 +2535,69 @@
       "name": "Mighty Rage",
       "system.level": 11,
       "system.category": "classfeature",
-      "system.traits.value": ["barbarian"]
+      "system.traits.value": [
+        "barbarian"
+      ]
+    }
+  },
+  {
+    "_id": "Y9i5eKFIhDqSpoD9",
+    "uuid": "Compendium.pf2e.class-features-core.Item.Y9i5eKFIhDqSpoD9",
+    "name": "Miraculous Spell",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Miraculous Spell",
+      "system.level": 19,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
+    }
+  },
+  {
+    "_id": "5Szj5aQ8oBJN70II",
+    "uuid": "Compendium.pf2e.class-features-core.Item.5Szj5aQ8oBJN70II",
+    "name": "Monk Expertise",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Monk Expertise",
+      "system.level": 9,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "monk"
+      ]
+    }
+  },
+  {
+    "_id": "7eBIHN2oYLJ81B4I",
+    "uuid": "Compendium.pf2e.class-features-core.Item.7eBIHN2oYLJ81B4I",
+    "name": "Muses",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Muses",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "bard"
+      ]
+    }
+  },
+  {
+    "_id": "JYQS4l6mn6OKQFFj",
+    "uuid": "Compendium.pf2e.class-features-core.Item.JYQS4l6mn6OKQFFj",
+    "name": "Mystic Strikes",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Mystic Strikes",
+      "system.level": 3,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "monk"
+      ]
     }
   },
   {
@@ -1158,7 +2610,9 @@
       "name": "Natural Reflexes",
       "system.level": 7,
       "system.category": "classfeature",
-      "system.traits.value": ["ranger"]
+      "system.traits.value": [
+        "ranger"
+      ]
     }
   },
   {
@@ -1171,7 +2625,42 @@
       "name": "Nature's Edge",
       "system.level": 9,
       "system.category": "classfeature",
-      "system.traits.value": ["ranger"]
+      "system.traits.value": [
+        "ranger"
+      ]
+    }
+  },
+  {
+    "_id": "ZnYBamnAqVWx3gQR",
+    "uuid": "Compendium.pf2e.class-features-core.Item.ZnYBamnAqVWx3gQR",
+    "name": "Obedience",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Obedience",
+      "system.level": 1,
+      "system.category": "cause",
+      "system.traits.value": [
+        "champion"
+      ],
+      "system.traits.otherTags": [
+        "champion-cause"
+      ]
+    }
+  },
+  {
+    "_id": "PXvWhbENzMQMijDB",
+    "uuid": "Compendium.pf2e.class-features-core.Item.PXvWhbENzMQMijDB",
+    "name": "Occult Spellcasting",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Occult Spellcasting",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "bard"
+      ]
     }
   },
   {
@@ -1184,8 +2673,27 @@
       "name": "Outwit",
       "system.level": 1,
       "system.category": "huntersEdge",
-      "system.traits.value": ["ranger"],
-      "system.traits.otherTags": ["ranger-hunters-edge"]
+      "system.traits.value": [
+        "ranger"
+      ],
+      "system.traits.otherTags": [
+        "ranger-hunters-edge"
+      ]
+    }
+  },
+  {
+    "_id": "stRfmuEklLEcWZgK",
+    "uuid": "Compendium.pf2e.class-features-core.Item.stRfmuEklLEcWZgK",
+    "name": "Path to Perfection",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Path to Perfection",
+      "system.level": 7,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "monk"
+      ]
     }
   },
   {
@@ -1223,7 +2731,11 @@
       "name": "Perception Legend",
       "system.level": 13,
       "system.category": "classfeature",
-      "system.traits.value": ["gunslinger", "ranger", "rogue"]
+      "system.traits.value": [
+        "gunslinger",
+        "ranger",
+        "rogue"
+      ]
     }
   },
   {
@@ -1251,6 +2763,67 @@
     }
   },
   {
+    "_id": "B1Cjbu0DIhPx4r1u",
+    "uuid": "Compendium.pf2e.class-features-core.Item.B1Cjbu0DIhPx4r1u",
+    "name": "Perfected Form",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Perfected Form",
+      "system.level": 19,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "monk"
+      ]
+    }
+  },
+  {
+    "_id": "lvapOWnP0q5P7fjr",
+    "uuid": "Compendium.pf2e.class-features-core.Item.lvapOWnP0q5P7fjr",
+    "name": "Performer's Heart",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Performer's Heart",
+      "system.level": 9,
+      "system.category": "classfeature",
+      "system.traits.value": []
+    }
+  },
+  {
+    "_id": "OrPuwVgGwjCEz2nm",
+    "uuid": "Compendium.pf2e.class-features-core.Item.OrPuwVgGwjCEz2nm",
+    "name": "Polymath",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Polymath",
+      "system.level": 1,
+      "system.category": "muse",
+      "system.traits.value": [
+        "bard"
+      ],
+      "system.traits.otherTags": [
+        "bard-muse"
+      ]
+    }
+  },
+  {
+    "_id": "yoqnc3lhyUICfRSB",
+    "uuid": "Compendium.pf2e.class-features-core.Item.yoqnc3lhyUICfRSB",
+    "name": "Powerful Fist",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Powerful Fist",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "monk"
+      ]
+    }
+  },
+  {
     "_id": "rkGtWFGsR3fOlHV6",
     "uuid": "Compendium.pf2e.class-features-core.Item.rkGtWFGsR3fOlHV6",
     "name": "Precision",
@@ -1260,8 +2833,12 @@
       "name": "Precision",
       "system.level": 1,
       "system.category": "huntersEdge",
-      "system.traits.value": ["ranger"],
-      "system.traits.otherTags": ["ranger-hunters-edge"]
+      "system.traits.value": [
+        "ranger"
+      ],
+      "system.traits.otherTags": [
+        "ranger-hunters-edge"
+      ]
     }
   },
   {
@@ -1274,7 +2851,9 @@
       "name": "Prodigious Will",
       "system.level": 17,
       "system.category": "classfeature",
-      "system.traits.value": ["wizard"]
+      "system.traits.value": [
+        "wizard"
+      ]
     }
   },
   {
@@ -1287,7 +2866,9 @@
       "name": "Quick-Tempered",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": ["barbarian"]
+      "system.traits.value": [
+        "barbarian"
+      ]
     }
   },
   {
@@ -1300,7 +2881,9 @@
       "name": "Rage",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": ["barbarian"]
+      "system.traits.value": [
+        "barbarian"
+      ]
     }
   },
   {
@@ -1313,7 +2896,9 @@
       "name": "Raging Resistance",
       "system.level": 9,
       "system.category": "classfeature",
-      "system.traits.value": ["barbarian"]
+      "system.traits.value": [
+        "barbarian"
+      ]
     }
   },
   {
@@ -1326,7 +2911,9 @@
       "name": "Ranger Expertise",
       "system.level": 9,
       "system.category": "classfeature",
-      "system.traits.value": ["ranger"]
+      "system.traits.value": [
+        "ranger"
+      ]
     }
   },
   {
@@ -1339,7 +2926,9 @@
       "name": "Ranger Weapon Expertise",
       "system.level": 5,
       "system.category": "classfeature",
-      "system.traits.value": ["ranger"]
+      "system.traits.value": [
+        "ranger"
+      ]
     }
   },
   {
@@ -1352,7 +2941,9 @@
       "name": "Reactive Strike",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": ["fighter"]
+      "system.traits.value": [
+        "fighter"
+      ]
     }
   },
   {
@@ -1365,8 +2956,31 @@
       "name": "Red Mantis Magic School",
       "system.level": 1,
       "system.category": "arcaneSchool",
-      "system.traits.value": ["wizard"],
-      "system.traits.otherTags": ["wizard-arcane-school"]
+      "system.traits.value": [
+        "wizard"
+      ],
+      "system.traits.otherTags": [
+        "wizard-arcane-school"
+      ]
+    }
+  },
+  {
+    "_id": "Qv0aPBqTV924o7uU",
+    "uuid": "Compendium.pf2e.class-features-core.Item.Qv0aPBqTV924o7uU",
+    "name": "Redemption",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Redemption",
+      "system.level": 1,
+      "system.category": "cause",
+      "system.traits.value": [
+        "champion"
+      ],
+      "system.traits.otherTags": [
+        "champion-cause",
+        "holy"
+      ]
     }
   },
   {
@@ -1403,7 +3017,39 @@
       "name": "Reflow Elements",
       "system.level": 11,
       "system.category": "classfeature",
-      "system.traits.value": ["kineticist"]
+      "system.traits.value": [
+        "kineticist"
+      ]
+    }
+  },
+  {
+    "_id": "dc9aMcoWGCk7tOJL",
+    "uuid": "Compendium.pf2e.class-features-core.Item.dc9aMcoWGCk7tOJL",
+    "name": "Relentless Reaction",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Relentless Reaction",
+      "system.level": 9,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "champion"
+      ]
+    }
+  },
+  {
+    "_id": "apPhg0aKM4oFVxWn",
+    "uuid": "Compendium.pf2e.class-features-core.Item.apPhg0aKM4oFVxWn",
+    "name": "Resolute Faith",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Resolute Faith",
+      "system.level": 9,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
     }
   },
   {
@@ -1416,7 +3062,9 @@
       "name": "Resolve",
       "system.level": 7,
       "system.category": "classfeature",
-      "system.traits.value": ["magus"]
+      "system.traits.value": [
+        "magus"
+      ]
     }
   },
   {
@@ -1429,8 +3077,12 @@
       "name": "Resurgent Maelstrom",
       "system.level": 1,
       "system.category": "hybridStudy",
-      "system.traits.value": ["magus"],
-      "system.traits.otherTags": ["magus-hybrid-study"]
+      "system.traits.value": [
+        "magus"
+      ],
+      "system.traits.otherTags": [
+        "magus-hybrid-study"
+      ]
     }
   },
   {
@@ -1443,7 +3095,9 @@
       "name": "Revitalizing Rage",
       "system.level": 17,
       "system.category": "classfeature",
-      "system.traits.value": ["barbarian"]
+      "system.traits.value": [
+        "barbarian"
+      ]
     }
   },
   {
@@ -1456,7 +3110,9 @@
       "name": "Rogue Expertise",
       "system.level": 11,
       "system.category": "classfeature",
-      "system.traits.value": ["rogue"]
+      "system.traits.value": [
+        "rogue"
+      ]
     }
   },
   {
@@ -1469,7 +3125,9 @@
       "name": "Rogue Resilience",
       "system.level": 9,
       "system.category": "classfeature",
-      "system.traits.value": ["rogue"]
+      "system.traits.value": [
+        "rogue"
+      ]
     }
   },
   {
@@ -1482,7 +3140,9 @@
       "name": "Rogue's Racket",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": ["rogue"]
+      "system.traits.value": [
+        "rogue"
+      ]
     }
   },
   {
@@ -1495,8 +3155,12 @@
       "name": "Ruffian",
       "system.level": 1,
       "system.category": "racket",
-      "system.traits.value": ["rogue"],
-      "system.traits.otherTags": ["rogue-racket"]
+      "system.traits.value": [
+        "rogue"
+      ],
+      "system.traits.otherTags": [
+        "rogue-racket"
+      ]
     }
   },
   {
@@ -1509,8 +3173,28 @@
       "name": "Runelord",
       "system.level": 1,
       "system.category": "arcaneSchool",
-      "system.traits.value": ["wizard"],
-      "system.traits.otherTags": ["class-archetype", "wizard-arcane-school"]
+      "system.traits.value": [
+        "wizard"
+      ],
+      "system.traits.otherTags": [
+        "class-archetype",
+        "wizard-arcane-school"
+      ]
+    }
+  },
+  {
+    "_id": "RH0lrrgfqrKwKuz2",
+    "uuid": "Compendium.pf2e.class-features-core.Item.RH0lrrgfqrKwKuz2",
+    "name": "Sacred Body",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Sacred Body",
+      "system.level": 9,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "champion"
+      ]
     }
   },
   {
@@ -1523,8 +3207,12 @@
       "name": "School of Ars Grammatica",
       "system.level": 1,
       "system.category": "arcaneSchool",
-      "system.traits.value": ["wizard"],
-      "system.traits.otherTags": ["wizard-arcane-school"]
+      "system.traits.value": [
+        "wizard"
+      ],
+      "system.traits.otherTags": [
+        "wizard-arcane-school"
+      ]
     }
   },
   {
@@ -1537,8 +3225,12 @@
       "name": "School of Battle Magic",
       "system.level": 1,
       "system.category": "arcaneSchool",
-      "system.traits.value": ["wizard"],
-      "system.traits.otherTags": ["wizard-arcane-school"]
+      "system.traits.value": [
+        "wizard"
+      ],
+      "system.traits.otherTags": [
+        "wizard-arcane-school"
+      ]
     }
   },
   {
@@ -1551,8 +3243,12 @@
       "name": "School of Civic Wizardry",
       "system.level": 1,
       "system.category": "arcaneSchool",
-      "system.traits.value": ["wizard"],
-      "system.traits.otherTags": ["wizard-arcane-school"]
+      "system.traits.value": [
+        "wizard"
+      ],
+      "system.traits.otherTags": [
+        "wizard-arcane-school"
+      ]
     }
   },
   {
@@ -1565,8 +3261,12 @@
       "name": "School of Gates",
       "system.level": 1,
       "system.category": "arcaneSchool",
-      "system.traits.value": ["wizard"],
-      "system.traits.otherTags": ["wizard-arcane-school"]
+      "system.traits.value": [
+        "wizard"
+      ],
+      "system.traits.otherTags": [
+        "wizard-arcane-school"
+      ]
     }
   },
   {
@@ -1579,8 +3279,12 @@
       "name": "School of Kalistrade",
       "system.level": 1,
       "system.category": "arcaneSchool",
-      "system.traits.value": ["wizard"],
-      "system.traits.otherTags": ["wizard-arcane-school"]
+      "system.traits.value": [
+        "wizard"
+      ],
+      "system.traits.otherTags": [
+        "wizard-arcane-school"
+      ]
     }
   },
   {
@@ -1593,8 +3297,12 @@
       "name": "School of Magical Technologies",
       "system.level": 1,
       "system.category": "arcaneSchool",
-      "system.traits.value": ["wizard"],
-      "system.traits.otherTags": ["wizard-arcane-school"]
+      "system.traits.value": [
+        "wizard"
+      ],
+      "system.traits.otherTags": [
+        "wizard-arcane-school"
+      ]
     }
   },
   {
@@ -1607,8 +3315,12 @@
       "name": "School of Mentalism",
       "system.level": 1,
       "system.category": "arcaneSchool",
-      "system.traits.value": ["wizard"],
-      "system.traits.otherTags": ["wizard-arcane-school"]
+      "system.traits.value": [
+        "wizard"
+      ],
+      "system.traits.otherTags": [
+        "wizard-arcane-school"
+      ]
     }
   },
   {
@@ -1621,8 +3333,12 @@
       "name": "School of Protean Form",
       "system.level": 1,
       "system.category": "arcaneSchool",
-      "system.traits.value": ["wizard"],
-      "system.traits.otherTags": ["wizard-arcane-school"]
+      "system.traits.value": [
+        "wizard"
+      ],
+      "system.traits.otherTags": [
+        "wizard-arcane-school"
+      ]
     }
   },
   {
@@ -1635,8 +3351,12 @@
       "name": "School of Rooted Wisdom",
       "system.level": 1,
       "system.category": "arcaneSchool",
-      "system.traits.value": ["wizard"],
-      "system.traits.otherTags": ["wizard-arcane-school"]
+      "system.traits.value": [
+        "wizard"
+      ],
+      "system.traits.otherTags": [
+        "wizard-arcane-school"
+      ]
     }
   },
   {
@@ -1649,8 +3369,12 @@
       "name": "School of the Boundary",
       "system.level": 1,
       "system.category": "arcaneSchool",
-      "system.traits.value": ["wizard"],
-      "system.traits.otherTags": ["wizard-arcane-school"]
+      "system.traits.value": [
+        "wizard"
+      ],
+      "system.traits.otherTags": [
+        "wizard-arcane-school"
+      ]
     }
   },
   {
@@ -1663,8 +3387,12 @@
       "name": "School of the Reclamation",
       "system.level": 1,
       "system.category": "arcaneSchool",
-      "system.traits.value": ["wizard"],
-      "system.traits.otherTags": ["wizard-arcane-school"]
+      "system.traits.value": [
+        "wizard"
+      ],
+      "system.traits.otherTags": [
+        "wizard-arcane-school"
+      ]
     }
   },
   {
@@ -1677,8 +3405,13 @@
       "name": "School of Unified Magical Theory",
       "system.level": 1,
       "system.category": "arcaneSchool",
-      "system.traits.value": ["wizard"],
-      "system.traits.otherTags": ["wizard-arcane-school", "wizard-elemental-school"]
+      "system.traits.value": [
+        "wizard"
+      ],
+      "system.traits.otherTags": [
+        "wizard-arcane-school",
+        "wizard-elemental-school"
+      ]
     }
   },
   {
@@ -1691,8 +3424,57 @@
       "name": "Scoundrel",
       "system.level": 1,
       "system.category": "racket",
-      "system.traits.value": ["rogue"],
-      "system.traits.otherTags": ["rogue-racket"]
+      "system.traits.value": [
+        "rogue"
+      ],
+      "system.traits.otherTags": [
+        "rogue-racket"
+      ]
+    }
+  },
+  {
+    "_id": "jvnq82PVH2N2MUfD",
+    "uuid": "Compendium.pf2e.class-features-core.Item.jvnq82PVH2N2MUfD",
+    "name": "Second Doctrine (Cloistered Cleric)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Second Doctrine (Cloistered Cleric)",
+      "system.level": 3,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
+    }
+  },
+  {
+    "_id": "r6hvcZm2ECp1KEhb",
+    "uuid": "Compendium.pf2e.class-features-core.Item.r6hvcZm2ECp1KEhb",
+    "name": "Second Doctrine (Warpriest)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Second Doctrine (Warpriest)",
+      "system.level": 3,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
+    }
+  },
+  {
+    "_id": "9r3wfPji8msgL53W",
+    "uuid": "Compendium.pf2e.class-features-core.Item.9r3wfPji8msgL53W",
+    "name": "Second Doctrine",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Second Doctrine",
+      "system.level": 3,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
     }
   },
   {
@@ -1705,7 +3487,24 @@
       "name": "Second Gate's Threshold",
       "system.level": 9,
       "system.category": "classfeature",
-      "system.traits.value": ["kineticist"]
+      "system.traits.value": [
+        "kineticist"
+      ]
+    }
+  },
+  {
+    "_id": "xVdEfXKh6CrTVj1h",
+    "uuid": "Compendium.pf2e.class-features-core.Item.xVdEfXKh6CrTVj1h",
+    "name": "Second Path to Perfection",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Second Path to Perfection",
+      "system.level": 11,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "monk"
+      ]
     }
   },
   {
@@ -1730,6 +3529,24 @@
     }
   },
   {
+    "_id": "QMx05Uer8dWp7K75",
+    "uuid": "Compendium.pf2e.class-features-core.Item.QMx05Uer8dWp7K75",
+    "name": "Signature Spells",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Signature Spells",
+      "system.level": 3,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "bard",
+        "oracle",
+        "psychic",
+        "sorcerer"
+      ]
+    }
+  },
+  {
     "_id": "IAshNRcsNkceSbdx",
     "uuid": "Compendium.pf2e.class-features-core.Item.IAshNRcsNkceSbdx",
     "name": "Sneak Attack",
@@ -1739,7 +3556,39 @@
       "name": "Sneak Attack",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": ["rogue"]
+      "system.traits.value": [
+        "rogue"
+      ]
+    }
+  },
+  {
+    "_id": "FMCbwY7W87AHaS48",
+    "uuid": "Compendium.pf2e.class-features-core.Item.FMCbwY7W87AHaS48",
+    "name": "Sorcerer Spellcasting",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Sorcerer Spellcasting",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "sorcerer"
+      ]
+    }
+  },
+  {
+    "_id": "jAAzTvbs12s8pHtT",
+    "uuid": "Compendium.pf2e.class-features-core.Item.jAAzTvbs12s8pHtT",
+    "name": "Sorcerous Potency",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Sorcerous Potency",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "sorcerer"
+      ]
     }
   },
   {
@@ -1752,8 +3601,12 @@
       "name": "Sparkling Targe",
       "system.level": 1,
       "system.category": "hybridStudy",
-      "system.traits.value": ["magus"],
-      "system.traits.otherTags": ["magus-hybrid-study"]
+      "system.traits.value": [
+        "magus"
+      ],
+      "system.traits.otherTags": [
+        "magus-hybrid-study"
+      ]
     }
   },
   {
@@ -1766,8 +3619,31 @@
       "name": "Spell Blending",
       "system.level": 1,
       "system.category": "arcaneThesis",
-      "system.traits.value": ["wizard"],
-      "system.traits.otherTags": ["wizard-arcane-thesis"]
+      "system.traits.value": [
+        "wizard"
+      ],
+      "system.traits.otherTags": [
+        "wizard-arcane-thesis"
+      ]
+    }
+  },
+  {
+    "_id": "IPkRrReHUSAhWrb3",
+    "uuid": "Compendium.pf2e.class-features-core.Item.IPkRrReHUSAhWrb3",
+    "name": "Spell Repertoire",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Spell Repertoire",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "bard",
+        "oracle",
+        "psychic",
+        "sorcerer",
+        "summoner"
+      ]
     }
   },
   {
@@ -1780,8 +3656,12 @@
       "name": "Spell Substitution",
       "system.level": 1,
       "system.category": "arcaneThesis",
-      "system.traits.value": ["wizard"],
-      "system.traits.otherTags": ["wizard-arcane-thesis"]
+      "system.traits.value": [
+        "wizard"
+      ],
+      "system.traits.otherTags": [
+        "wizard-arcane-thesis"
+      ]
     }
   },
   {
@@ -1794,7 +3674,9 @@
       "name": "Spellstrike",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": ["magus"]
+      "system.traits.value": [
+        "magus"
+      ]
     }
   },
   {
@@ -1807,8 +3689,12 @@
       "name": "Spirit Instinct",
       "system.level": 1,
       "system.category": "instinct",
-      "system.traits.value": ["barbarian"],
-      "system.traits.otherTags": ["barbarian-instinct"]
+      "system.traits.value": [
+        "barbarian"
+      ],
+      "system.traits.otherTags": [
+        "barbarian-instinct"
+      ]
     }
   },
   {
@@ -1821,8 +3707,12 @@
       "name": "Staff Nexus",
       "system.level": 1,
       "system.category": "arcaneThesis",
-      "system.traits.value": ["wizard"],
-      "system.traits.otherTags": ["wizard-arcane-thesis"]
+      "system.traits.value": [
+        "wizard"
+      ],
+      "system.traits.otherTags": [
+        "wizard-arcane-thesis"
+      ]
     }
   },
   {
@@ -1835,8 +3725,12 @@
       "name": "Starlit Span",
       "system.level": 1,
       "system.category": "hybridStudy",
-      "system.traits.value": ["magus"],
-      "system.traits.otherTags": ["magus-hybrid-study"]
+      "system.traits.value": [
+        "magus"
+      ],
+      "system.traits.otherTags": [
+        "magus-hybrid-study"
+      ]
     }
   },
   {
@@ -1849,7 +3743,9 @@
       "name": "Studious Spells",
       "system.level": 7,
       "system.category": "classfeature",
-      "system.traits.value": ["magus"]
+      "system.traits.value": [
+        "magus"
+      ]
     }
   },
   {
@@ -1862,8 +3758,12 @@
       "name": "Superstition Instinct",
       "system.level": 1,
       "system.category": "instinct",
-      "system.traits.value": ["barbarian"],
-      "system.traits.otherTags": ["barbarian-instinct"]
+      "system.traits.value": [
+        "barbarian"
+      ],
+      "system.traits.otherTags": [
+        "barbarian-instinct"
+      ]
     }
   },
   {
@@ -1876,7 +3776,9 @@
       "name": "Surprise Attack",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": ["rogue"]
+      "system.traits.value": [
+        "rogue"
+      ]
     }
   },
   {
@@ -1889,7 +3791,9 @@
       "name": "Swift Prey",
       "system.level": 19,
       "system.category": "classfeature",
-      "system.traits.value": ["ranger"]
+      "system.traits.value": [
+        "ranger"
+      ]
     }
   },
   {
@@ -1902,7 +3806,9 @@
       "name": "Tempered Reflexes",
       "system.level": 15,
       "system.category": "classfeature",
-      "system.traits.value": ["fighter"]
+      "system.traits.value": [
+        "fighter"
+      ]
     }
   },
   {
@@ -1915,8 +3821,57 @@
       "name": "Thief",
       "system.level": 1,
       "system.category": "racket",
-      "system.traits.value": ["rogue"],
-      "system.traits.otherTags": ["rogue-racket"]
+      "system.traits.value": [
+        "rogue"
+      ],
+      "system.traits.otherTags": [
+        "rogue-racket"
+      ]
+    }
+  },
+  {
+    "_id": "tLSGEEfStt5nueny",
+    "uuid": "Compendium.pf2e.class-features-core.Item.tLSGEEfStt5nueny",
+    "name": "Third Doctrine (Cloistered Cleric)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Third Doctrine (Cloistered Cleric)",
+      "system.level": 7,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
+    }
+  },
+  {
+    "_id": "XoOqrgB4XivbPdcA",
+    "uuid": "Compendium.pf2e.class-features-core.Item.XoOqrgB4XivbPdcA",
+    "name": "Third Doctrine (Warpriest)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Third Doctrine (Warpriest)",
+      "system.level": 7,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
+    }
+  },
+  {
+    "_id": "gDngrAJywQFHy5gY",
+    "uuid": "Compendium.pf2e.class-features-core.Item.gDngrAJywQFHy5gY",
+    "name": "Third Doctrine",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Third Doctrine",
+      "system.level": 7,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "cleric"
+      ]
     }
   },
   {
@@ -1929,7 +3884,24 @@
       "name": "Third Gate's Threshold",
       "system.level": 13,
       "system.category": "classfeature",
-      "system.traits.value": ["kineticist"]
+      "system.traits.value": [
+        "kineticist"
+      ]
+    }
+  },
+  {
+    "_id": "vRc9KYm0mKU5tANe",
+    "uuid": "Compendium.pf2e.class-features-core.Item.vRc9KYm0mKU5tANe",
+    "name": "Third Path to Perfection",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Third Path to Perfection",
+      "system.level": 15,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "monk"
+      ]
     }
   },
   {
@@ -1942,7 +3914,9 @@
       "name": "Trackless Journey",
       "system.level": 5,
       "system.category": "classfeature",
-      "system.traits.value": ["ranger"]
+      "system.traits.value": [
+        "ranger"
+      ]
     }
   },
   {
@@ -1955,8 +3929,12 @@
       "name": "Twisting Tree",
       "system.level": 1,
       "system.category": "hybridStudy",
-      "system.traits.value": ["magus"],
-      "system.traits.otherTags": ["magus-hybrid-study"]
+      "system.traits.value": [
+        "magus"
+      ],
+      "system.traits.otherTags": [
+        "magus-hybrid-study"
+      ]
     }
   },
   {
@@ -1969,8 +3947,12 @@
       "name": "Unfurling Brocade",
       "system.level": 1,
       "system.category": "hybridStudy",
-      "system.traits.value": ["magus"],
-      "system.traits.otherTags": ["magus-hybrid-study"]
+      "system.traits.value": [
+        "magus"
+      ],
+      "system.traits.otherTags": [
+        "magus-hybrid-study"
+      ]
     }
   },
   {
@@ -1983,7 +3965,9 @@
       "name": "Unimpeded Journey",
       "system.level": 11,
       "system.category": "classfeature",
-      "system.traits.value": ["ranger"]
+      "system.traits.value": [
+        "ranger"
+      ]
     }
   },
   {
@@ -1996,7 +3980,9 @@
       "name": "Versatile Legend",
       "system.level": 19,
       "system.category": "classfeature",
-      "system.traits.value": ["fighter"]
+      "system.traits.value": [
+        "fighter"
+      ]
     }
   },
   {
@@ -2009,8 +3995,13 @@
       "name": "Vindicator",
       "system.level": 1,
       "system.category": "huntersEdge",
-      "system.traits.value": ["ranger"],
-      "system.traits.otherTags": ["class-archetype", "ranger-hunters-edge"]
+      "system.traits.value": [
+        "ranger"
+      ],
+      "system.traits.otherTags": [
+        "class-archetype",
+        "ranger-hunters-edge"
+      ]
     }
   },
   {
@@ -2023,7 +4014,45 @@
       "name": "Warden's Endurance",
       "system.level": 11,
       "system.category": "classfeature",
-      "system.traits.value": ["ranger"]
+      "system.traits.value": [
+        "ranger"
+      ]
+    }
+  },
+  {
+    "_id": "piMoitan7z8yLHVC",
+    "uuid": "Compendium.pf2e.class-features-core.Item.piMoitan7z8yLHVC",
+    "name": "Warpriest",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Warpriest",
+      "system.level": 1,
+      "system.category": "doctrine",
+      "system.traits.value": [
+        "cleric"
+      ],
+      "system.traits.otherTags": [
+        "cleric-doctrine"
+      ]
+    }
+  },
+  {
+    "_id": "nVw20CuAcCpucJYO",
+    "uuid": "Compendium.pf2e.class-features-core.Item.nVw20CuAcCpucJYO",
+    "name": "Warrior",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Warrior",
+      "system.level": 1,
+      "system.category": "muse",
+      "system.traits.value": [
+        "bard"
+      ],
+      "system.traits.otherTags": [
+        "bard-muse"
+      ]
     }
   },
   {
@@ -2064,7 +4093,9 @@
       "name": "Weapon Legend",
       "system.level": 13,
       "system.category": "classfeature",
-      "system.traits.value": ["fighter"]
+      "system.traits.value": [
+        "fighter"
+      ]
     }
   },
   {
@@ -2077,7 +4108,13 @@
       "name": "Weapon Mastery",
       "system.level": 13,
       "system.category": "classfeature",
-      "system.traits.value": ["barbarian", "commander", "guardian", "magus", "thaumaturge"]
+      "system.traits.value": [
+        "barbarian",
+        "commander",
+        "guardian",
+        "magus",
+        "thaumaturge"
+      ]
     }
   },
   {
@@ -2123,7 +4160,9 @@
       "name": "Weapon Tricks",
       "system.level": 5,
       "system.category": "classfeature",
-      "system.traits.value": ["rogue"]
+      "system.traits.value": [
+        "rogue"
+      ]
     }
   },
   {
@@ -2136,7 +4175,11 @@
       "name": "Will Expertise",
       "system.level": 3,
       "system.category": "classfeature",
-      "system.traits.value": ["alchemist", "kineticist", "ranger"]
+      "system.traits.value": [
+        "alchemist",
+        "kineticist",
+        "ranger"
+      ]
     }
   },
   {
@@ -2149,7 +4192,27 @@
       "name": "Wizard Spellcasting",
       "system.level": 1,
       "system.category": "classfeature",
-      "system.traits.value": ["wizard"]
+      "system.traits.value": [
+        "wizard"
+      ]
+    }
+  },
+  {
+    "_id": "mGMDAzP7yvSetA6Z",
+    "uuid": "Compendium.pf2e.class-features-core.Item.mGMDAzP7yvSetA6Z",
+    "name": "Zoophonia",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Zoophonia",
+      "system.level": 1,
+      "system.category": "muse",
+      "system.traits.value": [
+        "bard"
+      ],
+      "system.traits.otherTags": [
+        "bard-muse"
+      ]
     }
   }
 ]

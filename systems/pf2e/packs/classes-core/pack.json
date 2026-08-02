@@ -3,7 +3,11 @@
   "label": "PF2e Core Classes",
   "documentType": "Item",
   "systemId": "pf2e",
-  "indexFields": ["name", "system.keyAbility", "system.traits.value"],
+  "indexFields": [
+    "name",
+    "system.keyAbility",
+    "system.traits.value"
+  ],
   "license": {
     "license": "ORC",
     "attribution": "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -18,6 +22,6 @@
     "importerVersion": "0.1.0"
   },
   "schemaVersion": 1,
-  "documentCount": 7,
-  "generatedAt": "2026-08-02T01:09:19.045Z"
+  "documentCount": 12,
+  "generatedAt": "2026-08-02T03:53:52.362Z"
 }

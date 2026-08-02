@@ -217,7 +217,9 @@
       "name": "Elemental Familiar (Air)",
       "system.actionType": "passive",
       "system.category": "familiar",
-      "system.traits.value": ["air"]
+      "system.traits.value": [
+        "air"
+      ]
     }
   },
   {
@@ -230,7 +232,9 @@
       "name": "Elemental Familiar (Earth)",
       "system.actionType": "passive",
       "system.category": "familiar",
-      "system.traits.value": ["earth"]
+      "system.traits.value": [
+        "earth"
+      ]
     }
   },
   {
@@ -243,7 +247,9 @@
       "name": "Elemental Familiar (Fire)",
       "system.actionType": "passive",
       "system.category": "familiar",
-      "system.traits.value": ["fire"]
+      "system.traits.value": [
+        "fire"
+      ]
     }
   },
   {
@@ -256,7 +262,9 @@
       "name": "Elemental Familiar (Metal)",
       "system.actionType": "passive",
       "system.category": "familiar",
-      "system.traits.value": ["metal"]
+      "system.traits.value": [
+        "metal"
+      ]
     }
   },
   {
@@ -269,7 +277,9 @@
       "name": "Elemental Familiar (Water)",
       "system.actionType": "passive",
       "system.category": "familiar",
-      "system.traits.value": ["water"]
+      "system.traits.value": [
+        "water"
+      ]
     }
   },
   {
@@ -282,7 +292,9 @@
       "name": "Elemental Familiar (Wood)",
       "system.actionType": "passive",
       "system.category": "familiar",
-      "system.traits.value": ["wood"]
+      "system.traits.value": [
+        "wood"
+      ]
     }
   },
   {
@@ -776,7 +788,9 @@
       "name": "Lightning Armillary",
       "system.actionType": "action",
       "system.category": "familiar",
-      "system.traits.value": ["electricity"]
+      "system.traits.value": [
+        "electricity"
+      ]
     }
   },
   {
@@ -789,7 +803,9 @@
       "name": "Lightning Needles",
       "system.actionType": "action",
       "system.category": "familiar",
-      "system.traits.value": ["electricity"]
+      "system.traits.value": [
+        "electricity"
+      ]
     }
   },
   {
@@ -893,7 +909,9 @@
       "name": "Path of the Tempest",
       "system.actionType": "action",
       "system.category": "familiar",
-      "system.traits.value": ["air"]
+      "system.traits.value": [
+        "air"
+      ]
     }
   },
   {
@@ -1114,7 +1132,10 @@
       "name": "Dazzling Show",
       "system.actionType": "action",
       "system.category": "familiar",
-      "system.traits.value": ["move", "visual"]
+      "system.traits.value": [
+        "move",
+        "visual"
+      ]
     }
   },
   {
@@ -1140,7 +1161,9 @@
       "name": "Kick Up Dust",
       "system.actionType": "action",
       "system.category": "familiar",
-      "system.traits.value": ["manipulate"]
+      "system.traits.value": [
+        "manipulate"
+      ]
     }
   },
   {
@@ -1166,7 +1189,9 @@
       "name": "Pot of Tea",
       "system.actionType": "passive",
       "system.category": "familiar",
-      "system.traits.value": ["healing"]
+      "system.traits.value": [
+        "healing"
+      ]
     }
   },
   {
@@ -1192,7 +1217,9 @@
       "name": "Shadow Projection",
       "system.actionType": "action",
       "system.category": "familiar",
-      "system.traits.value": ["shadow"]
+      "system.traits.value": [
+        "shadow"
+      ]
     }
   },
   {
@@ -1218,7 +1245,11 @@
       "name": "Stunning Flare",
       "system.actionType": "action",
       "system.category": "familiar",
-      "system.traits.value": ["fire", "light", "magical"]
+      "system.traits.value": [
+        "fire",
+        "light",
+        "magical"
+      ]
     }
   },
   {
@@ -1231,7 +1262,13 @@
       "name": "Vina Song",
       "system.actionType": "action",
       "system.category": "familiar",
-      "system.traits.value": ["auditory", "concentrate", "divine", "incapacitation", "mental"]
+      "system.traits.value": [
+        "auditory",
+        "concentrate",
+        "divine",
+        "incapacitation",
+        "mental"
+      ]
     }
   },
   {

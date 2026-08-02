@@ -29,13 +29,17 @@
     },
     "rules": [],
     "traits": {
-      "otherTags": ["witch-lesson"],
+      "otherTags": [
+        "witch-lesson"
+      ],
       "rarity": "uncommon",
-      "value": ["witch"]
+      "value": [
+        "witch"
+      ]
     }
   },
   "_fusion": {
-    "normalizedAt": "2026-07-05T18:45:05.759Z",
+    "normalizedAt": "2026-08-02T03:12:56.567Z",
     "removedFields": []
   }
 }

@@ -24,12 +24,16 @@
     "rules": [],
     "traits": {
       "rarity": "common",
-      "value": ["manipulate"]
+      "value": [
+        "manipulate"
+      ]
     },
     "fusionCategory": "vehicles"
   },
   "_fusion": {
-    "normalizedAt": "2026-07-05T18:45:14.355Z",
-    "removedFields": ["folder"]
+    "normalizedAt": "2026-08-02T03:12:57.361Z",
+    "removedFields": [
+      "folder"
+    ]
   }
 }

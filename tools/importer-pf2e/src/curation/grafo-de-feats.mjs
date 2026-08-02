@@ -58,6 +58,36 @@ function semSufixo(nome) {
 }
 
 /**
+ * Rótulos comparáveis de um eixo de escolha. O vendor nomeia a OPÇÃO sem o eixo
+ * ("Enigma", "Thief", "Warpriest") mas o pré-requisito cita o eixo junto
+ * ("enigma muse", "thief racket", "warpriest doctrine"). Sem casar as duas
+ * formas, 68 requisitos legítimos viravam não-resolvidos — a maior fatia dos
+ * não-resolvidos de Bard, Rogue, Champion e Magus.
+ *
+ * As formas vêm da própria curadoria (`category`, `slotType`,
+ * `featureNameInItemsMap`), nunca de uma lista chumbada aqui.
+ */
+function rotulosDoEixo(axis) {
+  const brutos = [axis.category, axis.slotType, axis.featureNameInItemsMap];
+  const formas = new Set();
+  for (const bruto of brutos) {
+    if (!bruto) continue;
+    // camelCase/kebab-case → palavras: "hybridStudy" e "hunters-edge".
+    const label = normalizar(String(bruto).replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/-/g, " "));
+    if (!label) continue;
+    formas.add(label);
+    // "muses" → "muse"; "rogue s racket" → "racket" (o eixo é a última palavra).
+    if (label.endsWith("s")) formas.add(label.slice(0, -1));
+    const ultima = label.split(" ").pop();
+    if (ultima && ultima !== label) {
+      formas.add(ultima);
+      if (ultima.endsWith("s")) formas.add(ultima.slice(0, -1));
+    }
+  }
+  return [...formas].filter((f) => f.length > 2);
+}
+
+/**
  * Quebra um texto de pré-requisito em candidatos. "A or B" e "A, B" viram dois
  * candidatos; o resto vira um só.
  */
@@ -85,6 +115,13 @@ export function construirGrafo() {
   // pela classe, não um talento. Sem isto a aresta se perdia em silêncio —
   // achado ao investigar por que o Cinetista tinha só 3 arestas.
   const acoes = carregar("actions-core");
+  // Mesma razão das ações: pré-requisito aponta para MAGIA de foco concedida
+  // pela classe — "lay on hands" (Champion), "courageous anthem" (Bard),
+  // "touch of the void", "shields of the spirit". São documentos reais no pack,
+  // logo são aresta (externa), não requisito solto. O casamento é por nome
+  // INTEIRO, então texto descritivo ("dispel magic in your spell repertoire")
+  // continua não-resolvido em vez de virar aresta inventada.
+  const magias = carregar("spells-core");
   const curadoria = loadClassCuration();
 
   const grafo = { geradoDe: "systems/pf2e/packs", classes: {} };
@@ -142,13 +179,37 @@ export function construirGrafo() {
       if (!porNome.has(curto)) porNome.set(curto, no.id);
     }
 
+    // Aliases "<opção> <eixo>": o pré-requisito cita o eixo junto do nome da
+    // opção, mas o documento se chama só pela opção. Também cobre o prefixo do
+    // vendor no Sorcerer ("Bloodline: Draconic" ↔ "draconic bloodline").
+    for (const axis of cfg.choiceAxes) {
+      const rotulos = rotulosDoEixo(axis);
+      if (rotulos.length === 0) continue;
+      for (const no of nos.filter((n) => n.categoria === axis.category)) {
+        const base = new Set([normalizar(no.nome), semSufixo(no.nome)]);
+        for (const rotulo of rotulos) {
+          // "Bloodline: Draconic" → base "draconic".
+          for (const b of [...base]) {
+            if (b.startsWith(`${rotulo} `)) base.add(b.slice(rotulo.length + 1));
+          }
+        }
+        for (const b of base) {
+          if (!b) continue;
+          for (const rotulo of rotulos) {
+            const alias = `${b} ${rotulo}`;
+            if (!porNome.has(alias)) porNome.set(alias, no.id);
+          }
+        }
+      }
+    }
+
     // Universo secundário: o pack inteiro. Um pré-requisito pode apontar para
     // um skill feat ("Pickpocket", "Snare Crafting") ou para um feat de outra
     // classe ("Reflexive Stance (Monk)"). Isso É uma aresta — só não é uma
     // aresta INTERNA. Marcar como externa preserva a informação sem poluir a
     // árvore da classe.
     const porNomeGlobal = new Map();
-    for (const d of [...feats, ...features, ...acoes]) {
+    for (const d of [...feats, ...features, ...acoes, ...magias]) {
       const n = normalizar(d.name);
       if (!porNomeGlobal.has(n)) porNomeGlobal.set(n, { id: d._id, nome: d.name });
       const c = semSufixo(d.name);

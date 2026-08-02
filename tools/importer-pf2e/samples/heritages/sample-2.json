@@ -22,7 +22,9 @@
     "rules": [
       {
         "key": "FlatModifier",
-        "predicate": ["item:trait:posion"],
+        "predicate": [
+          "item:trait:posion"
+        ],
         "selector": "saving-throw",
         "type": "circumstance",
         "value": 1
@@ -30,11 +32,15 @@
     ],
     "traits": {
       "rarity": "uncommon",
-      "value": ["leshy"]
+      "value": [
+        "leshy"
+      ]
     }
   },
   "_fusion": {
-    "normalizedAt": "2026-07-05T18:45:13.530Z",
-    "removedFields": ["folder"]
+    "normalizedAt": "2026-08-02T03:12:56.881Z",
+    "removedFields": [
+      "folder"
+    ]
   }
 }

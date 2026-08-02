@@ -276,11 +276,14 @@ export interface ClassFeatureRef {
 }
 
 export interface ClassSpellcastingTable {
-  tradition: string;
+  /** null for a class whose tradition is determined by a chosen bloodline/axis option (r22 — Sorcerer). */
+  tradition: string | null;
   type: "prepared" | "spontaneous";
   ability: string;
   cantripsKnown?: Array<{ level: number; count: number }>;
   slots?: Array<{ level: number; slots: Record<string, number> }>;
+  /** Bloodline slug (lowercase, e.g. "aberrant") → tradition, when `tradition` is null. A bloodline entry can itself be null (unresolved this round, e.g. Sorcerer's Draconic — see resolveBloodlineTradition). */
+  traditionByBloodline?: Record<string, string | null>;
 }
 
 /** Minimal shape planVM needs from a class item's `system` block. */
@@ -408,6 +411,10 @@ export type PlanSlotType =
   | "huntersEdge"
   | "arcaneThesis"
   | "arcaneSchool"
+  | "bloodline"
+  | "muse"
+  | "cause"
+  | "doctrine"
   | "skillTraining"
   | "skillIncrease"
   | "grantedFeat"
@@ -509,6 +516,10 @@ const SLOT_TYPE_LABELS: Record<PlanSlotType, string> = {
   huntersEdge: "Hunter's Edge",
   arcaneThesis: "Arcane Thesis",
   arcaneSchool: "Arcane School",
+  bloodline: "Bloodline",
+  muse: "Muse",
+  cause: "Cause",
+  doctrine: "Doctrine",
   skillTraining: "Skill Training",
   skillIncrease: "Skill Increase",
   grantedFeat: "Granted Feat",
@@ -542,6 +553,10 @@ export const CLASS_CHOICE_SLOTS: Record<string, PlanSlotType> = {
   "Hunter's Edge": "huntersEdge",
   "Arcane Thesis": "arcaneThesis",
   "Arcane School": "arcaneSchool",
+  Bloodline: "bloodline",
+  Muses: "muse",
+  Cause: "cause",
+  Doctrine: "doctrine",
 };
 
 /**
@@ -1694,6 +1709,10 @@ export const CLASS_CHOICE_SLOT_OPTIONS: Partial<
   huntersEdge: { packSlug: "class-features-core", category: "ranger-hunters-edge" },
   arcaneThesis: { packSlug: "class-features-core", category: "wizard-arcane-thesis" },
   arcaneSchool: { packSlug: "class-features-core", category: "wizard-arcane-school" },
+  bloodline: { packSlug: "class-features-core", category: "sorcerer-bloodline" },
+  muse: { packSlug: "class-features-core", category: "bard-muse" },
+  cause: { packSlug: "class-features-core", category: "champion-cause" },
+  doctrine: { packSlug: "class-features-core", category: "cleric-doctrine" },
 };
 
 /**
@@ -2417,59 +2436,90 @@ export function applyClass(
   } satisfies DocCreateEmbeddedPayload);
 
   const level = getLevel(ctx.doc);
-  if (classSystem.spellcasting) {
-    const { cantripsKnown, slotsByRank } = spellSlotsForLevel(classSystem.spellcasting, level);
-    ops.push({
-      type: "doc:create",
-      documentType: "Item",
-      data: {
-        name: `${classSystem.spellcasting.tradition} Spells`,
-        type: "spellcastingEntry",
-        flags: { fusion: { build: { level: 1, slot: "class:spellcasting" } } },
-        system: {
-          prepared: { value: classSystem.spellcasting.type },
-          tradition: { value: classSystem.spellcasting.tradition },
-          ability: { value: classSystem.spellcasting.ability },
-          proficiency: { value: 1 },
-          slots: buildSlotsMap(slotsByRank, cantripsKnown),
-          isFocusPool: false,
-        },
-      },
-      parent: { type: "Actor", id: ctx.actorId },
-    } satisfies DocCreateEmbeddedPayload);
+  // r22 (Sorcerer): a class whose tradition is determined by a chosen
+  // bloodline (spellcasting.tradition === null) can't get its spellcasting/
+  // focus entries built yet — there's no tradition to stamp on them until
+  // the "bloodline" choice slot is filled. `chooseClassChoice` creates them
+  // (with the resolved tradition) once that happens. Every other class keeps
+  // creating them immediately here, unchanged.
+  if (classSystem.spellcasting?.tradition) {
+    ops.push(
+      buildSpellcastingEntryOp(ctx, classSystem.spellcasting, classSystem.spellcasting.tradition, level),
+    );
   }
 
-  if (hasFocusFeature(classSystem)) {
-    ops.push({
-      type: "doc:create",
-      documentType: "Item",
-      data: {
-        name: "Focus Spells",
-        type: "spellcastingEntry",
-        flags: { fusion: { build: { level: 1, slot: "class:focus" } } },
-        system: {
-          prepared: { value: "innate" },
-          tradition: { value: classSystem.spellcasting?.tradition ?? "arcane" },
-          // Focus spells cast with the class's SPELLCASTING ability (Magus
-          // conflux = INT), not the key ability (r11 fix — Pathbuilder's
-          // focus block confirms int for Tobias).
-          ability: { value: classSystem.spellcasting?.ability ?? "int" },
-          proficiency: { value: 1 },
-          slots: {},
-          isFocusPool: true,
-        },
-      },
-      parent: { type: "Actor", id: ctx.actorId },
-    } satisfies DocCreateEmbeddedPayload);
+  if (classSystem.spellcasting?.tradition && hasFocusFeature(classSystem)) {
+    ops.push(buildFocusEntryOp(ctx, classSystem.spellcasting, classSystem.spellcasting.tradition));
   }
 
   return ops;
 }
 
-/** Does the class grant a focus pool at level 1 (e.g. Magus's Conflux Spells)? */
+/** Builds the doc:create op for the class's non-focus ("class:spellcasting") entry — factored out so `chooseBloodline`-style deferred creation (r22) can build the identical shape once the tradition is resolved from a chosen axis option. */
+function buildSpellcastingEntryOp(
+  ctx: PlanOpBuilderContext,
+  spellcasting: ClassSpellcastingTable,
+  tradition: string,
+  level: number,
+): DocCreateEmbeddedPayload {
+  const { cantripsKnown, slotsByRank } = spellSlotsForLevel(spellcasting, level);
+  return {
+    type: "doc:create",
+    documentType: "Item",
+    data: {
+      name: `${tradition} Spells`,
+      type: "spellcastingEntry",
+      flags: { fusion: { build: { level: 1, slot: "class:spellcasting" } } },
+      system: {
+        prepared: { value: spellcasting.type },
+        tradition: { value: tradition },
+        ability: { value: spellcasting.ability },
+        proficiency: { value: 1 },
+        slots: buildSlotsMap(slotsByRank, cantripsKnown),
+        isFocusPool: false,
+      },
+    },
+    parent: { type: "Actor", id: ctx.actorId },
+  } satisfies DocCreateEmbeddedPayload;
+}
+
+/** Builds the doc:create op for the class's focus ("class:focus") entry — see `buildSpellcastingEntryOp`. */
+function buildFocusEntryOp(
+  ctx: PlanOpBuilderContext,
+  spellcasting: ClassSpellcastingTable,
+  tradition: string,
+): DocCreateEmbeddedPayload {
+  return {
+    type: "doc:create",
+    documentType: "Item",
+    data: {
+      name: "Focus Spells",
+      type: "spellcastingEntry",
+      flags: { fusion: { build: { level: 1, slot: "class:focus" } } },
+      system: {
+        prepared: { value: "innate" },
+        tradition: { value: tradition },
+        // Focus spells cast with the class's SPELLCASTING ability (Magus
+        // conflux = INT), not the key ability (r11 fix — Pathbuilder's
+        // focus block confirms int for Tobias).
+        ability: { value: spellcasting.ability ?? "int" },
+        proficiency: { value: 1 },
+        slots: {},
+        isFocusPool: true,
+      },
+    },
+    parent: { type: "Actor", id: ctx.actorId },
+  } satisfies DocCreateEmbeddedPayload;
+}
+
+/** Does the class grant a focus pool at level 1 (e.g. Magus's Conflux Spells, Sorcerer's Bloodline Spells)? */
 function hasFocusFeature(classSystem: ClassSystemLike): boolean {
   return (classSystem.featuresByLevel ?? []).some(
-    (f) => f.level === 1 && (f.name.includes("Conflux") || f.name.toLowerCase().includes("focus")),
+    (f) =>
+      f.level === 1 &&
+      (f.name.includes("Conflux") ||
+        f.name.toLowerCase().includes("focus") ||
+        f.name === "Bloodline Spells"),
   );
 }
 
@@ -3039,12 +3089,88 @@ export function chooseClassChoice(
   level: number,
   featureDoc: Record<string, unknown>,
 ): DocOpPayload[] {
-  return chooseFeat(
+  const ops = chooseFeat(
     ctx,
     { slotId: `${slotType}-${String(level)}`, type: slotType } as PlanSlotModel,
     level,
     featureDoc,
   );
+  if (slotType === "bloodline") {
+    ops.push(...bloodlineSpellcastingOps(ctx, featureDoc));
+  }
+  return ops;
+}
+
+/**
+ * Bloodline slug from a "Bloodline: <Name>" classFeature doc's name (e.g.
+ * "Bloodline: Aberrant" → "aberrant") — matches the lowercase keys
+ * `traditionByBloodline` uses (curation/classes/sorcerer.json).
+ */
+function bloodlineSlugFromDocName(name: string | undefined): string | undefined {
+  const stripped = name?.replace(/^Bloodline:\s*/, "").trim();
+  return stripped ? stripped.toLowerCase() : undefined;
+}
+
+/**
+ * Resolves the tradition for a chosen bloodline option. Falls back to
+ * "arcane" (same documented default the focus entry already used pre-r22)
+ * when the map has no entry, or the entry is explicitly null — a bloodline
+ * whose tradition needs a sub-choice this round doesn't model (Draconic; see
+ * sorcerer.json's PENDENCIA DE CONTRATO 1 note).
+ */
+function resolveBloodlineTradition(
+  spellcasting: ClassSpellcastingTable,
+  bloodlineDoc: Record<string, unknown>,
+): string {
+  const slug = bloodlineSlugFromDocName(itemName(bloodlineDoc));
+  const resolved = slug ? spellcasting.traditionByBloodline?.[slug] : undefined;
+  return resolved ?? "arcane";
+}
+
+/**
+ * r22 — when a class's tradition depends on the chosen bloodline
+ * (spellcasting.tradition === null), `applyClass` defers creating the
+ * "class:spellcasting"/"class:focus" entries. This builds them (first pick)
+ * or re-stamps their tradition (re-pick, swapping bloodlines) once the
+ * "Bloodline" choice slot is filled. No-op for any class with a fixed
+ * tradition (spellcasting.tradition already set) or no spellcasting at all.
+ */
+function bloodlineSpellcastingOps(
+  ctx: PlanOpBuilderContext,
+  bloodlineDoc: Record<string, unknown>,
+): DocOpPayload[] {
+  const classSystem = readClassSystem(ctx.doc);
+  const spellcasting = classSystem?.spellcasting;
+  if (!spellcasting || spellcasting.tradition) return [];
+
+  const tradition = resolveBloodlineTradition(spellcasting, bloodlineDoc);
+  const level = getLevel(ctx.doc);
+  const items = getItems(ctx.doc);
+  const ops: DocOpPayload[] = [];
+
+  const restamp = (slot: "class:spellcasting" | "class:focus"): boolean => {
+    const existing = items.find((it) => getItemBuildFlag(it)?.slot === slot);
+    const id = existing?.["_id"];
+    if (typeof id !== "string") return false;
+    ops.push({
+      type: "doc:update",
+      documentType: "Item",
+      id,
+      embedded: { type: "Item", id: ctx.actorId },
+      diff: { "system.tradition.value": tradition },
+    } satisfies DocUpdatePayload);
+    return true;
+  };
+
+  if (!restamp("class:spellcasting")) {
+    ops.push(buildSpellcastingEntryOp(ctx, spellcasting, tradition, level));
+  }
+  if (hasFocusFeature(classSystem)) {
+    if (!restamp("class:focus")) {
+      ops.push(buildFocusEntryOp(ctx, spellcasting, tradition));
+    }
+  }
+  return ops;
 }
 
 /**

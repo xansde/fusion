@@ -69,14 +69,19 @@
     },
     "traits": {
       "rarity": "uncommon",
-      "value": ["deadly-d8", "disarm", "sweep", "versatile-p"]
+      "value": [
+        "deadly-d8",
+        "disarm",
+        "sweep",
+        "versatile-p"
+      ]
     },
     "usage": {
       "value": "held-in-one-hand"
     }
   },
   "_fusion": {
-    "normalizedAt": "2026-07-05T18:44:57.043Z",
+    "normalizedAt": "2026-08-02T03:12:56.034Z",
     "removedFields": []
   }
 }

@@ -11,7 +11,7 @@
       "featureNameInItemsMap": "Doctrine",
       "level": 1,
       "choose": 1,
-      "optionCount": 2,
+      "optionCount": 3,
       "slotType": "doctrine"
     }
   ],
@@ -290,7 +290,7 @@
     "collisionsDetected": [
       "entry.name-vs-uuid: o items{} do Cleric declara entry.name='Deity', mas a uuid aponta para 'Compendium.pf2e.classfeatures.Item.Deity (Cleric)'. O nome canonico e 'Deity (Cleric)', nao 'Deity' - a mesma armadilha do Magus/Reflex Expertise, aqui na primeira feature da classe.",
       "trait-duplo: 15 dos 89 feats com trait 'cleric' carregam trait de 2+ classes (Reach Spell = bard/cleric/druid/oracle/sorcerer/witch/wizard; Cantrip Expansion = bard/cleric/magus/oracle/psychic/sorcerer/witch/wizard; e mais 13). O gate class_level derivado por trait fica AMBIGUO - precisa ser 'any' sobre as classes do trait, igual ao caso do Wizard.",
-      "archetype-doctrine: 'Battle Creed' (class-features/battle-creed.json, sourceId 49CkgA3kj7Im6gZ5) carrega otherTag 'cleric-doctrine' + 'class-archetype' - e a doutrina do arquetipo Battle Harbinger (concede Battle Harbinger Dedication via GrantItem no nivel 2), nao uma 3a opcao core. Excluida do eixo por 'archetype vence trait de classe' (plano r21 secao 4.1), o mesmo criterio dos 10 feats '* Mask' do Wizard. optionCount do eixo cleric-doctrine e 2 (Cloistered Cleric, Warpriest), nao 3.",
+      "archetype-doctrine: 'Battle Creed' (class-features/battle-creed.json, sourceId 49CkgA3kj7Im6gZ5) carrega otherTag 'cleric-doctrine' + 'class-archetype' - e a doutrina do arquetipo Battle Harbinger (concede Battle Harbinger Dedication via GrantItem no nivel 2), nao uma 3a opcao core no sentido estrito. Este levantamento por classe sugeriu exclui-la ('archetype vence trait de classe', mesmo criterio dos 10 feats '* Mask' do Wizard) e declarou optionCount=2 - MAS a integracao central (r22) verificou que o MESMO padrao (doc de arquetipo reusando o otherTag de eixo de uma classe core) ja existe para Avenger/rogue-racket, Bloodrager/barbarian-instinct, Runelord/wizard-arcane-school e Vindicator/ranger-hunters-edge, e a politica ja estabelecida no r21 para todos esses (ver barbarian.json/ranger.json, secao 'r21 (integracao): optionCount corrigido...') e INCLUIR, nao excluir - 'nada e descartado, requisito sugere, nunca bloqueia'. Por consistencia entre classes, r22 aplicou a MESMA politica a Battle Creed: optionCount do eixo cleric-doctrine e 3 (Cloistered Cleric, Warpriest, Battle Creed), nao 2. O GrantItem da Battle Harbinger Dedication fica pendurado (arquetipo fora dos packs), mesma pendencia ja registrada e aceita para Bloodrager/Vindicator.",
       "shield-block-ja-existe: First Doctrine (Warpriest) concede a feat GERAL 'Shield Block' (sourceId jM72TjJ965jocBV8) via GrantItem - o mesmo doc que ja esta em feats-core (usado por outras classes marciais). Nao reimportar; e o mecanismo de reuso comprovado.",
       "attacks.other-nao-modelado: system.attacks do vendor classes/cleric.json tem uma chave 'other' ({name: \"Deity's favored weapon\", rank: 1}) alem de simple/martial/advanced/unarmed. E um QUINTO eixo de proficiencia de arma (a arma favorita da divindade, que so se resolve apos a escolha de deity) sem equivalente nas classes ja curadas (Fighter/Rogue/Ranger/Barbarian/Wizard so usam as 4 chaves fixas que proficiency-upgrades.mjs conhece). statFromVendorKey('other') cairia no fallback 'classDC', o que estaria ERRADO. Nao adicionado a proficiencyUpgradeExtras porque depende de deity (pendente, ver notes)."
     ]

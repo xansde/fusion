@@ -27,13 +27,21 @@
     },
     "rules": [],
     "traits": {
-      "otherTags": ["commander-master-tactic"],
-      "value": ["brandish", "commander", "tactic"]
+      "otherTags": [
+        "commander-master-tactic"
+      ],
+      "value": [
+        "brandish",
+        "commander",
+        "tactic"
+      ]
     },
     "fusionCategory": "class"
   },
   "_fusion": {
-    "normalizedAt": "2026-07-05T18:45:14.351Z",
-    "removedFields": ["folder"]
+    "normalizedAt": "2026-08-02T03:12:57.357Z",
+    "removedFields": [
+      "folder"
+    ]
   }
 }
