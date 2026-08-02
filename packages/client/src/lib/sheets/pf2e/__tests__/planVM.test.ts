@@ -4493,6 +4493,21 @@ describe("detailsRequestForSlot", () => {
     expect(req).toEqual({ packSlug: "class-features-core", name: "Arcane Fists" });
   });
 
+  // Issue #58: the Plan column already knows the REAL grant level (the
+  // enclosing LevelPlanModel.level) when it opens this dialog for a filled
+  // slot — passing it through lets the details panel override a shared
+  // class-features-core document's divergent static system.level instead of
+  // showing it with false confidence.
+  it("carries an explicit level through to the request when the caller supplies it", () => {
+    const req = detailsRequestForSlot(slot({ type: "hybridStudy", choiceName: "Arcane Fists" }), 9);
+    expect(req).toEqual({ packSlug: "class-features-core", name: "Arcane Fists", level: 9 });
+  });
+
+  it("omits the level key entirely when the caller doesn't supply one (unchanged behavior)", () => {
+    const req = detailsRequestForSlot(slot({ type: "classFeat", choiceName: "Sudden Charge" }));
+    expect(req).not.toHaveProperty("level");
+  });
+
   it("routes every filled feat-family slot to feats-core", () => {
     for (const type of [
       "ancestryFeat",
@@ -4540,6 +4555,19 @@ describe("detailsRequestForAutoFeature", () => {
   it("always resolves an auto-feature against class-features-core", () => {
     const req = detailsRequestForAutoFeature({ name: "Spellstrike", locked: true });
     expect(req).toEqual({ packSlug: "class-features-core", name: "Spellstrike" });
+  });
+
+  // Issue #58: locked auto-feature chips (e.g. "Reflex Expertise") are the
+  // exact case from the bug report — PlanColumn knows the chip's real grant
+  // level (LevelPlanModel.level) and now threads it through.
+  it("carries an explicit level through to the request when the caller supplies it", () => {
+    const req = detailsRequestForAutoFeature({ name: "Reflex Expertise", locked: true }, 9);
+    expect(req).toEqual({ packSlug: "class-features-core", name: "Reflex Expertise", level: 9 });
+  });
+
+  it("omits the level key entirely when the caller doesn't supply one (unchanged behavior)", () => {
+    const req = detailsRequestForAutoFeature({ name: "Spellstrike", locked: true });
+    expect(req).not.toHaveProperty("level");
   });
 });
 

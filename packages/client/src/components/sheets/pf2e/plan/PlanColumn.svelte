@@ -760,13 +760,18 @@
 
   let detailsRequest = $state<PlanDetailsRequest | null>(null);
 
-  function handleSlotDetails(slot: PlanSlotModel): void {
-    const req = detailsRequestForSlot(slot);
+  // `level` is the enclosing LevelPlanModel.level (issue #58) — the ONE place
+  // that knows which level THIS plan actually granted the item at, as
+  // opposed to a shared class-features-core document's own divergent static
+  // system.level. Threaded into the request so the details panel can show
+  // the real grant level instead of the document's.
+  function handleSlotDetails(level: number, slot: PlanSlotModel): void {
+    const req = detailsRequestForSlot(slot, level);
     if (req) detailsRequest = req;
   }
 
-  function handleAutoFeatureClick(feature: AutoFeatureModel): void {
-    detailsRequest = detailsRequestForAutoFeature(feature);
+  function handleAutoFeatureClick(level: number, feature: AutoFeatureModel): void {
+    detailsRequest = detailsRequestForAutoFeature(feature, level);
   }
 
   /** Reconstruct just enough of the FeatDocLike shape from a PackIndexEntry's flat dot-path index to run a feat predicate against it. */
@@ -1090,8 +1095,8 @@
           {autoFeatureDisplay}
           onSlotClick={(slot) => handleSlotClick(levelPlan.level, slot)}
           onSlotRemove={(slot) => handleSlotRemove(levelPlan.level, slot)}
-          onSlotDetails={handleSlotDetails}
-          onAutoFeatureClick={handleAutoFeatureClick}
+          onSlotDetails={(slot) => handleSlotDetails(levelPlan.level, slot)}
+          onAutoFeatureClick={(feature) => handleAutoFeatureClick(levelPlan.level, feature)}
         />
       {/each}
     </div>

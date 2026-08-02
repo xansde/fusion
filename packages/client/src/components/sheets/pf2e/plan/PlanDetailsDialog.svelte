@@ -8,11 +8,14 @@
    *
    * Unlike CompendiumPickerDialog this dialog makes NO choice — it only shows
    * the ORC/OGL description/mechanics of ONE named compendium document. The
-   * caller (PlanColumn) passes a { packSlug, name } request; this dialog
-   * resolves it to a compendium uuid by searching the pack's index for a
-   * matching name (findEntryUuidByName — accent/case-insensitive), then
+   * caller (PlanColumn) passes a { packSlug, name, level? } request; this
+   * dialog resolves it to a compendium uuid by searching the pack's index for
+   * a matching name (findEntryUuidByName — accent/case-insensitive), then
    * fetches the full document via getDocument(uuid) and renders it in the
-   * shared DocumentDetailsPanel.
+   * shared DocumentDetailsPanel. `request.level` — the plan's own grant level
+   * for this item, when the caller knows it — is forwarded as `contextLevel`
+   * so a shared class-features-core document's divergent static level
+   * (issue #58) doesn't leak into the panel.
    *
    * Why resolve by NAME and not uuid: the chips come from the class item's
    * `featuresByLevel[].uuid`, which is a bare Foundry id (e.g.
@@ -154,6 +157,7 @@
           {loading}
           error={errorKind === "load"}
           onRetry={() => void resolveAndLoad()}
+          contextLevel={request.level ?? null}
           loadingKey="FUSION.Sheet.Plan.Picker.Details.Loading"
           loadErrorKey="FUSION.Sheet.Plan.Picker.Details.LoadError"
           retryKey="FUSION.Sheet.Plan.Picker.Details.Retry"

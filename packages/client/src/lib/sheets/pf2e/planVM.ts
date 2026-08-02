@@ -4524,14 +4524,26 @@ export const SLOT_TYPE_LABELS_EN: Record<PlanSlotType, string> = SLOT_TYPE_LABEL
 
 /**
  * A request to open the details panel for a Plan item: which pack to search
- * and the item name to match. `level`/`rank` are display-only extras the
- * caller may already know; the resolver ignores them.
+ * and the item name to match. `level` is a display-only extra the caller may
+ * already know; the NAME resolver (`findEntryUuidByName` + pack search)
+ * ignores it — it only reaches the details panel.
  */
 export interface PlanDetailsRequest {
   /** Pack slug suffix, e.g. "class-features-core" / "feats-core". */
   packSlug: string;
   /** Item name to resolve against the pack index (accent/case-insensitive). */
   name: string;
+  /**
+   * The level at which THIS plan actually grants the item — the enclosing
+   * `LevelPlanModel.level` the caller (PlanColumn) already has in scope.
+   * Overrides a shared class-features-core document's own divergent
+   * `system.level` in the details panel (issue #58: 17 documents are reused
+   * across classes that grant them at different levels — 35 divergences
+   * across 11/12 classes, per the r22 varredura). Omitted when the caller
+   * has no class context (e.g. `detailsRequestForAbcChip`'s ABC card
+   * chips) — the panel then falls back to the document's own level.
+   */
+  level?: number;
 }
 
 /** Normalize a name for matching — mirrors normalizeSearchText (accent/case-fold). */
@@ -4546,13 +4558,25 @@ function normalizeName(name: string): string {
  * compendium document to describe, so they return null (the Plan column
  * never opens a details panel for those — they're edited in their own
  * dialogs instead).
+ *
+ * `level` (issue #58) is the caller's known grant level — see
+ * {@link PlanDetailsRequest.level}. Optional and built via a conditional
+ * spread (not `level: level` directly): `exactOptionalPropertyTypes` rejects
+ * assigning `undefined` to an optional field that doesn't spell out
+ * `| undefined`, and every existing caller/test that omits `level` expects
+ * the key itself to be absent, not present-and-undefined.
  */
-export function detailsRequestForSlot(slot: PlanSlotModel): PlanDetailsRequest | null {
+export function detailsRequestForSlot(
+  slot: PlanSlotModel,
+  level?: number,
+): PlanDetailsRequest | null {
   const name = slot.choiceName;
   if (!name || !slot.filled) return null;
+  const withLevel = (packSlug: string): PlanDetailsRequest =>
+    level === undefined ? { packSlug, name } : { packSlug, name, level };
   // A locked fixed-grant chip (B2 r14) carries its own pack hint so a granted
   // classFeature resolves in class-features-core, not the feats-core default.
-  if (slot.detailsPackSlug) return { packSlug: slot.detailsPackSlug, name };
+  if (slot.detailsPackSlug) return withLevel(slot.detailsPackSlug);
   switch (slot.type) {
     case "hybridStudy":
     case "kineticGate":
@@ -4561,24 +4585,34 @@ export function detailsRequestForSlot(slot: PlanSlotModel): PlanDetailsRequest |
     case "huntersEdge":
     case "arcaneThesis":
     case "arcaneSchool":
-      return { packSlug: "class-features-core", name };
+      return withLevel("class-features-core");
     case "ancestryFeat":
     case "classFeat":
     case "generalFeat":
     case "skillFeat":
     case "archetypeFeat":
     case "grantedFeat":
-      return { packSlug: "feats-core", name };
+      return withLevel("feats-core");
     case "adoptedAncestryChoice":
-      return { packSlug: "ancestries-core", name };
+      return withLevel("ancestries-core");
     default:
       return null;
   }
 }
 
-/** The pack a locked auto-feature chip's description lives in (always a class feature). */
-export function detailsRequestForAutoFeature(feature: AutoFeatureModel): PlanDetailsRequest {
-  return { packSlug: feature.detailsPackSlug ?? "class-features-core", name: feature.name };
+/**
+ * The pack a locked auto-feature chip's description lives in (always a
+ * class feature). `level` (issue #58) is the caller's known grant level —
+ * see {@link PlanDetailsRequest.level}.
+ */
+export function detailsRequestForAutoFeature(
+  feature: AutoFeatureModel,
+  level?: number,
+): PlanDetailsRequest {
+  const packSlug = feature.detailsPackSlug ?? "class-features-core";
+  return level === undefined
+    ? { packSlug, name: feature.name }
+    : { packSlug, name: feature.name, level };
 }
 
 /**
