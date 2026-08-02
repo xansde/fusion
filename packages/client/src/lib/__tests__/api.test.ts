@@ -328,3 +328,74 @@ describe("ApiError parsing", () => {
     }
   });
 });
+
+describe("Content-Type on bodyless requests (issue #2)", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn());
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.resetModules();
+  });
+
+  /** Read the Content-Type the wrapper sent on the Nth fetch call. */
+  function sentContentType(callIndex = 0): string | null {
+    const call = vi.mocked(fetch).mock.calls[callIndex];
+    const init = call?.[1] as RequestInit | undefined;
+    return new Headers(init?.headers).get("Content-Type");
+  }
+
+  it("omits Content-Type on POST /api/auth/refresh (Fastify rejects empty JSON body)", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      mockResponse({ ok: true, accessToken: "tok", user: { id: "u1", name: "Aldric" } }),
+    );
+
+    const { fusionApi } = await import("../api.js");
+    await fusionApi.tryRefresh();
+
+    expect(sentContentType()).toBeNull();
+  });
+
+  it("omits Content-Type on POST /api/auth/logout", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(mockResponse({ ok: true }));
+
+    const { fusionApi } = await import("../api.js");
+    await fusionApi.logout();
+
+    expect(sentContentType()).toBeNull();
+  });
+
+  it("still sends Content-Type when there is a body", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      mockResponse({ ok: true, accessToken: "tok", user: { id: "u1", name: "Aldric" } }),
+    );
+
+    const { fusionApi } = await import("../api.js");
+    await fusionApi.login("u1", "secret");
+
+    expect(sentContentType()).toBe("application/json");
+  });
+
+  it("recovers a 401 through refresh without a bodyless Content-Type", async () => {
+    vi.mocked(fetch)
+      // 1. original request → 401
+      .mockResolvedValueOnce(mockResponse({ ok: false, code: "UNAUTHORIZED" }, 401))
+      // 2. refresh → 200
+      .mockResolvedValueOnce(
+        mockResponse({ ok: true, accessToken: "tok2", user: { id: "u1", name: "Aldric" } }),
+      )
+      // 3. retry → 200
+      .mockResolvedValueOnce(mockResponse({ ok: true }));
+
+    // logout is the only endpoint routed through apiFetch (the auto-refresh path)
+    const { fusionApi } = await import("../api.js");
+    await fusionApi.logout();
+
+    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(3);
+    // none of the three carries a body, so none may declare a JSON Content-Type
+    expect(sentContentType(0)).toBeNull();
+    expect(sentContentType(1)).toBeNull();
+    expect(sentContentType(2)).toBeNull();
+  });
+});
