@@ -61,6 +61,50 @@ export interface GrantMarker {
 }
 
 // ---------------------------------------------------------------------------
+// Unresolved-grant diagnostics (issue #35)
+//
+// Materialization drops a grant it cannot resolve and keeps going — correct
+// behaviour (a missing clean-room equivalent must never break a build), but it
+// used to be INVISIBLE: no console line, no mark on the sheet. 43 grants fail
+// per class build that way. `MaterializeContext.onGrantFailure` is the channel
+// that makes each drop observable; attaching a reporter is optional, so every
+// existing caller keeps working unchanged.
+// ---------------------------------------------------------------------------
+
+/** Why a declared grant produced no item. */
+export type GrantFailureReason =
+  /** The uuid's vendor segment has no `mapVendorToFusionPack` entry. */
+  | "unknown-vendor"
+  /** The vendor mapped fine, but no document of that name exists in the pack. */
+  | "target-not-found"
+  /**
+   * The uuid still carries an unexpanded `{item|…}` / `{actor|…}` ChoiceSet
+   * placeholder and was NOT flagged `inMemoryOnly` — i.e. nobody resolved the
+   * choice and no picker path owns it either.
+   */
+  | "unresolved-placeholder";
+
+/** One dropped grant, with enough context to name the culprit in a log line. */
+export interface GrantFailure {
+  reason: GrantFailureReason;
+  /** The ROOT granter's sourceId for this materialization pass. */
+  granterSourceId: string;
+  /** The immediate granter doc's name, when known. */
+  granterName?: string;
+  /** The grant uuid exactly as declared. */
+  uuid: string;
+  /** Vendor pack segment, when the uuid parsed. */
+  vendor?: string;
+  /** Target document name, when the uuid parsed. */
+  name?: string;
+  /** Fusion pack the target was looked up in (only for "target-not-found"). */
+  packSlug?: string;
+}
+
+/** Sink for dropped grants. Never throws into the materializer. */
+export type GrantFailureReporter = (failure: GrantFailure) => void;
+
+// ---------------------------------------------------------------------------
 // GrantItem parsing (from a granter doc's system.rules)
 // ---------------------------------------------------------------------------
 
@@ -83,8 +127,16 @@ export interface ParsedGrant {
  * In-memory-only grants (`inMemoryOnly: true`, used by ChoiceSet placeholders
  * `{item|flags...}`) are skipped — those are handled by the GRANTED_FEAT_CHOICES
  * picker path, not by fixed materialization.
+ *
+ * `onUnparsed` (optional) receives every uuid that looked like a fixed grant but
+ * could not be parsed — an unexpanded ChoiceSet placeholder that nobody flagged
+ * `inMemoryOnly`, or a malformed reference. Without it those vanish silently
+ * (issue #35).
  */
-export function parseGrantItems(rules: unknown): ParsedGrant[] {
+export function parseGrantItems(
+  rules: unknown,
+  onUnparsed?: (uuid: string) => void,
+): ParsedGrant[] {
   if (!Array.isArray(rules)) return [];
   const grants: ParsedGrant[] = [];
   for (const rule of rules) {
@@ -94,6 +146,7 @@ export function parseGrantItems(rules: unknown): ParsedGrant[] {
       r["raw"] && typeof r["raw"] === "object" ? (r["raw"] as Record<string, unknown>) : {};
     const isGrant = r["kind"] === "grant-item" || raw["key"] === "GrantItem";
     if (!isGrant) continue;
+    // Deferred to the picker path by design — not a failure.
     if (r["inMemoryOnly"] === true) continue;
     const uuid =
       typeof r["uuid"] === "string"
@@ -104,6 +157,7 @@ export function parseGrantItems(rules: unknown): ParsedGrant[] {
     if (!uuid) continue;
     const parsed = parseGrantUuid(uuid);
     if (parsed) grants.push(parsed);
+    else onUnparsed?.(uuid);
   }
   return grants;
 }
@@ -159,7 +213,10 @@ export function parseMechanicsGrants(mechanics: unknown): ParsedGrant[] {
  * doc → the grant simply doesn't materialize (the caller renders an INFORMATIVE
  * chip from the map metadata instead). This parser never throws on that.
  */
-export function parseSystemItemsGrants(system: unknown): ParsedGrant[] {
+export function parseSystemItemsGrants(
+  system: unknown,
+  onUnparsed?: (uuid: string) => void,
+): ParsedGrant[] {
   if (!system || typeof system !== "object") return [];
   const items = (system as Record<string, unknown>)["items"];
   if (!items || typeof items !== "object") return [];
@@ -170,6 +227,7 @@ export function parseSystemItemsGrants(system: unknown): ParsedGrant[] {
     if (typeof uuid !== "string") continue;
     const parsed = parseGrantUuid(uuid);
     if (parsed) out.push(parsed);
+    else onUnparsed?.(uuid);
   }
   return out;
 }
@@ -273,6 +331,11 @@ export interface MaterializeContext {
   spellEntries: GrantSpellEntry[];
   resolveIndex: PackIndexResolver;
   resolveDoc: GrantDocResolver;
+  /**
+   * Optional sink for grants that were dropped (issue #35). Omit it and
+   * materialization behaves exactly as before — silently.
+   */
+  onGrantFailure?: GrantFailureReporter;
 }
 
 // ---------------------------------------------------------------------------
@@ -428,16 +491,39 @@ export async function materializeGrants(
     // elements (Foundry-shaped), `mechanics.grants` of kind "fixed-item"
     // (curated from prose), and the ABC/class `system.items` MAP of
     // auto-conceded features (r20-X4 — ancestry/heritage/background/class).
+    const granterName = typeof doc["name"] === "string" ? (doc["name"] as string) : undefined;
+    /** Report a dropped grant, if a reporter is attached. */
+    const report = (failure: Omit<GrantFailure, "granterSourceId" | "granterName">): void => {
+      mctx.onGrantFailure?.({
+        ...failure,
+        granterSourceId,
+        ...(granterName !== undefined ? { granterName } : {}),
+      });
+    };
+    const onUnparsed = (uuid: string): void => report({ reason: "unresolved-placeholder", uuid });
+
     const grants = [
-      ...parseGrantItems(rules),
+      ...parseGrantItems(rules, onUnparsed),
       ...parseMechanicsGrants(doc["mechanics"]),
-      ...parseSystemItemsGrants(system),
+      ...parseSystemItemsGrants(system, onUnparsed),
     ];
     for (const grant of grants) {
       const packSlug = mapVendorToFusionPack(grant.vendor);
-      if (!packSlug) continue; // unknown vendor → skip (caller may log)
+      if (!packSlug) {
+        report({ reason: "unknown-vendor", uuid: grant.uuid, vendor: grant.vendor, name: grant.name });
+        continue;
+      }
       const grantedDoc = await resolveByName(packSlug, grant.name, mctx);
-      if (!grantedDoc) continue; // no clean-room equivalent → skip
+      if (!grantedDoc) {
+        report({
+          reason: "target-not-found",
+          uuid: grant.uuid,
+          vendor: grant.vendor,
+          name: grant.name,
+          packSlug,
+        });
+        continue; // no clean-room equivalent → skip, but no longer in silence
+      }
       const grantedSourceId = itemSourceId(grantedDoc) ?? `name:${normalizeName(grant.name)}`;
       if (scheduled.has(grantedSourceId)) continue;
       if (alreadyGranted(mctx.existingItems, granterSourceId, grantedSourceId)) {
