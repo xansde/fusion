@@ -491,7 +491,7 @@ export async function materializeGrants(
     // elements (Foundry-shaped), `mechanics.grants` of kind "fixed-item"
     // (curated from prose), and the ABC/class `system.items` MAP of
     // auto-conceded features (r20-X4 — ancestry/heritage/background/class).
-    const granterName = typeof doc["name"] === "string" ? (doc["name"] as string) : undefined;
+    const granterName = typeof doc["name"] === "string" ? doc["name"] : undefined;
     /** Report a dropped grant, if a reporter is attached. */
     const report = (failure: Omit<GrantFailure, "granterSourceId" | "granterName">): void => {
       mctx.onGrantFailure?.({
@@ -500,7 +500,9 @@ export async function materializeGrants(
         ...(granterName !== undefined ? { granterName } : {}),
       });
     };
-    const onUnparsed = (uuid: string): void => report({ reason: "unresolved-placeholder", uuid });
+    const onUnparsed = (uuid: string): void => {
+      report({ reason: "unresolved-placeholder", uuid });
+    };
 
     const grants = [
       ...parseGrantItems(rules, onUnparsed),
@@ -510,7 +512,12 @@ export async function materializeGrants(
     for (const grant of grants) {
       const packSlug = mapVendorToFusionPack(grant.vendor);
       if (!packSlug) {
-        report({ reason: "unknown-vendor", uuid: grant.uuid, vendor: grant.vendor, name: grant.name });
+        report({
+          reason: "unknown-vendor",
+          uuid: grant.uuid,
+          vendor: grant.vendor,
+          name: grant.name,
+        });
         continue;
       }
       const grantedDoc = await resolveByName(packSlug, grant.name, mctx);
