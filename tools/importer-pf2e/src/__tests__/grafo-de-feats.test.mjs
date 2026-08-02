@@ -237,3 +237,47 @@ describe("construirGrafo — Master of Many Styles como alternativa OR (issue #3
     }
   });
 });
+
+/**
+ * issue #46: dois textos atípicos do vendor.
+ *  - Occult Evolution tinha um typo literal do vendor ("the" por "that"),
+ *    confirmado presente NO PRÓPRIO arquivo do vendor (não introduzido pelo
+ *    pipeline) — corrigido para bater com os 3 irmãos (Arcane/Divine/Primal
+ *    Evolution). Cosmético: nenhum código interpreta esse texto hoje (não
+ *    era nem vira aresta), então o teste confere o TEXTO, não uma aresta.
+ *  - Echoing Channel ("Embodiment of Balance or Cleric") fica DELIBERADAMENTE
+ *    sem correção: confirmado por leitura direta do vendor que o texto já
+ *    chega assim da fonte — não é corrupção do pipeline, é prosa legítima
+ *    (o feat é compartilhado Animist/Cleric; "or Cleric" é filiação de
+ *    classe, não nome de outro feat). O teste prova que o texto NÃO mudou.
+ */
+describe("prerequisiteFixes — Occult Evolution (fixed) vs. Echoing Channel (deliberately untouched) (issue #46)", () => {
+  const feats = JSON.parse(readFileSync(join(PACKS, "feats-core", "documents.json"), "utf8"));
+
+  it("Occult Evolution não tem mais o typo 'the' no lugar de 'that'", () => {
+    const doc = feats.find((d) => d.name === "Occult Evolution");
+    assert.ok(doc, "Occult Evolution deve existir em feats-core");
+    assert.deepEqual(doc.system.prerequisites, [{ value: "bloodline that grants occult spells" }]);
+  });
+
+  it("os 4 irmãos de Evolution usam agora o MESMO padrão de texto ('bloodline that grants <tradição> spells')", () => {
+    for (const [nome, tradicao] of [
+      ["Arcane Evolution", "arcane"],
+      ["Divine Evolution", "divine"],
+      ["Occult Evolution", "occult"],
+      ["Primal Evolution", "primal"],
+    ]) {
+      const doc = feats.find((d) => d.name === nome);
+      assert.ok(doc, `${nome} deve existir`);
+      assert.deepEqual(doc.system.prerequisites, [
+        { value: `bloodline that grants ${tradicao} spells` },
+      ]);
+    }
+  });
+
+  it("Echoing Channel PERMANECE exatamente como veio do vendor — não é corrupção do pipeline, é prosa legítima", () => {
+    const doc = feats.find((d) => d.name === "Echoing Channel");
+    assert.ok(doc, "Echoing Channel deve existir em feats-core");
+    assert.deepEqual(doc.system.prerequisites, [{ value: "Embodiment of Balance or Cleric" }]);
+  });
+});
