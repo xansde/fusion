@@ -335,3 +335,61 @@ O que dá mais jogabilidade por esforço, na ordem:
    que impede a próxima leva de passar despercebida.
 6. **P-03 / P-04** — o mecanismo genérico de sub-escolha, que resolve 58
    pendências de uma vez em vez de uma a uma.
+
+---
+
+## Teste no aplicativo real (E2E) — o que foi visto na tela
+
+Sessão como GM (`QA-Auditor`), criando um ator por classe no mundo `argiburgo`.
+Capturas em `.fusion-build/r22/evidencias/`.
+
+**Cobertura**: 6 fichas completas (Bardo, Campeão, Clérigo, Feiticeiro, Monge,
+Bárbaro), 2 parciais (Cineticista, Guerreiro/Ladino). **Mago, Magus e Patrulheiro
+não foram testados** — o servidor caiu antes.
+
+> **Correção de atribuição, importante:** o agente registrou a queda do servidor
+> como "achado crítico — caiu sozinho". **Não caiu: fui eu que encerrei o
+> processo**, enquanto ele ainda estava testando, ao preparar o desligamento da
+> máquina. A conferência de horário confirma. **Não é bug e não virou issue.**
+> Fica registrado para ninguém investigar um fantasma.
+
+### O que a tela confirmou (evidência visual dos achados estáticos)
+
+| o que se viu | confirma |
+| --- | --- |
+| Bárbaro com Instinto Animal: "Nenhum ataque disponível. Equipe uma arma." | M-02 — os 33 `Strike` que não chegam à ficha |
+| Bardo: aba Foco com **0/0** e "Nenhuma magia de foco ainda" | grants de magia |
+| Campeão: reação concedida ✓, mas Lay on Hands nunca aparece | grant de magia falha, grant de talento funciona |
+| Clérigo: nem talento nem magia; Ações → Classe = **0** | P-02 / doutrina |
+| Feiticeiro (Dracônica): foco 0/0 | M-03 — 19 linhagens inertes |
+| Seletor de ancestralidade com **2 opções** | ausência de ancestralidade core |
+
+### Achados NOVOS, que só o teste na tela revelou
+
+- **Monge sem ataque desarmado** (alta) — a classe que luta de mãos nuas mostra
+  "Equipe uma arma". Causa diferente da do Bárbaro: aqui é o punho padrão que não
+  existe, não regra não convertida. → issue #62
+- **Todas as perícias com selo "Untrained"** (média) — inclusive as treinadas. O
+  **cálculo está certo** (bônus +5 = atributo +2 + treinado +3); mente só o
+  rótulo. Para o jogador isso é pior que um número errado: ele deixa de confiar
+  na ficha inteira. → issue #63
+- **Picker de perícias em inglês** (média) — enquanto a aba Perícias da mesma
+  ficha traduz. → issue #64
+- **Bloco "Deity" sem tradução** (baixa) → issue #65
+
+### O contraste que mais ensina
+
+**O Cineticista funciona ponta a ponta.** O Portão Cinético concede "Elemental
+Blast (Fire)" com botões de rolagem na aba Ações. Ou seja: **o mecanismo de
+concessão não está quebrado** — ele funciona quando alguém o implementa. O que
+falta nas outras classes é a implementação, não a infraestrutura.
+
+Também funcionam bem: o fluxo de criação (sem travar em 8 classes), o cálculo das
+dádivas de atributo (respeitando os fixos de classe e ancestralidade), e os
+talentos de ancestralidade e reações concedidas por Causa e Musa — **o grant de
+"talento simples" funciona; é o de "magia de foco" que falha.**
+
+### Limitação declarada
+
+Testado só como GM. **Não valida o que um jogador comum vê** — permissão e posse
+da ficha ficaram fora.

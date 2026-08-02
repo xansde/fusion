@@ -1,0 +1,26 @@
+[
+ {
+  "url": "https://github.com/xansde/fusion/issues/62",
+  "titulo": "Monge não tem ataque desarmado: a aba Ações diz \"Equipe uma arma\" para a classe que luta de mãos nuas",
+  "label": "sheet",
+  "gravidade": "alta"
+ },
+ {
+  "url": "https://github.com/xansde/fusion/issues/63",
+  "titulo": "Aba Perícias mostra \"Untrained\" em todas as perícias, inclusive nas treinadas (o cálculo está certo)",
+  "label": "sheet",
+  "gravidade": "media"
+ },
+ {
+  "url": "https://github.com/xansde/fusion/issues/64",
+  "titulo": "Picker de Treinamento de Perícias lista os nomes em inglês (a aba Perícias já traduz)",
+  "label": "i18n",
+  "gravidade": "media"
+ },
+ {
+  "url": "https://github.com/xansde/fusion/issues/65",
+  "titulo": "Bloco \"Deity\" do Clérigo aparece sem tradução nenhuma na ficha",
+  "label": "i18n",
+  "gravidade": "baixa"
+ }
+]
