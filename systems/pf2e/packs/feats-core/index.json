@@ -6363,6 +6363,42 @@
     }
   },
   {
+    "_id": "ssT8WsYWYLtYPG4A",
+    "uuid": "Compendium.pf2e.feats-core.Item.ssT8WsYWYLtYPG4A",
+    "name": "Avenger Dedication",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Avenger Dedication",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": [
+        "archetype",
+        "class",
+        "dedication"
+      ],
+      "flags.fusion.sourceId": "qgn9YpmmmnB17mzD"
+    }
+  },
+  {
+    "_id": "PckjI5Omjzj97IEI",
+    "uuid": "Compendium.pf2e.feats-core.Item.PckjI5Omjzj97IEI",
+    "name": "Bloodrager Dedication",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Bloodrager Dedication",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": [
+        "archetype",
+        "class",
+        "dedication"
+      ],
+      "flags.fusion.sourceId": "EcyPTxSwtdqrOtxY"
+    }
+  },
+  {
     "_id": "fhOlwfOFWfz4oCFQ",
     "uuid": "Compendium.pf2e.feats-core.Item.fhOlwfOFWfz4oCFQ",
     "name": "Legendary Leader",
@@ -7510,6 +7546,24 @@
     }
   },
   {
+    "_id": "mlDYWBBfeG94hZiu",
+    "uuid": "Compendium.pf2e.feats-core.Item.mlDYWBBfeG94hZiu",
+    "name": "Runelord Dedication",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Runelord Dedication",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": [
+        "archetype",
+        "class",
+        "dedication"
+      ],
+      "flags.fusion.sourceId": "mz2x4HFrWT8usbEL"
+    }
+  },
+  {
     "_id": "T3c7U3cqJ9nbEgIH",
     "uuid": "Compendium.pf2e.feats-core.Item.T3c7U3cqJ9nbEgIH",
     "name": "Masterful Obfuscation",
@@ -8000,6 +8054,24 @@
         "skill"
       ],
       "flags.fusion.sourceId": "oXoQ9wwOmDe0hwbU"
+    }
+  },
+  {
+    "_id": "xJ2UwhkXqa6hfFCq",
+    "uuid": "Compendium.pf2e.feats-core.Item.xJ2UwhkXqa6hfFCq",
+    "name": "Vindicator Dedication",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Vindicator Dedication",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": [
+        "archetype",
+        "class",
+        "dedication"
+      ],
+      "flags.fusion.sourceId": "vU86WnzVmfTde7xc"
     }
   },
   {

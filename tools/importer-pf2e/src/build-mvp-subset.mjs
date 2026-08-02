@@ -802,8 +802,27 @@ const CURATED_ANCESTRY_TRAITS = [
   "orc",
 ];
 
+/**
+ * issue #16: archetype dedication feats that are the GRANTED TARGET of a
+ * class-feature axis option already curated into class-features-core
+ * (Barbarian's "Bloodrager" instinct, Rogue's "Avenger" racket, Ranger's
+ * "Vindicator" hunter's-edge, Wizard's "Runelord" arcane-school) — same
+ * shape as the Alchemist/Rogue Dedication special-cases below: the granter
+ * carries its class's trait, but the dedication feat itself only carries
+ * archetype/class/dedication traits, so it never matches a curated class's
+ * classFeats rule (which requires the class's own trait) nor the generic
+ * ancestry/skill/general branches above.
+ */
+const GRANT_TARGET_DEDICATION_NAMES = [
+  "Bloodrager Dedication",
+  "Avenger Dedication",
+  "Vindicator Dedication",
+  "Runelord Dedication",
+];
+
 function isFeatsCoreDoc(doc) {
   if (doc.type !== "feat") return false;
+  if (GRANT_TARGET_DEDICATION_NAMES.includes(doc.name)) return true;
   const category = doc.system?.category;
   const level = doc.system?.level ?? 0;
 
@@ -918,6 +937,32 @@ function buildClassFeatureNameSet() {
   return curatedClassFeatureNames(join(VENDOR_ROOT_FOR_MVP, "classes"));
 }
 
+/**
+ * issue #16: classFeature docs that are the GRANTED TARGET of a fixed
+ * `GrantItem` declared by a granter already curated above (via the class's
+ * items{} map or an axis-option category) — but that are themselves neither
+ * in any class's items{} map (they're conditional on which axis option was
+ * picked, so the vendor never lists them on the class doc) nor an axis
+ * option (their own system.category is the generic "classfeature", not one
+ * of the axis slotTypes). Without this branch every one of these grants
+ * materialized to nothing:
+ *   - Kineticist's 4 "Gate's Threshold" family features each grant "Gate
+ *     Junction" (their actual mechanical effect).
+ *   - Ranger's 3 native Hunter's Edge picks (Flurry/Outwit/Precision) each
+ *     grant the matching level-17 "Masterful Hunter (...)" upgrade.
+ *   - Wizard's "Runelord" archetype-school axis option grants "School of
+ *     Thassilonian Rune Magic" (the school it forces in place of a normal
+ *     arcane school) — see GRANT_TARGET_DEDICATION_NAMES below for the
+ *     matching "Runelord Dedication" feat this same granter also grants.
+ */
+const GRANT_TARGET_CLASS_FEATURE_NAMES = [
+  "Gate Junction",
+  "Masterful Hunter (Flurry)",
+  "Masterful Hunter (Outwit)",
+  "Masterful Hunter (Precision)",
+  "School of Thassilonian Rune Magic",
+];
+
 function isClassFeaturesCoreDoc(doc, classFeatureNames, axisCategories) {
   if (doc.type !== "classFeature") return false;
   if (classFeatureNames.has(doc.name)) return true;
@@ -927,6 +972,7 @@ function isClassFeaturesCoreDoc(doc, classFeatureNames, axisCategories) {
   // Sem este ramo, a classe entra com o chip da escolha e NENHUMA opção para
   // escolher. As categorias vêm da curadoria, não de lista escrita à mão.
   if (axisCategories.has(doc.system?.category)) return true;
+  if (GRANT_TARGET_CLASS_FEATURE_NAMES.includes(doc.name)) return true;
   return false;
 }
 

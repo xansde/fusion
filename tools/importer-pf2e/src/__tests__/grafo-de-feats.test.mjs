@@ -86,14 +86,18 @@ describe("construirGrafo — marcação de ambiguidade (issue #44)", () => {
       const contagemReal = g.arestas.filter((a) => a.ambiguo).length;
       assert.equal(g.arestasAmbiguas, contagemReal, `classe ${nome}`);
     }
-    // Medido (r23, issue #44): 58 arestas ambíguas em 415 resolvidas, nas 12
-    // classes atuais. Trava o total para que uma regressão silenciosa (uma
-    // mudança que pare de marcar ambiguidade) quebre um teste, não um
-    // relatório manual.
+    // Medido (r23, issue #44): 58 arestas ambíguas nas 12 classes atuais.
+    // issue #16 elevou para 61: as 3 novas variantes "Masterful Hunter
+    // (Flurry/Outwit/Precision)" em class-features-core tornam visível uma
+    // ambiguidade que já existia no texto de pré-requisito "Masterful
+    // Hunter" do Ranger — antes só havia 1 candidato (o nó genérico da
+    // escolha) para casar; agora há 4 (o nó genérico + as 3 variantes reais).
+    // Trava o total para que uma regressão silenciosa (uma mudança que pare
+    // de marcar ambiguidade) quebre um teste, não um relatório manual.
     const totalAmbiguas = Object.values(grafo.classes).reduce(
       (acc, g) => acc + g.arestasAmbiguas,
       0,
     );
-    assert.equal(totalAmbiguas, 58);
+    assert.equal(totalAmbiguas, 61);
   });
 });

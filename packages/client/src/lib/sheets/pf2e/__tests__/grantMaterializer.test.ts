@@ -13,6 +13,9 @@
  */
 
 import { describe, it, expect } from "vitest";
+import { readFileSync, readdirSync, existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
 import {
   parseGrantItems,
   parseGrantUuid,
@@ -1169,5 +1172,186 @@ describe("findAdoptableItem vs a paid build slot (issue #15)", () => {
     expect(createOps(ops), "a manual add must be adopted, not duplicated").toHaveLength(0);
     const adopts = ops.filter((o) => o.type === "doc:update" && o.id === "embedded-manual");
     expect(adopts).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// issue #16 — census of every declared grant across the 14 real packs
+//
+// This is deliberately NOT a re-implementation of the resolution logic under
+// test (that would be circular — see the r22 "circular test" lesson: 80 green
+// tests coexisting with 60 real defects because the test checked derivation
+// against its own table). Instead it drives the REAL `materializeGrants`
+// (same function PlanColumn.svelte calls in the app) over every document of
+// every committed pack on disk, with `resolveIndex`/`resolveDoc` backed by
+// those same real packs — so a grant that fails here would fail in the app.
+//
+// Before this fix, 12 targets across 6 granters resolved to nothing: the
+// Kineticist's 4 "Gate's Threshold" features (-> classfeatures:Gate
+// Junction), the Ranger's 3 Hunter's Edge picks (-> classfeatures:Masterful
+// Hunter (Flurry/Outwit/Precision)), the Wizard's "Runelord" archetype
+// school (-> classfeatures:School of Thassilonian Rune Magic +
+// feats-srd:Runelord Dedication), the Rogue's "Avenger" racket (->
+// feats-srd:Avenger Dedication), the Ranger's "Vindicator" edge (->
+// feats-srd:Vindicator Dedication) and the Barbarian's "Bloodrager" instinct
+// (-> feats-srd:Bloodrager Dedication) — see issue #16.
+//
+// Two other groups of `target-not-found` are DELIBERATELY left unresolved
+// (out of this issue's scope, per the issue text): the Cleric's "Battle
+// Creed" chain (8 targets, "the already known hole") and 6 equipment items
+// granted by ancestry/general feats (Clan Dagger, Clan Pistol, Head Gem,
+// Pilgrim's Token, plus Lucky Keepsake and Orc Warmask — newly surfaced by
+// this census because issue #1 added the Leshy/Orc ancestries and their
+// feats after issue #16 was filed) that the vendor files under a pack
+// Fusion doesn't curate equipment from at that granularity — a candidate
+// for its own follow-up issue, not fixed here. "Scare to Death" —
+// originally a 7th equipment-adjacent gap — resolves as a side effect of
+// issue #24 (it's a level-15 skill feat) and is asserted explicitly below.
+// The regression guard pins the exact remaining set so a future fix (or an
+// accidental regression) is caught either way.
+// ---------------------------------------------------------------------------
+
+describe("issue #16: every declared grant across the 14 real packs resolves (or is a documented pre-existing gap)", () => {
+  interface RawPackDoc {
+    _id: string;
+    name: string;
+    type: string;
+    system?: Record<string, unknown>;
+    [key: string]: unknown;
+  }
+
+  function packsRoot(): string {
+    const here = path.dirname(fileURLToPath(import.meta.url));
+    return path.resolve(here, "../../../../../../../systems/pf2e/packs");
+  }
+
+  function listPackSlugs(): string[] {
+    const root = packsRoot();
+    return readdirSync(root, { withFileTypes: true })
+      .filter((e) => e.isDirectory())
+      .map((e) => e.name)
+      .filter((slug) => existsSync(path.join(root, slug, "documents.json")));
+  }
+
+  function loadPack(slug: string): RawPackDoc[] {
+    const raw = readFileSync(path.join(packsRoot(), slug, "documents.json"), "utf8");
+    return JSON.parse(raw) as RawPackDoc[];
+  }
+
+  function loadMechanics(slug: string): Record<string, { grants?: unknown[] }> {
+    const p = path.join(packsRoot(), slug, "mechanics.json");
+    if (!existsSync(p)) return {};
+    const raw = JSON.parse(readFileSync(p, "utf8")) as { entries?: Record<string, unknown> };
+    return (raw.entries ?? {}) as Record<string, { grants?: unknown[] }>;
+  }
+
+  /** Run materializeGrants for every doc in every pack, one hop deep, collecting every dropped grant. */
+  async function censusFailures(): Promise<Array<GrantFailure & { granterPack: string }>> {
+    const slugs = listPackSlugs();
+    const docsBySlug = new Map(slugs.map((slug) => [slug, loadPack(slug)]));
+    const syntheticUuid = (slug: string, id: string): string => `test://${slug}/${id}`;
+    const docsByUuid = new Map<string, RawPackDoc>();
+    const indexBySlug = new Map<string, GrantIndexEntry[]>();
+    for (const [slug, docs] of docsBySlug) {
+      const entries: GrantIndexEntry[] = [];
+      for (const doc of docs) {
+        const uuid = syntheticUuid(slug, doc._id);
+        docsByUuid.set(uuid, doc);
+        entries.push({ _id: doc._id, name: doc.name, uuid, type: doc.type });
+      }
+      indexBySlug.set(slug, entries);
+    }
+
+    const failures: Array<GrantFailure & { granterPack: string }> = [];
+    const baseMctx: Omit<MaterializeContext, "onGrantFailure"> = {
+      actorId: "census-actor",
+      existingItems: [],
+      spellEntries: [],
+      resolveIndex: async (packSlug) => indexBySlug.get(packSlug) ?? [],
+      resolveDoc: async (uuid) =>
+        (docsByUuid.get(uuid) as Record<string, unknown> | undefined) ?? null,
+    };
+
+    for (const slug of slugs) {
+      const docs = docsBySlug.get(slug)!;
+      const mechanics = loadMechanics(slug);
+      for (const doc of docs) {
+        // Attach the doc's mechanics overlay exactly as CompendiumService does
+        // (packages/server/src/compendium/service.ts) — grants of kind
+        // "fixed-item" live there, not in system.rules.
+        const mechEntry = mechanics[doc._id];
+        const docWithMechanics = mechEntry ? { ...doc, mechanics: mechEntry } : doc;
+        // maxDepth=1: process only THIS doc's own declared grants. Every doc is
+        // ALSO visited as its own top-level granter in this loop, so nested
+        // targets (e.g. Bloodrager Dedication -> Harvest Blood) still get their
+        // own one-hop check when Bloodrager Dedication itself is the root.
+        await materializeGrants(
+          docWithMechanics as unknown as Record<string, unknown>,
+          doc._id,
+          undefined,
+          {
+            ...baseMctx,
+            onGrantFailure: (failure) => failures.push({ ...failure, granterPack: slug }),
+          },
+          1,
+        );
+      }
+    }
+    return failures;
+  }
+
+  it("the 12 issue #16 targets all resolve", async () => {
+    const failures = await censusFailures();
+    const stillFailing = new Set(failures.map((f) => f.name));
+    const issue16Targets = [
+      "Gate Junction",
+      "Masterful Hunter (Flurry)",
+      "Masterful Hunter (Outwit)",
+      "Masterful Hunter (Precision)",
+      "School of Thassilonian Rune Magic",
+      "Runelord Dedication",
+      "Avenger Dedication",
+      "Vindicator Dedication",
+      "Bloodrager Dedication",
+    ];
+    const notResolved = issue16Targets.filter((name) => stillFailing.has(name));
+    expect(notResolved, `issue #16 targets still failing: ${notResolved.join(", ")}`).toEqual([]);
+  });
+
+  it("Scare to Death resolves as a side effect of issue #24 (Raging Intimidation's grant)", async () => {
+    const failures = await censusFailures();
+    expect(failures.some((f) => f.name === "Scare to Death")).toBe(false);
+  });
+
+  it("regression guard: no unknown-vendor failures, and target-not-found is exactly the documented pre-existing gap", async () => {
+    const failures = await censusFailures();
+    const unknownVendor = failures.filter((f) => f.reason === "unknown-vendor");
+    expect(
+      unknownVendor,
+      `unexpected unknown-vendor grants: ${JSON.stringify(unknownVendor)}`,
+    ).toEqual([]);
+
+    const notFound = failures.filter((f) => f.reason === "target-not-found");
+    const expectedRemainingGap = [
+      // Cleric's "Battle Creed" chain — the already-known hole (issue #16 text), out of scope here.
+      "Initial Creed",
+      "Lesser Creed",
+      "Moderate Creed",
+      "Greater Creed",
+      "Major Creed",
+      "True Creed",
+      "Final Creed",
+      "Battle Harbinger Dedication",
+      // Equipment items granted by ancestry/general feats — out of scope here (no equipment
+      // pack curates these vendor items at this granularity). Lucky Keepsake (Leshy) and Orc
+      // Warmask (Orc) are newly surfaced by this census (issue #1 landed after #16 was filed).
+      "Clan Dagger",
+      "Clan Pistol",
+      "Head Gem",
+      "Lucky Keepsake",
+      "Orc Warmask",
+      "Pilgrim's Token",
+    ].sort();
+    expect(notFound.map((f) => f.name).sort()).toEqual(expectedRemainingGap);
   });
 });

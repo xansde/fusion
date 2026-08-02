@@ -119,6 +119,12 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   "class-features-core/Fourth Gate's Threshold/elementFork": "pendente",
   "class-features-core/Fourth Gate's Threshold/impulseExpand": "pendente",
   "class-features-core/Fury Instinct/furyInstinct": "pendente",
+  // issue #16 — Gate Junction is the actual mechanical effect the 4 Gate's
+  // Threshold features grant (their impulse-slot bookkeeping); its own 2
+  // sub-choices (which element, which impulse) aren't offered yet — same
+  // "pendente" family as Gate's Threshold's own 3 entries just below.
+  "class-features-core/Gate Junction/element": "pendente",
+  "class-features-core/Gate Junction/junction": "pendente",
   "class-features-core/Gate's Threshold/-": "pendente",
   "class-features-core/Gate's Threshold/element": "pendente",
   "class-features-core/Gate's Threshold/elementFork": "pendente",
@@ -144,6 +150,11 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   "class-features-core/Path to Perfection/pathToPerfection": "pendente",
   "class-features-core/Rogue's Racket/roguesRacket": "eixo",
   "class-features-core/School of Rooted Wisdom/branch": "pendente",
+  // issue #16 — the Runelord archetype-school forces this school in place of
+  // a normal arcane-school pick; its own sub-choice (which of the 7 sins) is
+  // not offered by the builder yet — same shape as School of Rooted Wisdom's
+  // "branch" above.
+  "class-features-core/School of Thassilonian Rune Magic/sin": "pendente",
   "class-features-core/School of Unified Magical Theory/feat": "pendente",
   "class-features-core/Second Gate's Threshold/element": "pendente",
   "class-features-core/Second Gate's Threshold/elementFork": "pendente",
@@ -183,6 +194,10 @@ export const CHOICE_SET_INVENTORY: Record<string, ChoiceSetState> = {
   "feats-core/Bloodline Mutation/sense": "pendente",
   "feats-core/Bloodline Mutation/traitOne": "pendente",
   "feats-core/Bloodline Mutation/traitTwo": "pendente",
+  // issue #16 — the Barbarian's "Bloodrager" instinct grants this dedication
+  // feat, which itself picks a skill to raise (via ActiveEffectLike keyed off
+  // the same ChoiceSet selection) — not offered by the builder yet.
+  "feats-core/Bloodrager Dedication/skill": "pendente",
   // r22 — Sorcerer's "Crossblooded Evolution" feat picks a SECOND bloodline
   // (distinct from the character's primary one) — parameter not offered.
   "feats-core/Crossblooded Evolution/bloodline": "pendente",

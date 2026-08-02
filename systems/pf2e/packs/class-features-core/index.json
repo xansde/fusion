@@ -1728,6 +1728,22 @@
     }
   },
   {
+    "_id": "p3TTbsuMnjKSho3r",
+    "uuid": "Compendium.pf2e.class-features-core.Item.p3TTbsuMnjKSho3r",
+    "name": "Gate Junction",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Gate Junction",
+      "system.level": 5,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "kineticist"
+      ],
+      "flags.fusion.sourceId": "jx70hPakuTgB3lM5"
+    }
+  },
+  {
     "_id": "hYxkutfYKZfTlJb5",
     "uuid": "Compendium.pf2e.class-features-core.Item.hYxkutfYKZfTlJb5",
     "name": "Gate's Threshold",
@@ -2583,6 +2599,54 @@
         "rogue"
       ],
       "flags.fusion.sourceId": "myvcir1LEkaVxOlE"
+    }
+  },
+  {
+    "_id": "cBAT5YDrrbE1Z8eS",
+    "uuid": "Compendium.pf2e.class-features-core.Item.cBAT5YDrrbE1Z8eS",
+    "name": "Masterful Hunter (Flurry)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Masterful Hunter (Flurry)",
+      "system.level": 17,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "ranger"
+      ],
+      "flags.fusion.sourceId": "JhLncIB10GSQowWL"
+    }
+  },
+  {
+    "_id": "iJ7ltDW7AK4m1dqJ",
+    "uuid": "Compendium.pf2e.class-features-core.Item.iJ7ltDW7AK4m1dqJ",
+    "name": "Masterful Hunter (Outwit)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Masterful Hunter (Outwit)",
+      "system.level": 17,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "ranger"
+      ],
+      "flags.fusion.sourceId": "vWZaLE2fEKMBw3D5"
+    }
+  },
+  {
+    "_id": "YgNjOMBxCrEqpaPk",
+    "uuid": "Compendium.pf2e.class-features-core.Item.YgNjOMBxCrEqpaPk",
+    "name": "Masterful Hunter (Precision)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "Masterful Hunter (Precision)",
+      "system.level": 17,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "ranger"
+      ],
+      "flags.fusion.sourceId": "BJYSUbFUGcTLaPDn"
     }
   },
   {
@@ -3561,6 +3625,22 @@
         "wizard-arcane-school"
       ],
       "flags.fusion.sourceId": "KGkWSv9rARpwWzXW"
+    }
+  },
+  {
+    "_id": "gWbc5my1ar93nO19",
+    "uuid": "Compendium.pf2e.class-features-core.Item.gWbc5my1ar93nO19",
+    "name": "School of Thassilonian Rune Magic",
+    "img": "icons/placeholder/feat.svg",
+    "type": "classFeature",
+    "index": {
+      "name": "School of Thassilonian Rune Magic",
+      "system.level": 1,
+      "system.category": "classfeature",
+      "system.traits.value": [
+        "wizard"
+      ],
+      "flags.fusion.sourceId": "aYWPtW5T4Lx07Occ"
     }
   },
   {
