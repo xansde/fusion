@@ -34,9 +34,15 @@ quebrados, exatamente o tema daqui. Rodar os gates do B0 revelou que `Format che
 - **#68** — o `.prettierignore` ignora `tools/importer-pf2e/out/**` mas esqueceu o irmão
   `tools/translate-packs/out/**`, e nunca cobriu `systems/pf2e/packs/**`. Dos 163
   arquivos reprovados, ~157 são artefato gerado; só 6 são código de verdade.
-- **#69** — um `no-unnecessary-condition` em `planVM.ts:2548`. Não é conserto mecânico:
-  ou o `?.` e o `?? false` são ruído, ou o tipo de retorno de `getItemBuildFlag` está
-  mentindo e o lint está mascarando um `TypeError`. Decidir antes de silenciar.
+- **#69** — um `no-unnecessary-condition` em `planVM.ts`. Era `ability ?? "int"` sobre um
+  parâmetro `string` obrigatório: fallback inalcançável, e o irmão
+  `buildSpellcastingEntryOp` nunca teve um. Resolvida.
+
+**#68 fica aberta com um remanescente de 2 arquivos.** O ignore derrubou 163 → 2, mas
+`planVM.ts` e `class-levels-spellcasting.test.ts` estão sob edição ativa pela #66.
+Reformatar o `planVM.ts` custaria 689 linhas de diff cosmético no arquivo mais disputado
+do repo — exatamente o conflito que a esteira de PRs existe para evitar. Fazer assim que
+a #66 assentar; até lá, o `Format check` segue vermelho por esses dois.
 
 Por que primeiro: nenhum batch posterior é verificável sem isto. #48 é a lição-mestra
 da r22 — o teste das 12 classes confere a derivação contra a tabela do próprio pack,
