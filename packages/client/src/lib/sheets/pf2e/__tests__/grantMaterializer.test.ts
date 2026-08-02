@@ -1081,3 +1081,93 @@ describe("grant failure reporting", () => {
     ).resolves.toHaveLength(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Adoption must not swallow a PAID build slot (issue #15)
+//
+// findAdoptableItem only refused items that already carry `grantedBy`. An item
+// the player placed into a feat slot carries `flags.fusion.build = {level,
+// slot}` and NO grantedBy, so it looked adoptable — and buildAdoptOp stamped
+// grantedBy onto it. From then on, swapping or removing the granter deleted
+// the feat the player paid for, and left the slot's `build.choices` entry
+// behind as a phantom "filled" slot.
+//
+// The Bard's five muses are the live case: each grants a LEVEL 1 Bard class
+// feat that is pickable in the very `classFeat-1` slot offered at the same
+// level (Maestro → Lingering Composition, Enigma → Bardic Lore, …).
+// ---------------------------------------------------------------------------
+
+describe("findAdoptableItem vs a paid build slot (issue #15)", () => {
+  /** "Lingering Composition" as the pack ships it. */
+  function lingeringCompositionDoc(): Record<string, unknown> {
+    return {
+      _id: "lc-pack",
+      name: "Lingering Composition",
+      type: "feat",
+      flags: { fusion: { sourceId: "LINGERING" } },
+      system: { rules: [], traits: { value: ["bard", "class"] } },
+    };
+  }
+
+  /** The Maestro muse, which grants exactly that feat. */
+  function maestroDoc(): Record<string, unknown> {
+    return {
+      _id: "maestro-pack",
+      name: "Maestro",
+      type: "classFeature",
+      flags: { fusion: { sourceId: "MAESTRO" } },
+      system: {
+        rules: [
+          {
+            kind: "grant-item",
+            uuid: "Compendium.pf2e.feats-srd.Item.Lingering Composition",
+            inMemoryOnly: false,
+          },
+        ],
+      },
+    };
+  }
+
+  /** The same feat, embedded because the PLAYER spent their classFeat-1 slot on it. */
+  function paidSlotItem(): Record<string, unknown> {
+    return {
+      _id: "embedded-lc",
+      name: "Lingering Composition",
+      type: "feat",
+      flags: { fusion: { sourceId: "LINGERING", build: { level: 1, slot: "classFeat-1" } } },
+      system: { rules: [], traits: { value: ["bard", "class"] } },
+    };
+  }
+
+  it("creates its own copy instead of adopting the item occupying a build slot", async () => {
+    const base = ctxFor({ "feats-core": [lingeringCompositionDoc()] });
+    const mctx: MaterializeContext = { ...base, existingItems: [paidSlotItem()] };
+    const ops = await materializeGrants(maestroDoc(), "MAESTRO", "muse-1", mctx);
+
+    // An adopt op would be a doc:update stamping grantedBy on the PAID item.
+    const adopts = ops.filter((o) => o.type === "doc:update" && o.id === "embedded-lc");
+    expect(adopts, "the paid classFeat-1 item must never be adopted").toHaveLength(0);
+
+    const creates = createOps(ops);
+    expect(creates).toHaveLength(1);
+    expect((creates[0]?.data as Record<string, unknown>)["name"]).toBe("Lingering Composition");
+  });
+
+  it("still adopts a genuinely MANUAL add (no build slot, no grantedBy)", async () => {
+    // The r15 case this behaviour exists for: Shooting Star added by hand.
+    const manual = {
+      _id: "embedded-manual",
+      name: "Lingering Composition",
+      type: "feat",
+      flags: { fusion: { sourceId: "LINGERING" } },
+      system: { rules: [] },
+    };
+    const base = ctxFor({ "feats-core": [lingeringCompositionDoc()] });
+    const mctx: MaterializeContext = { ...base, existingItems: [manual] };
+    const ops = await materializeGrants(maestroDoc(), "MAESTRO", "muse-1", mctx);
+
+    expect(createOps(ops), "a manual add must be adopted, not duplicated").toHaveLength(0);
+    const adopts = ops.filter((o) => o.type === "doc:update" && o.id === "embedded-manual");
+    expect(adopts).toHaveLength(1);
+  });
+});

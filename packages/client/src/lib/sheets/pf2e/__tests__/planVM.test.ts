@@ -5208,3 +5208,116 @@ describe("repeat cap — maxTakable: null (issue #57)", () => {
     expect(isFeatAtRepeatCap(taken(3), armor)).toBe(true);
   });
 });
+
+// ---------------------------------------------------------------------------
+// removeChoice must not leave an orphan choice behind (issue #15, 2nd defect)
+//
+// The grantedBy cascade deletes every item the granter materialized. If one of
+// those items ALSO occupied a build slot — which is exactly the corrupted state
+// the old findAdoptableItem produced — its `system.build.choices` entry stayed,
+// and resolveSlot read that orphan choice as `filled: true`: a phantom slot,
+// marked taken with no item behind it.
+//
+// The adoption fix stops NEW actors from reaching that state; this keeps the
+// removal honest for actors already carrying it.
+// ---------------------------------------------------------------------------
+
+describe("removeChoice — orphan choice from a grantedBy cascade (issue #15)", () => {
+  it("drops the build choice of an item deleted by the grantedBy cascade", () => {
+    const muse = {
+      _id: "item-muse",
+      name: "Maestro",
+      type: "classFeature",
+      flags: { fusion: { sourceId: "MAESTRO", build: { level: 1, slot: "muse-1" } } },
+      system: {},
+    };
+    // The corrupted shape: paid slot AND stamped as granted by the muse.
+    const adoptedFeat = {
+      _id: "item-lc",
+      name: "Lingering Composition",
+      type: "feat",
+      flags: {
+        fusion: {
+          sourceId: "LINGERING",
+          grantedBy: "MAESTRO",
+          build: { level: 1, slot: "classFeat-1" },
+        },
+      },
+      system: {},
+    };
+    const character = baseCharacterDoc({
+      items: [muse, adoptedFeat],
+      system: {
+        level: { value: 1 },
+        details: {},
+        build: {
+          choices: [
+            { level: 1, slot: "muse-1", type: "muse", sourceId: "MAESTRO" },
+            { level: 1, slot: "classFeat-1", type: "classFeat", sourceId: "LINGERING" },
+          ],
+        },
+      },
+    });
+
+    const ops = removeChoice(ctx(character), {
+      slotId: "muse-1",
+      type: "muse" as PlanSlotType,
+      level: 1,
+      label: "Muse",
+      filled: true,
+      itemId: "item-muse",
+    } as PlanSlotModel);
+
+    const deleted = ops.filter((o) => o.type === "doc:delete").map((o) => o.id);
+    expect(deleted).toContain("item-muse");
+    expect(deleted).toContain("item-lc");
+
+    const update = ops.find((o) => o.type === "doc:update");
+    expect(update, "choices must be rewritten").toBeDefined();
+    const remaining = (update as { diff: Record<string, unknown> }).diff[
+      "system.build.choices"
+    ] as Array<{ slot: string }>;
+    expect(
+      remaining.map((c) => c.slot),
+      "the deleted feat's own slot must not stay behind as a phantom",
+    ).toEqual([]);
+  });
+
+  it("keeps an unrelated choice untouched", () => {
+    const muse = {
+      _id: "item-muse",
+      name: "Maestro",
+      type: "classFeature",
+      flags: { fusion: { sourceId: "MAESTRO", build: { level: 1, slot: "muse-1" } } },
+      system: {},
+    };
+    const character = baseCharacterDoc({
+      items: [muse],
+      system: {
+        level: { value: 1 },
+        details: {},
+        build: {
+          choices: [
+            { level: 1, slot: "muse-1", type: "muse", sourceId: "MAESTRO" },
+            { level: 2, slot: "skillFeat-2", type: "skillFeat", sourceId: "OTHER" },
+          ],
+        },
+      },
+    });
+
+    const ops = removeChoice(ctx(character), {
+      slotId: "muse-1",
+      type: "muse" as PlanSlotType,
+      level: 1,
+      label: "Muse",
+      filled: true,
+      itemId: "item-muse",
+    } as PlanSlotModel);
+
+    const update = ops.find((o) => o.type === "doc:update");
+    const remaining = (update as { diff: Record<string, unknown> }).diff[
+      "system.build.choices"
+    ] as Array<{ slot: string }>;
+    expect(remaining.map((c) => c.slot)).toEqual(["skillFeat-2"]);
+  });
+});

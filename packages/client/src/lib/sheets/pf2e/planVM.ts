@@ -3976,6 +3976,8 @@ export function setFreeArchetype(ctx: PlanOpBuilderContext, on: boolean): DocUpd
 export function removeChoice(ctx: PlanOpBuilderContext, slot: PlanSlotModel): DocOpPayload[] {
   if (!ctx.editable) return [];
   const ops: DocOpPayload[] = [];
+  /** Build slots whose item the grantedBy cascade deletes (issue #15). */
+  const cascadedBuildSlots = new Set<string>();
 
   if (slot.itemId) {
     ops.push({
@@ -4031,13 +4033,24 @@ export function removeChoice(ctx: PlanOpBuilderContext, slot: PlanSlotModel): Do
             parent: { type: "Actor", id: ctx.actorId },
           } satisfies DocDeleteEmbeddedPayload);
         }
+        // If the cascade deletes an item that ALSO occupied a build slot, that
+        // slot's choice has to go with it (issue #15). Otherwise resolveSlot
+        // reads the leftover choice as `filled: true` — a phantom slot, marked
+        // taken with no item behind it. This is the shape the old
+        // findAdoptableItem produced by adopting a paid slot; the adoption is
+        // fixed, but actors already carrying the damage still remove cleanly.
+        const cascadedSlot = getItemBuildFlag(it)?.slot;
+        if (cascadedSlot !== undefined) cascadedBuildSlots.add(cascadedSlot);
       }
     }
   }
 
   const existingChoices = getBuildChoices(getSystem(ctx.doc));
   const remaining = existingChoices.filter(
-    (c) => c.slot !== slot.slotId && !c.slot.startsWith(subSlotPrefix),
+    (c) =>
+      c.slot !== slot.slotId &&
+      !c.slot.startsWith(subSlotPrefix) &&
+      !cascadedBuildSlots.has(c.slot),
   );
   if (remaining.length !== existingChoices.length) {
     ops.push({

@@ -418,6 +418,14 @@ function normalizeName(name: string): string {
  * materializes, the heal must ADOPT that existing spell — never create a second
  * copy. Items that already carry a `grantedBy` are NOT adoptable here (they're
  * covered by `alreadyGranted`'s idempotency check).
+ *
+ * "Manual" is the operative word, and it used to be under-specified (issue
+ * #15): an item the player put into a BUILD SLOT also has no `grantedBy`, so it
+ * looked adoptable. Adopting it stamped `grantedBy` on a feat the player paid a
+ * slot for, and removing or swapping the granter then deleted it — leaving the
+ * slot's `build.choices` entry behind as a phantom "filled" slot. The Bard's
+ * five muses hit this exactly: each grants a level-1 Bard class feat that is
+ * pickable in the very `classFeat-1` slot offered at the same level.
  */
 function findAdoptableItem(
   existingItems: Array<Record<string, unknown>>,
@@ -430,6 +438,8 @@ function findAdoptableItem(
   return existingItems.find((it) => {
     const fusion = itemFusionFlags(it);
     if (typeof fusion["grantedBy"] === "string") return false; // already a grant — not a manual add
+    // Occupies a build slot the player spent → owned by the build, not adoptable.
+    if (fusion["build"] !== undefined && fusion["build"] !== null) return false;
     if (it["type"] !== grantedType) return false;
     const sid = fusion["sourceId"];
     if (typeof sid === "string" && sid === grantedSourceId) return true;
