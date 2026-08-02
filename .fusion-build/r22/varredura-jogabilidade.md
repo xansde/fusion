@@ -197,6 +197,82 @@ decisão deliberada do projeto e não deve ser revertida em silêncio).
 
 ---
 
+## Integridade dos packs
+
+### D-01 — Índice de `feats-core` não publica `maxTakable`: talento esgotado só é recusado no clique
+
+**Gravidade: média. Sistêmico — atinge os 1.459 talentos.**
+
+`systems/pf2e/packs/feats-core/pack.json` declara
+`indexFields: ["name","system.level","system.category","system.traits.value"]`.
+O seletor lista o **índice**, e o filtro de elegibilidade só enxerga campos
+publicados nele; o gate de repetição (`isFeatAtRepeatCap`, `planVM.ts:2966-3009`)
+só roda **depois** da seleção. Resultado: talento não-repetível já escolhido
+continua aparecendo na lista até o jogador clicar e levar um toque de recusa.
+
+1.433 talentos têm limite implícito de 1; 4 têm limite explícito maior
+(Multifarious Muse, Mercy, Armor Proficiency, Consult the Spirits).
+
+**Conserto:** acrescentar `system.maxTakable` a `indexFields` e republicar o
+índice. Baixo risco.
+
+### D-02 — Nível estático de class-feature compartilhada diverge do nível real
+
+**Gravidade: média (cosmético — NÃO afeta a construção).**
+
+35 divergências em 11 das 12 classes: 17 documentos compartilhados carregam um
+`system.level` genérico diferente do nível em que cada classe realmente os
+concede. Ex.: o Bárbaro concede "Reflex Expertise" no 9, o documento diz 3; o
+Mago concede "Juggernaut" no 15, o documento diz 7.
+
+**Verificado que a progressão está correta:** o builder usa
+`featuresByLevel[].level`, nunca `doc.system.level`. O único ponto afetado é o
+painel de detalhes do compêndio (`documentDetails.ts:1233-1249`), que mostra o
+número cru — quem abrir o detalhe vê o nível errado.
+
+### D-03 — 4.563 `@UUID` apontam para fora dos nossos packs (dívida, não bug ativo)
+
+**Gravidade: baixa — o agente REBAIXOU a gravidade que eu havia presumido.**
+
+Eu tinha instruído a procurar "links quebrados". A medição mostrou que hoje
+**nada quebra na tela**: o renderizador de descrição (`documentDetails.ts:404-411`)
+nunca resolve o UUID contra dado real — ele extrai o último segmento do caminho
+como texto puro ("Frightened", "Seek"). O único lugar que materializa link
+clicável é o editor de notas do GM, que não toca descrição de compêndio.
+
+Fica registrado como dívida: limita uma futura funcionalidade de link clicável na
+descrição.
+
+### D-04 a D-08 — Dimensões auditadas e CONFIRMADAS LIMPAS
+
+Registrado porque saber o que está certo vale tanto quanto saber o que falha:
+
+- **Arte da Paizo: zero vazamentos.** Grep bruto nos 14 packs (documentos,
+  overlays e índices). O `deepSanitizeImg` cobre `img` em qualquer profundidade e
+  qualquer string `^systems/(pf2e|sf2e)/`, inclusive dentro de `rules[]` e itens
+  embutidos. Confirmado com dado, não só leitura de código.
+- **Duplicatas: nenhuma.** Três estratégias (fuzzy na descrição, mesmo nome com
+  sourceId diferente, mesmo conteúdo sob nomes diferentes). Os 3 grupos
+  suspeitos foram verificados à mão e são legítimos — "Ricochet Stance (Fighter)"
+  vs "(Rogue)", variantes de doutrina, e "Share Senses"/"Shadow Step" que existem
+  para eidolon e familiar com mecânicas distintas.
+- **Categoria/trait: nenhum problema.** Os 6 talentos `category: class` sem trait
+  de classe são dedicações de arquétipo — e `category: class` **é o dado real do
+  Foundry**, porque dedicação consome slot de talento de classe por regra.
+  Alarme falso descartado contra o vendor.
+- **Campos obrigatórios: 1 caso**, "Rations", com descrição vazia já no vendor.
+- **Overlay pt-BR: 100% íntegro.** Os 3.787 `sourceHash` recalculados batem —
+  zero órfãos, zero defasados, zero faltando.
+
+> **Armadilha de investigação registrada** (custou tempo e pode custar de novo): o
+> separador do hash é um ` ` literal dentro de `hash.mjs`. Ferramentas de
+> leitura de texto o exibem como espaço, e copiá-lo visualmente produz **100% de
+> falsos "defasados"**. Use `String.fromCharCode(0)`. O agente só percebeu porque
+> uma taxa de 100% defasado num pack de 2 documentos era implausível demais para
+> ser real.
+
+---
+
 ## Ordem sugerida de ataque
 
 O que dá mais jogabilidade por esforço, na ordem:
