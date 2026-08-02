@@ -29,7 +29,8 @@
     derivePlan,
     planContext,
     isFeatEligible,
-    isHybridStudyOption,
+    isClassChoiceOption,
+    CLASS_CHOICE_SLOT_OPTIONS,
     matchesGrantedFeatFilter,
     abilityBoostsSlotContext,
     applyClass,
@@ -37,7 +38,7 @@
     applyHeritage,
     applyBackground,
     chooseFeat,
-    chooseHybridStudy,
+    chooseClassChoice,
     chooseKineticGate,
     readGateElements,
     type KineticGatePick,
@@ -654,11 +655,18 @@
 
   function pickerConfigFor(slot: PlanSlotModel): { packSlug: string; title: string; filterFn?: (e: { name: string; index: Record<string, unknown> }) => boolean } {
     const level = slotPicker?.level ?? ctx.level;
-    if (slot.type === "hybridStudy") {
+    // Class-declared choice slots (hybridStudy, instinct, racket, huntersEdge,
+    // arcaneThesis, arcaneSchool, …) all pick from a tagged list of
+    // class-features-core docs — CLASS_CHOICE_SLOT_OPTIONS is the single
+    // declarative source for which pack + otherTags value each slot type uses
+    // (r21-W1: generalizes the r19-W2b hybridStudy-only hardcode). kineticGate
+    // has no entry here — it uses its own dedicated dialog below.
+    const choiceOptions = CLASS_CHOICE_SLOT_OPTIONS[slot.type];
+    if (choiceOptions) {
       return {
-        packSlug: "class-features-core",
-        title: t("FUSION.Sheet.Plan.Picker.HybridStudyTitle"),
-        filterFn: (e) => isHybridStudyOption({ system: { traits: { otherTags: e.index["system.traits.otherTags"] } } }),
+        packSlug: choiceOptions.packSlug,
+        title: t("FUSION.Sheet.Plan.Picker.AbcTitle", { type: t(`FUSION.Sheet.Plan.SlotLabel.${slot.type}`) }),
+        filterFn: (e) => isClassChoiceOption({ system: { traits: { otherTags: e.index["system.traits.otherTags"] } } }, slot.type),
       };
     }
     if (slot.type === "grantedFeat" && slot.grantFilter) {
@@ -696,8 +704,8 @@
   function handleSlotPickerSelect(selectedDoc: Record<string, unknown>): void {
     if (!slotPicker) return;
     const { level, slot } = slotPicker;
-    if (slot.type === "hybridStudy") {
-      sendAll(chooseHybridStudy(opCtx, level, selectedDoc));
+    if (CLASS_CHOICE_SLOT_OPTIONS[slot.type]) {
+      sendAll(chooseClassChoice(opCtx, slot.type, level, selectedDoc));
     } else {
       sendAll(chooseFeat(opCtx, slot, level, selectedDoc));
     }

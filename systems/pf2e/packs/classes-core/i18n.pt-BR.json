@@ -2,10 +2,30 @@
   "schemaVersion": 1,
   "packId": "pf2e.classes-core",
   "locale": "pt-BR",
-  "generatedAt": "2026-07-06T23:33:27.291Z",
+  "generatedAt": "2026-08-02T01:04:59.142Z",
   "generator": "tools/translate-packs@0.1.0",
   "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
   "entries": {
+    "1VFFHH43BOrf82SB": {
+      "name": "Guerreiro",
+      "sourceHash": "009d47111721cff519f797472f34ac478d338c36",
+      "description": "<p><em>Lutando por honra, ganância, lealdade ou simplesmente pela emoção da batalha, você é um mestre incontestável de armas e técnicas de combate. Você combina suas ações através de combinações inteligentes de golpes iniciais, ataques finais e contra-ataques sempre que seus inimigos são imprudentes o bastante para baixar a guarda. Seja você um cavaleiro, mercenário, atirador de elite ou mestre das lâminas, você aperfeiçoou suas habilidades marciais até transformá-las em uma arte e desfere ataques críticos devastadores contra seus inimigos.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.HZbrRRVzW7w17L2W]{Guerreiro}</em></p>"
+    },
+    "3n6wLJBsZgaZvGXo": {
+      "name": "Patrulheiro",
+      "sourceHash": "c0b1f498bd0914f2e03482838153c6a1e0726b65",
+      "description": "<p><em>Alguns patrulheiros acreditam que a civilização corrói a alma, mas ainda assim precisa ser protegida de criaturas selvagens. Outros dizem que a natureza precisa ser protegida dos gananciosos, que desejam domar sua beleza e saquear seus tesouros. Você pode defender qualquer um dos objetivos, ou os dois. Você pode ser um batedor, rastreador ou caçador de fugitivos ou feras, rondando os limites da civilização ou explorando terras selvagens. Você sabe como viver da terra e é habilidoso em localizar e derrubar tanto presas oportunas quanto inimigos odiados.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.gdEmPPRYhRai7I1N]{Patrulheiro}</em></p>"
+    },
+    "GpVXOuB995Kz1fHI": {
+      "name": "Bárbaro",
+      "sourceHash": "657aeb5a40adeabcf04ad99ef77e0aa41eff02df",
+      "description": "<p><em>A fúria te consome em batalha. Você se compraz em espalhar destruição e usar armas poderosas para abrir caminho entre seus inimigos, confiando em uma resistência impressionante sem precisar de técnicas complicadas ou treinamento rígido. Suas fúrias se alimentam de um instinto selvagem, que você pode associar a um animal, um espírito ou alguma parte de si mesmo. Para muitos bárbaros, a força bruta é um martelo e todo problema parece um prego, enquanto outros tentam conter a tempestade de emoções dentro de si e só liberam sua fúria quando mais importa.</em></p>\n<p>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.lvuutBI9BSCU6cWe]{Bárbaro}</p>"
+    },
+    "LkcgfNS2xs7MhCGl": {
+      "name": "Mago",
+      "sourceHash": "32da0050074c1e03399b93e6c109c86d815c2e0c",
+      "description": "<p><em>Você é um eterno estudante dos segredos do universo, usando seu domínio da magia para conjurar magias poderosas. Você trata a magia como uma ciência, cruzando os textos mais recentes sobre a prática da arte arcana com tomos antigos para descobrir e compreender a magia arcana. No entanto, a teoria mágica é vasta, e não há como estudá-la por completo. A maioria dos magos aprende por meio de uma formação acadêmica formal, com um currículo que segue uma matriz específica, embora pesquisadores particularmente dedicados às vezes reúnam suas próprias teorias.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.wDukeO3euLEGn6FA]{Mago}</em></p>"
+    },
     "ZuJDBnRwp0YQ9IoP": {
       "name": "Cineticista",
       "sourceHash": "6fca0d1b385612be45c1bfd620767ceea2c00b33",
@@ -15,6 +35,11 @@
       "name": "Magus",
       "sourceHash": "80de4387ce349d748efb5a1910169bd5562368b5",
       "description": "<p><em>Combinando a fisicalidade e a técnica de um guerreiro com a capacidade de conjurar magia arcana, você busca aperfeiçoar a arte de fundir feitiço e golpe. Enquanto o tratado pesado que você carrega reflete horas de pesquisa arcana, seus inimigos não precisam de recordação de seu treinamento. Reconhecem-no conforme você os derrota.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.YVoyzV9v4QyP2UIC]{Magus}</em></p>"
+    },
+    "nvLkRf5OdaAq9zgU": {
+      "name": "Ladino",
+      "sourceHash": "279d85226a5f1fea753de02a6e1b300b72afc8b8",
+      "description": "<p><em>Você é habilidoso e oportunista. Usando sua astúcia afiada e reações rápidas, você tira proveito dos deslizes de seus oponentes e ataca onde mais dói. Você joga um jogo perigoso, buscando emoções e testando suas habilidades, e provavelmente não se importa muito com quaisquer leis que porventura atrapalhem seu caminho. Embora o caminho de cada ladino seja único e repleto de perigo, a única coisa que todos vocês têm em comum é a amplitude e a profundidade de suas habilidades.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.u4qPrDRBagxG9wj8]{Ladino}</em></p>"
     }
   }
 }

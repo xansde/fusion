@@ -15,7 +15,7 @@ import {
   derivePlan,
   planContext,
   isFeatEligible,
-  isHybridStudyOption,
+  isClassChoiceOption,
   spellSlotsForLevel,
   computeAbilityScores,
   applyClass,
@@ -23,7 +23,7 @@ import {
   applyHeritage,
   applyBackground,
   chooseFeat,
-  chooseHybridStudy,
+  chooseClassChoice,
   chooseSkillTraining,
   chooseSkillIncrease,
   setAbilityBoosts,
@@ -133,6 +133,89 @@ function magusClassDoc(): Record<string, unknown> {
       ],
     },
     flags: { fusion: { conversion: "full", sourceId: "HQBA9Yx2s8ycvz3C" } },
+  };
+}
+
+/**
+ * Minimal class docs (r21-W1) — only the fields buildLevelPlan/derivePlan
+ * actually read (`featuresByLevel`, `type: "class"`); every other
+ * ClassSystemLike field is optional and defaults safely (see planVM.ts's
+ * ClassSystemLike). `featuresByLevel[level 1]` names are copied VERBATIM from
+ * systems/pf2e/packs/classes-core/documents.json (measured, not invented) so
+ * CLASS_CHOICE_SLOTS's placeholder-name lookup is exercised against the real
+ * vendor string, apostrophe included.
+ */
+function barbarianClassDoc(): Record<string, unknown> {
+  return {
+    _id: "class-barbarian",
+    name: "Barbarian",
+    type: "class",
+    system: {
+      featuresByLevel: [
+        { level: 1, uuid: "uuid-instinct", name: "Instinct" },
+        { level: 1, uuid: "uuid-rage", name: "Rage" },
+        { level: 1, uuid: "uuid-quick-tempered", name: "Quick-Tempered" },
+      ],
+    },
+  };
+}
+
+function rogueClassDoc(): Record<string, unknown> {
+  return {
+    _id: "class-rogue",
+    name: "Rogue",
+    type: "class",
+    system: {
+      featuresByLevel: [
+        { level: 1, uuid: "uuid-racket", name: "Rogue's Racket" },
+        { level: 1, uuid: "uuid-sneak-attack", name: "Sneak Attack" },
+        { level: 1, uuid: "uuid-surprise-attack", name: "Surprise Attack" },
+      ],
+    },
+  };
+}
+
+function rangerClassDoc(): Record<string, unknown> {
+  return {
+    _id: "class-ranger",
+    name: "Ranger",
+    type: "class",
+    system: {
+      featuresByLevel: [
+        { level: 1, uuid: "uuid-hunters-edge", name: "Hunter's Edge" },
+        { level: 1, uuid: "uuid-hunt-prey", name: "Hunt Prey" },
+      ],
+    },
+  };
+}
+
+function wizardClassDoc(): Record<string, unknown> {
+  return {
+    _id: "class-wizard",
+    name: "Wizard",
+    type: "class",
+    system: {
+      featuresByLevel: [
+        { level: 1, uuid: "uuid-wizard-spellcasting", name: "Wizard Spellcasting" },
+        { level: 1, uuid: "uuid-arcane-school", name: "Arcane School" },
+        { level: 1, uuid: "uuid-arcane-bond", name: "Arcane Bond" },
+        { level: 1, uuid: "uuid-arcane-thesis", name: "Arcane Thesis" },
+      ],
+    },
+  };
+}
+
+function fighterClassDoc(): Record<string, unknown> {
+  return {
+    _id: "class-fighter",
+    name: "Fighter",
+    type: "class",
+    system: {
+      featuresByLevel: [
+        { level: 1, uuid: "uuid-reactive-strike", name: "Reactive Strike" },
+        { level: 1, uuid: "uuid-shield-block", name: "Shield Block" },
+      ],
+    },
   };
 }
 
@@ -659,6 +742,93 @@ describe("derivePlan — empty slot when choice/item is absent", () => {
     const plan = derivePlan(doc);
     const l2 = plan.levels.find((l) => l.level === 2)!;
     expect(l2.slots.some((s) => s.type === "archetypeFeat")).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// derivePlan — class choice slots (r21-W1: instinct/racket/huntersEdge/
+// arcaneThesis/arcaneSchool wired the same generic, data-driven way as the
+// r19-W2b hybridStudy/kineticGate slots — no `if (className === ...)`
+// anywhere; the slot lights up purely because CLASS_CHOICE_SLOTS recognizes
+// the placeholder name in the class's own featuresByLevel).
+// ---------------------------------------------------------------------------
+
+describe("derivePlan — class choice slots (r21-W1)", () => {
+  function level1Doc(classDoc: Record<string, unknown>): Record<string, unknown> {
+    return baseCharacterDoc({
+      items: [classDoc],
+      system: { level: { value: 1 }, details: {} },
+    });
+  }
+
+  it("Barbarian level 1 emits an UNFILLED 'instinct' slot (not a locked auto-feature chip)", () => {
+    const plan = derivePlan(level1Doc(barbarianClassDoc()));
+    const l1 = plan.levels.find((l) => l.level === 1)!;
+    const slot = l1.slots.find((s) => s.slotId === "instinct-1");
+    expect(slot).toBeDefined();
+    expect(slot!.type).toBe("instinct");
+    expect(slot!.filled).toBe(false);
+    // Rage/Quick-Tempered aren't choice placeholders — they stay locked chips.
+    expect(l1.autoFeatures.map((f) => f.name)).toEqual(
+      expect.arrayContaining(["Rage", "Quick-Tempered"]),
+    );
+    expect(l1.autoFeatures.some((f) => f.name === "Instinct")).toBe(false);
+  });
+
+  it("Rogue level 1 emits an UNFILLED 'racket' slot", () => {
+    const plan = derivePlan(level1Doc(rogueClassDoc()));
+    const l1 = plan.levels.find((l) => l.level === 1)!;
+    const slot = l1.slots.find((s) => s.slotId === "racket-1");
+    expect(slot).toBeDefined();
+    expect(slot!.type).toBe("racket");
+    expect(slot!.filled).toBe(false);
+  });
+
+  it("Ranger level 1 emits an UNFILLED 'huntersEdge' slot", () => {
+    const plan = derivePlan(level1Doc(rangerClassDoc()));
+    const l1 = plan.levels.find((l) => l.level === 1)!;
+    const slot = l1.slots.find((s) => s.slotId === "huntersEdge-1");
+    expect(slot).toBeDefined();
+    expect(slot!.type).toBe("huntersEdge");
+    expect(slot!.filled).toBe(false);
+  });
+
+  it("Wizard level 1 emits TWO choice slots: 'arcaneSchool' and 'arcaneThesis'", () => {
+    const plan = derivePlan(level1Doc(wizardClassDoc()));
+    const l1 = plan.levels.find((l) => l.level === 1)!;
+    const school = l1.slots.find((s) => s.slotId === "arcaneSchool-1");
+    const thesis = l1.slots.find((s) => s.slotId === "arcaneThesis-1");
+    expect(school?.type).toBe("arcaneSchool");
+    expect(thesis?.type).toBe("arcaneThesis");
+    expect(school!.filled).toBe(false);
+    expect(thesis!.filled).toBe(false);
+  });
+
+  it("Fighter level 1 emits NO choice-axis slot at all (confirmed: no fighter-* otherTag in the packs)", () => {
+    const plan = derivePlan(level1Doc(fighterClassDoc()));
+    const l1 = plan.levels.find((l) => l.level === 1)!;
+    const choiceTypes = [
+      "hybridStudy",
+      "kineticGate",
+      "instinct",
+      "racket",
+      "huntersEdge",
+      "arcaneThesis",
+      "arcaneSchool",
+    ];
+    expect(l1.slots.some((s) => choiceTypes.includes(s.type))).toBe(false);
+    expect(l1.autoFeatures.map((f) => f.name)).toEqual(
+      expect.arrayContaining(["Reactive Strike", "Shield Block"]),
+    );
+  });
+
+  it("Magus still emits 'hybridStudy' (r19-W2b behavior unchanged by the r21-W1 generalization)", () => {
+    const plan = derivePlan(tobiasLevel3Doc());
+    const l1 = plan.levels.find((l) => l.level === 1)!;
+    const slot = l1.slots.find((s) => s.slotId === "hybridStudy-1")!;
+    expect(slot.type).toBe("hybridStudy");
+    expect(slot.filled).toBe(true);
+    expect(slot.choiceName).toBe("Starlit Span");
   });
 });
 
@@ -1502,7 +1672,7 @@ describe("classFeatureGrantRefs + classGrantedActionChips (r20-X4)", () => {
 });
 
 // ---------------------------------------------------------------------------
-// chooseFeat / chooseHybridStudy
+// chooseFeat / chooseClassChoice
 // ---------------------------------------------------------------------------
 
 describe("chooseFeat", () => {
@@ -1556,9 +1726,14 @@ describe("chooseFeat", () => {
   });
 });
 
-describe("chooseHybridStudy", () => {
-  it("uses the fixed hybridStudy-1 slot id/type", () => {
-    const ops = chooseHybridStudy(ctx(baseCharacterDoc()), 1, starlitSpanHybridStudyDoc());
+describe("chooseClassChoice", () => {
+  it("hybridStudy: uses the hybridStudy-1 slot id/type (r19-W2b behavior unchanged)", () => {
+    const ops = chooseClassChoice(
+      ctx(baseCharacterDoc()),
+      "hybridStudy",
+      1,
+      starlitSpanHybridStudyDoc(),
+    );
     const createOp = ops[0]!;
     if (createOp.type !== "doc:create") throw new Error("expected doc:create");
     const flags = createOp.data["flags"] as Record<string, unknown>;
@@ -1570,6 +1745,26 @@ describe("chooseHybridStudy", () => {
     if (updateOp.type !== "doc:update") throw new Error("expected doc:update");
     const choices = updateOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
     expect(choices[0]).toMatchObject({ level: 1, slot: "hybridStudy-1", type: "hybridStudy" });
+  });
+
+  it("instinct: uses the instinct-1 slot id/type (r21-W1: same op builder, generic over slotType)", () => {
+    const ops = chooseClassChoice(ctx(baseCharacterDoc()), "instinct", 1, {
+      _id: "feature-animal-instinct",
+      name: "Animal Instinct",
+      type: "classFeature",
+      system: { traits: { otherTags: ["barbarian-instinct"], value: [] } },
+    });
+    const createOp = ops[0]!;
+    if (createOp.type !== "doc:create") throw new Error("expected doc:create");
+    const flags = createOp.data["flags"] as Record<string, unknown>;
+    expect((flags["fusion"] as Record<string, unknown>)["build"]).toEqual({
+      level: 1,
+      slot: "instinct-1",
+    });
+    const updateOp = ops[1]!;
+    if (updateOp.type !== "doc:update") throw new Error("expected doc:update");
+    const choices = updateOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
+    expect(choices[0]).toMatchObject({ level: 1, slot: "instinct-1", type: "instinct" });
   });
 });
 
@@ -2310,26 +2505,86 @@ describe("isFeatEligible", () => {
 });
 
 // ---------------------------------------------------------------------------
-// isHybridStudyOption
+// isClassChoiceOption (r21-W1: generalizes r19-W2b's hybridStudy-only
+// isHybridStudyOption to any CLASS_CHOICE_SLOT_OPTIONS-registered slot type)
 // ---------------------------------------------------------------------------
 
-describe("isHybridStudyOption", () => {
-  it("returns true for a classFeature carrying the magus-hybrid-study otherTag", () => {
-    expect(isHybridStudyOption(starlitSpanHybridStudyDoc())).toBe(true);
+describe("isClassChoiceOption", () => {
+  it("hybridStudy: returns true for a classFeature carrying the magus-hybrid-study otherTag (r19-W2b behavior unchanged)", () => {
+    expect(isClassChoiceOption(starlitSpanHybridStudyDoc(), "hybridStudy")).toBe(true);
   });
 
   it("returns false when otherTags is absent", () => {
-    expect(isHybridStudyOption({ system: { traits: {} } })).toBe(false);
+    expect(isClassChoiceOption({ system: { traits: {} } }, "hybridStudy")).toBe(false);
   });
 
-  it("returns false when otherTags doesn't include the hybrid-study tag", () => {
-    expect(isHybridStudyOption({ system: { traits: { otherTags: ["something-else"] } } })).toBe(
+  it("returns false when otherTags doesn't include the target slot's tag", () => {
+    expect(
+      isClassChoiceOption({ system: { traits: { otherTags: ["something-else"] } } }, "hybridStudy"),
+    ).toBe(false);
+  });
+
+  it("returns false for a non-hybrid-study classFeature (e.g. Arcane Cascade)", () => {
+    expect(isClassChoiceOption({ system: { traits: { otherTags: [] } } }, "hybridStudy")).toBe(
       false,
     );
   });
 
-  it("returns false for a non-hybrid-study classFeature (e.g. Arcane Cascade)", () => {
-    expect(isHybridStudyOption({ system: { traits: { otherTags: [] } } })).toBe(false);
+  it("instinct: returns true for a classFeature carrying the barbarian-instinct otherTag", () => {
+    expect(
+      isClassChoiceOption(
+        { system: { traits: { otherTags: ["barbarian-instinct"] } } },
+        "instinct",
+      ),
+    ).toBe(true);
+  });
+
+  it("racket: returns true for a classFeature carrying the rogue-racket otherTag", () => {
+    expect(
+      isClassChoiceOption({ system: { traits: { otherTags: ["rogue-racket"] } } }, "racket"),
+    ).toBe(true);
+  });
+
+  it("huntersEdge: returns true for a classFeature carrying the ranger-hunters-edge otherTag", () => {
+    expect(
+      isClassChoiceOption(
+        { system: { traits: { otherTags: ["ranger-hunters-edge"] } } },
+        "huntersEdge",
+      ),
+    ).toBe(true);
+  });
+
+  it("arcaneThesis: returns true for a classFeature carrying the wizard-arcane-thesis otherTag", () => {
+    expect(
+      isClassChoiceOption(
+        { system: { traits: { otherTags: ["wizard-arcane-thesis"] } } },
+        "arcaneThesis",
+      ),
+    ).toBe(true);
+  });
+
+  it("arcaneSchool: returns true for a classFeature carrying the wizard-arcane-school otherTag", () => {
+    expect(
+      isClassChoiceOption(
+        { system: { traits: { otherTags: ["wizard-arcane-school"] } } },
+        "arcaneSchool",
+      ),
+    ).toBe(true);
+  });
+
+  it("cross-category tags never cross-qualify (an instinct tag doesn't satisfy a racket slot)", () => {
+    expect(
+      isClassChoiceOption({ system: { traits: { otherTags: ["barbarian-instinct"] } } }, "racket"),
+    ).toBe(false);
+  });
+
+  it("kineticGate has no CLASS_CHOICE_SLOT_OPTIONS entry — always false regardless of tags", () => {
+    expect(
+      isClassChoiceOption(
+        { system: { traits: { otherTags: ["barbarian-instinct"] } } },
+        "kineticGate",
+      ),
+    ).toBe(false);
   });
 });
 

@@ -16,7 +16,7 @@
  *     filled/empty from the embedded items' `flags.fusion.build` +
  *     `system.build.choices`).
  *   - Op builders for every builder action (applyClass, applyAncestry,
- *     applyHeritage, applyBackground, chooseFeat, chooseHybridStudy,
+ *     applyHeritage, applyBackground, chooseFeat, chooseClassChoice,
  *     chooseSkillTraining/Increase, setAbilityBoosts, setFreeArchetype,
  *     removeChoice, levelUp/levelSet). Every builder returns plain op
  *     payload(s) — same DocUpdatePayload/DocCreateEmbeddedPayload/
@@ -383,6 +383,11 @@ export type PlanSlotType =
   | "archetypeFeat"
   | "hybridStudy"
   | "kineticGate"
+  | "instinct"
+  | "racket"
+  | "huntersEdge"
+  | "arcaneThesis"
+  | "arcaneSchool"
   | "skillTraining"
   | "skillIncrease"
   | "grantedFeat";
@@ -476,6 +481,11 @@ const SLOT_TYPE_LABELS: Record<PlanSlotType, string> = {
   archetypeFeat: "Archetype Feat",
   hybridStudy: "Hybrid Study",
   kineticGate: "Kinetic Gate",
+  instinct: "Instinct",
+  racket: "Rogue's Racket",
+  huntersEdge: "Hunter's Edge",
+  arcaneThesis: "Arcane Thesis",
+  arcaneSchool: "Arcane School",
   skillTraining: "Skill Training",
   skillIncrease: "Skill Increase",
   grantedFeat: "Granted Feat",
@@ -503,6 +513,11 @@ const SLOT_TYPE_LABELS: Record<PlanSlotType, string> = {
 export const CLASS_CHOICE_SLOTS: Record<string, PlanSlotType> = {
   "Hybrid Study": "hybridStudy",
   "Kinetic Gate": "kineticGate",
+  Instinct: "instinct",
+  "Rogue's Racket": "racket",
+  "Hunter's Edge": "huntersEdge",
+  "Arcane Thesis": "arcaneThesis",
+  "Arcane School": "arcaneSchool",
 };
 
 /**
@@ -1463,18 +1478,46 @@ const KNOWN_CLASS_TRAITS = new Set([
 ]);
 
 /**
- * Hybrid-study eligibility: `classFeatureDoc` must carry the
- * "magus-hybrid-study" tag in `system.traits.otherTags` (class-features-core
- * pack shape — see systems/pf2e/packs/class-features-core/documents.json).
- * `otherTags` isn't part of the strict Zod schema (TraitsBlockSchema) but
- * survives via `.passthrough()`, so it's read here as an untyped extra.
+ * CLASS_CHOICE_SLOT_OPTIONS — for every class-choice slot type whose OPTIONS
+ * come from a tagged list of class-features-core docs (r21-W1: generalizes
+ * the r19-W2b hybridStudy-only hardcode), the pack to search and the
+ * `system.traits.otherTags` value that marks a doc as eligible for that slot
+ * (e.g. Starlit Span carries "magus-hybrid-study", Animal Instinct carries
+ * "barbarian-instinct" — see systems/pf2e/packs/class-features-core's vendor
+ * data). `kineticGate` is deliberately ABSENT: its "options" aren't a tagged
+ * doc list but a single element/damage-type dialog (chooseKineticGate) — see
+ * the Kinetic Gate section below.
  */
-export function isHybridStudyOption(classFeatureDoc: {
-  system?: { traits?: { otherTags?: unknown } };
-}): boolean {
+export const CLASS_CHOICE_SLOT_OPTIONS: Partial<
+  Record<PlanSlotType, { packSlug: string; category: string }>
+> = {
+  hybridStudy: { packSlug: "class-features-core", category: "magus-hybrid-study" },
+  instinct: { packSlug: "class-features-core", category: "barbarian-instinct" },
+  racket: { packSlug: "class-features-core", category: "rogue-racket" },
+  huntersEdge: { packSlug: "class-features-core", category: "ranger-hunters-edge" },
+  arcaneThesis: { packSlug: "class-features-core", category: "wizard-arcane-thesis" },
+  arcaneSchool: { packSlug: "class-features-core", category: "wizard-arcane-school" },
+};
+
+/**
+ * isClassChoiceOption — true when `classFeatureDoc` carries the otherTags
+ * value CLASS_CHOICE_SLOT_OPTIONS[slotType].category, i.e. it's a valid
+ * OPTION for that class-choice slot (Starlit Span → hybridStudy, Animal
+ * Instinct → instinct, …). `otherTags` isn't part of the strict Zod schema
+ * (TraitsBlockSchema) but survives via `.passthrough()`, so it's read here as
+ * an untyped extra. A `slotType` with no CLASS_CHOICE_SLOT_OPTIONS entry
+ * (kineticGate, or any non-choice slot) always returns false — generic over
+ * the target category, never an `if (slotType === "hybridStudy")` branch.
+ */
+export function isClassChoiceOption(
+  classFeatureDoc: { system?: { traits?: { otherTags?: unknown } } },
+  slotType: PlanSlotType,
+): boolean {
+  const category = CLASS_CHOICE_SLOT_OPTIONS[slotType]?.category;
+  if (!category) return false;
   const otherTags = classFeatureDoc.system?.traits?.otherTags;
   if (!Array.isArray(otherTags)) return false;
-  return otherTags.includes("magus-hybrid-study");
+  return otherTags.includes(category);
 }
 
 // ---------------------------------------------------------------------------
@@ -2155,15 +2198,25 @@ export function chooseFeat(
   return ops;
 }
 
-/** chooseHybridStudy — same shape as chooseFeat but for a classFeature doc. */
-export function chooseHybridStudy(
+/**
+ * chooseClassChoice — same shape as chooseFeat but for a classFeature doc,
+ * for any class-declared choice slot (hybridStudy, instinct, racket,
+ * huntersEdge, arcaneThesis, arcaneSchool, …). The slot id follows
+ * `buildLevelPlan`'s own `<slotType>-<level>` convention (every current
+ * CLASS_CHOICE_SLOTS placeholder is declared at level 1, so this is
+ * `<slotType>-1` today — level-agnostic in principle, like
+ * classChoiceSlotsAtLevel itself). Generic over `slotType` — no per-class
+ * branch (r21-W1: generalizes the r19-W2b hybridStudy-only chooseHybridStudy).
+ */
+export function chooseClassChoice(
   ctx: PlanOpBuilderContext,
+  slotType: PlanSlotType,
   level: number,
   featureDoc: Record<string, unknown>,
 ): DocOpPayload[] {
   return chooseFeat(
     ctx,
-    { slotId: "hybridStudy-1", type: "hybridStudy" } as PlanSlotModel,
+    { slotId: `${slotType}-${String(level)}`, type: slotType } as PlanSlotModel,
     level,
     featureDoc,
   );
@@ -3458,6 +3511,11 @@ export function detailsRequestForSlot(slot: PlanSlotModel): PlanDetailsRequest |
   switch (slot.type) {
     case "hybridStudy":
     case "kineticGate":
+    case "instinct":
+    case "racket":
+    case "huntersEdge":
+    case "arcaneThesis":
+    case "arcaneSchool":
       return { packSlug: "class-features-core", name };
     case "ancestryFeat":
     case "classFeat":

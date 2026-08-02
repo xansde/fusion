@@ -734,6 +734,14 @@ function hasTradition(doc, tradition) {
  * covered by the ratfolk-ancestry-feats predicate above — it does not need
  * its own special-case.
  */
+/**
+ * Traits de ancestralidade/heranca cujos ancestry feats entram no pack.
+ * Derivado do que JA esta em ancestries-core/heritages-core: trazer a
+ * ancestralidade sem os feats dela deixa o slot de talento de ancestralidade
+ * vazio na ficha.
+ */
+const CURATED_ANCESTRY_TRAITS = ["ratfolk", "fleshwarp", "sylph"];
+
 function isFeatsCoreDoc(doc) {
   if (doc.type !== "feat") return false;
   const category = doc.system?.category;
@@ -757,7 +765,11 @@ function isFeatsCoreDoc(doc) {
     }
   }
 
-  if (category === "ancestry" && hasTrait(doc, "ratfolk")) return true;
+  // r21: ancestry feats de TODA ancestralidade/heranca curada. Antes era uma
+  // lista literal por nome (ratfolk, sylph) e o Fleshwarp — que ESTA no pack de
+  // ancestralidades desde a r18 — ficou sem nenhum feat proprio. A varredura
+  // headless pegou: "Fleshwarp nao tem ancestry feat em todo nivel de marco".
+  if (category === "ancestry" && CURATED_ANCESTRY_TRAITS.some((t) => hasTrait(doc, t))) return true;
   if (category === "skill" && level <= 8) return true;
   if (category === "general" && level <= 8) return true;
   if (doc.name === "Alchemist Dedication") return true;
@@ -770,7 +782,7 @@ function isFeatsCoreDoc(doc) {
   // `curation/classes/kineticist.json` — requireTraitsAll/Any — e é aplicada
   // pelo laço de classes curadas acima.)
   // Sylph versatile-heritage ancestry feats (trait "sylph"), e.g. Wind Pillow.
-  if (category === "ancestry" && hasTrait(doc, "sylph")) return true;
+
   // Rogue Free-Archetype dedication chain: the dedication itself plus its
   // level<=4 follow-up archetype feats (Surprise Attack etc.), identified by a
   // "Rogue Dedication" prerequisite (dedication feats file under category

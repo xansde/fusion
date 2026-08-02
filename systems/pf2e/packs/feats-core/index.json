@@ -1,5 +1,265 @@
 [
   {
+    "_id": "BeWSDrYdydSJlRV9",
+    "uuid": "Compendium.pf2e.feats-core.Item.BeWSDrYdydSJlRV9",
+    "name": "Aberration Kinship",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Aberration Kinship",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": ["fleshwarp"]
+    }
+  },
+  {
+    "_id": "kghSSLEZMOEU8d5w",
+    "uuid": "Compendium.pf2e.feats-core.Item.kghSSLEZMOEU8d5w",
+    "name": "Deep Vision",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Deep Vision",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": ["fleshwarp"]
+    }
+  },
+  {
+    "_id": "UhcJ7tYQ05hqJ7Jo",
+    "uuid": "Compendium.pf2e.feats-core.Item.UhcJ7tYQ05hqJ7Jo",
+    "name": "Embodied Legionary Subjectivity",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Embodied Legionary Subjectivity",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": ["fleshwarp"]
+    }
+  },
+  {
+    "_id": "X7na3t8qB6RhGjNo",
+    "uuid": "Compendium.pf2e.feats-core.Item.X7na3t8qB6RhGjNo",
+    "name": "Living Weapon",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Living Weapon",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": ["fleshwarp"]
+    }
+  },
+  {
+    "_id": "PRdGE6f1Z5vGhlYf",
+    "uuid": "Compendium.pf2e.feats-core.Item.PRdGE6f1Z5vGhlYf",
+    "name": "Startling Appearance (Fleshwarp)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Startling Appearance (Fleshwarp)",
+      "system.level": 1,
+      "system.category": "ancestry",
+      "system.traits.value": ["fleshwarp"]
+    }
+  },
+  {
+    "_id": "s2yYnbMUQrQsyzcD",
+    "uuid": "Compendium.pf2e.feats-core.Item.s2yYnbMUQrQsyzcD",
+    "name": "Augment Senses",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Augment Senses",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": ["fleshwarp"]
+    }
+  },
+  {
+    "_id": "NJ1LyTHXBZSBYn9G",
+    "uuid": "Compendium.pf2e.feats-core.Item.NJ1LyTHXBZSBYn9G",
+    "name": "Spew Tentacles",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Spew Tentacles",
+      "system.level": 13,
+      "system.category": "ancestry",
+      "system.traits.value": ["fleshwarp"]
+    }
+  },
+  {
+    "_id": "yH1jkms7tojQWOKP",
+    "uuid": "Compendium.pf2e.feats-core.Item.yH1jkms7tojQWOKP",
+    "name": "Embodied Dreadnought Subjectivity",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Embodied Dreadnought Subjectivity",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": ["fleshwarp"]
+    }
+  },
+  {
+    "_id": "NlqrOmgu1cGdYNH5",
+    "uuid": "Compendium.pf2e.feats-core.Item.NlqrOmgu1cGdYNH5",
+    "name": "Finned Ridges",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Finned Ridges",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": ["fleshwarp"]
+    }
+  },
+  {
+    "_id": "EogElFP32HdCBcGj",
+    "uuid": "Compendium.pf2e.feats-core.Item.EogElFP32HdCBcGj",
+    "name": "Gaping Flesh",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Gaping Flesh",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": ["fleshwarp"]
+    }
+  },
+  {
+    "_id": "qrGTe8CaMo25XAQT",
+    "uuid": "Compendium.pf2e.feats-core.Item.qrGTe8CaMo25XAQT",
+    "name": "Mutate Weapon",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Mutate Weapon",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": ["fleshwarp"]
+    }
+  },
+  {
+    "_id": "rOAgRmpIk33KLhSK",
+    "uuid": "Compendium.pf2e.feats-core.Item.rOAgRmpIk33KLhSK",
+    "name": "Powerful Guts",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Powerful Guts",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": ["fleshwarp"]
+    }
+  },
+  {
+    "_id": "zxqu9bPaxdCB1Ccj",
+    "uuid": "Compendium.pf2e.feats-core.Item.zxqu9bPaxdCB1Ccj",
+    "name": "Transposable Compliance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Transposable Compliance",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": ["fleshwarp"]
+    }
+  },
+  {
+    "_id": "TVRtDVX2mU4uhS4Y",
+    "uuid": "Compendium.pf2e.feats-core.Item.TVRtDVX2mU4uhS4Y",
+    "name": "Uncanny Awareness",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Uncanny Awareness",
+      "system.level": 5,
+      "system.category": "ancestry",
+      "system.traits.value": ["fleshwarp"]
+    }
+  },
+  {
+    "_id": "k6EyF2Z4GPvungdw",
+    "uuid": "Compendium.pf2e.feats-core.Item.k6EyF2Z4GPvungdw",
+    "name": "Captivating Curiosity",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Captivating Curiosity",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": ["fleshwarp"]
+    }
+  },
+  {
+    "_id": "x6wHFw9Y3eX4hUWl",
+    "uuid": "Compendium.pf2e.feats-core.Item.x6wHFw9Y3eX4hUWl",
+    "name": "Coating of Slime",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Coating of Slime",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": ["fleshwarp"]
+    }
+  },
+  {
+    "_id": "IB7zZdiEKKQ0wsuA",
+    "uuid": "Compendium.pf2e.feats-core.Item.IB7zZdiEKKQ0wsuA",
+    "name": "Eerie Compression",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Eerie Compression",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": ["fleshwarp"]
+    }
+  },
+  {
+    "_id": "KuYHNGL0K5hwhcHm",
+    "uuid": "Compendium.pf2e.feats-core.Item.KuYHNGL0K5hwhcHm",
+    "name": "Embodied Dragoon Subjectivity",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Embodied Dragoon Subjectivity",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": ["fleshwarp"]
+    }
+  },
+  {
+    "_id": "CPuntzHsWE8GdFnt",
+    "uuid": "Compendium.pf2e.feats-core.Item.CPuntzHsWE8GdFnt",
+    "name": "Gripping Limbs",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Gripping Limbs",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": ["fleshwarp"]
+    }
+  },
+  {
+    "_id": "MED7b6ntU0N6PATI",
+    "uuid": "Compendium.pf2e.feats-core.Item.MED7b6ntU0N6PATI",
+    "name": "Slip the Grasp",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Slip the Grasp",
+      "system.level": 9,
+      "system.category": "ancestry",
+      "system.traits.value": ["fleshwarp", "flourish"]
+    }
+  },
+  {
     "_id": "VUxWZ74VDXJ44bh5",
     "uuid": "Compendium.pf2e.feats-core.Item.VUxWZ74VDXJ44bh5",
     "name": "Cheek Pouches",
@@ -3996,6 +4256,84 @@
     }
   },
   {
+    "_id": "06EsYN0F2WniJTES",
+    "uuid": "Compendium.pf2e.feats-core.Item.06EsYN0F2WniJTES",
+    "name": "Armor in Earth",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Armor in Earth",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["earth", "impulse", "kineticist", "primal"]
+    }
+  },
+  {
+    "_id": "WSfr19WWFZbCvSbH",
+    "uuid": "Compendium.pf2e.feats-core.Item.WSfr19WWFZbCvSbH",
+    "name": "Burning Jet",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Burning Jet",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["fire", "impulse", "kineticist", "primal"]
+    }
+  },
+  {
+    "_id": "K9q2NGKbUQvSsDHl",
+    "uuid": "Compendium.pf2e.feats-core.Item.K9q2NGKbUQvSsDHl",
+    "name": "Deflecting Wave",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Deflecting Wave",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "primal", "water"]
+    }
+  },
+  {
+    "_id": "FJ75qypNu97v27F6",
+    "uuid": "Compendium.pf2e.feats-core.Item.FJ75qypNu97v27F6",
+    "name": "Elemental Familiar (Kineticist)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Elemental Familiar (Kineticist)",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["kineticist"]
+    }
+  },
+  {
+    "_id": "vb9MD2IpobJV8QCN",
+    "uuid": "Compendium.pf2e.feats-core.Item.vb9MD2IpobJV8QCN",
+    "name": "Eternal Torch",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Eternal Torch",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["fire", "impulse", "kineticist", "light", "manipulate", "primal"]
+    }
+  },
+  {
+    "_id": "Iod2hTJrFjcJgTen",
+    "uuid": "Compendium.pf2e.feats-core.Item.Iod2hTJrFjcJgTen",
+    "name": "Extended Kinesis",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Extended Kinesis",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["kineticist"]
+    }
+  },
+  {
     "_id": "1kOdLts4tY4SBymE",
     "uuid": "Compendium.pf2e.feats-core.Item.1kOdLts4tY4SBymE",
     "name": "Flashforge",
@@ -4009,6 +4347,19 @@
     }
   },
   {
+    "_id": "SY8nkS5WLnKGoTDs",
+    "uuid": "Compendium.pf2e.feats-core.Item.SY8nkS5WLnKGoTDs",
+    "name": "Flying Flame",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Flying Flame",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["fire", "impulse", "kineticist", "primal"]
+    }
+  },
+  {
     "_id": "mviFw5Uv7NbELr4Q",
     "uuid": "Compendium.pf2e.feats-core.Item.mviFw5Uv7NbELr4Q",
     "name": "Four Winds",
@@ -4019,6 +4370,66 @@
       "system.level": 1,
       "system.category": "class",
       "system.traits.value": ["air", "impulse", "kineticist", "primal"]
+    }
+  },
+  {
+    "_id": "hCE8WCGS7u1evzUB",
+    "uuid": "Compendium.pf2e.feats-core.Item.hCE8WCGS7u1evzUB",
+    "name": "Fresh Produce",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Fresh Produce",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "healing",
+        "impulse",
+        "kineticist",
+        "plant",
+        "primal",
+        "vitality",
+        "wood"
+      ]
+    }
+  },
+  {
+    "_id": "I6V6afK8iRawFnMt",
+    "uuid": "Compendium.pf2e.feats-core.Item.I6V6afK8iRawFnMt",
+    "name": "Geologic Attunement",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Geologic Attunement",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["earth", "impulse", "kineticist", "primal", "stance"]
+    }
+  },
+  {
+    "_id": "BHWgua2cVEb9v3cV",
+    "uuid": "Compendium.pf2e.feats-core.Item.BHWgua2cVEb9v3cV",
+    "name": "Hail of Splinters",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Hail of Splinters",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "overflow", "primal", "wood"]
+    }
+  },
+  {
+    "_id": "wuE0hTaw8gFGXte6",
+    "uuid": "Compendium.pf2e.feats-core.Item.wuE0hTaw8gFGXte6",
+    "name": "Hardwood Armor",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Hardwood Armor",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "primal", "wood"]
     }
   },
   {
@@ -4048,6 +4459,40 @@
     }
   },
   {
+    "_id": "1z8iWGHu74oFeAt9",
+    "uuid": "Compendium.pf2e.feats-core.Item.1z8iWGHu74oFeAt9",
+    "name": "Ocean's Balm",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ocean's Balm",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "healing",
+        "impulse",
+        "kineticist",
+        "manipulate",
+        "primal",
+        "vitality",
+        "water"
+      ]
+    }
+  },
+  {
+    "_id": "Zm5qZT8GkqLkptNo",
+    "uuid": "Compendium.pf2e.feats-core.Item.Zm5qZT8GkqLkptNo",
+    "name": "Scorching Column",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Scorching Column",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["fire", "impulse", "kineticist", "overflow", "primal"]
+    }
+  },
+  {
     "_id": "KEllvQVPtXKLSJvm",
     "uuid": "Compendium.pf2e.feats-core.Item.KEllvQVPtXKLSJvm",
     "name": "Shard Strike",
@@ -4058,6 +4503,84 @@
       "system.level": 1,
       "system.category": "class",
       "system.traits.value": ["impulse", "kineticist", "metal", "primal"]
+    }
+  },
+  {
+    "_id": "aKBU1bnJVR2tq8SK",
+    "uuid": "Compendium.pf2e.feats-core.Item.aKBU1bnJVR2tq8SK",
+    "name": "Stepping Stones",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Stepping Stones",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["earth", "impulse", "kineticist", "manipulate", "primal"]
+    }
+  },
+  {
+    "_id": "wxYM6JKfCvEa7Mox",
+    "uuid": "Compendium.pf2e.feats-core.Item.wxYM6JKfCvEa7Mox",
+    "name": "Tidal Hands",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Tidal Hands",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "overflow", "primal", "water"]
+    }
+  },
+  {
+    "_id": "x3y4jckKctqV0mMk",
+    "uuid": "Compendium.pf2e.feats-core.Item.x3y4jckKctqV0mMk",
+    "name": "Timber Sentinel",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Timber Sentinel",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "plant", "primal", "wood"]
+    }
+  },
+  {
+    "_id": "qTIyL4XXC1dniLR2",
+    "uuid": "Compendium.pf2e.feats-core.Item.qTIyL4XXC1dniLR2",
+    "name": "Tremor",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Tremor",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["earth", "impulse", "kineticist", "overflow", "primal"]
+    }
+  },
+  {
+    "_id": "M1L3ZD5uf2fN9vWk",
+    "uuid": "Compendium.pf2e.feats-core.Item.M1L3ZD5uf2fN9vWk",
+    "name": "Versatile Blasts",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Versatile Blasts",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["kineticist"]
+    }
+  },
+  {
+    "_id": "rU0XOUTl9bLKPnCe",
+    "uuid": "Compendium.pf2e.feats-core.Item.rU0XOUTl9bLKPnCe",
+    "name": "Weapon Infusion",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Weapon Infusion",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["infusion", "kineticist"]
     }
   },
   {
@@ -4082,6 +4605,665 @@
     }
   },
   {
+    "_id": "xGq9IoszKEH2xkNN",
+    "uuid": "Compendium.pf2e.feats-core.Item.xGq9IoszKEH2xkNN",
+    "name": "Winter's Clutch",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Winter's Clutch",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": ["cold", "impulse", "kineticist", "primal", "water"]
+    }
+  },
+  {
+    "_id": "A4NSn9AE4PVdiYCI",
+    "uuid": "Compendium.pf2e.feats-core.Item.A4NSn9AE4PVdiYCI",
+    "name": "Aura Shaping",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Aura Shaping",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["kineticist"]
+    }
+  },
+  {
+    "_id": "QUfJUHdi9hzJgV98",
+    "uuid": "Compendium.pf2e.feats-core.Item.QUfJUHdi9hzJgV98",
+    "name": "Chain Infusion",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Chain Infusion",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["infusion", "kineticist"]
+    }
+  },
+  {
+    "_id": "3dpifezWmBw67CfO",
+    "uuid": "Compendium.pf2e.feats-core.Item.3dpifezWmBw67CfO",
+    "name": "Elemental Transformation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Elemental Transformation",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": ["kineticist", "polymorph", "primal"]
+    }
+  },
+  {
+    "_id": "JASsqPA3cL8OdVEv",
+    "uuid": "Compendium.pf2e.feats-core.Item.JASsqPA3cL8OdVEv",
+    "name": "Architect of Flame",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Architect of Flame",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["fire", "impulse", "kineticist", "manipulate", "overflow", "primal"]
+    }
+  },
+  {
+    "_id": "W4R1NgVW8adarzsZ",
+    "uuid": "Compendium.pf2e.feats-core.Item.W4R1NgVW8adarzsZ",
+    "name": "Burning Demand",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Burning Demand",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "auditory",
+        "fire",
+        "impulse",
+        "kineticist",
+        "linguistic",
+        "overflow",
+        "primal"
+      ]
+    }
+  },
+  {
+    "_id": "OvWkyr83lV3J1atA",
+    "uuid": "Compendium.pf2e.feats-core.Item.OvWkyr83lV3J1atA",
+    "name": "Drowning Mist",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Drowning Mist",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "primal", "stance", "water"]
+    }
+  },
+  {
+    "_id": "oCh9uCGRqOQRov1S",
+    "uuid": "Compendium.pf2e.feats-core.Item.oCh9uCGRqOQRov1S",
+    "name": "Effortless Impulse",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Effortless Impulse",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["kineticist"]
+    }
+  },
+  {
+    "_id": "840pjM1C3i5Zd7xf",
+    "uuid": "Compendium.pf2e.feats-core.Item.840pjM1C3i5Zd7xf",
+    "name": "Furnace Form",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Furnace Form",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["fire", "impulse", "kineticist", "manipulate", "polymorph", "primal"]
+    }
+  },
+  {
+    "_id": "TGdM6HJOrEC4q50B",
+    "uuid": "Compendium.pf2e.feats-core.Item.TGdM6HJOrEC4q50B",
+    "name": "Ghosts in the Storm",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ghosts in the Storm",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["air", "electricity", "impulse", "kineticist", "primal", "stance"]
+    }
+  },
+  {
+    "_id": "KGcdW08TUPToIv58",
+    "uuid": "Compendium.pf2e.feats-core.Item.KGcdW08TUPToIv58",
+    "name": "Glacial Prison",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Glacial Prison",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "cold",
+        "impulse",
+        "incapacitation",
+        "kineticist",
+        "overflow",
+        "primal",
+        "water"
+      ]
+    }
+  },
+  {
+    "_id": "lr2YEyrHxqwQhRkD",
+    "uuid": "Compendium.pf2e.feats-core.Item.lr2YEyrHxqwQhRkD",
+    "name": "Hedge Maze",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Hedge Maze",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "overflow", "plant", "primal", "wood"]
+    }
+  },
+  {
+    "_id": "a4W53qvJnsae9ezk",
+    "uuid": "Compendium.pf2e.feats-core.Item.a4W53qvJnsae9ezk",
+    "name": "Rain of Razors",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Rain of Razors",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "metal", "overflow", "primal"]
+    }
+  },
+  {
+    "_id": "KES94IxOtkyroJSq",
+    "uuid": "Compendium.pf2e.feats-core.Item.KES94IxOtkyroJSq",
+    "name": "Rattle the Earth",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Rattle the Earth",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["earth", "impulse", "kineticist", "overflow", "primal"]
+    }
+  },
+  {
+    "_id": "SKCrD2JitIcAgE5U",
+    "uuid": "Compendium.pf2e.feats-core.Item.SKCrD2JitIcAgE5U",
+    "name": "Rock Rampart",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Rock Rampart",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["earth", "impulse", "kineticist", "manipulate", "overflow", "primal"]
+    }
+  },
+  {
+    "_id": "6jzYfmLlJpeUzNvO",
+    "uuid": "Compendium.pf2e.feats-core.Item.6jzYfmLlJpeUzNvO",
+    "name": "Sea Glass Guardians",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sea Glass Guardians",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "primal", "stance", "water"]
+    }
+  },
+  {
+    "_id": "2CHc348myPfs55DG",
+    "uuid": "Compendium.pf2e.feats-core.Item.2CHc348myPfs55DG",
+    "name": "Shattershields",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Shattershields",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "metal", "primal", "stance"]
+    }
+  },
+  {
+    "_id": "SsA1gZ6mXEkd1Obn",
+    "uuid": "Compendium.pf2e.feats-core.Item.SsA1gZ6mXEkd1Obn",
+    "name": "Wiles on the Wind",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Wiles on the Wind",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": ["air", "auditory", "illusion", "impulse", "kineticist", "primal"]
+    }
+  },
+  {
+    "_id": "p8R9dX1UslLQyd8U",
+    "uuid": "Compendium.pf2e.feats-core.Item.p8R9dX1UslLQyd8U",
+    "name": "Witchwood Seed",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Witchwood Seed",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "impulse",
+        "kineticist",
+        "overflow",
+        "plant",
+        "polymorph",
+        "primal",
+        "wood"
+      ]
+    }
+  },
+  {
+    "_id": "Xj1yq8QXnuKjsZNT",
+    "uuid": "Compendium.pf2e.feats-core.Item.Xj1yq8QXnuKjsZNT",
+    "name": "Alloy Flesh and Steel",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Alloy Flesh and Steel",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "manipulate", "metal", "polymorph", "primal"]
+    }
+  },
+  {
+    "_id": "bZXztI77vkdZMnjM",
+    "uuid": "Compendium.pf2e.feats-core.Item.bZXztI77vkdZMnjM",
+    "name": "Assume Earth's Mantle",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Assume Earth's Mantle",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["earth", "impulse", "kineticist", "primal", "stance"]
+    }
+  },
+  {
+    "_id": "vTVBc0ybxDZfrHq5",
+    "uuid": "Compendium.pf2e.feats-core.Item.vTVBc0ybxDZfrHq5",
+    "name": "Barrier of Boreal Frost",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Barrier of Boreal Frost",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": [
+        "cold",
+        "impulse",
+        "kineticist",
+        "manipulate",
+        "overflow",
+        "primal",
+        "water"
+      ]
+    }
+  },
+  {
+    "_id": "nDOJn9pCADwHzrT7",
+    "uuid": "Compendium.pf2e.feats-core.Item.nDOJn9pCADwHzrT7",
+    "name": "Body of Air",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Body of Air",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["air", "impulse", "kineticist", "overflow", "polymorph", "primal"]
+    }
+  },
+  {
+    "_id": "trTEP4rrxjg6ij1V",
+    "uuid": "Compendium.pf2e.feats-core.Item.trTEP4rrxjg6ij1V",
+    "name": "Liberating Dive",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Liberating Dive",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["air", "composite", "impulse", "kineticist", "metal", "primal"]
+    }
+  },
+  {
+    "_id": "Y6UnELENilUKQjXu",
+    "uuid": "Compendium.pf2e.feats-core.Item.Y6UnELENilUKQjXu",
+    "name": "Nourishing Gate",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Nourishing Gate",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["kineticist"]
+    }
+  },
+  {
+    "_id": "tbDTB5zLTfLPyc1l",
+    "uuid": "Compendium.pf2e.feats-core.Item.tbDTB5zLTfLPyc1l",
+    "name": "Orchard's Endurance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Orchard's Endurance",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "plant", "primal", "stance", "wood"]
+    }
+  },
+  {
+    "_id": "niqwjtF7paoNo1De",
+    "uuid": "Compendium.pf2e.feats-core.Item.niqwjtF7paoNo1De",
+    "name": "Rapid Reattunement",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Rapid Reattunement",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": ["concentrate", "exploration", "kineticist"]
+    }
+  },
+  {
+    "_id": "nqfmIQcqDZ4AbdKB",
+    "uuid": "Compendium.pf2e.feats-core.Item.nqfmIQcqDZ4AbdKB",
+    "name": "Walk Through the Conflagration",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Walk Through the Conflagration",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": [
+        "fire",
+        "impulse",
+        "kineticist",
+        "overflow",
+        "primal",
+        "teleportation"
+      ]
+    }
+  },
+  {
+    "_id": "aRURYvlgOdt1NY3I",
+    "uuid": "Compendium.pf2e.feats-core.Item.aRURYvlgOdt1NY3I",
+    "name": "Imperious Aura",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Imperious Aura",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "primal"]
+    }
+  },
+  {
+    "_id": "fhbSkBFn1EovTCzr",
+    "uuid": "Compendium.pf2e.feats-core.Item.fhbSkBFn1EovTCzr",
+    "name": "All Shall End in Flames",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "All Shall End in Flames",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["death", "fire", "impulse", "kineticist", "overflow", "primal"]
+    }
+  },
+  {
+    "_id": "jCilBorajdTxqSMl",
+    "uuid": "Compendium.pf2e.feats-core.Item.jCilBorajdTxqSMl",
+    "name": "Beasts of Slumbering Steel",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Beasts of Slumbering Steel",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "metal", "primal"]
+    }
+  },
+  {
+    "_id": "nrNchpvKwsMB7GPn",
+    "uuid": "Compendium.pf2e.feats-core.Item.nrNchpvKwsMB7GPn",
+    "name": "Crowned in Tempest's Fury",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Crowned in Tempest's Fury",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["air", "electricity", "impulse", "kineticist", "primal", "stance"]
+    }
+  },
+  {
+    "_id": "fsSxs8W9w8hY1zmV",
+    "uuid": "Compendium.pf2e.feats-core.Item.fsSxs8W9w8hY1zmV",
+    "name": "Elemental Apotheosis",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Elemental Apotheosis",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["kineticist"]
+    }
+  },
+  {
+    "_id": "q6749tnsaQzbTMZW",
+    "uuid": "Compendium.pf2e.feats-core.Item.q6749tnsaQzbTMZW",
+    "name": "Hell of 1,000,000 Needles",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Hell of 1,000,000 Needles",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "metal", "overflow", "primal"]
+    }
+  },
+  {
+    "_id": "WJPMTTQCtzw5EjxE",
+    "uuid": "Compendium.pf2e.feats-core.Item.WJPMTTQCtzw5EjxE",
+    "name": "Ignite the Sun",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ignite the Sun",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["fire", "impulse", "kineticist", "light", "primal"]
+    }
+  },
+  {
+    "_id": "npc94rC8BaanMlDJ",
+    "uuid": "Compendium.pf2e.feats-core.Item.npc94rC8BaanMlDJ",
+    "name": "Infinite Expanse of Bluest Heaven",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Infinite Expanse of Bluest Heaven",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": [
+        "air",
+        "illusion",
+        "impulse",
+        "kineticist",
+        "mental",
+        "overflow",
+        "primal",
+        "visual"
+      ]
+    }
+  },
+  {
+    "_id": "Coqt5MfRZApAfUTI",
+    "uuid": "Compendium.pf2e.feats-core.Item.Coqt5MfRZApAfUTI",
+    "name": "Rebirth in Living Stone",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Rebirth in Living Stone",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["earth", "impulse", "kineticist", "polymorph", "primal"]
+    }
+  },
+  {
+    "_id": "zPkVRjCA0Tc5rpyr",
+    "uuid": "Compendium.pf2e.feats-core.Item.zPkVRjCA0Tc5rpyr",
+    "name": "Ride the Tsunami",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ride the Tsunami",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "overflow", "primal", "water"]
+    }
+  },
+  {
+    "_id": "UowcX8BV5LNwc0TE",
+    "uuid": "Compendium.pf2e.feats-core.Item.UowcX8BV5LNwc0TE",
+    "name": "Rouse the Forest's Fury",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Rouse the Forest's Fury",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "overflow", "plant", "primal", "wood"]
+    }
+  },
+  {
+    "_id": "uLMdqQ7dyM9918kA",
+    "uuid": "Compendium.pf2e.feats-core.Item.uLMdqQ7dyM9918kA",
+    "name": "The Shattered Mountain Weeps",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "The Shattered Mountain Weeps",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["earth", "impulse", "kineticist", "overflow", "primal"]
+    }
+  },
+  {
+    "_id": "MkKu0meO64b62b6e",
+    "uuid": "Compendium.pf2e.feats-core.Item.MkKu0meO64b62b6e",
+    "name": "The Thousand Lashes of the Weeping Willow",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "The Thousand Lashes of the Weeping Willow",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "overflow", "plant", "primal", "wood"]
+    }
+  },
+  {
+    "_id": "NiH31dytmEd2CYVx",
+    "uuid": "Compendium.pf2e.feats-core.Item.NiH31dytmEd2CYVx",
+    "name": "Turn the Wheel of Seasons",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Turn the Wheel of Seasons",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "overflow", "primal", "wood"]
+    }
+  },
+  {
+    "_id": "I5dVVbrNymAnfYik",
+    "uuid": "Compendium.pf2e.feats-core.Item.I5dVVbrNymAnfYik",
+    "name": "Usurp the Lunar Reins",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Usurp the Lunar Reins",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "overflow", "primal", "water"]
+    }
+  },
+  {
+    "_id": "0uX1Ns4v3fQb1w9e",
+    "uuid": "Compendium.pf2e.feats-core.Item.0uX1Ns4v3fQb1w9e",
+    "name": "Kinetic Activation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Kinetic Activation",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["kineticist"]
+    }
+  },
+  {
+    "_id": "JI9rEcJXmGKOF5dq",
+    "uuid": "Compendium.pf2e.feats-core.Item.JI9rEcJXmGKOF5dq",
+    "name": "Voice of Elements",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Voice of Elements",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": ["kineticist"]
+    }
+  },
+  {
+    "_id": "iYOOILbEzKiLLGPs",
+    "uuid": "Compendium.pf2e.feats-core.Item.iYOOILbEzKiLLGPs",
+    "name": "Kinetic Pinnacle",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Kinetic Pinnacle",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["kineticist"]
+    }
+  },
+  {
+    "_id": "M6gDPvip3GnPJIbP",
+    "uuid": "Compendium.pf2e.feats-core.Item.M6gDPvip3GnPJIbP",
+    "name": "Omnikinesis",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Omnikinesis",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": ["kineticist"]
+    }
+  },
+  {
     "_id": "wT5wZlDuao7lGuZP",
     "uuid": "Compendium.pf2e.feats-core.Item.wT5wZlDuao7lGuZP",
     "name": "Air Shroud",
@@ -4092,6 +5274,120 @@
       "system.level": 4,
       "system.category": "class",
       "system.traits.value": ["air", "impulse", "kineticist", "primal", "stance"]
+    }
+  },
+  {
+    "_id": "aIFKqdbzVQXhzq1r",
+    "uuid": "Compendium.pf2e.feats-core.Item.aIFKqdbzVQXhzq1r",
+    "name": "Ambush Bladderwort",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ambush Bladderwort",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "composite",
+        "impulse",
+        "kineticist",
+        "plant",
+        "primal",
+        "water",
+        "wood"
+      ]
+    }
+  },
+  {
+    "_id": "Tp50spoNcz0tthpd",
+    "uuid": "Compendium.pf2e.feats-core.Item.Tp50spoNcz0tthpd",
+    "name": "Blazing Wave",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Blazing Wave",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["fire", "impulse", "kineticist", "overflow", "primal"]
+    }
+  },
+  {
+    "_id": "bUG0CcFwcQHb5veK",
+    "uuid": "Compendium.pf2e.feats-core.Item.bUG0CcFwcQHb5veK",
+    "name": "Born to the Trees",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Born to the Trees",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "morph", "primal", "wood"]
+    }
+  },
+  {
+    "_id": "LoNBdTsnythF91j6",
+    "uuid": "Compendium.pf2e.feats-core.Item.LoNBdTsnythF91j6",
+    "name": "Calcifying Sand",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Calcifying Sand",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "earth",
+        "impulse",
+        "incapacitation",
+        "kineticist",
+        "overflow",
+        "primal"
+      ]
+    }
+  },
+  {
+    "_id": "qHHnlNROCK7t2ogn",
+    "uuid": "Compendium.pf2e.feats-core.Item.qHHnlNROCK7t2ogn",
+    "name": "Command Elemental",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Command Elemental",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "primal"]
+    }
+  },
+  {
+    "_id": "wQqDkeNgMFw5INLD",
+    "uuid": "Compendium.pf2e.feats-core.Item.wQqDkeNgMFw5INLD",
+    "name": "Igneogenesis",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Igneogenesis",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["earth", "impulse", "kineticist", "manipulate", "primal"]
+    }
+  },
+  {
+    "_id": "YwSm0GzqSWqNohbH",
+    "uuid": "Compendium.pf2e.feats-core.Item.YwSm0GzqSWqNohbH",
+    "name": "Lava Leap",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Lava Leap",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "composite",
+        "earth",
+        "fire",
+        "impulse",
+        "kineticist",
+        "overflow",
+        "primal"
+      ]
     }
   },
   {
@@ -4114,6 +5410,19 @@
         "polymorph",
         "primal"
       ]
+    }
+  },
+  {
+    "_id": "n5HwVh644mDbst6E",
+    "uuid": "Compendium.pf2e.feats-core.Item.n5HwVh644mDbst6E",
+    "name": "Living Bonfire",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Living Bonfire",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["composite", "fire", "impulse", "kineticist", "primal", "wood"]
     }
   },
   {
@@ -4156,6 +5465,71 @@
     }
   },
   {
+    "_id": "9NtVkAPTaTTFlo3f",
+    "uuid": "Compendium.pf2e.feats-core.Item.9NtVkAPTaTTFlo3f",
+    "name": "Ravel of Thorns",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ravel of Thorns",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "plant", "primal", "stance", "wood"]
+    }
+  },
+  {
+    "_id": "1v8Bi67rZaXuPRQl",
+    "uuid": "Compendium.pf2e.feats-core.Item.1v8Bi67rZaXuPRQl",
+    "name": "Return to the Sea",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Return to the Sea",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "morph", "primal", "water"]
+    }
+  },
+  {
+    "_id": "FeLXlHDIwhu9oQmi",
+    "uuid": "Compendium.pf2e.feats-core.Item.FeLXlHDIwhu9oQmi",
+    "name": "Safe Elements",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Safe Elements",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["kineticist"]
+    }
+  },
+  {
+    "_id": "qc50GMtljHw9xPpK",
+    "uuid": "Compendium.pf2e.feats-core.Item.qc50GMtljHw9xPpK",
+    "name": "Thermal Nimbus",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Thermal Nimbus",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["fire", "impulse", "kineticist", "primal", "stance"]
+    }
+  },
+  {
+    "_id": "hs1qt4Afo6gb3UQV",
+    "uuid": "Compendium.pf2e.feats-core.Item.hs1qt4Afo6gb3UQV",
+    "name": "Tumbling Lumber",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Tumbling Lumber",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "primal", "wood"]
+    }
+  },
+  {
     "_id": "DqEAQRbIML9ZTANE",
     "uuid": "Compendium.pf2e.feats-core.Item.DqEAQRbIML9ZTANE",
     "name": "Whirling Grindstone",
@@ -4174,6 +5548,623 @@
         "metal",
         "primal"
       ]
+    }
+  },
+  {
+    "_id": "kjIBCFqPwxliZvkJ",
+    "uuid": "Compendium.pf2e.feats-core.Item.kjIBCFqPwxliZvkJ",
+    "name": "Winter Sleet",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Winter Sleet",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": ["cold", "impulse", "kineticist", "primal", "stance", "water"]
+    }
+  },
+  {
+    "_id": "tXZSjEizU6tw7Qda",
+    "uuid": "Compendium.pf2e.feats-core.Item.tXZSjEizU6tw7Qda",
+    "name": "Ash Strider",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ash Strider",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "air",
+        "composite",
+        "fire",
+        "impulse",
+        "kineticist",
+        "overflow",
+        "polymorph",
+        "primal"
+      ]
+    }
+  },
+  {
+    "_id": "JjsLHNmlijZ3p8tD",
+    "uuid": "Compendium.pf2e.feats-core.Item.JjsLHNmlijZ3p8tD",
+    "name": "Clear as Air",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Clear as Air",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["air", "illusion", "impulse", "kineticist", "overflow", "primal"]
+    }
+  },
+  {
+    "_id": "QgQV2qd3aQq9On4p",
+    "uuid": "Compendium.pf2e.feats-core.Item.QgQV2qd3aQq9On4p",
+    "name": "Consume Power",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Consume Power",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "metal", "primal"]
+    }
+  },
+  {
+    "_id": "okC9Wnpvl1sZeADI",
+    "uuid": "Compendium.pf2e.feats-core.Item.okC9Wnpvl1sZeADI",
+    "name": "Counter Element",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Counter Element",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist"]
+    }
+  },
+  {
+    "_id": "PyeEudSHvDo3tQWv",
+    "uuid": "Compendium.pf2e.feats-core.Item.PyeEudSHvDo3tQWv",
+    "name": "Crawling Fire",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Crawling Fire",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["fire", "impulse", "kineticist", "manipulate", "primal"]
+    }
+  },
+  {
+    "_id": "wzu5lslgiGS8Yb6V",
+    "uuid": "Compendium.pf2e.feats-core.Item.wzu5lslgiGS8Yb6V",
+    "name": "Dash of Herbs",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dash of Herbs",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "healing",
+        "impulse",
+        "kineticist",
+        "plant",
+        "primal",
+        "vitality",
+        "wood"
+      ]
+    }
+  },
+  {
+    "_id": "6pr0i82geLTcpQ1x",
+    "uuid": "Compendium.pf2e.feats-core.Item.6pr0i82geLTcpQ1x",
+    "name": "Desert Wind",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Desert Wind",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "air",
+        "composite",
+        "earth",
+        "impulse",
+        "kineticist",
+        "primal",
+        "stance"
+      ]
+    }
+  },
+  {
+    "_id": "mMJJEUCmI2Zo25lU",
+    "uuid": "Compendium.pf2e.feats-core.Item.mMJJEUCmI2Zo25lU",
+    "name": "Driving Rain",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Driving Rain",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "overflow", "primal", "water"]
+    }
+  },
+  {
+    "_id": "r9k7CRAdvWrHF8pI",
+    "uuid": "Compendium.pf2e.feats-core.Item.r9k7CRAdvWrHF8pI",
+    "name": "Elemental Artillery",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Elemental Artillery",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "attack",
+        "composite",
+        "impulse",
+        "kineticist",
+        "metal",
+        "primal",
+        "wood"
+      ]
+    }
+  },
+  {
+    "_id": "cZndQOWASUWVzuy3",
+    "uuid": "Compendium.pf2e.feats-core.Item.cZndQOWASUWVzuy3",
+    "name": "Fearsome Familiar",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Fearsome Familiar",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "primal"]
+    }
+  },
+  {
+    "_id": "PYSljXfNO0aeO05c",
+    "uuid": "Compendium.pf2e.feats-core.Item.PYSljXfNO0aeO05c",
+    "name": "Flinging Updraft",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Flinging Updraft",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["air", "impulse", "kineticist", "primal"]
+    }
+  },
+  {
+    "_id": "Wvd2egC8zftssNlN",
+    "uuid": "Compendium.pf2e.feats-core.Item.Wvd2egC8zftssNlN",
+    "name": "Jagged Berms",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Jagged Berms",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "composite",
+        "earth",
+        "impulse",
+        "kineticist",
+        "overflow",
+        "primal",
+        "wood"
+      ]
+    }
+  },
+  {
+    "_id": "ASQbddzY2CRcVzei",
+    "uuid": "Compendium.pf2e.feats-core.Item.ASQbddzY2CRcVzei",
+    "name": "Lightning Rod",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Lightning Rod",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["air", "composite", "impulse", "kineticist", "metal", "primal"]
+    }
+  },
+  {
+    "_id": "QEXCLNGKJNeliDLN",
+    "uuid": "Compendium.pf2e.feats-core.Item.QEXCLNGKJNeliDLN",
+    "name": "Molten Wire",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Molten Wire",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "attack",
+        "composite",
+        "fire",
+        "impulse",
+        "kineticist",
+        "metal",
+        "primal"
+      ]
+    }
+  },
+  {
+    "_id": "5Ir9kwHK5K7cHIcR",
+    "uuid": "Compendium.pf2e.feats-core.Item.5Ir9kwHK5K7cHIcR",
+    "name": "Rising Hurricane",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Rising Hurricane",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "air",
+        "composite",
+        "impulse",
+        "kineticist",
+        "overflow",
+        "primal",
+        "water"
+      ]
+    }
+  },
+  {
+    "_id": "lJigWiKgn25ebRTl",
+    "uuid": "Compendium.pf2e.feats-core.Item.lJigWiKgn25ebRTl",
+    "name": "Roiling Mudslide",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Roiling Mudslide",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["composite", "earth", "impulse", "kineticist", "primal", "water"]
+    }
+  },
+  {
+    "_id": "D8qcKZAjTALgJVm8",
+    "uuid": "Compendium.pf2e.feats-core.Item.D8qcKZAjTALgJVm8",
+    "name": "Sand Snatcher",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sand Snatcher",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["earth", "impulse", "kineticist", "primal"]
+    }
+  },
+  {
+    "_id": "0tD1sxAw2oDjnPKV",
+    "uuid": "Compendium.pf2e.feats-core.Item.0tD1sxAw2oDjnPKV",
+    "name": "Scrap Barricade",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Scrap Barricade",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "manipulate", "metal", "overflow", "primal"]
+    }
+  },
+  {
+    "_id": "y9oWxsWQ8kZvz5fL",
+    "uuid": "Compendium.pf2e.feats-core.Item.y9oWxsWQ8kZvz5fL",
+    "name": "Steam Knight",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Steam Knight",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "composite",
+        "fire",
+        "impulse",
+        "kineticist",
+        "primal",
+        "stance",
+        "water"
+      ]
+    }
+  },
+  {
+    "_id": "9pmeqEFOapNLBNbY",
+    "uuid": "Compendium.pf2e.feats-core.Item.9pmeqEFOapNLBNbY",
+    "name": "Torrent in the Blood",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Torrent in the Blood",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "healing",
+        "impulse",
+        "kineticist",
+        "manipulate",
+        "overflow",
+        "primal",
+        "vitality",
+        "water"
+      ]
+    }
+  },
+  {
+    "_id": "CBwlrQQ1AEyyyD5c",
+    "uuid": "Compendium.pf2e.feats-core.Item.CBwlrQQ1AEyyyD5c",
+    "name": "Tree of Duality",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Tree of Duality",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["air", "composite", "impulse", "kineticist", "primal", "wood"]
+    }
+  },
+  {
+    "_id": "NUkNmsIli1Wrz3x3",
+    "uuid": "Compendium.pf2e.feats-core.Item.NUkNmsIli1Wrz3x3",
+    "name": "Two-Element Infusion",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Two-Element Infusion",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["infusion", "kineticist"]
+    }
+  },
+  {
+    "_id": "hbju0h5wVUIGcm6I",
+    "uuid": "Compendium.pf2e.feats-core.Item.hbju0h5wVUIGcm6I",
+    "name": "Volcanic Escape",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Volcanic Escape",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["fire", "impulse", "kineticist", "overflow", "primal"]
+    }
+  },
+  {
+    "_id": "ciNBCdf5N3toACc9",
+    "uuid": "Compendium.pf2e.feats-core.Item.ciNBCdf5N3toACc9",
+    "name": "Weight of Stone",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Weight of Stone",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["earth", "impulse", "kineticist", "overflow", "primal"]
+    }
+  },
+  {
+    "_id": "rFP7DNJcKyXkE2VI",
+    "uuid": "Compendium.pf2e.feats-core.Item.rFP7DNJcKyXkE2VI",
+    "name": "Wooden Palisade",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Wooden Palisade",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "manipulate", "overflow", "primal", "wood"]
+    }
+  },
+  {
+    "_id": "OITA5pT11Vy1PXaY",
+    "uuid": "Compendium.pf2e.feats-core.Item.OITA5pT11Vy1PXaY",
+    "name": "Call the Hurricane",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Call the Hurricane",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "overflow", "primal", "water"]
+    }
+  },
+  {
+    "_id": "Z1uj9XoomFbH4pPf",
+    "uuid": "Compendium.pf2e.feats-core.Item.Z1uj9XoomFbH4pPf",
+    "name": "Conductive Sphere",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Conductive Sphere",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "electricity",
+        "impulse",
+        "kineticist",
+        "manipulate",
+        "metal",
+        "primal"
+      ]
+    }
+  },
+  {
+    "_id": "jnRyB1KWwoVf2j3B",
+    "uuid": "Compendium.pf2e.feats-core.Item.jnRyB1KWwoVf2j3B",
+    "name": "Cyclonic Ascent",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Cyclonic Ascent",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["air", "impulse", "kineticist", "primal"]
+    }
+  },
+  {
+    "_id": "TZxDmVesLJo0orgG",
+    "uuid": "Compendium.pf2e.feats-core.Item.TZxDmVesLJo0orgG",
+    "name": "Drifting Pollen",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Drifting Pollen",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "plant", "primal", "stance", "wood"]
+    }
+  },
+  {
+    "_id": "BKnXRHNRiUbwNNvY",
+    "uuid": "Compendium.pf2e.feats-core.Item.BKnXRHNRiUbwNNvY",
+    "name": "Elemental Overlap",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Elemental Overlap",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["kineticist"]
+    }
+  },
+  {
+    "_id": "srnQMCA8Kc6G2YpX",
+    "uuid": "Compendium.pf2e.feats-core.Item.srnQMCA8Kc6G2YpX",
+    "name": "Impenetrable Fog",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Impenetrable Fog",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "manipulate", "overflow", "primal", "water"]
+    }
+  },
+  {
+    "_id": "ytAxVgm0PAuzCRfk",
+    "uuid": "Compendium.pf2e.feats-core.Item.ytAxVgm0PAuzCRfk",
+    "name": "Kindle Inner Flames",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Kindle Inner Flames",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["fire", "impulse", "kineticist", "primal", "stance"]
+    }
+  },
+  {
+    "_id": "bM65LRhoBluqozDs",
+    "uuid": "Compendium.pf2e.feats-core.Item.bM65LRhoBluqozDs",
+    "name": "Purify Element",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Purify Element",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "primal"]
+    }
+  },
+  {
+    "_id": "n4J2DHhAY3aF7fKW",
+    "uuid": "Compendium.pf2e.feats-core.Item.n4J2DHhAY3aF7fKW",
+    "name": "Retch Rust",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Retch Rust",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "metal", "overflow", "primal"]
+    }
+  },
+  {
+    "_id": "OUvtik651KDCqnXR",
+    "uuid": "Compendium.pf2e.feats-core.Item.OUvtik651KDCqnXR",
+    "name": "Sanguivolent Roots",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sanguivolent Roots",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["impulse", "kineticist", "overflow", "plant", "primal", "wood"]
+    }
+  },
+  {
+    "_id": "qKekg4wy1JKczRTC",
+    "uuid": "Compendium.pf2e.feats-core.Item.qKekg4wy1JKczRTC",
+    "name": "Solar Detonation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Solar Detonation",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "fire",
+        "impulse",
+        "incapacitation",
+        "kineticist",
+        "overflow",
+        "primal",
+        "vitality"
+      ]
+    }
+  },
+  {
+    "_id": "BjERp4McngDLGdTe",
+    "uuid": "Compendium.pf2e.feats-core.Item.BjERp4McngDLGdTe",
+    "name": "Spike Skin",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Spike Skin",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["earth", "impulse", "kineticist", "primal"]
+    }
+  },
+  {
+    "_id": "aItPVPE1QYcGN0rn",
+    "uuid": "Compendium.pf2e.feats-core.Item.aItPVPE1QYcGN0rn",
+    "name": "Storm Spiral",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Storm Spiral",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "air",
+        "electricity",
+        "impulse",
+        "kineticist",
+        "overflow",
+        "primal",
+        "sonic"
+      ]
+    }
+  },
+  {
+    "_id": "627wrt5KNNkpmyfs",
+    "uuid": "Compendium.pf2e.feats-core.Item.627wrt5KNNkpmyfs",
+    "name": "Swim Through Earth",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Swim Through Earth",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": ["earth", "impulse", "kineticist", "primal"]
     }
   },
   {
