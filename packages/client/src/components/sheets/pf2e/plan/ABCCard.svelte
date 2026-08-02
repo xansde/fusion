@@ -38,9 +38,16 @@
     onClick: () => void;
     /** Locked auto-feature / scalar chips shown under the card (r20-X4). */
     chips?: AbcChipDisplay[] | undefined;
+    /**
+     * Frente 3 (DEC-BC-05): a readable "requirements not met" reason (e.g. a
+     * heritage whose declared ancestry no longer matches the character's
+     * current ancestry) — when set, the card gets a red-border marker
+     * instead of being hidden or blocked; it's still fully re-selectable.
+     */
+    issueText?: string | undefined;
   }
 
-  let { typeLabel, name, subName, subLine, filled, editable, onClick, chips }: Props = $props();
+  let { typeLabel, name, subName, subLine, filled, editable, onClick, chips, issueText }: Props = $props();
 </script>
 
 <div class="abc-card-wrap">
@@ -49,6 +56,7 @@
     class="abc-card"
     class:abc-card--clickable={editable}
     class:abc-card--has-chips={chips && chips.length > 0}
+    class:abc-card--invalid={issueText !== undefined}
     disabled={!editable}
     onclick={onClick}
   >
@@ -62,6 +70,7 @@
         {#if subName}<span class="abc-card__name-en">{subName}</span>{/if}
       </span>
       {#if subLine}<span class="abc-card__subline">{subLine}</span>{/if}
+      {#if issueText}<span class="abc-card__issue">{issueText}</span>{/if}
     </span>
   </button>
 
@@ -117,6 +126,19 @@
   .abc-card--clickable {
     cursor: pointer;
     transition: border-color 0.12s;
+  }
+
+  /* Frente 3 (DEC-BC-05): a red border MARKS a card whose pick no longer
+     meets its requirement — it never disappears and is never blocked. */
+  .abc-card--invalid {
+    border-color: var(--fusion-danger);
+  }
+
+  .abc-card__issue {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--fusion-danger);
+    margin-top: 2px;
   }
 
   .abc-card--clickable:hover,

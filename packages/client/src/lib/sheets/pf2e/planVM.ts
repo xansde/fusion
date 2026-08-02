@@ -365,6 +365,24 @@ export interface AbcChip {
   detailsPackSlug?: string;
 }
 
+/**
+ * RequirementIssue — a non-blocking "this pick no longer meets its
+ * requirements" marker (Frente 3, DEC-BC-05: REQUISITO ORDENA E MARCA, NUNCA
+ * BLOQUEIA). Attached to an ALREADY-FILLED slot/card whose backing item's
+ * requirements (level, class, ancestry) no longer hold — e.g. after the
+ * player swaps class/ancestry out from under a prior pick. The pick itself is
+ * NEVER removed by this — it stays on the sheet, visually flagged, until the
+ * player explicitly re-selects or removes it.
+ *
+ * `reasonKey` is an i18n key (FUSION.Sheet.Plan.Requirement.*); `params` are
+ * its `{{var}}` interpolation values (already-readable strings, e.g. a class
+ * name or a level number) — the caller renders via `t(reasonKey, params)`.
+ */
+export interface RequirementIssue {
+  reasonKey: string;
+  params?: Record<string, string>;
+}
+
 export interface AbcCardModel {
   kind: AbcKind;
   filled: boolean;
@@ -372,6 +390,8 @@ export interface AbcCardModel {
   subLine?: string;
   /** Locked chips (auto-conceded features + informative scalars) — r20-X4. */
   chips?: AbcChip[];
+  /** Non-blocking "requirements not met" marker (Frente 3) — e.g. a heritage whose declared ancestry no longer matches the character's current ancestry. */
+  requirementIssue?: RequirementIssue;
 }
 
 export type PlanSlotType =
@@ -440,6 +460,8 @@ export interface PlanSlotModel {
    * rather than defaulting every `grantedFeat` slot to feats-core.
    */
   detailsPackSlug?: string;
+  /** Non-blocking "requirements not met" marker (Frente 3) — set only on a FILLED, item-backed slot whose backing item no longer satisfies its level/class/ancestry requirement. */
+  requirementIssue?: RequirementIssue;
 }
 
 export interface AutoFeatureModel {
@@ -680,6 +702,28 @@ export function derivePlan(doc: Record<string, unknown>): PlanModel {
   return { abc, levels, needsClass: false };
 }
 
+/**
+ * heritageAncestryIssue — a heritage is only valid for the SPECIFIC ancestry
+ * it declares (`system.ancestry.slug`, e.g. "ratfolk" — see
+ * systems/pf2e/packs/heritages-core). Frente 3: after an ancestry swap, a
+ * heritage picked under the OLD ancestry stays on the sheet (never
+ * auto-removed) but gets marked, since it no longer matches.
+ */
+function heritageAncestryIssue(
+  heritage: Record<string, unknown> | undefined,
+  ancestry: Record<string, unknown> | undefined,
+): RequirementIssue | undefined {
+  if (!heritage) return undefined;
+  const heritageAncestrySlug = asRecord(asRecord(heritage["system"])["ancestry"])["slug"];
+  if (typeof heritageAncestrySlug !== "string") return undefined;
+  const currentAncestrySlug = nameToSlug(itemName(ancestry));
+  if (!currentAncestrySlug || heritageAncestrySlug === currentAncestrySlug) return undefined;
+  return {
+    reasonKey: "FUSION.Sheet.Plan.Requirement.HeritageWrongAncestry",
+    params: { ancestry: capitalizeSlug(heritageAncestrySlug) },
+  };
+}
+
 function buildAbcCards(doc: Record<string, unknown>): AbcCardModel[] {
   const cards: AbcCardModel[] = [];
   const items = getItems(doc);
@@ -698,6 +742,7 @@ function buildAbcCards(doc: Record<string, unknown>): AbcCardModel[] {
     filled: heritage !== undefined,
     ...withOptional("name", itemName(heritage)),
     ...withOptional("chips", abcChipsFor(heritage, items, "heritage")),
+    ...withOptional("requirementIssue", heritageAncestryIssue(heritage, ancestry)),
   });
 
   const background = findFirstItemByType(doc, "background");
@@ -973,6 +1018,14 @@ function buildLevelPlan(
     autoSeen.add(norm);
     autoFeatures.push(chip);
   }
+
+  // Frente 3 (DEC-BC-05): mark, never hide/block, a filled slot whose
+  // backing item no longer meets its requirement (a class/ancestry swap
+  // elsewhere, or simply outgrowing its level window). Reads the CURRENT
+  // class/ancestry off `doc` — the same source `planContext()` uses — so this
+  // always reflects the character's LATEST class/ancestry, not the one the
+  // pick was originally made under.
+  attachRequirementIssues(slots, items, charLevel, planContext(doc));
 
   return { level, slots: collapseSkillSlotGroups(slots), autoFeatures };
 }
@@ -1521,6 +1574,137 @@ export function isClassChoiceOption(
 }
 
 // ---------------------------------------------------------------------------
+// Requirement marking (Frente 3, DEC-BC-05) — a FILLED slot/card never gets
+// hidden or blocked once its backing item stops meeting its requirements
+// (a class swap, an ancestry swap, or simply having outgrown its level
+// window); it gets MARKED instead, with a readable reason. Filtering by
+// requirement stays exclusive to the PICKER's `filterFn` (isFeatEligible,
+// isClassChoiceOption) — this section is the mirror-image, non-filtering
+// check run against an ALREADY-CHOSEN item.
+// ---------------------------------------------------------------------------
+
+/** `slug` capitalized for display in a requirement reason ("fighter" → "Fighter") — matches how PF2e class/ancestry traits are cased in prose. */
+function capitalizeSlug(slug: string): string {
+  return slug.length > 0 ? slug.charAt(0).toUpperCase() + slug.slice(1) : slug;
+}
+
+/**
+ * The class a CLASS_CHOICE_SLOT_OPTIONS slot type requires, derived from its
+ * category tag's `<classSlug>-...` prefix (e.g. "magus-hybrid-study" →
+ * "magus") — every current entry follows this convention (see
+ * CLASS_CHOICE_SLOT_OPTIONS's own doc comment for the full list). Computed
+ * once at module load, not per-call.
+ */
+const CHOICE_SLOT_REQUIRED_CLASS: Partial<Record<PlanSlotType, string>> = Object.fromEntries(
+  Object.entries(CLASS_CHOICE_SLOT_OPTIONS).map(([slotType, opt]) => {
+    const requiredClass = opt.category.split("-")[0] ?? opt.category;
+    return [slotType, requiredClass];
+  }),
+);
+
+/**
+ * checkSlotRequirement — non-blocking check for an ALREADY-FILLED slot's
+ * backing item: does it still meet the requirements it was picked under?
+ * Returns `undefined` when it does (or when the slot type has no requirement
+ * this function understands — abilityBoosts/skillTraining/skillIncrease/
+ * kineticGate/grantedFeat are not item-requirement-checkable and always pass).
+ *
+ * Checks, in order (first hit wins — one reason is enough to mark a slot):
+ *  1. Level: the item's `system.level` (stamped at pick time — the item's OWN
+ *     level, not the slot's) must be <= the character's CURRENT level. A
+ *     level-up doesn't invalidate anything (level only ever grows), but a
+ *     class swap that resets `featLevels` timing could put a pick at a level
+ *     the new progression hasn't reached yet — same mechanism, same check.
+ *  2. Class-choice slots (hybridStudy/instinct/racket/huntersEdge/
+ *     arcaneThesis/arcaneSchool): the slot type itself requires a specific
+ *     class (CHOICE_SLOT_REQUIRED_CLASS) — mismatched against the
+ *     character's CURRENT classSlug.
+ *  3. classFeat: the item's own class trait (if any) must match the
+ *     character's CURRENT classSlug — mirrors isFeatEligible's classFeat
+ *     branch, run in reverse against a picked item instead of a picker
+ *     candidate.
+ *  4. ancestryFeat: the item's ancestry trait must match the character's
+ *     CURRENT ancestrySlug.
+ *
+ * Free-text `system.prerequisites` (feat-chain prose like "Alchemist
+ * Dedication" or ability-score/proficiency prose like "Intelligence +2") is
+ * deliberately NOT checked here — the pack data mixes item-name prose with
+ * non-item prose (proficiency ranks, ability scores, OR-lists) with no
+ * structured way to tell them apart, so a blind text match would flag
+ * legitimately-satisfied picks as invalid far more often than it would catch
+ * a real gap. Left as a known limitation rather than guessed at.
+ */
+export function checkSlotRequirement(
+  item: Record<string, unknown>,
+  slotType: PlanSlotType,
+  charLevel: number,
+  planCtx: Pick<PlanContext, "classSlug" | "ancestrySlug">,
+): RequirementIssue | undefined {
+  const sys = asRecord(item["system"]);
+  const level = sys["level"];
+  if (typeof level === "number" && level > charLevel) {
+    return {
+      reasonKey: "FUSION.Sheet.Plan.Requirement.LevelTooHigh",
+      params: { required: String(level), current: String(charLevel) },
+    };
+  }
+
+  const requiredClass = CHOICE_SLOT_REQUIRED_CLASS[slotType];
+  if (requiredClass && planCtx.classSlug && planCtx.classSlug !== requiredClass) {
+    return {
+      reasonKey: "FUSION.Sheet.Plan.Requirement.WrongClass",
+      params: { class: capitalizeSlug(requiredClass) },
+    };
+  }
+
+  const traits = asStringArray(asRecord(sys["traits"])["value"]);
+
+  if (slotType === "classFeat") {
+    const classTrait = traits.find((tr) => KNOWN_CLASS_TRAITS.has(tr));
+    if (classTrait && classTrait !== planCtx.classSlug) {
+      return {
+        reasonKey: "FUSION.Sheet.Plan.Requirement.WrongClass",
+        params: { class: capitalizeSlug(classTrait) },
+      };
+    }
+  }
+
+  if (slotType === "ancestryFeat" && planCtx.ancestrySlug) {
+    const ancestryTrait = traits[0];
+    if (ancestryTrait && ancestryTrait !== planCtx.ancestrySlug) {
+      return {
+        reasonKey: "FUSION.Sheet.Plan.Requirement.WrongAncestry",
+        params: { ancestry: capitalizeSlug(ancestryTrait) },
+      };
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * attachRequirementIssues — walk every FILLED, item-backed slot in `slots`
+ * and stamp `requirementIssue` on the ones whose backing item no longer
+ * meets its requirement (Frente 3). Mutates the slot objects in place (they
+ * are freshly built by `buildLevelPlan` for this `derivePlan` call, never
+ * shared/cached), so callers just call this once before returning.
+ */
+function attachRequirementIssues(
+  slots: PlanSlotModel[],
+  items: Array<Record<string, unknown>>,
+  charLevel: number,
+  planCtx: Pick<PlanContext, "classSlug" | "ancestrySlug">,
+): void {
+  for (const slot of slots) {
+    if (!slot.filled || !slot.itemId || slot.lockedGrant) continue;
+    const item = items.find((it) => it["_id"] === slot.itemId);
+    if (!item) continue;
+    const issue = checkSlotRequirement(item, slot.type, charLevel, planCtx);
+    if (issue) slot.requirementIssue = issue;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Kinetic Gate (Kineticist — Rage of Elements)
 //
 // The kineticist picks a Kinetic Gate at level 1: a SINGLE gate (one element)
@@ -1734,9 +1918,65 @@ function embeddedItemPayload(
 }
 
 /**
+ * replaceAbcItem — Frente 3 root-cause fix: `type: 'class'`/`'ancestry'`/
+ * `'heritage'`/`'background'` is a ONE-PER-ACTOR slot, but the apply*
+ * builders used to be doc:create-only — re-selecting an ABC card just
+ * ACCRETED a second embedded item of the same type instead of replacing the
+ * first one. Every reader (`findFirstItemByType`) picks the FIRST match, so
+ * the sheet kept showing the OLD pick forever and the swap silently did
+ * nothing — this is the "não consigo trocar a classe" bug.
+ *
+ * Deletes the existing item of `itemType` (if any) plus every item it
+ * granted (`flags.fusion.grantedBy === <old item's sourceId>` — e.g. the
+ * class-conceded Elemental Blast/Spellstrike actions, or an ancestry's
+ * materialized feature grants), so a swap doesn't leave orphaned grants
+ * behind. Returns `[]` when there's nothing to replace (first-time apply).
+ */
+function replaceAbcItem(
+  ctx: PlanOpBuilderContext,
+  itemType: "ancestry" | "heritage" | "background" | "class",
+): DocOpPayload[] {
+  const old = findFirstItemByType(ctx.doc, itemType);
+  const oldId = old?.["_id"];
+  if (!old || typeof oldId !== "string") return [];
+
+  const ops: DocOpPayload[] = [
+    {
+      type: "doc:delete",
+      documentType: "Item",
+      id: oldId,
+      parent: { type: "Actor", id: ctx.actorId },
+    } satisfies DocDeleteEmbeddedPayload,
+  ];
+
+  const oldSourceId = itemFusionSourceId(old);
+  for (const it of getItems(ctx.doc)) {
+    const isGrant = oldSourceId && itemFusion(it)["grantedBy"] === oldSourceId;
+    // The class's own auxiliary items (arcane/focus spellcasting entries)
+    // aren't `grantedBy`-tagged — they're tagged with a `class:`-prefixed
+    // build-flag slot (see applyClass) so this same cascade catches them too.
+    const isClassAux = itemType === "class" && (getItemBuildFlag(it)?.slot.startsWith("class:") ?? false);
+    if (!isGrant && !isClassAux) continue;
+    const id = it["_id"];
+    if (typeof id === "string") {
+      ops.push({
+        type: "doc:delete",
+        documentType: "Item",
+        id,
+        parent: { type: "Actor", id: ctx.actorId },
+      } satisfies DocDeleteEmbeddedPayload);
+    }
+  }
+
+  return ops;
+}
+
+/**
  * applyClass — doc:create the class item plus doc:create ops for its arcane
  * prepared spellcasting entry and, if the class grants a focus pool, a
- * focus entry.
+ * focus entry. Re-selecting (a class already applied) REPLACES the old class
+ * + its spellcasting/focus entries + its granted actions instead of
+ * accreting a second class item (Frente 3 — see `replaceAbcItem`).
  *
  * The embedded class item keeps the class's FULL `keyAbility` option list
  * (r11 live-verification fix): the actual key-ability CHOICE lives in
@@ -1745,10 +1985,10 @@ function embeddedItemPayload(
  * `keyAbility[0]`. Narrowing the item at apply time silently locked the
  * choice to the first option (Magus → always dex, Tobias's str impossible).
  *
- * Returns the ops in creation order (class item first — though doc:create
- * ops for different embedded items are independent and order doesn't matter
- * to the server, keeping the class item first makes test assertions and
- * debugging easier).
+ * Returns the ops in order (any REPLACE deletes first, then class item,
+ * then its spellcasting/focus entries — though doc:create ops for different
+ * embedded items are independent and order doesn't matter to the server,
+ * keeping this order makes test assertions and debugging easier).
  */
 export function applyClass(
   ctx: PlanOpBuilderContext,
@@ -1758,11 +1998,15 @@ export function applyClass(
   const classSystemRaw = asRecord(classDoc["system"]);
   const classSystem = classSystemRaw as unknown as ClassSystemLike;
 
-  const ops: DocOpPayload[] = [];
+  const ops: DocOpPayload[] = [...replaceAbcItem(ctx, "class")];
+  // The class item's OWN build flag (`slot: "class"`) doesn't feed any slot
+  // resolution (only feat/choice slotIds do) — it exists purely so a FUTURE
+  // re-select's `replaceAbcItem` can find this class's own auxiliary items
+  // (below) via the `class:`-prefix cascade.
   ops.push({
     type: "doc:create",
     documentType: "Item",
-    data: embeddedItemPayload(classDoc),
+    data: embeddedItemPayload(classDoc, { level: 1, slot: "class" }),
     parent: { type: "Actor", id: ctx.actorId },
   } satisfies DocCreateEmbeddedPayload);
 
@@ -1775,6 +2019,7 @@ export function applyClass(
       data: {
         name: `${classSystem.spellcasting.tradition} Spells`,
         type: "spellcastingEntry",
+        flags: { fusion: { build: { level: 1, slot: "class:spellcasting" } } },
         system: {
           prepared: { value: classSystem.spellcasting.type },
           tradition: { value: classSystem.spellcasting.tradition },
@@ -1795,6 +2040,7 @@ export function applyClass(
       data: {
         name: "Focus Spells",
         type: "spellcastingEntry",
+        flags: { fusion: { build: { level: 1, slot: "class:focus" } } },
         system: {
           prepared: { value: "innate" },
           tradition: { value: classSystem.spellcasting?.tradition ?? "arcane" },
@@ -1854,11 +2100,18 @@ function buildSlotsMap(
  * `system.build.abilities.ancestryBoosts`/`ancestryFlaws`/`ancestryFree`
  * (arrays sent whole per the diff-applier's array-path rule — see
  * characterSheetVM.ts's `_preparedArrayWith` doc comment for the same
- * constraint applied to a different array).
+ * constraint applied to a different array). Re-selecting REPLACES the old
+ * ancestry item + its granted features (Frente 3 — see `replaceAbcItem`)
+ * instead of accreting a second one.
  *
  * `ancestryDoc.system.boosts` mixes fixed ability slugs and the sentinel
  * string `"free"` for unrestricted boosts (see systems/pf2e/packs/
  * ancestries-core/documents.json, e.g. Ratfolk: `["dex","int","free"]`).
+ *
+ * Deliberately does NOT touch an already-picked heritage/ancestry feats: a
+ * swap may leave them no longer matching this ancestry, but per DEC-BC-05
+ * they stay on the sheet and get MARKED (see `heritageAncestryIssue`/
+ * `checkSlotRequirement`), never silently removed.
  */
 export function applyAncestry(
   ctx: PlanOpBuilderContext,
@@ -1872,6 +2125,7 @@ export function applyAncestry(
   const freeCount = boosts.filter((b) => b === "free").length;
 
   const ops: DocOpPayload[] = [
+    ...replaceAbcItem(ctx, "ancestry"),
     {
       type: "doc:create",
       documentType: "Item",
@@ -1910,12 +2164,18 @@ export function applyAncestry(
   return ops;
 }
 
+/**
+ * applyHeritage — doc:create the heritage item. Re-selecting REPLACES the old
+ * heritage + its granted features (Frente 3 — see `replaceAbcItem`) instead
+ * of accreting a second one.
+ */
 export function applyHeritage(
   ctx: PlanOpBuilderContext,
   heritageDoc: Record<string, unknown>,
 ): DocOpPayload[] {
   if (!ctx.editable) return [];
   return [
+    ...replaceAbcItem(ctx, "heritage"),
     {
       type: "doc:create",
       documentType: "Item",
@@ -1934,6 +2194,10 @@ export function applyHeritage(
  * `["free","free"]` — resolved later via
  * setAbilityBoosts(ctx, "backgroundFree", [...])). Same preserve-if-same-
  * count / reset-otherwise policy as applyAncestry's `ancestryFree` handling.
+ *
+ * Re-selecting REPLACES the old background item + its granted features
+ * (Frente 3 — see `replaceAbcItem`) instead of accreting a second one; its
+ * skill/lore training grants are replaced too (see `backgroundTrainingOps`).
  */
 export function applyBackground(
   ctx: PlanOpBuilderContext,
@@ -1946,6 +2210,7 @@ export function applyBackground(
   const freeCount = boosts.filter((b) => b === "free").length;
 
   const ops: DocOpPayload[] = [
+    ...replaceAbcItem(ctx, "background"),
     {
       type: "doc:create",
       documentType: "Item",
@@ -2046,6 +2311,13 @@ export function loreSlug(name: string): string {
  * it as an INT-based custom Lore) plus a `backgroundLore-N` build choice at rank
  * 1. Idempotent inputs — the heal filters out already-present trainings before
  * calling — so re-applying never duplicates a choice.
+ *
+ * Frente 3: always strips any PRIOR `backgroundSkill-*`/`backgroundLore-*`
+ * choices before appending the new ones, so re-selecting the background card
+ * (a different background, fewer/more granted skills) REPLACES the old
+ * background's training grants instead of accreting alongside them under
+ * colliding index-based slot ids (where `resolveSlot`'s `.find()` would keep
+ * reporting the OLD background's skill, masking the swap).
  */
 function backgroundTrainingOps(
   ctx: PlanOpBuilderContext,
@@ -2088,7 +2360,9 @@ function backgroundTrainingOps(
   }
 
   if (newChoices.length > 0) {
-    const existingChoices = getBuildChoices(getSystem(ctx.doc));
+    const existingChoices = getBuildChoices(getSystem(ctx.doc)).filter(
+      (c) => !c.slot.startsWith("backgroundSkill-") && !c.slot.startsWith("backgroundLore-"),
+    );
     ops.push({
       type: "doc:update",
       documentType: "Actor",
@@ -2168,6 +2442,17 @@ export function backgroundLoreHealOps(
  * chooseFeat — doc:create the feat item tagged with `flags.fusion.build =
  * {level, slot}`, plus append a matching entry to `system.build.choices` so
  * removeChoice() can find and clean it up symmetrically.
+ *
+ * Frente 3: re-selecting an ALREADY-FILLED slot (feat, hybrid study, kinetic
+ * gate, …) REPLACES the previous pick — its item, any nested sub-slot it
+ * granted (W1-D), and any fixed grant it materialized — via the same
+ * cascade `removeChoice` runs on an explicit remove, instead of silently
+ * accreting a second item under the same slot id (which left the OLD pick
+ * winning every lookup, since `resolveSlot`/`effectiveSkillRank` match the
+ * FIRST item/choice for a given slot). The existing item is looked up FRESH
+ * from `ctx.doc` (not trusted from the `slot` param) so this is correct even
+ * when the caller builds a synthetic slot object with no `itemId` (
+ * `chooseClassChoice`/`chooseKineticGate` both do).
  */
 export function chooseFeat(
   ctx: PlanOpBuilderContext,
@@ -2176,17 +2461,30 @@ export function chooseFeat(
   featDoc: Record<string, unknown>,
 ): DocOpPayload[] {
   if (!ctx.editable) return [];
-  const buildFlag = { level, slot: slot.slotId };
-  const ops: DocOpPayload[] = [
-    {
-      type: "doc:create",
-      documentType: "Item",
-      data: embeddedItemPayload(featDoc, buildFlag),
-      parent: { type: "Actor", id: ctx.actorId },
-    } satisfies DocCreateEmbeddedPayload,
-  ];
+  const ops: DocOpPayload[] = [];
 
-  const existingChoices = getBuildChoices(getSystem(ctx.doc));
+  const existingItem = getItems(ctx.doc).find((it) => {
+    const flag = getItemBuildFlag(it);
+    return flag !== null && flag.level === level && flag.slot === slot.slotId;
+  });
+  const existingItemId = existingItem?.["_id"];
+  if (existingItem && typeof existingItemId === "string") {
+    ops.push(...removeChoice(ctx, { ...slot, filled: true, itemId: existingItemId }));
+  }
+
+  const buildFlag = { level, slot: slot.slotId };
+  ops.push({
+    type: "doc:create",
+    documentType: "Item",
+    data: embeddedItemPayload(featDoc, buildFlag),
+    parent: { type: "Actor", id: ctx.actorId },
+  } satisfies DocCreateEmbeddedPayload);
+
+  // Filtered by slotId regardless of the replace branch above: removeChoice's
+  // own choices-diff op (if any) is computed from the SAME stale `ctx.doc`
+  // snapshot, so this final write must independently exclude the slot's old
+  // entry to stay correct as the LAST write in the sequence.
+  const existingChoices = getBuildChoices(getSystem(ctx.doc)).filter((c) => c.slot !== slot.slotId);
   const newChoice: BuildChoice = { level, slot: slot.slotId, type: slot.type };
   ops.push({
     type: "doc:update",

@@ -989,6 +989,127 @@ describe("applyClass", () => {
     );
     expect(focusOp).toBeUndefined();
   });
+
+  it("stamps the class item + its spellcasting/focus entries with a class-prefixed build flag, so a LATER swap can find and clean them up", () => {
+    const ops = applyClass(ctx(baseCharacterDoc()), magusClassDoc());
+    const classOp = ops.find(
+      (o) => o.type === "doc:create" && (o.data["type"] as string) === "class",
+    );
+    if (!classOp || classOp.type !== "doc:create") throw new Error("expected doc:create");
+    // The class item's PRE-EXISTING fusion flags (sourceId/conversion, from
+    // the real pack doc) survive alongside the new build flag — replaceAbcItem
+    // needs that sourceId later to find this class's grantedBy items on a
+    // future swap (see embeddedItemPayload's merge, not overwrite).
+    expect((classOp.data["flags"] as Record<string, unknown>)).toEqual({
+      fusion: { conversion: "full", sourceId: "HQBA9Yx2s8ycvz3C", build: { level: 1, slot: "class" } },
+    });
+
+    const spellOp = ops.find(
+      (o) => o.type === "doc:create" && (o.data["name"] as string) === "arcane Spells",
+    );
+    if (!spellOp || spellOp.type !== "doc:create") throw new Error("expected doc:create");
+    expect((spellOp.data["flags"] as Record<string, unknown>)).toEqual({
+      fusion: { build: { level: 1, slot: "class:spellcasting" } },
+    });
+
+    const focusOp = ops.find(
+      (o) => o.type === "doc:create" && (o.data["name"] as string) === "Focus Spells",
+    );
+    if (!focusOp || focusOp.type !== "doc:create") throw new Error("expected doc:create");
+    expect((focusOp.data["flags"] as Record<string, unknown>)).toEqual({
+      fusion: { build: { level: 1, slot: "class:focus" } },
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Frente 3 (DEC-BC-05 / "não consigo trocar a classe") — root cause: applyClass
+  // only ever doc:created a class item, never removed the PREVIOUS one, so a
+  // second class accreted alongside the first — and every reader
+  // (findFirstItemByType) matches the FIRST item, so the swap silently did
+  // nothing visible. Re-selecting must REPLACE the old class (+ its own
+  // spellcasting/focus/granted-action items), while every OTHER pick (feats,
+  // ancestry, hybrid study, …) is left completely untouched — those become the
+  // requirement-marking job (see derivePlan/checkSlotRequirement tests below),
+  // never a silent delete.
+  // ---------------------------------------------------------------------------
+  describe("re-selecting an ALREADY-APPLIED class (Frente 3)", () => {
+    it("deletes the OLD class item and creates the NEW one, instead of accreting a second class item", () => {
+      const doc = tobiasLevel3Doc(); // Magus, item _id "item-class"
+      const ops = applyClass(ctx(doc), wizardClassDoc());
+
+      const deleteOps = ops.filter((o) => o.type === "doc:delete") as Array<{ id: string }>;
+      expect(deleteOps.map((o) => o.id)).toEqual(["item-class"]);
+
+      const classCreateOps = ops.filter(
+        (o) => o.type === "doc:create" && (o.data["type"] as string) === "class",
+      );
+      expect(classCreateOps).toHaveLength(1); // only the new Wizard — no duplicate class item
+      if (classCreateOps[0]?.type !== "doc:create") throw new Error("expected doc:create");
+      expect(classCreateOps[0].data["name"]).toBe(wizardClassDoc()["name"]);
+    });
+
+    it("does NOT touch any other embedded item (ancestry/heritage/background/feats stay exactly as they were)", () => {
+      const doc = tobiasLevel3Doc();
+      const untouchedIds = [
+        "item-ancestry",
+        "item-heritage",
+        "item-background",
+        "item-ancestry-feat-1",
+        "item-hybrid-study-1",
+        "item-class-feat-2",
+        "item-skill-feat-2",
+        "item-archetype-feat-2",
+        "item-general-feat-3",
+      ];
+      const ops = applyClass(ctx(doc), wizardClassDoc());
+      const deletedIds = new Set(
+        ops.filter((o) => o.type === "doc:delete").map((o) => (o as { id: string }).id),
+      );
+      for (const id of untouchedIds) expect(deletedIds.has(id)).toBe(false);
+    });
+
+    it("cascades the delete to the OLD class's own spellcasting/focus entries (class-prefixed build flag) but not to unrelated spellcasting entries", () => {
+      const doc: Record<string, unknown> = {
+        _id: "actor-x",
+        name: "X",
+        type: "character",
+        items: [
+          { ...magusClassDoc(), _id: "item-class", flags: { fusion: { build: { level: 1, slot: "class" } } } },
+          {
+            name: "arcane Spells",
+            type: "spellcastingEntry",
+            _id: "item-arcane-spells",
+            system: { isFocusPool: false },
+            flags: { fusion: { build: { level: 1, slot: "class:spellcasting" } } },
+          },
+          {
+            name: "Focus Spells",
+            type: "spellcastingEntry",
+            _id: "item-focus-spells",
+            system: { isFocusPool: true },
+            flags: { fusion: { build: { level: 1, slot: "class:focus" } } },
+          },
+          {
+            // An UNRELATED spellcasting entry (e.g. a wand/staff-granted one)
+            // that must survive the class swap untouched.
+            name: "Unrelated Innate Spells",
+            type: "spellcastingEntry",
+            _id: "item-unrelated-spells",
+            system: { isFocusPool: false },
+          },
+        ],
+        system: { level: { value: 1 }, details: {} },
+      };
+      const ops = applyClass(ctx(doc), wizardClassDoc());
+      const deletedIds = new Set(
+        ops.filter((o) => o.type === "doc:delete").map((o) => (o as { id: string }).id),
+      );
+      expect(deletedIds).toEqual(
+        new Set(["item-class", "item-arcane-spells", "item-focus-spells"]),
+      );
+      expect(deletedIds.has("item-unrelated-spells")).toBe(false);
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -1113,6 +1234,36 @@ describe("applyAncestry", () => {
     if (!updateOp || updateOp.type !== "doc:update") throw new Error("expected doc:update");
     expect(updateOp.diff["system.attributes.speed.value"]).toBe(20);
   });
+
+  // Frente 3 (DEC-BC-05): re-selecting the ancestry card must REPLACE the old
+  // ancestry item, not accrete a second one — every reader
+  // (findFirstItemByType) matches the FIRST embedded item of the type, so an
+  // accreted second ancestry item would leave the sheet showing the OLD one
+  // forever (the same "não consigo trocar" bug diagnosed for class).
+  it("re-selecting deletes the OLD ancestry item and creates the new one (Frente 3)", () => {
+    const doc = tobiasLevel3Doc(); // Ratfolk, item _id "item-ancestry"
+    const dwarf = { ...ratfolkAncestryDoc(), _id: "anc-dwarf", name: "Dwarf" };
+    const ops = applyAncestry(ctx(doc), dwarf);
+
+    const deleteOps = ops.filter((o) => o.type === "doc:delete") as Array<{ id: string }>;
+    expect(deleteOps.map((o) => o.id)).toEqual(["item-ancestry"]);
+
+    const createOps = ops.filter(
+      (o) => o.type === "doc:create" && (o.data["type"] as string) === "ancestry",
+    );
+    expect(createOps).toHaveLength(1); // only Dwarf — no leftover Ratfolk item
+  });
+
+  it("does NOT touch the heritage/background/class/feats when swapping ancestry — Frente 3's mark-don't-delete policy applies to THOSE, not a silent removal here", () => {
+    const doc = tobiasLevel3Doc();
+    const dwarf = { ...ratfolkAncestryDoc(), _id: "anc-dwarf", name: "Dwarf" };
+    const ops = applyAncestry(ctx(doc), dwarf);
+    const deletedIds = new Set(
+      ops.filter((o) => o.type === "doc:delete").map((o) => (o as { id: string }).id),
+    );
+    expect(deletedIds.has("item-heritage")).toBe(false);
+    expect(deletedIds.has("item-class-feat-2")).toBe(false);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -1132,6 +1283,21 @@ describe("applyHeritage", () => {
     expect(op.data["_id"]).toBeUndefined();
     const wire = { documentType: op.documentType, data: [op.data], parent: op.parent };
     expect(DocCreatePayloadSchema.safeParse(wire).success).toBe(true);
+  });
+
+  // Frente 3 (DEC-BC-05): same replace-not-accrete fix as class/ancestry.
+  it("re-selecting deletes the OLD heritage item and creates the new one (Frente 3)", () => {
+    const doc = tobiasLevel3Doc(); // Snow Rat heritage, item _id "item-heritage"
+    const desertRat = { ...snowRatHeritageDoc(), _id: "her-desert", name: "Desert Rat" };
+    const ops = applyHeritage(ctx(doc), desertRat);
+
+    const deleteOps = ops.filter((o) => o.type === "doc:delete") as Array<{ id: string }>;
+    expect(deleteOps.map((o) => o.id)).toEqual(["item-heritage"]);
+
+    const createOps = ops.filter((o) => o.type === "doc:create");
+    expect(createOps).toHaveLength(1);
+    if (createOps[0]?.type !== "doc:create") throw new Error("expected doc:create");
+    expect(createOps[0].data["name"]).toBe("Desert Rat");
   });
 });
 
@@ -1717,12 +1883,41 @@ describe("chooseFeat", () => {
     expect(DocUpdatePayloadSchema.safeParse(wireUpdate).success).toBe(true);
   });
 
-  it("appends onto existing choices without clobbering", () => {
+  it("appends onto existing UNRELATED choices without clobbering them", () => {
     const ops = chooseFeat(ctx(tobiasLevel3Doc()), slot, 2, arcaneFistsFeatDoc());
-    const updateOp = ops[1]!;
+    const updateOp = ops.find((op) => op.type === "doc:update")!;
     if (updateOp.type !== "doc:update") throw new Error("expected doc:update");
     const choices = updateOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
-    expect(choices.length).toBe(5); // 4 existing + 1 new
+    expect(choices.length).toBe(5); // 4 unrelated existing choices + 1 new
+  });
+
+  // Frente 3 (DEC-BC-05 / "não consigo trocar a classe"): re-selecting an
+  // ALREADY-FILLED slot must REPLACE the previous pick, not accrete a
+  // duplicate item under the same slot id — the accretion bug that made
+  // every re-select silently do nothing (the OLD item kept winning every
+  // `resolveSlot`/`.find()` lookup).
+  it("re-selecting an already-filled slot deletes the old item instead of accreting a duplicate", () => {
+    const doc = tobiasLevel3Doc();
+    // classFeat-2 is already filled with "item-class-feat-2" (Arcane Fists) —
+    // re-picking it (even the SAME feat) must replace, not duplicate.
+    const ops = chooseFeat(ctx(doc), slot, 2, arcaneFistsFeatDoc());
+
+    const deleteOps = ops.filter((op) => op.type === "doc:delete") as Array<{ id: string }>;
+    expect(deleteOps.map((op) => op.id)).toEqual(["item-class-feat-2"]);
+
+    const createOps = ops.filter((op) => op.type === "doc:create");
+    expect(createOps).toHaveLength(1); // only the new item — no duplicate left behind
+
+    const updateOp = ops.find((op) => op.type === "doc:update")!;
+    if (updateOp.type !== "doc:update") throw new Error("expected doc:update");
+    const choices = updateOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
+    // Exactly ONE classFeat-2 entry survives (the new pick) — no duplicate choice marker.
+    expect(choices.filter((c) => c["slot"] === "classFeat-2")).toHaveLength(1);
+  });
+
+  it("does NOT emit a delete op when the slot was genuinely empty (first pick, no accretion cost)", () => {
+    const ops = chooseFeat(ctx(baseCharacterDoc()), slot, 2, arcaneFistsFeatDoc());
+    expect(ops.some((op) => op.type === "doc:delete")).toBe(false);
   });
 });
 

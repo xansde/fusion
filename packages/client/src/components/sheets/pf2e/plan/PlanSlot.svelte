@@ -40,9 +40,17 @@
     onEdit?: (() => void) | undefined;
     onDetails?: (() => void) | undefined;
     badge?: Snippet | undefined;
+    /**
+     * Frente 3 (DEC-BC-05): a readable "requirements not met" reason (e.g.
+     * "Exige nível de personagem 6; você tem 4") — when set, the slot gets a
+     * red-border marker instead of being hidden or blocked. The pick itself
+     * stays fully functional (editable/removable exactly like any other
+     * filled slot).
+     */
+    issueText?: string | undefined;
   }
 
-  let { name, type, subName, subType, grid, gridLabels, onRemove, onEdit, onDetails, badge }: Props = $props();
+  let { name, type, subName, subType, grid, gridLabels, onRemove, onEdit, onDetails, badge, issueText }: Props = $props();
 
   function gridLabel(slug: string): string {
     return gridLabels?.[slug] ?? slug.toUpperCase();
@@ -55,7 +63,7 @@
   const bodyLabel = $derived(bodyIsEdit ? `Editar: ${name}` : `Detalhes: ${name}`);
 </script>
 
-<div class="plan-slot" class:plan-slot--editable={bodyAction !== undefined}>
+<div class="plan-slot" class:plan-slot--editable={bodyAction !== undefined} class:plan-slot--invalid={issueText !== undefined}>
   {#if bodyAction}
     <button
       type="button"
@@ -84,6 +92,7 @@
         <span class="plan-slot__type">
           {type}{#if subType}<span class="plan-slot__type-en">{subType}</span>{/if}
         </span>
+        {#if issueText}<span class="plan-slot__issue">{issueText}</span>{/if}
       </span>
       <span class="plan-slot__edit" aria-hidden="true">{bodyIsEdit ? "✎" : "ⓘ"}</span>
     </button>
@@ -109,6 +118,7 @@
       <div class="plan-slot__type">
         {type}{#if subType}<span class="plan-slot__type-en">{subType}</span>{/if}
       </div>
+      {#if issueText}<span class="plan-slot__issue">{issueText}</span>{/if}
     </div>
   {/if}
   {#if onRemove}
@@ -136,6 +146,19 @@
 
   .plan-slot:hover {
     background: var(--fusion-surface);
+  }
+
+  /* Frente 3 (DEC-BC-05): a red border MARKS a slot whose pick no longer
+     meets its requirement — it never disappears and is never blocked. */
+  .plan-slot--invalid {
+    border: 1px solid var(--fusion-danger);
+  }
+
+  .plan-slot__issue {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--fusion-danger);
+    margin-top: 1px;
   }
 
   .plan-slot__body {

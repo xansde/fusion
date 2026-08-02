@@ -500,6 +500,32 @@
     });
   }
 
+  /** Frente 3 (DEC-BC-05): render an ABC card's requirement-issue reason (if any) via i18n. */
+  function abcIssueText(card: { requirementIssue?: { reasonKey: string; params?: Record<string, string> } } | undefined): string | undefined {
+    if (!card?.requirementIssue) return undefined;
+    return t(card.requirementIssue.reasonKey, card.requirementIssue.params);
+  }
+
+  /** Read `flags.fusion.sourceId` off an embedded item (matches CompendiumPickerDialog's `currentSourceId` uuid-suffix match). */
+  function itemSourceId(item: Record<string, unknown> | undefined): string | undefined {
+    const fusion = (item?.["flags"] as Record<string, unknown> | undefined)?.["fusion"] as Record<string, unknown> | undefined;
+    const sid = fusion?.["sourceId"];
+    return typeof sid === "string" ? sid : undefined;
+  }
+
+  /** Frente 3: the pack sourceId of the currently-applied ancestry/heritage/background/class item, for pre-selecting it in the reopened ABC picker. */
+  function abcCurrentSourceId(kind: "ancestry" | "heritage" | "background" | "class"): string | undefined {
+    const items = (doc["items"] as Array<Record<string, unknown>> | undefined) ?? [];
+    return itemSourceId(items.find((i) => i["type"] === kind));
+  }
+
+  /** Frente 3: the pack sourceId of a FILLED slot's current item, for pre-selecting it in the reopened slot picker. */
+  function slotCurrentSourceId(slot: PlanSlotModel): string | undefined {
+    if (!slot.itemId) return undefined;
+    const items = (doc["items"] as Array<Record<string, unknown>> | undefined) ?? [];
+    return itemSourceId(items.find((i) => i["_id"] === slot.itemId));
+  }
+
   // ---------------------------------------------------------------------------
   // ABC cards — Ancestry / Heritage / Background / Class pickers
   // ---------------------------------------------------------------------------
@@ -832,6 +858,7 @@
       subLine={plan.abc[0]?.subLine}
       filled={plan.abc[0]?.filled ?? false}
       chips={abcChipDisplays(plan.abc[0]?.chips)}
+      issueText={abcIssueText(plan.abc[0])}
       {editable}
       onClick={() => openAbcPicker("ancestry")}
     />
@@ -842,6 +869,7 @@
       subLine={plan.abc[1]?.subLine}
       filled={plan.abc[1]?.filled ?? false}
       chips={abcChipDisplays(plan.abc[1]?.chips)}
+      issueText={abcIssueText(plan.abc[1])}
       {editable}
       onClick={() => openAbcPicker("heritage")}
     />
@@ -852,6 +880,7 @@
       subLine={plan.abc[2]?.subLine}
       filled={plan.abc[2]?.filled ?? false}
       chips={abcChipDisplays(plan.abc[2]?.chips)}
+      issueText={abcIssueText(plan.abc[2])}
       {editable}
       onClick={() => openAbcPicker("background")}
     />
@@ -861,6 +890,7 @@
       subName={abcNameParts(plan.abc[3]?.name).subName}
       subLine={plan.abc[3]?.subLine}
       filled={plan.abc[3]?.filled ?? false}
+      issueText={abcIssueText(plan.abc[3])}
       {editable}
       onClick={() => openAbcPicker("class")}
     />
@@ -922,6 +952,7 @@
           }
         : undefined
     }
+    currentSourceId={abcCurrentSourceId(abcPicker)}
     onClose={() => { abcPicker = null; }}
     onSelect={handleAbcSelect}
   />
@@ -934,6 +965,7 @@
     title={cfg.title}
     showTraitFilter={true}
     filterFn={cfg.filterFn}
+    currentSourceId={slotCurrentSourceId(slotPicker.slot)}
     onClose={() => { slotPicker = null; }}
     onSelect={handleSlotPickerSelect}
   />

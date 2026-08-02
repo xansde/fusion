@@ -62,27 +62,22 @@
     onAutoFeatureClick,
   }: Props = $props();
 
-  // R12 item 1: which filled slot types support in-place re-editing (re-open
-  // the same dialog pre-populated). Ability boosts read straight from the live
-  // ledger and skill trainings/increases reconcile the whole level+kind group,
-  // so both are safe to re-open. Feats/hybrid study have no in-place edit path
-  // (change = remove + re-pick), so their body stays non-clickable — but they
-  // DO get a details click instead (see hasDetails).
-  const EDITABLE_SLOT_TYPES = new Set<PlanSlotModel["type"]>([
-    "abilityBoosts",
-    "skillTraining",
-    "skillIncrease",
-  ]);
-
+  // R12 item 1 / Frente 3: every FILLED slot supports in-place re-editing
+  // (re-open the same dialog/picker, pre-populated with the current pick) —
+  // ability boosts and skill trainings/increases read straight off the live
+  // ledger, and every item-backed slot (feat/hybrid study/kinetic gate/…)
+  // now REPLACES its pick on re-selection instead of accreting a duplicate
+  // (see planVM.ts's chooseFeat doc comment), so re-opening the picker on a
+  // filled card is safe generically — no per-type whitelist needed anymore.
   function canEdit(slot: PlanSlotModel): boolean {
     // A locked fixed-grant chip (B2 r14) is never editable — its lifecycle
     // follows the granter (removeChoice on the granter cascades to it).
     if (slot.lockedGrant) return false;
-    return editable && EDITABLE_SLOT_TYPES.has(slot.type);
+    return editable;
   }
 
-  // A filled slot gets a details click when it maps to a compendium document
-  // (feats/hybrid study) and it's NOT already showing the edit affordance.
+  // A filled, NON-editable slot (read-only visitor, or a locked grant) still
+  // gets a details click when it maps to a compendium document.
   function hasDetails(slot: PlanSlotModel): boolean {
     return !canEdit(slot) && detailsRequestForSlot(slot) !== null;
   }
@@ -91,6 +86,17 @@
   // granter), unlike a normal filled slot which is removable when editable.
   function canRemove(slot: PlanSlotModel): boolean {
     return editable && !slot.lockedGrant;
+  }
+
+  /**
+   * Frente 3 (DEC-BC-05): a filled slot whose backing item no longer meets
+   * its requirement gets a readable pt-BR/EN reason instead of just
+   * disappearing or blocking re-selection — see planVM.ts's
+   * `checkSlotRequirement`.
+   */
+  function requirementText(slot: PlanSlotModel): string | undefined {
+    if (!slot.requirementIssue) return undefined;
+    return t(slot.requirementIssue.reasonKey, slot.requirementIssue.params);
   }
 </script>
 
@@ -119,6 +125,7 @@
             onRemove={canRemove(slot) ? () => onSlotRemove(slot) : undefined}
             onEdit={canEdit(slot) ? () => onSlotClick(slot) : undefined}
             onDetails={hasDetails(slot) ? () => onSlotDetails(slot) : undefined}
+            issueText={requirementText(slot)}
           >
             {#snippet badge()}
               {#if slot.optional}<PlanOptionalBadge />{/if}

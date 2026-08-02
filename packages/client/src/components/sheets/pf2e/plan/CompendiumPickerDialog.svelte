@@ -58,11 +58,20 @@
     filterFn?: ((entry: PackIndexEntry) => boolean) | undefined;
     /** Extra trait chips derived from the entries (e.g. traits.value) shown for further narrowing. */
     showTraitFilter?: boolean;
+    /**
+     * Frente 3 (DEC-BC-05): the raw pack `_id` (== the embedded item's
+     * `flags.fusion.sourceId`) of the option ALREADY chosen for this
+     * slot/card, when reopening the picker to re-select. Pre-selects (and
+     * scrolls the details panel to) that row instead of the list's first
+     * entry, so "reopens with the current option marked" holds even before
+     * the player searches/filters.
+     */
+    currentSourceId?: string | undefined;
     onClose: () => void;
     onSelect: (doc: Record<string, unknown>) => void;
   }
 
-  let { packSlug, title, filterFn, showTraitFilter = false, onClose, onSelect }: Props = $props();
+  let { packSlug, title, filterFn, showTraitFilter = false, currentSourceId, onClose, onSelect }: Props = $props();
 
   let query = $state("");
   let traitFilter = $state<string | null>(null);
@@ -157,7 +166,13 @@
     const list = filtered;
     if (list.length === 0) return;
     if (selectedUuid && list.some((e) => e.uuid === selectedUuid)) return;
-    const next = pickDefaultEntryUuid(list);
+    // Frente 3: prefer the row matching the slot/card's CURRENT pick over the
+    // list's default first entry, so reopening the picker on an already-
+    // filled slot marks what's already chosen.
+    const current = currentSourceId
+      ? list.find((e) => e.uuid.endsWith(`.Item.${currentSourceId}`))
+      : undefined;
+    const next = current?.uuid ?? pickDefaultEntryUuid(list);
     if (next) {
       selectedUuid = next;
       void loadDetails(next);

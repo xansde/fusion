@@ -396,9 +396,9 @@ function fillOneSlot(
         (f) =>
           !used.has(String(f["_id"])) &&
           isFeatEligible(f as FeatDocLike, slot.type, level, {
-            classSlug: pctx.classSlug,
-            ancestrySlug: pctx.ancestrySlug,
-            gateElements,
+            ...(pctx.classSlug ? { classSlug: pctx.classSlug } : {}),
+            ...(pctx.ancestrySlug ? { ancestrySlug: pctx.ancestrySlug } : {}),
+            ...(gateElements ? { gateElements } : {}),
           }),
       );
       if (!opt) {
