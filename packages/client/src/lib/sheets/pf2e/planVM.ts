@@ -4301,6 +4301,16 @@ export function healGranterRefs(doc: Record<string, unknown>): HealGranterRef[] 
 export interface ClassGrantRef {
   /** The class feature's display name (resolve in class-features-core). */
   name: string;
+  /**
+   * The feature's document id in the pack, taken from `featuresByLevel[].uuid`
+   * — the IDENTITY the resolver should use, per the project rule that a
+   * document is its id and never its name (issue #14). Measured across the 12
+   * classes: 221/221 entries resolve by this id, while 5 carry a name the pack
+   * does not have ("Debilitating Strikes" vs "Debilitating Strike", "Deity" vs
+   * "Deity (Cleric)", …). Absent only for homebrew data with no uuid, where
+   * the name stays the sole fallback.
+   */
+  docId?: string;
   /** Pack the feature doc lives in (always class-features-core). */
   packSlug: string;
   /** The CLASS item's sourceId — root grantedBy for every conceded action. */
@@ -4347,6 +4357,7 @@ export function classGrantRefsFromClassDoc(
     seen.add(norm);
     refs.push({
       name: f.name,
+      ...(typeof f.uuid === "string" && f.uuid.length > 0 ? { docId: f.uuid } : {}),
       packSlug: "class-features-core",
       classSourceId,
       slot: classGrantSlot(f.level, f.name),

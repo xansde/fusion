@@ -320,6 +320,12 @@ export function mapVendorToFusionPack(vendor: string): string[] {
 
 /** A minimal pack-index entry the resolver returns for name→uuid resolution. */
 export interface GrantIndexEntry {
+  /**
+   * The document's id in the pack — the identity a caller should match on when
+   * it has one (issue #14). Optional because a hand-built index in a test may
+   * omit it; resolution then falls back to the name.
+   */
+  _id?: string;
   name: string;
   uuid: string;
   /** Document type ("feat" | "action" | "spell" | "classFeature" ...). */

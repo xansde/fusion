@@ -33,6 +33,7 @@ import {
   isAbilityBoostsSlotFilled,
   setFreeArchetype,
   removeChoice,
+  classGrantRefsFromClassDoc,
   levelUp,
   levelSet,
   skillTrainingDialogContext,
@@ -5261,7 +5262,7 @@ describe("removeChoice — orphan choice from a grantedBy cascade (issue #15)", 
 
     const ops = removeChoice(ctx(character), {
       slotId: "muse-1",
-      type: "muse" as PlanSlotType,
+      type: "muse",
       level: 1,
       label: "Muse",
       filled: true,
@@ -5307,7 +5308,7 @@ describe("removeChoice — orphan choice from a grantedBy cascade (issue #15)", 
 
     const ops = removeChoice(ctx(character), {
       slotId: "muse-1",
-      type: "muse" as PlanSlotType,
+      type: "muse",
       level: 1,
       label: "Muse",
       filled: true,
@@ -5319,5 +5320,61 @@ describe("removeChoice — orphan choice from a grantedBy cascade (issue #15)", 
       "system.build.choices"
     ] as Array<{ slot: string }>;
     expect(remaining.map((c) => c.slot)).toEqual(["skillFeat-2"]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Class features resolve by document id, not by name (issue #14)
+//
+// classGrantRefsFromClassDoc emitted only `{ name, packSlug }`, and the caller
+// matched on the normalized NAME — against the project rule that identity is
+// the document id, never the name.
+//
+// Measured over the 12 classes: 221 of 221 featuresByLevel entries resolve by
+// `uuid` (the pack doc's `_id`), while 5 carry a name the pack does not have:
+//
+//   Cleric  L1  "Deity"                                 -> "Deity (Cleric)"
+//   Magus   L5  "Lightning Reflexes"                    -> "Reflex Expertise"
+//   Magus   L15 "Greater Weapon Specialization (Level 15)" -> "Greater Weapon Specialization"
+//   Monk    L15 idem
+//   Rogue   L9  "Debilitating Strikes"                  -> "Debilitating Strike"
+//
+// The Rogue case is the expensive one: "Debilitating Strike" declares a
+// grant-item for the action of the same name, so a level-9 Rogue never gets
+// Debilitating Strike in the Actions tab.
+// ---------------------------------------------------------------------------
+
+describe("classGrantRefsFromClassDoc — identity by doc id (issue #14)", () => {
+  const rogueSystem = {
+    featuresByLevel: [
+      { level: 1, uuid: "AAAA1111", name: "Sneak Attack" },
+      { level: 9, uuid: "mGyRcs5k6sRE1fVm", name: "Debilitating Strikes" },
+    ],
+  };
+
+  it("carries the feature's document id alongside the name", () => {
+    const refs = classGrantRefsFromClassDoc(rogueSystem, "ROGUE", 9);
+    const debilitating = refs.find((r) => r.level === 9);
+    expect(debilitating?.docId, "the uuid from featuresByLevel must reach the resolver").toBe(
+      "mGyRcs5k6sRE1fVm",
+    );
+    // The name is still carried — it is the fallback and the log label.
+    expect(debilitating?.name).toBe("Debilitating Strikes");
+  });
+
+  it("emits a docId for every feature, not just the divergent ones", () => {
+    const refs = classGrantRefsFromClassDoc(rogueSystem, "ROGUE", 9);
+    expect(refs).toHaveLength(2);
+    expect(refs.every((r) => typeof r.docId === "string" && r.docId.length > 0)).toBe(true);
+  });
+
+  it("omits docId when the pack data has no uuid (never invents one)", () => {
+    const refs = classGrantRefsFromClassDoc(
+      { featuresByLevel: [{ level: 1, name: "Homebrew Feature" }] },
+      "HOMEBREW",
+      1,
+    );
+    expect(refs[0]?.docId).toBeUndefined();
+    expect(refs[0]?.name).toBe("Homebrew Feature");
   });
 });

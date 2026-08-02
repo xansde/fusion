@@ -326,11 +326,27 @@
     }
   }
 
-  /** Resolve a granter's full pack doc by name within a Fusion pack, or null. */
-  async function resolveGranterByName(packSlug: string, name: string): Promise<Record<string, unknown> | null> {
+  /**
+   * Resolve a granter's full pack doc within a Fusion pack, or null.
+   *
+   * Identity is the document ID when we have one (issue #14) — matching by name
+   * broke 5 of the 12 classes' features, because the class table and the
+   * feature document disagree on the label: "Debilitating Strikes" vs
+   * "Debilitating Strike", "Deity" vs "Deity (Cleric)", "Lightning Reflexes" vs
+   * "Reflex Expertise". The Rogue case cost a whole action: the feature doc
+   * grants the Debilitating Strike ACTION, and a never-resolved doc grants
+   * nothing.
+   *
+   * The name stays as fallback for data with no id (homebrew).
+   */
+  async function resolveGranterByName(
+    packSlug: string,
+    name: string,
+    docId?: string,
+  ): Promise<Record<string, unknown> | null> {
     const entries = await resolvePackIndex(packSlug);
-    const target = normalizeForMatch(name);
-    const entry = entries.find((e) => normalizeForMatch(e.name) === target);
+    const byId = docId === undefined ? undefined : entries.find((e) => e._id === docId);
+    const entry = byId ?? entries.find((e) => normalizeForMatch(e.name) === normalizeForMatch(name));
     if (!entry) return null;
     return resolveGrantDoc(entry.uuid);
   }
@@ -367,7 +383,7 @@
     let created = 0;
     for (const ref of refs) {
       try {
-        const featureDoc = await resolveGranterByName(ref.packSlug, ref.name);
+        const featureDoc = await resolveGranterByName(ref.packSlug, ref.name, ref.docId);
         if (!featureDoc) continue;
         const ops = await materializeGrants(featureDoc, ref.classSourceId, ref.slot, mctx);
         for (const op of ops) {
