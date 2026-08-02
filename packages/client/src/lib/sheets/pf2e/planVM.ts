@@ -2319,6 +2319,28 @@ function knownPossessedNames(
   return names;
 }
 
+/**
+ * Axis-shaped prerequisite phrases (already run through `normalizePrereqText`)
+ * that name a REAL PF2e subclass axis belonging to a class Fusion doesn't
+ * curate (issue #45 — "untamed order" is the Druid's order axis; Druid isn't
+ * one of the 12 curated classes). No character can EVER possess this axis's
+ * pick today, so unlike a truly unknown phrase (downgraded to "unresolved" —
+ * "maybe satisfiable through data this module doesn't model"), this one
+ * resolves definitively to "unmet": a Fusion character's `axisNames` will
+ * never carry an entry for it, so it behaves exactly like a tracked axis
+ * whose option was never chosen.
+ *
+ * Without this, "animal instinct or untamed order" (3 Barbarian feats: Brutal
+ * Crush, Creature Comforts, Rip and Tear) silently fell back to "unknown"
+ * (no mark) for any barbarian NOT on Animal instinct, while their "animal
+ * instinct"-only siblings (Animal Skin, Animal Rage, Predator's Pounce)
+ * correctly show "unmet" for the exact same character — an inconsistent
+ * signal for the identical mistake (DEC-BC-05 leniency is meant to protect
+ * against FALSE negatives, not to hide a REAL one just because it's phrased
+ * as an "A or B").
+ */
+const UNMODELED_AXIS_PHRASES = new Set(["untamed order"]);
+
 /** One `system.prerequisites` candidate's resolution against what the character possesses. `"unresolved"` means this module has no way to tell — never treated as unmet. */
 function evaluatePrerequisiteCandidate(
   raw: string,
@@ -2328,6 +2350,8 @@ function evaluatePrerequisiteCandidate(
   const normalized = normalizePrereqText(raw);
   const short = stripParentheticalSuffix(raw);
   if (knownNames.has(normalized) || knownNames.has(short)) return "met";
+
+  if (UNMODELED_AXIS_PHRASES.has(normalized)) return "unmet";
 
   const axisMatch = matchAxisSuffix(normalized);
   if (!axisMatch) return "unresolved";

@@ -1167,6 +1167,61 @@ describe("derivePlan — system.prerequisites marking (A1)", () => {
   it("checkFeatPrerequisites: no system.prerequisites → undefined (no issue)", () => {
     expect(checkFeatPrerequisites(arcaneFistsFeatDoc(), [], undefined, 5)).toBeUndefined();
   });
+
+  /**
+   * issue #45: "animal instinct or untamed order" (Brutal Crush, Creature
+   * Comforts, Rip and Tear — all level 4) has "animal instinct" (axis-
+   * resolvable, definitively unmet for a non-Animal instinct) OR "untamed
+   * order" (Druid's order axis — Druid isn't a curated Fusion class, so this
+   * candidate is unresolved FOREVER, not just for this character). Before
+   * the fix, ANY single unresolved candidate downgraded the whole entry from
+   * "unmet" to "unknown" (DEC-BC-05 leniency for "maybe satisfiable through
+   * data this VM doesn't model") — but "untamed order" isn't a data gap,
+   * it's provably never satisfiable in Fusion today. That silently hid the
+   * SAME mistake this suite's "Animal Skin"-shaped siblings (single-
+   * candidate "animal instinct") correctly mark.
+   */
+  function ripAndTearFeatDoc(): Record<string, unknown> {
+    return {
+      _id: "item-rip-and-tear",
+      name: "Rip and Tear",
+      type: "feat",
+      system: {
+        category: "class",
+        level: 1,
+        traits: { rarity: "common", value: ["barbarian"] },
+        prerequisites: [{ value: "animal instinct or untamed order" }],
+      },
+      flags: { fusion: { build: { level: 1, slot: "classFeat-1" } } },
+    };
+  }
+
+  it("Dragon Instinct + Rip and Tear ('animal instinct or untamed order'): marked unmet, same as an 'animal instinct'-only sibling", () => {
+    const doc = baseCharacterDoc({
+      items: [barbarianWithClassFeatDoc(), instinctItem("Dragon Instinct"), ripAndTearFeatDoc()],
+      system: { level: { value: 1 }, details: {} },
+    });
+    const plan = derivePlan(doc);
+    const l1 = plan.levels.find((l) => l.level === 1)!;
+    const slot = l1.slots.find((s) => s.slotId === "classFeat-1")!;
+    expect(slot.filled).toBe(true);
+    expect(slot.requirementIssue).toEqual({
+      reasonKey: "FUSION.Sheet.Plan.Requirement.PrerequisiteUnmet",
+      params: { prerequisite: "animal instinct or untamed order" },
+    });
+  });
+
+  it("Animal Instinct + Rip and Tear: requirement satisfied via the 'animal instinct' branch, no mark", () => {
+    const doc = baseCharacterDoc({
+      items: [barbarianWithClassFeatDoc(), instinctItem("Animal Instinct"), ripAndTearFeatDoc()],
+      system: { level: { value: 1 }, details: {} },
+    });
+    const plan = derivePlan(doc);
+    const l1 = plan.levels.find((l) => l.level === 1)!;
+    const slot = l1.slots.find((s) => s.slotId === "classFeat-1")!;
+    expect(slot.filled).toBe(true);
+    expect(slot.requirementIssue).toBeUndefined();
+  });
 });
 
 // ---------------------------------------------------------------------------
