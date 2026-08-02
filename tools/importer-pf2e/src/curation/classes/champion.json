@@ -137,9 +137,7 @@
       "Unimpeded Step: prereq 'liberation cause' -- idem.",
       "Vicious Vengeance: prereq 'iniquity cause' -- idem.",
       "Weight of Guilt: prereq 'redemption cause' -- idem.",
-      "Vengeful Oath: prereq adicional 'paladin cause' -- nome pre-remaster de uma causa; nenhum dos 7 docs champion-cause atuais se chama 'paladin cause' (nao mecanizavel por nome exato).",
-      "Lasting Doubt: prereq 'redeemer cause' -- nome pre-remaster nao presente nos 7 docs atuais (provavel sinonimo de 'redemption', nao mecanizavel por nome exato).",
-      "Liberating Stride: prereq 'liberator cause' -- nome pre-remaster nao presente nos 7 docs atuais (provavel sinonimo de 'liberation', nao mecanizavel por nome exato).",
+      "issue #28 (RESOLVIDO via prerequisiteFixes abaixo): Vengeful Oath ('paladin cause'), Lasting Doubt ('redeemer cause') e Liberating Stride ('liberator cause') citavam nomes pre-remaster de causa. Confirmado por referencia cruzada DENTRO do proprio pack (nao por memoria externa): Lasting Doubt cita 'Glimpse of Redemption' no proprio texto (a reacao de Redemption) -> redeemer=Redemption; Liberating Stride cita 'Liberating Step' (a reacao de Liberation) -> liberator=Liberation; Aura of Vengeance (que exige Vengeful Oath) cita 'Retributive Strike' (a reacao de Justice) -> paladin=Justice. Renomeados para os nomes de doc reais (bare, sem sufixo ' cause' -- diferente dos OUTROS 7 talentos de causa nivel 1, que usam corretamente o sufixo remaster mas continuam nao-mecanizaveis porque 'cause' nao esta em AXIS_SUFFIX_TO_SLOT_TYPE do planVM.ts; fora de escopo desta issue, ja documentado como leque conhecido).",
       "Aura of Faith: prereq 'holy or unholy' -- trait de sanctification, dependente da divindade escolhida (Deity (Champion)); sem pack de divindades modelavel nesta rodada.",
       "Champion's Sacrifice: prereq 'you aren't unholy' -- idem, trait de sanctification.",
       "Pale Horse: prereq adicional 'unholy' -- idem.",
@@ -162,15 +160,44 @@
       "Shield Paragon: prereq 'blessed shield' -- subescolha dentro de Blessing of the Devoted, nao um doc separado.",
       "Spectral Advance: prereq 'blessed swiftness' -- subescolha dentro de Blessing of the Devoted, nao um doc separado.",
       "Swift Paragon: prereq 'blessed swiftness' -- idem.",
-      "Aura of Vengeance: prereq adicional 'Exalt' -- trait/estagio de upgrade de aura (exalted reaction), nao um no separado.",
-      "Anchoring Aura: prereq 'Fiendsbane Oath' -- feat citado no texto mas SEM doc correspondente no vendor atual (busca completa no pacote nao encontrou feats/*/fiendsbane-oath.json); referencia pendurada, nao mecanizavel.",
-      "Banishing Blow: prereq 'Fiendsbane Oath' -- idem.",
+      "issue #28 (RESOLVIDO via prerequisiteFixes abaixo): Aura of Vengeance prereq adicional 'Exalt' -- a class-feature equivalente foi importada como 'Exalted Reaction' (nivel 11, ja em class-features-core); renomeado.",
+      "issue #28 (NAO RESOLVIDO, decisao documentada): Anchoring Aura e Banishing Blow, prereq 'Fiendsbane Oath' -- confirmado por leitura direta do vendor (grep 'fiendsbane' em vendor/pf2e/packs/pf2e inteiro): NENHUM arquivo feats/class-features declara esse feat/feature: 'Fiendsbane Oath' e citado apenas nos textos DESTES DOIS proprios talentos e num journal de mudancas do remaster -- e uma referencia genuinamente pendurada no dado do vendor (nao um erro de nomenclatura como os de cima), provavelmente um talento/boon de campanha (ex.: Pathfinder Society) fora do escopo deste extract. Nao mecanizavel sem inventar um documento que o vendor nao tem -- regra inegociavel do projeto. Permanece como texto nao resolvido.",
       "Acclimated Mount: prereq adicional 'trained in Survival' -- proficiencia de pericia, atributo do no.",
       "Sacral Lord: prereq 'trained in Occultism or Religion' -- idem.",
       "Sacral Monarch: prereq adicional 'master in Occultism or Religion' -- idem.",
       "Enforce Oath: prereq 'any feat with the oath trait' -- resolve para MULTIPLOS nos (Oath of the Avenger, Oath of the Defender, Oath of the Slayer, Vengeful Oath), nao uma aresta unica; registrar como leque, nao pre-requisito simples."
     ]
   },
+  "prerequisiteFixes": [
+    {
+      "featName": "Vengeful Oath",
+      "kind": "rename",
+      "from": "paladin cause",
+      "to": "Justice",
+      "reason": "issue #28: 'paladin cause' is the pre-Remaster cause name. Confirmed (not guessed) via Aura of Vengeance's OWN description, which requires Vengeful Oath and explicitly references 'Retributive Strike' — the reaction the Justice cause grants (see champion.json's dedupe.collisionsDetected note mapping each cause to its reaction, sourced from actions-core)."
+    },
+    {
+      "featName": "Lasting Doubt",
+      "kind": "rename",
+      "from": "redeemer cause",
+      "to": "Redemption",
+      "reason": "issue #28: confirmed via Lasting Doubt's OWN description, which references 'Glimpse of Redemption' — the reaction the Redemption cause grants."
+    },
+    {
+      "featName": "Liberating Stride",
+      "kind": "rename",
+      "from": "liberator cause",
+      "to": "Liberation",
+      "reason": "issue #28: confirmed via Liberating Stride's OWN description, which references 'Liberating Step' — the reaction the Liberation cause grants."
+    },
+    {
+      "featName": "Aura of Vengeance",
+      "kind": "rename",
+      "from": "Exalt",
+      "to": "Exalted Reaction",
+      "reason": "issue #28: 'Exalt' names the level-11 class-feature that was actually imported as 'Exalted Reaction' (class-features-core)."
+    }
+  ],
   "dedupe": {
     "featsAlreadyInPacks": [
       "Agile Shield Grip",

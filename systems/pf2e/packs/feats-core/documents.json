@@ -47811,7 +47811,7 @@
       "level": 12,
       "prerequisites": [
         {
-          "value": "redeemer cause"
+          "value": "Redemption"
         }
       ],
       "publication": {
@@ -47858,7 +47858,7 @@
       "level": 12,
       "prerequisites": [
         {
-          "value": "liberator cause"
+          "value": "Liberation"
         }
       ],
       "publication": {
@@ -48255,7 +48255,7 @@
       "level": 14,
       "prerequisites": [
         {
-          "value": "Exalt"
+          "value": "Exalted Reaction"
         },
         {
           "value": "Vengeful Oath"
@@ -49793,7 +49793,7 @@
       "level": 2,
       "prerequisites": [
         {
-          "value": "paladin cause"
+          "value": "Justice"
         }
       ],
       "publication": {

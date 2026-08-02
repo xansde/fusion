@@ -140,3 +140,47 @@ describe("construirGrafo — Monk prerequisite name reconciliation (issue #26)",
     assert.equal(entrada.requisito, "Wholeness of Body");
   });
 });
+
+/**
+ * issue #28: 3 nomes de causa pré-remaster ("paladin"/"redeemer"/"liberator
+ * cause") e um "Exalt" que na verdade se chama "Exalted Reaction" — nenhum
+ * resolvia. Renomeados (champion.json's `prerequisiteFixes`) para os nomes
+ * reais confirmados por referência cruzada DENTRO do próprio pack (cada
+ * talento cita, no seu próprio texto, a reação que a causa/feature real
+ * concede). "Fiendsbane Oath" (Anchoring Aura/Banishing Blow) fica
+ * deliberadamente sem correção — não existe em nenhum pack do vendor.
+ */
+describe("construirGrafo — Champion prerequisite name reconciliation (issue #28)", () => {
+  const champion = grafo.classes["Champion"];
+
+  function incomingRotulos(featName) {
+    const no = champion.nos.find((n) => n.nome === featName);
+    assert.ok(no, `nó "${featName}" deve existir no universo do Champion`);
+    return champion.arestas.filter((a) => a.para === no.id).map((a) => a.rotulo);
+  }
+
+  it("Vengeful Oath resolve para 'Justice' (não mais 'paladin cause')", () => {
+    assert.deepEqual(incomingRotulos("Vengeful Oath"), ["Justice"]);
+  });
+
+  it("Lasting Doubt resolve para 'Redemption' (não mais 'redeemer cause')", () => {
+    assert.deepEqual(incomingRotulos("Lasting Doubt"), ["Redemption"]);
+  });
+
+  it("Liberating Stride resolve para 'Liberation' (não mais 'liberator cause')", () => {
+    assert.deepEqual(incomingRotulos("Liberating Stride"), ["Liberation"]);
+  });
+
+  it("Aura of Vengeance resolve AMBOS os pré-requisitos ('Exalted Reaction' + 'Vengeful Oath')", () => {
+    assert.deepEqual(new Set(incomingRotulos("Aura of Vengeance")), new Set(["Exalted Reaction", "Vengeful Oath"]));
+  });
+
+  it("Anchoring Aura e Banishing Blow PERMANECEM não-resolvidos ('Fiendsbane Oath' não existe em pack nenhum)", () => {
+    for (const nome of ["Anchoring Aura", "Banishing Blow"]) {
+      assert.deepEqual(incomingRotulos(nome), []);
+      const entrada = champion.naoResolvidos.find((n) => n.nome === nome);
+      assert.ok(entrada, `${nome} deve aparecer em naoResolvidos`);
+      assert.equal(entrada.requisito, "Fiendsbane Oath");
+    }
+  });
+});
