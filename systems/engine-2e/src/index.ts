@@ -6,6 +6,7 @@
  *   - Modifier stacking (§3.2)
  *   - Multiple Attack Penalty / MAP (§1.4)
  *   - TEML Proficiency (§3.1)
+ *   - Level context: (class level, character level) — specs/30 DEC-MCL-03
  *   - Dying / Wounded / Doomed (§8)
  *   - IWR pipeline (§6.4)
  *   - Effects Engine (EffectSource collector + Synthetics builder)
@@ -14,6 +15,7 @@ export * from "./degreesOfSuccess.js";
 export * from "./modifierStacking.js";
 export * from "./map.js";
 export * from "./temlProficiency.js";
+export * from "./levelContext.js";
 export * from "./dyingWounded.js";
 export * from "./iwr.js";
 export * from "./effectsEngine.js";
