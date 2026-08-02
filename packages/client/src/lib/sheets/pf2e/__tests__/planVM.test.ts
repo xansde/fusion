@@ -61,6 +61,7 @@ import {
   readBackgroundTrainings,
   loreSlug,
   detailsRequestForAbcChip,
+  checkFeatPrerequisites,
   type PlanOpBuilderContext,
   type AbcChip,
   type PlanSlotModel,
@@ -926,6 +927,129 @@ describe("derivePlan — class choice slots (r21-W1)", () => {
     expect(slot.type).toBe("hybridStudy");
     expect(slot.filled).toBe(true);
     expect(slot.choiceName).toBe("Starlit Span");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// derivePlan — `system.prerequisites` marking (A1, r21 achado): a Bloodrager
+// -instinct Barbarian could pick Draconic Arrogance (prereq "dragon
+// instinct") with no mark at all. Marks, never blocks (DEC-BC-05) — the slot
+// stays `filled: true`, only `requirementIssue` is set.
+// ---------------------------------------------------------------------------
+
+describe("derivePlan — system.prerequisites marking (A1)", () => {
+  /** Barbarian with an `instinct` axis slot AND a `classFeat` slot both open at level 1 (the real game grants the class feat at level 2, but level 1 is enough to exercise both slots together in one doc). */
+  function barbarianWithClassFeatDoc(): Record<string, unknown> {
+    return {
+      _id: "class-barbarian",
+      name: "Barbarian",
+      type: "class",
+      system: {
+        featuresByLevel: [
+          { level: 1, uuid: "uuid-instinct", name: "Instinct" },
+          { level: 1, uuid: "uuid-rage", name: "Rage" },
+        ],
+        featLevels: { ancestry: [], class: [1], general: [], skill: [] },
+      },
+    };
+  }
+
+  function instinctItem(name: string): Record<string, unknown> {
+    return {
+      _id: "item-instinct",
+      name,
+      type: "classFeature",
+      system: { traits: { otherTags: ["barbarian-instinct"], value: [] } },
+      flags: { fusion: { build: { level: 1, slot: "instinct-1" } } },
+    };
+  }
+
+  function draconicArroganceFeatDoc(): Record<string, unknown> {
+    return {
+      _id: "item-draconic-arrogance",
+      name: "Draconic Arrogance",
+      type: "feat",
+      system: {
+        category: "class",
+        level: 1,
+        traits: { rarity: "common", value: ["barbarian"] },
+        prerequisites: [{ value: "dragon instinct" }],
+      },
+      flags: { fusion: { build: { level: 1, slot: "classFeat-1" } } },
+    };
+  }
+
+  function unresolvableFeatDoc(): Record<string, unknown> {
+    return {
+      _id: "item-unresolvable-feat",
+      name: "Unresolvable-Prereq Feat",
+      type: "feat",
+      system: {
+        category: "class",
+        level: 1,
+        traits: { rarity: "common", value: ["barbarian"] },
+        prerequisites: [{ value: "trained in Athletics" }],
+      },
+      flags: { fusion: { build: { level: 1, slot: "classFeat-1" } } },
+    };
+  }
+
+  it("Bloodrager instinct + Draconic Arrogance (needs 'dragon instinct'): stays PICKABLE but gets marked unmet", () => {
+    const doc = baseCharacterDoc({
+      items: [
+        barbarianWithClassFeatDoc(),
+        instinctItem("Bloodrager"),
+        draconicArroganceFeatDoc(),
+      ],
+      system: { level: { value: 1 }, details: {} },
+    });
+    const plan = derivePlan(doc);
+    const l1 = plan.levels.find((l) => l.level === 1)!;
+    const slot = l1.slots.find((s) => s.slotId === "classFeat-1")!;
+    expect(slot.filled).toBe(true);
+    expect(slot.choiceName).toBe("Draconic Arrogance");
+    expect(slot.requirementIssue).toEqual({
+      reasonKey: "FUSION.Sheet.Plan.Requirement.PrerequisiteUnmet",
+      params: { prerequisite: "dragon instinct" },
+    });
+  });
+
+  it("Dragon Instinct + Draconic Arrogance: requirement satisfied, no mark", () => {
+    const doc = baseCharacterDoc({
+      items: [
+        barbarianWithClassFeatDoc(),
+        instinctItem("Dragon Instinct"),
+        draconicArroganceFeatDoc(),
+      ],
+      system: { level: { value: 1 }, details: {} },
+    });
+    const plan = derivePlan(doc);
+    const l1 = plan.levels.find((l) => l.level === 1)!;
+    const slot = l1.slots.find((s) => s.slotId === "classFeat-1")!;
+    expect(slot.filled).toBe(true);
+    expect(slot.requirementIssue).toBeUndefined();
+  });
+
+  it("prerequisite prose outside the model (e.g. 'trained in Athletics') is UNKNOWN, never marked", () => {
+    const doc = baseCharacterDoc({
+      items: [
+        barbarianWithClassFeatDoc(),
+        instinctItem("Bloodrager"),
+        unresolvableFeatDoc(),
+      ],
+      system: { level: { value: 1 }, details: {} },
+    });
+    const plan = derivePlan(doc);
+    const l1 = plan.levels.find((l) => l.level === 1)!;
+    const slot = l1.slots.find((s) => s.slotId === "classFeat-1")!;
+    expect(slot.filled).toBe(true);
+    expect(slot.requirementIssue).toBeUndefined();
+  });
+
+  it("checkFeatPrerequisites: no system.prerequisites → undefined (no issue)", () => {
+    expect(
+      checkFeatPrerequisites(arcaneFistsFeatDoc(), [], undefined, 5),
+    ).toBeUndefined();
   });
 });
 

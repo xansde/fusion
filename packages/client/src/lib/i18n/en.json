@@ -482,6 +482,7 @@
   "FUSION.Sheet.Plan.Requirement.WrongClass": "Is a {{class}} class feat and you have no levels in {{class}}.",
   "FUSION.Sheet.Plan.Requirement.WrongAncestry": "Is a {{ancestry}} ancestry feat and your ancestry isn't {{ancestry}}.",
   "FUSION.Sheet.Plan.Requirement.HeritageWrongAncestry": "Requires the {{ancestry}} ancestry.",
+  "FUSION.Sheet.Plan.Requirement.PrerequisiteUnmet": "Requires {{prerequisite}}.",
   "FUSION.Sheet.Plan.FreeArchetypeToggle": "Free Archetype (optional rule)",
   "FUSION.Sheet.Plan.OptionalRuleActive": "Optional rule active",
   "FUSION.Sheet.Plan.LevelHeader": "Level {{level}}",

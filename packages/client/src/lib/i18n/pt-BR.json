@@ -482,6 +482,7 @@
   "FUSION.Sheet.Plan.Requirement.WrongClass": "É talento de classe {{class}} e você não tem níveis de {{class}}.",
   "FUSION.Sheet.Plan.Requirement.WrongAncestry": "É talento de ancestralidade {{ancestry}} e sua ancestralidade não é {{ancestry}}.",
   "FUSION.Sheet.Plan.Requirement.HeritageWrongAncestry": "Exige a ancestralidade {{ancestry}}.",
+  "FUSION.Sheet.Plan.Requirement.PrerequisiteUnmet": "Exige {{prerequisite}}.",
   "FUSION.Sheet.Plan.FreeArchetypeToggle": "Arquétipo Livre (regra opcional)",
   "FUSION.Sheet.Plan.OptionalRuleActive": "Regra opcional ativa",
   "FUSION.Sheet.Plan.LevelHeader": "Nível {{level}}",

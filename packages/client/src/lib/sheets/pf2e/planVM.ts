@@ -1123,7 +1123,7 @@ function buildLevelPlan(
   // class/ancestry off `doc` — the same source `planContext()` uses — so this
   // always reflects the character's LATEST class/ancestry, not the one the
   // pick was originally made under.
-  attachRequirementIssues(slots, items, charLevel, planContext(doc));
+  attachRequirementIssues(slots, items, charLevel, planContext(doc), classSystem);
 
   return { level, slots: collapseSkillSlotGroups(slots), autoFeatures };
 }
@@ -1772,11 +1772,14 @@ const CHOICE_SLOT_REQUIRED_CLASS: Partial<Record<PlanSlotType, string>> = Object
  *
  * Free-text `system.prerequisites` (feat-chain prose like "Alchemist
  * Dedication" or ability-score/proficiency prose like "Intelligence +2") is
- * deliberately NOT checked here — the pack data mixes item-name prose with
- * non-item prose (proficiency ranks, ability scores, OR-lists) with no
- * structured way to tell them apart, so a blind text match would flag
- * legitimately-satisfied picks as invalid far more often than it would catch
- * a real gap. Left as a known limitation rather than guessed at.
+ * NOT resolved here — the pack data mixes item-name prose with non-item
+ * prose (proficiency ranks, ability scores, OR-lists) with no structured way
+ * to tell them apart, so a blind text match would flag legitimately-satisfied
+ * picks as invalid far more often than it would catch a real gap. The
+ * narrower, safely-resolvable slice of `system.prerequisites` (subclass-axis
+ * prose like "dragon instinct") is handled separately by
+ * `checkFeatPrerequisites` below (A1, r21 achado) and layered on top of this
+ * function's result by `attachRequirementIssues`.
  */
 export function checkSlotRequirement(
   item: Record<string, unknown>,
@@ -1826,24 +1829,282 @@ export function checkSlotRequirement(
   return undefined;
 }
 
+// ---------------------------------------------------------------------------
+// Free-text prerequisite marking (A1, r21 achado) — `system.prerequisites`
+// is free-form prose (`[{value: "dragon instinct"}]`), and most of it isn't
+// safely resolvable client-side: proficiency ranks ("trained in Athletics"),
+// ability scores ("Intelligence +2"), and feat-chain prose ("Alchemist
+// Dedication") all require either the full feats-core index (not available
+// to this pure, doc-only VM — see `derivePlan`'s doc comment) or game-state
+// this model doesn't track. A blind text match against those would flag
+// legitimately-satisfied picks as invalid, which DEC-BC-05 forbids (mark,
+// never falsely block/flag).
+//
+// The one slice that IS safely resolvable without a pack index: subclass-AXIS
+// prose ("dragon instinct", "eldritch trickster racket", "sparkling targe
+// hybrid study", generic "arcane school"/"hunter's edge"). The vendor packs
+// consistently suffix axis-option prerequisite text with the axis's own noun
+// (confirmed against systems/pf2e/packs/feats-core's actual prerequisite
+// strings), and the character's CURRENT pick for that axis is always known
+// (it's an item-backed slot, same as any feat slot) — so "does the chosen
+// axis option match the required one" is answerable with certainty, not a
+// guess. Everything else stays `unresolved` → the requirement entry as a
+// whole reports `unknown` and is never marked (see `evaluatePrerequisiteEntry`).
+// ---------------------------------------------------------------------------
+
+/** Requirement-text normalization mirroring tools/importer-pf2e/src/curation/grafo-de-feats.mjs's `normalizar` (lowercase, strip accents/punctuation, collapse whitespace). Kept independent — the client can't import the importer script — but semantically identical, so an item NAME and a `system.prerequisites` free-text VALUE compare equal after normalization. */
+function normalizePrereqText(text: string): string {
+  return text
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** "Ricochet Stance (Rogue)" → "ricochet stance" — mirrors the importer's `semSufixo`, for a candidate/name that carries a disambiguating parenthetical suffix. */
+function stripParentheticalSuffix(name: string): string {
+  return normalizePrereqText(name.replace(/\s*\([^)]*\)\s*$/, ""));
+}
+
+/** "A or B" / "A, B" → ["A", "B"] — mirrors the importer's `candidatosDoRequisito`: both forms are treated as alternatives (satisfying ONE is enough) since the vendor packs use both conventions interchangeably. */
+function prerequisiteCandidates(text: string): string[] {
+  return text
+    .split(/\s+or\s+|,\s*/i)
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0);
+}
+
+/**
+ * Axis noun phrases (already run through `normalizePrereqText`, so
+ * apostrophes are spaces) mapped to the `PlanSlotType` they name, ordered
+ * longest/most-specific first so "arcane school" and "hunter's edge" match
+ * before their generic single-word tails. Verified against every
+ * axis-shaped `system.prerequisites` string in systems/pf2e/packs/feats-core
+ * (e.g. "dragon instinct", "eldritch trickster racket", "sparkling targe
+ * hybrid study", generic "arcane school", generic "hunter's edge").
+ */
+const AXIS_SUFFIX_TO_SLOT_TYPE: ReadonlyArray<{ phrase: string; slotType: PlanSlotType }> = [
+  { phrase: "hybrid study", slotType: "hybridStudy" },
+  { phrase: "hunter s edge", slotType: "huntersEdge" },
+  { phrase: "arcane school", slotType: "arcaneSchool" },
+  { phrase: "arcane thesis", slotType: "arcaneThesis" },
+  { phrase: "racket", slotType: "racket" },
+  { phrase: "instinct", slotType: "instinct" },
+  { phrase: "thesis", slotType: "arcaneThesis" },
+  { phrase: "school", slotType: "arcaneSchool" },
+  { phrase: "edge", slotType: "huntersEdge" },
+  { phrase: "gate", slotType: "kineticGate" },
+];
+
+/**
+ * Does `normalized` (already `normalizePrereqText`-ed) end in a known axis
+ * noun phrase? Returns the axis's slot type and the text with the phrase
+ * stripped (e.g. "dragon instinct" → {slotType: "instinct", stripped:
+ * "dragon"}; the bare generic phrase itself, e.g. "arcane school", strips to
+ * `""` — a requirement for "any option of this axis", not a specific one).
+ * `undefined` when no axis phrase matches — the text isn't axis-shaped and
+ * this module can't resolve it.
+ */
+function matchAxisSuffix(
+  normalized: string,
+): { slotType: PlanSlotType; stripped: string } | undefined {
+  for (const { phrase, slotType } of AXIS_SUFFIX_TO_SLOT_TYPE) {
+    if (normalized === phrase) return { slotType, stripped: "" };
+    if (normalized.endsWith(` ${phrase}`)) {
+      return { slotType, stripped: normalized.slice(0, -(phrase.length + 1)).trim() };
+    }
+  }
+  return undefined;
+}
+
+/** A name's "core" identity with any trailing axis noun stripped (e.g. both "Dragon Instinct" — a barbarian-instinct item name — and a prerequisite's "dragon instinct" reduce to "dragon"), so the two sides of the comparison line up even though only ONE of them (the vendor item name, for the instinct axis specifically) actually carries the noun. */
+function axisCoreName(name: string): string {
+  const normalized = normalizePrereqText(name);
+  return matchAxisSuffix(normalized)?.stripped ?? normalized;
+}
+
+/** Every subclass-axis `PlanSlotType` this module can resolve a prerequisite against. */
+const AXIS_SLOT_TYPES = new Set<PlanSlotType>([
+  "instinct",
+  "racket",
+  "huntersEdge",
+  "arcaneThesis",
+  "arcaneSchool",
+  "hybridStudy",
+  "kineticGate",
+]);
+
+/**
+ * The character's CURRENT pick for each subclass-axis slot type (by display
+ * name), read off the item-backed axis slots (`instinct-1`, `racket-1`, …
+ * per `resolveSlot`'s `<type>-<level>` convention) the same way `resolveSlot`
+ * itself finds them — via `flags.fusion.build.slot`, not by re-deriving the
+ * slot list. A character has at most one item per axis (the choice isn't
+ * repeatable), so first match wins.
+ */
+function axisChoiceNames(
+  items: Array<Record<string, unknown>>,
+): Partial<Record<PlanSlotType, string>> {
+  const result: Partial<Record<PlanSlotType, string>> = {};
+  for (const it of items) {
+    const flag = getItemBuildFlag(it);
+    if (!flag) continue;
+    const dashIdx = flag.slot.indexOf("-");
+    const slotType = (dashIdx >= 0 ? flag.slot.slice(0, dashIdx) : flag.slot) as PlanSlotType;
+    if (!AXIS_SLOT_TYPES.has(slotType) || slotType in result) continue;
+    const name = itemName(it);
+    if (name) result[slotType] = name;
+  }
+  return result;
+}
+
+/**
+ * The set of names (normalized, both full and parenthetical-suffix-stripped
+ * forms) the character DIRECTLY possesses: every picked feat, every
+ * materialized class feature (including axis choices — they're
+ * `classFeature`-typed items too), plus every non-choice class feature the
+ * class's progression grants at or below `charLevel` (those are named by the
+ * class doc's `featuresByLevel`, not embedded as actor items — see
+ * `classGrantRefsFromClassDoc`'s doc comment). Used for a direct-name-match
+ * prerequisite ("Rage", a picked feat's own name, …) — deliberately NOT a
+ * general feats-core lookup, since this VM has no pack index.
+ */
+function knownPossessedNames(
+  items: Array<Record<string, unknown>>,
+  classSystem: ClassSystemLike | undefined,
+  charLevel: number,
+): Set<string> {
+  const names = new Set<string>();
+  const add = (name: string | undefined): void => {
+    if (!name) return;
+    names.add(normalizePrereqText(name));
+    names.add(stripParentheticalSuffix(name));
+  };
+  for (const it of items) {
+    const type = it["type"];
+    if (type === "feat" || type === "classFeature") add(itemName(it));
+  }
+  for (const f of classSystem?.featuresByLevel ?? []) {
+    if (f.level <= charLevel) add(f.name);
+  }
+  return names;
+}
+
+/** One `system.prerequisites` candidate's resolution against what the character possesses. `"unresolved"` means this module has no way to tell — never treated as unmet. */
+function evaluatePrerequisiteCandidate(
+  raw: string,
+  knownNames: Set<string>,
+  axisNames: Partial<Record<PlanSlotType, string>>,
+): "met" | "unmet" | "unresolved" {
+  const normalized = normalizePrereqText(raw);
+  const short = stripParentheticalSuffix(raw);
+  if (knownNames.has(normalized) || knownNames.has(short)) return "met";
+
+  const axisMatch = matchAxisSuffix(normalized);
+  if (!axisMatch) return "unresolved";
+
+  const chosenName = axisNames[axisMatch.slotType];
+  if (axisMatch.stripped === "") {
+    // Generic axis requirement ("arcane school", "hunter's edge"): met as
+    // soon as ANY option of that axis is chosen.
+    return chosenName !== undefined ? "met" : "unmet";
+  }
+  const chosenCore = chosenName !== undefined ? axisCoreName(chosenName) : undefined;
+  return chosenCore !== undefined && chosenCore === axisMatch.stripped ? "met" : "unmet";
+}
+
+/**
+ * One `system.prerequisites[].value` entry (which may itself be an "A or B"
+ * OR-list — satisfying ONE candidate is enough). Returns `"unmet"` ONLY when
+ * EVERY candidate resolved (none were `"unresolved"`) and NONE were met —
+ * i.e. this module is certain the requirement isn't satisfied. A single
+ * unresolved candidate downgrades the whole entry to `"unknown"`: the
+ * OTHER candidate in an "A or B" might be satisfied through data this VM
+ * doesn't model, and DEC-BC-05 makes a false "unmet" worse than no mark.
+ */
+function evaluatePrerequisiteEntry(
+  text: string,
+  knownNames: Set<string>,
+  axisNames: Partial<Record<PlanSlotType, string>>,
+): "met" | "unmet" | "unknown" {
+  const candidates = prerequisiteCandidates(text);
+  if (candidates.length === 0) return "unknown";
+  let allResolved = true;
+  for (const candidate of candidates) {
+    const status = evaluatePrerequisiteCandidate(candidate, knownNames, axisNames);
+    if (status === "met") return "met";
+    if (status === "unresolved") allResolved = false;
+  }
+  return allResolved ? "unmet" : "unknown";
+}
+
+/**
+ * checkFeatPrerequisites — non-blocking check of a FILLED slot's backing
+ * item against its own `system.prerequisites` (A1, r21 achado: a Bloodrager
+ * -instinct Barbarian could pick Draconic Arrogance, which declares
+ * `prerequisites: [{value: "dragon instinct"}]`, with no mark at all — this
+ * VM never read the field). Only the axis-resolvable slice is evaluated (see
+ * this section's header comment); everything else is silently `"unknown"`
+ * and produces no issue. Returns `undefined` when every entry is met or
+ * unknown, so a character mid-build (axis not yet chosen) or a feat with
+ * only unresolvable prose never gets a false mark.
+ */
+export function checkFeatPrerequisites(
+  item: Record<string, unknown>,
+  items: Array<Record<string, unknown>>,
+  classSystem: ClassSystemLike | undefined,
+  charLevel: number,
+): RequirementIssue | undefined {
+  const sys = asRecord(item["system"]);
+  const prereqsRaw = sys["prerequisites"];
+  if (!Array.isArray(prereqsRaw) || prereqsRaw.length === 0) return undefined;
+
+  const knownNames = knownPossessedNames(items, classSystem, charLevel);
+  const axisNames = axisChoiceNames(items);
+
+  const missing: string[] = [];
+  for (const entry of prereqsRaw) {
+    const value = typeof entry === "string" ? entry : asRecord(entry)["value"];
+    if (typeof value !== "string" || value.trim().length === 0) continue;
+    if (evaluatePrerequisiteEntry(value, knownNames, axisNames) === "unmet") {
+      missing.push(value.trim());
+    }
+  }
+  if (missing.length === 0) return undefined;
+  return {
+    reasonKey: "FUSION.Sheet.Plan.Requirement.PrerequisiteUnmet",
+    params: { prerequisite: missing.join(", ") },
+  };
+}
+
 /**
  * attachRequirementIssues — walk every FILLED, item-backed slot in `slots`
  * and stamp `requirementIssue` on the ones whose backing item no longer
- * meets its requirement (Frente 3). Mutates the slot objects in place (they
- * are freshly built by `buildLevelPlan` for this `derivePlan` call, never
- * shared/cached), so callers just call this once before returning.
+ * meets its requirement (Frente 3), OR whose `system.prerequisites` resolve
+ * to definitively unmet (A1, r21 achado — see `checkFeatPrerequisites`).
+ * `checkSlotRequirement` runs first (it's the more certain of the two
+ * checks); `checkFeatPrerequisites` only runs when it found nothing, so a
+ * slot never carries two competing reasons. Mutates the slot objects in
+ * place (they are freshly built by `buildLevelPlan` for this `derivePlan`
+ * call, never shared/cached), so callers just call this once before
+ * returning.
  */
 function attachRequirementIssues(
   slots: PlanSlotModel[],
   items: Array<Record<string, unknown>>,
   charLevel: number,
   planCtx: Pick<PlanContext, "classSlug" | "ancestrySlug">,
+  classSystem: ClassSystemLike,
 ): void {
   for (const slot of slots) {
     if (!slot.filled || !slot.itemId || slot.lockedGrant) continue;
     const item = items.find((it) => it["_id"] === slot.itemId);
     if (!item) continue;
-    const issue = checkSlotRequirement(item, slot.type, charLevel, planCtx);
+    const issue =
+      checkSlotRequirement(item, slot.type, charLevel, planCtx) ??
+      checkFeatPrerequisites(item, items, classSystem, charLevel);
     if (issue) slot.requirementIssue = issue;
   }
 }
