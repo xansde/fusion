@@ -41,6 +41,9 @@ import {
   previewAbilityScores,
   grantedFeatChoiceFor,
   matchesGrantedFeatFilter,
+  ancestryChoiceGrantFor,
+  isAncestryAdoptable,
+  chooseAdoptedAncestry,
   detailsRequestForSlot,
   detailsRequestForAutoFeature,
   findEntryUuidByName,
@@ -235,6 +238,39 @@ function ratfolkAncestryDoc(): Record<string, unknown> {
       vision: "low-light-vision",
     },
     flags: { fusion: { conversion: "full" } },
+  };
+}
+
+function fleshwarpAncestryDoc(): Record<string, unknown> {
+  return {
+    _id: "mIPhGOdhzDGvbu5m",
+    name: "Fleshwarp",
+    type: "ancestry",
+    img: "icons/placeholder/feat.svg",
+    system: {
+      boosts: ["free", "free"],
+      flaws: [],
+      hp: 10,
+      size: "med",
+      speed: 25,
+      traits: { rarity: "uncommon", value: ["aberration", "humanoid"] },
+      vision: "darkvision",
+    },
+    flags: { fusion: { conversion: "full" } },
+  };
+}
+
+/** Fleshwarp-tagged ancestry feat, same shape as cheekPouchesAncestryFeatDoc (which is Ratfolk-tagged) — used to prove an ADOPTED ancestry's own feats become eligible in the ancestryFeat slot, not just the character's real ancestry's. */
+function fleshwarpUnusualAnatomyAncestryFeatDoc(): Record<string, unknown> {
+  return {
+    _id: "feat-unusual-anatomy",
+    name: "Unusual Anatomy",
+    type: "feat",
+    system: {
+      category: "ancestry",
+      level: 1,
+      traits: { rarity: "common", value: ["fleshwarp"] },
+    },
   };
 }
 
@@ -851,6 +887,20 @@ describe("planContext", () => {
     expect(ctxInfo.classSlug).toBeUndefined();
     expect(ctxInfo.ancestrySlug).toBeUndefined();
     expect(ctxInfo.keyAbility).toBeUndefined();
+  });
+
+  it("omits adoptedAncestrySlug when no adoptedAncestryChoice pick exists (Tobias hasn't picked one yet)", () => {
+    expect(planContext(tobiasLevel3Doc()).adoptedAncestrySlug).toBeUndefined();
+  });
+
+  it("derives adoptedAncestrySlug from a recorded adoptedAncestryChoice pick, anywhere in system.build.choices", () => {
+    const doc = tobiasLevel3Doc();
+    const sysBuild = (doc["system"] as Record<string, unknown>)["build"] as Record<string, unknown>;
+    sysBuild["choices"] = [
+      ...(sysBuild["choices"] as unknown[]),
+      { level: 3, slot: "generalFeat-3:ancestry", type: "adoptedAncestryChoice", ref: "Fleshwarp" },
+    ];
+    expect(planContext(doc).adoptedAncestrySlug).toBe("fleshwarp");
   });
 });
 
@@ -2477,6 +2527,32 @@ describe("isFeatEligible", () => {
     expect(isFeatEligible(arcaneFistsFeatDoc(), "ancestryFeat", 1, opts)).toBe(false);
   });
 
+  it("ancestryFeat: accepts a feat for the ADOPTED ancestry when adoptedAncestrySlug matches (Adopted Ancestry's mechanical payoff)", () => {
+    const withAdopted = { ...opts, adoptedAncestrySlug: "fleshwarp" };
+    expect(
+      isFeatEligible(fleshwarpUnusualAnatomyAncestryFeatDoc(), "ancestryFeat", 1, withAdopted),
+    ).toBe(true);
+  });
+
+  it("ancestryFeat: still accepts the character's OWN ancestry feat when adoptedAncestrySlug is also set", () => {
+    const withAdopted = { ...opts, adoptedAncestrySlug: "fleshwarp" };
+    expect(isFeatEligible(cheekPouchesAncestryFeatDoc(), "ancestryFeat", 1, withAdopted)).toBe(
+      true,
+    );
+  });
+
+  it("ancestryFeat: rejects a feat for a THIRD ancestry that is neither own nor adopted", () => {
+    const withAdopted = { ...opts, adoptedAncestrySlug: "fleshwarp" };
+    const elfFeat = { system: { category: "ancestry", level: 1, traits: { value: ["elf"] } } };
+    expect(isFeatEligible(elfFeat, "ancestryFeat", 1, withAdopted)).toBe(false);
+  });
+
+  it("ancestryFeat: without adoptedAncestrySlug, the adopted ancestry's feat is NOT eligible (baseline unchanged)", () => {
+    expect(
+      isFeatEligible(fleshwarpUnusualAnatomyAncestryFeatDoc(), "ancestryFeat", 1, opts),
+    ).toBe(false);
+  });
+
   it("generalFeat: accepts category general regardless of traits", () => {
     expect(isFeatEligible(adoptedAncestryGeneralFeatDoc(), "generalFeat", 1, opts)).toBe(true);
   });
@@ -3293,6 +3369,39 @@ describe("grantedFeatChoiceFor / matchesGrantedFeatFilter", () => {
   });
 });
 
+describe("ancestryChoiceGrantFor / isAncestryAdoptable", () => {
+  it("resolves Adopted Ancestry's sub-slot config by name", () => {
+    const grant = ancestryChoiceGrantFor("Adopted Ancestry");
+    expect(grant).toBeDefined();
+    expect(grant!.labelKey).toBe("FUSION.Sheet.Plan.SlotLabel.adoptedAncestryChoice");
+  });
+
+  it("is case/whitespace insensitive (same nameToSlug convention as classSlug/ancestrySlug)", () => {
+    expect(ancestryChoiceGrantFor("  ADOPTED ANCESTRY  ")).toBeDefined();
+  });
+
+  it("returns undefined for a feat with no registered ancestry-choice grant", () => {
+    expect(ancestryChoiceGrantFor("Arcane Fists")).toBeUndefined();
+    expect(ancestryChoiceGrantFor(undefined)).toBeUndefined();
+  });
+
+  it("isAncestryAdoptable: excludes the character's own ancestry (Ratfolk)", () => {
+    expect(isAncestryAdoptable("Ratfolk", "ratfolk")).toBe(false);
+  });
+
+  it("isAncestryAdoptable: includes every other ancestry (Fleshwarp)", () => {
+    expect(isAncestryAdoptable("Fleshwarp", "ratfolk")).toBe(true);
+  });
+
+  it("isAncestryAdoptable: case/whitespace insensitive, mirroring nameToSlug", () => {
+    expect(isAncestryAdoptable("  RATFOLK  ", "ratfolk")).toBe(false);
+  });
+
+  it("isAncestryAdoptable: everything is adoptable when the character has no ancestry yet", () => {
+    expect(isAncestryAdoptable("Ratfolk", undefined)).toBe(true);
+  });
+});
+
 describe("derivePlan — granted feat sub-slot (Basic Concoction, real fixture)", () => {
   it("generates an unfilled grantedFeat sub-slot right after the filled archetypeFeat-4 slot", () => {
     const plan = derivePlan(tobiasLevel4WithBasicConcoctionDoc());
@@ -3405,6 +3514,140 @@ describe("removeChoice — cascades to a filled grantedFeat sub-slot", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Adopted Ancestry sub-slot (Tobias's tobiasLevel3Doc fixture already embeds
+// "Adopted Ancestry" as generalFeat-3, see adoptedAncestryGeneralFeatDoc).
+// ---------------------------------------------------------------------------
+
+describe("derivePlan — adopted ancestry sub-slot (Adopted Ancestry, real-shaped fixture)", () => {
+  it("generates an unfilled adoptedAncestryChoice sub-slot right after the filled generalFeat-3 slot", () => {
+    const plan = derivePlan(tobiasLevel3Doc());
+    const l3 = plan.levels.find((l) => l.level === 3)!;
+    const parentIdx = l3.slots.findIndex((s) => s.slotId === "generalFeat-3");
+    const subIdx = l3.slots.findIndex((s) => s.slotId === "generalFeat-3:ancestry");
+    expect(parentIdx).toBeGreaterThanOrEqual(0);
+    expect(subIdx).toBe(parentIdx + 1);
+
+    const sub = l3.slots[subIdx]!;
+    expect(sub.type).toBe("adoptedAncestryChoice");
+    expect(sub.filled).toBe(false);
+    expect(sub.parentSlotId).toBe("generalFeat-3");
+  });
+
+  it("reports the sub-slot filled once the adopted-ancestry choice is recorded, showing the picked ancestry's name", () => {
+    const doc = tobiasLevel3Doc();
+    const sysBuild = (doc["system"] as Record<string, unknown>)["build"] as Record<string, unknown>;
+    sysBuild["choices"] = [
+      ...(sysBuild["choices"] as unknown[]),
+      { level: 3, slot: "generalFeat-3:ancestry", type: "adoptedAncestryChoice", ref: "Fleshwarp" },
+    ];
+    const plan = derivePlan(doc);
+    const l3 = plan.levels.find((l) => l.level === 3)!;
+    const sub = l3.slots.find((s) => s.slotId === "generalFeat-3:ancestry")!;
+    expect(sub.filled).toBe(true);
+    expect(sub.choiceName).toBe("Fleshwarp");
+  });
+
+  it("does NOT generate a sub-slot for a general feat with no registered ancestry-choice grant", () => {
+    const doc = tobiasLevel3Doc();
+    const items = doc["items"] as Array<Record<string, unknown>>;
+    const idx = items.findIndex((it) => it["_id"] === "item-general-feat-3");
+    items[idx] = {
+      _id: "item-general-feat-3",
+      name: "Toughness",
+      type: "feat",
+      system: { category: "general", level: 3, traits: { value: ["general"] } },
+      flags: { fusion: { build: { level: 3, slot: "generalFeat-3" } } },
+    };
+    const plan = derivePlan(doc);
+    const l3 = plan.levels.find((l) => l.level === 3)!;
+    expect(l3.slots.some((s) => s.slotId === "generalFeat-3:ancestry")).toBe(false);
+  });
+
+  it("does NOT generate a sub-slot while the parent generalFeat slot is still empty", () => {
+    const doc = tobiasLevel3Doc();
+    const items = doc["items"] as Array<Record<string, unknown>>;
+    doc["items"] = items.filter((it) => it["_id"] !== "item-general-feat-3");
+    const plan = derivePlan(doc);
+    const l3 = plan.levels.find((l) => l.level === 3)!;
+    expect(l3.slots.some((s) => s.slotId === "generalFeat-3:ancestry")).toBe(false);
+  });
+});
+
+describe("chooseAdoptedAncestry", () => {
+  it("records a CHOICE-ONLY entry (no embedded item created) carrying the picked ancestry's name in ref", () => {
+    const doc = tobiasLevel3Doc();
+    const plan = derivePlan(doc);
+    const l3 = plan.levels.find((l) => l.level === 3)!;
+    const subSlot = l3.slots.find((s) => s.slotId === "generalFeat-3:ancestry")!;
+
+    const op = chooseAdoptedAncestry(ctx(doc), subSlot, 3, fleshwarpAncestryDoc());
+    expect(op).not.toBeNull();
+    expect(op!.type).toBe("doc:update");
+    const choices = op!.diff["system.build.choices"] as Array<Record<string, unknown>>;
+    expect(choices).toContainEqual({
+      level: 3,
+      slot: "generalFeat-3:ancestry",
+      type: "adoptedAncestryChoice",
+      ref: "Fleshwarp",
+    });
+  });
+
+  it("replaces a prior pick for the SAME sub-slot instead of duplicating it (re-choosing swaps)", () => {
+    const doc = tobiasLevel3Doc();
+    const sysBuild = (doc["system"] as Record<string, unknown>)["build"] as Record<string, unknown>;
+    sysBuild["choices"] = [
+      ...(sysBuild["choices"] as unknown[]),
+      { level: 3, slot: "generalFeat-3:ancestry", type: "adoptedAncestryChoice", ref: "Ratfolk" },
+    ];
+    const plan = derivePlan(doc);
+    const l3 = plan.levels.find((l) => l.level === 3)!;
+    const subSlot = l3.slots.find((s) => s.slotId === "generalFeat-3:ancestry")!;
+
+    const op = chooseAdoptedAncestry(ctx(doc), subSlot, 3, fleshwarpAncestryDoc())!;
+    const choices = op.diff["system.build.choices"] as Array<Record<string, unknown>>;
+    const matching = choices.filter((c) => c["slot"] === "generalFeat-3:ancestry");
+    expect(matching).toHaveLength(1);
+    expect(matching[0]!["ref"]).toBe("Fleshwarp");
+  });
+
+  it("returns null when not editable", () => {
+    const doc = tobiasLevel3Doc();
+    const plan = derivePlan(doc);
+    const l3 = plan.levels.find((l) => l.level === 3)!;
+    const subSlot = l3.slots.find((s) => s.slotId === "generalFeat-3:ancestry")!;
+    expect(chooseAdoptedAncestry(ctx(doc, false), subSlot, 3, fleshwarpAncestryDoc())).toBeNull();
+  });
+});
+
+describe("removeChoice — cascades to a filled adoptedAncestryChoice sub-slot", () => {
+  it("removing the parent Adopted Ancestry feat deletes only the parent's item (choice-only sub-slot has none) and strips BOTH choices entries", () => {
+    const doc = tobiasLevel3Doc();
+    const sysBuild = (doc["system"] as Record<string, unknown>)["build"] as Record<string, unknown>;
+    sysBuild["choices"] = [
+      ...(sysBuild["choices"] as unknown[]),
+      { level: 3, slot: "generalFeat-3", type: "generalFeat" },
+      { level: 3, slot: "generalFeat-3:ancestry", type: "adoptedAncestryChoice", ref: "Fleshwarp" },
+    ];
+
+    const plan = derivePlan(doc);
+    const l3 = plan.levels.find((l) => l.level === 3)!;
+    const parentSlot = l3.slots.find((s) => s.slotId === "generalFeat-3")!;
+    expect(parentSlot.filled).toBe(true);
+
+    const ops = removeChoice(ctx(doc), parentSlot);
+    const deleteOps = ops.filter((op) => op.type === "doc:delete") as Array<{ id: string }>;
+    expect(deleteOps.map((op) => op.id)).toEqual(["item-general-feat-3"]);
+
+    const updateOp = ops.find((op) => op.type === "doc:update") as DocUpdatePayload;
+    const remainingChoices = updateOp.diff["system.build.choices"] as Array<
+      Record<string, unknown>
+    >;
+    expect(remainingChoices.some((c) => c["slot"] === "generalFeat-3")).toBe(false);
+    expect(remainingChoices.some((c) => c["slot"] === "generalFeat-3:ancestry")).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // R12 — details-panel resolution (chips + filled slots + picker default)
 // ---------------------------------------------------------------------------
 
@@ -3437,6 +3680,11 @@ describe("detailsRequestForSlot", () => {
       const req = detailsRequestForSlot(slot({ type, choiceName: "Some Feat" }));
       expect(req).toEqual({ packSlug: "feats-core", name: "Some Feat" });
     }
+  });
+
+  it("routes a filled adoptedAncestryChoice sub-slot to ancestries-core", () => {
+    const req = detailsRequestForSlot(slot({ type: "adoptedAncestryChoice", choiceName: "Fleshwarp" }));
+    expect(req).toEqual({ packSlug: "ancestries-core", name: "Fleshwarp" });
   });
 
   it("returns null for slot types with no single compendium document", () => {

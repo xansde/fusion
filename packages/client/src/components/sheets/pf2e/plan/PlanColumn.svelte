@@ -40,7 +40,9 @@
     chooseFeat,
     chooseClassChoice,
     chooseKineticGate,
+    chooseAdoptedAncestry,
     readGateElements,
+    isAncestryAdoptable,
     type KineticGatePick,
     setAbilityBoosts,
     markAbilityBoostsChoice,
@@ -683,6 +685,19 @@
         filterFn: (e) => matchesGrantedFeatFilter(featDocFromIndex(e), grant),
       };
     }
+    if (slot.type === "adoptedAncestryChoice") {
+      // "Adopted Ancestry" (feats-core) unlocks this sub-slot: pick any
+      // ancestry from ancestries-core EXCEPT the character's own (mirrors the
+      // vendor ChoiceSet's `{not: "item:slug:{actor|system.details.ancestry.
+      // trait}"}` filter — see planVM.ts's ANCESTRY_CHOICE_GRANTS doc comment).
+      return {
+        packSlug: "ancestries-core",
+        title: t("FUSION.Sheet.Plan.Picker.AbcTitle", {
+          type: t("FUSION.Sheet.Plan.SlotLabel.adoptedAncestryChoice"),
+        }),
+        filterFn: (e) => isAncestryAdoptable(e.name, ctx.ancestrySlug),
+      };
+    }
     // Kineticist: a classFeat slot filters impulse feats by the character's
     // chosen gate elements (an Air+Metal kineticist can't pick a Fire impulse).
     // gateElements is [] for a non-kineticist → the impulse filter is a no-op.
@@ -695,6 +710,7 @@
         return isFeatEligible(featDoc, slot.type, level, {
           ...(ctx.classSlug ? { classSlug: ctx.classSlug } : {}),
           ...(ctx.ancestrySlug ? { ancestrySlug: ctx.ancestrySlug } : {}),
+          ...(ctx.adoptedAncestrySlug ? { adoptedAncestrySlug: ctx.adoptedAncestrySlug } : {}),
           ...(gateElements.length > 0 ? { gateElements } : {}),
         });
       },
@@ -704,6 +720,16 @@
   function handleSlotPickerSelect(selectedDoc: Record<string, unknown>): void {
     if (!slotPicker) return;
     const { level, slot } = slotPicker;
+    if (slot.type === "adoptedAncestryChoice") {
+      // Choice-only pick (no embedded item, see chooseAdoptedAncestry) — the
+      // picked doc is just a REFERENCE (which ancestry counts as "adopted"
+      // for ancestry-feat eligibility), not an ancestry the character is
+      // actually becoming, so — unlike every other picker branch — its
+      // GrantItem rules must NOT be materialized onto the actor.
+      sendAll(chooseAdoptedAncestry(opCtx, slot, level, selectedDoc));
+      slotPicker = null;
+      return;
+    }
     if (CLASS_CHOICE_SLOT_OPTIONS[slot.type]) {
       sendAll(chooseClassChoice(opCtx, slot.type, level, selectedDoc));
     } else {
