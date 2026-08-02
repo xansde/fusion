@@ -41,7 +41,9 @@
     isFeatAtRepeatCap,
     chooseClassChoice,
     chooseKineticGate,
+    chooseAdoptedAncestry,
     readGateElements,
+    isAncestryAdoptable,
     type KineticGatePick,
     setAbilityBoosts,
     markAbilityBoostsChoice,
@@ -726,6 +728,19 @@
         filterFn: (e) => matchesGrantedFeatFilter(featDocFromIndex(e), grant),
       };
     }
+    if (slot.type === "adoptedAncestryChoice") {
+      // "Adopted Ancestry" (feats-core) unlocks this sub-slot: pick any
+      // ancestry from ancestries-core EXCEPT the character's own (mirrors the
+      // vendor ChoiceSet's `{not: "item:slug:{actor|system.details.ancestry.
+      // trait}"}` filter — see planVM.ts's ANCESTRY_CHOICE_GRANTS doc comment).
+      return {
+        packSlug: "ancestries-core",
+        title: t("FUSION.Sheet.Plan.Picker.AbcTitle", {
+          type: t("FUSION.Sheet.Plan.SlotLabel.adoptedAncestryChoice"),
+        }),
+        filterFn: (e) => isAncestryAdoptable(e.name, ctx.ancestrySlug),
+      };
+    }
     // Kineticist: a classFeat slot filters impulse feats by the character's
     // chosen gate elements (an Air+Metal kineticist can't pick a Fire impulse).
     // gateElements is [] for a non-kineticist → the impulse filter is a no-op.
@@ -738,6 +753,7 @@
         return isFeatEligible(featDoc, slot.type, level, {
           ...(ctx.classSlug ? { classSlug: ctx.classSlug } : {}),
           ...(ctx.ancestrySlug ? { ancestrySlug: ctx.ancestrySlug } : {}),
+          ...(ctx.adoptedAncestrySlug ? { adoptedAncestrySlug: ctx.adoptedAncestrySlug } : {}),
           ...(gateElements.length > 0 ? { gateElements } : {}),
         });
       },
@@ -747,15 +763,26 @@
   function handleSlotPickerSelect(selectedDoc: Record<string, unknown>): void {
     if (!slotPicker) return;
     const { level, slot } = slotPicker;
-    // Feat repeatability gate (W2 frente 1): a non-repeatable feat already
-    // chosen, or a repeatable one already at its `maxTakable` cap, must not
-    // be accepted a second time. `isFeatAtRepeatCap` is a no-op for
-    // non-"feat" docs (classFeature choices), so this check never affects
-    // hybridStudy/instinct/etc. chooseFeat enforces the SAME predicate
-    // internally — this early check only lets the dialog stay open with a
-    // visible reason instead of silently closing on a no-op.
+    // Teto de repetição (frente 1): talento não-repetível já escolhido, ou
+    // repetível já no `maxTakable`, não pode ser aceito de novo.
+    // `isFeatAtRepeatCap` é no-op para doc que não é "feat" (escolhas de
+    // classFeature), então nunca afeta hybridStudy/instinct/etc. `chooseFeat`
+    // aplica o MESMO predicado internamente — esta checagem antecipada só
+    // mantém o diálogo aberto com um motivo visível, em vez de fechar num
+    // no-op silencioso.
     if (isFeatAtRepeatCap(doc, selectedDoc)) {
       showRepeatCapNotice();
+      return;
+    }
+    if (slot.type === "adoptedAncestryChoice") {
+      // Escolha-referência (sem item embutido, ver chooseAdoptedAncestry) — o
+      // doc escolhido é só uma REFERÊNCIA (qual ancestralidade conta como
+      // "adotada" para elegibilidade de talento de ancestralidade), não uma
+      // ancestralidade que o personagem passa a ser. Por isso, ao contrário de
+      // todos os outros ramos do picker, os GrantItem dela NÃO são
+      // materializados no ator.
+      sendAll(chooseAdoptedAncestry(opCtx, slot, level, selectedDoc));
+      slotPicker = null;
       return;
     }
     if (CLASS_CHOICE_SLOT_OPTIONS[slot.type]) {

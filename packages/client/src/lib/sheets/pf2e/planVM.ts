@@ -410,7 +410,8 @@ export type PlanSlotType =
   | "arcaneSchool"
   | "skillTraining"
   | "skillIncrease"
-  | "grantedFeat";
+  | "grantedFeat"
+  | "adoptedAncestryChoice";
 
 export interface PlanSlotModel {
   slotId: string;
@@ -511,6 +512,7 @@ const SLOT_TYPE_LABELS: Record<PlanSlotType, string> = {
   skillTraining: "Skill Training",
   skillIncrease: "Skill Increase",
   grantedFeat: "Granted Feat",
+  adoptedAncestryChoice: "Adopted Ancestry",
 };
 
 // ---------------------------------------------------------------------------
@@ -634,6 +636,74 @@ export function matchesGrantedFeatFilter(featDoc: FeatDocLike, filter: GrantedFe
   });
 }
 
+// ---------------------------------------------------------------------------
+// Adopted Ancestry sub-slot — keyed by `nameToSlug(grantingFeat.name)`, same
+// hand-authored-table convention as GRANTED_FEAT_CHOICES above (a feat NAME
+// unlocks a nested pick; here the pick is an ANCESTRY, not another feat).
+//
+// SOURCE — the vendor's unconverted ChoiceSet/set-property rule pair on
+// "Adopted Ancestry" (feats-core, _id pP1ESEvFaPyF2OFM,
+// `flags.fusion.unconvertedRules`: `{key:"ChoiceSet", choices:{itemType:
+// "ancestry", filter:[{not:"item:slug:{actor|system.details.ancestry.trait}"}]}}`
+// paired with `set-property` writing the pick to
+// `system.details.ancestry.adopted`) is ALSO already summarized, structurally,
+// by the importer's overlay at systems/pf2e/packs/feats-core/mechanics.json
+// (key "pP1ESEvFaPyF2OFM" → `unlocks: [{kind: "ancestry-feat-eligibility",
+// mechanism: "adopted-ancestry", filters: {excludeOwnAncestry: true}}]`). The
+// client does not consume mechanics.json anywhere yet (only GRANTED_FEAT_
+// CHOICES's hand-authored table pattern is wired up) — this table is the
+// SAME kind of hand-authored mirror, kept in sync by hand like its sibling.
+// A future client-side mechanics.json consumer could replace both tables at
+// once; doing so here would be a much larger, out-of-scope change (a new pack-
+// loading/consumption layer) for a single feat.
+//
+// FUSION MODEL: Fusion's actor has no `system.details.ancestry` scalar field
+// at all (ancestry is an embedded `type: "ancestry"` ITEM, see
+// `findFirstItemByType(doc, "ancestry")` — planContext's own `ancestrySlug`).
+// So the adopted pick is recorded the same way skill training/increase
+// choices are (a `system.build.choices` entry, no embedded item), using the
+// otherwise-unused `BuildChoice.ref` field to carry the picked ancestry's
+// NAME (not slug — the stored name flows through PlanColumn's existing
+// pt-BR/EN content-name translator, same as every other pack-sourced choice
+// name). `planContext.adoptedAncestrySlug` derives the slug from it for
+// ancestry-feat eligibility (`isFeatEligible`).
+// ---------------------------------------------------------------------------
+
+/** Declares that a feat NAME unlocks an adopted-ancestry sub-slot. Only one entry today ("Adopted Ancestry" itself), structured as a table (not a single flag) so a future feat with the same mechanism needs only a new entry. */
+export interface AncestryChoiceGrant {
+  /** i18n key for the sub-slot's label, e.g. "FUSION.Sheet.Plan.SlotLabel.adoptedAncestryChoice". */
+  labelKey: string;
+}
+
+export const ANCESTRY_CHOICE_GRANTS: Record<string, AncestryChoiceGrant> = {
+  "adopted ancestry": {
+    labelKey: "FUSION.Sheet.Plan.SlotLabel.adoptedAncestryChoice",
+  },
+};
+
+/** Look up a granting feat's adopted-ancestry sub-slot config by its (embedded item) name. */
+export function ancestryChoiceGrantFor(featName: string | undefined): AncestryChoiceGrant | undefined {
+  const slug = nameToSlug(featName);
+  return slug ? ANCESTRY_CHOICE_GRANTS[slug] : undefined;
+}
+
+/**
+ * isAncestryAdoptable — the `adoptedAncestryChoice` picker's eligibility
+ * predicate (PlanColumn's pickerConfigFor filterFn): a candidate
+ * ancestries-core doc is offered as long as its name is NOT the character's
+ * OWN ancestry. Mirrors the vendor ChoiceSet's `{not: "item:slug:{actor|
+ * system.details.ancestry.trait}"}` filter (see the ANCESTRY_CHOICE_GRANTS
+ * doc comment above) — exported/pure so both the picker AND its tests share
+ * the exact same comparison, same split responsibility as
+ * `matchesGrantedFeatFilter`/`isClassChoiceOption` for their own pickers.
+ */
+export function isAncestryAdoptable(
+  candidateName: string,
+  ownAncestrySlug: string | undefined,
+): boolean {
+  return nameToSlug(candidateName) !== ownAncestrySlug;
+}
+
 /**
  * planContext — small bundle of facts the Plan column's pickers need beyond
  * the slot model itself: the character's level, and the class/ancestry
@@ -646,12 +716,37 @@ export interface PlanContext {
   level: number;
   classSlug?: string;
   ancestrySlug?: string;
+  /**
+   * The ancestry the character ADOPTED via the "Adopted Ancestry" general
+   * feat (see ADOPTED_ANCESTRY_GRANTS below) — read from the
+   * `adoptedAncestryChoice` sub-slot's recorded choice, if any. Mirrors the
+   * vendor rule element's `system.details.ancestry.adopted` (Fusion has no
+   * such actor field; the pick lives in `system.build.choices` instead, see
+   * `chooseAdoptedAncestry`). Feeds `isFeatEligible`'s ancestryFeat branch so
+   * the adopted ancestry's OWN feats become eligible in the ancestry-feat
+   * slot alongside the character's real ancestry.
+   */
+  adoptedAncestrySlug?: string;
   /** The class's chosen key ability (system.keyAbility[0] once narrowed by applyClass). */
   keyAbility?: string;
 }
 
-function nameToSlug(name: string | undefined): string | undefined {
+/** Lowercase/trim a content NAME into the slug convention feats-core tags traits with (e.g. "Magus" → "magus"). Exported for pickers that need to compare a candidate doc's name against `ancestrySlug`/`adoptedAncestrySlug` (see PlanColumn's Adopted Ancestry picker filter). */
+export function nameToSlug(name: string | undefined): string | undefined {
   return name?.trim().toLowerCase() || undefined;
+}
+
+/**
+ * The adopted ancestry NAME recorded by an `adoptedAncestryChoice` sub-slot
+ * choice (see `chooseAdoptedAncestry`), if the player has picked one anywhere
+ * in the build. There is at most one Adopted Ancestry feat per character
+ * (not repeatable), so the first match is authoritative.
+ */
+function readAdoptedAncestryName(sys: Record<string, unknown>): string | undefined {
+  const choice = getBuildChoices(sys).find(
+    (c) => c.type === "adoptedAncestryChoice" && c.ref !== undefined,
+  );
+  return choice?.ref;
 }
 
 export function planContext(doc: Record<string, unknown>): PlanContext {
@@ -663,6 +758,7 @@ export function planContext(doc: Record<string, unknown>): PlanContext {
     level: getLevel(doc),
     ...withOptional("classSlug", nameToSlug(itemName(classItem))),
     ...withOptional("ancestrySlug", nameToSlug(itemName(ancestryItem))),
+    ...withOptional("adoptedAncestrySlug", nameToSlug(readAdoptedAncestryName(getSystem(doc)))),
     ...withOptional("keyAbility", keyAbilityArr[0]),
   };
 }
@@ -1132,6 +1228,7 @@ function pushFeatSlotWithGrant(
   const slot = resolveSlot(type, slotId, level, choices, items);
   slots.push(slot);
   pushGrantedFeatSubSlot(slots, slot, level, choices, items);
+  pushAdoptedAncestrySubSlot(slots, slot, level, choices, items);
   pushFixedGrantChips(slots, slot, items);
 }
 
@@ -1269,6 +1366,35 @@ const GRANTED_FEAT_FALLBACK_LABELS: Record<string, string> = {
   "FUSION.Sheet.Plan.SlotLabel.grantedFeat.basicConcoction": "Alchemist Feat (1st-2nd Level)",
 };
 
+/**
+ * pushAdoptedAncestrySubSlot — if `parentSlot` is filled with a feat whose
+ * name matches `ANCESTRY_CHOICE_GRANTS` (today: "Adopted Ancestry"), resolve
+ * the nested ancestry-pick sub-slot (slot id convention `<parentSlotId>:
+ * ancestry`) and push it onto `slots`, mirroring `pushGrantedFeatSubSlot`'s
+ * shape (`parentSlotId` for indentation) but CHOICE-backed only — no embedded
+ * item is ever created for this pick (see `chooseAdoptedAncestry`), so
+ * `resolveSlot`'s choice-lookup branch (not its item-lookup branch) is what
+ * fills it. `removeChoice`'s existing `<slot.slotId>:` prefix cascade already
+ * strips this sub-slot's choice entry when the parent feat is removed — no
+ * extra cleanup code needed here or there.
+ */
+function pushAdoptedAncestrySubSlot(
+  slots: PlanSlotModel[],
+  parentSlot: PlanSlotModel,
+  level: number,
+  choices: BuildChoice[],
+  items: Array<Record<string, unknown>>,
+): void {
+  if (!parentSlot.filled) return;
+  const grant = ancestryChoiceGrantFor(parentSlot.choiceName);
+  if (!grant) return;
+
+  const subSlotId = `${parentSlot.slotId}:ancestry`;
+  const subSlot = resolveSlot("adoptedAncestryChoice", subSlotId, level, choices, items);
+  subSlot.parentSlotId = parentSlot.slotId;
+  slots.push(subSlot);
+}
+
 function resolveSlot(
   type: PlanSlotType,
   slotId: string,
@@ -1315,6 +1441,10 @@ function choiceDisplayName(choice: BuildChoice): string {
     const rankLabel = choice.rank !== undefined ? ` (rank ${String(choice.rank)})` : "";
     return `${choice.skill}${rankLabel}`;
   }
+  // adoptedAncestryChoice (and any future ref-only pick) stores the picked
+  // pack doc's NAME in `ref` — same content-name string PlanColumn's
+  // pt-BR/EN translator already resolves for every other choice.
+  if (choice.ref) return choice.ref;
   return choice.type;
 }
 
@@ -1442,7 +1572,12 @@ export interface FeatDocLike {
  * - feat level must be <= charLevel.
  * - classFeat slots additionally require the classSlug trait on the feat
  *   (shared class feats carry no class trait and are always eligible).
- * - ancestryFeat slots require the ancestrySlug trait.
+ * - ancestryFeat slots require the ancestrySlug trait, OR — when the
+ *   character has picked an "Adopted Ancestry" feat (`opts.
+ *   adoptedAncestrySlug`, see `chooseAdoptedAncestry`) — the adoptedAncestrySlug
+ *   trait instead. This is the mechanical payoff the Adopted Ancestry feat
+ *   exists for: it unlocks the ADOPTED ancestry's own feats in the same
+ *   ancestry-feat slot, alongside the character's real ancestry's feats.
  *
  * Returns true/false — the caller decides whether to hide, gray out, or just
  * warn; this function never throws and never blocks the picker from
@@ -1452,7 +1587,12 @@ export function isFeatEligible(
   featDoc: FeatDocLike,
   slotType: PlanSlotType,
   charLevel: number,
-  opts: { classSlug?: string; ancestrySlug?: string; gateElements?: readonly string[] } = {},
+  opts: {
+    classSlug?: string;
+    ancestrySlug?: string;
+    adoptedAncestrySlug?: string;
+    gateElements?: readonly string[];
+  } = {},
 ): boolean {
   const sys = featDoc.system ?? {};
   const category = sys.category ?? "general";
@@ -1490,8 +1630,10 @@ export function isFeatEligible(
       return true;
     case "ancestryFeat":
       if (category !== "ancestry") return false;
-      if (opts.ancestrySlug && !traits.includes(opts.ancestrySlug)) return false;
-      return true;
+      if (!opts.ancestrySlug) return true;
+      if (traits.includes(opts.ancestrySlug)) return true;
+      if (opts.adoptedAncestrySlug && traits.includes(opts.adoptedAncestrySlug)) return true;
+      return false;
     case "generalFeat":
       return category === "general";
     case "skillFeat":
@@ -2578,6 +2720,39 @@ export function chooseFeat(
   } satisfies DocUpdatePayload);
 
   return ops;
+}
+
+/**
+ * chooseAdoptedAncestry — record the ancestry picked for an
+ * `adoptedAncestryChoice` sub-slot (Adopted Ancestry's nested pick, see
+ * `pushAdoptedAncestrySubSlot`). CHOICE-ONLY, unlike `chooseFeat`: no
+ * embedded item is created — the vendor rule element this feat carries only
+ * writes a scalar (`system.details.ancestry.adopted`), and Fusion's actor has
+ * no such field to mirror it onto, so the pick is recorded purely as a
+ * `system.build.choices` entry (same shape as `chooseSkillTraining`'s
+ * choice-only marker), carrying the picked ancestry doc's NAME in `ref`.
+ * Replaces any prior pick for the SAME sub-slot (re-choosing swaps, not
+ * duplicates) — `removeChoice`'s existing `<parentSlotId>:` prefix cascade
+ * already strips this entry when the parent "Adopted Ancestry" feat itself is
+ * removed.
+ */
+export function chooseAdoptedAncestry(
+  ctx: PlanOpBuilderContext,
+  slot: PlanSlotModel,
+  level: number,
+  ancestryDoc: Record<string, unknown>,
+): DocUpdatePayload | null {
+  if (!ctx.editable) return null;
+  const name = itemName(ancestryDoc);
+  if (!name) return null;
+  const existingChoices = getBuildChoices(getSystem(ctx.doc)).filter((c) => c.slot !== slot.slotId);
+  const newChoice: BuildChoice = { level, slot: slot.slotId, type: slot.type, ref: name };
+  return {
+    type: "doc:update",
+    documentType: "Actor",
+    id: ctx.actorId,
+    diff: { "system.build.choices": [...existingChoices, newChoice] },
+  };
 }
 
 /**
@@ -3906,6 +4081,8 @@ export function detailsRequestForSlot(slot: PlanSlotModel): PlanDetailsRequest |
     case "archetypeFeat":
     case "grantedFeat":
       return { packSlug: "feats-core", name };
+    case "adoptedAncestryChoice":
+      return { packSlug: "ancestries-core", name };
     default:
       return null;
   }

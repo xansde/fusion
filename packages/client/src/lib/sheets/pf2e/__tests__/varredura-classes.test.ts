@@ -39,6 +39,7 @@ import {
   chooseFeat,
   chooseClassChoice,
   chooseKineticGate,
+  chooseAdoptedAncestry,
   skillTrainingDialogContext,
   confirmSkillTraining,
   setAbilityBoosts,
@@ -396,9 +397,16 @@ function fillOneSlot(
         (f) =>
           !used.has(String(f["_id"])) &&
           isFeatEligible(f as FeatDocLike, slot.type, level, {
-            ...(pctx.classSlug ? { classSlug: pctx.classSlug } : {}),
-            ...(pctx.ancestrySlug ? { ancestrySlug: pctx.ancestrySlug } : {}),
-            ...(gateElements ? { gateElements } : {}),
+            // Spread condicional em TODOS os campos opcionais: o tsconfig usa
+            // exactOptionalPropertyTypes, então passar `undefined` explícito é
+            // erro de tipo (frente 3) — e `adoptedAncestrySlug` entrou com a
+            // frente 2.
+            ...(pctx.classSlug !== undefined ? { classSlug: pctx.classSlug } : {}),
+            ...(pctx.ancestrySlug !== undefined ? { ancestrySlug: pctx.ancestrySlug } : {}),
+            ...(pctx.adoptedAncestrySlug !== undefined
+              ? { adoptedAncestrySlug: pctx.adoptedAncestrySlug }
+              : {}),
+            ...(gateElements !== undefined ? { gateElements } : {}),
           }),
       );
       if (!opt) {
@@ -412,6 +420,23 @@ function fillOneSlot(
       }
       used.add(String(opt["_id"]));
       applyOps(doc, chooseFeat(ctx, slot, level, opt));
+      return true;
+    }
+    case "adoptedAncestryChoice": {
+      // "Adopted Ancestry" (a general feat) unlocked this sub-slot — pick any
+      // ancestries-core doc EXCEPT the character's own (Ratfolk, see RATFOLK
+      // above), mirroring PlanColumn's picker filter.
+      const opt = ANCESTRIES.find((a) => docName(a).toLowerCase() !== pctx.ancestrySlug);
+      if (!opt) {
+        findings.push({
+          klass,
+          level,
+          slotId: slot.slotId,
+          reason: "no other ancestry available in ancestries-core to adopt",
+        });
+        return false;
+      }
+      applyOps(doc, chooseAdoptedAncestry(ctx, slot, level, opt));
       return true;
     }
     default: {
