@@ -912,3 +912,73 @@ describe("packs-validation: issue #1 — Player Core ancestries/backgrounds/heri
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// 4. issue #24 — skill/general feats of level >= 9
+//
+// Before this fix, isFeatsCoreDoc() in build-mvp-subset.mjs capped skill and
+// general feats at level <= 8 (an R10-B acceptance-criterion cutoff for the
+// single-character Tobias build, never revisited for the r22 12-class MVP
+// that reaches character level 20). Every skill/general feat slot at level
+// 9+ opened empty, and Rogue's "Steal Spell" (level 16) could never resolve
+// its "Legendary Thief" prerequisite (a level-15 skill feat) because that
+// document simply didn't exist in feats-core. This block asserts the cap is
+// gone (representative feats above level 8, including the two acceptance
+// anchors from the issue) without regressing the feats that were already
+// below the old cutoff.
+// ---------------------------------------------------------------------------
+
+describe("packs-validation: issue #24 — skill/general feats level >= 9", () => {
+  const feats = loadDocuments("feats-core");
+  const byName = new Map(feats.map((f) => [f.name, f]));
+
+  it("feats-core contains skill feats above the old level-8 cutoff, including the two acceptance anchors", () => {
+    const expected: Array<[name: string, level: number]> = [
+      ["Legendary Thief", 15], // Steal Spell (Rogue 16) prerequisite — the issue's headline case
+      ["Scare to Death", 15], // resolves Raging Intimidation's grant for free (issue #16 overlap)
+      ["Terrain Ghost", 18],
+    ];
+    for (const [name, level] of expected) {
+      const doc = byName.get(name);
+      expect(doc, `feats-core missing skill feat "${name}"`).toBeDefined();
+      expect((doc!.system as { category?: string }).category).toBe("skill");
+      expect((doc!.system as { level?: number }).level).toBe(level);
+    }
+  });
+
+  it("feats-core contains general feats above the old level-8 cutoff", () => {
+    const expected: Array<[name: string, level: number]> = [
+      ["Incredible Investiture", 11],
+      ["True Perception", 19],
+    ];
+    for (const [name, level] of expected) {
+      const doc = byName.get(name);
+      expect(doc, `feats-core missing general feat "${name}"`).toBeDefined();
+      expect((doc!.system as { category?: string }).category).toBe("general");
+      expect((doc!.system as { level?: number }).level).toBe(level);
+    }
+  });
+
+  it("regression guard: skill/general feats at or below the old level-8 cutoff are still present", () => {
+    expect(byName.has("Impressive Performance")).toBe(true); // Tobias acceptance criterion, skill, level 2
+  });
+
+  it("no skill/general feat above level 8 leaks Paizo art (placeholder img only)", () => {
+    const highLevel = feats.filter((f) => {
+      const system = f.system as { category?: string; level?: number };
+      return (
+        (system.category === "skill" || system.category === "general") && (system.level ?? 0) > 8
+      );
+    });
+    expect(
+      highLevel.length,
+      "expected at least one skill/general feat above level 8",
+    ).toBeGreaterThan(0);
+    for (const doc of highLevel) {
+      expect(
+        typeof doc.img === "string" && doc.img.startsWith("icons/placeholder"),
+        `${doc.name} (level ${(doc.system as { level?: number }).level}) has non-placeholder img: ${String(doc.img)}`,
+      ).toBe(true);
+    }
+  });
+});

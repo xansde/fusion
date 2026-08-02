@@ -6091,6 +6091,23 @@
     }
   },
   {
+    "_id": "vk56DUUI1uWndtSx",
+    "uuid": "Compendium.pf2e.feats-core.Item.vk56DUUI1uWndtSx",
+    "name": "Quick Spring",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Quick Spring",
+      "system.level": 13,
+      "system.category": "skill",
+      "system.traits.value": [
+        "archetype",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "g0fyway0FkdSo7ZE"
+    }
+  },
+  {
     "_id": "z1okD1YDUMcrW0TL",
     "uuid": "Compendium.pf2e.feats-core.Item.z1okD1YDUMcrW0TL",
     "name": "Graceful Leaper",
@@ -6346,6 +6363,23 @@
     }
   },
   {
+    "_id": "fhOlwfOFWfz4oCFQ",
+    "uuid": "Compendium.pf2e.feats-core.Item.fhOlwfOFWfz4oCFQ",
+    "name": "Legendary Leader",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Legendary Leader",
+      "system.level": 15,
+      "system.category": "skill",
+      "system.traits.value": [
+        "archetype",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "TBg1eRh0lLUV4ewp"
+    }
+  },
+  {
     "_id": "4gNKEE3uRdpeYzT6",
     "uuid": "Compendium.pf2e.feats-core.Item.4gNKEE3uRdpeYzT6",
     "name": "Cadre",
@@ -6463,6 +6497,44 @@
         "skill"
       ],
       "flags.fusion.sourceId": "5f8gQxVdioUcgsTD"
+    }
+  },
+  {
+    "_id": "4jrUtJuTOCPdGTrb",
+    "uuid": "Compendium.pf2e.feats-core.Item.4jrUtJuTOCPdGTrb",
+    "name": "Flower Street Infamy",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Flower Street Infamy",
+      "system.level": 11,
+      "system.category": "skill",
+      "system.traits.value": [
+        "archetype",
+        "auditory",
+        "concentrate",
+        "linguistic",
+        "mental",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "rgmX9TTthBYo508T"
+    }
+  },
+  {
+    "_id": "Nzh173lHeDeO6APE",
+    "uuid": "Compendium.pf2e.feats-core.Item.Nzh173lHeDeO6APE",
+    "name": "Play to the Crowd (Dandy)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Play to the Crowd (Dandy)",
+      "system.level": 12,
+      "system.category": "skill",
+      "system.traits.value": [
+        "archetype",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "uiEoY3uGSEOCaftX"
     }
   },
   {
@@ -6675,6 +6747,23 @@
     }
   },
   {
+    "_id": "IEd1k7TarjfMTpA9",
+    "uuid": "Compendium.pf2e.feats-core.Item.IEd1k7TarjfMTpA9",
+    "name": "Terrain Ghost",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Terrain Ghost",
+      "system.level": 18,
+      "system.category": "skill",
+      "system.traits.value": [
+        "archetype",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "PhnFz0ijBPaXpHot"
+    }
+  },
+  {
     "_id": "s5wi40PJLzjdykgX",
     "uuid": "Compendium.pf2e.feats-core.Item.s5wi40PJLzjdykgX",
     "name": "Rally Support",
@@ -6797,6 +6886,24 @@
         "skill"
       ],
       "flags.fusion.sourceId": "WQtt44keeBP8t25P"
+    }
+  },
+  {
+    "_id": "jv9ZOKp1aUW1ui4G",
+    "uuid": "Compendium.pf2e.feats-core.Item.jv9ZOKp1aUW1ui4G",
+    "name": "Preternatural Polish",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Preternatural Polish",
+      "system.level": 16,
+      "system.category": "skill",
+      "system.traits.value": [
+        "archetype",
+        "exploration",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "xuZFUOkkjHg9mrcI"
     }
   },
   {
@@ -6956,6 +7063,23 @@
     }
   },
   {
+    "_id": "8hutROW7QNFuyH5R",
+    "uuid": "Compendium.pf2e.feats-core.Item.8hutROW7QNFuyH5R",
+    "name": "Uzunjati Recollection",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Uzunjati Recollection",
+      "system.level": 10,
+      "system.category": "skill",
+      "system.traits.value": [
+        "archetype",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "UCen3Tq6BJlNI7rx"
+    }
+  },
+  {
     "_id": "sVhxFfBbZqcEoEMC",
     "uuid": "Compendium.pf2e.feats-core.Item.sVhxFfBbZqcEoEMC",
     "name": "Uzunjati Storytelling",
@@ -7058,6 +7182,24 @@
         "skill"
       ],
       "flags.fusion.sourceId": "aMI39DZhWgNgJTAn"
+    }
+  },
+  {
+    "_id": "Pn200kdXnSQ1ZX43",
+    "uuid": "Compendium.pf2e.feats-core.Item.Pn200kdXnSQ1ZX43",
+    "name": "Fear of God",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Fear of God",
+      "system.level": 14,
+      "system.category": "skill",
+      "system.traits.value": [
+        "archetype",
+        "divine",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "9OVRsU45zCOvRQ9q"
     }
   },
   {
@@ -7266,6 +7408,23 @@
     }
   },
   {
+    "_id": "wE1rq7jfIIbYhalw",
+    "uuid": "Compendium.pf2e.feats-core.Item.wE1rq7jfIIbYhalw",
+    "name": "Master Merchant",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Master Merchant",
+      "system.level": 14,
+      "system.category": "skill",
+      "system.traits.value": [
+        "archetype",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "e3YE4uKIyDc2uNXl"
+    }
+  },
+  {
     "_id": "bJ4chHbIm6GH2bq2",
     "uuid": "Compendium.pf2e.feats-core.Item.bJ4chHbIm6GH2bq2",
     "name": "Resourceful Ritualist",
@@ -7351,6 +7510,23 @@
     }
   },
   {
+    "_id": "T3c7U3cqJ9nbEgIH",
+    "uuid": "Compendium.pf2e.feats-core.Item.T3c7U3cqJ9nbEgIH",
+    "name": "Masterful Obfuscation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Masterful Obfuscation",
+      "system.level": 10,
+      "system.category": "skill",
+      "system.traits.value": [
+        "archetype",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "TNV1cs1VFqdj4D2M"
+    }
+  },
+  {
     "_id": "HAwogTuRyvSuEpzE",
     "uuid": "Compendium.pf2e.feats-core.Item.HAwogTuRyvSuEpzE",
     "name": "Unravel Mysteries",
@@ -7419,6 +7595,41 @@
     }
   },
   {
+    "_id": "a9PN49JqWP6tKwQh",
+    "uuid": "Compendium.pf2e.feats-core.Item.a9PN49JqWP6tKwQh",
+    "name": "Operatic Adventurer",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Operatic Adventurer",
+      "system.level": 12,
+      "system.category": "skill",
+      "system.traits.value": [
+        "archetype",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "d86XC1EmGQ7erkul"
+    }
+  },
+  {
+    "_id": "syZBgeEHWTLScTky",
+    "uuid": "Compendium.pf2e.feats-core.Item.syZBgeEHWTLScTky",
+    "name": "Emergency Medical Assistance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Emergency Medical Assistance",
+      "system.level": 12,
+      "system.category": "skill",
+      "system.traits.value": [
+        "archetype",
+        "manipulate",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "9AZjpeeS824VsYv8"
+    }
+  },
+  {
     "_id": "1zJCcju11Fj3CVhS",
     "uuid": "Compendium.pf2e.feats-core.Item.1zJCcju11Fj3CVhS",
     "name": "Improvised Crafting",
@@ -7435,6 +7646,40 @@
         "skill"
       ],
       "flags.fusion.sourceId": "RcQv16RK80R6c4id"
+    }
+  },
+  {
+    "_id": "6muVjptpZZgmkJIr",
+    "uuid": "Compendium.pf2e.feats-core.Item.6muVjptpZZgmkJIr",
+    "name": "Recollect Studies",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Recollect Studies",
+      "system.level": 12,
+      "system.category": "skill",
+      "system.traits.value": [
+        "archetype",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "QoPooHpBjPh1sjRD"
+    }
+  },
+  {
+    "_id": "UaUccBA4Wz0pmiAq",
+    "uuid": "Compendium.pf2e.feats-core.Item.UaUccBA4Wz0pmiAq",
+    "name": "Rugged Survivalist",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Rugged Survivalist",
+      "system.level": 12,
+      "system.category": "skill",
+      "system.traits.value": [
+        "archetype",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "m7AOg13xEJRHyoTt"
     }
   },
   {
@@ -26042,6 +26287,135 @@
     }
   },
   {
+    "_id": "TL7wvAflQmkk7ToZ",
+    "uuid": "Compendium.pf2e.feats-core.Item.TL7wvAflQmkk7ToZ",
+    "name": "A Home in Every Port",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "A Home in Every Port",
+      "system.level": 11,
+      "system.category": "general",
+      "system.traits.value": [
+        "downtime",
+        "general"
+      ],
+      "flags.fusion.sourceId": "muMOxZyduEFv8UT6"
+    }
+  },
+  {
+    "_id": "qPcvNgKiatHtFtt3",
+    "uuid": "Compendium.pf2e.feats-core.Item.qPcvNgKiatHtFtt3",
+    "name": "Axuma's Awakening",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Axuma's Awakening",
+      "system.level": 11,
+      "system.category": "general",
+      "system.traits.value": [
+        "general"
+      ],
+      "flags.fusion.sourceId": "CxTtzIPni048jK3U"
+    }
+  },
+  {
+    "_id": "zC5oZE1iYu4kc0rZ",
+    "uuid": "Compendium.pf2e.feats-core.Item.zC5oZE1iYu4kc0rZ",
+    "name": "Axuma's Vigor",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Axuma's Vigor",
+      "system.level": 11,
+      "system.category": "general",
+      "system.traits.value": [
+        "general"
+      ],
+      "flags.fusion.sourceId": "tVQPg1p1pCm5puNc"
+    }
+  },
+  {
+    "_id": "jwJYDirKWrUKXM6T",
+    "uuid": "Compendium.pf2e.feats-core.Item.jwJYDirKWrUKXM6T",
+    "name": "Caravan Leader",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Caravan Leader",
+      "system.level": 11,
+      "system.category": "general",
+      "system.traits.value": [
+        "general"
+      ],
+      "flags.fusion.sourceId": "5ZsmRm7HvFAw2XDZ"
+    }
+  },
+  {
+    "_id": "HSiWmoRXgPyFd6dg",
+    "uuid": "Compendium.pf2e.feats-core.Item.HSiWmoRXgPyFd6dg",
+    "name": "Incredible Investiture",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Incredible Investiture",
+      "system.level": 11,
+      "system.category": "general",
+      "system.traits.value": [
+        "general"
+      ],
+      "flags.fusion.sourceId": "4vu6P3cYoOOeUbLK"
+    }
+  },
+  {
+    "_id": "upsX3KD4Y8Jm0OjQ",
+    "uuid": "Compendium.pf2e.feats-core.Item.upsX3KD4Y8Jm0OjQ",
+    "name": "Incredible Scout",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Incredible Scout",
+      "system.level": 11,
+      "system.category": "general",
+      "system.traits.value": [
+        "exploration",
+        "general"
+      ],
+      "flags.fusion.sourceId": "aFoVHsuInMOkTZoQ"
+    }
+  },
+  {
+    "_id": "ly6Jtg8Z1w3ObBky",
+    "uuid": "Compendium.pf2e.feats-core.Item.ly6Jtg8Z1w3ObBky",
+    "name": "Sanguine Tenacity",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sanguine Tenacity",
+      "system.level": 11,
+      "system.category": "general",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "2KVllUXqgWq7jCmX"
+    }
+  },
+  {
+    "_id": "ZEx4EhsZsdUku30Z",
+    "uuid": "Compendium.pf2e.feats-core.Item.ZEx4EhsZsdUku30Z",
+    "name": "True Perception",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "True Perception",
+      "system.level": 19,
+      "system.category": "general",
+      "system.traits.value": [
+        "general",
+        "revelation"
+      ],
+      "flags.fusion.sourceId": "uudiUylT09WnHN7e"
+    }
+  },
+  {
     "_id": "Bfy7W5zajCbiHadr",
     "uuid": "Compendium.pf2e.feats-core.Item.Bfy7W5zajCbiHadr",
     "name": "Additional Circus Trick",
@@ -27811,6 +28185,335 @@
         "skill"
       ],
       "flags.fusion.sourceId": "lFwfUvH2708rl6i3"
+    }
+  },
+  {
+    "_id": "QEPrFAfNwbtx2NG7",
+    "uuid": "Compendium.pf2e.feats-core.Item.QEPrFAfNwbtx2NG7",
+    "name": "Comforting Presence",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Comforting Presence",
+      "system.level": 10,
+      "system.category": "skill",
+      "system.traits.value": [
+        "concentrate",
+        "emotion",
+        "general",
+        "mental",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "MMaUL7r99DY7nvds"
+    }
+  },
+  {
+    "_id": "SKmSTRVYirF3ypvs",
+    "uuid": "Compendium.pf2e.feats-core.Item.SKmSTRVYirF3ypvs",
+    "name": "Too Angry to Die",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Too Angry to Die",
+      "system.level": 12,
+      "system.category": "skill",
+      "system.traits.value": [
+        "general",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "oFcn7SDOH6W2QhJl"
+    }
+  },
+  {
+    "_id": "hmKUT6MZi8pBignC",
+    "uuid": "Compendium.pf2e.feats-core.Item.hmKUT6MZi8pBignC",
+    "name": "Cloud Jump",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Cloud Jump",
+      "system.level": 15,
+      "system.category": "skill",
+      "system.traits.value": [
+        "general",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "TVFfTP9fHRidwBlW"
+    }
+  },
+  {
+    "_id": "NpRLi3jAJDkQmZ17",
+    "uuid": "Compendium.pf2e.feats-core.Item.NpRLi3jAJDkQmZ17",
+    "name": "Craft Anything",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Craft Anything",
+      "system.level": 15,
+      "system.category": "skill",
+      "system.traits.value": [
+        "general",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "v62QzTwHOT3t86cL"
+    }
+  },
+  {
+    "_id": "KRT4ZjqbdkfHNrDN",
+    "uuid": "Compendium.pf2e.feats-core.Item.KRT4ZjqbdkfHNrDN",
+    "name": "Divine Guidance",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Divine Guidance",
+      "system.level": 15,
+      "system.category": "skill",
+      "system.traits.value": [
+        "general",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "dYMxP8SsHrwOze8v"
+    }
+  },
+  {
+    "_id": "NWukPMk2Dxuw7gUj",
+    "uuid": "Compendium.pf2e.feats-core.Item.NWukPMk2Dxuw7gUj",
+    "name": "Legendary Codebreaker",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Legendary Codebreaker",
+      "system.level": 15,
+      "system.category": "skill",
+      "system.traits.value": [
+        "general",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "Zf4yiLDdxHPovEQI"
+    }
+  },
+  {
+    "_id": "9ziP3RFl8XwLlX2o",
+    "uuid": "Compendium.pf2e.feats-core.Item.9ziP3RFl8XwLlX2o",
+    "name": "Legendary Guide",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Legendary Guide",
+      "system.level": 15,
+      "system.category": "skill",
+      "system.traits.value": [
+        "general",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "Vk7BzAb3D9r226sI"
+    }
+  },
+  {
+    "_id": "567xyJQKshjBNbuG",
+    "uuid": "Compendium.pf2e.feats-core.Item.567xyJQKshjBNbuG",
+    "name": "Legendary Linguist",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Legendary Linguist",
+      "system.level": 15,
+      "system.category": "skill",
+      "system.traits.value": [
+        "general",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "n0S0tJiOJPQk0Rne"
+    }
+  },
+  {
+    "_id": "wARasnH7BeIgfAzI",
+    "uuid": "Compendium.pf2e.feats-core.Item.wARasnH7BeIgfAzI",
+    "name": "Legendary Medic",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Legendary Medic",
+      "system.level": 15,
+      "system.category": "skill",
+      "system.traits.value": [
+        "general",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "Kk4AMZtpQnLEgN0b"
+    }
+  },
+  {
+    "_id": "hEffGTSiI3Ue1r7S",
+    "uuid": "Compendium.pf2e.feats-core.Item.hEffGTSiI3Ue1r7S",
+    "name": "Legendary Negotiation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Legendary Negotiation",
+      "system.level": 15,
+      "system.category": "skill",
+      "system.traits.value": [
+        "general",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "A0TNeMNvyY8QpmLz"
+    }
+  },
+  {
+    "_id": "pVsx6vPGbG4BuNy5",
+    "uuid": "Compendium.pf2e.feats-core.Item.pVsx6vPGbG4BuNy5",
+    "name": "Legendary Performer",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Legendary Performer",
+      "system.level": 15,
+      "system.category": "skill",
+      "system.traits.value": [
+        "general",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "467qQoiy6bjWU1G8"
+    }
+  },
+  {
+    "_id": "IICkANJEAW0X44aZ",
+    "uuid": "Compendium.pf2e.feats-core.Item.IICkANJEAW0X44aZ",
+    "name": "Legendary Professional",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Legendary Professional",
+      "system.level": 15,
+      "system.category": "skill",
+      "system.traits.value": [
+        "general",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "GZba7ped7ZxYHchf"
+    }
+  },
+  {
+    "_id": "6S5xbQIYf9O1dSbs",
+    "uuid": "Compendium.pf2e.feats-core.Item.6S5xbQIYf9O1dSbs",
+    "name": "Legendary Sneak",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Legendary Sneak",
+      "system.level": 15,
+      "system.category": "skill",
+      "system.traits.value": [
+        "general",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "n0urrOL8YlnVBVRQ"
+    }
+  },
+  {
+    "_id": "OZOUEVyIab1fKPR9",
+    "uuid": "Compendium.pf2e.feats-core.Item.OZOUEVyIab1fKPR9",
+    "name": "Legendary Survivalist",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Legendary Survivalist",
+      "system.level": 15,
+      "system.category": "skill",
+      "system.traits.value": [
+        "general",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "Ta61ObC8Lk7BxTFO"
+    }
+  },
+  {
+    "_id": "0fzwhrbMMG1gen8w",
+    "uuid": "Compendium.pf2e.feats-core.Item.0fzwhrbMMG1gen8w",
+    "name": "Legendary Tattoo Artist",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Legendary Tattoo Artist",
+      "system.level": 15,
+      "system.category": "skill",
+      "system.traits.value": [
+        "general",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "VRCBTEyrcBf7auGz"
+    }
+  },
+  {
+    "_id": "pwMnNMIYh2WDzHIs",
+    "uuid": "Compendium.pf2e.feats-core.Item.pwMnNMIYh2WDzHIs",
+    "name": "Legendary Thief",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Legendary Thief",
+      "system.level": 15,
+      "system.category": "skill",
+      "system.traits.value": [
+        "general",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "IZbjUaZI5zHTd1Vp"
+    }
+  },
+  {
+    "_id": "KMCx1s64cbKS0vIb",
+    "uuid": "Compendium.pf2e.feats-core.Item.KMCx1s64cbKS0vIb",
+    "name": "Reveal Machinations",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Reveal Machinations",
+      "system.level": 15,
+      "system.category": "skill",
+      "system.traits.value": [
+        "general",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "XZcd1wFHy111klu2"
+    }
+  },
+  {
+    "_id": "mCfX14FS4lMny4zl",
+    "uuid": "Compendium.pf2e.feats-core.Item.mCfX14FS4lMny4zl",
+    "name": "Scare to Death",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Scare to Death",
+      "system.level": 15,
+      "system.category": "skill",
+      "system.traits.value": [
+        "emotion",
+        "fear",
+        "general",
+        "incapacitation",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "mZttsiWl1ql5NvrH"
+    }
+  },
+  {
+    "_id": "8Sg4bEQOJXWco4so",
+    "uuid": "Compendium.pf2e.feats-core.Item.8Sg4bEQOJXWco4so",
+    "name": "Unified Theory",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Unified Theory",
+      "system.level": 15,
+      "system.category": "skill",
+      "system.traits.value": [
+        "general",
+        "skill"
+      ],
+      "flags.fusion.sourceId": "hrq3NOpS6148aVY1"
     }
   },
   {

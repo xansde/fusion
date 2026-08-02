@@ -29034,6 +29034,57 @@
     }
   },
   {
+    "_id": "vk56DUUI1uWndtSx",
+    "name": "Quick Spring",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "skill",
+      "description": "<p>Ishii Bunji is a skilled tumbler, and learning his technique allows you to push yourself off a foe and propel yourself across the battlefield faster. If you succeed at an Acrobatics check to @UUID[Compendium.pf2e.actionspf2e.Item.Tumble Through] an enemy's space, you can Stride again as a free action after you complete your current movement.</p>",
+      "level": 13,
+      "prerequisites": [
+        {
+          "value": "Acrobat Dedication"
+        },
+        {
+          "value": "master in Acrobatics"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Firebrands"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "archetype",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "g0fyway0FkdSo7ZE",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "z1okD1YDUMcrW0TL",
     "name": "Graceful Leaper",
     "type": "feat",
@@ -29956,6 +30007,99 @@
     }
   },
   {
+    "_id": "fhOlwfOFWfz4oCFQ",
+    "name": "Legendary Leader",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "skill",
+      "description": "<p>Your fame has spread throughout the lands. When you first attempt to @UUID[Compendium.pf2e.actionspf2e.Item.Coerce] or @UUID[Compendium.pf2e.actionspf2e.Item.Make an Impression] on an intelligent creature, the GM rolls a secret @Check[flat|dc:11|traits:secret] to see if they have heard of you. On a success, you gain a +2 circumstance modifier to the skill check for that action. The GM can adjust this flat check as appropriate for circumstances in which you may be more or less known.</p>\n<p>You can also leverage your notoriety and your network of assistants and admirers to earn money. You can @UUID[Compendium.pf2e.actionspf2e.Item.Earn Income] using the skill you used to meet the prerequisites of this feat. When you do, you gain a +2 circumstance bonus to the check; this bonus increases to a +3 if you have the Cadre feat, as your retainers praise your deeds and find those who might pay to meet you.</p>",
+      "level": 15,
+      "prerequisites": [
+        {
+          "value": "Captain Dedication"
+        },
+        {
+          "value": "legendary in Diplomacy or Intimidation"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Battlecry!"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "skill-check",
+          "value": 2,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": [
+            {
+              "or": [
+                "action:coerce",
+                "action:earn-income",
+                "action:make-an-impression"
+              ]
+            },
+            "legendary-leader"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              {
+                "or": [
+                  "action:coerce",
+                  "action:earn-income",
+                  "action:make-an-impression"
+                ]
+              },
+              "legendary-leader"
+            ],
+            "selector": "skill-check",
+            "type": "circumstance",
+            "value": 2
+          }
+        }
+      ],
+      "subfeatures": {
+        "proficiencies": {},
+        "senses": {},
+        "suppressedFeatures": []
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "archetype",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "TBg1eRh0lLUV4ewp",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "4gNKEE3uRdpeYzT6",
     "name": "Cadre",
     "type": "feat",
@@ -30347,6 +30491,129 @@
         "importerVersion": "0.1.0",
         "sourceVersion": "v14-dev",
         "sourceId": "5f8gQxVdioUcgsTD",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "4jrUtJuTOCPdGTrb",
+    "name": "Flower Street Infamy",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "skill",
+      "description": "<p>Your history of coquetries, flirtations, dalliances, and liaisons is so lengthy that, even in a city as large as Absalom, you're bound to run into your past at inopportune moments. Fortunately, the individual involved might be just as shocked as you are by the unexpected encounter. Choose a target within 30 feet and spin a lascivious tale of how the two of you might have met before. Attempt a @Check[deception|against:will] check against the target's Will DC. Regardless of your result, the target is temporarily immune to your Flower Street Infamy for 24 hours.</p><hr /><p><strong>Critical Success</strong> The target is @UUID[Compendium.pf2e.conditionitems.Item.Stupefied]{Stupefied 3} for 1 minute.</p>\n<p><strong>Success</strong> The target is @UUID[Compendium.pf2e.conditionitems.Item.Stupefied]{Stupefied 2} for 1 minute.</p>\n<p><strong>Failure</strong> The target is @UUID[Compendium.pf2e.conditionitems.Item.Stupefied]{Stupefied 1} until the start of your next turn.</p>\n<p><strong>Critical Failure</strong> The target is unaffected.</p>",
+      "level": 11,
+      "prerequisites": [
+        {
+          "value": "Dandy Dedication"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Hellfire Dispatches"
+      },
+      "rules": [],
+      "subfeatures": {
+        "proficiencies": {},
+        "senses": {},
+        "suppressedFeatures": []
+      },
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "archetype",
+          "auditory",
+          "concentrate",
+          "linguistic",
+          "mental",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "rgmX9TTthBYo508T",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Nzh173lHeDeO6APE",
+    "name": "Play to the Crowd (Dandy)",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "skill",
+      "description": "<p>You have a knack for knowing just how to manipulate groups by saying exactly what needs to be said. When you @UUID[Compendium.pf2e.actionspf2e.Item.Lie] in a public area in front of a crowd, you can gauge the reactions of the crowd as you speak to know how your Lie is working, and Lie loses its secret trait. You gain the @UUID[Compendium.pf2e.actionspf2e.Item.Reactive Falsehood] reaction.</p>",
+      "level": 12,
+      "prerequisites": [
+        {
+          "value": "Dandy Dedication"
+        },
+        {
+          "value": "master in Deception"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder #204: Stage Fright"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.actionspf2e.Item.Reactive Falsehood",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.actionspf2e.Item.Reactive Falsehood"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "archetype",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "uiEoY3uGSEOCaftX",
         "packName": "feats",
         "unconvertedRules": [],
         "assetSubstitutions": [
@@ -31052,6 +31319,62 @@
     }
   },
   {
+    "_id": "IEd1k7TarjfMTpA9",
+    "name": "Terrain Ghost",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "skill",
+      "description": "<p>You move through your territory like a living shadow. Within your favored location, you're permanently under the effect of @UUID[Compendium.pf2e.spells-srd.Item.Vanishing Tracks], and you're always @UUID[Compendium.pf2e.conditionitems.Item.Concealed] from all foes unless you choose not to be.</p>",
+      "level": 18,
+      "prerequisites": [
+        {
+          "value": "Guerrilla Dedication"
+        },
+        {
+          "value": "master in Stealth and Survival"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Battlecry!"
+      },
+      "rules": [],
+      "subfeatures": {
+        "proficiencies": {},
+        "senses": {},
+        "suppressedFeatures": []
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "archetype",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "PhnFz0ijBPaXpHot",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "s5wi40PJLzjdykgX",
     "name": "Rally Support",
     "type": "feat",
@@ -31483,6 +31806,63 @@
         "importerVersion": "0.1.0",
         "sourceVersion": "v14-dev",
         "sourceId": "WQtt44keeBP8t25P",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "jv9ZOKp1aUW1ui4G",
+    "name": "Preternatural Polish",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "skill",
+      "description": "<p>Armor you polish shines with righteous grace. You can take 10 minutes to recite prayers or oaths while polishing a suit of heavy armor that you or a willing creature is wearing. If you do, attempt a @Check[crafting|dc:35|showDC:all] check with the following results. The armor then becomes temporarily immune to this ability until your next daily preparations.</p><hr /><p><strong>Critical Success</strong> Once in the next hour, the creature wearing the polished armor can use a reaction to shine majestically. This reaction is triggered when they would be affected by a spell or ability with the darkness trait. The creature attempts a counteract check against the triggering effect using your Crafting modifier. Additionally, the creature wearing the polished armor gains an additional reaction at the start of each of their turns that can be only used for this reaction.</p>\n<p><strong>Success</strong> As critical success, but the creature wearing the polished armor doesn't gain an additional reaction at the start of each of their turns.</p>",
+      "level": 16,
+      "prerequisites": [
+        {
+          "value": "Knight Vigilant Dedication"
+        },
+        {
+          "value": "legendary in Crafting"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Claws of the Tyrant"
+      },
+      "rules": [],
+      "subfeatures": {
+        "proficiencies": {},
+        "senses": {},
+        "suppressedFeatures": []
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "archetype",
+          "exploration",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "xuZFUOkkjHg9mrcI",
         "packName": "feats",
         "unconvertedRules": [],
         "assetSubstitutions": [
@@ -32034,6 +32414,57 @@
     }
   },
   {
+    "_id": "8hutROW7QNFuyH5R",
+    "name": "Uzunjati Recollection",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "skill",
+      "description": "<p>You tell a story spontaneously from nearly forgotten facts, delving into your memory and entertaining your audience in the process. Recall Knowledge with a skill in which you have master proficiency, then use Uzunjati Storytelling with the same skill. You gain a +1 circumstance bonus to your skill check for Uzunjati Storytelling from the added details.</p>",
+      "level": 10,
+      "prerequisites": [
+        {
+          "value": "Uzunjati Storytelling"
+        },
+        {
+          "value": "master in a Recall Knowledge skill"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Character Guide"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "archetype",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "UCen3Tq6BJlNI7rx",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "sVhxFfBbZqcEoEMC",
     "name": "Uzunjati Storytelling",
     "type": "feat",
@@ -32330,6 +32761,62 @@
         "importerVersion": "0.1.0",
         "sourceVersion": "v14-dev",
         "sourceId": "aMI39DZhWgNgJTAn",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Pn200kdXnSQ1ZX43",
+    "name": "Fear of God",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "free",
+      "actions": null,
+      "category": "skill",
+      "description": "<p><strong>Frequency</strong> once per 10 minutes</p>\n<p><strong>Trigger</strong> You successfully @UUID[Compendium.pf2e.actionspf2e.Item.Demoralize] an enemy.</p><hr /><p>You embed a divine fear into the triggering foe that lasts for 10 minutes. During that time, you ignore that creature's temporary immunity to your Demoralize attempts and whenever you successfully Demoralize the triggering enemy, you can instead increase their existing frightened condition by 1 (or 2 on a critical success) to a maximum of @UUID[Compendium.pf2e.conditionitems.Item.Frightened]{Frightened 4}.</p>",
+      "frequency": {
+        "max": 1,
+        "per": "minute"
+      },
+      "level": 14,
+      "prerequisites": [
+        {
+          "value": "Mortal Herald Dedication"
+        },
+        {
+          "value": "expert in Intimidation"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Divine Mysteries"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "archetype",
+          "divine",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "9OVRsU45zCOvRQ9q",
         "packName": "feats",
         "unconvertedRules": [],
         "assetSubstitutions": [
@@ -33159,6 +33646,59 @@
     }
   },
   {
+    "_id": "wE1rq7jfIIbYhalw",
+    "name": "Master Merchant",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "skill",
+      "description": "<p>Kalistrade teaches that setbacks are only temporary and that perseverance is a treasured virtue. When you fail, but not critically fail, at a Society or Mercantile Lore check to @UUID[Compendium.pf2e.actionspf2e.Item.Earn Income] at a specific task and are allowed to continue working at that task on subsequent days, you can choose to attempt the skill check again the next day. If you succeed, you get a critical success and continue to earn that amount on further days spent working at the task, if the task lasts that long.</p>",
+      "level": 14,
+      "prerequisites": [
+        {
+          "value": "Prophet of Kalistrade Dedication"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Shining Kingdoms"
+      },
+      "rules": [],
+      "subfeatures": {
+        "proficiencies": {},
+        "senses": {},
+        "suppressedFeatures": []
+      },
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "archetype",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "e3YE4uKIyDc2uNXl",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "bJ4chHbIm6GH2bq2",
     "name": "Resourceful Ritualist",
     "type": "feat",
@@ -33583,6 +34123,57 @@
     }
   },
   {
+    "_id": "T3c7U3cqJ9nbEgIH",
+    "name": "Masterful Obfuscation",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "skill",
+      "description": "<p>You've mastered the art of deceiving others about your area of study. When you gain this feat, choose one skill with the Recall Knowledge action in which you have attained master proficiency. You can attempt to deceive others about the truth of facts and knowledge related to that skill-such as by pretending to know something that you don't, planting false information, or the like-using the Lie action of the Deception skill. When you Lie in this way, attempt your skill check using the skill you selected when you gained this feat instead of Deception, applying all bonuses or penalties related from the selected skill to the check. While it's easier to convince someone who knows nothing about your chosen false information, on a critical success, you can even convince someone who has heard something contradictory, unless they have reason to be certain from direct experience. For instance, you might say, \"I know you may have heard to use silver weapons against vampires, but that's a misconception based on conflating them with werewolves. According to all credible scholars, cold iron will do the trick.\" Once a creature realizes you've used masterful obfuscation to Lie to them, either from a failed check or due to later discovering the falsehood, you can't use this feat against them again, as it relies on blind trust in your superior knowledge. However, you can still Lie to them normally.</p>",
+      "level": 10,
+      "prerequisites": [
+        {
+          "value": "Scrollmaster Dedication"
+        },
+        {
+          "value": "master in a skill with the Recall Knowledge action"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Pathfinder Society Guide"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "archetype",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "TNV1cs1VFqdj4D2M",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "HAwogTuRyvSuEpzE",
     "name": "Unravel Mysteries",
     "type": "feat",
@@ -33787,6 +34378,171 @@
     }
   },
   {
+    "_id": "a9PN49JqWP6tKwQh",
+    "name": "Operatic Adventurer",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "skill",
+      "description": "<p>Your training has focused you for the opera, and it certainly shows. You become master in Performance, and at 15th level your skill in Performance increases to Legendary. You also become expert in Theater Lore or become master in Theater Lore if you were already expert. When you're on a stage, in an arena, or otherwise at the focus of a crowd there to see you perform, your eagerness to begin grants a +3 circumstance bonus to initiative rolls if you roll Acrobatics, Intimidation, or Performance for initiative.</p>",
+      "level": 12,
+      "prerequisites": [
+        {
+          "value": "Acrobat, Celebrity, Dandy, or Gladiator Dedication"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder #204: Stage Fright"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.skills.performance.rank",
+          "value": "match(when(gte(@actor.level, 1), 3), when(gte(@actor.level, 15), 4))",
+          "mode": "upgrade",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.skills.performance.rank",
+            "value": "match(when(gte(@actor.level, 1), 3), when(gte(@actor.level, 15), 4))"
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "initiative",
+          "value": 3,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": [
+            {
+              "or": [
+                "acrobatics",
+                "intimidation",
+                "performance"
+              ]
+            },
+            {
+              "or": [
+                "terrain:arena",
+                "terrain:stage",
+                "terrain:crowd"
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              {
+                "or": [
+                  "acrobatics",
+                  "intimidation",
+                  "performance"
+                ]
+              },
+              {
+                "or": [
+                  "terrain:arena",
+                  "terrain:stage",
+                  "terrain:crowd"
+                ]
+              }
+            ],
+            "selector": "initiative",
+            "type": "circumstance",
+            "value": 3
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "archetype",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "d86XC1EmGQ7erkul",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "syZBgeEHWTLScTky",
+    "name": "Emergency Medical Assistance",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 2,
+      "category": "skill",
+      "description": "<p><strong>Requirements</strong> An adjacent ally is suffering persistent damage.</p><hr /><p>You've learned a variety of methods for helping allies who are bleeding, burning, or otherwise suffering persistent damage, from brushing off acid to patting down fires. Your ally immediately attempts a flat check to remove all types of persistent damage, and your use of this feat automatically counts as especially effective aid, reducing the DC from 15 to 10 for all future flat checks to remove the persistent damage.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Emergency Medical Assistance]</p>",
+      "level": 12,
+      "prerequisites": [
+        {
+          "value": "Swordmaster Dedication"
+        },
+        {
+          "value": "master in Medicine"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Pathfinder Society Guide"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "archetype",
+          "manipulate",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "9AZjpeeS824VsYv8",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "1zJCcju11Fj3CVhS",
     "name": "Improvised Crafting",
     "type": "feat",
@@ -33827,6 +34583,108 @@
         "importerVersion": "0.1.0",
         "sourceVersion": "v14-dev",
         "sourceId": "RcQv16RK80R6c4id",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "6muVjptpZZgmkJIr",
+    "name": "Recollect Studies",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "skill",
+      "description": "<p><strong>Requirements</strong> You're fighting a creature of your level or lower that could be identified by Recall Knowledge with a skill in which you're an expert.</p>\n<hr />\n<p>You paid attention during your studies and remember the right way to attack various creatures. Choose a creature that meets the requirements. You learn the resistances, immunities, or weaknesses of the creature (your choice) without needing to successfully Recall Knowledge.</p>",
+      "level": 12,
+      "prerequisites": [
+        {
+          "value": "Swordmaster Dedication"
+        },
+        {
+          "value": "expert in a skill used to Recall Knowledge"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Pathfinder Society Guide"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "archetype",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "QoPooHpBjPh1sjRD",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "UaUccBA4Wz0pmiAq",
+    "name": "Rugged Survivalist",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "skill",
+      "description": "<p>You've studied survival skills with the School of Swords experts and are comfortable spending long periods of time in the wilderness. You don't get fatigued more quickly due to precipitation during overland travel, though you can otherwise be fatigued as normal. You can go 3 days + your Constitution modifier without water before you take damage from thirst and you can go 5 days + your Constitution modifier without food before you take damage from starvation.</p>",
+      "level": 12,
+      "prerequisites": [
+        {
+          "value": "Swordmaster Dedication"
+        },
+        {
+          "value": "master in Survival"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens Pathfinder Society Guide"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "archetype",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "m7AOg13xEJRHyoTt",
         "packName": "feats",
         "unconvertedRules": [],
         "assetSubstitutions": [
@@ -104270,6 +105128,525 @@
     }
   },
   {
+    "_id": "TL7wvAflQmkk7ToZ",
+    "name": "A Home in Every Port",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "general",
+      "description": "<p>You have a reputation in towns and villages you've visited, and residents are always willing to open their doors to you.</p>\n<p>When in a town or village, during downtime, you can spend 8 hours to locate a resident willing to provide lodging for you and up to six allies for up to 24 hours at no charge. The standard of living within the acquired lodging is comfortable, and square meals are provided at no cost.</p>\n<p>After 24 hours, you must pay standard prices for further lodging and meals or use this feat again to find a new resident willing to host you.</p>",
+      "level": 11,
+      "prerequisites": [
+        {
+          "value": "Charisma +3"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "downtime",
+          "general"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "muMOxZyduEFv8UT6",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "qPcvNgKiatHtFtt3",
+    "name": "Axuma's Awakening",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "general",
+      "description": "<p>Choose two cantrips from the arcane spells list. You can cast these cantrips at will as arcane innate spells. A cantrip is heightened to a spell rank equal to half your level rounded up. Then, choose one 1st-rank spell and one 2nd-rank spell from the arcane spells list. You can cast each of these spells once per day as arcane innate spells. Spells gained from this feat must be common spells or spells to which you have access.</p>",
+      "level": 11,
+      "prerequisites": [
+        {
+          "value": "Exposure to the Well of Axuma"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder #191: The Destiny War"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "rare",
+        "value": [
+          "general"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "CxTtzIPni048jK3U",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "zC5oZE1iYu4kc0rZ",
+    "name": "Axuma's Vigor",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "general",
+      "description": "<p>Your vigor grants anyone using Medicine checks to Administer First Aid to you, or use any of the Treat actions on you, a +2 circumstance bonus to their check. During the Long-Term Rest activity, you heal at twice the normal rate.</p>",
+      "level": 11,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder #191: The Destiny War"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "rare",
+        "value": [
+          "general"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "tVQPg1p1pCm5puNc",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "jwJYDirKWrUKXM6T",
+    "name": "Caravan Leader",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "general",
+      "description": "<p>You know how to get the most effort out of your allies on the road. Your group can Hustle for an additional 20 minutes beyond the length of time that the member who could Hustle longest on their own.</p>",
+      "level": 11,
+      "prerequisites": [
+        {
+          "value": "Pick Up the Pace"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "general"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "5ZsmRm7HvFAw2XDZ",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "HSiWmoRXgPyFd6dg",
+    "name": "Incredible Investiture",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "general",
+      "description": "<p>You have an incredible ability to invest more magic items. Increase your limit on invested items from 10 to 12.</p>",
+      "level": 11,
+      "prerequisites": [
+        {
+          "value": "Charisma +3"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.resources.investiture.max",
+          "value": 12,
+          "mode": "upgrade",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.resources.investiture.max",
+            "value": 12
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "general"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "4vu6P3cYoOOeUbLK",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "upsX3KD4Y8Jm0OjQ",
+    "name": "Incredible Scout",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "general",
+      "description": "<p>When you scout, you are particularly alert for danger, granting your allies precious moments to prepare to fight. When using the @UUID[Compendium.pf2e.actionspf2e.Item.Scout] exploration activity, you grant your allies a +2 circumstance bonus to their initiative rolls instead of a +1 circumstance bonus.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Scout (Incredible Scout)]</p>",
+      "level": 11,
+      "prerequisites": [
+        {
+          "value": "master in Perception"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "exploration",
+          "general"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "aFoVHsuInMOkTZoQ",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "ly6Jtg8Z1w3ObBky",
+    "name": "Sanguine Tenacity",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "general",
+      "description": "<p>Your blood carries permanent regenerative properties. The penalties from @UUID[Compendium.pf2e.conditionitems.Item.Enfeebled] and the penalties and lost HP from @UUID[Compendium.pf2e.conditionitems.Item.Drained] both affect you as if the condition values were 1 lower than they actually are. You also gain resistance 5 to persistent bleed damage and reduce the DC of checks to recover from persistent bleed damage to 11, or 6 if you have particularly effective assistance.</p>",
+      "level": 11,
+      "prerequisites": [
+        {
+          "value": "Constitution +4"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder #213: Thirst for Blood"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "subkind": "resistance",
+          "slug": null,
+          "label": null,
+          "damageType": "bleed",
+          "value": 5,
+          "exceptions": [],
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Resistance",
+            "type": "bleed",
+            "value": 5
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "pd-recovery-dc",
+          "value": 11,
+          "mode": "downgrade",
+          "predicate": [
+            "item:damage:type:bleed"
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "condition",
+            "key": "ItemAlteration",
+            "mode": "downgrade",
+            "predicate": [
+              "item:damage:type:bleed"
+            ],
+            "property": "pd-recovery-dc",
+            "value": 11
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "subkind": "adjust-modifier",
+          "slug": null,
+          "label": null,
+          "selector": null,
+          "value": 1,
+          "mode": "add",
+          "predicate": [
+            {
+              "or": [
+                "penalty:slug:drained",
+                "penalty:slug:enfeebled"
+              ]
+            }
+          ],
+          "priority": null,
+          "notes": "AdjustModifier — partial conversion; capping/floor not applied",
+          "raw": {
+            "key": "AdjustModifier",
+            "mode": "add",
+            "predicate": [
+              {
+                "or": [
+                  "penalty:slug:drained",
+                  "penalty:slug:enfeebled"
+                ]
+              }
+            ],
+            "selectors": [
+              "con-based",
+              "str-based",
+              "str-damage"
+            ],
+            "value": 1
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "hp",
+          "value": "@actor.details.level.value",
+          "mode": "add",
+          "type": "untyped",
+          "predicate": [
+            "self:condition:drained"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              "self:condition:drained"
+            ],
+            "selector": "hp",
+            "value": "@actor.level"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "uncommon",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "2KVllUXqgWq7jCmX",
+        "packName": "feats",
+        "unconvertedRules": [
+          {
+            "itemType": "condition",
+            "key": "ItemAlteration",
+            "mode": "downgrade",
+            "predicate": [
+              "item:damage:type:bleed"
+            ],
+            "property": "pd-recovery-dc",
+            "value": 11,
+            "_conversionState": "partial"
+          },
+          {
+            "key": "AdjustModifier",
+            "mode": "add",
+            "predicate": [
+              {
+                "or": [
+                  "penalty:slug:drained",
+                  "penalty:slug:enfeebled"
+                ]
+              }
+            ],
+            "selectors": [
+              "con-based",
+              "str-based",
+              "str-damage"
+            ],
+            "value": 1,
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "ZEx4EhsZsdUku30Z",
+    "name": "True Perception",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "general",
+      "description": "<p>Your perceptive abilities and ability to process sensory information are so far beyond the pale that you notice minute discrepancies in all sorts of illusions and physical transformations. You are constantly under the effects of a 6th-rank @UUID[Compendium.pf2e.spells-srd.Item.Truesight] spell, using your Perception modifier for the counteract check.</p>",
+      "level": 19,
+      "prerequisites": [
+        {
+          "value": "legendary in Perception"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "general",
+          "revelation"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "uudiUylT09WnHN7e",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "Bfy7W5zajCbiHadr",
     "name": "Additional Circus Trick",
     "type": "feat",
@@ -110960,6 +112337,1109 @@
             "_conversionState": "unsupported"
           }
         ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "QEPrFAfNwbtx2NG7",
+    "name": "Comforting Presence",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "reaction",
+      "actions": null,
+      "category": "skill",
+      "description": "<p><strong>Trigger</strong> An adjacent ally becomes frightened or stupefied.</p>\n<hr />\n<p>You use your occult connection to your allies to take on the fear and confusion they feel. Focus on your own calmness and pull in your nearby allies' emotions. Reduce the @UUID[Compendium.pf2e.conditionitems.Item.Frightened] and @UUID[Compendium.pf2e.conditionitems.Item.Stupefied] condition values of adjacent allies by 1, and increase your frightened and stupefied condition values by the same amount.</p>",
+      "level": 10,
+      "prerequisites": [
+        {
+          "value": "master in Occultism"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Season of Ghosts Hardcover Compilation"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "concentrate",
+          "emotion",
+          "general",
+          "mental",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "MMaUL7r99DY7nvds",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "SKmSTRVYirF3ypvs",
+    "name": "Too Angry to Die",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "reaction",
+      "actions": null,
+      "category": "skill",
+      "description": "<p><strong>Trigger</strong> you stand up from @UUID[Compendium.pf2e.conditionitems.Item.Prone] after waking up from being @UUID[Compendium.pf2e.conditionitems.Item.Unconscious]</p>\n<hr />\n<p>You refuse to yield the battle, even after you've been knocked off your feet and nearly killed. For you, such a brush with death is less something to fear and more a thing to become infuriated by. As you stand up, you roar in defiance and can attempt to @UUID[Compendium.pf2e.actionspf2e.Item.Demoralize] a foe.</p>",
+      "level": 12,
+      "prerequisites": [
+        {
+          "value": "master in Intimidation"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Kingmaker"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "rare",
+        "value": [
+          "general",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "oFcn7SDOH6W2QhJl",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "hmKUT6MZi8pBignC",
+    "name": "Cloud Jump",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "skill",
+      "description": "<p>Your unparalleled athletic skill allows you to jump impossible distances. Triple the distance you jump on a successful @UUID[Compendium.pf2e.actionspf2e.Item.Long Jump] (so you could jump 90 feet with an Athletics result of 30). When you successfully @UUID[Compendium.pf2e.actionspf2e.Item.High Jump], use the distance jumped and distance limit for a Long Jump but don't triple the distance.</p>\n<p>You can jump a distance greater than your Speed by spending additional actions when you Long Jump or High Jump. For each additional action spent, add your Speed to the distance limit.</p>",
+      "level": 15,
+      "prerequisites": [
+        {
+          "value": "legendary in Athletics"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "general",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "TVFfTP9fHRidwBlW",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "NpRLi3jAJDkQmZ17",
+    "name": "Craft Anything",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "skill",
+      "description": "<p>You can find ways to craft just about anything, despite restrictions. As long as you have the appropriate Crafting skill feat (such as Magical Crafting for magic items) and meet the item's level and proficiency requirements, you ignore just about any other requirement, such as being of a specific ancestry or providing spells. If a requirement adds to the item's cost, you must still pay it (including castings of spells that themselves have a cost). You can't ignore requirements of special items that have exclusive means of access and Crafting, such as artifacts. The GM decides whether you can ignore a requirement.</p>",
+      "level": 15,
+      "prerequisites": [
+        {
+          "value": "legendary in Crafting"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "general",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "v62QzTwHOT3t86cL",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "KRT4ZjqbdkfHNrDN",
+    "name": "Divine Guidance",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "skill",
+      "description": "<p>You're so immersed in divine scripture that you find meaning and guidance for any situation in your texts. Spend 10 minutes @UUID[Compendium.pf2e.actionspf2e.Item.Decipher Writing]{Deciphering Writing} on religious scriptures of your deity or philosophy while thinking about a particular problem or conundrum you face, and then attempt a @Check[religion] check (DC determined by the GM). If you succeed, you unearth a relevant passage, parable, or aphorism that can help you move forward or change your thinking to help solve your conundrum.</p>",
+      "level": 15,
+      "prerequisites": [
+        {
+          "value": "legendary in Religion"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "general",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "dYMxP8SsHrwOze8v",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "NWukPMk2Dxuw7gUj",
+    "name": "Legendary Codebreaker",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "skill",
+      "description": "<p>Your skill with languages and codes is so great that you can decipher information with little more than a quick read through a text. You can @UUID[Compendium.pf2e.actionspf2e.Item.Decipher Writing] using Society while reading at normal speed. If you slow down and spend the full amount of time that's ordinarily required and roll a success, you get a critical success; if you critically succeed while spending the normal amount of time, you gain a nearly word-for-word understanding of the document.</p>",
+      "level": 15,
+      "prerequisites": [
+        {
+          "value": "legendary in Society"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "roll-note",
+          "slug": null,
+          "label": null,
+          "selector": "society",
+          "outcome": null,
+          "text": "",
+          "title": "{item|name}",
+          "predicate": [
+            "action:decipher-writing"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "Note",
+            "predicate": [
+              "action:decipher-writing"
+            ],
+            "selector": "society",
+            "text": "",
+            "title": "{item|name}"
+          },
+          "textStripped": true
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "general",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Zf4yiLDdxHPovEQI",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "9ziP3RFl8XwLlX2o",
+    "name": "Legendary Guide",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "skill",
+      "description": "<p>You know the wilderness so well that you can help your party travel through it with ease.</p>\n<p>When you are setting the path for your party through wilderness terrain, your party gains a +10-foot circumstance bonus to its Speed for the purpose of calculating the party's travel speed, your party's travel speed doesn't decrease in difficult terrain, and greater difficult terrain halves your party's travel speed instead of reducing it to a third.</p>\n<p>This doesn't increase your party's Speed during an encounter or allow your party to ignore difficult terrain during an encounter.</p>",
+      "level": 15,
+      "prerequisites": [
+        {
+          "value": "legendary in Survival"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "general",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Vk7BzAb3D9r226sI",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "567xyJQKshjBNbuG",
+    "name": "Legendary Linguist",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "skill",
+      "description": "<p>You're so skilled with languages you can create a pidgin instantly. You can always talk to any creature that has a language—even a language you don't know—by creating a new pidgin language that uses simplified terms and conveys basic concepts. To do so, you must first understand at least what medium of communication the creature uses (speech, sign language, and so on).</p>",
+      "level": 15,
+      "prerequisites": [
+        {
+          "value": "legendary in Society"
+        },
+        {
+          "value": "Multilingual"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "general",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "n0S0tJiOJPQk0Rne",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "wARasnH7BeIgfAzI",
+    "name": "Legendary Medic",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "skill",
+      "description": "<p>You've discovered medical breakthroughs or techniques that achieve miraculous results. Once per day for each target, you can spend 1 hour treating that target and attempt a Medicine check to remove a disease or the @UUID[Compendium.pf2e.conditionitems.Item.Blinded], @UUID[Compendium.pf2e.conditionitems.Item.Deafened], @UUID[Compendium.pf2e.conditionitems.Item.Doomed], or @UUID[Compendium.pf2e.conditionitems.Item.Drained] condition. Use the DC of the disease or of the spell or effect that created the condition. If the effect's source is an artifact, above 20th level, or similarly powerful, increase the DC by 10.</p>",
+      "level": 15,
+      "prerequisites": [
+        {
+          "value": "legendary in Medicine"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "general",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Kk4AMZtpQnLEgN0b",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "hEffGTSiI3Ue1r7S",
+    "name": "Legendary Negotiation",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 3,
+      "category": "skill",
+      "description": "<p>You can negotiate incredibly quickly in adverse situations. You attempt to @UUID[Compendium.pf2e.actionspf2e.Item.Make an Impression] and then @UUID[Compendium.pf2e.actionspf2e.Item.Request] your opponent cease their current activity and engage in negotiations. You take a –5 penalty to your Diplomacy check. Generally, the DC of this check is the creature's Will DC, although your GM may modify it based on the situation. Some creatures may be unable to stop regardless of their personal desires, and even those who agree to parley might ultimately find your arguments lacking and return to violence.</p>",
+      "level": 15,
+      "prerequisites": [
+        {
+          "value": "legendary in Diplomacy"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "general",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "A0TNeMNvyY8QpmLz",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "pVsx6vPGbG4BuNy5",
+    "name": "Legendary Performer",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "skill",
+      "description": "<p>Your fame has spread throughout the lands. Creatures who have any listed skill in Society have heard of you and usually have an attitude toward you one step better than normal, depending on your reputation and the creature's disposition. For instance, if you're well-known for cruel and demanding behavior, creatures might be intimidated by you, rather than be friendly toward you. When you @UUID[Compendium.pf2e.actionspf2e.Item.Earn Income] with Performance, you attract higher-level audiences than your location would allow, as audiences flock to see you. For instance, rulers and angels might travel to your small tower in the woods to hear you perform. Typically, this increases the audiences available to your level or by two levels, whichever is higher.</p>",
+      "level": 15,
+      "prerequisites": [
+        {
+          "value": "legendary in Performance"
+        },
+        {
+          "value": "Virtuosic Performer"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "general",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "467qQoiy6bjWU1G8",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "IICkANJEAW0X44aZ",
+    "name": "Legendary Professional",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "skill",
+      "description": "<p>Your fame has spread throughout the lands (for instance, if you have Warfare Lore, you might be a legendary general or tactician). This works as @UUID[Compendium.pf2e.feats-srd.Item.Legendary Performer], except you gain higher-level jobs when you @UUID[Compendium.pf2e.actionspf2e.Item.Earn Income] with Lore.</p>",
+      "level": 15,
+      "prerequisites": [
+        {
+          "value": "legendary in Lore"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "general",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "GZba7ped7ZxYHchf",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "6S5xbQIYf9O1dSbs",
+    "name": "Legendary Sneak",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "skill",
+      "description": "<p>You're always sneaking unless you choose to be seen, even when there's nowhere to hide. You can @UUID[Compendium.pf2e.actionspf2e.Item.Hide] and @UUID[Compendium.pf2e.actionspf2e.Item.Sneak] even without cover or being @UUID[Compendium.pf2e.conditionitems.Item.Concealed]. When you employ an exploration tactic other than @UUID[Compendium.pf2e.actionspf2e.Item.Avoid Notice]{Avoiding Notice}, you also gain the benefits of Avoiding Notice unless you choose not to.</p>",
+      "level": 15,
+      "prerequisites": [
+        {
+          "value": "legendary in Stealth"
+        },
+        {
+          "value": "Swift Sneak"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "general",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "n0urrOL8YlnVBVRQ",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "OZOUEVyIab1fKPR9",
+    "name": "Legendary Survivalist",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "skill",
+      "description": "<p>You can survive indefinitely without food or water and can endure severe, extreme, and incredible cold and heat without taking damage from doing so.</p>",
+      "level": 15,
+      "prerequisites": [
+        {
+          "value": "legendary in Survival"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "general",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Ta61ObC8Lk7BxTFO",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "0fzwhrbMMG1gen8w",
+    "name": "Legendary Tattoo Artist",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "skill",
+      "description": "<p>Your craftsmanship at decorating flesh is unparalleled. You become legendary in Crafting. Whenever you craft a magical tattoo whose level is at least 3 lower than your level, increase all attack roll and DC values of the tattoo's activated abilities by 1, and increase all resistances granted by the tattoo by 1.</p>",
+      "level": 15,
+      "prerequisites": [
+        {
+          "value": "Tattoo Artist"
+        },
+        {
+          "value": "master in Crafting"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Treasure Vault (Remastered)"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.skills.crafting.rank",
+          "value": 4,
+          "mode": "upgrade",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.skills.crafting.rank",
+            "value": 4
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "general",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "VRCBTEyrcBf7auGz",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "pwMnNMIYh2WDzHIs",
+    "name": "Legendary Thief",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "skill",
+      "description": "<p>Your ability to @UUID[Compendium.pf2e.actionspf2e.Item.Steal] defies belief. You can attempt to Steal something that is actively wielded or that would be extremely noticeable or time consuming to remove (like worn shoes or armor). You must do so slowly and carefully, spending at least 1 minute (and significantly longer for items that are normally time consuming to remove, like armor). Throughout this duration you must have some means of staying @UUID[Compendium.pf2e.conditionitems.Item.Hidden], such as the cover of darkness or a bustling crowd. Even if you succeed, if the item is extremely prominent—like a suit of full plate armor—onlookers will quickly notice it's gone after you steal it.</p>",
+      "level": 15,
+      "prerequisites": [
+        {
+          "value": "legendary in Thievery"
+        },
+        {
+          "value": "Pickpocket"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "general",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "IZbjUaZI5zHTd1Vp",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "KMCx1s64cbKS0vIb",
+    "name": "Reveal Machinations",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "skill",
+      "description": "<p>You reveal that you played a minor but recurring role in another humanoid's life-or at least convince them that's the case. Attempt a @Check[deception|defense:will] check against the target's Will DC. On a success, the revelation makes them frightened 2, and on a critical success they are frightened 3. In addition, you gain information about the subject as though you had attempted to Recall Knowledge about them using an appropriate skill and received the same result on your roll. You can't use this ability against the same humanoid again until 1 day has passed and you've also successfully disguised yourself as a different person.</p>",
+      "level": 15,
+      "prerequisites": [
+        {
+          "value": "legendary in Deception"
+        }
+      ],
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder #147: Tomorrow Must Burn"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "rare",
+        "value": [
+          "general",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "XZcd1wFHy111klu2",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "mCfX14FS4lMny4zl",
+    "name": "Scare to Death",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "action",
+      "actions": 1,
+      "category": "skill",
+      "description": "<p>You can frighten foes so much, they might die. Attempt an @Check[intimidation|defense:will] check against the Will DC of a living creature within 30 feet of you that you sense or observe and who can sense or observe you. If the target can't hear you or doesn't understand the language you are speaking, you take a –4 circumstance penalty. The creature is temporarily immune for 1 minute.</p><hr /><p><strong>Critical Success</strong> The target must attempt a @Check[fortitude|against:intimidation] save against your Intimidation DC. On a critical failure, it dies. On any other result, it becomes @UUID[Compendium.pf2e.conditionitems.Item.Frightened]{Frightened 2} and is @UUID[Compendium.pf2e.conditionitems.Item.Fleeing] for 1 round. The critical failure effect has the death trait.</p>\n<p><strong>Success</strong> The target becomes frightened 2.</p>\n<p><strong>Failure</strong> The target becomes @UUID[Compendium.pf2e.conditionitems.Item.Frightened]{Frightened 1}.</p>\n<p><strong>Critical Failure</strong> The target is unaffected.</p>",
+      "level": 15,
+      "prerequisites": [
+        {
+          "value": "legendary in Intimidation"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "roll-note",
+          "slug": null,
+          "label": null,
+          "selector": [
+            "intimidation"
+          ],
+          "outcome": [
+            "criticalSuccess"
+          ],
+          "text": "",
+          "title": "PF2E.Check.Result.Degree.Check.criticalSuccess",
+          "predicate": [
+            "action:scare-to-death"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "Note",
+            "outcome": [
+              "criticalSuccess"
+            ],
+            "predicate": [
+              "action:scare-to-death"
+            ],
+            "selector": [
+              "intimidation"
+            ],
+            "text": "",
+            "title": "PF2E.Check.Result.Degree.Check.criticalSuccess"
+          },
+          "textStripped": true
+        },
+        {
+          "kind": "roll-note",
+          "slug": null,
+          "label": null,
+          "selector": [
+            "intimidation"
+          ],
+          "outcome": [
+            "success"
+          ],
+          "text": "",
+          "title": "PF2E.Check.Result.Degree.Check.success",
+          "predicate": [
+            "action:scare-to-death"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "Note",
+            "outcome": [
+              "success"
+            ],
+            "predicate": [
+              "action:scare-to-death"
+            ],
+            "selector": [
+              "intimidation"
+            ],
+            "text": "",
+            "title": "PF2E.Check.Result.Degree.Check.success"
+          },
+          "textStripped": true
+        },
+        {
+          "kind": "roll-note",
+          "slug": null,
+          "label": null,
+          "selector": [
+            "intimidation"
+          ],
+          "outcome": [
+            "failure"
+          ],
+          "text": "",
+          "title": "PF2E.Check.Result.Degree.Check.failure",
+          "predicate": [
+            "action:scare-to-death"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "Note",
+            "outcome": [
+              "failure"
+            ],
+            "predicate": [
+              "action:scare-to-death"
+            ],
+            "selector": [
+              "intimidation"
+            ],
+            "text": "",
+            "title": "PF2E.Check.Result.Degree.Check.failure"
+          },
+          "textStripped": true
+        },
+        {
+          "kind": "roll-note",
+          "slug": null,
+          "label": null,
+          "selector": [
+            "intimidation"
+          ],
+          "outcome": [
+            "criticalFailure"
+          ],
+          "text": "",
+          "title": "PF2E.Check.Result.Degree.Check.criticalFailure",
+          "predicate": [
+            "action:scare-to-death"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "Note",
+            "outcome": [
+              "criticalFailure"
+            ],
+            "predicate": [
+              "action:scare-to-death"
+            ],
+            "selector": [
+              "intimidation"
+            ],
+            "text": "",
+            "title": "PF2E.Check.Result.Degree.Check.criticalFailure"
+          },
+          "textStripped": true
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "emotion",
+          "fear",
+          "general",
+          "incapacitation",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "mZttsiWl1ql5NvrH",
+        "packName": "feats",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "book-red-exclamation.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "8Sg4bEQOJXWco4so",
+    "name": "Unified Theory",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "skill",
+      "description": "<p>You understand the common underpinnings of the four traditions of magic and magical essences, allowing you to understand them all through an arcane lens. Whenever you use a skill action or a skill feat that requires a Nature, Occultism, or Religion check, depending on the magic tradition, you can use Arcana instead. If you would normally take a penalty or have a higher DC for using Arcana on other magic (such as when using Identify Magic), you no longer do so.</p>",
+      "level": 15,
+      "prerequisites": [
+        {
+          "value": "legendary in Arcana"
+        }
+      ],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "general",
+          "skill"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "hrq3NOpS6148aVY1",
+        "packName": "feats",
+        "unconvertedRules": [],
         "assetSubstitutions": [
           {
             "field": "img",

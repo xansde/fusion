@@ -757,11 +757,15 @@ function hasTradition(doc, tradition) {
  *     eligible for (Familiar, Cantrip Expansion, Enhanced Familiar,
  *     Reactive Strike carry "magus" in their multi-class traits list) — 55 total.
  *   - ALL Ratfolk ancestry feats (trait "ratfolk" + category "ancestry") — 26.
- *   - Skill feats level <= 8 (category "skill") — includes every acceptance-
- *     criterion feat from the Tobias build (Impressive Performance, Read
- *     Lips, Tinkering Fingers is actually ancestry-categorized — see below —
- *     Alchemical Crafting, Fascinating Performance).
- *   - General feats level <= 8 (category "general").
+ *   - ALL skill feats, every level (category "skill"; issue #24 — the
+ *     original level <= 8 cutoff was an R10-B acceptance-criterion cap for
+ *     the Tobias build, never revisited for the r22 12-class MVP that
+ *     reaches level 20. It left every skill-feat slot at level 9+ empty and
+ *     broke Steal Spell (Rogue l16), whose prerequisite "Legendary Thief"
+ *     is a level-15 skill feat).
+ *   - ALL general feats, every level (category "general"; same issue #24 cap
+ *     removal — Raging Intimidation's "Scare to Death" grant, level 15,
+ *     resolves as a side effect).
  *   - Alchemist Dedication (category "class", traits archetype+dedication;
  *     the vendor files dedication feats under category "class", NOT
  *     "archetype") + its two level-4 archetype feats (Advanced Alchemy,
@@ -826,8 +830,10 @@ function isFeatsCoreDoc(doc) {
   // ancestralidades desde a r18 — ficou sem nenhum feat proprio. A varredura
   // headless pegou: "Fleshwarp nao tem ancestry feat em todo nivel de marco".
   if (category === "ancestry" && CURATED_ANCESTRY_TRAITS.some((t) => hasTrait(doc, t))) return true;
-  if (category === "skill" && level <= 8) return true;
-  if (category === "general" && level <= 8) return true;
+  // issue #24: no level cutoff — every level of skill/general feat is a
+  // reachable slot somewhere between character level 1 and 20.
+  if (category === "skill") return true;
+  if (category === "general") return true;
   if (doc.name === "Alchemist Dedication") return true;
   if (hasTrait(doc, "archetype") && level <= 4) {
     const prereqText = JSON.stringify(doc.system?.prerequisites ?? []).toLowerCase();

@@ -33,7 +33,7 @@
     {
       "packId": "pf2e.feats-core",
       "slug": "feats-core",
-      "documentCount": 1762
+      "documentCount": 1803
     },
     {
       "packId": "pf2e.ancestries-core",
@@ -71,7 +71,7 @@
       "documentCount": 55
     }
   ],
-  "generatedAt": "2026-08-02T19:18:42.671Z",
+  "generatedAt": "2026-08-02T20:41:15.587Z",
   "importerVersion": "0.1.0",
   "sourceVersion": "v14-dev"
 }
