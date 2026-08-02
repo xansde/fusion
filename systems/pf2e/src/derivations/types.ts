@@ -192,6 +192,26 @@ export interface ArchetypeClassDC {
   readonly dc: number;
 }
 
+/**
+ * Class DC of ONE class the character has (REQ-MCL-022).
+ *
+ * Under the multiclass variant a character has one per class, each ranked at
+ * ITS OWN class level. An effect that says "your class DC" without naming one
+ * uses the highest — which is what `derived.classDC` keeps holding.
+ */
+export interface ClassDCEntry {
+  /** Stable class identity (`flags.fusion.sourceId`). */
+  readonly classKey: string;
+  /** Display name of the class. */
+  readonly label: string;
+  /** Levels the character has IN this class. */
+  readonly classLevel: number;
+  readonly ability: string;
+  readonly rank: number;
+  readonly total: number;
+  readonly dc: number;
+}
+
 // ---------------------------------------------------------------------------
 // Character derived data
 // ---------------------------------------------------------------------------
@@ -270,6 +290,8 @@ export interface CharacterDerived {
    * docs derived before r12 lack it (clients treat absent as `[]`).
    */
   readonly archetypeClassDCs?: ArchetypeClassDC[];
+  /** One entry per class the character has (REQ-MCL-022). */
+  readonly classDCs?: ClassDCEntry[];
 
   /** Derived strikes from equipped weapons. REQ-PF2-030 */
   readonly strikes: DerivedStrike[];
