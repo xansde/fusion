@@ -524,6 +524,7 @@
   "FUSION.Sheet.Plan.Picker.Loading": "Loading compendium…",
   "FUSION.Sheet.Plan.Picker.LoadError": "Could not load the compendium.",
   "FUSION.Sheet.Plan.Picker.NoResults": "No results found with these filters.",
+  "FUSION.Sheet.Plan.Picker.AlreadyChosen": "This feat has already been taken and can't be repeated.",
   "FUSION.Sheet.Plan.Picker.Confirm": "Confirm",
   "FUSION.Sheet.Plan.Picker.NotConnected": "Not connected to the server — check the connection and try again.",
   "FUSION.Sheet.Plan.Picker.Retry": "Try again",

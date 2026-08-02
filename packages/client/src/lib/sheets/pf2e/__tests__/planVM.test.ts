@@ -23,6 +23,7 @@ import {
   applyHeritage,
   applyBackground,
   chooseFeat,
+  isFeatAtRepeatCap,
   chooseClassChoice,
   chooseSkillTraining,
   chooseSkillIncrease,
@@ -282,6 +283,66 @@ function arcaneFistsFeatDoc(): Record<string, unknown> {
       rules: [],
       traits: { rarity: "common", value: ["magus"] },
     },
+  };
+}
+
+/**
+ * "Acupuncturist" — real feats-core skill feat, NO `system.maxTakable`
+ * (defect W2 frente 1: this exact feat was reported pickable twice).
+ * `flags.fusion.sourceId` mirrors the real vendor-stamped value from
+ * systems/pf2e/packs/feats-core/documents.json.
+ */
+function acupuncturistFeatDoc(): Record<string, unknown> {
+  return {
+    _id: "M8xeH0tnP75X0DFY",
+    name: "Acupuncturist",
+    type: "feat",
+    system: {
+      category: "skill",
+      level: 1,
+      prerequisites: [{ value: "trained in Medicine" }],
+      traits: { rarity: "common", value: ["downtime", "manipulate"] },
+    },
+    flags: { fusion: { sourceId: "SC95hfEEHQs7E9cG" } },
+  };
+}
+
+/**
+ * "Armor Proficiency" — real feats-core general feat with `system.maxTakable:
+ * 3` (one of only two feats in the pack that carry a numeric maxTakable — W2
+ * frente 1 task rule 3: "verifique com um feat real do pack"). Repeatable up
+ * to 3 times.
+ */
+function armorProficiencyFeatDoc(): Record<string, unknown> {
+  return {
+    _id: "1vyVMmsWAgpqsxd7",
+    name: "Armor Proficiency",
+    type: "feat",
+    system: {
+      category: "general",
+      level: 1,
+      maxTakable: 3,
+      prerequisites: [],
+      traits: { rarity: "common", value: [] },
+    },
+    flags: { fusion: { sourceId: "BStw1cANwx5baL6d" } },
+  };
+}
+
+/** An embedded copy of `featDoc` as it would sit on the actor's `items` array after being chosen via chooseFeat. */
+function embeddedFeatItem(
+  featDoc: Record<string, unknown>,
+  itemId: string,
+  build: { level: number; slot: string },
+): Record<string, unknown> {
+  const { _id: _drop, flags, ...rest } = featDoc;
+  const existingFusion = (flags as Record<string, unknown> | undefined)?.["fusion"] as
+    | Record<string, unknown>
+    | undefined;
+  return {
+    ...rest,
+    _id: itemId,
+    flags: { fusion: { ...existingFusion, build } },
   };
 }
 
@@ -1718,11 +1779,100 @@ describe("chooseFeat", () => {
   });
 
   it("appends onto existing choices without clobbering", () => {
-    const ops = chooseFeat(ctx(tobiasLevel3Doc()), slot, 2, arcaneFistsFeatDoc());
+    // Uses a feat NOT already embedded on tobiasLevel3Doc (arcaneFistsFeatDoc
+    // itself already sits at classFeat-2 on that fixture — since W2 frente 1
+    // (repeat cap), re-picking it would be correctly rejected; that scenario
+    // has its own dedicated test below).
+    const ops = chooseFeat(ctx(tobiasLevel3Doc()), slot, 2, acupuncturistFeatDoc());
     const updateOp = ops[1]!;
     if (updateOp.type !== "doc:update") throw new Error("expected doc:update");
     const choices = updateOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
     expect(choices.length).toBe(5); // 4 existing + 1 new
+  });
+});
+
+describe("chooseFeat — repeat cap (W2 frente 1: non-repeatable feat picked twice)", () => {
+  const slotA: PlanSlotModel = {
+    slotId: "skillFeat-2",
+    type: "skillFeat",
+    label: "Skill Feat",
+    filled: false,
+  };
+  const slotB: PlanSlotModel = {
+    slotId: "skillFeat-4",
+    type: "skillFeat",
+    label: "Skill Feat",
+    filled: false,
+  };
+
+  it("isFeatAtRepeatCap: false for a fresh character (nothing chosen yet)", () => {
+    expect(isFeatAtRepeatCap(baseCharacterDoc(), acupuncturistFeatDoc())).toBe(false);
+  });
+
+  it("isFeatAtRepeatCap: true once a non-repeatable feat has been chosen once (by sourceId)", () => {
+    const doc = baseCharacterDoc({
+      items: [embeddedFeatItem(acupuncturistFeatDoc(), "item-1", { level: 2, slot: "skillFeat-2" })],
+    });
+    expect(isFeatAtRepeatCap(doc, acupuncturistFeatDoc())).toBe(true);
+  });
+
+  it("chooseFeat: accepts the FIRST pick of a non-repeatable feat", () => {
+    const ops = chooseFeat(ctx(baseCharacterDoc()), slotA, 2, acupuncturistFeatDoc());
+    expect(ops).toHaveLength(2);
+  });
+
+  it("chooseFeat: REJECTS a second pick of the same non-repeatable feat in a DIFFERENT slot (the reported defect)", () => {
+    const doc = baseCharacterDoc({
+      items: [embeddedFeatItem(acupuncturistFeatDoc(), "item-1", { level: 2, slot: "skillFeat-2" })],
+    });
+    const ops = chooseFeat(ctx(doc), slotB, 4, acupuncturistFeatDoc());
+    expect(ops).toEqual([]);
+  });
+
+  it("chooseFeat: REJECTS a second pick identified by NAME when the embedded item carries no sourceId (Arcane Fists already on Tobias)", () => {
+    // arcaneFistsFeatDoc() has no `flags` at all — featIdentity falls back to
+    // `name`, matching the item tobiasLevel3Doc() already embeds at classFeat-2.
+    const ops = chooseFeat(ctx(tobiasLevel3Doc()), slotA, 2, arcaneFistsFeatDoc());
+    expect(ops).toEqual([]);
+  });
+
+  it("chooseFeat: a REPEATABLE feat (maxTakable: 3, real 'Armor Proficiency' data) can be picked up to its cap", () => {
+    // 0 taken -> pick 1 accepted.
+    expect(chooseFeat(ctx(baseCharacterDoc()), slotA, 1, armorProficiencyFeatDoc())).toHaveLength(2);
+
+    // 1 taken -> pick 2 accepted.
+    const doc1 = baseCharacterDoc({
+      items: [embeddedFeatItem(armorProficiencyFeatDoc(), "item-1", { level: 1, slot: "generalFeat-1" })],
+    });
+    expect(chooseFeat(ctx(doc1), slotB, 5, armorProficiencyFeatDoc())).toHaveLength(2);
+
+    // 2 taken -> pick 3 (== maxTakable) accepted.
+    const doc2 = baseCharacterDoc({
+      items: [
+        embeddedFeatItem(armorProficiencyFeatDoc(), "item-1", { level: 1, slot: "generalFeat-1" }),
+        embeddedFeatItem(armorProficiencyFeatDoc(), "item-2", { level: 5, slot: "generalFeat-5" }),
+      ],
+    });
+    expect(chooseFeat(ctx(doc2), { ...slotB, slotId: "generalFeat-9" }, 9, armorProficiencyFeatDoc())).toHaveLength(
+      2,
+    );
+  });
+
+  it("chooseFeat: REJECTS the 4th pick of a maxTakable:3 feat", () => {
+    const doc3 = baseCharacterDoc({
+      items: [
+        embeddedFeatItem(armorProficiencyFeatDoc(), "item-1", { level: 1, slot: "generalFeat-1" }),
+        embeddedFeatItem(armorProficiencyFeatDoc(), "item-2", { level: 5, slot: "generalFeat-5" }),
+        embeddedFeatItem(armorProficiencyFeatDoc(), "item-3", { level: 9, slot: "generalFeat-9" }),
+      ],
+    });
+    expect(isFeatAtRepeatCap(doc3, armorProficiencyFeatDoc())).toBe(true);
+    const ops = chooseFeat(ctx(doc3), { ...slotB, slotId: "generalFeat-13" }, 13, armorProficiencyFeatDoc());
+    expect(ops).toEqual([]);
+  });
+
+  it("isFeatAtRepeatCap: always false for a non-feat doc (classFeature choices, e.g. hybridStudy, are exempt)", () => {
+    expect(isFeatAtRepeatCap(baseCharacterDoc(), starlitSpanHybridStudyDoc())).toBe(false);
   });
 });
 

@@ -2165,9 +2165,73 @@ export function backgroundLoreHealOps(
 }
 
 /**
+ * featIdentity — stable key used to recognize "the same feat" across a
+ * picker candidate doc and an already-embedded actor item:
+ * `flags.fusion.sourceId` (the importer-stamped vendor-stable id, preserved
+ * across `embeddedItemPayload` — never stripped, unlike the pack's own
+ * `_id`) when present, else the doc's `name` — the same identity fallback
+ * this file already relies on elsewhere (classSlug/ancestrySlug derivation
+ * above uses `itemName` the same way).
+ */
+function featIdentity(featDoc: Record<string, unknown>): string | undefined {
+  return itemFusionSourceId(featDoc) ?? itemName(featDoc);
+}
+
+/**
+ * featMaxTakable — normalized repeat cap for a feat doc: `system.maxTakable`
+ * when it's a number > 1, else 1 (not repeatable). Mirrors feats-core's
+ * vendor convention (W2 frente 1 diagnosis): the field is present ONLY on
+ * feats that may be taken more than once (e.g. "Armor Proficiency" →
+ * maxTakable: 3); absent — or a non-positive/non-numeric value — means
+ * "once".
+ */
+function featMaxTakable(featDoc: Record<string, unknown>): number {
+  const raw = asRecord(featDoc["system"])["maxTakable"];
+  return typeof raw === "number" && raw > 1 ? raw : 1;
+}
+
+/**
+ * isFeatAtRepeatCap — true when `featDoc` (a picker candidate) has already
+ * been chosen on `doc` as many times as its `maxTakable` allows (W2 frente 1:
+ * a non-repeatable feat, e.g. "Acupuncturist", is at cap after the FIRST
+ * pick; a `maxTakable: N` feat, e.g. "Armor Proficiency", after N picks).
+ *
+ * Counts embedded `type: "feat"` items matching `featIdentity` — the
+ * reliable "one act of choosing = one embedded item" source.
+ * `system.build.choices` entries are NOT used for counting: `chooseFeat`
+ * never stamps a choice's `ref`, so those entries carry no feat identity —
+ * counting from them would either miss the match entirely or, if summed
+ * alongside the items array, double-count the SAME act of choice.
+ *
+ * `featDoc.type` must be `"feat"` — classFeature docs (hybridStudy, instinct,
+ * racket, …) are routed through this same op-builder machinery
+ * (`chooseClassChoice` → `chooseFeat`) but never carry `maxTakable`, so they
+ * are always exempt from this gate.
+ */
+export function isFeatAtRepeatCap(
+  doc: Record<string, unknown>,
+  featDoc: Record<string, unknown>,
+): boolean {
+  if (featDoc["type"] !== "feat") return false;
+  const identity = featIdentity(featDoc);
+  if (!identity) return false;
+  const taken = getItems(doc).filter(
+    (item) => item["type"] === "feat" && featIdentity(item) === identity,
+  ).length;
+  return taken >= featMaxTakable(featDoc);
+}
+
+/**
  * chooseFeat — doc:create the feat item tagged with `flags.fusion.build =
  * {level, slot}`, plus append a matching entry to `system.build.choices` so
  * removeChoice() can find and clean it up symmetrically.
+ *
+ * REQUISITO ORDENA E MARCA, NUNCA BLOQUEIA (specs/31, DEC-BC-05) does NOT
+ * cover repeatability: a non-repeatable feat picked twice (or a repeatable
+ * one picked past its `maxTakable`) is not "eligible-but-marked", it is an
+ * invalid ficha state — so this builder REFUSES the op outright (returns
+ * `[]`, exactly like the `!ctx.editable` guard above) instead of emitting an
+ * op the caller would need to reject after the fact.
  */
 export function chooseFeat(
   ctx: PlanOpBuilderContext,
@@ -2176,6 +2240,7 @@ export function chooseFeat(
   featDoc: Record<string, unknown>,
 ): DocOpPayload[] {
   if (!ctx.editable) return [];
+  if (isFeatAtRepeatCap(ctx.doc, featDoc)) return [];
   const buildFlag = { level, slot: slot.slotId };
   const ops: DocOpPayload[] = [
     {

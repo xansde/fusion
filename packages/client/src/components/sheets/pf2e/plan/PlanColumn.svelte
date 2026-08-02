@@ -38,6 +38,7 @@
     applyHeritage,
     applyBackground,
     chooseFeat,
+    isFeatAtRepeatCap,
     chooseClassChoice,
     chooseKineticGate,
     readGateElements,
@@ -579,6 +580,22 @@
   let boostsDialogTarget = $state<{ level: number; slot: PlanSlotModel } | null>(null);
   let kineticGateTarget = $state<{ level: number; slot: PlanSlotModel } | null>(null);
 
+  // Repeat-cap rejection notice (W2 frente 1) — chooseFeat silently refuses
+  // (returns []) a feat that already hit its `maxTakable` cap, so the picker
+  // dialog closes with nothing sent unless we surface this instead. Checked
+  // BEFORE calling chooseFeat (same predicate it uses internally) so the
+  // dialog stays open and the player can pick something else.
+  let repeatCapNotice = $state<string | null>(null);
+  let repeatCapNoticeTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function showRepeatCapNotice(): void {
+    repeatCapNotice = t("FUSION.Sheet.Plan.Picker.AlreadyChosen");
+    if (repeatCapNoticeTimer) clearTimeout(repeatCapNoticeTimer);
+    repeatCapNoticeTimer = setTimeout(() => {
+      repeatCapNotice = null;
+    }, 4000);
+  }
+
   function slotLabel(slot: PlanSlotModel): string {
     // A grantedFeat sub-slot (W1-D) uses its grant's OWN i18n key (e.g.
     // "...grantedFeat.basicConcoction") instead of the generic
@@ -704,6 +721,17 @@
   function handleSlotPickerSelect(selectedDoc: Record<string, unknown>): void {
     if (!slotPicker) return;
     const { level, slot } = slotPicker;
+    // Feat repeatability gate (W2 frente 1): a non-repeatable feat already
+    // chosen, or a repeatable one already at its `maxTakable` cap, must not
+    // be accepted a second time. `isFeatAtRepeatCap` is a no-op for
+    // non-"feat" docs (classFeature choices), so this check never affects
+    // hybridStudy/instinct/etc. chooseFeat enforces the SAME predicate
+    // internally — this early check only lets the dialog stay open with a
+    // visible reason instead of silently closing on a no-op.
+    if (isFeatAtRepeatCap(doc, selectedDoc)) {
+      showRepeatCapNotice();
+      return;
+    }
     if (CLASS_CHOICE_SLOT_OPTIONS[slot.type]) {
       sendAll(chooseClassChoice(opCtx, slot.type, level, selectedDoc));
     } else {
@@ -939,6 +967,10 @@
   />
 {/if}
 
+{#if repeatCapNotice}
+  <div class="plan-column__notice" role="status">{repeatCapNotice}</div>
+{/if}
+
 {#if detailsRequest}
   <PlanDetailsDialog request={detailsRequest} onClose={() => { detailsRequest = null; }} />
 {/if}
@@ -1096,5 +1128,21 @@
   .plan-column__levelup:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  .plan-column__notice {
+    position: fixed;
+    left: 50%;
+    bottom: 32px;
+    transform: translateX(-50%);
+    z-index: 200;
+    padding: 10px 18px;
+    border-radius: var(--fusion-radius);
+    background: var(--fusion-danger);
+    color: var(--fusion-on-accent);
+    font-family: var(--fusion-font);
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: var(--fusion-shadow-modal);
   }
 </style>
