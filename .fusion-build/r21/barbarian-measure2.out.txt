@@ -1,0 +1,141 @@
+=== BARBARIAN FEATURES x class-features-core (by sourceId=_id) ===
+Instinct (L1) vendorId=dU7xRpg4kFd01hwZ -> inPacksBySourceId=no nameCollisionDiffId=no
+Rage (L1) vendorId=WZUCvxqbigXos1L9 -> inPacksBySourceId=no nameCollisionDiffId=no
+Quick-Tempered (L1) vendorId=04lXNnt73rF3RNc4 -> inPacksBySourceId=no nameCollisionDiffId=no
+Furious Footfalls (L3) vendorId=fctFBBqWwwwdbgdx -> inPacksBySourceId=no nameCollisionDiffId=no
+Brutality (L5) vendorId=EEUTd0jAyfwTLzjk -> inPacksBySourceId=no nameCollisionDiffId=no
+Juggernaut (L7) vendorId=OMZs5y16jZRW9KQK -> inPacksBySourceId=YES nameCollisionDiffId=no
+Weapon Specialization (L7) vendorId=9EqIasqfI8YIM3Pt -> inPacksBySourceId=YES nameCollisionDiffId=no
+Reflex Expertise (L9) vendorId=TUOeATt52P43r5W0 -> inPacksBySourceId=YES nameCollisionDiffId=no
+Raging Resistance (L9) vendorId=ie6xDX9GMEcA2Iuq -> inPacksBySourceId=no nameCollisionDiffId=no
+Mighty Rage (L11) vendorId=88Q33X2a0iYPkbzd -> inPacksBySourceId=no nameCollisionDiffId=no
+Greater Juggernaut (L13) vendorId=TuL0UfqH14MtqYVh -> inPacksBySourceId=no nameCollisionDiffId=no
+Medium Armor Expertise (L13) vendorId=FCEp9jjxxgRJDJV3 -> inPacksBySourceId=YES nameCollisionDiffId=no
+Weapon Mastery (L13) vendorId=ejP4jVQkS48uKRFz -> inPacksBySourceId=YES nameCollisionDiffId=no
+Indomitable Will (L15) vendorId=BZnqKnqKVImjSIFE -> inPacksBySourceId=no nameCollisionDiffId=no
+Greater Weapon Specialization (Barbarian) (L15) vendorId=7JjhxMFo8DMwpGx0 -> inPacksBySourceId=no nameCollisionDiffId=no
+Perception Mastery (L17) vendorId=0npO4rPscGm0dX13 -> inPacksBySourceId=no nameCollisionDiffId=no
+Revitalizing Rage (L17) vendorId=qMtyQGUllPdgpzUo -> inPacksBySourceId=no nameCollisionDiffId=no
+Devastator (L19) vendorId=VLiT503OLOM3vaDx -> inPacksBySourceId=no nameCollisionDiffId=no
+Armor Mastery (L19) vendorId=CGB1TczFhQhdQxml -> inPacksBySourceId=no nameCollisionDiffId=no
+
+=== Rage action (extra, outside items{}) ===
+Rage class-feature grants uuid: [{"key":"GrantItem","uuid":"Compendium.pf2e.actionspf2e.Item.Rage"}]
+vendor action file: tools\importer-pf2e\vendor\pf2e\packs\pf2e\actions\class\barbarian\rage.json id= Ah5g9pDwWF9b9VW9
+in actions-core by sourceId: YES
+
+=== Instinct axis: check sourceId presence in feats-core (instincts stored as type=feat) ===
+Animal Instinct id= 0FtzFbUrN56KA67z inClassFeaturesCoreBySourceId= false inFeatsCoreBySourceId= false
+Decay Instinct id= znxs0soGlusvRP39 inClassFeaturesCoreBySourceId= false inFeatsCoreBySourceId= false
+Dragon Instinct id= VDot7CDcXElxmkkz inClassFeaturesCoreBySourceId= false inFeatsCoreBySourceId= false
+Elemental Instinct id= 0jSS6pgNXsC8k4o7 inClassFeaturesCoreBySourceId= false inFeatsCoreBySourceId= false
+Fury Instinct id= k7M9jedvt31AJ5ZR inClassFeaturesCoreBySourceId= false inFeatsCoreBySourceId= false
+Giant Instinct id= JuKD6k7nDwfO0Ckv inClassFeaturesCoreBySourceId= false inFeatsCoreBySourceId= false
+Ligneous Instinct id= qVAeSFTI1dq64bB8 inClassFeaturesCoreBySourceId= false inFeatsCoreBySourceId= false
+Spirit Instinct id= TQqv9Q5mB4PW6LH9 inClassFeaturesCoreBySourceId= false inFeatsCoreBySourceId= false
+Superstition Instinct id= SCYSjUbMmw8JD9P9 inClassFeaturesCoreBySourceId= false inFeatsCoreBySourceId= false
+Bloodrager id= qwvO0B9t7LgQCVbV inClassFeaturesCoreBySourceId= false inFeatsCoreBySourceId= false
+
+=== CLASS FEATS: feats/class/barbarian ===
+file count: 80
+by level: {"1":6,"2":7,"4":7,"6":11,"8":11,"10":10,"12":8,"14":6,"16":6,"18":4,"20":4}
+internalChainCount: 9 nonMechanizable(skill-trained-text): 6 externalRefs: [
+  'dragon instinct',
+  'animal instinct',
+  'spirit instinct',
+  'superstition instinct',
+  'giant instinct',
+  'fury instinct',
+  'elemental instinct',
+  'Fury Instinct',
+  'Acute Scent or scent',
+  'Animal Instinct',
+  'low-light vision or scent',
+  'an instinct that allows you to change your additional damage from Rage to a different damage type'
+]
+prereq examples: [
+  {
+    "name": "Draconic Arrogance",
+    "level": 1,
+    "prerequisites": [
+      {
+        "value": "dragon instinct"
+      }
+    ],
+    "sourceId": "EOmTf95t03y4IGdp"
+  },
+  {
+    "name": "Great Cleave",
+    "level": 10,
+    "prerequisites": [
+      {
+        "value": "Cleave"
+      }
+    ],
+    "sourceId": "cznEQ1W61MSaXW0u"
+  },
+  {
+    "name": "Dragon's Rage Wings",
+    "level": 12,
+    "prerequisites": [
+      {
+        "value": "dragon instinct"
+      }
+    ],
+    "sourceId": "bqZkAFS6eq9TKXMO"
+  },
+  {
+    "name": "Predator's Pounce",
+    "level": 12,
+    "prerequisites": [
+      {
+        "value": "animal instinct"
+      }
+    ],
+    "sourceId": "aFUxNGur3Hma8DKy"
+  },
+  {
+    "name": "Spirit's Wrath",
+    "level": 12,
+    "prerequisites": [
+      {
+        "value": "spirit instinct"
+      }
+    ],
+    "sourceId": "gO729iC9b5ypes2K"
+  },
+  {
+    "name": "Sunder Spell",
+    "level": 12,
+    "prerequisites": [
+      {
+        "value": "superstition instinct"
+      }
+    ],
+    "sourceId": "8INrcMUv5vzWMG3X"
+  }
+]
+barbarian class feats already in feats-core (by sourceId): 0 / 80
+
+=== shared-class-feats with barbarian trait ===
+count: 16
+- Sudden Charge L1 traits=["barbarian","fighter","flourish"] inFeatsCore=false
+- Corpse-Killer's Defiance L10 traits=["barbarian","swashbuckler"] inFeatsCore=false
+- Overpowering Charge L10 traits=["barbarian","fighter"] inFeatsCore=false
+- Towering Transformation L14 traits=["barbarian","druid","emotion","fear","mental","rage","visual"] inFeatsCore=false
+- Whirlwind Strike L14 traits=["barbarian","fighter","flourish"] inFeatsCore=false
+- Intimidating Strike L2 traits=["barbarian","emotion","fear","fighter","mental"] inFeatsCore=false
+- Barreling Charge L4 traits=["barbarian","fighter","flourish"] inFeatsCore=false
+- Brutal Crush L4 traits=["barbarian","druid","mental"] inFeatsCore=false
+- Creature Comforts L4 traits=["barbarian","druid"] inFeatsCore=false
+- Farabellus Flip L4 traits=["barbarian","fighter","ranger"] inFeatsCore=false
+- Inured to Alchemy L4 traits=["alchemist","barbarian","fighter"] inFeatsCore=false
+- Rip and Tear L4 traits=["barbarian","druid"] inFeatsCore=false
+- Swipe L4 traits=["barbarian","fighter","flourish"] inFeatsCore=false
+- Pain Tolerance L6 traits=["barbarian","fighter"] inFeatsCore=false
+- Reactive Strike L6 traits=["barbarian","champion","commander","exemplar","guardian","magus","swashbuckler"] inFeatsCore=true
+- Sudden Leap L8 traits=["barbarian","fighter"] inFeatsCore=false
+
+=== focus spells granted by barbarian? ===
+focus spells with barbarian trait: 0
+done

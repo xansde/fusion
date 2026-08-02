@@ -1,0 +1,81 @@
+=== CLASS ITEMS MAP (canonical name = uuid final segment) ===
+L1	Instinct
+L1	Rage
+L1	Quick-Tempered
+L3	Furious Footfalls
+L5	Brutality
+L7	Juggernaut
+L7	Weapon Specialization
+L9	Reflex Expertise
+L9	Raging Resistance
+L11	Mighty Rage
+L13	Greater Juggernaut
+L13	Medium Armor Expertise
+L13	Weapon Mastery
+L15	Indomitable Will
+L15	Greater Weapon Specialization (Barbarian)
+L17	Perception Mastery
+L17	Revitalizing Rage
+L19	Devastator
+L19	Armor Mastery
+total items: 19
+
+=== TOTAL CLASSES IN VENDOR === 27
+
+=== SHARED STATUS FOR EACH BARBARIAN FEATURE ===
+Instinct: referenced by 1 classes total (0 other) -> 
+Rage: referenced by 1 classes total (0 other) -> 
+Quick-Tempered: referenced by 1 classes total (0 other) -> 
+Furious Footfalls: referenced by 1 classes total (0 other) -> 
+Brutality: referenced by 1 classes total (0 other) -> 
+Juggernaut: referenced by 2 classes total (1 other) -> magus@15
+Weapon Specialization: referenced by 25 classes total (24 other) -> alchemist@13, animist@13, bard@13, champion@7, cleric@13, commander@7, druid@13, fighter@7, guardian@11, gunslinger@7, inventor@7, investigator@7, kineticist@13, magus@7, monk@7, oracle@13, ranger@7, rogue@7, sorcerer@13, summoner@13, swashbuckler@7, thaumaturge@7, witch@13, wizard@13
+Reflex Expertise: referenced by 12 classes total (11 other) -> bard@3, champion@9, cleric@11, druid@5, guardian@7, inventor@7, magus@5, sorcerer@9, thaumaturge@3, witch@9, wizard@5
+Raging Resistance: referenced by 1 classes total (0 other) -> 
+Mighty Rage: referenced by 1 classes total (0 other) -> 
+Greater Juggernaut: referenced by 1 classes total (0 other) -> 
+Medium Armor Expertise: referenced by 7 classes total (6 other) -> alchemist@13, druid@13, gunslinger@13, magus@11, ranger@11, thaumaturge@11
+Weapon Mastery: referenced by 5 classes total (4 other) -> commander@13, guardian@13, magus@13, thaumaturge@13
+Indomitable Will: referenced by 1 classes total (0 other) -> 
+Greater Weapon Specialization (Barbarian): referenced by 1 classes total (0 other) -> 
+Perception Mastery: referenced by 10 classes total (9 other) -> bard@11, commander@13, exemplar@17, gunslinger@7, investigator@7, ranger@7, rogue@7, swashbuckler@11, thaumaturge@9
+Revitalizing Rage: referenced by 1 classes total (0 other) -> 
+Devastator: referenced by 1 classes total (0 other) -> 
+Armor Mastery: referenced by 4 classes total (3 other) -> champion@13, commander@17, fighter@17
+
+=== CLASS-FEATURE FILES (slug match) ===
+total class-features files: 842
+Instinct | file=instinct.json | genericLevel=1 classLevel=1  | otherTags=[] | proficiencies=null | rules[]len=4
+Rage | file=rage.json | genericLevel=1 classLevel=1  | otherTags=[] | proficiencies=null | rules[]len=1
+Quick-Tempered | file=quick-tempered.json | genericLevel=1 classLevel=1  | otherTags=[] | proficiencies=null | rules[]len=1
+Furious Footfalls | file=furious-footfalls.json | genericLevel=3 classLevel=3  | otherTags=[] | proficiencies=null | rules[]len=2
+Brutality | file=brutality.json | genericLevel=5 classLevel=5  | otherTags=[] | proficiencies={"martial":{"rank":2},"simple":{"rank":2},"unarmed":{"rank":2}} | rules[]len=1
+Juggernaut | file=juggernaut.json | genericLevel=7 classLevel=7  | otherTags=[] | proficiencies={"fortitude":{"rank":3}} | rules[]len=3
+Weapon Specialization | file=weapon-specialization.json | genericLevel=7 classLevel=7  | otherTags=[] | proficiencies=null | rules[]len=3
+Reflex Expertise | file=reflex-expertise.json | genericLevel=3 classLevel=9 DIVERGE | otherTags=[] | proficiencies={"reflex":{"rank":2}} | rules[]len=0
+Raging Resistance | file=raging-resistance.json | genericLevel=9 classLevel=9  | otherTags=[] | proficiencies=null | rules[]len=0
+Mighty Rage | file=mighty-rage.json | genericLevel=11 classLevel=11  | otherTags=[] | proficiencies={"barbarian":{"attribute":null,"rank":2}} | rules[]len=2
+Greater Juggernaut | file=greater-juggernaut.json | genericLevel=13 classLevel=13  | otherTags=[] | proficiencies={"fortitude":{"rank":4}} | rules[]len=2
+Medium Armor Expertise | file=medium-armor-expertise.json | genericLevel=11 classLevel=13 DIVERGE | otherTags=[] | proficiencies={"light":{"rank":2},"medium":{"rank":2},"unarmored":{"rank":2}} | rules[]len=0
+Weapon Mastery | file=weapon-mastery.json | genericLevel=13 classLevel=13  | otherTags=[] | proficiencies={"martial":{"rank":3},"simple":{"rank":3},"unarmed":{"rank":3}} | rules[]len=0
+Indomitable Will | file=indomitable-will.json | genericLevel=15 classLevel=15  | otherTags=[] | proficiencies={"will":{"rank":3}} | rules[]len=1
+Greater Weapon Specialization (Barbarian) | file=greater-weapon-specialization-barbarian.json | genericLevel=15 classLevel=15  | otherTags=[] | proficiencies=null | rules[]len=2
+Perception Mastery | file=perception-mastery.json | genericLevel=7 classLevel=17 DIVERGE | otherTags=[] | proficiencies={"perception":{"rank":3}} | rules[]len=2
+Revitalizing Rage | file=revitalizing-rage.json | genericLevel=17 classLevel=17  | otherTags=[] | proficiencies=null | rules[]len=0
+Devastator | file=devastator.json | genericLevel=19 classLevel=19  | otherTags=[] | proficiencies={"barbarian":{"attribute":null,"rank":3}} | rules[]len=0
+Armor Mastery | file=armor-mastery.json | genericLevel=13 classLevel=19 DIVERGE | otherTags=[] | proficiencies={"light":{"rank":3},"medium":{"rank":3},"unarmored":{"rank":3}} | rules[]len=1
+
+=== barbarian-instinct axis ===
+count: 10
+- Animal Instinct (file=animal-instinct.json) level=1 rules[]len=39 traits={"otherTags":["barbarian-instinct"],"rarity":"common","value":["barbarian"]}
+- Bloodrager (file=bloodrager.json) level=1 rules[]len=9 traits={"otherTags":["barbarian-instinct","class-archetype"],"rarity":"common","value":["barbarian"]}
+- Decay Instinct (file=decay-instinct.json) level=1 rules[]len=8 traits={"otherTags":["barbarian-instinct"],"rarity":"common","value":["barbarian"]}
+- Dragon Instinct (file=dragon-instinct.json) level=1 rules[]len=11 traits={"otherTags":["barbarian-instinct"],"rarity":"common","value":["barbarian"]}
+- Elemental Instinct (file=elemental-instinct.json) level=1 rules[]len=11 traits={"otherTags":["barbarian-instinct"],"rarity":"common","value":["barbarian"]}
+- Fury Instinct (file=fury-instinct.json) level=1 rules[]len=6 traits={"otherTags":["barbarian-instinct"],"rarity":"common","value":["barbarian"]}
+- Giant Instinct (file=giant-instinct.json) level=1 rules[]len=5 traits={"otherTags":["barbarian-instinct"],"rarity":"common","value":["barbarian"]}
+- Ligneous Instinct (file=ligneous-instinct.json) level=1 rules[]len=7 traits={"otherTags":["barbarian-instinct"],"rarity":"common","value":["barbarian"]}
+- Spirit Instinct (file=spirit-instinct.json) level=1 rules[]len=7 traits={"otherTags":["barbarian-instinct"],"rarity":"common","value":["barbarian"]}
+- Superstition Instinct (file=superstition-instinct.json) level=1 rules[]len=11 traits={"otherTags":["barbarian-instinct"],"rarity":"common","value":["barbarian"]}
+
+done

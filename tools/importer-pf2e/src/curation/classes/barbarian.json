@@ -1,0 +1,96 @@
+{
+  "class": "barbarian",
+  "displayName": "Barbarian",
+  "vendorClassFile": "classes/barbarian.json",
+  "keyAbilityOptions": ["str"],
+  "hp": 12,
+  "levelBasis": "class",
+  "choiceAxes": [
+    {
+      "otherTag": "barbarian-instinct",
+      "featureNameInItemsMap": "Instinct",
+      "level": 1,
+      "choose": 1,
+      "optionCount": 9,
+      "slotType": "instinct"
+    }
+  ],
+  "classFeats": {
+    "trait": "barbarian",
+    "includeSharedClassFeats": true,
+    "levelMax": 20,
+    "extraNames": [],
+    "excludeNames": []
+  },
+  "classFeatures": {
+    "fromItemsMap": true,
+    "extraNames": ["Rage", "Quick-Tempered"],
+    "sharedWithOtherClasses": [
+      "Juggernaut",
+      "Weapon Specialization",
+      "Reflex Expertise",
+      "Medium Armor Expertise",
+      "Weapon Mastery",
+      "Perception Mastery",
+      "Armor Mastery"
+    ],
+    "alreadyInPacks": [
+      "Juggernaut",
+      "Weapon Specialization",
+      "Reflex Expertise",
+      "Medium Armor Expertise",
+      "Weapon Mastery"
+    ],
+    "missingFromPacks": [
+      "Instinct",
+      "Rage",
+      "Quick-Tempered",
+      "Furious Footfalls",
+      "Brutality",
+      "Raging Resistance",
+      "Mighty Rage",
+      "Greater Juggernaut",
+      "Indomitable Will",
+      "Greater Weapon Specialization (Barbarian)",
+      "Perception Mastery",
+      "Revitalizing Rage",
+      "Devastator",
+      "Armor Mastery"
+    ]
+  },
+  "spellcasting": null,
+  "focusSpells": { "names": [], "alreadyInPacks": [] },
+  "prerequisites": {
+    "internalChains": [
+      ["Great Cleave", "Cleave"],
+      ["Draconic Arrogance", "Dragon Instinct"],
+      ["Dragon's Rage Wings", "Dragon Instinct"],
+      ["Predator's Pounce", "Animal Instinct"],
+      ["Spirit's Wrath", "Spirit Instinct"],
+      ["Sunder Spell", "Superstition Instinct"]
+    ],
+    "referencesOutsideSelection": [
+      "Brutal Crush: prereq \"animal instinct or untamed order\" (Untamed Order e feature de Druid, fora do conjunto barbarian)",
+      "Creature Comforts: prereq \"animal instinct or untamed order\" (idem)",
+      "Rip and Tear: prereq \"animal instinct or untamed order\" (idem)"
+    ]
+  },
+  "dedupe": {
+    "featsAlreadyInPacks": ["Reactive Strike"],
+    "collisionsDetected": [
+      "Greater Weapon Specialization (Barbarian) [sourceId 7JjhxMFo8DMwpGx0] vs Greater Weapon Specialization generico [sourceId Z7HX6TeFsaup7Dx9, ja em class-features-core]: docs distintos, mesmo prefixo de nome; manter o sufixo (Barbarian), nao reusar o generico.",
+      "Rage: existe como class-feature (concede a acao, sourceId WZUCvxqbigXos1L9) e como action (a atividade em si, sourceId Ah5g9pDwWF9b9VW9, ja em actions-core); nao conflatar os dois docs.",
+      "Quick-Tempered: mesmo padrao de Rage - class-feature (sourceId 04lXNnt73rF3RNc4) x action (sourceId a9PzINjFTO5GvAJN, ja em actions-core).",
+      "Bloodrager (class-feature com otherTags [barbarian-instinct, class-archetype]) NAO entra no eixo barbarian-instinct: depende de GrantItem para Compendium.pf2e.feats-srd.Item.Bloodrager Dedication (feat de arquetipo) no nivel 2, fora do escopo desta rodada (sem arquetipos de multiclasse)."
+    ]
+  },
+  "notes": [
+    "classDoc.entry.name == segmento final da uuid para as 19 entradas do items{} do Barbarian; nao ha armadilha do tipo Magus/Reflex Expertise neste classDoc.",
+    "4 features do items{} tem nivel divergente entre o items{} da classe e o system.level.value generico do arquivo class-feature (o generico mente, usar sempre o nivel do items{} da classe): Reflex Expertise (generico 3, classe 9), Medium Armor Expertise (generico 11, classe 13), Perception Mastery (generico 7, classe 17), Armor Mastery (generico 13, classe 19).",
+    "proficiencyUpgrades do Barbarian usa a chave 'barbarian' (nao 'class') em subfeatures.proficiencies de Mighty Rage (rank 2, L11) e Devastator (rank 3, L19) - e o rank da Class DC.",
+    "Nenhum focus spell e concedido pelo Barbarian (classDoc.system.spellcasting=0; 0 arquivos em spells/focus com trait barbarian).",
+    "9 opcoes validas no eixo barbarian-instinct: Animal, Decay, Dragon, Elemental, Fury, Giant, Ligneous, Spirit, Superstition Instinct. Bloodrager (10a opcao no vendor) foi excluida - ver dedupe.collisionsDetected.",
+    "16 shared-class-feats carregam o trait barbarian; todos tem 2+ traits de classe simultaneos (ex.: Sudden Charge = barbarian+fighter, Reactive Strike = 7 classes). Isso torna a derivacao de class_level AMBIGUA sob a preparacao de multiclasse (secao 4.1 do plano) - relatorio tem a lista completa e a decisao proposta.",
+    "9 class feats do Barbarian tem prerequisito de pericia/sentido em texto livre (ex.: 'expert in Athletics', 'Acute Scent or scent') sem match nominal contra feat/feature/instinct do proprio conjunto - nao mecanizaveis como aresta, ficam como atributo textual do no."
+  ]
+}

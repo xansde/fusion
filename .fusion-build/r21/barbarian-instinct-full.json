@@ -1,0 +1,3021 @@
+[
+  {
+    "_id": "0FtzFbUrN56KA67z",
+    "img": "icons/creatures/abilities/cougar-pounce-stalk-black.webp",
+    "name": "Animal Instinct",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": {
+        "value": "<p>The fury of a wild predator fills you when you Rage, granting you ferocious unarmed attacks. Cultures that revere vicious animals (such as apes or bears) give rise to barbarians with this instinct. You might also be at war with an uncontrollable, animalistic side of your personality, or you might be a descendant of a werewolf or another werecreature. Select an animal from the Animal Instincts table that best matches your chosen animal.</p>\n<p><strong>Instinct Ability—Bestial Rage</strong> While raging, you gain your chosen animal's unarmed attack (or attacks), but you're unable to use weapons. The specific attack gained, the damage it deals, and its traits are listed in the Animal Instincts table. These attacks are in the brawling group. Your Rage action gains the morph and primal traits.</p>\n<p><strong>Specialization Ability (7th)</strong> Increase the damage die size for the unarmed attacks granted by your chosen animal by one step, and increase the additional damage from Rage from 2 to 5 for your chosen animal's unarmed attacks. If you have greater weapon specialization, increase the damage from Rage from 5 to 12 for your chosen animal's unarmed attacks.</p>\n<p><strong>Raging Resistance (9th)</strong> You resist piercing and slashing damage.</p><h2>Animal Instincts</h2><table class=\"pf2e remaster\"><thead><tr><th>Animal</th><th>Attack</th><th>Damage</th><th>Traits</th></tr></thead><tbody><tr><td>Ankylosaurus</td><td>Tail</td><td>1d10 B</td><td>Razing, unarmed</td></tr><tr><td>Ant</td><td>Mandibles</td><td>1d10 P</td><td>Grapple, unarmed</td></tr><tr><td>Ape</td><td>Fist</td><td>1d10 B</td><td>Grapple, unarmed</td></tr><tr><td rowspan=\"2\">Bat</td><td>Fangs</td><td>1d10 P</td><td>Unarmed</td></tr><tr><td>Wings</td><td>1d4 P</td><td>Parry, unarmed</td></tr><tr><td rowspan=\"2\">Bear</td><td>Jaws</td><td>1d10 P</td><td>Unarmed</td></tr><tr><td>Claw</td><td>1d6 S</td><td>Agile, unarmed</td></tr><tr><td rowspan=\"2\">Bird</td><td>Beak</td><td>1d10 P</td><td>Unarmed</td></tr><tr><td>Talon</td><td>1d6 S</td><td>Agile, unarmed</td></tr><tr><td>Brontosaurus</td><td>Tail</td><td>1d10 B</td><td>Trip, unarmed</td></tr><tr><td>Bull</td><td>Horn</td><td>1d10 P</td><td>Shove, unarmed</td></tr><tr><td rowspan=\"2\">Cat</td><td>Jaws</td><td>1d10 P</td><td>Unarmed</td></tr><tr><td>Claw</td><td>1d6 S</td><td>Agile, unarmed</td></tr><tr><td rowspan=\"2\">Crab</td><td>Claw</td><td>1d10 B</td><td>Razing, unarmed</td></tr><tr><td>Claw</td><td>1d4 S</td><td>Parry, unarmed</td></tr><tr><td rowspan=\"2\">Crocodile</td><td>Jaws</td><td>1d10 P</td><td>Unarmed</td></tr><tr><td>Tail</td><td>1d6 B</td><td>Agile, unarmed</td></tr><tr><td>Deer</td><td>Antler</td><td>1d10 P</td><td>Grapple, unarmed</td></tr><tr><td rowspan=\"2\">Frog</td><td>Jaws</td><td>1d10 B</td><td>Unarmed</td></tr><tr><td>Tongue</td><td>1d6 B</td><td>Agile, unarmed</td></tr><tr><td>Orca</td><td>Jaws</td><td>1d8 P</td><td>Forceful, unarmed</td></tr><tr><td rowspan=\"2\">Scorpion</td><td>Stinger</td><td>1d6 P</td><td>Reach, unarmed, venomous</td></tr><tr><td>Pincer</td><td>1d4 S</td><td>Parry, unarmed</td></tr><tr><td>Seal</td><td>Jaws</td><td>1d10 P</td><td>Grapple, unarmed</td></tr><tr><td>Shark</td><td>Jaws</td><td>1d10 P</td><td>Grapple, unarmed</td></tr><tr><td>Snake</td><td>Fangs</td><td>1d10 P</td><td>Grapple, unarmed</td></tr><tr><td rowspan=\"2\">Spider</td><td>Fangs</td><td>1d8 P</td><td>Grapple, unarmed, venomous</td></tr><tr><td>Web</td><td>Special*</td><td>Range increment 15 feet</td></tr><tr><td rowspan=\"2\">Tyrannosaurus</td><td>Jaws</td><td>1d8 P</td><td>Deadly d12, unarmed</td></tr><tr><td>Tail</td><td>1d6 B</td><td>Agile, unarmed</td></tr><tr><td>Wasp</td><td>Stinger</td><td>1d4 P</td><td>Backstabber, deadly d8, unarmed, venomous</td></tr><tr><td>Wolf</td><td>Jaws</td><td>1d10 P</td><td>Trip, unarmed</td></tr></tbody></table><p>*The spider's web attack deals no damage, but the target takes a –10-foot circumstance penalty to its Speeds for 1 round on a hit. If a target is hit a second time by the same character's web attack while they have this penalty, they're instead @UUID[Compendium.pf2e.conditionitems.Item.Immobilized] until they succeed at a check to @UUID[Compendium.pf2e.actionspf2e.Item.Escape] against your class DC.</p>"
+      },
+      "level": {
+        "value": 1
+      },
+      "prerequisites": {
+        "value": []
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "choices": [
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Animal.Ankylosaurus",
+              "value": "ankylosaurus"
+            },
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Animal.Ant",
+              "value": "ant"
+            },
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Animal.Ape",
+              "value": "ape"
+            },
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Animal.Bat",
+              "value": "bat"
+            },
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Animal.Bear",
+              "value": "bear"
+            },
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Animal.Bird",
+              "value": "bird"
+            },
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Animal.Brontosaurus",
+              "value": "brontosaurus"
+            },
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Animal.Bull",
+              "value": "bull"
+            },
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Animal.Cat",
+              "value": "cat"
+            },
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Animal.Crab",
+              "value": "crab"
+            },
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Animal.Crocodile",
+              "value": "crocodile"
+            },
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Animal.Deer",
+              "value": "deer"
+            },
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Animal.Frog",
+              "value": "frog"
+            },
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Animal.Orca",
+              "value": "orca"
+            },
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Animal.Scorpion",
+              "value": "scorpion"
+            },
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Animal.Seal",
+              "value": "seal"
+            },
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Animal.Shark",
+              "value": "shark"
+            },
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Animal.Snake",
+              "value": "snake"
+            },
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Animal.Spider",
+              "value": "spider"
+            },
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Animal.Tyrannosaurus",
+              "value": "tyrannosaurus"
+            },
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Animal.Wasp",
+              "value": "wasp"
+            },
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Animal.Wolf",
+              "value": "wolf"
+            }
+          ],
+          "key": "ChoiceSet",
+          "prompt": "PF2E.SpecificRule.Barbarian.Animal.Prompt",
+          "rollOption": "animal-instinct"
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "class:barbarian",
+            {
+              "gte": [
+                "self:level",
+                7
+              ]
+            }
+          ],
+          "selector": "{item|_id}-damage",
+          "slug": "rage",
+          "value": 5
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "class:barbarian",
+            "feature:greater-weapon-specialization"
+          ],
+          "selector": "{item|_id}-damage",
+          "slug": "rage",
+          "value": 12
+        },
+        {
+          "key": "Resistance",
+          "predicate": [
+            "self:effect:rage",
+            "feature:raging-resistance"
+          ],
+          "type": [
+            "piercing",
+            "slashing"
+          ],
+          "value": "@actor.flags.system.ragingResistance"
+        },
+        {
+          "key": "DamageDice",
+          "override": {
+            "upgrade": true
+          },
+          "predicate": [
+            {
+              "gte": [
+                "self:level",
+                7
+              ]
+            },
+            {
+              "not": "feat:barbarian-dedication"
+            }
+          ],
+          "selector": "{item|_id}-damage"
+        },
+        {
+          "itemType": "action",
+          "key": "ItemAlteration",
+          "mode": "add",
+          "predicate": [
+            "item:slug:rage",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "property": "traits",
+          "value": "morph"
+        },
+        {
+          "itemType": "action",
+          "key": "ItemAlteration",
+          "mode": "add",
+          "predicate": [
+            "item:slug:rage",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "property": "traits",
+          "value": "primal"
+        },
+        {
+          "baseType": "fist",
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "bludgeoning",
+              "dice": 1,
+              "die": "d10"
+            }
+          },
+          "group": "brawling",
+          "img": "systems/pf2e/icons/unarmed-attacks/ape-fist.webp",
+          "key": "Strike",
+          "label": "PF2E.Strike.Fist.Label",
+          "predicate": [
+            "animal-instinct:ape",
+            "self:effect:rage",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-fist",
+          "traits": [
+            "grapple",
+            "unarmed"
+          ]
+        },
+        {
+          "baseType": "jaws",
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "piercing",
+              "dice": 1,
+              "die": "d10"
+            }
+          },
+          "group": "brawling",
+          "img": "icons/creatures/abilities/mouth-teeth-long-red.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Jaws",
+          "predicate": [
+            "self:effect:rage",
+            {
+              "or": [
+                "animal-instinct:bear",
+                "animal-instinct:cat"
+              ]
+            },
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-jaws",
+          "traits": [
+            "unarmed"
+          ]
+        },
+        {
+          "baseType": "jaws",
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "bludgeoning",
+              "dice": 1,
+              "die": "d10"
+            }
+          },
+          "group": "brawling",
+          "img": "icons/creatures/abilities/mouth-teeth-long-red.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Jaws",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:frog",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-jaws",
+          "traits": [
+            "unarmed"
+          ]
+        },
+        {
+          "baseType": "jaws",
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "piercing",
+              "dice": 1,
+              "die": "d10"
+            }
+          },
+          "group": "brawling",
+          "img": "icons/creatures/abilities/mouth-teeth-long-red.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Jaws",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:wolf",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-jaws",
+          "traits": [
+            "unarmed",
+            "trip"
+          ]
+        },
+        {
+          "baseType": "claw",
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "slashing",
+              "dice": 1,
+              "die": "d6"
+            }
+          },
+          "group": "brawling",
+          "img": "icons/commodities/claws/claw-bear-brown-grey.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Claw",
+          "predicate": [
+            "self:effect:rage",
+            {
+              "or": [
+                "animal-instinct:bear",
+                "animal-instinct:cat"
+              ]
+            },
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-claw",
+          "traits": [
+            "unarmed",
+            "agile"
+          ]
+        },
+        {
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "piercing",
+              "dice": 1,
+              "die": "d10"
+            }
+          },
+          "group": "brawling",
+          "img": "icons/creatures/mammals/ox-bull-horned-glowing-orange.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Horn",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:bull",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-horn",
+          "traits": [
+            "unarmed",
+            "shove"
+          ]
+        },
+        {
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "piercing",
+              "dice": 1,
+              "die": "d10"
+            }
+          },
+          "group": "brawling",
+          "img": "icons/commodities/bones/horn-antler-brown-red.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Antler",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:deer",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-antler",
+          "traits": [
+            "unarmed",
+            "grapple"
+          ]
+        },
+        {
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "bludgeoning",
+              "dice": 1,
+              "die": "d6"
+            }
+          },
+          "group": "brawling",
+          "img": "icons/commodities/biological/tongue-pink.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Tongue",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:frog",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-tongue",
+          "traits": [
+            "unarmed",
+            "agile"
+          ]
+        },
+        {
+          "baseType": "jaws",
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "piercing",
+              "dice": 1,
+              "die": "d10"
+            }
+          },
+          "group": "brawling",
+          "img": "icons/creatures/abilities/mouth-teeth-long-red.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Jaws",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:shark",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-jaws",
+          "traits": [
+            "unarmed",
+            "grapple"
+          ]
+        },
+        {
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "piercing",
+              "dice": 1,
+              "die": "d10"
+            }
+          },
+          "group": "brawling",
+          "img": "systems/pf2e/icons/unarmed-attacks/fangs.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Fangs",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:snake",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-fangs",
+          "traits": [
+            "unarmed",
+            "grapple"
+          ]
+        },
+        {
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "bludgeoning",
+              "dice": 1,
+              "die": "d10"
+            }
+          },
+          "group": "brawling",
+          "img": "systems/pf2e/icons/unarmed-attacks/tail.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Tail",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:ankylosaurus",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-tail",
+          "traits": [
+            "unarmed",
+            "razing"
+          ]
+        },
+        {
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "piercing",
+              "dice": 1,
+              "die": "d10"
+            }
+          },
+          "group": "brawling",
+          "img": "icons/creatures/invertebrates/spider-mandibles-brown.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Mandibles",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:ant",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-mandibles",
+          "traits": [
+            "unarmed",
+            "grapple"
+          ]
+        },
+        {
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "piercing",
+              "dice": 1,
+              "die": "d10"
+            }
+          },
+          "group": "brawling",
+          "img": "systems/pf2e/icons/unarmed-attacks/fangs.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Fangs",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:bat",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-fangs",
+          "traits": [
+            "unarmed"
+          ]
+        },
+        {
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "piercing",
+              "dice": 1,
+              "die": "d4"
+            }
+          },
+          "group": "brawling",
+          "img": "systems/pf2e/icons/unarmed-attacks/wing.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Wing",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:bat",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-wing",
+          "traits": [
+            "unarmed",
+            "parry"
+          ]
+        },
+        {
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "piercing",
+              "dice": 1,
+              "die": "d10"
+            }
+          },
+          "group": "brawling",
+          "img": "systems/pf2e/icons/unarmed-attacks/beak.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Beak",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:bird",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-beak",
+          "traits": [
+            "unarmed"
+          ]
+        },
+        {
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "slashing",
+              "dice": 1,
+              "die": "d6"
+            }
+          },
+          "group": "brawling",
+          "img": "systems/pf2e/icons/unarmed-attacks/talon.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Talon",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:bird",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-talon",
+          "traits": [
+            "unarmed",
+            "agile"
+          ]
+        },
+        {
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "bludgeoning",
+              "dice": 1,
+              "die": "d10"
+            }
+          },
+          "group": "brawling",
+          "img": "systems/pf2e/icons/unarmed-attacks/tail.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Tail",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:brontosaurus",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-tail",
+          "traits": [
+            "unarmed",
+            "trip"
+          ]
+        },
+        {
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "bludgeoning",
+              "dice": 1,
+              "die": "d10"
+            }
+          },
+          "group": "brawling",
+          "img": "icons/commodities/claws/claw-pincer-red.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.BigClaw",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:crab",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-big-claw",
+          "traits": [
+            "unarmed",
+            "razing"
+          ]
+        },
+        {
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "slashing",
+              "dice": 1,
+              "die": "d4"
+            }
+          },
+          "group": "brawling",
+          "img": "icons/commodities/claws/claw-pincer-red.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Claw",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:crab",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-claw",
+          "traits": [
+            "unarmed",
+            "parry"
+          ]
+        },
+        {
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "piercing",
+              "dice": 1,
+              "die": "d10"
+            }
+          },
+          "group": "brawling",
+          "img": "systems/pf2e/icons/unarmed-attacks/jaws.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Jaws",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:crocodile",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-jaws",
+          "traits": [
+            "unarmed"
+          ]
+        },
+        {
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "bludgeoning",
+              "dice": 1,
+              "die": "d6"
+            }
+          },
+          "group": "brawling",
+          "img": "systems/pf2e/icons/unarmed-attacks/tail.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Tail",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:crocodile",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-tail",
+          "traits": [
+            "unarmed",
+            "agile"
+          ]
+        },
+        {
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "piercing",
+              "dice": 1,
+              "die": "d8"
+            }
+          },
+          "group": "brawling",
+          "img": "systems/pf2e/icons/unarmed-attacks/jaws.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Jaws",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:orca",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-jaws",
+          "traits": [
+            "unarmed",
+            "forceful"
+          ]
+        },
+        {
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "piercing",
+              "dice": 1,
+              "die": "d6"
+            }
+          },
+          "group": "brawling",
+          "img": "systems/pf2e/icons/unarmed-attacks/stinger.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Stinger",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:scorpion",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-stinger",
+          "traits": [
+            "unarmed",
+            "venomous",
+            "reach"
+          ]
+        },
+        {
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "slashing",
+              "dice": 1,
+              "die": "d4"
+            }
+          },
+          "group": "brawling",
+          "img": "systems/pf2e/icons/unarmed-attacks/pincer.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Pincer",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:scorpion",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-pincer",
+          "traits": [
+            "unarmed",
+            "parry"
+          ]
+        },
+        {
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "piercing",
+              "dice": 1,
+              "die": "d10"
+            }
+          },
+          "group": "brawling",
+          "img": "systems/pf2e/icons/unarmed-attacks/jaws.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Jaws",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:seal",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-jaws",
+          "traits": [
+            "unarmed",
+            "grapple"
+          ]
+        },
+        {
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "piercing",
+              "dice": 1,
+              "die": "d8"
+            }
+          },
+          "group": "brawling",
+          "img": "systems/pf2e/icons/unarmed-attacks/fangs.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Fangs",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:spider",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-fangs",
+          "traits": [
+            "unarmed",
+            "grapple",
+            "venomous"
+          ]
+        },
+        {
+          "category": "unarmed",
+          "group": "brawling",
+          "img": "icons/commodities/materials/material-webbing.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Web",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:spider",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "range": {
+            "increment": 15
+          },
+          "slug": "instinct-web",
+          "traits": [
+            "unarmed"
+          ]
+        },
+        {
+          "key": "Note",
+          "selector": "instinct-web-attack-roll",
+          "text": "PF2E.SpecificRule.Barbarian.Animal.WebNote",
+          "title": "PF2E.SpecificRule.Barbarian.Animal.Spider"
+        },
+        {
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "piercing",
+              "dice": 1,
+              "die": "d8"
+            }
+          },
+          "group": "brawling",
+          "img": "systems/pf2e/icons/unarmed-attacks/jaws.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Jaws",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:tyrannosaurus",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-jaws",
+          "traits": [
+            "unarmed",
+            "deadly-d12"
+          ]
+        },
+        {
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "bludgeoning",
+              "dice": 1,
+              "die": "d6"
+            }
+          },
+          "group": "brawling",
+          "img": "systems/pf2e/icons/unarmed-attacks/tail.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Tail",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:tyrannosaurus",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-tail",
+          "traits": [
+            "unarmed",
+            "agile"
+          ]
+        },
+        {
+          "category": "unarmed",
+          "damage": {
+            "base": {
+              "damageType": "piercing",
+              "dice": 1,
+              "die": "d4"
+            }
+          },
+          "group": "brawling",
+          "img": "systems/pf2e/icons/unarmed-attacks/stinger.webp",
+          "key": "Strike",
+          "label": "PF2E.BattleForm.Attack.Pincer",
+          "predicate": [
+            "self:effect:rage",
+            "animal-instinct:wasp",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "slug": "instinct-stinger",
+          "traits": [
+            "unarmed",
+            "backstabber",
+            "deadly-d8",
+            "venomous"
+          ]
+        },
+        {
+          "itemType": "weapon",
+          "key": "ItemAlteration",
+          "mode": "add",
+          "predicate": [
+            "item:id:{item|id}"
+          ],
+          "property": "other-tags",
+          "value": "instinct-unarmed-strike"
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "barbarian-instinct"
+        ],
+        "rarity": "common",
+        "value": [
+          "barbarian"
+        ]
+      }
+    },
+    "type": "feat"
+  },
+  {
+    "_id": "qwvO0B9t7LgQCVbV",
+    "img": "icons/skills/wounds/blood-cells-vessel-red-orange.webp",
+    "name": "Bloodrager",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": {
+        "value": "<p>You use the power of ingested blood to generate magical power and fuel you in combat, transforming you into a horrifyingly fearsome opponent. You must select Bloodrager Dedication as your 2nd-level class feat.</p>\n<p><strong>Prerequisites:</strong> You must be a barbarian.</p>\n<p><strong>Bloodrager Adjustments:</strong> You are trained in Athletics, Medicine, and a number of additional skills equal to 2 plus your Intelligence modifier, instead of your normal starting skill proficiencies. You must choose the bloodrager instinct for your barbarian instinct.</p><h2>Bloodrager Instinct</h2><p>Drinking the potent magical blood of supernatural creatures has changed you and awakened magical power within you, along with a grim thirst.</p>\n<p><strong>Blood Rage (Instinct Ability):</strong> When raging, your physical attacks deal extra persistent bleed damage equal to half your additional damage from Rage. When you Cast a Spell that requires a spell attack roll while raging, apply the additional damage from Rage to that spell, even on a failure.</p>\n<p><strong>Specialization Ability:</strong> When using blood rage, increase the additional damage from Rage from 2 to 4. If you have greater weapon specialization, instead increase the damage from 4 to 8.</p>\n<p><strong>Raging Resistance:</strong> You resist slashing damage and persistent bleed damage, as well as damage dealt by the creature whose blood you last drank using Harvest Blood (see below), regardless of the damage type.</p>"
+      },
+      "level": {
+        "value": 1
+      },
+      "prerequisites": {
+        "value": []
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder War of Immortals"
+      },
+      "rules": [
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "self:effect:rage",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "selectors": [
+            "strike-damage"
+          ],
+          "slug": "rage",
+          "value": 2
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "class:barbarian",
+            {
+              "gte": [
+                "self:level",
+                7
+              ]
+            }
+          ],
+          "selector": "strike-damage",
+          "slug": "rage",
+          "value": 4
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "class:barbarian",
+            "feature:greater-weapon-specialization"
+          ],
+          "selector": "strike-damage",
+          "slug": "rage",
+          "value": 8
+        },
+        {
+          "key": "Resistance",
+          "predicate": [
+            "self:effect:rage",
+            "feature:raging-resistance"
+          ],
+          "type": [
+            "bleed",
+            "slashing"
+          ],
+          "value": "@actor.flags.system.ragingResistance"
+        },
+        {
+          "definition": [
+            "origin:mark:harvest-blood"
+          ],
+          "key": "Resistance",
+          "label": "PF2E.IWR.Custom.HarvestBlood",
+          "predicate": [
+            "self:effect:rage",
+            "feature:raging-resistance"
+          ],
+          "type": "custom",
+          "value": "@actor.flags.system.ragingResistance"
+        },
+        {
+          "damageType": "bleed",
+          "key": "FlatModifier",
+          "predicate": [
+            "self:effect:rage",
+            "item:damage:category:physical"
+          ],
+          "selector": [
+            "attack-damage"
+          ],
+          "value": "ternary(gte(@actor.level,15),4,ternary(gte(@actor.level,7),2,1))"
+        },
+        {
+          "key": "FlatModifier",
+          "predicate": [
+            "self:effect:rage"
+          ],
+          "selector": [
+            "attack-spell-damage"
+          ],
+          "slug": "blood-rage-spell",
+          "value": "ternary(gte(@actor.level,15),8,ternary(gte(@actor.level,7),4,2))"
+        },
+        {
+          "key": "Note",
+          "outcome": [
+            "failure"
+          ],
+          "predicate": [
+            "self:effect:rage"
+          ],
+          "selector": "spell-attack-roll",
+          "text": "PF2E.SpecificRule.Barbarian.Bloodrager.SpellMiss",
+          "title": "PF2E.SpecificRule.Barbarian.Bloodrager.BloodRage"
+        },
+        {
+          "flag": "bloodragerDedication",
+          "key": "GrantItem",
+          "predicate": [
+            {
+              "gte": [
+                "self:level",
+                2
+              ]
+            }
+          ],
+          "reevaluateOnUpdate": true,
+          "uuid": "Compendium.pf2e.feats-srd.Item.Bloodrager Dedication"
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "barbarian-instinct",
+          "class-archetype"
+        ],
+        "rarity": "common",
+        "value": [
+          "barbarian"
+        ]
+      }
+    },
+    "type": "feat"
+  },
+  {
+    "_id": "znxs0soGlusvRP39",
+    "img": "icons/magic/nature/root-vine-thorned-fire-purple.webp",
+    "name": "Decay Instinct",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": {
+        "value": "<p>Your rage is intrinsically tied to the decomposition of organic beings, and the new growth that decay allows. You may have meddled with ancient relics created by Ghorus, been infected by exposure to Ayrzul's Blight or the Tanglebriar, or been blessed by the green man Zibik. As you unleash your rage, you rot, becoming riddled with mold and flesh-eating fungi. Though this rot recedes when you let your emotions settle, it doesn't go away completely, and the scars left behind spread bit by bit throughout your lifetime, multiplying with every rage.</p>\n<h2>Anathema</h2>\n<p>Preventing the decomposition of dead creatures or plants is anathema to your instinct, as is destroying or interfering with the growth of molds or fungi in a natural setting. This doesn't prevent you from defending yourself against fungus creatures or hazards or harvesting fungi or molds solely for sustenance.</p>\n<h2>Rotting Rage (Instinct Ability)</h2>\n<p>When you rage, you can choose to increase the additional damage from Rage from 2 to 6 and change its damage type to poison, instead of the damage type for your weapon or unarmed attack. If you do this, your Rage action gains the primal and poison traits, and you take 1 damage at the end of each of your turns as your flesh decays. This damage can't be reduced or avoided by any means. You may make this choice only when your rage begins, and it remains in effect until your rage ends.</p>\n<h2>Specialization Ability<span style=\"float:right\">Level 7</span></h2>\n<p>When you use rotting rage, increase the additional damage from Rage from 6 to 10, but the damage you take at the end of your turn increases to 5. If you have greater weapon specialization, instead increase the damage from Rage when using rotting rage from 10 to 18, but the damage you take increases to 10.</p>\n<h2>Raging Resistance<span style=\"float:right\">Level 9</span></h2>\n<p>You resist poison damage, as well as damage dealt by the attacks and abilities of creatures with the fungus trait, regardless of the damage type.</p>"
+      },
+      "level": {
+        "value": 1
+      },
+      "prerequisites": {
+        "value": []
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder #202: Severed at the Root"
+      },
+      "rules": [
+        {
+          "key": "RollOption",
+          "label": "PF2E.SpecificRule.Barbarian.Decay.ToggleLabel",
+          "option": "rotting-rage",
+          "predicate": [
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "toggleable": true
+        },
+        {
+          "key": "Resistance",
+          "predicate": [
+            "self:effect:rage",
+            "feature:raging-resistance"
+          ],
+          "type": "poison",
+          "value": "@actor.flags.system.ragingResistance"
+        },
+        {
+          "definition": [
+            "origin:trait:fungus"
+          ],
+          "key": "Resistance",
+          "label": "PF2E.IWR.Custom.AllDamageFromFungus",
+          "predicate": [
+            "self:effect:rage",
+            "feature:raging-resistance"
+          ],
+          "type": "custom",
+          "value": "@actor.flags.system.ragingResistance"
+        },
+        {
+          "damageType": "poison",
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "rotting-rage"
+          ],
+          "selectors": [
+            "strike-damage"
+          ],
+          "slug": "rage",
+          "value": 6
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "class:barbarian",
+            "rotting-rage",
+            {
+              "gte": [
+                "self:level",
+                7
+              ]
+            }
+          ],
+          "selector": "strike-damage",
+          "slug": "rage",
+          "value": 10
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "class:barbarian",
+            "feature:greater-weapon-specialization",
+            "rotting-rage"
+          ],
+          "selector": "strike-damage",
+          "slug": "rage",
+          "value": 18
+        },
+        {
+          "itemType": "action",
+          "key": "ItemAlteration",
+          "mode": "add",
+          "predicate": [
+            "item:slug:rage",
+            "rotting-rage"
+          ],
+          "property": "traits",
+          "value": "primal"
+        },
+        {
+          "itemType": "action",
+          "key": "ItemAlteration",
+          "mode": "add",
+          "predicate": [
+            "item:slug:rage",
+            "rotting-rage"
+          ],
+          "property": "traits",
+          "value": "poison"
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "barbarian-instinct"
+        ],
+        "rarity": "common",
+        "value": [
+          "barbarian"
+        ]
+      }
+    },
+    "type": "feat"
+  },
+  {
+    "_id": "VDot7CDcXElxmkkz",
+    "img": "icons/creatures/abilities/dragon-fire-breath-orange.webp",
+    "name": "Dragon Instinct",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": {
+        "value": "<p>You summon the fury of a mighty dragon and manifest incredible abilities. Perhaps your culture reveres draconic majesty, or you gained insights by drinking or bathing in dragon's blood or watching a marauding wyrm burn your village. Select a type of dragon from the Dragon Instincts table as your instinct's dragon type. These are the dragons from Monster Core, but your GM might allow you to choose dragons from other sources and determine their tradition and dragon breath type.</p>\n<p><strong>Instinct Ability—Draconic Rage</strong> When you rage, you can increase the additional damage from Rage from 2 to 4 and change its damage type to match that of your instinct's dragon breath instead of the damage type for your weapon or unarmed attack. If you do this, your Rage action gains the trait matching your dragon instinct's tradition, as well as the trait matching the damage type where applicable.</p>\n<p><strong>Specialization Ability (7th)</strong> When you use draconic rage, you increase the additional damage from Rage from 4 to 8. If you have greater weapon specialization, instead increase the damage from Rage when using draconic rage from 8 to 16.</p>\n<p><strong>Raging Resistance (9th)</strong> You resist piercing damage and the damage type of your instinct's dragon breath.</p><h2>Dragon Instincts</h2><table class=\"pf2e remaster\"><thead><tr><th>Dragon</th><th>Tradition</th><th>Dragon Breath</th></tr></thead><tbody><tr><td>Adamantine</td><td>Primal</td><td>Bludgeoning</td></tr><tr><td>Barrage</td><td>Arcane</td><td>Force</td></tr><tr><td>Bog</td><td>Primal</td><td>Acid</td></tr><tr><td>Brine</td><td>Primal</td><td>Bludgeoning</td></tr><tr><td>Cinder</td><td>Primal</td><td>Fire</td></tr><tr><td>Cloud</td><td>Primal</td><td>Electricity</td></tr><tr><td>Conspirator</td><td>Occult</td><td>Poison</td></tr><tr><td>Coral</td><td>Primal</td><td>Bludgeoning</td></tr><tr><td>Crystal</td><td>Primal</td><td>Piercing</td></tr><tr><td>Delight</td><td>Divine</td><td>Spirit</td></tr><tr><td>Despair</td><td>Occult</td><td>Sonic</td></tr><tr><td>Diabolic</td><td>Divine</td><td>Fire</td></tr><tr><td>Empyreal</td><td>Divine</td><td>Spirit</td></tr><tr><td>Executor</td><td>Divine</td><td>Sonic</td></tr><tr><td>Forest</td><td>Primal</td><td>Piercing</td></tr><tr><td>Fortune</td><td>Arcane</td><td>Force</td></tr><tr><td>Horned</td><td>Primal</td><td>Poison</td></tr><tr><td>Magma</td><td>Primal</td><td>Fire</td></tr><tr><td>Mirage</td><td>Arcane</td><td>Mental</td></tr><tr><td>Mocking</td><td>Occult</td><td>Bludgeoning</td></tr><tr><td>Oath</td><td>Divine</td><td>Spirit</td></tr><tr><td>Omen</td><td>Occult</td><td>Mental</td></tr><tr><td>Phase</td><td>Arcane</td><td>Force</td></tr><tr><td>Requiem</td><td>Divine</td><td>Spirit</td></tr><tr><td>Resurrection</td><td>Divine</td><td>Void</td></tr><tr><td>Rime</td><td>Primal</td><td>Cold</td></tr><tr><td>Rune</td><td>Arcane</td><td>Fire</td></tr><tr><td>Sage</td><td>Occult</td><td>Mental</td></tr><tr><td>Sea</td><td>Primal</td><td>Bludgeoning</td></tr><tr><td>Sky</td><td>Divine</td><td>Electricity</td></tr><tr><td>Sovereign</td><td>Occult</td><td>Mental</td></tr><tr><td>Stormcrown</td><td>Primal</td><td>Electricity</td></tr><tr><td>Time</td><td>Arcane</td><td>Force</td></tr><tr><td>Umbral</td><td>Occult</td><td>Void</td></tr><tr><td>Underworld</td><td>Arcane</td><td>Fire</td></tr><tr><td>Vizier</td><td>Occult</td><td>Fire</td></tr><tr><td>Vorpal</td><td>Arcane</td><td>Void</td></tr><tr><td>Wailing</td><td>Arcane</td><td>Sonic</td></tr><tr><td>Whisper</td><td>Occult</td><td>Mental</td></tr><tr><td>Wish</td><td>Arcane</td><td>Mental</td></tr><tr><td>Black</td><td>Arcane</td><td>Line of Acid</td></tr><tr><td>Blue</td><td>Arcane</td><td>Line of Electricity</td></tr><tr><td>Green</td><td>Arcane</td><td>Cone of Poison</td></tr><tr><td>Red</td><td>Arcane</td><td>Cone of Fire</td></tr><tr><td>White</td><td>Arcane</td><td>Cone of Cold</td></tr><tr><td>Brass</td><td>Arcane</td><td>Line of Fire</td></tr><tr><td>Bronze</td><td>Arcane</td><td>Line of Electricity</td></tr><tr><td>Copper</td><td>Arcane</td><td>Line of Acid</td></tr><tr><td>Gold</td><td>Arcane</td><td>Cone of Fire</td></tr><tr><td>Silver</td><td>Arcane</td><td>Cone of Cold</td></tr></tbody></table>"
+      },
+      "level": {
+        "value": 1
+      },
+      "prerequisites": {
+        "value": []
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "choices": [
+            {
+              "label": "PF2E.Dragon.Adamantine",
+              "value": {
+                "damageType": "bludgeoning",
+                "dragonType": "adamantine",
+                "tradition": "primal"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Barrage",
+              "value": {
+                "damageType": "force",
+                "dragonType": "barrage",
+                "tradition": "arcane"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Bog",
+              "value": {
+                "damageType": "acid",
+                "dragonType": "bog",
+                "tradition": "primal"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Brine",
+              "value": {
+                "damageType": "bludgeoning",
+                "dragonType": "brine",
+                "tradition": "primal"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Cinder",
+              "value": {
+                "damageType": "fire",
+                "dragonType": "cinder",
+                "tradition": "primal"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Cloud",
+              "value": {
+                "damageType": "electricity",
+                "dragonType": "cloud",
+                "tradition": "primal"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Crystal",
+              "value": {
+                "damageType": "piercing",
+                "dragonType": "crystal",
+                "tradition": "primal"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Conspirator",
+              "value": {
+                "damageType": "poison",
+                "dragonType": "conspirator",
+                "tradition": "occult"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Coral",
+              "value": {
+                "damageType": "bludgeoning",
+                "dragonType": "coral",
+                "tradition": "primal"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Delight",
+              "value": {
+                "damageType": "spirit",
+                "dragonType": "delight",
+                "tradition": "divine"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Despair",
+              "value": {
+                "damageType": "sonic",
+                "dragonType": "despair",
+                "tradition": "occult"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Diabolic",
+              "value": {
+                "damageType": "fire",
+                "dragonType": "diabolic",
+                "tradition": "divine"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Empyreal",
+              "value": {
+                "damageType": "spirit",
+                "dragonType": "empyreal",
+                "tradition": "divine"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Executor",
+              "value": {
+                "damageType": "sonic",
+                "dragonType": "executor",
+                "tradition": "divine"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Forest",
+              "value": {
+                "damageType": "piercing",
+                "dragonType": "forest",
+                "tradition": "primal"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Fortune",
+              "value": {
+                "damageType": "force",
+                "dragonType": "fortune",
+                "tradition": "arcane"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Horned",
+              "value": {
+                "damageType": "poison",
+                "dragonType": "horned",
+                "tradition": "primal"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Magma",
+              "value": {
+                "damageType": "fire",
+                "dragonType": "magma",
+                "tradition": "primal"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Mirage",
+              "value": {
+                "damageType": "mental",
+                "dragonType": "mirage",
+                "tradition": "arcane"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Mocking",
+              "value": {
+                "damageType": "bludgeoning",
+                "dragonType": "mocking",
+                "tradition": "occult"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Oath",
+              "value": {
+                "damageType": "spirit",
+                "dragonType": "oath",
+                "tradition": "divine"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Omen",
+              "value": {
+                "damageType": "mental",
+                "dragonType": "omen",
+                "tradition": "occult"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Phase",
+              "value": {
+                "damageType": "force",
+                "dragonType": "phase",
+                "tradition": "arcane"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Requiem",
+              "value": {
+                "damageType": "spirit",
+                "dragonType": "requiem",
+                "tradition": "divine"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Resurrection",
+              "value": {
+                "damageType": "void",
+                "dragonType": "resurrection",
+                "tradition": "divine"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Rime",
+              "value": {
+                "damageType": "cold",
+                "dragonType": "rime",
+                "tradition": "primal"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Rune",
+              "value": {
+                "damageType": "fire",
+                "dragonType": "rune",
+                "tradition": "arcane"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Sage",
+              "value": {
+                "damageType": "mental",
+                "dragonType": "sage",
+                "tradition": "occult"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Stormcrown",
+              "value": {
+                "damageType": "electricity",
+                "dragonType": "stormcrown",
+                "tradition": "primal"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Time",
+              "value": {
+                "damageType": "force",
+                "dragonType": "time",
+                "tradition": "arcane"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Sea",
+              "value": {
+                "damageType": "bludgeoning",
+                "dragonType": "sea",
+                "tradition": "arcane"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Sky",
+              "value": {
+                "damageType": "electricity",
+                "dragonType": "sky",
+                "tradition": "divine"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Sovereign",
+              "value": {
+                "damageType": "mental",
+                "dragonType": "sovereign",
+                "tradition": "occult"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Umbral",
+              "value": {
+                "damageType": "void",
+                "dragonType": "umbral",
+                "tradition": "occult"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Underworld",
+              "value": {
+                "damageType": "fire",
+                "dragonType": "underworld",
+                "tradition": "arcane"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Vizier",
+              "value": {
+                "damageType": "fire",
+                "dragonType": "vizier",
+                "tradition": "occult"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Vorpal",
+              "value": {
+                "damageType": "void",
+                "dragonType": "vorpal",
+                "tradition": "arcane"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Wailing",
+              "value": {
+                "damageType": "sonic",
+                "dragonType": "wailing",
+                "tradition": "arcane"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Whisper",
+              "value": {
+                "damageType": "mental",
+                "dragonType": "whisper",
+                "tradition": "occult"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Wish",
+              "value": {
+                "damageType": "mental",
+                "dragonType": "wish",
+                "tradition": "arcane"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Black",
+              "value": {
+                "damageType": "acid",
+                "dragonType": "black",
+                "tradition": "arcane"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Blue",
+              "value": {
+                "damageType": "electricity",
+                "dragonType": "blue",
+                "tradition": "arcane"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Brass",
+              "value": {
+                "damageType": "fire",
+                "dragonType": "brass",
+                "tradition": "arcane"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Bronze",
+              "value": {
+                "damageType": "electricity",
+                "dragonType": "bronze",
+                "tradition": "arcane"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Copper",
+              "value": {
+                "damageType": "acid",
+                "dragonType": "copper",
+                "tradition": "arcane"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Gold",
+              "value": {
+                "damageType": "fire",
+                "dragonType": "gold",
+                "tradition": "arcane"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Green",
+              "value": {
+                "damageType": "poison",
+                "dragonType": "green",
+                "tradition": "arcane"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Silver",
+              "value": {
+                "damageType": "cold",
+                "dragonType": "silver",
+                "tradition": "arcane"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.Red",
+              "value": {
+                "damageType": "fire",
+                "dragonType": "red",
+                "tradition": "arcane"
+              }
+            },
+            {
+              "label": "PF2E.Dragon.White",
+              "value": {
+                "damageType": "cold",
+                "dragonType": "white",
+                "tradition": "arcane"
+              }
+            }
+          ],
+          "flag": "dragon",
+          "key": "ChoiceSet",
+          "prompt": "PF2E.SpecificRule.DragonDisciple.Prompt"
+        },
+        {
+          "key": "ActiveEffectLike",
+          "mode": "override",
+          "path": "flags.system.barbarian.instinct.dragon.tradition",
+          "value": "{item|flags.system.rulesSelections.dragon.tradition}"
+        },
+        {
+          "key": "ActiveEffectLike",
+          "mode": "override",
+          "path": "flags.system.barbarian.instinct.dragon.dragonType",
+          "value": "{item|flags.system.rulesSelections.dragon.dragonType}"
+        },
+        {
+          "key": "ActiveEffectLike",
+          "mode": "override",
+          "path": "flags.system.barbarian.instinct.dragon.damageType",
+          "value": "{item|flags.system.rulesSelections.dragon.damageType}"
+        },
+        {
+          "disabledIf": [
+            {
+              "not": "self:effect:rage"
+            }
+          ],
+          "disabledValue": true,
+          "key": "RollOption",
+          "label": "PF2E.SpecificRule.Barbarian.Dragon.ToggleLabel",
+          "option": "draconic-rage",
+          "predicate": [
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "toggleable": true,
+          "value": true
+        },
+        {
+          "damageType": "{item|flags.system.rulesSelections.dragon.damageType}",
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "draconic-rage"
+          ],
+          "selectors": [
+            "strike-damage"
+          ],
+          "slug": "rage",
+          "value": 4
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "draconic-rage",
+            "class:barbarian",
+            {
+              "gte": [
+                "self:level",
+                7
+              ]
+            }
+          ],
+          "selectors": [
+            "strike-damage"
+          ],
+          "slug": "rage",
+          "value": 8
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "draconic-rage",
+            "class:barbarian",
+            "feature:greater-weapon-specialization"
+          ],
+          "selectors": [
+            "strike-damage"
+          ],
+          "slug": "rage",
+          "value": 16
+        },
+        {
+          "key": "Resistance",
+          "predicate": [
+            "self:effect:rage",
+            "feature:raging-resistance"
+          ],
+          "type": [
+            "piercing",
+            "{item|flags.system.rulesSelections.dragon.damageType}"
+          ],
+          "value": "@actor.flags.system.ragingResistance"
+        },
+        {
+          "itemType": "action",
+          "key": "ItemAlteration",
+          "mode": "add",
+          "predicate": [
+            "item:slug:rage"
+          ],
+          "property": "traits",
+          "value": "{actor|flags.system.barbarian.instinct.dragon.damageType}"
+        },
+        {
+          "itemType": "action",
+          "key": "ItemAlteration",
+          "mode": "add",
+          "predicate": [
+            "item:slug:rage"
+          ],
+          "property": "traits",
+          "value": "{actor|flags.system.barbarian.instinct.dragon.tradition}"
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "barbarian-instinct"
+        ],
+        "rarity": "common",
+        "value": [
+          "barbarian"
+        ]
+      }
+    },
+    "type": "feat"
+  },
+  {
+    "_id": "0jSS6pgNXsC8k4o7",
+    "img": "icons/magic/symbols/elements-air-earth-fire-water.webp",
+    "name": "Elemental Instinct",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": {
+        "value": "<p>This instinct option for barbarians allows you to channel elemental forces, bonding with a single element and its associated plane. Perhaps your ancestors were elemental conjurers or blessed by an elemental lord. Select an element from the Elemental Instincts table to be your instinct's element. If your element offers multiple damage types, choose one of those type when you select your element.</p><table class=\"pf2e remaster\"><thead><tr><th>Element</th><th>Trait</th><th>Damage</th></tr></thead><tbody><tr><td>Air</td><td>Air</td><td>Electricity or slashing</td></tr><tr><td>Earth</td><td>Earth</td><td>Bludgeoning or piercing</td></tr><tr><td>Fire</td><td>Fire</td><td>Fire</td></tr><tr><td>Metal</td><td>Metal</td><td>Piercing or slashing</td></tr><tr><td>Water</td><td>Water</td><td>Bludgeoning or cold</td></tr><tr><td>Wood</td><td>Wood</td><td>Bludgeoning or piercing</td></tr></tbody></table><h2 class=\"title\">Anathema</h2><p>Disrespecting an elemental creature is anathema to your instinct; defending yourself against one is not. Purposefully despoiling the elemental plane associated with your element is anathema to your instinct, though this doesn't prevent you from responsibly altering that plane.</p><h2 class=\"title\">Elemental Rage</h2><p>While raging, you're cloaked in a vortex of elemental matter; you become @UUID[Compendium.pf2e.conditionitems.Item.Concealed] against ranged attacks. You can't use this concealment to @UUID[Compendium.pf2e.actionspf2e.Item.Hide] or @UUID[Compendium.pf2e.actionspf2e.Item.Sneak]. While raging, you increase the additional damage from Rage from 2 to 4 and change its damage type to the one you selected for your element.</p>\n<p>If you have any kineticist impulses with the same element type as the one you chose for your instinct, such as ones gained by taking the @UUID[Compendium.pf2e.feats-srd.Item.Kineticist Dedication] multiclass feat, you can use them while raging even if they have the concentrate trait.</p><h2 class=\"title\">Specialization Ability</h2><p>When you use elemental rage, you increase the damage from Rage from 4 to 6. If you have greater weapon specialization, instead increase the damage from Rage when using elemental rage from 6 to 12.</p><h2 class=\"title\">Raging Resistance</h2><p>You resist the damage dealt by attacks and abilities of elemental creatures of your chosen element, as well as creatures made of your element, regardless of the damage type. You also resist damage dealt by attacks, spells, and abilities with your elemental trait.</p>"
+      },
+      "level": {
+        "value": 1
+      },
+      "prerequisites": {
+        "value": []
+      },
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [
+        {
+          "actorFlag": true,
+          "choices": [
+            {
+              "label": "PF2E.TraitAir",
+              "value": "air"
+            },
+            {
+              "label": "PF2E.TraitEarth",
+              "value": "earth"
+            },
+            {
+              "label": "PF2E.TraitFire",
+              "value": "fire"
+            },
+            {
+              "label": "PF2E.TraitMetal",
+              "value": "metal"
+            },
+            {
+              "label": "PF2E.TraitWater",
+              "value": "water"
+            },
+            {
+              "label": "PF2E.TraitWood",
+              "value": "wood"
+            }
+          ],
+          "flag": "elementalInstinctElement",
+          "key": "ChoiceSet",
+          "prompt": "PF2E.SpecificRule.Prompt.Element",
+          "rollOption": "elemental-instinct"
+        },
+        {
+          "actorFlag": true,
+          "adjustName": false,
+          "choices": [
+            {
+              "label": "PF2E.TraitBludgeoning",
+              "predicate": [
+                {
+                  "or": [
+                    "elemental-instinct:earth",
+                    "elemental-instinct:water",
+                    "elemental-instinct:wood"
+                  ]
+                }
+              ],
+              "value": "bludgeoning"
+            },
+            {
+              "label": "PF2E.TraitCold",
+              "predicate": [
+                "elemental-instinct:water"
+              ],
+              "value": "cold"
+            },
+            {
+              "label": "PF2E.TraitElectricity",
+              "predicate": [
+                "elemental-instinct:air"
+              ],
+              "value": "electricity"
+            },
+            {
+              "label": "PF2E.TraitFire",
+              "predicate": [
+                "elemental-instinct:fire"
+              ],
+              "value": "fire"
+            },
+            {
+              "label": "PF2E.TraitPiercing",
+              "predicate": [
+                {
+                  "or": [
+                    "elemental-instinct:earth",
+                    "elemental-instinct:metal",
+                    "elemental-instinct:wood"
+                  ]
+                }
+              ],
+              "value": "piercing"
+            },
+            {
+              "label": "PF2E.TraitSlashing",
+              "predicate": [
+                {
+                  "or": [
+                    "elemental-instinct:air",
+                    "elemental-instinct:metal"
+                  ]
+                }
+              ],
+              "value": "slashing"
+            }
+          ],
+          "flag": "elementalInstinctDamage",
+          "key": "ChoiceSet",
+          "prompt": "PF2E.SpecificRule.Prompt.DamageType",
+          "rollOption": "elemental-instinct:damage"
+        },
+        {
+          "damageType": "{item|flags.system.rulesSelections.elementalInstinctDamage}",
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "selectors": [
+            "strike-damage"
+          ],
+          "slug": "rage",
+          "value": 4
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "class:barbarian",
+            "feature:weapon-specialization"
+          ],
+          "selectors": [
+            "strike-damage"
+          ],
+          "slug": "rage",
+          "value": 6
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "class:barbarian",
+            "feature:greater-weapon-specialization"
+          ],
+          "selectors": [
+            "strike-damage"
+          ],
+          "slug": "rage",
+          "value": 12
+        },
+        {
+          "key": "Resistance",
+          "predicate": [
+            "self:effect:rage",
+            "feature:raging-resistance",
+            "elemental-instinct:air"
+          ],
+          "type": [
+            "electricity",
+            "slashing"
+          ],
+          "value": "@actor.flags.system.ragingResistance"
+        },
+        {
+          "key": "Resistance",
+          "predicate": [
+            "self:effect:rage",
+            "feature:raging-resistance",
+            {
+              "or": [
+                "elemental-instinct:earth",
+                "elemental-instinct:wood"
+              ]
+            }
+          ],
+          "type": [
+            "bludgeoning",
+            "piercing"
+          ],
+          "value": "@actor.flags.system.ragingResistance"
+        },
+        {
+          "key": "Resistance",
+          "predicate": [
+            "self:effect:rage",
+            "feature:raging-resistance",
+            "elemental-instinct:fire"
+          ],
+          "type": "fire",
+          "value": "@actor.flags.system.ragingResistance"
+        },
+        {
+          "key": "Resistance",
+          "predicate": [
+            "self:effect:rage",
+            "feature:raging-resistance",
+            "elemental-instinct:metal"
+          ],
+          "type": [
+            "piercing",
+            "slashing"
+          ],
+          "value": "@actor.flags.system.ragingResistance"
+        },
+        {
+          "key": "Resistance",
+          "predicate": [
+            "self:effect:rage",
+            "feature:raging-resistance",
+            "elemental-instinct:water"
+          ],
+          "type": [
+            "bludgeoning",
+            "cold"
+          ],
+          "value": "@actor.flags.system.ragingResistance"
+        },
+        {
+          "definition": [
+            "origin:trait:{item|flags.system.rulesSelections.elementalInstinctElement}"
+          ],
+          "key": "Resistance",
+          "label": "PF2E.IWR.Custom.ElementalInstinct",
+          "predicate": [
+            "self:effect:rage",
+            "feature:raging-resistance"
+          ],
+          "type": "custom",
+          "value": "@actor.flags.system.ragingResistance"
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "barbarian-instinct"
+        ],
+        "rarity": "common",
+        "value": [
+          "barbarian"
+        ]
+      }
+    },
+    "type": "feat"
+  },
+  {
+    "_id": "k7M9jedvt31AJ5ZR",
+    "img": "icons/magic/unholy/silhouette-evil-horned-giant.webp",
+    "name": "Fury Instinct",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": {
+        "value": "<p>Your rage comes from a deep and purely personal well within you. You use your rage as you choose.</p>\n<p><strong>Instinct Ability—Unstoppable Frenzy</strong> Increase the additional damage from Rage from 2 to 3. You gain a bonus 1st-level barbarian feat.</p>\n<p><strong>Specialization Ability (7th)</strong> Increase the additional damage from Rage from 3 to 7. If you have greater weapon specialization, instead increase the additional damage from Rage to 13.</p>\n<p><strong>Raging Resistance (9th)</strong> You resist physical weapon damage, but not physical damage from other sources (such as unarmed attacks).</p>"
+      },
+      "level": {
+        "value": 1
+      },
+      "prerequisites": {
+        "value": []
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "adjustName": false,
+          "choices": {
+            "filter": [
+              "item:level:1",
+              "item:category:class",
+              "item:trait:barbarian",
+              {
+                "not": "item:draconic-arrogance"
+              }
+            ],
+            "itemType": "feat"
+          },
+          "flag": "furyInstinct",
+          "key": "ChoiceSet",
+          "predicate": [
+            "class:barbarian"
+          ],
+          "prompt": "PF2E.SpecificRule.Prompt.LevelOneClassFeat"
+        },
+        {
+          "key": "GrantItem",
+          "predicate": [
+            "class:barbarian"
+          ],
+          "uuid": "{item|flags.system.rulesSelections.furyInstinct}"
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "selector": "strike-damage",
+          "slug": "rage",
+          "value": 3
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "class:barbarian",
+            {
+              "gte": [
+                "self:level",
+                7
+              ]
+            }
+          ],
+          "selector": "strike-damage",
+          "slug": "rage",
+          "value": 7
+        },
+        {
+          "exceptions": [
+            {
+              "definition": [
+                {
+                  "or": [
+                    "item:type:melee",
+                    "item:type:weapon"
+                  ]
+                },
+                "item:category:unarmed"
+              ],
+              "label": "PF2E.IWR.Custom.NonWeapons"
+            }
+          ],
+          "key": "Resistance",
+          "predicate": [
+            "self:effect:rage",
+            "feature:raging-resistance"
+          ],
+          "type": "physical",
+          "value": "@actor.flags.system.ragingResistance"
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "class:barbarian",
+            "feature:greater-weapon-specialization"
+          ],
+          "selector": "strike-damage",
+          "slug": "rage",
+          "value": 13
+        }
+      ],
+      "subfeatures": {
+        "proficiencies": {},
+        "senses": {},
+        "suppressedFeatures": []
+      },
+      "traits": {
+        "otherTags": [
+          "barbarian-instinct"
+        ],
+        "rarity": "common",
+        "value": [
+          "barbarian"
+        ]
+      }
+    },
+    "type": "feat"
+  },
+  {
+    "_id": "JuKD6k7nDwfO0Ckv",
+    "img": "icons/creatures/magical/humanoid-horned-rider.webp",
+    "name": "Giant Instinct",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": {
+        "value": "<p>Your rage gives you the raw power and size of a giant. This doesn't necessarily mean you revere giants—you might scoff at them or even aspire to slay them! You could instead seem like a giant to other people due to your exceptional strength or larger-than-life emotions and ego.</p>\n<p><strong>Instinct Ability—Titan Mauler</strong> You can use a weapon built for a Large creature if you are Small or Medium (both normally and when raging). If you're not Small or Medium, you can use a weapon built for a creature one size larger than you. You start with one such weapon, which you receive for free. It must be a common melee or ranged weapon, it must have a Price of 9 gp or less (not including the Price adjustment for being a larger weapon), and it must be common or you must otherwise have access to it. It is your personal weapon and has no value if sold unless you later add runes to it, and it has the normal Bulk for a weapon of its size. When wielding a larger weapon in combat, increase your additional damage from Rage from 2 to 6, but you have the @UUID[Compendium.pf2e.conditionitems.Item.Clumsy]{Clumsy 1} condition because of the weapon's unwieldy size. You can't remove this clumsy condition or ignore its penalties by any means while wielding the weapon.</p>\n<p><strong>Specialization Ability (7th)</strong> Increase the damage from Rage when using a larger weapon from 6 to 10; if you have greater weapon specialization, increase it from 10 to 18.</p>\n<p><strong>Raging Resistance (9th)</strong> You resist bludgeoning damage and your choice of cold, electricity, or fire, chosen when you gain raging resistance.</p>"
+      },
+      "level": {
+        "value": 1
+      },
+      "prerequisites": {
+        "value": []
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "adjustName": false,
+          "choices": [
+            {
+              "label": "PF2E.TraitCold",
+              "value": "cold"
+            },
+            {
+              "label": "PF2E.TraitElectricity",
+              "value": "electricity"
+            },
+            {
+              "label": "PF2E.TraitFire",
+              "value": "fire"
+            }
+          ],
+          "flag": "energy",
+          "key": "ChoiceSet",
+          "predicate": [
+            "feature:giant-instinct",
+            "class:barbarian"
+          ],
+          "prompt": "PF2E.SpecificRule.Barbarian.Giant.Prompt"
+        },
+        {
+          "key": "Resistance",
+          "predicate": [
+            "self:effect:rage",
+            "feature:raging-resistance"
+          ],
+          "type": [
+            "{item|flags.system.rulesSelections.energy}",
+            "bludgeoning"
+          ],
+          "value": "@actor.flags.system.ragingResistance"
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            },
+            "item:oversized"
+          ],
+          "selector": "strike-damage",
+          "slug": "rage",
+          "value": 6
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "class:barbarian",
+            {
+              "gte": [
+                "self:level",
+                7
+              ]
+            },
+            "item:oversized"
+          ],
+          "selector": "strike-damage",
+          "slug": "rage",
+          "value": 10
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "class:barbarian",
+            "feature:greater-weapon-specialization",
+            "item:oversized"
+          ],
+          "selector": "strike-damage",
+          "slug": "rage",
+          "value": 18
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "barbarian-instinct"
+        ],
+        "rarity": "common",
+        "value": [
+          "barbarian"
+        ]
+      }
+    },
+    "type": "feat"
+  },
+  {
+    "_id": "qVAeSFTI1dq64bB8",
+    "img": "icons/magic/nature/hand-weapon-wood-bark-brown.webp",
+    "name": "Ligneous Instinct",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": {
+        "value": "<p>Your rage is powered by the steady growth of the natural world, from the blossoming of flowers to the cultivation of vegetables and the towering, imposing might of the grandest trees. You might be descended from powerful druids or dryads, been exposed to powerful primal magic, or been transformed by the resurgence of the Plane of Wood. As you unleash your rage, your flesh becomes covered in woody growths, which spread like bark across your body.</p>\n<h2>Anathema</h2>\n<p>Despoiling nature and killing plants unnecessarily is anathema to your instinct. Defending yourself against plant creatures or hazards is not.</p>\n<h2>Wooden Rage (Instinct Ability)</h2>\n<p>While raging, you can increase the additional damage from Rage from 2 to 6. If you do this, reduce your Speed by 10 feet, as the bark plates covering your body are a hinderance to mobility. This speed reduction can't be overcome by any means, though it can be offset by speed increases.</p>\n<h2>Specialization Ability<span style=\"float:right\">Level 7</span></h2>\n<p>When you use wooden rage, increase the additional damage from Rage from 6 to 10. If you have greater weapon specialization, instead increase the damage from Rage when using wooden rage from 10 to 18.</p>\n<h2>Raging Resistance<span style=\"float:right\">Level 9</span></h2>\n<p>You resist piercing and slashing damage, but you gain weakness to fire equal to 3 + your Constitution modifier, as your bark-like flesh is highly flammable.</p>"
+      },
+      "level": {
+        "value": 1
+      },
+      "prerequisites": {
+        "value": []
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder #202: Severed at the Root"
+      },
+      "rules": [
+        {
+          "disabledIf": [
+            {
+              "not": "self:effect:rage"
+            }
+          ],
+          "disabledValue": false,
+          "key": "RollOption",
+          "label": "PF2E.SpecificRule.Barbarian.Ligneous.ToggleLabel",
+          "option": "wooden-rage",
+          "predicate": [
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "toggleable": true
+        },
+        {
+          "key": "Resistance",
+          "predicate": [
+            "self:effect:rage",
+            "feature:raging-resistance"
+          ],
+          "type": [
+            "piercing",
+            "slashing"
+          ],
+          "value": "@actor.flags.system.ragingResistance"
+        },
+        {
+          "key": "Weakness",
+          "predicate": [
+            "self:effect:rage",
+            "feature:raging-resistance"
+          ],
+          "type": "fire",
+          "value": "@actor.abilities.con.mod+3"
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "wooden-rage"
+          ],
+          "selectors": [
+            "strike-damage"
+          ],
+          "slug": "rage",
+          "value": 6
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "class:barbarian",
+            "wooden-rage",
+            {
+              "gte": [
+                "self:level",
+                7
+              ]
+            }
+          ],
+          "selector": "strike-damage",
+          "slug": "rage",
+          "value": 10
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "class:barbarian",
+            "feature:greater-weapon-specialization",
+            "wooden-rage"
+          ],
+          "selector": "strike-damage",
+          "slug": "rage",
+          "value": 18
+        },
+        {
+          "key": "FlatModifier",
+          "predicate": [
+            "wooden-rage"
+          ],
+          "selector": "land-speed",
+          "value": -10
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "barbarian-instinct"
+        ],
+        "rarity": "common",
+        "value": [
+          "barbarian"
+        ]
+      }
+    },
+    "type": "feat"
+  },
+  {
+    "_id": "TQqv9Q5mB4PW6LH9",
+    "img": "icons/creatures/magical/spirit-undead-horned-blue.webp",
+    "name": "Spirit Instinct",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": {
+        "value": "<p>Whether you are emotionally sensitive to the spirits around you; worship ancestors or apparitions; or are haunted by the specter of an ancestor, relative, friend, or foe, your rage takes the form of a spiritual possession.</p>\n<p><strong>Instinct Ability—Spirit Rage</strong> When you rage, you can increase the additional damage from Rage from 2 to 3 and change its damage type to spirit, instead of the damage type for your weapon or unarmed attack (choose each time you Rage). If you choose to deal spirit damage, your weapon or unarmed attack gains the effects of the @UUID[Compendium.pf2e.equipment-srd.Item.Ghost Touch] property rune, which makes it more effective against incorporeal creatures, and your @UUID[Compendium.pf2e.actionspf2e.Item.Rage] action gains the divine and spirit traits.</p>\n<p><strong>Specialization Ability (7th)</strong> When using spirit rage, increase the damage from Rage from 3 to 7. If you have greater weapon specialization, instead increase the damage when using spirit rage to 13.</p>\n<p><strong>Raging Resistance (9th)</strong> You resist void damage, as well as damage dealt by the attacks and abilities of undead creatures, regardless of the damage type.</p>"
+      },
+      "level": {
+        "value": 1
+      },
+      "prerequisites": {
+        "value": []
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "disabledIf": [
+            {
+              "not": "self:effect:rage"
+            }
+          ],
+          "disabledValue": false,
+          "key": "RollOption",
+          "label": "PF2E.SpecificRule.Barbarian.Spirit.ToggleLabel",
+          "option": "spirit-rage",
+          "predicate": [
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "toggleable": true,
+          "value": true
+        },
+        {
+          "key": "Resistance",
+          "predicate": [
+            "self:effect:rage",
+            "feature:raging-resistance"
+          ],
+          "type": "void",
+          "value": "@actor.flags.system.ragingResistance"
+        },
+        {
+          "definition": [
+            "origin:mode:undead"
+          ],
+          "key": "Resistance",
+          "label": "PF2E.IWR.Custom.AllDamageFromUndead",
+          "predicate": [
+            "self:effect:rage",
+            "feature:raging-resistance"
+          ],
+          "type": "custom",
+          "value": "@actor.flags.system.ragingResistance"
+        },
+        {
+          "damageType": "spirit",
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "spirit-rage"
+          ],
+          "selectors": [
+            "strike-damage"
+          ],
+          "slug": "rage",
+          "value": 3
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "class:barbarian",
+            "spirit-rage",
+            {
+              "gte": [
+                "self:level",
+                7
+              ]
+            }
+          ],
+          "selector": "strike-damage",
+          "slug": "rage",
+          "value": 7
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "class:barbarian",
+            "feature:greater-weapon-specialization",
+            "spirit-rage"
+          ],
+          "selector": "strike-damage",
+          "slug": "rage",
+          "value": 13
+        },
+        {
+          "key": "AdjustStrike",
+          "mode": "add",
+          "predicate": [
+            "spirit-rage"
+          ],
+          "property": "property-runes",
+          "value": "ghost-touch"
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "barbarian-instinct"
+        ],
+        "rarity": "common",
+        "value": [
+          "barbarian"
+        ]
+      }
+    },
+    "type": "feat"
+  },
+  {
+    "_id": "SCYSjUbMmw8JD9P9",
+    "img": "icons/weapons/wands/wand-skull-horned.webp",
+    "name": "Superstition Instinct",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": {
+        "value": "<p>A deep distrust of magic drives you to forgo and counter the metaphysical nonsense of spellcasters. Whether you're a member of a superstitious family or culture that distrusts magic, a warrior in constant battle against wizards and witches, a survivor of a magical accident that instilled an intense aversion in your mind and body, or a scion of a bloodline known for its magic resistance, your rage is inimical to magic. This makes you an excellent mage hunter but slow to trust practitioners of magical arts.</p>\n<p><strong>Instinct Ability—Superstitious Resilience</strong> Your deep superstition means it's anathema for you to learn or @UUID[Compendium.pf2e.actionspf2e.Item.Cast a Spell], or to wield or use an item that can be activated to Cast a Spell. If you violate this anathema, you lose the instinct's abilities and any feats that list the instinct as a prerequisite until you spend 1 day of downtime re-centering yourself, though you keep all your other barbarian abilities. While raging, you gain a +2 status bonus to all saves against magic. Increase your damage from Rage from 2 to 3, or 4 against creatures you have witnessed Casting a Spell within the last hour. When you Rage, you regain Hit Point equal to the temporary HP you gained from the Rage action; you then can't regain HP in this way again for 10 minutes. While raging, if you willingly accept the effects of a magic spell or effect, you are @UUID[Compendium.pf2e.conditionitems.Item.Frightened]{Frightened 1}. You cannot reduce your frightened condition below 1 as long as you are affected by the spell or effect.</p>\n<p><strong>Specialization Ability (7th)</strong> Increase the damage from Rage from 3 to 7, or 8 against creatures you have witnessed Casting a Spell within the last hour. If you have greater weapon specialization, instead increase the damage from Rage to 13, or 16 against creatures you have witnessed Casting a Spell within the last hour.</p>\n<p><strong>Raging Resistance (9th)</strong> Choose two associated magical traditions: arcane and occult, arcane and primal, divine and occult, or divine and primal. The resistance from your raging resistance class feature applies against all damage you take from spells cast with these two traditions of magic, regardless of the type of damage dealt by the spell.</p>"
+      },
+      "level": {
+        "value": 1
+      },
+      "prerequisites": {
+        "value": []
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "key": "FlatModifier",
+          "predicate": [
+            "magical",
+            "self:effect:rage",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "selector": "saving-throw",
+          "slug": "superstition-saves",
+          "type": "status",
+          "value": 2
+        },
+        {
+          "key": "RollOption",
+          "label": "PF2E.SpecificRule.Barbarian.Superstition.TargetingCaster",
+          "option": "target:caster",
+          "toggleable": true
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "self:effect:rage",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "selectors": [
+            "strike-damage"
+          ],
+          "slug": "rage",
+          "value": 3
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "self:effect:rage",
+            "target:caster",
+            {
+              "or": [
+                "class:barbarian",
+                "feat:instinct-ability"
+              ]
+            }
+          ],
+          "selectors": [
+            "strike-damage"
+          ],
+          "slug": "rage",
+          "value": 4
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "self:effect:rage",
+            "class:barbarian",
+            {
+              "gte": [
+                "self:level",
+                7
+              ]
+            }
+          ],
+          "selectors": [
+            "strike-damage"
+          ],
+          "slug": "rage",
+          "value": 7
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "self:effect:rage",
+            "target:caster",
+            "class:barbarian",
+            {
+              "gte": [
+                "self:level",
+                7
+              ]
+            }
+          ],
+          "selectors": [
+            "strike-damage"
+          ],
+          "slug": "rage",
+          "value": 8
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "self:effect:rage",
+            {
+              "not": "target:caster"
+            },
+            "class:barbarian",
+            "feature:greater-weapon-specialization"
+          ],
+          "selectors": [
+            "strike-damage"
+          ],
+          "slug": "rage",
+          "value": 13
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "self:effect:rage",
+            "target:caster",
+            "class:barbarian",
+            "feature:greater-weapon-specialization"
+          ],
+          "selectors": [
+            "strike-damage"
+          ],
+          "slug": "rage",
+          "value": 16
+        },
+        {
+          "key": "AdjustModifier",
+          "mode": "upgrade",
+          "predicate": [
+            "self:effect:rage",
+            {
+              "not": "target:caster"
+            },
+            "class:barbarian",
+            "feature:greater-weapon-specialization"
+          ],
+          "selectors": [
+            "strike-damage"
+          ],
+          "slug": "agile-rage",
+          "value": 4
+        },
+        {
+          "adjustName": false,
+          "choices": [
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Superstition.RagingResistance.Traditions.ArcaneAndOccult",
+              "value": {
+                "label": "PF2E.SpecificRule.Barbarian.Superstition.RagingResistance.ResistanceLabels.ArcaneAndOccult",
+                "resistanceOne": "arcane",
+                "resistanceTwo": "occult"
+              }
+            },
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Superstition.RagingResistance.Traditions.ArcaneAndPrimal",
+              "value": {
+                "label": "PF2E.SpecificRule.Barbarian.Superstition.RagingResistance.ResistanceLabels.ArcaneAndPrimal",
+                "resistanceOne": "arcane",
+                "resistanceTwo": "primal"
+              }
+            },
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Superstition.RagingResistance.Traditions.DivineAndOccult",
+              "value": {
+                "label": "PF2E.SpecificRule.Barbarian.Superstition.RagingResistance.ResistanceLabels.DivineAndOccult",
+                "resistanceOne": "divine",
+                "resistanceTwo": "occult"
+              }
+            },
+            {
+              "label": "PF2E.SpecificRule.Barbarian.Superstition.RagingResistance.Traditions.DivineAndPrimal",
+              "value": {
+                "label": "PF2E.SpecificRule.Barbarian.Superstition.RagingResistance.ResistanceLabels.DivineAndPrimal",
+                "resistanceOne": "divine",
+                "resistanceTwo": "primal"
+              }
+            }
+          ],
+          "flag": "ragingResistance",
+          "key": "ChoiceSet",
+          "prompt": "PF2E.SpecificRule.Barbarian.Superstition.RagingResistance.Prompt"
+        },
+        {
+          "definition": [
+            "item:type:spell",
+            {
+              "or": [
+                "item:trait:{item|flags.system.rulesSelections.ragingResistance.resistanceOne}",
+                "item:trait:{item|flags.system.rulesSelections.ragingResistance.resistanceTwo}"
+              ]
+            }
+          ],
+          "key": "Resistance",
+          "label": "{item|flags.system.rulesSelections.ragingResistance.label}",
+          "predicate": [
+            "self:effect:rage",
+            "feature:raging-resistance"
+          ],
+          "type": "custom",
+          "value": "@actor.flags.system.ragingResistance"
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "barbarian-instinct"
+        ],
+        "rarity": "common",
+        "value": [
+          "barbarian"
+        ]
+      }
+    },
+    "type": "feat"
+  }
+]

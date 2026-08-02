@@ -1,0 +1,82 @@
+{
+  "class": "magus",
+  "displayName": "Magus",
+  "vendorClassFile": "classes/magus.json",
+  "keyAbilityOptions": ["str", "dex"],
+  "hp": 8,
+  "choiceAxes": [
+    {
+      "otherTag": "magus-hybrid-study",
+      "featureNameInItemsMap": "Hybrid Study",
+      "level": 1,
+      "choose": 1,
+      "optionCount": 8,
+      "category": "hybridStudy",
+      "slotType": "hybridStudy"
+    }
+  ],
+  "classFeats": {
+    "trait": "magus",
+    "includeSharedClassFeats": true,
+    "levelMax": 20,
+    "extraNames": [],
+    "excludeNames": []
+  },
+  "classFeatures": {
+    "fromItemsMap": true,
+    "extraNames": [],
+    "sharedWithOtherClasses": [
+      "Alertness",
+      "Reflex Expertise",
+      "Weapon Expertise",
+      "Weapon Specialization",
+      "Greater Weapon Specialization",
+      "Weapon Mastery",
+      "Medium Armor Expertise",
+      "Medium Armor Mastery",
+      "Juggernaut",
+      "Resolve",
+      "Expert Spellcaster",
+      "Master Spellcaster"
+    ],
+    "alreadyInPacks": [],
+    "missingFromPacks": []
+  },
+  "spellcasting": {
+    "tradition": "arcane",
+    "type": "prepared",
+    "ability": "int",
+    "source": "vendor/pf2e/packs/pf2e/journals/classes.json, página \"Magus\" (transcrita na r10-B; âncoras: L1 {1:1}, L3 {1:2,2:1} = export Pathbuilder do Tobias, L19/20 {8:2,9:2})",
+    "table": [
+      { "level": 1, "cantrips": 5, "slots": { "1": 1 } },
+      { "level": 2, "cantrips": 5, "slots": { "1": 2 } },
+      { "level": 3, "cantrips": 5, "slots": { "1": 2, "2": 1 } },
+      { "level": 4, "cantrips": 5, "slots": { "1": 2, "2": 2 } },
+      { "level": 5, "cantrips": 5, "slots": { "2": 2, "3": 2 } },
+      { "level": 6, "cantrips": 5, "slots": { "2": 2, "3": 2 } },
+      { "level": 7, "cantrips": 5, "slots": { "3": 2, "4": 2 } },
+      { "level": 8, "cantrips": 5, "slots": { "3": 2, "4": 2 } },
+      { "level": 9, "cantrips": 5, "slots": { "4": 2, "5": 2 } },
+      { "level": 10, "cantrips": 5, "slots": { "4": 2, "5": 2 } },
+      { "level": 11, "cantrips": 5, "slots": { "5": 2, "6": 2 } },
+      { "level": 12, "cantrips": 5, "slots": { "5": 2, "6": 2 } },
+      { "level": 13, "cantrips": 5, "slots": { "6": 2, "7": 2 } },
+      { "level": 14, "cantrips": 5, "slots": { "6": 2, "7": 2 } },
+      { "level": 15, "cantrips": 5, "slots": { "7": 2, "8": 2 } },
+      { "level": 16, "cantrips": 5, "slots": { "7": 2, "8": 2 } },
+      { "level": 17, "cantrips": 5, "slots": { "8": 2, "9": 2 } },
+      { "level": 18, "cantrips": 5, "slots": { "8": 2, "9": 2 } },
+      { "level": 19, "cantrips": 5, "slots": { "8": 2, "9": 2 } },
+      { "level": 20, "cantrips": 5, "slots": { "8": 2, "9": 2 } }
+    ]
+  },
+  "focusSpells": { "names": [], "alreadyInPacks": [] },
+  "prerequisites": { "internalChains": [], "referencesOutsideSelection": [] },
+  "dedupe": { "featsAlreadyInPacks": [], "collisionsDetected": [] },
+  "proficiencyUpgradeExtras": [],
+  "proficiencyMirrors": {},
+  "notes": [
+    "Migrado do hardcode de transform.mjs (r10-B) para dado na r21. A tabela de conjuração é byte a byte a mesma de MAGUS_SPELLCASTING_TABLE.",
+    "weapons.martial expert no nível 5 NÃO está em subfeatures.proficiencies de weapon-expertise.json: vem de um ActiveEffectLike com predicado {or:[... class:magus ...]}. A derivação lê o rule; não precisa de extra declarado."
+  ]
+}
