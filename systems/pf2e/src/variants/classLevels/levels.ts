@@ -65,7 +65,7 @@ interface RawItem {
 function readFusionFlags(item: RawItem): Record<string, unknown> {
   const flags = item.flags;
   if (!flags || typeof flags !== "object") return {};
-  const fusion = (flags as Record<string, unknown>)["fusion"];
+  const fusion = flags["fusion"];
   return fusion && typeof fusion === "object" ? (fusion as Record<string, unknown>) : {};
 }
 
@@ -83,8 +83,13 @@ export function findClassItems(doc: Record<string, unknown>): EmbeddedClass[] {
   const classes: EmbeddedClass[] = [];
   const seenKeys = new Set<string>();
 
-  for (const raw of rawItems as RawItem[]) {
-    if (!raw || typeof raw !== "object" || raw.type !== "class") continue;
+  // Iterated as `unknown` on purpose: this runs against RAW persisted docs,
+  // where an entry can be null or a primitive. Casting the array up front
+  // would tell the type checker a lie and disable the guard below.
+  for (const entry of rawItems as unknown[]) {
+    if (!entry || typeof entry !== "object") continue;
+    const raw = entry as RawItem;
+    if (raw.type !== "class") continue;
 
     const fusion = readFusionFlags(raw);
     const sourceId = typeof fusion["sourceId"] === "string" ? fusion["sourceId"] : undefined;
@@ -189,10 +194,14 @@ export function resolveClassLevels(
 
   if (build?.variantRules?.classLevels !== true) return rawPath();
 
-  const choices = Array.isArray(build.choices) ? build.choices : [];
+  const choices: unknown[] = Array.isArray(build.choices) ? build.choices : [];
   const splitChoices = choices
-    .filter((choice) => choice?.type === "classLevel" && typeof choice.level === "number")
-    .sort((a, b) => (a.level ?? 0) - (b.level ?? 0));
+    .filter((choice): choice is { level: number; ref?: string; itemId?: string } => {
+      if (!choice || typeof choice !== "object") return false;
+      const candidate = choice as { type?: unknown; level?: unknown };
+      return candidate.type === "classLevel" && typeof candidate.level === "number";
+    })
+    .sort((a, b) => a.level - b.level);
 
   // Variant on but nothing recorded yet: read as "all levels in the current
   // class" (REQ-MCL-003) — turning the toggle on must never lose a build.
@@ -202,7 +211,7 @@ export function resolveClassLevels(
   const classLevels: Record<string, number> = {};
 
   for (const choice of splitChoices) {
-    const level = choice.level ?? 0;
+    const level = choice.level;
     if (level < 1 || level > characterLevel) continue;
     const matched = matchClass(choice, classes);
     // An unresolvable level is DROPPED, never guessed onto another class:

@@ -34,6 +34,7 @@ import type {
 import { ARCHETYPE_KEY_ABILITY, ARCHETYPE_LABEL, titleCaseSlug } from "./archetypes.js";
 import { stepCharCollectEquipment } from "./equipment.js";
 import { stepCharSpellcasting } from "./spellcasting.js";
+import { stepCharSpellcastingLevels } from "./spellcastingLevels.js";
 import { stepCharSpeed } from "./speed.js";
 import { stepCharToughness } from "./hp.js";
 import { stepCharElementalBlasts } from "./elementalBlast.js";
@@ -1065,6 +1066,7 @@ export const CHARACTER_DERIVE_STEPS: DeriveStep[] = [
   stepCharDrainedHp,
   stepCharStrikes,
   stepCharSpellcasting,
+  stepCharSpellcastingLevels,
   stepCharSpeed,
   stepCharElementalBlasts,
 ];

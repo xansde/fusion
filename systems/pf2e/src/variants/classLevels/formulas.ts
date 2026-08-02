@@ -94,6 +94,53 @@ export function grantedActorLevel(classLevel: number, characterLevel: number): n
 }
 
 /**
+ * Traits that put a spell on the capped summoning axis (REQ-MCL-062).
+ *
+ * Scope is decided BY TRAIT, never by a curated list of spell names
+ * (REQ-MCL-064): a curated list silently omits every spell added later, and
+ * omission here reads as "uncapped", which is the failure direction that
+ * matters.
+ */
+const SUMMON_AXIS_TRAITS = ["summon", "incarnate"] as const;
+
+/**
+ * The rank a spell is cast at under the variant.
+ *
+ * Summon/incarnate spells take the capped route (REQ-MCL-062); everything
+ * else — cantrips, focus spells, ordinary slot spells — is cast at the
+ * character's effective rank (REQ-MCL-061).
+ *
+ * Spells whose slots come from an ARCHETYPE run RAW with no elevation at all
+ * (REQ-MCL-065): the free archetype route is the baseline the variant is
+ * measured against, so elevating it too would move the very floor the
+ * balance invariant stands on.
+ */
+export function spellcastRank(
+  traits: readonly string[],
+  classLevel: number,
+  characterLevel: number,
+  options: { fromArchetype?: boolean; nativeRank?: number } = {},
+): number {
+  if (options.fromArchetype === true) return options.nativeRank ?? dedicationSpellRank(characterLevel);
+  const onSummonAxis = traits.some((trait) =>
+    (SUMMON_AXIS_TRAITS as readonly string[]).includes(trait),
+  );
+  return onSummonAxis
+    ? summonSpellRank(classLevel, characterLevel)
+    : effectiveSpellRank(characterLevel);
+}
+
+/**
+ * How much the variant lifted a caster above their class's native rank —
+ * the number the sheet shows as "elevation gained" (REQ-MCL-067).
+ *
+ * Zero for a single-class caster, always (REQ-MCL-202).
+ */
+export function rankElevation(nativeRank: number, characterLevel: number): number {
+  return Math.max(0, effectiveSpellRank(characterLevel) - nativeRank);
+}
+
+/**
  * Every `(classLevel, characterLevel)` pair the invariant sweep must cover:
  * `1 ≤ classLevel ≤ characterLevel` and `4 ≤ characterLevel ≤ 20` — the
  * "204 pairs" of REQ-MCL-200.

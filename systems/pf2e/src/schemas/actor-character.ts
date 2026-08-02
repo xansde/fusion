@@ -363,7 +363,7 @@ export const CharacterSystemSchema = z
    */
   .superRefine((sys, ctx) => {
     const build = sys.build;
-    if (!build?.variantRules?.classLevels) return;
+    if (!build?.variantRules.classLevels) return;
 
     const classLevelChoices = build.choices.filter((choice) => choice.type === "classLevel");
     // No split recorded yet: a sheet that just turned the toggle on is read as

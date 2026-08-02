@@ -35,6 +35,7 @@ import {
   type EmbeddedClass,
   type ResolvedClassLevels,
 } from "../variants/classLevels/levels.js";
+import { FOCUS_POOL_CAP } from "../variants/classLevels/params.js";
 
 function getSystem(doc: Record<string, unknown>): Record<string, unknown> {
   return (doc["system"] as Record<string, unknown>) ?? {};
@@ -662,7 +663,11 @@ export const stepCharFocusClamp: DeriveStep = {
     const focus = sys.resources?.focusPoints as { value?: number; max?: number } | undefined;
     if (!focus) return;
 
-    const clampedMax = Math.min(3, focus.max ?? 0);
+    // REQ-MCL-066: one pool for the character, capped, no matter how many
+    // classes grant focus spells — two casting classes do not buy a wider
+    // pool. The cap comes from the variant's params so a table re-tuning it
+    // does not have to find this literal.
+    const clampedMax = Math.min(FOCUS_POOL_CAP, focus.max ?? 0);
     const clampedValue = Math.min(focus.value ?? 0, clampedMax);
 
     if (!sys.resources || typeof sys.resources !== "object") {
