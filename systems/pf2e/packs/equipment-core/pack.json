@@ -8,7 +8,8 @@
     "system.level",
     "system.traits.value",
     "system.category",
-    "system.usage"
+    "system.usage",
+    "flags.fusion.sourceId"
   ],
   "license": {
     "license": "ORC",

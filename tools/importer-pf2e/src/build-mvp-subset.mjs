@@ -43,7 +43,7 @@ import { fileURLToPath } from "node:url";
 
 // r21: a curadoria de classe é DADO (curation/classes/*.json), não predicado
 // escrito à mão aqui. Ver curation/index.mjs e .fusion-build/r21-plan.md.
-import { acharDuplicatas, formatarErroDeDuplicata } from './curation/duplicata.mjs';
+import { acharDuplicatas, formatarErroDeDuplicata } from "./curation/duplicata.mjs";
 import {
   axisCategoryByOtherTag,
   curatedClassDisplayNames,
@@ -91,7 +91,13 @@ const PACK_MANIFESTS = {
     label: "PF2e Core Weapons",
     documentType: "Item",
     systemId: "pf2e",
-    indexFields: ["system.level", "system.category", "system.traits.value", "system.damage"],
+    indexFields: [
+      "system.level",
+      "system.category",
+      "system.traits.value",
+      "system.damage",
+      "flags.fusion.sourceId",
+    ],
     license: {
       license: "ORC",
       attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -113,7 +119,7 @@ const PACK_MANIFESTS = {
     label: "PF2e Conditions",
     documentType: "Item",
     systemId: "pf2e",
-    indexFields: ["system.group", "system.value.isValued"],
+    indexFields: ["system.group", "system.value.isValued", "flags.fusion.sourceId"],
     license: {
       license: "ORC",
       attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -135,7 +141,12 @@ const PACK_MANIFESTS = {
     label: "PF2e Core Bestiary",
     documentType: "Actor",
     systemId: "pf2e",
-    indexFields: ["system.details.level.value", "system.traits.value", "system.attributes.hp.max"],
+    indexFields: [
+      "system.details.level.value",
+      "system.traits.value",
+      "system.attributes.hp.max",
+      "flags.fusion.sourceId",
+    ],
     license: {
       license: "ORC",
       attribution: "Pathfinder Monster Core © 2024 Paizo Inc. Licensed under the ORC License.",
@@ -162,6 +173,7 @@ const PACK_MANIFESTS = {
       "system.traits.value",
       "system.traits.traditions",
       "system.traits.rarity",
+      "flags.fusion.sourceId",
     ],
     license: {
       license: "ORC",
@@ -190,7 +202,7 @@ const PACK_MANIFESTS = {
     label: "PF2e Core Classes",
     documentType: "Item",
     systemId: "pf2e",
-    indexFields: ["name", "system.keyAbility", "system.traits.value"],
+    indexFields: ["name", "system.keyAbility", "system.traits.value", "flags.fusion.sourceId"],
     license: {
       license: "ORC",
       attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -223,6 +235,7 @@ const PACK_MANIFESTS = {
       "system.category",
       "system.traits.value",
       "system.traits.otherTags",
+      "flags.fusion.sourceId",
     ],
     license: {
       license: "ORC",
@@ -245,7 +258,13 @@ const PACK_MANIFESTS = {
     label: "PF2e Core Feats",
     documentType: "Item",
     systemId: "pf2e",
-    indexFields: ["name", "system.level", "system.category", "system.traits.value"],
+    indexFields: [
+      "name",
+      "system.level",
+      "system.category",
+      "system.traits.value",
+      "flags.fusion.sourceId",
+    ],
     license: {
       license: "ORC",
       attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -267,7 +286,7 @@ const PACK_MANIFESTS = {
     label: "PF2e Core Ancestries",
     documentType: "Item",
     systemId: "pf2e",
-    indexFields: ["name", "system.traits.value", "system.size"],
+    indexFields: ["name", "system.traits.value", "system.size", "flags.fusion.sourceId"],
     license: {
       license: "ORC",
       attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -289,7 +308,7 @@ const PACK_MANIFESTS = {
     label: "PF2e Core Heritages",
     documentType: "Item",
     systemId: "pf2e",
-    indexFields: ["name", "system.ancestry.slug", "system.traits.value"],
+    indexFields: ["name", "system.ancestry.slug", "system.traits.value", "flags.fusion.sourceId"],
     license: {
       license: "ORC",
       attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -311,7 +330,7 @@ const PACK_MANIFESTS = {
     label: "PF2e Core Backgrounds",
     documentType: "Item",
     systemId: "pf2e",
-    indexFields: ["name", "system.traits.value"],
+    indexFields: ["name", "system.traits.value", "flags.fusion.sourceId"],
     license: {
       license: "ORC",
       attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -349,6 +368,7 @@ const PACK_MANIFESTS = {
       "system.category",
       "system.fusionCategory",
       "system.traits.value",
+      "flags.fusion.sourceId",
     ],
     license: {
       license: "ORC",
@@ -380,7 +400,13 @@ const PACK_MANIFESTS = {
     label: "PF2e Core Familiar Abilities",
     documentType: "Item",
     systemId: "pf2e",
-    indexFields: ["name", "system.actionType", "system.category", "system.traits.value"],
+    indexFields: [
+      "name",
+      "system.actionType",
+      "system.category",
+      "system.traits.value",
+      "flags.fusion.sourceId",
+    ],
     license: {
       license: "ORC",
       attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -410,7 +436,14 @@ const PACK_MANIFESTS = {
     label: "PF2e Core Equipment",
     documentType: "Item",
     systemId: "pf2e",
-    indexFields: ["name", "system.level", "system.traits.value", "system.category", "system.usage"],
+    indexFields: [
+      "name",
+      "system.level",
+      "system.traits.value",
+      "system.category",
+      "system.usage",
+      "flags.fusion.sourceId",
+    ],
     license: {
       license: "ORC",
       attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -452,7 +485,7 @@ const PACK_MANIFESTS = {
     label: "PF2e Core Ancestry Features",
     documentType: "Item",
     systemId: "pf2e",
-    indexFields: ["name", "system.category", "system.traits.value"],
+    indexFields: ["name", "system.category", "system.traits.value", "flags.fusion.sourceId"],
     license: {
       license: "ORC",
       attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -1442,6 +1475,7 @@ const SF2E_PACK_MANIFESTS = {
       "system.traits.value",
       "system.damage",
       "system.grade",
+      "flags.fusion.sourceId",
     ],
     license: {
       license: "ORC",
@@ -1464,7 +1498,12 @@ const SF2E_PACK_MANIFESTS = {
     label: "SF2e Core Armor",
     documentType: "Item",
     systemId: "sf2e",
-    indexFields: ["system.level", "system.category", "system.traits.value"],
+    indexFields: [
+      "system.level",
+      "system.category",
+      "system.traits.value",
+      "flags.fusion.sourceId",
+    ],
     license: {
       license: "ORC",
       attribution: "Starfinder Player Core © 2025 Paizo Inc. Licensed under the ORC License.",
@@ -1486,7 +1525,7 @@ const SF2E_PACK_MANIFESTS = {
     label: "SF2e Core Augmentations",
     documentType: "Item",
     systemId: "sf2e",
-    indexFields: ["system.level", "system.traits.value", "system.usage"],
+    indexFields: ["system.level", "system.traits.value", "system.usage", "flags.fusion.sourceId"],
     license: {
       license: "ORC",
       attribution: "Starfinder Player Core © 2025 Paizo Inc. Licensed under the ORC License.",
@@ -1508,7 +1547,7 @@ const SF2E_PACK_MANIFESTS = {
     label: "SF2e Conditions",
     documentType: "Item",
     systemId: "sf2e",
-    indexFields: ["system.duration", "system.badge"],
+    indexFields: ["system.duration", "system.badge", "flags.fusion.sourceId"],
     license: {
       license: "ORC",
       attribution: "Starfinder Player Core © 2025 Paizo Inc. Licensed under the ORC License.",
@@ -1530,7 +1569,12 @@ const SF2E_PACK_MANIFESTS = {
     label: "SF2e Core Bestiary",
     documentType: "Actor",
     systemId: "sf2e",
-    indexFields: ["system.details.level.value", "system.traits.value", "system.attributes.hp.max"],
+    indexFields: [
+      "system.details.level.value",
+      "system.traits.value",
+      "system.attributes.hp.max",
+      "flags.fusion.sourceId",
+    ],
     license: {
       license: "ORC",
       attribution: "Starfinder Alien Core © 2025 Paizo Inc. Licensed under the ORC License.",
@@ -1557,6 +1601,7 @@ const SF2E_PACK_MANIFESTS = {
       "system.traits.value",
       "system.traits.traditions",
       "system.traits.rarity",
+      "flags.fusion.sourceId",
     ],
     license: {
       license: "ORC",

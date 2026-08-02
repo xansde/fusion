@@ -10,7 +10,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "anadi"
-      ]
+      ],
+      "flags.fusion.sourceId": "dCp517IUFJk8JvQc"
     }
   },
   {
@@ -24,7 +25,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "android"
-      ]
+      ],
+      "flags.fusion.sourceId": "mnhmhOKWLiOD0lev"
     }
   },
   {
@@ -38,7 +40,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "android"
-      ]
+      ],
+      "flags.fusion.sourceId": "uSAYmU7PO2QoOWhB"
     }
   },
   {
@@ -52,7 +55,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "automaton"
-      ]
+      ],
+      "flags.fusion.sourceId": "RYrY7o0i6s7KW9io"
     }
   },
   {
@@ -66,7 +70,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "automaton"
-      ]
+      ],
+      "flags.fusion.sourceId": "E28a45fUC2OkXZXY"
     }
   },
   {
@@ -78,7 +83,8 @@
     "index": {
       "name": "Animal Attack",
       "system.category": "ancestryfeature",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "oj532l4YXqzedBBn"
     }
   },
   {
@@ -90,7 +96,8 @@
     "index": {
       "name": "Awakened Form",
       "system.category": "ancestryfeature",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "ItQDbIiqpb50Zbtm"
     }
   },
   {
@@ -102,7 +109,8 @@
     "index": {
       "name": "Awakened Mind",
       "system.category": "ancestryfeature",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "0qHN69NF7JBWKO8v"
     }
   },
   {
@@ -116,7 +124,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "azarketi"
-      ]
+      ],
+      "flags.fusion.sourceId": "vt67b8uoNEbskcBv"
     }
   },
   {
@@ -130,7 +139,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "azarketi"
-      ]
+      ],
+      "flags.fusion.sourceId": "kMgyOI4kBIEtFvhb"
     }
   },
   {
@@ -144,7 +154,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "catfolk"
-      ]
+      ],
+      "flags.fusion.sourceId": "sL1hHxrHdMNIZVAd"
     }
   },
   {
@@ -158,7 +169,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "centaur"
-      ]
+      ],
+      "flags.fusion.sourceId": "VX267tc1uwocRu39"
     }
   },
   {
@@ -172,7 +184,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "centaur"
-      ]
+      ],
+      "flags.fusion.sourceId": "S5XriNcxiVvqZEu0"
     }
   },
   {
@@ -186,7 +199,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "conrasu"
-      ]
+      ],
+      "flags.fusion.sourceId": "BgHrucbZ9TH92RDv"
     }
   },
   {
@@ -200,7 +214,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "dragonet"
-      ]
+      ],
+      "flags.fusion.sourceId": "PCLnnWPbiiSzrxEo"
     }
   },
   {
@@ -214,7 +229,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "dragonet"
-      ]
+      ],
+      "flags.fusion.sourceId": "RjWv5oPKZtNQgEiK"
     }
   },
   {
@@ -228,7 +244,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "dwarf"
-      ]
+      ],
+      "flags.fusion.sourceId": "Eyuqu6eIaoGCjnMv"
     }
   },
   {
@@ -242,7 +259,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "fleshwarp"
-      ]
+      ],
+      "flags.fusion.sourceId": "mEDTJi7d1bTEiwUD"
     }
   },
   {
@@ -254,7 +272,8 @@
     "index": {
       "name": "Photosynthesis",
       "system.category": "ancestryfeature",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "N0zhJ0whkDJPlftl"
     }
   },
   {
@@ -268,7 +287,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "goloma"
-      ]
+      ],
+      "flags.fusion.sourceId": "AUlPRySCqE6o6LHH"
     }
   },
   {
@@ -282,7 +302,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "halfling"
-      ]
+      ],
+      "flags.fusion.sourceId": "y1EmCv2cEb5hXBwx"
     }
   },
   {
@@ -296,7 +317,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "jotunborn"
-      ]
+      ],
+      "flags.fusion.sourceId": "DPPFBUk0l9KfRN8h"
     }
   },
   {
@@ -308,7 +330,8 @@
     "index": {
       "name": "Empathic Sense",
       "system.category": "ancestryfeature",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "QyBfftocP1i43Qrp"
     }
   },
   {
@@ -320,7 +343,8 @@
     "index": {
       "name": "Glowing Horn",
       "system.category": "ancestryfeature",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "8sxtjVsk9HBY5yAv"
     }
   },
   {
@@ -334,7 +358,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "kholo"
-      ]
+      ],
+      "flags.fusion.sourceId": "jatezR4bENwhC6GL"
     }
   },
   {
@@ -346,7 +371,8 @@
     "index": {
       "name": "Change Shape",
       "system.category": "ancestryfeature",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "knaVRiZ2QNteat1P"
     }
   },
   {
@@ -358,7 +384,8 @@
     "index": {
       "name": "Draconic Benefactor",
       "system.category": "ancestryfeature",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "UR8qLQdU9UOoZxXB"
     }
   },
   {
@@ -372,7 +399,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "kobold"
-      ]
+      ],
+      "flags.fusion.sourceId": "egpiSWBrNBb1Fmig"
     }
   },
   {
@@ -386,7 +414,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "leshy"
-      ]
+      ],
+      "flags.fusion.sourceId": "Sm3tKetM6kddTio3"
     }
   },
   {
@@ -400,7 +429,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "lizardfolk"
-      ]
+      ],
+      "flags.fusion.sourceId": "AzGJN1wwLFaLJIeo"
     }
   },
   {
@@ -414,7 +444,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "lizardfolk"
-      ]
+      ],
+      "flags.fusion.sourceId": "NfkxFWUeG6g41e8w"
     }
   },
   {
@@ -426,7 +457,8 @@
     "index": {
       "name": "Aquatic Grace",
       "system.category": "ancestryfeature",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "d5TYEND07kwWRBIq"
     }
   },
   {
@@ -438,7 +470,8 @@
     "index": {
       "name": "Hydration (Merfolk)",
       "system.category": "ancestryfeature",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "DWNRIgt3f92fSTBM"
     }
   },
   {
@@ -452,7 +485,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "minotaur"
-      ]
+      ],
+      "flags.fusion.sourceId": "hUpYTsbLcBg4UcVp"
     }
   },
   {
@@ -464,7 +498,8 @@
     "index": {
       "name": "Fangs (Nagaji)",
       "system.category": "ancestryfeature",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "jS8GamSTl8yMLL4F"
     }
   },
   {
@@ -478,7 +513,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "poppet"
-      ]
+      ],
+      "flags.fusion.sourceId": "BHPDeqQHqi7ukCUW"
     }
   },
   {
@@ -490,7 +526,8 @@
     "index": {
       "name": "Flammable",
       "system.category": "ancestryfeature",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "qKh6MxgE0cwde6mC"
     }
   },
   {
@@ -504,7 +541,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "ratfolk"
-      ]
+      ],
+      "flags.fusion.sourceId": "sW4ObB8wyLPPYvGj"
     }
   },
   {
@@ -518,7 +556,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "samsaran"
-      ]
+      ],
+      "flags.fusion.sourceId": "QLSvmOid6gAdzBYi"
     }
   },
   {
@@ -532,7 +571,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "samsaran"
-      ]
+      ],
+      "flags.fusion.sourceId": "D6AjSg0JOYtn7Coa"
     }
   },
   {
@@ -546,7 +586,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "sarangay"
-      ]
+      ],
+      "flags.fusion.sourceId": "HYefFkddD9lOhFM8"
     }
   },
   {
@@ -560,7 +601,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "sarangay"
-      ]
+      ],
+      "flags.fusion.sourceId": "LhgVj9GhPsXGfwAM"
     }
   },
   {
@@ -572,7 +614,8 @@
     "index": {
       "name": "Greater Darkvision",
       "system.category": "ancestryfeature",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "vPhPgzpRjYDMT9Kq"
     }
   },
   {
@@ -586,7 +629,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "shoony"
-      ]
+      ],
+      "flags.fusion.sourceId": "dtNsRAhCRfteA1ev"
     }
   },
   {
@@ -600,7 +644,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "sprite"
-      ]
+      ],
+      "flags.fusion.sourceId": "TRw4oBZBFZG96jKO"
     }
   },
   {
@@ -614,7 +659,8 @@
       "system.category": "ancestryfeature",
       "system.traits.value": [
         "strix"
-      ]
+      ],
+      "flags.fusion.sourceId": "oCIO7UJqbpTkI62l"
     }
   },
   {
@@ -626,7 +672,8 @@
     "index": {
       "name": "Magiphage",
       "system.category": "ancestryfeature",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "oQ5478uONrGAWRgF"
     }
   },
   {
@@ -638,7 +685,8 @@
     "index": {
       "name": "Sharp Beak",
       "system.category": "ancestryfeature",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "qJD3PJdoSXFrZEwr"
     }
   },
   {
@@ -650,7 +698,8 @@
     "index": {
       "name": "Natural Climber",
       "system.category": "ancestryfeature",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "gZvgt5n5OYO3av2V"
     }
   },
   {
@@ -662,7 +711,8 @@
     "index": {
       "name": "Advanced Undead Benefits",
       "system.category": "ancestryfeature",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "YGk41WV42aTM7CQV"
     }
   },
   {
@@ -674,7 +724,8 @@
     "index": {
       "name": "Basic Undead Benefits",
       "system.category": "ancestryfeature",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "SAbzItAI4uwbdnQk"
     }
   },
   {
@@ -686,7 +737,8 @@
     "index": {
       "name": "Revulsion",
       "system.category": "ancestryfeature",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "dkZ8RxdQFJrdxwQo"
     }
   },
   {
@@ -698,7 +750,8 @@
     "index": {
       "name": "Sunlight",
       "system.category": "ancestryfeature",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "bHUrm79wJCcI7L3A"
     }
   },
   {
@@ -710,7 +763,8 @@
     "index": {
       "name": "Prehensile Tail",
       "system.category": "ancestryfeature",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "PtvzTm2gjdCKao4I"
     }
   },
   {
@@ -722,7 +776,8 @@
     "index": {
       "name": "Innate Venom",
       "system.category": "ancestryfeature",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "IXyXCMBldrU5G60e"
     }
   }
 ]

@@ -730,3 +730,94 @@ describe("packs-validation: actions-core domain invariants", () => {
     expect(offenders, offenders.join("\n")).toEqual([]);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Document identity in the pack INDEX (issue #41)
+//
+// The project rule is "document identity is `flags.fusion.sourceId`, never the
+// name" — a homonym is normal in PF2e (the spell and the ancestry feature both
+// named "Unusual Anatomy"). Client code already honours it: spellHeal.ts builds
+// a `uuidBySourceId` map from `entry.index["flags.fusion.sourceId"]` and tries
+// the sourceId BEFORE the name.
+//
+// But no pack declared that field in `indexFields`, so the value was always
+// undefined, the map was always empty, and resolution ALWAYS degraded to the
+// name. The rule was violated in practice by code that looked like it obeyed.
+// ---------------------------------------------------------------------------
+
+const SOURCE_ID_FIELD = "flags.fusion.sourceId";
+
+/** Read a dot-path out of a plain object, like the index builders do. */
+function readDotPath(obj: unknown, path: string): unknown {
+  let value: unknown = obj;
+  for (const part of path.split(".")) {
+    if (value === null || typeof value !== "object") return undefined;
+    value = (value as Record<string, unknown>)[part];
+    if (value === undefined) return undefined;
+  }
+  return value;
+}
+
+interface IndexEntry {
+  _id: string;
+  index?: Record<string, unknown>;
+}
+
+function loadIndexJson(slug: string): IndexEntry[] | null {
+  const path = resolve(PACKS_ROOT, slug, "index.json");
+  if (!existsSync(path)) return null;
+  return JSON.parse(readFileSync(path, "utf-8")) as IndexEntry[];
+}
+
+describe("packs-validation: sourceId is resolvable from the index (issue #41)", () => {
+  it.each(listPackSlugs())("%s declares flags.fusion.sourceId in indexFields", (slug) => {
+    const manifest = loadPackJson(slug);
+    expect(
+      manifest.indexFields,
+      `${slug}/pack.json must index ${SOURCE_ID_FIELD} — without it every sourceId lookup silently falls back to the name`,
+    ).toContain(SOURCE_ID_FIELD);
+  });
+
+  it.each(listPackSlugs())("%s's committed index.json carries every sourceId", (slug) => {
+    const index = loadIndexJson(slug);
+    if (index === null) return; // index.json is optional; the server rebuilds from documents.json
+
+    const sourceIdByDocId = new Map<string, string>();
+    for (const doc of loadDocuments(slug)) {
+      const sourceId = readDotPath(doc, SOURCE_ID_FIELD);
+      if (typeof sourceId === "string" && sourceId.length > 0) {
+        sourceIdByDocId.set(String((doc as unknown as { _id: string })._id), sourceId);
+      }
+    }
+
+    const missing: string[] = [];
+    for (const entry of index) {
+      const expected = sourceIdByDocId.get(entry._id);
+      if (expected === undefined) continue; // doc genuinely has no sourceId
+      if (entry.index?.[SOURCE_ID_FIELD] !== expected) missing.push(entry._id);
+    }
+
+    expect(
+      missing.slice(0, 5),
+      `${slug}/index.json is stale for ${String(missing.length)} entrie(s) — regenerate it after changing indexFields`,
+    ).toEqual([]);
+  });
+
+  it("no two documents inside a pack share a sourceId (it must be a key)", () => {
+    const offenders: string[] = [];
+    for (const slug of listPackSlugs()) {
+      const seen = new Map<string, string>();
+      for (const doc of loadDocuments(slug)) {
+        const sourceId = readDotPath(doc, SOURCE_ID_FIELD);
+        if (typeof sourceId !== "string" || sourceId.length === 0) continue;
+        const previous = seen.get(sourceId);
+        if (previous !== undefined) {
+          offenders.push(`${slug}: ${sourceId} used by both ${previous} and ${String(doc.name)}`);
+        } else {
+          seen.set(sourceId, String(doc.name));
+        }
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+});
