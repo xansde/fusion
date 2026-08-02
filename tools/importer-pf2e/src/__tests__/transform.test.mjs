@@ -19,13 +19,14 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFileSync, existsSync, statSync } from "node:fs";
+import { readFileSync, existsSync, statSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // r21: os gates de conteúdo passam a ser derivados da CURADORIA, não de
 // números literais. Ver .fusion-build/r21-plan.md §6.
 import { classItemsMap, curatedClassDisplayNames, loadClassCuration } from "../curation/index.mjs";
+import { acharDuplicatas, formatarErroDeDuplicata } from "../curation/duplicata.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const IMPORTER_ROOT = join(__dirname, "..", "..");
@@ -1290,5 +1291,63 @@ describe("R10-B: normalizeBackgroundSystem (Fireworks Performer)", () => {
     // vendor: boosts.0 = [cha,int] (choice, >1 option -> "free"),
     // boosts.1 = [cha,con,dex,int,str,wis] (free)
     assert.deepEqual(system.boosts, ["free", "free"]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// r21 — Portão de duplicata semântica
+//
+// "Documentos de mesmo nome, se forem a mesma coisa, devem ser unificados.
+// Sempre." O portão precisa provar as duas metades: que DISPARA quando há
+// duplicata real, e que NÃO dispara no padrão concessor→concedido do PF2e
+// (que é homônimo legítimo, não duplicata). Portão que nunca dispara é
+// decoração — foi assim que o portão 7 do projeto irmão nasceu inerte.
+// ---------------------------------------------------------------------------
+
+describe('portão de duplicata semântica (r21)', () => {
+  it('DISPARA quando dois docs têm mesmo nome, mesmo type e mesma descrição', () => {
+    const grupos = acharDuplicatas([
+      { pack: 'feats-core', name: 'Toughness', type: 'feat', description: '<p>You can withstand more punishment.</p>', sourceId: 'AAA' },
+      { pack: 'class-features-core', name: 'toughness', type: 'feat', description: '<p>You  can withstand   more punishment.</p>', sourceId: 'BBB' },
+    ]);
+    assert.equal(grupos.length, 1, 'duplicata real precisa ser acusada (nome/espaço/HTML normalizados)');
+    assert.equal(grupos[0].length, 2);
+    const msg = formatarErroDeDuplicata(grupos);
+    assert.match(msg, /Toughness/);
+    assert.match(msg, /AAA/);
+    assert.match(msg, /BBB/, 'a mensagem tem de NOMEAR os dois lados, não só contar');
+  });
+
+  it('NÃO dispara no par concessor→concedido (Shield Block real dos packs)', () => {
+    const grupos = acharDuplicatas([
+      {
+        pack: 'class-features-core', name: 'Shield Block', type: 'classFeature', sourceId: 'eZNCckLzbH3GyncH',
+        description: '<p>You gain the Shield Block general feat, a reaction that lets you reduce damage with your shield.</p>',
+      },
+      {
+        pack: 'feats-core', name: 'Shield Block', type: 'feat', sourceId: 'jM72TjJ965jocBV8',
+        description: '<p>You snap your shield in place to ward off a blow. Your shield prevents you from taking an amount of damage up to the shield\u2019s Hardness.</p>',
+      },
+    ]);
+    assert.deepEqual(grupos, [], 'a feature CONCEDE o feat — são peças distintas, não duplicata');
+  });
+
+  it('os packs emitidos hoje não contêm nenhuma duplicata', () => {
+    const docs = [];
+    for (const slug of readdirSync(PACKS_DIR, { withFileTypes: true })
+      .filter((e) => e.isDirectory())
+      .map((e) => e.name)) {
+      const path = join(PACKS_DIR, slug, 'documents.json');
+      if (!existsSync(path)) continue;
+      for (const d of loadJson(path)) {
+        docs.push({
+          pack: slug, name: d.name, type: d.type,
+          description: d.system?.description, sourceId: d.flags?.fusion?.sourceId,
+        });
+      }
+    }
+    assert.ok(docs.length > 3000, `esperado 3000+ docs, veio ${docs.length}`);
+    const grupos = acharDuplicatas(docs);
+    assert.deepEqual(grupos, [], grupos.length ? formatarErroDeDuplicata(grupos) : '');
   });
 });

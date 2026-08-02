@@ -34,21 +34,21 @@ relevantes (reconstruíveis a partir deste relatório):
 
 ## 2. Doc da classe (medido)
 
-| Campo | Valor |
-| --- | --- |
-| hp | 10 |
-| keyAbility | `["dex","str"]` (não há restrição de ordem no vendor; ambas STR e DEX são válidas) |
-| perception | 2 (expert em nível 1) |
-| savingThrows | fortitude 2, reflex 2, will 1 (fort/reflex expert; will trained) |
-| attacks | simple 2, martial 2, advanced 1, unarmed 2, other `{name:"", rank:0}` |
-| defenses | heavy 1, light 1, medium 1, unarmored 1 (trained em tudo) |
-| ancestryFeatLevels | 1, 5, 9, 13, 17 |
-| classFeatLevels | 1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20 |
-| generalFeatLevels | 3, 7, 11, 15, 19 |
-| skillFeatLevels | 2, 4, 6, 8, 10, 12, 14, 16, 18, 20 |
-| skillIncreaseLevels | 3, 5, 7, 9, 11, 13, 15, 17, 19 |
-| trainedSkills | `value: []`, `additional: 3` |
-| spellcasting | `0` (sem conjuração) |
+| Campo               | Valor                                                                              |
+| ------------------- | ---------------------------------------------------------------------------------- |
+| hp                  | 10                                                                                 |
+| keyAbility          | `["dex","str"]` (não há restrição de ordem no vendor; ambas STR e DEX são válidas) |
+| perception          | 2 (expert em nível 1)                                                              |
+| savingThrows        | fortitude 2, reflex 2, will 1 (fort/reflex expert; will trained)                   |
+| attacks             | simple 2, martial 2, advanced 1, unarmed 2, other `{name:"", rank:0}`              |
+| defenses            | heavy 1, light 1, medium 1, unarmored 1 (trained em tudo)                          |
+| ancestryFeatLevels  | 1, 5, 9, 13, 17                                                                    |
+| classFeatLevels     | 1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20                                              |
+| generalFeatLevels   | 3, 7, 11, 15, 19                                                                   |
+| skillFeatLevels     | 2, 4, 6, 8, 10, 12, 14, 16, 18, 20                                                 |
+| skillIncreaseLevels | 3, 5, 7, 9, 11, 13, 15, 17, 19                                                     |
+| trainedSkills       | `value: []`, `additional: 3`                                                       |
+| spellcasting        | `0` (sem conjuração)                                                               |
 
 **Nota de schema:** o doc do vendor não tem um campo único `featLevels` — são
 quatro campos separados (`ancestryFeatLevels`, `classFeatLevels`,
@@ -59,24 +59,24 @@ combinada esperada.
 
 ### `items{}` (16 entradas, nome canônico = segmento final da uuid)
 
-| Nível (items{} da classe) | Feature | Nível genérico do arquivo (`class-features/*.json`) | Divergência? |
-| --- | --- | --- | --- |
-| 1 | Reactive Strike | 1 | não |
-| 1 | Shield Block | 1 | não |
-| 3 | Bravery | 3 | não |
-| 5 | Fighter Weapon Mastery | 5 | não |
-| 7 | Battlefield Surveyor | 7 | não |
-| 7 | Weapon Specialization | 7 | não |
-| 9 | Battle Hardened | 9 | não |
-| 9 | Combat Flexibility | 9 | não |
-| 11 | Armor Expertise | **7** | **SIM — armadilha confirmada** |
-| 11 | Fighter Expertise | 11 | não |
-| 13 | Weapon Legend | 13 | não |
-| 15 | Greater Weapon Specialization | 15 | não |
-| 15 | Improved Flexibility | 15 | não |
-| 15 | Tempered Reflexes | 15 | não |
-| 17 | Armor Mastery | **13** | **SIM — segunda armadilha, não citada no plano** |
-| 19 | Versatile Legend | 19 | não |
+| Nível (items{} da classe) | Feature                       | Nível genérico do arquivo (`class-features/*.json`) | Divergência?                                     |
+| ------------------------- | ----------------------------- | --------------------------------------------------- | ------------------------------------------------ |
+| 1                         | Reactive Strike               | 1                                                   | não                                              |
+| 1                         | Shield Block                  | 1                                                   | não                                              |
+| 3                         | Bravery                       | 3                                                   | não                                              |
+| 5                         | Fighter Weapon Mastery        | 5                                                   | não                                              |
+| 7                         | Battlefield Surveyor          | 7                                                   | não                                              |
+| 7                         | Weapon Specialization         | 7                                                   | não                                              |
+| 9                         | Battle Hardened               | 9                                                   | não                                              |
+| 9                         | Combat Flexibility            | 9                                                   | não                                              |
+| 11                        | Armor Expertise               | **7**                                               | **SIM — armadilha confirmada**                   |
+| 11                        | Fighter Expertise             | 11                                                  | não                                              |
+| 13                        | Weapon Legend                 | 13                                                  | não                                              |
+| 15                        | Greater Weapon Specialization | 15                                                  | não                                              |
+| 15                        | Improved Flexibility          | 15                                                  | não                                              |
+| 15                        | Tempered Reflexes             | 15                                                  | não                                              |
+| 17                        | Armor Mastery                 | **13**                                              | **SIM — segunda armadilha, não citada no plano** |
+| 19                        | Versatile Legend              | 19                                                  | não                                              |
 
 Os 16 nomes do `items{}` batem exatamente com o segmento final da uuid em
 todos os casos — não há aqui o problema do Magus (`entry.name` "Lightning
@@ -92,24 +92,24 @@ nível **17** do seu `items{}`. Ambas estão registradas em
 
 ## 3. Features compartilhadas com outras classes (união de `items{}` das 27 classes do vendor)
 
-| Feature do Fighter | Nº de classes do vendor que a referenciam | Classes |
-| --- | --- | --- |
-| Shield Block | 7 | Champion, Commander, Druid, Exemplar, Fighter, Guardian, Inventor |
-| Weapon Specialization | 25 | quase todas as classes (exceção: Guardian não tem? conferir — lista completa no script) |
-| Greater Weapon Specialization | 13 | Champion, Commander, Fighter, Guardian, Gunslinger, Inventor, Investigator, Magus, Monk, Ranger, Rogue, Swashbuckler, Thaumaturge |
-| Armor Mastery | 4 | Barbarian, Champion, Commander, Fighter |
-| Battle Hardened | 2 | Fighter, Guardian |
-| Armor Expertise | 3 | Champion, Commander, Fighter |
-| Weapon Legend | 1 | só Fighter |
-| Fighter Expertise | 1 | só Fighter |
-| Reactive Strike | 1 | só Fighter (o nome genérico "Attack of Opportunity" de outras classes usa outra feature) |
-| Tempered Reflexes | 1 | só Fighter |
-| Improved Flexibility | 1 | só Fighter |
-| Battlefield Surveyor | 1 | só Fighter |
-| Bravery | 1 | só Fighter |
-| Combat Flexibility | 1 | só Fighter |
-| Fighter Weapon Mastery | 1 | só Fighter |
-| Versatile Legend | 1 | só Fighter |
+| Feature do Fighter            | Nº de classes do vendor que a referenciam | Classes                                                                                                                           |
+| ----------------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Shield Block                  | 7                                         | Champion, Commander, Druid, Exemplar, Fighter, Guardian, Inventor                                                                 |
+| Weapon Specialization         | 25                                        | quase todas as classes (exceção: Guardian não tem? conferir — lista completa no script)                                           |
+| Greater Weapon Specialization | 13                                        | Champion, Commander, Fighter, Guardian, Gunslinger, Inventor, Investigator, Magus, Monk, Ranger, Rogue, Swashbuckler, Thaumaturge |
+| Armor Mastery                 | 4                                         | Barbarian, Champion, Commander, Fighter                                                                                           |
+| Battle Hardened               | 2                                         | Fighter, Guardian                                                                                                                 |
+| Armor Expertise               | 3                                         | Champion, Commander, Fighter                                                                                                      |
+| Weapon Legend                 | 1                                         | só Fighter                                                                                                                        |
+| Fighter Expertise             | 1                                         | só Fighter                                                                                                                        |
+| Reactive Strike               | 1                                         | só Fighter (o nome genérico "Attack of Opportunity" de outras classes usa outra feature)                                          |
+| Tempered Reflexes             | 1                                         | só Fighter                                                                                                                        |
+| Improved Flexibility          | 1                                         | só Fighter                                                                                                                        |
+| Battlefield Surveyor          | 1                                         | só Fighter                                                                                                                        |
+| Bravery                       | 1                                         | só Fighter                                                                                                                        |
+| Combat Flexibility            | 1                                         | só Fighter                                                                                                                        |
+| Fighter Weapon Mastery        | 1                                         | só Fighter                                                                                                                        |
+| Versatile Legend              | 1                                         | só Fighter                                                                                                                        |
 
 **Shield Block confirmado como caso-teste do plano: 7 classes.**
 
@@ -198,27 +198,27 @@ Total: 27 + 1 + 10 = 38 — confere com o total de feats com prerequisites.
 
 ```json
 // feats/class/fighter/level-10/crashing-slam.json — system.prerequisites
-{ "value": [ { "value": "Slam Down" } ] }
+{ "value": [{ "value": "Slam Down" }] }
 ```
 
 ```json
 // feats/class/fighter/level-4/powerful-shove.json — system.prerequisites
-{ "value": [ { "value": "Aggressive Block or Brutish Shove" } ] }
+{ "value": [{ "value": "Aggressive Block or Brutish Shove" }] }
 ```
 
 ```json
 // feats/class/shared-class-feats/level-6/shield-warden.json — system.prerequisites
-{ "value": [ { "value": "shield block" } ] }
+{ "value": [{ "value": "shield block" }] }
 ```
 
 ```json
 // feats/class/shared-class-feats/level-16/master-of-many-styles.json — system.prerequisites
-{ "value": [ { "value": "Opening Stance (Fighter)" }, { "value": "Reflexive Stance (Monk)" } ] }
+{ "value": [{ "value": "Opening Stance (Fighter)" }, { "value": "Reflexive Stance (Monk)" }] }
 ```
 
 ```json
 // feats/class/fighter/level-20/ultimate-flexibility.json — system.prerequisites
-{ "value": [ { "value": "improved flexibility" } ] }
+{ "value": [{ "value": "improved flexibility" }] }
 ```
 
 ## 8. Preparação para multiclasse (§4 do plano)
@@ -274,29 +274,29 @@ classe já expõe como `{"name":"","rank":0}` e que nenhuma feature do
 Todas as linhas abaixo usam o **nível do `items{}` do Fighter**, nunca o
 nível genérico do arquivo (ver §2 para as duas divergências).
 
-| level | stat | rank | origem (feature + arquivo) |
-| --- | --- | --- | --- |
-| 3 | will | 2 | Bravery — `class-features/bravery.json` |
-| 7 | perception | 3 | Battlefield Surveyor — `class-features/battlefield-surveyor.json` |
-| 9 | fortitude | 3 | Battle Hardened — `class-features/battle-hardened.json` |
-| 11 | armor.heavy | 2 | Armor Expertise — `class-features/armor-expertise.json` (nível genérico 7, usar 11) |
-| 11 | armor.light | 2 | Armor Expertise |
-| 11 | armor.medium | 2 | Armor Expertise |
-| 11 | armor.unarmored | 2 | Armor Expertise |
-| 11 | classDC | 2 | Fighter Expertise — `class-features/fighter-expertise.json` (ver §10, ambíguo) |
-| 13 | weapons.advanced | 2 | Weapon Legend — `class-features/weapon-legend.json` |
-| 13 | weapons.martial | 3 | Weapon Legend |
-| 13 | weapons.simple | 3 | Weapon Legend |
-| 13 | weapons.unarmed | 3 | Weapon Legend |
-| 15 | reflex | 3 | Tempered Reflexes — `class-features/tempered-reflexes.json` |
-| 17 | armor.light | 3 | Armor Mastery — `class-features/armor-mastery.json` (nível genérico 13, usar 17) |
-| 17 | armor.medium | 3 | Armor Mastery |
-| 17 | armor.unarmored | 3 | Armor Mastery |
-| 19 | weapons.advanced | 3 | Versatile Legend — `class-features/versatile-legend.json` |
-| 19 | weapons.martial | 4 | Versatile Legend |
-| 19 | weapons.simple | 4 | Versatile Legend |
-| 19 | weapons.unarmed | 4 | Versatile Legend |
-| 19 | classDC | 3 | Versatile Legend (ver §10, ambíguo) |
+| level | stat             | rank | origem (feature + arquivo)                                                          |
+| ----- | ---------------- | ---- | ----------------------------------------------------------------------------------- |
+| 3     | will             | 2    | Bravery — `class-features/bravery.json`                                             |
+| 7     | perception       | 3    | Battlefield Surveyor — `class-features/battlefield-surveyor.json`                   |
+| 9     | fortitude        | 3    | Battle Hardened — `class-features/battle-hardened.json`                             |
+| 11    | armor.heavy      | 2    | Armor Expertise — `class-features/armor-expertise.json` (nível genérico 7, usar 11) |
+| 11    | armor.light      | 2    | Armor Expertise                                                                     |
+| 11    | armor.medium     | 2    | Armor Expertise                                                                     |
+| 11    | armor.unarmored  | 2    | Armor Expertise                                                                     |
+| 11    | classDC          | 2    | Fighter Expertise — `class-features/fighter-expertise.json` (ver §10, ambíguo)      |
+| 13    | weapons.advanced | 2    | Weapon Legend — `class-features/weapon-legend.json`                                 |
+| 13    | weapons.martial  | 3    | Weapon Legend                                                                       |
+| 13    | weapons.simple   | 3    | Weapon Legend                                                                       |
+| 13    | weapons.unarmed  | 3    | Weapon Legend                                                                       |
+| 15    | reflex           | 3    | Tempered Reflexes — `class-features/tempered-reflexes.json`                         |
+| 17    | armor.light      | 3    | Armor Mastery — `class-features/armor-mastery.json` (nível genérico 13, usar 17)    |
+| 17    | armor.medium     | 3    | Armor Mastery                                                                       |
+| 17    | armor.unarmored  | 3    | Armor Mastery                                                                       |
+| 19    | weapons.advanced | 3    | Versatile Legend — `class-features/versatile-legend.json`                           |
+| 19    | weapons.martial  | 4    | Versatile Legend                                                                    |
+| 19    | weapons.simple   | 4    | Versatile Legend                                                                    |
+| 19    | weapons.unarmed  | 4    | Versatile Legend                                                                    |
+| 19    | classDC          | 3    | Versatile Legend (ver §10, ambíguo)                                                 |
 
 **Nota:** Armor Mastery no vendor não inclui `heavy` no seu
 `subfeatures.proficiencies` (só light/medium/unarmored) — medido, não

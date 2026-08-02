@@ -43,6 +43,7 @@ import { fileURLToPath } from "node:url";
 
 // r21: a curadoria de classe é DADO (curation/classes/*.json), não predicado
 // escrito à mão aqui. Ver curation/index.mjs e .fusion-build/r21-plan.md.
+import { acharDuplicatas, formatarErroDeDuplicata } from './curation/duplicata.mjs';
 import {
   axisCategoryByOtherTag,
   curatedClassDisplayNames,
@@ -916,7 +917,62 @@ function filterToMvpSubset(docs, selectedPf2eIds) {
  * @param {object} manifest
  * @param {string} [packsOutDir] — defaults to PACKS_OUT_DIR (pf2e)
  */
+// ---------------------------------------------------------------------------
+// Portão de duplicata semântica (r21)
+//
+// Regra do usuário, literal: "documentos de mesmo nome, se forem a mesma
+// coisa, devem ser unificados. Sempre." Este portão é essa regra aplicada por
+// máquina, para não depender de alguém reparar.
+//
+// O critério de "mesma coisa" é conteúdo, não nome: mesmo NOME normalizado +
+// mesmo TYPE + mesma DESCRIÇÃO normalizada (sem HTML, sem espaço variável).
+// Se os três baterem, são o mesmo documento em dois lugares — duplicata — e a
+// geração FALHA.
+//
+// O que este portão deliberadamente NÃO acusa, porque não é duplicata:
+// homônimos em que um documento CONCEDE o outro. É o padrão dominante do
+// PF2e e vale para os 39 pares de nome repetido medidos hoje:
+//
+//   class-features-core "Shield Block"  = "You gain the Shield Block general
+//                                         feat" (passivo, com grant-item)
+//   feats-core          "Shield Block"  = a reação em si (Trigger, reduz dano
+//                                         até a Hardness do escudo)
+//
+// Unificar esse par destruiria uma das duas metades: ou a classe deixa de
+// conceder, ou a habilidade deixa de existir. Mesmo padrão em Rage, Reactive
+// Strike, Hunt Prey, Spellstrike (feature → ação) e em Force Fang, Heal
+// Companion (feat → magia de foco).
+// ---------------------------------------------------------------------------
+
+const _docsEmitidos = [];
+
+/** Registra os docs de um pack para o portão rodar sobre o conjunto todo. */
+function registrarParaPortaoDeDuplicata(slug, docs) {
+  for (const doc of docs) {
+    _docsEmitidos.push({
+      pack: slug,
+      name: doc.name,
+      type: doc.type,
+      description: doc.system?.description,
+      sourceId: doc.flags?.fusion?.sourceId,
+    });
+  }
+}
+
+/** Falha a geração se dois documentos forem a mesma coisa. */
+function portaoDeDuplicataSemantica() {
+  const grupos = acharDuplicatas(_docsEmitidos);
+  if (grupos.length === 0) {
+    console.log(
+      `[build-mvp] portão de duplicata: OK — ${_docsEmitidos.length} documentos, nenhum par com mesmo nome+tipo+descrição.`,
+    );
+    return;
+  }
+  throw new Error(`[build-mvp] ${formatarErroDeDuplicata(grupos)}`);
+}
+
 function writePack(slug, docs, manifest, packsOutDir = PACKS_OUT_DIR) {
+  registrarParaPortaoDeDuplicata(slug, docs);
   const packDir = join(packsOutDir, slug);
   mkdirSync(packDir, { recursive: true });
 
@@ -1724,6 +1780,12 @@ async function main() {
   } else {
     await buildPf2eSubset();
   }
+
+  // Portão final: nenhum documento pode ser a mesma coisa que outro
+  // (mesmo nome + mesmo tipo + mesma descrição). Roda sobre TODOS os packs
+  // emitidos nesta execução, depois de escritos — se falhar, o erro nomeia os
+  // pares e a saída não é considerada boa.
+  portaoDeDuplicataSemantica();
 }
 
 main().catch((err) => {

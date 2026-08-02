@@ -42,21 +42,21 @@ de memória.
 
 ## 2. Doc da classe (medido)
 
-| Campo | Valor |
-| --- | --- |
-| hp | 8 |
-| keyAbility | `["dex"]` (sem opção alternativa) |
-| perception | 2 (expert inicial) |
-| savingThrows | fortitude 1, reflex 2, will 2 (T/E/E) |
-| attacks | martial 1, simple 1, unarmed 1, advanced 0 |
-| defenses | light 1, unarmored 1, heavy 0, medium 0 |
-| classDC | **ausente** no doc (`system.classDC === undefined`) — ver §7 |
-| classFeatLevels | `[1,2,4,6,8,10,12,14,16,18,20]` |
-| ancestryFeatLevels | `[1,5,9,13,17]` |
-| generalFeatLevels | `[3,7,11,15,19]` |
-| skillFeatLevels | `[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]` — **todo nível** |
+| Campo               | Valor                                                                               |
+| ------------------- | ----------------------------------------------------------------------------------- |
+| hp                  | 8                                                                                   |
+| keyAbility          | `["dex"]` (sem opção alternativa)                                                   |
+| perception          | 2 (expert inicial)                                                                  |
+| savingThrows        | fortitude 1, reflex 2, will 2 (T/E/E)                                               |
+| attacks             | martial 1, simple 1, unarmed 1, advanced 0                                          |
+| defenses            | light 1, unarmored 1, heavy 0, medium 0                                             |
+| classDC             | **ausente** no doc (`system.classDC === undefined`) — ver §7                        |
+| classFeatLevels     | `[1,2,4,6,8,10,12,14,16,18,20]`                                                     |
+| ancestryFeatLevels  | `[1,5,9,13,17]`                                                                     |
+| generalFeatLevels   | `[3,7,11,15,19]`                                                                    |
+| skillFeatLevels     | `[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]` — **todo nível**             |
 | skillIncreaseLevels | `[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]` — **todo nível a partir do 2** |
-| trainedSkills | `stealth` + 7 adicionais (`additional: 7`) |
+| trainedSkills       | `stealth` + 7 adicionais (`additional: 7`)                                          |
 
 **Confirma o ponto citado no prompt (regra 15 da spec 30):** Ladino concede skill
 feat E skill increase em TODO nível, não só nos ímpares/padrão. Isso é dado
@@ -65,28 +65,28 @@ precisou de inferência.
 
 ## 3. `items{}` da classe — 20 entradas, todas nos níveis ímpares 1–19
 
-| Nível | Nome canônico (uuid tail) | entry.name diverge? |
-| ---: | --- | --- |
-| 1 | Rogue's Racket | não |
-| 1 | Sneak Attack | não |
-| 1 | Surprise Attack | não |
-| 3 | Deny Advantage | não |
-| 5 | Weapon Tricks | não |
-| 7 | Weapon Specialization | não |
-| 7 | Perception Mastery | não |
-| 7 | Evasive Reflexes | não |
-| 9 | Rogue Resilience | não |
-| 9 | **Debilitating Strike** | **sim** — uuid aponta para `Item.Debilitating Strike` (singular), `entry.name` diz "Debilitating Strikes" (plural) |
-| 11 | Rogue Expertise | não |
-| 13 | Master Tricks | não |
-| 13 | Light Armor Expertise | não |
-| 13 | Greater Rogue Reflexes | não |
-| 13 | Perception Legend | não |
-| 15 | Greater Weapon Specialization | não |
-| 15 | Double Debilitation | não |
-| 17 | Agile Mind | não |
-| 19 | Light Armor Mastery | não |
-| 19 | Master Strike | não |
+| Nível | Nome canônico (uuid tail)     | entry.name diverge?                                                                                                |
+| ----: | ----------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+|     1 | Rogue's Racket                | não                                                                                                                |
+|     1 | Sneak Attack                  | não                                                                                                                |
+|     1 | Surprise Attack               | não                                                                                                                |
+|     3 | Deny Advantage                | não                                                                                                                |
+|     5 | Weapon Tricks                 | não                                                                                                                |
+|     7 | Weapon Specialization         | não                                                                                                                |
+|     7 | Perception Mastery            | não                                                                                                                |
+|     7 | Evasive Reflexes              | não                                                                                                                |
+|     9 | Rogue Resilience              | não                                                                                                                |
+|     9 | **Debilitating Strike**       | **sim** — uuid aponta para `Item.Debilitating Strike` (singular), `entry.name` diz "Debilitating Strikes" (plural) |
+|    11 | Rogue Expertise               | não                                                                                                                |
+|    13 | Master Tricks                 | não                                                                                                                |
+|    13 | Light Armor Expertise         | não                                                                                                                |
+|    13 | Greater Rogue Reflexes        | não                                                                                                                |
+|    13 | Perception Legend             | não                                                                                                                |
+|    15 | Greater Weapon Specialization | não                                                                                                                |
+|    15 | Double Debilitation           | não                                                                                                                |
+|    17 | Agile Mind                    | não                                                                                                                |
+|    19 | Light Armor Mastery           | não                                                                                                                |
+|    19 | Master Strike                 | não                                                                                                                |
 
 Único caso de mismatch uuid-tail vs. `entry.name` no conjunto do Rogue:
 **"Debilitating Strike"** (nome canônico correto, usado no arquivo `debilitating-strike.json`
@@ -97,12 +97,12 @@ e no schema) vs. `"Debilitating Strikes"` (o que aparece se alguém casar por
 
 `class-features-core/documents.json` (48 docs) cruzado por `sourceId`:
 
-| Nome | sourceId (packs) | sourceId (vendor) | Bate? |
-| --- | --- | --- | --- |
-| Weapon Specialization | `9EqIasqfI8YIM3Pt` | `9EqIasqfI8YIM3Pt` | sim |
-| Greater Weapon Specialization | `Z7HX6TeFsaup7Dx9` | `Z7HX6TeFsaup7Dx9` | sim |
-| Light Armor Expertise | `pZYkb12t5DSwtts7` | `pZYkb12t5DSwtts7` | sim |
-| Light Armor Mastery | `SHpjmM4A3Sw4GgDz` | `SHpjmM4A3Sw4GgDz` | sim |
+| Nome                          | sourceId (packs)   | sourceId (vendor)  | Bate? |
+| ----------------------------- | ------------------ | ------------------ | ----- |
+| Weapon Specialization         | `9EqIasqfI8YIM3Pt` | `9EqIasqfI8YIM3Pt` | sim   |
+| Greater Weapon Specialization | `Z7HX6TeFsaup7Dx9` | `Z7HX6TeFsaup7Dx9` | sim   |
+| Light Armor Expertise         | `pZYkb12t5DSwtts7` | `pZYkb12t5DSwtts7` | sim   |
+| Light Armor Mastery           | `SHpjmM4A3Sw4GgDz` | `SHpjmM4A3Sw4GgDz` | sim   |
 
 Estes **4 dos 20** nomes do `items{}` do Rogue já estão nos packs e serão
 **reusados**, nunca recriados. Os outros **16** faltam
@@ -126,15 +126,15 @@ excluída pelo predicado `trait:rogue` sem precisar de `excludeNames`.
 
 Varredura de `classes/*.json` (27 arquivos) por nome canônico no `items{}`:
 
-| Feature | Classes que concedem | Nível no Rogue | Nível em outras classes (amostra) |
-| --- | ---: | ---: | --- |
-| Weapon Specialization | 25/27 | 7 | Wizard 13, Kineticist 13, Fighter 7, Barbarian 7 |
-| Greater Weapon Specialization | 13/27 | 15 | Fighter 15, Ranger 15, Champion 15 |
-| Perception Mastery | 10/27 | 7 | Ranger 7, Investigator 7, Bard 11 |
-| Light Armor Expertise | 6/27 | 13 | Swashbuckler 13, Bard 13, Kineticist 13 |
-| Perception Legend | 4/27 | 13 | Ranger 15, Investigator 13, Gunslinger 19 |
-| Light Armor Mastery | 4/27 | 19 | Swashbuckler 19, Investigator 19, Kineticist 19 |
-| (demais 14 nomes) | 1/27 (só Rogue) | — | exclusivas |
+| Feature                       | Classes que concedem | Nível no Rogue | Nível em outras classes (amostra)                |
+| ----------------------------- | -------------------: | -------------: | ------------------------------------------------ |
+| Weapon Specialization         |                25/27 |              7 | Wizard 13, Kineticist 13, Fighter 7, Barbarian 7 |
+| Greater Weapon Specialization |                13/27 |             15 | Fighter 15, Ranger 15, Champion 15               |
+| Perception Mastery            |                10/27 |              7 | Ranger 7, Investigator 7, Bard 11                |
+| Light Armor Expertise         |                 6/27 |             13 | Swashbuckler 13, Bard 13, Kineticist 13          |
+| Perception Legend             |                 4/27 |             13 | Ranger 15, Investigator 13, Gunslinger 19        |
+| Light Armor Mastery           |                 4/27 |             19 | Swashbuckler 19, Investigator 19, Kineticist 19  |
+| (demais 14 nomes)             |      1/27 (só Rogue) |              — | exclusivas                                       |
 
 **Ponto relevante para a regra 5 (nível do items{} vence sobre nível genérico do
 arquivo):** para o Rogue especificamente, o `system.level.value` do arquivo
@@ -153,18 +153,18 @@ Tabela derivada de `subfeatures.proficiencies` de cada feature × nível do
 `items{}` do Rogue (nunca o `system.level` genérico — aqui os dois coincidem,
 mas a regra foi aplicada mesmo assim):
 
-| Nível | Stat | Rank (TEML) | Origem |
-| ---: | --- | ---: | --- |
-| 7 | perception | 3 (master) | Perception Mastery / `perception-mastery.json` |
-| 7 | reflex | 3 (master) | Evasive Reflexes / `evasive-reflexes.json` |
-| 9 | fortitude | 2 (expert) | Rogue Resilience / `rogue-resilience.json` |
-| 11 | classDC (chave vendor `rogue`) | 2 (expert) | Rogue Expertise / `rogue-expertise.json` |
-| 13 | armor.light + armor.unarmored | 2 (expert) | Light Armor Expertise / `light-armor-expertise.json` (já reusado) |
-| 13 | reflex | 4 (legendary) | Greater Rogue Reflexes / `greater-rogue-reflexes.json` |
-| 13 | perception | 4 (legendary) | Perception Legend / `perception-legend.json` |
-| 17 | will | 3 (master) | Agile Mind / `agile-mind.json` |
-| 19 | armor.light + armor.unarmored | 3 (master) | Light Armor Mastery / `light-armor-mastery.json` (já reusado) |
-| 19 | classDC (chave vendor `rogue`) | 3 (master) | Master Strike / `master-strike.json` |
+| Nível | Stat                           |   Rank (TEML) | Origem                                                            |
+| ----: | ------------------------------ | ------------: | ----------------------------------------------------------------- |
+|     7 | perception                     |    3 (master) | Perception Mastery / `perception-mastery.json`                    |
+|     7 | reflex                         |    3 (master) | Evasive Reflexes / `evasive-reflexes.json`                        |
+|     9 | fortitude                      |    2 (expert) | Rogue Resilience / `rogue-resilience.json`                        |
+|    11 | classDC (chave vendor `rogue`) |    2 (expert) | Rogue Expertise / `rogue-expertise.json`                          |
+|    13 | armor.light + armor.unarmored  |    2 (expert) | Light Armor Expertise / `light-armor-expertise.json` (já reusado) |
+|    13 | reflex                         | 4 (legendary) | Greater Rogue Reflexes / `greater-rogue-reflexes.json`            |
+|    13 | perception                     | 4 (legendary) | Perception Legend / `perception-legend.json`                      |
+|    17 | will                           |    3 (master) | Agile Mind / `agile-mind.json`                                    |
+|    19 | armor.light + armor.unarmored  |    3 (master) | Light Armor Mastery / `light-armor-mastery.json` (já reusado)     |
+|    19 | classDC (chave vendor `rogue`) |    3 (master) | Master Strike / `master-strike.json`                              |
 
 `weapon-specialization.json` e `greater-weapon-specialization.json` têm
 `subfeatures.proficiencies === undefined` (escalam dano, não rank de
@@ -195,19 +195,19 @@ com `system.category === "class"` e `system.traits.value` contendo `"rogue"`
 
 Distribuição por nível:
 
-| Nível | Qtd |
-| ---: | ---: |
-| 1 | 5 |
-| 2 | 8 |
-| 4 | 12 |
-| 6 | 10 |
-| 8 | 15 |
-| 10 | 8 |
-| 12 | 9 |
-| 14 | 4 |
-| 16 | 7 |
-| 18 | 3 |
-| 20 | 6 |
+|     Nível |    Qtd |
+| --------: | -----: |
+|         1 |      5 |
+|         2 |      8 |
+|         4 |     12 |
+|         6 |     10 |
+|         8 |     15 |
+|        10 |      8 |
+|        12 |      9 |
+|        14 |      4 |
+|        16 |      7 |
+|        18 |      3 |
+|        20 |      6 |
 | **Total** | **87** |
 
 `feats/class/shared-class-feats/` está **vazio** (0 arquivos) — o parâmetro
@@ -223,14 +223,14 @@ Já em `feats-core`: **0/87** (confirmado por `sourceId`/trait, §4).
 casamento automático (nome normalizado contra: nomes dos 87 feats, os 20 nomes
 canônicos do `items{}`, os 6 nomes de racket):
 
-| Categoria | Qtd | Mecanização |
-| --- | ---: | --- |
-| Cadeia interna (feat/feature da própria classe) | **18** | aresta no mapa de nós |
-| Gate de racket (`"<racket> racket"`) | 9 | predicado `has` sobre a opção do choiceAxis (não é aresta feat→feat) |
-| Só proficiência (`trained/expert/master/legendary in <skill>`) | 20 | predicado `proficiency` |
-| Referência externa (feat de skill, fora da seleção do Rogue) | 3 | atributo do nó, sem aresta |
-| Não mecanizável (nem proficiência nem doc) | 1 | texto puro |
-| Texto ambíguo (não bate com nenhum doc por string) | 1 | texto puro, reportado |
+| Categoria                                                      |    Qtd | Mecanização                                                          |
+| -------------------------------------------------------------- | -----: | -------------------------------------------------------------------- |
+| Cadeia interna (feat/feature da própria classe)                | **18** | aresta no mapa de nós                                                |
+| Gate de racket (`"<racket> racket"`)                           |      9 | predicado `has` sobre a opção do choiceAxis (não é aresta feat→feat) |
+| Só proficiência (`trained/expert/master/legendary in <skill>`) |     20 | predicado `proficiency`                                              |
+| Referência externa (feat de skill, fora da seleção do Rogue)   |      3 | atributo do nó, sem aresta                                           |
+| Não mecanizável (nem proficiência nem doc)                     |      1 | texto puro                                                           |
+| Texto ambíguo (não bate com nenhum doc por string)             |      1 | texto puro, reportado                                                |
 
 **5 exemplos com a forma exata do JSON** (`system.prerequisites.value`):
 

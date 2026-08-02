@@ -13,21 +13,21 @@ Todos os scripts foram escritos no scratchpad da sessão
 (`…/scratchpad/*.mjs`) e rodados com `node` a partir da raiz do repo. Nenhum
 número deste relatório vem de memória ou de estimativa.
 
-| # | Script / comando                              | O que mediu                                                                                    |
-| - | --------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| 1 | `node -e` sobre `classes/wizard.json`         | hp, keyAbility, perception, saves, attacks, defenses, trainedSkills, featLevels, skillIncrease  |
-| 2 | `node -e` — dump do `system.items{}`          | 15 features, nome canônico = segmento final da uuid, nível do `items{}`                         |
-| 3 | `node -e` — varredura das 27 `classes/*.json` | quantas classes referenciam cada feature do Wizard                                              |
-| 4 | `node -e` — cruzamento com `class-features/`  | `system.level` do arquivo genérico × nível do `items{}`, `subfeatures.proficiencies`, `otherTags` |
-| 5 | `node -e` — mesmo cruzamento para Magus/Kineticist | reverse-engineering do mapa `subfeature key → stat` da tabela atual                        |
-| 6 | `scratchpad/x.mjs`                            | `otherTags` `wizard-*` e contagem de opções por eixo                                            |
-| 7 | `scratchpad/feats.mjs`                        | 5.987 feats do vendor → 63 com trait `wizard`, categoria, pasta, nível, rarity, traits múltiplos |
-| 8 | `scratchpad/dedupe.mjs`                       | cruzamento dos 53 class feats com `feats-core` (sourceId **e** nome) + parsing dos `prerequisites` |
-| 9 | `scratchpad/focus.mjs`                        | 458 focus spells do vendor × `spells-core`; as 26 school spells do Wizard                        |
-| 10 | `scratchpad/j.mjs` / `j2.mjs`                | localização e extração do journal `classes.json` → page `wDukeO3euLEGn6FA` (Wizard)              |
-| 11 | `scratchpad/ez.mjs`                          | slots das fichas pregen oficiais `iconics/ezren` (níveis 1, 3, 5)                                |
-| 12 | `scratchpad/curr.mjs`                        | 257 referências de magia nas 14 escolas × `spells-core`; rarity/rules de teses e escolas         |
-| 13 | `scratchpad/risks.mjs`                       | homônimos no vendor, colisão de nome × sourceId nos packs, "Counterspell", "Quick Recognition"   |
+| #   | Script / comando                                   | O que mediu                                                                                        |
+| --- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| 1   | `node -e` sobre `classes/wizard.json`              | hp, keyAbility, perception, saves, attacks, defenses, trainedSkills, featLevels, skillIncrease     |
+| 2   | `node -e` — dump do `system.items{}`               | 15 features, nome canônico = segmento final da uuid, nível do `items{}`                            |
+| 3   | `node -e` — varredura das 27 `classes/*.json`      | quantas classes referenciam cada feature do Wizard                                                 |
+| 4   | `node -e` — cruzamento com `class-features/`       | `system.level` do arquivo genérico × nível do `items{}`, `subfeatures.proficiencies`, `otherTags`  |
+| 5   | `node -e` — mesmo cruzamento para Magus/Kineticist | reverse-engineering do mapa `subfeature key → stat` da tabela atual                                |
+| 6   | `scratchpad/x.mjs`                                 | `otherTags` `wizard-*` e contagem de opções por eixo                                               |
+| 7   | `scratchpad/feats.mjs`                             | 5.987 feats do vendor → 63 com trait `wizard`, categoria, pasta, nível, rarity, traits múltiplos   |
+| 8   | `scratchpad/dedupe.mjs`                            | cruzamento dos 53 class feats com `feats-core` (sourceId **e** nome) + parsing dos `prerequisites` |
+| 9   | `scratchpad/focus.mjs`                             | 458 focus spells do vendor × `spells-core`; as 26 school spells do Wizard                          |
+| 10  | `scratchpad/j.mjs` / `j2.mjs`                      | localização e extração do journal `classes.json` → page `wDukeO3euLEGn6FA` (Wizard)                |
+| 11  | `scratchpad/ez.mjs`                                | slots das fichas pregen oficiais `iconics/ezren` (níveis 1, 3, 5)                                  |
+| 12  | `scratchpad/curr.mjs`                              | 257 referências de magia nas 14 escolas × `spells-core`; rarity/rules de teses e escolas           |
+| 13  | `scratchpad/risks.mjs`                             | homônimos no vendor, colisão de nome × sourceId nos packs, "Counterspell", "Quick Recognition"     |
 
 ---
 
@@ -84,23 +84,23 @@ A regra do nome canônico foi aplicada mesmo assim (é o que o loader deve usar)
 
 Medição sobre as **27 classes** do vendor.
 
-| Feature                 | Nível no Wizard | Nº de classes | `system.level` do arquivo | Divergência |
-| ----------------------- | --------------: | ------------: | ------------------------: | ----------- |
-| Wizard Spellcasting     | 1               | 1             | 1                         | —           |
-| Arcane School           | 1               | 1             | 1                         | —           |
-| Arcane Bond             | 1               | 1             | 1                         | —           |
-| Arcane Thesis           | 1               | 1             | 1                         | —           |
-| Reflex Expertise        | 5               | 12            | **3**                     | **sim (+2)** |
-| Expert Spellcaster      | 7               | 10            | 7                         | —           |
-| Magical Fortitude       | 9               | 4             | **5**                     | **sim (+4)** |
-| Perception Expertise    | 11              | 12            | **3**                     | **sim (+8)** |
-| Weapon Expertise        | 11              | 14            | **5**                     | **sim (+6)** |
-| Defensive Robes         | 13              | 4             | 13                        | —           |
-| Weapon Specialization   | 13              | **25**        | **7**                     | **sim (+6)** |
-| Master Spellcaster      | 15              | 10            | 15                        | —           |
-| Prodigious Will         | 17              | 1             | 17                        | —           |
-| Archwizard's Spellcraft | 19              | 1             | 19                        | —           |
-| Legendary Spellcaster   | 19              | 8             | 19                        | —           |
+| Feature                 | Nível no Wizard | Nº de classes | `system.level` do arquivo | Divergência  |
+| ----------------------- | --------------: | ------------: | ------------------------: | ------------ |
+| Wizard Spellcasting     |               1 |             1 |                         1 | —            |
+| Arcane School           |               1 |             1 |                         1 | —            |
+| Arcane Bond             |               1 |             1 |                         1 | —            |
+| Arcane Thesis           |               1 |             1 |                         1 | —            |
+| Reflex Expertise        |               5 |            12 |                     **3** | **sim (+2)** |
+| Expert Spellcaster      |               7 |            10 |                         7 | —            |
+| Magical Fortitude       |               9 |             4 |                     **5** | **sim (+4)** |
+| Perception Expertise    |              11 |            12 |                     **3** | **sim (+8)** |
+| Weapon Expertise        |              11 |            14 |                     **5** | **sim (+6)** |
+| Defensive Robes         |              13 |             4 |                        13 | —            |
+| Weapon Specialization   |              13 |        **25** |                     **7** | **sim (+6)** |
+| Master Spellcaster      |              15 |            10 |                        15 | —            |
+| Prodigious Will         |              17 |             1 |                        17 | —            |
+| Archwizard's Spellcraft |              19 |             1 |                        19 | —            |
+| Legendary Spellcaster   |              19 |             8 |                        19 | —            |
 
 **5 de 15 features têm nível genérico mentiroso.** Ler `system.level` do arquivo
 produziria: Reflex Expertise em 3 (é 5), Perception Expertise em 3 (é 11),
@@ -121,18 +121,18 @@ segue a convenção já usada nos packs (verificada no doc do Magus e do
 Kineticist em `systems/pf2e/packs/classes-core/documents.json`): categorias de
 arma → `weapons.<cat>`, categorias de armadura → `armor.<cat>`, o resto literal.
 
-| level | stat            | rank | Origem (feature + arquivo)                                        |
-| ----: | --------------- | ---: | ----------------------------------------------------------------- |
-| 5     | reflex          | 2    | Reflex Expertise — `class-features/reflex-expertise.json` `{"reflex":{"rank":2}}` |
-| 7     | spellcasting    | 2    | Expert Spellcaster — `expert-spellcaster.json` `{"spellcasting":{"rank":2}}` |
-| 9     | fortitude       | 2    | Magical Fortitude — `magical-fortitude.json` `{"fortitude":{"rank":2}}` |
-| 11    | perception      | 2    | Perception Expertise — `perception-expertise.json` `{"perception":{"rank":2}}` |
-| 11    | weapons.simple  | 2    | Weapon Expertise — `weapon-expertise.json` `{"simple":{"rank":2}}` |
-| 11    | weapons.unarmed | 2    | Weapon Expertise — `weapon-expertise.json` `{"unarmed":{"rank":2}}` |
-| 13    | armor.unarmored | 2    | Defensive Robes — `defensive-robes.json` `{"unarmored":{"rank":2}}` |
-| 15    | spellcasting    | 3    | Master Spellcaster — `master-spellcaster.json` `{"spellcasting":{"rank":3}}` |
-| 17    | will            | 3    | Prodigious Will — `prodigious-will.json` `{"will":{"rank":3}}`     |
-| 19    | spellcasting    | 4    | Legendary Spellcaster — `legendary-spellcaster.json` `{"spellcasting":{"rank":4}}` |
+| level | stat            | rank | Origem (feature + arquivo)                                                         |
+| ----: | --------------- | ---: | ---------------------------------------------------------------------------------- |
+|     5 | reflex          |    2 | Reflex Expertise — `class-features/reflex-expertise.json` `{"reflex":{"rank":2}}`  |
+|     7 | spellcasting    |    2 | Expert Spellcaster — `expert-spellcaster.json` `{"spellcasting":{"rank":2}}`       |
+|     9 | fortitude       |    2 | Magical Fortitude — `magical-fortitude.json` `{"fortitude":{"rank":2}}`            |
+|    11 | perception      |    2 | Perception Expertise — `perception-expertise.json` `{"perception":{"rank":2}}`     |
+|    11 | weapons.simple  |    2 | Weapon Expertise — `weapon-expertise.json` `{"simple":{"rank":2}}`                 |
+|    11 | weapons.unarmed |    2 | Weapon Expertise — `weapon-expertise.json` `{"unarmed":{"rank":2}}`                |
+|    13 | armor.unarmored |    2 | Defensive Robes — `defensive-robes.json` `{"unarmored":{"rank":2}}`                |
+|    15 | spellcasting    |    3 | Master Spellcaster — `master-spellcaster.json` `{"spellcasting":{"rank":3}}`       |
+|    17 | will            |    3 | Prodigious Will — `prodigious-will.json` `{"will":{"rank":3}}`                     |
+|    19 | spellcasting    |    4 | Legendary Spellcaster — `legendary-spellcaster.json` `{"spellcasting":{"rank":4}}` |
 
 Sem linha (medido: `subfeatures.proficiencies` ausente ou vazio):
 **Wizard Spellcasting, Arcane School, Arcane Bond, Arcane Thesis,
@@ -149,12 +149,25 @@ o `system.spellcasting: 1` do doc da classe dá o trained inicial e os três
 `simple` e `unarmed`. O rank 2 de **martial** vem de um rule element:
 
 ```json
-{ "key": "ActiveEffectLike", "mode": "upgrade",
+{
+  "key": "ActiveEffectLike",
+  "mode": "upgrade",
   "path": "system.proficiencies.attacks.martial.rank",
-  "predicate": [{"or":["class:champion","class:exemplar","class:guardian",
-                       "class:investigator","class:magus","class:swashbuckler",
-                       "class:thaumaturge"]}],
-  "value": 2 }
+  "predicate": [
+    {
+      "or": [
+        "class:champion",
+        "class:exemplar",
+        "class:guardian",
+        "class:investigator",
+        "class:magus",
+        "class:swashbuckler",
+        "class:thaumaturge"
+      ]
+    }
+  ],
+  "value": 2
+}
 ```
 
 A tabela atual do Magus no pack tem `{level:5, stat:"weapons.martial", rank:2}`.
@@ -171,10 +184,10 @@ central que vai pisar nisso.
 Medido em `system.traits.otherTags` dos 827 arquivos de `class-features/`
 (1 arquivo ignorado: `_folders.json`, que não tem `system`).
 
-| Eixo          | otherTag do vendor      | Feature no `items{}` | Nível | Opções |
-| ------------- | ----------------------- | -------------------- | ----: | -----: |
-| Arcane Thesis | `wizard-arcane-thesis`  | **Arcane Thesis**    | 1     | **5**  |
-| Arcane School | `wizard-arcane-school`  | **Arcane School**    | 1     | **14** |
+| Eixo          | otherTag do vendor     | Feature no `items{}` | Nível | Opções |
+| ------------- | ---------------------- | -------------------- | ----: | -----: |
+| Arcane Thesis | `wizard-arcane-thesis` | **Arcane Thesis**    |     1 |  **5** |
+| Arcane School | `wizard-arcane-school` | **Arcane School**    |     1 | **14** |
 
 Bate com a tabela do plano §R3 (5 e 14). Os dois eixos acendem no **nível 1**,
 o que significa que a verificação viva (portão 9) já vê os dois na primeira
@@ -202,7 +215,7 @@ sourceId: 0/5 e 0/14). São 19 documentos novos.
 `wizard-elemental-school` existe, com 2 docs (`Elemental School`
 `5rFzX6JK6CXLFxUP` e `School of Unified Magical Theory`). É a variante legada
 da escola elemental (`elemental-magic.json` também referencia a tag). **Não
-gerar slot a partir dela.** E note que *School of Unified Magical Theory*
+gerar slot a partir dela.** E note que _School of Unified Magical Theory_
 carrega as **duas** tags — dedupe por sourceId no pack de eixos é obrigatório,
 senão ela entra duas vezes.
 
@@ -214,7 +227,7 @@ Universo: **5.987** arquivos de feat no vendor (excluindo `_folders.json`).
 Com trait `wizard`: **63** — **todos** com `system.category === "class"`.
 
 Desses 63, **10 vivem em `feats/archetype/wizard/`** e carregam
-`traits: ["archetype","druid","wizard"]`, rarity `rare`, nível 20 (os "* Mask"
+`traits: ["archetype","druid","wizard"]`, rarity `rare`, nível 20 (os "\* Mask"
 de Lost Omens). São feats de arquétipo → **excluídos** (estão em
 `classFeats.excludeNames`).
 
@@ -223,19 +236,19 @@ de Lost Omens). São feats de arquétipo → **excluídos** (estão em
 
 ### 6.1 Distribuição por nível (53)
 
-| Nível | N | Feats |
-| ----: | -: | ----- |
-| 1  | 5 | Counterspell (Prepared), Familiar, Reach Spell, Spellbook Prodigy, Widen Spell |
-| 2  | 5 | Cantrip Expansion, Conceal Spell, Energy Ablation, Enhanced Familiar, Nonlethal Spell |
-| 4  | 5 | Bespell Strikes, Call Wizardly Tools, Linked Focus, Spell Protection Array, Undying Conviction |
-| 6  | 6 | Convincing Illusion, Detonating Spell, Explosive Arrival, Irresistible Magic, Split Slot, Steady Spellcasting |
-| 8  | 6 | Advanced School Spell, Bond Conservation, Chaotic Spell, Form Retention, Helt's Spelldance, Knowledge is Power (Wizard) |
-| 10 | 3 | Overwhelming Energy, Quickened Casting, Scroll Adept |
-| 12 | 5 | Clever Counterspell, Forcible Energy, Keen Magical Detection, Magic Sense, Necromancer's Visage |
-| 14 | 6 | Bonded Focus, Reflect Spell, Secondary Detonation Array, Sepulchral Sublimation, Shift Spell, Superior Bond |
-| 16 | 3 | Effortless Concentration, Scintillating Spell, Spell Tinker |
-| 18 | 3 | Infinite Possibilities, Reprepare Spell, Second Thoughts |
-| 20 | 6 | Archwizard's Might, Reclaim Spell, Spell Combination, Spell Mastery, Spellshape Mastery, Worldsphere Gravity |
+| Nível |   N | Feats                                                                                                                   |
+| ----: | --: | ----------------------------------------------------------------------------------------------------------------------- |
+|     1 |   5 | Counterspell (Prepared), Familiar, Reach Spell, Spellbook Prodigy, Widen Spell                                          |
+|     2 |   5 | Cantrip Expansion, Conceal Spell, Energy Ablation, Enhanced Familiar, Nonlethal Spell                                   |
+|     4 |   5 | Bespell Strikes, Call Wizardly Tools, Linked Focus, Spell Protection Array, Undying Conviction                          |
+|     6 |   6 | Convincing Illusion, Detonating Spell, Explosive Arrival, Irresistible Magic, Split Slot, Steady Spellcasting           |
+|     8 |   6 | Advanced School Spell, Bond Conservation, Chaotic Spell, Form Retention, Helt's Spelldance, Knowledge is Power (Wizard) |
+|    10 |   3 | Overwhelming Energy, Quickened Casting, Scroll Adept                                                                    |
+|    12 |   5 | Clever Counterspell, Forcible Energy, Keen Magical Detection, Magic Sense, Necromancer's Visage                         |
+|    14 |   6 | Bonded Focus, Reflect Spell, Secondary Detonation Array, Sepulchral Sublimation, Shift Spell, Superior Bond             |
+|    16 |   3 | Effortless Concentration, Scintillating Spell, Spell Tinker                                                             |
+|    18 |   3 | Infinite Possibilities, Reprepare Spell, Second Thoughts                                                                |
+|    20 |   6 | Archwizard's Might, Reclaim Spell, Spell Combination, Spell Mastery, Spellshape Mastery, Worldsphere Gravity            |
 
 Rarity: 44 common, 9 uncommon (Necromancer's Visage, Sepulchral Sublimation,
 Undying Conviction, Detonating Spell, Chaotic Spell, Helt's Spelldance, Shift
@@ -249,9 +262,9 @@ diferente — sem homônimo entre o conjunto novo e o pack atual).
 
 | Feat              | sourceId           | Nível |
 | ----------------- | ------------------ | ----: |
-| Familiar          | `bcxIg7wi8ZAhvhOD` | 1     |
-| Cantrip Expansion | `A7ofsoPva0UtjqrX` | 2     |
-| Enhanced Familiar | `N7dTFxpjXGn4ddq8` | 2     |
+| Familiar          | `bcxIg7wi8ZAhvhOD` |     1 |
+| Cantrip Expansion | `A7ofsoPva0UtjqrX` |     2 |
+| Enhanced Familiar | `N7dTFxpjXGn4ddq8` |     2 |
 
 **50 feats a criar.** Os três acima vieram junto do Magus (trait compartilhado)
 e devem ser **reusados**, nunca recriados.
@@ -305,7 +318,7 @@ não de strings — quem tratar como `string[]` recebe `"[object Object]"`.
 
 - **Fora, mas resolvível:** `Clever Counterspell → Quick Recognition` —
   `Quick Recognition` existe no vendor como **feat de perícia** (`category:
-  "skill"`, nível 7, `2rSyTfPgAmNAo01r`). Não está no conjunto do Wizard.
+"skill"`, nível 7, `2rSyTfPgAmNAo01r`). Não está no conjunto do Wizard.
   Decisão sugerida: **atributo do nó**, não aresta, enquanto skill feats não
   entrarem no mapa.
 - **Fora e não é documento:** `Linked Focus → "curriculum spells"` — propriedade
@@ -314,7 +327,7 @@ não de strings — quem tratar como `string[]` recebe `"[object Object]"`.
   (`trained in Arcana`, `expert in Crafting`, `expert in Deception`,
   `expert in Performance`) + 6 de ficção/build de outra classe
   (`ability to create or control undead`, `cleric with a negative font, oracle
-  of bones, or necromancer wizard`, nas três variantes). Vão como **texto
+of bones, or necromancer wizard`, nas três variantes). Vão como **texto
   exibido** (REQ-BC-034), nunca como predicado inventado.
 
 ---
@@ -325,7 +338,7 @@ não de strings — quem tratar como `string[]` recebe `"[object Object]"`.
 
 `tools/importer-pf2e/vendor/pf2e/packs/pf2e/journals/classes.json`,
 entry `kzxu2dI7tFxv6Ix6` ("Classes"), page **`wDukeO3euLEGn6FA` ("Wizard")**,
-tabela *Wizard Spells per Day* (15.839 caracteres de HTML; extraída com
+tabela _Wizard Spells per Day_ (15.839 caracteres de HTML; extraída com
 `scratchpad/j2.mjs`).
 
 ### Evidência 2 — fichas oficiais (pregen), independentes do journal
@@ -333,20 +346,20 @@ tabela *Wizard Spells per Day* (15.839 caracteres de HTML; extraída com
 `packs/pf2e/iconics/ezren/ezren-level-{1,3,5}.json`, entry
 `Arcane Prepared Spells`:
 
-| Ficha    | slot0 (cantrips) | slot1 | slot2 | slot3 |
-| -------- | ---------------: | ----: | ----: | ----: |
-| nível 1  | 5                | 2     | —     | —     |
-| nível 3  | 5                | 3     | 2     | —     |
-| nível 5  | 5                | 3     | 3     | 2     |
+| Ficha   | slot0 (cantrips) | slot1 | slot2 | slot3 |
+| ------- | ---------------: | ----: | ----: | ----: |
+| nível 1 |                5 |     2 |     — |     — |
+| nível 3 |                5 |     3 |     2 |     — |
+| nível 5 |                5 |     3 |     3 |     2 |
 
 Bate item a item com as linhas 1, 3 e 5 do journal.
 
 ### Evidência 3 (bônus, prosa do próprio vendor)
 
-`class-features/wizard-spellcasting.json` (ORC, Player Core): *"you can prepare
+`class-features/wizard-spellcasting.json` (ORC, Player Core): _"you can prepare
 up to **two 1st-rank spells and five cantrips** each morning ... as well as
 **one extra curriculum cantrip and one extra curriculum spell of each rank** you
-can cast from your arcane school"*.
+can cast from your arcane school"_.
 
 ### A tabela adotada (base, sem o extra da escola)
 
@@ -402,8 +415,8 @@ diferente e a integração central deve tratá-lo como tal.
 
 ### 9.1 `class-features-core` (48 docs) — 6 features reusadas
 
-| Feature               | sourceId           | Também usada por |
-| --------------------- | ------------------ | ---------------- |
+| Feature               | sourceId           | Também usada por  |
+| --------------------- | ------------------ | ----------------- |
 | Reflex Expertise      | `TUOeATt52P43r5W0` | Magus (mesmo doc) |
 | Expert Spellcaster    | `cD3nSupdCvONuHiE` | Magus (mesmo doc) |
 | Perception Expertise  | `JCqACxgrm5ixX0Jy` | Kineticist        |
@@ -418,23 +431,23 @@ exatamente os mesmos docs que vieram do Magus** — sourceId idêntico
 ### 9.2 `spells-core` (1.252 docs) — 26 focus spells reusadas, 0 a importar
 
 Todas as **458** focus spells do vendor estão em `spells-core` (medido:
-458/458). As 26 school spells do Wizard (13 *initial* + 13 *advanced*):
+458/458). As 26 school spells do Wizard (13 _initial_ + 13 _advanced_):
 
-| Escola                          | Initial (rank 1)       | Advanced (rank 4)             |
-| ------------------------------- | ---------------------- | ----------------------------- |
-| Red Mantis Magic School         | Debilitating Terror `AzTFMy9E9HQcLNRg` | Shroud of the Mantis `VVigI4uNdWr1XZgG` |
-| School of Ars Grammatica        | Protective Wards `lY9fOk1qBDDhBT8s` | Rune of Observation `4LSf04FFvDgMyDk6` |
-| School of Battle Magic          | Force Bolt `Hu38hoAUSYeFpkVa` | Energy Absorption `LoBjvguamA12iyW0` |
-| School of Civic Wizardry        | Earthworks `ffz6wlSMzhaDpjg6` | Community Restoration `6RNymgUvS87lmQOj` |
-| School of Gates                 | Friendly Push `cCFDnmFB1EGeQUeA` | Rapid Retreat `6sNjsNPipZvQ3BGe` |
-| School of Kalistrade            | Unexpected Windfall `KR8WgdazifDBjDkW` | Capital Dividend `jXcsCpko8qNrWZ4x` |
-| School of Magical Technologies  | Augmented Body `pSepsfCrrAKuwA0N` | Conjured Clockwork `eob29LrDMH2IoeAj` |
-| School of Mentalism             | Charming Push `KMFRKzNCq7hVNH7H` | Invisibility Cloak `Nun72GTmb31YqSKh` |
-| School of Protean Form          | Scramble Body `XcMObj2p9nIBp53b` | Shifting Form `SDkIFrrO1PsE02Kd` |
-| School of Rooted Wisdom         | Halcyon Mists `IERHT6v4o5ISvuJG` | Call the Ten `REBo9wSxDDx7Qdcc` |
-| School of the Boundary          | Fortify Summoning `tWzxuJdbXqvskdIo` | Spiral of Horrors `KPGGkyBFbKse7KpK` |
-| School of the Reclamation       | Grasping Vine `cQgPIohUja0DUiRL` | Unsettling Knowledge `iAmHJbFN3lOoOkNG` |
-| School of Unified Magical Theory| Hand of the Apprentice `bSDTWUIvgXkBaEv8` | Interdisciplinary Incantation `sGenGMmE1ntkXCtN` |
+| Escola                           | Initial (rank 1)                          | Advanced (rank 4)                                |
+| -------------------------------- | ----------------------------------------- | ------------------------------------------------ |
+| Red Mantis Magic School          | Debilitating Terror `AzTFMy9E9HQcLNRg`    | Shroud of the Mantis `VVigI4uNdWr1XZgG`          |
+| School of Ars Grammatica         | Protective Wards `lY9fOk1qBDDhBT8s`       | Rune of Observation `4LSf04FFvDgMyDk6`           |
+| School of Battle Magic           | Force Bolt `Hu38hoAUSYeFpkVa`             | Energy Absorption `LoBjvguamA12iyW0`             |
+| School of Civic Wizardry         | Earthworks `ffz6wlSMzhaDpjg6`             | Community Restoration `6RNymgUvS87lmQOj`         |
+| School of Gates                  | Friendly Push `cCFDnmFB1EGeQUeA`          | Rapid Retreat `6sNjsNPipZvQ3BGe`                 |
+| School of Kalistrade             | Unexpected Windfall `KR8WgdazifDBjDkW`    | Capital Dividend `jXcsCpko8qNrWZ4x`              |
+| School of Magical Technologies   | Augmented Body `pSepsfCrrAKuwA0N`         | Conjured Clockwork `eob29LrDMH2IoeAj`            |
+| School of Mentalism              | Charming Push `KMFRKzNCq7hVNH7H`          | Invisibility Cloak `Nun72GTmb31YqSKh`            |
+| School of Protean Form           | Scramble Body `XcMObj2p9nIBp53b`          | Shifting Form `SDkIFrrO1PsE02Kd`                 |
+| School of Rooted Wisdom          | Halcyon Mists `IERHT6v4o5ISvuJG`          | Call the Ten `REBo9wSxDDx7Qdcc`                  |
+| School of the Boundary           | Fortify Summoning `tWzxuJdbXqvskdIo`      | Spiral of Horrors `KPGGkyBFbKse7KpK`             |
+| School of the Reclamation        | Grasping Vine `cQgPIohUja0DUiRL`          | Unsettling Knowledge `iAmHJbFN3lOoOkNG`          |
+| School of Unified Magical Theory | Hand of the Apprentice `bSDTWUIvgXkBaEv8` | Interdisciplinary Incantation `sGenGMmE1ntkXCtN` |
 
 **Runelord não tem school spells próprias** (usa as da School of Thassilonian
 Rune Magic, que não é opção do eixo).
@@ -450,13 +463,13 @@ Enhanced Familiar `N7dTFxpjXGn4ddq8`.
 
 ### 9.4 Resumo do delta a criar
 
-| Família        | Já nos packs | A criar |
-| -------------- | -----------: | ------: |
-| class          | 0            | 1       |
-| class features (items{}) | 6  | 9       |
-| opções de eixo (tese+escola) | 0 | 19  |
-| class feats    | 3            | 50      |
-| focus spells   | 26           | **0**   |
+| Família                      | Já nos packs | A criar |
+| ---------------------------- | -----------: | ------: |
+| class                        |            0 |       1 |
+| class features (items{})     |            6 |       9 |
+| opções de eixo (tese+escola) |            0 |      19 |
+| class feats                  |            3 |      50 |
+| focus spells                 |           26 |   **0** |
 
 ---
 
@@ -479,7 +492,7 @@ Enhanced Familiar `N7dTFxpjXGn4ddq8`.
    `wizard`). Excluídos explicitamente.
 5. **32 dos 63 feats com trait `wizard` têm trait de 2+ classes.** O gate
    `class_level` derivado por trait é **ambíguo** para todos eles (§11).
-6. **`wizard-elemental-school`** é um terceiro `otherTag` que *parece* um eixo e
+6. **`wizard-elemental-school`** é um terceiro `otherTag` que _parece_ um eixo e
    não é (variante legada, 2 docs). E **School of Unified Magical Theory carrega
    duas tags** — dedupe por sourceId obrigatório.
 7. **Runelord não é uma escola.** É arquétipo de classe raro: exige um feat de
@@ -530,15 +543,15 @@ Enhanced Familiar `N7dTFxpjXGn4ddq8`.
 
 ## 12. Decisões que tomei
 
-| # | Decisão | Motivo |
-| - | ------- | ------ |
-| 1 | `spellcasting.slots` carrega só a tabela **base**; o slot de currículo fica em `notes` | erro (c) do plano §3.4; o schema `ClassSpellcastingSchema` não tem campo para slot restrito, e inventar chave quebraria o loader |
-| 2 | Incluí `"10": 1` nos níveis 19-20 | é a tabela do journal e `SpellSlotsMapSchema` aceita a chave `"10"`; omitir esconderia a feature |
-| 3 | Mantive `optionCount: 14` no eixo de escola, com Runelord/Rooted Wisdom sinalizados em `notes` em vez de removidos | o `choiceAxes[]` do §3.3 não tem campo de exclusão; inventá-lo quebraria o schema fechado. A decisão de cortar é da integração central |
-| 4 | Os 10 "Mask" foram para `classFeats.excludeNames` | o briefing manda não incluir feats de arquétipo, e o predicado do plano confirma (`archetype` vence) |
-| 5 | `Quick Recognition` ficou em `referencesOutsideSelection`, não em `internalChains` | é feat de perícia (`category: "skill"`), fora do conjunto da classe |
-| 6 | `slotType` sugerido: `arcaneThesis` / `arcaneSchool` | o próprio schema diz "sugestão; o wiring central confirma" |
-| 7 | Não incluí os 5 ramos da Rooted Wisdom em `classFeatures.extraNames` | são sub-opções de um eixo aninhado, não features do `items{}`; forçá-las como feature criaria concessão fantasma no nível 1 |
+| #   | Decisão                                                                                                            | Motivo                                                                                                                                 |
+| --- | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `spellcasting.slots` carrega só a tabela **base**; o slot de currículo fica em `notes`                             | erro (c) do plano §3.4; o schema `ClassSpellcastingSchema` não tem campo para slot restrito, e inventar chave quebraria o loader       |
+| 2   | Incluí `"10": 1` nos níveis 19-20                                                                                  | é a tabela do journal e `SpellSlotsMapSchema` aceita a chave `"10"`; omitir esconderia a feature                                       |
+| 3   | Mantive `optionCount: 14` no eixo de escola, com Runelord/Rooted Wisdom sinalizados em `notes` em vez de removidos | o `choiceAxes[]` do §3.3 não tem campo de exclusão; inventá-lo quebraria o schema fechado. A decisão de cortar é da integração central |
+| 4   | Os 10 "Mask" foram para `classFeats.excludeNames`                                                                  | o briefing manda não incluir feats de arquétipo, e o predicado do plano confirma (`archetype` vence)                                   |
+| 5   | `Quick Recognition` ficou em `referencesOutsideSelection`, não em `internalChains`                                 | é feat de perícia (`category: "skill"`), fora do conjunto da classe                                                                    |
+| 6   | `slotType` sugerido: `arcaneThesis` / `arcaneSchool`                                                               | o próprio schema diz "sugestão; o wiring central confirma"                                                                             |
+| 7   | Não incluí os 5 ramos da Rooted Wisdom em `classFeatures.extraNames`                                               | são sub-opções de um eixo aninhado, não features do `items{}`; forçá-las como feature criaria concessão fantasma no nível 1            |
 
 ---
 
@@ -552,7 +565,7 @@ Enhanced Familiar `N7dTFxpjXGn4ddq8`.
    o ritual Atone + regra de `MartialProficiency`).
 3. **School of Rooted Wisdom entra?** Só se o eixo aninhado (REQ-BC-024) for
    suportado; senão são 5 docs órfãos e um slot que não abre.
-4. **Escopo por rarity**: incluímos as 6 escolas *uncommon*? A r21 não define
+4. **Escopo por rarity**: incluímos as 6 escolas _uncommon_? A r21 não define
    política de raridade; Magus/Kineticist trouxeram os eixos inteiros.
 5. **Currículo por escola vira dado?** As listas de currículo (257 refs) hoje só
    existem como prosa com `@UUID`. Estruturá-las é o que permitiria o builder

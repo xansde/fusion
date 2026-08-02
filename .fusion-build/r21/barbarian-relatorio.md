@@ -55,54 +55,54 @@ programática (nenhum `[entry.name MISMATCH]` no output do script 1).
 
 ## Tabela completa do `items{}` (nome canônico, nível da classe)
 
-| Nível | Feature (nome canônico) |
-|---|---|
-| 1 | Instinct |
-| 1 | Rage |
-| 1 | Quick-Tempered |
-| 3 | Furious Footfalls |
-| 5 | Brutality |
-| 7 | Juggernaut |
-| 7 | Weapon Specialization |
-| 9 | Reflex Expertise |
-| 9 | Raging Resistance |
-| 11 | Mighty Rage |
-| 13 | Greater Juggernaut |
-| 13 | Medium Armor Expertise |
-| 13 | Weapon Mastery |
-| 15 | Indomitable Will |
-| 15 | Greater Weapon Specialization (Barbarian) |
-| 17 | Perception Mastery |
-| 17 | Revitalizing Rage |
-| 19 | Devastator |
-| 19 | Armor Mastery |
+| Nível | Feature (nome canônico)                   |
+| ----- | ----------------------------------------- |
+| 1     | Instinct                                  |
+| 1     | Rage                                      |
+| 1     | Quick-Tempered                            |
+| 3     | Furious Footfalls                         |
+| 5     | Brutality                                 |
+| 7     | Juggernaut                                |
+| 7     | Weapon Specialization                     |
+| 9     | Reflex Expertise                          |
+| 9     | Raging Resistance                         |
+| 11    | Mighty Rage                               |
+| 13    | Greater Juggernaut                        |
+| 13    | Medium Armor Expertise                    |
+| 13    | Weapon Mastery                            |
+| 15    | Indomitable Will                          |
+| 15    | Greater Weapon Specialization (Barbarian) |
+| 17    | Perception Mastery                        |
+| 17    | Revitalizing Rage                         |
+| 19    | Devastator                                |
+| 19    | Armor Mastery                             |
 
 ## b) Cada feature: compartilhamento, presença nos packs, proficiencies
 
 Compartilhamento medido contra as **27 classes** do vendor (união de todos os
 `classes/*.json`), casando por nome canônico:
 
-| Feature | Refs. totais (inclui Barbarian) | Outras classes |
-|---|---|---|
-| Instinct | 1 | — (exclusiva) |
-| Rage | 1 | — (exclusiva) |
-| Quick-Tempered | 1 | — (exclusiva) |
-| Furious Footfalls | 1 | — (exclusiva) |
-| Brutality | 1 | — (exclusiva) |
-| Juggernaut | 2 | magus@15 |
-| Weapon Specialization | 25 | 24 outras classes (quase universal) |
-| Reflex Expertise | 12 | 11 outras (bard, champion, cleric, druid, guardian, inventor, magus, sorcerer, thaumaturge, witch, wizard) |
-| Raging Resistance | 1 | — (exclusiva) |
-| Mighty Rage | 1 | — (exclusiva) |
-| Greater Juggernaut | 1 | — (exclusiva) |
-| Medium Armor Expertise | 7 | alchemist, druid, gunslinger, magus, ranger, thaumaturge |
-| Weapon Mastery | 5 | commander, guardian, magus, thaumaturge |
-| Indomitable Will | 1 | — (exclusiva) |
-| Greater Weapon Specialization (Barbarian) | 1 | — (exclusiva; ver colisão de nome abaixo) |
-| Perception Mastery | 10 | bard, commander, exemplar, gunslinger, investigator, ranger, rogue, swashbuckler, thaumaturge |
-| Revitalizing Rage | 1 | — (exclusiva) |
-| Devastator | 1 | — (exclusiva) |
-| Armor Mastery | 4 | champion, commander, fighter |
+| Feature                                   | Refs. totais (inclui Barbarian) | Outras classes                                                                                             |
+| ----------------------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Instinct                                  | 1                               | — (exclusiva)                                                                                              |
+| Rage                                      | 1                               | — (exclusiva)                                                                                              |
+| Quick-Tempered                            | 1                               | — (exclusiva)                                                                                              |
+| Furious Footfalls                         | 1                               | — (exclusiva)                                                                                              |
+| Brutality                                 | 1                               | — (exclusiva)                                                                                              |
+| Juggernaut                                | 2                               | magus@15                                                                                                   |
+| Weapon Specialization                     | 25                              | 24 outras classes (quase universal)                                                                        |
+| Reflex Expertise                          | 12                              | 11 outras (bard, champion, cleric, druid, guardian, inventor, magus, sorcerer, thaumaturge, witch, wizard) |
+| Raging Resistance                         | 1                               | — (exclusiva)                                                                                              |
+| Mighty Rage                               | 1                               | — (exclusiva)                                                                                              |
+| Greater Juggernaut                        | 1                               | — (exclusiva)                                                                                              |
+| Medium Armor Expertise                    | 7                               | alchemist, druid, gunslinger, magus, ranger, thaumaturge                                                   |
+| Weapon Mastery                            | 5                               | commander, guardian, magus, thaumaturge                                                                    |
+| Indomitable Will                          | 1                               | — (exclusiva)                                                                                              |
+| Greater Weapon Specialization (Barbarian) | 1                               | — (exclusiva; ver colisão de nome abaixo)                                                                  |
+| Perception Mastery                        | 10                              | bard, commander, exemplar, gunslinger, investigator, ranger, rogue, swashbuckler, thaumaturge              |
+| Revitalizing Rage                         | 1                               | — (exclusiva)                                                                                              |
+| Devastator                                | 1                               | — (exclusiva)                                                                                              |
+| Armor Mastery                             | 4                               | champion, commander, fighter                                                                               |
 
 **Já reusável de `class-features-core` (cruzado por `sourceId` = `_id` do vendor,
 não por nome)**: Juggernaut, Weapon Specialization, Reflex Expertise, Medium Armor
@@ -127,12 +127,12 @@ nenhuma** — confirmado, `inPacksBySourceId=no` para ambas.)
 4 das 19 features têm `system.level.value` do arquivo genérico **diferente** do
 nível no `items{}` do Barbarian — o genérico mente, o nível correto é o do `items{}`:
 
-| Feature | Nível genérico do arquivo | Nível real na classe Barbarian |
-|---|---|---|
-| Reflex Expertise | 3 | **9** |
-| Medium Armor Expertise | 11 | **13** |
-| Perception Mastery | 7 | **17** |
-| Armor Mastery | 13 | **19** |
+| Feature                | Nível genérico do arquivo | Nível real na classe Barbarian |
+| ---------------------- | ------------------------- | ------------------------------ |
+| Reflex Expertise       | 3                         | **9**                          |
+| Medium Armor Expertise | 11                        | **13**                         |
+| Perception Mastery     | 7                         | **17**                         |
+| Armor Mastery          | 13                        | **19**                         |
 
 Essas 4 features também são compartilhadas com outras classes — cada classe que as
 concede tem seu próprio nível (ex.: Reflex Expertise é nível 3 no arquivo genérico
@@ -141,19 +141,19 @@ mas nível 5 no Druid, 5 no Magus, 9 no Sorcerer, 9 no Witch, 9 no Barbarian —
 
 ### `subfeatures.proficiencies` — tabela de origem
 
-| Feature | proficiencies (bruto do vendor) |
-|---|---|
-| Brutality | `{"martial":{"rank":2},"simple":{"rank":2},"unarmed":{"rank":2}}` |
-| Juggernaut | `{"fortitude":{"rank":3}}` |
-| Reflex Expertise | `{"reflex":{"rank":2}}` |
-| Mighty Rage | `{"barbarian":{"attribute":null,"rank":2}}` |
-| Greater Juggernaut | `{"fortitude":{"rank":4}}` |
+| Feature                | proficiencies (bruto do vendor)                                   |
+| ---------------------- | ----------------------------------------------------------------- |
+| Brutality              | `{"martial":{"rank":2},"simple":{"rank":2},"unarmed":{"rank":2}}` |
+| Juggernaut             | `{"fortitude":{"rank":3}}`                                        |
+| Reflex Expertise       | `{"reflex":{"rank":2}}`                                           |
+| Mighty Rage            | `{"barbarian":{"attribute":null,"rank":2}}`                       |
+| Greater Juggernaut     | `{"fortitude":{"rank":4}}`                                        |
 | Medium Armor Expertise | `{"light":{"rank":2},"medium":{"rank":2},"unarmored":{"rank":2}}` |
-| Weapon Mastery | `{"martial":{"rank":3},"simple":{"rank":3},"unarmed":{"rank":3}}` |
-| Indomitable Will | `{"will":{"rank":3}}` |
-| Perception Mastery | `{"perception":{"rank":3}}` |
-| Devastator | `{"barbarian":{"attribute":null,"rank":3}}` |
-| Armor Mastery | `{"light":{"rank":3},"medium":{"rank":3},"unarmored":{"rank":3}}` |
+| Weapon Mastery         | `{"martial":{"rank":3},"simple":{"rank":3},"unarmed":{"rank":3}}` |
+| Indomitable Will       | `{"will":{"rank":3}}`                                             |
+| Perception Mastery     | `{"perception":{"rank":3}}`                                       |
+| Devastator             | `{"barbarian":{"attribute":null,"rank":3}}`                       |
+| Armor Mastery          | `{"light":{"rank":3},"medium":{"rank":3},"unarmored":{"rank":3}}` |
 
 As demais 8 features do `items{}` (Instinct, Rage, Quick-Tempered, Furious
 Footfalls, Raging Resistance, Greater Weapon Specialization (Barbarian),
@@ -179,7 +179,7 @@ genérico — confirmado em Mighty Rage e Devastator. A derivação genérica de
   varredura de `class-features/` inteiro. **9 são instincts "puros"** (Animal,
   Decay, Dragon, Elemental, Fury, Giant, Ligneous, Spirit, Superstition Instinct);
   o 10º é **"Bloodrager"**, que tem `otherTags: ["barbarian-instinct",
-  "class-archetype"]` — **excluído** da curadoria (ver seção de armadilhas).
+"class-archetype"]` — **excluído** da curadoria (ver seção de armadilhas).
 - **`optionCount` real desta rodada: 9** (não 10, como o plano assumia antes da
   medição — a divergência é o próprio "cuidado com redundância" que o usuário pediu:
   incluir Bloodrager sem o arquétipo Bloodrager Dedication geraria um doc quebrado).
@@ -197,9 +197,12 @@ parsing de prosa. Exemplo (Giant Instinct, dano ao usar arma oversized):
 
 ```jsonc
 {
-  "key": "AdjustModifier", "mode": "upgrade", "selector": "strike-damage", "slug": "rage",
-  "predicate": [{"or": ["class:barbarian", "feat:instinct-ability"]}, "item:oversized"],
-  "value": 6
+  "key": "AdjustModifier",
+  "mode": "upgrade",
+  "selector": "strike-damage",
+  "slug": "rage",
+  "predicate": [{ "or": ["class:barbarian", "feat:instinct-ability"] }, "item:oversized"],
+  "value": 6,
 }
 ```
 
@@ -212,20 +215,20 @@ transcrito no pack; a integração central decide se referencia ou paráfrasea).
 
 ### Checklist pedido explicitamente
 
-| Nome | Achado |
-|---|---|
-| Rage | Class-feature nível 1, `items{}`. Concede a ação "Rage" (doc `type: action`, `actions/class/barbarian/rage.json`, `sourceId Ah5g9pDwWF9b9VW9`) via `GrantItem`. **Ação já está em `actions-core`** (reusar). |
-| Deny Advantage | **Não é do Barbarian.** `class-features/deny-advantage.json` tem `traits.value: ["rogue"]`. Citação do plano parece equivocada/genérica — confirmado por leitura direta do arquivo; não entra na curadoria do Barbarian. |
-| Brutality | Class-feature nível 5, `items{}`, upgrade de proficiência em armas martial/simple/unarmed p/ Expert. |
-| Juggernaut | Class-feature nível 7, `items{}`, compartilhada com Magus (nível 15 lá), upgrade Fortitude p/ Master. **Já em `class-features-core`.** |
-| Weapon Fury | **Não encontrado** no vendor atual (0 hits em `feats/class/barbarian`, `class-features/`, nem em nenhum outro pack via grep). Provável nome de edição anterior ao remaster; sem ação necessária. |
-| Greater Juggernaut | Class-feature nível 13, `items{}`, exclusiva do Barbarian, Fortitude p/ Legendary. |
-| Indomitable Will | Class-feature nível 15, `items{}`, exclusiva, Will p/ Master. |
-| Armor of Fury | **Não está no `items{}` do Barbarian.** Existe um arquivo `class-features/armor-of-fury.json` (trait `barbarian`, nível genérico 19) mas ele **não é referenciado** pelo `classes/barbarian.json` atual — só aparece em fichas de iconics/pregens antigas (Amiri). O nome real usado hoje pelo `items{}` no nível 19 é **"Armor Mastery"**. Interpretado como nome legado/pré-remaster de "Armor Mastery" — não entra na curadoria (a feature real, Armor Mastery, já está listada). |
-| Devastator | Class-feature nível 19, `items{}`, exclusiva, upgrade Class DC p/ Master. |
-| Mighty Rage | Class-feature nível 11, `items{}`, exclusiva, upgrade Class DC p/ Expert. |
-| Quick Rage | **Não encontrado** no vendor atual (mesma situação de "Weapon Fury" — grep vazio em todo `packs/pf2e`). O item nível-1 real chamado "Quick-Tempered" (ação que permite entrar em fúria como ação livre em certas condições) provavelmente é o equivalente atual; sem nome "Quick Rage" no vendor, não há doc a importar sob esse nome. |
-| Draconic/Animal/Giant/Spirit/Fury/Superstition instincts | Confirmados entre os 9 instincts válidos (mais Decay, Elemental, Ligneous — total 9, ver tabela do eixo). "Draconic" no vendor chama-se **"Dragon Instinct"**. |
+| Nome                                                     | Achado                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Rage                                                     | Class-feature nível 1, `items{}`. Concede a ação "Rage" (doc `type: action`, `actions/class/barbarian/rage.json`, `sourceId Ah5g9pDwWF9b9VW9`) via `GrantItem`. **Ação já está em `actions-core`** (reusar).                                                                                                                                                                                                                                                                         |
+| Deny Advantage                                           | **Não é do Barbarian.** `class-features/deny-advantage.json` tem `traits.value: ["rogue"]`. Citação do plano parece equivocada/genérica — confirmado por leitura direta do arquivo; não entra na curadoria do Barbarian.                                                                                                                                                                                                                                                             |
+| Brutality                                                | Class-feature nível 5, `items{}`, upgrade de proficiência em armas martial/simple/unarmed p/ Expert.                                                                                                                                                                                                                                                                                                                                                                                 |
+| Juggernaut                                               | Class-feature nível 7, `items{}`, compartilhada com Magus (nível 15 lá), upgrade Fortitude p/ Master. **Já em `class-features-core`.**                                                                                                                                                                                                                                                                                                                                               |
+| Weapon Fury                                              | **Não encontrado** no vendor atual (0 hits em `feats/class/barbarian`, `class-features/`, nem em nenhum outro pack via grep). Provável nome de edição anterior ao remaster; sem ação necessária.                                                                                                                                                                                                                                                                                     |
+| Greater Juggernaut                                       | Class-feature nível 13, `items{}`, exclusiva do Barbarian, Fortitude p/ Legendary.                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Indomitable Will                                         | Class-feature nível 15, `items{}`, exclusiva, Will p/ Master.                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Armor of Fury                                            | **Não está no `items{}` do Barbarian.** Existe um arquivo `class-features/armor-of-fury.json` (trait `barbarian`, nível genérico 19) mas ele **não é referenciado** pelo `classes/barbarian.json` atual — só aparece em fichas de iconics/pregens antigas (Amiri). O nome real usado hoje pelo `items{}` no nível 19 é **"Armor Mastery"**. Interpretado como nome legado/pré-remaster de "Armor Mastery" — não entra na curadoria (a feature real, Armor Mastery, já está listada). |
+| Devastator                                               | Class-feature nível 19, `items{}`, exclusiva, upgrade Class DC p/ Master.                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Mighty Rage                                              | Class-feature nível 11, `items{}`, exclusiva, upgrade Class DC p/ Expert.                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Quick Rage                                               | **Não encontrado** no vendor atual (mesma situação de "Weapon Fury" — grep vazio em todo `packs/pf2e`). O item nível-1 real chamado "Quick-Tempered" (ação que permite entrar em fúria como ação livre em certas condições) provavelmente é o equivalente atual; sem nome "Quick Rage" no vendor, não há doc a importar sob esse nome.                                                                                                                                               |
+| Draconic/Animal/Giant/Spirit/Fury/Superstition instincts | Confirmados entre os 9 instincts válidos (mais Decay, Elemental, Ligneous — total 9, ver tabela do eixo). "Draconic" no vendor chama-se **"Dragon Instinct"**.                                                                                                                                                                                                                                                                                                                       |
 
 ## d) Class feats
 
@@ -234,18 +237,18 @@ transcrito no pack; a integração central decide se referencia ou paráfrasea).
 - Distribuição por nível:
 
 | Nível | Qtd. |
-|---|---|
-| 1 | 6 |
-| 2 | 7 |
-| 4 | 7 |
-| 6 | 11 |
-| 8 | 11 |
-| 10 | 10 |
-| 12 | 8 |
-| 14 | 6 |
-| 16 | 6 |
-| 18 | 4 |
-| 20 | 4 |
+| ----- | ---- |
+| 1     | 6    |
+| 2     | 7    |
+| 4     | 7    |
+| 6     | 11   |
+| 8     | 11   |
+| 10    | 10   |
+| 12    | 8    |
+| 14    | 6    |
+| 16    | 6    |
+| 18    | 4    |
+| 20    | 4    |
 
 - `feats/class/shared-class-feats/` filtrado por `traits.value` conter
   `barbarian`: **16 arquivos** (Sudden Charge L1, Intimidating Strike L2, Barreling
@@ -270,7 +273,7 @@ Medido sobre os 96 docs (80 exclusivos + 16 shared): **47 têm algum texto em
   - Feat→Instinct: `Draconic Arrogance` (L1) exige `"dragon instinct"`;
     `Dragon's Rage Wings` (L12) exige `"dragon instinct"`; `Predator's Pounce`
     (L12) exige `"animal instinct"`; `Spirit's Wrath` (L12) exige `"spirit
-    instinct"`; `Sunder Spell` (L12) exige `"superstition instinct"`.
+instinct"`; `Sunder Spell` (L12) exige `"superstition instinct"`.
 
 Forma exata do JSON de `prerequisites.value` (5 exemplos, do vendor):
 
@@ -296,7 +299,7 @@ Forma exata do JSON de `prerequisites.value` (5 exemplos, do vendor):
   `expert in Athletics` (Raging Athlete, Brutal Bully), `master in Athletics`
   (Furious Bully), `trained in Medicine or Tian Xia Lore` (Meditate on This!),
   `Acute Scent or scent` (Supernatural Senses, Instinctive Strike), `low-light
-  vision or scent` (Nocturnal Senses). Ficam como atributo textual do nó, nunca
+vision or scent` (Nocturnal Senses). Ficam como atributo textual do nó, nunca
   viram aresta.
 - **Referências para fora do conjunto do Barbarian**: **3 casos**, todos o mesmo
   padrão `"animal instinct or untamed order"` (Brutal Crush, Creature Comforts,
@@ -323,7 +326,7 @@ Forma exata do JSON de `prerequisites.value` (5 exemplos, do vendor):
   Para estes, `system.requires` **não pode** ser derivado de um único
   `class_level` — o mesmo feat é obtido em níveis potencialmente diferentes por
   cada classe que o compartilha, e a regra §4.1 do plano (`trait de classe X +
-  category:class` → `class_level.X`) não diz qual `X` escolher quando há vários.
+category:class` → `class_level.X`) não diz qual `X` escolher quando há vários.
   Nenhum desses 16 docs tem trait `archetype`, então a regra de desempate
   "archetype vence" não se aplica aqui — é uma ambiguidade **classe×classe**, não
   coberta pela tabela do plano. **Decisão proposta** (não implementada por mim,
@@ -333,6 +336,7 @@ Forma exata do JSON de `prerequisites.value` (5 exemplos, do vendor):
   (§4.2) também deveria valer para class feats compartilhados, não só features.
   Sem essa extensão, `Reactive Strike` receberia um `class_level` arbitrário e
   errado para 6 das 7 classes que o concedem.
+
 - Nenhum feat do Barbarian tem trait `archetype` — não há caso do tipo "archetype
   vence trait de classe" dentro do conjunto próprio da classe.
 - A única ambiguidade dentro do **próprio** eixo de escolha é o caso Bloodrager

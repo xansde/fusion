@@ -11,7 +11,7 @@ Todas as contagens abaixo saíram de scripts `node -e` executados nesta sessão
 Os comandos relevantes, na ordem:
 
 1. Leitura de `classes/ranger.json` → `system.hp/keyAbility/perception/savingThrows/
-   attacks/defenses/skillIncreaseLevels/trainedSkills` e `Object.keys(d.system)`
+attacks/defenses/skillIncreaseLevels/trainedSkills` e `Object.keys(d.system)`
    (revelou `ancestryFeatLevels/classFeatLevels/generalFeatLevels/skillFeatLevels`,
    que não aparecem no `d.system` de forma "achatada" no primeiro dump).
 2. Dump completo de `system.items{}` (20 entradas) com nome, uuid, nível.
@@ -36,7 +36,7 @@ Os comandos relevantes, na ordem:
    magias, cruzadas por `_id` contra `spells-core/documents.json` (1.252 docs) —
    **22/22 já presentes**.
 10. Dump de `class-features/*.json` filtrando `system.traits.otherTags.includes
-    ('ranger-hunters-edge')` → 4 arquivos (Flurry, Outwit, Precision, Vindicator).
+('ranger-hunters-edge')` → 4 arquivos (Flurry, Outwit, Precision, Vindicator).
 11. Verificação de que "Vindicator" não aparece em nenhum `items{}` das 27
     classes e não tem `masterful-hunter-vindicator.json` correspondente (só
     existem `-flurry`, `-outwit`, `-precision`) — confirma que é conteúdo do
@@ -44,48 +44,48 @@ Os comandos relevantes, na ordem:
 
 ## 2. O doc da classe (medido)
 
-| Campo | Valor |
-| --- | --- |
-| hp | 10 |
-| keyAbility | dex, str |
-| perception | 2 (expert) |
-| saves | fort 2, reflex 2, will 1 (expert/expert/trained) |
-| attacks | unarmed 1, simple 1, martial 1, advanced 0 |
-| defenses | unarmored 1, light 1, medium 1, heavy 0 |
-| trainedSkills | survival + 4 adicionais |
-| skillIncreaseLevels | 3,5,7,9,11,13,15,17,19 |
-| classFeatLevels | 1,2,4,6,8,10,12,14,16,18,20 (11 níveis) |
-| skillFeatLevels | 2,4,6,8,10,12,14,16,18,20 (10 níveis) |
-| generalFeatLevels | 3,7,11,15,19 (5 níveis) |
-| ancestryFeatLevels | 1,5,9,13,17 (5 níveis) |
-| spellcasting | `0` (sem spellcasting nativo na progressão) |
-| vendor sourceId | `Yix76sfxrIlltSTJ` |
-| publicação | ORC, Pathfinder Player Core (remaster) |
+| Campo               | Valor                                            |
+| ------------------- | ------------------------------------------------ |
+| hp                  | 10                                               |
+| keyAbility          | dex, str                                         |
+| perception          | 2 (expert)                                       |
+| saves               | fort 2, reflex 2, will 1 (expert/expert/trained) |
+| attacks             | unarmed 1, simple 1, martial 1, advanced 0       |
+| defenses            | unarmored 1, light 1, medium 1, heavy 0          |
+| trainedSkills       | survival + 4 adicionais                          |
+| skillIncreaseLevels | 3,5,7,9,11,13,15,17,19                           |
+| classFeatLevels     | 1,2,4,6,8,10,12,14,16,18,20 (11 níveis)          |
+| skillFeatLevels     | 2,4,6,8,10,12,14,16,18,20 (10 níveis)            |
+| generalFeatLevels   | 3,7,11,15,19 (5 níveis)                          |
+| ancestryFeatLevels  | 1,5,9,13,17 (5 níveis)                           |
+| spellcasting        | `0` (sem spellcasting nativo na progressão)      |
+| vendor sourceId     | `Yix76sfxrIlltSTJ`                               |
+| publicação          | ORC, Pathfinder Player Core (remaster)           |
 
 ## 3. `items{}` da classe — 20 features (nome canônico da uuid + nível)
 
-| Nível | Nome canônico (uuid tail) | entry.name divergente? |
-| --- | --- | --- |
-| 1 | Hunt Prey | não |
-| 1 | Hunter's Edge | não |
-| 3 | Will Expertise | não |
-| 5 | Ranger Weapon Expertise | não |
-| 5 | Trackless Journey | não |
-| 7 | Weapon Specialization | não |
-| 7 | Natural Reflexes | não |
-| 7 | Perception Mastery | não |
-| 9 | Nature's Edge | não |
-| 9 | Ranger Expertise | não |
-| 11 | Medium Armor Expertise | não |
-| 11 | Unimpeded Journey | não |
-| 11 | Warden's Endurance | não |
-| 13 | **Martial Weapon Mastery** | **sim — entry.name diz "Weapon Mastery"** |
-| 15 | Greater Weapon Specialization | não |
-| 15 | Greater Natural Reflexes | não |
-| 15 | Perception Legend | não |
-| 17 | Masterful Hunter | não |
-| 19 | Medium Armor Mastery | não |
-| 19 | Swift Prey | não |
+| Nível | Nome canônico (uuid tail)     | entry.name divergente?                    |
+| ----- | ----------------------------- | ----------------------------------------- |
+| 1     | Hunt Prey                     | não                                       |
+| 1     | Hunter's Edge                 | não                                       |
+| 3     | Will Expertise                | não                                       |
+| 5     | Ranger Weapon Expertise       | não                                       |
+| 5     | Trackless Journey             | não                                       |
+| 7     | Weapon Specialization         | não                                       |
+| 7     | Natural Reflexes              | não                                       |
+| 7     | Perception Mastery            | não                                       |
+| 9     | Nature's Edge                 | não                                       |
+| 9     | Ranger Expertise              | não                                       |
+| 11    | Medium Armor Expertise        | não                                       |
+| 11    | Unimpeded Journey             | não                                       |
+| 11    | Warden's Endurance            | não                                       |
+| 13    | **Martial Weapon Mastery**    | **sim — entry.name diz "Weapon Mastery"** |
+| 15    | Greater Weapon Specialization | não                                       |
+| 15    | Greater Natural Reflexes      | não                                       |
+| 15    | Perception Legend             | não                                       |
+| 17    | Masterful Hunter              | não                                       |
+| 19    | Medium Armor Mastery          | não                                       |
+| 19    | Swift Prey                    | não                                       |
 
 ## 4. Armadilhas confirmadas (medidas, não supostas)
 
@@ -108,10 +108,10 @@ precisa de **"Martial Weapon Mastery"** (não está em `alreadyInPacks`, entra e
 Duas features do Ranger divergem entre o nível declarado no arquivo genérico de
 `class-features/` e o nível real que o Ranger concede no `items{}`:
 
-| Feature | Nível no arquivo genérico | Nível no `items{}` do Ranger | Fonte |
-| --- | --- | --- | --- |
-| Perception Legend | 13 (`class-features/perception-legend.json`) | **15** | `classes/ranger.json`, entrada `epJL1` |
-| Medium Armor Mastery | 17 (`class-features/medium-armor-mastery.json`) | **19** | `classes/ranger.json`, entrada `PlY2u` |
+| Feature              | Nível no arquivo genérico                       | Nível no `items{}` do Ranger | Fonte                                  |
+| -------------------- | ----------------------------------------------- | ---------------------------- | -------------------------------------- |
+| Perception Legend    | 13 (`class-features/perception-legend.json`)    | **15**                       | `classes/ranger.json`, entrada `epJL1` |
+| Medium Armor Mastery | 17 (`class-features/medium-armor-mastery.json`) | **19**                       | `classes/ranger.json`, entrada `PlY2u` |
 
 Confirmação cruzada (medida, não suposição): varrendo as 27 classes por essas
 duas features, o nível realmente varia por classe — Perception Legend é 13 em
@@ -145,16 +145,16 @@ configuração, com nota explicando o 4º documento e por que ele fica de fora.
 
 ## 5. Features compartilhadas com outras classes (medido, varredura das 27 classes)
 
-| Feature | Nível no Ranger | Outras classes que também concedem (nível delas) |
-| --- | --- | --- |
-| Martial Weapon Mastery | 13 | Champion (13), Investigator (13), Swashbuckler (13) |
-| Perception Legend | 15 | Gunslinger (19), Investigator\* (13, como "Incredible Senses"), Rogue (13) |
-| Perception Mastery | 7 | Barbarian (17), Bard (11), Commander (13), Exemplar (17), Gunslinger (7), Investigator\* (7, como "Vigilant Senses"), Rogue (7), Swashbuckler\* (11, como "Vigilant Senses"), Thaumaturge (9) |
-| Will Expertise | 3 | Alchemist (7), Kineticist (3) |
-| Medium Armor Expertise | 11 | Alchemist (13), Barbarian (13), Druid (13), Gunslinger (13), Magus (11), Thaumaturge (11) |
-| Medium Armor Mastery | 19 | Alchemist (19), Gunslinger (19), Inventor (19), Magus (17), Thaumaturge (19) |
-| Weapon Specialization | 7 | 24 outras classes (7 a 13, varia) |
-| Greater Weapon Specialization | 15 | 12 outras classes |
+| Feature                       | Nível no Ranger | Outras classes que também concedem (nível delas)                                                                                                                                              |
+| ----------------------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Martial Weapon Mastery        | 13              | Champion (13), Investigator (13), Swashbuckler (13)                                                                                                                                           |
+| Perception Legend             | 15              | Gunslinger (19), Investigator\* (13, como "Incredible Senses"), Rogue (13)                                                                                                                    |
+| Perception Mastery            | 7               | Barbarian (17), Bard (11), Commander (13), Exemplar (17), Gunslinger (7), Investigator\* (7, como "Vigilant Senses"), Rogue (7), Swashbuckler\* (11, como "Vigilant Senses"), Thaumaturge (9) |
+| Will Expertise                | 3               | Alchemist (7), Kineticist (3)                                                                                                                                                                 |
+| Medium Armor Expertise        | 11              | Alchemist (13), Barbarian (13), Druid (13), Gunslinger (13), Magus (11), Thaumaturge (11)                                                                                                     |
+| Medium Armor Mastery          | 19              | Alchemist (19), Gunslinger (19), Inventor (19), Magus (17), Thaumaturge (19)                                                                                                                  |
+| Weapon Specialization         | 7               | 24 outras classes (7 a 13, varia)                                                                                                                                                             |
+| Greater Weapon Specialization | 15              | 12 outras classes                                                                                                                                                                             |
 
 \* Investigator e Swashbuckler são outro exemplo da armadilha do `entry.name`
 ("Incredible Senses"/"Vigilant Senses" apontam para as uuids "Perception
@@ -202,19 +202,19 @@ Swift Prey, Perception Mastery.
 Derivada de `subfeatures.proficiencies` de cada feature × nível do `items{}` do
 Ranger (nunca o nível genérico do arquivo — ver §4.2 para as 2 exceções).
 
-| Nível | Stat | Rank | Origem (feature + arquivo) |
-| --- | --- | --- | --- |
-| 3 | will | 2 (expert) | Will Expertise — `class-features/will-expertise.json` |
-| 5 | martial, simple, unarmed | 2 (expert) | Ranger Weapon Expertise — `class-features/ranger-weapon-expertise.json` |
-| 7 | reflex | 3 (master) | Natural Reflexes — `class-features/natural-reflexes.json` |
-| 7 | perception | 3 (master) | Perception Mastery — `class-features/perception-mastery.json` |
-| 9 | ranger (stat próprio) | 2 (expert) | Ranger Expertise — `class-features/ranger-expertise.json` |
-| 11 | light, medium, unarmored | 2 (expert) | Medium Armor Expertise — `class-features/medium-armor-expertise.json` (**reusado**) |
-| 13 | martial, simple, unarmed | 3 (master) | Martial Weapon Mastery — `class-features/martial-weapon-mastery.json` |
-| 15 | reflex | 4 (legendary) | Greater Natural Reflexes — `class-features/greater-natural-reflexes.json` |
-| 15 | perception | 4 (legendary) | Perception Legend — `class-features/perception-legend.json` (**nível 15, não 13 — ver §4.2**) |
-| 17 | ranger (stat próprio) | 3 (master) | Masterful Hunter — `class-features/masterful-hunter.json` |
-| 19 | light, medium, unarmored | 3 (master) | Medium Armor Mastery — `class-features/medium-armor-mastery.json` (**reusado, nível 19, não 17 — ver §4.2**) |
+| Nível | Stat                     | Rank          | Origem (feature + arquivo)                                                                                   |
+| ----- | ------------------------ | ------------- | ------------------------------------------------------------------------------------------------------------ |
+| 3     | will                     | 2 (expert)    | Will Expertise — `class-features/will-expertise.json`                                                        |
+| 5     | martial, simple, unarmed | 2 (expert)    | Ranger Weapon Expertise — `class-features/ranger-weapon-expertise.json`                                      |
+| 7     | reflex                   | 3 (master)    | Natural Reflexes — `class-features/natural-reflexes.json`                                                    |
+| 7     | perception               | 3 (master)    | Perception Mastery — `class-features/perception-mastery.json`                                                |
+| 9     | ranger (stat próprio)    | 2 (expert)    | Ranger Expertise — `class-features/ranger-expertise.json`                                                    |
+| 11    | light, medium, unarmored | 2 (expert)    | Medium Armor Expertise — `class-features/medium-armor-expertise.json` (**reusado**)                          |
+| 13    | martial, simple, unarmed | 3 (master)    | Martial Weapon Mastery — `class-features/martial-weapon-mastery.json`                                        |
+| 15    | reflex                   | 4 (legendary) | Greater Natural Reflexes — `class-features/greater-natural-reflexes.json`                                    |
+| 15    | perception               | 4 (legendary) | Perception Legend — `class-features/perception-legend.json` (**nível 15, não 13 — ver §4.2**)                |
+| 17    | ranger (stat próprio)    | 3 (master)    | Masterful Hunter — `class-features/masterful-hunter.json`                                                    |
+| 19    | light, medium, unarmored | 3 (master)    | Medium Armor Mastery — `class-features/medium-armor-mastery.json` (**reusado, nível 19, não 17 — ver §4.2**) |
 
 `Weapon Specialization` e `Greater Weapon Specialization` **não** têm
 `subfeatures.proficiencies` (são bônus de dano, não proficiência) — não entram
@@ -325,7 +325,7 @@ desambiguador).
 - Todos os 78 feats do diretório exclusivo `ranger/` têm `category: "class"` e
   **só** o trait `ranger` como trait de classe (sem `archetype`, sem trait de
   ancestria concorrente) — gate deriva limpo para `{"class_level": {"ranger":
-  {">=": N}}}`.
+{">=": N}}}`.
 - Os 25 feats de `shared-class-feats/` com trait ranger também carregam
   **outro(s)** trait(s) de classe (ex.: Twin Riposte = fighter+ranger; Blind-
   Fight = fighter+investigator+ranger+rogue) — **nenhum** caso de trait
