@@ -28,6 +28,12 @@ export interface EmbeddedClass {
   readonly key: string;
   /** Display name, for sheet labels only — never an identity. */
   readonly name: string;
+  /**
+   * Localized display name carried by the item's own `i18n.<locale>.name`
+   * overlay, when the import kept it. The sheet prefers this; `name` stays
+   * the English original, which is what identity-adjacent code reads.
+   */
+  readonly nameLocalized?: string;
   /** The embedded item's `_id`, when it has one. */
   readonly itemId?: string;
   /** The class item's `system` block. */
@@ -60,6 +66,7 @@ interface RawItem {
   name?: string;
   system?: Record<string, unknown>;
   flags?: Record<string, unknown>;
+  i18n?: unknown;
 }
 
 function readFusionFlags(item: RawItem): Record<string, unknown> {
@@ -98,9 +105,22 @@ export function findClassItems(doc: Record<string, unknown>): EmbeddedClass[] {
     if (!key || seenKeys.has(key)) continue;
     seenKeys.add(key);
 
+    const i18n = raw.i18n;
+    const ptBR =
+      i18n && typeof i18n === "object"
+        ? (i18n as Record<string, unknown>)["ptBR"]
+        : undefined;
+    const localized =
+      ptBR && typeof ptBR === "object"
+        ? (ptBR as Record<string, unknown>)["name"]
+        : undefined;
+
     classes.push({
       key,
       name,
+      ...(typeof localized === "string" && localized.length > 0
+        ? { nameLocalized: localized }
+        : {}),
       ...(raw._id !== undefined ? { itemId: raw._id } : {}),
       system: (raw.system ?? {}) as unknown as ClassSystem,
     });

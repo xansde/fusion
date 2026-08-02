@@ -48,6 +48,13 @@
     setAbilityBoosts,
     markAbilityBoostsChoice,
     setFreeArchetype,
+    setClassLevelsVariant,
+    getClassLevelsVariant,
+    classOptionsAt,
+    chooseClassLevel,
+    classOwnerAt,
+    buildChoicesOf,
+    nameToSlug,
     removeChoice,
     levelUp,
     skillTrainingDialogContext,
@@ -529,6 +536,22 @@
         gridLabels: ABILITY_SHORT_LABELS_PT,
       };
     }
+    // "Nível de classe" reads "<Classe> <n>" — only the class NAME goes through
+    // the content translator; the running class level is a number and must be
+    // kept out of the lookup, or the join fails and the name stays in English.
+    if (slot.type === "classLevel" && slot.choiceName) {
+      const match = /^(.*?)\s+(\d+)$/.exec(slot.choiceName);
+      const rawName = match?.[1] ?? slot.choiceName;
+      const classLevel = match?.[2];
+      const parts = contentNameParts(rawName);
+      const suffix = classLevel === undefined ? "" : ` ${classLevel}`;
+      return {
+        name: `${parts.name}${suffix}`,
+        ...(parts.subName !== undefined ? { subName: `${parts.subName}${suffix}` } : {}),
+        type: typeParts.type,
+        ...(typeParts.subType !== undefined ? { subType: typeParts.subType } : {}),
+      };
+    }
     const nameParts = contentNameParts(slot.choiceName ?? slot.label);
     return {
       name: nameParts.name,
@@ -633,6 +656,17 @@
 
   function openAbcPicker(kind: "ancestry" | "heritage" | "background" | "class"): void {
     if (!editable) return;
+    // Under the multiclass variant the Class card must NOT run applyClass:
+    // that builder REPLACES the class (correct for a single-class sheet, and
+    // destructive here — it deletes the other classes and leaves every
+    // classLevel choice pointing at an item that no longer exists). Seen live
+    // on Torvin: picking from this card wiped the Fighter and duplicated the
+    // Cleric. The first class is decided by level 1's own slot, so send the
+    // player there instead.
+    if (kind === "class" && classLevelsOn) {
+      classLevelPicker = 1;
+      return;
+    }
     abcPicker = kind;
   }
 
@@ -728,6 +762,10 @@
       kineticGateTarget = { level, slot };
       return;
     }
+    if (slot.type === "classLevel") {
+      classLevelPicker = level;
+      return;
+    }
     slotPicker = { level, slot };
   }
 
@@ -814,13 +852,24 @@
     // chosen gate elements (an Air+Metal kineticist can't pick a Fire impulse).
     // gateElements is [] for a non-kineticist → the impulse filter is a no-op.
     const gateElements = readGateElements(doc);
+
+    // Multiclass: a CLASS feat slot belongs to the class that bought this
+    // level, and is measured against THAT class's level — a Fighter 3 / Magus 1
+    // may take a Magus feat of level 1 at the level the Magus bought, not a
+    // Magus feat of level 3. Any other slot type (ancestry/general/skill) is
+    // character-wide and keeps the character level and the primary class.
+    const owner =
+      slot.type === "classFeat" ? classOwnerAt(doc, buildChoicesOf(doc), level) : undefined;
+    const effectiveLevel = owner?.classLevel ?? level;
+    const effectiveClassSlug = owner ? nameToSlug(owner.name) : ctx.classSlug;
+
     return {
       packSlug: "feats-core",
       title: t(`FUSION.Sheet.Plan.SlotLabel.${slot.type}`),
       filterFn: (e) => {
         const featDoc = featDocFromIndex(e);
-        return isFeatEligible(featDoc, slot.type, level, {
-          ...(ctx.classSlug ? { classSlug: ctx.classSlug } : {}),
+        return isFeatEligible(featDoc, slot.type, effectiveLevel, {
+          ...(effectiveClassSlug ? { classSlug: effectiveClassSlug } : {}),
           ...(ctx.ancestrySlug ? { ancestrySlug: ctx.ancestrySlug } : {}),
           ...(ctx.adoptedAncestrySlug ? { adoptedAncestrySlug: ctx.adoptedAncestrySlug } : {}),
           ...(gateElements.length > 0 ? { gateElements } : {}),
@@ -953,6 +1002,45 @@
     if (op) sendOpFn(op);
   }
 
+  // ---------------------------------------------------------------------------
+  // Multiclass by class levels (specs/30)
+  // ---------------------------------------------------------------------------
+
+  const classLevelsOn = $derived(
+    getClassLevelsVariant(
+      (doc["system"] as Record<string, unknown> | undefined) ?? {},
+    ),
+  );
+
+  function toggleClassLevels(): void {
+    const op = setClassLevelsVariant(opCtx, !classLevelsOn);
+    if (op) sendOpFn(op);
+  }
+
+  /** The level whose "Nível de classe" slot is being picked, if any. */
+  let classLevelPicker = $state<number | null>(null);
+
+  /**
+   * Which classes the picker may offer at the level being edited.
+   *
+   * `null` means "any class in the compendium" (level 1 or an even level — a
+   * new class may enter). Otherwise the list is restricted to the sourceIds
+   * already on the sheet, because odd levels only continue a class you have.
+   */
+  const classLevelAllowed = $derived(
+    classLevelPicker === null ? null : classOptionsAt(doc, classLevelPicker),
+  );
+
+  function handleClassLevelSelect(classDoc: Record<string, unknown>): void {
+    const level = classLevelPicker;
+    classLevelPicker = null;
+    if (level === null) return;
+    sendAll(chooseClassLevel(opCtx, level, classDoc));
+    // A brand-new class brings its own level-1 grants (actions from features,
+    // etc.) — same materialization the ABC class picker runs.
+    void materializeAppliedGrants(classDoc, undefined);
+  }
+
   function handleLevelUp(): void {
     sendAll(levelUp(opCtx));
   }
@@ -1025,6 +1113,10 @@
       <input type="checkbox" checked={freeArchetypeOn} onchange={toggleFreeArchetype} />
       {t("FUSION.Sheet.Plan.FreeArchetypeToggle")}
     </label>
+    <label class="plan-column__toggle">
+      <input type="checkbox" checked={classLevelsOn} onchange={toggleClassLevels} />
+      {t("FUSION.Sheet.Plan.ClassLevelsToggle")}
+    </label>
   {/if}
 
   {#if plan.needsClass}
@@ -1079,6 +1171,36 @@
     currentSourceId={abcCurrentSourceId(abcPicker)}
     onClose={() => { abcPicker = null; }}
     onSelect={handleAbcSelect}
+  />
+{/if}
+
+{#if classLevelPicker !== null}
+  <CompendiumPickerDialog
+    packSlug="classes-core"
+    title={t("FUSION.Sheet.Plan.Picker.ClassLevelTitle", {
+      level: String(classLevelPicker),
+    })}
+    showTraitFilter={false}
+    filterFn={
+      classLevelAllowed === null
+        ? undefined
+        : (e) => {
+            // Odd level: only a class already on the sheet may continue.
+            //
+            // Matched by NAME here, not by sourceId, because the pack index
+            // does not publish `flags.fusion.sourceId` yet (issue #41) — the
+            // filter would reject everything. Names are unique inside
+            // classes-core (12 distinct classes), so this is safe HERE and
+            // nowhere else; the pick itself is still recorded by sourceId,
+            // read off the full document the picker returns.
+            const name = e.index["name"];
+            const allowed = classLevelAllowed;
+            if (typeof name !== "string" || !allowed) return false;
+            return allowed.some((c) => c.name === name);
+          }
+    }
+    onClose={() => { classLevelPicker = null; }}
+    onSelect={handleClassLevelSelect}
   />
 {/if}
 

@@ -383,7 +383,12 @@
    * comes from the character's class item (kept in English for coined class
    * names like Magus — see glossary keepEnglish).
    */
-  function spellDCLabel(): string {
+  function spellDCLabel(entry?: SpellcastingEntryRow): string {
+    // Prefer the class that OWNS this entry (multiclass: a Fighter 3 / Magus 3
+    // has one arcane entry, and labelling it with the sheet's whole class line
+    // — "Guerreiro / Magus" — is exactly the confusion this replaces).
+    const owner = entry?.ownerClassLabel?.trim();
+    if (owner) return t("FUSION.Sheet.Spells.DCWithClass", { class: owner });
     const className = vm.classLabel.trim();
     if (className.length === 0) return t("FUSION.Sheet.Spells.DC");
     return t("FUSION.Sheet.Spells.DCWithClass", { class: className });
@@ -834,7 +839,7 @@
         <div class="spells-entry">
           <div class="spells-statsbar">
             <div class="spells-stat">
-              <span class="spells-stat__label">{spellDCLabel()}</span>
+              <span class="spells-stat__label">{spellDCLabel(entry)}</span>
               <span class="spells-stat__value">{entry.spellDC}</span>
             </div>
             <button
