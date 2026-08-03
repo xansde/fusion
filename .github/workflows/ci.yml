@@ -51,5 +51,10 @@ jobs:
       - name: Test
         run: pnpm test
 
+      - name: Test tools (node:test)
+        run: |
+          pnpm --filter @fusion/translate-packs test
+          pnpm --filter @fusion/importer-pf2e test
+
       - name: Coverage (shared ≥80%)
         run: pnpm --filter @fusion/shared run test:coverage
