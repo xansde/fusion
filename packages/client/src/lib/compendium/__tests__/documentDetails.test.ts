@@ -725,12 +725,20 @@ describe("buildFeatFields (pt-BR)", () => {
   });
 
   it("falls back to the raw EN string for an unresolvable prerequisite (never invents)", () => {
-    const fields = buildFeatFields({ prerequisites: [{ value: "Glorious Gamtu" }] }, "pt-BR");
+    // The fixture MUST be a string that no document will ever be named, because
+    // `documentNamesPt.ts` is generated from the live packs: this test first used
+    // a real-but-untranslated feat ("Glorious Gamtu"), and it broke the moment
+    // that feat got translated — the test was measuring the corpus, not the
+    // fallback. Same circularity trap as issue #48.
+    const fields = buildFeatFields(
+      { prerequisites: [{ value: "Zzzz Not A Real Document Name" }] },
+      "pt-BR",
+    );
     expect(fields).toEqual([
       {
         labelKey: "FUSION.Sheet.Details.Field.Prerequisites",
         label: "Pré-requisitos",
-        value: "Glorious Gamtu",
+        value: "Zzzz Not A Real Document Name",
       },
     ]);
   });

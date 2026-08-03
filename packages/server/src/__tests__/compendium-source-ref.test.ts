@@ -34,7 +34,11 @@ import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
-import { CompendiumService, computeI18nSourceHash, resolveSystemPacksDir } from "../compendium/index.js";
+import {
+  CompendiumService,
+  computeI18nSourceHash,
+  resolveSystemPacksDir,
+} from "../compendium/index.js";
 // NOTE: buildCompendiumI18nBySourceRefHandler is imported directly from
 // handlers.js (not re-exported via compendium/index.ts yet) — wiring it into
 // the barrel + socket-manager.ts's HandlerRegistry is the remaining step
@@ -250,7 +254,10 @@ describe("CompendiumService.getI18nBySourceRef", () => {
     const svc = new CompendiumService();
     svc.discoverPacks(packsRoot, "pf2e");
 
-    const result = svc.getI18nBySourceRef({ packName: VENDOR_PACK_NAME, sourceId: "does-not-exist" });
+    const result = svc.getI18nBySourceRef({
+      packName: VENDOR_PACK_NAME,
+      sourceId: "does-not-exist",
+    });
     expect(result).toBeNull();
 
     rmSync(packsRoot, { recursive: true, force: true });
@@ -262,7 +269,10 @@ describe("CompendiumService.getI18nBySourceRef", () => {
     svc.discoverPacks(packsRoot, "pf2e");
 
     // "src-a1" exists, but under a DIFFERENT packName — must not match.
-    const result = svc.getI18nBySourceRef({ packName: "some-other-vendor-pack", sourceId: "src-a1" });
+    const result = svc.getI18nBySourceRef({
+      packName: "some-other-vendor-pack",
+      sourceId: "src-a1",
+    });
     expect(result).toBeNull();
 
     rmSync(packsRoot, { recursive: true, force: true });
