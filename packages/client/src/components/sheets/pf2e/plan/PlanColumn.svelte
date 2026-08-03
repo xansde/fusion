@@ -199,10 +199,7 @@
    * subtitle is SUPPRESSED (r15 user decision: no redundant "Bon Mot / Bon Mot"
    * — aligns the Plan with the Actions tab's behavior).
    */
-  function contentNameParts(
-    stored: string,
-    docId?: string | undefined,
-  ): { name: string; subName?: string } {
+  function contentNameParts(stored: string, docId?: string): { name: string; subName?: string } {
     if (i18n.locale !== "pt-BR" || !contentTranslator) return { name: stored };
     const parts = contentTranslator(stored, docId);
     if (sameName(parts.namePt, parts.nameEn)) return { name: parts.namePt };

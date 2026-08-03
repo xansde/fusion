@@ -4957,10 +4957,7 @@ export interface ContentNameParts {
  * parts. `docId` (when the caller has one) is tried FIRST: the stored name can
  * legitimately differ from the document's own name, and only the id is exact.
  */
-export type ContentNameTranslator = (
-  storedName: string,
-  docId?: string | undefined,
-) => ContentNameParts;
+export type ContentNameTranslator = (storedName: string, docId?: string) => ContentNameParts;
 
 /** Read the pt-BR overlay name off an index entry — flat `namePt` first, then nested `i18n.ptBR.name`. */
 function entryPtName(entry: PlanNameIndexEntry): string | undefined {
@@ -5014,7 +5011,7 @@ export function buildContentNameTranslator(
       if (ptKey && !byName.has(ptKey)) byName.set(ptKey, parts);
     }
   }
-  return (storedName: string, docId?: string | undefined): ContentNameParts => {
+  return (storedName: string, docId?: string): ContentNameParts => {
     const fallback: ContentNameParts = { namePt: storedName, nameEn: storedName };
     if (docId) {
       const byIdHit = byId.get(docId);
