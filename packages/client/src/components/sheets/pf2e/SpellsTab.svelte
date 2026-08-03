@@ -259,12 +259,20 @@
     system["description"] = descHtml;
     const rawName = item["name"];
     const rawType = item["type"];
-    return {
+    const doc: Record<string, unknown> = {
       name: typeof rawName === "string" ? rawName : "",
       type: typeof rawType === "string" ? rawType : "spell",
       system,
       flags: typeof item["flags"] === "object" && item["flags"] !== null ? item["flags"] : {},
     };
+    // Preserve the persisted i18n bag (issue #10) — pickLocalizedName /
+    // pickLocalizedDescription (documentDetails.ts) read `doc.i18n.ptBR.
+    // {name,description}`; dropping it here made an embedded spell with a
+    // correctly persisted pt-BR description still render EN whenever no pack
+    // uuid resolved (homebrew / offline / no pack match).
+    const rawI18n = item["i18n"];
+    if (typeof rawI18n === "object" && rawI18n !== null) doc["i18n"] = rawI18n;
+    return doc;
   }
 
   /**
