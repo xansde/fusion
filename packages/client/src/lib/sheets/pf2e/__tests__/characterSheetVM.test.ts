@@ -5,7 +5,7 @@
  * REQ-PF2-110..114, REQ-UIF-021..025.
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach } from "vitest";
 import {
   CharacterSheetVM,
   fmtMod,
@@ -17,6 +17,7 @@ import {
   resolveInitialTradition,
   buildSpellNameTranslator,
   buildSpellDetailsResolver,
+  translatedStrikeDamageFormula,
   type SpellPickerEntry,
   type SpellDetailsIndexEntry,
 } from "../characterSheetVM.js";
@@ -27,6 +28,7 @@ import {
   DocDeletePayloadSchema,
   AbilityCardSchema,
 } from "@fusion/shared";
+import { i18n } from "../../../i18n/index.js";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -338,6 +340,18 @@ describe("CharacterSheetVM — abilities", () => {
     expect(cha.mod).toBe(-1);
     expect(cha.modFormatted).toBe("-1");
   });
+
+  // R24 (#40.3): label/longLabel now come from t() (pt-BR default locale)
+  // instead of the frozen EN ABILITY_LABELS/ABILITY_LONG_LABELS maps.
+  it("translates label/longLabel to pt-BR", () => {
+    const vm = makeVM();
+    const str = vm.abilities.find((a) => a.slug === "str")!;
+    expect(str.label).toBe("For");
+    expect(str.longLabel).toBe("Força");
+    const dex = vm.abilities.find((a) => a.slug === "dex")!;
+    expect(dex.label).toBe("Des");
+    expect(dex.longLabel).toBe("Destreza");
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -359,6 +373,15 @@ describe("CharacterSheetVM — saves", () => {
     expect(fort.rank).toBe(3);
     expect(fort.rankLabel).toBe("M");
   });
+
+  // R24 (#40.3): save.label now comes from t() (pt-BR default locale)
+  // instead of a raw capitalized EN slug.
+  it("translates save labels to pt-BR", () => {
+    const vm = makeVM();
+    expect(vm.saves.find((s) => s.slug === "fortitude")!.label).toBe("Fortitude");
+    expect(vm.saves.find((s) => s.slug === "reflex")!.label).toBe("Reflexos");
+    expect(vm.saves.find((s) => s.slug === "will")!.label).toBe("Vontade");
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -375,14 +398,15 @@ describe("CharacterSheetVM — skills", () => {
     expect(athletics.rank).toBe(3);
     expect(athletics.rankLabel).toBe("M");
     expect(athletics.rankLabelFull).toBe("Master");
-    expect(athletics.abilityLabel).toBe("STR");
+    // R24 (#40.3): abilityLabel is now the pt-BR short label (t() default locale).
+    expect(athletics.abilityLabel).toBe("For");
   });
 
   it("includes stealth skill", () => {
     const vm = makeVM();
     const stealth = vm.skills.find((s) => s.slug === "stealth")!;
     expect(stealth.total).toBe(6);
-    expect(stealth.abilityLabel).toBe("DEX");
+    expect(stealth.abilityLabel).toBe("Des");
   });
 });
 
@@ -422,6 +446,49 @@ describe("CharacterSheetVM — strikes", () => {
     const vm = makeVM();
     const op = vm.rollStrike("item-longsword", 1);
     expect(op.content).toBe("/r 1d20+8 # Longsword (MAP 1)");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// translatedStrikeDamageFormula (R24 #40.6) — remounts damageFormula with a
+// pt-BR damage-type word without touching the locale-agnostic rules engine.
+// ---------------------------------------------------------------------------
+
+describe("translatedStrikeDamageFormula", () => {
+  afterEach(() => {
+    i18n.setLocale("pt-BR"); // restore the sheet's default locale for other tests
+  });
+
+  it("translates the trailing damage-type word (pt-BR default locale)", () => {
+    expect(
+      translatedStrikeDamageFormula({ damageFormula: "1d8 +1 slashing", damageType: "slashing" }),
+    ).toBe("1d8 +1 corte");
+    expect(
+      translatedStrikeDamageFormula({
+        damageFormula: "1d4 electricity",
+        damageType: "electricity",
+      }),
+    ).toBe("1d4 eletricidade");
+  });
+
+  it("leaves the formula unchanged for an unmapped damage type", () => {
+    expect(
+      translatedStrikeDamageFormula({ damageFormula: "1d6 +2 madeupium", damageType: "madeupium" }),
+    ).toBe("1d6 +2 madeupium");
+  });
+
+  it("falls back to the raw formula when it doesn't end with damageType (defensive, never throws)", () => {
+    expect(
+      translatedStrikeDamageFormula({ damageFormula: "1d8 +1 slashing", damageType: "fire" }),
+    ).toBe("1d8 +1 slashing");
+    expect(translatedStrikeDamageFormula({ damageFormula: "", damageType: "" })).toBe("");
+  });
+
+  it("returns the raw EN word on the en locale (translateDamageType is a no-op there)", () => {
+    i18n.setLocale("en");
+    expect(
+      translatedStrikeDamageFormula({ damageFormula: "1d8 +1 slashing", damageType: "slashing" }),
+    ).toBe("1d8 +1 slashing");
   });
 });
 

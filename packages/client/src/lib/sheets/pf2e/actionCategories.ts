@@ -78,7 +78,7 @@ export const ACTION_GROUP_LABELS: Record<ActionGroup, string> = {
   skill: "Perícia",
   class: "Classe",
   exploration: "Exploração",
-  downtime: "Downtime",
+  downtime: "Tempo Livre",
   equipment: "Equipamento",
   ancestry: "Ancestralidade",
   archetype: "Arquétipo",
