@@ -38,6 +38,7 @@ import {
   RARITY_NAMES_PT,
   AREA_SHAPE_NAMES_PT,
 } from "./traitNames.js";
+import { translatePrerequisite } from "./prerequisiteTranslation.js";
 
 // ---------------------------------------------------------------------------
 // Localization overlay picking (T1)
@@ -1168,7 +1169,14 @@ export function buildSpellFields(
   return fields;
 }
 
-/** Prerequisites field shared by feats/class features. */
+/**
+ * Prerequisites field shared by feats/class features. On "pt-BR" each raw EN
+ * `system.prerequisites[].value` is translated via {@link translatePrerequisite}
+ * (issue #32 — composes a pt-BR string from rank/skill vocabulary, subclass-axis
+ * option names, other documents' own translated names, and a small curated
+ * vocabulary; falls back to the raw EN string when none of that resolves it).
+ * "en" keeps the raw values, matching every other field in this file.
+ */
 function prerequisitesField(
   system: Record<string, unknown>,
   locale: SupportedLocale,
@@ -1180,7 +1188,8 @@ function prerequisitesField(
     .filter((v): v is string => v !== null);
   if (values.length === 0) return null;
   const label = locale === "pt-BR" ? "Pré-requisitos" : "Prerequisites";
-  return field(FIELD_KEYS.prerequisites, label, values.join("; "));
+  const displayValues = locale === "pt-BR" ? values.map((v) => translatePrerequisite(v)) : values;
+  return field(FIELD_KEYS.prerequisites, label, displayValues.join("; "));
 }
 
 /**

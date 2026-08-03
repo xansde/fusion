@@ -40,6 +40,7 @@ import type {
   DocOpPayload,
   DocUpdatePayload,
 } from "./characterSheetVM.js";
+import { translatePrerequisite } from "../../compendium/prerequisiteTranslation.js";
 
 // ---------------------------------------------------------------------------
 // Local mirrors of systems/pf2e/src/types.ts canonical sets.
@@ -2420,7 +2421,7 @@ export function checkFeatPrerequisites(
     const value = typeof entry === "string" ? entry : asRecord(entry)["value"];
     if (typeof value !== "string" || value.trim().length === 0) continue;
     if (evaluatePrerequisiteEntry(value, knownNames, axisNames) === "unmet") {
-      missing.push(value.trim());
+      missing.push(translatePrerequisite(value.trim()));
     }
   }
   if (missing.length === 0) return undefined;

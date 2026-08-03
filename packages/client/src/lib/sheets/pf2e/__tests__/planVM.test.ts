@@ -1130,9 +1130,13 @@ describe("derivePlan — system.prerequisites marking (A1)", () => {
     const slot = l1.slots.find((s) => s.slotId === "classFeat-1")!;
     expect(slot.filled).toBe(true);
     expect(slot.choiceName).toBe("Draconic Arrogance");
+    // issue #32: the reason's `prerequisite` param is now translated to
+    // pt-BR via translatePrerequisite (the raw EN "dragon instinct" resolves
+    // by document name to class-features-core's own "Dragon Instinct" →
+    // "Instinto Dracônico" translation).
     expect(slot.requirementIssue).toEqual({
       reasonKey: "FUSION.Sheet.Plan.Requirement.PrerequisiteUnmet",
-      params: { prerequisite: "dragon instinct" },
+      params: { prerequisite: "Instinto Dracônico" },
     });
   });
 
@@ -1205,9 +1209,13 @@ describe("derivePlan — system.prerequisites marking (A1)", () => {
     const l1 = plan.levels.find((l) => l.level === 1)!;
     const slot = l1.slots.find((s) => s.slotId === "classFeat-1")!;
     expect(slot.filled).toBe(true);
+    // issue #32: "animal instinct" resolves by document name (class-features-
+    // core's "Animal Instinct" → "Instinto Animal"); "untamed order" has no
+    // curated document (Druid isn't a Fusion class) but IS a real PF2e term,
+    // covered by prerequisiteTranslation.ts's curated vocabulary.
     expect(slot.requirementIssue).toEqual({
       reasonKey: "FUSION.Sheet.Plan.Requirement.PrerequisiteUnmet",
-      params: { prerequisite: "animal instinct or untamed order" },
+      params: { prerequisite: "Instinto Animal ou Ordem Selvagem" },
     });
   });
 
