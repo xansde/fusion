@@ -2848,8 +2848,10 @@ export function buildSpellNameTranslator(entries: SpellPickerEntry[]): SpellName
  * Compendium `uuid` plus the EN `name` and optional pt-BR `namePt` join keys
  * (r14-B4). Structural superset of {@link SpellPickerEntry} — the spells-core
  * `searchPack` result (PackIndexEntry[]) satisfies it directly. `index` is
- * kept optional so a `flags.fusion.sourceId` join can be added later without a
- * signature change (the pack index does not carry sourceId today).
+ * optional and carries the `flags.fusion.sourceId` join, which the pack index
+ * DOES publish since issue #41 — `buildSpellDetailsResolver` below already uses
+ * it. (This comment used to say the index did not carry sourceId; that stopped
+ * being true with #41, and the stale claim outlived the fact in three places.)
  */
 export interface SpellDetailsIndexEntry {
   uuid: string;

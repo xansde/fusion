@@ -199,9 +199,12 @@
    * subtitle is SUPPRESSED (r15 user decision: no redundant "Bon Mot / Bon Mot"
    * — aligns the Plan with the Actions tab's behavior).
    */
-  function contentNameParts(stored: string): { name: string; subName?: string } {
+  function contentNameParts(
+    stored: string,
+    docId?: string | undefined,
+  ): { name: string; subName?: string } {
     if (i18n.locale !== "pt-BR" || !contentTranslator) return { name: stored };
-    const parts = contentTranslator(stored);
+    const parts = contentTranslator(stored, docId);
     if (sameName(parts.namePt, parts.nameEn)) return { name: parts.namePt };
     return { name: parts.namePt, subName: parts.nameEn };
   }
@@ -579,7 +582,11 @@
 
   /** Bilingual parts for a locked auto-feature chip. */
   function autoFeatureDisplay(feature: AutoFeatureModel): AutoFeatureDisplay {
-    const parts = contentNameParts(feature.name);
+    // Resolve by docId first (issue #65): `featuresByLevel` stores a literal
+    // name that can differ from the referenced document's own — the Cleric's
+    // "Deity" points at a document named "Deity (Cleric)", so matching by name
+    // misses and the chip renders in EN even though the translation exists.
+    const parts = contentNameParts(feature.name, feature.docId);
     return {
       name: parts.name,
       ...(parts.subName !== undefined ? { subName: parts.subName } : {}),

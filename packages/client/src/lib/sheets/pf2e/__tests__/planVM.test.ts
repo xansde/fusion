@@ -5071,6 +5071,38 @@ describe("buildContentNameTranslator", () => {
     expect(translate("Fleet")).toEqual({ namePt: "Veloz", nameEn: "Fleet" });
   });
 
+  // Issue #65 — the Cleric's `featuresByLevel` entry is literally named "Deity"
+  // while the document it points at is named "Deity (Cleric)". Matching by name
+  // misses, so the chip rendered in EN even though the translation existed one
+  // id away. The id is the exact key and must win.
+  it("resolves by docId even when the stored name does not match the document's own", () => {
+    const clericFeatures: PlanNameIndexEntry[] = [
+      { _id: "Z3bGaIq1FnCfsTrx", name: "Deity (Cleric)", namePt: "Divindade (Clérigo)" },
+    ];
+    const translate = buildContentNameTranslator([clericFeatures]);
+
+    // Name-only lookup cannot resolve it — that is the bug being fixed.
+    expect(translate("Deity")).toEqual({ namePt: "Deity", nameEn: "Deity" });
+
+    // With the docId the class doc already carries, it resolves exactly.
+    expect(translate("Deity", "Z3bGaIq1FnCfsTrx")).toEqual({
+      namePt: "Divindade (Clérigo)",
+      nameEn: "Deity (Cleric)",
+    });
+  });
+
+  it("falls back to the stored name when the docId is unknown (never crashes, never invents)", () => {
+    const translate = buildContentNameTranslator([feats]);
+    expect(translate("Fleet", "IdThatIsNotInAnyPack")).toEqual({
+      namePt: "Veloz",
+      nameEn: "Fleet",
+    });
+    expect(translate("Totally Unknown", "AlsoUnknownId")).toEqual({
+      namePt: "Totally Unknown",
+      nameEn: "Totally Unknown",
+    });
+  });
+
   it("joins by normalized name, so a pt-BR-copied stored name still resolves", () => {
     const translate = buildContentNameTranslator([feats]);
     // Stored name copied in pt-BR (accent/case-insensitive) still maps to the
