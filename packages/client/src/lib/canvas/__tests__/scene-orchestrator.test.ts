@@ -29,6 +29,7 @@ import { DocumentMirror } from "../../docs/DocumentMirror.js";
 import type { SceneDocument, TokenDocument, WorldSnapshotPayload } from "@fusion/shared";
 import type { FogState } from "../vision/fog-state.js";
 import type { FogRenderState } from "../vision/fog-state.js";
+import type { VisionStateResult } from "../vision/vision-state.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -318,9 +319,9 @@ describe("SceneOrchestrator", () => {
       orchestrator.teardown();
     });
 
-    it("player role → setVisionPolygons called with fogEnabled=true", async () => {
+    it("player role, tokenVision+fogEnabled both true → setVisionPolygons called with fogEnabled=true", async () => {
       const token = makeToken("tok-1");
-      const scene = makeScene("scene-1", { tokens: [token] });
+      const scene = makeScene("scene-1", { tokens: [token], tokenVision: true, fogEnabled: true });
       const mirror = makeMirror("scene-1", scene);
       const { orchestrator, tokenLayer } = makeOrchestrator(scene, mirror, {
         isGm: false,
@@ -331,16 +332,18 @@ describe("SceneOrchestrator", () => {
 
       const svpCalls = tokenLayer.calls.filter((c) => c.fn === "setVisionPolygons");
       expect(svpCalls.length).toBeGreaterThan(0);
-      // Last call should have fogEnabled = true for non-GM player
+      // Last call should have fogEnabled = true for non-GM player when the
+      // scene's tokenVision flag is on.
       const lastCall = svpCalls[svpCalls.length - 1];
       expect(lastCall?.args[1]).toBe(true);
 
       orchestrator.teardown();
     });
 
-    it("GM role → setVisionPolygons called with fogEnabled=false", async () => {
+    it("GM role → setVisionPolygons called with fogEnabled=false regardless of scene flags", async () => {
       const token = makeToken("tok-gm", 100, 100);
-      const scene = makeScene("scene-1", { tokens: [token] });
+      // Flags ON — proves the GM bypass wins over the flags, not just their absence.
+      const scene = makeScene("scene-1", { tokens: [token], tokenVision: true, fogEnabled: true });
       const mirror = makeMirror("scene-1", scene);
       const { orchestrator, tokenLayer } = makeOrchestrator(scene, mirror, {
         isGm: true,
@@ -354,6 +357,64 @@ describe("SceneOrchestrator", () => {
       // GM → fogEnabled = false
       const lastCall = svpCalls[svpCalls.length - 1];
       expect(lastCall?.args[1]).toBe(false);
+
+      orchestrator.teardown();
+    });
+  });
+
+  describe("REQ-VIS-085 — tokenVision/fogEnabled scene flags gate fog for players", () => {
+    it("default scene (tokenVision/fogEnabled absent → false) + player: fogEnabled=false, no vision mask", async () => {
+      const token = makeToken("tok-1");
+      // No tokenVision/fogEnabled override — simulates a brand-new scene.
+      const scene = makeScene("scene-1", { tokens: [token] });
+      const mirror = makeMirror("scene-1", scene);
+      // TableScreen would not create a FogState for this scene (both flags false).
+      const { orchestrator, tokenLayer, lightingRenderer } = makeOrchestrator(scene, mirror, {
+        isGm: false,
+        fogState: null,
+      });
+
+      await orchestrator.setup();
+
+      const svpCalls = tokenLayer.calls.filter((c) => c.fn === "setVisionPolygons");
+      expect(svpCalls[svpCalls.length - 1]?.args[1]).toBe(false);
+
+      const renderCalls = lightingRenderer.calls.filter((c) => c.fn === "render");
+      const lastRender = renderCalls[renderCalls.length - 1];
+      const lastState = lastRender?.args[0] as VisionStateResult;
+      expect(lastState.tokenVision).toBe(false);
+      expect(lastState.isGm).toBe(false);
+      // No FogState was fed into render — the "no mask, no fog" branch.
+      expect(lastRender?.args[1]).toBeNull();
+
+      orchestrator.teardown();
+    });
+
+    it("tokenVision=true, fogEnabled=false + player: fogEnabled=true in setVisionPolygons, render gets no fogState", async () => {
+      const token = makeToken("tok-1");
+      const scene = makeScene("scene-1", {
+        tokens: [token],
+        tokenVision: true,
+        fogEnabled: false,
+      });
+      const mirror = makeMirror("scene-1", scene);
+      // TableScreen would not create a FogState here (fogEnabled is false).
+      const { orchestrator, tokenLayer, lightingRenderer } = makeOrchestrator(scene, mirror, {
+        isGm: false,
+        fogState: null,
+      });
+
+      await orchestrator.setup();
+
+      const svpCalls = tokenLayer.calls.filter((c) => c.fn === "setVisionPolygons");
+      expect(svpCalls[svpCalls.length - 1]?.args[1]).toBe(true);
+
+      const renderCalls = lightingRenderer.calls.filter((c) => c.fn === "render");
+      const lastRender = renderCalls[renderCalls.length - 1];
+      const lastState = lastRender?.args[0] as VisionStateResult;
+      expect(lastState.tokenVision).toBe(true);
+      // Simple-mask branch: render() got no fogState at all.
+      expect(lastRender?.args[1]).toBeNull();
 
       orchestrator.teardown();
     });

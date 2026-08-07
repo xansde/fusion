@@ -457,8 +457,14 @@
     );
 
     // --- FogState (player only) ---
+    // REQ-VIS-085: FogState only exists when the scene actually wants fog.
+    // tokenVision off ⇒ players see the whole map (no mask at all);
+    // tokenVision on + fogEnabled off ⇒ simple vision mask, no accumulation.
+    // Same runtime-absence risk as `grid` (see sceneReloadKey.ts) — read defensively.
+    const tokenVisionOn = scene.tokenVision ?? false;
+    const fogEnabledOn = scene.fogEnabled ?? false;
     let fogState: FogState | null = null;
-    if (!currentIsGm && sock) {
+    if (!currentIsGm && sock && tokenVisionOn && fogEnabledOn) {
       fogState = new FogState(
         scene._id,
         userId,

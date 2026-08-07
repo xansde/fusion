@@ -8,7 +8,9 @@
  * and re-awaited Assets.load().
  *
  * The rule these tests lock in: only fields loadSceneDocument() actually reads
- * may force a reload. Everything embedded belongs to SceneOrchestrator.
+ * — plus the vision/fog flags consumed once at orchestrator creation
+ * (tokenVision/fogEnabled, REQ-VIS-085) — may force a reload. Everything
+ * embedded belongs to SceneOrchestrator.
  */
 
 import { describe, it, expect } from "vitest";
@@ -109,6 +111,18 @@ describe("sceneReloadKey — things that MUST reload the scene", () => {
   it("reloads when the background color changes", () => {
     expect(sceneReloadKey(makeScene({ backgroundColor: "#000000" }))).not.toBe(
       sceneReloadKey(makeScene()),
+    );
+  });
+
+  it("reloads when tokenVision changes — REQ-VIS-085 live toggle must recreate the orchestrator", () => {
+    expect(sceneReloadKey(makeScene({ tokenVision: true }))).not.toBe(
+      sceneReloadKey(makeScene({ tokenVision: false })),
+    );
+  });
+
+  it("reloads when fogEnabled changes — REQ-VIS-085 live toggle must recreate the orchestrator", () => {
+    expect(sceneReloadKey(makeScene({ fogEnabled: true }))).not.toBe(
+      sceneReloadKey(makeScene({ fogEnabled: false })),
     );
   });
 });

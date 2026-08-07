@@ -15,6 +15,14 @@
  * This function reduces a SceneDocument to only what loadSceneDocument()
  * actually consumes. Same key ⇒ nothing to reload, no matter how many tokens
  * moved.
+ *
+ * `tokenVision`/`fogEnabled` are the exception to "only what the loader
+ * reads": loadSceneDocument() itself ignores them, but TableScreen's
+ * _createOrchestrator() reads them once, at orchestrator-creation time, to
+ * decide whether a FogState exists at all (REQ-VIS-085). The orchestrator is
+ * only rebuilt when this key changes, so without these two fields here, the
+ * GM flipping either flag live (ScenePerceptionDialog → doc:update) would
+ * have no effect until some unrelated reload happened to fire.
  */
 
 import type { SceneDocument } from "@fusion/shared";
@@ -32,8 +40,11 @@ export function sceneReloadKey(scene: SceneDocument | null | undefined): string 
   if (!scene) return null;
 
   // `grid` can be runtime-absent on scenes persisted before it existed (r7.1),
-  // hence the defensive read rather than a direct property access.
+  // hence the defensive read rather than a direct property access. Same for
+  // `tokenVision`/`fogEnabled` on scenes persisted before REQ-VIS-085.
   const grid = (scene as { grid?: unknown }).grid ?? null;
+  const tokenVision = (scene as { tokenVision?: boolean }).tokenVision ?? false;
+  const fogEnabled = (scene as { fogEnabled?: boolean }).fogEnabled ?? false;
 
   return JSON.stringify([
     scene._id,
@@ -44,5 +55,7 @@ export function sceneReloadKey(scene: SceneDocument | null | undefined): string 
     scene.backgroundColor,
     scene.initialView,
     grid,
+    tokenVision,
+    fogEnabled,
   ]);
 }
