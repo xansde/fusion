@@ -130,7 +130,7 @@ está certo —, mas isso trata o sintoma todo mês. A causa é que a asserção
 fala sobre o código: `2000` é uma propriedade do hardware que rodou o teste no
 dia em que ele foi escrito.
 
-**O que fazer:** quando o que se quer provar é *"não esperou por X"*, comparar
+**O que fazer:** quando o que se quer provar é _"não esperou por X"_, comparar
 com **X**, não com um número inventado. Aqui, o teto natural é o timeout da
 própria checagem (5 s): a asserção honesta é que o boot terminou bem antes dele,
 ou melhor ainda, que a promessa da checagem ainda estava pendente quando `boot()`
@@ -175,8 +175,8 @@ prova jogada de duas telas do M2.
 `!isGm` — `TableScreen` criando o `FogState`, o orquestrador passando
 `fogEnabled` ao `TokenLayer`, e o `FogState` respondendo `fogActive`. Nenhum
 deles lia `scene.tokenVision` / `scene.fogEnabled`, que existem no schema com
-default `false` e o comentário explícito *"When false, all players see the
-entire scene"*. Com os polígonos de visão vazios (o default de
+default `false` e o comentário explícito _"When false, all players see the
+entire scene"_. Com os polígonos de visão vazios (o default de
 `vision.enabled` de um token também é `false`), o `LightingRenderer` pinta o
 retângulo preto de alpha 1 sobre a cena inteira e o `TokenLayer` esconde todos
 os sprites: num mundo novo, nenhum jogador enxerga o mapa.
@@ -186,7 +186,7 @@ que alguém exercitou — cena com fog ligado, GM de um lado, jogador do outro.
 O proxy e a regra só divergem quando a cena diz que não quer fog, e era
 exatamente o estado em que toda cena nasce. Pior: a UI de escrita existia
 (`ScenePerceptionDialog` grava os dois campos há tempo) e o teste do
-orquestrador *codificava o proxy como se fosse a regra* — `"player role →
+orquestrador _codificava o proxy como se fosse a regra_ — `"player role →
 setVisionPolygons called with fogEnabled=true"`, verde, provando o defeito.
 E o sintoma mente sobre a causa: o mapa aparece por alguns frames porque o
 blackout só entra depois do `await fogState.load()`, o que faz tudo parecer
@@ -194,7 +194,7 @@ problema de carga, de textura ou de corrida.
 
 **O que fazer:** **campo de configuração gravável sem consumidor é uma
 configuração que mente** — quando um flag entra no schema, o commit que o
-cria deve incluir quem o *lê*, ou ele não deve existir ainda. E política de
+cria deve incluir quem o _lê_, ou ele não deve existir ainda. E política de
 produto ("esta cena tem névoa?") não se deriva de um proxy de identidade
 ("quem está olhando?"): o proxy sobrevive a todos os testes até o dia em que
 os dois discordam. Ao encontrar um `!isGm` (ou qualquer papel) decidindo

@@ -9,13 +9,13 @@ Base: `origin/build/app`. **Ver antes de codar.**
 
 ## 1. O gesto
 
-| Gesto | Onde | Resultado |
-|---|---|---|
-| **Botão direito** sobre um token | canvas | alterna o alvo **do usuário local** naquele token |
-| Botão direito no vazio | canvas | nada (não deseleciona, não abre menu do browser) |
-| Botão esquerdo | canvas | inalterado: seleciona / arrasta |
-| Botão do meio, Espaço+esquerdo | canvas | inalterado: pan da câmera |
-| Clique no botão ◎ da linha | CombatPanel | mesmo toggle do gesto do mapa |
+| Gesto                            | Onde        | Resultado                                         |
+| -------------------------------- | ----------- | ------------------------------------------------- |
+| **Botão direito** sobre um token | canvas      | alterna o alvo **do usuário local** naquele token |
+| Botão direito no vazio           | canvas      | nada (não deseleciona, não abre menu do browser)  |
+| Botão esquerdo                   | canvas      | inalterado: seleciona / arrasta                   |
+| Botão do meio, Espaço+esquerdo   | canvas      | inalterado: pan da câmera                         |
+| Clique no botão ◎ da linha       | CombatPanel | mesmo toggle do gesto do mapa                     |
 
 O botão direito está livre hoje: o pan usa botão do meio ou Espaço+esquerdo
 (`FusionCanvas._handlePointerDown:542`) e o menu de contexto do browser já é suprimido
@@ -104,14 +104,14 @@ usado em `AntagonistaSheet.svelte:66`.
 
 ## 5. Feedback e casos de borda
 
-| Caso | Comportamento desenhado |
-|---|---|
-| Latência do servidor | a retícula só aparece quando o broadcast `token:targeted` volta. **Sem estado otimista** — alvo não é movimento, não vale divergir cliente/servidor por 30ms. |
-| Ack de erro | `onError` do manager (hoje só `console.warn`); nenhum toast novo neste item. |
-| Sem combate ativo | funciona igual. O gesto do mapa **não** exige combate (o servidor nunca exigiu; era o painel que só existia dentro do combate). |
-| Token oculto para o jogador | não é renderizado, logo não é clicável — nada a fazer. |
-| Token alvo de mim **e** de outro | desenha vermelho (regra atual de `byLocalUser`). Limitação herdada, nomeada em `arquitetura.md` §6. |
-| Fim do turno | limpeza automática existente (REQ-CBT-055) continua valendo e apaga as retículas do usuário do turno. |
+| Caso                             | Comportamento desenhado                                                                                                                                       |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Latência do servidor             | a retícula só aparece quando o broadcast `token:targeted` volta. **Sem estado otimista** — alvo não é movimento, não vale divergir cliente/servidor por 30ms. |
+| Ack de erro                      | `onError` do manager (hoje só `console.warn`); nenhum toast novo neste item.                                                                                  |
+| Sem combate ativo                | funciona igual. O gesto do mapa **não** exige combate (o servidor nunca exigiu; era o painel que só existia dentro do combate).                               |
+| Token oculto para o jogador      | não é renderizado, logo não é clicável — nada a fazer.                                                                                                        |
+| Token alvo de mim **e** de outro | desenha vermelho (regra atual de `byLocalUser`). Limitação herdada, nomeada em `arquitetura.md` §6.                                                           |
+| Fim do turno                     | limpeza automática existente (REQ-CBT-055) continua valendo e apaga as retículas do usuário do turno.                                                         |
 
 ## 6. O que este mockup NÃO desenha
 
