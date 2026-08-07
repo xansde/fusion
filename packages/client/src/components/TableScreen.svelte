@@ -17,13 +17,14 @@
    * Debug overlay: F9 toggles renderer/fps/camera/cell info.
    */
 
-  import { onMount, onDestroy } from "svelte";
+  import { onMount, onDestroy, untrack } from "svelte";
   import { session, sessionActions } from "../lib/session.svelte.js";
   import { FusionCanvas } from "../lib/canvas/FusionCanvas.js";
   import { loadDevScene } from "../lib/canvas/dev-scene.js";
   import { loadSceneDocument } from "../lib/canvas/sceneLoader.js";
   import { canLoadScene } from "../lib/canvas/canvasReadyGate.js";
   import { activeSceneState } from "../lib/docs/activeScene.svelte.js";
+  import { sceneReloadKey } from "../lib/canvas/sceneReloadKey.js";
   import { attachCombatSync } from "../lib/combat/combatStore.svelte.js";
   import { attachChatSync, attachChatMessageSync } from "../lib/chat/chatStore.svelte.js";
   import AppSidebar from "./chat/AppSidebar.svelte";
@@ -359,13 +360,25 @@
    * covering both the "scene already active at mount" and "GM activates a
    * scene later" cases with the same code path.
    */
+  // Only the fields loadSceneDocument() actually reads. Tokens, walls and
+  // lights are EMBEDDED in the Scene document, so the mirror hands out a new
+  // SceneDocument on every one of their updates; depending on the object itself
+  // made a single token drag reload the whole scene — destroying the background
+  // and re-awaiting Assets.load() per position update, which is exactly why the
+  // map blinked out while dragging.
+  const reloadKey = $derived(sceneReloadKey(activeSceneState.scene));
+
   $effect(() => {
+    // reloadKey is the ONLY scene dependency of this effect, on purpose.
+    void reloadKey;
+
     const canvas = fusionCanvas;
     if (!canLoadScene(canvas !== null, canvasReady)) return;
     // canLoadScene(true, ...) guarantees canvas !== null — narrow for TS.
     if (!canvas) return;
 
-    const scene = activeSceneState.scene;
+    // Read untracked: we want the current document, not a dependency on it.
+    const scene = untrack(() => activeSceneState.scene);
 
     // Tear down previous orchestrator before changing scene
     _teardownOrchestrator();
