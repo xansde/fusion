@@ -25,7 +25,12 @@
   import { canLoadScene } from "../lib/canvas/canvasReadyGate.js";
   import { activeSceneState } from "../lib/docs/activeScene.svelte.js";
   import { sceneReloadKey } from "../lib/canvas/sceneReloadKey.js";
-  import { attachCombatSync } from "../lib/combat/combatStore.svelte.js";
+  import {
+    attachCombatSync,
+    combatActions,
+    getTargetingState,
+  } from "../lib/combat/combatStore.svelte.js";
+  import { isTargetedByUser } from "../lib/combat/targeting.js";
   import { attachChatSync, attachChatMessageSync } from "../lib/chat/chatStore.svelte.js";
   import AppSidebar from "./chat/AppSidebar.svelte";
   import ActiveSceneBadge from "./scenes/ActiveSceneBadge.svelte";
@@ -514,6 +519,17 @@
           userRole,
           ownedActorIds: resolveOwnedActorIds(worldMirror, userId, userRole),
           grid,
+          // Targeting port for the right-click gesture. Built here — and not
+          // imported inside the manager — so the PIXI layer keeps no Svelte
+          // dependency. The socket carries an absolute boolean, so the client
+          // reads its own state and sends the opposite; the server resolves
+          // the acting user from the socket and echoes the truth back.
+          targeting: {
+            isTargetedByMe: (tokenId: string) =>
+              isTargetedByUser(getTargetingState(), tokenId, userId),
+            toggle: (tokenId: string, targeted: boolean) =>
+              combatActions.target(sock, tokenId, targeted),
+          },
           onError: (msg) => {
             console.warn("[TableScreen] token move rejected:", msg);
           },

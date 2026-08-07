@@ -193,6 +193,7 @@
   "FUSION.Combat.RollInitiative": "Rolar iniciativa",
   "FUSION.Combat.RollMyInitiative": "Rolar minha iniciativa",
   "FUSION.Combat.TargetToken": "Marcar como alvo",
+  "FUSION.Combat.UntargetToken": "Desmarcar alvo",
   "FUSION.Combat.SetInitiativeManually": "Clique para definir manualmente",
   "FUSION.Combat.Initiative": "Iniciativa: {{value}}",
   "FUSION.Combat.TurnOrder": "Ordem de turno",

@@ -18,7 +18,14 @@
    */
 
   import type { Socket } from "socket.io-client";
-  import { combatStore, combatActions, getSortedCombatants } from "../../lib/combat/combatStore.svelte.js";
+  import {
+    combatStore,
+    combatActions,
+    getSortedCombatants,
+    targetingStore,
+    getTargetingState,
+  } from "../../lib/combat/combatStore.svelte.js";
+  import { isTargetedByUser } from "../../lib/combat/targeting.js";
   import {
     buildTrackerRows,
     controlsState,
@@ -59,6 +66,19 @@
 
   const rows = $derived(viewCombat ? buildTrackerRows(viewCombat) : []);
   const controls = $derived(combat ? controlsState(combat) : null);
+
+  /**
+   * Whether the local user currently targets this token — the same predicate
+   * the map gesture uses, so panel and canvas share one notion of "toggle".
+   *
+   * `targetingStore.version` is read only to establish the reactive dependency
+   * (the reducer mutates the Map in place and bumps the counter); the data
+   * itself lives in getTargetingState(). Same pattern as AntagonistaSheet.
+   */
+  function isTargeted(tokenId: string): boolean {
+    void targetingStore.version;
+    return isTargetedByUser(getTargetingState(), tokenId, userId);
+  }
 
   // Set of actorIds owned by this user (simplified: we check hasPlayerOwner
   // which the server sets; for full ownership we'd need the actor ownerId list,
@@ -438,16 +458,22 @@
             <!-- Action buttons -->
             <div class="combatant-row__actions">
               <!-- Target toggle: any user may target a token (server scopes by
-                   userId). Shown when the row's combatant has a token. -->
+                   userId). Shown when the row's combatant has a token.
+                   It really toggles now — it used to send `targeted: true`
+                   unconditionally, so a wrong mark had no undo until the turn
+                   ended. Same rule as the right-click gesture on the map. -->
               {#if row.tokenId}
                 {@const tokenId = row.tokenId}
+                {@const isMyTarget = isTargeted(tokenId)}
                 <button
                   class="action-btn"
-                  onclick={() => combatActions.target(socket, tokenId, true)}
+                  class:action-btn--active={isMyTarget}
+                  onclick={() => combatActions.target(socket, tokenId, !isMyTarget)}
                   disabled={busy}
-                  title={t("FUSION.Combat.TargetToken")}
-                  aria-label="{t('FUSION.Combat.TargetToken')} {row.name}"
-                >&#x25CE;</button>
+                  title={isMyTarget ? t("FUSION.Combat.UntargetToken") : t("FUSION.Combat.TargetToken")}
+                  aria-label="{isMyTarget ? t('FUSION.Combat.UntargetToken') : t('FUSION.Combat.TargetToken')} {row.name}"
+                  aria-pressed={isMyTarget}
+                >{isMyTarget ? "◉" : "◎"}</button>
               {/if}
 
               {#if gmControls}

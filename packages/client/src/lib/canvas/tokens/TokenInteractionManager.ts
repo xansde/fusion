@@ -67,6 +67,26 @@ import {
 // Options
 // ---------------------------------------------------------------------------
 
+/**
+ * The slice of targeting this manager needs, injected instead of imported.
+ *
+ * This class is a PIXI shell with no Svelte dependency; importing
+ * combatStore.svelte.ts (runes) here would drag the reactive runtime into the
+ * canvas and into every canvas test. The wiring in TableScreen closes over the
+ * store, the socket and the local userId to build this port.
+ *
+ * `toggle` carries an ABSOLUTE boolean because that is what the wire protocol
+ * carries (combat:target { tokenId, targeted }) — the server has no "flip it"
+ * op, and changing that would be a server change this item does not make. The
+ * client reads its own state and sends the opposite.
+ */
+export interface TargetingPort {
+  /** Whether the LOCAL user currently targets this token. */
+  isTargetedByMe(tokenId: string): boolean;
+  /** Ask the server to set (or clear) the local user's target on this token. */
+  toggle(tokenId: string, targeted: boolean): Promise<void>;
+}
+
 export interface TokenInteractionOptions {
   /** The PIXI container for the token layer. */
   tokenContainer: Container;
@@ -90,6 +110,11 @@ export interface TokenInteractionOptions {
   grid: GridStrategy;
   /** Whether to attach global keyboard listeners (default: true). */
   attachKeyboard?: boolean;
+  /**
+   * Targeting access for the right-click gesture. Optional: without it the
+   * right button is a no-op and the manager stays constructible as before.
+   */
+  targeting?: TargetingPort;
   /** Optional callback to show a toast/notification on error. */
   onError?: (msg: string) => void;
 }
@@ -369,6 +394,17 @@ export class TokenInteractionManager {
       e.stopPropagation();
     });
 
+    // Right button on a token — toggle the local user's target on it.
+    //
+    // "rightdown" is a PIXI event of its own, so the left-button handler above
+    // keeps its `if (e.button !== 0) return` guard untouched and the drag state
+    // machine is never entered by this gesture. The browser context menu is
+    // already suppressed on the canvas container (FusionCanvas), so nothing
+    // pops up over the map.
+    tokenContainer.on("rightdown", (e: FederatedPointerEvent) => {
+      this._handleRightDown(e);
+    });
+
     tokenContainer.on("pointermove", (e: FederatedPointerEvent) => {
       if (this._destroyed || !this._pointerDown) return;
 
@@ -432,6 +468,41 @@ export class TokenInteractionManager {
       }
 
       this._pointerDown = null;
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private — targeting gesture (REQ-CBT-053/054)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Right button over a token: mark it as my target, or unmark it if it
+   * already is one. Multiple targets are supported by construction (the server
+   * keeps a Set per user), so marking a second token does not clear the first.
+   *
+   * No permission check on purpose: the server requires neither a role nor
+   * ownership to target (targets are scoped per user and are purely visual),
+   * so a client-side gate here would invent a rule the server does not have.
+   *
+   * No optimistic state either: the reticle appears when the token:targeted
+   * broadcast comes back. Unlike a drag, nothing has to follow the pointer.
+   */
+  private _handleRightDown(e: FederatedPointerEvent): void {
+    if (this._destroyed) return;
+
+    const { targeting } = this._opts;
+    if (!targeting) return;
+
+    const tokenId = this._getTokenIdFromTarget(e.target);
+    if (!tokenId) return; // right-click on empty canvas: nothing, not even a deselect
+
+    e.stopPropagation();
+
+    const targeted = !targeting.isTargetedByMe(tokenId);
+    void targeting.toggle(tokenId, targeted).catch((err: unknown) => {
+      if (this._destroyed) return;
+      const reason = err instanceof Error ? err.message : String(err);
+      this._opts.onError?.(`Failed to update target: ${reason}`);
     });
   }
 
