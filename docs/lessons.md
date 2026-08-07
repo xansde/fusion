@@ -165,3 +165,37 @@ código compila e a suíte passa com a fiação removida, a fiação não está
 testada** — e a mutação que prova isso custa dois minutos. Onde a opcionalidade
 não for necessária de fato, tornar o campo obrigatório é mais barato que o
 guarda: aí o compilador vira o teste.
+
+## O papel do usuário virou política de cena — e o flag ficou sem leitor
+
+**Quando:** investigação da issue #80 (2026-08-07), tela do jogador preta na
+prova jogada de duas telas do M2.
+
+**O que aconteceu:** três lugares do pipeline de fog decidiam "tem névoa?" com
+`!isGm` — `TableScreen` criando o `FogState`, o orquestrador passando
+`fogEnabled` ao `TokenLayer`, e o `FogState` respondendo `fogActive`. Nenhum
+deles lia `scene.tokenVision` / `scene.fogEnabled`, que existem no schema com
+default `false` e o comentário explícito *"When false, all players see the
+entire scene"*. Com os polígonos de visão vazios (o default de
+`vision.enabled` de um token também é `false`), o `LightingRenderer` pinta o
+retângulo preto de alpha 1 sobre a cena inteira e o `TokenLayer` esconde todos
+os sprites: num mundo novo, nenhum jogador enxerga o mapa.
+
+**Por que engana:** `!isGm` **coincide** com a política certa no único cenário
+que alguém exercitou — cena com fog ligado, GM de um lado, jogador do outro.
+O proxy e a regra só divergem quando a cena diz que não quer fog, e era
+exatamente o estado em que toda cena nasce. Pior: a UI de escrita existia
+(`ScenePerceptionDialog` grava os dois campos há tempo) e o teste do
+orquestrador *codificava o proxy como se fosse a regra* — `"player role →
+setVisionPolygons called with fogEnabled=true"`, verde, provando o defeito.
+E o sintoma mente sobre a causa: o mapa aparece por alguns frames porque o
+blackout só entra depois do `await fogState.load()`, o que faz tudo parecer
+problema de carga, de textura ou de corrida.
+
+**O que fazer:** **campo de configuração gravável sem consumidor é uma
+configuração que mente** — quando um flag entra no schema, o commit que o
+cria deve incluir quem o *lê*, ou ele não deve existir ainda. E política de
+produto ("esta cena tem névoa?") não se deriva de um proxy de identidade
+("quem está olhando?"): o proxy sobrevive a todos os testes até o dia em que
+os dois discordam. Ao encontrar um `!isGm` (ou qualquer papel) decidindo
+comportamento, perguntar de qual campo aquilo deveria vir.
