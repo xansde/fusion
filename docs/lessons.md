@@ -136,3 +136,32 @@ própria checagem (5 s): a asserção honesta é que o boot terminou bem antes d
 ou melhor ainda, que a promessa da checagem ainda estava pendente quando `boot()`
 retornou. Teto absoluto em teste de tempo só é aceitável quando a folga é de
 ordem de grandeza, não de 25%.
+
+## Argumento opcional é fiação que some sem quebrar nada
+
+**Quando:** fase Validar de `wi-mapa-alvo-01` (2026-08-07), o item que existe
+justamente para consertar uma peça inalcançável.
+
+**O que aconteceu:** o gesto de botão direito recebe a máquina de alvo por uma
+porta injetada, `targeting?: TargetingPort` — **opcional**, para o
+`TokenInteractionManager` continuar construtível sem ela. A justificativa é boa
+e o código funciona. O efeito colateral é que a fiação no `TableScreen` pode ser
+apagada sem que nada fique vermelho: o campo é opcional, então `tsc` fica verde,
+e `canvasWiring.test.ts` — o guarda mecânico criado no M1 contra exatamente este
+defeito — assere cinco fatos do fonte do `TableScreen` e nenhum deles é a porta.
+Verificado por mutação: removido o bloco `targeting: { … }`, os 321 testes de
+`src/lib/canvas` passam com o gesto virado um no-op silencioso.
+
+**Por que engana:** "peça implementada ≠ peça alcançável" já tinha guarda, e o
+guarda foi consultado — o `TokenInteractionManager` É construído, a asserção
+existe e está verde. A lacuna mudou de lugar: não é mais a peça que falta, é o
+**argumento** que a liga. E argumento opcional não deixa rastro nem no tipo nem
+no teste. A cada porta nova, o guarda fica um pouco mais desatualizado sem nunca
+ficar vermelho.
+
+**O que fazer:** porta opcional que carrega um gesto de usuário ganha, no mesmo
+commit, a linha correspondente no guarda de fiação. Regra mais curta: **se o
+código compila e a suíte passa com a fiação removida, a fiação não está
+testada** — e a mutação que prova isso custa dois minutos. Onde a opcionalidade
+não for necessária de fato, tornar o campo obrigatório é mais barato que o
+guarda: aí o compilador vira o teste.
