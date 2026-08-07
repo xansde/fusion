@@ -33,6 +33,8 @@
   import { getSocket } from "../lib/session.svelte.js";
   import { SceneOrchestrator } from "../lib/canvas/scene-orchestrator.js";
   import { TokenLayer } from "../lib/canvas/tokens/TokenLayer.js";
+  import { TokenInteractionManager } from "../lib/canvas/tokens/TokenInteractionManager.js";
+  import { resolveOwnedActorIds } from "../lib/canvas/tokens/ownedActors.js";
   import { LightingRenderer } from "../lib/canvas/vision/LightingRenderer.js";
   import { FogState } from "../lib/canvas/vision/fog-state.js";
   import { CombatCanvasController } from "../lib/canvas/combat/combatCanvasController.js";
@@ -75,6 +77,16 @@
   // Stored here so _teardownOrchestrator and onDestroy can remove it cleanly,
   // preventing accumulation of stale callbacks across scene switches (leak fix).
   let _tickerDisposer: (() => void) | null = null;
+
+  // Token interaction (drag, select, arrow-key move). One per active scene,
+  // destroyed on scene switch so its window keyboard listener does not leak.
+  //
+  // WIRING GAP (found live on 2026-08-07): TokenInteractionManager existed with
+  // full tests since M1-C but was never CONSTRUCTED in production — TokenSprite
+  // set eventMode="static" and nobody subscribed. Tokens rendered and could not
+  // be moved by anyone. Same class of gap as the ruler and the target marker:
+  // the chain of code existed, the user's gesture did not.
+  let tokenInteraction: TokenInteractionManager | null = null;
 
   async function handleLogout(): Promise<void> {
     if (loggingOut) return;
@@ -458,6 +470,34 @@
       userId,
     );
 
+    // --- TokenInteractionManager (drag, select, arrow-key move) ---
+    // Needs a socket to send ops and the scene's grid to snap. Both come from
+    // state that already exists at this point: loadSceneDocument() ran and
+    // installed the grid strategy on the canvas before this function is called.
+    const grid = canvas.gridStrategy;
+    if (sock && grid) {
+      tokenInteraction = new TokenInteractionManager({
+        tokenContainer: canvas.getLayer("tokens"),
+        tokenLayer,
+        mirror: worldMirror,
+        sceneId: scene._id,
+        canvas,
+        socket: sock,
+        userId,
+        userRole: session.user?.role ?? 1,
+        ownedActorIds: resolveOwnedActorIds(worldMirror, userId, session.user?.role ?? 1),
+        grid,
+        onError: (msg) => {
+          console.warn("[TableScreen] token move rejected:", msg);
+        },
+      });
+    } else {
+      console.warn(
+        "[TableScreen] token interaction not wired:",
+        !sock ? "no socket" : "no grid strategy",
+      );
+    }
+
     return new SceneOrchestrator({
       scene,
       mirror: worldMirror,
@@ -481,6 +521,13 @@
     // callback cannot fire against a half-destroyed tokenLayer.
     _tickerDisposer?.();
     _tickerDisposer = null;
+
+    // Destroy BEFORE the orchestrator: the manager holds a window keydown
+    // listener and PIXI handlers on token sprites the orchestrator is about to
+    // tear down. Leaving it alive across a scene switch stacks one listener per
+    // scene and points them at destroyed sprites.
+    tokenInteraction?.destroy();
+    tokenInteraction = null;
 
     if (sceneOrchestrator) {
       sceneOrchestrator.teardown();
