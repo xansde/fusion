@@ -280,6 +280,19 @@ export class FusionCanvas {
     return this._container;
   }
 
+  /**
+   * The PIXI stage's eventMode, for diagnostics.
+   *
+   * Every layer this class builds is created with eventMode "none" — panning
+   * and zooming are DOM-level, so the app never needed PIXI hit testing until
+   * token dragging arrived. When a consumer opts a layer back into "static",
+   * whether events actually reach it depends on the stage, and reading that
+   * from the outside otherwise means poking at private state.
+   */
+  get stageEventMode(): string | null {
+    return this._app?.stage.eventMode ?? null;
+  }
+
   // ---------------------------------------------------------------------------
   // Layer access
   // ---------------------------------------------------------------------------

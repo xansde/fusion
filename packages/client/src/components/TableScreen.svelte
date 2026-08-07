@@ -482,38 +482,62 @@
     // state that already exists at this point: loadSceneDocument() ran and
     // installed the grid strategy on the canvas before this function is called.
     const grid = canvas.gridStrategy;
-    if (sock && grid) {
-      tokenInteraction = new TokenInteractionManager({
-        tokenContainer: canvas.getLayer("tokens"),
-        tokenLayer,
-        mirror: worldMirror,
-        sceneId: scene._id,
-        canvas,
-        socket: sock,
-        userId,
-        userRole: session.user?.role ?? 1,
-        ownedActorIds: resolveOwnedActorIds(worldMirror, userId, session.user?.role ?? 1),
-        grid,
-        onError: (msg) => {
-          console.warn("[TableScreen] token move rejected:", msg);
-        },
-      });
-    } else {
-      console.warn(
-        "[TableScreen] token interaction not wired:",
-        !sock ? "no socket" : "no grid strategy",
-      );
+    const userRole = session.user?.role ?? 1;
+    const tokensLayer = canvas.getLayer("tokens");
+
+    // Wrapped: a failure to wire interaction must not take vision, fog and
+    // combat down with it. Before this guard, anything thrown here escaped to
+    // the caller's catch and the whole orchestrator was silently skipped.
+    try {
+      if (sock && grid) {
+        tokenInteraction = new TokenInteractionManager({
+          tokenContainer: tokensLayer,
+          tokenLayer,
+          mirror: worldMirror,
+          sceneId: scene._id,
+          canvas,
+          socket: sock,
+          userId,
+          userRole,
+          ownedActorIds: resolveOwnedActorIds(worldMirror, userId, userRole),
+          grid,
+          onError: (msg) => {
+            console.warn("[TableScreen] token move rejected:", msg);
+          },
+        });
+      }
+    } catch (err) {
+      console.error("[TableScreen] token interaction failed to wire:", err);
     }
+
+    // One line that says whether the canvas is actually operable. Three
+    // features have shipped unreachable here; "did it wire?" should not need a
+    // debugger to answer.
+    console.info("[TableScreen] canvas wiring:", {
+      tokenInteraction: tokenInteraction !== null,
+      socket: sock !== null,
+      gridStrategy: grid !== null,
+      gridSize: grid?.config.size ?? null,
+      userRole,
+      ownedActors: resolveOwnedActorIds(worldMirror, userId, userRole).size,
+      tokensLayerEventMode: tokensLayer.eventMode,
+      tokensInLayer: tokensLayer.children.length,
+      stageEventMode: canvas.stageEventMode,
+    });
 
     // --- Ruler (hold R) ---
     // Works without a socket: measuring is local, only the broadcast needs one.
-    if (grid) {
-      disposeRuler = attachRuler({
-        canvas,
-        grid,
-        layer: canvas.getLayer("controls"),
-        socket: sock,
-      });
+    try {
+      if (grid) {
+        disposeRuler = attachRuler({
+          canvas,
+          grid,
+          layer: canvas.getLayer("controls"),
+          socket: sock,
+        });
+      }
+    } catch (err) {
+      console.error("[TableScreen] ruler failed to wire:", err);
     }
 
     return new SceneOrchestrator({
