@@ -270,6 +270,16 @@ export class FusionCanvas {
     return this._gridStrategy;
   }
 
+  /**
+   * The DOM element the renderer is mounted in.
+   *
+   * Exposed so interaction modules (ruler, tools) can attach pointer listeners
+   * and measure the viewport without reaching into private state.
+   */
+  get viewElement(): HTMLElement {
+    return this._container;
+  }
+
   // ---------------------------------------------------------------------------
   // Layer access
   // ---------------------------------------------------------------------------

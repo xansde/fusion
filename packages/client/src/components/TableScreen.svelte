@@ -35,6 +35,7 @@
   import { TokenLayer } from "../lib/canvas/tokens/TokenLayer.js";
   import { TokenInteractionManager } from "../lib/canvas/tokens/TokenInteractionManager.js";
   import { resolveOwnedActorIds } from "../lib/canvas/tokens/ownedActors.js";
+  import { attachRuler } from "../lib/presence/attachRuler.js";
   import { LightingRenderer } from "../lib/canvas/vision/LightingRenderer.js";
   import { FogState } from "../lib/canvas/vision/fog-state.js";
   import { CombatCanvasController } from "../lib/canvas/combat/combatCanvasController.js";
@@ -87,6 +88,12 @@
   // be moved by anyone. Same class of gap as the ruler and the target marker:
   // the chain of code existed, the user's gesture did not.
   let tokenInteraction: TokenInteractionManager | null = null;
+
+  // Ruler (hold R, Ctrl+click adds a waypoint). Same wiring gap as the tokens:
+  // RulerStateMachine had tests and no gesture, so nobody could ever start one
+  // — and since nobody started one, the remote-ruler receive path never ran
+  // either. Disposer removes the window listeners on scene switch.
+  let disposeRuler: (() => void) | null = null;
 
   async function handleLogout(): Promise<void> {
     if (loggingOut) return;
@@ -498,6 +505,17 @@
       );
     }
 
+    // --- Ruler (hold R) ---
+    // Works without a socket: measuring is local, only the broadcast needs one.
+    if (grid) {
+      disposeRuler = attachRuler({
+        canvas,
+        grid,
+        layer: canvas.getLayer("controls"),
+        socket: sock,
+      });
+    }
+
     return new SceneOrchestrator({
       scene,
       mirror: worldMirror,
@@ -528,6 +546,9 @@
     // scene and points them at destroyed sprites.
     tokenInteraction?.destroy();
     tokenInteraction = null;
+
+    disposeRuler?.();
+    disposeRuler = null;
 
     if (sceneOrchestrator) {
       sceneOrchestrator.teardown();
