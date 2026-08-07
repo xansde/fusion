@@ -22,7 +22,7 @@
  * Usage (wiring in TableScreen or sceneLoader):
  *   const mgr = new TokenInteractionManager({
  *     tokenLayer, mirror, sceneId, canvas, socket, userId, userRole,
- *     ownedActorIds, gridConfig,
+ *     ownedActorIds, grid,
  *   });
  *   // In FusionCanvas ticker:
  *   // (nothing — interaction is event-driven)
@@ -38,6 +38,7 @@ import type {
   DocUpdatePayload,
   DocCreatePayload,
   DocDeletePayload,
+  GridStrategy,
 } from "@fusion/shared";
 import { createDocumentId } from "@fusion/shared";
 import type { DocumentMirror } from "../../docs/DocumentMirror.js";
@@ -58,7 +59,6 @@ import {
   rollbackMove,
   resetToIdle,
   canStartDrag,
-  type GridSnapConfig,
   type ArrowDirection,
   type DragMachine,
 } from "./token-interaction.js";
@@ -86,8 +86,8 @@ export interface TokenInteractionOptions {
   userRole: number;
   /** Set of actor IDs the user owns (for move permission check). */
   ownedActorIds: ReadonlySet<string>;
-  /** Current grid config for snapping. */
-  gridConfig: GridSnapConfig;
+  /** The active scene's grid (snapping, measuring, cell conversion). */
+  grid: GridStrategy;
   /** Whether to attach global keyboard listeners (default: true). */
   attachKeyboard?: boolean;
   /** Optional callback to show a toast/notification on error. */
@@ -182,11 +182,11 @@ export class TokenInteractionManager {
     const world = screenToWorld(centerSx, centerSy, camera);
 
     const snapped = snapTokenToGrid(
-      world.x - (widthCells * this._opts.gridConfig.size) / 2,
-      world.y - (heightCells * this._opts.gridConfig.size) / 2,
+      world.x - (widthCells * this._opts.grid.config.size) / 2,
+      world.y - (heightCells * this._opts.grid.config.size) / 2,
       widthCells,
       heightCells,
-      this._opts.gridConfig,
+      this._opts.grid,
     );
 
     const tokenId = createDocumentId();
@@ -398,11 +398,11 @@ export class TokenInteractionManager {
         if (!token) return;
 
         const snapped = snapTokenToGrid(
-          world.x - (token.width * this._opts.gridConfig.size) / 2,
-          world.y - (token.height * this._opts.gridConfig.size) / 2,
+          world.x - (token.width * this._opts.grid.config.size) / 2,
+          world.y - (token.height * this._opts.grid.config.size) / 2,
           token.width,
           token.height,
-          this._opts.gridConfig,
+          this._opts.grid,
         );
 
         this._drag = updateDragPosition(this._drag, snapped.x, snapped.y);
@@ -569,7 +569,7 @@ export class TokenInteractionManager {
 
       e.preventDefault(); // prevent scroll
 
-      const newPos = arrowMoveToken(token.x, token.y, dir, this._opts.gridConfig);
+      const newPos = arrowMoveToken(token.x, token.y, dir, this._opts.grid);
       const requestId = createDocumentId();
 
       // Simulate a complete drag cycle in one step
