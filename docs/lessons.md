@@ -111,3 +111,28 @@ grep -o 'index-[A-Za-z0-9_-]*\.js' packages/client/dist/index.html
 
 Se divergirem, é isso. Regra maior: antes de culpar o cliente, comparar o que o
 servidor **entrega** com o que está no disco.
+
+## Teste com teto de tempo absoluto mede a máquina, não o código
+
+**Quando:** fase Validar de `wi-mapa-grid-01` (2026-08-07), rodando a suíte
+completa.
+
+**O que aconteceu:** `packages/server/src/update/__tests__/boot-nonblocking.test.ts`
+falhou com `expected 2558 to be less than 2000`. O teste prova algo legítimo —
+que `boot()` não espera pela checagem de atualização — mas prova comparando a
+duração do boot com um **número fixo** de 2000 ms. Rodado isolado, três vezes
+seguidas, passou nas três: sob a carga da suíte inteira (237 s, pool de forks),
+a máquina estoura o teto sem que nada tenha regredido.
+
+**Por que engana:** a falha é vermelha e nomeia um arquivo real, então parece
+regressão. O `CLAUDE.md` já manda re-rodar isolado antes de tratar como tal — e
+está certo —, mas isso trata o sintoma todo mês. A causa é que a asserção não
+fala sobre o código: `2000` é uma propriedade do hardware que rodou o teste no
+dia em que ele foi escrito.
+
+**O que fazer:** quando o que se quer provar é *"não esperou por X"*, comparar
+com **X**, não com um número inventado. Aqui, o teto natural é o timeout da
+própria checagem (5 s): a asserção honesta é que o boot terminou bem antes dele,
+ou melhor ainda, que a promessa da checagem ainda estava pendente quando `boot()`
+retornou. Teto absoluto em teste de tempo só é aceitável quando a folga é de
+ordem de grandeza, não de 25%.
