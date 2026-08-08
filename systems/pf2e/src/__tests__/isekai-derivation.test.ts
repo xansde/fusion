@@ -9,6 +9,9 @@
  */
 
 import { describe, it, expect } from "vitest";
+import { emptySynthetics } from "@fusion/system-api";
+import type { DeriveContext } from "@fusion/system-api";
+import { pf2eSystem } from "../index.js";
 import { stepCharIsekaiFocus } from "../derivations/isekai.js";
 import { ISEKAI_FOCUS_FLOOR } from "../variants/isekai/index.js";
 
@@ -228,5 +231,75 @@ describe("stepCharIsekaiFocus — robustness", () => {
     expect(stepCharIsekaiFocus.phase).toBe("base");
     expect(stepCharIsekaiFocus.documentType).toBe("Actor");
     expect(stepCharIsekaiFocus.subtypes).toContain("character");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Through the REAL pipeline
+//
+// The unit tests above call `run()` directly, which cannot see the one thing
+// most likely to break this step: its ORDER relative to `stepCharFocusClamp`.
+// Both write `system.resources`, the topo-sort decides who wins, and a wrong
+// answer either erases the granted pool or lets a bad document widen the cap.
+// These run the registered pipeline the server actually runs.
+// ---------------------------------------------------------------------------
+
+function emptyCtx(): DeriveContext {
+  return { system: pf2eSystem, synthetics: emptySynthetics(), rollOptions: new Set<string>() };
+}
+
+function runCharacterPipeline(doc: Record<string, unknown>): void {
+  for (const step of pf2eSystem.deriveSteps.sortedForPhase("base", "Actor", "character")) {
+    step.run(doc, emptyCtx());
+  }
+  for (const step of pf2eSystem.deriveSteps.sortedForPhase("derived", "Actor", "character")) {
+    step.run(doc, emptyCtx());
+  }
+}
+
+describe("stepCharIsekaiFocus — through the registered pipeline", () => {
+  it("is registered — the step exists in the character pipeline at all", () => {
+    const ids = pf2eSystem.deriveSteps
+      .sortedForPhase("base", "Actor", "character")
+      .map((s) => s.id);
+    expect(ids).toContain("pf2e.character.base.isekaiFocus");
+  });
+
+  it("grants the pool AND survives the clamp that runs after it", () => {
+    const doc = actor({ variantOn: true, archetypes: ["fodao"] });
+    runCharacterPipeline(doc);
+    expect(focusOf(doc)).toEqual({ value: 3, max: 3 });
+  });
+
+  it("keeps the ★ locks published after the whole pipeline", () => {
+    const doc = actor({
+      variantOn: true,
+      archetypes: ["especialista"],
+      focus: { value: 3, max: 3 },
+      trackers: { especialista: { signatures: [{ id: "a", name: "Lâmina", flag: true }] } },
+    });
+    runCharacterPipeline(doc);
+    expect(derivedOf(doc)?.["isekaiFocusLocked"]).toBe(1);
+    expect(focusOf(doc)).toEqual({ value: 2, max: 3 });
+  });
+
+  it("does not widen the cap for an Isekai character with a bogus pool", () => {
+    const doc = actor({
+      variantOn: true,
+      archetypes: ["sortudo"],
+      focus: { value: 9, max: 9 },
+    });
+    runCharacterPipeline(doc);
+    expect(focusOf(doc).max).toBe(3);
+  });
+
+  it("leaves a NON-Isekai character's pipeline output untouched", () => {
+    // The compat guarantee, measured rather than asserted: derive the same
+    // actor with the step's field absent and confirm the pool is what the
+    // clamp alone would produce.
+    const doc = actor({ focus: { value: 0, max: 0 } });
+    runCharacterPipeline(doc);
+    expect(focusOf(doc)).toEqual({ value: 0, max: 0 });
+    expect(derivedOf(doc)?.["isekaiFocusLocked"]).toBeUndefined();
   });
 });
