@@ -821,3 +821,164 @@ describe("packs-validation: sourceId is resolvable from the index (issue #41)", 
     expect(offenders).toEqual([]);
   });
 });
+
+// ---------------------------------------------------------------------------
+// 3. issue #1 — Player Core ancestries/backgrounds/heritages
+//
+// Before this fix, ancestries-core/backgrounds-core/heritages-core only
+// carried the two hand-picked docs needed by the Magus/Finn fixtures
+// (Ratfolk+Fleshwarp, Fireworks Performer+Aeronaut, 7 Ratfolk heritages +
+// Sylph) — every OTHER PF2e sheet (Fighter, Cleric, ...) had ZERO playable
+// ancestry to pick, so Speed stayed 0 ft and ancestry HP never applied
+// (evidence: only 2 options in the "Escolher Ancestralidade" dialog).
+// This block asserts the 8 Player Core ancestries are present, each with a
+// mechanically valid ancestry (hp/speed/boosts) and at least one
+// corresponding heritage in heritages-core — plus a regression guard that
+// the pre-existing Magus/Finn fixtures were not dropped.
+// ---------------------------------------------------------------------------
+
+describe("packs-validation: issue #1 — Player Core ancestries/backgrounds/heritages", () => {
+  const PLAYER_CORE_ANCESTRY_NAMES = [
+    "Dwarf",
+    "Elf",
+    "Gnome",
+    "Goblin",
+    "Halfling",
+    "Human",
+    "Leshy",
+    "Orc",
+  ];
+
+  const ancestries = loadDocuments("ancestries-core");
+  const heritages = loadDocuments("heritages-core");
+  const backgrounds = loadDocuments("backgrounds-core");
+
+  it("ancestries-core contains all 8 Player Core ancestries, each with valid hp/speed/boosts", () => {
+    const byName = new Map(ancestries.map((a) => [a.name, a]));
+    const missing = PLAYER_CORE_ANCESTRY_NAMES.filter((name) => !byName.has(name));
+    expect(
+      missing,
+      `ancestries-core missing Player Core ancestries: ${missing.join(", ")}`,
+    ).toEqual([]);
+
+    for (const name of PLAYER_CORE_ANCESTRY_NAMES) {
+      const system = parseAncestrySystem(byName.get(name)!.system);
+      expect(system.hp, `${name}: ancestry hp must be > 0`).toBeGreaterThan(0);
+      expect(system.speed, `${name}: ancestry speed must be > 0`).toBeGreaterThan(0);
+      expect(
+        system.boosts.length,
+        `${name}: ancestry must grant at least one boost slot`,
+      ).toBeGreaterThan(0);
+    }
+  });
+
+  it("every Player Core ancestry has at least one corresponding heritage in heritages-core", () => {
+    const missing: string[] = [];
+    for (const name of PLAYER_CORE_ANCESTRY_NAMES) {
+      const slug = name.toLowerCase();
+      const own = heritages.filter(
+        (h) => (h.system as { ancestry?: { slug?: string } }).ancestry?.slug === slug,
+      );
+      if (own.length === 0) missing.push(name);
+    }
+    expect(missing, `ancestries with no heritage in heritages-core: ${missing.join(", ")}`).toEqual(
+      [],
+    );
+  });
+
+  it("backgrounds-core contains the 40 Player Core backgrounds", () => {
+    const playerCoreCount = backgrounds.filter(
+      (b) =>
+        (b.system as { publication?: { title?: string } }).publication?.title ===
+        "Pathfinder Player Core",
+    ).length;
+    expect(playerCoreCount).toBe(40);
+  });
+
+  it("regression guard: the pre-existing Magus/Finn fixtures are still present", () => {
+    expect(ancestries.map((a) => a.name)).toEqual(expect.arrayContaining(["Ratfolk", "Fleshwarp"]));
+    expect(backgrounds.map((b) => b.name)).toEqual(
+      expect.arrayContaining(["Fireworks Performer", "Aeronaut"]),
+    );
+    expect(heritages.map((h) => h.name)).toEqual(expect.arrayContaining(["Snow Rat", "Sylph"]));
+  });
+
+  it("no ancestry/background/heritage doc leaks Paizo art (placeholder img only)", () => {
+    for (const doc of [...ancestries, ...backgrounds, ...heritages]) {
+      expect(
+        typeof doc.img === "string" && doc.img.startsWith("icons/placeholder"),
+        `${doc.name} (${doc.type}) has non-placeholder img: ${String(doc.img)}`,
+      ).toBe(true);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 4. issue #24 — skill/general feats of level >= 9
+//
+// Before this fix, isFeatsCoreDoc() in build-mvp-subset.mjs capped skill and
+// general feats at level <= 8 (an R10-B acceptance-criterion cutoff for the
+// single-character Tobias build, never revisited for the r22 12-class MVP
+// that reaches character level 20). Every skill/general feat slot at level
+// 9+ opened empty, and Rogue's "Steal Spell" (level 16) could never resolve
+// its "Legendary Thief" prerequisite (a level-15 skill feat) because that
+// document simply didn't exist in feats-core. This block asserts the cap is
+// gone (representative feats above level 8, including the two acceptance
+// anchors from the issue) without regressing the feats that were already
+// below the old cutoff.
+// ---------------------------------------------------------------------------
+
+describe("packs-validation: issue #24 — skill/general feats level >= 9", () => {
+  const feats = loadDocuments("feats-core");
+  const byName = new Map(feats.map((f) => [f.name, f]));
+
+  it("feats-core contains skill feats above the old level-8 cutoff, including the two acceptance anchors", () => {
+    const expected: Array<[name: string, level: number]> = [
+      ["Legendary Thief", 15], // Steal Spell (Rogue 16) prerequisite — the issue's headline case
+      ["Scare to Death", 15], // resolves Raging Intimidation's grant for free (issue #16 overlap)
+      ["Terrain Ghost", 18],
+    ];
+    for (const [name, level] of expected) {
+      const doc = byName.get(name);
+      expect(doc, `feats-core missing skill feat "${name}"`).toBeDefined();
+      expect((doc!.system as { category?: string }).category).toBe("skill");
+      expect((doc!.system as { level?: number }).level).toBe(level);
+    }
+  });
+
+  it("feats-core contains general feats above the old level-8 cutoff", () => {
+    const expected: Array<[name: string, level: number]> = [
+      ["Incredible Investiture", 11],
+      ["True Perception", 19],
+    ];
+    for (const [name, level] of expected) {
+      const doc = byName.get(name);
+      expect(doc, `feats-core missing general feat "${name}"`).toBeDefined();
+      expect((doc!.system as { category?: string }).category).toBe("general");
+      expect((doc!.system as { level?: number }).level).toBe(level);
+    }
+  });
+
+  it("regression guard: skill/general feats at or below the old level-8 cutoff are still present", () => {
+    expect(byName.has("Impressive Performance")).toBe(true); // Tobias acceptance criterion, skill, level 2
+  });
+
+  it("no skill/general feat above level 8 leaks Paizo art (placeholder img only)", () => {
+    const highLevel = feats.filter((f) => {
+      const system = f.system as { category?: string; level?: number };
+      return (
+        (system.category === "skill" || system.category === "general") && (system.level ?? 0) > 8
+      );
+    });
+    expect(
+      highLevel.length,
+      "expected at least one skill/general feat above level 8",
+    ).toBeGreaterThan(0);
+    for (const doc of highLevel) {
+      expect(
+        typeof doc.img === "string" && doc.img.startsWith("icons/placeholder"),
+        `${doc.name} (level ${(doc.system as { level?: number }).level}) has non-placeholder img: ${String(doc.img)}`,
+      ).toBe(true);
+    }
+  });
+});

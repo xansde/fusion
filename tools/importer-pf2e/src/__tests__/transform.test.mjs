@@ -763,32 +763,71 @@ describe("MVP packs", () => {
     }
   });
 
-  it("ancestries-core has exactly Ratfolk and Fleshwarp", () => {
-    // R18-N2a added the Kineticist builder's Fleshwarp ancestry alongside the R10-B Ratfolk.
+  it("ancestries-core has the 8 Player Core ancestries plus the legacy Ratfolk and Fleshwarp (issue #1)", () => {
+    // Issue #1: ancestries-core used to carry ONLY the R10-B/R18-N2a fixtures
+    // (Ratfolk, Fleshwarp) — every other PF2e sheet had zero playable
+    // ancestry. isAncestriesCoreDoc now also selects every
+    // system.publication.title === "Pathfinder Player Core" ancestry;
+    // Ratfolk/Fleshwarp stay in for backward compatibility with the
+    // Magus/Finn fixtures.
     const docs = loadJson(join(PACKS_DIR, "ancestries-core", "documents.json"));
-    assert.equal(docs.length, 2);
     const names = docs.map((d) => d.name);
-    assert.ok(names.includes("Ratfolk"), "Ratfolk ancestry missing");
-    assert.ok(names.includes("Fleshwarp"), "Fleshwarp ancestry missing");
+    for (const expected of [
+      "Dwarf",
+      "Elf",
+      "Gnome",
+      "Goblin",
+      "Halfling",
+      "Human",
+      "Leshy",
+      "Orc",
+      "Ratfolk",
+      "Fleshwarp",
+    ]) {
+      assert.ok(names.includes(expected), `${expected} ancestry missing`);
+    }
+    assert.equal(docs.length, 10);
   });
 
-  it("heritages-core has the 7 Ratfolk heritages (including Snow Rat) plus Sylph (Fleshwarp/Kineticist, R18-N2a)", () => {
+  it("heritages-core has the 7 Ratfolk heritages (including Snow Rat) plus Sylph plus the Player Core heritages of the 8 core ancestries (issue #1)", () => {
     const docs = loadJson(join(PACKS_DIR, "heritages-core", "documents.json"));
-    assert.equal(docs.length, 8);
     assert.ok(docs.some((d) => d.name === "Snow Rat"));
     assert.ok(
       docs.some((d) => d.name === "Sylph"),
       "Sylph heritage missing",
     );
+    // Every one of the 8 Player Core ancestries must have at least one
+    // heritage, or the ancestry's "Choose a Heritage" slot opens empty.
+    const coreSlugs = [
+      "dwarf",
+      "elf",
+      "gnome",
+      "goblin",
+      "halfling",
+      "human",
+      "leshy",
+      "orc",
+    ];
+    for (const slug of coreSlugs) {
+      assert.ok(
+        docs.some((d) => d.system?.ancestry?.slug === slug),
+        `no heritage found for ancestry "${slug}"`,
+      );
+    }
   });
 
-  it("backgrounds-core has exactly Fireworks Performer and Aeronaut", () => {
-    // R18-N2a added the Kineticist builder's Aeronaut background alongside the R10-B Fireworks Performer.
+  it("backgrounds-core has the 40 Player Core backgrounds plus the legacy Fireworks Performer and Aeronaut (issue #1)", () => {
+    // Issue #1: same shape as the ancestries assertion above — Fireworks
+    // Performer/Aeronaut stay in for the Magus/Finn fixtures.
     const docs = loadJson(join(PACKS_DIR, "backgrounds-core", "documents.json"));
-    assert.equal(docs.length, 2);
     const names = docs.map((d) => d.name);
     assert.ok(names.includes("Fireworks Performer"), "Fireworks Performer background missing");
     assert.ok(names.includes("Aeronaut"), "Aeronaut background missing");
+    const playerCoreCount = docs.filter(
+      (d) => d.system?.publication?.title === "Pathfinder Player Core",
+    ).length;
+    assert.equal(playerCoreCount, 40);
+    assert.equal(docs.length, 42);
   });
 
   it("no committed R10-B pack document.json exceeds ~15 MB", () => {

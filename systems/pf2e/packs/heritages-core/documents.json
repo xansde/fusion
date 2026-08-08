@@ -1,5 +1,3225 @@
 [
   {
+    "_id": "yAJKJ43MtxkqhD1m",
+    "name": "Ancient-Blooded Dwarf",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Dwarf",
+        "slug": "dwarf",
+        "uuid": "Compendium.pf2e.ancestries.Item.BYj5ZvlXZdpaEgA6"
+      },
+      "description": "<p>Dwarven heroes of old could shrug off their enemies' magic, and some of that resistance manifests in you. You gain the @UUID[Compendium.pf2e.actionspf2e.Item.Call on Ancient Blood] reaction.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.actionspf2e.Item.Call on Ancient Blood",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.actionspf2e.Item.Call on Ancient Blood"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "yL6944LrPo2HNdEJ",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "ancient-blooded-dwarf.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "BvPRpyfy4WYZ82Dg",
+    "name": "Death Warden Dwarf",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Dwarf",
+        "slug": "dwarf",
+        "uuid": "Compendium.pf2e.ancestries.Item.BYj5ZvlXZdpaEgA6"
+      },
+      "description": "<p>Your ancestors were tomb guardians, and their power to ward off death passed on to you. If you roll a success on a saving throw against an effect that has the void trait or was created by an undead creature, you get a critical success instead.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "roll-note",
+          "slug": null,
+          "label": null,
+          "selector": "saving-throw",
+          "outcome": [
+            "criticalSuccess",
+            "success"
+          ],
+          "text": "",
+          "title": "{item|name}",
+          "predicate": [
+            {
+              "or": [
+                "origin:trait:undead",
+                "void"
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "Note",
+            "outcome": [
+              "criticalSuccess",
+              "success"
+            ],
+            "predicate": [
+              {
+                "or": [
+                  "origin:trait:undead",
+                  "void"
+                ]
+              }
+            ],
+            "selector": "saving-throw",
+            "text": "",
+            "title": "{item|name}"
+          },
+          "textStripped": true
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "VTtXwBxrfRUXSL38",
+        "packName": "heritages",
+        "unconvertedRules": [
+          {
+            "adjustment": {
+              "success": "one-degree-better"
+            },
+            "key": "AdjustDegreeOfSuccess",
+            "predicate": [
+              {
+                "or": [
+                  "origin:trait:undead",
+                  "void"
+                ]
+              }
+            ],
+            "selector": "saving-throw",
+            "type": "save",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "death-warden-dwarf.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "iKvRp24y6Yh9SmIA",
+    "name": "Forge Dwarf",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Dwarf",
+        "slug": "dwarf",
+        "uuid": "Compendium.pf2e.ancestries.Item.BYj5ZvlXZdpaEgA6"
+      },
+      "description": "<p>You have a remarkable adaptation to hot environments. This grants you fire resistance equal to half your level (minimum 1), and you treat environmental heat effects as if they were one step less extreme (incredible heat becomes extreme, extreme heat becomes severe, and so on).</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "subkind": "resistance",
+          "slug": null,
+          "label": null,
+          "damageType": "fire",
+          "value": null,
+          "exceptions": [],
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Resistance",
+            "type": "fire",
+            "value": "max(1,floor(@actor.level/2))"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "5CqsBKCZuGON53Hk",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "forge-dwarf.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "ZABIAw7vMDK39pFt",
+    "name": "Rock Dwarf",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Dwarf",
+        "slug": "dwarf",
+        "uuid": "Compendium.pf2e.ancestries.Item.BYj5ZvlXZdpaEgA6"
+      },
+      "description": "<p>Your ancestors lived and worked among the ancient stones of the mountains or the depths of the earth. This makes you solid as a rock when you plant your feet. You gain a +2 circumstance bonus to your Fortitude or Reflex DC against attempts to @UUID[Compendium.pf2e.actionspf2e.Item.Reposition], @UUID[Compendium.pf2e.actionspf2e.Item.Shove], or @UUID[Compendium.pf2e.actionspf2e.Item.Trip] you. This bonus also applies to saving throws against spells or effects that attempt to force you to move or knock you @UUID[Compendium.pf2e.conditionitems.Item.Prone].</p>\n<p>In addition, if any effect would force you to move 10 feet or more, you are moved only half the distance.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": "PF2E.SkillVariant.VsShoveOrTrip",
+          "selector": [
+            "fortitude",
+            "reflex"
+          ],
+          "value": 2,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": [
+            {
+              "or": [
+                "action:shove",
+                "action:trip",
+                "action:reposition"
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "hideIfDisabled": true,
+            "key": "FlatModifier",
+            "label": "PF2E.SkillVariant.VsShoveOrTrip",
+            "predicate": [
+              {
+                "or": [
+                  "action:shove",
+                  "action:trip",
+                  "action:reposition"
+                ]
+              }
+            ],
+            "selector": [
+              "fortitude",
+              "reflex"
+            ],
+            "type": "circumstance",
+            "value": 2
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": "PF2E.SkillVariant.VsProne",
+          "selector": "saving-throw",
+          "value": 2,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": [
+            "inflicts:prone"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "label": "PF2E.SkillVariant.VsProne",
+            "predicate": [
+              "inflicts:prone"
+            ],
+            "selector": "saving-throw",
+            "type": "circumstance",
+            "value": 2
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "VSyOvtgJ1ZNpIVgC",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "rock-dwarf.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "AaIOLHzPr2pli8vf",
+    "name": "Strong-Blooded Dwarf",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Dwarf",
+        "slug": "dwarf",
+        "uuid": "Compendium.pf2e.ancestries.Item.BYj5ZvlXZdpaEgA6"
+      },
+      "description": "<p>Your blood runs hearty and strong, and you can shake off toxins. You gain poison resistance equal to half your level (minimum 1), and each of your successful saving throws against a poison affliction reduces its stage by 2, or by 1 for a virulent poison. Each critical success against an ongoing poison reduces its stage by 3, or by 2 for a virulent poison.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "roll-note",
+          "slug": null,
+          "label": null,
+          "selector": "saving-throw",
+          "outcome": [
+            "success",
+            "criticalSuccess"
+          ],
+          "text": "",
+          "title": "{item|name}",
+          "predicate": [
+            "poison"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "Note",
+            "outcome": [
+              "success",
+              "criticalSuccess"
+            ],
+            "predicate": [
+              "poison"
+            ],
+            "selector": "saving-throw",
+            "text": "",
+            "title": "{item|name}"
+          },
+          "textStripped": true
+        },
+        {
+          "kind": "flat-modifier",
+          "subkind": "resistance",
+          "slug": null,
+          "label": null,
+          "damageType": "poison",
+          "value": null,
+          "exceptions": [],
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Resistance",
+            "type": "poison",
+            "value": "max(1,floor(@actor.level/2))"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "UV2sABrTC5teOXTE",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "strong-blooded-dwarf.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "W5S2RLn2VuFTNwEX",
+    "name": "Ancient Elf",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Elf",
+        "slug": "elf",
+        "uuid": "Compendium.pf2e.ancestries.Item.PgKmsA2aKdbLU6O0"
+      },
+      "description": "<p>In your long life, you've dabbled in many paths and many styles. A typical ancient elf is at least 100 years old, though you might be younger at the GM's discretion. Choose a class other than your own. You gain the multiclass dedication feat for that class, even though you don't meet its level prerequisite. You must still meet its other prerequisites to gain the feat.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "{item|flags.system.rulesSelections.ancientElf}",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "{item|flags.system.rulesSelections.ancientElf}"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Nd9hdX8rdYyRozw8",
+        "packName": "heritages",
+        "unconvertedRules": [
+          {
+            "choices": {
+              "filter": [
+                "item:category:class",
+                "item:trait:dedication",
+                "item:trait:multiclass"
+              ],
+              "itemType": "feat"
+            },
+            "flag": "ancientElf",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.AncientElf.Prompt",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "ancient-elf.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "H2WGNpBMzCzobJ1T",
+    "name": "Arctic Elf",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Elf",
+        "slug": "elf",
+        "uuid": "Compendium.pf2e.ancestries.Item.PgKmsA2aKdbLU6O0"
+      },
+      "description": "<p>You dwell deep in the frozen north and have gained incredible resilience against cold environments, granting you cold resistance equal to half your level (minimum 1). You treat environmental cold effects as if they were one step less extreme (incredible cold becomes extreme, extreme cold becomes severe, and so on).</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "subkind": "resistance",
+          "slug": null,
+          "label": null,
+          "damageType": "cold",
+          "value": null,
+          "exceptions": [],
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Resistance",
+            "type": "cold",
+            "value": "max(1,floor(@actor.level/2))"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "1dYDucCIaZpCJqBc",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "artic-elf.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "LEFlryu9X5JIb5c5",
+    "name": "Cavern Elf",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Elf",
+        "slug": "elf",
+        "uuid": "Compendium.pf2e.ancestries.Item.PgKmsA2aKdbLU6O0"
+      },
+      "description": "<p>You were born or spent many years in underground tunnels or caverns where light is scarce. You gain darkvision.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "sense",
+          "slug": null,
+          "label": null,
+          "senseType": null,
+          "acuity": "precise",
+          "range": null,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Sense",
+            "selector": "darkvision"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "NfIAGatB1KIzt8G7",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "caveren-elf.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "YDwpFLkqQMb5O5dM",
+    "name": "Seer Elf",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Elf",
+        "slug": "elf",
+        "uuid": "Compendium.pf2e.ancestries.Item.PgKmsA2aKdbLU6O0"
+      },
+      "description": "<p>You have an inborn ability to detect and understand magical phenomena. You can cast the @UUID[Compendium.pf2e.spells-srd.Item.Detect Magic] cantrip as an arcane innate spell at will. A cantrip is heightened to a spell rank equal to half your level rounded up.</p>\n<p>In addition, you gain a +1 circumstance bonus to checks to @UUID[Compendium.pf2e.actionspf2e.Item.Identify Magic] and to @UUID[Compendium.pf2e.actionspf2e.Item.Decipher Writing] of a magical nature. These skill actions typically use the Arcana, Nature, Occultism, or Religion skill.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "skill-check",
+          "value": 1,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": [
+            {
+              "or": [
+                "action:identify-magic",
+                "action:decipher-writing"
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              {
+                "or": [
+                  "action:identify-magic",
+                  "action:decipher-writing"
+                ]
+              }
+            ],
+            "selector": "skill-check",
+            "type": "circumstance",
+            "value": 1
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "other-tags",
+          "value": "ancestral-spell",
+          "mode": "add",
+          "predicate": [
+            "item:slug:detect-magic",
+            "spellcasting:innate"
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:slug:detect-magic",
+              "spellcasting:innate"
+            ],
+            "property": "other-tags",
+            "value": "ancestral-spell"
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "other-tags",
+          "value": "ancestral-spell:elf",
+          "mode": "add",
+          "predicate": [
+            "item:slug:detect-magic",
+            "spellcasting:innate"
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:slug:detect-magic",
+              "spellcasting:innate"
+            ],
+            "property": "other-tags",
+            "value": "ancestral-spell:elf"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "jEtVesbqYcWGbBYk",
+        "packName": "heritages",
+        "unconvertedRules": [
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:slug:detect-magic",
+              "spellcasting:innate"
+            ],
+            "property": "other-tags",
+            "value": "ancestral-spell",
+            "_conversionState": "partial"
+          },
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "item:slug:detect-magic",
+              "spellcasting:innate"
+            ],
+            "property": "other-tags",
+            "value": "ancestral-spell:elf",
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "seer-elf.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "f1wFqLQYFFyQF25S",
+    "name": "Whisper Elf",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Elf",
+        "slug": "elf",
+        "uuid": "Compendium.pf2e.ancestries.Item.PgKmsA2aKdbLU6O0"
+      },
+      "description": "<p>Your ears are finely tuned, able to detect even the slightest whispers of sound. You gain a +2 circumstance bonus when using the @UUID[Compendium.pf2e.actionspf2e.Item.Seek] action to find @UUID[Compendium.pf2e.conditionitems.Item.Hidden] or @UUID[Compendium.pf2e.conditionitems.Item.Undetected] creatures within 30 feet of you. When you target an opponent that is @UUID[Compendium.pf2e.conditionitems.Item.Concealed] from you or hidden from you, reduce the DC of the flat check to 3 for a concealed target or 9 for a hidden one. This benefit doesn't apply if you can't hear or if the creature is incapable of making sound (for example, if it's affected by a @UUID[Compendium.pf2e.spells-srd.Item.Silence] spell).</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "perception",
+          "value": 2,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": [
+            {
+              "or": [
+                "target:condition:undetected",
+                "target:condition:hidden"
+              ]
+            },
+            {
+              "lte": [
+                "target:distance",
+                30
+              ]
+            },
+            "target:audible"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              {
+                "or": [
+                  "target:condition:undetected",
+                  "target:condition:hidden"
+                ]
+              },
+              {
+                "lte": [
+                  "target:distance",
+                  30
+                ]
+              },
+              "target:audible"
+            ],
+            "selector": "perception",
+            "type": "circumstance",
+            "value": 2
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "1wVDYY9Wue0G5R9Q",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "whisper-elf.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "IuMZkHg9XfJoqrMY",
+    "name": "Woodland Elf",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Elf",
+        "slug": "elf",
+        "uuid": "Compendium.pf2e.ancestries.Item.PgKmsA2aKdbLU6O0"
+      },
+      "description": "<p>You're adapted to life in the forest, the deep jungle, or a similar environment, and you know how to climb trees and use foliage to your advantage. When @UUID[Compendium.pf2e.actionspf2e.Item.Climb]{Climbing} trees, vines, and other foliage, you move at half your Speed on a success and at full Speed on a critical success (and you move at full Speed on a success if you have @UUID[Compendium.pf2e.feats-srd.Item.Quick Climb]). This doesn't affect you if you're using a climb Speed.</p>\n<p>You can always use the @UUID[Compendium.pf2e.actionspf2e.Item.Take Cover] action when you are within forest terrain to gain cover, even if you're not next to an obstacle you can Take Cover behind.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "roll-note",
+          "slug": null,
+          "label": null,
+          "selector": "athletics",
+          "outcome": [],
+          "text": "",
+          "title": "{item|name}",
+          "predicate": [
+            "action:climb",
+            "terrain:foliage"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "Note",
+            "outcome": [],
+            "predicate": [
+              "action:climb",
+              "terrain:foliage"
+            ],
+            "selector": "athletics",
+            "text": "",
+            "title": "{item|name}"
+          },
+          "textStripped": true
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "nW1gi13E62Feto2w",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "woodland-elf.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "qzbpEorZsxVZ82uO",
+    "name": "Chameleon Gnome",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Gnome",
+        "slug": "gnome",
+        "uuid": "Compendium.pf2e.ancestries.Item.CYlfsYLJcBOgqKtD"
+      },
+      "description": "<p>The color of your hair and skin is mutable, possibly due to latent magic from First World influences or lingering illusion effects. You can slowly change the vibrancy and the exact color, and the coloration can be different across your body, allowing you to create patterns or other colorful designs. It takes a single action for minor localized shifts and up to an hour for dramatic shifts throughout your body. While you're asleep, the colors shift on their own in tune with your dreams, giving you an unusual coloration each morning. When you're in an area where your coloration is roughly similar to the environment (for instance, forest green in a forest), you can use the single action to make minor localized shifts designed to help you blend into your surroundings. This grants you a +2 circumstance bonus to Stealth checks until your surroundings shift in coloration or pattern.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "stealth",
+          "value": 2,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": [
+            "coloration-matches"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              "coloration-matches"
+            ],
+            "selector": "stealth",
+            "type": "circumstance",
+            "value": 2
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "XeXWsvcWU3Zaj5WC",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "chameleon-gnome.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "Op6IzaEnVYu45U0N",
+    "name": "Fey-Touched Gnome",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Gnome",
+        "slug": "gnome",
+        "uuid": "Compendium.pf2e.ancestries.Item.CYlfsYLJcBOgqKtD"
+      },
+      "description": "<p>The blood of the fey flows through your veins, saturating you with their magic and making you truly one of them. You gain the fey trait, in addition to the gnome and humanoid traits. Choose one cantrip from the primal spell list. You can cast this spell as a primal innate spell at will. A cantrip is heightened to a spell rank equal to half your level rounded up. You can change this cantrip to a different one from the same list once per day by meditating to realign yourself with the First World; this is a 10-minute activity that has the concentrate trait.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "D3hTAqgwSank8OyO",
+        "packName": "heritages",
+        "unconvertedRules": [
+          {
+            "add": [
+              "fey"
+            ],
+            "key": "ActorTraits",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "fey-touched-gnome.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "EZtMRq3LqMfQzNv8",
+    "name": "Sensate Gnome",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Gnome",
+        "slug": "gnome",
+        "uuid": "Compendium.pf2e.ancestries.Item.CYlfsYLJcBOgqKtD"
+      },
+      "description": "<p>You see all colors as brighter, hear all sounds as richer, and especially smell all scents with incredible detail. You gain a special sense: imprecise scent with a range of 30 feet. This means you can use your sense of smell to determine the exact location of a creature. The GM will usually double the range if you're downwind from the creature or halve the range if you're upwind.</p>\n<p>In addition, you gain a +2 circumstance bonus to Perception checks whenever you're trying to locate an undetected creature that is within the range of your scent.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "perception",
+          "value": 2,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": [
+            "action:seek",
+            {
+              "lte": [
+                "target:distance",
+                30
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              "action:seek",
+              {
+                "lte": [
+                  "target:distance",
+                  30
+                ]
+              }
+            ],
+            "selector": "perception",
+            "type": "circumstance",
+            "value": 2
+          }
+        },
+        {
+          "kind": "sense",
+          "slug": null,
+          "label": null,
+          "senseType": null,
+          "acuity": "imprecise",
+          "range": 30,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "acuity": "imprecise",
+            "key": "Sense",
+            "range": 30,
+            "selector": "scent"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "tXC5Gwn9D5x0ouJh",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "sensate-gnome.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "vmV9XelJgTVIekG8",
+    "name": "Umbral Gnome",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Gnome",
+        "slug": "gnome",
+        "uuid": "Compendium.pf2e.ancestries.Item.CYlfsYLJcBOgqKtD"
+      },
+      "description": "<p>Whether from a connection to dark or shadowy fey, from the underground gnomes known as drathnelar, or from another source, you can see in complete darkness. You gain darkvision.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "sense",
+          "slug": null,
+          "label": null,
+          "senseType": null,
+          "acuity": "precise",
+          "range": null,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Sense",
+            "selector": "darkvision"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "d0bNxgGqvaCkFlhN",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "umbral-gnome.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "zCjOWbCxNuzBIDt0",
+    "name": "Wellspring Gnome",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Gnome",
+        "slug": "gnome",
+        "uuid": "Compendium.pf2e.ancestries.Item.CYlfsYLJcBOgqKtD"
+      },
+      "description": "<p>Some other source of magic has a greater hold on you than the primal magic of your fey lineage does. This connection might come from an occult plane or an ancient occult song; a deity, celestial, or fiend; magical effluent left behind by a mage war; or ancient rune magic.</p>\n<p>Choose arcane, divine, or occult. You gain one cantrip from that magical tradition's spell list. You can cast this spell as an innate spell at will, as a spell of your chosen tradition. A cantrip is heightened to a spell rank equal to half your level rounded up. Whenever you gain a primal innate spell from a gnome ancestry feat, change its tradition from primal to your chosen tradition.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "etkuQkjkNLPLnjkA",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "wellspring-gnome.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "0wGxgLJChudOIPr6",
+    "name": "Charhide Goblin",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Goblin",
+        "slug": "goblin",
+        "uuid": "Compendium.pf2e.ancestries.Item.sQfjTMDaZbT9DThq"
+      },
+      "description": "<p>Your ancestors have always had a connection to fire and a thicker skin, which allows you to resist burning. You gain fire resistance equal to half your level (minimum 1). You can also recover from being on fire more easily. Your flat check to remove persistent fire damage is DC 10 instead of DC 15, which is reduced to @Check[flat|dc:5] if another creature uses a particularly appropriate action to help.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "subkind": "resistance",
+          "slug": null,
+          "label": null,
+          "damageType": "fire",
+          "value": null,
+          "exceptions": [],
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Resistance",
+            "type": "fire",
+            "value": "max(1,floor(@actor.level/2))"
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "pd-recovery-dc",
+          "value": 10,
+          "mode": "downgrade",
+          "predicate": [
+            "item:damage:type:fire"
+          ],
+          "priority": null,
+          "raw": {
+            "itemType": "condition",
+            "key": "ItemAlteration",
+            "mode": "downgrade",
+            "predicate": [
+              "item:damage:type:fire"
+            ],
+            "property": "pd-recovery-dc",
+            "value": 10
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "32oX6hHUY6K8N70Q",
+        "packName": "heritages",
+        "unconvertedRules": [
+          {
+            "itemType": "condition",
+            "key": "ItemAlteration",
+            "mode": "downgrade",
+            "predicate": [
+              "item:damage:type:fire"
+            ],
+            "property": "pd-recovery-dc",
+            "value": 10,
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "charhide-goblin.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "M95t6NrhPbYRG0vk",
+    "name": "Irongut Goblin",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Goblin",
+        "slug": "goblin",
+        "uuid": "Compendium.pf2e.ancestries.Item.sQfjTMDaZbT9DThq"
+      },
+      "description": "<p>You can subsist on food that most folks would consider spoiled. You can keep yourself fed with poor meals in a settlement as long as garbage is readily available, without using the @UUID[Compendium.pf2e.actionspf2e.Item.Subsist] downtime activity. You can eat and drink things when you are @UUID[Compendium.pf2e.conditionitems.Item.Sickened].</p>\n<p>You gain a +2 circumstance bonus to saving throws against afflictions, against gaining the sickened condition, and to remove the sickened condition. When you roll a success on a Fortitude save affected by this bonus, you get a critical success instead. All these benefits apply only when the affliction or condition resulted from something you ingested.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": "irongut-save-bonus",
+          "label": null,
+          "selector": "saving-throw",
+          "value": 2,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": [
+            "item:trait:ingested",
+            {
+              "or": [
+                "inflicts:sickened",
+                "item:type:affliction"
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              "item:trait:ingested",
+              {
+                "or": [
+                  "inflicts:sickened",
+                  "item:type:affliction"
+                ]
+              }
+            ],
+            "selector": "saving-throw",
+            "slug": "irongut-save-bonus",
+            "type": "circumstance",
+            "value": 2
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "description",
+          "value": null,
+          "mode": "add",
+          "predicate": [
+            "self:condition:sickened",
+            {
+              "or": [
+                "item:tag:alchemical-food",
+                "item:trait:elixir",
+                "item:trait:ingested",
+                "item:trait:potion"
+              ]
+            }
+          ],
+          "priority": 121,
+          "raw": {
+            "itemType": "consumable",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "self:condition:sickened",
+              {
+                "or": [
+                  "item:tag:alchemical-food",
+                  "item:trait:elixir",
+                  "item:trait:ingested",
+                  "item:trait:potion"
+                ]
+              }
+            ],
+            "priority": 121,
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ]
+          },
+          "textStripped": true
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "gyoN45SVfRZwHMkk",
+        "packName": "heritages",
+        "unconvertedRules": [
+          {
+            "adjustment": {
+              "success": "to-critical-success"
+            },
+            "key": "AdjustDegreeOfSuccess",
+            "predicate": [
+              "item:trait:ingested",
+              {
+                "or": [
+                  "inflicts:sickened",
+                  "item:type:affliction"
+                ]
+              }
+            ],
+            "selector": "saving-throw",
+            "_conversionState": "unsupported"
+          },
+          {
+            "itemType": "consumable",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              "self:condition:sickened",
+              {
+                "or": [
+                  "item:tag:alchemical-food",
+                  "item:trait:elixir",
+                  "item:trait:ingested",
+                  "item:trait:potion"
+                ]
+              }
+            ],
+            "priority": 121,
+            "property": "description",
+            "value": [
+              {
+                "text": ""
+              }
+            ],
+            "_conversionState": "partial",
+            "textStripped": true
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "irongut-goblin.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "xsJccUkxibIEL5p8",
+    "name": "Razortooth Goblin",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Goblin",
+        "slug": "goblin",
+        "uuid": "Compendium.pf2e.ancestries.Item.sQfjTMDaZbT9DThq"
+      },
+      "description": "<p>Your family's teeth are formidable weapons. You gain a jaws unarmed attack that deals 1d6 piercing damage. Your jaws are in the brawling group and have the finesse and unarmed traits.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "a6F2WjYU8D0suT8T",
+        "packName": "heritages",
+        "unconvertedRules": [
+          {
+            "baseType": "jaws",
+            "category": "unarmed",
+            "damage": {
+              "base": {
+                "damageType": "piercing",
+                "dice": 1,
+                "die": "d6"
+              }
+            },
+            "group": "brawling",
+            "key": "Strike",
+            "label": "PF2E.Weapon.Base.jaws",
+            "slug": "razortooth-jaws",
+            "traits": [
+              "finesse"
+            ],
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "razortooth-goblin.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "TMN3R8RuP8uYqQ9x",
+    "name": "Snow Goblin",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Goblin",
+        "slug": "goblin",
+        "uuid": "Compendium.pf2e.ancestries.Item.sQfjTMDaZbT9DThq"
+      },
+      "description": "<p>You are acclimated to living in frigid lands and have skin ranging from sky blue to navy in color, as well as blue fur. You gain cold resistance equal to half your level (minimum 1). You treat environmental cold effects as if they were one step less extreme (incredible cold becomes extreme, extreme cold becomes severe, and so on).</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "subkind": "resistance",
+          "slug": null,
+          "label": null,
+          "damageType": "cold",
+          "value": null,
+          "exceptions": [],
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Resistance",
+            "type": "cold",
+            "value": "max(1,floor(@actor.level/2))"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "gQyPU441J3rGt8mD",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "snow-goblin.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "0QhPSBkfcbClOvmo",
+    "name": "Unbreakable Goblin",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Goblin",
+        "slug": "goblin",
+        "uuid": "Compendium.pf2e.ancestries.Item.sQfjTMDaZbT9DThq"
+      },
+      "description": "<p>You're able to bounce back from injuries easily due to an exceptionally thick skull, cartilaginous bones, or some other mixed blessing. You gain 10 Hit Points from your ancestry instead of 6. When you fall, reduce the falling damage you take as though you had fallen half the distance.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.attributes.ancestryhp",
+          "value": 10,
+          "mode": "override",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "override",
+            "path": "system.attributes.ancestryhp",
+            "value": 10
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ULj56ZoW7dWdnBvu",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "unbreakable-goblin.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "xg0bG1UbApCuNnoT",
+    "name": "Gutsy Halfling",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Halfling",
+        "slug": "halfling",
+        "uuid": "Compendium.pf2e.ancestries.Item.GgZAHbrjnzWOZy2v"
+      },
+      "description": "<p>Your family line is known for keeping a level head and staving off fear when the chips were down. When you roll a success on a saving throw against an emotion effect, you get a critical success instead.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Eq42wZ5OTweJLnLU",
+        "packName": "heritages",
+        "unconvertedRules": [
+          {
+            "adjustment": {
+              "success": "one-degree-better"
+            },
+            "key": "AdjustDegreeOfSuccess",
+            "predicate": [
+              "emotion"
+            ],
+            "selector": "saving-throw",
+            "type": "save",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "gutsy-halfling.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "SJeqWHuhtvafKM0V",
+    "name": "Hillock Halfling",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Halfling",
+        "slug": "halfling",
+        "uuid": "Compendium.pf2e.ancestries.Item.GgZAHbrjnzWOZy2v"
+      },
+      "description": "<p>Accustomed to a calm life in the hills, your people find rest and relaxation especially replenishing, particularly when indulging in creature comforts. When you regain Hit Points overnight, add your level to the Hit Points regained. When anyone uses the Medicine skill to @UUID[Compendium.pf2e.actionspf2e.Item.Treat Wounds]{Treat your Wounds}, you can eat a snack to add your level to the Hit Points you regain from their treatment.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.attributes.hp.recoveryAddend",
+          "value": "@actor.details.level.value",
+          "mode": "add",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "add",
+            "path": "system.attributes.hp.recoveryAddend",
+            "value": "@actor.level"
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "healing-received",
+          "value": "@actor.details.level.value",
+          "mode": "add",
+          "type": "untyped",
+          "predicate": [
+            "action:treat-wounds"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              "action:treat-wounds"
+            ],
+            "selector": "healing-received",
+            "value": "@actor.level"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Mj7uHxxVkRUlOFwJ",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "hillock-halfling.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "uTT4diwX9io7S096",
+    "name": "Jinxed Halfling",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Halfling",
+        "slug": "halfling",
+        "uuid": "Compendium.pf2e.ancestries.Item.GgZAHbrjnzWOZy2v"
+      },
+      "description": "<p>You were born with a strange blessing: bereft of the typical halfling luck, you can instead manipulate the fortunes of others. You can never take the @UUID[Compendium.pf2e.feats-srd.Item.Halfling Luck] feat, and you gain the @UUID[Compendium.pf2e.actionspf2e.Item.Jinx] action.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.actionspf2e.Item.Jinx",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.actionspf2e.Item.Jinx"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "uncommon",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "G9Gwfi8ZIva52uGp",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "jinxed-halfling.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "OOMD3lY7ntuDv8CP",
+    "name": "Nomadic Halfling",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Halfling",
+        "slug": "halfling",
+        "uuid": "Compendium.pf2e.ancestries.Item.GgZAHbrjnzWOZy2v"
+      },
+      "description": "<p>Your ancestors have traveled from place to place for generations, never content to settle down. You gain two additional languages of your choice, chosen from among the common and uncommon languages available to you, and every time you take the @UUID[Compendium.pf2e.feats-srd.Item.Multilingual] feat, you gain another new language.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.build.languages.max",
+          "value": 2,
+          "mode": "add",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "add",
+            "path": "system.build.languages.max",
+            "value": 2
+          }
+        },
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "flags.system.multilingualTaken",
+          "value": 0,
+          "mode": "override",
+          "predicate": null,
+          "priority": 19,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "override",
+            "path": "flags.system.multilingualTaken",
+            "priority": 19,
+            "value": 0
+          }
+        },
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.build.languages.max",
+          "value": "@actor.flags.system.multilingualTaken",
+          "mode": "add",
+          "predicate": null,
+          "priority": 21,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "add",
+            "path": "system.build.languages.max",
+            "priority": 21,
+            "value": "@actor.flags.system.multilingualTaken"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "idGDjqi1q3Ft8bAZ",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "nomadic-halfling.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "CfL5Gq0Pc9T4yqsN",
+    "name": "Twilight Halfling",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Halfling",
+        "slug": "halfling",
+        "uuid": "Compendium.pf2e.ancestries.Item.GgZAHbrjnzWOZy2v"
+      },
+      "description": "<p>Your ancestors performed many secret acts under the concealing cover of dusk, whether for good or ill, and over time they developed the ability to see in twilight beyond even the usual keen sight of halflings. You gain low-light vision.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "sense",
+          "slug": null,
+          "label": null,
+          "senseType": null,
+          "acuity": "precise",
+          "range": null,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Sense",
+            "selector": "low-light-vision"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "cCy8vsZENlwiAyZ6",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "twilight-halfling.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "cvhoIv1zMnBGTYcI",
+    "name": "Wildwood Halfling",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Halfling",
+        "slug": "halfling",
+        "uuid": "Compendium.pf2e.ancestries.Item.GgZAHbrjnzWOZy2v"
+      },
+      "description": "<p>You hail from deep within a jungle or forest, and you've learned how to use your small size to wriggle through undergrowth and other obstacles. You ignore any difficult terrain caused by plants and fungi, such as bushes, vines, and undergrowth.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "xtRIYizCjLg9qe1Z",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "wildwood-halfling.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "LEnqH6OXD9A2TjKy",
+    "name": "Skilled Human",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Human",
+        "slug": "human",
+        "uuid": "Compendium.pf2e.ancestries.Item.IiG7DgeLWYrSNXuX"
+      },
+      "description": "<p>Your ingenuity allows you to train in a wide variety of skills. You become trained in one skill of your choice. At 5th level, you become an expert in the chosen skill.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.skills.{item|flags.system.rulesSelections.skill}.rank",
+          "value": "ternary(gte(@actor.level,5),2,1)",
+          "mode": "upgrade",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.skills.{item|flags.system.rulesSelections.skill}.rank",
+            "value": "ternary(gte(@actor.level,5),2,1)"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "zVf0Hlp5xG0Q7kmc",
+        "packName": "heritages",
+        "unconvertedRules": [
+          {
+            "choices": {
+              "config": "skills"
+            },
+            "flag": "skill",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Prompt.Skill",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "map-chart-tan.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "fhxYlZ3RuyRFvafU",
+    "name": "Versatile Human",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Human",
+        "slug": "human",
+        "uuid": "Compendium.pf2e.ancestries.Item.IiG7DgeLWYrSNXuX"
+      },
+      "description": "<p>Humanity's versatility and ambition have fueled its ascendance to be the most common ancestry in most nations throughout the world. Select a general feat of your choice for which you meet the prerequisites (as with your ancestry feat, you can select this general feat at any point during character creation).</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "{item|flags.system.rulesSelections.versatileHeritage}",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "{item|flags.system.rulesSelections.versatileHeritage}"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "hFBwsVcSnNCJoimo",
+        "packName": "heritages",
+        "unconvertedRules": [
+          {
+            "adjustName": false,
+            "choices": {
+              "filter": [
+                "item:level:1",
+                "item:trait:general"
+              ],
+              "itemType": "feat"
+            },
+            "flag": "versatileHeritage",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.GeneralTraining.Prompt",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "group.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "dDw6FSLL79DI7uAv",
+    "name": "Cactus Leshy",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Leshy",
+        "slug": "leshy",
+        "uuid": "Compendium.pf2e.ancestries.Item.cdhgByGG1WtuaK73"
+      },
+      "description": "<p>Spines cover your body. You gain a spine unarmed attack that deals 1d6 piercing damage. Your spines are in the brawling group and have the finesse and unarmed traits.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "2cii5ZkBsJ4DYdd2",
+        "packName": "heritages",
+        "unconvertedRules": [
+          {
+            "category": "unarmed",
+            "damage": {
+              "base": {
+                "damageType": "piercing",
+                "dice": 1,
+                "die": "d6"
+              }
+            },
+            "group": "brawling",
+            "img": "icons/placeholder/feat.svg",
+            "key": "Strike",
+            "label": "PF2E.BattleForm.Attack.Spine",
+            "range": null,
+            "traits": [
+              "finesse",
+              "unarmed"
+            ],
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "aloe-succulent-green.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "MvlfITxKYpoOstUW",
+    "name": "Fruit Leshy",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Leshy",
+        "slug": "leshy",
+        "uuid": "Compendium.pf2e.ancestries.Item.cdhgByGG1WtuaK73"
+      },
+      "description": "<p>Your body continually produces small fruits imbued with primal magic. At dawn each day, a new fruit ripens. You or an ally can remove this fruit as an Interact action. If a living creature that can derive sustenance from fruit consumes it as an Interact action within the next hour, they regain @Damage[(ceil(@actor.level/2))d8[vitality,healing]|shortLabel] Hit Points, plus an additional 1d8 Hit Points for every 2 of your levels beyond 1st. This effect has the healing and vitality traits.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "L6zfGzLMDLHbZ7VV",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "nectarine-ripe-orange.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "dwZgfT9raJhXFEWX",
+    "name": "Fungus Leshy",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Leshy",
+        "slug": "leshy",
+        "uuid": "Compendium.pf2e.ancestries.Item.cdhgByGG1WtuaK73"
+      },
+      "description": "<p>Your body was made from fungi that grows in the shade of caves and trees, and you are at home in dark caverns and warrens. You gain darkvision. You lose the plant trait and gain the fungus trait.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "sense",
+          "slug": null,
+          "label": null,
+          "senseType": null,
+          "acuity": "precise",
+          "range": null,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Sense",
+            "selector": "darkvision"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "87h0jepQuzIbN7jN",
+        "packName": "heritages",
+        "unconvertedRules": [
+          {
+            "add": [
+              "fungus"
+            ],
+            "key": "ActorTraits",
+            "remove": [
+              "plant"
+            ],
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "fungus-leshy.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "J1JGdxn0XQgV7g4a",
+    "name": "Gourd Leshy",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Leshy",
+        "slug": "leshy",
+        "uuid": "Compendium.pf2e.ancestries.Item.cdhgByGG1WtuaK73"
+      },
+      "description": "<p>You have a large gourd for a skull, and since you don't have a physical brain, you can use the space inside your head. You can store a collection of up to 1 Bulk of objects within your head. The DC of checks to @UUID[Compendium.pf2e.actionspf2e.Item.Steal] objects from inside your head increases by 4. Additionally, if you store only one object within your head, you can draw it effortlessly into your hand as part of another action to use the object. Drawing the item grants this other action the manipulate trait.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "roll-option",
+          "slug": "gourd-head",
+          "label": "PF2E.SpecificRule.ToggleProperty.GourdHead",
+          "toggleable": true,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "label": "PF2E.SpecificRule.ToggleProperty.GourdHead",
+            "option": "gourd-head",
+            "toggleable": true
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "perception-dc",
+          "value": 4,
+          "mode": "add",
+          "type": "untyped",
+          "predicate": [
+            "action:steal",
+            "gourd-head"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              "action:steal",
+              "gourd-head"
+            ],
+            "selector": "perception-dc",
+            "value": 4
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "wNnsjird4OQe0s6p",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "squash-pumpkin-rough-orange.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "9YDeXYLc7Se5NhxP",
+    "name": "Leaf Leshy",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Leshy",
+        "slug": "leshy",
+        "uuid": "Compendium.pf2e.ancestries.Item.cdhgByGG1WtuaK73"
+      },
+      "description": "<p>Your body is made mostly from natural foliage, and like a leaf tumbling from a tree, you land from falls with particular grace. You take no damage from falling, regardless of the distance you fall.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "dQqurQys37aJYb26",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "leaf-elm-glowing-green.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "xYK9Joc7E3vjlYsi",
+    "name": "Lotus Leshy",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Leshy",
+        "slug": "leshy",
+        "uuid": "Compendium.pf2e.ancestries.Item.cdhgByGG1WtuaK73"
+      },
+      "description": "<p>You effortlessly float on the surface of water. You can walk on the surface of still water and other non-damaging liquids, moving at half your normal Speed. You can also attempt to @UUID[Compendium.pf2e.actionspf2e.Item.Balance] to move across the surface of flowing water, using the DC of a Swim check to move through the water. When you do this, you can't move faster than half your Speed, and if you fail or critically fail, you fall into the water rather than the normal effects.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ievKYUc53q0mroGp",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "lotus-pink.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "2o4Y9pu8sQiYyYq9",
+    "name": "Root Leshy",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Leshy",
+        "slug": "leshy",
+        "uuid": "Compendium.pf2e.ancestries.Item.cdhgByGG1WtuaK73"
+      },
+      "description": "<p>Your body is made from hardy roots that attach you firmly to the ground. You gain 10 Hit Points from your ancestry instead of 8. You can go without sunlight for 2 weeks before you begin to starve. You gain a +2 circumstance bonus to your Fortitude or Reflex DC against attempts to @UUID[Compendium.pf2e.actionspf2e.Item.Reposition], @UUID[Compendium.pf2e.actionspf2e.Item.Shove], or @UUID[Compendium.pf2e.actionspf2e.Item.Trip] you. This bonus also applies to saving throws against spells or effects that attempt to move you or knock you @UUID[Compendium.pf2e.conditionitems.Item.Prone].</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.attributes.ancestryhp",
+          "value": 10,
+          "mode": "override",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "override",
+            "path": "system.attributes.ancestryhp",
+            "value": 10
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": "PF2E.SkillVariant.VsShoveOrTrip",
+          "selector": [
+            "fortitude",
+            "reflex"
+          ],
+          "value": 2,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": [
+            {
+              "or": [
+                "action:shove",
+                "action:trip",
+                "action:reposition",
+                "inflicts:prone",
+                "forced-movement"
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "hideIfDisabled": true,
+            "key": "FlatModifier",
+            "label": "PF2E.SkillVariant.VsShoveOrTrip",
+            "predicate": [
+              {
+                "or": [
+                  "action:shove",
+                  "action:trip",
+                  "action:reposition",
+                  "inflicts:prone",
+                  "forced-movement"
+                ]
+              }
+            ],
+            "selector": [
+              "fortitude",
+              "reflex"
+            ],
+            "type": "circumstance",
+            "value": 2
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "CZx9HMmoOwcpkLY8",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "dried-stem-vine-root-bramble-brown.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "phKaCKZGaWBGRKzF",
+    "name": "Seaweed Leshy",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Leshy",
+        "slug": "leshy",
+        "uuid": "Compendium.pf2e.ancestries.Item.cdhgByGG1WtuaK73"
+      },
+      "description": "<p>Your body is made from woven seaweed, and you're just as comfortable underwater as on land. You gain a swim Speed of 20 feet, and you can always breathe underwater. However, your land Speed is reduced by 5 feet (to 20 feet for most seaweed leshies).</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "base-speed",
+          "slug": null,
+          "label": null,
+          "selector": "swim",
+          "value": 20,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "BaseSpeed",
+            "selector": "swim",
+            "value": 20
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "land-speed",
+          "value": -5,
+          "mode": "add",
+          "type": "untyped",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "selector": "land-speed",
+            "value": -5
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "hTl3uc6y1kTuo9ac",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "plant-undersea-seaweed-glow-green.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "zx2v8EENQxFXuu3q",
+    "name": "Vine Leshy",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Leshy",
+        "slug": "leshy",
+        "uuid": "Compendium.pf2e.ancestries.Item.cdhgByGG1WtuaK73"
+      },
+      "description": "<p>Your prehensile vines grant you unmatched skill at climbing. You do not need to have any hands free to @UUID[Compendium.pf2e.actionspf2e.Item.Climb]. Additionally, if you roll a success on an Athletics check to Climb, you get a critical success instead.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "evXJISqyhl3fHE9u",
+        "packName": "heritages",
+        "unconvertedRules": [
+          {
+            "adjustment": {
+              "success": "one-degree-better"
+            },
+            "key": "AdjustDegreeOfSuccess",
+            "predicate": [
+              "action:climb"
+            ],
+            "selector": "athletics",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "root-vines-entwined-leaves.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "7lhqu5JgNWLpDKrG",
+    "name": "Badlands Orc",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Orc",
+        "slug": "orc",
+        "uuid": "Compendium.pf2e.ancestries.Item.lSGWXjcbOa6O5fTx"
+      },
+      "description": "<p>You come from sun-scorched badlands, where long legs and an ability to withstand the elements helped you thrive. You can @UUID[Compendium.pf2e.actionspf2e.Item.Hustle] twice as long while exploring before you have to stop, and you treat environmental heat effects as if they were one step less extreme (incredible heat becomes extreme, extreme heat becomes severe, and so on).</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "8Gsa8KFsHizEwSHU",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "badlands-orc.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "9cw0GAvKDqU6gs4f",
+    "name": "Battle-Ready Orc",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Orc",
+        "slug": "orc",
+        "uuid": "Compendium.pf2e.ancestries.Item.lSGWXjcbOa6O5fTx"
+      },
+      "description": "<p>You descend from a line of terrifying battlefield commanders. You become trained in Intimidation, and you gain the @UUID[Compendium.pf2e.feats-srd.Item.Intimidating Glare] skill feat.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.feats-srd.Item.Intimidating Glare",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.feats-srd.Item.Intimidating Glare"
+          }
+        },
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.skills.intimidation.rank",
+          "value": 1,
+          "mode": "upgrade",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.skills.intimidation.rank",
+            "value": 1
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "nXQxlmjH24Eb8h2Q",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "fear-fright-monster-grin-green.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "cX24Zry7fPf59BTo",
+    "name": "Deep Orc",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Orc",
+        "slug": "orc",
+        "uuid": "Compendium.pf2e.ancestries.Item.lSGWXjcbOa6O5fTx"
+      },
+      "description": "<p>Your calloused hands and red eyes speak to a life spent in the deep darkness of mountain caverns, where you learned to battle on rocky cliffs and survive with minimal resources. You gain the @UUID[Compendium.pf2e.feats-srd.Item.Terrain Expertise] skill feat for underground terrain and the @UUID[Compendium.pf2e.feats-srd.Item.Combat Climber] skill feat.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.feats-srd.Item.Terrain Expertise",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "preselectChoices": {
+              "terrain": "underground"
+            },
+            "uuid": "Compendium.pf2e.feats-srd.Item.Terrain Expertise"
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.feats-srd.Item.Combat Climber",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.feats-srd.Item.Combat Climber"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "wn4EbYk1QN3tyFhh",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "deep-orc.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "GFDLACU02E4wsele",
+    "name": "Grave Orc",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Orc",
+        "slug": "orc",
+        "uuid": "Compendium.pf2e.ancestries.Item.lSGWXjcbOa6O5fTx"
+      },
+      "description": "<p>You were exposed to powerful necromantic energies that should have killed you—but you survived. Your skin is cold, clammy, and gray. You gain resistance to void damage equal to half your level (minimum 1). You also gain a +1 circumstance bonus to saving throws against effects with the death or void trait.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "subkind": "resistance",
+          "slug": null,
+          "label": null,
+          "damageType": "void",
+          "value": null,
+          "exceptions": [],
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Resistance",
+            "type": "void",
+            "value": "max(1,floor(@actor.level/2))"
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": [
+            "saving-throw"
+          ],
+          "value": 1,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": [
+            {
+              "or": [
+                "item:trait:death",
+                "item:trait:void"
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              {
+                "or": [
+                  "item:trait:death",
+                  "item:trait:void"
+                ]
+              }
+            ],
+            "selector": [
+              "saving-throw"
+            ],
+            "type": "circumstance",
+            "value": 1
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "VvEAFoxuddYNBmNc",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "grave-tombstone-glow-tan.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "qnpKVRG7PqwPMFty",
+    "name": "Hold-Scarred Orc",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Orc",
+        "slug": "orc",
+        "uuid": "Compendium.pf2e.ancestries.Item.lSGWXjcbOa6O5fTx"
+      },
+      "description": "<p>You are part of an orc community that participates in ritual scarification or tattooing. The marks on your skin show your exceptional hardiness and vitality. You gain 12 Hit Points from your ancestry instead of 10. You also gain the @UUID[Compendium.pf2e.feats-srd.Item.Diehard] feat.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.attributes.ancestryhp",
+          "value": 12,
+          "mode": "override",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "override",
+            "path": "system.attributes.ancestryhp",
+            "value": 12
+          }
+        },
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "Compendium.pf2e.feats-srd.Item.Diehard",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "Compendium.pf2e.feats-srd.Item.Diehard"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "MTTU2t7x6TjvUDnE",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "hold-scarred-orc.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "ApT8TFDZ4VlXDH50",
+    "name": "Rainfall Orc",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Orc",
+        "slug": "orc",
+        "uuid": "Compendium.pf2e.ancestries.Item.lSGWXjcbOa6O5fTx"
+      },
+      "description": "<p>You were born in a rain forest with only tangles of trees providing protection from torrential rainstorms and flash floods. You've learned to move adeptly through jungle terrain and resist the various ailments common in humid environs. You gain a +2 circumstance bonus to Athletics checks to @UUID[Compendium.pf2e.actionspf2e.Item.Climb] or @UUID[Compendium.pf2e.actionspf2e.Item.Swim] and a +1 circumstance bonus to saving throws against diseases.</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "athletics",
+          "value": 2,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": [
+            {
+              "or": [
+                "action:climb",
+                "action:swim"
+              ]
+            }
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              {
+                "or": [
+                  "action:climb",
+                  "action:swim"
+                ]
+              }
+            ],
+            "selector": "athletics",
+            "type": "circumstance",
+            "value": 2
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "slug": null,
+          "label": null,
+          "selector": "saving-throw",
+          "value": 1,
+          "mode": "add",
+          "type": "circumstance",
+          "predicate": [
+            "disease"
+          ],
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "predicate": [
+              "disease"
+            ],
+            "selector": "saving-throw",
+            "type": "circumstance",
+            "value": 1
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "dwKCwwtWetvPmJks",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "rainfall-orc.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "g6mrzJ3ntIOFDY2s",
+    "name": "Winter Orc",
+    "type": "heritage",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "ancestry": {
+        "name": "Orc",
+        "slug": "orc",
+        "uuid": "Compendium.pf2e.ancestries.Item.lSGWXjcbOa6O5fTx"
+      },
+      "description": "<p>Your ancestors survived in cold climates. You become trained in Survival, and you treat environmental cold effects as if they were one step less extreme (incredible cold becomes extreme, extreme cold becomes severe, and so on).</p>",
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "set-property",
+          "slug": null,
+          "label": null,
+          "selector": "system.skills.survival.rank",
+          "value": 1,
+          "mode": "upgrade",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "ActiveEffectLike",
+            "mode": "upgrade",
+            "path": "system.skills.survival.rank",
+            "value": 1
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "pZ1u2ScWrBXSaAqQ",
+        "packName": "heritages",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "ice-snowman.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "azDELWXz1ds3XeL0",
     "name": "Deep Rat",
     "type": "heritage",

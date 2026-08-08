@@ -3463,6 +3463,195 @@
     }
   },
   {
+    "_id": "IDQ2uKdJvhXxK0zv",
+    "name": "Blessed Armament",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "blessingOfTheDevoted",
+      "description": "<p>Select one weapon or handwraps of mighty blows. You gain that armament's critical specialization effect, and you grant the armament a property rune of your choice from the following list: @UUID[Compendium.pf2e.equipment-srd.Item.Fearsome], @UUID[Compendium.pf2e.equipment-srd.Item.Ghost Touch], @UUID[Compendium.pf2e.equipment-srd.Item.Returning], @UUID[Compendium.pf2e.equipment-srd.Item.Shifting], or @UUID[Compendium.pf2e.equipment-srd.Item.Vitalizing]. During your daily preparations, you can change the spirit to inhabit a different armament, grant a different rune, or both.</p>\n<p>This rune doesn't count toward the weapon's number of property runes. It can be used even if the weapon already has its maximum number of property runes.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Blessed Armament]</p>",
+      "level": 0,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "traits": {
+        "otherTags": [
+          "blessing-of-the-devoted"
+        ],
+        "rarity": "common",
+        "value": [
+          "champion"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "EtltLdiy9kNfHU0c",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "blade-ally.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "w1bsPZkn0DgZIxop",
+    "name": "Blessed Shield",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "blessingOfTheDevoted",
+      "description": "<p>In your hands, a shield gains the minor @UUID[Compendium.pf2e.equipment-srd.Item.Reinforcing Rune (Minor)]{Reinforcing} rune. As you go up in level, the shield gains the reinforcing rune of your level (lesser at 7th level, moderate at 10th level, greater at 13th level, major at 16th level, and supreme at 19th level). If your shield already has the appropriate reinforcing rune for your level, or if it's a @UUID[Compendium.pf2e.equipment-srd.Item.Sturdy Shield (Minor)]{Sturdy Shield} of the same level as the appropriate reinforcing rune, the shield's Hardness instead increases by 1.</p>",
+      "level": 0,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [],
+      "traits": {
+        "otherTags": [
+          "blessing-of-the-devoted"
+        ],
+        "rarity": "common",
+        "value": [
+          "champion"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "QQP0mu0cyWIwNUh9",
+        "packName": "class-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "shield-ally.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "8HggHhZ2vtCqxCQ3",
+    "name": "Blessed Swiftness",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "blessingOfTheDevoted",
+      "description": "<p>You gain a +5-foot status bonus to Speed. If you're mounted, your mount gains the bonus instead. In addition, when the movement of one of your allies triggers an enemy's reaction while the ally is in your champion's aura, the ally gains a +2 status bonus to all defenses against that reaction.</p>",
+      "level": 3,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core 2"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "slug": "blessed-swiftness",
+          "label": null,
+          "selector": "land-speed",
+          "value": 5,
+          "mode": "add",
+          "type": "status",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "FlatModifier",
+            "selector": "land-speed",
+            "slug": "blessed-swiftness",
+            "type": "status",
+            "value": 5
+          }
+        }
+      ],
+      "traits": {
+        "otherTags": [
+          "blessing-of-the-devoted"
+        ],
+        "rarity": "common",
+        "value": [
+          "champion"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "Z6E1O8X7CFcyczB1",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "effects": [
+              {
+                "affects": "allies",
+                "includesSelf": false,
+                "uuid": "Compendium.pf2e.feat-effects.Item.Effect: Blessed Swiftness"
+              }
+            ],
+            "key": "Aura",
+            "predicate": [
+              "champions-aura",
+              {
+                "not": "self:condition:unconscious"
+              }
+            ],
+            "radius": "@actor.flags.system.champion.aura",
+            "slug": "champions-aura",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "trail-streak-zigzag-teal.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "rkX4fo0J36e2qAbG",
     "name": "Blessing of the Devoted",
     "type": "classFeature",
@@ -23864,6 +24053,130 @@
     }
   },
   {
+    "_id": "p3TTbsuMnjKSho3r",
+    "name": "Gate Junction",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<h3><strong>Gate Junctions</strong></h3>\n<p>When you gain a gate junction, you develop a specialized kinetic technique. Choose one benefit from the gate junction table for one of your kinetic elements.</p>\n<ul>\n<li>A <strong>critical blast</strong> junction happens when you get a critical success with an Elemental Blast of the kinetic element.</li>\n<li>An <strong>elemental resistance</strong> grants you resistance to damage while your kinetic aura is active. This resistance is equal to your level, and it applies to damage of any listed type or that comes from a creature or effect that has any of the listed traits. At 17th level, you gain immunity to effects with any of the listed traits. This doesn't make you immune to creatures with such a trait. You can voluntarily forgo this resistance, immunity, or both if you want an effect to work on you.</li>\n<li>You can choose an <strong>impulse junction</strong> instead of one of the listed junctions. Impulse junctions are listed under Single Gate.</li>\n<li>An <strong>aura junction</strong> adds an effect to your kinetic aura when you Channel Elements.</li>\n<li>A <strong>skill junction</strong> makes you trained in the listed skill and grants you the listed skill feat. If you were already trained in the listed skill, you instead become trained in a skill of your choice. While your kinetic aura is active, you gain a +1 status bonus to the listed skill; the bonus increases to +2 at 10th level and +3 at 17th level.</li>\n</ul>\n<p>You can select each gate junction only once, unless noted otherwise, but you can have the same type of junction for multiple elements. You can always choose not to use a gate junction when it would normally occur. If you have multiple junctions that would apply at the same time - such as kinetic aura junctions for different elements - you can apply any number of them. (Though note that you can use only one impulse junction per round.)</p>",
+      "level": 5,
+      "prerequisites": [],
+      "publication": {
+        "license": "OGL",
+        "remaster": true,
+        "title": "Pathfinder Rage of Elements"
+      },
+      "rules": [
+        {
+          "kind": "roll-option",
+          "slug": "junction:{item|flags.system.rulesSelections.element}:{item|flags.system.rulesSelections.junction}",
+          "label": null,
+          "toggleable": false,
+          "domain": "all",
+          "predicate": null,
+          "priority": 39,
+          "raw": {
+            "key": "RollOption",
+            "option": "junction:{item|flags.system.rulesSelections.element}:{item|flags.system.rulesSelections.junction}",
+            "priority": 39
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "kineticist"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "jx70hPakuTgB3lM5",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "adjustName": false,
+            "choices": "flags.system.kineticist.elements",
+            "flag": "element",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.ExpandElement",
+            "_conversionState": "unsupported"
+          },
+          {
+            "choices": [
+              {
+                "label": "PF2E.SpecificRule.Kineticist.KineticGate.Junction.Aura",
+                "predicate": [
+                  {
+                    "not": "junction:{item|flags.system.rulesSelections.element}:aura"
+                  }
+                ],
+                "value": "aura"
+              },
+              {
+                "label": "PF2E.SpecificRule.Kineticist.KineticGate.Junction.CriticalBlast",
+                "predicate": [
+                  {
+                    "not": "junction:{item|flags.system.rulesSelections.element}:critical"
+                  }
+                ],
+                "value": "critical"
+              },
+              {
+                "label": "PF2E.SpecificRule.Kineticist.KineticGate.Junction.ElementalResistance",
+                "predicate": [
+                  {
+                    "not": "junction:{item|flags.system.rulesSelections.element}:resistance"
+                  }
+                ],
+                "value": "resistance"
+              },
+              {
+                "label": "PF2E.SpecificRule.Kineticist.KineticGate.Junction.Impulse",
+                "predicate": [
+                  {
+                    "not": "junction:{item|flags.system.rulesSelections.element}:impulse"
+                  }
+                ],
+                "value": "impulse"
+              },
+              {
+                "label": "PF2E.SpecificRule.Kineticist.KineticGate.Junction.Skill",
+                "predicate": [
+                  {
+                    "not": "junction:{item|flags.system.rulesSelections.element}:skill"
+                  }
+                ],
+                "value": "skill"
+              }
+            ],
+            "flag": "junction",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Kineticist.KineticGate.Prompt.Junction",
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "elemental-annihilation-wave.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "hYxkutfYKZfTlJb5",
     "name": "Gate's Threshold",
     "type": "classFeature",
@@ -28560,6 +28873,476 @@
           {
             "field": "img",
             "original": "swords-short.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "cBAT5YDrrbE1Z8eS",
+    "name": "Masterful Hunter (Flurry)",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>If you have master proficiency with your weapon, your multiple attack penalty for attacks against your hunted prey is –2 (–1 with an agile weapon) on your second attack of the turn, and –4 (–2 with an agile weapon) on your third and subsequent attacks of the turn.</p>",
+      "level": 17,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "ranger"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "JhLncIB10GSQowWL",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "key": "MultipleAttackPenalty",
+            "label": "PF2E.SpecificRule.Ranger.HuntersEdge.Flurry.Label",
+            "predicate": [
+              "target:mark:hunted-prey",
+              {
+                "gte": [
+                  "item:proficiency:rank",
+                  3
+                ]
+              },
+              {
+                "not": "item:trait:agile"
+              }
+            ],
+            "selector": "attack",
+            "value": -2,
+            "_conversionState": "unsupported"
+          },
+          {
+            "key": "MultipleAttackPenalty",
+            "label": "PF2E.SpecificRule.Ranger.HuntersEdge.Flurry.Label",
+            "predicate": [
+              "item:trait:agile",
+              "target:mark:hunted-prey",
+              {
+                "gte": [
+                  "item:proficiency:rank",
+                  3
+                ]
+              }
+            ],
+            "selector": "attack",
+            "value": -1,
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "strike-polearm-light-orange.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "iJ7ltDW7AK4m1dqJ",
+    "name": "Masterful Hunter (Outwit)",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>Your mastery of skills allows you to overwhelm your prey. If you have master proficiency in Deception, Intimidation, Stealth, or the skill you use to Recall Knowledge about your prey, increase the circumstance bonus against the prey with that skill from +2 to +4. If you have master proficiency with your armor, increase the circumstance bonus to AC against the prey from +1 to +2.</p>",
+      "level": 17,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "flat-modifier",
+          "subkind": "adjust-modifier",
+          "slug": "outwit",
+          "label": null,
+          "selector": "skill-check",
+          "value": 4,
+          "mode": "add",
+          "predicate": [
+            {
+              "or": [
+                "proficiency:master",
+                "proficiency:legendary"
+              ]
+            }
+          ],
+          "priority": null,
+          "notes": "AdjustModifier — partial conversion; capping/floor not applied",
+          "raw": {
+            "key": "AdjustModifier",
+            "mode": "upgrade",
+            "predicate": [
+              {
+                "or": [
+                  "proficiency:master",
+                  "proficiency:legendary"
+                ]
+              }
+            ],
+            "selector": "skill-check",
+            "slug": "outwit",
+            "value": 4
+          }
+        },
+        {
+          "kind": "flat-modifier",
+          "subkind": "adjust-modifier",
+          "slug": "outwit",
+          "label": null,
+          "selector": "ac",
+          "value": 2,
+          "mode": "add",
+          "predicate": [
+            {
+              "or": [
+                {
+                  "and": [
+                    "armor:category:light",
+                    {
+                      "gte": [
+                        "defense:light:rank",
+                        3
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "and": [
+                    "armor:category:medium",
+                    {
+                      "gte": [
+                        "defense:medium:rank",
+                        3
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "and": [
+                    "armor:category:heavy",
+                    {
+                      "gte": [
+                        "defense:heavy:rank",
+                        3
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "and": [
+                    "armor:category:unarmored",
+                    {
+                      "gte": [
+                        "defense:unarmored:rank",
+                        3
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "priority": null,
+          "notes": "AdjustModifier — partial conversion; capping/floor not applied",
+          "raw": {
+            "key": "AdjustModifier",
+            "mode": "upgrade",
+            "predicate": [
+              {
+                "or": [
+                  {
+                    "and": [
+                      "armor:category:light",
+                      {
+                        "gte": [
+                          "defense:light:rank",
+                          3
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "and": [
+                      "armor:category:medium",
+                      {
+                        "gte": [
+                          "defense:medium:rank",
+                          3
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "and": [
+                      "armor:category:heavy",
+                      {
+                        "gte": [
+                          "defense:heavy:rank",
+                          3
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "and": [
+                      "armor:category:unarmored",
+                      {
+                        "gte": [
+                          "defense:unarmored:rank",
+                          3
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "selector": "ac",
+            "slug": "outwit",
+            "value": 2
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "ranger"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "vWZaLE2fEKMBw3D5",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "key": "AdjustModifier",
+            "mode": "upgrade",
+            "predicate": [
+              {
+                "or": [
+                  "proficiency:master",
+                  "proficiency:legendary"
+                ]
+              }
+            ],
+            "selector": "skill-check",
+            "slug": "outwit",
+            "value": 4,
+            "_conversionState": "partial"
+          },
+          {
+            "key": "AdjustModifier",
+            "mode": "upgrade",
+            "predicate": [
+              {
+                "or": [
+                  {
+                    "and": [
+                      "armor:category:light",
+                      {
+                        "gte": [
+                          "defense:light:rank",
+                          3
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "and": [
+                      "armor:category:medium",
+                      {
+                        "gte": [
+                          "defense:medium:rank",
+                          3
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "and": [
+                      "armor:category:heavy",
+                      {
+                        "gte": [
+                          "defense:heavy:rank",
+                          3
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "and": [
+                      "armor:category:unarmored",
+                      {
+                        "gte": [
+                          "defense:unarmored:rank",
+                          3
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "selector": "ac",
+            "slug": "outwit",
+            "value": 2,
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "spider-web-black.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "YgNjOMBxCrEqpaPk",
+    "name": "Masterful Hunter (Precision)",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>Your weapon mastery allows you to hit your prey's vital areas multiple times. The second time in a round you hit your hunted prey, you also deal 1d8 precision damage.</p>\n<p>At 19th level, your second hit in a round against your hunted prey deals 2d8 precision damage, and your third hit in a round against your hunted prey deals 1d8 precision damage.</p>",
+      "level": 17,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "roll-option",
+          "slug": "precision-hunters-edge",
+          "label": "PF2E.SpecificRule.Ranger.HuntersEdge.Precision.ToggleLabel",
+          "toggleable": true,
+          "domain": "all",
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "RollOption",
+            "label": "PF2E.SpecificRule.Ranger.HuntersEdge.Precision.ToggleLabel",
+            "mergeable": true,
+            "option": "precision-hunters-edge",
+            "suboptions": [
+              {
+                "label": "PF2E.SpecificRule.Numbers.Ordinals.Second",
+                "value": "second-hit"
+              },
+              {
+                "label": "PF2E.SpecificRule.Numbers.Ordinals.Third",
+                "predicate": [
+                  {
+                    "gte": [
+                      "self:level",
+                      19
+                    ]
+                  }
+                ],
+                "value": "third-hit"
+              }
+            ],
+            "toggleable": true
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": [
+          "ranger"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "BJYSUbFUGcTLaPDn",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "key": "DamageAlteration",
+            "mode": "override",
+            "predicate": [
+              "precision-hunters-edge:second-hit"
+            ],
+            "property": "dice-number",
+            "selectors": [
+              "strike-damage"
+            ],
+            "slug": "precision",
+            "value": "ternary(gte(@actor.level,19),2,1)",
+            "_conversionState": "unsupported"
+          },
+          {
+            "key": "DamageAlteration",
+            "mode": "override",
+            "predicate": [
+              "precision-hunters-edge:third-hit"
+            ],
+            "property": "dice-number",
+            "selectors": [
+              "strike-damage"
+            ],
+            "slug": "precision",
+            "value": 1,
+            "_conversionState": "unsupported"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "target-bullseye-archer-orange.webp",
             "placeholder": "icons/placeholder/feat.svg"
           }
         ]
@@ -33513,6 +34296,215 @@
           {
             "field": "img",
             "original": "tree-spirit-glow-black-yellow.webp",
+            "placeholder": "icons/placeholder/feat.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "gWbc5my1ar93nO19",
+    "name": "School of Thassilonian Rune Magic",
+    "type": "classFeature",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": {
+        "value": "passive"
+      },
+      "actions": {
+        "value": null
+      },
+      "category": "classfeature",
+      "description": "<p>This curriculum, taught at a few select academies in New Thassilon, can be learned only by wizards with the runelord class archetype. You have begun to study one of the seven runes of sin, granting you great power but at the cost of anathematic magic. All runelords gain the below curriculum and school spells.</p>\n<p>In addition, you must choose one of the seven sins to specialize in. You add your sin's spells and initial school spells to your curriculum. The addictive nature of sin magic prevents you from using magic in ways aligned with other sins, represented by that sin's anathema. Casting a sin spell never invokes the anathema of its school of sin.</p>\n<p>Unlike other wizards, some of your curriculum spells may be spells that don't typically appear on the arcane spell list (marked with an asterisk). You still cast these spells as arcane spells, the unifying knowledge of sin bridging the gap between disparate magics.</p>\n<p><strong>Curriculum</strong></p><ul><li><strong>cantrips:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Detect Magic], @UUID[Compendium.pf2e.spells-srd.Item.Sigil]</li><li><strong>1st:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Mystic Armor], @UUID[Compendium.pf2e.spells-srd.Item.Runic Body], @UUID[Compendium.pf2e.spells-srd.Item.Runic Weapon], @UUID[Compendium.pf2e.spells-srd.Item.Sure Strike]</li><li><strong>2nd:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Darkvision], @UUID[Compendium.pf2e.spells-srd.Item.See the Unseen]</li><li><strong>3rd:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Clairaudience], @UUID[Compendium.pf2e.spells-srd.Item.Veil of Privacy]</li><li><strong>4th:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Clairvoyance], @UUID[Compendium.pf2e.spells-srd.Item.Fly]</li><li><strong>5th:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Mind Probe], @UUID[Compendium.pf2e.spells-srd.Item.Sending]</li><li><strong>6th:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Scrying], @UUID[Compendium.pf2e.spells-srd.Item.Truesight]</li><li><strong>7th:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Contingency], @UUID[Compendium.pf2e.spells-srd.Item.Spell Riposte]</li><li><strong>8th:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Unrelenting Observation], @UUID[Compendium.pf2e.spells-srd.Item.Hidden Mind]</li><li><strong>9th:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Foresight]</li></ul><p><strong>Advanced School Spell</strong> @UUID[Compendium.pf2e.spells-srd.Item.Personal Runewell]</p><hr /><ul><li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Envy]</strong></li><li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Gluttony]</strong></li><li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Greed]</strong></li><li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Lust]</strong></li><li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Pride]</strong></li><li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Sloth]</strong></li><li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Wrath]</strong></li></ul>",
+      "level": 1,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Lost Omens Rival Academies"
+      },
+      "rules": [
+        {
+          "kind": "grant-item",
+          "slug": null,
+          "label": null,
+          "uuid": "{item|flags.system.rulesSelections.sin}",
+          "inMemoryOnly": false,
+          "predicate": null,
+          "alterations": [],
+          "priority": null,
+          "raw": {
+            "key": "GrantItem",
+            "uuid": "{item|flags.system.rulesSelections.sin}"
+          }
+        },
+        {
+          "kind": "set-property",
+          "subkind": "item-alteration",
+          "slug": null,
+          "label": null,
+          "selector": "other-tags",
+          "value": "runelord-curriculum-spell",
+          "mode": "add",
+          "predicate": [
+            {
+              "or": [
+                "item:tag:runelord-sin-spell",
+                "item:slug:detect-magic",
+                "item:slug:sigil",
+                "item:slug:mystic-armor",
+                "item:slug:runic-body",
+                "item:slug:runic-weapon",
+                "item:slug:sure-strike",
+                "item:slug:darkvision",
+                "item:slug:see-the-unseen",
+                "item:slug:clairaudience",
+                "item:slug:veil-of-privacy",
+                "item:slug:clairvoyance",
+                "item:slug:fly",
+                "item:slug:mind-probe",
+                "item:slug:sending",
+                "item:slug:scrying",
+                "item:slug:truesight",
+                "item:slug:contingency",
+                "item:slug:spell-riposte",
+                "item:slug:unrelenting-observation",
+                "item:slug:seize-soul",
+                "item:slug:foresight"
+              ]
+            }
+          ],
+          "priority": 119,
+          "raw": {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              {
+                "or": [
+                  "item:tag:runelord-sin-spell",
+                  "item:slug:detect-magic",
+                  "item:slug:sigil",
+                  "item:slug:mystic-armor",
+                  "item:slug:runic-body",
+                  "item:slug:runic-weapon",
+                  "item:slug:sure-strike",
+                  "item:slug:darkvision",
+                  "item:slug:see-the-unseen",
+                  "item:slug:clairaudience",
+                  "item:slug:veil-of-privacy",
+                  "item:slug:clairvoyance",
+                  "item:slug:fly",
+                  "item:slug:mind-probe",
+                  "item:slug:sending",
+                  "item:slug:scrying",
+                  "item:slug:truesight",
+                  "item:slug:contingency",
+                  "item:slug:spell-riposte",
+                  "item:slug:unrelenting-observation",
+                  "item:slug:seize-soul",
+                  "item:slug:foresight"
+                ]
+              }
+            ],
+            "priority": 119,
+            "property": "other-tags",
+            "value": "runelord-curriculum-spell"
+          }
+        }
+      ],
+      "subfeatures": {
+        "proficiencies": {},
+        "senses": {},
+        "suppressedFeatures": []
+      },
+      "traits": {
+        "rarity": "rare",
+        "value": [
+          "wizard"
+        ]
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "partial",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "aYWPtW5T4Lx07Occ",
+        "packName": "class-features",
+        "unconvertedRules": [
+          {
+            "adjustName": false,
+            "choices": [
+              {
+                "value": "Compendium.pf2e.classfeatures.Item.Envy"
+              },
+              {
+                "value": "Compendium.pf2e.classfeatures.Item.Gluttony"
+              },
+              {
+                "value": "Compendium.pf2e.classfeatures.Item.Greed"
+              },
+              {
+                "value": "Compendium.pf2e.classfeatures.Item.Lust"
+              },
+              {
+                "value": "Compendium.pf2e.classfeatures.Item.Pride"
+              },
+              {
+                "value": "Compendium.pf2e.classfeatures.Item.Sloth"
+              },
+              {
+                "value": "Compendium.pf2e.classfeatures.Item.Wrath"
+              }
+            ],
+            "flag": "sin",
+            "key": "ChoiceSet",
+            "prompt": "PF2E.SpecificRule.Wizard.Runelord.Sin.Prompt",
+            "_conversionState": "unsupported"
+          },
+          {
+            "itemType": "spell",
+            "key": "ItemAlteration",
+            "mode": "add",
+            "predicate": [
+              {
+                "or": [
+                  "item:tag:runelord-sin-spell",
+                  "item:slug:detect-magic",
+                  "item:slug:sigil",
+                  "item:slug:mystic-armor",
+                  "item:slug:runic-body",
+                  "item:slug:runic-weapon",
+                  "item:slug:sure-strike",
+                  "item:slug:darkvision",
+                  "item:slug:see-the-unseen",
+                  "item:slug:clairaudience",
+                  "item:slug:veil-of-privacy",
+                  "item:slug:clairvoyance",
+                  "item:slug:fly",
+                  "item:slug:mind-probe",
+                  "item:slug:sending",
+                  "item:slug:scrying",
+                  "item:slug:truesight",
+                  "item:slug:contingency",
+                  "item:slug:spell-riposte",
+                  "item:slug:unrelenting-observation",
+                  "item:slug:seize-soul",
+                  "item:slug:foresight"
+                ]
+              }
+            ],
+            "priority": 119,
+            "property": "other-tags",
+            "value": "runelord-curriculum-spell",
+            "_conversionState": "partial"
+          }
+        ],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "rune-sigil-rough-white-teal.webp",
             "placeholder": "icons/placeholder/feat.svg"
           }
         ]
