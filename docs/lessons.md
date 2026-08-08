@@ -317,3 +317,67 @@ que ninguém descobre, o que recai na lição "peça implementada ≠ peça alca
 primeiro passo do roteiro. Depois disso, dirigir um navegador de verdade
 (Playwright) e afirmar sobre o que está **renderizado** — não sobre o que está
 no DOM ou no bundle — passou a fazer parte da prova destes itens de UI.
+
+## `emit` sem ack transforma rejeição do servidor em silêncio
+
+**Quando:** item de tokens (2026-08-08), ao descobrir por que arrastar uma
+ficha para o canvas não criava token nenhum.
+
+**O que aconteceu:** `handleCanvasDrop` montava o envelope de `doc:create` à
+mão, com `embedded` e `documents` onde o `DocCreatePayloadSchema` espera
+`parent` e `data`. O servidor recusava com `VALIDATION_FAILED` em todo drop —
+mas a chamada era `sock.emit("op", …)` sem callback de ack, então a recusa não
+tinha para onde ir. Nada no console, nada na tela: o token simplesmente não
+nascia. O mesmo erro de chave já havia sido corrigido meses antes no botão de
+criar ficha, e o comentário dessa correção continuava no repo, a dois arquivos
+de distância.
+
+**Por que engana:** o caminho _parece_ implementado — há handler de dragover,
+há conversão de coordenada, há snap ao grid, há um `emit` no fim. Todo o
+trabalho visível está lá; só o contrato com o servidor está errado. E como
+`emit` sem ack não tem valor de retorno, não existe caminho de código onde a
+falha apareça: nenhum `catch`, nenhum log, nenhum teste vermelho. O bug
+sobrevive a qualquer leitura que pergunte "isso está escrito?" em vez de
+"isso chegou?".
+
+**O que fazer:** duas regras que se reforçam. **Op que muda estado vai por
+`sendOp` (com ack), nunca por `emit` cru** — a rejeição precisa de um lugar
+para aterrissar, mesmo que esse lugar seja um `console.warn`. E **payload de
+rede não se monta à mão em componente**: extrair para função pura e, no teste,
+validar o resultado contra o schema do `shared` (`Schema.parse(payload)`).
+Assim o teste falha no dia em que o contrato muda, em vez de o recurso morrer
+calado em produção. Duplicar o shape em dois lados sem um validador comum é
+combinar uma divergência para depois.
+
+## Durante `dragover` o dado do arrasto não existe — só o tipo
+
+**Quando:** item de tokens (2026-08-08), no teste manual do próprio conserto do
+drop de ficha no canvas: a suíte estava verde, o payload estava certo, e
+arrastar uma ficha para o mapa continuava não fazendo nada.
+
+**O que aconteceu:** `handleCanvasDragOver` decidia se o canvas aceitava o
+arrasto chamando `dataTransfer.getData("application/fusion-actor")`. Pelo
+HTML drag-and-drop spec, durante `dragenter`/`dragover` o drag data store fica
+em **modo protegido**: `getData()` devolve string vazia por mais que o
+`dragstart` tenha escrito lá; só a lista `types` é legível. O dado real só
+volta no `drop`. Como o `getData()` vinha vazio, o handler concluía "não é um
+arrasto meu" e saía sem chamar `preventDefault()` — e sem isso o elemento
+nunca vira alvo de soltura, o browser mostra o cursor de bloqueio e **o evento
+`drop` nunca dispara**.
+
+**Por que engana:** o código do `drop` estava correto e testado — inclusive
+com teste validando o payload contra o schema do servidor. O defeito não
+estava em nenhum dos dois lados que alguém pensaria em olhar; estava no
+guarda que decide se o `drop` chega a existir. Pior: `getData()` é a mesma
+chamada, no mesmo objeto, com a mesma assinatura nos dois handlers — funciona
+num, devolve vazio no outro, sem erro, sem aviso. E o único sintoma é
+ausência: nada acontece. Uma suíte de unidade não vê isso porque não existe
+um browser aplicando o modo protegido; foi preciso arrastar com o mouse.
+
+**O que fazer:** em `dragover`/`dragenter`, decidir **só por
+`dataTransfer.types`** — nunca pelo conteúdo. E a lição mais larga: quando um
+recurso passa por um gesto do usuário no browser (arrastar, colar, soltar
+arquivo, foco), a suíte de unidade prova o cálculo, não o gesto. **Fix de
+interação só está verificado depois de alguém — pessoa ou browser
+automatizado — fazer o gesto de verdade.** Foi o teste manual do usuário que
+pegou este, com a suíte inteira verde.

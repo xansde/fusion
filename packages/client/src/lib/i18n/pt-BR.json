@@ -18,7 +18,18 @@
   "FUSION.Sidebar.Actors.Actions.Open": "Abrir ficha",
   "FUSION.Sidebar.Actors.Actions.Delete": "Excluir ator",
   "FUSION.Sidebar.Actors.Actions.Edit": "Editar",
+  "FUSION.Sidebar.Actors.Actions.Permissions": "Permissões",
   "FUSION.Sidebar.Actors.DragHint": "Arraste para o canvas para criar um token",
+  "FUSION.Ownership.Dialog.Title": "Permissões — {{name}}",
+  "FUSION.Ownership.Dialog.DefaultRowLabel": "Padrão (todos os jogadores)",
+  "FUSION.Ownership.Dialog.Save": "Salvar",
+  "FUSION.Ownership.Dialog.Saving": "Salvando…",
+  "FUSION.Ownership.Dialog.UnexpectedError": "Ocorreu um erro inesperado.",
+  "FUSION.Ownership.Level.Inherit": "Herdar do padrão",
+  "FUSION.Ownership.Level.None": "Nenhum",
+  "FUSION.Ownership.Level.Limited": "Limitado",
+  "FUSION.Ownership.Level.Observer": "Observador",
+  "FUSION.Ownership.Level.Owner": "Dono",
 
   "FUSION.Sidebar.Scenes.Title": "Cenas",
   "FUSION.Sidebar.Scenes.Create": "+ Nova",
@@ -165,6 +176,12 @@
   "FUSION.Canvas.Token.DropActor": "Criar token para {{name}}",
 
   "FUSION.DragDrop.Actor.Hint": "Solte no canvas para criar um token",
+
+  "FUSION.Token.Config.Appearance": "Aparência",
+  "FUSION.Token.Config.Name": "Nome",
+  "FUSION.Token.Config.PreviewAlt": "Prévia do token de {{name}}",
+  "FUSION.Token.Config.ChangeImage": "Trocar imagem",
+  "FUSION.Token.Config.RemoveImage": "Remover imagem",
 
   "FUSION.Window.Close": "Fechar",
   "FUSION.Window.Minimize": "Minimizar",

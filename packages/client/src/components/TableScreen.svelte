@@ -49,14 +49,14 @@
   import { worldMirror } from "../lib/docs/worldSync.js";
   import { registerPf2eSheets } from "../lib/sheets/pf2e/registerPf2eSheets.js";
   import { registerEtmosSheets } from "../lib/sheets/etmos/registerEtmosSheets.js";
-  import {
-    buildTokenFromActorFields,
-    type ActorDragPayload,
-  } from "../lib/actors/actorDirectory.js";
+  import type { ActorDragPayload } from "../lib/actors/actorDirectory.js";
+  import { buildTokenDropPayload, canAcceptCanvasDrop } from "../lib/canvas/tokens/tokenDrop.js";
   import { importToWorld as compendiumImportToWorld } from "../lib/compendium/compendiumApi.js";
   import type { CompendiumDragPayload } from "../lib/compendium/compendiumBrowser.js";
-  import type { SceneDocument } from "@fusion/shared";
+  import type { SceneDocument, TokenDocument } from "@fusion/shared";
   import { t } from "../lib/i18n/i18n.js";
+  import { sendOp } from "../lib/docs/sendOp.js";
+  import TokenConfigDialog from "./scenes/TokenConfigDialog.svelte";
 
   let loggingOut = $state(false);
   let canvasContainer: HTMLElement | null = $state(null);
@@ -101,6 +101,10 @@
   // — and since nobody started one, the remote-ruler receive path never ran
   // either. Disposer removes the window listeners on scene switch.
   let disposeRuler: (() => void) | null = null;
+
+  // Token being configured via double-click (TokenConfigDialog). null when no
+  // dialog is open. Set by TokenInteractionManager's onConfigureToken callback.
+  let configuringToken: TokenDocument | null = $state(null);
 
   async function handleLogout(): Promise<void> {
     if (loggingOut) return;
@@ -253,9 +257,11 @@
     // Only accept actor drags; only GMs can create tokens (permission gate).
     if (!isGm()) return;
     if (!activeSceneState.scene) return;
-    const actorPayload = _getActorDragPayload(event);
-    const compPayload = _getCompendiumDragPayload(event);
-    if (!actorPayload && !compPayload) return;
+    // Decide from `types` only: getData() is blanked during dragover by the
+    // drag data store's protected mode, so reading it here always looked like
+    // "not a drag we handle" and preventDefault() never ran — which is what
+    // stopped the browser from ever firing `drop`. See canAcceptCanvasDrop.
+    if (!canAcceptCanvasDrop(event.dataTransfer?.types)) return;
     event.preventDefault();
     if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
   }
@@ -282,21 +288,15 @@
     if (actorPayload) {
       event.preventDefault();
       const gridSize = scene.grid?.size ?? 100;
-      const fields = buildTokenFromActorFields({
+      const payload = buildTokenDropPayload({
         payload: actorPayload,
         sceneId: scene._id,
         x: worldX,
         y: worldY,
         gridSize,
       });
-      sock.emit("op", {
-        type: "doc:create",
-        ts: Date.now(),
-        payload: {
-          documentType: "Token",
-          embedded: { type: "Token", sceneId: scene._id },
-          documents: [fields],
-        },
+      sendOp(sock, { type: "doc:create", payload }).catch((err: unknown) => {
+        console.warn("[TableScreen] token creation rejected:", err);
       });
       return;
     }
@@ -311,7 +311,7 @@
           const createdId = result.created[0];
           if (!createdId) return;
           const gridSize = scene.grid?.size ?? 100;
-          // Build a minimal actor payload to reuse buildTokenFromActorFields
+          // Build a minimal actor payload to reuse buildTokenDropPayload
           const fakePayload: ActorDragPayload = {
             kind: "actor",
             uuid: createdId,
@@ -321,24 +321,16 @@
             img: compPayload.img,
             origin: "sidebar",
           };
-          const fields = buildTokenFromActorFields({
+          const payload = buildTokenDropPayload({
             payload: fakePayload,
             sceneId: scene._id,
             x: worldX,
             y: worldY,
             gridSize,
           });
-          sock.emit("op", {
-            type: "doc:create",
-            ts: Date.now(),
-            payload: {
-              documentType: "Token",
-              embedded: { type: "Token", sceneId: scene._id },
-              documents: [fields],
-            },
-          });
+          await sendOp(sock, { type: "doc:create", payload });
         } catch (err) {
-          console.error("[TableScreen] Failed to import compendium actor on drop:", err);
+          console.warn("[TableScreen] token creation rejected (compendium actor):", err);
         }
       })();
     }
@@ -525,6 +517,11 @@
           userId,
           userRole,
           ownedActorIds: resolveOwnedActorIds(worldMirror, userId, userRole),
+          // PERMISSION-LIVE FIX: re-resolved on every check instead of the
+          // static snapshot above, so a GM granting ownership mid-session
+          // unlocks the token for the player without a scene reload — see
+          // TokenInteractionOptions.getOwnedActorIds's doc comment.
+          getOwnedActorIds: () => resolveOwnedActorIds(worldMirror, userId, userRole),
           grid,
           // Targeting port for the right-click gesture. Built here — and not
           // imported inside the manager — so the PIXI layer keeps no Svelte
@@ -539,6 +536,10 @@
           },
           onError: (msg) => {
             console.warn("[TableScreen] token move rejected:", msg);
+          },
+          // Double-click a token to open TokenConfigDialog (Appearance / vision / light).
+          onConfigureToken: (token) => {
+            configuringToken = token;
           },
         });
       }
@@ -614,6 +615,10 @@
       sceneOrchestrator.teardown();
       sceneOrchestrator = null;
     }
+
+    // A scene switch invalidates any open TokenConfigDialog — its token no
+    // longer belongs to the (about to be destroyed) interaction manager.
+    configuringToken = null;
   }
 </script>
 
@@ -719,6 +724,20 @@
   <!-- fall through to the map.                                              -->
   <!-- -------------------------------------------------------------------- -->
   <HubLayer />
+
+  <!-- -------------------------------------------------------------------- -->
+  <!-- Token config dialog — opened by double-clicking a token on the       -->
+  <!-- canvas (TokenInteractionManager's onConfigureToken callback).         -->
+  <!-- -------------------------------------------------------------------- -->
+  {#if configuringToken && activeSceneState.scene && getSocket()}
+    <TokenConfigDialog
+      sceneId={activeSceneState.scene._id}
+      token={configuringToken}
+      socket={getSocket()!}
+      onClose={() => { configuringToken = null; }}
+      onSuccess={() => { configuringToken = null; }}
+    />
+  {/if}
 
 </div>
 
