@@ -3159,6 +3159,22 @@ const BACKGROUND_SKILL_SLOT = "backgroundSkill-";
 const BACKGROUND_LORE_SLOT = "backgroundLore-";
 
 /**
+ * The rank persisted straight on `system.skills.<slug>`, 0 when the entry is
+ * absent or malformed.
+ *
+ * A background's own Lore is always persisted at rank 0 (see
+ * `backgroundTrainingOps`) — what makes it trained is the `backgroundLore-N`
+ * build choice, resolved in the derivation. So a persisted rank ABOVE 0 can
+ * only have been put there by the player, through the row's rank `<select>`
+ * (`characterSheetVM.updateSkillRank` → `system.skills.<slug>.rank`), which
+ * leaves no build choice behind to prove it.
+ */
+function persistedSkillRank(persistedSkills: Record<string, unknown>, slug: string): number {
+  const rank = asRecord(persistedSkills[slug])["rank"];
+  return typeof rank === "number" ? rank : 0;
+}
+
+/**
  * backgroundLoreCleanupOps — the `doc:update` that REMOVES the `system.skills`
  * entries the OUTGOING background granted (S2).
  *
@@ -3169,11 +3185,14 @@ const BACKGROUND_LORE_SLOT = "backgroundLore-";
  * its Lore on the sheet forever. `null` inside `system` is deleteKey
  * (REQ-DOC-037, see packages/server/src/documents/merge.ts).
  *
- * Four things must survive the swap, hence the guards below:
+ * Five things must survive the swap, hence the guards below:
  *   - a Lore the INCOMING background grants under the very same key;
  *   - a Lore the player created by hand (`addLoreSkill` — no background choice
  *     points at it, so it is never a candidate);
  *   - a Lore the player invested one of their OWN training/increase slots in;
+ *   - a Lore whose PERSISTED rank the player raised through the row's rank
+ *     `<select>` (see `persistedSkillRank`) — that path writes no build choice,
+ *     so the two guards above are blind to it;
  *   - anything that is not a Lore at all.
  *
  * A legacy sheet holds the Lore under `<subject>-lore` while the incoming
@@ -3191,6 +3210,13 @@ function backgroundLoreCleanupOps(
 
   // Exactly the keys the incoming background is about to (re)write.
   const incomingSlugs = new Set(incoming.lores.map((l) => l.slug));
+  // The LEGACY spelling of each of those keys. Such an entry is still deleted
+  // (that is the free migration described above) even when its rank was raised
+  // by hand, because `backgroundTrainingOps` rewrites the same proficiency —
+  // rank included — under the canonical key in the same batch. Without this
+  // exemption the hand-raised-rank guard below would keep the legacy key alive
+  // next to the canonical one: two rows for one Lore.
+  const incomingLegacySlugs = new Set(incoming.lores.map((l) => legacyLoreSlug(l.label)));
 
   // Candidates come from two sources because either can be incomplete: the
   // embedded background item may be a STALE import (no `trainedSkills`), while
@@ -3218,6 +3244,7 @@ function backgroundLoreCleanupOps(
   for (const slug of candidates) {
     if (incomingSlugs.has(slug)) continue;
     if (playerOwned.has(slug)) continue;
+    if (persistedSkillRank(persistedSkills, slug) > 0 && !incomingLegacySlugs.has(slug)) continue;
     if (!isLoreSlug(slug)) continue;
     if (!(slug in persistedSkills)) continue;
     diff[`system.skills.${slug}`] = null;
@@ -3268,9 +3295,20 @@ function backgroundTrainingOps(
 
   // Each lore needs its persisted `system.skills` entry (lore:true) so the
   // character derivation surfaces it; the build choice raises it to trained.
+  const persistedSkills = asRecord(getSystem(ctx.doc)["skills"]);
   const loreEntries: Record<string, unknown> = {};
   trainings.lores.forEach((lore, i) => {
-    loreEntries[`system.skills.${lore.slug}`] = { rank: 0, lore: true, label: lore.label };
+    // The entry is written whole, so it must never land BELOW what the sheet
+    // already holds: re-selecting the same background would otherwise reset a
+    // rank the player set by hand on the row's rank select back to 0. The
+    // legacy spelling counts as the same proficiency — this write is what
+    // migrates it to the canonical key, so its rank has to ride along.
+    const rank = Math.max(
+      0,
+      persistedSkillRank(persistedSkills, lore.slug),
+      persistedSkillRank(persistedSkills, legacyLoreSlug(lore.label)),
+    );
+    loreEntries[`system.skills.${lore.slug}`] = { rank, lore: true, label: lore.label };
     newChoices.push({
       level: 1,
       slot: `${BACKGROUND_LORE_SLOT}${String(i)}`,
