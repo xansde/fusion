@@ -22,7 +22,7 @@
  * Usage (wiring in TableScreen or sceneLoader):
  *   const mgr = new TokenInteractionManager({
  *     tokenLayer, mirror, sceneId, canvas, socket, userId, userRole,
- *     ownedActorIds, gridConfig,
+ *     ownedActorIds, grid,
  *   });
  *   // In FusionCanvas ticker:
  *   // (nothing — interaction is event-driven)
@@ -38,6 +38,7 @@ import type {
   DocUpdatePayload,
   DocCreatePayload,
   DocDeletePayload,
+  GridStrategy,
 } from "@fusion/shared";
 import { createDocumentId } from "@fusion/shared";
 import type { DocumentMirror } from "../../docs/DocumentMirror.js";
@@ -58,7 +59,6 @@ import {
   rollbackMove,
   resetToIdle,
   canStartDrag,
-  type GridSnapConfig,
   type ArrowDirection,
   type DragMachine,
 } from "./token-interaction.js";
@@ -66,6 +66,26 @@ import {
 // ---------------------------------------------------------------------------
 // Options
 // ---------------------------------------------------------------------------
+
+/**
+ * The slice of targeting this manager needs, injected instead of imported.
+ *
+ * This class is a PIXI shell with no Svelte dependency; importing
+ * combatStore.svelte.ts (runes) here would drag the reactive runtime into the
+ * canvas and into every canvas test. The wiring in TableScreen closes over the
+ * store, the socket and the local userId to build this port.
+ *
+ * `toggle` carries an ABSOLUTE boolean because that is what the wire protocol
+ * carries (combat:target { tokenId, targeted }) — the server has no "flip it"
+ * op, and changing that would be a server change this item does not make. The
+ * client reads its own state and sends the opposite.
+ */
+export interface TargetingPort {
+  /** Whether the LOCAL user currently targets this token. */
+  isTargetedByMe(tokenId: string): boolean;
+  /** Ask the server to set (or clear) the local user's target on this token. */
+  toggle(tokenId: string, targeted: boolean): Promise<void>;
+}
 
 export interface TokenInteractionOptions {
   /** The PIXI container for the token layer. */
@@ -84,14 +104,45 @@ export interface TokenInteractionOptions {
   userId: string;
   /** Logged-in user's role (1=PLAYER, 2=TRUSTED, 3=ASSISTANT, 4=GAMEMASTER). */
   userRole: number;
-  /** Set of actor IDs the user owns (for move permission check). */
+  /**
+   * Set of actor IDs the user owns (for move permission check).
+   *
+   * This is the FALLBACK snapshot, used only when `getOwnedActorIds` is not
+   * provided. Prefer `getOwnedActorIds` for any caller that can recompute the
+   * set live (see that option's doc comment for why).
+   */
   ownedActorIds: ReadonlySet<string>;
-  /** Current grid config for snapping. */
-  gridConfig: GridSnapConfig;
+  /**
+   * Live accessor for the owned-actor set, re-queried on every permission
+   * check instead of once at construction time.
+   *
+   * PERMISSION-LIVE FIX: `ownedActorIds` used to be captured once when the
+   * manager was built (TableScreen's orchestrator wiring). If the GM granted
+   * ownership mid-session, a player's drag/double-click stayed rejected until
+   * the scene reloaded, because canMoveToken() kept consulting the stale
+   * snapshot. When provided, this closure is called on every permission check
+   * instead — TableScreen passes `() => resolveOwnedActorIds(worldMirror,
+   * userId, userRole)`, which reads the live DocumentMirror. Falls back to the
+   * static `ownedActorIds` when omitted (existing callers, tests).
+   */
+  getOwnedActorIds?: () => ReadonlySet<string>;
+  /** The active scene's grid (snapping, measuring, cell conversion). */
+  grid: GridStrategy;
   /** Whether to attach global keyboard listeners (default: true). */
   attachKeyboard?: boolean;
+  /**
+   * Targeting access for the right-click gesture. Optional: without it the
+   * right button is a no-op and the manager stays constructible as before.
+   */
+  targeting?: TargetingPort;
   /** Optional callback to show a toast/notification on error. */
   onError?: (msg: string) => void;
+  /**
+   * Called when the user double-clicks a token they are allowed to move
+   * (same gate as canMoveToken — GM/Assistant always, player only if they
+   * own the token's actor). Optional: without it, double-click is a no-op.
+   */
+  onConfigureToken?: (token: TokenDocument) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -103,6 +154,9 @@ const DRAG_THRESHOLD_PX = 5;
 
 /** Timeout for sendOp acks on token moves (ms). */
 const TOKEN_MOVE_TIMEOUT_MS = 8_000;
+
+/** Maximum gap (ms) between two clicks on the same token to count as a double-click. */
+const DOUBLE_CLICK_MS = 400;
 
 // ---------------------------------------------------------------------------
 // TokenInteractionManager
@@ -127,6 +181,13 @@ export class TokenInteractionManager {
 
   /** Pending ack cleanup fn (to cancel rollback if destroyed during pending). */
   private _pendingCleanup: (() => void) | null = null;
+
+  /**
+   * Last completed click (pointerdown→pointerup with no drag in between) on a
+   * token, used to detect a double-click. Reset after a double-click fires so
+   * a third click does not chain into another config-open.
+   */
+  private _lastClick: { tokenId: string; ts: number } | null = null;
 
   /** True if destroyed. */
   private _destroyed = false;
@@ -182,11 +243,11 @@ export class TokenInteractionManager {
     const world = screenToWorld(centerSx, centerSy, camera);
 
     const snapped = snapTokenToGrid(
-      world.x - (widthCells * this._opts.gridConfig.size) / 2,
-      world.y - (heightCells * this._opts.gridConfig.size) / 2,
+      world.x - (widthCells * this._opts.grid.config.size) / 2,
+      world.y - (heightCells * this._opts.grid.config.size) / 2,
       widthCells,
       heightCells,
-      this._opts.gridConfig,
+      this._opts.grid,
     );
 
     const tokenId = createDocumentId();
@@ -313,6 +374,7 @@ export class TokenInteractionManager {
     }
     this._pendingCleanup?.();
     this._pendingCleanup = null;
+    this._lastClick = null;
 
     // Detach PIXI events
     const { tokenContainer } = this._opts;
@@ -345,8 +407,8 @@ export class TokenInteractionManager {
       const token = this._getToken(tokenId);
       if (!token) return;
 
-      const { userId, userRole, ownedActorIds } = this._opts;
-      const canMove = canMoveToken(token, userId, userRole, ownedActorIds);
+      const { userId, userRole } = this._opts;
+      const canMove = canMoveToken(token, userId, userRole, this._ownedActorIds());
 
       // Always select on click (regardless of move permission)
       this._selectToken(tokenId);
@@ -367,6 +429,17 @@ export class TokenInteractionManager {
       };
 
       e.stopPropagation();
+    });
+
+    // Right button on a token — toggle the local user's target on it.
+    //
+    // "rightdown" is a PIXI event of its own, so the left-button handler above
+    // keeps its `if (e.button !== 0) return` guard untouched and the drag state
+    // machine is never entered by this gesture. The browser context menu is
+    // already suppressed on the canvas container (FusionCanvas), so nothing
+    // pops up over the map.
+    tokenContainer.on("rightdown", (e: FederatedPointerEvent) => {
+      this._handleRightDown(e);
     });
 
     tokenContainer.on("pointermove", (e: FederatedPointerEvent) => {
@@ -398,11 +471,11 @@ export class TokenInteractionManager {
         if (!token) return;
 
         const snapped = snapTokenToGrid(
-          world.x - (token.width * this._opts.gridConfig.size) / 2,
-          world.y - (token.height * this._opts.gridConfig.size) / 2,
+          world.x - (token.width * this._opts.grid.config.size) / 2,
+          world.y - (token.height * this._opts.grid.config.size) / 2,
           token.width,
           token.height,
-          this._opts.gridConfig,
+          this._opts.grid,
         );
 
         this._drag = updateDragPosition(this._drag, snapped.x, snapped.y);
@@ -418,6 +491,9 @@ export class TokenInteractionManager {
 
       if (this._pointerDown.dragging && this._drag.state === "dragging") {
         this._handleDrop();
+      } else if (!this._pointerDown.dragging) {
+        // A genuine click (down→up with no drag in between) — check double-click.
+        this._checkDoubleClick(this._pointerDown.tokenId);
       }
 
       this._pointerDown = null;
@@ -432,6 +508,70 @@ export class TokenInteractionManager {
       }
 
       this._pointerDown = null;
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private — double-click (open TokenConfigDialog)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Two completed clicks (no intervening drag — see the pointerdown/pointermove
+   * handlers, DRAG_THRESHOLD_PX) on the SAME token within DOUBLE_CLICK_MS count
+   * as a double-click and open the config callback.
+   *
+   * No separate permission check here: `_pointerDown` (and therefore this
+   * call) only happens for a token canMoveToken() already allowed — see the
+   * pointerdown handler above — so the double-click gate is exactly
+   * canMoveToken's (GM/Assistant always; player only if they own the actor),
+   * by construction rather than by a duplicated check.
+   */
+  private _checkDoubleClick(tokenId: string): void {
+    const now = Date.now();
+    const last = this._lastClick;
+
+    if (last && last.tokenId === tokenId && now - last.ts < DOUBLE_CLICK_MS) {
+      this._lastClick = null; // reset so a third click doesn't chain
+      const token = this._getToken(tokenId);
+      if (token) this._opts.onConfigureToken?.(token);
+      return;
+    }
+
+    this._lastClick = { tokenId, ts: now };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private — targeting gesture (REQ-CBT-053/054)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Right button over a token: mark it as my target, or unmark it if it
+   * already is one. Multiple targets are supported by construction (the server
+   * keeps a Set per user), so marking a second token does not clear the first.
+   *
+   * No permission check on purpose: the server requires neither a role nor
+   * ownership to target (targets are scoped per user and are purely visual),
+   * so a client-side gate here would invent a rule the server does not have.
+   *
+   * No optimistic state either: the reticle appears when the token:targeted
+   * broadcast comes back. Unlike a drag, nothing has to follow the pointer.
+   */
+  private _handleRightDown(e: FederatedPointerEvent): void {
+    if (this._destroyed) return;
+
+    const { targeting } = this._opts;
+    if (!targeting) return;
+
+    const tokenId = this._getTokenIdFromTarget(e.target);
+    if (!tokenId) return; // right-click on empty canvas: nothing, not even a deselect
+
+    e.stopPropagation();
+
+    const targeted = !targeting.isTargetedByMe(tokenId);
+    void targeting.toggle(tokenId, targeted).catch((err: unknown) => {
+      if (this._destroyed) return;
+      const reason = err instanceof Error ? err.message : String(err);
+      this._opts.onError?.(`Failed to update target: ${reason}`);
     });
   }
 
@@ -563,13 +703,13 @@ export class TokenInteractionManager {
       const token = this._getToken(selectedId);
       if (!token) return;
 
-      const { userId, userRole, ownedActorIds } = this._opts;
-      if (!canMoveToken(token, userId, userRole, ownedActorIds)) return;
+      const { userId, userRole } = this._opts;
+      if (!canMoveToken(token, userId, userRole, this._ownedActorIds())) return;
       if (!canStartDrag(this._drag, selectedId)) return;
 
       e.preventDefault(); // prevent scroll
 
-      const newPos = arrowMoveToken(token.x, token.y, dir, this._opts.gridConfig);
+      const newPos = arrowMoveToken(token.x, token.y, dir, this._opts.grid);
       const requestId = createDocumentId();
 
       // Simulate a complete drag cycle in one step
@@ -634,6 +774,16 @@ export class TokenInteractionManager {
   private _getToken(tokenId: string): TokenDocument | undefined {
     const scene = this._opts.mirror.getDoc<SceneDocument>("Scene", this._opts.sceneId);
     return scene?.tokens.find((t) => t._id === tokenId);
+  }
+
+  /**
+   * Resolve the owned-actor set to use for THIS permission check: the live
+   * `getOwnedActorIds()` accessor when provided, otherwise the static
+   * snapshot captured at construction. See `getOwnedActorIds`'s doc comment
+   * on TokenInteractionOptions for why the live path exists.
+   */
+  private _ownedActorIds(): ReadonlySet<string> {
+    return this._opts.getOwnedActorIds?.() ?? this._opts.ownedActorIds;
   }
 
   private _getTokenIdFromTarget(target: Container | null): string | null {

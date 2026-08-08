@@ -2678,7 +2678,12 @@ export function applyClass(
   // creating them immediately here, unchanged.
   if (classSystem.spellcasting?.tradition) {
     ops.push(
-      buildSpellcastingEntryOp(ctx, classSystem.spellcasting, classSystem.spellcasting.tradition, level),
+      buildSpellcastingEntryOp(
+        ctx,
+        classSystem.spellcasting,
+        classSystem.spellcasting.tradition,
+        level,
+      ),
     );
   }
 
@@ -2695,7 +2700,13 @@ export function applyClass(
   // choice resolves the tradition.
   if (hasFocusFeature(classSystem)) {
     if (classSystem.spellcasting?.tradition) {
-      ops.push(buildFocusEntryOp(ctx, classSystem.spellcasting.ability, classSystem.spellcasting.tradition));
+      ops.push(
+        buildFocusEntryOp(
+          ctx,
+          classSystem.spellcasting.ability,
+          classSystem.spellcasting.tradition,
+        ),
+      );
     } else if (!classSystem.spellcasting) {
       const fallback = NON_SPELLCASTER_FOCUS_TRADITION[itemName(classDoc) ?? ""];
       if (fallback) {

@@ -15,6 +15,10 @@
   import type { TokenDocument } from "@fusion/shared";
   import { sendOp } from "../../lib/docs/sendOp.js";
   import { tokenDiffPath } from "@fusion/shared";
+  import { t } from "../../lib/i18n/i18n.js";
+  import FilePicker from "../assets/FilePicker.svelte";
+  import ActorPortrait from "../common/ActorPortrait.svelte";
+  import { fusionApi } from "../../lib/api.js";
 
   // ---- Props ----
 
@@ -33,6 +37,12 @@
   } = $props();
 
   // ---- State ----
+
+  // Appearance (name + texture). Persisted through the same submit as
+  // vision/light, via tokenDiffPath — no separate save action.
+  let tokenName = $state<string>(token.name);
+  let tokenTexture = $state<string | null>(token.texture);
+  let showFilePicker = $state(false);
 
   // Vision
   let visionEnabled = $state<boolean>(
@@ -92,6 +102,8 @@
             {
               _id: sceneId,
               diff: {
+                [tokenDiffPath(token._id, "name")]: tokenName,
+                [tokenDiffPath(token._id, "texture")]: tokenTexture,
                 [tokenDiffPath(token._id, "vision" as any)]: {
                   enabled: visionEnabled,
                   range: isNaN(rangeVal as number) ? null : rangeVal,
@@ -141,6 +153,51 @@
   </header>
 
   <form class="dialog__body" onsubmit={handleSubmit} novalidate>
+
+    <!-- ====== Appearance Section ====== -->
+    <fieldset class="section">
+      <legend class="section__title">{t("FUSION.Token.Config.Appearance")}</legend>
+
+      <div class="field">
+        <label class="field__label" for="tok-name">{t("FUSION.Token.Config.Name")}</label>
+        <input
+          id="tok-name"
+          class="field__input"
+          type="text"
+          bind:value={tokenName}
+          disabled={submitting}
+        />
+      </div>
+
+      <div class="appearance-row">
+        <ActorPortrait
+          img={tokenTexture}
+          name={tokenName}
+          size={56}
+          label={t("FUSION.Token.Config.PreviewAlt", { name: tokenName })}
+        />
+        <div class="appearance-actions">
+          <button
+            type="button"
+            class="btn btn--ghost btn--sm"
+            onclick={() => { showFilePicker = true; }}
+            disabled={submitting}
+          >
+            {t("FUSION.Token.Config.ChangeImage")}
+          </button>
+          {#if tokenTexture}
+            <button
+              type="button"
+              class="btn btn--ghost btn--sm"
+              onclick={() => { tokenTexture = null; }}
+              disabled={submitting}
+            >
+              {t("FUSION.Token.Config.RemoveImage")}
+            </button>
+          {/if}
+        </div>
+      </div>
+    </fieldset>
 
     <!-- ====== Vision Section ====== -->
     <fieldset class="section">
@@ -274,6 +331,14 @@
     </footer>
   </form>
 </dialog>
+
+{#if showFilePicker}
+  <FilePicker
+    token={fusionApi.getToken() ?? ""}
+    onSelect={(path) => { tokenTexture = path; showFilePicker = false; }}
+    onClose={() => { showFilePicker = false; }}
+  />
+{/if}
 
 <style>
   .dialog-backdrop {
@@ -459,5 +524,22 @@
     background: transparent;
     border-color: var(--fusion-border);
     color: var(--fusion-text-muted);
+  }
+
+  .btn--sm {
+    font-size: 0.8125rem;
+    padding: 0.3rem 0.75rem;
+  }
+
+  .appearance-row {
+    align-items: center;
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .appearance-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
   }
 </style>

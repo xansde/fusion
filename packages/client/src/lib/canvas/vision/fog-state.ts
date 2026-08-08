@@ -262,6 +262,9 @@ export class FogState {
     return {
       explored: this._explored,
       currentVisionRings: this._currentVisionRings,
+      // A FogState only exists for players in scenes with fog on — the creation
+      // policy lives in TableScreen._createOrchestrator + sceneReloadKey.ts
+      // (REQ-VIS-085) — so `!isGm` is true by construction here.
       fogActive: !this._isGm,
       sceneId: this._sceneId,
     };

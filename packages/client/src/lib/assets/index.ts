@@ -17,9 +17,15 @@ export {
   formatBytes,
   isImageExtension,
   MAX_UPLOAD_BYTES,
+  MAX_BYTES_BY_KIND,
   ALLOWED_EXTENSIONS,
+  acceptAttrFor,
+  formatsLabelFor,
+  maxBytesFor,
+  assetKindFromMime,
+  filterAssetsByKinds,
 } from "./clientValidation.js";
-export type { ValidationResult } from "./clientValidation.js";
+export type { ValidationResult, AssetKind } from "./clientValidation.js";
 
 export {
   createUploadState,
