@@ -775,16 +775,22 @@ describe("MVP packs", { skip: OUT_MISSING }, () => {
     }
   });
 
-  it("ancestries-core has the 8 Player Core ancestries plus the legacy Ratfolk and Fleshwarp (issue #1)", () => {
+  it("ancestries-core has the 8 Player Core + 8 Player Core 2 ancestries plus the legacy Fleshwarp (issue #1)", () => {
     // Issue #1: ancestries-core used to carry ONLY the R10-B/R18-N2a fixtures
     // (Ratfolk, Fleshwarp) — every other PF2e sheet had zero playable
     // ancestry. isAncestriesCoreDoc now also selects every
     // system.publication.title === "Pathfinder Player Core" ancestry;
     // Ratfolk/Fleshwarp stay in for backward compatibility with the
     // Magus/Finn fixtures.
+    //
+    // Player Core 2 (this change) adds the other 7 remaster ancestries —
+    // Ratfolk was already in, by legacy curation, and is a Player Core 2
+    // ancestry, so the union grows by 7, not 8: 8 (PC1) + 8 (PC2) + Fleshwarp
+    // (Lost Omens Ancestry Guide, legacy) = 17.
     const docs = loadJson(join(PACKS_DIR, "ancestries-core", "documents.json"));
     const names = docs.map((d) => d.name);
     for (const expected of [
+      // Player Core
       "Dwarf",
       "Elf",
       "Gnome",
@@ -793,23 +799,32 @@ describe("MVP packs", { skip: OUT_MISSING }, () => {
       "Human",
       "Leshy",
       "Orc",
+      // Player Core 2
+      "Catfolk",
+      "Hobgoblin",
+      "Kholo",
+      "Kobold",
+      "Lizardfolk",
       "Ratfolk",
+      "Tengu",
+      "Tripkee",
+      // legacy curation
       "Fleshwarp",
     ]) {
       assert.ok(names.includes(expected), `${expected} ancestry missing`);
     }
-    assert.equal(docs.length, 10);
+    assert.equal(docs.length, 17);
   });
 
-  it("heritages-core has the 7 Ratfolk heritages (including Snow Rat) plus Sylph plus the Player Core heritages of the 8 core ancestries (issue #1)", () => {
+  it("heritages-core has every Player Core + Player Core 2 heritage (ancestry-linked AND versatile) plus the legacy Sylph (issue #1)", () => {
     const docs = loadJson(join(PACKS_DIR, "heritages-core", "documents.json"));
     assert.ok(docs.some((d) => d.name === "Snow Rat"));
     assert.ok(
       docs.some((d) => d.name === "Sylph"),
       "Sylph heritage missing",
     );
-    // Every one of the 8 Player Core ancestries must have at least one
-    // heritage, or the ancestry's "Choose a Heritage" slot opens empty.
+    // Every curated ancestry must have at least one heritage, or the
+    // ancestry's "Choose a Heritage" slot opens empty.
     const coreSlugs = [
       "dwarf",
       "elf",
@@ -819,6 +834,14 @@ describe("MVP packs", { skip: OUT_MISSING }, () => {
       "human",
       "leshy",
       "orc",
+      "catfolk",
+      "hobgoblin",
+      "kholo",
+      "kobold",
+      "lizardfolk",
+      "ratfolk",
+      "tengu",
+      "tripkee",
     ];
     for (const slug of coreSlugs) {
       assert.ok(
@@ -826,6 +849,32 @@ describe("MVP packs", { skip: OUT_MISSING }, () => {
         `no heritage found for ancestry "${slug}"`,
       );
     }
+    // Versatile heritages carry NO ancestry linkage (system.ancestry === null),
+    // so the ancestry-slug branch above can never select them. Before this
+    // change the predicate had ONLY that branch, and the 4 versatile heritages
+    // of Player Core 1 itself were silently absent from the pack.
+    for (const versatile of [
+      // Player Core
+      "Aiuvarin",
+      "Changeling",
+      "Dromaar",
+      "Nephilim",
+      // Player Core 2
+      "Dhampir",
+      "Dragonblood",
+      "Duskwalker",
+    ]) {
+      const doc = docs.find((d) => d.name === versatile);
+      assert.ok(doc, `versatile heritage "${versatile}" missing`);
+      assert.equal(
+        doc.system?.ancestry ?? null,
+        null,
+        `"${versatile}" should be a versatile heritage (system.ancestry === null)`,
+      );
+    }
+    // 45 PC1 ancestry-linked + 4 PC1 versatile + 54 PC2 ancestry-linked
+    // + 3 PC2 versatile + Sylph (legacy) = 107.
+    assert.equal(docs.length, 107);
   });
 
   it("backgrounds-core has the 40 Player Core backgrounds plus the legacy Fireworks Performer and Aeronaut (issue #1)", () => {

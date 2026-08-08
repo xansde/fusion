@@ -849,19 +849,51 @@ describe("packs-validation: issue #1 — Player Core ancestries/backgrounds/heri
     "Orc",
   ];
 
+  // The other 7 remaster ancestries — Ratfolk, the 8th, was already curated as
+  // a Magus/Finn legacy fixture and is asserted by the regression guard below.
+  const PLAYER_CORE_2_ANCESTRY_NAMES = [
+    "Catfolk",
+    "Hobgoblin",
+    "Kholo",
+    "Kobold",
+    "Lizardfolk",
+    "Tengu",
+    "Tripkee",
+  ];
+
+  const CURATED_ANCESTRY_NAMES = [
+    ...PLAYER_CORE_ANCESTRY_NAMES,
+    ...PLAYER_CORE_2_ANCESTRY_NAMES,
+    "Ratfolk",
+  ];
+
+  // Versatile heritages belong to NO ancestry (system.ancestry === null), so
+  // they are unreachable by any ancestry-slug filter — the exact reason they
+  // were absent from the pack until this change.
+  const VERSATILE_HERITAGE_NAMES = [
+    // Player Core
+    "Aiuvarin",
+    "Changeling",
+    "Dromaar",
+    "Nephilim",
+    // Player Core 2
+    "Dhampir",
+    "Dragonblood",
+    "Duskwalker",
+  ];
+
   const ancestries = loadDocuments("ancestries-core");
   const heritages = loadDocuments("heritages-core");
   const backgrounds = loadDocuments("backgrounds-core");
 
-  it("ancestries-core contains all 8 Player Core ancestries, each with valid hp/speed/boosts", () => {
+  it("ancestries-core contains all 8 Player Core + 8 Player Core 2 ancestries, each with valid hp/speed/boosts", () => {
     const byName = new Map(ancestries.map((a) => [a.name, a]));
-    const missing = PLAYER_CORE_ANCESTRY_NAMES.filter((name) => !byName.has(name));
-    expect(
-      missing,
-      `ancestries-core missing Player Core ancestries: ${missing.join(", ")}`,
-    ).toEqual([]);
+    const missing = CURATED_ANCESTRY_NAMES.filter((name) => !byName.has(name));
+    expect(missing, `ancestries-core missing curated ancestries: ${missing.join(", ")}`).toEqual(
+      [],
+    );
 
-    for (const name of PLAYER_CORE_ANCESTRY_NAMES) {
+    for (const name of CURATED_ANCESTRY_NAMES) {
       const system = parseAncestrySystem(byName.get(name)!.system);
       expect(system.hp, `${name}: ancestry hp must be > 0`).toBeGreaterThan(0);
       expect(system.speed, `${name}: ancestry speed must be > 0`).toBeGreaterThan(0);
@@ -872,9 +904,13 @@ describe("packs-validation: issue #1 — Player Core ancestries/backgrounds/heri
     }
   });
 
-  it("every Player Core ancestry has at least one corresponding heritage in heritages-core", () => {
+  it("ancestries-core has exactly the 16 remaster ancestries plus the legacy Fleshwarp", () => {
+    expect(ancestries.length).toBe(17);
+  });
+
+  it("every curated ancestry has at least one corresponding heritage in heritages-core", () => {
     const missing: string[] = [];
-    for (const name of PLAYER_CORE_ANCESTRY_NAMES) {
+    for (const name of CURATED_ANCESTRY_NAMES) {
       const slug = name.toLowerCase();
       const own = heritages.filter(
         (h) => (h.system as { ancestry?: { slug?: string } }).ancestry?.slug === slug,
@@ -884,6 +920,25 @@ describe("packs-validation: issue #1 — Player Core ancestries/backgrounds/heri
     expect(missing, `ancestries with no heritage in heritages-core: ${missing.join(", ")}`).toEqual(
       [],
     );
+  });
+
+  it("heritages-core carries the 7 versatile heritages, which belong to no ancestry", () => {
+    const byName = new Map(heritages.map((h) => [h.name, h]));
+    const missing = VERSATILE_HERITAGE_NAMES.filter((name) => !byName.has(name));
+    expect(missing, `heritages-core missing versatile heritages: ${missing.join(", ")}`).toEqual(
+      [],
+    );
+
+    for (const name of VERSATILE_HERITAGE_NAMES) {
+      const ancestry = (byName.get(name)!.system as { ancestry?: unknown }).ancestry ?? null;
+      expect(ancestry, `${name} must be versatile (system.ancestry === null)`).toBeNull();
+    }
+  });
+
+  it("heritages-core has exactly the Player Core 1+2 heritages plus the legacy Sylph", () => {
+    // 45 PC1 ancestry-linked + 4 PC1 versatile + 54 PC2 ancestry-linked
+    // + 3 PC2 versatile + Sylph (Lost Omens Ancestry Guide, legacy) = 107.
+    expect(heritages.length).toBe(107);
   });
 
   it("backgrounds-core contains the 40 Player Core backgrounds", () => {
