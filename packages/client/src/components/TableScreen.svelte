@@ -46,6 +46,10 @@
   import { attachPing } from "../lib/presence/attachPing.js";
   import { attachPresenceSync } from "../lib/presence/attachPresenceSync.js";
   import GridCalibrationPanel from "./scenes/GridCalibrationPanel.svelte";
+  import SceneImagesPanel from "./scenes/SceneImagesPanel.svelte";
+  import { TileLayer } from "../lib/canvas/TileLayer.js";
+  import { resolveAssetUrl } from "../lib/assets/assetApi.js";
+  import { fusionApi } from "../lib/api.js";
   import { LightingRenderer } from "../lib/canvas/vision/LightingRenderer.js";
   import { FogState } from "../lib/canvas/vision/fog-state.js";
   import { CombatCanvasController } from "../lib/canvas/combat/combatCanvasController.js";
@@ -127,6 +131,10 @@
   function closeGridCalibration(): void {
     calibrationCanvas = null;
   }
+
+  // Scene images panel (GM): which images the scene is composed of and when
+  // each one appears.
+  let showingSceneImages = $state(false);
 
   // Token being configured via double-click (TokenConfigDialog). null when no
   // dialog is open. Set by TokenInteractionManager's onConfigureToken callback.
@@ -626,6 +634,16 @@
       console.error("[TableScreen] ping failed to wire:", err);
     }
 
+    // --- Tiles (the extra images a scene is composed from) ---
+    // Signed asset URLs expire, so the resolver runs per load rather than the
+    // path being stored resolved. Players never receive hidden tiles at all.
+    const tileLayer = new TileLayer(canvas.getLayer("tiles"), async (path) => {
+      const accessToken = fusionApi.getToken();
+      const tileUserId = session.user?.id;
+      if (!accessToken || !tileUserId) return path;
+      return resolveAssetUrl(path, accessToken, tileUserId);
+    });
+
     return new SceneOrchestrator({
       scene,
       mirror: worldMirror,
@@ -635,6 +653,7 @@
       lightingRenderer,
       fogState,
       combatController,
+      tileLayer,
     });
   }
 
@@ -699,6 +718,17 @@
     <NoSceneOverlay isGm={isGm()} />
   {/if}
 
+  <!-- Scene images: which images compose the scene and when each appears -->
+  {#if showingSceneImages && activeSceneState.scene}
+    <SceneImagesPanel
+      scene={activeSceneState.scene}
+      socket={getSocket()}
+      onClose={() => {
+        showingSceneImages = false;
+      }}
+    />
+  {/if}
+
   <!-- Grid calibration: box on the map + panel with the derived numbers -->
   {#if calibrationCanvas && activeSceneState.scene}
     <GridCalibrationPanel
@@ -750,7 +780,18 @@
       </div>
     {/if}
 
-    <!-- Grid calibration (GM, with an active scene) -->
+    <!-- Scene images + grid calibration (GM, with an active scene) -->
+    {#if isGm() && activeSceneState.scene}
+      <button
+        class="btn btn--ghost btn--sm"
+        onclick={() => {
+          showingSceneImages = !showingSceneImages;
+        }}
+        aria-pressed={showingSceneImages}
+      >
+        {t("FUSION.Scene.Images.Open")}
+      </button>
+    {/if}
     {#if isGm() && activeSceneState.scene && canvasReady}
       <button
         class="btn btn--ghost btn--sm"

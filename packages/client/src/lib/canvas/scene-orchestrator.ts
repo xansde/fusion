@@ -84,6 +84,14 @@ export interface ICombatController {
   destroy(): void;
 }
 
+/**
+ * Minimal interface for the TileLayer — the extra images a scene is composed of.
+ */
+export interface ITileLayer {
+  sync(tiles: readonly unknown[]): void;
+  destroy(): void;
+}
+
 // ---------------------------------------------------------------------------
 // Options
 // ---------------------------------------------------------------------------
@@ -105,6 +113,8 @@ export interface SceneOrchestratorOptions {
   fogState: FogState | null;
   /** Injected combat controller. Null if no active combat. */
   combatController: ICombatController | null;
+  /** Injected tile layer. Null when the canvas is unavailable. */
+  tileLayer?: ITileLayer | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -127,6 +137,7 @@ export class SceneOrchestrator {
   private _lightingRenderer: ILightingRenderer;
   private _fogState: FogState | null;
   private _combatController: ICombatController | null;
+  private _tileLayer: ITileLayer | null;
 
   private _visionComputer = new VisionStateComputer();
 
@@ -152,6 +163,7 @@ export class SceneOrchestrator {
     this._lightingRenderer = opts.lightingRenderer;
     this._fogState = opts.fogState;
     this._combatController = opts.combatController;
+    this._tileLayer = opts.tileLayer ?? null;
   }
 
   // ---------------------------------------------------------------------------
@@ -208,6 +220,7 @@ export class SceneOrchestrator {
 
     this._combatController?.destroy();
     this._tokenLayer.destroy();
+    this._tileLayer?.destroy();
     this._lightingRenderer.destroy();
 
     this._visionComputer.clearAll();
@@ -233,6 +246,14 @@ export class SceneOrchestrator {
    * Determines what changed (walls/lights vs tokens only) and recomputes vision.
    */
   private _onSceneChange(scene: SceneDocument): void {
+    // Tiles first: they are pure scenery, independent of vision, and showing
+    // one is the most frequent scene edit a GM makes mid-session. Reconciled
+    // by id inside the layer, so this is cheap even though it runs on every
+    // scene change. Same runtime-absence guard as `grid` below — scenes
+    // persisted before tiles existed have no array at all.
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    this._tileLayer?.sync(scene.tiles ?? []);
+
     const walls = scene.walls;
     const tokens = scene.tokens;
     const ambientLights = (scene as Record<string, unknown>)["lights"] as

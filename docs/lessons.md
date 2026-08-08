@@ -381,3 +381,68 @@ arquivo, foco), a suíte de unidade prova o cálculo, não o gesto. **Fix de
 interação só está verificado depois de alguém — pessoa ou browser
 automatizado — fazer o gesto de verdade.** Foi o teste manual do usuário que
 pegou este, com a suíte inteira verde.
+
+## Zod `.extend()` sem `.passthrough()` apaga o campo que ninguém declarou
+
+**Quando:** implementação do grid calibrável (2026-08-08).
+
+**O que aconteceu:** o `SceneSchema` do servidor
+(`packages/server/src/documents/types.ts`) declarava `name`, `width`,
+`height`, `padding`, `background`, `tokens`, `walls`, `lights`… e **não
+declarava `grid`**. Como o schema é montado com `.extend()` e sem
+`.passthrough()`, o Zod remove toda chave não declarada. Resultado: o grid
+inteiro da cena era descartado em **toda** escrita. O GM ajustava o tamanho da
+célula, o ack voltava `ok: true`, e a cena recarregava com os 100 px do
+default. Não havia erro em lugar nenhum — o dado simplesmente não existia do
+outro lado da validação.
+
+**Por que engana:** existiam **dois** schemas de Scene, um no `@fusion/shared`
+(completo, com `grid`) e outro no servidor (parcial). Todo mundo que olhou o
+tipo `SceneDocument` viu `grid` como campo obrigatório com default — o
+TypeScript concordava, a UI mandava o diff certo, o handler expandia
+`"grid.size"` corretamente, e o teste do `applyDotPathDiff` passava. A perda
+acontecia uma camada abaixo, no `validateDocument()`, que é justamente onde
+ninguém procura um dado sumindo.
+
+Havia pistas: `scene.grid?.size ?? 100` aparece com comentário defensivo em
+pelo menos três arquivos do canvas, cada um explicando que "o tipo diz que
+sempre existe, mas em runtime pode faltar". Três pessoas contornaram o
+sintoma; ninguém perguntou **por que** faltava.
+
+**O que fazer:**
+
+- Schema duplicado é dívida com juros. Quando o servidor precisa validar um
+  documento que o `shared` já descreve, **importar o schema compartilhado** —
+  como já era feito com `WallDocumentSchema` e `AmbientLightDocumentSchema`.
+- Um `?? default` defensivo sobre um campo que o tipo garante não é um
+  contorno: é o relatório de um bug ainda não investigado. Da próxima vez que
+  escrever um, rastreie até a origem antes de commitar.
+- Ao ligar validação onde antes não havia, **os campos obrigatórios sem
+  default viram rejeição**. Aqui, quatro testes E2E que mandavam
+  `{ type, size }` sem `distance`/`units` passaram a falhar — o correto foi dar
+  default a esses campos, não exigi-los: quem manda `{ size: 140 }` está
+  declarando um tamanho de célula, não recusando ter uma distância.
+
+## Esconder no cliente não é esconder
+
+**Quando:** cena composta por várias imagens (2026-08-08).
+
+**O que aconteceu:** ao modelar as imagens extras da cena (`tiles`), a opção
+barata era mandar todas para todo mundo e deixar o cliente não desenhar as
+marcadas como `hidden`. O mapa do porão, a versão "depois da explosão" do
+pátio, a sala atrás da porta — tudo entregue ao navegador do jogador,
+esperando que ele se comporte.
+
+**Por que engana:** visualmente é idêntico. A imagem não aparece na tela, o
+GM vê "escondida" no painel, e o comportamento parece correto em qualquer
+teste que se faça pela interface. A diferença só existe no DevTools do
+jogador — e no fato de que o produto **prometeu** ao GM que estava escondido.
+
+**O que fazer:** conteúdo oculto sai do payload no servidor, pelos **quatro**
+caminhos de emissão (`buildSnapshot`, `broadcastToWorld`, `filterOpsForRole`,
+`redactAckResultForNonPrivileged`), usando o `redaction.ts` canônico. Foi o
+que já custou duas rodadas de correção no M1-C com token oculto: três
+caminhos fechados e o quarto — o eco do ack de volta para quem pediu —
+vazando a Scene inteira. E o gate de papel também muda: `tile` é GM-only, não
+TRUSTED+ como token, porque quem pode revelar uma imagem pode estragar a cena
+que o GM montou.
