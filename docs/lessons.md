@@ -230,3 +230,36 @@ validar o resultado contra o schema do `shared` (`Schema.parse(payload)`).
 Assim o teste falha no dia em que o contrato muda, em vez de o recurso morrer
 calado em produção. Duplicar o shape em dois lados sem um validador comum é
 combinar uma divergência para depois.
+
+## Durante `dragover` o dado do arrasto não existe — só o tipo
+
+**Quando:** item de tokens (2026-08-08), no teste manual do próprio conserto do
+drop de ficha no canvas: a suíte estava verde, o payload estava certo, e
+arrastar uma ficha para o mapa continuava não fazendo nada.
+
+**O que aconteceu:** `handleCanvasDragOver` decidia se o canvas aceitava o
+arrasto chamando `dataTransfer.getData("application/fusion-actor")`. Pelo
+HTML drag-and-drop spec, durante `dragenter`/`dragover` o drag data store fica
+em **modo protegido**: `getData()` devolve string vazia por mais que o
+`dragstart` tenha escrito lá; só a lista `types` é legível. O dado real só
+volta no `drop`. Como o `getData()` vinha vazio, o handler concluía "não é um
+arrasto meu" e saía sem chamar `preventDefault()` — e sem isso o elemento
+nunca vira alvo de soltura, o browser mostra o cursor de bloqueio e **o evento
+`drop` nunca dispara**.
+
+**Por que engana:** o código do `drop` estava correto e testado — inclusive
+com teste validando o payload contra o schema do servidor. O defeito não
+estava em nenhum dos dois lados que alguém pensaria em olhar; estava no
+guarda que decide se o `drop` chega a existir. Pior: `getData()` é a mesma
+chamada, no mesmo objeto, com a mesma assinatura nos dois handlers — funciona
+num, devolve vazio no outro, sem erro, sem aviso. E o único sintoma é
+ausência: nada acontece. Uma suíte de unidade não vê isso porque não existe
+um browser aplicando o modo protegido; foi preciso arrastar com o mouse.
+
+**O que fazer:** em `dragover`/`dragenter`, decidir **só por
+`dataTransfer.types`** — nunca pelo conteúdo. E a lição mais larga: quando um
+recurso passa por um gesto do usuário no browser (arrastar, colar, soltar
+arquivo, foco), a suíte de unidade prova o cálculo, não o gesto. **Fix de
+interação só está verificado depois de alguém — pessoa ou browser
+automatizado — fazer o gesto de verdade.** Foi o teste manual do usuário que
+pegou este, com a suíte inteira verde.
