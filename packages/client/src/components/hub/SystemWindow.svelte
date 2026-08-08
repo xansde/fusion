@@ -23,6 +23,7 @@
 
   import type { Snippet } from "svelte";
   import { HUB_SURFACE_CLASS } from "$lib/hub/layers.js";
+  import { nextDomId } from "$lib/hub/domIds.js";
 
   /** Which register the Sistema is speaking in. */
   export type SystemWindowTone = "system" | "rumour" | "good" | "bad";
@@ -57,7 +58,11 @@
   // Unique per instance so several panels can be open without their titles
   // fighting over one id — `aria-labelledby` would otherwise point at whichever
   // node happened to mount last.
-  const titleId = `fusion-sw-title-${crypto.randomUUID()}`;
+  //
+  // NOT `crypto.randomUUID()`: that is secure-context only, so it works on
+  // localhost and throws when the GM serves the table over plain HTTP on the
+  // LAN — which is the normal way this app is used.
+  const titleId = nextDomId("fusion-sw-title");
 </script>
 
 <section class="sw {HUB_SURFACE_CLASS} tone-{tone}" aria-labelledby={titleId}>

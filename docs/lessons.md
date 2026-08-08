@@ -502,3 +502,38 @@ mereça teste, porque o client roda Vitest com `environment: "node"` e não mont
 componente — um `.svelte` gordo é código sem lint, sem format e sem teste; (c)
 ao afirmar "gates limpos", diga sobre quais arquivos, já que a resposta honesta
 hoje exclui todo `.svelte` e todo `.css`.
+
+## O servidor serve o `index.html` que leu no boot, não o que está no disco
+
+**Quando:** demonstração da System Window no mundo `isekai` (2026-08-08) —
+tela preta para o usuário.
+
+**O que aconteceu:** o servidor subiu, e depois o client foi reconstruído para
+incluir uma correção. O Vite esvazia `dist/` e regera os bundles com hash novo.
+O servidor continuou entregando o `index.html` do boot, que aponta para
+`assets-client/index-<hash-antigo>.js` — arquivo que não existe mais. Resultado:
+`GET /` responde **200**, o `<script>` seguinte responde **404**, nada monta e a
+página fica preta.
+
+**Por que engana:** o único sintoma é "tela preta". O `/health` responde,
+`GET /` responde 200, o log não tem nenhum erro — só um 404 solitário no meio de
+dezenas de 200, que passa batido. E `curl` na raiz parece confirmar que está
+tudo certo, porque o HTML volta íntegro; ele só aponta para o lugar errado.
+
+**Como diagnosticar em 10 segundos:** compare o que o servidor entrega com o
+que existe no disco.
+
+```
+curl -s http://<host>:33000/ | grep -o 'assets-client/index-[^"]*\.js'
+ls packages/client/dist/assets-client/ | grep -E '^index-.*\.js$'
+```
+
+Nomes diferentes = servidor obsoleto. Confirme pedindo o arquivo que o HTML
+cita e vendo o 404.
+
+**O que fazer:** rebuild do client com o servidor no ar **exige reiniciar o
+servidor**. E, ao reiniciar, matar o processo antigo de verdade: o mundo tem
+lock por PID, então o novo morre com `WorldLockedError: World "isekai" is
+already in use by process <pid>` se o anterior ainda estiver vivo. Vale também
+para o navegador do outro lado: `Ctrl+Shift+R`, porque o `index.html` antigo
+pode estar no cache dele.
