@@ -10,15 +10,21 @@
  *   assetStore.loading         — true while fetching the list
  *   assetStore.fetchError      — string | null
  *   assetStore.searchQuery     — reactive search string (bound by FilePicker)
- *   assetStore.filtered        — assets filtered by searchQuery
+ *   assetStore.filtered        — assets filtered by searchQuery (text only —
+ *                                 kind filtering is the caller's job, see
+ *                                 filterAssetsByKinds in clientValidation.ts)
  *   assetStore.uploads         — Map<File, UploadState> for in-flight uploads
  *   assetStore.loadAssets(token)   — fetch list from server
- *   assetStore.startUpload(token, file, onDone) — upload + refresh list
+ *   assetStore.startUpload(token, file, onDone, kinds) — upload + refresh
+ *                                 list; kinds, when given, rejects a file
+ *                                 whose extension maps outside it before any
+ *                                 network call (wi-mapa-som-01 review §3)
+ *   assetStore.removeAsset(token, name) — GM-only delete + list update
  *   assetStore.setSearch(q)    — update search query
  */
 
-import { listAssets, uploadAsset, type AssetEntry } from "./assetApi.js";
-import { validateFileForUpload } from "./clientValidation.js";
+import { listAssets, uploadAsset, deleteAsset, type AssetEntry } from "./assetApi.js";
+import { validateFileForUpload, type AssetKind } from "./clientValidation.js";
 import {
   createUploadState,
   toValidating,
@@ -79,14 +85,21 @@ async function loadAssets(token: string): Promise<void> {
  * @param file     File from input or drag-drop.
  * @param onDone   Called with the path of the uploaded asset on success.
  *                 The path is the safe filename (e.g. "goblin-a3b4c5d6.webp").
+ * @param kinds    Optional: the kinds the calling picker offers. When given,
+ *                 a file outside those kinds is rejected here — same error
+ *                 slot as any other validation failure — before it ever
+ *                 reaches uploadAsset(). This is what makes drag-and-drop and
+ *                 the file input honor `kinds`, not just the browse dialog's
+ *                 `accept` (wi-mapa-som-01 review §3).
  */
 async function startUpload(
   token: string,
   file: File,
   onDone?: (path: string) => void,
+  kinds?: readonly AssetKind[],
 ): Promise<void> {
   // Client-side validation (UX anticipation — not security)
-  const validation = validateFileForUpload(file);
+  const validation = validateFileForUpload(file, kinds);
 
   if (!validation.ok) {
     _uploadsMap.set(file, toError(toValidating(file), validation.message));
@@ -129,6 +142,22 @@ async function startUpload(
 
 function setSearch(query: string): void {
   _searchQuery = query;
+}
+
+/**
+ * Delete an asset (GM-only, enforced server-side) and drop it from the
+ * reactive list on success.
+ *
+ * On failure `_assets` is left untouched and the error propagates to the
+ * caller — the FilePicker surfaces it in its own error line rather than this
+ * store owning a UI-shaped error slot for a single-shot action.
+ *
+ * @param token  Bearer token.
+ * @param name   Asset filename, as listed in `assets`/`filtered`.
+ */
+async function removeAsset(token: string, name: string): Promise<void> {
+  await deleteAsset(token, name);
+  _assets = _assets.filter((a) => a.name !== name);
 }
 
 function clearUploadError(file: File): void {
@@ -179,6 +208,7 @@ export const assetStore = {
 
   loadAssets,
   startUpload,
+  removeAsset,
   setSearch,
   clearUploadError,
 };

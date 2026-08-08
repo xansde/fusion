@@ -22,6 +22,8 @@ export {
   acceptAttrFor,
   formatsLabelFor,
   maxBytesFor,
+  assetKindFromMime,
+  filterAssetsByKinds,
 } from "./clientValidation.js";
 export type { ValidationResult, AssetKind } from "./clientValidation.js";
 

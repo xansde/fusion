@@ -9,6 +9,13 @@
  * Rules:
  *   - Extension must be in the allowed list (PNG, JPEG, WebP, SVG, MP3, OGG).
  *   - File size must not exceed the cap of its media kind.
+ *   - When a picker narrows itself to specific `kinds` (e.g. an audio-only
+ *     picker), a file whose extension maps to a kind outside that set is
+ *     rejected too — see the optional `kinds` param on
+ *     {@link validateFileForUpload}. This closes the gap from wi-mapa-som-01
+ *     review §3: `kinds` used to narrow only the system file dialog's
+ *     `accept`, so drag-and-drop and the grid stayed global — an image
+ *     picker would happily upload (and auto-select) a dropped .mp3.
  *
  * The numbers below are a COPY of `packages/server/src/assets/upload-limits.ts`,
  * which is the authority: it decides 413/415 for real, from the detected bytes,
@@ -85,10 +92,21 @@ export type ValidationResult =
  * the error immediately when the user selects or drops a file. The size cap
  * depends on the kind the extension maps to, matching the server.
  *
- * @param file  The File from input/drag-drop.
- * @returns     { ok: true } or { ok: false, reason, message }.
+ * @param file   The File from input/drag-drop.
+ * @param kinds  Optional: the kinds the CALLING PICKER offers. When given, a
+ *               file whose extension maps to a kind outside this set is
+ *               rejected here — before the extension is even checked against
+ *               the size cap — so an audio-only picker refuses a dropped
+ *               .png with a message naming the picker's scope, the same way
+ *               it would refuse an unrecognized extension. Omit to fall back
+ *               to the full allowlist (both kinds), matching pre-kinds
+ *               behavior.
+ * @returns      { ok: true } or { ok: false, reason, message }.
  */
-export function validateFileForUpload(file: File): ValidationResult {
+export function validateFileForUpload(
+  file: File,
+  kinds?: readonly AssetKind[],
+): ValidationResult {
   const ext = getExtension(file.name);
   const entry = ext ? ALLOWED_EXTENSIONS[ext] : undefined;
 
@@ -97,6 +115,15 @@ export function validateFileForUpload(file: File): ValidationResult {
       ok: false,
       reason: "extension",
       message: `File type not supported. Allowed formats: ${allFormatsLabel()}.`,
+    };
+  }
+
+  if (kinds && !kinds.includes(entry.kind)) {
+    const scope = kinds.map((k) => KIND_LABEL[k]).join("/");
+    return {
+      ok: false,
+      reason: "extension",
+      message: `${file.name}: not allowed in this picker (${scope} only).`,
     };
   }
 
@@ -165,6 +192,43 @@ export function maxBytesFor(kinds: readonly AssetKind[]): number {
 /** Every allowed format, for the "type not supported" message. */
 function allFormatsLabel(): string {
   return formatsLabelFor(["image", "audio"]);
+}
+
+// ---------------------------------------------------------------------------
+// Grid filtering — the same "kinds" contract the browse dialog and drop zone
+// use, applied to the asset list so the grid can't show a card the picker
+// wouldn't otherwise accept (wi-mapa-som-01 review §3).
+// ---------------------------------------------------------------------------
+
+/**
+ * Classify a MIME type into the kind it belongs to, purely from its prefix.
+ * Returns undefined for anything that isn't image/* or audio/* — an unknown
+ * kind never matches a `kinds` filter, so it is excluded from a scoped grid
+ * rather than guessed into one.
+ */
+export function assetKindFromMime(mimeType: string): AssetKind | undefined {
+  if (mimeType.startsWith("image/")) return "image";
+  if (mimeType.startsWith("audio/")) return "audio";
+  return undefined;
+}
+
+/**
+ * Filter a list of assets down to the ones whose kind (derived from
+ * `mime_type`) is in `kinds`. Used by the FilePicker to render the grid —
+ * an image picker never shows an .mp3 card, an audio picker never shows a
+ * .png card.
+ *
+ * Generic over any object with a `mime_type` field so this module doesn't
+ * need to import `AssetEntry` from assetApi.ts.
+ */
+export function filterAssetsByKinds<T extends { mime_type: string }>(
+  assets: readonly T[],
+  kinds: readonly AssetKind[],
+): T[] {
+  return assets.filter((asset) => {
+    const kind = assetKindFromMime(asset.mime_type);
+    return kind !== undefined && kinds.includes(kind);
+  });
 }
 
 // ---------------------------------------------------------------------------
