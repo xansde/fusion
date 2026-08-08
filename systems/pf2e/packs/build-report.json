@@ -28,7 +28,7 @@
     {
       "packId": "pf2e.class-features-core",
       "slug": "class-features-core",
-      "documentCount": 259
+      "documentCount": 262
     },
     {
       "packId": "pf2e.feats-core",
@@ -48,7 +48,7 @@
     {
       "packId": "pf2e.backgrounds-core",
       "slug": "backgrounds-core",
-      "documentCount": 42
+      "documentCount": 43
     },
     {
       "packId": "pf2e.actions-core",
@@ -71,7 +71,7 @@
       "documentCount": 55
     }
   ],
-  "generatedAt": "2026-08-02T20:43:39.319Z",
+  "generatedAt": "2026-08-08T19:45:28.451Z",
   "importerVersion": "0.1.0",
   "sourceVersion": "v14-dev"
 }

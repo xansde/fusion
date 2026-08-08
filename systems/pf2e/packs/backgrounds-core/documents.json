@@ -2453,6 +2453,67 @@
     }
   },
   {
+    "_id": "FusionSmuggler01",
+    "name": "Smuggler",
+    "type": "background",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "boosts": [
+        "free",
+        "free"
+      ],
+      "description": "<p>You know how to smuggle people in and out of countries.</p>\n<p>Choose two attribute boosts. One must be to <strong>Dexterity</strong> or <strong>Charisma</strong>, and one is a free attribute boost.</p>\n<p>You're trained in the Stealth skill and the Underworld Lore skill. You gain the @UUID[Compendium.pf2e.feats-srd.Item.Experienced Smuggler] skill feat.</p>",
+      "items": {
+        "smugg": {
+          "img": "icons/placeholder/feat.svg",
+          "level": 1,
+          "name": "Experienced Smuggler",
+          "uuid": "Compendium.pf2e.feats-srd.Item.Experienced Smuggler"
+        }
+      },
+      "publication": {
+        "license": "OGL",
+        "remaster": false,
+        "title": "Pathfinder Lost Omens World Guide"
+      },
+      "rules": [],
+      "trainedSkills": {
+        "lore": [
+          "Underworld Lore"
+        ],
+        "value": [
+          "stealth"
+        ]
+      },
+      "traits": {
+        "rarity": "common",
+        "value": []
+      },
+      "skills": {
+        "stealth": {
+          "value": 1
+        }
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "authored",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "authored",
+        "sourceId": "FusionSmuggler01",
+        "packName": "backgrounds",
+        "unconvertedRules": [],
+        "assetSubstitutions": [],
+        "authored": {
+          "reason": "absent from foundryvtt/pf2e, Archives of Nethys and Pf2eTools",
+          "book": "Lost Omens World Guide",
+          "transcribedFrom": "Pathbuilder 2e (owner's sheet, 2026-08-08)",
+          "nearestVendorNeighbour": "Black Market Smuggler (different boost pair)"
+        }
+      }
+    }
+  },
+  {
     "_id": "zR1zWtzCC3yd5apL",
     "name": "Street Urchin",
     "type": "background",

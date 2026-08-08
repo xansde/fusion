@@ -112,9 +112,6 @@ const LACUNAS: Readonly<Record<string, string>> = {
   // Bloco 4 — no firearm was ever published to weapons-core.
   "conteudo:weapons-core/Slide Pistol": "bloco 4 — 0 de 106 armas de fogo publicadas",
 
-  // Bloco 5 — Smuggler (LO:WG) is absent from all three canonical sources.
-  "conteudo:backgrounds-core/Smuggler": "bloco 5 — escrever à mão (Dex|Cha + livre)",
-
   // Found while measuring this sheet: the Elf's own sense is not a document in
   // ANY pack, which hits every low-light ancestry, not just this one.
   "conteudo:ancestry-features-core/Low-Light Vision": "achado novo — sentido sem documento",
@@ -205,6 +202,9 @@ describe("ficha-alvo: export real do Pathbuilder (Fofurinha, Gunslinger/Spellsho
     const presentes: ReadonlyArray<readonly [string, string]> = [
       ["ancestries-core", "Elf"],
       ["heritages-core", "Ancient Elf"],
+      // Authored, not selected — no vendor carries it. See
+      // SMUGGLER_AUTHORED_DOC in tools/importer-pf2e/src/build-mvp-subset.mjs.
+      ["backgrounds-core", "Smuggler"],
       ["feats-core", "Nimble Elf"],
       ["feats-core", "Experienced Smuggler"],
       ["feats-core", "Alchemical Crafting"],

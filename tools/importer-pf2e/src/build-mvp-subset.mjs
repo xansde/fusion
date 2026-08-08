@@ -549,6 +549,98 @@ const AERONAUT_CURATED_ITEMS = {
 };
 
 /**
+ * Smuggler (Lost Omens World Guide) — an AUTHORED document, not a selection.
+ *
+ * Every other doc in every pack is SELECTED from a vendor source. This one has
+ * no source to select from: "Smuggler" exists in none of the three canonical
+ * bases. Measured on 2026-08-08 —
+ *
+ *   - foundryvtt/pf2e (our vendor pin): absent from `backgrounds/`;
+ *   - the Archives of Nethys `aon` index: absent (73 LO:WG backgrounds, and
+ *     this is not one of them);
+ *   - Pf2eTools: absent.
+ *
+ * The nearest neighbour is `Black Market Smuggler` (World Guide p.58, OGL):
+ * same book, same trained skills (Stealth + Underworld Lore), same granted
+ * feat (Experienced Smuggler) — but its boost pair is Charisma|Wisdom, NOT
+ * Dexterity|Charisma. That is not a cosmetic difference. A Dexterity boost
+ * from the background is load-bearing for the owner's target sheet: five
+ * Dexterity boosts are what produce Dex 19 at level 1 (the fifth lands on an
+ * 18 and yields +1). With Charisma|Wisdom the same build stops at Dex 17, so
+ * substituting the neighbour silently produces a different character.
+ *
+ * Text transcribed from the owner's Pathbuilder entry (2026-08-08), which
+ * cites "LO: WG". ONE deliberate deviation from that transcription: it reads
+ * "ability boosts" (legacy vocabulary) and this doc says "attribute boosts",
+ * because every other document in these packs uses the remaster vocabulary and
+ * the pt-BR glossary is built on it — mixing the two shows up as inconsistent
+ * text on the sheet.
+ *
+ * Identity: `flags.fusion.sourceId` is the project's document identity (never
+ * the name). An authored doc has no vendor id to carry, so it gets a stable
+ * synthetic one, and `conversion: "authored"` marks it as not-from-a-vendor so
+ * a future integrity sweep can tell the difference between "authored" and
+ * "lost its provenance".
+ *
+ * @see AERONAUT_CURATED_ITEMS for the weaker precedent (curating a FIELD of a
+ * vendor doc). This is the first whole document we author.
+ */
+const SMUGGLER_AUTHORED_DOC = {
+  _id: "FusionSmuggler01",
+  name: "Smuggler",
+  type: "background",
+  img: "icons/placeholder/feat.svg",
+  system: {
+    // ["free","free"] mirrors the vendor's own shape for its structural twin
+    // (Criminal): the "one must be Dexterity or Charisma" restriction lives in
+    // the prose only and is not enforced structurally by any vendor
+    // background. Modelling the pair here would make this doc the only one in
+    // the pack with a constraint the builder does not yet read.
+    boosts: ["free", "free"],
+    description:
+      "<p>You know how to smuggle people in and out of countries.</p>\n" +
+      "<p>Choose two attribute boosts. One must be to <strong>Dexterity</strong> or " +
+      "<strong>Charisma</strong>, and one is a free attribute boost.</p>\n" +
+      "<p>You're trained in the Stealth skill and the Underworld Lore skill. You gain the " +
+      "@UUID[Compendium.pf2e.feats-srd.Item.Experienced Smuggler] skill feat.</p>",
+    items: {
+      smugg: {
+        img: "icons/placeholder/feat.svg",
+        level: 1,
+        name: "Experienced Smuggler",
+        uuid: "Compendium.pf2e.feats-srd.Item.Experienced Smuggler",
+      },
+    },
+    publication: {
+      license: "OGL",
+      remaster: false,
+      title: "Pathfinder Lost Omens World Guide",
+    },
+    rules: [],
+    trainedSkills: { lore: ["Underworld Lore"], value: ["stealth"] },
+    traits: { rarity: "common", value: [] },
+    skills: { stealth: { value: 1 } },
+  },
+  flags: {
+    fusion: {
+      conversion: "authored",
+      importerVersion: IMPORTER_VERSION,
+      sourceVersion: "authored",
+      sourceId: "FusionSmuggler01",
+      packName: "backgrounds",
+      unconvertedRules: [],
+      assetSubstitutions: [],
+      authored: {
+        reason: "absent from foundryvtt/pf2e, Archives of Nethys and Pf2eTools",
+        book: "Lost Omens World Guide",
+        transcribedFrom: "Pathbuilder 2e (owner's sheet, 2026-08-08)",
+        nearestVendorNeighbour: "Black Market Smuggler (different boost pair)",
+      },
+    },
+  },
+};
+
+/**
  * pf2e.actions-core curation (W2, r11-follow-up): vendor `actions/` physical
  * subfolders to INCLUDE, keyed by the `system.fusionCategory` value injected
  * in normalize.mjs. Every tabletop-relevant category is kept; excluded:
@@ -1475,6 +1567,20 @@ async function buildPf2eSubset() {
           "[build-mvp] backgrounds-core: injected Assurance free-feat grant into Aeronaut (vendor items{} was empty)",
         );
       }
+    }
+
+    // Smuggler (LO:WG) is AUTHORED, not selected — no vendor source carries it.
+    // Idempotent: a future vendor snapshot that ships a real "Smuggler" wins,
+    // and this injection becomes a no-op instead of creating a homonym pair.
+    if (!docs.some((d) => d.name === SMUGGLER_AUTHORED_DOC.name)) {
+      docs.push(structuredClone(SMUGGLER_AUTHORED_DOC));
+      // The vendor selection comes out sorted by name; re-sort so the authored
+      // doc lands in place instead of at the tail (keeps documents.json diffs
+      // readable when the next background is added).
+      docs.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+      console.log(
+        "[build-mvp] backgrounds-core: injected AUTHORED Smuggler (LO:WG — absent from vendor, AoN and Pf2eTools)",
+      );
     }
 
     console.log(
