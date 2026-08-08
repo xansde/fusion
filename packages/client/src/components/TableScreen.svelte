@@ -53,9 +53,10 @@
   import { buildTokenDropPayload } from "../lib/canvas/tokens/tokenDrop.js";
   import { importToWorld as compendiumImportToWorld } from "../lib/compendium/compendiumApi.js";
   import type { CompendiumDragPayload } from "../lib/compendium/compendiumBrowser.js";
-  import type { SceneDocument } from "@fusion/shared";
+  import type { SceneDocument, TokenDocument } from "@fusion/shared";
   import { t } from "../lib/i18n/i18n.js";
   import { sendOp } from "../lib/docs/sendOp.js";
+  import TokenConfigDialog from "./scenes/TokenConfigDialog.svelte";
 
   let loggingOut = $state(false);
   let canvasContainer: HTMLElement | null = $state(null);
@@ -100,6 +101,10 @@
   // — and since nobody started one, the remote-ruler receive path never ran
   // either. Disposer removes the window listeners on scene switch.
   let disposeRuler: (() => void) | null = null;
+
+  // Token being configured via double-click (TokenConfigDialog). null when no
+  // dialog is open. Set by TokenInteractionManager's onConfigureToken callback.
+  let configuringToken: TokenDocument | null = $state(null);
 
   async function handleLogout(): Promise<void> {
     if (loggingOut) return;
@@ -510,6 +515,11 @@
           userId,
           userRole,
           ownedActorIds: resolveOwnedActorIds(worldMirror, userId, userRole),
+          // PERMISSION-LIVE FIX: re-resolved on every check instead of the
+          // static snapshot above, so a GM granting ownership mid-session
+          // unlocks the token for the player without a scene reload — see
+          // TokenInteractionOptions.getOwnedActorIds's doc comment.
+          getOwnedActorIds: () => resolveOwnedActorIds(worldMirror, userId, userRole),
           grid,
           // Targeting port for the right-click gesture. Built here — and not
           // imported inside the manager — so the PIXI layer keeps no Svelte
@@ -524,6 +534,10 @@
           },
           onError: (msg) => {
             console.warn("[TableScreen] token move rejected:", msg);
+          },
+          // Double-click a token to open TokenConfigDialog (Appearance / vision / light).
+          onConfigureToken: (token) => {
+            configuringToken = token;
           },
         });
       }
@@ -599,6 +613,10 @@
       sceneOrchestrator.teardown();
       sceneOrchestrator = null;
     }
+
+    // A scene switch invalidates any open TokenConfigDialog — its token no
+    // longer belongs to the (about to be destroyed) interaction manager.
+    configuringToken = null;
   }
 </script>
 
@@ -704,6 +722,20 @@
   <!-- fall through to the map.                                              -->
   <!-- -------------------------------------------------------------------- -->
   <HubLayer />
+
+  <!-- -------------------------------------------------------------------- -->
+  <!-- Token config dialog — opened by double-clicking a token on the       -->
+  <!-- canvas (TokenInteractionManager's onConfigureToken callback).         -->
+  <!-- -------------------------------------------------------------------- -->
+  {#if configuringToken && activeSceneState.scene && getSocket()}
+    <TokenConfigDialog
+      sceneId={activeSceneState.scene._id}
+      token={configuringToken}
+      socket={getSocket()!}
+      onClose={() => { configuringToken = null; }}
+      onSuccess={() => { configuringToken = null; }}
+    />
+  {/if}
 
 </div>
 

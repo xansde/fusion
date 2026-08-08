@@ -166,6 +166,12 @@
 
   "FUSION.DragDrop.Actor.Hint": "Drop on canvas to create a token",
 
+  "FUSION.Token.Config.Appearance": "Appearance",
+  "FUSION.Token.Config.Name": "Name",
+  "FUSION.Token.Config.PreviewAlt": "Token preview for {{name}}",
+  "FUSION.Token.Config.ChangeImage": "Change image",
+  "FUSION.Token.Config.RemoveImage": "Remove image",
+
   "FUSION.Window.Close": "Close",
   "FUSION.Window.Minimize": "Minimize",
   "FUSION.Window.Restore": "Restore",
