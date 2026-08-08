@@ -90,7 +90,13 @@ let _onSessionExpired: (() => void) | null = null;
  */
 async function rawFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
-  headers.set("Content-Type", "application/json");
+  // Only declare a JSON body when one is actually sent. Fastify rejects a
+  // bodyless POST that claims Content-Type: application/json before the
+  // handler runs (FST_ERR_CTP_EMPTY_JSON_BODY), which used to kill
+  // /api/auth/refresh and /api/auth/logout.
+  if (init.body !== undefined && init.body !== null) {
+    headers.set("Content-Type", "application/json");
+  }
   if (_accessToken) {
     headers.set("Authorization", `Bearer ${_accessToken}`);
   }

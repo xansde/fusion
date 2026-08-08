@@ -92,8 +92,28 @@ export function checkDoc({ nameEn, descriptionEn, entry, glossary }) {
   if (!entry) return failures; // no translation yet — not a QA failure, just untranslated.
 
   const descriptionPt = entry.description;
-  const hasDescriptionEn = Boolean(descriptionEn);
   const hasDescriptionPt = descriptionPt !== undefined && descriptionPt !== "";
+  // "EN has a description" must mean EN has TEXT to translate — a doc whose
+  // description is empty markup (`<p></p>`) has nothing to translate and must
+  // not be reported as a gap.
+  const enTextLength = descriptionEn ? stripHtmlToText(descriptionEn).trim().length : 0;
+  const hasDescriptionEn = enTextLength > 0;
+
+  // 0. missing-description (issue #27) — EN carries prose and the translation
+  // came back empty. This is the failure mode that let 679 empty descriptions
+  // reach the packs while the QA reported success: the old gate only ran its
+  // checks when BOTH sides had a description, and the single `else if` branch
+  // covered the INVERSE case (PT without EN).
+  //
+  // `noDescription: true` is the explicit escape hatch for a doc deliberately
+  // left name-only despite EN prose — without it, "not translated yet" and
+  // "intentionally has no prose" are the same empty string and the gate would
+  // be noise instead of signal.
+  if (hasDescriptionEn && !hasDescriptionPt && entry.noDescription !== true) {
+    failures.push(
+      `missing-description: EN has ${enTextLength} chars of prose but PT description is ${descriptionPt === undefined ? "absent" : "empty"} (set noDescription: true if intentional)`,
+    );
+  }
 
   // Only run description-level checks when both sides have a description.
   // (name-only translations, i.e. entry.description === undefined, pass

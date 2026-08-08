@@ -2678,7 +2678,12 @@ export function applyClass(
   // creating them immediately here, unchanged.
   if (classSystem.spellcasting?.tradition) {
     ops.push(
-      buildSpellcastingEntryOp(ctx, classSystem.spellcasting, classSystem.spellcasting.tradition, level),
+      buildSpellcastingEntryOp(
+        ctx,
+        classSystem.spellcasting,
+        classSystem.spellcasting.tradition,
+        level,
+      ),
     );
   }
 
@@ -2695,7 +2700,13 @@ export function applyClass(
   // choice resolves the tradition.
   if (hasFocusFeature(classSystem)) {
     if (classSystem.spellcasting?.tradition) {
-      ops.push(buildFocusEntryOp(ctx, classSystem.spellcasting.ability, classSystem.spellcasting.tradition));
+      ops.push(
+        buildFocusEntryOp(
+          ctx,
+          classSystem.spellcasting.ability,
+          classSystem.spellcasting.tradition,
+        ),
+      );
     } else if (!classSystem.spellcasting) {
       const fallback = NON_SPELLCASTER_FOCUS_TRADITION[itemName(classDoc) ?? ""];
       if (fallback) {
@@ -2775,8 +2786,11 @@ function buildFocusEntryOp(
         tradition: { value: tradition },
         // Focus spells cast with the class's SPELLCASTING ability (Magus
         // conflux = INT), not the key ability (r11 fix — Pathbuilder's
-        // focus block confirms int for Tobias).
-        ability: { value: ability ?? "int" },
+        // focus block confirms int for Tobias). No `?? "int"` fallback: the
+        // parameter is a required string and every caller reads it from a
+        // typed source, so the fallback was unreachable — and its sibling
+        // buildSpellcastingEntryOp never had one either (issue #69).
+        ability: { value: ability },
         proficiency: { value: 1 },
         slots: {},
         isFocusPool: true,

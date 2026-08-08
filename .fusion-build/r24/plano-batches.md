@@ -21,10 +21,28 @@ motor de regras) correm em paralelo a ela.
 
 ---
 
-## B0 — Gates e instrumentação (4 issues)
+## B0 — Gates e instrumentação (6 issues)
 
-**Issues:** #2, #48, #27, #35
+**Issues:** #2, #48, #27, #35, #68, #69
 **Tamanho:** M · **Depende de:** nada · **Lane:** livre
+
+**#68 e #69 entraram durante a execução do batch**, e no lugar certo: são gates
+quebrados, exatamente o tema daqui. Rodar os gates do B0 revelou que `Format check` e
+`Lint` já reprovavam na `build/app` antes de qualquer branch de batch existir — ou seja,
+**nenhum PR da esteira fecharia verde**, inclusive o próprio B0.
+
+- **#68** — o `.prettierignore` ignora `tools/importer-pf2e/out/**` mas esqueceu o irmão
+  `tools/translate-packs/out/**`, e nunca cobriu `systems/pf2e/packs/**`. Dos 163
+  arquivos reprovados, ~157 são artefato gerado; só 6 são código de verdade.
+- **#69** — um `no-unnecessary-condition` em `planVM.ts`. Era `ability ?? "int"` sobre um
+  parâmetro `string` obrigatório: fallback inalcançável, e o irmão
+  `buildSpellcastingEntryOp` nunca teve um. Resolvida.
+
+**#68 fica aberta com um remanescente de 2 arquivos.** O ignore derrubou 163 → 2, mas
+`planVM.ts` e `class-levels-spellcasting.test.ts` estão sob edição ativa pela #66.
+Reformatar o `planVM.ts` custaria 689 linhas de diff cosmético no arquivo mais disputado
+do repo — exatamente o conflito que a esteira de PRs existe para evitar. Fazer assim que
+a #66 assentar; até lá, o `Format check` segue vermelho por esses dois.
 
 Por que primeiro: nenhum batch posterior é verificável sem isto. #48 é a lição-mestra
 da r22 — o teste das 12 classes confere a derivação contra a tabela do próprio pack,
@@ -42,7 +60,7 @@ Ordem: #2 → #48 → #27 → #35.
 ## B1 — Identidade e resolução de documento (7 issues)
 
 **Issues:** #41, #14, #44, #47, #15, #57, #58
-**Tamanho:** M · **Depende de:** B0(#35) · **Lane:** livre
+**Tamanho:** M · **Depende de:** B0 · **Lane:** livre
 
 Uma família só: **parar de resolver documento por nome**. #41 publica
 `flags.fusion.sourceId` nos indexFields — hoje a resolução por sourceId é código morto,
@@ -220,21 +238,41 @@ Vem por último da lane `planVM` justamente pelo aviso da própria issue: é ond
 parte das 60 issues da r22, e misturar defeito novo com defeito velho no mesmo arquivo
 custa caro.
 
+> **Em curso fora deste plano (2026-08-02).** Há trabalho da #66 sendo feito em paralelo
+> direto na `build/app` — `planVM.ts`, `PlanColumn.svelte`, `CharacterSheet.svelte`,
+> `SpellsTab.svelte`, os dois `i18n/*.json` e testes novos (`class-levels-plan.test.ts`,
+> `class-levels-spellcasting.test.ts`). Se esse trabalho seguir, B9 deixa de ser um batch
+> a executar e vira só o fechamento da issue — mas **B4 e B7 passam a conflitar com ele**,
+> porque disputam o mesmo `planVM.ts`. Alinhar antes de abrir B4.
+
+---
+
+## B10 — Issue-mãe (1 issue)
+
+**Issue:** #61
+**Tamanho:** P · **Depende de:** B2..B8 · **Lane:** livre
+
+Não é trabalho: é o fechamento da épica da varredura r22 quando os 60 achados estiverem
+resolvidos. Fica registrada como batch próprio só para que a contagem feche — 68 issues
+abertas, todas em algum batch.
+
 ---
 
 ## Ondas de execução
 
 Três lanes: **planVM** (serial), **packs/conteúdo** e **mechanics/livre**.
 
-| Onda | planVM (serial) | Lane B | Lane C |
-| --- | --- | --- | --- |
-| 1 | — | **B0** gates | — |
-| 2 | — | **B1** identidade | — |
-| 3 | **B4** derivações | **B2** packs | **B6** motor de regras |
-| 4 | **B7** pré-requisitos | **B3** i18n | **B5** foco e magias |
-| 5 | **B9** multiclasse UI | **B8** sub-escolhas | — |
+| Onda | planVM (serial) | Lane B | Lane C | estado |
+| --- | --- | --- | --- | --- |
+| 1 | — | **B0** gates | — | PR #67 |
+| 2 | — | **B1** identidade | — | próximo |
+| 3 | **B4** derivações | **B2** packs | **B6** motor de regras | |
+| 4 | **B7** pré-requisitos | **B3** i18n | **B5** foco e magias | |
+| 5 | **B9** multiclasse UI | **B8** sub-escolhas | — | em curso fora do plano |
+| 6 | — | **B10** fechar #61 | — | |
 
-Fechar **#61** (issue-mãe) quando os 60 filhos estiverem fechados.
+Um PR por batch, sempre contra `build/app` — nunca contra `main`. Um por vez também no
+merge: é o que evita conflito, já que vários batches disputam os mesmos arquivos.
 
 ## Decisões de produto que travam trabalho
 
