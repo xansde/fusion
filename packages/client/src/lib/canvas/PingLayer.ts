@@ -131,7 +131,9 @@ export class PingLayer {
   destroy(): void {
     if (this._destroyed) return;
     this._destroyed = true;
-    this._root.destroy({ children: true });
+    // See GridCalibrationLayer: the parent layer may have destroyed this
+    // container already, and PIXI throws on a second destroy.
+    if (!this._root.destroyed) this._root.destroy({ children: true });
   }
 }
 

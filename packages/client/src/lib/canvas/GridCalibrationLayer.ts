@@ -87,6 +87,9 @@ export class GridCalibrationLayer {
   destroy(): void {
     if (this._destroyed) return;
     this._destroyed = true;
-    this._root.destroy({ children: true });
+    // `destroyed` guards the case where the parent layer tore this container
+    // down first (scene teardown races the panel unmounting): PIXI throws on a
+    // second destroy, and the panel's own cleanup must not be what crashes.
+    if (!this._root.destroyed) this._root.destroy({ children: true });
   }
 }
