@@ -446,3 +446,29 @@ caminhos fechados e o quarto — o eco do ack de volta para quem pediu —
 vazando a Scene inteira. E o gate de papel também muda: `tile` é GM-only, não
 TRUSTED+ como token, porque quem pode revelar uma imagem pode estragar a cena
 que o GM montou.
+
+## As coordenadas da cena não começam em (0,0)
+
+**Quando:** primeira vez que uma imagem extra (tile) foi colocada numa cena
+real, jogando o argiburgo (2026-08-08).
+
+**O que aconteceu:** a imagem nova foi criada em `x: 0, y: 0` com o tamanho da
+cena — o que parece obviamente "cobrir o mapa" — e apareceu deslocada 250 px
+para cima e para a esquerda. O `sceneLoader` desenha o background em
+`(padX, padY)`, onde `padX = round(scene.width * scene.padding)`: a cena tem
+uma borda de padding em volta do mapa (0.25 por default), e o mapa começa
+depois dela. `(0,0)` é o canto do **padding**, não o canto do mapa.
+
+**Por que engana:** `width`/`height` da cena são as dimensões do MAPA, não do
+espaço de coordenadas — o espaço total é `width * (1 + 2*padding)`. Então
+`{x: 0, y: 0, width: scene.width, height: scene.height}` mistura duas origens
+diferentes e lê como correto em qualquer revisão de código. Nenhum teste pega:
+o valor é internamente consistente, só não é o mesmo que o do background. E
+com padding 0 — que é o que um fixture de teste tende a usar — o bug some.
+
+**O que fazer:** qualquer coisa posicionada "sobre o mapa" parte de
+`(padX, padY)`, não da origem. Existe `defaultTileRect()` em
+`tileController.ts` devolvendo esse retângulo; use-o em vez de recalcular. E a
+lição mais larga: quando dois subsistemas põem coisas no mesmo espaço, o
+segundo tem que **ler de onde o primeiro colocou**, não deduzir de onde
+deveria ser.

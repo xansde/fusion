@@ -25,6 +25,8 @@
     sortTiles,
     tilesOf,
     nextTileSort,
+    defaultTileRect,
+    alignTileToMap,
   } from "../../lib/scenes/tileController.js";
   import { t } from "../../lib/i18n/index.js";
 
@@ -75,15 +77,13 @@
         scene._id,
         {
           // Named after the file so the list is readable before the GM renames
-          // anything; sized and placed to cover the scene, which is what a
-          // second version of the map wants and the easiest thing to adjust
-          // from if it is not.
+          // anything, and placed exactly over the background — which starts at
+          // the padding border, NOT at the scene origin. A second version of
+          // the same map is the common case and has to land on top of the
+          // first one, not one padding up and to the left.
           name: fileLabel(path),
           texture: path,
-          x: 0,
-          y: 0,
-          width: scene.width,
-          height: scene.height,
+          ...defaultTileRect(scene),
         },
         nextTileSort(tilesOf(scene)),
       );
@@ -144,6 +144,16 @@
           <span class="images__state">
             {tile.hidden ? t("FUSION.Scene.Images.StateHidden") : t("FUSION.Scene.Images.StateShown")}
           </span>
+
+          <button
+            class="images__icon"
+            title={t("FUSION.Scene.Images.Align")}
+            aria-label={t("FUSION.Scene.Images.Align")}
+            disabled={busyId === tile._id}
+            onclick={() => run(tile._id, () => alignTileToMap(socket!, scene, tile._id))}
+          >
+            &#9635;
+          </button>
 
           <button
             class="images__icon"

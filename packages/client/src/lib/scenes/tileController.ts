@@ -158,3 +158,42 @@ export function nextTileSort(tiles: readonly TileDocument[]): number {
   if (tiles.length === 0) return 0;
   return Math.max(...tiles.map((t) => t.sort)) + 1;
 }
+
+/**
+ * The rectangle the scene's background occupies, in scene coordinates.
+ *
+ * Scene coordinates do NOT start at (0,0): `sceneLoader` places the background
+ * sprite at (padX, padY), the padding border that surrounds the map. An image
+ * meant to sit ON the map therefore starts at the padding, not at the origin —
+ * placing it at (0,0) puts it exactly one padding up and to the left, which is
+ * what the first version of this feature did (250px off on a 1000×1000 scene
+ * with the default 0.25 padding).
+ *
+ * This is the sensible default for a new image and the target of "align to
+ * map", so both callers derive it from here rather than recomputing it.
+ */
+export function defaultTileRect(scene: { width: number; height: number; padding?: number }): {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+} {
+  // Scenes persisted before `padding` existed have none; sceneLoader falls
+  // back the same way by reading a missing padding as 0.
+  const padding = typeof scene.padding === "number" ? scene.padding : 0;
+  return {
+    x: Math.round(scene.width * padding),
+    y: Math.round(scene.height * padding),
+    width: scene.width,
+    height: scene.height,
+  };
+}
+
+/** Snap one image back onto the scene's background rectangle. */
+export async function alignTileToMap(
+  socket: Socket,
+  scene: SceneDocument,
+  tileId: string,
+): Promise<void> {
+  await updateTile(socket, scene._id, tileId, defaultTileRect(scene));
+}

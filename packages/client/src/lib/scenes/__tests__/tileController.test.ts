@@ -26,6 +26,8 @@ const {
   sortTiles,
   tilesOf,
   nextTileSort,
+  defaultTileRect,
+  alignTileToMap,
 } = await import("../tileController.js");
 
 const SOCKET = {} as never;
@@ -205,5 +207,69 @@ describe("reading the stack", () => {
   it("puts a new image on top of the stack", () => {
     expect(nextTileSort([])).toBe(0);
     expect(nextTileSort([tile({ sort: 0 }), tile({ sort: 7 })])).toBe(8);
+  });
+});
+
+describe("where a new image lands", () => {
+  // The bug this pins: scene coordinates do not start at (0,0). sceneLoader
+  // draws the background at (padX, padY), so an image created at the origin is
+  // off by exactly one padding — 250px on a 1000×1000 scene at the default
+  // 0.25. It looked right in every unit test and wrong on the very first map.
+  it("starts at the padding border, where the background actually is", () => {
+    expect(defaultTileRect({ width: 1000, height: 1000, padding: 0.25 })).toEqual({
+      x: 250,
+      y: 250,
+      width: 1000,
+      height: 1000,
+    });
+  });
+
+  it("covers the map exactly — same size as the scene", () => {
+    const rect = defaultTileRect({ width: 4000, height: 3000, padding: 0.25 });
+    expect(rect.width).toBe(4000);
+    expect(rect.height).toBe(3000);
+  });
+
+  it("lands at the origin only when the scene has no padding", () => {
+    expect(defaultTileRect({ width: 800, height: 600, padding: 0 })).toMatchObject({ x: 0, y: 0 });
+  });
+
+  it("treats a scene persisted without padding as having none", () => {
+    expect(defaultTileRect({ width: 800, height: 600 })).toMatchObject({ x: 0, y: 0 });
+  });
+
+  it("rounds to whole pixels, like sceneLoader does", () => {
+    expect(defaultTileRect({ width: 1001, height: 1001, padding: 0.25 })).toMatchObject({
+      x: 250,
+      y: 250,
+    });
+  });
+
+  it("is what addTile is given, so a new image is aligned from the start", async () => {
+    const scene = { _id: "scene00000000001", width: 1000, height: 1000, padding: 0.25 } as never;
+    const rect = defaultTileRect({ width: 1000, height: 1000, padding: 0.25 });
+    await addTile(SOCKET, "scene00000000001", { name: "x", texture: "/a.webp", ...rect }, 0);
+    const [data] = envelope().payload["data"] as Array<Record<string, unknown>>;
+    expect(data).toMatchObject(rect);
+    expect(scene).toBeTruthy();
+  });
+});
+
+describe("aligning an existing image back onto the map", () => {
+  it("patches position and size to the background rectangle", async () => {
+    const scene = {
+      _id: "scene00000000001",
+      width: 1000,
+      height: 1000,
+      padding: 0.25,
+    } as never;
+
+    await alignTileToMap(SOCKET, scene, "tile000000000001");
+
+    expect(envelope().type).toBe("doc:update");
+    const [update] = envelope().payload["updates"] as Array<Record<string, unknown>>;
+    expect(update?.["_id"]).toBe("tile000000000001");
+    expect(update?.["diff"]).toEqual({ x: 250, y: 250, width: 1000, height: 1000 });
+    expect(update?.["embedded"]).toEqual({ type: "Tile", id: "scene00000000001" });
   });
 });

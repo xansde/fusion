@@ -266,6 +266,7 @@
   "FUSION.Scene.Images.Hide": "Esconder dos jogadores",
   "FUSION.Scene.Images.StateShown": "visível",
   "FUSION.Scene.Images.StateHidden": "escondida",
+  "FUSION.Scene.Images.Align": "Alinhar ao mapa",
   "FUSION.Scene.Images.MoveUp": "Subir na pilha",
   "FUSION.Scene.Images.MoveDown": "Descer na pilha",
   "FUSION.Scene.Images.Remove": "Remover da cena",

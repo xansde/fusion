@@ -266,6 +266,7 @@
   "FUSION.Scene.Images.Hide": "Hide from players",
   "FUSION.Scene.Images.StateShown": "shown",
   "FUSION.Scene.Images.StateHidden": "hidden",
+  "FUSION.Scene.Images.Align": "Align to map",
   "FUSION.Scene.Images.MoveUp": "Move up the stack",
   "FUSION.Scene.Images.MoveDown": "Move down the stack",
   "FUSION.Scene.Images.Remove": "Remove from scene",
