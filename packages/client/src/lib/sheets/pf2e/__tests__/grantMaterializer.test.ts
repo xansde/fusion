@@ -25,6 +25,7 @@ import {
   buildGrantCreateOp,
   type MaterializeContext,
   type GrantIndexEntry,
+  type GrantFailure,
 } from "../grantMaterializer.js";
 import { DocCreatePayloadSchema } from "@fusion/shared";
 import type { DocOpPayload, DocCreateEmbeddedPayload } from "../characterSheetVM.js";
@@ -843,5 +844,160 @@ describe("materializeGrants — Starlit Span conflux spell (fixed-item from mech
     // Creates a new spell (type mismatch blocks adoption of the feat).
     expect(ops).toHaveLength(1);
     expect(ops[0]!.type).toBe("doc:create");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Unresolved-grant diagnostics (issue #35)
+//
+// Three silent `continue`s used to swallow every failed grant: unknown vendor,
+// target not found in the clean-room pack, and an unresolved ChoiceSet
+// placeholder uuid. 43 grants fail per class build with no console line and no
+// mark on the sheet. These tests pin the diagnostic channel.
+// ---------------------------------------------------------------------------
+
+describe("grant failure reporting", () => {
+  /** A granter whose single grant points at a vendor we do not map. */
+  function unknownVendorGranter(): Record<string, unknown> {
+    return {
+      _id: "granter-uv",
+      name: "Unknown Vendor Granter",
+      type: "feat",
+      flags: { fusion: { sourceId: "SRC-UV" } },
+      system: {
+        rules: [
+          {
+            kind: "grant-item",
+            uuid: "Compendium.pf2e.bestiary-ability-glossary-srd.Item.Grab",
+            inMemoryOnly: false,
+          },
+        ],
+      },
+    };
+  }
+
+  /** A granter pointing at a real vendor but a document no pack holds. */
+  function missingTargetGranter(): Record<string, unknown> {
+    return {
+      _id: "granter-mt",
+      name: "Battle Creed",
+      type: "classFeature",
+      flags: { fusion: { sourceId: "SRC-MT" } },
+      system: {
+        rules: [
+          {
+            kind: "grant-item",
+            uuid: "Compendium.pf2e.feats-srd.Item.Battle Harbinger Dedication",
+            inMemoryOnly: false,
+          },
+        ],
+      },
+    };
+  }
+
+  /** A granter with an unresolved ChoiceSet placeholder (not flagged inMemoryOnly). */
+  function placeholderGranter(): Record<string, unknown> {
+    return {
+      _id: "granter-ph",
+      name: "Deity's Domain",
+      type: "classFeature",
+      flags: { fusion: { sourceId: "SRC-PH" } },
+      system: {
+        rules: [
+          {
+            kind: "grant-item",
+            uuid: "Compendium.pf2e.classfeatures.Item.{item|flags.system.rulesSelections.deity}",
+          },
+        ],
+      },
+    };
+  }
+
+  function collectingCtx(byPack: Record<string, Record<string, unknown>[]> = {}): {
+    mctx: MaterializeContext;
+    failures: GrantFailure[];
+  } {
+    const failures: GrantFailure[] = [];
+    const base = ctxFor(byPack);
+    return { mctx: { ...base, onGrantFailure: (f) => failures.push(f) }, failures };
+  }
+
+  it("reports an unmapped vendor instead of skipping silently", async () => {
+    const { mctx, failures } = collectingCtx();
+    const ops = await materializeGrants(unknownVendorGranter(), "SRC-UV", "feat:1", mctx);
+
+    expect(ops).toHaveLength(0);
+    expect(failures).toHaveLength(1);
+    expect(failures[0]?.reason).toBe("unknown-vendor");
+    expect(failures[0]?.vendor).toBe("bestiary-ability-glossary-srd");
+    expect(failures[0]?.granterSourceId).toBe("SRC-UV");
+    expect(failures[0]?.granterName).toBe("Unknown Vendor Granter");
+  });
+
+  it("reports a target that exists in no clean-room pack", async () => {
+    const { mctx, failures } = collectingCtx({ "feats-core": [] });
+    const ops = await materializeGrants(missingTargetGranter(), "SRC-MT", undefined, mctx);
+
+    expect(ops).toHaveLength(0);
+    expect(failures).toHaveLength(1);
+    expect(failures[0]?.reason).toBe("target-not-found");
+    expect(failures[0]?.name).toBe("Battle Harbinger Dedication");
+    expect(failures[0]?.packSlug).toBe("feats-core");
+  });
+
+  it("reports an unresolved ChoiceSet placeholder uuid", async () => {
+    const { mctx, failures } = collectingCtx();
+    const ops = await materializeGrants(placeholderGranter(), "SRC-PH", undefined, mctx);
+
+    expect(ops).toHaveLength(0);
+    expect(failures).toHaveLength(1);
+    expect(failures[0]?.reason).toBe("unresolved-placeholder");
+    expect(failures[0]?.uuid).toContain("rulesSelections.deity");
+  });
+
+  it("stays silent for grants explicitly deferred to the picker (inMemoryOnly)", async () => {
+    const granter = {
+      _id: "granter-im",
+      name: "Muses",
+      type: "classFeature",
+      flags: { fusion: { sourceId: "SRC-IM" } },
+      system: {
+        rules: [
+          {
+            kind: "grant-item",
+            uuid: "Compendium.pf2e.classfeatures.Item.{item|flags.system.rulesSelections.muse}",
+            inMemoryOnly: true,
+          },
+        ],
+      },
+    };
+    const { mctx, failures } = collectingCtx();
+    await materializeGrants(granter, "SRC-IM", undefined, mctx);
+
+    // inMemoryOnly is the picker path by design, not a failure.
+    expect(failures).toHaveLength(0);
+  });
+
+  it("stays silent when every grant resolves", async () => {
+    const { mctx, failures } = collectingCtx({
+      "feats-core": [alchemicalCraftingDoc()],
+      "actions-core": [quickAlchemyDoc()],
+    });
+    const ops = await materializeGrants(
+      alchemistDedicationDoc(),
+      "CJMkxlxHiHZQYDCz",
+      "classFeat:2",
+      mctx,
+    );
+
+    expect(createOps(ops)).toHaveLength(2);
+    expect(failures).toHaveLength(0);
+  });
+
+  it("works with no reporter attached (channel is optional)", async () => {
+    const mctx = ctxFor({});
+    await expect(
+      materializeGrants(unknownVendorGranter(), "SRC-UV", undefined, mctx),
+    ).resolves.toHaveLength(0);
   });
 });

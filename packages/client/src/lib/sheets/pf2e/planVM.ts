@@ -2786,7 +2786,10 @@ function buildFocusEntryOp(
         tradition: { value: tradition },
         // Focus spells cast with the class's SPELLCASTING ability (Magus
         // conflux = INT), not the key ability (r11 fix — Pathbuilder's
-        // focus block confirms int for Tobias).
+        // focus block confirms int for Tobias). No `?? "int"` fallback: the
+        // parameter is a required string and every caller reads it from a
+        // typed source, so the fallback was unreachable — and its sibling
+        // buildSpellcastingEntryOp never had one either (issue #69).
         ability: { value: ability },
         proficiency: { value: 1 },
         slots: {},

@@ -132,6 +132,13 @@ export type PackManifest = z.infer<typeof PackManifestSchema>;
 export const PackI18nEntrySchema = z.object({
   name: z.string(),
   description: z.string().optional(),
+  /**
+   * Declares that this doc is name-only ON PURPOSE, even though the EN source
+   * carries prose. Without it, "not translated yet" and "has no prose to
+   * translate" are the same absent/empty string, and the translation QA gate
+   * cannot tell a real gap from a legitimate one (issue #27).
+   */
+  noDescription: z.boolean().optional(),
   sourceHash: z.string(),
 });
 

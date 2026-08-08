@@ -87,6 +87,7 @@
   import {
     materializeGrants,
     type GrantIndexEntry,
+    type GrantFailure,
     type MaterializeContext,
   } from "../../../../lib/sheets/pf2e/grantMaterializer.js";
   import type { DocOpPayload } from "../../../../lib/sheets/pf2e/characterSheetVM.js";
@@ -252,13 +253,53 @@
     }
   }
 
-  function materializeContext(): MaterializeContext {
+  function materializeContext(onGrantFailure?: (f: GrantFailure) => void): MaterializeContext {
     return {
       actorId,
       existingItems: (doc["items"] as Array<Record<string, unknown>> | undefined) ?? [],
       spellEntries: actorSpellEntries(doc),
       resolveIndex: resolvePackIndex,
       resolveDoc: resolveGrantDoc,
+      ...(onGrantFailure ? { onGrantFailure } : {}),
+    };
+  }
+
+  /**
+   * Collect the grants materialization dropped and report them ONCE per pass
+   * (issue #35). Materialization skipping an unresolvable grant is correct — a
+   * missing clean-room equivalent must never break a build — but it used to be
+   * invisible: 43 grants fail per class build with nothing in the console. The
+   * summary is grouped by reason so a build stays readable instead of emitting
+   * one line per failure.
+   */
+  function grantFailureCollector(): {
+    sink: (f: GrantFailure) => void;
+    flush: (label: string) => void;
+  } {
+    const failures: GrantFailure[] = [];
+    return {
+      sink: (f) => failures.push(f),
+      flush: (label) => {
+        if (failures.length === 0) return;
+        const byReason = new Map<string, GrantFailure[]>();
+        for (const f of failures) {
+          const list = byReason.get(f.reason) ?? [];
+          list.push(f);
+          byReason.set(f.reason, list);
+        }
+        /* eslint-disable no-console */
+        console.warn(
+          `[Plan grants] ${label}: ${String(failures.length)} grant(s) did not resolve`,
+        );
+        for (const [reason, list] of byReason) {
+          console.warn(
+            `  ${reason} (${String(list.length)}):`,
+            list.map((f) => `${f.granterName ?? f.granterSourceId} → ${f.name ?? f.uuid}`),
+          );
+        }
+        /* eslint-enable no-console */
+        failures.length = 0;
+      },
     };
   }
 
@@ -276,9 +317,16 @@
     const fusion = ((granterDoc["flags"] as Record<string, unknown> | undefined)?.["fusion"] ?? {}) as Record<string, unknown>;
     const sourceId = typeof fusion["sourceId"] === "string" ? fusion["sourceId"] : undefined;
     if (!sourceId) return;
+    const collector = grantFailureCollector();
     try {
-      const ops = await materializeGrants(granterDoc, sourceId, slot, materializeContext());
+      const ops = await materializeGrants(
+        granterDoc,
+        sourceId,
+        slot,
+        materializeContext(collector.sink),
+      );
       for (const op of ops) sendOpFn(op);
+      collector.flush(`applied ${String(granterDoc["name"] ?? sourceId)}`);
     } catch {
       // Offline / no socket: grants simply don't materialize now — the on-open
       // heal will pick them up next time the owner opens the Plan.
@@ -311,10 +359,18 @@
     await runClassGrantRefs(refs);
   }
 
-  /** Shared: resolve each class-feature ref's doc and materialize its conceded actions. */
-  async function runClassGrantRefs(refs: ClassGrantRef[]): Promise<number> {
+  /**
+   * Shared: resolve each class-feature ref's doc and materialize its conceded
+   * actions. `failureSink` lets a caller that owns a wider pass (runHeal)
+   * aggregate these drops into its own summary instead of emitting a second one.
+   */
+  async function runClassGrantRefs(
+    refs: ClassGrantRef[],
+    failureSink?: (f: GrantFailure) => void,
+  ): Promise<number> {
     if (refs.length === 0) return 0;
-    const mctx = materializeContext();
+    const own = failureSink ? null : grantFailureCollector();
+    const mctx = materializeContext(failureSink ?? own?.sink);
     let created = 0;
     for (const ref of refs) {
       try {
@@ -329,6 +385,7 @@
         // best-effort per feature; a socket failure just defers to next open.
       }
     }
+    own?.flush("class feature grants");
     return created;
   }
 
@@ -359,7 +416,8 @@
     }
 
     let created = 0;
-    const mctx = materializeContext();
+    const collector = grantFailureCollector();
+    const mctx = materializeContext(collector.sink);
 
     // (1) Feat/classFeature granters — re-scan each applied granter's pack doc
     // for missing fixed grants (B2 r14).
@@ -417,8 +475,12 @@
     // non-choice features concede (Elemental Blast/Base Kinesis/Channel
     // Elements/Spellstrike/Arcane Cascade), tagged by the class.
     try {
-      created += await runClassGrantRefs(classFeatureGrantRefs(doc));
+      created += await runClassGrantRefs(classFeatureGrantRefs(doc), collector.sink);
     } catch { /* deferred */ }
+
+    // One summary for the whole heal pass — every grant this build could not
+    // resolve, grouped by reason (issue #35).
+    collector.flush("on-open heal");
 
     if (created > 0 || ghostOps.length > 0) {
       // eslint-disable-next-line no-console
