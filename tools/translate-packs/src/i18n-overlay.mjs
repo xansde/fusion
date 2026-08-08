@@ -12,6 +12,7 @@
  */
 
 import { i18nSourceHash } from "./hash.mjs";
+import { stripHtmlToText } from "./qa-checks.mjs";
 
 export const I18N_FILENAME = "i18n.pt-BR.json";
 export const I18N_SCHEMA_VERSION = 1;
@@ -31,8 +32,25 @@ function extractRelevantRules(doc) {
 }
 
 /**
- * Builds translation work-units for one pack's docs, skipping docs whose
- * sourceHash already matches a non-stale entry in the existing overlay.
+ * Builds translation work-units for one pack's docs.
+ *
+ * A doc is only skipped when it is REALLY translated (issue #9, parent of
+ * #27 — the QA gate had the identical blind spot before it was fixed). The
+ * decision, per doc:
+ *
+ *   | existing entry | hash matches | EN has prose | noDescription | PT description | -> |
+ *   |-----------------|--------------|--------------|----------------|-----------------|----|
+ *   | none            | -            | -            | -              | -               | EMIT (stale=false) |
+ *   | present         | no (stale)   | -            | -              | -               | EMIT (stale=true) |
+ *   | present         | yes          | no           | -              | -               | SKIP (nothing to translate) |
+ *   | present         | yes          | yes          | true           | -               | SKIP (explicit valve) |
+ *   | present         | yes          | yes          | false/absent   | non-empty       | SKIP (actually translated) |
+ *   | present         | yes          | yes          | false/absent   | absent/""       | EMIT (reason: "missing-description") |
+ *
+ * "EN has prose" uses the EXACT same definition as the QA gate's
+ * `checkDoc` (src/qa-checks.mjs): `stripHtmlToText(description).trim().length > 0`.
+ * If this ever diverges from qa-checks.mjs, the extractor and the QA gate
+ * will disagree about what counts as translatable text again.
  *
  * @param {object[]} docs - raw Fusion docs from documents.json.
  * @param {object|null} existingOverlay - the pack's current i18n.pt-BR.json (or null).
@@ -48,9 +66,36 @@ export function buildWorkUnitsForPack(docs, existingOverlay) {
     const description = doc?.system?.description ?? "";
     const sourceHash = i18nSourceHash(name, description);
     const existing = existingEntries[doc._id];
+    const staleHash = Boolean(existing) && existing.sourceHash !== sourceHash;
 
-    if (existing && existing.sourceHash === sourceHash) {
-      skipped++;
+    if (existing && !staleHash) {
+      const hasProse = stripHtmlToText(description).trim().length > 0;
+      const hasDescriptionPt = existing.description !== undefined && existing.description !== "";
+
+      if (!hasProse || existing.noDescription === true || hasDescriptionPt) {
+        // Nothing left to translate: EN carries no real prose, the doc is
+        // explicitly marked name-only (noDescription valve), or a real
+        // pt-BR description is already present and the hash still matches.
+        skipped++;
+        continue;
+      }
+
+      // EN has real prose and the hash matches (name+description
+      // unchanged since the entry was written), but the entry has no
+      // description and no explicit noDescription valve — this is the
+      // invisible gap: re-emit it, flagged so the translator knows the
+      // `name` is already done and only the description is missing.
+      const { unconvertedRules, systemRules } = extractRelevantRules(doc);
+      units.push({
+        id: doc._id,
+        name,
+        description,
+        sourceHash,
+        stale: false,
+        reason: "missing-description",
+        unconvertedRules,
+        systemRules,
+      });
       continue;
     }
 
@@ -60,7 +105,7 @@ export function buildWorkUnitsForPack(docs, existingOverlay) {
       name,
       description,
       sourceHash,
-      stale: Boolean(existing) && existing.sourceHash !== sourceHash,
+      stale: staleHash,
       unconvertedRules,
       systemRules,
     });
@@ -72,10 +117,31 @@ export function buildWorkUnitsForPack(docs, existingOverlay) {
 /**
  * Merges freshly-translated entries into an existing (or fresh) overlay.
  *
- * `translations` is a map keyed by doc id: { [id]: { name, description? } }.
- * `sourceHashesById` supplies the sourceHash to stamp for each id (computed
- * from the current EN doc at merge time — NOT trusted from the translation
- * input — so a stale translation can never silently claim freshness).
+ * `translations` is a map keyed by doc id: { [id]: { name, description?,
+ * noDescription?, prerequisites? } }. `sourceHashesById` supplies the sourceHash to stamp
+ * for each id (computed from the current EN doc at merge time — NOT
+ * trusted from the translation input — so a stale translation can never
+ * silently claim freshness).
+ *
+ * `noDescription` (the escape-hatch valve from PackI18nEntrySchema,
+ * packages/shared/src/compendium.ts) and `prerequisites` (issue #32's
+ * per-document prerequisite-translation escape hatch — see the schema doc
+ * comment) are PackI18nEntry fields besides name/description/sourceHash —
+ * both must survive a re-merge or the doc silently loses them the next time
+ * apply.mjs runs. Precedence per id:
+ *   noDescription:
+ *     1. `translation.noDescription` explicit in this batch -> wins (lets a
+ *        translator declare or revoke the valve deliberately).
+ *     2. `translation.description` present in this batch -> a real
+ *        description was just supplied, so any old valve is stale -> cleared.
+ *     3. otherwise -> carried over from the existing entry, if any.
+ *   prerequisites:
+ *     1. `translation.prerequisites` explicit in this batch -> wins (lets a
+ *        translator set or revise it deliberately).
+ *     2. otherwise -> carried over from the existing entry, if any. Unlike
+ *        noDescription, a fresh `description` does NOT invalidate it — the
+ *        two fields translate different `system` sub-paths (description vs.
+ *        prerequisites), so retranslating one says nothing about the other.
  *
  * Idempotent: merging the same translations twice produces byte-identical
  * output (entries are re-sorted by key on every merge).
@@ -92,8 +158,26 @@ export function mergeI18nOverlay({
   for (const [id, translation] of Object.entries(translations)) {
     const sourceHash = sourceHashesById[id];
     if (!sourceHash) continue; // doc no longer exists in the pack — drop silently.
+    const existingEntry = entries[id];
     const entry = { name: translation.name, sourceHash };
     if (translation.description !== undefined) entry.description = translation.description;
+
+    let noDescription;
+    if (translation.noDescription !== undefined) {
+      noDescription = translation.noDescription;
+    } else if (translation.description !== undefined) {
+      noDescription = undefined; // a fresh description was provided -> any old valve is stale.
+    } else {
+      noDescription = existingEntry?.noDescription; // carry over, untouched this round.
+    }
+    if (noDescription !== undefined) entry.noDescription = noDescription;
+
+    const prerequisites =
+      translation.prerequisites !== undefined
+        ? translation.prerequisites
+        : existingEntry?.prerequisites; // carry over, untouched this round.
+    if (prerequisites !== undefined) entry.prerequisites = prerequisites;
+
     entries[id] = entry;
   }
 

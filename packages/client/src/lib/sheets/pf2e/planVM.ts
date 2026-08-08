@@ -40,6 +40,7 @@ import type {
   DocOpPayload,
   DocUpdatePayload,
 } from "./characterSheetVM.js";
+import { translatePrerequisite } from "../../compendium/prerequisiteTranslation.js";
 
 // ---------------------------------------------------------------------------
 // Local mirrors of systems/pf2e/src/types.ts canonical sets.
@@ -2420,7 +2421,7 @@ export function checkFeatPrerequisites(
     const value = typeof entry === "string" ? entry : asRecord(entry)["value"];
     if (typeof value !== "string" || value.trim().length === 0) continue;
     if (evaluatePrerequisiteEntry(value, knownNames, axisNames) === "unmet") {
-      missing.push(value.trim());
+      missing.push(translatePrerequisite(value.trim()));
     }
   }
   if (missing.length === 0) return undefined;
@@ -4935,6 +4936,10 @@ export interface PlanIndexEntryLike {
 /** Minimal index-entry shape the content-name translator consumes (subset of PackIndexEntry). */
 export interface PlanNameIndexEntry {
   name: string;
+  /** The pack doc id. Present on every real pack index entry; it is what
+   * `featuresByLevel[].uuid` (stored as `AutoFeatureModel.docId`) points at, and
+   * the only key that survives a name that drifted from the document's own. */
+  _id?: string | undefined;
   namePt?: string | undefined;
   i18n?: { ptBR?: { name?: string | undefined } | undefined } | undefined;
 }
@@ -4947,8 +4952,12 @@ export interface ContentNameParts {
   nameEn: string;
 }
 
-/** Resolve an embedded item's stored (EN or pt-BR) name to its bilingual display parts. */
-export type ContentNameTranslator = (storedName: string) => ContentNameParts;
+/**
+ * Resolve an embedded item's stored (EN or pt-BR) name to its bilingual display
+ * parts. `docId` (when the caller has one) is tried FIRST: the stored name can
+ * legitimately differ from the document's own name, and only the id is exact.
+ */
+export type ContentNameTranslator = (storedName: string, docId?: string) => ContentNameParts;
 
 /** Read the pt-BR overlay name off an index entry — flat `namePt` first, then nested `i18n.ptBR.name`. */
 function entryPtName(entry: PlanNameIndexEntry): string | undefined {
@@ -4960,13 +4969,24 @@ function entryPtName(entry: PlanNameIndexEntry): string | undefined {
 
 /**
  * buildContentNameTranslator — EN/pt-BR → `{ namePt, nameEn }` map built from
- * one or more packs' index entries, joined by NORMALIZED NAME (the only
- * reliable key: `system.slug` is undefined everywhere, and the pack index does
- * NOT expose `flags.fusion.sourceId`). Mirrors `buildSpellNameTranslator`'s
- * shape: the index is keyed by the normalized EN name AND the normalized pt-BR
- * name (both point at the same `{ namePt, nameEn }`), so it resolves whether
- * the actor's embedded item name was copied in EN or pt-BR. First write wins
- * per key (deterministic given a stable index order).
+ * one or more packs' index entries. Two independent indexes:
+ *
+ * 1. **By doc id** (`entry._id`) — EXACT, and tried first when the caller has an
+ *    id. This is what fixes issue #65: the class doc's `featuresByLevel` stores
+ *    a literal `name` that can differ from the referenced document's own name
+ *    ("Deity" vs "Deity (Cleric)", "Debilitating Strikes" vs "Debilitating
+ *    Strike" — 5 such entries across the 12 classes), so name matching silently
+ *    falls through to EN while the correct translation sits one id away. The
+ *    `uuid` in `featuresByLevel` IS that doc id, and it already travels to the
+ *    UI as `AutoFeatureModel.docId` (issue #14).
+ * 2. **By normalized name**, EN and pt-BR (both point at the same parts), for
+ *    every caller that only has an embedded item's stored name — which may have
+ *    been copied in either language. First write wins per key (deterministic
+ *    given a stable index order).
+ *
+ * (An earlier version of this comment claimed name was "the only reliable key"
+ * because the pack index did not expose `flags.fusion.sourceId`. That stopped
+ * being true with issue #41; the id path above is the reliable one.)
  *
  * Names with no matching pack entry return `{ namePt: stored, nameEn: stored }`
  * — an EN-only fallback that still lets the caller render the "always both"
@@ -4975,23 +4995,30 @@ function entryPtName(entry: PlanNameIndexEntry): string | undefined {
 export function buildContentNameTranslator(
   entriesByPack: PlanNameIndexEntry[][],
 ): ContentNameTranslator {
-  const map = new Map<string, ContentNameParts>();
+  const byName = new Map<string, ContentNameParts>();
+  const byId = new Map<string, ContentNameParts>();
   for (const entries of entriesByPack) {
     for (const entry of entries) {
       const nameEn = entry.name;
       if (!nameEn) continue;
       const namePt = entryPtName(entry) ?? nameEn;
       const parts: ContentNameParts = { namePt, nameEn };
+      const id = entry._id;
+      if (typeof id === "string" && id && !byId.has(id)) byId.set(id, parts);
       const enKey = normalizeName(nameEn);
       const ptKey = normalizeName(namePt);
-      if (enKey && !map.has(enKey)) map.set(enKey, parts);
-      if (ptKey && !map.has(ptKey)) map.set(ptKey, parts);
+      if (enKey && !byName.has(enKey)) byName.set(enKey, parts);
+      if (ptKey && !byName.has(ptKey)) byName.set(ptKey, parts);
     }
   }
-  return (storedName: string): ContentNameParts => {
+  return (storedName: string, docId?: string): ContentNameParts => {
     const fallback: ContentNameParts = { namePt: storedName, nameEn: storedName };
+    if (docId) {
+      const byIdHit = byId.get(docId);
+      if (byIdHit) return byIdHit;
+    }
     if (!storedName) return fallback;
-    return map.get(normalizeName(storedName)) ?? fallback;
+    return byName.get(normalizeName(storedName)) ?? fallback;
   };
 }
 

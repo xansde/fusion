@@ -1,7 +1,12 @@
-# Plano de resolução das 66 issues abertas — batches
+# Plano de resolução das 71 issues abertas — batches
 
 Revisão feita em 2026-08-02 sobre as 66 issues abertas do repo (60 da varredura r22
 sob a issue-mãe #61, mais #62–#65 do teste ao vivo e #66 da r23).
+
+**Atualização 2026-08-02 (durante o B3).** Cinco issues nasceram depois deste plano e
+foram encaixadas sem criar batch novo: **#68/#69** entraram no B0 (gates quebrados,
+o tema do próprio batch), **#71** no B3 (é i18n e é gate — ver o batch), **#72** no B5
+e **#73** no B9. Total: 71 abertas, todas em algum batch.
 
 O agrupamento **não** segue a gravidade do label. Segue três critérios, nessa ordem:
 
@@ -96,9 +101,9 @@ Ordem: #1 → #24 → #16 → #25/#26/#28/#30 (independentes entre si) → #45/#
 
 ---
 
-## B3 — i18n de ponta a ponta (8 issues)
+## B3 — i18n de ponta a ponta (9 issues)
 
-**Issues:** #10, #43, #9, #32, #42, #40, #64, #65
+**Issues:** #10, #43, #9, #32, #42, #40, #64, #65, **#71**
 **Tamanho:** G · **Depende de:** B2 (traduzir depois de importar) · **Lane:** livre
 
 Superfície própria (`compendium/service.ts`, `documentDetails.ts`, `i18n/pt-BR.json`,
@@ -106,13 +111,41 @@ Superfície própria (`compendium/service.ts`, `documentDetails.ts`, `i18n/pt-BR
 
 A ordem interna importa: primeiro **parar de perder** a tradução (#10 descarta `item.i18n`
 no painel de detalhes; #43 apaga o overlay de forma permanente ao importar do compêndio
-para o mundo), depois **produzir** (#9: 679 descrições vazias; #32: 1.459 pré-requisitos,
-0 traduzidos), depois **migrar** o que já foi gravado vazio (#42), e por último os rótulos
-residuais de UI (#40, #64, #65).
+para o mundo), depois **produzir** (#9, #32), depois **migrar** o que já foi gravado vazio
+(#42), e por último os rótulos residuais de UI (#40, #64, #65).
 
 Inverter isso desperdiça a tradução: traduzir antes de #43 é encher um balde furado.
 
-Ordem: #10 → #43 → #9 → #32 → #42 → #40 → #64 → #65.
+**#71 foi puxada para cá** (nasceu ao rodar os gates do PR #70): os traits `oath` e
+`consecration` sem entrada no glossário reprovam `glossary.test.mjs`. É i18n, é do mesmo
+`tools/translate-packs`, e a segunda metade dela é a razão de a falha ter vivido escondida
+na `build/app` — o pacote não está no `vitest.workspace.ts`, então `pnpm test` nunca roda
+essa suíte. Mesmo padrão de #48 e #27: o gate existe, está correto, e ninguém o executa.
+
+**Números remedidos em 2026-08-02**, depois de o B2 importar conteúdo novo — as duas
+issues de tradução foram atualizadas com eles:
+
+- **#9 — 1.128 docs, não 679**: 679 com entrada e `description` vazia + **449 sem entrada
+  nenhuma** trazidos pelo B2 (feats-core 348, heritages-core 45, backgrounds-core 40,
+  ancestries-core 8, class-features-core 8). Dos 4.236 docs dos packs, 4.225 têm prosa EN
+  real (os 11 restantes são bestiary-core e um de equipment-core, sem descrição nenhuma).
+- **#32 — 626 strings distintas**, 1.219 ocorrências em 998 docs, 0 traduzidas (o `1459`
+  do título era a contagem de entradas do overlay, não de pré-requisitos).
+- O extrator tem a mesma cegueira que a #27 consertou no QA: `buildWorkUnitsForPack` pula
+  todo doc cujo `sourceHash` bate, então os 679 são **invisíveis** para o `extract.mjs`.
+  Sem consertar isso, #9 não é resolvível "rodando o pipeline de novo".
+
+**Decisão de produto da #42, tomada em 2026-08-02:** o overlay do pack é a fonte de
+verdade; o `i18n` gravado dentro do item embutido é cache. Resolução em tempo de leitura
+por `sourceId` (opção **b** da issue), **não** migração dos itens já gravados. Motivos:
+a cobertura de tradução vai continuar melhorando depois do B3, e uma migração é um tiro
+único que teria de ser re-disparado a cada melhoria; a resolução em tempo de leitura é a
+mesma peça que a #43 pede ("o LEITOR resolver o overlay pelo pack de origem"), então uma
+implementação fecha as duas; e não mexer nos dados dos mundos existentes é risco zero.
+O bag persistido continua sendo lido como caminho rápido (é o conserto barato da #10, que
+sozinho acerta 57 dos 60 itens medidos no `argiburgo`).
+
+Ordem: #10 → #43 → #9 → #32 → #42 → #40 → #64 → #65 → #71.
 
 ---
 
@@ -135,9 +168,9 @@ Ordem: #49 → #50 → #38 → #13 → #12 → #39 → #11 → #63.
 
 ---
 
-## B5 — Foco e magias (10 issues)
+## B5 — Foco e magias (11 issues)
 
-**Issues:** #4, #55(decisão), #3, #5, #6, #7, #8, #36, #34, #37
+**Issues:** #4, #55(decisão), #3, #5, #6, #7, #8, #36, #34, #37, **#72**
 **Tamanho:** G · **Depende de:** B1, B2 · **Lane:** livre
 
 Bloqueio duro nº 2 da varredura: nenhuma magia chega à ficha por automação e o pool de
@@ -150,7 +183,16 @@ resolvida antes de #3**, porque muda o escopo: 78 documentos concedem magia só 
 e o vendor não tem o dado — ou se escreve a concessão à mão, ou se aceita que o jogador
 adiciona manualmente.
 
-Ordem: decidir #55 → #4 → #3 → #5 → #6 → #7 → #8 → #36 → #34 → #37.
+**#72 entra aqui, por último** (reproduzida ao vivo em 2026-08-02, fora deste plano):
+"Descansar" confirma o diálogo e o PV não muda. A tentação é jogá-la no B4, porque o
+defeito observado é PV — mas o mesmo diálogo promete três coisas ("Recupera PV, espaços
+de magia e pontos de foco") e as outras duas **só existem depois do B5**: antes de #4 não
+há pool de foco para recuperar, e antes de #3/#5..#8 não há magia na ficha. Consertar o PV
+no B4 fecharia um terço da promessa e deixaria os outros dois terços quebrados em silêncio
+— exatamente o que a issue chama de "erro silencioso e enganoso". Fechar de uma vez, no
+fim do B5, quando os três recursos existem e são verificáveis.
+
+Ordem: decidir #55 → #4 → #3 → #5 → #6 → #7 → #8 → #36 → #34 → #37 → #72.
 
 ---
 
@@ -222,9 +264,9 @@ Ordem: #59 → #22 → #23 → #60.
 
 ---
 
-## B9 — Multiclasse por níveis: UI (1 issue)
+## B9 — Multiclasse por níveis: UI (2 issues)
 
-**Issue:** #66
+**Issues:** #66, **#73**(decisão)
 **Tamanho:** G · **Depende de:** B7 (mesma superfície) · **Lane:** planVM (serial)
 
 Épico próprio, e o único que não vem da varredura r22. A derivação está pronta e verde
@@ -245,6 +287,17 @@ custa caro.
 > a executar e vira só o fechamento da issue — mas **B4 e B7 passam a conflitar com ele**,
 > porque disputam o mesmo `planVM.ts`. Alinhar antes de abrir B4.
 
+**#73 é decisão de design, não código faltando** — nasceu ao implementar a spec
+`30-multiclasse-por-niveis.md`. O invariante REQ-MCL-200 exige que a rota de nível de
+classe nunca entregue menos que a dedicação gratuita, "por eixo medido"; o REQ-MCL-201
+cita dois requisitos, mas só um deles (invocação, REQ-MCL-062) tem os dois lados
+numeráveis. O eixo de **ator concedido** (REQ-MCL-063) não tem lado de dedicação definido
+em lugar nenhum, então `grantedActorLevel = min(classLevel + 2, characterLevel)` não tem
+contra o que ser medida — baixar o `GRANTED_ACTOR_CLASS_LEVEL_BONUS` não quebra teste
+nenhum. Escolher: (1) escrever na spec a escada que a dedicação entrega e varrer os 204
+pares também nesse eixo, ou (2) declarar o eixo fora do invariante e corrigir o texto do
+REQ-MCL-201. Resolver antes de fechar #66, não depois.
+
 ---
 
 ## B10 — Issue-mãe (1 issue)
@@ -253,7 +306,7 @@ custa caro.
 **Tamanho:** P · **Depende de:** B2..B8 · **Lane:** livre
 
 Não é trabalho: é o fechamento da épica da varredura r22 quando os 60 achados estiverem
-resolvidos. Fica registrada como batch próprio só para que a contagem feche — 68 issues
+resolvidos. Fica registrada como batch próprio só para que a contagem feche — 71 issues
 abertas, todas em algum batch.
 
 ---
@@ -276,14 +329,17 @@ merge: é o que evita conflito, já que vários batches disputam os mesmos arqui
 
 ## Decisões de produto que travam trabalho
 
-Três issues não são conserto, são escolha — e cada uma muda o escopo do batch que a
+Quatro issues não são conserto, são escolha — e cada uma muda o escopo do batch que a
 contém. Resolver antes de o batch começar:
 
 - **#55** (abre B5) — 78 documentos concedem magia só na prosa e o vendor não tem o dado:
-  escrever a concessão à mão ou aceitar entrada manual do jogador?
+  escrever a concessão à mão ou aceitar entrada manual do jogador? **Em aberto.**
 - **#56** (abre B6) — `AdjustDegreeOfSuccess` fica em V2? São 60 documentos inertes.
-- **#42** (dentro de B3) — migrar os itens já gravados com `i18n.ptBR.description` vazia,
-  ou deixá-los em inglês para sempre?
+  **Em aberto.**
+- **#73** (dentro de B9) — o eixo "ator concedido" entra no invariante de multiclasse com
+  um número escrito na spec, ou sai do invariante por declaração explícita? **Em aberto.**
+- ~~**#42** (dentro de B3)~~ — **decidida em 2026-08-02**: resolução do overlay em tempo de
+  leitura por `sourceId`, sem migração dos itens já gravados. Justificativa no B3.
 
 ## Observação fora de escopo
 

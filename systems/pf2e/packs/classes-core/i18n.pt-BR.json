@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "packId": "pf2e.classes-core",
   "locale": "pt-BR",
-  "generatedAt": "2026-08-02T03:59:58.311Z",
+  "generatedAt": "2026-08-03T01:40:04.991Z",
   "generator": "tools/translate-packs@0.1.0",
   "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
   "entries": {
@@ -19,12 +19,12 @@
     "6GhN5PnstY0pPOCL": {
       "name": "Monge",
       "sourceHash": "efba402c7025ab105ff912579d360d560637d4ae",
-      "description": ""
+      "description": "<p><em>A força do seu punho flui de sua mente e espírito. Você busca a perfeição — aperfeiçoando seu corpo até torná-lo um instrumento impecável e sua mente até torná-la um bastião ordenado de sabedoria. Você é um combatente feroz, renomado por suas habilidades marciais e posturas de combate que concedem manobras de luta únicas. Embora o desafio de dominar muitos estilos de luta o impulsione a grandes alturas, você também gosta de meditar sobre questões filosóficas e descobrir novas formas de alcançar paz e iluminação.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.hGKd722Kn4ZxIOJs]{Monge}</em></p>"
     },
     "Gj4x9YABawAwNRrp": {
       "name": "Feiticeiro",
       "sourceHash": "fb87cb5a0792014d4c810d831eff12e3ea8d6b3e",
-      "description": ""
+      "description": "<p><em>Você não escolheu se tornar um conjurador — você nasceu um. Há magia em seu sangue, seja porque uma divindade tocou um de seus ancestrais, um antepassado se comunicou com uma criatura primal, ou um poderoso ritual oculto influenciou sua linhagem. A autorreflexão e o estudo permitem que você refine suas habilidades mágicas inatas e desbloqueie novas habilidades, mais poderosas. O poder em seu sangue carrega um risco, no entanto, e você enfrenta constantemente a escolha entre se tornar um mestre conjurador ou cair na destruição.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.ixBx2wZpnf4qUoEv]{Feiticeiro}</em></p>"
     },
     "GpVXOuB995Kz1fHI": {
       "name": "Bárbaro",
@@ -39,17 +39,17 @@
     "Mw9Rk7cLRQahvou2": {
       "name": "Clérigo",
       "sourceHash": "ea30cd88b5cce88cd6756a6c1958c8c6bd807d78",
-      "description": ""
+      "description": "<p><em>As divindades exercem sua vontade sobre o mundo de infinitas maneiras, e você serve como um dos seus mais firmes servos mortais. Abençoado com magia divina, você vive os ideais de sua fé, adorna-se com os símbolos de sua igreja e treina diligentemente para empunhar a arma favorita de sua divindade. Suas magias podem proteger e curar seus aliados, ou podem punir inimigos e adversários de sua fé, conforme a vontade de sua divindade. A sua é uma vida de devoção, espalhando os ensinamentos de sua fé tanto pela palavra quanto pelo ato.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.N4ABcd6CcCbqmw3x]{Clérigo}</em></p>"
     },
     "RtdtWLmWtoAnurXp": {
       "name": "Bardo",
       "sourceHash": "d1e756e3f4cef1957e688b08d7212178b740eee7",
-      "description": ""
+      "description": "<p><em>Você é um mestre da arte, um estudioso de segredos ocultos e um sedutor cativante. Usando atuações poderosas, você influencia mentes e eleva almas a novos patamares de heroísmo. Pode usar seus poderes para se tornar um líder carismático, ou talvez seja, em vez disso, um conselheiro, manipulador, estudioso, vigarista ou virtuoso. Embora sua versatilidade leve alguns a considerá-lo um trapaceiro sedutor e um pau para toda obra, é perigoso descartá-lo como um mestre de nada.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.Tz0NWVqhZyt8EyUV]{Bardo}</em></p>"
     },
     "YPn8O9OwbqDx8bRa": {
       "name": "Campeão",
       "sourceHash": "a0baeb5b18d4cce55767c305b94182c3d566868b",
-      "description": ""
+      "description": "<p><em>Você é um emissário de uma divindade, um servo devotado que assumiu um manto pesado, e segue um código que o mantém à parte daqueles ao seu redor. Embora existam campeões para todos os alinhamentos, como campeão do bem, você oferece certeza e esperança aos inocentes. Você possui defesas poderosas que compartilha livremente com seus aliados e espectadores inocentes, além de poder sagrado que usa para acabar com a ameaça do mal. Sua devoção chega a atrair a atenção de espíritos sagrados que o auxiliam em sua jornada.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.rebppVgBVi8J6TT2]{Campeão}</em></p>"
     },
     "ZuJDBnRwp0YQ9IoP": {
       "name": "Cineticista",

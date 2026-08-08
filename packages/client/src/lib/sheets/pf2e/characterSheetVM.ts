@@ -26,8 +26,9 @@ import type {
   ClassDCEntry,
 } from "./derivedTypes.js";
 import type { SpellSaveType, ChatSendFlags, AbilityCard } from "@fusion/shared";
-import { t } from "../../i18n/index.js";
+import { t, i18n } from "../../i18n/index.js";
 import { skillNamePt } from "./skillNames.js";
+import { translateDamageType } from "../../compendium/documentDetails.js";
 import {
   effectiveSpellRank,
   computeHeightenedSpell,
@@ -184,6 +185,17 @@ function spellActionGlyphs(system: Record<string, unknown>): string {
 
 // ---------------------------------------------------------------------------
 // Ability names
+//
+// R24 (#40.3): these EN maps are kept ONLY as the internal source of truth
+// for the six ability slugs (iteration order) and as an EN reference/fallback
+// — they are NEVER read as a display value anymore. `AbilityRow.label`/
+// `.longLabel` and `SkillRow.abilityLabel` are computed at GETTER-CALL time
+// via t() against FUSION.Sheet.Labels.Ability.<slug>[.full] (both keys
+// already existed in the bundles, just unused). Getter-call time matters:
+// unlike a top-level `const X = t(...)`, which would freeze whatever locale
+// was active at MODULE IMPORT time forever, a plain class getter re-runs
+// t() every time `vm.abilities`/`vm.skills` is read — same reactivity
+// characteristics as calling t() directly in the Svelte template.
 // ---------------------------------------------------------------------------
 
 export const ABILITY_LABELS: Record<string, string> = {
@@ -268,6 +280,26 @@ export interface StrikeRow {
     totalFormatted: string;
     formula: string;
   }>;
+}
+
+/**
+ * Rebuild a strike's damage formula with its trailing damage-type word
+ * translated to pt-BR (R24 #40.6). The rules engine
+ * (systems/pf2e/src/derivations/character.ts — out of scope here, locale-
+ * agnostic by design) always renders `damageFormula` as `Nd# [+/-M] <type>`,
+ * i.e. the RAW EN `damageType` is always its last token. Since `damageType`
+ * is exposed as its own field, the exact trailing occurrence can be stripped
+ * and swapped for translateDamageType()'s pt-BR word (documentDetails.ts)
+ * without ever touching the engine. Falls back to the raw formula unchanged
+ * (never throws) if the trailing text doesn't match the expected shape.
+ */
+export function translatedStrikeDamageFormula(
+  strike: Pick<StrikeRow, "damageFormula" | "damageType">,
+): string {
+  const { damageFormula, damageType } = strike;
+  if (!damageType || !damageFormula.endsWith(damageType)) return damageFormula;
+  const translated = translateDamageType(damageType, i18n.locale);
+  return damageFormula.slice(0, damageFormula.length - damageType.length) + translated;
 }
 
 export interface ConditionRow {
@@ -819,7 +851,7 @@ export class CharacterSheetVM {
     const derivedScores = (this._derived as { abilityScores?: Record<string, number> } | null)
       ?.abilityScores;
 
-    return Object.entries(ABILITY_LABELS).map(([slug, label]) => {
+    return Object.entries(ABILITY_LABELS).map(([slug]) => {
       const raw = abilities[slug];
       const score = derivedScores?.[slug] ?? raw?.value ?? 10;
       const mod = abilityMods
@@ -827,8 +859,8 @@ export class CharacterSheetVM {
         : Math.floor((score - 10) / 2);
       return {
         slug,
-        label,
-        longLabel: ABILITY_LONG_LABELS[slug] ?? slug,
+        label: t(`FUSION.Sheet.Labels.Ability.${slug}`),
+        longLabel: t(`FUSION.Sheet.Labels.Ability.${slug}.full`),
         score,
         mod,
         modFormatted: fmtMod(mod),
@@ -870,6 +902,15 @@ export class CharacterSheetVM {
   // Saves
   // -------------------------------------------------------------------------
 
+  // R24 (#40.3): pt-BR save labels via the existing FUSION.Sheet.Labels.Saves.*
+  // keys (Fort/Ref/Will short codes, e.g. "Reflexos"). Looked up at
+  // getter-call time (same reactivity rationale as the abilities getter above).
+  private static readonly SAVE_LABEL_KEYS: Record<"fortitude" | "reflex" | "will", string> = {
+    fortitude: "FUSION.Sheet.Labels.Saves.Fort",
+    reflex: "FUSION.Sheet.Labels.Saves.Ref",
+    will: "FUSION.Sheet.Labels.Saves.Will",
+  };
+
   get saves(): SaveRow[] {
     const derived = this._derived;
     const savesSource = this._system["saves"] as Record<string, { rank?: number }> | undefined;
@@ -881,7 +922,7 @@ export class CharacterSheetVM {
       const total = derivedSave?.total ?? 0;
       return {
         slug: name,
-        label: name.charAt(0).toUpperCase() + name.slice(1),
+        label: t(CharacterSheetVM.SAVE_LABEL_KEYS[name]),
         total,
         totalFormatted: fmtMod(total),
         dc: derivedSave?.dc ?? 10 + total,
@@ -991,7 +1032,7 @@ export class CharacterSheetVM {
         rankLabel: proficiencyLabel(rank),
         rankLabelFull: proficiencyLabelFull(rank),
         ability,
-        abilityLabel: ABILITY_LABELS[ability] ?? ability.toUpperCase(),
+        abilityLabel: t(`FUSION.Sheet.Labels.Ability.${ability}`),
         isLore,
       };
     });
@@ -2807,8 +2848,10 @@ export function buildSpellNameTranslator(entries: SpellPickerEntry[]): SpellName
  * Compendium `uuid` plus the EN `name` and optional pt-BR `namePt` join keys
  * (r14-B4). Structural superset of {@link SpellPickerEntry} — the spells-core
  * `searchPack` result (PackIndexEntry[]) satisfies it directly. `index` is
- * kept optional so a `flags.fusion.sourceId` join can be added later without a
- * signature change (the pack index does not carry sourceId today).
+ * optional and carries the `flags.fusion.sourceId` join, which the pack index
+ * DOES publish since issue #41 — `buildSpellDetailsResolver` below already uses
+ * it. (This comment used to say the index did not carry sourceId; that stopped
+ * being true with #41, and the stale claim outlived the fact in three places.)
  */
 export interface SpellDetailsIndexEntry {
   uuid: string;
