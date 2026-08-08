@@ -12,7 +12,11 @@ import {
   formatBytes,
   isImageExtension,
   MAX_UPLOAD_BYTES,
+  MAX_BYTES_BY_KIND,
   ALLOWED_EXTENSIONS,
+  acceptAttrFor,
+  formatsLabelFor,
+  maxBytesFor,
 } from "../clientValidation.js";
 
 // ---------------------------------------------------------------------------
@@ -255,10 +259,120 @@ describe("ALLOWED_EXTENSIONS", () => {
     expect(ALLOWED_EXTENSIONS).toHaveProperty("svg");
   });
 
-  it("does NOT include exe, pdf, mp4, mp3", () => {
+  it("includes mp3 and ogg", () => {
+    expect(ALLOWED_EXTENSIONS).toHaveProperty("mp3");
+    expect(ALLOWED_EXTENSIONS).toHaveProperty("ogg");
+  });
+
+  it("does NOT include exe, pdf, mp4, wav", () => {
     expect(ALLOWED_EXTENSIONS).not.toHaveProperty("exe");
     expect(ALLOWED_EXTENSIONS).not.toHaveProperty("pdf");
     expect(ALLOWED_EXTENSIONS).not.toHaveProperty("mp4");
-    expect(ALLOWED_EXTENSIONS).not.toHaveProperty("mp3");
+    // WAV is out of scope by decision (RIFF is ambiguous with WebP server-side).
+    expect(ALLOWED_EXTENSIONS).not.toHaveProperty("wav");
+  });
+
+  it("tags every extension with the kind the server caps it by", () => {
+    expect(ALLOWED_EXTENSIONS["png"]?.kind).toBe("image");
+    expect(ALLOWED_EXTENSIONS["svg"]?.kind).toBe("image");
+    expect(ALLOWED_EXTENSIONS["mp3"]?.kind).toBe("audio");
+    expect(ALLOWED_EXTENSIONS["ogg"]?.kind).toBe("audio");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Audio uploads and the per-kind size cap (wi-mapa-som-01)
+// ---------------------------------------------------------------------------
+
+describe("validateFileForUpload — audio", () => {
+  it("accepts an .mp3", () => {
+    expect(validateFileForUpload(makeFile("tavern.mp3", 1024, "audio/mpeg")).ok).toBe(true);
+  });
+
+  it("accepts an .ogg", () => {
+    expect(validateFileForUpload(makeFile("rain.ogg", 1024, "audio/ogg")).ok).toBe(true);
+  });
+
+  it("rejects a .wav on extension", () => {
+    const result = validateFileForUpload(makeFile("ambient.wav", 1024, "audio/wav"));
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe("extension");
+  });
+
+  it("lists the audio formats in the extension error", () => {
+    const result = validateFileForUpload(makeFile("clip.mp4", 1024));
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.message).toMatch(/MP3/);
+  });
+});
+
+describe("MAX_BYTES_BY_KIND — same size, different verdict", () => {
+  it("mirrors the server numbers", () => {
+    expect(MAX_BYTES_BY_KIND.image).toBe(20 * 1024 * 1024);
+    expect(MAX_BYTES_BY_KIND.audio).toBe(100 * 1024 * 1024);
+  });
+
+  it("keeps MAX_UPLOAD_BYTES as the image cap (the historical meaning)", () => {
+    expect(MAX_UPLOAD_BYTES).toBe(MAX_BYTES_BY_KIND.image);
+  });
+
+  it("rejects a 30 MB image but accepts a 30 MB track", () => {
+    const thirtyMb = 30 * 1024 * 1024;
+
+    const image = validateFileForUpload(makeFile("huge.png", thirtyMb));
+    expect(image.ok).toBe(false);
+    if (!image.ok) {
+      expect(image.reason).toBe("size");
+      expect(image.message).toMatch(/image/i);
+    }
+
+    expect(validateFileForUpload(makeFile("long.mp3", thirtyMb, "audio/mpeg")).ok).toBe(true);
+  });
+
+  it("rejects a track above the audio cap, naming the kind", () => {
+    const result = validateFileForUpload(
+      makeFile("epic.ogg", MAX_BYTES_BY_KIND.audio + 1, "audio/ogg"),
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.reason).toBe("size");
+      expect(result.message).toMatch(/audio/i);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Picker helpers — what the FilePicker renders is derived, never hand-written
+// ---------------------------------------------------------------------------
+
+describe("acceptAttrFor", () => {
+  it("offers only image extensions to an image picker", () => {
+    expect(acceptAttrFor(["image"])).toBe(".png,.jpg,.jpeg,.webp,.svg");
+  });
+
+  it("offers only audio extensions to an audio picker", () => {
+    expect(acceptAttrFor(["audio"])).toBe(".mp3,.ogg");
+  });
+
+  it("offers both when both kinds are asked for", () => {
+    expect(acceptAttrFor(["image", "audio"])).toBe(".png,.jpg,.jpeg,.webp,.svg,.mp3,.ogg");
+  });
+});
+
+describe("formatsLabelFor", () => {
+  it("dedupes JPEG and reads like a human wrote it", () => {
+    expect(formatsLabelFor(["image"])).toBe("PNG, JPEG, WebP, SVG");
+    expect(formatsLabelFor(["audio"])).toBe("MP3, OGG");
+  });
+});
+
+describe("maxBytesFor", () => {
+  it("is the cap of the single kind", () => {
+    expect(maxBytesFor(["image"])).toBe(MAX_BYTES_BY_KIND.image);
+    expect(maxBytesFor(["audio"])).toBe(MAX_BYTES_BY_KIND.audio);
+  });
+
+  it("is the largest cap when several kinds are accepted", () => {
+    expect(maxBytesFor(["image", "audio"])).toBe(MAX_BYTES_BY_KIND.audio);
   });
 });
