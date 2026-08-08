@@ -21,6 +21,7 @@ import { boot } from "../../boot.js";
 import type { BootResult } from "../../boot.js";
 import { ensureDataDirLayout } from "../../data-dir.js";
 import { TunnelManager } from "../tunnel-manager.js";
+import { listeningPort, reserveFreePort } from "../../__tests__/helpers/ports.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -47,11 +48,10 @@ afterEach(async () => {
 
 async function bootWithTunnel(
   dataDir: string,
-  port = 0,
 ): Promise<{ server: BootResult; tunnelManager: TunnelManager }> {
   const config = loadConfig({
     dataDirOverride: dataDir,
-    cliOverrides: { port, dataDir, logLevel: "silent" },
+    cliOverrides: { port: await reserveFreePort(), dataDir, logLevel: "silent" },
   });
   ensureDataDirLayout(config.dataDir, { logger: createLogger("silent") });
 
@@ -89,11 +89,12 @@ async function bootWithTunnel(
   return { server, tunnelManager };
 }
 
-async function completeSetup(server: BootResult, dataDir: string, port: number): Promise<string> {
+/** Applies setup on the port the server is really bound to — see helpers/ports.ts. */
+async function completeSetup(server: BootResult, dataDir: string): Promise<string> {
   const res = await server.fastify.inject({
     method: "POST",
     url: "/admin/setup/apply",
-    payload: { dataDir, port, adminKey: "tunnel-route-test-key" },
+    payload: { dataDir, port: listeningPort(server.fastify), adminKey: "tunnel-route-test-key" },
   });
   return res.json<{ adminToken: string }>().adminToken;
 }
@@ -111,9 +112,8 @@ describe("POST /admin/network/tunnel — FIX-4 defense in depth (setupCompleted 
     // back to false directly to Config/fusion.json while keeping the same
     // jwtHmacSecret, without going through a second apply().
     const dataDir = makeTempDataDir();
-    const port = 33801;
-    const { server, tunnelManager } = await bootWithTunnel(dataDir, port);
-    const adminToken = await completeSetup(server, dataDir, port);
+    const { server, tunnelManager } = await bootWithTunnel(dataDir);
+    const adminToken = await completeSetup(server, dataDir);
 
     const { writeFusionConfig } = await import("../../data-dir.js");
     writeFusionConfig(dataDir, { setupCompleted: false });
@@ -134,9 +134,8 @@ describe("POST /admin/network/tunnel — FIX-4 defense in depth (setupCompleted 
 
   it('allows {action:"start"} post-setup with a valid Bearer', async () => {
     const dataDir = makeTempDataDir();
-    const port = 33802;
-    const { server, tunnelManager } = await bootWithTunnel(dataDir, port);
-    const adminToken = await completeSetup(server, dataDir, port);
+    const { server, tunnelManager } = await bootWithTunnel(dataDir);
+    const adminToken = await completeSetup(server, dataDir);
 
     const res = await server.fastify.inject({
       method: "POST",
@@ -155,9 +154,8 @@ describe("POST /admin/network/tunnel — FIX-4 defense in depth (setupCompleted 
 
   it('{action:"stop"} is unaffected by the setupCompleted guard', async () => {
     const dataDir = makeTempDataDir();
-    const port = 33803;
-    const { server, tunnelManager } = await bootWithTunnel(dataDir, port);
-    const adminToken = await completeSetup(server, dataDir, port);
+    const { server, tunnelManager } = await bootWithTunnel(dataDir);
+    const adminToken = await completeSetup(server, dataDir);
 
     const res = await server.fastify.inject({
       method: "POST",
@@ -172,9 +170,8 @@ describe("POST /admin/network/tunnel — FIX-4 defense in depth (setupCompleted 
 
   it("still requires a Bearer regardless of setupCompleted (401, not 403, without one)", async () => {
     const dataDir = makeTempDataDir();
-    const port = 33804;
-    const { server } = await bootWithTunnel(dataDir, port);
-    await completeSetup(server, dataDir, port);
+    const { server } = await bootWithTunnel(dataDir);
+    await completeSetup(server, dataDir);
 
     const res = await server.fastify.inject({
       method: "POST",
@@ -188,9 +185,8 @@ describe("POST /admin/network/tunnel — FIX-4 defense in depth (setupCompleted 
 describe("POST /admin/network/tunnel — FIX-5 (typed 400 on missing body)", () => {
   it("returns 400 (not 500) when the request has no body at all", async () => {
     const dataDir = makeTempDataDir();
-    const port = 33805;
-    const { server } = await bootWithTunnel(dataDir, port);
-    const adminToken = await completeSetup(server, dataDir, port);
+    const { server } = await bootWithTunnel(dataDir);
+    const adminToken = await completeSetup(server, dataDir);
 
     const res = await server.fastify.inject({
       method: "POST",
@@ -207,9 +203,8 @@ describe("POST /admin/network/tunnel — FIX-5 (typed 400 on missing body)", () 
 
   it("returns 400 for an empty JSON object body", async () => {
     const dataDir = makeTempDataDir();
-    const port = 33806;
-    const { server } = await bootWithTunnel(dataDir, port);
-    const adminToken = await completeSetup(server, dataDir, port);
+    const { server } = await bootWithTunnel(dataDir);
+    const adminToken = await completeSetup(server, dataDir);
 
     const res = await server.fastify.inject({
       method: "POST",
@@ -223,9 +218,8 @@ describe("POST /admin/network/tunnel — FIX-5 (typed 400 on missing body)", () 
 
   it("returns 400 for an unrecognized action value", async () => {
     const dataDir = makeTempDataDir();
-    const port = 33807;
-    const { server } = await bootWithTunnel(dataDir, port);
-    const adminToken = await completeSetup(server, dataDir, port);
+    const { server } = await bootWithTunnel(dataDir);
+    const adminToken = await completeSetup(server, dataDir);
 
     const res = await server.fastify.inject({
       method: "POST",

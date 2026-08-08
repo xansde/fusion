@@ -30,6 +30,7 @@ import { createLogger } from "../../logger.js";
 import { boot } from "../../boot.js";
 import type { BootResult } from "../../boot.js";
 import { ensureDataDirLayout } from "../../data-dir.js";
+import { listeningPort, holdPort, reserveFreePort } from "../../__tests__/helpers/ports.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -53,10 +54,10 @@ afterEach(async () => {
   }
 });
 
-async function bootManagementServer(dataDir: string, port = 0): Promise<BootResult> {
+async function bootManagementServer(dataDir: string): Promise<BootResult> {
   const config = loadConfig({
     dataDirOverride: dataDir,
-    cliOverrides: { port, dataDir, logLevel: "silent" },
+    cliOverrides: { port: await reserveFreePort(), dataDir, logLevel: "silent" },
   });
   ensureDataDirLayout(config.dataDir, { logger: createLogger("silent") });
 
@@ -127,13 +128,13 @@ describe("/admin/setup/check-port", () => {
     // this so re-opening /setup on an already-configured server does not
     // show a false "port in use" for the port it is actively serving from.
     // Here "the port this process is listening on" IS the boot-time port
-    // (server was booted with an explicit port, and fastify.listen() already
-    // bound it for real — no extra listener needed to simulate occupancy),
-    // which is what check-port must compare against post-setup — see the
-    // disk-vs-boot regression test below for the case where those diverge.
+    // (fastify.listen() already bound it for real — no extra listener needed
+    // to simulate occupancy), which is what check-port must compare against
+    // post-setup — see the disk-vs-boot regression test below for the case
+    // where those diverge.
     const dataDir = makeTempDataDir();
-    const bootPort = 33778;
-    const server = await bootManagementServer(dataDir, bootPort);
+    const server = await bootManagementServer(dataDir);
+    const bootPort = listeningPort(server.fastify);
 
     const applyRes = await server.fastify.inject({
       method: "POST",
@@ -155,21 +156,19 @@ describe("/admin/setup/check-port", () => {
 
   it("REGRESSION: boot port (not the persisted disk port) drives lan.urls/QR and the check-port self-conflict when they diverge", async () => {
     // Reproduces the exact scenario from the B2+B4 security audit: setup was
-    // completed once with port 33661 persisted to disk, but THIS boot was
-    // started with an explicit --port 33663 different from what is on disk
-    // (e.g. the GM passed --port on the command line after a prior
-    // reconfiguration that has not been restarted into yet). Before the fix,
-    // resolveCurrentPort() preferred the disk value (33661) for
-    // lan.urls/QR/self-conflict — pointing the GM's invite links at a dead
-    // port and making check-port fail to recognize 33663 (the port ACTUALLY
-    // bound) as this server's own, so a subsequent apply() on 33663 would
+    // completed once with one port persisted to disk, but THIS boot was
+    // started on a DIFFERENT port from what is on disk (e.g. the GM passed
+    // --port on the command line after a prior reconfiguration that has not
+    // been restarted into yet). Before the fix, resolveCurrentPort() preferred
+    // the disk value for lan.urls/QR/self-conflict — pointing the GM's invite
+    // links at a dead port and making check-port fail to recognize the port
+    // ACTUALLY bound as this server's own, so a subsequent apply() on it would
     // 409 against itself.
     const dataDir = makeTempDataDir();
-    const diskPort = 33661;
-    const bootPort = 33663;
 
     // First boot: complete setup with diskPort persisted to Config/fusion.json.
-    const firstServer = await bootManagementServer(dataDir, diskPort);
+    const firstServer = await bootManagementServer(dataDir);
+    const diskPort = listeningPort(firstServer.fastify);
     const firstApply = await firstServer.fastify.inject({
       method: "POST",
       url: "/admin/setup/apply",
@@ -178,10 +177,17 @@ describe("/admin/setup/check-port", () => {
     expect(firstApply.statusCode).toBe(200);
     await firstServer.shutdown();
 
+    // The whole point of this test is that the two ports DIVERGE, so the
+    // second boot must not be handed diskPort back now that it is free.
+    const releaseDiskPort = await holdPort(diskPort);
+
     // Second boot: same dataDir (disk still has diskPort persisted), but
     // this process is actually started bound to bootPort — simulating an
     // operator-supplied --port that diverges from the persisted value.
-    const server = await bootManagementServer(dataDir, bootPort);
+    const server = await bootManagementServer(dataDir);
+    const bootPort = listeningPort(server.fastify);
+    await releaseDiskPort();
+    expect(bootPort).not.toBe(diskPort);
 
     // /admin/setup/state must report the REAL boot port for currentPort/
     // lanUrls, with the disk value surfaced separately and explicitly.
@@ -244,8 +250,8 @@ describe("/admin/setup/check-port", () => {
     // self-port check must still recognize its own port as "available"
     // instead of reporting it in use to itself.
     const dataDir = makeTempDataDir();
-    const explicitPort = 33891;
-    const server = await bootManagementServer(dataDir, explicitPort);
+    const server = await bootManagementServer(dataDir);
+    const explicitPort = listeningPort(server.fastify);
 
     // Confirm the fresh-install precondition: nothing persisted yet.
     const stateRes = await server.fastify.inject({ method: "GET", url: "/admin/setup/state" });
@@ -265,19 +271,20 @@ describe("/admin/setup/check-port", () => {
 });
 
 describe("/admin/setup/state and /admin/setup/check-port — post-setup auth guard", () => {
-  async function completeSetup(server: BootResult, dataDir: string, port: number): Promise<string> {
+  /** Applies setup on the port the server is really bound to — see helpers/ports.ts. */
+  async function completeSetup(server: BootResult, dataDir: string): Promise<string> {
     const res = await server.fastify.inject({
       method: "POST",
       url: "/admin/setup/apply",
-      payload: { dataDir, port, adminKey: "post-setup-guard-key" },
+      payload: { dataDir, port: listeningPort(server.fastify), adminKey: "post-setup-guard-key" },
     });
     return res.json<{ adminToken: string }>().adminToken;
   }
 
   it("GET /admin/setup/state without a Bearer returns ONLY { setupCompleted: true } post-setup — no dataDir/LAN/version leak", async () => {
     const dataDir = makeTempDataDir();
-    const server = await bootManagementServer(dataDir, 33701);
-    await completeSetup(server, dataDir, 33701);
+    const server = await bootManagementServer(dataDir);
+    await completeSetup(server, dataDir);
 
     const res = await server.fastify.inject({ method: "GET", url: "/admin/setup/state" });
     expect(res.statusCode).toBe(200);
@@ -292,8 +299,8 @@ describe("/admin/setup/state and /admin/setup/check-port — post-setup auth gua
 
   it("GET /admin/setup/state WITH a valid Bearer returns the full state post-setup", async () => {
     const dataDir = makeTempDataDir();
-    const server = await bootManagementServer(dataDir, 33702);
-    const token = await completeSetup(server, dataDir, 33702);
+    const server = await bootManagementServer(dataDir);
+    const token = await completeSetup(server, dataDir);
 
     const res = await server.fastify.inject({
       method: "GET",
@@ -308,7 +315,7 @@ describe("/admin/setup/state and /admin/setup/check-port — post-setup auth gua
 
   it("GET /admin/setup/state is still fully open PRE-setup (no Bearer needed for the wizard's own first load)", async () => {
     const dataDir = makeTempDataDir();
-    const server = await bootManagementServer(dataDir, 33703);
+    const server = await bootManagementServer(dataDir);
 
     const res = await server.fastify.inject({ method: "GET", url: "/admin/setup/state" });
     expect(res.statusCode).toBe(200);
@@ -319,8 +326,8 @@ describe("/admin/setup/state and /admin/setup/check-port — post-setup auth gua
 
   it("POST /admin/setup/check-port without a Bearer returns 401 post-setup", async () => {
     const dataDir = makeTempDataDir();
-    const server = await bootManagementServer(dataDir, 33704);
-    await completeSetup(server, dataDir, 33704);
+    const server = await bootManagementServer(dataDir);
+    await completeSetup(server, dataDir);
 
     const res = await server.fastify.inject({
       method: "POST",
@@ -332,8 +339,8 @@ describe("/admin/setup/state and /admin/setup/check-port — post-setup auth gua
 
   it("POST /admin/setup/check-port WITH a valid Bearer works normally post-setup", async () => {
     const dataDir = makeTempDataDir();
-    const server = await bootManagementServer(dataDir, 33705);
-    const token = await completeSetup(server, dataDir, 33705);
+    const server = await bootManagementServer(dataDir);
+    const token = await completeSetup(server, dataDir);
 
     const res = await server.fastify.inject({
       method: "POST",
@@ -347,7 +354,7 @@ describe("/admin/setup/state and /admin/setup/check-port — post-setup auth gua
 
   it("POST /admin/setup/check-port is still fully open PRE-setup", async () => {
     const dataDir = makeTempDataDir();
-    const server = await bootManagementServer(dataDir, 33706);
+    const server = await bootManagementServer(dataDir);
 
     const res = await server.fastify.inject({
       method: "POST",
@@ -366,7 +373,7 @@ describe("/admin/setup/apply — first run (no Bearer required)", () => {
     const res = await server.fastify.inject({
       method: "POST",
       url: "/admin/setup/apply",
-      payload: { dataDir, port: 33555, adminKey: "wizard-admin-key-123" },
+      payload: { dataDir, port: listeningPort(server.fastify), adminKey: "wizard-admin-key-123" },
     });
 
     expect(res.statusCode).toBe(200);
@@ -424,7 +431,7 @@ describe("/admin/* after setup is completed — Bearer required", () => {
     const res = await server.fastify.inject({
       method: "POST",
       url: "/admin/setup/apply",
-      payload: { dataDir, port: 33556, adminKey },
+      payload: { dataDir, port: listeningPort(server.fastify), adminKey },
     });
     const body = res.json<{ adminToken: string }>();
     return body.adminToken;
@@ -438,7 +445,7 @@ describe("/admin/* after setup is completed — Bearer required", () => {
     const res = await server.fastify.inject({
       method: "POST",
       url: "/admin/setup/apply",
-      payload: { dataDir, port: 33557, adminKey: "new-key-attempt" },
+      payload: { dataDir, port: listeningPort(server.fastify), adminKey: "new-key-attempt" },
     });
     expect(res.statusCode).toBe(401);
   });
@@ -452,7 +459,7 @@ describe("/admin/* after setup is completed — Bearer required", () => {
       method: "POST",
       url: "/admin/setup/apply",
       headers: { authorization: `Bearer ${token}` },
-      payload: { dataDir, port: 33556, adminKey: "reconfig-admin-key" },
+      payload: { dataDir, port: listeningPort(server.fastify), adminKey: "reconfig-admin-key" },
     });
     expect(res.statusCode).toBe(200);
   });
@@ -468,11 +475,10 @@ describe("/admin/* after setup is completed — Bearer required", () => {
 
   it("returns LAN URLs and a tunnel:null placeholder from /admin/network with a valid Bearer", async () => {
     const dataDir = makeTempDataDir();
-    // Boot bound to the SAME port completeSetup() will apply, so lan.port
-    // (which now always reflects the real boot-time bind — see the
-    // disk-vs-boot regression test above for the divergent case) matches
-    // the value asserted below.
-    const server = await bootManagementServer(dataDir, 33556);
+    // completeSetup() applies the port the server is really bound to, so
+    // lan.port (which always reflects the real boot-time bind — see the
+    // disk-vs-boot regression test above for the divergent case) matches it.
+    const server = await bootManagementServer(dataDir);
     const token = await completeSetup(server, dataDir);
 
     const res = await server.fastify.inject({
@@ -487,7 +493,7 @@ describe("/admin/* after setup is completed — Bearer required", () => {
       tunnel: unknown;
     }>();
     expect(body.ok).toBe(true);
-    expect(body.lan.port).toBe(33556);
+    expect(body.lan.port).toBe(listeningPort(server.fastify));
     expect(Array.isArray(body.lan.urls)).toBe(true);
     expect(body.tunnel).toBeNull();
   });
@@ -526,7 +532,7 @@ describe("/admin/login", () => {
     await server.fastify.inject({
       method: "POST",
       url: "/admin/setup/apply",
-      payload: { dataDir, port: 33558, adminKey: "login-test-key" },
+      payload: { dataDir, port: listeningPort(server.fastify), adminKey: "login-test-key" },
     });
 
     const res = await server.fastify.inject({
@@ -555,7 +561,7 @@ describe("/admin/login", () => {
     await server.fastify.inject({
       method: "POST",
       url: "/admin/setup/apply",
-      payload: { dataDir, port: 33559, adminKey: "correct-key" },
+      payload: { dataDir, port: listeningPort(server.fastify), adminKey: "correct-key" },
     });
 
     const res = await server.fastify.inject({
@@ -579,7 +585,7 @@ describe("/admin/login", () => {
     await server.fastify.inject({
       method: "POST",
       url: "/admin/setup/apply",
-      payload: { dataDir, port: 33562, adminKey: "lockout-test-key" },
+      payload: { dataDir, port: listeningPort(server.fastify), adminKey: "lockout-test-key" },
     });
 
     for (let i = 0; i < 5; i++) {
@@ -609,7 +615,7 @@ describe("/admin/login", () => {
     await server.fastify.inject({
       method: "POST",
       url: "/admin/setup/apply",
-      payload: { dataDir, port: 33563, adminKey: "lockout-recover-key" },
+      payload: { dataDir, port: listeningPort(server.fastify), adminKey: "lockout-recover-key" },
     });
 
     // A few failures, but below the threshold.
@@ -672,7 +678,7 @@ describe("end-to-end: fresh install redirects to /setup, completing it unlocks /
     await server.fastify.inject({
       method: "POST",
       url: "/admin/setup/apply",
-      payload: { dataDir, port: 33560, adminKey: "e2e-admin-key-12345" },
+      payload: { dataDir, port: listeningPort(server.fastify), adminKey: "e2e-admin-key-12345" },
     });
 
     const after = await server.fastify.inject({ method: "GET", url: "/" });
@@ -691,8 +697,7 @@ describe("end-to-end: fresh install redirects to /setup, completing it unlocks /
     const dataDir = makeTempDataDir();
     const server = await bootManagementServer(dataDir);
 
-    const address = server.fastify.server.address();
-    const port = typeof address === "object" && address !== null ? address.port : 0;
+    const port = listeningPort(server.fastify);
     const baseUrl = `http://127.0.0.1:${String(port)}`;
 
     const stateRes = await fetch(`${baseUrl}/admin/setup/state`);
@@ -703,7 +708,7 @@ describe("end-to-end: fresh install redirects to /setup, completing it unlocks /
     const applyRes = await fetch(`${baseUrl}/admin/setup/apply`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ dataDir, port: 33561, adminKey: "real-http-e2e-key" }),
+      body: JSON.stringify({ dataDir, port, adminKey: "real-http-e2e-key" }),
     });
     expect(applyRes.status).toBe(200);
     const applyBody = (await applyRes.json()) as { adminToken: string };

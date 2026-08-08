@@ -26,6 +26,7 @@ import { createLogger } from "../../logger.js";
 import { boot } from "../../boot.js";
 import type { BootResult, BootUpdateContext } from "../../boot.js";
 import { ensureDataDirLayout } from "../../data-dir.js";
+import { listeningPort, reserveFreePort } from "../../__tests__/helpers/ports.js";
 import { WorldManager } from "../../worlds/world-manager.js";
 import { startMockUpdateServer, type MockUpdateServer } from "./mock-update-server.js";
 import type { UpdateManifest } from "../manifest-client.js";
@@ -56,12 +57,11 @@ afterEach(async () => {
 async function bootWithUpdateContext(
   dataDir: string,
   manifest: UpdateManifest,
-  port: number,
   overrides: Partial<BootUpdateContext> = {},
 ): Promise<BootResult> {
   const config = loadConfig({
     dataDirOverride: dataDir,
-    cliOverrides: { port, dataDir, logLevel: "silent" },
+    cliOverrides: { port: await reserveFreePort(), dataDir, logLevel: "silent" },
   });
   const logger = createLogger("silent");
   ensureDataDirLayout(config.dataDir, { logger });
@@ -87,11 +87,12 @@ async function bootWithUpdateContext(
   return result;
 }
 
-async function completeSetup(server: BootResult, dataDir: string, port: number): Promise<string> {
+/** Applies setup on the port the server is really bound to — see helpers/ports.ts. */
+async function completeSetup(server: BootResult, dataDir: string): Promise<string> {
   const res = await server.fastify.inject({
     method: "POST",
     url: "/admin/setup/apply",
-    payload: { dataDir, port, adminKey: "update-routes-test-key" },
+    payload: { dataDir, port: listeningPort(server.fastify), adminKey: "update-routes-test-key" },
   });
   expect(res.statusCode).toBe(200);
   return res.json<{ adminToken: string }>().adminToken;
@@ -107,8 +108,8 @@ describe("GET /admin/update/check", () => {
       channel: "stable",
       platforms: {},
     };
-    const server = await bootWithUpdateContext(dataDir, manifest, 33811);
-    await completeSetup(server, dataDir, 33811);
+    const server = await bootWithUpdateContext(dataDir, manifest);
+    await completeSetup(server, dataDir);
 
     const res = await server.fastify.inject({ method: "GET", url: "/admin/update/check" });
     expect(res.statusCode).toBe(401);
@@ -123,8 +124,8 @@ describe("GET /admin/update/check", () => {
       channel: "stable",
       platforms: {},
     };
-    const server = await bootWithUpdateContext(dataDir, manifest, 33812);
-    const adminToken = await completeSetup(server, dataDir, 33812);
+    const server = await bootWithUpdateContext(dataDir, manifest);
+    const adminToken = await completeSetup(server, dataDir);
 
     const res = await server.fastify.inject({
       method: "GET",
@@ -154,8 +155,8 @@ describe("GET /admin/update/check", () => {
       channel: "stable",
       platforms: {},
     };
-    const server = await bootWithUpdateContext(dataDir, manifest, 33813);
-    const adminToken = await completeSetup(server, dataDir, 33813);
+    const server = await bootWithUpdateContext(dataDir, manifest);
+    const adminToken = await completeSetup(server, dataDir);
 
     const res = await server.fastify.inject({
       method: "GET",
@@ -179,8 +180,8 @@ describe("POST /admin/update/apply", () => {
       channel: "stable",
       platforms: {},
     };
-    const server = await bootWithUpdateContext(dataDir, manifest, 33814);
-    await completeSetup(server, dataDir, 33814);
+    const server = await bootWithUpdateContext(dataDir, manifest);
+    await completeSetup(server, dataDir);
 
     const res = await server.fastify.inject({ method: "POST", url: "/admin/update/apply" });
     expect(res.statusCode).toBe(401);
@@ -195,8 +196,8 @@ describe("POST /admin/update/apply", () => {
       channel: "stable",
       platforms: {},
     };
-    const server = await bootWithUpdateContext(dataDir, manifest, 33815);
-    const adminToken = await completeSetup(server, dataDir, 33815);
+    const server = await bootWithUpdateContext(dataDir, manifest);
+    const adminToken = await completeSetup(server, dataDir);
 
     const res = await server.fastify.inject({
       method: "POST",
@@ -223,7 +224,7 @@ describe("POST /admin/update/apply", () => {
       channel: "stable",
       platforms: {},
     };
-    const server = await bootWithUpdateContext(dataDir, manifest, 33816);
+    const server = await bootWithUpdateContext(dataDir, manifest);
     // Deliberately NO completeSetup() here.
 
     const res = await server.fastify.inject({ method: "POST", url: "/admin/update/apply" });
@@ -246,8 +247,8 @@ describe("POST /admin/update/apply", () => {
       channel: "stable",
       platforms: {},
     };
-    const server = await bootWithUpdateContext(dataDir, manifest, 33817);
-    const adminToken = await completeSetup(server, dataDir, 33817);
+    const server = await bootWithUpdateContext(dataDir, manifest);
+    const adminToken = await completeSetup(server, dataDir);
 
     const { writeFusionConfig } = await import("../../data-dir.js");
     writeFusionConfig(dataDir, { setupCompleted: false });

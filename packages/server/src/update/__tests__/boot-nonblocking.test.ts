@@ -15,6 +15,7 @@ import { createLogger } from "../../logger.js";
 import { boot } from "../../boot.js";
 import type { BootResult, BootUpdateContext } from "../../boot.js";
 import { ensureDataDirLayout } from "../../data-dir.js";
+import { listeningPort, reserveFreePort } from "../../__tests__/helpers/ports.js";
 import { WorldManager } from "../../worlds/world-manager.js";
 
 const tempDirs: string[] = [];
@@ -40,7 +41,7 @@ describe("boot() with an unreachable update endpoint", () => {
     const dataDir = makeTempDataDir();
     const config = loadConfig({
       dataDirOverride: dataDir,
-      cliOverrides: { port: 33810, dataDir, logLevel: "silent" },
+      cliOverrides: { port: await reserveFreePort(), dataDir, logLevel: "silent" },
     });
     const logger = createLogger("silent");
     ensureDataDirLayout(config.dataDir, { logger });
@@ -78,7 +79,7 @@ describe("boot() with an unreachable update endpoint", () => {
     const dataDir = makeTempDataDir();
     const config = loadConfig({
       dataDirOverride: dataDir,
-      cliOverrides: { port: 33811, dataDir, logLevel: "silent" },
+      cliOverrides: { port: await reserveFreePort(), dataDir, logLevel: "silent" },
     });
     const logger = createLogger("silent");
     ensureDataDirLayout(config.dataDir, { logger });
@@ -105,7 +106,7 @@ describe("boot() with an unreachable update endpoint", () => {
     const applyRes = await result.fastify.inject({
       method: "POST",
       url: "/admin/setup/apply",
-      payload: { dataDir, port: 33811, adminKey: "nonblocking-test-key" },
+      payload: { dataDir, port: listeningPort(result.fastify), adminKey: "nonblocking-test-key" },
     });
     const { adminToken } = applyRes.json<{ adminToken: string }>();
 
