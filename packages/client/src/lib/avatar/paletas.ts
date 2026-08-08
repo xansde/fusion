@@ -93,6 +93,30 @@ export function arquivosDasCamadas(camadas: readonly CamadaDesenhavel[]): string
 }
 
 /**
+ * Every palette file the whole catalog can possibly need.
+ *
+ * The creator loads all of them up front — the colour PICKER has to list a
+ * channel's ramps before anything is equipped, so lazy per-selection loading
+ * would show an empty swatch row on first click. It is cheap: the pinned acervo
+ * has 14 palette files totalling ~34 KB, against the catalog's own 1.7 MB.
+ */
+export function arquivosDePaletaDoCatalogo(catalogo: {
+  itens: readonly { canais_de_cor?: readonly { material: string; paletas: string[]; base?: string }[] }[];
+}): string[] {
+  const fora = new Set<string>();
+  for (const item of catalogo.itens) {
+    for (const canal of item.canais_de_cor ?? []) {
+      for (const paleta of canal.paletas) fora.add(arquivoDePaleta(canal.material, paleta));
+      if (canal.base !== undefined) {
+        const base = enderecoDaBase(canal.material, canal.base);
+        if (base !== null) fora.add(base.arquivo);
+      }
+    }
+  }
+  return [...fora];
+}
+
+/**
  * Resolve a recolour request into the ramp pair, or null when it cannot be.
  *
  * Null is a legitimate outcome, not an error to throw on: a palette that failed

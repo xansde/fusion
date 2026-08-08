@@ -36,7 +36,7 @@ export class AcervoIndisponivel extends Error {
     super(
       status === undefined
         ? `acervo do avatar indisponível: ${arquivo}`
-        : `acervo do avatar indisponível: ${arquivo} (HTTP ${status})`,
+        : `acervo do avatar indisponível: ${arquivo} (HTTP ${String(status)})`,
     );
     this.name = "AcervoIndisponivel";
   }

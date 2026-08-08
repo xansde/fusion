@@ -67,8 +67,12 @@ function carregarAtlas(arq: string): Promise<HTMLImageElement | null> {
       const img = new Image();
       // A missing atlas must not take the avatar down: the layer is skipped and
       // the rest of the figure still draws.
-      img.onload = () => resolve(img);
-      img.onerror = () => resolve(null);
+      img.onload = () => {
+        resolve(img);
+      };
+      img.onerror = () => {
+        resolve(null);
+      };
       img.src = acervoUrl(arq);
     })
       .then((img) => {
@@ -133,7 +137,7 @@ function quadroDaCamada(
   rampas: readonly Rampas[],
 ): HTMLCanvasElement {
   if (quadros.tamanho > QUADROS_MAXIMO) quadros.limpar();
-  return quadros.obter(arq, `${sx}:${sy}`, assinatura, () => {
+  return quadros.obter(arq, `${String(sx)}:${String(sy)}`, assinatura, () => {
     const tela = document.createElement("canvas");
     tela.width = lado;
     tela.height = lado;

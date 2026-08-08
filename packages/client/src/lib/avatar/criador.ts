@@ -308,7 +308,9 @@ export function corSelecionada(
  */
 export function trocarPeca(selecao: Selecao, slot: string, id: string | null): Selecao {
   const nova: Selecao = { ...selecao };
-  if (id === null) delete nova[slot];
+  // Reflect.deleteProperty rather than `delete` — the repo's no-dynamic-delete
+  // rule, same call the server's deepMerge makes for its deleteKey semantics.
+  if (id === null) Reflect.deleteProperty(nova, slot);
   else nova[slot] = { id };
   return nova;
 }
@@ -367,6 +369,24 @@ export function corpoPadrao(catalogo: Catalogo): string {
 // ---------------------------------------------------------------------------
 // Document flag round-trip
 // ---------------------------------------------------------------------------
+
+/**
+ * The stored selection as the acervo's renderer wants it.
+ *
+ * Not a cast: the flag's type comes from Zod, whose optional fields are
+ * `cores?: X | undefined`, while the acervo's `Escolha` has `cores?: X`. Under
+ * `exactOptionalPropertyTypes` those are different types, and the difference is
+ * real — an explicit `cores: undefined` is a key that exists. This rebuilds the
+ * object so the key is absent when there is no colour.
+ */
+export function paraSelecao(flag: Pick<AvatarFlag, "selecao">): Selecao {
+  const selecao: Selecao = {};
+  for (const [slot, escolha] of Object.entries(flag.selecao)) {
+    selecao[slot] =
+      escolha.cores === undefined ? { id: escolha.id } : { id: escolha.id, cores: { ...escolha.cores } };
+  }
+  return selecao;
+}
 
 export interface SelecaoNormalizada {
   corpo: string;

@@ -27,7 +27,7 @@
 import { cpSync, createReadStream, existsSync, statSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, normalize, resolve, sep } from "node:path";
-import type { Plugin } from "vite";
+import type { Connect, Plugin } from "vite";
 
 /** URL prefix the client fetches from. Kept in sync with lib/avatar/acervo.ts. */
 export const AVATAR_URL_PREFIX = "/avatar/";
@@ -85,15 +85,7 @@ export function waybuilderAvatar(): Plugin {
   let acervoDir: string | null = null;
   let outDir = "dist";
 
-  const middleware = (
-    req: { url?: string },
-    res: {
-      statusCode: number;
-      setHeader(name: string, value: string): void;
-      end(body?: string): void;
-    },
-    next: () => void,
-  ): void => {
+  const middleware: Connect.NextHandleFunction = (req, res, next) => {
     const url = req.url;
     if (url === undefined || !url.startsWith(AVATAR_URL_PREFIX) || acervoDir === null) {
       next();
@@ -112,7 +104,7 @@ export function waybuilderAvatar(): Plugin {
     // a filename change — so no long-lived cache here. Production gets its
     // caching from the SPA route that serves dist/.
     res.setHeader("Cache-Control", "no-cache");
-    createReadStream(file).pipe(res as unknown as NodeJS.WritableStream);
+    createReadStream(file).pipe(res);
   };
 
   return {
