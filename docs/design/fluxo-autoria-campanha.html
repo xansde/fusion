@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Motor de Campanha — Isekai × Fusion VTT</title>
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#12161f; --panel2:#161b26; --line:#28303f;
+    --tx:#c9d5e4; --mut:#7c8798; --dim:#5a6474;
+    --forja:#a78bfa; --pack:#f0b429; --fusion:#38bdf8; --mesa:#34d399; --gm:#f472b6;
+    --ok:#34d399; --wait:#f0b429; --new:#a78bfa;
+    --mono:ui-monospace,"Cascadia Mono","SF Mono",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(1100px 500px at 12% -10%, #1a2033 0%, transparent 60%),
+      radial-gradient(900px 460px at 92% 4%, #17202c 0%, transparent 58%),
+      var(--bg);
+    color:var(--tx);
+    font:15px/1.62 "Segoe UI",system-ui,-apple-system,sans-serif;
+    padding:44px 28px 90px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+
+  /* ---------- cabeçalho ---------- */
+  header{border-bottom:1px solid var(--line);padding-bottom:26px;margin-bottom:38px}
+  .kicker{font:600 11px/1 var(--mono);letter-spacing:.19em;text-transform:uppercase;color:var(--forja);margin-bottom:14px}
+  h1{margin:0 0 12px;font-size:30px;font-weight:650;letter-spacing:-.018em}
+  .sub{color:var(--mut);max-width:74ch;margin:0}
+  .sub b{color:var(--tx);font-weight:600}
+
+  h2{
+    font-size:12px;font-family:var(--mono);font-weight:700;letter-spacing:.17em;text-transform:uppercase;
+    color:var(--mut);margin:0 0 6px;display:flex;align-items:center;gap:11px
+  }
+  h2::after{content:"";flex:1;height:1px;background:var(--line)}
+  .h2sub{margin:0 0 22px;color:var(--dim);font-size:13.5px;max-width:82ch}
+  section{margin-bottom:52px}
+
+  /* ---------- legenda ---------- */
+  .legend{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px}
+  .lg{
+    display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:999px;
+    border:1px solid var(--line);background:var(--panel);font:600 11.5px var(--mono);color:var(--mut)
+  }
+  .dot{width:8px;height:8px;border-radius:50%;flex:none}
+
+  /* ---------- nós ---------- */
+  .node{
+    background:var(--panel);border:1px solid var(--line);border-radius:9px;
+    padding:13px 15px;position:relative;overflow:hidden
+  }
+  .node::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--line)}
+  .node.forja::before{background:var(--forja)}
+  .node.pack::before{background:var(--pack)}
+  .node.fusion::before{background:var(--fusion)}
+  .node.mesa::before{background:var(--mesa)}
+  .node.gm::before{background:var(--gm)}
+  .nh{display:flex;align-items:center;gap:9px;margin-bottom:5px}
+  .nh svg{width:15px;height:15px;flex:none;stroke-width:1.7}
+  .forja .nh svg,.forja .nt{color:var(--forja)}
+  .pack .nh svg,.pack .nt{color:var(--pack)}
+  .fusion .nh svg,.fusion .nt{color:var(--fusion)}
+  .mesa .nh svg,.mesa .nt{color:var(--mesa)}
+  .gm .nh svg,.gm .nt{color:var(--gm)}
+  .nt{font:700 13px/1.3 "Segoe UI",sans-serif;letter-spacing:.01em}
+  .nd{font-size:12.8px;color:var(--mut);line-height:1.55}
+  .nd code,code.k{
+    font:600 11.5px var(--mono);background:#1d2431;border:1px solid #2b3444;
+    border-radius:4px;padding:1px 5px;color:#b8c6da;white-space:nowrap
+  }
+  .tag{
+    display:inline-block;font:700 9.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;
+    padding:2px 7px;border-radius:4px;margin-left:auto;flex:none
+  }
+  .t-ok{background:rgba(52,211,153,.13);color:var(--ok);border:1px solid rgba(52,211,153,.3)}
+  .t-wait{background:rgba(240,180,41,.13);color:var(--wait);border:1px solid rgba(240,180,41,.3)}
+  .t-new{background:rgba(167,139,250,.13);color:var(--new);border:1px solid rgba(167,139,250,.32)}
+
+  /* ---------- fluxo horizontal ---------- */
+  .flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
+  .flow > .node{flex:1 1 190px;min-width:180px}
+  .ah{display:flex;align-items:center;justify-content:center;padding:0 9px;color:#3b4759;flex:none}
+  .ah svg{width:30px;height:15px}
+
+  /* ---------- árvore (1 → N) ---------- */
+  .tree{margin:16px 0 0 26px;padding-left:30px;border-left:2px solid var(--line);display:flex;flex-direction:column;gap:11px}
+  .tree > .node{position:relative}
+  .tree > .node::after{
+    content:"";position:absolute;left:-30px;top:26px;width:22px;height:2px;background:var(--line)
+  }
+  .tree > .node > .tag{position:absolute;right:14px;top:13px;margin:0}
+  .av{display:flex;justify-content:center;padding:11px 0;color:#3b4759}
+  .av svg{width:15px;height:30px}
+  .lbl{
+    text-align:center;font:600 10.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;
+    color:var(--dim);padding:7px 0
+  }
+
+  /* ---------- grid ---------- */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+  @media(max-width:900px){.grid2,.grid3{grid-template-columns:1fr}}
+
+  /* ---------- destaque ---------- */
+  .call{
+    border:1px solid #2f3a4d;border-left:3px solid var(--forja);background:linear-gradient(180deg,#151b28,#12161f);
+    border-radius:9px;padding:16px 19px;margin:20px 0
+  }
+  .call .ct{font:700 11px var(--mono);letter-spacing:.15em;text-transform:uppercase;color:var(--forja);margin-bottom:8px}
+  .call p{margin:0;font-size:13.6px;color:var(--mut)}
+  .call p + p{margin-top:9px}
+  .call b{color:var(--tx);font-weight:600}
+  .call.warn{border-left-color:var(--wait)} .call.warn .ct{color:var(--wait)}
+  .call.good{border-left-color:var(--mesa)} .call.good .ct{color:var(--mesa)}
+
+  /* ---------- tabela ---------- */
+  table{width:100%;border-collapse:collapse;font-size:13.2px;margin-top:6px}
+  th{
+    text-align:left;font:700 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);
+    padding:9px 12px;border-bottom:1px solid var(--line)
+  }
+  td{padding:10px 12px;border-bottom:1px solid #1c232f;color:var(--mut);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td b{color:var(--tx);font-weight:600}
+
+  /* ---------- camadas de revelação ---------- */
+  .layers{display:flex;flex-direction:column;gap:0;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .layer{display:grid;grid-template-columns:26px 1fr 190px 128px;gap:13px;align-items:center;padding:11px 15px;border-bottom:1px solid #1c232f}
+  .layer:last-child{border-bottom:none}
+  .layer:nth-child(odd){background:#12161f}
+  .layer:nth-child(even){background:#141924}
+  .lnum{font:700 11px var(--mono);color:var(--dim);text-align:center}
+  .lname{font:600 13px "Segoe UI",sans-serif;color:var(--tx)}
+  .lname small{display:block;font-weight:400;font-size:11.8px;color:var(--dim);margin-top:1px}
+  .lwhen{font-size:12.3px;color:var(--mut)}
+  .lown{font:700 10px var(--mono);letter-spacing:.08em;text-align:right;color:var(--dim)}
+  .layer.secret{background:rgba(244,114,182,.055)}
+  .layer.secret .lown{color:var(--gm)}
+
+  /* ---------- escadas de mapa ---------- */
+  .scale{display:flex;flex-direction:column;gap:0}
+  .srow{display:grid;grid-template-columns:120px 1fr;gap:18px;align-items:center;padding:14px 0;border-bottom:1px dashed #232b39}
+  .srow:last-child{border-bottom:none}
+  .stag{
+    font:700 10px var(--mono);letter-spacing:.13em;text-transform:uppercase;text-align:right;color:var(--dim)
+  }
+  .sbox{border:1px solid var(--line);border-radius:8px;padding:12px 15px;background:var(--panel);position:relative}
+  .sbox.now{border-color:#3d5a4d;background:linear-gradient(180deg,#132018,#12161f)}
+  .sbox .st{font:600 13.5px "Segoe UI",sans-serif;color:var(--tx);display:flex;align-items:center;gap:9px}
+  .sbox .sd{font-size:12.6px;color:var(--mut);margin-top:3px}
+  .sarrow{display:flex;align-items:center;gap:9px;padding:2px 0 2px 138px;color:var(--dim);font:600 10.5px var(--mono);letter-spacing:.1em}
+  .sarrow svg{width:13px;height:22px;color:#3b4759}
+
+  footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);color:var(--dim);font-size:12.3px}
+  footer code{font-family:var(--mono);color:var(--mut)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ============ SVG SPRITES ============ -->
+<svg style="display:none">
+  <symbol id="i-term" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l6-5-6-5"/><path d="M12 19h8"/></symbol>
+  <symbol id="i-map" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1116 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+  <symbol id="i-actor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-bag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 01-8 0"/></symbol>
+  <symbol id="i-sword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5L3 6V3h3l11.5 11.5"/><path d="M13 19l6-6M16 16l4 4M19 21l2-2"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></symbol>
+  <symbol id="i-screen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 010 20 15 15 0 010-20z"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></symbol>
+  <symbol id="arr-r" viewBox="0 0 30 15"><path d="M1 7.5H23" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M19 3.5l4.5 4-4.5 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="arr-d" viewBox="0 0 15 30"><path d="M7.5 1V23" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M3.5 19l4 4.5 4-4.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+
+<header>
+  <div class="kicker">Isekai · Yennericka — arquitetura de autoria</div>
+  <h1>Motor de Campanha rodando no Fusion VTT</h1>
+  <p class="sub">Como uma frase sua no chat vira <b>mapa com pins</b>, <b>inimigo com ficha em camadas</b>,
+  <b>missão conectada a tudo</b> e, no fim, <b>uma sessão inteira montada</b> — com você controlando
+  o que cada jogador enxerga, peça por peça.</p>
+  <div class="legend">
+    <span class="lg"><span class="dot" style="background:var(--forja)"></span>Forja — skill roda fora do Fusion</span>
+    <span class="lg"><span class="dot" style="background:var(--pack)"></span>Pack — arquivo de dados (a fronteira)</span>
+    <span class="lg"><span class="dot" style="background:var(--fusion)"></span>Mundo Fusion — documento persistido</span>
+    <span class="lg"><span class="dot" style="background:var(--mesa)"></span>Mesa — o que o jogador vê</span>
+    <span class="lg"><span class="dot" style="background:var(--gm)"></span>Só Mestre</span>
+  </div>
+  <div class="legend" style="margin-top:9px">
+    <span class="lg"><span class="tag t-ok" style="margin:0">pronto</span>existe em código hoje</span>
+    <span class="lg"><span class="tag t-wait" style="margin:0">M4</span>especificado, não construído</span>
+    <span class="lg"><span class="tag t-new" style="margin:0">nosso</span>a gente constrói</span>
+  </div>
+</header>
+
+<!-- ============================================================ -->
+<section>
+  <h2>0 · O fluxo mestre</h2>
+  <p class="h2sub">Tudo o que vem depois é uma variação desta linha. A skill nunca escreve dentro do Fusion:
+  ela produz um <b>pack</b> (arquivo de dados), e o Fusion importa. É a mesma fronteira que o Fusion já usa
+  com o projeto Wayfinder na spec 31.</p>
+
+  <div class="flow">
+    <div class="node forja">
+      <div class="nh"><svg><use href="#i-term"/></svg><span class="nt">Você, no chat</span></div>
+      <div class="nd">“cria a região do Ermo”, “um goblin corrompido nv 3”, “uma missão sobre o cemitério”</div>
+    </div>
+    <div class="ah"><svg><use href="#arr-r"/></svg></div>
+    <div class="node forja">
+      <div class="nh"><svg><use href="#i-term"/></svg><span class="nt">Skill na Forja</span><span class="tag t-new">nosso</span></div>
+      <div class="nd">Lê a base que já existe (85 POIs, 2598 criaturas, 3042 itens, a vault) e monta os documentos</div>
+    </div>
+    <div class="ah"><svg><use href="#arr-r"/></svg></div>
+    <div class="node pack">
+      <div class="nh"><svg><use href="#i-box"/></svg><span class="nt">Pack <code>isekai.*</code></span><span class="tag t-ok">pronto</span></div>
+      <div class="nd"><code>pack.db</code> + <code>pack.json</code> — mesmo formato do <code>importer-pf2e</code></div>
+    </div>
+    <div class="ah"><svg><use href="#arr-r"/></svg></div>
+    <div class="node fusion">
+      <div class="nh"><svg><use href="#i-globe"/></svg><span class="nt">Mundo Fusion</span><span class="tag t-ok">pronto</span></div>
+      <div class="nd">Scene, Actor, Item, JournalEntry — tudo com <code>ownership</code> e <code>flags.isekai.*</code></div>
+    </div>
+    <div class="ah"><svg><use href="#arr-r"/></svg></div>
+    <div class="node mesa">
+      <div class="nh"><svg><use href="#i-users"/></svg><span class="nt">Mesa</span></div>
+      <div class="nd">Cada jogador vê exatamente o que você liberou. Nada mais.</div>
+    </div>
+  </div>
+
+  <div class="call">
+    <div class="ct">A regra que faz tudo funcionar</div>
+    <p><b>Todo documento nasce oculto.</b> <code class="k">ownership: { default: NONE }</code> — o padrão do Fusion
+    já é esse (<code class="k">defaultOwnership()</code> = só o GM vê). Você não esconde as coisas: você <b>revela</b>.</p>
+    <p>Isso inverte o trabalho todo. Em vez de “preparar e depois lembrar de esconder o que é segredo”,
+    você <b>despeja o mundo inteiro no Fusion</b> e vai abrindo. Um mapa com 85 pins pode entrar hoje sem
+    vazar nada.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2>A · <code class="k">/mapa</code> — criar mapa e já plantar os pins</h2>
+  <p class="h2sub">Uma skill, uma região. Sai a cena, a escala em km, e um pin por lugar — todos configurados,
+  todos invisíveis até você querer.</p>
+
+  <div class="node forja" style="max-width:560px">
+    <div class="nh"><svg><use href="#i-term"/></svg><span class="nt">/mapa “Ermo de Shoneymouth”</span></div>
+    <div class="nd">Recebe a arte da região + a lista de locais (ou lê o <code>pois.json</code> que já existe)</div>
+  </div>
+
+  <div class="tree">
+    <div class="node fusion">
+      <span class="tag t-ok">pronto</span>
+      <div class="nh"><svg><use href="#i-map"/></svg><span class="nt">Scene — o mapa</span></div>
+      <div class="nd">Imagem + grid + <code>flags.isekai.kmPorPx</code> (a escala do Azgaar, 4 km/px, já calculada)</div>
+    </div>
+    <div class="node fusion">
+      <span class="tag t-ok">pronto</span>
+      <div class="nh"><svg><use href="#i-pin"/></svg><span class="nt">Note × 85 — os pins</span></div>
+      <div class="nd">Posição, ícone e cor por categoria; <code>ownership: default NONE</code>;
+      <code>flags.isekai.no</code> guarda estado (visitado, limpo, quem controla, dias de viagem)</div>
+    </div>
+    <div class="node fusion">
+      <span class="tag t-wait">M4</span>
+      <div class="nh"><svg><use href="#i-book"/></svg><span class="nt">JournalEntry × 85 — a ficha do lugar</span></div>
+      <div class="nd">Cada pin aponta por <code>@UUID</code> pra ficha. Enquanto Journal for M4, o texto vive
+      dentro do próprio Note</div>
+    </div>
+  </div>
+
+  <div class="av"><svg><use href="#arr-d"/></svg></div>
+  <div class="lbl">na mesa</div>
+
+  <div class="grid2">
+    <div class="node gm">
+      <div class="nh"><svg><use href="#i-screen"/></svg><span class="nt">Console de Revelação</span><span class="tag t-new">H2</span></div>
+      <div class="nd">Matriz “85 pins × seus jogadores”. Marca 12 pro Tobi, 5 pro grupo, num request só.
+      Já está especificado no <code>08-HUB-JOGADOR.md</code></div>
+    </div>
+    <div class="node mesa">
+      <div class="nh"><svg><use href="#i-eye"/></svg><span class="nt">O jogador vê o pin aparecer</span><span class="tag t-new">H3.5</span></div>
+      <div class="nd">Ownership subiu → notificação diegética do Sistema. O minimapa dele passa a mostrar aquele
+      lugar. A Sarielle continua sem ver.</div>
+    </div>
+  </div>
+
+  <div class="call good">
+    <div class="ct">O que isso destrava de graça</div>
+    <p>Os <b>16 rumores</b> que a gente gerou e nunca usou viram mecânica: ouvir um rumor = <b>um pin nasce no
+    seu mapa</b>. Exploração deixa de ser coisa que você narra e vira <b>estado do mundo, visível e
+    assimétrico</b> — o que resolve o furo clássico do sandbox (“jogador não escolhe o que não sabe que existe”).</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2>B · <code class="k">/inimigo</code> — ficha com informação em camadas</h2>
+  <p class="h2sub">O jogador clica no token e abre a ficha. Mas ele não vê a ficha inteira — vê só as camadas
+  que <b>conquistou</b>. E cada camada tem dono próprio, por jogador.</p>
+
+  <div class="node forja" style="max-width:560px">
+    <div class="nh"><svg><use href="#i-term"/></svg><span class="nt">/inimigo “goblin corrompido nv 3”</span></div>
+    <div class="nd">Puxa a base do compendium PF2e (2598 criaturas já importadas), ajusta nível, aplica o tema do mundo</div>
+  </div>
+
+  <div class="tree">
+    <div class="node fusion">
+      <span class="tag t-ok">pronto</span>
+      <div class="nh"><svg><use href="#i-actor"/></svg><span class="nt">Actor (subtype npc) + prototype Token</span></div>
+      <div class="nd">Statblock PF2e completo no campo <code>system</code>, validado por Zod. É o mesmo Actor que
+      entra no combat tracker.</div>
+    </div>
+    <div class="node fusion">
+      <span class="tag t-new">nosso</span>
+      <div class="nh"><svg><use href="#i-eye"/></svg><span class="nt">Camadas de revelação</span></div>
+      <div class="nd">4 blocos de informação, cada um com <b>ownership próprio</b>, listados em
+      <code>flags.isekai.camadas</code></div>
+    </div>
+  </div>
+
+  <div style="margin-top:20px" class="layers">
+    <div class="layer">
+      <div class="lnum">0</div>
+      <div class="lname">Aparência <small>o que qualquer um vê olhando</small></div>
+      <div class="lwhen">Sempre aberta</div>
+      <div class="lown">default: OBSERVER</div>
+    </div>
+    <div class="layer">
+      <div class="lnum">1</div>
+      <div class="lname">Combate <small>CA, HP, velocidade, ataques básicos</small></div>
+      <div class="lwhen">Após 1 rodada, ou Recall Knowledge fácil</div>
+      <div class="lown">por jogador</div>
+    </div>
+    <div class="layer">
+      <div class="lnum">2</div>
+      <div class="lname">Fraquezas <small>IWR, resistências, o truque dele</small></div>
+      <div class="lwhen">Recall Knowledge no DC padrão</div>
+      <div class="lown">por jogador</div>
+    </div>
+    <div class="layer secret">
+      <div class="lnum">3</div>
+      <div class="lname">Agenda <small>o que ele quer, o medo, o segredo</small></div>
+      <div class="lwhen">Sucesso crítico — ou nunca</div>
+      <div class="lown">só Mestre</div>
+    </div>
+  </div>
+
+  <div class="av"><svg><use href="#arr-d"/></svg></div>
+
+  <div class="grid2">
+    <div class="node mesa">
+      <div class="nh"><svg><use href="#i-users"/></svg><span class="nt">Tobi clica no token</span></div>
+      <div class="nd">Vê Aparência + Combate + <b>Fraquezas</b> (ele passou no Recall Knowledge na rodada 2)</div>
+    </div>
+    <div class="node mesa">
+      <div class="nh"><svg><use href="#i-users"/></svg><span class="nt">Sarielle clica no mesmo token</span></div>
+      <div class="nd">Vê só Aparência + Combate. <b>Não sabe da fraqueza.</b> Se quiser, pergunta pro Tobi — e isso vira cena.</div>
+    </div>
+  </div>
+
+  <div class="call">
+    <div class="ct">Por que isso é melhor que o jeito normal</div>
+    <p>Hoje Recall Knowledge é o Mestre falando uma frase que ninguém anota. Aqui ele vira <b>dado permanente
+    que o jogador consulta a sessão inteira</b> — e que o vizinho dele não tem.</p>
+    <p>Você sobe uma camada = <b>notificação no Hub dele</b>. Perícia de conhecimento deixa de ser rolagem morta
+    e vira a forma de <b>desbloquear informação</b>. Num mundo que roda como jogo, isso é literalmente scan de bestiário.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2>C · <code class="k">/missao</code> — o grafo que conecta tudo</h2>
+  <p class="h2sub">A missão não é um texto. É um <b>nó com links</b> pra mapa, criaturas, loot e outras missões —
+  e cada pedaço dela revela separado.</p>
+
+  <div class="node forja" style="max-width:560px">
+    <div class="nh"><svg><use href="#i-term"/></svg><span class="nt">/missao “o que roubaram do cemitério”</span></div>
+    <div class="nd">Escolhe o nó do mapa, puxa os Actors, sorteia o loot na curva do nível, amarra num relógio</div>
+  </div>
+
+  <div class="av"><svg><use href="#arr-d"/></svg></div>
+
+  <div class="node fusion" style="border-color:#2f4256">
+    <div class="nh"><svg><use href="#i-flag"/></svg><span class="nt">JournalEntry “Missão” — o nó central</span><span class="tag t-wait">M4</span></div>
+    <div class="nd">Páginas com permissão independente + links <code>@UUID</code> saindo pra todo o resto</div>
+    <div class="tree" style="margin-top:14px">
+      <div class="node mesa">
+        <div class="nh"><svg><use href="#i-book"/></svg><span class="nt">Página “Gancho”</span></div>
+        <div class="nd">O que eles ouvem. <b>Publicar a missão = subir o ownership desta página.</b></div>
+      </div>
+      <div class="node mesa">
+        <div class="nh"><svg><use href="#i-book"/></svg><span class="nt">Página “Objetivos”</span></div>
+        <div class="nd">Uma por objetivo, revelada conforme avançam</div>
+      </div>
+      <div class="node gm">
+        <div class="nh"><svg><use href="#i-book"/></svg><span class="nt">Página “Estrutura”</span></div>
+        <div class="nd">Cenas, DCs, o twist, o que acontece se falharem. Nunca sai daqui.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lbl" style="padding-top:16px">e o nó aponta para</div>
+
+  <div class="grid3">
+    <div class="node fusion">
+      <div class="nh"><svg><use href="#i-pin"/></svg><span class="nt">Onde</span></div>
+      <div class="nd">Scene + os Notes daquela missão. Clicar leva o mapa até lá.</div>
+    </div>
+    <div class="node fusion">
+      <div class="nh"><svg><use href="#i-actor"/></svg><span class="nt">Quem</span></div>
+      <div class="nd">Actors do fluxo B, já com as camadas montadas</div>
+    </div>
+    <div class="node fusion">
+      <div class="nh"><svg><use href="#i-bag"/></svg><span class="nt">Loot</span></div>
+      <div class="nd">Items do compendium PF2e, na curva do nível</div>
+    </div>
+    <div class="node fusion">
+      <div class="nh"><svg><use href="#i-sword"/></svg><span class="nt">Encontros</span></div>
+      <div class="nd">Combat pré-montado, combatentes já colocados</div>
+    </div>
+    <div class="node fusion">
+      <div class="nh"><svg><use href="#i-flag"/></svg><span class="nt">Outras missões</span></div>
+      <div class="nd">Os fios. Missão puxa missão — é assim que o arco emerge sem você escrever arco.</div>
+    </div>
+    <div class="node fusion">
+      <div class="nh"><svg><use href="#i-clock"/></svg><span class="nt">Relógio</span></div>
+      <div class="nd"><code>flags.isekai.frente</code> — qual pressão avança se ignorarem, e em quantos dias</div>
+    </div>
+  </div>
+
+  <div class="call good">
+    <div class="ct">O relógio anda sozinho</div>
+    <p>A régua de viagem do Companion já calcula <b>dias entre dois pontos</b> (4 km/px; 30/40/55 km por dia).
+    O Fusion tem <code class="k">world.time</code> em segundos, que o Mestre avança.</p>
+    <p>Junta: “vamos até a Vaza-Maré” = 6 dias = você avança o relógio = <b>as frentes andam automaticamente</b>.
+    Viajar passa a <b>custar mundo</b>. É o que faz sandbox funcionar com 2 jogadores — ir longe é deixar algo
+    perto queimar.</p>
+    <p style="color:var(--wait)"><b>Confirmar com o Xande:</b> <code>world.time</code> é spec 14, marcada M4 —
+    a busca no código não retornou implementação. Se não existir ainda, o relógio fica na Forja até o M4.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2>D · <code class="k">/sessao</code> — a sessão inteira montada</h2>
+  <p class="h2sub">Esta skill não cria conteúdo novo. Ela <b>lê o estado do mundo e posiciona tudo</b> —
+  é o fechamento do loop.</p>
+
+  <div class="flow">
+    <div class="node forja">
+      <div class="nh"><svg><use href="#i-clock"/></svg><span class="nt">1 · Lê o estado</span></div>
+      <div class="nd">Onde estão os PCs, quais relógios estão perto de fechar, o que já foi revelado, o que ficou no ar</div>
+    </div>
+    <div class="ah"><svg><use href="#arr-r"/></svg></div>
+    <div class="node forja">
+      <div class="nh"><svg><use href="#i-flag"/></svg><span class="nt">2 · Escolhe 3 quests</span></div>
+      <div class="nd">Nunca 8. Prazos que se atropelam, pra escolha doer</div>
+    </div>
+    <div class="ah"><svg><use href="#arr-r"/></svg></div>
+    <div class="node forja">
+      <div class="nh"><svg><use href="#i-sword"/></svg><span class="nt">3 · Pré-monta 2 encontros</span></div>
+      <div class="nd">Combats com os combatentes já dentro, XP calibrado pra 2 PCs high-power</div>
+    </div>
+    <div class="ah"><svg><use href="#arr-r"/></svg></div>
+    <div class="node forja">
+      <div class="nh"><svg><use href="#i-screen"/></svg><span class="nt">4 · Gera o Briefing</span></div>
+      <div class="nd">1 página, só Mestre: estado, beat obrigatório (o relógio que fechou), gancho de saída</div>
+    </div>
+  </div>
+
+  <div class="av"><svg><use href="#arr-d"/></svg></div>
+
+  <div class="node pack" style="max-width:620px;margin:0 auto">
+    <div class="nh"><svg><use href="#i-box"/></svg><span class="nt">Pacote de sessão</span></div>
+    <div class="nd">Um pack. Você importa, abre o Fusion, e está tudo posto: cena ativa, pins certos revelados,
+    3 cards no board dos jogadores, 2 combates a um clique.</div>
+  </div>
+
+  <div class="av"><svg><use href="#arr-d"/></svg></div>
+  <div class="lbl">depois da mesa — e é isto que fecha o ciclo</div>
+
+  <div class="node forja" style="max-width:620px;margin:0 auto">
+    <div class="nh"><svg><use href="#i-term"/></svg><span class="nt">/log — 5 linhas</span><span class="tag t-new">nosso</span></div>
+    <div class="nd">“Foram na Vaza-Maré, mataram o culto, ignoraram o cemitério.” → a Forja atualiza o estado,
+    gira os relógios, e a próxima <code class="k">/sessao</code> já nasce diferente.</div>
+  </div>
+
+  <div class="call">
+    <div class="ct">O que muda no seu trabalho</div>
+    <p>Hoje: escrever a aventura inteira antes, cena por cena, e torcer pra mesa ir por onde você previu.</p>
+    <p>Aqui: <b>você ajusta o mundo, não escreve cenas.</b> A sessão vira saída, não entrada. E o
+    <code class="k">/log</code> de 5 linhas é a peça que ninguém faz — e que faz o motor girar honesto.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2>E · O mapa — começar pequeno e crescer pra fora</h2>
+  <p class="h2sub">Você está certo sobre o mapa atual. O SVG do Azgaar é vetor gerado, pesado e feio —
+  ele <b>não serve como mapa de jogo</b>. Mas serve muito bem como <b>fonte de cânone</b>.</p>
+
+  <div class="grid2" style="margin-bottom:26px">
+    <div class="node gm">
+      <div class="nh"><svg><use href="#i-map"/></svg><span class="nt">Aposentar: Azgaar como mapa de mesa</span></div>
+      <div class="nd">Milhares de polígonos, sem alma, travava o pan. Não vai pra Scene.</div>
+    </div>
+    <div class="node fusion">
+      <div class="nh"><svg><use href="#i-book"/></svg><span class="nt">Manter: Azgaar como cânone</span></div>
+      <div class="nd">Nomes, 276 reinos, religiões, culturas, e o <code>distanceScale</code>.
+      Isso continua alimentando a Forja — só não é o que aparece na tela.</div>
+    </div>
+  </div>
+
+  <div class="scale">
+    <div class="srow">
+      <div class="stag">escala 4</div>
+      <div class="sbox">
+        <div class="st"><svg style="width:15px;height:15px;color:var(--dim)"><use href="#i-globe"/></svg>Mundo</div>
+        <div class="sd">Talvez nunca. Só se a campanha sair do continente.</div>
+      </div>
+    </div>
+    <div class="sarrow"><svg><use href="#arr-d"/></svg>um pin da cena de cima é portal pra de baixo</div>
+    <div class="srow">
+      <div class="stag">escala 3</div>
+      <div class="sbox">
+        <div class="st"><svg style="width:15px;height:15px;color:var(--dim)"><use href="#i-globe"/></svg>Continente</div>
+        <div class="sd">Depois — quando a mesa passar do nível 8 e sair da região. Arte nova, feita pra ser bonita.</div>
+      </div>
+    </div>
+    <div class="sarrow"><svg><use href="#arr-d"/></svg></div>
+    <div class="srow">
+      <div class="stag" style="color:var(--mesa)">escala 2 · comece aqui</div>
+      <div class="sbox now">
+        <div class="st"><svg style="width:15px;height:15px;color:var(--mesa)"><use href="#i-map"/></svg>Região — O Ermo de Shoneymouth</div>
+        <div class="sd"><b>Os 85 POIs já existem</b>, com distâncias, dificuldade e categorias. É o único nível
+        que a mesa vai usar nos primeiros 10 níveis de jogo. Uma imagem só, feita à mão ou gerada.</div>
+      </div>
+    </div>
+    <div class="sarrow"><svg><use href="#arr-d"/></svg></div>
+    <div class="srow">
+      <div class="stag">escala 1</div>
+      <div class="sbox">
+        <div class="st"><svg style="width:15px;height:15px;color:var(--dim)"><use href="#i-grid"/></svg>Local — dungeon, vila, interior</div>
+        <div class="sd">Grid tático, tokens, combate. Um por lugar que a mesa realmente entrar.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="call good">
+    <div class="ct">Sim, o sistema permite crescer depois</div>
+    <p>A ligação entre escalas é <b>soft reference</b> — um Note guarda o UUID de outra Scene. Não é
+    “o continente contém a região”; é “este pin aponta pra aquela cena”.</p>
+    <p>Consequência prática: você constrói a <b>Região hoje</b>, e daqui a seis meses cria o Continente e
+    aponta um pin dele pra Região que já existe. <b>Nada do que você fez quebra.</b> O mapa cresce pra fora,
+    não de cima pra baixo.</p>
+  </div>
+
+  <div class="call">
+    <div class="ct">E o minimapa</div>
+    <p>O minimapa é a <b>spec 32, território do Xande</b> — greenfield, ainda não existe. Ele renderiza a cena
+    atual <b>recortada por ownership</b>: o jogador vê o mapa com só os pins que ele conhece.</p>
+    <p>O recado a mandar pra ele: <b>consumir o mesmo resolvedor de visibilidade (H0)</b> em vez de escrever
+    um segundo. Duas resoluções divergem em silêncio, e o sintoma aparece meses depois como “o minimapa mostra
+    um pin que o Hub não mostra”.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section>
+  <h2>F · O que existe, o que falta</h2>
+  <p class="h2sub">Conferido no repo <code>xansde/fusion</code> em 07/08/2026 (push 12:04).</p>
+
+  <table>
+    <thead><tr><th style="width:27%">Peça</th><th style="width:31%">Onde vive</th><th style="width:14%">Status</th><th>Nota</th></tr></thead>
+    <tbody>
+      <tr><td><b>Ownership por documento</b></td><td><code>shared/src/document.ts</code></td><td><span class="tag t-ok" style="margin:0">pronto</span></td><td>Níveis NONE→OWNER + INHERIT. Nasce fechado por padrão.</td></tr>
+      <tr><td><b>flags.isekai.*</b></td><td><code>FlagsSchema</code></td><td><span class="tag t-ok" style="margin:0">pronto</span></td><td>Dado arbitrário namespaced. É onde todo o motor mora sem precisar de sistema próprio.</td></tr>
+      <tr><td><b>Scene + Note (pins)</b></td><td>canvas, M1</td><td><span class="tag t-ok" style="margin:0">pronto</span></td><td>O board do sandbox é o mapa com pins.</td></tr>
+      <tr><td><b>Actor + statblock PF2e</b></td><td><code>systems/pf2e</code>, M3</td><td><span class="tag t-ok" style="margin:0">pronto</span></td><td>Primeira sessão jogável já foi atingida.</td></tr>
+      <tr><td><b>Formato de pack</b></td><td><code>tools/importer-pf2e</code></td><td><span class="tag t-ok" style="margin:0">pronto</span></td><td>É o molde do nosso <code>importer-isekai</code>.</td></tr>
+      <tr><td><b>JournalEntry + página com permissão</b></td><td>spec 12</td><td><span class="tag t-wait" style="margin:0">M4</span></td><td>A tabela existe no banco; o subsistema não foi construído. <b>Rota:</b> texto dentro do Note até lá.</td></tr>
+      <tr><td><b>RollTable (gerador)</b></td><td>spec 12</td><td><span class="tag t-wait" style="margin:0">M4</span></td><td><b>Rota:</b> o gerador roda na Forja em Python. Melhor mesmo depois — dá pra editar antes de publicar.</td></tr>
+      <tr><td><b>world.time (relógio)</b></td><td>spec 14</td><td><span class="tag t-wait" style="margin:0">M4</span></td><td>Confirmar com o Xande. Se não existir, relógios ficam na Forja.</td></tr>
+      <tr><td><b>Resolvedor de visibilidade</b></td><td>H0 — <code>shared/src/visibility/</code></td><td><span class="tag t-new" style="margin:0">nosso</span></td><td>~1 noite. Primeira coisa. Três consumidores: Hub, minimapa, board.</td></tr>
+      <tr><td><b>Console de Revelação</b></td><td>H2</td><td><span class="tag t-new" style="margin:0">nosso</span></td><td>É o painel onde você opera tudo isto.</td></tr>
+      <tr><td><b>importer-isekai + as skills</b></td><td>Forja</td><td><span class="tag t-new" style="margin:0">nosso</span></td><td>Diretório novo. Zero colisão com o Xande.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="call warn">
+    <div class="ct">Os dois bloqueios, e por que não travam o começo</div>
+    <p><b>Journals e RollTables são M4.</b> Card de quest v1 vira <b>Note no mapa</b> com ownership — canvas
+    existe desde o M1, e o H3.3 do Hub já lê Notes filtrados. Quando o M4 chegar, a versão em página de journal
+    entra por cima e o ownership não muda.</p>
+    <p><b>Não há módulos em runtime.</b> Por isso o motor mora na Forja e a fronteira é um arquivo de dados —
+    a mesma regra que a spec 31 escreveu pro Wayfinder: <i>“a fronteira é um arquivo de dados, não uma biblioteca.”</i></p>
+  </div>
+</section>
+
+<footer>
+  Gerado para o projeto <code>Isekai-Companion</code> · arquivo local, autocontido ·
+  <code>docs/FLUXO-CAMPANHA-FUSION.html</code><br>
+  Referências verificadas: <code>xansde/fusion</code> (specs 02, 12, 14, 16, 27, 31 · <code>packages/shared/src/document.ts</code>) e
+  <code>docs/08-HUB-JOGADOR.md</code>.
+</footer>
+
+</div>
+</body>
+</html>

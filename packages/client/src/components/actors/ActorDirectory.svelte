@@ -27,6 +27,7 @@
   import { session, getSocket } from "../../lib/session.svelte.js";
   import { t } from "../../lib/i18n/i18n.js";
   import ActorPortrait from "../common/ActorPortrait.svelte";
+  import OwnershipDialog from "./OwnershipDialog.svelte";
 
   /**
    * Default Actor subtype per game system (bug fix — REQ-UIF-002).
@@ -204,6 +205,19 @@
     }
   }
 
+  // ---- Ownership (permissions) dialog (REQ-USR-015) ----
+
+  /** The actor currently open in the OwnershipDialog, or null when closed. */
+  let ownershipDialogActor = $state<ActorDocument | null>(null);
+
+  function openOwnershipDialog(actor: ActorDocument): void {
+    ownershipDialogActor = actor;
+  }
+
+  function closeOwnershipDialog(): void {
+    ownershipDialogActor = null;
+  }
+
   // ---- Drag & Drop ----
 
   function handleDragStart(event: DragEvent, actor: ActorDocument): void {
@@ -300,6 +314,12 @@
               >&#128203;</button>
               {#if isGm}
                 <button
+                  class="action-btn"
+                  onclick={() => openOwnershipDialog(actor)}
+                  title={t("FUSION.Sidebar.Actors.Actions.Permissions")}
+                  aria-label="{t('FUSION.Sidebar.Actors.Actions.Permissions')}: {actor.name}"
+                >&#128273;</button>
+                <button
                   class="action-btn action-btn--danger"
                   onclick={() => void deleteActor(actor)}
                   title={t("FUSION.Sidebar.Actors.Actions.Delete")}
@@ -313,6 +333,18 @@
     {/if}
   </div>
 </div>
+
+{#if ownershipDialogActor}
+  <OwnershipDialog
+    actorId={ownershipDialogActor._id}
+    actorName={ownershipDialogActor.name ?? ownershipDialogActor._id}
+    ownership={ownershipDialogActor.ownership}
+    users={session.worldInfo?.users ?? []}
+    socket={getSocket() ?? socket}
+    onClose={closeOwnershipDialog}
+    onSuccess={closeOwnershipDialog}
+  />
+{/if}
 
 <style>
   .actor-dir {

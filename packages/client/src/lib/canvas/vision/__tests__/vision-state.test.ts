@@ -87,26 +87,26 @@ describe("VisionStateComputer", () => {
 
   it("computes a non-empty vision polygon for a controlled token with vision enabled", () => {
     const token = makeToken("t1", 500, 500);
-    const result = computer.compute([], [token], SCENE_BOUNDS, false, 0, false);
+    const result = computer.compute([], [token], SCENE_BOUNDS, false, 0, false, true);
     expect(result.visionPolygons).toHaveLength(1);
     expect(result.visionPolygons[0]?.polygon.vertices.length).toBeGreaterThan(2);
   });
 
   it("skips tokens where vision.enabled = false", () => {
     const token = makeToken("t1", 500, 500, { enabled: false });
-    const result = computer.compute([], [token], SCENE_BOUNDS, false, 0, false);
+    const result = computer.compute([], [token], SCENE_BOUNDS, false, 0, false, true);
     expect(result.visionPolygons).toHaveLength(0);
   });
 
   it("skips non-controlled tokens for non-GM users", () => {
     const token = makeToken("t1", 500, 500, {}, false /* not controlled */);
-    const result = computer.compute([], [token], SCENE_BOUNDS, false, 0, false);
+    const result = computer.compute([], [token], SCENE_BOUNDS, false, 0, false, true);
     expect(result.visionPolygons).toHaveLength(0);
   });
 
   it("GM: isGm=true is reflected in result", () => {
     const token = makeToken("t1", 500, 500, {}, false); // controlled=false
-    const result = computer.compute([], [token], SCENE_BOUNDS, true /* isGm */, 0, false);
+    const result = computer.compute([], [token], SCENE_BOUNDS, true /* isGm */, 0, false, true);
     // controlled=false + isGm: the non-GM check (!controlled) is only applied for non-GM users.
     // For GM: !isGm is false, so the guard is skipped — GM still computes vision for enabled tokens
     // even when controlled=false (GM can see all token visions).
@@ -118,14 +118,14 @@ describe("VisionStateComputer", () => {
 
   it("GM: non-GM player does NOT compute vision for uncontrolled enabled tokens", () => {
     const token = makeToken("t1", 500, 500, {}, false /* not controlled */);
-    const result = computer.compute([], [token], SCENE_BOUNDS, false /* non-GM */, 0, false);
+    const result = computer.compute([], [token], SCENE_BOUNDS, false /* non-GM */, 0, false, true);
     expect(result.visionPolygons).toHaveLength(0);
   });
 
   it("computes multiple vision polygons for multiple controlled tokens", () => {
     const t1 = makeToken("t1", 200, 200);
     const t2 = makeToken("t2", 700, 700);
-    const result = computer.compute([], [t1, t2], SCENE_BOUNDS, false, 0, false);
+    const result = computer.compute([], [t1, t2], SCENE_BOUNDS, false, 0, false, true);
     expect(result.visionPolygons).toHaveLength(2);
   });
 
@@ -133,18 +133,18 @@ describe("VisionStateComputer", () => {
 
   it("returns the same polygon reference on second call (cache hit)", () => {
     const token = makeToken("t1", 500, 500);
-    const r1 = computer.compute([], [token], SCENE_BOUNDS, false, 0, false);
-    const r2 = computer.compute([], [token], SCENE_BOUNDS, false, 0, false);
+    const r1 = computer.compute([], [token], SCENE_BOUNDS, false, 0, false, true);
+    const r2 = computer.compute([], [token], SCENE_BOUNDS, false, 0, false, true);
     // Same object identity — not just equal
     expect(r1.visionPolygons[0]?.polygon).toBe(r2.visionPolygons[0]?.polygon);
   });
 
   it("busts vision cache when walls change (new wall added)", () => {
     const token = makeToken("t1", 500, 500);
-    const r1 = computer.compute([], [token], SCENE_BOUNDS, false, 0, false);
+    const r1 = computer.compute([], [token], SCENE_BOUNDS, false, 0, false, true);
 
     const wall = makeWall("w1", 400, 0, 400, 1000);
-    const r2 = computer.compute([wall], [token], SCENE_BOUNDS, false, 0, false);
+    const r2 = computer.compute([wall], [token], SCENE_BOUNDS, false, 0, false, true);
 
     // Polygon must differ — wall now splits the scene
     expect(r1.visionPolygons[0]?.polygon).not.toBe(r2.visionPolygons[0]?.polygon);
@@ -157,12 +157,12 @@ describe("VisionStateComputer", () => {
 
   it("busts cache for a single token on invalidateToken", () => {
     const token = makeToken("t1", 500, 500);
-    const r1 = computer.compute([], [token], SCENE_BOUNDS, false, 0, false);
+    const r1 = computer.compute([], [token], SCENE_BOUNDS, false, 0, false, true);
     const poly1 = r1.visionPolygons[0]?.polygon;
 
     // Invalidate then re-compute — should recompute (new object)
     computer.invalidateToken("t1");
-    const r2 = computer.compute([], [token], SCENE_BOUNDS, false, 0, false);
+    const r2 = computer.compute([], [token], SCENE_BOUNDS, false, 0, false, true);
     const poly2 = r2.visionPolygons[0]?.polygon;
 
     // Content equal but not same reference after invalidation
@@ -172,9 +172,9 @@ describe("VisionStateComputer", () => {
 
   it("clearAll() busts all caches", () => {
     const token = makeToken("t1", 500, 500);
-    const r1 = computer.compute([], [token], SCENE_BOUNDS, false, 0, false);
+    const r1 = computer.compute([], [token], SCENE_BOUNDS, false, 0, false, true);
     computer.clearAll();
-    const r2 = computer.compute([], [token], SCENE_BOUNDS, false, 0, false);
+    const r2 = computer.compute([], [token], SCENE_BOUNDS, false, 0, false, true);
     expect(r1.visionPolygons[0]?.polygon).not.toBe(r2.visionPolygons[0]?.polygon);
   });
 
@@ -184,9 +184,9 @@ describe("VisionStateComputer", () => {
     const tokenUnlimited = makeToken("tu", 100, 100, { rangePx: null });
     const tokenLimited = makeToken("tl", 100, 100, { rangePx: 200 });
 
-    const ru = computer.compute([], [tokenUnlimited], SCENE_BOUNDS, false, 0, false);
+    const ru = computer.compute([], [tokenUnlimited], SCENE_BOUNDS, false, 0, false, true);
     computer.clearAll();
-    const rl = computer.compute([], [tokenLimited], SCENE_BOUNDS, false, 0, false);
+    const rl = computer.compute([], [tokenLimited], SCENE_BOUNDS, false, 0, false, true);
 
     // Limited polygon should be smaller (fewer total vertices reaching scene bounds)
     const vu = ru.visionPolygons[0]?.polygon.vertices ?? [];
@@ -216,11 +216,11 @@ describe("VisionStateComputer", () => {
     const door = makeDoor("d1", 600, 0, 600, 500, "closed");
     const token = makeToken("t1", 500, 250);
 
-    const r1 = computer.compute([door], [token], SCENE_BOUNDS, false, 0, false);
+    const r1 = computer.compute([door], [token], SCENE_BOUNDS, false, 0, false, true);
     const poly1 = r1.visionPolygons[0]?.polygon;
 
     const openDoor = makeDoor("d1", 600, 0, 600, 500, "open");
-    const r2 = computer.compute([openDoor], [token], SCENE_BOUNDS, false, 0, false);
+    const r2 = computer.compute([openDoor], [token], SCENE_BOUNDS, false, 0, false, true);
     const poly2 = r2.visionPolygons[0]?.polygon;
 
     expect(poly2).not.toBe(poly1);
@@ -249,7 +249,7 @@ describe("VisionStateComputer", () => {
       controlled: true,
     };
 
-    const result = computer.compute([], [token], SCENE_BOUNDS, false, 0, false);
+    const result = computer.compute([], [token], SCENE_BOUNDS, false, 0, false, true);
     expect(result.lightPolygons).toHaveLength(1);
 
     const lp = result.lightPolygons[0]!;
@@ -280,7 +280,7 @@ describe("VisionStateComputer", () => {
       controlled: true,
     };
 
-    const result = computer.compute([], [token], SCENE_BOUNDS, false, 0, false);
+    const result = computer.compute([], [token], SCENE_BOUNDS, false, 0, false, true);
     expect(result.lightPolygons).toHaveLength(0);
   });
 
@@ -305,8 +305,8 @@ describe("VisionStateComputer", () => {
       controlled: true,
     };
 
-    const r1 = computer.compute([], [token], SCENE_BOUNDS, false, 0, false);
-    const r2 = computer.compute([], [token], SCENE_BOUNDS, false, 0, false);
+    const r1 = computer.compute([], [token], SCENE_BOUNDS, false, 0, false, true);
+    const r2 = computer.compute([], [token], SCENE_BOUNDS, false, 0, false, true);
     expect(r1.lightPolygons[0]?.polygon).toBe(r2.lightPolygons[0]?.polygon);
   });
 
@@ -336,7 +336,7 @@ describe("VisionStateComputer", () => {
   // ---- §6 Meta fields ---
 
   it("passes isGm, darkness, globalLight through to result", () => {
-    const result = computer.compute([], [], SCENE_BOUNDS, true, 0.7, true);
+    const result = computer.compute([], [], SCENE_BOUNDS, true, 0.7, true, true);
     expect(result.isGm).toBe(true);
     expect(result.darkness).toBe(0.7);
     expect(result.globalLight).toBe(true);

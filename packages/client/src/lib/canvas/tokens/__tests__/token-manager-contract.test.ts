@@ -24,6 +24,7 @@ import {
   DocUpdatePayloadSchema,
   DocCreatePayloadSchema,
   DocDeletePayloadSchema,
+  SquareGrid,
 } from "@fusion/shared";
 import type { TokenDocument } from "@fusion/shared";
 import type { Socket } from "socket.io-client";
@@ -180,7 +181,15 @@ function buildOpts(
     userId: "user-gm",
     userRole: 4, // GAMEMASTER
     ownedActorIds: new Set(),
-    gridConfig: { size: 100, offsetX: 0, offsetY: 0 },
+    grid: new SquareGrid({
+      type: "square",
+      size: 100,
+      distance: 5,
+      units: "ft",
+      color: "#000000",
+      alpha: 0.4,
+      diagonalRule: "alternating_1",
+    }),
     attachKeyboard: false,
   };
 }

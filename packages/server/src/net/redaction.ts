@@ -125,6 +125,50 @@ function sceneDocHasHiddenTokens(doc: unknown): boolean {
 }
 
 // ---------------------------------------------------------------------------
+// Hidden-tile redaction (scene composed of several images)
+// ---------------------------------------------------------------------------
+
+/**
+ * Strip hidden tiles from a single Scene document for non-GM players.
+ *
+ * A hidden tile is the GM's "not yet": the flooded lower level, the map of
+ * the room past the door, the after-the-explosion version of the courtyard.
+ * Sending it to the player's client and merely not drawing it would put the
+ * reveal one devtools panel away, so the tile is removed from the payload
+ * entirely — the same treatment, for the same reason, as a hidden token.
+ *
+ * Returns the original object reference when nothing was removed, so callers
+ * can detect "nothing redacted" by referential equality.
+ */
+export function stripHiddenTiles(scene: Record<string, unknown>): Record<string, unknown> {
+  const rawTiles = scene["tiles"];
+  if (!Array.isArray(rawTiles)) return scene;
+
+  const filtered = (rawTiles as Record<string, unknown>[]).filter(
+    (tile) => tile["hidden"] !== true,
+  );
+
+  if (filtered.length === rawTiles.length) return scene;
+  return { ...scene, tiles: filtered };
+}
+
+/** Return true when a Scene-shaped doc carries at least one hidden tile. */
+export function sceneHasHiddenTiles(doc: unknown): boolean {
+  if (!doc || typeof doc !== "object") return false;
+  const tiles = (doc as Record<string, unknown>)["tiles"];
+  if (!Array.isArray(tiles)) return false;
+  return (tiles as Record<string, unknown>[]).some((t) => t["hidden"] === true);
+}
+
+/**
+ * Return true when any Scene doc in the batch carries at least one hidden
+ * tile. Fast-path guard so callers can skip per-socket iteration.
+ */
+export function scenePayloadHasHiddenTiles(documents: Record<string, unknown>[]): boolean {
+  return documents.some((d) => sceneHasHiddenTiles(d));
+}
+
+// ---------------------------------------------------------------------------
 // Combat hidden-combatant redaction (M2-C, REQ-CBT-031)
 // ---------------------------------------------------------------------------
 
@@ -240,12 +284,21 @@ export function redactAckResultForNonPrivileged(result: unknown): unknown {
     Array.isArray(documents) && (documents as unknown[]).some((d) => sceneHasSecretDoors(d));
   const parentNeedsSecretDoorRedaction = sceneHasSecretDoors(parent);
 
+  const documentsNeedHiddenTileRedaction =
+    Array.isArray(documents) && (documents as unknown[]).some((d) => sceneHasHiddenTiles(d));
+  const parentNeedsHiddenTileRedaction = sceneHasHiddenTiles(parent);
+
   // M2-C: redact hidden combatants in combat payloads
   const combatNeedsRedaction = combatDocHasHiddenCombatants(combat);
 
   const documentsNeedsRedaction =
-    documentsNeedHiddenTokenRedaction || documentsNeedSecretDoorRedaction;
-  const parentNeedsRedaction = parentNeedsHiddenTokenRedaction || parentNeedsSecretDoorRedaction;
+    documentsNeedHiddenTokenRedaction ||
+    documentsNeedSecretDoorRedaction ||
+    documentsNeedHiddenTileRedaction;
+  const parentNeedsRedaction =
+    parentNeedsHiddenTokenRedaction ||
+    parentNeedsSecretDoorRedaction ||
+    parentNeedsHiddenTileRedaction;
 
   if (!documentsNeedsRedaction && !parentNeedsRedaction && !combatNeedsRedaction) {
     // Nothing to redact — return the original ack untouched.
@@ -260,6 +313,7 @@ export function redactAckResultForNonPrivileged(result: unknown): unknown {
       let redacted = d;
       if (Array.isArray(d["tokens"])) redacted = stripHiddenTokens(redacted);
       if (Array.isArray(redacted["walls"])) redacted = redactSecretDoors(redacted);
+      if (Array.isArray(redacted["tiles"])) redacted = stripHiddenTiles(redacted);
       return redacted;
     });
   }
@@ -268,6 +322,7 @@ export function redactAckResultForNonPrivileged(result: unknown): unknown {
     let redactedParent = parent as Record<string, unknown>;
     if (parentNeedsHiddenTokenRedaction) redactedParent = stripHiddenTokens(redactedParent);
     if (parentNeedsSecretDoorRedaction) redactedParent = redactSecretDoors(redactedParent);
+    if (parentNeedsHiddenTileRedaction) redactedParent = stripHiddenTiles(redactedParent);
     newBody["parent"] = redactedParent;
   }
 
