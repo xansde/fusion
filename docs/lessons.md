@@ -472,3 +472,36 @@ com padding 0 — que é o que um fixture de teste tende a usar — o bug some.
 lição mais larga: quando dois subsistemas põem coisas no mesmo espaço, o
 segundo tem que **ler de onde o primeiro colocou**, não deduzir de onde
 deveria ser.
+
+## O renderer que inicializa e não desenha
+
+**Quando:** "o narrador não consegue ver o mapa" — tela preta na mesa, com
+imagem de cena também sumindo (2026-08-08).
+
+**O que aconteceu:** duas falhas empilhadas, e a de cima escondia a de baixo.
+
+1. O CSP servido em `boot.ts` tinha `connect-src 'self'`. O PIXI v8 testa
+   suporte a worker rodando `fetch()` sobre um `data:image/png;base64,…`
+   inline (`checkImageBitmap`). `data:` estava liberado em `img-src`, mas
+   `fetch` responde a **`connect-src`** — bloqueado. Único sintoma: um erro de
+   CSP no console.
+2. Com o CSP corrigido, o asset passou a ser baixado (`200 OK`) e a tela
+   continuou preta. O `FusionCanvas` inicializava com `preference: "webgpu"`,
+   e o fallback do PIXI só dispara quando o WebGPU **falha ao inicializar**.
+   No Chromium/Edge em Windows ele inicializa com sucesso e depois não
+   desenha nada — background, grid e tokens, todos ausentes, sem uma única
+   exceção. Como nada falha, nada cai para o WebGL.
+
+**Por que engana:** o sintoma ("o GM não vê o mapa") aponta para permissão,
+fog ou visibilidade — foram três caminhos investigados antes (redação do
+snapshot, `isGm`, overlay de darkness) e todos estavam corretos. Um renderer
+que inicializa e devolve tela preta é invisível para o JS: não há erro para
+logar, não há teste unitário que pegue (o PIXI é mockado), e a request do
+asset aparece verde no DevTools.
+
+**O que fazer:** quando a tela está preta e **o grid também não aparece**, o
+problema não é o asset nem permissão — é o renderer ou a câmera. O corte que
+resolve em um minuto: desabilitar `navigator.gpu` no browser e recarregar; se
+a cena aparece, é o WebGPU. O `preference` está fixo em `"webgl"` desde então,
+com o porquê registrado no próprio `FusionCanvas.init()`. E o mais geral: um
+`200 OK` na aba Network prova que o byte chegou, não que ele foi desenhado.

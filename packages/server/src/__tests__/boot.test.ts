@@ -604,7 +604,7 @@ describe("security response headers", () => {
       const res = await fastify.inject({ method: "GET", url: "/" });
       const csp = res.headers["content-security-policy"];
       expect(csp).toContain(
-        "connect-src 'self' wss://my-tunnel.example.com ws://192.168.1.50:33000",
+        "connect-src 'self' data: blob: wss://my-tunnel.example.com ws://192.168.1.50:33000",
       );
     } finally {
       // Close BEFORE removing dataDir: boot() now also opens a dedicated

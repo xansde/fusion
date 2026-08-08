@@ -155,7 +155,16 @@ export class FusionCanvas {
     await app.init({
       width: Math.max(width, 1),
       height: Math.max(height, 1),
-      preference: "webgpu", // WebGPU first, falls back to WebGL automatically
+      // WebGL, deliberately — NOT "webgpu" with automatic fallback.
+      // PIXI's fallback only fires when WebGPU fails to INITIALIZE. On this
+      // stack (Chromium/Edge on Windows) it initializes happily and then
+      // renders nothing: black canvas, no background, no grid, no tokens, and
+      // not one console error — the failure is invisible from JS, so nothing
+      // ever falls back. It reads exactly like a permission bug ("the GM can't
+      // see the map") and cost a whole debugging session in 2026-08-08.
+      // WebGL2 is universally available on every browser we target and is
+      // PIXI's mature path; the WebGPU gain is not worth a silent blank table.
+      preference: "webgl",
       antialias: false, // disable for performance; enable per scene if needed
       resolution: window.devicePixelRatio || 1,
       autoDensity: true,
