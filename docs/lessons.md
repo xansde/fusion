@@ -199,3 +199,47 @@ produto ("esta cena tem névoa?") não se deriva de um proxy de identidade
 ("quem está olhando?"): o proxy sobrevive a todos os testes até o dia em que
 os dois discordam. Ao encontrar um `!isGm` (ou qualquer papel) decidindo
 comportamento, perguntar de qual campo aquilo deveria vir.
+
+## Alargar a allowlist alarga todo mundo que passa pelo portão
+
+**Quando:** fase Validar de `wi-mapa-som-01` (2026-08-07), o item que fez o
+upload aceitar mp3 e ogg.
+
+**O que aconteceu:** o `FilePicker` é o portão único de três consumidores —
+fundo de cena (`SceneCreateDialog`), textura de token (`TokenAddDialog`) e
+retrato (`CharacterSheet`) —, e os três querem **só imagem**. O item alargou a
+allowlist global (`ALLOWED_TYPES` no servidor, `ALLOWED_EXTENSIONS` no cliente)
+e, ciente do risco, criou a prop `kinds` para estreitar o picker por chamador.
+Só que `kinds` alimenta **uma** das três entradas do componente:
+
+- **`accept` do diálogo do sistema** — estreitado. É a única que o navegador
+  filtra por conta própria.
+- **A grade de assets** — `assetStore.filtered` filtra só por texto de busca, e
+  `handleSelectAsset` devolve o caminho sem olhar o tipo. Um `.mp3` na
+  biblioteca vira card selecionável em todo picker.
+- **O arraste** — `handleDrop` ignora `kinds` por decisão documentada; com um
+  arquivo só, ainda auto-seleciona o que acabou de subir. Soltar um `.mp3`
+  sobre o picker de "criar cena" grava `scene.background = "/assets/….mp3"`.
+
+Nenhuma validação a jusante segura: `validateSceneForm` só cobra o tamanho da
+string do caminho. Resultado: cena com fundo que o `Assets.load()` do PIXI não
+carrega, em um gesto.
+
+**Por que engana:** o docblock do componente justifica o arraste global dizendo
+que "a validação é feita pelo `clientValidation` (e, de verdade, pelo
+servidor)". Isso responde _"este arquivo é permitido em algum lugar?"_, e não
+_"este arquivo é do tipo certo AQUI?"_. A segunda pergunta era verdadeira **por
+acidente**, enquanto não existia asset não-imagem no mundo — o dia em que a
+allowlist cresceu foi o dia em que a suposição parou de valer, e nenhum tipo,
+teste ou lint fala sobre isso. Pior: a prop `kinds` faz o chamador acreditar que
+está protegido. Estreitamento que alcança uma entrada de três é mais perigoso
+que estreitamento nenhum.
+
+**O que fazer:** ao alargar uma allowlist compartilhada, listar os **consumidores
+dela** e perguntar, um por um, o que cada um faz com um valor da classe nova —
+o mesmo movimento de "procure o gesto do usuário", só que na direção contrária:
+não "alguém alcança esta peça?", e sim "quem alcança esta peça agora que ela
+aceita mais coisa?". E prop de estreitamento tem que cobrir **todas** as
+entradas do componente (diálogo, grade, arraste) ou não deve existir: ou o
+componente inteiro respeita `kinds`, ou o chamador que precisa de garantia
+valida ele mesmo o que recebeu no `onSelect`.
