@@ -4,7 +4,7 @@
 > qualquer coisa da branch `docs/specs-mapas-overlays`. Documento efêmero — apagar
 > quando o trabalho for absorvido pelas specs/PR.
 
-## O que esta branch contém (6 commits sobre `build/app`)
+## O que esta branch contém (sobre `build/app`)
 
 | Commit    | Conteúdo                                                                                                                                                            |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -14,6 +14,8 @@
 | `fa7a68f` | Janelas de Comitiva e Mapa adicionadas ao protótipo                                                                                                                 |
 | `d711b0a` | Este handoff + referência visual do Isekai-Companion copiada para o repo                                                                                            |
 | `177caf8` | **Câmera no mapa do protótipo** — zoom/pan com "o mundo escala, a interface não"                                                                                    |
+| `6875564` | Spec 34 ganha REQ-MREG-016/017 (traço não escala, zoom ancora no cursor) e os limiares de LOD calibrados                                                            |
+| `8426775` | **Revelação em um clique** — Console de Revelação no próprio marcador, com `todos ▸`                                                                                |
 
 ## Referência visual do Mario (IMPORTANTE)
 
@@ -50,16 +52,21 @@ virou demonstração. Quatro regras do `mapa-isekai.md` §5.1 implementadas e te
   a câmera à força em 1×.
 - Bônus: "Rastrear no mapa" leva a câmera até o pin a 2,2× (REQ-CNV-008).
 
-Verificação: 37 asserções em jsdom + um teste de arrasto separado (scripts efêmeros
+**Revelação em um clique (feita em `8426775`)** — o Console de Revelação passou a
+morar também no pino: na visão do Mestre, o cursor sobre um marcador abre um botão
+por jogador (`T`/`C` com o glifo ○→?→●) e um `todos ▸`, que leva a mesa ao próximo
+degrau a partir de quem está mais atrás e nunca rebaixa quem já viu. O console do
+painel de detalhe continua sendo a versão com nomes por extenso.
+
+Verificação: 48 asserções em jsdom + um teste de arrasto separado (scripts efêmeros
 no scratchpad, não commitados). Cobrem posição/LOD/escala/clamp/zoom-no-cursor, pan,
-clique pós-arrasto engolido e as regressões do Console de Revelação e da redação do
-marcador oculto na visão do jogador.
+clique pós-arrasto engolido, o console do pino nos três casos do `todos`, e as
+regressões do Console de Revelação e da redação do marcador oculto na visão do
+jogador.
 
 **Melhorias identificadas ainda não feitas:**
 
-1. Revelação de POI é em dois passos (selecionar POI → ciclar no console do
-   detalhe). O Alexandre foi avisado; se pedir, trocar por clique único no marcador.
-2. Sem atalho de teclado para zoom (`+`/`-`/`0`) — hoje só roda do mouse e os
+1. Sem atalho de teclado para zoom (`+`/`-`/`0`) — hoje só roda do mouse e os
    botões do canto. Deliberado: manter a barra de comando com `Q`/`C`/`M` limpa.
 
 ## Decisões arquiteturais já tomadas (não reabrir sem motivo)
