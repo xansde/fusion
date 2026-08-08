@@ -37,6 +37,7 @@
   import NoSceneOverlay from "./scenes/NoSceneOverlay.svelte";
   import WindowHost from "./windows/WindowHost.svelte";
   import HubLayer from "./hub/HubLayer.svelte";
+  import SystemHud from "./hub/SystemHud.svelte";
   import { getSocket } from "../lib/session.svelte.js";
   import { SceneOrchestrator } from "../lib/canvas/scene-orchestrator.js";
   import { TokenLayer } from "../lib/canvas/tokens/TokenLayer.js";
@@ -841,7 +842,9 @@
   <!-- `.hub-surface` descendants take input, so clicks on empty Hub space   -->
   <!-- fall through to the map.                                              -->
   <!-- -------------------------------------------------------------------- -->
-  <HubLayer />
+  <HubLayer>
+    <SystemHud />
+  </HubLayer>
 
   <!-- -------------------------------------------------------------------- -->
   <!-- Token config dialog — opened by double-clicking a token on the       -->
