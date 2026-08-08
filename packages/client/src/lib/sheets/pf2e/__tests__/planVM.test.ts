@@ -65,6 +65,8 @@ import {
   detailsRequestForAbcChip,
   checkFeatPrerequisites,
   _knownPossessedNamesForTests,
+  CLASS_CHOICE_SLOTS,
+  CLASS_CHOICE_SLOT_OPTIONS,
   type PlanOpBuilderContext,
   type AbcChip,
   type PlanSlotModel,
@@ -1164,6 +1166,189 @@ describe("derivePlan — system.prerequisites marking (A1)", () => {
 
   it("checkFeatPrerequisites: no system.prerequisites → undefined (no issue)", () => {
     expect(checkFeatPrerequisites(arcaneFistsFeatDoc(), [], undefined, 5)).toBeUndefined();
+  });
+
+  /**
+   * issue #45: "animal instinct or untamed order" (Brutal Crush, Creature
+   * Comforts, Rip and Tear — all level 4) has "animal instinct" (axis-
+   * resolvable, definitively unmet for a non-Animal instinct) OR "untamed
+   * order" (Druid's order axis — Druid isn't a curated Fusion class, so this
+   * candidate is unresolved FOREVER, not just for this character). Before
+   * the fix, ANY single unresolved candidate downgraded the whole entry from
+   * "unmet" to "unknown" (DEC-BC-05 leniency for "maybe satisfiable through
+   * data this VM doesn't model") — but "untamed order" isn't a data gap,
+   * it's provably never satisfiable in Fusion today. That silently hid the
+   * SAME mistake this suite's "Animal Skin"-shaped siblings (single-
+   * candidate "animal instinct") correctly mark.
+   */
+  function ripAndTearFeatDoc(): Record<string, unknown> {
+    return {
+      _id: "item-rip-and-tear",
+      name: "Rip and Tear",
+      type: "feat",
+      system: {
+        category: "class",
+        level: 1,
+        traits: { rarity: "common", value: ["barbarian"] },
+        prerequisites: [{ value: "animal instinct or untamed order" }],
+      },
+      flags: { fusion: { build: { level: 1, slot: "classFeat-1" } } },
+    };
+  }
+
+  it("Dragon Instinct + Rip and Tear ('animal instinct or untamed order'): marked unmet, same as an 'animal instinct'-only sibling", () => {
+    const doc = baseCharacterDoc({
+      items: [barbarianWithClassFeatDoc(), instinctItem("Dragon Instinct"), ripAndTearFeatDoc()],
+      system: { level: { value: 1 }, details: {} },
+    });
+    const plan = derivePlan(doc);
+    const l1 = plan.levels.find((l) => l.level === 1)!;
+    const slot = l1.slots.find((s) => s.slotId === "classFeat-1")!;
+    expect(slot.filled).toBe(true);
+    expect(slot.requirementIssue).toEqual({
+      reasonKey: "FUSION.Sheet.Plan.Requirement.PrerequisiteUnmet",
+      params: { prerequisite: "animal instinct or untamed order" },
+    });
+  });
+
+  it("Animal Instinct + Rip and Tear: requirement satisfied via the 'animal instinct' branch, no mark", () => {
+    const doc = baseCharacterDoc({
+      items: [barbarianWithClassFeatDoc(), instinctItem("Animal Instinct"), ripAndTearFeatDoc()],
+      system: { level: { value: 1 }, details: {} },
+    });
+    const plan = derivePlan(doc);
+    const l1 = plan.levels.find((l) => l.level === 1)!;
+    const slot = l1.slots.find((s) => s.slotId === "classFeat-1")!;
+    expect(slot.filled).toBe(true);
+    expect(slot.requirementIssue).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// derivePlan — Champion "Blessing of the Devoted" choice axis (issue #25)
+//
+// The vendor's Blessing of the Devoted (level 3 class-feature placeholder)
+// carries an unconverted ChoiceSet whose 3 real options (Blessed Armament/
+// Shield/Swiftness) were never imported — same omission pattern the "Cause"
+// axis already had a fix for. 6 higher-level feats (Radiant Armament, Shield
+// of Reckoning, Spectral Advance, Armament Paragon, Shield Paragon, Swift
+// Paragon) cite the chosen blessing by name and could never resolve.
+// ---------------------------------------------------------------------------
+
+describe("derivePlan — Champion 'Blessing of the Devoted' choice axis (issue #25)", () => {
+  function championBlessingClassDoc(): Record<string, unknown> {
+    return {
+      _id: "class-champion-blessing",
+      name: "Champion",
+      type: "class",
+      system: {
+        keyAbility: ["str", "dex"],
+        featuresByLevel: [
+          { level: 1, uuid: "uuid-cause", name: "Cause" },
+          { level: 3, uuid: "uuid-blessing", name: "Blessing of the Devoted" },
+        ],
+        featLevels: { ancestry: [], class: [2, 4, 10], general: [], skill: [] },
+      },
+    };
+  }
+
+  it("CLASS_CHOICE_SLOTS maps 'Blessing of the Devoted' to slot type 'blessing'", () => {
+    expect(CLASS_CHOICE_SLOTS["Blessing of the Devoted"]).toBe("blessing");
+  });
+
+  it("CLASS_CHOICE_SLOT_OPTIONS declares blessing's pack + otherTags category + required class", () => {
+    expect(CLASS_CHOICE_SLOT_OPTIONS.blessing).toEqual({
+      packSlug: "class-features-core",
+      category: "blessing-of-the-devoted",
+      requiredClass: "champion",
+    });
+  });
+
+  it("derivePlan emits an (unfilled) 'blessing' slot at level 3 for a Champion", () => {
+    const doc = baseCharacterDoc({
+      items: [{ ...championBlessingClassDoc(), _id: "item-class" }],
+      system: { level: { value: 3 }, details: {} },
+    });
+    const plan = derivePlan(doc);
+    const l3 = plan.levels.find((l) => l.level === 3)!;
+    const slot = l3.slots.find((s) => s.slotId === "blessing-3");
+    expect(slot).toBeDefined();
+    expect(slot!.type).toBe("blessing");
+    expect(slot!.filled).toBe(false);
+  });
+
+  it("once 'Blessed Armament' is picked, Radiant Armament's prerequisite ('blessed armament') resolves as MET — no false block on the OTHER 5 feats' exact pattern", () => {
+    const blessedArmamentItem: Record<string, unknown> = {
+      _id: "item-blessed-armament",
+      name: "Blessed Armament",
+      type: "classFeature",
+      system: { traits: { otherTags: ["blessing-of-the-devoted"], value: ["champion"] } },
+      flags: { fusion: { build: { level: 3, slot: "blessing-3" } } },
+    };
+    const radiantArmamentFeat: Record<string, unknown> = {
+      _id: "item-radiant-armament",
+      name: "Radiant Armament",
+      type: "feat",
+      system: {
+        category: "class",
+        level: 10,
+        traits: { rarity: "common", value: ["champion"] },
+        prerequisites: [{ value: "blessed armament" }],
+      },
+      flags: { fusion: { build: { level: 10, slot: "classFeat-10" } } },
+    };
+    const doc = baseCharacterDoc({
+      items: [
+        { ...championBlessingClassDoc(), _id: "item-class" },
+        blessedArmamentItem,
+        radiantArmamentFeat,
+      ],
+      system: { level: { value: 10 }, details: {} },
+    });
+    const plan = derivePlan(doc);
+    const l10 = plan.levels.find((l) => l.level === 10)!;
+    const slot = l10.slots.find((s) => s.slotId === "classFeat-10")!;
+    expect(slot.filled).toBe(true);
+    expect(slot.requirementIssue).toBeUndefined();
+  });
+});
+
+/**
+ * issue #30: "Master of Many Styles" prerequisite is now ONE merged "A or B"
+ * entry (see monk.json's prerequisiteFixes) instead of two separate AND'd
+ * entries. A pure Monk with Reflexive Stance (their own class feat) but
+ * WITHOUT Opening Stance (Fighter-trait, unreachable via a Monk's classFeat
+ * slot) must show no requirement issue either way — proving the merge
+ * didn't regress the one satisfiable path.
+ */
+describe("checkFeatPrerequisites — Master of Many Styles merged OR entry (issue #30)", () => {
+  it("Reflexive Stance alone satisfies the merged 'A or B' entry — no mark", () => {
+    const reflexiveStanceItem: Record<string, unknown> = {
+      _id: "item-reflexive-stance",
+      name: "Reflexive Stance",
+      type: "feat",
+      system: { category: "class", level: 12, traits: { rarity: "common", value: ["monk"] } },
+      flags: { fusion: { build: { level: 12, slot: "classFeat-12" } } },
+    };
+    const masterOfManyStylesFeat: Record<string, unknown> = {
+      _id: "item-master-of-many-styles",
+      name: "Master of Many Styles",
+      type: "feat",
+      system: {
+        category: "class",
+        level: 16,
+        traits: { rarity: "common", value: ["fighter", "monk"] },
+        prerequisites: [{ value: "Opening Stance (Fighter) or Reflexive Stance (Monk)" }],
+      },
+      flags: { fusion: { build: { level: 16, slot: "classFeat-16" } } },
+    };
+    const issue = checkFeatPrerequisites(
+      masterOfManyStylesFeat,
+      [reflexiveStanceItem, masterOfManyStylesFeat],
+      undefined,
+      16,
+    );
+    expect(issue).toBeUndefined();
   });
 });
 

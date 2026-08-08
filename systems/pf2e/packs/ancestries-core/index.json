@@ -1,5 +1,37 @@
 [
   {
+    "_id": "8jFlbN8AN8pG67uD",
+    "uuid": "Compendium.pf2e.ancestries-core.Item.8jFlbN8AN8pG67uD",
+    "name": "Dwarf",
+    "img": "icons/placeholder/feat.svg",
+    "type": "ancestry",
+    "index": {
+      "name": "Dwarf",
+      "system.traits.value": [
+        "dwarf",
+        "humanoid"
+      ],
+      "system.size": "med",
+      "flags.fusion.sourceId": "BYj5ZvlXZdpaEgA6"
+    }
+  },
+  {
+    "_id": "WP4h3huTSaH3efrS",
+    "uuid": "Compendium.pf2e.ancestries-core.Item.WP4h3huTSaH3efrS",
+    "name": "Elf",
+    "img": "icons/placeholder/feat.svg",
+    "type": "ancestry",
+    "index": {
+      "name": "Elf",
+      "system.traits.value": [
+        "elf",
+        "humanoid"
+      ],
+      "system.size": "med",
+      "flags.fusion.sourceId": "PgKmsA2aKdbLU6O0"
+    }
+  },
+  {
     "_id": "mIPhGOdhzDGvbu5m",
     "uuid": "Compendium.pf2e.ancestries-core.Item.mIPhGOdhzDGvbu5m",
     "name": "Fleshwarp",
@@ -13,6 +45,102 @@
       ],
       "system.size": "med",
       "flags.fusion.sourceId": "FXlXmNBFiiz9oasi"
+    }
+  },
+  {
+    "_id": "1r5tTlJNLRy5eWkF",
+    "uuid": "Compendium.pf2e.ancestries-core.Item.1r5tTlJNLRy5eWkF",
+    "name": "Gnome",
+    "img": "icons/placeholder/feat.svg",
+    "type": "ancestry",
+    "index": {
+      "name": "Gnome",
+      "system.traits.value": [
+        "gnome",
+        "humanoid"
+      ],
+      "system.size": "sm",
+      "flags.fusion.sourceId": "CYlfsYLJcBOgqKtD"
+    }
+  },
+  {
+    "_id": "a6iCplqEqw07ppdi",
+    "uuid": "Compendium.pf2e.ancestries-core.Item.a6iCplqEqw07ppdi",
+    "name": "Goblin",
+    "img": "icons/placeholder/feat.svg",
+    "type": "ancestry",
+    "index": {
+      "name": "Goblin",
+      "system.traits.value": [
+        "goblin",
+        "humanoid"
+      ],
+      "system.size": "sm",
+      "flags.fusion.sourceId": "sQfjTMDaZbT9DThq"
+    }
+  },
+  {
+    "_id": "wtMQWHTU1vNqqZPn",
+    "uuid": "Compendium.pf2e.ancestries-core.Item.wtMQWHTU1vNqqZPn",
+    "name": "Halfling",
+    "img": "icons/placeholder/feat.svg",
+    "type": "ancestry",
+    "index": {
+      "name": "Halfling",
+      "system.traits.value": [
+        "halfling",
+        "humanoid"
+      ],
+      "system.size": "sm",
+      "flags.fusion.sourceId": "GgZAHbrjnzWOZy2v"
+    }
+  },
+  {
+    "_id": "Oz4HMaSWxQ6y1DsQ",
+    "uuid": "Compendium.pf2e.ancestries-core.Item.Oz4HMaSWxQ6y1DsQ",
+    "name": "Human",
+    "img": "icons/placeholder/feat.svg",
+    "type": "ancestry",
+    "index": {
+      "name": "Human",
+      "system.traits.value": [
+        "human",
+        "humanoid"
+      ],
+      "system.size": "med",
+      "flags.fusion.sourceId": "IiG7DgeLWYrSNXuX"
+    }
+  },
+  {
+    "_id": "4stlILYhlE3J761z",
+    "uuid": "Compendium.pf2e.ancestries-core.Item.4stlILYhlE3J761z",
+    "name": "Leshy",
+    "img": "icons/placeholder/feat.svg",
+    "type": "ancestry",
+    "index": {
+      "name": "Leshy",
+      "system.traits.value": [
+        "leshy",
+        "plant"
+      ],
+      "system.size": "sm",
+      "flags.fusion.sourceId": "cdhgByGG1WtuaK73"
+    }
+  },
+  {
+    "_id": "zjuVm1cT2g4NgLtk",
+    "uuid": "Compendium.pf2e.ancestries-core.Item.zjuVm1cT2g4NgLtk",
+    "name": "Orc",
+    "img": "icons/placeholder/feat.svg",
+    "type": "ancestry",
+    "index": {
+      "name": "Orc",
+      "system.traits.value": [
+        "humanoid",
+        "orc"
+      ],
+      "system.size": "med",
+      "flags.fusion.sourceId": "lSGWXjcbOa6O5fTx"
     }
   },
   {

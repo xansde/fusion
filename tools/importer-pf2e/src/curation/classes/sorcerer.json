@@ -308,6 +308,15 @@
       "Blessed Blood (Sorcerer) -> 'bloodline that grants divine spells' (idem traducao) E 'you follow a deity' (estado de personagem, nao mecanizavel)."
     ]
   },
+  "prerequisiteFixes": [
+    {
+      "featName": "Occult Evolution",
+      "kind": "rename",
+      "from": "bloodline the grants occult spells",
+      "to": "bloodline that grants occult spells",
+      "reason": "issue #46: literal vendor typo ('the' for 'that'), confirmed present in vendor/pf2e/packs/pf2e/feats/class/sorcerer/level-4/occult-evolution.json itself (not introduced by the import pipeline). The 3 sibling feats (Arcane/Divine/Primal Evolution) all read 'bloodline that grants <tradition> spells' — fixed for consistency and to stop propagating the vendor's typo into the pt-BR sheet text. Cosmetic only: no current code parses this prose (see referencesOutsideSelection above), so the fix changes nothing mechanically."
+    }
+  ],
   "dedupe": {
     "featsAlreadyInPacks": [
       "Familiar",
