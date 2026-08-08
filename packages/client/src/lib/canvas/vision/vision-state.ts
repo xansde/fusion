@@ -106,6 +106,13 @@ export interface VisionStateResult {
 
   /** Global illumination active. */
   globalLight: boolean;
+
+  /**
+   * Scene tokenVision flag (defensive read — see scene.ts / sceneReloadKey.ts).
+   * REQ-VIS-085: when false, players see the whole scene — LightingRenderer
+   * must not draw the simple vision mask even though isGm is false.
+   */
+  tokenVision: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -166,6 +173,9 @@ export class VisionStateComputer {
    * @param isGm - Whether the local user is GM.
    * @param darkness - Scene darkness level 0–1.
    * @param globalLight - Global illumination active.
+   * @param tokenVision - Scene tokenVision flag. REQUIRED and read defensively
+   *   at the call site (absent on the scene ⇒ false, like `grid`): a default
+   *   here would silently re-arm the issue-#80 blackout on any future caller.
    */
   compute(
     walls: Wall[],
@@ -174,6 +184,7 @@ export class VisionStateComputer {
     isGm: boolean,
     darkness: number,
     globalLight: boolean,
+    tokenVision: boolean,
   ): VisionStateResult {
     const t0 = performance.now();
 
@@ -283,6 +294,7 @@ export class VisionStateComputer {
       isGm,
       darkness,
       globalLight,
+      tokenVision,
     };
   }
 

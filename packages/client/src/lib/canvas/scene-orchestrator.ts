@@ -281,6 +281,12 @@ export class SceneOrchestrator {
     const darkness = scene.darkness;
     const globalLight = scene.globalLight;
 
+    // Same runtime-absence risk as `grid` above: the schema declares
+    // `tokenVision` as always present (Zod default), but older/partial
+    // scenes can lack it — treat missing as false (REQ-VIS-085).
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    const tokenVision = scene.tokenVision ?? false;
+
     const visionResult = this._visionComputer.compute(
       walls,
       tokenSources,
@@ -288,6 +294,7 @@ export class SceneOrchestrator {
       this._isGm,
       darkness,
       globalLight,
+      tokenVision,
     );
 
     // Add ambient lights from scene (they are embedded in scene doc)
@@ -302,8 +309,10 @@ export class SceneOrchestrator {
       visionResult.lightPolygons.push(...ambientPolygons);
     }
 
-    // Feed vision polygons to TokenLayer (hides tokens outside vision for players)
-    const fogEnabled = !this._isGm;
+    // Feed vision polygons to TokenLayer (hides tokens outside vision for players).
+    // REQ-VIS-085: with tokenVision off, players see every non-hidden token —
+    // TokenLayer already restores full visibility when fogEnabled is false.
+    const fogEnabled = !this._isGm && tokenVision;
     this._tokenLayer.setVisionPolygons(visionResult.visionPolygons, fogEnabled);
 
     // Update fog accumulation with current vision polygons (player only)

@@ -24,9 +24,23 @@ import {
   canStartDrag,
   ROLE_ASSISTANT,
   ROLE_GAMEMASTER,
-  type GridSnapConfig,
 } from "../token-interaction.js";
-import type { TokenDocument } from "@fusion/shared";
+import { SquareGrid } from "@fusion/shared";
+import type { GridConfig, TokenDocument } from "@fusion/shared";
+
+/** Build a square grid for the tests, with an optional origin offset. */
+function squareGrid(size: number, offsetX = 0, offsetY = 0): SquareGrid {
+  const config: GridConfig = {
+    type: "square",
+    size,
+    distance: 5,
+    units: "ft",
+    color: "#000000",
+    alpha: 0.4,
+    diagonalRule: "alternating_1",
+  };
+  return new SquareGrid(config, { x: offsetX, y: offsetY });
+}
 
 // ---------------------------------------------------------------------------
 // Test fixtures
@@ -69,8 +83,8 @@ function makeToken(overrides: Partial<TokenDocument> = {}): TokenDocument {
   };
 }
 
-const GRID: GridSnapConfig = { size: 100, offsetX: 0, offsetY: 0 };
-const GRID_WITH_OFFSET: GridSnapConfig = { size: 100, offsetX: 50, offsetY: 25 };
+const GRID = squareGrid(100);
+const GRID_WITH_OFFSET = squareGrid(100, 50, 25);
 
 // ---------------------------------------------------------------------------
 // canMoveToken
@@ -180,7 +194,7 @@ describe("arrowMoveToken", () => {
   });
 
   it("handles large grid size (e.g., 150px)", () => {
-    const bigGrid: GridSnapConfig = { size: 150, offsetX: 0, offsetY: 0 };
+    const bigGrid = squareGrid(150);
     const result = arrowMoveToken(0, 0, "right", bigGrid);
     expect(result).toEqual({ x: 150, y: 0 });
   });

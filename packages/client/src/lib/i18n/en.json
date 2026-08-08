@@ -193,6 +193,7 @@
   "FUSION.Combat.RollInitiative": "Roll initiative",
   "FUSION.Combat.RollMyInitiative": "Roll my initiative",
   "FUSION.Combat.TargetToken": "Target this token",
+  "FUSION.Combat.UntargetToken": "Clear this target",
   "FUSION.Combat.SetInitiativeManually": "Click to set initiative manually",
   "FUSION.Combat.Initiative": "Initiative: {{value}}",
   "FUSION.Combat.TurnOrder": "Combat turn order",

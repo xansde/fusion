@@ -17,6 +17,8 @@ export * from "./result.js";
 export * from "./document.js";
 export * from "./grid/types.js";
 export * from "./grid/math.js";
+export * from "./grid/SquareGrid.js";
+export * from "./grid/factory.js";
 export * from "./scene.js";
 export * from "./chat/index.js";
 export * from "./vision/index.js";

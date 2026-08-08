@@ -1117,11 +1117,7 @@ describe("derivePlan — system.prerequisites marking (A1)", () => {
 
   it("Bloodrager instinct + Draconic Arrogance (needs 'dragon instinct'): stays PICKABLE but gets marked unmet", () => {
     const doc = baseCharacterDoc({
-      items: [
-        barbarianWithClassFeatDoc(),
-        instinctItem("Bloodrager"),
-        draconicArroganceFeatDoc(),
-      ],
+      items: [barbarianWithClassFeatDoc(), instinctItem("Bloodrager"), draconicArroganceFeatDoc()],
       system: { level: { value: 1 }, details: {} },
     });
     const plan = derivePlan(doc);
@@ -1153,11 +1149,7 @@ describe("derivePlan — system.prerequisites marking (A1)", () => {
 
   it("prerequisite prose outside the model (e.g. 'trained in Athletics') is UNKNOWN, never marked", () => {
     const doc = baseCharacterDoc({
-      items: [
-        barbarianWithClassFeatDoc(),
-        instinctItem("Bloodrager"),
-        unresolvableFeatDoc(),
-      ],
+      items: [barbarianWithClassFeatDoc(), instinctItem("Bloodrager"), unresolvableFeatDoc()],
       system: { level: { value: 1 }, details: {} },
     });
     const plan = derivePlan(doc);
@@ -1168,9 +1160,7 @@ describe("derivePlan — system.prerequisites marking (A1)", () => {
   });
 
   it("checkFeatPrerequisites: no system.prerequisites → undefined (no issue)", () => {
-    expect(
-      checkFeatPrerequisites(arcaneFistsFeatDoc(), [], undefined, 5),
-    ).toBeUndefined();
+    expect(checkFeatPrerequisites(arcaneFistsFeatDoc(), [], undefined, 5)).toBeUndefined();
   });
 });
 
@@ -1598,7 +1588,8 @@ describe("chooseClassChoice(bloodline) — tradition resolution per lineage", ()
       const ops = chooseClassChoice(ctx(doc), "bloodline", 1, bloodlineFeatureDoc(bloodlineName));
 
       const spellOp = ops.find(
-        (o) => o.type === "doc:create" && (o.data["name"] as string) === `${expectedTradition} Spells`,
+        (o) =>
+          o.type === "doc:create" && (o.data["name"] as string) === `${expectedTradition} Spells`,
       );
       expect(
         spellOp,
@@ -1663,7 +1654,10 @@ describe("chooseClassChoice(bloodline) — tradition resolution per lineage", ()
       const spellUpdateOp = ops.find(
         (o) => o.type === "doc:update" && o.id === "item-sorc-spells",
       ) as DocUpdatePayload | undefined;
-      expect(spellUpdateOp, `expected a doc:update on item-sorc-spells, ops: ${JSON.stringify(ops)}`).toBeDefined();
+      expect(
+        spellUpdateOp,
+        `expected a doc:update on item-sorc-spells, ops: ${JSON.stringify(ops)}`,
+      ).toBeDefined();
       expect(spellUpdateOp!.diff["system.tradition.value"]).toBe("divine");
       expect(spellUpdateOp!.diff["name"]).toBe("divine Spells");
 
@@ -1687,7 +1681,9 @@ describe("chooseClassChoice(bloodline) — tradition resolution per lineage", ()
       // No accidental doc:create — this is a RESTAMP of the existing items,
       // not a fresh pair of entries.
       const createOps = ops.filter((o) => o.type === "doc:create");
-      const entryCreates = createOps.filter((o) => (o.data["type"] as string) === "spellcastingEntry");
+      const entryCreates = createOps.filter(
+        (o) => (o.data["type"] as string) === "spellcastingEntry",
+      );
       expect(entryCreates).toHaveLength(0);
     });
   });

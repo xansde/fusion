@@ -17,22 +17,32 @@
    * Debug overlay: F9 toggles renderer/fps/camera/cell info.
    */
 
-  import { onMount, onDestroy } from "svelte";
+  import { onMount, onDestroy, untrack } from "svelte";
   import { session, sessionActions } from "../lib/session.svelte.js";
   import { FusionCanvas } from "../lib/canvas/FusionCanvas.js";
   import { loadDevScene } from "../lib/canvas/dev-scene.js";
   import { loadSceneDocument } from "../lib/canvas/sceneLoader.js";
   import { canLoadScene } from "../lib/canvas/canvasReadyGate.js";
   import { activeSceneState } from "../lib/docs/activeScene.svelte.js";
-  import { attachCombatSync } from "../lib/combat/combatStore.svelte.js";
+  import { sceneReloadKey } from "../lib/canvas/sceneReloadKey.js";
+  import {
+    attachCombatSync,
+    combatActions,
+    getTargetingState,
+  } from "../lib/combat/combatStore.svelte.js";
+  import { isTargetedByUser } from "../lib/combat/targeting.js";
   import { attachChatSync, attachChatMessageSync } from "../lib/chat/chatStore.svelte.js";
   import AppSidebar from "./chat/AppSidebar.svelte";
   import ActiveSceneBadge from "./scenes/ActiveSceneBadge.svelte";
   import NoSceneOverlay from "./scenes/NoSceneOverlay.svelte";
   import WindowHost from "./windows/WindowHost.svelte";
+  import HubLayer from "./hub/HubLayer.svelte";
   import { getSocket } from "../lib/session.svelte.js";
   import { SceneOrchestrator } from "../lib/canvas/scene-orchestrator.js";
   import { TokenLayer } from "../lib/canvas/tokens/TokenLayer.js";
+  import { TokenInteractionManager } from "../lib/canvas/tokens/TokenInteractionManager.js";
+  import { resolveOwnedActorIds } from "../lib/canvas/tokens/ownedActors.js";
+  import { attachRuler } from "../lib/presence/attachRuler.js";
   import { LightingRenderer } from "../lib/canvas/vision/LightingRenderer.js";
   import { FogState } from "../lib/canvas/vision/fog-state.js";
   import { CombatCanvasController } from "../lib/canvas/combat/combatCanvasController.js";
@@ -75,6 +85,22 @@
   // Stored here so _teardownOrchestrator and onDestroy can remove it cleanly,
   // preventing accumulation of stale callbacks across scene switches (leak fix).
   let _tickerDisposer: (() => void) | null = null;
+
+  // Token interaction (drag, select, arrow-key move). One per active scene,
+  // destroyed on scene switch so its window keyboard listener does not leak.
+  //
+  // WIRING GAP (found live on 2026-08-07): TokenInteractionManager existed with
+  // full tests since M1-C but was never CONSTRUCTED in production — TokenSprite
+  // set eventMode="static" and nobody subscribed. Tokens rendered and could not
+  // be moved by anyone. Same class of gap as the ruler and the target marker:
+  // the chain of code existed, the user's gesture did not.
+  let tokenInteraction: TokenInteractionManager | null = null;
+
+  // Ruler (hold R, Ctrl+click adds a waypoint). Same wiring gap as the tokens:
+  // RulerStateMachine had tests and no gesture, so nobody could ever start one
+  // — and since nobody started one, the remote-ruler receive path never ran
+  // either. Disposer removes the window listeners on scene switch.
+  let disposeRuler: (() => void) | null = null;
 
   async function handleLogout(): Promise<void> {
     if (loggingOut) return;
@@ -340,13 +366,25 @@
    * covering both the "scene already active at mount" and "GM activates a
    * scene later" cases with the same code path.
    */
+  // Only the fields loadSceneDocument() actually reads. Tokens, walls and
+  // lights are EMBEDDED in the Scene document, so the mirror hands out a new
+  // SceneDocument on every one of their updates; depending on the object itself
+  // made a single token drag reload the whole scene — destroying the background
+  // and re-awaiting Assets.load() per position update, which is exactly why the
+  // map blinked out while dragging.
+  const reloadKey = $derived(sceneReloadKey(activeSceneState.scene));
+
   $effect(() => {
+    // reloadKey is the ONLY scene dependency of this effect, on purpose.
+    void reloadKey;
+
     const canvas = fusionCanvas;
     if (!canLoadScene(canvas !== null, canvasReady)) return;
     // canLoadScene(true, ...) guarantees canvas !== null — narrow for TS.
     if (!canvas) return;
 
-    const scene = activeSceneState.scene;
+    // Read untracked: we want the current document, not a dependency on it.
+    const scene = untrack(() => activeSceneState.scene);
 
     // Tear down previous orchestrator before changing scene
     _teardownOrchestrator();
@@ -420,8 +458,14 @@
     );
 
     // --- FogState (player only) ---
+    // REQ-VIS-085: FogState only exists when the scene actually wants fog.
+    // tokenVision off ⇒ players see the whole map (no mask at all);
+    // tokenVision on + fogEnabled off ⇒ simple vision mask, no accumulation.
+    // Same runtime-absence risk as `grid` (see sceneReloadKey.ts) — read defensively.
+    const tokenVisionOn = scene.tokenVision ?? false;
+    const fogEnabledOn = scene.fogEnabled ?? false;
     let fogState: FogState | null = null;
-    if (!currentIsGm && sock) {
+    if (!currentIsGm && sock && tokenVisionOn && fogEnabledOn) {
       fogState = new FogState(
         scene._id,
         userId,
@@ -458,6 +502,80 @@
       userId,
     );
 
+    // --- TokenInteractionManager (drag, select, arrow-key move) ---
+    // Needs a socket to send ops and the scene's grid to snap. Both come from
+    // state that already exists at this point: loadSceneDocument() ran and
+    // installed the grid strategy on the canvas before this function is called.
+    const grid = canvas.gridStrategy;
+    const userRole = session.user?.role ?? 1;
+    const tokensLayer = canvas.getLayer("tokens");
+
+    // Wrapped: a failure to wire interaction must not take vision, fog and
+    // combat down with it. Before this guard, anything thrown here escaped to
+    // the caller's catch and the whole orchestrator was silently skipped.
+    try {
+      if (sock && grid) {
+        tokenInteraction = new TokenInteractionManager({
+          tokenContainer: tokensLayer,
+          tokenLayer,
+          mirror: worldMirror,
+          sceneId: scene._id,
+          canvas,
+          socket: sock,
+          userId,
+          userRole,
+          ownedActorIds: resolveOwnedActorIds(worldMirror, userId, userRole),
+          grid,
+          // Targeting port for the right-click gesture. Built here — and not
+          // imported inside the manager — so the PIXI layer keeps no Svelte
+          // dependency. The socket carries an absolute boolean, so the client
+          // reads its own state and sends the opposite; the server resolves
+          // the acting user from the socket and echoes the truth back.
+          targeting: {
+            isTargetedByMe: (tokenId: string) =>
+              isTargetedByUser(getTargetingState(), tokenId, userId),
+            toggle: (tokenId: string, targeted: boolean) =>
+              combatActions.target(sock, tokenId, targeted),
+          },
+          onError: (msg) => {
+            console.warn("[TableScreen] token move rejected:", msg);
+          },
+        });
+      }
+    } catch (err) {
+      console.error("[TableScreen] token interaction failed to wire:", err);
+    }
+
+    // One line that says whether the canvas is actually operable. Three
+    // features have shipped unreachable here; "did it wire?" should not need a
+    // debugger to answer.
+    console.info("[TableScreen] canvas wiring:", {
+      tokenInteraction: tokenInteraction !== null,
+      socket: sock !== null,
+      gridStrategy: grid !== null,
+      gridSize: grid?.config.size ?? null,
+      userRole,
+      ownedActors: resolveOwnedActorIds(worldMirror, userId, userRole).size,
+      tokensLayerEventMode: tokensLayer.eventMode,
+      tokensInLayer: tokensLayer.children.length,
+      stageEventMode: canvas.stageEventMode,
+    });
+
+    // --- Ruler (hold R) ---
+    // Works without a socket: measuring is local, only the broadcast needs one.
+    try {
+      if (grid) {
+        disposeRuler = attachRuler({
+          canvas,
+          grid,
+          layer: canvas.getLayer("controls"),
+          socket: sock,
+        });
+      }
+    } catch (err) {
+      console.error("[TableScreen] ruler failed to wire:", err);
+    }
+
     return new SceneOrchestrator({
       scene,
       mirror: worldMirror,
@@ -481,6 +599,16 @@
     // callback cannot fire against a half-destroyed tokenLayer.
     _tickerDisposer?.();
     _tickerDisposer = null;
+
+    // Destroy BEFORE the orchestrator: the manager holds a window keydown
+    // listener and PIXI handlers on token sprites the orchestrator is about to
+    // tear down. Leaving it alive across a scene switch stacks one listener per
+    // scene and points them at destroyed sprites.
+    tokenInteraction?.destroy();
+    tokenInteraction = null;
+
+    disposeRuler?.();
+    disposeRuler = null;
 
     if (sceneOrchestrator) {
       sceneOrchestrator.teardown();
@@ -583,6 +711,15 @@
   <!-- -------------------------------------------------------------------- -->
   <WindowHost />
 
+  <!-- -------------------------------------------------------------------- -->
+  <!-- Hub layer — player Hub overlay (spec 28)                             -->
+  <!-- Last in the shell and in the `--fusion-z-hub` band, so it paints over -->
+  <!-- canvas, regions and windows. The host is pointer-events: none; only   -->
+  <!-- `.hub-surface` descendants take input, so clicks on empty Hub space   -->
+  <!-- fall through to the map.                                              -->
+  <!-- -------------------------------------------------------------------- -->
+  <HubLayer />
+
 </div>
 
 <style>
@@ -609,7 +746,9 @@
     top: 0;
     left: 0;
     right: 0;
-    z-index: 100;
+    /* REQ-UIF-008: anchored shell region — value comes from the layer scale
+       in base.css, not a literal. */
+    z-index: var(--fusion-z-region);
     align-items: center;
     background: rgba(24, 24, 31, 0.85);
     backdrop-filter: blur(6px);

@@ -19,8 +19,7 @@
  * pointer events to TokenLayer.applyLocalMove() and sendOp().
  */
 
-import { squareSnapPoint } from "@fusion/shared";
-import type { TokenDocument, ScenePoint } from "@fusion/shared";
+import type { TokenDocument, ScenePoint, GridStrategy } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
 // Permission helper
@@ -71,53 +70,40 @@ export const ROLE_ASSISTANT = 3;
 export const ROLE_GAMEMASTER = 4;
 
 // ---------------------------------------------------------------------------
-// Grid snap helper (squares only in M1-C)
+// Grid snap helper
 // ---------------------------------------------------------------------------
 
-export interface GridSnapConfig {
-  /** Grid size in pixels (cell side length for square grids). */
-  size: number;
-  /** Grid X offset in scene coordinates (pixels). */
-  offsetX: number;
-  /** Grid Y offset in scene coordinates (pixels). */
-  offsetY: number;
-}
-
 /**
- * Snap a scene point to the nearest cell center (square grid).
+ * Snap a scene point to the nearest cell center.
  * Returns the top-left of the snapped cell so the token footprint aligns correctly.
  *
  * The token's x/y is the top-left of the footprint bounding box.
  * Snapping snaps the footprint's center to the nearest cell center
  * (or cell-cluster center for footprint > 1), then converts back to top-left.
  *
+ * The grid arrives as a GridStrategy, not as loose scalars: this function no
+ * longer knows nor cares whether the scene's grid is square.
+ *
  * @param cursorX    Cursor x in scene coordinates (top-left drag anchor).
  * @param cursorY    Cursor y in scene coordinates.
  * @param footW      Token footprint width in cells.
  * @param footH      Token footprint height in cells.
- * @param grid       Grid configuration.
+ * @param grid       The active scene's grid.
  */
 export function snapTokenToGrid(
   cursorX: number,
   cursorY: number,
   footW: number,
   footH: number,
-  grid: GridSnapConfig,
+  grid: GridStrategy,
 ): ScenePoint {
   // For multi-cell footprints, snap the center of the bounding box
-  const halfPixW = (footW * grid.size) / 2;
-  const halfPixH = (footH * grid.size) / 2;
+  const cellSize = grid.config.size;
+  const halfPixW = (footW * cellSize) / 2;
+  const halfPixH = (footH * cellSize) / 2;
 
-  const centerX = cursorX + halfPixW;
-  const centerY = cursorY + halfPixH;
-
-  // Snap center to nearest cell center
-  const snappedCenter = squareSnapPoint(
-    centerX,
-    centerY,
-    grid.size,
-    grid.offsetX,
-    grid.offsetY,
+  const snappedCenter = grid.getSnappedPoint(
+    { x: cursorX + halfPixW, y: cursorY + halfPixH },
     "center",
   );
 
@@ -142,23 +128,24 @@ export type ArrowDirection = "up" | "down" | "left" | "right";
  * @param currentX  Current token x (top-left, scene pixels).
  * @param currentY  Current token y (top-left, scene pixels).
  * @param direction Arrow key direction.
- * @param grid      Grid configuration.
+ * @param grid      The active scene's grid.
  */
 export function arrowMoveToken(
   currentX: number,
   currentY: number,
   direction: ArrowDirection,
-  grid: GridSnapConfig,
+  grid: GridStrategy,
 ): ScenePoint {
+  const step = grid.config.size;
   switch (direction) {
     case "up":
-      return { x: currentX, y: currentY - grid.size };
+      return { x: currentX, y: currentY - step };
     case "down":
-      return { x: currentX, y: currentY + grid.size };
+      return { x: currentX, y: currentY + step };
     case "left":
-      return { x: currentX - grid.size, y: currentY };
+      return { x: currentX - step, y: currentY };
     case "right":
-      return { x: currentX + grid.size, y: currentY };
+      return { x: currentX + step, y: currentY };
   }
 }
 

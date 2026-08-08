@@ -127,7 +127,10 @@
     position: fixed;
     inset: 0;
     pointer-events: none; /* let clicks through to canvas */
-    z-index: var(--fusion-z-windows, 200);
+    /* REQ-UIF-008: the fallback literal is gone — the scale is declared once,
+       in base.css. A missing token should surface as a visible stacking bug,
+       not be silently papered over by a duplicate magic number here. */
+    z-index: var(--fusion-z-windows);
   }
 
   /* Windows and dialogs re-enable pointer events on themselves */

@@ -9,6 +9,7 @@
  */
 
 import { Sprite, Assets, Graphics, type Texture } from "pixi.js";
+import { createGridStrategy } from "@fusion/shared";
 import type { SceneDocument, GridConfig } from "@fusion/shared";
 import { GridRenderer } from "./GridRenderer.js";
 import type { FusionCanvas } from "./FusionCanvas.js";
@@ -89,20 +90,28 @@ export async function loadSceneDocument(
   // ---- Grid ----
   // Cast needed: scene.grid is inferred from Zod with `| undefined` on optional
   // fields, which is incompatible with GridConfig under exactOptionalPropertyTypes.
-  const gridCfg = GridRenderer.fromGridConfig(
-    // scene.grid can be undefined at runtime (scenes persisted without a grid,
-    // see r7.1) despite the type saying otherwise; `?? null` normalizes it for
-    // fromGridConfig's null guard, so this conditional is intentional.
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    (scene.grid ?? null) as unknown as GridConfig | null,
-    totalWidth,
-    totalHeight,
-    padX,
-    padY,
-  );
+  // scene.grid can be undefined at runtime (scenes persisted without a grid,
+  // see r7.1) despite the type saying otherwise; `?? null` normalizes it for
+  // the null guards below, so this conditional is intentional.
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  const sceneGrid = (scene.grid ?? null) as unknown as GridConfig | null;
+
+  const gridCfg = GridRenderer.fromGridConfig(sceneGrid, totalWidth, totalHeight, padX, padY);
   canvas.setGrid(gridCfg);
+
+  // The grid GEOMETRY (as opposed to how it is drawn) is created once per scene
+  // load and handed to the canvas. Every consumer that needs to snap, measure
+  // or convert pixels asks this instance instead of rebuilding square* args.
+  // The origin is the scene padding — same offsets fromGridConfig() uses.
+  canvas.setGridStrategy(
+    createGridStrategy(sceneGrid, { x: padX, y: padY }, (reason) => {
+      console.warn("[sceneLoader]", reason);
+    }),
+  );
+
   cleanupFns.push(() => {
     canvas.setGrid(null);
+    canvas.setGridStrategy(null);
   });
 
   // ---- Camera ----
