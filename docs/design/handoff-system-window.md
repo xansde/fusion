@@ -84,15 +84,29 @@ jogador.
 - Board de missões no Hub = território da **spec 28** (em escrita pelo Mario);
   o protótipo é proposta/insumo para ela, não spec.
 
-## Pendências (aguardando OK do Alexandre — não executar sem ele pedir)
+## Feito (OK do Alexandre em 2026-08-08)
 
-1. **Postar resposta na issue #78** — redigir a partir das decisões acima
-   (Note com ownership, REQ-DOC-056..060) apontando os commits/specs. O rascunho
-   da sessão anterior se perdeu no compact; reescrever é rápido.
-2. **Abrir PR** `docs/specs-mapas-overlays` → `build/app` (PR é ato humano/com OK).
-3. **Abrir issue** "board de missões na spec 28" vinculando o protótipo.
-4. Perguntas abertas do design do Mario (outro momento): escala do mundo (4 km/px),
-   onde mora o homebrew isekai.
+1. **PR #89** — `docs/specs-mapas-overlays` → `build/app`. Só documentação; nenhum
+   arquivo em `packages/`. Aguardando review.
+2. **Resposta na issue #78** — decisão registrada como saída A, com o porquê, os
+   REQs e o recorte do que ficou de fora (a implementação: `NoteSchema` continua
+   `z.array(z.unknown())`). Fechar a issue ou abrir uma de implementação é chamada
+   do Mario/Alexandre — não foi feito.
+3. **Issue #90** — board de missões como insumo para a spec 28, com as 5 perguntas
+   que a spec precisa responder e o alerta de que o relógio de missão talvez seja
+   da spec 33 (Motor de Campanha), não da 28.
+4. **Revelação em um clique** — feita, ver `8426775` acima.
+
+## Ainda em aberto (não é pendência de execução — é decisão de outra pessoa)
+
+- **Resposta do Mario na #78**: as três armadilhas de SVG do `mapa-isekai.md` §5.2
+  **não** viraram REQ. Duas são específicas de SVG e não transferem para PIXI; a
+  terceira (parser de path precisa cobrir `Q`/`T`/`A`) transfere e vale REQ na 34
+  quando formos importar geografia do Azgaar. Se ele pedir, escrever.
+- **Destino da #78**: fechar quando o PR #89 entrar, ou manter aberta até a
+  implementação? Deixado explicitamente para o Mario/Alexandre no comentário.
+- Perguntas abertas do design do Mario (outro momento): escala do mundo (4 km/px),
+  onde mora o homebrew isekai.
 
 ## Avisos operacionais (aprendidos a caro nesta sessão)
 
