@@ -1156,6 +1156,26 @@
         background: #020608;
         overflow: hidden;
         margin-bottom: 14px;
+        cursor: grab;
+        touch-action: none;
+        user-select: none;
+      }
+      .mv.drag {
+        cursor: grabbing;
+      }
+      /* the WORLD layer scales with the camera (mapa-isekai.md §5.1) */
+      .world {
+        position: absolute;
+        inset: 0;
+        transform-origin: 0 0;
+        will-change: transform;
+      }
+      /* the INTERFACE layer never scales — pins keep their pixel size,
+         only their position is recomputed from the camera */
+      .nodes {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
       }
       .mv svg {
         position: absolute;
@@ -1169,6 +1189,7 @@
         transform: translate(-50%, -50%);
         cursor: pointer;
         text-align: center;
+        pointer-events: auto;
       }
       .node i {
         display: block;
@@ -1233,6 +1254,89 @@
       .node.hidden label {
         color: var(--dim);
         font-style: italic;
+      }
+      /* LOD: label hidden below 1.3x unless the POI is a settlement (§5.1) */
+      .node.lodoff label,
+      .node.lodoff .sub {
+        display: none;
+      }
+      .node .sub {
+        display: block;
+        margin-top: 2px;
+        font: 600 8px var(--sans);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--gold);
+        white-space: nowrap;
+        pointer-events: none;
+      }
+      /* ---- camera chrome: zoom controls + scale bar (never scale) ---- */
+      .mapctl {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        z-index: 3;
+      }
+      .zbtn {
+        width: 24px;
+        height: 24px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(87, 200, 255, 0.34);
+        background: rgba(3, 14, 22, 0.86);
+        color: var(--blue);
+        font: 700 13px var(--sans);
+        line-height: 1;
+        cursor: pointer;
+        transition: 0.12s;
+      }
+      .zbtn:hover:not(:disabled) {
+        background: rgba(87, 200, 255, 0.16);
+        box-shadow: 0 0 10px var(--blue-g);
+      }
+      .zbtn:disabled {
+        opacity: 0.32;
+        cursor: default;
+      }
+      .zread {
+        padding: 3px 8px;
+        border: 1px solid var(--line);
+        background: rgba(3, 14, 22, 0.86);
+        font: 700 9.5px var(--sans);
+        letter-spacing: 0.12em;
+        color: var(--dim);
+      }
+      .scalebar {
+        position: absolute;
+        left: 10px;
+        bottom: 10px;
+        z-index: 3;
+        pointer-events: none;
+        font: 700 9.5px var(--sans);
+        letter-spacing: 0.1em;
+        color: #a8cfe2;
+        text-shadow: 0 0 6px #020608;
+      }
+      .scalebar i {
+        display: block;
+        height: 5px;
+        margin-bottom: 3px;
+        border: 1px solid rgba(87, 200, 255, 0.7);
+        border-top: 0;
+        background: rgba(87, 200, 255, 0.1);
+      }
+      .maphint {
+        margin: -8px 0 12px;
+        position: relative;
+        z-index: 1;
+        font-size: 11px;
+        color: var(--dim);
+      }
+      .maphint b {
+        color: #a8cfe2;
       }
       .maplegend {
         display: flex;
@@ -1657,11 +1761,22 @@
               </td>
             </tr>
             <tr>
-              <td><b>"Ícones não escalam com o zoom"</b></td>
+              <td><b>"O mundo escala, a interface não"</b></td>
               <td>
                 Regra herdada do design do mapa de região (mockup do Mario) —
-                <code>docs/design/mapa-isekai.md</code> §5.1. Este protótipo é estático (sem zoom);
-                a spec 34 deve seguir a regra quando ganhar câmera de verdade.
+                <code>docs/design/mapa-isekai.md</code> §5.1, agora <b>demonstrada</b>: o terreno
+                vive numa camada com <code>transform</code> e traços
+                <code>vector-effect="non-scaling-stroke"</code>; os pinos vivem numa camada
+                <b>sem</b> transform, com a posição recalculada pela câmera e o tamanho fixo em
+                pixels. Inclui LOD de rótulo (1,3× / 2,2×), barra de escala em degraus redondos e
+                pan travado nas bordas do recorte. A spec 34 herda essas quatro regras.
+              </td>
+            </tr>
+            <tr>
+              <td><b>"Rastrear no mapa" centraliza a câmera</b></td>
+              <td>
+                <code>REQ-CNV-008</code> — a ação sai da missão, troca de janela e leva a câmera até
+                o pin (2,2×), em vez de só apontar que o pin existe
               </td>
             </tr>
             <tr>
@@ -2015,6 +2130,23 @@
       let activeWin = "missoes";
       /* id of the POI selected in the Mapa window */
       let mapSel = null;
+      /* Mapa camera: (x,y) = world point parked at the centre of the viewport,
+         in the same 0-100 units the POIs use; z = zoom factor.
+         Survives render() because render() repaints the stage from this state. */
+      const cam = { x: 50, y: 50, z: 1 };
+      /* last measured viewport width in px — only the scale bar needs it, and it
+         is measured after paint, so the first frame uses a sane default */
+      let mvW = 720;
+      /* a pan ends with a click event on the marker under the cursor — swallow it */
+      let suppressClick = false;
+      const Z_MIN = 1;
+      const Z_MAX = 4;
+      /* LOD thresholds from mapa-isekai.md §5.1 */
+      const Z_LABELS = 1.3;
+      const Z_DETAIL = 2.2;
+      /* recorte da região piloto: 512 km de largura sobre 100 unidades (§6.2) */
+      const KM_PER_UNIT = 5.12;
+      const SCALE_STEPS = [5, 10, 25, 50, 100, 200, 500];
       /* index of the expanded PC card in the Comitiva window */
       let expandedPc = null;
 
@@ -2277,8 +2409,11 @@
       }
 
       /* ================= Mapa window ================= */
-      /* neutral cyan grid + region outline + dashed roads, viewBox 0-100 so node
-         divs can be positioned with plain percentages (no camera/zoom math) */
+      /* neutral cyan grid + region outline + dashed roads, viewBox 0-100 so the
+         world layer and the POI nodes share one coordinate space.
+         Every stroke carries vector-effect="non-scaling-stroke": the geometry
+         scales with the camera, the line weight does not (mapa-isekai.md §5.1). */
+      const NSS = ' vector-effect="non-scaling-stroke"';
       function mapaBackgroundSVG() {
         let grid = "";
         for (let g = 10; g < 100; g += 10) {
@@ -2287,13 +2422,17 @@
             g +
             '" y1="0" x2="' +
             g +
-            '" y2="100" stroke="rgba(87,200,255,.06)" stroke-width="0.2"/>';
+            '" y2="100" stroke="rgba(87,200,255,.06)" stroke-width="1"' +
+            NSS +
+            "/>";
           grid +=
             '<line x1="0" y1="' +
             g +
             '" x2="100" y2="' +
             g +
-            '" stroke="rgba(87,200,255,.06)" stroke-width="0.2"/>';
+            '" stroke="rgba(87,200,255,.06)" stroke-width="1"' +
+            NSS +
+            "/>";
         }
         const regiao =
           "M14,50 Q10,30 30,18 Q52,6 72,14 Q92,24 88,44 Q94,64 72,76 Q50,92 28,82 Q10,72 14,50 Z";
@@ -2311,7 +2450,9 @@
             (d) =>
               '<path d="' +
               d +
-              '" fill="none" stroke="rgba(87,200,255,.28)" stroke-width="0.5" stroke-dasharray="1.6 1.4"/>',
+              '" fill="none" stroke="rgba(87,200,255,.28)" stroke-width="2" stroke-dasharray="6 5"' +
+              NSS +
+              "/>",
           )
           .join("");
         return (
@@ -2320,9 +2461,63 @@
           grid +
           '<path d="' +
           regiao +
-          '" fill="rgba(87,200,255,.045)" stroke="rgba(87,200,255,.4)" stroke-width="0.5"/>' +
+          '" fill="rgba(87,200,255,.045)" stroke="rgba(87,200,255,.4)" stroke-width="2"' +
+          NSS +
+          "/>" +
           roads +
           "</svg>"
+        );
+      }
+
+      /* ---------- camera maths ----------
+         The world layer is 100% x 100% of the viewport and holds the 0-100 SVG,
+         so a world point (x) sits at x% of that layer. Parking (cam.x, cam.y) at
+         the viewport centre with zoom cam.z is therefore:
+           translate(50%,50%) scale(z) translate(-cam.x%, -cam.y%)
+         and the same point, expressed as a percentage of the VIEWPORT, is
+           50 + z * (x - cam.x)
+         which is what positions the (unscaled) pins. */
+      function clampCam() {
+        cam.z = Math.min(Z_MAX, Math.max(Z_MIN, cam.z));
+        /* pan stops at the edges — the recorte is the border of what exists */
+        const half = 50 / cam.z;
+        cam.x = Math.min(100 - half, Math.max(half, cam.x));
+        cam.y = Math.min(100 - half, Math.max(half, cam.y));
+      }
+      const camPct = (v, c) => 50 + cam.z * (v - c);
+      function worldTransform() {
+        return "translate(50%,50%) scale(" + cam.z + ") translate(" + -cam.x + "%," + -cam.y + "%)";
+      }
+      /* zoom keeping the world point under the cursor pinned to the cursor
+         (fx, fy = cursor position as a 0-1 fraction of the viewport) */
+      function zoomAt(nextZ, fx, fy) {
+        const z0 = cam.z;
+        const wx = cam.x + (fx - 0.5) * (100 / z0);
+        const wy = cam.y + (fy - 0.5) * (100 / z0);
+        cam.z = Math.min(Z_MAX, Math.max(Z_MIN, nextZ));
+        cam.x = wx - (fx - 0.5) * (100 / cam.z);
+        cam.y = wy - (fy - 0.5) * (100 / cam.z);
+        clampCam();
+      }
+      /* centre the camera on a POI — this is REQ-CNV-008 ("centraliza a câmera
+         no pin") acted out instead of only described in a tooltip */
+      function centerOn(poi, minZoom) {
+        cam.x = poi.x;
+        cam.y = poi.y;
+        if (minZoom && cam.z < minZoom) cam.z = minZoom;
+        clampCam();
+      }
+      /* round scale step (5/10/25/50/100...) that fits in ~28% of the viewport */
+      function scaleBarHTML(viewportPx) {
+        const pxPerUnit = ((viewportPx || 720) * cam.z) / 100;
+        const budgetPx = (viewportPx || 720) * 0.28;
+        let km = SCALE_STEPS[0];
+        for (const step of SCALE_STEPS) {
+          if ((step / KM_PER_UNIT) * pxPerUnit <= budgetPx) km = step;
+        }
+        const w = Math.round((km / KM_PER_UNIT) * pxPerUnit);
+        return (
+          '<div class="scalebar" id="scalebar"><i style="width:' + w + 'px"></i>' + km + " km</div>"
         );
       }
 
@@ -2336,57 +2531,49 @@
         return "";
       }
 
+      /* settlements keep their label at every zoom; everything else appears at
+         Z_LABELS and gains a detail line at Z_DETAIL (mapa-isekai.md §5.1) */
+      const isSettlement = (poi) => poi.kind === "base" || poi.kind === "safe";
+      function poiLod(poi) {
+        return isSettlement(poi) || cam.z >= Z_LABELS ? "" : " lodoff";
+      }
+      function poiSub(poi) {
+        if (cam.z < Z_DETAIL) return "";
+        if (persp !== "mestre" && poi.vis[persp] === 0) return "";
+        const m = poi.missaoId ? findM(poi.missaoId) : null;
+        if (m) return '<span class="sub">' + CAT_LABEL[m.categoria] + " · " + m.km + " km</span>";
+        return '<span class="sub">' + (poi.kind === "base" ? "Base" : "Seguro") + "</span>";
+      }
       function poiNode(poi) {
-        const style = "left:" + poi.x + "%;top:" + poi.y + "%";
+        /* position comes from the camera, size never does — this layer has no
+           transform, so the pin stays the same number of pixels at any zoom */
+        const style = "left:" + camPct(poi.x, cam.x) + "%;top:" + camPct(poi.y, cam.y) + "%";
         const selCls = mapSel === poi.id ? " sel" : "";
-        if (persp === "mestre") {
-          return (
-            '<div class="node ' +
-            poiState(poi) +
-            selCls +
-            '" style="' +
-            style +
-            '" data-poi="' +
-            poi.id +
-            '"><i></i><label>' +
-            esc(poi.nome) +
-            "</label></div>"
-          );
-        }
-        const v = poi.vis[persp];
+        const v = persp === "mestre" ? 2 : poi.vis[persp];
+        let cls, rotulo;
         if (v === 0) {
-          return (
-            '<div class="node hidden" style="' +
-            style +
-            '" data-poi="' +
-            poi.id +
-            '"><i></i><label>???</label></div>'
-          );
-        }
-        if (v === 1) {
-          return (
-            '<div class="node rumor' +
-            selCls +
-            '" style="' +
-            style +
-            '" data-poi="' +
-            poi.id +
-            '"><i></i><label>' +
-            esc(poi.nome) +
-            "</label></div>"
-          );
+          cls = "hidden";
+          rotulo = "???";
+        } else if (v === 1 && persp !== "mestre") {
+          cls = "rumor" + selCls;
+          rotulo = esc(poi.nome);
+        } else {
+          cls = poiState(poi) + selCls;
+          rotulo = esc(poi.nome);
         }
         return (
           '<div class="node ' +
-          poiState(poi) +
-          selCls +
+          cls +
+          poiLod(poi) +
           '" style="' +
           style +
           '" data-poi="' +
           poi.id +
           '"><i></i><label>' +
-          esc(poi.nome) +
-          "</label></div>"
+          rotulo +
+          "</label>" +
+          poiSub(poi) +
+          "</div>"
         );
       }
 
@@ -2482,11 +2669,42 @@
         return h + "</div>";
       }
 
+      function mapCtlHTML() {
+        const z = cam.z.toFixed(1).replace(".", ",");
+        return (
+          '<div class="mapctl">' +
+          '<span class="zread" id="zread">' +
+          z +
+          "×</span>" +
+          '<button type="button" class="zbtn" data-action="zoom-out" aria-label="Afastar"' +
+          (cam.z <= Z_MIN + 0.001 ? " disabled" : "") +
+          ">−</button>" +
+          '<button type="button" class="zbtn" data-action="zoom-in" aria-label="Aproximar"' +
+          (cam.z >= Z_MAX - 0.001 ? " disabled" : "") +
+          ">+</button>" +
+          '<button type="button" class="zbtn" data-action="zoom-reset" aria-label="Enquadrar a região">⤢</button>' +
+          "</div>"
+        );
+      }
+
       function mapaHTML() {
         let h = '<div class="win mapwin">' + chrome();
-        h += '<div class="mv">' + mapaBackgroundSVG();
-        h += DATA.pois.map(poiNode).join("");
+        h += '<div class="mv" id="mv">';
+        h +=
+          '<div class="world" id="world" style="transform:' +
+          worldTransform() +
+          '">' +
+          mapaBackgroundSVG() +
+          "</div>";
+        h += '<div class="nodes" id="nodes">' + DATA.pois.map(poiNode).join("") + "</div>";
+        h += mapCtlHTML();
+        h += scaleBarHTML(mvW);
         h += "</div>";
+        h +=
+          '<div class="maphint">Roda do mouse aproxima, arrastar movimenta. ' +
+          "<b>O mundo escala, a interface não</b> — o terreno cresce, os pinos mantêm o mesmo " +
+          "tamanho em pixels e só mudam de lugar (<code>mapa-isekai.md</code> §5.1). Rótulos " +
+          "aparecem a partir de 1,3× e a categoria a partir de 2,2×.</div>";
         h +=
           '<div class="maplegend">' +
           '<span class="lg"><span class="lgsw" style="background:#ff5c7a"></span>missão ativa</span>' +
@@ -2774,6 +2992,33 @@
         bdg.style.display = ativas ? "grid" : "none";
       }
 
+      /* Repaints only what the camera moves — the world transform, the pin
+         positions and the chrome. Used during wheel/drag so a pan does not go
+         through the full innerHTML render (which would kill the drag). */
+      function applyCamera() {
+        const mv = document.getElementById("mv");
+        if (!mv) return;
+        mvW = mv.clientWidth || mvW;
+        document.getElementById("world").style.transform = worldTransform();
+        const nodes = document.getElementById("nodes");
+        DATA.pois.forEach((poi) => {
+          const el = nodes.querySelector('[data-poi="' + poi.id + '"]');
+          if (!el) return;
+          el.style.left = camPct(poi.x, cam.x) + "%";
+          el.style.top = camPct(poi.y, cam.y) + "%";
+          el.classList.toggle("lodoff", poiLod(poi) !== "");
+          const sub = poiSub(poi);
+          const cur = el.querySelector(".sub");
+          if (sub && !cur) el.insertAdjacentHTML("beforeend", sub);
+          else if (!sub && cur) cur.remove();
+        });
+        document.getElementById("zread").textContent = cam.z.toFixed(1).replace(".", ",") + "×";
+        mv.querySelector('[data-action="zoom-out"]').disabled = cam.z <= Z_MIN + 0.001;
+        mv.querySelector('[data-action="zoom-in"]').disabled = cam.z >= Z_MAX - 0.001;
+        const bar = document.getElementById("scalebar");
+        bar.outerHTML = scaleBarHTML(mvW);
+      }
+
       function render() {
         const stage = document.getElementById("stage");
         if (activeWin === "comitiva") stage.innerHTML = comitivaHTML();
@@ -2782,6 +3027,7 @@
         updateViewline();
         updateCount();
         updateTabs();
+        if (activeWin === "mapa") applyCamera();
       }
 
       /* ================= events ================= */
@@ -2799,6 +3045,10 @@
       });
 
       document.getElementById("stage").addEventListener("click", (e) => {
+        if (suppressClick) {
+          suppressClick = false;
+          return;
+        }
         const t = e.target.closest("[data-action]");
         if (t) {
           const action = t.dataset.action;
@@ -2845,8 +3095,19 @@
             if (m.node) {
               mapSel = m.node;
               activeWin = "mapa";
+              /* REQ-CNV-008: rastrear leva a câmera até o pin, não só troca de aba */
+              const poi = findPoi(m.node);
+              if (poi) centerOn(poi, Z_DETAIL);
               render();
             }
+          } else if (action === "zoom-in" || action === "zoom-out") {
+            zoomAt(cam.z * (action === "zoom-in" ? 1.5 : 1 / 1.5), 0.5, 0.5);
+            applyCamera();
+          } else if (action === "zoom-reset") {
+            cam.x = 50;
+            cam.y = 50;
+            cam.z = 1;
+            applyCamera();
           } else if (action === "cycle-poi") {
             const poi = findPoi(t.dataset.id);
             const player = t.dataset.player;
@@ -2874,6 +3135,67 @@
           render();
         }
       });
+
+      /* ---- camera input: wheel zooms at the cursor, drag pans ---- */
+      const stageEl = document.getElementById("stage");
+      let dragging = null;
+
+      stageEl.addEventListener(
+        "wheel",
+        (e) => {
+          const mv = e.target.closest(".mv");
+          if (!mv) return;
+          e.preventDefault();
+          const r = mv.getBoundingClientRect();
+          zoomAt(
+            cam.z * (e.deltaY < 0 ? 1.18 : 1 / 1.18),
+            (e.clientX - r.left) / r.width,
+            (e.clientY - r.top) / r.height,
+          );
+          applyCamera();
+        },
+        { passive: false },
+      );
+
+      stageEl.addEventListener("pointerdown", (e) => {
+        const mv = e.target.closest(".mv");
+        if (!mv || e.button !== 0 || e.target.closest(".mapctl")) return;
+        dragging = {
+          mv,
+          id: e.pointerId,
+          x: e.clientX,
+          y: e.clientY,
+          camX: cam.x,
+          camY: cam.y,
+          w: mv.clientWidth,
+          h: mv.clientHeight,
+          moved: false,
+        };
+        if (mv.setPointerCapture) mv.setPointerCapture(e.pointerId);
+        mv.classList.add("drag");
+      });
+
+      stageEl.addEventListener("pointermove", (e) => {
+        if (!dragging || e.pointerId !== dragging.id) return;
+        const dx = e.clientX - dragging.x;
+        const dy = e.clientY - dragging.y;
+        if (!dragging.moved && Math.abs(dx) + Math.abs(dy) > 4) dragging.moved = true;
+        if (!dragging.moved) return;
+        /* one screen pixel = 100 / (viewport px * zoom) world units */
+        cam.x = dragging.camX - (dx * 100) / (dragging.w * cam.z);
+        cam.y = dragging.camY - (dy * 100) / (dragging.h * cam.z);
+        clampCam();
+        applyCamera();
+      });
+
+      function endDrag(e) {
+        if (!dragging || (e && e.pointerId !== dragging.id)) return;
+        if (dragging.moved) suppressClick = true;
+        dragging.mv.classList.remove("drag");
+        dragging = null;
+      }
+      stageEl.addEventListener("pointerup", endDrag);
+      stageEl.addEventListener("pointercancel", endDrag);
 
       document.getElementById("wtabs").addEventListener("click", (e) => {
         const b = e.target.closest(".wtab");
