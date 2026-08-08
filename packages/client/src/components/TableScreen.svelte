@@ -38,6 +38,7 @@
   import WindowHost from "./windows/WindowHost.svelte";
   import HubLayer from "./hub/HubLayer.svelte";
   import SystemHud from "./hub/SystemHud.svelte";
+  import SystemNoticeStack from "./hub/SystemNoticeStack.svelte";
   import { getSocket } from "../lib/session.svelte.js";
   import { SceneOrchestrator } from "../lib/canvas/scene-orchestrator.js";
   import { TokenLayer } from "../lib/canvas/tokens/TokenLayer.js";
@@ -845,6 +846,14 @@
   <HubLayer>
     <SystemHud />
   </HubLayer>
+
+  <!-- -------------------------------------------------------------------- -->
+  <!-- System notices — a SIBLING of the Hub, not a child. HubLayer is a     -->
+  <!-- fixed, z-indexed host, so it opens a stacking context that would trap -->
+  <!-- a notice in the Hub band; notices belong in `--fusion-z-notification`  -->
+  <!-- (REQ-UIF-008), visible even over a modal.                             -->
+  <!-- -------------------------------------------------------------------- -->
+  <SystemNoticeStack />
 
   <!-- -------------------------------------------------------------------- -->
   <!-- Token config dialog — opened by double-clicking a token on the       -->
