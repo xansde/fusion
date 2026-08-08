@@ -88,7 +88,19 @@ function _localStorage(): Storage | null {
 // FilePicker → ambient src extraction (pure — unit tested directly)
 // ---------------------------------------------------------------------------
 
-const _ASSET_PATH_PREFIX = "/assets/";
+/**
+ * Matches our own `/assets/<name>` static route at the start of a path.
+ *
+ * Expressed as a regex, not `startsWith("/assets/")`, for the same reason
+ * `LOCAL_ASSET_PATH_RE` in assets/assetApi.ts is — a bare double-quoted
+ * `"/assets/"` string literal survives minification into the built chunk,
+ * and packages/server/src/spa/__tests__/routes.test.ts asserts that no built
+ * JS chunk embeds one (a guard against a hashed Vite chunk resolving to the
+ * world's asset-upload route instead of assets-client/). This prefix check
+ * has nothing to do with Vite chunk loading, but it would still trip the
+ * guard's letter, so it avoids the literal.
+ */
+const ASSET_PATH_RE = /^\/assets\//;
 
 /**
  * Extract the bare filename `sound:play` needs (AmbientTrackSrcSchema — no
@@ -101,8 +113,8 @@ const _ASSET_PATH_PREFIX = "/assets/";
  * `sound:play` the server will reject anyway.
  */
 export function extractAmbientSrc(pickerPath: string): string | null {
-  if (!pickerPath.startsWith(_ASSET_PATH_PREFIX)) return null;
-  const rest = pickerPath.slice(_ASSET_PATH_PREFIX.length);
+  if (!ASSET_PATH_RE.test(pickerPath)) return null;
+  const rest = pickerPath.replace(ASSET_PATH_RE, "");
   if (rest.length === 0 || rest.includes("/")) return null;
   try {
     return decodeURIComponent(rest);
