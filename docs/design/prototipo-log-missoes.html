@@ -1,0 +1,1527 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Log de Missões — Hub do jogador (protótipo)</title>
+    <style>
+      :root {
+        --bg: #0a0d13;
+        --panel: #111620;
+        --line: #242d3c;
+        --line2: #1b2230;
+        --tx: #c9d5e4;
+        --mut: #7c8798;
+        --dim: #596373;
+        --base: #34d399;
+        --gm: #f472b6;
+        --rumor: #8b93a4;
+        --cat-batalha: #f87171;
+        --cat-contrato: #fb923c;
+        --cat-enigma: #c084fc;
+        --cat-masmorra: #60a5fa;
+        --amber: #fbbf24;
+        --red: #f87171;
+        --mono: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+      }
+      body {
+        background: radial-gradient(900px 420px at 15% -8%, #171f2e 0%, transparent 62%), var(--bg);
+        color: var(--tx);
+        font:
+          15px/1.6 "Segoe UI",
+          system-ui,
+          sans-serif;
+        padding: 78px 24px 80px;
+      }
+      .wrap {
+        max-width: 1240px;
+        margin: 0 auto;
+      }
+      header {
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 22px;
+        margin-bottom: 26px;
+      }
+      .kicker {
+        font: 600 11px/1 var(--mono);
+        letter-spacing: 0.19em;
+        text-transform: uppercase;
+        color: var(--base);
+        margin-bottom: 12px;
+      }
+      h1 {
+        margin: 0 0 10px;
+        font-size: 27px;
+        font-weight: 650;
+        letter-spacing: -0.017em;
+      }
+      .sub {
+        color: var(--mut);
+        max-width: 82ch;
+        margin: 0;
+        font-size: 14.2px;
+      }
+      .sub b {
+        color: var(--tx);
+        font-weight: 600;
+      }
+      code {
+        font: 600 11.5px var(--mono);
+        background: #1a2130;
+        border: 1px solid #28313f;
+        border-radius: 4px;
+        padding: 1px 5px;
+        color: #b3c2d6;
+        white-space: nowrap;
+      }
+
+      /* banner fixo */
+      .protobanner {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 400;
+        background: #1c1408;
+        border-bottom: 1px solid #4a3420;
+        color: #e8c789;
+        font: 700 11px var(--mono);
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        text-align: center;
+        padding: 9px 14px;
+      }
+
+      /* barra de perspectiva */
+      .bar {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+      .pgroup {
+        display: flex;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        padding: 3px;
+        gap: 2px;
+      }
+      .pbtn {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        background: none;
+        border: 0;
+        color: var(--mut);
+        cursor: pointer;
+        font:
+          600 12.5px "Segoe UI",
+          sans-serif;
+        padding: 7px 14px;
+        border-radius: 6px;
+        transition: 0.15s;
+      }
+      .pbtn svg {
+        display: block;
+      }
+      .pbtn:hover {
+        color: var(--tx);
+        background: #1a2130;
+      }
+      .pbtn.on {
+        background: #22304a;
+        color: #dfe9f6;
+        box-shadow: inset 0 0 0 1px #33455f;
+      }
+      .pbtn.on.gmv {
+        background: #3a2233;
+        color: #fbd0e4;
+        box-shadow: inset 0 0 0 1px #5d3450;
+      }
+      .count {
+        margin-left: auto;
+        font: 600 12px var(--mono);
+        color: var(--dim);
+        letter-spacing: 0.03em;
+      }
+      .count b {
+        color: var(--tx);
+      }
+      .count b.crit {
+        color: #fca5a5;
+      }
+
+      .viewline {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font: 700 10.5px var(--mono);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #93a3b8;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        padding: 7px 12px;
+        margin-bottom: 18px;
+      }
+      .viewline.gm {
+        color: #f0a8cd;
+        border-color: #4a2b3e;
+        background: rgba(28, 12, 20, 0.35);
+      }
+
+      /* chip de categoria */
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: #141a25;
+        color: var(--mut);
+        font: 700 9.5px var(--mono);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        width: fit-content;
+      }
+
+      /* ícone da missão */
+      .micon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        flex: none;
+        border: 1px solid #2b3546;
+        background: #0f141d;
+      }
+      .micon.sm {
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+      }
+
+      /* board de jogador */
+      .board {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr 0.9fr;
+        gap: 20px;
+        align-items: start;
+      }
+      @media (max-width: 1040px) {
+        .board {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .grouphead {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .grouphead h2 {
+        margin: 0;
+        font: 700 12px var(--mono);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--mut);
+      }
+      .gcount {
+        font: 700 11px var(--mono);
+        color: var(--dim);
+        background: #141a25;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 2px 9px;
+      }
+      .cards {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .empty {
+        padding: 36px 14px;
+        text-align: center;
+        color: var(--dim);
+        font-size: 12.5px;
+        border: 1px dashed var(--line);
+        border-radius: 12px;
+      }
+      .empty svg {
+        display: block;
+        margin: 0 auto 10px;
+        opacity: 0.55;
+      }
+
+      .mcard {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--panel);
+        padding: 16px;
+        transition: 0.15s;
+      }
+      .mcard:hover {
+        border-color: #31404f;
+      }
+      .mchead {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+      .mchead .mctext {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .mtitulo {
+        margin: 0;
+        font:
+          650 15px/1.35 "Segoe UI",
+          sans-serif;
+        color: var(--tx);
+      }
+      .mgancho {
+        white-space: pre-line;
+        margin: 0 0 12px;
+        font-size: 12.8px;
+        line-height: 1.6;
+        color: var(--mut);
+      }
+
+      .checklist {
+        list-style: none;
+        margin: 0 0 14px;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+      .checklist li {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 12.6px;
+        color: var(--tx);
+      }
+      .checklist li.done {
+        color: var(--dim);
+        text-decoration: line-through;
+        text-decoration-color: var(--dim);
+      }
+      .cbox {
+        width: 14px;
+        height: 14px;
+        border-radius: 4px;
+        border: 1.5px solid var(--dim);
+        flex: none;
+        display: grid;
+        place-items: center;
+        margin-top: 1px;
+        transition: 0.15s;
+      }
+      .checklist li.done .cbox {
+        background: #1e3a2c;
+        border-color: #34d399;
+      }
+
+      .pinrow {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        background: #141a25;
+        border: 1px solid var(--line2);
+        border-radius: 7px;
+        padding: 8px 10px;
+        color: var(--mut);
+        font:
+          600 12px "Segoe UI",
+          sans-serif;
+        cursor: pointer;
+        transition: 0.15s;
+        text-align: left;
+      }
+      .pinrow:hover {
+        background: #1a2130;
+        color: var(--tx);
+        border-color: #31404f;
+      }
+      .pinrow svg {
+        flex: none;
+      }
+
+      .pressure {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-top: 10px;
+        padding: 7px 10px;
+        border-radius: 7px;
+        font: 700 11.5px var(--mono);
+        letter-spacing: 0.03em;
+      }
+      .pressure.warn {
+        background: #241e10;
+        color: #f5d98f;
+        border: 1px solid #4a3c1e;
+      }
+      .pressure.crit {
+        background: #2a1414;
+        color: #fca5a5;
+        border: 1px solid #5c2626;
+      }
+
+      .mcard.rumor {
+        border-style: dashed;
+      }
+      .rumor-marker {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 1.5px dashed var(--rumor);
+        display: grid;
+        place-items: center;
+        margin-bottom: 10px;
+      }
+      .rumor-h {
+        font-style: italic;
+      }
+
+      .mcard.concluida {
+        opacity: 0.55;
+        transition: 0.15s;
+      }
+      .mcard.concluida:hover {
+        opacity: 0.85;
+      }
+      .mresultado {
+        font-style: italic;
+        color: var(--mut);
+        font-size: 12.8px;
+        margin: 0;
+      }
+
+      /* matriz do mestre */
+      .call {
+        border: 1px solid #283244;
+        border-left: 3px solid var(--gm);
+        background: linear-gradient(180deg, #1a1420, #111620);
+        border-radius: 9px;
+        padding: 14px 16px;
+        margin-bottom: 18px;
+      }
+      .call .ct {
+        font: 700 10.5px var(--mono);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--gm);
+        margin-bottom: 6px;
+      }
+      .call p {
+        margin: 0;
+        font-size: 13px;
+        color: var(--mut);
+      }
+
+      .tablewrap {
+        overflow-x: auto;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--panel);
+      }
+      .matrix {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        min-width: 720px;
+      }
+      .matrix th {
+        text-align: left;
+        font: 700 9.5px var(--mono);
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        color: var(--dim);
+        padding: 11px 14px;
+        border-bottom: 1px solid var(--line);
+      }
+      .matrix td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line2);
+        vertical-align: middle;
+      }
+      .matrix tr:last-child td {
+        border-bottom: 0;
+      }
+      .matrix tr:hover td {
+        background: #131b26;
+      }
+      .mcol {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .mcol b {
+        color: var(--tx);
+        font-size: 13.5px;
+      }
+
+      .vbadge {
+        width: 34px;
+        height: 30px;
+        border-radius: 7px;
+        border: 1px solid var(--line2);
+        background: #141a25;
+        color: var(--dim);
+        font: 700 15px var(--mono);
+        cursor: pointer;
+        transition: 0.15s;
+      }
+      .vbadge:hover {
+        border-color: #374558;
+      }
+      .vbadge.rumor {
+        color: #f5d98f;
+        background: #241e10;
+        border-color: #4a3c1e;
+      }
+      .vbadge.on {
+        color: #8ce8b6;
+        background: #1e3a2c;
+        border-color: #2f5b41;
+      }
+
+      .clockcell {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font: 600 12px var(--mono);
+        color: var(--mut);
+      }
+      .clockcell.closed {
+        color: #fca5a5;
+        font-weight: 700;
+      }
+      .clockcell.none {
+        color: var(--dim);
+      }
+
+      .acol {
+        white-space: nowrap;
+      }
+      .actbtn {
+        font:
+          600 11px "Segoe UI",
+          sans-serif;
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: 1px solid var(--line2);
+        background: #141a25;
+        color: var(--mut);
+        cursor: pointer;
+        margin-right: 6px;
+        transition: 0.15s;
+      }
+      .actbtn:hover:not(:disabled) {
+        background: #1a2130;
+        color: var(--tx);
+        border-color: #374558;
+      }
+      .actbtn:disabled {
+        opacity: 0.35;
+        cursor: default;
+      }
+
+      /* toast diegético */
+      .toastwrap {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        z-index: 300;
+        max-width: 340px;
+      }
+      .toast {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        background: linear-gradient(160deg, #241a12, #171009);
+        border: 1px solid #4a3420;
+        border-radius: 10px;
+        padding: 11px 13px;
+        box-shadow: 0 16px 40px -16px #000;
+        opacity: 0;
+        transform: translateY(8px);
+        transition:
+          opacity 0.25s,
+          transform 0.25s;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .toast.hide {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      .toast svg {
+        flex: none;
+        margin-top: 2px;
+      }
+      .tkicker {
+        font: 700 9.5px var(--mono);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #d4a656;
+        margin-bottom: 3px;
+      }
+      .tmsg {
+        font-size: 12.6px;
+        color: #e8d9c0;
+        line-height: 1.5;
+      }
+
+      .tip {
+        position: fixed;
+        pointer-events: none;
+        z-index: 150;
+        background: #0d121b;
+        border: 1px solid #2b3648;
+        border-radius: 7px;
+        padding: 7px 11px;
+        font-size: 12.2px;
+        color: var(--tx);
+        box-shadow: 0 10px 26px -10px #000;
+        opacity: 0;
+        transition: opacity 0.15s;
+      }
+
+      h2.sh {
+        font: 700 12px var(--mono);
+        letter-spacing: 0.17em;
+        text-transform: uppercase;
+        color: var(--mut);
+        margin: 0 0 6px;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+      }
+      h2.sh::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--line);
+      }
+      .h2sub {
+        margin: 0 0 18px;
+        color: var(--dim);
+        font-size: 13.5px;
+        max-width: 84ch;
+      }
+      section {
+        margin-top: 44px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        margin-top: 4px;
+      }
+      table th {
+        text-align: left;
+        font: 700 9.5px var(--mono);
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        color: var(--dim);
+        padding: 9px 12px;
+        border-bottom: 1px solid var(--line);
+      }
+      table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--line2);
+        color: var(--mut);
+        vertical-align: top;
+      }
+      table tr:last-child td {
+        border-bottom: 0;
+      }
+      table td b {
+        color: var(--tx);
+        font-weight: 600;
+      }
+      footer {
+        margin-top: 52px;
+        padding-top: 20px;
+        border-top: 1px solid var(--line);
+        color: var(--dim);
+        font-size: 12.2px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="protobanner">
+      PROTÓTIPO — proposta para a spec 28 (Hub do jogador) · etapa C4 do design de campanha · dados
+      fictícios
+    </div>
+
+    <svg style="display: none" aria-hidden="true">
+      <symbol
+        id="ic-sword"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M20 4L9.5 14.5" />
+        <path d="M8 12.5l-5 5 4.5 4.5 5-5z" />
+        <path d="M6.5 17l2 2" />
+        <path d="M15.5 4h4.5v4.5" />
+      </symbol>
+      <symbol
+        id="ic-bag"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M9 7c0-2.5 1.3-4 3-4s3 1.5 3 4" />
+        <path d="M6.3 7h11.4l1.4 12.3a2.2 2.2 0 01-2.2 2.5H7.1a2.2 2.2 0 01-2.2-2.5z" />
+        <path d="M9 11.2c0 1.7 1.3 3 3 3s3-1.3 3-3" />
+      </symbol>
+      <symbol
+        id="ic-bell"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M12 2.7v2" />
+        <path d="M6 16.2v-5a6 6 0 1112 0v5l2 2.8H4z" />
+        <path d="M9.8 21.3a2.3 2.3 0 004.4 0" />
+      </symbol>
+      <symbol
+        id="ic-skull"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path
+          d="M12 3.2a7 7 0 00-7 7c0 2.4 1.2 3.9 2 4.9v3h2v-2h2v2h2v-2h2v2h2v-3c.8-1 2-2.5 2-4.9a7 7 0 00-7-7z"
+        />
+        <circle cx="9.3" cy="10.6" r="1.3" fill="currentColor" stroke="none" />
+        <circle cx="14.7" cy="10.6" r="1.3" fill="currentColor" stroke="none" />
+        <path d="M11 14l1 1.6 1-1.6" />
+      </symbol>
+      <symbol
+        id="ic-mill"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M9 21l1-8h4l1 8" />
+        <path d="M6.5 21h11" />
+        <circle cx="12" cy="9" r="1.3" />
+        <path d="M12 8L9.6 3.6M13 9l4.4-2M11 10l-4.4 2M12 10l-1.5 4.4" />
+      </symbol>
+      <symbol
+        id="ic-anchor"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="12" cy="5" r="2" />
+        <path d="M12 7v14" />
+        <path d="M8.3 10h7.4" />
+        <path d="M5 14c0 5 7 7 7 7s7-2 7-7" />
+      </symbol>
+      <symbol
+        id="ic-qmark"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M8.6 9.2a3.5 3.5 0 116.1 2.3c-1 1-2.2 1.5-2.2 3.3" />
+        <circle cx="12" cy="18.4" r="1" fill="currentColor" stroke="none" />
+      </symbol>
+      <symbol
+        id="ic-hourglass"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M6.5 3h11" />
+        <path d="M6.5 21h11" />
+        <path d="M7.5 3c0 5 4.7 6.3 4.7 9s-4.7 4-4.7 9" />
+        <path d="M16.5 3c0 5-4.7 6.3-4.7 9s4.7 4 4.7 9" />
+      </symbol>
+      <symbol
+        id="ic-pin"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1116 0z" />
+        <circle cx="12" cy="10" r="3" />
+      </symbol>
+      <symbol
+        id="ic-scroll"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <rect x="5" y="4" width="14" height="3.2" rx="1.6" />
+        <rect x="5" y="16.8" width="14" height="3.2" rx="1.6" />
+        <path d="M6.6 7.2v9.6M17.4 7.2v9.6" />
+        <path d="M9 10.4h6M9 13.2h4" />
+      </symbol>
+      <symbol
+        id="ic-check"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M5 12.5l4.5 4.5L19 7" />
+      </symbol>
+      <symbol
+        id="ui-gm"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M12 2l8 4v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10V6z" />
+      </symbol>
+      <symbol
+        id="ui-user"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="12" cy="7.5" r="3.8" />
+        <path d="M4.5 21v-1.6A5.4 5.4 0 019.9 14h4.2a5.4 5.4 0 015.4 5.4V21" />
+      </symbol>
+    </svg>
+
+    <div class="wrap">
+      <header>
+        <div class="kicker">Isekai · Yennericka — Hub do jogador (spec 28)</div>
+        <h1>Log de Missões — o board de quests do Hub</h1>
+        <p class="sub">
+          Protótipo de tela para o Hub do jogador: o board onde <b>Tobias</b> e
+          <b>Comedor</b> acompanham o que já foi publicado, o que ainda é só boato e o que já foi
+          encerrado. A aba <b>Mestre</b> mostra a matriz de publicação por trás — cada botão aqui é,
+          na implementação real, um update de <code>ownership</code>, nunca um sistema paralelo de
+          "missões".
+        </p>
+      </header>
+
+      <div class="bar">
+        <div class="pgroup" id="persp">
+          <button class="pbtn on gmv" data-p="mestre" type="button">
+            <svg width="14" height="14" viewBox="0 0 24 24">
+              <use href="#ui-gm" width="14" height="14" color="currentColor" /></svg
+            >Mestre
+          </button>
+          <button class="pbtn" data-p="tobias" type="button">
+            <svg width="14" height="14" viewBox="0 0 24 24">
+              <use href="#ui-user" width="14" height="14" color="currentColor" /></svg
+            >Tobias
+          </button>
+          <button class="pbtn" data-p="comedor" type="button">
+            <svg width="14" height="14" viewBox="0 0 24 24">
+              <use href="#ui-user" width="14" height="14" color="currentColor" /></svg
+            >Comedor
+          </button>
+        </div>
+        <div class="count" id="count"></div>
+      </div>
+
+      <div id="viewline"></div>
+
+      <div id="stage"></div>
+
+      <section>
+        <h2 class="sh">Como isso vira código de verdade</h2>
+        <p class="h2sub">
+          Nada aqui é UI inventada: cada peça do protótipo corresponde a um documento do Fusion que
+          já existe ou já está especificado.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 26%">Elemento do protótipo</th>
+              <th>Fonte real no Fusion</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>Card de missão</b></td>
+              <td>
+                <code>JournalEntry</code> "Missão" (spec 12, M4) · v1 antes do Journal:
+                <code>Note</code> com ownership próprio (REQ-DOC-056)
+              </td>
+            </tr>
+            <tr>
+              <td><b>Publicar gancho</b></td>
+              <td>
+                Subir <code>ownership</code> da página "Gancho" (REQ-JRN-009/010;
+                <code>JournalPage</code> tem ownership próprio — REQ-DOC-025)
+              </td>
+            </tr>
+            <tr>
+              <td><b>Rumor "?"</b></td>
+              <td>
+                Nível <code>limited</code> (REQ-DOC-057; mesmo marcador do pin de mapa, REQ-CNV-058)
+              </td>
+            </tr>
+            <tr>
+              <td><b>Objetivos revelados</b></td>
+              <td>Páginas "Objetivo" com ownership individual, reveladas uma a uma</td>
+            </tr>
+            <tr>
+              <td><b>Ver no mapa</b></td>
+              <td>Link <code>@UUID</code> → navegação programática da câmera (REQ-CNV-008)</td>
+            </tr>
+            <tr>
+              <td><b>Relógio / pressão</b></td>
+              <td>
+                <code>flags</code> de frente; o motor gira FORA do Fusion (Forja);
+                <code>world.time</code> é spec 14 [M4]
+              </td>
+            </tr>
+            <tr>
+              <td><b>Hospedagem da tela</b></td>
+              <td>
+                <code>HubLayer</code> (PR #77), superfície <code>.hub-surface</code>, banda z
+                <code>hub</code>
+              </td>
+            </tr>
+            <tr>
+              <td><b>Redação</b></td>
+              <td>
+                Tudo que o jogador não vê é cortado NO SERVIDOR (<code>redaction.ts</code> —
+                REQ-DOC-058)
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <footer>
+        Arquivo local autocontido · <code>docs/design/prototipo-log-missoes.html</code><br />
+        Ícones desenhados à mão em SVG — sem emoji, sem CDN, sem fonte externa. Dados fictícios,
+        mock em <code>const DATA</code>.
+      </footer>
+    </div>
+    <div class="toastwrap" id="toastwrap"></div>
+    <div class="tip" id="tip"></div>
+
+    <script>
+      /* ================= dados mock ================= */
+      const DATA = {
+        missoes: [
+          {
+            id: "m1",
+            titulo: "A Carroça que Nunca Chegou",
+            categoria: "batalha",
+            icone: "sword",
+            gancho:
+              "Da estrada rumo a Godford, uma criança chora perto de uma carroça tombada — a roda partida na lama.\nUm homem acena, pedindo ajuda, mas ninguém em Shoneymouth quis vir.",
+            boato:
+              "Dizem que a estrada de Godford anda comendo gente, e ninguém sabe explicar como.",
+            lugar: "Estrada de Godford",
+            km: 65,
+            dias: 2.2,
+            objetivos: [
+              { texto: "Investigar a carroça tombada", revealed: true, done: true },
+              { texto: 'Descobrir quem são os "Cães da Estrada"', revealed: true, done: false },
+              { texto: "Decidir o destino da família resgatada", revealed: false, done: false },
+            ],
+            relogio: { frente: "Cães da Estrada", diasRestantes: 4, reveladoAoJogador: true },
+            vis: { tobias: 2, comedor: 1 },
+            estado: "ativa",
+            resultado: null,
+          },
+          {
+            id: "m2",
+            titulo: "Vaza-Maré e o Garrancho",
+            categoria: "contrato",
+            icone: "anchor",
+            gancho:
+              "Rio acima de Vaza-Maré, o Garrancho pesca tudo que a maré traz — e cobra caro pra devolver.\nOs pescadores querem o bote de volta antes que o rio suba de novo.",
+            boato: "Perto de Vaza-Maré, um bicho de rio anda cobrando pedágio dos pescadores.",
+            lugar: "Vaza-Maré",
+            km: 58,
+            dias: 1.9,
+            objetivos: [
+              { texto: "Negociar com o Garrancho", revealed: true, done: false },
+              { texto: "Recuperar o bote dos pescadores", revealed: true, done: false },
+            ],
+            relogio: null,
+            vis: { tobias: 2, comedor: 2 },
+            estado: "ativa",
+            resultado: null,
+          },
+          {
+            id: "m3",
+            titulo: "O que roubaram do cemitério",
+            categoria: "masmorra",
+            icone: "skull",
+            gancho:
+              "Quatro dias de planície adentro, alguém abriu um dos túmulos sem nome — e não levou nada de valor.\nSó cavou, e cavou fundo.",
+            boato:
+              "Dizem que os túmulos sem nome, longe de qualquer vila, foram remexidos por gente viva.",
+            lugar: "Os Túmulos Sem Nome",
+            km: 126,
+            dias: 4.2,
+            objetivos: [
+              { texto: "Descobrir o que foi cavado", revealed: false, done: false },
+              { texto: "Rastrear quem cavou", revealed: false, done: false },
+              { texto: "Confrontar o Culto Cavador antes que feche", revealed: false, done: false },
+            ],
+            relogio: { frente: "O Culto Cavador", diasRestantes: 0, reveladoAoJogador: false },
+            vis: { tobias: 0, comedor: 1 },
+            estado: "ativa",
+            resultado: null,
+          },
+          {
+            id: "m4",
+            titulo: "Moinho do Refluxo",
+            categoria: "enigma",
+            icone: "mill",
+            gancho:
+              "A roda de um moinho abandonado range na maré cheia, noite após noite.\nToda manhã aparece um saco de farinha fresca na soleira — de um lugar sem moleiro há vinte anos.",
+            boato: "Perto de Flokleigh, um moinho que devia estar morto ainda mói sozinho, dizem.",
+            lugar: "Moinho do Refluxo",
+            km: 113,
+            dias: 3.8,
+            objetivos: [
+              { texto: "Vigiar o moinho à noite", revealed: false, done: false },
+              { texto: "Descobrir quem mói a farinha", revealed: false, done: false },
+            ],
+            relogio: null,
+            vis: { tobias: 1, comedor: 0 },
+            estado: "ativa",
+            resultado: null,
+          },
+          {
+            id: "m5",
+            titulo: "O Cais dos Dedos Tortos",
+            categoria: "contrato",
+            icone: "anchor",
+            gancho:
+              "No cais abandonado da noite pro dia, as redes seguem penduradas e o peixe apodrece nos cestos.\nQuem foi buscar explicação voltou faltando um companheiro.",
+            boato: "No cais rio acima, alguém sumiu buscando o motivo de um abandono súbito.",
+            lugar: "O Cais dos Dedos Tortos",
+            km: 187,
+            dias: 6.2,
+            objetivos: [
+              { texto: "Investigar o cais abandonado", revealed: false, done: false },
+              { texto: "Encontrar o companheiro desaparecido", revealed: false, done: false },
+              { texto: "Descobrir o que assustou os pescadores", revealed: false, done: false },
+            ],
+            relogio: null,
+            vis: { tobias: 0, comedor: 0 },
+            estado: "ativa",
+            resultado: null,
+          },
+          {
+            id: "m6",
+            titulo: "A Bigorna que Conta",
+            categoria: "enigma",
+            icone: "bell",
+            gancho:
+              "Perto de Godford, um sino de ferro bate sozinho no meio dos campos — sempre um número diferente de badaladas.\nUm carroceiro seguiu o som e voltou rico.",
+            boato:
+              "Um sino que ninguém tocou soa nos campos perto de Godford, dizem os carroceiros.",
+            lugar: "Campos de Godford",
+            km: 135,
+            dias: 4.5,
+            objetivos: [
+              { texto: "Seguir o sino até a origem", revealed: true, done: true },
+              { texto: "Contar as badaladas certas", revealed: true, done: true },
+            ],
+            relogio: null,
+            vis: { tobias: 2, comedor: 2 },
+            estado: "concluida",
+            resultado: "O sino contava os mortos do dia seguinte. Pip ficou com o badalo.",
+          },
+        ],
+      };
+
+      /* ================= constantes de categoria ================= */
+      const CAT_ICON = {
+        batalha: "sword",
+        contrato: "bag",
+        enigma: "bell",
+        masmorra: "skull",
+        assentamento: "bag",
+      };
+      const CAT_LABEL = {
+        batalha: "Batalha",
+        contrato: "Contrato",
+        enigma: "Enigma",
+        masmorra: "Masmorra",
+        assentamento: "Assentamento",
+      };
+      const CAT_HEX = {
+        batalha: "#f87171",
+        contrato: "#fb923c",
+        enigma: "#c084fc",
+        masmorra: "#60a5fa",
+        assentamento: "#4ade80",
+      };
+      const NOMES = { mestre: "Mestre", tobias: "Tobias", comedor: "Comedor" };
+
+      let persp = "mestre";
+
+      const esc = (s) =>
+        String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const findM = (id) => DATA.missoes.find((m) => m.id === id);
+
+      function chip(cat) {
+        const c = CAT_HEX[cat] || "#94a3b8";
+        return (
+          '<span class="chip"><svg width="13" height="13" viewBox="0 0 24 24" fill="none">' +
+          '<use href="#ic-' +
+          CAT_ICON[cat] +
+          '" width="13" height="13" color="' +
+          c +
+          '"/></svg>' +
+          esc(CAT_LABEL[cat]) +
+          "</span>"
+        );
+      }
+
+      function micon(m, sm) {
+        const c = CAT_HEX[m.categoria] || "#94a3b8";
+        const s = sm ? 16 : 17;
+        return (
+          '<div class="micon' +
+          (sm ? " sm" : "") +
+          '"><svg width="' +
+          s +
+          '" height="' +
+          s +
+          '" viewBox="0 0 24 24" fill="none">' +
+          '<use href="#ic-' +
+          m.icone +
+          '" width="' +
+          s +
+          '" height="' +
+          s +
+          '" color="' +
+          c +
+          '"/></svg></div>'
+        );
+      }
+
+      function aprox(dias) {
+        const n = Math.max(1, Math.round(dias));
+        return "~" + n + " dia" + (n === 1 ? "" : "s");
+      }
+
+      /* ================= cards do jogador ================= */
+      function cardAtiva(m) {
+        let h = '<article class="mcard ativa">';
+        h +=
+          '<div class="mchead">' +
+          micon(m) +
+          '<div class="mctext">' +
+          chip(m.categoria) +
+          '<h3 class="mtitulo">' +
+          esc(m.titulo) +
+          "</h3></div></div>";
+        h += '<p class="mgancho">' + esc(m.gancho) + "</p>";
+        const revs = m.objetivos.filter((o) => o.revealed);
+        if (revs.length) {
+          h +=
+            '<ul class="checklist">' +
+            revs
+              .map(
+                (o) =>
+                  '<li class="' +
+                  (o.done ? "done" : "") +
+                  '"><span class="cbox">' +
+                  (o.done
+                    ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none"><use href="#ic-check" width="10" height="10" color="#34d399"/></svg>'
+                    : "") +
+                  "</span><span>" +
+                  esc(o.texto) +
+                  "</span></li>",
+              )
+              .join("") +
+            "</ul>";
+        }
+        h +=
+          '<button type="button" class="pinrow" data-action="ver-mapa">' +
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><use href="#ic-pin" width="14" height="14" color="#8b93a4"/></svg>' +
+          "<span>Ver no mapa — " +
+          esc(m.lugar) +
+          " · " +
+          m.km +
+          " km (" +
+          m.dias +
+          " d a pé)</span></button>";
+        if (m.relogio && m.relogio.reveladoAoJogador) {
+          const n = m.relogio.diasRestantes;
+          const crit = n <= 1;
+          h +=
+            '<div class="pressure ' +
+            (crit ? "crit" : "warn") +
+            '">' +
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><use href="#ic-hourglass" width="14" height="14" color="' +
+            (crit ? "#f87171" : "#fbbf24") +
+            '"/></svg>' +
+            "<span>A pressão aperta — " +
+            n +
+            " dia" +
+            (n === 1 ? "" : "s") +
+            "</span></div>";
+        }
+        h += "</article>";
+        return h;
+      }
+
+      function cardRumor(m) {
+        return (
+          '<article class="mcard rumor">' +
+          '<div class="rumor-marker"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#ic-qmark" width="20" height="20" color="#8b93a4"/></svg></div>' +
+          '<h3 class="mtitulo rumor-h">Rumor — ouvido perto de ' +
+          esc(m.lugar) +
+          "</h3>" +
+          '<p class="mgancho">' +
+          esc(m.boato) +
+          "</p>" +
+          '<button type="button" class="pinrow" data-action="ver-mapa">' +
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><use href="#ic-pin" width="14" height="14" color="#8b93a4"/></svg>' +
+          "<span>Ver no mapa — cerca de " +
+          aprox(m.dias) +
+          "</span></button>" +
+          "</article>"
+        );
+      }
+
+      function cardConcluida(m) {
+        return (
+          '<article class="mcard concluida">' +
+          '<h3 class="mtitulo">' +
+          esc(m.titulo) +
+          "</h3>" +
+          '<p class="mresultado">' +
+          esc(m.resultado || "") +
+          "</p>" +
+          "</article>"
+        );
+      }
+
+      function grupo(titulo, iconId, items, renderFn, emptyMsg) {
+        let h =
+          '<section class="group"><div class="grouphead"><h2>' +
+          titulo +
+          '</h2><span class="gcount">' +
+          items.length +
+          "</span></div>";
+        if (items.length === 0) {
+          h +=
+            '<div class="empty"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><use href="#' +
+            iconId +
+            '" width="22" height="22" color="#596373"/></svg>' +
+            emptyMsg +
+            "</div>";
+        } else {
+          h += '<div class="cards">' + items.map(renderFn).join("") + "</div>";
+        }
+        h += "</section>";
+        return h;
+      }
+
+      /* ================= matriz do mestre ================= */
+      function vbadge(m, player) {
+        const v = m.vis[player];
+        const glyph = v === 0 ? "○" : v === 1 ? "?" : "●";
+        const cls = v === 0 ? "off" : v === 1 ? "rumor" : "on";
+        const estadoTxt = v === 0 ? "oculto" : v === 1 ? "rumor" : "publicada";
+        return (
+          '<button type="button" class="vbadge ' +
+          cls +
+          '" data-action="cycle-vis" data-id="' +
+          m.id +
+          '" data-player="' +
+          player +
+          '" ' +
+          'aria-label="' +
+          NOMES[player] +
+          ": " +
+          estadoTxt +
+          ', clique para mudar">' +
+          glyph +
+          "</button>"
+        );
+      }
+
+      function matrizHTML() {
+        let h =
+          '<div class="call"><div class="ct">Como isto funciona</div>' +
+          "<p>Publicar = subir <code>ownership</code>. Cada célula desta matriz é um update de ownership da página " +
+          "Gancho (ou do <code>Note</code>, no v1) — nunca um sistema paralelo.</p></div>";
+        h +=
+          '<div class="tablewrap"><table class="matrix"><thead><tr>' +
+          "<th>Missão</th><th>Tobias</th><th>Comedor</th><th>Relógio</th><th>Ações</th></tr></thead><tbody>";
+        DATA.missoes.forEach((m) => {
+          let relogioTxt;
+          if (m.relogio) {
+            if (m.relogio.diasRestantes <= 0) {
+              relogioTxt =
+                '<span class="clockcell closed"><svg width="13" height="13" viewBox="0 0 24 24" fill="none">' +
+                '<use href="#ic-hourglass" width="13" height="13" color="#fca5a5"/></svg>FECHOU — beat obrigatório</span>';
+            } else {
+              relogioTxt =
+                '<span class="clockcell"><svg width="13" height="13" viewBox="0 0 24 24" fill="none">' +
+                '<use href="#ic-hourglass" width="13" height="13" color="#8b93a4"/></svg>' +
+                esc(m.relogio.frente) +
+                " · " +
+                m.relogio.diasRestantes +
+                " d</span>";
+            }
+          } else {
+            relogioTxt = '<span class="clockcell none">—</span>';
+          }
+          const temProx = !!m.objetivos.find((o) => !o.revealed);
+          const concluida = m.estado === "concluida";
+          h +=
+            "<tr>" +
+            '<td><div class="mchead" style="margin-bottom:0">' +
+            micon(m, true) +
+            '<div class="mcol"><b>' +
+            esc(m.titulo) +
+            "</b>" +
+            chip(m.categoria) +
+            "</div></div></td>" +
+            "<td>" +
+            vbadge(m, "tobias") +
+            "</td>" +
+            "<td>" +
+            vbadge(m, "comedor") +
+            "</td>" +
+            "<td>" +
+            relogioTxt +
+            "</td>" +
+            '<td class="acol">' +
+            '<button type="button" class="actbtn" data-action="revelar" data-id="' +
+            m.id +
+            '" ' +
+            (temProx && !concluida ? "" : "disabled") +
+            ">Revelar objetivo</button>" +
+            '<button type="button" class="actbtn" data-action="concluir" data-id="' +
+            m.id +
+            '" ' +
+            (concluida ? "disabled" : "") +
+            ">" +
+            (concluida ? "Concluída" : "Concluir") +
+            "</button>" +
+            "</td>" +
+            "</tr>";
+        });
+        h += "</tbody></table></div>";
+        return h;
+      }
+
+      /* ================= toast diegético ================= */
+      function toast(kind, m, player) {
+        const wrap = document.getElementById("toastwrap");
+        const el = document.createElement("div");
+        el.className = "toast";
+        const nome = NOMES[player].toUpperCase();
+        const kicker =
+          kind === "rumor" ? "OUVIDO NA TABERNA — " + nome : "NOVO NO DIÁRIO — " + nome;
+        const msg =
+          kind === "rumor"
+            ? 'Na taberna, um pescador baixa a voz: "' + esc(m.boato) + '"'
+            : esc(m.titulo) + " — o rumor ganhou corpo. Novo card no seu diário.";
+        el.innerHTML =
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><use href="#ic-scroll" width="16" height="16" color="#d4a656"/></svg>' +
+          '<div><div class="tkicker">' +
+          kicker +
+          '</div><div class="tmsg">' +
+          msg +
+          "</div></div>";
+        wrap.appendChild(el);
+        requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("show")));
+        setTimeout(() => {
+          el.classList.remove("show");
+          el.classList.add("hide");
+          setTimeout(() => el.remove(), 320);
+        }, 5000);
+      }
+
+      /* ================= tooltip do pin ================= */
+      let tipTimer = null;
+      function showTip(x, y) {
+        const tip = document.getElementById("tip");
+        tip.textContent = "centraliza a câmera no pin (REQ-CNV-008)";
+        tip.style.left = x + 14 + "px";
+        tip.style.top = y + 14 + "px";
+        tip.style.opacity = "1";
+        clearTimeout(tipTimer);
+        tipTimer = setTimeout(() => {
+          tip.style.opacity = "0";
+        }, 2200);
+      }
+
+      /* ================= render ================= */
+      function updateViewline() {
+        const el = document.getElementById("viewline");
+        if (persp === "mestre") {
+          el.className = "viewline gm";
+          el.innerHTML =
+            '<svg width="12" height="12" viewBox="0 0 24 24"><use href="#ui-gm" width="12" height="12" color="currentColor"/></svg>Visão do Mestre — matriz de publicação (tudo)';
+        } else {
+          el.className = "viewline";
+          el.innerHTML =
+            '<svg width="12" height="12" viewBox="0 0 24 24"><use href="#ui-user" width="12" height="12" color="currentColor"/></svg>Visão de ' +
+            NOMES[persp] +
+            " — só o que foi publicado ou vazou como boato";
+        }
+      }
+
+      function updateCount() {
+        const el = document.getElementById("count");
+        if (persp === "mestre") {
+          const fechados = DATA.missoes.filter(
+            (m) => m.relogio && m.relogio.diasRestantes <= 0,
+          ).length;
+          el.innerHTML =
+            "<b>" +
+            DATA.missoes.length +
+            "</b> missões no board" +
+            (fechados ? ' · <b class="crit">' + fechados + "</b> relógio fechado" : "");
+        } else {
+          const ativas = DATA.missoes.filter(
+            (m) => m.estado === "ativa" && m.vis[persp] === 2,
+          ).length;
+          const rumores = DATA.missoes.filter((m) => m.vis[persp] === 1).length;
+          const concluidas = DATA.missoes.filter(
+            (m) => m.estado === "concluida" && m.vis[persp] === 2,
+          ).length;
+          el.innerHTML =
+            "<b>" +
+            ativas +
+            "</b> ativas · <b>" +
+            rumores +
+            "</b> rumores · <b>" +
+            concluidas +
+            "</b> concluídas";
+        }
+      }
+
+      function render() {
+        const stage = document.getElementById("stage");
+        if (persp === "mestre") {
+          stage.innerHTML = matrizHTML();
+        } else {
+          const ativas = DATA.missoes.filter((m) => m.estado === "ativa" && m.vis[persp] === 2);
+          const rumores = DATA.missoes.filter((m) => m.vis[persp] === 1);
+          const concluidas = DATA.missoes.filter(
+            (m) => m.estado === "concluida" && m.vis[persp] === 2,
+          );
+          stage.innerHTML =
+            '<div class="board">' +
+            grupo("Ativas", "ic-pin", ativas, cardAtiva, "Nenhuma missão ativa revelada ainda.") +
+            grupo("Rumores", "ic-qmark", rumores, cardRumor, "Nenhum boato correndo por aqui.") +
+            grupo(
+              "Concluídas",
+              "ic-scroll",
+              concluidas,
+              cardConcluida,
+              "Nenhuma missão encerrada ainda.",
+            ) +
+            "</div>";
+        }
+        updateViewline();
+        updateCount();
+      }
+
+      /* ================= eventos ================= */
+      document.getElementById("persp").addEventListener("click", (e) => {
+        const b = e.target.closest(".pbtn");
+        if (!b) return;
+        persp = b.dataset.p;
+        document.querySelectorAll("#persp .pbtn").forEach((x) => {
+          x.classList.toggle("on", x === b);
+          x.classList.toggle("gmv", x === b && persp === "mestre");
+        });
+        render();
+      });
+
+      document.getElementById("stage").addEventListener("click", (e) => {
+        const t = e.target.closest("[data-action]");
+        if (!t) return;
+        const action = t.dataset.action;
+
+        if (action === "cycle-vis") {
+          const m = findM(t.dataset.id);
+          const player = t.dataset.player;
+          const old = m.vis[player];
+          const neu = (old + 1) % 3;
+          m.vis[player] = neu;
+          if (old === 0 && neu === 1) toast("rumor", m, player);
+          if (old === 1 && neu === 2) toast("publica", m, player);
+          render();
+        } else if (action === "revelar") {
+          const m = findM(t.dataset.id);
+          const o = m.objetivos.find((o) => !o.revealed);
+          if (o) o.revealed = true;
+          render();
+        } else if (action === "concluir") {
+          const m = findM(t.dataset.id);
+          m.estado = "concluida";
+          if (!m.resultado) m.resultado = "Encerrada pelo mestre — resultado a definir.";
+          render();
+        } else if (action === "ver-mapa") {
+          showTip(e.clientX, e.clientY);
+        }
+      });
+
+      render();
+    </script>
+  </body>
+</html>
