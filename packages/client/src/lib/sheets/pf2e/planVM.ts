@@ -41,6 +41,15 @@ import type {
   DocUpdatePayload,
 } from "./characterSheetVM.js";
 import { translatePrerequisite } from "../../compendium/prerequisiteTranslation.js";
+import { isLoreSlug, legacyLoreSlug, loreSlug, migrateLoreSlug } from "./loreSlug.js";
+
+/**
+ * `loreSlug` is re-exported so the historical `planVM.loreSlug` entry point
+ * keeps working — this module used to own a SECOND, divergent implementation
+ * (the legacy `<subject>-lore` form) that no reader in the app understood.
+ * `./loreSlug.ts` is now the single convention (contract C3).
+ */
+export { loreSlug };
 
 // ---------------------------------------------------------------------------
 // Local mirrors of systems/pf2e/src/types.ts canonical sets.
@@ -3060,7 +3069,15 @@ export function applyBackground(
   const fixedBoosts = boosts.filter((b) => b !== "free");
   const freeCount = boosts.filter((b) => b === "free").length;
 
+  // What the incoming background grants — read up front because the Lore
+  // cleanup below has to know which of the OUTGOING background's Lores are
+  // re-granted (those stay) before anything is deleted.
+  const trainings = readBackgroundTrainings(sys);
+
   const ops: DocOpPayload[] = [
+    // Before the swap: drop the Lore ledger entries the outgoing background
+    // created. Reads `ctx.doc`, which is still the pre-swap state.
+    ...backgroundLoreCleanupOps(ctx, trainings),
     ...replaceAbcItem(ctx, "background"),
     {
       type: "doc:create",
@@ -3089,7 +3106,6 @@ export function applyBackground(
   // — the pack shape is `system.trainedSkills = {value:["performance"],
   // lore:["Fireworks Lore"]}` but the old reader only understood the normalized
   // `system.skills = {performance:{value:1}}` shape and never trained the lore.
-  const trainings = readBackgroundTrainings(sys);
   const buildSkillOps = backgroundTrainingOps(ctx, trainings);
   ops.push(...buildSkillOps);
 
@@ -3137,22 +3153,85 @@ export function readBackgroundTrainings(sys: Record<string, unknown>): Backgroun
   };
 }
 
+/** Build-choice slot prefixes a background owns — everything it grants, and
+ * nothing else, is keyed under one of these two. */
+const BACKGROUND_SKILL_SLOT = "backgroundSkill-";
+const BACKGROUND_LORE_SLOT = "backgroundLore-";
+
 /**
- * loreSlug — a stable skill slug for a lore proficiency. Strips a trailing
- * "Lore" word, slugifies the rest, and re-appends "-lore" (matching the
- * "<topic>-lore" convention the character derivation already recognizes for
- * persisted Lore skills). "Piloting Lore" → "piloting-lore".
+ * backgroundLoreCleanupOps — the `doc:update` that REMOVES the `system.skills`
+ * entries the OUTGOING background granted (S2).
+ *
+ * Dropping a background's build choices untrains a canonical skill (its rank is
+ * derived from the choices), but a Lore is different: it has no canonical slug,
+ * so the background also had to CREATE the `system.skills.<slug>` ledger entry.
+ * Nothing ever removed it, so every background a character had ever worn kept
+ * its Lore on the sheet forever. `null` inside `system` is deleteKey
+ * (REQ-DOC-037, see packages/server/src/documents/merge.ts).
+ *
+ * Four things must survive the swap, hence the guards below:
+ *   - a Lore the INCOMING background grants under the very same key;
+ *   - a Lore the player created by hand (`addLoreSkill` — no background choice
+ *     points at it, so it is never a candidate);
+ *   - a Lore the player invested one of their OWN training/increase slots in;
+ *   - anything that is not a Lore at all.
+ *
+ * A legacy sheet holds the Lore under `<subject>-lore` while the incoming
+ * background emits `lore-<subject>`, so a swap that re-grants the same subject
+ * deletes the legacy key and writes the canonical one — the migration falls out
+ * of the swap for free.
  */
-export function loreSlug(name: string): string {
-  const base = name
-    .trim()
-    .replace(/\s*lore\s*$/i, "")
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  return base ? `${base}-lore` : "lore";
+function backgroundLoreCleanupOps(
+  ctx: PlanOpBuilderContext,
+  incoming: BackgroundTrainings,
+): DocOpPayload[] {
+  const actorSys = getSystem(ctx.doc);
+  const persistedSkills = asRecord(actorSys["skills"]);
+  const choices = getBuildChoices(actorSys);
+
+  // Exactly the keys the incoming background is about to (re)write.
+  const incomingSlugs = new Set(incoming.lores.map((l) => l.slug));
+
+  // Candidates come from two sources because either can be incomplete: the
+  // embedded background item may be a STALE import (no `trainedSkills`), while
+  // the `backgroundLore-*` choices may have been lost. Both slug conventions
+  // are probed for the item-derived ones — existing sheets were written legacy.
+  const candidates = new Set<string>();
+  const outgoing = findFirstItemByType(ctx.doc, "background");
+  if (outgoing) {
+    for (const lore of readBackgroundTrainings(asRecord(outgoing["system"])).lores) {
+      candidates.add(lore.slug);
+      candidates.add(legacyLoreSlug(lore.label));
+    }
+  }
+  for (const c of choices) {
+    if (c.slot.startsWith(BACKGROUND_LORE_SLOT) && c.skill) candidates.add(c.skill);
+  }
+
+  const playerOwned = new Set(
+    choices
+      .filter((c) => !c.slot.startsWith(BACKGROUND_LORE_SLOT) && c.skill !== undefined)
+      .map((c) => c.skill),
+  );
+
+  const diff: Record<string, unknown> = {};
+  for (const slug of candidates) {
+    if (incomingSlugs.has(slug)) continue;
+    if (playerOwned.has(slug)) continue;
+    if (!isLoreSlug(slug)) continue;
+    if (!(slug in persistedSkills)) continue;
+    diff[`system.skills.${slug}`] = null;
+  }
+
+  if (Object.keys(diff).length === 0) return [];
+  return [
+    {
+      type: "doc:update",
+      documentType: "Actor",
+      id: ctx.actorId,
+      diff,
+    } satisfies DocUpdatePayload,
+  ];
 }
 
 /**
@@ -3180,7 +3259,7 @@ function backgroundTrainingOps(
   trainings.skills.forEach((slug, i) => {
     newChoices.push({
       level: 1,
-      slot: `backgroundSkill-${String(i)}`,
+      slot: `${BACKGROUND_SKILL_SLOT}${String(i)}`,
       type: "skillTraining",
       skill: slug,
       rank: 1,
@@ -3194,7 +3273,7 @@ function backgroundTrainingOps(
     loreEntries[`system.skills.${lore.slug}`] = { rank: 0, lore: true, label: lore.label };
     newChoices.push({
       level: 1,
-      slot: `backgroundLore-${String(i)}`,
+      slot: `${BACKGROUND_LORE_SLOT}${String(i)}`,
       type: "skillTraining",
       skill: lore.slug,
       rank: 1,
@@ -3210,15 +3289,21 @@ function backgroundTrainingOps(
     } satisfies DocUpdatePayload);
   }
 
-  if (newChoices.length > 0) {
-    const existingChoices = getBuildChoices(getSystem(ctx.doc)).filter(
-      (c) => !c.slot.startsWith("backgroundSkill-") && !c.slot.startsWith("backgroundLore-"),
-    );
+  const existingChoices = getBuildChoices(getSystem(ctx.doc));
+  const keptChoices = existingChoices.filter(
+    (c) =>
+      !c.slot.startsWith(BACKGROUND_SKILL_SLOT) && !c.slot.startsWith(BACKGROUND_LORE_SLOT),
+  );
+  // The strip has to run even when the incoming background grants NOTHING
+  // (Hermit, Raised by Belief): it used to sit behind `newChoices.length > 0`,
+  // so swapping to one of those left the character trained in the PREVIOUS
+  // background's skill and Lore with no background left to justify them.
+  if (newChoices.length > 0 || keptChoices.length !== existingChoices.length) {
     ops.push({
       type: "doc:update",
       documentType: "Actor",
       id: ctx.actorId,
-      diff: { "system.build.choices": [...existingChoices, ...newChoices] },
+      diff: { "system.build.choices": [...keptChoices, ...newChoices] },
     } satisfies DocUpdatePayload);
   }
 
@@ -3250,9 +3335,21 @@ export function backgroundLoreHealOps(
     existingChoices.map((c) => c.skill).filter((s): s is string => typeof s === "string"),
   );
 
-  const missing = trainings.lores.filter(
-    (lore) => !trainedSlugs.has(lore.slug) && !existingSkills[lore.slug],
-  );
+  // Probe BOTH slug conventions: a sheet written before ./loreSlug.ts holds the
+  // Lore under the legacy `<subject>-lore` key, with its build choice pointing
+  // at that same legacy slug. Without this the heal would consider the Lore
+  // missing and re-add it under the canonical key at rank 0, leaving the sheet
+  // with two entries for one proficiency. Renaming the legacy key is
+  // `loreSlugHealOps`'s job, not this one's.
+  const missing = trainings.lores.filter((lore) => {
+    const legacy = legacyLoreSlug(lore.label);
+    return (
+      !trainedSlugs.has(lore.slug) &&
+      !trainedSlugs.has(legacy) &&
+      !existingSkills[lore.slug] &&
+      !existingSkills[legacy]
+    );
+  });
   if (missing.length === 0) return [];
 
   const loreEntries: Record<string, unknown> = {};
@@ -3262,11 +3359,11 @@ export function backgroundLoreHealOps(
   let n = 0;
   for (const lore of missing) {
     loreEntries[`system.skills.${lore.slug}`] = { rank: 0, lore: true, label: lore.label };
-    while (usedLoreSlots.has(`backgroundLore-${String(n)}`)) n++;
-    usedLoreSlots.add(`backgroundLore-${String(n)}`);
+    while (usedLoreSlots.has(`${BACKGROUND_LORE_SLOT}${String(n)}`)) n++;
+    usedLoreSlots.add(`${BACKGROUND_LORE_SLOT}${String(n)}`);
     newChoices.push({
       level: 1,
-      slot: `backgroundLore-${String(n)}`,
+      slot: `${BACKGROUND_LORE_SLOT}${String(n)}`,
       type: "skillTraining",
       skill: lore.slug,
       rank: 1,
@@ -3287,6 +3384,80 @@ export function backgroundLoreHealOps(
       diff: { "system.build.choices": [...existingChoices, ...newChoices] },
     } satisfies DocUpdatePayload,
   ];
+}
+
+/**
+ * loreSlugHealOps — rename every legacy `<subject>-lore` entry on
+ * `system.skills` to the canonical `lore-<subject>` (contract C3) and repoint
+ * the build choices that referenced the old key.
+ *
+ * Every sheet built before `./loreSlug.ts` carries its background Lore under
+ * the legacy key, which no reader in the app understands: the row renders as
+ * the raw slug and the skill-training dialog lists it in a namespace nothing
+ * else can match. Renaming is the whole fix — the proficiency (rank, label)
+ * rides along untouched.
+ *
+ * `migrateLoreSlug` returns `null` for anything already canonical AND for
+ * anything that is not a Lore, so a canonical skill can never be renamed (which
+ * would silently untrain it) and a second pass is a no-op.
+ */
+export function loreSlugHealOps(ctx: PlanOpBuilderContext): DocOpPayload[] {
+  if (!ctx.editable) return [];
+  const sys = getSystem(ctx.doc);
+  const skills = asRecord(sys["skills"]);
+
+  const renames = new Map<string, string>(); // legacy slug → canonical slug
+  for (const slug of Object.keys(skills)) {
+    const canonical = migrateLoreSlug(slug);
+    if (canonical !== null) renames.set(slug, canonical);
+  }
+  if (renames.size === 0) return [];
+
+  const diff: Record<string, unknown> = {};
+  for (const [legacy, canonical] of renames) {
+    const legacyEntry = asRecord(skills[legacy]);
+    const canonicalEntry = asRecord(skills[canonical]);
+    // Both conventions can coexist on one subject — e.g. a heal that ran before
+    // this one added the canonical entry at rank 0 next to a legacy entry the
+    // player had trained. Keep the HIGHER rank so the merge never demotes a
+    // proficiency; the canonical entry otherwise wins field by field.
+    const legacyRank = typeof legacyEntry["rank"] === "number" ? legacyEntry["rank"] : 0;
+    const canonicalRank = typeof canonicalEntry["rank"] === "number" ? canonicalEntry["rank"] : 0;
+    diff[`system.skills.${canonical}`] = {
+      ...legacyEntry,
+      ...canonicalEntry,
+      rank: Math.max(legacyRank, canonicalRank),
+      lore: true,
+    };
+    diff[`system.skills.${legacy}`] = null; // deleteKey (REQ-DOC-037)
+  }
+
+  const ops: DocOpPayload[] = [
+    {
+      type: "doc:update",
+      documentType: "Actor",
+      id: ctx.actorId,
+      diff,
+    } satisfies DocUpdatePayload,
+  ];
+
+  // A choice still pointing at the old key would leave the renamed Lore
+  // untrained — the rank comes from the choice, not from the ledger entry.
+  const choices = getBuildChoices(sys);
+  const repointed = choices.map((c) => {
+    const canonical = c.skill === undefined ? undefined : renames.get(c.skill);
+    return canonical === undefined ? c : { ...c, skill: canonical };
+  });
+  if (repointed.some((c, i) => c !== choices[i])) {
+    ops.push({
+      type: "doc:update",
+      documentType: "Actor",
+      id: ctx.actorId,
+      diff: { "system.build.choices": repointed },
+    } satisfies DocUpdatePayload);
+  }
+
+  return ops;
 }
 
 /**
@@ -3991,19 +4162,24 @@ export function confirmSkillTraining(
 
 /**
  * addLoreSkill — create a new custom Lore skill (rank 0) on `system.skills`,
- * keyed `lore-<slug(name)>`. Pure `doc:update` — the dialog calls this BEFORE
- * offering the new lore as a pickable row (it must exist on the ledger to be
- * targetable by a skillTraining pick in the same session).
+ * keyed by the canonical `loreSlug(name)`. Pure `doc:update` — the dialog calls
+ * this BEFORE offering the new lore as a pickable row (it must exist on the
+ * ledger to be targetable by a skillTraining pick in the same session).
+ *
+ * Contract C3: one subject, ONE key. This used to build its own slug inline —
+ * a third convention that kept the trailing "Lore" word ("Nature Lore" →
+ * `lore-nature-lore`) and did not fold accents, so a hand-added Lore forked
+ * away from the `lore-nature` a background grant produces for the same subject
+ * and the sheet showed two rows for one proficiency.
  */
 export function addLoreSkill(ctx: PlanOpBuilderContext, name: string): DocUpdatePayload | null {
   if (!ctx.editable) return null;
   const trimmed = name.trim();
   if (!trimmed) return null;
-  const slug = `lore-${trimmed
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")}`;
-  if (!slug || slug === "lore-") return null;
+  const slug = loreSlug(trimmed);
+  // A subject-less Lore ("Lore", "  Lore ") is meaningless — and would claim
+  // the bare `lore` key that every future subject-less entry collides on.
+  if (slug === "lore") return null;
   const sys = getSystem(ctx.doc);
   const skills = asRecord(sys["skills"]);
   if (skills[slug]) return null; // already exists — no-op (caller should filter its own list too)
