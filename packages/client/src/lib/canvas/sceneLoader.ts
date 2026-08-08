@@ -96,15 +96,22 @@ export async function loadSceneDocument(
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const sceneGrid = (scene.grid ?? null) as unknown as GridConfig | null;
 
-  const gridCfg = GridRenderer.fromGridConfig(sceneGrid, totalWidth, totalHeight, padX, padY);
+  // Where the grid starts. The padding border is the default — right for a map
+  // drawn to fit the scene — but a map image with its own grid baked into the
+  // pixels almost never starts there, so a calibrated scene overrides it.
+  // Drawing and geometry MUST take the same origin or the lines the GM sees
+  // would sit somewhere other than the cells tokens snap to.
+  const originX = scene.gridOffsetX ?? padX;
+  const originY = scene.gridOffsetY ?? padY;
+
+  const gridCfg = GridRenderer.fromGridConfig(sceneGrid, totalWidth, totalHeight, originX, originY);
   canvas.setGrid(gridCfg);
 
   // The grid GEOMETRY (as opposed to how it is drawn) is created once per scene
   // load and handed to the canvas. Every consumer that needs to snap, measure
   // or convert pixels asks this instance instead of rebuilding square* args.
-  // The origin is the scene padding — same offsets fromGridConfig() uses.
   canvas.setGridStrategy(
-    createGridStrategy(sceneGrid, { x: padX, y: padY }, (reason) => {
+    createGridStrategy(sceneGrid, { x: originX, y: originY }, (reason) => {
       console.warn("[sceneLoader]", reason);
     }),
   );

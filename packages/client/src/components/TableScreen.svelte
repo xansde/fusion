@@ -43,6 +43,13 @@
   import { TokenInteractionManager } from "../lib/canvas/tokens/TokenInteractionManager.js";
   import { resolveOwnedActorIds } from "../lib/canvas/tokens/ownedActors.js";
   import { attachRuler } from "../lib/presence/attachRuler.js";
+  import { attachPing } from "../lib/presence/attachPing.js";
+  import { attachPresenceSync } from "../lib/presence/attachPresenceSync.js";
+  import GridCalibrationPanel from "./scenes/GridCalibrationPanel.svelte";
+  import SceneImagesPanel from "./scenes/SceneImagesPanel.svelte";
+  import { TileLayer } from "../lib/canvas/TileLayer.js";
+  import { resolveAssetUrl } from "../lib/assets/assetApi.js";
+  import { fusionApi } from "../lib/api.js";
   import { LightingRenderer } from "../lib/canvas/vision/LightingRenderer.js";
   import { FogState } from "../lib/canvas/vision/fog-state.js";
   import { CombatCanvasController } from "../lib/canvas/combat/combatCanvasController.js";
@@ -101,6 +108,33 @@
   // — and since nobody started one, the remote-ruler receive path never ran
   // either. Disposer removes the window listeners on scene switch.
   let disposeRuler: (() => void) | null = null;
+
+  // Map ping (press and hold). Third instance of the same gap: emitPing() and
+  // the server's rate-limited rebroadcast shipped in M1-E with zero callers,
+  // and nothing ever drew presenceState.pings either.
+  let disposePing: (() => void) | null = null;
+
+  // The ephemeral receive path itself. attachPresenceSync() was never called
+  // anywhere, so no remote cursor, ping or ruler ever reached the store — the
+  // socket listener for "ephemeral" simply was not registered.
+  let disposePresence: (() => void) | null = null;
+
+  // Grid calibration tool. Holds the canvas instance rather than a boolean so
+  // the panel can only ever mount with a live canvas — `fusionCanvas` itself
+  // is not reactive state, so the template cannot depend on it directly.
+  let calibrationCanvas: FusionCanvas | null = $state(null);
+
+  function openGridCalibration(): void {
+    if (fusionCanvas && activeSceneState.scene) calibrationCanvas = fusionCanvas;
+  }
+
+  function closeGridCalibration(): void {
+    calibrationCanvas = null;
+  }
+
+  // Scene images panel (GM): which images the scene is composed of and when
+  // each one appears.
+  let showingSceneImages = $state(false);
 
   // Token being configured via double-click (TokenConfigDialog). null when no
   // dialog is open. Set by TokenInteractionManager's onConfigureToken callback.
@@ -577,6 +611,39 @@
       console.error("[TableScreen] ruler failed to wire:", err);
     }
 
+    // --- Ephemeral receive path (cursors, pings, rulers of other users) ---
+    // Must come before attachPing: without this listener the server's echo of
+    // our own ping never arrives and the ripple never appears.
+    try {
+      if (sock) disposePresence = attachPresenceSync(sock);
+    } catch (err) {
+      console.error("[TableScreen] presence sync failed to wire:", err);
+    }
+
+    // --- Ping (press and hold on the map) ---
+    // Works without a socket too: the ping is then drawn locally only.
+    try {
+      disposePing = attachPing({
+        canvas,
+        layer: canvas.getLayer("controls"),
+        socket: sock,
+        cellPx: gridSize,
+        userId,
+      });
+    } catch (err) {
+      console.error("[TableScreen] ping failed to wire:", err);
+    }
+
+    // --- Tiles (the extra images a scene is composed from) ---
+    // Signed asset URLs expire, so the resolver runs per load rather than the
+    // path being stored resolved. Players never receive hidden tiles at all.
+    const tileLayer = new TileLayer(canvas.getLayer("tiles"), async (path) => {
+      const accessToken = fusionApi.getToken();
+      const tileUserId = session.user?.id;
+      if (!accessToken || !tileUserId) return path;
+      return resolveAssetUrl(path, accessToken, tileUserId);
+    });
+
     return new SceneOrchestrator({
       scene,
       mirror: worldMirror,
@@ -586,6 +653,7 @@
       lightingRenderer,
       fogState,
       combatController,
+      tileLayer,
     });
   }
 
@@ -610,6 +678,12 @@
 
     disposeRuler?.();
     disposeRuler = null;
+
+    disposePing?.();
+    disposePing = null;
+
+    disposePresence?.();
+    disposePresence = null;
 
     if (sceneOrchestrator) {
       sceneOrchestrator.teardown();
@@ -642,6 +716,28 @@
   <!-- No-scene overlay: shown when no active scene -->
   {#if !activeSceneState.scene}
     <NoSceneOverlay isGm={isGm()} />
+  {/if}
+
+  <!-- Scene images: which images compose the scene and when each appears -->
+  {#if showingSceneImages && activeSceneState.scene}
+    <SceneImagesPanel
+      scene={activeSceneState.scene}
+      socket={getSocket()}
+      onClose={() => {
+        showingSceneImages = false;
+      }}
+    />
+  {/if}
+
+  <!-- Grid calibration: box on the map + panel with the derived numbers -->
+  {#if calibrationCanvas && activeSceneState.scene}
+    <GridCalibrationPanel
+      canvas={calibrationCanvas}
+      sceneId={activeSceneState.scene._id}
+      cellPx={activeSceneState.scene.grid?.size ?? 100}
+      socket={getSocket()}
+      onClose={closeGridCalibration}
+    />
   {/if}
 
   <!-- -------------------------------------------------------------------- -->
@@ -682,6 +778,28 @@
         <span class="table-header__user-name">{session.user.name}</span>
         <span class="table-header__user-role">{roleLabel()}</span>
       </div>
+    {/if}
+
+    <!-- Scene images + grid calibration (GM, with an active scene) -->
+    {#if isGm() && activeSceneState.scene}
+      <button
+        class="btn btn--ghost btn--sm"
+        onclick={() => {
+          showingSceneImages = !showingSceneImages;
+        }}
+        aria-pressed={showingSceneImages}
+      >
+        {t("FUSION.Scene.Images.Open")}
+      </button>
+    {/if}
+    {#if isGm() && activeSceneState.scene && canvasReady}
+      <button
+        class="btn btn--ghost btn--sm"
+        onclick={openGridCalibration}
+        disabled={calibrationCanvas !== null}
+      >
+        {t("FUSION.Scene.Calibrate.Open")}
+      </button>
     {/if}
 
     <!-- Logout -->

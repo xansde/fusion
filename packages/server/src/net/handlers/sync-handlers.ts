@@ -21,6 +21,7 @@ import { OwnershipLevel, resolveOwnership, isRolePrivileged } from "../../docume
 import {
   stripHiddenTokens,
   redactSecretDoors,
+  stripHiddenTiles,
   stripHiddenCombatantsFromCombat,
 } from "../redaction.js";
 import type { SystemModule } from "@fusion/system-api";
@@ -154,10 +155,11 @@ function filterOpsForRole(ops: Envelope[]): Envelope[] {
     const documents = payload["documents"];
     if (!Array.isArray(documents)) return op;
 
-    // Apply both hidden-token and secret-door redaction.
+    // Apply hidden-token, secret-door and hidden-tile redaction.
     const stripped = (documents as Record<string, unknown>[]).map((doc) => {
       let redacted = stripHiddenTokens(doc);
       redacted = redactSecretDoors(redacted);
+      redacted = stripHiddenTiles(redacted);
       return redacted;
     });
     // If nothing changed (all same references), return the original op.
@@ -264,12 +266,14 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
           return level >= OwnershipLevel.LIMITED;
         });
 
-        // Strip hidden tokens and redact secret doors from Scene documents
-        // for non-GM players (M1-C hidden tokens, M2-A secret doors).
+        // Strip hidden tokens and tiles and redact secret doors from Scene
+        // documents for non-GM players (M1-C hidden tokens, M2-A secret doors,
+        // hidden tiles for the multi-image scene).
         if (docType === "Scene") {
           visible = visible.map((scene) => {
             let redacted = stripHiddenTokens(scene);
             redacted = redactSecretDoors(redacted);
+            redacted = stripHiddenTiles(redacted);
             return redacted;
           });
         }

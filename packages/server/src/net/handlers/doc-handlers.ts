@@ -66,6 +66,7 @@ import {
   DocUpdatePayloadSchema,
   DocDeletePayloadSchema,
   TokenDocumentSchema,
+  TileDocumentSchema,
 } from "@fusion/shared";
 import type { DocUpdatePayload, Ack, Ownership, Envelope, ErrorCode } from "@fusion/shared";
 import { createDocumentId } from "@fusion/shared";
@@ -73,6 +74,8 @@ import {
   stripHiddenTokens,
   scenePayloadHasHiddenTokens,
   redactSecretDoors,
+  stripHiddenTiles,
+  scenePayloadHasHiddenTiles,
   scenePayloadHasSecretDoors,
 } from "../redaction.js";
 import {
@@ -153,7 +156,18 @@ const EMBEDDED_PARENT_MAP: Record<string, string> = {
   Token: "Scene",
   Combatant: "Combat",
   Item: "Actor",
+  Tile: "Scene",
 };
+
+/**
+ * Embedded types only GM/ASSISTANT may create, edit or delete.
+ *
+ * Tiles are the images a scene is built from and `hidden` on one is the GM's
+ * reveal control. A TRUSTED player who could add or unhide a tile could show
+ * the room the GM was saving — so unlike tokens, the TRUSTED floor is not
+ * enough here.
+ */
+const GM_ONLY_EMBEDDED = new Set(["Tile"]);
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -955,6 +969,10 @@ function handleEmbeddedCreate(
     return ackError("PERMISSION_DENIED", "Insufficient role to create embedded documents");
   }
 
+  if (GM_ONLY_EMBEDDED.has(embeddedType) && !isPrivileged(ctx.role)) {
+    return ackError("PERMISSION_DENIED", `Only a GM may create a ${embeddedType}`);
+  }
+
   // Load parent
   let parentDoc: Record<string, unknown>;
   try {
@@ -1005,6 +1023,15 @@ function handleEmbeddedCreate(
         return ackError("VALIDATION_FAILED", tokenResult.error.message);
       }
       created.push(tokenResult.data);
+    } else if (embeddedType === "Tile") {
+      // Validated here, not only by the Scene round-trip below, so a bad tile
+      // reports what is wrong with the tile instead of failing as an opaque
+      // rejection of the whole scene.
+      const tileResult = TileDocumentSchema.safeParse(raw);
+      if (!tileResult.success) {
+        return ackError("VALIDATION_FAILED", tileResult.error.message);
+      }
+      created.push(tileResult.data);
     } else {
       // SF2e augmentation slot-limit validation (REQ-SF2-024, CA-SF2-05).
       //
@@ -1111,6 +1138,10 @@ function handleEmbeddedUpdate(
   const parentTable = resolveTable(resolvedParentType);
   if (!parentTable) {
     return ackError("VALIDATION_FAILED", `Unknown parent type: ${resolvedParentType}`);
+  }
+
+  if (GM_ONLY_EMBEDDED.has(embeddedType) && !isPrivileged(ctx.role)) {
+    return ackError("PERMISSION_DENIED", `Only a GM may edit a ${embeddedType}`);
   }
 
   const allUpdatedParents: Record<string, unknown>[] = [];
@@ -1283,6 +1314,10 @@ function handleEmbeddedDelete(
     return ackError("VALIDATION_FAILED", `Unknown parent type: ${parent.type}`);
   }
 
+  if (GM_ONLY_EMBEDDED.has(embeddedType) && !isPrivileged(ctx.role)) {
+    return ackError("PERMISSION_DENIED", `Only a GM may delete a ${embeddedType}`);
+  }
+
   let parentDoc: Record<string, unknown>;
   try {
     parentDoc = deps.store.get(parentTable as never, parent.id);
@@ -1414,8 +1449,9 @@ function broadcastToWorld(ns: Namespace, envelope: Envelope, documentType?: stri
 
     const hasHiddenTokens = scenePayloadHasHiddenTokens(payload.documents);
     const hasSecretDoors = scenePayloadHasSecretDoors(payload.documents);
+    const hasHiddenTiles = scenePayloadHasHiddenTiles(payload.documents);
 
-    if (hasHiddenTokens || hasSecretDoors) {
+    if (hasHiddenTokens || hasSecretDoors || hasHiddenTiles) {
       // Build the player-visible payload once (shared across all player sockets).
       const filteredDocs = payload.documents.map((d) => {
         let redacted = d;
@@ -1424,6 +1460,9 @@ function broadcastToWorld(ns: Namespace, envelope: Envelope, documentType?: stri
         }
         if (hasSecretDoors && Array.isArray(redacted["walls"])) {
           redacted = redactSecretDoors(redacted);
+        }
+        if (hasHiddenTiles && Array.isArray(redacted["tiles"])) {
+          redacted = stripHiddenTiles(redacted);
         }
         return redacted;
       });
