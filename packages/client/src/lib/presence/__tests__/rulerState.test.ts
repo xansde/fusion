@@ -6,19 +6,21 @@
 
 import { describe, it, expect } from "vitest";
 import { RulerStateMachine, formatDistance } from "../rulerState.js";
+import { SquareGrid } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
-// Default config for tests (square grid, 5 ft per cell, 100px cells)
+// Default grid for tests (square, 5 ft per cell, 100px cells)
 // ---------------------------------------------------------------------------
 
-const defaultConfig = {
-  gridSize: 100,
-  gridDistance: 5,
-  diagonalRule: "equidistant" as const,
-  offsetX: 0,
-  offsetY: 0,
+const defaultConfig = new SquareGrid({
+  type: "square",
+  size: 100,
+  distance: 5,
   units: "ft",
-};
+  color: "#000000",
+  alpha: 0.4,
+  diagonalRule: "equidistant",
+});
 
 // ---------------------------------------------------------------------------
 // State machine

@@ -145,14 +145,14 @@ export class LightingRenderer {
       this._visionMaskContainer.visible = false;
       this._fogContainer.visible = true;
       this._renderFog(fogState, state.visionPolygons);
-    } else if (!state.isGm) {
-      // No fog state — use simple M2-A vision mask
+    } else if (!state.isGm && state.tokenVision) {
+      // No fog state, but the scene wants token vision — simple M2-A mask.
       this._fogContainer.removeChildren();
       this._fogContainer.visible = false;
       this._visionMaskContainer.visible = true;
       this._renderVisionMask(state.visionPolygons, state.isGm, state.darkness, state.globalLight);
     } else {
-      // GM: clear both
+      // GM, or REQ-VIS-085 (tokenVision off ⇒ players see the whole scene): clear both.
       this._fogContainer.removeChildren();
       this._fogContainer.visible = false;
       this._visionMaskContainer.removeChildren();
@@ -508,6 +508,10 @@ function fogRingKey(ring: FogRing): string {
  *    the drawn gradient/color even when the polygon shape is unchanged).
  *  - Full fog ring coordinates for explored polygons + current vision rings
  *    (not just totalVertices/ring-count).
+ *  - state.tokenVision: flipping this flag (REQ-VIS-085) changes which
+ *    branch render() takes (mask vs. clear) without necessarily changing any
+ *    polygon — omitting it from the key would make the guard swallow the
+ *    redraw that turning the flag on/off requires.
  *
  * Exported as a pure function (no PIXI dependency) so it can be unit tested
  * without a renderer, per this codebase's convention (see
@@ -534,7 +538,7 @@ export function buildLightingStateKey(
         .join("|")}:cv:${fogState.currentVisionRings.map((r) => fogRingKey(r)).join("|")}`
     : "nofog";
 
-  return `${String(state.isGm)}|${String(state.darkness)}|${String(state.globalLight)}|${vpKey}||${lpKey}||${fogKey}`;
+  return `${String(state.isGm)}|${String(state.darkness)}|${String(state.globalLight)}|${String(state.tokenVision)}|${vpKey}||${lpKey}||${fogKey}`;
 }
 
 // ---------------------------------------------------------------------------

@@ -79,6 +79,7 @@ function makeState(overrides: Partial<VisionStateResult> = {}): VisionStateResul
     isGm: false,
     darkness: 0,
     globalLight: false,
+    tokenVision: true,
     ...overrides,
   };
 }
@@ -183,6 +184,13 @@ describe("buildLightingStateKey — coordinate sensitivity (regression for count
   it("globalLight toggle changes the key", () => {
     const before = makeState({ globalLight: false });
     const after = makeState({ globalLight: true });
+    expect(buildLightingStateKey(before)).not.toBe(buildLightingStateKey(after));
+  });
+
+  it("tokenVision toggle changes the key even with identical polygons (REQ-VIS-085)", () => {
+    const visionPolygons = [makeVisionPolygon("tok-1", 500, 500)];
+    const before = makeState({ visionPolygons, tokenVision: false });
+    const after = makeState({ visionPolygons, tokenVision: true });
     expect(buildLightingStateKey(before)).not.toBe(buildLightingStateKey(after));
   });
 });

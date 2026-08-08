@@ -20,7 +20,7 @@
 
 import { Application, Container, Text, TextStyle } from "pixi.js";
 
-import { squarePixelToCell } from "@fusion/shared";
+import type { GridStrategy } from "@fusion/shared";
 import {
   type CameraState,
   type ZoomLimits,
@@ -92,6 +92,11 @@ export class FusionCanvas {
   // Grid
   private _gridRenderer: GridRenderer | null = null;
   private _currentGridConfig: GridRenderConfig | null = null;
+  /**
+   * Grid geometry for the active scene. Owned by whoever loads the scene
+   * (sceneLoader) and injected here; the canvas never assumes a grid type.
+   */
+  private _gridStrategy: GridStrategy | null = null;
 
   // Pan interaction
   private _isPanning = false;
@@ -246,6 +251,46 @@ export class FusionCanvas {
   setGrid(config: GridRenderConfig | null): void {
     this._currentGridConfig = config;
     this._gridRenderer?.update(config);
+  }
+
+  /**
+   * Set the grid geometry used to answer "which cell is this pixel in?".
+   * Pass null when no scene is active.
+   *
+   * Separate from setGrid() on purpose: GridRenderConfig is what the renderer
+   * needs to DRAW (color, alpha, canvas extent), GridStrategy is what callers
+   * need to MEASURE. Only the latter knows the grid type.
+   */
+  setGridStrategy(strategy: GridStrategy | null): void {
+    this._gridStrategy = strategy;
+  }
+
+  /** The active scene's grid geometry, or null when no scene is loaded. */
+  get gridStrategy(): GridStrategy | null {
+    return this._gridStrategy;
+  }
+
+  /**
+   * The DOM element the renderer is mounted in.
+   *
+   * Exposed so interaction modules (ruler, tools) can attach pointer listeners
+   * and measure the viewport without reaching into private state.
+   */
+  get viewElement(): HTMLElement {
+    return this._container;
+  }
+
+  /**
+   * The PIXI stage's eventMode, for diagnostics.
+   *
+   * Every layer this class builds is created with eventMode "none" — panning
+   * and zooming are DOM-level, so the app never needed PIXI hit testing until
+   * token dragging arrived. When a consumer opts a layer back into "static",
+   * whether events actually reach it depends on the stage, and reading that
+   * from the outside otherwise means poking at private state.
+   */
+  get stageEventMode(): string | null {
+    return this._app?.stage.eventMode ?? null;
   }
 
   // ---------------------------------------------------------------------------
@@ -616,12 +661,11 @@ export class FusionCanvas {
     const { tx, ty, scale } = this._camera;
     const { x: wx, y: wy } = this._cursorWorld;
 
-    // Get grid cell from world coordinate using shared squarePixelToCell
-    // Proves integration with @fusion/shared (worldToGrid)
+    // Cell under the cursor, asked of the scene's grid — not of a hardcoded
+    // square formula. The overlay reads whatever geometry the scene declares.
     let cellStr = "–";
-    if (this._currentGridConfig) {
-      const cfg = this._currentGridConfig;
-      const cell = squarePixelToCell(wx, wy, cfg.size, cfg.offsetX, cfg.offsetY);
+    if (this._gridStrategy) {
+      const cell = this._gridStrategy.pixelToCell({ x: wx, y: wy });
       cellStr = `(${cell.i.toString()}, ${cell.j.toString()})`;
     }
 
