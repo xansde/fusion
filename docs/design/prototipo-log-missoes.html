@@ -1190,6 +1190,11 @@
         cursor: pointer;
         text-align: center;
         pointer-events: auto;
+        z-index: 2;
+      }
+      .node:hover,
+      .node.sel {
+        z-index: 5;
       }
       .node i {
         display: block;
@@ -1260,6 +1265,74 @@
       .node.lodoff .sub {
         display: none;
       }
+      /* LOD never hides what the cursor is asking about */
+      .node.lodoff:hover label,
+      .node.lodoff.sel label {
+        display: block;
+      }
+      /* ---- Console de Revelação no próprio marcador (caminho de 1 clique) ----
+         só na visão do Mestre, só no pino sob o cursor ou selecionado */
+      .pconsole {
+        display: none;
+        margin-top: 5px;
+        gap: 3px;
+        justify-content: center;
+      }
+      .node:hover .pconsole,
+      .node.sel .pconsole {
+        display: flex;
+      }
+      .pcb {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 2px 5px;
+        border: 1px solid rgba(87, 200, 255, 0.34);
+        background: rgba(3, 14, 22, 0.94);
+        color: var(--dim);
+        font: 700 9px var(--sans);
+        letter-spacing: 0.06em;
+        line-height: 1;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: 0.12s;
+      }
+      .pcb:hover {
+        border-color: var(--blue);
+        color: var(--blue);
+        box-shadow: 0 0 10px var(--blue-g);
+      }
+      .pcb b {
+        color: #7fb4cc;
+        font-weight: 700;
+      }
+      .pcb .g {
+        font-size: 11px;
+        line-height: 1;
+      }
+      .pcb.on .g {
+        color: var(--ok);
+      }
+      .pcb.rumor .g {
+        color: var(--gold);
+      }
+      .pcb.off .g {
+        color: #4d6b7c;
+      }
+      .pcb.all {
+        color: var(--violet);
+        border-color: rgba(167, 139, 250, 0.42);
+      }
+      .pcb.all:hover {
+        color: #c4b5fd;
+        border-color: var(--violet);
+        box-shadow: 0 0 10px rgba(167, 139, 250, 0.45);
+      }
+      .pcb:disabled {
+        opacity: 0.35;
+        cursor: default;
+        box-shadow: none;
+      }
       .node .sub {
         display: block;
         margin-top: 2px;
@@ -1278,7 +1351,7 @@
         display: flex;
         align-items: center;
         gap: 6px;
-        z-index: 3;
+        z-index: 6;
       }
       .zbtn {
         width: 24px;
@@ -1313,7 +1386,7 @@
         position: absolute;
         left: 10px;
         bottom: 10px;
-        z-index: 3;
+        z-index: 6;
         pointer-events: none;
         font: 700 9.5px var(--sans);
         letter-spacing: 0.1em;
@@ -1758,6 +1831,16 @@
               <td>
                 <code>REQ-MREG</code> (spec 34, mapa de região + revelação por jogador) — mesma
                 semântica ○→?→● da matriz de missões, agora aplicada a marcadores de mapa
+              </td>
+            </tr>
+            <tr>
+              <td><b>Console de Revelação no próprio pino</b></td>
+              <td>
+                <code>REQ-MREG-007</code> — na visão do Mestre, passar o cursor sobre um marcador
+                abre o console ali mesmo: um clique por jogador, ou <b>todos ▸</b> para levar a mesa
+                inteira ao próximo degrau. Revelar deixou de exigir a viagem marcador → lista →
+                console. O console do painel de detalhe continua existindo como a versão com os
+                nomes por extenso.
               </td>
             </tr>
             <tr>
@@ -2544,6 +2627,42 @@
         if (m) return '<span class="sub">' + CAT_LABEL[m.categoria] + " · " + m.km + " km</span>";
         return '<span class="sub">' + (poi.kind === "base" ? "Base" : "Seguro") + "</span>";
       }
+      /* the same ○→?→● console the detail panel has, but anchored to the pin —
+         revealing a place for a player is one click ON THE MAP, no round trip
+         through the list below. "Todos" advances the whole table one step. */
+      const PLAYERS = ["tobias", "comedor"];
+      function pinConsoleHTML(poi) {
+        if (persp !== "mestre") return "";
+        let h = '<div class="pconsole">';
+        PLAYERS.forEach((player) => {
+          const v = poi.vis[player];
+          const glyph = v === 0 ? "○" : v === 1 ? "?" : "●";
+          const cls = v === 0 ? "off" : v === 1 ? "rumor" : "on";
+          h +=
+            '<button type="button" class="pcb ' +
+            cls +
+            '" data-action="cycle-poi" data-id="' +
+            poi.id +
+            '" data-player="' +
+            player +
+            '" aria-label="' +
+            NOMES[player] +
+            ': revelação do local, clique para mudar"><b>' +
+            NOMES[player][0] +
+            '</b><span class="g">' +
+            glyph +
+            "</span></button>";
+        });
+        const min = Math.min(...PLAYERS.map((p) => poi.vis[p]));
+        h +=
+          '<button type="button" class="pcb all" data-action="reveal-all-poi" data-id="' +
+          poi.id +
+          '"' +
+          (min >= 2 ? " disabled" : "") +
+          ' aria-label="Revelar para a mesa inteira">todos ▸</button>';
+        return h + "</div>";
+      }
+
       function poiNode(poi) {
         /* position comes from the camera, size never does — this layer has no
            transform, so the pin stays the same number of pixels at any zoom */
@@ -2573,6 +2692,7 @@
           rotulo +
           "</label>" +
           poiSub(poi) +
+          pinConsoleHTML(poi) +
           "</div>"
         );
       }
@@ -2704,7 +2824,12 @@
           '<div class="maphint">Roda do mouse aproxima, arrastar movimenta. ' +
           "<b>O mundo escala, a interface não</b> — o terreno cresce, os pinos mantêm o mesmo " +
           "tamanho em pixels e só mudam de lugar (<code>mapa-isekai.md</code> §5.1). Rótulos " +
-          "aparecem a partir de 1,3× e a categoria a partir de 2,2×.</div>";
+          "aparecem a partir de 1,3× e a categoria a partir de 2,2×." +
+          (persp === "mestre"
+            ? " <b>Passe o cursor sobre um marcador</b> para revelar dali mesmo — um clique por " +
+              "jogador, ou <b>todos ▸</b> para a mesa inteira."
+            : "") +
+          "</div>";
         h +=
           '<div class="maplegend">' +
           '<span class="lg"><span class="lgsw" style="background:#ff5c7a"></span>missão ativa</span>' +
@@ -2880,6 +3005,20 @@
         showNotification(variant, titulo, msg);
       }
 
+      /* revelação em bloco pelo botão "todos" do console do pino */
+      function toastPoiMesa(kind, poi) {
+        const variant = kind === "rumor" ? "rumor" : "publica";
+        showNotification(
+          variant,
+          kind === "rumor" ? "RUMOR NO MAPA — MESA" : "LOCAL REVELADO — MESA",
+          kind === "rumor"
+            ? "<b>" +
+                esc(poi.nome) +
+                "</b> vira interrogação no mapa de todo mundo — um clique, a mesa inteira."
+            : "<b>" + esc(poi.nome) + "</b> agora aparece completo para a mesa inteira.",
+        );
+      }
+
       /* ================= map pin tooltip ================= */
       let tipTimer = null;
       function showTip(x, y) {
@@ -3009,8 +3148,12 @@
           el.classList.toggle("lodoff", poiLod(poi) !== "");
           const sub = poiSub(poi);
           const cur = el.querySelector(".sub");
-          if (sub && !cur) el.insertAdjacentHTML("beforeend", sub);
-          else if (!sub && cur) cur.remove();
+          if (sub && !cur) {
+            /* the detail line lives between the label and the pin console */
+            const console_ = el.querySelector(".pconsole");
+            if (console_) console_.insertAdjacentHTML("beforebegin", sub);
+            else el.insertAdjacentHTML("beforeend", sub);
+          } else if (!sub && cur) cur.remove();
         });
         document.getElementById("zread").textContent = cam.z.toFixed(1).replace(".", ",") + "×";
         mv.querySelector('[data-action="zoom-out"]').disabled = cam.z <= Z_MIN + 0.001;
@@ -3114,8 +3257,26 @@
             const old = poi.vis[player];
             const neu = (old + 1) % 3;
             poi.vis[player] = neu;
+            /* clicar no console do pino também seleciona o POI, para o painel de
+               detalhe abaixo acompanhar o que a mão está fazendo no mapa */
+            if (t.closest(".pconsole")) mapSel = poi.id;
             if (old === 0 && neu === 1) toastPoi("rumor", poi, player);
             if (old === 1 && neu === 2) toastPoi("publica", poi, player);
+            render();
+          } else if (action === "reveal-all-poi") {
+            /* um clique leva a mesa inteira ao próximo degrau, a partir de quem
+               está mais atrás — nunca esconde de quem já viu */
+            const poi = findPoi(t.dataset.id);
+            const alvo = Math.min(2, Math.min(...PLAYERS.map((p) => poi.vis[p])) + 1);
+            let mudou = false;
+            PLAYERS.forEach((p) => {
+              if (poi.vis[p] < alvo) {
+                poi.vis[p] = alvo;
+                mudou = true;
+              }
+            });
+            mapSel = poi.id;
+            if (mudou) toastPoiMesa(alvo === 1 ? "rumor" : "publica", poi);
             render();
           }
           return;
