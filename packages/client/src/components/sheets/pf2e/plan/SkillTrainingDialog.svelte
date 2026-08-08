@@ -34,6 +34,7 @@
   import { skillHelpFor, TEML_LEGEND } from "./abilitySkillHelp.js";
   import { t } from "../../../../lib/i18n/i18n.js";
   import { skillNamePt } from "../../../../lib/sheets/pf2e/skillNames.js";
+  import { isLoreSlug, loreSubject } from "../../../../lib/sheets/pf2e/loreSlug.js";
 
   interface Props {
     title: string;
@@ -113,8 +114,15 @@
     thievery: "Thievery",
   };
 
+  // The subject comes from `loreSubject` (loreSlug.ts), never from stripping a
+  // prefix here: a Lore granted by a background may still carry the legacy
+  // `<subject>-lore` key, which a `^lore-` strip would leave as the raw slug.
+  // `isLoreSlug` backs up `row.isLore` so a legacy row never renders raw.
   function skillLabelEn(row: SkillTrainingRow): string {
-    if (row.isLore) return `Lore (${row.slug.replace(/^lore-/, "")})`;
+    if (row.isLore || isLoreSlug(row.slug)) {
+      const subject = loreSubject(row.slug);
+      return subject ? `Lore (${subject})` : "Lore";
+    }
     return SKILL_LABELS_EN[row.slug] ?? row.slug;
   }
 

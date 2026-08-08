@@ -17,6 +17,8 @@
  * plain TS module (no Svelte) makes it unit-testable.
  */
 
+import { isLoreSlug } from "../../../../lib/sheets/pf2e/loreSlug.js";
+
 /** Ability slugs, matching planVM.ts's ABILITY_SLUGS order. */
 export type AbilityHelpSlug = "str" | "dex" | "con" | "int" | "wis" | "cha";
 
@@ -213,9 +215,13 @@ export const LORE_HELP: SkillHelp = {
     "Conhecimento especializado sobre um assunto estreito (p. ex. Saber sobre Taverna, Saber sobre Dragões). Recorda fatos daquele tema e, em campanha, pode render sustento.",
 };
 
-/** Resolve the help entry for a skill slug, folding lore slugs onto LORE_HELP. */
+/**
+ * Resolve the help entry for a skill slug, folding lore slugs onto LORE_HELP.
+ * `isLoreSlug` (not a local prefix test) so the legacy `<subject>-lore` key
+ * matches deliberately instead of landing on the unknown-slug fallback.
+ */
 export function skillHelpFor(slug: string): SkillHelp {
-  if (slug.startsWith("lore-")) return LORE_HELP;
+  if (isLoreSlug(slug)) return LORE_HELP;
   return SKILL_HELP[slug] ?? LORE_HELP;
 }
 
