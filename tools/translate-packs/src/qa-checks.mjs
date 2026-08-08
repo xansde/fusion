@@ -66,8 +66,18 @@ function mapsEqual(a, b) {
   return true;
 }
 
-function stripHtmlToText(html) {
-  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+// Exported so i18n-overlay.mjs's buildWorkUnitsForPack can use the EXACT
+// same "does EN have real prose" definition as this gate — the extractor
+// and the QA gate must never disagree on what counts as translatable text
+// (issue #9, parent of #27: the extractor and the old QA gate both used
+// to treat "has a description key" as "has prose", which markup-only
+// descriptions like `<p></p>` satisfy without carrying anything to
+// translate).
+export function stripHtmlToText(html) {
+  return html
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 /** Normalizes text for tolerant comparison: NFD decomposition + diacritic
@@ -76,10 +86,7 @@ function stripHtmlToText(html) {
  * accents (e.g. "perícia", "você pode") — both sides must be normalized
  * before comparing, or every accented glossary hit reads as a miss. */
 function normalizeForComparison(text) {
-  return text
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase();
+  return text.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 }
 
 /**
@@ -170,7 +177,9 @@ export function checkDoc({ nameEn, descriptionEn, entry, glossary }) {
     if (enLen > 0) {
       const ratio = ptLen / enLen;
       if (ratio < 0.5 || ratio > 2.0) {
-        failures.push(`length-ratio: ${ratio.toFixed(2)} outside [0.5, 2.0] (EN=${enLen} chars, PT=${ptLen} chars)`);
+        failures.push(
+          `length-ratio: ${ratio.toFixed(2)} outside [0.5, 2.0] (EN=${enLen} chars, PT=${ptLen} chars)`,
+        );
       }
     }
 

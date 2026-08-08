@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "packId": "pf2e.class-features-core",
   "locale": "pt-BR",
-  "generatedAt": "2026-08-02T03:59:58.294Z",
+  "generatedAt": "2026-08-03T01:40:04.963Z",
   "generator": "tools/translate-packs@0.1.0",
   "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
   "entries": {
@@ -29,7 +29,7 @@
     "0Znipy3VhMSYEjol": {
       "name": "Coração de Artista Superior",
       "sourceHash": "8c20cf8175869ee9d05e03fa72e0d18493439300",
-      "description": ""
+      "description": "<p>Suas apresentações distorcem a mente e fazem as emoções florescerem, e compreender como fazer isso também forja uma compreensão incomparável de sua própria mente. Seu grau de proficiência em testes de Vontade aumenta para lendário. Quando você rola uma falha crítica em um teste de Vontade, você obtém uma falha em vez disso. Quando você falha em um teste de Vontade contra um efeito que causa dano, você sofre metade do dano.</p>"
     },
     "0bEpfnxfGVCC0MkH": {
       "name": "Maestria com Armaduras",
@@ -39,7 +39,7 @@
     "1Q9XEsrLEGizspNx": {
       "name": "Quarta Doutrina (Sacerdote Guerreiro)",
       "sourceHash": "02155024ecb233850bca7ed49fcaf9d9927e1364",
-      "description": ""
+      "description": "<p>Seus graus de proficiência para o modificador de ataque de magia e para a CD de magia aumentam para perito.</p>"
     },
     "1gLNhDwqDBZXZgW7": {
       "name": "Especialização de Patrulheiro",
@@ -54,7 +54,7 @@
     "1tBpApILCv58X3Qo": {
       "name": "Armadura Lendária",
       "sourceHash": "75932387b0f70508fe6917c00e0c7ef34029014c",
-      "description": ""
+      "description": "<p>Você se protege com aço tão facilmente quanto com fé. Seus graus de proficiência em armadura leve, média e pesada, bem como em defesa sem armadura, aumentam para lendário.</p>"
     },
     "2K4xQnGRqtCwjRoU": {
       "name": "Limiar do Segundo Portão",
@@ -69,12 +69,12 @@
     "2d1VgeI3L0c046Ee": {
       "name": "Aura do Campeão",
       "sourceHash": "664c4d55ad8fa4bc32c263842d106bcc85e195b3",
-      "description": ""
+      "description": "<p>Você fica cercado por uma aura em uma emanação de 15 pés. Ela possui os traços aura e divino. Qualquer seguidor de sua divindade dentro da aura sabe imediatamente que você é um campeão de sua divindade. Essa aura é usada como o alcance para a reação do seu campeão e para vários outros efeitos. Você pode suprimir ou retomar a aura como uma ação, que possui o traço concentração, e ela termina se você ficar @UUID[Compendium.pf2e.conditionitems.Item.Unconscious].</p>"
     },
     "2zmRjnSK4X2ScHWJ": {
       "name": "Divindade (Campeão)",
       "sourceHash": "ea18ba990a75955d69268e1f9a82cdea0774df45",
-      "description": ""
+      "description": "<p>Como campeão, você é um guerreiro em nome de uma divindade que reverencia acima de todas as outras. Escolha uma divindade.</p><h2>Perícia</h2><p>Você se torna treinado na perícia divina listada para sua divindade. Como de costume, se você já for treinado naquela perícia, torna-se treinado em uma perícia diferente à sua escolha.</p><h2>Anátema</h2><p>Campeões se importam profundamente com os preceitos e anátemas que recebem de sua divindade, santificação e causa. Como em qualquer implementação de preceitos e anátemas nas regras, estes são uma ferramenta de interpretação entre você, o mestre e os demais jogadores à mesa — você ainda está interpretando um personagem cheio de nuances, não seguindo um roteiro rígido.</p>\n<p>Atos fundamentalmente opostos aos ideais de sua divindade são anátema para sua fé. Aprender ou conjurar magias, cometer atos e usar itens que são anátema para sua divindade o afastam das boas graças de sua divindade.</p>\n<p>Da mesma forma, usar itens, magias ou ações que são anátema para os princípios ou objetivos de sua fé pode interferir em sua conexão com sua divindade. Por exemplo, ajudar em um ritual que ressuscita mortos-vivos seria anátema para Pharasma, a deusa da morte. Muitas ações que são anátema não aparecem na lista formal de nenhuma divindade. Em casos limítrofes, você e seu mestre determinam quais atos são anátema.</p>\n<p>Se você realizar atos suficientes que são anátema para sua divindade, perde as habilidades mágicas que vêm de sua conexão com sua divindade. As características de classe que você perde são determinadas pelo mestre, mas provavelmente incluem seu traço sagrado ou profano, sua reserva de foco e sua bênção dos devotos. Essas habilidades só podem ser recuperadas se você se arrepender realizando um ritual de expiação. Se sua divindade não exigir a santificação específica que você tinha, seu mestre pode permitir que você retreine sua santificação e causa, continuando a seguir a mesma divindade.</p><h2>Santificação</h2><p>Dependendo de sua divindade, a santificação dela pode torná-lo sagrado ou profano. Isso o compromete com um dos lados de uma luta pelas almas. Se você se torna sagrado, profano ou nenhum dos dois, isso limitará sua escolha de causas, magias de devoção e talentos.</p>\n<p>Se você \"pode ser\" sagrado ou profano de acordo com a entrada de santificação de sua divindade, você faz essa escolha, e se você \"deve ser\" sagrado ou profano, você ganha o traço automaticamente. Se a divindade listar \"nenhum\", você só pode escolher opções que não exijam o traço sagrado ou profano. Se você for sagrado ou profano e ganhar o traço oposto de alguma forma, perde o traço anterior até se redimir.</p>\n<p>A santificação profana para um campeão pode ser extremamente perturbadora para um jogo típico e deve ser uma opção de personagem jogador apenas em aventuras ou campanhas apropriadas, nas quais o grupo decida coletivamente adotá-la. Santificação e causas profanas são opções incomuns.</p>\n<p><strong>Sagrado:</strong> Você ganha o traço sagrado e o adiciona a quaisquer Golpes que fizer. Você ganha o preceito \"Não prejudique inocentes com conhecimento de causa, nem deixe de evitar dano a um inocente se sua intervenção direta puder salvá-lo\" e o anátema \"Cometer assassinato\". Mesmo que seu jogo inclua comportamentos fora do padrão-base de Pathfinder, os atos listados ali são anátema para você.</p>\n<p><strong>Profano:</strong> Você ganha o traço profano e o adiciona a quaisquer Golpes que fizer. Você ganha o preceito \"Não coloque as necessidades de outra pessoa acima das suas ou das de sua divindade\" e os anátemas \"Cometer um ato inteiramente altruísta, como doar algo por caridade\" e \"Colocar as necessidades de alguém acima das de sua divindade\". Nada disso o impede de realizar atos que outros possam considerar úteis, mas esses atos devem ser feitos com a expectativa de que, em última instância, promovam seus próprios objetivos ou os de sua divindade</p>"
     },
     "3KjbcMT4TFczJxR0": {
       "name": "Reflexos Naturais",
@@ -89,7 +89,7 @@
     "3ug7rtSzl5Z8xhr7": {
       "name": "Linhagem: Imperial",
       "sourceHash": "c7b01083a81102a2fbe0e48c78ab08ff604331a4",
-      "description": ""
+      "description": "<p>Um de seus ancestrais foi um mortal que dominou a magia.</p>\n<p><strong>Tradição</strong> arcana</p>\n<p><strong>Perícias de Linhagem</strong> Arcanismo, Sociedade</p>\n<p><strong>Dádivas Feiticeiras</strong> truque @UUID[Compendium.pf2e.spells-srd.Item.Detect Magic], 1º: @UUID[Compendium.pf2e.spells-srd.Item.Force Barrage], 2º: @UUID[Compendium.pf2e.spells-srd.Item.Dispel Magic], 3º: @UUID[Compendium.pf2e.spells-srd.Item.Haste], 4º: @UUID[Compendium.pf2e.spells-srd.Item.Translocate], 5º: @UUID[Compendium.pf2e.spells-srd.Item.Scouting Eye], 6º: @UUID[Compendium.pf2e.spells-srd.Item.Disintegrate], 7º: @UUID[Compendium.pf2e.spells-srd.Item.Retrocognition], 8º: @UUID[Compendium.pf2e.spells-srd.Item.Quandary], 9º: @UUID[Compendium.pf2e.spells-srd.Item.Implosion]</p>\n<p><strong>Magias de Linhagem</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Ancestral Memories], avançada: @UUID[Compendium.pf2e.spells-srd.Item.Extend Blood Magic], superior: @UUID[Compendium.pf2e.spells-srd.Item.Arcane Countermeasure]</p>\n<p><strong>Magia de Sangue — Defesa Imperiosa</strong> Magia bruta emana de cada célula do seu corpo, protegendo você. Até o início do seu próximo turno, você ganha, à sua escolha, um bônus de condição de +1 na CA ou um bônus de condição de +1 em testes de resistência.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Imperial Blood Magic]</p>"
     },
     "43cBGyCAMSl8qJaN": {
       "name": "Vínculo Arcano",
@@ -134,7 +134,7 @@
     "5Szj5aQ8oBJN70II": {
       "name": "Especialização do Monge",
       "sourceHash": "78879a06dd82e145f51609e9990d49e92502d100",
-      "description": ""
+      "description": "<p>Seu grau de proficiência para sua CD de classe de monge aumenta para perito. Se você tiver magias de qi, seu grau de proficiência para ataques de magia e CDs de magia aumenta para perito.</p>"
     },
     "5iAgApzCdVQlJd7p": {
       "name": "Árvore Torcida",
@@ -149,17 +149,17 @@
     "6WjjeKhVK8Jas4aM": {
       "name": "Arma Deífica",
       "sourceHash": "98a5a5c21486be6e92a30ccbd73a31a452c119f4",
-      "description": ""
+      "description": "<p>Você empunha com zelo a arma favorita de sua divindade. Se ela for um ataque desarmado com dado de dano d4 ou uma arma simples, aumente o dado de dano em um passo (d4 para d6, d6 para d8, d8 para d10, d10 para d12). Se a arma for incomum, você ganha acesso a ela, e se for uma arma avançada, você a trata como uma arma marcial para fins de proficiência</p>"
     },
     "7Pmrosxa3LNE19j2": {
       "name": "Linhagem: Morto-Vivo",
       "sourceHash": "cab4193d3194d41d97c8022fc8464360aee17a08",
-      "description": ""
+      "description": "<p>O toque da não-morte corre em seu sangue. Sua árvore genealógica pode conter mortos-vivos poderosos, como um vampiro.</p>\n<p><strong>Tradição</strong> divina</p>\n<p><strong>Perícias de Linhagem</strong> Intimidação, Religião</p>\n<p><strong>Dádivas Feiticeiras</strong> truque @UUID[Compendium.pf2e.spells-srd.Item.Void Warp], 1º: @UUID[Compendium.pf2e.spells-srd.Item.Harm], 2º: @UUID[Compendium.pf2e.spells-srd.Item.See the Unseen], 3º: @UUID[Compendium.pf2e.spells-srd.Item.Bind Undead], 4º: @UUID[Compendium.pf2e.spells-srd.Item.Talking Corpse], 5º: @UUID[Compendium.pf2e.spells-srd.Item.Invoke Spirits], 6º: @UUID[Compendium.pf2e.spells-srd.Item.Vampiric Exsanguination], 7º: @UUID[Compendium.pf2e.spells-srd.Item.Execute], 8º: @UUID[Compendium.pf2e.spells-srd.Item.Canticle of Everlasting Grief], 9º: @UUID[Compendium.pf2e.spells-srd.Item.Wails of the Damned]</p>\n<p><strong>Magias de Linhagem</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Undeath's Blessing], avançada: @UUID[Compendium.pf2e.spells-srd.Item.Drain Life], superior: @UUID[Compendium.pf2e.spells-srd.Item.Grasping Grave]</p>\n<p><strong>Magia de Sangue — Vida Roubada</strong> Você pode canalizar a energia necromântica em seu sangue. Você ganha pontos de vida temporários iguais ao grau da magia, que duram até o início do seu próximo turno, ou um alvo sofre 1 de dano de vazio por grau da magia (se a magia já causar dano inicial de vazio, combine isso com o dano inicial da magia antes de determinar vulnerabilidades e resistências).</p>"
     },
     "7eBIHN2oYLJ81B4I": {
       "name": "Musas",
       "sourceHash": "d33d075dac8a34c8bc4e6ec6040d6fec99c2a710",
-      "description": ""
+      "description": "<p>Como bardo, você escolhe uma musa no 1º nível. Essa musa o conduz a grandes feitos e pode ser alguém que você conhece, uma criatura sobrenatural, um local, uma divindade, uma filosofia, ou um mistério cativante. Dependendo do tipo de inspiração que você recebe, sua musa de 1º nível concede a você um talento de bardo específico de 1º nível e adiciona uma magia ao seu repertório.</p>\n<p>Além disso, cada musa abre a porta para muitos talentos de bardo posteriores. Se um único tipo de inspiração não for suficiente para representar sua musa, considere o talento @UUID[Compendium.pf2e.feats-srd.Item.Multifarious Muse].</p><ul><li>@UUID[Compendium.pf2e.classfeatures.Item.Enigma]</li><li>@UUID[Compendium.pf2e.classfeatures.Item.Maestro]</li><li>@UUID[Compendium.pf2e.classfeatures.Item.Polymath]</li><li>@UUID[Compendium.pf2e.classfeatures.Item.Warrior]</li><li>@UUID[Compendium.pf2e.classfeatures.Item.Zoophonia]</li></ul>"
     },
     "7y4VNaiFqDRS5hlL": {
       "name": "Escola de Magia Cívica",
@@ -169,7 +169,12 @@
     "86SI1amhg3KRI7Y5": {
       "name": "Golpes Peritos",
       "sourceHash": "c9bd85a47e1697a9093fba9307e06de9b4e946bd",
-      "description": ""
+      "description": "<p>Você praticou artes marciais e agora superou sua habilidade anterior. Seus graus de proficiência com ataques desarmados e armas simples aumentam para perito. Quando você obtém um acerto crítico com um ataque desarmado do grupo de briga, você obtém seu efeito de especialização crítica.</p>"
+    },
+    "8HggHhZ2vtCqxCQ3": {
+      "name": "Rapidez Abençoada",
+      "sourceHash": "32f4d38994cab2ec36f3c6f21b70a1352946e3cc",
+      "description": "<p>Você ganha um bônus de condição de +5 pés à Velocidade. Se você estiver montado, sua montaria ganha o bônus em vez disso. Além disso, quando o movimento de um de seus aliados aciona a reação de um inimigo enquanto o aliado está na aura do seu campeão, o aliado ganha um bônus de condição de +2 a todas as defesas contra aquela reação.</p>"
     },
     "8HvcepETp5pS8Mk8": {
       "name": "Perícia de Guerreiro",
@@ -179,7 +184,7 @@
     "8JOUEhKzj63KugGw": {
       "name": "Linhagem: Aesir",
       "sourceHash": "ea2eb8081b141a9f4e1e74e808c83b3a7acdb0b2",
-      "description": ""
+      "description": "<p>Um de seus ancestrais foi tocado por um aesir, e agora o retinir de aço contra aço e o chamado constante da batalha ecoam em seu sangue.</p>\n<p><strong>Tradição</strong> divina</p>\n<p><strong>Perícias de Linhagem</strong> Intimidação, Religião</p>\n<p><strong>Dádivas Feiticeiras</strong> truque: @UUID[Compendium.pf2e.spells-srd.Item.Shield]; 1º: @UUID[Compendium.pf2e.spells-srd.Item.Mystic Armor]; 2º: @UUID[Compendium.pf2e.spells-srd.Item.Spiritual Armament]; 3º: @UUID[Compendium.pf2e.spells-srd.Item.Heroism]; 4º: @UUID[Compendium.pf2e.spells-srd.Item.Seal Fate]; 5º: @UUID[Compendium.pf2e.spells-srd.Item.Invoke Spirits]; 6º: @UUID[Compendium.pf2e.spells-srd.Item.Blinding Fury]; 7º: @UUID[Compendium.pf2e.spells-srd.Item.Execute]; 8º: @UUID[Compendium.pf2e.spells-srd.Item.Spirit Song]; 9º: @UUID[Compendium.pf2e.spells-srd.Item.Massacre]</p>\n<p><strong>Magias de Linhagem</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Barbed Spear]; avançada: @UUID[Compendium.pf2e.spells-srd.Item.Wings of the Valkyrie]; superior: @UUID[Compendium.pf2e.spells-srd.Item.Let Not the Fallen Rest]</p>\n<p><strong>Magia de Sangue — Invocar a Tempestade</strong> Você invoca um raio para ferir um inimigo ou energizar a si mesmo. Você ganha um bônus de condição de +2 em testes de resistência de Reflexos por 1 rodada, ou um alvo sofre 1 de dano de eletricidade por grau da magia (se a magia já causar dano inicial de eletricidade, combine isso com o dano inicial da magia antes de determinar vulnerabilidades e resistências).</p>"
     },
     "8WLs2Ful9QpO9lun": {
       "name": "Sombra Risonha",
@@ -189,17 +194,17 @@
     "8bYjyje8l3BEKJ2c": {
       "name": "Defesa Divina",
       "sourceHash": "e60cabd700b202346b4d5f16026d9345d108959e",
-      "description": ""
+      "description": "<p>Seu treinamento e sua divindade o protegem de dano. Seu grau de proficiência em defesa sem armadura aumenta para perito.</p>"
     },
     "93kwwxx90ZmK5Kv7": {
       "name": "Credo de Batalha",
       "sourceHash": "24e0409881d2cbfc89ca73fe711c79e65e299dbd",
-      "description": ""
+      "description": "<p>Você passou por um treinamento especial para concentrar seu corpo no combate. Embora ainda siga os ensinamentos de sua fé, você também sabe que serve como um instrumento de sua igreja. Mais do que qualquer sacerdote guerreiro, os rigores físicos que acompanham a batalha são fundamentais para o seu treinamento. Você se dedicou ao credo de batalha, uma abordagem específica que coloca a proeza em combate em primeiro lugar, mesmo às custas das habilidades típicas de conjuração e restauração de um clérigo. Derrotar os próprios inimigos é mais importante do que curar um aliado no calor da batalha; o momento de curar vem depois. Ao seguir o credo de batalha, suas capacidades físicas e marciais se fortalecem. Você deve escolher @UUID[Compendium.pf2e.feats-srd.Item.Battle Harbinger Dedication] como seu talento de classe de 2º nível.</p>\n<p><strong>Pré-requisitos:</strong></p><ul><li><p>Você deve ser um clérigo.</p></li><li><p>Você não ganha a característica de classe @UUID[Compendium.pf2e.classfeatures.Item.Resolute Faith].</p></li><li><p>Você não ganha a característica de classe @UUID[Compendium.pf2e.classfeatures.Item.Miraculous Spell].</p></li></ul><p><strong>Ajuste de Conjuração</strong>: Suas capacidades de conjuração são mais restritas. No 1º nível, você pode preparar uma magia de 1º grau e cinco truques. Conforme você sobe de nível, seu número de espaços de magia e o grau máximo de magias que você pode conjurar a partir de espaços de magia aumentam, conforme mostrado em Magias por Dia do Arauto de Batalha. Devido ao seu foco no treinamento físico às custas da aptidão mágica, você não tem mais do que dois espaços de magia do seu grau mais alto e, se puder conjurar magias de 2º grau ou superior, dois espaços de magia de 1 grau abaixo do seu grau de magia mais alto. Para qualquer coisa que exija a capacidade de conjurar magias de um determinado grau inferior aos espaços mais altos que você possui, você ainda se qualifica mesmo que não tenha mais espaços de magia naqueles graus.</p><table class=\"pf2e lost-omens\"><thead><tr><th>Seu Nível</th><th>Truques</th><th>1º</th><th>2º</th><th>3º</th><th>4º</th><th>5º</th><th>6º</th><th>7º</th><th>8º</th><th>9º</th></tr></thead><tbody><tr><td>1</td><td>5</td><td>1</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr><tr><td>2</td><td>5</td><td>2</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr><tr><td>3</td><td>5</td><td>2</td><td>1</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr><tr><td>4</td><td>5</td><td>2</td><td>2</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr><tr><td>5</td><td>5</td><td>-</td><td>2</td><td>2</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr><tr><td>6</td><td>5</td><td>-</td><td>2</td><td>2</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr><tr><td>7</td><td>5</td><td>-</td><td>-</td><td>2</td><td>2</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr><tr><td>8</td><td>5</td><td>-</td><td>-</td><td>2</td><td>2</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr><tr><td>9</td><td>5</td><td>-</td><td>-</td><td>-</td><td>2</td><td>2</td><td>-</td><td>-</td><td>-</td><td>-</td></tr><tr><td>10</td><td>5</td><td>-</td><td>-</td><td>-</td><td>2</td><td>2</td><td>-</td><td>-</td><td>-</td><td>-</td></tr><tr><td>11</td><td>5</td><td>-</td><td>-</td><td>-</td><td>-</td><td>2</td><td>2</td><td>-</td><td>-</td><td>-</td></tr><tr><td>12</td><td>5</td><td>-</td><td>-</td><td>-</td><td>-</td><td>2</td><td>2</td><td>-</td><td>-</td><td>-</td></tr><tr><td>13</td><td>5</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>2</td><td>2</td><td>-</td><td>-</td></tr><tr><td>14</td><td>5</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>2</td><td>2</td><td>-</td><td>-</td></tr><tr><td>15</td><td>5</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>2</td><td>2</td><td>-</td></tr><tr><td>16</td><td>5</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>2</td><td>2</td><td>-</td></tr><tr><td>17</td><td>5</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>2</td><td>2</td></tr><tr><td>18</td><td>5</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>2</td><td>2</td></tr><tr><td>19</td><td>5</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>2</td><td>2</td></tr><tr><td>20</td><td>5</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>2</td><td>2</td></tr></tbody></table><p><strong>Ajuste de Fonte Divina:</strong> Em vez de preparar magias de @UUID[Compendium.pf2e.spells-srd.Item.Heal] ou @UUID[Compendium.pf2e.spells-srd.Item.Harm] com sua fonte divina, você ganha a fonte de batalha, que permite preparar magias de aura de batalha. Você ganha 4 espaços de magia adicionais por dia no seu grau mais alto de espaços de magia de clérigo. Você só pode preparar @UUID[Compendium.pf2e.spells-srd.Item.Bane] ou @UUID[Compendium.pf2e.spells-srd.Item.Bless] nesses espaços. Quaisquer talentos e efeitos que se referem a uma aura de batalha referem-se a essas magias, independentemente de terem sido conjuradas com seus espaços de magia padrão ou com os espaços de magia da sua fonte divina. No 5º nível, o número de espaços adicionais aumenta para 5, e no 15º nível, o número total de espaços adicionais aumenta para 6. Suas auras de batalha usam sua CD de classe em vez da sua CD de magia.</p>\n<p><strong>Ajuste de Doutrina:</strong> Em vez de escolher uma doutrina, você segue o credo de batalha. No 1º nível, você ganha os benefícios do credo inicial. Você ganha benefícios adicionais do seu credo nos níveis listados.</p>\n<p>@UUID[Compendium.pf2e.classfeatures.Item.Initial Creed] (1º): Você é treinado em armadura leve e média, e tem proficiência de perito em testes de Fortitude. Você é treinado em armas marciais. Se a arma favorita da sua divindade for uma arma simples ou um ataque desarmado, você ganha o talento de clérigo @UUID[Compendium.pf2e.feats-srd.Item.Deadly Simplicity]. No 13º nível, quando você ganha a característica de classe @UUID[Compendium.pf2e.classfeatures.Item.Divine Defense], você também ganha proficiência de perito em armadura leve e média.</p>\n<p>@UUID[Compendium.pf2e.classfeatures.Item.Lesser Creed] (5º): Você ganha proficiência de perito com a arma favorita da sua divindade, armas marciais, armas simples e ataques desarmados. Quando você obtém um sucesso crítico em uma rolagem de ataque usando a arma favorita da sua divindade, você aplica o efeito de especialização crítica da arma. Seu grau de proficiência para sua CD de classe aumenta para perito.</p>\n<p>@UUID[Compendium.pf2e.classfeatures.Item.Moderate Creed] (9º): Você ganha @UUID[Compendium.pf2e.feats-srd.Item.Reactive Strike] como talento de clérigo.</p>\n<p>@UUID[Compendium.pf2e.classfeatures.Item.Greater Creed] (11º): Seus graus de proficiência para o modificador de ataque de magia e para a CD de magia aumentam para perito.</p>\n<p>@UUID[Compendium.pf2e.classfeatures.Item.Major Creed] (13º): Você ganha proficiência de mestre com a arma favorita da sua divindade. Seu grau de proficiência em testes de Fortitude aumenta para mestre. Quando você rola um sucesso em um teste de Fortitude, você obtém um sucesso crítico em vez disso.</p>\n<p>@UUID[Compendium.pf2e.classfeatures.Item.True Creed] (15º): Seu grau de proficiência para sua CD de classe aumenta para mestre. Seu grau de proficiência em testes de Vontade aumenta para mestre.</p>\n<p>@UUID[Compendium.pf2e.classfeatures.Item.Final Creed] (19º): Seus graus de proficiência em armadura leve e média, bem como em defesa desarmada, aumentam para mestre. Seu grau de proficiência para sua CD de classe aumenta para lendário.</p>"
     },
     "9AY13hjNNXOnER71": {
       "name": "Linhagem: Elemental",
       "sourceHash": "2bfe55941a66bf5b600ed55ef0088c001bdcff15",
-      "description": ""
+      "description": "<p>Uma influência elemental imbuiu seu sangue de fúria primal. Você recebe diferentes magias de dádiva feiticeira e tipo de dano de magia de sangue dependendo de qual elemento afetou sua linhagem (veja Influências Elementais abaixo).</p>\n<p><strong>Tradição</strong> primal</p>\n<p><strong>Perícias de Linhagem</strong> Intimidação, Natureza</p>\n<p><strong>Dádivas Feiticeiras</strong> truque: veja Influências Elementais abaixo; 1º: veja Influências Elementais abaixo; 2º: @UUID[Compendium.pf2e.spells-srd.Item.Resist Energy]; 3º: veja Influências Elementais abaixo; 4º: @UUID[Compendium.pf2e.spells-srd.Item.Unfettered Movement]; 5º: @UUID[Compendium.pf2e.spells-srd.Item.Elemental Form] (somente influência elemental); 6º: veja Influências Elementais abaixo; 7º: @UUID[Compendium.pf2e.spells-srd.Item.Energy Aegis]; 8º: @UUID[Compendium.pf2e.spells-srd.Item.Earthquake]; 9º: @UUID[Compendium.pf2e.spells-srd.Item.Wrathful Storm]</p>\n<p><strong>Magias de Linhagem</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Elemental Toss]; avançada: @UUID[Compendium.pf2e.spells-srd.Item.Elemental Motion]; superior: @UUID[Compendium.pf2e.spells-srd.Item.Elemental Blast]</p>\n<p><strong>Magia de Sangue — Fúria Elemental</strong> Energia elemental envolve sua forma e imbui sua magia. Você ganha um bônus de condição de +2 em testes de Intimidação por 1 rodada, ou um alvo sofre 1 de dano por grau da magia; esse tipo de dano é listado sob sua influência elemental. Se a magia já causar esse tipo de dano, combine-o com o dano inicial da magia antes de determinar vulnerabilidades e resistências.</p><h3>Influências Elementais</h3><p>No 1º nível, escolha o tipo de elemento que influenciou sua linhagem: ar, terra, fogo, metal, água ou madeira. Você não pode mudar isso depois. Você recebe magias diferentes em certos graus de acordo com essa influência.</p><ul><li><strong>Ar—Dádivas Feiticeiras</strong> truque: @UUID[Compendium.pf2e.spells-srd.Item.Gale Blast]; 1º: @UUID[Compendium.pf2e.spells-srd.Item.Tailwind]; 3º: @UUID[Compendium.pf2e.spells-srd.Item.Wall of Wind]; 6º: @UUID[Compendium.pf2e.spells-srd.Item.Chain Lightning]; <strong>Dano de Magia de Sangue</strong> corte</li><li><strong>Terra—Dádivas Feiticeiras</strong> truque: @UUID[Compendium.pf2e.spells-srd.Item.Scatter Scree]; 1º: @UUID[Compendium.pf2e.spells-srd.Item.Pummeling Rubble]; 3º: @UUID[Compendium.pf2e.spells-srd.Item.Earthbind]; 6º: @UUID[Compendium.pf2e.spells-srd.Item.Petrify]; <strong>Dano de Magia de Sangue</strong> concussão</li><li><strong>Fogo—Dádivas Feiticeiras</strong> truque: @UUID[Compendium.pf2e.spells-srd.Item.Ignition], 1º: @UUID[Compendium.pf2e.spells-srd.Item.Breathe Fire]; 3º: @UUID[Compendium.pf2e.spells-srd.Item.Fireball]; 6º: @UUID[Compendium.pf2e.spells-srd.Item.Tree of Seasons] (todas as vagens são de verão); <strong>Dano de Magia de Sangue</strong> fogo</li><li><strong>Metal—Dádivas Feiticeiras</strong> truque @UUID[Compendium.pf2e.spells-srd.Item.Electric Arc]; 1º: @UUID[Compendium.pf2e.spells-srd.Item.Thunderstrike]; 3º: @UUID[Compendium.pf2e.spells-srd.Item.Lightning Bolt]; 6º: @UUID[Compendium.pf2e.spells-srd.Item.Chain Lightning]; <strong>Dano de Magia de Sangue</strong> perfuração</li><li><strong>Água—Dádivas Feiticeiras</strong> truque: @UUID[Compendium.pf2e.spells-srd.Item.Frostbite]; 1º: @UUID[Compendium.pf2e.spells-srd.Item.Hydraulic Push]; 3º: @UUID[Compendium.pf2e.spells-srd.Item.Aqueous Orb]; 6º: @UUID[Compendium.pf2e.spells-srd.Item.Scintillating Safeguard]; <strong>Dano de Magia de Sangue</strong> concussão</li><li><strong>Madeira—Dádivas Feiticeiras</strong> truque: @UUID[Compendium.pf2e.spells-srd.Item.Tangle Vine]; 1º: @UUID[Compendium.pf2e.spells-srd.Item.Cleanse Cuisine]; 3º: @UUID[Compendium.pf2e.spells-srd.Item.Wall of Thorns]; 6º: @UUID[Compendium.pf2e.spells-srd.Item.Tangling Creepers]; <strong>Dano de Magia de Sangue</strong> concussão</li></ul>"
     },
     "9PCCevlsNphbxSlz": {
       "name": "Resistência da Fúria",
@@ -209,7 +214,7 @@
     "9PEowiHm3gg1PAZv": {
       "name": "Linhagem: Psicopompo",
       "sourceHash": "28541d4f5dddc4a703d6085b0569516526497983",
-      "description": ""
+      "description": "<p>Para o bem ou para o mal, os atos de seus ancestrais chamaram a atenção de psicopompos, ou talvez você conte com um deles em sua árvore genealógica. A presença desses pastores de almas e inimigos da não-morte deixou uma marca indelével em você.</p>\n<p><strong>Lista de Magias</strong> divina</p>\n<p><strong>Perícias de Linhagem</strong> Intimidação, Religião</p>\n<p><strong>Magias Concedidas</strong> truque: @UUID[Compendium.pf2e.spells-srd.Item.Vitality Lash]; 1º: @UUID[Compendium.pf2e.spells-srd.Item.Heal]; 2º: @UUID[Compendium.pf2e.spells-srd.Item.Calm]; 3º: @UUID[Compendium.pf2e.spells-srd.Item.Holy Light]; 4º: @UUID[Compendium.pf2e.spells-srd.Item.Planar Tether]; 5º: @UUID[Compendium.pf2e.spells-srd.Item.Death Ward]; 6º: @UUID[Compendium.pf2e.spells-srd.Item.Spirit Blast]; 7º: @UUID[Compendium.pf2e.spells-srd.Item.Execute]; 8º: @UUID[Compendium.pf2e.spells-srd.Item.Spirit Song]; 9º: @UUID[Compendium.pf2e.spells-srd.Item.Massacre]</p>\n<p><strong>Magias de Linhagem</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Sepulchral Mask]; avançada: @UUID[Compendium.pf2e.spells-srd.Item.Spirit Veil]; superior: @UUID[Compendium.pf2e.spells-srd.Item.Shepherd of Souls]</p>\n<p><strong>Magia de Sangue</strong> A fronteira entre a vida e a morte torna-se turva para você. Você ganha um bônus de condição de +2 em testes de resistência de Fortitude por 1 rodada, ou um alvo sofre 1 de dano por grau da magia. O dano é de vazio se o alvo estiver vivo, ou de vitalidade se o alvo for morto-vivo. Se a magia já causar esse tipo de dano, combine-o com o dano inicial da magia antes de determinar vulnerabilidades e resistências.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Psychopomp Blood Magic (Self)]</p>"
     },
     "9UxhxcrzluPnEZR5": {
       "name": "Observador de Campo de Batalha",
@@ -239,7 +244,7 @@
     "9r3wfPji8msgL53W": {
       "name": "Segunda Doutrina",
       "sourceHash": "447617420d5503fe496690073d99f85f3d6145e5",
-      "description": ""
+      "description": "<p>Você ganha o segundo benefício de sua doutrina:</p>\n<ul>\n<li>@UUID[Compendium.pf2e.classfeatures.Item.Second Doctrine (Cloistered Cleric)]{Clérigo Enclausurado}</li>\n<li>@UUID[Compendium.pf2e.classfeatures.Item.Second Doctrine (Warpriest)]{Sacerdote Guerreiro}</li>\n</ul>"
     },
     "A56kTnAVZ0NJmdp0": {
       "name": "Fúria Revigorante",
@@ -254,7 +259,7 @@
     "AA05oph6wGzgEIuz": {
       "name": "Iniquidade",
       "sourceHash": "8a5c2d0d35a3fd24eaeb206b20c69a6aa4c7f2e4",
-      "description": ""
+      "description": "<p>Você é desonrado, desonesto, e comprometido em quebrar as falsas esperanças da bondade.</p>\n<p><strong>Preceitos</strong> destrua o que o ofende ou está em seu caminho, tire vantagem dos outros, trapaceie, roube</p>\n<p><strong>Anátema</strong> vincular-se a uma lei diferente daquela que sua divindade exige</p><hr /><p><strong>Reação do Campeão</strong> @UUID[Compendium.pf2e.actionspf2e.Item.Destructive Vengeance]</p>\n<p><strong>Reação Implacável (Nível 9)</strong> Um inimigo ferido pelo dano da reação inicial também sofre dano de espírito persistente igual ao seu modificador de Carisma. (Isso se aplica apenas ao dano que a própria reação causa, não ao dano que você causa com Golpes subsequentes.)</p>\n<p><strong>Reação Exaltada (Nível 11)</strong> Cada inimigo na aura do seu campeão, exceto a criatura que ativou a reação, sofre metade do dano que você causa ao inimigo que a ativou</p>"
     },
     "AVh4glubbzygKbI8": {
       "name": "Perícia em Armadura Leve",
@@ -269,7 +274,7 @@
     "B1Cjbu0DIhPx4r1u": {
       "name": "Forma Aperfeiçoada",
       "sourceHash": "9da4d43fcaf7ff5de5e2ea427504e33339cb9f01",
-      "description": ""
+      "description": "<p>Você eliminou a incompetência de suas técnicas. No seu primeiro Golpe do turno, se você rolar menos que 10, pode tratar a rolagem de ataque como um 10. Este é um efeito de sorte.</p>"
     },
     "BIuU56P6JTTJz7oI": {
       "name": "Perícia em Reflexos",
@@ -279,7 +284,7 @@
     "BKAFVXNFDrdPg8fB": {
       "name": "Especialização em Fortitude",
       "sourceHash": "44a9052bf1488f10bf5f329e7bf325d9e64a9345",
-      "description": ""
+      "description": "<p><strong>Animista</strong> Energia espiritual reforça seu corpo, tornando-o mais resiliente. Seu grau de proficiência em testes de Fortitude aumenta para perito.</p>\n<p><strong>Bardo, Comandante, Investigador, Espadachim</strong> Seu físico se tornou robusto em suas aventuras. Seu grau de proficiência em testes de Fortitude aumenta para perito.</p>\n<p><strong>Druida</strong> As aventuras tornaram seu físico mais robusto. Seu grau de proficiência em testes de Fortitude aumenta para perito.</p>\n<p><strong>Psíquico</strong> Sua mente mantém seu corpo alinhado a uma imagem mental subconsciente de si mesmo. Seu grau de proficiência em testes de Fortitude aumenta para perito.</p>"
     },
     "BdnE00rTSkwOe3Or": {
       "name": "Maestria Cinética",
@@ -299,12 +304,12 @@
     "CyMp4KYHW8veGR0x": {
       "name": "Maestria Graciosa",
       "sourceHash": "a0b0419477f556ab3fa7da433e1565edb36a346e",
-      "description": ""
+      "description": "<p>Você se move com graça perpétua, desviando golpes. Seu grau de proficiência em defesa sem armadura aumenta para mestre.</p>"
     },
     "EP3UYq5SLhlg7nRD": {
       "name": "Doutrina Final (Clérigo Enclausurado)",
       "sourceHash": "bd2cae932706f12aec01bc5a8aa3aa251ef3c14b",
-      "description": ""
+      "description": "<p>Seus graus de proficiência para o modificador de ataque de magia e para a CD de magia aumentam para lendário.</p>"
     },
     "ETInvMyBeigMlTrA": {
       "name": "Flexibilidade Aprimorada",
@@ -319,17 +324,17 @@
     "FMCbwY7W87AHaS48": {
       "name": "Conjuração do Feiticeiro",
       "sourceHash": "8ecd58ec2407dd86073424712235848a250e362d",
-      "description": ""
+      "description": "<p>Sua linhagem lhe dá um poder mágico incrível. Você é um conjurador e pode conjurar magias usando a atividade Conjurar uma Magia. A tradição da qual suas magias vêm é determinada pela sua linhagem. Como feiticeiro, você extrai seu poder de dentro de si mesmo, e os gestos e encantações que usa para moldar seu poder podem evocar a natureza de sua linhagem. Por exemplo, um feiticeiro com uma linhagem demoníaca pode entoar frases guturais e demoníacas ou fazer gestos breves e secos para conjurar uma magia.</p>\n<p>Todos os dias, você pode conjurar até três magias de 1º grau. Você precisa conhecer as magias para conjurá-las, e as aprende por meio da característica de classe repertório de magias. O número de magias que você pode conjurar por dia é chamado de espaços de magia.</p>\n<p>Conforme você aumenta de nível como feiticeiro, seu número de magias por dia aumenta, assim como o maior grau de magias que você consegue conjurar, conforme mostrado na tabela Magias de Feiticeiro por Dia.</p>\n<p>Algumas das suas magias exigem que você tente uma rolagem de ataque de magia para ver o quão eficazes são, ou fazem seus inimigos rolarem contra sua CD de magia (normalmente tentando um teste de resistência). Como seu atributo-chave é Carisma, seu modificador de ataque de magia e sua CD de magia usam seu modificador de Carisma.</p><h3>Elevando Magias</h3><p>Quando você obtém espaços de magia de 2º grau ou superior, pode preencher esses espaços com versões mais fortes de magias de grau inferior. Isso aumenta o grau da magia, elevando-a para corresponder ao espaço de magia. Você precisa ter uma magia em seu repertório de magias no grau em que deseja conjurá-la para poder elevá-la a esse grau. Muitas magias têm melhorias específicas quando são elevadas a certos graus. A característica de classe magias emblemáticas permite que você eleve certas magias livremente.</p><h3>Truques</h3><p>Algumas das suas magias são truques. Um truque é um tipo especial de magia que não usa espaços de magia. Você pode conjurar um truque à vontade, quantas vezes por dia quiser. Um truque é sempre automaticamente elevado à metade do seu nível arredondado para cima — isso normalmente equivale ao maior grau de espaço de magia de feiticeiro que você possui. Por exemplo, como feiticeiro de 1º nível, seus truques são magias de 1º grau, e como feiticeiro de 5º nível, seus truques são magias de 3º grau.</p>"
     },
     "FUjXsopM5ajHSys7": {
       "name": "Vontade Divina",
       "sourceHash": "f755a6ea1e28e245a71edda34f8f5cfa007a826a",
-      "description": ""
+      "description": "<p>Sua fé concede maestria à sua vontade. Seu grau de proficiência em testes de Vontade aumenta para mestre. Quando você rola um sucesso em um teste de Vontade, você obtém um sucesso crítico em vez disso.</p>"
     },
     "G95Xci9mfJ6PTALk": {
       "name": "Causa",
       "sourceHash": "3f735ee95e6640821b7e182195ded72fa54365da",
-      "description": ""
+      "description": "<p>Você se dedica a uma causa específica em nome de sua divindade. Algumas são limitadas por santificação, conforme indicado entre parênteses. Sua causa se soma aos seus preceitos e anátemas e concede a você uma reação especial chamada reação do campeão, que aparece após o divisor, junto com suas melhorias caso você ganhe as características de classe reação implacável e reação exaltada em níveis mais altos.</p>\n<p><strong>@UUID[Compendium.pf2e.classfeatures.Item.Desecration] (Profano):</strong> Você corrompe e destrói de forma egoísta.</p>\n<p><strong>@UUID[Compendium.pf2e.classfeatures.Item.Grandeur] (Sagrado):</strong> Você exemplifica a glória e o esplendor dos reinos celestiais.</p>\n<p><strong>@UUID[Compendium.pf2e.classfeatures.Item.Iniquity] (Profano):</strong> Você destrói, tira vantagem e age com desonra.</p>\n<p><strong>@UUID[Compendium.pf2e.classfeatures.Item.Justice]:</strong> Você segue as leis e aplica punições justas.</p>\n<p><strong>@UUID[Compendium.pf2e.classfeatures.Item.Liberation]:</strong> Você se opõe à tirania e luta pela liberdade.</p>\n<p><strong>@UUID[Compendium.pf2e.classfeatures.Item.Obedience]:</strong> Você impõe hierarquias e ordem.</p>\n<p><strong>@UUID[Compendium.pf2e.classfeatures.Item.Redemption] (Sagrado):</strong> Você tenta redimir aqueles que cometem atos perversos.</p>"
     },
     "GFaalT8iDyFLANvS": {
       "name": "Resolução",
@@ -381,6 +386,11 @@
       "sourceHash": "ffc9f3cd9771f73150c38e2d4bbb4c081fd0cc0e",
       "description": "<p>Quando seu inimigo não consegue se defender adequadamente, você aproveita para causar dano extra. Se você Golpear uma criatura com a condição @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] usando uma arma corpo a corpo ágil ou de precisão, um ataque desarmado ágil ou de precisão, um ataque de arma à distância, ou um ataque desarmado à distância, você causa 1d6 de dano de precisão extra. Para um ataque à distância com uma arma corpo a corpo arremessável, essa arma também precisa ser ágil ou de precisão.</p>\n<p>Conforme seu nível aumenta, também aumenta o número de dados de dano do seu ataque furtivo. Aumente o número de dados em um nos níveis 5, 11 e 17.</p>"
     },
+    "IDQ2uKdJvhXxK0zv": {
+      "name": "Armamento Abençoado",
+      "sourceHash": "17f9ccf0686d8afc5d8bf78c42e945c6460e9798",
+      "description": "<p>Escolha uma arma ou luvas de golpes poderosos. Você ganha o efeito de especialização crítica daquele armamento, e concede ao armamento uma runa de propriedade à sua escolha dentre a lista a seguir: @UUID[Compendium.pf2e.equipment-srd.Item.Fearsome], @UUID[Compendium.pf2e.equipment-srd.Item.Ghost Touch], @UUID[Compendium.pf2e.equipment-srd.Item.Returning], @UUID[Compendium.pf2e.equipment-srd.Item.Shifting], ou @UUID[Compendium.pf2e.equipment-srd.Item.Vitalizing]. Durante suas preparações diárias, você pode mudar o espírito para habitar um armamento diferente, conceder uma runa diferente, ou ambos.</p>\n<p>Essa runa não conta para o número de runas de propriedade da arma. Ela pode ser usada mesmo que a arma já tenha seu número máximo de runas de propriedade.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Blessed Armament]</p>"
+    },
     "IF3HM3OiA20rpyCG": {
       "name": "Escola de Magia de Batalha",
       "sourceHash": "8a7a96a9c4512cfa08aac6c7e17838982255ea18",
@@ -389,12 +399,12 @@
     "IJ3Dsad3qTTqIhMG": {
       "name": "Magnum Opus",
       "sourceHash": "8b8aed887fb78a5498e8587e4e1a5e6c1ba6b1fb",
-      "description": ""
+      "description": "<p>Você refinou sua conjuração ao mais alto calibre. Adicione duas magias ocultas comuns de 10º grau ao seu repertório. Você ganha um único espaço de magia de 10º grau que pode usar para conjurar essas magias usando a conjuração de bardo. Diferente de outros espaços de magia, você não pode usar espaços de 10º grau com habilidades que concedem mais espaços de magia ou que permitem conjurar magias sem gastar espaços de magia. Você não ganha mais magias de 10º grau conforme sobe de nível, mas pode escolher o talento Bis Perfeito para ganhar um segundo espaço.</p>"
     },
     "IPkRrReHUSAhWrb3": {
       "name": "Repertório de Magias",
       "sourceHash": "5847a6d5b892aabb7bc4a395966f9493b386bf7d",
-      "description": ""
+      "description": "<p><strong>Bardo</strong> A coleção de magias que você pode conjurar é chamada de seu repertório de magias. No 1º nível, você aprende duas magias ocultas de 1º grau à sua escolha e cinco truques ocultos à sua escolha. Você as escolhe dentre as magias comuns da lista oculta ou de outras magias ocultas às quais tem acesso. Você pode conjurar qualquer magia do seu repertório de magias usando um espaço de magia do grau apropriado.</p>\n<p>Você adiciona a esse repertório de magias conforme sobe de nível. Cada vez que você ganha um espaço de magia (veja a tabela Magias de Bardo por Dia), você adiciona uma magia do mesmo grau ao seu repertório de magias. No 2º nível, você escolhe outra magia de 1º grau; no 3º nível, você escolhe duas magias de 2º grau, e assim por diante. Ao adicionar magias, você pode adicionar uma versão de grau superior de uma magia que já possui, para poder conjurar uma versão elevada dessa magia.</p>\n<p>Embora você os ganhe na mesma proporção, seus espaços de magia e as magias em seu repertório de magias são coisas separadas. Se um talento ou outra habilidade adicionar uma magia ao seu repertório de magias, isso não lhe daria outro espaço de magia, e vice-versa.</p>\n<p><strong>Trocando Magias em Seu Repertório</strong></p>\n<p>Conforme você ganha novas magias em seu repertório, pode querer substituir algumas das magias que aprendeu anteriormente. Cada vez que você sobe de nível e aprende novas magias, pode trocar uma de suas magias antigas por uma magia diferente do mesmo grau. Essa magia pode ser um truque. Você também pode trocar magias retreinando durante o tempo livre.</p><hr /><p><strong>Oráculo</strong> A coleção de magias que você pode conjurar é chamada de seu repertório de magias. No 1º nível, você aprende três magias divinas de 1º grau à sua escolha e cinco truques divinos à sua escolha. Você as escolhe dentre as magias comuns da lista divina ou de outras magias divinas às quais tem acesso. Você pode conjurar qualquer magia do seu repertório de magias usando um espaço de magia do grau apropriado.</p>\n<p>Você adiciona a esse repertório de magias conforme sobe de nível. Cada vez que você ganha um espaço de magia (veja a tabela Magias de Oráculo por Dia), você adiciona uma magia do mesmo grau ao seu repertório de magias. No 2º nível, você escolhe outra magia de 1º grau; no 3º nível, você escolhe três magias de 2º grau, e assim por diante. Ao adicionar magias, você pode adicionar uma versão de grau superior de uma magia que já possui, para poder conjurar uma versão elevada dessa magia.</p>\n<p>Seus espaços de magia e as magias em seu repertório de magias são coisas separadas. Se um talento ou outra habilidade adicionar uma magia ao seu repertório de magias, isso não lhe daria outro espaço de magia, e vice-versa.</p>\n<p><strong>Trocando Magias em Seu Repertório</strong></p>\n<p>Conforme você ganha novas magias em seu repertório, pode querer substituir algumas das magias que aprendeu anteriormente. Cada vez que você sobe de nível e aprende novas magias, pode trocar uma de suas magias antigas por uma magia diferente do mesmo grau. Essa magia pode ser um truque. Você também pode trocar magias retreinando durante o tempo livre.</p><hr /><p><strong>Psíquico</strong> A coleção de magias que você pode conjurar é chamada de seu repertório de magias. No 1º nível, você aprende uma magia oculta de 1º grau à sua escolha e três truques ocultos à sua escolha. Você as escolhe dentre as magias comuns da lista oculta ou de outras magias ocultas às quais tem acesso. Você pode conjurar qualquer magia do seu repertório de magias usando um espaço de magia do grau apropriado. Sua escolha de mente consciente também concede a você magias adicionais em seu repertório, começando com uma magia adicional de 1º grau e dois truques listados em sua mente consciente, que você conjura como truques psi.</p>\n<p>Você adiciona a esse repertório de magias conforme sobe de nível. Cada vez que você ganha um espaço de magia (veja a tabela Magias de Psíquico por Dia), você adiciona uma magia do mesmo grau ao seu repertório de magias. No 2º nível, você escolhe outra magia de 1º grau; no 3º nível, você escolhe uma magia de 2º grau, e assim por diante. Ao adicionar magias, você pode adicionar uma versão de grau superior de uma magia que já possui, para poder conjurar uma versão elevada dessa magia. Sua mente consciente também adiciona magias adicionais ao seu repertório conforme você ganha magias de graus superiores.</p>\n<p>Embora você os ganhe na mesma proporção, seus espaços de magia e as magias em seu repertório de magias são coisas separadas. Se um talento ou outra habilidade adicionar uma magia ao seu repertório de magias, como as magias que você ganha de sua mente consciente, isso não lhe daria outro espaço de magia, e vice-versa.</p>\n<p><strong>Trocando Magias em Seu Repertório</strong></p>\n<p>Conforme você ganha novas magias em seu repertório, pode querer substituir algumas das magias que aprendeu anteriormente. Cada vez que você sobe de nível e aprende novas magias, pode trocar uma de suas magias antigas por uma magia diferente do mesmo grau. Essa magia pode ser um truque. Você também pode trocar magias retreinando durante o tempo livre.</p><hr /><p><strong>Feiticeiro</strong> A coleção de magias que você pode conjurar é chamada de seu repertório de magias. No 1º nível, você aprende duas magias de 1º grau à sua escolha e quatro truques à sua escolha, além de uma magia e um truque adicionais de sua linhagem. Você as escolhe dentre as magias comuns da tradição correspondente à sua linhagem, ou de outras magias daquela tradição às quais tem acesso. Você pode conjurar qualquer magia do seu repertório de magias usando um espaço de magia do grau apropriado.</p>\n<p>Você adiciona a esse repertório de magias conforme sobe de nível. Cada vez que você ganha um espaço de magia (veja a tabela Magias de Feiticeiro por Dia acima), você adiciona uma magia do mesmo grau ao seu repertório de magias. Quando você ganha um novo grau de magias, sua primeira magia nova é sempre a magia de dádiva feiticeira daquele grau listada em sua linhagem, mas você pode escolher as outras magias. No 2º nível, você escolhe outra magia de 1º grau; no 3º nível, você ganha uma nova magia de sua linhagem e mais duas magias de 2º grau, e assim por diante. Ao adicionar magias, você pode selecionar uma versão de grau superior de uma magia que já conhece, para poder conjurar uma versão elevada dessa magia.</p>\n<p>Embora você os ganhe na mesma proporção, seus espaços de magia e as magias em seu repertório de magias são coisas separadas. Se um talento ou outra habilidade adicionar uma magia ao seu repertório de magias, isso não lhe daria outro espaço de magia, nem vice-versa.</p>\n<p><strong>Trocando Magias em Seu Repertório</strong></p>\n<p>Conforme você ganha novas magias em seu repertório de magias, pode querer substituir algumas das magias que aprendeu anteriormente. Cada vez que você sobe de nível e aprende novas magias, pode trocar uma de suas magias antigas por uma magia diferente do mesmo grau. Essa magia pode ser um truque, mas você não pode trocar magias de linhagem. Você também pode trocar magias retreinando durante o tempo livre.</p><hr /><p><strong>Conjurador</strong> A coleção de magias que você pode conjurar é chamada de seu repertório de magias. No 1º nível, você aprende duas magias de 1º grau à sua escolha e cinco truques à sua escolha. Você as escolhe dentre as magias comuns da tradição correspondente ao seu eidolon, ou de outras magias daquela tradição às quais tem acesso. Você pode conjurar qualquer magia do seu repertório de magias usando um espaço de magia do grau apropriado. Seus espaços de magia e as magias em seu repertório de magias são coisas separadas. Se um talento ou outra habilidade adicionar uma magia ao seu repertório de magias, isso não lhe dá outro espaço de magia, e vice-versa.</p>\n<p>Você adiciona a esse repertório de magias conforme sobe de nível. Cada vez que você ganha um espaço de magia (veja a Tabela 2–4: Magias de Conjurador por Dia), você adiciona uma magia do mesmo grau ao seu repertório de magias. No 2º nível, você escolhe outra magia de 1º grau. No 3º nível, você adiciona a primeira magia de 2º grau ao seu repertório. No 4º nível, você ganha sua segunda magia de 2º grau, e seu repertório de magias atinge seu tamanho máximo de cinco magias.</p>\n<p>No 5º nível, além de adicionar duas magias de 3º grau ao seu repertório, você perde seu grau mais baixo de espaços de magia. Sempre que você perde um grau de espaços de magia, também perde duas magias em seu repertório. Estas podem vir de magias que você já conhece ou do número de novas magias que está aprendendo. Em níveis nos quais você não muda seus espaços de magia, você pode trocar múltiplas magias, conforme descrito abaixo.</p>\n<p><strong>Trocando Magias em Seu Repertório</strong></p>\n<p>Conforme você ganha novas magias em seu repertório, pode querer substituir algumas das magias que aprendeu anteriormente. Cada vez que você sobe de nível e aprende novas magias, pode trocar uma de suas magias antigas por uma magia diferente do mesmo grau. Se for um grau no qual você perde um conjunto de espaços de grau inferior, pode substituir as duas em qualquer ordem. Você também pode, em vez disso, trocar um truque. Você também pode trocar magias retreinando durante o tempo livre.</p>\n<p>No 6º nível e a cada nível par depois disso, você pode trocar qualquer número de suas magias por magias diferentes de um grau que você consegue conjurar. Ao fazer isso, você deve manter pelo menos uma magia que consegue conjurar com seu grau mais baixo de espaços de magia, para não acabar com espaços que não pode usar. Por exemplo, no 6º nível você precisaria manter pelo menos uma magia de 2º grau, mas todas as suas outras magias poderiam ser de 3º grau.</p>"
     },
     "IWh85cirQmPjmrDr": {
       "name": "Trapaceiro Sobrenatural",
@@ -404,7 +414,7 @@
     "IiaUAbejweA6JloA": {
       "name": "Libertação",
       "sourceHash": "b3c8ef90887fa7411a4074a1713908feeace7fb3",
-      "description": ""
+      "description": "<p>Você fará com que todas as pessoas sejam libertas de servidão e proibições.</p>\n<p><strong>Preceitos</strong> oponha-se à escravidão e à tirania, lute pela liberdade dos outros de tomarem suas próprias decisões, respeite as escolhas que os outros fazem por suas próprias vidas</p>\n<p><strong>Anátema</strong> forçar ou ameaçar alguém a agir de certa forma, praticar escravidão ou tirania</p><hr /><p><strong>Reação do Campeão</strong> @UUID[Compendium.pf2e.actionspf2e.Item.Liberating Step]</p>\n<p><strong>Reação Implacável (Nível 9)</strong> Você pune aqueles que aprisionam seus aliados. Se o inimigo que ativou a reação estava usando algum efeito para deixar seu aliado @UUID[Compendium.pf2e.conditionitems.Item.Grabbed], @UUID[Compendium.pf2e.conditionitems.Item.Restrained], @UUID[Compendium.pf2e.conditionitems.Item.Immobilized], ou @UUID[Compendium.pf2e.conditionitems.Item.Paralyzed] quando você usou Passo Libertador, esse inimigo sofre dano de espírito persistente igual ao seu modificador de Carisma.</p>\n<p><strong>Reação Exaltada (Nível 11)</strong> Além do aliado afetado por Passo Libertador, você e todos os outros aliados na aura do seu campeão podem dar um Passo como uma ação livre. Você e seus aliados ganham o benefício mesmo que o aliado beneficiado por Passo Libertador não possa se mover.</p>"
     },
     "J5O5LCmCJ4eppkYk": {
       "name": "Instinto Lenhoso",
@@ -414,7 +424,7 @@
     "J6Cm1EsbCKXRHMW2": {
       "name": "Magias de Linhagem",
       "sourceHash": "0e19291b72e38c214b7679ed2d2092b3f4fea4a4",
-      "description": ""
+      "description": "<p>Sua linhagem concede a você magias de linhagem, magias especiais exclusivas da sua ascendência. Magias de linhagem são um tipo de magia de foco. Custa 1 Ponto de Foco para conjurar uma magia de foco, e você começa com uma reserva de foco de 1 Ponto de Foco. Você reabastece sua reserva de foco durante suas preparações diárias, e pode recuperar 1 Ponto de Foco gastando 10 minutos com a atividade Refocalizar. Diferente de outros personagens, você não precisa fazer nada específico para Refocalizar, já que o poder que flui em suas veias reabastece naturalmente sua reserva de foco.</p>\n<p>Magias de foco são automaticamente elevadas à metade do seu nível arredondado para cima, assim como os truques. Magias de foco não exigem espaços de magia; você não pode conjurá-las usando espaços de magia. O máximo de Pontos de Foco que sua reserva de foco pode conter é igual ao número de magias de foco que você possui, mas nunca pode ser mais do que 3 pontos. Você aprende a magia de linhagem inicial, que é exclusiva da sua linhagem.</p><h3>Lendo uma Entrada de Linhagem</h3><p>Uma entrada de linhagem contém as seguintes informações.</p>\n<p><strong>Tradição</strong> Você usa essa tradição mágica e essa lista de magias</p>\n<p><strong>Perícias de Linhagem</strong> Você se torna treinado nas perícias listadas.</p>\n<p><strong>Dádivas Feiticeiras</strong> Você adiciona automaticamente as magias listadas aqui ao seu repertório de magias, conforme descrito na característica Repertório de Magias. No 1º nível, você ganha um truque e uma magia de 1º grau. Você aprende as outras magias da lista assim que ganha a capacidade de conjurar magias de feiticeiro daquele grau.</p>\n<p><strong>Magias de Linhagem</strong> Você ganha automaticamente a magia de linhagem inicial no 1º nível e pode ganhar mais selecionando os talentos Linhagem Avançada e Linhagem Maior.</p>\n<p><strong>Magia de Sangue</strong> Sempre que você conjura uma magia de linhagem usando um Ponto de Foco ou uma magia de dádiva feiticeira usando um espaço de magia, você escolhe um efeito de magia de sangue que conheça para se beneficiar. Você começa o jogo com o benefício listado em sua linhagem e pode ganhar outros por meio de talentos de feiticeiro.</p>\n<p>Se o efeito de magia de sangue oferecer uma escolha, faça-a antes de resolver a magia. O efeito de magia de sangue ocorre depois de resolver quaisquer testes para os efeitos iniciais da magia e, contra um inimigo, aplica-se apenas se a magia for um ataque bem-sucedido ou se o inimigo falhar no teste de resistência. Se a magia tiver uma área, você deve designar a si mesmo ou um alvo na área, ao conjurar a magia, para ser o alvo do efeito de magia de sangue. Todas as referências ao grau da magia referem-se ao grau da magia que você conjurou.</p>"
     },
     "J9FT6XRcaEhYUHnV": {
       "name": "Especialização em Armas",
@@ -429,27 +439,27 @@
     "JYQS4l6mn6OKQFFj": {
       "name": "Golpes Místicos",
       "sourceHash": "d5a28e12f27940d111c64020038e80bee7ca99df",
-      "description": ""
+      "description": "<p>Concentrar sua vontade em seus ataques físicos os imbui de energia mística. Seus ataques desarmados se tornam mágicos, permitindo que superem resistências a ataques não mágicos. No entanto, você ainda precisa de um item como @UUID[Compendium.pf2e.equipment-srd.Item.Handwraps of Mighty Blows]{Luvas de Golpes Poderosos (+1)} para ganhar um bônus de item em rolagens de ataque ou aumentar os dados de dano de arma dos seus ataques.</p>"
     },
     "Jlw5VvWR1sjgsi6e": {
       "name": "Linhagem: Demoníaca",
       "sourceHash": "c6d233a46347f539b9114c2089d142f382e3da34",
-      "description": ""
+      "description": "<p>Demônios degradam tudo o que tocam. Um de seus ancestrais foi vítima da corrupção deles, e você carrega o fardo desse pecado.</p>\n<p><strong>Tradição</strong> divina</p>\n<p><strong>Perícias de Linhagem</strong> Intimidação, Religião</p>\n<p><strong>Dádivas Feiticeiras</strong> truque: @UUID[Compendium.pf2e.spells-srd.Item.Caustic Blast]; 1º: @UUID[Compendium.pf2e.spells-srd.Item.Fear]; 2º: @UUID[Compendium.pf2e.spells-srd.Item.Enlarge]; 3º: @UUID[Compendium.pf2e.spells-srd.Item.Slow]; 4º: @UUID[Compendium.pf2e.spells-srd.Item.Divine Wrath]; 5º: @UUID[Compendium.pf2e.spells-srd.Item.Blister]; 6º: @UUID[Compendium.pf2e.spells-srd.Item.Disintegrate]; 7º: @UUID[Compendium.pf2e.spells-srd.Item.Divine Decree]; 8º: @UUID[Compendium.pf2e.spells-srd.Item.Canticle of Everlasting Grief]; 9º: @UUID[Compendium.pf2e.spells-srd.Item.Implosion]</p>\n<p><strong>Magias de Linhagem</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Glutton's Jaws]; avançada: @UUID[Compendium.pf2e.spells-srd.Item.Swamp of Sloth]; superior: @UUID[Compendium.pf2e.spells-srd.Item.Chthonian Wrath]</p>\n<p><strong>Magia de Sangue — Corrupção do Pecado</strong> Você transmite mentalmente breves vislumbres dos desejos mais sombrios da mente. Um alvo sofre uma penalidade de condição de –1 na CA por 1 rodada, ou você ganha um bônus de condição de +2 em testes de Intimidação por 1 rodada.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Demonic Blood Magic]</p>"
     },
     "K1tJyOpd6JHAPPaz": {
       "name": "Reação Exaltada",
       "sourceHash": "94b5e530f39d6c1ca4fc0a7e690600508dca2ac3",
-      "description": ""
+      "description": "<p>A reação do seu campeão exalta os aliados próximos, permitindo que eles também se beneficiem. Quando você usa a reação do seu campeão, você também obtém o efeito listado para sua reação exaltada.</p>"
     },
     "Kj1d35aAxgbTMvMH": {
       "name": "Magias de Composição",
       "sourceHash": "bc4990afd90c1cf2938bcb92ce64951b75dae655",
-      "description": ""
+      "description": "<p>Você pode imbuir suas performances de magia para criar efeitos únicos chamados composições. Composições são um tipo especial de magia que muitas vezes exige que você use a perícia Atuação ao conjurá-las. Magias de composição são um tipo de magia de foco. Custa 1 Ponto de Foco para conjurar uma magia de foco, e você começa com uma reserva de foco de 1 Ponto de Foco. Você reabastece sua reserva de foco durante suas preparações diárias, e pode recuperar 1 Ponto de Foco gastando 10 minutos com a atividade Refocalizar para se apresentar, compor uma nova composição, ou de alguma outra forma se engajar com sua musa.</p>\n<p>Magias de foco são automaticamente elevadas à metade do seu nível arredondado para cima, assim como os truques. Magias de foco não exigem espaços de magia, e você não pode conjurá-las usando espaços de magia. Escolher talentos pode conceder a você mais magias de foco e aumentar o tamanho da sua reserva de foco, embora sua reserva de foco nunca possa conter mais de 3 Pontos de Foco. Você aprende a magia de composição @UUID[Compendium.pf2e.spells-srd.Item.Counter Performance], que protege contra efeitos auditivos e visuais.</p>\n<h2>Truques de Composição</h2><p>Truques de composição são magias de composição especiais que não custam Pontos de Foco, então você pode usá-los quantas vezes quiser. Truques de composição se somam aos truques que você escolhe com a conjuração de bardo. Diferente de outros truques, você não pode trocar truques de composição obtidos por talentos de bardo em um nível posterior, a menos que troque o talento específico por meio de retreinamento.</p>\n<p>Você aprende o truque de composição @UUID[Compendium.pf2e.spells-srd.Item.Courageous Anthem], que fortalece os ataques, o dano e a defesa de seus aliados contra o medo.</p>"
     },
     "KmvpXx69oQUH2kfE": {
       "name": "Doutrina",
       "sourceHash": "d432bd9972a4ee7c15d168ab67401eb070fa0077",
-      "description": ""
+      "description": "<p>Mesmo entre seguidores da mesma divindade, as abordagens variam. No 1º nível, você escolhe clérigo enclausurado ou sacerdote guerreiro e ganha os benefícios de sua primeira doutrina. No 3º nível e a cada quatro níveis depois disso, você ganha outro benefício de sua doutrina.</p>\n<ul>\n<li>@UUID[Compendium.pf2e.classfeatures.Item.Cloistered Cleric]</li>\n<li>@UUID[Compendium.pf2e.classfeatures.Item.Warpriest]</li>\n</ul>"
     },
     "L5MeQs8KBchhdUmY": {
       "name": "Escola do Mentalismo",
@@ -459,7 +469,7 @@
     "LHeFECB54lAzubfO": {
       "name": "Vontade Majestosa",
       "sourceHash": "a232cb468792e2968c44797797d8add10c094ae7",
-      "description": ""
+      "description": "<p>Sua mente e sua vontade são temperadas por seu domínio das forças mágicas. Seu grau de proficiência em testes de Vontade aumenta para mestre. Quando você rola um sucesso em um teste de Vontade, você obtém um sucesso crítico em vez disso.</p>"
     },
     "LVADu3YwnAamOx70": {
       "name": "Pericia com Armas",
@@ -474,7 +484,7 @@
     "LsAiWeNtI6QMpBqZ": {
       "name": "Linhagem",
       "sourceHash": "a377995945ac653b0d00e8dc76ee0f08e472a74e",
-      "description": ""
+      "description": "<p>Escolha uma linhagem que lhe dê seu talento de conjuração. Essa escolha determina o tipo de magias que você conjura e a lista de magias da qual você as escolhe, magias adicionais que você aprende, e perícias adicionais treinadas. Você também ganha Pontos de Foco e magias de foco especiais com base em sua linhagem. As linhagens apresentadas são as seguintes:</p>\n<ul>\n<li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Bloodline: Aberrant]{Aberrante}</strong> Uma influência estranha e incognoscível concede a você magias ocultas.</li>\n<li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Bloodline: Angelic]{Angelical}</strong> A graça sagrada concede a você magias divinas.</li>\n<li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Bloodline: Demonic]{Demoníaca}</strong> Uma corrupção pecaminosa concede a você magias divinas.</li>\n<li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Bloodline: Diabolic]{Diabólica}</strong> Um vínculo com diabos concede a você magias divinas.</li>\n<li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Bloodline: Draconic]{Dracônica}</strong> O sangue de dragões concede a você magias arcanas.</li>\n<li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Bloodline: Elemental]{Elemental}</strong> O poder dos elementos se manifesta em você como magias primais.</li>\n<li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Bloodline: Fey]{Feérica}</strong> A influência dos féericos concede a você magias primais.</li>\n<li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Bloodline: Genie]{Gênio}</strong> Por meio de linhagem, magia, ou desejos tornados realidade, o sangue de um nobre gênio corre em suas veias.</li>\n<li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Bloodline: Hag]{Megera}</strong> A praga de uma megera concedeu a você magias ocultas.</li>\n<li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Bloodline: Harrow]{Harrow}</strong> Você tem uma conexão profunda com o harrow.</li>\n<li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Bloodline: Imperial]{Imperial}</strong> Um poder ancestral concede a você magias arcanas.</li>\n<li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Bloodline: Nymph]{Ninfa}</strong> Um de seus ancestrais foi inspirado por uma ninfa, ou talvez tenha sido ele mesmo uma ninfa, e agora a beleza da natureza vive em você.</li>\n<li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Bloodline: Phoenix]{Fênix}</strong> O fogo curativo da bênção de uma fênix concede a você magias primais.</li>\n<li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Bloodline: Psychopomp]{Psicopompo}</strong> Para o bem ou para o mal, os atos de seus ancestrais chamaram a atenção de psicopompos, ou talvez você conte com um deles em sua árvore genealógica. A presença desses pastores de almas e inimigos da não-morte deixou uma marca indelével em você.</li>\n<li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Bloodline: Shadow]{Sombra}</strong> Seja por manipulações de um velstrac, seja por uma incursão planar que deu terrivelmente errado, sua linhagem foi imbuída de um veio de sombra.</li>\n<li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Bloodline: Undead]{Morto-Vivo}</strong> O toque da morte concede a você magias divinas.</li>\n<li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Bloodline: Wyrmblessed]{Abençoada pelo Wyrm}</strong> Uma bênção dracônica concede a você magias divinas.</li>\n</ul>"
     },
     "M2SKz26bYBV83ywT": {
       "name": "Vontade Indomável",
@@ -484,7 +494,7 @@
     "MIc3HI9FHCeiWIcT": {
       "name": "Quarta Doutrina",
       "sourceHash": "4f9c9fc127d492dab55621deda8e4ce49b631b1c",
-      "description": ""
+      "description": "<p>Você ganha o quarto benefício de sua doutrina:</p>\n<ul>\n<li>@UUID[Compendium.pf2e.classfeatures.Item.Fourth Doctrine (Cloistered Cleric)]{Clérigo Enclausurado}</li>\n<li>@UUID[Compendium.pf2e.classfeatures.Item.Fourth Doctrine (Warpriest)]{Sacerdote Guerreiro}</li>\n</ul>"
     },
     "MJMyOpvG6rbLdvUk": {
       "name": "Portão Cinético",
@@ -494,7 +504,7 @@
     "MVKpDONRKlcKoLsj": {
       "name": "Linhagem: Ninfa",
       "sourceHash": "5b4c223ca3078e03d53c7765fefbd51fe7dc1e55",
-      "description": ""
+      "description": "<p>Um de seus ancestrais foi inspirado por uma ninfa, ou talvez tenha sido ele mesmo uma ninfa, e agora a beleza da natureza vive em você.</p>\n<p><strong>Lista de Magias</strong> primal</p>\n<p><strong>Perícias de Linhagem</strong> Diplomacia, Natureza</p>\n<p><strong>Magias Concedidas</strong> truque: @UUID[Compendium.pf2e.spells-srd.Item.Tangle Vine]; 1º: @UUID[Compendium.pf2e.spells-srd.Item.Charm]; 2º: @UUID[Compendium.pf2e.spells-srd.Item.Calm]; 3º: @UUID[Compendium.pf2e.spells-srd.Item.Animal Vision]; 4º: @UUID[Compendium.pf2e.spells-srd.Item.Vital Beacon]; 5º: @UUID[Compendium.pf2e.spells-srd.Item.Wave of Despair]; 6º: @UUID[Compendium.pf2e.spells-srd.Item.Repulsion]; 7º: @UUID[Compendium.pf2e.spells-srd.Item.Unfettered Pack]; 8º: @UUID[Compendium.pf2e.spells-srd.Item.Moment of Renewal]; 9º: @UUID[Compendium.pf2e.spells-srd.Item.Overwhelming Presence]</p>\n<p><strong>Magias de Linhagem</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Nymph's Token]; avançada: @UUID[Compendium.pf2e.spells-srd.Item.Blinding Beauty]; superior: @UUID[Compendium.pf2e.spells-srd.Item.Establish Ward]</p>\n<p><strong>Magia de Sangue</strong> A graça de ninfa acentua seus movimentos e distrai seus inimigos, concedendo a você um bônus de condição de +1 em testes de Diplomacia por 1 rodada, ou impondo uma penalidade de condição de –1 nos testes de resistência de Vontade de um alvo por 1 rodada.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Nymph Blood Magic]</p>"
     },
     "MbMJIRm8Ecdwk7pi": {
       "name": "Bloqueio com Escudo",
@@ -509,7 +519,7 @@
     "NGPPWbOwKgGEtC4z": {
       "name": "Linhagem: Dracônica",
       "sourceHash": "814009da48c6122ba97433a9b84aa10035937e54",
-      "description": ""
+      "description": "<p>O sangue de dragões corre em suas veias. Essas criaturas são temíveis em combate e habilidosas em magia.</p>\n<p><strong>Tradição</strong> variável (veja Exemplares Dracônicos abaixo)</p>\n<p><strong>Perícias de Linhagem</strong> Intimidação e outra perícia (veja Exemplares Dracônicos abaixo)</p>\n<p><strong>Dádivas Feiticeiras</strong> truque: @UUID[Compendium.pf2e.spells-srd.Item.Shield]; 1º: @UUID[Compendium.pf2e.spells-srd.Item.Fear]; 2º: veja Exemplares Dracônicos abaixo; 3º: @UUID[Compendium.pf2e.spells-srd.Item.Haste]; 4º: @UUID[Compendium.pf2e.spells-srd.Item.Fly]; 5º: veja Exemplares Dracônicos abaixo; 6º: @UUID[Compendium.pf2e.spells-srd.Item.Dragon Form] (o dragão deve corresponder ao seu exemplar dracônico); 7º: @UUID[Compendium.pf2e.spells-srd.Item.Mask of Terror]; 8º: veja Exemplares Dracônicos abaixo; 9º: @UUID[Compendium.pf2e.spells-srd.Item.Overwhelming Presence]</p>\n<p><strong>Magias de Linhagem</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Flurry of Claws]; avançada: @UUID[Compendium.pf2e.spells-srd.Item.Dragon Breath]; superior: @UUID[Compendium.pf2e.spells-srd.Item.Dragon Wings]</p>\n<p><strong>Magia de Sangue — Pele Escamosa</strong> Escamas dracônicas crescem brevemente em você ou em um alvo, concedendo um bônus de condição de +1 na CA por 1 rodada.</p><h3>Exemplares Dracônicos</h3><p>No 1º nível, escolha a tradição relacionada ao exemplar de dragão que influenciou sua linhagem. Você não pode mudar seu exemplar de dragão depois. Como observado, isso afeta tanto as características da sua linhagem quanto suas magias de dádiva feiticeira.</p><ul><li><strong>Arcana—Tradição</strong> arcana; <strong>Perícia de Linhagem</strong> Arcanismo; <strong>Dádivas Feiticeiras</strong> 2º: @UUID[Compendium.pf2e.spells-srd.Item.Blazing Bolt]; 5º: @UUID[Compendium.pf2e.spells-srd.Item.Subconscious Suggestion]; 8º: @UUID[Compendium.pf2e.spells-srd.Item.Quandary]</li><li><strong>Divina—Tradição</strong> divina; <strong>Perícia de Linhagem</strong> Religião; <strong>Dádivas Feiticeiras</strong> 2º: @UUID[Compendium.pf2e.spells-srd.Item.Augury]; 5º: @UUID[Compendium.pf2e.spells-srd.Item.Divine Immolation]; 8º: @UUID[Compendium.pf2e.spells-srd.Item.Divine Inspiration]</li><li><strong>Oculta—Tradição</strong> oculta; <strong>Perícia de Linhagem</strong> Ocultismo; <strong>Dádivas Feiticeiras</strong> 2º: @UUID[Compendium.pf2e.spells-srd.Item.Blood Vendetta]; 5º: @UUID[Compendium.pf2e.spells-srd.Item.Slither]; 8º: @UUID[Compendium.pf2e.spells-srd.Item.Unrelenting Observation]</li><li><p><strong>Primal—Tradição</strong> primal; <strong>Perícia de Linhagem</strong> Natureza; <strong>Dádivas Feiticeiras</strong> 2º: @UUID[Compendium.pf2e.spells-srd.Item.Shatter]; 5º: @UUID[Compendium.pf2e.spells-srd.Item.Howling Blizzard]; 8º: @UUID[Compendium.pf2e.spells-srd.Item.Earthquake]</p></li></ul><p>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.Dy1cyGJUfzyZ4EIy]{Linhagens Dracônicas do Feiticeiro}</p>"
     },
     "O3rac2kRtEjwCHC0": {
       "name": "Fúria Poderosa",
@@ -519,7 +529,7 @@
     "OrPuwVgGwjCEz2nm": {
       "name": "Polímata",
       "sourceHash": "d38d4de8a0a163037af6c28ea8e87372c61411d8",
-      "description": ""
+      "description": "<p>Sua musa é um pau para toda obra, transitando entre perícias e interesses. Alguns bardos são constantemente movidos por novas musas ou extraem sua inspiração de um ser idealizado, seja baseado em uma pessoa real ou puramente filosófico. Se sua musa é uma única criatura, pode ser uma criatura eclética como um féerico ou alguém que aprendeu muito ao longo de uma vida longa; se é uma divindade, pode ser Desna ou Calistria. A arte inspirada por uma musa polímata é inquieta, com cada composição exibindo novas técnicas e um estilo em constante evolução.</p>\n<p>Como bardo com uma musa polímata, você se interessa por uma ampla gama de assuntos, mas raramente se dedica a apenas um, e raramente se decide — você quer experimentar tudo.</p>\n<p><strong>Talento de Musa</strong> @UUID[Compendium.pf2e.feats-srd.Item.Versatile Performance]</p>\n<p><strong>Magia de Musa</strong> @UUID[Compendium.pf2e.spells-srd.Item.Phantasmal Minion]</p>"
     },
     "PAiLtScmWbxnIf4V": {
       "name": "Senhor das Runas",
@@ -529,7 +539,7 @@
     "PXvWhbENzMQMijDB": {
       "name": "Conjuração Oculta",
       "sourceHash": "d6462ff85e5783b9e302c781d9b3e44d5e999006",
-      "description": ""
+      "description": "<p>Você extrai magia de conhecimentos esotéricos. Você é um conjurador e pode conjurar magias da tradição oculta usando a atividade Conjurar uma Magia.</p>\n<p>Como bardo, quando você conjura magias, suas encantações podem ser refrões musicais ou versos espirituosos, seus gestos podem incorporar dança e pantomima dramática, e você pode acompanhar sua conjuração tocando um instrumento musical.</p>\n<p>Todos os dias, você pode conjurar até duas magias de 1º grau. Você precisa conhecer as magias para conjurá-las, e as aprende por meio da característica de classe repertório de magias. O número de magias que você pode conjurar por dia é chamado de espaços de magia.</p>\n<p>Conforme você aumenta de nível como bardo, seu número de magias por dia aumenta, assim como o maior grau de magias que você consegue conjurar.</p>\n<p>Algumas das suas magias exigem que você tente uma rolagem de ataque de magia para ver o quão eficazes são, ou fazem seus inimigos rolarem contra sua CD de magia (normalmente tentando um teste de resistência). Como sua habilidade-chave é Carisma, suas rolagens de ataque de magia e CDs de magia usam seu modificador de Carisma.</p>"
     },
     "PwUXRaUJwVQJn6mK": {
       "name": "Rajada",
@@ -544,7 +554,7 @@
     "QMx05Uer8dWp7K75": {
       "name": "Magias Emblemáticas",
       "sourceHash": "06c65e9e12790387dae2805c667404d8d2c2150e",
-      "description": ""
+      "description": "<p>Você aprendeu a conjurar algumas de suas magias com mais flexibilidade. Para cada grau de magia ao qual você tem acesso, escolha uma magia daquele grau para ser uma magia emblemática. Você não precisa aprender separadamente versões elevadas de magias emblemáticas; em vez disso, pode elevar essas magias livremente. Se você aprendeu uma magia emblemática em um grau superior ao seu mínimo, também pode conjurar todas as suas versões de grau inferior sem aprendê-las separadamente. Se você trocar uma magia emblemática, pode escolher uma magia emblemática substituta do mesmo grau em que aprendeu a magia anterior. Você também pode retreinar especificamente para mudar uma magia emblemática para uma magia diferente daquele grau sem trocar nenhuma outra magia; isso leva tanto tempo quanto retreinar uma magia normalmente leva.</p>"
     },
     "Qb6mPsJUxA73nPlp": {
       "name": "Conjurador Lendário",
@@ -554,12 +564,12 @@
     "QgTrrxofFPfcHT2U": {
       "name": "Golpes de Adamante",
       "sourceHash": "966502a2e178be251889c46c50201e01e6897414",
-      "description": ""
+      "description": "<p>Quando você concentra sua vontade em seus membros, seus golpes tornam-se tão inflexíveis quanto o mais duro dos metais. Seus ataques desarmados são tratados como adamantina.</p>"
     },
     "Qv0aPBqTV924o7uU": {
       "name": "Redenção",
       "sourceHash": "4e0eb458637756ac2bc9b979e4dc8824cef2c07f",
-      "description": ""
+      "description": "<p>Almejando que todos vivam em harmonia, você faz de tudo para redimir aqueles que outros matariam ou descartariam.</p>\n<p><strong>Preceitos</strong> tente redimir aqueles que cometem atos perversos, demonstre compaixão pelos outros independentemente de sua autoridade ou posição</p>\n<p><strong>Anátema</strong> matar um inimigo senciente sem antes oferecer uma chance de redenção</p><hr /><p><strong>Reação do Campeão</strong> @UUID[Compendium.pf2e.actionspf2e.Item.Glimpse of Redemption]</p>\n<p><strong>Reação Implacável (Nível 9)</strong> Se o inimigo recusar, ele sofre @Damage[@actor.abilities.cha.mod[spirit,persistent]]{dano de espírito persistente} igual ao seu modificador de Carisma.</p>\n<p><strong>Reação Exaltada (Nível 11)</strong> Se o inimigo recusar, você pode conceder a resistência a si mesmo e a todos os aliados na aura do seu campeão, incluindo o aliado que ativou a reação. Se fizer isso, a resistência é reduzida em 2 para todos</p>"
     },
     "RD63JAZ4zd2UvGQ4": {
       "name": "Alcance Luminoso",
@@ -569,7 +579,7 @@
     "RH0lrrgfqrKwKuz2": {
       "name": "Corpo Sagrado",
       "sourceHash": "a860d98deca582bea1b7af0ba1b420f1dee4207b",
-      "description": ""
+      "description": "<p>O poder de sua divindade mantém seu corpo protegido de dano, um verdadeiro edifício da fé tão sólido quanto um grande templo. Seu grau de proficiência em testes de Fortitude aumenta para mestre. Quando você rola um sucesso em um teste de Fortitude, você obtém um sucesso crítico em vez disso.</p>"
     },
     "RHNT0Hqaw8blOiu7": {
       "name": "Fortitude Mágica",
@@ -599,12 +609,12 @@
     "TCHC4ZSPQ9MVikD1": {
       "name": "Golpes Mestres",
       "sourceHash": "de73198b261a28359599267464bc0ff998034fbc",
-      "description": ""
+      "description": "<p>Você aprimorou seu corpo, tornando-o uma arma ainda mais letal. Seus graus de proficiência com ataques desarmados e armas simples aumentam para mestre.</p>"
     },
     "TEWAYpJBTqbKtZrR": {
       "name": "Linhagem: Aberrante",
       "sourceHash": "f29f59da0a57e7dbb0e0e299d598c9d270527dac",
-      "description": ""
+      "description": "<p>Algo antigo e incognoscível fala com você de além das estrelas ou de sob a terra.</p>\n<p><strong>Tradição</strong> oculta</p>\n<p><strong>Perícias de Linhagem</strong> Intimidação, Ocultismo</p>\n<p><strong>Dádivas Feiticeiras</strong> truque: @UUID[Compendium.pf2e.spells-srd.Item.Daze]; 1º: @UUID[Compendium.pf2e.spells-srd.Item.Phantom Pain]; 2º: @UUID[Compendium.pf2e.spells-srd.Item.Stupefy]; 3º: @UUID[Compendium.pf2e.spells-srd.Item.Vampiric Feast]; 4º: @UUID[Compendium.pf2e.spells-srd.Item.Confusion]; 5º: @UUID[Compendium.pf2e.spells-srd.Item.Slither]; 6º: @UUID[Compendium.pf2e.spells-srd.Item.Never Mind]; 7º: @UUID[Compendium.pf2e.spells-srd.Item.Warp Mind]; 8º: @UUID[Compendium.pf2e.spells-srd.Item.Uncontrollable Dance]; 9º: @UUID[Compendium.pf2e.spells-srd.Item.Unfathomable Song]</p>\n<p><strong>Magias de Linhagem</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Tentacular Limbs]; avançada: @UUID[Compendium.pf2e.spells-srd.Item.Aberrant Whispers]; superior: @UUID[Compendium.pf2e.spells-srd.Item.Unusual Anatomy]</p>\n<p><strong>Magia de Sangue — Véu Sinistro</strong> Uma névoa sinistra escorre de sua mente. Um alvo sofre uma penalidade de condição de –1 em testes de resistência de Vontade por 1 rodada, ou você ganha um bônus de condição de +2 em testes de resistência de Vontade por 1 rodada.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Aberrant Blood Magic]</p>"
     },
     "TNl7mpUpn5Jl2pFY": {
       "name": "Fúria",
@@ -624,7 +634,7 @@
     "USqlwIXnwtPWjiCL": {
       "name": "Linhagem: Gênio",
       "sourceHash": "4016cc010c4badf79992256c7f79fb771b2ddc74",
-      "description": ""
+      "description": "<p>Por meio de linhagem, magia, ou desejos tornados realidade, o sangue de um nobre gênio corre em suas veias.</p>\n<p><strong>Lista de Magias</strong> arcana</p>\n<p><strong>Perícias de Linhagem</strong> Arcanismo, Enganação</p>\n<p><strong>Magias Concedidas</strong> truque: @UUID[Compendium.pf2e.spells-srd.Item.Detect Magic]; 1º: @UUID[Compendium.pf2e.spells-srd.Item.Illusory Disguise]; 2º: variável (veja Tipo de Gênio abaixo); 3º: @UUID[Compendium.pf2e.spells-srd.Item.Enthrall]; 4º: @UUID[Compendium.pf2e.spells-srd.Item.Creation]; 5º: variável (veja Tipo de Gênio abaixo); 6º: @UUID[Compendium.pf2e.spells-srd.Item.Truesight]; 7º: @UUID[Compendium.pf2e.spells-srd.Item.Energy Aegis]; 8º: variável (veja Tipo de Gênio abaixo); 9º: @UUID[Compendium.pf2e.spells-srd.Item.Resplendent Mansion]</p>\n<p><strong>Magias de Linhagem</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Genie's Veil]; avançada: @UUID[Compendium.pf2e.spells-srd.Item.Heart's Desire]; superior: @UUID[Compendium.pf2e.spells-srd.Item.Wish-Twisted Form]</p>\n<p><strong>Magia de Sangue</strong> Sua conjuração distorce a realidade e distrai seus inimigos. Você ganha um bônus de condição de +1 em testes de Enganação por 1 rodada, ou um alvo sofre uma penalidade de condição de –1 em Percepção por 1 rodada.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Genie Blood Magic]</p>\n<p><strong>Tipo de Gênio</strong></p>\n<p>No 1º nível, escolha o tipo de gênio que influenciou sua linhagem: faydhaan, ifrit, jaathoom, jabali ou janni. Você não pode mudar seu tipo de gênio depois. Isso determina quais magias concedidas você recebe no 2º, 5º e 8º nível.</p>\n<ul>\n<li><strong>Janni</strong> 2º: @UUID[Compendium.pf2e.spells-srd.Item.Create Food]; 5º: @UUID[Compendium.pf2e.spells-srd.Item.Banishment]; 8º: @UUID[Compendium.pf2e.spells-srd.Item.Confusing Colors]</li>\n<li><strong>Jaathoom</strong> 2º: @UUID[Compendium.pf2e.spells-srd.Item.Invisibility]; 5º: @UUID[Compendium.pf2e.spells-srd.Item.Illusory Scene]; 8º: @UUID[Compendium.pf2e.spells-srd.Item.Punishing Winds]</li>\n<li><strong>Ifrit</strong> 2º: @UUID[Compendium.pf2e.spells-srd.Item.Enlarge]; 5º: @UUID[Compendium.pf2e.spells-srd.Item.Elemental Form] (somente fogo); 8º: @UUID[Compendium.pf2e.spells-srd.Item.Quandary]</li>\n<li><strong>Faydhaan</strong> 2º: @UUID[Compendium.pf2e.spells-srd.Item.Water Walk]; 5º: @UUID[Compendium.pf2e.spells-srd.Item.Control Water]; 8º: @UUID[Compendium.pf2e.spells-srd.Item.Desiccate]</li>\n<li><strong>Jabali</strong> 2º: @UUID[Compendium.pf2e.spells-srd.Item.Revealing Light]; 5º: @UUID[Compendium.pf2e.spells-srd.Item.Wall of Stone]; 8º: @UUID[Compendium.pf2e.spells-srd.Item.Earthquake]</li>\n</ul>"
     },
     "UTCSBZnzYPwRfjpC": {
       "name": "Vantagem da Natureza",
@@ -664,7 +674,7 @@
     "WMg4B9XcUnqntpFY": {
       "name": "Quinta Doutrina (Sacerdote Guerreiro)",
       "sourceHash": "7e67fdfd0904046c0907c448fb84f67c14427378",
-      "description": ""
+      "description": "<p>Seu grau de proficiência em testes de Fortitude aumenta para mestre. Quando você rola um sucesso em um teste de Fortitude, você obtém um sucesso crítico em vez disso.</p>"
     },
     "WMrcHrDh9vNDteMb": {
       "name": "Estopim Curto",
@@ -682,9 +692,9 @@
       "description": "<p>Enquanto qualquer capanga pode cometer um assassinato, um assassinato de verdade exige finesse e astúcia. Nas profundezas da Cidadela Carmesim, os assassinos da Mantis Vermelha desenvolveram uma seleção específica de magias que ensinam a todos os membros com capacidade mágica. Essas magias complementam os métodos clandestinos e letais dos assassinos.</p>\n<p><strong>Currículo</strong></p><ul><li><strong>truques:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Figment], @UUID[Compendium.pf2e.spells-srd.Item.Gouging Claw]</li><li><strong>1º</strong> @UUID[Compendium.pf2e.spells-srd.Item.Fleet Step], @UUID[Compendium.pf2e.spells-srd.Item.Illusory Disguise], @UUID[Compendium.pf2e.spells-srd.Item.Sure Strike]</li><li><strong>2º</strong> @UUID[Compendium.pf2e.spells-srd.Item.Invisibility], @UUID[Compendium.pf2e.spells-srd.Item.Mist]</li><li><strong>3º</strong> @UUID[Compendium.pf2e.spells-srd.Item.Clairaudience], @UUID[Compendium.pf2e.spells-srd.Item.Paralyze]</li><li><strong>4º</strong> @UUID[Compendium.pf2e.spells-srd.Item.Clairvoyance], @UUID[Compendium.pf2e.spells-srd.Item.Translocate]</li><li><strong>5º</strong> @UUID[Compendium.pf2e.spells-srd.Item.Hallucination], @UUID[Compendium.pf2e.spells-srd.Item.Illusory Scene]</li><li><strong>6º</strong> @UUID[Compendium.pf2e.spells-srd.Item.Mislead], @UUID[Compendium.pf2e.spells-srd.Item.Phantasmal Calamity]</li><li><strong>7º</strong> @UUID[Compendium.pf2e.spells-srd.Item.Duplicate Foe], @UUID[Compendium.pf2e.spells-srd.Item.Project Image]</li><li><strong>8º</strong> @UUID[Compendium.pf2e.spells-srd.Item.Disappearance], @UUID[Compendium.pf2e.spells-srd.Item.Unrelenting Observation]</li><li><strong>9º</strong> @UUID[Compendium.pf2e.spells-srd.Item.Phantasmagoria]</li></ul><p><strong>Magias da Escola</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Debilitating Terror]; avançada: @UUID[Compendium.pf2e.spells-srd.Item.Shroud of the Mantis]</p>"
     },
     "WsjMAdbmegii8Kqf": {
-      "name": "Rajada de Golpes",
+      "name": "Sequência de Golpes",
       "sourceHash": "d130739fa99a6ccda11d5c949ddf29c5890e55da",
-      "description": ""
+      "description": "<p>Faça dois Golpes desarmados. Se ambos acertarem a mesma criatura, combine seus danos para fins de resistências e vulnerabilidades. Aplique sua penalidade por ataque múltiplo aos Golpes normalmente. Por ser uma habilidade de floreio, você só pode usar Sequência de Golpes uma vez por turno.</p>"
     },
     "X9sJnNpTtf1p2nbI": {
       "name": "Vigilância",
@@ -694,17 +704,17 @@
     "XMhDKOhwSXGmEBKk": {
       "name": "Enigma",
       "sourceHash": "1001a285ce5f070a1d7bb17c931d55fbc370dbb5",
-      "description": ""
+      "description": "<p>Sua musa é um mistério, impulsionando você a desvendar os segredos ocultos da vida e do multiverso. Essas musas podem ser pessoas que você não consegue compreender totalmente, textos profundamente carregados de simbolismo, ou paradoxos emocionais que permeiam a obra de uma vida inteira. Se sua musa é uma criatura de outro mundo, pode ser um eão misterioso ou um dragão oculto; se é uma divindade, pode ser Irori ou Nethys. A arte inspirada por uma musa enigma pode ser críptica, sinistra, ou carregada de especulação e conspiração. Como bardo com a musa enigma, você apoia seus aliados fornecendo conhecimento além de inspiração e suporte oculto.</p>\n<p><strong>Talento de Musa</strong> @UUID[Compendium.pf2e.feats-srd.Item.Bardic Lore]</p>\n<p><strong>Magia de Musa</strong> @UUID[Compendium.pf2e.spells-srd.Item.Sure Strike]</p>"
     },
     "XoOqrgB4XivbPdcA": {
       "name": "Terceira Doutrina (Sacerdote Guerreiro)",
       "sourceHash": "3d2e152d7d4b3c142eccf5868ad2d755a7f2e0b8",
-      "description": ""
+      "description": "<p>Você ganha proficiência de perito com a arma favorita de sua divindade, armas marciais, armas simples e ataques desarmados. Quando você obtém um sucesso crítico em uma rolagem de ataque usando a arma favorita de sua divindade, você aplica o efeito de especialização crítica da arma; você pode usar sua CD de magia no lugar da sua CD de classe.</p>"
     },
     "Y9i5eKFIhDqSpoD9": {
       "name": "Magia Milagrosa",
       "sourceHash": "7fa0c607f9396e62eda03eecaeced9bc4b751174",
-      "description": ""
+      "description": "<p>Você é exaltado por sua divindade e ganha magias verdadeiramente incríveis. Você ganha um único espaço de magia de 10º grau e pode preparar uma magia nesse espaço usando a conjuração do clérigo. Diferente de outros espaços de magia, você não pode usar espaços de 10º grau com habilidades que concedem mais espaços de magia ou que permitem conjurar magias sem gastar espaços de magia. Você não ganha mais magias de 10º grau conforme sobe de nível, mas pode escolher o talento @UUID[Compendium.pf2e.feats-srd.Item.Maker of Miracles] para ganhar um segundo espaço.</p>"
     },
     "YFDgTLc4gyZOGzK0": {
       "name": "Durabilidade Cinética Maior",
@@ -719,17 +729,22 @@
     "YSe3taJoihbLxjDB": {
       "name": "Golpes de Metal",
       "sourceHash": "6955e13a0da40cc0c4098271ee36d6536ac2fbc3",
-      "description": ""
+      "description": "<p>Você pode ajustar seu corpo para fazer ataques desarmados imbuídos da energia mística de metais raros. Seus ataques desarmados são tratados como ferro frio e prata. Isso permite que você cause mais dano a uma variedade de criaturas sobrenaturais, como demônios, diabos e féericos.</p>"
     },
     "YWHoIOVc0vK9llnF": {
       "name": "Linhagem: Sombra",
       "sourceHash": "ace1f7a1f18b4930131b0c83c9490cc0d71166c4",
-      "description": ""
+      "description": "<p>Seja por manipulações de um velstrac, seja por uma incursão planar que deu terrivelmente errado, sua linhagem foi imbuída de um veio de sombra.</p>\n<p><strong>Lista de Magias</strong> oculta</p>\n<p><strong>Perícias de Linhagem</strong> Ocultismo, Furtividade</p>\n<p><strong>Magias Concedidas</strong> truque: @UUID[Compendium.pf2e.spells-srd.Item.Void Warp]; 1º: @UUID[Compendium.pf2e.spells-srd.Item.Grim Tendrils]; 2º: @UUID[Compendium.pf2e.spells-srd.Item.Darkness]; 3º: @UUID[Compendium.pf2e.spells-srd.Item.Chilling Darkness]; 4º: @UUID[Compendium.pf2e.spells-srd.Item.Phantasmal Killer]; 5º: @UUID[Compendium.pf2e.spells-srd.Item.Shadow Siphon]; 6º: @UUID[Compendium.pf2e.spells-srd.Item.Collective Transposition]; 7º: @UUID[Compendium.pf2e.spells-srd.Item.Duplicate Foe]; 8º: @UUID[Compendium.pf2e.spells-srd.Item.Disappearance]; 9º: @UUID[Compendium.pf2e.spells-srd.Item.Weird]</p>\n<p><strong>Magias de Linhagem</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Dim the Light]; avançada: @UUID[Compendium.pf2e.spells-srd.Item.Steal Shadow]; superior: @UUID[Compendium.pf2e.spells-srd.Item.Consuming Darkness]</p>\n<p><strong>Magia de Sangue</strong> As sombras se aprofundam ao seu redor ou ao redor de um alvo, concedendo um bônus de condição de +1 em Furtividade ou impondo uma penalidade de condição de –1 em Percepção por 1 rodada.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Shadow Blood Magic]</p>"
+    },
+    "YgNjOMBxCrEqpaPk": {
+      "name": "Caçador Magistral (Precisão)",
+      "sourceHash": "68d09e64e805509069eb2e439c8d3bbbf47b368e",
+      "description": "<p>Sua maestria com armas permite que você acerte as áreas vitais da sua presa múltiplas vezes. Na segunda vez em uma rodada que você acerta sua presa perseguida, você também causa 1d8 de dano de precisão.</p>\n<p>No 19º nível, seu segundo acerto em uma rodada contra sua presa perseguida causa 2d8 de dano de precisão, e seu terceiro acerto em uma rodada contra sua presa perseguida causa 1d8 de dano de precisão.</p>"
     },
     "Z3bGaIq1FnCfsTrx": {
       "name": "Divindade (Clérigo)",
       "sourceHash": "9f7923de8fe08915852a720560daf6f4d59103df",
-      "description": ""
+      "description": "<p>Como clérigo, você é um servo mortal de uma divindade que reverencia acima de todas as outras. Sua divindade concede a você o grau de proficiência treinado em uma perícia e com a arma favorita da divindade. Se a arma favorita for incomum, você também ganha acesso a essa arma.</p>\n<p>Sua divindade também adiciona magias à sua lista de magias. Você pode preparar essas magias como qualquer outra da lista de magias divinas, assim que puder preparar magias do grau delas como clérigo. Qualquer uma dessas magias que normalmente não esteja na lista divina ainda é uma magia divina se você a preparar dessa forma.</p>\n<h2>Santificação</h2><p>Dependendo de sua divindade, a santificação dela pode torná-lo sagrado ou profano. Isso concede a você o traço sagrado ou profano, o que o compromete com um dos lados de uma luta pelas almas dos planos e pode ser referenciado em outras habilidades. Se você \"pode ser\" sagrado ou profano de acordo com sua divindade, você faz essa escolha, e se você \"deve ser\" sagrado ou profano, você ganha o traço automaticamente. Se você ganhar o traço oposto de alguma forma, perde o traço anterior até completar um ritual de expiação.</p>\n<h2>Anátema</h2><p>Atos fundamentalmente opostos aos ideais de sua divindade são anátema para sua fé. Aprender ou conjurar magias, cometer atos e usar itens que são anátema para sua divindade o afastam das boas graças de sua divindade.</p>\n<p>Conjurar magias com o traço profano é quase sempre anátema para divindades que não permitem santificação profana, e conjurar magias sagradas é igualmente anátema para aquelas que não permitem santificação sagrada. Da mesma forma, conjurar magias que são anátema para os princípios ou objetivos de sua fé pode interferir em sua conexão com sua divindade. Por exemplo, conjurar uma magia para criar mortos-vivos seria anátema para Pharasma, a deusa da morte. Muitas ações que são anátema não aparecem na lista formal de nenhuma divindade. Em casos limítrofes, você e seu mestre determinam quais atos são anátema.</p>\n<p>Se você realizar atos suficientes que são anátema para sua divindade, perde as habilidades mágicas que vêm de sua conexão com sua divindade. As características de classe que você perde são determinadas pelo mestre, mas provavelmente incluem sua fonte divina e toda a conjuração do clérigo. Essas habilidades só podem ser recuperadas se você se arrepender realizando um ritual de expiação.</p>"
     },
     "ZI7nywEZnJF0CMiw": {
       "name": "Domínio de Armadura Média",
@@ -739,7 +754,7 @@
     "ZnYBamnAqVWx3gQR": {
       "name": "Obediência",
       "sourceHash": "f0de4e5fbfc5d5073c0e207a09f8f4e3d9a1683e",
-      "description": ""
+      "description": "<p>A sociedade é ordenada por boas razões, e as pessoas devem se conduzir de forma apropriada ao seu devido lugar.</p>\n<p><strong>Preceitos</strong> imponha hierarquias adequadas, derrube hierarquias ilegítimas, lidere quando for o mais apto para a tarefa</p>\n<p><strong>Anátema</strong> deixar que alguém inferior a você exerça poder sobre você ou o lidere</p><hr /><p><strong>Reação do Campeão</strong> @UUID[Compendium.pf2e.actionspf2e.Item.Iron Command]</p>\n<p><strong>Reação Implacável (Nível 9)</strong> Se o inimigo recusar, ele sofre dano de espírito persistente igual ao seu modificador de Carisma.</p>\n<p><strong>Reação Exaltada (Nível 11)</strong> Cada inimigo na aura do seu campeão, exceto a criatura que ativou a reação, também deve ficar @UUID[Compendium.pf2e.conditionitems.Item.Prone] ou sofrer dano mental (cada inimigo escolhe). Essas criaturas sofrem apenas o dano mínimo (normalmente 3 de dano no 11º nível, 4 no 12º, 5 no 16º e 6 no 19º), e os efeitos que sofrem não podem ser ajustados por nada que altere seu Comando de Ferro. Por exemplo, o talento Repercussões de Ferro não poderia transformar o dano em dano mental persistente para criaturas além daquela que ativou a reação</p>"
     },
     "ZzWD1IY5kAnQ8a65": {
       "name": "Maestria em Armas Marciais",
@@ -754,22 +769,27 @@
     "apPhg0aKM4oFVxWn": {
       "name": "Fé Resoluta",
       "sourceHash": "88c2f2728e2f1a0964dbd77420e2ccf6fa4d79ab",
-      "description": ""
+      "description": "<p>A crença serve como um baluarte contra pensamentos insidiosos. Seu grau de proficiência em testes de Vontade aumenta para mestre. Quando você rola um sucesso em um teste de Vontade, você obtém um sucesso crítico em vez disso.</p>"
     },
     "bWGsG8zffEsLRfkL": {
       "name": "Maestria do Campeão",
       "sourceHash": "880c0c41779c1f3f8ea1eeb3378cad48019bbd14",
-      "description": ""
+      "description": "<p>Você dominou seu arsenal de técnicas de campeão e magias divinas. Seus graus de proficiência para sua CD de classe de campeão e para rolagens de ataque de magia divina e CDs de magia aumentam para mestre.</p>"
     },
     "c0XQ1ICQyYuUQN3h": {
       "name": "Reflexos Temperados",
       "sourceHash": "e94e92e0778bfdecfb6bbd9531436b0a4aa121a5",
       "description": "<p>Reflexos treinados permitem que você encontre segurança mesmo diante de explosões cataclísmicas. Seu grau de proficiência em testes de Reflexos aumenta para mestre. Quando você rola um sucesso em um teste de Reflexos, obtém um sucesso crítico em vez disso.</p>"
     },
+    "cBAT5YDrrbE1Z8eS": {
+      "name": "Caçador Magistral (Rajada)",
+      "sourceHash": "0d7041dd9c85886c516c75ebc98219f380127e9e",
+      "description": "<p>Se você tiver proficiência de mestre com sua arma, sua penalidade por ataque múltiplo para ataques contra sua presa perseguida é –2 (–1 com uma arma ágil) no seu segundo ataque do turno, e –4 (–2 com uma arma ágil) no seu terceiro ataque e nos seguintes do turno.</p>"
+    },
     "cGbwex2mzwB9tKAf": {
       "name": "Primeira Doutrina",
       "sourceHash": "9220e6ce7ccadba16578bc9204acf02427b75fdd",
-      "description": ""
+      "description": "<p>Você ganha o primeiro benefício de sua doutrina:</p>\n<ul>\n<li>@UUID[Compendium.pf2e.classfeatures.Item.First Doctrine (Cloistered Cleric)]{Clérigo Enclausurado}</li>\n<li>@UUID[Compendium.pf2e.classfeatures.Item.First Doctrine (Warpriest)]{Sacerdote Guerreiro}</li>\n</ul>"
     },
     "cQdtouC7aLBqMKBC": {
       "name": "Instinto",
@@ -784,7 +804,7 @@
     "cju0wQRfzrQoF7SH": {
       "name": "Quinta Doutrina",
       "sourceHash": "713cffeb8adf353aaa966e4b3868ccab0fbf4206",
-      "description": ""
+      "description": "<p>Você ganha o quinto benefício de sua doutrina:</p>\n<ul>\n<li>@UUID[Compendium.pf2e.classfeatures.Item.Fifth Doctrine (Cloistered Cleric)]{Clérigo Enclausurado}</li>\n<li>@UUID[Compendium.pf2e.classfeatures.Item.Fifth Doctrine (Warpriest)]{Sacerdote Guerreiro}</li>\n</ul>"
     },
     "czSFAoqERcVtJ7WY": {
       "name": "Instinto de Decomposição",
@@ -804,7 +824,7 @@
     "dc9aMcoWGCk7tOJL": {
       "name": "Reação Implacável",
       "sourceHash": "66d659de586981740640076f30e1ec4d87de3e06",
-      "description": ""
+      "description": "<p>A reação do seu campeão melhora, tipicamente para punir o atacante com uma retaliação espiritual. Ela ganha o benefício de reação implacável listado em sua causa, abaixo da reação do seu campeão.</p>"
     },
     "e7XksR8zXy3vmWID": {
       "name": "Perícia com Armaduras",
@@ -814,7 +834,7 @@
     "eGs3cJk5JRU9qs8v": {
       "name": "Linhagem: Feérica",
       "sourceHash": "a788f221ab3bcbceb7656ba6eea021f828a85367",
-      "description": ""
+      "description": "<p>O capricho féerico ou um encontro amoroso em um bosque à luz da lua colocou a magia enfeitiçante do Primeiro Mundo na linhagem de sua família.</p>\n<p><strong>Tradição</strong> primal</p>\n<p><strong>Perícias de Linhagem</strong> Enganação, Natureza</p>\n<p><strong>Dádivas Feiticeiras</strong> truque @UUID[Compendium.pf2e.spells-srd.Item.Figment], 1º: @UUID[Compendium.pf2e.spells-srd.Item.Charm], 2º: @UUID[Compendium.pf2e.spells-srd.Item.Laughing Fit], 3º: @UUID[Compendium.pf2e.spells-srd.Item.Enthrall], 4º: @UUID[Compendium.pf2e.spells-srd.Item.Suggestion], 5º: @UUID[Compendium.pf2e.spells-srd.Item.Hallucination], 6º: @UUID[Compendium.pf2e.spells-srd.Item.Mislead], 7º: @UUID[Compendium.pf2e.spells-srd.Item.Visions of Danger], 8º: @UUID[Compendium.pf2e.spells-srd.Item.Uncontrollable Dance], 9º: @UUID[Compendium.pf2e.spells-srd.Item.Metamorphosis]</p>\n<p><strong>Magias de Linhagem</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Faerie Dust], avançada: @UUID[Compendium.pf2e.spells-srd.Item.Fey Disappearance], superior: @UUID[Compendium.pf2e.spells-srd.Item.Fey Glamour]</p>\n<p><strong>Magia de Sangue — Manto de Fitas</strong> Fitas féericas coloridas dançam ao seu redor. Você ganha um bônus de condição de +2 em testes de Atuação por 1 rodada, ou pode ficar @UUID[Compendium.pf2e.conditionitems.Item.Concealed] por 1 rodada. Essa ocultação tão óbvia não pode ser usada para @UUID[Compendium.pf2e.actionspf2e.Item.Hide]</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Fey Blood Magic]</p>"
     },
     "fs8vce7CnfjA7OU4": {
       "name": "Nexo de Cajado",
@@ -824,12 +844,17 @@
     "ftNUb4vgqUL5RuyY": {
       "name": "Movimento Incrível",
       "sourceHash": "299955c152cb2bf8ca99d0f33ce534623839a5ce",
-      "description": ""
+      "description": "<p>Você se move como o vento. Você ganha um bônus de condição de +10 pés à sua Velocidade sempre que não estiver usando armadura. O bônus aumenta em 5 pés a cada 4 níveis que você tiver além do 3º.</p>"
     },
     "gDngrAJywQFHy5gY": {
       "name": "Terceira Doutrina",
       "sourceHash": "1bf8bdae2b0ed7a122b12ee7eaf2dec108a2dfcd",
-      "description": ""
+      "description": "<p>Você ganha o terceiro benefício de sua doutrina:</p>\n<ul>\n<li>@UUID[Compendium.pf2e.classfeatures.Item.Third Doctrine (Cloistered Cleric)]{Clérigo Enclausurado}</li>\n<li>@UUID[Compendium.pf2e.classfeatures.Item.Third Doctrine (Warpriest)]{Sacerdote Guerreiro}</li>\n</ul>"
+    },
+    "gWbc5my1ar93nO19": {
+      "name": "Escola da Magia Rúnica Thassiloniana",
+      "sourceHash": "e88699c483870f8f1d1f32b9b3997cf452febac8",
+      "description": "<p>Este currículo, ensinado em algumas academias seletas na Nova Thassilon, só pode ser aprendido por magos com o arquétipo de classe senhor das runas. Você começou a estudar uma das sete runas do pecado, o que concede a você grande poder, mas ao custo de magia anatemática. Todos os senhores das runas ganham o currículo e as magias de escola abaixo.</p>\n<p>Além disso, você deve escolher um dos sete pecados para se especializar. Você adiciona as magias do seu pecado e as magias de escola iniciais ao seu currículo. A natureza viciante da magia dos pecados o impede de usar magia de maneiras alinhadas a outros pecados, representada pelo anátema daquele pecado. Conjurar uma magia de pecado nunca invoca o anátema de sua escola de pecado.</p>\n<p>Diferente de outros magos, algumas de suas magias de currículo podem ser magias que normalmente não aparecem na lista de magias arcanas (marcadas com um asterisco). Você ainda conjura essas magias como magias arcanas, já que o conhecimento unificador do pecado une a lacuna entre magias díspares.</p>\n<p><strong>Currículo</strong></p><ul><li><strong>truques:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Detect Magic], @UUID[Compendium.pf2e.spells-srd.Item.Sigil]</li><li><strong>1º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Mystic Armor], @UUID[Compendium.pf2e.spells-srd.Item.Runic Body], @UUID[Compendium.pf2e.spells-srd.Item.Runic Weapon], @UUID[Compendium.pf2e.spells-srd.Item.Sure Strike]</li><li><strong>2º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Darkvision], @UUID[Compendium.pf2e.spells-srd.Item.See the Unseen]</li><li><strong>3º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Clairaudience], @UUID[Compendium.pf2e.spells-srd.Item.Veil of Privacy]</li><li><strong>4º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Clairvoyance], @UUID[Compendium.pf2e.spells-srd.Item.Fly]</li><li><strong>5º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Mind Probe], @UUID[Compendium.pf2e.spells-srd.Item.Sending]</li><li><strong>6º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Scrying], @UUID[Compendium.pf2e.spells-srd.Item.Truesight]</li><li><strong>7º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Contingency], @UUID[Compendium.pf2e.spells-srd.Item.Spell Riposte]</li><li><strong>8º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Unrelenting Observation], @UUID[Compendium.pf2e.spells-srd.Item.Hidden Mind]</li><li><strong>9º:</strong> @UUID[Compendium.pf2e.spells-srd.Item.Foresight]</li></ul><p><strong>Magia Avançada de Escola</strong> @UUID[Compendium.pf2e.spells-srd.Item.Personal Runewell]</p><hr /><ul><li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Envy]</strong></li><li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Gluttony]</strong></li><li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Greed]</strong></li><li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Lust]</strong></li><li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Pride]</strong></li><li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Sloth]</strong></li><li><strong>@UUID[Compendium.pf2e.classfeatures.Item.Wrath]</strong></li></ul>"
     },
     "goMuPizfdUMG7iVu": {
       "name": "Percepção Lendária",
@@ -851,6 +876,11 @@
       "sourceHash": "ca6ed6c2e265212de03cd97b361b14d08a841a61",
       "description": "<p>Você alcança um novo marco na sua jornada rumo à sintonia com o seu portão cinético e deve decidir como expandir o poder do portão. No 5º nível e a cada 4 níveis depois disso, você escolhe expandir o portal ou bifurcar o caminho.</p>\n<ul>\n<li><strong>Expandir o Portal</strong>: Seu portão sintoniza-se com mais precisão a um de seus elementos. Ganhe um talento de impulso do seu nível ou inferior para um de seus elementos cinéticos; se tiver mais de um elemento, você pode escolher um impulso composto. Você também ganha uma junção de portão para um de seus elementos cinéticos. Se não tiver opções válidas para o talento — tipicamente por ter um único elemento cinético e ter dedicado seus talentos de classe a ganhar os impulsos daquele elemento — você pode em vez disso selecionar qualquer talento de classe de cineticista do seu nível ou inferior para o qual cumpra os pré-requisitos.</li>\n<li><strong>Bifurcar o Caminho</strong>: Seu portão alcança outro plano elemental. Adicione um novo elemento de sua escolha aos seus elementos cinéticos. Ganhe um talento de impulso do seu nível ou inferior com o traço daquele elemento. Você não pode selecionar um talento de impulso composto nesta seleção de talento. </li>\n</ul>"
     },
+    "iJ7ltDW7AK4m1dqJ": {
+      "name": "Caçador Magistral (Superar)",
+      "sourceHash": "a743d848941846ba881f23bf75b4b7919335825a",
+      "description": "<p>Sua maestria em perícias permite que você domine sua presa. Se você tiver proficiência de mestre em Enganação, Intimidação, Furtividade, ou na perícia que usa para Rememorar Conhecimento sobre sua presa, aumente o bônus de circunstância contra a presa com aquela perícia de +2 para +4. Se você tiver proficiência de mestre com sua armadura, aumente o bônus de circunstância à CA contra a presa de +1 para +2.</p>"
+    },
     "iMu4xqbkkjWD0LNs": {
       "name": "Devastador",
       "sourceHash": "de02cd710dd22408b5c654fce21b8e5923674449",
@@ -864,7 +894,7 @@
     "ipv7jvgAEzBAtoPc": {
       "name": "Linhagem: Angelical",
       "sourceHash": "ee4eb059df0447fcaf2bad564bd592d7246b16c4",
-      "description": ""
+      "description": "<p>Um de seus antepassados veio de um reino celestial, ou a devoção de seus ancestrais fez com que sua linhagem fosse abençoada.</p>\n<p><strong>Lista de Magias</strong> divina</p>\n<p><strong>Perícias de Linhagem</strong> Diplomacia, Religião</p>\n<p><strong>Magias Concedidas</strong> truque @UUID[Compendium.pf2e.spells-srd.Item.Light], 1º: @UUID[Compendium.pf2e.spells-srd.Item.Heal], 2º: @UUID[Compendium.pf2e.spells-srd.Item.Spiritual Armament], 3º: @UUID[Compendium.pf2e.spells-srd.Item.Holy Light], 4º: @UUID[Compendium.pf2e.spells-srd.Item.Divine Wrath], 5º: @UUID[Compendium.pf2e.spells-srd.Item.Divine Immolation], 6º: @UUID[Compendium.pf2e.spells-srd.Item.Blessed Boundary], 7º: @UUID[Compendium.pf2e.spells-srd.Item.Divine Decree], 8º: @UUID[Compendium.pf2e.spells-srd.Item.Moment of Renewal], 9º: @UUID[Compendium.pf2e.spells-srd.Item.Foresight]</p>\n<p><strong>Magias de Linhagem</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Angelic Halo], avançada: @UUID[Compendium.pf2e.spells-srd.Item.Angelic Wings], superior: @UUID[Compendium.pf2e.spells-srd.Item.Celestial Brand]</p>\n<p><strong>Magia de Sangue — Aura Divina</strong> Você projeta uma aura calorosa que protege você ou um alvo, concedendo um bônus de condição de +1 em testes de resistência por 1 rodada</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Angelic Blood Magic]</p>"
     },
     "j125sa25OAnogfDh": {
       "name": "Perícia em Armadura Média",
@@ -879,7 +909,7 @@
     "jAAzTvbs12s8pHtT": {
       "name": "Potência Feiticeira",
       "sourceHash": "ce11d6247b128e7acdcf2c71ec5e59aff421ceea",
-      "description": ""
+      "description": "<p>Devido ao poder mágico inerente ao seu sangue, suas magias que ferem ou curam são mais fortes do que as de outros conjuradores. Quando você Conjura uma Magia de seus espaços de magia que causa dano ou restaura Pontos de Vida, você ganha um bônus de condição ao dano ou à cura daquela magia igual ao grau da magia. Isso se aplica apenas ao dano ou cura inicial que a magia causa quando conjurada. Uma criatura individual sofre esse dano ou se beneficia dessa cura apenas uma vez por magia, mesmo que a magia a danifique ou cure várias vezes.</p>"
     },
     "jUnz5VqnXQiOmOud": {
       "name": "Truques de Arma",
@@ -894,7 +924,7 @@
     "jvnq82PVH2N2MUfD": {
       "name": "Segunda Doutrina (Clérigo Enclausurado)",
       "sourceHash": "2c08ca618dc6e8f434a7df88031628875c4dfa0f",
-      "description": ""
+      "description": "<p>Seu grau de proficiência em testes de Fortitude aumenta para perito.</p>"
     },
     "k4cWZ1uo7KDeKuKw": {
       "name": "Escola da Teoria Mágica Unificada",
@@ -929,12 +959,12 @@
     "lvapOWnP0q5P7fjr": {
       "name": "Coração de Artista",
       "sourceHash": "bbee84bd674613fd8aba4a7c270647fb08c8720d",
-      "description": ""
+      "description": "<p>As maiores apresentações exigem uma compreensão da própria mente e uma concentração impecável. Seu grau de proficiência em testes de Vontade aumenta para mestre. Quando você rola um sucesso em um teste de Vontade, você obtém um sucesso crítico em vez disso.</p>"
     },
     "m4lEeG2qnIWQLWat": {
       "name": "Linhagem: Fênix",
       "sourceHash": "3fdc9e3c44a7303af31b8b577f956d7c00134fcf",
-      "description": ""
+      "description": "<p>Você foi abençoado por uma fênix, talvez por meio de alguma interação mágica com um indivíduo igualmente abençoado. Conceda esta nova linhagem de feiticeiro aos jogadores que concluírem o Caminho de Aventura Fists of the Ruby Phoenix. Os jogadores podem então escolher esta linhagem para quaisquer novos personagens feiticeiros que criarem em campanhas futuras.</p>\n<p><strong>Lista de Magias</strong> primal</p>\n<p><strong>Perícias de Linhagem</strong> Diplomacia, Natureza</p>\n<p><strong>Magias Concedidas</strong> truque: @UUID[Compendium.pf2e.spells-srd.Item.Detect Magic]; 1º: @UUID[Compendium.pf2e.spells-srd.Item.Breathe Fire]; 2º: @UUID[Compendium.pf2e.spells-srd.Item.See the Unseen]; 3º: @UUID[Compendium.pf2e.spells-srd.Item.Fireball]; 4º: @UUID[Compendium.pf2e.spells-srd.Item.Cleanse Affliction]; 5º: @UUID[Compendium.pf2e.spells-srd.Item.Breath of Life]; 6º: @UUID[Compendium.pf2e.spells-srd.Item.Disintegrate]; 7º: @UUID[Compendium.pf2e.spells-srd.Item.Contingency]; 8º: @UUID[Compendium.pf2e.spells-srd.Item.Moment of Renewal]; 9º: @UUID[Compendium.pf2e.spells-srd.Item.Falling Stars]</p>\n<p><strong>Magias de Linhagem</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Rejuvenating Flames]; avançada: @UUID[Compendium.pf2e.spells-srd.Item.Shroud of Flame]; superior: @UUID[Compendium.pf2e.spells-srd.Item.Cleansing Flames]</p>\n<p><strong>Magia de Sangue</strong> O fogo primal da vida e da morte flui através de você ou de um alvo. Escolha entre você ou um alvo da magia ganhar pontos de vida temporários iguais ao grau da magia por 1 rodada, ou um alvo da magia sofrer dano de fogo igual ao grau da magia (se a magia já causar dano inicial de fogo, combine isso com o dano inicial da magia antes de determinar vulnerabilidades e resistências).</p>"
     },
     "m9zzP0MZI5sIP1ia": {
       "name": "Perícia em Vontade",
@@ -944,7 +974,7 @@
     "mGMDAzP7yvSetA6Z": {
       "name": "Zoofonia",
       "sourceHash": "5c3bb38466e57a2494173e364a709042119fe961",
-      "description": ""
+      "description": "<p>Sua musa é mestra no canto dos pássaros, no uivo dos lobos, no trombetear dos elefantes, e em outras formas de comunicação animal, impulsionando você a novos patamares e incentivando suas conexões com a natureza. Se sua musa é uma criatura, pode ser um animal iluminado ou um guia espiritual. Se é uma divindade, pode ser um dos Guardiões da Natureza Selvagem, Gozreh, ou outro representante da natureza.</p>\n<p><strong>Talento de Musa</strong> @UUID[Compendium.pf2e.feats-srd.Item.Zoophonic Communication]</p>\n<p><strong>Magia de Musa</strong> @UUID[Compendium.pf2e.spells-srd.Item.Summon Animal]</p>"
     },
     "mGyRcs5k6sRE1fVm": {
       "name": "Golpe Debilitante",
@@ -959,7 +989,7 @@
     "mMZ6viHgZXOkBjQ1": {
       "name": "Linhagem: Megera",
       "sourceHash": "d9b7b78f794f8bf245030712e48a2df1568ffc30",
-      "description": ""
+      "description": "<p>Uma megera amaldiçoou sua família há muito tempo, ou você é descendente de uma megera ou de um changeling, e a magia deles infesta seu sangue e sua alma.</p>\n<p><strong>Tradição</strong> oculta</p>\n<p><strong>Perícias de Linhagem</strong> Enganação, Ocultismo</p>\n<p><strong>Dádivas Feiticeiras</strong> truque @UUID[Compendium.pf2e.spells-srd.Item.Daze], 1º: @UUID[Compendium.pf2e.spells-srd.Item.Illusory Disguise], 2º: @UUID[Compendium.pf2e.spells-srd.Item.Stupefy], 3º: @UUID[Compendium.pf2e.spells-srd.Item.Blindness], 4º: @UUID[Compendium.pf2e.spells-srd.Item.Outcast's Curse], 5º: @UUID[Compendium.pf2e.spells-srd.Item.Mariner's Curse], 6º: @UUID[Compendium.pf2e.spells-srd.Item.Cursed Metamorphosis], 7º: @UUID[Compendium.pf2e.spells-srd.Item.Warp Mind], 8º: @UUID[Compendium.pf2e.spells-srd.Item.Quandary], 9º: @UUID[Compendium.pf2e.spells-srd.Item.Phantasmagoria]</p>\n<p><strong>Magias de Linhagem</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Jealous Hex], avançada: @UUID[Compendium.pf2e.spells-srd.Item.Horrific Visage], superior: @UUID[Compendium.pf2e.spells-srd.Item.You're Mine]</p>\n<p><strong>Magia de Sangue — Rancor Retributivo</strong> Malícia e rancor tomam forma física ao seu redor. Você causa 4 de dano mental por grau da magia (teste de resistência de Vontade básico) à primeira criatura que causar dano a você antes do fim do seu próximo turno; se nenhuma criatura causar dano a você nesse período, você consome esse rancor para ganhar pontos de vida temporários no início do seu próximo turno, iguais ao grau da magia. Esses pontos de vida temporários duram até o início do seu turno seguinte.</p>"
     },
     "mRLd1vgm5NpYMpD7": {
       "name": "Mente Ágil",
@@ -979,22 +1009,22 @@
     "nK6z25Z0ETR5J5Xz": {
       "name": "Maestro",
       "sourceHash": "6f377d457c0d293583ccd019b4c44c6f01423383",
-      "description": ""
+      "description": "<p>Sua musa o inspira constantemente a alcançar novos patamares de proeza artística. Para muitos bardos, um professor ou rival preenche esse papel, embora alguns mirem mais alto e tentem superar grandes compositores do passado ou abrir um caminho totalmente novo. Se sua musa é uma criatura sobrenatural, pode ser uma que ama se apresentar, como um anjo coral ou um azata lirakeno; se é uma divindade, pode ser Shelyn. A arte inspirada por uma musa maestro é precisa e inventiva, uma conquista formalista.</p>\n<p>Como bardo com uma musa maestro, você é uma inspiração para seus aliados e confiante em suas habilidades musicais e oratórias.</p>\n<p><strong>Talento de Musa</strong> @UUID[Compendium.pf2e.feats-srd.Item.Lingering Composition]</p>\n<p><strong>Magia de Musa</strong> @UUID[Compendium.pf2e.spells-srd.Item.Soothe]</p>"
     },
     "nVw20CuAcCpucJYO": {
       "name": "Guerreiro",
       "sourceHash": "5224e7058beebfeb415f64fc9eb2939f52d7aaef",
-      "description": ""
+      "description": "<p>O campo de batalha é seu palco, o clangor do aço, sua canção. Sua musa já viu incontáveis batalhas, seja deliciando-se com o combate, seja resignada à sua necessidade. Um soldado ou general específico pode inspirá-lo, assim como um campo de batalha ou arma com uma história particularmente profunda. Se sua musa é uma criatura, pode ser um soldado de outro mundo, como um archon ou um soldado diabólico. Se é uma divindade, pode ser Gorum. A arte inspirada por uma musa guerreira é triunfante e estridente, frequentemente detalhando batalhas épicas.</p>\n<p>Como bardo com uma musa guerreira, você treina para a batalha além da performance, e prepara seus aliados para os perigos do combate. Você pode até mesmo mergulhar no meio da ação junto com eles.</p>\n<p><strong>Talento de Musa</strong> @UUID[Compendium.pf2e.feats-srd.Item.Martial Performance]</p>\n<p><strong>Magia de Musa</strong> @UUID[Compendium.pf2e.spells-srd.Item.Fear]</p>"
     },
     "njYDyHDE3ogHH7th": {
       "name": "Lenda Graciosa",
       "sourceHash": "70b4b16052441fe3ff3224d61cf2bb086439cc7a",
-      "description": ""
+      "description": "<p>Seu movimento sublime concede a você proteção e ofensiva incomparáveis. Seu grau de proficiência em defesa sem armadura aumenta para lendário, e seu grau de proficiência para sua CD de classe de monge aumenta para mestre. Se você tiver magias de qi, seu grau de proficiência para modificadores de ataque de magia e CDs de magia aumenta para mestre.</p>"
     },
     "nxwKUkpw2byexCMh": {
       "name": "Linhagem: Abençoada pelo Wyrm",
       "sourceHash": "9d7142bcdeb89c64761c3a46cf9d4bf09c8ed373",
-      "description": ""
+      "description": "<p>Você reivindica o poder dos dragões, mas seus poderes são sagrados em vez de arcanos — nascidos de uma devoção ao poder dracônico tão intenso que imbuiu seu sangue ou, talvez, de uma bênção celestial ou dracônica recebida por um de seus ancestrais.</p>\n<p><strong>Lista de Magias</strong> divina</p>\n<p><strong>Perícias de Linhagem</strong> Intimidação, Religião</p>\n<p><strong>Magias Concedidas</strong> truque: @UUID[Compendium.pf2e.spells-srd.Item.Read Aura]; 1º: @UUID[Compendium.pf2e.spells-srd.Item.Mystic Armor]; 2º: @UUID[Compendium.pf2e.spells-srd.Item.Resist Energy]; 3º: @UUID[Compendium.pf2e.spells-srd.Item.Haste]; 4º: @UUID[Compendium.pf2e.spells-srd.Item.Reflective Scales]; 5º: @UUID[Compendium.pf2e.spells-srd.Item.Cloak of Colors]; 6º: @UUID[Compendium.pf2e.spells-srd.Item.Repulsion]; 7º: @UUID[Compendium.pf2e.spells-srd.Item.Mask of Terror]; 8º: @UUID[Compendium.pf2e.spells-srd.Item.Divine Inspiration], 9º: @UUID[Compendium.pf2e.spells-srd.Item.Overwhelming Presence]</p>\n<p><strong>Magias de Linhagem</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Flurry of Claws]; avançada: @UUID[Compendium.pf2e.spells-srd.Item.Dragon Breath]; superior: @UUID[Compendium.pf2e.spells-srd.Item.Dragon Wings]</p>\n<p><strong>Magia de Sangue</strong> O poder dracônico ecoa em sua voz. Você ganha um bônus de condição de +1 em testes de Intimidação por 1 rodada, ou um alvo sofre uma penalidade de condição de –1 em testes de resistência de Vontade por 1 rodada.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Wyrmblessed Blood Magic]</p>\n<h2 class=\"title\">Tipo de Dragão</h2>\n<p>No 1º nível, escolha o tipo de dragão que influenciou sua linhagem. Você não pode mudar seu tipo de dragão depois. Essa escolha afeta como algumas de suas magias de linhagem funcionam. Os dragões metálicos benignos e seus tipos de dano são: latão (fogo), bronze (eletricidade), cobre (ácido), ouro (fogo) e prata (frio).</p>\n<p>Os dragões cromáticos malignos e seus tipos de dano são: preto (ácido), azul (eletricidade), verde (veneno), vermelho (fogo) e branco (frio).</p>\n<p>Os dragões primais de origem planar e seus tipos de dano são: salmoura (ácido), nuvem (eletricidade), cristal (perfuração), magma (fogo) e umbral (vazio).</p>\n<p>Os dragões imperiais e seus tipos de dano são: floresta (perfuração), mar (concussão), céu (eletricidade), soberano (mental) e submundo (fogo).</p>\n<p>Para a magia de foco sopro de dragão, a área é uma @Template[line|distance:60] para um dragão de salmoura; um @Template[cone|distance:30] para um dragão de nuvem, cristal, floresta, magma, soberano ou umbral; e uma @Template[burst|distance:10] a até 30 pés para um dragão de mar, céu ou submundo.</p>\n<h2 class=\"title\">Linhagem Relacionada</h2>\n<p>Como as linhagens abençoada pelo wyrm e dracônica têm origens semelhantes, elas contam como equivalentes entre si para fins de pré-requisitos e requisitos de acesso.</p>"
     },
     "o6Oc3e0GSFurrogA": {
       "name": "Ferro Inexorável",
@@ -1004,7 +1034,7 @@
     "oJOPZEreYjnSbgHP": {
       "name": "Quinta Doutrina (Clérigo Enclausurado)",
       "sourceHash": "fc11da548740d366a30d02ce9b7015d229f74acc",
-      "description": ""
+      "description": "<p>Seus graus de proficiência para o modificador de ataque de magia e para a CD de magia aumentam para mestre.</p>"
     },
     "oSMLCBMXrEeuRoOS": {
       "name": "Truques Mestres",
@@ -1014,7 +1044,7 @@
     "ocZyNsiv8LtCwvNc": {
       "name": "Primeira Doutrina (Sacerdote Guerreiro)",
       "sourceHash": "e8a33c6af2095487b3f58560a6026d5ca800af69",
-      "description": ""
+      "description": "<p>Você é treinado em armadura leve e média, e tem proficiência de perito em testes de Fortitude. Você ganha o talento geral @UUID[Compendium.pf2e.feats-srd.Item.Shield Block], uma reação para reduzir dano com um escudo. Se a arma favorita de sua divindade for uma arma simples ou um ataque desarmado, você ganha o talento de clérigo @UUID[Compendium.pf2e.feats-srd.Item.Deadly Simplicity]. No 13º nível, se você ganhar a característica de classe @UUID[Compendium.pf2e.classfeatures.Item.Divine Defense], você também ganha proficiência de perito em armadura leve e média.</p>"
     },
     "oqbnOYq8BmDDXWid": {
       "name": "Instinto Animal",
@@ -1024,7 +1054,12 @@
     "p1eJInj1rrT9MDgw": {
       "name": "Grandeza",
       "sourceHash": "5d61f22ad59d696fae3746ceb89e5c822b2d3574",
-      "description": ""
+      "description": "<p>A grandeza refulgente dos reinos celestiais imaculados o inspira, e você exorta suas virtudes para trazer humildade aos habitantes de outros mundos sombrios.</p>\n<p><strong>Preceitos</strong> ofereça um exemplo brilhante aos outros, aprecie e compartilhe a beleza ao seu redor, mantenha-se limpo e bem cuidado</p>\n<p><strong>Anátema</strong> maculte-se ao se associar com demônios e forças profanas.</p><hr /><p><strong>Reação do Campeão</strong> @UUID[Compendium.pf2e.actionspf2e.Item.Flash of Grandeur]</p>\n<p><strong>Reação Implacável (Nível 9)</strong> O inimigo também sofre dano de espírito persistente igual ao seu modificador de Carisma, e não pode se recuperar desse dano persistente enquanto estiver afetado pela luz reveladora do seu Lampejo de Grandiosidade.</p>\n<p><strong>Reação Exaltada (Nível 11)</strong> Além do inimigo afetado por Lampejo de Grandiosidade, cada outro inimigo na aura do seu campeão é afetado pela magia luz reveladora por 1 rodada.</p>"
+    },
+    "p3TTbsuMnjKSho3r": {
+      "name": "Junção de Portão",
+      "sourceHash": "78d55ebec3f60196aa7cd9b868c0d6ac40047599",
+      "description": "<h3><strong>Junções de Portão</strong></h3>\n<p>Quando você ganha uma junção de portão, desenvolve uma técnica cinética especializada. Escolha um benefício da tabela de junções de portão para um de seus elementos cinéticos.</p>\n<ul>\n<li>Uma junção de <strong>explosão crítica</strong> ocorre quando você obtém um sucesso crítico com uma Explosão Elemental do elemento cinético.</li>\n<li>Uma <strong>resistência elemental</strong> concede a você resistência a dano enquanto sua aura cinética está ativa. Essa resistência é igual ao seu nível, e se aplica a dano de qualquer tipo listado ou que venha de uma criatura ou efeito com qualquer um dos traços listados. No 17º nível, você ganha imunidade a efeitos com qualquer um dos traços listados. Isso não o torna imune a criaturas com tal traço. Você pode voluntariamente abrir mão dessa resistência, imunidade, ou de ambas, se quiser que um efeito funcione em você.</li>\n<li>Você pode escolher uma <strong>junção de impulso</strong> em vez de uma das junções listadas. Junções de impulso estão listadas em Portão Único.</li>\n<li>Uma <strong>junção de aura</strong> adiciona um efeito à sua aura cinética quando você Canaliza Elementos.</li>\n<li>Uma <strong>junção de perícia</strong> torna você treinado na perícia listada e concede a você o talento de perícia listado. Se você já era treinado na perícia listada, torna-se treinado em uma perícia à sua escolha em vez disso. Enquanto sua aura cinética estiver ativa, você ganha um bônus de condição de +1 na perícia listada; o bônus aumenta para +2 no 10º nível e para +3 no 17º nível.</li>\n</ul>\n<p>Você pode selecionar cada junção de portão apenas uma vez, salvo indicação contrária, mas pode ter o mesmo tipo de junção para múltiplos elementos. Você sempre pode optar por não usar uma junção de portão quando ela normalmente ocorreria. Se você tiver múltiplas junções que se aplicariam ao mesmo tempo — como junções de aura cinética para elementos diferentes —, pode aplicar quantas quiser. (Note, porém, que você só pode usar uma junção de impulso por rodada.)</p>"
     },
     "p3d74Rt5Nfi8ZqtK": {
       "name": "Reflexos Evasivos",
@@ -1054,7 +1089,7 @@
     "piMoitan7z8yLHVC": {
       "name": "Sacerdote Guerreiro",
       "sourceHash": "27e204607315624362e6f01abe4824a8760db8d8",
-      "description": ""
+      "description": "<p>Você treinou na doutrina mais militante de sua igreja, focando tanto em magias quanto em combate.</p>\n<p><strong>Primeira Doutrina (1º):</strong> Você é treinado em armadura leve e média, e tem proficiência de perito em testes de Fortitude. Você ganha o talento geral @UUID[Compendium.pf2e.feats-srd.Item.Shield Block], uma reação para reduzir dano com um escudo. Se a arma favorita de sua divindade for uma arma simples ou um ataque desarmado, você ganha o talento de clérigo @UUID[Compendium.pf2e.feats-srd.Item.Deadly Simplicity]. No 13º nível, se você ganhar a característica de classe @UUID[Compendium.pf2e.classfeatures.Item.Divine Defense], você também ganha proficiência de perito em armadura leve e média.</p>\n<p><strong>Segunda Doutrina (3º):</strong> Você é treinado em armas marciais.</p>\n<p><strong>Terceira Doutrina (7º):</strong> Você ganha proficiência de perito com a arma favorita de sua divindade, armas marciais, armas simples e ataques desarmados. Quando você obtém um sucesso crítico em uma rolagem de ataque usando a arma favorita de sua divindade, você aplica o efeito de especialização crítica da arma; você pode usar sua CD de magia no lugar da sua CD de classe.</p>\n<p><strong>Quarta Doutrina (11º):</strong> Seus graus de proficiência para o modificador de ataque de magia e para a CD de magia aumentam para perito.</p>\n<p><strong>Quinta Doutrina (15º):</strong> Seu grau de proficiência em testes de Fortitude aumenta para mestre. Quando você rola um sucesso em um teste de Fortitude, você obtém um sucesso crítico em vez disso.</p>\n<p><strong>Doutrina Final (19º):</strong> Você ganha proficiência de mestre com a arma favorita de sua divindade, com o modificador de ataque de magia e com a CD de magia.</p>"
     },
     "q5U9JtyjBIro75z5": {
       "name": "Vontade Prodigiosa",
@@ -1074,7 +1109,7 @@
     "r6hvcZm2ECp1KEhb": {
       "name": "Segunda Doutrina (Sacerdote Guerreiro)",
       "sourceHash": "c167781cecc9a441cb891262b76398300d4192de",
-      "description": ""
+      "description": "<p>Você é treinado em armas marciais.</p>"
     },
     "rkGtWFGsR3fOlHV6": {
       "name": "Precisão",
@@ -1084,7 +1119,7 @@
     "rkX4fo0J36e2qAbG": {
       "name": "Bênção dos Devotos",
       "sourceHash": "eda15eb603267e1bc1db0c57f3c27e8179698f82",
-      "description": ""
+      "description": "<p>Sua divindade abençoa seu serviço com uma dádiva. Isso pode vir na forma de um espírito que a visita e habita seus itens ou seu corpo, uma misteriosa tatuagem divina em seu corpo, ou algo semelhante. Escolha uma das bênçãos a seguir, ou qualquer outra à qual você tenha acesso.</p>\n<p><strong>Armamento Abençoado</strong>: Escolha uma arma ou luvas de golpes poderosos. Você ganha o efeito de especialização crítica daquele armamento, e concede ao armamento uma runa de propriedade à sua escolha dentre a lista a seguir: @UUID[Compendium.pf2e.equipment-srd.Item.Fearsome], @UUID[Compendium.pf2e.equipment-srd.Item.Ghost Touch], @UUID[Compendium.pf2e.equipment-srd.Item.Returning], @UUID[Compendium.pf2e.equipment-srd.Item.Shifting], ou @UUID[Compendium.pf2e.equipment-srd.Item.Vitalizing]. Durante suas preparações diárias, você pode mudar o espírito para habitar um armamento diferente, conceder uma runa diferente, ou ambos.</p>\n<p><strong>Escudo Abençoado:</strong> Em suas mãos, um escudo ganha a runa menor de @UUID[Compendium.pf2e.equipment-srd.Item.Reinforcing Rune (Minor)]{Reforço}. Conforme você sobe de nível, o escudo ganha a runa de reforço do seu nível (inferior no 7º nível, moderada no 10º nível, superior no 13º nível, maior no 16º nível, e suprema no 19º nível). Se seu escudo já tiver a runa de reforço apropriada para seu nível, ou se for um @UUID[Compendium.pf2e.equipment-srd.Item.Sturdy Shield (Minor)]{Escudo Robusto} do mesmo nível que a runa de reforço apropriada, a Dureza do escudo aumenta em 1 em vez disso.</p>\n<p><strong>Rapidez Abençoada:</strong> Você ganha um bônus de condição de +5 pés à Velocidade. Se você estiver montado, sua montaria ganha o bônus em vez disso. Além disso, quando o movimento de um de seus aliados aciona a reação de um inimigo enquanto o aliado está na aura do seu campeão, o aliado ganha um bônus de condição de +2 a todas as defesas contra aquela reação.</p>"
     },
     "s5u2qecuC8288FDf": {
       "name": "Escola da Sabedoria Enraizada",
@@ -1094,12 +1129,12 @@
     "sLcoOSRKL3pqgx8z": {
       "name": "Paragão de Linhagem",
       "sourceHash": "98093cbea66bb267475ab344b6023d03c795a7b6",
-      "description": ""
+      "description": "<p>Você aperfeiçoou a magia em sua linhagem. Adicione duas magias comuns de 10º grau da sua tradição ao seu repertório. Você ganha um único espaço de magia de 10º grau que pode usar para conjurar essas magias, usando a conjuração do feiticeiro. Diferente de outros espaços de magia, você não ganha mais magias de 10º grau conforme sobe de nível, e elas não podem ser usadas com habilidades que permitem conjurar magias sem gastar espaços de magia ou habilidades que concedem mais espaços de magia. Você pode escolher o talento de feiticeiro @UUID[Compendium.pf2e.feats-srd.Item.Bloodline Perfection] para ganhar um segundo espaço.</p>"
     },
     "stRfmuEklLEcWZgK": {
       "name": "Caminho para a Perfeição",
       "sourceHash": "ad8a1dc6d92f6c67f6f002dcbe86f085ea70e8c6",
-      "description": ""
+      "description": "<p>Você progrediu em seu próprio caminho rumo ao esclarecimento. Escolha seu teste de resistência de Fortitude, Reflexos ou Vontade. Seu grau de proficiência para o teste de resistência escolhido aumenta para mestre. Quando você rola um sucesso no teste de resistência escolhido, você obtém um sucesso crítico em vez disso.</p>"
     },
     "sy7rtPbt8x4XsYkp": {
       "name": "Golpe de Magia",
@@ -1109,12 +1144,12 @@
     "tLSGEEfStt5nueny": {
       "name": "Terceira Doutrina (Clérigo Enclausurado)",
       "sourceHash": "4518899896852686878724409c7a8cc4c3c3e285",
-      "description": ""
+      "description": "<p>Seus graus de proficiência para o modificador de ataque de magia e para a CD de magia aumentam para perito.</p>"
     },
     "tblooNAQTKQKet7p": {
       "name": "Doutrina Final (Sacerdote Guerreiro)",
       "sourceHash": "63d2baf83d61ad6fa508d678220031e0ca2cdba6",
-      "description": ""
+      "description": "<p>Você ganha proficiência de mestre com a arma favorita de sua divindade, com o modificador de ataque de magia e com a CD de magia.</p>"
     },
     "tn019aFJzq8HZoqF": {
       "name": "Escola Arcana",
@@ -1124,7 +1159,7 @@
     "u0nA0rMnKu6LYGUZ": {
       "name": "Doutrina Final",
       "sourceHash": "c5f3fab1a8a3a5c5dc506569ce3a476e7d06b517",
-      "description": ""
+      "description": "<p>Você ganha o benefício final de sua doutrina:</p>\n<ul>\n<li>@UUID[Compendium.pf2e.classfeatures.Item.Final Doctrine (Cloistered Cleric)]{Clérigo Enclausurado}</li>\n<li>@UUID[Compendium.pf2e.classfeatures.Item.Final Doctrine (Warpriest)]{Sacerdote Guerreiro}</li>\n</ul>"
     },
     "uFO4ijSHv40D0G7M": {
       "name": "Instinto Elemental",
@@ -1144,32 +1179,37 @@
     "uvGoYJ27yZBsqsUD": {
       "name": "Clérigo Enclausurado",
       "sourceHash": "9ca4bda15e678ab1ea16a960877406a7b14011ae",
-      "description": ""
+      "description": "<p>Você é um clérigo do clero, focado na magia divina e em sua conexão com os domínios de sua divindade.</p>\n<p><strong>Primeira Doutrina (1º):</strong> Você ganha o talento de clérigo @UUID[Compendium.pf2e.feats-srd.Item.Domain Initiate].</p>\n<p><strong>Segunda Doutrina (3º):</strong> Seu grau de proficiência em testes de Fortitude aumenta para perito.</p>\n<p><strong>Terceira Doutrina (7º):</strong> Seus graus de proficiência para o modificador de ataque de magia e para a CD de magia aumentam para perito.</p>\n<p><strong>Quarta Doutrina (11º):</strong> Você ganha proficiência de perito com a arma favorita de sua divindade, armas simples e ataques desarmados. Quando você obtém um sucesso crítico em uma rolagem de ataque usando a arma favorita de sua divindade, você aplica o efeito de especialização crítica da arma; você pode usar sua CD de magia no lugar da sua CD de classe.</p>\n<p><strong>Quinta Doutrina (15º):</strong> Seus graus de proficiência para o modificador de ataque de magia e para a CD de magia aumentam para mestre.</p>\n<p><strong>Doutrina Final (19º):</strong> Seus graus de proficiência para o modificador de ataque de magia e para a CD de magia aumentam para lendário.</p>"
     },
     "vFK3jg5jfq5VYwnZ": {
       "name": "Linhagem: Harrow",
       "sourceHash": "1aa0e618d0721b828078ed0da8bb5b2771c9dc56",
-      "description": ""
+      "description": "<p><strong>Lista de Magias</strong> oculta</p>\n<p><strong>Perícias de Linhagem</strong> Ocultismo, Atuação</p>\n<p><strong>Magias Concedidas</strong> truque: @UUID[Compendium.pf2e.spells-srd.Item.Detect Magic]; 1º: @UUID[Compendium.pf2e.spells-srd.Item.Ill Omen], 2º: @UUID[Compendium.pf2e.spells-srd.Item.Augury]; 3º: @UUID[Compendium.pf2e.spells-srd.Item.Wanderer's Guide]; 4º: @UUID[Compendium.pf2e.spells-srd.Item.Suggestion]; 5º: @UUID[Compendium.pf2e.spells-srd.Item.Shadow Siphon]; 6º: @UUID[Compendium.pf2e.spells-srd.Item.Truesight]; 7º: @UUID[Compendium.pf2e.spells-srd.Item.Retrocognition]; 8º: @UUID[Compendium.pf2e.spells-srd.Item.Unrelenting Observation]; 9º: @UUID[Compendium.pf2e.spells-srd.Item.Weird]</p>\n<p><strong>Magias de Linhagem</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Unraveling Blast]; avançada: @UUID[Compendium.pf2e.spells-srd.Item.Invoke the Harrow]; superior: @UUID[Compendium.pf2e.spells-srd.Item.Rewrite Possibility]</p>\n<p><strong>Magia de Sangue</strong> Você se envolve em possibilidade, representada por múltiplas versões de si mesmo, de seus futuros possíveis, sobrepostas umas às outras. Você ganha @UUID[Compendium.pf2e.conditionitems.Item.Concealed]{Ocultado} por 1 rodada, mas não pode usar esse ocultamento para @UUID[Compendium.pf2e.actionspf2e.Item.Hide].</p>"
     },
     "vRc9KYm0mKU5tANe": {
       "name": "Terceiro Caminho para a Perfeição",
       "sourceHash": "a9766b551e06e63ceaa6fa84a4dfb6a0eb2fed2f",
-      "description": ""
+      "description": "<p>Você fez grandes progressos em seus estudos pessoais de esclarecimento. Escolha um dos testes de resistência que você selecionou para caminho para a perfeição ou segundo caminho para a perfeição. Seu grau de proficiência para o tipo de teste escolhido aumenta para lendário. Quando você rola uma falha crítica no tipo de teste escolhido, você obtém uma falha em vez disso. Quando você rola uma falha no tipo de teste escolhido contra um efeito que causa dano, você sofre metade do dano.</p>"
+    },
+    "w1bsPZkn0DgZIxop": {
+      "name": "Escudo Abençoado",
+      "sourceHash": "382b7e47b1752defd7da39119394fff767624401",
+      "description": "<p>Em suas mãos, um escudo ganha a runa menor de @UUID[Compendium.pf2e.equipment-srd.Item.Reinforcing Rune (Minor)]{Reforço}. Conforme você sobe de nível, o escudo ganha a runa de reforço do seu nível (inferior no 7º nível, moderada no 10º nível, superior no 13º nível, maior no 16º nível, e suprema no 19º nível). Se seu escudo já tiver a runa de reforço apropriada para seu nível, ou se for um @UUID[Compendium.pf2e.equipment-srd.Item.Sturdy Shield (Minor)]{Escudo Robusto} do mesmo nível que a runa de reforço apropriada, a Dureza do escudo aumenta em 1 em vez disso.</p>"
     },
     "w5ZmsIyNU0f66q8E": {
       "name": "Conjuração do Clérigo",
       "sourceHash": "f117fd96a338a2e260c118d02c879babbcd3f76f",
-      "description": ""
+      "description": "<p>Sua divindade concede a você o poder de conjurar magias divinas. Você é um conjurador, e pode conjurar magias da tradição divina usando a atividade Conjurar uma Magia. Como clérigo, suas encantações geralmente invocam sua divindade e seus poderosos servos pelo nome ou título, enquanto seus gestos são acompanhados de símbolos sagrados ou outras representações de sua divindade.</p>\n<p>No 1º nível, você pode preparar duas magias de 1º grau e cinco truques a cada manhã, dentre as magias comuns da lista de magias divinas ou de outras magias divinas às quais ganhe acesso e aprenda por meio de Aprender uma Magia. As magias preparadas permanecem disponíveis até que você as conjure ou até que prepare suas magias novamente. O número de magias que você pode preparar por dia é chamado de espaços de magia.</p>\n<p>Conforme você aumenta de nível como clérigo, o número de magias que você pode preparar por dia aumenta, assim como o maior grau de magia que você consegue conjurar, conforme mostrado na tabela Magias de Clérigo por Dia acima.</p>\n<p>Algumas das suas magias exigem que você tente uma rolagem de ataque de magia para ver o quão eficazes são, ou fazem seus inimigos rolarem contra sua CD de magia (normalmente tentando um teste de resistência). Como seu atributo-chave é Sabedoria, seu modificador de ataque de magia e sua CD de magia usam seu modificador de Sabedoria.</p>\n<h2>Elevando Magias</h2><p>Quando você obtém espaços de magia de 2º grau ou superior, pode preencher esses espaços com versões mais fortes de magias de grau inferior. Isso aumenta o grau da magia, elevando-a para corresponder ao espaço de magia. Muitas magias têm melhorias específicas quando são elevadas a certos graus.</p>\n<h2>Truques</h2><p>Algumas das suas magias são truques. Um truque é um tipo especial de magia que não usa espaços de magia. Você pode conjurar um truque à vontade, quantas vezes por dia quiser. Um truque é sempre automaticamente elevado à metade do seu nível arredondado para cima — isso normalmente equivale ao maior grau de espaço de magia de clérigo que você possui. Por exemplo, como clérigo de 1º nível, seus truques são magias de 1º grau, e como clérigo de 5º nível, seus truques são magias de 3º grau.</p>"
     },
     "wBUBpFO5QNycXjJB": {
       "name": "Linhagem: Diabólica",
       "sourceHash": "3691c4b37c6ec2d046ccb036aa7a3eeb7be9e464",
-      "description": ""
+      "description": "<p>Diabos são malignos com uma língua afiada, e um de seus ancestrais se envolveu com a escuridão ou firmou um pacto infernal.</p>\n<p><strong>Lista de Magias</strong> divina</p>\n<p><strong>Perícias de Linhagem</strong> Enganação, Religião</p>\n<p><strong>Dádivas Feiticeiras</strong> truque @UUID[Compendium.pf2e.spells-srd.Item.Ignition], 1º: @UUID[Compendium.pf2e.spells-srd.Item.Charm], 2º: @UUID[Compendium.pf2e.spells-srd.Item.Floating Flame], 3º: @UUID[Compendium.pf2e.spells-srd.Item.Enthrall], 4º: @UUID[Compendium.pf2e.spells-srd.Item.Suggestion], 5º: @UUID[Compendium.pf2e.spells-srd.Item.Wave of Despair], 6º: @UUID[Compendium.pf2e.spells-srd.Item.Truesight], 7º: @UUID[Compendium.pf2e.spells-srd.Item.Divine Decree], 8º: @UUID[Compendium.pf2e.spells-srd.Item.Divine Inspiration], 9º: @UUID[Compendium.pf2e.spells-srd.Item.Falling Stars]</p>\n<p><strong>Magias de Linhagem</strong> inicial: @UUID[Compendium.pf2e.spells-srd.Item.Diabolic Edict], avançada: @UUID[Compendium.pf2e.spells-srd.Item.Embrace the Pit], superior: @UUID[Compendium.pf2e.spells-srd.Item.Hellfire Plume]</p>\n<p><strong>Magia de Sangue — Língua de Chamas</strong> Sua língua se cobre com o fogo do Inferno, e você pode tanto atacar um inimigo com ela quanto engoli-la para tornar suas mentiras mais palatáveis. Um alvo sofre 1 de dano de fogo por grau da magia (se a magia já causar dano inicial de fogo, combine isso com o dano inicial da magia antes de determinar vulnerabilidades e resistências), ou você ganha um bônus de condição de +2 em testes de Enganação por 1 rodada.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Diabolic Blood Magic (Self)]</p>"
     },
     "wBba2TDXECeWhXXn": {
       "name": "Magias de Devoção",
       "sourceHash": "c5d5cce4eefa512472c454358f3ffab4878c7b61",
-      "description": ""
+      "description": "<p>O poder de sua divindade concede a você magias divinas especiais chamadas magias de devoção, que são um tipo de magia de foco. Escolha @UUID[Compendium.pf2e.spells-srd.Item.Shields of the Spirit] ou uma magia com base na fonte divina de sua divindade (@UUID[Compendium.pf2e.spells-srd.Item.Lay on Hands] se sua divindade permitir <em>curar</em>, @UUID[Compendium.pf2e.spells-srd.Item.Touch of the Void] se sua divindade permitir <em>ferir</em>).</p>\n<p>Custa 1 Ponto de Foco para conjurar uma magia de foco. Quando você ganha sua primeira magia de devoção, também ganha uma reserva de foco de 1 Ponto de Foco. Você reabastece sua reserva de foco durante suas preparações diárias, e recupera 1 Ponto de Foco gastando 10 minutos com a atividade Refocalizar para rezar à sua divindade ou prestar serviço às suas causas.</p>\n<p>Suas magias de devoção são magias divinas. Seu atributo de conjuração é Carisma.</p>\n<p>Magias de foco são automaticamente elevadas à metade do seu nível arredondado para cima. Certos talentos concedem a você mais magias de foco. O máximo de Pontos de Foco que sua reserva de foco pode conter é igual ao número de magias de foco que você possui, mas nunca pode ser mais do que 3 pontos.</p>"
     },
     "wFpQ8XP25u7l47Dx": {
       "name": "Reflexos de Ladino Maiores",
@@ -1179,12 +1219,12 @@
     "wHqM8E3f5nPThvY4": {
       "name": "Especialização do Campeão",
       "sourceHash": "dc45a311823de399f9c6a41a9a3a6689d11e1e7e",
-      "description": ""
+      "description": "<p>Suas preces fortalecem seu poder divino. Seus graus de proficiência para sua CD de classe de campeão e para rolagens de ataque de magia divina e CDs aumentam para perito.</p>"
     },
     "wHuEESk6LaQ2kq3v": {
       "name": "Quarta Doutrina (Clérigo Enclausurado)",
       "sourceHash": "040ce6933dd7130f729fb7328da70113608f475b",
-      "description": ""
+      "description": "<p>Você ganha proficiência de perito com a arma favorita de sua divindade, armas simples e ataques desarmados. Quando você obtém um sucesso crítico em uma rolagem de ataque usando a arma favorita de sua divindade, você aplica o efeito de especialização crítica da arma; você pode usar sua CD de magia no lugar da sua CD de classe.</p>"
     },
     "wkOoYxQ0i6yV7NS8": {
       "name": "Resistência do Guardião",
@@ -1199,7 +1239,7 @@
     "xDtG0WYbAHeEsNBd": {
       "name": "Especialização em Armas do Bardo",
       "sourceHash": "5b23ae501a96c6c1d264869d0c28a3547a0ece21",
-      "description": ""
+      "description": "<p>Você se tornou completamente versado nas armas dos bardos. Seu grau de proficiência com armas marciais, armas simples e ataques desarmados aumenta para perito. Quando você obtém um sucesso crítico em uma rolagem de ataque usando uma dessas armas ou um ataque desarmado enquanto uma de suas composições está ativa, você aplica o efeito de especialização crítica daquela arma ou ataque desarmado.</p>"
     },
     "xIbUjeUIOsopXLq7": {
       "name": "Passos Furiosos",
@@ -1209,17 +1249,17 @@
     "xSGqu3kKCuEb0eYp": {
       "name": "Desafio do Herói",
       "sourceHash": "e2ca28f2b8ea67bbf8aa07fac44a02c927ed4066",
-      "description": ""
+      "description": "<p>Você pode desafiar o destino e continuar lutando enquanto tiver energia divina. Você ganha a magia de devoção @UUID[Compendium.pf2e.spells-srd.Item.Hero's Defiance].</p>"
     },
     "xVdEfXKh6CrTVj1h": {
       "name": "Segundo Caminho para a Perfeição",
       "sourceHash": "5c1a922f51e21ca6329fdc0d28d389681e883a85",
-      "description": ""
+      "description": "<p>Você aprendeu a encontrar a perfeição em cada sucesso. Escolha um teste de resistência diferente daquele que você escolheu para seu caminho para a perfeição. Seu grau de proficiência para o teste de resistência escolhido aumenta para mestre. Se você rolar um sucesso com o teste de resistência escolhido, você obtém um sucesso crítico em vez disso.</p>"
     },
     "xbrOL7KPjY5oLwWb": {
       "name": "Justiça",
       "sourceHash": "f053b4815ad3e4b80855e16c30a1ca1beded08b4",
-      "description": ""
+      "description": "<p>Em nome de sua divindade, você busca justiça, seguindo a lei e punindo aqueles que a transgridem.</p>\n<p><strong>Preceitos</strong> siga a lei, respeite autoridades ou lideranças legítimas</p>\n<p><strong>Anátema</strong> tirar vantagem de outra pessoa, trapacear</p><hr /><p><strong>Reação do Campeão</strong> @UUID[Compendium.pf2e.actionspf2e.Item.Retributive Strike]</p>\n<p><strong>Reação Implacável (Nível 9)</strong> Se seu Golpe acertar, o alvo sofre dano de espírito persistente igual ao seu modificador de Carisma.</p>\n<p><strong>Reação Exaltada (Nível 11)</strong> Cada aliado na aura do seu campeão que tenha o alvo em seu alcance corpo a corpo pode gastar uma reação para Golpear o alvo com uma penalidade de –5.</p>"
     },
     "xcNVeityWdQwcAGn": {
       "name": "Jornada sem Rastro",
@@ -1239,7 +1279,7 @@
     "xt6sILYpPH1Xrek3": {
       "name": "Profanação",
       "sourceHash": "23a020d0f1b5be8d8b93e7a800890fb102cf7b0b",
-      "description": ""
+      "description": "<p>Você sempre pega o que lhe agrada, não importa quem se machuque, e espalha uma influência maligna sobre tudo o que toca.</p>\n<p><strong>Preceitos</strong> subverta ou corrompa tudo em seu caminho que seja puro ou sagrado, semeie dúvidas entre aqueles que sustentam ideais de pureza ou santidade.</p><hr /><p><strong>Reação do Campeão</strong> @UUID[Compendium.pf2e.actionspf2e.Item.Selfish Shield]</p>\n<p><strong>Reação Implacável (9º)</strong> Se seu modificador de Carisma for +3 ou maior, sua resistência contra o dano que ativou a reação é igual ao seu modificador de Carisma + metade do seu nível.</p>\n<p><strong>Reação Exaltada (11º)</strong> Cada inimigo na aura do seu campeão sofre uma penalidade de condição de –1 em rolagens de ataque contra você até o início do seu próximo turno.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.Effect: Exalted Reaction (Desecrator)]</p>"
     },
     "xvC1jNDkNdNtZQiF": {
       "name": "Conjuração Arcana (Magus)",
@@ -1249,7 +1289,7 @@
     "xzqAQmsHPvZkBrAc": {
       "name": "Fonte Divina",
       "sourceHash": "951cde3b0c075776c16b47aeb7d486dcedc6c2a1",
-      "description": ""
+      "description": "<p>Pela bênção de sua divindade, você ganha magias adicionais que canalizam a força vital chamada vitalidade ou sua contraforça, o vazio. Ao preparar suas magias todos os dias, você pode preparar magias adicionais de @UUID[Compendium.pf2e.spells-srd.Item.Heal] ou @UUID[Compendium.pf2e.spells-srd.Item.Harm], dependendo de sua divindade. A magia de fonte divina que sua divindade fornece está listada na entrada de Fonte Divina da sua divindade; se ambas estiverem listadas, você pode escolher entre <em>curar</em> ou <em>ferir</em>. Depois de escolher, você não pode mudar sua escolha, a menos que haja intervenção divina.</p>\n<p><strong>Fonte de Cura:</strong> Você ganha 4 espaços de magia adicionais por dia no seu grau mais alto de espaços de magia de clérigo. Você só pode preparar magias de <em>curar</em> nesses espaços. No 5º nível, o número de espaços adicionais aumenta para 5, e no 15º nível, o número total de espaços adicionais aumenta para 6.</p>\n<p><strong>Fonte Danosa:</strong> Você ganha 4 espaços de magia adicionais por dia no seu grau mais alto de espaços de magia de clérigo. Você só pode preparar magias de <em>ferir</em> nesses espaços. No 5º nível, o número de espaços adicionais aumenta para 5, e no 15º nível, o número total de espaços adicionais aumenta para 6.</p>"
     },
     "ySaLalaR1yMdkqlL": {
       "name": "Instinto de Fúria",
@@ -1259,12 +1299,12 @@
     "ylDOp0zIgaHPkQv0": {
       "name": "Primeira Doutrina (Clérigo Enclausurado)",
       "sourceHash": "337f416df4aefd28ef5540e2676c6ce3499731db",
-      "description": ""
+      "description": "<p>Você ganha o talento de clérigo @UUID[Compendium.pf2e.feats-srd.Item.Domain Initiate].</p>"
     },
     "yoqnc3lhyUICfRSB": {
       "name": "Punho Poderoso",
       "sourceHash": "8168c030d6fca9f07b74b1ffed9167fd1b167218",
-      "description": ""
+      "description": "<p>Seus punhos são armas letais. O dado de dano do seu punho aumenta para 1d6 em vez de 1d4. Você não sofre a penalidade de circunstância normal de –2 ao fazer um ataque letal com o punho ou qualquer outro ataque desarmado.</p>"
     },
     "zIp1kwKnaqtq9qB5": {
       "name": "Agilidade Cinética",

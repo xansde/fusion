@@ -5,11 +5,17 @@
  * REQ-CMP-010..024
  *
  * Handlers:
- *   compendium:list   — list available packs (all roles)
- *   compendium:index  — get pack index (all roles)
- *   compendium:search — search/filter pack index (all roles)
- *   compendium:get    — load full document (all roles)
- *   compendium:import — import doc(s) to world (GM/ASSISTANT only)
+ *   compendium:list             — list available packs (all roles)
+ *   compendium:index            — get pack index (all roles)
+ *   compendium:search           — search/filter pack index (all roles)
+ *   compendium:get              — load full document (all roles)
+ *   compendium:i18nBySourceRef  — resolve pt-BR overlay by origin ref (all roles)
+ *   compendium:import           — import doc(s) to world (GM/ASSISTANT only)
+ *
+ * `compendium:i18nBySourceRef` (issue #43) is the read-side counterpart to
+ * `importToWorld` stripping `uuid`/`i18n` from the world copy: a world document
+ * has no uuid to call `compendium:get` with, but its `flags.fusion.{packName,
+ * sourceId}` survive, and those resolve back to the pt-BR overlay.
  */
 
 import type { HandlerFn } from "../net/handler-registry.js";
@@ -21,6 +27,7 @@ import {
   CompendiumIndexPayloadSchema,
   CompendiumSearchPayloadSchema,
   CompendiumGetPayloadSchema,
+  CompendiumI18nBySourceRefPayloadSchema,
   CompendiumImportPayloadSchema,
 } from "@fusion/shared";
 import type { Ack } from "@fusion/shared";
@@ -152,6 +159,34 @@ export function buildCompendiumGetHandler(deps: CompendiumHandlerDeps): HandlerF
     }
 
     return { ok: true, result: { document: doc } };
+  };
+}
+
+// ---------------------------------------------------------------------------
+// compendium:i18nBySourceRef — resolve pt-BR overlay by origin ref (issue #43)
+// ---------------------------------------------------------------------------
+
+/**
+ * Registered in `../net/socket-manager.ts` alongside the other `compendium:*`
+ * handlers. Readable by every role — a translation overlay carries no
+ * privileged data, exactly like `compendium:get`.
+ */
+export function buildCompendiumI18nBySourceRefHandler(deps: CompendiumHandlerDeps): HandlerFn {
+  return (payload, _ctx): Ack => {
+    const parsed = CompendiumI18nBySourceRefPayloadSchema.safeParse(payload);
+    if (!parsed.success) {
+      return {
+        ok: false,
+        code: "VALIDATION_FAILED",
+        message: "Invalid compendium:i18nBySourceRef payload",
+      };
+    }
+
+    // `null` is a normal, expected outcome (no translation / stale / unknown
+    // origin ref) — NOT an error. The caller falls back to EN.
+    const i18n = deps.compendium.getI18nBySourceRef(parsed.data);
+
+    return { ok: true, result: { i18n } };
   };
 }
 

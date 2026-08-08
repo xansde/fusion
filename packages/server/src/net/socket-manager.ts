@@ -99,6 +99,7 @@ import {
   buildCompendiumIndexHandler,
   buildCompendiumSearchHandler,
   buildCompendiumGetHandler,
+  buildCompendiumI18nBySourceRefHandler,
   buildCompendiumImportHandler,
 } from "../compendium/index.js";
 
@@ -378,6 +379,14 @@ export class SocketManager {
     registry.register("compendium:index", buildCompendiumIndexHandler(compDeps));
     registry.register("compendium:search", buildCompendiumSearchHandler(compDeps));
     registry.register("compendium:get", buildCompendiumGetHandler(compDeps));
+    // Issue #43: a world document has no `uuid` (importToWorld strips it to keep
+    // the world copy EN-pure), so `compendium:get` cannot serve its translation.
+    // Its `flags.fusion.{packName,sourceId}` do survive, and this handler is the
+    // read-side path that turns that origin reference back into the pt-BR overlay.
+    registry.register(
+      "compendium:i18nBySourceRef",
+      buildCompendiumI18nBySourceRefHandler(compDeps),
+    );
     registry.register("compendium:import", buildCompendiumImportHandler(compDeps));
 
     // Register M5-C Etmos Compositor de Magias handlers (etmos:conjuracao:*).

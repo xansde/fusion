@@ -9,7 +9,8 @@
     "extract": "node src/cli.mjs extract",
     "transform": "node src/cli.mjs transform",
     "pack": "node src/cli.mjs pack",
-    "all": "node src/cli.mjs all"
+    "all": "node src/cli.mjs all",
+    "test": "node --test src/__tests__/*.test.mjs"
   },
   "engines": {
     "node": ">=22"

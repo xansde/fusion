@@ -1134,9 +1134,13 @@ describe("derivePlan — system.prerequisites marking (A1)", () => {
     const slot = l1.slots.find((s) => s.slotId === "classFeat-1")!;
     expect(slot.filled).toBe(true);
     expect(slot.choiceName).toBe("Draconic Arrogance");
+    // issue #32: the reason's `prerequisite` param is now translated to
+    // pt-BR via translatePrerequisite (the raw EN "dragon instinct" resolves
+    // by document name to class-features-core's own "Dragon Instinct" →
+    // "Instinto Dracônico" translation).
     expect(slot.requirementIssue).toEqual({
       reasonKey: "FUSION.Sheet.Plan.Requirement.PrerequisiteUnmet",
-      params: { prerequisite: "dragon instinct" },
+      params: { prerequisite: "Instinto Dracônico" },
     });
   });
 
@@ -1215,9 +1219,13 @@ describe("derivePlan — system.prerequisites marking (A1)", () => {
     const l1 = plan.levels.find((l) => l.level === 1)!;
     const slot = l1.slots.find((s) => s.slotId === "classFeat-1")!;
     expect(slot.filled).toBe(true);
+    // issue #32: "animal instinct" resolves by document name (class-features-
+    // core's "Animal Instinct" → "Instinto Animal"); "untamed order" has no
+    // curated document (Druid isn't a Fusion class) but IS a real PF2e term,
+    // covered by prerequisiteTranslation.ts's curated vocabulary.
     expect(slot.requirementIssue).toEqual({
       reasonKey: "FUSION.Sheet.Plan.Requirement.PrerequisiteUnmet",
-      params: { prerequisite: "animal instinct or untamed order" },
+      params: { prerequisite: "Instinto Animal ou Ordem Selvagem" },
     });
   });
 
@@ -5065,6 +5073,38 @@ describe("buildContentNameTranslator", () => {
       nameEn: "Magus's Analysis",
     });
     expect(translate("Fleet")).toEqual({ namePt: "Veloz", nameEn: "Fleet" });
+  });
+
+  // Issue #65 — the Cleric's `featuresByLevel` entry is literally named "Deity"
+  // while the document it points at is named "Deity (Cleric)". Matching by name
+  // misses, so the chip rendered in EN even though the translation existed one
+  // id away. The id is the exact key and must win.
+  it("resolves by docId even when the stored name does not match the document's own", () => {
+    const clericFeatures: PlanNameIndexEntry[] = [
+      { _id: "Z3bGaIq1FnCfsTrx", name: "Deity (Cleric)", namePt: "Divindade (Clérigo)" },
+    ];
+    const translate = buildContentNameTranslator([clericFeatures]);
+
+    // Name-only lookup cannot resolve it — that is the bug being fixed.
+    expect(translate("Deity")).toEqual({ namePt: "Deity", nameEn: "Deity" });
+
+    // With the docId the class doc already carries, it resolves exactly.
+    expect(translate("Deity", "Z3bGaIq1FnCfsTrx")).toEqual({
+      namePt: "Divindade (Clérigo)",
+      nameEn: "Deity (Cleric)",
+    });
+  });
+
+  it("falls back to the stored name when the docId is unknown (never crashes, never invents)", () => {
+    const translate = buildContentNameTranslator([feats]);
+    expect(translate("Fleet", "IdThatIsNotInAnyPack")).toEqual({
+      namePt: "Veloz",
+      nameEn: "Fleet",
+    });
+    expect(translate("Totally Unknown", "AlsoUnknownId")).toEqual({
+      namePt: "Totally Unknown",
+      nameEn: "Totally Unknown",
+    });
   });
 
   it("joins by normalized name, so a pt-BR-copied stored name still resolves", () => {

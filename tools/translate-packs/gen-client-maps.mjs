@@ -204,7 +204,11 @@ const header = `/**
 `;
 
 const body = [
-  serialize("TRAIT_NAMES_PT", `Trait slug → pt-BR chip label (${Object.keys(traits).length} traits).`, traits),
+  serialize(
+    "TRAIT_NAMES_PT",
+    `Trait slug → pt-BR chip label (${Object.keys(traits).length} traits).`,
+    traits,
+  ),
   serialize("DAMAGE_TYPE_NAMES_PT", "Damage-type slug → pt-BR.", damageTypes),
   serialize("TRADITION_NAMES_PT", "Magic tradition slug → pt-BR.", traditions),
   serialize("RARITY_NAMES_PT", "Rarity slug → pt-BR.", rarities),
