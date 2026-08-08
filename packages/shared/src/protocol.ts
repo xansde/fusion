@@ -5,6 +5,7 @@
  * All types live in @fusion/shared so both server and client share a single source of truth.
  */
 import { z } from "zod";
+import { AmbientTrackStateSchema } from "./sound/types.js";
 
 // ---------------------------------------------------------------------------
 // Protocol version
@@ -113,6 +114,12 @@ export const EnvelopeTypeSchema = z.union([
   // M5-E: Etmos Marcos de Crescimento / Tabela E level-up (spec 19
   // REQ-ETM-035..039, CA-11). client → server.
   z.literal("etmos:progressao:confirmar"),
+  // M3 mapa-som: ambient table track (shared/src/sound/types.ts).
+  // client GM → server commands:
+  z.literal("sound:play"),
+  z.literal("sound:stop"),
+  // server → clients broadcast:
+  z.literal("sound:state"),
 ]);
 
 export type EnvelopeType = z.infer<typeof EnvelopeTypeSchema>;
@@ -353,6 +360,12 @@ export const WorldSnapshotPayloadSchema = z.object({
     z.string(), // document type name e.g. "Scene", "Actor"
     z.array(z.unknown()), // raw document objects
   ),
+
+  /**
+   * Ambient table track playing right now, or null when the table is silent.
+   * Optional: snapshots built before M3 omit it — clients treat absent as null.
+   */
+  ambientTrack: AmbientTrackStateSchema.optional(),
 });
 
 export type WorldSnapshotPayload = z.infer<typeof WorldSnapshotPayloadSchema>;

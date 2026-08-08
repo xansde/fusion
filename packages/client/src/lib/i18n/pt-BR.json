@@ -878,5 +878,21 @@
   "FUSION.Setup.Done.CreatingShortcut": "Criando…",
   "FUSION.Setup.Done.GoToFusion": "Ir para o Fusion",
   "FUSION.Setup.Error.Generic": "Não foi possível concluir o assistente de configuração.",
-  "FUSION.Setup.Error.ReconfigAuth": "Não foi possível verificar a Admin Key."
+  "FUSION.Setup.Error.ReconfigAuth": "Não foi possível verificar a Admin Key.",
+
+  "FUSION.Sidebar.Tabs.Sound": "Som",
+  "FUSION.Sound.Title": "Som Ambiente",
+  "FUSION.Sound.NowPlaying": "Tocando agora",
+  "FUSION.Sound.Silence": "Silêncio",
+  "FUSION.Sound.UnlockBadge": "Clique para ativar o áudio",
+  "FUSION.Sound.Volume": "Volume",
+  "FUSION.Sound.Selected": "Selecionada: {{name}} (ainda não enviada)",
+  "FUSION.Sound.ChooseTrack": "Escolher faixa",
+  "FUSION.Sound.Play": "Tocar",
+  "FUSION.Sound.PlayTitle": "Toca a faixa selecionada (ou reinicia a atual)",
+  "FUSION.Sound.Stop": "Parar",
+  "FUSION.Sound.PlayFailed": "Não foi possível tocar a faixa: {{message}}",
+  "FUSION.Sound.StopFailed": "Não foi possível parar a faixa: {{message}}",
+  "FUSION.Sound.UnexpectedError": "erro inesperado",
+  "FUSION.Sound.InvalidAsset": "Escolha um arquivo de áudio já enviado à biblioteca."
 }

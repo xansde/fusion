@@ -25,6 +25,7 @@ import {
 } from "../redaction.js";
 import type { SystemModule } from "@fusion/system-api";
 import { runActorDerivation } from "../derive-runner.js";
+import { getAmbientTrackState } from "./sound-handlers.js";
 
 import { WorldResyncRequestPayloadSchema, WorldActiveScenePayloadSchema } from "@fusion/shared";
 import type {
@@ -326,6 +327,9 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
     seq: deps.seqStore.peek(),
     activeSceneId: getActiveSceneId(deps.db),
     documents,
+    // M3 mapa-som: ambient table track playing right now (or null). Late
+    // joiners derive their loop position from `startedAt` locally.
+    ambientTrack: getAmbientTrackState(deps.db),
   };
 }
 
