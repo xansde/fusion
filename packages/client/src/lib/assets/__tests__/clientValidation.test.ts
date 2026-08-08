@@ -415,10 +415,9 @@ describe("validateFileForUpload — kinds param", () => {
   });
 
   it("still runs the size check after a kind match", () => {
-    const result = validateFileForUpload(
-      makeFile("huge.png", MAX_BYTES_BY_KIND.image + 1),
-      ["image"],
-    );
+    const result = validateFileForUpload(makeFile("huge.png", MAX_BYTES_BY_KIND.image + 1), [
+      "image",
+    ]);
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.reason).toBe("size");
   });

@@ -259,9 +259,8 @@ describe("M3 mapa-som sound server handlers", () => {
 
       const ack = await sendOp(gmSocket, "sound:play", { src: "tavern.mp3" });
       expect(ack).toMatchObject({ ok: true });
-      const ackState = (
-        ack as { result?: { state?: { src?: string; startedAt?: number } } }
-      ).result?.state;
+      const ackState = (ack as { result?: { state?: { src?: string; startedAt?: number } } }).result
+        ?.state;
       expect(ackState?.src).toBe("tavern.mp3");
       expect(typeof ackState?.startedAt).toBe("number");
 

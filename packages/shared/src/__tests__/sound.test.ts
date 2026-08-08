@@ -63,9 +63,9 @@ describe("sound protocol contract (M3 mapa-som)", () => {
     });
 
     it("rejects a negative startedAt", () => {
-      expect(
-        AmbientTrackStateSchema.safeParse({ src: "a.mp3", startedAt: -1 }).success,
-      ).toBe(false);
+      expect(AmbientTrackStateSchema.safeParse({ src: "a.mp3", startedAt: -1 }).success).toBe(
+        false,
+      );
     });
   });
 
@@ -98,9 +98,9 @@ describe("sound protocol contract (M3 mapa-som)", () => {
     });
 
     it("carries explicit silence as null", () => {
-      expect(
-        WorldSnapshotPayloadSchema.safeParse({ ...base, ambientTrack: null }).success,
-      ).toBe(true);
+      expect(WorldSnapshotPayloadSchema.safeParse({ ...base, ambientTrack: null }).success).toBe(
+        true,
+      );
     });
   });
 });

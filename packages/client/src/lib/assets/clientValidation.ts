@@ -103,10 +103,7 @@ export type ValidationResult =
  *               behavior.
  * @returns      { ok: true } or { ok: false, reason, message }.
  */
-export function validateFileForUpload(
-  file: File,
-  kinds?: readonly AssetKind[],
-): ValidationResult {
+export function validateFileForUpload(file: File, kinds?: readonly AssetKind[]): ValidationResult {
   const ext = getExtension(file.name);
   const entry = ext ? ALLOWED_EXTENSIONS[ext] : undefined;
 
