@@ -20,6 +20,7 @@ import {
   SpeedSchema,
 } from "../schema-primitives.js";
 import { MAX_CHARACTER_LEVEL } from "../variants/classLevels/params.js";
+import { MAX_ISEKAI_ARCHETYPES } from "../variants/isekai/params.js";
 
 // ---------------------------------------------------------------------------
 // Ability score block
@@ -283,9 +284,51 @@ const VariantRulesSchema = z
      * which can only ever make the variant look weak, never overtuned.
      */
     classLevels: z.boolean().default(false),
+    /**
+     * Isekai layer (variants/isekai) — up to two archetypes, each revoking one
+     * PF2e law, granting blessings by level and spending the character's Focus
+     * pool.
+     *
+     * Default `false`, and with it false NOTHING runs: `stepCharIsekaiFocus`
+     * returns immediately, the Plan column emits no Isekai chip, and the sheet
+     * shows no Isekai tab. Same contract as `classLevels` — a table's house
+     * rule is never everyone's default.
+     *
+     * Independent of both other toggles: the layer sits on top of whatever
+     * class structure the sheet already has.
+     */
+    isekai: z.boolean().default(false),
   })
   .default({});
 export type VariantRules = z.infer<typeof VariantRulesSchema>;
+
+// ---------------------------------------------------------------------------
+// Isekai layer state (variants/isekai)
+// ---------------------------------------------------------------------------
+
+/**
+ * The character's Isekai state: which archetypes they carry, and the per-
+ * archetype tracker state (Dados do Destino, Séquito, Catálogo, Essências,
+ * Desespero, Assinaturas, Usos Limitados).
+ *
+ * `archetypes` holds ARCHETYPE IDS, never names — the same identity discipline
+ * the rest of the sheet follows. The array is capped at `MAX_ISEKAI_ARCHETYPES`
+ * here AND in the client op that writes it: a cap enforced only by the UI is a
+ * cap that a hand-edited document walks straight through.
+ *
+ * `trackers` is deliberately untyped at the leaf (`unknown`): each tracker kind
+ * has its own shape (see `variants/isekai/index.ts`), the set grows with the
+ * content, and a Zod union over seven shapes would reject a document written by
+ * a newer client instead of carrying it through. Every consumer narrows
+ * defensively; nothing trusts this shape.
+ */
+const IsekaiStateSchema = z
+  .object({
+    archetypes: z.array(z.string().min(1)).max(MAX_ISEKAI_ARCHETYPES).default([]),
+    trackers: z.record(z.string(), z.record(z.string(), z.unknown())).default({}),
+  })
+  .default({});
+export type IsekaiState = z.infer<typeof IsekaiStateSchema>;
 
 const CharacterBuildSchema = z
   .object({
@@ -338,6 +381,8 @@ export const CharacterSystemSchema = z
     details: CharacterDetailsSchema,
     /** Level-by-level builder state (R10-A, DEC-R10-01). Optional/absent = r9 manual mode. */
     build: CharacterBuildSchema.optional(),
+    /** Isekai layer state. Optional/absent = the character never touched the variant. */
+    isekai: IsekaiStateSchema.optional(),
     /** System-level traits (ancestry traits, size). */
     traits: z
       .object({

@@ -15,6 +15,7 @@ export * from "./spellcastingLevels.js";
 export * from "./speed.js";
 export * from "./build.js";
 export * from "./character.js";
+export * from "./isekai.js";
 export * from "./npc.js";
 export * from "./familiar.js";
 
