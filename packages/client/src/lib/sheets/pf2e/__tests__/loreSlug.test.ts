@@ -99,3 +99,73 @@ describe("migrateLoreSlug — heal path for characters built on the legacy form"
     expect(migrateLoreSlug(legacy)).toBe(loreSlug("Scribing Lore"));
   });
 });
+
+/**
+ * A THIRD convention exists on disk: `lore-<subject>-lore`. `addLoreSkill` used
+ * to build its slug inline over the raw typed name, keeping the trailing "Lore"
+ * word — and the field's placeholder ("New Lore name…" / "Nome do novo Lore…")
+ * invites typing the full name, so "Warfare Lore" became `lore-warfare-lore`.
+ * `addLoreSkill` now goes through `loreSlug`, so nothing NEW lands here, but
+ * every character built before that fix still carries these keys and the heal
+ * pass is the only thing that can reach them.
+ */
+describe("migrateLoreSlug — the redundant-suffix form `lore-<subject>-lore`", () => {
+  it("drops the redundant trailing word instead of giving up on the prefix", () => {
+    expect(migrateLoreSlug("lore-warfare-lore")).toBe("lore-warfare");
+    expect(migrateLoreSlug("lore-nature-lore")).toBe("lore-nature");
+  });
+
+  it("lands exactly on the key a fresh add would write for the same subject", () => {
+    expect(migrateLoreSlug("lore-warfare-lore")).toBe(loreSlug("Warfare Lore"));
+  });
+
+  it("is idempotent — the healed key has nothing left to heal", () => {
+    const healed = migrateLoreSlug("lore-warfare-lore");
+    expect(healed).toBe("lore-warfare");
+    expect(migrateLoreSlug(healed!)).toBeNull();
+  });
+
+  it("keeps the two known conventions behaving exactly as before", () => {
+    expect(migrateLoreSlug("lore-warfare")).toBeNull();
+    expect(migrateLoreSlug("warfare-lore")).toBe("lore-warfare");
+  });
+
+  it("leaves a subject that merely ENDS in the letters 'lore' alone", () => {
+    // "Folklore" is one word: `lore-folklore` is already canonical, and
+    // renaming it to `lore-folk` would rewrite the player's subject.
+    expect(migrateLoreSlug("lore-folklore")).toBeNull();
+  });
+});
+
+describe("loreSubject — the redundant-suffix form has no redundant word", () => {
+  it("reads the subject without the trailing 'lore'", () => {
+    expect(loreSubject("lore-warfare-lore")).toBe("warfare");
+    expect(loreSubject("lore-abyssal-history-lore")).toBe("abyssal history");
+  });
+
+  it("does not eat a subject that merely ends in the letters 'lore'", () => {
+    expect(loreSubject("lore-folklore")).toBe("folklore");
+  });
+});
+
+/**
+ * `lore-lore` is the old inline slug for the meaningless name "Lore" (today
+ * `addLoreSkill` rejects it outright). It carries NO subject, so its canonical
+ * key is the bare `lore` — the same key `loreSlug("Lore")` produces. Healing it
+ * there keeps "one subject, one key"; the heal pass already merges into an
+ * existing entry keeping the higher rank, so a collision cannot demote anyone.
+ */
+describe("the degenerate `lore-lore` slug", () => {
+  it("heals to the bare `lore` key", () => {
+    expect(migrateLoreSlug("lore-lore")).toBe("lore");
+  });
+
+  it("has no subject, exactly like the bare `lore`", () => {
+    expect(loreSubject("lore-lore")).toBe("");
+    expect(loreSubject("lore")).toBe("");
+  });
+
+  it("is still recognized as a Lore slug", () => {
+    expect(isLoreSlug("lore-lore")).toBe(true);
+  });
+});

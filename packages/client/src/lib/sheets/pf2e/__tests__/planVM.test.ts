@@ -2682,6 +2682,99 @@ describe("applyBackground — swapping backgrounds cleans up the old grants (S2)
     const choices = choicesOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
     expect(choices.map((c) => c["skill"])).toEqual(["medicine", "lore-warfare"]);
   });
+
+  // -------------------------------------------------------------------------
+  // T2 — a rank the player typed into the row's <select> has no build choice
+  // behind it, so the "playerOwned" guard above cannot see it.
+  // -------------------------------------------------------------------------
+
+  /**
+   * The pre-lore-branch sheet: Acolyte embedded and its Lore sitting on
+   * `system.skills`, but NO `backgroundLore-*` choice at all — the branch that
+   * writes one did not exist when the sheet was built. `loreRank` is whatever
+   * the player left on the row's rank `<select>`:
+   * `characterSheetVM.updateSkillRank` writes `system.skills.<slug>.rank`
+   * straight to the document, without creating any build choice.
+   */
+  function preLoreBranchDoc(loreSlugKey: string, loreRank: number): Record<string, unknown> {
+    return baseCharacterDoc({
+      items: [{ ...acolyteBackgroundDoc(), _id: "item-background" }],
+      system: {
+        level: { value: 3 },
+        details: {},
+        skills: {
+          religion: { rank: 1 },
+          [loreSlugKey]: { rank: loreRank, lore: true, label: "Scribing Lore" },
+        },
+        build: {
+          abilities: EMPTY_ABILITIES,
+          choices: [
+            {
+              level: 1,
+              slot: "backgroundSkill-0",
+              type: "skillTraining",
+              skill: "religion",
+              rank: 1,
+            },
+          ],
+          bonusHp: 0,
+          bonusHpPerLevel: 0,
+          freeArchetype: false,
+        },
+      },
+    });
+  }
+
+  /** The last non-null value written to `system.skills.<slug>` across all ops. */
+  function writtenSkillEntry(
+    ops: ReturnType<typeof applyBackground>,
+    slug: string,
+  ): Record<string, unknown> | undefined {
+    let found: Record<string, unknown> | undefined;
+    for (const op of ops) {
+      if (op.type !== "doc:update") continue;
+      const value = op.diff[`system.skills.${slug}`];
+      if (value !== undefined && value !== null) found = value as Record<string, unknown>;
+    }
+    return found;
+  }
+
+  it("keeps a Lore the player ranked up by hand, even with no build choice to prove it", () => {
+    const ops = applyBackground(ctx(preLoreBranchDoc("lore-scribing", 2)), fieldMedicBackgroundDoc());
+    expect(deletedSkillKeys(ops)).toEqual([]);
+  });
+
+  it("keeps a hand-ranked Lore held under the legacy slug too", () => {
+    const ops = applyBackground(ctx(preLoreBranchDoc("scribing-lore", 2)), fieldMedicBackgroundDoc());
+    expect(deletedSkillKeys(ops)).toEqual([]);
+  });
+
+  it("still deletes the outgoing Lore when its persisted rank is 0 (untouched grant)", () => {
+    const ops = applyBackground(ctx(preLoreBranchDoc("lore-scribing", 0)), fieldMedicBackgroundDoc());
+    expect(deletedSkillKeys(ops)).toEqual(["lore-scribing"]);
+  });
+
+  it("re-selecting the SAME background does not reset a hand-raised rank to 0", () => {
+    const ops = applyBackground(ctx(preLoreBranchDoc("lore-scribing", 2)), acolyteBackgroundDoc());
+    expect(writtenSkillEntry(ops, "lore-scribing")).toMatchObject({
+      rank: 2,
+      lore: true,
+      label: "Scribing Lore",
+    });
+  });
+
+  it("carries a hand-raised rank across the legacy→canonical slug migration on re-selection", () => {
+    // The legacy key IS deleted here (the incoming background re-grants the same
+    // subject under the canonical slug), so the rank must ride along or it is lost.
+    const ops = applyBackground(ctx(preLoreBranchDoc("scribing-lore", 2)), acolyteBackgroundDoc());
+    expect(deletedSkillKeys(ops)).toEqual(["scribing-lore"]);
+    expect(writtenSkillEntry(ops, "lore-scribing")).toMatchObject({ rank: 2, lore: true });
+  });
+
+  it("writes rank 0 for a granted Lore the sheet has never held", () => {
+    const ops = applyBackground(ctx(preLoreBranchDoc("lore-scribing", 2)), fieldMedicBackgroundDoc());
+    expect(writtenSkillEntry(ops, "lore-warfare")).toMatchObject({ rank: 0, lore: true });
+  });
 });
 
 // ---------------------------------------------------------------------------

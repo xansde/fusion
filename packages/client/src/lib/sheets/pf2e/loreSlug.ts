@@ -11,6 +11,10 @@
  *   - `<subject>-lore` (SUFFIX) — written by the background training path only.
  *     No reader understood it, so a background's Lore rendered as the raw slug
  *     and sat in a namespace nothing else could match.
+ *   - `lore-<subject>-lore` (BOTH) — written by the old inline slug inside
+ *     `addLoreSkill`, which kept the "Lore" word the player had typed. It reads
+ *     as canonical to a prefix test, so it used to survive every heal and stay
+ *     mislabelled ("Lore (Warfare Lore)") forever.
  *
  * PREFIX is canonical here. The legacy suffix form stays *readable* (see
  * `isLoreSlug`/`loreSubject`) and `migrateLoreSlug` gives the heal pass the
@@ -73,17 +77,52 @@ export function isLoreSlug(slug: string): boolean {
 }
 
 /**
- * loreSubject — the human-readable subject behind a Lore slug, in either
+ * bareSubject — the slug stripped of everything that only marks it as a Lore:
+ * the canonical prefix AND any trailing "lore" word. `""` means "no subject".
+ *
+ * The trailing word has to go even when the prefix is already there, because a
+ * THIRD shape exists on disk: `lore-<subject>-lore`. `addLoreSkill` used to
+ * build its key inline over the raw typed name, and the input's placeholder
+ * ("New Lore name…") invites typing the full name — so "Warfare Lore" was
+ * stored as `lore-warfare-lore`. Nothing new lands there (`addLoreSkill` goes
+ * through `loreSlug` now), but characters built before that fix still carry it.
+ *
+ * Stripping repeats so the result is a fixed point: normalizing an already
+ * normalized slug never moves it again, which is what makes the heal pass safe
+ * to run on every load.
+ *
+ * Only a WHOLE trailing word is redundant — `lore-folklore` keeps its subject,
+ * since "folklore" is one word, not "folk" plus the marker.
+ */
+function bareSubject(slug: string): string {
+  let bare = slug.startsWith(LORE_PREFIX) ? slug.slice(LORE_PREFIX.length) : slug;
+  while (bare.endsWith(LORE_SUFFIX)) bare = bare.slice(0, -LORE_SUFFIX.length);
+  // `lore-lore` (and the bare `lore`) reduce to the marker itself: the old
+  // inline slug for the meaningless name "Lore", which `addLoreSkill` now
+  // rejects outright. No subject survives.
+  return bare === "lore" ? "" : bare;
+}
+
+/**
+ * canonicalLoreSlug — the one key a Lore slug should live under, whichever
+ * convention wrote it. Mirrors `loreSlug` exactly, including its degradation to
+ * a bare `"lore"` when no subject is left.
+ */
+function canonicalLoreSlug(slug: string): string {
+  const subject = bareSubject(slug);
+  return subject ? `${LORE_PREFIX}${subject}` : "lore";
+}
+
+/**
+ * loreSubject — the human-readable subject behind a Lore slug, in any
  * convention, with hyphens restored to spaces ("lore-abyssal-history" →
- * "abyssal history"). A bare `"lore"` has no subject and yields `""`.
+ * "abyssal history"). A bare `"lore"` (or `"lore-lore"`) has no subject and
+ * yields `""`.
  * Returns `""` for a non-lore slug — callers should gate on `isLoreSlug`.
  */
 export function loreSubject(slug: string): string {
-  if (!isLoreSlug(slug) || slug === "lore") return "";
-  const bare = slug.startsWith(LORE_PREFIX)
-    ? slug.slice(LORE_PREFIX.length)
-    : slug.slice(0, -LORE_SUFFIX.length);
-  return bare.replace(/-+/g, " ").trim();
+  if (!isLoreSlug(slug)) return "";
+  return bareSubject(slug).replace(/-+/g, " ").trim();
 }
 
 /**
@@ -95,8 +134,7 @@ export function loreSubject(slug: string): string {
  * untrain it.
  */
 export function migrateLoreSlug(slug: string): string | null {
-  if (slug === "lore" || slug.startsWith(LORE_PREFIX)) return null;
-  if (!slug.endsWith(LORE_SUFFIX)) return null;
-  const subject = slug.slice(0, -LORE_SUFFIX.length);
-  return subject ? `${LORE_PREFIX}${subject}` : null;
+  if (!isLoreSlug(slug)) return null;
+  const canonical = canonicalLoreSlug(slug);
+  return canonical === slug ? null : canonical;
 }
