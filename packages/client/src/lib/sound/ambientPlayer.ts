@@ -22,7 +22,7 @@
 
 import { Howl, Howler } from "howler";
 import type { AmbientTrackState } from "@fusion/shared";
-import { resolveAssetUrl } from "../assets/assetApi.js";
+import { assetUrl, fetchAssetToken } from "../assets/assetApi.js";
 
 // ---------------------------------------------------------------------------
 // Pure functions (unit tested directly — see __tests__/ambientPlayer.test.ts)
@@ -67,6 +67,30 @@ export function shouldRestart(prev: AmbientTrackState, next: AmbientTrackState):
 export interface AmbientPlayerAuth {
   accessToken: string;
   userId: string;
+}
+
+/**
+ * Turn a contract `src` (a BARE asset name, per AMBIENT_TRACK_SRC_PATTERN)
+ * into a URL the browser can actually fetch.
+ *
+ * Deliberately NOT `resolveAssetUrl()`: that helper only rewrites strings
+ * already shaped like `/assets/<name>` and returns anything else untouched,
+ * so feeding it a bare name yields a page-relative URL (`/tavern.mp3`) that
+ * 404s — the track would never play, with every unit test still green.
+ * Here the name is always known to be bare, so it goes straight through
+ * `assetUrl()`, with the short-lived query token when a session exists.
+ *
+ * Without auth (no session yet) the URL is still well-formed and simply
+ * lacks the token — the server rejects it, which is the correct outcome.
+ */
+async function resolveTrackUrl(src: string, auth: AmbientPlayerAuth | null): Promise<string> {
+  if (!auth) return assetUrl(src);
+  try {
+    const queryToken = await fetchAssetToken(auth.accessToken, auth.userId);
+    return assetUrl(src, queryToken);
+  } catch {
+    return assetUrl(src);
+  }
 }
 
 export interface AmbientPlayerDeps {
@@ -138,8 +162,7 @@ export class AmbientPlayer {
     this._state = state;
     if (!state) return;
 
-    const auth = this._deps.getAuth?.() ?? null;
-    const url = auth ? await resolveAssetUrl(state.src, auth.accessToken, auth.userId) : state.src;
+    const url = await resolveTrackUrl(state.src, this._deps.getAuth?.() ?? null);
 
     // A later syncTo()/stop() call may have superseded this one while the
     // asset URL was resolving — bail out instead of reviving a stale track.
@@ -167,12 +190,27 @@ export class AmbientPlayer {
     });
 
     // Fires once this Howl's audio context unlocks on a user gesture
-    // (REQ-AUD-046). Time passed while muted, so re-derive the loop offset.
+    // (REQ-AUD-046).
+    //
+    // Seeking the blocked Howl is NOT enough to recover here. Howler's
+    // unlock path only emits this event (dist/howler.js `_unlockAudio` →
+    // `_emit('unlock')`); it never restarts playback. The blocked sound was
+    // left `_paused/_ended` by the `playerror` catch, and a Web Audio play
+    // parked on `once('resume')` still carries the seek captured BEFORE the
+    // block — so it would resume at a stale position, silently out of sync
+    // with the table. Calling `play()` again risks a second concurrent
+    // sound (audible echo) instead.
+    //
+    // Rebuilding is the honest fix: drop the blocked Howl and re-run the
+    // normal restart path with the context now unlocked, so `load` derives
+    // a fresh offset from the server's `startedAt`. Clearing `_state` first
+    // is what makes shouldRestart() see a transition rather than a no-op.
     howl.once("unlock", () => {
       this._deps.onUnlockedChange?.(true);
       if (this._howl !== howl) return;
-      const offset = loopOffsetSeconds(state.startedAt, Date.now(), howl.duration());
-      howl.seek(offset);
+      const pending = this._state;
+      this._state = null;
+      void this.syncTo(pending, this._volume);
     });
   }
 
