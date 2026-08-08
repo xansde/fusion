@@ -31,6 +31,18 @@ import { acharDuplicatas, formatarErroDeDuplicata } from "../curation/duplicata.
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const IMPORTER_ROOT = join(__dirname, "..", "..");
 const OUT_DIR = join(IMPORTER_ROOT, "out");
+/**
+ * `out/` is the import pipeline's output, produced from the gitignored
+ * `vendor/pf2e` clone (README: "In CI without the vendor clone the tests will
+ * fail because out/ is not present"). On a runner there is no input to assert
+ * against, so these cases would fail for lack of data, not for a defect —
+ * which is noise, not a gate. They skip there and run in full locally after
+ * the import. Everything that reads `samples/` or the COMMITTED `packs/`
+ * keeps running on CI: skipping is scoped to what structurally cannot run.
+ */
+const OUT_MISSING = existsSync(OUT_DIR)
+  ? false
+  : "requires tools/importer-pf2e/out/ — run the import pipeline (see README)";
 const PACKS_DIR = join(IMPORTER_ROOT, "..", "..", "systems", "pf2e", "packs");
 const SAMPLES_DIR = join(IMPORTER_ROOT, "samples");
 const VENDOR_ROOT = join(IMPORTER_ROOT, "vendor", "pf2e", "packs", "pf2e");
@@ -108,7 +120,7 @@ describe("fusionId derivation", () => {
 // REQ-CMP-027/030/044
 // ---------------------------------------------------------------------------
 
-describe("conditions pack transform", () => {
+describe("conditions pack transform", { skip: OUT_MISSING }, () => {
   const getConditionDocs = () => loadTransformed("conditions");
 
   it("all 43 conditions are transformed", () => {
@@ -153,7 +165,7 @@ describe("conditions pack transform", () => {
   });
 });
 
-describe("weapon transform (Longsword)", () => {
+describe("weapon transform (Longsword)", { skip: OUT_MISSING }, () => {
   const getLongsword = () => {
     const docs = loadTransformed("equipment");
     return docs.find((d) => d.flags?.fusion?.sourceId === "LJdbVTOZog39EEbi");
@@ -206,7 +218,7 @@ describe("weapon transform (Longsword)", () => {
   });
 });
 
-describe("NPC transform (Skeleton Guard)", () => {
+describe("NPC transform (Skeleton Guard)", { skip: OUT_MISSING }, () => {
   const getSkeleton = () => {
     const docs = loadTransformed("pathfinder-monster-core");
     return docs.find((d) => d.flags?.fusion?.sourceId === "trchDxbDR2TiPMxT");
@@ -250,7 +262,7 @@ describe("NPC transform (Skeleton Guard)", () => {
 // REQ-CMP-036
 // ---------------------------------------------------------------------------
 
-describe("unsupported rule element handling", () => {
+describe("unsupported rule element handling", { skip: OUT_MISSING }, () => {
   it('docs with unsupported REs have conversion = "partial"', () => {
     const docs = loadTransformed("conditions");
     const partials = docs.filter((d) => d.flags?.fusion?.conversion === "partial");
@@ -295,7 +307,7 @@ describe("unsupported rule element handling", () => {
 // REQ-CMP-031/032
 // ---------------------------------------------------------------------------
 
-describe("art policy", () => {
+describe("art policy", { skip: OUT_MISSING }, () => {
   const packs = ["conditions", "spells"];
 
   for (const pack of packs) {
@@ -422,7 +434,7 @@ describe("flavor-prose policy (committed packs)", () => {
 // REQ-CMP-001..004, REQ-CMP-007
 // ---------------------------------------------------------------------------
 
-describe("MVP packs", () => {
+describe("MVP packs", { skip: OUT_MISSING }, () => {
   const packSlugs = [
     "conditions",
     "weapons-core",
@@ -962,7 +974,7 @@ describe("MVP packs", () => {
 // REQ-CMP-041 (idempotência)
 // ---------------------------------------------------------------------------
 
-describe("fusion-uuid-map.json", () => {
+describe("fusion-uuid-map.json", { skip: OUT_MISSING }, () => {
   const mapPath = join(OUT_DIR, "fusion-uuid-map.json");
 
   it("exists and has the core packs (plus R10-B vendor input packs)", () => {
@@ -998,7 +1010,7 @@ describe("fusion-uuid-map.json", () => {
 // resolveClassFeatureSourceId in transform.mjs.)
 // ---------------------------------------------------------------------------
 
-describe("R10-B: normalizeClassSystem (Magus)", () => {
+describe("R10-B: normalizeClassSystem (Magus)", { skip: OUT_MISSING }, () => {
   const getMagus = () => loadTransformed("classes").find((d) => d.name === "Magus");
 
   it('Magus doc has type "class" and a valid fusionId', () => {
@@ -1182,7 +1194,7 @@ describe("R10-B: normalizeClassSystem (Magus)", () => {
   });
 });
 
-describe("R10-B: normalizeClassFeatureSystem (Magus features + Hybrid Study)", () => {
+describe("R10-B: normalizeClassFeatureSystem (Magus features + Hybrid Study)", { skip: OUT_MISSING }, () => {
   const getClassFeatures = () => loadTransformed("class-features");
 
   it('Arcane Spellcasting (Magus) is type "classFeature" with category "classfeature"', () => {
@@ -1256,7 +1268,7 @@ describe("R10-B: normalizeClassFeatureSystem (Magus features + Hybrid Study)", (
   });
 });
 
-describe("R10-B: normalizeAncestrySystem (Ratfolk)", () => {
+describe("R10-B: normalizeAncestrySystem (Ratfolk)", { skip: OUT_MISSING }, () => {
   const getRatfolk = () => loadTransformed("ancestries").find((d) => d.name === "Ratfolk");
 
   it('Ratfolk has type "ancestry" with correct hp/size/speed/vision', () => {
@@ -1283,7 +1295,7 @@ describe("R10-B: normalizeAncestrySystem (Ratfolk)", () => {
   });
 });
 
-describe("R10-B: normalizeHeritageSystem (ratfolk heritages)", () => {
+describe("R10-B: normalizeHeritageSystem (ratfolk heritages)", { skip: OUT_MISSING }, () => {
   const getHeritages = () => loadTransformed("heritages");
 
   it('all 7 ratfolk heritages are present with type "heritage"', () => {
@@ -1314,7 +1326,7 @@ describe("R10-B: normalizeHeritageSystem (ratfolk heritages)", () => {
   });
 });
 
-describe("R10-B: normalizeBackgroundSystem (Fireworks Performer)", () => {
+describe("R10-B: normalizeBackgroundSystem (Fireworks Performer)", { skip: OUT_MISSING }, () => {
   const getFireworksPerformer = () =>
     loadTransformed("backgrounds").find((d) => d.name === "Fireworks Performer");
 

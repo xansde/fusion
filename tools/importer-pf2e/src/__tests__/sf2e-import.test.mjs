@@ -43,6 +43,15 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const IMPORTER_ROOT = join(__dirname, '..', '..');
 const OUT_DIR = join(IMPORTER_ROOT, 'out');
 const SF2E_OUT_DIR = join(OUT_DIR, 'sf2e');
+/**
+ * See the twin note in transform.test.mjs: `out/` comes from the gitignored
+ * vendor clone, so on CI these cases have no input to check and skip instead
+ * of failing for the wrong reason. The derivation and committed-pack checks
+ * below are NOT skipped — they need no pipeline output.
+ */
+const OUT_MISSING = existsSync(OUT_DIR)
+  ? false
+  : 'requires tools/importer-pf2e/out/ — run the import pipeline (see README)';
 const SF2E_PACKS_DIR = join(IMPORTER_ROOT, '..', '..', 'systems', 'sf2e', 'packs');
 
 // ---------------------------------------------------------------------------
@@ -117,7 +126,7 @@ describe('sf2e fusionId derivation is namespaced away from pf2e', () => {
 // 2. Transformed output (out/sf2e/**) — structural checks, mirrors pf2e's
 // ---------------------------------------------------------------------------
 
-describe('sf2e weapon transform (Arc Rifle — tech weapon delta)', () => {
+describe('sf2e weapon transform (Arc Rifle — tech weapon delta)', { skip: OUT_MISSING }, () => {
   const getArcRifle = () => {
     const docs = loadSf2eTransformed('equipment');
     return docs.find(d => d.name === 'Arc Rifle' && d.type === 'weapon');
@@ -151,7 +160,7 @@ describe('sf2e weapon transform (Arc Rifle — tech weapon delta)', () => {
   });
 });
 
-describe('sf2e augmentation transform (D-SF2-03)', () => {
+describe('sf2e augmentation transform (D-SF2-03)', { skip: OUT_MISSING }, () => {
   const getAugmentations = () => {
     const docs = loadSf2eTransformed('equipment');
     return docs.filter(d => d.type === 'equipment' && d.system?.usage === 'implanted');
@@ -171,7 +180,7 @@ describe('sf2e augmentation transform (D-SF2-03)', () => {
   });
 });
 
-describe('sf2e conditions transform (glitching/suppressed/untethered — type "effect")', () => {
+describe('sf2e conditions transform (glitching/suppressed/untethered — type "effect")', { skip: OUT_MISSING }, () => {
   const getConditions = () => loadSf2eTransformed('conditions');
 
   it('all 3 sf2e-exclusive conditions are transformed', () => {
@@ -390,7 +399,7 @@ describe('SF2e-exclusive trait allowlist coverage', () => {
 // 6. UUID map verification (sf2e-namespaced, separate from pf2e's map)
 // ---------------------------------------------------------------------------
 
-describe('sf2e fusion-uuid-map.json', () => {
+describe('sf2e fusion-uuid-map.json', { skip: OUT_MISSING }, () => {
   const mapPath = join(SF2E_OUT_DIR, 'fusion-uuid-map.json');
 
   it('exists and includes the packs used for the MVP subset', () => {
