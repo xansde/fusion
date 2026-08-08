@@ -11,6 +11,10 @@
  * Design decision: null-deletes-key semantics are scoped to flags/system paths only
  * (REQ-DOC-037). At the document top level, null is a valid value (e.g., folder=null
  * means "move to root") and must be preserved, not deleted.
+ *
+ * Because deep merge never removes a key the patch omits, a writer that rebuilds a
+ * whole subtree (e.g. the derivation pipeline rewriting `system.derived`) must build
+ * its patch with `prunedPatch` so vanished keys are expressed as explicit nulls.
  */
 
 /** A JSON-serializable value. */
@@ -88,6 +92,65 @@ export function deepMerge(
 
 function isPlainObject(val: unknown): val is Record<string, unknown> {
   return val !== null && typeof val === "object" && !Array.isArray(val);
+}
+
+/**
+ * Turn a "here is the new value" patch into a COMPLETE patch that also
+ * expresses which keys disappeared.
+ *
+ * Why this exists: `deepMerge` only adds/overwrites — a key present in the
+ * target but absent from the patch is PRESERVED (see the recursion above).
+ * A writer that recomputes a whole subtree from scratch and patches it back
+ * (the derivation pipeline does exactly that for `system.derived`) therefore
+ * gets purely ADDITIVE semantics: the subtree grows and never prunes. A Lore
+ * skill dropped from `system.skills` survived in `system.derived.skills`
+ * forever, and the sheet kept rendering it.
+ *
+ * The fix keeps merge semantics untouched and makes the PATCH honest
+ * instead: every key that existed in `oldValue` and is gone from `newValue`
+ * comes back as an explicit `null`, which inside a flags/system namespace is
+ * already deleteKey (REQ-DOC-037). One patch, one store.update(), one
+ * broadcast — no replace-mode store and no intermediate state where the
+ * subtree is missing.
+ *
+ * Recursion is generic over plain objects, so it prunes any category of a
+ * recomputed subtree (`derived.skills`, `derived.saves`, `derived.strikes`,
+ * anything added later) at any depth.
+ *
+ * Cases that are NOT pruned, deliberately:
+ *  - either side is not a plain object → the new value replaces wholesale
+ *    (that is what deepMerge does for primitives and mixed types anyway);
+ *  - arrays → deepMerge replaces an array entirely, so recursing into
+ *    indices would emit nulls for a shrunk array and corrupt it;
+ *  - no old value → nothing can be stale, so the new value goes as-is.
+ *
+ * When `newValue` is absent but an old one existed, the whole subtree is
+ * stale and the helper returns `null` (delete it); when neither side has a
+ * value it returns `undefined` so the patch stays silent about the key.
+ *
+ * @param oldValue The subtree currently persisted on the document.
+ * @param newValue The freshly recomputed subtree.
+ * @returns A patch value for `deepMerge` that both updates and prunes.
+ */
+export function prunedPatch(oldValue: unknown, newValue: unknown): unknown {
+  if (newValue === undefined) {
+    return oldValue === undefined ? undefined : null;
+  }
+  if (!isPlainObject(oldValue) || !isPlainObject(newValue)) {
+    return newValue;
+  }
+
+  const patch: Record<string, unknown> = {};
+  for (const key of Object.keys(newValue)) {
+    patch[key] = prunedPatch(oldValue[key], newValue[key]);
+  }
+  // Keys the recompute no longer produces: null == deleteKey under flags/system.
+  for (const key of Object.keys(oldValue)) {
+    if (!(key in newValue)) {
+      patch[key] = null;
+    }
+  }
+  return patch;
 }
 
 /**

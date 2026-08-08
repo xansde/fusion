@@ -71,6 +71,7 @@
     classFeatureGrantRefs,
     classGrantRefsFromClassDoc,
     backgroundLoreHealOps,
+    loreSlugHealOps,
     actorSpellEntries,
     type AbcChip,
     type ClassGrantRef,
@@ -474,14 +475,30 @@
       }
     } catch { /* deferred */ }
 
-    // (3) Background LORE heal (r20-X4) — the real Finn/Tobias were built before
+    // (3a) Lore SLUG migration — sheets built before loreSlug.ts hold their Lore
+    // under the legacy `<subject>-lore` key, which no reader understands (the
+    // row renders as the raw slug). Rename to the canonical `lore-<subject>`,
+    // preserving the proficiency. Idempotent: a healed sheet yields no ops.
+    let migratedLore = false;
+    try {
+      const ops = loreSlugHealOps(opCtx);
+      migratedLore = ops.length > 0;
+      for (const op of ops) { sendOpFn(op); created++; }
+    } catch { /* deferred to next open */ }
+
+    // (3b) Background LORE heal (r20-X4) — the real Finn/Tobias were built before
     // the lore branch, so their Piloting/Fireworks Lore was never trained.
     // Re-resolve the background from the CURRENT pack (its embedded copy may be
     // a stale import) and add the missing lore training. Idempotent.
+    //
+    // Skipped in the same pass as a slug migration: `doc` is the PRE-heal
+    // snapshot, so this heal would rebuild `system.build.choices` from the
+    // stale array and undo (3a)'s repointing. Next open sees the migrated doc
+    // and (3a) is a no-op, so nothing is lost — only deferred.
     try {
       const bgItem = (doc["items"] as Array<Record<string, unknown>> | undefined)?.find((i) => i["type"] === "background");
       const bgName = bgItem ? (typeof bgItem["name"] === "string" ? bgItem["name"] : undefined) : undefined;
-      if (bgName) {
+      if (bgName && !migratedLore) {
         const bgDoc = (await resolveGranterByName("backgrounds-core", bgName)) ?? bgItem!;
         for (const op of backgroundLoreHealOps(opCtx, bgDoc)) { sendOpFn(op); created++; }
       }

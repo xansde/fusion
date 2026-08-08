@@ -1326,7 +1326,9 @@ describe("CharacterSheetVM — skills (canonical 16 + lore)", () => {
     // Lore skill present with generated label.
     const lore = skills.find((s) => s.slug === "lore-warfare")!;
     expect(lore.isLore).toBe(true);
-    expect(lore.label).toBe("Lore (warfare)");
+    // Subject is title-cased (contract C4) — the label is a display name, not
+    // the slug it came from.
+    expect(lore.label).toBe("Lore (Warfare)");
     expect(lore.total).toBe(9);
   });
 
@@ -2887,5 +2889,137 @@ describe("speed getter (r16-G1 handoff)", () => {
   it("falls back to raw system.speed.value when no derived speed", () => {
     // makeCaster sets system.speed.value = 25, no derived block.
     expect(makeCasterVM(3).speed).toBe(25);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Skills — rank travels on the derived block (contract C2) and Lore labels
+// come from loreSubject (contract C4).
+//
+// The bug: setFloor (background/class training) computes the rank on a clone
+// that the server never persists, so `system.skills.<slug>.rank` stayed absent
+// and every background-granted skill rendered as "Destreinado" even though its
+// total was right. The rank now rides on `system.derived.skills.<slug>.rank`;
+// the persisted rank stays as the fallback so hand-set (r9) ranks survive.
+// ---------------------------------------------------------------------------
+
+describe("CharacterSheetVM — skill rank from derived (C2) and Lore labels (C4)", () => {
+  function vmFor(doc: Record<string, unknown>): CharacterSheetVM {
+    return new CharacterSheetVM({
+      doc,
+      actorId: "actor-001",
+      ownership: OwnershipLevel.OWNER,
+      userId: "u",
+      isGm: true,
+      worldId: "world-001",
+    });
+  }
+
+  function derivedSkillsOf(doc: Record<string, unknown>): Record<string, unknown> {
+    const system = doc["system"] as Record<string, unknown>;
+    const derived = system["derived"] as Record<string, unknown>;
+    return derived["skills"] as Record<string, unknown>;
+  }
+
+  function persistedSkillsOf(doc: Record<string, unknown>): Record<string, unknown> {
+    const system = doc["system"] as Record<string, unknown>;
+    return system["skills"] as Record<string, unknown>;
+  }
+
+  it("shows a background-granted skill as trained when the rank exists only on derived", () => {
+    // Exactly the reported symptom: the background trains Religion, the server
+    // derives it, but nothing was ever written to system.skills.
+    const doc = makeCharacter();
+    expect(persistedSkillsOf(doc)["religion"]).toBeUndefined();
+    derivedSkillsOf(doc)["religion"] = {
+      slug: "religion",
+      base: 8,
+      modifiers: [],
+      total: 8,
+      dc: 18,
+      rank: 1,
+    };
+
+    const religion = vmFor(doc).skills.find((s) => s.slug === "religion")!;
+    expect(religion.rank).toBe(1);
+    expect(religion.rankLabel).toBe("T");
+    expect(religion.total).toBe(8);
+  });
+
+  it("keeps reading the persisted rank when the document has no derived block (r9 docs)", () => {
+    const doc = makeCharacter();
+    (doc["system"] as Record<string, unknown>)["derived"] = undefined;
+
+    const skills = vmFor(doc).skills;
+    expect(skills.find((s) => s.slug === "athletics")!.rank).toBe(3);
+    expect(skills.find((s) => s.slug === "acrobatics")!.rank).toBe(2);
+    expect(skills.find((s) => s.slug === "stealth")!.rank).toBe(1);
+  });
+
+  it("prefers the derived rank over a stale persisted rank of 0", () => {
+    const doc = makeCharacter();
+    persistedSkillsOf(doc)["medicine"] = { rank: 0 };
+    derivedSkillsOf(doc)["medicine"] = {
+      slug: "medicine",
+      base: 6,
+      modifiers: [],
+      total: 6,
+      dc: 16,
+      rank: 1,
+    };
+
+    const medicine = vmFor(doc).skills.find((s) => s.slug === "medicine")!;
+    expect(medicine.rank).toBe(1);
+    expect(medicine.rankLabel).toBe("T");
+  });
+
+  it("labels a legacy '<subject>-lore' slug by its subject, not the raw slug", () => {
+    const doc = makeCharacter();
+    persistedSkillsOf(doc)["scribing-lore"] = { rank: 1, lore: true };
+
+    const lore = vmFor(doc).skills.find((s) => s.slug === "scribing-lore")!;
+    expect(lore.isLore).toBe(true);
+    expect(lore.label).toBe("Lore (Scribing)");
+  });
+
+  it("title-cases the subject of a canonical 'lore-<subject>' slug", () => {
+    const doc = makeCharacter();
+    persistedSkillsOf(doc)["lore-warfare"] = { rank: 2, lore: true };
+    persistedSkillsOf(doc)["lore-abyssal-history"] = { rank: 1, lore: true };
+
+    const rows = vmFor(doc).skills;
+    expect(rows.find((s) => s.slug === "lore-warfare")!.label).toBe("Lore (Warfare)");
+    expect(rows.find((s) => s.slug === "lore-abyssal-history")!.label).toBe(
+      "Lore (Abyssal History)",
+    );
+  });
+
+  it("recognises a Lore that exists only on the derived block", () => {
+    // No persisted entry at all, so `raw?.lore === true` cannot see it — the
+    // slug shape is the only evidence that this row is a Lore.
+    const doc = makeCharacter();
+    derivedSkillsOf(doc)["lore-sailing"] = {
+      slug: "lore-sailing",
+      base: 5,
+      modifiers: [],
+      total: 5,
+      dc: 15,
+      rank: 1,
+    };
+
+    const lore = vmFor(doc).skills.find((s) => s.slug === "lore-sailing")!;
+    expect(lore.isLore).toBe(true);
+    expect(lore.label).toBe("Lore (Sailing)");
+    expect(lore.ability).toBe("int");
+    expect(lore.rank).toBe(1);
+  });
+
+  it("labels a subject-less bare 'lore' slug as just 'Lore'", () => {
+    const doc = makeCharacter();
+    persistedSkillsOf(doc)["lore"] = { rank: 1, lore: true };
+
+    const lore = vmFor(doc).skills.find((s) => s.slug === "lore")!;
+    expect(lore.isLore).toBe(true);
+    expect(lore.label).toBe("Lore");
   });
 });

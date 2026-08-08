@@ -37,6 +37,7 @@ import type { Socket as ClientSocket } from "socket.io-client";
 
 import { boot } from "../boot.js";
 import type { BootResult } from "../boot.js";
+import { prunedPatch } from "../documents/merge.js";
 import { loadConfig } from "../config.js";
 import { createLogger } from "../logger.js";
 import { openDatabase, applyMigrations } from "../db/index.js";
@@ -239,6 +240,89 @@ function makeFighterCharacterData(name: string): Record<string, unknown> {
     },
   };
 }
+
+// ---------------------------------------------------------------------------
+// prunedPatch — the pure half of "system.derived never keeps a stale key".
+//
+// recomputeDerivedIfNeeded persists the recomputed subtree through
+// store.update(), which deep-merges: a patch carrying only the NEW derived
+// is purely ADDITIVE, so any key the recompute stopped producing survives
+// forever. prunedPatch turns the recompute into a COMPLETE patch by emitting
+// an explicit null for every vanished key — null inside `system` already
+// means deleteKey (REQ-DOC-037), so the merge itself does the pruning, with
+// a single store.update() and a single broadcast.
+// ---------------------------------------------------------------------------
+
+describe("prunedPatch — a recompute patch that also expresses key removals", () => {
+  it("emits null for a key that existed before and is absent from the new value", () => {
+    const patch = prunedPatch(
+      { skills: { athletics: { total: 9 }, "lore-scribing": { total: 6 } } },
+      { skills: { athletics: { total: 11 } } },
+    );
+    expect(patch).toEqual({
+      skills: { athletics: { total: 11 }, "lore-scribing": null },
+    });
+  });
+
+  it("keeps the NEW value for a key that survives the recompute", () => {
+    const patch = prunedPatch({ ac: { total: 20 } }, { ac: { total: 22 } });
+    expect(patch).toEqual({ ac: { total: 22 } });
+  });
+
+  it("prunes at depth > 1 without touching a sibling category", () => {
+    const patch = prunedPatch(
+      {
+        skills: { athletics: { total: 9 }, "lore-scribing": { total: 6 } },
+        saves: { fortitude: { total: 11 }, reflex: { total: 9 } },
+      },
+      {
+        skills: { athletics: { total: 9 } },
+        saves: { fortitude: { total: 11 }, reflex: { total: 9 } },
+      },
+    );
+    expect(patch).toEqual({
+      skills: { athletics: { total: 9 }, "lore-scribing": null },
+      saves: { fortitude: { total: 11 }, reflex: { total: 9 } },
+    });
+  });
+
+  it("introduces no null when nothing was removed", () => {
+    const patch = prunedPatch(
+      { skills: { athletics: { total: 9 } } },
+      { skills: { athletics: { total: 9 }, stealth: { total: 8 } } },
+    );
+    expect(patch).toEqual({
+      skills: { athletics: { total: 9 }, stealth: { total: 8 } },
+    });
+    expect(JSON.stringify(patch)).not.toContain("null");
+  });
+
+  it("replaces arrays wholesale — never prunes inside them", () => {
+    // deepMerge already replaces arrays entirely; recursing into indices
+    // would emit nulls for shrunk arrays and corrupt them.
+    const patch = prunedPatch({ modifiers: [1, 2, 3] }, { modifiers: [9] });
+    expect(patch).toEqual({ modifiers: [9] });
+  });
+
+  it("returns the new value verbatim when there was no old value to prune", () => {
+    expect(prunedPatch(undefined, { skills: { athletics: { total: 9 } } })).toEqual({
+      skills: { athletics: { total: 9 } },
+    });
+  });
+
+  it("replaces when either side is not a plain object", () => {
+    expect(prunedPatch(7, { total: 9 })).toEqual({ total: 9 });
+    expect(prunedPatch({ total: 9 }, 7)).toBe(7);
+  });
+
+  it("deletes the whole subtree when the new value is absent but an old one existed", () => {
+    expect(prunedPatch({ skills: { athletics: { total: 9 } } }, undefined)).toBeNull();
+  });
+
+  it("stays silent about a key neither side has", () => {
+    expect(prunedPatch(undefined, undefined)).toBeUndefined();
+  });
+});
 
 // ---------------------------------------------------------------------------
 // PF2e suite
@@ -450,7 +534,119 @@ describe("Derivation pipeline wired on the real doc:create/doc:update handler pa
     // be entirely absent, not even an empty object.
     expect(sys["derived"]).toBeUndefined();
   });
+
+  // -------------------------------------------------------------------------
+  // r24 S2 (BLOQUEADOR): `system.derived` must never keep a key the recompute
+  // no longer produces.
+  //
+  // recomputeDerivedIfNeeded persists the recomputed subtree through
+  // store.update(), and deepMerge only adds/overwrites — a key absent from
+  // the patch is PRESERVED. So `system.derived` was cumulative and never
+  // pruned: dropping a Lore skill from `system.skills` (what a background
+  // swap does) left `derived.skills["lore-scribing"]` behind forever. The
+  // sheet builds its rows from the union of persisted ∪ derived and now
+  // reads the rank from the derived, so the removed Lore kept rendering —
+  // as "Trained".
+  // -------------------------------------------------------------------------
+
+  it("prunes a derived skill whose authored source was removed (Lore dropped with the background)", async () => {
+    const data = makeFighterCharacterData("Lore Dropper");
+    const authoredSkills = (data["system"] as Record<string, unknown>)["skills"] as Record<
+      string,
+      unknown
+    >;
+    authoredSkills["lore-scribing"] = { rank: 1 };
+
+    const createAck = await sendOp(gm, "doc:create", { documentType: "Actor", data: [data] });
+    expect(createAck["ok"]).toBe(true);
+    const created = (createAck["result"] as { documents: Array<Record<string, unknown>> })
+      .documents[0]!;
+    const loreActorId = created["_id"] as string;
+    const createdDerived = (created["system"] as Record<string, unknown>)["derived"] as Record<
+      string,
+      unknown
+    >;
+    const createdSkills = createdDerived["skills"] as Record<string, { total: number }>;
+    // Trained(1) at level 5 = 1*2+5 = 7, INT mod 0 (Lore keys off INT).
+    // Asserted on `total`, not `rank`: `rank` only rides along on the derived
+    // statistic in the freshest systems/pf2e build, and this test must not
+    // depend on the build state of a sibling package.
+    expect(createdSkills["lore-scribing"]?.total).toBe(7);
+
+    // Drop the authored Lore — null inside `system` is deleteKey (REQ-DOC-037),
+    // which is exactly what the background-swap cleanup emits. The STR bump
+    // rides along so a SURVIVING skill visibly takes its NEW value in the
+    // same recompute that prunes the vanished one.
+    const updateAck = await sendOp(gm, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        {
+          _id: loreActorId,
+          diff: { "system.skills.lore-scribing": null, "system.abilities.str.value": 20 },
+        },
+      ],
+    });
+    expect(updateAck["ok"]).toBe(true);
+    const updated = (updateAck["result"] as { documents: Array<Record<string, unknown>> })
+      .documents[0]!;
+    const updatedSys = updated["system"] as Record<string, unknown>;
+    expect((updatedSys["skills"] as Record<string, unknown>)["lore-scribing"]).toBeUndefined();
+
+    const derived = updatedSys["derived"] as Record<string, unknown>;
+    const skills = derived["skills"] as Record<string, unknown>;
+    // THE BUG: the stale key survived the merge and kept the sheet showing
+    // "Lore (Scribing) — Trained" after the background swap.
+    expect("lore-scribing" in skills).toBe(false);
+    // A key that still exists takes its freshly recomputed value: Expert(2)
+    // at level 5 = 9, plus the bumped STR mod (+5) = 14 (was 13 at STR 18).
+    expect((skills["athletics"] as { total: number }).total).toBe(14);
+    // The prune is scoped: a sibling derived category is untouched.
+    expect((derived["saves"] as Record<string, { total: number }>)["fortitude"]?.total).toBe(11);
+
+    // And the prune reached the PERSISTED document, not just the ack echo.
+    const reread = await sendOp(gm, "resync:request", { lastSeq: 0 });
+    expect(reread["ok"]).toBe(true);
+  });
+
+  it("a recompute that removes nothing leaves the derived complete and null-free", async () => {
+    const ack = await sendOp(gm, "doc:update", {
+      documentType: "Actor",
+      updates: [{ _id: actorId, diff: { "system.abilities.dex.value": 18 } }],
+    });
+    expect(ack["ok"]).toBe(true);
+    const doc = (ack["result"] as { documents: Array<Record<string, unknown>> }).documents[0]!;
+    const derived = (doc["system"] as Record<string, unknown>)["derived"] as Record<
+      string,
+      unknown
+    >;
+
+    // DEX 18 → mod +4 (was +5 from the earlier DEX-20 update): 10 + 4 + 7 = 21.
+    expect((derived["ac"] as { total: number }).total).toBe(21);
+    // All 16 canonical skills still there (nothing was over-pruned).
+    expect(Object.keys(derived["skills"] as Record<string, unknown>).length).toBeGreaterThanOrEqual(
+      16,
+    );
+    expect(Object.keys(derived["saves"] as Record<string, unknown>)).toEqual(
+      expect.arrayContaining(["fortitude", "reflex", "will"]),
+    );
+    // No null ever lands in the persisted document — null is a patch-only
+    // signal that deepMerge consumes as deleteKey.
+    expect(countNulls(derived)).toBe(0);
+  });
 });
+
+/** Count null leaves in a JSON-ish value (nulls must never survive the merge). */
+function countNulls(value: unknown): number {
+  if (value === null) return 1;
+  if (Array.isArray(value)) return value.reduce<number>((n, v) => n + countNulls(v), 0);
+  if (typeof value === "object") {
+    return Object.values(value as Record<string, unknown>).reduce<number>(
+      (n, v) => n + countNulls(v),
+      0,
+    );
+  }
+  return 0;
+}
 
 // ---------------------------------------------------------------------------
 // SF2e suite (minimal — proves the same wiring works for a second system,
