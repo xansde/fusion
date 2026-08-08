@@ -11,7 +11,8 @@
         "aberration",
         "humanoid"
       ],
-      "system.size": "med"
+      "system.size": "med",
+      "flags.fusion.sourceId": "FXlXmNBFiiz9oasi"
     }
   },
   {
@@ -26,7 +27,8 @@
         "humanoid",
         "ratfolk"
       ],
-      "system.size": "sm"
+      "system.size": "sm",
+      "flags.fusion.sourceId": "P6PcVnCkh4XMdefw"
     }
   }
 ]

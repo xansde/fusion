@@ -366,6 +366,16 @@ export interface AbcChip {
    * feature whose vendor has no clean-room pack yet).
    */
   detailsPackSlug?: string;
+  /**
+   * The MATERIALIZED grant item's `flags.fusion.sourceId` (issue #44). Only
+   * present alongside `detailsPackSlug` — a materialized chip always has the
+   * backing embedded item in hand, so there's never a reason to fall back to
+   * name matching for one. Lets the details panel resolve the EXACT document
+   * instead of by name (PF2e homonyms are the norm — "Unusual Anatomy" is
+   * both a spell in spells-core and a feature in ancestry-features-core, with
+   * distinct ids).
+   */
+  sourceId?: string;
 }
 
 /**
@@ -472,6 +482,19 @@ export interface PlanSlotModel {
   detailsPackSlug?: string;
   /** Non-blocking "requirements not met" marker (Frente 3) — set only on a FILLED, item-backed slot whose backing item no longer satisfies its level/class/ancestry requirement. */
   requirementIssue?: RequirementIssue;
+  /**
+   * The backing embedded item's `flags.fusion.sourceId` (issue #44), when the
+   * slot is ITEM-backed (a feat/hybridStudy/axis pick or a locked fixed-grant
+   * chip). Absent for a CHOICE-backed slot (abilityBoosts, skillTraining,
+   * skillIncrease, adoptedAncestryChoice) — those never materialize an
+   * embedded item, so there's no sourceId to carry; name resolution stays the
+   * only option there (rule: never invent an id the data doesn't have).
+   * Lets `detailsRequestForSlot` resolve the EXACT document instead of by
+   * name — defusing the risk `findEntryUuidByName`'s prefix fallback
+   * otherwise carries (e.g. two feats where one's name is a prefix of the
+   * other's).
+   */
+  sourceId?: string;
 }
 
 export interface AutoFeatureModel {
@@ -485,6 +508,23 @@ export interface AutoFeatureModel {
    * "actions-core" so the details panel resolves it in the right pack.
    */
   detailsPackSlug?: string;
+  /**
+   * The pack-scoped document id (issue #44) for a feature NAMED directly by
+   * `classSystem.featuresByLevel[].uuid` — which, despite its name, IS the
+   * feature's own `_id` in class-features-core (measured: 221/221 non-choice
+   * featuresByLevel entries across the 12 classes resolve this way), NOT a
+   * Foundry compendium uuid. Lets the details panel skip name matching
+   * entirely for the common case.
+   */
+  docId?: string;
+  /**
+   * The `flags.fusion.sourceId` of a MATERIALIZED class-granted action item
+   * (r20-X4 — `classGrantedActionChips`). Mutually exclusive with `docId`:
+   * a featuresByLevel-named feature carries `docId`; a granted action (which
+   * has no featuresByLevel entry of its own) carries `sourceId` from its
+   * embedded copy instead.
+   */
+  sourceId?: string;
 }
 
 export interface LevelPlanModel {
@@ -1141,6 +1181,7 @@ function abcChipsFor(
         key: `grant:${typeof it["_id"] === "string" ? it["_id"] : norm}`,
         name,
         detailsPackSlug: grantedItemPackSlug(it),
+        ...withOptional("sourceId", itemFusionSourceId(it)),
       });
     }
   }
@@ -1357,7 +1398,14 @@ function buildLevelPlan(
     const norm = normalizeName(f.name);
     if (autoSeen.has(norm)) continue;
     autoSeen.add(norm);
-    autoFeatures.push({ name: f.name, locked: true });
+    autoFeatures.push({
+      name: f.name,
+      locked: true,
+      ...withOptional(
+        "docId",
+        typeof f.uuid === "string" && f.uuid.length > 0 ? f.uuid : undefined,
+      ),
+    });
   }
   for (const chip of classGrantedActionChips(doc, level)) {
     const norm = normalizeName(chip.name);
@@ -1410,7 +1458,12 @@ function classGrantedActionChips(doc: Record<string, unknown>, level: number): A
     const norm = normalizeName(name);
     if (seen.has(norm)) continue;
     seen.add(norm);
-    out.push({ name, locked: true, detailsPackSlug: grantedItemPackSlug(it) });
+    out.push({
+      name,
+      locked: true,
+      detailsPackSlug: grantedItemPackSlug(it),
+      ...withOptional("sourceId", itemFusionSourceId(it)),
+    });
   }
   return out;
 }
@@ -1534,6 +1587,7 @@ function pushFixedGrantChips(
       detailsPackSlug,
       ...withOptional("choiceName", itemName(item)),
       ...withOptional("itemId", typeof itemId === "string" ? itemId : undefined),
+      ...withOptional("sourceId", itemFusionSourceId(item)),
     });
   }
 }
@@ -1667,6 +1721,7 @@ function resolveSlot(
       filled: true,
       ...withOptional("choiceName", itemName(item)),
       ...withOptional("itemId", typeof item["_id"] === "string" ? item["_id"] : undefined),
+      ...withOptional("sourceId", itemFusionSourceId(item)),
     };
   }
 
@@ -3204,15 +3259,23 @@ function featIdentity(featDoc: Record<string, unknown>): string | undefined {
 }
 
 /**
- * featMaxTakable — normalized repeat cap for a feat doc: `system.maxTakable`
- * when it's a number > 1, else 1 (not repeatable). Mirrors feats-core's
- * vendor convention (W2 frente 1 diagnosis): the field is present ONLY on
- * feats that may be taken more than once (e.g. "Armor Proficiency" →
- * maxTakable: 3); absent — or a non-positive/non-numeric value — means
- * "once".
+ * featMaxTakable — normalized repeat cap for a feat doc, mirroring feats-core's
+ * vendor convention. Three cases, and the middle one is easy to get wrong:
+ *
+ *   - field ABSENT → 1. The overwhelming majority; taking it twice is illegal.
+ *   - `maxTakable: null` → **unlimited**. 22 feats in the pack declare this —
+ *     Assurance, Additional Lore, Multilingual, Skill Training, Domain
+ *     Initiate, Terrain Expertise, Weapon Proficiency… — and every one of them
+ *     is legitimately taken many times, once per skill/language/domain. This
+ *     used to collapse to 1 along with every other non-number, so the second
+ *     pick was refused (issue #57).
+ *   - `maxTakable: N > 1` → N (e.g. "Armor Proficiency" → 3).
  */
 function featMaxTakable(featDoc: Record<string, unknown>): number {
-  const raw = asRecord(featDoc["system"])["maxTakable"];
+  const system = asRecord(featDoc["system"]);
+  if (!("maxTakable" in system)) return 1;
+  const raw = system["maxTakable"];
+  if (raw === null) return Number.POSITIVE_INFINITY;
   return typeof raw === "number" && raw > 1 ? raw : 1;
 }
 
@@ -4336,6 +4399,8 @@ export function chooseClassLevel(
 export function removeChoice(ctx: PlanOpBuilderContext, slot: PlanSlotModel): DocOpPayload[] {
   if (!ctx.editable) return [];
   const ops: DocOpPayload[] = [];
+  /** Build slots whose item the grantedBy cascade deletes (issue #15). */
+  const cascadedBuildSlots = new Set<string>();
 
   if (slot.itemId) {
     ops.push({
@@ -4391,13 +4456,24 @@ export function removeChoice(ctx: PlanOpBuilderContext, slot: PlanSlotModel): Do
             parent: { type: "Actor", id: ctx.actorId },
           } satisfies DocDeleteEmbeddedPayload);
         }
+        // If the cascade deletes an item that ALSO occupied a build slot, that
+        // slot's choice has to go with it (issue #15). Otherwise resolveSlot
+        // reads the leftover choice as `filled: true` — a phantom slot, marked
+        // taken with no item behind it. This is the shape the old
+        // findAdoptableItem produced by adopting a paid slot; the adoption is
+        // fixed, but actors already carrying the damage still remove cleanly.
+        const cascadedSlot = getItemBuildFlag(it)?.slot;
+        if (cascadedSlot !== undefined) cascadedBuildSlots.add(cascadedSlot);
       }
     }
   }
 
   const existingChoices = getBuildChoices(getSystem(ctx.doc));
   const remaining = existingChoices.filter(
-    (c) => c.slot !== slot.slotId && !c.slot.startsWith(subSlotPrefix),
+    (c) =>
+      c.slot !== slot.slotId &&
+      !c.slot.startsWith(subSlotPrefix) &&
+      !cascadedBuildSlots.has(c.slot),
   );
   if (remaining.length !== existingChoices.length) {
     ops.push({
@@ -4648,6 +4724,16 @@ export function healGranterRefs(doc: Record<string, unknown>): HealGranterRef[] 
 export interface ClassGrantRef {
   /** The class feature's display name (resolve in class-features-core). */
   name: string;
+  /**
+   * The feature's document id in the pack, taken from `featuresByLevel[].uuid`
+   * — the IDENTITY the resolver should use, per the project rule that a
+   * document is its id and never its name (issue #14). Measured across the 12
+   * classes: 221/221 entries resolve by this id, while 5 carry a name the pack
+   * does not have ("Debilitating Strikes" vs "Debilitating Strike", "Deity" vs
+   * "Deity (Cleric)", …). Absent only for homebrew data with no uuid, where
+   * the name stays the sole fallback.
+   */
+  docId?: string;
   /** Pack the feature doc lives in (always class-features-core). */
   packSlug: string;
   /** The CLASS item's sourceId — root grantedBy for every conceded action. */
@@ -4694,6 +4780,7 @@ export function classGrantRefsFromClassDoc(
     seen.add(norm);
     refs.push({
       name: f.name,
+      ...(typeof f.uuid === "string" && f.uuid.length > 0 ? { docId: f.uuid } : {}),
       packSlug: "class-features-core",
       classSourceId,
       slot: classGrantSlot(f.level, f.name),
@@ -4760,18 +4847,28 @@ function syncSlotMaxOp(
 // compendium uuid), but the chips/filled slots only know an item NAME — and
 // the embedded actor item may have an empty description (pre-r11 imports).
 //
-// So resolution is uniform and NAME-based: search the right pack's index for
-// an entry whose name matches, then getDocument(uuid) with the same
-// on-demand cache the picker uses. featuresByLevel[].uuid is a bare Foundry
-// id (e.g. "xvC1jNDkNdNtZQiF"), NOT a "Compendium.<pack>.Item.<id>" uuid, so
-// it cannot feed compendium:get directly — name resolution is the reliable
-// path for every case.
+// Resolution PREFERS an exact id match over name matching (issue #44 — a
+// document's identity is its id, never its name; PF2e homonyms are the norm,
+// e.g. "Unusual Anatomy" exists as both a spell in spells-core and a feature
+// in ancestry-features-core, with distinct ids). featuresByLevel[].uuid is
+// actually the feature's own `_id` in class-features-core (NOT a Foundry
+// compendium uuid, despite the field's name — measured: 221/221 non-choice
+// entries across the 12 classes resolve this way); a materialized item's own
+// `flags.fusion.sourceId` is the other identity anchor, matched against the
+// pack index's `index["flags.fusion.sourceId"]` (exposed since issue #41).
+// `resolveDetailsEntryUuid` tries both before falling back to
+// `findEntryUuidByName` — the ONLY path left for data with no id at all
+// (choice-backed slots with no embedded item, or homebrew with no sourceId).
 // ---------------------------------------------------------------------------
 
 /** Minimal index-entry shape the details resolvers need (subset of PackIndexEntry). */
 export interface PlanIndexEntryLike {
   name: string;
   uuid: string;
+  /** Pack-scoped document id (`_id`) — issue #44's docId-match anchor. Optional so hand-built test fixtures with no id still type-check. */
+  _id?: string;
+  /** Extra indexed fields (issue #41 exposed `flags.fusion.sourceId` here as `index["flags.fusion.sourceId"]`). */
+  index?: Record<string, unknown>;
 }
 
 // ---------------------------------------------------------------------------
@@ -4860,14 +4957,42 @@ export const SLOT_TYPE_LABELS_EN: Record<PlanSlotType, string> = SLOT_TYPE_LABEL
 
 /**
  * A request to open the details panel for a Plan item: which pack to search
- * and the item name to match. `level`/`rank` are display-only extras the
- * caller may already know; the resolver ignores them.
+ * and the item name to match. `level` is a display-only extra the caller may
+ * already know; the NAME resolver (`findEntryUuidByName` + pack search)
+ * ignores it — it only reaches the details panel.
  */
 export interface PlanDetailsRequest {
   /** Pack slug suffix, e.g. "class-features-core" / "feats-core". */
   packSlug: string;
   /** Item name to resolve against the pack index (accent/case-insensitive). */
   name: string;
+  /**
+   * The level at which THIS plan actually grants the item — the enclosing
+   * `LevelPlanModel.level` the caller (PlanColumn) already has in scope.
+   * Overrides a shared class-features-core document's own divergent
+   * `system.level` in the details panel (issue #58: 17 documents are reused
+   * across classes that grant them at different levels — 35 divergences
+   * across 11/12 classes, per the r22 varredura). Omitted when the caller
+   * has no class context (e.g. `detailsRequestForAbcChip`'s ABC card
+   * chips) — the panel then falls back to the document's own level.
+   */
+  level?: number;
+  /**
+   * Pack-scoped document id (issue #44), when the caller knows it — matched
+   * against a pack index entry's own `_id`. Preferred over name matching:
+   * exact identity, immune to the homonym/prefix risk `findEntryUuidByName`
+   * otherwise carries. See {@link PlanIndexEntryLike._id}.
+   */
+  docId?: string;
+  /**
+   * `flags.fusion.sourceId` of the backing embedded/materialized item (issue
+   * #44), when the caller knows it — matched against a pack index entry's
+   * `index["flags.fusion.sourceId"]`. Same preference rule as `docId`; the
+   * two are mutually exclusive identity spaces (docId = pack's own `_id`,
+   * sourceId = the doc's stable `flags.fusion.sourceId`) but either resolves
+   * the exact document when present.
+   */
+  sourceId?: string;
 }
 
 /** Normalize a name for matching — mirrors normalizeSearchText (accent/case-fold). */
@@ -4882,13 +5007,29 @@ function normalizeName(name: string): string {
  * compendium document to describe, so they return null (the Plan column
  * never opens a details panel for those — they're edited in their own
  * dialogs instead).
+ *
+ * `level` (issue #58) is the caller's known grant level — see
+ * {@link PlanDetailsRequest.level}. Optional and built via a conditional
+ * spread (not `level: level` directly): `exactOptionalPropertyTypes` rejects
+ * assigning `undefined` to an optional field that doesn't spell out
+ * `| undefined`, and every existing caller/test that omits `level` expects
+ * the key itself to be absent, not present-and-undefined.
  */
-export function detailsRequestForSlot(slot: PlanSlotModel): PlanDetailsRequest | null {
+export function detailsRequestForSlot(
+  slot: PlanSlotModel,
+  level?: number,
+): PlanDetailsRequest | null {
   const name = slot.choiceName;
   if (!name || !slot.filled) return null;
+  const withLevel = (packSlug: string): PlanDetailsRequest => ({
+    packSlug,
+    name,
+    ...(level === undefined ? {} : { level }),
+    ...withOptional("sourceId", slot.sourceId),
+  });
   // A locked fixed-grant chip (B2 r14) carries its own pack hint so a granted
   // classFeature resolves in class-features-core, not the feats-core default.
-  if (slot.detailsPackSlug) return { packSlug: slot.detailsPackSlug, name };
+  if (slot.detailsPackSlug) return withLevel(slot.detailsPackSlug);
   switch (slot.type) {
     case "hybridStudy":
     case "kineticGate":
@@ -4897,24 +5038,38 @@ export function detailsRequestForSlot(slot: PlanSlotModel): PlanDetailsRequest |
     case "huntersEdge":
     case "arcaneThesis":
     case "arcaneSchool":
-      return { packSlug: "class-features-core", name };
+      return withLevel("class-features-core");
     case "ancestryFeat":
     case "classFeat":
     case "generalFeat":
     case "skillFeat":
     case "archetypeFeat":
     case "grantedFeat":
-      return { packSlug: "feats-core", name };
+      return withLevel("feats-core");
     case "adoptedAncestryChoice":
-      return { packSlug: "ancestries-core", name };
+      return withLevel("ancestries-core");
     default:
       return null;
   }
 }
 
-/** The pack a locked auto-feature chip's description lives in (always a class feature). */
-export function detailsRequestForAutoFeature(feature: AutoFeatureModel): PlanDetailsRequest {
-  return { packSlug: feature.detailsPackSlug ?? "class-features-core", name: feature.name };
+/**
+ * The pack a locked auto-feature chip's description lives in (always a
+ * class feature). `level` (issue #58) is the caller's known grant level —
+ * see {@link PlanDetailsRequest.level}.
+ */
+export function detailsRequestForAutoFeature(
+  feature: AutoFeatureModel,
+  level?: number,
+): PlanDetailsRequest {
+  const packSlug = feature.detailsPackSlug ?? "class-features-core";
+  return {
+    packSlug,
+    name: feature.name,
+    ...(level === undefined ? {} : { level }),
+    ...withOptional("docId", feature.docId),
+    ...withOptional("sourceId", feature.sourceId),
+  };
 }
 
 /**
@@ -4924,7 +5079,11 @@ export function detailsRequestForAutoFeature(feature: AutoFeatureModel): PlanDet
  */
 export function detailsRequestForAbcChip(chip: AbcChip): PlanDetailsRequest | null {
   if (!chip.detailsPackSlug) return null;
-  return { packSlug: chip.detailsPackSlug, name: chip.name };
+  return {
+    packSlug: chip.detailsPackSlug,
+    name: chip.name,
+    ...withOptional("sourceId", chip.sourceId),
+  };
 }
 
 /**
@@ -4944,6 +5103,37 @@ export function findEntryUuidByName(entries: PlanIndexEntryLike[], name: string)
   return prefixed.length === 1 ? (prefixed[0]?.uuid ?? null) : null;
 }
 
+/** Read an index entry's `flags.fusion.sourceId` off its `index` bag (present since issue #41 indexed it). */
+function entryFusionSourceId(entry: PlanIndexEntryLike): string | undefined {
+  const sid = entry.index?.["flags.fusion.sourceId"];
+  return typeof sid === "string" ? sid : undefined;
+}
+
+/**
+ * Resolve a details request to a compendium uuid, PREFERRING an exact id
+ * match over name matching (issue #44 — see the "Details-panel resolution"
+ * section header above). Tries, in order:
+ *   1. `request.docId` against the entry's own pack `_id`.
+ *   2. `request.sourceId` against the entry's indexed
+ *      `flags.fusion.sourceId`.
+ *   3. `findEntryUuidByName` — the only path left when neither id is known
+ *      or neither matches (rule: never invent an id the data doesn't have).
+ */
+export function resolveDetailsEntryUuid(
+  entries: PlanIndexEntryLike[],
+  request: PlanDetailsRequest,
+): string | null {
+  if (request.docId) {
+    const byId = entries.find((e) => e._id === request.docId);
+    if (byId) return byId.uuid;
+  }
+  if (request.sourceId) {
+    const bySource = entries.find((e) => entryFusionSourceId(e) === request.sourceId);
+    if (bySource) return bySource.uuid;
+  }
+  return findEntryUuidByName(entries, request.name);
+}
+
 /**
  * The entry to select by default when a picker opens: the first of the
  * already-sorted/filtered list, so the details panel is never empty. Returns
@@ -4957,4 +5147,13 @@ export function pickDefaultEntryUuid(entries: PlanIndexEntryLike[]): string | nu
 // Re-exports for convenience
 // ---------------------------------------------------------------------------
 
-export { readClassSystem as _readClassSystemForTests, readClassItemId as _readClassItemIdForTests };
+export {
+  readClassSystem as _readClassSystemForTests,
+  readClassItemId as _readClassItemIdForTests,
+  // issue #44 evidence #4: knownPossessedNames deliberately excludes spell
+  // items — re-exported so a test can assert that CONTRACT directly instead
+  // of through checkFeatPrerequisites' output, where "met" and "unresolved"
+  // are indistinguishable (both yield no mark under DEC-BC-05) and so
+  // couldn't actually catch a future regression that starts counting spells.
+  knownPossessedNames as _knownPossessedNamesForTests,
+};

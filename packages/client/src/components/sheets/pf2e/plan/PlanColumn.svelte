@@ -333,11 +333,27 @@
     }
   }
 
-  /** Resolve a granter's full pack doc by name within a Fusion pack, or null. */
-  async function resolveGranterByName(packSlug: string, name: string): Promise<Record<string, unknown> | null> {
+  /**
+   * Resolve a granter's full pack doc within a Fusion pack, or null.
+   *
+   * Identity is the document ID when we have one (issue #14) — matching by name
+   * broke 5 of the 12 classes' features, because the class table and the
+   * feature document disagree on the label: "Debilitating Strikes" vs
+   * "Debilitating Strike", "Deity" vs "Deity (Cleric)", "Lightning Reflexes" vs
+   * "Reflex Expertise". The Rogue case cost a whole action: the feature doc
+   * grants the Debilitating Strike ACTION, and a never-resolved doc grants
+   * nothing.
+   *
+   * The name stays as fallback for data with no id (homebrew).
+   */
+  async function resolveGranterByName(
+    packSlug: string,
+    name: string,
+    docId?: string,
+  ): Promise<Record<string, unknown> | null> {
     const entries = await resolvePackIndex(packSlug);
-    const target = normalizeForMatch(name);
-    const entry = entries.find((e) => normalizeForMatch(e.name) === target);
+    const byId = docId === undefined ? undefined : entries.find((e) => e._id === docId);
+    const entry = byId ?? entries.find((e) => normalizeForMatch(e.name) === normalizeForMatch(name));
     if (!entry) return null;
     return resolveGrantDoc(entry.uuid);
   }
@@ -374,7 +390,7 @@
     let created = 0;
     for (const ref of refs) {
       try {
-        const featureDoc = await resolveGranterByName(ref.packSlug, ref.name);
+        const featureDoc = await resolveGranterByName(ref.packSlug, ref.name, ref.docId);
         if (!featureDoc) continue;
         const ops = await materializeGrants(featureDoc, ref.classSourceId, ref.slot, mctx);
         for (const op of ops) {
@@ -782,13 +798,18 @@
 
   let detailsRequest = $state<PlanDetailsRequest | null>(null);
 
-  function handleSlotDetails(slot: PlanSlotModel): void {
-    const req = detailsRequestForSlot(slot);
+  // `level` is the enclosing LevelPlanModel.level (issue #58) — the ONE place
+  // that knows which level THIS plan actually granted the item at, as
+  // opposed to a shared class-features-core document's own divergent static
+  // system.level. Threaded into the request so the details panel can show
+  // the real grant level instead of the document's.
+  function handleSlotDetails(level: number, slot: PlanSlotModel): void {
+    const req = detailsRequestForSlot(slot, level);
     if (req) detailsRequest = req;
   }
 
-  function handleAutoFeatureClick(feature: AutoFeatureModel): void {
-    detailsRequest = detailsRequestForAutoFeature(feature);
+  function handleAutoFeatureClick(level: number, feature: AutoFeatureModel): void {
+    detailsRequest = detailsRequestForAutoFeature(feature, level);
   }
 
   /** Reconstruct just enough of the FeatDocLike shape from a PackIndexEntry's flat dot-path index to run a feat predicate against it. */
@@ -802,6 +823,30 @@
         ...(typeof level2 === "number" ? { level: level2 } : {}),
         traits: { value: Array.isArray(traits) ? traits.filter((v): v is string => typeof v === "string") : [] },
       },
+    };
+  }
+
+  /**
+   * Rebuild the shape `isFeatAtRepeatCap` needs from an index entry (issue
+   * #57): its identity (sourceId/name) plus the repeat cap. The picker filters
+   * from the INDEX, so without `system.maxTakable` published there an
+   * exhausted feat stayed on the list and was only refused after the click.
+   *
+   * `maxTakable` is forwarded VERBATIM — `null` is a meaningful value in the
+   * pack (it means unlimited), so it must not be normalized away here.
+   */
+  function repeatCapDocFromIndex(e: {
+    name: string;
+    index: Record<string, unknown>;
+  }): Record<string, unknown> {
+    const sourceId = e.index["flags.fusion.sourceId"];
+    const system: Record<string, unknown> = {};
+    if ("system.maxTakable" in e.index) system["maxTakable"] = e.index["system.maxTakable"];
+    return {
+      name: e.name,
+      type: "feat",
+      system,
+      ...(typeof sourceId === "string" ? { flags: { fusion: { sourceId } } } : {}),
     };
   }
 
@@ -867,6 +912,9 @@
       packSlug: "feats-core",
       title: t(`FUSION.Sheet.Plan.SlotLabel.${slot.type}`),
       filterFn: (e) => {
+        // Already taken as many times as it allows → off the list, instead of
+        // being listed and refused only after the click (issue #57).
+        if (isFeatAtRepeatCap(doc, repeatCapDocFromIndex(e))) return false;
         const featDoc = featDocFromIndex(e);
         return isFeatEligible(featDoc, slot.type, effectiveLevel, {
           ...(effectiveClassSlug ? { classSlug: effectiveClassSlug } : {}),
@@ -1139,8 +1187,8 @@
           {autoFeatureDisplay}
           onSlotClick={(slot) => handleSlotClick(levelPlan.level, slot)}
           onSlotRemove={(slot) => handleSlotRemove(levelPlan.level, slot)}
-          onSlotDetails={handleSlotDetails}
-          onAutoFeatureClick={handleAutoFeatureClick}
+          onSlotDetails={(slot) => handleSlotDetails(levelPlan.level, slot)}
+          onAutoFeatureClick={(feature) => handleAutoFeatureClick(levelPlan.level, feature)}
         />
       {/each}
     </div>

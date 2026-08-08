@@ -33,6 +33,7 @@ import {
   isAbilityBoostsSlotFilled,
   setFreeArchetype,
   removeChoice,
+  classGrantRefsFromClassDoc,
   levelUp,
   levelSet,
   skillTrainingDialogContext,
@@ -48,6 +49,7 @@ import {
   detailsRequestForSlot,
   detailsRequestForAutoFeature,
   findEntryUuidByName,
+  resolveDetailsEntryUuid,
   pickDefaultEntryUuid,
   buildContentNameTranslator,
   abilityBoostsGrid,
@@ -62,6 +64,7 @@ import {
   loreSlug,
   detailsRequestForAbcChip,
   checkFeatPrerequisites,
+  _knownPossessedNamesForTests,
   type PlanOpBuilderContext,
   type AbcChip,
   type PlanSlotModel,
@@ -1174,6 +1177,60 @@ describe("derivePlan — system.prerequisites marking (A1)", () => {
   });
 });
 
+/**
+ * knownPossessedNames only counts type "feat"/"classFeature" items — spells
+ * are DELIBERATELY excluded (see the function's own doc comment). Issue #44
+ * evidence #4: "Rallying Anthem" is a genuine homonym in the Bard universe —
+ * a class feat (feats-core, DvjgdS2LkEqpPmZP) AND a composition spell
+ * (spells-core, QreHVEpW0gbwRbz4), both trait bard, both real documents
+ * (verified against the actual packs). Testing THIS through
+ * checkFeatPrerequisites' output wouldn't catch a regression: DEC-BC-05 makes
+ * "met" and "unresolved" both yield NO mark (only a confirmed axis mismatch
+ * ever produces one), so a hypothetical future change that starts counting
+ * spells would silently flip "unresolved" to "met" — invisibly, since both
+ * already read as undefined downstream. The only way to actually lock this
+ * contract is to assert the Set membership directly (re-exported as
+ * `_knownPossessedNamesForTests`, mirroring the existing
+ * `_readClassSystemForTests` pattern).
+ */
+describe("knownPossessedNames — spell items excluded by design (issue #44 evidence #4)", () => {
+  it("does NOT count a spell item's name as possessed", () => {
+    const rallyingAnthemSpell: Record<string, unknown> = {
+      _id: "item-rallying-anthem-spell",
+      name: "Rallying Anthem",
+      type: "spell",
+      location: "focus-entry",
+      system: { traits: { value: ["bard", "cantrip", "composition"] } },
+    };
+    const names = _knownPossessedNamesForTests([rallyingAnthemSpell], undefined, 6);
+    expect(names.has("rallying anthem")).toBe(false);
+  });
+
+  it("DOES count a feat item's name as possessed (the class-feat homonym of the same spell)", () => {
+    const rallyingAnthemFeat: Record<string, unknown> = {
+      _id: "item-rallying-anthem-feat",
+      name: "Rallying Anthem",
+      type: "feat",
+      system: { category: "class", level: 4, traits: { rarity: "common", value: ["bard"] } },
+      flags: { fusion: { build: { level: 4, slot: "classFeat-4" } } },
+    };
+    const names = _knownPossessedNamesForTests([rallyingAnthemFeat], undefined, 6);
+    expect(names.has("rallying anthem")).toBe(true);
+  });
+
+  it("DOES count a classFeature item's name as possessed", () => {
+    const shieldBlockFeature: Record<string, unknown> = {
+      _id: "item-shield-block-feature",
+      name: "Shield Block",
+      type: "classFeature",
+      system: { traits: { value: [] } },
+      flags: { fusion: { build: { level: 1, slot: "instinct-1" } } },
+    };
+    const names = _knownPossessedNamesForTests([shieldBlockFeature], undefined, 6);
+    expect(names.has("shield block")).toBe(true);
+  });
+});
+
 // ---------------------------------------------------------------------------
 // planContext
 // ---------------------------------------------------------------------------
@@ -2277,6 +2334,7 @@ describe("ABC card chips (r20-X4)", () => {
     expect(detailsRequestForAbcChip(sharp)).toEqual({
       packSlug: "ancestry-features-core",
       name: "Sharp Teeth",
+      sourceId: "SharpTeethSrc001",
     });
     // Materialized + map entry dedupe to a single chip.
     expect(ancestry.chips!.filter((c) => c.name === "Sharp Teeth")).toHaveLength(1);
@@ -2317,6 +2375,7 @@ describe("ABC card chips (r20-X4)", () => {
     expect(detailsRequestForAbcChip(fasc)).toEqual({
       packSlug: "feats-core",
       name: "Fascinating Performance",
+      sourceId: "7LB00jkh6JaJr3vS",
     });
     // No duplicate informative chip for the same feature.
     expect(bg.chips!.filter((c) => c.name === "Fascinating Performance")).toHaveLength(1);
@@ -2379,6 +2438,17 @@ describe("classFeatureGrantRefs + classGrantedActionChips (r20-X4)", () => {
       (f) => f.name === "Mystic Strike" && f.detailsPackSlug === "actions-core",
     );
     expect(chip).toBeDefined();
+    // Issue #44: the granted action's own sourceId rides along on the chip.
+    expect(chip!.sourceId).toBe("MS_ACT");
+  });
+
+  it("carries docId on a featuresByLevel-named auto-feature (issue #44)", () => {
+    const doc = tobiasLevel3Doc();
+    const plan = derivePlan(doc);
+    const lvl1 = plan.levels.find((l) => l.level === 1)!;
+    const cascade = lvl1.autoFeatures.find((f) => f.name === "Arcane Cascade")!;
+    expect(cascade).toBeDefined();
+    expect(cascade.docId).toBe("pf6KyAB13Qf5GQ9Q");
   });
 
   it("DEDUPES a granted action whose name matches a class feature (Magus Spellstrike) — one chip, no duplicate render key", () => {
@@ -4479,6 +4549,46 @@ describe("removeChoice — cascades to a filled adoptedAncestryChoice sub-slot",
 // R12 — details-panel resolution (chips + filled slots + picker default)
 // ---------------------------------------------------------------------------
 
+describe("resolveSlot — sourceId population (issue #44)", () => {
+  it("carries the embedded item's flags.fusion.sourceId onto the filled slot", () => {
+    const doc = {
+      _id: "actor-x",
+      name: "X",
+      type: "character",
+      items: [
+        { ...magusClassDoc(), _id: "item-class" },
+        // Magus's featLevels.skill starts at 2 (see magusClassDoc fixture
+        // above) — skillFeat-1 never exists, so the slot lookup below would
+        // find nothing at level 1.
+        embeddedFeatItem(acupuncturistFeatDoc(), "item-skill-2", {
+          level: 2,
+          slot: "skillFeat-2",
+        }),
+      ],
+      system: {
+        level: { value: 2 },
+        details: {},
+        build: {
+          abilities: {
+            ancestryBoosts: [],
+            ancestryFlaws: [],
+            ancestryFree: [],
+            backgroundBoosts: [],
+            classBoost: ["int"],
+            levelledBoosts: {},
+          },
+          choices: [],
+        },
+      },
+    };
+    const plan = derivePlan(doc);
+    const lvl2 = plan.levels.find((l) => l.level === 2)!;
+    const slot = lvl2.slots.find((s) => s.slotId === "skillFeat-2")!;
+    expect(slot.filled).toBe(true);
+    expect(slot.sourceId).toBe("SC95hfEEHQs7E9cG");
+  });
+});
+
 describe("detailsRequestForSlot", () => {
   function slot(overrides: Partial<PlanSlotModel>): PlanSlotModel {
     return {
@@ -4494,6 +4604,36 @@ describe("detailsRequestForSlot", () => {
   it("routes a filled hybrid-study slot to class-features-core", () => {
     const req = detailsRequestForSlot(slot({ type: "hybridStudy", choiceName: "Arcane Fists" }));
     expect(req).toEqual({ packSlug: "class-features-core", name: "Arcane Fists" });
+  });
+
+  // Issue #58: the Plan column already knows the REAL grant level (the
+  // enclosing LevelPlanModel.level) when it opens this dialog for a filled
+  // slot — passing it through lets the details panel override a shared
+  // class-features-core document's divergent static system.level instead of
+  // showing it with false confidence.
+  it("carries an explicit level through to the request when the caller supplies it", () => {
+    const req = detailsRequestForSlot(slot({ type: "hybridStudy", choiceName: "Arcane Fists" }), 9);
+    expect(req).toEqual({ packSlug: "class-features-core", name: "Arcane Fists", level: 9 });
+  });
+
+  it("omits the level key entirely when the caller doesn't supply one (unchanged behavior)", () => {
+    const req = detailsRequestForSlot(slot({ type: "classFeat", choiceName: "Sudden Charge" }));
+    expect(req).not.toHaveProperty("level");
+  });
+
+  // Issue #44: a slot's backing embedded item's flags.fusion.sourceId (set by
+  // resolveSlot) rides along in the request so the details dialog can resolve
+  // the EXACT document instead of matching by name.
+  it("carries the slot's sourceId through to the request when present", () => {
+    const req = detailsRequestForSlot(
+      slot({ type: "classFeat", choiceName: "Sudden Charge", sourceId: "SUDDEN_SID" }),
+    );
+    expect(req).toEqual({ packSlug: "feats-core", name: "Sudden Charge", sourceId: "SUDDEN_SID" });
+  });
+
+  it("omits the sourceId key entirely when the slot has none (choice-backed slots, unchanged behavior)", () => {
+    const req = detailsRequestForSlot(slot({ type: "classFeat", choiceName: "Sudden Charge" }));
+    expect(req).not.toHaveProperty("sourceId");
   });
 
   it("routes every filled feat-family slot to feats-core", () => {
@@ -4544,6 +4684,48 @@ describe("detailsRequestForAutoFeature", () => {
     const req = detailsRequestForAutoFeature({ name: "Spellstrike", locked: true });
     expect(req).toEqual({ packSlug: "class-features-core", name: "Spellstrike" });
   });
+
+  // Issue #58: locked auto-feature chips (e.g. "Reflex Expertise") are the
+  // exact case from the bug report — PlanColumn knows the chip's real grant
+  // level (LevelPlanModel.level) and now threads it through.
+  it("carries an explicit level through to the request when the caller supplies it", () => {
+    const req = detailsRequestForAutoFeature({ name: "Reflex Expertise", locked: true }, 9);
+    expect(req).toEqual({ packSlug: "class-features-core", name: "Reflex Expertise", level: 9 });
+  });
+
+  it("omits the level key entirely when the caller doesn't supply one (unchanged behavior)", () => {
+    const req = detailsRequestForAutoFeature({ name: "Spellstrike", locked: true });
+    expect(req).not.toHaveProperty("level");
+  });
+
+  // Issue #44: featuresByLevel[].uuid IS the feature's own pack _id (not a
+  // Foundry compendium uuid despite the name) — carried as AutoFeatureModel's
+  // docId so the details dialog can skip name matching entirely.
+  it("carries the feature's docId through to the request when present", () => {
+    const req = detailsRequestForAutoFeature({
+      name: "Arcane Cascade",
+      locked: true,
+      docId: "pf6KyAB13Qf5GQ9Q",
+    });
+    expect(req).toEqual({
+      packSlug: "class-features-core",
+      name: "Arcane Cascade",
+      docId: "pf6KyAB13Qf5GQ9Q",
+    });
+  });
+
+  // A class-granted action chip (classGrantedActionChips) has no
+  // featuresByLevel entry of its own — its identity is the materialized
+  // item's sourceId instead.
+  it("carries the granted action's sourceId through to the request when present", () => {
+    const req = detailsRequestForAutoFeature({
+      name: "Mystic Strike",
+      locked: true,
+      detailsPackSlug: "actions-core",
+      sourceId: "MS_ACT",
+    });
+    expect(req).toEqual({ packSlug: "actions-core", name: "Mystic Strike", sourceId: "MS_ACT" });
+  });
 });
 
 describe("findEntryUuidByName", () => {
@@ -4580,6 +4762,78 @@ describe("findEntryUuidByName", () => {
       { name: "Arcane Fists", uuid: "x2" },
     ];
     expect(findEntryUuidByName(ambiguous, "Arcane")).toBeNull();
+  });
+});
+
+describe("resolveDetailsEntryUuid (issue #44 — id before name)", () => {
+  // Same shape findEntryUuidByName's own "ambiguous prefix" fixture uses,
+  // extended with the id fields a real PackIndexEntry search result carries
+  // (_id always; index["flags.fusion.sourceId"] since issue #41 indexed it).
+  const entries: PlanIndexEntryLike[] = [
+    {
+      name: "Arcane Cascade",
+      uuid: "Compendium.pf2e.class-features-core.Item.x1",
+      _id: "x1",
+      index: { "flags.fusion.sourceId": "SRC_CASCADE" },
+    },
+    {
+      name: "Arcane Fists",
+      uuid: "Compendium.pf2e.class-features-core.Item.x2",
+      _id: "x2",
+      index: { "flags.fusion.sourceId": "SRC_FISTS" },
+    },
+  ];
+
+  it("resolves by docId even when the request name is an ambiguous prefix of 2+ entries", () => {
+    // A chip whose stored name got truncated to "Arcane" would fail name
+    // resolution outright (2 prefix candidates, no unique winner — see the
+    // fallback test below); docId skips name matching and hits the exact doc.
+    expect(
+      resolveDetailsEntryUuid(entries, {
+        packSlug: "class-features-core",
+        name: "Arcane",
+        docId: "x2",
+      }),
+    ).toBe("Compendium.pf2e.class-features-core.Item.x2");
+  });
+
+  it("resolves by sourceId under the same ambiguous name, when docId is unavailable", () => {
+    expect(
+      resolveDetailsEntryUuid(entries, {
+        packSlug: "class-features-core",
+        name: "Arcane",
+        sourceId: "SRC_CASCADE",
+      }),
+    ).toBe("Compendium.pf2e.class-features-core.Item.x1");
+  });
+
+  it("prefers docId over sourceId when both are present", () => {
+    expect(
+      resolveDetailsEntryUuid(entries, {
+        packSlug: "class-features-core",
+        name: "Arcane",
+        docId: "x1",
+        sourceId: "SRC_FISTS",
+      }),
+    ).toBe("Compendium.pf2e.class-features-core.Item.x1");
+  });
+
+  it("falls back to findEntryUuidByName's name resolution when neither id is present — rule 5: never invent an id the data lacks", () => {
+    // Reproduces the exact ambiguous-prefix null findEntryUuidByName itself
+    // returns for this fixture — the fallback delegates, it doesn't retry.
+    expect(
+      resolveDetailsEntryUuid(entries, { packSlug: "class-features-core", name: "Arcane" }),
+    ).toBeNull();
+  });
+
+  it("falls back to name resolution when the given id does not match any entry (stale docId/sourceId)", () => {
+    expect(
+      resolveDetailsEntryUuid(entries, {
+        packSlug: "class-features-core",
+        name: "Arcane Fists",
+        docId: "no-such-id",
+      }),
+    ).toBe("Compendium.pf2e.class-features-core.Item.x2");
   });
 });
 
@@ -4842,10 +5096,12 @@ describe("derivePlan — fixed-grant chips (B2 r14 + r15 A2)", () => {
     expect(detailsRequestForSlot(feat)).toEqual({
       packSlug: "feats-core",
       name: "Alchemical Crafting",
+      sourceId: "is3Oz9wt11lNq62K",
     });
     expect(detailsRequestForSlot(action)).toEqual({
       packSlug: "actions-core",
       name: "Quick Alchemy",
+      sourceId: "yzNJgwzV9XqEhKc6",
     });
   });
 
@@ -4925,7 +5181,11 @@ describe("derivePlan — conflux spell chip under the hybrid study (r15 A2)", ()
     expect(chip.detailsPackSlug).toBe("spells-core");
     expect(chip.itemId).toBe("item-granted-shooting-star");
     // Details route to spells-core so the popup resolves the spell doc.
-    expect(detailsRequestForSlot(chip)).toEqual({ packSlug: "spells-core", name: "Shooting Star" });
+    expect(detailsRequestForSlot(chip)).toEqual({
+      packSlug: "spells-core",
+      name: "Shooting Star",
+      sourceId: "SHOOT_SID",
+    });
   });
 
   it("removeChoice on the hybrid study cascades to the granted conflux spell", () => {
@@ -5137,5 +5397,247 @@ describe("healGranterRefs / actorSpellEntries (heal input)", () => {
       isFocusPool: false,
       tradition: "arcane",
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// maxTakable: null means UNLIMITED, not once (issue #57)
+//
+// 22 feats in feats-core carry `system.maxTakable: null` — Assurance,
+// Additional Lore, Multilingual, Skill Training, Domain Initiate, Terrain
+// Expertise, Weapon Proficiency… All of them are legitimately taken many
+// times (one per skill / language / domain). `featMaxTakable` collapsed any
+// non-number to 1, so the second pick was refused.
+//
+// This only became visible when #57 published `system.maxTakable` to the pack
+// index: with the field in the index, the picker's filter would have HIDDEN
+// those 22 feats after the first pick.
+// ---------------------------------------------------------------------------
+
+/** "Assurance" — real feats-core skill feat with `system.maxTakable: null`. */
+function assuranceFeatDoc(): Record<string, unknown> {
+  return {
+    _id: "3yZFHMS8CTAqTHUS",
+    name: "Assurance",
+    type: "feat",
+    system: {
+      category: "skill",
+      level: 1,
+      maxTakable: null,
+      prerequisites: [{ value: "trained in at least one skill" }],
+      traits: { rarity: "common", value: ["fortune", "general", "skill"] },
+    },
+    flags: { fusion: { sourceId: "ULn3jrPHnPYyRO2H" } },
+  };
+}
+
+describe("repeat cap — maxTakable: null (issue #57)", () => {
+  it("does not cap a feat declared maxTakable: null, however many times it was taken", () => {
+    const taken = (n: number): Record<string, unknown> =>
+      baseCharacterDoc({
+        items: Array.from({ length: n }, (_, i) =>
+          embeddedFeatItem(assuranceFeatDoc(), `item-${String(i)}`, {
+            level: 2,
+            slot: `skillFeat-${String(i)}`,
+          }),
+        ),
+      });
+
+    expect(isFeatAtRepeatCap(taken(0), assuranceFeatDoc())).toBe(false);
+    expect(isFeatAtRepeatCap(taken(1), assuranceFeatDoc())).toBe(false);
+    expect(isFeatAtRepeatCap(taken(7), assuranceFeatDoc())).toBe(false);
+  });
+
+  it("still caps a feat with no maxTakable field at one", () => {
+    const doc = baseCharacterDoc({
+      items: [
+        embeddedFeatItem(acupuncturistFeatDoc(), "item-1", { level: 2, slot: "skillFeat-2" }),
+      ],
+    });
+    expect(isFeatAtRepeatCap(doc, acupuncturistFeatDoc())).toBe(true);
+  });
+
+  it("still caps a numeric maxTakable at its declared value", () => {
+    const armor = armorProficiencyFeatDoc();
+    const taken = (n: number): Record<string, unknown> =>
+      baseCharacterDoc({
+        items: Array.from({ length: n }, (_, i) =>
+          embeddedFeatItem(armor, `item-${String(i)}`, {
+            level: 3,
+            slot: `generalFeat-${String(i)}`,
+          }),
+        ),
+      });
+    expect(isFeatAtRepeatCap(taken(2), armor)).toBe(false);
+    expect(isFeatAtRepeatCap(taken(3), armor)).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// removeChoice must not leave an orphan choice behind (issue #15, 2nd defect)
+//
+// The grantedBy cascade deletes every item the granter materialized. If one of
+// those items ALSO occupied a build slot — which is exactly the corrupted state
+// the old findAdoptableItem produced — its `system.build.choices` entry stayed,
+// and resolveSlot read that orphan choice as `filled: true`: a phantom slot,
+// marked taken with no item behind it.
+//
+// The adoption fix stops NEW actors from reaching that state; this keeps the
+// removal honest for actors already carrying it.
+// ---------------------------------------------------------------------------
+
+describe("removeChoice — orphan choice from a grantedBy cascade (issue #15)", () => {
+  it("drops the build choice of an item deleted by the grantedBy cascade", () => {
+    const muse = {
+      _id: "item-muse",
+      name: "Maestro",
+      type: "classFeature",
+      flags: { fusion: { sourceId: "MAESTRO", build: { level: 1, slot: "muse-1" } } },
+      system: {},
+    };
+    // The corrupted shape: paid slot AND stamped as granted by the muse.
+    const adoptedFeat = {
+      _id: "item-lc",
+      name: "Lingering Composition",
+      type: "feat",
+      flags: {
+        fusion: {
+          sourceId: "LINGERING",
+          grantedBy: "MAESTRO",
+          build: { level: 1, slot: "classFeat-1" },
+        },
+      },
+      system: {},
+    };
+    const character = baseCharacterDoc({
+      items: [muse, adoptedFeat],
+      system: {
+        level: { value: 1 },
+        details: {},
+        build: {
+          choices: [
+            { level: 1, slot: "muse-1", type: "muse", sourceId: "MAESTRO" },
+            { level: 1, slot: "classFeat-1", type: "classFeat", sourceId: "LINGERING" },
+          ],
+        },
+      },
+    });
+
+    const ops = removeChoice(ctx(character), {
+      slotId: "muse-1",
+      type: "muse",
+      level: 1,
+      label: "Muse",
+      filled: true,
+      itemId: "item-muse",
+    } as PlanSlotModel);
+
+    const deleted = ops.filter((o) => o.type === "doc:delete").map((o) => o.id);
+    expect(deleted).toContain("item-muse");
+    expect(deleted).toContain("item-lc");
+
+    const update = ops.find((o) => o.type === "doc:update");
+    expect(update, "choices must be rewritten").toBeDefined();
+    const remaining = (update as { diff: Record<string, unknown> }).diff[
+      "system.build.choices"
+    ] as Array<{ slot: string }>;
+    expect(
+      remaining.map((c) => c.slot),
+      "the deleted feat's own slot must not stay behind as a phantom",
+    ).toEqual([]);
+  });
+
+  it("keeps an unrelated choice untouched", () => {
+    const muse = {
+      _id: "item-muse",
+      name: "Maestro",
+      type: "classFeature",
+      flags: { fusion: { sourceId: "MAESTRO", build: { level: 1, slot: "muse-1" } } },
+      system: {},
+    };
+    const character = baseCharacterDoc({
+      items: [muse],
+      system: {
+        level: { value: 1 },
+        details: {},
+        build: {
+          choices: [
+            { level: 1, slot: "muse-1", type: "muse", sourceId: "MAESTRO" },
+            { level: 2, slot: "skillFeat-2", type: "skillFeat", sourceId: "OTHER" },
+          ],
+        },
+      },
+    });
+
+    const ops = removeChoice(ctx(character), {
+      slotId: "muse-1",
+      type: "muse",
+      level: 1,
+      label: "Muse",
+      filled: true,
+      itemId: "item-muse",
+    } as PlanSlotModel);
+
+    const update = ops.find((o) => o.type === "doc:update");
+    const remaining = (update as { diff: Record<string, unknown> }).diff[
+      "system.build.choices"
+    ] as Array<{ slot: string }>;
+    expect(remaining.map((c) => c.slot)).toEqual(["skillFeat-2"]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Class features resolve by document id, not by name (issue #14)
+//
+// classGrantRefsFromClassDoc emitted only `{ name, packSlug }`, and the caller
+// matched on the normalized NAME — against the project rule that identity is
+// the document id, never the name.
+//
+// Measured over the 12 classes: 221 of 221 featuresByLevel entries resolve by
+// `uuid` (the pack doc's `_id`), while 5 carry a name the pack does not have:
+//
+//   Cleric  L1  "Deity"                                 -> "Deity (Cleric)"
+//   Magus   L5  "Lightning Reflexes"                    -> "Reflex Expertise"
+//   Magus   L15 "Greater Weapon Specialization (Level 15)" -> "Greater Weapon Specialization"
+//   Monk    L15 idem
+//   Rogue   L9  "Debilitating Strikes"                  -> "Debilitating Strike"
+//
+// The Rogue case is the expensive one: "Debilitating Strike" declares a
+// grant-item for the action of the same name, so a level-9 Rogue never gets
+// Debilitating Strike in the Actions tab.
+// ---------------------------------------------------------------------------
+
+describe("classGrantRefsFromClassDoc — identity by doc id (issue #14)", () => {
+  const rogueSystem = {
+    featuresByLevel: [
+      { level: 1, uuid: "AAAA1111", name: "Sneak Attack" },
+      { level: 9, uuid: "mGyRcs5k6sRE1fVm", name: "Debilitating Strikes" },
+    ],
+  };
+
+  it("carries the feature's document id alongside the name", () => {
+    const refs = classGrantRefsFromClassDoc(rogueSystem, "ROGUE", 9);
+    const debilitating = refs.find((r) => r.level === 9);
+    expect(debilitating?.docId, "the uuid from featuresByLevel must reach the resolver").toBe(
+      "mGyRcs5k6sRE1fVm",
+    );
+    // The name is still carried — it is the fallback and the log label.
+    expect(debilitating?.name).toBe("Debilitating Strikes");
+  });
+
+  it("emits a docId for every feature, not just the divergent ones", () => {
+    const refs = classGrantRefsFromClassDoc(rogueSystem, "ROGUE", 9);
+    expect(refs).toHaveLength(2);
+    expect(refs.every((r) => typeof r.docId === "string" && r.docId.length > 0)).toBe(true);
+  });
+
+  it("omits docId when the pack data has no uuid (never invents one)", () => {
+    const refs = classGrantRefsFromClassDoc(
+      { featuresByLevel: [{ level: 1, name: "Homebrew Feature" }] },
+      "HOMEBREW",
+      1,
+    );
+    expect(refs[0]?.docId).toBeUndefined();
+    expect(refs[0]?.name).toBe("Homebrew Feature");
   });
 });

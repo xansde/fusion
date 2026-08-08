@@ -725,6 +725,30 @@ describe("buildClassFeatureFields", () => {
       { labelKey: "FUSION.Sheet.Details.Field.Level", label: "Nível", value: "3" },
     ]);
   });
+
+  // Issue #58: class-features-core reuses 17 documents across classes at
+  // divergent grant levels (35 cases / 11 classes — e.g. Barbarian grants
+  // "Reflex Expertise" at 9, the document itself says 3). The builder already
+  // uses featuresByLevel[].level (the source of truth); this is the same fix
+  // for the compendium details panel, via an optional contextLevel the
+  // caller supplies when it knows the real grant.
+  it("prefers contextLevel over the document's static system.level when given", () => {
+    expect(noKey(buildClassFeatureFields({ level: 3 }, "en", 9))).toEqual([
+      { label: "Level", value: "9" },
+    ]);
+  });
+
+  it("falls back to the document's system.level when contextLevel is omitted", () => {
+    expect(noKey(buildClassFeatureFields({ level: 3 }, "en"))).toEqual([
+      { label: "Level", value: "3" },
+    ]);
+  });
+
+  it("still translates the label when contextLevel overrides the value (pt-BR)", () => {
+    expect(buildClassFeatureFields({ level: 3 }, "pt-BR", 9)).toEqual([
+      { labelKey: "FUSION.Sheet.Details.Field.Level", label: "Nível", value: "9" },
+    ]);
+  });
 });
 
 describe("buildMechanicalFields (dispatch)", () => {
@@ -751,6 +775,20 @@ describe("buildMechanicalFields (dispatch)", () => {
   it("dispatches to buildClassFeatureFields for type 'classFeature'", () => {
     const fields = buildMechanicalFields({ type: "classFeature", system: { level: 3 } });
     expect(noKey(fields)).toEqual([{ label: "Level", value: "3" }]);
+  });
+
+  it("threads contextLevel through to buildClassFeatureFields for type 'classFeature' (issue #58)", () => {
+    const fields = buildMechanicalFields({ type: "classFeature", system: { level: 3 } }, "en", 9);
+    expect(noKey(fields)).toEqual([{ label: "Level", value: "9" }]);
+  });
+
+  it("ignores contextLevel for types other than 'classFeature' (a spell's rank is intrinsic)", () => {
+    const fields = buildMechanicalFields(
+      { type: "spell", system: { level: 3, range: "touch" } },
+      "en",
+      9,
+    );
+    expect(noKey(fields)).toEqual([{ label: "Range", value: "touch" }]);
   });
 
   it("returns an empty array for unrecognized types", () => {
@@ -1049,6 +1087,36 @@ describe("buildDetailsHeader", () => {
     );
     expect(header.name).toBe("Basic Concoction");
     expect(header.subtitleEn).toBeNull();
+  });
+
+  // Issue #58: the level badge next to the name reads the same shared/
+  // reused system.level as buildClassFeatureFields — without this override
+  // the badge and the "Level" field below it would show two DIFFERENT
+  // numbers for the same classFeature document.
+  it("prefers contextLevel over system.level for a classFeature doc", () => {
+    const header = buildDetailsHeader(
+      { type: "classFeature", name: "Reflex Expertise", system: { level: 3 } },
+      "en",
+      9,
+    );
+    expect(header.levelOrRank).toBe(9);
+  });
+
+  it("ignores contextLevel for a non-classFeature doc (e.g. a spell's rank is intrinsic)", () => {
+    const header = buildDetailsHeader(
+      { type: "spell", name: "Fireball", system: { level: 3 } },
+      "en",
+      9,
+    );
+    expect(header.levelOrRank).toBe(3);
+  });
+
+  it("falls back to system.level for a classFeature doc when contextLevel is omitted", () => {
+    const header = buildDetailsHeader(
+      { type: "classFeature", name: "Reflex Expertise", system: { level: 3 } },
+      "en",
+    );
+    expect(header.levelOrRank).toBe(3);
   });
 });
 

@@ -6,7 +6,8 @@
   "indexFields": [
     "name",
     "system.ancestry.slug",
-    "system.traits.value"
+    "system.traits.value",
+    "flags.fusion.sourceId"
   ],
   "license": {
     "license": "ORC",

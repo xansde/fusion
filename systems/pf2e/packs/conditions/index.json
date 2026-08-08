@@ -6,7 +6,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "senses"
+      "system.group": "senses",
+      "flags.fusion.sourceId": "XgEqL1kFApUbl5Z2"
     }
   },
   {
@@ -16,7 +17,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null
+      "system.group": null,
+      "flags.fusion.sourceId": "6dNUvdb1dhToNDj3"
     }
   },
   {
@@ -26,7 +28,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "abilities"
+      "system.group": "abilities",
+      "flags.fusion.sourceId": "i3OJZU2nk64Df3xm"
     }
   },
   {
@@ -36,7 +39,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "senses"
+      "system.group": "senses",
+      "flags.fusion.sourceId": "DmAIPqOBomZ7H95W"
     }
   },
   {
@@ -46,7 +50,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null
+      "system.group": null,
+      "flags.fusion.sourceId": "yblD8fOR1J8rDwEQ"
     }
   },
   {
@@ -56,7 +61,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null
+      "system.group": null,
+      "flags.fusion.sourceId": "9qGBRpbX9NEwtAAr"
     }
   },
   {
@@ -66,7 +72,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "abilities"
+      "system.group": "abilities",
+      "flags.fusion.sourceId": "zXZjC8HLaRoLR17U"
     }
   },
   {
@@ -76,7 +83,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "senses"
+      "system.group": "senses",
+      "flags.fusion.sourceId": "TkIyaNPgTZFBCCuh"
     }
   },
   {
@@ -86,7 +94,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "senses"
+      "system.group": "senses",
+      "flags.fusion.sourceId": "9PR9y0bi4JPKnHPR"
     }
   },
   {
@@ -96,7 +105,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "death"
+      "system.group": "death",
+      "flags.fusion.sourceId": "3uh1r86TzbQvosxv"
     }
   },
   {
@@ -106,7 +116,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "abilities"
+      "system.group": "abilities",
+      "flags.fusion.sourceId": "4D2KBtexWXa6oUMR"
     }
   },
   {
@@ -116,7 +127,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "death"
+      "system.group": "death",
+      "flags.fusion.sourceId": "yZRUzMqrMmfLu0V1"
     }
   },
   {
@@ -126,7 +138,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null
+      "system.group": null,
+      "flags.fusion.sourceId": "D5mg6Tc7Jzrj6ro7"
     }
   },
   {
@@ -136,7 +149,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "abilities"
+      "system.group": "abilities",
+      "flags.fusion.sourceId": "MIRkyAjyBeXivMa7"
     }
   },
   {
@@ -146,7 +160,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null
+      "system.group": null,
+      "flags.fusion.sourceId": "AdPVz7rbaVSRxHFg"
     }
   },
   {
@@ -156,7 +171,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null
+      "system.group": null,
+      "flags.fusion.sourceId": "HL2l2VRSaQHu9lUw"
     }
   },
   {
@@ -166,7 +182,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null
+      "system.group": null,
+      "flags.fusion.sourceId": "sDPxOjQ9kx2RZE8D"
     }
   },
   {
@@ -176,7 +193,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "attitudes"
+      "system.group": "attitudes",
+      "flags.fusion.sourceId": "v66R7FdOf11l94im"
     }
   },
   {
@@ -186,7 +204,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null
+      "system.group": null,
+      "flags.fusion.sourceId": "TBSHQspnbcqxsmjL"
     }
   },
   {
@@ -196,7 +215,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null
+      "system.group": null,
+      "flags.fusion.sourceId": "kWc1fhmv9LBiTuei"
     }
   },
   {
@@ -206,7 +226,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "attitudes"
+      "system.group": "attitudes",
+      "flags.fusion.sourceId": "v44P3WUcU1j0115l"
     }
   },
   {
@@ -216,7 +237,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "detection"
+      "system.group": "detection",
+      "flags.fusion.sourceId": "iU0fEDdBp3rXpTMC"
     }
   },
   {
@@ -226,7 +248,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "attitudes"
+      "system.group": "attitudes",
+      "flags.fusion.sourceId": "ud7gTLwPeklzYSXG"
     }
   },
   {
@@ -236,7 +259,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null
+      "system.group": null,
+      "flags.fusion.sourceId": "eIcWbB5o3pP6OIMe"
     }
   },
   {
@@ -246,7 +270,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "attitudes"
+      "system.group": "attitudes",
+      "flags.fusion.sourceId": "fuG8dgthlDWfWjIA"
     }
   },
   {
@@ -256,7 +281,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "senses"
+      "system.group": "senses",
+      "flags.fusion.sourceId": "zJxUflt9np0q4yML"
     }
   },
   {
@@ -266,7 +292,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "detection"
+      "system.group": "detection",
+      "flags.fusion.sourceId": "1wQY3JYyhMYeeV2G"
     }
   },
   {
@@ -276,7 +303,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null
+      "system.group": null,
+      "flags.fusion.sourceId": "AJh5ex99aV6VTggg"
     }
   },
   {
@@ -286,7 +314,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null
+      "system.group": null,
+      "flags.fusion.sourceId": "6uEgoh53GbXuHpTF"
     }
   },
   {
@@ -296,7 +325,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null
+      "system.group": null,
+      "flags.fusion.sourceId": "lDVqvLKA6eF3Df60"
     }
   },
   {
@@ -306,7 +336,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null
+      "system.group": null,
+      "flags.fusion.sourceId": "dTwPJuKgBQCMxixg"
     }
   },
   {
@@ -316,7 +347,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null
+      "system.group": null,
+      "flags.fusion.sourceId": "j91X7x0XSomq8d60"
     }
   },
   {
@@ -326,7 +358,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null
+      "system.group": null,
+      "flags.fusion.sourceId": "nlCjDvLMf2EkV2dl"
     }
   },
   {
@@ -336,7 +369,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null
+      "system.group": null,
+      "flags.fusion.sourceId": "VcDeM8A5oI6VqhbM"
     }
   },
   {
@@ -346,7 +380,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null
+      "system.group": null,
+      "flags.fusion.sourceId": "fesd1n5eVhpCSS18"
     }
   },
   {
@@ -356,7 +391,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null
+      "system.group": null,
+      "flags.fusion.sourceId": "xYTAsEpcJE1Ccni3"
     }
   },
   {
@@ -366,7 +402,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": null
+      "system.group": null,
+      "flags.fusion.sourceId": "dfCMdR4wnpbYNTix"
     }
   },
   {
@@ -376,7 +413,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "abilities"
+      "system.group": "abilities",
+      "flags.fusion.sourceId": "e1XGnhKNSQIm5IXg"
     }
   },
   {
@@ -386,7 +424,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "death"
+      "system.group": "death",
+      "flags.fusion.sourceId": "fBnFDH2MTzgFijKf"
     }
   },
   {
@@ -396,7 +435,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "detection"
+      "system.group": "detection",
+      "flags.fusion.sourceId": "VRSef5y1LmL2Hkjf"
     }
   },
   {
@@ -406,7 +446,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "attitudes"
+      "system.group": "attitudes",
+      "flags.fusion.sourceId": "I1ffBVISxLr2gC4u"
     }
   },
   {
@@ -416,7 +457,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "detection"
+      "system.group": "detection",
+      "flags.fusion.sourceId": "9evPzg9E6muFcoSk"
     }
   },
   {
@@ -426,7 +468,8 @@
     "img": "icons/placeholder/condition.svg",
     "type": "condition",
     "index": {
-      "system.group": "death"
+      "system.group": "death",
+      "flags.fusion.sourceId": "Yl48xTdMh3aeQYL2"
     }
   }
 ]

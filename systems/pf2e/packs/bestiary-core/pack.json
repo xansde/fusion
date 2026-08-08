@@ -6,7 +6,8 @@
   "indexFields": [
     "system.details.level.value",
     "system.traits.value",
-    "system.attributes.hp.max"
+    "system.attributes.hp.max",
+    "flags.fusion.sourceId"
   ],
   "license": {
     "license": "ORC",

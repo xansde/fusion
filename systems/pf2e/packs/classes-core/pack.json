@@ -6,7 +6,8 @@
   "indexFields": [
     "name",
     "system.keyAbility",
-    "system.traits.value"
+    "system.traits.value",
+    "flags.fusion.sourceId"
   ],
   "license": {
     "license": "ORC",
