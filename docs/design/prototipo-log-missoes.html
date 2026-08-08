@@ -916,12 +916,454 @@
         margin-top: 4px;
         color: #3f6072;
       }
+      .propose {
+        color: var(--gold);
+        font: 700 9.5px var(--sans);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      /* ============================================================
+         Command bar — Missões / Comitiva / Mapa (pattern lifted from
+         04-system-window-interativo.html, mockup by Mario)
+         ============================================================ */
+      body {
+        padding-bottom: 100px;
+      }
+      #cmdbar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 60;
+        display: flex;
+        justify-content: center;
+        padding: 11px 16px;
+        background: linear-gradient(180deg, rgba(3, 14, 22, 0.4), rgba(3, 14, 22, 0.96));
+        border-top: 1px solid rgba(87, 200, 255, 0.28);
+        backdrop-filter: blur(8px);
+      }
+      .wtabs {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .wtab {
+        border: 1px solid rgba(87, 200, 255, 0.24);
+        background: rgba(87, 200, 255, 0.05);
+        color: var(--dim);
+        font: 600 11px var(--sans);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        padding: 9px 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: 0.14s;
+        position: relative;
+      }
+      .wtab:hover {
+        color: var(--ink);
+        border-color: rgba(87, 200, 255, 0.5);
+      }
+      .wtab.on {
+        color: var(--blue);
+        border-color: var(--blue);
+        background: rgba(87, 200, 255, 0.14);
+        box-shadow: 0 0 16px rgba(87, 200, 255, 0.2);
+      }
+      .wtab kbd {
+        font: 700 9px var(--mono);
+        color: #3f6072;
+        border: 1px solid rgba(87, 200, 255, 0.2);
+        padding: 0 4px;
+        border-radius: 2px;
+      }
+      .wtab .bdg {
+        min-width: 16px;
+        height: 16px;
+        border-radius: 8px;
+        background: var(--bad);
+        color: #fff;
+        font: 800 9px var(--sans);
+        display: grid;
+        place-items: center;
+        padding: 0 4px;
+        box-shadow: 0 0 8px var(--bad);
+      }
+
+      /* ---------- Comitiva window (pattern: .members/.mem, System Window) ---------- */
+      .members {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        position: relative;
+        z-index: 1;
+      }
+      @media (max-width: 920px) {
+        .members {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (max-width: 520px) {
+        .members {
+          grid-template-columns: 1fr;
+        }
+      }
+      .mem {
+        border: 1px solid rgba(87, 200, 255, 0.28);
+        background: rgba(3, 14, 22, 0.78);
+        padding: 12px 13px;
+        cursor: pointer;
+        transition: 0.15s;
+      }
+      .mem:hover {
+        border-color: rgba(87, 200, 255, 0.55);
+        background: rgba(87, 200, 255, 0.06);
+      }
+      .mem.expanded {
+        border-color: var(--blue);
+        box-shadow: 0 0 16px rgba(87, 200, 255, 0.18);
+      }
+      .memtop {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 9px;
+      }
+      .memtop b {
+        font-size: 14px;
+        color: #fff;
+      }
+      .memtop em {
+        font-style: normal;
+        font-size: 10.2px;
+        letter-spacing: 0.05em;
+        color: var(--dim);
+        white-space: nowrap;
+      }
+      .mrow-lbl {
+        display: flex;
+        justify-content: space-between;
+        font: 600 9.5px var(--sans);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--dim);
+        margin-bottom: 2px;
+      }
+      .mrow-lbl span {
+        color: var(--ink);
+        font-variant-numeric: tabular-nums;
+      }
+      .mini {
+        height: 6px;
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(87, 200, 255, 0.2);
+        margin-bottom: 8px;
+        position: relative;
+      }
+      .mini i {
+        position: absolute;
+        inset: 0 auto 0 0;
+        display: block;
+        background: var(--ok);
+      }
+      .mini.hp.low i {
+        background: var(--bad);
+        box-shadow: 0 0 8px rgba(255, 92, 122, 0.6);
+      }
+      .focopips {
+        display: flex;
+        gap: 4px;
+        margin: 2px 0 8px;
+      }
+      .focopips.none {
+        color: var(--dim);
+        font: 600 11px var(--sans);
+      }
+      .focopips .pip {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        border: 1px solid rgba(87, 200, 255, 0.4);
+        background: rgba(87, 200, 255, 0.05);
+      }
+      .focopips .pip.on {
+        background: var(--violet);
+        border-color: var(--violet);
+        box-shadow: 0 0 8px rgba(198, 155, 255, 0.6);
+      }
+      .condtags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 2px;
+      }
+      .condtag {
+        font: 700 9px var(--sans);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--bad);
+        border: 1px solid rgba(255, 92, 122, 0.4);
+        background: rgba(255, 92, 122, 0.08);
+        padding: 2px 7px;
+        border-radius: 999px;
+      }
+      .gmnote {
+        margin-top: 9px;
+        padding-top: 8px;
+        border-top: 1px dashed rgba(198, 155, 255, 0.3);
+        font-size: 11px;
+        color: var(--violet);
+        font-style: italic;
+      }
+      .pcdetail {
+        margin-top: 9px;
+        padding-top: 9px;
+        border-top: 1px solid var(--line);
+        display: flex;
+        gap: 14px;
+        font-size: 11.5px;
+      }
+      .pcdetail div {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .pcdetail span {
+        font: 600 9px var(--sans);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--dim);
+      }
+      .pcdetail b {
+        color: var(--ink);
+        font-size: 13px;
+      }
+
+      /* ---------- Mapa window ---------- */
+      .mapwin {
+        padding: 16px;
+      }
+      .mv {
+        position: relative;
+        z-index: 1;
+        aspect-ratio: 16 / 9;
+        border: 1px solid rgba(87, 200, 255, 0.3);
+        background: #020608;
+        overflow: hidden;
+        margin-bottom: 14px;
+      }
+      .mv svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .node {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        cursor: pointer;
+        text-align: center;
+      }
+      .node i {
+        display: block;
+        width: 13px;
+        height: 13px;
+        margin: 0 auto;
+        transform: rotate(45deg);
+        border: 1.5px solid var(--blue);
+        background: rgba(87, 200, 255, 0.2);
+        box-shadow: 0 0 12px var(--blue-g);
+        transition: 0.15s;
+      }
+      .node:hover i {
+        transform: rotate(45deg) scale(1.25);
+      }
+      .node.sel i {
+        box-shadow:
+          0 0 20px var(--blue),
+          0 0 0 5px rgba(87, 200, 255, 0.16);
+      }
+      .node.safe i {
+        border-color: var(--ok);
+        background: rgba(94, 242, 164, 0.22);
+        box-shadow: 0 0 12px rgba(94, 242, 164, 0.5);
+      }
+      .node.q i {
+        border-color: var(--bad);
+        background: rgba(255, 92, 122, 0.28);
+        box-shadow: 0 0 14px rgba(255, 92, 122, 0.7);
+        animation: node-pulse 1.3s infinite;
+      }
+      .node.rumor i {
+        border-color: var(--gold);
+        border-style: dashed;
+        background: rgba(255, 209, 102, 0.16);
+      }
+      .node.hidden i {
+        border-color: rgba(93, 130, 150, 0.55);
+        border-style: dashed;
+        background: rgba(93, 130, 150, 0.08);
+        box-shadow: none;
+      }
+      @keyframes node-pulse {
+        50% {
+          opacity: 0.4;
+          transform: rotate(45deg) scale(0.8);
+        }
+      }
+      .node label {
+        display: block;
+        margin-top: 4px;
+        font: 600 9px var(--sans);
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: #a8cfe2;
+        background: rgba(3, 14, 22, 0.86);
+        border: 1px solid rgba(87, 200, 255, 0.22);
+        padding: 1px 6px;
+        white-space: nowrap;
+        pointer-events: none;
+      }
+      .node.hidden label {
+        color: var(--dim);
+        font-style: italic;
+      }
+      .maplegend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 14px;
+        position: relative;
+        z-index: 1;
+      }
+      .lg {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(3, 14, 22, 0.8);
+        font: 600 10px var(--sans);
+        letter-spacing: 0.04em;
+        color: var(--dim);
+      }
+      .lgsw {
+        width: 8px;
+        height: 8px;
+        transform: rotate(45deg);
+        flex: none;
+      }
+      .mrows {
+        border-top: 1px solid var(--line);
+        margin-bottom: 4px;
+        position: relative;
+        z-index: 1;
+      }
+      .mrow {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 4px;
+        border-bottom: 1px solid var(--line2);
+        font-size: 12.5px;
+        cursor: pointer;
+        transition: 0.12s;
+      }
+      .mrow:hover {
+        background: rgba(87, 200, 255, 0.06);
+      }
+      .mrow.sel {
+        background: rgba(87, 200, 255, 0.12);
+      }
+      .mtag {
+        font: 700 9px var(--sans);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 2px 7px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        color: var(--dim);
+        flex: none;
+      }
+      .mtag.bad {
+        color: var(--bad);
+        border-color: rgba(255, 92, 122, 0.4);
+      }
+      .mtag.ok {
+        color: var(--ok);
+        border-color: rgba(94, 242, 164, 0.4);
+      }
+      .mtag.gold {
+        color: var(--gold);
+        border-color: rgba(255, 209, 102, 0.4);
+      }
+      .mname {
+        font-weight: 600;
+        color: var(--ink);
+      }
+      .mmission {
+        margin-left: auto;
+        color: var(--dim);
+        font-size: 11.5px;
+        white-space: nowrap;
+      }
+      .poidetail {
+        border-top: 1px solid var(--line);
+        padding-top: 12px;
+        margin-top: 6px;
+        position: relative;
+        z-index: 1;
+      }
+      .pdname {
+        font: 700 14px var(--sans);
+        color: #fff;
+        margin-bottom: 4px;
+      }
+      .pdmissao {
+        font-size: 12px;
+        color: var(--dim);
+        margin-bottom: 10px;
+      }
+      .pdconsole {
+        border-top: 1px dashed rgba(87, 200, 255, 0.2);
+        padding-top: 10px;
+      }
+      .pdlbl {
+        display: block;
+        font: 700 9.5px var(--sans);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--violet);
+        margin-bottom: 8px;
+      }
+      .pdrow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px;
+      }
+      .pdrow span {
+        font-size: 12px;
+        color: var(--dim);
+      }
+      .trackbtn {
+        color: var(--blue);
+        border-color: rgba(87, 200, 255, 0.4);
+        margin-top: 8px;
+      }
     </style>
   </head>
   <body>
     <div class="protobanner">
       PROTÓTIPO — proposta para a spec 28 (Hub do jogador) · etapa C4 do design de campanha · dados
-      fictícios
+      fictícios · agora com as janelas Comitiva e Mapa de Região
     </div>
 
     <svg style="display: none" aria-hidden="true">
@@ -1106,7 +1548,8 @@
           <b>Comedor</b> acompanham o que já foi publicado, o que ainda é só boato e o que já foi
           encerrado. A aba <b>Mestre</b> mostra a matriz de publicação por trás — cada botão aqui é,
           na implementação real, um update de <code>ownership</code>, nunca um sistema paralelo de
-          "missões".
+          "missões". A barra de comando embaixo abre também a <b>Comitiva</b> (referência rápida dos
+          PCs) e o <b>Mapa</b> de região — as três janelas seguem o mesmo toggle de papel, no topo.
         </p>
       </header>
 
@@ -1198,6 +1641,36 @@
                 REQ-DOC-058)
               </td>
             </tr>
+            <tr>
+              <td><b>Janela Comitiva</b></td>
+              <td>
+                <span class="propose">[proposta]</span> referência rápida da party — cobertura pela
+                spec 11 (fichas/UI); ainda sem REQ formal. Card resumido (HP, foco, condições), não
+                substitui abrir a ficha completa.
+              </td>
+            </tr>
+            <tr>
+              <td><b>Janela Mapa — POIs e Console de Revelação</b></td>
+              <td>
+                <code>REQ-MREG</code> (spec 34, mapa de região + revelação por jogador) — mesma
+                semântica ○→?→● da matriz de missões, agora aplicada a marcadores de mapa
+              </td>
+            </tr>
+            <tr>
+              <td><b>"Ícones não escalam com o zoom"</b></td>
+              <td>
+                Regra herdada do design do mapa de região (mockup do Mario) —
+                <code>docs/design/mapa-isekai.md</code> §5.1. Este protótipo é estático (sem zoom);
+                a spec 34 deve seguir a regra quando ganhar câmera de verdade.
+              </td>
+            </tr>
+            <tr>
+              <td><b>Barra de comando (Missões / Comitiva / Mapa)</b></td>
+              <td>
+                Padrão de <code>docs/design/04-system-window-interativo.html</code> (mockup do
+                Mario) — abas com atalho de teclado e badge de contagem
+              </td>
+            </tr>
           </tbody>
         </table>
       </section>
@@ -1207,12 +1680,34 @@
         Ícones desenhados à mão em SVG — sem emoji, sem CDN, sem fonte externa. Dados fictícios,
         mock em <code>const DATA</code>.
         <div class="credit">
-          Linguagem visual: System Window (Isekai-Companion, mockup do Mario).
+          Linguagem visual: System Window (Isekai-Companion, mockup do Mario) — barra de comando e
+          comitiva reaproveitam os padrões de <code>04-system-window-interativo.html</code>. Mapa de
+          região inspirado em <code>prototipo-minimapa-regiao.html</code> e
+          <code>mapa-isekai.md</code> §4–5 (mockups do Mario).
         </div>
       </footer>
     </div>
     <div class="toastwrap" id="toastwrap"></div>
     <div class="tip" id="tip"></div>
+    <div id="cmdbar">
+      <div class="wtabs" id="wtabs">
+        <button class="wtab" data-win="missoes" type="button" aria-pressed="true">
+          <svg class="svgicon" width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <use href="#ic-scroll" width="14" height="14" color="currentColor" /></svg
+          >Missões<kbd>Q</kbd><span class="bdg" id="qBadge"></span>
+        </button>
+        <button class="wtab" data-win="comitiva" type="button" aria-pressed="false">
+          <svg class="svgicon" width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <use href="#ui-user" width="14" height="14" color="currentColor" /></svg
+          >Comitiva<kbd>C</kbd>
+        </button>
+        <button class="wtab" data-win="mapa" type="button" aria-pressed="false">
+          <svg class="svgicon" width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <use href="#ic-pin" width="14" height="14" color="currentColor" /></svg
+          >Mapa<kbd>M</kbd>
+        </button>
+      </div>
+    </div>
 
     <script>
       /* ================= mock data (unchanged content) ================= */
@@ -1239,6 +1734,7 @@
             vis: { tobias: 2, comedor: 1 },
             estado: "ativa",
             resultado: null,
+            node: "estrada-godford",
           },
           {
             id: "m2",
@@ -1259,6 +1755,7 @@
             vis: { tobias: 2, comedor: 2 },
             estado: "ativa",
             resultado: null,
+            node: "vaza-mare",
           },
           {
             id: "m3",
@@ -1281,6 +1778,7 @@
             vis: { tobias: 0, comedor: 1 },
             estado: "ativa",
             resultado: null,
+            node: "tumulos",
           },
           {
             id: "m4",
@@ -1301,6 +1799,7 @@
             vis: { tobias: 1, comedor: 0 },
             estado: "ativa",
             resultado: null,
+            node: "moinho",
           },
           {
             id: "m5",
@@ -1322,6 +1821,7 @@
             vis: { tobias: 0, comedor: 0 },
             estado: "ativa",
             resultado: null,
+            node: "cais",
           },
           {
             id: "m6",
@@ -1343,6 +1843,145 @@
             vis: { tobias: 2, comedor: 2 },
             estado: "concluida",
             resultado: "O sino contava os mortos do dia seguinte. Pip ficou com o badalo.",
+            node: "campos-godford",
+          },
+        ],
+        /* ---- Comitiva: referência rápida da party (proposta, ver rodapé) ---- */
+        pcs: [
+          {
+            id: "tobias",
+            nome: "Tobias",
+            classe: "Campeão",
+            nivel: 3,
+            hp: 38,
+            hpMax: 38,
+            foco: 1,
+            focoMax: 1,
+            condicoes: [],
+            ca: 19,
+            percepcao: 9,
+            velocidade: "25 pés",
+            gmNota: "Guarda o Código do Espelho — feito pra revelar em cena, não na ficha.",
+          },
+          {
+            id: "comedor",
+            nome: "Comedor",
+            classe: "Monge",
+            nivel: 4,
+            hp: 14,
+            hpMax: 48,
+            foco: null,
+            focoMax: null,
+            condicoes: ["ferido 1", "fatigado"],
+            ca: 21,
+            percepcao: 11,
+            velocidade: "25 pés",
+            gmNota: "Fatigado desde a Carroça (m1) — ainda não descansou.",
+          },
+          {
+            id: "pip",
+            nome: "Pip",
+            classe: "Bardo",
+            nivel: 3,
+            hp: 26,
+            hpMax: 30,
+            foco: 1,
+            focoMax: 1,
+            condicoes: [],
+            ca: 17,
+            percepcao: 8,
+            velocidade: "25 pés",
+            gmNota: "Ficou com o badalo do sino (m6) — pode virar gancho.",
+          },
+          {
+            id: "kess",
+            nome: "Kess",
+            classe: "Mago",
+            nivel: 3,
+            hp: 20,
+            hpMax: 26,
+            foco: 2,
+            focoMax: 3,
+            condicoes: ["abalado 1"],
+            ca: 16,
+            percepcao: 7,
+            velocidade: "25 pés",
+            gmNota: "Desconfia da carroça tombada (m1) — achou marcas de garra no eixo.",
+          },
+        ],
+        /* ---- Mapa de Região: POIs amarrados às missões (proposta, ver rodapé) ---- */
+        pois: [
+          {
+            id: "shoneymouth",
+            nome: "Shoneymouth",
+            x: 16,
+            y: 60,
+            kind: "base",
+            missaoId: null,
+            vis: { tobias: 2, comedor: 2 },
+          },
+          {
+            id: "estrada-godford",
+            nome: "Estrada de Godford",
+            x: 34,
+            y: 30,
+            kind: "poi",
+            missaoId: "m1",
+            vis: { tobias: 2, comedor: 1 },
+          },
+          {
+            id: "vaza-mare",
+            nome: "Vaza-Maré",
+            x: 30,
+            y: 56,
+            kind: "poi",
+            missaoId: "m2",
+            vis: { tobias: 2, comedor: 2 },
+          },
+          {
+            id: "tumulos",
+            nome: "Os Túmulos Sem Nome",
+            x: 70,
+            y: 20,
+            kind: "poi",
+            missaoId: "m3",
+            vis: { tobias: 0, comedor: 1 },
+          },
+          {
+            id: "moinho",
+            nome: "Moinho do Refluxo",
+            x: 76,
+            y: 46,
+            kind: "poi",
+            missaoId: "m4",
+            vis: { tobias: 1, comedor: 0 },
+          },
+          {
+            id: "cais",
+            nome: "O Cais dos Dedos Tortos",
+            x: 22,
+            y: 80,
+            kind: "poi",
+            missaoId: "m5",
+            vis: { tobias: 0, comedor: 0 },
+          },
+          {
+            id: "campos-godford",
+            nome: "Campos de Godford",
+            x: 52,
+            y: 14,
+            kind: "poi",
+            missaoId: "m6",
+            vis: { tobias: 2, comedor: 2 },
+          },
+          {
+            id: "flokleigh",
+            nome: "Flokleigh",
+            x: 86,
+            y: 58,
+            kind: "safe",
+            missaoId: null,
+            vis: { tobias: 1, comedor: 0 },
           },
         ],
       };
@@ -1372,10 +2011,17 @@
       const NOMES = { mestre: "Mestre", tobias: "Tobias", comedor: "Comedor" };
 
       let persp = "mestre";
+      /* which command-bar window is currently visible */
+      let activeWin = "missoes";
+      /* id of the POI selected in the Mapa window */
+      let mapSel = null;
+      /* index of the expanded PC card in the Comitiva window */
+      let expandedPc = null;
 
       const esc = (s) =>
         String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
       const findM = (id) => DATA.missoes.find((m) => m.id === id);
+      const findPoi = (id) => DATA.pois.find((p) => p.id === id);
 
       /* corner-bracket + scanline chrome shared by every System-window panel */
       function chrome() {
@@ -1469,6 +2115,14 @@
           " km (" +
           m.dias +
           " d a pé)</span></button>";
+        if (m.node) {
+          h +=
+            '<button type="button" class="pinrow trackbtn" data-action="rastrear-mapa" data-id="' +
+            m.id +
+            '">' +
+            '<svg class="svgicon" width="14" height="14" viewBox="0 0 24 24" fill="none"><use href="#ic-pin" width="14" height="14" color="#57c8ff"/></svg>' +
+            "<span>Rastrear no mapa</span></button>";
+        }
         if (m.relogio && m.relogio.reveladoAoJogador) {
           const n = m.relogio.diasRestantes;
           const crit = n <= 1;
@@ -1505,6 +2159,13 @@
           "<span>Ver no mapa — cerca de " +
           aprox(m.dias) +
           "</span></button>" +
+          (m.node
+            ? '<button type="button" class="pinrow trackbtn" data-action="rastrear-mapa" data-id="' +
+              m.id +
+              '">' +
+              '<svg class="svgicon" width="14" height="14" viewBox="0 0 24 24" fill="none"><use href="#ic-pin" width="14" height="14" color="#57c8ff"/></svg>' +
+              "<span>Rastrear no mapa</span></button>"
+            : "") +
           "</article>"
         );
       }
@@ -1519,6 +2180,13 @@
           '<p class="mresultado">' +
           esc(m.resultado || "") +
           "</p>" +
+          (m.node
+            ? '<button type="button" class="pinrow trackbtn" data-action="rastrear-mapa" data-id="' +
+              m.id +
+              '">' +
+              '<svg class="svgicon" width="14" height="14" viewBox="0 0 24 24" fill="none"><use href="#ic-pin" width="14" height="14" color="#57c8ff"/></svg>' +
+              "<span>Rastrear no mapa</span></button>"
+            : "") +
           "</article>"
         );
       }
@@ -1544,6 +2212,291 @@
         }
         h += "</section>";
         return h;
+      }
+
+      /* ================= Comitiva window ================= */
+      function focoPips(p) {
+        if (p.focoMax == null) return '<div class="focopips none">—</div>';
+        let s = '<div class="focopips">';
+        for (let i = 0; i < p.focoMax; i++) {
+          s += '<span class="pip' + (i < p.foco ? " on" : "") + '"></span>';
+        }
+        return s + "</div>";
+      }
+
+      function pcCard(p, i) {
+        const hpPct = Math.round((p.hp / p.hpMax) * 100);
+        const low = hpPct < 40;
+        const expanded = expandedPc === i;
+        let h =
+          '<article class="mem win' + (expanded ? " expanded" : "") + '" data-pc="' + i + '">';
+        h +=
+          '<div class="memtop"><b>' +
+          esc(p.nome) +
+          "</b><em>" +
+          esc(p.classe) +
+          " · nv " +
+          p.nivel +
+          "</em></div>";
+        h +=
+          '<div class="mrow-lbl"><span>Vida</span><span>' + p.hp + "/" + p.hpMax + "</span></div>";
+        h +=
+          '<div class="mini hp' +
+          (low ? " low" : "") +
+          '"><i style="width:' +
+          hpPct +
+          '%"></i></div>';
+        h += '<div class="mrow-lbl"><span>Foco</span><span>';
+        h += p.focoMax ? p.foco + "/" + p.focoMax : "—";
+        h += "</span></div>";
+        if (p.focoMax) h += focoPips(p);
+        if (p.condicoes.length) {
+          h +=
+            '<div class="condtags">' +
+            p.condicoes.map((c) => '<span class="condtag">' + esc(c) + "</span>").join("") +
+            "</div>";
+        }
+        if (persp === "mestre" && p.gmNota) {
+          h += '<div class="gmnote">GM — ' + esc(p.gmNota) + "</div>";
+        }
+        if (expanded) {
+          h +=
+            '<div class="pcdetail"><div><span>CA</span><b>' +
+            p.ca +
+            "</b></div><div><span>Percepção</span><b>+" +
+            p.percepcao +
+            "</b></div><div><span>Velocidade</span><b>" +
+            esc(p.velocidade) +
+            "</b></div></div>";
+        }
+        return h + "</article>";
+      }
+
+      function comitivaHTML() {
+        return '<div class="members">' + DATA.pcs.map((p, i) => pcCard(p, i)).join("") + "</div>";
+      }
+
+      /* ================= Mapa window ================= */
+      /* neutral cyan grid + region outline + dashed roads, viewBox 0-100 so node
+         divs can be positioned with plain percentages (no camera/zoom math) */
+      function mapaBackgroundSVG() {
+        let grid = "";
+        for (let g = 10; g < 100; g += 10) {
+          grid +=
+            '<line x1="' +
+            g +
+            '" y1="0" x2="' +
+            g +
+            '" y2="100" stroke="rgba(87,200,255,.06)" stroke-width="0.2"/>';
+          grid +=
+            '<line x1="0" y1="' +
+            g +
+            '" x2="100" y2="' +
+            g +
+            '" stroke="rgba(87,200,255,.06)" stroke-width="0.2"/>';
+        }
+        const regiao =
+          "M14,50 Q10,30 30,18 Q52,6 72,14 Q92,24 88,44 Q94,64 72,76 Q50,92 28,82 Q10,72 14,50 Z";
+        const estradas = [
+          "M16,60 L34,30", // Shoneymouth -> Estrada de Godford
+          "M34,30 L52,14", // Estrada de Godford -> Campos de Godford
+          "M16,60 L30,56", // Shoneymouth -> Vaza-Maré
+          "M16,60 L22,80", // Shoneymouth -> Cais dos Dedos Tortos
+          "M16,60 L76,46", // Shoneymouth -> Moinho do Refluxo
+          "M76,46 L86,58", // Moinho -> Flokleigh
+          "M52,14 L70,20", // Campos de Godford -> Túmulos Sem Nome
+        ];
+        let roads = estradas
+          .map(
+            (d) =>
+              '<path d="' +
+              d +
+              '" fill="none" stroke="rgba(87,200,255,.28)" stroke-width="0.5" stroke-dasharray="1.6 1.4"/>',
+          )
+          .join("");
+        return (
+          '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' +
+          '<rect width="100" height="100" fill="#020608"/>' +
+          grid +
+          '<path d="' +
+          regiao +
+          '" fill="rgba(87,200,255,.045)" stroke="rgba(87,200,255,.4)" stroke-width="0.5"/>' +
+          roads +
+          "</svg>"
+        );
+      }
+
+      /* 'q' = missão ativa vinculada (pulsa vermelho) · 'safe' = seguro/concluído (verde) */
+      function poiState(poi) {
+        if (poi.kind !== "poi") return "safe";
+        const m = poi.missaoId ? findM(poi.missaoId) : null;
+        if (!m) return "";
+        if (m.estado === "concluida") return "safe";
+        if (m.estado === "ativa") return "q";
+        return "";
+      }
+
+      function poiNode(poi) {
+        const style = "left:" + poi.x + "%;top:" + poi.y + "%";
+        const selCls = mapSel === poi.id ? " sel" : "";
+        if (persp === "mestre") {
+          return (
+            '<div class="node ' +
+            poiState(poi) +
+            selCls +
+            '" style="' +
+            style +
+            '" data-poi="' +
+            poi.id +
+            '"><i></i><label>' +
+            esc(poi.nome) +
+            "</label></div>"
+          );
+        }
+        const v = poi.vis[persp];
+        if (v === 0) {
+          return (
+            '<div class="node hidden" style="' +
+            style +
+            '" data-poi="' +
+            poi.id +
+            '"><i></i><label>???</label></div>'
+          );
+        }
+        if (v === 1) {
+          return (
+            '<div class="node rumor' +
+            selCls +
+            '" style="' +
+            style +
+            '" data-poi="' +
+            poi.id +
+            '"><i></i><label>' +
+            esc(poi.nome) +
+            "</label></div>"
+          );
+        }
+        return (
+          '<div class="node ' +
+          poiState(poi) +
+          selCls +
+          '" style="' +
+          style +
+          '" data-poi="' +
+          poi.id +
+          '"><i></i><label>' +
+          esc(poi.nome) +
+          "</label></div>"
+        );
+      }
+
+      function mrowsHTML() {
+        return DATA.pois
+          .map((poi) => {
+            const m = poi.missaoId ? findM(poi.missaoId) : null;
+            let nome, tagTxt, tagCls;
+            if (persp === "mestre") {
+              nome = poi.nome;
+              const st = poiState(poi);
+              tagTxt = st === "q" ? "ativa" : st === "safe" ? "segura" : "neutro";
+              tagCls = st === "q" ? "bad" : st === "safe" ? "ok" : "";
+            } else {
+              const v = poi.vis[persp];
+              nome = v === 0 ? "???" : poi.nome;
+              if (v === 0) {
+                tagTxt = "oculto";
+                tagCls = "";
+              } else if (v === 1) {
+                tagTxt = "rumor";
+                tagCls = "gold";
+              } else {
+                const st = poiState(poi);
+                tagTxt = st === "q" ? "ativa" : st === "safe" ? "segura" : "revelado";
+                tagCls = st === "q" ? "bad" : st === "safe" ? "ok" : "";
+              }
+            }
+            const mostraMissao = m && (persp === "mestre" || poi.vis[persp] >= 1);
+            return (
+              '<div class="mrow' +
+              (mapSel === poi.id ? " sel" : "") +
+              '" data-poi="' +
+              poi.id +
+              '">' +
+              '<span class="mtag ' +
+              tagCls +
+              '">' +
+              tagTxt +
+              "</span>" +
+              '<span class="mname">' +
+              esc(nome) +
+              "</span>" +
+              (mostraMissao ? '<span class="mmission">' + esc(m.titulo) + "</span>" : "") +
+              "</div>"
+            );
+          })
+          .join("");
+      }
+
+      function poiBadge(poi, player) {
+        const v = poi.vis[player];
+        const glyph = v === 0 ? "○" : v === 1 ? "?" : "●";
+        const cls = v === 0 ? "off" : v === 1 ? "rumor" : "on";
+        return (
+          '<button type="button" class="vbadge ' +
+          cls +
+          '" data-action="cycle-poi" data-id="' +
+          poi.id +
+          '" data-player="' +
+          player +
+          '" aria-label="' +
+          NOMES[player] +
+          ': revelação do local, clique para mudar">' +
+          glyph +
+          "</button>"
+        );
+      }
+
+      function poiDetailHTML() {
+        if (!mapSel) {
+          return '<div class="empty" style="padding:22px 14px">Clique num marcador do mapa.</div>';
+        }
+        const poi = findPoi(mapSel);
+        if (!poi) return "";
+        const m = poi.missaoId ? findM(poi.missaoId) : null;
+        let h = '<div class="poidetail">';
+        h += '<div class="pdname">' + esc(poi.nome) + "</div>";
+        h +=
+          '<div class="pdmissao">' +
+          (m ? "Missão vinculada: <b>" + esc(m.titulo) + "</b>" : "Sem missão — ponto seguro.") +
+          "</div>";
+        if (persp === "mestre") {
+          h +=
+            '<div class="pdconsole"><span class="pdlbl">Console de Revelação</span>' +
+            '<div class="pdrow"><span>Tobias</span>' +
+            poiBadge(poi, "tobias") +
+            "</div>" +
+            '<div class="pdrow"><span>Comedor</span>' +
+            poiBadge(poi, "comedor") +
+            "</div></div>";
+        }
+        return h + "</div>";
+      }
+
+      function mapaHTML() {
+        let h = '<div class="win mapwin">' + chrome();
+        h += '<div class="mv">' + mapaBackgroundSVG();
+        h += DATA.pois.map(poiNode).join("");
+        h += "</div>";
+        h +=
+          '<div class="maplegend">' +
+          '<span class="lg"><span class="lgsw" style="background:#ff5c7a"></span>missão ativa</span>' +
+          '<span class="lg"><span class="lgsw" style="background:#5ef2a4"></span>seguro</span>' +
+          '<span class="lg"><span class="lgsw" style="background:#ffd166;border:1.5px dashed #ffd166"></span>rumor</span>' +
+          '<span class="lg"><span class="lgsw" style="border:1.5px dashed #5d8296"></span>oculto (???)</span>' +
+          "</div>";
+        h += '<div class="mrows">' + mrowsHTML() + "</div>";
+        h += poiDetailHTML();
+        return h + "</div>";
       }
 
       /* ================= GM matrix ================= */
@@ -1642,18 +2595,10 @@
       }
 
       /* ================= System notification (was: diegetic toast) ================= */
-      function toast(kind, m, player) {
+      function showNotification(variant, titulo, msg) {
         const wrap = document.getElementById("toastwrap");
         const el = document.createElement("div");
-        const variant = kind === "rumor" ? "rumor" : "publica";
         el.className = "nt " + variant;
-        const nome = NOMES[player].toUpperCase();
-        const titulo =
-          kind === "rumor" ? "OUVIDO NA TABERNA — " + nome : "NOVO NO DIÁRIO — " + nome;
-        const msg =
-          kind === "rumor"
-            ? 'Na taberna, um pescador baixa a voz: "' + esc(m.boato) + '"'
-            : esc(m.titulo) + " — o rumor ganhou corpo. Novo card no seu diário.";
         el.innerHTML =
           '<span class="br a"></span><span class="br b"></span>' +
           '<span class="br c"></span><span class="br d"></span>' +
@@ -1685,6 +2630,36 @@
           clearTimeout(timer);
           kill();
         });
+      }
+
+      function toast(kind, m, player, mapNote) {
+        const variant = kind === "rumor" ? "rumor" : "publica";
+        const nome = NOMES[player].toUpperCase();
+        const titulo =
+          kind === "rumor" ? "OUVIDO NA TABERNA — " + nome : "NOVO NO DIÁRIO — " + nome;
+        let msg =
+          kind === "rumor"
+            ? 'Na taberna, um pescador baixa a voz: "' + esc(m.boato) + '"'
+            : esc(m.titulo) + " — o rumor ganhou corpo. Novo card no seu diário.";
+        if (mapNote) msg += ' <i style="color:#ffe3ab">' + esc(mapNote) + "</i>";
+        showNotification(variant, titulo, msg);
+      }
+
+      /* same ○→?→● semantics, but for a POI cycled directly from the map's
+         Console de Revelação instead of via the missions matrix */
+      function toastPoi(kind, poi, player) {
+        const variant = kind === "rumor" ? "rumor" : "publica";
+        const nome = NOMES[player].toUpperCase();
+        const titulo = kind === "rumor" ? "RUMOR NO MAPA — " + nome : "LOCAL REVELADO — " + nome;
+        const msg =
+          kind === "rumor"
+            ? "Um marcador de interrogação nasce perto de <b>" +
+              esc(poi.nome) +
+              "</b> no mapa de " +
+              esc(nome) +
+              "."
+            : "<b>" + esc(poi.nome) + "</b> agora aparece completo no mapa de " + esc(nome) + ".";
+        showNotification(variant, titulo, msg);
       }
 
       /* ================= map pin tooltip ================= */
@@ -1747,46 +2722,66 @@
         }
       }
 
+      function missoesHTML() {
+        if (persp === "mestre") return matrizHTML();
+        const ativas = DATA.missoes.filter((m) => m.estado === "ativa" && m.vis[persp] === 2);
+        const rumores = DATA.missoes.filter((m) => m.vis[persp] === 1);
+        const concluidas = DATA.missoes.filter(
+          (m) => m.estado === "concluida" && m.vis[persp] === 2,
+        );
+        return (
+          '<div class="board">' +
+          grupo(
+            "Ativas",
+            "ic-pin",
+            ativas,
+            cardAtiva,
+            "Nenhuma missão ativa revelada ainda.",
+            "bad",
+          ) +
+          grupo(
+            "Rumores",
+            "ic-qmark",
+            rumores,
+            cardRumor,
+            "Nenhum boato correndo por aqui.",
+            "gold",
+          ) +
+          grupo(
+            "Concluídas",
+            "ic-scroll",
+            concluidas,
+            cardConcluida,
+            "Nenhuma missão encerrada ainda.",
+            "ok",
+          ) +
+          "</div>"
+        );
+      }
+
+      function updateTabs() {
+        document.querySelectorAll("#wtabs .wtab").forEach((b) => {
+          const on = b.dataset.win === activeWin;
+          b.classList.toggle("on", on);
+          b.setAttribute("aria-pressed", String(on));
+        });
+        const ativas =
+          persp === "mestre"
+            ? DATA.missoes.filter((m) => m.estado === "ativa").length
+            : DATA.missoes.filter((m) => m.estado === "ativa" && m.vis[persp] === 2).length;
+        const bdg = document.getElementById("qBadge");
+        bdg.textContent = String(ativas);
+        bdg.style.display = ativas ? "grid" : "none";
+      }
+
       function render() {
         const stage = document.getElementById("stage");
-        if (persp === "mestre") {
-          stage.innerHTML = matrizHTML();
-        } else {
-          const ativas = DATA.missoes.filter((m) => m.estado === "ativa" && m.vis[persp] === 2);
-          const rumores = DATA.missoes.filter((m) => m.vis[persp] === 1);
-          const concluidas = DATA.missoes.filter(
-            (m) => m.estado === "concluida" && m.vis[persp] === 2,
-          );
-          stage.innerHTML =
-            '<div class="board">' +
-            grupo(
-              "Ativas",
-              "ic-pin",
-              ativas,
-              cardAtiva,
-              "Nenhuma missão ativa revelada ainda.",
-              "bad",
-            ) +
-            grupo(
-              "Rumores",
-              "ic-qmark",
-              rumores,
-              cardRumor,
-              "Nenhum boato correndo por aqui.",
-              "gold",
-            ) +
-            grupo(
-              "Concluídas",
-              "ic-scroll",
-              concluidas,
-              cardConcluida,
-              "Nenhuma missão encerrada ainda.",
-              "ok",
-            ) +
-            "</div>";
-        }
+        if (activeWin === "comitiva") stage.innerHTML = comitivaHTML();
+        else if (activeWin === "mapa") stage.innerHTML = mapaHTML();
+        else stage.innerHTML = missoesHTML();
         updateViewline();
         updateCount();
+        updateTabs();
       }
 
       /* ================= events ================= */
@@ -1805,30 +2800,96 @@
 
       document.getElementById("stage").addEventListener("click", (e) => {
         const t = e.target.closest("[data-action]");
-        if (!t) return;
-        const action = t.dataset.action;
+        if (t) {
+          const action = t.dataset.action;
 
-        if (action === "cycle-vis") {
-          const m = findM(t.dataset.id);
-          const player = t.dataset.player;
-          const old = m.vis[player];
-          const neu = (old + 1) % 3;
-          m.vis[player] = neu;
-          if (old === 0 && neu === 1) toast("rumor", m, player);
-          if (old === 1 && neu === 2) toast("publica", m, player);
+          if (action === "cycle-vis") {
+            const m = findM(t.dataset.id);
+            const player = t.dataset.player;
+            const old = m.vis[player];
+            const neu = (old + 1) % 3;
+            m.vis[player] = neu;
+            if (old === 0 && neu === 1) {
+              let mapNote = null;
+              const poi = m.node ? findPoi(m.node) : null;
+              if (poi && poi.vis[player] < 1) {
+                poi.vis[player] = 1;
+                mapNote = "O local também virou rumor no mapa.";
+              }
+              toast("rumor", m, player, mapNote);
+            }
+            if (old === 1 && neu === 2) {
+              let mapNote = null;
+              const poi = m.node ? findPoi(m.node) : null;
+              if (poi && poi.vis[player] < 2) {
+                poi.vis[player] = 2;
+                mapNote = "O marcador foi revelado no mapa.";
+              }
+              toast("publica", m, player, mapNote);
+            }
+            render();
+          } else if (action === "revelar") {
+            const m = findM(t.dataset.id);
+            const o = m.objetivos.find((o) => !o.revealed);
+            if (o) o.revealed = true;
+            render();
+          } else if (action === "concluir") {
+            const m = findM(t.dataset.id);
+            m.estado = "concluida";
+            if (!m.resultado) m.resultado = "Encerrada pelo mestre — resultado a definir.";
+            render();
+          } else if (action === "ver-mapa") {
+            showTip(e.clientX, e.clientY);
+          } else if (action === "rastrear-mapa") {
+            const m = findM(t.dataset.id);
+            if (m.node) {
+              mapSel = m.node;
+              activeWin = "mapa";
+              render();
+            }
+          } else if (action === "cycle-poi") {
+            const poi = findPoi(t.dataset.id);
+            const player = t.dataset.player;
+            const old = poi.vis[player];
+            const neu = (old + 1) % 3;
+            poi.vis[player] = neu;
+            if (old === 0 && neu === 1) toastPoi("rumor", poi, player);
+            if (old === 1 && neu === 2) toastPoi("publica", poi, player);
+            render();
+          }
+          return;
+        }
+
+        const pcCardEl = e.target.closest("[data-pc]");
+        if (pcCardEl) {
+          const i = Number(pcCardEl.dataset.pc);
+          expandedPc = expandedPc === i ? null : i;
           render();
-        } else if (action === "revelar") {
-          const m = findM(t.dataset.id);
-          const o = m.objetivos.find((o) => !o.revealed);
-          if (o) o.revealed = true;
+          return;
+        }
+
+        const poiEl = e.target.closest("[data-poi]");
+        if (poiEl) {
+          mapSel = poiEl.dataset.poi;
           render();
-        } else if (action === "concluir") {
-          const m = findM(t.dataset.id);
-          m.estado = "concluida";
-          if (!m.resultado) m.resultado = "Encerrada pelo mestre — resultado a definir.";
+        }
+      });
+
+      document.getElementById("wtabs").addEventListener("click", (e) => {
+        const b = e.target.closest(".wtab");
+        if (!b) return;
+        activeWin = b.dataset.win;
+        render();
+      });
+
+      addEventListener("keydown", (e) => {
+        const tag = e.target.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA") return;
+        const map = { q: "missoes", c: "comitiva", m: "mapa" };
+        const k = e.key.toLowerCase();
+        if (map[k]) {
+          activeWin = map[k];
           render();
-        } else if (action === "ver-mapa") {
-          showTip(e.clientX, e.clientY);
         }
       });
 
