@@ -317,6 +317,7 @@ que ninguém descobre, o que recai na lição "peça implementada ≠ peça alca
 primeiro passo do roteiro. Depois disso, dirigir um navegador de verdade
 (Playwright) e afirmar sobre o que está **renderizado** — não sobre o que está
 no DOM ou no bundle — passou a fazer parte da prova destes itens de UI.
+
 ## `emit` sem ack transforma rejeição do servidor em silêncio
 
 **Quando:** item de tokens (2026-08-08), ao descobrir por que arrastar uma
@@ -331,7 +332,7 @@ nascia. O mesmo erro de chave já havia sido corrigido meses antes no botão de
 criar ficha, e o comentário dessa correção continuava no repo, a dois arquivos
 de distância.
 
-**Por que engana:** o caminho *parece* implementado — há handler de dragover,
+**Por que engana:** o caminho _parece_ implementado — há handler de dragover,
 há conversão de coordenada, há snap ao grid, há um `emit` no fim. Todo o
 trabalho visível está lá; só o contrato com o servidor está errado. E como
 `emit` sem ack não tem valor de retorno, não existe caminho de código onde a

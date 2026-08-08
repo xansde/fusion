@@ -18,7 +18,10 @@
  */
 
 import type { DocCreatePayload } from "@fusion/shared";
-import { buildTokenFromActorFields, type TokenFromActorOptions } from "../../actors/actorDirectory.js";
+import {
+  buildTokenFromActorFields,
+  type TokenFromActorOptions,
+} from "../../actors/actorDirectory.js";
 
 /** MIME type the actor sidebar writes on dragstart. */
 export const ACTOR_DRAG_MIME = "application/fusion-actor";
