@@ -280,3 +280,40 @@ de outro módulo, confira o que ele faz com uma entrada **fora** do formato que
 ele espera: `resolveAssetUrl` não falha com nome puro, ela devolve o nome puro
 — o silêncio dela é que virou o bug. Helper que degrada devolvendo a entrada
 intacta é uma armadilha: dá certo no teste e erra em produção.
+
+## Aba que não cabe não fica apertada: ela some, e leva a vizinha junto
+
+**Quando:** primeira abertura do painel de som pelo dono, item `wi-mapa-som-01`
+(2026-08-08).
+
+**O que aconteceu:** a aba **Som** foi adicionada à barra lateral, o código estava
+correto, o componente montava, o teste de tipo e o lint passavam — e ela
+simplesmente não existia na tela. A aba **Compêndio**, que funcionava antes,
+tinha sumido junto.
+
+A `.sidebar__tabs` é um `display: flex` sem `flex-wrap` e sem `overflow`, dentro
+de uma sidebar de **280 px fixos**. As seis abas (Cenas, Combate, Chat, Atores,
+Compêndio, Som) somam cerca de **465 px**. O flex encolheu os itens até abaixo
+do texto e o que sobrou saiu pela borda — **sem barra de rolagem, sem
+reticências, sem qualquer indício de que havia mais coisa ali**. Não é um
+elemento cortado pela metade, que se notaria: é um elemento que desaparece
+inteiro e em silêncio.
+
+**Por que enganou:** todo instinto de verificação estava apontado para o
+comportamento — o evento chega? o estado sincroniza? o servidor recusa quem não
+pode? Nada disso responde "o usuário consegue ver o botão". Pior: a aba nova
+levou junto uma aba **antiga e funcionando**, ou seja, o dano apareceu num lugar
+que ninguém pensaria em conferir depois de adicionar um item de menu.
+
+**O que fazer:** ao acrescentar um item a um container de largura fixa (barra de
+abas, toolbar, breadcrumb), some as larguras antes de assumir que cabe, e trate
+o transbordo explicitamente — `flex-wrap` para quebrar linha, ou truncamento
+visível. Nunca deixe o default, que é sumir calado. E prefira **quebrar linha a
+`overflow-x: auto`** em painel estreito: rolagem horizontal escondida é um gesto
+que ninguém descobre, o que recai na lição "peça implementada ≠ peça alcançável"
+— só que agora a peça inalcançável é o próprio caminho até ela.
+
+**Corolário de verificação:** foi um humano abrindo a tela que achou isso, no
+primeiro passo do roteiro. Depois disso, dirigir um navegador de verdade
+(Playwright) e afirmar sobre o que está **renderizado** — não sobre o que está
+no DOM ou no bundle — passou a fazer parte da prova destes itens de UI.
