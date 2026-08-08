@@ -30,6 +30,7 @@
   import ActiveSceneBadge from "./scenes/ActiveSceneBadge.svelte";
   import NoSceneOverlay from "./scenes/NoSceneOverlay.svelte";
   import WindowHost from "./windows/WindowHost.svelte";
+  import HubLayer from "./hub/HubLayer.svelte";
   import { getSocket } from "../lib/session.svelte.js";
   import { SceneOrchestrator } from "../lib/canvas/scene-orchestrator.js";
   import { TokenLayer } from "../lib/canvas/tokens/TokenLayer.js";
@@ -583,6 +584,15 @@
   <!-- -------------------------------------------------------------------- -->
   <WindowHost />
 
+  <!-- -------------------------------------------------------------------- -->
+  <!-- Hub layer — player Hub overlay (spec 28)                             -->
+  <!-- Last in the shell and in the `--fusion-z-hub` band, so it paints over -->
+  <!-- canvas, regions and windows. The host is pointer-events: none; only   -->
+  <!-- `.hub-surface` descendants take input, so clicks on empty Hub space   -->
+  <!-- fall through to the map.                                              -->
+  <!-- -------------------------------------------------------------------- -->
+  <HubLayer />
+
 </div>
 
 <style>
@@ -609,7 +619,9 @@
     top: 0;
     left: 0;
     right: 0;
-    z-index: 100;
+    /* REQ-UIF-008: anchored shell region — value comes from the layer scale
+       in base.css, not a literal. */
+    z-index: var(--fusion-z-region);
     align-items: center;
     background: rgba(24, 24, 31, 0.85);
     backdrop-filter: blur(6px);
