@@ -13,6 +13,8 @@
  *
  *  §SOUND STOP
  *   - GM stop → broadcasts sound:state {state: null}
+ *   - player sends sound:stop → PERMISSION_DENIED, no broadcast, and the
+ *     persisted track is untouched (a rejected stop must not silence anyone)
  *
  *  §LATE JOINER / SNAPSHOT
  *   - after play, a newly-connecting client's resync:full snapshot carries
@@ -39,6 +41,7 @@ import { Role } from "../auth/user-store.js";
 import { loadOrCreateSecret } from "../auth/crypto.js";
 import { registerAuthRoutes } from "../auth/routes.js";
 import { SocketManager } from "../net/socket-manager.js";
+import { getAmbientTrackState } from "../net/handlers/sound-handlers.js";
 import { PROTOCOL_VERSION } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
@@ -368,6 +371,45 @@ describe("M3 mapa-som sound server handlers", () => {
       const env = await stopBroadcast;
       expect((env as { payload?: { state?: unknown } }).payload?.state).toBeNull();
 
+      gmSocket.disconnect();
+    });
+
+    it("player sends sound:stop → PERMISSION_DENIED, track keeps playing", async () => {
+      const gmSocket = connectClient(ctx.port, ctx.worldId, {
+        token: ctx.gmToken,
+        protocolVersion: PROTOCOL_VERSION,
+      });
+      gmSocket.connect();
+      await waitForConnect(gmSocket);
+      await drain();
+
+      await sendOp(gmSocket, "sound:play", { src: "tavern.mp3" });
+      await drain();
+
+      const playerSocket = connectClient(ctx.port, ctx.worldId, {
+        token: ctx.playerToken,
+        protocolVersion: PROTOCOL_VERSION,
+      });
+      playerSocket.connect();
+      await waitForConnect(playerSocket);
+      await drain();
+
+      const received: unknown[] = [];
+      playerSocket.on("op", (env2: unknown) => {
+        if ((env2 as { type?: string })?.type === "sound:state") received.push(env2);
+      });
+
+      const ack = await sendOp(playerSocket, "sound:stop", {});
+      expect(ack).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
+
+      await drain();
+      await new Promise((r) => setTimeout(r, 100));
+      // A rejected stop must not reach anyone: no broadcast, and the
+      // persisted state still names the track the GM started.
+      expect(received).toHaveLength(0);
+      expect(getAmbientTrackState(ctx.fusionDb.raw)).toMatchObject({ src: "tavern.mp3" });
+
+      playerSocket.disconnect();
       gmSocket.disconnect();
     });
   });
