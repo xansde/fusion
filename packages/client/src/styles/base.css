@@ -79,6 +79,23 @@
 
   /* Motion */
   --fusion-transition: 150ms ease;
+
+  /* Layer scale (REQ-UIF-008) — the single place z-index is declared.
+     Order: canvas < fixed regions < floating windows < hub < menus/tooltips
+     < modals < notifications. No component may hard-code a z-index outside
+     this scale; import the matching constant from $lib/hub/layers.ts when the
+     value is needed in TypeScript.
+
+     Each band is 100 apart so a stacking context inside a band (e.g. the
+     window host, whose children get their own growing z-index) can never
+     leak past the next band. */
+  --fusion-z-canvas:        0;
+  --fusion-z-region:      100;  /* header, sidebar — anchored shell regions */
+  --fusion-z-windows:     200;  /* floating window host */
+  --fusion-z-hub:         300;  /* player Hub overlay (spec 28) */
+  --fusion-z-menu:        400;  /* context menus, tooltips */
+  --fusion-z-modal:       500;  /* <dialog> modals */
+  --fusion-z-notification: 600; /* toasts — always visible, even over a modal */
 }
 
 /* ---------------------------------------------------------------------------
