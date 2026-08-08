@@ -11,7 +11,12 @@
 import { describe, it, expect } from "vitest";
 import { DocCreatePayloadSchema } from "@fusion/shared";
 import type { ActorDragPayload } from "../../../actors/actorDirectory.js";
-import { buildTokenDropPayload } from "../tokenDrop.js";
+import {
+  buildTokenDropPayload,
+  canAcceptCanvasDrop,
+  ACTOR_DRAG_MIME,
+  COMPENDIUM_DRAG_MIME,
+} from "../tokenDrop.js";
 
 function actorPayload(overrides: Partial<ActorDragPayload> = {}): ActorDragPayload {
   return {
@@ -96,5 +101,44 @@ describe("buildTokenDropPayload", () => {
     const result = DocCreatePayloadSchema.safeParse(payload);
     expect(result.success).toBe(true);
     expect(payload.data[0]).toMatchObject({ x: 42, y: 84 });
+  });
+});
+
+describe("canAcceptCanvasDrop", () => {
+  // Regression guard for the second half of the drop bug: handleCanvasDragOver
+  // decided whether to accept the drop by calling getData(), which the HTML
+  // drag-and-drop spec forces to "" during dragover (protected mode). It never
+  // called preventDefault(), so the canvas was never a drop target and the drop
+  // event never fired — the fixed payload downstream was unreachable.
+
+  it("accepts an actor drag by its MIME type alone", () => {
+    expect(canAcceptCanvasDrop([ACTOR_DRAG_MIME])).toBe(true);
+  });
+
+  it("accepts a compendium drag by its MIME type alone", () => {
+    expect(canAcceptCanvasDrop([COMPENDIUM_DRAG_MIME])).toBe(true);
+  });
+
+  it("accepts when the actor type travels alongside others", () => {
+    expect(canAcceptCanvasDrop(["text/html", ACTOR_DRAG_MIME])).toBe(true);
+  });
+
+  it("rejects a drag carrying no type we handle", () => {
+    expect(canAcceptCanvasDrop(["Files", "text/uri-list"])).toBe(false);
+  });
+
+  it("rejects an empty type list and a missing dataTransfer", () => {
+    expect(canAcceptCanvasDrop([])).toBe(false);
+    expect(canAcceptCanvasDrop(undefined)).toBe(false);
+  });
+
+  it("does not depend on readable data — the whole point of the fix", () => {
+    // Mirrors the browser during dragover: types are present, data is not.
+    const dataTransfer = {
+      types: [ACTOR_DRAG_MIME],
+      getData: () => "",
+    };
+    expect(canAcceptCanvasDrop(dataTransfer.types)).toBe(true);
+    expect(dataTransfer.getData()).toBe("");
   });
 });

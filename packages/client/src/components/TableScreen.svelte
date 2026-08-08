@@ -50,7 +50,7 @@
   import { registerPf2eSheets } from "../lib/sheets/pf2e/registerPf2eSheets.js";
   import { registerEtmosSheets } from "../lib/sheets/etmos/registerEtmosSheets.js";
   import type { ActorDragPayload } from "../lib/actors/actorDirectory.js";
-  import { buildTokenDropPayload } from "../lib/canvas/tokens/tokenDrop.js";
+  import { buildTokenDropPayload, canAcceptCanvasDrop } from "../lib/canvas/tokens/tokenDrop.js";
   import { importToWorld as compendiumImportToWorld } from "../lib/compendium/compendiumApi.js";
   import type { CompendiumDragPayload } from "../lib/compendium/compendiumBrowser.js";
   import type { SceneDocument, TokenDocument } from "@fusion/shared";
@@ -257,9 +257,11 @@
     // Only accept actor drags; only GMs can create tokens (permission gate).
     if (!isGm()) return;
     if (!activeSceneState.scene) return;
-    const actorPayload = _getActorDragPayload(event);
-    const compPayload = _getCompendiumDragPayload(event);
-    if (!actorPayload && !compPayload) return;
+    // Decide from `types` only: getData() is blanked during dragover by the
+    // drag data store's protected mode, so reading it here always looked like
+    // "not a drag we handle" and preventDefault() never ran — which is what
+    // stopped the browser from ever firing `drop`. See canAcceptCanvasDrop.
+    if (!canAcceptCanvasDrop(event.dataTransfer?.types)) return;
     event.preventDefault();
     if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
   }

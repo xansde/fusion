@@ -20,6 +20,38 @@
 import type { DocCreatePayload } from "@fusion/shared";
 import { buildTokenFromActorFields, type TokenFromActorOptions } from "../../actors/actorDirectory.js";
 
+/** MIME type the actor sidebar writes on dragstart. */
+export const ACTOR_DRAG_MIME = "application/fusion-actor";
+
+/** MIME type compendium entries are dragged with. */
+export const COMPENDIUM_DRAG_MIME = "text/plain";
+
+/**
+ * Whether a dragover event carrying these MIME types should be accepted as a
+ * canvas drop target.
+ *
+ * MUST be decided from `DataTransfer.types` alone. During `dragover` the drag
+ * data store is in *protected mode* (HTML spec, "drag data store mode"):
+ * `getData()` returns `""` no matter what `dragstart` put in it — only the
+ * `types` list is readable. The real data comes back on `drop`.
+ *
+ * BUG FIX: handleCanvasDragOver used to call getData() and bail when it came
+ * back empty, so it never called preventDefault(). Without that, the canvas is
+ * not a valid drop target, the browser shows the "no drop" cursor and the
+ * `drop` event NEVER fires — dragging an actor onto the map did nothing, with
+ * the correct-payload code downstream sitting unreachable behind it.
+ *
+ * `text/plain` is deliberately loose here: any plain-text drag makes the canvas
+ * accept the drop, and handleCanvasDrop then parses it and ignores it if it is
+ * not a compendium payload. Accepting-then-ignoring is the safe direction —
+ * the strict alternative would be to re-block real compendium drags, which is
+ * the bug this fixes.
+ */
+export function canAcceptCanvasDrop(types: readonly string[] | undefined): boolean {
+  if (!types) return false;
+  return types.includes(ACTOR_DRAG_MIME) || types.includes(COMPENDIUM_DRAG_MIME);
+}
+
 /**
  * Build the `doc:create` payload for dropping an actor on the canvas.
  *
