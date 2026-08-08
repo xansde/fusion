@@ -17,6 +17,7 @@ export {
   buildCompendiumIndexHandler,
   buildCompendiumSearchHandler,
   buildCompendiumGetHandler,
+  buildCompendiumI18nBySourceRefHandler,
   buildCompendiumImportHandler,
 } from "./handlers.js";
 export type { CompendiumHandlerDeps } from "./handlers.js";

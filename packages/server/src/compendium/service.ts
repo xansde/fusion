@@ -97,6 +97,14 @@ export class CompendiumService {
   private readonly packs = new Map<string, LoadedPack>();
   private readonly logger: Logger | null;
 
+  /**
+   * Cross-pack reverse index for {@link getI18nBySourceRef}: `"<packName>\0
+   * <sourceId>" → { packId, docId }`. `null` = not yet built (built lazily on
+   * first call, then cached for the service's lifetime — see
+   * `_getSourceRefIndex`).
+   */
+  private _sourceRefIndex: Map<string, { packId: string; docId: string }> | null = null;
+
   constructor(logger?: Logger) {
     this.logger = logger ?? null;
   }
@@ -285,6 +293,60 @@ export class CompendiumService {
   }
 
   /**
+   * Resolve the pt-BR i18n overlay entry for a document by its ORIGIN
+   * identity — `flags.fusion.packName` + `flags.fusion.sourceId` — instead of
+   * by Fusion pack UUID (issue #43).
+   *
+   * WHY THIS EXISTS: `importToWorld` deliberately deletes `uuid`/`i18n`/
+   * `mechanics` from the world copy to keep it EN-pure (see the comment at
+   * `delete worldDoc["i18n"]` below) — but it does NOT touch `flags.fusion`,
+   * so `packName`/`sourceId` survive into the world document (confirmed: 79
+   * of 98 embedded actor items in the argiburgo test world carry
+   * `flags.fusion.sourceId`, while 0 carry `uuid`). A reader holding a world
+   * document therefore cannot call `getDocument(uuid)` — it has no uuid — but
+   * it CAN call this method with the origin reference it does have.
+   *
+   * WHY NOT re-derive the Fusion pack id from `packName` directly: a world
+   * doc's `flags.fusion.packName` is the VENDOR pack key (e.g. "equipment"),
+   * which is NOT the same string as the Fusion pack id/directory that ended
+   * up holding the curated document (e.g. "pf2e.weapons-core") — curation
+   * remaps one vendor pack into MULTIPLE Fusion packs (confirmed:
+   * `pf2e.weapons-core` and `pf2e.equipment-core` both curate documents whose
+   * `flags.fusion.packName === "equipment"`, with disjoint `sourceId`s). So
+   * (packName, sourceId) does not name a Fusion pack by itself; resolving it
+   * requires a cross-pack search — done here via a lazily-built reverse index
+   * (`_getSourceRefIndex`) rather than by re-deriving the importer's
+   * `deriveFusionId` hash (tools/importer-pf2e/src/transform.mjs): that
+   * formula ALSO differs by system (sf2e namespaces it "sf2e:<packName>"
+   * while `flags.fusion.packName` itself is stored unprefixed), so
+   * reproducing it here would need the doc's systemId too, on top of
+   * duplicating a formula that lives in a tool this package must not depend
+   * on. The reverse index sidesteps all of that — it is built directly from
+   * what `documents.json` already contains, at a measured cost of ~176ms to
+   * scan all 14 committed pf2e packs (4236 docs) once, then cached for the
+   * service's lifetime (same lazy-build-and-cache shape as `_buildIndex` and
+   * `_getI18nPtBR`).
+   *
+   * Reuses `_getI18nPtBR`'s already staleness-gated Map: an overlay entry
+   * whose `sourceHash` no longer matches the live EN doc is treated exactly
+   * like "no translation" here too (falls through to `null` → EN fallback).
+   *
+   * @returns the localized pt-BR fields, or `null` when no loaded pack has a
+   *   doc matching that `(packName, sourceId)` pair, or the overlay entry for
+   *   it is missing/stale.
+   */
+  getI18nBySourceRef(ref: { packName: string; sourceId: string }): DocI18n | null {
+    const index = this._getSourceRefIndex();
+    const hit = index.get(buildSourceRefKey(ref.packName, ref.sourceId));
+    if (!hit) return null;
+
+    const loaded = this.packs.get(hit.packId);
+    if (!loaded) return null; // defensive — pack was loaded when the index was built
+
+    return this._getI18nPtBR(loaded).get(hit.docId) ?? null;
+  }
+
+  /**
    * Import one or more pack documents into the world (actors or items table).
    * REQ-CMP-021..024.
    *
@@ -375,7 +437,17 @@ export class CompendiumService {
         // overlay projections attached by getDocument() for the picker UI (T1);
         // the imported world document must stay EN-pure and identical to the
         // pre-T1 import shape, so drop them here (belt-and-suspenders — the
-        // world derivation/persistence never reads them).
+        // world derivation/persistence never reads them). This EN-pure
+        // decision is DELIBERATE and must not be reverted (issue #43) — the
+        // world document is a snapshot, not a live view of the pack overlay.
+        //
+        // This does NOT make the translation unreachable: `flags.fusion`
+        // (packName + sourceId) is preserved below and is exactly what a
+        // reader needs to fetch the pt-BR overlay again at READ time, via
+        // `getI18nBySourceRef({ packName, sourceId })` (see its docstring
+        // above `getDocument`). `uuid` is stripped and cannot be used for
+        // that lookup — `getDocument(uuid)`'s overlay attachment only ever
+        // applied to the PACK-side copy, never the world copy.
         delete worldDoc["uuid"];
         delete worldDoc["i18n"];
         delete worldDoc["mechanics"];
@@ -583,6 +655,82 @@ export class CompendiumService {
   }
 
   // ---------------------------------------------------------------------------
+  // Private helpers — source-ref resolution (issue #43)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Lazily build (once) the cross-pack reverse index consumed by
+   * {@link getI18nBySourceRef}: `"<packName>\0<sourceId>" → { packId, docId }`
+   * for every document, across every CURRENTLY LOADED pack, that carries
+   * `flags.fusion.{packName,sourceId}`. Cached on `_sourceRefIndex` for the
+   * service's lifetime (packs are discovered once at startup and never
+   * change underneath a running service).
+   *
+   * No existing per-pack Map is keyed this way: `_i18nPtBR`/`_mechanics` are
+   * keyed by the Fusion doc `_id`, which is exactly what this index resolves
+   * TO, not what callers have in hand (they have the vendor origin
+   * reference). Building this requires one JSON.parse of each pack's
+   * documents.json — the SAME file `_buildEnSourceHashes`/`_buildActionCosts`
+   * already re-read per pack for their own lazy caches, just summed across
+   * every loaded pack instead of one. Measured against the committed pf2e
+   * packs (14 packs, 4236 docs total): ~176ms cold. Tolerant of a missing/
+   * corrupt documents.json for any one pack — that pack is just skipped
+   * (matches the discovery philosophy, REQ-CMP-006).
+   */
+  private _getSourceRefIndex(): Map<string, { packId: string; docId: string }> {
+    if (this._sourceRefIndex) return this._sourceRefIndex;
+
+    const index = new Map<string, { packId: string; docId: string }>();
+
+    for (const [packId, loaded] of this.packs) {
+      let docs: unknown[];
+      try {
+        docs = JSON.parse(readFileSync(loaded.docsPath, "utf8")) as unknown[];
+      } catch (err) {
+        this.logger?.warn(
+          { err, packId },
+          "Failed to read documents.json while building the source-ref index",
+        );
+        continue;
+      }
+
+      for (const raw of docs) {
+        if (typeof raw !== "object" || raw === null) continue;
+        const doc = raw as Record<string, unknown>;
+        const docId = doc["_id"];
+        if (typeof docId !== "string") continue;
+
+        const flags = doc["flags"];
+        if (typeof flags !== "object" || flags === null) continue;
+        const fusion = (flags as Record<string, unknown>)["fusion"];
+        if (typeof fusion !== "object" || fusion === null) continue;
+        const packName = (fusion as Record<string, unknown>)["packName"];
+        const sourceId = (fusion as Record<string, unknown>)["sourceId"];
+        if (typeof packName !== "string" || typeof sourceId !== "string") continue;
+
+        const key = buildSourceRefKey(packName, sourceId);
+        const existing = index.get(key);
+        if (existing !== undefined) {
+          // Should never happen — REQ-CMP-041 states fusionId derivation is
+          // collision-free cross-pack, and (packName, sourceId) is exactly
+          // its input. Keep the FIRST match and log loudly so a real
+          // regression is visible instead of silently picking a doc at
+          // random.
+          this.logger?.warn(
+            { packName, sourceId, existing, duplicate: { packId, docId } },
+            "Duplicate origin reference across packs while building source-ref index — keeping first match",
+          );
+          continue;
+        }
+        index.set(key, { packId, docId });
+      }
+    }
+
+    this._sourceRefIndex = index;
+    return index;
+  }
+
+  // ---------------------------------------------------------------------------
   // Private helpers — action-cost index enrichment (r20-X2)
   // ---------------------------------------------------------------------------
 
@@ -779,6 +927,22 @@ export function computeI18nSourceHash(doc: Record<string, unknown>): string {
   return createHash("sha1")
     .update(name + I18N_HASH_SEP + descStr)
     .digest("hex");
+}
+
+/**
+ * Separator between `packName` and `sourceId` in the source-ref reverse-index
+ * key (see `CompendiumService._getSourceRefIndex`). A NUL (U+0000) can never
+ * appear in either value (pack slugs / vendor `_id`s), so it cannot collide
+ * with a packName/sourceId boundary — same rationale as `I18N_HASH_SEP`.
+ */
+const SOURCE_REF_SEP = "\u0000";
+
+/**
+ * Build the reverse-index key for a document's origin reference
+ * (`flags.fusion.packName` + `flags.fusion.sourceId`).
+ */
+function buildSourceRefKey(packName: string, sourceId: string): string {
+  return packName + SOURCE_REF_SEP + sourceId;
 }
 
 /**

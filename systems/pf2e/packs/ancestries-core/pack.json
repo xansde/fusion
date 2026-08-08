@@ -6,7 +6,8 @@
   "indexFields": [
     "name",
     "system.traits.value",
-    "system.size"
+    "system.size",
+    "flags.fusion.sourceId"
   ],
   "license": {
     "license": "ORC",
@@ -22,6 +23,6 @@
     "importerVersion": "0.1.0"
   },
   "schemaVersion": 1,
-  "documentCount": 2,
-  "generatedAt": "2026-08-02T03:53:52.607Z"
+  "documentCount": 10,
+  "generatedAt": "2026-08-02T19:18:43.416Z"
 }

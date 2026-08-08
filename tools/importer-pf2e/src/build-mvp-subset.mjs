@@ -43,8 +43,10 @@ import { fileURLToPath } from "node:url";
 
 // r21: a curadoria de classe é DADO (curation/classes/*.json), não predicado
 // escrito à mão aqui. Ver curation/index.mjs e .fusion-build/r21-plan.md.
-import { acharDuplicatas, formatarErroDeDuplicata } from './curation/duplicata.mjs';
+import { acharDuplicatas, formatarErroDeDuplicata } from "./curation/duplicata.mjs";
 import {
+  applyPrerequisiteFixes,
+  assertAllPrerequisiteFixesApplied,
   axisCategoryByOtherTag,
   curatedClassDisplayNames,
   curatedClassFeatureNames,
@@ -91,7 +93,13 @@ const PACK_MANIFESTS = {
     label: "PF2e Core Weapons",
     documentType: "Item",
     systemId: "pf2e",
-    indexFields: ["system.level", "system.category", "system.traits.value", "system.damage"],
+    indexFields: [
+      "system.level",
+      "system.category",
+      "system.traits.value",
+      "system.damage",
+      "flags.fusion.sourceId",
+    ],
     license: {
       license: "ORC",
       attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -113,7 +121,7 @@ const PACK_MANIFESTS = {
     label: "PF2e Conditions",
     documentType: "Item",
     systemId: "pf2e",
-    indexFields: ["system.group", "system.value.isValued"],
+    indexFields: ["system.group", "system.value.isValued", "flags.fusion.sourceId"],
     license: {
       license: "ORC",
       attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -135,7 +143,12 @@ const PACK_MANIFESTS = {
     label: "PF2e Core Bestiary",
     documentType: "Actor",
     systemId: "pf2e",
-    indexFields: ["system.details.level.value", "system.traits.value", "system.attributes.hp.max"],
+    indexFields: [
+      "system.details.level.value",
+      "system.traits.value",
+      "system.attributes.hp.max",
+      "flags.fusion.sourceId",
+    ],
     license: {
       license: "ORC",
       attribution: "Pathfinder Monster Core © 2024 Paizo Inc. Licensed under the ORC License.",
@@ -162,6 +175,7 @@ const PACK_MANIFESTS = {
       "system.traits.value",
       "system.traits.traditions",
       "system.traits.rarity",
+      "flags.fusion.sourceId",
     ],
     license: {
       license: "ORC",
@@ -190,7 +204,7 @@ const PACK_MANIFESTS = {
     label: "PF2e Core Classes",
     documentType: "Item",
     systemId: "pf2e",
-    indexFields: ["name", "system.keyAbility", "system.traits.value"],
+    indexFields: ["name", "system.keyAbility", "system.traits.value", "flags.fusion.sourceId"],
     license: {
       license: "ORC",
       attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -223,6 +237,7 @@ const PACK_MANIFESTS = {
       "system.category",
       "system.traits.value",
       "system.traits.otherTags",
+      "flags.fusion.sourceId",
     ],
     license: {
       license: "ORC",
@@ -245,7 +260,17 @@ const PACK_MANIFESTS = {
     label: "PF2e Core Feats",
     documentType: "Item",
     systemId: "pf2e",
-    indexFields: ["name", "system.level", "system.category", "system.traits.value"],
+    indexFields: [
+      "name",
+      "system.level",
+      "system.category",
+      "system.traits.value",
+      // The picker filters candidates from the INDEX, so the repeat cap has to
+      // be published here or an exhausted feat is only refused after the click
+      // (issue #57). `null` is meaningful — it means unlimited.
+      "system.maxTakable",
+      "flags.fusion.sourceId",
+    ],
     license: {
       license: "ORC",
       attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -267,7 +292,7 @@ const PACK_MANIFESTS = {
     label: "PF2e Core Ancestries",
     documentType: "Item",
     systemId: "pf2e",
-    indexFields: ["name", "system.traits.value", "system.size"],
+    indexFields: ["name", "system.traits.value", "system.size", "flags.fusion.sourceId"],
     license: {
       license: "ORC",
       attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -289,7 +314,7 @@ const PACK_MANIFESTS = {
     label: "PF2e Core Heritages",
     documentType: "Item",
     systemId: "pf2e",
-    indexFields: ["name", "system.ancestry.slug", "system.traits.value"],
+    indexFields: ["name", "system.ancestry.slug", "system.traits.value", "flags.fusion.sourceId"],
     license: {
       license: "ORC",
       attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -311,7 +336,7 @@ const PACK_MANIFESTS = {
     label: "PF2e Core Backgrounds",
     documentType: "Item",
     systemId: "pf2e",
-    indexFields: ["name", "system.traits.value"],
+    indexFields: ["name", "system.traits.value", "flags.fusion.sourceId"],
     license: {
       license: "ORC",
       attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -349,6 +374,7 @@ const PACK_MANIFESTS = {
       "system.category",
       "system.fusionCategory",
       "system.traits.value",
+      "flags.fusion.sourceId",
     ],
     license: {
       license: "ORC",
@@ -380,7 +406,13 @@ const PACK_MANIFESTS = {
     label: "PF2e Core Familiar Abilities",
     documentType: "Item",
     systemId: "pf2e",
-    indexFields: ["name", "system.actionType", "system.category", "system.traits.value"],
+    indexFields: [
+      "name",
+      "system.actionType",
+      "system.category",
+      "system.traits.value",
+      "flags.fusion.sourceId",
+    ],
     license: {
       license: "ORC",
       attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -410,7 +442,14 @@ const PACK_MANIFESTS = {
     label: "PF2e Core Equipment",
     documentType: "Item",
     systemId: "pf2e",
-    indexFields: ["name", "system.level", "system.traits.value", "system.category", "system.usage"],
+    indexFields: [
+      "name",
+      "system.level",
+      "system.traits.value",
+      "system.category",
+      "system.usage",
+      "flags.fusion.sourceId",
+    ],
     license: {
       license: "ORC",
       attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -452,7 +491,7 @@ const PACK_MANIFESTS = {
     label: "PF2e Core Ancestry Features",
     documentType: "Item",
     systemId: "pf2e",
-    indexFields: ["name", "system.category", "system.traits.value"],
+    indexFields: ["name", "system.category", "system.traits.value", "flags.fusion.sourceId"],
     license: {
       license: "ORC",
       attribution: "Pathfinder Player Core © 2023 Paizo Inc. Licensed under the ORC License.",
@@ -720,11 +759,15 @@ function hasTradition(doc, tradition) {
  *     eligible for (Familiar, Cantrip Expansion, Enhanced Familiar,
  *     Reactive Strike carry "magus" in their multi-class traits list) — 55 total.
  *   - ALL Ratfolk ancestry feats (trait "ratfolk" + category "ancestry") — 26.
- *   - Skill feats level <= 8 (category "skill") — includes every acceptance-
- *     criterion feat from the Tobias build (Impressive Performance, Read
- *     Lips, Tinkering Fingers is actually ancestry-categorized — see below —
- *     Alchemical Crafting, Fascinating Performance).
- *   - General feats level <= 8 (category "general").
+ *   - ALL skill feats, every level (category "skill"; issue #24 — the
+ *     original level <= 8 cutoff was an R10-B acceptance-criterion cap for
+ *     the Tobias build, never revisited for the r22 12-class MVP that
+ *     reaches level 20. It left every skill-feat slot at level 9+ empty and
+ *     broke Steal Spell (Rogue l16), whose prerequisite "Legendary Thief"
+ *     is a level-15 skill feat).
+ *   - ALL general feats, every level (category "general"; same issue #24 cap
+ *     removal — Raging Intimidation's "Scare to Death" grant, level 15,
+ *     resolves as a side effect).
  *   - Alchemist Dedication (category "class", traits archetype+dedication;
  *     the vendor files dedication feats under category "class", NOT
  *     "archetype") + its two level-4 archetype feats (Advanced Alchemy,
@@ -739,11 +782,49 @@ function hasTradition(doc, tradition) {
  * Derivado do que JA esta em ancestries-core/heritages-core: trazer a
  * ancestralidade sem os feats dela deixa o slot de talento de ancestralidade
  * vazio na ficha.
+ *
+ * issue #1: as 8 ancestralidades do Player Core (ver CORE_ANCESTRY_SLUGS /
+ * isAncestriesCoreDoc) entraram em ancestries-core sem os feats delas — sem
+ * este ramo, o slot de talento de ancestralidade de nível 5 abriria vazio
+ * para qualquer uma delas (pego pelo diagnóstico data-driven em
+ * packages/client/.../varredura-classes.test.ts:307, "tem ancestry feats no
+ * pack", que itera TODA ancestralidade presente em ancestries-core).
  */
-const CURATED_ANCESTRY_TRAITS = ["ratfolk", "fleshwarp", "sylph"];
+const CURATED_ANCESTRY_TRAITS = [
+  "ratfolk",
+  "fleshwarp",
+  "sylph",
+  "dwarf",
+  "elf",
+  "gnome",
+  "goblin",
+  "halfling",
+  "human",
+  "leshy",
+  "orc",
+];
+
+/**
+ * issue #16: archetype dedication feats that are the GRANTED TARGET of a
+ * class-feature axis option already curated into class-features-core
+ * (Barbarian's "Bloodrager" instinct, Rogue's "Avenger" racket, Ranger's
+ * "Vindicator" hunter's-edge, Wizard's "Runelord" arcane-school) — same
+ * shape as the Alchemist/Rogue Dedication special-cases below: the granter
+ * carries its class's trait, but the dedication feat itself only carries
+ * archetype/class/dedication traits, so it never matches a curated class's
+ * classFeats rule (which requires the class's own trait) nor the generic
+ * ancestry/skill/general branches above.
+ */
+const GRANT_TARGET_DEDICATION_NAMES = [
+  "Bloodrager Dedication",
+  "Avenger Dedication",
+  "Vindicator Dedication",
+  "Runelord Dedication",
+];
 
 function isFeatsCoreDoc(doc) {
   if (doc.type !== "feat") return false;
+  if (GRANT_TARGET_DEDICATION_NAMES.includes(doc.name)) return true;
   const category = doc.system?.category;
   const level = doc.system?.level ?? 0;
 
@@ -770,8 +851,10 @@ function isFeatsCoreDoc(doc) {
   // ancestralidades desde a r18 — ficou sem nenhum feat proprio. A varredura
   // headless pegou: "Fleshwarp nao tem ancestry feat em todo nivel de marco".
   if (category === "ancestry" && CURATED_ANCESTRY_TRAITS.some((t) => hasTrait(doc, t))) return true;
-  if (category === "skill" && level <= 8) return true;
-  if (category === "general" && level <= 8) return true;
+  // issue #24: no level cutoff — every level of skill/general feat is a
+  // reachable slot somewhere between character level 1 and 20.
+  if (category === "skill") return true;
+  if (category === "general") return true;
   if (doc.name === "Alchemist Dedication") return true;
   if (hasTrait(doc, "archetype") && level <= 4) {
     const prereqText = JSON.stringify(doc.system?.prerequisites ?? []).toLowerCase();
@@ -856,6 +939,32 @@ function buildClassFeatureNameSet() {
   return curatedClassFeatureNames(join(VENDOR_ROOT_FOR_MVP, "classes"));
 }
 
+/**
+ * issue #16: classFeature docs that are the GRANTED TARGET of a fixed
+ * `GrantItem` declared by a granter already curated above (via the class's
+ * items{} map or an axis-option category) — but that are themselves neither
+ * in any class's items{} map (they're conditional on which axis option was
+ * picked, so the vendor never lists them on the class doc) nor an axis
+ * option (their own system.category is the generic "classfeature", not one
+ * of the axis slotTypes). Without this branch every one of these grants
+ * materialized to nothing:
+ *   - Kineticist's 4 "Gate's Threshold" family features each grant "Gate
+ *     Junction" (their actual mechanical effect).
+ *   - Ranger's 3 native Hunter's Edge picks (Flurry/Outwit/Precision) each
+ *     grant the matching level-17 "Masterful Hunter (...)" upgrade.
+ *   - Wizard's "Runelord" archetype-school axis option grants "School of
+ *     Thassilonian Rune Magic" (the school it forces in place of a normal
+ *     arcane school) — see GRANT_TARGET_DEDICATION_NAMES below for the
+ *     matching "Runelord Dedication" feat this same granter also grants.
+ */
+const GRANT_TARGET_CLASS_FEATURE_NAMES = [
+  "Gate Junction",
+  "Masterful Hunter (Flurry)",
+  "Masterful Hunter (Outwit)",
+  "Masterful Hunter (Precision)",
+  "School of Thassilonian Rune Magic",
+];
+
 function isClassFeaturesCoreDoc(doc, classFeatureNames, axisCategories) {
   if (doc.type !== "classFeature") return false;
   if (classFeatureNames.has(doc.name)) return true;
@@ -865,34 +974,94 @@ function isClassFeaturesCoreDoc(doc, classFeatureNames, axisCategories) {
   // Sem este ramo, a classe entra com o chip da escolha e NENHUMA opção para
   // escolher. As categorias vêm da curadoria, não de lista escrita à mão.
   if (axisCategories.has(doc.system?.category)) return true;
+  if (GRANT_TARGET_CLASS_FEATURE_NAMES.includes(doc.name)) return true;
   return false;
 }
 
-/** ancestries-core (DEC-R10-06 item 4; r18-N2a): Ratfolk (Magus) + Fleshwarp (Finn). */
-function isAncestriesCoreDoc(doc) {
-  return doc.type === "ancestry" && (doc.name === "Ratfolk" || doc.name === "Fleshwarp");
+/**
+ * Título de `system.publication.title` que identifica o livro Pathfinder
+ * Player Core (issue #1). Confirmado nos dados transformados: os outros
+ * livros de personagem (Player Core 2, Lost Omens Ancestry Guide, Guns &
+ * Gears, ...) preenchem esse campo com o próprio título deles, então a
+ * igualdade estrita já separa "Player Core" do resto sem precisar de lista
+ * de nomes — e todo doc com esse título mede `publication.license === "ORC"`,
+ * então a curadoria por título também respeita a política de licença do
+ * projeto (ver TEXT_ATTRIBUTION acima).
+ */
+const PLAYER_CORE_PUBLICATION_TITLE = "Pathfinder Player Core";
+
+/** True when a Fusion doc's `system.publication.title` is the Player Core book. */
+function isPlayerCoreDoc(doc) {
+  return doc.system?.publication?.title === PLAYER_CORE_PUBLICATION_TITLE;
 }
 
 /**
- * heritages-core (DEC-R10-06 item 4; r18-N2a): the 7 Ratfolk heritages
- * (identified by `system.ancestry.slug === 'ratfolk'` — the real vendor
- * linkage field; heritage names alone don't carry a "ratfolk" trait) PLUS the
- * Sylph versatile heritage (Finn). Versatile heritages carry NO ancestry
- * linkage (`system.ancestry === null`) and are keyed by the ancestry-agnostic
- * trait matching their own name, so they're selected here by explicit name.
+ * ancestries-core (issue #1; supersedes DEC-R10-06 item 4/r18-N2a): the 8
+ * Player Core ancestries (Anão/Dwarf, Elfo/Elf, Gnomo/Gnome, Goblin, Halfling,
+ * Humano/Human, Leshy, Orc — measured in `out/ancestries/transformed.json` by
+ * `isPlayerCoreDoc`) UNION Ratfolk + Fleshwarp, curated before this issue
+ * (R10-B/r18-N2a) for the Magus and Finn characters and kept for backward
+ * compatibility — removing them would break the RATFOLK fixture in
+ * packages/client's classBuildHarness.ts and the Adopted-Ancestry routing
+ * test in planVM.test.ts (both reference these two docs by name).
+ */
+const LEGACY_CURATED_ANCESTRY_NAMES = ["Ratfolk", "Fleshwarp"];
+
+function isAncestriesCoreDoc(doc) {
+  if (doc.type !== "ancestry") return false;
+  if (isPlayerCoreDoc(doc)) return true;
+  return LEGACY_CURATED_ANCESTRY_NAMES.includes(doc.name);
+}
+
+/**
+ * Ancestry slugs of the 8 Player Core ancestries curated above — used to pull
+ * in their corresponding heritages (issue #1).
+ */
+const CORE_ANCESTRY_SLUGS = [
+  "dwarf",
+  "elf",
+  "gnome",
+  "goblin",
+  "halfling",
+  "human",
+  "leshy",
+  "orc",
+];
+
+/**
+ * heritages-core (issue #1; supersedes DEC-R10-06 item 4/r18-N2a): every
+ * Player Core heritage (`isPlayerCoreDoc`) linked to one of the 8 core
+ * ancestries above via `system.ancestry.slug` (the real vendor linkage field;
+ * heritage names alone don't carry an ancestry trait) UNION the 7 Ratfolk
+ * heritages + the Sylph versatile heritage, curated before this issue
+ * (R10-B/r18-N2a) for Magus/Finn and kept for backward compatibility (same
+ * fixtures as LEGACY_CURATED_ANCESTRY_NAMES above). Versatile heritages carry
+ * NO ancestry linkage (`system.ancestry === null`), so Sylph stays selected
+ * by explicit name.
  */
 function isHeritagesCoreDoc(doc) {
   if (doc.type !== "heritage") return false;
+  if (isPlayerCoreDoc(doc) && CORE_ANCESTRY_SLUGS.includes(doc.system?.ancestry?.slug)) {
+    return true;
+  }
   if (doc.system?.ancestry?.slug === "ratfolk") return true;
   if (doc.name === "Sylph") return true;
   return false;
 }
 
-/** backgrounds-core (DEC-R10-06 item 4; r18-N2a): Fireworks Performer (Magus) + Aeronaut (Finn). */
+/**
+ * backgrounds-core (issue #1; supersedes DEC-R10-06 item 4/r18-N2a): the 40
+ * Player Core backgrounds (`isPlayerCoreDoc`) UNION Fireworks Performer +
+ * Aeronaut, curated before this issue (R10-B/r18-N2a) for Magus/Finn and kept
+ * for backward compatibility (Aeronaut also gets a curated free-feat grant
+ * injected further down — see AERONAUT_CURATED_ITEMS).
+ */
+const LEGACY_CURATED_BACKGROUND_NAMES = ["Fireworks Performer", "Aeronaut"];
+
 function isBackgroundsCoreDoc(doc) {
-  return (
-    doc.type === "background" && (doc.name === "Fireworks Performer" || doc.name === "Aeronaut")
-  );
+  if (doc.type !== "background") return false;
+  if (isPlayerCoreDoc(doc)) return true;
+  return LEGACY_CURATED_BACKGROUND_NAMES.includes(doc.name);
 }
 
 /** classes-core (DEC-R10-06 item 1; r18-N2a): Magus (r10-B) + Kineticist (Finn). */
@@ -1187,6 +1356,7 @@ async function buildPf2eSubset() {
   }
 
   // --- 6. Class features core (R10-B, DEC-R10-06 item 2) ---
+  let touchedFixesInClassFeatures;
   {
     console.log("[build-mvp] === Pack: class-features-core ===");
     const all = loadTransformed("class-features");
@@ -1197,6 +1367,11 @@ async function buildPf2eSubset() {
     console.log(
       `[build-mvp] class-features-core: ${docs.length} features selecionadas (items{} map + hybrid studies) de ${all.length} totais`,
     );
+    // issues #26/#28/#30/#46: reconcile prerequisite text (legacy names,
+    // vendor typos, AND-that-should-be-OR) DECLARED per-class in curation/
+    // classes/*.json, never hand-patched into documents.json. See
+    // applyPrerequisiteFixes's own doc comment.
+    touchedFixesInClassFeatures = applyPrerequisiteFixes(docs);
 
     const manifest = PACK_MANIFESTS["class-features-core"];
     writePack("class-features-core", docs, manifest);
@@ -1221,6 +1396,12 @@ async function buildPf2eSubset() {
     console.log(
       `[build-mvp] feats-core: ${docs.length} feats selecionados de ${all.length} totais`,
     );
+    // issues #26/#28/#30/#46 — see the class-features-core block above.
+    const touchedFixesInFeats = applyPrerequisiteFixes(docs);
+    // A fix declared for a feat neither pack contains is a stale fix (typo'd
+    // featName, or the vendor renamed/removed the target) — fail loudly
+    // instead of silently doing nothing (see the function's own doc comment).
+    assertAllPrerequisiteFixesApplied([touchedFixesInClassFeatures, touchedFixesInFeats]);
 
     const manifest = PACK_MANIFESTS["feats-core"];
     writePack("feats-core", docs, manifest);
@@ -1442,6 +1623,7 @@ const SF2E_PACK_MANIFESTS = {
       "system.traits.value",
       "system.damage",
       "system.grade",
+      "flags.fusion.sourceId",
     ],
     license: {
       license: "ORC",
@@ -1464,7 +1646,12 @@ const SF2E_PACK_MANIFESTS = {
     label: "SF2e Core Armor",
     documentType: "Item",
     systemId: "sf2e",
-    indexFields: ["system.level", "system.category", "system.traits.value"],
+    indexFields: [
+      "system.level",
+      "system.category",
+      "system.traits.value",
+      "flags.fusion.sourceId",
+    ],
     license: {
       license: "ORC",
       attribution: "Starfinder Player Core © 2025 Paizo Inc. Licensed under the ORC License.",
@@ -1486,7 +1673,7 @@ const SF2E_PACK_MANIFESTS = {
     label: "SF2e Core Augmentations",
     documentType: "Item",
     systemId: "sf2e",
-    indexFields: ["system.level", "system.traits.value", "system.usage"],
+    indexFields: ["system.level", "system.traits.value", "system.usage", "flags.fusion.sourceId"],
     license: {
       license: "ORC",
       attribution: "Starfinder Player Core © 2025 Paizo Inc. Licensed under the ORC License.",
@@ -1508,7 +1695,7 @@ const SF2E_PACK_MANIFESTS = {
     label: "SF2e Conditions",
     documentType: "Item",
     systemId: "sf2e",
-    indexFields: ["system.duration", "system.badge"],
+    indexFields: ["system.duration", "system.badge", "flags.fusion.sourceId"],
     license: {
       license: "ORC",
       attribution: "Starfinder Player Core © 2025 Paizo Inc. Licensed under the ORC License.",
@@ -1530,7 +1717,12 @@ const SF2E_PACK_MANIFESTS = {
     label: "SF2e Core Bestiary",
     documentType: "Actor",
     systemId: "sf2e",
-    indexFields: ["system.details.level.value", "system.traits.value", "system.attributes.hp.max"],
+    indexFields: [
+      "system.details.level.value",
+      "system.traits.value",
+      "system.attributes.hp.max",
+      "flags.fusion.sourceId",
+    ],
     license: {
       license: "ORC",
       attribution: "Starfinder Alien Core © 2025 Paizo Inc. Licensed under the ORC License.",
@@ -1557,6 +1749,7 @@ const SF2E_PACK_MANIFESTS = {
       "system.traits.value",
       "system.traits.traditions",
       "system.traits.rarity",
+      "flags.fusion.sourceId",
     ],
     license: {
       license: "ORC",

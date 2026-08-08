@@ -16,8 +16,16 @@
   "classFeatures": {
     "fromItemsMap": true,
     "extraNames": [],
-    "sharedWithOtherClasses": ["Perception Expertise", "Weapon Specialization", "Greater Weapon Specialization"],
-    "alreadyInPacks": ["Perception Expertise", "Weapon Specialization", "Greater Weapon Specialization"],
+    "sharedWithOtherClasses": [
+      "Perception Expertise",
+      "Weapon Specialization",
+      "Greater Weapon Specialization"
+    ],
+    "alreadyInPacks": [
+      "Perception Expertise",
+      "Weapon Specialization",
+      "Greater Weapon Specialization"
+    ],
     "missingFromPacks": [
       "Powerful Fist",
       "Flurry of Blows",
@@ -135,6 +143,36 @@
     ],
     "referencesOutsideSelection": ["Master of Many Styles -> Opening Stance (Fighter)"]
   },
+  "prerequisiteFixes": [
+    {
+      "featName": "Elemental Fist",
+      "kind": "rename",
+      "from": "Inner Upheaval",
+      "to": "Qi Spells",
+      "reason": "issue #26: 'Inner Upheaval' is a FOCUS SPELL name (spells-core), not the feat that grants qi spells access — the vendor's OWN 9 other qi-spell-chain feats (Advanced Qi Spells, Align Qi, Harmonize Self, ...) correctly cite 'Qi Spells' (the level-1 feat). This is the pre-Remaster-cleanup leftover name; only these 2 feats still use it."
+    },
+    {
+      "featName": "Ki Cutting Sight",
+      "kind": "rename",
+      "from": "Inner Upheaval",
+      "to": "Qi Spells",
+      "reason": "issue #26: same leftover as Elemental Fist above."
+    },
+    {
+      "featName": "Vitality-Manipulating Stance",
+      "kind": "rename",
+      "from": "Stunning fist",
+      "to": "Stunning Blows",
+      "reason": "issue #26: 'Stunning fist' matches no document (case-insensitive, accent-insensitive) in any pack; 'Stunning Blows' (trait monk, level 2 — see internalChains above) is the only Monk feat this capstone's own prerequisite chain could plausibly mean."
+    },
+    {
+      "featName": "Master of Many Styles",
+      "kind": "merge",
+      "replaceEntries": ["Opening Stance (Fighter)", "Reflexive Stance (Monk)"],
+      "with": "Opening Stance (Fighter) or Reflexive Stance (Monk)",
+      "reason": "issue #30: the vendor modeled this as TWO SEPARATE prerequisites entries, which every consumer (grafo-de-feats.mjs, planVM.ts's checkFeatPrerequisites) reads as AND — but a Monk who only ever gets Reflexive Stance (their own class feat, trait monk) can never ALSO get Opening Stance (trait fighter+guardian, blocked from a Monk's classFeat slot by isFeatEligible), so AND makes this capstone permanently unreachable for a pure Monk despite the vendor clearly intending 'whichever your build's stance-swap route gives you'. Merged into ONE 'A or B' entry, the same convention the vendor itself uses elsewhere in this pack (e.g. 'Deflect Projectile or Monastic Archer Stance'). Not confirmed against an official errata — a reasonable, minimal reading of intent, not a guess: it's the ONLY modeling under which either build path can ever satisfy this feat at all. Unblocks Qi Center@18 and Immortal Techniques@20, whose own prerequisite chain runs through Master of Many Styles."
+    }
+  ],
   "dedupe": {
     "featsAlreadyInPacks": [],
     "collisionsDetected": [
@@ -145,6 +183,7 @@
     ]
   },
   "notes": [
+    "issue #26: 'Endurance of the Rooted Tree' (nivel 20, prereq 'Wholeness of Body') fica DELIBERADAMENTE fora de prerequisiteFixes -- busca normalizada (caixa+acento) em feats-core, class-features-core e spells-core: 0 documentos chamados 'Wholeness of Body' ou variante proxima. As 3 magias de qi importadas sao Qi Blast/Qi Form/Qi Rush (nenhuma e 'Wholeness of Body'), e nao ha class-feature homonima nem parcialmente homonima. Diferente dos 3 casos acima (onde o pack tem exatamente 1 alvo plausivel), aqui nao ha candidato -- decisao de produto que exigiria inventar um documento que o vendor nao tem (contra a regra do projeto), entao o pre-requisito permanece como texto nao resolvido, exatamente como chegou do vendor.",
     "SEM eixo de subclasse: nenhum arquivo em feats/ ou class-features/ carrega otherTag 'monk-*' (grep vazio). O Monk NAO tem uma escolha estruturada equivalente a Instinct/Racket/Hunter's Edge/Arcane School -- choiceAxes fica [] deliberadamente. Isso e informacao positiva, nao omissao: o Remaster nao criou uma 'subclasse' formal de Monk (o feature mais proximo disso, Path to Perfection, e uma escolha de pericia de salvacao via ChoiceSet embutida numa class-feature, nao uma otherTag de eixo -- ver nota de saves abaixo).",
     "24 dos 126 class feats exclusivos do Monk (feats/class/monk) tem o trait 'stance': Crane, Dragon, Flood, Gorilla, Monastic Archer, Mountain, Rain of Embers, Reflective Ripple, Rushing Goat, Stoked Flame, Stumbling, Tiger, Twisting Petal, Wolf (todas nivel 1), Shooting Stars, Waterfowl (nivel 2), Cobra, Peafowl (nivel 4), Ironblood, Jellyfish, Kaiju, Tangled Forest (nivel 8), Whirling Blade (nivel 14), Vitality-Manipulating (nivel 20). Sao class feats normais (entram pelo caminho comum de classFeats, trait 'monk' + 'stance'), NAO opcoes de eixo -- visualmente parecem uma escolha fechada tipo Instinct, mas mecanicamente sao feats independentes que qualquer Monk pode pegar quantas quiser (ate 1 por slot de feat), cada uma com pre-requisito proprio. Diferenca registrada para a rodada futura de 'estados alternaveis de ficha' (A2): postura = feat com efeito LIGA/DESLIGA (Stance) durante o combate; opcao de eixo = escolha permanente feita uma vez no build. As 24 stances acima sao candidatas diretas ao mecanismo A2; nao implementado nesta rodada.",
     "Alem das stances, ha mais 3 focus spells com trait 'stance' que TAMBEM sao concedidas por feats (nao por eixo): Wild Winds Stance (via feat Wild Winds Initiate, nivel 8), Clinging Shadows Stance (via feat Clinging Shadows Initiate, nivel 8). Contam para o levantamento de focus spells abaixo, nao para a contagem de 24 stance-feats (sao spells, nao feats).",

@@ -26,6 +26,7 @@ import { SocketManager, type ConnectionState } from "./socket.js";
 import type { Socket } from "socket.io-client";
 import { attachWorldSync } from "./docs/worldSync.js";
 import { attachSceneListSync } from "./scenes/scenesState.svelte.js";
+import { attachSoundSync } from "./sound/soundStore.svelte.js";
 import { classifyWorldFetchError } from "./worldFetchErrorClassifier.js";
 
 // ---------------------------------------------------------------------------
@@ -202,6 +203,8 @@ export function getSocket(): Socket | null {
 let _detachWorldSync: (() => void) | null = null;
 /** Active scene-list sync cleanup, called on disconnect/logout. */
 let _detachSceneSync: (() => void) | null = null;
+/** Active sound sync cleanup, called on disconnect/logout. */
+let _detachSoundSync: (() => void) | null = null;
 
 function _connectSocket(worldId: string): void {
   // The socket namespace is /world/<worldSlug> — use worldId as slug
@@ -216,6 +219,15 @@ function _connectSocket(worldId: string): void {
     // Attach scene list mirror subscription
     _detachSceneSync?.();
     _detachSceneSync = attachSceneListSync();
+    // M3 mapa-som: ambient track socket sync + player wiring. getAuth is
+    // resolved fresh on every restart-worthy syncTo() rather than captured
+    // once here, since the access token can rotate mid-session.
+    _detachSoundSync?.();
+    _detachSoundSync = attachSoundSync(socket, () => {
+      const accessToken = fusionApi.getToken();
+      const userId = session.user?.id;
+      return accessToken && userId ? { accessToken, userId } : null;
+    });
   }
 }
 
@@ -224,4 +236,6 @@ function _disconnectSync(): void {
   _detachWorldSync = null;
   _detachSceneSync?.();
   _detachSceneSync = null;
+  _detachSoundSync?.();
+  _detachSoundSync = null;
 }

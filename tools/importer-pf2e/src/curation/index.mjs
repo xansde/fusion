@@ -40,6 +40,15 @@ const TOP_LEVEL_KEYS = new Set([
   "spellcasting",
   "focusSpells",
   "prerequisites",
+  // Programmatic corrections to `system.prerequisites[].value` TEXT for a
+  // named feat/class-feature of THIS class (issues #26/#28/#30/#46) — unlike
+  // "prerequisites" above (pure documentation, never read by transform/
+  // build-mvp-subset), every entry here is APPLIED to the transformed docs
+  // by applyPrerequisiteFixes() before the pack is written, so the fix is
+  // reproducible from a clean vendor clone instead of a hand-patched
+  // documents.json that the next importer run would silently overwrite. See
+  // that function's doc comment for the two supported `kind`s.
+  "prerequisiteFixes",
   "dedupe",
   "notes",
   // Campos de integração (preenchidos pela integração central, não pelo
@@ -108,6 +117,31 @@ export function validateClassCuration(cfg, file) {
     };
   });
 
+  const prerequisiteFixes = (cfg.prerequisiteFixes ?? []).map((fix, i) => {
+    const where = `prerequisiteFixes[${i}]`;
+    if (typeof fix?.featName !== "string" || fix.featName.length === 0) {
+      fail(file, `${where}.featName ausente`);
+    }
+    if (fix.kind === "rename") {
+      if (typeof fix.from !== "string" || fix.from.length === 0) {
+        fail(file, `${where}.from ausente (kind "rename")`);
+      }
+      if (typeof fix.to !== "string" || fix.to.length === 0) {
+        fail(file, `${where}.to ausente (kind "rename")`);
+      }
+    } else if (fix.kind === "merge") {
+      if (!Array.isArray(fix.replaceEntries) || fix.replaceEntries.length < 2) {
+        fail(file, `${where}.replaceEntries precisa ter 2+ textos (kind "merge")`);
+      }
+      if (typeof fix.with !== "string" || fix.with.length === 0) {
+        fail(file, `${where}.with ausente (kind "merge")`);
+      }
+    } else {
+      fail(file, `${where}.kind precisa ser "rename" ou "merge" (recebido: ${JSON.stringify(fix?.kind)})`);
+    }
+    return fix;
+  });
+
   return {
     class: cfg.class,
     displayName: cfg.displayName,
@@ -138,6 +172,7 @@ export function validateClassCuration(cfg, file) {
     spellcasting: cfg.spellcasting ?? null,
     focusSpells: cfg.focusSpells ?? { names: [], alreadyInPacks: [] },
     prerequisites: cfg.prerequisites ?? { internalChains: [], referencesOutsideSelection: [] },
+    prerequisiteFixes,
     dedupe: cfg.dedupe ?? { featsAlreadyInPacks: [], collisionsDetected: [] },
     notes: cfg.notes ?? [],
     proficiencyUpgradeExtras: cfg.proficiencyUpgradeExtras ?? [],
@@ -242,4 +277,105 @@ export function classItemsMap(vendorClassesDir, slug) {
       level: entry.level,
     }))
     .sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
+}
+
+// ---------------------------------------------------------------------------
+// prerequisiteFixes (issues #26/#28/#30/#46) — reconciling `system.
+// prerequisites[].value` free text that names something no pack document
+// carries (a pre-remaster name, a vendor typo, or two separate entries that
+// are really "A or B") into text that DOES resolve, WITHOUT hand-editing the
+// generated documents.json (the next `build-mvp-subset.mjs` run would
+// silently overwrite a hand patch). Declared per-class in curation/classes/
+// *.json (`prerequisiteFixes`), applied here against whichever pack's
+// transformed docs actually contain the named feat.
+// ---------------------------------------------------------------------------
+
+/** Every `prerequisiteFixes` entry across every curated class, in file order. */
+export function allPrerequisiteFixes() {
+  const out = [];
+  for (const cfg of loadClassCuration().values()) {
+    for (const fix of cfg.prerequisiteFixes) out.push(fix);
+  }
+  return out;
+}
+
+/**
+ * Applies every declared prerequisite fix whose `featName` matches a doc in
+ * `docs`, MUTATING that doc's `system.prerequisites` in place. A fix whose
+ * feat IS found but whose expected `from`/`replaceEntries` text is no longer
+ * there THROWS immediately — the alternative (silently skipping) would let a
+ * future vendor-data change quietly resurrect the exact bug the fix closed.
+ * A fix whose feat isn't in THIS `docs` array is left for another call to
+ * find (a feat lives in exactly one pack; the caller doesn't know which
+ * ahead of time) — returns the Set of featNames actually touched here so the
+ * caller can accumulate coverage across every pack it calls this on.
+ *
+ * kind "rename": replaces ONE entry's text (`from` → `to`), leaving any
+ * other entries on the same feat untouched (e.g. Aura of Vengeance keeps its
+ * "Vengeful Oath" entry when only "Exalt" is renamed).
+ *
+ * kind "merge": vendor modeled an "A or B" alternative as TWO SEPARATE
+ * `prerequisites` entries (issue #30 — Master of Many Styles), which every
+ * consumer (grafo-de-feats.mjs, planVM.ts) reads as AND, not OR. Collapses
+ * the whole array into a single entry whose text joins the alternatives with
+ * " or " (the same convention the vendor itself uses elsewhere, e.g. "Deflect
+ * Projectile or Monastic Archer Stance"). `replaceEntries` must match the
+ * feat's CURRENT full prerequisites array exactly (any order) — a partial or
+ * stale match throws, same rationale as "rename" above.
+ */
+export function applyPrerequisiteFixes(docs) {
+  const byName = new Map(docs.map((d) => [d.name, d]));
+  const touched = new Set();
+  for (const fix of allPrerequisiteFixes()) {
+    const doc = byName.get(fix.featName);
+    if (!doc) continue;
+    touched.add(fix.featName);
+    const prereqs = doc.system?.prerequisites;
+    if (!Array.isArray(prereqs)) {
+      throw new Error(`[prerequisiteFixes] "${fix.featName}": system.prerequisites não é array`);
+    }
+    const textOf = (p) => (typeof p === "string" ? p : p?.value);
+    if (fix.kind === "rename") {
+      const entry = prereqs.find((p) => textOf(p) === fix.from);
+      if (!entry || typeof entry !== "object") {
+        throw new Error(
+          `[prerequisiteFixes] "${fix.featName}": entrada "${fix.from}" não encontrada em ${JSON.stringify(prereqs)} — dado do vendor mudou?`,
+        );
+      }
+      entry.value = fix.to;
+    } else if (fix.kind === "merge") {
+      const texts = prereqs.map(textOf);
+      const sameSet =
+        texts.length === fix.replaceEntries.length &&
+        fix.replaceEntries.every((t) => texts.includes(t)) &&
+        texts.every((t) => fix.replaceEntries.includes(t));
+      if (!sameSet) {
+        throw new Error(
+          `[prerequisiteFixes] "${fix.featName}": prerequisites atuais ${JSON.stringify(texts)} não batem com replaceEntries ${JSON.stringify(fix.replaceEntries)} — dado do vendor mudou?`,
+        );
+      }
+      doc.system.prerequisites = [{ value: fix.with }];
+    }
+  }
+  return touched;
+}
+
+/**
+ * Fails the build loudly when a declared `prerequisiteFixes` entry never
+ * found its target feat in ANY of the packs `applyPrerequisiteFixes` was run
+ * against — a stale fix (typo'd featName, or the feat got renamed/removed
+ * upstream) must be caught here, not become a silent no-op that quietly
+ * un-fixes the issue it was written for.
+ * @param {Iterable<Set<string>>} touchedSets one `applyPrerequisiteFixes` return value per pack
+ */
+export function assertAllPrerequisiteFixesApplied(touchedSets) {
+  const touched = new Set([...touchedSets].flatMap((s) => [...s]));
+  const missing = allPrerequisiteFixes()
+    .map((fix) => fix.featName)
+    .filter((name) => !touched.has(name));
+  if (missing.length > 0) {
+    throw new Error(
+      `[prerequisiteFixes] nunca aplicados (feat não encontrado em pack nenhum): ${missing.join(", ")}`,
+    );
+  }
 }

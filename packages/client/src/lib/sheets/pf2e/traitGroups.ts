@@ -237,11 +237,24 @@ export const TRAIT_GROUPS: ReadonlyArray<readonly [string, TraitGroupDef]> = [
         // Planar scions / elemental-blooded heritages (Rage of Elements +
         // core) — the vocabulary Finn's Sylph heritage lives in.
         "ardande",
+        // issue #1: the 8 Player Core ancestries newly curated into
+        // ancestries-core/feats-core, plus "ghoran" — a Leshy ancestry feat
+        // (Solar Rejuvenation) carries BOTH traits (usable by either
+        // ancestry), so it rides in as a side effect of curating "leshy".
+        "dwarf",
         "eidolon",
+        "elf",
         "fleshwarp",
         "fungus",
+        "ghoran",
+        "gnome",
+        "goblin",
+        "halfling",
+        "human",
+        "leshy",
         "naari",
         "nephilim",
+        "orc",
         "oread",
         "ratfolk",
         "suli",

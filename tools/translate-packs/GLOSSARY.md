@@ -78,7 +78,7 @@ contra os **packs reais** (`systems/pf2e/packs/*/documents.json`):
 1. JSON válido e shape esperado; `terms` compatível com o loader de A.
 2. Sem duplicatas conflitantes (case-insensitive) em `terms`.
 3. Precedência multi-palavra sã (frase mais longa que suas substrings-chave).
-4. **Cobertura ≥ 100% dos traits reais** dos packs (177 no snapshot atual) e das
+4. **Cobertura ≥ 100% dos traits reais** dos packs (217 no snapshot atual) e das
    43 condições do pack `conditions`. Uma regeneração de packs que introduza um
    trait/condição novo **falha o teste** até o glossário cobri-lo.
 5. Conjuntos canônicos fixos (6 atributos, 16 perícias + Percepção, 3 saves),

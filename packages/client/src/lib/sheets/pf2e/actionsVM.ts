@@ -438,6 +438,46 @@ export function buildActionNameIndex(
   return index;
 }
 
+/** Read a pack index entry's `flags.fusion.sourceId` off its `index` bag (present since issue #41 indexed it), or null. */
+function entrySourceId(entry: PackIndexEntry): string | null {
+  const sid = entry.index["flags.fusion.sourceId"];
+  return typeof sid === "string" && sid.trim() ? sid.trim() : null;
+}
+
+/** Read an embedded item's own `flags.fusion.sourceId` (stamped by the importer at embed time, issue #41), or null. */
+function itemSourceId(item: Record<string, unknown>): string | null {
+  const flags = isRecord(item["flags"]) ? item["flags"] : {};
+  const fusionFlags = isRecord(flags["fusion"]) ? flags["fusion"] : {};
+  return str(fusionFlags["sourceId"]);
+}
+
+/**
+ * Build a `flags.fusion.sourceId` → enrichment index from pack entries
+ * (issue #42). Unlike a slug DERIVED from a display name, `sourceId` is a
+ * stable per-document id the importer stamps once at import time (published
+ * in `indexFields` since issue #41): it survives independent of name/slug
+ * drift, and because callers rebuild this index from the LIVE pack query on
+ * every load (not a point-in-time snapshot copied onto the actor), an
+ * embedded item resolves to the pack's CURRENT translation as packs keep
+ * getting translated — the persisted `i18n` bag on the item is only a cache,
+ * never the source of truth (see {@link mergeEmbeddedNameOverlay} /
+ * withFallbackDescription). Callers combine multiple pack entry lists (e.g.
+ * actions-core + feats-core) into one flat array before calling this, in
+ * priority order — first entry per sourceId wins, mirroring the pack-priority
+ * order {@link buildActionNameIndex} has always used for its slug index.
+ */
+export function buildActionSourceIdIndex(
+  entries: PackIndexEntry[],
+): Map<string, ActionNameEnrichment> {
+  const index = new Map<string, ActionNameEnrichment>();
+  for (const entry of entries) {
+    const sourceId = entrySourceId(entry);
+    if (!sourceId || index.has(sourceId)) continue;
+    index.set(sourceId, { namePt: entryNamePt(entry), fallbackUuid: entry.uuid });
+  }
+  return index;
+}
+
 /**
  * Merge pack rows with the actor's embedded action rows, deduped by slug:
  * an embedded (character) row WINS over a same-slug pack row. Rows without a
@@ -450,17 +490,25 @@ export function buildActionNameIndex(
  * items embedded before that policy). Embedded rows with no pack counterpart
  * keep `fallbackUuid: null`.
  *
- * `nameIndex` (B1 r14 #4/#5) enriches embedded rows whose slug matched NO
- * actions-core pack row with a `namePt`/`fallbackUuid` resolved from a
- * supplementary index (feats-core) — so character feats that are actions
- * (Magus's Analysis, Bon Mot) show their pt-BR name AND their ORC/OGL
- * description (fetched via fallbackUuid) instead of raw EN. The actions-core
- * pack row (if any) still takes precedence for both fields.
+ * Enrichment resolution order (issue #42 — sourceId replaces slug as the
+ * PRIMARY match):
+ *   1. `sourceIdIndex` — the embedded item's own `flags.fusion.sourceId`
+ *      against the combined actions-core+feats-core sourceId index. Wins
+ *      whenever the embedded item carries a sourceId, regardless of whether
+ *      its slug also happens to match a pack row.
+ *   2. Slug match (`bySlug` / `nameIndex`, B1 r14 #4/#5) — the ONLY path for
+ *      embedded items with no `flags.fusion.sourceId` at all (homebrew/manual
+ *      entries imported before issue #41 stamped it).
+ * `nameIndex` enriches embedded rows whose slug matched NO actions-core pack
+ * row with a `namePt`/`fallbackUuid` resolved from a supplementary index
+ * (feats-core) — so character feats that are actions (Magus's Analysis, Bon
+ * Mot) show their pt-BR name AND their ORC/OGL description instead of raw EN.
  */
 export function mergeActionRows(
   packEntries: PackIndexEntry[],
   embeddedItems: Array<Record<string, unknown>>,
   nameIndex?: Map<string, ActionNameEnrichment>,
+  sourceIdIndex?: Map<string, ActionNameEnrichment>,
 ): ActionRow[] {
   const bySlug = new Map<string, ActionRow>();
   const noSlug: ActionRow[] = [];
@@ -479,7 +527,17 @@ export function mergeActionRows(
   for (const item of embeddedItems) {
     const row = rowFromEmbeddedItem(item);
     if (!row) continue;
-    if (row.slug) {
+
+    const itemSid = itemSourceId(item);
+    const bySource = itemSid ? sourceIdIndex?.get(itemSid) : undefined;
+
+    if (bySource) {
+      // sourceId match (issue #42): PRIMARY, regardless of slug.
+      if (bySource.fallbackUuid) row.fallbackUuid = bySource.fallbackUuid;
+      if (bySource.namePt) row.namePt = bySource.namePt;
+    } else if (row.slug) {
+      // No sourceId on the embedded item (homebrew/manual entry) — fall back
+      // to the slug match this dedup already computes.
       const packRow = bySlug.get(row.slug);
       if (packRow?.uuid) row.fallbackUuid = packRow.uuid;
       if (packRow?.namePt) row.namePt = packRow.namePt;
@@ -491,10 +549,10 @@ export function mergeActionRows(
           row.fallbackUuid = enrich.fallbackUuid;
         if (row.namePt === null && enrich.namePt) row.namePt = enrich.namePt;
       }
-      bySlug.set(row.slug, row);
-    } else {
-      noSlug.push(row);
     }
+
+    if (row.slug) bySlug.set(row.slug, row);
+    else noSlug.push(row);
   }
 
   return [...bySlug.values(), ...noSlug];
@@ -526,11 +584,44 @@ export function buildEmbeddedDetailsDoc(
   if (!isRecord(item)) return null;
   const system = isRecord(item["system"]) ? { ...item["system"] } : {};
   system["description"] = descriptionHtmlOf(system);
-  return {
+  const doc: Record<string, unknown> = {
     name: str(item["name"]) ?? "Action",
     type: str(item["type"]) ?? "action",
     system,
     flags: isRecord(item["flags"]) ? item["flags"] : {},
+  };
+  // Preserve the persisted i18n bag (issue #10). Embedded items already carry
+  // `i18n.ptBR.{name,description}` from import/merge time; pickLocalizedName /
+  // pickLocalizedDescription (documentDetails.ts) read it off `doc.i18n`. The
+  // prior version dropped this bag entirely, so an item with a correctly
+  // persisted pt-BR description still rendered EN in the details panel.
+  if (isRecord(item["i18n"])) doc["i18n"] = item["i18n"];
+  return doc;
+}
+
+/**
+ * Merge a slug/sourceId-matched pt-BR NAME onto an embedded details doc's
+ * `i18n` bag WITHOUT discarding an already-persisted description (issue #10).
+ * The prior remendo (ActionsTab.svelte's `localizeEmbeddedDoc`) replaced the
+ * whole bag with `{ i18n: { ptBR: { name } } }`, wiping out any persisted
+ * `i18n.ptBR.description` on every embedded row that had a namePt match. This
+ * only fills a NAME GAP: a name already persisted on the doc's own bag wins
+ * over the enrichment name (the doc's own snapshot is presumed authoritative
+ * for name; only an EMPTY name slot gets backfilled). Returns the doc
+ * unchanged when there's nothing to merge (no persisted bag AND no namePt).
+ */
+export function mergeEmbeddedNameOverlay(
+  doc: Record<string, unknown> | null,
+  namePt: string | null,
+): Record<string, unknown> | null {
+  if (doc === null) return doc;
+  const existingI18n = isRecord(doc["i18n"]) ? doc["i18n"] : null;
+  const existingPtBR = existingI18n && isRecord(existingI18n["ptBR"]) ? existingI18n["ptBR"] : null;
+  const hasPersistedName = str(existingPtBR?.["name"]) !== null;
+  if (hasPersistedName || namePt === null) return doc;
+  return {
+    ...doc,
+    i18n: { ...existingI18n, ptBR: { ...existingPtBR, name: namePt } },
   };
 }
 

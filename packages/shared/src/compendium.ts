@@ -132,6 +132,26 @@ export type PackManifest = z.infer<typeof PackManifestSchema>;
 export const PackI18nEntrySchema = z.object({
   name: z.string(),
   description: z.string().optional(),
+  /**
+   * Declares that this doc is name-only ON PURPOSE, even though the EN source
+   * carries prose. Without it, "not translated yet" and "has no prose to
+   * translate" are the same absent/empty string, and the translation QA gate
+   * cannot tell a real gap from a legitimate one (issue #27).
+   */
+  noDescription: z.boolean().optional(),
+  /**
+   * Hand-curated pt-BR translation of THIS doc's own `system.prerequisites[].value`
+   * entries, index-aligned with the EN array (issue #32). Escape hatch, not the
+   * primary translation path: most feat/classFeature prerequisite prose is
+   * handled compositionally on the client (rank+skill, subclass-axis option
+   * name, or a document-name lookup — see
+   * packages/client/src/lib/compendium/prerequisiteTranslation.ts) so writing
+   * 626+ near-duplicate strings by hand is unnecessary. Reserved for the rare
+   * document whose prerequisite text the compositional renderer and the shared
+   * curated vocabulary both fail to resolve. Optional and sparse — absent on
+   * (almost) every entry.
+   */
+  prerequisites: z.array(z.string()).optional(),
   sourceHash: z.string(),
 });
 
@@ -163,6 +183,12 @@ export type PackI18nOverlay = z.infer<typeof PackI18nOverlaySchema>;
 export const DocI18nSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
+  /** See {@link PackI18nEntrySchema.prerequisites}. Not yet populated by the
+   * server (packages/server/src/compendium/service.ts whitelists name/
+   * description when building this shape) — reserved for a future round that
+   * wires the escape hatch end-to-end; the client's compositional renderer
+   * does not depend on this field. */
+  prerequisites: z.array(z.string()).optional(),
 });
 
 export type DocI18n = z.infer<typeof DocI18nSchema>;
@@ -302,6 +328,31 @@ export const CompendiumGetPayloadSchema = z.object({
 });
 
 export type CompendiumGetPayload = z.infer<typeof CompendiumGetPayloadSchema>;
+
+/**
+ * compendium:i18nBySourceRef — resolve the pt-BR overlay entry for a document
+ * by its ORIGIN reference (`flags.fusion.packName` + `flags.fusion.sourceId`),
+ * rather than by Fusion pack UUID. This is the read-side counterpart to issue
+ * #43: `importToWorld` strips `uuid`/`i18n`/`mechanics` from the world copy to
+ * keep it EN-pure (see CompendiumService.importToWorld), but `flags.fusion`
+ * (which carries `packName`/`sourceId`) survives — so a client holding a
+ * world document (not a compendium browse UUID) can still ask for its
+ * translation via this reference instead. See
+ * CompendiumService.getI18nBySourceRef for the full resolution rationale.
+ */
+export const CompendiumI18nBySourceRefPayloadSchema = z.object({
+  /** `flags.fusion.packName` — the VENDOR pack key (e.g. "equipment"), NOT the
+   * Fusion pack id/directory (curation can remap one vendor pack into several
+   * Fusion packs, e.g. `pf2e.weapons-core` + `pf2e.equipment-core` both curate
+   * from vendor "equipment"). */
+  packName: z.string(),
+  /** `flags.fusion.sourceId` — the vendor's raw `_id`, unique within `packName`. */
+  sourceId: z.string(),
+});
+
+export type CompendiumI18nBySourceRefPayload = z.infer<
+  typeof CompendiumI18nBySourceRefPayloadSchema
+>;
 
 /** compendium:import — import document(s) from a pack to the world. */
 export const CompendiumImportPayloadSchema = z.object({

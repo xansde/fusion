@@ -1,5 +1,29 @@
 [
   {
+    "_id": "m8YB6rshpZg9kFMr",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.m8YB6rshpZg9kFMr",
+    "name": "Acolyte",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Acolyte",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "CAjQrHZZbALE7Qjy"
+    }
+  },
+  {
+    "_id": "dg8qLGhBkFHLBE6B",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.dg8qLGhBkFHLBE6B",
+    "name": "Acrobat",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Acrobat",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "IFHYbU6Nu8BiTsRa"
+    }
+  },
+  {
     "_id": "mwHmaKUwhaLcRwys",
     "uuid": "Compendium.pf2e.backgrounds-core.Item.mwHmaKUwhaLcRwys",
     "name": "Aeronaut",
@@ -7,7 +31,200 @@
     "type": "background",
     "index": {
       "name": "Aeronaut",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "PutqlPJTPUBkMmSn"
+    }
+  },
+  {
+    "_id": "4mwD5vRGeigFjAJX",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.4mwD5vRGeigFjAJX",
+    "name": "Animal Whisperer",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Animal Whisperer",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "5RGLAPi5sLykRcmm"
+    }
+  },
+  {
+    "_id": "h6NljnVZhgbuqjCT",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.h6NljnVZhgbuqjCT",
+    "name": "Artisan",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Artisan",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "6irgRkKZ8tRZzLvs"
+    }
+  },
+  {
+    "_id": "jSvWGUhX7ooTgmvf",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.jSvWGUhX7ooTgmvf",
+    "name": "Artist",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Artist",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "y9OyNsxGfmjqdcP0"
+    }
+  },
+  {
+    "_id": "dgXJNL7LUK7PFwlL",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.dgXJNL7LUK7PFwlL",
+    "name": "Bandit",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Bandit",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "6abqATPjYoF946LD"
+    }
+  },
+  {
+    "_id": "mgsLN4tyI89rOx7f",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.mgsLN4tyI89rOx7f",
+    "name": "Barkeep",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Barkeep",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "a8BmnIIUR7AYog5B"
+    }
+  },
+  {
+    "_id": "f1ovsxwcPzTs9hL7",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.f1ovsxwcPzTs9hL7",
+    "name": "Barrister",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Barrister",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "Phvnfdmz4bB7jrI3"
+    }
+  },
+  {
+    "_id": "1nKpp0NV8qP1Z0Et",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.1nKpp0NV8qP1Z0Et",
+    "name": "Bounty Hunter",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Bounty Hunter",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "a9Q4iIiAZryVWN27"
+    }
+  },
+  {
+    "_id": "O4nOcuUhSC4Xzc0J",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.O4nOcuUhSC4Xzc0J",
+    "name": "Charlatan",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Charlatan",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "t0t1ck8iKpaI4o5W"
+    }
+  },
+  {
+    "_id": "4g8G1n1ba4LlMUvo",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.4g8G1n1ba4LlMUvo",
+    "name": "Cook",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Cook",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "3gN09dOT2hMwGcK2"
+    }
+  },
+  {
+    "_id": "yOfUH9TSzIHAI7cx",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.yOfUH9TSzIHAI7cx",
+    "name": "Criminal",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Criminal",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "9lVw1JGl5ser6626"
+    }
+  },
+  {
+    "_id": "vlry2ZYSTgUsAmGw",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.vlry2ZYSTgUsAmGw",
+    "name": "Cultist",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Cultist",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "fuTLDmihr9Z9e5wa"
+    }
+  },
+  {
+    "_id": "jRAkbVpLzgCYvN6f",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.jRAkbVpLzgCYvN6f",
+    "name": "Detective",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Detective",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "dVRDDjT4FOu6uLDR"
+    }
+  },
+  {
+    "_id": "Kd3LOj1HDjwuZHst",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.Kd3LOj1HDjwuZHst",
+    "name": "Emissary",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Emissary",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "3WPo7m6rJQh9L7MN"
+    }
+  },
+  {
+    "_id": "uGTT6g4pz2hutc7v",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.uGTT6g4pz2hutc7v",
+    "name": "Entertainer",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Entertainer",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "i4hN6OYv8qmi3GLW"
+    }
+  },
+  {
+    "_id": "kXyh4WnY1a1NF34A",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.kXyh4WnY1a1NF34A",
+    "name": "Farmhand",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Farmhand",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "SOmJyAtPOokesZoe"
+    }
+  },
+  {
+    "_id": "zBTKwYwhMxyLMSJh",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.zBTKwYwhMxyLMSJh",
+    "name": "Field Medic",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Field Medic",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "FKHut73XDUGTnKkP"
     }
   },
   {
@@ -18,7 +235,272 @@
     "type": "background",
     "index": {
       "name": "Fireworks Performer",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "2lk5NOcu1aUglUdK"
+    }
+  },
+  {
+    "_id": "oj1jWUuQWvquDQ4d",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.oj1jWUuQWvquDQ4d",
+    "name": "Fortune Teller",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Fortune Teller",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "3frMfODIYFeqTl2k"
+    }
+  },
+  {
+    "_id": "zGqbxmpQ0ax00sK9",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.zGqbxmpQ0ax00sK9",
+    "name": "Gambler",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Gambler",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "89LEOv97ZwsjnhNx"
+    }
+  },
+  {
+    "_id": "Cgdx2vWNdH7jo0DZ",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.Cgdx2vWNdH7jo0DZ",
+    "name": "Gladiator",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Gladiator",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "88WyCqU5x1eJ0MK2"
+    }
+  },
+  {
+    "_id": "ass1ot8D7XleoOWS",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.ass1ot8D7XleoOWS",
+    "name": "Guard",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Guard",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "6UmhTxOQeqFnppxx"
+    }
+  },
+  {
+    "_id": "8ARQ1quiAPvGDylk",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.8ARQ1quiAPvGDylk",
+    "name": "Herbalist",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Herbalist",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "ZdhPKEY9FfaOS8Wy"
+    }
+  },
+  {
+    "_id": "URfTVEMWsFxcPl1g",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.URfTVEMWsFxcPl1g",
+    "name": "Hermit",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Hermit",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "b3UC18ueX8m9Ov0W"
+    }
+  },
+  {
+    "_id": "ScQU3Bt3LFfug0Hv",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.ScQU3Bt3LFfug0Hv",
+    "name": "Hunter",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Hunter",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "5Z3cLEpsx9nHVwhM"
+    }
+  },
+  {
+    "_id": "aDsvdeCnLEm6xMT0",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.aDsvdeCnLEm6xMT0",
+    "name": "Laborer",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Laborer",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "2bzqI0D4J3LUi8nq"
+    }
+  },
+  {
+    "_id": "4iVBkuUoAO6VPffT",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.4iVBkuUoAO6VPffT",
+    "name": "Martial Disciple",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Martial Disciple",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "lX5KDS2hU5LihZRs"
+    }
+  },
+  {
+    "_id": "qioexlQ2215Ts7ab",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.qioexlQ2215Ts7ab",
+    "name": "Merchant",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Merchant",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "KMv7ollLVaZ81XDV"
+    }
+  },
+  {
+    "_id": "stG67g6asHQ73Fka",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.stG67g6asHQ73Fka",
+    "name": "Miner",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Miner",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "bCJ9p3P5uJDAtaUI"
+    }
+  },
+  {
+    "_id": "Fky6f90r3rTCmfXo",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.Fky6f90r3rTCmfXo",
+    "name": "Noble",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Noble",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "Yu7Cl0Lk94LdPRi6"
+    }
+  },
+  {
+    "_id": "0U1T1VTZ0DcCsEhg",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.0U1T1VTZ0DcCsEhg",
+    "name": "Nomad",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Nomad",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "8UXahQfkP9GZ1TNW"
+    }
+  },
+  {
+    "_id": "rvmLvw2P5nB3ylbX",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.rvmLvw2P5nB3ylbX",
+    "name": "Prisoner",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Prisoner",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "apXTV7jJx6yJpj8D"
+    }
+  },
+  {
+    "_id": "9j8OQtalLxDavcwE",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.9j8OQtalLxDavcwE",
+    "name": "Raised by Belief",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Raised by Belief",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "RC4l6WsxPn89a1f8"
+    }
+  },
+  {
+    "_id": "UgHUPyqRiCImAchP",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.UgHUPyqRiCImAchP",
+    "name": "Sailor",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Sailor",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "Zmwyhsxe4i6rZN75"
+    }
+  },
+  {
+    "_id": "TtOFMTviCV8d1uBQ",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.TtOFMTviCV8d1uBQ",
+    "name": "Scholar",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Scholar",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "v0WPfxN6G8XFfFZT"
+    }
+  },
+  {
+    "_id": "atjz42ubQ2Vpuhs0",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.atjz42ubQ2Vpuhs0",
+    "name": "Scout",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Scout",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "o7RbsQbv5iLRvd8j"
+    }
+  },
+  {
+    "_id": "zR1zWtzCC3yd5apL",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.zR1zWtzCC3yd5apL",
+    "name": "Street Urchin",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Street Urchin",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "moVRsnpjB5THCwxE"
+    }
+  },
+  {
+    "_id": "3wUUi6p9a8KnP8BL",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.3wUUi6p9a8KnP8BL",
+    "name": "Teacher",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Teacher",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "WrKVeUQ6KeRCm9uH"
+    }
+  },
+  {
+    "_id": "cr70i4QmjaNdfb21",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.cr70i4QmjaNdfb21",
+    "name": "Tinker",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Tinker",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "i79pgNIAtJfkkOiw"
+    }
+  },
+  {
+    "_id": "k8WceOZ0gdvvDVjZ",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.k8WceOZ0gdvvDVjZ",
+    "name": "Warrior",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Warrior",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "r0kYIbN06Cv8eNG3"
     }
   }
 ]

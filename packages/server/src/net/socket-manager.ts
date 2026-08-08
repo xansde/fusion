@@ -14,6 +14,8 @@ import { Server as SocketIOServer } from "socket.io";
 import type { Namespace, Socket } from "socket.io";
 import type { Server as HttpServer } from "node:http";
 import type { Logger } from "pino";
+import { existsSync } from "node:fs";
+import { guardPath, PathTraversalError } from "../assets/path-guard.js";
 
 import { EnvelopeSchema, PROTOCOL_VERSION, FUSION_VERSION, type Envelope } from "@fusion/shared";
 
@@ -68,6 +70,7 @@ import {
   buildActiveSceneHandler,
   sendJoinSnapshot,
 } from "./handlers/sync-handlers.js";
+import { buildSoundPlayHandler, buildSoundStopHandler } from "./handlers/sound-handlers.js";
 import {
   buildChatSendHandler,
   buildChatHistoryHandler,
@@ -99,6 +102,7 @@ import {
   buildCompendiumIndexHandler,
   buildCompendiumSearchHandler,
   buildCompendiumGetHandler,
+  buildCompendiumI18nBySourceRefHandler,
   buildCompendiumImportHandler,
 } from "../compendium/index.js";
 
@@ -144,6 +148,15 @@ export interface WorldNamespaceOptions {
    * fallback (e.g. stub system, or system package not loaded).
    */
   systemModule?: SystemModule;
+  /**
+   * The world's assets directory (same value passed as `assetsDir` to
+   * registerAssetRoutes — see boot.ts). When provided, sound:play validates
+   * that the requested track actually exists in the library before
+   * accepting it (NOT_FOUND otherwise) — see sound-handlers.ts's
+   * `assetExists` dep. Optional — undefined leaves that validation to the
+   * GM's asset-picker UI (see sound-handlers.ts docblock).
+   */
+  assetsDir?: string;
 }
 
 /**
@@ -233,6 +246,7 @@ export class SocketManager {
       compendiumService,
       systemId,
       systemModule,
+      assetsDir,
     } = options;
 
     const namespacePath = `/world/${worldId}`;
@@ -284,6 +298,24 @@ export class SocketManager {
     // Register M1-B sync handlers
     registry.register("resync:request", buildResyncRequestHandler(syncDeps));
     registry.register("world:activeScene", buildActiveSceneHandler(syncDeps));
+
+    // Register M3 mapa-som ambient track handlers (sound:play / sound:stop).
+    // assetExists is wired only when assetsDir was supplied (see boot.ts —
+    // the same directory registerAssetRoutes serves from); when it isn't,
+    // the handler skips NOT_FOUND validation (see sound-handlers.ts docblock).
+    const assetExists = assetsDir
+      ? (name: string): boolean => {
+          try {
+            return existsSync(guardPath(assetsDir, name));
+          } catch (err) {
+            if (err instanceof PathTraversalError) return false;
+            throw err;
+          }
+        }
+      : undefined;
+    const soundDeps = { db, ns, seqStore, opBuffer, ...(assetExists ? { assetExists } : {}) };
+    registry.register("sound:play", buildSoundPlayHandler(soundDeps));
+    registry.register("sound:stop", buildSoundStopHandler(soundDeps));
 
     // Register M1-D chat + roll handlers
     const chatDeps = { db, ns, seqStore, worldId };
@@ -378,6 +410,14 @@ export class SocketManager {
     registry.register("compendium:index", buildCompendiumIndexHandler(compDeps));
     registry.register("compendium:search", buildCompendiumSearchHandler(compDeps));
     registry.register("compendium:get", buildCompendiumGetHandler(compDeps));
+    // Issue #43: a world document has no `uuid` (importToWorld strips it to keep
+    // the world copy EN-pure), so `compendium:get` cannot serve its translation.
+    // Its `flags.fusion.{packName,sourceId}` do survive, and this handler is the
+    // read-side path that turns that origin reference back into the pt-BR overlay.
+    registry.register(
+      "compendium:i18nBySourceRef",
+      buildCompendiumI18nBySourceRefHandler(compDeps),
+    );
     registry.register("compendium:import", buildCompendiumImportHandler(compDeps));
 
     // Register M5-C Etmos Compositor de Magias handlers (etmos:conjuracao:*).

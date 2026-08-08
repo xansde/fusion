@@ -48,8 +48,34 @@ jobs:
       - name: Lint boundaries
         run: pnpm lint:boundaries
 
+      # pregen-parity.test.ts (issue #48) compares our derivation against data
+      # WE DID NOT PRODUCE: Paizo's official pregen sheets, which live in the
+      # gitignored `vendor/` clone (Paizo content must not be committed — see
+      # CLAUDE.md). Without this step the suite dies on ENOENT and the gate the
+      # #48 exists to install never runs on the runner. Sparse checkout keeps it
+      # at ~12 MB instead of cloning the whole pf2e system.
+      - name: Cache pf2e iconics (vendor)
+        id: vendor-cache
+        uses: actions/cache@v4
+        with:
+          path: tools/importer-pf2e/vendor/pf2e
+          key: pf2e-iconics-v1
+
+      - name: Vendor pf2e iconics (gate da #48)
+        if: steps.vendor-cache.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --filter=blob:none --sparse \
+            https://github.com/foundryvtt/pf2e tools/importer-pf2e/vendor/pf2e
+          git -C tools/importer-pf2e/vendor/pf2e \
+            sparse-checkout set packs/pf2e/iconics
+
       - name: Test
         run: pnpm test
+
+      - name: Test tools (node:test)
+        run: |
+          pnpm --filter @fusion/translate-packs test
+          pnpm --filter @fusion/importer-pf2e test
 
       - name: Coverage (shared ≥80%)
         run: pnpm --filter @fusion/shared run test:coverage

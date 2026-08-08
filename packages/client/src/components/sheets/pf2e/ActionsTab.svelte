@@ -43,6 +43,7 @@
     loadActionEntries,
     loadActionNameIndexEntries,
     buildActionNameIndex,
+    buildActionSourceIdIndex,
     classifyLoadError,
     mergeActionRows,
     filterActionRows,
@@ -51,6 +52,7 @@
     sortActionRows,
     actionRowNameParts,
     buildEmbeddedDetailsDoc,
+    mergeEmbeddedNameOverlay,
     needsFallbackDescription,
     withFallbackDescription,
     descriptionHtmlOf,
@@ -180,7 +182,11 @@
   });
 
   const nameIndex = $derived(buildActionNameIndex(nameIndexEntries));
-  const allRows = $derived(mergeActionRows(packEntries, embeddedItems, nameIndex));
+  // sourceId index (issue #42): combines actions-core + feats-core entries,
+  // actions-core listed first so it wins on a collision — the same
+  // pack-priority order `nameIndex` has always used for its slug index.
+  const sourceIdIndex = $derived(buildActionSourceIdIndex([...packEntries, ...nameIndexEntries]));
+  const allRows = $derived(mergeActionRows(packEntries, embeddedItems, nameIndex, sourceIdIndex));
 
   // The character's class/ancestry/archetype identity, for the relevance filter.
   const profile = $derived(deriveCharacterProfile(embeddedItems));
@@ -241,13 +247,17 @@
    * name as a subtitle) exactly like pack docs. Embedded items are EN of birth;
    * the pt-BR name was inherited from the deduped pack row on merge. When the
    * row has no translation (namePt null) the doc is returned unchanged (EN). T1.
+   *
+   * Delegates to {@link mergeEmbeddedNameOverlay} (actionsVM.ts), which MERGES
+   * into any i18n bag already persisted on the doc rather than replacing it
+   * (issue #10 — the prior inline version overwrote the whole bag with
+   * `{ptBR:{name}}`, discarding a persisted `i18n.ptBR.description`).
    */
   function localizeEmbeddedDoc(
     rowItem: ActionRow,
     embeddedDoc: Record<string, unknown> | null,
   ): Record<string, unknown> | null {
-    if (embeddedDoc === null || rowItem.namePt === null) return embeddedDoc;
-    return { ...embeddedDoc, i18n: { ptBR: { name: rowItem.namePt } } };
+    return mergeEmbeddedNameOverlay(embeddedDoc, rowItem.namePt);
   }
 
   function selectRow(rowItem: ActionRow): void {
@@ -616,7 +626,7 @@
               {#if rowItem.traits.length > 0}
                 <div class="actions-row__traits">
                   {#each rowItem.traits as trait (trait)}
-                    <span class="actions-row__trait">{trait}</span>
+                    <span class="actions-row__trait">{traitDisplayName(trait, i18n.locale)}</span>
                   {/each}
                 </div>
               {/if}

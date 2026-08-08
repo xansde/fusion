@@ -25,7 +25,16 @@
  * REQ-CNV-037: remote updates animate; local drag does not re-animate.
  */
 
-import { Container, Graphics, Text, TextStyle, Assets, Sprite, type Texture } from "pixi.js";
+import {
+  Container,
+  Graphics,
+  Text,
+  TextStyle,
+  Assets,
+  Sprite,
+  Rectangle,
+  type Texture,
+} from "pixi.js";
 
 import type { TokenDocument } from "@fusion/shared";
 import { resolveAssetUrl } from "../../assets/assetApi.js";
@@ -124,6 +133,16 @@ export class TokenSprite {
     this.container = new Container();
     this.container.label = `token:${doc._id}`;
     this.container.eventMode = "static"; // enables pointer events for drag/select
+    // hitArea is REQUIRED, not an optimization. PIXI only hit-tests an object
+    // that either owns a hitArea or implements containsPoint (Sprite, Graphics,
+    // Mesh). This is a plain Container, and every visual child below is
+    // eventMode "none" — so without a hitArea nothing here can ever be the
+    // target of a click, no matter that eventMode says "static". The click then
+    // resolved to the token LAYER (which TokenInteractionManager gives a
+    // catch-all hitArea), the manager found no "token:" label walking up, and
+    // treated every click on a token as a click on empty canvas. Tokens could
+    // not be selected or dragged by anyone. Set here and kept in sync with the
+    // footprint in _applyHitArea().
 
     // Art
     this._artContainer = new Container();
@@ -158,6 +177,7 @@ export class TokenSprite {
     this._renderX = doc.x;
     this._renderY = doc.y;
 
+    this._applyHitArea(pixelW, pixelH);
     this._applyPosition(doc.x, doc.y);
     this._drawRing(pixelW, pixelH);
     this._drawBars(doc, pixelW, pixelH);
@@ -227,6 +247,10 @@ export class TokenSprite {
     this._gridSize = gridSize;
 
     const { pixelW, pixelH } = tokenPixelSize(newDoc.width, newDoc.height, gridSize);
+
+    // Footprint or grid size may have changed — a stale hitArea leaves the
+    // token clickable at its previous size.
+    this._applyHitArea(pixelW, pixelH);
 
     // Position
     const xChanged = newDoc.x !== oldDoc.x || newDoc.y !== oldDoc.y;
@@ -389,6 +413,18 @@ export class TokenSprite {
 
   private _applyPosition(x: number, y: number): void {
     this.container.position.set(x, y);
+  }
+
+  /**
+   * Keep the clickable area matching the token footprint.
+   *
+   * Local coordinates: the container sits at the token's top-left, so the
+   * footprint spans (0,0)–(pixelW,pixelH) — the same box _drawRing outlines.
+   * Must be called whenever the footprint changes, or a resized token stays
+   * clickable at its old size.
+   */
+  private _applyHitArea(pixelW: number, pixelH: number): void {
+    this.container.hitArea = new Rectangle(0, 0, pixelW, pixelH);
   }
 
   // ---------------------------------------------------------------------------

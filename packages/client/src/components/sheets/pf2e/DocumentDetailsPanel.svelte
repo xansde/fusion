@@ -40,6 +40,17 @@
     error: boolean;
     onRetry: () => void;
     /**
+     * The level at which the CALLER already knows this document was granted
+     * (e.g. a Plan-column class-feature chip's `PlanDetailsRequest.level`,
+     * issue #58) — overrides a classFeature document's own static
+     * `system.level` for both the header badge and the "Level" mechanical
+     * field, since class-features-core reuses 17 documents across classes
+     * that grant them at different levels. null/omitted (the default) falls
+     * back to the document's own level, so callers with no class context
+     * (spell/feat pickers) render exactly as before.
+     */
+    contextLevel?: number | null;
+    /**
      * i18n keys for the panel's state strings. Default to the spell-picker
      * namespace so existing callers (SpellPickerDialog) keep their copy; the
      * Actions tab overrides these with FUSION.Sheet.Actions.Details.* so the
@@ -57,6 +68,7 @@
     loading,
     error,
     onRetry,
+    contextLevel = null,
     loadingKey = "FUSION.Sheet.Spells.Picker.Details.Loading",
     loadErrorKey = "FUSION.Sheet.Spells.Picker.Details.LoadError",
     retryKey = "FUSION.Sheet.Spells.Picker.Details.Retry",
@@ -64,8 +76,10 @@
     noDescriptionKey = "FUSION.Sheet.Spells.Picker.Details.NoDescription",
   }: Props = $props();
 
-  const header = $derived(doc ? buildDetailsHeader(doc, i18n.locale) : null);
-  const mechanicalFields = $derived(doc ? buildMechanicalFields(doc, i18n.locale) : []);
+  const header = $derived(doc ? buildDetailsHeader(doc, i18n.locale, contextLevel ?? undefined) : null);
+  const mechanicalFields = $derived(
+    doc ? buildMechanicalFields(doc, i18n.locale, contextLevel ?? undefined) : [],
+  );
   const descriptionHtml = $derived.by(() => {
     if (!doc) return "";
     // Prefer the pt-BR translation when the active locale is pt-BR and the

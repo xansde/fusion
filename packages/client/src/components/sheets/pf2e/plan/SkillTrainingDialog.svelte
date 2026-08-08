@@ -33,6 +33,7 @@
   import ProficiencyBadge from "../ProficiencyBadge.svelte";
   import { skillHelpFor, TEML_LEGEND } from "./abilitySkillHelp.js";
   import { t } from "../../../../lib/i18n/i18n.js";
+  import { skillNamePt } from "../../../../lib/sheets/pf2e/skillNames.js";
 
   interface Props {
     title: string;
@@ -87,10 +88,13 @@
     }
   }
 
-  // Skill names are PF2e game terms and stay in English everywhere in the
-  // sheet (mirrors PlanColumn.svelte's SKILL_LABELS / characterSheetVM.ts's
-  // SKILL_LABELS — never routed through t()).
-  const SKILL_LABELS: Record<string, string> = {
+  // R24 (#64): the row's MAIN label is the pt-BR name from skillNamePt()
+  // (packages/client/src/lib/sheets/pf2e/skillNames.ts), with the EN game
+  // term kept as a subtitle — exactly the "pt-BR main + EN sub" pattern the
+  // Skills tab already uses (CharacterSheet.svelte:907,936 via
+  // `skill-row__name-en`). This EN map only feeds that subtitle now; it used
+  // to be the sole (English-only) label before skillNamePt() existed.
+  const SKILL_LABELS_EN: Record<string, string> = {
     acrobatics: "Acrobatics",
     arcana: "Arcana",
     athletics: "Athletics",
@@ -109,9 +113,9 @@
     thievery: "Thievery",
   };
 
-  function skillLabel(row: SkillTrainingRow): string {
+  function skillLabelEn(row: SkillTrainingRow): string {
     if (row.isLore) return `Lore (${row.slug.replace(/^lore-/, "")})`;
-    return SKILL_LABELS[row.slug] ?? row.slug;
+    return SKILL_LABELS_EN[row.slug] ?? row.slug;
   }
 
   function fmtSigned(value: number): string {
@@ -204,7 +208,10 @@
               onfocus={() => { hoveredSlug = row.slug; }}
             >
               <span class="st-row__check" aria-hidden="true">{selected ? "✓" : ""}</span>
-              <span class="st-row__name">{skillLabel(row)}</span>
+              <span class="st-row__name">
+                {skillNamePt(row.slug)}
+                <span class="st-row__name-en">{skillLabelEn(row)}</span>
+              </span>
               <span class="st-row__ability">{row.ability.toUpperCase()}</span>
               <span class="st-row__breakdown">
                 {t("FUSION.Sheet.Plan.SkillTraining.Breakdown", {
@@ -490,6 +497,14 @@
   .st-row__name {
     font-size: 12.5px;
     font-weight: 600;
+  }
+
+  /* EN subtitle beside the pt-BR skill name, matching the Skills tab. */
+  .st-row__name-en {
+    margin-left: 6px;
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--fusion-text-subtle);
   }
 
   .st-row__ability {

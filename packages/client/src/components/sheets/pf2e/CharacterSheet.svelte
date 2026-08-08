@@ -24,10 +24,11 @@
    * componentProps is simply ignored.
    */
 
-  import { CharacterSheetVM } from "$lib/sheets/pf2e/characterSheetVM.js";
+  import { CharacterSheetVM, translatedStrikeDamageFormula } from "$lib/sheets/pf2e/characterSheetVM.js";
   import type { ChatRollPayload, DocUpdatePayload, DocOpPayload, CharacterSheetTab, SpellHealResolver } from "$lib/sheets/pf2e/characterSheetVM.js";
   import { buildSpellHealResolver } from "$lib/sheets/pf2e/spellHeal.js";
   import { skillNamePt } from "$lib/sheets/pf2e/skillNames.js";
+  import { traitDisplayName } from "$lib/compendium/documentDetails.js";
   import { getSocket, session } from "$lib/session.svelte.js";
   import { sendChatOpForId } from "$lib/docs/sendOp.js";
   import { worldMirror } from "$lib/docs/worldSync.js";
@@ -42,7 +43,7 @@
   import { detectFamiliarGrant, linkedFamiliars } from "$lib/sheets/pf2e/petsVM.js";
   import { isPortraitPlaceholder } from "$lib/common/portrait.js";
   import { fusionApi } from "$lib/api.js";
-  import { t } from "$lib/i18n/i18n.js";
+  import { t, i18n } from "$lib/i18n/i18n.js";
 
   // ---------------------------------------------------------------------------
   // Props
@@ -541,7 +542,7 @@
         aria-label={editMode ? "Switch to Play mode" : "Switch to Edit mode"}
         onclick={() => { editMode = !editMode; }}
       >
-        {editMode ? "Play" : "Edit"}
+        {editMode ? t("FUSION.Sheet.Mode.Play") : t("FUSION.Sheet.Mode.Edit")}
       </button>
       <button
         type="button"
@@ -556,7 +557,7 @@
 
     <!-- HP editor -->
     <div class="sheet-hp" aria-label="Hit Points">
-      <label class="sheet-hp__label" for="hp-input-{actorId}">HP</label>
+      <label class="sheet-hp__label" for="hp-input-{actorId}">{t("FUSION.Sheet.Labels.HP")}</label>
       <div class="sheet-hp__row">
         {#if vm.editable}
           <input
@@ -579,9 +580,9 @@
         {/if}
       </div>
       {#if saveStatus === "saving"}
-        <span class="sheet-save-status sheet-save-status--saving" aria-live="polite">saving…</span>
+        <span class="sheet-save-status sheet-save-status--saving" aria-live="polite">{t("FUSION.Sheet.Autosave.Saving")}</span>
       {:else if saveStatus === "saved"}
-        <span class="sheet-save-status sheet-save-status--saved" aria-live="polite">saved</span>
+        <span class="sheet-save-status sheet-save-status--saved" aria-live="polite">{t("FUSION.Sheet.Autosave.Saved")}</span>
       {/if}
     </div>
 
@@ -589,7 +590,7 @@
     <div class="sheet-defenses">
       <div class="defense-block" aria-label="Armor Class {vm.ac}">
         <span class="defense-block__value">{vm.ac}</span>
-        <span class="defense-block__label">AC</span>
+        <span class="defense-block__label">{t("FUSION.Sheet.Labels.AC")}</span>
       </div>
       <button
         class="defense-block defense-block--rollable"
@@ -597,7 +598,7 @@
         aria-label="Roll Perception {vm.perception.totalFormatted}"
       >
         <span class="defense-block__value">{vm.perception.totalFormatted}</span>
-        <span class="defense-block__label">Perception</span>
+        <span class="defense-block__label">{t("FUSION.Sheet.Labels.Perception")}</span>
       </button>
     </div>
 
@@ -605,13 +606,13 @@
     {#if vm.dying > 0 || vm.wounded > 0 || vm.doomed > 0}
       <div class="sheet-status-badges" role="status" aria-label="Character status">
         {#if vm.dying > 0}
-          <span class="status-badge status-badge--dying">Dying {vm.dying}/{vm.dyingMax}</span>
+          <span class="status-badge status-badge--dying">{t("FUSION.Sheet.Status.Dying", { value: String(vm.dying), max: String(vm.dyingMax) })}</span>
         {/if}
         {#if vm.wounded > 0}
-          <span class="status-badge status-badge--wounded">Wounded {vm.wounded}</span>
+          <span class="status-badge status-badge--wounded">{t("FUSION.Sheet.Status.Wounded", { value: String(vm.wounded) })}</span>
         {/if}
         {#if vm.doomed > 0}
-          <span class="status-badge status-badge--doomed">Doomed {vm.doomed}</span>
+          <span class="status-badge status-badge--doomed">{t("FUSION.Sheet.Status.Doomed", { value: String(vm.doomed) })}</span>
         {/if}
       </div>
     {/if}
@@ -639,25 +640,28 @@
              when the character's current max is lower — pips beyond `max`
              render locked/hatched (unclickable), matching the design
              contract's PipRow "locked" state (guidelines/pips.card.html). -->
-        <div class="resource-pip-group" aria-label="Focus Points {vm.focusPoints.value}/{vm.focusPoints.max}">
+        <div
+          class="resource-pip-group"
+          aria-label={t("FUSION.Sheet.Spells.FocusPointsGroup", { value: String(vm.focusPoints.value), max: String(vm.focusPoints.max) })}
+        >
           {#each { length: 3 } as _, i}
             {#if i < vm.focusPoints.max}
               <button
                 class="resource-pip resource-pip--focus"
                 class:resource-pip--filled={i < vm.focusPoints.value}
-                title="Set Focus Points to {i < vm.focusPoints.value ? i : i + 1}"
-                aria-label="Focus point {i + 1}"
+                title={t("FUSION.Sheet.Spells.SetFocusPoints", { n: String(i < vm.focusPoints.value ? i : i + 1) })}
+                aria-label={t("FUSION.Sheet.Spells.FocusPip", { n: String(i + 1) })}
                 onclick={() => clickFocusPip(i)}
               ></button>
             {:else}
               <span
                 class="resource-pip resource-pip--focus resource-pip--locked"
-                title="Beyond your current Focus Points maximum"
-                aria-label="Focus point {i + 1} (locked)"
+                title={t("FUSION.Sheet.Spells.FocusPipLocked")}
+                aria-label={t("FUSION.Sheet.Spells.FocusPipLockedAria", { n: String(i + 1) })}
               ></span>
             {/if}
           {/each}
-          <span class="resource-label">Focus</span>
+          <span class="resource-label">{t("FUSION.Sheet.Spells.FocusTab")}</span>
         </div>
       {/if}
     </div>
@@ -762,25 +766,25 @@
     >
       {#if editMode}
         <div class="edit-field">
-          <label for="edit-name-{actorId}">Name</label>
+          <label for="edit-name-{actorId}">{t("FUSION.Sheet.Labels.Name")}</label>
           <input id="edit-name-{actorId}" type="text" value={vm.name} oninput={handleNameInput} />
         </div>
         <div class="edit-field-row">
           <div class="edit-field">
-            <label for="edit-level-{actorId}">Level</label>
+            <label for="edit-level-{actorId}">{t("FUSION.Sheet.Labels.Level")}</label>
             <input id="edit-level-{actorId}" type="number" min="1" max="20" value={vm.level} oninput={handleLevelInput} />
           </div>
           <div class="edit-field">
-            <label for="edit-speed-{actorId}">Speed</label>
+            <label for="edit-speed-{actorId}">{t("FUSION.Sheet.Labels.Speed")}</label>
             <input id="edit-speed-{actorId}" type="number" min="0" value={vm.speed} oninput={handleSpeedInput} />
           </div>
           <div class="edit-field">
-            <label for="edit-hpmax-{actorId}">HP Max</label>
+            <label for="edit-hpmax-{actorId}">{t("FUSION.Sheet.Labels.HPMax")}</label>
             <input id="edit-hpmax-{actorId}" type="number" min="0" value={vm.hpMax} oninput={handleHpMaxInput} />
           </div>
         </div>
 
-        <h3 class="section-header">Abilities</h3>
+        <h3 class="section-header">{t("FUSION.Sheet.Labels.Abilities")}</h3>
         <div class="edit-field-row edit-field-row--abilities">
           {#each vm.abilities as ability (ability.slug)}
             <div class="edit-field">
@@ -795,7 +799,7 @@
           {/each}
         </div>
 
-        <h3 class="section-header">Saves &amp; Perception</h3>
+        <h3 class="section-header">{t("FUSION.Sheet.Labels.SavesAndPerception")}</h3>
         <div class="edit-field-row">
           {#each vm.saves as save (save.slug)}
             <div class="edit-field">
@@ -812,7 +816,7 @@
             </div>
           {/each}
           <div class="edit-field">
-            <label for="edit-perception-{actorId}">Perception</label>
+            <label for="edit-perception-{actorId}">{t("FUSION.Sheet.Labels.Perception")}</label>
             <select id="edit-perception-{actorId}" value={vm.perception.rank} onchange={handlePerceptionRankChange}>
               {#each RANK_OPTIONS as opt (opt.value)}
                 <option value={opt.value}>{opt.label}</option>
@@ -821,34 +825,34 @@
           </div>
         </div>
 
-        <h3 class="section-header">Resources</h3>
+        <h3 class="section-header">{t("FUSION.Sheet.Labels.Resources")}</h3>
         <div class="edit-field-row">
           <div class="edit-field">
-            <label for="edit-hero-value-{actorId}">Hero Points</label>
+            <label for="edit-hero-value-{actorId}">{t("FUSION.Sheet.Labels.HeroPoints")}</label>
             <input id="edit-hero-value-{actorId}" type="number" min="0" value={vm.heroPoints.value} oninput={handleHeroValueInput} />
           </div>
           <div class="edit-field">
-            <label for="edit-hero-max-{actorId}">Hero Max</label>
+            <label for="edit-hero-max-{actorId}">{t("FUSION.Sheet.Labels.HeroPointsMax")}</label>
             <input id="edit-hero-max-{actorId}" type="number" min="0" value={vm.heroPoints.max} oninput={handleHeroMaxInput} />
           </div>
           <div class="edit-field">
-            <label for="edit-focus-value-{actorId}">Focus Points</label>
+            <label for="edit-focus-value-{actorId}">{t("FUSION.Sheet.Spells.FocusPoints")}</label>
             <input id="edit-focus-value-{actorId}" type="number" min="0" value={vm.focusPoints.value} oninput={handleFocusValueInput} />
           </div>
           <div class="edit-field">
-            <label for="edit-focus-max-{actorId}">Focus Max</label>
+            <label for="edit-focus-max-{actorId}">{t("FUSION.Sheet.Labels.FocusPointsMax")}</label>
             <input id="edit-focus-max-{actorId}" type="number" min="0" value={vm.focusPoints.max} oninput={handleFocusMaxInput} />
           </div>
         </div>
       {:else}
         <div class="stat-row">
           <div class="stat-block">
-            <span class="stat-block__value">{vm.speed} ft</span>
-            <span class="stat-block__label">Speed</span>
+            <span class="stat-block__value">{vm.speed} {t("FUSION.Sheet.Pets.Feet")}</span>
+            <span class="stat-block__label">{t("FUSION.Sheet.Labels.Speed")}</span>
           </div>
           <div class="stat-block">
             <span class="stat-block__value">{vm.perception.totalFormatted}</span>
-            <span class="stat-block__label">Perc. ({vm.perception.rankLabel})</span>
+            <span class="stat-block__label">{t("FUSION.Sheet.Labels.PerceptionAbbrev")} ({vm.perception.rankLabel})</span>
           </div>
           <div class="stat-block">
             <span class="stat-block__value">{vm.classDC.dc}</span>
@@ -884,7 +888,7 @@
         </div>
         {#if vm.senses.length > 0}
           <div class="senses-row" aria-label="Senses">
-            <span class="senses-row__label">Senses:</span>
+            <span class="senses-row__label">{t("FUSION.Sheet.Labels.Senses")}:</span>
             <span class="senses-row__value">{vm.senses.join(", ")}</span>
           </div>
         {/if}
@@ -997,13 +1001,14 @@
                 {/if}
               </div>
               <div class="strike-row__damage">
-                <!-- damageFormula already ends with the damage type word -->
-                {t("FUSION.Sheet.Actions.Strikes.DamagePrefix")} <span class="damage-formula">{strike.damageFormula}</span>
+                <!-- translatedStrikeDamageFormula() swaps the raw EN damage-type
+                     word (always the last token) for its pt-BR translation. -->
+                {t("FUSION.Sheet.Actions.Strikes.DamagePrefix")} <span class="damage-formula">{translatedStrikeDamageFormula(strike)}</span>
               </div>
               {#if strike.traits.length > 0}
                 <div class="strike-row__traits">
                   {#each strike.traits as trait}
-                    <span class="trait-badge">{trait}</span>
+                    <span class="trait-badge">{traitDisplayName(trait, i18n.locale)}</span>
                   {/each}
                 </div>
               {/if}
@@ -1123,7 +1128,7 @@
               {/if}
               <span class="inventory-row__name">{item.name}</span>
               <span class="inventory-row__qty">×{item.quantity}</span>
-              <span class="inventory-row__bulk">Bulk {String(item.bulk)}</span>
+              <span class="inventory-row__bulk">{t("FUSION.Sheet.Inventory.Bulk", { bulk: String(item.bulk) })}</span>
               <button
                 type="button"
                 class="inventory-row__equip"
@@ -1151,7 +1156,7 @@
           {/each}
         </ul>
       {:else}
-        <p class="empty-state">Empty inventory.</p>
+        <p class="empty-state">{t("FUSION.Sheet.Inventory.Empty")}</p>
       {/if}
     </section>
 
@@ -1164,10 +1169,10 @@
       class="tab-panel tab-panel--bio"
     >
       <div class="bio-details">
-        <div class="bio-details__row"><strong>Ancestry:</strong> {vm.detailsInfo.ancestry || "—"}</div>
-        <div class="bio-details__row"><strong>Background:</strong> {vm.detailsInfo.background || "—"}</div>
-        <div class="bio-details__row"><strong>Class:</strong> {vm.detailsInfo.class || "—"}</div>
-        <div class="bio-details__row"><strong>Key Ability:</strong> {vm.detailsInfo.keyAbility || "—"}</div>
+        <div class="bio-details__row"><strong>{t("FUSION.Sheet.Plan.Abc.Ancestry")}:</strong> {vm.detailsInfo.ancestry || "—"}</div>
+        <div class="bio-details__row"><strong>{t("FUSION.Sheet.Plan.Abc.Background")}:</strong> {vm.detailsInfo.background || "—"}</div>
+        <div class="bio-details__row"><strong>{t("FUSION.Sheet.Plan.Abc.Class")}:</strong> {vm.detailsInfo.class || "—"}</div>
+        <div class="bio-details__row"><strong>{t("FUSION.Sheet.Bio.KeyAbility")}:</strong> {vm.detailsInfo.keyAbility || "—"}</div>
       </div>
       <p class="bio-text">{vm.biography}</p>
     </section>

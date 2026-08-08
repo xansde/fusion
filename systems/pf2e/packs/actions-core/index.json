@@ -13,7 +13,8 @@
       "system.fusionCategory": "ancestry",
       "system.traits.value": [
         "anadi"
-      ]
+      ],
+      "flags.fusion.sourceId": "8aIe57gXJ94mPpW4"
     }
   },
   {
@@ -30,7 +31,8 @@
       "system.fusionCategory": "ancestry",
       "system.traits.value": [
         "misfortune"
-      ]
+      ],
+      "flags.fusion.sourceId": "0LwQufKtXfRda0BR"
     }
   },
   {
@@ -45,7 +47,8 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "9sXQf1SyppS5B6O1"
     }
   },
   {
@@ -62,7 +65,8 @@
       "system.fusionCategory": "ancestry",
       "system.traits.value": [
         "automaton"
-      ]
+      ],
+      "flags.fusion.sourceId": "uOlyklPCUWLtCaYI"
     }
   },
   {
@@ -77,7 +81,8 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "XeZwXzR1KBlJF770"
     }
   },
   {
@@ -95,7 +100,8 @@
       "system.traits.value": [
         "fortune",
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "wKPtG0pzARZLGHZT"
     }
   },
   {
@@ -112,7 +118,8 @@
       "system.fusionCategory": "ancestry",
       "system.traits.value": [
         "fortune"
-      ]
+      ],
+      "flags.fusion.sourceId": "k5TASjIxghvGCy7g"
     }
   },
   {
@@ -127,7 +134,8 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "NRjBkjYx10MAXp3T"
     }
   },
   {
@@ -142,7 +150,8 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "OpiIzr7h1EKY8wKh"
     }
   },
   {
@@ -159,7 +168,8 @@
       "system.fusionCategory": "ancestry",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "SRdiCXHSLxqu3C67"
     }
   },
   {
@@ -174,7 +184,8 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "8w6esW689NNbbq3i"
     }
   },
   {
@@ -191,7 +202,8 @@
       "system.fusionCategory": "ancestry",
       "system.traits.value": [
         "primal"
-      ]
+      ],
+      "flags.fusion.sourceId": "7qjfYsLNTr17Aftf"
     }
   },
   {
@@ -208,7 +220,8 @@
       "system.fusionCategory": "ancestry",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "mk6rzaAzsBBRGJnh"
     }
   },
   {
@@ -223,7 +236,8 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "ncdryKskPwHMgHFh"
     }
   },
   {
@@ -241,7 +255,8 @@
       "system.traits.value": [
         "curse",
         "occult"
-      ]
+      ],
+      "flags.fusion.sourceId": "hFRHPBj6wjAayNtW"
     }
   },
   {
@@ -256,7 +271,8 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "On5CQjX4euWqToly"
     }
   },
   {
@@ -271,7 +287,8 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "Ul4I0ER6pj3U5eAk"
     }
   },
   {
@@ -286,7 +303,8 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "Aq2mXT2hLlstFL5C"
     }
   },
   {
@@ -304,7 +322,8 @@
       "system.traits.value": [
         "kobold",
         "poison"
-      ]
+      ],
+      "flags.fusion.sourceId": "ev8OHpBO3xq3Zt08"
     }
   },
   {
@@ -321,7 +340,8 @@
       "system.fusionCategory": "ancestry",
       "system.traits.value": [
         "leshy"
-      ]
+      ],
+      "flags.fusion.sourceId": "xpsD4DsYHKXCB4ac"
     }
   },
   {
@@ -336,7 +356,8 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "W4M8L9WepGLamlHs"
     }
   },
   {
@@ -354,7 +375,8 @@
       "system.traits.value": [
         "primal",
         "water"
-      ]
+      ],
+      "flags.fusion.sourceId": "yOk8s1pftOe5I9Sg"
     }
   },
   {
@@ -372,7 +394,8 @@
       "system.traits.value": [
         "divine",
         "earth"
-      ]
+      ],
+      "flags.fusion.sourceId": "0VwLAKI7QP6mib88"
     }
   },
   {
@@ -387,7 +410,8 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "MLOkyKi1Y3N6y56Q"
     }
   },
   {
@@ -402,7 +426,8 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "FkfWKq9jhhPzKAbb"
     }
   },
   {
@@ -419,7 +444,8 @@
       "system.fusionCategory": "ancestry",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "fL7FhTBcKxMzLBAs"
     }
   },
   {
@@ -439,7 +465,8 @@
         "illusion",
         "occult",
         "visual"
-      ]
+      ],
+      "flags.fusion.sourceId": "CPTolKAF55p7D7Sn"
     }
   },
   {
@@ -456,7 +483,8 @@
       "system.fusionCategory": "ancestry",
       "system.traits.value": [
         "fortune"
-      ]
+      ],
+      "flags.fusion.sourceId": "jsEBrm8SPcsokJLw"
     }
   },
   {
@@ -474,7 +502,8 @@
       "system.traits.value": [
         "concentrate",
         "polymorph"
-      ]
+      ],
+      "flags.fusion.sourceId": "34E7k2YRcsOU5uyl"
     }
   },
   {
@@ -491,7 +520,8 @@
       "system.fusionCategory": "ancestry",
       "system.traits.value": [
         "shisk"
-      ]
+      ],
+      "flags.fusion.sourceId": "oAWNluJaMlaGysXA"
     }
   },
   {
@@ -508,7 +538,8 @@
       "system.fusionCategory": "ancestry",
       "system.traits.value": [
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "OqKYkzbc7NEWmJWB"
     }
   },
   {
@@ -525,7 +556,8 @@
       "system.fusionCategory": "ancestry",
       "system.traits.value": [
         "magical"
-      ]
+      ],
+      "flags.fusion.sourceId": "cczvLO5r7QuHaXwx"
     }
   },
   {
@@ -544,7 +576,8 @@
         "fire",
         "light",
         "magical"
-      ]
+      ],
+      "flags.fusion.sourceId": "ako5zZwC6o26cfCQ"
     }
   },
   {
@@ -563,7 +596,8 @@
         "light",
         "magical",
         "visual"
-      ]
+      ],
+      "flags.fusion.sourceId": "aVGNaNgG6cYNRp5A"
     }
   },
   {
@@ -581,7 +615,8 @@
       "system.traits.value": [
         "auditory",
         "magical"
-      ]
+      ],
+      "flags.fusion.sourceId": "VPl4pifKcq7ecK87"
     }
   },
   {
@@ -596,7 +631,8 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "kWrks0NxMQH39JHD"
     }
   },
   {
@@ -615,7 +651,8 @@
         "emotion",
         "fear",
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "KInVpdfrxg0AqjRt"
     }
   },
   {
@@ -634,7 +671,8 @@
         "morph",
         "primal",
         "tengu"
-      ]
+      ],
+      "flags.fusion.sourceId": "mVscmsZWWcVACdU5"
     }
   },
   {
@@ -652,7 +690,8 @@
       "system.traits.value": [
         "poison",
         "tripkee"
-      ]
+      ],
+      "flags.fusion.sourceId": "kKKHwVUnroKuAnOt"
     }
   },
   {
@@ -669,7 +708,8 @@
       "system.fusionCategory": "ancestry",
       "system.traits.value": [
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "s4V7JWSMF9JPJAeX"
     }
   },
   {
@@ -684,7 +724,8 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "ancestry",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "B7wDxyjX66JkiCOV"
     }
   },
   {
@@ -702,7 +743,8 @@
       "system.traits.value": [
         "occult",
         "shadow"
-      ]
+      ],
+      "flags.fusion.sourceId": "lgpJoFrkzfkjAzeV"
     }
   },
   {
@@ -719,7 +761,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "move"
-      ]
+      ],
+      "flags.fusion.sourceId": "1ejGup6ouh9t9S96"
     }
   },
   {
@@ -737,7 +780,8 @@
       "system.traits.value": [
         "concentrate",
         "exploration"
-      ]
+      ],
+      "flags.fusion.sourceId": "lAvEK4yNL3Y7pVmr"
     }
   },
   {
@@ -754,7 +798,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "QGeA2sPtDdryTpWw"
     }
   },
   {
@@ -771,7 +816,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "JxuXTJIKRwmYn08D"
     }
   },
   {
@@ -790,7 +836,8 @@
         "concentrate",
         "exploration",
         "mythic"
-      ]
+      ],
+      "flags.fusion.sourceId": "QWAWf8NDKpo1mzLE"
     }
   },
   {
@@ -809,7 +856,8 @@
         "concentrate",
         "divine",
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "IfWF56KiSFQbNmHj"
     }
   },
   {
@@ -826,7 +874,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "Ssp7CCGMJhcAfeYw"
     }
   },
   {
@@ -843,7 +892,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "mpFTlTGmPBKXMq2C"
     }
   },
   {
@@ -863,7 +913,8 @@
         "divine",
         "fortune",
         "mythic"
-      ]
+      ],
+      "flags.fusion.sourceId": "scCEnY6IhU59uekX"
     }
   },
   {
@@ -878,7 +929,8 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "dypCcXb9mwVbg6xD"
     }
   },
   {
@@ -895,7 +947,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "orjJjLdm4XNAcFi8"
     }
   },
   {
@@ -914,7 +967,8 @@
         "arcane",
         "manipulate",
         "teleportation"
-      ]
+      ],
+      "flags.fusion.sourceId": "Ghx29M00zTSXDxnU"
     }
   },
   {
@@ -931,7 +985,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "rJTg9cKnBF0jsGbr"
     }
   },
   {
@@ -950,7 +1005,8 @@
         "concentrate",
         "manipulate",
         "teleportation"
-      ]
+      ],
+      "flags.fusion.sourceId": "8PuITkuyl9swzWWq"
     }
   },
   {
@@ -968,7 +1024,8 @@
       "system.traits.value": [
         "arcane",
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "rPefHA2zqmUvGXQ7"
     }
   },
   {
@@ -983,7 +1040,8 @@
       "system.actions": 3,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "VNuOwXIHafSLHvsZ"
     }
   },
   {
@@ -1000,7 +1058,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "attack"
-      ]
+      ],
+      "flags.fusion.sourceId": "ZJ8KJp5mZYgzPJYN"
     }
   },
   {
@@ -1017,7 +1076,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "exploration"
-      ]
+      ],
+      "flags.fusion.sourceId": "8kGpUUUSX1sB2OqQ"
     }
   },
   {
@@ -1032,7 +1092,8 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "GrzbczH9S3SHPiIQ"
     }
   },
   {
@@ -1052,7 +1113,8 @@
         "linguistic",
         "mental",
         "mythic"
-      ]
+      ],
+      "flags.fusion.sourceId": "cwBsPU24715fUCub"
     }
   },
   {
@@ -1069,7 +1131,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "stance"
-      ]
+      ],
+      "flags.fusion.sourceId": "SMF1hTWPHtmlS8Cd"
     }
   },
   {
@@ -1090,7 +1153,8 @@
         "divine",
         "linguistic",
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "7wQe43fSCG9DSWdj"
     }
   },
   {
@@ -1107,7 +1171,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "exploration"
-      ]
+      ],
+      "flags.fusion.sourceId": "qyqlwr1hYf227fxD"
     }
   },
   {
@@ -1124,7 +1189,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "H72AAzknXiojqXdY"
     }
   },
   {
@@ -1143,7 +1209,8 @@
         "concentrate",
         "emotion",
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "2424g94rpoiN1IPh"
     }
   },
   {
@@ -1162,7 +1229,8 @@
         "concentrate",
         "emotion",
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "EhLvRWFKhZ3HtrZO"
     }
   },
   {
@@ -1177,7 +1245,8 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "F0JgJR2rXKOg9k1z"
     }
   },
   {
@@ -1192,7 +1261,8 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "DRHtgPhncTSs7Sdd"
     }
   },
   {
@@ -1209,7 +1279,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "stance"
-      ]
+      ],
+      "flags.fusion.sourceId": "zs4ZMcH9oFSCgkBx"
     }
   },
   {
@@ -1226,7 +1297,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "stance"
-      ]
+      ],
+      "flags.fusion.sourceId": "IR95FFdO7MtC8C0E"
     }
   },
   {
@@ -1243,7 +1315,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "flourish"
-      ]
+      ],
+      "flags.fusion.sourceId": "2XQowhfM4SfAhJaf"
     }
   },
   {
@@ -1258,7 +1331,8 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "PACnDVj2YLLSpr8Y"
     }
   },
   {
@@ -1276,7 +1350,8 @@
       "system.traits.value": [
         "curse",
         "occult"
-      ]
+      ],
+      "flags.fusion.sourceId": "IV8sgoLO6ShD3DCJ"
     }
   },
   {
@@ -1293,7 +1368,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "downtime"
-      ]
+      ],
+      "flags.fusion.sourceId": "HFv62jIK98S2xw4x"
     }
   },
   {
@@ -1310,7 +1386,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "fortune"
-      ]
+      ],
+      "flags.fusion.sourceId": "CLX9WEYXdntl2wrt"
     }
   },
   {
@@ -1327,7 +1404,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "vvYsE7OiSSCXhPdr"
     }
   },
   {
@@ -1344,7 +1422,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "Ce9vzE3XWn0u5NcL"
     }
   },
   {
@@ -1362,7 +1441,8 @@
       "system.traits.value": [
         "concentrate",
         "fortune"
-      ]
+      ],
+      "flags.fusion.sourceId": "hSTE1wvCsYYvCsHC"
     }
   },
   {
@@ -1377,7 +1457,8 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "5vLvLriQQGwgIIfz"
     }
   },
   {
@@ -1392,7 +1473,8 @@
       "system.actions": 3,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "DS9sDOWkXrz2xmHi"
     }
   },
   {
@@ -1409,7 +1491,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "mythic"
-      ]
+      ],
+      "flags.fusion.sourceId": "plLX3yDcKo2YiJ0j"
     }
   },
   {
@@ -1427,7 +1510,8 @@
       "system.traits.value": [
         "concentrate",
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "LWrR6UiGm3eCAALJ"
     }
   },
   {
@@ -1442,7 +1526,8 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "SPtzUNatWJvTK61y"
     }
   },
   {
@@ -1462,7 +1547,8 @@
         "healing",
         "light",
         "visual"
-      ]
+      ],
+      "flags.fusion.sourceId": "XotRIv6tKRtuAGAF"
     }
   },
   {
@@ -1480,7 +1566,8 @@
       "system.traits.value": [
         "concentrate",
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "NT1rtY5DFJGsR5QR"
     }
   },
   {
@@ -1498,7 +1585,8 @@
       "system.traits.value": [
         "exploration",
         "secret"
-      ]
+      ],
+      "flags.fusion.sourceId": "VTm9ourfz7mO5Syx"
     }
   },
   {
@@ -1513,7 +1601,8 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "b3h3QqvwS5fnaiu1"
     }
   },
   {
@@ -1528,7 +1617,8 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "mech0dhb4eKbCAu0"
     }
   },
   {
@@ -1547,7 +1637,8 @@
         "fire",
         "sonic",
         "visual"
-      ]
+      ],
+      "flags.fusion.sourceId": "izvfZ561JTdeyh6i"
     }
   },
   {
@@ -1562,7 +1653,8 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "wt6jdjjje16Nx34f"
     }
   },
   {
@@ -1579,7 +1671,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "yUjuLbBMflVum8Yn"
     }
   },
   {
@@ -1594,7 +1687,8 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "Oh6H1fuXC6jK4Hcp"
     }
   },
   {
@@ -1612,7 +1706,8 @@
       "system.traits.value": [
         "auditory",
         "linguistic"
-      ]
+      ],
+      "flags.fusion.sourceId": "hPZQ5vA9QHEPtjFW"
     }
   },
   {
@@ -1629,7 +1724,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "AHCMtFUZXpw98PqS"
     }
   },
   {
@@ -1646,7 +1742,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "1If9lLVoZdO8woVg"
     }
   },
   {
@@ -1665,7 +1762,8 @@
         "concentrate",
         "divine",
         "spellshape"
-      ]
+      ],
+      "flags.fusion.sourceId": "0MZ5tFUYKGMq21NV"
     }
   },
   {
@@ -1680,7 +1778,8 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "VE8P7wCsKo5eSwAz"
     }
   },
   {
@@ -1697,7 +1796,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "fortune"
-      ]
+      ],
+      "flags.fusion.sourceId": "ePfdZYZRmycMpSWU"
     }
   },
   {
@@ -1714,7 +1814,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "holy"
-      ]
+      ],
+      "flags.fusion.sourceId": "ASt94swgHlproIcd"
     }
   },
   {
@@ -1729,7 +1830,8 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "NKjQup6NyQvg2J7y"
     }
   },
   {
@@ -1744,7 +1846,8 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "ZI4jRoVdz9YLtKlv"
     }
   },
   {
@@ -1759,7 +1862,8 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "bwXH0zItp8p8sSjn"
     }
   },
   {
@@ -1774,7 +1878,8 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "S9PZFOVe7zhORkUc"
     }
   },
   {
@@ -1789,7 +1894,8 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "5bCZGpp9yFHXDz1j"
     }
   },
   {
@@ -1807,7 +1913,8 @@
       "system.traits.value": [
         "concentrate",
         "spellshape"
-      ]
+      ],
+      "flags.fusion.sourceId": "am7GMqh4t7m7bbaW"
     }
   },
   {
@@ -1822,7 +1929,8 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "qYdreGwopQ1ODgC6"
     }
   },
   {
@@ -1839,7 +1947,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "yWTdfPklh8jL94GZ"
     }
   },
   {
@@ -1858,7 +1967,8 @@
         "concentrate",
         "magical",
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "ND1G3s4lXNUAXc1q"
     }
   },
   {
@@ -1875,7 +1985,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "healing"
-      ]
+      ],
+      "flags.fusion.sourceId": "PWNi3h0F9EsttE2p"
     }
   },
   {
@@ -1892,7 +2003,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "3sgY9afTTBhZXE8V"
     }
   },
   {
@@ -1909,7 +2021,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "illusion"
-      ]
+      ],
+      "flags.fusion.sourceId": "GKIKJNInDev72qai"
     }
   },
   {
@@ -1926,7 +2039,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "SN3sVsU7rD2eBfkf"
     }
   },
   {
@@ -1944,7 +2058,8 @@
       "system.traits.value": [
         "concentrate",
         "magical"
-      ]
+      ],
+      "flags.fusion.sourceId": "dwA0wfUaRf4aT0eB"
     }
   },
   {
@@ -1961,7 +2076,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "5g0gCXJnUVipYtW0"
     }
   },
   {
@@ -1980,7 +2096,8 @@
         "auditory",
         "concentrate",
         "occult"
-      ]
+      ],
+      "flags.fusion.sourceId": "9X80J5RN21Uoaeiw"
     }
   },
   {
@@ -1995,7 +2112,8 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "oanRfXGLnBm6mMVg"
     }
   },
   {
@@ -2013,7 +2131,8 @@
       "system.traits.value": [
         "concentrate",
         "fortune"
-      ]
+      ],
+      "flags.fusion.sourceId": "BrCbXsCUIFYfu26E"
     }
   },
   {
@@ -2032,7 +2151,8 @@
         "concentrate",
         "primal",
         "teleportation"
-      ]
+      ],
+      "flags.fusion.sourceId": "FomdyTNeKcV1dQMx"
     }
   },
   {
@@ -2049,7 +2169,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "r0qPSxLoa1xRSWYL"
     }
   },
   {
@@ -2064,7 +2185,8 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "a47Npi5XHXo47y49"
     }
   },
   {
@@ -2082,7 +2204,8 @@
       "system.traits.value": [
         "concentrate",
         "magical"
-      ]
+      ],
+      "flags.fusion.sourceId": "ur4AfegC9RqRgy3e"
     }
   },
   {
@@ -2099,7 +2222,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "flourish"
-      ]
+      ],
+      "flags.fusion.sourceId": "vZltxwRNvF5khf9a"
     }
   },
   {
@@ -2114,7 +2238,8 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "2r4BY90F9PLFai3c"
     }
   },
   {
@@ -2134,7 +2259,8 @@
         "exploration",
         "linguistic",
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "SowCo0BXngrpatgn"
     }
   },
   {
@@ -2151,7 +2277,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "Gu0QsFvWoR9EP5SE"
     }
   },
   {
@@ -2169,7 +2296,8 @@
       "system.traits.value": [
         "concentrate",
         "exploration"
-      ]
+      ],
+      "flags.fusion.sourceId": "4d6QSFBP4lMUYrVK"
     }
   },
   {
@@ -2188,7 +2316,8 @@
         "concentrate",
         "divine",
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "djULKW76BbSoN3zb"
     }
   },
   {
@@ -2203,7 +2332,8 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "GmqHs4NEhAjqyAze"
     }
   },
   {
@@ -2220,7 +2350,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "exploration"
-      ]
+      ],
+      "flags.fusion.sourceId": "PE1jm9lBveujj2md"
     }
   },
   {
@@ -2235,7 +2366,8 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "WKEFnxUH0CkM8bWq"
     }
   },
   {
@@ -2253,7 +2385,8 @@
       "system.traits.value": [
         "auditory",
         "spellshape"
-      ]
+      ],
+      "flags.fusion.sourceId": "ri6ZVR7nhFOvZfVa"
     }
   },
   {
@@ -2271,7 +2404,8 @@
       "system.traits.value": [
         "auditory",
         "linguistic"
-      ]
+      ],
+      "flags.fusion.sourceId": "cyl7y8GcGjd8ENC7"
     }
   },
   {
@@ -2286,7 +2420,8 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "pFgkxLJsAcImb0Eg"
     }
   },
   {
@@ -2304,7 +2439,8 @@
       "system.traits.value": [
         "mental",
         "occult"
-      ]
+      ],
+      "flags.fusion.sourceId": "5LW1k5DUkzbbYuYL"
     }
   },
   {
@@ -2321,7 +2457,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "exploration"
-      ]
+      ],
+      "flags.fusion.sourceId": "ZhKXvnw7ND2hQ2pp"
     }
   },
   {
@@ -2336,7 +2473,8 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "k3Dbgb8iS73atDqB"
     }
   },
   {
@@ -2355,7 +2493,8 @@
         "concentrate",
         "divine",
         "extradimensional"
-      ]
+      ],
+      "flags.fusion.sourceId": "KMKuJ0onVS72t9Fv"
     }
   },
   {
@@ -2372,7 +2511,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "magical"
-      ]
+      ],
+      "flags.fusion.sourceId": "ESMIHOOahLQoqxW1"
     }
   },
   {
@@ -2389,7 +2529,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "magical"
-      ]
+      ],
+      "flags.fusion.sourceId": "KC6o1cvbr45xnMei"
     }
   },
   {
@@ -2407,7 +2548,8 @@
       "system.traits.value": [
         "magical",
         "spellshot"
-      ]
+      ],
+      "flags.fusion.sourceId": "Fe487XZBdqEI2InL"
     }
   },
   {
@@ -2425,7 +2567,8 @@
       "system.traits.value": [
         "magical",
         "spellshot"
-      ]
+      ],
+      "flags.fusion.sourceId": "TSDbyYRQwhIyY2Oq"
     }
   },
   {
@@ -2444,7 +2587,8 @@
         "magical",
         "spellshot",
         "teleportation"
-      ]
+      ],
+      "flags.fusion.sourceId": "DYn1igFjCGJEiP22"
     }
   },
   {
@@ -2459,7 +2603,8 @@
       "system.actions": 3,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "3MiV0maH8imtnVwS"
     }
   },
   {
@@ -2474,7 +2619,8 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "jl1euufxNpAhVt26"
     }
   },
   {
@@ -2491,7 +2637,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "flourish"
-      ]
+      ],
+      "flags.fusion.sourceId": "zUWj4zmBNWOTzeFJ"
     }
   },
   {
@@ -2508,7 +2655,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "stance"
-      ]
+      ],
+      "flags.fusion.sourceId": "5HZ4cYDowUw2oUbZ"
     }
   },
   {
@@ -2525,7 +2673,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "arcane"
-      ]
+      ],
+      "flags.fusion.sourceId": "M4ALaFXoQDJGxSsI"
     }
   },
   {
@@ -2543,7 +2692,8 @@
       "system.traits.value": [
         "divine",
         "fortune"
-      ]
+      ],
+      "flags.fusion.sourceId": "VqGjR43bBd36k0XI"
     }
   },
   {
@@ -2560,7 +2710,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "b7yAKSmZ7famsENr"
     }
   },
   {
@@ -2575,7 +2726,8 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "k5S2a2a6o2GS5l01"
     }
   },
   {
@@ -2590,7 +2742,8 @@
       "system.actions": 1,
       "system.category": null,
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "k6ML9SPMxaGJyjqO"
     }
   },
   {
@@ -2609,7 +2762,8 @@
         "auditory",
         "flourish",
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "6iGoVnEJuBHJqgpi"
     }
   },
   {
@@ -2626,7 +2780,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "E48YTUyreo1kc9GM"
     }
   },
   {
@@ -2643,7 +2798,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "finisher"
-      ]
+      ],
+      "flags.fusion.sourceId": "dCuvfq3r2K9wXY9g"
     }
   },
   {
@@ -2662,7 +2818,8 @@
         "concentrate",
         "healing",
         "mythic"
-      ]
+      ],
+      "flags.fusion.sourceId": "8UJaVPsT5FA8XH87"
     }
   },
   {
@@ -2680,7 +2837,8 @@
       "system.traits.value": [
         "mythic",
         "occult"
-      ]
+      ],
+      "flags.fusion.sourceId": "0jJQglG57R6ss04M"
     }
   },
   {
@@ -2699,7 +2857,8 @@
         "concentrate",
         "occult",
         "teleportation"
-      ]
+      ],
+      "flags.fusion.sourceId": "gCVox3KLuKFXCUqZ"
     }
   },
   {
@@ -2718,7 +2877,8 @@
         "concentrate",
         "illusion",
         "occult"
-      ]
+      ],
+      "flags.fusion.sourceId": "zB1g4oa3UKARhCSY"
     }
   },
   {
@@ -2737,7 +2897,8 @@
         "concentrate",
         "illusion",
         "occult"
-      ]
+      ],
+      "flags.fusion.sourceId": "8nzfBu9i5oi2WQn0"
     }
   },
   {
@@ -2752,7 +2913,8 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "JmCuw6Rhwfwo90ed"
     }
   },
   {
@@ -2767,7 +2929,8 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "JpcegMRqdizrkG0m"
     }
   },
   {
@@ -2784,7 +2947,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "fortune"
-      ]
+      ],
+      "flags.fusion.sourceId": "FzZAYGib08aEq5P2"
     }
   },
   {
@@ -2801,7 +2965,8 @@
       "system.fusionCategory": "archetype",
       "system.traits.value": [
         "divine"
-      ]
+      ],
+      "flags.fusion.sourceId": "49F65W6VwuXhmv8K"
     }
   },
   {
@@ -2819,7 +2984,8 @@
       "system.traits.value": [
         "arcane",
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "OHzBFzMQp7MLlk5W"
     }
   },
   {
@@ -2837,7 +3003,8 @@
       "system.traits.value": [
         "arcane",
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "6uHxON55vtaperC2"
     }
   },
   {
@@ -2855,7 +3022,8 @@
       "system.traits.value": [
         "arcane",
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "JjSNVfQO7qc4bgz1"
     }
   },
   {
@@ -2873,7 +3041,8 @@
       "system.traits.value": [
         "arcane",
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "a1FVA0l58GOEq6xP"
     }
   },
   {
@@ -2892,7 +3061,8 @@
         "arcane",
         "concentrate",
         "healing"
-      ]
+      ],
+      "flags.fusion.sourceId": "ZEsBPUmxNJ0nod2Z"
     }
   },
   {
@@ -2910,7 +3080,8 @@
       "system.traits.value": [
         "arcane",
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "S2WNjzwdnwziZSee"
     }
   },
   {
@@ -2925,7 +3096,8 @@
       "system.actions": 2,
       "system.category": "interaction",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "W87FYSsY21BFQWNU"
     }
   },
   {
@@ -2944,7 +3116,8 @@
         "magical",
         "manipulate",
         "teleportation"
-      ]
+      ],
+      "flags.fusion.sourceId": "a8d5iIf1up9W0gVg"
     }
   },
   {
@@ -2962,7 +3135,8 @@
       "system.traits.value": [
         "concentrate",
         "magical"
-      ]
+      ],
+      "flags.fusion.sourceId": "nYR1q5D1jLiJj4JM"
     }
   },
   {
@@ -2980,7 +3154,8 @@
       "system.traits.value": [
         "fortune",
         "primal"
-      ]
+      ],
+      "flags.fusion.sourceId": "wGTHH6v25CDavO6g"
     }
   },
   {
@@ -2995,7 +3170,8 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "archetype",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "x1qSEkzHAviQ5jry"
     }
   },
   {
@@ -3012,7 +3188,8 @@
       "system.fusionCategory": "background",
       "system.traits.value": [
         "fortune"
-      ]
+      ],
+      "flags.fusion.sourceId": "BRR0HS8yRhgBfipz"
     }
   },
   {
@@ -3029,7 +3206,8 @@
       "system.fusionCategory": "background",
       "system.traits.value": [
         "occult"
-      ]
+      ],
+      "flags.fusion.sourceId": "3cuTA58ObXhuFX2r"
     }
   },
   {
@@ -3044,7 +3222,8 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "background",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "CCMemaB1RoVa0aOu"
     }
   },
   {
@@ -3061,7 +3240,8 @@
       "system.fusionCategory": "background",
       "system.traits.value": [
         "fortune"
-      ]
+      ],
+      "flags.fusion.sourceId": "YjrM5G8Up0wv6x0u"
     }
   },
   {
@@ -3078,7 +3258,8 @@
       "system.fusionCategory": "background",
       "system.traits.value": [
         "fortune"
-      ]
+      ],
+      "flags.fusion.sourceId": "PaQL7cyry64nx9CG"
     }
   },
   {
@@ -3095,7 +3276,8 @@
       "system.fusionCategory": "background",
       "system.traits.value": [
         "fortune"
-      ]
+      ],
+      "flags.fusion.sourceId": "gU93T2UqxLsX9gyF"
     }
   },
   {
@@ -3113,7 +3295,8 @@
       "system.traits.value": [
         "concentrate",
         "fortune"
-      ]
+      ],
+      "flags.fusion.sourceId": "TMBXArwICQRJdwT6"
     }
   },
   {
@@ -3128,7 +3311,8 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "background",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "jbmXxq56swDYw8hy"
     }
   },
   {
@@ -3145,7 +3329,8 @@
       "system.fusionCategory": "background",
       "system.traits.value": [
         "fortune"
-      ]
+      ],
+      "flags.fusion.sourceId": "EuoCFSHTzi0VOfuf"
     }
   },
   {
@@ -3163,7 +3348,8 @@
       "system.traits.value": [
         "exploration",
         "occult"
-      ]
+      ],
+      "flags.fusion.sourceId": "yXk0G8l0leaqHh1U"
     }
   },
   {
@@ -3180,7 +3366,8 @@
       "system.fusionCategory": "background",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "I6gG9rqTTLkzrhKF"
     }
   },
   {
@@ -3195,7 +3382,8 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "background",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "Yrc21SgKRWOMNo7C"
     }
   },
   {
@@ -3210,7 +3398,8 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "background",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "Xc5MLIbT5OPhnFIJ"
     }
   },
   {
@@ -3225,7 +3414,8 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "background",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "travkW5KLTnIUt9Y"
     }
   },
   {
@@ -3242,7 +3432,8 @@
       "system.fusionCategory": "background",
       "system.traits.value": [
         "fortune"
-      ]
+      ],
+      "flags.fusion.sourceId": "RxIPBjodIRm7Pd6W"
     }
   },
   {
@@ -3257,7 +3448,8 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "background",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "T8ZnkumXGAbqsOqt"
     }
   },
   {
@@ -3272,7 +3464,8 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "background",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "wdLdqMu0S90Kc7gj"
     }
   },
   {
@@ -3290,7 +3483,8 @@
       "system.traits.value": [
         "auditory",
         "fortune"
-      ]
+      ],
+      "flags.fusion.sourceId": "fsR3X4c3p19W8RB2"
     }
   },
   {
@@ -3309,7 +3503,8 @@
         "auditory",
         "linguistic",
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "bUgSKcdHyEKbtXhl"
     }
   },
   {
@@ -3327,7 +3522,8 @@
       "system.traits.value": [
         "divine",
         "fortune"
-      ]
+      ],
+      "flags.fusion.sourceId": "vdnuczo4ktS7ow7N"
     }
   },
   {
@@ -3344,7 +3540,8 @@
       "system.fusionCategory": "background",
       "system.traits.value": [
         "fortune"
-      ]
+      ],
+      "flags.fusion.sourceId": "lH3mlvs1rCyXw6iY"
     }
   },
   {
@@ -3361,7 +3558,8 @@
       "system.fusionCategory": "background",
       "system.traits.value": [
         "occult"
-      ]
+      ],
+      "flags.fusion.sourceId": "rqT4LMH7qbfyScBi"
     }
   },
   {
@@ -3378,7 +3576,8 @@
       "system.fusionCategory": "background",
       "system.traits.value": [
         "healing"
-      ]
+      ],
+      "flags.fusion.sourceId": "jjxxWxnlEqWjTUur"
     }
   },
   {
@@ -3396,7 +3595,8 @@
       "system.traits.value": [
         "misfortune",
         "occult"
-      ]
+      ],
+      "flags.fusion.sourceId": "GPd3hmyUSbcSBj39"
     }
   },
   {
@@ -3413,7 +3613,8 @@
       "system.fusionCategory": "background",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "7pdG8l9POMK76Lf2"
     }
   },
   {
@@ -3432,7 +3633,8 @@
         "arcane",
         "auditory",
         "fortune"
-      ]
+      ],
+      "flags.fusion.sourceId": "N6U02s9qJKQIvmQd"
     }
   },
   {
@@ -3449,7 +3651,8 @@
       "system.fusionCategory": "basic",
       "system.traits.value": [
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "9Nmz5114UB87n7Aj"
     }
   },
   {
@@ -3467,7 +3670,8 @@
       "system.traits.value": [
         "exploration",
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "UAaQk93a30nx0nYY"
     }
   },
   {
@@ -3482,7 +3686,8 @@
       "system.actions": null,
       "system.category": null,
       "system.fusionCategory": "basic",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "HCl3pzVefiv9ZKQW"
     }
   },
   {
@@ -3497,7 +3702,8 @@
       "system.actions": null,
       "system.category": null,
       "system.fusionCategory": "basic",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "qm7xptMSozAinnPS"
     }
   },
   {
@@ -3512,7 +3718,8 @@
       "system.actions": 1,
       "system.category": null,
       "system.fusionCategory": "basic",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "UWdRX1VelipCzrCg"
     }
   },
   {
@@ -3529,7 +3736,8 @@
       "system.fusionCategory": "basic",
       "system.traits.value": [
         "move"
-      ]
+      ],
+      "flags.fusion.sourceId": "H6v1VgowHaKHnVlG"
     }
   },
   {
@@ -3544,7 +3752,8 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "basic",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "aBQ8ajvEBByv45yz"
     }
   },
   {
@@ -3561,7 +3770,8 @@
       "system.fusionCategory": "basic",
       "system.traits.value": [
         "move"
-      ]
+      ],
+      "flags.fusion.sourceId": "Tj055UcNm6UEgtCg"
     }
   },
   {
@@ -3576,7 +3786,8 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "basic",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "A72nHGUtNXgY5Ey9"
     }
   },
   {
@@ -3593,7 +3804,8 @@
       "system.fusionCategory": "basic",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "AjLSHZSWQ90exdLo"
     }
   },
   {
@@ -3610,7 +3822,8 @@
       "system.fusionCategory": "basic",
       "system.traits.value": [
         "move"
-      ]
+      ],
+      "flags.fusion.sourceId": "HYNhdaPtF1QmQbR3"
     }
   },
   {
@@ -3627,7 +3840,8 @@
       "system.fusionCategory": "basic",
       "system.traits.value": [
         "attack"
-      ]
+      ],
+      "flags.fusion.sourceId": "SkZAQRkLLkmBQNB9"
     }
   },
   {
@@ -3644,7 +3858,8 @@
       "system.fusionCategory": "basic",
       "system.traits.value": [
         "move"
-      ]
+      ],
+      "flags.fusion.sourceId": "cS9nfDRGD83bNU1p"
     }
   },
   {
@@ -3661,7 +3876,8 @@
       "system.fusionCategory": "basic",
       "system.traits.value": [
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "3yoajuKjwHZ9ApUY"
     }
   },
   {
@@ -3678,7 +3894,8 @@
       "system.fusionCategory": "basic",
       "system.traits.value": [
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "pvQ5rY2zrtPI614F"
     }
   },
   {
@@ -3693,7 +3910,8 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "basic",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "lvqPQDdWT2DDO0k2"
     }
   },
   {
@@ -3710,7 +3928,8 @@
       "system.fusionCategory": "basic",
       "system.traits.value": [
         "move"
-      ]
+      ],
+      "flags.fusion.sourceId": "d5I6018Mci2SWokk"
     }
   },
   {
@@ -3727,7 +3946,8 @@
       "system.fusionCategory": "basic",
       "system.traits.value": [
         "move"
-      ]
+      ],
+      "flags.fusion.sourceId": "PM5jvValFkbFH3TV"
     }
   },
   {
@@ -3746,7 +3966,8 @@
         "auditory",
         "manipulate",
         "visual"
-      ]
+      ],
+      "flags.fusion.sourceId": "sn2hIy1iIJX9Vpgj"
     }
   },
   {
@@ -3761,7 +3982,8 @@
       "system.actions": 1,
       "system.category": "defensive",
       "system.fusionCategory": "basic",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "xjGwis0uaC2305pm"
     }
   },
   {
@@ -3778,7 +4000,8 @@
       "system.fusionCategory": "basic",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "dLgAMt3TbkmLkUqE"
     }
   },
   {
@@ -3795,7 +4018,8 @@
       "system.fusionCategory": "basic",
       "system.traits.value": [
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "wQYmDStjdjn0I26t"
     }
   },
   {
@@ -3813,7 +4037,8 @@
       "system.traits.value": [
         "concentrate",
         "secret"
-      ]
+      ],
+      "flags.fusion.sourceId": "BlAOM2X92SI6HMtJ"
     }
   },
   {
@@ -3831,7 +4056,8 @@
       "system.traits.value": [
         "concentrate",
         "secret"
-      ]
+      ],
+      "flags.fusion.sourceId": "1xRFPTFtWtGJ9ELw"
     }
   },
   {
@@ -3848,7 +4074,8 @@
       "system.fusionCategory": "basic",
       "system.traits.value": [
         "move"
-      ]
+      ],
+      "flags.fusion.sourceId": "OdIUybJ3ddfL7wzj"
     }
   },
   {
@@ -3865,7 +4092,8 @@
       "system.fusionCategory": "basic",
       "system.traits.value": [
         "move"
-      ]
+      ],
+      "flags.fusion.sourceId": "UHpkTuCtyaPqiCAB"
     }
   },
   {
@@ -3882,7 +4110,8 @@
       "system.fusionCategory": "basic",
       "system.traits.value": [
         "move"
-      ]
+      ],
+      "flags.fusion.sourceId": "Bcxarzksqt9ezrs6"
     }
   },
   {
@@ -3899,7 +4128,8 @@
       "system.fusionCategory": "basic",
       "system.traits.value": [
         "attack"
-      ]
+      ],
+      "flags.fusion.sourceId": "VjxZFuUXrCU94MWR"
     }
   },
   {
@@ -3916,7 +4146,8 @@
       "system.fusionCategory": "basic",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "3f5DMFu8fPiqHpRg"
     }
   },
   {
@@ -3931,7 +4162,8 @@
       "system.actions": 1,
       "system.category": "interaction",
       "system.fusionCategory": "basic",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "ust1jJSCZQUhBZIz"
     }
   },
   {
@@ -3946,7 +4178,8 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "UEkGL7uAGYDPFNfK"
     }
   },
   {
@@ -3964,7 +4197,8 @@
       "system.traits.value": [
         "alchemist",
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "00LNVSCbwJ8pszwE"
     }
   },
   {
@@ -3982,7 +4216,8 @@
       "system.traits.value": [
         "alchemist",
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "yzNJgwzV9XqEhKc6"
     }
   },
   {
@@ -3999,7 +4234,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "barbarian"
-      ]
+      ],
+      "flags.fusion.sourceId": "74iat04PtfG8gn2Q"
     }
   },
   {
@@ -4016,7 +4252,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "barbarian"
-      ]
+      ],
+      "flags.fusion.sourceId": "a9PzINjFTO5GvAJN"
     }
   },
   {
@@ -4036,7 +4273,8 @@
         "concentrate",
         "emotion",
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "Ah5g9pDwWF9b9VW9"
     }
   },
   {
@@ -4054,7 +4292,8 @@
       "system.traits.value": [
         "champion",
         "divine"
-      ]
+      ],
+      "flags.fusion.sourceId": "r5Uth6yvCoE4tr9z"
     }
   },
   {
@@ -4072,7 +4311,8 @@
       "system.traits.value": [
         "champion",
         "divine"
-      ]
+      ],
+      "flags.fusion.sourceId": "ITWUi1r8Z7EtChkB"
     }
   },
   {
@@ -4090,7 +4330,8 @@
       "system.traits.value": [
         "champion",
         "divine"
-      ]
+      ],
+      "flags.fusion.sourceId": "tuZnRWHixLArvaIf"
     }
   },
   {
@@ -4110,7 +4351,8 @@
         "divine",
         "emotion",
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "M8RCbthRhB4bxO9t"
     }
   },
   {
@@ -4127,7 +4369,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "champion"
-      ]
+      ],
+      "flags.fusion.sourceId": "IX1VlVCL5sFTptEE"
     }
   },
   {
@@ -4145,7 +4388,8 @@
       "system.traits.value": [
         "champion",
         "divine"
-      ]
+      ],
+      "flags.fusion.sourceId": "EAP98XaChJEbgKcK"
     }
   },
   {
@@ -4163,7 +4407,8 @@
       "system.traits.value": [
         "champion",
         "divine"
-      ]
+      ],
+      "flags.fusion.sourceId": "enQieRrITuEQZxx2"
     }
   },
   {
@@ -4181,7 +4426,8 @@
       "system.traits.value": [
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "Z0HyZyvCe3Y1Chaa"
     }
   },
   {
@@ -4199,7 +4445,8 @@
       "system.traits.value": [
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "zt5fgBBOQpr84CGE"
     }
   },
   {
@@ -4218,7 +4465,8 @@
         "brandish",
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "3sNSr6NEVkUZ0dIr"
     }
   },
   {
@@ -4237,7 +4485,8 @@
         "brandish",
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "Kp325Qf0qpF6RCDE"
     }
   },
   {
@@ -4255,7 +4504,8 @@
       "system.traits.value": [
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "yT2A0CxSA5nJ8e7n"
     }
   },
   {
@@ -4274,7 +4524,8 @@
         "brandish",
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "k50ynPhpPSPZ4Akg"
     }
   },
   {
@@ -4293,7 +4544,8 @@
         "brandish",
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "UJi0VYnhVSdnl9II"
     }
   },
   {
@@ -4312,7 +4564,8 @@
         "brandish",
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "q1dvlKJI2Kfegc4Y"
     }
   },
   {
@@ -4330,7 +4583,8 @@
       "system.traits.value": [
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "c5jVVnNYlP5HB6Ob"
     }
   },
   {
@@ -4350,7 +4604,8 @@
         "commander",
         "incapacitation",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "lI4JCQcqvrZE2U5n"
     }
   },
   {
@@ -4368,7 +4623,8 @@
       "system.traits.value": [
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "GkcfzMAJVX159ua7"
     }
   },
   {
@@ -4387,7 +4643,8 @@
         "brandish",
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "2U7V8K0zSFGyZHrP"
     }
   },
   {
@@ -4405,7 +4662,8 @@
       "system.traits.value": [
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "URxnrN8ji84AoVup"
     }
   },
   {
@@ -4424,7 +4682,8 @@
         "brandish",
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "ut0jFv67YpvHBzD9"
     }
   },
   {
@@ -4443,7 +4702,8 @@
         "commander",
         "tactic",
         "visual"
-      ]
+      ],
+      "flags.fusion.sourceId": "EKEZGfOBKTNWTFDe"
     }
   },
   {
@@ -4461,7 +4721,8 @@
       "system.traits.value": [
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "bAXkEXAlnBx78S7t"
     }
   },
   {
@@ -4479,7 +4740,8 @@
       "system.traits.value": [
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "zuTNF3UEr0ZNleqR"
     }
   },
   {
@@ -4497,7 +4759,8 @@
       "system.traits.value": [
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "BfC5pWAns8PNewW3"
     }
   },
   {
@@ -4515,7 +4778,8 @@
       "system.traits.value": [
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "zLFfwNmmPTND6OMO"
     }
   },
   {
@@ -4533,7 +4797,8 @@
       "system.traits.value": [
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "NVLqYqkkQaCdnWWk"
     }
   },
   {
@@ -4552,7 +4817,8 @@
         "brandish",
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "6YIG6eVGTplWubGb"
     }
   },
   {
@@ -4571,7 +4837,8 @@
         "brandish",
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "5yBBgZ7OCWWJsnLo"
     }
   },
   {
@@ -4590,7 +4857,8 @@
         "brandish",
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "iuFPNbfhVXvbCPRO"
     }
   },
   {
@@ -4608,7 +4876,8 @@
       "system.traits.value": [
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "NjS64g60oV74XZjq"
     }
   },
   {
@@ -4626,7 +4895,8 @@
       "system.traits.value": [
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "ILwYke30PIAr2CVX"
     }
   },
   {
@@ -4644,7 +4914,8 @@
       "system.traits.value": [
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "ZI7TLmmUu7fYLrP0"
     }
   },
   {
@@ -4662,7 +4933,8 @@
       "system.traits.value": [
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "h3NqgU6MEEF7mgzH"
     }
   },
   {
@@ -4680,7 +4952,8 @@
       "system.traits.value": [
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "EZcykqDJzQyZmJ7E"
     }
   },
   {
@@ -4698,7 +4971,8 @@
       "system.traits.value": [
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "LAo3ERyiaHx3E8qg"
     }
   },
   {
@@ -4716,7 +4990,8 @@
       "system.traits.value": [
         "divine",
         "exemplar"
-      ]
+      ],
+      "flags.fusion.sourceId": "9cGJBXSJW6EpgibP"
     }
   },
   {
@@ -4734,7 +5009,8 @@
       "system.traits.value": [
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "OULAoPQYFoiRhjXP"
     }
   },
   {
@@ -4753,7 +5029,8 @@
         "brandish",
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "73W3mBLXRPfeVl3G"
     }
   },
   {
@@ -4771,7 +5048,8 @@
       "system.traits.value": [
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "7HRhXh46dJVb241Y"
     }
   },
   {
@@ -4789,7 +5067,8 @@
       "system.traits.value": [
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "KtxzyElOleyy74Lg"
     }
   },
   {
@@ -4807,7 +5086,8 @@
       "system.traits.value": [
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "HUJBYqs2vTTBeZgO"
     }
   },
   {
@@ -4826,7 +5106,8 @@
         "brandish",
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "Czcdh3pPzQ7y1cV7"
     }
   },
   {
@@ -4845,7 +5126,8 @@
         "brandish",
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "DGmzeAr4IfCnKN0R"
     }
   },
   {
@@ -4863,7 +5145,8 @@
       "system.traits.value": [
         "commander",
         "tactic"
-      ]
+      ],
+      "flags.fusion.sourceId": "5stdIykWux9WHqce"
     }
   },
   {
@@ -4881,7 +5164,8 @@
       "system.traits.value": [
         "primal",
         "sonic"
-      ]
+      ],
+      "flags.fusion.sourceId": "wnZhAUiYcs2mv8sZ"
     }
   },
   {
@@ -4898,7 +5182,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "pn557VVMaNJyq0jX"
     }
   },
   {
@@ -4915,7 +5200,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "JAka1VWMPGOm5JpR"
     }
   },
   {
@@ -4935,7 +5221,8 @@
         "mental",
         "spirit",
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "c40APnn4a7bWhtcZ"
     }
   },
   {
@@ -4954,7 +5241,8 @@
         "concentrate",
         "prediction",
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "kAwE9YqU6GH1cD7W"
     }
   },
   {
@@ -4971,7 +5259,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "cCCOjU9ihfrn0spp"
     }
   },
   {
@@ -4988,7 +5277,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "ukt9Dr4qmj9pUQII"
     }
   },
   {
@@ -5005,7 +5295,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "Y6ee2ZvIE2fzzvAY"
     }
   },
   {
@@ -5024,7 +5315,8 @@
         "earth",
         "transcendence",
         "visual"
-      ]
+      ],
+      "flags.fusion.sourceId": "5VbPhxZYfagIqE1z"
     }
   },
   {
@@ -5041,7 +5333,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "ZL5o9c4jV5fRwTGR"
     }
   },
   {
@@ -5061,7 +5354,8 @@
         "concentrate",
         "darkness",
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "Y9XUwC8ihxZCfndG"
     }
   },
   {
@@ -5080,7 +5374,8 @@
         "spirit",
         "transcendence",
         "void"
-      ]
+      ],
+      "flags.fusion.sourceId": "ZhVJ7EUTJngrIO2Z"
     }
   },
   {
@@ -5101,7 +5396,8 @@
         "mental",
         "transcendence",
         "visual"
-      ]
+      ],
+      "flags.fusion.sourceId": "jTfJzj1yfmPLsxmj"
     }
   },
   {
@@ -5116,7 +5412,8 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "mbOa48mQCqj86lVw"
     }
   },
   {
@@ -5133,7 +5430,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "Cu7P7NB3XH67mi1N"
     }
   },
   {
@@ -5152,7 +5450,8 @@
         "healing",
         "transcendence",
         "vitality"
-      ]
+      ],
+      "flags.fusion.sourceId": "vZwa0PZLQvm3X5ME"
     }
   },
   {
@@ -5171,7 +5470,8 @@
         "mental",
         "spirit",
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "V4HToYPQlkw8AW50"
     }
   },
   {
@@ -5188,7 +5488,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "PdEJEiPUP0FDaBki"
     }
   },
   {
@@ -5206,7 +5507,8 @@
       "system.traits.value": [
         "spirit",
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "K3hd3w20M707t6Iq"
     }
   },
   {
@@ -5226,7 +5528,8 @@
         "spirit",
         "teleportation",
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "ObFY26oKlreyVIUm"
     }
   },
   {
@@ -5244,7 +5547,8 @@
       "system.traits.value": [
         "spirit",
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "6xWX8Ey5ShAyj1HO"
     }
   },
   {
@@ -5262,7 +5566,8 @@
       "system.traits.value": [
         "spirit",
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "Ei4T4aQx0a5EdBhm"
     }
   },
   {
@@ -5280,7 +5585,8 @@
       "system.traits.value": [
         "spirit",
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "tzuYnmYCvA3zrj6w"
     }
   },
   {
@@ -5297,7 +5603,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "JtEzSceixS0WA8wn"
     }
   },
   {
@@ -5317,7 +5624,8 @@
         "mental",
         "spirit",
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "CJnA1wEg2kA5BXfe"
     }
   },
   {
@@ -5335,7 +5643,8 @@
       "system.traits.value": [
         "spirit",
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "egXlMyYLBthoQSgh"
     }
   },
   {
@@ -5352,7 +5661,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "AZt0m0EHRmtDCd5s"
     }
   },
   {
@@ -5369,7 +5679,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "jD8RW5PdLI6snlsO"
     }
   },
   {
@@ -5389,7 +5700,8 @@
         "healing",
         "transcendence",
         "vitality"
-      ]
+      ],
+      "flags.fusion.sourceId": "JdpUaQeNwoVr2VHL"
     }
   },
   {
@@ -5409,7 +5721,8 @@
         "emotion",
         "mental",
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "IEBBHnI7wWRt44KG"
     }
   },
   {
@@ -5427,7 +5740,8 @@
       "system.traits.value": [
         "concentrate",
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "8r9ePG6BnrnO6YE1"
     }
   },
   {
@@ -5445,7 +5759,8 @@
       "system.traits.value": [
         "death",
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "cfQb0mBbyrjhyGf5"
     }
   },
   {
@@ -5463,7 +5778,8 @@
       "system.traits.value": [
         "concentrate",
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "MrTULCUsE9naPxXg"
     }
   },
   {
@@ -5481,7 +5797,8 @@
       "system.traits.value": [
         "force",
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "IBEbFlMmDbGsrN4G"
     }
   },
   {
@@ -5498,7 +5815,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "24k7qCV8S95yYK3y"
     }
   },
   {
@@ -5515,7 +5833,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "I08t3hnpMZSRX5Ug"
     }
   },
   {
@@ -5534,7 +5853,8 @@
         "sonic",
         "spirit",
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "mBqZ2IahMT9Jvo7k"
     }
   },
   {
@@ -5551,7 +5871,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "XFdTDDAPO7U0r4Et"
     }
   },
   {
@@ -5571,7 +5892,8 @@
         "light",
         "transcendence",
         "vitality"
-      ]
+      ],
+      "flags.fusion.sourceId": "rU3CE5niG8vHc5x4"
     }
   },
   {
@@ -5591,7 +5913,8 @@
         "illusion",
         "incapacitation",
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "exuTl8tvVlewxVGJ"
     }
   },
   {
@@ -5608,7 +5931,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "tHHpBREXDaafK3TF"
     }
   },
   {
@@ -5626,7 +5950,8 @@
       "system.traits.value": [
         "spirit",
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "oaJeGdGPmHiNT5mP"
     }
   },
   {
@@ -5645,7 +5970,8 @@
         "aura",
         "manipulate",
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "NdMSHDtV9G7MbdP2"
     }
   },
   {
@@ -5664,7 +5990,8 @@
         "auditory",
         "mental",
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "cGCQkCz14sF238gE"
     }
   },
   {
@@ -5681,7 +6008,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "Ypwa9HIw7uXdt25D"
     }
   },
   {
@@ -5699,7 +6027,8 @@
       "system.traits.value": [
         "fortune",
         "transcendence"
-      ]
+      ],
+      "flags.fusion.sourceId": "TIIM35m8aDUEU4gF"
     }
   },
   {
@@ -5716,7 +6045,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "guardian"
-      ]
+      ],
+      "flags.fusion.sourceId": "vhO1f7oTD2s3Ncg9"
     }
   },
   {
@@ -5734,7 +6064,8 @@
       "system.traits.value": [
         "concentrate",
         "guardian"
-      ]
+      ],
+      "flags.fusion.sourceId": "4DYFJ4TUsNkgFBDb"
     }
   },
   {
@@ -5751,7 +6082,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "gunslinger"
-      ]
+      ],
+      "flags.fusion.sourceId": "NYR2IdfUiHevdt1V"
     }
   },
   {
@@ -5768,7 +6100,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "gunslinger"
-      ]
+      ],
+      "flags.fusion.sourceId": "tw1KDRPdBAkg5DlS"
     }
   },
   {
@@ -5785,7 +6118,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "gunslinger"
-      ]
+      ],
+      "flags.fusion.sourceId": "gBhWEy3ToxQeCLQm"
     }
   },
   {
@@ -5802,7 +6136,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "gunslinger"
-      ]
+      ],
+      "flags.fusion.sourceId": "YMhmebfXAoOFXeSB"
     }
   },
   {
@@ -5819,7 +6154,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "gunslinger"
-      ]
+      ],
+      "flags.fusion.sourceId": "4IxCKbGaEM9nUhld"
     }
   },
   {
@@ -5837,7 +6173,8 @@
       "system.traits.value": [
         "flourish",
         "gunslinger"
-      ]
+      ],
+      "flags.fusion.sourceId": "O1iircZOOCo42r9Y"
     }
   },
   {
@@ -5859,7 +6196,8 @@
         "gunslinger",
         "linguistic",
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "rI2MSXR1MQzgQUO7"
     }
   },
   {
@@ -5876,7 +6214,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "gunslinger"
-      ]
+      ],
+      "flags.fusion.sourceId": "Uq2qy9aGNQ5JcPI1"
     }
   },
   {
@@ -5893,7 +6232,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "gunslinger"
-      ]
+      ],
+      "flags.fusion.sourceId": "9MJcQEMVVrmMyGyq"
     }
   },
   {
@@ -5910,7 +6250,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "gunslinger"
-      ]
+      ],
+      "flags.fusion.sourceId": "Tlrde2xh7AhesXNB"
     }
   },
   {
@@ -5927,7 +6268,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "gunslinger"
-      ]
+      ],
+      "flags.fusion.sourceId": "bCDMuu3tE4d6KHrJ"
     }
   },
   {
@@ -5944,7 +6286,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "gunslinger"
-      ]
+      ],
+      "flags.fusion.sourceId": "RADNqsvAt4gP9FOX"
     }
   },
   {
@@ -5961,7 +6304,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "gunslinger"
-      ]
+      ],
+      "flags.fusion.sourceId": "jSC5AYEfliOPpO3H"
     }
   },
   {
@@ -5978,7 +6322,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "gunslinger"
-      ]
+      ],
+      "flags.fusion.sourceId": "A4L90h7FIgO5EyBx"
     }
   },
   {
@@ -5995,7 +6340,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "gunslinger"
-      ]
+      ],
+      "flags.fusion.sourceId": "6OZfIjiPjWTIe7Pr"
     }
   },
   {
@@ -6012,7 +6358,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "gunslinger"
-      ]
+      ],
+      "flags.fusion.sourceId": "DFRLID6lIRw7CzOT"
     }
   },
   {
@@ -6029,7 +6376,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "gunslinger"
-      ]
+      ],
+      "flags.fusion.sourceId": "EeM0Czaep7G5ZSh5"
     }
   },
   {
@@ -6046,7 +6394,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "gunslinger"
-      ]
+      ],
+      "flags.fusion.sourceId": "9kIvFxA5V9rvNWiH"
     }
   },
   {
@@ -6063,7 +6412,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "gunslinger"
-      ]
+      ],
+      "flags.fusion.sourceId": "WpCs3QmPVn8SRbXy"
     }
   },
   {
@@ -6080,7 +6430,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "gunslinger"
-      ]
+      ],
+      "flags.fusion.sourceId": "vO0Y1dVjNfbDyT4S"
     }
   },
   {
@@ -6097,7 +6448,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "gunslinger"
-      ]
+      ],
+      "flags.fusion.sourceId": "UyMkWfVqdabLTgkH"
     }
   },
   {
@@ -6115,7 +6467,8 @@
       "system.traits.value": [
         "auditory",
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "WJmc30zb7GmKaETx"
     }
   },
   {
@@ -6135,7 +6488,8 @@
         "inventor",
         "manipulate",
         "unstable"
-      ]
+      ],
+      "flags.fusion.sourceId": "naKVqd8POxcnGclz"
     }
   },
   {
@@ -6153,7 +6507,8 @@
       "system.traits.value": [
         "inventor",
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "3D9kGfwg4LUZBR9A"
     }
   },
   {
@@ -6172,7 +6527,8 @@
         "concentrate",
         "exploration",
         "investigator"
-      ]
+      ],
+      "flags.fusion.sourceId": "xTK2zsWFyxSJvYbX"
     }
   },
   {
@@ -6190,7 +6546,8 @@
       "system.traits.value": [
         "concentrate",
         "investigator"
-      ]
+      ],
+      "flags.fusion.sourceId": "25WDi1cVUrW92sUj"
     }
   },
   {
@@ -6208,7 +6565,8 @@
       "system.traits.value": [
         "concentrate",
         "investigator"
-      ]
+      ],
+      "flags.fusion.sourceId": "m0f2B7G9eaaTmhFL"
     }
   },
   {
@@ -6225,7 +6583,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "investigator"
-      ]
+      ],
+      "flags.fusion.sourceId": "jftNJjBNxp2cleoi"
     }
   },
   {
@@ -6246,7 +6605,8 @@
         "investigator",
         "linguistic",
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "xccOiNL2W1EtfUYl"
     }
   },
   {
@@ -6264,7 +6624,8 @@
       "system.traits.value": [
         "investigator",
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "QHFMeJGzFWj2QczA"
     }
   },
   {
@@ -6283,7 +6644,8 @@
         "impulse",
         "kineticist",
         "primal"
-      ]
+      ],
+      "flags.fusion.sourceId": "nTBrvt2b9wngyr0i"
     }
   },
   {
@@ -6302,7 +6664,8 @@
         "aura",
         "kineticist",
         "primal"
-      ]
+      ],
+      "flags.fusion.sourceId": "g8QrV39TmZfkbXgE"
     }
   },
   {
@@ -6322,7 +6685,8 @@
         "impulse",
         "kineticist",
         "primal"
-      ]
+      ],
+      "flags.fusion.sourceId": "6lbr0Jnv0zMB5uGb"
     }
   },
   {
@@ -6341,7 +6705,8 @@
         "impulse",
         "kineticist",
         "primal"
-      ]
+      ],
+      "flags.fusion.sourceId": "low5ORd87QeA9Oug"
     }
   },
   {
@@ -6358,7 +6723,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "infusion"
-      ]
+      ],
+      "flags.fusion.sourceId": "oAGawsNqr6FfMrSG"
     }
   },
   {
@@ -6377,7 +6743,8 @@
         "concentrate",
         "magus",
         "stance"
-      ]
+      ],
+      "flags.fusion.sourceId": "HbejhIywqIufrmVM"
     }
   },
   {
@@ -6392,7 +6759,8 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "QDW9H8XLIjuW2fE4"
     }
   },
   {
@@ -6410,7 +6778,8 @@
       "system.traits.value": [
         "flourish",
         "monk"
-      ]
+      ],
+      "flags.fusion.sourceId": "nbfNETdpee8CVM17"
     }
   },
   {
@@ -6430,7 +6799,8 @@
         "divine",
         "emotion",
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "rlGVQku78DGoOl9V"
     }
   },
   {
@@ -6449,7 +6819,8 @@
         "mental",
         "psyche",
         "psychic"
-      ]
+      ],
+      "flags.fusion.sourceId": "Fha8jFmfkOPxAsrZ"
     }
   },
   {
@@ -6468,7 +6839,8 @@
         "illusion",
         "psyche",
         "psychic"
-      ]
+      ],
+      "flags.fusion.sourceId": "AJeLwbQBt1YH3S6v"
     }
   },
   {
@@ -6487,7 +6859,8 @@
         "occult",
         "psyche",
         "psychic"
-      ]
+      ],
+      "flags.fusion.sourceId": "kRxWINkrHUPSHHYq"
     }
   },
   {
@@ -6508,7 +6881,8 @@
         "mental",
         "psyche",
         "psychic"
-      ]
+      ],
+      "flags.fusion.sourceId": "XkrN7gxdRXTYYBkX"
     }
   },
   {
@@ -6525,7 +6899,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "psychic"
-      ]
+      ],
+      "flags.fusion.sourceId": "7GeguyqyD1TjoC4r"
     }
   },
   {
@@ -6543,7 +6918,8 @@
       "system.traits.value": [
         "concentrate",
         "ranger"
-      ]
+      ],
+      "flags.fusion.sourceId": "JYi4MnsdFu618hPm"
     }
   },
   {
@@ -6560,7 +6936,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "rogue"
-      ]
+      ],
+      "flags.fusion.sourceId": "bp0Up04x3dzGK5bB"
     }
   },
   {
@@ -6578,7 +6955,8 @@
       "system.traits.value": [
         "fortune",
         "linguistic"
-      ]
+      ],
+      "flags.fusion.sourceId": "ZXvJGxMJc0HRpcQh"
     }
   },
   {
@@ -6596,7 +6974,8 @@
       "system.traits.value": [
         "incapacitation",
         "rogue"
-      ]
+      ],
+      "flags.fusion.sourceId": "Rlp7ND33yYfxiEWi"
     }
   },
   {
@@ -6611,7 +6990,8 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "class",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "KAVf7AmRnbCAHrkT"
     }
   },
   {
@@ -6629,7 +7009,8 @@
       "system.traits.value": [
         "summoner",
         "tandem"
-      ]
+      ],
+      "flags.fusion.sourceId": "2KV87ponbWXgGIhZ"
     }
   },
   {
@@ -6646,7 +7027,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "eidolon"
-      ]
+      ],
+      "flags.fusion.sourceId": "cx0juTYewwBmrYWv"
     }
   },
   {
@@ -6664,7 +7046,8 @@
       "system.traits.value": [
         "arcane",
         "eidolon"
-      ]
+      ],
+      "flags.fusion.sourceId": "Vr3w3t028ZKDg0mO"
     }
   },
   {
@@ -6681,7 +7064,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "eidolon"
-      ]
+      ],
+      "flags.fusion.sourceId": "uMFB3uw8WTWL0LZD"
     }
   },
   {
@@ -6700,7 +7084,8 @@
         "divine",
         "eidolon",
         "void"
-      ]
+      ],
+      "flags.fusion.sourceId": "JPHWzD2soqjffeSU"
     }
   },
   {
@@ -6718,7 +7103,8 @@
       "system.traits.value": [
         "eidolon",
         "occult"
-      ]
+      ],
+      "flags.fusion.sourceId": "KyKXp599tK9BgodC"
     }
   },
   {
@@ -6736,7 +7122,8 @@
       "system.traits.value": [
         "concentrate",
         "eidolon"
-      ]
+      ],
+      "flags.fusion.sourceId": "Cb9XbKqHBHPAbQKk"
     }
   },
   {
@@ -6753,7 +7140,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "eidolon"
-      ]
+      ],
+      "flags.fusion.sourceId": "H8EXYfvFOSuq6vo8"
     }
   },
   {
@@ -6770,7 +7158,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "eidolon"
-      ]
+      ],
+      "flags.fusion.sourceId": "tNrBIYct9l1lrW1I"
     }
   },
   {
@@ -6787,7 +7176,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "eidolon"
-      ]
+      ],
+      "flags.fusion.sourceId": "06frwOOuo4HJtivl"
     }
   },
   {
@@ -6807,7 +7197,8 @@
         "eidolon",
         "manipulate",
         "visual"
-      ]
+      ],
+      "flags.fusion.sourceId": "4oHjLO6qMfxIchRB"
     }
   },
   {
@@ -6827,7 +7218,8 @@
         "manipulate",
         "summoner",
         "teleportation"
-      ]
+      ],
+      "flags.fusion.sourceId": "n5vwBnLSlIXL9ptp"
     }
   },
   {
@@ -6845,7 +7237,8 @@
       "system.traits.value": [
         "auditory",
         "eidolon"
-      ]
+      ],
+      "flags.fusion.sourceId": "kbUymGTjbesOKsV6"
     }
   },
   {
@@ -6862,7 +7255,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "eidolon"
-      ]
+      ],
+      "flags.fusion.sourceId": "cd34tQpOVbaGuv5p"
     }
   },
   {
@@ -6882,7 +7276,8 @@
         "eidolon",
         "emotion",
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "nSTMF6kYIt6rXhJx"
     }
   },
   {
@@ -6899,7 +7294,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "VCUz5EnBUJF07j1a"
     }
   },
   {
@@ -6918,7 +7314,8 @@
         "concentrate",
         "scrying",
         "summoner"
-      ]
+      ],
+      "flags.fusion.sourceId": "3ZzoI9MTtJFd1Kjl"
     }
   },
   {
@@ -6936,7 +7333,8 @@
       "system.traits.value": [
         "concentrate",
         "eidolon"
-      ]
+      ],
+      "flags.fusion.sourceId": "x73LKNcaRwurr0fR"
     }
   },
   {
@@ -6953,7 +7351,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "eidolon"
-      ]
+      ],
+      "flags.fusion.sourceId": "Wukpm200zHDuS85V"
     }
   },
   {
@@ -6970,7 +7369,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "eidolon"
-      ]
+      ],
+      "flags.fusion.sourceId": "YpuEmI1fJBZD3kMc"
     }
   },
   {
@@ -6990,7 +7390,8 @@
         "eidolon",
         "emotion",
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "iJLzVonevhsi2uPs"
     }
   },
   {
@@ -7007,7 +7408,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "eidolon"
-      ]
+      ],
+      "flags.fusion.sourceId": "tu5viJZT4zFE1sYn"
     }
   },
   {
@@ -7025,7 +7427,8 @@
       "system.traits.value": [
         "concentrate",
         "eidolon"
-      ]
+      ],
+      "flags.fusion.sourceId": "OJ9cIvPukPT0rppR"
     }
   },
   {
@@ -7042,7 +7445,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "finisher"
-      ]
+      ],
+      "flags.fusion.sourceId": "K878asDgf1EF0B9S"
     }
   },
   {
@@ -7060,7 +7464,8 @@
       "system.traits.value": [
         "bravado",
         "swashbuckler"
-      ]
+      ],
+      "flags.fusion.sourceId": "EfjoIuDmtUn4yiow"
     }
   },
   {
@@ -7079,7 +7484,8 @@
         "magical",
         "manipulate",
         "thaumaturge"
-      ]
+      ],
+      "flags.fusion.sourceId": "Or6RLXeoZkN8CLdi"
     }
   },
   {
@@ -7098,7 +7504,8 @@
         "magical",
         "manipulate",
         "thaumaturge"
-      ]
+      ],
+      "flags.fusion.sourceId": "D91jQs0wleU5ml4K"
     }
   },
   {
@@ -7117,7 +7524,8 @@
         "esoterica",
         "manipulate",
         "thaumaturge"
-      ]
+      ],
+      "flags.fusion.sourceId": "fodJ3zuwQsYnBbtk"
     }
   },
   {
@@ -7137,7 +7545,8 @@
         "magical",
         "manipulate",
         "thaumaturge"
-      ]
+      ],
+      "flags.fusion.sourceId": "04VQuQih77pxX06q"
     }
   },
   {
@@ -7155,7 +7564,8 @@
       "system.traits.value": [
         "esoterica",
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "Yfl6q6Pi42FttDRE"
     }
   },
   {
@@ -7173,7 +7583,8 @@
       "system.traits.value": [
         "magical",
         "thaumaturge"
-      ]
+      ],
+      "flags.fusion.sourceId": "dnaPJfA0CDLNrWcW"
     }
   },
   {
@@ -7193,7 +7604,8 @@
         "esoterica",
         "magical",
         "thaumaturge"
-      ]
+      ],
+      "flags.fusion.sourceId": "HAmGozJwLAal5v82"
     }
   },
   {
@@ -7213,7 +7625,8 @@
         "magical",
         "manipulate",
         "thaumaturge"
-      ]
+      ],
+      "flags.fusion.sourceId": "Mh4Vdg6gu8g8RAjh"
     }
   },
   {
@@ -7234,7 +7647,8 @@
         "manipulate",
         "sonic",
         "thaumaturge"
-      ]
+      ],
+      "flags.fusion.sourceId": "ublVm5gmCIm3eRdQ"
     }
   },
   {
@@ -7249,7 +7663,8 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "ZC4SuXmL79N9VVIW"
     }
   },
   {
@@ -7266,7 +7681,8 @@
       "system.fusionCategory": "class",
       "system.traits.value": [
         "aura"
-      ]
+      ],
+      "flags.fusion.sourceId": "VBwNo2Wbfd4n4Y3g"
     }
   },
   {
@@ -7281,7 +7697,8 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "uruoG0PuuA0CqEG7"
     }
   },
   {
@@ -7296,7 +7713,8 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "class",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "PTEiTXsObvtke43x"
     }
   },
   {
@@ -7314,7 +7732,8 @@
       "system.traits.value": [
         "arcane",
         "wizard"
-      ]
+      ],
+      "flags.fusion.sourceId": "v82XtjAVN4ffgVVR"
     }
   },
   {
@@ -7332,7 +7751,8 @@
       "system.traits.value": [
         "downtime",
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "5tOovJGK2TQIBHUZ"
     }
   },
   {
@@ -7350,7 +7770,8 @@
       "system.traits.value": [
         "downtime",
         "secret"
-      ]
+      ],
+      "flags.fusion.sourceId": "yOtu5X3qWfjuX8Vy"
     }
   },
   {
@@ -7367,7 +7788,8 @@
       "system.fusionCategory": "downtime",
       "system.traits.value": [
         "downtime"
-      ]
+      ],
+      "flags.fusion.sourceId": "DXIZ4DHGxhZiWNWb"
     }
   },
   {
@@ -7384,7 +7806,8 @@
       "system.fusionCategory": "downtime",
       "system.traits.value": [
         "downtime"
-      ]
+      ],
+      "flags.fusion.sourceId": "24PSsn1SKpUwYA1X"
     }
   },
   {
@@ -7399,7 +7822,8 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "equipment",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "BKnN9la3WNrRgZ6n"
     }
   },
   {
@@ -7416,7 +7840,8 @@
       "system.fusionCategory": "equipment",
       "system.traits.value": [
         "electricity"
-      ]
+      ],
+      "flags.fusion.sourceId": "s2RrhZx1f1X4YnYV"
     }
   },
   {
@@ -7431,7 +7856,8 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "equipment",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "EHa0owz6mccnmSBf"
     }
   },
   {
@@ -7446,7 +7872,8 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "equipment",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "MY6z2b4GPhAD2Eoa"
     }
   },
   {
@@ -7461,7 +7888,8 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "equipment",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "Xj3LvT3I78cVwzer"
     }
   },
   {
@@ -7476,7 +7904,8 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "equipment",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "gohBPHf4dxi4PkBk"
     }
   },
   {
@@ -7493,7 +7922,8 @@
       "system.fusionCategory": "equipment",
       "system.traits.value": [
         "magical"
-      ]
+      ],
+      "flags.fusion.sourceId": "97jWk4XbIrGQK4Cp"
     }
   },
   {
@@ -7510,7 +7940,8 @@
       "system.fusionCategory": "exploration",
       "system.traits.value": [
         "exploration"
-      ]
+      ],
+      "flags.fusion.sourceId": "IE2nThCmoyhQA0Jn"
     }
   },
   {
@@ -7528,7 +7959,8 @@
       "system.traits.value": [
         "exploration",
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "yM20ZnvmNxu9qMDV"
     }
   },
   {
@@ -7545,7 +7977,8 @@
       "system.fusionCategory": "exploration",
       "system.traits.value": [
         "exploration"
-      ]
+      ],
+      "flags.fusion.sourceId": "cYtYKa1gDEl7y2N0"
     }
   },
   {
@@ -7563,7 +7996,8 @@
       "system.traits.value": [
         "concentrate",
         "exploration"
-      ]
+      ],
+      "flags.fusion.sourceId": "Yb0C1uLzeHrVLl7a"
     }
   },
   {
@@ -7583,7 +8017,8 @@
         "concentrate",
         "exploration",
         "visual"
-      ]
+      ],
+      "flags.fusion.sourceId": "tfa4Sh7wcxCEqL29"
     }
   },
   {
@@ -7601,7 +8036,8 @@
       "system.traits.value": [
         "exploration",
         "move"
-      ]
+      ],
+      "flags.fusion.sourceId": "JuqmIAnkL9hVGai8"
     }
   },
   {
@@ -7619,7 +8055,8 @@
       "system.traits.value": [
         "concentrate",
         "exploration"
-      ]
+      ],
+      "flags.fusion.sourceId": "EwgTZBWsc8qKaViP"
     }
   },
   {
@@ -7637,7 +8074,8 @@
       "system.traits.value": [
         "concentrate",
         "exploration"
-      ]
+      ],
+      "flags.fusion.sourceId": "OSefkMgojBLqmRDh"
     }
   },
   {
@@ -7655,7 +8093,8 @@
       "system.traits.value": [
         "concentrate",
         "exploration"
-      ]
+      ],
+      "flags.fusion.sourceId": "OQaFzDtVEOMWizJJ"
     }
   },
   {
@@ -7673,7 +8112,8 @@
       "system.traits.value": [
         "concentrate",
         "exploration"
-      ]
+      ],
+      "flags.fusion.sourceId": "t5nBkpjroaq7QBGK"
     }
   },
   {
@@ -7691,7 +8131,8 @@
       "system.traits.value": [
         "concentrate",
         "exploration"
-      ]
+      ],
+      "flags.fusion.sourceId": "kV3XM0YJeS2KCSOb"
     }
   },
   {
@@ -7709,7 +8150,8 @@
       "system.traits.value": [
         "concentrate",
         "exploration"
-      ]
+      ],
+      "flags.fusion.sourceId": "TiNDYUGlMmxzxBYU"
     }
   },
   {
@@ -7727,7 +8169,8 @@
       "system.traits.value": [
         "concentrate",
         "exploration"
-      ]
+      ],
+      "flags.fusion.sourceId": "UqUDWO0TuSzEAKpw"
     }
   },
   {
@@ -7745,7 +8188,8 @@
       "system.traits.value": [
         "shadow",
         "teleportation"
-      ]
+      ],
+      "flags.fusion.sourceId": "VQ5OxaDKE0lCj8Mr"
     }
   },
   {
@@ -7763,7 +8207,8 @@
       "system.traits.value": [
         "primal",
         "void"
-      ]
+      ],
+      "flags.fusion.sourceId": "Qj36ramjkoKE8kzJ"
     }
   },
   {
@@ -7778,7 +8223,8 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "heritage",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "KofrLYBif2QKyiqe"
     }
   },
   {
@@ -7795,7 +8241,8 @@
       "system.fusionCategory": "heritage",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "e5JscXqvBUC867oo"
     }
   },
   {
@@ -7812,7 +8259,8 @@
       "system.fusionCategory": "heritage",
       "system.traits.value": [
         "sylph"
-      ]
+      ],
+      "flags.fusion.sourceId": "pTHMZLqWDJ3lkan9"
     }
   },
   {
@@ -7829,7 +8277,8 @@
       "system.fusionCategory": "heritage",
       "system.traits.value": [
         "poison"
-      ]
+      ],
+      "flags.fusion.sourceId": "Rp7gcG6Mxasurr8o"
     }
   },
   {
@@ -7846,7 +8295,8 @@
       "system.fusionCategory": "heritage",
       "system.traits.value": [
         "undine"
-      ]
+      ],
+      "flags.fusion.sourceId": "I9k9qe4gOT8UVK4e"
     }
   },
   {
@@ -7863,7 +8313,8 @@
       "system.fusionCategory": "heritage",
       "system.traits.value": [
         "undine"
-      ]
+      ],
+      "flags.fusion.sourceId": "b6CanpXyUKJgxEwq"
     }
   },
   {
@@ -7881,7 +8332,8 @@
       "system.traits.value": [
         "fortune",
         "mythic"
-      ]
+      ],
+      "flags.fusion.sourceId": "SNjmjFw30KQxIP4A"
     }
   },
   {
@@ -7898,7 +8350,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "MHLuKy4nQO2Z4Am1"
     }
   },
   {
@@ -7915,7 +8368,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "move"
-      ]
+      ],
+      "flags.fusion.sourceId": "M76ycLAqHoAgbcej"
     }
   },
   {
@@ -7933,7 +8387,8 @@
       "system.traits.value": [
         "concentrate",
         "exploration"
-      ]
+      ],
+      "flags.fusion.sourceId": "OizxuPb44g3eHPFh"
     }
   },
   {
@@ -7950,7 +8405,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "move"
-      ]
+      ],
+      "flags.fusion.sourceId": "pprgrYQ1QnIDGZiy"
     }
   },
   {
@@ -7972,7 +8428,8 @@
         "exploration",
         "linguistic",
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "tHCqgwjtQtzNqVvd"
     }
   },
   {
@@ -7990,7 +8447,8 @@
       "system.traits.value": [
         "auditory",
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "q9nbyIF0PEBqMtYe"
     }
   },
   {
@@ -8008,7 +8466,8 @@
       "system.traits.value": [
         "manipulate",
         "secret"
-      ]
+      ],
+      "flags.fusion.sourceId": "qVNVSmsgpKFGk9hV"
     }
   },
   {
@@ -8027,7 +8486,8 @@
         "concentrate",
         "exploration",
         "move"
-      ]
+      ],
+      "flags.fusion.sourceId": "SB7cMECVtE06kByk"
     }
   },
   {
@@ -8045,7 +8505,8 @@
       "system.traits.value": [
         "downtime",
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "rmwa3OyhTZ2i2AHl"
     }
   },
   {
@@ -8062,7 +8523,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "GkmbTGfg8KcgynOA"
     }
   },
   {
@@ -8080,7 +8542,8 @@
       "system.traits.value": [
         "downtime",
         "secret"
-      ]
+      ],
+      "flags.fusion.sourceId": "ftG89SjTSa9DYDOD"
     }
   },
   {
@@ -8099,7 +8562,8 @@
         "concentrate",
         "exploration",
         "secret"
-      ]
+      ],
+      "flags.fusion.sourceId": "d9gbpiQjChYDYA2L"
     }
   },
   {
@@ -8116,7 +8580,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "downtime"
-      ]
+      ],
+      "flags.fusion.sourceId": "ZUAaBIAntZhFQixm"
     }
   },
   {
@@ -8137,7 +8602,8 @@
         "emotion",
         "fear",
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "2u915NdUyQan6uKF"
     }
   },
   {
@@ -8154,7 +8620,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "cYdz2grcOcRt4jk6"
     }
   },
   {
@@ -8171,7 +8638,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "attack"
-      ]
+      ],
+      "flags.fusion.sourceId": "Dt6B1slsBy8ipJu9"
     }
   },
   {
@@ -8188,7 +8656,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "downtime"
-      ]
+      ],
+      "flags.fusion.sourceId": "QyzlsLrqM0EEwd7j"
     }
   },
   {
@@ -8205,7 +8674,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "QNAVeNKtHA0EUw4X"
     }
   },
   {
@@ -8222,7 +8692,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "attack"
-      ]
+      ],
+      "flags.fusion.sourceId": "SjmKHgI7a5Z9JzBx"
     }
   },
   {
@@ -8237,7 +8708,8 @@
       "system.actions": null,
       "system.category": "interaction",
       "system.fusionCategory": "skill",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "KvVdGkUi0iJwapvD"
     }
   },
   {
@@ -8255,7 +8727,8 @@
       "system.traits.value": [
         "exploration",
         "secret"
-      ]
+      ],
+      "flags.fusion.sourceId": "plBGdZhqq5JBl1D8"
     }
   },
   {
@@ -8272,7 +8745,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "attack"
-      ]
+      ],
+      "flags.fusion.sourceId": "PMbdMWc2QroouFGD"
     }
   },
   {
@@ -8289,7 +8763,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "secret"
-      ]
+      ],
+      "flags.fusion.sourceId": "XMcnh4cSI32tljXa"
     }
   },
   {
@@ -8306,7 +8781,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "move"
-      ]
+      ],
+      "flags.fusion.sourceId": "2HJ4yuEFY1Cast4h"
     }
   },
   {
@@ -8325,7 +8801,8 @@
         "concentrate",
         "exploration",
         "secret"
-      ]
+      ],
+      "flags.fusion.sourceId": "Q4kdWVOf2ztIBFg1"
     }
   },
   {
@@ -8344,7 +8821,8 @@
         "concentrate",
         "exploration",
         "secret"
-      ]
+      ],
+      "flags.fusion.sourceId": "eReSHVEPCsdkSL4G"
     }
   },
   {
@@ -8364,7 +8842,8 @@
         "exploration",
         "manipulate",
         "secret"
-      ]
+      ],
+      "flags.fusion.sourceId": "AJstokjdG6iDjVjE"
     }
   },
   {
@@ -8382,7 +8861,8 @@
       "system.traits.value": [
         "concentrate",
         "exploration"
-      ]
+      ],
+      "flags.fusion.sourceId": "Q5iIYCFdqJFM31GW"
     }
   },
   {
@@ -8403,7 +8883,8 @@
         "linguistic",
         "mental",
         "secret"
-      ]
+      ],
+      "flags.fusion.sourceId": "ewwCglB7XOPLUz72"
     }
   },
   {
@@ -8420,7 +8901,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "move"
-      ]
+      ],
+      "flags.fusion.sourceId": "JUvAvruz7yRQXfz2"
     }
   },
   {
@@ -8441,7 +8923,8 @@
         "exploration",
         "linguistic",
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "OX4fy22hQgUHDr0q"
     }
   },
   {
@@ -8458,7 +8941,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "move"
-      ]
+      ],
+      "flags.fusion.sourceId": "Qf1ylAbdVi1rkc8M"
     }
   },
   {
@@ -8475,7 +8959,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "ijZ0DDFpMkWqaShd"
     }
   },
   {
@@ -8492,7 +8977,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "EEDElIyin4z60PXx"
     }
   },
   {
@@ -8509,7 +8995,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "2EE4aF4SZpYf0R6H"
     }
   },
   {
@@ -8524,7 +9011,8 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "skill",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "XiiR6WwfTcwIUvHG"
     }
   },
   {
@@ -8545,7 +9033,8 @@
         "exploration",
         "mental",
         "occult"
-      ]
+      ],
+      "flags.fusion.sourceId": "jZQoAHmGJvi53NRR"
     }
   },
   {
@@ -8563,7 +9052,8 @@
       "system.traits.value": [
         "concentrate",
         "secret"
-      ]
+      ],
+      "flags.fusion.sourceId": "1OagaWtBpVXExToo"
     }
   },
   {
@@ -8581,7 +9071,8 @@
       "system.traits.value": [
         "exploration",
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "bT3skovyLUtP22ME"
     }
   },
   {
@@ -8598,7 +9089,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "attack"
-      ]
+      ],
+      "flags.fusion.sourceId": "lOE4yjUnETTdaf2T"
     }
   },
   {
@@ -8618,7 +9110,8 @@
         "concentrate",
         "linguistic",
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "DCb62iCBrJXy0Ik6"
     }
   },
   {
@@ -8636,7 +9129,8 @@
       "system.traits.value": [
         "exploration",
         "secret"
-      ]
+      ],
+      "flags.fusion.sourceId": "fJImDBQfqfjKJOhk"
     }
   },
   {
@@ -8653,7 +9147,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "attack"
-      ]
+      ],
+      "flags.fusion.sourceId": "7blmbDrQFNfdT731"
     }
   },
   {
@@ -8671,7 +9166,8 @@
       "system.traits.value": [
         "move",
         "secret"
-      ]
+      ],
+      "flags.fusion.sourceId": "VMozDqMMuK5kpoX4"
     }
   },
   {
@@ -8689,7 +9185,8 @@
       "system.traits.value": [
         "exploration",
         "move"
-      ]
+      ],
+      "flags.fusion.sourceId": "kMcV8e5EZUxa6evt"
     }
   },
   {
@@ -8706,7 +9203,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "RDXXE7wMrSPCLv5k"
     }
   },
   {
@@ -8723,7 +9221,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "downtime"
-      ]
+      ],
+      "flags.fusion.sourceId": "49y9Ec4bDii8pcD3"
     }
   },
   {
@@ -8740,7 +9239,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "move"
-      ]
+      ],
+      "flags.fusion.sourceId": "c8TGiZ48ygoSPofx"
     }
   },
   {
@@ -8759,7 +9259,8 @@
         "concentrate",
         "exploration",
         "move"
-      ]
+      ],
+      "flags.fusion.sourceId": "EA5vuSgJfiHH7plD"
     }
   },
   {
@@ -8777,7 +9278,8 @@
       "system.traits.value": [
         "downtime",
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "TC7OcDa7JlWbqMaN"
     }
   },
   {
@@ -8794,7 +9296,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "KjoCEEmPGTeFE4hh"
     }
   },
   {
@@ -8813,7 +9316,8 @@
         "exploration",
         "healing",
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "1kGNdIIhuglAjIp9"
     }
   },
   {
@@ -8830,7 +9334,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "attack"
-      ]
+      ],
+      "flags.fusion.sourceId": "ge56Lu1xXVFYUnLP"
     }
   },
   {
@@ -8847,7 +9352,8 @@
       "system.fusionCategory": "skill",
       "system.traits.value": [
         "move"
-      ]
+      ],
+      "flags.fusion.sourceId": "21WIfSu7Xd7uKqV8"
     }
   },
   {
@@ -8864,7 +9370,8 @@
       "system.fusionCategory": "spells",
       "system.traits.value": [
         "manipulate"
-      ]
+      ],
+      "flags.fusion.sourceId": "8b63qGzqSUENQgOT"
     }
   },
   {
@@ -8881,7 +9388,8 @@
       "system.fusionCategory": "spells",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "5V49l0K460CcvBOO"
     }
   },
   {
@@ -8896,7 +9404,8 @@
       "system.actions": 2,
       "system.category": "offensive",
       "system.fusionCategory": "spells",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "yMt7EeLqxzM3WLgn"
     }
   },
   {
@@ -8915,7 +9424,8 @@
         "concentrate",
         "sanctified",
         "spirit"
-      ]
+      ],
+      "flags.fusion.sourceId": "Zt9bo3FYLQihmpAz"
     }
   },
   {
@@ -8930,7 +9440,8 @@
       "system.actions": null,
       "system.category": "offensive",
       "system.fusionCategory": "spells",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "wfUIsKBxCBfXi1TF"
     }
   },
   {
@@ -8950,7 +9461,8 @@
         "emotion",
         "fear",
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "hi56uHG1aAb84Zzu"
     }
   },
   {
@@ -8965,7 +9477,8 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "spells",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "VOEWhPQfN3lvHivK"
     }
   },
   {
@@ -8980,7 +9493,8 @@
       "system.actions": null,
       "system.category": "defensive",
       "system.fusionCategory": "spells",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "Iuq8CeNqv3a0oWfQ"
     }
   },
   {
@@ -8997,7 +9511,8 @@
       "system.fusionCategory": "spells",
       "system.traits.value": [
         "concentrate"
-      ]
+      ],
+      "flags.fusion.sourceId": "ZJcc7KGOEsYvN6SE"
     }
   },
   {
@@ -9014,7 +9529,8 @@
       "system.fusionCategory": "spells",
       "system.traits.value": [
         "fortune"
-      ]
+      ],
+      "flags.fusion.sourceId": "kUME7DMhhHH6eIiH"
     }
   },
   {
@@ -9037,7 +9553,8 @@
         "flourish",
         "mental",
         "sonic"
-      ]
+      ],
+      "flags.fusion.sourceId": "6SAdjml3OZw0BZnn"
     }
   },
   {
@@ -9056,7 +9573,8 @@
         "auditory",
         "linguistic",
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "e2ePMDa7ixbLRryj"
     }
   },
   {
@@ -9077,7 +9595,8 @@
         "exploration",
         "linguistic",
         "mental"
-      ]
+      ],
+      "flags.fusion.sourceId": "xJEkXFJgEfEida27"
     }
   },
   {
@@ -9092,7 +9611,8 @@
       "system.actions": 1,
       "system.category": "offensive",
       "system.fusionCategory": "stamina",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "D2PNfIw7U6Ks0VY4"
     }
   },
   {
@@ -9110,7 +9630,8 @@
       "system.traits.value": [
         "exploration",
         "stamina"
-      ]
+      ],
+      "flags.fusion.sourceId": "qc0VsZ0UesnurUUB"
     }
   }
 ]

@@ -66,8 +66,18 @@ function mapsEqual(a, b) {
   return true;
 }
 
-function stripHtmlToText(html) {
-  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+// Exported so i18n-overlay.mjs's buildWorkUnitsForPack can use the EXACT
+// same "does EN have real prose" definition as this gate — the extractor
+// and the QA gate must never disagree on what counts as translatable text
+// (issue #9, parent of #27: the extractor and the old QA gate both used
+// to treat "has a description key" as "has prose", which markup-only
+// descriptions like `<p></p>` satisfy without carrying anything to
+// translate).
+export function stripHtmlToText(html) {
+  return html
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 /** Normalizes text for tolerant comparison: NFD decomposition + diacritic
@@ -76,10 +86,7 @@ function stripHtmlToText(html) {
  * accents (e.g. "perícia", "você pode") — both sides must be normalized
  * before comparing, or every accented glossary hit reads as a miss. */
 function normalizeForComparison(text) {
-  return text
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase();
+  return text.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 }
 
 /**
@@ -92,8 +99,28 @@ export function checkDoc({ nameEn, descriptionEn, entry, glossary }) {
   if (!entry) return failures; // no translation yet — not a QA failure, just untranslated.
 
   const descriptionPt = entry.description;
-  const hasDescriptionEn = Boolean(descriptionEn);
   const hasDescriptionPt = descriptionPt !== undefined && descriptionPt !== "";
+  // "EN has a description" must mean EN has TEXT to translate — a doc whose
+  // description is empty markup (`<p></p>`) has nothing to translate and must
+  // not be reported as a gap.
+  const enTextLength = descriptionEn ? stripHtmlToText(descriptionEn).trim().length : 0;
+  const hasDescriptionEn = enTextLength > 0;
+
+  // 0. missing-description (issue #27) — EN carries prose and the translation
+  // came back empty. This is the failure mode that let 679 empty descriptions
+  // reach the packs while the QA reported success: the old gate only ran its
+  // checks when BOTH sides had a description, and the single `else if` branch
+  // covered the INVERSE case (PT without EN).
+  //
+  // `noDescription: true` is the explicit escape hatch for a doc deliberately
+  // left name-only despite EN prose — without it, "not translated yet" and
+  // "intentionally has no prose" are the same empty string and the gate would
+  // be noise instead of signal.
+  if (hasDescriptionEn && !hasDescriptionPt && entry.noDescription !== true) {
+    failures.push(
+      `missing-description: EN has ${enTextLength} chars of prose but PT description is ${descriptionPt === undefined ? "absent" : "empty"} (set noDescription: true if intentional)`,
+    );
+  }
 
   // Only run description-level checks when both sides have a description.
   // (name-only translations, i.e. entry.description === undefined, pass
@@ -150,7 +177,9 @@ export function checkDoc({ nameEn, descriptionEn, entry, glossary }) {
     if (enLen > 0) {
       const ratio = ptLen / enLen;
       if (ratio < 0.5 || ratio > 2.0) {
-        failures.push(`length-ratio: ${ratio.toFixed(2)} outside [0.5, 2.0] (EN=${enLen} chars, PT=${ptLen} chars)`);
+        failures.push(
+          `length-ratio: ${ratio.toFixed(2)} outside [0.5, 2.0] (EN=${enLen} chars, PT=${ptLen} chars)`,
+        );
       }
     }
 

@@ -17,14 +17,20 @@
    * Debug overlay: F9 toggles renderer/fps/camera/cell info.
    */
 
-  import { onMount, onDestroy } from "svelte";
+  import { onMount, onDestroy, untrack } from "svelte";
   import { session, sessionActions } from "../lib/session.svelte.js";
   import { FusionCanvas } from "../lib/canvas/FusionCanvas.js";
   import { loadDevScene } from "../lib/canvas/dev-scene.js";
   import { loadSceneDocument } from "../lib/canvas/sceneLoader.js";
   import { canLoadScene } from "../lib/canvas/canvasReadyGate.js";
   import { activeSceneState } from "../lib/docs/activeScene.svelte.js";
-  import { attachCombatSync } from "../lib/combat/combatStore.svelte.js";
+  import { sceneReloadKey } from "../lib/canvas/sceneReloadKey.js";
+  import {
+    attachCombatSync,
+    combatActions,
+    getTargetingState,
+  } from "../lib/combat/combatStore.svelte.js";
+  import { isTargetedByUser } from "../lib/combat/targeting.js";
   import { attachChatSync, attachChatMessageSync } from "../lib/chat/chatStore.svelte.js";
   import AppSidebar from "./chat/AppSidebar.svelte";
   import ActiveSceneBadge from "./scenes/ActiveSceneBadge.svelte";
@@ -34,20 +40,30 @@
   import { getSocket } from "../lib/session.svelte.js";
   import { SceneOrchestrator } from "../lib/canvas/scene-orchestrator.js";
   import { TokenLayer } from "../lib/canvas/tokens/TokenLayer.js";
+  import { TokenInteractionManager } from "../lib/canvas/tokens/TokenInteractionManager.js";
+  import { resolveOwnedActorIds } from "../lib/canvas/tokens/ownedActors.js";
+  import { attachRuler } from "../lib/presence/attachRuler.js";
+  import { attachPing } from "../lib/presence/attachPing.js";
+  import { attachPresenceSync } from "../lib/presence/attachPresenceSync.js";
+  import GridCalibrationPanel from "./scenes/GridCalibrationPanel.svelte";
+  import SceneImagesPanel from "./scenes/SceneImagesPanel.svelte";
+  import { TileLayer } from "../lib/canvas/TileLayer.js";
+  import { resolveAssetUrl } from "../lib/assets/assetApi.js";
+  import { fusionApi } from "../lib/api.js";
   import { LightingRenderer } from "../lib/canvas/vision/LightingRenderer.js";
   import { FogState } from "../lib/canvas/vision/fog-state.js";
   import { CombatCanvasController } from "../lib/canvas/combat/combatCanvasController.js";
   import { worldMirror } from "../lib/docs/worldSync.js";
   import { registerPf2eSheets } from "../lib/sheets/pf2e/registerPf2eSheets.js";
   import { registerEtmosSheets } from "../lib/sheets/etmos/registerEtmosSheets.js";
-  import {
-    buildTokenFromActorFields,
-    type ActorDragPayload,
-  } from "../lib/actors/actorDirectory.js";
+  import type { ActorDragPayload } from "../lib/actors/actorDirectory.js";
+  import { buildTokenDropPayload, canAcceptCanvasDrop } from "../lib/canvas/tokens/tokenDrop.js";
   import { importToWorld as compendiumImportToWorld } from "../lib/compendium/compendiumApi.js";
   import type { CompendiumDragPayload } from "../lib/compendium/compendiumBrowser.js";
-  import type { SceneDocument } from "@fusion/shared";
+  import type { SceneDocument, TokenDocument } from "@fusion/shared";
   import { t } from "../lib/i18n/i18n.js";
+  import { sendOp } from "../lib/docs/sendOp.js";
+  import TokenConfigDialog from "./scenes/TokenConfigDialog.svelte";
 
   let loggingOut = $state(false);
   let canvasContainer: HTMLElement | null = $state(null);
@@ -76,6 +92,53 @@
   // Stored here so _teardownOrchestrator and onDestroy can remove it cleanly,
   // preventing accumulation of stale callbacks across scene switches (leak fix).
   let _tickerDisposer: (() => void) | null = null;
+
+  // Token interaction (drag, select, arrow-key move). One per active scene,
+  // destroyed on scene switch so its window keyboard listener does not leak.
+  //
+  // WIRING GAP (found live on 2026-08-07): TokenInteractionManager existed with
+  // full tests since M1-C but was never CONSTRUCTED in production — TokenSprite
+  // set eventMode="static" and nobody subscribed. Tokens rendered and could not
+  // be moved by anyone. Same class of gap as the ruler and the target marker:
+  // the chain of code existed, the user's gesture did not.
+  let tokenInteraction: TokenInteractionManager | null = null;
+
+  // Ruler (hold R, Ctrl+click adds a waypoint). Same wiring gap as the tokens:
+  // RulerStateMachine had tests and no gesture, so nobody could ever start one
+  // — and since nobody started one, the remote-ruler receive path never ran
+  // either. Disposer removes the window listeners on scene switch.
+  let disposeRuler: (() => void) | null = null;
+
+  // Map ping (press and hold). Third instance of the same gap: emitPing() and
+  // the server's rate-limited rebroadcast shipped in M1-E with zero callers,
+  // and nothing ever drew presenceState.pings either.
+  let disposePing: (() => void) | null = null;
+
+  // The ephemeral receive path itself. attachPresenceSync() was never called
+  // anywhere, so no remote cursor, ping or ruler ever reached the store — the
+  // socket listener for "ephemeral" simply was not registered.
+  let disposePresence: (() => void) | null = null;
+
+  // Grid calibration tool. Holds the canvas instance rather than a boolean so
+  // the panel can only ever mount with a live canvas — `fusionCanvas` itself
+  // is not reactive state, so the template cannot depend on it directly.
+  let calibrationCanvas: FusionCanvas | null = $state(null);
+
+  function openGridCalibration(): void {
+    if (fusionCanvas && activeSceneState.scene) calibrationCanvas = fusionCanvas;
+  }
+
+  function closeGridCalibration(): void {
+    calibrationCanvas = null;
+  }
+
+  // Scene images panel (GM): which images the scene is composed of and when
+  // each one appears.
+  let showingSceneImages = $state(false);
+
+  // Token being configured via double-click (TokenConfigDialog). null when no
+  // dialog is open. Set by TokenInteractionManager's onConfigureToken callback.
+  let configuringToken: TokenDocument | null = $state(null);
 
   async function handleLogout(): Promise<void> {
     if (loggingOut) return;
@@ -228,9 +291,11 @@
     // Only accept actor drags; only GMs can create tokens (permission gate).
     if (!isGm()) return;
     if (!activeSceneState.scene) return;
-    const actorPayload = _getActorDragPayload(event);
-    const compPayload = _getCompendiumDragPayload(event);
-    if (!actorPayload && !compPayload) return;
+    // Decide from `types` only: getData() is blanked during dragover by the
+    // drag data store's protected mode, so reading it here always looked like
+    // "not a drag we handle" and preventDefault() never ran — which is what
+    // stopped the browser from ever firing `drop`. See canAcceptCanvasDrop.
+    if (!canAcceptCanvasDrop(event.dataTransfer?.types)) return;
     event.preventDefault();
     if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
   }
@@ -257,21 +322,15 @@
     if (actorPayload) {
       event.preventDefault();
       const gridSize = scene.grid?.size ?? 100;
-      const fields = buildTokenFromActorFields({
+      const payload = buildTokenDropPayload({
         payload: actorPayload,
         sceneId: scene._id,
         x: worldX,
         y: worldY,
         gridSize,
       });
-      sock.emit("op", {
-        type: "doc:create",
-        ts: Date.now(),
-        payload: {
-          documentType: "Token",
-          embedded: { type: "Token", sceneId: scene._id },
-          documents: [fields],
-        },
+      sendOp(sock, { type: "doc:create", payload }).catch((err: unknown) => {
+        console.warn("[TableScreen] token creation rejected:", err);
       });
       return;
     }
@@ -286,7 +345,7 @@
           const createdId = result.created[0];
           if (!createdId) return;
           const gridSize = scene.grid?.size ?? 100;
-          // Build a minimal actor payload to reuse buildTokenFromActorFields
+          // Build a minimal actor payload to reuse buildTokenDropPayload
           const fakePayload: ActorDragPayload = {
             kind: "actor",
             uuid: createdId,
@@ -296,24 +355,16 @@
             img: compPayload.img,
             origin: "sidebar",
           };
-          const fields = buildTokenFromActorFields({
+          const payload = buildTokenDropPayload({
             payload: fakePayload,
             sceneId: scene._id,
             x: worldX,
             y: worldY,
             gridSize,
           });
-          sock.emit("op", {
-            type: "doc:create",
-            ts: Date.now(),
-            payload: {
-              documentType: "Token",
-              embedded: { type: "Token", sceneId: scene._id },
-              documents: [fields],
-            },
-          });
+          await sendOp(sock, { type: "doc:create", payload });
         } catch (err) {
-          console.error("[TableScreen] Failed to import compendium actor on drop:", err);
+          console.warn("[TableScreen] token creation rejected (compendium actor):", err);
         }
       })();
     }
@@ -341,13 +392,25 @@
    * covering both the "scene already active at mount" and "GM activates a
    * scene later" cases with the same code path.
    */
+  // Only the fields loadSceneDocument() actually reads. Tokens, walls and
+  // lights are EMBEDDED in the Scene document, so the mirror hands out a new
+  // SceneDocument on every one of their updates; depending on the object itself
+  // made a single token drag reload the whole scene — destroying the background
+  // and re-awaiting Assets.load() per position update, which is exactly why the
+  // map blinked out while dragging.
+  const reloadKey = $derived(sceneReloadKey(activeSceneState.scene));
+
   $effect(() => {
+    // reloadKey is the ONLY scene dependency of this effect, on purpose.
+    void reloadKey;
+
     const canvas = fusionCanvas;
     if (!canLoadScene(canvas !== null, canvasReady)) return;
     // canLoadScene(true, ...) guarantees canvas !== null — narrow for TS.
     if (!canvas) return;
 
-    const scene = activeSceneState.scene;
+    // Read untracked: we want the current document, not a dependency on it.
+    const scene = untrack(() => activeSceneState.scene);
 
     // Tear down previous orchestrator before changing scene
     _teardownOrchestrator();
@@ -421,8 +484,14 @@
     );
 
     // --- FogState (player only) ---
+    // REQ-VIS-085: FogState only exists when the scene actually wants fog.
+    // tokenVision off ⇒ players see the whole map (no mask at all);
+    // tokenVision on + fogEnabled off ⇒ simple vision mask, no accumulation.
+    // Same runtime-absence risk as `grid` (see sceneReloadKey.ts) — read defensively.
+    const tokenVisionOn = scene.tokenVision ?? false;
+    const fogEnabledOn = scene.fogEnabled ?? false;
     let fogState: FogState | null = null;
-    if (!currentIsGm && sock) {
+    if (!currentIsGm && sock && tokenVisionOn && fogEnabledOn) {
       fogState = new FogState(
         scene._id,
         userId,
@@ -459,6 +528,122 @@
       userId,
     );
 
+    // --- TokenInteractionManager (drag, select, arrow-key move) ---
+    // Needs a socket to send ops and the scene's grid to snap. Both come from
+    // state that already exists at this point: loadSceneDocument() ran and
+    // installed the grid strategy on the canvas before this function is called.
+    const grid = canvas.gridStrategy;
+    const userRole = session.user?.role ?? 1;
+    const tokensLayer = canvas.getLayer("tokens");
+
+    // Wrapped: a failure to wire interaction must not take vision, fog and
+    // combat down with it. Before this guard, anything thrown here escaped to
+    // the caller's catch and the whole orchestrator was silently skipped.
+    try {
+      if (sock && grid) {
+        tokenInteraction = new TokenInteractionManager({
+          tokenContainer: tokensLayer,
+          tokenLayer,
+          mirror: worldMirror,
+          sceneId: scene._id,
+          canvas,
+          socket: sock,
+          userId,
+          userRole,
+          ownedActorIds: resolveOwnedActorIds(worldMirror, userId, userRole),
+          // PERMISSION-LIVE FIX: re-resolved on every check instead of the
+          // static snapshot above, so a GM granting ownership mid-session
+          // unlocks the token for the player without a scene reload — see
+          // TokenInteractionOptions.getOwnedActorIds's doc comment.
+          getOwnedActorIds: () => resolveOwnedActorIds(worldMirror, userId, userRole),
+          grid,
+          // Targeting port for the right-click gesture. Built here — and not
+          // imported inside the manager — so the PIXI layer keeps no Svelte
+          // dependency. The socket carries an absolute boolean, so the client
+          // reads its own state and sends the opposite; the server resolves
+          // the acting user from the socket and echoes the truth back.
+          targeting: {
+            isTargetedByMe: (tokenId: string) =>
+              isTargetedByUser(getTargetingState(), tokenId, userId),
+            toggle: (tokenId: string, targeted: boolean) =>
+              combatActions.target(sock, tokenId, targeted),
+          },
+          onError: (msg) => {
+            console.warn("[TableScreen] token move rejected:", msg);
+          },
+          // Double-click a token to open TokenConfigDialog (Appearance / vision / light).
+          onConfigureToken: (token) => {
+            configuringToken = token;
+          },
+        });
+      }
+    } catch (err) {
+      console.error("[TableScreen] token interaction failed to wire:", err);
+    }
+
+    // One line that says whether the canvas is actually operable. Three
+    // features have shipped unreachable here; "did it wire?" should not need a
+    // debugger to answer.
+    console.info("[TableScreen] canvas wiring:", {
+      tokenInteraction: tokenInteraction !== null,
+      socket: sock !== null,
+      gridStrategy: grid !== null,
+      gridSize: grid?.config.size ?? null,
+      userRole,
+      ownedActors: resolveOwnedActorIds(worldMirror, userId, userRole).size,
+      tokensLayerEventMode: tokensLayer.eventMode,
+      tokensInLayer: tokensLayer.children.length,
+      stageEventMode: canvas.stageEventMode,
+    });
+
+    // --- Ruler (hold R) ---
+    // Works without a socket: measuring is local, only the broadcast needs one.
+    try {
+      if (grid) {
+        disposeRuler = attachRuler({
+          canvas,
+          grid,
+          layer: canvas.getLayer("controls"),
+          socket: sock,
+        });
+      }
+    } catch (err) {
+      console.error("[TableScreen] ruler failed to wire:", err);
+    }
+
+    // --- Ephemeral receive path (cursors, pings, rulers of other users) ---
+    // Must come before attachPing: without this listener the server's echo of
+    // our own ping never arrives and the ripple never appears.
+    try {
+      if (sock) disposePresence = attachPresenceSync(sock);
+    } catch (err) {
+      console.error("[TableScreen] presence sync failed to wire:", err);
+    }
+
+    // --- Ping (press and hold on the map) ---
+    // Works without a socket too: the ping is then drawn locally only.
+    try {
+      disposePing = attachPing({
+        canvas,
+        layer: canvas.getLayer("controls"),
+        socket: sock,
+        cellPx: gridSize,
+        userId,
+      });
+    } catch (err) {
+      console.error("[TableScreen] ping failed to wire:", err);
+    }
+
+    // --- Tiles (the extra images a scene is composed from) ---
+    // Signed asset URLs expire, so the resolver runs per load rather than the
+    // path being stored resolved. Players never receive hidden tiles at all.
+    const tileLayer = new TileLayer(canvas.getLayer("tiles"), async (path) => {
+      const accessToken = fusionApi.getToken();
+      const tileUserId = session.user?.id;
+      if (!accessToken || !tileUserId) return path;
+      return resolveAssetUrl(path, accessToken, tileUserId);
+    });
+
     return new SceneOrchestrator({
       scene,
       mirror: worldMirror,
@@ -468,6 +653,7 @@
       lightingRenderer,
       fogState,
       combatController,
+      tileLayer,
     });
   }
 
@@ -483,10 +669,30 @@
     _tickerDisposer?.();
     _tickerDisposer = null;
 
+    // Destroy BEFORE the orchestrator: the manager holds a window keydown
+    // listener and PIXI handlers on token sprites the orchestrator is about to
+    // tear down. Leaving it alive across a scene switch stacks one listener per
+    // scene and points them at destroyed sprites.
+    tokenInteraction?.destroy();
+    tokenInteraction = null;
+
+    disposeRuler?.();
+    disposeRuler = null;
+
+    disposePing?.();
+    disposePing = null;
+
+    disposePresence?.();
+    disposePresence = null;
+
     if (sceneOrchestrator) {
       sceneOrchestrator.teardown();
       sceneOrchestrator = null;
     }
+
+    // A scene switch invalidates any open TokenConfigDialog — its token no
+    // longer belongs to the (about to be destroyed) interaction manager.
+    configuringToken = null;
   }
 </script>
 
@@ -510,6 +716,28 @@
   <!-- No-scene overlay: shown when no active scene -->
   {#if !activeSceneState.scene}
     <NoSceneOverlay isGm={isGm()} />
+  {/if}
+
+  <!-- Scene images: which images compose the scene and when each appears -->
+  {#if showingSceneImages && activeSceneState.scene}
+    <SceneImagesPanel
+      scene={activeSceneState.scene}
+      socket={getSocket()}
+      onClose={() => {
+        showingSceneImages = false;
+      }}
+    />
+  {/if}
+
+  <!-- Grid calibration: box on the map + panel with the derived numbers -->
+  {#if calibrationCanvas && activeSceneState.scene}
+    <GridCalibrationPanel
+      canvas={calibrationCanvas}
+      sceneId={activeSceneState.scene._id}
+      cellPx={activeSceneState.scene.grid?.size ?? 100}
+      socket={getSocket()}
+      onClose={closeGridCalibration}
+    />
   {/if}
 
   <!-- -------------------------------------------------------------------- -->
@@ -552,6 +780,28 @@
       </div>
     {/if}
 
+    <!-- Scene images + grid calibration (GM, with an active scene) -->
+    {#if isGm() && activeSceneState.scene}
+      <button
+        class="btn btn--ghost btn--sm"
+        onclick={() => {
+          showingSceneImages = !showingSceneImages;
+        }}
+        aria-pressed={showingSceneImages}
+      >
+        {t("FUSION.Scene.Images.Open")}
+      </button>
+    {/if}
+    {#if isGm() && activeSceneState.scene && canvasReady}
+      <button
+        class="btn btn--ghost btn--sm"
+        onclick={openGridCalibration}
+        disabled={calibrationCanvas !== null}
+      >
+        {t("FUSION.Scene.Calibrate.Open")}
+      </button>
+    {/if}
+
     <!-- Logout -->
     <button
       class="btn btn--ghost btn--sm"
@@ -592,6 +842,20 @@
   <!-- fall through to the map.                                              -->
   <!-- -------------------------------------------------------------------- -->
   <HubLayer />
+
+  <!-- -------------------------------------------------------------------- -->
+  <!-- Token config dialog — opened by double-clicking a token on the       -->
+  <!-- canvas (TokenInteractionManager's onConfigureToken callback).         -->
+  <!-- -------------------------------------------------------------------- -->
+  {#if configuringToken && activeSceneState.scene && getSocket()}
+    <TokenConfigDialog
+      sceneId={activeSceneState.scene._id}
+      token={configuringToken}
+      socket={getSocket()!}
+      onClose={() => { configuringToken = null; }}
+      onSuccess={() => { configuringToken = null; }}
+    />
+  {/if}
 
 </div>
 

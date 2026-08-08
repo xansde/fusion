@@ -37,19 +37,28 @@ import {
 
 export const GridConfigSchema = z.object({
   /** Grid type: square, hex, or gridless. REQ-CNV-014. */
-  type: z.enum(["square", "hex", "gridless"]),
+  type: z.enum(["square", "hex", "gridless"]).default("square"),
 
   /**
    * Cell size in pixels. Minimum 50 px. REQ-CNV-017.
    * Square: side length. Hex: flat-to-flat width (pointy) or height (flat).
    */
-  size: z.number().int().min(50),
+  size: z.number().int().min(50).default(100),
 
-  /** In-game distance represented by one cell (e.g. 5). */
-  distance: z.number().positive(),
+  /**
+   * In-game distance represented by one cell (e.g. 5).
+   *
+   * Defaulted, like `type`/`size`/`units`, because a caller that sends only
+   * the field it cares about ({ size: 140 }, say) is stating a cell size, not
+   * declining to have a distance. Before the server validated grids at all
+   * this was moot — the whole grid was dropped on the floor. Now that it is
+   * enforced, rejecting the partial object would turn "your cell size was
+   * ignored" into "your scene would not save", which is not an improvement.
+   */
+  distance: z.number().positive().default(5),
 
   /** Unit label (e.g. "ft", "m"). */
-  units: z.string(),
+  units: z.string().default("ft"),
 
   /** Grid line color as CSS hex string. */
   color: z.string().default("#000000"),
@@ -248,6 +257,72 @@ export function defaultTokenDocument(id: string): TokenDocument {
 }
 
 // ---------------------------------------------------------------------------
+// Tile — an image the scene is composed from (REQ-CNV-003, spec 06)
+// ---------------------------------------------------------------------------
+
+/**
+ * A Tile is an extra image placed on the scene beyond its background.
+ *
+ * A scene is rarely one picture. The same room gets a "before" and an "after",
+ * a trapdoor is revealed halfway through the fight, the upper floor covers the
+ * lower one until the party climbs. Modelling that as several images the GM
+ * shows and hides is enough to cover all of it, and stays out of the way of
+ * the background, which remains the single image that defines the scene's
+ * extent.
+ *
+ * Tiles render in the canvas's `tiles` layer — above the background, below the
+ * tokens — in `sort` order.
+ */
+export const TileDocumentSchema = z.object({
+  /** Unique 16-character nanoid ID within the Scene's tiles collection. */
+  _id: z.string().regex(/^[A-Za-z0-9]{16}$/, "must be 16 chars from [A-Za-z0-9]"),
+
+  /** Label shown in the GM's layer list. Not rendered on the canvas. */
+  name: z.string().default(""),
+
+  /**
+   * Path or URL to the image, same convention as Token.texture and
+   * Scene.background: a `/assets/<name>` path resolved to a signed URL at
+   * load time, or an external URL.
+   */
+  texture: z.string().nullable().default(null),
+
+  /** Top-left corner in scene pixel coordinates. */
+  x: z.number().default(0),
+  y: z.number().default(0),
+
+  /** Rendered size in scene pixels. */
+  width: z.number().positive().default(1000),
+  height: z.number().positive().default(1000),
+
+  /** Rotation in degrees, clockwise, about the tile's center. */
+  rotation: z.number().default(0),
+
+  /** Opacity, 0–1. */
+  alpha: z.number().min(0).max(1).default(1),
+
+  /**
+   * Hidden from players — this is the "when it appears" control.
+   *
+   * Redacted server-side exactly like a hidden token: a player's client never
+   * receives the tile at all, not even to skip drawing it. Otherwise the map
+   * of the floor below would be one devtools panel away, and a GM who hid it
+   * would have been told it was hidden.
+   */
+  hidden: z.boolean().default(false),
+
+  /** Stacking order among tiles; higher draws on top. */
+  sort: z.number().int().default(0),
+});
+
+export type TileDocument = z.infer<typeof TileDocumentSchema>;
+
+/** Factory: build a minimal valid TileDocument with defaults. */
+export function defaultTileDocument(id: string): TileDocument {
+  return TileDocumentSchema.parse({ _id: id });
+}
+
+// ---------------------------------------------------------------------------
 // SceneDocument — primary Document
 // Spec 02 §SceneDocument, Spec 06 §SceneConfig
 // REQ-DOC-018: Scene is a primary Document with _id, _stats, flags, ownership.
@@ -351,6 +426,24 @@ export const SceneDocumentSchema = BaseDocumentSchema.omit({
     alpha: 0.2,
   })),
 
+  /**
+   * Where the grid starts, in scene pixels — the top-left corner of cell (0,0).
+   *
+   * Null means "align to the padding border", which is what every scene did
+   * before calibration existed and remains the sensible default for a map
+   * drawn to fit. A map image with its own grid baked in almost never starts
+   * exactly on that border, so calibration writes the measured origin here.
+   *
+   * Kept OUT of GridConfig on purpose: `grid` describes the grid itself (how
+   * big a cell is, what a cell means, how it looks), while this says where
+   * this particular scene puts it — the same separation the SquareGrid
+   * constructor already draws by taking `origin` apart from `config`.
+   *
+   * Normally normalized to [0, grid.size), since the grid repeats.
+   */
+  gridOffsetX: z.number().finite().nullable().default(null),
+  gridOffsetY: z.number().finite().nullable().default(null),
+
   // --- Initial view (REQ-CNV-068) ---
 
   /**
@@ -447,10 +540,10 @@ export const SceneDocumentSchema = BaseDocumentSchema.omit({
   sounds: z.array(z.unknown()).default(() => []),
 
   /**
-   * Embedded tiles (underfoot / overhead map elements).
-   * Full TileData schema is defined in spec 06 (M2); placeholder here.
+   * Embedded tiles — the extra images a scene is built from.
+   * See {@link TileDocumentSchema}.
    */
-  tiles: z.array(z.unknown()).default(() => []),
+  tiles: z.array(TileDocumentSchema).default(() => []),
 
   /**
    * Embedded freehand drawings and shapes.

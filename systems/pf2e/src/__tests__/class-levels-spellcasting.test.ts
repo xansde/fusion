@@ -225,7 +225,9 @@ describe("REQ-MCL-065 — archetype slots run RAW", () => {
     const archetypeEntry = {
       ...arcaneEntry,
       _id: "entry-archetype",
-      flags: { fusion: { classKey: WIZARD_ID, build: { level: 4, slot: "archetype:spellcasting" } } },
+      flags: {
+        fusion: { classKey: WIZARD_ID, build: { level: 4, slot: "archetype:spellcasting" } },
+      },
     };
     const derived = runCharacterPipeline(
       makeDoc(5, [fighterItem, wizardItem, archetypeEntry], {

@@ -41,16 +41,35 @@ node src/extract.mjs [--packs pack1,pack2] [--chunk-size 20] [--out out/translat
 ```
 
 Each chunk (`out/translate/<pack>/chunk-NNN.json`) carries, per doc: `id`,
-`name`, `description` (raw EN), `sourceHash`, and the subset of
-`unconvertedRules`/`systemRules` relevant to mechanics extraction (so a
-translator/LLM work-unit and grants-from-rules.mjs can both consume the same
-chunk file without re-reading the full pack).
+`name`, `description` (raw EN), `sourceHash`, an optional `reason` (see
+below), and the subset of `unconvertedRules`/`systemRules` relevant to
+mechanics extraction (so a translator/LLM work-unit and
+grants-from-rules.mjs can both consume the same chunk file without
+re-reading the full pack).
 
-**Re-runnable**: a doc is skipped (not re-emitted) when its current
-`sourceHash` already matches a non-stale entry in the pack's existing
-`i18n.pt-BR.json`. Docs whose EN source changed since the last translation
-are marked `stale: true` in the work unit (still emitted — they need
-retranslation).
+**Re-runnable, and only skips a doc that is REALLY translated** (issue #9,
+parent of #27 — the extractor used to have the identical blind spot the QA
+gate had before it was fixed: a doc whose `sourceHash` matched was treated
+as "done" even when its overlay entry had no `description` at all).
+`buildWorkUnitsForPack` (`src/i18n-overlay.mjs`) uses the exact same
+"does EN have real prose" definition as the QA gate's `checkDoc`
+(`stripHtmlToText(description).trim().length > 0`, exported from
+`src/qa-checks.mjs`) so the two never disagree about what counts as
+translatable text. Per doc:
+
+| EN has real prose? | Entry exists? | `sourceHash` matches? | `noDescription`? | PT `description` present? | Result                                                                                                            |
+| ------------------ | ------------- | --------------------- | ---------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| —                  | no            | —                     | —                | —                         | **emit** (`stale: false`)                                                                                         |
+| —                  | yes           | no (stale)            | —                | —                         | **emit** (`stale: true`) — retranslation needed                                                                   |
+| no                 | yes           | yes                   | —                | —                         | **skip** — nothing to translate                                                                                   |
+| yes                | yes           | yes                   | `true`           | —                         | **skip** — explicit valve (deliberately name-only)                                                                |
+| yes                | yes           | yes                   | falsy            | non-empty                 | **skip** — actually translated                                                                                    |
+| yes                | yes           | yes                   | falsy            | absent/`""`               | **emit** with `reason: "missing-description"` — the `name` is already translated, only the description is missing |
+
+`stale: true` and `reason: "missing-description"` are mutually exclusive
+markers on a unit: `stale` flags an EN-source change that invalidates an
+existing translation, `reason: "missing-description"` flags a
+same-EN-source entry that never got its description filled in.
 
 ### 2. `grants-from-rules.mjs` — deterministic mechanics extraction
 
@@ -125,10 +144,30 @@ merged left-to-right in filename order, later files win on id conflicts):
 ```
 
 `description` is optional — a name-only translation is valid (e.g. for docs
-where only the picker label matters). The merge always re-stamps
-`sourceHash` from the CURRENT EN doc (never trusts a hash embedded in the
-translation input), so a stale translation can never silently claim
-freshness.
+where only the picker label matters), but see the `reason:
+"missing-description"` marker above: an omitted description is only treated
+as _intentional_ once the entry (or this translation batch) sets
+`noDescription: true`. The merge always re-stamps `sourceHash` from the
+CURRENT EN doc (never trusts a hash embedded in the translation input), so
+a stale translation can never silently claim freshness.
+
+A translation batch may also declare `noDescription: true` explicitly to
+set/keep the valve:
+
+```json
+{
+  "someDocId": { "name": "Nome Só", "noDescription": true }
+}
+```
+
+`mergeI18nOverlay` preserves `noDescription` across re-merges instead of
+rebuilding each entry from scratch (a prior bug: the merge used to emit only
+`{ name, sourceHash, description? }`, silently dropping any pre-existing
+`noDescription: true`). Precedence per doc id: an explicit
+`noDescription` in this batch wins; otherwise, if this batch supplies a real
+`description`, any old valve is cleared (a fresh description was just
+provided); otherwise the existing entry's `noDescription` is carried over
+unchanged.
 
 **Idempotent**: entries are re-sorted by key on every merge — re-running
 `apply.mjs` with the same inputs produces byte-identical overlay files
