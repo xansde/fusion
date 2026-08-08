@@ -31,6 +31,7 @@ import type {
 import { createDocumentId } from "@fusion/shared";
 import { DocumentMirror } from "./DocumentMirror.js";
 import { setActiveSceneId, syncActiveSceneFromMirror } from "./activeScene.svelte.js";
+import { applyAmbientTrackSnapshot } from "../sound/soundStore.svelte.js";
 
 // ---------------------------------------------------------------------------
 // Singleton mirror (one per app session)
@@ -203,4 +204,7 @@ function _applySnapshot(snapshot: WorldSnapshotPayload): void {
   syncActiveSceneFromMirror(worldMirror);
   // The snapshot carries the active scene id (string | null, always present)
   setActiveSceneId(snapshot.activeSceneId, worldMirror);
+  // M3 mapa-som: ambientTrack is OPTIONAL on the snapshot (pre-M3 snapshots
+  // omit it entirely) — applyAmbientTrackSnapshot treats absent as null.
+  applyAmbientTrackSnapshot(snapshot.ambientTrack);
 }

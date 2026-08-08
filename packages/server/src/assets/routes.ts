@@ -69,6 +69,12 @@ import { Role } from "../auth/user-store.js";
 import type { UserPublic } from "../auth/user-store.js";
 import type { AuthService } from "../auth/service.js";
 import { detectType, ALLOWED_TYPES } from "./magic-bytes.js";
+import {
+  MAX_UPLOAD_BYTES_GLOBAL,
+  effectiveCapForKind,
+  kindOfMime,
+  type AssetKind,
+} from "./upload-limits.js";
 import { sanitizeSvg } from "./svg-sanitize.js";
 import { buildSafeFilename, sha256Hex } from "./slug.js";
 import { guardPath, guardFilename, PathTraversalError } from "./path-guard.js";
@@ -78,8 +84,14 @@ import { issueAssetToken, verifyAssetToken } from "./asset-token.js";
 // Constants
 // ---------------------------------------------------------------------------
 
-/** Default upload size limit: 20 MB (spec 20 default for images). */
-const DEFAULT_MAX_BYTES = 20 * 1024 * 1024;
+/**
+ * Default GLOBAL upload ceiling — the largest of the per-kind caps.
+ *
+ * This is not "the limit": it is the limit the multipart parser can enforce
+ * while still blind to the file's type. The real, useful limit is charged per
+ * kind after `detectType` (see upload-limits.ts).
+ */
+const DEFAULT_MAX_BYTES = MAX_UPLOAD_BYTES_GLOBAL;
 
 // ---------------------------------------------------------------------------
 // Fastify request augmentation
@@ -105,8 +117,19 @@ export interface RegisterAssetRoutesOptions {
    */
   assetsDir: string;
 
-  /** Maximum upload size in bytes. Default: 20 MB. */
+  /**
+   * GLOBAL upload ceiling in bytes — the hard cut applied by the multipart
+   * parser, before the file's type is known. Default: the largest per-kind cap
+   * (see MAX_UPLOAD_BYTES_GLOBAL). Lowering it lowers every kind with it.
+   */
   maxUploadBytes?: number;
+
+  /**
+   * Per-kind cap overrides, in bytes. Merged over MAX_BYTES_BY_KIND and always
+   * clamped by `maxUploadBytes`. Mainly for tests and future server config —
+   * production leaves it undefined and gets the spec 20 numbers.
+   */
+  maxBytesByKind?: Partial<Record<AssetKind, number>>;
 
   /**
    * World HMAC secret — used to sign short-lived asset query-tokens
@@ -171,7 +194,13 @@ async function assetPlugin(
   fastify: FastifyInstance,
   options: RegisterAssetRoutesOptions,
 ): Promise<void> {
-  const { authService, assetsDir, maxUploadBytes = DEFAULT_MAX_BYTES, secret } = options;
+  const {
+    authService,
+    assetsDir,
+    maxUploadBytes = DEFAULT_MAX_BYTES,
+    maxBytesByKind,
+    secret,
+  } = options;
 
   // Ensure assets directory exists (REQ-AST-001)
   mkdirSync(assetsDir, { recursive: true });
@@ -227,7 +256,9 @@ async function assetPlugin(
       throw err;
     }
 
-    // REQ-AST-008 / REQ-SEC-044: secondary hard size check on the materialised buffer
+    // REQ-AST-008 / REQ-SEC-044: secondary hard check against the GLOBAL ceiling
+    // on the materialised buffer. The per-kind cap is charged further down, once
+    // detectType has told us what this file actually is.
     if (buf.length > maxUploadBytes) {
       return reply.code(413).send({
         ok: false,
@@ -243,6 +274,29 @@ async function assetPlugin(
         ok: false,
         code: "UNSUPPORTED_MEDIA_TYPE",
         message: `File type not supported. Allowed types: ${Object.keys(ALLOWED_TYPES).join(", ")}.`,
+      });
+    }
+
+    // REQ-AST-008: the cap that carries a useful message is the one per media
+    // kind — and the kind can only be known now, after the bytes were read and
+    // identified. `kind` is null only if ALLOWED_TYPES and kindOfMime ever drift
+    // apart; treating that as unsupported keeps an unknown type from inheriting
+    // somebody else's cap.
+    const kind = kindOfMime(detected.mime);
+    if (!kind) {
+      return reply.code(415).send({
+        ok: false,
+        code: "UNSUPPORTED_MEDIA_TYPE",
+        message: `File type not supported: ${detected.mime}.`,
+      });
+    }
+
+    const cap = effectiveCapForKind(kind, maxUploadBytes, maxBytesByKind);
+    if (buf.length > cap) {
+      return reply.code(413).send({
+        ok: false,
+        code: "FILE_TOO_LARGE",
+        message: `Upload exceeds the ${String(cap)} byte limit for ${kind} files.`,
       });
     }
 

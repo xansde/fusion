@@ -861,5 +861,21 @@
   "FUSION.Setup.Done.CreatingShortcut": "Creating…",
   "FUSION.Setup.Done.GoToFusion": "Go to Fusion",
   "FUSION.Setup.Error.Generic": "Could not complete the setup wizard.",
-  "FUSION.Setup.Error.ReconfigAuth": "Could not verify the Admin Key."
+  "FUSION.Setup.Error.ReconfigAuth": "Could not verify the Admin Key.",
+
+  "FUSION.Sidebar.Tabs.Sound": "Sound",
+  "FUSION.Sound.Title": "Ambient Sound",
+  "FUSION.Sound.NowPlaying": "Now playing",
+  "FUSION.Sound.Silence": "Silence",
+  "FUSION.Sound.UnlockBadge": "Click to enable audio",
+  "FUSION.Sound.Volume": "Volume",
+  "FUSION.Sound.Selected": "Selected: {{name}} (not sent yet)",
+  "FUSION.Sound.ChooseTrack": "Choose track",
+  "FUSION.Sound.Play": "Play",
+  "FUSION.Sound.PlayTitle": "Play the selected track (or restart the current one)",
+  "FUSION.Sound.Stop": "Stop",
+  "FUSION.Sound.PlayFailed": "Could not play the track: {{message}}",
+  "FUSION.Sound.StopFailed": "Could not stop the track: {{message}}",
+  "FUSION.Sound.UnexpectedError": "unexpected error",
+  "FUSION.Sound.InvalidAsset": "Pick an uploaded audio file from the library."
 }

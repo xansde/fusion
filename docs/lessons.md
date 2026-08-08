@@ -199,3 +199,121 @@ produto ("esta cena tem névoa?") não se deriva de um proxy de identidade
 ("quem está olhando?"): o proxy sobrevive a todos os testes até o dia em que
 os dois discordam. Ao encontrar um `!isGm` (ou qualquer papel) decidindo
 comportamento, perguntar de qual campo aquilo deveria vir.
+
+## Alargar a allowlist alarga todo mundo que passa pelo portão
+
+**Quando:** fase Validar de `wi-mapa-som-01` (2026-08-07), o item que fez o
+upload aceitar mp3 e ogg.
+
+**O que aconteceu:** o `FilePicker` é o portão único de três consumidores —
+fundo de cena (`SceneCreateDialog`), textura de token (`TokenAddDialog`) e
+retrato (`CharacterSheet`) —, e os três querem **só imagem**. O item alargou a
+allowlist global (`ALLOWED_TYPES` no servidor, `ALLOWED_EXTENSIONS` no cliente)
+e, ciente do risco, criou a prop `kinds` para estreitar o picker por chamador.
+Só que `kinds` alimenta **uma** das três entradas do componente:
+
+- **`accept` do diálogo do sistema** — estreitado. É a única que o navegador
+  filtra por conta própria.
+- **A grade de assets** — `assetStore.filtered` filtra só por texto de busca, e
+  `handleSelectAsset` devolve o caminho sem olhar o tipo. Um `.mp3` na
+  biblioteca vira card selecionável em todo picker.
+- **O arraste** — `handleDrop` ignora `kinds` por decisão documentada; com um
+  arquivo só, ainda auto-seleciona o que acabou de subir. Soltar um `.mp3`
+  sobre o picker de "criar cena" grava `scene.background = "/assets/….mp3"`.
+
+Nenhuma validação a jusante segura: `validateSceneForm` só cobra o tamanho da
+string do caminho. Resultado: cena com fundo que o `Assets.load()` do PIXI não
+carrega, em um gesto.
+
+**Por que engana:** o docblock do componente justifica o arraste global dizendo
+que "a validação é feita pelo `clientValidation` (e, de verdade, pelo
+servidor)". Isso responde _"este arquivo é permitido em algum lugar?"_, e não
+_"este arquivo é do tipo certo AQUI?"_. A segunda pergunta era verdadeira **por
+acidente**, enquanto não existia asset não-imagem no mundo — o dia em que a
+allowlist cresceu foi o dia em que a suposição parou de valer, e nenhum tipo,
+teste ou lint fala sobre isso. Pior: a prop `kinds` faz o chamador acreditar que
+está protegido. Estreitamento que alcança uma entrada de três é mais perigoso
+que estreitamento nenhum.
+
+**O que fazer:** ao alargar uma allowlist compartilhada, listar os **consumidores
+dela** e perguntar, um por um, o que cada um faz com um valor da classe nova —
+o mesmo movimento de "procure o gesto do usuário", só que na direção contrária:
+não "alguém alcança esta peça?", e sim "quem alcança esta peça agora que ela
+aceita mais coisa?". E prop de estreitamento tem que cobrir **todas** as
+entradas do componente (diálogo, grade, arraste) ou não deve existir: ou o
+componente inteiro respeita `kinds`, ou o chamador que precisa de garantia
+valida ele mesmo o que recebeu no `onSelect`.
+
+## Função pura testada não prova que o dado certo chega na ponta
+
+**Quando:** implementação do som ambiente da mesa, item `wi-mapa-som-01`
+(2026-08-08).
+
+**O que aconteceu:** o player de áudio do cliente nasceu com 41 testes verdes e
+não tocava uma faixa sequer. O contrato define `src` como o **nome puro** do
+asset (`tavern.mp3`, sem barra — o regex do schema recusa qualquer path). O
+player pegava esse nome e passava por `resolveAssetUrl()`, que só reescreve
+string já no formato `/assets/<nome>` e **devolve qualquer outra coisa
+intacta**. O Howler recebia `tavern.mp3`, uma URL relativa à página, e tomava 404. Nenhum teste viu, porque todos exercitavam as funções puras extraídas
+(`loopOffsetSeconds`, `shouldRestart`) e nenhum olhava o argumento que chega ao
+construtor do `Howl`.
+
+No mesmo arquivo, um segundo defeito da mesma família: no desbloqueio de
+autoplay o player só dava `seek()`. Lendo o `dist/howler.js`, o `_unlockAudio`
+apenas **emite** o evento `unlock` — nunca retoma a reprodução. O som bloqueado
+ficou `_paused/_ended`, e um play parado em `once('resume')` ainda carrega o
+seek capturado **antes** do bloqueio. O jogador que abrisse a aba com autoplay
+bloqueado clicaria na tela e continuaria no silêncio, para sempre.
+
+**Por que enganou:** extrair a lógica pura e testá-la é a recomendação certa, e
+foi seguida à risca. O problema é que ela desloca a verificação para onde o
+código é fácil de testar — e o defeito mora exatamente onde ela **não** foi: na
+fronteira com a biblioteca externa. "Sem AudioContext no Node" justifica não
+testar o áudio de verdade; não justifica deixar sem teste **o valor que se
+entrega à biblioteca**, que é um objeto JavaScript comum.
+
+**O que fazer:** quando um módulo existe para conversar com uma biblioteca
+externa, teste também **a conversa** — mocke a biblioteca e afirme sobre o que
+chega no construtor/na chamada. É barato (`vi.mock`) e é a única coisa que pega
+uma URL malformada, um flag invertido ou um campo faltando. E ao usar um helper
+de outro módulo, confira o que ele faz com uma entrada **fora** do formato que
+ele espera: `resolveAssetUrl` não falha com nome puro, ela devolve o nome puro
+— o silêncio dela é que virou o bug. Helper que degrada devolvendo a entrada
+intacta é uma armadilha: dá certo no teste e erra em produção.
+
+## Aba que não cabe não fica apertada: ela some, e leva a vizinha junto
+
+**Quando:** primeira abertura do painel de som pelo dono, item `wi-mapa-som-01`
+(2026-08-08).
+
+**O que aconteceu:** a aba **Som** foi adicionada à barra lateral, o código estava
+correto, o componente montava, o teste de tipo e o lint passavam — e ela
+simplesmente não existia na tela. A aba **Compêndio**, que funcionava antes,
+tinha sumido junto.
+
+A `.sidebar__tabs` é um `display: flex` sem `flex-wrap` e sem `overflow`, dentro
+de uma sidebar de **280 px fixos**. As seis abas (Cenas, Combate, Chat, Atores,
+Compêndio, Som) somam cerca de **465 px**. O flex encolheu os itens até abaixo
+do texto e o que sobrou saiu pela borda — **sem barra de rolagem, sem
+reticências, sem qualquer indício de que havia mais coisa ali**. Não é um
+elemento cortado pela metade, que se notaria: é um elemento que desaparece
+inteiro e em silêncio.
+
+**Por que enganou:** todo instinto de verificação estava apontado para o
+comportamento — o evento chega? o estado sincroniza? o servidor recusa quem não
+pode? Nada disso responde "o usuário consegue ver o botão". Pior: a aba nova
+levou junto uma aba **antiga e funcionando**, ou seja, o dano apareceu num lugar
+que ninguém pensaria em conferir depois de adicionar um item de menu.
+
+**O que fazer:** ao acrescentar um item a um container de largura fixa (barra de
+abas, toolbar, breadcrumb), some as larguras antes de assumir que cabe, e trate
+o transbordo explicitamente — `flex-wrap` para quebrar linha, ou truncamento
+visível. Nunca deixe o default, que é sumir calado. E prefira **quebrar linha a
+`overflow-x: auto`** em painel estreito: rolagem horizontal escondida é um gesto
+que ninguém descobre, o que recai na lição "peça implementada ≠ peça alcançável"
+— só que agora a peça inalcançável é o próprio caminho até ela.
+
+**Corolário de verificação:** foi um humano abrindo a tela que achou isso, no
+primeiro passo do roteiro. Depois disso, dirigir um navegador de verdade
+(Playwright) e afirmar sobre o que está **renderizado** — não sobre o que está
+no DOM ou no bundle — passou a fazer parte da prova destes itens de UI.

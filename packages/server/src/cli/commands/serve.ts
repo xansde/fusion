@@ -285,6 +285,10 @@ export async function runServe(args: ServeArgs): Promise<void> {
       // REQ-CBT-012: resolve the world's SystemModule (if its package loaded
       // successfully above) so the socket layer can wire initiative formulas.
       const worldSystemModule = registry.tryGet(worldSystemId);
+      // Assets are stored under <dataDir>/worlds/<worldSlug>/assets/ — shared
+      // by the asset HTTP routes below and the socket layer's sound:play
+      // NOT_FOUND validation (M3 mapa-som, see socket-manager.ts assetExists).
+      const worldAssetsDir = pathJoin(config.dataDir, "worlds", worldSlug, "assets");
       bootOpts.netContext = {
         worldId: worldSlug,
         db: openWorldDb,
@@ -294,15 +298,15 @@ export async function runServe(args: ServeArgs): Promise<void> {
         // REQ-CMP-006..012: load committed packs for the world's system over
         // the real boot path so compendium content is available in a live session.
         systemId: worldSystemId,
+        assetsDir: worldAssetsDir,
         ...(worldSystemModule !== undefined ? { systemModule: worldSystemModule } : {}),
       };
 
       // REQ-AST-006..029: register asset routes for the open world.
-      // Assets are stored under <dataDir>/worlds/<worldSlug>/assets/.
       // The secret enables short-lived asset query-tokens for PIXI / <img> loading.
       bootOpts.assetContext = {
         authService: authSvc,
-        assetsDir: pathJoin(config.dataDir, "worlds", worldSlug, "assets"),
+        assetsDir: worldAssetsDir,
         secret: authSecret,
       };
     }
