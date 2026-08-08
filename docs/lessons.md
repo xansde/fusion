@@ -472,3 +472,33 @@ com padding 0 — que é o que um fixture de teste tende a usar — o bug some.
 lição mais larga: quando dois subsistemas põem coisas no mesmo espaço, o
 segundo tem que **ler de onde o primeiro colocou**, não deduzir de onde
 deveria ser.
+
+## Nenhum gate deste repo alcança um arquivo `.svelte`
+
+**Quando:** porte da System Window para o client (2026-08-08).
+
+**O que aconteceu:** ao rodar os gates sobre componentes novos, os dois que
+cobririam estilo e erro de código simplesmente não olharam para eles:
+
+- `eslint.config.js` lista `**/*.svelte` entre os arquivos **ignorados**
+  (linha 19). Rodar `npx eslint <pasta com .svelte>` não reprova nada — pior,
+  quando a pasta só tem `.svelte`, o ESLint aborta com "all of the files
+  matching the glob pattern are ignored", que soa como erro de invocação.
+- `format:check` roda `prettier --check "**/*.{ts,tsx,json,md}"`. `.svelte` e
+  `.css` estão fora do glob, e o Prettier deste repo nem tem o plugin de
+  Svelte instalado: pedir `--check` num `.svelte` falha com "No parser could be
+  inferred for file".
+
+**Por que engana:** a suíte fica verde, o `format:check` diz "All matched files
+use Prettier code style!" e o gate parece ter passado sobre o componente. O
+"matched" da mensagem é a palavra que ninguém lê. O mesmo vale para `.css`:
+`base.css` **também** difere do Prettier hoje e nunca foi reprovado.
+
+**O que fazer:** o único gate que enxerga `.svelte` é o `svelte-check`
+(`pnpm --filter @fusion/client typecheck`) — e ele checa tipo e a11y, não
+estilo. Então: (a) rode `svelte-check` sempre que mexer em componente, e leia
+os WARNINGS, não só os ERRORS; (b) mantenha em `lib/*.ts` toda lógica que
+mereça teste, porque o client roda Vitest com `environment: "node"` e não monta
+componente — um `.svelte` gordo é código sem lint, sem format e sem teste; (c)
+ao afirmar "gates limpos", diga sobre quais arquivos, já que a resposta honesta
+hoje exclui todo `.svelte` e todo `.css`.
