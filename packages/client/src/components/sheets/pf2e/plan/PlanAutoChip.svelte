@@ -23,9 +23,16 @@
     /** EN subtitle beside the pt-BR chip name — always shown when present (r14). */
     subName?: string | undefined;
     onClick?: (() => void) | undefined;
+    /**
+     * `#rrggbb` accent for a chip that belongs to a NAMED source rather than
+     * to the class (an Isekai blessing). Two archetypes land chips on the same
+     * card, so colour is what tells the player which one granted what.
+     * Undefined keeps the neutral class-feature look.
+     */
+    accent?: string | undefined;
   }
 
-  let { name, subName, onClick }: Props = $props();
+  let { name, subName, onClick, accent }: Props = $props();
 
   const hint = $derived(t("FUSION.Sheet.Plan.Details.ChipHint", { name }));
 </script>
@@ -34,6 +41,8 @@
   <button
     type="button"
     class="plan-auto-chip plan-auto-chip--button"
+    class:plan-auto-chip--accented={accent !== undefined}
+    style={accent ? `--chip-accent: ${accent}` : undefined}
     onclick={onClick}
     title={hint}
     aria-label={hint}
@@ -43,7 +52,11 @@
     {#if subName}<span class="plan-auto-chip__en">{subName}</span>{/if}
   </button>
 {:else}
-  <div class="plan-auto-chip">
+  <div
+    class="plan-auto-chip"
+    class:plan-auto-chip--accented={accent !== undefined}
+    style={accent ? `--chip-accent: ${accent}` : undefined}
+  >
     <span class="plan-auto-chip__lock" aria-hidden="true">&#128274;</span>
     {name}
     {#if subName}<span class="plan-auto-chip__en">{subName}</span>{/if}
@@ -79,6 +92,28 @@
   .plan-auto-chip__lock {
     font-size: 9px;
     color: var(--fusion-text-subtle);
+  }
+
+  /*
+   * A chip from a named source (Isekai archetype): the accent tints the
+   * border and the text, and a left bar makes the source scannable when two
+   * archetypes drop chips on the same level card.
+   */
+  .plan-auto-chip--accented {
+    border-color: color-mix(in srgb, var(--chip-accent) 55%, transparent);
+    color: var(--fusion-text);
+    border-left: 3px solid var(--chip-accent);
+    padding-left: 7px;
+  }
+
+  .plan-auto-chip--accented .plan-auto-chip__lock {
+    color: var(--chip-accent);
+  }
+
+  .plan-auto-chip--accented.plan-auto-chip--button:hover,
+  .plan-auto-chip--accented.plan-auto-chip--button:focus-visible {
+    border-color: var(--chip-accent);
+    background: color-mix(in srgb, var(--chip-accent) 12%, var(--fusion-surface));
   }
 
   /* EN subtitle beside the pt-BR chip name (r14). */
