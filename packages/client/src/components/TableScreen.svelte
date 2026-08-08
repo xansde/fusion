@@ -49,14 +49,13 @@
   import { worldMirror } from "../lib/docs/worldSync.js";
   import { registerPf2eSheets } from "../lib/sheets/pf2e/registerPf2eSheets.js";
   import { registerEtmosSheets } from "../lib/sheets/etmos/registerEtmosSheets.js";
-  import {
-    buildTokenFromActorFields,
-    type ActorDragPayload,
-  } from "../lib/actors/actorDirectory.js";
+  import type { ActorDragPayload } from "../lib/actors/actorDirectory.js";
+  import { buildTokenDropPayload } from "../lib/canvas/tokens/tokenDrop.js";
   import { importToWorld as compendiumImportToWorld } from "../lib/compendium/compendiumApi.js";
   import type { CompendiumDragPayload } from "../lib/compendium/compendiumBrowser.js";
   import type { SceneDocument } from "@fusion/shared";
   import { t } from "../lib/i18n/i18n.js";
+  import { sendOp } from "../lib/docs/sendOp.js";
 
   let loggingOut = $state(false);
   let canvasContainer: HTMLElement | null = $state(null);
@@ -282,21 +281,15 @@
     if (actorPayload) {
       event.preventDefault();
       const gridSize = scene.grid?.size ?? 100;
-      const fields = buildTokenFromActorFields({
+      const payload = buildTokenDropPayload({
         payload: actorPayload,
         sceneId: scene._id,
         x: worldX,
         y: worldY,
         gridSize,
       });
-      sock.emit("op", {
-        type: "doc:create",
-        ts: Date.now(),
-        payload: {
-          documentType: "Token",
-          embedded: { type: "Token", sceneId: scene._id },
-          documents: [fields],
-        },
+      sendOp(sock, { type: "doc:create", payload }).catch((err: unknown) => {
+        console.warn("[TableScreen] token creation rejected:", err);
       });
       return;
     }
@@ -311,7 +304,7 @@
           const createdId = result.created[0];
           if (!createdId) return;
           const gridSize = scene.grid?.size ?? 100;
-          // Build a minimal actor payload to reuse buildTokenFromActorFields
+          // Build a minimal actor payload to reuse buildTokenDropPayload
           const fakePayload: ActorDragPayload = {
             kind: "actor",
             uuid: createdId,
@@ -321,24 +314,16 @@
             img: compPayload.img,
             origin: "sidebar",
           };
-          const fields = buildTokenFromActorFields({
+          const payload = buildTokenDropPayload({
             payload: fakePayload,
             sceneId: scene._id,
             x: worldX,
             y: worldY,
             gridSize,
           });
-          sock.emit("op", {
-            type: "doc:create",
-            ts: Date.now(),
-            payload: {
-              documentType: "Token",
-              embedded: { type: "Token", sceneId: scene._id },
-              documents: [fields],
-            },
-          });
+          await sendOp(sock, { type: "doc:create", payload });
         } catch (err) {
-          console.error("[TableScreen] Failed to import compendium actor on drop:", err);
+          console.warn("[TableScreen] token creation rejected (compendium actor):", err);
         }
       })();
     }
