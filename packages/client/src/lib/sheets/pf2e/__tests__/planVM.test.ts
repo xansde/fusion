@@ -33,6 +33,7 @@ import {
   isAbilityBoostsSlotFilled,
   setFreeArchetype,
   removeChoice,
+  classGrantRefsFromClassDoc,
   levelUp,
   levelSet,
   skillTrainingDialogContext,
@@ -48,6 +49,7 @@ import {
   detailsRequestForSlot,
   detailsRequestForAutoFeature,
   findEntryUuidByName,
+  resolveDetailsEntryUuid,
   pickDefaultEntryUuid,
   buildContentNameTranslator,
   abilityBoostsGrid,
@@ -58,10 +60,14 @@ import {
   classFeatureGrantRefs,
   classGrantSlot,
   backgroundLoreHealOps,
+  loreSlugHealOps,
   readBackgroundTrainings,
   loreSlug,
   detailsRequestForAbcChip,
   checkFeatPrerequisites,
+  _knownPossessedNamesForTests,
+  CLASS_CHOICE_SLOTS,
+  CLASS_CHOICE_SLOT_OPTIONS,
   type PlanOpBuilderContext,
   type AbcChip,
   type PlanSlotModel,
@@ -1125,9 +1131,13 @@ describe("derivePlan — system.prerequisites marking (A1)", () => {
     const slot = l1.slots.find((s) => s.slotId === "classFeat-1")!;
     expect(slot.filled).toBe(true);
     expect(slot.choiceName).toBe("Draconic Arrogance");
+    // issue #32: the reason's `prerequisite` param is now translated to
+    // pt-BR via translatePrerequisite (the raw EN "dragon instinct" resolves
+    // by document name to class-features-core's own "Dragon Instinct" →
+    // "Instinto Dracônico" translation).
     expect(slot.requirementIssue).toEqual({
       reasonKey: "FUSION.Sheet.Plan.Requirement.PrerequisiteUnmet",
-      params: { prerequisite: "dragon instinct" },
+      params: { prerequisite: "Instinto Dracônico" },
     });
   });
 
@@ -1161,6 +1171,247 @@ describe("derivePlan — system.prerequisites marking (A1)", () => {
 
   it("checkFeatPrerequisites: no system.prerequisites → undefined (no issue)", () => {
     expect(checkFeatPrerequisites(arcaneFistsFeatDoc(), [], undefined, 5)).toBeUndefined();
+  });
+
+  /**
+   * issue #45: "animal instinct or untamed order" (Brutal Crush, Creature
+   * Comforts, Rip and Tear — all level 4) has "animal instinct" (axis-
+   * resolvable, definitively unmet for a non-Animal instinct) OR "untamed
+   * order" (Druid's order axis — Druid isn't a curated Fusion class, so this
+   * candidate is unresolved FOREVER, not just for this character). Before
+   * the fix, ANY single unresolved candidate downgraded the whole entry from
+   * "unmet" to "unknown" (DEC-BC-05 leniency for "maybe satisfiable through
+   * data this VM doesn't model") — but "untamed order" isn't a data gap,
+   * it's provably never satisfiable in Fusion today. That silently hid the
+   * SAME mistake this suite's "Animal Skin"-shaped siblings (single-
+   * candidate "animal instinct") correctly mark.
+   */
+  function ripAndTearFeatDoc(): Record<string, unknown> {
+    return {
+      _id: "item-rip-and-tear",
+      name: "Rip and Tear",
+      type: "feat",
+      system: {
+        category: "class",
+        level: 1,
+        traits: { rarity: "common", value: ["barbarian"] },
+        prerequisites: [{ value: "animal instinct or untamed order" }],
+      },
+      flags: { fusion: { build: { level: 1, slot: "classFeat-1" } } },
+    };
+  }
+
+  it("Dragon Instinct + Rip and Tear ('animal instinct or untamed order'): marked unmet, same as an 'animal instinct'-only sibling", () => {
+    const doc = baseCharacterDoc({
+      items: [barbarianWithClassFeatDoc(), instinctItem("Dragon Instinct"), ripAndTearFeatDoc()],
+      system: { level: { value: 1 }, details: {} },
+    });
+    const plan = derivePlan(doc);
+    const l1 = plan.levels.find((l) => l.level === 1)!;
+    const slot = l1.slots.find((s) => s.slotId === "classFeat-1")!;
+    expect(slot.filled).toBe(true);
+    // issue #32: "animal instinct" resolves by document name (class-features-
+    // core's "Animal Instinct" → "Instinto Animal"); "untamed order" has no
+    // curated document (Druid isn't a Fusion class) but IS a real PF2e term,
+    // covered by prerequisiteTranslation.ts's curated vocabulary.
+    expect(slot.requirementIssue).toEqual({
+      reasonKey: "FUSION.Sheet.Plan.Requirement.PrerequisiteUnmet",
+      params: { prerequisite: "Instinto Animal ou Ordem Selvagem" },
+    });
+  });
+
+  it("Animal Instinct + Rip and Tear: requirement satisfied via the 'animal instinct' branch, no mark", () => {
+    const doc = baseCharacterDoc({
+      items: [barbarianWithClassFeatDoc(), instinctItem("Animal Instinct"), ripAndTearFeatDoc()],
+      system: { level: { value: 1 }, details: {} },
+    });
+    const plan = derivePlan(doc);
+    const l1 = plan.levels.find((l) => l.level === 1)!;
+    const slot = l1.slots.find((s) => s.slotId === "classFeat-1")!;
+    expect(slot.filled).toBe(true);
+    expect(slot.requirementIssue).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// derivePlan — Champion "Blessing of the Devoted" choice axis (issue #25)
+//
+// The vendor's Blessing of the Devoted (level 3 class-feature placeholder)
+// carries an unconverted ChoiceSet whose 3 real options (Blessed Armament/
+// Shield/Swiftness) were never imported — same omission pattern the "Cause"
+// axis already had a fix for. 6 higher-level feats (Radiant Armament, Shield
+// of Reckoning, Spectral Advance, Armament Paragon, Shield Paragon, Swift
+// Paragon) cite the chosen blessing by name and could never resolve.
+// ---------------------------------------------------------------------------
+
+describe("derivePlan — Champion 'Blessing of the Devoted' choice axis (issue #25)", () => {
+  function championBlessingClassDoc(): Record<string, unknown> {
+    return {
+      _id: "class-champion-blessing",
+      name: "Champion",
+      type: "class",
+      system: {
+        keyAbility: ["str", "dex"],
+        featuresByLevel: [
+          { level: 1, uuid: "uuid-cause", name: "Cause" },
+          { level: 3, uuid: "uuid-blessing", name: "Blessing of the Devoted" },
+        ],
+        featLevels: { ancestry: [], class: [2, 4, 10], general: [], skill: [] },
+      },
+    };
+  }
+
+  it("CLASS_CHOICE_SLOTS maps 'Blessing of the Devoted' to slot type 'blessing'", () => {
+    expect(CLASS_CHOICE_SLOTS["Blessing of the Devoted"]).toBe("blessing");
+  });
+
+  it("CLASS_CHOICE_SLOT_OPTIONS declares blessing's pack + otherTags category + required class", () => {
+    expect(CLASS_CHOICE_SLOT_OPTIONS.blessing).toEqual({
+      packSlug: "class-features-core",
+      category: "blessing-of-the-devoted",
+      requiredClass: "champion",
+    });
+  });
+
+  it("derivePlan emits an (unfilled) 'blessing' slot at level 3 for a Champion", () => {
+    const doc = baseCharacterDoc({
+      items: [{ ...championBlessingClassDoc(), _id: "item-class" }],
+      system: { level: { value: 3 }, details: {} },
+    });
+    const plan = derivePlan(doc);
+    const l3 = plan.levels.find((l) => l.level === 3)!;
+    const slot = l3.slots.find((s) => s.slotId === "blessing-3");
+    expect(slot).toBeDefined();
+    expect(slot!.type).toBe("blessing");
+    expect(slot!.filled).toBe(false);
+  });
+
+  it("once 'Blessed Armament' is picked, Radiant Armament's prerequisite ('blessed armament') resolves as MET — no false block on the OTHER 5 feats' exact pattern", () => {
+    const blessedArmamentItem: Record<string, unknown> = {
+      _id: "item-blessed-armament",
+      name: "Blessed Armament",
+      type: "classFeature",
+      system: { traits: { otherTags: ["blessing-of-the-devoted"], value: ["champion"] } },
+      flags: { fusion: { build: { level: 3, slot: "blessing-3" } } },
+    };
+    const radiantArmamentFeat: Record<string, unknown> = {
+      _id: "item-radiant-armament",
+      name: "Radiant Armament",
+      type: "feat",
+      system: {
+        category: "class",
+        level: 10,
+        traits: { rarity: "common", value: ["champion"] },
+        prerequisites: [{ value: "blessed armament" }],
+      },
+      flags: { fusion: { build: { level: 10, slot: "classFeat-10" } } },
+    };
+    const doc = baseCharacterDoc({
+      items: [
+        { ...championBlessingClassDoc(), _id: "item-class" },
+        blessedArmamentItem,
+        radiantArmamentFeat,
+      ],
+      system: { level: { value: 10 }, details: {} },
+    });
+    const plan = derivePlan(doc);
+    const l10 = plan.levels.find((l) => l.level === 10)!;
+    const slot = l10.slots.find((s) => s.slotId === "classFeat-10")!;
+    expect(slot.filled).toBe(true);
+    expect(slot.requirementIssue).toBeUndefined();
+  });
+});
+
+/**
+ * issue #30: "Master of Many Styles" prerequisite is now ONE merged "A or B"
+ * entry (see monk.json's prerequisiteFixes) instead of two separate AND'd
+ * entries. A pure Monk with Reflexive Stance (their own class feat) but
+ * WITHOUT Opening Stance (Fighter-trait, unreachable via a Monk's classFeat
+ * slot) must show no requirement issue either way — proving the merge
+ * didn't regress the one satisfiable path.
+ */
+describe("checkFeatPrerequisites — Master of Many Styles merged OR entry (issue #30)", () => {
+  it("Reflexive Stance alone satisfies the merged 'A or B' entry — no mark", () => {
+    const reflexiveStanceItem: Record<string, unknown> = {
+      _id: "item-reflexive-stance",
+      name: "Reflexive Stance",
+      type: "feat",
+      system: { category: "class", level: 12, traits: { rarity: "common", value: ["monk"] } },
+      flags: { fusion: { build: { level: 12, slot: "classFeat-12" } } },
+    };
+    const masterOfManyStylesFeat: Record<string, unknown> = {
+      _id: "item-master-of-many-styles",
+      name: "Master of Many Styles",
+      type: "feat",
+      system: {
+        category: "class",
+        level: 16,
+        traits: { rarity: "common", value: ["fighter", "monk"] },
+        prerequisites: [{ value: "Opening Stance (Fighter) or Reflexive Stance (Monk)" }],
+      },
+      flags: { fusion: { build: { level: 16, slot: "classFeat-16" } } },
+    };
+    const issue = checkFeatPrerequisites(
+      masterOfManyStylesFeat,
+      [reflexiveStanceItem, masterOfManyStylesFeat],
+      undefined,
+      16,
+    );
+    expect(issue).toBeUndefined();
+  });
+});
+
+/**
+ * knownPossessedNames only counts type "feat"/"classFeature" items — spells
+ * are DELIBERATELY excluded (see the function's own doc comment). Issue #44
+ * evidence #4: "Rallying Anthem" is a genuine homonym in the Bard universe —
+ * a class feat (feats-core, DvjgdS2LkEqpPmZP) AND a composition spell
+ * (spells-core, QreHVEpW0gbwRbz4), both trait bard, both real documents
+ * (verified against the actual packs). Testing THIS through
+ * checkFeatPrerequisites' output wouldn't catch a regression: DEC-BC-05 makes
+ * "met" and "unresolved" both yield NO mark (only a confirmed axis mismatch
+ * ever produces one), so a hypothetical future change that starts counting
+ * spells would silently flip "unresolved" to "met" — invisibly, since both
+ * already read as undefined downstream. The only way to actually lock this
+ * contract is to assert the Set membership directly (re-exported as
+ * `_knownPossessedNamesForTests`, mirroring the existing
+ * `_readClassSystemForTests` pattern).
+ */
+describe("knownPossessedNames — spell items excluded by design (issue #44 evidence #4)", () => {
+  it("does NOT count a spell item's name as possessed", () => {
+    const rallyingAnthemSpell: Record<string, unknown> = {
+      _id: "item-rallying-anthem-spell",
+      name: "Rallying Anthem",
+      type: "spell",
+      location: "focus-entry",
+      system: { traits: { value: ["bard", "cantrip", "composition"] } },
+    };
+    const names = _knownPossessedNamesForTests([rallyingAnthemSpell], undefined, 6);
+    expect(names.has("rallying anthem")).toBe(false);
+  });
+
+  it("DOES count a feat item's name as possessed (the class-feat homonym of the same spell)", () => {
+    const rallyingAnthemFeat: Record<string, unknown> = {
+      _id: "item-rallying-anthem-feat",
+      name: "Rallying Anthem",
+      type: "feat",
+      system: { category: "class", level: 4, traits: { rarity: "common", value: ["bard"] } },
+      flags: { fusion: { build: { level: 4, slot: "classFeat-4" } } },
+    };
+    const names = _knownPossessedNamesForTests([rallyingAnthemFeat], undefined, 6);
+    expect(names.has("rallying anthem")).toBe(true);
+  });
+
+  it("DOES count a classFeature item's name as possessed", () => {
+    const shieldBlockFeature: Record<string, unknown> = {
+      _id: "item-shield-block-feature",
+      name: "Shield Block",
+      type: "classFeature",
+      system: { traits: { value: [] } },
+      flags: { fusion: { build: { level: 1, slot: "instinct-1" } } },
+    };
+    const names = _knownPossessedNamesForTests([shieldBlockFeature], undefined, 6);
+    expect(names.has("shield block")).toBe(true);
   });
 });
 
@@ -1913,7 +2164,7 @@ describe("applyBackground", () => {
     // derivation treats it as an INT-based Lore.
     const loreEntryOp = ops[2]!;
     if (loreEntryOp.type !== "doc:update") throw new Error("expected doc:update");
-    expect(loreEntryOp.diff["system.skills.fireworks-lore"]).toMatchObject({
+    expect(loreEntryOp.diff["system.skills.lore-fireworks"]).toMatchObject({
       rank: 0,
       lore: true,
       label: "Fireworks Lore",
@@ -1934,7 +2185,7 @@ describe("applyBackground", () => {
       level: 1,
       slot: "backgroundLore-0",
       type: "skillTraining",
-      skill: "fireworks-lore",
+      skill: "lore-fireworks",
       rank: 1,
     });
 
@@ -2050,7 +2301,7 @@ describe("applyBackground", () => {
     expect(choices).toHaveLength(3);
     expect(choices[0]).toMatchObject({ slot: "abilityBoosts-1" });
     expect(choices[1]).toMatchObject({ slot: "backgroundSkill-0", skill: "performance" });
-    expect(choices[2]).toMatchObject({ slot: "backgroundLore-0", skill: "fireworks-lore" });
+    expect(choices[2]).toMatchObject({ slot: "backgroundLore-0", skill: "lore-fireworks" });
   });
 });
 
@@ -2065,7 +2316,7 @@ describe("readBackgroundTrainings + loreSlug (r20-X4)", () => {
       skills: { performance: { value: 1 } },
     });
     expect(t.skills).toEqual(["performance"]); // deduped across both shapes
-    expect(t.lores).toEqual([{ slug: "fireworks-lore", label: "Fireworks Lore" }]);
+    expect(t.lores).toEqual([{ slug: "lore-fireworks", label: "Fireworks Lore" }]);
   });
 
   it("reads the Aeronaut shape (Piloting Lore) even when normalized skills only has athletics", () => {
@@ -2074,13 +2325,16 @@ describe("readBackgroundTrainings + loreSlug (r20-X4)", () => {
       skills: { athletics: { value: 1 } },
     });
     expect(t.skills).toEqual(["athletics"]);
-    expect(t.lores).toEqual([{ slug: "piloting-lore", label: "Piloting Lore" }]);
+    expect(t.lores).toEqual([{ slug: "lore-piloting", label: "Piloting Lore" }]);
   });
 
-  it("loreSlug strips the trailing Lore word and appends -lore", () => {
-    expect(loreSlug("Piloting Lore")).toBe("piloting-lore");
-    expect(loreSlug("Fireworks Lore")).toBe("fireworks-lore");
-    expect(loreSlug("Underworld")).toBe("underworld-lore");
+  // Contract C3: planVM re-exports the CANONICAL `lore-<subject>` slug from
+  // loreSlug.ts. The legacy `<subject>-lore` form this module used to emit is
+  // still readable (see loreSlug.test.ts) but is never written again.
+  it("loreSlug re-exports the canonical `lore-<subject>` form", () => {
+    expect(loreSlug("Piloting Lore")).toBe("lore-piloting");
+    expect(loreSlug("Fireworks Lore")).toBe("lore-fireworks");
+    expect(loreSlug("Underworld")).toBe("lore-underworld");
   });
 });
 
@@ -2103,13 +2357,13 @@ describe("applyBackground — Aeronaut lore (r20-X4)", () => {
   it("trains athletics AND the Piloting Lore", () => {
     const ops = applyBackground(ctx(baseCharacterDoc()), aeronautBackgroundDoc());
     const loreEntryOp = ops.find(
-      (o) => o.type === "doc:update" && "system.skills.piloting-lore" in o.diff,
+      (o) => o.type === "doc:update" && "system.skills.lore-piloting" in o.diff,
     );
     expect(loreEntryOp).toBeDefined();
     const choicesOp = ops[ops.length - 1]!;
     if (choicesOp.type !== "doc:update") throw new Error("expected update");
     const choices = choicesOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
-    expect(choices.map((c) => c["skill"])).toEqual(["athletics", "piloting-lore"]);
+    expect(choices.map((c) => c["skill"])).toEqual(["athletics", "lore-piloting"]);
   });
 });
 
@@ -2159,16 +2413,20 @@ describe("backgroundLoreHealOps (r20-X4)", () => {
     });
     const ops = backgroundLoreHealOps(ctx(doc), aeronautDoc());
     const loreEntryOp = ops.find(
-      (o) => o.type === "doc:update" && "system.skills.piloting-lore" in o.diff,
+      (o) => o.type === "doc:update" && "system.skills.lore-piloting" in o.diff,
     );
     expect(loreEntryOp).toBeDefined();
     const choicesOp = ops.find((o) => o.type === "doc:update" && "system.build.choices" in o.diff)!;
     if (choicesOp.type !== "doc:update") throw new Error("expected update");
     const choices = choicesOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
-    expect(choices.some((c) => c["skill"] === "piloting-lore")).toBe(true);
+    expect(choices.some((c) => c["skill"] === "lore-piloting")).toBe(true);
   });
 
-  it("is idempotent — no ops when the lore is already trained", () => {
+  // A sheet built before loreSlug.ts holds the lore under the LEGACY key. The
+  // heal must recognize it as already-trained, otherwise it re-adds the lore
+  // under the canonical key (rank 0) and the slug migration below finds two
+  // entries to reconcile.
+  it("is idempotent — no ops when the lore is already trained under the legacy slug", () => {
     const doc = baseCharacterDoc({
       system: {
         level: { value: 3 },
@@ -2200,6 +2458,487 @@ describe("backgroundLoreHealOps (r20-X4)", () => {
       },
     });
     expect(backgroundLoreHealOps(ctx(doc), aeronautDoc())).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Swapping the background must UNDO what the previous one granted (S2).
+//
+// Until this block existed there was no test that applied a background over an
+// actor that ALREADY had one — which is exactly the hole the bug lived in: the
+// old background's Lore stayed on `system.skills` forever, and its training
+// choices survived whenever the incoming background granted nothing.
+// ---------------------------------------------------------------------------
+
+describe("applyBackground — swapping backgrounds cleans up the old grants (S2)", () => {
+  /** Acolyte: Religion + Scribing Lore. The outgoing background in every case. */
+  function acolyteBackgroundDoc(): Record<string, unknown> {
+    return {
+      _id: "bg-acolyte",
+      name: "Acolyte",
+      type: "background",
+      flags: { fusion: { sourceId: "acolyte-source-id" } },
+      system: {
+        boosts: ["free", "free"],
+        trainedSkills: { value: ["religion"], lore: ["Scribing Lore"] },
+        skills: { religion: { value: 1 } },
+        items: {},
+      },
+    };
+  }
+
+  /** Field Medic: Medicine + Warfare Lore — grants a DIFFERENT lore. */
+  function fieldMedicBackgroundDoc(): Record<string, unknown> {
+    return {
+      _id: "bg-field-medic",
+      name: "Field Medic",
+      type: "background",
+      flags: { fusion: { sourceId: "field-medic-source-id" } },
+      system: {
+        boosts: ["free", "free"],
+        trainedSkills: { value: ["medicine"], lore: ["Warfare Lore"] },
+        skills: { medicine: { value: 1 } },
+        items: {},
+      },
+    };
+  }
+
+  /** Scholar: Society + Scribing Lore — grants the SAME lore as Acolyte. */
+  function scholarBackgroundDoc(): Record<string, unknown> {
+    return {
+      _id: "bg-scholar",
+      name: "Scholar",
+      type: "background",
+      flags: { fusion: { sourceId: "scholar-source-id" } },
+      system: {
+        boosts: ["free", "free"],
+        trainedSkills: { value: ["society"], lore: ["Scribing Lore"] },
+        skills: { society: { value: 1 } },
+        items: {},
+      },
+    };
+  }
+
+  /**
+   * Hermit / Raised by Belief: a background that grants NO skill and NO lore.
+   * The case that used to leave the previous background's training choices
+   * alive (the strip sat inside `if (newChoices.length > 0)`).
+   */
+  function hermitBackgroundDoc(): Record<string, unknown> {
+    return {
+      _id: "bg-hermit",
+      name: "Hermit",
+      type: "background",
+      flags: { fusion: { sourceId: "hermit-source-id" } },
+      system: {
+        boosts: ["free", "free"],
+        trainedSkills: { value: [], lore: [] },
+        skills: {},
+        items: {},
+      },
+    };
+  }
+
+  const EMPTY_ABILITIES = {
+    ancestryBoosts: [],
+    ancestryFlaws: [],
+    ancestryFree: [],
+    backgroundBoosts: [],
+    backgroundFree: [],
+    classBoost: [],
+    levelledBoosts: {},
+  };
+
+  /**
+   * An actor with Acolyte already applied. `loreSlugKey` lets a case choose
+   * whether the persisted Lore sits under the legacy `scribing-lore` key (how
+   * every existing sheet was written) or the canonical `lore-scribing`.
+   */
+  function acolyteAppliedDoc(
+    loreSlugKey: string,
+    extraSkills: Record<string, unknown> = {},
+    extraChoices: Array<Record<string, unknown>> = [],
+  ): Record<string, unknown> {
+    return baseCharacterDoc({
+      items: [{ ...acolyteBackgroundDoc(), _id: "item-background" }],
+      system: {
+        level: { value: 3 },
+        details: {},
+        skills: {
+          religion: { rank: 1 },
+          [loreSlugKey]: { rank: 0, lore: true, label: "Scribing Lore" },
+          ...extraSkills,
+        },
+        build: {
+          abilities: EMPTY_ABILITIES,
+          choices: [
+            {
+              level: 1,
+              slot: "backgroundSkill-0",
+              type: "skillTraining",
+              skill: "religion",
+              rank: 1,
+            },
+            {
+              level: 1,
+              slot: "backgroundLore-0",
+              type: "skillTraining",
+              skill: loreSlugKey,
+              rank: 1,
+            },
+            ...extraChoices,
+          ],
+          bonusHp: 0,
+          bonusHpPerLevel: 0,
+          freeArchetype: false,
+        },
+      },
+    });
+  }
+
+  /** The deletions requested across every op of a builder's output. */
+  function deletedSkillKeys(ops: ReturnType<typeof applyBackground>): string[] {
+    const keys: string[] = [];
+    for (const op of ops) {
+      if (op.type !== "doc:update") continue;
+      for (const [path, value] of Object.entries(op.diff)) {
+        if (path.startsWith("system.skills.") && value === null) {
+          keys.push(path.slice("system.skills.".length));
+        }
+      }
+    }
+    return keys;
+  }
+
+  it("deletes the outgoing background's Lore, in the legacy slug form it was written with", () => {
+    const ops = applyBackground(
+      ctx(acolyteAppliedDoc("scribing-lore")),
+      fieldMedicBackgroundDoc(),
+    );
+    expect(deletedSkillKeys(ops)).toEqual(["scribing-lore"]);
+  });
+
+  it("deletes the outgoing background's Lore written in the canonical slug form", () => {
+    const ops = applyBackground(ctx(acolyteAppliedDoc("lore-scribing")), fieldMedicBackgroundDoc());
+    expect(deletedSkillKeys(ops)).toEqual(["lore-scribing"]);
+  });
+
+  it("emits the deletion as a wire-valid doc:update (null = deleteKey, REQ-DOC-037)", () => {
+    const ops = applyBackground(ctx(acolyteAppliedDoc("scribing-lore")), fieldMedicBackgroundDoc());
+    const delOp = ops.find(
+      (o) => o.type === "doc:update" && o.diff["system.skills.scribing-lore"] === null,
+    );
+    expect(delOp).toBeDefined();
+    if (delOp?.type !== "doc:update") throw new Error("expected doc:update");
+    const wire = { documentType: delOp.documentType, updates: [{ _id: delOp.id, diff: delOp.diff }] };
+    expect(DocUpdatePayloadSchema.safeParse(wire).success).toBe(true);
+  });
+
+  it("does NOT delete a Lore the incoming background grants too", () => {
+    const ops = applyBackground(ctx(acolyteAppliedDoc("lore-scribing")), scholarBackgroundDoc());
+    expect(deletedSkillKeys(ops)).toEqual([]);
+  });
+
+  it("does NOT delete a Lore the player added by hand (no background choice targets it)", () => {
+    const doc = acolyteAppliedDoc("scribing-lore", {
+      "lore-warfare": { rank: 1, lore: true, label: "Warfare" },
+    });
+    const ops = applyBackground(ctx(doc), hermitBackgroundDoc());
+    expect(deletedSkillKeys(ops)).toEqual(["scribing-lore"]);
+  });
+
+  it("does NOT delete a Lore the player raised with one of their OWN slots", () => {
+    // The background granted it, but the character then spent a skill increase
+    // on it — that investment is theirs, the swap doesn't claw it back.
+    const doc = acolyteAppliedDoc(
+      "lore-scribing",
+      {},
+      [{ level: 3, slot: "skillIncrease-3", type: "skillIncrease", skill: "lore-scribing", rank: 2 }],
+    );
+    const ops = applyBackground(ctx(doc), fieldMedicBackgroundDoc());
+    expect(deletedSkillKeys(ops)).toEqual([]);
+  });
+
+  it("never deletes a real (non-Lore) skill the outgoing background trained", () => {
+    // Religion came from Acolyte, but it is a canonical skill: it is untrained
+    // by dropping the build choice, never by deleting the `system.skills` key.
+    const ops = applyBackground(ctx(acolyteAppliedDoc("scribing-lore")), hermitBackgroundDoc());
+    expect(deletedSkillKeys(ops)).not.toContain("religion");
+  });
+
+  it("strips the previous background's training choices even when the new one grants nothing", () => {
+    const ops = applyBackground(ctx(acolyteAppliedDoc("scribing-lore")), hermitBackgroundDoc());
+    const choicesOp = ops.find((o) => o.type === "doc:update" && "system.build.choices" in o.diff);
+    expect(choicesOp).toBeDefined();
+    if (choicesOp?.type !== "doc:update") throw new Error("expected doc:update");
+    const choices = choicesOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
+    expect(choices).toEqual([]);
+  });
+
+  it("replaces (never accretes) the training choices when the new background grants its own", () => {
+    const ops = applyBackground(ctx(acolyteAppliedDoc("scribing-lore")), fieldMedicBackgroundDoc());
+    const choicesOp = ops[ops.length - 1]!;
+    if (choicesOp.type !== "doc:update") throw new Error("expected doc:update");
+    const choices = choicesOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
+    expect(choices.map((c) => c["skill"])).toEqual(["medicine", "lore-warfare"]);
+  });
+
+  // -------------------------------------------------------------------------
+  // T2 — a rank the player typed into the row's <select> has no build choice
+  // behind it, so the "playerOwned" guard above cannot see it.
+  // -------------------------------------------------------------------------
+
+  /**
+   * The pre-lore-branch sheet: Acolyte embedded and its Lore sitting on
+   * `system.skills`, but NO `backgroundLore-*` choice at all — the branch that
+   * writes one did not exist when the sheet was built. `loreRank` is whatever
+   * the player left on the row's rank `<select>`:
+   * `characterSheetVM.updateSkillRank` writes `system.skills.<slug>.rank`
+   * straight to the document, without creating any build choice.
+   */
+  function preLoreBranchDoc(loreSlugKey: string, loreRank: number): Record<string, unknown> {
+    return baseCharacterDoc({
+      items: [{ ...acolyteBackgroundDoc(), _id: "item-background" }],
+      system: {
+        level: { value: 3 },
+        details: {},
+        skills: {
+          religion: { rank: 1 },
+          [loreSlugKey]: { rank: loreRank, lore: true, label: "Scribing Lore" },
+        },
+        build: {
+          abilities: EMPTY_ABILITIES,
+          choices: [
+            {
+              level: 1,
+              slot: "backgroundSkill-0",
+              type: "skillTraining",
+              skill: "religion",
+              rank: 1,
+            },
+          ],
+          bonusHp: 0,
+          bonusHpPerLevel: 0,
+          freeArchetype: false,
+        },
+      },
+    });
+  }
+
+  /** The last non-null value written to `system.skills.<slug>` across all ops. */
+  function writtenSkillEntry(
+    ops: ReturnType<typeof applyBackground>,
+    slug: string,
+  ): Record<string, unknown> | undefined {
+    let found: Record<string, unknown> | undefined;
+    for (const op of ops) {
+      if (op.type !== "doc:update") continue;
+      const value = op.diff[`system.skills.${slug}`];
+      if (value !== undefined && value !== null) found = value as Record<string, unknown>;
+    }
+    return found;
+  }
+
+  it("keeps a Lore the player ranked up by hand, even with no build choice to prove it", () => {
+    const ops = applyBackground(ctx(preLoreBranchDoc("lore-scribing", 2)), fieldMedicBackgroundDoc());
+    expect(deletedSkillKeys(ops)).toEqual([]);
+  });
+
+  it("keeps a hand-ranked Lore held under the legacy slug too", () => {
+    const ops = applyBackground(ctx(preLoreBranchDoc("scribing-lore", 2)), fieldMedicBackgroundDoc());
+    expect(deletedSkillKeys(ops)).toEqual([]);
+  });
+
+  it("still deletes the outgoing Lore when its persisted rank is 0 (untouched grant)", () => {
+    const ops = applyBackground(ctx(preLoreBranchDoc("lore-scribing", 0)), fieldMedicBackgroundDoc());
+    expect(deletedSkillKeys(ops)).toEqual(["lore-scribing"]);
+  });
+
+  it("re-selecting the SAME background does not reset a hand-raised rank to 0", () => {
+    const ops = applyBackground(ctx(preLoreBranchDoc("lore-scribing", 2)), acolyteBackgroundDoc());
+    expect(writtenSkillEntry(ops, "lore-scribing")).toMatchObject({
+      rank: 2,
+      lore: true,
+      label: "Scribing Lore",
+    });
+  });
+
+  it("carries a hand-raised rank across the legacy→canonical slug migration on re-selection", () => {
+    // The legacy key IS deleted here (the incoming background re-grants the same
+    // subject under the canonical slug), so the rank must ride along or it is lost.
+    const ops = applyBackground(ctx(preLoreBranchDoc("scribing-lore", 2)), acolyteBackgroundDoc());
+    expect(deletedSkillKeys(ops)).toEqual(["scribing-lore"]);
+    expect(writtenSkillEntry(ops, "lore-scribing")).toMatchObject({ rank: 2, lore: true });
+  });
+
+  it("writes rank 0 for a granted Lore the sheet has never held", () => {
+    const ops = applyBackground(ctx(preLoreBranchDoc("lore-scribing", 2)), fieldMedicBackgroundDoc());
+    expect(writtenSkillEntry(ops, "lore-warfare")).toMatchObject({ rank: 0, lore: true });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Slug migration heal — existing sheets hold their Lore under the legacy key
+// ---------------------------------------------------------------------------
+
+describe("loreSlugHealOps — migrate legacy `<subject>-lore` keys (contract C3)", () => {
+  const EMPTY_ABILITIES = {
+    ancestryBoosts: [],
+    ancestryFlaws: [],
+    ancestryFree: [],
+    backgroundBoosts: [],
+    backgroundFree: [],
+    classBoost: [],
+    levelledBoosts: {},
+  };
+
+  function docWith(
+    skills: Record<string, unknown>,
+    choices: Array<Record<string, unknown>> = [],
+  ): Record<string, unknown> {
+    return baseCharacterDoc({
+      system: {
+        level: { value: 3 },
+        details: {},
+        skills,
+        build: {
+          abilities: EMPTY_ABILITIES,
+          choices,
+          bonusHp: 0,
+          bonusHpPerLevel: 0,
+          freeArchetype: false,
+        },
+      },
+    });
+  }
+
+  /**
+   * Apply the ops the way the server would, so idempotence is checked against
+   * the REAL post-heal document rather than a hand-written guess: dot-paths are
+   * expanded (doc-handlers.applyDotPathDiff) and `null` inside `system` deletes
+   * the key (merge.deepMerge, REQ-DOC-037).
+   */
+  function applyOps(doc: Record<string, unknown>, ops: DocUpdatePayload[]): Record<string, unknown> {
+    const next = structuredClone(doc);
+    for (const op of ops) {
+      for (const [path, value] of Object.entries(op.diff)) {
+        const parts = path.split(".");
+        let cursor = next as Record<string, unknown>;
+        for (const key of parts.slice(0, -1)) {
+          if (typeof cursor[key] !== "object" || cursor[key] === null) cursor[key] = {};
+          cursor = cursor[key] as Record<string, unknown>;
+        }
+        const last = parts[parts.length - 1]!;
+        if (value === null) Reflect.deleteProperty(cursor, last);
+        else cursor[last] = value;
+      }
+    }
+    return next;
+  }
+
+  function updatesOf(ops: ReturnType<typeof loreSlugHealOps>): DocUpdatePayload[] {
+    return ops.filter((o): o is DocUpdatePayload => o.type === "doc:update");
+  }
+
+  it("renames the legacy key to the canonical one, preserving rank and label", () => {
+    const doc = docWith({
+      religion: { rank: 1 },
+      "scribing-lore": { rank: 1, lore: true, label: "Scribing Lore" },
+    });
+    const ops = updatesOf(loreSlugHealOps(ctx(doc)));
+    const skillsOp = ops.find((o) => "system.skills.lore-scribing" in o.diff);
+    expect(skillsOp).toBeDefined();
+    expect(skillsOp!.diff["system.skills.lore-scribing"]).toMatchObject({
+      rank: 1,
+      lore: true,
+      label: "Scribing Lore",
+    });
+    expect(skillsOp!.diff["system.skills.scribing-lore"]).toBeNull();
+  });
+
+  it("repoints every build choice that referenced the legacy slug", () => {
+    const doc = docWith(
+      { "scribing-lore": { rank: 1, lore: true, label: "Scribing Lore" } },
+      [
+        {
+          level: 1,
+          slot: "backgroundLore-0",
+          type: "skillTraining",
+          skill: "scribing-lore",
+          rank: 1,
+        },
+        { level: 3, slot: "skillIncrease-3", type: "skillIncrease", skill: "stealth", rank: 2 },
+      ],
+    );
+    const ops = updatesOf(loreSlugHealOps(ctx(doc)));
+    const choicesOp = ops.find((o) => "system.build.choices" in o.diff);
+    expect(choicesOp).toBeDefined();
+    const choices = choicesOp!.diff["system.build.choices"] as Array<Record<string, unknown>>;
+    expect(choices.map((c) => c["skill"])).toEqual(["lore-scribing", "stealth"]);
+  });
+
+  it("is idempotent — replaying the healed document yields no ops", () => {
+    const doc = docWith(
+      { "scribing-lore": { rank: 1, lore: true, label: "Scribing Lore" } },
+      [
+        {
+          level: 1,
+          slot: "backgroundLore-0",
+          type: "skillTraining",
+          skill: "scribing-lore",
+          rank: 1,
+        },
+      ],
+    );
+    const healed = applyOps(doc, updatesOf(loreSlugHealOps(ctx(doc))));
+    const healedSkills = (healed["system"] as Record<string, unknown>)["skills"] as Record<
+      string,
+      unknown
+    >;
+    // Rank survived the rename and the legacy key is gone — no duplicate row.
+    expect(healedSkills["lore-scribing"]).toMatchObject({ rank: 1, lore: true });
+    expect("scribing-lore" in healedSkills).toBe(false);
+    expect(loreSlugHealOps(ctx(healed))).toEqual([]);
+  });
+
+  it("never renames a canonical skill", () => {
+    const doc = docWith({ religion: { rank: 1 }, athletics: { rank: 2 }, stealth: { rank: 1 } });
+    expect(loreSlugHealOps(ctx(doc))).toEqual([]);
+  });
+
+  it("keeps the higher rank when both conventions are present for one subject", () => {
+    const doc = docWith({
+      "scribing-lore": { rank: 2, lore: true, label: "Scribing Lore" },
+      "lore-scribing": { rank: 0, lore: true, label: "Scribing Lore" },
+    });
+    const ops = updatesOf(loreSlugHealOps(ctx(doc)));
+    const skillsOp = ops.find((o) => "system.skills.lore-scribing" in o.diff)!;
+    expect(skillsOp.diff["system.skills.lore-scribing"]).toMatchObject({ rank: 2, lore: true });
+    expect(skillsOp.diff["system.skills.scribing-lore"]).toBeNull();
+  });
+
+  it("returns [] when the sheet is not editable", () => {
+    const doc = docWith({ "scribing-lore": { rank: 1, lore: true } });
+    expect(loreSlugHealOps(ctx(doc, false))).toEqual([]);
+  });
+
+  it("emits wire-valid doc:update payloads", () => {
+    const doc = docWith(
+      { "scribing-lore": { rank: 1, lore: true, label: "Scribing Lore" } },
+      [
+        {
+          level: 1,
+          slot: "backgroundLore-0",
+          type: "skillTraining",
+          skill: "scribing-lore",
+          rank: 1,
+        },
+      ],
+    );
+    for (const op of updatesOf(loreSlugHealOps(ctx(doc)))) {
+      const wire = { documentType: op.documentType, updates: [{ _id: op.id, diff: op.diff }] };
+      expect(DocUpdatePayloadSchema.safeParse(wire).success).toBe(true);
+    }
   });
 });
 
@@ -2273,6 +3012,7 @@ describe("ABC card chips (r20-X4)", () => {
     expect(detailsRequestForAbcChip(sharp)).toEqual({
       packSlug: "ancestry-features-core",
       name: "Sharp Teeth",
+      sourceId: "SharpTeethSrc001",
     });
     // Materialized + map entry dedupe to a single chip.
     expect(ancestry.chips!.filter((c) => c.name === "Sharp Teeth")).toHaveLength(1);
@@ -2313,6 +3053,7 @@ describe("ABC card chips (r20-X4)", () => {
     expect(detailsRequestForAbcChip(fasc)).toEqual({
       packSlug: "feats-core",
       name: "Fascinating Performance",
+      sourceId: "7LB00jkh6JaJr3vS",
     });
     // No duplicate informative chip for the same feature.
     expect(bg.chips!.filter((c) => c.name === "Fascinating Performance")).toHaveLength(1);
@@ -2375,6 +3116,17 @@ describe("classFeatureGrantRefs + classGrantedActionChips (r20-X4)", () => {
       (f) => f.name === "Mystic Strike" && f.detailsPackSlug === "actions-core",
     );
     expect(chip).toBeDefined();
+    // Issue #44: the granted action's own sourceId rides along on the chip.
+    expect(chip!.sourceId).toBe("MS_ACT");
+  });
+
+  it("carries docId on a featuresByLevel-named auto-feature (issue #44)", () => {
+    const doc = tobiasLevel3Doc();
+    const plan = derivePlan(doc);
+    const lvl1 = plan.levels.find((l) => l.level === 1)!;
+    const cascade = lvl1.autoFeatures.find((f) => f.name === "Arcane Cascade")!;
+    expect(cascade).toBeDefined();
+    expect(cascade.docId).toBe("pf6KyAB13Qf5GQ9Q");
   });
 
   it("DEDUPES a granted action whose name matches a class feature (Magus Spellstrike) — one chip, no duplicate render key", () => {
@@ -4103,10 +4855,14 @@ describe("addLoreSkill", () => {
     expect(addLoreSkill(ctx(baseCharacterDoc()), "   ")).toBeNull();
   });
 
-  it("creates a slugified lore-<name> entry at rank 0, valid against DocUpdatePayloadSchema", () => {
+  it("returns null for a subject-less name (the bare word Lore)", () => {
+    expect(addLoreSkill(ctx(baseCharacterDoc()), "Lore")).toBeNull();
+  });
+
+  it("creates a canonical lore-<subject> entry at rank 0, valid against DocUpdatePayloadSchema", () => {
     const op = addLoreSkill(ctx(baseCharacterDoc()), "Nature Lore");
     expect(op).not.toBeNull();
-    expect(op!.diff["system.skills.lore-nature-lore"]).toEqual({
+    expect(op!.diff["system.skills.lore-nature"]).toEqual({
       rank: 0,
       lore: true,
       label: "Nature Lore",
@@ -4115,12 +4871,27 @@ describe("addLoreSkill", () => {
     expect(DocUpdatePayloadSchema.safeParse(wire).success).toBe(true);
   });
 
+  // Contract C3: one subject, one key. Typing the "Lore" word or not, and
+  // typing an accent or not, must not fork a manual Lore away from the key a
+  // background would grant for the same subject.
+  it("lands on the same key whether or not the player typed the word Lore", () => {
+    const withWord = addLoreSkill(ctx(baseCharacterDoc()), "Nature Lore");
+    const withoutWord = addLoreSkill(ctx(baseCharacterDoc()), "Nature");
+    expect(Object.keys(withWord!.diff)).toEqual(["system.skills.lore-nature"]);
+    expect(Object.keys(withoutWord!.diff)).toEqual(["system.skills.lore-nature"]);
+  });
+
+  it("folds accents, so a pt-BR subject is still a valid key", () => {
+    const op = addLoreSkill(ctx(baseCharacterDoc()), "História Abissal");
+    expect(Object.keys(op!.diff)).toEqual(["system.skills.lore-historia-abissal"]);
+  });
+
   it("returns null when a lore with the same slug already exists", () => {
     const doc = baseCharacterDoc({
       system: {
         level: { value: 1 },
         details: {},
-        skills: { "lore-nature-lore": { rank: 1, lore: true } },
+        skills: { "lore-nature": { rank: 1, lore: true } },
       },
     });
     expect(addLoreSkill(ctx(doc), "Nature Lore")).toBeNull();
@@ -4475,6 +5246,46 @@ describe("removeChoice — cascades to a filled adoptedAncestryChoice sub-slot",
 // R12 — details-panel resolution (chips + filled slots + picker default)
 // ---------------------------------------------------------------------------
 
+describe("resolveSlot — sourceId population (issue #44)", () => {
+  it("carries the embedded item's flags.fusion.sourceId onto the filled slot", () => {
+    const doc = {
+      _id: "actor-x",
+      name: "X",
+      type: "character",
+      items: [
+        { ...magusClassDoc(), _id: "item-class" },
+        // Magus's featLevels.skill starts at 2 (see magusClassDoc fixture
+        // above) — skillFeat-1 never exists, so the slot lookup below would
+        // find nothing at level 1.
+        embeddedFeatItem(acupuncturistFeatDoc(), "item-skill-2", {
+          level: 2,
+          slot: "skillFeat-2",
+        }),
+      ],
+      system: {
+        level: { value: 2 },
+        details: {},
+        build: {
+          abilities: {
+            ancestryBoosts: [],
+            ancestryFlaws: [],
+            ancestryFree: [],
+            backgroundBoosts: [],
+            classBoost: ["int"],
+            levelledBoosts: {},
+          },
+          choices: [],
+        },
+      },
+    };
+    const plan = derivePlan(doc);
+    const lvl2 = plan.levels.find((l) => l.level === 2)!;
+    const slot = lvl2.slots.find((s) => s.slotId === "skillFeat-2")!;
+    expect(slot.filled).toBe(true);
+    expect(slot.sourceId).toBe("SC95hfEEHQs7E9cG");
+  });
+});
+
 describe("detailsRequestForSlot", () => {
   function slot(overrides: Partial<PlanSlotModel>): PlanSlotModel {
     return {
@@ -4490,6 +5301,36 @@ describe("detailsRequestForSlot", () => {
   it("routes a filled hybrid-study slot to class-features-core", () => {
     const req = detailsRequestForSlot(slot({ type: "hybridStudy", choiceName: "Arcane Fists" }));
     expect(req).toEqual({ packSlug: "class-features-core", name: "Arcane Fists" });
+  });
+
+  // Issue #58: the Plan column already knows the REAL grant level (the
+  // enclosing LevelPlanModel.level) when it opens this dialog for a filled
+  // slot — passing it through lets the details panel override a shared
+  // class-features-core document's divergent static system.level instead of
+  // showing it with false confidence.
+  it("carries an explicit level through to the request when the caller supplies it", () => {
+    const req = detailsRequestForSlot(slot({ type: "hybridStudy", choiceName: "Arcane Fists" }), 9);
+    expect(req).toEqual({ packSlug: "class-features-core", name: "Arcane Fists", level: 9 });
+  });
+
+  it("omits the level key entirely when the caller doesn't supply one (unchanged behavior)", () => {
+    const req = detailsRequestForSlot(slot({ type: "classFeat", choiceName: "Sudden Charge" }));
+    expect(req).not.toHaveProperty("level");
+  });
+
+  // Issue #44: a slot's backing embedded item's flags.fusion.sourceId (set by
+  // resolveSlot) rides along in the request so the details dialog can resolve
+  // the EXACT document instead of matching by name.
+  it("carries the slot's sourceId through to the request when present", () => {
+    const req = detailsRequestForSlot(
+      slot({ type: "classFeat", choiceName: "Sudden Charge", sourceId: "SUDDEN_SID" }),
+    );
+    expect(req).toEqual({ packSlug: "feats-core", name: "Sudden Charge", sourceId: "SUDDEN_SID" });
+  });
+
+  it("omits the sourceId key entirely when the slot has none (choice-backed slots, unchanged behavior)", () => {
+    const req = detailsRequestForSlot(slot({ type: "classFeat", choiceName: "Sudden Charge" }));
+    expect(req).not.toHaveProperty("sourceId");
   });
 
   it("routes every filled feat-family slot to feats-core", () => {
@@ -4540,6 +5381,48 @@ describe("detailsRequestForAutoFeature", () => {
     const req = detailsRequestForAutoFeature({ name: "Spellstrike", locked: true });
     expect(req).toEqual({ packSlug: "class-features-core", name: "Spellstrike" });
   });
+
+  // Issue #58: locked auto-feature chips (e.g. "Reflex Expertise") are the
+  // exact case from the bug report — PlanColumn knows the chip's real grant
+  // level (LevelPlanModel.level) and now threads it through.
+  it("carries an explicit level through to the request when the caller supplies it", () => {
+    const req = detailsRequestForAutoFeature({ name: "Reflex Expertise", locked: true }, 9);
+    expect(req).toEqual({ packSlug: "class-features-core", name: "Reflex Expertise", level: 9 });
+  });
+
+  it("omits the level key entirely when the caller doesn't supply one (unchanged behavior)", () => {
+    const req = detailsRequestForAutoFeature({ name: "Spellstrike", locked: true });
+    expect(req).not.toHaveProperty("level");
+  });
+
+  // Issue #44: featuresByLevel[].uuid IS the feature's own pack _id (not a
+  // Foundry compendium uuid despite the name) — carried as AutoFeatureModel's
+  // docId so the details dialog can skip name matching entirely.
+  it("carries the feature's docId through to the request when present", () => {
+    const req = detailsRequestForAutoFeature({
+      name: "Arcane Cascade",
+      locked: true,
+      docId: "pf6KyAB13Qf5GQ9Q",
+    });
+    expect(req).toEqual({
+      packSlug: "class-features-core",
+      name: "Arcane Cascade",
+      docId: "pf6KyAB13Qf5GQ9Q",
+    });
+  });
+
+  // A class-granted action chip (classGrantedActionChips) has no
+  // featuresByLevel entry of its own — its identity is the materialized
+  // item's sourceId instead.
+  it("carries the granted action's sourceId through to the request when present", () => {
+    const req = detailsRequestForAutoFeature({
+      name: "Mystic Strike",
+      locked: true,
+      detailsPackSlug: "actions-core",
+      sourceId: "MS_ACT",
+    });
+    expect(req).toEqual({ packSlug: "actions-core", name: "Mystic Strike", sourceId: "MS_ACT" });
+  });
 });
 
 describe("findEntryUuidByName", () => {
@@ -4576,6 +5459,78 @@ describe("findEntryUuidByName", () => {
       { name: "Arcane Fists", uuid: "x2" },
     ];
     expect(findEntryUuidByName(ambiguous, "Arcane")).toBeNull();
+  });
+});
+
+describe("resolveDetailsEntryUuid (issue #44 — id before name)", () => {
+  // Same shape findEntryUuidByName's own "ambiguous prefix" fixture uses,
+  // extended with the id fields a real PackIndexEntry search result carries
+  // (_id always; index["flags.fusion.sourceId"] since issue #41 indexed it).
+  const entries: PlanIndexEntryLike[] = [
+    {
+      name: "Arcane Cascade",
+      uuid: "Compendium.pf2e.class-features-core.Item.x1",
+      _id: "x1",
+      index: { "flags.fusion.sourceId": "SRC_CASCADE" },
+    },
+    {
+      name: "Arcane Fists",
+      uuid: "Compendium.pf2e.class-features-core.Item.x2",
+      _id: "x2",
+      index: { "flags.fusion.sourceId": "SRC_FISTS" },
+    },
+  ];
+
+  it("resolves by docId even when the request name is an ambiguous prefix of 2+ entries", () => {
+    // A chip whose stored name got truncated to "Arcane" would fail name
+    // resolution outright (2 prefix candidates, no unique winner — see the
+    // fallback test below); docId skips name matching and hits the exact doc.
+    expect(
+      resolveDetailsEntryUuid(entries, {
+        packSlug: "class-features-core",
+        name: "Arcane",
+        docId: "x2",
+      }),
+    ).toBe("Compendium.pf2e.class-features-core.Item.x2");
+  });
+
+  it("resolves by sourceId under the same ambiguous name, when docId is unavailable", () => {
+    expect(
+      resolveDetailsEntryUuid(entries, {
+        packSlug: "class-features-core",
+        name: "Arcane",
+        sourceId: "SRC_CASCADE",
+      }),
+    ).toBe("Compendium.pf2e.class-features-core.Item.x1");
+  });
+
+  it("prefers docId over sourceId when both are present", () => {
+    expect(
+      resolveDetailsEntryUuid(entries, {
+        packSlug: "class-features-core",
+        name: "Arcane",
+        docId: "x1",
+        sourceId: "SRC_FISTS",
+      }),
+    ).toBe("Compendium.pf2e.class-features-core.Item.x1");
+  });
+
+  it("falls back to findEntryUuidByName's name resolution when neither id is present — rule 5: never invent an id the data lacks", () => {
+    // Reproduces the exact ambiguous-prefix null findEntryUuidByName itself
+    // returns for this fixture — the fallback delegates, it doesn't retry.
+    expect(
+      resolveDetailsEntryUuid(entries, { packSlug: "class-features-core", name: "Arcane" }),
+    ).toBeNull();
+  });
+
+  it("falls back to name resolution when the given id does not match any entry (stale docId/sourceId)", () => {
+    expect(
+      resolveDetailsEntryUuid(entries, {
+        packSlug: "class-features-core",
+        name: "Arcane Fists",
+        docId: "no-such-id",
+      }),
+    ).toBe("Compendium.pf2e.class-features-core.Item.x2");
   });
 });
 
@@ -4622,6 +5577,38 @@ describe("buildContentNameTranslator", () => {
       nameEn: "Magus's Analysis",
     });
     expect(translate("Fleet")).toEqual({ namePt: "Veloz", nameEn: "Fleet" });
+  });
+
+  // Issue #65 — the Cleric's `featuresByLevel` entry is literally named "Deity"
+  // while the document it points at is named "Deity (Cleric)". Matching by name
+  // misses, so the chip rendered in EN even though the translation existed one
+  // id away. The id is the exact key and must win.
+  it("resolves by docId even when the stored name does not match the document's own", () => {
+    const clericFeatures: PlanNameIndexEntry[] = [
+      { _id: "Z3bGaIq1FnCfsTrx", name: "Deity (Cleric)", namePt: "Divindade (Clérigo)" },
+    ];
+    const translate = buildContentNameTranslator([clericFeatures]);
+
+    // Name-only lookup cannot resolve it — that is the bug being fixed.
+    expect(translate("Deity")).toEqual({ namePt: "Deity", nameEn: "Deity" });
+
+    // With the docId the class doc already carries, it resolves exactly.
+    expect(translate("Deity", "Z3bGaIq1FnCfsTrx")).toEqual({
+      namePt: "Divindade (Clérigo)",
+      nameEn: "Deity (Cleric)",
+    });
+  });
+
+  it("falls back to the stored name when the docId is unknown (never crashes, never invents)", () => {
+    const translate = buildContentNameTranslator([feats]);
+    expect(translate("Fleet", "IdThatIsNotInAnyPack")).toEqual({
+      namePt: "Veloz",
+      nameEn: "Fleet",
+    });
+    expect(translate("Totally Unknown", "AlsoUnknownId")).toEqual({
+      namePt: "Totally Unknown",
+      nameEn: "Totally Unknown",
+    });
   });
 
   it("joins by normalized name, so a pt-BR-copied stored name still resolves", () => {
@@ -4838,10 +5825,12 @@ describe("derivePlan — fixed-grant chips (B2 r14 + r15 A2)", () => {
     expect(detailsRequestForSlot(feat)).toEqual({
       packSlug: "feats-core",
       name: "Alchemical Crafting",
+      sourceId: "is3Oz9wt11lNq62K",
     });
     expect(detailsRequestForSlot(action)).toEqual({
       packSlug: "actions-core",
       name: "Quick Alchemy",
+      sourceId: "yzNJgwzV9XqEhKc6",
     });
   });
 
@@ -4921,7 +5910,11 @@ describe("derivePlan — conflux spell chip under the hybrid study (r15 A2)", ()
     expect(chip.detailsPackSlug).toBe("spells-core");
     expect(chip.itemId).toBe("item-granted-shooting-star");
     // Details route to spells-core so the popup resolves the spell doc.
-    expect(detailsRequestForSlot(chip)).toEqual({ packSlug: "spells-core", name: "Shooting Star" });
+    expect(detailsRequestForSlot(chip)).toEqual({
+      packSlug: "spells-core",
+      name: "Shooting Star",
+      sourceId: "SHOOT_SID",
+    });
   });
 
   it("removeChoice on the hybrid study cascades to the granted conflux spell", () => {
@@ -5133,5 +6126,247 @@ describe("healGranterRefs / actorSpellEntries (heal input)", () => {
       isFocusPool: false,
       tradition: "arcane",
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// maxTakable: null means UNLIMITED, not once (issue #57)
+//
+// 22 feats in feats-core carry `system.maxTakable: null` — Assurance,
+// Additional Lore, Multilingual, Skill Training, Domain Initiate, Terrain
+// Expertise, Weapon Proficiency… All of them are legitimately taken many
+// times (one per skill / language / domain). `featMaxTakable` collapsed any
+// non-number to 1, so the second pick was refused.
+//
+// This only became visible when #57 published `system.maxTakable` to the pack
+// index: with the field in the index, the picker's filter would have HIDDEN
+// those 22 feats after the first pick.
+// ---------------------------------------------------------------------------
+
+/** "Assurance" — real feats-core skill feat with `system.maxTakable: null`. */
+function assuranceFeatDoc(): Record<string, unknown> {
+  return {
+    _id: "3yZFHMS8CTAqTHUS",
+    name: "Assurance",
+    type: "feat",
+    system: {
+      category: "skill",
+      level: 1,
+      maxTakable: null,
+      prerequisites: [{ value: "trained in at least one skill" }],
+      traits: { rarity: "common", value: ["fortune", "general", "skill"] },
+    },
+    flags: { fusion: { sourceId: "ULn3jrPHnPYyRO2H" } },
+  };
+}
+
+describe("repeat cap — maxTakable: null (issue #57)", () => {
+  it("does not cap a feat declared maxTakable: null, however many times it was taken", () => {
+    const taken = (n: number): Record<string, unknown> =>
+      baseCharacterDoc({
+        items: Array.from({ length: n }, (_, i) =>
+          embeddedFeatItem(assuranceFeatDoc(), `item-${String(i)}`, {
+            level: 2,
+            slot: `skillFeat-${String(i)}`,
+          }),
+        ),
+      });
+
+    expect(isFeatAtRepeatCap(taken(0), assuranceFeatDoc())).toBe(false);
+    expect(isFeatAtRepeatCap(taken(1), assuranceFeatDoc())).toBe(false);
+    expect(isFeatAtRepeatCap(taken(7), assuranceFeatDoc())).toBe(false);
+  });
+
+  it("still caps a feat with no maxTakable field at one", () => {
+    const doc = baseCharacterDoc({
+      items: [
+        embeddedFeatItem(acupuncturistFeatDoc(), "item-1", { level: 2, slot: "skillFeat-2" }),
+      ],
+    });
+    expect(isFeatAtRepeatCap(doc, acupuncturistFeatDoc())).toBe(true);
+  });
+
+  it("still caps a numeric maxTakable at its declared value", () => {
+    const armor = armorProficiencyFeatDoc();
+    const taken = (n: number): Record<string, unknown> =>
+      baseCharacterDoc({
+        items: Array.from({ length: n }, (_, i) =>
+          embeddedFeatItem(armor, `item-${String(i)}`, {
+            level: 3,
+            slot: `generalFeat-${String(i)}`,
+          }),
+        ),
+      });
+    expect(isFeatAtRepeatCap(taken(2), armor)).toBe(false);
+    expect(isFeatAtRepeatCap(taken(3), armor)).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// removeChoice must not leave an orphan choice behind (issue #15, 2nd defect)
+//
+// The grantedBy cascade deletes every item the granter materialized. If one of
+// those items ALSO occupied a build slot — which is exactly the corrupted state
+// the old findAdoptableItem produced — its `system.build.choices` entry stayed,
+// and resolveSlot read that orphan choice as `filled: true`: a phantom slot,
+// marked taken with no item behind it.
+//
+// The adoption fix stops NEW actors from reaching that state; this keeps the
+// removal honest for actors already carrying it.
+// ---------------------------------------------------------------------------
+
+describe("removeChoice — orphan choice from a grantedBy cascade (issue #15)", () => {
+  it("drops the build choice of an item deleted by the grantedBy cascade", () => {
+    const muse = {
+      _id: "item-muse",
+      name: "Maestro",
+      type: "classFeature",
+      flags: { fusion: { sourceId: "MAESTRO", build: { level: 1, slot: "muse-1" } } },
+      system: {},
+    };
+    // The corrupted shape: paid slot AND stamped as granted by the muse.
+    const adoptedFeat = {
+      _id: "item-lc",
+      name: "Lingering Composition",
+      type: "feat",
+      flags: {
+        fusion: {
+          sourceId: "LINGERING",
+          grantedBy: "MAESTRO",
+          build: { level: 1, slot: "classFeat-1" },
+        },
+      },
+      system: {},
+    };
+    const character = baseCharacterDoc({
+      items: [muse, adoptedFeat],
+      system: {
+        level: { value: 1 },
+        details: {},
+        build: {
+          choices: [
+            { level: 1, slot: "muse-1", type: "muse", sourceId: "MAESTRO" },
+            { level: 1, slot: "classFeat-1", type: "classFeat", sourceId: "LINGERING" },
+          ],
+        },
+      },
+    });
+
+    const ops = removeChoice(ctx(character), {
+      slotId: "muse-1",
+      type: "muse",
+      level: 1,
+      label: "Muse",
+      filled: true,
+      itemId: "item-muse",
+    } as PlanSlotModel);
+
+    const deleted = ops.filter((o) => o.type === "doc:delete").map((o) => o.id);
+    expect(deleted).toContain("item-muse");
+    expect(deleted).toContain("item-lc");
+
+    const update = ops.find((o) => o.type === "doc:update");
+    expect(update, "choices must be rewritten").toBeDefined();
+    const remaining = (update as { diff: Record<string, unknown> }).diff[
+      "system.build.choices"
+    ] as Array<{ slot: string }>;
+    expect(
+      remaining.map((c) => c.slot),
+      "the deleted feat's own slot must not stay behind as a phantom",
+    ).toEqual([]);
+  });
+
+  it("keeps an unrelated choice untouched", () => {
+    const muse = {
+      _id: "item-muse",
+      name: "Maestro",
+      type: "classFeature",
+      flags: { fusion: { sourceId: "MAESTRO", build: { level: 1, slot: "muse-1" } } },
+      system: {},
+    };
+    const character = baseCharacterDoc({
+      items: [muse],
+      system: {
+        level: { value: 1 },
+        details: {},
+        build: {
+          choices: [
+            { level: 1, slot: "muse-1", type: "muse", sourceId: "MAESTRO" },
+            { level: 2, slot: "skillFeat-2", type: "skillFeat", sourceId: "OTHER" },
+          ],
+        },
+      },
+    });
+
+    const ops = removeChoice(ctx(character), {
+      slotId: "muse-1",
+      type: "muse",
+      level: 1,
+      label: "Muse",
+      filled: true,
+      itemId: "item-muse",
+    } as PlanSlotModel);
+
+    const update = ops.find((o) => o.type === "doc:update");
+    const remaining = (update as { diff: Record<string, unknown> }).diff[
+      "system.build.choices"
+    ] as Array<{ slot: string }>;
+    expect(remaining.map((c) => c.slot)).toEqual(["skillFeat-2"]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Class features resolve by document id, not by name (issue #14)
+//
+// classGrantRefsFromClassDoc emitted only `{ name, packSlug }`, and the caller
+// matched on the normalized NAME — against the project rule that identity is
+// the document id, never the name.
+//
+// Measured over the 12 classes: 221 of 221 featuresByLevel entries resolve by
+// `uuid` (the pack doc's `_id`), while 5 carry a name the pack does not have:
+//
+//   Cleric  L1  "Deity"                                 -> "Deity (Cleric)"
+//   Magus   L5  "Lightning Reflexes"                    -> "Reflex Expertise"
+//   Magus   L15 "Greater Weapon Specialization (Level 15)" -> "Greater Weapon Specialization"
+//   Monk    L15 idem
+//   Rogue   L9  "Debilitating Strikes"                  -> "Debilitating Strike"
+//
+// The Rogue case is the expensive one: "Debilitating Strike" declares a
+// grant-item for the action of the same name, so a level-9 Rogue never gets
+// Debilitating Strike in the Actions tab.
+// ---------------------------------------------------------------------------
+
+describe("classGrantRefsFromClassDoc — identity by doc id (issue #14)", () => {
+  const rogueSystem = {
+    featuresByLevel: [
+      { level: 1, uuid: "AAAA1111", name: "Sneak Attack" },
+      { level: 9, uuid: "mGyRcs5k6sRE1fVm", name: "Debilitating Strikes" },
+    ],
+  };
+
+  it("carries the feature's document id alongside the name", () => {
+    const refs = classGrantRefsFromClassDoc(rogueSystem, "ROGUE", 9);
+    const debilitating = refs.find((r) => r.level === 9);
+    expect(debilitating?.docId, "the uuid from featuresByLevel must reach the resolver").toBe(
+      "mGyRcs5k6sRE1fVm",
+    );
+    // The name is still carried — it is the fallback and the log label.
+    expect(debilitating?.name).toBe("Debilitating Strikes");
+  });
+
+  it("emits a docId for every feature, not just the divergent ones", () => {
+    const refs = classGrantRefsFromClassDoc(rogueSystem, "ROGUE", 9);
+    expect(refs).toHaveLength(2);
+    expect(refs.every((r) => typeof r.docId === "string" && r.docId.length > 0)).toBe(true);
+  });
+
+  it("omits docId when the pack data has no uuid (never invents one)", () => {
+    const refs = classGrantRefsFromClassDoc(
+      { featuresByLevel: [{ level: 1, name: "Homebrew Feature" }] },
+      "HOMEBREW",
+      1,
+    );
+    expect(refs[0]?.docId).toBeUndefined();
+    expect(refs[0]?.name).toBe("Homebrew Feature");
   });
 });

@@ -24,6 +24,8 @@ import {
   actionRowNameParts,
   mergeActionRows,
   buildActionNameIndex,
+  buildActionSourceIdIndex,
+  mergeEmbeddedNameOverlay,
   filterActionRows,
   filterRelevantRows,
   deriveCharacterProfile,
@@ -1062,6 +1064,145 @@ describe("mergeActionRows() with feats-core enrichment", () => {
 });
 
 // ---------------------------------------------------------------------------
+// buildActionSourceIdIndex + mergeActionRows sourceId-primary matching
+// (issue #42 — the persisted i18n bag is a cache, not the source of truth;
+// re-resolving via `flags.fusion.sourceId` on every load heals an embedded
+// item to the pack's CURRENT translation as packs keep getting translated).
+// ---------------------------------------------------------------------------
+
+function packEntryWithSourceId(name: string, sourceId: string, namePt?: string): PackIndexEntry {
+  return {
+    ...packEntry(name, { "flags.fusion.sourceId": sourceId }, namePt),
+  };
+}
+
+describe("buildActionSourceIdIndex()", () => {
+  it("indexes entries by flags.fusion.sourceId with namePt + uuid", () => {
+    const entry = packEntryWithSourceId("Raise a Shield", "src-1", "Erguer Escudo");
+    const index = buildActionSourceIdIndex([entry]);
+    expect(index.get("src-1")).toEqual({ namePt: "Erguer Escudo", fallbackUuid: entry.uuid });
+  });
+
+  it("skips entries with no sourceId in the index bag", () => {
+    const entry = packEntry("Seek", { "system.actionType": "action" });
+    const index = buildActionSourceIdIndex([entry]);
+    expect(index.size).toBe(0);
+  });
+
+  it("first entry per sourceId wins (deterministic)", () => {
+    const index = buildActionSourceIdIndex([
+      packEntryWithSourceId("Bon Mot", "src-x", "Primeira"),
+      packEntryWithSourceId("Bon Mot Dup", "src-x", "Segunda"),
+    ]);
+    expect(index.get("src-x")?.namePt).toBe("Primeira");
+  });
+});
+
+describe("mergeActionRows() with sourceId-primary enrichment (issue #42)", () => {
+  it("resolves fallbackUuid/namePt via sourceId even when no slug matches any pack row", () => {
+    // The embedded item's slug ("bon-mot-renamed") does NOT match any pack
+    // row's slug — only its flags.fusion.sourceId does. Prior slug-only
+    // matching would have left this row untranslated with no fallbackUuid.
+    const packBonMot = packEntryWithSourceId("Bon Mot", "src-bonmot", "Bom Mot Atual");
+    const embedded = [
+      {
+        _id: "bm1",
+        type: "feat",
+        name: "Bon Mot Renamed",
+        system: { actionType: "action", actions: 1, slug: "bon-mot-renamed" },
+        flags: { fusion: { sourceId: "src-bonmot" } },
+      },
+    ];
+    const sourceIdIndex = buildActionSourceIdIndex([packBonMot]);
+    const merged = mergeActionRows([packBonMot], embedded, undefined, sourceIdIndex);
+    const row = merged.find((r) => r.fromCharacter);
+    expect(row?.namePt).toBe("Bom Mot Atual");
+    expect(row?.fallbackUuid).toBe(packBonMot.uuid);
+  });
+
+  it("sourceId match wins over a same-slug pack row match", () => {
+    // Two different pack docs: the SLUG-matched one carries a stale name, the
+    // SOURCE-ID-matched one (a different uuid) carries the current one. The
+    // embedded item's own sourceId must decide, not the slug dedup.
+    const slugMatchedPack = packEntry(
+      "Bon Mot",
+      { "flags.fusion.sourceId": "src-other" },
+      "Nome Via Slug (stale)",
+    );
+    const sourceIdMatchedPack = packEntryWithSourceId(
+      "Bon Mot Atual",
+      "src-real",
+      "Nome Via SourceId (current)",
+    );
+    const embedded = [
+      {
+        _id: "bm1",
+        type: "feat",
+        name: "Bon Mot",
+        system: { actionType: "action", actions: 1, slug: "bon-mot" },
+        flags: { fusion: { sourceId: "src-real" } },
+      },
+    ];
+    const sourceIdIndex = buildActionSourceIdIndex([slugMatchedPack, sourceIdMatchedPack]);
+    const merged = mergeActionRows([slugMatchedPack], embedded, undefined, sourceIdIndex);
+    const row = merged.find((r) => r.fromCharacter);
+    expect(row?.namePt).toBe("Nome Via SourceId (current)");
+    expect(row?.fallbackUuid).toBe(sourceIdMatchedPack.uuid);
+  });
+
+  it("falls back to slug matching for an embedded item with no sourceId at all (homebrew)", () => {
+    const packBonMot = packEntry(
+      "Bon Mot",
+      { "system.actionType": "action", "system.actions": 1 },
+      "Bom Mot",
+    );
+    const embedded = [
+      {
+        _id: "bm1",
+        type: "feat",
+        name: "Bon Mot",
+        system: { actionType: "action", actions: 1, slug: "bon-mot" },
+        // no flags.fusion.sourceId — homebrew/manual entry.
+      },
+    ];
+    const sourceIdIndex = buildActionSourceIdIndex([packBonMot]);
+    const merged = mergeActionRows([packBonMot], embedded, undefined, sourceIdIndex);
+    const row = merged.find((r) => r.fromCharacter);
+    expect(row?.namePt).toBe("Bom Mot");
+    expect(row?.fallbackUuid).toBe(packBonMot.uuid);
+  });
+
+  it("combines actions-core + feats-core sourceId entries, actions-core winning on collision", () => {
+    const actionsCoreEntry = packEntryWithSourceId("Bon Mot", "src-shared", "Da actions-core");
+    const featsCoreEntry = featsPackEntry("Bon Mot", "Da feats-core");
+    featsCoreEntry.index = { "flags.fusion.sourceId": "src-shared" };
+    const combined = buildActionSourceIdIndex([actionsCoreEntry, featsCoreEntry]);
+    expect(combined.get("src-shared")?.namePt).toBe("Da actions-core");
+  });
+
+  it("is a no-op when no sourceIdIndex is passed (prior slug-only behavior preserved)", () => {
+    const packBonMot = packEntry(
+      "Bon Mot",
+      { "system.actionType": "action", "system.actions": 1 },
+      "Bom Mot",
+    );
+    const embedded = [
+      {
+        _id: "bm1",
+        type: "feat",
+        name: "Bon Mot",
+        system: { actionType: "action", actions: 1, slug: "bon-mot" },
+        flags: { fusion: { sourceId: "src-real" } },
+      },
+    ];
+    const merged = mergeActionRows([packBonMot], embedded);
+    const row = merged.find((r) => r.fromCharacter);
+    expect(row?.namePt).toBe("Bom Mot");
+    expect(row?.fallbackUuid).toBe(packBonMot.uuid);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // paginate — the "show more" arithmetic (r12 blocker: list capped at 60)
 // ---------------------------------------------------------------------------
 
@@ -1195,6 +1336,78 @@ describe("buildEmbeddedDetailsDoc()", () => {
   it("returns null for a non-record input", () => {
     expect(buildEmbeddedDetailsDoc(null)).toBeNull();
     expect(buildEmbeddedDetailsDoc(undefined)).toBeNull();
+  });
+
+  // Issue #10: the persisted i18n bag was silently dropped, so an item with a
+  // correctly persisted pt-BR description still rendered EN in the panel.
+  it("preserves a persisted i18n bag (issue #10)", () => {
+    const item = {
+      _id: "abc",
+      type: "feat",
+      name: "Bon Mot",
+      system: { actionType: "action", actions: 1, description: "<p>Sling an insult.</p>" },
+      i18n: { ptBR: { name: "Bom Mot", description: "<p>Insultar.</p>" } },
+    };
+    const doc = buildEmbeddedDetailsDoc(item);
+    expect(doc?.["i18n"]).toEqual({ ptBR: { name: "Bom Mot", description: "<p>Insultar.</p>" } });
+  });
+
+  it("omits the i18n key entirely when the item carries none", () => {
+    const doc = buildEmbeddedDetailsDoc({ _id: "z", type: "action", name: "Bare" });
+    expect(doc).not.toHaveProperty("i18n");
+  });
+
+  it("ignores a non-record i18n value on the item", () => {
+    const doc = buildEmbeddedDetailsDoc({ _id: "w", type: "action", name: "Weird", i18n: "nope" });
+    expect(doc).not.toHaveProperty("i18n");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// mergeEmbeddedNameOverlay — merge (not overwrite) the i18n bag (issue #10)
+// ---------------------------------------------------------------------------
+
+describe("mergeEmbeddedNameOverlay()", () => {
+  it("returns the doc unchanged when there is nothing to merge", () => {
+    const doc = { name: "Bon Mot", system: {} };
+    expect(mergeEmbeddedNameOverlay(doc, null)).toBe(doc);
+  });
+
+  it("returns null unchanged", () => {
+    expect(mergeEmbeddedNameOverlay(null, "Bom Mot")).toBeNull();
+  });
+
+  it("fills in i18n.ptBR.name when the doc has no persisted bag", () => {
+    const doc = { name: "Bon Mot", system: {} };
+    const merged = mergeEmbeddedNameOverlay(doc, "Bom Mot");
+    expect(merged?.["i18n"]).toEqual({ ptBR: { name: "Bom Mot" } });
+  });
+
+  it("MERGES into an already-persisted bag, keeping the description (issue #10 core bug)", () => {
+    // The prior implementation replaced the whole bag with {ptBR:{name}},
+    // wiping out a persisted description whenever the slug match provided a
+    // namePt — this is the exact regression the fix targets.
+    const doc = {
+      name: "Bon Mot",
+      system: {},
+      i18n: { ptBR: { description: "<p>Insultar.</p>" } },
+    };
+    const merged = mergeEmbeddedNameOverlay(doc, "Bom Mot");
+    expect(merged?.["i18n"]).toEqual({
+      ptBR: { name: "Bom Mot", description: "<p>Insultar.</p>" },
+    });
+  });
+
+  it("keeps a persisted name over the enrichment namePt (persisted bag wins)", () => {
+    const doc = {
+      name: "Bon Mot",
+      system: {},
+      i18n: { ptBR: { name: "Nome Persistido", description: "<p>x</p>" } },
+    };
+    const merged = mergeEmbeddedNameOverlay(doc, "Nome do Slug");
+    expect(merged?.["i18n"]).toEqual({
+      ptBR: { name: "Nome Persistido", description: "<p>x</p>" },
+    });
   });
 });
 

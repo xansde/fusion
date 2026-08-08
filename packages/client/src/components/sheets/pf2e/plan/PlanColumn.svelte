@@ -62,6 +62,10 @@
     addLoreSkill,
     detailsRequestForSlot,
     detailsRequestForAutoFeature,
+    getIsekaiVariant,
+    getIsekaiArchetypes,
+    setIsekaiVariant,
+    toggleIsekaiArchetype,
     detailsRequestForAbcChip,
     buildContentNameTranslator,
     abilityBoostsGrid,
@@ -71,6 +75,7 @@
     classFeatureGrantRefs,
     classGrantRefsFromClassDoc,
     backgroundLoreHealOps,
+    loreSlugHealOps,
     actorSpellEntries,
     type AbcChip,
     type ClassGrantRef,
@@ -87,6 +92,7 @@
   import {
     materializeGrants,
     type GrantIndexEntry,
+    type GrantFailure,
     type MaterializeContext,
   } from "../../../../lib/sheets/pf2e/grantMaterializer.js";
   import type { DocOpPayload } from "../../../../lib/sheets/pf2e/characterSheetVM.js";
@@ -99,6 +105,9 @@
   import AbilityBoostsDialog from "./AbilityBoostsDialog.svelte";
   import SkillTrainingDialog from "./SkillTrainingDialog.svelte";
   import KineticGateDialog from "./KineticGateDialog.svelte";
+  import IsekaiArchetypeSelector from "./IsekaiArchetypeSelector.svelte";
+  import IsekaiBlessingDialog from "./IsekaiBlessingDialog.svelte";
+  import type { IsekaiChipInfo } from "../../../../lib/sheets/pf2e/planVM.js";
   import { t, i18n } from "../../../../lib/i18n/i18n.js";
   import { session, getSocket } from "../../../../lib/session.svelte.js";
   import {
@@ -198,9 +207,9 @@
    * subtitle is SUPPRESSED (r15 user decision: no redundant "Bon Mot / Bon Mot"
    * — aligns the Plan with the Actions tab's behavior).
    */
-  function contentNameParts(stored: string): { name: string; subName?: string } {
+  function contentNameParts(stored: string, docId?: string): { name: string; subName?: string } {
     if (i18n.locale !== "pt-BR" || !contentTranslator) return { name: stored };
-    const parts = contentTranslator(stored);
+    const parts = contentTranslator(stored, docId);
     if (sameName(parts.namePt, parts.nameEn)) return { name: parts.namePt };
     return { name: parts.namePt, subName: parts.nameEn };
   }
@@ -252,13 +261,53 @@
     }
   }
 
-  function materializeContext(): MaterializeContext {
+  function materializeContext(onGrantFailure?: (f: GrantFailure) => void): MaterializeContext {
     return {
       actorId,
       existingItems: (doc["items"] as Array<Record<string, unknown>> | undefined) ?? [],
       spellEntries: actorSpellEntries(doc),
       resolveIndex: resolvePackIndex,
       resolveDoc: resolveGrantDoc,
+      ...(onGrantFailure ? { onGrantFailure } : {}),
+    };
+  }
+
+  /**
+   * Collect the grants materialization dropped and report them ONCE per pass
+   * (issue #35). Materialization skipping an unresolvable grant is correct — a
+   * missing clean-room equivalent must never break a build — but it used to be
+   * invisible: 43 grants fail per class build with nothing in the console. The
+   * summary is grouped by reason so a build stays readable instead of emitting
+   * one line per failure.
+   */
+  function grantFailureCollector(): {
+    sink: (f: GrantFailure) => void;
+    flush: (label: string) => void;
+  } {
+    const failures: GrantFailure[] = [];
+    return {
+      sink: (f) => failures.push(f),
+      flush: (label) => {
+        if (failures.length === 0) return;
+        const byReason = new Map<string, GrantFailure[]>();
+        for (const f of failures) {
+          const list = byReason.get(f.reason) ?? [];
+          list.push(f);
+          byReason.set(f.reason, list);
+        }
+        /* eslint-disable no-console */
+        console.warn(
+          `[Plan grants] ${label}: ${String(failures.length)} grant(s) did not resolve`,
+        );
+        for (const [reason, list] of byReason) {
+          console.warn(
+            `  ${reason} (${String(list.length)}):`,
+            list.map((f) => `${f.granterName ?? f.granterSourceId} → ${f.name ?? f.uuid}`),
+          );
+        }
+        /* eslint-enable no-console */
+        failures.length = 0;
+      },
     };
   }
 
@@ -276,20 +325,43 @@
     const fusion = ((granterDoc["flags"] as Record<string, unknown> | undefined)?.["fusion"] ?? {}) as Record<string, unknown>;
     const sourceId = typeof fusion["sourceId"] === "string" ? fusion["sourceId"] : undefined;
     if (!sourceId) return;
+    const collector = grantFailureCollector();
     try {
-      const ops = await materializeGrants(granterDoc, sourceId, slot, materializeContext());
+      const ops = await materializeGrants(
+        granterDoc,
+        sourceId,
+        slot,
+        materializeContext(collector.sink),
+      );
       for (const op of ops) sendOpFn(op);
+      collector.flush(`applied ${String(granterDoc["name"] ?? sourceId)}`);
     } catch {
       // Offline / no socket: grants simply don't materialize now — the on-open
       // heal will pick them up next time the owner opens the Plan.
     }
   }
 
-  /** Resolve a granter's full pack doc by name within a Fusion pack, or null. */
-  async function resolveGranterByName(packSlug: string, name: string): Promise<Record<string, unknown> | null> {
+  /**
+   * Resolve a granter's full pack doc within a Fusion pack, or null.
+   *
+   * Identity is the document ID when we have one (issue #14) — matching by name
+   * broke 5 of the 12 classes' features, because the class table and the
+   * feature document disagree on the label: "Debilitating Strikes" vs
+   * "Debilitating Strike", "Deity" vs "Deity (Cleric)", "Lightning Reflexes" vs
+   * "Reflex Expertise". The Rogue case cost a whole action: the feature doc
+   * grants the Debilitating Strike ACTION, and a never-resolved doc grants
+   * nothing.
+   *
+   * The name stays as fallback for data with no id (homebrew).
+   */
+  async function resolveGranterByName(
+    packSlug: string,
+    name: string,
+    docId?: string,
+  ): Promise<Record<string, unknown> | null> {
     const entries = await resolvePackIndex(packSlug);
-    const target = normalizeForMatch(name);
-    const entry = entries.find((e) => normalizeForMatch(e.name) === target);
+    const byId = docId === undefined ? undefined : entries.find((e) => e._id === docId);
+    const entry = byId ?? entries.find((e) => normalizeForMatch(e.name) === normalizeForMatch(name));
     if (!entry) return null;
     return resolveGrantDoc(entry.uuid);
   }
@@ -311,14 +383,22 @@
     await runClassGrantRefs(refs);
   }
 
-  /** Shared: resolve each class-feature ref's doc and materialize its conceded actions. */
-  async function runClassGrantRefs(refs: ClassGrantRef[]): Promise<number> {
+  /**
+   * Shared: resolve each class-feature ref's doc and materialize its conceded
+   * actions. `failureSink` lets a caller that owns a wider pass (runHeal)
+   * aggregate these drops into its own summary instead of emitting a second one.
+   */
+  async function runClassGrantRefs(
+    refs: ClassGrantRef[],
+    failureSink?: (f: GrantFailure) => void,
+  ): Promise<number> {
     if (refs.length === 0) return 0;
-    const mctx = materializeContext();
+    const own = failureSink ? null : grantFailureCollector();
+    const mctx = materializeContext(failureSink ?? own?.sink);
     let created = 0;
     for (const ref of refs) {
       try {
-        const featureDoc = await resolveGranterByName(ref.packSlug, ref.name);
+        const featureDoc = await resolveGranterByName(ref.packSlug, ref.name, ref.docId);
         if (!featureDoc) continue;
         const ops = await materializeGrants(featureDoc, ref.classSourceId, ref.slot, mctx);
         for (const op of ops) {
@@ -329,6 +409,7 @@
         // best-effort per feature; a socket failure just defers to next open.
       }
     }
+    own?.flush("class feature grants");
     return created;
   }
 
@@ -359,7 +440,8 @@
     }
 
     let created = 0;
-    const mctx = materializeContext();
+    const collector = grantFailureCollector();
+    const mctx = materializeContext(collector.sink);
 
     // (1) Feat/classFeature granters — re-scan each applied granter's pack doc
     // for missing fixed grants (B2 r14).
@@ -400,14 +482,30 @@
       }
     } catch { /* deferred */ }
 
-    // (3) Background LORE heal (r20-X4) — the real Finn/Tobias were built before
+    // (3a) Lore SLUG migration — sheets built before loreSlug.ts hold their Lore
+    // under the legacy `<subject>-lore` key, which no reader understands (the
+    // row renders as the raw slug). Rename to the canonical `lore-<subject>`,
+    // preserving the proficiency. Idempotent: a healed sheet yields no ops.
+    let migratedLore = false;
+    try {
+      const ops = loreSlugHealOps(opCtx);
+      migratedLore = ops.length > 0;
+      for (const op of ops) { sendOpFn(op); created++; }
+    } catch { /* deferred to next open */ }
+
+    // (3b) Background LORE heal (r20-X4) — the real Finn/Tobias were built before
     // the lore branch, so their Piloting/Fireworks Lore was never trained.
     // Re-resolve the background from the CURRENT pack (its embedded copy may be
     // a stale import) and add the missing lore training. Idempotent.
+    //
+    // Skipped in the same pass as a slug migration: `doc` is the PRE-heal
+    // snapshot, so this heal would rebuild `system.build.choices` from the
+    // stale array and undo (3a)'s repointing. Next open sees the migrated doc
+    // and (3a) is a no-op, so nothing is lost — only deferred.
     try {
       const bgItem = (doc["items"] as Array<Record<string, unknown>> | undefined)?.find((i) => i["type"] === "background");
       const bgName = bgItem ? (typeof bgItem["name"] === "string" ? bgItem["name"] : undefined) : undefined;
-      if (bgName) {
+      if (bgName && !migratedLore) {
         const bgDoc = (await resolveGranterByName("backgrounds-core", bgName)) ?? bgItem!;
         for (const op of backgroundLoreHealOps(opCtx, bgDoc)) { sendOpFn(op); created++; }
       }
@@ -417,8 +515,12 @@
     // non-choice features concede (Elemental Blast/Base Kinesis/Channel
     // Elements/Spellstrike/Arcane Cascade), tagged by the class.
     try {
-      created += await runClassGrantRefs(classFeatureGrantRefs(doc));
+      created += await runClassGrantRefs(classFeatureGrantRefs(doc), collector.sink);
     } catch { /* deferred */ }
+
+    // One summary for the whole heal pass — every grant this build could not
+    // resolve, grouped by reason (issue #35).
+    collector.flush("on-open heal");
 
     if (created > 0 || ghostOps.length > 0) {
       // eslint-disable-next-line no-console
@@ -501,7 +603,11 @@
 
   /** Bilingual parts for a locked auto-feature chip. */
   function autoFeatureDisplay(feature: AutoFeatureModel): AutoFeatureDisplay {
-    const parts = contentNameParts(feature.name);
+    // Resolve by docId first (issue #65): `featuresByLevel` stores a literal
+    // name that can differ from the referenced document's own — the Cleric's
+    // "Deity" points at a document named "Deity (Cleric)", so matching by name
+    // misses and the chip renders in EN even though the translation exists.
+    const parts = contentNameParts(feature.name, feature.docId);
     return {
       name: parts.name,
       ...(parts.subName !== undefined ? { subName: parts.subName } : {}),
@@ -720,13 +826,24 @@
 
   let detailsRequest = $state<PlanDetailsRequest | null>(null);
 
-  function handleSlotDetails(slot: PlanSlotModel): void {
-    const req = detailsRequestForSlot(slot);
+  // `level` is the enclosing LevelPlanModel.level (issue #58) — the ONE place
+  // that knows which level THIS plan actually granted the item at, as
+  // opposed to a shared class-features-core document's own divergent static
+  // system.level. Threaded into the request so the details panel can show
+  // the real grant level instead of the document's.
+  function handleSlotDetails(level: number, slot: PlanSlotModel): void {
+    const req = detailsRequestForSlot(slot, level);
     if (req) detailsRequest = req;
   }
 
-  function handleAutoFeatureClick(feature: AutoFeatureModel): void {
-    detailsRequest = detailsRequestForAutoFeature(feature);
+  function handleAutoFeatureClick(level: number, feature: AutoFeatureModel): void {
+    // An Isekai blessing has no compendium document — it explains itself from
+    // the chip, with no socket round-trip and no failure mode.
+    if (feature.isekai) {
+      isekaiDetails = { ...feature.isekai, name: feature.name };
+      return;
+    }
+    detailsRequest = detailsRequestForAutoFeature(feature, level);
   }
 
   /** Reconstruct just enough of the FeatDocLike shape from a PackIndexEntry's flat dot-path index to run a feat predicate against it. */
@@ -740,6 +857,30 @@
         ...(typeof level2 === "number" ? { level: level2 } : {}),
         traits: { value: Array.isArray(traits) ? traits.filter((v): v is string => typeof v === "string") : [] },
       },
+    };
+  }
+
+  /**
+   * Rebuild the shape `isFeatAtRepeatCap` needs from an index entry (issue
+   * #57): its identity (sourceId/name) plus the repeat cap. The picker filters
+   * from the INDEX, so without `system.maxTakable` published there an
+   * exhausted feat stayed on the list and was only refused after the click.
+   *
+   * `maxTakable` is forwarded VERBATIM — `null` is a meaningful value in the
+   * pack (it means unlimited), so it must not be normalized away here.
+   */
+  function repeatCapDocFromIndex(e: {
+    name: string;
+    index: Record<string, unknown>;
+  }): Record<string, unknown> {
+    const sourceId = e.index["flags.fusion.sourceId"];
+    const system: Record<string, unknown> = {};
+    if ("system.maxTakable" in e.index) system["maxTakable"] = e.index["system.maxTakable"];
+    return {
+      name: e.name,
+      type: "feat",
+      system,
+      ...(typeof sourceId === "string" ? { flags: { fusion: { sourceId } } } : {}),
     };
   }
 
@@ -805,6 +946,9 @@
       packSlug: "feats-core",
       title: t(`FUSION.Sheet.Plan.SlotLabel.${slot.type}`),
       filterFn: (e) => {
+        // Already taken as many times as it allows → off the list, instead of
+        // being listed and refused only after the click (issue #57).
+        if (isFeatAtRepeatCap(doc, repeatCapDocFromIndex(e))) return false;
         const featDoc = featDocFromIndex(e);
         return isFeatEligible(featDoc, slot.type, effectiveLevel, {
           ...(effectiveClassSlug ? { classSlug: effectiveClassSlug } : {}),
@@ -990,6 +1134,29 @@
         : false,
     ),
   );
+
+  // ---------------------------------------------------------------------------
+  // Isekai layer (./isekai)
+  // ---------------------------------------------------------------------------
+
+  const docSystem = $derived((doc["system"] as Record<string, unknown> | undefined) ?? {});
+  const isekaiOn = $derived(getIsekaiVariant(docSystem));
+  const isekaiArchetypes = $derived(getIsekaiArchetypes(docSystem));
+
+  /** The blessing whose details dialog is open, if any. */
+  let isekaiDetails = $state<(IsekaiChipInfo & { name: string }) | null>(null);
+
+  function toggleIsekai(): void {
+    const op = setIsekaiVariant(opCtx, !isekaiOn);
+    if (op) sendOpFn(op);
+  }
+
+  function handleIsekaiArchetype(archetypeId: string): void {
+    // Returns null when the pick is not allowed (cap reached, unknown id) —
+    // the selector already disables those, so a null here means nothing to do.
+    const op = toggleIsekaiArchetype(opCtx, archetypeId);
+    if (op) sendOpFn(op);
+  }
 </script>
 
 <div class="plan-column">
@@ -1055,6 +1222,23 @@
       <input type="checkbox" checked={classLevelsOn} onchange={toggleClassLevels} />
       {t("FUSION.Sheet.Plan.ClassLevelsToggle")}
     </label>
+    <label class="plan-column__toggle">
+      <input type="checkbox" checked={isekaiOn} onchange={toggleIsekai} />
+      {t("FUSION.Sheet.Plan.IsekaiToggle")}
+    </label>
+  {/if}
+
+  <!--
+    The selector only exists while the layer is on. Rendered for read-only
+    viewers too (non-editable): a player looking at someone else's sheet still
+    needs to see WHICH archetypes that character carries.
+  -->
+  {#if isekaiOn}
+    <IsekaiArchetypeSelector
+      selected={isekaiArchetypes}
+      {editable}
+      onToggle={handleIsekaiArchetype}
+    />
   {/if}
 
   {#if plan.needsClass}
@@ -1077,8 +1261,8 @@
           {autoFeatureDisplay}
           onSlotClick={(slot) => handleSlotClick(levelPlan.level, slot)}
           onSlotRemove={(slot) => handleSlotRemove(levelPlan.level, slot)}
-          onSlotDetails={handleSlotDetails}
-          onAutoFeatureClick={handleAutoFeatureClick}
+          onSlotDetails={(slot) => handleSlotDetails(levelPlan.level, slot)}
+          onAutoFeatureClick={(feature) => handleAutoFeatureClick(levelPlan.level, feature)}
         />
       {/each}
     </div>
@@ -1161,6 +1345,10 @@
 
 {#if detailsRequest}
   <PlanDetailsDialog request={detailsRequest} onClose={() => { detailsRequest = null; }} />
+{/if}
+
+{#if isekaiDetails}
+  <IsekaiBlessingDialog blessing={isekaiDetails} onClose={() => { isekaiDetails = null; }} />
 {/if}
 
 {#if boostsDialogTarget}

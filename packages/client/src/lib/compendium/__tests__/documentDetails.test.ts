@@ -702,6 +702,46 @@ describe("buildFeatFields (pt-BR)", () => {
       { labelKey: "FUSION.Sheet.Details.Field.Cast", label: "Conjuração", value: "◆ 1 ação" },
     ]);
   });
+
+  // issue #32: the details panel used to interpolate raw EN prerequisite
+  // prose into a pt-BR sheet ("Pré-requisitos: dragon instinct"). Each
+  // value is now translated via translatePrerequisite (documentDetails.ts's
+  // prerequisitesField) — using curated-vocabulary/rank-template strings
+  // here so the test stays deterministic regardless of the live packs'
+  // in-progress translation state (see prerequisiteTranslation.test.ts for
+  // full renderer coverage).
+  it("translates prerequisite values (issue #32)", () => {
+    const fields = buildFeatFields(
+      { prerequisites: [{ value: "trained in Perception" }, { value: "focus pool" }] },
+      "pt-BR",
+    );
+    expect(fields).toEqual([
+      {
+        labelKey: "FUSION.Sheet.Details.Field.Prerequisites",
+        label: "Pré-requisitos",
+        value: "treinado em Percepção; reserva de foco",
+      },
+    ]);
+  });
+
+  it("falls back to the raw EN string for an unresolvable prerequisite (never invents)", () => {
+    // The fixture MUST be a string that no document will ever be named, because
+    // `documentNamesPt.ts` is generated from the live packs: this test first used
+    // a real-but-untranslated feat ("Glorious Gamtu"), and it broke the moment
+    // that feat got translated — the test was measuring the corpus, not the
+    // fallback. Same circularity trap as issue #48.
+    const fields = buildFeatFields(
+      { prerequisites: [{ value: "Zzzz Not A Real Document Name" }] },
+      "pt-BR",
+    );
+    expect(fields).toEqual([
+      {
+        labelKey: "FUSION.Sheet.Details.Field.Prerequisites",
+        label: "Pré-requisitos",
+        value: "Zzzz Not A Real Document Name",
+      },
+    ]);
+  });
 });
 
 describe("buildClassFeatureFields", () => {
@@ -723,6 +763,47 @@ describe("buildClassFeatureFields", () => {
   it("translates the level label in pt-BR", () => {
     expect(buildClassFeatureFields({ level: 3 }, "pt-BR")).toEqual([
       { labelKey: "FUSION.Sheet.Details.Field.Level", label: "Nível", value: "3" },
+    ]);
+  });
+
+  // issue #32 — same prerequisitesField() wiring as buildFeatFields, shared
+  // by feats and classFeatures.
+  it("translates prerequisites alongside level (pt-BR)", () => {
+    const fields = buildClassFeatureFields(
+      { level: 9, prerequisites: [{ value: "expert in unarmed attacks" }] },
+      "pt-BR",
+    );
+    expect(fields).toEqual([
+      { labelKey: "FUSION.Sheet.Details.Field.Level", label: "Nível", value: "9" },
+      {
+        labelKey: "FUSION.Sheet.Details.Field.Prerequisites",
+        label: "Pré-requisitos",
+        value: "especialista em ataques desarmados",
+      },
+    ]);
+  });
+
+  // Issue #58: class-features-core reuses 17 documents across classes at
+  // divergent grant levels (35 cases / 11 classes — e.g. Barbarian grants
+  // "Reflex Expertise" at 9, the document itself says 3). The builder already
+  // uses featuresByLevel[].level (the source of truth); this is the same fix
+  // for the compendium details panel, via an optional contextLevel the
+  // caller supplies when it knows the real grant.
+  it("prefers contextLevel over the document's static system.level when given", () => {
+    expect(noKey(buildClassFeatureFields({ level: 3 }, "en", 9))).toEqual([
+      { label: "Level", value: "9" },
+    ]);
+  });
+
+  it("falls back to the document's system.level when contextLevel is omitted", () => {
+    expect(noKey(buildClassFeatureFields({ level: 3 }, "en"))).toEqual([
+      { label: "Level", value: "3" },
+    ]);
+  });
+
+  it("still translates the label when contextLevel overrides the value (pt-BR)", () => {
+    expect(buildClassFeatureFields({ level: 3 }, "pt-BR", 9)).toEqual([
+      { labelKey: "FUSION.Sheet.Details.Field.Level", label: "Nível", value: "9" },
     ]);
   });
 });
@@ -751,6 +832,20 @@ describe("buildMechanicalFields (dispatch)", () => {
   it("dispatches to buildClassFeatureFields for type 'classFeature'", () => {
     const fields = buildMechanicalFields({ type: "classFeature", system: { level: 3 } });
     expect(noKey(fields)).toEqual([{ label: "Level", value: "3" }]);
+  });
+
+  it("threads contextLevel through to buildClassFeatureFields for type 'classFeature' (issue #58)", () => {
+    const fields = buildMechanicalFields({ type: "classFeature", system: { level: 3 } }, "en", 9);
+    expect(noKey(fields)).toEqual([{ label: "Level", value: "9" }]);
+  });
+
+  it("ignores contextLevel for types other than 'classFeature' (a spell's rank is intrinsic)", () => {
+    const fields = buildMechanicalFields(
+      { type: "spell", system: { level: 3, range: "touch" } },
+      "en",
+      9,
+    );
+    expect(noKey(fields)).toEqual([{ label: "Range", value: "touch" }]);
   });
 
   it("returns an empty array for unrecognized types", () => {
@@ -976,12 +1071,16 @@ describe("trait/rarity display names (r15-A1)", () => {
     expect(traitDisplayName("some-new-trait", "pt-BR")).toBe("some new trait");
   });
 
-  it("covers all 190 glossary traits with a non-empty accented value", () => {
+  it("covers all 217 glossary traits with a non-empty accented value", () => {
     // 177 (r15) + 13 sincronizados na r20 (ancestrias planares, overflow,
-    // potion, talisman...). Count exato de propósito: trait novo no glossário
-    // exige regenerar via tools/translate-packs/gen-client-maps.mjs e revisar.
+    // potion, talisman...) + 27 sincronizados na r24 (rage e outros 26 traits
+    // — ancestrias elf/human/ghoran, class, oath, consecration entre eles —
+    // que ficaram atrás do glossário até esta sincronização; ver
+    // traitNames.sync.test.ts para o gate vivo que evita essa deriva daqui
+    // em diante). Count exato de propósito: trait novo no glossário exige
+    // regenerar via tools/translate-packs/gen-client-maps.mjs e revisar.
     const keys = Object.keys(TRAIT_NAMES_PT);
-    expect(keys.length).toBe(190);
+    expect(keys.length).toBe(217);
     for (const slug of keys) {
       const pt = traitDisplayName(slug, "pt-BR");
       expect(pt.length).toBeGreaterThan(0);
@@ -1049,6 +1148,36 @@ describe("buildDetailsHeader", () => {
     );
     expect(header.name).toBe("Basic Concoction");
     expect(header.subtitleEn).toBeNull();
+  });
+
+  // Issue #58: the level badge next to the name reads the same shared/
+  // reused system.level as buildClassFeatureFields — without this override
+  // the badge and the "Level" field below it would show two DIFFERENT
+  // numbers for the same classFeature document.
+  it("prefers contextLevel over system.level for a classFeature doc", () => {
+    const header = buildDetailsHeader(
+      { type: "classFeature", name: "Reflex Expertise", system: { level: 3 } },
+      "en",
+      9,
+    );
+    expect(header.levelOrRank).toBe(9);
+  });
+
+  it("ignores contextLevel for a non-classFeature doc (e.g. a spell's rank is intrinsic)", () => {
+    const header = buildDetailsHeader(
+      { type: "spell", name: "Fireball", system: { level: 3 } },
+      "en",
+      9,
+    );
+    expect(header.levelOrRank).toBe(3);
+  });
+
+  it("falls back to system.level for a classFeature doc when contextLevel is omitted", () => {
+    const header = buildDetailsHeader(
+      { type: "classFeature", name: "Reflex Expertise", system: { level: 3 } },
+      "en",
+    );
+    expect(header.levelOrRank).toBe(3);
   });
 });
 

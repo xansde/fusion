@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "packId": "pf2e.spells-core",
   "locale": "pt-BR",
-  "generatedAt": "2026-08-02T03:59:58.475Z",
+  "generatedAt": "2026-08-03T01:40:05.500Z",
   "generator": "tools/translate-packs@0.1.0",
   "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
   "entries": {
@@ -154,7 +154,7 @@
     "1X6ZMWfRQIDnDB5c": {
       "name": "Canção da Força",
       "sourceHash": "bf28d6cd6c07fa8676751adda5baa6aaa65414bb",
-      "description": ""
+      "description": "<p>Você fortalece a força física de seus aliados com uma exortação animada. Você e seus aliados ganham um bônus de condição de +1 em testes de Atletismo e nas CDs contra ações de perícia de Atletismo, como @UUID[Compendium.pf2e.actionspf2e.Item.Disarm], @UUID[Compendium.pf2e.actionspf2e.Item.Reposition], @UUID[Compendium.pf2e.actionspf2e.Item.Shove] e @UUID[Compendium.pf2e.actionspf2e.Item.Trip].</p>\n<p>@UUID[Compendium.pf2e.spell-effects.Item.Spell Effect: Song of Strength]</p>"
     },
     "1YJxFz8Cw7snbnBx": {
       "name": "Metais Noxios",
@@ -974,7 +974,7 @@
     "9vgmOlwNtW4onST3": {
       "name": "Refrão de Silver",
       "sourceHash": "edb62f236481311a7911d5885fbbbd152e658e1a",
-      "description": ""
+      "description": "<p>A \"Canção de Silver\" era uma canção encantada usada pelos Corvos de Silver para combater forças diabólicas. Você recorre a versos selecionados para replicar temporariamente alguns dos benefícios da lendária canção, ainda que em escala muito menor.</p>\n<p>Ataques com arma e ataques desarmados feitos por aliados na área são tratados como se fossem de prata. Além disso, esta magia automaticamente tenta anular qualquer @UUID[Compendium.pf2e.spells-srd.Item.Translocate] conjurada por um diabo dentro da área, ou conjurada por um diabo que tente entrar na área usando <em>porta dimensional</em>. Se um diabo tentar entrar na área usando <em>porta dimensional</em> e a magia for anulada, o diabo permanece onde começou.</p>\n<p>@UUID[Compendium.pf2e.spell-effects.Item.Spell Effect: Silver's Refrain]</p>"
     },
     "9wo1nMNdDwVA10tf": {
       "name": "Toque de Tempestade",
@@ -2704,7 +2704,7 @@
     "QreHVEpW0gbwRbz4": {
       "name": "Hino de União",
       "sourceHash": "a9a1423a558534e61c2cf632442347666e747b03",
-      "description": ""
+      "description": "<p>Sua canção move seus aliados a se protegerem de forma mais eficaz. Você e todos os aliados na área ganham um bônus de condição de +1 na CA e nos testes de resistência, além de resistência a dano físico igual à metade do nível da magia.</p>\n<p>@UUID[Compendium.pf2e.spell-effects.Item.Spell Effect: Rallying Anthem]</p>"
     },
     "QtjrhCXfteEFWoGz": {
       "name": "Armazena Tempo",
@@ -3904,7 +3904,7 @@
     "cDSrmHsb49XRlZik": {
       "name": "Tempo Triplo",
       "sourceHash": "3982ea8a4b6550d1cd1a42e22e2684ea8719824a",
-      "description": ""
+      "description": "<p>Sua música impõe um ritmo acelerado. Você e todos os aliados na área ganham um bônus de condição de +10 pés em todas as Velocidades por 1 rodada.</p>\n<p>@UUID[Compendium.pf2e.spell-effects.Item.Spell Effect: Triple Time]</p>"
     },
     "cIHL4DmjbBNcPzAZ": {
       "name": "Sugestão",
@@ -4279,7 +4279,7 @@
     "gWBNZZPyRdR5IBk2": {
       "name": "Allegro",
       "sourceHash": "9276bd6201149980fe507adf9cb44b54d46813e5",
-      "description": ""
+      "description": "<p>Você executa uma performance rápida, acelerando seu aliado. O aliado fica @UUID[Compendium.pf2e.conditionitems.Item.Quickened] e pode usar a ação adicional para Golpear, Deslocar ou Dar um Passo.</p>"
     },
     "gdGit9g6czhpedKs": {
       "name": "Armadura Instantânea",
@@ -5174,7 +5174,7 @@
     "otxXv6LPiIQaQLQd": {
       "name": "Canto Fúnebre da Perdição",
       "sourceHash": "56a5f1a5a904f65f6f37bf3fcf056717de8c334b",
-      "description": ""
+      "description": "<p>Inimigos dentro da área ficam @UUID[Compendium.pf2e.conditionitems.Item.Frightened]{Amedrontado 1}. Eles não podem reduzir seu valor de amedrontado abaixo de 1 enquanto permanecerem na área.</p>"
     },
     "ouEUvMLBTB77Z8DB": {
       "name": "Olfato Aguçado",
@@ -5654,7 +5654,7 @@
     "tXWQIP6VOzsP44QW": {
       "name": "Hino Corajoso",
       "sourceHash": "683f0a22c219128b62c699ea982b5459a6f57e23",
-      "description": ""
+      "description": "<p>Você se inspira, assim como seus aliados, com palavras ou melodias de encorajamento. Você e todos os aliados na área ganham um bônus de condição de +1 em rolagens de ataque, rolagens de dano e testes de resistência contra efeitos de medo.</p>\n<p>@UUID[Compendium.pf2e.spell-effects.Item.Spell Effect: Courageous Anthem]</p>"
     },
     "tbVgr5dIir6kqL93": {
       "name": "Teia da Sombra",
@@ -5789,7 +5789,7 @@
     "v8uSd1SWEQ1sdpcX": {
       "name": "Canção da Marcha",
       "sourceHash": "4a10927e6a654754ddaaa8b139e424ec42ae130f",
-      "description": ""
+      "description": "<p>Você mantém uma performance acelerada que mantém os aliados em movimento. Você e seus aliados na área podem @UUID[Compendium.pf2e.actionspf2e.Item.Hustle] pela duração da magia, além de suas outras atividades de exploração (sua atividade de exploração é Sustentar esta Magia). Você e seus aliados então ficam temporariamente imunes por 1 dia.</p>\n<p>Se você entrar em combate enquanto realiza esta canção, pode usar seu modificador de Atuação para a rolagem de iniciativa. Você e seus aliados afetados também recebem um bônus de condição de +1 nessa rolagem de iniciativa.</p>\n<hr />\n<p><strong>Elevada (6º)</strong> Você pode Sustentar a Magia por até 2 horas.</p>\n<p><strong>Elevada (9º)</strong> Você pode Sustentar a Magia por até 4 horas.</p>"
     },
     "vC4oGURjZD2RTDqJ": {
       "name": "Ampliar",
@@ -5824,7 +5824,7 @@
     "vOu2a6TOlS0XwX5u": {
       "name": "Casa de Paredes Imaginárias",
       "sourceHash": "8e976f08a5a05453f641e32ed858f214101cdd2b",
-      "description": ""
+      "description": "<p>Você faz mímica de uma parede @UUID[Compendium.pf2e.conditionitems.Item.Invisible] de 10 pés por 10 pés adjacente a você e dentro do seu alcance natural. A parede é sólida para as criaturas que não a descreem, mesmo criaturas incorpóreas. Você e seus aliados podem acreditar voluntariamente que a parede existe para continuar a tratá-la como sólida, por exemplo para escalar nela. Uma criatura que descrê da ilusão fica temporariamente imune à sua casa de paredes imaginárias por 1 minuto. A parede não bloqueia criaturas que não viram sua atuação visual, nem bloqueia objetos. A parede tem CA 10, Dureza igual ao dobro do nível da magia, e PV igual a quatro vezes o nível da magia.</p>"
     },
     "vQmS68XBrZFlHoZi": {
       "name": "Desintegração",
@@ -5929,7 +5929,7 @@
     "wQkY2Tcu1kgUHyqy": {
       "name": "Abertura Inspiradora",
       "sourceHash": "240166269330cf7a8957cd2dfd0b75581b1d7484",
-      "description": ""
+      "description": "<p>Sua apresentação faz com que seus aliados sintam que podem ter sucesso em qualquer coisa. Isso conta como ter se preparado para Auxiliar seu aliado em um teste de perícia à sua escolha. Quando você depois usar a reação de Auxiliar, pode rolar Atuação no lugar do teste de perícia normal, e se tirar uma falha, obtém um sucesso em vez disso. Se você for lendário em Atuação, obtém sucesso crítico automaticamente.</p>\n<p>O GM pode decidir que você não pode usar esta habilidade se o ato de encorajar seu aliado interferir no teste de perícia (como um teste para @UUID[Compendium.pf2e.actionspf2e.Item.Sneak] silenciosamente ou manter um disfarce).</p>\n<p>@UUID[Compendium.pf2e.spell-effects.Item.Spell Effect: Uplifting Overture]</p>"
     },
     "wWjy6qBecEzJ9AiJ": {
       "name": "Chuva de Força",

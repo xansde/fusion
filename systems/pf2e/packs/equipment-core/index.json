@@ -14,7 +14,8 @@
         "potion"
       ],
       "system.category": "potion",
-      "system.usage": "held-in-one-hand"
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "N3jcmW5XzEJZQVtJ"
     }
   },
   {
@@ -27,7 +28,8 @@
       "name": "Bedroll",
       "system.level": 0,
       "system.traits.value": [],
-      "system.usage": "other"
+      "system.usage": "other",
+      "flags.fusion.sourceId": "fagzYdmfYyMQ6J77"
     }
   },
   {
@@ -43,7 +45,8 @@
         "invested",
         "magical"
       ],
-      "system.usage": "wornshoes"
+      "system.usage": "wornshoes",
+      "flags.fusion.sourceId": "ecqz1iUGtyQEkZwy"
     }
   },
   {
@@ -59,7 +62,8 @@
         "magical"
       ],
       "system.category": "other",
-      "system.usage": "held-in-one-hand"
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "xTdrhiLqFYUllrpK"
     }
   },
   {
@@ -74,7 +78,8 @@
       "system.traits.value": [
         "flexible"
       ],
-      "system.category": "light"
+      "system.category": "light",
+      "flags.fusion.sourceId": "peAvz7u35GEfTXxp"
     }
   },
   {
@@ -90,7 +95,8 @@
         "light",
         "magical"
       ],
-      "system.usage": "held-in-one-hand"
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "mRz8Jmk4Q06SsZpC"
     }
   },
   {
@@ -103,7 +109,8 @@
       "name": "Flint and Steel",
       "system.level": 0,
       "system.traits.value": [],
-      "system.usage": "held-in-two-hands"
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "UlIxxLm71UdRgCFE"
     }
   },
   {
@@ -119,7 +126,8 @@
         "invested",
         "magical"
       ],
-      "system.usage": "worn"
+      "system.usage": "worn",
+      "flags.fusion.sourceId": "ioiMUDqv85BI4shY"
     }
   },
   {
@@ -139,7 +147,8 @@
         "vitality"
       ],
       "system.category": "potion",
-      "system.usage": "held-in-one-hand"
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "e0vSAQfxhHauiAoD"
     }
   },
   {
@@ -155,7 +164,8 @@
         "magical",
         "wood"
       ],
-      "system.usage": "held-in-one-hand"
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "nbRNjXYEx6T0G8AW"
     }
   },
   {
@@ -169,7 +179,8 @@
       "system.level": 0,
       "system.traits.value": [],
       "system.category": "other",
-      "system.usage": "held-in-one-hand"
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "L9ZV076913otGtiB"
     }
   },
   {
@@ -185,7 +196,8 @@
         "auditory",
         "magical"
       ],
-      "system.usage": "held-in-one-hand"
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "geAAUwfmOc5U0qOE"
     }
   },
   {
@@ -198,7 +210,8 @@
       "name": "Rope",
       "system.level": 0,
       "system.traits.value": [],
-      "system.usage": "held-in-two-hands"
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "fyYnQf1NAx9fWFaS"
     }
   },
   {
@@ -216,7 +229,8 @@
         "talisman"
       ],
       "system.category": "talisman",
-      "system.usage": "affixed-to-armor"
+      "system.usage": "affixed-to-armor",
+      "flags.fusion.sourceId": "gi1zuwWrwcW7OKlK"
     }
   },
   {
@@ -234,7 +248,8 @@
         "potion"
       ],
       "system.category": "potion",
-      "system.usage": "held-in-one-hand"
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "9ignmYCACjfzkxDQ"
     }
   },
   {
@@ -250,7 +265,8 @@
         "extradimensional",
         "magical"
       ],
-      "system.usage": "held-in-two-hands"
+      "system.usage": "held-in-two-hands",
+      "flags.fusion.sourceId": "jaEEvuQ32GjAa8jy"
     }
   },
   {
@@ -263,7 +279,8 @@
       "name": "Torch",
       "system.level": 0,
       "system.traits.value": [],
-      "system.usage": "held-in-one-hand"
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "8Jdw4yAzWYylGePS"
     }
   },
   {
@@ -276,7 +293,8 @@
       "name": "Waterskin",
       "system.level": 0,
       "system.traits.value": [],
-      "system.usage": "held-in-one-hand"
+      "system.usage": "held-in-one-hand",
+      "flags.fusion.sourceId": "VnPh324pKwd2ZB66"
     }
   }
 ]

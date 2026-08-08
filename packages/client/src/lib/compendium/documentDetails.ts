@@ -38,6 +38,7 @@ import {
   RARITY_NAMES_PT,
   AREA_SHAPE_NAMES_PT,
 } from "./traitNames.js";
+import { translatePrerequisite } from "./prerequisiteTranslation.js";
 
 // ---------------------------------------------------------------------------
 // Localization overlay picking (T1)
@@ -1168,7 +1169,14 @@ export function buildSpellFields(
   return fields;
 }
 
-/** Prerequisites field shared by feats/class features. */
+/**
+ * Prerequisites field shared by feats/class features. On "pt-BR" each raw EN
+ * `system.prerequisites[].value` is translated via {@link translatePrerequisite}
+ * (issue #32 — composes a pt-BR string from rank/skill vocabulary, subclass-axis
+ * option names, other documents' own translated names, and a small curated
+ * vocabulary; falls back to the raw EN string when none of that resolves it).
+ * "en" keeps the raw values, matching every other field in this file.
+ */
 function prerequisitesField(
   system: Record<string, unknown>,
   locale: SupportedLocale,
@@ -1180,7 +1188,8 @@ function prerequisitesField(
     .filter((v): v is string => v !== null);
   if (values.length === 0) return null;
   const label = locale === "pt-BR" ? "Pré-requisitos" : "Prerequisites";
-  return field(FIELD_KEYS.prerequisites, label, values.join("; "));
+  const displayValues = locale === "pt-BR" ? values.map((v) => translatePrerequisite(v)) : values;
+  return field(FIELD_KEYS.prerequisites, label, displayValues.join("; "));
 }
 
 /**
@@ -1227,17 +1236,40 @@ export function buildFeatFields(
 }
 
 /**
+ * True for a finite grant level a caller can trust to override a document's
+ * static `system.level` (issue #58 — see {@link buildClassFeatureFields}).
+ * Guards against a stray `NaN`/`Infinity` silently producing a bogus badge.
+ */
+function isContextLevel(value: number | undefined): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+/**
  * Build the classFeature-specific mechanical fields: level + prerequisites.
  * Locale-aware; default "en".
+ *
+ * `contextLevel`, when given, overrides the document's own `system.level`
+ * (issue #58): class-features-core reuses 17 documents across classes that
+ * grant them at different levels (35 divergences across 11/12 classes, per
+ * the r22 varredura) — e.g. the Barbarian grants "Reflex Expertise" at 9,
+ * while the shared document's static level says 3. The BUILDER already
+ * reads the authoritative `featuresByLevel[].level`, never `doc.system.
+ * level`; this lets the details panel do the same when its caller (a
+ * Plan-column chip/slot that knows which class granted the item, at which
+ * level) supplies it. Omitting it falls back to the document's own level —
+ * the only option for callers with no class context (e.g. a compendium
+ * search result before anything was granted) — never a silently wrong
+ * number, never a crash.
  */
 export function buildClassFeatureFields(
   system: Record<string, unknown>,
   locale: SupportedLocale = "en",
+  contextLevel?: number,
 ): MechanicalField[] {
   const fields: MechanicalField[] = [];
   const isPt = locale === "pt-BR";
 
-  const level = system["level"];
+  const level = isContextLevel(contextLevel) ? contextLevel : system["level"];
   if (typeof level === "number") {
     fields.push(field(FIELD_KEYS.level, isPt ? "Nível" : "Level", String(level)));
   }
@@ -1254,10 +1286,17 @@ export function buildClassFeatureFields(
  * still shows name/traits/description). `locale` threads through so the
  * fields render in the active language (default "en" preserves existing
  * headless-test behaviour). r15-A1.
+ *
+ * `contextLevel` threads through to {@link buildClassFeatureFields} ONLY
+ * (issue #58) — a spell's rank or a feat's level is intrinsic to the
+ * document, never reused across classes at divergent levels, so passing a
+ * class-grant level there would override a correct number with an unrelated
+ * one instead of degrading gracefully.
  */
 export function buildMechanicalFields(
   doc: Record<string, unknown>,
   locale: SupportedLocale = "en",
+  contextLevel?: number,
 ): MechanicalField[] {
   const type = str(doc["type"]);
   const system = doc["system"];
@@ -1269,7 +1308,7 @@ export function buildMechanicalFields(
     case "feat":
       return buildFeatFields(system, locale);
     case "classFeature":
-      return buildClassFeatureFields(system, locale);
+      return buildClassFeatureFields(system, locale, contextLevel);
     default:
       return [];
   }
@@ -1300,16 +1339,25 @@ export interface DocumentDetailsHeader {
  * server-attached `doc.i18n.ptBR.name` wins when present (EN otherwise); on
  * "en" the EN name is always used. Defaults to "pt-BR" (the app default) so
  * existing non-locale-aware callers keep the translated behaviour. T1.
+ *
+ * `contextLevel` overrides `levelOrRank` for `classFeature` docs ONLY (issue
+ * #58 — same rationale as {@link buildClassFeatureFields}: this badge and
+ * the mechanical "Level" field below it read the same underlying number, so
+ * fixing one without the other would leave the panel showing two different
+ * levels for the same document). Ignored for every other type, and falls
+ * back to `system.level` when omitted.
  */
 export function buildDetailsHeader(
   doc: Record<string, unknown>,
   locale: SupportedLocale = "pt-BR",
+  contextLevel?: number,
 ): DocumentDetailsHeader {
   const { display: name, subtitleEn } = localizedNameParts(doc, locale);
   const system = doc["system"];
   const sys = isRecord(system) ? system : {};
 
-  const levelRaw = sys["level"];
+  const useContextLevel = str(doc["type"]) === "classFeature" && isContextLevel(contextLevel);
+  const levelRaw = useContextLevel ? contextLevel : sys["level"];
   const levelOrRank = typeof levelRaw === "number" ? levelRaw : null;
 
   const traitsBlock = sys["traits"];

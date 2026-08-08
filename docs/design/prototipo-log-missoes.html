@@ -1,0 +1,3382 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Log de Missões — Hub do jogador (protótipo)</title>
+    <style>
+      /* ============================================================
+         Visual language transplanted from "System Window" (Isekai-
+         Companion, mockup by Mario): black backdrop, cyan glow,
+         bracket-cornered panels, scanline overlay, System notification.
+         ============================================================ */
+      :root {
+        --blue: #57c8ff;
+        --blue-g: rgba(87, 200, 255, 0.55);
+        --ink: #dff2fb;
+        --dim: #5d8296;
+        --ok: #5ef2a4;
+        --gold: #ffd166;
+        --bad: #ff5c7a;
+        --violet: #c69bff;
+        --line: rgba(87, 200, 255, 0.16);
+        --line2: rgba(87, 200, 255, 0.1);
+        --panel-a: rgba(11, 42, 60, 0.84);
+        --panel-b: rgba(3, 14, 22, 0.9);
+        --sans: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+        --mono: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+      }
+      html {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(87, 200, 255, 0.5) transparent;
+      }
+      body {
+        background:
+          radial-gradient(900px 480px at 15% -8%, rgba(87, 200, 255, 0.11), transparent 62%),
+          radial-gradient(700px 460px at 88% 8%, rgba(87, 200, 255, 0.07), transparent 65%), #000;
+        color: var(--ink);
+        font: 15px/1.6 var(--sans);
+        padding: 62px 24px 80px;
+        -webkit-font-smoothing: antialiased;
+      }
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(87, 200, 255, 0.35);
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      svg.svgicon {
+        display: block;
+      }
+      .wrap {
+        max-width: 1240px;
+        margin: 0 auto;
+      }
+
+      /* ---------- system chrome: bracket corners + scanlines ---------- */
+      .win {
+        position: relative;
+      }
+      .win > .br {
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        border: 2px solid var(--blue);
+        pointer-events: none;
+        z-index: 3;
+      }
+      .win > .br.a {
+        top: -2px;
+        left: -2px;
+        border-right: 0;
+        border-bottom: 0;
+      }
+      .win > .br.b {
+        top: -2px;
+        right: -2px;
+        border-left: 0;
+        border-bottom: 0;
+      }
+      .win > .br.c {
+        bottom: -2px;
+        left: -2px;
+        border-right: 0;
+        border-top: 0;
+      }
+      .win > .br.d {
+        bottom: -2px;
+        right: -2px;
+        border-left: 0;
+        border-top: 0;
+      }
+      .win > .scan {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 2;
+        background: repeating-linear-gradient(
+          0deg,
+          rgba(87, 200, 255, 0.045) 0 1px,
+          transparent 1px 4px
+        );
+      }
+
+      code {
+        font: 600 11.5px var(--mono);
+        background: rgba(3, 14, 22, 0.9);
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        padding: 1px 5px;
+        color: #a8d4ea;
+        white-space: nowrap;
+      }
+
+      /* ---------- prototype banner ---------- */
+      .protobanner {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 400;
+        background: rgba(3, 14, 22, 0.94);
+        border-bottom: 1px solid rgba(255, 209, 102, 0.35);
+        color: var(--gold);
+        font: 700 11px var(--sans);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        text-align: center;
+        padding: 8px 14px;
+        backdrop-filter: blur(6px);
+      }
+
+      header {
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 22px;
+        margin-bottom: 26px;
+      }
+      .kicker {
+        font: 700 11px var(--sans);
+        letter-spacing: 0.26em;
+        text-transform: uppercase;
+        color: var(--blue);
+        text-shadow: 0 0 12px var(--blue-g);
+        margin-bottom: 12px;
+      }
+      h1 {
+        margin: 0 0 10px;
+        font-size: 27px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        color: #fff;
+      }
+      .sub {
+        color: var(--dim);
+        max-width: 82ch;
+        margin: 0;
+        font-size: 14.2px;
+      }
+      .sub b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+
+      /* ---------- perspective toggle (styled as .wtab command bar) ---------- */
+      .bar {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+      .pgroup {
+        display: flex;
+        gap: 7px;
+      }
+      .pbtn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid rgba(87, 200, 255, 0.24);
+        background: rgba(87, 200, 255, 0.05);
+        color: var(--dim);
+        cursor: pointer;
+        font: 600 11px var(--sans);
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        padding: 9px 15px;
+        transition: 0.14s;
+      }
+      .pbtn svg {
+        display: block;
+      }
+      .pbtn:hover {
+        color: var(--ink);
+        border-color: rgba(87, 200, 255, 0.5);
+      }
+      .pbtn.on {
+        color: var(--blue);
+        border-color: var(--blue);
+        background: rgba(87, 200, 255, 0.14);
+        box-shadow: 0 0 16px rgba(87, 200, 255, 0.2);
+      }
+      .pbtn.on.gmv {
+        color: var(--violet);
+        border-color: var(--violet);
+        background: rgba(198, 155, 255, 0.14);
+        box-shadow: 0 0 16px rgba(198, 155, 255, 0.24);
+      }
+      .count {
+        margin-left: auto;
+        font: 600 12px var(--sans);
+        color: var(--dim);
+        letter-spacing: 0.03em;
+        font-variant-numeric: tabular-nums;
+      }
+      .count b {
+        color: var(--ink);
+      }
+      .count b.crit {
+        color: var(--bad);
+      }
+
+      .viewline {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font: 700 10.5px var(--sans);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--blue);
+        background: rgba(87, 200, 255, 0.06);
+        border: 1px solid var(--line);
+        border-radius: 3px;
+        padding: 7px 12px;
+        margin-bottom: 18px;
+      }
+      .viewline.gm {
+        color: var(--violet);
+        border-color: rgba(198, 155, 255, 0.28);
+        background: rgba(198, 155, 255, 0.06);
+      }
+
+      /* ---------- category chip ---------- */
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(3, 14, 22, 0.9);
+        color: var(--dim);
+        font: 700 9.5px var(--sans);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        width: fit-content;
+      }
+
+      /* ---------- mission icon ---------- */
+      .micon {
+        width: 32px;
+        height: 32px;
+        border-radius: 3px;
+        display: grid;
+        place-items: center;
+        flex: none;
+        border: 1px solid rgba(87, 200, 255, 0.35);
+        background: rgba(87, 200, 255, 0.07);
+      }
+      .micon.sm {
+        width: 24px;
+        height: 24px;
+      }
+
+      /* ---------- player board ---------- */
+      .board {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr 0.9fr;
+        gap: 20px;
+        align-items: start;
+      }
+      @media (max-width: 1040px) {
+        .board {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .grouphead {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+        border-bottom: 2px solid transparent;
+        padding-bottom: 9px;
+        background: rgba(3, 14, 22, 0.55);
+        padding: 8px 10px;
+      }
+      .grouphead h2 {
+        margin: 0;
+        font: 700 11px var(--sans);
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--dim);
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .grouphead .dot {
+        display: inline-block;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+      }
+      .grouphead.gh-bad {
+        border-bottom-color: var(--bad);
+      }
+      .grouphead.gh-bad h2 {
+        color: var(--bad);
+      }
+      .grouphead.gh-bad .dot {
+        background: var(--bad);
+        box-shadow: 0 0 6px var(--bad);
+        animation: pulse-dot 1.3s infinite;
+      }
+      .grouphead.gh-gold {
+        border-bottom-color: var(--gold);
+      }
+      .grouphead.gh-gold h2 {
+        color: var(--gold);
+      }
+      .grouphead.gh-ok {
+        border-bottom-color: var(--ok);
+      }
+      .grouphead.gh-ok h2 {
+        color: var(--ok);
+      }
+      @keyframes pulse-dot {
+        50% {
+          opacity: 0.35;
+          transform: scale(0.75);
+        }
+      }
+      .gcount {
+        margin-left: auto;
+        font: 700 11px var(--sans);
+        color: var(--dim);
+        background: rgba(3, 14, 22, 0.9);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 2px 9px;
+        font-variant-numeric: tabular-nums;
+      }
+      .cards {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .empty {
+        padding: 36px 14px;
+        text-align: center;
+        color: var(--dim);
+        font-size: 12.5px;
+        border: 1px dashed var(--line);
+        border-radius: 3px;
+      }
+      .empty svg {
+        display: block;
+        margin: 0 auto 10px;
+        opacity: 0.6;
+      }
+
+      /* ---------- mission card as a System window ---------- */
+      .mcard {
+        border: 1px solid rgba(87, 200, 255, 0.42);
+        background: linear-gradient(160deg, var(--panel-a), var(--panel-b));
+        box-shadow:
+          0 0 0 1px rgba(87, 200, 255, 0.1),
+          0 0 30px rgba(87, 200, 255, 0.14),
+          inset 0 0 32px rgba(87, 200, 255, 0.05);
+        backdrop-filter: blur(4px);
+        border-radius: 2px;
+        padding: 16px;
+        transition: 0.15s;
+      }
+      .mcard:hover {
+        border-color: rgba(87, 200, 255, 0.7);
+        box-shadow:
+          0 0 0 1px rgba(87, 200, 255, 0.16),
+          0 0 40px rgba(87, 200, 255, 0.2),
+          inset 0 0 32px rgba(87, 200, 255, 0.07);
+      }
+      .mchead {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 10px;
+        position: relative;
+        z-index: 1;
+      }
+      .mchead .mctext {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .mtitulo {
+        margin: 0;
+        font: 700 15px/1.35 var(--sans);
+        color: #fff;
+      }
+      .mgancho {
+        white-space: pre-line;
+        margin: 0 0 12px;
+        font-size: 12.6px;
+        line-height: 1.7;
+        color: #bcd6e2;
+        border-left: 2px solid rgba(87, 200, 255, 0.4);
+        padding-left: 12px;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* ---------- objectives as System requirements ---------- */
+      .reqs {
+        list-style: none;
+        margin: 0 0 14px;
+        padding: 0;
+        display: grid;
+        gap: 1px;
+        background: rgba(87, 200, 255, 0.16);
+        position: relative;
+        z-index: 1;
+      }
+      .req {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        font-size: 12.4px;
+        color: var(--ink);
+        background: rgba(3, 14, 22, 0.9);
+        padding: 8px 10px;
+      }
+      .req.ok {
+        color: var(--dim);
+      }
+      .req.ok .tx {
+        text-decoration: line-through;
+        text-decoration-color: var(--dim);
+      }
+      .bx {
+        width: 15px;
+        height: 15px;
+        border: 1px solid rgba(87, 200, 255, 0.5);
+        flex: none;
+        display: grid;
+        place-items: center;
+        margin-top: 1px;
+        color: #000;
+        transition: 0.15s;
+      }
+      .bx svg {
+        width: 10px;
+        height: 10px;
+        stroke: currentColor;
+        stroke-width: 3;
+        fill: none;
+      }
+      .req.ok .bx {
+        background: var(--ok);
+        border-color: var(--ok);
+        box-shadow: 0 0 12px rgba(94, 242, 164, 0.5);
+      }
+      .tx {
+        flex: 1;
+      }
+
+      .pinrow {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        background: rgba(87, 200, 255, 0.06);
+        border: 1px solid var(--line);
+        border-radius: 2px;
+        padding: 8px 10px;
+        color: var(--dim);
+        font: 600 12px var(--sans);
+        cursor: pointer;
+        transition: 0.15s;
+        text-align: left;
+        position: relative;
+        z-index: 1;
+      }
+      .pinrow:hover {
+        background: rgba(87, 200, 255, 0.13);
+        color: var(--ink);
+        border-color: rgba(87, 200, 255, 0.45);
+      }
+      .pinrow svg {
+        flex: none;
+      }
+
+      /* ---------- pressure / clock badge, penalty-style ---------- */
+      .pressure {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+        padding: 9px 11px;
+        border-radius: 2px;
+        font: 700 11.5px var(--sans);
+        letter-spacing: 0.03em;
+        position: relative;
+        z-index: 1;
+      }
+      .pressure.warn {
+        background: rgba(255, 209, 102, 0.08);
+        color: #ffe3ab;
+        border: 1px solid rgba(255, 209, 102, 0.4);
+      }
+      .pressure.crit {
+        background: rgba(255, 92, 122, 0.08);
+        color: #ffb3c0;
+        border: 1px solid rgba(255, 92, 122, 0.4);
+      }
+
+      .mcard.rumor {
+        border-style: dashed;
+        border-color: rgba(255, 209, 102, 0.45);
+      }
+      .mcard.rumor:hover {
+        border-color: rgba(255, 209, 102, 0.7);
+      }
+      .rumor-marker {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 1.5px dashed rgba(255, 209, 102, 0.6);
+        background: rgba(255, 209, 102, 0.06);
+        display: grid;
+        place-items: center;
+        margin-bottom: 10px;
+        position: relative;
+        z-index: 1;
+      }
+      .rumor-h {
+        font-style: italic;
+        color: var(--gold);
+      }
+
+      .mcard.concluida {
+        opacity: 0.6;
+        border-color: rgba(94, 242, 164, 0.3);
+        transition: 0.15s;
+      }
+      .mcard.concluida:hover {
+        opacity: 0.9;
+        border-color: rgba(94, 242, 164, 0.5);
+      }
+      .mresultado {
+        font-style: italic;
+        color: var(--dim);
+        font-size: 12.8px;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* ---------- GM matrix ---------- */
+      .call {
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--violet);
+        background: linear-gradient(160deg, rgba(40, 26, 60, 0.5), var(--panel-b));
+        border-radius: 2px;
+        padding: 14px 16px;
+        margin-bottom: 18px;
+        position: relative;
+        z-index: 1;
+      }
+      .call .ct {
+        font: 700 10.5px var(--sans);
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--violet);
+        margin-bottom: 6px;
+      }
+      .call p {
+        margin: 0;
+        font-size: 13px;
+        color: var(--dim);
+      }
+
+      .tablewrap {
+        overflow-x: auto;
+        border: 1px solid rgba(87, 200, 255, 0.42);
+        background: linear-gradient(160deg, var(--panel-a), var(--panel-b));
+        box-shadow:
+          0 0 0 1px rgba(87, 200, 255, 0.1),
+          0 0 30px rgba(87, 200, 255, 0.14);
+        backdrop-filter: blur(4px);
+        border-radius: 2px;
+      }
+      .matrix {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 1px;
+        background: rgba(87, 200, 255, 0.16);
+        font-size: 13px;
+        min-width: 720px;
+        position: relative;
+        z-index: 1;
+      }
+      .matrix th {
+        text-align: left;
+        font: 700 9.5px var(--sans);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--dim);
+        padding: 11px 14px;
+        background: rgba(3, 14, 22, 0.9);
+      }
+      .matrix td {
+        padding: 12px 14px;
+        vertical-align: middle;
+        background: rgba(3, 14, 22, 0.9);
+      }
+      .matrix tr:hover td {
+        background: rgba(87, 200, 255, 0.08);
+      }
+      .mcol {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .mcol b {
+        color: #fff;
+        font-size: 13.5px;
+      }
+
+      .vbadge {
+        width: 34px;
+        height: 30px;
+        border-radius: 2px;
+        border: 1px solid rgba(87, 200, 255, 0.3);
+        background: rgba(87, 200, 255, 0.05);
+        color: var(--dim);
+        font: 700 15px var(--sans);
+        cursor: pointer;
+        transition: 0.15s;
+      }
+      .vbadge:hover {
+        border-color: rgba(87, 200, 255, 0.6);
+      }
+      .vbadge.rumor {
+        color: var(--gold);
+        background: rgba(255, 209, 102, 0.1);
+        border-color: rgba(255, 209, 102, 0.4);
+      }
+      .vbadge.on {
+        color: var(--ok);
+        background: rgba(94, 242, 164, 0.12);
+        border-color: rgba(94, 242, 164, 0.4);
+        box-shadow: 0 0 12px rgba(94, 242, 164, 0.3);
+      }
+
+      .clockcell {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font: 600 12px var(--sans);
+        color: var(--dim);
+      }
+      .clockcell.closed {
+        color: var(--bad);
+        font-weight: 800;
+        letter-spacing: 0.03em;
+        text-shadow: 0 0 10px rgba(255, 92, 122, 0.6);
+      }
+      .clockcell.none {
+        color: var(--dim);
+        opacity: 0.6;
+      }
+
+      .acol {
+        white-space: nowrap;
+      }
+      .actbtn {
+        font: 700 10.5px var(--sans);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 7px 11px;
+        border-radius: 2px;
+        border: 1px solid rgba(87, 200, 255, 0.4);
+        background: rgba(87, 200, 255, 0.09);
+        color: var(--blue);
+        cursor: pointer;
+        margin-right: 6px;
+        transition: 0.15s;
+      }
+      .actbtn:hover:not(:disabled) {
+        background: rgba(87, 200, 255, 0.22);
+        box-shadow: 0 0 14px rgba(87, 200, 255, 0.3);
+      }
+      .actbtn:disabled {
+        opacity: 0.3;
+        cursor: default;
+        border-color: rgba(93, 130, 150, 0.3);
+        color: var(--dim);
+        background: none;
+      }
+
+      /* ---------- System notification (was: diegetic toast) ---------- */
+      .toastwrap {
+        position: fixed;
+        left: 50%;
+        top: 22px;
+        transform: translateX(-50%);
+        z-index: 300;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+        pointer-events: none;
+        width: min(420px, calc(100vw - 32px));
+      }
+      .nt {
+        width: 100%;
+        pointer-events: auto;
+        cursor: pointer;
+        position: relative;
+        text-align: center;
+        background: linear-gradient(160deg, rgba(11, 42, 60, 0.9), rgba(3, 14, 22, 0.94));
+        border: 1px solid rgba(87, 200, 255, 0.5);
+        box-shadow: 0 0 40px rgba(87, 200, 255, 0.2);
+        backdrop-filter: blur(5px);
+        opacity: 0;
+        transform: translateY(-16px) scale(0.94);
+        transition:
+          opacity 0.3s cubic-bezier(0.2, 1.3, 0.35, 1),
+          transform 0.3s cubic-bezier(0.2, 1.3, 0.35, 1);
+      }
+      .nt.show {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      .nt.hide {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.96);
+      }
+      .nt > .br {
+        position: absolute;
+        width: 13px;
+        height: 13px;
+        border: 2px solid var(--blue);
+      }
+      .nt .hd {
+        padding: 8px 14px;
+        border-bottom: 1px solid rgba(87, 200, 255, 0.28);
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        color: var(--blue);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        text-shadow: 0 0 12px var(--blue-g);
+      }
+      .nt .bd {
+        padding: 13px 18px;
+      }
+      .nt h2 {
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #fff;
+        margin: 0 0 6px;
+      }
+      .nt p {
+        font-size: 12.6px;
+        line-height: 1.6;
+        color: #e8d9c0;
+        margin: 0;
+      }
+      .nt.rumor {
+        border-color: rgba(255, 209, 102, 0.55);
+        background: linear-gradient(160deg, rgba(60, 44, 12, 0.9), rgba(14, 9, 2, 0.94));
+        box-shadow: 0 0 44px rgba(255, 209, 102, 0.22);
+      }
+      .nt.rumor > .br {
+        border-color: var(--gold);
+      }
+      .nt.rumor .hd {
+        color: var(--gold);
+        border-color: rgba(255, 209, 102, 0.3);
+        text-shadow: 0 0 14px rgba(255, 209, 102, 0.7);
+      }
+      .nt.publica {
+        border-color: rgba(94, 242, 164, 0.5);
+        background: linear-gradient(160deg, rgba(9, 48, 33, 0.88), rgba(2, 14, 9, 0.94));
+        box-shadow: 0 0 44px rgba(94, 242, 164, 0.2);
+      }
+      .nt.publica > .br {
+        border-color: var(--ok);
+      }
+      .nt.publica .hd {
+        color: var(--ok);
+        border-color: rgba(94, 242, 164, 0.3);
+        text-shadow: 0 0 14px rgba(94, 242, 164, 0.6);
+      }
+      .nt .life {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        height: 2px;
+        background: currentColor;
+        opacity: 0.5;
+      }
+      .nt .close {
+        position: absolute;
+        top: 7px;
+        right: 10px;
+        font-size: 9px;
+        letter-spacing: 0.13em;
+        color: var(--dim);
+      }
+
+      .tip {
+        position: fixed;
+        pointer-events: none;
+        z-index: 150;
+        background: rgba(3, 14, 22, 0.95);
+        border: 1px solid rgba(87, 200, 255, 0.4);
+        border-radius: 2px;
+        padding: 7px 11px;
+        font-size: 12.2px;
+        color: var(--ink);
+        box-shadow: 0 10px 26px -10px #000;
+        opacity: 0;
+        transition: opacity 0.15s;
+      }
+
+      h2.sh {
+        font: 700 12px var(--sans);
+        letter-spacing: 0.19em;
+        text-transform: uppercase;
+        color: var(--dim);
+        margin: 0 0 6px;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+      }
+      h2.sh::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--line);
+      }
+      .h2sub {
+        margin: 0 0 18px;
+        color: var(--dim);
+        font-size: 13.5px;
+        max-width: 84ch;
+      }
+      section {
+        margin-top: 44px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        margin-top: 4px;
+      }
+      table th {
+        text-align: left;
+        font: 700 9.5px var(--sans);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--dim);
+        padding: 9px 12px;
+        border-bottom: 1px solid var(--line);
+      }
+      table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--line2);
+        color: var(--dim);
+        vertical-align: top;
+      }
+      table tr:last-child td {
+        border-bottom: 0;
+      }
+      table td b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      footer {
+        margin-top: 52px;
+        padding-top: 20px;
+        border-top: 1px solid var(--line);
+        color: var(--dim);
+        font-size: 12.2px;
+      }
+      footer .credit {
+        margin-top: 4px;
+        color: #3f6072;
+      }
+      .propose {
+        color: var(--gold);
+        font: 700 9.5px var(--sans);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      /* ============================================================
+         Command bar — Missões / Comitiva / Mapa (pattern lifted from
+         04-system-window-interativo.html, mockup by Mario)
+         ============================================================ */
+      body {
+        padding-bottom: 100px;
+      }
+      #cmdbar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 60;
+        display: flex;
+        justify-content: center;
+        padding: 11px 16px;
+        background: linear-gradient(180deg, rgba(3, 14, 22, 0.4), rgba(3, 14, 22, 0.96));
+        border-top: 1px solid rgba(87, 200, 255, 0.28);
+        backdrop-filter: blur(8px);
+      }
+      .wtabs {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .wtab {
+        border: 1px solid rgba(87, 200, 255, 0.24);
+        background: rgba(87, 200, 255, 0.05);
+        color: var(--dim);
+        font: 600 11px var(--sans);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        padding: 9px 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: 0.14s;
+        position: relative;
+      }
+      .wtab:hover {
+        color: var(--ink);
+        border-color: rgba(87, 200, 255, 0.5);
+      }
+      .wtab.on {
+        color: var(--blue);
+        border-color: var(--blue);
+        background: rgba(87, 200, 255, 0.14);
+        box-shadow: 0 0 16px rgba(87, 200, 255, 0.2);
+      }
+      .wtab kbd {
+        font: 700 9px var(--mono);
+        color: #3f6072;
+        border: 1px solid rgba(87, 200, 255, 0.2);
+        padding: 0 4px;
+        border-radius: 2px;
+      }
+      .wtab .bdg {
+        min-width: 16px;
+        height: 16px;
+        border-radius: 8px;
+        background: var(--bad);
+        color: #fff;
+        font: 800 9px var(--sans);
+        display: grid;
+        place-items: center;
+        padding: 0 4px;
+        box-shadow: 0 0 8px var(--bad);
+      }
+
+      /* ---------- Comitiva window (pattern: .members/.mem, System Window) ---------- */
+      .members {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        position: relative;
+        z-index: 1;
+      }
+      @media (max-width: 920px) {
+        .members {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (max-width: 520px) {
+        .members {
+          grid-template-columns: 1fr;
+        }
+      }
+      .mem {
+        border: 1px solid rgba(87, 200, 255, 0.28);
+        background: rgba(3, 14, 22, 0.78);
+        padding: 12px 13px;
+        cursor: pointer;
+        transition: 0.15s;
+      }
+      .mem:hover {
+        border-color: rgba(87, 200, 255, 0.55);
+        background: rgba(87, 200, 255, 0.06);
+      }
+      .mem.expanded {
+        border-color: var(--blue);
+        box-shadow: 0 0 16px rgba(87, 200, 255, 0.18);
+      }
+      .memtop {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 9px;
+      }
+      .memtop b {
+        font-size: 14px;
+        color: #fff;
+      }
+      .memtop em {
+        font-style: normal;
+        font-size: 10.2px;
+        letter-spacing: 0.05em;
+        color: var(--dim);
+        white-space: nowrap;
+      }
+      .mrow-lbl {
+        display: flex;
+        justify-content: space-between;
+        font: 600 9.5px var(--sans);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--dim);
+        margin-bottom: 2px;
+      }
+      .mrow-lbl span {
+        color: var(--ink);
+        font-variant-numeric: tabular-nums;
+      }
+      .mini {
+        height: 6px;
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(87, 200, 255, 0.2);
+        margin-bottom: 8px;
+        position: relative;
+      }
+      .mini i {
+        position: absolute;
+        inset: 0 auto 0 0;
+        display: block;
+        background: var(--ok);
+      }
+      .mini.hp.low i {
+        background: var(--bad);
+        box-shadow: 0 0 8px rgba(255, 92, 122, 0.6);
+      }
+      .focopips {
+        display: flex;
+        gap: 4px;
+        margin: 2px 0 8px;
+      }
+      .focopips.none {
+        color: var(--dim);
+        font: 600 11px var(--sans);
+      }
+      .focopips .pip {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        border: 1px solid rgba(87, 200, 255, 0.4);
+        background: rgba(87, 200, 255, 0.05);
+      }
+      .focopips .pip.on {
+        background: var(--violet);
+        border-color: var(--violet);
+        box-shadow: 0 0 8px rgba(198, 155, 255, 0.6);
+      }
+      .condtags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 2px;
+      }
+      .condtag {
+        font: 700 9px var(--sans);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--bad);
+        border: 1px solid rgba(255, 92, 122, 0.4);
+        background: rgba(255, 92, 122, 0.08);
+        padding: 2px 7px;
+        border-radius: 999px;
+      }
+      .gmnote {
+        margin-top: 9px;
+        padding-top: 8px;
+        border-top: 1px dashed rgba(198, 155, 255, 0.3);
+        font-size: 11px;
+        color: var(--violet);
+        font-style: italic;
+      }
+      .pcdetail {
+        margin-top: 9px;
+        padding-top: 9px;
+        border-top: 1px solid var(--line);
+        display: flex;
+        gap: 14px;
+        font-size: 11.5px;
+      }
+      .pcdetail div {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .pcdetail span {
+        font: 600 9px var(--sans);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--dim);
+      }
+      .pcdetail b {
+        color: var(--ink);
+        font-size: 13px;
+      }
+
+      /* ---------- Mapa window ---------- */
+      .mapwin {
+        padding: 16px;
+      }
+      .mv {
+        position: relative;
+        z-index: 1;
+        aspect-ratio: 16 / 9;
+        border: 1px solid rgba(87, 200, 255, 0.3);
+        background: #020608;
+        overflow: hidden;
+        margin-bottom: 14px;
+        cursor: grab;
+        touch-action: none;
+        user-select: none;
+      }
+      .mv.drag {
+        cursor: grabbing;
+      }
+      /* the WORLD layer scales with the camera (mapa-isekai.md §5.1) */
+      .world {
+        position: absolute;
+        inset: 0;
+        transform-origin: 0 0;
+        will-change: transform;
+      }
+      /* the INTERFACE layer never scales — pins keep their pixel size,
+         only their position is recomputed from the camera */
+      .nodes {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      .mv svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .node {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        cursor: pointer;
+        text-align: center;
+        pointer-events: auto;
+        z-index: 2;
+      }
+      .node:hover,
+      .node.sel {
+        z-index: 5;
+      }
+      .node i {
+        display: block;
+        width: 13px;
+        height: 13px;
+        margin: 0 auto;
+        transform: rotate(45deg);
+        border: 1.5px solid var(--blue);
+        background: rgba(87, 200, 255, 0.2);
+        box-shadow: 0 0 12px var(--blue-g);
+        transition: 0.15s;
+      }
+      .node:hover i {
+        transform: rotate(45deg) scale(1.25);
+      }
+      .node.sel i {
+        box-shadow:
+          0 0 20px var(--blue),
+          0 0 0 5px rgba(87, 200, 255, 0.16);
+      }
+      .node.safe i {
+        border-color: var(--ok);
+        background: rgba(94, 242, 164, 0.22);
+        box-shadow: 0 0 12px rgba(94, 242, 164, 0.5);
+      }
+      .node.q i {
+        border-color: var(--bad);
+        background: rgba(255, 92, 122, 0.28);
+        box-shadow: 0 0 14px rgba(255, 92, 122, 0.7);
+        animation: node-pulse 1.3s infinite;
+      }
+      .node.rumor i {
+        border-color: var(--gold);
+        border-style: dashed;
+        background: rgba(255, 209, 102, 0.16);
+      }
+      .node.hidden i {
+        border-color: rgba(93, 130, 150, 0.55);
+        border-style: dashed;
+        background: rgba(93, 130, 150, 0.08);
+        box-shadow: none;
+      }
+      @keyframes node-pulse {
+        50% {
+          opacity: 0.4;
+          transform: rotate(45deg) scale(0.8);
+        }
+      }
+      .node label {
+        display: block;
+        margin-top: 4px;
+        font: 600 9px var(--sans);
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: #a8cfe2;
+        background: rgba(3, 14, 22, 0.86);
+        border: 1px solid rgba(87, 200, 255, 0.22);
+        padding: 1px 6px;
+        white-space: nowrap;
+        pointer-events: none;
+      }
+      .node.hidden label {
+        color: var(--dim);
+        font-style: italic;
+      }
+      /* LOD: label hidden below 1.3x unless the POI is a settlement (§5.1) */
+      .node.lodoff label,
+      .node.lodoff .sub {
+        display: none;
+      }
+      /* LOD never hides what the cursor is asking about */
+      .node.lodoff:hover label,
+      .node.lodoff.sel label {
+        display: block;
+      }
+      /* ---- Console de Revelação no próprio marcador (caminho de 1 clique) ----
+         só na visão do Mestre, só no pino sob o cursor ou selecionado */
+      .pconsole {
+        display: none;
+        margin-top: 5px;
+        gap: 3px;
+        justify-content: center;
+      }
+      .node:hover .pconsole,
+      .node.sel .pconsole {
+        display: flex;
+      }
+      .pcb {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 2px 5px;
+        border: 1px solid rgba(87, 200, 255, 0.34);
+        background: rgba(3, 14, 22, 0.94);
+        color: var(--dim);
+        font: 700 9px var(--sans);
+        letter-spacing: 0.06em;
+        line-height: 1;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: 0.12s;
+      }
+      .pcb:hover {
+        border-color: var(--blue);
+        color: var(--blue);
+        box-shadow: 0 0 10px var(--blue-g);
+      }
+      .pcb b {
+        color: #7fb4cc;
+        font-weight: 700;
+      }
+      .pcb .g {
+        font-size: 11px;
+        line-height: 1;
+      }
+      .pcb.on .g {
+        color: var(--ok);
+      }
+      .pcb.rumor .g {
+        color: var(--gold);
+      }
+      .pcb.off .g {
+        color: #4d6b7c;
+      }
+      .pcb.all {
+        color: var(--violet);
+        border-color: rgba(167, 139, 250, 0.42);
+      }
+      .pcb.all:hover {
+        color: #c4b5fd;
+        border-color: var(--violet);
+        box-shadow: 0 0 10px rgba(167, 139, 250, 0.45);
+      }
+      .pcb:disabled {
+        opacity: 0.35;
+        cursor: default;
+        box-shadow: none;
+      }
+      .node .sub {
+        display: block;
+        margin-top: 2px;
+        font: 600 8px var(--sans);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--gold);
+        white-space: nowrap;
+        pointer-events: none;
+      }
+      /* ---- camera chrome: zoom controls + scale bar (never scale) ---- */
+      .mapctl {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        z-index: 6;
+      }
+      .zbtn {
+        width: 24px;
+        height: 24px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(87, 200, 255, 0.34);
+        background: rgba(3, 14, 22, 0.86);
+        color: var(--blue);
+        font: 700 13px var(--sans);
+        line-height: 1;
+        cursor: pointer;
+        transition: 0.12s;
+      }
+      .zbtn:hover:not(:disabled) {
+        background: rgba(87, 200, 255, 0.16);
+        box-shadow: 0 0 10px var(--blue-g);
+      }
+      .zbtn:disabled {
+        opacity: 0.32;
+        cursor: default;
+      }
+      .zread {
+        padding: 3px 8px;
+        border: 1px solid var(--line);
+        background: rgba(3, 14, 22, 0.86);
+        font: 700 9.5px var(--sans);
+        letter-spacing: 0.12em;
+        color: var(--dim);
+      }
+      .scalebar {
+        position: absolute;
+        left: 10px;
+        bottom: 10px;
+        z-index: 6;
+        pointer-events: none;
+        font: 700 9.5px var(--sans);
+        letter-spacing: 0.1em;
+        color: #a8cfe2;
+        text-shadow: 0 0 6px #020608;
+      }
+      .scalebar i {
+        display: block;
+        height: 5px;
+        margin-bottom: 3px;
+        border: 1px solid rgba(87, 200, 255, 0.7);
+        border-top: 0;
+        background: rgba(87, 200, 255, 0.1);
+      }
+      .maphint {
+        margin: -8px 0 12px;
+        position: relative;
+        z-index: 1;
+        font-size: 11px;
+        color: var(--dim);
+      }
+      .maphint b {
+        color: #a8cfe2;
+      }
+      .maplegend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 14px;
+        position: relative;
+        z-index: 1;
+      }
+      .lg {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(3, 14, 22, 0.8);
+        font: 600 10px var(--sans);
+        letter-spacing: 0.04em;
+        color: var(--dim);
+      }
+      .lgsw {
+        width: 8px;
+        height: 8px;
+        transform: rotate(45deg);
+        flex: none;
+      }
+      .mrows {
+        border-top: 1px solid var(--line);
+        margin-bottom: 4px;
+        position: relative;
+        z-index: 1;
+      }
+      .mrow {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 4px;
+        border-bottom: 1px solid var(--line2);
+        font-size: 12.5px;
+        cursor: pointer;
+        transition: 0.12s;
+      }
+      .mrow:hover {
+        background: rgba(87, 200, 255, 0.06);
+      }
+      .mrow.sel {
+        background: rgba(87, 200, 255, 0.12);
+      }
+      .mtag {
+        font: 700 9px var(--sans);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 2px 7px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        color: var(--dim);
+        flex: none;
+      }
+      .mtag.bad {
+        color: var(--bad);
+        border-color: rgba(255, 92, 122, 0.4);
+      }
+      .mtag.ok {
+        color: var(--ok);
+        border-color: rgba(94, 242, 164, 0.4);
+      }
+      .mtag.gold {
+        color: var(--gold);
+        border-color: rgba(255, 209, 102, 0.4);
+      }
+      .mname {
+        font-weight: 600;
+        color: var(--ink);
+      }
+      .mmission {
+        margin-left: auto;
+        color: var(--dim);
+        font-size: 11.5px;
+        white-space: nowrap;
+      }
+      .poidetail {
+        border-top: 1px solid var(--line);
+        padding-top: 12px;
+        margin-top: 6px;
+        position: relative;
+        z-index: 1;
+      }
+      .pdname {
+        font: 700 14px var(--sans);
+        color: #fff;
+        margin-bottom: 4px;
+      }
+      .pdmissao {
+        font-size: 12px;
+        color: var(--dim);
+        margin-bottom: 10px;
+      }
+      .pdconsole {
+        border-top: 1px dashed rgba(87, 200, 255, 0.2);
+        padding-top: 10px;
+      }
+      .pdlbl {
+        display: block;
+        font: 700 9.5px var(--sans);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--violet);
+        margin-bottom: 8px;
+      }
+      .pdrow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px;
+      }
+      .pdrow span {
+        font-size: 12px;
+        color: var(--dim);
+      }
+      .trackbtn {
+        color: var(--blue);
+        border-color: rgba(87, 200, 255, 0.4);
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="protobanner">
+      PROTÓTIPO — proposta para a spec 28 (Hub do jogador) · etapa C4 do design de campanha · dados
+      fictícios · agora com as janelas Comitiva e Mapa de Região
+    </div>
+
+    <svg style="display: none" aria-hidden="true">
+      <symbol
+        id="ic-sword"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M20 4L9.5 14.5" />
+        <path d="M8 12.5l-5 5 4.5 4.5 5-5z" />
+        <path d="M6.5 17l2 2" />
+        <path d="M15.5 4h4.5v4.5" />
+      </symbol>
+      <symbol
+        id="ic-bag"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M9 7c0-2.5 1.3-4 3-4s3 1.5 3 4" />
+        <path d="M6.3 7h11.4l1.4 12.3a2.2 2.2 0 01-2.2 2.5H7.1a2.2 2.2 0 01-2.2-2.5z" />
+        <path d="M9 11.2c0 1.7 1.3 3 3 3s3-1.3 3-3" />
+      </symbol>
+      <symbol
+        id="ic-bell"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M12 2.7v2" />
+        <path d="M6 16.2v-5a6 6 0 1112 0v5l2 2.8H4z" />
+        <path d="M9.8 21.3a2.3 2.3 0 004.4 0" />
+      </symbol>
+      <symbol
+        id="ic-skull"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path
+          d="M12 3.2a7 7 0 00-7 7c0 2.4 1.2 3.9 2 4.9v3h2v-2h2v2h2v-2h2v2h2v-3c.8-1 2-2.5 2-4.9a7 7 0 00-7-7z"
+        />
+        <circle cx="9.3" cy="10.6" r="1.3" fill="currentColor" stroke="none" />
+        <circle cx="14.7" cy="10.6" r="1.3" fill="currentColor" stroke="none" />
+        <path d="M11 14l1 1.6 1-1.6" />
+      </symbol>
+      <symbol
+        id="ic-mill"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M9 21l1-8h4l1 8" />
+        <path d="M6.5 21h11" />
+        <circle cx="12" cy="9" r="1.3" />
+        <path d="M12 8L9.6 3.6M13 9l4.4-2M11 10l-4.4 2M12 10l-1.5 4.4" />
+      </symbol>
+      <symbol
+        id="ic-anchor"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="12" cy="5" r="2" />
+        <path d="M12 7v14" />
+        <path d="M8.3 10h7.4" />
+        <path d="M5 14c0 5 7 7 7 7s7-2 7-7" />
+      </symbol>
+      <symbol
+        id="ic-qmark"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M8.6 9.2a3.5 3.5 0 116.1 2.3c-1 1-2.2 1.5-2.2 3.3" />
+        <circle cx="12" cy="18.4" r="1" fill="currentColor" stroke="none" />
+      </symbol>
+      <symbol
+        id="ic-hourglass"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M6.5 3h11" />
+        <path d="M6.5 21h11" />
+        <path d="M7.5 3c0 5 4.7 6.3 4.7 9s-4.7 4-4.7 9" />
+        <path d="M16.5 3c0 5-4.7 6.3-4.7 9s4.7 4 4.7 9" />
+      </symbol>
+      <symbol
+        id="ic-pin"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1116 0z" />
+        <circle cx="12" cy="10" r="3" />
+      </symbol>
+      <symbol
+        id="ic-scroll"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <rect x="5" y="4" width="14" height="3.2" rx="1.6" />
+        <rect x="5" y="16.8" width="14" height="3.2" rx="1.6" />
+        <path d="M6.6 7.2v9.6M17.4 7.2v9.6" />
+        <path d="M9 10.4h6M9 13.2h4" />
+      </symbol>
+      <symbol
+        id="ic-check"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M5 12.5l4.5 4.5L19 7" />
+      </symbol>
+      <symbol
+        id="ui-gm"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M12 2l8 4v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10V6z" />
+      </symbol>
+      <symbol
+        id="ui-user"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="12" cy="7.5" r="3.8" />
+        <path d="M4.5 21v-1.6A5.4 5.4 0 019.9 14h4.2a5.4 5.4 0 015.4 5.4V21" />
+      </symbol>
+    </svg>
+
+    <div class="wrap">
+      <header>
+        <div class="kicker">Isekai · Yennericka — Hub do jogador (spec 28)</div>
+        <h1>Log de Missões — o board de quests do Hub</h1>
+        <p class="sub">
+          Protótipo de tela para o Hub do jogador: o board onde <b>Tobias</b> e
+          <b>Comedor</b> acompanham o que já foi publicado, o que ainda é só boato e o que já foi
+          encerrado. A aba <b>Mestre</b> mostra a matriz de publicação por trás — cada botão aqui é,
+          na implementação real, um update de <code>ownership</code>, nunca um sistema paralelo de
+          "missões". A barra de comando embaixo abre também a <b>Comitiva</b> (referência rápida dos
+          PCs) e o <b>Mapa</b> de região — as três janelas seguem o mesmo toggle de papel, no topo.
+        </p>
+      </header>
+
+      <div class="bar">
+        <div class="pgroup" id="persp">
+          <button class="pbtn on gmv" data-p="mestre" type="button" aria-pressed="true">
+            <svg class="svgicon" width="14" height="14" viewBox="0 0 24 24">
+              <use href="#ui-gm" width="14" height="14" color="currentColor" /></svg
+            >Mestre
+          </button>
+          <button class="pbtn" data-p="tobias" type="button" aria-pressed="false">
+            <svg class="svgicon" width="14" height="14" viewBox="0 0 24 24">
+              <use href="#ui-user" width="14" height="14" color="currentColor" /></svg
+            >Tobias
+          </button>
+          <button class="pbtn" data-p="comedor" type="button" aria-pressed="false">
+            <svg class="svgicon" width="14" height="14" viewBox="0 0 24 24">
+              <use href="#ui-user" width="14" height="14" color="currentColor" /></svg
+            >Comedor
+          </button>
+        </div>
+        <div class="count" id="count"></div>
+      </div>
+
+      <div id="viewline"></div>
+
+      <div id="stage"></div>
+
+      <section>
+        <h2 class="sh">Como isso vira código de verdade</h2>
+        <p class="h2sub">
+          Nada aqui é UI inventada: cada peça do protótipo corresponde a um documento do Fusion que
+          já existe ou já está especificado.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 26%">Elemento do protótipo</th>
+              <th>Fonte real no Fusion</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>Card de missão</b></td>
+              <td>
+                <code>JournalEntry</code> "Missão" (spec 12, M4) · v1 antes do Journal:
+                <code>Note</code> com ownership próprio (REQ-DOC-056)
+              </td>
+            </tr>
+            <tr>
+              <td><b>Publicar gancho</b></td>
+              <td>
+                Subir <code>ownership</code> da página "Gancho" (REQ-JRN-009/010;
+                <code>JournalPage</code> tem ownership próprio — REQ-DOC-025)
+              </td>
+            </tr>
+            <tr>
+              <td><b>Rumor "?"</b></td>
+              <td>
+                Nível <code>limited</code> (REQ-DOC-057; mesmo marcador do pin de mapa, REQ-CNV-058)
+              </td>
+            </tr>
+            <tr>
+              <td><b>Objetivos revelados</b></td>
+              <td>Páginas "Objetivo" com ownership individual, reveladas uma a uma</td>
+            </tr>
+            <tr>
+              <td><b>Ver no mapa</b></td>
+              <td>Link <code>@UUID</code> → navegação programática da câmera (REQ-CNV-008)</td>
+            </tr>
+            <tr>
+              <td><b>Relógio / pressão</b></td>
+              <td>
+                <code>flags</code> de frente; o motor gira FORA do Fusion (Forja);
+                <code>world.time</code> é spec 14 [M4]
+              </td>
+            </tr>
+            <tr>
+              <td><b>Hospedagem da tela</b></td>
+              <td>
+                <code>HubLayer</code> (PR #77), superfície <code>.hub-surface</code>, banda z
+                <code>hub</code>
+              </td>
+            </tr>
+            <tr>
+              <td><b>Redação</b></td>
+              <td>
+                Tudo que o jogador não vê é cortado NO SERVIDOR (<code>redaction.ts</code> —
+                REQ-DOC-058)
+              </td>
+            </tr>
+            <tr>
+              <td><b>Janela Comitiva</b></td>
+              <td>
+                <span class="propose">[proposta]</span> referência rápida da party — cobertura pela
+                spec 11 (fichas/UI); ainda sem REQ formal. Card resumido (HP, foco, condições), não
+                substitui abrir a ficha completa.
+              </td>
+            </tr>
+            <tr>
+              <td><b>Janela Mapa — POIs e Console de Revelação</b></td>
+              <td>
+                <code>REQ-MREG</code> (spec 34, mapa de região + revelação por jogador) — mesma
+                semântica ○→?→● da matriz de missões, agora aplicada a marcadores de mapa
+              </td>
+            </tr>
+            <tr>
+              <td><b>Console de Revelação no próprio pino</b></td>
+              <td>
+                <code>REQ-MREG-007</code> — na visão do Mestre, passar o cursor sobre um marcador
+                abre o console ali mesmo: um clique por jogador, ou <b>todos ▸</b> para levar a mesa
+                inteira ao próximo degrau. Revelar deixou de exigir a viagem marcador → lista →
+                console. O console do painel de detalhe continua existindo como a versão com os
+                nomes por extenso.
+              </td>
+            </tr>
+            <tr>
+              <td><b>"O mundo escala, a interface não"</b></td>
+              <td>
+                Regra herdada do design do mapa de região (mockup do Mario) —
+                <code>docs/design/mapa-isekai.md</code> §5.1, agora <b>demonstrada</b>: o terreno
+                vive numa camada com <code>transform</code> e traços
+                <code>vector-effect="non-scaling-stroke"</code>; os pinos vivem numa camada
+                <b>sem</b> transform, com a posição recalculada pela câmera e o tamanho fixo em
+                pixels. Inclui LOD de rótulo (1,3× / 2,2×), barra de escala em degraus redondos e
+                pan travado nas bordas do recorte. A spec 34 herda essas quatro regras.
+              </td>
+            </tr>
+            <tr>
+              <td><b>"Rastrear no mapa" centraliza a câmera</b></td>
+              <td>
+                <code>REQ-CNV-008</code> — a ação sai da missão, troca de janela e leva a câmera até
+                o pin (2,2×), em vez de só apontar que o pin existe
+              </td>
+            </tr>
+            <tr>
+              <td><b>Barra de comando (Missões / Comitiva / Mapa)</b></td>
+              <td>
+                Padrão de <code>docs/design/04-system-window-interativo.html</code> (mockup do
+                Mario) — abas com atalho de teclado e badge de contagem
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <footer>
+        Arquivo local autocontido · <code>docs/design/prototipo-log-missoes.html</code><br />
+        Ícones desenhados à mão em SVG — sem emoji, sem CDN, sem fonte externa. Dados fictícios,
+        mock em <code>const DATA</code>.
+        <div class="credit">
+          Linguagem visual: System Window (Isekai-Companion, mockup do Mario) — barra de comando e
+          comitiva reaproveitam os padrões de <code>04-system-window-interativo.html</code>. Mapa de
+          região inspirado em <code>prototipo-minimapa-regiao.html</code> e
+          <code>mapa-isekai.md</code> §4–5 (mockups do Mario).
+        </div>
+      </footer>
+    </div>
+    <div class="toastwrap" id="toastwrap"></div>
+    <div class="tip" id="tip"></div>
+    <div id="cmdbar">
+      <div class="wtabs" id="wtabs">
+        <button class="wtab" data-win="missoes" type="button" aria-pressed="true">
+          <svg class="svgicon" width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <use href="#ic-scroll" width="14" height="14" color="currentColor" /></svg
+          >Missões<kbd>Q</kbd><span class="bdg" id="qBadge"></span>
+        </button>
+        <button class="wtab" data-win="comitiva" type="button" aria-pressed="false">
+          <svg class="svgicon" width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <use href="#ui-user" width="14" height="14" color="currentColor" /></svg
+          >Comitiva<kbd>C</kbd>
+        </button>
+        <button class="wtab" data-win="mapa" type="button" aria-pressed="false">
+          <svg class="svgicon" width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <use href="#ic-pin" width="14" height="14" color="currentColor" /></svg
+          >Mapa<kbd>M</kbd>
+        </button>
+      </div>
+    </div>
+
+    <script>
+      /* ================= mock data (unchanged content) ================= */
+      const DATA = {
+        missoes: [
+          {
+            id: "m1",
+            titulo: "A Carroça que Nunca Chegou",
+            categoria: "batalha",
+            icone: "sword",
+            gancho:
+              "Da estrada rumo a Godford, uma criança chora perto de uma carroça tombada — a roda partida na lama.\nUm homem acena, pedindo ajuda, mas ninguém em Shoneymouth quis vir.",
+            boato:
+              "Dizem que a estrada de Godford anda comendo gente, e ninguém sabe explicar como.",
+            lugar: "Estrada de Godford",
+            km: 65,
+            dias: 2.2,
+            objetivos: [
+              { texto: "Investigar a carroça tombada", revealed: true, done: true },
+              { texto: 'Descobrir quem são os "Cães da Estrada"', revealed: true, done: false },
+              { texto: "Decidir o destino da família resgatada", revealed: false, done: false },
+            ],
+            relogio: { frente: "Cães da Estrada", diasRestantes: 4, reveladoAoJogador: true },
+            vis: { tobias: 2, comedor: 1 },
+            estado: "ativa",
+            resultado: null,
+            node: "estrada-godford",
+          },
+          {
+            id: "m2",
+            titulo: "Vaza-Maré e o Garrancho",
+            categoria: "contrato",
+            icone: "anchor",
+            gancho:
+              "Rio acima de Vaza-Maré, o Garrancho pesca tudo que a maré traz — e cobra caro pra devolver.\nOs pescadores querem o bote de volta antes que o rio suba de novo.",
+            boato: "Perto de Vaza-Maré, um bicho de rio anda cobrando pedágio dos pescadores.",
+            lugar: "Vaza-Maré",
+            km: 58,
+            dias: 1.9,
+            objetivos: [
+              { texto: "Negociar com o Garrancho", revealed: true, done: false },
+              { texto: "Recuperar o bote dos pescadores", revealed: true, done: false },
+            ],
+            relogio: null,
+            vis: { tobias: 2, comedor: 2 },
+            estado: "ativa",
+            resultado: null,
+            node: "vaza-mare",
+          },
+          {
+            id: "m3",
+            titulo: "O que roubaram do cemitério",
+            categoria: "masmorra",
+            icone: "skull",
+            gancho:
+              "Quatro dias de planície adentro, alguém abriu um dos túmulos sem nome — e não levou nada de valor.\nSó cavou, e cavou fundo.",
+            boato:
+              "Dizem que os túmulos sem nome, longe de qualquer vila, foram remexidos por gente viva.",
+            lugar: "Os Túmulos Sem Nome",
+            km: 126,
+            dias: 4.2,
+            objetivos: [
+              { texto: "Descobrir o que foi cavado", revealed: false, done: false },
+              { texto: "Rastrear quem cavou", revealed: false, done: false },
+              { texto: "Confrontar o Culto Cavador antes que feche", revealed: false, done: false },
+            ],
+            relogio: { frente: "O Culto Cavador", diasRestantes: 0, reveladoAoJogador: false },
+            vis: { tobias: 0, comedor: 1 },
+            estado: "ativa",
+            resultado: null,
+            node: "tumulos",
+          },
+          {
+            id: "m4",
+            titulo: "Moinho do Refluxo",
+            categoria: "enigma",
+            icone: "mill",
+            gancho:
+              "A roda de um moinho abandonado range na maré cheia, noite após noite.\nToda manhã aparece um saco de farinha fresca na soleira — de um lugar sem moleiro há vinte anos.",
+            boato: "Perto de Flokleigh, um moinho que devia estar morto ainda mói sozinho, dizem.",
+            lugar: "Moinho do Refluxo",
+            km: 113,
+            dias: 3.8,
+            objetivos: [
+              { texto: "Vigiar o moinho à noite", revealed: false, done: false },
+              { texto: "Descobrir quem mói a farinha", revealed: false, done: false },
+            ],
+            relogio: null,
+            vis: { tobias: 1, comedor: 0 },
+            estado: "ativa",
+            resultado: null,
+            node: "moinho",
+          },
+          {
+            id: "m5",
+            titulo: "O Cais dos Dedos Tortos",
+            categoria: "contrato",
+            icone: "anchor",
+            gancho:
+              "No cais abandonado da noite pro dia, as redes seguem penduradas e o peixe apodrece nos cestos.\nQuem foi buscar explicação voltou faltando um companheiro.",
+            boato: "No cais rio acima, alguém sumiu buscando o motivo de um abandono súbito.",
+            lugar: "O Cais dos Dedos Tortos",
+            km: 187,
+            dias: 6.2,
+            objetivos: [
+              { texto: "Investigar o cais abandonado", revealed: false, done: false },
+              { texto: "Encontrar o companheiro desaparecido", revealed: false, done: false },
+              { texto: "Descobrir o que assustou os pescadores", revealed: false, done: false },
+            ],
+            relogio: null,
+            vis: { tobias: 0, comedor: 0 },
+            estado: "ativa",
+            resultado: null,
+            node: "cais",
+          },
+          {
+            id: "m6",
+            titulo: "A Bigorna que Conta",
+            categoria: "enigma",
+            icone: "bell",
+            gancho:
+              "Perto de Godford, um sino de ferro bate sozinho no meio dos campos — sempre um número diferente de badaladas.\nUm carroceiro seguiu o som e voltou rico.",
+            boato:
+              "Um sino que ninguém tocou soa nos campos perto de Godford, dizem os carroceiros.",
+            lugar: "Campos de Godford",
+            km: 135,
+            dias: 4.5,
+            objetivos: [
+              { texto: "Seguir o sino até a origem", revealed: true, done: true },
+              { texto: "Contar as badaladas certas", revealed: true, done: true },
+            ],
+            relogio: null,
+            vis: { tobias: 2, comedor: 2 },
+            estado: "concluida",
+            resultado: "O sino contava os mortos do dia seguinte. Pip ficou com o badalo.",
+            node: "campos-godford",
+          },
+        ],
+        /* ---- Comitiva: referência rápida da party (proposta, ver rodapé) ---- */
+        pcs: [
+          {
+            id: "tobias",
+            nome: "Tobias",
+            classe: "Campeão",
+            nivel: 3,
+            hp: 38,
+            hpMax: 38,
+            foco: 1,
+            focoMax: 1,
+            condicoes: [],
+            ca: 19,
+            percepcao: 9,
+            velocidade: "25 pés",
+            gmNota: "Guarda o Código do Espelho — feito pra revelar em cena, não na ficha.",
+          },
+          {
+            id: "comedor",
+            nome: "Comedor",
+            classe: "Monge",
+            nivel: 4,
+            hp: 14,
+            hpMax: 48,
+            foco: null,
+            focoMax: null,
+            condicoes: ["ferido 1", "fatigado"],
+            ca: 21,
+            percepcao: 11,
+            velocidade: "25 pés",
+            gmNota: "Fatigado desde a Carroça (m1) — ainda não descansou.",
+          },
+          {
+            id: "pip",
+            nome: "Pip",
+            classe: "Bardo",
+            nivel: 3,
+            hp: 26,
+            hpMax: 30,
+            foco: 1,
+            focoMax: 1,
+            condicoes: [],
+            ca: 17,
+            percepcao: 8,
+            velocidade: "25 pés",
+            gmNota: "Ficou com o badalo do sino (m6) — pode virar gancho.",
+          },
+          {
+            id: "kess",
+            nome: "Kess",
+            classe: "Mago",
+            nivel: 3,
+            hp: 20,
+            hpMax: 26,
+            foco: 2,
+            focoMax: 3,
+            condicoes: ["abalado 1"],
+            ca: 16,
+            percepcao: 7,
+            velocidade: "25 pés",
+            gmNota: "Desconfia da carroça tombada (m1) — achou marcas de garra no eixo.",
+          },
+        ],
+        /* ---- Mapa de Região: POIs amarrados às missões (proposta, ver rodapé) ---- */
+        pois: [
+          {
+            id: "shoneymouth",
+            nome: "Shoneymouth",
+            x: 16,
+            y: 60,
+            kind: "base",
+            missaoId: null,
+            vis: { tobias: 2, comedor: 2 },
+          },
+          {
+            id: "estrada-godford",
+            nome: "Estrada de Godford",
+            x: 34,
+            y: 30,
+            kind: "poi",
+            missaoId: "m1",
+            vis: { tobias: 2, comedor: 1 },
+          },
+          {
+            id: "vaza-mare",
+            nome: "Vaza-Maré",
+            x: 30,
+            y: 56,
+            kind: "poi",
+            missaoId: "m2",
+            vis: { tobias: 2, comedor: 2 },
+          },
+          {
+            id: "tumulos",
+            nome: "Os Túmulos Sem Nome",
+            x: 70,
+            y: 20,
+            kind: "poi",
+            missaoId: "m3",
+            vis: { tobias: 0, comedor: 1 },
+          },
+          {
+            id: "moinho",
+            nome: "Moinho do Refluxo",
+            x: 76,
+            y: 46,
+            kind: "poi",
+            missaoId: "m4",
+            vis: { tobias: 1, comedor: 0 },
+          },
+          {
+            id: "cais",
+            nome: "O Cais dos Dedos Tortos",
+            x: 22,
+            y: 80,
+            kind: "poi",
+            missaoId: "m5",
+            vis: { tobias: 0, comedor: 0 },
+          },
+          {
+            id: "campos-godford",
+            nome: "Campos de Godford",
+            x: 52,
+            y: 14,
+            kind: "poi",
+            missaoId: "m6",
+            vis: { tobias: 2, comedor: 2 },
+          },
+          {
+            id: "flokleigh",
+            nome: "Flokleigh",
+            x: 86,
+            y: 58,
+            kind: "safe",
+            missaoId: null,
+            vis: { tobias: 1, comedor: 0 },
+          },
+        ],
+      };
+
+      /* ================= category constants ================= */
+      const CAT_ICON = {
+        batalha: "sword",
+        contrato: "bag",
+        enigma: "bell",
+        masmorra: "skull",
+        assentamento: "bag",
+      };
+      const CAT_LABEL = {
+        batalha: "Batalha",
+        contrato: "Contrato",
+        enigma: "Enigma",
+        masmorra: "Masmorra",
+        assentamento: "Assentamento",
+      };
+      const CAT_HEX = {
+        batalha: "#f87171",
+        contrato: "#fb923c",
+        enigma: "#c084fc",
+        masmorra: "#60a5fa",
+        assentamento: "#4ade80",
+      };
+      const NOMES = { mestre: "Mestre", tobias: "Tobias", comedor: "Comedor" };
+
+      let persp = "mestre";
+      /* which command-bar window is currently visible */
+      let activeWin = "missoes";
+      /* id of the POI selected in the Mapa window */
+      let mapSel = null;
+      /* Mapa camera: (x,y) = world point parked at the centre of the viewport,
+         in the same 0-100 units the POIs use; z = zoom factor.
+         Survives render() because render() repaints the stage from this state. */
+      const cam = { x: 50, y: 50, z: 1 };
+      /* last measured viewport width in px — only the scale bar needs it, and it
+         is measured after paint, so the first frame uses a sane default */
+      let mvW = 720;
+      /* a pan ends with a click event on the marker under the cursor — swallow it */
+      let suppressClick = false;
+      const Z_MIN = 1;
+      const Z_MAX = 4;
+      /* LOD thresholds from mapa-isekai.md §5.1 */
+      const Z_LABELS = 1.3;
+      const Z_DETAIL = 2.2;
+      /* recorte da região piloto: 512 km de largura sobre 100 unidades (§6.2) */
+      const KM_PER_UNIT = 5.12;
+      const SCALE_STEPS = [5, 10, 25, 50, 100, 200, 500];
+      /* index of the expanded PC card in the Comitiva window */
+      let expandedPc = null;
+
+      const esc = (s) =>
+        String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const findM = (id) => DATA.missoes.find((m) => m.id === id);
+      const findPoi = (id) => DATA.pois.find((p) => p.id === id);
+
+      /* corner-bracket + scanline chrome shared by every System-window panel */
+      function chrome() {
+        return (
+          '<span class="br a"></span><span class="br b"></span>' +
+          '<span class="br c"></span><span class="br d"></span><span class="scan"></span>'
+        );
+      }
+
+      function chip(cat) {
+        const c = CAT_HEX[cat] || "#94a3b8";
+        return (
+          '<span class="chip"><svg class="svgicon" width="13" height="13" viewBox="0 0 24 24" fill="none">' +
+          '<use href="#ic-' +
+          CAT_ICON[cat] +
+          '" width="13" height="13" color="' +
+          c +
+          '"/></svg>' +
+          esc(CAT_LABEL[cat]) +
+          "</span>"
+        );
+      }
+
+      function micon(m, sm) {
+        const c = CAT_HEX[m.categoria] || "#94a3b8";
+        const s = sm ? 16 : 17;
+        return (
+          '<div class="micon' +
+          (sm ? " sm" : "") +
+          '"><svg class="svgicon" width="' +
+          s +
+          '" height="' +
+          s +
+          '" viewBox="0 0 24 24" fill="none">' +
+          '<use href="#ic-' +
+          m.icone +
+          '" width="' +
+          s +
+          '" height="' +
+          s +
+          '" color="' +
+          c +
+          '"/></svg></div>'
+        );
+      }
+
+      function aprox(dias) {
+        const n = Math.max(1, Math.round(dias));
+        return "~" + n + " dia" + (n === 1 ? "" : "s");
+      }
+
+      /* ================= player cards ================= */
+      function cardAtiva(m) {
+        let h = '<article class="mcard ativa win">' + chrome();
+        h +=
+          '<div class="mchead">' +
+          micon(m) +
+          '<div class="mctext">' +
+          chip(m.categoria) +
+          '<h3 class="mtitulo">' +
+          esc(m.titulo) +
+          "</h3></div></div>";
+        h += '<p class="mgancho">' + esc(m.gancho) + "</p>";
+        const revs = m.objetivos.filter((o) => o.revealed);
+        if (revs.length) {
+          h +=
+            '<ul class="reqs">' +
+            revs
+              .map(
+                (o) =>
+                  '<li class="req' +
+                  (o.done ? " ok" : "") +
+                  '"><span class="bx">' +
+                  (o.done
+                    ? '<svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7"/></svg>'
+                    : "") +
+                  '</span><span class="tx">' +
+                  esc(o.texto) +
+                  "</span></li>",
+              )
+              .join("") +
+            "</ul>";
+        }
+        h +=
+          '<button type="button" class="pinrow" data-action="ver-mapa">' +
+          '<svg class="svgicon" width="14" height="14" viewBox="0 0 24 24" fill="none"><use href="#ic-pin" width="14" height="14" color="#5d8296"/></svg>' +
+          "<span>Ver no mapa — " +
+          esc(m.lugar) +
+          " · " +
+          m.km +
+          " km (" +
+          m.dias +
+          " d a pé)</span></button>";
+        if (m.node) {
+          h +=
+            '<button type="button" class="pinrow trackbtn" data-action="rastrear-mapa" data-id="' +
+            m.id +
+            '">' +
+            '<svg class="svgicon" width="14" height="14" viewBox="0 0 24 24" fill="none"><use href="#ic-pin" width="14" height="14" color="#57c8ff"/></svg>' +
+            "<span>Rastrear no mapa</span></button>";
+        }
+        if (m.relogio && m.relogio.reveladoAoJogador) {
+          const n = m.relogio.diasRestantes;
+          const crit = n <= 1;
+          h +=
+            '<div class="pressure ' +
+            (crit ? "crit" : "warn") +
+            '">' +
+            '<svg class="svgicon" width="14" height="14" viewBox="0 0 24 24" fill="none"><use href="#ic-hourglass" width="14" height="14" color="' +
+            (crit ? "#ff5c7a" : "#ffd166") +
+            '"/></svg>' +
+            "<span>A pressão aperta — " +
+            n +
+            " dia" +
+            (n === 1 ? "" : "s") +
+            "</span></div>";
+        }
+        h += "</article>";
+        return h;
+      }
+
+      function cardRumor(m) {
+        return (
+          '<article class="mcard rumor win">' +
+          chrome() +
+          '<div class="rumor-marker"><svg class="svgicon" width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#ic-qmark" width="20" height="20" color="#ffd166"/></svg></div>' +
+          '<h3 class="mtitulo rumor-h">Rumor — ouvido perto de ' +
+          esc(m.lugar) +
+          "</h3>" +
+          '<p class="mgancho">' +
+          esc(m.boato) +
+          "</p>" +
+          '<button type="button" class="pinrow" data-action="ver-mapa">' +
+          '<svg class="svgicon" width="14" height="14" viewBox="0 0 24 24" fill="none"><use href="#ic-pin" width="14" height="14" color="#5d8296"/></svg>' +
+          "<span>Ver no mapa — cerca de " +
+          aprox(m.dias) +
+          "</span></button>" +
+          (m.node
+            ? '<button type="button" class="pinrow trackbtn" data-action="rastrear-mapa" data-id="' +
+              m.id +
+              '">' +
+              '<svg class="svgicon" width="14" height="14" viewBox="0 0 24 24" fill="none"><use href="#ic-pin" width="14" height="14" color="#57c8ff"/></svg>' +
+              "<span>Rastrear no mapa</span></button>"
+            : "") +
+          "</article>"
+        );
+      }
+
+      function cardConcluida(m) {
+        return (
+          '<article class="mcard concluida win">' +
+          chrome() +
+          '<h3 class="mtitulo">' +
+          esc(m.titulo) +
+          "</h3>" +
+          '<p class="mresultado">' +
+          esc(m.resultado || "") +
+          "</p>" +
+          (m.node
+            ? '<button type="button" class="pinrow trackbtn" data-action="rastrear-mapa" data-id="' +
+              m.id +
+              '">' +
+              '<svg class="svgicon" width="14" height="14" viewBox="0 0 24 24" fill="none"><use href="#ic-pin" width="14" height="14" color="#57c8ff"/></svg>' +
+              "<span>Rastrear no mapa</span></button>"
+            : "") +
+          "</article>"
+        );
+      }
+
+      function grupo(titulo, iconId, items, renderFn, emptyMsg, variant) {
+        let h =
+          '<section class="group"><div class="grouphead gh-' +
+          variant +
+          '"><span class="dot"></span><h2>' +
+          titulo +
+          '</h2><span class="gcount">' +
+          items.length +
+          "</span></div>";
+        if (items.length === 0) {
+          h +=
+            '<div class="empty"><svg class="svgicon" width="22" height="22" viewBox="0 0 24 24" fill="none"><use href="#' +
+            iconId +
+            '" width="22" height="22" color="#5d8296"/></svg>' +
+            emptyMsg +
+            "</div>";
+        } else {
+          h += '<div class="cards">' + items.map(renderFn).join("") + "</div>";
+        }
+        h += "</section>";
+        return h;
+      }
+
+      /* ================= Comitiva window ================= */
+      function focoPips(p) {
+        if (p.focoMax == null) return '<div class="focopips none">—</div>';
+        let s = '<div class="focopips">';
+        for (let i = 0; i < p.focoMax; i++) {
+          s += '<span class="pip' + (i < p.foco ? " on" : "") + '"></span>';
+        }
+        return s + "</div>";
+      }
+
+      function pcCard(p, i) {
+        const hpPct = Math.round((p.hp / p.hpMax) * 100);
+        const low = hpPct < 40;
+        const expanded = expandedPc === i;
+        let h =
+          '<article class="mem win' + (expanded ? " expanded" : "") + '" data-pc="' + i + '">';
+        h +=
+          '<div class="memtop"><b>' +
+          esc(p.nome) +
+          "</b><em>" +
+          esc(p.classe) +
+          " · nv " +
+          p.nivel +
+          "</em></div>";
+        h +=
+          '<div class="mrow-lbl"><span>Vida</span><span>' + p.hp + "/" + p.hpMax + "</span></div>";
+        h +=
+          '<div class="mini hp' +
+          (low ? " low" : "") +
+          '"><i style="width:' +
+          hpPct +
+          '%"></i></div>';
+        h += '<div class="mrow-lbl"><span>Foco</span><span>';
+        h += p.focoMax ? p.foco + "/" + p.focoMax : "—";
+        h += "</span></div>";
+        if (p.focoMax) h += focoPips(p);
+        if (p.condicoes.length) {
+          h +=
+            '<div class="condtags">' +
+            p.condicoes.map((c) => '<span class="condtag">' + esc(c) + "</span>").join("") +
+            "</div>";
+        }
+        if (persp === "mestre" && p.gmNota) {
+          h += '<div class="gmnote">GM — ' + esc(p.gmNota) + "</div>";
+        }
+        if (expanded) {
+          h +=
+            '<div class="pcdetail"><div><span>CA</span><b>' +
+            p.ca +
+            "</b></div><div><span>Percepção</span><b>+" +
+            p.percepcao +
+            "</b></div><div><span>Velocidade</span><b>" +
+            esc(p.velocidade) +
+            "</b></div></div>";
+        }
+        return h + "</article>";
+      }
+
+      function comitivaHTML() {
+        return '<div class="members">' + DATA.pcs.map((p, i) => pcCard(p, i)).join("") + "</div>";
+      }
+
+      /* ================= Mapa window ================= */
+      /* neutral cyan grid + region outline + dashed roads, viewBox 0-100 so the
+         world layer and the POI nodes share one coordinate space.
+         Every stroke carries vector-effect="non-scaling-stroke": the geometry
+         scales with the camera, the line weight does not (mapa-isekai.md §5.1). */
+      const NSS = ' vector-effect="non-scaling-stroke"';
+      function mapaBackgroundSVG() {
+        let grid = "";
+        for (let g = 10; g < 100; g += 10) {
+          grid +=
+            '<line x1="' +
+            g +
+            '" y1="0" x2="' +
+            g +
+            '" y2="100" stroke="rgba(87,200,255,.06)" stroke-width="1"' +
+            NSS +
+            "/>";
+          grid +=
+            '<line x1="0" y1="' +
+            g +
+            '" x2="100" y2="' +
+            g +
+            '" stroke="rgba(87,200,255,.06)" stroke-width="1"' +
+            NSS +
+            "/>";
+        }
+        const regiao =
+          "M14,50 Q10,30 30,18 Q52,6 72,14 Q92,24 88,44 Q94,64 72,76 Q50,92 28,82 Q10,72 14,50 Z";
+        const estradas = [
+          "M16,60 L34,30", // Shoneymouth -> Estrada de Godford
+          "M34,30 L52,14", // Estrada de Godford -> Campos de Godford
+          "M16,60 L30,56", // Shoneymouth -> Vaza-Maré
+          "M16,60 L22,80", // Shoneymouth -> Cais dos Dedos Tortos
+          "M16,60 L76,46", // Shoneymouth -> Moinho do Refluxo
+          "M76,46 L86,58", // Moinho -> Flokleigh
+          "M52,14 L70,20", // Campos de Godford -> Túmulos Sem Nome
+        ];
+        let roads = estradas
+          .map(
+            (d) =>
+              '<path d="' +
+              d +
+              '" fill="none" stroke="rgba(87,200,255,.28)" stroke-width="2" stroke-dasharray="6 5"' +
+              NSS +
+              "/>",
+          )
+          .join("");
+        return (
+          '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' +
+          '<rect width="100" height="100" fill="#020608"/>' +
+          grid +
+          '<path d="' +
+          regiao +
+          '" fill="rgba(87,200,255,.045)" stroke="rgba(87,200,255,.4)" stroke-width="2"' +
+          NSS +
+          "/>" +
+          roads +
+          "</svg>"
+        );
+      }
+
+      /* ---------- camera maths ----------
+         The world layer is 100% x 100% of the viewport and holds the 0-100 SVG,
+         so a world point (x) sits at x% of that layer. Parking (cam.x, cam.y) at
+         the viewport centre with zoom cam.z is therefore:
+           translate(50%,50%) scale(z) translate(-cam.x%, -cam.y%)
+         and the same point, expressed as a percentage of the VIEWPORT, is
+           50 + z * (x - cam.x)
+         which is what positions the (unscaled) pins. */
+      function clampCam() {
+        cam.z = Math.min(Z_MAX, Math.max(Z_MIN, cam.z));
+        /* pan stops at the edges — the recorte is the border of what exists */
+        const half = 50 / cam.z;
+        cam.x = Math.min(100 - half, Math.max(half, cam.x));
+        cam.y = Math.min(100 - half, Math.max(half, cam.y));
+      }
+      const camPct = (v, c) => 50 + cam.z * (v - c);
+      function worldTransform() {
+        return "translate(50%,50%) scale(" + cam.z + ") translate(" + -cam.x + "%," + -cam.y + "%)";
+      }
+      /* zoom keeping the world point under the cursor pinned to the cursor
+         (fx, fy = cursor position as a 0-1 fraction of the viewport) */
+      function zoomAt(nextZ, fx, fy) {
+        const z0 = cam.z;
+        const wx = cam.x + (fx - 0.5) * (100 / z0);
+        const wy = cam.y + (fy - 0.5) * (100 / z0);
+        cam.z = Math.min(Z_MAX, Math.max(Z_MIN, nextZ));
+        cam.x = wx - (fx - 0.5) * (100 / cam.z);
+        cam.y = wy - (fy - 0.5) * (100 / cam.z);
+        clampCam();
+      }
+      /* centre the camera on a POI — this is REQ-CNV-008 ("centraliza a câmera
+         no pin") acted out instead of only described in a tooltip */
+      function centerOn(poi, minZoom) {
+        cam.x = poi.x;
+        cam.y = poi.y;
+        if (minZoom && cam.z < minZoom) cam.z = minZoom;
+        clampCam();
+      }
+      /* round scale step (5/10/25/50/100...) that fits in ~28% of the viewport */
+      function scaleBarHTML(viewportPx) {
+        const pxPerUnit = ((viewportPx || 720) * cam.z) / 100;
+        const budgetPx = (viewportPx || 720) * 0.28;
+        let km = SCALE_STEPS[0];
+        for (const step of SCALE_STEPS) {
+          if ((step / KM_PER_UNIT) * pxPerUnit <= budgetPx) km = step;
+        }
+        const w = Math.round((km / KM_PER_UNIT) * pxPerUnit);
+        return (
+          '<div class="scalebar" id="scalebar"><i style="width:' + w + 'px"></i>' + km + " km</div>"
+        );
+      }
+
+      /* 'q' = missão ativa vinculada (pulsa vermelho) · 'safe' = seguro/concluído (verde) */
+      function poiState(poi) {
+        if (poi.kind !== "poi") return "safe";
+        const m = poi.missaoId ? findM(poi.missaoId) : null;
+        if (!m) return "";
+        if (m.estado === "concluida") return "safe";
+        if (m.estado === "ativa") return "q";
+        return "";
+      }
+
+      /* settlements keep their label at every zoom; everything else appears at
+         Z_LABELS and gains a detail line at Z_DETAIL (mapa-isekai.md §5.1) */
+      const isSettlement = (poi) => poi.kind === "base" || poi.kind === "safe";
+      function poiLod(poi) {
+        return isSettlement(poi) || cam.z >= Z_LABELS ? "" : " lodoff";
+      }
+      function poiSub(poi) {
+        if (cam.z < Z_DETAIL) return "";
+        if (persp !== "mestre" && poi.vis[persp] === 0) return "";
+        const m = poi.missaoId ? findM(poi.missaoId) : null;
+        if (m) return '<span class="sub">' + CAT_LABEL[m.categoria] + " · " + m.km + " km</span>";
+        return '<span class="sub">' + (poi.kind === "base" ? "Base" : "Seguro") + "</span>";
+      }
+      /* the same ○→?→● console the detail panel has, but anchored to the pin —
+         revealing a place for a player is one click ON THE MAP, no round trip
+         through the list below. "Todos" advances the whole table one step. */
+      const PLAYERS = ["tobias", "comedor"];
+      function pinConsoleHTML(poi) {
+        if (persp !== "mestre") return "";
+        let h = '<div class="pconsole">';
+        PLAYERS.forEach((player) => {
+          const v = poi.vis[player];
+          const glyph = v === 0 ? "○" : v === 1 ? "?" : "●";
+          const cls = v === 0 ? "off" : v === 1 ? "rumor" : "on";
+          h +=
+            '<button type="button" class="pcb ' +
+            cls +
+            '" data-action="cycle-poi" data-id="' +
+            poi.id +
+            '" data-player="' +
+            player +
+            '" aria-label="' +
+            NOMES[player] +
+            ': revelação do local, clique para mudar"><b>' +
+            NOMES[player][0] +
+            '</b><span class="g">' +
+            glyph +
+            "</span></button>";
+        });
+        const min = Math.min(...PLAYERS.map((p) => poi.vis[p]));
+        h +=
+          '<button type="button" class="pcb all" data-action="reveal-all-poi" data-id="' +
+          poi.id +
+          '"' +
+          (min >= 2 ? " disabled" : "") +
+          ' aria-label="Revelar para a mesa inteira">todos ▸</button>';
+        return h + "</div>";
+      }
+
+      function poiNode(poi) {
+        /* position comes from the camera, size never does — this layer has no
+           transform, so the pin stays the same number of pixels at any zoom */
+        const style = "left:" + camPct(poi.x, cam.x) + "%;top:" + camPct(poi.y, cam.y) + "%";
+        const selCls = mapSel === poi.id ? " sel" : "";
+        const v = persp === "mestre" ? 2 : poi.vis[persp];
+        let cls, rotulo;
+        if (v === 0) {
+          cls = "hidden";
+          rotulo = "???";
+        } else if (v === 1 && persp !== "mestre") {
+          cls = "rumor" + selCls;
+          rotulo = esc(poi.nome);
+        } else {
+          cls = poiState(poi) + selCls;
+          rotulo = esc(poi.nome);
+        }
+        return (
+          '<div class="node ' +
+          cls +
+          poiLod(poi) +
+          '" style="' +
+          style +
+          '" data-poi="' +
+          poi.id +
+          '"><i></i><label>' +
+          rotulo +
+          "</label>" +
+          poiSub(poi) +
+          pinConsoleHTML(poi) +
+          "</div>"
+        );
+      }
+
+      function mrowsHTML() {
+        return DATA.pois
+          .map((poi) => {
+            const m = poi.missaoId ? findM(poi.missaoId) : null;
+            let nome, tagTxt, tagCls;
+            if (persp === "mestre") {
+              nome = poi.nome;
+              const st = poiState(poi);
+              tagTxt = st === "q" ? "ativa" : st === "safe" ? "segura" : "neutro";
+              tagCls = st === "q" ? "bad" : st === "safe" ? "ok" : "";
+            } else {
+              const v = poi.vis[persp];
+              nome = v === 0 ? "???" : poi.nome;
+              if (v === 0) {
+                tagTxt = "oculto";
+                tagCls = "";
+              } else if (v === 1) {
+                tagTxt = "rumor";
+                tagCls = "gold";
+              } else {
+                const st = poiState(poi);
+                tagTxt = st === "q" ? "ativa" : st === "safe" ? "segura" : "revelado";
+                tagCls = st === "q" ? "bad" : st === "safe" ? "ok" : "";
+              }
+            }
+            const mostraMissao = m && (persp === "mestre" || poi.vis[persp] >= 1);
+            return (
+              '<div class="mrow' +
+              (mapSel === poi.id ? " sel" : "") +
+              '" data-poi="' +
+              poi.id +
+              '">' +
+              '<span class="mtag ' +
+              tagCls +
+              '">' +
+              tagTxt +
+              "</span>" +
+              '<span class="mname">' +
+              esc(nome) +
+              "</span>" +
+              (mostraMissao ? '<span class="mmission">' + esc(m.titulo) + "</span>" : "") +
+              "</div>"
+            );
+          })
+          .join("");
+      }
+
+      function poiBadge(poi, player) {
+        const v = poi.vis[player];
+        const glyph = v === 0 ? "○" : v === 1 ? "?" : "●";
+        const cls = v === 0 ? "off" : v === 1 ? "rumor" : "on";
+        return (
+          '<button type="button" class="vbadge ' +
+          cls +
+          '" data-action="cycle-poi" data-id="' +
+          poi.id +
+          '" data-player="' +
+          player +
+          '" aria-label="' +
+          NOMES[player] +
+          ': revelação do local, clique para mudar">' +
+          glyph +
+          "</button>"
+        );
+      }
+
+      function poiDetailHTML() {
+        if (!mapSel) {
+          return '<div class="empty" style="padding:22px 14px">Clique num marcador do mapa.</div>';
+        }
+        const poi = findPoi(mapSel);
+        if (!poi) return "";
+        const m = poi.missaoId ? findM(poi.missaoId) : null;
+        let h = '<div class="poidetail">';
+        h += '<div class="pdname">' + esc(poi.nome) + "</div>";
+        h +=
+          '<div class="pdmissao">' +
+          (m ? "Missão vinculada: <b>" + esc(m.titulo) + "</b>" : "Sem missão — ponto seguro.") +
+          "</div>";
+        if (persp === "mestre") {
+          h +=
+            '<div class="pdconsole"><span class="pdlbl">Console de Revelação</span>' +
+            '<div class="pdrow"><span>Tobias</span>' +
+            poiBadge(poi, "tobias") +
+            "</div>" +
+            '<div class="pdrow"><span>Comedor</span>' +
+            poiBadge(poi, "comedor") +
+            "</div></div>";
+        }
+        return h + "</div>";
+      }
+
+      function mapCtlHTML() {
+        const z = cam.z.toFixed(1).replace(".", ",");
+        return (
+          '<div class="mapctl">' +
+          '<span class="zread" id="zread">' +
+          z +
+          "×</span>" +
+          '<button type="button" class="zbtn" data-action="zoom-out" aria-label="Afastar"' +
+          (cam.z <= Z_MIN + 0.001 ? " disabled" : "") +
+          ">−</button>" +
+          '<button type="button" class="zbtn" data-action="zoom-in" aria-label="Aproximar"' +
+          (cam.z >= Z_MAX - 0.001 ? " disabled" : "") +
+          ">+</button>" +
+          '<button type="button" class="zbtn" data-action="zoom-reset" aria-label="Enquadrar a região">⤢</button>' +
+          "</div>"
+        );
+      }
+
+      function mapaHTML() {
+        let h = '<div class="win mapwin">' + chrome();
+        h += '<div class="mv" id="mv">';
+        h +=
+          '<div class="world" id="world" style="transform:' +
+          worldTransform() +
+          '">' +
+          mapaBackgroundSVG() +
+          "</div>";
+        h += '<div class="nodes" id="nodes">' + DATA.pois.map(poiNode).join("") + "</div>";
+        h += mapCtlHTML();
+        h += scaleBarHTML(mvW);
+        h += "</div>";
+        h +=
+          '<div class="maphint">Roda do mouse aproxima, arrastar movimenta. ' +
+          "<b>O mundo escala, a interface não</b> — o terreno cresce, os pinos mantêm o mesmo " +
+          "tamanho em pixels e só mudam de lugar (<code>mapa-isekai.md</code> §5.1). Rótulos " +
+          "aparecem a partir de 1,3× e a categoria a partir de 2,2×." +
+          (persp === "mestre"
+            ? " <b>Passe o cursor sobre um marcador</b> para revelar dali mesmo — um clique por " +
+              "jogador, ou <b>todos ▸</b> para a mesa inteira."
+            : "") +
+          "</div>";
+        h +=
+          '<div class="maplegend">' +
+          '<span class="lg"><span class="lgsw" style="background:#ff5c7a"></span>missão ativa</span>' +
+          '<span class="lg"><span class="lgsw" style="background:#5ef2a4"></span>seguro</span>' +
+          '<span class="lg"><span class="lgsw" style="background:#ffd166;border:1.5px dashed #ffd166"></span>rumor</span>' +
+          '<span class="lg"><span class="lgsw" style="border:1.5px dashed #5d8296"></span>oculto (???)</span>' +
+          "</div>";
+        h += '<div class="mrows">' + mrowsHTML() + "</div>";
+        h += poiDetailHTML();
+        return h + "</div>";
+      }
+
+      /* ================= GM matrix ================= */
+      function vbadge(m, player) {
+        const v = m.vis[player];
+        const glyph = v === 0 ? "○" : v === 1 ? "?" : "●";
+        const cls = v === 0 ? "off" : v === 1 ? "rumor" : "on";
+        const estadoTxt = v === 0 ? "oculto" : v === 1 ? "rumor" : "publicada";
+        return (
+          '<button type="button" class="vbadge ' +
+          cls +
+          '" data-action="cycle-vis" data-id="' +
+          m.id +
+          '" data-player="' +
+          player +
+          '" ' +
+          'aria-label="' +
+          NOMES[player] +
+          ": " +
+          estadoTxt +
+          ', clique para mudar">' +
+          glyph +
+          "</button>"
+        );
+      }
+
+      function matrizHTML() {
+        let h =
+          '<div class="call win">' +
+          chrome() +
+          '<div class="ct">Como isto funciona</div>' +
+          "<p>Publicar = subir <code>ownership</code>. Cada célula desta matriz é um update de ownership da página " +
+          "Gancho (ou do <code>Note</code>, no v1) — nunca um sistema paralelo.</p></div>";
+        h +=
+          '<div class="tablewrap win">' +
+          chrome() +
+          '<table class="matrix"><thead><tr>' +
+          "<th>Missão</th><th>Tobias</th><th>Comedor</th><th>Relógio</th><th>Ações</th></tr></thead><tbody>";
+        DATA.missoes.forEach((m) => {
+          let relogioTxt;
+          if (m.relogio) {
+            if (m.relogio.diasRestantes <= 0) {
+              relogioTxt =
+                '<span class="clockcell closed"><svg class="svgicon" width="13" height="13" viewBox="0 0 24 24" fill="none">' +
+                '<use href="#ic-hourglass" width="13" height="13" color="#ff5c7a"/></svg>FECHOU — beat obrigatório</span>';
+            } else {
+              relogioTxt =
+                '<span class="clockcell"><svg class="svgicon" width="13" height="13" viewBox="0 0 24 24" fill="none">' +
+                '<use href="#ic-hourglass" width="13" height="13" color="#5d8296"/></svg>' +
+                esc(m.relogio.frente) +
+                " · " +
+                m.relogio.diasRestantes +
+                " d</span>";
+            }
+          } else {
+            relogioTxt = '<span class="clockcell none">—</span>';
+          }
+          const temProx = !!m.objetivos.find((o) => !o.revealed);
+          const concluida = m.estado === "concluida";
+          h +=
+            "<tr>" +
+            '<td><div class="mchead" style="margin-bottom:0">' +
+            micon(m, true) +
+            '<div class="mcol"><b>' +
+            esc(m.titulo) +
+            "</b>" +
+            chip(m.categoria) +
+            "</div></div></td>" +
+            "<td>" +
+            vbadge(m, "tobias") +
+            "</td>" +
+            "<td>" +
+            vbadge(m, "comedor") +
+            "</td>" +
+            "<td>" +
+            relogioTxt +
+            "</td>" +
+            '<td class="acol">' +
+            '<button type="button" class="actbtn" data-action="revelar" data-id="' +
+            m.id +
+            '" ' +
+            (temProx && !concluida ? "" : "disabled") +
+            ">Revelar objetivo</button>" +
+            '<button type="button" class="actbtn" data-action="concluir" data-id="' +
+            m.id +
+            '" ' +
+            (concluida ? "disabled" : "") +
+            ">" +
+            (concluida ? "Concluída" : "Concluir") +
+            "</button>" +
+            "</td>" +
+            "</tr>";
+        });
+        h += "</tbody></table></div>";
+        return h;
+      }
+
+      /* ================= System notification (was: diegetic toast) ================= */
+      function showNotification(variant, titulo, msg) {
+        const wrap = document.getElementById("toastwrap");
+        const el = document.createElement("div");
+        el.className = "nt " + variant;
+        el.innerHTML =
+          '<span class="br a"></span><span class="br b"></span>' +
+          '<span class="br c"></span><span class="br d"></span>' +
+          '<div class="hd"><svg class="svgicon" width="13" height="13" viewBox="0 0 24 24" fill="none"><use href="#ic-scroll" width="13" height="13" color="currentColor"/></svg>NOTIFICAÇÃO DO SISTEMA</div>' +
+          '<span class="close">DISPENSAR ✕</span>' +
+          '<div class="bd"><h2>' +
+          titulo +
+          "</h2><p>" +
+          msg +
+          '</p></div><i class="life" style="width:100%"></i>';
+        wrap.appendChild(el);
+        const life = el.querySelector(".life");
+        const DURATION = 5000;
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            el.classList.add("show");
+            life.style.transition = "width " + DURATION + "ms linear";
+            life.style.width = "0%";
+          });
+        });
+        const kill = () => {
+          if (!el.parentNode) return;
+          el.classList.remove("show");
+          el.classList.add("hide");
+          setTimeout(() => el.remove(), 300);
+        };
+        const timer = setTimeout(kill, DURATION);
+        el.addEventListener("click", () => {
+          clearTimeout(timer);
+          kill();
+        });
+      }
+
+      function toast(kind, m, player, mapNote) {
+        const variant = kind === "rumor" ? "rumor" : "publica";
+        const nome = NOMES[player].toUpperCase();
+        const titulo =
+          kind === "rumor" ? "OUVIDO NA TABERNA — " + nome : "NOVO NO DIÁRIO — " + nome;
+        let msg =
+          kind === "rumor"
+            ? 'Na taberna, um pescador baixa a voz: "' + esc(m.boato) + '"'
+            : esc(m.titulo) + " — o rumor ganhou corpo. Novo card no seu diário.";
+        if (mapNote) msg += ' <i style="color:#ffe3ab">' + esc(mapNote) + "</i>";
+        showNotification(variant, titulo, msg);
+      }
+
+      /* same ○→?→● semantics, but for a POI cycled directly from the map's
+         Console de Revelação instead of via the missions matrix */
+      function toastPoi(kind, poi, player) {
+        const variant = kind === "rumor" ? "rumor" : "publica";
+        const nome = NOMES[player].toUpperCase();
+        const titulo = kind === "rumor" ? "RUMOR NO MAPA — " + nome : "LOCAL REVELADO — " + nome;
+        const msg =
+          kind === "rumor"
+            ? "Um marcador de interrogação nasce perto de <b>" +
+              esc(poi.nome) +
+              "</b> no mapa de " +
+              esc(nome) +
+              "."
+            : "<b>" + esc(poi.nome) + "</b> agora aparece completo no mapa de " + esc(nome) + ".";
+        showNotification(variant, titulo, msg);
+      }
+
+      /* revelação em bloco pelo botão "todos" do console do pino */
+      function toastPoiMesa(kind, poi) {
+        const variant = kind === "rumor" ? "rumor" : "publica";
+        showNotification(
+          variant,
+          kind === "rumor" ? "RUMOR NO MAPA — MESA" : "LOCAL REVELADO — MESA",
+          kind === "rumor"
+            ? "<b>" +
+                esc(poi.nome) +
+                "</b> vira interrogação no mapa de todo mundo — um clique, a mesa inteira."
+            : "<b>" + esc(poi.nome) + "</b> agora aparece completo para a mesa inteira.",
+        );
+      }
+
+      /* ================= map pin tooltip ================= */
+      let tipTimer = null;
+      function showTip(x, y) {
+        const tip = document.getElementById("tip");
+        tip.textContent = "centraliza a câmera no pin (REQ-CNV-008)";
+        tip.style.left = x + 14 + "px";
+        tip.style.top = y + 14 + "px";
+        tip.style.opacity = "1";
+        clearTimeout(tipTimer);
+        tipTimer = setTimeout(() => {
+          tip.style.opacity = "0";
+        }, 2200);
+      }
+
+      /* ================= render ================= */
+      function updateViewline() {
+        const el = document.getElementById("viewline");
+        if (persp === "mestre") {
+          el.className = "viewline gm";
+          el.innerHTML =
+            '<svg class="svgicon" width="12" height="12" viewBox="0 0 24 24"><use href="#ui-gm" width="12" height="12" color="currentColor"/></svg>Visão do Mestre — matriz de publicação (tudo)';
+        } else {
+          el.className = "viewline";
+          el.innerHTML =
+            '<svg class="svgicon" width="12" height="12" viewBox="0 0 24 24"><use href="#ui-user" width="12" height="12" color="currentColor"/></svg>Visão de ' +
+            NOMES[persp] +
+            " — só o que foi publicado ou vazou como boato";
+        }
+      }
+
+      function updateCount() {
+        const el = document.getElementById("count");
+        if (persp === "mestre") {
+          const fechados = DATA.missoes.filter(
+            (m) => m.relogio && m.relogio.diasRestantes <= 0,
+          ).length;
+          el.innerHTML =
+            "<b>" +
+            DATA.missoes.length +
+            "</b> missões no board" +
+            (fechados ? ' · <b class="crit">' + fechados + "</b> relógio fechado" : "");
+        } else {
+          const ativas = DATA.missoes.filter(
+            (m) => m.estado === "ativa" && m.vis[persp] === 2,
+          ).length;
+          const rumores = DATA.missoes.filter((m) => m.vis[persp] === 1).length;
+          const concluidas = DATA.missoes.filter(
+            (m) => m.estado === "concluida" && m.vis[persp] === 2,
+          ).length;
+          el.innerHTML =
+            "<b>" +
+            ativas +
+            "</b> ativas · <b>" +
+            rumores +
+            "</b> rumores · <b>" +
+            concluidas +
+            "</b> concluídas";
+        }
+      }
+
+      function missoesHTML() {
+        if (persp === "mestre") return matrizHTML();
+        const ativas = DATA.missoes.filter((m) => m.estado === "ativa" && m.vis[persp] === 2);
+        const rumores = DATA.missoes.filter((m) => m.vis[persp] === 1);
+        const concluidas = DATA.missoes.filter(
+          (m) => m.estado === "concluida" && m.vis[persp] === 2,
+        );
+        return (
+          '<div class="board">' +
+          grupo(
+            "Ativas",
+            "ic-pin",
+            ativas,
+            cardAtiva,
+            "Nenhuma missão ativa revelada ainda.",
+            "bad",
+          ) +
+          grupo(
+            "Rumores",
+            "ic-qmark",
+            rumores,
+            cardRumor,
+            "Nenhum boato correndo por aqui.",
+            "gold",
+          ) +
+          grupo(
+            "Concluídas",
+            "ic-scroll",
+            concluidas,
+            cardConcluida,
+            "Nenhuma missão encerrada ainda.",
+            "ok",
+          ) +
+          "</div>"
+        );
+      }
+
+      function updateTabs() {
+        document.querySelectorAll("#wtabs .wtab").forEach((b) => {
+          const on = b.dataset.win === activeWin;
+          b.classList.toggle("on", on);
+          b.setAttribute("aria-pressed", String(on));
+        });
+        const ativas =
+          persp === "mestre"
+            ? DATA.missoes.filter((m) => m.estado === "ativa").length
+            : DATA.missoes.filter((m) => m.estado === "ativa" && m.vis[persp] === 2).length;
+        const bdg = document.getElementById("qBadge");
+        bdg.textContent = String(ativas);
+        bdg.style.display = ativas ? "grid" : "none";
+      }
+
+      /* Repaints only what the camera moves — the world transform, the pin
+         positions and the chrome. Used during wheel/drag so a pan does not go
+         through the full innerHTML render (which would kill the drag). */
+      function applyCamera() {
+        const mv = document.getElementById("mv");
+        if (!mv) return;
+        mvW = mv.clientWidth || mvW;
+        document.getElementById("world").style.transform = worldTransform();
+        const nodes = document.getElementById("nodes");
+        DATA.pois.forEach((poi) => {
+          const el = nodes.querySelector('[data-poi="' + poi.id + '"]');
+          if (!el) return;
+          el.style.left = camPct(poi.x, cam.x) + "%";
+          el.style.top = camPct(poi.y, cam.y) + "%";
+          el.classList.toggle("lodoff", poiLod(poi) !== "");
+          const sub = poiSub(poi);
+          const cur = el.querySelector(".sub");
+          if (sub && !cur) {
+            /* the detail line lives between the label and the pin console */
+            const console_ = el.querySelector(".pconsole");
+            if (console_) console_.insertAdjacentHTML("beforebegin", sub);
+            else el.insertAdjacentHTML("beforeend", sub);
+          } else if (!sub && cur) cur.remove();
+        });
+        document.getElementById("zread").textContent = cam.z.toFixed(1).replace(".", ",") + "×";
+        mv.querySelector('[data-action="zoom-out"]').disabled = cam.z <= Z_MIN + 0.001;
+        mv.querySelector('[data-action="zoom-in"]').disabled = cam.z >= Z_MAX - 0.001;
+        const bar = document.getElementById("scalebar");
+        bar.outerHTML = scaleBarHTML(mvW);
+      }
+
+      function render() {
+        const stage = document.getElementById("stage");
+        if (activeWin === "comitiva") stage.innerHTML = comitivaHTML();
+        else if (activeWin === "mapa") stage.innerHTML = mapaHTML();
+        else stage.innerHTML = missoesHTML();
+        updateViewline();
+        updateCount();
+        updateTabs();
+        if (activeWin === "mapa") applyCamera();
+      }
+
+      /* ================= events ================= */
+      document.getElementById("persp").addEventListener("click", (e) => {
+        const b = e.target.closest(".pbtn");
+        if (!b) return;
+        persp = b.dataset.p;
+        document.querySelectorAll("#persp .pbtn").forEach((x) => {
+          const isOn = x === b;
+          x.classList.toggle("on", isOn);
+          x.classList.toggle("gmv", isOn && persp === "mestre");
+          x.setAttribute("aria-pressed", String(isOn));
+        });
+        render();
+      });
+
+      document.getElementById("stage").addEventListener("click", (e) => {
+        if (suppressClick) {
+          suppressClick = false;
+          return;
+        }
+        const t = e.target.closest("[data-action]");
+        if (t) {
+          const action = t.dataset.action;
+
+          if (action === "cycle-vis") {
+            const m = findM(t.dataset.id);
+            const player = t.dataset.player;
+            const old = m.vis[player];
+            const neu = (old + 1) % 3;
+            m.vis[player] = neu;
+            if (old === 0 && neu === 1) {
+              let mapNote = null;
+              const poi = m.node ? findPoi(m.node) : null;
+              if (poi && poi.vis[player] < 1) {
+                poi.vis[player] = 1;
+                mapNote = "O local também virou rumor no mapa.";
+              }
+              toast("rumor", m, player, mapNote);
+            }
+            if (old === 1 && neu === 2) {
+              let mapNote = null;
+              const poi = m.node ? findPoi(m.node) : null;
+              if (poi && poi.vis[player] < 2) {
+                poi.vis[player] = 2;
+                mapNote = "O marcador foi revelado no mapa.";
+              }
+              toast("publica", m, player, mapNote);
+            }
+            render();
+          } else if (action === "revelar") {
+            const m = findM(t.dataset.id);
+            const o = m.objetivos.find((o) => !o.revealed);
+            if (o) o.revealed = true;
+            render();
+          } else if (action === "concluir") {
+            const m = findM(t.dataset.id);
+            m.estado = "concluida";
+            if (!m.resultado) m.resultado = "Encerrada pelo mestre — resultado a definir.";
+            render();
+          } else if (action === "ver-mapa") {
+            showTip(e.clientX, e.clientY);
+          } else if (action === "rastrear-mapa") {
+            const m = findM(t.dataset.id);
+            if (m.node) {
+              mapSel = m.node;
+              activeWin = "mapa";
+              /* REQ-CNV-008: rastrear leva a câmera até o pin, não só troca de aba */
+              const poi = findPoi(m.node);
+              if (poi) centerOn(poi, Z_DETAIL);
+              render();
+            }
+          } else if (action === "zoom-in" || action === "zoom-out") {
+            zoomAt(cam.z * (action === "zoom-in" ? 1.5 : 1 / 1.5), 0.5, 0.5);
+            applyCamera();
+          } else if (action === "zoom-reset") {
+            cam.x = 50;
+            cam.y = 50;
+            cam.z = 1;
+            applyCamera();
+          } else if (action === "cycle-poi") {
+            const poi = findPoi(t.dataset.id);
+            const player = t.dataset.player;
+            const old = poi.vis[player];
+            const neu = (old + 1) % 3;
+            poi.vis[player] = neu;
+            /* clicar no console do pino também seleciona o POI, para o painel de
+               detalhe abaixo acompanhar o que a mão está fazendo no mapa */
+            if (t.closest(".pconsole")) mapSel = poi.id;
+            if (old === 0 && neu === 1) toastPoi("rumor", poi, player);
+            if (old === 1 && neu === 2) toastPoi("publica", poi, player);
+            render();
+          } else if (action === "reveal-all-poi") {
+            /* um clique leva a mesa inteira ao próximo degrau, a partir de quem
+               está mais atrás — nunca esconde de quem já viu */
+            const poi = findPoi(t.dataset.id);
+            const alvo = Math.min(2, Math.min(...PLAYERS.map((p) => poi.vis[p])) + 1);
+            let mudou = false;
+            PLAYERS.forEach((p) => {
+              if (poi.vis[p] < alvo) {
+                poi.vis[p] = alvo;
+                mudou = true;
+              }
+            });
+            mapSel = poi.id;
+            if (mudou) toastPoiMesa(alvo === 1 ? "rumor" : "publica", poi);
+            render();
+          }
+          return;
+        }
+
+        const pcCardEl = e.target.closest("[data-pc]");
+        if (pcCardEl) {
+          const i = Number(pcCardEl.dataset.pc);
+          expandedPc = expandedPc === i ? null : i;
+          render();
+          return;
+        }
+
+        const poiEl = e.target.closest("[data-poi]");
+        if (poiEl) {
+          mapSel = poiEl.dataset.poi;
+          render();
+        }
+      });
+
+      /* ---- camera input: wheel zooms at the cursor, drag pans ---- */
+      const stageEl = document.getElementById("stage");
+      let dragging = null;
+
+      stageEl.addEventListener(
+        "wheel",
+        (e) => {
+          const mv = e.target.closest(".mv");
+          if (!mv) return;
+          e.preventDefault();
+          const r = mv.getBoundingClientRect();
+          zoomAt(
+            cam.z * (e.deltaY < 0 ? 1.18 : 1 / 1.18),
+            (e.clientX - r.left) / r.width,
+            (e.clientY - r.top) / r.height,
+          );
+          applyCamera();
+        },
+        { passive: false },
+      );
+
+      stageEl.addEventListener("pointerdown", (e) => {
+        const mv = e.target.closest(".mv");
+        if (!mv || e.button !== 0 || e.target.closest(".mapctl")) return;
+        dragging = {
+          mv,
+          id: e.pointerId,
+          x: e.clientX,
+          y: e.clientY,
+          camX: cam.x,
+          camY: cam.y,
+          w: mv.clientWidth,
+          h: mv.clientHeight,
+          moved: false,
+        };
+        if (mv.setPointerCapture) mv.setPointerCapture(e.pointerId);
+        mv.classList.add("drag");
+      });
+
+      stageEl.addEventListener("pointermove", (e) => {
+        if (!dragging || e.pointerId !== dragging.id) return;
+        const dx = e.clientX - dragging.x;
+        const dy = e.clientY - dragging.y;
+        if (!dragging.moved && Math.abs(dx) + Math.abs(dy) > 4) dragging.moved = true;
+        if (!dragging.moved) return;
+        /* one screen pixel = 100 / (viewport px * zoom) world units */
+        cam.x = dragging.camX - (dx * 100) / (dragging.w * cam.z);
+        cam.y = dragging.camY - (dy * 100) / (dragging.h * cam.z);
+        clampCam();
+        applyCamera();
+      });
+
+      function endDrag(e) {
+        if (!dragging || (e && e.pointerId !== dragging.id)) return;
+        if (dragging.moved) suppressClick = true;
+        dragging.mv.classList.remove("drag");
+        dragging = null;
+      }
+      stageEl.addEventListener("pointerup", endDrag);
+      stageEl.addEventListener("pointercancel", endDrag);
+
+      document.getElementById("wtabs").addEventListener("click", (e) => {
+        const b = e.target.closest(".wtab");
+        if (!b) return;
+        activeWin = b.dataset.win;
+        render();
+      });
+
+      addEventListener("keydown", (e) => {
+        const tag = e.target.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA") return;
+        const map = { q: "missoes", c: "comitiva", m: "mapa" };
+        const k = e.key.toLowerCase();
+        if (map[k]) {
+          activeWin = map[k];
+          render();
+        }
+      });
+
+      render();
+    </script>
+  </body>
+</html>

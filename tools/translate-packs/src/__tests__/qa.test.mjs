@@ -23,14 +23,78 @@ test("checkDoc passes a well-formed translation with identical dice, tags, and m
   assert.deepEqual(failures, []);
 });
 
-test("checkDoc has no failures for a name-only translation (no description field)", () => {
+// ---------------------------------------------------------------------------
+// missing-description (issue #27)
+//
+// The gate used to run its checks only `if (hasDescriptionEn && hasDescriptionPt)`
+// and had no branch for the failure mode that actually happened: EN carries
+// prose, PT comes back empty. That is how 679 empty descriptions reached the
+// packs with the QA reporting success.
+// ---------------------------------------------------------------------------
+
+test("missing-description: fails when EN has prose and the translation omits the description", () => {
   const failures = checkDoc({
     nameEn: "Fireball",
     descriptionEn: "<p>You deal 6d6 fire damage.</p>",
-    entry: { name: "Bola de Fogo" }, // description omitted on purpose
+    entry: { name: "Bola de Fogo" }, // description omitted
+    glossary,
+  });
+  assert.equal(failures.length, 1);
+  assert.match(failures[0], /^missing-description:/);
+});
+
+test("missing-description: fails when EN has prose and the translation is an empty string", () => {
+  const failures = checkDoc({
+    nameEn: "Fireball",
+    descriptionEn: "<p>You deal 6d6 fire damage.</p>",
+    entry: { name: "Bola de Fogo", description: "" },
+    glossary,
+  });
+  assert.equal(failures.length, 1);
+  assert.match(failures[0], /^missing-description:/);
+});
+
+test("missing-description: passes for a name-only translation when the EN doc has no prose either", () => {
+  const failures = checkDoc({
+    nameEn: "Fireball",
+    descriptionEn: "",
+    entry: { name: "Bola de Fogo" },
     glossary,
   });
   assert.deepEqual(failures, []);
+});
+
+test("missing-description: passes when the EN description is markup with no text", () => {
+  // Not a translation gap — there is nothing to translate.
+  const failures = checkDoc({
+    nameEn: "Fireball",
+    descriptionEn: "<p></p>",
+    entry: { name: "Bola de Fogo" },
+    glossary,
+  });
+  assert.deepEqual(failures, []);
+});
+
+test("missing-description: passes when the entry explicitly declares noDescription", () => {
+  // The escape hatch: a doc deliberately left name-only despite EN prose.
+  const failures = checkDoc({
+    nameEn: "Fireball",
+    descriptionEn: "<p>You deal 6d6 fire damage.</p>",
+    entry: { name: "Bola de Fogo", noDescription: true },
+    glossary,
+  });
+  assert.deepEqual(failures, []);
+});
+
+test("missing-description: runQaForPack surfaces the gap for a doc with an empty translation", () => {
+  const docs = [
+    { _id: "doc-1", name: "Fireball", system: { description: "<p>You deal 6d6 fire damage.</p>" } },
+  ];
+  const overlay = { entries: { "doc-1": { name: "Bola de Fogo", description: "" } } };
+  const results = runQaForPack(docs, overlay, glossary);
+  const failing = results.filter((r) => r.failures.length > 0);
+  assert.equal(failing.length, 1);
+  assert.match(failing[0].failures[0], /^missing-description:/);
 });
 
 test("checkDoc returns [] when there's no overlay entry at all (untranslated, not a QA failure)", () => {

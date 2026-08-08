@@ -27,6 +27,7 @@ import { abilityMod, proficiencyBonus, resolveStatisticMulti, mapPenalties } fro
 import { deriveStrikeFromWeapon, type StrikeModifier } from "../actions/strikes.js";
 import type {
   DerivedStatistic,
+  DerivedSkillStatistic,
   DerivedStrike,
   ModifierBreakdown,
   ArchetypeClassDC,
@@ -40,6 +41,7 @@ import { resolveClassLevels, type EmbeddedClass } from "../variants/classLevels/
 import { stepCharSpeed } from "./speed.js";
 import { stepCharToughness } from "./hp.js";
 import { stepCharElementalBlasts } from "./elementalBlast.js";
+import { stepCharIsekaiFocus } from "./isekai.js";
 import {
   stepCharBuildAbilities,
   stepCharApplyClass,
@@ -429,6 +431,10 @@ export const stepCharPerception: DeriveStep = {
  * Each skill = abilityMod(skill.ability) + proficiency(rank) + Σmodifiers.
  * Selectors: "skill:<slug>" + broad "skill-check".
  *
+ * Every entry also exposes the `rank` it was derived from (CONTRACT C1) — the
+ * sheet reads the proficiency label from here, not from `system.skills`, which
+ * never receives the build-driven ranks computed during derivation.
+ *
  * Reads:  system.derived.abilityMods, system.skills, system.level
  * Writes: system.derived.skills
  */
@@ -446,10 +452,10 @@ export const stepCharSkills: DeriveStep = {
     const abilityMods = derived["abilityMods"] as Record<string, number> | undefined;
     const level = getLevel(sys);
 
-    const skillsResult: Record<string, DerivedStatistic> = {};
+    const skillsResult: Record<string, DerivedSkillStatistic> = {};
     const persisted = sys.skills ?? {};
 
-    const deriveOne = (slug: string, rank: number, isLore: boolean): DerivedStatistic => {
+    const deriveOne = (slug: string, rank: number, isLore: boolean): DerivedSkillStatistic => {
       // Determine key ability: Lore uses INT; canonical skills use SKILL_ABILITY map.
       const ability: string = isLore
         ? "int"
@@ -459,13 +465,18 @@ export const stepCharSkills: DeriveStep = {
       const base = mod + proficiencyBonus(rank, level);
 
       // Selectors: specific "skill:acrobatics" + broad "skill-check"
-      return resolveStatisticMulti(
+      const stat = resolveStatisticMulti(
         slug,
         base,
         [`skill:${slug}`, "skill-check"],
         ctx.synthetics,
         ctx.rollOptions,
       );
+
+      // The rank rides along on the derived statistic (CONTRACT C1): it is the
+      // only place the sheet can read it from, since build-driven ranks are
+      // computed here and never written back to `system.skills`.
+      return { ...stat, rank };
     };
 
     // All 16 canonical skills — always present, untrained (rank 0) if not
@@ -1138,6 +1149,12 @@ export const CHARACTER_DERIVE_STEPS: DeriveStep[] = [
   stepCharCollectEquipment,
   stepCharHp,
   stepCharToughness,
+  // Isekai variant: proposes a Focus pool for a character who has none, and
+  // publishes the ★ locks. Inert unless the variant is on AND an archetype is
+  // picked. Listed before the clamp because that is the order the topo-sort
+  // resolves (see the step's own comment) — the clamp always gets the last
+  // word on the 3-point cap.
+  stepCharIsekaiFocus,
   stepCharFocusClamp,
   stepCharDyingMax,
   stepCharAc,

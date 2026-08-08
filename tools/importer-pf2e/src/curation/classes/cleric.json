@@ -484,7 +484,7 @@
       "Necromancer's Visage -> \"ability to create or control undead\" + \"cleric with a negative font, oracle of bones, or necromancer wizard\" (identico ao registrado em wizard.json; nao mecanizavel)",
       "Purifying Breeze -> \"divine spells\" (atributo de conjuracao)",
       "Sepulchral Sublimation -> mesmos dois prerequisitos textuais de Necromancer's Visage (identico ao registrado em wizard.json)",
-      "Echoing Channel -> \"Embodiment of Balance or Cleric\" (Embodiment of Balance e feature do Animist; \"or Cleric\" le-se como filiacao de classe, nao referencia a feat)",
+      "Echoing Channel -> \"Embodiment of Balance or Cleric\" (Embodiment of Balance e feature do Animist; \"or Cleric\" le-se como filiacao de classe, nao referencia a feat). issue #46: confirmado por leitura DIRETA do vendor (vendor/pf2e/packs/pf2e/feats/class/shared-class-feats/level-18/echoing-channel.json) que este texto ja vem assim da fonte -- NAO e corrupcao do pipeline de import (system.prerequisites eh copiado verbatim em transform.mjs). O proprio corpo do feat confirma a leitura: description tem paragrafos separados 'Animist' e 'Cleric', o feat e compartilhado entre as duas classes (traits: animist+cleric+concentrate+spellshape), e o requisito informal e 'tenha Embodiment of Balance (se Animist) OU simplesmente seja Cleric (sem feature nomeada)'. Nao mecanizavel hoje (nenhum codigo interpreta pre-requisito de identidade de classe) e nao ha nada para corrigir -- prosa legitima do vendor, permanece como veio.",
       "Prayer-Touched Weapon -> \"divine spells\" + \"you follow a good-aligned deity\"",
       "Undying Conviction -> mesmos dois prerequisitos textuais de Necromancer's Visage (identico ao registrado em wizard.json)"
     ]

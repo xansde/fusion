@@ -10,7 +10,8 @@
       "system.traits.value": [
         "animal"
       ],
-      "system.attributes.hp.max": 6
+      "system.attributes.hp.max": 6,
+      "flags.fusion.sourceId": "WBPEvEqIGvxeQKlp"
     }
   },
   {
@@ -24,7 +25,8 @@
       "system.traits.value": [
         "animal"
       ],
-      "system.attributes.hp.max": 8
+      "system.attributes.hp.max": 8,
+      "flags.fusion.sourceId": "iIJPJcDT8wlJ8z5M"
     }
   },
   {
@@ -39,7 +41,8 @@
         "goblin",
         "humanoid"
       ],
-      "system.attributes.hp.max": 6
+      "system.attributes.hp.max": 6,
+      "flags.fusion.sourceId": "fLLKuOXwPq1Iq0U4"
     }
   },
   {
@@ -53,7 +56,8 @@
       "system.traits.value": [
         "animal"
       ],
-      "system.attributes.hp.max": 8
+      "system.attributes.hp.max": 8,
+      "flags.fusion.sourceId": "KHTYbQgR5hnFZdGL"
     }
   },
   {
@@ -69,7 +73,8 @@
         "dwarf",
         "humanoid"
       ],
-      "system.attributes.hp.max": 18
+      "system.attributes.hp.max": 18,
+      "flags.fusion.sourceId": "Ytp0kRaG8iexmPfN"
     }
   },
   {
@@ -84,7 +89,8 @@
         "humanoid",
         "kobold"
       ],
-      "system.attributes.hp.max": 7
+      "system.attributes.hp.max": 7,
+      "flags.fusion.sourceId": "BIZfjoz8DZt75EDn"
     }
   },
   {
@@ -99,7 +105,8 @@
         "leshy",
         "plant"
       ],
-      "system.attributes.hp.max": 15
+      "system.attributes.hp.max": 15,
+      "flags.fusion.sourceId": "v1UK3IwCB8wCbL3L"
     }
   },
   {
@@ -114,7 +121,8 @@
         "humanoid",
         "orc"
       ],
-      "system.attributes.hp.max": 18
+      "system.attributes.hp.max": 18,
+      "flags.fusion.sourceId": "YReM6QbqwUz3UTP7"
     }
   },
   {
@@ -131,7 +139,8 @@
         "undead",
         "unholy"
       ],
-      "system.attributes.hp.max": 4
+      "system.attributes.hp.max": 4,
+      "flags.fusion.sourceId": "trchDxbDR2TiPMxT"
     }
   },
   {
@@ -148,7 +157,8 @@
         "unholy",
         "zombie"
       ],
-      "system.attributes.hp.max": 20
+      "system.attributes.hp.max": 20,
+      "flags.fusion.sourceId": "Xo4IGzw28hivgMmM"
     }
   }
 ]

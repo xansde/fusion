@@ -40,6 +40,22 @@ import type {
   DocOpPayload,
   DocUpdatePayload,
 } from "./characterSheetVM.js";
+import { translatePrerequisite } from "../../compendium/prerequisiteTranslation.js";
+import { isLoreSlug, legacyLoreSlug, loreSlug, migrateLoreSlug } from "./loreSlug.js";
+import {
+  MAX_ISEKAI_ARCHETYPES,
+  getIsekaiArchetype,
+  isekaiBlessingsAtLevel,
+  resolveIsekaiArchetypes,
+} from "./isekai/index.js";
+
+/**
+ * `loreSlug` is re-exported so the historical `planVM.loreSlug` entry point
+ * keeps working — this module used to own a SECOND, divergent implementation
+ * (the legacy `<subject>-lore` form) that no reader in the app understood.
+ * `./loreSlug.ts` is now the single convention (contract C3).
+ */
+export { loreSlug };
 
 // ---------------------------------------------------------------------------
 // Local mirrors of systems/pf2e/src/types.ts canonical sets.
@@ -366,6 +382,16 @@ export interface AbcChip {
    * feature whose vendor has no clean-room pack yet).
    */
   detailsPackSlug?: string;
+  /**
+   * The MATERIALIZED grant item's `flags.fusion.sourceId` (issue #44). Only
+   * present alongside `detailsPackSlug` — a materialized chip always has the
+   * backing embedded item in hand, so there's never a reason to fall back to
+   * name matching for one. Lets the details panel resolve the EXACT document
+   * instead of by name (PF2e homonyms are the norm — "Unusual Anatomy" is
+   * both a spell in spells-core and a feature in ancestry-features-core, with
+   * distinct ids).
+   */
+  sourceId?: string;
 }
 
 /**
@@ -415,6 +441,7 @@ export type PlanSlotType =
   | "muse"
   | "cause"
   | "doctrine"
+  | "blessing"
   | "skillTraining"
   | "skillIncrease"
   | "grantedFeat"
@@ -472,6 +499,39 @@ export interface PlanSlotModel {
   detailsPackSlug?: string;
   /** Non-blocking "requirements not met" marker (Frente 3) — set only on a FILLED, item-backed slot whose backing item no longer satisfies its level/class/ancestry requirement. */
   requirementIssue?: RequirementIssue;
+  /**
+   * The backing embedded item's `flags.fusion.sourceId` (issue #44), when the
+   * slot is ITEM-backed (a feat/hybridStudy/axis pick or a locked fixed-grant
+   * chip). Absent for a CHOICE-backed slot (abilityBoosts, skillTraining,
+   * skillIncrease, adoptedAncestryChoice) — those never materialize an
+   * embedded item, so there's no sourceId to carry; name resolution stays the
+   * only option there (rule: never invent an id the data doesn't have).
+   * Lets `detailsRequestForSlot` resolve the EXACT document instead of by
+   * name — defusing the risk `findEntryUuidByName`'s prefix fallback
+   * otherwise carries (e.g. two feats where one's name is a prefix of the
+   * other's).
+   */
+  sourceId?: string;
+}
+
+/**
+ * Marks an auto feature as an ISEKAI blessing rather than a class feature.
+ *
+ * Present only on chips the Isekai layer contributes. Carries what the chip
+ * needs to render on its own — the layer has no compendium documents behind
+ * it, so there is nothing for the details panel to resolve and the text
+ * travels with the chip.
+ */
+export interface IsekaiChipInfo {
+  archetypeId: string;
+  /** Display name of the archetype, for the chip's source label. */
+  archetypeName: string;
+  /** `#rrggbb` accent, so both archetypes stay visually distinct on a card. */
+  color: string;
+  /** The blessing's rules text, pt-BR. May contain inline `<b>`. */
+  text: string;
+  /** "major" for the Dádiva Maior chip on level 1, "minor" for the ladder. */
+  kind: "major" | "minor";
 }
 
 export interface AutoFeatureModel {
@@ -485,6 +545,30 @@ export interface AutoFeatureModel {
    * "actions-core" so the details panel resolves it in the right pack.
    */
   detailsPackSlug?: string;
+  /**
+   * The pack-scoped document id (issue #44) for a feature NAMED directly by
+   * `classSystem.featuresByLevel[].uuid` — which, despite its name, IS the
+   * feature's own `_id` in class-features-core (measured: 221/221 non-choice
+   * featuresByLevel entries across the 12 classes resolve this way), NOT a
+   * Foundry compendium uuid. Lets the details panel skip name matching
+   * entirely for the common case.
+   */
+  docId?: string;
+  /**
+   * The `flags.fusion.sourceId` of a MATERIALIZED class-granted action item
+   * (r20-X4 — `classGrantedActionChips`). Mutually exclusive with `docId`:
+   * a featuresByLevel-named feature carries `docId`; a granted action (which
+   * has no featuresByLevel entry of its own) carries `sourceId` from its
+   * embedded copy instead.
+   */
+  sourceId?: string;
+  /**
+   * Present ONLY on an Isekai blessing chip. Mutually exclusive with
+   * `docId`/`sourceId`/`detailsPackSlug`: the layer's content lives in
+   * `./isekai/`, not in a pack, so a details lookup would find nothing (or
+   * worse, a same-named feat) — the chip carries its own text instead.
+   */
+  isekai?: IsekaiChipInfo;
 }
 
 export interface LevelPlanModel {
@@ -522,6 +606,7 @@ const SLOT_TYPE_LABELS: Record<PlanSlotType, string> = {
   muse: "Muse",
   cause: "Cause",
   doctrine: "Doctrine",
+  blessing: "Blessing of the Devoted",
   skillTraining: "Skill Training",
   skillIncrease: "Skill Increase",
   grantedFeat: "Granted Feat",
@@ -538,6 +623,86 @@ export function getClassLevelsVariant(sys: Record<string, unknown>): boolean {
   const build = asRecord(sys["build"]);
   const variantRules = asRecord(build["variantRules"]);
   return variantRules["classLevels"] === true;
+}
+
+// ---------------------------------------------------------------------------
+// Isekai layer — the variant's Plan surface (./isekai)
+// ---------------------------------------------------------------------------
+
+/** Is the Isekai variant on for this actor? */
+export function getIsekaiVariant(sys: Record<string, unknown>): boolean {
+  const build = asRecord(sys["build"]);
+  const variantRules = asRecord(build["variantRules"]);
+  return variantRules["isekai"] === true;
+}
+
+/**
+ * The archetype ids the sheet carries — real strings only.
+ *
+ * Never validated against the content here: an id the data no longer knows is
+ * dropped at RENDER time (`resolveIsekaiArchetypes`), not at read time, so the
+ * document keeps carrying it and a content edit that restores the archetype
+ * restores the character too.
+ */
+export function getIsekaiArchetypes(sys: Record<string, unknown>): string[] {
+  const isekai = asRecord(sys["isekai"]);
+  const raw = isekai["archetypes"];
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((id): id is string => typeof id === "string" && id.length > 0);
+}
+
+/**
+ * The Isekai chips for one level card: the Major Blessings on level 1, then
+ * the Minor Blessings that unlock exactly at this level, both archetypes
+ * merged in archetype order.
+ *
+ * Returns `[]` — costing nothing — when the variant is off or nothing is
+ * picked, which is what keeps the Plan byte-identical for every other sheet.
+ */
+function isekaiAutoFeatures(doc: Record<string, unknown>, level: number): AutoFeatureModel[] {
+  const sys = getSystem(doc);
+  if (!getIsekaiVariant(sys)) return [];
+  const archetypeIds = getIsekaiArchetypes(sys);
+  if (archetypeIds.length === 0) return [];
+
+  const chips: AutoFeatureModel[] = [];
+
+  // Level 1 carries the Major Blessing: it is what the archetype IS, and the
+  // character has it from the moment they pick it.
+  if (level === 1) {
+    for (const archetype of resolveIsekaiArchetypes(archetypeIds)) {
+      chips.push({
+        name: archetype.majorBlessing.title,
+        locked: true,
+        isekai: {
+          archetypeId: archetype.id,
+          archetypeName: archetype.name,
+          color: archetype.color,
+          // The Major Blessing is several paragraphs; the chip carries them
+          // joined so the details popover has the whole rule, not the first
+          // third of it.
+          text: archetype.majorBlessing.paragraphs.join(" "),
+          kind: "major",
+        },
+      });
+    }
+  }
+
+  for (const { archetype, blessing } of isekaiBlessingsAtLevel(archetypeIds, level)) {
+    chips.push({
+      name: blessing.name,
+      locked: true,
+      isekai: {
+        archetypeId: archetype.id,
+        archetypeName: archetype.name,
+        color: archetype.color,
+        text: blessing.text,
+        kind: "minor",
+      },
+    });
+  }
+
+  return chips;
 }
 
 /** A class the character already has on the sheet. */
@@ -764,6 +929,7 @@ export const CLASS_CHOICE_SLOTS: Record<string, PlanSlotType> = {
   Muses: "muse",
   Cause: "cause",
   Doctrine: "doctrine",
+  "Blessing of the Devoted": "blessing",
 };
 
 /**
@@ -1141,6 +1307,7 @@ function abcChipsFor(
         key: `grant:${typeof it["_id"] === "string" ? it["_id"] : norm}`,
         name,
         detailsPackSlug: grantedItemPackSlug(it),
+        ...withOptional("sourceId", itemFusionSourceId(it)),
       });
     }
   }
@@ -1357,7 +1524,14 @@ function buildLevelPlan(
     const norm = normalizeName(f.name);
     if (autoSeen.has(norm)) continue;
     autoSeen.add(norm);
-    autoFeatures.push({ name: f.name, locked: true });
+    autoFeatures.push({
+      name: f.name,
+      locked: true,
+      ...withOptional(
+        "docId",
+        typeof f.uuid === "string" && f.uuid.length > 0 ? f.uuid : undefined,
+      ),
+    });
   }
   for (const chip of classGrantedActionChips(doc, level)) {
     const norm = normalizeName(chip.name);
@@ -1365,6 +1539,12 @@ function buildLevelPlan(
     autoSeen.add(norm);
     autoFeatures.push(chip);
   }
+  // Isekai blessings come LAST and skip the de-duplication above on purpose:
+  // they belong to a different layer, so an Isekai blessing sharing a name
+  // with a class feature (both archetypes have a "Feat de Classe"-shaped
+  // entry) is two real, separately-earned things — collapsing them would
+  // silently hide one.
+  autoFeatures.push(...isekaiAutoFeatures(doc, level));
 
   // Frente 3 (DEC-BC-05): mark, never hide/block, a filled slot whose
   // backing item no longer meets its requirement (a class/ancestry swap
@@ -1410,7 +1590,12 @@ function classGrantedActionChips(doc: Record<string, unknown>, level: number): A
     const norm = normalizeName(name);
     if (seen.has(norm)) continue;
     seen.add(norm);
-    out.push({ name, locked: true, detailsPackSlug: grantedItemPackSlug(it) });
+    out.push({
+      name,
+      locked: true,
+      detailsPackSlug: grantedItemPackSlug(it),
+      ...withOptional("sourceId", itemFusionSourceId(it)),
+    });
   }
   return out;
 }
@@ -1534,6 +1719,7 @@ function pushFixedGrantChips(
       detailsPackSlug,
       ...withOptional("choiceName", itemName(item)),
       ...withOptional("itemId", typeof itemId === "string" ? itemId : undefined),
+      ...withOptional("sourceId", itemFusionSourceId(item)),
     });
   }
 }
@@ -1667,6 +1853,7 @@ function resolveSlot(
       filled: true,
       ...withOptional("choiceName", itemName(item)),
       ...withOptional("itemId", typeof item["_id"] === "string" ? item["_id"] : undefined),
+      ...withOptional("sourceId", itemFusionSourceId(item)),
     };
   }
 
@@ -1933,9 +2120,18 @@ const KNOWN_CLASS_TRAITS = new Set([
  * data). `kineticGate` is deliberately ABSENT: its "options" aren't a tagged
  * doc list but a single element/damage-type dialog (chooseKineticGate) — see
  * the Kinetic Gate section below.
+ *
+ * `requiredClass` (issue #25): every entry's `category` follows the
+ * `<classSlug>-...` convention CHOICE_SLOT_REQUIRED_CLASS derives from below
+ * — EXCEPT "blessing", whose vendor otherTags value is the bare
+ * "blessing-of-the-devoted" (no "champion-" prefix; confirmed against
+ * vendor/pf2e/packs/pf2e/class-features/blessed-{armament,shield,swiftness}
+ * .json, unlike every other axis's otherTag). Declaring it explicitly here
+ * keeps the derivation below correct without special-casing "blessing" in
+ * the derivation itself.
  */
 export const CLASS_CHOICE_SLOT_OPTIONS: Partial<
-  Record<PlanSlotType, { packSlug: string; category: string }>
+  Record<PlanSlotType, { packSlug: string; category: string; requiredClass?: string }>
 > = {
   hybridStudy: { packSlug: "class-features-core", category: "magus-hybrid-study" },
   instinct: { packSlug: "class-features-core", category: "barbarian-instinct" },
@@ -1947,6 +2143,11 @@ export const CLASS_CHOICE_SLOT_OPTIONS: Partial<
   muse: { packSlug: "class-features-core", category: "bard-muse" },
   cause: { packSlug: "class-features-core", category: "champion-cause" },
   doctrine: { packSlug: "class-features-core", category: "cleric-doctrine" },
+  blessing: {
+    packSlug: "class-features-core",
+    category: "blessing-of-the-devoted",
+    requiredClass: "champion",
+  },
 };
 
 /**
@@ -1986,15 +2187,17 @@ function capitalizeSlug(slug: string): string {
 }
 
 /**
- * The class a CLASS_CHOICE_SLOT_OPTIONS slot type requires, derived from its
- * category tag's `<classSlug>-...` prefix (e.g. "magus-hybrid-study" →
- * "magus") — every current entry follows this convention (see
+ * The class a CLASS_CHOICE_SLOT_OPTIONS slot type requires, taken from its
+ * OWN explicit `requiredClass` when declared (issue #25 — "blessing"'s
+ * category doesn't carry a class-slug prefix to derive from), else derived
+ * from its category tag's `<classSlug>-...` prefix (e.g. "magus-hybrid-study"
+ * → "magus") — every other entry follows this convention (see
  * CLASS_CHOICE_SLOT_OPTIONS's own doc comment for the full list). Computed
  * once at module load, not per-call.
  */
 const CHOICE_SLOT_REQUIRED_CLASS: Partial<Record<PlanSlotType, string>> = Object.fromEntries(
   Object.entries(CLASS_CHOICE_SLOT_OPTIONS).map(([slotType, opt]) => {
-    const requiredClass = opt.category.split("-")[0] ?? opt.category;
+    const requiredClass = opt.requiredClass ?? opt.category.split("-")[0] ?? opt.category;
     return [slotType, requiredClass];
   }),
 );
@@ -2245,6 +2448,28 @@ function knownPossessedNames(
   return names;
 }
 
+/**
+ * Axis-shaped prerequisite phrases (already run through `normalizePrereqText`)
+ * that name a REAL PF2e subclass axis belonging to a class Fusion doesn't
+ * curate (issue #45 — "untamed order" is the Druid's order axis; Druid isn't
+ * one of the 12 curated classes). No character can EVER possess this axis's
+ * pick today, so unlike a truly unknown phrase (downgraded to "unresolved" —
+ * "maybe satisfiable through data this module doesn't model"), this one
+ * resolves definitively to "unmet": a Fusion character's `axisNames` will
+ * never carry an entry for it, so it behaves exactly like a tracked axis
+ * whose option was never chosen.
+ *
+ * Without this, "animal instinct or untamed order" (3 Barbarian feats: Brutal
+ * Crush, Creature Comforts, Rip and Tear) silently fell back to "unknown"
+ * (no mark) for any barbarian NOT on Animal instinct, while their "animal
+ * instinct"-only siblings (Animal Skin, Animal Rage, Predator's Pounce)
+ * correctly show "unmet" for the exact same character — an inconsistent
+ * signal for the identical mistake (DEC-BC-05 leniency is meant to protect
+ * against FALSE negatives, not to hide a REAL one just because it's phrased
+ * as an "A or B").
+ */
+const UNMODELED_AXIS_PHRASES = new Set(["untamed order"]);
+
 /** One `system.prerequisites` candidate's resolution against what the character possesses. `"unresolved"` means this module has no way to tell — never treated as unmet. */
 function evaluatePrerequisiteCandidate(
   raw: string,
@@ -2254,6 +2479,8 @@ function evaluatePrerequisiteCandidate(
   const normalized = normalizePrereqText(raw);
   const short = stripParentheticalSuffix(raw);
   if (knownNames.has(normalized) || knownNames.has(short)) return "met";
+
+  if (UNMODELED_AXIS_PHRASES.has(normalized)) return "unmet";
 
   const axisMatch = matchAxisSuffix(normalized);
   if (!axisMatch) return "unresolved";
@@ -2322,7 +2549,7 @@ export function checkFeatPrerequisites(
     const value = typeof entry === "string" ? entry : asRecord(entry)["value"];
     if (typeof value !== "string" || value.trim().length === 0) continue;
     if (evaluatePrerequisiteEntry(value, knownNames, axisNames) === "unmet") {
-      missing.push(value.trim());
+      missing.push(translatePrerequisite(value.trim()));
     }
   }
   if (missing.length === 0) return undefined;
@@ -2786,7 +3013,10 @@ function buildFocusEntryOp(
         tradition: { value: tradition },
         // Focus spells cast with the class's SPELLCASTING ability (Magus
         // conflux = INT), not the key ability (r11 fix — Pathbuilder's
-        // focus block confirms int for Tobias).
+        // focus block confirms int for Tobias). No `?? "int"` fallback: the
+        // parameter is a required string and every caller reads it from a
+        // typed source, so the fallback was unreachable — and its sibling
+        // buildSpellcastingEntryOp never had one either (issue #69).
         ability: { value: ability },
         proficiency: { value: 1 },
         slots: {},
@@ -2958,7 +3188,15 @@ export function applyBackground(
   const fixedBoosts = boosts.filter((b) => b !== "free");
   const freeCount = boosts.filter((b) => b === "free").length;
 
+  // What the incoming background grants — read up front because the Lore
+  // cleanup below has to know which of the OUTGOING background's Lores are
+  // re-granted (those stay) before anything is deleted.
+  const trainings = readBackgroundTrainings(sys);
+
   const ops: DocOpPayload[] = [
+    // Before the swap: drop the Lore ledger entries the outgoing background
+    // created. Reads `ctx.doc`, which is still the pre-swap state.
+    ...backgroundLoreCleanupOps(ctx, trainings),
     ...replaceAbcItem(ctx, "background"),
     {
       type: "doc:create",
@@ -2987,7 +3225,6 @@ export function applyBackground(
   // — the pack shape is `system.trainedSkills = {value:["performance"],
   // lore:["Fireworks Lore"]}` but the old reader only understood the normalized
   // `system.skills = {performance:{value:1}}` shape and never trained the lore.
-  const trainings = readBackgroundTrainings(sys);
   const buildSkillOps = backgroundTrainingOps(ctx, trainings);
   ops.push(...buildSkillOps);
 
@@ -3035,22 +3272,112 @@ export function readBackgroundTrainings(sys: Record<string, unknown>): Backgroun
   };
 }
 
+/** Build-choice slot prefixes a background owns — everything it grants, and
+ * nothing else, is keyed under one of these two. */
+const BACKGROUND_SKILL_SLOT = "backgroundSkill-";
+const BACKGROUND_LORE_SLOT = "backgroundLore-";
+
 /**
- * loreSlug — a stable skill slug for a lore proficiency. Strips a trailing
- * "Lore" word, slugifies the rest, and re-appends "-lore" (matching the
- * "<topic>-lore" convention the character derivation already recognizes for
- * persisted Lore skills). "Piloting Lore" → "piloting-lore".
+ * The rank persisted straight on `system.skills.<slug>`, 0 when the entry is
+ * absent or malformed.
+ *
+ * A background's own Lore is always persisted at rank 0 (see
+ * `backgroundTrainingOps`) — what makes it trained is the `backgroundLore-N`
+ * build choice, resolved in the derivation. So a persisted rank ABOVE 0 can
+ * only have been put there by the player, through the row's rank `<select>`
+ * (`characterSheetVM.updateSkillRank` → `system.skills.<slug>.rank`), which
+ * leaves no build choice behind to prove it.
  */
-export function loreSlug(name: string): string {
-  const base = name
-    .trim()
-    .replace(/\s*lore\s*$/i, "")
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  return base ? `${base}-lore` : "lore";
+function persistedSkillRank(persistedSkills: Record<string, unknown>, slug: string): number {
+  const rank = asRecord(persistedSkills[slug])["rank"];
+  return typeof rank === "number" ? rank : 0;
+}
+
+/**
+ * backgroundLoreCleanupOps — the `doc:update` that REMOVES the `system.skills`
+ * entries the OUTGOING background granted (S2).
+ *
+ * Dropping a background's build choices untrains a canonical skill (its rank is
+ * derived from the choices), but a Lore is different: it has no canonical slug,
+ * so the background also had to CREATE the `system.skills.<slug>` ledger entry.
+ * Nothing ever removed it, so every background a character had ever worn kept
+ * its Lore on the sheet forever. `null` inside `system` is deleteKey
+ * (REQ-DOC-037, see packages/server/src/documents/merge.ts).
+ *
+ * Five things must survive the swap, hence the guards below:
+ *   - a Lore the INCOMING background grants under the very same key;
+ *   - a Lore the player created by hand (`addLoreSkill` — no background choice
+ *     points at it, so it is never a candidate);
+ *   - a Lore the player invested one of their OWN training/increase slots in;
+ *   - a Lore whose PERSISTED rank the player raised through the row's rank
+ *     `<select>` (see `persistedSkillRank`) — that path writes no build choice,
+ *     so the two guards above are blind to it;
+ *   - anything that is not a Lore at all.
+ *
+ * A legacy sheet holds the Lore under `<subject>-lore` while the incoming
+ * background emits `lore-<subject>`, so a swap that re-grants the same subject
+ * deletes the legacy key and writes the canonical one — the migration falls out
+ * of the swap for free.
+ */
+function backgroundLoreCleanupOps(
+  ctx: PlanOpBuilderContext,
+  incoming: BackgroundTrainings,
+): DocOpPayload[] {
+  const actorSys = getSystem(ctx.doc);
+  const persistedSkills = asRecord(actorSys["skills"]);
+  const choices = getBuildChoices(actorSys);
+
+  // Exactly the keys the incoming background is about to (re)write.
+  const incomingSlugs = new Set(incoming.lores.map((l) => l.slug));
+  // The LEGACY spelling of each of those keys. Such an entry is still deleted
+  // (that is the free migration described above) even when its rank was raised
+  // by hand, because `backgroundTrainingOps` rewrites the same proficiency —
+  // rank included — under the canonical key in the same batch. Without this
+  // exemption the hand-raised-rank guard below would keep the legacy key alive
+  // next to the canonical one: two rows for one Lore.
+  const incomingLegacySlugs = new Set(incoming.lores.map((l) => legacyLoreSlug(l.label)));
+
+  // Candidates come from two sources because either can be incomplete: the
+  // embedded background item may be a STALE import (no `trainedSkills`), while
+  // the `backgroundLore-*` choices may have been lost. Both slug conventions
+  // are probed for the item-derived ones — existing sheets were written legacy.
+  const candidates = new Set<string>();
+  const outgoing = findFirstItemByType(ctx.doc, "background");
+  if (outgoing) {
+    for (const lore of readBackgroundTrainings(asRecord(outgoing["system"])).lores) {
+      candidates.add(lore.slug);
+      candidates.add(legacyLoreSlug(lore.label));
+    }
+  }
+  for (const c of choices) {
+    if (c.slot.startsWith(BACKGROUND_LORE_SLOT) && c.skill) candidates.add(c.skill);
+  }
+
+  const playerOwned = new Set(
+    choices
+      .filter((c) => !c.slot.startsWith(BACKGROUND_LORE_SLOT) && c.skill !== undefined)
+      .map((c) => c.skill),
+  );
+
+  const diff: Record<string, unknown> = {};
+  for (const slug of candidates) {
+    if (incomingSlugs.has(slug)) continue;
+    if (playerOwned.has(slug)) continue;
+    if (persistedSkillRank(persistedSkills, slug) > 0 && !incomingLegacySlugs.has(slug)) continue;
+    if (!isLoreSlug(slug)) continue;
+    if (!(slug in persistedSkills)) continue;
+    diff[`system.skills.${slug}`] = null;
+  }
+
+  if (Object.keys(diff).length === 0) return [];
+  return [
+    {
+      type: "doc:update",
+      documentType: "Actor",
+      id: ctx.actorId,
+      diff,
+    } satisfies DocUpdatePayload,
+  ];
 }
 
 /**
@@ -3078,7 +3405,7 @@ function backgroundTrainingOps(
   trainings.skills.forEach((slug, i) => {
     newChoices.push({
       level: 1,
-      slot: `backgroundSkill-${String(i)}`,
+      slot: `${BACKGROUND_SKILL_SLOT}${String(i)}`,
       type: "skillTraining",
       skill: slug,
       rank: 1,
@@ -3087,12 +3414,23 @@ function backgroundTrainingOps(
 
   // Each lore needs its persisted `system.skills` entry (lore:true) so the
   // character derivation surfaces it; the build choice raises it to trained.
+  const persistedSkills = asRecord(getSystem(ctx.doc)["skills"]);
   const loreEntries: Record<string, unknown> = {};
   trainings.lores.forEach((lore, i) => {
-    loreEntries[`system.skills.${lore.slug}`] = { rank: 0, lore: true, label: lore.label };
+    // The entry is written whole, so it must never land BELOW what the sheet
+    // already holds: re-selecting the same background would otherwise reset a
+    // rank the player set by hand on the row's rank select back to 0. The
+    // legacy spelling counts as the same proficiency — this write is what
+    // migrates it to the canonical key, so its rank has to ride along.
+    const rank = Math.max(
+      0,
+      persistedSkillRank(persistedSkills, lore.slug),
+      persistedSkillRank(persistedSkills, legacyLoreSlug(lore.label)),
+    );
+    loreEntries[`system.skills.${lore.slug}`] = { rank, lore: true, label: lore.label };
     newChoices.push({
       level: 1,
-      slot: `backgroundLore-${String(i)}`,
+      slot: `${BACKGROUND_LORE_SLOT}${String(i)}`,
       type: "skillTraining",
       skill: lore.slug,
       rank: 1,
@@ -3108,15 +3446,21 @@ function backgroundTrainingOps(
     } satisfies DocUpdatePayload);
   }
 
-  if (newChoices.length > 0) {
-    const existingChoices = getBuildChoices(getSystem(ctx.doc)).filter(
-      (c) => !c.slot.startsWith("backgroundSkill-") && !c.slot.startsWith("backgroundLore-"),
-    );
+  const existingChoices = getBuildChoices(getSystem(ctx.doc));
+  const keptChoices = existingChoices.filter(
+    (c) =>
+      !c.slot.startsWith(BACKGROUND_SKILL_SLOT) && !c.slot.startsWith(BACKGROUND_LORE_SLOT),
+  );
+  // The strip has to run even when the incoming background grants NOTHING
+  // (Hermit, Raised by Belief): it used to sit behind `newChoices.length > 0`,
+  // so swapping to one of those left the character trained in the PREVIOUS
+  // background's skill and Lore with no background left to justify them.
+  if (newChoices.length > 0 || keptChoices.length !== existingChoices.length) {
     ops.push({
       type: "doc:update",
       documentType: "Actor",
       id: ctx.actorId,
-      diff: { "system.build.choices": [...existingChoices, ...newChoices] },
+      diff: { "system.build.choices": [...keptChoices, ...newChoices] },
     } satisfies DocUpdatePayload);
   }
 
@@ -3148,9 +3492,21 @@ export function backgroundLoreHealOps(
     existingChoices.map((c) => c.skill).filter((s): s is string => typeof s === "string"),
   );
 
-  const missing = trainings.lores.filter(
-    (lore) => !trainedSlugs.has(lore.slug) && !existingSkills[lore.slug],
-  );
+  // Probe BOTH slug conventions: a sheet written before ./loreSlug.ts holds the
+  // Lore under the legacy `<subject>-lore` key, with its build choice pointing
+  // at that same legacy slug. Without this the heal would consider the Lore
+  // missing and re-add it under the canonical key at rank 0, leaving the sheet
+  // with two entries for one proficiency. Renaming the legacy key is
+  // `loreSlugHealOps`'s job, not this one's.
+  const missing = trainings.lores.filter((lore) => {
+    const legacy = legacyLoreSlug(lore.label);
+    return (
+      !trainedSlugs.has(lore.slug) &&
+      !trainedSlugs.has(legacy) &&
+      !existingSkills[lore.slug] &&
+      !existingSkills[legacy]
+    );
+  });
   if (missing.length === 0) return [];
 
   const loreEntries: Record<string, unknown> = {};
@@ -3160,11 +3516,11 @@ export function backgroundLoreHealOps(
   let n = 0;
   for (const lore of missing) {
     loreEntries[`system.skills.${lore.slug}`] = { rank: 0, lore: true, label: lore.label };
-    while (usedLoreSlots.has(`backgroundLore-${String(n)}`)) n++;
-    usedLoreSlots.add(`backgroundLore-${String(n)}`);
+    while (usedLoreSlots.has(`${BACKGROUND_LORE_SLOT}${String(n)}`)) n++;
+    usedLoreSlots.add(`${BACKGROUND_LORE_SLOT}${String(n)}`);
     newChoices.push({
       level: 1,
-      slot: `backgroundLore-${String(n)}`,
+      slot: `${BACKGROUND_LORE_SLOT}${String(n)}`,
       type: "skillTraining",
       skill: lore.slug,
       rank: 1,
@@ -3188,6 +3544,80 @@ export function backgroundLoreHealOps(
 }
 
 /**
+ * loreSlugHealOps — rename every legacy `<subject>-lore` entry on
+ * `system.skills` to the canonical `lore-<subject>` (contract C3) and repoint
+ * the build choices that referenced the old key.
+ *
+ * Every sheet built before `./loreSlug.ts` carries its background Lore under
+ * the legacy key, which no reader in the app understands: the row renders as
+ * the raw slug and the skill-training dialog lists it in a namespace nothing
+ * else can match. Renaming is the whole fix — the proficiency (rank, label)
+ * rides along untouched.
+ *
+ * `migrateLoreSlug` returns `null` for anything already canonical AND for
+ * anything that is not a Lore, so a canonical skill can never be renamed (which
+ * would silently untrain it) and a second pass is a no-op.
+ */
+export function loreSlugHealOps(ctx: PlanOpBuilderContext): DocOpPayload[] {
+  if (!ctx.editable) return [];
+  const sys = getSystem(ctx.doc);
+  const skills = asRecord(sys["skills"]);
+
+  const renames = new Map<string, string>(); // legacy slug → canonical slug
+  for (const slug of Object.keys(skills)) {
+    const canonical = migrateLoreSlug(slug);
+    if (canonical !== null) renames.set(slug, canonical);
+  }
+  if (renames.size === 0) return [];
+
+  const diff: Record<string, unknown> = {};
+  for (const [legacy, canonical] of renames) {
+    const legacyEntry = asRecord(skills[legacy]);
+    const canonicalEntry = asRecord(skills[canonical]);
+    // Both conventions can coexist on one subject — e.g. a heal that ran before
+    // this one added the canonical entry at rank 0 next to a legacy entry the
+    // player had trained. Keep the HIGHER rank so the merge never demotes a
+    // proficiency; the canonical entry otherwise wins field by field.
+    const legacyRank = typeof legacyEntry["rank"] === "number" ? legacyEntry["rank"] : 0;
+    const canonicalRank = typeof canonicalEntry["rank"] === "number" ? canonicalEntry["rank"] : 0;
+    diff[`system.skills.${canonical}`] = {
+      ...legacyEntry,
+      ...canonicalEntry,
+      rank: Math.max(legacyRank, canonicalRank),
+      lore: true,
+    };
+    diff[`system.skills.${legacy}`] = null; // deleteKey (REQ-DOC-037)
+  }
+
+  const ops: DocOpPayload[] = [
+    {
+      type: "doc:update",
+      documentType: "Actor",
+      id: ctx.actorId,
+      diff,
+    } satisfies DocUpdatePayload,
+  ];
+
+  // A choice still pointing at the old key would leave the renamed Lore
+  // untrained — the rank comes from the choice, not from the ledger entry.
+  const choices = getBuildChoices(sys);
+  const repointed = choices.map((c) => {
+    const canonical = c.skill === undefined ? undefined : renames.get(c.skill);
+    return canonical === undefined ? c : { ...c, skill: canonical };
+  });
+  if (repointed.some((c, i) => c !== choices[i])) {
+    ops.push({
+      type: "doc:update",
+      documentType: "Actor",
+      id: ctx.actorId,
+      diff: { "system.build.choices": repointed },
+    } satisfies DocUpdatePayload);
+  }
+
+  return ops;
+}
+
+/**
  * featIdentity — stable key used to recognize "the same feat" across a
  * picker candidate doc and an already-embedded actor item:
  * `flags.fusion.sourceId` (the importer-stamped vendor-stable id, preserved
@@ -3201,15 +3631,23 @@ function featIdentity(featDoc: Record<string, unknown>): string | undefined {
 }
 
 /**
- * featMaxTakable — normalized repeat cap for a feat doc: `system.maxTakable`
- * when it's a number > 1, else 1 (not repeatable). Mirrors feats-core's
- * vendor convention (W2 frente 1 diagnosis): the field is present ONLY on
- * feats that may be taken more than once (e.g. "Armor Proficiency" →
- * maxTakable: 3); absent — or a non-positive/non-numeric value — means
- * "once".
+ * featMaxTakable — normalized repeat cap for a feat doc, mirroring feats-core's
+ * vendor convention. Three cases, and the middle one is easy to get wrong:
+ *
+ *   - field ABSENT → 1. The overwhelming majority; taking it twice is illegal.
+ *   - `maxTakable: null` → **unlimited**. 22 feats in the pack declare this —
+ *     Assurance, Additional Lore, Multilingual, Skill Training, Domain
+ *     Initiate, Terrain Expertise, Weapon Proficiency… — and every one of them
+ *     is legitimately taken many times, once per skill/language/domain. This
+ *     used to collapse to 1 along with every other non-number, so the second
+ *     pick was refused (issue #57).
+ *   - `maxTakable: N > 1` → N (e.g. "Armor Proficiency" → 3).
  */
 function featMaxTakable(featDoc: Record<string, unknown>): number {
-  const raw = asRecord(featDoc["system"])["maxTakable"];
+  const system = asRecord(featDoc["system"]);
+  if (!("maxTakable" in system)) return 1;
+  const raw = system["maxTakable"];
+  if (raw === null) return Number.POSITIVE_INFINITY;
   return typeof raw === "number" && raw > 1 ? raw : 1;
 }
 
@@ -3881,19 +4319,24 @@ export function confirmSkillTraining(
 
 /**
  * addLoreSkill — create a new custom Lore skill (rank 0) on `system.skills`,
- * keyed `lore-<slug(name)>`. Pure `doc:update` — the dialog calls this BEFORE
- * offering the new lore as a pickable row (it must exist on the ledger to be
- * targetable by a skillTraining pick in the same session).
+ * keyed by the canonical `loreSlug(name)`. Pure `doc:update` — the dialog calls
+ * this BEFORE offering the new lore as a pickable row (it must exist on the
+ * ledger to be targetable by a skillTraining pick in the same session).
+ *
+ * Contract C3: one subject, ONE key. This used to build its own slug inline —
+ * a third convention that kept the trailing "Lore" word ("Nature Lore" →
+ * `lore-nature-lore`) and did not fold accents, so a hand-added Lore forked
+ * away from the `lore-nature` a background grant produces for the same subject
+ * and the sheet showed two rows for one proficiency.
  */
 export function addLoreSkill(ctx: PlanOpBuilderContext, name: string): DocUpdatePayload | null {
   if (!ctx.editable) return null;
   const trimmed = name.trim();
   if (!trimmed) return null;
-  const slug = `lore-${trimmed
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")}`;
-  if (!slug || slug === "lore-") return null;
+  const slug = loreSlug(trimmed);
+  // A subject-less Lore ("Lore", "  Lore ") is meaningless — and would claim
+  // the bare `lore` key that every future subject-less entry collides on.
+  if (slug === "lore") return null;
   const sys = getSystem(ctx.doc);
   const skills = asRecord(sys["skills"]);
   if (skills[slug]) return null; // already exists — no-op (caller should filter its own list too)
@@ -4244,6 +4687,93 @@ export function setClassLevelsVariant(
 }
 
 /**
+ * setIsekaiVariant — turn the Isekai layer on/off.
+ *
+ * Turning it OFF leaves the archetype picks and every tracker in place, just
+ * like `setClassLevelsVariant` keeps its split: the server ignores them while
+ * the toggle is false, and keeping them means flipping the switch back does
+ * not cost the player their Séquito, their Catálogo or their Essências.
+ */
+export function setIsekaiVariant(
+  ctx: PlanOpBuilderContext,
+  on: boolean,
+): DocUpdatePayload | null {
+  if (!ctx.editable) return null;
+  return {
+    type: "doc:update",
+    documentType: "Actor",
+    id: ctx.actorId,
+    diff: { "system.build.variantRules.isekai": on },
+  };
+}
+
+/**
+ * toggleIsekaiArchetype — pick or un-pick one of the eight archetypes.
+ *
+ * Returns `null` — writing nothing — when the pick is not allowed:
+ *   - the sheet is not editable;
+ *   - the id is not one of the eight (never write junk into a document);
+ *   - the character already carries `MAX_ISEKAI_ARCHETYPES` and this would be
+ *     one more. Two is the layer's whole balance premise, so the cap is
+ *     enforced here AND in the schema — a cap that only the UI knows about is
+ *     a cap that a hand-edited document walks straight through.
+ *
+ * Un-picking removes ONLY the id. The tracker state stays: it is the log of a
+ * whole campaign, and a mis-click on the selector must not delete it.
+ */
+export function toggleIsekaiArchetype(
+  ctx: PlanOpBuilderContext,
+  archetypeId: string,
+): DocUpdatePayload | null {
+  if (!ctx.editable) return null;
+  if (!getIsekaiArchetype(archetypeId)) return null;
+
+  const current = getIsekaiArchetypes(getSystem(ctx.doc));
+  const picked = current.includes(archetypeId);
+  if (!picked && current.length >= MAX_ISEKAI_ARCHETYPES) return null;
+
+  const next = picked ? current.filter((id) => id !== archetypeId) : [...current, archetypeId];
+
+  return {
+    type: "doc:update",
+    documentType: "Actor",
+    id: ctx.actorId,
+    diff: { "system.isekai.archetypes": next },
+  };
+}
+
+/**
+ * setIsekaiTracker — write one archetype's tracker state.
+ *
+ * Scoped to a single `(archetype, tracker)` path so two trackers edited in the
+ * same breath never clobber each other: the diff touches one leaf, not the
+ * whole `system.isekai.trackers` object.
+ *
+ * Refuses to write for an archetype the character does not carry, or a tracker
+ * that archetype does not have — the UI cannot produce either, so reaching
+ * here means something is wrong and writing would put state on the sheet that
+ * nothing will ever render or clean up.
+ */
+export function setIsekaiTracker(
+  ctx: PlanOpBuilderContext,
+  archetypeId: string,
+  trackerId: string,
+  state: unknown,
+): DocUpdatePayload | null {
+  if (!ctx.editable) return null;
+  if (!getIsekaiArchetypes(getSystem(ctx.doc)).includes(archetypeId)) return null;
+  const archetype = getIsekaiArchetype(archetypeId);
+  if (!archetype || archetype.tracker?.id !== trackerId) return null;
+
+  return {
+    type: "doc:update",
+    documentType: "Actor",
+    id: ctx.actorId,
+    diff: { [`system.isekai.trackers.${archetypeId}.${trackerId}`]: state },
+  };
+}
+
+/**
  * chooseClassLevel — assign a character level to a class.
  *
  * Two things can happen:
@@ -4333,6 +4863,8 @@ export function chooseClassLevel(
 export function removeChoice(ctx: PlanOpBuilderContext, slot: PlanSlotModel): DocOpPayload[] {
   if (!ctx.editable) return [];
   const ops: DocOpPayload[] = [];
+  /** Build slots whose item the grantedBy cascade deletes (issue #15). */
+  const cascadedBuildSlots = new Set<string>();
 
   if (slot.itemId) {
     ops.push({
@@ -4388,13 +4920,24 @@ export function removeChoice(ctx: PlanOpBuilderContext, slot: PlanSlotModel): Do
             parent: { type: "Actor", id: ctx.actorId },
           } satisfies DocDeleteEmbeddedPayload);
         }
+        // If the cascade deletes an item that ALSO occupied a build slot, that
+        // slot's choice has to go with it (issue #15). Otherwise resolveSlot
+        // reads the leftover choice as `filled: true` — a phantom slot, marked
+        // taken with no item behind it. This is the shape the old
+        // findAdoptableItem produced by adopting a paid slot; the adoption is
+        // fixed, but actors already carrying the damage still remove cleanly.
+        const cascadedSlot = getItemBuildFlag(it)?.slot;
+        if (cascadedSlot !== undefined) cascadedBuildSlots.add(cascadedSlot);
       }
     }
   }
 
   const existingChoices = getBuildChoices(getSystem(ctx.doc));
   const remaining = existingChoices.filter(
-    (c) => c.slot !== slot.slotId && !c.slot.startsWith(subSlotPrefix),
+    (c) =>
+      c.slot !== slot.slotId &&
+      !c.slot.startsWith(subSlotPrefix) &&
+      !cascadedBuildSlots.has(c.slot),
   );
   if (remaining.length !== existingChoices.length) {
     ops.push({
@@ -4645,6 +5188,16 @@ export function healGranterRefs(doc: Record<string, unknown>): HealGranterRef[] 
 export interface ClassGrantRef {
   /** The class feature's display name (resolve in class-features-core). */
   name: string;
+  /**
+   * The feature's document id in the pack, taken from `featuresByLevel[].uuid`
+   * — the IDENTITY the resolver should use, per the project rule that a
+   * document is its id and never its name (issue #14). Measured across the 12
+   * classes: 221/221 entries resolve by this id, while 5 carry a name the pack
+   * does not have ("Debilitating Strikes" vs "Debilitating Strike", "Deity" vs
+   * "Deity (Cleric)", …). Absent only for homebrew data with no uuid, where
+   * the name stays the sole fallback.
+   */
+  docId?: string;
   /** Pack the feature doc lives in (always class-features-core). */
   packSlug: string;
   /** The CLASS item's sourceId — root grantedBy for every conceded action. */
@@ -4691,6 +5244,7 @@ export function classGrantRefsFromClassDoc(
     seen.add(norm);
     refs.push({
       name: f.name,
+      ...(typeof f.uuid === "string" && f.uuid.length > 0 ? { docId: f.uuid } : {}),
       packSlug: "class-features-core",
       classSourceId,
       slot: classGrantSlot(f.level, f.name),
@@ -4757,18 +5311,28 @@ function syncSlotMaxOp(
 // compendium uuid), but the chips/filled slots only know an item NAME — and
 // the embedded actor item may have an empty description (pre-r11 imports).
 //
-// So resolution is uniform and NAME-based: search the right pack's index for
-// an entry whose name matches, then getDocument(uuid) with the same
-// on-demand cache the picker uses. featuresByLevel[].uuid is a bare Foundry
-// id (e.g. "xvC1jNDkNdNtZQiF"), NOT a "Compendium.<pack>.Item.<id>" uuid, so
-// it cannot feed compendium:get directly — name resolution is the reliable
-// path for every case.
+// Resolution PREFERS an exact id match over name matching (issue #44 — a
+// document's identity is its id, never its name; PF2e homonyms are the norm,
+// e.g. "Unusual Anatomy" exists as both a spell in spells-core and a feature
+// in ancestry-features-core, with distinct ids). featuresByLevel[].uuid is
+// actually the feature's own `_id` in class-features-core (NOT a Foundry
+// compendium uuid, despite the field's name — measured: 221/221 non-choice
+// entries across the 12 classes resolve this way); a materialized item's own
+// `flags.fusion.sourceId` is the other identity anchor, matched against the
+// pack index's `index["flags.fusion.sourceId"]` (exposed since issue #41).
+// `resolveDetailsEntryUuid` tries both before falling back to
+// `findEntryUuidByName` — the ONLY path left for data with no id at all
+// (choice-backed slots with no embedded item, or homebrew with no sourceId).
 // ---------------------------------------------------------------------------
 
 /** Minimal index-entry shape the details resolvers need (subset of PackIndexEntry). */
 export interface PlanIndexEntryLike {
   name: string;
   uuid: string;
+  /** Pack-scoped document id (`_id`) — issue #44's docId-match anchor. Optional so hand-built test fixtures with no id still type-check. */
+  _id?: string;
+  /** Extra indexed fields (issue #41 exposed `flags.fusion.sourceId` here as `index["flags.fusion.sourceId"]`). */
+  index?: Record<string, unknown>;
 }
 
 // ---------------------------------------------------------------------------
@@ -4792,6 +5356,10 @@ export interface PlanIndexEntryLike {
 /** Minimal index-entry shape the content-name translator consumes (subset of PackIndexEntry). */
 export interface PlanNameIndexEntry {
   name: string;
+  /** The pack doc id. Present on every real pack index entry; it is what
+   * `featuresByLevel[].uuid` (stored as `AutoFeatureModel.docId`) points at, and
+   * the only key that survives a name that drifted from the document's own. */
+  _id?: string | undefined;
   namePt?: string | undefined;
   i18n?: { ptBR?: { name?: string | undefined } | undefined } | undefined;
 }
@@ -4804,8 +5372,12 @@ export interface ContentNameParts {
   nameEn: string;
 }
 
-/** Resolve an embedded item's stored (EN or pt-BR) name to its bilingual display parts. */
-export type ContentNameTranslator = (storedName: string) => ContentNameParts;
+/**
+ * Resolve an embedded item's stored (EN or pt-BR) name to its bilingual display
+ * parts. `docId` (when the caller has one) is tried FIRST: the stored name can
+ * legitimately differ from the document's own name, and only the id is exact.
+ */
+export type ContentNameTranslator = (storedName: string, docId?: string) => ContentNameParts;
 
 /** Read the pt-BR overlay name off an index entry — flat `namePt` first, then nested `i18n.ptBR.name`. */
 function entryPtName(entry: PlanNameIndexEntry): string | undefined {
@@ -4817,13 +5389,24 @@ function entryPtName(entry: PlanNameIndexEntry): string | undefined {
 
 /**
  * buildContentNameTranslator — EN/pt-BR → `{ namePt, nameEn }` map built from
- * one or more packs' index entries, joined by NORMALIZED NAME (the only
- * reliable key: `system.slug` is undefined everywhere, and the pack index does
- * NOT expose `flags.fusion.sourceId`). Mirrors `buildSpellNameTranslator`'s
- * shape: the index is keyed by the normalized EN name AND the normalized pt-BR
- * name (both point at the same `{ namePt, nameEn }`), so it resolves whether
- * the actor's embedded item name was copied in EN or pt-BR. First write wins
- * per key (deterministic given a stable index order).
+ * one or more packs' index entries. Two independent indexes:
+ *
+ * 1. **By doc id** (`entry._id`) — EXACT, and tried first when the caller has an
+ *    id. This is what fixes issue #65: the class doc's `featuresByLevel` stores
+ *    a literal `name` that can differ from the referenced document's own name
+ *    ("Deity" vs "Deity (Cleric)", "Debilitating Strikes" vs "Debilitating
+ *    Strike" — 5 such entries across the 12 classes), so name matching silently
+ *    falls through to EN while the correct translation sits one id away. The
+ *    `uuid` in `featuresByLevel` IS that doc id, and it already travels to the
+ *    UI as `AutoFeatureModel.docId` (issue #14).
+ * 2. **By normalized name**, EN and pt-BR (both point at the same parts), for
+ *    every caller that only has an embedded item's stored name — which may have
+ *    been copied in either language. First write wins per key (deterministic
+ *    given a stable index order).
+ *
+ * (An earlier version of this comment claimed name was "the only reliable key"
+ * because the pack index did not expose `flags.fusion.sourceId`. That stopped
+ * being true with issue #41; the id path above is the reliable one.)
  *
  * Names with no matching pack entry return `{ namePt: stored, nameEn: stored }`
  * — an EN-only fallback that still lets the caller render the "always both"
@@ -4832,23 +5415,30 @@ function entryPtName(entry: PlanNameIndexEntry): string | undefined {
 export function buildContentNameTranslator(
   entriesByPack: PlanNameIndexEntry[][],
 ): ContentNameTranslator {
-  const map = new Map<string, ContentNameParts>();
+  const byName = new Map<string, ContentNameParts>();
+  const byId = new Map<string, ContentNameParts>();
   for (const entries of entriesByPack) {
     for (const entry of entries) {
       const nameEn = entry.name;
       if (!nameEn) continue;
       const namePt = entryPtName(entry) ?? nameEn;
       const parts: ContentNameParts = { namePt, nameEn };
+      const id = entry._id;
+      if (typeof id === "string" && id && !byId.has(id)) byId.set(id, parts);
       const enKey = normalizeName(nameEn);
       const ptKey = normalizeName(namePt);
-      if (enKey && !map.has(enKey)) map.set(enKey, parts);
-      if (ptKey && !map.has(ptKey)) map.set(ptKey, parts);
+      if (enKey && !byName.has(enKey)) byName.set(enKey, parts);
+      if (ptKey && !byName.has(ptKey)) byName.set(ptKey, parts);
     }
   }
-  return (storedName: string): ContentNameParts => {
+  return (storedName: string, docId?: string): ContentNameParts => {
     const fallback: ContentNameParts = { namePt: storedName, nameEn: storedName };
+    if (docId) {
+      const byIdHit = byId.get(docId);
+      if (byIdHit) return byIdHit;
+    }
     if (!storedName) return fallback;
-    return map.get(normalizeName(storedName)) ?? fallback;
+    return byName.get(normalizeName(storedName)) ?? fallback;
   };
 }
 
@@ -4857,14 +5447,42 @@ export const SLOT_TYPE_LABELS_EN: Record<PlanSlotType, string> = SLOT_TYPE_LABEL
 
 /**
  * A request to open the details panel for a Plan item: which pack to search
- * and the item name to match. `level`/`rank` are display-only extras the
- * caller may already know; the resolver ignores them.
+ * and the item name to match. `level` is a display-only extra the caller may
+ * already know; the NAME resolver (`findEntryUuidByName` + pack search)
+ * ignores it — it only reaches the details panel.
  */
 export interface PlanDetailsRequest {
   /** Pack slug suffix, e.g. "class-features-core" / "feats-core". */
   packSlug: string;
   /** Item name to resolve against the pack index (accent/case-insensitive). */
   name: string;
+  /**
+   * The level at which THIS plan actually grants the item — the enclosing
+   * `LevelPlanModel.level` the caller (PlanColumn) already has in scope.
+   * Overrides a shared class-features-core document's own divergent
+   * `system.level` in the details panel (issue #58: 17 documents are reused
+   * across classes that grant them at different levels — 35 divergences
+   * across 11/12 classes, per the r22 varredura). Omitted when the caller
+   * has no class context (e.g. `detailsRequestForAbcChip`'s ABC card
+   * chips) — the panel then falls back to the document's own level.
+   */
+  level?: number;
+  /**
+   * Pack-scoped document id (issue #44), when the caller knows it — matched
+   * against a pack index entry's own `_id`. Preferred over name matching:
+   * exact identity, immune to the homonym/prefix risk `findEntryUuidByName`
+   * otherwise carries. See {@link PlanIndexEntryLike._id}.
+   */
+  docId?: string;
+  /**
+   * `flags.fusion.sourceId` of the backing embedded/materialized item (issue
+   * #44), when the caller knows it — matched against a pack index entry's
+   * `index["flags.fusion.sourceId"]`. Same preference rule as `docId`; the
+   * two are mutually exclusive identity spaces (docId = pack's own `_id`,
+   * sourceId = the doc's stable `flags.fusion.sourceId`) but either resolves
+   * the exact document when present.
+   */
+  sourceId?: string;
 }
 
 /** Normalize a name for matching — mirrors normalizeSearchText (accent/case-fold). */
@@ -4879,13 +5497,29 @@ function normalizeName(name: string): string {
  * compendium document to describe, so they return null (the Plan column
  * never opens a details panel for those — they're edited in their own
  * dialogs instead).
+ *
+ * `level` (issue #58) is the caller's known grant level — see
+ * {@link PlanDetailsRequest.level}. Optional and built via a conditional
+ * spread (not `level: level` directly): `exactOptionalPropertyTypes` rejects
+ * assigning `undefined` to an optional field that doesn't spell out
+ * `| undefined`, and every existing caller/test that omits `level` expects
+ * the key itself to be absent, not present-and-undefined.
  */
-export function detailsRequestForSlot(slot: PlanSlotModel): PlanDetailsRequest | null {
+export function detailsRequestForSlot(
+  slot: PlanSlotModel,
+  level?: number,
+): PlanDetailsRequest | null {
   const name = slot.choiceName;
   if (!name || !slot.filled) return null;
+  const withLevel = (packSlug: string): PlanDetailsRequest => ({
+    packSlug,
+    name,
+    ...(level === undefined ? {} : { level }),
+    ...withOptional("sourceId", slot.sourceId),
+  });
   // A locked fixed-grant chip (B2 r14) carries its own pack hint so a granted
   // classFeature resolves in class-features-core, not the feats-core default.
-  if (slot.detailsPackSlug) return { packSlug: slot.detailsPackSlug, name };
+  if (slot.detailsPackSlug) return withLevel(slot.detailsPackSlug);
   switch (slot.type) {
     case "hybridStudy":
     case "kineticGate":
@@ -4894,24 +5528,44 @@ export function detailsRequestForSlot(slot: PlanSlotModel): PlanDetailsRequest |
     case "huntersEdge":
     case "arcaneThesis":
     case "arcaneSchool":
-      return { packSlug: "class-features-core", name };
+      return withLevel("class-features-core");
     case "ancestryFeat":
     case "classFeat":
     case "generalFeat":
     case "skillFeat":
     case "archetypeFeat":
     case "grantedFeat":
-      return { packSlug: "feats-core", name };
+      return withLevel("feats-core");
     case "adoptedAncestryChoice":
-      return { packSlug: "ancestries-core", name };
+      return withLevel("ancestries-core");
     default:
       return null;
   }
 }
 
-/** The pack a locked auto-feature chip's description lives in (always a class feature). */
-export function detailsRequestForAutoFeature(feature: AutoFeatureModel): PlanDetailsRequest {
-  return { packSlug: feature.detailsPackSlug ?? "class-features-core", name: feature.name };
+/**
+ * The pack a locked auto-feature chip's description lives in (always a
+ * class feature). `level` (issue #58) is the caller's known grant level —
+ * see {@link PlanDetailsRequest.level}.
+ */
+export function detailsRequestForAutoFeature(
+  feature: AutoFeatureModel,
+  level?: number,
+): PlanDetailsRequest | null {
+  // An Isekai blessing has no compendium document: the layer's content lives
+  // in `./isekai/`. Falling through to the name search below would hunt for
+  // "Plot Armor" in class-features-core and, on a hit, show something that
+  // isn't this blessing at all. The chip carries its own text — the caller
+  // renders it directly.
+  if (feature.isekai) return null;
+  const packSlug = feature.detailsPackSlug ?? "class-features-core";
+  return {
+    packSlug,
+    name: feature.name,
+    ...(level === undefined ? {} : { level }),
+    ...withOptional("docId", feature.docId),
+    ...withOptional("sourceId", feature.sourceId),
+  };
 }
 
 /**
@@ -4921,7 +5575,11 @@ export function detailsRequestForAutoFeature(feature: AutoFeatureModel): PlanDet
  */
 export function detailsRequestForAbcChip(chip: AbcChip): PlanDetailsRequest | null {
   if (!chip.detailsPackSlug) return null;
-  return { packSlug: chip.detailsPackSlug, name: chip.name };
+  return {
+    packSlug: chip.detailsPackSlug,
+    name: chip.name,
+    ...withOptional("sourceId", chip.sourceId),
+  };
 }
 
 /**
@@ -4941,6 +5599,37 @@ export function findEntryUuidByName(entries: PlanIndexEntryLike[], name: string)
   return prefixed.length === 1 ? (prefixed[0]?.uuid ?? null) : null;
 }
 
+/** Read an index entry's `flags.fusion.sourceId` off its `index` bag (present since issue #41 indexed it). */
+function entryFusionSourceId(entry: PlanIndexEntryLike): string | undefined {
+  const sid = entry.index?.["flags.fusion.sourceId"];
+  return typeof sid === "string" ? sid : undefined;
+}
+
+/**
+ * Resolve a details request to a compendium uuid, PREFERRING an exact id
+ * match over name matching (issue #44 — see the "Details-panel resolution"
+ * section header above). Tries, in order:
+ *   1. `request.docId` against the entry's own pack `_id`.
+ *   2. `request.sourceId` against the entry's indexed
+ *      `flags.fusion.sourceId`.
+ *   3. `findEntryUuidByName` — the only path left when neither id is known
+ *      or neither matches (rule: never invent an id the data doesn't have).
+ */
+export function resolveDetailsEntryUuid(
+  entries: PlanIndexEntryLike[],
+  request: PlanDetailsRequest,
+): string | null {
+  if (request.docId) {
+    const byId = entries.find((e) => e._id === request.docId);
+    if (byId) return byId.uuid;
+  }
+  if (request.sourceId) {
+    const bySource = entries.find((e) => entryFusionSourceId(e) === request.sourceId);
+    if (bySource) return bySource.uuid;
+  }
+  return findEntryUuidByName(entries, request.name);
+}
+
 /**
  * The entry to select by default when a picker opens: the first of the
  * already-sorted/filtered list, so the details panel is never empty. Returns
@@ -4954,4 +5643,13 @@ export function pickDefaultEntryUuid(entries: PlanIndexEntryLike[]): string | nu
 // Re-exports for convenience
 // ---------------------------------------------------------------------------
 
-export { readClassSystem as _readClassSystemForTests, readClassItemId as _readClassItemIdForTests };
+export {
+  readClassSystem as _readClassSystemForTests,
+  readClassItemId as _readClassItemIdForTests,
+  // issue #44 evidence #4: knownPossessedNames deliberately excludes spell
+  // items — re-exported so a test can assert that CONTRACT directly instead
+  // of through checkFeatPrerequisites' output, where "met" and "unresolved"
+  // are indistinguishable (both yield no mark under DEC-BC-05) and so
+  // couldn't actually catch a future regression that starts counting spells.
+  knownPossessedNames as _knownPossessedNamesForTests,
+};

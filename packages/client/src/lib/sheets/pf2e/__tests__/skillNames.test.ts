@@ -45,4 +45,32 @@ describe("skillNamePt", () => {
   it("falls back to the slug itself for an unknown non-lore skill", () => {
     expect(skillNamePt("unknownskill")).toBe("unknownskill");
   });
+
+  // The background-training path used to key a Lore as `<subject>-lore` (see
+  // loreSlug.ts). Those slugs still exist on characters built before the heal
+  // pass, and they must READ as a Lore instead of leaking the raw slug into
+  // the sheet.
+  describe("legacy `<subject>-lore` slugs", () => {
+    it("renders a legacy lore slug as 'Saber (<subject>)'", () => {
+      expect(skillNamePt("scribing-lore")).toBe("Saber (Scribing)");
+    });
+
+    it("handles a multi-word legacy lore subject", () => {
+      expect(skillNamePt("abyssal-history-lore")).toBe("Saber (Abyssal history)");
+    });
+
+    it("renders a bare 'lore' as just 'Saber'", () => {
+      expect(skillNamePt("lore")).toBe("Saber");
+    });
+
+    it("keeps the canonical prefix form working (no regression)", () => {
+      expect(skillNamePt("lore-warfare")).toBe("Saber (Warfare)");
+      expect(skillNamePt("lore-abyssal-history")).toBe("Saber (Abyssal history)");
+    });
+
+    it("never mistakes a canonical skill for a lore", () => {
+      expect(skillNamePt("religion")).toBe("Religião");
+      expect(skillNamePt("thievery")).toBe("Ladinagem");
+    });
+  });
 });

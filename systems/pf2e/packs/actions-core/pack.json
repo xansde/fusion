@@ -9,7 +9,8 @@
     "system.actions",
     "system.category",
     "system.fusionCategory",
-    "system.traits.value"
+    "system.traits.value",
+    "flags.fusion.sourceId"
   ],
   "license": {
     "license": "ORC",
