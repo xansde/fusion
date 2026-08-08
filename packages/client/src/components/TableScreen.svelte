@@ -43,6 +43,8 @@
   import { TokenInteractionManager } from "../lib/canvas/tokens/TokenInteractionManager.js";
   import { resolveOwnedActorIds } from "../lib/canvas/tokens/ownedActors.js";
   import { attachRuler } from "../lib/presence/attachRuler.js";
+  import { attachPing } from "../lib/presence/attachPing.js";
+  import { attachPresenceSync } from "../lib/presence/attachPresenceSync.js";
   import { LightingRenderer } from "../lib/canvas/vision/LightingRenderer.js";
   import { FogState } from "../lib/canvas/vision/fog-state.js";
   import { CombatCanvasController } from "../lib/canvas/combat/combatCanvasController.js";
@@ -101,6 +103,16 @@
   // — and since nobody started one, the remote-ruler receive path never ran
   // either. Disposer removes the window listeners on scene switch.
   let disposeRuler: (() => void) | null = null;
+
+  // Map ping (press and hold). Third instance of the same gap: emitPing() and
+  // the server's rate-limited rebroadcast shipped in M1-E with zero callers,
+  // and nothing ever drew presenceState.pings either.
+  let disposePing: (() => void) | null = null;
+
+  // The ephemeral receive path itself. attachPresenceSync() was never called
+  // anywhere, so no remote cursor, ping or ruler ever reached the store — the
+  // socket listener for "ephemeral" simply was not registered.
+  let disposePresence: (() => void) | null = null;
 
   // Token being configured via double-click (TokenConfigDialog). null when no
   // dialog is open. Set by TokenInteractionManager's onConfigureToken callback.
@@ -577,6 +589,29 @@
       console.error("[TableScreen] ruler failed to wire:", err);
     }
 
+    // --- Ephemeral receive path (cursors, pings, rulers of other users) ---
+    // Must come before attachPing: without this listener the server's echo of
+    // our own ping never arrives and the ripple never appears.
+    try {
+      if (sock) disposePresence = attachPresenceSync(sock);
+    } catch (err) {
+      console.error("[TableScreen] presence sync failed to wire:", err);
+    }
+
+    // --- Ping (press and hold on the map) ---
+    // Works without a socket too: the ping is then drawn locally only.
+    try {
+      disposePing = attachPing({
+        canvas,
+        layer: canvas.getLayer("controls"),
+        socket: sock,
+        cellPx: gridSize,
+        userId,
+      });
+    } catch (err) {
+      console.error("[TableScreen] ping failed to wire:", err);
+    }
+
     return new SceneOrchestrator({
       scene,
       mirror: worldMirror,
@@ -610,6 +645,12 @@
 
     disposeRuler?.();
     disposeRuler = null;
+
+    disposePing?.();
+    disposePing = null;
+
+    disposePresence?.();
+    disposePresence = null;
 
     if (sceneOrchestrator) {
       sceneOrchestrator.teardown();
