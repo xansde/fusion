@@ -741,6 +741,27 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
         if (level < OwnershipLevel.OWNER) {
           return ackError("PERMISSION_DENIED", `No OWNER access to ${documentType}/${upd._id}`);
         }
+
+        // REQ-USR-015: the `ownership` field itself is privileged even for a
+        // user who OWNS this document. Without this guard, a player who owns
+        // their own Actor could rewrite its ownership map via doc:update to
+        // grant themselves/others OWNER on it (widening access beyond what
+        // the GM set) — deepMerge (documents/merge.ts) applies object patches
+        // key-by-key with no notion of "this sub-object is read-only", so the
+        // store layer alone cannot stop it. Guards both the direct key and
+        // any dot-path write into it (e.g. "ownership.someUserId"); only
+        // GM/ASSISTANT (isPrivileged, checked above) may change ownership on
+        // an existing document. Ownership set at CREATE time (doc:create) is
+        // unaffected — this only guards the UPDATE path.
+        const touchesOwnership = Object.keys(upd.diff).some(
+          (key) => key === "ownership" || key.startsWith("ownership."),
+        );
+        if (touchesOwnership) {
+          return ackError(
+            "PERMISSION_DENIED",
+            `Only GM/Assistant can change ownership on ${documentType}/${upd._id}`,
+          );
+        }
       }
 
       // STALE_WRITE check: expectedVersion must match _stats.version (monotonic
