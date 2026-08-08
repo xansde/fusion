@@ -21,6 +21,8 @@
   import SystemWindow from "./SystemWindow.svelte";
   import { HUB_PANELS, HUB_CLOSE_KEY } from "$lib/hub/commandBar.js";
   import { HUB_SURFACE_CLASS } from "$lib/hub/layers.js";
+  import { DEMO_NOTICES } from "$lib/hub/noticeDemo.js";
+  import { notify } from "$lib/hub/noticeStore.svelte.js";
 
   interface Props {
     /** Panel open on mount. `null` — the default — starts dismissed. */
@@ -49,6 +51,20 @@
         <kbd>{activePanel.key.toUpperCase()}</kbd> fecha esta janela ·
         <kbd>{HUB_CLOSE_KEY}</kbd> dispensa o Sistema
       </p>
+
+      <!-- SCAFFOLDING — remove when something real emits notices (specs 28/34).
+           Until then this is the only way to see the notification stack at all,
+           and a component nobody can look at is a component nobody reviews. -->
+      <div class="demo">
+        <span class="demo-label">Disparar notificação</span>
+        <div class="demo-buttons">
+          {#each DEMO_NOTICES as notice (notice.title)}
+            <button class="demo-btn tone-{notice.tone}" type="button" onclick={() => notify(notice)}>
+              {notice.title}
+            </button>
+          {/each}
+        </div>
+      </div>
     </SystemWindow>
   </div>
 {/if}
@@ -97,5 +113,68 @@
     border: 1px solid var(--fusion-sw-line);
     border-radius: 2px;
     padding: 1px 4px;
+  }
+
+  /* ---- scaffolding ---------------------------------------------------------
+     Styled apart from the rest on purpose: a dashed rule and a muted label say
+     "this is a probe, not a feature", so nobody mistakes it for the panel. */
+  .demo {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--fusion-sw-line);
+  }
+
+  .demo-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: var(--fusion-sw-track-title);
+    text-transform: uppercase;
+    color: var(--fusion-sw-dim);
+  }
+
+  .demo-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .demo-btn {
+    padding: 6px 10px;
+    border: 1px solid var(--fusion-sw-demo-accent);
+    background: var(--fusion-sw-fill);
+    color: var(--fusion-sw-demo-accent);
+    font: 600 10px var(--fusion-sw-font);
+    letter-spacing: var(--fusion-sw-track-label);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: var(--fusion-sw-transition);
+  }
+  .demo-btn:hover {
+    background: var(--fusion-sw-fill-active);
+  }
+  .demo-btn:focus-visible {
+    outline: 2px solid var(--fusion-sw-demo-accent);
+    outline-offset: 2px;
+  }
+
+  .demo-btn {
+    --fusion-sw-demo-accent: var(--fusion-sw-blue);
+  }
+  .demo-btn.tone-rumour {
+    --fusion-sw-demo-accent: var(--fusion-sw-gold);
+  }
+  .demo-btn.tone-good {
+    --fusion-sw-demo-accent: var(--fusion-sw-ok);
+  }
+  .demo-btn.tone-bad {
+    --fusion-sw-demo-accent: var(--fusion-sw-bad);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .demo-btn {
+      transition: none;
+    }
   }
 </style>

@@ -16,7 +16,13 @@
    * draws it and drives the clock.
    */
 
-  import { noticeState, tickSystemNotices, dismissSystemNotice } from "$lib/hub/noticeStore.svelte.js";
+  import {
+    noticeState,
+    tickSystemNotices,
+    dismissSystemNotice,
+    notify,
+  } from "$lib/hub/noticeStore.svelte.js";
+  import { runNoticeDemo, isNoticeDemoRequested } from "$lib/hub/noticeDemo.js";
 
   /** How often expiry is checked. */
   const TICK_MS = 250;
@@ -29,6 +35,17 @@
     // orphan callback behind that would later fire against a stale id.
     const handle = setInterval(() => tickSystemNotices(), TICK_MS);
     return () => clearInterval(handle);
+  });
+
+  // SCAFFOLDING — remove once something real calls `notify()`.
+  //
+  // Nothing in the client emits a notice yet (the callers arrive with specs 28
+  // and 34), so the whole component would be invisible during review. Behind
+  // `?hud-demo=1` it plays one notice of each tone and exposes
+  // `window.fusionHudDemo()` to replay them.
+  $effect(() => {
+    if (!isNoticeDemoRequested(window.location.search)) return;
+    return runNoticeDemo(notify, window);
   });
 </script>
 
