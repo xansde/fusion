@@ -199,3 +199,34 @@ produto ("esta cena tem névoa?") não se deriva de um proxy de identidade
 ("quem está olhando?"): o proxy sobrevive a todos os testes até o dia em que
 os dois discordam. Ao encontrar um `!isGm` (ou qualquer papel) decidindo
 comportamento, perguntar de qual campo aquilo deveria vir.
+
+## `emit` sem ack transforma rejeição do servidor em silêncio
+
+**Quando:** item de tokens (2026-08-08), ao descobrir por que arrastar uma
+ficha para o canvas não criava token nenhum.
+
+**O que aconteceu:** `handleCanvasDrop` montava o envelope de `doc:create` à
+mão, com `embedded` e `documents` onde o `DocCreatePayloadSchema` espera
+`parent` e `data`. O servidor recusava com `VALIDATION_FAILED` em todo drop —
+mas a chamada era `sock.emit("op", …)` sem callback de ack, então a recusa não
+tinha para onde ir. Nada no console, nada na tela: o token simplesmente não
+nascia. O mesmo erro de chave já havia sido corrigido meses antes no botão de
+criar ficha, e o comentário dessa correção continuava no repo, a dois arquivos
+de distância.
+
+**Por que engana:** o caminho *parece* implementado — há handler de dragover,
+há conversão de coordenada, há snap ao grid, há um `emit` no fim. Todo o
+trabalho visível está lá; só o contrato com o servidor está errado. E como
+`emit` sem ack não tem valor de retorno, não existe caminho de código onde a
+falha apareça: nenhum `catch`, nenhum log, nenhum teste vermelho. O bug
+sobrevive a qualquer leitura que pergunte "isso está escrito?" em vez de
+"isso chegou?".
+
+**O que fazer:** duas regras que se reforçam. **Op que muda estado vai por
+`sendOp` (com ack), nunca por `emit` cru** — a rejeição precisa de um lugar
+para aterrissar, mesmo que esse lugar seja um `console.warn`. E **payload de
+rede não se monta à mão em componente**: extrair para função pura e, no teste,
+validar o resultado contra o schema do `shared` (`Schema.parse(payload)`).
+Assim o teste falha no dia em que o contrato muda, em vez de o recurso morrer
+calado em produção. Duplicar o shape em dois lados sem um validador comum é
+combinar uma divergência para depois.
