@@ -34,7 +34,7 @@
 
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { loadClassCuration } from "./index.mjs";
 
@@ -73,7 +73,11 @@ function rotulosDoEixo(axis) {
   for (const bruto of brutos) {
     if (!bruto) continue;
     // camelCase/kebab-case → palavras: "hybridStudy" e "hunters-edge".
-    const label = normalizar(String(bruto).replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/-/g, " "));
+    const label = normalizar(
+      String(bruto)
+        .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+        .replace(/-/g, " "),
+    );
     if (!label) continue;
     formas.add(label);
     // "muses" → "muse"; "rogue s racket" → "racket" (o eixo é a última palavra).
@@ -137,9 +141,7 @@ export function construirGrafo() {
     const featsDaClasse = feats.filter(
       (f) => f.system?.category === "class" && traits(f).includes(trait),
     );
-    const idsDasFeatures = new Set(
-      (classeDoc.system?.featuresByLevel ?? []).map((f) => f.uuid),
-    );
+    const idsDasFeatures = new Set((classeDoc.system?.featuresByLevel ?? []).map((f) => f.uuid));
     // As OPÇÕES de eixo (Dragon Instinct, Ruffian Racket, Starlit Span...) não
     // estão no featuresByLevel — lá está só o placeholder da escolha. Sem elas
     // no universo, todo pré-requisito do tipo "dragon instinct" fica órfão:
@@ -155,8 +157,7 @@ export function construirGrafo() {
       ...featuresDaClasse.map((d) => ({
         id: d._id,
         nome: d.name,
-        nivel:
-          (classeDoc.system?.featuresByLevel ?? []).find((f) => f.uuid === d._id)?.level ?? 1,
+        nivel: (classeDoc.system?.featuresByLevel ?? []).find((f) => f.uuid === d._id)?.level ?? 1,
         tipo: "feature",
         traits: traits(d),
         categoria: d.system?.category ?? "classfeature",
@@ -179,6 +180,27 @@ export function construirGrafo() {
       if (!porNome.has(curto)) porNome.set(curto, no.id);
     }
 
+    // Índice MULTI-valorado espelhando porNome (issue #44): porNome só guarda
+    // o PRIMEIRO id que registra cada chave — o resto fica invisível. Sem
+    // este segundo índice, "shield block" casando com a class feature Shield
+    // Block E o talento partilhado Shield Block (Champion/Fighter, medido:
+    // 58 arestas assim nas 12 classes) escolhe uma das duas em silêncio, e
+    // qualquer mudança na ordem de indexação inverte a escolha sem aviso.
+    // NÃO muda qual alvo a aresta usa (isso segue vindo de porNome/
+    // porNomeGlobal, inalterados) — só torna a ambiguidade um DADO
+    // (`aresta.ambiguo` + `aresta.candidatos`) em vez de um acidente de
+    // ordem de varredura.
+    const porNomeTodos = new Map();
+    const addTodos = (map, chave, id) => {
+      if (!chave) return;
+      if (!map.has(chave)) map.set(chave, new Set());
+      map.get(chave).add(id);
+    };
+    for (const no of nos) {
+      addTodos(porNomeTodos, normalizar(no.nome), no.id);
+      addTodos(porNomeTodos, semSufixo(no.nome), no.id);
+    }
+
     // Aliases "<opção> <eixo>": o pré-requisito cita o eixo junto do nome da
     // opção, mas o documento se chama só pela opção. Também cobre o prefixo do
     // vendor no Sorcerer ("Bloodline: Draconic" ↔ "draconic bloodline").
@@ -198,6 +220,7 @@ export function construirGrafo() {
           for (const rotulo of rotulos) {
             const alias = `${b} ${rotulo}`;
             if (!porNome.has(alias)) porNome.set(alias, no.id);
+            addTodos(porNomeTodos, alias, no.id);
           }
         }
       }
@@ -209,11 +232,33 @@ export function construirGrafo() {
     // aresta INTERNA. Marcar como externa preserva a informação sem poluir a
     // árvore da classe.
     const porNomeGlobal = new Map();
+    const porNomeGlobalTodos = new Map();
     for (const d of [...feats, ...features, ...acoes, ...magias]) {
       const n = normalizar(d.name);
       if (!porNomeGlobal.has(n)) porNomeGlobal.set(n, { id: d._id, nome: d.name });
+      addTodos(porNomeGlobalTodos, n, d._id);
       const c = semSufixo(d.name);
       if (!porNomeGlobal.has(c)) porNomeGlobal.set(c, { id: d._id, nome: d.name });
+      addTodos(porNomeGlobalTodos, c, d._id);
+    }
+
+    /**
+     * Todos os documentos (internos + externos) cujo nome normalizado casa
+     * com `cand`, MENOS o próprio `doc` — issue #44: o mesmo merge que
+     * decide `ambiguo`/`candidatos` de uma aresta, independente de qual dos
+     * dois índices (interno/externo) forneceu o alvo escolhido pela aresta.
+     */
+    function candidatosPara(cand, doc) {
+      const chave = normalizar(cand);
+      const curta = semSufixo(cand);
+      const ids = new Set([
+        ...(porNomeTodos.get(chave) ?? []),
+        ...(porNomeTodos.get(curta) ?? []),
+        ...(porNomeGlobalTodos.get(chave) ?? []),
+        ...(porNomeGlobalTodos.get(curta) ?? []),
+      ]);
+      ids.delete(doc._id);
+      return [...ids];
     }
 
     const arestas = [];
@@ -227,13 +272,34 @@ export function construirGrafo() {
         for (const cand of candidatosDoRequisito(texto)) {
           const alvo = porNome.get(normalizar(cand)) ?? porNome.get(semSufixo(cand));
           if (alvo && alvo !== doc._id) {
-            arestas.push({ de: alvo, para: doc._id, rotulo: cand, externa: false });
+            const candidatos = candidatosPara(cand, doc);
+            arestas.push({
+              de: alvo,
+              para: doc._id,
+              rotulo: cand,
+              externa: false,
+              // issue #44: NÃO muda o alvo (ainda o primeiro que porNome
+              // registrou) — só expõe quando esse alvo foi uma escolha entre
+              // 2+ documentos reais, para a ambiguidade parar de ser
+              // silenciosa.
+              ambiguo: candidatos.length > 1,
+              candidatos,
+            });
             resolveuAlgum = true;
             continue;
           }
           const fora = porNomeGlobal.get(normalizar(cand)) ?? porNomeGlobal.get(semSufixo(cand));
           if (fora && fora.id !== doc._id) {
-            arestas.push({ de: fora.id, para: doc._id, rotulo: cand, externa: true, nomeExterno: fora.nome });
+            const candidatos = candidatosPara(cand, doc);
+            arestas.push({
+              de: fora.id,
+              para: doc._id,
+              rotulo: cand,
+              externa: true,
+              nomeExterno: fora.nome,
+              ambiguo: candidatos.length > 1,
+              candidatos,
+            });
             resolveuAlgum = true;
           }
         }
@@ -265,36 +331,48 @@ export function construirGrafo() {
       // defeito (a maioria dos feats é independente), mas é o número que diz
       // se a "árvore" da classe é árvore mesmo ou uma lista.
       arestasExternas: arestas.filter((a) => a.externa).length,
+      // Quantas arestas resolveram um rótulo que casa com 2+ documentos
+      // distintos (issue #44) — o alvo escolhido não mudou, mas agora dá para
+      // medir o tamanho do risco a cada build em vez de descobri-lo por
+      // auditoria manual.
+      arestasAmbiguas: arestas.filter((a) => a.ambiguo).length,
       // Quantos talentos da classe DECLARAM pré-requisito. É o número que
       // explica a forma do mapa: o Cinetista tem 7% e o Bárbaro 48% — um é
       // desenhado por portão elemental, o outro por cadeia de talentos.
-      featsComPreRequisito: featsDaClasse.filter(
-        (d) => (d.system?.prerequisites ?? []).length > 0,
-      ).length,
+      featsComPreRequisito: featsDaClasse.filter((d) => (d.system?.prerequisites ?? []).length > 0)
+        .length,
       totalFeats: featsDaClasse.length,
-      ilhas: nos.filter(
-        (n) => !arestas.some((a) => a.de === n.id || a.para === n.id),
-      ).length,
+      ilhas: nos.filter((n) => !arestas.some((a) => a.de === n.id || a.para === n.id)).length,
     };
   }
 
   return grafo;
 }
 
-const args = process.argv.slice(2);
-const idxOut = args.indexOf("--out");
-const saida =
-  idxOut !== -1 && args[idxOut + 1] !== undefined
-    ? args[idxOut + 1]
-    : join(__dirname, "..", "..", "out", "grafo-de-feats.json");
+// Só roda o CLI (lê packs de novo via construirGrafo() + escreve o arquivo)
+// quando o script é executado diretamente — nunca ao ser IMPORTADO. Sem esta
+// guarda, testar `construirGrafo` (issue #44 — marcação de ambiguidade)
+// disparava uma escrita real em disco a cada `import`, o mesmo problema que
+// já levou normalize.test.mjs/transform.test.mjs a nunca importar seus
+// módulos-CLI irmãos (ver o comentário de topo desses arquivos).
+const isMain =
+  process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isMain) {
+  const args = process.argv.slice(2);
+  const idxOut = args.indexOf("--out");
+  const saida =
+    idxOut !== -1 && args[idxOut + 1] !== undefined
+      ? args[idxOut + 1]
+      : join(__dirname, "..", "..", "out", "grafo-de-feats.json");
 
-const grafo = construirGrafo();
-mkdirSync(dirname(saida), { recursive: true });
-writeFileSync(saida, JSON.stringify(grafo, null, 2), "utf8");
+  const grafo = construirGrafo();
+  mkdirSync(dirname(saida), { recursive: true });
+  writeFileSync(saida, JSON.stringify(grafo, null, 2), "utf8");
 
-console.log(`[grafo] ${Object.keys(grafo.classes).length} classes → ${saida}`);
-for (const [nome, g] of Object.entries(grafo.classes)) {
-  console.log(
-    `  ${nome.padEnd(12)} nós ${String(g.totalNos).padStart(4)} | arestas ${String(g.totalArestas).padStart(3)} | ilhas ${String(g.ilhas).padStart(3)} | requisitos não resolvidos ${g.requisitosNaoResolvidos}`,
-  );
+  console.log(`[grafo] ${Object.keys(grafo.classes).length} classes → ${saida}`);
+  for (const [nome, g] of Object.entries(grafo.classes)) {
+    console.log(
+      `  ${nome.padEnd(12)} nós ${String(g.totalNos).padStart(4)} | arestas ${String(g.totalArestas).padStart(3)} | ilhas ${String(g.ilhas).padStart(3)} | requisitos não resolvidos ${g.requisitosNaoResolvidos}`,
+    );
+  }
 }

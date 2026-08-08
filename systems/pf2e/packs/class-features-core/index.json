@@ -11,7 +11,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "monk"
-      ]
+      ],
+      "flags.fusion.sourceId": "5cthRUkRqRtduVvN"
     }
   },
   {
@@ -26,7 +27,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "rogue"
-      ]
+      ],
+      "flags.fusion.sourceId": "xmZ7oeTDcQVXegUP"
     }
   },
   {
@@ -41,7 +43,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "magus"
-      ]
+      ],
+      "flags.fusion.sourceId": "D8CSi8c9XiRpVc5M"
     }
   },
   {
@@ -59,7 +62,8 @@
       ],
       "system.traits.otherTags": [
         "magus-hybrid-study"
-      ]
+      ],
+      "flags.fusion.sourceId": "9CC5Ek0Mq768Lhgx"
     }
   },
   {
@@ -77,7 +81,8 @@
       ],
       "system.traits.otherTags": [
         "barbarian-instinct"
-      ]
+      ],
+      "flags.fusion.sourceId": "0FtzFbUrN56KA67z"
     }
   },
   {
@@ -92,7 +97,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "wizard"
-      ]
+      ],
+      "flags.fusion.sourceId": "au0lwQ1nAcNQwcGh"
     }
   },
   {
@@ -107,7 +113,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "magus"
-      ]
+      ],
+      "flags.fusion.sourceId": "09iL38CZZEa0q0Mt"
     }
   },
   {
@@ -122,7 +129,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "wizard"
-      ]
+      ],
+      "flags.fusion.sourceId": "7nbKDBGvwSx9T27G"
     }
   },
   {
@@ -137,7 +145,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "magus"
-      ]
+      ],
+      "flags.fusion.sourceId": "wXaz41gwqNtTn6tf"
     }
   },
   {
@@ -152,7 +161,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "wizard"
-      ]
+      ],
+      "flags.fusion.sourceId": "M89l9FOnjHe63wD7"
     }
   },
   {
@@ -167,7 +177,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "wizard"
-      ]
+      ],
+      "flags.fusion.sourceId": "ZjwJHmjPrSs6VDez"
     }
   },
   {
@@ -184,7 +195,8 @@
         "champion",
         "commander",
         "fighter"
-      ]
+      ],
+      "flags.fusion.sourceId": "x5jaCJxsmD5sx3KB"
     }
   },
   {
@@ -202,7 +214,8 @@
         "champion",
         "commander",
         "fighter"
-      ]
+      ],
+      "flags.fusion.sourceId": "CGB1TczFhQhdQxml"
     }
   },
   {
@@ -221,7 +234,8 @@
       "system.traits.otherTags": [
         "class-archetype",
         "rogue-racket"
-      ]
+      ],
+      "flags.fusion.sourceId": "ONKUKCdsbGwhVoUb"
     }
   },
   {
@@ -236,7 +250,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "bard"
-      ]
+      ],
+      "flags.fusion.sourceId": "4lp8oG9A3zuqhPBS"
     }
   },
   {
@@ -255,7 +270,8 @@
       "system.traits.otherTags": [
         "class-archetype",
         "cleric-doctrine"
-      ]
+      ],
+      "flags.fusion.sourceId": "49CkgA3kj7Im6gZ5"
     }
   },
   {
@@ -271,7 +287,8 @@
       "system.traits.value": [
         "fighter",
         "guardian"
-      ]
+      ],
+      "flags.fusion.sourceId": "gdSmSTaGDxf4g2d8"
     }
   },
   {
@@ -286,7 +303,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "fighter"
-      ]
+      ],
+      "flags.fusion.sourceId": "TIvzBALymvb56L79"
     }
   },
   {
@@ -301,7 +319,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "champion"
-      ]
+      ],
+      "flags.fusion.sourceId": "ERwuazupczhUSZ73"
     }
   },
   {
@@ -319,7 +338,8 @@
       ],
       "system.traits.otherTags": [
         "sorcerer-bloodline"
-      ]
+      ],
+      "flags.fusion.sourceId": "3qqvnC2U8W26yae7"
     }
   },
   {
@@ -337,7 +357,8 @@
       ],
       "system.traits.otherTags": [
         "sorcerer-bloodline"
-      ]
+      ],
+      "flags.fusion.sourceId": "TFihgf3jDhmKd0fa"
     }
   },
   {
@@ -355,7 +376,8 @@
       ],
       "system.traits.otherTags": [
         "sorcerer-bloodline"
-      ]
+      ],
+      "flags.fusion.sourceId": "vhW3glAaEfq2DKrw"
     }
   },
   {
@@ -373,7 +395,8 @@
       ],
       "system.traits.otherTags": [
         "sorcerer-bloodline"
-      ]
+      ],
+      "flags.fusion.sourceId": "w5koctOVrEcpxTIq"
     }
   },
   {
@@ -391,7 +414,8 @@
       ],
       "system.traits.otherTags": [
         "sorcerer-bloodline"
-      ]
+      ],
+      "flags.fusion.sourceId": "o39zQMIdERWtmBSB"
     }
   },
   {
@@ -409,7 +433,8 @@
       ],
       "system.traits.otherTags": [
         "sorcerer-bloodline"
-      ]
+      ],
+      "flags.fusion.sourceId": "ZHabYxSgYK0XbjhM"
     }
   },
   {
@@ -427,7 +452,8 @@
       ],
       "system.traits.otherTags": [
         "sorcerer-bloodline"
-      ]
+      ],
+      "flags.fusion.sourceId": "RXRnJcG4XSabZ35a"
     }
   },
   {
@@ -445,7 +471,8 @@
       ],
       "system.traits.otherTags": [
         "sorcerer-bloodline"
-      ]
+      ],
+      "flags.fusion.sourceId": "eW3cfCH7Wpx2vik2"
     }
   },
   {
@@ -463,7 +490,8 @@
       ],
       "system.traits.otherTags": [
         "sorcerer-bloodline"
-      ]
+      ],
+      "flags.fusion.sourceId": "tYOMBiH3HbViNWwn"
     }
   },
   {
@@ -481,7 +509,8 @@
       ],
       "system.traits.otherTags": [
         "sorcerer-bloodline"
-      ]
+      ],
+      "flags.fusion.sourceId": "O0uXZRWMNliDbkxU"
     }
   },
   {
@@ -499,7 +528,8 @@
       ],
       "system.traits.otherTags": [
         "sorcerer-bloodline"
-      ]
+      ],
+      "flags.fusion.sourceId": "b6hyZTs1rVGHDexz"
     }
   },
   {
@@ -517,7 +547,8 @@
       ],
       "system.traits.otherTags": [
         "sorcerer-bloodline"
-      ]
+      ],
+      "flags.fusion.sourceId": "ZEtJJ5UOlV5oTWWp"
     }
   },
   {
@@ -535,7 +566,8 @@
       ],
       "system.traits.otherTags": [
         "sorcerer-bloodline"
-      ]
+      ],
+      "flags.fusion.sourceId": "5Wxjghw7lHuCxjZz"
     }
   },
   {
@@ -550,7 +582,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "sorcerer"
-      ]
+      ],
+      "flags.fusion.sourceId": "feCnVrPPlKhl701x"
     }
   },
   {
@@ -568,7 +601,8 @@
       ],
       "system.traits.otherTags": [
         "sorcerer-bloodline"
-      ]
+      ],
+      "flags.fusion.sourceId": "TWR1wbPJuCLnGdFZ"
     }
   },
   {
@@ -586,7 +620,8 @@
       ],
       "system.traits.otherTags": [
         "sorcerer-bloodline"
-      ]
+      ],
+      "flags.fusion.sourceId": "PpzH9tJULk5ksX9w"
     }
   },
   {
@@ -604,7 +639,8 @@
       ],
       "system.traits.otherTags": [
         "sorcerer-bloodline"
-      ]
+      ],
+      "flags.fusion.sourceId": "uoQOm41BVdSo6pAS"
     }
   },
   {
@@ -619,7 +655,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "sorcerer"
-      ]
+      ],
+      "flags.fusion.sourceId": "H6ziAPvCipTPG8SH"
     }
   },
   {
@@ -637,7 +674,8 @@
       ],
       "system.traits.otherTags": [
         "sorcerer-bloodline"
-      ]
+      ],
+      "flags.fusion.sourceId": "7WBZ2kkhZ7JorWu2"
     }
   },
   {
@@ -655,7 +693,8 @@
       ],
       "system.traits.otherTags": [
         "sorcerer-bloodline"
-      ]
+      ],
+      "flags.fusion.sourceId": "dKTb959aCQIzSIXj"
     }
   },
   {
@@ -670,7 +709,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "sorcerer"
-      ]
+      ],
+      "flags.fusion.sourceId": "2goYo6VNbwC6aKF1"
     }
   },
   {
@@ -689,7 +729,8 @@
       "system.traits.otherTags": [
         "barbarian-instinct",
         "class-archetype"
-      ]
+      ],
+      "flags.fusion.sourceId": "qwvO0B9t7LgQCVbV"
     }
   },
   {
@@ -704,7 +745,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "fighter"
-      ]
+      ],
+      "flags.fusion.sourceId": "GJKJafDGuX4BeAeN"
     }
   },
   {
@@ -719,7 +761,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "barbarian"
-      ]
+      ],
+      "flags.fusion.sourceId": "EEUTd0jAyfwTLzjk"
     }
   },
   {
@@ -734,7 +777,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "champion"
-      ]
+      ],
+      "flags.fusion.sourceId": "D4k8wuq1ncHFCBZz"
     }
   },
   {
@@ -749,7 +793,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "champion"
-      ]
+      ],
+      "flags.fusion.sourceId": "VgmfNKtQLgBaNi5r"
     }
   },
   {
@@ -764,7 +809,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "champion"
-      ]
+      ],
+      "flags.fusion.sourceId": "z5G0o04uV65zyxDB"
     }
   },
   {
@@ -779,7 +825,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "champion"
-      ]
+      ],
+      "flags.fusion.sourceId": "0x76o5OxgEmvqIDp"
     }
   },
   {
@@ -794,7 +841,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "AvNbdGSOTWNRgcxs"
     }
   },
   {
@@ -812,7 +860,8 @@
       ],
       "system.traits.otherTags": [
         "cleric-doctrine"
-      ]
+      ],
+      "flags.fusion.sourceId": "ZZzLMOUAtBVgV1DF"
     }
   },
   {
@@ -827,7 +876,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "fighter"
-      ]
+      ],
+      "flags.fusion.sourceId": "8g6HzARbhfcgilP8"
     }
   },
   {
@@ -842,7 +892,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "bard"
-      ]
+      ],
+      "flags.fusion.sourceId": "s0VbbQJNlSgPocui"
     }
   },
   {
@@ -857,7 +908,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "magus"
-      ]
+      ],
+      "flags.fusion.sourceId": "FkbFgmoVz5lHhSMo"
     }
   },
   {
@@ -872,7 +924,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "rogue"
-      ]
+      ],
+      "flags.fusion.sourceId": "9SruVg2lZpNaYLOB"
     }
   },
   {
@@ -890,7 +943,8 @@
       ],
       "system.traits.otherTags": [
         "barbarian-instinct"
-      ]
+      ],
+      "flags.fusion.sourceId": "znxs0soGlusvRP39"
     }
   },
   {
@@ -908,7 +962,8 @@
         "summoner",
         "witch",
         "wizard"
-      ]
+      ],
+      "flags.fusion.sourceId": "gU7epgcPSm0TD1UK"
     }
   },
   {
@@ -923,7 +978,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "champion"
-      ]
+      ],
+      "flags.fusion.sourceId": "FeBsYn2mHfMVDZvw"
     }
   },
   {
@@ -938,7 +994,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "champion"
-      ]
+      ],
+      "flags.fusion.sourceId": "ehL7mnkqxN5wIkgu"
     }
   },
   {
@@ -953,7 +1010,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "DutW12WMFPHBoLTH"
     }
   },
   {
@@ -968,7 +1026,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "rogue"
-      ]
+      ],
+      "flags.fusion.sourceId": "PNpmVmD21zViDtGC"
     }
   },
   {
@@ -987,7 +1046,8 @@
       "system.traits.otherTags": [
         "champion-cause",
         "unholy"
-      ]
+      ],
+      "flags.fusion.sourceId": "8YIA0jh64Ecz0TG6"
     }
   },
   {
@@ -1002,7 +1062,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "barbarian"
-      ]
+      ],
+      "flags.fusion.sourceId": "VLiT503OLOM3vaDx"
     }
   },
   {
@@ -1017,7 +1078,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "champion"
-      ]
+      ],
+      "flags.fusion.sourceId": "Q1VfQZp49hkhY0HY"
     }
   },
   {
@@ -1032,7 +1094,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "0mJTp4LdEHBLInoe"
     }
   },
   {
@@ -1047,7 +1110,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "gblTFUOgolqFS9v4"
     }
   },
   {
@@ -1062,7 +1126,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "champion"
-      ]
+      ],
+      "flags.fusion.sourceId": "xygfZopqXBJ6dKBA"
     }
   },
   {
@@ -1077,7 +1142,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "tyrBwBTzo5t9Zho7"
     }
   },
   {
@@ -1092,7 +1158,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "rogue"
-      ]
+      ],
+      "flags.fusion.sourceId": "W1FkMHYVDg3yTU5r"
     }
   },
   {
@@ -1107,7 +1174,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "kineticist"
-      ]
+      ],
+      "flags.fusion.sourceId": "DvuPpIaM4BkHLX4y"
     }
   },
   {
@@ -1122,7 +1190,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "magus"
-      ]
+      ],
+      "flags.fusion.sourceId": "VmPIJomEdmgGrCMS"
     }
   },
   {
@@ -1140,7 +1209,8 @@
       ],
       "system.traits.otherTags": [
         "barbarian-instinct"
-      ]
+      ],
+      "flags.fusion.sourceId": "VDot7CDcXElxmkkz"
     }
   },
   {
@@ -1158,7 +1228,8 @@
       ],
       "system.traits.otherTags": [
         "rogue-racket"
-      ]
+      ],
+      "flags.fusion.sourceId": "D8qtAo2w4jsqjBrM"
     }
   },
   {
@@ -1176,7 +1247,8 @@
       ],
       "system.traits.otherTags": [
         "barbarian-instinct"
-      ]
+      ],
+      "flags.fusion.sourceId": "0jSS6pgNXsC8k4o7"
     }
   },
   {
@@ -1194,7 +1266,8 @@
       ],
       "system.traits.otherTags": [
         "bard-muse"
-      ]
+      ],
+      "flags.fusion.sourceId": "4ripp6EfdVpS0d60"
     }
   },
   {
@@ -1209,7 +1282,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "rogue"
-      ]
+      ],
+      "flags.fusion.sourceId": "oa3TJpPnvL98EUHh"
     }
   },
   {
@@ -1224,7 +1298,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "champion"
-      ]
+      ],
+      "flags.fusion.sourceId": "uptzvOLrZ3fctrl2"
     }
   },
   {
@@ -1242,7 +1317,8 @@
       ],
       "system.traits.otherTags": [
         "wizard-arcane-thesis"
-      ]
+      ],
+      "flags.fusion.sourceId": "89zWKD2CN7nRu2xp"
     }
   },
   {
@@ -1266,7 +1342,8 @@
         "summoner",
         "witch",
         "wizard"
-      ]
+      ],
+      "flags.fusion.sourceId": "cD3nSupdCvONuHiE"
     }
   },
   {
@@ -1281,7 +1358,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "monk"
-      ]
+      ],
+      "flags.fusion.sourceId": "VgZIutWjFl8oZQFi"
     }
   },
   {
@@ -1296,7 +1374,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "kineticist"
-      ]
+      ],
+      "flags.fusion.sourceId": "jyCEC3eC4B6YaGoy"
     }
   },
   {
@@ -1311,7 +1390,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "n9W8MjjRgPpUTvWf"
     }
   },
   {
@@ -1326,7 +1406,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "kmimy4VOaoEOgOiQ"
     }
   },
   {
@@ -1341,7 +1422,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "Zb7DuGbFoLEp0H1K"
     }
   },
   {
@@ -1356,7 +1438,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "fighter"
-      ]
+      ],
+      "flags.fusion.sourceId": "bAaI7h937Nr3g93U"
     }
   },
   {
@@ -1371,7 +1454,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "fighter"
-      ]
+      ],
+      "flags.fusion.sourceId": "gApJtAdNb9ST4Ms9"
     }
   },
   {
@@ -1386,7 +1470,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "DgGefatQ4v6xT6f9"
     }
   },
   {
@@ -1401,7 +1486,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "N1ugDqZlslxbp3Uy"
     }
   },
   {
@@ -1416,7 +1502,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "urBGOPrUwBmkixAo"
     }
   },
   {
@@ -1431,7 +1518,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "kineticist"
-      ]
+      ],
+      "flags.fusion.sourceId": "DPxpBIxPidJfn0Xv"
     }
   },
   {
@@ -1446,7 +1534,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "aiwxBj5MjnafCMyn"
     }
   },
   {
@@ -1461,7 +1550,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "xxkszluN9icAiTO4"
     }
   },
   {
@@ -1476,7 +1566,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "Qejo7FUWQtPTpgWH"
     }
   },
   {
@@ -1492,7 +1583,8 @@
       "system.traits.value": [
         "flourish",
         "monk"
-      ]
+      ],
+      "flags.fusion.sourceId": "NLHHHiAcdnZ5ohc2"
     }
   },
   {
@@ -1510,7 +1602,8 @@
       ],
       "system.traits.otherTags": [
         "ranger-hunters-edge"
-      ]
+      ],
+      "flags.fusion.sourceId": "6v4Rj7wWfOH1882r"
     }
   },
   {
@@ -1531,7 +1624,8 @@
         "investigator",
         "psychic",
         "swashbuckler"
-      ]
+      ],
+      "flags.fusion.sourceId": "F57Na5VxfBp56kke"
     }
   },
   {
@@ -1546,7 +1640,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "vxOf4LXZcqUG3P7a"
     }
   },
   {
@@ -1561,7 +1656,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "px3gVYp7zlEQIpcl"
     }
   },
   {
@@ -1576,7 +1672,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "o8nHreMyiLi64rZz"
     }
   },
   {
@@ -1591,7 +1688,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "kineticist"
-      ]
+      ],
+      "flags.fusion.sourceId": "o8QHrhc9MsWIoKUv"
     }
   },
   {
@@ -1606,7 +1704,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "barbarian"
-      ]
+      ],
+      "flags.fusion.sourceId": "fctFBBqWwwwdbgdx"
     }
   },
   {
@@ -1624,7 +1723,8 @@
       ],
       "system.traits.otherTags": [
         "barbarian-instinct"
-      ]
+      ],
+      "flags.fusion.sourceId": "k7M9jedvt31AJ5ZR"
     }
   },
   {
@@ -1639,7 +1739,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "kineticist"
-      ]
+      ],
+      "flags.fusion.sourceId": "vEiENk0IzuzRQesp"
     }
   },
   {
@@ -1657,7 +1758,8 @@
       ],
       "system.traits.otherTags": [
         "barbarian-instinct"
-      ]
+      ],
+      "flags.fusion.sourceId": "JuKD6k7nDwfO0Ckv"
     }
   },
   {
@@ -1672,7 +1774,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "monk"
-      ]
+      ],
+      "flags.fusion.sourceId": "JWDfzYub3JfuEtth"
     }
   },
   {
@@ -1687,7 +1790,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "monk"
-      ]
+      ],
+      "flags.fusion.sourceId": "95LI24ZSx0d4qfKX"
     }
   },
   {
@@ -1706,7 +1810,8 @@
       "system.traits.otherTags": [
         "champion-cause",
         "holy"
-      ]
+      ],
+      "flags.fusion.sourceId": "h1NGH4TVeBljftni"
     }
   },
   {
@@ -1721,7 +1826,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "barbarian"
-      ]
+      ],
+      "flags.fusion.sourceId": "TuL0UfqH14MtqYVh"
     }
   },
   {
@@ -1736,7 +1842,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "kineticist"
-      ]
+      ],
+      "flags.fusion.sourceId": "i3qjbhL7uukg9I80"
     }
   },
   {
@@ -1751,7 +1858,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "ranger"
-      ]
+      ],
+      "flags.fusion.sourceId": "rpLPCkTXCZlQ51SR"
     }
   },
   {
@@ -1766,7 +1874,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "bard"
-      ]
+      ],
+      "flags.fusion.sourceId": "mRobjNNsABQdUUZq"
     }
   },
   {
@@ -1781,7 +1890,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "rogue"
-      ]
+      ],
+      "flags.fusion.sourceId": "BTpL6XvMk4jvVYYJ"
     }
   },
   {
@@ -1796,7 +1906,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "barbarian"
-      ]
+      ],
+      "flags.fusion.sourceId": "7JjhxMFo8DMwpGx0"
     }
   },
   {
@@ -1822,7 +1933,8 @@
         "rogue",
         "swashbuckler",
         "thaumaturge"
-      ]
+      ],
+      "flags.fusion.sourceId": "Z7HX6TeFsaup7Dx9"
     }
   },
   {
@@ -1837,7 +1949,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "champion"
-      ]
+      ],
+      "flags.fusion.sourceId": "LzB6X9vOaq3wq1FZ"
     }
   },
   {
@@ -1852,7 +1965,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "ranger"
-      ]
+      ],
+      "flags.fusion.sourceId": "0nIOGpHQNHsKSFKT"
     }
   },
   {
@@ -1867,7 +1981,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "ranger"
-      ]
+      ],
+      "flags.fusion.sourceId": "mzkkj9LEWjJPBhaq"
     }
   },
   {
@@ -1882,7 +1997,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "magus"
-      ]
+      ],
+      "flags.fusion.sourceId": "FTeIs1Z1Qeli4BIF"
     }
   },
   {
@@ -1900,7 +2016,8 @@
       ],
       "system.traits.otherTags": [
         "wizard-arcane-thesis"
-      ]
+      ],
+      "flags.fusion.sourceId": "SNZ46g3u7U6x0XJj"
     }
   },
   {
@@ -1915,7 +2032,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "fighter"
-      ]
+      ],
+      "flags.fusion.sourceId": "W2rwudMNcAxs8VoX"
     }
   },
   {
@@ -1930,7 +2048,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "kineticist"
-      ]
+      ],
+      "flags.fusion.sourceId": "xhCYkt3acfFd0hr2"
     }
   },
   {
@@ -1945,7 +2064,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "monk"
-      ]
+      ],
+      "flags.fusion.sourceId": "Cq6NjvcKZOMySBVj"
     }
   },
   {
@@ -1960,7 +2080,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "barbarian"
-      ]
+      ],
+      "flags.fusion.sourceId": "BZnqKnqKVImjSIFE"
     }
   },
   {
@@ -1978,7 +2099,8 @@
       ],
       "system.traits.otherTags": [
         "magus-hybrid-study"
-      ]
+      ],
+      "flags.fusion.sourceId": "ZslXrvYRxHBXc1Ds"
     }
   },
   {
@@ -1997,7 +2119,8 @@
       "system.traits.otherTags": [
         "champion-cause",
         "unholy"
-      ]
+      ],
+      "flags.fusion.sourceId": "EQ6DVIQHAUXUhY6Y"
     }
   },
   {
@@ -2012,7 +2135,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "barbarian"
-      ]
+      ],
+      "flags.fusion.sourceId": "dU7xRpg4kFd01hwZ"
     }
   },
   {
@@ -2028,7 +2152,8 @@
       "system.traits.value": [
         "barbarian",
         "magus"
-      ]
+      ],
+      "flags.fusion.sourceId": "OMZs5y16jZRW9KQK"
     }
   },
   {
@@ -2046,7 +2171,8 @@
       ],
       "system.traits.otherTags": [
         "champion-cause"
-      ]
+      ],
+      "flags.fusion.sourceId": "peEXunfbSD8WcMFk"
     }
   },
   {
@@ -2061,7 +2187,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "kineticist"
-      ]
+      ],
+      "flags.fusion.sourceId": "f0BF2210l9k66cso"
     }
   },
   {
@@ -2076,7 +2203,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "kineticist"
-      ]
+      ],
+      "flags.fusion.sourceId": "eTHq1Cwf1pOvsx2R"
     }
   },
   {
@@ -2091,7 +2219,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "kineticist"
-      ]
+      ],
+      "flags.fusion.sourceId": "dGiMAdZEQoXQWJbn"
     }
   },
   {
@@ -2106,7 +2235,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "kineticist"
-      ]
+      ],
+      "flags.fusion.sourceId": "IDBB44egwiQ4qZNh"
     }
   },
   {
@@ -2121,7 +2251,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "kineticist"
-      ]
+      ],
+      "flags.fusion.sourceId": "8ZAc21SvRO2rfPez"
     }
   },
   {
@@ -2136,7 +2267,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "kineticist"
-      ]
+      ],
+      "flags.fusion.sourceId": "a6fIKxCViZwwHZLJ"
     }
   },
   {
@@ -2151,7 +2283,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "kineticist"
-      ]
+      ],
+      "flags.fusion.sourceId": "9BUk7zy1aE092XCS"
     }
   },
   {
@@ -2169,7 +2302,8 @@
       ],
       "system.traits.otherTags": [
         "magus-hybrid-study"
-      ]
+      ],
+      "flags.fusion.sourceId": "3gVDqDPSz4fB5T9G"
     }
   },
   {
@@ -2184,7 +2318,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "champion"
-      ]
+      ],
+      "flags.fusion.sourceId": "voiSCh7ZXA2ogwiC"
     }
   },
   {
@@ -2206,7 +2341,8 @@
         "sorcerer",
         "witch",
         "wizard"
-      ]
+      ],
+      "flags.fusion.sourceId": "Hfaa7TuLn3nE8lr3"
     }
   },
   {
@@ -2224,7 +2360,8 @@
       ],
       "system.traits.otherTags": [
         "champion-cause"
-      ]
+      ],
+      "flags.fusion.sourceId": "FCoMFUsth4xB4veC"
     }
   },
   {
@@ -2244,7 +2381,8 @@
         "oracle",
         "rogue",
         "swashbuckler"
-      ]
+      ],
+      "flags.fusion.sourceId": "pZYkb12t5DSwtts7"
     }
   },
   {
@@ -2262,7 +2400,8 @@
         "kineticist",
         "rogue",
         "swashbuckler"
-      ]
+      ],
+      "flags.fusion.sourceId": "SHpjmM4A3Sw4GgDz"
     }
   },
   {
@@ -2280,7 +2419,8 @@
       ],
       "system.traits.otherTags": [
         "barbarian-instinct"
-      ]
+      ],
+      "flags.fusion.sourceId": "qVAeSFTI1dq64bB8"
     }
   },
   {
@@ -2298,7 +2438,8 @@
       ],
       "system.traits.otherTags": [
         "bard-muse"
-      ]
+      ],
+      "flags.fusion.sourceId": "YMBsi4bndRAk5CX4"
     }
   },
   {
@@ -2316,7 +2457,8 @@
         "sorcerer",
         "witch",
         "wizard"
-      ]
+      ],
+      "flags.fusion.sourceId": "70jqXP2eS4tRZ0Ok"
     }
   },
   {
@@ -2331,7 +2473,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "bard"
-      ]
+      ],
+      "flags.fusion.sourceId": "NjsOpWbbzUY2Hpk3"
     }
   },
   {
@@ -2346,7 +2489,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "sorcerer"
-      ]
+      ],
+      "flags.fusion.sourceId": "7D8duG4ARFxLLm9F"
     }
   },
   {
@@ -2364,7 +2508,8 @@
         "investigator",
         "ranger",
         "swashbuckler"
-      ]
+      ],
+      "flags.fusion.sourceId": "i6563IU7x4L9oRgC"
     }
   },
   {
@@ -2388,7 +2533,8 @@
         "summoner",
         "witch",
         "wizard"
-      ]
+      ],
+      "flags.fusion.sourceId": "l1InYvhnQSz6Ucxc"
     }
   },
   {
@@ -2403,7 +2549,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "rogue"
-      ]
+      ],
+      "flags.fusion.sourceId": "SUUdWG0t33VKa5q4"
     }
   },
   {
@@ -2418,7 +2565,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "monk"
-      ]
+      ],
+      "flags.fusion.sourceId": "0iidKkzC2yy13lIf"
     }
   },
   {
@@ -2433,7 +2581,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "rogue"
-      ]
+      ],
+      "flags.fusion.sourceId": "myvcir1LEkaVxOlE"
     }
   },
   {
@@ -2448,7 +2597,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "ranger"
-      ]
+      ],
+      "flags.fusion.sourceId": "RVZC4wVy5B5W2OeS"
     }
   },
   {
@@ -2466,7 +2616,8 @@
       ],
       "system.traits.otherTags": [
         "rogue-racket"
-      ]
+      ],
+      "flags.fusion.sourceId": "RyOkmu0W9svavuAB"
     }
   },
   {
@@ -2487,7 +2638,8 @@
         "magus",
         "ranger",
         "thaumaturge"
-      ]
+      ],
+      "flags.fusion.sourceId": "FCEp9jjxxgRJDJV3"
     }
   },
   {
@@ -2507,7 +2659,8 @@
         "magus",
         "ranger",
         "thaumaturge"
-      ]
+      ],
+      "flags.fusion.sourceId": "cGMSYAErbUG5E8X2"
     }
   },
   {
@@ -2522,7 +2675,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "monk"
-      ]
+      ],
+      "flags.fusion.sourceId": "CoRfFkisEsHE1e43"
     }
   },
   {
@@ -2537,7 +2691,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "barbarian"
-      ]
+      ],
+      "flags.fusion.sourceId": "88Q33X2a0iYPkbzd"
     }
   },
   {
@@ -2552,7 +2707,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "3uf31A91h3ywmlqm"
     }
   },
   {
@@ -2567,7 +2723,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "monk"
-      ]
+      ],
+      "flags.fusion.sourceId": "lxImO5D0qWp0gXFB"
     }
   },
   {
@@ -2582,7 +2739,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "bard"
-      ]
+      ],
+      "flags.fusion.sourceId": "AIOBWGOS4nkfH3kW"
     }
   },
   {
@@ -2597,7 +2755,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "monk"
-      ]
+      ],
+      "flags.fusion.sourceId": "D2AE8RfMlZ3D1FuV"
     }
   },
   {
@@ -2612,7 +2771,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "ranger"
-      ]
+      ],
+      "flags.fusion.sourceId": "7dMDxvzGKbqoEAdX"
     }
   },
   {
@@ -2627,7 +2787,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "ranger"
-      ]
+      ],
+      "flags.fusion.sourceId": "j2R64kwUgEJ1TudD"
     }
   },
   {
@@ -2645,7 +2806,8 @@
       ],
       "system.traits.otherTags": [
         "champion-cause"
-      ]
+      ],
+      "flags.fusion.sourceId": "HiIvez0TqESbleB5"
     }
   },
   {
@@ -2660,7 +2822,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "bard"
-      ]
+      ],
+      "flags.fusion.sourceId": "fEOj0eOBe34qYdAa"
     }
   },
   {
@@ -2678,7 +2841,8 @@
       ],
       "system.traits.otherTags": [
         "ranger-hunters-edge"
-      ]
+      ],
+      "flags.fusion.sourceId": "NBHyoTrI8q62uDsU"
     }
   },
   {
@@ -2693,7 +2857,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "monk"
-      ]
+      ],
+      "flags.fusion.sourceId": "1K6m6AVmn3r8XZ9d"
     }
   },
   {
@@ -2718,7 +2883,8 @@
         "sorcerer",
         "witch",
         "wizard"
-      ]
+      ],
+      "flags.fusion.sourceId": "JCqACxgrm5ixX0Jy"
     }
   },
   {
@@ -2735,7 +2901,8 @@
         "gunslinger",
         "ranger",
         "rogue"
-      ]
+      ],
+      "flags.fusion.sourceId": "nLwPMPLRne1HnL00"
     }
   },
   {
@@ -2759,7 +2926,8 @@
         "rogue",
         "swashbuckler",
         "thaumaturge"
-      ]
+      ],
+      "flags.fusion.sourceId": "0npO4rPscGm0dX13"
     }
   },
   {
@@ -2774,7 +2942,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "monk"
-      ]
+      ],
+      "flags.fusion.sourceId": "KmTfg7Sg5va4yU00"
     }
   },
   {
@@ -2787,7 +2956,8 @@
       "name": "Performer's Heart",
       "system.level": 9,
       "system.category": "classfeature",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "nPwYSuMLkJWMB4CH"
     }
   },
   {
@@ -2805,7 +2975,8 @@
       ],
       "system.traits.otherTags": [
         "bard-muse"
-      ]
+      ],
+      "flags.fusion.sourceId": "y0jGimYdMGDJWrEq"
     }
   },
   {
@@ -2820,7 +2991,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "monk"
-      ]
+      ],
+      "flags.fusion.sourceId": "SB8UJ8rZmvbcBweJ"
     }
   },
   {
@@ -2838,7 +3010,8 @@
       ],
       "system.traits.otherTags": [
         "ranger-hunters-edge"
-      ]
+      ],
+      "flags.fusion.sourceId": "u6cBjqz2fiRBadBt"
     }
   },
   {
@@ -2853,7 +3026,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "wizard"
-      ]
+      ],
+      "flags.fusion.sourceId": "j5TZw3xoIo6Lz0Re"
     }
   },
   {
@@ -2868,7 +3042,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "barbarian"
-      ]
+      ],
+      "flags.fusion.sourceId": "04lXNnt73rF3RNc4"
     }
   },
   {
@@ -2883,7 +3058,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "barbarian"
-      ]
+      ],
+      "flags.fusion.sourceId": "WZUCvxqbigXos1L9"
     }
   },
   {
@@ -2898,7 +3074,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "barbarian"
-      ]
+      ],
+      "flags.fusion.sourceId": "ie6xDX9GMEcA2Iuq"
     }
   },
   {
@@ -2913,7 +3090,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "ranger"
-      ]
+      ],
+      "flags.fusion.sourceId": "5likl5SAxQPrQ3KF"
     }
   },
   {
@@ -2928,7 +3106,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "ranger"
-      ]
+      ],
+      "flags.fusion.sourceId": "QhoW8ivPvYmWzyEZ"
     }
   },
   {
@@ -2943,7 +3122,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "fighter"
-      ]
+      ],
+      "flags.fusion.sourceId": "hmShTfPOcTaKgbf4"
     }
   },
   {
@@ -2961,7 +3141,8 @@
       ],
       "system.traits.otherTags": [
         "wizard-arcane-school"
-      ]
+      ],
+      "flags.fusion.sourceId": "srcPBNjhq7FBSmi3"
     }
   },
   {
@@ -2980,7 +3161,8 @@
       "system.traits.otherTags": [
         "champion-cause",
         "holy"
-      ]
+      ],
+      "flags.fusion.sourceId": "UyuwFp0jQqYL2AdF"
     }
   },
   {
@@ -3004,7 +3186,8 @@
         "thaumaturge",
         "witch",
         "wizard"
-      ]
+      ],
+      "flags.fusion.sourceId": "TUOeATt52P43r5W0"
     }
   },
   {
@@ -3019,7 +3202,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "kineticist"
-      ]
+      ],
+      "flags.fusion.sourceId": "SIkSIln5G1J73PrM"
     }
   },
   {
@@ -3034,7 +3218,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "champion"
-      ]
+      ],
+      "flags.fusion.sourceId": "3XK573A7GH1rrLgO"
     }
   },
   {
@@ -3049,7 +3234,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "0TjNGzs0FuD7JBf4"
     }
   },
   {
@@ -3064,7 +3250,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "magus"
-      ]
+      ],
+      "flags.fusion.sourceId": "JQAujUXjczVnYDEI"
     }
   },
   {
@@ -3082,7 +3269,8 @@
       ],
       "system.traits.otherTags": [
         "magus-hybrid-study"
-      ]
+      ],
+      "flags.fusion.sourceId": "X3nPGnqh6rkRJ75i"
     }
   },
   {
@@ -3097,7 +3285,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "barbarian"
-      ]
+      ],
+      "flags.fusion.sourceId": "qMtyQGUllPdgpzUo"
     }
   },
   {
@@ -3112,7 +3301,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "rogue"
-      ]
+      ],
+      "flags.fusion.sourceId": "f3Dh32EU4VsHu01b"
     }
   },
   {
@@ -3127,7 +3317,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "rogue"
-      ]
+      ],
+      "flags.fusion.sourceId": "fMHYzXEUMoWskKMF"
     }
   },
   {
@@ -3142,7 +3333,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "rogue"
-      ]
+      ],
+      "flags.fusion.sourceId": "uGuCGQvUmioFV2Bd"
     }
   },
   {
@@ -3160,7 +3352,8 @@
       ],
       "system.traits.otherTags": [
         "rogue-racket"
-      ]
+      ],
+      "flags.fusion.sourceId": "3KPZ7svIO6kmmEKH"
     }
   },
   {
@@ -3179,7 +3372,8 @@
       "system.traits.otherTags": [
         "class-archetype",
         "wizard-arcane-school"
-      ]
+      ],
+      "flags.fusion.sourceId": "HYTaibaCGE85rhbZ"
     }
   },
   {
@@ -3194,7 +3388,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "champion"
-      ]
+      ],
+      "flags.fusion.sourceId": "AkIJrmsX3kjHqQ0b"
     }
   },
   {
@@ -3212,7 +3407,8 @@
       ],
       "system.traits.otherTags": [
         "wizard-arcane-school"
-      ]
+      ],
+      "flags.fusion.sourceId": "wObrT6PytPdS5aUi"
     }
   },
   {
@@ -3230,7 +3426,8 @@
       ],
       "system.traits.otherTags": [
         "wizard-arcane-school"
-      ]
+      ],
+      "flags.fusion.sourceId": "E4GZDMn4DYk6qSEV"
     }
   },
   {
@@ -3248,7 +3445,8 @@
       ],
       "system.traits.otherTags": [
         "wizard-arcane-school"
-      ]
+      ],
+      "flags.fusion.sourceId": "YZ2XPmx1WHyWtM0g"
     }
   },
   {
@@ -3266,7 +3464,8 @@
       ],
       "system.traits.otherTags": [
         "wizard-arcane-school"
-      ]
+      ],
+      "flags.fusion.sourceId": "XXnGHBxNZvRsdkKM"
     }
   },
   {
@@ -3284,7 +3483,8 @@
       ],
       "system.traits.otherTags": [
         "wizard-arcane-school"
-      ]
+      ],
+      "flags.fusion.sourceId": "jtAqb5rnhQblZuM8"
     }
   },
   {
@@ -3302,7 +3502,8 @@
       ],
       "system.traits.otherTags": [
         "wizard-arcane-school"
-      ]
+      ],
+      "flags.fusion.sourceId": "dPAwM9IdabdH68mW"
     }
   },
   {
@@ -3320,7 +3521,8 @@
       ],
       "system.traits.otherTags": [
         "wizard-arcane-school"
-      ]
+      ],
+      "flags.fusion.sourceId": "L5FiuXsfW6Sa31gO"
     }
   },
   {
@@ -3338,7 +3540,8 @@
       ],
       "system.traits.otherTags": [
         "wizard-arcane-school"
-      ]
+      ],
+      "flags.fusion.sourceId": "ZBFICTkzUjE4BDGJ"
     }
   },
   {
@@ -3356,7 +3559,8 @@
       ],
       "system.traits.otherTags": [
         "wizard-arcane-school"
-      ]
+      ],
+      "flags.fusion.sourceId": "KGkWSv9rARpwWzXW"
     }
   },
   {
@@ -3374,7 +3578,8 @@
       ],
       "system.traits.otherTags": [
         "wizard-arcane-school"
-      ]
+      ],
+      "flags.fusion.sourceId": "ZpFCZnVzIfZLfNii"
     }
   },
   {
@@ -3392,7 +3597,8 @@
       ],
       "system.traits.otherTags": [
         "wizard-arcane-school"
-      ]
+      ],
+      "flags.fusion.sourceId": "n2LRzksKVSzOuzqN"
     }
   },
   {
@@ -3411,7 +3617,8 @@
       "system.traits.otherTags": [
         "wizard-arcane-school",
         "wizard-elemental-school"
-      ]
+      ],
+      "flags.fusion.sourceId": "xYYhJtGhFSWNifcO"
     }
   },
   {
@@ -3429,7 +3636,8 @@
       ],
       "system.traits.otherTags": [
         "rogue-racket"
-      ]
+      ],
+      "flags.fusion.sourceId": "ZvfxtUMtfIOLYHyg"
     }
   },
   {
@@ -3444,7 +3652,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "sa7BWfnyCswAvBVa"
     }
   },
   {
@@ -3459,7 +3668,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "D34mPo29r1J3DPaX"
     }
   },
   {
@@ -3474,7 +3684,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "OnfrrwCfDFCFw0tc"
     }
   },
   {
@@ -3489,7 +3700,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "kineticist"
-      ]
+      ],
+      "flags.fusion.sourceId": "N5Gnf73TvuO6Reoj"
     }
   },
   {
@@ -3504,7 +3716,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "monk"
-      ]
+      ],
+      "flags.fusion.sourceId": "y6qnbUc8y0815QNE"
     }
   },
   {
@@ -3525,7 +3738,8 @@
         "fighter",
         "guardian",
         "inventor"
-      ]
+      ],
+      "flags.fusion.sourceId": "eZNCckLzbH3GyncH"
     }
   },
   {
@@ -3543,7 +3757,8 @@
         "oracle",
         "psychic",
         "sorcerer"
-      ]
+      ],
+      "flags.fusion.sourceId": "VKRjmXxBFLrJK01c"
     }
   },
   {
@@ -3558,7 +3773,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "rogue"
-      ]
+      ],
+      "flags.fusion.sourceId": "j1JE61quDxdge4mg"
     }
   },
   {
@@ -3573,7 +3789,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "sorcerer"
-      ]
+      ],
+      "flags.fusion.sourceId": "gmnx7e1g08bppbqt"
     }
   },
   {
@@ -3588,7 +3805,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "sorcerer"
-      ]
+      ],
+      "flags.fusion.sourceId": "yBvGqA6Edp6ImaR3"
     }
   },
   {
@@ -3606,7 +3824,8 @@
       ],
       "system.traits.otherTags": [
         "magus-hybrid-study"
-      ]
+      ],
+      "flags.fusion.sourceId": "maGzhKLmgubAdUlN"
     }
   },
   {
@@ -3624,7 +3843,8 @@
       ],
       "system.traits.otherTags": [
         "wizard-arcane-thesis"
-      ]
+      ],
+      "flags.fusion.sourceId": "OAcxS625AXSGrQIC"
     }
   },
   {
@@ -3643,7 +3863,8 @@
         "psychic",
         "sorcerer",
         "summoner"
-      ]
+      ],
+      "flags.fusion.sourceId": "1RfnAiyQ5FR7vnuH"
     }
   },
   {
@@ -3661,7 +3882,8 @@
       ],
       "system.traits.otherTags": [
         "wizard-arcane-thesis"
-      ]
+      ],
+      "flags.fusion.sourceId": "QzWXMCSGNfvvpYgF"
     }
   },
   {
@@ -3676,7 +3898,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "magus"
-      ]
+      ],
+      "flags.fusion.sourceId": "KVj5ofUwu3VJSrVw"
     }
   },
   {
@@ -3694,7 +3917,8 @@
       ],
       "system.traits.otherTags": [
         "barbarian-instinct"
-      ]
+      ],
+      "flags.fusion.sourceId": "TQqv9Q5mB4PW6LH9"
     }
   },
   {
@@ -3712,7 +3936,8 @@
       ],
       "system.traits.otherTags": [
         "wizard-arcane-thesis"
-      ]
+      ],
+      "flags.fusion.sourceId": "Klb35AwlkNrq1gpB"
     }
   },
   {
@@ -3730,7 +3955,8 @@
       ],
       "system.traits.otherTags": [
         "magus-hybrid-study"
-      ]
+      ],
+      "flags.fusion.sourceId": "Pew7duAozEeAemif"
     }
   },
   {
@@ -3745,7 +3971,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "magus"
-      ]
+      ],
+      "flags.fusion.sourceId": "6HCI2iHyBZAr7a4P"
     }
   },
   {
@@ -3763,7 +3990,8 @@
       ],
       "system.traits.otherTags": [
         "barbarian-instinct"
-      ]
+      ],
+      "flags.fusion.sourceId": "SCYSjUbMmw8JD9P9"
     }
   },
   {
@@ -3778,7 +4006,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "rogue"
-      ]
+      ],
+      "flags.fusion.sourceId": "w6rMqmGzhUahdnA7"
     }
   },
   {
@@ -3793,7 +4022,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "ranger"
-      ]
+      ],
+      "flags.fusion.sourceId": "bBGb1LcffXEqar0p"
     }
   },
   {
@@ -3808,7 +4038,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "fighter"
-      ]
+      ],
+      "flags.fusion.sourceId": "2ImD2TB0RVic1VUc"
     }
   },
   {
@@ -3826,7 +4057,8 @@
       ],
       "system.traits.otherTags": [
         "rogue-racket"
-      ]
+      ],
+      "flags.fusion.sourceId": "wAh2riuFRzz0edPl"
     }
   },
   {
@@ -3841,7 +4073,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "s8WEmc4GGZSHSC7q"
     }
   },
   {
@@ -3856,7 +4089,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "Zp81uTBItG1xlH4O"
     }
   },
   {
@@ -3871,7 +4105,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "cleric"
-      ]
+      ],
+      "flags.fusion.sourceId": "gxNxfN9OBlQ1icus"
     }
   },
   {
@@ -3886,7 +4121,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "kineticist"
-      ]
+      ],
+      "flags.fusion.sourceId": "GfQ5MngIn74OYhQL"
     }
   },
   {
@@ -3901,7 +4137,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "monk"
-      ]
+      ],
+      "flags.fusion.sourceId": "haoTkr2U5k7kaAKN"
     }
   },
   {
@@ -3916,7 +4153,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "ranger"
-      ]
+      ],
+      "flags.fusion.sourceId": "PeZi7E9lI4vz8EGY"
     }
   },
   {
@@ -3934,7 +4172,8 @@
       ],
       "system.traits.otherTags": [
         "magus-hybrid-study"
-      ]
+      ],
+      "flags.fusion.sourceId": "6YJ8KFl7THkVy6Gm"
     }
   },
   {
@@ -3952,7 +4191,8 @@
       ],
       "system.traits.otherTags": [
         "magus-hybrid-study"
-      ]
+      ],
+      "flags.fusion.sourceId": "y0WQzzshwGIymZsr"
     }
   },
   {
@@ -3967,7 +4207,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "ranger"
-      ]
+      ],
+      "flags.fusion.sourceId": "RlwE99yKnhq8FUuy"
     }
   },
   {
@@ -3982,7 +4223,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "fighter"
-      ]
+      ],
+      "flags.fusion.sourceId": "0H2LxtiZTJ275pSD"
     }
   },
   {
@@ -4001,7 +4243,8 @@
       "system.traits.otherTags": [
         "class-archetype",
         "ranger-hunters-edge"
-      ]
+      ],
+      "flags.fusion.sourceId": "QOOwC3S41CKGkxlN"
     }
   },
   {
@@ -4016,7 +4259,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "ranger"
-      ]
+      ],
+      "flags.fusion.sourceId": "gc6OMDRxTpSfsVtk"
     }
   },
   {
@@ -4034,7 +4278,8 @@
       ],
       "system.traits.otherTags": [
         "cleric-doctrine"
-      ]
+      ],
+      "flags.fusion.sourceId": "0Aocw3igLwna9cjp"
     }
   },
   {
@@ -4052,7 +4297,8 @@
       ],
       "system.traits.otherTags": [
         "bard-muse"
-      ]
+      ],
+      "flags.fusion.sourceId": "N03BtRvjX9TeHRa4"
     }
   },
   {
@@ -4080,7 +4326,8 @@
         "thaumaturge",
         "witch",
         "wizard"
-      ]
+      ],
+      "flags.fusion.sourceId": "9XLUh9iMepZesdmc"
     }
   },
   {
@@ -4095,7 +4342,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "fighter"
-      ]
+      ],
+      "flags.fusion.sourceId": "F5VenhIQMDkeGvmV"
     }
   },
   {
@@ -4114,7 +4362,8 @@
         "guardian",
         "magus",
         "thaumaturge"
-      ]
+      ],
+      "flags.fusion.sourceId": "ejP4jVQkS48uKRFz"
     }
   },
   {
@@ -4147,7 +4396,8 @@
         "swashbuckler",
         "witch",
         "wizard"
-      ]
+      ],
+      "flags.fusion.sourceId": "9EqIasqfI8YIM3Pt"
     }
   },
   {
@@ -4162,7 +4412,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "rogue"
-      ]
+      ],
+      "flags.fusion.sourceId": "v8UNEJR5IDKi8yqa"
     }
   },
   {
@@ -4179,7 +4430,8 @@
         "alchemist",
         "kineticist",
         "ranger"
-      ]
+      ],
+      "flags.fusion.sourceId": "NhcF2CbXA8R1UCg4"
     }
   },
   {
@@ -4194,7 +4446,8 @@
       "system.category": "classfeature",
       "system.traits.value": [
         "wizard"
-      ]
+      ],
+      "flags.fusion.sourceId": "S6WW4Yyg4XonXGHD"
     }
   },
   {
@@ -4212,7 +4465,8 @@
       ],
       "system.traits.otherTags": [
         "bard-muse"
-      ]
+      ],
+      "flags.fusion.sourceId": "jHOlcSnGyjCnwoPP"
     }
   }
 ]

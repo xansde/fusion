@@ -10,7 +10,8 @@
       "system.keyAbility": [
         "str"
       ],
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "YDRiP7uVvr9WRhOI"
     }
   },
   {
@@ -24,7 +25,8 @@
       "system.keyAbility": [
         "cha"
       ],
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "3gweRQ5gn7szIWAv"
     }
   },
   {
@@ -39,7 +41,8 @@
         "dex",
         "str"
       ],
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "x8iwnpdLbfcoZkHA"
     }
   },
   {
@@ -53,7 +56,8 @@
       "system.keyAbility": [
         "wis"
       ],
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "EizrWvUPMS67Pahd"
     }
   },
   {
@@ -68,7 +72,8 @@
         "dex",
         "str"
       ],
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "8zn3cD6GSmoo1LW4"
     }
   },
   {
@@ -82,7 +87,8 @@
       "system.keyAbility": [
         "con"
       ],
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "RggQN3bX5SEcsffR"
     }
   },
   {
@@ -97,7 +103,8 @@
         "dex",
         "str"
       ],
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "HQBA9Yx2s8ycvz3C"
     }
   },
   {
@@ -112,7 +119,8 @@
         "dex",
         "str"
       ],
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "YPxpk9JbMnKjbNLc"
     }
   },
   {
@@ -127,7 +135,8 @@
         "dex",
         "str"
       ],
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "Yix76sfxrIlltSTJ"
     }
   },
   {
@@ -141,7 +150,8 @@
       "system.keyAbility": [
         "dex"
       ],
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "LO9STvskJemPkiAI"
     }
   },
   {
@@ -155,7 +165,8 @@
       "system.keyAbility": [
         "cha"
       ],
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "15Yc1r6s9CEhSTMe"
     }
   },
   {
@@ -169,7 +180,8 @@
       "system.keyAbility": [
         "int"
       ],
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "RwjIZzIxzPpUglnK"
     }
   }
 ]

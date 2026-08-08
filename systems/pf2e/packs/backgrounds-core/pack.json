@@ -5,7 +5,8 @@
   "systemId": "pf2e",
   "indexFields": [
     "name",
-    "system.traits.value"
+    "system.traits.value",
+    "flags.fusion.sourceId"
   ],
   "license": {
     "license": "ORC",

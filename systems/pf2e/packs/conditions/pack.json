@@ -5,7 +5,8 @@
   "systemId": "pf2e",
   "indexFields": [
     "system.group",
-    "system.value.isValued"
+    "system.value.isValued",
+    "flags.fusion.sourceId"
   ],
   "license": {
     "license": "ORC",

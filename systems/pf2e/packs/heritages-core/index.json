@@ -8,7 +8,8 @@
     "index": {
       "name": "Deep Rat",
       "system.ancestry.slug": "ratfolk",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "7p9HtLzWBHc18JDW"
     }
   },
   {
@@ -20,7 +21,8 @@
     "index": {
       "name": "Desert Rat",
       "system.ancestry.slug": "ratfolk",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "twayjFuXbsvyHUwy"
     }
   },
   {
@@ -32,7 +34,8 @@
     "index": {
       "name": "Longsnout Rat",
       "system.ancestry.slug": "ratfolk",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "fROPRHGyUn4PgcER"
     }
   },
   {
@@ -44,7 +47,8 @@
     "index": {
       "name": "Sewer Rat",
       "system.ancestry.slug": "ratfolk",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "eFsD7W6hnK33jlDQ"
     }
   },
   {
@@ -56,7 +60,8 @@
     "index": {
       "name": "Shadow Rat",
       "system.ancestry.slug": "ratfolk",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "tarfuEXmi0E0Enfy"
     }
   },
   {
@@ -68,7 +73,8 @@
     "index": {
       "name": "Snow Rat",
       "system.ancestry.slug": "ratfolk",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "7lFPhRMAFXQsXUP2"
     }
   },
   {
@@ -80,7 +86,8 @@
     "index": {
       "name": "Tunnel Rat",
       "system.ancestry.slug": "ratfolk",
-      "system.traits.value": []
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "U882U2NUUGL6u3rL"
     }
   },
   {
@@ -93,7 +100,8 @@
       "name": "Sylph",
       "system.traits.value": [
         "sylph"
-      ]
+      ],
+      "flags.fusion.sourceId": "G8jfMayPv4vZvAVr"
     }
   }
 ]
