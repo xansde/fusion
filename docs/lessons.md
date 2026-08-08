@@ -243,3 +243,40 @@ aceita mais coisa?". E prop de estreitamento tem que cobrir **todas** as
 entradas do componente (diálogo, grade, arraste) ou não deve existir: ou o
 componente inteiro respeita `kinds`, ou o chamador que precisa de garantia
 valida ele mesmo o que recebeu no `onSelect`.
+
+## Função pura testada não prova que o dado certo chega na ponta
+
+**Quando:** implementação do som ambiente da mesa, item `wi-mapa-som-01`
+(2026-08-08).
+
+**O que aconteceu:** o player de áudio do cliente nasceu com 41 testes verdes e
+não tocava uma faixa sequer. O contrato define `src` como o **nome puro** do
+asset (`tavern.mp3`, sem barra — o regex do schema recusa qualquer path). O
+player pegava esse nome e passava por `resolveAssetUrl()`, que só reescreve
+string já no formato `/assets/<nome>` e **devolve qualquer outra coisa
+intacta**. O Howler recebia `tavern.mp3`, uma URL relativa à página, e tomava 404. Nenhum teste viu, porque todos exercitavam as funções puras extraídas
+(`loopOffsetSeconds`, `shouldRestart`) e nenhum olhava o argumento que chega ao
+construtor do `Howl`.
+
+No mesmo arquivo, um segundo defeito da mesma família: no desbloqueio de
+autoplay o player só dava `seek()`. Lendo o `dist/howler.js`, o `_unlockAudio`
+apenas **emite** o evento `unlock` — nunca retoma a reprodução. O som bloqueado
+ficou `_paused/_ended`, e um play parado em `once('resume')` ainda carrega o
+seek capturado **antes** do bloqueio. O jogador que abrisse a aba com autoplay
+bloqueado clicaria na tela e continuaria no silêncio, para sempre.
+
+**Por que enganou:** extrair a lógica pura e testá-la é a recomendação certa, e
+foi seguida à risca. O problema é que ela desloca a verificação para onde o
+código é fácil de testar — e o defeito mora exatamente onde ela **não** foi: na
+fronteira com a biblioteca externa. "Sem AudioContext no Node" justifica não
+testar o áudio de verdade; não justifica deixar sem teste **o valor que se
+entrega à biblioteca**, que é um objeto JavaScript comum.
+
+**O que fazer:** quando um módulo existe para conversar com uma biblioteca
+externa, teste também **a conversa** — mocke a biblioteca e afirme sobre o que
+chega no construtor/na chamada. É barato (`vi.mock`) e é a única coisa que pega
+uma URL malformada, um flag invertido ou um campo faltando. E ao usar um helper
+de outro módulo, confira o que ele faz com uma entrada **fora** do formato que
+ele espera: `resolveAssetUrl` não falha com nome puro, ela devolve o nome puro
+— o silêncio dela é que virou o bug. Helper que degrada devolvendo a entrada
+intacta é uma armadilha: dá certo no teste e erra em produção.
