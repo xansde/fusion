@@ -4,7 +4,7 @@
 > qualquer coisa da branch `docs/specs-mapas-overlays`. Documento efêmero — apagar
 > quando o trabalho for absorvido pelas specs/PR.
 
-## O que esta branch contém (4 commits sobre `build/app`)
+## O que esta branch contém (6 commits sobre `build/app`)
 
 | Commit    | Conteúdo                                                                                                                                                            |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -12,6 +12,8 @@
 | `13d9559` | Protótipo interativo do log de missões (proposta para a spec 28)                                                                                                    |
 | `ca3fe09` | Protótipo reestilizado com a linguagem visual da System Window                                                                                                      |
 | `fa7a68f` | Janelas de Comitiva e Mapa adicionadas ao protótipo                                                                                                                 |
+| `d711b0a` | Este handoff + referência visual do Isekai-Companion copiada para o repo                                                                                            |
+| `177caf8` | **Câmera no mapa do protótipo** — zoom/pan com "o mundo escala, a interface não"                                                                                    |
 
 ## Referência visual do Mario (IMPORTANTE)
 
@@ -36,12 +38,29 @@ Mestre; Comitiva com HP + Pontos de Foco (pips 0–3) + condições PF2e; mapa d
 região com 8 POIs vinculados às missões, Console de Revelação por jogador e
 "Rastrear no mapa"; sincronização missão→POI; rodapé mapeando cada elemento a REQs.
 
-**Melhorias já identificadas (não feitas):**
+**Câmera do mapa (feita em `177caf8`)** — a regra do Mario deixou de ser citação e
+virou demonstração. Quatro regras do `mapa-isekai.md` §5.1 implementadas e testadas:
 
-1. Mapa é estático — sem zoom/pan; a regra "ícones não escalam com o zoom" (design
-   do Mario, `mapa-isekai.md` §5) está creditada no rodapé mas não demonstrada.
-2. Revelação de POI é em dois passos (selecionar POI → ciclar no console do
+- Duas camadas dentro de `.mv`: `world` (com `transform` da câmera, traços em
+  `vector-effect="non-scaling-stroke"`) e `nodes` (**sem** transform — o pino
+  mantém o tamanho em pixels; só a posição é recalculada por `50 + z*(x - cam.x)`).
+- LOD de rótulo: assentamento sempre · demais ≥ 1,3× · categoria/distância ≥ 2,2×.
+- Barra de escala em degrau redondo sobre o recorte de 512 km (§6.2).
+- Pan travado nas bordas; zoom de roda ancorado no cursor; `clampCam()` centraliza
+  a câmera à força em 1×.
+- Bônus: "Rastrear no mapa" leva a câmera até o pin a 2,2× (REQ-CNV-008).
+
+Verificação: 37 asserções em jsdom + um teste de arrasto separado (scripts efêmeros
+no scratchpad, não commitados). Cobrem posição/LOD/escala/clamp/zoom-no-cursor, pan,
+clique pós-arrasto engolido e as regressões do Console de Revelação e da redação do
+marcador oculto na visão do jogador.
+
+**Melhorias identificadas ainda não feitas:**
+
+1. Revelação de POI é em dois passos (selecionar POI → ciclar no console do
    detalhe). O Alexandre foi avisado; se pedir, trocar por clique único no marcador.
+2. Sem atalho de teclado para zoom (`+`/`-`/`0`) — hoje só roda do mouse e os
+   botões do canto. Deliberado: manter a barra de comando com `Q`/`C`/`M` limpa.
 
 ## Decisões arquiteturais já tomadas (não reabrir sem motivo)
 
@@ -80,3 +99,12 @@ região com 8 POIs vinculados às missões, Console de Revelação por jogador e
   cada commit verde.
 - Protótipo: rodar `npx prettier --write` antes de commitar; validar o `<script>`
   com `node -e "new Function(...)"` e conferir zero refs externas.
+- **Protótipo com comportamento (câmera, estado, redação) merece teste de verdade.**
+  O monorepo não tem jsdom; instalar no scratchpad (`npm i jsdom`) e carregar o
+  arquivo com `JSDOM.fromFile(path, { runScripts: "dangerously", pretendToBeVisual: true })`.
+  Dois detalhes que custam tempo: (a) `let`/`const` de topo de script **não** viram
+  `window.x` — inspecione o estado com `win.eval("cam.z")`, que é eval indireto e
+  enxerga o escopo léxico global; (b) jsdom não faz layout (`clientWidth === 0`) nem
+  implementa `setPointerCapture` — por isso o código tem fallback de largura e
+  guarda `if (mv.setPointerCapture)`. Os scripts de checagem são efêmeros: não
+  commitar, o protótipo não tem suíte.

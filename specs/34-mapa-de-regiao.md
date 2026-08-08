@@ -6,6 +6,7 @@
 - **Baseada em:**
   - `docs/design/mapa-isekai.md` — modelo de escalas (§4), os três estados de visibilidade (§3.3), regras de render do protótipo (§5) e issue #78.
   - `docs/design/prototipo-minimapa-regiao.html` — protótipo funcional de referência (geografia real, 17 pinos, zoom 12×, troca de perspectiva, Console de Revelação).
+  - `docs/design/prototipo-log-missoes.html` — janela Mapa da System Window: câmera de duas camadas, LOD calibrado, barra de escala e pan travado (origem dos limiares em REQ-MREG-013 e do REQ-MREG-016).
   - `02-modelo-de-dados.md` — Note com ownership próprio (REQ-DOC-056/057/058), Overlay (REQ-DOC-059/060).
   - `06-canvas-e-renderizacao.md` — render de Notes (REQ-CNV-057/058/059) e map overlays (REQ-CNV-083+).
   - `31-base-canonica-de-conteudo.md` — precedente da fronteira por arquivo de dados (Wayfinder).
@@ -171,12 +172,22 @@ duplicar cenas nem trocar background. Overlay oculto não chega ao jogador
 
 - **REQ-MREG-013** [MVP] Ícones de POI DEVEM ter tamanho fixo em pixels de tela
   sob qualquer zoom (DEC-MREG-04); rótulos DEVEM ter LOD por zoom (sempre para
-  assentamentos-chave; demais nomes e categoria em limiares crescentes,
-  calibrados na implementação).
+  assentamentos-chave; demais nomes e categoria em limiares crescentes).
+  Limiares de partida, calibrados no protótipo: **nome ≥ 1,3× · categoria e
+  distância ≥ 2,2×**. A implementação PODE recalibrar, mas não remover o LOD.
 - **REQ-MREG-014** [MVP] A cena de região DEVE exibir uma **barra de escala**
   em km com degrau redondo (5/10/25/50/100...) adequado ao zoom corrente.
 - **REQ-MREG-015** [MVP] O pan DEVE travar nas bordas do mapa (o recorte da
   região é a fronteira do que existe).
+- **REQ-MREG-016** [MVP] Traços do terreno (costa, rios, estradas, trilhas,
+  fronteiras) DEVEM manter espessura constante em pixels de tela sob zoom — a
+  geometria escala, o traço não. É o mesmo princípio do REQ-MREG-013 aplicado à
+  linha: sem isso, aproximar transforma estrada em mancha. No protótipo é
+  `vector-effect="non-scaling-stroke"`; no canvas PIXI, espessura dividida pela
+  escala da câmera a cada quadro.
+- **REQ-MREG-017** [MVP] O zoom por roda do mouse DEVE ancorar no cursor — o
+  ponto do mundo sob o ponteiro permanece sob o ponteiro. Zoom que ancora no
+  centro obriga o GM a alternar zoom e pan para chegar num POI de canto.
 
 ## 6. Requisitos não-funcionais
 
@@ -200,9 +211,10 @@ duplicar cenas nem trocar background. Overlay oculto não chega ao jogador
 - **CA-MREG-04** Alternar o overlay "mapa político" muda a leitura do
   território para todos os jogadores em um clique do GM (REQ-MREG-004,
   REQ-CNV-085).
-- **CA-MREG-05** Zoom de 1× a 12× mantém ícones de POI no mesmo tamanho de
-  tela, rótulos com LOD e a barra de escala com degraus redondos
-  (REQ-MREG-013/014).
+- **CA-MREG-05** Zoom de 1× a 12× mantém ícones de POI e traços do terreno no
+  mesmo tamanho de tela, rótulos com LOD e a barra de escala com degraus
+  redondos; a roda do mouse mantém sob o cursor o ponto que estava sob ele
+  (REQ-MREG-013/014/016/017).
 
 ## 8. Dependências (specs irmãs)
 
