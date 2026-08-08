@@ -25,6 +25,7 @@
   import CombatPanel from "../combat/CombatPanel.svelte";
   import ActorDirectory from "../actors/ActorDirectory.svelte";
   import CompendiumBrowser from "../compendium/CompendiumBrowser.svelte";
+  import SoundPanel from "../sound/SoundPanel.svelte";
   import { t } from "../../lib/i18n/i18n.js";
 
   const {
@@ -44,7 +45,7 @@
 
   // ---- Tab state ----
   // Default: GM sees Scenes tab; players see Chat tab
-  type Tab = "scenes" | "chat" | "combat" | "actors" | "compendium";
+  type Tab = "scenes" | "chat" | "combat" | "actors" | "compendium" | "sound";
   // _tabOverride tracks explicit user selection; null means use default derived from isGm prop.
   let _tabOverride = $state<Tab | null>(null);
   const activeTab = $derived(_tabOverride ?? (isGm ? "scenes" : "chat"));
@@ -180,6 +181,16 @@
         >
           {t("FUSION.Sidebar.Tabs.Compendium")}
         </button>
+        <button
+          class="sidebar__tab"
+          class:sidebar__tab--active={activeTab === "sound"}
+          role="tab"
+          aria-selected={activeTab === "sound"}
+          onclick={() => selectTab("sound")}
+          title={t("FUSION.Sound.Title")}
+        >
+          {t("FUSION.Sidebar.Tabs.Sound")}
+        </button>
       </div>
 
       <!-- Tab content -->
@@ -262,6 +273,9 @@
         {:else if activeTab === "compendium"}
           <!-- Compendium tab -->
           <CompendiumBrowser {socket} {isGm} />
+        {:else if activeTab === "sound"}
+          <!-- Sound tab (M3 mapa-som) -->
+          <SoundPanel {socket} {isGm} />
         {/if}
       </div>
 
