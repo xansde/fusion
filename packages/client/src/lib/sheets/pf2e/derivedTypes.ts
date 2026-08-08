@@ -34,6 +34,14 @@ export interface DerivedStatistic {
   readonly modifiers: ModifierBreakdown[];
   readonly total: number;
   readonly dc: number;
+  /**
+   * Proficiency rank (0–4) the derivation actually used. Emitted for skills so
+   * the sheet can label a proficiency the server trained but never persisted
+   * back to `system.skills` (background/class training runs on a clone).
+   * Optional: a document derived before this contract has no rank, and callers
+   * must fall back to the persisted `system.skills.<slug>.rank`.
+   */
+  readonly rank?: number;
 }
 
 // ---------------------------------------------------------------------------

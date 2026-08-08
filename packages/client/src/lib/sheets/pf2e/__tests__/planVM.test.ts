@@ -60,6 +60,7 @@ import {
   classFeatureGrantRefs,
   classGrantSlot,
   backgroundLoreHealOps,
+  loreSlugHealOps,
   readBackgroundTrainings,
   loreSlug,
   detailsRequestForAbcChip,
@@ -2163,7 +2164,7 @@ describe("applyBackground", () => {
     // derivation treats it as an INT-based Lore.
     const loreEntryOp = ops[2]!;
     if (loreEntryOp.type !== "doc:update") throw new Error("expected doc:update");
-    expect(loreEntryOp.diff["system.skills.fireworks-lore"]).toMatchObject({
+    expect(loreEntryOp.diff["system.skills.lore-fireworks"]).toMatchObject({
       rank: 0,
       lore: true,
       label: "Fireworks Lore",
@@ -2184,7 +2185,7 @@ describe("applyBackground", () => {
       level: 1,
       slot: "backgroundLore-0",
       type: "skillTraining",
-      skill: "fireworks-lore",
+      skill: "lore-fireworks",
       rank: 1,
     });
 
@@ -2300,7 +2301,7 @@ describe("applyBackground", () => {
     expect(choices).toHaveLength(3);
     expect(choices[0]).toMatchObject({ slot: "abilityBoosts-1" });
     expect(choices[1]).toMatchObject({ slot: "backgroundSkill-0", skill: "performance" });
-    expect(choices[2]).toMatchObject({ slot: "backgroundLore-0", skill: "fireworks-lore" });
+    expect(choices[2]).toMatchObject({ slot: "backgroundLore-0", skill: "lore-fireworks" });
   });
 });
 
@@ -2315,7 +2316,7 @@ describe("readBackgroundTrainings + loreSlug (r20-X4)", () => {
       skills: { performance: { value: 1 } },
     });
     expect(t.skills).toEqual(["performance"]); // deduped across both shapes
-    expect(t.lores).toEqual([{ slug: "fireworks-lore", label: "Fireworks Lore" }]);
+    expect(t.lores).toEqual([{ slug: "lore-fireworks", label: "Fireworks Lore" }]);
   });
 
   it("reads the Aeronaut shape (Piloting Lore) even when normalized skills only has athletics", () => {
@@ -2324,13 +2325,16 @@ describe("readBackgroundTrainings + loreSlug (r20-X4)", () => {
       skills: { athletics: { value: 1 } },
     });
     expect(t.skills).toEqual(["athletics"]);
-    expect(t.lores).toEqual([{ slug: "piloting-lore", label: "Piloting Lore" }]);
+    expect(t.lores).toEqual([{ slug: "lore-piloting", label: "Piloting Lore" }]);
   });
 
-  it("loreSlug strips the trailing Lore word and appends -lore", () => {
-    expect(loreSlug("Piloting Lore")).toBe("piloting-lore");
-    expect(loreSlug("Fireworks Lore")).toBe("fireworks-lore");
-    expect(loreSlug("Underworld")).toBe("underworld-lore");
+  // Contract C3: planVM re-exports the CANONICAL `lore-<subject>` slug from
+  // loreSlug.ts. The legacy `<subject>-lore` form this module used to emit is
+  // still readable (see loreSlug.test.ts) but is never written again.
+  it("loreSlug re-exports the canonical `lore-<subject>` form", () => {
+    expect(loreSlug("Piloting Lore")).toBe("lore-piloting");
+    expect(loreSlug("Fireworks Lore")).toBe("lore-fireworks");
+    expect(loreSlug("Underworld")).toBe("lore-underworld");
   });
 });
 
@@ -2353,13 +2357,13 @@ describe("applyBackground — Aeronaut lore (r20-X4)", () => {
   it("trains athletics AND the Piloting Lore", () => {
     const ops = applyBackground(ctx(baseCharacterDoc()), aeronautBackgroundDoc());
     const loreEntryOp = ops.find(
-      (o) => o.type === "doc:update" && "system.skills.piloting-lore" in o.diff,
+      (o) => o.type === "doc:update" && "system.skills.lore-piloting" in o.diff,
     );
     expect(loreEntryOp).toBeDefined();
     const choicesOp = ops[ops.length - 1]!;
     if (choicesOp.type !== "doc:update") throw new Error("expected update");
     const choices = choicesOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
-    expect(choices.map((c) => c["skill"])).toEqual(["athletics", "piloting-lore"]);
+    expect(choices.map((c) => c["skill"])).toEqual(["athletics", "lore-piloting"]);
   });
 });
 
@@ -2409,16 +2413,20 @@ describe("backgroundLoreHealOps (r20-X4)", () => {
     });
     const ops = backgroundLoreHealOps(ctx(doc), aeronautDoc());
     const loreEntryOp = ops.find(
-      (o) => o.type === "doc:update" && "system.skills.piloting-lore" in o.diff,
+      (o) => o.type === "doc:update" && "system.skills.lore-piloting" in o.diff,
     );
     expect(loreEntryOp).toBeDefined();
     const choicesOp = ops.find((o) => o.type === "doc:update" && "system.build.choices" in o.diff)!;
     if (choicesOp.type !== "doc:update") throw new Error("expected update");
     const choices = choicesOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
-    expect(choices.some((c) => c["skill"] === "piloting-lore")).toBe(true);
+    expect(choices.some((c) => c["skill"] === "lore-piloting")).toBe(true);
   });
 
-  it("is idempotent — no ops when the lore is already trained", () => {
+  // A sheet built before loreSlug.ts holds the lore under the LEGACY key. The
+  // heal must recognize it as already-trained, otherwise it re-adds the lore
+  // under the canonical key (rank 0) and the slug migration below finds two
+  // entries to reconcile.
+  it("is idempotent — no ops when the lore is already trained under the legacy slug", () => {
     const doc = baseCharacterDoc({
       system: {
         level: { value: 3 },
@@ -2450,6 +2458,487 @@ describe("backgroundLoreHealOps (r20-X4)", () => {
       },
     });
     expect(backgroundLoreHealOps(ctx(doc), aeronautDoc())).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Swapping the background must UNDO what the previous one granted (S2).
+//
+// Until this block existed there was no test that applied a background over an
+// actor that ALREADY had one — which is exactly the hole the bug lived in: the
+// old background's Lore stayed on `system.skills` forever, and its training
+// choices survived whenever the incoming background granted nothing.
+// ---------------------------------------------------------------------------
+
+describe("applyBackground — swapping backgrounds cleans up the old grants (S2)", () => {
+  /** Acolyte: Religion + Scribing Lore. The outgoing background in every case. */
+  function acolyteBackgroundDoc(): Record<string, unknown> {
+    return {
+      _id: "bg-acolyte",
+      name: "Acolyte",
+      type: "background",
+      flags: { fusion: { sourceId: "acolyte-source-id" } },
+      system: {
+        boosts: ["free", "free"],
+        trainedSkills: { value: ["religion"], lore: ["Scribing Lore"] },
+        skills: { religion: { value: 1 } },
+        items: {},
+      },
+    };
+  }
+
+  /** Field Medic: Medicine + Warfare Lore — grants a DIFFERENT lore. */
+  function fieldMedicBackgroundDoc(): Record<string, unknown> {
+    return {
+      _id: "bg-field-medic",
+      name: "Field Medic",
+      type: "background",
+      flags: { fusion: { sourceId: "field-medic-source-id" } },
+      system: {
+        boosts: ["free", "free"],
+        trainedSkills: { value: ["medicine"], lore: ["Warfare Lore"] },
+        skills: { medicine: { value: 1 } },
+        items: {},
+      },
+    };
+  }
+
+  /** Scholar: Society + Scribing Lore — grants the SAME lore as Acolyte. */
+  function scholarBackgroundDoc(): Record<string, unknown> {
+    return {
+      _id: "bg-scholar",
+      name: "Scholar",
+      type: "background",
+      flags: { fusion: { sourceId: "scholar-source-id" } },
+      system: {
+        boosts: ["free", "free"],
+        trainedSkills: { value: ["society"], lore: ["Scribing Lore"] },
+        skills: { society: { value: 1 } },
+        items: {},
+      },
+    };
+  }
+
+  /**
+   * Hermit / Raised by Belief: a background that grants NO skill and NO lore.
+   * The case that used to leave the previous background's training choices
+   * alive (the strip sat inside `if (newChoices.length > 0)`).
+   */
+  function hermitBackgroundDoc(): Record<string, unknown> {
+    return {
+      _id: "bg-hermit",
+      name: "Hermit",
+      type: "background",
+      flags: { fusion: { sourceId: "hermit-source-id" } },
+      system: {
+        boosts: ["free", "free"],
+        trainedSkills: { value: [], lore: [] },
+        skills: {},
+        items: {},
+      },
+    };
+  }
+
+  const EMPTY_ABILITIES = {
+    ancestryBoosts: [],
+    ancestryFlaws: [],
+    ancestryFree: [],
+    backgroundBoosts: [],
+    backgroundFree: [],
+    classBoost: [],
+    levelledBoosts: {},
+  };
+
+  /**
+   * An actor with Acolyte already applied. `loreSlugKey` lets a case choose
+   * whether the persisted Lore sits under the legacy `scribing-lore` key (how
+   * every existing sheet was written) or the canonical `lore-scribing`.
+   */
+  function acolyteAppliedDoc(
+    loreSlugKey: string,
+    extraSkills: Record<string, unknown> = {},
+    extraChoices: Array<Record<string, unknown>> = [],
+  ): Record<string, unknown> {
+    return baseCharacterDoc({
+      items: [{ ...acolyteBackgroundDoc(), _id: "item-background" }],
+      system: {
+        level: { value: 3 },
+        details: {},
+        skills: {
+          religion: { rank: 1 },
+          [loreSlugKey]: { rank: 0, lore: true, label: "Scribing Lore" },
+          ...extraSkills,
+        },
+        build: {
+          abilities: EMPTY_ABILITIES,
+          choices: [
+            {
+              level: 1,
+              slot: "backgroundSkill-0",
+              type: "skillTraining",
+              skill: "religion",
+              rank: 1,
+            },
+            {
+              level: 1,
+              slot: "backgroundLore-0",
+              type: "skillTraining",
+              skill: loreSlugKey,
+              rank: 1,
+            },
+            ...extraChoices,
+          ],
+          bonusHp: 0,
+          bonusHpPerLevel: 0,
+          freeArchetype: false,
+        },
+      },
+    });
+  }
+
+  /** The deletions requested across every op of a builder's output. */
+  function deletedSkillKeys(ops: ReturnType<typeof applyBackground>): string[] {
+    const keys: string[] = [];
+    for (const op of ops) {
+      if (op.type !== "doc:update") continue;
+      for (const [path, value] of Object.entries(op.diff)) {
+        if (path.startsWith("system.skills.") && value === null) {
+          keys.push(path.slice("system.skills.".length));
+        }
+      }
+    }
+    return keys;
+  }
+
+  it("deletes the outgoing background's Lore, in the legacy slug form it was written with", () => {
+    const ops = applyBackground(
+      ctx(acolyteAppliedDoc("scribing-lore")),
+      fieldMedicBackgroundDoc(),
+    );
+    expect(deletedSkillKeys(ops)).toEqual(["scribing-lore"]);
+  });
+
+  it("deletes the outgoing background's Lore written in the canonical slug form", () => {
+    const ops = applyBackground(ctx(acolyteAppliedDoc("lore-scribing")), fieldMedicBackgroundDoc());
+    expect(deletedSkillKeys(ops)).toEqual(["lore-scribing"]);
+  });
+
+  it("emits the deletion as a wire-valid doc:update (null = deleteKey, REQ-DOC-037)", () => {
+    const ops = applyBackground(ctx(acolyteAppliedDoc("scribing-lore")), fieldMedicBackgroundDoc());
+    const delOp = ops.find(
+      (o) => o.type === "doc:update" && o.diff["system.skills.scribing-lore"] === null,
+    );
+    expect(delOp).toBeDefined();
+    if (delOp?.type !== "doc:update") throw new Error("expected doc:update");
+    const wire = { documentType: delOp.documentType, updates: [{ _id: delOp.id, diff: delOp.diff }] };
+    expect(DocUpdatePayloadSchema.safeParse(wire).success).toBe(true);
+  });
+
+  it("does NOT delete a Lore the incoming background grants too", () => {
+    const ops = applyBackground(ctx(acolyteAppliedDoc("lore-scribing")), scholarBackgroundDoc());
+    expect(deletedSkillKeys(ops)).toEqual([]);
+  });
+
+  it("does NOT delete a Lore the player added by hand (no background choice targets it)", () => {
+    const doc = acolyteAppliedDoc("scribing-lore", {
+      "lore-warfare": { rank: 1, lore: true, label: "Warfare" },
+    });
+    const ops = applyBackground(ctx(doc), hermitBackgroundDoc());
+    expect(deletedSkillKeys(ops)).toEqual(["scribing-lore"]);
+  });
+
+  it("does NOT delete a Lore the player raised with one of their OWN slots", () => {
+    // The background granted it, but the character then spent a skill increase
+    // on it — that investment is theirs, the swap doesn't claw it back.
+    const doc = acolyteAppliedDoc(
+      "lore-scribing",
+      {},
+      [{ level: 3, slot: "skillIncrease-3", type: "skillIncrease", skill: "lore-scribing", rank: 2 }],
+    );
+    const ops = applyBackground(ctx(doc), fieldMedicBackgroundDoc());
+    expect(deletedSkillKeys(ops)).toEqual([]);
+  });
+
+  it("never deletes a real (non-Lore) skill the outgoing background trained", () => {
+    // Religion came from Acolyte, but it is a canonical skill: it is untrained
+    // by dropping the build choice, never by deleting the `system.skills` key.
+    const ops = applyBackground(ctx(acolyteAppliedDoc("scribing-lore")), hermitBackgroundDoc());
+    expect(deletedSkillKeys(ops)).not.toContain("religion");
+  });
+
+  it("strips the previous background's training choices even when the new one grants nothing", () => {
+    const ops = applyBackground(ctx(acolyteAppliedDoc("scribing-lore")), hermitBackgroundDoc());
+    const choicesOp = ops.find((o) => o.type === "doc:update" && "system.build.choices" in o.diff);
+    expect(choicesOp).toBeDefined();
+    if (choicesOp?.type !== "doc:update") throw new Error("expected doc:update");
+    const choices = choicesOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
+    expect(choices).toEqual([]);
+  });
+
+  it("replaces (never accretes) the training choices when the new background grants its own", () => {
+    const ops = applyBackground(ctx(acolyteAppliedDoc("scribing-lore")), fieldMedicBackgroundDoc());
+    const choicesOp = ops[ops.length - 1]!;
+    if (choicesOp.type !== "doc:update") throw new Error("expected doc:update");
+    const choices = choicesOp.diff["system.build.choices"] as Array<Record<string, unknown>>;
+    expect(choices.map((c) => c["skill"])).toEqual(["medicine", "lore-warfare"]);
+  });
+
+  // -------------------------------------------------------------------------
+  // T2 — a rank the player typed into the row's <select> has no build choice
+  // behind it, so the "playerOwned" guard above cannot see it.
+  // -------------------------------------------------------------------------
+
+  /**
+   * The pre-lore-branch sheet: Acolyte embedded and its Lore sitting on
+   * `system.skills`, but NO `backgroundLore-*` choice at all — the branch that
+   * writes one did not exist when the sheet was built. `loreRank` is whatever
+   * the player left on the row's rank `<select>`:
+   * `characterSheetVM.updateSkillRank` writes `system.skills.<slug>.rank`
+   * straight to the document, without creating any build choice.
+   */
+  function preLoreBranchDoc(loreSlugKey: string, loreRank: number): Record<string, unknown> {
+    return baseCharacterDoc({
+      items: [{ ...acolyteBackgroundDoc(), _id: "item-background" }],
+      system: {
+        level: { value: 3 },
+        details: {},
+        skills: {
+          religion: { rank: 1 },
+          [loreSlugKey]: { rank: loreRank, lore: true, label: "Scribing Lore" },
+        },
+        build: {
+          abilities: EMPTY_ABILITIES,
+          choices: [
+            {
+              level: 1,
+              slot: "backgroundSkill-0",
+              type: "skillTraining",
+              skill: "religion",
+              rank: 1,
+            },
+          ],
+          bonusHp: 0,
+          bonusHpPerLevel: 0,
+          freeArchetype: false,
+        },
+      },
+    });
+  }
+
+  /** The last non-null value written to `system.skills.<slug>` across all ops. */
+  function writtenSkillEntry(
+    ops: ReturnType<typeof applyBackground>,
+    slug: string,
+  ): Record<string, unknown> | undefined {
+    let found: Record<string, unknown> | undefined;
+    for (const op of ops) {
+      if (op.type !== "doc:update") continue;
+      const value = op.diff[`system.skills.${slug}`];
+      if (value !== undefined && value !== null) found = value as Record<string, unknown>;
+    }
+    return found;
+  }
+
+  it("keeps a Lore the player ranked up by hand, even with no build choice to prove it", () => {
+    const ops = applyBackground(ctx(preLoreBranchDoc("lore-scribing", 2)), fieldMedicBackgroundDoc());
+    expect(deletedSkillKeys(ops)).toEqual([]);
+  });
+
+  it("keeps a hand-ranked Lore held under the legacy slug too", () => {
+    const ops = applyBackground(ctx(preLoreBranchDoc("scribing-lore", 2)), fieldMedicBackgroundDoc());
+    expect(deletedSkillKeys(ops)).toEqual([]);
+  });
+
+  it("still deletes the outgoing Lore when its persisted rank is 0 (untouched grant)", () => {
+    const ops = applyBackground(ctx(preLoreBranchDoc("lore-scribing", 0)), fieldMedicBackgroundDoc());
+    expect(deletedSkillKeys(ops)).toEqual(["lore-scribing"]);
+  });
+
+  it("re-selecting the SAME background does not reset a hand-raised rank to 0", () => {
+    const ops = applyBackground(ctx(preLoreBranchDoc("lore-scribing", 2)), acolyteBackgroundDoc());
+    expect(writtenSkillEntry(ops, "lore-scribing")).toMatchObject({
+      rank: 2,
+      lore: true,
+      label: "Scribing Lore",
+    });
+  });
+
+  it("carries a hand-raised rank across the legacy→canonical slug migration on re-selection", () => {
+    // The legacy key IS deleted here (the incoming background re-grants the same
+    // subject under the canonical slug), so the rank must ride along or it is lost.
+    const ops = applyBackground(ctx(preLoreBranchDoc("scribing-lore", 2)), acolyteBackgroundDoc());
+    expect(deletedSkillKeys(ops)).toEqual(["scribing-lore"]);
+    expect(writtenSkillEntry(ops, "lore-scribing")).toMatchObject({ rank: 2, lore: true });
+  });
+
+  it("writes rank 0 for a granted Lore the sheet has never held", () => {
+    const ops = applyBackground(ctx(preLoreBranchDoc("lore-scribing", 2)), fieldMedicBackgroundDoc());
+    expect(writtenSkillEntry(ops, "lore-warfare")).toMatchObject({ rank: 0, lore: true });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Slug migration heal — existing sheets hold their Lore under the legacy key
+// ---------------------------------------------------------------------------
+
+describe("loreSlugHealOps — migrate legacy `<subject>-lore` keys (contract C3)", () => {
+  const EMPTY_ABILITIES = {
+    ancestryBoosts: [],
+    ancestryFlaws: [],
+    ancestryFree: [],
+    backgroundBoosts: [],
+    backgroundFree: [],
+    classBoost: [],
+    levelledBoosts: {},
+  };
+
+  function docWith(
+    skills: Record<string, unknown>,
+    choices: Array<Record<string, unknown>> = [],
+  ): Record<string, unknown> {
+    return baseCharacterDoc({
+      system: {
+        level: { value: 3 },
+        details: {},
+        skills,
+        build: {
+          abilities: EMPTY_ABILITIES,
+          choices,
+          bonusHp: 0,
+          bonusHpPerLevel: 0,
+          freeArchetype: false,
+        },
+      },
+    });
+  }
+
+  /**
+   * Apply the ops the way the server would, so idempotence is checked against
+   * the REAL post-heal document rather than a hand-written guess: dot-paths are
+   * expanded (doc-handlers.applyDotPathDiff) and `null` inside `system` deletes
+   * the key (merge.deepMerge, REQ-DOC-037).
+   */
+  function applyOps(doc: Record<string, unknown>, ops: DocUpdatePayload[]): Record<string, unknown> {
+    const next = structuredClone(doc);
+    for (const op of ops) {
+      for (const [path, value] of Object.entries(op.diff)) {
+        const parts = path.split(".");
+        let cursor = next as Record<string, unknown>;
+        for (const key of parts.slice(0, -1)) {
+          if (typeof cursor[key] !== "object" || cursor[key] === null) cursor[key] = {};
+          cursor = cursor[key] as Record<string, unknown>;
+        }
+        const last = parts[parts.length - 1]!;
+        if (value === null) Reflect.deleteProperty(cursor, last);
+        else cursor[last] = value;
+      }
+    }
+    return next;
+  }
+
+  function updatesOf(ops: ReturnType<typeof loreSlugHealOps>): DocUpdatePayload[] {
+    return ops.filter((o): o is DocUpdatePayload => o.type === "doc:update");
+  }
+
+  it("renames the legacy key to the canonical one, preserving rank and label", () => {
+    const doc = docWith({
+      religion: { rank: 1 },
+      "scribing-lore": { rank: 1, lore: true, label: "Scribing Lore" },
+    });
+    const ops = updatesOf(loreSlugHealOps(ctx(doc)));
+    const skillsOp = ops.find((o) => "system.skills.lore-scribing" in o.diff);
+    expect(skillsOp).toBeDefined();
+    expect(skillsOp!.diff["system.skills.lore-scribing"]).toMatchObject({
+      rank: 1,
+      lore: true,
+      label: "Scribing Lore",
+    });
+    expect(skillsOp!.diff["system.skills.scribing-lore"]).toBeNull();
+  });
+
+  it("repoints every build choice that referenced the legacy slug", () => {
+    const doc = docWith(
+      { "scribing-lore": { rank: 1, lore: true, label: "Scribing Lore" } },
+      [
+        {
+          level: 1,
+          slot: "backgroundLore-0",
+          type: "skillTraining",
+          skill: "scribing-lore",
+          rank: 1,
+        },
+        { level: 3, slot: "skillIncrease-3", type: "skillIncrease", skill: "stealth", rank: 2 },
+      ],
+    );
+    const ops = updatesOf(loreSlugHealOps(ctx(doc)));
+    const choicesOp = ops.find((o) => "system.build.choices" in o.diff);
+    expect(choicesOp).toBeDefined();
+    const choices = choicesOp!.diff["system.build.choices"] as Array<Record<string, unknown>>;
+    expect(choices.map((c) => c["skill"])).toEqual(["lore-scribing", "stealth"]);
+  });
+
+  it("is idempotent — replaying the healed document yields no ops", () => {
+    const doc = docWith(
+      { "scribing-lore": { rank: 1, lore: true, label: "Scribing Lore" } },
+      [
+        {
+          level: 1,
+          slot: "backgroundLore-0",
+          type: "skillTraining",
+          skill: "scribing-lore",
+          rank: 1,
+        },
+      ],
+    );
+    const healed = applyOps(doc, updatesOf(loreSlugHealOps(ctx(doc))));
+    const healedSkills = (healed["system"] as Record<string, unknown>)["skills"] as Record<
+      string,
+      unknown
+    >;
+    // Rank survived the rename and the legacy key is gone — no duplicate row.
+    expect(healedSkills["lore-scribing"]).toMatchObject({ rank: 1, lore: true });
+    expect("scribing-lore" in healedSkills).toBe(false);
+    expect(loreSlugHealOps(ctx(healed))).toEqual([]);
+  });
+
+  it("never renames a canonical skill", () => {
+    const doc = docWith({ religion: { rank: 1 }, athletics: { rank: 2 }, stealth: { rank: 1 } });
+    expect(loreSlugHealOps(ctx(doc))).toEqual([]);
+  });
+
+  it("keeps the higher rank when both conventions are present for one subject", () => {
+    const doc = docWith({
+      "scribing-lore": { rank: 2, lore: true, label: "Scribing Lore" },
+      "lore-scribing": { rank: 0, lore: true, label: "Scribing Lore" },
+    });
+    const ops = updatesOf(loreSlugHealOps(ctx(doc)));
+    const skillsOp = ops.find((o) => "system.skills.lore-scribing" in o.diff)!;
+    expect(skillsOp.diff["system.skills.lore-scribing"]).toMatchObject({ rank: 2, lore: true });
+    expect(skillsOp.diff["system.skills.scribing-lore"]).toBeNull();
+  });
+
+  it("returns [] when the sheet is not editable", () => {
+    const doc = docWith({ "scribing-lore": { rank: 1, lore: true } });
+    expect(loreSlugHealOps(ctx(doc, false))).toEqual([]);
+  });
+
+  it("emits wire-valid doc:update payloads", () => {
+    const doc = docWith(
+      { "scribing-lore": { rank: 1, lore: true, label: "Scribing Lore" } },
+      [
+        {
+          level: 1,
+          slot: "backgroundLore-0",
+          type: "skillTraining",
+          skill: "scribing-lore",
+          rank: 1,
+        },
+      ],
+    );
+    for (const op of updatesOf(loreSlugHealOps(ctx(doc)))) {
+      const wire = { documentType: op.documentType, updates: [{ _id: op.id, diff: op.diff }] };
+      expect(DocUpdatePayloadSchema.safeParse(wire).success).toBe(true);
+    }
   });
 });
 
@@ -4366,10 +4855,14 @@ describe("addLoreSkill", () => {
     expect(addLoreSkill(ctx(baseCharacterDoc()), "   ")).toBeNull();
   });
 
-  it("creates a slugified lore-<name> entry at rank 0, valid against DocUpdatePayloadSchema", () => {
+  it("returns null for a subject-less name (the bare word Lore)", () => {
+    expect(addLoreSkill(ctx(baseCharacterDoc()), "Lore")).toBeNull();
+  });
+
+  it("creates a canonical lore-<subject> entry at rank 0, valid against DocUpdatePayloadSchema", () => {
     const op = addLoreSkill(ctx(baseCharacterDoc()), "Nature Lore");
     expect(op).not.toBeNull();
-    expect(op!.diff["system.skills.lore-nature-lore"]).toEqual({
+    expect(op!.diff["system.skills.lore-nature"]).toEqual({
       rank: 0,
       lore: true,
       label: "Nature Lore",
@@ -4378,12 +4871,27 @@ describe("addLoreSkill", () => {
     expect(DocUpdatePayloadSchema.safeParse(wire).success).toBe(true);
   });
 
+  // Contract C3: one subject, one key. Typing the "Lore" word or not, and
+  // typing an accent or not, must not fork a manual Lore away from the key a
+  // background would grant for the same subject.
+  it("lands on the same key whether or not the player typed the word Lore", () => {
+    const withWord = addLoreSkill(ctx(baseCharacterDoc()), "Nature Lore");
+    const withoutWord = addLoreSkill(ctx(baseCharacterDoc()), "Nature");
+    expect(Object.keys(withWord!.diff)).toEqual(["system.skills.lore-nature"]);
+    expect(Object.keys(withoutWord!.diff)).toEqual(["system.skills.lore-nature"]);
+  });
+
+  it("folds accents, so a pt-BR subject is still a valid key", () => {
+    const op = addLoreSkill(ctx(baseCharacterDoc()), "História Abissal");
+    expect(Object.keys(op!.diff)).toEqual(["system.skills.lore-historia-abissal"]);
+  });
+
   it("returns null when a lore with the same slug already exists", () => {
     const doc = baseCharacterDoc({
       system: {
         level: { value: 1 },
         details: {},
-        skills: { "lore-nature-lore": { rank: 1, lore: true } },
+        skills: { "lore-nature": { rank: 1, lore: true } },
       },
     });
     expect(addLoreSkill(ctx(doc), "Nature Lore")).toBeNull();

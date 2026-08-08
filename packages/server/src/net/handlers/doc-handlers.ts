@@ -53,6 +53,7 @@ import {
   DocumentValidationError,
   DocumentIdCollisionError,
 } from "../../documents/store.js";
+import { prunedPatch } from "../../documents/merge.js";
 import {
   UserRole,
   resolveOwnership,
@@ -572,7 +573,34 @@ function recomputeDerivedIfNeeded(
     if (!id) return doc;
 
     const newDerived = (workingDoc["system"] as Record<string, unknown>)["derived"];
-    const patched = deps.store.update("actors", id, { system: { derived: newDerived } }, authorCtx);
+
+    // PRUNING (r24 S2): store.update() deep-merges, and deepMerge PRESERVES
+    // any key the patch does not mention. Patching only the new derived is
+    // therefore purely additive — `system.derived` grew forever and never
+    // shed a key the recompute stopped producing. That is how a Lore skill
+    // dropped from `system.skills` (background swap) kept living in
+    // `derived.skills` and kept rendering on the sheet.
+    //
+    // prunedPatch compares the derived ALREADY on the document (`doc` is the
+    // untouched original — `workingDoc.system` is a structuredClone, so the
+    // derivation mutated the copy, never this one) with the freshly computed
+    // one, and adds an explicit null for every vanished key. null inside
+    // `system` is deleteKey (REQ-DOC-037), so the single store.update()
+    // below both updates and prunes: no second write, no second broadcast,
+    // and no window where the sheet has no derived at all.
+    const oldSystem = doc["system"];
+    const oldDerived =
+      oldSystem && typeof oldSystem === "object" && !Array.isArray(oldSystem)
+        ? (oldSystem as Record<string, unknown>)["derived"]
+        : undefined;
+    const derivedPatch = prunedPatch(oldDerived, newDerived);
+
+    const patched = deps.store.update(
+      "actors",
+      id,
+      { system: { derived: derivedPatch } },
+      authorCtx,
+    );
     return patched ?? doc;
   } catch (err) {
     deps.logger?.warn(
