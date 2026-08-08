@@ -184,6 +184,37 @@ export async function updateSceneConfig(
 }
 
 /**
+ * Persist a grid calibration: the measured cell size and where the grid starts.
+ *
+ * Size and origin travel together on purpose. A grid with the right cell size
+ * and the wrong origin is misaligned across the whole map, so writing one
+ * without the other would leave the GM looking at a grid that is still off
+ * after a calibration that said it succeeded.
+ */
+export async function updateGridCalibration(
+  socket: Socket,
+  sceneId: string,
+  calibration: { size: number; offsetX: number; offsetY: number },
+): Promise<void> {
+  await sendOp(socket, {
+    type: "doc:update",
+    payload: {
+      documentType: "Scene",
+      updates: [
+        {
+          _id: sceneId,
+          diff: {
+            "grid.size": calibration.size,
+            gridOffsetX: calibration.offsetX,
+            gridOffsetY: calibration.offsetY,
+          },
+        },
+      ],
+    },
+  });
+}
+
+/**
  * Activate a scene.
  *
  * Sends the dedicated world:activeScene op. The server handler

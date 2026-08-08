@@ -2016,6 +2016,103 @@ describe("FIX-5 — embedded token: _id strip and actorId protection", () => {
 });
 
 // ---------------------------------------------------------------------------
+// REQ-USR-015: ownership field guard on primary doc:update
+// ---------------------------------------------------------------------------
+//
+// A non-privileged user who is OWNER of a primary document (e.g. a player who
+// owns their own Actor) must not be able to widen or narrow access by writing
+// to `ownership` directly through doc:update — that would let a player grant
+// themselves/others OWNER on documents they don't otherwise control, or lock
+// the GM's own default entry out. Only GM/ASSISTANT (isRolePrivileged) may
+// touch the `ownership` key on a primary doc:update; every other field on a
+// document the user OWNS remains editable as before.
+
+describe("Ownership field guard — non-privileged OWNER cannot alter `ownership` via doc:update", () => {
+  let ctx: TestContext;
+  let gmSocket: ClientSocket;
+  let playerSocket: ClientSocket;
+  let actorId: string;
+
+  beforeEach(async () => {
+    ctx = await buildTestContext();
+
+    gmSocket = connectClient(ctx.port, ctx.worldId, {
+      token: ctx.gmToken,
+      protocolVersion: PROTOCOL_VERSION,
+    });
+    playerSocket = connectClient(ctx.port, ctx.worldId, {
+      token: ctx.playerToken,
+      protocolVersion: PROTOCOL_VERSION,
+    });
+    gmSocket.connect();
+    playerSocket.connect();
+    await Promise.all([waitForConnect(gmSocket), waitForConnect(playerSocket)]);
+    await new Promise((r) => setTimeout(r, 50));
+
+    // GM creates an actor owned (OWNER) by the player.
+    const actorAck = await sendOp(gmSocket, "doc:create", {
+      documentType: "Actor",
+      data: [
+        {
+          name: "Player Actor",
+          type: "pc",
+          ownership: { default: 0, [ctx.playerUserId]: 3 },
+        },
+      ],
+    });
+    expect(actorAck["ok"]).toBe(true);
+    actorId = (
+      (actorAck["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[]
+    )[0]?.["_id"] as string;
+  });
+
+  afterEach(async () => {
+    gmSocket.disconnect();
+    playerSocket.disconnect();
+    await teardown(ctx);
+  });
+
+  it("OWNER (non-privileged) cannot change the ownership map — PERMISSION_DENIED", async () => {
+    const ack = await sendOp(playerSocket, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        {
+          _id: actorId,
+          diff: { ownership: { default: 0, [ctx.playerUserId]: 3, [ctx.player2UserId]: 3 } },
+        },
+      ],
+    });
+    expect(ack["ok"]).toBe(false);
+    expect(ack["code"]).toBe("PERMISSION_DENIED");
+  });
+
+  it("OWNER (non-privileged) can still update other fields on the same document", async () => {
+    const ack = await sendOp(playerSocket, "doc:update", {
+      documentType: "Actor",
+      updates: [{ _id: actorId, diff: { name: "Renamed by player" } }],
+    });
+    expect(ack["ok"]).toBe(true);
+  });
+
+  it("GM can change the ownership map", async () => {
+    const ack = await sendOp(gmSocket, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        {
+          _id: actorId,
+          diff: { ownership: { default: 0, [ctx.playerUserId]: 2 } },
+        },
+      ],
+    });
+    expect(ack["ok"]).toBe(true);
+    const updated = (
+      (ack["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[]
+    )[0] as Record<string, unknown>;
+    expect((updated["ownership"] as Record<string, number>)[ctx.playerUserId]).toBe(2);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // M1-C: live broadcast filtering for hidden tokens
 // ---------------------------------------------------------------------------
 

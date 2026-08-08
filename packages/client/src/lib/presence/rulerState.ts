@@ -8,14 +8,14 @@
  *   measuring → measuring (Ctrl+click adds a waypoint)
  *   measuring → idle (key/button release or Escape)
  *
- * Distance is computed using squareMeasurePath from @fusion/shared.
+ * Distance is measured by the scene's GridStrategy — the ruler does not know
+ * whether the grid is square.
  *
  * M1-E: spec 06-canvas-e-renderizacao.md (ruler with grid measurement)
  * spec 04-rede-e-sincronizacao.md (ruler:update / ruler:clear ephemeral)
  */
 
-import { squareMeasurePath } from "@fusion/shared";
-import type { DiagonalRule } from "@fusion/shared";
+import type { GridStrategy } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -23,20 +23,11 @@ import type { DiagonalRule } from "@fusion/shared";
 
 export type RulerMode = "idle" | "measuring";
 
-export interface RulerConfig {
-  /** Grid cell size in pixels. */
-  gridSize: number;
-  /** In-game distance per cell (e.g. 5 for 5 ft per square). */
-  gridDistance: number;
-  /** Diagonal movement rule. */
-  diagonalRule: DiagonalRule;
-  /** Grid x offset in pixels. */
-  offsetX: number;
-  /** Grid y offset in pixels. */
-  offsetY: number;
-  /** Label unit string (e.g. "ft"). */
-  units: string;
-}
+/**
+ * The ruler needs a grid, nothing else: cell size, in-game distance per cell,
+ * the diagonal rule and the unit label all live inside the strategy's config.
+ * This replaced a six-field RulerConfig that every caller had to re-assemble.
+ */
 
 export interface RulerSnapshot {
   mode: RulerMode;
@@ -61,10 +52,10 @@ export class RulerStateMachine {
   private _mode: RulerMode = "idle";
   private _waypoints: Array<{ x: number; y: number }> = [];
   private _livePoint: { x: number; y: number } | null = null;
-  private _config: RulerConfig;
+  private _grid: GridStrategy;
 
-  constructor(config: RulerConfig) {
-    this._config = config;
+  constructor(grid: GridStrategy) {
+    this._grid = grid;
   }
 
   get mode(): RulerMode {
@@ -130,7 +121,7 @@ export class RulerStateMachine {
    * Compute the current display snapshot (pure — no side effects).
    */
   snapshot(): RulerSnapshot {
-    const { gridSize, gridDistance, diagonalRule, offsetX, offsetY, units } = this._config;
+    const units = this._grid.config.units;
 
     // Build the measurement path: committed waypoints + live point
     const path = [...this._waypoints];
@@ -138,10 +129,7 @@ export class RulerStateMachine {
       path.push(this._livePoint);
     }
 
-    const totalDistance =
-      path.length >= 2
-        ? squareMeasurePath(path, gridSize, gridDistance, diagonalRule, offsetX, offsetY)
-        : 0;
+    const totalDistance = path.length >= 2 ? this._grid.measureDistance(path) : 0;
 
     const distanceLabel = totalDistance > 0 ? `${totalDistance.toFixed(0)} ${units}` : "";
 
@@ -154,9 +142,9 @@ export class RulerStateMachine {
     };
   }
 
-  /** Update the grid config (e.g. when a new scene loads). */
-  updateConfig(config: RulerConfig): void {
-    this._config = config;
+  /** Point the ruler at a different grid (e.g. when a new scene loads). */
+  updateGrid(grid: GridStrategy): void {
+    this._grid = grid;
   }
 
   /**

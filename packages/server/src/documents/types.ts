@@ -30,6 +30,8 @@ import {
   WallDocumentSchema,
   AmbientLightDocumentSchema,
   CombatDocumentSchema,
+  GridConfigSchema,
+  TileDocumentSchema,
 } from "@fusion/shared";
 import type { DocumentTable } from "@fusion/shared";
 
@@ -119,6 +121,25 @@ export const SceneSchema = BaseDocumentSchema.extend({
   padding: z.number().nonnegative().default(0.25),
   background: z.string().nullable().optional(),
   backgroundColor: z.string().default("#999999"),
+  /**
+   * Grid configuration. Declared here — with the SHARED schema, not a second
+   * copy of it — because `.extend()` strips every undeclared key: without this
+   * line the server silently dropped the entire grid on every write, so the
+   * GM's cell size never survived a save and the scene reloaded at the default
+   * 100px. The `scene.grid?.size ?? 100` guards scattered through the canvas
+   * code are the symptom of exactly that; this is the cause.
+   */
+  grid: GridConfigSchema.default(() => ({
+    type: "square" as const,
+    size: 100,
+    distance: 5,
+    units: "ft",
+    color: "#000000",
+    alpha: 0.2,
+  })),
+  /** Calibrated grid origin in scene px; null aligns the grid to the padding. */
+  gridOffsetX: z.number().finite().nullable().default(null),
+  gridOffsetY: z.number().finite().nullable().default(null),
   /** Token vision enabled (spec 07 REQ-VIS-085). */
   tokenVision: z.boolean().default(false),
   /** Fog of war enabled (spec 07 REQ-VIS-085). */
@@ -136,7 +157,8 @@ export const SceneSchema = BaseDocumentSchema.extend({
   /** Ambient lights with typed schema (spec 07 M2-A). */
   lights: z.array(AmbientLightDocumentSchema).default(() => []),
   sounds: z.array(z.record(z.string(), z.unknown())).default(() => []),
-  tiles: z.array(z.record(z.string(), z.unknown())).default(() => []),
+  /** Extra images the scene is composed from, typed via the shared schema. */
+  tiles: z.array(TileDocumentSchema).default(() => []),
   drawings: z.array(z.record(z.string(), z.unknown())).default(() => []),
   templates: z.array(z.record(z.string(), z.unknown())).default(() => []),
   notes: z.array(z.record(z.string(), z.unknown())).default(() => []),
