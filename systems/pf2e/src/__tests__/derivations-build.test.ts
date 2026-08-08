@@ -177,6 +177,92 @@ describe("stepCharSkills — all 16 canonical skills always present (DEC-R10-07)
 });
 
 // ---------------------------------------------------------------------------
+// 1b. stepCharSkills — the proficiency RANK travels on the derived statistic
+// (CONTRACT C1). The sheet needs it to label a skill "Trained"/"Expert"; the
+// persisted `system.skills` alone is not enough, because build-driven ranks
+// (background/class/free selections) are computed during derivation and never
+// written back to the document.
+// ---------------------------------------------------------------------------
+
+describe("stepCharSkills — derived skills carry their proficiency rank (C1)", () => {
+  function makeSkillDoc(skills: Record<string, unknown>, int = 10): Record<string, unknown> {
+    return {
+      system: {
+        systemVersion: "0.1.0",
+        level: { value: 1 },
+        abilities: {
+          str: { value: 10, mod: 0 },
+          dex: { value: 10, mod: 0 },
+          con: { value: 10, mod: 0 },
+          int: { value: int, mod: 0 },
+          wis: { value: 10, mod: 0 },
+          cha: { value: 10, mod: 0 },
+        },
+        attributes: {
+          hp: { value: 10, max: 10, temp: 0 },
+          ac: { value: 10 },
+          speed: { value: 25, otherSpeeds: [] },
+          dying: { value: 0, max: 4 },
+          wounded: { value: 0 },
+          doomed: { value: 0 },
+          iwr: { immunities: [], weaknesses: [], resistances: [] },
+        },
+        saves: { fortitude: { rank: 0 }, reflex: { rank: 0 }, will: { rank: 0 } },
+        perception: { rank: 0, senses: [] },
+        skills,
+        proficiencies: {},
+        resources: { heroPoints: { value: 1, max: 3 }, focusPoints: { value: 0, max: 0 } },
+        details: { keyAbility: "str", level: 1 },
+        traits: { rarity: "common", value: [], size: "med" },
+      },
+      items: [],
+    };
+  }
+
+  function derivedSkills(
+    doc: Record<string, unknown>,
+  ): Record<string, { rank: number; base: number; total: number; dc: number }> {
+    runCharacterPipeline(doc);
+    const derived = (doc.system as Record<string, unknown>)["derived"] as Record<string, unknown>;
+    return derived["skills"] as Record<
+      string,
+      { rank: number; base: number; total: number; dc: number }
+    >;
+  }
+
+  it("a persisted trained skill exposes rank 1 on the derived statistic", () => {
+    const skills = derivedSkills(makeSkillDoc({ religion: { rank: 1 } }));
+    expect(skills["religion"]?.rank).toBe(1);
+  });
+
+  it("a canonical skill absent from the persisted document exposes rank 0, not undefined", () => {
+    const skills = derivedSkills(makeSkillDoc({ religion: { rank: 1 } }));
+    // `toBe(0)` alone would pass on `undefined == 0`-style coercion bugs, so
+    // assert the key is really a number too.
+    expect(skills["athletics"]?.rank).toBe(0);
+    expect(typeof skills["athletics"]?.rank).toBe("number");
+  });
+
+  it("a persisted Lore exposes its rank and still keys off INT", () => {
+    // INT 12 → +1; rank 1 at level 1 → proficiency 3; total 4 proves the
+    // ability used is INT (a WIS/STR fallback would land on 3).
+    const skills = derivedSkills(makeSkillDoc({ "lore-scribing": { rank: 1, lore: true } }, 12));
+    expect(skills["lore-scribing"]?.rank).toBe(1);
+    expect(skills["lore-scribing"]?.total).toBe(4);
+  });
+
+  it("exposing the rank does not disturb base/total/dc (non-regression)", () => {
+    const skills = derivedSkills(makeSkillDoc({ religion: { rank: 1 }, stealth: { rank: 2 } }));
+    // Trained religion (WIS +0, rank 1 lvl 1 = 3).
+    expect(skills["religion"]).toMatchObject({ base: 3, total: 3, dc: 13 });
+    // Expert stealth (DEX +0, rank 2 lvl 1 = 5).
+    expect(skills["stealth"]).toMatchObject({ rank: 2, base: 5, total: 5, dc: 15 });
+    // Untrained athletics (STR +0, rank 0 → no proficiency bonus).
+    expect(skills["athletics"]).toMatchObject({ base: 0, total: 0, dc: 10 });
+  });
+});
+
+// ---------------------------------------------------------------------------
 // 2. Build-driven steps are no-ops without an embedded class item (r9 compat)
 // ---------------------------------------------------------------------------
 
