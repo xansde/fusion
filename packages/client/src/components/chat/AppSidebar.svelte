@@ -382,9 +382,23 @@
     width: var(--fusion-sidebar-width);
   }
 
-  /* ---- Tab bar ---- */
+  /* ---- Tab bar ----
+   *
+   * The labels must WRAP, never overflow. The bar is a plain flex row inside a
+   * fixed 280px sidebar, and the six tabs (Scenes/Combat/Chat/Actors/
+   * Compendium/Sound) add up to far more than that. Without wrapping, flex
+   * shrinks the items past their text and the last tabs are simply cut off the
+   * edge — silently, with no scrollbar and no gesture to reach them. That is
+   * how the Sound tab shipped invisible, taking Compendium out with it.
+   *
+   * Wrapping is preferred over `overflow-x: auto` on purpose: a horizontal
+   * scroll inside a narrow sidebar is a hidden gesture, and a tab the user
+   * cannot see is a tab that does not exist (see docs/lessons.md).
+   */
   .sidebar__tabs {
     display: flex;
+    flex-wrap: wrap;
+    row-gap: 0.15rem;
     border-bottom: 1px solid var(--fusion-border);
     flex-shrink: 0;
   }
@@ -398,11 +412,14 @@
     display: flex;
     align-items: center;
     gap: 0.35rem;
+    /* Never shrink below the label: shrinking is what clipped the text. */
+    flex: 0 0 auto;
+    white-space: nowrap;
     font-family: var(--fusion-font);
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.04em;
-    padding: 0.5rem 0.75rem;
+    padding: 0.5rem 0.6rem;
     text-transform: uppercase;
     transition: color var(--fusion-transition), border-color var(--fusion-transition);
   }
