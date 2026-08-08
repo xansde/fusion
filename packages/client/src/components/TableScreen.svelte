@@ -45,6 +45,7 @@
   import { attachRuler } from "../lib/presence/attachRuler.js";
   import { attachPing } from "../lib/presence/attachPing.js";
   import { attachPresenceSync } from "../lib/presence/attachPresenceSync.js";
+  import GridCalibrationPanel from "./scenes/GridCalibrationPanel.svelte";
   import { LightingRenderer } from "../lib/canvas/vision/LightingRenderer.js";
   import { FogState } from "../lib/canvas/vision/fog-state.js";
   import { CombatCanvasController } from "../lib/canvas/combat/combatCanvasController.js";
@@ -113,6 +114,19 @@
   // anywhere, so no remote cursor, ping or ruler ever reached the store — the
   // socket listener for "ephemeral" simply was not registered.
   let disposePresence: (() => void) | null = null;
+
+  // Grid calibration tool. Holds the canvas instance rather than a boolean so
+  // the panel can only ever mount with a live canvas — `fusionCanvas` itself
+  // is not reactive state, so the template cannot depend on it directly.
+  let calibrationCanvas: FusionCanvas | null = $state(null);
+
+  function openGridCalibration(): void {
+    if (fusionCanvas && activeSceneState.scene) calibrationCanvas = fusionCanvas;
+  }
+
+  function closeGridCalibration(): void {
+    calibrationCanvas = null;
+  }
 
   // Token being configured via double-click (TokenConfigDialog). null when no
   // dialog is open. Set by TokenInteractionManager's onConfigureToken callback.
@@ -685,6 +699,17 @@
     <NoSceneOverlay isGm={isGm()} />
   {/if}
 
+  <!-- Grid calibration: box on the map + panel with the derived numbers -->
+  {#if calibrationCanvas && activeSceneState.scene}
+    <GridCalibrationPanel
+      canvas={calibrationCanvas}
+      sceneId={activeSceneState.scene._id}
+      cellPx={activeSceneState.scene.grid?.size ?? 100}
+      socket={getSocket()}
+      onClose={closeGridCalibration}
+    />
+  {/if}
+
   <!-- -------------------------------------------------------------------- -->
   <!-- Header overlay                                                        -->
   <!-- -------------------------------------------------------------------- -->
@@ -723,6 +748,17 @@
         <span class="table-header__user-name">{session.user.name}</span>
         <span class="table-header__user-role">{roleLabel()}</span>
       </div>
+    {/if}
+
+    <!-- Grid calibration (GM, with an active scene) -->
+    {#if isGm() && activeSceneState.scene && canvasReady}
+      <button
+        class="btn btn--ghost btn--sm"
+        onclick={openGridCalibration}
+        disabled={calibrationCanvas !== null}
+      >
+        {t("FUSION.Scene.Calibrate.Open")}
+      </button>
     {/if}
 
     <!-- Logout -->

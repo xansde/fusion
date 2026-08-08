@@ -55,6 +55,11 @@ export function sceneReloadKey(scene: SceneDocument | null | undefined): string 
     scene.backgroundColor,
     scene.initialView,
     grid,
+    // Calibrating the grid changes only these two numbers; without them here
+    // the canvas would keep drawing the old alignment until something else
+    // happened to change.
+    scene.gridOffsetX ?? null,
+    scene.gridOffsetY ?? null,
     tokenVision,
     fogEnabled,
   ]);
