@@ -192,6 +192,10 @@ O canvas faz **culling manual**: antes de renderizar/atualizar, verifica se o bo
 
 ---
 
+### D14 — Overlays de mapa como embedded próprio, não tiles
+
+O requisito "sobrepor mapas e alternar o que os jogadores veem sem cerimônia, na mesma cena" (variante política do mapa, rotas de comércio, territórios de facção, andares) poderia ser atendido com Tiles em tamanho de cena. Overlays são um embedded próprio (`OverlayData`, ver `02-modelo-de-dados.md`) por três razões: (1) **semântica** — tile carrega oclusão, underfoot/overhead e interação de canvas; overlay é pura imagem alinhada ao mapa com um booleano de exibição; (2) **UX** — o painel de camadas lista overlays por nome com um toggle de um clique; misturar com tiles obrigaria filtros e convenções de nomenclatura; (3) **segurança** — overlay oculto é redigido do payload do jogador (REQ-DOC-060), enquanto tiles são dados da cena sempre enviados. Alternativa rejeitada: variante de mapa por troca de `background` ou por cenas duplicadas — exige N cópias da cena e re-sincronização de tokens/walls a cada alternância, exatamente a cerimônia que o requisito veta.
+
 ## Requisitos funcionais
 
 > Tags: **[MVP]** = necessário para a definição de MVP global (sessão de PF2e com mapa+grid, tokens com movimento, visão/iluminação/fog básicos, fichas, rolagens básicas, chat, combat tracker). **[V2]** = pós-MVP.
@@ -200,7 +204,7 @@ O canvas faz **culling manual**: antes de renderizar/atualizar, verifica se o bo
 
 - **REQ-CNV-001** [MVP] O cliente DEVE instanciar um único `PIXI.Application` para o canvas do mapa, inicializando com WebGPU e caindo para WebGL automaticamente quando WebGPU não estiver disponível, sem ação do usuário (alinha REQ-ARQ-042).
 - **REQ-CNV-002** [MVP] O `stage` DEVE conter quatro grupos ordenados do fundo ao topo: `PrimaryGroup`, `EffectsGroup`, `InterfaceGroup`, `OverlayGroup`, com a semântica definida em D1.
-- **REQ-CNV-003** [MVP] A ordem de renderização visual dentro do PrimaryGroup DEVE ser, do fundo ao topo: imagem de background → tiles underfoot → drawings underfoot → tokens → tiles overhead → imagem de foreground.
+- **REQ-CNV-003** [MVP] A ordem de renderização visual dentro do PrimaryGroup DEVE ser, do fundo ao topo: imagem de background → map overlays (por `sort`, ver REQ-CNV-083) → tiles underfoot → drawings underfoot → tokens → tiles overhead → imagem de foreground.
 - **REQ-CNV-004** [MVP] O EffectsGroup (weather, iluminação, visão, fog) DEVE renderizar acima do PrimaryGroup e o InterfaceGroup (templates, notes, walls do GM, grid, controles) acima do EffectsGroup; o detalhe de iluminação/visão/fog é definido em `07-visao-iluminacao-fog.md`.
 - **REQ-CNV-005** [MVP] O OverlayGroup (ruler, pings, cursores de outros usuários) DEVE renderizar acima de tudo e NÃO DEVE herdar a transformação de câmera (pan/zoom) do mundo da cena.
 - **REQ-CNV-006** [MVP] A câmera (pan/zoom) DEVE ser aplicada via um Render Group do PIXI v8 que envolve Primary+Effects+Interface, de modo que a transformação seja acelerada por GPU; o OverlayGroup fica fora desse render group.
@@ -280,8 +284,17 @@ O canvas faz **culling manual**: antes de renderizar/atualizar, verifica se o bo
 ### Notes (map pins)
 
 - **REQ-CNV-057** [MVP] O sistema DEVE suportar **notes** (pinos de mapa) linkados a JournalEntries (ou páginas), com posição, ícone (preset ou imagem), tamanho do ícone, tint e rótulo (label) com fonte/cor.
-- **REQ-CNV-058** [MVP] Notes DEVEM respeitar permissões e visibilidade: usuários sem permissão de leitura não veem o conteúdo; uma note PODE ser marcada como globalmente visível.
+- **REQ-CNV-058** [MVP] Notes DEVEM respeitar a **visibilidade efetiva** definida em `02-modelo-de-dados.md` (REQ-DOC-056/057): nível `none` — não renderizada (o cliente nem recebe o dado, REQ-DOC-058); `limited` — renderiza apenas um marcador genérico de "rumor" ("?") na posição, sem nome, ícone temático ou tooltip; `observer`+ — renderização completa (ícone, rótulo, tooltip, abertura da entry vinculada). Uma note PODE ser marcada como globalmente visível (`global`).
 - **REQ-CNV-059** [MVP] Notes DEVEM poder ser criadas arrastando uma JournalEntry da sidebar para o canvas e reposicionadas por drag.
+
+### Map overlays (camadas de mapa da cena)
+
+- **REQ-CNV-083** [MVP] O canvas DEVE renderizar os `overlays` da cena (ver `02-modelo-de-dados.md`, REQ-DOC-059) como sprites de imagem no PrimaryGroup, acima do background e abaixo dos tiles underfoot (REQ-CNV-003), empilhados por `sort`, com `opacity` e `tint` aplicados. Quando os campos de frame (`x/y/width/height`) são nulos, o overlay DEVE alinhar-se ao retângulo do background da cena.
+- **REQ-CNV-084** [MVP] Overlays NÃO DEVEM ser interativos no canvas (não capturam ponteiro nem entram em seleção); toda manipulação ocorre pelo painel de camadas.
+- **REQ-CNV-085** [MVP] O cliente DEVE oferecer um **painel de camadas** da cena, acessível pela barra de ferramentas sem abrir a configuração da cena, onde o GM alterna o `hidden` de cada overlay com **um clique**; o toggle propaga imediatamente a todos os clientes conectados (update embedded normal, REQ-DOC-026).
+- **REQ-CNV-086** [MVP] Para o GM, overlays `hidden` DEVEM renderizar com opacidade reduzida (default 50% da `opacity` própria) e indicação clara no painel; para jogadores, overlays `hidden` não existem (redação server-side, REQ-DOC-060).
+- **REQ-CNV-087** [MVP] A textura de um overlay PODE ser carregada de forma lazy — no primeiro momento em que ficar visível para aquele cliente; [V2] preload configurável por overlay e transição de fade no toggle.
+- **REQ-CNV-088** [V2] Overlays PODEM ser reordenados e ter o frame editado por drag em modo de edição dedicado; no MVP, criação e edição ocorrem via formulário do painel (asset picker + campos numéricos).
 
 ### Ruler
 
@@ -506,7 +519,7 @@ O canvas re-renderiza em resposta a create/update/delete dos Documents de cena (
 ### Ordem de renderização (referência)
 
 ```
-PrimaryGroup:   background → tiles(underfoot) → drawings(underfoot) → tokens → tiles(overhead) → foreground
+PrimaryGroup:   background → map overlays → tiles(underfoot) → drawings(underfoot) → tokens → tiles(overhead) → foreground
 EffectsGroup:   weather → lighting → vision → fog            (detalhe em 07)
 InterfaceGroup: templates → notes → walls(GM) → grid → controls
 OverlayGroup:   ruler → pings → cursores remotos             (fora do render group do mundo)
@@ -545,7 +558,8 @@ OverlayGroup:   ruler → pings → cursores remotos             (fora do render
 - **CA-CNV-11** Tiles overhead com modo `fade`/`radial` revelam ao token passar por baixo, com detecção por amostragem de múltiplos pontos (REQ-CNV-044 a REQ-CNV-046).
 - **CA-CNV-12** Drawings (retângulo, círculo, polígono, freehand, texto) são criados, estilizados e ordenados; permissões de criação são respeitadas (REQ-CNV-048 a REQ-CNV-050).
 - **CA-CNV-13** Os quatro templates (circle/cone/line/emanation) são colocados, rotacionados, snapam à grade e geram highlight das células afetadas; o cone default para PF2e é 90° (decisão de design do Fusion — a validar em `17-sistema-pf2e.md`) (REQ-CNV-052 a REQ-CNV-056).
-- **CA-CNV-14** Notes linkam JournalEntries, respeitam permissão de leitura e podem ser criadas por drag da sidebar (REQ-CNV-057 a REQ-CNV-059).
+- **CA-CNV-14** Notes linkam JournalEntries e respeitam a visibilidade efetiva em três estados — `none` não renderiza, `limited` mostra o marcador de rumor, `observer`+ mostra tudo — e podem ser criadas por drag da sidebar (REQ-CNV-057 a REQ-CNV-059, REQ-DOC-056/057).
+- **CA-CNV-20** O GM alterna um overlay de mapa pelo painel de camadas com um clique e todos os jogadores conectados veem a mudança imediatamente; um overlay oculto não aparece no payload de rede de um jogador, e o GM o vê com opacidade reduzida (REQ-CNV-083 a REQ-CNV-086, REQ-DOC-059/060).
 - **CA-CNV-15** O ruler mede com waypoints aplicando a regra da grade e é visível aos demais usuários com a cor do usuário (REQ-CNV-060 a REQ-CNV-062).
 - **CA-CNV-16** Uma cena configura dimensões, background/foreground, offset, padding, grade, initial view e ambiente; ativar a cena renderiza seus placeables e aplica a initial view (REQ-CNV-064 a REQ-CNV-070).
 - **CA-CNV-17** Atualizações no mesmo frame (ex.: mover 5 tokens) coalescem em um único ciclo de re-render via flags, sem recálculo redundante (REQ-CNV-073).
