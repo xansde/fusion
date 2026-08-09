@@ -44,6 +44,7 @@
   import HubLayer from "./hub/HubLayer.svelte";
   import SystemHud from "./hub/SystemHud.svelte";
   import SystemNoticeStack from "./hub/SystemNoticeStack.svelte";
+  import AvatarCorner from "./avatar/AvatarCorner.svelte";
   import { getSocket } from "../lib/session.svelte.js";
   import { SceneOrchestrator } from "../lib/canvas/scene-orchestrator.js";
   import { TokenLayer } from "../lib/canvas/tokens/TokenLayer.js";
@@ -61,7 +62,7 @@
   import { FogState } from "../lib/canvas/vision/fog-state.js";
   import { CombatCanvasController } from "../lib/canvas/combat/combatCanvasController.js";
   import { worldMirror } from "../lib/docs/worldSync.js";
-  import { registerPf2eSheets } from "../lib/sheets/pf2e/registerPf2eSheets.js";
+  import { openActorSheet, registerPf2eSheets } from "../lib/sheets/pf2e/registerPf2eSheets.js";
   import { registerEtmosSheets } from "../lib/sheets/etmos/registerEtmosSheets.js";
   import type { ActorDragPayload } from "../lib/actors/actorDirectory.js";
   import { buildTokenDropPayload, canAcceptCanvasDrop } from "../lib/canvas/tokens/tokenDrop.js";
@@ -69,7 +70,7 @@
   import type { CompendiumDragPayload } from "../lib/compendium/compendiumBrowser.js";
   import type { SceneDocument, TokenDocument } from "@fusion/shared";
   import { t } from "../lib/i18n/i18n.js";
-  import { sendOp } from "../lib/docs/sendOp.js";
+  import { makeSendOpFn, sendOp } from "../lib/docs/sendOp.js";
   import TokenConfigDialog from "./scenes/TokenConfigDialog.svelte";
 
   let loggingOut = $state(false);
@@ -762,6 +763,32 @@
     // longer belongs to the (about to be destroyed) interaction manager.
     configuringToken = null;
   }
+
+  /**
+   * Open the sheet of the actor whose avatar sits in the corner.
+   *
+   * Same wiring as ActorDirectory.openSheet: real per-user ownership (never a
+   * hardcoded OWNER) and a LAZY socket accessor for sendOpFn, because a window's
+   * componentProps are captured once at open time and would otherwise hold a
+   * socket that a reconnect already replaced.
+   */
+  function abrirFichaDoAvatar(actorId: string): void {
+    const doc = worldMirror
+      .getByType<Record<string, unknown>>("Actor")
+      .find((a) => a["_id"] === actorId);
+    if (doc === undefined) return;
+
+    const userId = session.user?.id ?? "";
+    const souGm = isGm();
+    const ownership = doc["ownership"] as Record<string, number> | undefined;
+    openActorSheet(actorId, doc, {
+      userId,
+      ownership: souGm ? 3 : (ownership?.[userId] ?? ownership?.["default"] ?? 0),
+      isGm: souGm,
+      worldId: session.worldInfo?.id ?? "",
+      sendOpFn: makeSendOpFn(() => getSocket()),
+    });
+  }
 </script>
 
 <!-- ========================================================================
@@ -894,6 +921,13 @@
       userId={session.user?.id ?? ""}
     />
   {/if}
+
+  <!-- -------------------------------------------------------------------- -->
+  <!-- Avatar corner — the viewer's own character, bottom-right.             -->
+  <!-- Before WindowHost and in the fixed-regions band, so a sheet or any    -->
+  <!-- floating window covers it: the avatar is decoration, windows are work.-->
+  <!-- -------------------------------------------------------------------- -->
+  <AvatarCorner onAbrirFicha={abrirFichaDoAvatar} />
 
   <!-- -------------------------------------------------------------------- -->
   <!-- Window Host — floating windows and dialogs (M3-C)                    -->

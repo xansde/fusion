@@ -541,6 +541,21 @@ export async function boot(options: BootOptions): Promise<BootResult> {
     logger.info("Update routes registered (GET/POST /admin/update/*)");
   }
 
+  // Avatar acervo (spec 33, REQ-AVT-041). Registered BEFORE the SPA so that a
+  // missing acervo answers an honest 404 instead of index.html — the client
+  // parses these as JSON and a silent HTML body reads as a syntax error. Its own
+  // route (not the SPA's static fallback) because the acervo is 58 MB and
+  // therefore lives OUTSIDE the client build in a packaged release; see the
+  // module doc for the resolution order.
+  {
+    const { registerAvatarRoutes } = await import("./avatar/routes.js");
+    const { resolveClientDistDir } = await import("./spa/routes.js");
+    registerAvatarRoutes(fastify, {
+      clientDistDir: resolveClientDistDir(spaContext?.distDir),
+      logger,
+    });
+  }
+
   // Register the SPA static build (REQ-DST-002) — ON by default. Registered
   // LAST so its catch-all only ever answers requests that no other route
   // (API/health/asset) claimed. If packages/client/dist is missing (test

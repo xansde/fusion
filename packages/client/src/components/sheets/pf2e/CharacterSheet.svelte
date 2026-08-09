@@ -44,6 +44,7 @@
   import { detectFamiliarGrant, linkedFamiliars } from "$lib/sheets/pf2e/petsVM.js";
   import { getIsekaiVariant, getIsekaiArchetypes } from "$lib/sheets/pf2e/planVM.js";
   import { isPortraitPlaceholder } from "$lib/common/portrait.js";
+  import { readAvatarFlag } from "@fusion/shared";
   import { fusionApi } from "$lib/api.js";
   import { t, i18n } from "$lib/i18n/i18n.js";
 
@@ -351,6 +352,44 @@
   }
 
   // ---------------------------------------------------------------------------
+  // Avatar — the paper-doll built from the waybuilder-avatar acervo, stored in
+  // `flags.fusion.avatar` and shown in the table's bottom-right corner.
+  //
+  // A window of its own rather than an in-sheet modal: the creator needs the
+  // room (627 pieces, and every grid cell composes the whole character), and a
+  // singleton key per actor means clicking twice focuses the one that is open.
+  //
+  // Both the component and the window manager are imported lazily so the sheet's
+  // chunk does not carry the acervo's renderer for players who never open it.
+  // The creator saves through its own pruned doc:update (lib/avatar/patch.ts) —
+  // this sheet is not in that path, so `scheduleUpdate` is deliberately unused.
+  // ---------------------------------------------------------------------------
+
+  async function openAvatarCreator(): Promise<void> {
+    const [{ windowManager }, { default: AvatarCreator }] = await Promise.all([
+      import("$lib/windows/window-manager.js"),
+      import("../../avatar/AvatarCreator.svelte"),
+    ]);
+    windowManager.open({
+      singletonKey: `avatar:Actor:${actorId}`,
+      title: t("FUSION.Avatar.Title", { name: vm.name }),
+      icon: "🧍",
+      resizable: true,
+      minimizable: true,
+      minWidth: 620,
+      minHeight: 460,
+      position: { width: 940, height: 640 },
+      component: AvatarCreator,
+      componentProps: {
+        actorId,
+        nome: vm.name,
+        avatarAtual: readAvatarFlag(liveDoc),
+        podeEditar: vm.editable,
+      },
+    });
+  }
+
+  // ---------------------------------------------------------------------------
   // Rest (header "Descansar" button — Pathbuilder "Rest" reference).
   // Recovers every expended spell slot, refills Focus Points, and heals HP
   // (CON mod × level, min 1 × level — r16). Emits a chat summary card.
@@ -539,6 +578,19 @@
         />
       {/if}
     </div>
+
+    <!-- Avatar (paper-doll) — a different thing from the portrait: the portrait
+         is an image file, the avatar is a figure built from the acervo that also
+         stands in the table's corner. Open to anyone who can see the sheet; the
+         creator itself is read-only without edit rights. -->
+    <button
+      type="button"
+      class="sheet-avatar-btn"
+      onclick={openAvatarCreator}
+      title={t("FUSION.Avatar.Open")}
+    >
+      <span aria-hidden="true">🧍</span>{t("FUSION.Avatar.Button")}
+    </button>
 
     <div class="sheet-header__info">
       <h2 class="sheet-header__name">{vm.name}</h2>
@@ -1300,6 +1352,27 @@
     flex-shrink: 0;
     width: 56px;
     height: 56px;
+  }
+
+  /* Avatar opener — sits next to the portrait, not inside its 56×56 box. */
+  .sheet-avatar-btn {
+    align-items: center;
+    align-self: center;
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-pill);
+    color: var(--fusion-text);
+    cursor: pointer;
+    display: flex;
+    flex-shrink: 0;
+    font-size: 0.6875rem;
+    gap: 0.25rem;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .sheet-avatar-btn:hover,
+  .sheet-avatar-btn:focus-visible {
+    border-color: var(--fusion-accent);
   }
 
   .sheet-portrait-edit {
