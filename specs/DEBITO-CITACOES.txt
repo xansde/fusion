@@ -1,0 +1,10 @@
+# Citações penduradas — ids citados por uma spec e nunca definidos.
+# A regra 'citacao-resolvivel' do spec-lint aceita apenas os ids listados aqui;
+# citação nova sem definição falha o teste. Este arquivo só encolhe.
+#
+# REQ-SYS-030/031/032 são citados 6× na spec 15 (contract test da API de sistemas:
+# subtype declarado, detecção de ciclos, monotonicidade) e nunca foram escritos.
+# Escrevê-los é decisão de autoria da spec 15, não de quem passou o verificador.
+REQ-SYS-030
+REQ-SYS-031
+REQ-SYS-032

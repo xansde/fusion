@@ -20,7 +20,7 @@
 > regra.
 
 > **Nota normativa de escopo de fase:** O sistema Etmos é classificado como
-> **[V2] no escopo global** do Fusion (REQ-VIS-011 em `00-visao-e-escopo.md`).
+> **[V2] no escopo global** do Fusion (REQ-ESC-011 em `00-visao-e-escopo.md`).
 > Todo o pacote `systems/etmos` é desenvolvido após o MVP global (sessão de PF2e
 > jogável) estar entregue. As tags **[MVP]** e **[V2]** ao longo desta spec
 > referem-se ao **escopo interno do Etmos** — ou seja, ao que é necessário para

@@ -191,7 +191,7 @@ A sequência valida-se contra as dependências reais declaradas nas seções _De
 
 **Specs/REQs cobertos.**
 
-- `07` REQ-VIS-001.. (walls, visibility polygon, fog 3 estados, persistência, luzes, darkvision; **prefixo REQ-VIS da spec 07**, distinto do REQ-VIS da spec 00).
+- `07` REQ-VIS-001.. (walls, visibility polygon, fog 3 estados, persistência, luzes, darkvision).
 - `04` REQ-NET-\* (broadcast de delta de fog; broadcast de estado de combate).
 - `10` REQ-CBT-001.. (Combat/Combatant, tracker, iniciativa, ciclo de turno, hooks de combate).
 - `15` REQ-SYS-042, 062 (contrato de `InitiativeFormula` e hooks de combate consumidos pelo sistema).
@@ -238,7 +238,7 @@ A sequência valida-se contra as dependências reais declaradas nas seções _De
 - `16` REQ-CMP-001.. (formato de pack `pack.db`, pipeline de importação filtrada, remapeamento de UUID).
 - `08` REQ-ROL-\* (degrees of success a partir do `RollResult`; `preRoll`/`postRoll`).
 - `09` REQ-CHT-\* (chat cards de strike/save/dano com ações inline).
-- `00` REQ-VIS-006, 007, 009 (definição de sessão completa e PF2e como sistema de validação).
+- `00` REQ-ESC-006, 007, 009 (definição de sessão completa e PF2e como sistema de validação).
 
 **Definition of Done (verificável) — MVP global.**
 
@@ -283,7 +283,7 @@ A sequência valida-se contra as dependências reais declaradas nas seções _De
 - `22` REQ-DST-\* (documentação mínima de operação).
 - `13` REQ-AUD-_, `14` REQ-MAC-_, `12` REQ-JRN-\* (playlists, hotbar, journals/roll tables — capacidades [MVP] das specs que não são pré-condição da primeira sessão e amadurecem aqui).
 
-> **Nota.** Journals (`12`), macros de hotbar (`14`) e áudio básico (`13`) têm requisitos marcados `[MVP]` em suas specs, mas **não** são pré-condição da primeira sessão jogável (que pode ocorrer sem eles). Para não inflar M3, são entregues em M4 como parte de "qualidade e completude da plataforma". Se o grupo precisar deles na primeira sessão, podem ser puxados para o fim de M3 (ver Q-RDM-06).
+> **Nota.** Journals (`12`), macros de hotbar (`14`) e áudio básico (`13`) têm requisitos marcados `[MVP]` em suas specs, mas **não** são pré-condição da primeira sessão jogável (que pode ocorrer sem eles). Para não inflar M3, são entregues em M4 como parte de "qualidade e completude da plataforma". Se o grupo precisar deles na primeira sessão, podem ser puxados para o fim de M3 (ver Q-ROD-06).
 
 **Definition of Done (verificável).**
 
@@ -298,7 +298,7 @@ A sequência valida-se contra as dependências reais declaradas nas seções _De
 
 **Riscos.**
 
-- **Q-VIS-01 / Q-RDM-01:** disponibilidade dos dados abertos do SF2e em 2026-06-11 não confirmada — se ausentes, M4 reduz-se a "qualidade" e SF2e desliza; `engine-2e` já foi extraído em M3 e não depende disso.
+- Risco rastreado em `00` Q-ESC-01 e em Q-ROD-01: disponibilidade dos dados abertos do SF2e em 2026-06-11 não confirmada — se ausentes, M4 reduz-se a "qualidade" e SF2e desliza; `engine-2e` já foi extraído em M3 e não depende disso.
 - Starship combat e ambientes espaciais avançados são `[SF2-V2]` — não inflar M4.
 - Escopo de qualidade pode crescer sem limite — fixar o caminho crítico testável como recorte.
 
@@ -333,7 +333,7 @@ A sequência valida-se contra as dependências reais declaradas nas seções _De
 
 **Riscos.**
 
-- **Q-VIS-02 / Q-RDM-02 / `15` Q6:** o Etmos não tem licença aberta; distribuir o pacote `systems/etmos` depende de autorização da Editora Balde Galáctico. O desenvolvimento local pode prosseguir, mas a inclusão no repo compartilhado e qualquer distribuição aguardam resolução legal (`26`).
+- Risco rastreado em `00` Q-ESC-02, em Q-ROD-02 e em `15` Q6: o Etmos não tem licença aberta; distribuir o pacote `systems/etmos` depende de autorização da Editora Balde Galáctico. O desenvolvimento local pode prosseguir, mas a inclusão no repo compartilhado e qualquer distribuição aguardam resolução legal (`26`).
 - Lacunas do SRD: a diretriz é **não automatizar** onde o SRD é omisso e oferecer controles manuais de arbitragem (risco de escopo se isso não for respeitado).
 - O Compositor expõe acoplamentos escondidos da system API às premissas do PF2e — é justamente o teste de generalidade; falhas aqui podem exigir refatorar a API (`15` Q5).
 
@@ -374,7 +374,7 @@ A sequência valida-se contra as dependências reais declaradas nas seções _De
 
 **Riscos.**
 
-- Empacotamento do addon nativo no Tauri (cruza `01` Q7 / Q-RDM-04) — decisão `better-sqlite3` vs `node:sqlite` deve ser tomada antes de iniciar o wrapper.
+- Empacotamento do addon nativo no Tauri (cruza `01` Q7 / Q-ROD-04) — decisão `better-sqlite3` vs `node:sqlite` deve ser tomada antes de iniciar o wrapper.
 - Superfície de segurança do túnel WAN, UPnP e A/V — hardening (`21`) é pré-condição.
 - M6 é um "guarda-chuva" de [V2] heterogêneo; sem priorização pode nunca "fechar" — tratar como backlog priorizado pós-primeira-sessão, não como marco binário único (a DoD acima é o subconjunto de distribuição; o resto é incremental).
 
@@ -398,7 +398,7 @@ Além das sete capacidades, valem os critérios de operação do MVP (de `00` CS
 - O GM inicia servidor, cria world e convida jogadores sem editar código (M0; doc mínima amadurece em M4).
 - O conjunto de dados importado contém apenas mecânica aberta — zero arte/lore/marca da Paizo (M3, importer).
 
-> Operacionaliza `00` REQ-VIS-006/007 e CS-VIS-01..02. A DoD de M3 acima é a checklist verificável deste critério.
+> Operacionaliza `00` REQ-ESC-006/007 e CS-ESC-01..02. A DoD de M3 acima é a checklist verificável deste critério.
 
 ---
 
@@ -482,8 +482,8 @@ Enquanto a engine estiver em `0.x` (durante M0–M5 e início de M6):
 | 09   | Chat e Mensagens               | REQ-CHT           | M1; chat cards ricos de sistema em M3                                                                |
 | 10   | Combate e Iniciativa           | REQ-CBT           | M2 (motor); M3 (iniciativa PF2e); M5 (desempate Etmos)                                               |
 | 11   | UI Framework e Fichas          | REQ-UIF           | M3                                                                                                   |
-| 12   | Journal, Tabelas e Cartas      | REQ-JRN           | M4 (não bloqueia a 1ª sessão; ver Q-RDM-06)                                                          |
-| 13   | Áudio e Playlists              | REQ-AUD           | M4 (playlist básica; ambient sounds podem deslizar — Q-RDM-03)                                       |
+| 12   | Journal, Tabelas e Cartas      | REQ-JRN           | M4 (não bloqueia a 1ª sessão; ver Q-ROD-06)                                                          |
+| 13   | Áudio e Playlists              | REQ-AUD           | M4 (playlist básica; ambient sounds podem deslizar — Q-ROD-03)                                       |
 | 14   | Macros e Automação             | REQ-MAC           | M4 (hotbar básico)                                                                                   |
 | 15   | API de Sistemas                | REQ-SYS           | M0 (manifest/registro/contract test); M3 (derivação/effects/hooks completos); M6 (plugins dinâmicos) |
 | 16   | Compendiums e Importação       | REQ-CMP           | M3 (PF2e); M4 (SF2e); M5 (Etmos, à mão)                                                              |
@@ -510,11 +510,11 @@ Requisitos de **governança do roadmap**. Cada um é testável por inspeção de
 - **REQ-ROD-002** [MVP] Cada marco DEVE declarar: objetivo, entregáveis, specs/REQs cobertos (citando REQ-IDs), Definition of Done verificável, complexidade relativa (P/M/G/GG) e riscos.
 - **REQ-ROD-003** [MVP] Cada item de Definition of Done DEVE ser um critério **binário e verificável** (passou/não passou), sem ambiguidade sobre o significado de "concluído".
 - **REQ-ROD-004** [MVP] O roadmap DEVE identificar o **caminho crítico** (a cadeia de marcos bloqueantes mais longa) e DEVE marcar em qual marco ocorre a **primeira sessão jogável**.
-- **REQ-ROD-005** [MVP] A Definition of Done do marco da primeira sessão jogável (M3) DEVE ser consistente com a definição de MVP global de `00-visao-e-escopo.md` REQ-VIS-006/007 (cena com mapa+grid, tokens, visão/fog básicos, fichas, rolagens, chat, combat tracker).
+- **REQ-ROD-005** [MVP] A Definition of Done do marco da primeira sessão jogável (M3) DEVE ser consistente com a definição de MVP global de `00-visao-e-escopo.md` REQ-ESC-006/007 (cena com mapa+grid, tokens, visão/fog básicos, fichas, rolagens, chat, combat tracker).
 - **REQ-ROD-006** [MVP] Toda spec irmã (00–26) DEVE estar mapeada a pelo menos um marco na tabela de mapeamento; nenhuma spec pode ficar sem marco de implementação.
 - **REQ-ROD-007** [MVP] O roadmap DEVE classificar SF2e (`18`) e Etmos (`19`) como [V2] no escopo global (M4 e M5 respectivamente), distinguindo-os das tags internas `[SF2-CORE]`/`[ETM-CORE]` que descrevem o "jogável" de cada sistema.
 - **REQ-ROD-008** [MVP] O roadmap DEVE fixar a correspondência marco→release semver pré-1.0 (M3 = `0.1.0`) e a política de `engineCompat` durante `0.x`, consistente com `01` REQ-ARQ-033..036 e `15` Q7.
-- **REQ-ROD-009** [MVP] Nenhum requisito [V2] (marcos M4–M6) pode ser pré-condição de um requisito [MVP] (marcos M0–M3); o grafo de dependências DEVE respeitar essa invariante (alinha `00` CA-VIS-03).
+- **REQ-ROD-009** [MVP] Nenhum requisito [V2] (marcos M4–M6) pode ser pré-condição de um requisito [MVP] (marcos M0–M3); o grafo de dependências DEVE respeitar essa invariante (alinha `00` CA-ESC-03).
 - **REQ-ROD-010** [MVP] O roadmap DEVE registrar, em Questões em aberto, toda contradição cross-spec ou incerteza externa (status do SF2e, licença do Etmos, driver SQLite, escopo de áudio/journals) que possa **mover requisitos entre marcos**, com a mitigação correspondente.
 - **REQ-ROD-011** [V2] O roadmap DEVE ser **revisado e atualizado** após cada marco concluído, reclassificando riscos e movendo requisitos entre M4–M6 conforme as decisões tomadas após a primeira sessão jogável (mantendo `updated` em dia).
 - **REQ-ROD-012** [MVP] O grafo de dependências entre marcos DEVE ser apresentado como diagrama (Mermaid) e DEVE ser acíclico (satisfaz REQ-ROD-001 visualmente).
@@ -526,10 +526,10 @@ Requisitos de **governança do roadmap**. Cada um é testável por inspeção de
 - **CA-ROD-01** Cada marco (M0–M6) tem uma DoD com critérios binários verificáveis (REQ-ROD-002/003).
 - **CA-ROD-02** Cada spec irmã (00–26) está mapeada a pelo menos um marco (REQ-ROD-006).
 - **CA-ROD-03** O grafo de dependências não tem ciclos nem dependências para frente: nenhum marco depende de si mesmo nem de um marco posterior (REQ-ROD-001/012).
-- **CA-ROD-04** A DoD de M3 é consistente com `00` REQ-VIS-006/007 e cobre as sete capacidades da primeira sessão jogável (REQ-ROD-004/005).
+- **CA-ROD-04** A DoD de M3 é consistente com `00` REQ-ESC-006/007 e cobre as sete capacidades da primeira sessão jogável (REQ-ROD-004/005).
 - **CA-ROD-05** A política de versionamento pré-1.0 é consistente com `15` Q7 e `01` REQ-ARQ-033..036 (REQ-ROD-008).
 - **CA-ROD-06** SF2e e Etmos aparecem como [V2] global (M4/M5), e suas tags internas são interpretadas como `[SF2-CORE]`/`[ETM-CORE]` (REQ-ROD-007).
-- **CA-ROD-07** Nenhum requisito [V2] é pré-condição de um requisito [MVP] (REQ-ROD-009; alinha `00` CA-VIS-03).
+- **CA-ROD-07** Nenhum requisito [V2] é pré-condição de um requisito [MVP] (REQ-ROD-009; alinha `00` CA-ESC-03).
 - **CA-ROD-08** O caminho crítico `M0→M1→M2→M3` está identificado e termina na primeira sessão jogável (REQ-ROD-004).
 
 ---
@@ -538,13 +538,13 @@ Requisitos de **governança do roadmap**. Cada um é testável por inspeção de
 
 | Risco                                                           | Marco(s) afetado(s) | Severidade | Mitigação                                                                                                   |
 | --------------------------------------------------------------- | ------------------- | ---------- | ----------------------------------------------------------------------------------------------------------- |
-| Dados abertos do SF2e indisponíveis em 2026-06-11               | M4                  | Alta       | `engine-2e` extraído em M3 independe disso; se ausentes, M4 reduz a "qualidade" e SF2e desliza (Q-RDM-01).  |
-| Etmos sem licença aberta; distribuição depende de autorização   | M5                  | Alta       | Desenvolver local; não incluir no repo compartilhado nem distribuir até resolução legal (`26`, Q-RDM-02).   |
-| Addon nativo `better-sqlite3` complica empacotamento Tauri      | M0, M6              | Média      | Manter `better-sqlite3` até M4; decidir `node:sqlite` antes do wrapper (Q-RDM-04).                          |
-| Custo do visibility polygon trava o event loop                  | M2                  | Média      | Medir limiar e mover para worker thread **em M2** se necessário (Q-RDM-05).                                 |
+| Dados abertos do SF2e indisponíveis em 2026-06-11               | M4                  | Alta       | `engine-2e` extraído em M3 independe disso; se ausentes, M4 reduz a "qualidade" e SF2e desliza (Q-ROD-01).  |
+| Etmos sem licença aberta; distribuição depende de autorização   | M5                  | Alta       | Desenvolver local; não incluir no repo compartilhado nem distribuir até resolução legal (`26`, Q-ROD-02).   |
+| Addon nativo `better-sqlite3` complica empacotamento Tauri      | M0, M6              | Média      | Manter `better-sqlite3` até M4; decidir `node:sqlite` antes do wrapper (Q-ROD-04).                          |
+| Custo do visibility polygon trava o event loop                  | M2                  | Média      | Medir limiar e mover para worker thread **em M2** se necessário (Q-ROD-05).                                 |
 | Concorrência (last-writer-wins) corrompe combat tracker         | M1→M2               | Média      | Locking otimista/ordenação especial para iniciativa/turno (`01` Q6).                                        |
 | Volume mecânico do PF2e estoura o escopo de M3                  | M3                  | Alta       | Lista priorizada de condições + motor de effects reduzido (DEC-PF2-04); REs não suportados em pass-through. |
-| Áudio/journals/macros inflam M3/M4                              | M3, M4              | Baixa      | Não são pré-condição da 1ª sessão; fatiar conforme Q-RDM-03/06.                                             |
+| Áudio/journals/macros inflam M3/M4                              | M3, M4              | Baixa      | Não são pré-condição da 1ª sessão; fatiar conforme Q-ROD-03/06.                                             |
 | M6 vira "saco sem fundo" de [V2] heterogêneo                    | M6                  | Média      | Tratar como backlog priorizado pós-1ª sessão; DoD de M6 é só o subconjunto de distribuição.                 |
 | Acoplamento escondido da system API ao PF2e só aparece no Etmos | M5                  | Média      | O Etmos é o teste de generalidade; reservar folga para refatorar a API (`15` Q5).                           |
 
@@ -552,13 +552,13 @@ Requisitos de **governança do roadmap**. Cada um é testável por inspeção de
 
 ## Questões de fase em aberto
 
-- **Q-RDM-01** SF2e (M4): o status de publicação do SF2e em 2026-06-11 não foi confirmado (`00` Q-VIS-01). Se os dados abertos não estiverem disponíveis, M4 fica restrito a "qualidade" e SF2e desliza; `systems/engine-2e` é extraído em M3 independentemente. _(Move requisitos REQ-SF2-_ de marco.)\*
-- **Q-RDM-02** Etmos (M5): a distribuição de `systems/etmos` depende de autorização formal da Editora Balde Galáctico (`19` aviso, `26`, `15` Q6). O desenvolvimento prossegue localmente; a inclusão no repo e qualquer distribuição aguardam resolução legal. _(Não move o marco, mas bloqueia a publicação.)_
-- **Q-RDM-03** Áudio (M4): `13` tem requisitos `[MVP]` para playlists e ambient sounds. Se M4 ficar grande, fatiar: playlist básica em M4; ambient sounds por canvas em M6. Decidir antes de iniciar M4.
-- **Q-RDM-04** `better-sqlite3` vs `node:sqlite` (`01` Q7): impacta M0 (driver) e M6 (Tauri). Manter `better-sqlite3` até M4; reavaliar antes do wrapper.
-- **Q-RDM-05** Worker thread para visibility polygon (`01` Q5, `07`): o limiar de offload precisa de medição **em M2**. Se bloquear o event loop em mapas médios, a migração é requisito de M2, não de M6.
-- **Q-RDM-06** Journals e macros (`12`/`14`) têm requisitos `[MVP]` em suas specs mas não são pré-condição da primeira sessão jogável. Confirmar com o grupo se a 1ª sessão precisa de notas no journal e macros de hotbar; em caso afirmativo, puxar o subconjunto mínimo para o fim de M3. _(Pode mover requisitos REQ-JRN-_/REQ-MAC-_ de M4 para M3.)_
-- **Q-RDM-07** Túnel WAN integrado (`01` Q2, `22`): entra em M6 por padrão; se a primeira sessão precisar de jogo remoto pela internet antes de M6, validar port-forwarding manual + doc em M3/M4 como caminho interino.
+- **Q-ROD-01** SF2e (M4): o status de publicação do SF2e em 2026-06-11 não foi confirmado (`00` Q-ESC-01). Se os dados abertos não estiverem disponíveis, M4 fica restrito a "qualidade" e SF2e desliza; `systems/engine-2e` é extraído em M3 independentemente. _(Move requisitos REQ-SF2-_ de marco.)\*
+- **Q-ROD-02** Etmos (M5): a distribuição de `systems/etmos` depende de autorização formal da Editora Balde Galáctico (`19` aviso, `26`, `15` Q6). O desenvolvimento prossegue localmente; a inclusão no repo e qualquer distribuição aguardam resolução legal. _(Não move o marco, mas bloqueia a publicação.)_
+- **Q-ROD-03** Áudio (M4): `13` tem requisitos `[MVP]` para playlists e ambient sounds. Se M4 ficar grande, fatiar: playlist básica em M4; ambient sounds por canvas em M6. Decidir antes de iniciar M4.
+- **Q-ROD-04** `better-sqlite3` vs `node:sqlite` (`01` Q7): impacta M0 (driver) e M6 (Tauri). Manter `better-sqlite3` até M4; reavaliar antes do wrapper.
+- **Q-ROD-05** Worker thread para visibility polygon (`01` Q5, `07`): o limiar de offload precisa de medição **em M2**. Se bloquear o event loop em mapas médios, a migração é requisito de M2, não de M6.
+- **Q-ROD-06** Journals e macros (`12`/`14`) têm requisitos `[MVP]` em suas specs mas não são pré-condição da primeira sessão jogável. Confirmar com o grupo se a 1ª sessão precisa de notas no journal e macros de hotbar; em caso afirmativo, puxar o subconjunto mínimo para o fim de M3. _(Pode mover requisitos REQ-JRN-_/REQ-MAC-_ de M4 para M3.)_
+- **Q-ROD-07** Túnel WAN integrado (`01` Q2, `22`): entra em M6 por padrão; se a primeira sessão precisar de jogo remoto pela internet antes de M6, validar port-forwarding manual + doc em M3/M4 como caminho interino.
 
 ---
 
@@ -566,7 +566,7 @@ Requisitos de **governança do roadmap**. Cada um é testável por inspeção de
 
 Esta spec é o documento de sequenciamento; ela **lê** todas as demais:
 
-- `00-visao-e-escopo.md` — definição de MVP global, princípios, tags [MVP]/[V2], questões Q-VIS-01/02.
+- `00-visao-e-escopo.md` — definição de MVP global, princípios, tags [MVP]/[V2], questões Q-ESC-01/02.
 - `01-arquitetura-geral.md` — componentes, boot sequence, lifecycle de world, versionamento, questões Q2/Q5/Q6/Q7.
 - `15-api-de-sistemas.md` — contrato engine ↔ sistemas, escopo MVP/V2 do motor de effects, Q5/Q6/Q7.
 - `17-sistema-pf2e.md` — sistema de validação do MVP, `engine-2e`, lista de condições/automação MVP.
