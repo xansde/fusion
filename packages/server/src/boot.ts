@@ -207,7 +207,16 @@ function connectSrcDirective(allowedOrigins: readonly string[]): string {
     })
     .filter((v): v is string => v !== null);
 
-  return ["'self'", ...wsOrigins].join(" ");
+  // `data:` and `blob:` are required by PIXI v8's texture pipeline, not by any
+  // network call of ours: `checkImageBitmap()` probes worker support by running
+  // fetch() over a 1x1 inline `data:image/png;base64,…`, and blob: URLs are
+  // fetched back for decoded textures. Those are fetch(), so they answer to
+  // connect-src — `img-src 'self' data: blob:` does NOT cover them. With them
+  // missing the probe throws inside the worker and EVERY scene image silently
+  // fails to load (blank map, "adding a scene image does nothing"), with the
+  // only symptom a CSP console error. Neither scheme can reach a remote host,
+  // so this keeps exfiltration closed while unblocking the renderer.
+  return ["'self'", "data:", "blob:", ...wsOrigins].join(" ");
 }
 
 /**
