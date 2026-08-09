@@ -1,7 +1,7 @@
 /**
  * FusionCanvas.ts — PIXI Application shell for the Fusion VTT canvas.
  *
- * Spec: 06-canvas-e-renderizacao.md §D1, §D2, §REQ-CNV-001..009
+ * Spec: 06-canvas-e-renderizacao.md §DEC-CNV-01, §DEC-CNV-02, §REQ-CNV-001..009
  *
  * Responsibilities:
  *   - Initialize PIXI.Application with WebGPU preference, fallback to WebGL.

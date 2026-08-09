@@ -1,7 +1,7 @@
 /**
  * layers.ts — layer name constants and type definitions.
  *
- * Spec: 06-canvas-e-renderizacao.md §D1, §REQ-CNV-002..005
+ * Spec: 06-canvas-e-renderizacao.md §DEC-CNV-01, §REQ-CNV-002..005
  *
  * The Fusion canvas uses four top-level groups:
  *   PrimaryGroup   — physical scene content (background, tiles, drawings, tokens, overhead)

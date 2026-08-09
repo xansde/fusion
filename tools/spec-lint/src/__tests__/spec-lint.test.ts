@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { formatViolations, lintSpecs, parseSpecs } from "../index.js";
+import { formatViolations, lintSpecs, parseSpecs } from "../index.ts";
 
 const SPECS_DIR = resolve(__dirname, "../../../../specs");
 

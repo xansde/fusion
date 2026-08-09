@@ -1,7 +1,7 @@
 /**
  * SquareGrid — the square implementation of GridStrategy.
  *
- * Spec: 06-canvas-e-renderizacao.md §D3, §D4, REQ-CNV-014, REQ-CNV-016,
+ * Spec: 06-canvas-e-renderizacao.md §DEC-CNV-03, §DEC-CNV-04, REQ-CNV-014, REQ-CNV-016,
  *       REQ-CNV-018, REQ-CNV-019, REQ-CNV-020.
  *
  * Design (docs/design/wi-mapa-grid-01/arquitetura.md):

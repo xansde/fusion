@@ -1,7 +1,7 @@
 /**
  * Grid system types — shared between client and server.
  *
- * Spec: 06-canvas-e-renderizacao.md §D3, §D4, §REQ-CNV-014..024
+ * Spec: 06-canvas-e-renderizacao.md §DEC-CNV-03, §DEC-CNV-04, §REQ-CNV-014..024
  * Spec: 02-modelo-de-dados.md (SceneDocument.grid)
  *
  * REQ-CNV-014: square, hex, gridless behind a common GridStrategy interface.

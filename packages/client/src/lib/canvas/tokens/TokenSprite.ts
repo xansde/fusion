@@ -1,7 +1,7 @@
 /**
  * TokenSprite.ts — PIXI shell for a single token.
  *
- * Spec: 06-canvas-e-renderizacao.md §REQ-CNV-025..033, §D7, §D8
+ * Spec: 06-canvas-e-renderizacao.md §REQ-CNV-025..033, §DEC-CNV-07, §DEC-CNV-08
  *
  * Design:
  *   - Thin PIXI wrapper — all math delegated to token-visuals.ts.

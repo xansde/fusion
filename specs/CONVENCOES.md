@@ -163,10 +163,32 @@ apagada sem rastro.
 Os dois arquivos de débito são catracas: o verificador aceita exatamente os ids listados
 neles e nada mais, então a lista só encolhe. Item novo com o mesmo defeito falha o teste.
 
-## 8. O que ainda não é verificado
+## 8. O laço com o código
 
-O `spec-lint` garante a **integridade do namespace** — que os ids existem, são únicos, têm
-dono e resolvem. Ele não garante o item mais importante do §2: que o código cumpre o que a
-spec diz. Isso exige um laço de conformidade entre requisito e teste, que ainda não existe.
-Enquanto ele não existir, a leitura honesta é que as specs descrevem a **intenção**
-verificada por revisão humana, não o estado verificado do sistema.
+O §2 só vale se der para perguntar, de um requisito qualquer, **quem foi conferir**. A
+resposta está em [`RASTREABILIDADE.md`](RASTREABILIDADE.md), gerado por `pnpm spec:report`.
+
+A convenção é a que o repo já usava antes de ser escrita: **código e teste citam o id do
+requisito** no comentário ou no nome do teste.
+
+```ts
+// REQ-VIS-020: compute visibility polygon by angular sweep
+```
+
+Disso saem três estados por requisito [MVP] — citado por teste, citado só por código de
+produção, sem citação nenhuma — e três regras:
+
+- **Id citado pelo código tem que existir** em alguma spec. Referência a requisito
+  renumerado ou inventado é erro de teste, não detalhe de comentário.
+- **A cobertura não regride**: o piso fica em `COBERTURA-MINIMA.json` e sobe sozinho no
+  `pnpm spec:report`. Requisito que ganhou teste não pode perdê-lo em silêncio.
+- **O relatório fica em dia**: um teste compara o arquivo com o estado atual do repo.
+
+### O que esse número não diz
+
+Cobertura aqui é **reivindicação**, não prova: um teste que nomeia `REQ-ROL-012` afirma
+cobri-lo, e a afirmação fica auditável por quem ler o teste. Um teste pode citar o id e
+verificar outra coisa — foi exatamente esse o defeito da varredura r22, em que 80 testes
+verdes conviviam com 60 defeitos porque conferiam a derivação contra a própria tabela de
+origem. O que a métrica garante é o piso: **requisito sem citação nenhuma não afirma
+absolutamente nada**, e hoje eles são a maioria.

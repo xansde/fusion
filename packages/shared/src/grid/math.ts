@@ -4,7 +4,7 @@
  * This module contains all the geometry and measurement logic for square grids
  * that can be unit-tested in Vitest without a browser environment.
  *
- * Spec: 06-canvas-e-renderizacao.md §D3, §D4
+ * Spec: 06-canvas-e-renderizacao.md §DEC-CNV-03, §DEC-CNV-04
  * REQ-CNV-019: diagonal rule, alternating accumulated counts.
  * REQ-CNV-020: alternating_1 = PF2e 5-10-5.
  */

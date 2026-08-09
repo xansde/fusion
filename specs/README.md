@@ -13,6 +13,9 @@ Estas specs foram geradas a partir da pesquisa em [`docs/research/`](../docs/res
 - O formato das specs (o que é uma spec, níveis, identificadores, anatomia) está em
   [`CONVENCOES.md`](CONVENCOES.md), e a parte mecânica dele é verificada por
   `tools/spec-lint` no `pnpm test`.
+- Quem foi conferir cada requisito está em [`RASTREABILIDADE.md`](RASTREABILIDADE.md)
+  (gerado por `pnpm spec:report`): código e teste citam o id do requisito, e o relatório
+  lê essas citações de volta.
 - **MVP global**: o grupo joga uma sessão de PF2e com mapa+grid, tokens com movimento, visão/iluminação/fog básicos, fichas funcionais, rolagens automatizadas básicas, chat e combat tracker.
 
 ## Índice

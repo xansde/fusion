@@ -1,7 +1,7 @@
 /**
  * token-visuals.ts — Pure, PIXI-free token visual logic.
  *
- * Spec: 06-canvas-e-renderizacao.md §REQ-CNV-025..033, §D7, §D8, §D11
+ * Spec: 06-canvas-e-renderizacao.md §REQ-CNV-025..033, §DEC-CNV-07, §DEC-CNV-08, §DEC-CNV-11
  *
  * Everything here is deterministic and testable under Vitest (node env, no DOM).
  * The PIXI shell (TokenSprite.ts) consumes these helpers.

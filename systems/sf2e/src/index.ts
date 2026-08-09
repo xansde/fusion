@@ -326,7 +326,7 @@ export const sf2eSystem = defineSystem(
     registrar.stackingRules(SF2E_STACKING_TABLE);
 
     // -----------------------------------------------------------------------
-    // Initiative formula (REQ-SF2-090-equivalent)
+    // Initiative formula (see 10-combate-e-iniciativa.md; SF2e roles in 18-sistema-sf2e.md)
     // -----------------------------------------------------------------------
 
     registrar.registerInitiativeFormula("sf2e", sf2eInitiativeFormula);

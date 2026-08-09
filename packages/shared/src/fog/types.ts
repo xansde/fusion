@@ -7,7 +7,7 @@
  *
  * Coordinate system: scene pixels (same as Wall, Point, VisibilityPolygon).
  *
- * Spec: 07-visao-iluminacao-fog.md §D6, §REQ-VIS-082, §REQ-VIS-083
+ * Spec: 07-visao-iluminacao-fog.md §DEC-VIS-06, §REQ-VIS-082, §REQ-VIS-083
  * Spec: 04-rede-e-sincronizacao.md §fog ops
  * Spec: 02-modelo-de-dados.md §DEC-18 (fog is NOT a first-class Document in MVP)
  *

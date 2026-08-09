@@ -16,7 +16,7 @@
  *    checks it at intersection time (REQ-VIS-026). The filter here only removes
  *    walls whose restriction mode is "none" for the dimension.
  *
- * Spec: 07-visao-iluminacao-fog.md §REQ-VIS-001 – REQ-VIS-004, D1, D5
+ * Spec: 07-visao-iluminacao-fog.md §REQ-VIS-001 – REQ-VIS-004, DEC-VIS-01, DEC-VIS-05
  */
 
 import type { Wall, WallDimension } from "./types.js";
