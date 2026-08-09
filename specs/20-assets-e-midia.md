@@ -338,7 +338,7 @@ fusion-data/                 → raiz do data dir (ver 03-persistencia-e-mundos.
 
 ### Catálogo de Placeholders Livres (bundle do Fusion)
 
-> Esta seção atende à dependência declarada pela `16-compendiums-e-importacao.md` (REQ-CMP-031, D8, lista de dependências), que designa a spec 20 como dona do catálogo de ícones livres empacotados e do formato `placeholders.map`. O **placeholder de asset faltante** (REQ-AST-047) e o **catálogo de placeholders temáticos** são conceitos distintos: o primeiro é um fallback de runtime para assets corrompidos/faltantes; o segundo é um conjunto de ícones pré-embutidos para substituição legal durante importação de dados do PF2e/SF2e.
+> Esta seção atende à dependência declarada pela `16-compendiums-e-importacao.md` (REQ-CMP-031, DEC-CMP-08, lista de dependências), que designa a spec 20 como dona do catálogo de ícones livres empacotados e do formato `placeholders.map`. O **placeholder de asset faltante** (REQ-AST-047) e o **catálogo de placeholders temáticos** são conceitos distintos: o primeiro é um fallback de runtime para assets corrompidos/faltantes; o segundo é um conjunto de ícones pré-embutidos para substituição legal durante importação de dados do PF2e/SF2e.
 
 **REQ-AST-048** [MVP] O Fusion DEVE incluir no bundle do cliente (pasta `packages/client/src/assets/placeholders/`) um conjunto de ícones livres de direitos autorais, organizados como catálogo de placeholders para uso pelo importer (`tools/importer-pf2e`). Esta spec é dona do **armazenamento e serving** do catálogo; o **manifesto dos placeholders faltantes/necessários** é gerado pelo importer da spec 16 (`ver 16-compendiums-e-importacao.md` REQ-CMP-033) e orienta a curadoria deste catálogo:
 

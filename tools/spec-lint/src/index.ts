@@ -205,7 +205,28 @@ export function lintSpecs(dir: string): Violation[] {
     });
   }
 
-  // R5 — the registry points at files that exist and each spec owns one area.
+  // R5 — decisions are written one way. `D1`, `D-ARQ-01` and `DECISÃO-A11-01` all
+  // existed side by side; a bare `D4` cited from another spec named nothing at all.
+  for (const file of specFiles(dir)) {
+    readFileSync(join(dir, file), "utf8")
+      .split(/\r?\n/)
+      .forEach((line, index) => {
+        const legacy =
+          /^#{2,6}\s+D\d{1,2}(?=[\s:—–-])/.exec(line)?.[0] ??
+          /\bD-[A-Z0-9]{2,5}-\d{1,2}\b/.exec(line)?.[0] ??
+          /\bDECISÃO-[A-Z0-9]{2,5}-\d{1,2}\b/.exec(line)?.[0];
+        if (legacy) {
+          violations.push({
+            rule: "decisao-canonica",
+            file,
+            line: index + 1,
+            message: `"${legacy.trim()}" usa uma forma antiga de decisão; a canônica é DEC-<ÁREA>-NN.`,
+          });
+        }
+      });
+  }
+
+  // R6 — the registry points at files that exist and each spec owns one area.
   const files = specFiles(dir);
   for (const [area, owner] of owners) {
     if (!files.some((f) => f.startsWith(`${owner}-`))) {

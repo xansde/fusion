@@ -192,6 +192,26 @@ describe("regra req-com-tag", () => {
   });
 });
 
+describe("regra decisao-canonica", () => {
+  it.each([
+    ["### D4 — decisão numerada solta", "^#{2,6} D\\d"],
+    ["- Herdado de **D-ROL-01**", "D-ROL-01"],
+    ["### DECISÃO-ROL-01: forma antiga", "DECISÃO-ROL-01"],
+  ])("flags %s", (line) => {
+    const dir = corpus({ "08-rolagens.md": `- **REQ-ROL-001** [MVP] Uma regra.\n${line}` });
+
+    expect(lintSpecs(dir).map((v) => v.rule)).toContain("decisao-canonica");
+  });
+
+  it("accepts the canonical form", () => {
+    const dir = corpus({
+      "08-rolagens.md": "- **REQ-ROL-001** [MVP] Uma regra.\n### DEC-ROL-01 — Forma canônica",
+    });
+
+    expect(lintSpecs(dir).filter((v) => v.rule === "decisao-canonica")).toEqual([]);
+  });
+});
+
 describe("regra registro-de-prefixos", () => {
   it("flags a registry row pointing at a spec that does not exist", () => {
     const dir = corpus(

@@ -169,7 +169,7 @@ A sequência valida-se contra as dependências reais declaradas nas seções _De
 
 **Riscos.**
 
-- Event-loop blocking em broadcast/serialização sob carga (cruza `01` D9/REQ-ARQ-039) — mitigar com deltas pequenos e medição.
+- Event-loop blocking em broadcast/serialização sob carga (cruza `01` DEC-ARQ-09/REQ-ARQ-039) — mitigar com deltas pequenos e medição.
 - Janela de perda de updates entre handshake e `game.ready` (bug clássico de VTT) — mitigar com o buffer ordenado (REQ-ARQ-014) e teste de reconexão.
 - Last-writer-wins por campo pode corromper estado em edições concorrentes (cruza `04`/`01` Q6) — aceitável no MVP, mas registrar casos (combat tracker) para M2.
 - Performance do PIXI em mapas grandes antes de otimizar render groups.
@@ -195,7 +195,7 @@ A sequência valida-se contra as dependências reais declaradas nas seções _De
 - `04` REQ-NET-\* (broadcast de delta de fog; broadcast de estado de combate).
 - `10` REQ-CBT-001.. (Combat/Combatant, tracker, iniciativa, ciclo de turno, hooks de combate).
 - `15` REQ-SYS-042, 062 (contrato de `InitiativeFormula` e hooks de combate consumidos pelo sistema).
-- `01` D9 (offload de visibility polygon, se necessário).
+- `01` DEC-ARQ-09 (offload de visibility polygon, se necessário).
 
 **Definition of Done (verificável).**
 

@@ -91,6 +91,9 @@ Regras:
 - **Id de área não registrada é referência externa** (pesquisa em `docs/research/`, outro
   projeto) e não é resolvido — ex.: `Q-WF-05`. A contrapartida é que uma área errada passa
   despercebida na citação; só a definição é barrada.
+- **Decisão se escreve `DEC-<ÁREA>-NN`**, sempre — nunca `D4`, `D-ARQ-01` ou
+  `DECISÃO-ARQ-01`. Decisão citada de outra spec por número solto não identifica nada.
+  _(regra `decisao-canonica`)_
 - **Todo `REQ` carrega `[MVP]` ou `[V2]`.** Requisito sem tag não entra em nenhum marco do
   roadmap e portanto nunca é cobrado. Tags de recorte (`[MC]`, `[BC]`) são adicionais, não
   substituem. _(regra `req-com-tag`, com o débito congelado em `DEBITO-TAGS.txt`)_
@@ -147,9 +150,10 @@ apagada sem rastro.
 - **`33` — API de Módulos/Mods**: número reservado para o contrato de extensão de
   terceiros (ciclo de vida, pontos de extensão, sandbox e permissões). Hoje `00`
   (`REQ-ESC-012`) fixa sistemas como pacotes compilados e trata plugin dinâmico como [V2].
-- **`DEC-` vs `D-`**: as specs antigas usam decisões numeradas como `D1`, `D2`; as novas
-  usam `DEC-<ÁREA>-NN`. A forma canônica é `DEC-`; a migração das antigas está pendente e
-  ainda não é verificada mecanicamente.
+- ~~`DEC-` vs `D-`~~ — resolvido. As quatro grafias que conviviam (`D1`, `D-ARQ-01`,
+  `DECISÃO-A11-01`, `DEC-MMT-01`) viraram `DEC-<ÁREA>-NN`: 115 títulos e 88 citações
+  migrados, e a regra `decisao-canonica` barra a volta das formas antigas. Um `D4` citado
+  de outra spec não nomeava nada — agora nomeia.
 - **`DEBITO-TAGS.txt`**: 89 requisitos das specs `30` e `31` nasceram só com tag de recorte
   (`[MC]`, `[BC]`) e ainda precisam de `[MVP]`/`[V2]`.
 - **`DEBITO-CITACOES.txt`**: `REQ-SYS-030`, `031` e `032` são citados 6× pela spec `15`

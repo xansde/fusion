@@ -101,7 +101,7 @@ o **Starfinder Second Edition (SF2e)** construído sobre o mesmo motor 2e do PF2
 
 ## Decisões de Design
 
-### D-SF2-01 — Motor 2e unificado: SF2e como extensão, não fork
+### DEC-SF2-01 — Motor 2e unificado: SF2e como extensão, não fork
 
 **Decisão:** O `systems/sf2e` registra-se sobre o mesmo engine 2e do `systems/pf2e`.
 Não existe fork de engine. Ambos os sistemas dependem de `systems/engine-2e`
@@ -124,7 +124,7 @@ confirma que engine unificado é viável e foi a escolha da comunidade.
 
 ---
 
-### D-SF2-02 — Tiers de qualidade substituem runas de armas
+### DEC-SF2-02 — Tiers de qualidade substituem runas de armas
 
 **Decisão:** Armas com trait `Tech` no SF2e não usam o sistema de runas do PF2e.
 Em vez disso, cada arma tem um campo `tier` (Commercial/Tactical/Advanced/Superior/
@@ -144,7 +144,7 @@ runas normalmente — portanto os dois sistemas coexistem no mesmo pacote.
 
 ---
 
-### D-SF2-03 — Augmentações como tipo de item dedicado com body slots
+### DEC-SF2-03 — Augmentações como tipo de item dedicado com body slots
 
 **Decisão:** Augmentações são itens do tipo `augmentation` com um campo `bodySlot`
 obrigatório. A lógica de limite (máximo 4 augmentações não-apex instaladas) é
@@ -164,7 +164,7 @@ lógica de slot bem definida, justificando um tipo de item próprio.
 
 ---
 
-### D-SF2-04 — Starship Combat cinemático como CombatType [V2]
+### DEC-SF2-04 — Starship Combat cinemático como CombatType [V2]
 
 **Decisão:** O combate cinemático de naves é implementado como uma variante
 `CombatType = "starship"` do documento `Combat`. O engine base de combate suporta
@@ -183,7 +183,7 @@ Esta feature é inteira [V2].
 
 ---
 
-### D-SF2-05 — Moeda: créditos como campo numérico único
+### DEC-SF2-05 — Moeda: créditos como campo numérico único
 
 **Decisão:** O campo de moeda do ator SF2e é `currency: { credits: number }` em
 vez do `{ cp, sp, gp, pp }` do PF2e. A UI da ficha exibe apenas "Créditos (cr)".
@@ -197,7 +197,7 @@ Credsticks são itens do tipo `equipment` (tipo herdado do engine 2e) com campo
 
 ---
 
-### D-SF2-06 — Zero-g como zona de mapa que aplica condições [V2]
+### DEC-SF2-06 — Zero-g como zona de mapa que aplica condições [V2]
 
 **Decisão:** Zero-gravidade é implementada como uma zona especial no canvas
 (`ZoneType = "zero-g"`, ver `06-canvas-e-renderizacao.md`) que aplica
@@ -208,7 +208,7 @@ tokens dentro dela no início de cada turno. A capacidade de carga ×10 e alcanc
 
 ---
 
-### D-SF2-07 — Dados via importer pf2e estendido; packs sf2e são separados
+### DEC-SF2-07 — Dados via importer pf2e estendido; packs sf2e são separados
 
 **Decisão:** O `tools/importer-pf2e` é estendido para processar os 26 compendium
 packs SF2e do repositório `foundryvtt/pf2e`. Os packs SF2e são importados para
@@ -221,7 +221,7 @@ minimiza esforço e mantém consistência no pipeline.
 
 ---
 
-### D-SF2-08 — Species = Ancestry com displayName sobrescrito
+### DEC-SF2-08 — Species = Ancestry com displayName sobrescrito
 
 **Decisão:** A entidade "species" do SF2e é mapeada para o tipo de documento
 `ancestry` do engine. O `systems/sf2e` registra `displayName: "Species"` no
@@ -230,7 +230,7 @@ muda — a mecânica de ancestry (heritage, ancestry feats, stats) é idêntica.
 
 ---
 
-### D-SF2-09 — Cobertura: idêntica ao PF2e remaster
+### DEC-SF2-09 — Cobertura: idêntica ao PF2e remaster
 
 **Decisão:** As regras de cobertura do SF2e (Lesser +1, Standard +2/+2/+2,
 Greater +4/+4/+4) são confirmadas pela pesquisa como idênticas ao PF2e remaster.
@@ -256,7 +256,7 @@ Em particular:
 
 - `SpecialResource` como tipo de efeito ou registrar method não está na spec 15
   MVP → features que dependem dele são [V2].
-- EffectRule types plugáveis por sistema são [V2] (spec 15 D4/REQ-SYS-089).
+- EffectRule types plugáveis por sistema são [V2] (spec 15 DEC-SYS-04/REQ-SYS-089).
 - `AdjustModifier` e `DamageDice` condicional são [V2] (spec 17 DEC-PF2-04).
 
 ---
@@ -475,7 +475,7 @@ servidor via hook `preCreateItem` (REQ-SYS-061): antes de persistir um item do
 tipo `augmentation`, o servidor verifica se o ator já tem 4 augmentações não-apex
 instaladas e, se sim, retorna `false` cancelando a operação. A validação é
 realizada por lógica imperativa em `systems/sf2e/src/hooks/augmentation.ts`, não
-como EffectRule custom (effects plugáveis por sistema são [V2] — spec 15 D4/
+como EffectRule custom (effects plugáveis por sistema são [V2] — spec 15 DEC-SYS-04/
 REQ-SYS-089).
 
 **REQ-SF2-025** [MVP] A ficha de personagem SF2e deve ter uma aba "Augmentations"
@@ -954,7 +954,7 @@ export default defineSystem(manifest, (r) => {
   // ── Validação de slots de augmentação [MVP] ───────────────────────────────
   // O limite de 4 augmentações não-apex é aplicado via hook preCreateItem
   // no servidor (REQ-SYS-061 / REQ-SF2-024), não como EffectRule custom
-  // (effects plugáveis por sistema são [V2] — spec 15 D4/REQ-SYS-089).
+  // (effects plugáveis por sistema são [V2] — spec 15 DEC-SYS-04/REQ-SYS-089).
   // A lógica de validação vive em src/hooks/augmentation.ts.
 
   // ── [V2] CombatType starship ──────────────────────────────────────────────
