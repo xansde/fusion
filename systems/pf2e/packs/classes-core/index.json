@@ -77,6 +77,21 @@
     }
   },
   {
+    "_id": "Mx4ch9PiH76OeSwk",
+    "uuid": "Compendium.pf2e.classes-core.Item.Mx4ch9PiH76OeSwk",
+    "name": "Gunslinger",
+    "img": "icons/placeholder/feat.svg",
+    "type": "class",
+    "index": {
+      "name": "Gunslinger",
+      "system.keyAbility": [
+        "dex"
+      ],
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "Z9li154CPNmun29Q"
+    }
+  },
+  {
     "_id": "ZuJDBnRwp0YQ9IoP",
     "uuid": "Compendium.pf2e.classes-core.Item.ZuJDBnRwp0YQ9IoP",
     "name": "Kineticist",
@@ -121,6 +136,19 @@
       ],
       "system.traits.value": [],
       "flags.fusion.sourceId": "YPxpk9JbMnKjbNLc"
+    }
+  },
+  {
+    "_id": "kJAUMTXDise4UFG2",
+    "uuid": "Compendium.pf2e.classes-core.Item.kJAUMTXDise4UFG2",
+    "name": "Psychic",
+    "img": "icons/placeholder/feat.svg",
+    "type": "class",
+    "index": {
+      "name": "Psychic",
+      "system.keyAbility": [],
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "Inq4gH3P5PYjSQbD"
     }
   },
   {

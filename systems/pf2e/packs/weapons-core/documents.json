@@ -1,5 +1,158 @@
 [
   {
+    "_id": "hXrH1AzbLUU02FB1",
+    "name": "Air Repeater",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": "magazine-with-6-pellets",
+      "baseItem": "air-repeater",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 0.1,
+      "category": "simple",
+      "containerId": null,
+      "damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "description": "<p>A thin-barreled firearm that uses a container of pressurized air instead of black powder to propel small metal bullets from an attached cartridge, the air repeater has fallen out of common use in Arcadia due to its poor stopping power, though it's still used occasionally for casual hunting and sport shooting. The air repeater and its longer-ranged, two-handed variant are still valued by some for their ability to allow a shooter to fire multiple rounds without needing to stop to reload or crank to a new chamber. A typical air repeater magazine holds 6 pellets.</p>",
+      "expend": 1,
+      "grade": null,
+      "group": "firearm",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "gp": 4
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Guns & Gears"
+      },
+      "quantity": 1,
+      "range": 30,
+      "reload": "0",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "agile",
+          "repeating"
+        ]
+      },
+      "usage": "held-in-one-hand",
+      "weaponGroup": "firearm"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "SzUynRs4HVtnpnel",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "gun-pistol-brown.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "NNDoejzhhWKar6Dc",
+    "name": "Arquebus",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": "rounds-arquebus",
+      "baseItem": "arquebus",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 2,
+      "category": "martial",
+      "containerId": null,
+      "damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d8"
+      },
+      "description": "<p>This is a long gun that offers more range than the average firearm, though the long barrel and ferocious kickback make the weapon particularly unsteady unless a tripod or other stand is used to stabilize it. The arquebus is one of the most commonly used long guns among the soldiers of Dongun Hold and Alkenstar.</p>",
+      "expend": 1,
+      "grade": null,
+      "group": "firearm",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "gp": 8
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Guns & Gears"
+      },
+      "quantity": 1,
+      "range": 150,
+      "reload": "1",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "concussive",
+          "fatal-d12",
+          "kickback"
+        ]
+      },
+      "usage": "held-in-two-hands",
+      "weaponGroup": "firearm"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "ChTaE7jhvCjcS6jI",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "gun-red.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "wVXpiOdvD8kdIYO0",
     "name": "Bastard Sword",
     "type": "weapon",
@@ -143,6 +296,82 @@
           {
             "field": "img",
             "original": "axe-battle-black.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "LiSC3YqSUlFSyNky",
+    "name": "Blunderbuss",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": "rounds-blunderbuss",
+      "baseItem": "blunderbuss",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 2,
+      "category": "martial",
+      "containerId": null,
+      "damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d8"
+      },
+      "description": "<p>This weapon fires pellets from a trumpet-shaped barrel, making it an excellent choice for hunting brush fowl or dealing damage within a short, broad area. Adventuring gunslingers often carry a blunderbuss to deal with swarms of vermin and similar threats.</p>",
+      "expend": 1,
+      "grade": null,
+      "group": "firearm",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "gp": 6
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Guns & Gears"
+      },
+      "quantity": 1,
+      "range": 40,
+      "reload": "1",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "concussive",
+          "scatter-10"
+        ]
+      },
+      "usage": "held-in-two-hands",
+      "weaponGroup": "firearm"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "csXSDzgZASX4RWr4",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "gun-blunderbuss-worn-brown.webp",
             "placeholder": "icons/placeholder/weapon.svg"
           }
         ]
@@ -294,6 +523,83 @@
           {
             "field": "img",
             "original": "club-banded-brown.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "yY5waDlzvTdxo4Hx",
+    "name": "Coat Pistol",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": "rounds-coat-pistol",
+      "baseItem": "coat-pistol",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 0.1,
+      "category": "simple",
+      "containerId": null,
+      "damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "description": "<p>This small pistol is easily concealed inside a jacket or some other article of clothing. Rarely kept as a primary weapon, coat pistols are equally favored by clever assassins and traveling Alkenstar aristocrats.</p>",
+      "expend": 1,
+      "grade": null,
+      "group": "firearm",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "gp": 5
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Guns & Gears"
+      },
+      "quantity": 1,
+      "range": 30,
+      "reload": "1",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "concealable",
+          "concussive",
+          "fatal-d8"
+        ]
+      },
+      "usage": "held-in-one-hand",
+      "weaponGroup": "firearm"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "LLYD2GEhzhdxoCAx",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "gun-pistol-flintlock.webp",
             "placeholder": "icons/placeholder/weapon.svg"
           }
         ]
@@ -681,6 +987,236 @@
     }
   },
   {
+    "_id": "iwSQS7fuWt4Zd1St",
+    "name": "Double-Barreled Pistol",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": "rounds-double-barreled-pistol",
+      "baseItem": "double-barreled-pistol",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 1,
+      "category": "martial",
+      "containerId": null,
+      "damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "description": "<p>This flintlock pistol has two side-by-side barrels. Though less accurate than a standard pistol, a double-barreled pistol is a useful and versatile weapon. It's generally banned in areas where duels with pistols are relatively common, in much the same way that arriving at an aristocratic duel with a scattergun would be considered crass, at best.</p>",
+      "expend": 1,
+      "grade": null,
+      "group": "firearm",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "gp": 6
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Guns & Gears"
+      },
+      "quantity": 1,
+      "range": 30,
+      "reload": "1",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "concussive",
+          "double-barrel",
+          "fatal-d8"
+        ]
+      },
+      "usage": "held-in-one-hand",
+      "weaponGroup": "firearm"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "MvzR9nTnvKTeNjvQ",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "double-barreled-pistol.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "BSTNNs7HFL9KbFX1",
+    "name": "Dwarven Scattergun",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": "rounds-dwarven-scattergun",
+      "baseItem": "dwarven-scattergun",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 2,
+      "category": "advanced",
+      "containerId": null,
+      "damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d8"
+      },
+      "description": "<p>A favored weapon of dwarf scouts from Dongun Hold, the dwarven scattergun is a powerful weapon designed to take advantage of a dwarf's sturdy frame. A dwarven scattergun fires a large paper cartridge stuffed with black powder and knuckle-sized lumps of metal, creating a devastating burst so destructive that a foolish dwarf might find themself catching painful ricochets when firing at a too-close target. Some scatterguns are crafted with a clockwork firing tray that can quickly sort and load black powder and shot without needing a prepackaged cartridge, though this is largely an aesthetic feature with no real mechanical benefit.</p>",
+      "expend": 1,
+      "grade": null,
+      "group": "firearm",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 1,
+      "material": {},
+      "price": {
+        "gp": 10
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Guns & Gears"
+      },
+      "quantity": 1,
+      "range": 50,
+      "reload": "1",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "concussive",
+          "dwarf",
+          "kickback",
+          "scatter-10"
+        ]
+      },
+      "usage": "held-in-two-hands",
+      "weaponGroup": "firearm"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "jcIabnkJgjwzK6Og",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "gun-blunderbuss-bronze.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "CocSCZ6gUPbAKzmz",
+    "name": "Fire Lance",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": "rounds-fire-lance",
+      "baseItem": "fire-lance",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 2,
+      "category": "simple",
+      "containerId": null,
+      "damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "description": "<p>This amazingly simple projectile weapon is nothing more than a metal tube packed with black powder and a stopper, attached to the sharpened head of a javelin. A loaded fire lance can be wielded as a normal spear, though it requires an Interact action to regrip the weapon and hold it properly when switching from one use to another. Fire lances are most commonly found in Tian Xia, though occasionally one makes its way all the way to Avistan, typically in the hands of a Tien mercenary or caravan guard.</p>",
+      "expend": 1,
+      "grade": null,
+      "group": "firearm",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "gp": 3
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Guns & Gears"
+      },
+      "quantity": 1,
+      "range": 10,
+      "reload": "2",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "fatal-d10"
+        ]
+      },
+      "usage": "held-in-two-hands",
+      "weaponGroup": "firearm"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "WUA40bb01pSWv88I",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "pipe-metal.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "8dPUHqUHPQOeHlaL",
     "name": "Flail",
     "type": "weapon",
@@ -751,6 +1287,158 @@
           {
             "field": "img",
             "original": "flail-ball-grey.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "FaLoH1XHzDsyzGAZ",
+    "name": "Flintlock Musket",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": "rounds-flintlock-musket",
+      "baseItem": "flintlock-musket",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 1,
+      "category": "simple",
+      "containerId": null,
+      "damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "description": "<p>The most commonly available of firearms in Alkenstar, the flintlock musket includes an external firing mechanism and an efficient and relatively compact frame. Though lacking the range and firing power of the arquebus preferred by Alkenstar and Dongun Hold's military members, the flintlock musket is popular among civilians for its ease of use.</p>",
+      "expend": 1,
+      "grade": null,
+      "group": "firearm",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "gp": 5
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Guns & Gears"
+      },
+      "quantity": 1,
+      "range": 70,
+      "reload": "1",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "concussive",
+          "fatal-d10"
+        ]
+      },
+      "usage": "held-in-two-hands",
+      "weaponGroup": "firearm"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "hqMtsTwmOShdAdQW",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "flintlock-musket.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "vsNpLjRVRAq0B59N",
+    "name": "Flintlock Pistol",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": "rounds-flintlock-pistol",
+      "baseItem": "flintlock-pistol",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 1,
+      "category": "simple",
+      "containerId": null,
+      "damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "description": "<p>Though less accurate and powerful than a flintlock musket, the flintlock pistol is a preferred weapon of privateers thanks to its more compact size and affordability. Pirate captains often wear a brace of such pistols in a bandolier so they can draw and fire without stopping to reload.</p>",
+      "expend": 1,
+      "grade": null,
+      "group": "firearm",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "gp": 4
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Guns & Gears"
+      },
+      "quantity": 1,
+      "range": 40,
+      "reload": "1",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "concussive",
+          "fatal-d8"
+        ]
+      },
+      "usage": "held-in-one-hand",
+      "weaponGroup": "firearm"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "N3nNqO5Nw2DIFhrv",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "gun-pistol-flintlock-metal.webp",
             "placeholder": "icons/placeholder/weapon.svg"
           }
         ]
@@ -978,6 +1666,81 @@
           {
             "field": "img",
             "original": "greatsword-crossguard-silver.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "MFuoIF0gLsUhujDb",
+    "name": "Hand Cannon",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": "rounds-hand-cannon",
+      "baseItem": "hand-cannon",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 1,
+      "category": "simple",
+      "containerId": null,
+      "damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "description": "<p>Popular among privateers and mercenaries in Goka, hand cannons are little more than a hardened tube with a handle and external ignition attached. A hand cannon can be used to fire almost anything that can be packed into its barrel. The wielder of a hand cannon can change the damage type granted by its modular trait as part of the same Interact action used to reload.</p>",
+      "expend": 1,
+      "grade": null,
+      "group": "firearm",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "gp": 3
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Guns & Gears"
+      },
+      "quantity": 1,
+      "range": 30,
+      "reload": "1",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "modular"
+        ]
+      },
+      "usage": "held-in-one-hand",
+      "weaponGroup": "firearm"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "4LJEpZ2HkCu9BvHI",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "hand-cannon.webp",
             "placeholder": "icons/placeholder/weapon.svg"
           }
         ]
@@ -1588,6 +2351,83 @@
     }
   },
   {
+    "_id": "WXcwO9CkNvFU3aXu",
+    "name": "Pepperbox",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": "rounds-pepperbox",
+      "baseItem": "pepperbox",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 1,
+      "category": "martial",
+      "containerId": null,
+      "damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "description": "<p>This weapon is a specialty of the smiths of Alkenstar. The pepperbox has three barrels that each hold a single shot, and the shooter can manually rotate the whole barrel assembly to align a loaded barrel with the firing mechanism.</p>",
+      "expend": 1,
+      "grade": null,
+      "group": "firearm",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 0,
+      "material": {},
+      "price": {
+        "gp": 9
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Guns & Gears"
+      },
+      "quantity": 1,
+      "range": 60,
+      "reload": "1",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "capacity-3",
+          "concussive",
+          "fatal-d8"
+        ]
+      },
+      "usage": "held-in-one-hand",
+      "weaponGroup": "firearm"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "tk4cfktEnMrp4K6m",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "pepperbox.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
     "_id": "MkMFwelxRUIHXXWr",
     "name": "Rapier",
     "type": "weapon",
@@ -1810,6 +2650,83 @@
           {
             "field": "img",
             "original": "sword-guard-purple.webp",
+            "placeholder": "icons/placeholder/weapon.svg"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "_id": "e9lIuOi9OGJzVw3X",
+    "name": "Slide Pistol",
+    "type": "weapon",
+    "img": "icons/placeholder/weapon.svg",
+    "system": {
+      "ammo": "rounds-slide-pistol",
+      "baseItem": "slide-pistol",
+      "bonus": 0,
+      "bonusDamage": 0,
+      "bulk": 2,
+      "category": "martial",
+      "containerId": null,
+      "damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "description": "<p>Also known as a harmonica gun, this weapon is essentially a stock, trigger, and firing mechanism attached to a sliding brace of barrels that can each hold a round of ammunition.</p>",
+      "expend": 1,
+      "grade": null,
+      "group": "firearm",
+      "hardness": 0,
+      "hp": {
+        "max": 0,
+        "value": 0
+      },
+      "level": 1,
+      "material": {},
+      "price": {
+        "gp": 16
+      },
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Guns & Gears"
+      },
+      "quantity": 1,
+      "range": 30,
+      "reload": "1",
+      "rules": [],
+      "runes": {
+        "potency": 0,
+        "property": [],
+        "striking": 0
+      },
+      "size": "med",
+      "splashDamage": 0,
+      "traits": {
+        "rarity": "uncommon",
+        "value": [
+          "capacity-5",
+          "concussive",
+          "fatal-d10"
+        ]
+      },
+      "usage": "held-in-one-hand",
+      "weaponGroup": "firearm"
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "full",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "v14-dev",
+        "sourceId": "gO5dOlPBk57bg2x5",
+        "packName": "equipment",
+        "unconvertedRules": [],
+        "assetSubstitutions": [
+          {
+            "field": "img",
+            "original": "slide-pistol.webp",
             "placeholder": "icons/placeholder/weapon.svg"
           }
         ]

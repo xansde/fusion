@@ -6,7 +6,7 @@
  * subconjunto curado para o MVP da primeira sessão jogável de cada sistema.
  *
  * Subconjunto pf2e (default):
- *   - pf2e.weapons-core:    ~30 armas básicas (ORC, dados mecânicos)
+ *   - pf2e.weapons-core:    ~42 armas básicas (30 + 12 armas de fogo, r25)
  *   - pf2e.conditions:      todas as 43 condições
  *   - pf2e.bestiary-core:   10 monstros de nível -1 a 3 (ORC)
  *   - pf2e.spells-core:     15 magias comuns level 1-3 (ORC)
@@ -549,6 +549,198 @@ const AERONAUT_CURATED_ITEMS = {
 };
 
 /**
+ * Smuggler (Lost Omens World Guide) — an AUTHORED document, not a selection.
+ *
+ * Every other doc in every pack is SELECTED from a vendor source. This one has
+ * no source to select from: "Smuggler" exists in none of the three canonical
+ * bases. Measured on 2026-08-08 —
+ *
+ *   - foundryvtt/pf2e (our vendor pin): absent from `backgrounds/`;
+ *   - the Archives of Nethys `aon` index: absent (73 LO:WG backgrounds, and
+ *     this is not one of them);
+ *   - Pf2eTools: absent.
+ *
+ * The nearest neighbour is `Black Market Smuggler` (World Guide p.58, OGL):
+ * same book, same trained skills (Stealth + Underworld Lore), same granted
+ * feat (Experienced Smuggler) — but its boost pair is Charisma|Wisdom, NOT
+ * Dexterity|Charisma. That is not a cosmetic difference. A Dexterity boost
+ * from the background is load-bearing for the owner's target sheet: five
+ * Dexterity boosts are what produce Dex 19 at level 1 (the fifth lands on an
+ * 18 and yields +1). With Charisma|Wisdom the same build stops at Dex 17, so
+ * substituting the neighbour silently produces a different character.
+ *
+ * Text transcribed from the owner's Pathbuilder entry (2026-08-08), which
+ * cites "LO: WG". ONE deliberate deviation from that transcription: it reads
+ * "ability boosts" (legacy vocabulary) and this doc says "attribute boosts",
+ * because every other document in these packs uses the remaster vocabulary and
+ * the pt-BR glossary is built on it — mixing the two shows up as inconsistent
+ * text on the sheet.
+ *
+ * Identity: `flags.fusion.sourceId` is the project's document identity (never
+ * the name). An authored doc has no vendor id to carry, so it gets a stable
+ * synthetic one, and `conversion: "authored"` marks it as not-from-a-vendor so
+ * a future integrity sweep can tell the difference between "authored" and
+ * "lost its provenance".
+ *
+ * @see AERONAUT_CURATED_ITEMS for the weaker precedent (curating a FIELD of a
+ * vendor doc). This is the first whole document we author.
+ */
+const SMUGGLER_AUTHORED_DOC = {
+  _id: "FusionSmuggler01",
+  name: "Smuggler",
+  type: "background",
+  img: "icons/placeholder/feat.svg",
+  system: {
+    // ["free","free"] mirrors the vendor's own shape for its structural twin
+    // (Criminal): the "one must be Dexterity or Charisma" restriction lives in
+    // the prose only and is not enforced structurally by any vendor
+    // background. Modelling the pair here would make this doc the only one in
+    // the pack with a constraint the builder does not yet read.
+    boosts: ["free", "free"],
+    description:
+      "<p>You know how to smuggle people in and out of countries.</p>\n" +
+      "<p>Choose two attribute boosts. One must be to <strong>Dexterity</strong> or " +
+      "<strong>Charisma</strong>, and one is a free attribute boost.</p>\n" +
+      "<p>You're trained in the Stealth skill and the Underworld Lore skill. You gain the " +
+      "@UUID[Compendium.pf2e.feats-srd.Item.Experienced Smuggler] skill feat.</p>",
+    items: {
+      smugg: {
+        img: "icons/placeholder/feat.svg",
+        level: 1,
+        name: "Experienced Smuggler",
+        uuid: "Compendium.pf2e.feats-srd.Item.Experienced Smuggler",
+      },
+    },
+    publication: {
+      license: "OGL",
+      remaster: false,
+      title: "Pathfinder Lost Omens World Guide",
+    },
+    rules: [],
+    trainedSkills: { lore: ["Underworld Lore"], value: ["stealth"] },
+    traits: { rarity: "common", value: [] },
+    skills: { stealth: { value: 1 } },
+  },
+  flags: {
+    fusion: {
+      conversion: "authored",
+      importerVersion: IMPORTER_VERSION,
+      sourceVersion: "authored",
+      sourceId: "FusionSmuggler01",
+      packName: "backgrounds",
+      unconvertedRules: [],
+      assetSubstitutions: [],
+      authored: {
+        reason: "absent from foundryvtt/pf2e, Archives of Nethys and Pf2eTools",
+        book: "Lost Omens World Guide",
+        transcribedFrom: "Pathbuilder 2e (owner's sheet, 2026-08-08)",
+        nearestVendorNeighbour: "Black Market Smuggler (different boost pair)",
+      },
+    },
+  },
+};
+
+/**
+ * r25 (ficha-alvo Fofurinha) — SECOND authored document of the project.
+ *
+ * The Elf's own sense has no document in ANY base. Measured on 2026-08-08:
+ *
+ *   - all 14 vendor `out/` packs (16,423 docs), by exact name: ABSENT;
+ *   - all 14 published packs (4,237 docs), by exact name: ABSENT;
+ *   - the foundryvtt/pf2e clone carries exactly two files named
+ *     low-light-vision.json, and neither is an ancestry feature:
+ *       * bestiary-ability-glossary-srd/ — an NPC glossary `action` whose whole
+ *         description is `@Localize[PF2E.NPC.Abilities.Glossary.LowLightVision]`
+ *         (no text at all; our vendor pin has no static/lang/), in a pack we do
+ *         not import;
+ *       * kingmaker-features/army-tactics/ — a `campaignFeature` army tactic,
+ *         also in a pack we do not import.
+ *
+ * The vendor expresses the sense as a SCALAR on the ancestry
+ * (`ancestries/elf.json` → `system.vision: "low-light-vision"`, with
+ * `system.rules: []` and `system.items: {}`), never as an item and never as a
+ * rule element. So there is nothing to select or convert — the catalogue entry
+ * has to be authored. This hits EVERY low-light ancestry (5 of the 10 published:
+ * Elf, Fleshwarp, Gnome, Leshy, Ratfolk; 24 of the vendor's 50), plus the 3
+ * published documents that GRANT the sense via a Sense rule element
+ * (heritages-core: Twilight Halfling, Sylph; feats-core: Bloodline Mutation).
+ *
+ * Nearest vendor neighbour: `Greater Darkvision` (this very pack,
+ * sourceId vPhPgzpRjYDMT9Kq, ORC / Player Core) — the sibling sense. Its SHAPE
+ * is the model here (type/category/level/img/publication); its TEXT is not
+ * copied.
+ *
+ * The `sense` rule element is the canonical descriptor `convertSense`
+ * (transform.mjs) already publishes for this exact selector — see
+ * heritages-core "Twilight Halfling", which is byte-identical. It is
+ * schema-valid and forward-compatible, and it is INERT today: engine-2e's
+ * effectsEngine handles only rollOption/flatModifier/note/toggleCondition/iwr,
+ * and derivations/build.ts leaves `perception.senses` empty. Recorded in
+ * `flags.fusion.authored.mechanicsLimitation` so it is not a silent promise.
+ *
+ * @see SMUGGLER_AUTHORED_DOC for the precedent this follows.
+ */
+const LOW_LIGHT_VISION_AUTHORED_DOC = {
+  _id: "FusionLowLight01",
+  name: "Low-Light Vision",
+  type: "feat",
+  img: "icons/placeholder/feat.svg",
+  system: {
+    actionType: "passive",
+    actions: null,
+    category: "ancestryfeature",
+    description:
+      "<p>You can see in dim light as though it were bright light, so you ignore the " +
+      "@UUID[Compendium.pf2e.conditionitems.Item.Concealed] condition due to dim light.</p>",
+    // Ancestry features are auto-conceded and carry level 0 in the vendor data;
+    // FeatSystemSchema floors `level` at 0 for exactly this reason.
+    level: 0,
+    prerequisites: [],
+    publication: {
+      license: "ORC",
+      remaster: true,
+      title: "Pathfinder Player Core",
+    },
+    rules: [
+      {
+        kind: "sense",
+        slug: null,
+        label: null,
+        senseType: null,
+        acuity: "precise",
+        range: null,
+        predicate: null,
+        priority: null,
+        raw: { key: "Sense", selector: "low-light-vision" },
+      },
+    ],
+    traits: { rarity: "common", value: [] },
+  },
+  flags: {
+    fusion: {
+      conversion: "authored",
+      importerVersion: IMPORTER_VERSION,
+      sourceVersion: "authored",
+      sourceId: "FusionLowLight01",
+      packName: "ancestry-features",
+      unconvertedRules: [],
+      assetSubstitutions: [],
+      authored: {
+        reason:
+          "absent by exact name from all 14 vendor out/ packs (16,423 docs) and all 14 published packs (4,237 docs); the only vendor homonyms are an NPC glossary action with no text (@Localize key, pack not imported) and a Kingmaker army tactic",
+        book: "Pathfinder Player Core",
+        transcribedFrom:
+          "authored from the PF2e rule for the sense; the vendor expresses it only as the ancestry scalar system.vision",
+        nearestVendorNeighbour:
+          "Greater Darkvision (ancestry-features, sourceId vPhPgzpRjYDMT9Kq) — sibling sense, shape copied, text not",
+        mechanicsLimitation:
+          "the `sense` rule element is inert: engine-2e effectsEngine has no `sense` case and derivations/build.ts leaves perception.senses empty. Descriptor emitted for schema/forward compatibility only",
+      },
+    },
+  },
+};
+
+/**
  * pf2e.actions-core curation (W2, r11-follow-up): vendor `actions/` physical
  * subfolders to INCLUDE, keyed by the `system.fusionCategory` value injected
  * in normalize.mjs. Every tabletop-relevant category is kept; excluded:
@@ -617,6 +809,24 @@ const MVP_WEAPON_PF2E_IDS = new Set([
   "e4NwsnPnpQKbDZ9F", // Composite Shortbow
   "dUC8Fsa6FZtVikS3", // Composite Longbow
   "XyA6PKV46aNlLXOd", // Hand Crossbow
+  // Firearms — 12 curadas (r25, bloco 4). Todas nível 0–1, uncommon (NÃO existe
+  // arma de fogo comum no PF2e: o acesso é regional, então filtrar por `common`
+  // devolve conjunto vazio), sem runas, sem magia, item-base. Escolhidas por
+  // cobertura: as 3 categorias de proficiência, reload 0/1/2, alcance de 10 a
+  // 150 pés e os traços próprios do grupo (capacity/scatter/kickback/repeating/
+  // modular/double-barrel/concealable/fatal).
+  "gO5dOlPBk57bg2x5", // Slide Pistol (a arma da ficha-alvo — capacity-5)
+  "N3nNqO5Nw2DIFhrv", // Flintlock Pistol
+  "hqMtsTwmOShdAdQW", // Flintlock Musket
+  "ChTaE7jhvCjcS6jI", // Arquebus (kickback, fatal-d12, alcance 150)
+  "csXSDzgZASX4RWr4", // Blunderbuss (scatter-10)
+  "SzUynRs4HVtnpnel", // Air Repeater (reload 0, repeating, agile)
+  "LLYD2GEhzhdxoCAx", // Coat Pistol (concealable)
+  "WUA40bb01pSWv88I", // Fire Lance (reload 2)
+  "tk4cfktEnMrp4K6m", // Pepperbox (capacity-3)
+  "MvzR9nTnvKTeNjvQ", // Double-Barreled Pistol (double-barrel)
+  "4LJEpZ2HkCu9BvHI", // Hand Cannon (modular)
+  "jcIabnkJgjwzK6Og", // Dwarven Scattergun (advanced, scatter-10)
   // Unarmed / natural
   // (include one advanced to round out)
   "oSQET5hKn9q4xlrl", // Gnome Flickmace (advanced)
@@ -820,11 +1030,46 @@ const GRANT_TARGET_DEDICATION_NAMES = [
   "Avenger Dedication",
   "Vindicator Dedication",
   "Runelord Dedication",
+  // r25: same shape exactly — the Gunslinger's "Way of the Spellshot" `way`
+  // axis option (now in class-features-core) carries a GrantItem for this feat,
+  // predicated on self:level >= 2. The feat's own traits are
+  // [archetype, class, dedication] — no `gunslinger` — so no classFeats rule
+  // reaches it, and without this entry the grant resolves to nothing
+  // (grantMaterializer reports target-not-found).
+  "Spellshot Dedication",
 ];
+
+/**
+ * r25: `classFeats.extraNames` da curadoria — nomes de talento que pertencem à
+ * classe mas que NENHUM predicado de trait alcança.
+ *
+ * O campo existe e é validado pelo loader em todas as 14 classes desde a r21,
+ * e nunca foi lido: era dado morto. O caso que obrigou a ligá-lo é a cadeia de
+ * arquétipo da Psychic — `Psychic Dedication` carrega os traits
+ * [archetype, dedication, multiclass] e NÃO o trait `psychic`, então a regra
+ * `classFeats.trait` nunca a alcança, e a classe publicada ficaria sem a rota
+ * de arquétipo que a ficha-alvo usa. Vale para qualquer classe futura na mesma
+ * situação (ou seja: todas — nenhuma dedicação multiclasse carrega o trait da
+ * própria classe).
+ *
+ * É mais geral que `GRANT_TARGET_DEDICATION_NAMES`: o dado fica junto da classe
+ * a que pertence, em vez de numa lista literal solta neste arquivo.
+ */
+let _curatedExtraFeatNames = null;
+function curatedExtraFeatNames() {
+  if (_curatedExtraFeatNames === null) {
+    _curatedExtraFeatNames = new Set();
+    for (const cfg of loadClassCuration().values()) {
+      for (const name of cfg.classFeats.extraNames ?? []) _curatedExtraFeatNames.add(name);
+    }
+  }
+  return _curatedExtraFeatNames;
+}
 
 function isFeatsCoreDoc(doc) {
   if (doc.type !== "feat") return false;
   if (GRANT_TARGET_DEDICATION_NAMES.includes(doc.name)) return true;
+  if (curatedExtraFeatNames().has(doc.name)) return true;
   const category = doc.system?.category;
   const level = doc.system?.level ?? 0;
 
@@ -1477,6 +1722,20 @@ async function buildPf2eSubset() {
       }
     }
 
+    // Smuggler (LO:WG) is AUTHORED, not selected — no vendor source carries it.
+    // Idempotent: a future vendor snapshot that ships a real "Smuggler" wins,
+    // and this injection becomes a no-op instead of creating a homonym pair.
+    if (!docs.some((d) => d.name === SMUGGLER_AUTHORED_DOC.name)) {
+      docs.push(structuredClone(SMUGGLER_AUTHORED_DOC));
+      // The vendor selection comes out sorted by name; re-sort so the authored
+      // doc lands in place instead of at the tail (keeps documents.json diffs
+      // readable when the next background is added).
+      docs.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+      console.log(
+        "[build-mvp] backgrounds-core: injected AUTHORED Smuggler (LO:WG — absent from vendor, AoN and Pf2eTools)",
+      );
+    }
+
     console.log(
       `[build-mvp] backgrounds-core: ${docs.length} background(s) selecionado(s) de ${all.length} totais`,
     );
@@ -1576,7 +1835,31 @@ async function buildPf2eSubset() {
   {
     console.log("[build-mvp] === Pack: ancestry-features-core ===");
     const all = loadTransformed("ancestry-features");
-    const docs = all;
+    // Copy, not alias: the authored injection below pushes into `docs`, and
+    // mutating the array returned by loadTransformed would be a hidden trap.
+    const docs = [...all];
+
+    // Low-Light Vision (Player Core) is AUTHORED, not selected — the vendor
+    // carries the sense only as the ancestry scalar `system.vision`, never as a
+    // document. Idempotent: a future vendor snapshot that ships a real
+    // "Low-Light Vision" ancestry feature wins, and this becomes a no-op
+    // instead of creating a homonym pair.
+    //
+    // Deliberate divergence from the Smuggler precedent: NO re-sort. The
+    // backgrounds selection comes out of the vendor sorted by name, so the
+    // Smuggler needs a sort to land in place. ancestry-features comes out in
+    // vendor DIRECTORY order (alphabetical by ANCESTRY: Fangs (Anadi),
+    // Constructed (Android), Automaton Core, ...) — sorting here would move all
+    // 55 documents and produce an unreadable diff. Push to the tail instead,
+    // which also matches the fact that this document belongs to no single
+    // ancestry.
+    if (!docs.some((d) => d.name === LOW_LIGHT_VISION_AUTHORED_DOC.name)) {
+      docs.push(structuredClone(LOW_LIGHT_VISION_AUTHORED_DOC));
+      console.log(
+        "[build-mvp] ancestry-features-core: injected AUTHORED Low-Light Vision (sense has no document in the vendor — only the ancestries' system.vision scalar)",
+      );
+    }
+
     console.log(`[build-mvp] ancestry-features-core: ${docs.length} ancestry features`);
 
     const manifest = PACK_MANIFESTS["ancestry-features-core"];

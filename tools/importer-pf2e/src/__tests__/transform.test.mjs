@@ -529,9 +529,9 @@ describe("MVP packs", { skip: OUT_MISSING }, () => {
     });
   }
 
-  it("weapons-core has ~30 weapons", () => {
+  it("weapons-core has ~42 weapons (30 base + 12 firearms, r25)", () => {
     const docs = loadJson(join(PACKS_DIR, "weapons-core", "documents.json"));
-    assert.ok(docs.length >= 25 && docs.length <= 35, `Expected ~30 weapons, got ${docs.length}`);
+    assert.ok(docs.length >= 38 && docs.length <= 48, `Expected ~42 weapons, got ${docs.length}`);
   });
 
   it("conditions has all 43 conditions", () => {
@@ -839,7 +839,18 @@ describe("MVP packs", { skip: OUT_MISSING }, () => {
       (d) => d.system?.publication?.title === "Pathfinder Player Core",
     ).length;
     assert.equal(playerCoreCount, 40);
-    assert.equal(docs.length, 42);
+    // The 43rd is the AUTHORED Smuggler (LO:WG), which no vendor carries — see
+    // SMUGGLER_AUTHORED_DOC in build-mvp-subset.mjs. Asserted by name and by
+    // provenance, not just counted: a bare number would have gone stale again
+    // (this assertion still said 42 after the Smuggler landed in 4cc46fd).
+    assert.ok(names.includes("Smuggler"), "authored Smuggler background missing");
+    const authored = docs.filter((d) => d.flags?.fusion?.conversion === "authored");
+    assert.deepEqual(
+      authored.map((d) => d.name),
+      ["Smuggler"],
+      "backgrounds-core should carry exactly one authored document",
+    );
+    assert.equal(docs.length, 43);
   });
 
   it("no committed R10-B pack document.json exceeds ~15 MB", () => {

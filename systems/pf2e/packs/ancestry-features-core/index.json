@@ -779,5 +779,18 @@
       "system.traits.value": [],
       "flags.fusion.sourceId": "IXyXCMBldrU5G60e"
     }
+  },
+  {
+    "_id": "FusionLowLight01",
+    "uuid": "Compendium.pf2e.ancestry-features-core.Item.FusionLowLight01",
+    "name": "Low-Light Vision",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Low-Light Vision",
+      "system.category": "ancestryfeature",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "FusionLowLight01"
+    }
   }
 ]

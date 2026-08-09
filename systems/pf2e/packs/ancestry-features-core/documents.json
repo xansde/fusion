@@ -4866,5 +4866,62 @@
         ]
       }
     }
+  },
+  {
+    "_id": "FusionLowLight01",
+    "name": "Low-Light Vision",
+    "type": "feat",
+    "img": "icons/placeholder/feat.svg",
+    "system": {
+      "actionType": "passive",
+      "actions": null,
+      "category": "ancestryfeature",
+      "description": "<p>You can see in dim light as though it were bright light, so you ignore the @UUID[Compendium.pf2e.conditionitems.Item.Concealed] condition due to dim light.</p>",
+      "level": 0,
+      "prerequisites": [],
+      "publication": {
+        "license": "ORC",
+        "remaster": true,
+        "title": "Pathfinder Player Core"
+      },
+      "rules": [
+        {
+          "kind": "sense",
+          "slug": null,
+          "label": null,
+          "senseType": null,
+          "acuity": "precise",
+          "range": null,
+          "predicate": null,
+          "priority": null,
+          "raw": {
+            "key": "Sense",
+            "selector": "low-light-vision"
+          }
+        }
+      ],
+      "traits": {
+        "rarity": "common",
+        "value": []
+      }
+    },
+    "flags": {
+      "fusion": {
+        "conversion": "authored",
+        "importerVersion": "0.1.0",
+        "sourceVersion": "authored",
+        "sourceId": "FusionLowLight01",
+        "packName": "ancestry-features",
+        "unconvertedRules": [],
+        "assetSubstitutions": [],
+        "authored": {
+          "reason": "absent by exact name from all 14 vendor out/ packs (16,423 docs) and all 14 published packs (4,237 docs); the only vendor homonyms are an NPC glossary action with no text (@Localize key, pack not imported) and a Kingmaker army tactic",
+          "book": "Pathfinder Player Core",
+          "transcribedFrom": "authored from the PF2e rule for the sense; the vendor expresses it only as the ancestry scalar system.vision",
+          "nearestVendorNeighbour": "Greater Darkvision (ancestry-features, sourceId vPhPgzpRjYDMT9Kq) — sibling sense, shape copied, text not",
+          "mechanicsLimitation": "the `sense` rule element is inert: engine-2e effectsEngine has no `sense` case and derivations/build.ts leaves perception.senses empty. Descriptor emitted for schema/forward compatibility only"
+        }
+      }
+    }
   }
 ]
