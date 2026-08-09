@@ -33,16 +33,24 @@ describe("diffDoAvatar", () => {
   it("nulls a slot the player unequipped", () => {
     const antes = flag({ body: { id: "body/body-color" }, hat: { id: "hat/tricorne" } });
     const depois = flag({ body: { id: "body/body-color" } });
-    const diff = diffDoAvatar(antes, depois) as Record<string, { selecao: Record<string, unknown> }>;
+    const diff = diffDoAvatar(antes, depois) as Record<
+      string,
+      { selecao: Record<string, unknown> }
+    >;
     // Without this null the merge would keep the hat — "the hat came back".
     expect(diff[AVATAR_FLAG_PATH]?.selecao["hat"]).toBeNull();
     expect(diff[AVATAR_FLAG_PATH]?.selecao["body"]).toEqual({ id: "body/body-color" });
   });
 
   it("nulls the colours of a piece that was replaced", () => {
-    const antes = flag({ hat: { id: "hat/barbarian", cores: { color_1: "ulpc:steel", hat_secondary: "ulpc:brown" } } });
+    const antes = flag({
+      hat: { id: "hat/barbarian", cores: { color_1: "ulpc:steel", hat_secondary: "ulpc:brown" } },
+    });
     const depois = flag({ hat: { id: "hat/tricorne" } });
-    const diff = diffDoAvatar(antes, depois) as Record<string, { selecao: Record<string, unknown> }>;
+    const diff = diffDoAvatar(antes, depois) as Record<
+      string,
+      { selecao: Record<string, unknown> }
+    >;
     expect(diff[AVATAR_FLAG_PATH]?.selecao["hat"]).toEqual({
       id: "hat/tricorne",
       cores: { color_1: null, hat_secondary: null },
@@ -50,9 +58,14 @@ describe("diffDoAvatar", () => {
   });
 
   it("nulls only the channels that went away", () => {
-    const antes = flag({ hat: { id: "hat/barbarian", cores: { color_1: "ulpc:steel", hat_secondary: "ulpc:brown" } } });
+    const antes = flag({
+      hat: { id: "hat/barbarian", cores: { color_1: "ulpc:steel", hat_secondary: "ulpc:brown" } },
+    });
     const depois = flag({ hat: { id: "hat/barbarian", cores: { color_1: "ulpc:gold" } } });
-    const diff = diffDoAvatar(antes, depois) as Record<string, { selecao: Record<string, unknown> }>;
+    const diff = diffDoAvatar(antes, depois) as Record<
+      string,
+      { selecao: Record<string, unknown> }
+    >;
     expect(diff[AVATAR_FLAG_PATH]?.selecao["hat"]).toEqual({
       id: "hat/barbarian",
       cores: { color_1: "ulpc:gold", hat_secondary: null },
@@ -74,13 +87,17 @@ describe("diffDoAvatar", () => {
 
   it("omits `pin` instead of writing undefined", () => {
     const novo: AvatarFlag = { versao: 1, corpo: "male", selecao: { body: { id: "x" } } };
-    const valor = (diffDoAvatar(null, novo) as Record<string, Record<string, unknown>>)[AVATAR_FLAG_PATH]!;
+    const valor = (diffDoAvatar(null, novo) as Record<string, Record<string, unknown>>)[
+      AVATAR_FLAG_PATH
+    ]!;
     expect("pin" in valor).toBe(false);
   });
 
   it("never leaves an empty `cores` object behind", () => {
     const novo = flag({ hat: { id: "hat/tricorne", cores: {} } });
-    const valor = (diffDoAvatar(null, novo) as Record<string, { selecao: Record<string, unknown> }>)[AVATAR_FLAG_PATH]!;
+    const valor = (
+      diffDoAvatar(null, novo) as Record<string, { selecao: Record<string, unknown> }>
+    )[AVATAR_FLAG_PATH]!;
     expect(valor.selecao["hat"]).toEqual({ id: "hat/tricorne" });
   });
 });

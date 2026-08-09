@@ -55,7 +55,12 @@ export function cicloDe(catalogo: Catalogo, animacao: string): number[] {
  * substituted has exactly 1, and it must stay on frame 0 forever instead of
  * following the cycle into a neighbour's art.
  */
-export function frameEm(tMs: number, ciclo: readonly number[], fps: number, quadros = Infinity): number {
+export function frameEm(
+  tMs: number,
+  ciclo: readonly number[],
+  fps: number,
+  quadros = Infinity,
+): number {
   if (ciclo.length === 0 || quadros <= 1) return 0;
   const passo = Math.floor((Math.max(0, tMs) * fps) / 1000);
   const indice = ((passo % ciclo.length) + ciclo.length) % ciclo.length;

@@ -101,7 +101,9 @@ export function arquivosDasCamadas(camadas: readonly CamadaDesenhavel[]): string
  * has 14 palette files totalling ~34 KB, against the catalog's own 1.7 MB.
  */
 export function arquivosDePaletaDoCatalogo(catalogo: {
-  itens: readonly { canais_de_cor?: readonly { material: string; paletas: string[]; base?: string }[] }[];
+  itens: readonly {
+    canais_de_cor?: readonly { material: string; paletas: string[]; base?: string }[];
+  }[];
 }): string[] {
   const fora = new Set<string>();
   for (const item of catalogo.itens) {
@@ -124,10 +126,7 @@ export function arquivosDePaletaDoCatalogo(catalogo: {
  * in its base art. The alternative — throwing — would take the whole avatar
  * down over one unpaintable helmet strap.
  */
-export function resolverRampas(
-  pedido: PedidoDeRecolor,
-  paletas: PaletasCarregadas,
-): Rampas | null {
+export function resolverRampas(pedido: PedidoDeRecolor, paletas: PaletasCarregadas): Rampas | null {
   const destinoArq = paletas.get(arquivoDePaleta(pedido.material, pedido.paleta));
   const para = destinoArq?.[pedido.cor];
   if (para === undefined || para.length === 0) return null;

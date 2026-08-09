@@ -157,20 +157,20 @@ canto inferior direito da mesa do jogador que controla aquele personagem.
 
 ## 5. Onde vive
 
-| Papel                         | Arquivo                                                 |
-| ----------------------------- | ------------------------------------------------------- |
-| Contrato do flag              | `packages/shared/src/avatar.ts`                         |
-| Resolução de paleta/recolor   | `packages/client/src/lib/avatar/paletas.ts`             |
-| Tempo/ciclo de animação       | `packages/client/src/lib/avatar/animacao.ts`            |
-| Carga do acervo (HTTP)        | `packages/client/src/lib/avatar/acervo.ts`              |
-| Lógica do criador (pura)      | `packages/client/src/lib/avatar/criador.ts`             |
-| Diff de gravação (podado)     | `packages/client/src/lib/avatar/patch.ts`               |
-| Desenho em canvas             | `packages/client/src/lib/avatar/desenhar.ts`            |
-| Quem é "meu" avatar           | `packages/client/src/lib/avatar/meuAvatar.ts`           |
-| Sprite reutilizável           | `packages/client/src/components/avatar/AvatarSprite.svelte`  |
-| Popup de criação              | `packages/client/src/components/avatar/AvatarCreator.svelte` |
-| Overlay do canto              | `packages/client/src/components/avatar/AvatarCorner.svelte`  |
-| Publicação de `/avatar/*`     | `packages/client/vite-plugins/waybuilder-avatar.ts`     |
+| Papel                       | Arquivo                                                      |
+| --------------------------- | ------------------------------------------------------------ |
+| Contrato do flag            | `packages/shared/src/avatar.ts`                              |
+| Resolução de paleta/recolor | `packages/client/src/lib/avatar/paletas.ts`                  |
+| Tempo/ciclo de animação     | `packages/client/src/lib/avatar/animacao.ts`                 |
+| Carga do acervo (HTTP)      | `packages/client/src/lib/avatar/acervo.ts`                   |
+| Lógica do criador (pura)    | `packages/client/src/lib/avatar/criador.ts`                  |
+| Diff de gravação (podado)   | `packages/client/src/lib/avatar/patch.ts`                    |
+| Desenho em canvas           | `packages/client/src/lib/avatar/desenhar.ts`                 |
+| Quem é "meu" avatar         | `packages/client/src/lib/avatar/meuAvatar.ts`                |
+| Sprite reutilizável         | `packages/client/src/components/avatar/AvatarSprite.svelte`  |
+| Popup de criação            | `packages/client/src/components/avatar/AvatarCreator.svelte` |
+| Overlay do canto            | `packages/client/src/components/avatar/AvatarCorner.svelte`  |
+| Publicação de `/avatar/*`   | `packages/client/vite-plugins/waybuilder-avatar.ts`          |
 
 ## 6. Verificação
 

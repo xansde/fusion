@@ -48,7 +48,9 @@ describe("readAvatarFlag", () => {
   it("keeps every colour channel of a multi-channel piece", () => {
     const helmet = {
       corpo: "male",
-      selecao: { hat: { id: "hat/barbarian", cores: { color_1: "ulpc:steel", hat_secondary: "ulpc:brown" } } },
+      selecao: {
+        hat: { id: "hat/barbarian", cores: { color_1: "ulpc:steel", hat_secondary: "ulpc:brown" } },
+      },
     };
     const read = readAvatarFlag(docWith(helmet));
     expect(read?.selecao["hat"]?.cores).toEqual({
@@ -58,7 +60,9 @@ describe("readAvatarFlag", () => {
   });
 
   it("defaults the format version when an older write omitted it", () => {
-    const read = readAvatarFlag(docWith({ corpo: "male", selecao: { body: { id: "body/body-color" } } }));
+    const read = readAvatarFlag(
+      docWith({ corpo: "male", selecao: { body: { id: "body/body-color" } } }),
+    );
     expect(read?.versao).toBe(AVATAR_FORMAT_VERSION);
   });
 
@@ -82,7 +86,9 @@ describe("readAvatarFlag", () => {
     expect(readAvatarFlag(docWith({ selecao: { body: { id: "x" } } }))).toBeNull(); // no corpo
     expect(readAvatarFlag(docWith({ corpo: "", selecao: { body: { id: "x" } } }))).toBeNull();
     expect(readAvatarFlag(docWith({ corpo: "male", selecao: { body: {} } }))).toBeNull(); // piece with no id
-    expect(readAvatarFlag(docWith({ corpo: "male", selecao: { body: { id: "x", cores: { cor: 7 } } } }))).toBeNull();
+    expect(
+      readAvatarFlag(docWith({ corpo: "male", selecao: { body: { id: "x", cores: { cor: 7 } } } })),
+    ).toBeNull();
   });
 
   it("survives non-object documents", () => {

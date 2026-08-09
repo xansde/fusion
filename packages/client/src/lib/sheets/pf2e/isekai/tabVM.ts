@@ -58,9 +58,17 @@ export function isekaiFocusModel(doc: Record<string, unknown>): IsekaiFocusModel
   const sys = asRecord(doc["system"]);
   const focus = asRecord(asRecord(sys["resources"])["focusPoints"]);
   const max = Math.min(ISEKAI_FOCUS_FLOOR, asNumber(focus["max"]));
-  const locked = Math.max(0, Math.min(max, asNumber(asRecord(sys["derived"])["isekaiFocusLocked"])));
+  const locked = Math.max(
+    0,
+    Math.min(max, asNumber(asRecord(sys["derived"])["isekaiFocusLocked"])),
+  );
   const spendable = Math.max(0, max - locked);
-  return { value: Math.max(0, Math.min(asNumber(focus["value"]), spendable)), max, locked, spendable };
+  return {
+    value: Math.max(0, Math.min(asNumber(focus["value"]), spendable)),
+    max,
+    locked,
+    spendable,
+  };
 }
 
 // ---------------------------------------------------------------------------

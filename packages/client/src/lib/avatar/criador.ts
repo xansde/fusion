@@ -253,7 +253,8 @@ export function canaisDaPeca(
     // The body is the SOURCE of the skin tone, so its own picker stays even
     // though it is also flagged as following the body — the flag is what makes
     // face, ears and torso agree, and the body is the one that decides.
-    if (item.slot !== "body" && item.segue_cor_do_corpo === true && canal.material === "body") continue;
+    if (item.slot !== "body" && item.segue_cor_do_corpo === true && canal.material === "body")
+      continue;
     const opcoes = coresDoCanal(canal, paletas).map((cor) => ({
       valor: cor.valor,
       rotulo: rotuloDaCor(catalogo, cor.nome),
@@ -383,7 +384,9 @@ export function paraSelecao(flag: Pick<AvatarFlag, "selecao">): Selecao {
   const selecao: Selecao = {};
   for (const [slot, escolha] of Object.entries(flag.selecao)) {
     selecao[slot] =
-      escolha.cores === undefined ? { id: escolha.id } : { id: escolha.id, cores: { ...escolha.cores } };
+      escolha.cores === undefined
+        ? { id: escolha.id }
+        : { id: escolha.id, cores: { ...escolha.cores } };
   }
   return selecao;
 }
@@ -409,7 +412,9 @@ export function normalizarSelecao(
 ): SelecaoNormalizada {
   const porId = indexarItens(catalogo);
   const corpo =
-    flag !== null && catalogo.recorte.corpos.includes(flag.corpo) ? flag.corpo : corpoPadrao(catalogo);
+    flag !== null && catalogo.recorte.corpos.includes(flag.corpo)
+      ? flag.corpo
+      : corpoPadrao(catalogo);
 
   if (flag === null) return { corpo, selecao: selecaoInicial(catalogo, corpo), descartados: [] };
 
@@ -424,7 +429,8 @@ export function normalizarSelecao(
     // Trust the CATALOG's slot, not the stored key: a piece that moved slots
     // between acervo versions would otherwise be drawn in the old one and
     // silently stop being mutually exclusive with its real slot-mates.
-    selecao[item.slot] = escolha.cores === undefined ? { id: item.id } : { id: item.id, cores: { ...escolha.cores } };
+    selecao[item.slot] =
+      escolha.cores === undefined ? { id: item.id } : { id: item.id, cores: { ...escolha.cores } };
     if (item.slot !== slot) descartados.push(`${escolha.id} (slot ${slot} → ${item.slot})`);
   }
   return { corpo, selecao, descartados };

@@ -37,7 +37,10 @@ describe("possuiExplicitamente", () => {
   });
 
   it("does not accept a lesser explicit level", () => {
-    const observador = ator({ _id: "a1", ownership: { default: 0, [EU]: OwnershipLevel.OBSERVER } });
+    const observador = ator({
+      _id: "a1",
+      ownership: { default: 0, [EU]: OwnershipLevel.OBSERVER },
+    });
     expect(possuiExplicitamente(observador, EU)).toBe(false);
   });
 });
@@ -45,7 +48,10 @@ describe("possuiExplicitamente", () => {
 describe("escolherAvatarDoUsuario", () => {
   it("picks the actor the user explicitly owns", () => {
     const escolha = escolherAvatarDoUsuario(
-      [ator({ _id: "a1", name: "Fofurinha" }), ator({ _id: "a2", name: "Outro", ownership: { default: 0 } })],
+      [
+        ator({ _id: "a1", name: "Fofurinha" }),
+        ator({ _id: "a2", name: "Outro", ownership: { default: 0 } }),
+      ],
       EU,
     );
     expect(escolha).toMatchObject({ actorId: "a1", nome: "Fofurinha" });
@@ -57,7 +63,11 @@ describe("escolherAvatarDoUsuario", () => {
     // label an arbitrary NPC as the GM's own character.
     const mundo = [
       ator({ _id: "npc1", name: "Goblin", type: "npc", ownership: { default: 0 } }),
-      ator({ _id: "pc1", name: "PC do jogador", ownership: { default: 0, [OUTRO]: OwnershipLevel.OWNER } }),
+      ator({
+        _id: "pc1",
+        name: "PC do jogador",
+        ownership: { default: 0, [OUTRO]: OwnershipLevel.OWNER },
+      }),
     ];
     expect(escolherAvatarDoUsuario(mundo, EU)).toBeNull();
   });

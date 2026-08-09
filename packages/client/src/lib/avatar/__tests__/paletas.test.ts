@@ -129,27 +129,38 @@ describe("resolverRampas", () => {
   it("returns null — never throws — when something is missing", () => {
     const p = paletasFake();
     // colour not in the destination file
-    expect(resolverRampas({ material: "body", paleta: "ulpc", cor: "roxo", base: "ulpc.light" }, p)).toBeNull();
+    expect(
+      resolverRampas({ material: "body", paleta: "ulpc", cor: "roxo", base: "ulpc.light" }, p),
+    ).toBeNull();
     // destination file not loaded
-    expect(resolverRampas({ material: "wood", paleta: "ulpc", cor: "oak", base: "ulpc.light" }, p)).toBeNull();
+    expect(
+      resolverRampas({ material: "wood", paleta: "ulpc", cor: "oak", base: "ulpc.light" }, p),
+    ).toBeNull();
     // no base and no fonte: the source ramp is unknowable
     expect(resolverRampas({ material: "body", paleta: "ulpc", cor: "bronze" }, p)).toBeNull();
     // base points at a ramp that is not there
-    expect(resolverRampas({ material: "body", paleta: "ulpc", cor: "bronze", base: "ulpc.nada" }, p)).toBeNull();
+    expect(
+      resolverRampas({ material: "body", paleta: "ulpc", cor: "bronze", base: "ulpc.nada" }, p),
+    ).toBeNull();
   });
 });
 
 describe("arquivosDoPedido", () => {
   it("asks for destination and base files", () => {
-    expect(arquivosDoPedido({ material: "body", paleta: "all.lpcr", cor: "steel", base: "ulpc.light" })).toEqual([
-      "paletas/all/all_lpcr.json",
-      "paletas/body/body_ulpc.json",
-    ]);
+    expect(
+      arquivosDoPedido({ material: "body", paleta: "all.lpcr", cor: "steel", base: "ulpc.light" }),
+    ).toEqual(["paletas/all/all_lpcr.json", "paletas/body/body_ulpc.json"]);
   });
 
   it("skips the base file when the ramp travels inline", () => {
     expect(
-      arquivosDoPedido({ material: "body", paleta: "ulpc", cor: "bronze", base: "ulpc.light", fonte: CLARO }),
+      arquivosDoPedido({
+        material: "body",
+        paleta: "ulpc",
+        cor: "bronze",
+        base: "ulpc.light",
+        fonte: CLARO,
+      }),
     ).toEqual(["paletas/body/body_ulpc.json"]);
   });
 });
@@ -172,7 +183,10 @@ describe("coresDoCanal", () => {
   });
 
   it("ignores palettes that are not loaded instead of failing", () => {
-    const cores = coresDoCanal({ material: "body", paletas: ["ulpc", "inexistente"] }, paletasFake());
+    const cores = coresDoCanal(
+      { material: "body", paletas: ["ulpc", "inexistente"] },
+      paletasFake(),
+    );
     expect(cores.map((c) => c.paleta)).toEqual(["ulpc", "ulpc"]);
   });
 });
@@ -194,7 +208,10 @@ function lerAcervo(): { catalogo: Catalogo; paletas: Map<string, ArquivoDePaleta
     for (const arq of readdirSync(join(raiz, material.name))) {
       if (!arq.endsWith(".json") || arq.startsWith("meta_")) continue;
       const rel = `paletas/${material.name}/${arq}`;
-      paletas.set(rel, JSON.parse(readFileSync(join(raiz, material.name, arq), "utf8")) as ArquivoDePaleta);
+      paletas.set(
+        rel,
+        JSON.parse(readFileSync(join(raiz, material.name, arq), "utf8")) as ArquivoDePaleta,
+      );
     }
   }
   return { catalogo, paletas };
@@ -252,7 +269,9 @@ describe("varredura do acervo real", () => {
         for (const pedido of camada.recolor ?? []) {
           const rampas = resolverRampas(pedido, paletas);
           if (rampas === null) {
-            falhas.push(`${item.id} ${pedido.material}/${pedido.paleta}:${pedido.cor} base=${pedido.base ?? "-"}`);
+            falhas.push(
+              `${item.id} ${pedido.material}/${pedido.paleta}:${pedido.cor} base=${pedido.base ?? "-"}`,
+            );
             continue;
           }
           expect(rampas.de.length).toBeGreaterThan(0);

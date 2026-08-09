@@ -122,7 +122,10 @@ describe("flags.fusion.avatar na persistência", () => {
           versao: 1,
           corpo: "male",
           pin: "pin123",
-          selecao: { body: { id: "body/body-color" }, hat: { id: "hat/tricorne", cores: { cor: "black" } } },
+          selecao: {
+            body: { id: "body/body-color" },
+            hat: { id: "hat/tricorne", cores: { cor: "black" } },
+          },
         },
       }),
     );
@@ -179,7 +182,11 @@ describe("flags.fusion.avatar na persistência", () => {
       "actors",
       id,
       expandir({
-        [AVATAR_FLAG_PATH]: { versao: 1, corpo: "male", selecao: { body: { id: "body/body-color" } } },
+        [AVATAR_FLAG_PATH]: {
+          versao: 1,
+          corpo: "male",
+          selecao: { body: { id: "body/body-color" } },
+        },
       }),
     );
 
@@ -200,7 +207,12 @@ describe("flags.fusion.avatar na persistência", () => {
         [AVATAR_FLAG_PATH]: {
           versao: 1,
           corpo: "male",
-          selecao: { hat: { id: "hat/barbarian", cores: { color_1: "ulpc:steel", hat_secondary: "ulpc:brown" } } },
+          selecao: {
+            hat: {
+              id: "hat/barbarian",
+              cores: { color_1: "ulpc:steel", hat_secondary: "ulpc:brown" },
+            },
+          },
         },
       }),
     );
@@ -229,7 +241,11 @@ describe("flags.fusion.avatar na persistência", () => {
       "actors",
       id,
       expandir({
-        [AVATAR_FLAG_PATH]: { versao: 1, corpo: "male", selecao: { body: { id: "body/body-color" } } },
+        [AVATAR_FLAG_PATH]: {
+          versao: 1,
+          corpo: "male",
+          selecao: { body: { id: "body/body-color" } },
+        },
       }),
     );
     expect(readAvatarFlag(loja.get("actors", id))).not.toBeNull();
@@ -252,7 +268,11 @@ describe("flags.fusion.avatar na persistência", () => {
       "actors",
       id,
       expandir({
-        [AVATAR_FLAG_PATH]: { versao: 1, corpo: "male", selecao: { body: { id: "body/body-color" } } },
+        [AVATAR_FLAG_PATH]: {
+          versao: 1,
+          corpo: "male",
+          selecao: { body: { id: "body/body-color" } },
+        },
       }),
     );
 

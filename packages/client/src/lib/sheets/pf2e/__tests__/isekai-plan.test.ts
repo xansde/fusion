@@ -41,12 +41,14 @@ function classItem(): Record<string, unknown> {
   };
 }
 
-function doc(options: {
-  level?: number;
-  variantOn?: boolean;
-  archetypes?: string[];
-  trackers?: Record<string, Record<string, unknown>>;
-} = {}): Record<string, unknown> {
+function doc(
+  options: {
+    level?: number;
+    variantOn?: boolean;
+    archetypes?: string[];
+    trackers?: Record<string, Record<string, unknown>>;
+  } = {},
+): Record<string, unknown> {
   const system: Record<string, unknown> = {
     level: { value: options.level ?? 12 },
     details: {},
@@ -118,7 +120,10 @@ describe("derivePlan — with the Isekai variant off", () => {
     const d = doc({ variantOn: false, archetypes: ["fodao", "sortudo"] });
     const plan = derivePlan(d);
     for (const card of plan.levels) {
-      expect(card.autoFeatures.every((f) => f.isekai === undefined), `level ${String(card.level)}`).toBe(true);
+      expect(
+        card.autoFeatures.every((f) => f.isekai === undefined),
+        `level ${String(card.level)}`,
+      ).toBe(true);
     }
   });
 
@@ -267,7 +272,9 @@ describe("toggleIsekaiArchetype", () => {
         doc({
           variantOn: true,
           archetypes: ["carismatico"],
-          trackers: { carismatico: { retinue: [{ id: "a", name: "Gobta", tier: "base", named: false }] } },
+          trackers: {
+            carismatico: { retinue: [{ id: "a", name: "Gobta", tier: "base", named: false }] },
+          },
         }),
       ),
       "carismatico",

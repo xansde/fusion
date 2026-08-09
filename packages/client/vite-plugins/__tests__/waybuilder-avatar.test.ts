@@ -11,19 +11,13 @@
 import { describe, expect, it } from "vitest";
 import { existsSync } from "node:fs";
 import { join, resolve, sep } from "node:path";
-import {
-  AVATAR_URL_PREFIX,
-  resolveAcervoDir,
-  resolveAcervoFile,
-} from "../waybuilder-avatar.js";
+import { AVATAR_URL_PREFIX, resolveAcervoDir, resolveAcervoFile } from "../waybuilder-avatar.js";
 
 const ACERVO = resolve("/tmp/acervo");
 
 describe("resolveAcervoFile", () => {
   it("resolves a plain asset path under the acervo", () => {
-    expect(resolveAcervoFile(ACERVO, "/avatar/catalogo.json")).toBe(
-      join(ACERVO, "catalogo.json"),
-    );
+    expect(resolveAcervoFile(ACERVO, "/avatar/catalogo.json")).toBe(join(ACERVO, "catalogo.json"));
     expect(resolveAcervoFile(ACERVO, "/avatar/atlas/body/L1/male.png")).toBe(
       join(ACERVO, "atlas", "body", "L1", "male.png"),
     );
