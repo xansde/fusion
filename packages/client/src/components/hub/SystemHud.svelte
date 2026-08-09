@@ -6,11 +6,11 @@
    * panel is open) and composes the two pieces that draw it: `CommandBar` at the
    * bottom edge and a `SystemWindow` above it.
    *
-   * Scope, stated plainly: this is the *frame*. The Mapa panel is filled — it
-   * hosts the tactical minimap of spec 32. The other two are content owned by
-   * spec 28 (Hub do jogador), still being written, so they render an explicit
-   * empty state naming where their content will come from rather than mock data
-   * that would later have to be told apart from the real thing.
+   * Scope, stated plainly: this is the *frame*. The Mapa panel hosts the
+   * tactical minimap of spec 32; the Comitiva panel hosts the party roster of
+   * spec 28. Missões still renders an explicit empty state naming where its
+   * content will come from rather than mock data that would later have to be
+   * told apart from the real thing.
    *
    * Closed by default. The Hub is diegetic chrome over a map the table is trying
    * to look at; it opens when asked and gets out of the way when dismissed.
@@ -19,6 +19,7 @@
   import CommandBar from "./CommandBar.svelte";
   import SystemWindow from "./SystemWindow.svelte";
   import TacticalMinimap from "./TacticalMinimap.svelte";
+  import PartyPanel from "./PartyPanel.svelte";
   import { HUB_PANELS, HUB_CLOSE_KEY } from "$lib/hub/commandBar.js";
   import { HUB_SURFACE_CLASS } from "$lib/hub/layers.js";
   import { DEMO_NOTICES } from "$lib/hub/noticeDemo.js";
@@ -44,7 +45,6 @@
   /** Where each panel's content is going to come from. */
   const pending: Record<string, string> = {
     missions: "O quadro de missões chega com a spec 28 (Hub do jogador) — issue #90.",
-    party: "A ficha resumida da comitiva chega com a spec 28 (Hub do jogador).",
   };
 
   /** The map panel draws a map: scanlines over it are moiré, not atmosphere. */
@@ -56,6 +56,8 @@
     <SystemWindow title={activePanel.label} onClose={() => (active = null)} scanlines={!isMap}>
       {#if isMap}
         <TacticalMinimap source={minimapSource} />
+      {:else if activePanel.id === "party"}
+        <PartyPanel />
       {:else}
         <p class="pending {HUB_SURFACE_CLASS}">{pending[activePanel.id]}</p>
       {/if}
