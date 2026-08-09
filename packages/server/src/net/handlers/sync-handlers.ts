@@ -259,24 +259,30 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
         // every combat but strip hidden combatants for non-GM viewers
         // (REQ-CBT-031..033).
         visible = all.map((combat) => stripHiddenCombatantsFromCombat(combat));
+      } else if (docType === "Scene") {
+        // Scene is shared world state, not ownership-gated — same reasoning
+        // as Combat above. A GM-created scene (the normal path) always
+        // persists with ownership.default = NONE (ownershipForCreator: "GM
+        // creates: no personal owner entry needed"), so the LIMITED filter
+        // used for Actor/Item below would hide EVERY scene from EVERY
+        // player. This also matches the live doc:create/update broadcast in
+        // doc-handlers.ts's broadcastToWorld(), which already sends Scene
+        // changes to all sockets regardless of ownership. Strip hidden
+        // tokens/tiles and redact secret doors for non-GM viewers (M1-C
+        // hidden tokens, M2-A secret doors, hidden tiles for the
+        // multi-image scene).
+        visible = all.map((scene) => {
+          let redacted = stripHiddenTokens(scene);
+          redacted = redactSecretDoors(redacted);
+          redacted = stripHiddenTiles(redacted);
+          return redacted;
+        });
       } else {
         visible = all.filter((doc) => {
           const ownership = getOwnershipFromDoc(doc);
           const level = resolveOwnership(ownership, userId, role);
           return level >= OwnershipLevel.LIMITED;
         });
-
-        // Strip hidden tokens and tiles and redact secret doors from Scene
-        // documents for non-GM players (M1-C hidden tokens, M2-A secret doors,
-        // hidden tiles for the multi-image scene).
-        if (docType === "Scene") {
-          visible = visible.map((scene) => {
-            let redacted = stripHiddenTokens(scene);
-            redacted = redactSecretDoors(redacted);
-            redacted = stripHiddenTiles(redacted);
-            return redacted;
-          });
-        }
       }
 
       // WIRING-DERIVE: compute-on-read for Actor documents joining the
