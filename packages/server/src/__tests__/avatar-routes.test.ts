@@ -9,7 +9,7 @@
  *     answers `/avatar/catalogo.json` with the app shell, and the client's
  *     `JSON.parse` fails with a syntax error instead of the honest "acervo
  *     indisponível" it knows how to render. A release ships the acervo as a
- *     SIDECAR (it is 58 MB, see the route's module doc), so "no acervo here" is
+ *     SIDECAR (it is 22 MB, see the route's module doc), so "no acervo here" is
  *     a normal state that has to answer correctly.
  *  2. **No traversal.** `/avatar/` maps straight onto a filesystem path.
  */

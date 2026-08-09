@@ -1,7 +1,7 @@
 /**
  * Vite plugin that publishes the `waybuilder-avatar` acervo under `/avatar/*`.
  *
- * The acervo (catalog + atlases + palettes, ~6.7 MB across ~2.8k PNGs) ships
+ * The acervo (catalog + atlases + palettes, 22 MB across 643 PNGs) ships
  * inside the npm package, pinned to a commit in packages/client/package.json.
  * The client fetches it at RUNTIME (`/avatar/catalogo.json`, `/avatar/atlas/...`)
  * rather than importing it — a 1.7 MB JSON import would land inside a JS chunk,

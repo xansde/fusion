@@ -2,12 +2,12 @@
  * `GET /avatar/*` — serving the avatar acervo (spec 33, REQ-AVT-041/042).
  *
  * The acervo (catalog + atlases + palettes from the pinned `waybuilder-avatar`
- * package) is 58 MB. That is why it gets its own route instead of riding along
+ * package) is 22 MB. That is why it gets its own route instead of riding along
  * inside the client build:
  *
  *   the packaged executable is at 134 MB of a 150 MB budget (REQ-DST-046), and
  *   phase 5 of build-release.mjs packs `packages/client/dist` VERBATIM into the
- *   SEA blob. Letting the acervo sit under `dist/avatar/` would produce a ~193 MB
+ *   SEA blob. Letting the acervo sit under `dist/avatar/` would produce a ~156 MB
  *   artifact and fail the release build.
  *
  * So the release ships the acervo as a SIDECAR directory next to the executable
