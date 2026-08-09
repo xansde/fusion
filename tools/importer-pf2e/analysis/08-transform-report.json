@@ -1,7 +1,7 @@
 {
   "importerVersion": "0.1.0",
   "sourceVersion": "v14-dev",
-  "generatedAt": "2026-08-02T03:24:47.956Z",
+  "generatedAt": "2026-08-08T21:14:43.628Z",
   "packs": [
     {
       "packId": "pf2e.conditions",
@@ -713,9 +713,9 @@
       "ruleCoverage": {
         "totalRules": 5112,
         "byState": {
-          "supported": 3159,
+          "supported": 3161,
           "partial": 1105,
-          "unsupported": 848
+          "unsupported": 846
         },
         "byKey": {
           "ActiveEffectLike": {
@@ -798,9 +798,9 @@
           },
           "ChoiceSet": {
             "total": 288,
-            "supported": 0,
+            "supported": 2,
             "partial": 0,
-            "unsupported": 288
+            "unsupported": 286
           },
           "DamageDice": {
             "total": 131,
@@ -1000,6 +1000,114 @@
       "assetSubstitutions": 50
     },
     {
+      "packId": "pf2e.ancestry-features",
+      "total": 55,
+      "transformed": 55,
+      "invalidExcluded": [],
+      "ruleCoverage": {
+        "totalRules": 69,
+        "byState": {
+          "supported": 33,
+          "partial": 6,
+          "unsupported": 30
+        },
+        "byKey": {
+          "Strike": {
+            "total": 20,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 20
+          },
+          "ItemAlteration": {
+            "total": 4,
+            "supported": 0,
+            "partial": 4,
+            "unsupported": 0
+          },
+          "FlatModifier": {
+            "total": 12,
+            "supported": 12,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "ChoiceSet": {
+            "total": 5,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 5
+          },
+          "BaseSpeed": {
+            "total": 1,
+            "supported": 1,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "ActiveEffectLike": {
+            "total": 4,
+            "supported": 3,
+            "partial": 1,
+            "unsupported": 0
+          },
+          "RollOption": {
+            "total": 9,
+            "supported": 9,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "GrantItem": {
+            "total": 6,
+            "supported": 6,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "TokenLight": {
+            "total": 1,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 1
+          },
+          "AdjustDegreeOfSuccess": {
+            "total": 2,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 2
+          },
+          "Weakness": {
+            "total": 1,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 1
+          },
+          "AdjustStrike": {
+            "total": 1,
+            "supported": 0,
+            "partial": 0,
+            "unsupported": 1
+          },
+          "Sense": {
+            "total": 1,
+            "supported": 1,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "Resistance": {
+            "total": 1,
+            "supported": 1,
+            "partial": 0,
+            "unsupported": 0
+          },
+          "Immunity": {
+            "total": 1,
+            "supported": 0,
+            "partial": 1,
+            "unsupported": 0
+          }
+        },
+        "coveragePct": "47.8"
+      },
+      "assetSubstitutions": 55
+    },
+    {
       "packId": "pf2e.heritages",
       "total": 322,
       "transformed": 322,
@@ -1007,9 +1115,9 @@
       "ruleCoverage": {
         "totalRules": 535,
         "byState": {
-          "supported": 376,
+          "supported": 377,
           "partial": 58,
-          "unsupported": 101
+          "unsupported": 100
         },
         "byKey": {
           "GrantItem": {
@@ -1068,9 +1176,9 @@
           },
           "ChoiceSet": {
             "total": 22,
-            "supported": 0,
+            "supported": 1,
             "partial": 0,
-            "unsupported": 22
+            "unsupported": 21
           },
           "ActorTraits": {
             "total": 8,
@@ -1133,7 +1241,7 @@
             "unsupported": 1
           }
         },
-        "coveragePct": "70.3"
+        "coveragePct": "70.5"
       },
       "assetSubstitutions": 322
     },
@@ -1331,11 +1439,11 @@
     }
   ],
   "aggregate": {
-    "totalRules": 11916,
-    "supportedRules": 7698,
-    "partialRules": 2121,
-    "unsupportedRules": 2097,
-    "coveragePct": "64.6"
+    "totalRules": 11985,
+    "supportedRules": 7734,
+    "partialRules": 2127,
+    "unsupportedRules": 2124,
+    "coveragePct": "64.5"
   },
   "failed": false
 }

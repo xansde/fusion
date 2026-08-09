@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "packId": "pf2e.classes-core",
   "locale": "pt-BR",
-  "generatedAt": "2026-08-03T01:40:04.991Z",
+  "generatedAt": "2026-08-08T21:39:02.627Z",
   "generator": "tools/translate-packs@0.1.0",
   "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
   "entries": {
@@ -41,6 +41,11 @@
       "sourceHash": "ea30cd88b5cce88cd6756a6c1958c8c6bd807d78",
       "description": "<p><em>As divindades exercem sua vontade sobre o mundo de infinitas maneiras, e você serve como um dos seus mais firmes servos mortais. Abençoado com magia divina, você vive os ideais de sua fé, adorna-se com os símbolos de sua igreja e treina diligentemente para empunhar a arma favorita de sua divindade. Suas magias podem proteger e curar seus aliados, ou podem punir inimigos e adversários de sua fé, conforme a vontade de sua divindade. A sua é uma vida de devoção, espalhando os ensinamentos de sua fé tanto pela palavra quanto pelo ato.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.N4ABcd6CcCbqmw3x]{Clérigo}</em></p>"
     },
+    "Mx4ch9PiH76OeSwk": {
+      "name": "Pistoleiro",
+      "sourceHash": "1006b4e0c400e1a4e3f30644910e5d047d404d90",
+      "description": "<p><em>Enquanto alguns temem as armas de projétil, você saboreia o clarão ardente, o coice selvagem e a fumaça densa que acompanham um tiro, ou o estalo do cabo e o baque revelador de sua besta um instante antes de o virote encontrar seu alvo. Pronto para mirar em um inimigo a cada momento, você conta com seus reflexos, sua mão firme e seu conhecimento das próprias armas para encher seus adversários de buracos.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.88K0xjShkhkckbhv]{Pistoleiro}</em></p>"
+    },
     "RtdtWLmWtoAnurXp": {
       "name": "Bardo",
       "sourceHash": "d1e756e3f4cef1957e688b08d7212178b740eee7",
@@ -60,6 +65,11 @@
       "name": "Magus",
       "sourceHash": "80de4387ce349d748efb5a1910169bd5562368b5",
       "description": "<p><em>Combinando a fisicalidade e a técnica de um guerreiro com a capacidade de conjurar magia arcana, você busca aperfeiçoar a arte de fundir feitiço e golpe. Enquanto o tratado pesado que você carrega reflete horas de pesquisa arcana, seus inimigos não precisam de recordação de seu treinamento. Reconhecem-no conforme você os derrota.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.YVoyzV9v4QyP2UIC]{Magus}</em></p>"
+    },
+    "kJAUMTXDise4UFG2": {
+      "name": "Psíquico",
+      "sourceHash": "f6da9770c5f4f7df2c37df3a517ccc43d1ea3c30",
+      "description": "<p><em>A mente pode perceber verdades ocultas aos instrumentos mais precisos, guardar mais segredos que qualquer tomo e mover objetos e corações com mais destreza que qualquer alavanca. Ao mergulhar tanto nos aspectos conscientes quanto nos subconscientes do seu eu interior, você despertou para o poder da magia psíquica, o que lhe permite conjurar magias não por encantamentos ou gestos, mas pela força da sua vontade apenas. Embora a linha tênue entre sua mente e a realidade signifique que um único pensamento desgarrado possa ter consequências indesejadas para você e seus companheiros, você sabe que tudo é possível, se você conseguir imaginar.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.KVoEUJBAbAFUJTqw]{Psíquico}</em></p>"
     },
     "nvLkRf5OdaAq9zgU": {
       "name": "Ladino",

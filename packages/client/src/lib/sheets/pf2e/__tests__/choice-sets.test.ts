@@ -34,10 +34,28 @@ const PACKS = join(
 
 interface PackDoc {
   name: string;
+  system?: { rules?: unknown[] };
   flags?: { fusion?: { unconvertedRules?: unknown[] } };
 }
 
-/** Toda escolha presente nos packs hoje, na chave `<pack>/<doc>/<flag>`. */
+/**
+ * Toda escolha presente nos packs hoje, na chave `<pack>/<doc>/<flag>`.
+ *
+ * Duas fontes, de propósito (r25):
+ *
+ *  1. `flags.fusion.unconvertedRules` — o ChoiceSet cru, que é como a esmagadora
+ *     maioria das escolhas chega (o importer marca `ChoiceSet: "unsupported"`).
+ *  2. `system.rules[].kind === "feat-choice"` — a escolha JÁ CONVERTIDA pelo
+ *     importer. Sem este segundo laço, converter um ChoiceSet fazia a escolha
+ *     DESAPARECER do inventário: a entrada virava "morta" e a correção óbvia
+ *     seria apagá-la, perdendo a dívida declarada exatamente no momento em que o
+ *     pack passou a carregar a escolha melhor. Pior: um ChoiceSet(feat) novo,
+ *     publicado já convertido, entraria sem NINGUÉM ter de classificá-lo — o
+ *     defeito silencioso que este inventário existe para impedir.
+ *
+ * Converter o ChoiceSet é progresso no PACK; não é o builder oferecendo a
+ * escolha. O estado no inventário continua sendo sobre o builder.
+ */
 function collectChoiceSets(): string[] {
   const keys: string[] = [];
   for (const entry of readdirSync(PACKS, { withFileTypes: true })) {
@@ -49,6 +67,11 @@ function collectChoiceSets(): string[] {
       for (const rule of doc.flags?.fusion?.unconvertedRules ?? []) {
         const r = rule as { key?: string; flag?: string };
         if (r.key !== "ChoiceSet") continue;
+        keys.push(`${entry.name}/${doc.name}/${r.flag ?? "-"}`);
+      }
+      for (const rule of doc.system?.rules ?? []) {
+        const r = rule as { kind?: string; flag?: string };
+        if (r.kind !== "feat-choice") continue;
         keys.push(`${entry.name}/${doc.name}/${r.flag ?? "-"}`);
       }
     }

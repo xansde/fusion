@@ -1,0 +1,181 @@
+{
+  "success": true,
+  "build": {
+    "name": "Fofurinha ",
+    "class": "Gunslinger (Spellshot)",
+    "dualClass": null,
+    "level": 1,
+    "xp": 50,
+    "ancestry": "Elf",
+    "heritage": "Ancient Elf",
+    "background": "Smuggler",
+    "alignment": "N",
+    "gender": "Not set",
+    "age": "Not set",
+    "deity": "Not set",
+    "size": 2,
+    "sizeName": "Medium",
+    "keyability": "dex",
+    "languages": ["None selected"],
+    "rituals": [],
+    "resistances": [],
+    "inventorMods": [],
+    "abilities": {
+      "str": 10,
+      "dex": 19,
+      "con": 10,
+      "int": 14,
+      "wis": 10,
+      "cha": 14,
+      "breakdown": {
+        "ancestryFree": ["Cha"],
+        "ancestryBoosts": ["Dex", "Int"],
+        "ancestryFlaws": ["Con"],
+        "backgroundBoosts": ["Dex", "Dex"],
+        "classBoosts": ["Dex"],
+        "mapLevelledBoosts": { "1": ["Dex", "Cha", "Int", "Con"] }
+      }
+    },
+    "attributes": {
+      "ancestryhp": 6,
+      "classhp": 8,
+      "bonushp": 0,
+      "bonushpPerLevel": 0,
+      "speed": 30,
+      "speedBonus": 5
+    },
+    "proficiencies": {
+      "classDC": 2,
+      "perception": 4,
+      "fortitude": 4,
+      "reflex": 4,
+      "will": 2,
+      "heavy": 0,
+      "medium": 2,
+      "light": 2,
+      "unarmored": 2,
+      "advanced": 0,
+      "martial": 2,
+      "simple": 2,
+      "unarmed": 2,
+      "castingArcane": 0,
+      "castingDivine": 0,
+      "castingOccult": 2,
+      "castingPrimal": 0,
+      "acrobatics": 2,
+      "arcana": 2,
+      "athletics": 0,
+      "crafting": 2,
+      "deception": 2,
+      "diplomacy": 0,
+      "intimidation": 2,
+      "medicine": 0,
+      "nature": 0,
+      "occultism": 2,
+      "performance": 0,
+      "religion": 0,
+      "society": 0,
+      "stealth": 2,
+      "survival": 0,
+      "thievery": 0,
+      "piloting": 0,
+      "computers": 0
+    },
+    "mods": {},
+    "feats": [
+      ["Experienced Smuggler", null, "Awarded Feat", 1],
+      ["Alchemical Crafting", null, "Awarded Feat", 1],
+      ["Ancient Elf", null, "Heritage", 1, "Heritage Feat", "parentChoice", null],
+      [
+        "Psychic Dedication",
+        null,
+        "Archetype Feat",
+        1,
+        "Heritage FeatMultitalented",
+        "childChoice",
+        "Heritage Feat"
+      ],
+      ["Munitions Crafter", null, "Class Feat", 1, "Gunslinger Feat 1", "standardChoice", null],
+      ["Nimble Elf", null, "Ancestry Feat", 1, "Elf Feat 1", "standardChoice", null]
+    ],
+    "specials": [
+      "Gunslinger's Way",
+      "Slinger's Precision",
+      "Thoughtful Reload",
+      "Energy Shot",
+      "Low-Light Vision",
+      "Charisma",
+      "The Oscillating Wave",
+      "Standard Cantrip: Ignition (Archetype)",
+      "Ancient Elf"
+    ],
+    "lores": [["Underworld", 2]],
+    "equipmentContainers": {},
+    "equipment": [["Kit de Faca", 1, "Invested"]],
+    "specificProficiencies": {
+      "trained": [],
+      "expert": ["Slide Pistol"],
+      "master": [],
+      "legendary": []
+    },
+    "weapons": [
+      {
+        "name": "Slide Pistol",
+        "qty": 1,
+        "prof": "martial",
+        "die": "d6",
+        "pot": 0,
+        "str": "",
+        "mat": null,
+        "display": "Slide Pistol",
+        "runes": [],
+        "damageType": "P",
+        "attack": 9,
+        "damageBonus": 0,
+        "extraDamage": ["1d4 precision"],
+        "increasedDice": false,
+        "isInventor": false,
+        "grade": ""
+      }
+    ],
+    "money": { "cp": 0, "sp": 0, "gp": 3, "pp": 0 },
+    "armor": [],
+    "spellCasters": [
+      {
+        "name": "Archetype Psychic",
+        "magicTradition": "occult",
+        "spellcastingType": "spontaneous",
+        "ability": "cha",
+        "proficiency": 2,
+        "focusPoints": 0,
+        "innate": false,
+        "perDay": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "spells": [{ "spellLevel": 0, "list": [] }],
+        "prepared": [],
+        "blendedSpells": []
+      }
+    ],
+    "focusPoints": 0,
+    "focus": {
+      "occult": {
+        "cha": {
+          "abilityBonus": 2,
+          "proficiency": 2,
+          "itemBonus": 0,
+          "focusCantrips": ["Ignition (Archetype)"],
+          "focusSpells": []
+        }
+      }
+    },
+    "formula": [],
+    "acTotal": {
+      "acProfBonus": 3,
+      "acAbilityBonus": 4,
+      "acItemBonus": 0,
+      "acTotal": 17,
+      "shieldBonus": null
+    },
+    "pets": [],
+    "familiars": []
+  }
+}

@@ -1,5 +1,48 @@
 [
   {
+    "_id": "hXrH1AzbLUU02FB1",
+    "uuid": "Compendium.pf2e.weapons-core.Item.hXrH1AzbLUU02FB1",
+    "name": "Air Repeater",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": [
+        "agile",
+        "repeating"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "SzUynRs4HVtnpnel"
+    }
+  },
+  {
+    "_id": "NNDoejzhhWKar6Dc",
+    "uuid": "Compendium.pf2e.weapons-core.Item.NNDoejzhhWKar6Dc",
+    "name": "Arquebus",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "concussive",
+        "fatal-d12",
+        "kickback"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d8"
+      },
+      "flags.fusion.sourceId": "ChTaE7jhvCjcS6jI"
+    }
+  },
+  {
     "_id": "wVXpiOdvD8kdIYO0",
     "uuid": "Compendium.pf2e.weapons-core.Item.wVXpiOdvD8kdIYO0",
     "name": "Bastard Sword",
@@ -37,6 +80,27 @@
         "die": "d8"
       },
       "flags.fusion.sourceId": "War0uyLBx1jA0Ge7"
+    }
+  },
+  {
+    "_id": "LiSC3YqSUlFSyNky",
+    "uuid": "Compendium.pf2e.weapons-core.Item.LiSC3YqSUlFSyNky",
+    "name": "Blunderbuss",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "concussive",
+        "scatter-10"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d8"
+      },
+      "flags.fusion.sourceId": "csXSDzgZASX4RWr4"
     }
   },
   {
@@ -80,6 +144,28 @@
         "die": "d6"
       },
       "flags.fusion.sourceId": "c58wczIzH2gzeXQL"
+    }
+  },
+  {
+    "_id": "yY5waDlzvTdxo4Hx",
+    "uuid": "Compendium.pf2e.weapons-core.Item.yY5waDlzvTdxo4Hx",
+    "name": "Coat Pistol",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": [
+        "concealable",
+        "concussive",
+        "fatal-d8"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "LLYD2GEhzhdxoCAx"
     }
   },
   {
@@ -188,6 +274,71 @@
     }
   },
   {
+    "_id": "iwSQS7fuWt4Zd1St",
+    "uuid": "Compendium.pf2e.weapons-core.Item.iwSQS7fuWt4Zd1St",
+    "name": "Double-Barreled Pistol",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "concussive",
+        "double-barrel",
+        "fatal-d8"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "MvzR9nTnvKTeNjvQ"
+    }
+  },
+  {
+    "_id": "BSTNNs7HFL9KbFX1",
+    "uuid": "Compendium.pf2e.weapons-core.Item.BSTNNs7HFL9KbFX1",
+    "name": "Dwarven Scattergun",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 1,
+      "system.category": "advanced",
+      "system.traits.value": [
+        "concussive",
+        "dwarf",
+        "kickback",
+        "scatter-10"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d8"
+      },
+      "flags.fusion.sourceId": "jcIabnkJgjwzK6Og"
+    }
+  },
+  {
+    "_id": "CocSCZ6gUPbAKzmz",
+    "uuid": "Compendium.pf2e.weapons-core.Item.CocSCZ6gUPbAKzmz",
+    "name": "Fire Lance",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": [
+        "fatal-d10"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "WUA40bb01pSWv88I"
+    }
+  },
+  {
     "_id": "8dPUHqUHPQOeHlaL",
     "uuid": "Compendium.pf2e.weapons-core.Item.8dPUHqUHPQOeHlaL",
     "name": "Flail",
@@ -207,6 +358,48 @@
         "die": "d6"
       },
       "flags.fusion.sourceId": "t5FbyZtRL4qV0V7k"
+    }
+  },
+  {
+    "_id": "FaLoH1XHzDsyzGAZ",
+    "uuid": "Compendium.pf2e.weapons-core.Item.FaLoH1XHzDsyzGAZ",
+    "name": "Flintlock Musket",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": [
+        "concussive",
+        "fatal-d10"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "hqMtsTwmOShdAdQW"
+    }
+  },
+  {
+    "_id": "vsNpLjRVRAq0B59N",
+    "uuid": "Compendium.pf2e.weapons-core.Item.vsNpLjRVRAq0B59N",
+    "name": "Flintlock Pistol",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": [
+        "concussive",
+        "fatal-d8"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "N3nNqO5Nw2DIFhrv"
     }
   },
   {
@@ -269,6 +462,26 @@
         "die": "d12"
       },
       "flags.fusion.sourceId": "UX71GkWBL9g41VwM"
+    }
+  },
+  {
+    "_id": "MFuoIF0gLsUhujDb",
+    "uuid": "Compendium.pf2e.weapons-core.Item.MFuoIF0gLsUhujDb",
+    "name": "Hand Cannon",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "simple",
+      "system.traits.value": [
+        "modular"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "4LJEpZ2HkCu9BvHI"
     }
   },
   {
@@ -435,6 +648,28 @@
     }
   },
   {
+    "_id": "WXcwO9CkNvFU3aXu",
+    "uuid": "Compendium.pf2e.weapons-core.Item.WXcwO9CkNvFU3aXu",
+    "name": "Pepperbox",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 0,
+      "system.category": "martial",
+      "system.traits.value": [
+        "capacity-3",
+        "concussive",
+        "fatal-d8"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d4"
+      },
+      "flags.fusion.sourceId": "tk4cfktEnMrp4K6m"
+    }
+  },
+  {
     "_id": "MkMFwelxRUIHXXWr",
     "uuid": "Compendium.pf2e.weapons-core.Item.MkMFwelxRUIHXXWr",
     "name": "Rapier",
@@ -496,6 +731,28 @@
         "die": "d6"
       },
       "flags.fusion.sourceId": "7tKkkF8eZ4iCLJtp"
+    }
+  },
+  {
+    "_id": "e9lIuOi9OGJzVw3X",
+    "uuid": "Compendium.pf2e.weapons-core.Item.e9lIuOi9OGJzVw3X",
+    "name": "Slide Pistol",
+    "img": "icons/placeholder/weapon.svg",
+    "type": "weapon",
+    "index": {
+      "system.level": 1,
+      "system.category": "martial",
+      "system.traits.value": [
+        "capacity-5",
+        "concussive",
+        "fatal-d10"
+      ],
+      "system.damage": {
+        "damageType": "piercing",
+        "dice": 1,
+        "die": "d6"
+      },
+      "flags.fusion.sourceId": "gO5dOlPBk57bg2x5"
     }
   },
   {

@@ -456,6 +456,18 @@
     }
   },
   {
+    "_id": "FusionSmuggler01",
+    "uuid": "Compendium.pf2e.backgrounds-core.Item.FusionSmuggler01",
+    "name": "Smuggler",
+    "img": "icons/placeholder/feat.svg",
+    "type": "background",
+    "index": {
+      "name": "Smuggler",
+      "system.traits.value": [],
+      "flags.fusion.sourceId": "FusionSmuggler01"
+    }
+  },
+  {
     "_id": "zR1zWtzCC3yd5apL",
     "uuid": "Compendium.pf2e.backgrounds-core.Item.zR1zWtzCC3yd5apL",
     "name": "Street Urchin",
