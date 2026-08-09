@@ -261,6 +261,27 @@ export class TokenLayer {
   }
 
   // ---------------------------------------------------------------------------
+  // Public — what is on screen
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Ids of the tokens this layer is drawing right now.
+   *
+   * Reports the result of the filters already applied above — hidden tokens for
+   * players, the vision filter, reconciliation — instead of re-deriving them.
+   * The tactical minimap (spec 32, DEC-MMT-02) consumes this so it can never
+   * show a token the canvas is hiding: a widget that computes its own
+   * visibility diverges in silence, which is the worst bug a table can have.
+   */
+  visibleTokenIds(): ReadonlySet<string> {
+    const ids = new Set<string>();
+    for (const [id, sprite] of this._sprites) {
+      if (sprite.container.visible) ids.add(id);
+    }
+    return ids;
+  }
+
+  // ---------------------------------------------------------------------------
   // Public — teardown
   // ---------------------------------------------------------------------------
 

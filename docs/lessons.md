@@ -472,3 +472,68 @@ com padding 0 — que é o que um fixture de teste tende a usar — o bug some.
 lição mais larga: quando dois subsistemas põem coisas no mesmo espaço, o
 segundo tem que **ler de onde o primeiro colocou**, não deduzir de onde
 deveria ser.
+
+## Nenhum gate deste repo alcança um arquivo `.svelte`
+
+**Quando:** porte da System Window para o client (2026-08-08).
+
+**O que aconteceu:** ao rodar os gates sobre componentes novos, os dois que
+cobririam estilo e erro de código simplesmente não olharam para eles:
+
+- `eslint.config.js` lista `**/*.svelte` entre os arquivos **ignorados**
+  (linha 19). Rodar `npx eslint <pasta com .svelte>` não reprova nada — pior,
+  quando a pasta só tem `.svelte`, o ESLint aborta com "all of the files
+  matching the glob pattern are ignored", que soa como erro de invocação.
+- `format:check` roda `prettier --check "**/*.{ts,tsx,json,md}"`. `.svelte` e
+  `.css` estão fora do glob, e o Prettier deste repo nem tem o plugin de
+  Svelte instalado: pedir `--check` num `.svelte` falha com "No parser could be
+  inferred for file".
+
+**Por que engana:** a suíte fica verde, o `format:check` diz "All matched files
+use Prettier code style!" e o gate parece ter passado sobre o componente. O
+"matched" da mensagem é a palavra que ninguém lê. O mesmo vale para `.css`:
+`base.css` **também** difere do Prettier hoje e nunca foi reprovado.
+
+**O que fazer:** o único gate que enxerga `.svelte` é o `svelte-check`
+(`pnpm --filter @fusion/client typecheck`) — e ele checa tipo e a11y, não
+estilo. Então: (a) rode `svelte-check` sempre que mexer em componente, e leia
+os WARNINGS, não só os ERRORS; (b) mantenha em `lib/*.ts` toda lógica que
+mereça teste, porque o client roda Vitest com `environment: "node"` e não monta
+componente — um `.svelte` gordo é código sem lint, sem format e sem teste; (c)
+ao afirmar "gates limpos", diga sobre quais arquivos, já que a resposta honesta
+hoje exclui todo `.svelte` e todo `.css`.
+
+## O servidor serve o `index.html` que leu no boot, não o que está no disco
+
+**Quando:** demonstração da System Window no mundo `isekai` (2026-08-08) —
+tela preta para o usuário.
+
+**O que aconteceu:** o servidor subiu, e depois o client foi reconstruído para
+incluir uma correção. O Vite esvazia `dist/` e regera os bundles com hash novo.
+O servidor continuou entregando o `index.html` do boot, que aponta para
+`assets-client/index-<hash-antigo>.js` — arquivo que não existe mais. Resultado:
+`GET /` responde **200**, o `<script>` seguinte responde **404**, nada monta e a
+página fica preta.
+
+**Por que engana:** o único sintoma é "tela preta". O `/health` responde,
+`GET /` responde 200, o log não tem nenhum erro — só um 404 solitário no meio de
+dezenas de 200, que passa batido. E `curl` na raiz parece confirmar que está
+tudo certo, porque o HTML volta íntegro; ele só aponta para o lugar errado.
+
+**Como diagnosticar em 10 segundos:** compare o que o servidor entrega com o
+que existe no disco.
+
+```
+curl -s http://<host>:33000/ | grep -o 'assets-client/index-[^"]*\.js'
+ls packages/client/dist/assets-client/ | grep -E '^index-.*\.js$'
+```
+
+Nomes diferentes = servidor obsoleto. Confirme pedindo o arquivo que o HTML
+cita e vendo o 404.
+
+**O que fazer:** rebuild do client com o servidor no ar **exige reiniciar o
+servidor**. E, ao reiniciar, matar o processo antigo de verdade: o mundo tem
+lock por PID, então o novo morre com `WorldLockedError: World "isekai" is
+already in use by process <pid>` se o anterior ainda estiver vivo. Vale também
+para o navegador do outro lado: `Ctrl+Shift+R`, porque o `index.html` antigo
+pode estar no cache dele.

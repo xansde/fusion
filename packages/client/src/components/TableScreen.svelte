@@ -36,7 +36,14 @@
   import ActiveSceneBadge from "./scenes/ActiveSceneBadge.svelte";
   import NoSceneOverlay from "./scenes/NoSceneOverlay.svelte";
   import WindowHost from "./windows/WindowHost.svelte";
+  import {
+    collectMinimapTokens,
+    minimapSceneFrom,
+    type MinimapSource,
+  } from "../lib/hub/minimapSource.js";
   import HubLayer from "./hub/HubLayer.svelte";
+  import SystemHud from "./hub/SystemHud.svelte";
+  import SystemNoticeStack from "./hub/SystemNoticeStack.svelte";
   import { getSocket } from "../lib/session.svelte.js";
   import { SceneOrchestrator } from "../lib/canvas/scene-orchestrator.js";
   import { TokenLayer } from "../lib/canvas/tokens/TokenLayer.js";
@@ -124,6 +131,12 @@
   // is not reactive state, so the template cannot depend on it directly.
   let calibrationCanvas: FusionCanvas | null = $state(null);
 
+  // The token layer of the active scene, kept here so the tactical minimap can
+  // ask it what it is currently drawing (spec 32, DEC-MMT-02). Assigned in
+  // _createOrchestrator, cleared in _teardownOrchestrator — the minimap must
+  // never hold a layer belonging to a scene that has been switched away.
+  let activeTokenLayer: TokenLayer | null = null;
+
   function openGridCalibration(): void {
     if (fusionCanvas && activeSceneState.scene) calibrationCanvas = fusionCanvas;
   }
@@ -184,6 +197,56 @@
 
   /** True when the logged-in user is the GM (role 4). */
   const isGm = $derived(() => (session.user?.role ?? 0) === 4);
+
+  // ---- Tactical minimap wiring (spec 32) ----
+
+  /**
+   * The live wiring the Mapa panel of the Hub reads.
+   *
+   * Built here because this is where the three pieces already are: the canvas
+   * (camera), the token layer (what is on screen) and the active scene. The
+   * widget itself never touches PIXI or the socket — it reads this snapshot and
+   * calls back to move the camera, nothing else (REQ-MMT-011).
+   *
+   * `null` until the canvas finished building its layers, so the panel can say
+   * so instead of drawing an empty box.
+   */
+  const minimapSource = $derived.by<MinimapSource | null>(() => {
+    if (!canvasReady) return null;
+    const canvas = fusionCanvas;
+    if (!canvas) return null;
+
+    return {
+      snapshot: () => {
+        const scene = activeSceneState.scene;
+        const layer = activeTokenLayer;
+        const container = canvasContainer;
+        // Role 1 (player) on purpose: resolveOwnedActorIds grants a GM every
+        // actor in the world (REQ-USR-006), and "every token is yours" is not a
+        // highlight. Asking as a player yields explicit ownership only — which
+        // is what "the token I control" means on a minimap.
+        const owned = resolveOwnedActorIds(worldMirror, session.user?.id ?? "", 1);
+        return {
+          scene: minimapSceneFrom(scene),
+          gridSize: scene?.grid?.size ?? 100,
+          tokens:
+            scene && layer
+              ? collectMinimapTokens(scene.tokens, layer.visibleTokenIds(), owned)
+              : [],
+          camera: canvas.camera,
+          viewportWidth: container?.clientWidth ?? 0,
+          viewportHeight: container?.clientHeight ?? 0,
+        };
+      },
+      centerOn: (worldX: number, worldY: number, animate = true) => {
+        if (animate) {
+          canvas.zoomTo({ x: worldX, y: worldY, scale: canvas.camera.scale }, 220);
+        } else {
+          canvas.panTo(worldX, worldY);
+        }
+      },
+    };
+  });
 
   // ---- Canvas lifecycle ----
 
@@ -463,6 +526,7 @@
       gridSize,
       currentIsGm,
     );
+    activeTokenLayer = tokenLayer;
 
     // Wire SceneOrchestrator tick into FusionCanvas ticker via the public API.
     // SceneOrchestrator.tick() already calls tokenLayer.tick() internally —
@@ -690,6 +754,10 @@
       sceneOrchestrator = null;
     }
 
+    // The orchestrator destroyed the layer above; a minimap reading it after
+    // this point would be querying dead sprites.
+    activeTokenLayer = null;
+
     // A scene switch invalidates any open TokenConfigDialog — its token no
     // longer belongs to the (about to be destroyed) interaction manager.
     configuringToken = null;
@@ -841,7 +909,17 @@
   <!-- `.hub-surface` descendants take input, so clicks on empty Hub space   -->
   <!-- fall through to the map.                                              -->
   <!-- -------------------------------------------------------------------- -->
-  <HubLayer />
+  <HubLayer>
+    <SystemHud {minimapSource} />
+  </HubLayer>
+
+  <!-- -------------------------------------------------------------------- -->
+  <!-- System notices — a SIBLING of the Hub, not a child. HubLayer is a     -->
+  <!-- fixed, z-indexed host, so it opens a stacking context that would trap -->
+  <!-- a notice in the Hub band; notices belong in `--fusion-z-notification`  -->
+  <!-- (REQ-UIF-008), visible even over a modal.                             -->
+  <!-- -------------------------------------------------------------------- -->
+  <SystemNoticeStack />
 
   <!-- -------------------------------------------------------------------- -->
   <!-- Token config dialog — opened by double-clicking a token on the       -->
