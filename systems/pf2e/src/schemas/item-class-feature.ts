@@ -18,8 +18,18 @@ import { EffectRuleSchema, PublicationSchema, TraitsBlockSchema } from "../schem
 export const ClassFeatureSystemSchema = z
   .object({
     systemVersion: z.string().default("0.1.0"),
-    /** Character level at which this feature is granted. */
-    level: z.number().int().min(1).max(20),
+    /**
+     * Character level at which this feature is granted.
+     *
+     * 0 is legitimate and means "not granted by the class progression at all":
+     * the feature is an OPTION picked inside another feature's ChoiceSet, so it
+     * has no level of its own. Champion's "Blessed Armament" and "Blessed
+     * Shield" are the shipped examples — both are choices offered by "Blessing
+     * of the Devoted" (level 3) and carry `level: 0` in Paizo's own data, so
+     * `featuresByLevel` never references them directly. Rejecting 0 made
+     * packs-validation fail against correctly imported documents.
+     */
+    level: z.number().int().min(0).max(20),
     /**
      * Category slug. "classfeature" covers ordinary class features;
      * "hybridStudy" marks Magus Hybrid Study choices (a sub-choice slot

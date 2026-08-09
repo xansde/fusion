@@ -519,9 +519,18 @@ describe("ClassFeatureSystemSchema round-trip (new item type, REQ-PF2-003)", () 
     }
   });
 
-  it("rejects a level outside 1..20", () => {
+  it("rejects a level outside 0..20", () => {
     expect(ClassFeatureSystemSchema.safeParse({ level: 21 }).success).toBe(false);
-    expect(ClassFeatureSystemSchema.safeParse({ level: 0 }).success).toBe(false);
+    expect(ClassFeatureSystemSchema.safeParse({ level: -1 }).success).toBe(false);
+  });
+
+  it("accepts level 0 — a feature that is a ChoiceSet option, not a progression grant", () => {
+    // Champion's "Blessed Armament"/"Blessed Shield" ship with level 0 in
+    // Paizo's own data: they are picked inside "Blessing of the Devoted"
+    // (level 3), so they have no level of their own and `featuresByLevel`
+    // never points at them. Rejecting 0 failed packs-validation against
+    // correctly imported documents.
+    expect(ClassFeatureSystemSchema.safeParse({ level: 0 }).success).toBe(true);
   });
 
   it("passes through extra fields (REQ-PF2-204)", () => {

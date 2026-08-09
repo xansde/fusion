@@ -28,6 +28,7 @@ import type {
 import type { SpellSaveType, ChatSendFlags, AbilityCard } from "@fusion/shared";
 import { t, i18n } from "../../i18n/index.js";
 import { skillNamePt } from "./skillNames.js";
+import { isLoreSlug, loreSubject } from "./loreSlug.js";
 import { translateDamageType } from "../../compendium/documentDetails.js";
 import {
   effectiveSpellRank,
@@ -109,6 +110,24 @@ export function proficiencyLabelFull(rank: number): string {
     default:
       return "Untrained";
   }
+}
+
+/**
+ * English row label for a Lore proficiency, e.g. "Lore (Abyssal History)".
+ *
+ * The subject comes from `loreSubject`, which understands both slug
+ * conventions, so a legacy `scribing-lore` renders as "Lore (Scribing)"
+ * instead of leaking the raw slug. A subject-less `lore` is just "Lore".
+ * Kept in EN on purpose — the pt-BR rendering is `skillNamePt`'s job.
+ */
+function loreLabel(slug: string): string {
+  const subject = loreSubject(slug);
+  if (!subject) return "Lore";
+  const titled = subject.replace(
+    /(^|\s)(\S)/g,
+    (_m, sep: string, ch: string) => sep + ch.toUpperCase(),
+  );
+  return `Lore (${titled})`;
 }
 
 // ---------------------------------------------------------------------------
@@ -1003,8 +1022,10 @@ export class CharacterSheetVM {
     const skillsSource =
       (this._system["skills"] as Record<string, { rank?: number; lore?: boolean }> | undefined) ??
       {};
-    const derivedSkills: Record<string, { total: number; dc: number; modifiers: unknown[] }> =
-      this._derived?.skills ?? {};
+    const derivedSkills: Record<
+      string,
+      { total: number; dc: number; modifiers: unknown[]; rank?: number }
+    > = this._derived?.skills ?? {};
 
     // Union of canonical slugs + whatever is present on the document (covers
     // lore skills, which have no canonical slug, and any derived-only entry).
@@ -1014,14 +1035,18 @@ export class CharacterSheetVM {
 
     const rows = Array.from(slugs).map((slug) => {
       const raw = skillsSource[slug];
-      const rank = raw?.rank ?? 0;
-      const isLore = raw?.lore === true;
-      const ability = isLore ? "int" : (CharacterSheetVM.SKILL_ABILITY[slug] ?? "int");
       const derivedStat = derivedSkills[slug];
+      // The derived rank wins: background/class training is computed on a clone
+      // the server never writes back, so `system.skills` can be silent about a
+      // proficiency the character really has. The persisted rank stays as the
+      // fallback — it is the only source for hand-set (pre-derived) ranks.
+      const rank = derivedStat?.rank ?? raw?.rank ?? 0;
+      // `raw.lore` only exists once the Lore was persisted; a Lore that so far
+      // lives only on the derived block is recognised by its slug shape.
+      const isLore = raw?.lore === true || isLoreSlug(slug);
+      const ability = isLore ? "int" : (CharacterSheetVM.SKILL_ABILITY[slug] ?? "int");
       const total = derivedStat?.total ?? 0;
-      const label = isLore
-        ? `Lore (${slug.replace(/^lore-/, "")})`
-        : (CharacterSheetVM.SKILL_LABELS[slug] ?? slug);
+      const label = isLore ? loreLabel(slug) : (CharacterSheetVM.SKILL_LABELS[slug] ?? slug);
 
       return {
         slug,

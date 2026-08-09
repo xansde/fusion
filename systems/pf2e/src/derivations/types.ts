@@ -53,6 +53,27 @@ export interface DerivedStatistic {
   readonly dc: number;
 }
 
+/**
+ * A resolved SKILL statistic — a `DerivedStatistic` that also carries the
+ * proficiency rank it was derived from.
+ *
+ * Why skills get their own type instead of a `rank` on `DerivedStatistic`:
+ * that base type is shared by AC, saves, perception and attacks, none of
+ * which has a rank the sheet has to render — widening it would ripple a
+ * meaningless field through the entire derivation surface.
+ *
+ * Why the rank has to travel on the derived data at all: a sheet cannot read
+ * it back from `system.skills.<slug>.rank`. Build-driven ranks (background,
+ * class and free skill selections) are computed during derivation and the
+ * server persists only `system.derived`, so the persisted rank stays 0 while
+ * `total` already includes the proficiency bonus — the sheet would label a
+ * trained skill "Untrained".
+ */
+export interface DerivedSkillStatistic extends DerivedStatistic {
+  /** Proficiency rank used to derive `base`: 0 untrained … 4 legendary. */
+  readonly rank: number;
+}
+
 // ---------------------------------------------------------------------------
 // Strike (derived from weapon/melee item)
 // ---------------------------------------------------------------------------
@@ -273,7 +294,7 @@ export interface CharacterDerived {
   readonly perception: DerivedStatistic;
 
   /** All 16 canonical skills (and any Lore skills). REQ-PF2-012 */
-  readonly skills: Record<string, DerivedStatistic>;
+  readonly skills: Record<string, DerivedSkillStatistic>;
 
   /** Class DC. REQ-PF2-016 */
   readonly classDC: {

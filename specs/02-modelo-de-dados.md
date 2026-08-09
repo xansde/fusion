@@ -356,8 +356,8 @@ embedded: Array<{ type, id }> }`, e DEVE rejeitar UUIDs malformados.
   `World`, `User`, `Folder`, `Actor`, `Item`, `Scene`, `JournalEntry`,
   `RollTable`, `Playlist`, `Macro`, `ChatMessage`, `Combat`, `Setting`.
 - **REQ-DOC-019** [MVP] O sistema DEVE implementar os Documents embedded:
-  `Token`, `Wall`, `Light`, `Sound`, `Tile`, `Drawing`, `Template`, `Note`
-  (todos embedded em `Scene`); `Combatant` (em `Combat`); `JournalPage`
+  `Token`, `Wall`, `Light`, `Sound`, `Tile`, `Drawing`, `Template`, `Note`,
+  `Overlay` (todos embedded em `Scene`); `Combatant` (em `Combat`); `JournalPage`
   (em `JournalEntry`); `TableResult` (em `RollTable`); `PlaylistSound`
   (em `Playlist`); `ActorEmbeddedItem` e `ActorEmbeddedEffect`/`ActiveEffect`
   (em `Actor`, e `ActiveEffect` também em `Item`).
@@ -366,7 +366,7 @@ embedded: Array<{ type, id }> }`, e DEVE rejeitar UUIDs malformados.
   mundial DEVE conter a EmbeddedCollection `effects`.
 - **REQ-DOC-021** [MVP] Cada `Scene` DEVE conter as EmbeddedCollections
   `tokens`, `walls`, `lights`, `sounds`, `tiles`, `drawings`, `templates`,
-  `notes`.
+  `notes`, `overlays`.
 - **REQ-DOC-022** [MVP] Os Documents `Cards`/`Card`, `Region`/`RegionBehavior`,
   `Level`, `Adventure`, `CombatantGroup` e `FogExploration` (como Document de
   primeira classe) NÃO fazem parte do MVP e DEVEM ser planejados como **[V2]**.
@@ -381,8 +381,8 @@ embedded: Array<{ type, id }> }`, e DEVE rejeitar UUIDs malformados.
   `_id`, suportar `get(id)`, iteração, e agrupamento por `type`
   (`getByType(subtype)`).
 - **REQ-DOC-025** [MVP] Documents embedded NÃO DEVEM possuir `ownership` próprio
-  (herdam do pai), com a única exceção de `JournalPage`, que PODE ter
-  `ownership` individual.
+  (herdam do pai), com duas exceções: `JournalPage` e `Note`, que PODEM ter
+  `ownership` individual (para `Note`, ver REQ-DOC-056).
 - **REQ-DOC-026** [MVP] Toda operação de escrita em um document embedded DEVE ser
   uma operação sobre o documento pai (o pai é a unidade de autoridade e de
   evento), via `createEmbeddedDocuments`/`updateEmbeddedDocuments`/
@@ -404,6 +404,37 @@ embedded: Array<{ type, id }> }`, e DEVE rejeitar UUIDs malformados.
 - **REQ-DOC-030** [MVP] O sistema DEVE expor `testUserLevel(document, user, min)`
   que retorna boolean (nível efetivo ≥ `min`). O _enforcement_ dessa checagem
   por operação CRUD é especificado em `ver 05-usuarios-e-permissoes.md`.
+
+### Visibilidade de Notes e Overlays de mapa
+
+- **REQ-DOC-056** [MVP] `Note` DEVE possuir `ownership` próprio (segunda exceção
+  de REQ-DOC-025). Na criação, o default DEVE ser `{ default: none }` — todo pin
+  nasce oculto. A **visibilidade efetiva** de um Note para um usuário DEVE ser o
+  máximo entre o nível pelo ownership próprio e o nível pelo ownership da
+  JournalEntry ou JournalPage vinculada (quando `entryId`/`pageId` presentes);
+  `global: true` equivale a `observer` para todos os usuários.
+- **REQ-DOC-057** [MVP] A semântica dos níveis para Notes DEVE ser: `none` — o
+  Note não existe para o usuário (não enviado, não renderizado); `limited` — o
+  usuário recebe apenas posição e um marcador genérico de "rumor" (sem nome,
+  ícone temático, tooltip, `entryId`/`pageId` ou `flags` de conteúdo);
+  `observer`+ — conteúdo completo. O render é normatizado em
+  `06-canvas-e-renderizacao.md` (REQ-CNV-057/058).
+- **REQ-DOC-058** [MVP] A redação de Notes DEVE ocorrer **no servidor**, no
+  mesmo módulo único de redação usado para hidden tokens e roll modes (alinha
+  REQ-NET-024 e `21-seguranca.md` §"Autorização e visibilidade"): o payload de
+  `Scene` enviado a cada usuário DEVE excluir Notes `none` e reduzir Notes
+  `limited` à forma redigida de REQ-DOC-057. Revelar ou rebaixar um Note
+  (update de `ownership`) DEVE disparar, para cada usuário afetado, o delta
+  correspondente (create/update/delete lógico).
+- **REQ-DOC-059** [MVP] `Overlay` é um embedded de `Scene` que representa uma
+  imagem sobreposta ao mapa da mesma cena (variante temática, anotação, andar),
+  com toggle de exibição. `hidden` DEVE ter default `true` (nasce oculto) e o
+  toggle é ação de GM. Overlays NÃO possuem `ownership` próprio — a
+  visibilidade é binária e global (todos os jogadores veem, ou nenhum).
+- **REQ-DOC-060** [MVP] Overlays com `hidden: true` DEVEM ser redigidos do
+  payload de usuários não-GM (mesmo pipeline de REQ-DOC-058) — inclusive o
+  caminho do asset (`src`), para não vazar conteúdo via rede/devtools. O toggle
+  do GM propaga aos jogadores como create/delete lógico do overlay.
 
 ### Herança token→actor
 
@@ -653,6 +684,7 @@ export interface SceneDocument extends BaseDocument {
   drawings: DrawingData[];
   templates: TemplateData[];
   notes: NoteData[];
+  overlays: OverlayData[];
 }
 
 export interface JournalEntryDocument extends BaseDocument {
@@ -866,6 +898,22 @@ export interface TemplateData {
   flags: FlagsRecord;
 }
 
+export interface OverlayData {
+  _id: DocumentId;
+  name: string; // rótulo no painel de camadas
+  src: string; // FilePath da imagem sobreposta
+  hidden: boolean; // default true — nasce oculto (REQ-DOC-059)
+  opacity: number; // 0..1, default 1
+  tint: string | null;
+  sort: number; // ordem de empilhamento entre overlays
+  // frame; null = alinhado ao retângulo do background da cena
+  x: number | null;
+  y: number | null;
+  width: number | null;
+  height: number | null;
+  flags: FlagsRecord;
+}
+
 export interface NoteData {
   _id: DocumentId;
   entryId: DocumentId | null; // soft ref para JournalEntry
@@ -881,6 +929,7 @@ export interface NoteData {
   textColor: string | null;
   textAnchor: number;
   global: boolean; // visível sem ownership da entry
+  ownership: OwnershipMap; // EXCEÇÃO: ownership próprio (REQ-DOC-025/056)
   flags: FlagsRecord;
 }
 
@@ -974,36 +1023,38 @@ export type ActorEmbeddedItem = Omit<ItemDocument, "ownership" | "folderId">;
 
 ### Tabela de capacidades por tipo
 
-| Document         | Categoria | `type`/`system`   | `ownership` próprio  | MVP |
-| ---------------- | --------- | ----------------- | -------------------- | --- |
-| World            | primário  | não               | não                  | MVP |
-| User             | primário  | não               | não                  | MVP |
-| Folder           | primário  | não               | não (INHERIT alvo)   | MVP |
-| Actor            | primário  | sim               | sim                  | MVP |
-| Item             | primário  | sim               | sim (quando mundial) | MVP |
-| Scene            | primário  | não               | sim                  | MVP |
-| JournalEntry     | primário  | não               | sim                  | MVP |
-| RollTable        | primário  | não               | sim                  | MVP |
-| Playlist         | primário  | não               | sim                  | MVP |
-| Macro            | primário  | sim (script/chat) | sim                  | MVP |
-| ChatMessage      | primário  | sim               | não (whisper/blind)  | MVP |
-| Combat           | primário  | não               | não                  | MVP |
-| Setting          | primário  | não               | não                  | MVP |
-| Token            | embedded  | via actorDelta    | herdado              | MVP |
-| Wall/Light/Sound | embedded  | não               | herdado              | MVP |
-| Tile/Drawing     | embedded  | não               | herdado              | MVP |
-| Template/Note    | embedded  | não               | herdado              | MVP |
-| Combatant        | embedded  | opcional          | herdado              | MVP |
-| JournalPage      | embedded  | sim               | **próprio**          | MVP |
-| TableResult      | embedded  | não               | herdado              | MVP |
-| PlaylistSound    | embedded  | não               | herdado              | MVP |
-| ActiveEffect     | embedded  | opcional          | herdado              | MVP |
-| Cards/Card       | —         | —                 | —                    | V2  |
-| Region/Behavior  | —         | —                 | —                    | V2  |
-| Level            | —         | —                 | —                    | V2  |
-| Adventure        | —         | —                 | —                    | V2  |
-| CombatantGroup   | —         | —                 | —                    | V2  |
-| FogExploration   | —         | —                 | —                    | V2  |
+| Document         | Categoria | `type`/`system`   | `ownership` próprio         | MVP |
+| ---------------- | --------- | ----------------- | --------------------------- | --- |
+| World            | primário  | não               | não                         | MVP |
+| User             | primário  | não               | não                         | MVP |
+| Folder           | primário  | não               | não (INHERIT alvo)          | MVP |
+| Actor            | primário  | sim               | sim                         | MVP |
+| Item             | primário  | sim               | sim (quando mundial)        | MVP |
+| Scene            | primário  | não               | sim                         | MVP |
+| JournalEntry     | primário  | não               | sim                         | MVP |
+| RollTable        | primário  | não               | sim                         | MVP |
+| Playlist         | primário  | não               | sim                         | MVP |
+| Macro            | primário  | sim (script/chat) | sim                         | MVP |
+| ChatMessage      | primário  | sim               | não (whisper/blind)         | MVP |
+| Combat           | primário  | não               | não                         | MVP |
+| Setting          | primário  | não               | não                         | MVP |
+| Token            | embedded  | via actorDelta    | herdado                     | MVP |
+| Wall/Light/Sound | embedded  | não               | herdado                     | MVP |
+| Tile/Drawing     | embedded  | não               | herdado                     | MVP |
+| Template         | embedded  | não               | herdado                     | MVP |
+| Note             | embedded  | não               | **próprio** (REQ-DOC-056)   | MVP |
+| Overlay          | embedded  | não               | herdado (`hidden`, GM-only) | MVP |
+| Combatant        | embedded  | opcional          | herdado                     | MVP |
+| JournalPage      | embedded  | sim               | **próprio**                 | MVP |
+| TableResult      | embedded  | não               | herdado                     | MVP |
+| PlaylistSound    | embedded  | não               | herdado                     | MVP |
+| ActiveEffect     | embedded  | opcional          | herdado                     | MVP |
+| Cards/Card       | —         | —                 | —                           | V2  |
+| Region/Behavior  | —         | —                 | —                           | V2  |
+| Level            | —         | —                 | —                           | V2  |
+| Adventure        | —         | —                 | —                           | V2  |
+| CombatantGroup   | —         | —                 | —                           | V2  |
+| FogExploration   | —         | —                 | —                           | V2  |
 
 ## API e eventos
 
