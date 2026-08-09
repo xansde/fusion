@@ -229,6 +229,24 @@ export function axisCategoryByOtherTag() {
 }
 
 /**
+ * otherTag → level do eixo (o nível de personagem em que a feature que CONCEDE
+ * a escolha é obtida).
+ *
+ * r25: existe porque o vendor zera `system.level.value` nas features que são
+ * OPÇÃO de um eixo (`Blessed Armament`/`Blessed Shield` do Champion vêm com 0),
+ * e 0 reprova o schema (`level >= 1`). O nível certo é o da feature concessora,
+ * que a curadoria já declara em `choiceAxes[].level` — este mapa é só o que
+ * ligava esse dado, até agora morto, ao transform.
+ */
+export function axisLevelByOtherTag() {
+  const out = new Map();
+  for (const cfg of loadClassCuration().values()) {
+    for (const axis of cfg.choiceAxes) out.set(axis.otherTag, axis.level);
+  }
+  return out;
+}
+
+/**
  * Nome canônico de uma class-feature a partir da uuid do `items{}` de uma
  * classe do vendor — o SEGMENTO FINAL da uuid, nunca o campo `name` da
  * entrada (no magus.json, `name` diz "Lightning Reflexes" e a uuid aponta

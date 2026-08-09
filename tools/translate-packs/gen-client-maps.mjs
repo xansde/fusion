@@ -46,6 +46,17 @@ const ACCENT_FIXES = {
   aberration: "aberração",
   acid: "ácido",
   agile: "ágil",
+  // r25 — traços das armas de fogo (Guns & Gears) e do Psychic. O glossário os
+  // guarda sem acento, como todo o resto; estes cinco precisam do acerto aqui
+  // porque são rótulo de chip visível ao jogador. Hífen preservado, igual a
+  // "two-hand-d12" → "duas-mãos-d12". Os outros nove traços novos
+  // (concussivo, coice, modular, capacidade-N, cano-duplo, fatal-dN,
+  // dispersão-10 é o único hifenizado com acento) não têm acento a corrigir.
+  amp: "amplificação",
+  concealable: "ocultável",
+  mindshift: "mudança-mental",
+  repeating: "repetição",
+  "scatter-10": "dispersão-10",
   alchemist: "alquimista",
   arcane: "arcano",
   archetype: "arquétipo",
