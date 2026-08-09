@@ -53,14 +53,14 @@ Estão todos na mesma pasta e usam a mesma numeração, mas não são a mesma co
 | ----------- | ---------- | -------------------------------------------------------------------------------------------------- |
 | **Charter** | `00`, `27` | Por quê, para quem, linhas vermelhas (`00`); fases e ordem de entrega (`27`). Não decide mecânica. |
 | **Área**    | `01`–`26`  | O sistema fatiado por subsistema. É o nível default.                                               |
-| **Recorte** | `29`+      | Feature que atravessa várias áreas (multiclasse, pets, minimapa, mapa de região).                  |
+| **Recorte** | `28`+      | Feature que atravessa várias áreas (Hub, multiclasse, pets, minimapa, mapa de região).             |
 
 Uma spec de **recorte** deve declarar, na seção Dependências, quais áreas ela atravessa e
 quais decisões dessas áreas ela **não pode contrariar**. Ela nunca redefine um requisito de
 uma área: cita.
 
-> A numeração reflete a ordem em que as specs nasceram, não a estrutura. `28` e `33`
-> estão vagos de propósito — ver §7.
+> A numeração reflete a ordem em que as specs nasceram, não a estrutura. `33` está
+> reservado — ver §7.
 
 ## 4. Identificadores
 
@@ -144,12 +144,14 @@ apagada sem rastro.
 
 ## 7. Lacunas conhecidas
 
-- **`28` — Hub do jogador**: reservada e ainda não escrita. É citada por
-  `docs/design/handoff-system-window-client.md` como bloqueio dos painéis de Missões e
-  Comitiva do System Window.
-- **`33` — API de Módulos/Mods**: número reservado para o contrato de extensão de
-  terceiros (ciclo de vida, pontos de extensão, sandbox e permissões). Hoje `00`
-  (`REQ-ESC-012`) fixa sistemas como pacotes compilados e trata plugin dinâmico como [V2].
+- ~~`28` — Hub do jogador~~ — escrita. Destrava os painéis de Missões e Comitiva do
+  System Window, que `docs/design/handoff-system-window-client.md` listava como bloqueados.
+- **`33` — Motor de Campanha**: reservada desde `docs/design/mapa-isekai.md` §C0 e citada
+  pela issue #90. É a dona do relógio de missão, das frentes e da autoria de campanha —
+  a spec `28` mostra o relógio, mas não o faz correr (DEC-HUB-08).
+- **API de Módulos/Mods**: sem número ainda. `00` (`REQ-ESC-012`) fixa sistemas como
+  pacotes compilados e trata plugin dinâmico como [V2]; quando a extensão de terceiros
+  virar trabalho, ela toma o próximo número livre (`35`).
 - ~~`DEC-` vs `D-`~~ — resolvido. As quatro grafias que conviviam (`D1`, `D-ARQ-01`,
   `DECISÃO-A11-01`, `DEC-MMT-01`) viraram `DEC-<ÁREA>-NN`: 115 títulos e 88 citações
   migrados, e a regra `decisao-canonica` barra a volta das formas antigas. Um `D4` citado

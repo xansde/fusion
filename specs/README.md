@@ -50,6 +50,7 @@ Estas specs foram geradas a partir da pesquisa em [`docs/research/`](../docs/res
 | 25  | [Testes e Qualidade](25-testes-e-qualidade.md)                       | Pirâmide de testes, golden tests 2e, CI        |
 | 26  | [Licenças e Legal](26-licencas-e-legal.md)                           | Clean-room, ORC/OGL, marcas, Etmos             |
 | 27  | [Roadmap e Milestones](27-roadmap-e-milestones.md)                   | Fases, dependências, definition of done        |
+| 28  | [Hub do Jogador](28-hub-do-jogador.md)                               | System Window, missões, comitiva, mapa         |
 | 29  | [Pets, Companions e Familiars](29-pets-companions-familiars.md)      | Familiars, animal companions, pets, mounts     |
 | 30  | [Multiclasse por Níveis](30-multiclasse-por-niveis.md)               | Regra variante: níveis de classe divididos     |
 | 31  | [Base Canônica de Conteúdo](31-base-canonica-de-conteudo.md)         | Segunda fonte, eixos de sub-escolha, portões   |
@@ -64,7 +65,7 @@ Os documentos desta pasta não são todos da mesma espécie (ver [`CONVENCOES.md
 | ----------- | ---------- | --------------------------------------------------------------------- |
 | **Charter** | `00`, `27` | Por quê, para quem, linhas vermelhas; fases e ordem de entrega.       |
 | **Área**    | `01`–`26`  | O sistema fatiado por subsistema. Nível default.                      |
-| **Recorte** | `29`+      | Feature que atravessa várias áreas; cita as áreas, nunca as redefine. |
+| **Recorte** | `28`+      | Feature que atravessa várias áreas; cita as áreas, nunca as redefine. |
 
 ## Registro de áreas (prefixos)
 
@@ -104,6 +105,7 @@ pelo `tools/spec-lint`; alterá-la sem mover os requisitos correspondentes quebr
 | `REQ-TST-`  | [25](25-testes-e-qualidade.md)            | Testes e qualidade               |
 | `REQ-LEG-`  | [26](26-licencas-e-legal.md)              | Licenças e legal                 |
 | `REQ-ROD-`  | [27](27-roadmap-e-milestones.md)          | Roadmap e milestones             |
+| `REQ-HUB-`  | [28](28-hub-do-jogador.md)                | Hub do jogador                   |
 | `REQ-PET-`  | [29](29-pets-companions-familiars.md)     | Pets, companions e familiars     |
 | `REQ-MCL-`  | [30](30-multiclasse-por-niveis.md)        | Multiclasse por níveis           |
 | `REQ-BC-`   | [31](31-base-canonica-de-conteudo.md)     | Base canônica de conteúdo        |
@@ -112,7 +114,7 @@ pelo `tools/spec-lint`; alterá-la sem mover os requisitos correspondentes quebr
 
 <!-- prefixos:end -->
 
-Números reservados e ainda não escritos: **28** (Hub do jogador) e **33** (API de Módulos/Mods).
+Número reservado e ainda não escrito: **33** (Motor de Campanha — relógios de missão, frentes, autoria).
 
 ## Stack fixada
 
