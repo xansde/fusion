@@ -139,9 +139,19 @@
 
     {#if levelPlan.autoFeatures.length > 0}
       <div class="level-card__auto">
-        {#each levelPlan.autoFeatures as feature (feature.name)}
+        <!--
+          Keyed by name + archetype: an Isekai blessing can share a name with
+          a class feature on the same card (both layers hand out things called
+          "Feat de Classe"), and a bare-name key would collide and drop one.
+        -->
+        {#each levelPlan.autoFeatures as feature (`${feature.isekai?.archetypeId ?? "class"}:${feature.name}`)}
           {@const chip = autoFeatureDisplay(feature)}
-          <PlanAutoChip name={chip.name} subName={chip.subName} onClick={() => onAutoFeatureClick(feature)} />
+          <PlanAutoChip
+            name={chip.name}
+            subName={chip.subName}
+            accent={feature.isekai?.color}
+            onClick={() => onAutoFeatureClick(feature)}
+          />
         {/each}
       </div>
     {/if}

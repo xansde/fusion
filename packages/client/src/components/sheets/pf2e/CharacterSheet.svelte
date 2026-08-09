@@ -37,10 +37,12 @@
   import ProficiencyBadge from "./ProficiencyBadge.svelte";
   import PlanColumn from "./plan/PlanColumn.svelte";
   import PetsTab from "./pets/PetsTab.svelte";
+  import IsekaiTab from "./isekai/IsekaiTab.svelte";
   import CompendiumPickerDialog from "./plan/CompendiumPickerDialog.svelte";
   import FilePicker from "../../assets/FilePicker.svelte";
   import ActorPortrait from "../../common/ActorPortrait.svelte";
   import { detectFamiliarGrant, linkedFamiliars } from "$lib/sheets/pf2e/petsVM.js";
+  import { getIsekaiVariant, getIsekaiArchetypes } from "$lib/sheets/pf2e/planVM.js";
   import { isPortraitPlaceholder } from "$lib/common/portrait.js";
   import { fusionApi } from "$lib/api.js";
   import { t, i18n } from "$lib/i18n/i18n.js";
@@ -167,15 +169,29 @@
 
   // Rendered tabs (r14 #8 pt-BR labels; r14 #16: "feats" REMOVED — the Plan
   // column covers everything the Feats tab showed, at the correct levels).
+  // Isekai layer: the tab exists only while the variant is on, mirroring how
+  // the Pets tab appears only for a character who can have one. The archetype
+  // ids are read HERE (one reader for the whole sheet) and handed down.
+  const isekaiSystem = $derived((liveDoc["system"] as Record<string, unknown> | undefined) ?? {});
+  const showIsekaiTab = $derived(getIsekaiVariant(isekaiSystem));
+  const isekaiArchetypeIds = $derived(getIsekaiArchetypes(isekaiSystem));
+
   const SHEET_TABS: ReadonlyArray<{ id: CharacterSheetTab; labelKey: string }> = $derived([
     { id: "main", labelKey: "FUSION.Sheet.Tabs.Main" },
     { id: "skills", labelKey: "FUSION.Sheet.Tabs.Skills" },
     { id: "actions", labelKey: "FUSION.Sheet.Tabs.Actions" },
     { id: "spells", labelKey: "FUSION.Sheet.Tabs.Spells" },
     ...(showPetsTab ? [{ id: "pets" as const, labelKey: "FUSION.Sheet.Tabs.Pets" }] : []),
+    ...(showIsekaiTab ? [{ id: "isekai" as const, labelKey: "FUSION.Sheet.Tabs.Isekai" }] : []),
     { id: "inventory", labelKey: "FUSION.Sheet.Tabs.Inventory" },
     { id: "bio", labelKey: "FUSION.Sheet.Tabs.Bio" },
   ]);
+
+  // Turning the variant OFF while its tab is open would leave the sheet on a
+  // panel that no longer has a button — fall back to Principal.
+  $effect(() => {
+    if (activeTab === "isekai" && !showIsekaiTab) activeTab = "main";
+  });
 
   // ---------------------------------------------------------------------------
   // Play / Edit mode toggle (REQ-UIF-023) — local UI state, does not persist.
@@ -1175,6 +1191,33 @@
         <div class="bio-details__row"><strong>{t("FUSION.Sheet.Bio.KeyAbility")}:</strong> {vm.detailsInfo.keyAbility || "—"}</div>
       </div>
       <p class="bio-text">{vm.biography}</p>
+    </section>
+
+  <!-- ISEKAI tab: Focus pool, spendable abilities, per-archetype trackers -->
+  {:else if activeTab === "isekai"}
+    <section
+      id="tab-panel-isekai"
+      role="tabpanel"
+      aria-labelledby="tab-isekai"
+      class="tab-panel tab-panel--isekai"
+    >
+      <!--
+        Sends ops DIRECTLY rather than through `scheduleUpdate`: that debouncer
+        keeps a single pending timer, so two discrete clicks inside the window
+        (spend a Focus point, then promote a companion) would drop the first
+        one. Debouncing is for typed fields; these are discrete actions.
+      -->
+      <IsekaiTab
+        doc={liveDoc}
+        {actorId}
+        archetypeIds={isekaiArchetypeIds}
+        editable={vm.editable}
+        {sendOpFn}
+        onSetFocus={(value) => {
+          const op = vm.setFocusPoints(value);
+          if (op) sendOpFn(op);
+        }}
+      />
     </section>
   {/if}
 

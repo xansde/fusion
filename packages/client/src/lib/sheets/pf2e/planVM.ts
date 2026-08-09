@@ -42,6 +42,12 @@ import type {
 } from "./characterSheetVM.js";
 import { translatePrerequisite } from "../../compendium/prerequisiteTranslation.js";
 import { isLoreSlug, legacyLoreSlug, loreSlug, migrateLoreSlug } from "./loreSlug.js";
+import {
+  MAX_ISEKAI_ARCHETYPES,
+  getIsekaiArchetype,
+  isekaiBlessingsAtLevel,
+  resolveIsekaiArchetypes,
+} from "./isekai/index.js";
 
 /**
  * `loreSlug` is re-exported so the historical `planVM.loreSlug` entry point
@@ -508,6 +514,26 @@ export interface PlanSlotModel {
   sourceId?: string;
 }
 
+/**
+ * Marks an auto feature as an ISEKAI blessing rather than a class feature.
+ *
+ * Present only on chips the Isekai layer contributes. Carries what the chip
+ * needs to render on its own — the layer has no compendium documents behind
+ * it, so there is nothing for the details panel to resolve and the text
+ * travels with the chip.
+ */
+export interface IsekaiChipInfo {
+  archetypeId: string;
+  /** Display name of the archetype, for the chip's source label. */
+  archetypeName: string;
+  /** `#rrggbb` accent, so both archetypes stay visually distinct on a card. */
+  color: string;
+  /** The blessing's rules text, pt-BR. May contain inline `<b>`. */
+  text: string;
+  /** "major" for the Dádiva Maior chip on level 1, "minor" for the ladder. */
+  kind: "major" | "minor";
+}
+
 export interface AutoFeatureModel {
   name: string;
   locked: true;
@@ -536,6 +562,13 @@ export interface AutoFeatureModel {
    * embedded copy instead.
    */
   sourceId?: string;
+  /**
+   * Present ONLY on an Isekai blessing chip. Mutually exclusive with
+   * `docId`/`sourceId`/`detailsPackSlug`: the layer's content lives in
+   * `./isekai/`, not in a pack, so a details lookup would find nothing (or
+   * worse, a same-named feat) — the chip carries its own text instead.
+   */
+  isekai?: IsekaiChipInfo;
 }
 
 export interface LevelPlanModel {
@@ -590,6 +623,86 @@ export function getClassLevelsVariant(sys: Record<string, unknown>): boolean {
   const build = asRecord(sys["build"]);
   const variantRules = asRecord(build["variantRules"]);
   return variantRules["classLevels"] === true;
+}
+
+// ---------------------------------------------------------------------------
+// Isekai layer — the variant's Plan surface (./isekai)
+// ---------------------------------------------------------------------------
+
+/** Is the Isekai variant on for this actor? */
+export function getIsekaiVariant(sys: Record<string, unknown>): boolean {
+  const build = asRecord(sys["build"]);
+  const variantRules = asRecord(build["variantRules"]);
+  return variantRules["isekai"] === true;
+}
+
+/**
+ * The archetype ids the sheet carries — real strings only.
+ *
+ * Never validated against the content here: an id the data no longer knows is
+ * dropped at RENDER time (`resolveIsekaiArchetypes`), not at read time, so the
+ * document keeps carrying it and a content edit that restores the archetype
+ * restores the character too.
+ */
+export function getIsekaiArchetypes(sys: Record<string, unknown>): string[] {
+  const isekai = asRecord(sys["isekai"]);
+  const raw = isekai["archetypes"];
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((id): id is string => typeof id === "string" && id.length > 0);
+}
+
+/**
+ * The Isekai chips for one level card: the Major Blessings on level 1, then
+ * the Minor Blessings that unlock exactly at this level, both archetypes
+ * merged in archetype order.
+ *
+ * Returns `[]` — costing nothing — when the variant is off or nothing is
+ * picked, which is what keeps the Plan byte-identical for every other sheet.
+ */
+function isekaiAutoFeatures(doc: Record<string, unknown>, level: number): AutoFeatureModel[] {
+  const sys = getSystem(doc);
+  if (!getIsekaiVariant(sys)) return [];
+  const archetypeIds = getIsekaiArchetypes(sys);
+  if (archetypeIds.length === 0) return [];
+
+  const chips: AutoFeatureModel[] = [];
+
+  // Level 1 carries the Major Blessing: it is what the archetype IS, and the
+  // character has it from the moment they pick it.
+  if (level === 1) {
+    for (const archetype of resolveIsekaiArchetypes(archetypeIds)) {
+      chips.push({
+        name: archetype.majorBlessing.title,
+        locked: true,
+        isekai: {
+          archetypeId: archetype.id,
+          archetypeName: archetype.name,
+          color: archetype.color,
+          // The Major Blessing is several paragraphs; the chip carries them
+          // joined so the details popover has the whole rule, not the first
+          // third of it.
+          text: archetype.majorBlessing.paragraphs.join(" "),
+          kind: "major",
+        },
+      });
+    }
+  }
+
+  for (const { archetype, blessing } of isekaiBlessingsAtLevel(archetypeIds, level)) {
+    chips.push({
+      name: blessing.name,
+      locked: true,
+      isekai: {
+        archetypeId: archetype.id,
+        archetypeName: archetype.name,
+        color: archetype.color,
+        text: blessing.text,
+        kind: "minor",
+      },
+    });
+  }
+
+  return chips;
 }
 
 /** A class the character already has on the sheet. */
@@ -1426,6 +1539,12 @@ function buildLevelPlan(
     autoSeen.add(norm);
     autoFeatures.push(chip);
   }
+  // Isekai blessings come LAST and skip the de-duplication above on purpose:
+  // they belong to a different layer, so an Isekai blessing sharing a name
+  // with a class feature (both archetypes have a "Feat de Classe"-shaped
+  // entry) is two real, separately-earned things — collapsing them would
+  // silently hide one.
+  autoFeatures.push(...isekaiAutoFeatures(doc, level));
 
   // Frente 3 (DEC-BC-05): mark, never hide/block, a filled slot whose
   // backing item no longer meets its requirement (a class/ancestry swap
@@ -3329,8 +3448,7 @@ function backgroundTrainingOps(
 
   const existingChoices = getBuildChoices(getSystem(ctx.doc));
   const keptChoices = existingChoices.filter(
-    (c) =>
-      !c.slot.startsWith(BACKGROUND_SKILL_SLOT) && !c.slot.startsWith(BACKGROUND_LORE_SLOT),
+    (c) => !c.slot.startsWith(BACKGROUND_SKILL_SLOT) && !c.slot.startsWith(BACKGROUND_LORE_SLOT),
   );
   // The strip has to run even when the incoming background grants NOTHING
   // (Hermit, Raised by Belief): it used to sit behind `newChoices.length > 0`,
@@ -4565,6 +4683,90 @@ export function setClassLevelsVariant(
   }
 
   return { type: "doc:update", documentType: "Actor", id: ctx.actorId, diff };
+}
+
+/**
+ * setIsekaiVariant — turn the Isekai layer on/off.
+ *
+ * Turning it OFF leaves the archetype picks and every tracker in place, just
+ * like `setClassLevelsVariant` keeps its split: the server ignores them while
+ * the toggle is false, and keeping them means flipping the switch back does
+ * not cost the player their Séquito, their Catálogo or their Essências.
+ */
+export function setIsekaiVariant(ctx: PlanOpBuilderContext, on: boolean): DocUpdatePayload | null {
+  if (!ctx.editable) return null;
+  return {
+    type: "doc:update",
+    documentType: "Actor",
+    id: ctx.actorId,
+    diff: { "system.build.variantRules.isekai": on },
+  };
+}
+
+/**
+ * toggleIsekaiArchetype — pick or un-pick one of the eight archetypes.
+ *
+ * Returns `null` — writing nothing — when the pick is not allowed:
+ *   - the sheet is not editable;
+ *   - the id is not one of the eight (never write junk into a document);
+ *   - the character already carries `MAX_ISEKAI_ARCHETYPES` and this would be
+ *     one more. Two is the layer's whole balance premise, so the cap is
+ *     enforced here AND in the schema — a cap that only the UI knows about is
+ *     a cap that a hand-edited document walks straight through.
+ *
+ * Un-picking removes ONLY the id. The tracker state stays: it is the log of a
+ * whole campaign, and a mis-click on the selector must not delete it.
+ */
+export function toggleIsekaiArchetype(
+  ctx: PlanOpBuilderContext,
+  archetypeId: string,
+): DocUpdatePayload | null {
+  if (!ctx.editable) return null;
+  if (!getIsekaiArchetype(archetypeId)) return null;
+
+  const current = getIsekaiArchetypes(getSystem(ctx.doc));
+  const picked = current.includes(archetypeId);
+  if (!picked && current.length >= MAX_ISEKAI_ARCHETYPES) return null;
+
+  const next = picked ? current.filter((id) => id !== archetypeId) : [...current, archetypeId];
+
+  return {
+    type: "doc:update",
+    documentType: "Actor",
+    id: ctx.actorId,
+    diff: { "system.isekai.archetypes": next },
+  };
+}
+
+/**
+ * setIsekaiTracker — write one archetype's tracker state.
+ *
+ * Scoped to a single `(archetype, tracker)` path so two trackers edited in the
+ * same breath never clobber each other: the diff touches one leaf, not the
+ * whole `system.isekai.trackers` object.
+ *
+ * Refuses to write for an archetype the character does not carry, or a tracker
+ * that archetype does not have — the UI cannot produce either, so reaching
+ * here means something is wrong and writing would put state on the sheet that
+ * nothing will ever render or clean up.
+ */
+export function setIsekaiTracker(
+  ctx: PlanOpBuilderContext,
+  archetypeId: string,
+  trackerId: string,
+  state: unknown,
+): DocUpdatePayload | null {
+  if (!ctx.editable) return null;
+  if (!getIsekaiArchetypes(getSystem(ctx.doc)).includes(archetypeId)) return null;
+  const archetype = getIsekaiArchetype(archetypeId);
+  if (!archetype || archetype.tracker?.id !== trackerId) return null;
+
+  return {
+    type: "doc:update",
+    documentType: "Actor",
+    id: ctx.actorId,
+    diff: { [`system.isekai.trackers.${archetypeId}.${trackerId}`]: state },
+  };
 }
 
 /**
