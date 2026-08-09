@@ -62,6 +62,10 @@
     addLoreSkill,
     detailsRequestForSlot,
     detailsRequestForAutoFeature,
+    getIsekaiVariant,
+    getIsekaiArchetypes,
+    setIsekaiVariant,
+    toggleIsekaiArchetype,
     detailsRequestForAbcChip,
     buildContentNameTranslator,
     abilityBoostsGrid,
@@ -101,6 +105,9 @@
   import AbilityBoostsDialog from "./AbilityBoostsDialog.svelte";
   import SkillTrainingDialog from "./SkillTrainingDialog.svelte";
   import KineticGateDialog from "./KineticGateDialog.svelte";
+  import IsekaiArchetypeSelector from "./IsekaiArchetypeSelector.svelte";
+  import IsekaiBlessingDialog from "./IsekaiBlessingDialog.svelte";
+  import type { IsekaiChipInfo } from "../../../../lib/sheets/pf2e/planVM.js";
   import { t, i18n } from "../../../../lib/i18n/i18n.js";
   import { session, getSocket } from "../../../../lib/session.svelte.js";
   import {
@@ -830,6 +837,12 @@
   }
 
   function handleAutoFeatureClick(level: number, feature: AutoFeatureModel): void {
+    // An Isekai blessing has no compendium document — it explains itself from
+    // the chip, with no socket round-trip and no failure mode.
+    if (feature.isekai) {
+      isekaiDetails = { ...feature.isekai, name: feature.name };
+      return;
+    }
     detailsRequest = detailsRequestForAutoFeature(feature, level);
   }
 
@@ -1121,6 +1134,29 @@
         : false,
     ),
   );
+
+  // ---------------------------------------------------------------------------
+  // Isekai layer (./isekai)
+  // ---------------------------------------------------------------------------
+
+  const docSystem = $derived((doc["system"] as Record<string, unknown> | undefined) ?? {});
+  const isekaiOn = $derived(getIsekaiVariant(docSystem));
+  const isekaiArchetypes = $derived(getIsekaiArchetypes(docSystem));
+
+  /** The blessing whose details dialog is open, if any. */
+  let isekaiDetails = $state<(IsekaiChipInfo & { name: string }) | null>(null);
+
+  function toggleIsekai(): void {
+    const op = setIsekaiVariant(opCtx, !isekaiOn);
+    if (op) sendOpFn(op);
+  }
+
+  function handleIsekaiArchetype(archetypeId: string): void {
+    // Returns null when the pick is not allowed (cap reached, unknown id) —
+    // the selector already disables those, so a null here means nothing to do.
+    const op = toggleIsekaiArchetype(opCtx, archetypeId);
+    if (op) sendOpFn(op);
+  }
 </script>
 
 <div class="plan-column">
@@ -1186,6 +1222,23 @@
       <input type="checkbox" checked={classLevelsOn} onchange={toggleClassLevels} />
       {t("FUSION.Sheet.Plan.ClassLevelsToggle")}
     </label>
+    <label class="plan-column__toggle">
+      <input type="checkbox" checked={isekaiOn} onchange={toggleIsekai} />
+      {t("FUSION.Sheet.Plan.IsekaiToggle")}
+    </label>
+  {/if}
+
+  <!--
+    The selector only exists while the layer is on. Rendered for read-only
+    viewers too (non-editable): a player looking at someone else's sheet still
+    needs to see WHICH archetypes that character carries.
+  -->
+  {#if isekaiOn}
+    <IsekaiArchetypeSelector
+      selected={isekaiArchetypes}
+      {editable}
+      onToggle={handleIsekaiArchetype}
+    />
   {/if}
 
   {#if plan.needsClass}
@@ -1292,6 +1345,10 @@
 
 {#if detailsRequest}
   <PlanDetailsDialog request={detailsRequest} onClose={() => { detailsRequest = null; }} />
+{/if}
+
+{#if isekaiDetails}
+  <IsekaiBlessingDialog blessing={isekaiDetails} onClose={() => { isekaiDetails = null; }} />
 {/if}
 
 {#if boostsDialogTarget}

@@ -246,7 +246,13 @@ export type CharacterSheetTab =
   | "spells"
   | "pets"
   | "inventory"
-  | "bio";
+  | "bio"
+  /**
+   * Isekai layer (variants/isekai) — Focus pool, spendable abilities and the
+   * per-archetype trackers. Shown ONLY while the variant is on, like "pets"
+   * is shown only when the character has one.
+   */
+  | "isekai";
 
 // ---------------------------------------------------------------------------
 // Row types for the sheet UI
