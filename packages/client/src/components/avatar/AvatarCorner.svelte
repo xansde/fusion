@@ -28,6 +28,7 @@
   import { worldMirror } from "$lib/docs/worldSync.js";
   import { combatStore } from "$lib/combat/combatStore.svelte.js";
   import { session } from "$lib/session.svelte.js";
+  import { sidebarState } from "$lib/scenes/scenesState.svelte.js";
   import { t } from "$lib/i18n/i18n.js";
   import AvatarSprite from "./AvatarSprite.svelte";
 
@@ -94,7 +95,12 @@
 </script>
 
 {#if catalogo !== null && meu !== null}
-  <div class="avatar-canto" class:avatar-canto--estatico={reduzirMovimento} class:avatar-canto--combate={emCombate}>
+  <div
+    class="avatar-canto"
+    class:avatar-canto--estatico={reduzirMovimento}
+    class:avatar-canto--combate={emCombate}
+    class:avatar-canto--recuado={sidebarState.open}
+  >
     {#if onAbrirFicha !== undefined}
       <button
         type="button"
@@ -135,7 +141,15 @@
     pointer-events: none;
     position: fixed;
     right: 0.75rem;
+    /* Slides together with the sidebar toggle instead of jumping. */
+    transition: right var(--fusion-transition);
     z-index: var(--fusion-z-region);
+  }
+
+  /* The sidebar is a fixed overlay on the same right edge; when it is open the
+     avatar steps left by its width so it stands on the map, not on the chat. */
+  .avatar-canto--recuado {
+    right: calc(var(--fusion-sidebar-width) + 0.75rem);
   }
 
   .avatar-canto--estatico {
