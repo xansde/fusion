@@ -96,25 +96,11 @@ const CONTEUDO_EXIGIDO: ReadonlyArray<readonly [pack: string, name: string]> = [
  * `regra:<slug>`           — the document exists, the rule around it does not.
  */
 const LACUNAS: Readonly<Record<string, string>> = {
-  // Bloco 1 — Gunslinger/Psychic never curated (both exist in the vendor).
-  "conteudo:classes-core/Gunslinger": "bloco 1 — curar a classe",
-  "conteudo:class-features-core/Gunslinger's Way": "bloco 1 — vem com a classe",
-  "conteudo:class-features-core/Slinger's Precision": "bloco 1 — vem com a classe",
-  "conteudo:class-features-core/Way of the Spellshot": "bloco 1 — eixo `way`",
-  "conteudo:feats-core/Munitions Crafter": "bloco 1 — talento de classe do Gunslinger",
-  "conteudo:feats-core/Psychic Dedication": "bloco 1 — exige curar a Psychic",
-  "conteudo:class-features-core/The Oscillating Wave": "bloco 1 — eixo `conscious-mind`",
-
-  // Bloco 2 — the level-1 archetype route is closed by TWO independent gates.
+  // Bloco 2 — the level-1 archetype route. The pack half is CLOSED (r25: the
+  // Ancient Elf's ChoiceSet now converts to a `feat-choice` descriptor), so what
+  // is left here is only the builder half: the picker still refuses a dedication
+  // in a class feat slot.
   "regra:dedicacao-nao-cabe-em-slot-de-classe": "bloco 2 — planVM.ts:1919 (é a regra RAW)",
-  "regra:ancient-elf-choiceset-inerte": "bloco 2 — ChoiceSet marcado unsupported no pack",
-
-  // Bloco 4 — no firearm was ever published to weapons-core.
-  "conteudo:weapons-core/Slide Pistol": "bloco 4 — 0 de 106 armas de fogo publicadas",
-
-  // Found while measuring this sheet: the Elf's own sense is not a document in
-  // ANY pack, which hits every low-light ancestry, not just this one.
-  "conteudo:ancestry-features-core/Low-Light Vision": "achado novo — sentido sem documento",
 };
 
 function nomesDoPack(slug: string): Set<string> {
@@ -211,6 +197,25 @@ describe("ficha-alvo: export real do Pathbuilder (Fofurinha, Gunslinger/Spellsho
       ["actions-core", "Thoughtful Reload"],
       ["actions-core", "Energy Shot"],
       ["spells-core", "Ignition"],
+
+      // --- r25: closed by this rodada; listed here so a reimport that drops
+      // them fails HERE instead of silently widening LACUNAS. ---
+      // Bloco 1 — Gunslinger and Psychic curated (curation/classes/*.json).
+      ["classes-core", "Gunslinger"],
+      ["class-features-core", "Gunslinger's Way"],
+      ["class-features-core", "Slinger's Precision"],
+      ["class-features-core", "Way of the Spellshot"],
+      ["class-features-core", "The Oscillating Wave"],
+      ["feats-core", "Munitions Crafter"],
+      // Reaches feats-core through classFeats.extraNames (it carries the
+      // archetype/dedication/multiclass traits, never the `psychic` trait).
+      ["feats-core", "Psychic Dedication"],
+      // Bloco 4 — "firearm" added to WEAPON_GROUPS; 12 firearms published.
+      ["weapons-core", "Slide Pistol"],
+      // Authored, like the Smuggler — the vendor carries this sense only as the
+      // ancestry scalar `system.vision`, never as a document. See
+      // LOW_LIGHT_VISION_AUTHORED_DOC in build-mvp-subset.mjs.
+      ["ancestry-features-core", "Low-Light Vision"],
     ];
     for (const [pack, name] of presentes) {
       expect(nomesDoPack(pack).has(name), `${pack} perdeu ${name}`).toBe(true);

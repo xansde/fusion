@@ -141,6 +141,19 @@ const KNOWN_DIVERGENCES: Record<string, string> = {
   // entry, and the upgrade table covers neither Fortitude nor spellcasting.
   "Cleric/classSystem.attacks.other": "#50",
 
+  // #50 (same family, r25) — the Gunslinger's chassis grants Expert in FIREARMS
+  // and crossbows specifically: `attacks.other = {name: "Simple Firearms,
+  // Martial Firearms", rank: 2}` plus three MartialProficiency rules whose
+  // `definition` narrows to `{or:[item:group:firearm, item:group:crossbow]}`.
+  // transform.mjs drops `attacks.other` outright (`if (key === "other")
+  // continue`) and nothing reads the surviving MartialProficiency rules, so the
+  // rank has nowhere to land. Deliberately NOT curated as
+  // `proficiencyUpgradeExtras`: the only expressible translation today is
+  // `weapons.simple: 2`, which would grant Expert in EVERY simple weapon — more
+  // generous than the rule, i.e. wrong. Needs named/narrowed weapon
+  // proficiency, which is the same gap as "expert in Slide Pistol".
+  "Gunslinger/classSystem.attacks.other": "#50",
+
   // #49 — the skill increase ceiling (Master needs level 7, Legendary 15) is
   // not implemented anywhere, so EVERY class breaks it. This is the defect
   // that proves the point of this suite: the internal sweep has no pack table
@@ -150,9 +163,15 @@ const KNOWN_DIVERGENCES: Record<string, string> = {
   "Champion/skillIncreaseCeiling": "#49",
   "Cleric/skillIncreaseCeiling": "#49",
   "Fighter/skillIncreaseCeiling": "#49",
+  // r25: the two classes curated this rodada break it the same way as the other
+  // 12 — the ceiling is not implemented anywhere, so it is class-agnostic. The
+  // pregens are Nhalmika (Gunslinger) and Thaleon (Psychic), which this suite
+  // now sweeps for free because they entered classes-core.
+  "Gunslinger/skillIncreaseCeiling": "#49",
   "Kineticist/skillIncreaseCeiling": "#49",
   "Magus/skillIncreaseCeiling": "#49",
   "Monk/skillIncreaseCeiling": "#49",
+  "Psychic/skillIncreaseCeiling": "#49",
   "Ranger/skillIncreaseCeiling": "#49",
   "Rogue/skillIncreaseCeiling": "#49",
   "Sorcerer/skillIncreaseCeiling": "#49",

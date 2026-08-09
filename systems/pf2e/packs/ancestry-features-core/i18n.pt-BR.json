@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "packId": "pf2e.ancestry-features-core",
   "locale": "pt-BR",
-  "generatedAt": "2026-07-07T18:12:58.751Z",
+  "generatedAt": "2026-08-08T21:39:02.603Z",
   "generator": "tools/translate-packs@0.1.0",
   "attribution": "Tradução pt-BR derivada (fan-content) do texto ORC/OGL em inglês do pack; NÃO é a tradução oficial brasileira. Texto-fonte: foundryvtt/pf2e (ORC/OGL por documento).",
   "entries": {
@@ -90,6 +90,11 @@
       "name": "Presas (Nagaji)",
       "sourceHash": "0fc9cf2641c1304c721037ae16fe39e46be7ecb8",
       "description": "<p>Sua boca contém fileiras de dentes curvos e afiados como agulhas ou um par de presas viperinas cruéis. Você ganha um ataque desarmado de presas que causa 1d6 de dano perfurante. Suas presas pertencem ao grupo de briga e têm os traços precisão e desarmado.</p>"
+    },
+    "FusionLowLight01": {
+      "name": "Visão na Penumbra",
+      "sourceHash": "302605ced0ce1fc7b5a1de392dadd3b085de3c63",
+      "description": "<p>Você enxerga na luz fraca tão bem quanto enxerga sob luz intensa, portanto você ignora a condição @UUID[Compendium.pf2e.conditionitems.Item.Concealed] causada por luz fraca.</p>"
     },
     "GCITp1rcVzrRJZa0": {
       "name": "Benefícios de Morto-Vivo Avançados",

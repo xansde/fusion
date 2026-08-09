@@ -86,6 +86,10 @@ export const WEAPON_GROUPS = [
   "club",
   "crossbow",
   "dart",
+  // r25: firearms. The group exists in the PF2e data (104 vendor weapons carry
+  // `group: "firearm"`); it was simply never in this enum, so every firearm
+  // failed WeaponSystemSchema. Widening only — no switch/map is keyed by group.
+  "firearm",
   "flail",
   "hammer",
   "knife",

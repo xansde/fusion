@@ -7461,6 +7461,88 @@
     }
   },
   {
+    "_id": "Wsxo8cQdOwRGic4Q",
+    "uuid": "Compendium.pf2e.feats-core.Item.Wsxo8cQdOwRGic4Q",
+    "name": "Basic Psychic Spellcasting",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Basic Psychic Spellcasting",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "archetype"
+      ],
+      "flags.fusion.sourceId": "ePKe13FzKWaQqLo6"
+    }
+  },
+  {
+    "_id": "yeZrr3S1wusVrGJn",
+    "uuid": "Compendium.pf2e.feats-core.Item.yeZrr3S1wusVrGJn",
+    "name": "Expert Psychic Spellcasting",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Expert Psychic Spellcasting",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "archetype"
+      ],
+      "flags.fusion.sourceId": "RJmnFuaGLXfhX3It"
+    }
+  },
+  {
+    "_id": "1amXOvHtJAlFnW9e",
+    "uuid": "Compendium.pf2e.feats-core.Item.1amXOvHtJAlFnW9e",
+    "name": "Master Psychic Spellcasting",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Master Psychic Spellcasting",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": [
+        "archetype"
+      ],
+      "flags.fusion.sourceId": "PzbfpOQXOjpUWKkL"
+    }
+  },
+  {
+    "_id": "HMNSI1zu9djN8Mc4",
+    "uuid": "Compendium.pf2e.feats-core.Item.HMNSI1zu9djN8Mc4",
+    "name": "Psi Development",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Psi Development",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "archetype"
+      ],
+      "flags.fusion.sourceId": "HkbP5zbN2meRiP7w"
+    }
+  },
+  {
+    "_id": "318COE0WBPK7alLM",
+    "uuid": "Compendium.pf2e.feats-core.Item.318COE0WBPK7alLM",
+    "name": "Psychic Dedication",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Psychic Dedication",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": [
+        "archetype",
+        "dedication",
+        "multiclass"
+      ],
+      "flags.fusion.sourceId": "OW3W2vMARiojda7e"
+    }
+  },
+  {
     "_id": "bJ4chHbIm6GH2bq2",
     "uuid": "Compendium.pf2e.feats-core.Item.bJ4chHbIm6GH2bq2",
     "name": "Resourceful Ritualist",
@@ -7663,6 +7745,24 @@
         "skill"
       ],
       "flags.fusion.sourceId": "d86XC1EmGQ7erkul"
+    }
+  },
+  {
+    "_id": "cxy1j3V49XU73ALO",
+    "uuid": "Compendium.pf2e.feats-core.Item.cxy1j3V49XU73ALO",
+    "name": "Spellshot Dedication",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Spellshot Dedication",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": [
+        "archetype",
+        "class",
+        "dedication"
+      ],
+      "flags.fusion.sourceId": "BwDIwjHasZwcd61Z"
     }
   },
   {
@@ -14472,6 +14572,1084 @@
     }
   },
   {
+    "_id": "NoVUvLxPiOeFpWhG",
+    "uuid": "Compendium.pf2e.feats-core.Item.NoVUvLxPiOeFpWhG",
+    "name": "Blast Lock",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Blast Lock",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "attack",
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "XLoRtMn48f2KKvsu"
+    }
+  },
+  {
+    "_id": "tAXIEDm0937naGCn",
+    "uuid": "Compendium.pf2e.feats-core.Item.tAXIEDm0937naGCn",
+    "name": "Cover Fire",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Cover Fire",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "IzkL60LlKzbKIhY1"
+    }
+  },
+  {
+    "_id": "Z7qQb85Jc6HpQrXE",
+    "uuid": "Compendium.pf2e.feats-core.Item.Z7qQb85Jc6HpQrXE",
+    "name": "Crossbow Crack Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Crossbow Crack Shot",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "s6h0xkdKf3gecLk6"
+    }
+  },
+  {
+    "_id": "TJQswSTaKwJx8jfB",
+    "uuid": "Compendium.pf2e.feats-core.Item.TJQswSTaKwJx8jfB",
+    "name": "Dual-Weapon Reload",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dual-Weapon Reload",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "sjChYEuEWPqndCSK"
+    }
+  },
+  {
+    "_id": "oWdJb6q0bE5bmCfg",
+    "uuid": "Compendium.pf2e.feats-core.Item.oWdJb6q0bE5bmCfg",
+    "name": "Hit the Dirt!",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Hit the Dirt!",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "6LFBPpPPJjDq07fg"
+    }
+  },
+  {
+    "_id": "6rF1ff41CMeEFPMY",
+    "uuid": "Compendium.pf2e.feats-core.Item.6rF1ff41CMeEFPMY",
+    "name": "Munitions Crafter",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Munitions Crafter",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "lFVqejlf52cdYrZy"
+    }
+  },
+  {
+    "_id": "eohmUWXRVU1BUYRM",
+    "uuid": "Compendium.pf2e.feats-core.Item.eohmUWXRVU1BUYRM",
+    "name": "Sword and Pistol",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sword and Pistol",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "dWbISC0di0r4oPCi"
+    }
+  },
+  {
+    "_id": "lyty8o5vT6L306lx",
+    "uuid": "Compendium.pf2e.feats-core.Item.lyty8o5vT6L306lx",
+    "name": "Called Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Called Shot",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": [
+        "flourish",
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "b7KZ7Fg5u5z2gqvt"
+    }
+  },
+  {
+    "_id": "oMP2sYteOS3Fkf3N",
+    "uuid": "Compendium.pf2e.feats-core.Item.oMP2sYteOS3Fkf3N",
+    "name": "Deflecting Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Deflecting Shot",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "ToZw6ZjB0JhWwMeR"
+    }
+  },
+  {
+    "_id": "EPTs7OgxkSZ7LqHK",
+    "uuid": "Compendium.pf2e.feats-core.Item.EPTs7OgxkSZ7LqHK",
+    "name": "Penetrating Fire",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Penetrating Fire",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "YlaLePtgDXGB0Fsf"
+    }
+  },
+  {
+    "_id": "sXQzetTnsmk9AWLr",
+    "uuid": "Compendium.pf2e.feats-core.Item.sXQzetTnsmk9AWLr",
+    "name": "Precious Munitions",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Precious Munitions",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "vxDL78Yz0dPZdAJ5"
+    }
+  },
+  {
+    "_id": "pJxoXSooh9ZZOIi7",
+    "uuid": "Compendium.pf2e.feats-core.Item.pJxoXSooh9ZZOIi7",
+    "name": "Rebounding Assault",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Rebounding Assault",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "lIr2kC561L7oX290"
+    }
+  },
+  {
+    "_id": "KSZ1ym7DL372SufW",
+    "uuid": "Compendium.pf2e.feats-core.Item.KSZ1ym7DL372SufW",
+    "name": "Redirecting Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Redirecting Shot",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": [
+        "fortune",
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "HKNOA5WGBWGEpdmH"
+    }
+  },
+  {
+    "_id": "1SrCG49CEvZqDxxv",
+    "uuid": "Compendium.pf2e.feats-core.Item.1SrCG49CEvZqDxxv",
+    "name": "Trick Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Trick Shot",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "ySr510TkpUO3N6Ty"
+    }
+  },
+  {
+    "_id": "OGcoCPi6I2dqfVyu",
+    "uuid": "Compendium.pf2e.feats-core.Item.OGcoCPi6I2dqfVyu",
+    "name": "Twin Shot Knockdown",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Twin Shot Knockdown",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "aWk0JaqVaUf2Cz9a"
+    }
+  },
+  {
+    "_id": "V7lGtJpErAKkhkZ3",
+    "uuid": "Compendium.pf2e.feats-core.Item.V7lGtJpErAKkhkZ3",
+    "name": "Blood in the Air",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Blood in the Air",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "concentrate",
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "7spk6rZPiNk2S0yA"
+    }
+  },
+  {
+    "_id": "nLlYJgfqbqbl9sgu",
+    "uuid": "Compendium.pf2e.feats-core.Item.nLlYJgfqbqbl9sgu",
+    "name": "Deadeye",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Deadeye",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "concentrate",
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "NJyyxInJ743OotKf"
+    }
+  },
+  {
+    "_id": "WtR2OK0gNc20Hw6A",
+    "uuid": "Compendium.pf2e.feats-core.Item.WtR2OK0gNc20Hw6A",
+    "name": "Flesh Wound",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Flesh Wound",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "Xdf00Kmv5C3qqrtK"
+    }
+  },
+  {
+    "_id": "4iJTd896JKVBajxM",
+    "uuid": "Compendium.pf2e.feats-core.Item.4iJTd896JKVBajxM",
+    "name": "Ricochet Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ricochet Shot",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "concentrate",
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "c7mCj6wUdb47rrnw"
+    }
+  },
+  {
+    "_id": "M7nzRivbUm0Ara1r",
+    "uuid": "Compendium.pf2e.feats-core.Item.M7nzRivbUm0Ara1r",
+    "name": "Shattering Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Shattering Shot",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "7r79fZBr37qBN2EF"
+    }
+  },
+  {
+    "_id": "x4J7eP8eJ2dG94G7",
+    "uuid": "Compendium.pf2e.feats-core.Item.x4J7eP8eJ2dG94G7",
+    "name": "Shooter's Camouflage",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Shooter's Camouflage",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "rqUJULinzDCUgimM"
+    }
+  },
+  {
+    "_id": "QJW7KmuoVYOlQJ6z",
+    "uuid": "Compendium.pf2e.feats-core.Item.QJW7KmuoVYOlQJ6z",
+    "name": "Unshakable Grit",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Unshakable Grit",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "eGZzifQWCf5gSq2y"
+    }
+  },
+  {
+    "_id": "yOtuFKzqCsa24X6E",
+    "uuid": "Compendium.pf2e.feats-core.Item.yOtuFKzqCsa24X6E",
+    "name": "Blast Tackle",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Blast Tackle",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "r4ZVpDjX2X0yrmhw"
+    }
+  },
+  {
+    "_id": "Hx84ZKWsHnwIxIYg",
+    "uuid": "Compendium.pf2e.feats-core.Item.Hx84ZKWsHnwIxIYg",
+    "name": "Come at Me!",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Come at Me!",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "MfvkZ9efD013H34Z"
+    }
+  },
+  {
+    "_id": "HXYVpiZGb4POns2T",
+    "uuid": "Compendium.pf2e.feats-core.Item.HXYVpiZGb4POns2T",
+    "name": "Dance of Thunder",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dance of Thunder",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": [
+        "concentrate",
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "bSC18SbdaNXfBHu9"
+    }
+  },
+  {
+    "_id": "N9NMFda2SlYZSy5a",
+    "uuid": "Compendium.pf2e.feats-core.Item.N9NMFda2SlYZSy5a",
+    "name": "Disruptive Blur",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Disruptive Blur",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "UzuMXY8G88ULDRex"
+    }
+  },
+  {
+    "_id": "DFWqDLw2SoJSfwED",
+    "uuid": "Compendium.pf2e.feats-core.Item.DFWqDLw2SoJSfwED",
+    "name": "Headshot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Headshot",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": [
+        "concentrate",
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "Q4NiHmThMtk8razS"
+    }
+  },
+  {
+    "_id": "8VzSEZT1krxsvkkj",
+    "uuid": "Compendium.pf2e.feats-core.Item.8VzSEZT1krxsvkkj",
+    "name": "Showstopper",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Showstopper",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "UZpBsHE57rmS0x6S"
+    }
+  },
+  {
+    "_id": "V7ONt90qFvhRoLDD",
+    "uuid": "Compendium.pf2e.feats-core.Item.V7ONt90qFvhRoLDD",
+    "name": "Triggerbrand Blitz",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Triggerbrand Blitz",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "A7uJCDT9odsuwlqW"
+    }
+  },
+  {
+    "_id": "HhSPGYgptQy4DD97",
+    "uuid": "Compendium.pf2e.feats-core.Item.HhSPGYgptQy4DD97",
+    "name": "Two-Weapon Fusillade",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Two-Weapon Fusillade",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": [
+        "flourish",
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "VW0Tp5rJDRjaJuSn"
+    }
+  },
+  {
+    "_id": "0s1cjpqOWRBaFK8W",
+    "uuid": "Compendium.pf2e.feats-core.Item.0s1cjpqOWRBaFK8W",
+    "name": "Fatal Bullet",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Fatal Bullet",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "qwnyuCsl5YvX0fdY"
+    }
+  },
+  {
+    "_id": "cuownBSFWO2Rmfa4",
+    "uuid": "Compendium.pf2e.feats-core.Item.cuownBSFWO2Rmfa4",
+    "name": "Hair Trigger",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Hair Trigger",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "aviDW7htxA77iarV"
+    }
+  },
+  {
+    "_id": "ECJ4AEBbk7AjazFn",
+    "uuid": "Compendium.pf2e.feats-core.Item.ECJ4AEBbk7AjazFn",
+    "name": "Instant Return",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Instant Return",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "mDczSj3GolIbkhGJ"
+    }
+  },
+  {
+    "_id": "qwszpf8SJS0W7ZUL",
+    "uuid": "Compendium.pf2e.feats-core.Item.qwszpf8SJS0W7ZUL",
+    "name": "Ricochet Master",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ricochet Master",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "qkHVva51N6H8NNGR"
+    }
+  },
+  {
+    "_id": "9H5ofXDRM6aweztF",
+    "uuid": "Compendium.pf2e.feats-core.Item.9H5ofXDRM6aweztF",
+    "name": "Final Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Final Shot",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "K9hM3AdWGbU3VE8L"
+    }
+  },
+  {
+    "_id": "RWnPtGKuISZvcx59",
+    "uuid": "Compendium.pf2e.feats-core.Item.RWnPtGKuISZvcx59",
+    "name": "Piercing Critical",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Piercing Critical",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "G8iGrx1qBDwLk1HO"
+    }
+  },
+  {
+    "_id": "a4IBshFlrm1iJNAy",
+    "uuid": "Compendium.pf2e.feats-core.Item.a4IBshFlrm1iJNAy",
+    "name": "Reach for the Stars",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Reach for the Stars",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "GWnQMjSAIG6qcV8J"
+    }
+  },
+  {
+    "_id": "MmxpcrABZo1pMSvt",
+    "uuid": "Compendium.pf2e.feats-core.Item.MmxpcrABZo1pMSvt",
+    "name": "Unerring Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Unerring Shot",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "JSkaMCO6pzKYZrZe"
+    }
+  },
+  {
+    "_id": "h8laLEZTiyPltich",
+    "uuid": "Compendium.pf2e.feats-core.Item.h8laLEZTiyPltich",
+    "name": "Defensive Armaments",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Defensive Armaments",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "corjPSTUKB02gkqN"
+    }
+  },
+  {
+    "_id": "bXcGOKYOuYVgXqVM",
+    "uuid": "Compendium.pf2e.feats-core.Item.bXcGOKYOuYVgXqVM",
+    "name": "Fake Out",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Fake Out",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger",
+        "visual"
+      ],
+      "flags.fusion.sourceId": "Stydu9VtrhQZFZxt"
+    }
+  },
+  {
+    "_id": "NwaJcb4C9vdBDQHZ",
+    "uuid": "Compendium.pf2e.feats-core.Item.NwaJcb4C9vdBDQHZ",
+    "name": "Pistol Twirl",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Pistol Twirl",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "A2EBy2L4acrehiAA"
+    }
+  },
+  {
+    "_id": "uAeUOqbaHJunGdtx",
+    "uuid": "Compendium.pf2e.feats-core.Item.uAeUOqbaHJunGdtx",
+    "name": "Risky Reload",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Risky Reload",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": [
+        "flourish",
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "BmAk6o14CutgnIOG"
+    }
+  },
+  {
+    "_id": "DUzT6GkmWlwc1A4p",
+    "uuid": "Compendium.pf2e.feats-core.Item.DUzT6GkmWlwc1A4p",
+    "name": "Warning Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Warning Shot",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "XQEoKoFtq8n3wgA3"
+    }
+  },
+  {
+    "_id": "DYDMuoD0ByqnBw43",
+    "uuid": "Compendium.pf2e.feats-core.Item.DYDMuoD0ByqnBw43",
+    "name": "Perfect Readiness",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Perfect Readiness",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "Wukrctjz2e8W4bbS"
+    }
+  },
+  {
+    "_id": "EaFjSwxQv8qeFp5s",
+    "uuid": "Compendium.pf2e.feats-core.Item.EaFjSwxQv8qeFp5s",
+    "name": "Ricochet Legend",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ricochet Legend",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "62USpCx1ewK03wzm"
+    }
+  },
+  {
+    "_id": "YMtPwmKfxf3mF8fA",
+    "uuid": "Compendium.pf2e.feats-core.Item.YMtPwmKfxf3mF8fA",
+    "name": "Slinger's Reflexes",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Slinger's Reflexes",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "rMjlDss3Km1RQ8DE"
+    }
+  },
+  {
+    "_id": "7L14TwclEbQB0zUs",
+    "uuid": "Compendium.pf2e.feats-core.Item.7L14TwclEbQB0zUs",
+    "name": "Alchemical Shot",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Alchemical Shot",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "Q1O4P1YIkCfeedHH"
+    }
+  },
+  {
+    "_id": "5Zxb3HEju3hVRheE",
+    "uuid": "Compendium.pf2e.feats-core.Item.5Zxb3HEju3hVRheE",
+    "name": "Black Powder Boost",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Black Powder Boost",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "vPZxFpq7XkRmE3Uc"
+    }
+  },
+  {
+    "_id": "Zvg5htnNMux6fxui",
+    "uuid": "Compendium.pf2e.feats-core.Item.Zvg5htnNMux6fxui",
+    "name": "Instant Backup",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Instant Backup",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "dC14a0DZqDBA9B8g"
+    }
+  },
+  {
+    "_id": "TAYXl0NtS0xxbN66",
+    "uuid": "Compendium.pf2e.feats-core.Item.TAYXl0NtS0xxbN66",
+    "name": "Ostentatious Reload",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ostentatious Reload",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "KU6nyh8DyQ7NoRQj"
+    }
+  },
+  {
+    "_id": "RJBSTnxdsx23Q2bO",
+    "uuid": "Compendium.pf2e.feats-core.Item.RJBSTnxdsx23Q2bO",
+    "name": "Paired Shots",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Paired Shots",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "zgljg4gVI6i1Fpb5"
+    }
+  },
+  {
+    "_id": "bndyxzXRLblq1MkP",
+    "uuid": "Compendium.pf2e.feats-core.Item.bndyxzXRLblq1MkP",
+    "name": "Advanced Shooter",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Advanced Shooter",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "HBZSP3ABqmsV9FXH"
+    }
+  },
+  {
+    "_id": "VSrWjSjFtYaOm9ak",
+    "uuid": "Compendium.pf2e.feats-core.Item.VSrWjSjFtYaOm9ak",
+    "name": "Cauterize",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Cauterize",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "flourish",
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "9p4oFIn791VAmzUn"
+    }
+  },
+  {
+    "_id": "KrUayifTeQ0zBLiV",
+    "uuid": "Compendium.pf2e.feats-core.Item.KrUayifTeQ0zBLiV",
+    "name": "Drifter's Juke",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Drifter's Juke",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "flourish",
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "FNO2hfGmxqJngD4A"
+    }
+  },
+  {
+    "_id": "Jrc4zEfFyTiB1Bhu",
+    "uuid": "Compendium.pf2e.feats-core.Item.Jrc4zEfFyTiB1Bhu",
+    "name": "Munitions Machinist",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Munitions Machinist",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "lh3STEvbGnP7jVMr"
+    }
+  },
+  {
+    "_id": "pMkmOjy5B0V54nZd",
+    "uuid": "Compendium.pf2e.feats-core.Item.pMkmOjy5B0V54nZd",
+    "name": "Nightwave Springing Reload",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Nightwave Springing Reload",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "PMvwXlZHHFuPGrPD"
+    }
+  },
+  {
+    "_id": "Yfp2VEF3KiXq3x1c",
+    "uuid": "Compendium.pf2e.feats-core.Item.Yfp2VEF3KiXq3x1c",
+    "name": "Phalanx Breaker",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Phalanx Breaker",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "BkEOwv3SRtefczpO"
+    }
+  },
+  {
+    "_id": "OeE6ePnOrvuuS5IS",
+    "uuid": "Compendium.pf2e.feats-core.Item.OeE6ePnOrvuuS5IS",
+    "name": "Pistolero's Challenge",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Pistolero's Challenge",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "auditory",
+        "flourish",
+        "gunslinger",
+        "linguistic",
+        "mental"
+      ],
+      "flags.fusion.sourceId": "yOyMlFGAgLfRas8m"
+    }
+  },
+  {
+    "_id": "fI1Dro5NIyO6NF5c",
+    "uuid": "Compendium.pf2e.feats-core.Item.fI1Dro5NIyO6NF5c",
+    "name": "Scatter Blast",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Scatter Blast",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "L9sRaFl0tHT5AFIQ"
+    }
+  },
+  {
+    "_id": "AQdfvuzCXoX5GIbL",
+    "uuid": "Compendium.pf2e.feats-core.Item.AQdfvuzCXoX5GIbL",
+    "name": "Sniper's Aim",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sniper's Aim",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "concentrate",
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "Wn3DWAXo2TRxrhI6"
+    }
+  },
+  {
+    "_id": "YV0r9ixnZGL4oSvb",
+    "uuid": "Compendium.pf2e.feats-core.Item.YV0r9ixnZGL4oSvb",
+    "name": "Triggerbrand Salvo",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Triggerbrand Salvo",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "flourish",
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "SD3RlgQMVL6aWjtW"
+    }
+  },
+  {
+    "_id": "X9Ka14cYVfzJCAxa",
+    "uuid": "Compendium.pf2e.feats-core.Item.X9Ka14cYVfzJCAxa",
+    "name": "Bullet Split",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Bullet Split",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "flourish",
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "vNIimhmP636VOP01"
+    }
+  },
+  {
+    "_id": "fDdpOaGJji9m8vl9",
+    "uuid": "Compendium.pf2e.feats-core.Item.fDdpOaGJji9m8vl9",
+    "name": "Grit and Tenacity",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Grit and Tenacity",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "fortune",
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "94PGauGdzrVARMLc"
+    }
+  },
+  {
+    "_id": "mJS9AfZ583J0C8Sq",
+    "uuid": "Compendium.pf2e.feats-core.Item.mJS9AfZ583J0C8Sq",
+    "name": "Leap and Fire",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Leap and Fire",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "8YLCu791osZNFKN2"
+    }
+  },
+  {
+    "_id": "yT2K5eR9gTUq3qjD",
+    "uuid": "Compendium.pf2e.feats-core.Item.yT2K5eR9gTUq3qjD",
+    "name": "Smoke Curtain",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Smoke Curtain",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "WDid62NmmC6NiTE6"
+    }
+  },
+  {
+    "_id": "tPa2qu7fgCw2LFHZ",
+    "uuid": "Compendium.pf2e.feats-core.Item.tPa2qu7fgCw2LFHZ",
+    "name": "Stab and Blast",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Stab and Blast",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "flourish",
+        "gunslinger"
+      ],
+      "flags.fusion.sourceId": "UIMZe4QDJQ9k4npN"
+    }
+  },
+  {
     "_id": "MTtJss6FXXvcTCbm",
     "uuid": "Compendium.pf2e.feats-core.Item.MTtJss6FXXvcTCbm",
     "name": "Aerial Boomerang",
@@ -20056,6 +21234,774 @@
         "monk"
       ],
       "flags.fusion.sourceId": "CL9pFxxMXqzIyg4j"
+    }
+  },
+  {
+    "_id": "ZEkMF4A8OICRUvmJ",
+    "uuid": "Compendium.pf2e.feats-core.Item.ZEkMF4A8OICRUvmJ",
+    "name": "Ancestral Mind",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Ancestral Mind",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "PGi1EtcZMolnNA1M"
+    }
+  },
+  {
+    "_id": "vDzeSNa6B0QCGa6y",
+    "uuid": "Compendium.pf2e.feats-core.Item.vDzeSNa6B0QCGa6y",
+    "name": "Counter Thought",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Counter Thought",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "occult",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "QKC9iiR4Epj1Lyc7"
+    }
+  },
+  {
+    "_id": "xag4cG8SizhIfsuD",
+    "uuid": "Compendium.pf2e.feats-core.Item.xag4cG8SizhIfsuD",
+    "name": "Mental Buffer",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Mental Buffer",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "UtRW3hYBTFG8HQLh"
+    }
+  },
+  {
+    "_id": "oge31XJ26YZqwtZc",
+    "uuid": "Compendium.pf2e.feats-core.Item.oge31XJ26YZqwtZc",
+    "name": "Psychic Rapport",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Psychic Rapport",
+      "system.level": 1,
+      "system.category": "class",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "9oKtrUzXixj58hOg"
+    }
+  },
+  {
+    "_id": "Knqsk3XMQAhv3UuM",
+    "uuid": "Compendium.pf2e.feats-core.Item.Knqsk3XMQAhv3UuM",
+    "name": "Dream Guise",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dream Guise",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": [
+        "illusion",
+        "occult",
+        "psyche",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "JxZobgFhLBNcFCwE"
+    }
+  },
+  {
+    "_id": "kkv0lWnTFTvVllx5",
+    "uuid": "Compendium.pf2e.feats-core.Item.kkv0lWnTFTvVllx5",
+    "name": "Emotional Surge",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Emotional Surge",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": [
+        "concentrate",
+        "emotion",
+        "psyche",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "d8DI7wLxtUy99g9K"
+    }
+  },
+  {
+    "_id": "IA84lfnUD97Z5NK4",
+    "uuid": "Compendium.pf2e.feats-core.Item.IA84lfnUD97Z5NK4",
+    "name": "Impose Order (Psychic)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Impose Order (Psychic)",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": [
+        "fortune",
+        "psyche",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "VC8qdcCxtzCmG98M"
+    }
+  },
+  {
+    "_id": "sAj5RK6Nb2sO2yzF",
+    "uuid": "Compendium.pf2e.feats-core.Item.sAj5RK6Nb2sO2yzF",
+    "name": "Scour the Library",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Scour the Library",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": [
+        "psyche",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "KNhmeUpZCSW5eHqg"
+    }
+  },
+  {
+    "_id": "lvYawk0j2pFg6z4E",
+    "uuid": "Compendium.pf2e.feats-core.Item.lvYawk0j2pFg6z4E",
+    "name": "Signature Spell Expansion (Psychic)",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Signature Spell Expansion (Psychic)",
+      "system.level": 10,
+      "system.category": "class",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "C6BIHPqYiWM0wlvv"
+    }
+  },
+  {
+    "_id": "23T0U6Pktf6mtjQF",
+    "uuid": "Compendium.pf2e.feats-core.Item.23T0U6Pktf6mtjQF",
+    "name": "Amp Focus",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Amp Focus",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "ikjPRBeBUWV6hYFF"
+    }
+  },
+  {
+    "_id": "PrkmknFhy68gdxEl",
+    "uuid": "Compendium.pf2e.feats-core.Item.PrkmknFhy68gdxEl",
+    "name": "Foreseen Failure",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Foreseen Failure",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "fortune",
+        "occult",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "PmhprI0vr3zTOkok"
+    }
+  },
+  {
+    "_id": "aLI1rGKGBcFowl9o",
+    "uuid": "Compendium.pf2e.feats-core.Item.aLI1rGKGBcFowl9o",
+    "name": "No!!!",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "No!!!",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "quqG3jfWFdopF0G2"
+    }
+  },
+  {
+    "_id": "DQdpFh4xK4HniKDV",
+    "uuid": "Compendium.pf2e.feats-core.Item.DQdpFh4xK4HniKDV",
+    "name": "Psi Catastrophe",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Psi Catastrophe",
+      "system.level": 12,
+      "system.category": "class",
+      "system.traits.value": [
+        "concentrate",
+        "mindshift",
+        "occult",
+        "psyche",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "qZsTI97BQUwoPgKF"
+    }
+  },
+  {
+    "_id": "HUW2TmNn8UNV30nW",
+    "uuid": "Compendium.pf2e.feats-core.Item.HUW2TmNn8UNV30nW",
+    "name": "Conscious Spell Specialization",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Conscious Spell Specialization",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "3tm0TzyjO1I378fw"
+    }
+  },
+  {
+    "_id": "BqwuI9oXmcthXXi0",
+    "uuid": "Compendium.pf2e.feats-core.Item.BqwuI9oXmcthXXi0",
+    "name": "Deep Roots",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Deep Roots",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "jhNkuXg8vJ29GSUJ"
+    }
+  },
+  {
+    "_id": "7eorrQSmKcy5R6r3",
+    "uuid": "Compendium.pf2e.feats-core.Item.7eorrQSmKcy5R6r3",
+    "name": "Shatter Space",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Shatter Space",
+      "system.level": 14,
+      "system.category": "class",
+      "system.traits.value": [
+        "amp",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "UA3iZTAZrugKClKE"
+    }
+  },
+  {
+    "_id": "aaQZsYH9LTheLj7T",
+    "uuid": "Compendium.pf2e.feats-core.Item.aaQZsYH9LTheLj7T",
+    "name": "Constant Levitation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Constant Levitation",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "PiKWzPloAR2nqIcC"
+    }
+  },
+  {
+    "_id": "mFmBrklOm3JgyEh0",
+    "uuid": "Compendium.pf2e.feats-core.Item.mFmBrklOm3JgyEh0",
+    "name": "Target of Psychic Ire",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Target of Psychic Ire",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": [
+        "amp",
+        "occult",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "wwvz79Hwp9qx96lL"
+    }
+  },
+  {
+    "_id": "mfAWI6ZK2GIUZoai",
+    "uuid": "Compendium.pf2e.feats-core.Item.mfAWI6ZK2GIUZoai",
+    "name": "Wandering Thoughts",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Wandering Thoughts",
+      "system.level": 16,
+      "system.category": "class",
+      "system.traits.value": [
+        "concentrate",
+        "occult",
+        "psyche",
+        "psychic",
+        "teleportation"
+      ],
+      "flags.fusion.sourceId": "hOZP7qOMsNYOe90o"
+    }
+  },
+  {
+    "_id": "a2CMddYoMBa0vwBK",
+    "uuid": "Compendium.pf2e.feats-core.Item.a2CMddYoMBa0vwBK",
+    "name": "All in Your Head",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "All in Your Head",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": [
+        "psyche",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "kYLtH4PYfvqruLyo"
+    }
+  },
+  {
+    "_id": "aIvQkRJVhEIfhLCH",
+    "uuid": "Compendium.pf2e.feats-core.Item.aIvQkRJVhEIfhLCH",
+    "name": "Cranial Detonation",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Cranial Detonation",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": [
+        "death",
+        "mindshift",
+        "psyche",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "vCsprcXVTwgtUYAZ"
+    }
+  },
+  {
+    "_id": "S5dRf9n1AYrDfb2G",
+    "uuid": "Compendium.pf2e.feats-core.Item.S5dRf9n1AYrDfb2G",
+    "name": "Twin Psyche",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Twin Psyche",
+      "system.level": 18,
+      "system.category": "class",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "PTAdxHcTS7TjyBTg"
+    }
+  },
+  {
+    "_id": "TK4CAH3ZVQ1IkJw8",
+    "uuid": "Compendium.pf2e.feats-core.Item.TK4CAH3ZVQ1IkJw8",
+    "name": "Mental Balm",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Mental Balm",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": [
+        "amp",
+        "emotion",
+        "mental",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "pEFcWRYiWLSjxvkW"
+    }
+  },
+  {
+    "_id": "FgeZdgH6WjgtovLQ",
+    "uuid": "Compendium.pf2e.feats-core.Item.FgeZdgH6WjgtovLQ",
+    "name": "Psi Burst",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Psi Burst",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": [
+        "concentrate",
+        "mindshift",
+        "occult",
+        "psyche",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "ryBj7phZqASQSEjV"
+    }
+  },
+  {
+    "_id": "p98HOOpiTbIxpTlY",
+    "uuid": "Compendium.pf2e.feats-core.Item.p98HOOpiTbIxpTlY",
+    "name": "Warp Space",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Warp Space",
+      "system.level": 2,
+      "system.category": "class",
+      "system.traits.value": [
+        "amp",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "eJPu2Sj7XYCM0h0R"
+    }
+  },
+  {
+    "_id": "sI5OjBYCt6y54kNK",
+    "uuid": "Compendium.pf2e.feats-core.Item.sI5OjBYCt6y54kNK",
+    "name": "Autonomic Psychic Action",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Autonomic Psychic Action",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "21HVwklTxmo8Dwdp"
+    }
+  },
+  {
+    "_id": "E18rcnAOII94wgYt",
+    "uuid": "Compendium.pf2e.feats-core.Item.E18rcnAOII94wgYt",
+    "name": "Become Thought",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Become Thought",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "5C0XMnfTuvgSKD7o"
+    }
+  },
+  {
+    "_id": "PrzihcCbqCtN8cpI",
+    "uuid": "Compendium.pf2e.feats-core.Item.PrzihcCbqCtN8cpI",
+    "name": "Mind Over Matter",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Mind Over Matter",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "Ux9cBtDRP92EM6rl"
+    }
+  },
+  {
+    "_id": "h9r7lfnOIN80nQGt",
+    "uuid": "Compendium.pf2e.feats-core.Item.h9r7lfnOIN80nQGt",
+    "name": "Unlimited Potential",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Unlimited Potential",
+      "system.level": 20,
+      "system.category": "class",
+      "system.traits.value": [
+        "concentrate",
+        "manipulate",
+        "psychic",
+        "spellshape"
+      ],
+      "flags.fusion.sourceId": "lQpY6E5Zvc1kRnyC"
+    }
+  },
+  {
+    "_id": "giI3seXJqNbBWpGX",
+    "uuid": "Compendium.pf2e.feats-core.Item.giI3seXJqNbBWpGX",
+    "name": "Astral Tether",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Astral Tether",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "occult",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "sM3nmDi3PHWI64SH"
+    }
+  },
+  {
+    "_id": "iQEVcFXKfQAqE9t5",
+    "uuid": "Compendium.pf2e.feats-core.Item.iQEVcFXKfQAqE9t5",
+    "name": "Homing Beacon",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Homing Beacon",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "amp",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "MU9qS0QuBdcyLkza"
+    }
+  },
+  {
+    "_id": "CkPvnfNOURocUbFj",
+    "uuid": "Compendium.pf2e.feats-core.Item.CkPvnfNOURocUbFj",
+    "name": "Psi Strikes",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Psi Strikes",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "mindshift",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "uisI6b7Ua5zSHDwj"
+    }
+  },
+  {
+    "_id": "AUB3HT3qhObcjRdE",
+    "uuid": "Compendium.pf2e.feats-core.Item.AUB3HT3qhObcjRdE",
+    "name": "Thoughtform Summoning",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Thoughtform Summoning",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "pqVG9mRKcXg5Rsjc"
+    }
+  },
+  {
+    "_id": "2BZfrfzMPItlYi5X",
+    "uuid": "Compendium.pf2e.feats-core.Item.2BZfrfzMPItlYi5X",
+    "name": "Violent Unleash",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Violent Unleash",
+      "system.level": 4,
+      "system.category": "class",
+      "system.traits.value": [
+        "mindshift",
+        "occult",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "N8mhYbr5xBI8jydb"
+    }
+  },
+  {
+    "_id": "pSunjH1z5GFhMn6Y",
+    "uuid": "Compendium.pf2e.feats-core.Item.pSunjH1z5GFhMn6Y",
+    "name": "Inertial Barrier",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Inertial Barrier",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "amp",
+        "occult",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "Nm4yeoJVXRy0Wyth"
+    }
+  },
+  {
+    "_id": "G4GXVfgYj5G9yzek",
+    "uuid": "Compendium.pf2e.feats-core.Item.G4GXVfgYj5G9yzek",
+    "name": "Parallel Breakthrough",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Parallel Breakthrough",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "KgD26HpSrKyciB8f"
+    }
+  },
+  {
+    "_id": "L7G9e5hXtCnZ7Tgu",
+    "uuid": "Compendium.pf2e.feats-core.Item.L7G9e5hXtCnZ7Tgu",
+    "name": "Sixth Sense",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Sixth Sense",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "occult",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "dMKx0T629hpJCN8T"
+    }
+  },
+  {
+    "_id": "CESIAKTLT9i8qXlp",
+    "uuid": "Compendium.pf2e.feats-core.Item.CESIAKTLT9i8qXlp",
+    "name": "Strain Mind",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Strain Mind",
+      "system.level": 6,
+      "system.category": "class",
+      "system.traits.value": [
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "u8YnTCS2EGoJl90W"
+    }
+  },
+  {
+    "_id": "8sB20yen2WWqWpNw",
+    "uuid": "Compendium.pf2e.feats-core.Item.8sB20yen2WWqWpNw",
+    "name": "Brain Drain",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Brain Drain",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "mental",
+        "occult",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "zQeglKcmBXvqfABR"
+    }
+  },
+  {
+    "_id": "1vcDab9UwDvYXp4F",
+    "uuid": "Compendium.pf2e.feats-core.Item.1vcDab9UwDvYXp4F",
+    "name": "Dark Persona's Presence",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Dark Persona's Presence",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "aura",
+        "emotion",
+        "fear",
+        "mental",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "FEMXDBCf8gXBYdez"
+    }
+  },
+  {
+    "_id": "31jlSOlgcjrGvO6K",
+    "uuid": "Compendium.pf2e.feats-core.Item.31jlSOlgcjrGvO6K",
+    "name": "Mental Static",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Mental Static",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "mental",
+        "nonlethal",
+        "occult",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "7PlGRHizgieuYzDR"
+    }
+  },
+  {
+    "_id": "e9cXFVSI68AtNC4k",
+    "uuid": "Compendium.pf2e.feats-core.Item.e9cXFVSI68AtNC4k",
+    "name": "Remove Presence",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Remove Presence",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "amp",
+        "illusion",
+        "mental",
+        "occult",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "c1QTcMtI9957gQoB"
+    }
+  },
+  {
+    "_id": "kILZhGPLDqSx1RhD",
+    "uuid": "Compendium.pf2e.feats-core.Item.kILZhGPLDqSx1RhD",
+    "name": "Thoughtsense",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Thoughtsense",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "mental",
+        "occult",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "NLyldMwxUWaanlzH"
+    }
+  },
+  {
+    "_id": "Ezt6GhYfGvVsmZLw",
+    "uuid": "Compendium.pf2e.feats-core.Item.Ezt6GhYfGvVsmZLw",
+    "name": "Whispering Steps",
+    "img": "icons/placeholder/feat.svg",
+    "type": "feat",
+    "index": {
+      "name": "Whispering Steps",
+      "system.level": 8,
+      "system.category": "class",
+      "system.traits.value": [
+        "amp",
+        "mental",
+        "occult",
+        "psychic"
+      ],
+      "flags.fusion.sourceId": "nwcsv54Vs4YBGFs9"
     }
   },
   {
