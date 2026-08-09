@@ -16,12 +16,14 @@ import {
   isekaiTrackerModels,
 } from "../isekai/tabVM.js";
 
-function doc(options: {
-  level?: number;
-  focus?: { value: number; max: number };
-  locked?: number;
-  trackers?: Record<string, Record<string, unknown>>;
-} = {}): Record<string, unknown> {
+function doc(
+  options: {
+    level?: number;
+    focus?: { value: number; max: number };
+    locked?: number;
+    trackers?: Record<string, Record<string, unknown>>;
+  } = {},
+): Record<string, unknown> {
   const system: Record<string, unknown> = {
     level: { value: options.level ?? 12 },
     resources: { focusPoints: options.focus ?? { value: 3, max: 3 } },
@@ -189,15 +191,36 @@ describe("d20ResultsFrom", () => {
 
   it("ignores dice that are not d20", () => {
     const r = roll([
-      { type: "dice", expression: "2d6", total: 7, faces: 6, number: 2, results: [{ result: 3, active: true }] },
-      { type: "dice", expression: "1d20", total: 11, faces: 20, number: 1, results: [{ result: 11, active: true }] },
+      {
+        type: "dice",
+        expression: "2d6",
+        total: 7,
+        faces: 6,
+        number: 2,
+        results: [{ result: 3, active: true }],
+      },
+      {
+        type: "dice",
+        expression: "1d20",
+        total: 11,
+        faces: 20,
+        number: 1,
+        results: [{ result: 11, active: true }],
+      },
     ]);
     expect(d20ResultsFrom(r)).toEqual([11]);
   });
 
   it("ignores numeric terms, so a modifier never becomes a banked die", () => {
     const r = roll([
-      { type: "dice", expression: "1d20", total: 9, faces: 20, number: 1, results: [{ result: 9, active: true }] },
+      {
+        type: "dice",
+        expression: "1d20",
+        total: 9,
+        faces: 20,
+        number: 1,
+        results: [{ result: 9, active: true }],
+      },
       { type: "operator", expression: "+", total: 0 },
       { type: "numeric", expression: "5", total: 5 },
     ]);
@@ -209,8 +232,8 @@ describe("d20ResultsFrom", () => {
   });
 
   it("returns nothing for a term with no results array", () => {
-    expect(d20ResultsFrom(roll([{ type: "dice", expression: "1d20", total: 7, faces: 20 }]))).toEqual(
-      [],
-    );
+    expect(
+      d20ResultsFrom(roll([{ type: "dice", expression: "1d20", total: 7, faces: 20 }])),
+    ).toEqual([]);
   });
 });

@@ -3448,8 +3448,7 @@ function backgroundTrainingOps(
 
   const existingChoices = getBuildChoices(getSystem(ctx.doc));
   const keptChoices = existingChoices.filter(
-    (c) =>
-      !c.slot.startsWith(BACKGROUND_SKILL_SLOT) && !c.slot.startsWith(BACKGROUND_LORE_SLOT),
+    (c) => !c.slot.startsWith(BACKGROUND_SKILL_SLOT) && !c.slot.startsWith(BACKGROUND_LORE_SLOT),
   );
   // The strip has to run even when the incoming background grants NOTHING
   // (Hermit, Raised by Belief): it used to sit behind `newChoices.length > 0`,
@@ -4694,10 +4693,7 @@ export function setClassLevelsVariant(
  * the toggle is false, and keeping them means flipping the switch back does
  * not cost the player their Séquito, their Catálogo or their Essências.
  */
-export function setIsekaiVariant(
-  ctx: PlanOpBuilderContext,
-  on: boolean,
-): DocUpdatePayload | null {
+export function setIsekaiVariant(ctx: PlanOpBuilderContext, on: boolean): DocUpdatePayload | null {
   if (!ctx.editable) return null;
   return {
     type: "doc:update",

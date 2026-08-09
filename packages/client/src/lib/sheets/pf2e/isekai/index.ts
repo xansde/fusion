@@ -173,8 +173,10 @@ export function isekaiDestinyDicePlan(
 ): { count: number; fixed: readonly number[] } {
   const tracker = archetype.tracker;
   if (tracker?.kind !== "dice-pool") return { count: 0, fixed: [] };
-  const bonus = tracker.levelBonus && level >= tracker.levelBonus.level ? tracker.levelBonus.extra : 0;
-  const fixed = tracker.fixedFrom && level >= tracker.fixedFrom.level ? tracker.fixedFrom.values : [];
+  const bonus =
+    tracker.levelBonus && level >= tracker.levelBonus.level ? tracker.levelBonus.extra : 0;
+  const fixed =
+    tracker.fixedFrom && level >= tracker.fixedFrom.level ? tracker.fixedFrom.values : [];
   return { count: tracker.perDay + bonus, fixed };
 }
 
