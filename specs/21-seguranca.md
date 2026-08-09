@@ -89,7 +89,7 @@ incorporadas.
 | **Ator de ameaça**         | Entidade que pode tentar comprometer o sistema: jogador malicioso/curioso, atacante de rede, conteúdo importado malicioso, site de terceiros (cross-site).                     |
 | **Superfície de ataque**   | Ponto de entrada exposto: endpoint HTTP/REST, conexão WebSocket, upload de arquivo, pack importado, macro de script, enricher de texto.                                        |
 | **Defesa em profundidade** | Aplicar controles redundantes em camadas (ex.: sanitizar no servidor _e_ no cliente) para que a falha de um não comprometa o sistema.                                          |
-| **Servidor autoritativo**  | O processo Node.js do GM é o único árbitro de mutações canônicas; clientes nunca são confiados. Princípio herdado de `04-rede-e-sincronizacao.md` (D3).                        |
+| **Servidor autoritativo**  | O processo Node.js do GM é o único árbitro de mutações canônicas; clientes nunca são confiados. Princípio herdado de `04-rede-e-sincronizacao.md` (DEC-NET-03).                |
 | **AuthZ por operação**     | Toda operação privilegiada revalida permissão no servidor, no momento da execução — nunca se confia em verificação prévia do cliente nem em "o cliente não mostra o botão".    |
 | **Argon2id**               | Função de hashing de senha memory-hard, recomendação OWASP/NIST 2026. Parâmetros mínimos: `memory=65536 KiB`, `iterations=3`, `parallelism=4`.                                 |
 | **CSWSH**                  | _Cross-Site WebSocket Hijacking_ — um site malicioso abre WS para o Fusion usando cookies da vítima; mitigado por validação de `Origin` + token explícito + `SameSite=Strict`. |
@@ -127,7 +127,7 @@ schema Zod e revalidação).
   cliente modificado emite a op diretamente. Rejeitado.
 
 **Racional:** Concentra toda a lógica de segurança em um único lugar testável (o servidor) e alinha
-com a autoridade total decidida em `04-rede-e-sincronizacao.md` (D3) e o modelo do Foundry (research §3).
+com a autoridade total decidida em `04-rede-e-sincronizacao.md` (DEC-NET-03) e o modelo do Foundry (research §3).
 
 ---
 

@@ -357,11 +357,11 @@ CREATE TABLE IF NOT EXISTS settings (
 );
 
 -- fog_explorations: NÃO é tabela primária no MVP. O fog explorado é persistido como
--- dado anexo à Scene por usuário (ver 02-modelo-de-dados.md D4, REQ-DOC-022 e
+-- dado anexo à Scene por usuário (ver 02-modelo-de-dados.md DEC-DOC-04, REQ-DOC-022 e
 -- 07-visao-iluminacao-fog.md). FogExploration como Document de primeira classe é [V2].
 
 -- cards_collections: NÃO entra no MVP. Cards/Card é tipo [V2] (ver 02-modelo-de-dados.md
--- D4, REQ-DOC-022). A tabela deve ser criada apenas quando Cards for promovido a [V2].
+-- DEC-DOC-04, REQ-DOC-022). A tabela deve ser criada apenas quando Cards for promovido a [V2].
 
 -- Tabela de controle de schema migrations
 CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -688,7 +688,7 @@ export interface WorldManifest {
   };
 }
 
-// fog_explorations e cards_collections são [V2] — ver 02-modelo-de-dados.md D4, REQ-DOC-022
+// fog_explorations e cards_collections são [V2] — ver 02-modelo-de-dados.md DEC-DOC-04, REQ-DOC-022
 export type DocumentTable =
   | "actors"
   | "items"

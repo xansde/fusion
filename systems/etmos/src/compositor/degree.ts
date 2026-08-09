@@ -12,7 +12,7 @@
  * as a single source of truth to avoid duplicate implementations of the same
  * formulas across the two files.
  *
- * Clean-room: formulas only. Spec: 19-sistema-etmos.md (REQ-ROL-038/039, D6).
+ * Clean-room: formulas only. Spec: 19-sistema-etmos.md (REQ-ROL-038/039, DEC-ETM-06).
  * Design doc: docs/design/m5-etmos-compositor.md §2.4.
  */
 

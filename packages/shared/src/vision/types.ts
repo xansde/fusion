@@ -70,7 +70,7 @@ export type DoorState = "closed" | "open" | "locked";
  * The same segment can block vision without blocking movement (e.g. invisible
  * wall), or block light but not movement (e.g. ethereal).
  *
- * Spec: 07-visao-iluminacao-fog.md §D1 (four independent restrictions)
+ * Spec: 07-visao-iluminacao-fog.md §DEC-VIS-01 (four independent restrictions)
  */
 export interface Wall {
   readonly _id: string;

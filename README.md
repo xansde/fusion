@@ -79,7 +79,7 @@ systems/
   engine-2e/    Núcleo de regras 2e, compartilhado entre PF2e e SF2e
   pf2e/  sf2e/  etmos/  stub/
 tools/
-  importer-pf2e/  translate-packs/  release/  boundary-test/
+  importer-pf2e/  translate-packs/  release/  boundary-test/  spec-lint/
 specs/          Especificações (fonte de verdade — índice em specs/README.md)
 docs/research/  Pesquisa que fundamenta as specs
 ```
@@ -106,6 +106,27 @@ O servidor é autoritativo: rolagens são executadas nele (anti-cheat) e toda va
 - **Clean-room**: nunca copiar código, assets ou textos proprietários do Foundry VTT. Estudar comportamento e documentação pública é permitido. Código do repositório open-source `foundryvtt/pf2e` (Apache-2.0) pode ser usado como referência, com atribuição.
 - Arte e ícones da Paizo não entram nos packs — usar placeholders ou ícones de licença livre.
 - Material de terceiros com copyright fica fora do repositório (ver `.gitignore`).
+
+## Documentação
+
+As specs são a **definição do objetivo**: se o comportamento não cumpre uma spec, ou a spec está desatualizada, ou a funcionalidade não foi cumprida corretamente. Por onde entrar:
+
+| Documento                                              | O que é                                                            |
+| ------------------------------------------------------ | ------------------------------------------------------------------ |
+| [`specs/README.md`](specs/README.md)                   | Índice das 33 specs e o registro de áreas (`REQ-<ÁREA>-NNN`)       |
+| [`specs/CONVENCOES.md`](specs/CONVENCOES.md)           | O metamodelo: o que é uma spec, níveis, ids, anatomia              |
+| [`specs/RASTREABILIDADE.md`](specs/RASTREABILIDADE.md) | Quem foi conferir cada requisito [MVP] — gerado, não editado à mão |
+| [`specs/RESUMO.md`](specs/RESUMO.md)                   | Resumo executivo de cada spec, para leitura corrida                |
+| [`docs/research/`](docs/research/)                     | Os 21 documentos de pesquisa que fundamentam as specs              |
+| [`docs/lessons.md`](docs/lessons.md)                   | Lições aprendidas na implementação (erros que não devem voltar)    |
+
+Código e teste citam o id do requisito que atendem (`// REQ-VIS-020: ...`), e é dessas citações que sai o relatório de rastreabilidade:
+
+```bash
+pnpm spec:report      # regenera specs/RASTREABILIDADE.md e sobe o piso de cobertura
+```
+
+A integridade dos ids (único, resolvível, área com dona, tag de roadmap, decisão canônica) é verificada pelo `tools/spec-lint` dentro do `pnpm test` — spec quebrada derruba o CI como código quebrado derruba.
 
 ## Contribuindo
 

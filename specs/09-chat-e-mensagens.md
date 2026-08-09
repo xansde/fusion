@@ -73,7 +73,7 @@ Esta spec cobre **o canal de comunicação de jogo**, não o protocolo de transp
 
 ## Decisões
 
-### D-CHT-01: ChatMessage é um Document persistido, não estado efêmero
+### DEC-CHT-01: ChatMessage é um Document persistido, não estado efêmero
 
 **Decisão:** `ChatMessage` segue o padrão Document do Fusion (ver `02-modelo-de-dados.md`): persiste em SQLite, recebe `_id` único, é sincronizado via WebSocket para todos os clientes elegíveis com o mesmo envelope CRUD de outros Documents.
 
@@ -86,7 +86,7 @@ Esta spec cobre **o canal de comunicação de jogo**, não o protocolo de transp
 
 ---
 
-### D-CHT-02: Roll modes mapeados em campos `whisper` e `blind`
+### DEC-CHT-02: Roll modes mapeados em campos `whisper` e `blind`
 
 **Decisão:** Os quatro roll modes mapeiam diretamente em dois campos booleanos/array do documento:
 
@@ -107,7 +107,7 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 ---
 
-### D-CHT-03: Chat cards são schemas JSON declarativos — sem HTML arbitrário
+### DEC-CHT-03: Chat cards são schemas JSON declarativos — sem HTML arbitrário
 
 **Decisão:** Sistemas registram chat cards via um schema tipado `CardData` em JSON. O cliente Svelte renderiza o card a partir deste schema usando um componente `<ChatCard>` controlado. Sistemas **não** podem injetar HTML arbitrário em `content` — apenas markdown leve sanitizado.
 
@@ -120,7 +120,7 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 ---
 
-### D-CHT-04: Comandos de chat são registrados em um registry extensível
+### DEC-CHT-04: Comandos de chat são registrados em um registry extensível
 
 **Decisão:** Existe um `CommandRegistry` no servidor que mapeia prefixo de string para handler. Comandos built-in (`/roll`, `/w`, etc.) são registrados na inicialização. Sistemas podem registrar comandos adicionais via `SystemAPI.registerChatCommand()` (ver `15-api-de-sistemas.md`).
 
@@ -132,7 +132,7 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 ---
 
-### D-CHT-05: Sanitização por allowlist no servidor antes de persistir
+### DEC-CHT-05: Sanitização por allowlist no servidor antes de persistir
 
 **Decisão:** Todo conteúdo textual de mensagens passa por uma etapa de sanitização no servidor antes de ser persistido e distribuído. A sanitização usa uma allowlist de elementos/atributos Markdown/HTML leve (parágrafo, bold, italic, código, link http/https, lista não-ordenada). Tags não permitidas são stripped. O card declarativo nunca passa por este pipeline — é renderizado via componente Svelte controlado.
 
@@ -140,7 +140,7 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 ---
 
-### D-CHT-06: Paginação por cursor, não por offset
+### DEC-CHT-06: Paginação por cursor, não por offset
 
 **Decisão:** O carregamento do log usa paginação por cursor (campo `_id` como cursor, `ORDER BY timestamp DESC`), não por `LIMIT/OFFSET`. O cliente carrega as N mensagens mais recentes na abertura; ao rolar para cima, solicita o próximo bloco antes do cursor mais antigo visível.
 
@@ -153,7 +153,7 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 ---
 
-### D-CHT-07: Busca full-text via SQLite FTS5
+### DEC-CHT-07: Busca full-text via SQLite FTS5
 
 **Decisão:** Uma tabela FTS5 (`chat_fts`) é mantida em sincronia com a tabela principal via triggers. Busca de texto livre é roteada para `chat_fts MATCH ?`. Resultados são paginados (máx 50 por página).
 
@@ -164,7 +164,7 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 ---
 
-### D-CHT-08: Inline rolls avaliados no servidor, resultado embutido no documento
+### DEC-CHT-08: Inline rolls avaliados no servidor, resultado embutido no documento
 
 **Decisão:** Ao processar uma mensagem com `[[fórmula]]`, o servidor extrai, avalia via motor de rolagens (ver `08-motor-de-rolagens.md`) e substitui a expressão pelo span de resultado antes de persistir. O documento final armazena o resultado; não há reavaliação no cliente.
 
@@ -172,7 +172,7 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 ---
 
-### D-CHT-09: Chat bubbles com duração fixa no MVP
+### DEC-CHT-09: Chat bubbles com duração fixa no MVP
 
 **Decisão:** Chat bubbles são renderizadas no canvas como overlays SVG acima do token, com duração padrão de 5 segundos (não configurável no MVP). Texto truncado após 120 caracteres com `…`. Visibilidade segue a visibilidade do token.
 

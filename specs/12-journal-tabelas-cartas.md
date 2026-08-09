@@ -70,7 +70,7 @@ Especificar o subsistema de **conteúdo documental** do Fusion: entradas de jour
 
 ## Decisões
 
-### D-JRN-01: Editor de texto — TipTap (ProseMirror)
+### DEC-JRN-01: Editor de texto — TipTap (ProseMirror)
 
 **Decisão:** Usar TipTap v2 (wrapper sobre ProseMirror) como editor rico de texto para páginas de journal.
 
@@ -83,7 +83,7 @@ Especificar o subsistema de **conteúdo documental** do Fusion: entradas de jour
 
 **Racional:** TipTap permite criação de extensões customizadas (SecretBlock, UUIDChip) como nós ProseMirror de primeira classe; autosave via `onUpdate` callback; e integração com Svelte 5.
 
-### D-JRN-02: Colaboração em tempo real — autosave por socket sem CRDT
+### DEC-JRN-02: Colaboração em tempo real — autosave por socket sem CRDT
 
 **Decisão:** Autosave a cada 30 segundos (ou ao fechar o editor) enviando o documento inteiro via `document:update`. Sem CRDT (Yjs/Automerge) no MVP.
 
@@ -94,7 +94,7 @@ Especificar o subsistema de **conteúdo documental** do Fusion: entradas de jour
 
 **Racional:** Para grupos locais (LAN) com editores únicos por página, conflitos simultâneos são raros. Autosave simples é suficiente para MVP. Quando dois usuários editam a mesma página, o último a salvar vence — comportamento documentado e aceitável.
 
-### D-JRN-03: SecretBlock — visibilidade persistida no servidor
+### DEC-JRN-03: SecretBlock — visibilidade persistida no servidor
 
 **Decisão:** O estado `revealed: boolean` de cada `SecretBlock` é persistido no documento (não apenas na sessão). O servidor é autoritativo; clientes filtram o conteúdo secreto antes de enviar a jogadores sem permissão Owner.
 
@@ -105,7 +105,7 @@ Especificar o subsistema de **conteúdo documental** do Fusion: entradas de jour
 
 **Racional:** Consistente com o princípio de servidor autoritativo (ver `04-rede-e-sincronizacao.md`). O servidor serializa o HTML/JSON da página filtrando blocos secretos não revelados antes de enviar ao jogador.
 
-### D-JRN-04: @UUID links — sintaxe e resolução
+### DEC-JRN-04: @UUID links — sintaxe e resolução
 
 **Decisão:** Sintaxe `@UUID[TipoDoc.id]{Label}` no texto fonte; resolvida em tempo de render pelo TipTap extension `UUIDEnricher`. No servidor, a validação de UUIDs ocorre ao salvar (broken links são marcados mas não bloqueiam o save).
 
@@ -116,7 +116,7 @@ Especificar o subsistema de **conteúdo documental** do Fusion: entradas de jour
 
 **Racional:** UUID canônica garante links duráveis. O enricher resolve assincrona­mente consultando o store local de documents; se não encontrar, renderiza o chip em estado _broken_ com ícone visual distinto.
 
-### D-JRN-05: Tipos de página de journal
+### DEC-JRN-05: Tipos de página de journal
 
 **Decisão:** MVP entrega Text, Image e Video embed. PDF é [V2].
 
@@ -126,7 +126,7 @@ Especificar o subsistema de **conteúdo documental** do Fusion: entradas de jour
 
 **Racional:** Os três tipos cobrem >95% dos casos de uso de sessão. PDF é funcionalidade de worldbuilding avançada.
 
-### D-JRN-06: RollTable — fórmula e normalização automática
+### DEC-JRN-06: RollTable — fórmula e normalização automática
 
 **Decisão:** A `RollTable` armazena a fórmula de dados (`formula`) explicitamente. O endpoint de normalização (`POST /api/tables/:id/normalize`) recalcula a fórmula baseado nos pesos somados dos resultados (`1dN` onde N = soma dos pesos).
 
@@ -137,7 +137,7 @@ Especificar o subsistema de **conteúdo documental** do Fusion: entradas de jour
 
 **Racional:** Permite flexibilidade máxima (fórmula customizada) com conveniência (normalização automática quando pesos são alterados).
 
-### D-JRN-07: Draw sem replacement — estado `drawn` no documento
+### DEC-JRN-07: Draw sem replacement — estado `drawn` no documento
 
 **Decisão:** `TableResult` tem campo `drawn: boolean`. Ao sortear sem replacement, o servidor persiste `drawn: true` no resultado sorteado. `RollTable#reset()` zera todos os `drawn: false`.
 
@@ -148,7 +148,7 @@ Especificar o subsistema de **conteúdo documental** do Fusion: entradas de jour
 
 **Racional:** Simples e auditável. Persistência garante que o estado de um baralho (ex.: cartas de deck de eventos) sobreviva a reinicializações.
 
-### D-JRN-08: Cards/Decks — modelo [V2]
+### DEC-JRN-08: Cards/Decks — modelo [V2]
 
 **Decisão:** Implementar o modelo conceitual de `CardStack` (Deck/Hand/Pile) e `Card` apenas como tipos de dados no `packages/shared`; UI e lógica completas são [V2].
 
@@ -159,7 +159,7 @@ Especificar o subsistema de **conteúdo documental** do Fusion: entradas de jour
 
 **Racional:** Prototipagem de schema agora evita breaking changes no modelo de dados quando V2 for implementado.
 
-### D-JRN-09: Busca global — índice em memória com fallback SQL
+### DEC-JRN-09: Busca global — índice em memória com fallback SQL
 
 **Decisão:** Manter um índice em memória de `{ id, type, name, text }` para todos os documents do mundo carregado no boot do servidor. Busca via substring case-insensitive. Para mundos grandes (>10.000 documents), fallback para FTS5 do SQLite.
 
@@ -170,7 +170,7 @@ Especificar o subsistema de **conteúdo documental** do Fusion: entradas de jour
 
 **Racional:** Mundos típicos têm centenas a poucos milhares de documents. Cache em memória com debounce de 200ms no cliente entrega resposta percebida como instantânea.
 
-### D-JRN-10: Backlinks — [V2]
+### DEC-JRN-10: Backlinks — [V2]
 
 **Decisão:** Rastreamento de backlinks (quais documents referenciam um dado UUID) é [V2].
 
@@ -236,7 +236,7 @@ Especificar o subsistema de **conteúdo documental** do Fusion: entradas de jour
 
 **REQ-JRN-026** [MVP] Resultados do tipo `document` apontando para uma `RollTable` devem disparar draw automático na sub-tabela quando sorteados (tabelas aninhadas). O resultado final apresentado é o resultado da sub-tabela, com o resultado pai exibido como contexto.
 
-**REQ-JRN-027** [MVP] O sistema deve suportar draw de tabela diretamente do chat com o comando `/table NomeDaTabela` ou `/table UUID`. O resultado é postado no chat como mensagem de rolagem; a visibilidade do resultado segue a tabela de roll modes definida em `09-chat-e-mensagens.md` D-CHT-02 — por padrão o resultado é público (`whisper: []`, `blind: false`), mas o GM pode forçar `gmroll` (visível apenas ao GM e ao autor) passando o flag `--gm` ao comando (`/table NomeDaTabela --gm`). A `RollTable` com permissão `none` para não-owners bloqueia o draw por jogadores no servidor.
+**REQ-JRN-027** [MVP] O sistema deve suportar draw de tabela diretamente do chat com o comando `/table NomeDaTabela` ou `/table UUID`. O resultado é postado no chat como mensagem de rolagem; a visibilidade do resultado segue a tabela de roll modes definida em `09-chat-e-mensagens.md` DEC-CHT-02 — por padrão o resultado é público (`whisper: []`, `blind: false`), mas o GM pode forçar `gmroll` (visível apenas ao GM e ao autor) passando o flag `--gm` ao comando (`/table NomeDaTabela --gm`). A `RollTable` com permissão `none` para não-owners bloqueia o draw por jogadores no servidor.
 
 **REQ-JRN-027a** [MVP] O core do Fusion DEVE registrar o comando `/table` no `CommandRegistry` definido em `09-chat-e-mensagens.md` REQ-CHT-016 durante a inicialização do servidor, como comando built-in (não como comando de sistema). O handler do comando resolve o nome ou UUID da tabela, delega o draw a `POST /api/tables/:id/draw` e publica o resultado como `ChatMessage` do tipo `roll` via o pipeline padrão de chat.
 
@@ -479,7 +479,7 @@ export interface CardStackData {
 
 **Q-JRN-001** Qual é o tamanho máximo esperado de um documento TipTap por página? Definir limite para evitar inserção de documentos excessivamente grandes que degradem performance do servidor. Sugestão inicial: 1MB de JSON serializado.
 
-**Q-JRN-002** ~~Resolvida em REQ-JRN-027.~~ O comando `/table` usa roll mode `public` por padrão; o flag `--gm` produz `gmroll` (visível ao GM e ao autor), seguindo a tabela de roll modes de `09-chat-e-mensagens.md` D-CHT-02. Sistemas que precisam de draw privado (ex.: tabelas de crit do PF2e) devem usar `POST /api/tables/:id/draw` diretamente com o roll mode desejado, em vez de `/table` pelo chat.
+**Q-JRN-002** ~~Resolvida em REQ-JRN-027.~~ O comando `/table` usa roll mode `public` por padrão; o flag `--gm` produz `gmroll` (visível ao GM e ao autor), seguindo a tabela de roll modes de `09-chat-e-mensagens.md` DEC-CHT-02. Sistemas que precisam de draw privado (ex.: tabelas de crit do PF2e) devem usar `POST /api/tables/:id/draw` diretamente com o roll mode desejado, em vez de `/table` pelo chat.
 
 **Q-JRN-003** Permissões por `JournalEntryPage` sobrescrevem ou herdam as da `JournalEntry` pai? O modelo atual assume sobrescrita (ownership da página > ownership da entry). Confirmar com o designer de produto.
 

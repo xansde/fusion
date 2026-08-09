@@ -151,14 +151,14 @@ O objetivo primário do MVP é que um GM não-técnico consiga: baixar um único
 
 **Decisão:**
 
-- Porta padrão: **33000** (porta própria do Fusion — ver `01-arquitetura-geral.md` D7 e REQ-ARQ-022).
+- Porta padrão: **33000** (porta própria do Fusion — ver `01-arquitetura-geral.md` DEC-ARQ-07 e REQ-ARQ-022).
 - UPnP: **desabilitado por padrão** no MVP; habilitável via configuração (risco de segurança em redes corporativas).
 - Cloudflare Tunnel (`cloudflared`) integrado como opção "Compartilhar pela internet" — zero config para o GM.
 - URL de convite LAN detectada automaticamente + exibida com QR code.
 
 **Alternativas rejeitadas:**
 
-- _30000_: é a porta default do Foundry VTT. Reusá-la causaria conflito de porta para quem roda os dois apps na mesma máquina e confundiria diagnósticos de rede (ver `01-arquitetura-geral.md` D7).
+- _30000_: é a porta default do Foundry VTT. Reusá-la causaria conflito de porta para quem roda os dois apps na mesma máquina e confundiria diagnósticos de rede (ver `01-arquitetura-geral.md` DEC-ARQ-07).
 - UPnP habilitado por padrão: o Foundry usa essa abordagem, mas o risco de segurança em redes corporativas/educacionais supera a conveniência.
 - ngrok: requer conta; menos privacidade do que Cloudflare Tunnel.
 - Relay TURN próprio: requer infraestrutura; fora do escopo.
@@ -377,7 +377,7 @@ interface FusionConfig {
   dataVersion: number; // versão do schema do data directory; incrementada em migrações
 
   // Rede
-  port: number; // padrão: 33000 (ver 01-arquitetura-geral.md D7 e REQ-ARQ-022)
+  port: number; // padrão: 33000 (ver 01-arquitetura-geral.md DEC-ARQ-07 e REQ-ARQ-022)
   hostname: string; // padrão: "0.0.0.0" (ouve em todas as interfaces)
   routePrefix: string; // padrão: "" (raiz); ex.: "/fusion" para reverse proxy
   proxySSL: boolean; // true se atrás de reverse proxy com SSL

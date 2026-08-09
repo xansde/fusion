@@ -15,7 +15,7 @@
  * (within floating-point tolerance). The fog is "generous" — it may reveal
  * slightly more than the original polygon to avoid losing coverage.
  *
- * Spec: 07-visao-iluminacao-fog.md §D6, §REQ-VIS-082
+ * Spec: 07-visao-iluminacao-fog.md §DEC-VIS-06, §REQ-VIS-082
  */
 
 // ---------------------------------------------------------------------------

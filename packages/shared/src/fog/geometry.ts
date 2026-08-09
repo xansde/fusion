@@ -25,7 +25,7 @@
  *  too high — this keeps the shape conservative. For normal operation (DP
  *  alone drops below the target), no inflation is needed.
  *
- * Spec: 07-visao-iluminacao-fog.md §D6, §REQ-VIS-082
+ * Spec: 07-visao-iluminacao-fog.md §DEC-VIS-06, §REQ-VIS-082
  * REQ-VIS-106: pure geometry, no PIXI, no DOM.
  * REQ-ARQ-002: shared must NOT import from server, client, system-api.
  */

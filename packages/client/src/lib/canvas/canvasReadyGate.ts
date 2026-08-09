@@ -17,7 +17,7 @@
  * browser verification — TableScreen.svelte's $effect is a thin caller of
  * this predicate (REQ pattern: "componentes finos").
  *
- * Spec: 06-canvas-e-renderizacao.md §D1 (FusionCanvas init contract).
+ * Spec: 06-canvas-e-renderizacao.md §DEC-CNV-01 (FusionCanvas init contract).
  */
 
 /**

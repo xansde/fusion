@@ -1,7 +1,7 @@
 /**
  * TokenLayer.ts — reactive layer binding DocumentMirror → PIXI token sprites.
  *
- * Spec: 06-canvas-e-renderizacao.md §REQ-CNV-025..033, §REQ-CNV-037, §D5, §D8
+ * Spec: 06-canvas-e-renderizacao.md §REQ-CNV-025..033, §REQ-CNV-037, §DEC-CNV-05, §DEC-CNV-08
  * Spec: 05-usuarios-e-permissoes.md — hidden tokens; GM sees all
  * Spec: 04-rede-e-sincronizacao.md §REQ-NET-050/051/052 — optimistic move
  * Spec: 07-visao-iluminacao-fog.md §REQ-VIS-080 — token visibility filter

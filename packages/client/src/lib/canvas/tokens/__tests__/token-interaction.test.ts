@@ -3,7 +3,7 @@
  * and related pure helpers.
  *
  * No PIXI, no DOM. Safe under Vitest node environment.
- * Spec: 06-canvas-e-renderizacao.md §REQ-CNV-034..036, §D5
+ * Spec: 06-canvas-e-renderizacao.md §REQ-CNV-034..036, §DEC-CNV-05
  * Spec: 04-rede-e-sincronizacao.md §REQ-NET-050..052
  */
 
